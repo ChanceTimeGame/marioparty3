@@ -276,12 +276,11 @@ void func_80030414_main(HmfData30C40* arg0, s16 arg1, f32 arg2) {
     }
 }
 
-/* Logic checked against the asm block by block. Not matching (masked 134, 672 vs 692): retail
-   saves s0 for a held -0x100 (frame 8), sign-extends the 16-bit delta's high byte at the join,
-   ORs the nibble/byte sign masks from registers (here ori 0xFFF0/0xFF00), keeps a copy of the
-   entry word for the skip path's second test, and schedules the target-buffer index
-   ((unk06 + 1) & 1) after the vertex remap load. rd/d as s32/u32/s16 and split per-width
-   readers were worse. */
+/* Logic checked against the asm block by block. Not matching (masked 126, 672 vs 692): retail
+   saves s0 to hold -0x100 (frame 8) and ORs the nibble/byte sign masks from registers (here
+   ori 0xFFF0/0xFF00 on the u16 delta), sign-extends the 16-bit delta's high byte at the join,
+   and schedules the target-buffer index ((unk06 + 1) & 1) after the vertex remap load. rd/d as
+   s32/u32/s16 and split per-width readers were worse. */
 #ifdef NON_MATCHING
 /* Packed vertex animation reader: half != 0 means the next value starts at the low nibble of *p */
 #define HMF_RD4(v) \
@@ -330,7 +329,7 @@ void func_800308C0_main(HmfVtxAnimSlot* slot, HmfData30C40* arg0, HmfVtxCopyM* c
     u8* q;
     u8* ent;
     u8* p;
-    s32 e;
+    u16 e;
     s32 vi;
     s32 t;
     u16 sv;
@@ -404,19 +403,19 @@ void func_800308C0_main(HmfVtxAnimSlot* slot, HmfData30C40* arg0, HmfVtxCopyM* c
                 if (t == 0x8000) {
                     p = p + 1 + (half != 0);
                     half ^= 1;
-                } else if ((e & 0xC000) != 0x4000) {
-                    p += 6;
-                } else {
+                } else if ((e & 0xC000) == 0x4000) {
                     p += 3;
+                } else {
+                    p += 6;
                 }
             }
             t = e & 0x3000;
             if (t != 0x2000) {
-                if (t != 0x1000) {
-                    p += 3;
-                } else {
+                if (t == 0x1000) {
                     p = p + 1 + (half != 0);
                     half ^= 1;
+                } else {
+                    p += 3;
                 }
             }
         } else {
