@@ -1,3 +1,9 @@
-#include "common.h"
+/* 6DFA0: n_audio n_sndpgetstate.c (n_alSndpGetState). */
+#include "2.0L/audio/n_synthInternals.h"
 
-INCLUDE_ASM("asm/nonmatchings/6DFA0", func_8006D3A0_main);
+s32 func_8006D3A0_main(void)
+{
+    N_ALSoundState *sState = SNDP->sndState;
+
+    return sState[SNDP->target].state;
+}

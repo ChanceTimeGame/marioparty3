@@ -167,11 +167,59 @@ typedef struct N_ALAuxBus_s {
 extern N_ALGlobals *D_800A2884_main; /* n_alGlobals */
 #define n_syn (&D_800A2884_main->drvr)
 
+/* n_sndplayer */
+enum {
+    N_AL_SNDP_PLAY_EVT,
+    N_AL_SNDP_STOP_EVT,
+    N_AL_SNDP_PAN_EVT,
+    N_AL_SNDP_VOL_EVT,
+    N_AL_SNDP_PITCH_EVT,
+    N_AL_SNDP_API_EVT,
+    N_AL_SNDP_DECAY_EVT,
+    N_AL_SNDP_END_EVT,
+    N_AL_SNDP_FX_EVT
+};
+
+typedef struct {
+    /* 0x00 */ N_ALVoice voice;
+    /* 0x1C */ ALSound *sound;
+    /* 0x20 */ s16 priority;
+    /* 0x24 */ f32 pitch;
+    /* 0x28 */ s32 state;
+    /* 0x2C */ s16 vol;
+    /* 0x2E */ ALPan pan;
+    /* 0x2F */ u8 fxMix;
+} N_ALSoundState; /* size = 0x30 */
+
+typedef union {
+    ALEvent msg;
+    struct { s16 type; N_ALSoundState *state; } common;
+    struct { s16 type; N_ALSoundState *state; s16 vol; } vol;
+    struct { s16 type; N_ALSoundState *state; f32 pitch; } pitch;
+    struct { s16 type; N_ALSoundState *state; ALPan pan; } pan;
+    struct { s16 type; N_ALSoundState *state; u8 mix; } fx;
+} N_ALSndpEvent; /* size = 0x10 */
+
+
+/* The sound player is the synthesizer's n_sndp client. */
+#define SNDP ((N_ALSndPlayer *)n_syn->n_sndp)
+
 extern u8 D_800CB8AC_main; /* mono flag (Hudson's MONO PATCH) */
 
 ALParam *func_8006BBBC_main(void);              /* __n_allocParam */
 void func_8006BBE8_main(ALParam *param);        /* __n_freeParam */
 s32 func_8006BCE8_main(s32 micros);             /* _n_timeToSamples */
 s32 func_8006A9C8_main(N_PVoice *v, s32 paramId, void *param); /* n_alEnvmixerParam */
+
+/* n_synth* voice calls */
+s32 func_8006F9D0_main(N_ALVoice *voice, ALVoiceConfig *vc);  /* n_alSynAllocVoice */
+void func_8006FBB0_main(N_ALVoice *voice);                    /* n_alSynFreeVoice */
+void func_8006FD40_main(N_ALVoice *v, u8 fxmix);              /* n_alSynSetFXMix */
+void func_8006FDE0_main(N_ALVoice *v, f32 pitch);             /* n_alSynSetPitch */
+void func_8006FE70_main(N_ALVoice *v, s16 volume, ALMicroTime t); /* n_alSynSetVol */
+void func_8006FF20_main(N_ALVoice *v, ALWaveTable *table);    /* n_alSynStartVoice */
+void func_8006FFB0_main(N_ALVoice *v);                        /* n_alSynStopVoice */
+void func_80066400_main(N_ALVoice *v, u8 pan);                /* n_alSynSetPan */
+void func_8006F8BC_main(ALPlayer *client);                    /* n_alSynAddSndPlayer */
 
 #endif
