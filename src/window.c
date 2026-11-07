@@ -2499,7 +2499,47 @@ s32 func_80060880_main(s32 x, s32 y, s32 type) {
     return id;
 }
 
+/* functions.us.h declares winId s16; retail takes it as s32 (no entry extension, like
+   func_80060EA8_main). Matches, and the C path compiles, with that prototype fixed to
+   (s32, s32) (wave 2c E header patch). */
+#ifdef NON_MATCHING
+/* opens the portrait window with a growing (sine) animation */
+void func_80060C14_main(s32 winId, s32 sound) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    f32 scale;
+    s16 i;
+
+    if (!(tw->unk_38 & 0x4000)) {
+        func_800600C0_main(winId, 1);
+        if (sound != 0) {
+            if (tw->unk_38 & 0x20) {
+                HuAudFXPlay(0);
+            } else {
+                HuAudFXPlay(0x11D);
+            }
+        }
+        for (i = 0; i < 10; i++) {
+            scale = sindf(i * 10.0f) * ((f32)(tw->unk40 + 4) / tw->unk40);
+            HuSprScaleSet(tw->unk_6C, tw->unk274, scale, scale);
+            func_8005BB18_main(winId, scale, scale);
+            if (tw->unk276 != 0) {
+                HuSprScaleSet(tw->unk_6C, tw->unk276, scale, scale);
+            }
+            HuPrcVSleep();
+        }
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+        if (tw->unk276 != 0) {
+            HuSprScaleSet(tw->unk_6C, tw->unk276, 1.0f, 1.0f);
+        }
+        func_8005BB18_main(winId, 1.0f, 1.0f);
+        func_800600C0_main(winId, 0);
+        func_8005B63C_main(winId, 0x4000, 0x4000);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_80060C14_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/window", func_80060DEC_main);
 
