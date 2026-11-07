@@ -74,6 +74,14 @@ extern f32 D_800BD808_main; /* func_80054B1C_main's last view distance */
 extern s16 D_800D418E_main; /* the viewport being drawn */
 void func_80089980_main(f32 mf[4][4], Mtx *m); /* guMtxL2F */
 f32 fabsf(f32);
+f64 fmod(f64, f64);
+void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
+
+/* HuSprite fields include/game/sprite.h types otherwise: the rotation (f32), the index of the
+   current buffer in unk_128/unk_134, and the attributes as last drawn. */
+#define SPR_ROT(s) (*(f32 *)&(s)->unk_20)
+#define SPR_BUFIDX(s) (*(s32 *)&(s)->unk_120)
+#define SPR_LASTATTR(s) (*(s32 *)(s)->unk_200_pad)
 extern HuSprite *D_800BD804_main; // head of sorted draw list
 extern s16 D_800D0468_main;
 extern s16 D_800D10F2_main;
@@ -1305,7 +1313,81 @@ s16 func_8005630C_main(HuSprAnm *arg0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_800563A4_main);
+/* Steps a cel animation (MP2 AnimateSprite). */
+void func_800563A4_main(HuSprAnm* anm) {
+    HuSprite_Unk84_Struct* anim;
+    HuSprCelAnm* bank;
+    HuSprCelFrame* key;
+    s16 old;
+
+    anim = anm->unk00;
+    if (anim == NULL) {
+        return;
+    }
+    anm->unk04 &= 0x80;
+    switch (anm->unk06) {
+        case 0:
+            break;
+        case 1:
+            if (anim->unk04 == NULL) {
+                break;
+            }
+            bank = &(*anim->unk04)[anm->unk08];
+            key = &bank->unk04[anm->unk0A];
+            anm->unk0C += anm->unk10;
+            if ((s16)anm->unk0C > (s16)key->unk02) {
+                anm->unk0C = 0.0f;
+                anm->unk0A++;
+                anm->unk04 |= 4;
+                if (anm->unk0A >= bank->unk00) {
+                    anm->unk06 = 0;
+                    anm->unk04 |= 2;
+                } else if ((s16)bank->unk04[anm->unk0A].unk02 < 0) {
+                    anm->unk0A = 0;
+                    anm->unk04 |= 8;
+                }
+            }
+            anm->unk14 = key->unk00;
+            anm->unk17 = key->unk04;
+            anm->unk18 = key->unk05;
+            anm->unk16 = key->unk06;
+            anm->unk04 |= 1;
+            break;
+        case 2:
+            old = anm->unk0A;
+            anm->unk0C += anm->unk10;
+            anm->unk0A = (s32)anm->unk0C + anm->unk0A;
+            if (anm->unk0A != old) {
+                anm->unk0C -= anm->unk0A - old;
+                anm->unk04 |= 4;
+            }
+            if (anm->unk0A >= anm->unk00->unk10) {
+                anm->unk0A = 0;
+                anm->unk0C = 0.0f;
+                anm->unk04 |= 8;
+            }
+            anm->unk14 = anm->unk0A;
+            anm->unk04 |= 1;
+            break;
+        case 3:
+            old = anm->unk0A;
+            anm->unk0C += anm->unk10;
+            anm->unk0A = (s32)anm->unk0C + anm->unk0A;
+            if (anm->unk0A != old) {
+                anm->unk0C -= anm->unk0A - old;
+                anm->unk04 |= 8;
+            }
+            if (anm->unk0A < 0 || anm->unk0A >= anm->unk00->unk10) {
+                anm->unk0A = (anm->unk10 < 0.0f) ? 1 : anm->unk00->unk10 - 2;
+                anm->unk0C = 0.0f;
+                anm->unk10 = -anm->unk10;
+                anm->unk04 |= 8;
+            }
+            anm->unk14 = anm->unk0A;
+            anm->unk04 |= 1;
+            break;
+    }
+}
 
 void func_80056650_main(HuSprite *sprite) {
     HuSprAnm *anm = &sprite->unk_68;
@@ -1336,7 +1418,116 @@ void func_80056650_main(HuSprite *sprite) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80056758_main);
+/* Before drawing (MP2 func_80083748_84348, MP1 func_80068124): a sprite that is rotated, scaled or flagged for the
+   textured-quad path counts the display-list space it needs (D_800D1FDC_main), or (flag 0x8000000)
+   gets its own buffer. */
+void func_80056758_main(HuSprite* sprite) {
+    HuSprite_Unk84_Struct* anim;
+    HuSprite_Unk84_Unk00_Struct* frame;
+    s32 fmt = 0;
+    s32 siz = 0;
+    s32 w;
+    u32 lines;
+    s32 n;
+    s32 diff;
+
+    sprite->unk_24 = (u8)sprite->unk_92 ^ sprite->unk_5C;
+    if (sprite->unk_84 != NULL && !(sprite->unk_24 & 0x8000)) {
+        if (fabs(fmod(SPR_ROT(sprite), 360.0)) > 0.1f || (sprite->unk_24 & 0x3C0C00) ||
+            (sprite->unk_24 & 0x30000) == 0x30000 || (sprite->unk_24 & 0x20000000)) {
+            anim = sprite->unk_84;
+            frame = &anim->unk00[sprite->unk_90];
+            switch (anim->unk18 & 0x7FFF) {
+                case 4:
+                    fmt = 2;
+                    siz = 0;
+                    break;
+                case 8:
+                    fmt = 2;
+                    siz = 1;
+                    break;
+                case 16:
+                    fmt = 0;
+                    siz = 2;
+                    break;
+                case 24:
+                    fmt = 0;
+                    siz = 3;
+                    break;
+            }
+            w = (((frame->unk04 << siz) >> 4) << 4) >> siz;
+            if (w < frame->unk04) {
+                w += 16 >> siz;
+            }
+            switch (fmt) {
+            case 2:
+                if ((0x1000 >> siz) >= frame->unk06 * w) {
+                    lines = frame->unk06;
+                } else {
+                    lines = (0x1000 >> siz) / w;
+                }
+                break;
+            case 4:
+                lines = frame->unk06;
+                if (frame->unk06 * w > 0x1000) {
+                    lines = 0x1000 / w;
+                }
+                break;
+            default:
+                if ((0x2000 >> siz) >= frame->unk06 * w) {
+                    lines = frame->unk06;
+                } else {
+                    lines = (0x2000 >> siz) / w;
+                }
+                break;
+            }
+            n = frame->unk06 / lines;
+            sprite->unk_24 |= 0x40000000;
+            if (!(sprite->unk_24 & 0x8000000)) {
+                if (!(sprite->unk_24 & 0x2000)) {
+                    D_800D1FDC_main += (n + 2) << 5;
+                } else {
+                    D_800D1FDC_main += (n + 2) << 6;
+                }
+            } else {
+                diff = sprite->unk_24 ^ SPR_LASTATTR(sprite);
+                if (sprite->unk_124 == NULL || (diff & 0x40000000)) {
+                    sprite->unk_24 |= 0x10000000;
+                }
+                if (sprite->unk_24 & 0x10000000) {
+                    if (sprite->unk_128[SPR_BUFIDX(sprite)] != NULL) {
+                        HuMemFree(sprite->unk_128[SPR_BUFIDX(sprite)]);
+                        HuMemFree(sprite->unk_134[SPR_BUFIDX(sprite)]);
+                        sprite->unk_128[SPR_BUFIDX(sprite)] = NULL;
+                        sprite->unk_134[SPR_BUFIDX(sprite)] = NULL;
+                    }
+                    if (!(sprite->unk_24 & 0x2000)) {
+                        sprite->unk_134[SPR_BUFIDX(sprite)] = HuMemAlloc((n + 2) << 5);
+                    } else {
+                        sprite->unk_134[SPR_BUFIDX(sprite)] = HuMemAlloc((n + 2) << 6);
+                    }
+                }
+            }
+        } else {
+            sprite->unk_24 &= ~0x40000000;
+            if (sprite->unk_24 & 0x8000000) {
+                diff = sprite->unk_24 ^ SPR_LASTATTR(sprite);
+                if (sprite->unk_124 == NULL || (diff & 0x40000000)) {
+                    sprite->unk_24 |= 0x10000000;
+                }
+                if (sprite->unk_24 & 0x10000000) {
+                    if (sprite->unk_128[SPR_BUFIDX(sprite)] != NULL) {
+                        HuMemFree(sprite->unk_128[SPR_BUFIDX(sprite)]);
+                        HuMemFree(sprite->unk_134[SPR_BUFIDX(sprite)]);
+                        sprite->unk_128[SPR_BUFIDX(sprite)] = NULL;
+                        sprite->unk_134[SPR_BUFIDX(sprite)] = NULL;
+                    }
+                }
+            }
+        }
+        SPR_LASTATTR(sprite) = sprite->unk_24;
+    }
+}
 
 void func_80056BAC_main(void) {
     s16 i;
@@ -1351,7 +1542,15 @@ void func_80056BAC_main(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80056C28_main);
+void func_80056C28_main(void) {
+    f32 mf[4][4];
+    Mtx m1;
+    Mtx m2;
+
+    fmod(0.0, 0.0);
+    func_8007DFE0_main(mf, 0.0f, 0.0f, 0.0f);
+    guMtxCatL(&m1, &m2, &m1);
+}
 
 u16 func_80056C74_main(u8 **arg0) {
     u8 *p = *arg0;
