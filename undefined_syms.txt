@@ -1,5 +1,7 @@
 osTvType = 0x80000300;
 osRomBase = 0x80000308;
+osResetType = 0x8000030C;
+osAppNMIBuffer = 0x8000031C;
 
 D_801155E0_vine_with_me = 0x801155E0;
 D_801155E4_vine_with_me = 0x801155E4;
