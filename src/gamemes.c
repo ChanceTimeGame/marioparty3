@@ -122,10 +122,11 @@ typedef struct {
     /* 0x2C */ f32 unk2C;
     /* 0x30 */ u8 alpha;
     /* 0x34 */ s32 unk34;
-    /* 0x38 */ s32 unk38;
+    /* 0x38 */ u32 unk38;
 } GMesChr; // Size 0x3C
 
 extern GMesChr D_800B1BC0_main[];
+extern f32 D_800A1380_main[][2];
 s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
 
 s32 func_80036610_main(void) {
@@ -959,7 +960,99 @@ s32 func_8003843C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
 #endif
 
+// "START" letters flying in: register allocation (masked 39: the i + 1 loops, and case 0 keeps D_800B1BC0_main in a register)
+#ifdef NON_MATCHING
+s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
+    GMesChr *chr;
+    s32 n = 5;
+    s32 ret;
+    s32 i;
+    f32 scale;
+    f32 t;
+    s16 member;
+
+    ret = func_80038208_main(gMes, arg1);
+    switch (gMes->unk08) {
+        case 0:
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            for (i = 0; i < n; i++) {
+                chr = &D_800B1BC0_main[i];
+                chr->unk08 = chr->unk00 = D_800A1380_main[i][0];
+                chr->unk0C = chr->unk04 = D_800A1380_main[i][1];
+                chr->unk10 = i * 22 - (n - 1) * 11;
+                chr->unk14 = 0.0f;
+                chr->unk28 = chr->unk2C = 180.0f;
+                member = i + 1;
+                HuSprScaleSet(gMes->strGId[0], member, chr->scaleX, chr->scaleY);
+                func_80054904_main(gMes->strGId[0], member, chr->unk00, chr->unk04);
+            }
+            gMes->unk08 = 1;
+            gMes->unk0A = gMes->unk0C = 0;
+            break;
+        case 1:
+            if (gMes->unk04 > 60) {
+                gMes->unk08 = 2;
+                gMes->unk0C = 0;
+                for (i = 0; i < n;) {
+                    chr = &D_800B1BC0_main[i];
+                    chr->alpha = 0xFF;
+                    i++;
+                    func_80055458_main(gMes->strGId[0], i, 0xFF);
+                }
+            } else {
+                for (i = 0; i < n;) {
+                    chr = &D_800B1BC0_main[i];
+                    t = 0.0f;
+                    if (gMes->unk04 > (30.0f / n) * i) {
+                        if (chr->unk38 > 30) {
+                            t = 1.0f;
+                        } else {
+                            t = chr->unk38 * (1.0f / 30.0f);
+                            chr->unk38++;
+                        }
+                    }
+                    chr->unk00 = t * (chr->unk10 - chr->unk08) + chr->unk08;
+                    chr->unk04 = t * (chr->unk14 - chr->unk0C) + chr->unk0C;
+                    i++;
+                    func_80054904_main(gMes->strGId[0], i, chr->unk00, chr->unk04);
+                }
+            }
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            break;
+        case 2:
+            if (gMes->unk04 >= 90) {
+                gMes->unk08 = 5;
+                gMes->unk0A = 0;
+            }
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            if (gMes->unk0A < 6) {
+                scale = cosdf(gMes->unk0A * 15.0f);
+                gMes->unk0A++;
+            } else {
+                scale = 0.0f;
+                gMes->unk08 = 6;
+            }
+            for (i = 0; i < n;) {
+                i++;
+                HuSprScaleSet(gMes->strGId[0], i, scale, scale);
+            }
+            gMes->stat = 2;
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038934_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038D78_main);
 
