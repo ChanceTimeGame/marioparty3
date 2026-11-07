@@ -849,7 +849,115 @@ s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038208_main);
 #endif
 
+// "START" flipping in: register allocation in the i + 1 loops (masked 35: i and i + 1 swap registers, one move per loop)
+#ifdef NON_MATCHING
+s32 func_8003843C_main(GAMEMES *gMes, Gfx **arg1) {
+    GMesChr *chr;
+    s32 n = 5;
+    s32 ret;
+    s32 i;
+    f32 scale;
+    s16 member;
+
+    ret = func_80038208_main(gMes, arg1);
+    switch (gMes->unk08) {
+        case 0:
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            for (i = 0; i < n; i++) {
+                chr = &D_800B1BC0_main[i];
+                chr->unk00 = i * 22 - (n - 1) * 11;
+                chr->unk28 = 180.0f;
+                member = i + 1;
+                HuSprScaleSet(gMes->strGId[0], member, chr->scaleX, chr->scaleY);
+                func_80055458_main(gMes->strGId[0], member, chr->alpha);
+                func_80054904_main(gMes->strGId[0], member, chr->unk00, chr->unk04);
+                HuSprAttrSet(gMes->strGId[0], member, 2);
+            }
+            gMes->unk08 = 1;
+            break;
+        case 1:
+            chr = &D_800B1BC0_main[0];
+            if (gMes->unk04 > 60) {
+                for (i = 0; i < n; i++) {
+                    member = i + 1;
+                    HuSprAttrReset(gMes->strGId[0], member, 2);
+                    HuSprScaleSet(gMes->strGId[0], member, 1.0f, 1.0f);
+                }
+                gMes->unk08 = 2;
+                for (i = 0; i < n;) {
+                    chr = &D_800B1BC0_main[i];
+                    chr->alpha = 0xFF;
+                    i++;
+                    func_80055458_main(gMes->strGId[0], i, 0xFF);
+                }
+            } else if (gMes->unk04 > 10) {
+                chr->unk28 += 18.0f;
+                if (chr->unk28 > 360.0f) {
+                    chr->unk28 -= 360.0f;
+                }
+                scale = cosdf(chr->unk28);
+                if (scale < 0.0f) {
+                    scale = -scale;
+                    for (i = 0; i < n; i++) {
+                        member = i + 1;
+                        HuSprAttrSet(gMes->strGId[0], member, 2);
+                        HuSprScaleSet(gMes->strGId[0], member, 1.0f, scale);
+                    }
+                } else {
+                    for (i = 0; i < n; i++) {
+                        member = i + 1;
+                        HuSprAttrReset(gMes->strGId[0], member, 2);
+                        HuSprScaleSet(gMes->strGId[0], member, 1.0f, scale);
+                    }
+                }
+            } else {
+                for (i = 0; i < n; i++) {
+                    member = i + 1;
+                    HuSprAttrSet(gMes->strGId[0], member, 2);
+                    HuSprScaleSet(gMes->strGId[0], member, 1.0f, 1.0f);
+                }
+            }
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            break;
+        case 2:
+            if (gMes->unk04 >= 90) {
+                gMes->unk08 = 5;
+                gMes->unk0A = gMes->unk0C = 0;
+            }
+            for (i = 0; i < n; i++) {
+                member = i + 1;
+                HuSprAttrReset(gMes->strGId[0], member, 2);
+                HuSprScaleSet(gMes->strGId[0], member, 1.0f, 1.0f);
+            }
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            if (gMes->unk0A < 6) {
+                scale = cosdf(gMes->unk0A * 15.0f);
+                gMes->unk0A++;
+            } else {
+                scale = 0.0f;
+                gMes->unk08 = 6;
+            }
+            for (i = 0; i < n;) {
+                i++;
+                HuSprScaleSet(gMes->strGId[0], i, scale, scale);
+            }
+            gMes->stat = 2;
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038934_main);
 
