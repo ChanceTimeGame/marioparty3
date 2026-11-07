@@ -5,6 +5,7 @@
 #include <libaudio.h>
 #include "2.0L/audio/synthInternals.h"
 #include <PR/n_libaudio.h>
+#include "2.0L/audio/n_synthInternals.h"
 #include "include_asm.h"
 
 #define SCALE 16384
@@ -19,7 +20,26 @@ extern N_ALGlobals* D_800A2884_main; /* n_alGlobals: this copy is the n_audio li
 
 void _init_lpfilter(ALLowPass* lp);
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006E870_main);
+#define N_AL_AUX_L_OUT 1984
+#define N_AL_DIVIDED 368
+
+Acmd *func_8006A450_main(void *filter, s32 sampleOffset, Acmd *p); /* n_alEnvmixerPull */
+
+/* n_auxbus.c */
+Acmd *func_8006E870_main(s32 sampleOffset, Acmd *p)
+{
+    Acmd *ptr = p;
+    N_ALAuxBus *m = (N_ALAuxBus *)n_syn->auxBus;
+    N_PVoice **sources = m->sources;
+    s32 i;
+
+    aClearBuffer(ptr++, N_AL_AUX_L_OUT, N_AL_DIVIDED << 1);
+
+    for (i = 0; i < m->sourceCount; i++)
+        ptr = func_8006A450_main(sources[i], sampleOffset, ptr);
+
+    return ptr;
+}
 
 // Matches, but this unit is two source files (drvrnew-like, then reverb-like from func_8006F140_main):
 // the first one's .rodata is padded to 0x10, so func_8006E910_main can be C only once the unit is split
@@ -90,7 +110,42 @@ void func_8006E910_main(ALFx** fx, ALSynConfig* c, ALHeap* hp) {
 INCLUDE_ASM("asm/nonmatchings/6F470", func_8006E910_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006ECFC_main);
+/* n_drvrNew.c n_alPVoiceNew */
+void func_8006ECFC_main(N_PVoice *mv, ALDMANew dmaNew, ALHeap *hp)
+{
+    mv->dc_state = alHeapAlloc(hp, 1, sizeof(ADPCM_STATE));
+    mv->dc_lstate = alHeapAlloc(hp, 1, sizeof(ADPCM_STATE));
+    mv->dc_dma = dmaNew(&mv->dc_dmaState);
+    mv->dc_lastsam = 0;
+    mv->dc_first = 1;
+    mv->dc_memin = 0;
+
+    mv->rs_state = alHeapAlloc(hp, 1, sizeof(RESAMPLE_STATE));
+    mv->rs_delta = 0.0;
+    mv->rs_first = 1;
+    mv->rs_ratio = 1.0;
+    mv->rs_upitch = 0;
+
+    mv->em_state = alHeapAlloc(hp, 1, sizeof(ENVMIX_STATE));
+    mv->em_first = 1;
+    mv->em_motion = AL_STOPPED;
+    mv->em_volume = 1;
+    mv->em_ltgt = 1;
+    mv->em_rtgt = 1;
+    mv->em_cvolL = 1;
+    mv->em_cvolR = 1;
+    mv->em_dryamt = 0;
+    mv->em_wetamt = 0;
+    mv->em_lratm = 1;
+    mv->em_lratl = 0;
+    mv->em_lratm = 1;
+    mv->em_lratl = 0;
+    mv->em_delta = 0;
+    mv->em_segEnd = 0;
+    mv->em_pan = 0;
+    mv->em_ctrlList = 0;
+    mv->em_ctrlTail = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/6F470", func_8006EE30_main);
 
