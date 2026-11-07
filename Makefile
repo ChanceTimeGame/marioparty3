@@ -294,3 +294,4 @@ print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
 # batch 1 L2
 L2_O3_UNITS := $(patsubst %,build/src/2.0L/%.c.o,$(L2_O3))
 $(L2_O3_UNITS): OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/libc/xldtob.c.o: OPTFLAGS = -O3  # signed char (MP2 B0360)
