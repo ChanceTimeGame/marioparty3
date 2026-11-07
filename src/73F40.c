@@ -2,26 +2,26 @@
 
 INCLUDE_ASM("asm/nonmatchings/73F40", osAiSetNextBuffer);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_800733E0_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", _init_lpfilter);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073484_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alFxNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_8007391C_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alEnvmixerNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_800739D4_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alLoadNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073A84_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alResampleNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073B10_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alAuxBusNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073B6C_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alMainBusNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073BC8_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alSaveNew);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80073C10_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alAdpcmPull);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_80074054_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alRaw16Pull);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_800743F0_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", alLoadParam);
 
-INCLUDE_ASM("asm/nonmatchings/73F40", func_8007459C_main);
+INCLUDE_ASM("asm/nonmatchings/73F40", _decodeChunk);

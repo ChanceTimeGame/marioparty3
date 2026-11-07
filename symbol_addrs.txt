@@ -1029,8 +1029,6 @@ alCents2Ratio = 0x80078B40; //rom:0x79740
 //cseq.c
 //something odd here. __alCSeqNextDelta is much later in ram for some reason -
 //but it's in the same TU?
-//alCSeqNew = 0x8006E030; //rom:0x6EC30
-//alCSeqNextEvent = 0x8006E13C; //rom:0x6ED3C
 
 
 //synremoveplayer.c
@@ -1620,3 +1618,87 @@ D_800C9500_main = 0x800C9500; //size:0x4
 
 D_8010B018_mgresultboard = 0x8010B018; //size:0x30 segment:mgresultboard
 D_8010B048_mgresultboard = 0x8010B048; //size:0x30 segment:mgresultboard
+
+// batch 1 L1: libultra audio/gu names from MP1 src/lib/2.0I
+alCSeqNew = 0x8006E030;
+alCSeqNextEvent = 0x8006E13C;
+__alCSeqGetTrackEvent = 0x8006E230;
+alCSeqNewMarker = 0x8006E4A0;
+__getTrackByte = 0x8006E738;
+__readVarLen = 0x8006E7F0;
+alAdpcmPull = 0x80073C10;
+alRaw16Pull = 0x80074054;
+alLoadParam = 0x800743F0;
+_decodeChunk = 0x8007459C;
+alEvtqNew = 0x800757B0;
+alEvtqNextEvent = 0x8007582C;
+alEvtqFlush = 0x800759D0;
+alEvtqFlushType = 0x80075A48;
+alResamplePull = 0x80075C90;
+alResampleParam = 0x80075E7C;
+alHeapInit = 0x80077250;
+alHeapDBAlloc = 0x80077290;
+alCopy = 0x800772E0;
+alAudioFrame = 0x800780AC;
+__allocParam = 0x8007825C;
+__freeParam = 0x80078288;
+_collectPVoices = 0x800782A0;
+_freePVoice = 0x800782F4;
+_timeToSamplesNoRound = 0x80078334;
+_timeToSamples = 0x8007837C;
+__nextSampleTime = 0x800783C8;
+alSynFreeVoice = 0x80078480;
+alSynAllocVoice = 0x80078520;
+_allocatePVoice = 0x80078648;
+alSynStopVoice = 0x80078700;
+alSynStartVoice = 0x80078780;
+alSynSetPitch = 0x80078820;
+alSynSetVol = 0x800788B0;
+alSynSetFXMix = 0x80078970;
+guLookAtReflectF = 0x8007A5F0;
+guLookAtReflect = 0x8007AB68;
+guRandom = 0x8007B1E0;
+guRotateRPYF = 0x8007B210;
+guRotateRPY = 0x8007B398;
+guMtxCatL = 0x8007E040;
+_init_lpfilter = 0x800733E0;
+alFxNew = 0x80073484;
+alEnvmixerNew = 0x8007391C;
+alLoadNew = 0x800739D4;
+alResampleNew = 0x80073A84;
+alAuxBusNew = 0x80073B10;
+alMainBusNew = 0x80073B6C;
+alSaveNew = 0x80073BC8;
+alEnvmixerPull = 0x80074B00;
+alEnvmixerParam = 0x80075000;
+_pullSubFrame = 0x800750D4;
+_frexpf = 0x800753A8;
+_ldexpf = 0x80075488;
+_getRate = 0x800754AC;
+_getVol = 0x8007572C;
+alFilterNew = 0x80075B00;
+alMainBusPull = 0x80075B20;
+alMainBusParam = 0x80075C60;
+alFxPull = 0x80075F40;
+alFxParamHdl = 0x800762C8;
+_loadOutputBuffer = 0x800764B8;
+_loadBuffer = 0x800766D0;
+_saveBuffer = 0x80076840;
+_filterBuffer = 0x800769B0;
+_doModFunc = 0x80076A4C;
+alSavePull = 0x80076AE0;
+alSaveParam = 0x80076B88;
+alSeqNew = 0x80076BB0;
+alSeqNextEvent = 0x80076C98;
+__alSeqNextDelta = 0x80076E00;
+alSeqTicksToSec = 0x80076E68;
+alSeqSecToTicks = 0x80076ED0;
+alSeqNewMarker = 0x80076F60;
+alSeqSetLoc = 0x8007707C;
+alSeqGetLoc = 0x80077098;
+read16 = 0x800770C8;
+read32 = 0x800770F8;
+readVarLen = 0x80077148;
+alSynAllocFX = 0x80078AA0;
+alFxParam = 0x800762B4;
+guMtxCatF = 0x8007DE20;

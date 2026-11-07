@@ -1,3 +1,34 @@
-#include "common.h"
+/**************************************************************************
+ *									  *
+ *		 Copyright (C) 1995, Silicon Graphics, Inc.		  *
+ *									  *
+ *  These coded instructions, statements, and computer programs  contain  *
+ *  unpublished  proprietary  information of Silicon Graphics, Inc., and  *
+ *  are protected by Federal copyright law.  They  may  not be disclosed  *
+ *  to  third  parties  or copied or duplicated in any form, in whole or  *
+ *  in part, without the prior written consent of Silicon Graphics, Inc.  *
+ *									  *
+ **************************************************************************/
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/gu/random", func_8007B1E0_main);
+#include "guint.h"
+
+/*
+ *  Return a pseudorandom 32 bit number
+ *  try the RAND macro too
+ *   
+ */
+extern unsigned int D_800A2D60_main;
+int guRandom(void)
+{
+    // static unsigned int D_800A2D60_main = 174823885; TODO: Add this to data section?
+    unsigned int x;
+
+    x = (D_800A2D60_main<<2) + 2;
+
+    x *= (x+1);
+    x = x >> 2;
+
+    D_800A2D60_main = x;
+
+    return( x );
+}

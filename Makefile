@@ -183,6 +183,44 @@ build/src/2.0L/os/sendmesg.c.o: OPTFLAGS = -O2
 build/src/88CF0.c.o: OPTFLAGS = -O2
 build/src/88CF0.c.o: CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_LANGUAGE_C -Wa,--force-n64align
 
+# batch 1 L1: MP1 src/lib flags (-O3 -funsigned-char)
+build/src/2.0L/gu/cosf.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/lookat.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/lookatref.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/mtxcatl.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/perspective.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/random.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/rotaterpy.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/gu/sinf.c.o: OPTFLAGS = -O3 -funsigned-char
+
+build/src/2.0L/audio/auxbus.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/bnkf.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/cents2ratio.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/copy.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/cseq.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/cspgetchlvol.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/drvrnew.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/env.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/event.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/filter.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/heapalloc.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/heapinit.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/load.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/mainbus.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/resample.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/reverb.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/save.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/seq.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synallocfx.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synallocvoice.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synfreevoice.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synsetfxmix.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synsetpitch.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synsetvol.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synstartvoice.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synstopvoice.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synthesizer.c.o: OPTFLAGS = -O3 -funsigned-char
+
 # Files that have scommon
 build/src/2.0L/gu/lookathil.c.o: CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_LANGUAGE_C -Wa,--force-n64align
 build/src/gamemes.c.o: CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_LANGUAGE_C -Wa,--force-n64align
