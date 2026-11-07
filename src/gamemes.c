@@ -2,6 +2,7 @@
 #include "game/audio.h"
 #include "game/sprite.h"
 #include "stdarg.h"
+#include "game/data.h"
 #include "include_asm.h"
 
 f32 sindf(f32);
@@ -89,6 +90,11 @@ extern s16 D_800B1B50_main[];
 extern s16 D_800B1B70_main[];
 extern GAMEMES gMesData[];
 extern s32 omovl;
+extern u16 D_800D530C_main;
+extern s8 D_800D6A58_main;
+extern u16 D_800D1100_main;
+
+unsigned int strlen(const char *);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80036610_main);
 
@@ -384,13 +390,27 @@ s32 GMesStatGet(void) {
     return stat;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_800370A4_main);
+u8 func_800370A4_main(s16 mesId) {
+    return gMesData[mesId].stat;
+}
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_800370D0_main);
+void func_800370D0_main(s16 mesId, s16 time) {
+    if (time == -1) {
+        time = 0x7FFF;
+    }
+    gMesData[mesId].unk06 = time;
+}
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80037114_main);
+void func_80037114_main(s16 mesId, f32 x, f32 y) {
+    gMesData[mesId].unk60 = x;
+    gMesData[mesId].unk64 = y;
+}
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003714C_main);
+void func_8003714C_main(s16 mesId) {
+    if (gMesData[mesId].stat != GMES_STAT_NONE) {
+        gMesData[mesId].stat = 4;
+    }
+}
 
 void GMesClose(void) {
     gMesTimerId = -1;
@@ -401,9 +421,24 @@ void GMesClose(void) {
     D_800B1A52_main = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_800371DC_main);
+s32 func_800371DC_main(void) {
+    s32 stat;
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003724C_main);
+    if (HmfPauseF == 0 && D_800D530C_main == 0) {
+        stat = GMesStatGet();
+        if (stat == 0 || stat & 2) {
+            D_800B1A54_main--;
+            if (D_800B1A54_main < 0) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+void func_8003724C_main(s16 time) {
+    D_800B1A54_main = time;
+}
 
 void func_80037258_main(void) {
     s16 i;
@@ -486,11 +521,22 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_80039A6C_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80039E80_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A2EC_main);
+s32 func_8003A2EC_main(GAMEMES *gMes, Gfx **arg1) {
+    return func_80039E80_main(gMes, arg1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A308_main);
+s16 func_8003A37C_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4);
 
-void func_8003A37C_main(GAMEMES *gMes, const char *, s32, s32, s32);
+s16 func_8003A308_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4) {
+    s16 i;
+
+    for (i = 0; i < 16; i++) {
+        gMes->strGId[i] = -1;
+        gMes->strSprId[i] = -1;
+    }
+    return func_8003A37C_main(gMes, str, flag, x, arg4);
+}
+
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A37C_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A3C4_main);
@@ -501,15 +547,72 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A9C8_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AC9C_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AE44_main);
+s16 func_8003AE44_main(s16 arg0) {
+    void *data = DataReadTemp(arg0 | 0xC0000);
+    s16 ret = func_80055810_main(data);
+
+    DataCloseTemp(data);
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AE9C_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003B128_main);
+void func_8003B128_main(GAMEMES *gMes) {
+    GMesSprKill(gMes);
+    func_80037258_main();
+}
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003B14C_main);
+s32 func_8003B4D8_main(GAMEMES *gMes, s32 fileId, s16 sound);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003B170_main);
+s32 func_8003B14C_main(GAMEMES *gMes, Gfx **arg1) {
+    return func_8003B4D8_main(gMes, 0xC0090, 0x253);
+}
+
+s32 func_8003B170_main(GAMEMES *gMes, char *str, s16 sound) {
+    f64 var_f2;
+    f32 temp_f24;
+    f32 temp_f30;
+    f32 i;
+
+    var_f2 = strlen(str);
+    temp_f30 = var_f2;
+
+    if (gMes->unk04 == 0) {
+        func_8003A37C_main(gMes, str, 1, -1, -1);
+        func_80054904_main(gMes->strGId[0], 0, 160, gMes->unk64);
+        gMes->unk08 = -1000;
+        gMes->unk0A = 300;
+        HuAudFXPlay(sound);
+        D_800D6A58_main = 1;
+        D_800D1100_main = 0;
+    }
+
+    if (gMes->unk04 > gMes->unk06 || gMesCloseF != 0 || gMes->stat == 4) {
+        GMesSprKill(gMes);
+        return 0;
+    }
+
+    if (gMes->unk04 > gMes->unk06 - 10) {
+        gMes->stat = 2;
+        temp_f24 = gMes->unk04 - (gMes->unk06 - 10);
+
+        for (i = 0.0f; i < temp_f30; i++) {
+            HuSprScaleSet(gMes->strGId[0], i + 1.0f, 1.8f - temp_f24 / 6.0f, 1.8f - temp_f24 / 6.0f);
+            func_80055458_main(gMes->strGId[0], i + 1.0f, 255.0f - temp_f24 * 25.5f);
+        }
+
+        gMes->unk08 += gMes->unk0A;
+        gMes->unk64 += gMes->unk08 / 100.0f;
+
+        func_80054904_main(gMes->strGId[0], 0, 160, gMes->unk64);
+    } else {
+        for (i = 0.0f; i < temp_f30; i++) {
+            HuSprScaleSet(gMes->strGId[0], i + 1.0f, 1.8f, 1.8f);
+        }
+    }
+
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003B4D8_main);
 
