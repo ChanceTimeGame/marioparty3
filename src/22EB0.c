@@ -2223,7 +2223,53 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002E8E8_main);
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002EAC0_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002F60C_main);
+#define B4_DUR(p, k) (((s16*) (p)->unk08)[k])
+#define B4_COL(p, k) ((u8*) (p)->unk0C + (k) * 4)
+
+s32 func_8002F60C_main(HmfObj* arg0) {
+    HmfAnimTrack* p;
+    s16 frame;
+    s16 sum;
+    s16 rem;
+    s16 i;
+    s16 j;
+    s16 k;
+    f32 d;
+
+    for (i = 0; i < arg0->unk9C->unk00; i++) {
+        p = &arg0->unk9C->unk0C[i];
+        frame = arg0->unk9C->unk08;
+        sum = 0;
+        for (k = 0; k < p->unk02; k++) {
+            sum += B4_DUR(p, k);
+            if (sum >= frame) {
+                break;
+            }
+        }
+        if (k < p->unk02 - 1) {
+            rem = frame - (sum - B4_DUR(p, k));
+            d = B4_COL(p, k)[4] - B4_COL(p, k)[0];
+            arg0->unk8C[p->unk00].unk05[0] = B4_COL(p, k)[0] + d / B4_DUR(p, k) * rem;
+            d = B4_COL(p, k)[5] - B4_COL(p, k)[1];
+            arg0->unk8C[p->unk00].unk05[1] = B4_COL(p, k)[1] + d / B4_DUR(p, k) * rem;
+            d = B4_COL(p, k)[6] - B4_COL(p, k)[2];
+            arg0->unk8C[p->unk00].unk05[2] = B4_COL(p, k)[2] + d / B4_DUR(p, k) * rem;
+            d = B4_COL(p, k)[7] - B4_COL(p, k)[3];
+            d = B4_COL(p, k)[3] + d / B4_DUR(p, k) * rem;
+        } else {
+            arg0->unk8C[p->unk00].unk05[0] = B4_COL(p, k)[0];
+            arg0->unk8C[p->unk00].unk05[1] = B4_COL(p, k)[1];
+            arg0->unk8C[p->unk00].unk05[2] = B4_COL(p, k)[2];
+            d = B4_COL(p, k)[3];
+        }
+        for (j = 0; j < arg0->unk10; j++) {
+            if (arg0->unk64[j].unk00 == p->unk00) {
+                arg0->unk64[j].unk02 = d;
+            }
+        }
+    }
+    return 1;
+}
 
 extern f32 D_800D2120_main;
 extern s16 D_800A1160_main;
@@ -2292,6 +2338,36 @@ void func_8002FDCC_main(s16 arg0, s16 arg1, char* arg2, s16 arg3, s16 arg4) {
     ((void (*)()) func_8002FE08_main)(arg0, arg1, arg2, arg3, arg4, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FE08_main);
+void func_8002FE08_main(s16 arg0, s16 arg1, char* arg2, s16 arg3, u16 arg4, u16 arg5) {
+    HmfMotionSlot* slot;
+    HmfObj* hmf;
+    HmfMotionTrack* e;
+    s16 part;
+    s16 i;
+    s16 j;
+
+    slot = &MOTION_SLOTS[arg1];
+    hmf = (HmfObj*) HmfModelData[arg0].hmf;
+    part = func_8002C834_main(hmf, arg2);
+
+    for (i = 0; i < hmf->unk16; i++) {
+        for (j = 0; j < hmf->unk84[i].unk00; j++) {
+            if (hmf->unk84[i].unk50[j] == part) {
+                break;
+            }
+        }
+        if (j != hmf->unk84[i].unk00) {
+            break;
+        }
+    }
+
+    for (j = 0; j < slot->unk00; j++) {
+        e = slot->unk08[j];
+        if ((e->unk_08 & 0x7FFF) == i && e->unk_00 == arg3 && e->unk_01 == (s16) arg4) {
+            e->unk_04 = arg5 | (e->unk_04 & 0x7FFF);
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80030030_main);
