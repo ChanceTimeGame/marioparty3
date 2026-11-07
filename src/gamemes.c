@@ -128,6 +128,7 @@ typedef struct {
 extern GMesChr D_800B1BC0_main[];
 extern f32 D_800A1380_main[][2];
 s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
+s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
 
 s32 func_80036610_main(void) {
     return GwSystem.minigame_index;
@@ -1580,7 +1581,9 @@ s16 func_8003A308_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4) {
     return func_8003A37C_main(gMes, str, flag, x, arg4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A37C_main);
+s16 func_8003A37C_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4) {
+    return func_8003A3C4_main(gMes, str, flag, x, arg4, 1.0f, 1.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A3C4_main);
 
