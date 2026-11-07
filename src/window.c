@@ -513,7 +513,43 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
 INCLUDE_ASM("asm/nonmatchings/window", func_8005A968_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005B040_main);
+extern u8 D_800A2324_main[8]; /* corner pixels (4-bit pairs), two bytes per corner line */
+
+/* window image border: frame lines and rounded corners (4-bit, two pixels per byte) */
+void func_8005B040_main(u8* mask, s16 w, s16 h) {
+    s16 stride = w / 2;
+    s16 i;
+    s16 j;
+    s16 k;
+    u8 c0;
+    u8 c1;
+
+    for (i = 0; i < stride; i++) {
+        mask[i] = 0x44;
+        (mask + stride)[i] = 0x77;
+        (mask + (h - 2) * stride)[i] = 0x77;
+        (mask + (h - 1) * stride)[i] = 0x44;
+    }
+
+    for (j = 0; j < h; j++) {
+        mask[stride * j] = 0x47;
+        *(mask + stride * j + stride - 1) = 0x74;
+    }
+
+    for (j = 0; j < 4; j++) {
+        k = j * 2;
+        mask[j * stride] = D_800A2324_main[k];
+        mask[j * stride + 1] = D_800A2324_main[k + 1];
+        mask[(h - j - 1) * stride] = D_800A2324_main[k];
+        mask[(h - j - 1) * stride + 1] = D_800A2324_main[k + 1];
+        c0 = (D_800A2324_main[k] >> 4) | (D_800A2324_main[k] << 4);
+        c1 = (D_800A2324_main[k + 1] >> 4) | (D_800A2324_main[k + 1] << 4);
+        mask[j * stride + stride - 2] = c1;
+        mask[j * stride + stride - 1] = c0;
+        mask[(h - j - 1) * stride + stride - 2] = c1;
+        mask[(h - j - 1) * stride + stride - 1] = c0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/window", func_8005B238_main);
 
