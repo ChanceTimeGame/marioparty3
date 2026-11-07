@@ -2502,7 +2502,6 @@ s32 func_80060880_main(s32 x, s32 y, s32 type) {
 /* functions.us.h declares winId s16; retail takes it as s32 (no entry extension, like
    func_80060EA8_main). Matches, and the C path compiles, with that prototype fixed to
    (s32, s32) (wave 2c E header patch). */
-#ifdef NON_MATCHING
 /* opens the portrait window with a growing (sine) animation */
 void func_80060C14_main(s32 winId, s32 sound) {
     TextWindow* tw = &D_800CC69C_main[winId];
@@ -2537,9 +2536,6 @@ void func_80060C14_main(s32 winId, s32 sound) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/window", func_80060C14_main);
-#endif
 
 /* shows the portrait window at full size at once */
 void func_80060DEC_main(s32 winId) {

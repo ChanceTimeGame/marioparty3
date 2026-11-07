@@ -1787,15 +1787,7 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_800257BC_main);
 
 /* wave 2c C */
 /* A batch of faces drawn with one material and texture (MP2 HmfDrawFace) */
-typedef struct HmfDrawFace {
-    /* 0x00 */ s16 unk00; /* 3: triangle, else quadrangle */
-    /* 0x02 */ s16 unk02[4];
-    /* 0x0A */ char unk0A[2];
-    /* 0x0C */ HmfMat* unk0C;
-    /* 0x10 */ HmfTexRef* unk10;
-} HmfDrawFace; /* size 0x14 */
-
-extern HmfDrawFace D_800CD6B0_main[];
+/* HmfDrawFace and D_800CD6B0_main: declared in the wave 2c D block above */
 extern s16 D_800D0A44_main;
 extern s32 D_800B19F4_main;
 extern s16 D_800CDD66_main;
