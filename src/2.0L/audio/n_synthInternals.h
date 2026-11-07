@@ -7,6 +7,87 @@
 #include "2.0L/audio/synthInternals.h"
 #include <PR/n_libaudio.h>
 
+/* n_abi.h command macros */
+#define	n_aADPCMdec(pkt, s, f, c, a, d)					\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_ADPCM, 24, 8) | _SHIFTL(s, 0, 24));   \
+	_a->words.w1 = (_SHIFTL(f, 28, 4) | _SHIFTL(c, 16, 12) |        \
+			_SHIFTL(a, 12, 4) | _SHIFTL(d, 0, 12));         \
+}
+
+#define n_aPoleFilter(pkt, f, g, t, s)					\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_POLEF, 24, 8) | _SHIFTL(f, 16, 8) |	\
+			_SHIFTL(g, 0, 16)); 				\
+	_a->words.w1 = (_SHIFTL(t, 24, 8) |                             \
+			_SHIFTL((unsigned int)(s), 0, 24));		\
+}
+
+#define n_aEnvMixer(pkt, f, t, s)						\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_ENVMIXER, 24, 8) | _SHIFTL(f, 16, 8) |\
+			_SHIFTL(t, 0, 16));                     	\
+	_a->words.w1 = (unsigned int)(s);				\
+}
+
+#define n_aInterleave(pkt)						\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = _SHIFTL(A_INTERLEAVE, 24, 8);    		\
+}
+
+#define n_aLoadBuffer(pkt, c, d, s)						\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_LOADBUFF, 24, 8) | _SHIFTL(c, 12, 12)|\
+			_SHIFTL(d, 0, 12));                             \
+	_a->words.w1 = (unsigned int)(s);				\
+}
+
+#define n_aResample(pkt, s, f, p, i, o)					\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_RESAMPLE, 24, 8) | _SHIFTL(s, 0, 24));\
+	_a->words.w1 = (_SHIFTL(f, 30, 2) | _SHIFTL(p, 14, 16) |        \
+			_SHIFTL(i, 2, 12) | _SHIFTL(o, 0, 2));          \
+}
+
+#define n_aSaveBuffer(pkt, c, d, s)					\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_SAVEBUFF, 24, 8) | _SHIFTL(c, 12, 12)|\
+			_SHIFTL(d, 0, 12));                             \
+	_a->words.w1 = (unsigned int)(s);				\
+}
+
+#define n_aSetVolume(pkt, f, v, t, r)					\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = (_SHIFTL(A_SETVOL, 24, 8) | _SHIFTL(f, 16, 8) |	\
+			_SHIFTL(v, 0, 16)); 				\
+	_a->words.w1 = _SHIFTL(t, 16, 16) | _SHIFTL(r, 0, 16);		\
+}
+
+#define n_aLoadADPCM(pkt, c, d)						\
+{									\
+	Acmd *_a = (Acmd *)pkt;						\
+									\
+	_a->words.w0 = _SHIFTL(A_LOADADPCM, 24, 8) | _SHIFTL(c, 0, 24);	\
+        _a->words.w1 = (unsigned int) d;                                \
+}
+
+
 typedef struct N_PVoice_s {
     /* 0x00 */ ALLink node;
     /* 0x08 */ struct N_ALVoice_s *vvoice;
@@ -50,6 +131,14 @@ typedef struct N_PVoice_s {
     /* 0x84 */ s32 em_motion;
     /* 0x88 */ s32 offset;
 } N_PVoice; /* size = 0x8C */
+
+#define SAMPLES 184
+#define SAMPLE184(delta) ((((delta) + (SAMPLES / 2)) / SAMPLES) * SAMPLES)
+#define FIXED_SAMPLE SAMPLES
+#define N_AL_MAX_RSP_SAMPLES 184
+#ifndef SQR
+#define SQR(x) ((x) * (x))
+#endif
 
 extern N_ALGlobals *D_800A2884_main; /* n_alGlobals */
 #define n_syn (&D_800A2884_main->drvr)
