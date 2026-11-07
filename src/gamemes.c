@@ -132,6 +132,7 @@ s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 s
 u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
 s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
+s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width);
 s16 func_8003AE44_main(s16 arg0);
 extern u8 D_800A1334_main[];
 extern u8 D_800A136C_main[];
@@ -1866,7 +1867,83 @@ s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame) {
     return 3;
 }
 
+/* As func_8003A9C8_main, but returns the character's advance width in *width; flag bit 0 is the
+   large font. Unused. */
+// masked 37 (5 instructions short): retail keeps the empty case 0x84 as the switch-tree root and copies flag; same logic
+#ifdef NON_MATCHING
+s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width) {
+    s32 c;
+    u8 next;
+    s32 w;
+
+    c = str[0];
+    next = str[1];
+    w = 15;
+    if (flag & 1) {
+        w = 22;
+    }
+    *width = w;
+    if (c >= 'A' && c <= 'Z') {
+        *width = w;
+        return 0;
+    }
+    if (c >= 'a' && c <= 'z') {
+        *width = 10;
+        return 1;
+    }
+    if (c >= '0' && c <= '9') {
+        *width = w;
+        return 2;
+    }
+    if (arg1 == 0) {
+        if (c >= 0x86 && c < 0xBE) {
+            if ((u8)(next + 0x80) < 2) {
+                *width = w;
+                return 5;
+            }
+            *width = w;
+            return 4;
+        }
+        if (c >= 0xC6 && c < 0xFE) {
+            if ((u8)(next + 0x80) < 2) {
+                *width = w;
+                return 7;
+            }
+            *width = w;
+            return 6;
+        }
+    } else {
+        if (c >= 0x90 && c < 0xB0) {
+            *width = w;
+            return 8;
+        }
+        if (c >= 0xD0 && c < 0xF0) {
+            *width = w;
+            return 8;
+        }
+    }
+    switch ((u16)c) {
+        case 0x84:
+            break;
+        case '=':
+            break;
+        case '}':
+            break;
+        case 0x10:
+        case ' ':
+            *width = (flag & 1) ? 8 : 11;
+            break;
+        case '\\':
+            if (*str == '\\') {
+                *width = (flag & 1) ? 4 : 8;
+            }
+            break;
+    }
+    return 3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AC9C_main);
+#endif
 
 s16 func_8003AE44_main(s16 arg0) {
     void *data = DataReadTemp(arg0 | 0xC0000);
@@ -2242,6 +2319,7 @@ s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 s
 u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
 s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
+s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width);
 s16 func_8003AE44_main(s16 arg0);
 extern u8 D_800A1334_main[];
 extern u8 D_800A136C_main[];
