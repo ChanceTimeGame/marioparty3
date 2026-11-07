@@ -2225,11 +2225,45 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002EAC0_main);
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002F60C_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FB08_main);
+extern f32 D_800D2120_main;
+extern s16 D_800A1160_main;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FB98_main);
+void func_8002FB08_main(HmfObj* arg0, f32 arg1) {
+    if (!(arg0->unk9C->unk02 & 1)) {
+        arg0->unk9C->unk08 += arg1 * D_800D2120_main;
+        if (arg0->unk9C->unk04 <= arg0->unk9C->unk08) {
+            if (arg0->unk9C->unk02 & 2) {
+                arg0->unk9C->unk08 = 0.0f;
+            } else {
+                arg0->unk9C->unk08 = arg0->unk9C->unk04;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FC14_main);
+
+void func_8002FB98_main(HmfObj* arg0, f32 arg1) {
+    arg0->unkA4 += arg1 * D_800D2120_main;
+    if (((HmfMotionSlot*) arg0->unk90)->unk02 <= arg0->unkA4) {
+        if (D_800A1160_main != 0) {
+            arg0->unkA4 = 0.0f;
+        } else {
+            arg0->unkA4 = ((HmfMotionSlot*) arg0->unk90)->unk02;
+        }
+    }
+}
+
+
+void func_8002FC14_main(HmfObj* arg0, f32 arg1) {
+    arg0->unkA4 -= arg1 * D_800D2120_main;
+    if (arg0->unkA4 < 0.0f) {
+        if (D_800A1160_main != 0) {
+            arg0->unkA4 = ((HmfMotionSlot*) arg0->unk90)->unk02;
+        } else {
+            arg0->unkA4 = 0.0f;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FC7C_main);
 
@@ -2237,13 +2271,26 @@ void func_8002FD48_main(HmfData *arg0) {
     arg0->unkA0 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FD50_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FD70_main);
+void func_8002FD50_main(HmfObj* arg0) {
+    arg0->unkA4 = ((HmfMotionSlot*) arg0->unk90)->unk02 - 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FD8C_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FDCC_main);
+s16 func_8002FD70_main(HmfObj* arg0) {
+    return arg0->unkA4;
+}
+
+void func_8002FE08_main(s16, s16, char*, s16, u16, u16);
+
+void func_8002FD8C_main(s16 arg0, s16 arg1, char* arg2, s16 arg3, s16 arg4) {
+    ((void (*)()) func_8002FE08_main)(arg0, arg1, arg2, arg3, arg4, -0x8000);
+}
+
+
+void func_8002FDCC_main(s16 arg0, s16 arg1, char* arg2, s16 arg3, s16 arg4) {
+    ((void (*)()) func_8002FE08_main)(arg0, arg1, arg2, arg3, arg4, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FE08_main);
 
