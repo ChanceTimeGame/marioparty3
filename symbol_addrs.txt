@@ -1758,3 +1758,6 @@ __readVarLen = 0x80077D6C;
 // batch 1 G: 72750 = libleo LeoBootGame (MP1 src/83490.c)
 LeoBootGame = 0x80071B50;
 __LeoBootGame2 = 0x80071C8C;
+
+// wave 2a D: hmfman (MP2 src/274D0.c): the scratch model for motion-only files (MP2 D_800F8438_F9038)
+D_800CB8C0_main = 0x800CB8C0; // size:0xDC

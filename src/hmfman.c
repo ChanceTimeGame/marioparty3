@@ -62,7 +62,7 @@ extern s16 D_800C9932_main;
 extern s32 D_800C9940_main;
 extern u16 D_800CBB72_main[];
 extern s8 D_800CC0A8_main;
-extern s32 D_800CC3D8_main[];
+extern void* D_800CC3D8_main[];
 extern u16 D_800CD2F6_main;
 extern s16 D_800CDD6A_main;
 extern u8 D_800CE19A_main;
@@ -116,6 +116,35 @@ typedef struct HmfFaceM {
     /* 0x14 */ f32 unk14;
 } HmfFaceM; /* size 0x18 */
 
+typedef struct HmfTexM {
+    /* 0x00 */ char unk00[0x22]; /* name */
+    /* 0x22 */ u16 unk22;        /* name hash (MP2 0x24) */
+    /* 0x24 */ char unk24[0x10];
+} HmfTexM; /* size 0x34 */
+
+typedef struct HmfTexRefM {
+    /* 0x00 */ char unk00[0xC];
+    /* 0x0C */ HmfTexM* unk0C;
+} HmfTexRefM; /* size 0x10 */
+
+/* A part's face (HmfPartM.unk54) */
+typedef struct HmfFaceRecM {
+    /* 0x00 */ u8 unk00; /* vertex count | 0x80 unlit */
+    /* 0x01 */ s8 unk01[3]; /* normal */
+    /* 0x04 */ s16 unk04[4]; /* vertices */
+    /* 0x0C */ f32 unk0C[4]; /* s */
+    /* 0x1C */ f32 unk1C[4]; /* t */
+    /* 0x2C */ u8 unk2C[4];
+    /* 0x30 */ s16 unk30;
+    /* 0x32 */ s16 unk32;
+} HmfFaceRecM; /* size 0x34 */
+
+typedef struct HmfMatM {
+    /* 0x00 */ u8 unk00[9];
+    /* 0x09 */ u8 unk09; /* flags (MP2 0x0C) */
+    /* 0x0A */ u8 unk0A; /* MP2 0x0D */
+} HmfMatM; /* size 0xB (MP2 0xE) */
+
 typedef struct HmfDataM {
     /* 0x00 */ u8 unk00;
     /* 0x01 */ u8 unk01;
@@ -145,7 +174,7 @@ typedef struct HmfDataM {
     /* 0x24 */ char unk24[2];
     /* 0x26 */ s16 unk26;
     /* 0x28 */ s16 unk28;
-    /* 0x2A */ char unk2A[2];
+    /* 0x2A */ s16 unk2A; /* texture animation count (unkC8) */
     /* 0x2C */ u8* unk2C;
     /* 0x30 */ u8* unk30;
     /* 0x34 */ u8* unk34;
@@ -163,8 +192,8 @@ typedef struct HmfDataM {
     /* 0x68 */ HitXformM* unk68; /* MP2 0x6C */
     /* 0x6C */ char unk6C[0x14];
     /* 0x80 */ HmfMotionObjM* unk80; /* MP2 0x84: motion objects, -1 for none */
-    /* 0x84 */ void* unk84;  /* MP2 0x88: texture refs */
-    /* 0x88 */ void* unk88;  /* MP2 0x8C: materials */
+    /* 0x84 */ HmfTexRefM* unk84; /* MP2 0x88: texture refs */
+    /* 0x88 */ struct HmfMatM* unk88; /* MP2 0x8C: materials */
     /* 0x8C */ void* unk8C;  /* MP2 0x90 */
     /* 0x90 */ void* unk90;  /* MP2 0x94 */
     /* 0x94 */ void* unk94;  /* MP2 0x98 */
@@ -192,7 +221,7 @@ typedef struct HmfPartM {
     /* 0x1C */ u8 unk1C;           /* reflection texture (MP2 0x2E) */
     /* 0x1D */ char unk1D[3];
     /* 0x20 */ s16 unk20;          /* alpha (MP2 0x02) */
-    /* 0x22 */ s16 unk22;
+    /* 0x22 */ s16 unk22;          /* face count (MP2 0x04) */
     /* 0x24 */ s16 unk24;
     /* 0x26 */ s16 unk26;
     /* 0x28 */ s16 unk28;          /* first vertex (MP2 0x0A) */
@@ -208,7 +237,7 @@ typedef struct HmfPartM {
     /* 0x4C */ s16 unk4C;
     /* 0x4E */ char unk4E[2];
     /* 0x50 */ s32 unk50;
-    /* 0x54 */ void* unk54;
+    /* 0x54 */ HmfFaceRecM* unk54;
     /* 0x58 */ HmfDataM* unk58;
     /* 0x5C */ void* unk5C;
     /* 0x60 */ void* unk60;
@@ -260,6 +289,30 @@ void func_8001CF1C_main(HmfDataM* arg0, HmfDataM* arg1, f32 arg2, s16 arg3, s16 
 void func_8001D874_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8001DACC_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8001DDB8_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4);
+
+s16 func_80011460_main(u8 *);
+int strcmp(const char *, const char *);
+extern HmfTexM* D_800D1FCC_main; /* loaded textures (128) */
+
+extern s16 D_800D6B64_main;
+extern s16 D_800CC0B6_main;
+extern u8 D_800D0599_main;
+extern u8 D_800D41C4_main;
+extern u8 D_800CDA84_main;
+extern HmfDataM D_800CB8C0_main; /* the scratch model for motion-only files */
+#define CAM (*(HuCamera**)&D_800D10F4_main)
+
+f32 func_8002FC7C_main(D_800CCF58_main_Struct*, s16, f32, f32, f32);
+void func_80032FC0_main(s16, u8, u8);
+void func_80034048_main(s16, s16);
+/* retail calls it with the model only (as MP1/MP2 do); the host passes no name */
+#ifdef TARGET_PC
+void* func_80031A44_main(HmfDataM*, u8*);
+#else
+void* func_80031A44_main();
+#endif
+void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
+void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 
 /* HmfModelData seen through the full layout */
 #define MDL ((HmfModelM*)HmfModelData)
@@ -1040,33 +1093,281 @@ INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DACC_main);
 
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DDB8_main);
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001E500_main);
+/* MP1 func_80027AC8 (src/24740.c): point a model's texture arg1 at the loaded texture arg2 */
+void func_8001E500_main(s16 arg0, char* arg1, char* arg2) {
+    HmfTexM* found = NULL;
+    HmfDataM* model = MDL[arg0].hmf;
+    u16 hash = func_80011460_main((u8*)arg2);
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001E65C_main);
+    for (i = 0; i < 128; i++) {
+        if (D_800D1FCC_main[i].unk22 != 0 && D_800D1FCC_main[i].unk22 == hash
+            && strcmp((char*)&D_800D1FCC_main[i], arg2) == 0) {
+            found = &D_800D1FCC_main[i];
+            break;
+        }
+    }
+    hash = func_80011460_main((u8*)arg1);
+    for (i = 0; i < model->unk12; i++) {
+        if (model->unk84[i].unk0C->unk22 == hash) {
+            model->unk84[i].unk0C = found;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001E888_main);
+/* MP1 func_80027C1C (src/24740.c): scroll the texture coordinates */
+void func_8001E65C_main(s16 arg0, f32 arg1, f32 arg2, s32 arg3, s32 arg4) {
+    u16 w;
+    u16 h;
+    s16 i;
+    u16 var_a0;
+    u16 var_a0_2;
+    s16 temp_t2;
+    HmfDataM* temp_s0;
+    HmfVtxM* var_t0;
+    HmfVtxM* var_t1;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EBC0_main);
+    temp_s0 = MDL[arg0].hmf;
+    if (temp_s0 != NULL) {
+        var_t0 = temp_s0->unk40;
+        var_t1 = temp_s0->unk44[(u8)D_800D2008_main];
+        temp_t2 = temp_s0->unk18;
+        w = arg3 << 5;
+        h = arg4 << 5;
+        var_a0 = arg1 * 32.0f;
+        var_a0_2 = arg2 * 32.0f;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001ED54_main);
+        if (arg1 < 0.0f) {
+            arg1 = -arg1;
+        }
+        if (arg2 < 0.0f) {
+            arg2 = -arg2;
+        }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EED8_main);
+        if ((arg1 * 32.0f) > w) {
+            var_a0 = var_a0 % w;
+        }
 
+        if ((arg2 * 32.0f) > h) {
+            var_a0_2 = var_a0_2 % h;
+        }
+
+        for (i = 0; i < temp_t2; i++) {
+            var_t1->unk08 = var_a0 + var_t0->unk08;
+            var_t1->unk0A = var_a0_2 + var_t0->unk0A;
+            var_t0++;
+            var_t1++;
+        }
+    }
+}
+
+/* MP1 func_80027E48 (src/24740.c): scroll one part's texture coordinates */
+void func_8001E888_main(s16 arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4, char* arg5, u8 arg6) {
+    s16 i;
+    u16 var_a0;
+    u16 var_a0_2;
+    s16 temp_t2;
+    HmfDataM* temp_s0;
+    HmfVtxM* var_t0;
+    HmfVtxM* var_t1;
+    s32 temp2;
+
+    temp_s0 = MDL[arg0].hmf;
+    if (temp_s0 != NULL) {
+        if (arg6 != 0) {
+            var_t0 = temp_s0->unk40;
+            var_t1 = temp_s0->unk44[(u8)D_800D2008_main];
+            temp_t2 = temp_s0->unk18;
+            for (i = 0; i < temp_t2; i++) {
+                *var_t1++ = *var_t0++;
+            }
+        }
+        temp2 = func_8002C834_main(temp_s0, arg5);
+        temp_t2 = temp_s0->unk60[temp2].unk2A;
+        var_t0 = &temp_s0->unk40[temp_s0->unk60[temp2].unk28];
+        var_t1 = &temp_s0->unk44[(u8)D_800D2008_main][temp_s0->unk60[temp2].unk28];
+        arg3 = (arg3 << 5);
+        arg4 = (arg4 << 5);
+        var_a0 = arg1 * 32.0f;
+        var_a0_2 = arg2 * 32.0f;
+
+        if (arg1 < 0.0f) {
+            arg1 = -arg1;
+        }
+        if (arg2 < 0.0f) {
+            arg2 = -arg2;
+        }
+
+        if ((arg1 * 32.0f) > arg3) {
+            var_a0 = var_a0 % arg3;
+        }
+
+        if ((arg2 * 32.0f) > arg4) {
+            var_a0_2 = var_a0_2 % arg4;
+        }
+
+        for (i = 0; i < temp_t2; i++) {
+            var_t1->unk08 = var_a0 + var_t0->unk08;
+            var_t1->unk0A = var_a0_2 + var_t0->unk0A;
+            var_t0++;
+            var_t1++;
+        }
+    }
+}
+
+/* MP1 func_80028180 (src/24740.c): set one part's vertex colours */
+void func_8001EBC0_main(s16 arg0, char* arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5) {
+    HmfDataM* model = MDL[arg0].hmf;
+    HmfVtxM* src;
+    HmfVtxM* dst;
+    s16 idx;
+    s16 n;
+    s16 i;
+
+    if (model != NULL) {
+        if (arg5 != 0) {
+            src = model->unk40;
+            dst = model->unk44[(u8)D_800D2008_main];
+            n = model->unk18;
+            for (i = 0; i < n; i++) {
+                *dst++ = *src++;
+            }
+        }
+        idx = func_8002C834_main(model, arg1);
+        n = model->unk60[idx].unk2A;
+        src = &model->unk44[(u8)D_800D2008_main][model->unk60[idx].unk28];
+        for (i = 0; i < n; i++) {
+            src->unk0C[0] = arg2;
+            src->unk0C[1] = arg3;
+            src->unk0C[2] = arg4;
+            src++;
+        }
+    }
+}
+
+/* MP1 func_80028314 (src/24740.c): reverse every face's winding */
+void func_8001ED54_main(s16 arg0) {
+    HmfDataM* model = MDL[arg0].hmf;
+    HmfPartM* obj;
+    HmfFaceRecM* key;
+    s16 tmp;
+    f32 ftmp;
+    s16 n;
+    s16 k;
+    s16 j;
+    s16 i;
+
+    for (i = 0; i < model->unk10; i++) {
+        obj = &model->unk60[i];
+        for (j = 0; j < obj->unk22; j++) {
+            key = &obj->unk54[j];
+            n = (u8)(key->unk00 & 0x7F);
+            for (k = 0; k < n / 2; k++) {
+                tmp = key->unk04[k];
+                key->unk04[k] = key->unk04[n - k - 1];
+                key->unk04[n - k - 1] = tmp;
+                ftmp = key->unk0C[k];
+                key->unk0C[k] = key->unk0C[n - k - 1];
+                key->unk0C[n - k - 1] = ftmp;
+                ftmp = key->unk1C[k];
+                key->unk1C[k] = key->unk1C[n - k - 1];
+                key->unk1C[n - k - 1] = ftmp;
+            }
+        }
+    }
+}
+
+void func_8001EED8_main(s16 arg0, u8 arg1, s8 arg2) {
+    HmfModelM* modelP = &MDL[arg0];
+
+    modelP->unk06 = arg1;
+    modelP->unk60 = modelP->unk58 = 0.0f;
+    modelP->unk07 = arg2;
+    modelP->unk5C = 1.0f;
+}
+
+/* MP1 func_80028510 (src/24740.c). Retail reads arg4 as a byte (lbu 0x13(sp)): its definition
+   takes (s16, s16, u8, u8, u8), which hmfman.h's s32 prototype does not allow */
+#ifdef NON_MATCHING
+void func_8001EF24_main(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    D_800CE1C6_main = 1;
+    D_800D6B64_main = arg0;
+    D_800CC0B6_main = arg1;
+    D_800D0599_main = arg2;
+    D_800D41C4_main = arg3;
+    D_800CDA84_main = arg4;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EF24_main);
+#endif
 
 void func_8001EF60_main(void) {
     D_800CE1C6_main = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EF6C_main);
+/* MP1 func_8002859C (src/24740.c): make model arg0 follow part arg2 of model arg1 */
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2) {
+    HmfDataM* model = MDL[arg1].hmf;
+    s16 idx = func_8002C834_main(model, arg2);
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EFEC_main);
+    MDL[arg0].unk68 = model;
+    MDL[arg0].unk0A = idx;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F038_main);
+/* MP1 func_8002861C (src/24740.c) */
+void func_8001EFEC_main(s16 arg0) {
+    HmfDataM* model = MDL[arg0].hmf;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F154_main);
+#ifdef TARGET_PC
+    model->unk9C = func_80031A44_main(model, NULL);
+#else
+    model->unk9C = func_80031A44_main(model);
+#endif
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F1FC_main);
+/* MP1 func_80028668 (src/24740.c): advance a model's three motions */
+void func_8001F038_main(HmfModelM* arg0, u16 arg1) {
+    arg0->unk40 = func_8002FC7C_main(&D_800CCF58_main[arg0->unk02], arg0->unk03, arg0->unk40, arg0->unk48, (f32)arg1 * arg0->unk44);
+    if (arg0->unk04 != 0xFF) {
+        arg0->unk4C = func_8002FC7C_main(&D_800CCF58_main[arg0->unk04], arg0->unk05, arg0->unk4C, arg0->unk54, (f32)arg1 * arg0->unk50);
+    }
+    if (arg0->unk06 != 0xFF) {
+        arg0->unk58 = func_8002FC7C_main(&D_800CCF58_main[arg0->unk06], (u8)arg0->unk07, arg0->unk58, arg0->unk60, (f32)arg1 * arg0->unk5C);
+    }
+}
+
+void func_8001F154_main(HmfModelM* arg0) {
+    HmfDataM* hmf = arg0->hmf;
+    s16 frame = arg0->unk40;
+    s16 i;
+
+    for (i = 0; i < hmf->unk2A; i++) {
+        func_80032FC0_main(hmf->unkC8[i], 1, 1);
+        func_80034048_main(hmf->unkC8[i], frame);
+    }
+}
+
+/* MP1 func_80028784 (src/24740.c): load a motion file */
+s32 func_8001F1FC_main(void* arg0, s32 arg1) {
+    u8* data = arg0;
+    s16 ret;
+
+    if (data[0] != 'M' || data[1] != 'T' || data[2] != 'N' || data[3] != 'X') {
+        D_800D5204_main = 10256;
+        D_800CDD6A_main = 10257;
+        D_800CB8C0_main.unk0E = D_800D5204_main;
+        Hmfload((HmfData*)&D_800CB8C0_main, data, (s16)arg1);
+        ret = func_8002D2D8_main(data, (HmfData*)&D_800CB8C0_main);
+        HuMemFreeAllWithTag(D_800D5204_main);
+        HuMemFreeAllWithTag(D_800CDD6A_main);
+    } else {
+        ret = func_8002D3AC_main(data);
+    }
+    if (arg1 & 8) {
+        gFreeFunc(data);
+    }
+    return ret;
+}
 
 void func_8001F304_main(s16 arg0, s16 arg1) {
     HmfModel *temp_v0;
@@ -1084,35 +1385,162 @@ f32 func_8001F358_main(s16 arg0) {
     return D_800CCF58_main[arg0].unk02;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F38C_main);
+/* MP1 func_80072724 (src/72D90.c) */
+void func_8001F38C_main(s32 arg0, s32 arg1, s32 arg2) {
+    D_800A0540_main = arg0;
+    D_800A0541_main = arg1;
+    D_800A0542_main = arg2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F3A8_main);
+/* MP1 func_80028928 (src/24740.c) */
+void func_8001F3A8_main(s16 arg0, s16 arg1, s16 arg2, s16 arg3) {
+    HmfModelM* p = &MDL[arg0];
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F450_main);
+    if ((arg1 & 1) && p->unk02 != 0xFF) {
+        p->unk03 = (p->unk03 & ~arg2) | arg3;
+        if ((arg1 & 2) && p->unk04 != 0xFF) {
+            p->unk05 = (p->unk05 & ~arg2) | arg3;
+        }
+        if ((arg1 & 4) && p->unk06 != 0xFF) {
+            p->unk07 = arg3 | (p->unk07 & ~arg2);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F4BC_main);
+/* MP1 func_800289D0 (src/24740.c): level of detail, model arg1 replaces arg0 beyond distance arg2 */
+void func_8001F450_main(s16 arg0, s16 arg1, f32 arg2) {
+    HmfModelM* p = &MDL[arg0];
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F668_main);
+    p->unk09 = arg1;
+    p->unk6C = p->hmf;
+    p->unk14 = arg2;
+    p = &MDL[arg1];
+    p->unk09 = arg0;
+    p->unk6C = NULL;
+    p->unk14 = 0.0f;
+    p->unk18 |= 4;
+}
+
+/* MP1 func_80028A34 (src/24740.c): pick the level-of-detail model by camera distance */
+void func_8001F4BC_main(s16 arg0) {
+    HmfModelM* p = &MDL[arg0];
+    f32 dx = CAM->pos.x - p->pos.x;
+    f32 dy = CAM->pos.y - p->pos.y;
+    f32 dz = CAM->pos.z - p->pos.z;
+    HmfDataM* model;
+    HmfModelM* q;
+    s32 flags;
+    s16 i;
+
+    if (p->unk14 < HuSqrtf(dx * dx + dy * dy + dz * dz)) {
+        model = p->unk6C;
+    } else {
+        model = MDL[p->unk09].hmf;
+    }
+    if (model != p->hmf) {
+        p->hmf = model;
+        for (i = 0; i < HU3D_MODEL_MAX; i++) {
+            q = &MDL[i];
+            if (q->hmf != NULL) {
+                continue;
+            }
+            flags = q->unk18;
+            if (flags & 4) {
+                continue;
+            }
+            if (!(flags & 0x4000)) {
+                continue;
+            }
+            if (p->hmf == q->unk68 || MDL[p->unk09].hmf == q->unk68) {
+                MDL[i].unk68 = model;
+            }
+        }
+    }
+    MDL[p->unk09].unk18 |= 4;
+}
+
+s32 func_8001F668_main(s16 arg0) {
+    HmfModelM* p = &MDL[arg0];
+
+    return p->hmf == MDL[p->unk09].hmf;
+}
 
 void func_8001F6B0_main(s8 arg0) {
     D_800CC0A8_main = arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F6BC_main);
+/* MP1 func_80028BEC (src/24740.c) */
+void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4) {
+    HmfDataM* model = MDL[arg0].hmf;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F6F8_main);
+    model->unk02 = arg1;
+    model->unk03 = arg2;
+    model->unk04 = arg3;
+    model->unk05 = arg4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F734_main);
+/* MP1 func_80028C28 (src/24740.c) */
+void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4) {
+    HmfDataM* model = MDL[arg0].hmf;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F95C_main);
+    model->unk06 = arg1;
+    model->unk07 = arg2;
+    model->unk08 = arg3;
+    model->unk09 = arg4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F974_main);
+/* MP1 func_80028C64 (src/24740.c) */
+void func_8001F734_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4) {
+    func_8001F6BC_main(arg0, arg1, arg2, arg3, arg4);
+    func_8001F6F8_main(arg0, arg1 * 0.5f, arg2 * 0.5f, arg3 * 0.5f, arg4 * 0.5f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001F9E4_main);
+/* MP1 func_80028E8C (src/24740.c) */
+void func_8001F95C_main(s32 arg0, void* func) {
+    D_800CC3D8_main[(s16)arg0] = func;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001FA68_main);
+void func_8001F974_main(s16 arg0, s16 arg1) {
+    func_8001C5B4_main(arg0, arg1);
+    MDL[arg0].unk08 = MDL[arg1].unk08;
+}
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001FB34_main);
+void func_8001F9E4_main(s16 arg0, u8 arg1) {
+    HmfDataM* model = MDL[arg0].hmf;
+    s16 i;
+
+    for (i = 0; i < model->unk10; i++) {
+        model->unk60[i].unk20 = arg1;
+    }
+}
+
+/* MP1 func_80021240 (src/1EA70.c) */
+void func_8001FA68_main(s16 index) {
+    s16 i;
+    HmfMatM* temp_v1;
+    HmfDataM* temp_s0;
+
+    temp_s0 = MDL[index].hmf;
+    func_8001C2FC_main(index, 0x110000, 0x110000);
+    for (i = 0; i < temp_s0->unk1E; i++) {
+        temp_s0->unk88[i].unk0A = 0xFF;
+        temp_v1 = &temp_s0->unk88[i];
+        temp_v1->unk09 = temp_v1->unk09 | 5;
+    }
+    func_8001C448_main(index);
+}
+
+void func_8001FB34_main(s16 arg0, u8 arg1) {
+    HmfModelM* p = &MDL[arg0];
+    HmfData_UnkD0* l;
+
+    if (p->unkB4 == NULL) {
+        l = p->unkB4 = HuMemAllocTag(0x38, D_800CDD6A_main);
+        l->unk03 = arg1;
+        l->unk00 = l->unk01 = l->unk02 = 0x40;
+        l->unk04 = l->unk05 = l->unk06 = 0x64;
+    }
+}
 
 void func_8001FBBC_main(s16 arg0, s8 arg1, s8 arg2, s8 arg3) {
     HmfModel *other;
@@ -1127,7 +1555,20 @@ void func_8001FBBC_main(s16 arg0, s8 arg1, s8 arg2, s8 arg3) {
 
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001FBFC_main);
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001FD08_main);
+/* mark every face unlit */
+void func_8001FD08_main(s16 arg0) {
+    HmfDataM* model = MDL[arg0].hmf;
+    HmfPartM* obj;
+    s16 j;
+    s16 i;
+
+    for (i = 0; i < model->unk10; i++) {
+        obj = &model->unk60[i];
+        for (j = 0; j < obj->unk22; j++) {
+            obj->unk54[j].unk00 |= 0x80;
+        }
+    }
+}
 
 void func_8001FDE8_main(s16 arg0) {
     HmfModelData[arg0].unk02 = 0xFF;
