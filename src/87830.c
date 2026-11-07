@@ -1,6 +1,6 @@
 #include "common.h"
 #include "PR/osint.h"
 
-OSThread *func_80086C30_main(void) {
+OSThread *__osGetActiveQueue(void) {
     return __osActiveQueue;
 }
