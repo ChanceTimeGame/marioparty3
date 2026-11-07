@@ -177,6 +177,8 @@ $(B1G_LIBAUDIO): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE
 $(B1G_LIBAUDIO): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 B1G_HMATH := build/src/88E10.c.o build/src/8A4F0.c.o build/src/8A580.c.o build/src/8AD20.c.o build/src/8AEA0.c.o build/src/8B030.c.o
 $(B1G_HMATH): CFLAGS = -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64align
+# 527E0 is libultra's audio/sndplayer.c built as MP1 builds 64FD0.c: default flags, lib audio headers
+build/src/527E0.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 # end batch 1 G
 build/src/2.0L/gu/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/io/pirawdma.c.o: OPTFLAGS = -O2
