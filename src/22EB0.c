@@ -1463,11 +1463,76 @@ void func_8002AFEC_main(HmfObj* arg0, s32 arg1, s16 arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002B104_main);
+extern HuCamera* D_800D10F4_main;
+void func_8002B2AC_main(HmfTex*, s32, s32);
+
+void func_8002B104_main(HmfObj* arg0, s16 arg1) {
+    Mtx sp30;
+    HmfTex* var_a0;
+
+    if (arg0->unk64[arg1].unk2E != 255) {
+        gDPPipeSync(gMainGfxPos++);
+
+        guLookAtReflect(&sp30, &D_800CE20C_main->unk_40, D_800D10F4_main->pos.x, D_800D10F4_main->pos.y, D_800D10F4_main->pos.z,
+            D_800D10F4_main->at.x, D_800D10F4_main->at.y, D_800D10F4_main->at.z, D_800D10F4_main->up.x,
+            D_800D10F4_main->up.y, D_800D10F4_main->up.z);
+
+        gSPLookAt(gMainGfxPos++, &D_800CE20C_main->unk_40);
+        gSPTexture(gMainGfxPos++, 1984, 1984, 0, G_TX_RENDERTILE, G_ON);
+
+        if (arg0->unkA0 == 0) {
+            var_a0 = arg0->unk88[arg0->unk64[arg1].unk2E].unk0C;
+        } else {
+            var_a0 = arg0->unkA0;
+        }
+
+        func_8002B2AC_main(var_a0, 0, 0);
+
+        gSPSetGeometryMode(gMainGfxPos++, G_LIGHTING | G_TEXTURE_GEN);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002B2AC_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C0EC_main);
+extern Gfx D_800A1118_main[];
+extern s16 D_800CC0B4_main;
+extern void* D_800A114C_main[4];
+
+void func_8002C0EC_main(HmfObj* arg0, s16 arg1) {
+    Light* temp_s0;
+    HmfPart* temp_a0;
+    void* timg;
+    Mtx sp50;
+
+    gSPDisplayList(gMainGfxPos++, D_800A1118_main);
+    temp_s0 = &D_800CB8A8_main[D_800CC0B4_main];
+    guLookAtHilite(&sp50, &D_800CE20C_main->unk_40, &D_800CE20C_main->unk_00,
+        D_800D10F4_main->pos.x, D_800D10F4_main->pos.y, D_800D10F4_main->pos.z,
+        D_800D10F4_main->at.x, D_800D10F4_main->at.y, D_800D10F4_main->at.z,
+        D_800D10F4_main->up.x, D_800D10F4_main->up.y, D_800D10F4_main->up.z,
+        temp_s0->l.dir[0], temp_s0->l.dir[1], temp_s0->l.dir[2], 0, 0, 115.0f, 32, 32);
+    gSPLookAt(gMainGfxPos++, &D_800CE20C_main->unk_40);
+
+    temp_a0 = &arg0->unk64[arg1];
+    gDPSetPrimColor(gMainGfxPos++, 0, 0, temp_s0->l.col[0], temp_s0->l.col[1], temp_s0->l.col[2], 255);
+    gDPSetEnvColor(gMainGfxPos++, 64, 64, 64, 128);
+
+    timg = D_800A114C_main[((u32) arg0->unk64[arg1].unk50 >> 25) % 4];
+    gDPLoadTextureBlock_4b(gMainGfxPos++, timg, G_IM_FMT_I, 32, 32, 0,
+        G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
+    gDPSetTileSize(gMainGfxPos++, G_TX_RENDERTILE, D_800CE20C_main->unk_00.h.x1, D_800CE20C_main->unk_00.h.y1,
+        D_800CE20C_main->unk_00.h.x1 + 124, D_800CE20C_main->unk_00.h.y1 + 124);
+
+    if (arg0->unk64[arg1].unk50 & 0x10000) {
+        gDPSetRenderMode(gMainGfxPos++, G_RM_ZB_CLD_SURF, G_RM_ZB_CLD_SURF2);
+    } else {
+        gDPSetRenderMode(gMainGfxPos++, G_RM_ZB_OVL_SURF, G_RM_ZB_OVL_SURF2);
+    }
+
+    D_800D0440_main = NULL;
+    D_800CE2F0_main = 0xFFFFFFFF;
+    D_800D1FD0_main = 0xFFFFFFFF;
+}
 
 s32 func_8002C4C0_main(HmfData *arg0, s16 arg1, Matrix4f arg2, Matrix4f arg3) {
     if (!(arg0->unk60[arg1].unk50 & 0x70000000)) {
