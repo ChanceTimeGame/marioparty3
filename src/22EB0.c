@@ -76,10 +76,9 @@ typedef struct HmfMat {
     /* 0x04 */ u8 unk04;
     /* 0x05 */ u8 unk05[3];
     /* 0x08 */ u8 unk08;
-    /* 0x09 */ u8 unk09[3];
-    /* 0x0C */ u8 unk0C;
-    /* 0x0D */ u8 unk0D;
-} HmfMat; /* size = 0xE */
+    /* 0x09 */ u8 unk0C; /* MP2 0x0C: flags */
+    /* 0x0A */ u8 unk0D; /* MP2 0x0D */
+} HmfMat; /* size = 0xB (MP2 0xE: MP3 has no unk09[3]) */
 
 typedef struct HmfAnimTrack {
     /* 0x00 */ s16 unk00;
@@ -106,16 +105,14 @@ typedef struct HmfDisp {
 } HmfDisp; /* MP3 HmfModelData_Unk64_Unk3C_Struct */
 
 typedef struct HmfPart {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ char unk04_[4];
-    /* 0x08 */ char unk08[0x14];
+    /* 0x00 */ char unk12[0x1C]; /* MP2 0x12: name */
     /* 0x1C */ u8 unk2E; /* MP2 0x2E */
     /* 0x1D */ u8 unk2F; /* MP2 0x2F */
-    /* 0x1E */ char unk1E[4];
+    /* 0x1E */ s16 unk00; /* MP2 0x00: material */
+    /* 0x20 */ s16 unk02; /* MP2 0x02: alpha */
     /* 0x22 */ s16 unk04; /* MP2 0x04: face count */
-    /* 0x24 */ s16 unk24;
-    /* 0x26 */ char unk26[2];
+    /* 0x24 */ s16 unk24; /* MP3 only (padding in MP2) */
+    /* 0x26 */ s16 unk08; /* MP2 0x08 */
     /* 0x28 */ s16 unk0A; /* MP2 0x0A: first vertex */
     /* 0x2A */ s16 unk0C; /* MP2 0x0C: vertex count */
     /* 0x2C */ u16 unk0E; /* MP2 0x0E: first face */
@@ -134,7 +131,7 @@ typedef struct HmfPart {
     /* 0x5C */ HmfTexRef* unk5C;
     /* 0x60 */ HmfTexRef* unk60;
     /* 0x64 */ Gfx* unk64;
-} HmfPart; /* size = 0x68; MP3 HmfModelData_Unk64_Unk60_Struct. Fields keep MP2 names; MP3 moves 0x0A-0x2F */
+} HmfPart; /* size = 0x68; MP3 HmfModelData_Unk64_Unk60_Struct. Fields keep MP2 names; MP3 puts the name first */
 
 typedef struct ColVtx {
     /* 0x0 */ s16 x;
@@ -1151,7 +1148,87 @@ void func_8002404C_main(HmfObj* arg0, s16 arg1) {
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024354_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024814_main);
+void func_8002AFEC_main(HmfObj*, s32, s16);
+void func_80033694_main(HmfObj*);
+
+void func_80024814_main(HmfObj* arg0, s16 arg1, HmfDrawRec* arg2) {
+    HmfPart* temp_s4;
+    s32 temp_v1;
+
+    temp_v1 = arg0->unk64[arg1].unk50;
+    if (temp_v1 & 0x06000000) {
+        if (D_800C9940_main == 0) {
+            arg0->unk64[arg1].unk50 = temp_v1 & ~0x06000000;
+
+            gSPSegment(gMainGfxPos++, 0x01, osVirtualToPhysical(D_800D5308_main));
+
+            func_80024814_main(arg0, arg1, arg2);
+
+            arg0->unk64[arg1].unk50 = temp_v1;
+        } else {
+            temp_s4 = &arg0->unk64[arg1];
+            func_8002AFEC_main(arg0, temp_s4->unk50 & ~0x06000000, arg1);
+
+            gSPSegment(gMainGfxPos++, 0x01, osVirtualToPhysical(arg0->unk44[D_800D2008_main]));
+            if (temp_s4->unk5C != NULL) {
+                if ((D_800D0440_main != temp_s4->unk5C && temp_s4->unk5C != (HmfTexRef*) -1)) {
+                    gSPDisplayList(gMainGfxPos++, temp_s4->unk64);
+                }
+                D_800D0440_main = temp_s4->unk60;
+            } else {
+                D_800D0440_main = NULL;
+            }
+            gSPDisplayList(gMainGfxPos++, HMF_DL(arg0)[arg1]);
+
+            func_8002AFEC_main(arg0, temp_s4->unk50, arg1);
+
+            gSPMatrix(gMainGfxPos++, osVirtualToPhysical(arg2->unk44), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            gSPDisplayList(gMainGfxPos++, (*arg0->unkCC)[arg1]);
+            return;
+        }
+    }
+
+    temp_s4 = &arg0->unk64[arg1];
+
+    func_8002AFEC_main(arg0, temp_s4->unk50, arg1);
+
+    if (temp_s4->unk50 & 0x40000) {
+        func_80033694_main(arg0);
+    }
+
+    if (temp_s4->unk02 != -1 || (arg0->unk9C != NULL && arg0->unk8C[temp_s4->unk00].unk0C & 4)) {
+        HmfMat* temp_a0 = &arg0->unk8C[temp_s4->unk00];
+        gDPSetPrimColor(gMainGfxPos++, 0, 0, temp_a0->unk05[0], temp_a0->unk05[1], temp_a0->unk05[2], temp_s4->unk02);
+    }
+
+    if (D_800C9940_main & 0x10000) {
+        gDPSetEnvColor(gMainGfxPos++, arg0->unk06, arg0->unk07, arg0->unk08, arg0->unk09);
+        gDPSetPrimColor(gMainGfxPos++, 0, 0, arg0->unk02, arg0->unk03, arg0->unk04, arg0->unk05);
+    }
+
+    if (D_800C9940_main & 1) {
+        if (HMF_DL(arg0)[arg1] == NULL) {
+            return;
+        }
+        if (temp_s4->unk5C != NULL) {
+            if ((D_800D0440_main != temp_s4->unk5C && temp_s4->unk5C != (HmfTexRef*) -1)) {
+                gSPDisplayList(gMainGfxPos++, temp_s4->unk64);
+            }
+            D_800D0440_main = temp_s4->unk60;
+        } else {
+            D_800D0440_main = NULL;
+        }
+        gSPSegment(gMainGfxPos++, 0x01, osVirtualToPhysical(arg0->unk44[D_800D2008_main]));
+        gSPDisplayList(gMainGfxPos++, HMF_DL(arg0)[arg1]);
+    } else {
+        gSPSegment(gMainGfxPos++, 0x01, osVirtualToPhysical(D_800D5308_main));
+        func_800257BC_main(arg0, arg1);
+    }
+
+    if (gMainGfxPos >= &D_800D1FF8_main[D_800D5306_main * 8]) {
+        osSyncPrintf("GfxMax Over\n");
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024D94_main);
 
