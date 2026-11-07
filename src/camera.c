@@ -14,6 +14,33 @@ f32 cosdf(f32);
 f32 sindf(f32);
 void func_8008A0D0_main(Mtx *);
 
+/* The camera a model file may carry (hmfload.c's HmfData_UnkBC). */
+typedef struct HmfCamAttach {
+    /* 0x00 */ char unk00[8];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ Vec at;
+    /* 0x20 */ Vec up;
+    /* 0x2C */ f32 unk2C;
+} HmfCamAttach;
+
+/* hmfload.c's HmfLoadData as far as its camera (pointer slots kept so the host layout agrees). */
+typedef struct HmfCamData {
+    /* 0x00 */ char unk00[0x2C];
+    /* 0x2C */ void *unk2C[4];
+    /* 0x3C */ void *unk3C;
+    /* 0x40 */ void *unk40;
+    /* 0x44 */ void *unk44[3];
+    /* 0x50 */ void *unk50[5];
+    /* 0x64 */ s16 unk64;
+    /* 0x68 */ void *unk68;
+    /* 0x6C */ char unk6C[0x14];
+    /* 0x80 */ void *unk80[8];
+    /* 0xA0 */ s32 unkA0;
+    /* 0xA4 */ f32 unkA4[3];
+    /* 0xB0 */ void *unkB0[3];
+    /* 0xBC */ HmfCamAttach *camAttach;
+} HmfCamData;
+
 extern HuCamera *gCameraList;
 extern Vec D_800A0554_main;
 extern Vec D_800A0590_main;
@@ -217,10 +244,89 @@ void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec *outPos) {
     outPos->y = ((projectedY * (f4 / y)) + f4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/camera", func_80012D0C_main);
+/* The camera-space point at depth dist under the screen point in (MP2 func_80020BC4_217C4). */
+void func_80012D0C_main(s16 camIndex, f32 dist, Vec2f *in, Vec2f *out) {
+    HuMtx4F viewMtx;
+    f32 h;
+    f32 w;
+    f32 ux;
+    f32 uy;
+    HuCamera *camera;
 
-INCLUDE_ASM("asm/nonmatchings/camera", func_80012E54_main);
+    camera = &gCameraList[camIndex];
+    guLookAtF(
+        viewMtx,
+        camera->pos.x,
+        camera->pos.y,
+        camera->pos.z,
+        camera->at.x,
+        camera->at.y,
+        camera->at.z,
+        camera->up.x,
+        camera->up.y,
+        camera->up.z);
+    h = sindf(camera->fov[0] / 2.0f) / cosdf(camera->fov[0] / 2.0f) * dist;
+    w = h * (4.0f / 3.0f);
+    ux = in->x / 320.0f;
+    uy = (240.0f - in->y) / 240.0f;
+    out->x = 2.0f * w * ux - w;
+    out->y = 2.0f * h * uy - h;
+}
 
-INCLUDE_ASM("asm/nonmatchings/camera", func_80013320_main);
+/* Points camera camIndex along the camera of the model it follows (gCameraList[].unk4): position
+   and target from the model's file, up vector perpendicular to the view direction (the direction's
+   cross product with itself plus world up, rotated -90 degrees about the direction). */
+void func_80012E54_main(s16 camIndex) {
+    HmfCamData *hmf;
+    HmfCamAttach *cam;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 len;
+    f32 vx;
+    f32 vy;
+    f32 vz;
+    f32 angle;
+    HuCamera *camera;
 
-INCLUDE_ASM("asm/nonmatchings/camera", func_80013350_main);
+    camera = &gCameraList[camIndex];
+    hmf = (HmfCamData *) HmfModelData[camera->unk4].hmf;
+    if (hmf == NULL) {
+        return;
+    }
+    cam = hmf->camAttach;
+    if (cam == NULL) {
+        return;
+    }
+    angle = -90.0f;
+    x = cam->at.x - cam->pos.x;
+    y = cam->at.y - cam->pos.y;
+    z = cam->at.z - cam->pos.z;
+    len = x * x + y * y + z * z;
+    len = HuSqrtf(len);
+    x /= len;
+    y /= len;
+    z /= len;
+    vx = y * z - z * (y + 1.0f);
+    vy = z * x - x * z;
+    vz = x * (y + 1.0f) - y * x;
+    cam->up.x = vx * (x * x + (1.0f - x * x) * cosdf(angle)) +
+                vy * (y * x * (1.0f - cosdf(angle)) - z * sindf(angle)) +
+                vz * (z * x * (1.0f - cosdf(angle)) + y * sindf(angle));
+    cam->up.y = vx * (y * x * (1.0f - cosdf(angle)) + z * sindf(angle)) +
+                vy * (y * y + (1.0f - y * y) * cosdf(angle)) +
+                vz * (y * z * (1.0f - cosdf(angle)) - x * sindf(angle));
+    cam->up.z = vx * (z * x * (1.0f - cosdf(angle)) - y * sindf(angle)) +
+                vy * (y * z * (1.0f - cosdf(angle)) + x * sindf(angle)) +
+                vz * (z * z + (1.0f - z * z) * cosdf(angle));
+    Hu3DCamSetPositionOrientation(camIndex, &cam->pos, &cam->at, &cam->up);
+    Hu3DCamUpdateMtx(camIndex);
+}
+
+void func_80013320_main(s16 modelIndex, s16 camIndex) {
+    gCameraList[camIndex].unk4 = modelIndex;
+}
+
+void func_80013350_main(s16 camIndex) {
+    gCameraList[camIndex].unk4 = -1;
+}
