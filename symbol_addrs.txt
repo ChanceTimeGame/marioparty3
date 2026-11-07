@@ -172,6 +172,11 @@ GMesSprKill = 0x800374E0; //rom:0x380E0
 gMesCloseF = 0x800B1A51; //
 gMesTimerId = 0x800B1A53;
 gMesData = 0x800CD300; //
+// gamemes, wave 2b B: names from MP1 src/72D90.c (via MP2 src/69950.c)
+GMesMaxTimeGet = 0x800370D0; // MP1 name, though it sets the time limit
+GMesPosSet = 0x80037114;
+GMesWait = 0x800371DC;
+GMesMaxWaitSet = 0x8003724C;
 
 // objmain
 omInitObjMan = 0x80047160; //rom:0x47D60
