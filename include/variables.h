@@ -19,7 +19,7 @@ extern s16 D_800C9930_main;
 extern char D_800D5218_main[];
 extern u16 D_800D5558_main[4];
 extern u16 D_800D530C_main;
-extern s8 D_800D6A58_main;
+extern u8 D_800D6A58_main;
 extern MinigameTable D_800A6D44_main[];
 extern s16 omovlhisidx;
 extern omOvlHisData omovlhis[12];

@@ -1259,7 +1259,6 @@ s32 func_800034D8_main(s32);
 void func_8004B0D4_main(void);
 // Matches with include/variables.h's D_800D6A58_main as u8 (retail reads it with lbu); as s8 the
 // first test is lb (masked 1). Header fix: ~/repos/mp3-wt/2d-B.header.patch.
-#ifdef NON_MATCHING
 /* The Start-button pause (MP2 func_80078A08_79608, MP1 omSystemKeyCheck): Start (or a forced
    close) resumes every paused object and process; otherwise a player allowed to pause in this
    minigame pauses them all, or the minigame-skip button ends the minigame. */
@@ -1378,9 +1377,6 @@ void func_800499B0_main(omObjData *obj) {
     }
 }
 
-#else
-INCLUDE_ASM("asm/nonmatchings/objmain", func_800499B0_main);
-#endif
 
 /* MP1 func_8005FD5C: 1 while the debug pause menu is open */
 u16 func_80049F98_main(void) {

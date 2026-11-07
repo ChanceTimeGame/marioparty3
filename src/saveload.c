@@ -80,7 +80,6 @@ void func_8004FCF0_main(void) {
 
 // Matches (masked 0; split-label relocs only) with ~/repos/mp3-wt/2d-A.header.patch: it uses
 // func_80050800_main's result, which include/functions.us.h declares void.
-#ifdef NON_MATCHING
 s32 func_8004FDC0_main(void) {
     u8 isNew;
     s32 i;
@@ -151,9 +150,6 @@ s32 func_8004FDC0_main(void) {
     GwSystem.minigame_index = 0;
     return D_800D20EC_main;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_8004FDC0_main);
-#endif
 
 void func_80050044_main(void) {
 }
@@ -181,7 +177,6 @@ s32 func_80050064_main(s32 write) {
 
 // Matches (raw 0) with ~/repos/mp3-wt/2d-A.header.patch: include/functions.us.h declares
 // it void, but it returns a value its callers use.
-#ifdef NON_MATCHING
 s32 func_800500E0_main(s32 write) {
     s16 ofs;
     s16 i;
@@ -202,9 +197,6 @@ s32 func_800500E0_main(s32 write) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_800500E0_main);
-#endif
 
 s32 func_80050200_main(s32 write) {
     s16 ofs;
@@ -230,7 +222,6 @@ s32 func_80050200_main(s32 write) {
 
 // Matches (raw 0) with ~/repos/mp3-wt/2d-A.header.patch: include/functions.us.h declares
 // it void, but it returns a value its callers use.
-#ifdef NON_MATCHING
 s32 func_8005035C_main(s32 write) {
     s16 ofs;
     s16 i;
@@ -260,9 +251,6 @@ s32 func_8005035C_main(s32 write) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_8005035C_main);
-#endif
 
 s32 func_80050614_main(s32 write) {
     s16 ofs;
@@ -288,7 +276,6 @@ s32 func_80050614_main(s32 write) {
 
 // Matches (raw 0) with ~/repos/mp3-wt/2d-A.header.patch: include/functions.us.h declares
 // it void, but it returns a value its callers use.
-#ifdef NON_MATCHING
 s32 func_80050800_main(void) {
     if (D_800BBAB0_main == 0) {
         return 0;
@@ -299,9 +286,6 @@ s32 func_80050800_main(void) {
     func_8004F9AC_main(D_800D0E50_main, (u8*) &GwCommon);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_80050800_main);
-#endif
 
 s32 func_8005086C_main(void) {
     s16 ofs;
@@ -323,7 +307,6 @@ s32 func_8005086C_main(void) {
 
 // Matches (raw 0) with ~/repos/mp3-wt/2d-A.header.patch: include/functions.us.h declares
 // it void, but it returns a value its callers use.
-#ifdef NON_MATCHING
 s32 func_80050974_main(void) {
     s16 ofs;
     s16 i;
@@ -342,13 +325,9 @@ s32 func_80050974_main(void) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_80050974_main);
-#endif
 
 // Matches (raw 0) with ~/repos/mp3-wt/2d-A.header.patch: include/functions.us.h declares
 // it void, but it returns a value its callers use.
-#ifdef NON_MATCHING
 s32 func_80050ABC_main(void) {
     s16 ofs;
     s16 i;
@@ -374,9 +353,6 @@ s32 func_80050ABC_main(void) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_80050ABC_main);
-#endif
 
 s32 func_80050CDC_main(void) {
     return ReadEepromCommonBuf((u8*) &D_800D09A8_main);
