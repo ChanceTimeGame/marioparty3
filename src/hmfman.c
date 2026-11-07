@@ -659,6 +659,12 @@ extern Gfx D_800A09C8_main[];
 extern s32 D_800A08B0_main;
 extern HmfLayerEntM* D_800D2070_main[8];
 extern HmfDrawRecM* D_800CC0BC_main;
+
+/* Per-face scatter factors for the vertex morph modes (func_8001DACC_main, func_8001DDB8_main) */
+typedef struct HmfJitterTbl {
+    /* 0x00 */ f32 v[8];
+} HmfJitterTbl;
+extern const HmfJitterTbl D_800A6C04_main;
 /* D_800D0444_main (an s32 here) holds the current camera's matrices */
 #define CAMMTX (*(HuCamMtxs**)&D_800D0444_main)
 
@@ -1507,7 +1513,39 @@ void func_8001D874_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) 
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DACC_main);
+void func_8001DACC_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) {
+    HmfJitterTbl tbl = D_800A6C04_main;
+    HmfFaceM* b = &arg0->unkB0[arg3];
+    f32 inv = 1.0f - arg1;
+    HmfVtxM* src;
+    HmfVtxM* dst;
+    s16* idx;
+    s16 cx, cy, cz;
+    s16 sx, sy, sz;
+    s16 n;
+    s16 j;
+    s16 i;
+
+    for (i = 0; i < arg4; i++) {
+        cx = b->unk0C;
+        cy = b->unk10;
+        cz = b->unk14;
+        sx = cx * arg2 + cx * (1.0f - arg2) * tbl.v[i & 7];
+        sy = cy * arg2 + cy * (1.0f - arg2) * tbl.v[i & 7];
+        sz = cz * arg2 + cz * (1.0f - arg2) * tbl.v[i & 7];
+        n = (u8)(b->unk00 & 0x7F);
+        idx = b->unk04;
+        for (j = 0; j < n; j++) {
+            src = &arg0->unk40[*idx];
+            dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+            dst->unk00 = (src->unk00 - cx) * inv + sx;
+            dst->unk02 = (src->unk02 - cy) * inv + sy;
+            dst->unk04 = (src->unk04 - cz) * inv + sz;
+            idx++;
+        }
+        b++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DDB8_main);
 
@@ -2005,4 +2043,6 @@ void func_8001FDE8_main(s16 arg0) {
     HmfModelData[arg0].unk02 = 0xFF;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/hmfman", D_800A6C04_main);
+const HmfJitterTbl D_800A6C04_main = { { 0.0f, -0.1f, 0.5f, 0.8f, -0.2f, 0.1f, 0.3f, -0.3f } };
+/* Unreferenced: the rodata word after D_800A6C04_main */
+const s32 D_800A6C24_main = 0;
