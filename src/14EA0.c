@@ -190,6 +190,9 @@ extern TexAnimSlot* D_800D1714_main;
 extern s16 D_800D4090_main[6][3][7]; /* loaded texture animations, -1 none */
 extern u8 D_800D6A50_main[6]; /* set while a character has one loaded */
 extern u8 D_800D20B8_main[16][3];
+extern s16 D_800A06FC_main[]; /* [entry * 3 + set]: file index */
+extern s32 D_800A0728_main[7];    /* per character: data directory << 16 */
+extern u16 D_800A0748_main[];     /* character 7: directory << 8 | index */
 extern u8 D_800D5570_main[16][3];
 extern char* D_800A063C_main[3 * 16]; /* per set (x16) and animation: texture-animation name */
 void func_80032FC0_main(s16, u8, u8);
@@ -878,7 +881,13 @@ void func_80017954_main(s16 arg0, s16 arg1, s16 arg2, s16 arg3) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017A84_main);
+/* Sets two fields of the texture-animation slot of animation arg2, set arg1. */
+void func_80017A84_main(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+    TexAnimSlot* p = &D_800D1714_main[D_800D20B8_main[arg2][arg1]];
+
+    p->unk_02 = arg3;
+    p->unk_06 = arg4;
+}
 
 /* Loads sprite bank file id (MP2 func_80025684_26284, MP1 func_800F6C80_CoinBlockBash). */
 s16 func_80017AD8_main(s32 id) {
@@ -895,9 +904,18 @@ void func_80017B20_main(s16 arg0, s16 arg1, s32 arg2, s32 arg3) {
     func_80032FC0_main(D_800D20B8_main[arg1][arg0], arg2, arg3);
 }
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017B6C_main);
+/* File id of entry arg2/arg1 of D_800A06FC_main for character arg0. */
+s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2) {
+    return func_80017BB8_main(arg0, D_800A06FC_main[arg2 * 3 + arg1]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017BB8_main);
+/* File id: character arg0's data directory and index arg1 (character 7 has a table). */
+s32 func_80017BB8_main(s16 arg0, s16 arg1) {
+    if (arg0 == 7) {
+        return ((D_800A0748_main[arg1] & 0xFF00) << 8) | (D_800A0748_main[arg1] & 0xFF);
+    }
+    return D_800A0728_main[arg0] | arg1;
+}
 
 /* MtxTranslate. functions.us.h declares it with an Mtx*; it is a float matrix. */
 void func_80017C10_main(Mtx* arg0, f32 x, f32 y, f32 z) {
@@ -1254,9 +1272,38 @@ f32 func_80018ACC_main(f32* y, f32* x, f32 t) {
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018ACC_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018D68_main);
+/* Determinant of a 3x3 matrix. */
+f32 func_80018D68_main(Matrix3f m) {
+    f32 m10 = m[1][0];
+    f32 m11 = m[1][1];
+    f32 m12 = m[1][2];
+    f32 m20 = m[2][0];
+    f32 m21 = m[2][1];
+    f32 m22 = m[2][2];
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018DD8_main);
+    return (m11 * m22 - m12 * m21) * m[0][0] + (m12 * m20 - m10 * m22) * m[0][1] +
+           (m10 * m21 - m11 * m20) * m[0][2];
+}
+
+/* The 3x3 minor of a without row and column col. */
+void func_80018DD8_main(Matrix4f a, s32 row, s32 col, Matrix3f out) {
+    s32 i, j;
+    s32 oi, oj;
+
+    oi = 0;
+    for (i = 0; i < 4; i++) {
+        if (i != row) {
+            oj = 0;
+            for (j = 0; j < 4; j++) {
+                if (j != col) {
+                    out[oi][oj] = a[i][j];
+                    oj++;
+                }
+            }
+            oi++;
+        }
+    }
+}
 
 /* Cofactor: the determinant of a with row arg1 and column arg2 removed (shaped like MP2
    func_8005A608_5B208, a wrapper passing a local to its neighbour). */
@@ -1270,9 +1317,39 @@ f32 func_80018E50_main(Matrix4f a, s32 arg1, s32 arg2) {
     return func_80018D68_main(minor);
 }
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018E74_main);
+/* Determinant of a 4x4 matrix (cofactor expansion along row 0). */
+f32 func_80018E74_main(Matrix4f a) {
+    f32 det = 0.0f;
+    s32 i;
+    s32 sign;
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018F18_main);
+    for (i = 0; i < 4; i++) {
+        sign = (i != i / 2 * 2) ? -1 : 1;
+        det += func_80018E50_main(a, 0, i) * a[0][i] * sign;
+    }
+    return det;
+}
+
+/* Inverts a into out (adjugate / determinant); returns 0 if a is singular. */
+s32 func_80018F18_main(Matrix4f a, Matrix4f out) {
+    f32 det;
+    s32 i, j;
+    s32 sign;
+
+    det = func_80018E74_main(a);
+    if (det == 0.0f) {
+        return 0;
+    }
+    det = 1.0f / det;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            sign = i + j;
+            sign = (sign != sign / 2 * 2) ? -1 : 1;
+            out[j][i] = func_80018E50_main(a, i, j) * det * sign;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/14EA0", D_800A6A98_main);
 
