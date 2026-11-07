@@ -5,6 +5,15 @@
 #include "include_asm.h"
 #include "macros.h"
 
+f32 sinf(f32);
+f32 cosf(f32);
+void func_80056650_main(HuSprite *sprite);
+void func_80056758_main(HuSprite *sprite);
+
+#define SPR_POSX(s) (*(f32 *)&(s)->unk_04)
+#define SPR_POSY(s) (*(f32 *)&(s)->unk_08)
+
+
 #define offsetof(st, m) ((u32) & (((st *)0)->m))
 #define HUSPR_READ16(p) (((p)[0] << 8) + (p)[1])
 #define HUSPR_READ32(p) (((p)[0] << 24) + ((p)[1] << 16) + ((p)[2] << 8) + (p)[3])
@@ -613,7 +622,205 @@ void func_800534C8_main(f32 a0[][2], f32 a1[][2], f32 a2[][2]) {
     a2[2][1] += a1[2][1];
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80053558_main);
+/* Walk the members of a sprite group in hierarchy order (func_8005338C_main's child/sibling
+   links), with an explicit stack of the parents being visited. */
+#define SPR_GRP_NEXT() \
+    if (obj->unk_116 >= 0) { \
+        stack[sp++] = cur; \
+        cur = obj->unk_116; \
+        sp %= 256; \
+    } else { \
+        while (obj->unk_114 < 0 && sp != 0) { \
+            cur = stack[--sp]; \
+            sp %= 256; \
+            obj = grp->members[cur]; \
+        } \
+        cur = obj->unk_114; \
+    }
+
+/* Update every sprite group's member positions and rotations for its hierarchy mode (MP2
+   SprBegin): 0 independent, 1 rotation inherited, 2 position inherited and scaled, 3 both,
+   4/5 a full 2D transform per member (5 also adds the parent's rotation). Groups not flagged
+   dirty (unk_0C) only finish their members. */
+void func_80053558_main(void) {
+    f32 mtx[256][3][2];
+    f32 mA[3][2];
+    f32 mB[3][2];
+    u16 stack[256];
+    HuSprGrp* grp;
+    HuSprite* obj;
+    HuSprite* parent;
+    f32 angle;
+    f32 s;
+    u16 sp = 0;
+    s32 cur;
+    s32 i;
+
+    for (grp = HuSprGrpLast; grp != NULL; grp = grp->prev) {
+        if (grp->unk_0C != 0) {
+            grp->unk_0C = 0;
+            switch ((u16) grp->unk_08) {
+                case 0:
+                    for (cur = 0; cur < grp->unk_0A; cur++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        SPR_POSX(obj) = obj->unk_93 + obj->unk_48;
+                        SPR_POSY(obj) = obj->unk_94 + obj->unk_4C;
+                        SPR_ROT(obj) = obj->unk_58;
+                        func_80056758_main(obj);
+                    }
+                    break;
+                case 1:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        if (obj->unk_2E < 0) {
+                            SPR_POSX(obj) = obj->unk_93 + obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_94 + obj->unk_4C;
+                            SPR_ROT(obj) = obj->unk_58;
+                        } else {
+                            parent = grp->members[obj->unk_2E];
+                            SPR_POSX(obj) = obj->unk_93 + obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_94 + obj->unk_4C;
+                            SPR_ROT(obj) = SPR_ROT(parent) + obj->unk_58;
+                        }
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+                case 2:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        if (obj->unk_2E < 0) {
+                            SPR_POSX(obj) = obj->unk_93 + obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_94 + obj->unk_4C;
+                        } else {
+                            parent = grp->members[obj->unk_2E];
+                            SPR_POSX(obj) = (obj->unk_93 + obj->unk_48) * obj->unk_18 + SPR_POSX(parent);
+                            SPR_POSY(obj) = (obj->unk_94 + obj->unk_4C) * obj->unk_1C + SPR_POSY(parent);
+                        }
+                        SPR_ROT(obj) = obj->unk_58;
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+                case 3:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        if (obj->unk_2E < 0) {
+                            SPR_POSX(obj) = obj->unk_93 + obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_94 + obj->unk_4C;
+                            SPR_ROT(obj) = obj->unk_58;
+                        } else {
+                            parent = grp->members[obj->unk_2E];
+                            SPR_POSX(obj) = (obj->unk_93 + obj->unk_48) * obj->unk_18 + SPR_POSX(parent);
+                            SPR_POSY(obj) = (obj->unk_94 + obj->unk_4C) * obj->unk_1C + SPR_POSY(parent);
+                            SPR_ROT(obj) = SPR_ROT(parent) + obj->unk_58;
+                        }
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+                case 4:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        if (obj->unk_2E < 0) {
+                            mA[0][0] = mA[1][1] = 1.0f;
+                            mA[0][1] = mA[1][0] = 0.0f;
+                            mA[2][0] = obj->unk_93 + obj->unk_48;
+                            mA[2][1] = obj->unk_94 + obj->unk_4C;
+                            SPR_POSX(obj) = obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_4C;
+                        } else {
+                            mB[0][0] = mB[1][1] = 1.0f;
+                            mB[0][1] = mB[1][0] = 0.0f;
+                            mB[2][0] = (obj->unk_93 + obj->unk_48) * obj->unk_18;
+                            mB[2][1] = (obj->unk_94 + obj->unk_4C) * obj->unk_1C;
+                            func_800534C8_main(mB, mtx[obj->unk_2E], mA);
+                            SPR_POSX(obj) = (s16) mA[2][0];
+                            SPR_POSY(obj) = (s16) mA[2][1];
+                        }
+                        SPR_ROT(obj) = obj->unk_58;
+                        angle = -obj->unk_58 * 0.0174532925222222225;
+                        mB[0][0] = mB[1][1] = cosf(angle);
+                        s = sinf(angle);
+                        mB[0][1] = s;
+                        mB[1][0] = -s;
+                        mB[2][0] = mB[2][1] = 0.0f;
+                        func_800534C8_main(mB, mA, mtx[obj->unk_00]);
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+                case 5:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        if (obj->unk_2E < 0) {
+                            mA[0][0] = mA[1][1] = 1.0f;
+                            mA[0][1] = mA[1][0] = 0.0f;
+                            mA[2][0] = obj->unk_93 + obj->unk_48;
+                            mA[2][1] = obj->unk_94 + obj->unk_4C;
+                            SPR_POSX(obj) = obj->unk_48;
+                            SPR_POSY(obj) = obj->unk_4C;
+                            SPR_ROT(obj) = obj->unk_58;
+                        } else {
+                            parent = grp->members[obj->unk_2E];
+                            mB[0][0] = mB[1][1] = 1.0f;
+                            mB[0][1] = mB[1][0] = 0.0f;
+                            mB[2][0] = (obj->unk_93 + obj->unk_48) * obj->unk_18;
+                            mB[2][1] = (obj->unk_94 + obj->unk_4C) * obj->unk_1C;
+                            func_800534C8_main(mB, mtx[obj->unk_2E], mA);
+                            SPR_POSX(obj) = (s16) mA[2][0];
+                            SPR_POSY(obj) = (s16) mA[2][1];
+                            SPR_ROT(obj) = SPR_ROT(parent) + obj->unk_58;
+                        }
+                        angle = -obj->unk_58 * 0.0174532925222222225;
+                        mB[0][0] = mB[1][1] = cosf(angle);
+                        s = sinf(angle);
+                        mB[0][1] = s;
+                        mB[1][0] = -s;
+                        mB[2][0] = mB[2][1] = 0.0f;
+                        func_800534C8_main(mB, mA, mtx[obj->unk_00]);
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+            }
+        } else {
+            switch ((u16) grp->unk_08) {
+                case 0:
+                    for (cur = 0; cur < grp->unk_0A; cur++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        func_80056758_main(obj);
+                    }
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    cur = func_8005338C_main(grp);
+                    for (i = 0; i < grp->unk_0A; i++) {
+                        obj = grp->members[cur];
+                        func_80056650_main(obj);
+                        func_80056758_main(obj);
+                        SPR_GRP_NEXT();
+                    }
+                    break;
+            }
+        }
+    }
+}
 
 void func_80054170_main(void) {
     if (D_800CE1B8_main[D_800D2008_main] != NULL) {
