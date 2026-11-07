@@ -2128,7 +2128,42 @@ s32 func_8002DA98_main(HmfMotionSlot *arg0, s16 arg1, u8 *arg2)
   return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DD4C_main);
+s32 func_8002DD4C_main(HmfObj* arg0, s16 arg1, u8* arg2) {
+    HmfAnimTrack* temp_s3;
+    s16 temp_s0;
+    s16 var_a3;
+    s16 i;
+
+    temp_s3 = &arg0->unk9C->unk0C[arg1];
+
+    temp_s3->unk04 = (arg2[0] << 8) + arg2[1];
+    temp_s3->unk00 = (arg2[2] << 8) + arg2[3];
+
+    arg0->unk8C[temp_s3->unk00].unk0C |= 5;
+
+    temp_s0 = temp_s3->unk02 = (arg2[6] << 8) + arg2[7];
+    temp_s3->unk08 = HuMemAllocTag(temp_s0 * sizeof(u16), arg0->unk0E + 1);
+    temp_s3->unk0C = HuMemAllocTag(temp_s0 * sizeof(s32), arg0->unk0E + 1);
+
+    arg2 += 8;
+
+    for (var_a3 = i = 0; i < temp_s0; i++) {
+        ((u8*) &temp_s3->unk0C[i])[0] = arg2[0];
+        ((u8*) &temp_s3->unk0C[i])[1] = arg2[1];
+        ((u8*) &temp_s3->unk0C[i])[2] = arg2[2];
+        ((u8*) &temp_s3->unk0C[i])[3] = arg2[3];
+
+        temp_s3->unk08[i] = (arg2[4] << 8) + arg2[5];
+        var_a3 += temp_s3->unk08[i];
+
+        arg2 += 6;
+    }
+
+    temp_s3->unk08[i - 1]++;
+    temp_s3->unk06 = var_a3 + 1;
+
+    return 1;
+}
 
 
 s32 func_8002DF2C_main(HmfMotionSlot* arg0, HmfMotionFile* arg1) {
