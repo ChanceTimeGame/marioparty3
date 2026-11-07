@@ -551,7 +551,41 @@ void func_8005B040_main(u8* mask, s16 w, s16 h) {
     }
 }
 
+// register allocation (masked 3): retail loads the third byte into the result register (beql)
+#ifdef NON_MATCHING
+/* clear the pixels outside the window's rounded corners (4-bit, two pixels per byte) */
+void func_8005B238_main(u8* mask, s16 w, s16 h) {
+    s16 r;
+    s16 stride;
+    s16 i;
+    s16 j;
+    s16 k;
+    u8 v;
+
+    if (w > h) {
+        r = h / 2;
+    } else {
+        r = w / 2;
+    }
+    stride = w / 2;
+
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < r - i; j++) {
+            v = (mask + i * stride)[j / 2];
+            (mask + i * stride)[j / 2] = (j & 1) ? v & 0xF0 : v & 0xF;
+            v = (mask + (h - i - 1) * stride)[j / 2];
+            (mask + (h - i - 1) * stride)[j / 2] = (j & 1) ? v & 0xF0 : v & 0xF;
+            k = stride * 2 - j - 1;
+            v = (mask + i * stride)[k / 2];
+            (mask + i * stride)[k / 2] = (k % 2 == 0) ? v & 0xF : v & 0xF0;
+            v = (mask + (h - i - 1) * stride)[k / 2];
+            (mask + (h - i - 1) * stride)[k / 2] = (k & 1) ? v & 0xF0 : v & 0xF;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_8005B238_main);
+#endif
 
 /* MP1 LoadStringIntoWindow: sets the window's text (a message id, or a pointer above 0x80000000)
    and its position (-2 = centred). Host: the id/pointer test assumes N64 addresses. */
