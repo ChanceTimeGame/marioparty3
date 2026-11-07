@@ -22,9 +22,8 @@ typedef struct HmfVtx {
 
 typedef struct HmfFace {
     /* 0x00 */ u8 unk00;
-    /* 0x01 */ char unk01;
-    /* 0x02 */ s16 unk02[1];
-    /* 0x04 */ char unk04[8];
+    /* 0x01 */ char unk01[3];
+    /* 0x04 */ s16 unk02[4]; /* MP2 0x02 */
     /* 0x0C */ f32 unk0C;
     /* 0x10 */ f32 unk10;
     /* 0x14 */ f32 unk14;
@@ -109,13 +108,12 @@ typedef struct HmfDisp {
 typedef struct HmfPart {
     /* 0x00 */ s16 unk00;
     /* 0x02 */ s16 unk02;
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ char unk06[2];
+    /* 0x04 */ char unk04_[4];
     /* 0x08 */ char unk08[0x14];
     /* 0x1C */ u8 unk2E; /* MP2 0x2E */
     /* 0x1D */ u8 unk2F; /* MP2 0x2F */
     /* 0x1E */ char unk1E[4];
-    /* 0x22 */ s16 unk22;
+    /* 0x22 */ s16 unk04; /* MP2 0x04: face count */
     /* 0x24 */ char unk24[4];
     /* 0x28 */ s16 unk0A; /* MP2 0x0A: first vertex */
     /* 0x2A */ s16 unk0C; /* MP2 0x0C: vertex count */
@@ -318,7 +316,7 @@ typedef struct HmfLight {
 } HmfLight; /* size = 0x60 */
 
 
-void func_80018544_main(s32, s32);
+void func_80018544_main(f32 (*)[4], f32 (*)[4]);
 void func_80019C00_main(void *data);
 void func_80022660_main(struct HmfObj *);
 extern s16 D_800CDD6A_main;
@@ -675,9 +673,54 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_80022660_main);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80022F08_main);
+void func_80022F08_main(HmfObj* arg0) {
+    u16 var_a2;
+    s16 var_a3 = 0;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80022FF4_main);
+    for (i = 0, var_a2 = 0; i < arg0->unk10; i++) {
+        if (arg0->unk64[i].unk50 & 0x20000) {
+            var_a3 = 1;
+        }
+        var_a2 += arg0->unk64[i].unk04;
+    }
+
+    if (var_a3 && arg0->unkB4 == NULL) {
+        arg0->unkB4 = HuMemAllocTag(var_a2 * sizeof(HmfFace), D_800CDD6A_main);
+    }
+}
+
+void func_80022FF4_main(HmfObj* arg0) {
+    HmfFace* var_a3;
+    f32 var_f4;
+    f32 var_f6;
+    f32 var_f8;
+    s16* var_a1;
+    u16 temp_t2;
+    s16 i;
+    s16 j;
+
+    if (arg0->unkB4 == NULL) {
+        return;
+    }
+
+    var_a3 = arg0->unkB4;
+    for (i = 0; i < arg0->unk1A; i++, var_a3++) {
+        var_a1 = var_a3->unk02;
+        temp_t2 = var_a3->unk00;
+
+        var_f6 = var_f8 = var_f4 = 0.0f;
+        for (j = 0; j < temp_t2; j++, var_a1++) {
+            var_f6 += arg0->unk40[*var_a1].unk00;
+            var_f8 += arg0->unk40[*var_a1].unk02;
+            var_f4 += arg0->unk40[*var_a1].unk04;
+        }
+
+        var_a3->unk0C = var_f6 / temp_t2;
+        var_a3->unk10 = var_f8 / temp_t2;
+        var_a3->unk14 = var_f4 / temp_t2;
+    }
+}
 
 void func_800230F8_main(HmfData *arg0) {
     s16 textureIndex;
@@ -761,9 +804,103 @@ s32 func_80023264_main(HmfData *arg0) {
     return var_s2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023404_main);
+extern u8 D_800CD6A6_main;
+extern s16 D_800D138A_main;
+extern f32 D_800D41F0_main[4][4];
+extern s16 D_800D5214_main;
+extern Matrix4f D_800D5A00_main[];
+extern f32 D_800D5A40_main[4][4];
+void func_8002367C_main(Matrix4f, Matrix4f);
+s32 func_8002C4C0_main(HmfData*, s16, Matrix4f, Matrix4f);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+void func_80023700_main(HmfObj*, s16);
+void func_80023AF8_main(HmfObj*, s16);
+void func_8002404C_main(HmfObj*, s16);
+void func_80024354_main(HmfObj*, s16);
+void func_80024DF0_main(HmfObj*, s16, void*, Matrix4f);
+void func_8002DFF8_main(HmfObj*, f32, void*, s32);
+void func_8002EAC0_main(HmfObj*, f32, f32);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002367C_main);
+void func_80023404_main(HmfObj* arg0, Matrix4f arg1, Matrix4f arg2) {
+    Matrix4f sp10;
+
+    if (arg0->unk14 != 0) {
+        func_8002367C_main(D_800D5A00_main[0], arg1);
+        D_800D138A_main = 1;
+        guMtxIdentF(D_800D5A40_main);
+        D_800D5214_main = 0;
+        func_8002367C_main(D_800D41F0_main, arg2);
+
+        if (arg0->unk01 & 4) {
+            if (arg0->unk64->unk50 & 0x70000000) {
+                func_8002C4C0_main((HmfData*) arg0, 0, arg1, sp10);
+                func_80018044_main(arg2, sp10, arg1);
+            }
+            func_800898F0_main((Mtx*) arg1, &MTXBuf[MTXBufNum]);
+            func_80024DF0_main(arg0, 0, &MTXBuf[MTXBufNum++], arg1);
+            return;
+        }
+
+        if (arg0->unk84 == (void*) -1) {
+            if (arg0->unk90 != NULL) {
+                func_8002DFF8_main(arg0, arg0->unkA4, arg0->unk90, 1);
+                if (arg0->unk94 != NULL) {
+                    func_8002EAC0_main(arg0, arg0->unkA8, arg0->unkAC);
+                }
+                if (arg0->unk98 != NULL) {
+                    func_8002DFF8_main(arg0, arg0->unkB0, arg0->unk98, 0);
+                }
+            }
+            if (arg0->unk68 != 0) {
+                func_80023700_main(arg0, 0);
+                if (D_800C9528_main <= MTXBufNum) {
+                    osSyncPrintf("Mtx Over\n");
+                }
+            }
+        } else if (arg0->unk16 != 0) {
+            if (D_800CD6A6_main != 0 && arg0->unk0B == 1 && arg0->unk0C != 0) {
+                func_8002404C_main(arg0, 0);
+            } else {
+                if (arg0->unk90 != NULL) {
+                    func_8002DFF8_main(arg0, arg0->unkA4, arg0->unk90, 1);
+                    if (arg0->unk94 != NULL) {
+                        func_8002EAC0_main(arg0, arg0->unkA8, arg0->unkAC);
+                    }
+                    if (arg0->unk98 != NULL) {
+                        func_8002DFF8_main(arg0, arg0->unkB0, arg0->unk98, 0);
+                    }
+                }
+                if (arg0->unk16 == 1) {
+                    func_80024354_main(arg0, 0);
+                } else {
+                    func_80023AF8_main(arg0, 0);
+                }
+            }
+            if (D_800C9528_main <= MTXBufNum) {
+                osSyncPrintf("Mtx Over\n");
+            }
+        }
+    }
+}
+
+void func_8002367C_main(Matrix4f arg0, Matrix4f arg1) {
+    arg0[0][0] = arg1[0][0];
+    arg0[0][1] = arg1[0][1];
+    arg0[0][2] = arg1[0][2];
+    arg0[0][3] = arg1[0][3];
+    arg0[1][0] = arg1[1][0];
+    arg0[1][1] = arg1[1][1];
+    arg0[1][2] = arg1[1][2];
+    arg0[1][3] = arg1[1][3];
+    arg0[2][0] = arg1[2][0];
+    arg0[2][1] = arg1[2][1];
+    arg0[2][2] = arg1[2][2];
+    arg0[2][3] = arg1[2][3];
+    arg0[3][0] = arg1[3][0];
+    arg0[3][1] = arg1[3][1];
+    arg0[3][2] = arg1[3][2];
+    arg0[3][3] = arg1[3][3];
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023700_main);
 
@@ -801,7 +938,7 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002B2AC_main);
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C0EC_main);
 
-s32 func_8002C4C0_main(HmfData *arg0, s16 arg1, s32 arg2, s32 arg3) {
+s32 func_8002C4C0_main(HmfData *arg0, s16 arg1, Matrix4f arg2, Matrix4f arg3) {
     if (!(arg0->unk60[arg1].unk50 & 0x70000000)) {
         return 0;
     }
