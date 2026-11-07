@@ -2541,7 +2541,19 @@ void func_80060C14_main(s32 winId, s32 sound) {
 INCLUDE_ASM("asm/nonmatchings/window", func_80060C14_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80060DEC_main);
+/* shows the portrait window at full size at once */
+void func_80060DEC_main(s32 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    func_800600C0_main(winId, 1);
+    HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+    if (tw->unk276 != 0) {
+        HuSprScaleSet(tw->unk_6C, tw->unk276, 1.0f, 1.0f);
+    }
+    func_8005BB18_main(winId, 1.0f, 1.0f);
+    func_800600C0_main(winId, 0);
+    func_8005B63C_main(winId, 0x4000, 0x4000);
+}
 
 /* MP1 func_80071E80: closes the window with a shrinking animation (MP3 also shrinks the
    second portrait sprite unk276) */
@@ -2577,13 +2589,31 @@ void func_80060EA8_main(s32 winId, s32 sound) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8006105C_main);
+/* portrait sprites: translucent, alpha */
+void func_8006105C_main(s32 winId, u8 alpha) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    HuSprAttrSet(tw->unk_6C, tw->unk274, 0x1000);
+    func_80055458_main(tw->unk_6C, tw->unk274, alpha);
+    if (tw->unk276 != 0) {
+        func_80055458_main(tw->unk_6C, tw->unk276, alpha);
+    }
+}
 
 void func_800610E0_main(s16 arg0) {
     func_8005F364_main(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80061100_main);
+/* window and portrait sprite priorities */
+void func_80061100_main(s16 winId, s32 prio) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    func_8005BE30_main(winId, prio);
+    HuSprPriSet(tw->unk_6C, tw->unk274, prio + 1);
+    if (tw->unk276 != 0) {
+        HuSprPriSet(tw->unk_6C, tw->unk276, prio + 2);
+    }
+}
 
 // Obtains a window handle
 s32 func_80061188_main(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u16 arg5) {
