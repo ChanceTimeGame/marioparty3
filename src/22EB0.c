@@ -1329,7 +1329,436 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_800250D4_main);
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800257BC_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_800260F0_main);
+/* wave 2c C */
+/* A batch of faces drawn with one material and texture (MP2 HmfDrawFace) */
+typedef struct HmfDrawFace {
+    /* 0x00 */ s16 unk00; /* 3: triangle, else quadrangle */
+    /* 0x02 */ s16 unk02[4];
+    /* 0x0A */ char unk0A[2];
+    /* 0x0C */ HmfMat* unk0C;
+    /* 0x10 */ HmfTexRef* unk10;
+} HmfDrawFace; /* size 0x14 */
+
+extern HmfDrawFace D_800CD6B0_main[];
+extern s16 D_800D0A44_main;
+extern s32 D_800B19F4_main;
+extern s16 D_800CDD66_main;
+extern u32 D_800C952C_main;
+extern u32 D_800CCF88_main;
+extern u32 D_800CD2FC_main;
+extern u32 D_800D1FFC_main;
+extern u32 D_800D6A20_main;
+void func_8002A358_main(HmfMat*, HmfTexRef*, s32);
+
+#define INTEGER_LOG2(x) ((x) <= 2 ? 1 : (x) <= 4 ? 2 : (x) <= 8 ? 3 : (x) <= 16 ? 4 : (x) <= 32 ? 5 : (x) <= 64 ? 6 : (x) <= 128 ? 7 : (x) <= 256 ? 8 : 9)
+
+/* MP2 func_80033288_33E88: flush the batched faces (D_800CD6B0_main) of one material: material
+   colours, texture and palette loads (a texture with flag 1 loads only the tile its vertices'
+   texture coordinates cover), then the vertices and triangles */
+void func_800260F0_main(HmfObj* arg0, s32* arg1) {
+    HmfDrawFace* face;
+    HmfTex* tex;
+    HmfMat* mat;
+    HmfTexRef* ref;
+    Gfx** dlp;
+    HmfVtx* vtx;
+    u8* img;
+    u16* pal;
+    u16 r;
+    u16 g;
+    u16 b;
+    s16 sMin;
+    s16 sMax;
+    s16 tMin;
+    s16 tMax;
+    s16 s;
+    s16 t;
+    s16 sub; /* untextured: a light colour changed; textured: load a sub-tile */
+    s16 i;
+
+    if (D_800D0A44_main == 0) {
+        return;
+    }
+
+    /* retail's D_800CD6BC_main is D_800CD6B0_main[0].unk0C under a second name */
+    mat = D_800CD6B0_main[0].unk0C;
+    ref = D_800CD6B0_main[0].unk10;
+
+    if (!(*arg1 & 0x06000000)) {
+        func_8002A358_main(mat, ref, *arg1);
+        b = 0;
+        g = 0;
+        r = 0;
+
+        if (ref == (HmfTexRef*) -1) {
+            sub = 0;
+            if (D_800C9940_main & 0x200) {
+                r = mat->unk01[0] * D_800D5410_main;
+                if (r > 255) {
+                    r = 255;
+                }
+                g = mat->unk01[1] * D_800D5410_main;
+                if (g > 255) {
+                    g = 255;
+                }
+                b = mat->unk01[2] * D_800D5410_main;
+                if (b > 255) {
+                    b = 255;
+                }
+
+                if (D_800D1F78_main != r || D_800D1FE2_main != g || D_800CDA76_main != b) {
+                    D_800D1F78_main = r;
+                    D_800D1FE2_main = g;
+                    D_800CDA76_main = b;
+                    func_8002D094_main(&gMainGfxPos, D_800CE1D4_main->unk00 + 1,
+                        (D_800D1F78_main << 24) + (D_800D1FE2_main << 16) + (D_800CDA76_main << 8));
+                    sub = 1;
+                }
+            }
+
+            r = mat->unk05[0] * D_800D51FC_main;
+            if (r > 255) {
+                r = 255;
+            }
+            g = mat->unk05[1] * D_800D51FC_main;
+            if (g > 255) {
+                g = 255;
+            }
+            b = mat->unk05[2] * D_800D51FC_main;
+            if (b > 255) {
+                b = 255;
+            }
+
+            if (D_800CDD5A_main != r || D_800CE170_main != g || D_800CDA86_main != b) {
+                D_800CDD5A_main = r;
+                D_800CE170_main = g;
+                D_800CDA86_main = b;
+                func_8002D094_main(&gMainGfxPos, 1, (D_800CDD5A_main << 24) + (D_800CE170_main << 16) + (D_800CDA86_main << 8));
+                sub = 1;
+            }
+
+            if (sub) {
+                gDPPipeSync(gMainGfxPos++);
+            }
+        } else {
+            tex = ref->unk0C;
+            if (tex->unk1F_ & 1) {
+                tMin = 32000;
+                sMin = 32000;
+                tMax = -32000;
+                sMax = -32000;
+                vtx = &D_800D5308_main[D_800CDD66_main];
+                for (i = 0; i < D_800CE1CE_main - D_800CDD66_main; i++, vtx++) {
+                    t = vtx->unk0A;
+                    s = vtx->unk08;
+                    if (sMin > s) {
+                        sMin = s;
+                    }
+                    if (sMax < s) {
+                        sMax = s;
+                    }
+                    if (tMin > t) {
+                        tMin = t;
+                    }
+                    if (tMax < t) {
+                        tMax = t;
+                    }
+                }
+                sMin >>= 5;
+                tMin >>= 5;
+                sMax >>= 5;
+                tMax >>= 5;
+                sub = 1;
+            } else {
+                tMin = 0;
+                tMax = 0;
+                sMin = 0;
+                sMax = 0;
+                sub = 0;
+            }
+
+            switch (ref->unk00) {
+                case 42:
+                case 43:
+                    r = mat->unk01[0] * D_800D5410_main;
+                    if (r > 255) {
+                        r = 255;
+                    }
+                    g = mat->unk01[1] * D_800D5410_main;
+                    if (g > 255) {
+                        g = 255;
+                    }
+                    b = mat->unk01[2] * D_800D5410_main;
+                    if (b > 255) {
+                        b = 255;
+                    }
+                    break;
+                case 41:
+                    r = D_800D5410_main * 255.0f;
+                    if (r > 255) {
+                        r = 255;
+                    }
+                    g = b = r;
+                    break;
+            }
+
+            if ((D_800C9940_main & 0x200) && (D_800D1F78_main != r || D_800D1FE2_main != g || D_800CDA76_main != b)) {
+                D_800D1F78_main = r;
+                D_800D1FE2_main = g;
+                D_800CDA76_main = b;
+                func_8002D094_main(&gMainGfxPos, D_800CE1D4_main->unk00 + 1,
+                    (D_800D1F78_main << 24) + (D_800D1FE2_main << 16) + (D_800CDA76_main << 8));
+            }
+
+            switch (ref->unk00) {
+                case 43:
+                    r = ref->unk05 * D_800D51FC_main;
+                    if (r > 255) {
+                        r = 255;
+                    }
+                    g = ref->unk06 * D_800D51FC_main;
+                    if (g > 255) {
+                        g = 255;
+                    }
+                    b = ref->unk07 * D_800D51FC_main;
+                    if (b > 255) {
+                        b = 255;
+                    }
+                    break;
+                case 41:
+                    r = D_800D51FC_main * 255.0f;
+                    if (r > 255) {
+                        r = 255;
+                    }
+                    b = r;
+                    g = b;
+                    break;
+                default:
+                    r = mat->unk05[0] * D_800D51FC_main;
+                    if (r > 255) {
+                        r = 255;
+                    }
+                    g = mat->unk05[1] * D_800D51FC_main;
+                    if (g > 255) {
+                        g = 255;
+                    }
+                    b = mat->unk05[2] * D_800D51FC_main;
+                    if (b > 255) {
+                        b = 255;
+                    }
+                    break;
+            }
+
+            if (D_800CDD5A_main != r || D_800CE170_main != g || D_800CDA86_main != b) {
+                D_800CDD5A_main = r;
+                D_800CE170_main = g;
+                D_800CDA86_main = b;
+                func_8002D094_main(&gMainGfxPos, 1, (D_800CDD5A_main << 24) + (D_800CE170_main << 16) + (D_800CDA86_main << 8));
+            }
+
+            if (sub || (ref != D_800D0440_main && !(*arg1 & 0x08000000))) {
+                D_800D0440_main = ref;
+
+                if (ref->unk03 != -1) {
+                    img = (u8*) (ref->unk03 << 24); /* a segmented address */
+                    *arg1 |= 0x40000;
+                    dlp = &gMainGfxPos;
+                    D_800D5544_main = 1;
+                } else {
+                    img = tex->unk28;
+                    if (D_800D5544_main == 0 && !(D_800C9940_main & 0x2000) && !sub) {
+                        dlp = &D_800D6A88_main;
+                        D_800CC0AC_main = D_800D0440_main;
+                    } else {
+                        dlp = &gMainGfxPos;
+                    }
+                }
+
+                if (tex->unk1C != G_IM_FMT_CI) {
+                    if (D_800B19F4_main != G_TT_NONE) {
+                        D_800B19F4_main = G_TT_NONE;
+                        gDPSetTextureLUT(gMainGfxPos++, G_TT_NONE);
+                    }
+
+                    if (tex->unk1D != G_IM_SIZ_4b) {
+                        if (tex->unk1F_ & 1) {
+                            gDPSetTextureImage((*dlp)++, tex->unk1C, tex->unk1D, tex->unk1E, img);
+                            switch (tex->unk1D) {
+                                case G_IM_SIZ_16b:
+                                    D_800CD2FC_main = G_IM_SIZ_16b_TILE_BYTES;
+                                    D_800D6A20_main = G_IM_SIZ_16b_LINE_BYTES;
+                                    break;
+                                case G_IM_SIZ_8b:
+                                    D_800CD2FC_main = G_IM_SIZ_8b_TILE_BYTES;
+                                    D_800D6A20_main = G_IM_SIZ_8b_LINE_BYTES;
+                                    break;
+                                case G_IM_SIZ_4b:
+                                    D_800CD2FC_main = G_IM_SIZ_4b_TILE_BYTES;
+                                    D_800D6A20_main = G_IM_SIZ_4b_LINE_BYTES;
+                                    break;
+                                default:
+                                    D_800CD2FC_main = G_IM_SIZ_32b_TILE_BYTES;
+                                    D_800D6A20_main = G_IM_SIZ_32b_LINE_BYTES;
+                                    break;
+                            }
+                            gDPSetTile((*dlp)++, tex->unk1C, tex->unk1D, (((sMax - sMin) + 1) * D_800CD2FC_main + 7) >> 3, 0x0000,
+                                G_TX_LOADTILE, 0, ref->unk02, INTEGER_LOG2(tex->unk1F), G_TX_NOLOD,
+                                ref->unk01, INTEGER_LOG2(tex->unk1E), G_TX_NOLOD);
+                            gDPLoadSync((*dlp)++);
+                            gDPLoadTile((*dlp)++, G_TX_LOADTILE, sMin << 2, tMin << 2, sMax << 2, tMax << 2);
+                            gDPPipeSync((*dlp)++);
+                            gDPSetTile((*dlp)++, tex->unk1C, tex->unk1D, (((sMax - sMin) + 1) * D_800D6A20_main + 7) >> 3, 0x0000,
+                                G_TX_RENDERTILE, 0, ref->unk02, INTEGER_LOG2(tex->unk1F), G_TX_NOLOD,
+                                ref->unk01, INTEGER_LOG2(tex->unk1E), G_TX_NOLOD);
+                            gDPSetTileSize((*dlp)++, G_TX_RENDERTILE, sMin << 2, tMin << 2, sMax << 2, tMax << 2);
+                        } else {
+                            switch (tex->unk1D) {
+                                case G_IM_SIZ_16b:
+                                    D_800CCF88_main = G_IM_SIZ_16b_LOAD_BLOCK;
+                                    D_800CD2FC_main = G_IM_SIZ_16b_INCR;
+                                    D_800D6A20_main = G_IM_SIZ_16b_BYTES;
+                                    D_800C952C_main = G_IM_SIZ_16b_LINE_BYTES;
+                                    D_800D1FFC_main = G_IM_SIZ_16b_SHIFT;
+                                    break;
+                                case G_IM_SIZ_8b:
+                                    D_800CCF88_main = G_IM_SIZ_8b_LOAD_BLOCK;
+                                    D_800CD2FC_main = G_IM_SIZ_8b_INCR;
+                                    D_800D6A20_main = G_IM_SIZ_8b_BYTES;
+                                    D_800C952C_main = G_IM_SIZ_8b_LINE_BYTES;
+                                    D_800D1FFC_main = G_IM_SIZ_8b_SHIFT;
+                                    break;
+                                case G_IM_SIZ_4b:
+                                    D_800CCF88_main = G_IM_SIZ_4b_LOAD_BLOCK;
+                                    D_800CD2FC_main = G_IM_SIZ_4b_INCR;
+                                    D_800D6A20_main = G_IM_SIZ_4b_BYTES;
+                                    D_800C952C_main = G_IM_SIZ_4b_LINE_BYTES;
+                                    D_800D1FFC_main = G_IM_SIZ_4b_SHIFT;
+                                    break;
+                                default:
+                                    D_800CCF88_main = G_IM_SIZ_32b_LOAD_BLOCK;
+                                    D_800CD2FC_main = G_IM_SIZ_32b_INCR;
+                                    D_800D6A20_main = G_IM_SIZ_32b_BYTES;
+                                    D_800C952C_main = G_IM_SIZ_32b_LINE_BYTES;
+                                    D_800D1FFC_main = G_IM_SIZ_32b_SHIFT;
+                                    break;
+                            }
+
+                            gDPSetTextureImage((*dlp)++, tex->unk1C, D_800CCF88_main, 1, img);
+                            gDPSetTile((*dlp)++, tex->unk1C, D_800CCF88_main, 0, 0x0000, G_TX_LOADTILE, 0,
+                                ref->unk02, INTEGER_LOG2(tex->unk1F), G_TX_NOLOD,
+                                ref->unk01, INTEGER_LOG2(tex->unk1E), G_TX_NOLOD);
+                            gDPLoadSync((*dlp)++);
+                            gDPLoadBlock((*dlp)++, G_TX_LOADTILE, 0, 0,
+                                ((tex->unk1E * tex->unk1F + D_800CD2FC_main) >> D_800D1FFC_main) - 1,
+                                CALC_DXT(tex->unk1E, D_800D6A20_main));
+                            gDPPipeSync((*dlp)++);
+                            gDPSetTile((*dlp)++, tex->unk1C, tex->unk1D, (tex->unk1E * D_800C952C_main + 7) >> 3, 0x0000,
+                                G_TX_RENDERTILE, 0, ref->unk02, INTEGER_LOG2(tex->unk1F), G_TX_NOLOD,
+                                ref->unk01, INTEGER_LOG2(tex->unk1E), G_TX_NOLOD);
+                            gDPSetTileSize((*dlp)++, G_TX_RENDERTILE, 0, 0, (tex->unk1E - 1) * 4, (tex->unk1F - 1) * 4);
+                        }
+                    } else if (tex->unk1E < 16) {
+                        gDPLoadTextureTile_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F,
+                            0, 0, tex->unk1E, tex->unk1F, 0, ref->unk01, ref->unk02,
+                            INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                    } else if (tex->unk1F_ & 1) {
+                        gDPLoadTextureTile_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F,
+                            sMin, tMin, sMax + 1, tMax + 1, 0, ref->unk01, ref->unk02,
+                            INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                    } else {
+                        gDPLoadTextureBlock_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F, 0,
+                            ref->unk01, ref->unk02, INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F),
+                            G_TX_NOLOD, G_TX_NOLOD);
+                    }
+                } else {
+                    if (ref->unk04 != -1) {
+                        pal = (u16*) (ref->unk04 << 24); /* a segmented address */
+                        *arg1 |= 0x40000;
+                        dlp = &gMainGfxPos;
+                        D_800D5544_main = 1;
+                    } else {
+                        pal = tex->unk30->unk28;
+                        if (D_800D5544_main == 0 && !(D_800C9940_main & 0x2000) && !sub) {
+                            dlp = &D_800D6A88_main;
+                            D_800CC0AC_main = D_800D0440_main;
+                        } else {
+                            dlp = &gMainGfxPos;
+                        }
+                    }
+
+                    if (D_800B19F4_main != G_TT_RGBA16) {
+                        D_800B19F4_main = G_TT_RGBA16;
+                        gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+                    }
+
+                    if (tex->unk30->unk1E < 17) {
+                        gDPLoadTLUT_pal16((*dlp)++, 0, pal);
+
+                        if (tex->unk1E < 16) {
+                            gDPLoadTextureTile_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F,
+                                0, 0, tex->unk1E, tex->unk1F, 0, ref->unk01, ref->unk02,
+                                INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                        } else if (tex->unk1F_ & 1) {
+                            gDPLoadTextureTile_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F,
+                                sMin, tMin, sMax + 1, tMax + 1, 0, ref->unk01, ref->unk02,
+                                INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                        } else {
+                            gDPLoadTextureBlock_4b((*dlp)++, img, tex->unk1C, tex->unk1E, tex->unk1F, 0,
+                                ref->unk01, ref->unk02, INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F),
+                                G_TX_NOLOD, G_TX_NOLOD);
+                        }
+                    } else {
+                        gDPLoadTLUT_pal256((*dlp)++, pal);
+
+                        if (tex->unk1E < 8) {
+                            /* retail sends this one to the main list even when dlp is the second one */
+                            dlp = &gMainGfxPos;
+                            gDPLoadTextureTile((*dlp)++, img, tex->unk1C, G_IM_SIZ_8b, tex->unk1E, tex->unk1F,
+                                0, 0, tex->unk1E, tex->unk1F, 0, ref->unk01, ref->unk02,
+                                INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                        } else if (tex->unk1F_ & 1) {
+                            gDPLoadTextureTile((*dlp)++, img, tex->unk1C, G_IM_SIZ_8b, tex->unk1E, tex->unk1F,
+                                sMin, tMin, sMax, tMax, 0, ref->unk01, ref->unk02,
+                                INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F), G_TX_NOLOD, G_TX_NOLOD);
+                        } else {
+                            gDPLoadTextureBlockYuv((*dlp)++, img, tex->unk1C, G_IM_SIZ_8b, tex->unk1E, tex->unk1F, 0,
+                                ref->unk01, ref->unk02, INTEGER_LOG2(tex->unk1E), INTEGER_LOG2(tex->unk1F),
+                                G_TX_NOLOD, G_TX_NOLOD);
+                        }
+                    }
+                }
+                D_800D5544_main = 1;
+            }
+        }
+    }
+
+    if (D_800CE1CE_main - D_800CDD66_main > 32) {
+        gSPVertex(gMainGfxPos++, D_800CDD66_main * 16 + 0x01000000, 32, 0);
+        gSPVertex(gMainGfxPos++, (D_800CDD66_main + 32) * 16 + 0x01000000, D_800CE1CE_main - D_800CDD66_main - 32, 32);
+    } else {
+        gSPVertex(gMainGfxPos++, D_800CDD66_main * 16 + 0x01000000, D_800CE1CE_main - D_800CDD66_main, 0);
+    }
+
+    face = D_800CD6B0_main;
+    for (i = 0; i < D_800D0A44_main; i++) {
+        if (face->unk00 == 3) {
+            if (i + 1 < D_800D0A44_main && face[1].unk00 == 3) {
+                gSP2Triangles(gMainGfxPos++, face[0].unk02[0], face[0].unk02[1], face[0].unk02[2], 0,
+                    face[1].unk02[0], face[1].unk02[1], face[1].unk02[2], 0);
+                i++;
+                face += 2;
+            } else {
+                gSP1Triangle(gMainGfxPos++, face->unk02[0], face->unk02[1], face->unk02[2], 0);
+                face++;
+            }
+        } else {
+            gSP1Quadrangle(gMainGfxPos++, face->unk02[0], face->unk02[1], face->unk02[2], face->unk02[3], 0);
+            face++;
+        }
+    }
+
+    D_800CDD66_main = D_800CE1CE_main;
+}
 
 extern s16 D_800CDD66_main;
 
