@@ -2026,7 +2026,25 @@ s32 func_800448C0_main(GAMEMES *gMes, Gfx **arg1) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80045010_main);
+void func_8003A81C_main(u8 *str, u8 arg1);
+
+void func_80045010_main(const s16 *arg0, s32 arg1) {
+    u8 *temp_v0;
+    u8 *var_s1;
+
+    var_s1 = temp_v0 = HuMemMemoryAllocPerm(512);
+    func_80045208_main(temp_v0, (void *)arg0);
+
+    for (; *var_s1 != 0; var_s1++) {
+        func_8003A81C_main(var_s1, arg1);
+        if (var_s1[1] == 128 || var_s1[1] == 129) {
+            var_s1++;
+        }
+    }
+
+    D_800B1A52_main = 1;
+    HuMemMemoryFreePerm(temp_v0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_800450B8_main);
 
