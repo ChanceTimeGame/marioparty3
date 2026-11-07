@@ -266,6 +266,8 @@ NOP_OBJECTS := \
 	build/src/overlays/w06/39AD50.c.o
 # batch 1 G: 471D0 (light editor; no nop after the cosdf call)
 NOP_OBJECTS += build/src/471D0.c.o
+# wave 2b C: sprput (MP2 builds 84FF0.c the same way: SprDisp has no nop after a branch-likely delay slot)
+NOP_OBJECTS += build/src/sprput.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 

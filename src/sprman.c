@@ -84,7 +84,7 @@ void func_800571C8_main(struct SprPalAnim *arg0);
 void SprExec(Gfx **gfx, Mtx *mtx, HuCamera *cam);
 void func_80053558_main(void);
 void func_80054170_main(void);
-void func_800579E4_main(Gfx **gfx, HuSprite *obj, HuCamera *cam);
+void SprDisp(Gfx **gfx, HuSprite *obj, HuCamera *cam);
 s16 func_8004D6AC_main(u8 red, u8 green, u8 blue);
 void func_8004D6E8_main(s16 sampleIdx);
 void SprLayerHook(Gfx **gfx, Mtx *mtx, HuCamera *cam);
@@ -677,7 +677,7 @@ void SprExec(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
             }
             flag = 1;
         }
-        func_800579E4_main(gfx, obj, cam);
+        SprDisp(gfx, obj, cam);
         obj = obj->unk_118;
     }
     if (flag) {
