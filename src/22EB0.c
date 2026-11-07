@@ -1090,7 +1090,64 @@ void func_80023AF8_main(HmfObj* arg0, s16 arg1) {
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023AF8_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002404C_main);
+void func_8002404C_main(HmfObj* arg0, s16 arg1) {
+    HmfMotionObj* temp_s1;
+    s16* list;
+    HmfPart* part;
+    s16 count;
+    s16 temp_v1;
+    s16 var_s7;
+    s16 var_s3;
+    Matrix4f sp10;
+    Matrix4f sp50;
+    s16 i;
+
+    temp_s1 = &arg0->unk84[arg1 & 0x7FFF];
+    var_s7 = 0;
+
+    func_80018044_main(temp_s1->unk58, D_800D5A00_main[0], sp10);
+    if (temp_s1->unk1C.x != 1.0f || temp_s1->unk1C.y != 1.0f || temp_s1->unk1C.z != 1.0f) {
+        func_80088700_main(sp50, temp_s1->unk1C.x, temp_s1->unk1C.y, temp_s1->unk1C.z);
+        D_800D5214_main++;
+        func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+        var_s7 = 1;
+    }
+
+    func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+    var_s3 = MTXBufNum++;
+
+    list = temp_s1->unk50;
+    count = temp_s1->unk00;
+    for (i = 0; i < count; i++) {
+        temp_v1 = *list++;
+        if (temp_v1 & 0x8000) {
+            if (temp_v1 != -1) {
+                func_8002404C_main(arg0, temp_v1 & 0x7FFF);
+            }
+        } else {
+            part = &temp_s1->unk54->unk64[temp_v1];
+            if (part->unk24 == 1) {
+                break;
+            }
+            if (part->unk50 & 0x70000000) {
+                func_8002C4C0_main((HmfData*) temp_s1->unk54, temp_v1, sp10, sp50);
+                func_80018044_main(D_800D41B0_main[D_800D5214_main + 1], sp50, sp10);
+                func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+                var_s3 = MTXBufNum++;
+            }
+            func_80024DF0_main(temp_s1->unk54, temp_v1, &MTXBuf[var_s3], sp10);
+            if (arg0->unk64[temp_v1].unk58 != NULL) {
+                if (arg0 == temp_s1->unk54) {
+                    func_8002404C_main(arg0->unk64[temp_v1].unk58, 0);
+                }
+            }
+        }
+    }
+
+    if (var_s7 != 0) {
+        D_800D5214_main--;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024354_main);
 
