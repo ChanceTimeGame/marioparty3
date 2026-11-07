@@ -1638,3 +1638,7 @@ alCSeqSetLoc = 0x80077BCC;
 alCSeqGetLoc = 0x80077C40;
 __getTrackByte = 0x80077CB4;
 __readVarLen = 0x80077D6C;
+
+// batch 1 G: 72750 = libleo LeoBootGame (MP1 src/83490.c)
+LeoBootGame = 0x80071B50;
+__LeoBootGame2 = 0x80071C8C;
