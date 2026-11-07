@@ -42,15 +42,14 @@ typedef struct HmfPal {
 
 typedef struct HmfTex {
     /* 0x00 */ char unk00[0x1C];
-    /* 0x1C */ u8 unk1C;
-    /* 0x1D */ u8 unk1D;
-    /* 0x1E */ u8 unk1E;
-    /* 0x1F */ u8 unk1F;
-    /* 0x20 */ char unk20[2];
-    /* 0x22 */ s16 unk22;
-    /* 0x24 */ u16 unk24;
-    /* 0x26 */ char unk26[2];
-    /* 0x28 */ u8* unk28;
+    /* 0x1C */ u8 unk1C; /* format */
+    /* 0x1D */ u8 unk1D; /* size */
+    /* 0x1E */ u8 unk1E_;
+    /* 0x1F */ u8 unk1F_; /* flags (MP2 0x1F is the height) */
+    /* 0x20 */ char unk20[4];
+    /* 0x24 */ u16 unk1E; /* MP2 0x1E (u8): width */
+    /* 0x26 */ u16 unk1F; /* MP2 0x1F (u8): height */
+    /* 0x28 */ u8* unk28; /* image */
     /* 0x2C */ void* unk2C;
     /* 0x30 */ HmfPal* unk30;
 } HmfTex;
@@ -526,7 +525,7 @@ void func_80022660_main(HmfObj* arg0) {
     }
 
     for (i = 0, found = 0; i < arg0->unk12; i++) {
-        if (arg0->unk88[i].unk0C->unk1F & 1) {
+        if (arg0->unk88[i].unk0C->unk1F_ & 1) {
             found++;
             break;
         }
@@ -1709,7 +1708,80 @@ void func_8002B104_main(HmfObj* arg0, s16 arg1) {
     }
 }
 
+extern u32 D_800C952C_main;
+extern u32 D_800CCF88_main;
+extern u32 D_800CD2FC_main;
+extern u32 D_800D1FFC_main;
+extern u32 D_800D6A20_main;
+
+/* MP2 stops at 8: MP3 textures go up to 512 texels */
+#define INTEGER_LOG2(x) ((x) <= 2 ? 1 : (x) <= 4 ? 2 : (x) <= 8 ? 3 : (x) <= 16 ? 4 : (x) <= 32 ? 5 : (x) <= 64 ? 6 : (x) <= 128 ? 7 : (x) <= 256 ? 8 : 9)
+
+#ifdef NON_MATCHING
+/* Register allocation only: the cms argument and the display-list pointer swap t1/t2 */
+void func_8002B2AC_main(HmfTex* arg0, s32 arg1, s32 arg2) {
+    if (arg0->unk1C != 2) {
+        gDPSetTextureLUT(gMainGfxPos++, G_TT_NONE);
+
+        switch (arg0->unk1D) {
+            case G_IM_SIZ_16b:
+                D_800CCF88_main = G_IM_SIZ_16b_LOAD_BLOCK;
+                D_800CD2FC_main = G_IM_SIZ_16b_INCR;
+                D_800D6A20_main = G_IM_SIZ_16b_BYTES;
+                D_800C952C_main = G_IM_SIZ_16b_LINE_BYTES;
+                D_800D1FFC_main = G_IM_SIZ_16b_SHIFT;
+                break;
+            case G_IM_SIZ_8b:
+                D_800CCF88_main = G_IM_SIZ_8b_LOAD_BLOCK;
+                D_800CD2FC_main = G_IM_SIZ_8b_INCR;
+                D_800D6A20_main = G_IM_SIZ_8b_BYTES;
+                D_800C952C_main = G_IM_SIZ_8b_LINE_BYTES;
+                D_800D1FFC_main = G_IM_SIZ_8b_SHIFT;
+                break;
+            case G_IM_SIZ_4b:
+                D_800CCF88_main = G_IM_SIZ_4b_LOAD_BLOCK;
+                D_800CD2FC_main = G_IM_SIZ_4b_INCR;
+                D_800D6A20_main = G_IM_SIZ_4b_BYTES;
+                D_800C952C_main = G_IM_SIZ_4b_LINE_BYTES;
+                D_800D1FFC_main = G_IM_SIZ_4b_SHIFT;
+                break;
+            default:
+                D_800CCF88_main = G_IM_SIZ_32b_LOAD_BLOCK;
+                D_800CD2FC_main = G_IM_SIZ_32b_INCR;
+                D_800D6A20_main = G_IM_SIZ_32b_BYTES;
+                D_800C952C_main = G_IM_SIZ_32b_LINE_BYTES;
+                D_800D1FFC_main = G_IM_SIZ_32b_SHIFT;
+                break;
+        }
+
+        gDPSetTextureImage(gMainGfxPos++, arg0->unk1C, D_800CCF88_main, 1, arg0->unk28);
+        gDPSetTile(gMainGfxPos++, arg0->unk1C, D_800CCF88_main, 0, 0x0000, G_TX_LOADTILE, 0,
+            arg2, INTEGER_LOG2(arg0->unk1F), G_TX_NOLOD, arg1, INTEGER_LOG2(arg0->unk1E), G_TX_NOLOD);
+        gDPLoadSync(gMainGfxPos++);
+        gDPLoadBlock(gMainGfxPos++, G_TX_LOADTILE, 0, 0,
+            ((arg0->unk1E * arg0->unk1F + D_800CD2FC_main) >> D_800D1FFC_main) - 1,
+            CALC_DXT(arg0->unk1E, D_800D6A20_main));
+        gDPPipeSync(gMainGfxPos++);
+        gDPSetTile(gMainGfxPos++, arg0->unk1C, arg0->unk1D, (arg0->unk1E * D_800C952C_main + 7) >> 3, 0x0000, G_TX_RENDERTILE, 0,
+            arg2, INTEGER_LOG2(arg0->unk1F), G_TX_NOLOD, arg1, INTEGER_LOG2(arg0->unk1E), G_TX_NOLOD);
+        gDPSetTileSize(gMainGfxPos++, G_TX_RENDERTILE, 0, 0, (arg0->unk1E - 1) * 4, (arg0->unk1F - 1) * 4);
+    } else {
+        gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+
+        if (arg0->unk30->unk1E < 17) {
+            gDPLoadTLUT_pal16(gMainGfxPos++, 0, arg0->unk30->unk28);
+            gDPLoadTextureBlock_4b(gMainGfxPos++, arg0->unk28, arg0->unk1C, arg0->unk1E, arg0->unk1F, 0,
+                arg1, arg2, INTEGER_LOG2(arg0->unk1E), INTEGER_LOG2(arg0->unk1F), 0, 0);
+        } else {
+            gDPLoadTLUT_pal256(gMainGfxPos++, arg0->unk30->unk28);
+            gDPLoadTextureBlockYuv(gMainGfxPos++, arg0->unk28, arg0->unk1C, G_IM_SIZ_8b, arg0->unk1E, arg0->unk1F, 0,
+                arg1, arg2, INTEGER_LOG2(arg0->unk1E), INTEGER_LOG2(arg0->unk1F), 0, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002B2AC_main);
+#endif
 
 extern Gfx D_800A1118_main[];
 extern s16 D_800CC0B4_main;
