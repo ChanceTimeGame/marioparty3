@@ -1266,7 +1266,79 @@ s32 func_8003D134_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D134_main);
 #endif
 
+// register allocation and loop shape in the i + 1 loops (masked 20), as func_8003CE20_main
+#ifdef NON_MATCHING
+s32 func_8003D4DC_main(GAMEMES *gMes, Gfx **arg1) {
+    s32 n = 6;
+    GMesUnk3C *p;
+    s32 ret;
+    s32 i;
+    f32 t;
+
+    ret = func_8003C058_main(gMes);
+    switch (gMes->unk08) {
+        case 0:
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            for (i = 0; i < n; i++) {
+                p = &D_800B1BC0_main[i];
+                p->x = i * 22 - (n - 1) * 11;
+                p->y = 0.0f;
+                HuSprScaleSet(gMes->strGId[0], i + 1, p->scaleX, p->scaleY);
+                func_80055458_main(gMes->strGId[0], i + 1, p->unk30);
+                func_80054904_main(gMes->strGId[0], i + 1, p->x, p->y);
+            }
+            gMes->unk08 = 1;
+            break;
+        case 1:
+            gMes->unk08 = 2;
+            break;
+        case 2:
+            if (gMes->unk04 >= 30) {
+                gMes->unk08 = 5;
+                gMes->unk0C = 0;
+                gMes->unk0A = 0;
+            }
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            /* fallthrough */
+        case 5:
+            gMes->stat = 2;
+            if (gMes->unk04 >= 61) {
+                for (i = 0; i < n;) {
+                    i++;
+                    HuSprAttrSet(gMes->strGId[0], i, 0x8000);
+                }
+                gMes->unk0C = 0;
+                gMes->unk08 = 6;
+            } else {
+                t = 0.0f;
+                for (i = 0; i < n;) {
+                    p = &D_800B1BC0_main[i];
+                    if (gMes->unk04 > 10.0f / n * i + 30.0f) {
+                        if (p->unk38 >= 26) {
+                            t = 1.0f;
+                        } else {
+                            t = p->unk38 * 0.04f;
+                            p->unk38++;
+                        }
+                        if (t > 1.0f) {
+                            t = 1.0f;
+                        }
+                    }
+                    p->y = t * t * 180.0f;
+                    i++;
+                    func_80054904_main(gMes->strGId[0], i, p->x, p->y);
+                }
+            }
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            break;
+        case 7:
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D4DC_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D890_main);
 
