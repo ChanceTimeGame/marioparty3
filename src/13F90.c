@@ -188,6 +188,56 @@ void func_800139AC_main(s16 model, s16 obj) {
 void func_80013D44_main(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/13F90", func_80013D4C_main);
+/* Effect 1 (burst): the polygons fly out along their directions, slowing down, over 50 frames;
+   flag 1 restarts it, flag 4 is set when it ends. */
+void func_80013D4C_main(s16 model) {
+    HmfFxData* hmf;
+    HmfFxWork* work;
+    HmfFxPart* part;
+    s16 count;
+    s16 i;
+    f32 scale;
+    f32 dist;
+    f32 speed;
+
+    hmf = FXDATA(model);
+    work = FXWORK(model);
+    if (work->unk00 == -1) {
+        count = hmf->unk1A;
+    } else {
+        count = hmf->unk60[work->unk00].groupCount;
+    }
+    part = work->parts;
+    if (work->unk02 >= 50) {
+        if (!(work->unk04 & 1)) {
+            return;
+        }
+        work->unk02 = 0;
+    }
+    scale = 2.0f * cosdf(work->unk02 * 1.8f);
+    if (work->unk02 <= 0) {
+        work->unk04 &= ~4;
+        work->unk08 = 0.0f;
+        work->unk0C = 10.0f;
+        for (i = 0; i < count; i++) {
+            part[i].speed = (rand8() & 0xF) * 0.1f;
+        }
+        scale = 0.0f;
+    }
+    dist = work->unk08;
+    for (i = 0; i < count; i++) {
+        speed = part->speed;
+        part->pos.x = dist * part->dir.x * speed;
+        part->pos.y = dist * part->dir.y * speed;
+        part->pos.z = dist * part->dir.z * speed;
+        part->scale = scale;
+        part++;
+    }
+    work->unk08 += work->unk0C;
+    work->unk0C *= 0.98;
+    if (++work->unk02 >= 50) {
+        work->unk04 |= 4;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/13F90", func_80013FB4_main);
