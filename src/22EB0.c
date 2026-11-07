@@ -1155,6 +1155,18 @@ void func_8002404C_main(HmfObj* arg0, s16 arg1) {
     }
 }
 
+/* wave 2c D */
+void HmfLightExec(s16);
+void func_800127C4_main(s16 camIndex, Gfx** dispList);
+u8 func_8000EF64_main(void* arg0, u16 arg1, s32 arg2, void* arg3, s32 arg4);
+void func_8002AF40_main(void);
+void func_8002AC5C_main(u16 arg0);
+void func_80024814_main(HmfObj* arg0, s16 arg1, HmfDrawRec* arg2);
+extern s32 D_800D1F74_main;
+extern u8 D_800CD2A0_main;
+extern u8 D_800D211C_main;
+extern u8 D_800D1F2A_main;
+
 void func_80024354_main(HmfObj* arg0, s16 arg1) {
     HmfMotionObj* temp_s1;
     HmfPart* temp_s4;
@@ -1398,7 +1410,133 @@ void func_80024DF0_main(HmfObj* arg0, s16 arg1, void* arg2, Matrix4f arg3) {
     rec->unk54 = arg0->unkD0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_800250D4_main);
+Gfx* func_800250D4_main(u16 arg0, Gfx* arg1, Gfx* arg2) {
+    s16 sp2E;
+    s16 sp36;
+    u8 sp3F;
+    u8 sp47;
+    u8 sp4F;
+    Gfx* var_s7;
+    s32 var_fp;
+    HmfDrawRec* temp_s1;
+    HmfObj* temp_s2;
+    HmfLayerEnt* var_s3;
+    s16 var_s4;
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 n;
+
+    var_s7 = gMainGfxPos;
+
+    if (arg2 != NULL) {
+        gSPDisplayList(gMainGfxPos++, arg2);
+    }
+
+    var_fp = (D_800CE19A_main != 0);
+
+    HmfLightExec(arg0);
+
+    sp3F = D_800CB8A8_main->l.col[0];
+    sp47 = D_800CB8A8_main->l.col[1];
+    sp4F = D_800CB8A8_main->l.col[2];
+    sp2E = D_800CE1D4_main->unk00 + 1;
+
+    for (i = 0, sp36 = 0; i < 8; i++) {
+        if (D_800D6AC8_main[i] == 2) {
+            continue;
+        }
+
+        if (var_fp != 0) {
+            gDPFullSync(gMainGfxPos++);
+            gSPEndDisplayList(gMainGfxPos++);
+            func_8000EF64_main(var_s7, D_800CE19A_main, 0, NULL, 0);
+            var_s7 = gMainGfxPos;
+        }
+
+        func_800127C4_main(arg0, &gMainGfxPos);
+
+        sp36++;
+        var_fp = 1;
+        D_800CE19A_main = i;
+
+        gSPDisplayList(gMainGfxPos++, arg1);
+
+        D_800CE2F0_main = 0xFFFFFFFF;
+        D_800D1FD0_main = 0xFFFFFFFF;
+        D_800D1F74_main = 0xFFFFFFFF;
+        D_800D0440_main = NULL;
+
+        gSPNumLights(gMainGfxPos++, sp2E - 1);
+
+        for (j = 1; j < sp2E; j++) {
+            gSPLight(gMainGfxPos++, D_800CB8A8_main + j, j);
+        }
+
+        gSPLight(gMainGfxPos++, D_800CB8A8_main, sp2E);
+
+        D_800CD2A0_main = 255;
+        D_800D211C_main = 255;
+        D_800D1F2A_main = 255;
+        var_s4 = -1;
+
+        func_8002AF40_main();
+
+        var_s3 = &D_800D2070_main[i][D_800D2070_main[i]->unk00];
+        n = D_800D6AC8_main[i];
+        for (k = 2; k < n; k++) {
+            temp_s1 = &D_800CC0BC_main[var_s3->unk02];
+            temp_s2 = temp_s1->unk48;
+
+            D_800D1F78_main = sp3F;
+            D_800D1FE2_main = sp47;
+            D_800CDA76_main = sp4F;
+            D_800CDA86_main = 0;
+            D_800CE170_main = 0;
+            D_800CDD5A_main = 0;
+
+            func_8002D094_main(&gMainGfxPos, sp2E,
+                (D_800D1F78_main << 0x18) + (D_800D1FE2_main << 0x10) + (D_800CDA76_main << 8));
+            func_8002D094_main(&gMainGfxPos, 1, 0);
+
+            if (temp_s1->unk54 != NULL) {
+                gSPLight(gMainGfxPos++, &temp_s2->unkD0->unk08[D_800D2008_main], 2);
+            }
+
+            if (var_s4 != temp_s1->unk4C) {
+                var_s4 = temp_s1->unk4C;
+                func_8002AC5C_main(var_s4);
+            }
+
+            gSPMatrix(gMainGfxPos++, osVirtualToPhysical(temp_s1->unk44), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+            D_800C9940_main = temp_s1->unk50;
+            func_80024814_main(temp_s2, temp_s1->unk00, temp_s1);
+
+            if (temp_s1->unk54 != NULL) {
+                gSPLight(gMainGfxPos++, &D_800CB8A8_main[2], 2);
+            }
+
+            var_s3 = &D_800D2070_main[i][var_s3->unk00];
+            if (var_s3->unk00 == 0) {
+                break;
+            }
+        }
+    }
+
+    if (sp36 == 0) {
+        gSPDisplayList(gMainGfxPos++, arg1);
+        gSPNumLights(gMainGfxPos++, sp2E - 1);
+
+        for (j = 1; j < sp2E; j++) {
+            gSPLight(gMainGfxPos++, D_800CB8A8_main + j, j);
+        }
+
+        gSPLight(gMainGfxPos++, D_800CB8A8_main, sp2E);
+    }
+
+    return var_s7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800257BC_main);
 
