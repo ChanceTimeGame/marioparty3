@@ -70,6 +70,10 @@ extern Mtx D_800BD7C0_main;
 extern Vp D_800A1E90_main;
 extern Gfx *D_800BD800_main; /* the sprites drawn after the 3D layer (func_80054658_main) */
 extern void *D_800CCF30_main;
+extern f32 D_800BD808_main; /* func_80054B1C_main's last view distance */
+extern s16 D_800D418E_main; /* the viewport being drawn */
+void func_80089980_main(f32 mf[4][4], Mtx *m); /* guMtxL2F */
+f32 fabsf(f32);
 extern HuSprite *D_800BD804_main; // head of sorted draw list
 extern s16 D_800D0468_main;
 extern s16 D_800D10F2_main;
@@ -696,11 +700,75 @@ void func_800549C0_main(s16 group, s16 member, s16 arg2) {
     sprite->unk_44 = arg2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_800549F4_main);
+void func_800549F4_main(Mtx* m, f32 x, f32 y, f32 z, f32 w, f32* ox, f32* oy, f32* oz, f32* ow) {
+    f32 mf[4][4];
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80054B1C_main);
+    func_80089980_main(mf, m);
+    *ox = x * mf[0][0] + y * mf[1][0] + z * mf[2][0] + mf[3][0];
+    *oy = x * mf[0][1] + y * mf[1][1] + z * mf[2][1] + mf[3][1];
+    *oz = x * mf[0][2] + y * mf[1][2] + z * mf[2][2] + mf[3][2];
+    *ow = x * mf[0][3] + y * mf[1][3] + z * mf[2][3] + mf[3][3];
+}
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80054EE0_main);
+/* Screen position (and depth in unk_44) of world point (x, y, z) seen from camera camIdx; returns
+   the view distance (MP2 SprPos3DSet; MP3 also flags the group and returns the distance). */
+f32 func_80054B1C_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
+    Mtx persp;
+    Mtx lookAt;
+    u16 perspNorm;
+    f32 vx;
+    f32 vy;
+    f32 vz;
+    f32 vw;
+    f32 px;
+    f32 py;
+    f32 pz;
+    f32 pw;
+    HuSprGrp* group = HuSprGrpData[grpIdx];
+    HuSprite* sprite = group->members[idx];
+    HuCamera* cam = &gCameraList[camIdx];
+    s32 depth;
+    f32 dist;
+
+    guPerspective(&persp, &perspNorm, cam->fov[0], 1.3333334f, cam->fov[1], cam->fov[2], 1.0f);
+    guLookAt(&lookAt, cam->pos.x, cam->pos.y, cam->pos.z, cam->at.x, cam->at.y, cam->at.z, cam->up.x, cam->up.y,
+             cam->up.z);
+    func_800549F4_main(&lookAt, x, y, z, 1.0f, &vx, &vy, &vz, &vw);
+    func_800549F4_main(&persp, vx, vy, vz, vw, &px, &py, &pz, &pw);
+    if (pw != 0.0f) {
+        depth = (cam->viewports[D_800D418E_main].vp.vscale[2] << 5) * pz / pw + (cam->viewports[D_800D418E_main].vp.vtrans[2] << 5);
+    } else {
+        depth = cam->viewports[D_800D418E_main].vp.vtrans[2] << 5;
+    }
+    if (depth < 0) {
+        depth = 0;
+    } else if (depth > 0x7FC0) {
+        depth = 0x7FC0;
+    }
+    dist = fabsf(sindf(gCameraList[camIdx].fov[0] * 0.5) * vz / cosdf(gCameraList[camIdx].fov[0] * 0.5));
+    D_800BD808_main = dist;
+    if (dist != 0.0) {
+        sprite->unk_48 = cam->viewports[D_800D418E_main].vp.vscale[0] / 4.0 * vx / dist / 1.3333334f + cam->viewports[D_800D418E_main].vp.vtrans[0] / 4.0;
+        sprite->unk_4C = cam->viewports[D_800D418E_main].vp.vscale[1] / 4.0 * -vy / dist + cam->viewports[D_800D418E_main].vp.vtrans[1] / 4.0;
+    }
+    sprite->unk_44 = depth;
+    group->unk_0C = 1;
+    return D_800BD808_main;
+}
+
+/* SprPos3DSet plus the perspective scale for that distance (MP2 SprPosPerspectiveSet). */
+void func_80054EE0_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
+    HuSprite* sprite = HuSprGrpData[grpIdx]->members[idx];
+    HuCamera* cam = &gCameraList[camIdx];
+    HuCamera* vp;
+
+    func_80054B1C_main(grpIdx, idx, camIdx, x, y, z);
+    if (D_800BD808_main != 0.0) {
+        vp = (HuCamera*) ((u8*) cam + D_800D418E_main * 16);
+        sprite->unk_60 = vp->viewports[0].vp.vscale[0] / 4.0 / D_800BD808_main / 1.3333334f;
+        sprite->unk_64 = vp->viewports[0].vp.vscale[1] / 4.0 / D_800BD808_main;
+    }
+}
 
 void func_80054FF8_main(s16 group, s16 member, s32 arg2) {
     HuSprGrpData[group]->members[member]->unk_90 = arg2;
