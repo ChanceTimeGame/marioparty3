@@ -281,4 +281,34 @@ func_8006B268_main(void *filter, s32 paramID, void *param)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/6BA20", func_8006B3F4_main);
+/* _decodeChunk; this copy builds n_aLoadBuffer and n_aADPCMdec commands. */
+Acmd *func_8006B3F4_main(Acmd *ptr, HuLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags)
+{
+    s32 dramAlign, dramLoc;
+
+    if (nbytes > 0) {
+        dramLoc = (f->dma)(f->memin, nbytes, f->dmaState);
+        dramAlign = dramLoc & 0x7;
+        nbytes += dramAlign;
+        {
+            Acmd *_a = ptr++;
+            _a->words.w0 = _SHIFTL(A_LOADBUFF, 24, 8) | _SHIFTL(nbytes + 8 - (nbytes & 0x7), 12, 12) | _SHIFTL(inp, 0, 12);
+            _a->words.w1 = (unsigned int)(dramLoc - dramAlign);
+        }
+    } else
+        dramAlign = 0;
+
+    if (flags & A_LOOP) {
+        aSetLoop(ptr++, K0_TO_PHYS(f->lstate));
+    }
+
+    {
+        Acmd *_a = ptr++;
+        _a->words.w0 = _SHIFTL(A_ADPCM, 24, 8) | _SHIFTL(f->state, 0, 24);
+        _a->words.w1 = _SHIFTL(flags, 28, 4) | _SHIFTL(tsam << 1, 16, 12) | _SHIFTL(dramAlign, 12, 4) | _SHIFTL(outp, 0, 12);
+    }
+
+    f->first = 0;
+
+    return ptr;
+}
