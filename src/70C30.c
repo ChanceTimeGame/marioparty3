@@ -320,7 +320,37 @@ ALMicroTime __seqpVoiceHandler(void *node)
     return seqp->nextDelta;
 }
 
-INCLUDE_ASM("asm/nonmatchings/70C30", func_80070660_main);
+void __handleNextSeqEvent(ALSeqPlayer *seqp)
+{
+    ALEvent evt;
+
+    /* sct 1/5/96 - Do nothing if we don't have a target sequence. */
+    if (seqp->target == NULL)
+        return;
+
+    alSeqNextEvent(seqp->target, &evt);
+
+    switch (evt.type) {
+        case AL_SEQ_MIDI_EVT:
+            __handleMIDIMsg(seqp, &evt);
+            __postNextSeqEvent(seqp);
+            break;
+
+        case AL_TEMPO_EVT:
+            __handleMetaMsg(seqp, &evt);
+            __postNextSeqEvent(seqp);
+            break;
+
+        case AL_SEQ_END_EVT:
+            seqp->state = AL_STOPPING;
+            evt.type = AL_SEQP_STOP_EVT;
+            alEvtqPostEvent(&seqp->evtq, &evt, AL_EVTQ_END);
+            break;
+
+        default:
+            break;
+    }
+}
 
 void __handleMIDIMsg(ALSeqPlayer *seqp, ALEvent *event)
 {
@@ -723,7 +753,48 @@ void __unmapVoice(ALSeqPlayer *seqp, ALVoice *voice)
 #endif    
 }
 
-INCLUDE_ASM("asm/nonmatchings/70C30", func_80070FF0_main);
+void func_80071B40_main(ALVoice *voice, s16 priority); /* n_alSynSetPriority */
+
+/* This copy removes the pending envelope events without masking interrupts. */
+void __seqpReleaseVoice(ALSeqPlayer *seqp, ALVoice *voice, ALMicroTime deltaTime)
+{
+    ALEvent evt;
+    ALVoiceState *vs = (ALVoiceState *)voice->clientPrivate;
+
+    if (vs->envPhase == AL_PHASE_ATTACK) {
+        ALLink *thisNode;
+        ALLink *nextNode;
+        ALEventListItem *thisItem, *nextItem;
+
+        thisNode = seqp->evtq.allocList.next;
+        while (thisNode != 0) {
+            nextNode = thisNode->next;
+            thisItem = (ALEventListItem *)thisNode;
+            nextItem = (ALEventListItem *)nextNode;
+            if (thisItem->evt.type == AL_SEQP_ENV_EVT) {
+                if (thisItem->evt.msg.vol.voice == voice) {
+                    if (nextItem)
+                        nextItem->delta += thisItem->delta;
+                    alUnlink(thisNode);
+                    alLink(thisNode, &seqp->evtq.freeList);
+                }
+            }
+            thisNode = nextNode;
+        }
+    }
+
+    vs->velocity = 0;
+    vs->envPhase = AL_PHASE_RELEASE;
+    vs->envGain = 0;
+    vs->envEndTime = seqp->curTime + deltaTime;
+
+    func_80071B40_main(voice, 0);
+    func_8006FE70_main(voice, 0, deltaTime);
+    evt.type = AL_NOTE_END_EVT;
+    evt.msg.note.voice = voice;
+
+    alEvtqPostEvent(&seqp->evtq, &evt, deltaTime);
+}
 
 char __voiceNeedsNoteKill (ALSeqPlayer *seqp, ALVoice *voice, ALMicroTime killTime)
 {
@@ -923,7 +994,15 @@ void __initFromBank(ALSeqPlayer *seqp, ALBank *b)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/70C30", func_800714E4_main);
+void __initChanState(ALSeqPlayer *seqp)
+{
+    int i;
+
+    for (i = 0; i < seqp->maxChannels; i++) {
+        seqp->chanState[i].instrument = 0;
+        __resetPerfChanState(seqp, i);
+    }
+}
 
 void __resetPerfChanState(ALSeqPlayer *seqp, s32 chan) 
 {
