@@ -606,7 +606,122 @@ s16 func_8001AC8C_main(s32 arg0, void (*arg1)(Gfx **, s32, s32), u8 arg2) {
     return idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001ACDC_main);
+/* wave 2c D */
+void func_8003186C_main(HmfDataM*);
+void func_80021B20_main(s16);
+void func_80030178_main(u8);
+void func_8001F038_main(HmfModelM* arg0, u16 arg1);
+void func_8001F154_main(HmfModelM* arg0);
+void func_8001F4BC_main(s16 arg0);
+Gfx* func_8001BD24_main(Gfx* arg0, s16 arg1, u16 arg2);
+void func_800225D4_main(void);
+void func_80012E54_main(u8);
+void func_800139AC_main(s16, s16);
+void func_80017CD0_main(f32 (*)[4], f32, f32, f32);
+void func_80018044_main(f32 (*)[4], f32 (*)[4], f32 (*)[4]);
+void func_8002367C_main(f32 (*)[4], f32 (*)[4]);
+void func_80089980_main(f32 (*)[4], void*);
+void func_80019668_main(HmfData_UnkD0*);
+void func_80023404_main(HmfDataM*, f32 (*)[4], f32 (*)[4]);
+void func_800303C8_main(HmfModelM*, f32);
+s32 func_8002F60C_main(HmfDataM*);
+void func_80033128_main(u16);
+Gfx* func_800250D4_main(u16 arg0, Gfx* arg1, Gfx* arg2);
+void WipeExecAlways(Gfx**);
+Gfx* pfDrawFonts(Gfx*);
+
+/* 22EB0's depth-sort layers and draw records (only the fields read here) */
+typedef struct HmfLayerEntM {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ f32 unk04;
+} HmfLayerEntM; /* size = 0x8 */
+
+typedef struct HmfDrawRecM {
+    /* 0x00 */ char unk00[0x44];
+    /* 0x44 */ void* unk44; /* the part's matrix */
+    /* 0x48 */ char unk48[0x10];
+} HmfDrawRecM; /* size = 0x58 */
+
+typedef struct HmfAnimM {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* frame */
+} HmfAnimM;
+
+extern Gfx* D_800D1FF8_main;
+extern u8 D_800CD6A6_main; /* the camera being drawn */
+extern s16 D_800D418E_main;
+extern Gfx D_800A09C8_main[];
+extern s32 D_800A08B0_main;
+extern HmfLayerEntM* D_800D2070_main[8];
+extern HmfDrawRecM* D_800CC0BC_main;
+
+/* Per-face scatter factors for the vertex morph modes (func_8001DACC_main, func_8001DDB8_main) */
+typedef struct HmfJitterTbl {
+    /* 0x00 */ f32 v[8];
+} HmfJitterTbl;
+extern const HmfJitterTbl D_800A6C04_main;
+extern f32 D_800A0A7C_main; /* the twist angle of func_8001DDB8_main's morph */
+f32 sindf(f32 angle);
+f32 cosdf(f32 angle);
+/* D_800D0444_main (an s32 here) holds the current camera's matrices */
+#define CAMMTX (*(HuCamMtxs**)&D_800D0444_main)
+
+/* MP2 func_800283DC_28FDC: release a model. MP3 also clears the cameras that follow it */
+void func_8001ACDC_main(s16 arg0) {
+    HmfDataM* hmf;
+    s16 i;
+
+    if (MDL[arg0].hmf == NULL) {
+        return;
+    }
+    D_800D1FE8_main--;
+    if (MDL[arg0].unk09 != 0xFF && MDL[arg0].unk14 != 0.0f) {
+        hmf = MDL[arg0].unk6C;
+    } else {
+        hmf = MDL[arg0].hmf;
+    }
+    MDL[arg0].hmf = NULL;
+    if (MDL[arg0].unk00 & 1) {
+        if (--hmf->unk0B == 0) {
+            func_80019C68_main(hmf->unk0E);
+            func_80019C68_main(hmf->unk0E + 1);
+        }
+    } else if ((u8) MDL[arg0].unk00 == 0) {
+        if (--hmf->unk0B == 0) {
+            if (hmf->unkBC != NULL) {
+                for (i = 0; i < 6; i++) {
+                    if (gCameraList[i].unk4 == arg0) {
+                        gCameraList[i].unk4 = -1;
+                        break;
+                    }
+                }
+            }
+            func_80019C68_main(hmf->unk0E);
+            func_80019C68_main(hmf->unk0E + 1);
+            func_8003186C_main(hmf);
+            if (hmf->unk38 != NULL) {
+                func_80021B20_main(MDL[arg0].unk10);
+            }
+            if (MDL[arg0].unk08 != 0xFF) {
+                func_80030178_main(MDL[arg0].unk08);
+            }
+            if (hmf->unkC8 != NULL) {
+                for (i = 0; i < hmf->unk2A; i++) {
+                    func_80033354_main(hmf->unkC8[i]);
+                }
+            }
+            func_80019C00_main(hmf);
+            if (MDL[arg0].unk02 != 0xFF) {
+                func_8002D4B8_main(MDL[arg0].unk02);
+            }
+        }
+    }
+}
 
 void func_8001AFE4_main(void) {
     s16 i;
@@ -628,7 +743,246 @@ void func_8001AFE4_main(void) {
     func_8000D3AC_main();
 }
 
+/* MP2 func_800286FC_292FC (NON_MATCHING too): draw every model, camera by camera, and send the list.
+   Register allocation (masked 6, 997 vs 999): GCC keeps the camera index loaded for gCameraList in a0
+   and passes it to func_80012E54_main where retail reloads it, and shares the 0xDE000000/0xDF000000
+   constants differently; s4/s5/s6 (the list start, model count and 0xFF) are renumbered */
+#ifdef NON_MATCHING
+void func_8001B0B4_main(void** arg0, u32 arg1) {
+    f32 sp18[4][4];
+    f32 sp58[4][4];
+    f32 sp98[4][4];
+    HmfModelM* p;
+    HmfDataM* hmf;
+    HmfModelData_UnkBC_Struct* bc;
+    Gfx* gfx;
+    Gfx* var_fp;
+    Gfx* var_s1;
+    s32 mask;
+    Gfx* var_s4;
+    s32 count;
+    s32 layer;
+    u16 dt;
+    s32 snd;
+    s32 i;
+
+    dt = arg1;
+    mask = 1;
+    var_s4 = NULL;
+    if (*(u16*) &D_800D20EE_main == 0) {
+        return;
+    }
+
+    gSPEndDisplayList(gMainGfxPos++);
+    D_800CBB72_main[0] = D_800CBB72_main[1] = D_800CBB72_main[2] = D_800CBB72_main[3] = 0;
+
+    for (i = 0; i < HU3D_MODEL_MAX; i++) {
+        p = &MDL[i];
+        if (p->hmf != NULL && !(p->unk18 & 4) && (u8) p->unk00 != 0) {
+            layer = ((u8) p->unk00 & 6) >> 1;
+            D_800D05A0_main[layer][D_800CBB72_main[layer]] = i;
+            D_800CBB72_main[layer]++;
+        }
+    }
+
+    var_s1 = D_800D1FF8_main;
+    D_800CE19A_main = 0;
+    for (D_800CD6A6_main = 0; D_800CD6A6_main < D_800C9932_main; D_800CD6A6_main++) {
+        if (var_s1 == NULL) {
+            gfx = func_8001BD24_main(var_s4, 1, mask);
+            gDPFullSync(gMainGfxPos++);
+            gSPEndDisplayList(gMainGfxPos++);
+            func_8000EF64_main(gfx, D_800CE19A_main, 0, NULL, 0);
+        }
+        func_800225D4_main();
+        CAM = &gCameraList[D_800CD6A6_main];
+        CAMMTX = &CAM->mtxs[D_800D418E_main];
+        var_s4 = gMainGfxPos;
+        if (CAM->unk4 != -1) {
+            func_80012E54_main(D_800CD6A6_main);
+        }
+        func_80012640_main(D_800CD6A6_main, &gMainGfxPos);
+        func_800127C4_main(D_800CD6A6_main, &gMainGfxPos);
+        mask = 1 << D_800CD6A6_main;
+        gSPDisplayList(gMainGfxPos++, D_800A09C8_main);
+        gSPEndDisplayList(gMainGfxPos++);
+        var_fp = gMainGfxPos;
+        if (var_s1 != NULL) {
+            gSPDisplayList(gMainGfxPos++, var_s1);
+        }
+        func_800127C4_main(D_800CD6A6_main, &gMainGfxPos);
+        if (CAM->unkA8 != NULL) {
+            CAM->unkA8(D_800CD6A6_main);
+        }
+        if (D_800CC3D8_main[0] != NULL) {
+            ((void (*)(Gfx**, HuCamMtxs*, u8)) D_800CC3D8_main[0])(&gMainGfxPos, CAMMTX, D_800CD6A6_main);
+        }
+        if (D_800CC3D8_main[1] != NULL) {
+            ((void (*)(Gfx**, HuCamMtxs*, u8)) D_800CC3D8_main[1])(&gMainGfxPos, CAMMTX, D_800CD6A6_main);
+        }
+        var_fp = func_8001BD24_main(var_fp, 0, mask);
+        gSPEndDisplayList(gMainGfxPos++);
+        snd = func_8004D6AC_main(200, 255, 0);
+
+        count = D_800D1FE8_main;
+        for (i = 0; count != 0; i++) {
+            p = &MDL[i];
+            if (p->hmf == NULL) {
+                continue;
+            }
+            count--;
+            if (p->unk18 & 0x800000) {
+                func_8001C448_main(i);
+            }
+            hmf = p->hmf;
+            if (D_800CD6A6_main == 0) {
+                hmf->unk0C = 0;
+            }
+            if (!(p->unk18 & 4) && (p->unk01 & mask) && ((u8) p->unk00 == 0 || ((u8) p->unk00 & 6) == 4)) {
+                if (hmf->unk38 != NULL && CAM->unkA0 != NULL) {
+                    CAM->unkA0(CAM->unkA4, (HmfModel*) p);
+                    continue;
+                }
+                if (p->unk09 != 0xFF) {
+                    func_8001F4BC_main(i);
+                }
+                if (p->unk18 & 0x01000000) {
+                    bc = p->unkBC;
+                    if (HmfPauseF == 0 || (p->unk18 & 0x8000)) {
+                        if (!(bc->unk04 & 2)) {
+                            bc->unk18(i);
+                        }
+                    }
+                    func_800139AC_main(i, bc->unk00);
+                }
+                hmf->unk0A = 1;
+                hmf->unk01 = p->unk00;
+                D_800C9940_main = p->unk18;
+                if (!(p->unk18 & 0x40000)) {
+                    guMtxL2F(sp98, &CAMMTX->lookAtMtx);
+                    if (p->pos.x != 0.0f || p->pos.y != 0.0f || p->pos.z != 0.0f) {
+                        func_80017C10_main((Mtx*) sp98, p->pos.x, p->pos.y, p->pos.z);
+                    }
+                    if (p->rot.x != 0.0f || p->rot.y != 0.0f || p->rot.z != 0.0f) {
+                        func_80017D24_main(sp98, p->rot.x, p->rot.y, p->rot.z);
+                    }
+                    if (p->scale.x != 1.0f || p->scale.y != 1.0f || p->scale.z != 1.0f) {
+                        func_80017CD0_main(sp98, p->scale.x, p->scale.y, p->scale.z);
+                        sp58[0][0] = p->scale.x;
+                        sp58[1][1] = p->scale.y;
+                        sp58[2][2] = p->scale.z;
+                        sp58[3][3] = 1.0f;
+                        sp58[0][1] = sp58[0][2] = sp58[0][3] = sp58[1][0] = sp58[1][2] = sp58[1][3] =
+                            sp58[2][0] = sp58[2][1] = sp58[2][3] = sp58[3][0] = sp58[3][1] = sp58[3][2] = 0.0f;
+                    } else {
+                        func_8008A070_main(sp58);
+                    }
+                    func_80018044_main(p->mtx, sp98, sp18);
+                } else {
+                    func_8002367C_main(sp18, p->mtx);
+                    if (p->pos.x != 0.0f || p->pos.y != 0.0f || p->pos.z != 0.0f) {
+                        func_80017C10_main((Mtx*) sp18, p->pos.x, p->pos.y, p->pos.z);
+                    }
+                    if (p->rot.x != 0.0f || p->rot.y != 0.0f || p->rot.z != 0.0f) {
+                        func_80017D24_main(sp18, p->rot.x, p->rot.y, p->rot.z);
+                    }
+                    if (p->scale.x != 1.0f || p->scale.y != 1.0f || p->scale.z != 1.0f) {
+                        func_80017CD0_main(sp18, p->scale.x, p->scale.y, p->scale.z);
+                        sp58[0][0] = p->scale.x;
+                        sp58[1][1] = p->scale.y;
+                        sp58[2][2] = p->scale.z;
+                        sp58[3][3] = 1.0f;
+                        sp58[0][1] = sp58[0][2] = sp58[0][3] = sp58[1][0] = sp58[1][2] = sp58[1][3] =
+                            sp58[2][0] = sp58[2][1] = sp58[2][3] = sp58[3][0] = sp58[3][1] = sp58[3][2] = 0.0f;
+                    } else {
+                        func_8008A070_main(sp58);
+                    }
+                }
+                hmf->unkD0 = p->unkB4;
+                if (p->unkB4 != NULL) {
+                    func_80019668_main(p->unkB4);
+                }
+                if (p->unk02 != 0xFF) {
+                    hmf->unk8C = &D_800CCF58_main[p->unk02];
+                    hmf->unkA0 = p->unk40;
+                    if (p->unk06 != 0xFF) {
+                        hmf->unk94 = &D_800CCF58_main[p->unk06];
+                        hmf->unkAC = p->unk58;
+                    } else {
+                        hmf->unk94 = NULL;
+                    }
+                    if (p->unk04 != 0xFF && p->unk0C != 0) {
+                        hmf->unk90 = &D_800CCF58_main[p->unk04];
+                        hmf->unkA4 = p->unk4C;
+                        hmf->unkA8 = (f32) p->unk0E / (f32) p->unk0C;
+                        if (HmfPauseF == 0) {
+                            p->unk0E = dt + p->unk0E;
+                        }
+                        if (p->unk0E >= p->unk0C) {
+                            p->unk02 = p->unk04;
+                            p->unk40 = p->unk4C;
+                            p->unk03 = p->unk05;
+                            p->unk48 = p->unk54;
+                            p->unk04 = 0xFF;
+                        }
+                    } else {
+                        hmf->unk90 = NULL;
+                    }
+                } else {
+                    hmf->unk8C = hmf->unk90 = hmf->unk94 = NULL;
+                }
+                if (D_800C9940_main & 0x4000) {
+                    func_80089980_main(sp18, D_800CC0BC_main[D_800D2070_main[p->unk68->unk00][(u8) p->unk68->unk60[p->unk0A].unk1D[0]].unk02].unk44);
+                }
+                func_80023404_main(hmf, sp18, sp58);
+                hmf->unk0C++;
+                if (p->unk08 != 0xFF || hmf->unkB4 != NULL) {
+                    func_800303C8_main(p, p->unk40);
+                }
+                if (hmf->unk98 != NULL) {
+                    func_8002F60C_main(hmf);
+                }
+                if (hmf->unkC8 != NULL) {
+                    func_8001F154_main(p);
+                }
+            }
+        }
+        var_s1 = NULL;
+        func_8004D6E8_main(snd);
+        var_s4 = func_800250D4_main(D_800CD6A6_main, var_s4, var_fp);
+        if (CAM->unkAC != NULL) {
+            CAM->unkAC(D_800CD6A6_main);
+        }
+    }
+
+    for (i = 0; i < HU3D_MODEL_MAX; i++) {
+        p = &MDL[i];
+        if (p->hmf != NULL && !(p->unk18 & 4) && (HmfPauseF == 0 || (p->unk18 & 0x8000))) {
+            if (p->unk02 != 0xFF) {
+                func_8001F038_main(p, dt);
+                if (p->hmf->unk98 != NULL && (u8) p->unk00 == 0) {
+                    ((HmfAnimM*) p->hmf->unk98)->unk08 = p->unk40;
+                }
+            }
+        }
+    }
+    if (HmfPauseF == 0) {
+        func_80033128_main(dt);
+    }
+    gfx = func_8001BD24_main(var_s4, 1, mask);
+    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+    var_s4 = func_8001BD24_main(gfx, 3, 0);
+    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+    WipeExecAlways(&gMainGfxPos);
+    gMainGfxPos = pfDrawFonts(gMainGfxPos);
+    gDPFullSync(gMainGfxPos++);
+    gSPEndDisplayList(gMainGfxPos++);
+    func_8000EF64_main(var_s4, D_800CE19A_main, 1, arg0, 0x309);
+    D_800A08B0_main++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001B0B4_main);
+#endif
 
 Gfx *func_8001BD24_main(Gfx *arg0, s16 arg1, u16 arg2) {
     s16 i;
@@ -1162,9 +1516,131 @@ void func_8001D874_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) 
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DACC_main);
+void func_8001DACC_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) {
+    HmfJitterTbl tbl = D_800A6C04_main;
+    HmfFaceM* b = &arg0->unkB0[arg3];
+    f32 inv = 1.0f - arg1;
+    HmfVtxM* src;
+    HmfVtxM* dst;
+    s16* idx;
+    s16 cx, cy, cz;
+    s16 sx, sy, sz;
+    s16 n;
+    s16 j;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DDB8_main);
+    for (i = 0; i < arg4; i++) {
+        cx = b->unk0C;
+        cy = b->unk10;
+        cz = b->unk14;
+        sx = cx * arg2 + cx * (1.0f - arg2) * tbl.v[i & 7];
+        sy = cy * arg2 + cy * (1.0f - arg2) * tbl.v[i & 7];
+        sz = cz * arg2 + cz * (1.0f - arg2) * tbl.v[i & 7];
+        n = (u8)(b->unk00 & 0x7F);
+        idx = b->unk04;
+        for (j = 0; j < n; j++) {
+            src = &arg0->unk40[*idx];
+            dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+            dst->unk00 = (src->unk00 - cx) * inv + sx;
+            dst->unk02 = (src->unk02 - cy) * inv + sy;
+            dst->unk04 = (src->unk04 - cz) * inv + sz;
+            idx++;
+        }
+        b++;
+    }
+}
+
+void func_8001DDB8_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) {
+    f32 sn[4];
+    f32 cs[4];
+    HmfJitterTbl tbl = D_800A6C04_main;
+    HmfFaceM* b = &arg0->unkB0[arg3];
+    f32 inv = 1.0f - arg1;
+    f32 s;
+    f32 c;
+    f32 dx, dy, dz;
+    HmfVtxM* src;
+    HmfVtxM* dst;
+    s16* idx;
+    s16 cx, cy, cz;
+    s16 sx, sy, sz;
+    s16 ax, ay, az;
+    s16 n;
+    s16 j;
+    s16 i;
+
+    sn[0] = sindf(D_800A0A7C_main);
+    cs[0] = cosdf(D_800A0A7C_main);
+    sn[1] = sindf(-D_800A0A7C_main / 2.0f);
+    cs[1] = cosdf(-D_800A0A7C_main / 2.0f);
+    sn[2] = sindf(D_800A0A7C_main / 2.0f);
+    cs[2] = cosdf(D_800A0A7C_main / 2.0f);
+    sn[3] = sindf(-D_800A0A7C_main);
+    cs[3] = cosdf(-D_800A0A7C_main);
+
+    for (i = 0; i < arg4; i++) {
+        s = sn[i & 3];
+        c = cs[i & 3];
+        cx = b->unk0C;
+        cy = b->unk10;
+        cz = b->unk14;
+        sx = cx * arg2 + cx * (1.0f - arg2) * tbl.v[i & 7];
+        sy = cy * arg2 + cy * (1.0f - arg2) * tbl.v[i & 7];
+        sz = cz * arg2 + cz * (1.0f - arg2) * tbl.v[i & 7];
+        n = (u8)(b->unk00 & 0x7F);
+        idx = b->unk04;
+        ax = (s8) b->unk01[0];
+        if (ax < 0) {
+            ax = -ax;
+        }
+        ay = (s8) b->unk01[1];
+        if (ay < 0) {
+            ay = -ay;
+        }
+        az = (s8) b->unk01[2];
+        if (az < 0) {
+            az = -az;
+        }
+        if ((ax > ay) & (ax > az)) {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = (dx * c + dy * s) * inv + sx;
+                dst->unk02 = (-dx * s + dy * c) * inv + sy;
+                dst->unk04 = dz * inv + sz;
+                idx++;
+            }
+        } else if (ay > az) {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = dx * inv + sx;
+                dst->unk02 = (dy * c + dz * s) * inv + sy;
+                dst->unk04 = (-dy * s + dz * c) * inv + sz;
+                idx++;
+            }
+        } else {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = (dx * c - dz * s) * inv + sx;
+                dst->unk02 = dy * inv + sy;
+                dst->unk04 = (dx * s + dz * c) * inv + sz;
+                idx++;
+            }
+        }
+        b++;
+    }
+}
 
 /* MP1 func_80027AC8 (src/24740.c): point a model's texture arg1 at the loaded texture arg2 */
 void func_8001E500_main(s16 arg0, char* arg1, char* arg2) {
@@ -1660,4 +2136,6 @@ void func_8001FDE8_main(s16 arg0) {
     HmfModelData[arg0].unk02 = 0xFF;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/hmfman", D_800A6C04_main);
+const HmfJitterTbl D_800A6C04_main = { { 0.0f, -0.1f, 0.5f, 0.8f, -0.2f, 0.1f, 0.3f, -0.3f } };
+/* Unreferenced: the rodata word after D_800A6C04_main */
+const s32 D_800A6C24_main = 0;
