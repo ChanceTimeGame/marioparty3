@@ -313,7 +313,7 @@ typedef struct HmfDrawRec {
     /* 0x48 */ HmfObj* unk48;
     /* 0x4C */ s32 unk4C;
     /* 0x50 */ u32 unk50;
-    /* 0x54 */ struct HmfData_UnkD0* unk54;
+    /* 0x54 */ HmfData_UnkD0* unk54;
 } HmfDrawRec; /* size = 0x58 */
 
 typedef struct HmfLight {
@@ -377,7 +377,7 @@ void func_80031560_main(void);
 void func_80030040_main(void);
 void func_800123F4_main(void);
 
-void func_800222B0_main(void* (*arg0)(s32), void (*arg1)(void*), u16 arg2, u16 arg3, u16 arg4, u8 arg5) {
+void func_800222B0_main(HuAllocFunc arg0, HuFreeFunc arg1, u16 arg2, u16 arg3, u16 arg4, u8 arg5) {
     s16 i;
 
     D_800D1FF0_main = arg5;
@@ -1882,7 +1882,7 @@ s32 func_8002C5B8_main(HmfObj* arg0, s16 arg1, s16 arg2) {
 }
 
 s16 func_80011460_main(char*);
-s32 strcmp(char*, char*);
+int strcmp(const char*, const char*);
 
 s16 func_8002C834_main(HmfObj* arg0, char* arg1) {
     s16 temp_a1;
