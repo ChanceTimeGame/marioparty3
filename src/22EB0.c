@@ -1204,6 +1204,13 @@ typedef struct HmfObjBC {
 f32 func_8002E78C_main(HmfMotionSlot*, HmfMotionTrack*, f32);
 f32 func_8002E8E8_main(HmfMotionSlot*, HmfMotionTrack*, f32);
 
+/* A Hermite key value: the value and its two tangents (MP2 HmfBezierKey) */
+typedef struct HmfHermiteKey {
+    /* 0x00 */ f32 v;
+    /* 0x04 */ f32 in;
+    /* 0x08 */ f32 out;
+} HmfHermiteKey; /* size = 0xC */
+
 void func_80024354_main(HmfObj* arg0, s16 arg1) {
     HmfMotionObj* temp_s1;
     HmfPart* temp_s4;
@@ -3147,7 +3154,58 @@ f32 func_8002E78C_main(HmfMotionSlot* arg0, HmfMotionTrack* arg1, f32 arg2) {
     return (vals[i] - vals[j]) / d * (arg2 - keys[j]) + vals[j];
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002E8E8_main);
+/* func_8002E8E8_main's constants: as literals the assembler pools them and pads the unit's .rodata */
+const f64 D_800A6CD0_main = 1.0;
+const f64 D_800A6CD8_main = 3.0;
+
+f32 func_8002E8E8_main(HmfMotionSlot* arg0, HmfMotionTrack* arg1, f32 arg2) {
+    HmfHermiteKey* vals;
+    HmfHermiteKey* cur;
+    HmfHermiteKey* prev;
+    s16* keys;
+    s16* kp;
+    s32 n;
+    s32 i;
+    s16 k0;
+    s32 k1;
+    f32 t;
+    f32 r;
+    f32 r2;
+    f32 t2;
+    f32 a;
+    f32 b;
+    f32 h1;
+    f32 h2;
+
+    vals = (HmfHermiteKey*) &arg0->unk14[arg1->unk_0C];
+    if (arg2 == 0.0f || arg1->unk_0E == 1) {
+        return vals[0].v;
+    }
+    keys = &arg0->unk10[arg1->unk_0A];
+    n = arg1->unk_0E;
+    for (kp = keys, i = 0; i < n; i++) {
+        if (arg2 < *kp++) {
+            break;
+        }
+    }
+    if (i == n) {
+        return vals[arg1->unk_0E - 1].v;
+    }
+    cur = &vals[i];
+    k1 = keys[i];
+    i--;
+    prev = &vals[i];
+    k0 = keys[i];
+    t = arg2 - k0;
+    r = D_800A6CD0_main / (k1 - k0);
+    r2 = r * r;
+    t2 = t * t;
+    a = t2 * r;
+    b = t2 * t * r2;
+    h1 = 2.0 * b * r;
+    h2 = t2 * D_800A6CD8_main * r2;
+    return (h1 - h2 + 1.0f) * prev->v + (-h1 + h2) * cur->v + (b - a - a + t) * prev->in + (b - a) * prev->out;
+}
 
 f32 func_8002E78C_main(HmfMotionSlot*, HmfMotionTrack*, f32);
 f32 func_8002E8E8_main(HmfMotionSlot*, HmfMotionTrack*, f32);
