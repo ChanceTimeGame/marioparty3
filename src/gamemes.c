@@ -1430,7 +1430,139 @@ s32 func_80039A6C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80039A6C_main);
 #endif
 
+// "START" tracing a path in: register allocation (masked 30: the case 0 j + 1 loop increments in place)
+#ifdef NON_MATCHING
+s32 func_80039E80_main(GAMEMES *gMes, Gfx **arg1) {
+    f32 sy = 0.0f;
+    f32 sx = 0.0f;
+    f32 ex = 0.0f;
+    f32 ey = 0.0f;
+    s32 ret = func_80038208_main(gMes, arg1);
+    f32 t = 1.0f;
+    f32 left = 55.0f;
+    f32 right = 265.0f;
+    f32 top = 12.0f;
+    f32 bottom = 228.0f;
+    GMesChr *chr;
+    s32 n = 5;
+    s32 i;
+    s32 j;
+    f32 x;
+    f32 y;
+    f32 scale;
+
+    switch (gMes->unk08) {
+        case 0:
+            for (j = 0; j < n; j++) {
+                HuSprScaleSet(gMes->strGId[0], j + 1, 1.0f, 1.0f);
+                func_80055458_main(gMes->strGId[0], j + 1, 0x80);
+            }
+            func_80054904_main(gMes->strGId[0], 0, 0, 0);
+            gMes->unk08 = 1;
+            gMes->unk0A = 0;
+            gMes->unk0C = 0;
+            break;
+        case 1:
+            if (gMes->unk0A < 4) {
+                if (gMes->unk0A == 0) {
+                    sx = left;
+                    sy = top;
+                    ex = right;
+                    ey = (bottom - top) * 0.5f;
+                    if (gMes->unk0C < 5) {
+                        t = gMes->unk0C * 0.2f;
+                        gMes->unk0C++;
+                    } else {
+                        gMes->unk0A = 1;
+                        gMes->unk0C = 0;
+                    }
+                } else if (gMes->unk0A == 1) {
+                    sx = right;
+                    sy = (bottom - top) * 0.5f;
+                    ex = (right - left) * 0.5f;
+                    ey = bottom;
+                    if (gMes->unk0C < 7) {
+                        t = gMes->unk0C * 0.14285715f;
+                        gMes->unk0C++;
+                    } else {
+                        gMes->unk0A = 2;
+                        gMes->unk0C = 0;
+                    }
+                } else if (gMes->unk0A == 2) {
+                    sx = (right - left) * 0.5f;
+                    sy = bottom;
+                    ex = left;
+                    ey = 120.0f;
+                    if (gMes->unk0C < 8) {
+                        t = gMes->unk0C * 0.125f;
+                        gMes->unk0C++;
+                    } else {
+                        gMes->unk0A = 3;
+                        gMes->unk0C = 0;
+                    }
+                } else if (gMes->unk0A == 3) {
+                    sx = left;
+                    sy = 120.0f;
+                    ex = 160.0f;
+                    ey = 120.0f;
+                    if (gMes->unk0C < 10) {
+                        t = gMes->unk0C * 0.1f;
+                        gMes->unk0C++;
+                    } else {
+                        gMes->unk0A = 4;
+                        gMes->unk0C = 0;
+                    }
+                }
+                x = (ex - sx) * t + sx;
+                y = (ey - sy) * t + sy;
+            } else {
+                x = 160.0f;
+                y = 120.0f;
+                gMes->unk08 = 2;
+                gMes->unk0C = 0;
+                for (i = 0; i < n;) {
+                    chr = &D_800B1BC0_main[i];
+                    chr->alpha = 0xFF;
+                    i++;
+                    func_80055458_main(gMes->strGId[0], i, 0xFF);
+                }
+            }
+            func_80054904_main(gMes->strGId[0], 0, x, y);
+            break;
+        case 2:
+            if (gMes->unk04 >= 90) {
+                gMes->unk08 = 5;
+                gMes->unk0A = 0;
+            }
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            if (gMes->unk0A < 6) {
+                scale = cosdf(gMes->unk0A * 15.0f);
+                gMes->unk0A++;
+            } else {
+                scale = 0.0f;
+                gMes->unk08 = 6;
+            }
+            for (i = 0; i < n;) {
+                i++;
+                HuSprScaleSet(gMes->strGId[0], i, scale, scale);
+            }
+            gMes->stat = 2;
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80039E80_main);
+#endif
 
 s32 func_8003A2EC_main(GAMEMES *gMes, Gfx **arg1) {
     return func_80039E80_main(gMes, arg1);
