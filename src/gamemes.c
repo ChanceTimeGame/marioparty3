@@ -1709,7 +1709,78 @@ s32 func_80040CF4_main(GAMEMES *gMes, Gfx **arg1) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80041700_main);
+s32 func_80041700_main(GAMEMES *gMes, Gfx **arg1) {
+    s32 ret;
+    s32 i;
+    f32 fade;
+
+    if (gMesCloseF != 0 || gMes->stat == 4) {
+        gMes->unk08 = 3;
+    }
+    ret = 1;
+    switch (gMes->unk08) {
+        case 0:
+            func_8003DCA4_main(gMes, 0xC0096);
+            func_80054904_main(gMes->strGId[0], 0, gMes->unk60, gMes->unk64);
+            D_800D6A58_main = 1;
+            D_800D1100_main = 0;
+            gMes->unk60 = 160.0f;
+            gMes->unk64 = 120.0f;
+            gMes->unk68 = gMes->unk6C = 0.5f;
+            gMes->unk70 = 0.0f;
+            gMes->unk03 = 0xFF;
+            func_80054904_main(gMes->strGId[0], 0, gMes->unk60, gMes->unk64);
+            func_800552DC_main(gMes->strGId[0], 0, gMes->unk70);
+            for (i = 0; i < 2; i++) {
+                HuSprScaleSet(gMes->strGId[0], i, gMes->unk68, gMes->unk6C);
+                func_80055458_main(gMes->strGId[0], i, gMes->unk03);
+            }
+            gMes->unk08 = 1;
+            break;
+        case 1:
+            gMes->unk6C = gMes->unk68 += 0.05f;
+            gMes->unk70 += 36.0f;
+            func_800552DC_main(gMes->strGId[0], 0, gMes->unk70);
+            for (i = 0; i < 2; i++) {
+                HuSprScaleSet(gMes->strGId[0], i, gMes->unk68, gMes->unk6C);
+            }
+            if (gMes->unk04 >= 10) {
+                func_800552DC_main(gMes->strGId[0], 0, 0.0f);
+                for (i = 0; i < 2; i++) {
+                    HuSprScaleSet(gMes->strGId[0], i, 1.0f, 1.0f);
+                }
+                gMes->unk08 = 2;
+                gMes->unk10 = 0.0f;
+            }
+            break;
+        case 2:
+            gMes->unk03 = cosdf(gMes->unk10) * 55.0f + 200.0f;
+            gMes->unk10 += 20.0f;
+            if (gMes->unk04 > gMes->unk06 - 10) {
+                fade = (f32)(gMes->unk06 - gMes->unk04) / 10.0f;
+            } else {
+                fade = 1.0f;
+            }
+            for (i = 0; i < 2; i++) {
+                func_80055458_main(gMes->strGId[0], i, gMes->unk03 * fade);
+            }
+            if (gMes->unk04 >= gMes->unk06) {
+                gMes->unk08 = 3;
+            }
+            break;
+        case 3:
+            GMesSprKill(gMes);
+            ret = 0;
+            break;
+    }
+    if (gMes->unk04 == 30) {
+        HuAudFXPlay(0x255);
+    }
+    if (gMes->unk04 == gMes->unk06 - 5) {
+        gMes->stat = 2;
+    }
+    return ret;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/gamemes", D_800A7810_main);
 
