@@ -282,13 +282,12 @@ typedef struct HmfMotionSlot {
     /* 0x00 */ u8 unk00;
     /* 0x01 */ char unk01;
     /* 0x02 */ s16 unk02;
-    /* 0x04 */ char unk04[4];
-    /* 0x08 */ HmfMotionTrack** unk08;
-    /* 0x0C */ u8* unk0C;
-    /* 0x10 */ s16* unk10;
-    /* 0x14 */ f32* unk14;
-    /* 0x18 */ s32 unk18;
-} HmfMotionSlot; /* size 0x1C */
+    /* 0x04 */ HmfMotionTrack** unk08; /* MP2 0x08 */
+    /* 0x08 */ u8* unk0C; /* MP2 0x0C */
+    /* 0x0C */ s16* unk10; /* MP2 0x10 */
+    /* 0x10 */ f32* unk14; /* MP2 0x14 */
+    /* 0x14 */ s32 unk18; /* MP2 0x18 */
+} HmfMotionSlot; /* size 0x18 (MP2 0x1C); which MP2 field MP3 lacks is unconfirmed */
 
 typedef struct HmfLayerEnt {
     /* 0x00 */ u8 unk00;
@@ -1798,17 +1797,98 @@ void func_8002D094_main(Gfx** arg0, s16 arg1, s32 arg2) {
 /* Unreferenced: the rodata word after func_8002D094_main's jump table */
 const s32 D_800A6CC8_main = 0;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D260_main);
+/* D_800CCF58_main (variables.h): the 128 motion slots */
+#define MOTION_SLOTS ((HmfMotionSlot*) D_800CCF58_main)
+extern s16 D_800CE2B4_main;
+void func_80030030_main(f32);
+s16 func_8002D3D0_main(HmfObj*, u8*, s16);
+s32 func_8002D5B0_main(HmfMotionSlot*, HmfObj*);
+s32 func_8002DF2C_main(HmfMotionSlot*, void*);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D2D8_main);
+void func_8002D260_main(void) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D3AC_main);
+    func_80030030_main(1.0f);
+    D_800CCF58_main = HuMemAlloc(128 * sizeof(HmfMotionSlot));
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D3D0_main);
+    for (i = 0; i < 128; i++) {
+        MOTION_SLOTS[i].unk02 = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D4B8_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D514_main);
+s16 func_8002D2D8_main(u8* arg0, HmfObj* arg1) {
+    s16 i;
+
+    for (i = 0; i < 128; i++) {
+        if (MOTION_SLOTS[i].unk02 == -1) {
+            break;
+        }
+    }
+
+    if (i == 128) {
+        return -1;
+    }
+
+    if (func_8002D3D0_main(arg1, arg0, i) != 0) {
+        if (arg1 == NULL) {
+            return i;
+        }
+        arg1->unkA4 = 0;
+        return i;
+    }
+
+    return -1;
+}
+
+
+s16 func_8002D3AC_main(u8* arg0) {
+    return func_8002D2D8_main(arg0, NULL);
+}
+
+
+s16 func_8002D3D0_main(HmfObj* arg0, u8* arg1, s16 arg2) {
+    void* temp_v0;
+    s32 temp_s0;
+    s32* var_a1;
+
+    var_a1 = (s32*) arg1;
+
+    D_800CE2B4_main = arg2 + 10356;
+    MOTION_SLOTS[arg2].unk00 = 0;
+
+    if (arg0 != NULL) {
+        return func_8002D5B0_main(&MOTION_SLOTS[arg2], arg0) != 0;
+    }
+
+    temp_s0 = var_a1[1] + 8;
+    temp_v0 = HuMemAllocTag(temp_s0, D_800CE2B4_main);
+
+    bcopy(arg1, temp_v0, temp_s0);
+    func_8002DF2C_main(&MOTION_SLOTS[arg2], temp_v0);
+
+    return 1;
+}
+
+
+void func_8002D4B8_main(s16 arg0) {
+    if (arg0 != 0xFF) {
+        HuMemFreeAllWithTag(arg0 + 10356);
+        MOTION_SLOTS[arg0].unk02 = -1;
+    }
+}
+
+
+void func_8002D514_main(void) {
+    s16 i;
+
+    for (i = 0; i < 128; i++) {
+        if (MOTION_SLOTS[i].unk02 != -1) {
+            HuMemFreeAllWithTag(i + 10356);
+            MOTION_SLOTS[i].unk02 = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D5B0_main);
 
