@@ -38,6 +38,33 @@ typedef struct {
     u8 unk06;
 } HuSprFileFrame;
 
+/* Palette animation state, HuSprite 0x98-0x113 */
+typedef struct SprPalAnim {
+    /* 0x00 */ HuSprAnmDesc* desc;
+    /* 0x04 */ u16 frame[0x10];
+    /* 0x24 */ f32 timer[0x10];
+    /* 0x64 */ f32 speed;
+    /* 0x68 */ u16 bufIdx;
+    /* 0x6C */ u16* cur;
+    /* 0x70 */ u16* bufs[3];
+} SprPalAnim;
+
+typedef struct SprPalEntry {
+    /* 0x00 */ u16 idx;
+    /* 0x02 */ u16 color;
+} SprPalEntry;
+
+typedef struct SprPalFrame {
+    /* 0x00 */ s16 dur;
+    /* 0x04 */ SprPalEntry* entries;
+} SprPalFrame;
+
+typedef struct SprPalGroup {
+    /* 0x00 */ u16 count; /* palette entries per frame; 0 = not animated */
+    /* 0x02 */ u16 nframes;
+    /* 0x04 */ SprPalFrame** frames;
+} SprPalGroup;
+
 typedef struct {
     HuSprite *last;
     HuSprite *first;
@@ -53,7 +80,7 @@ void func_80052518_main(HuSprite *arg0);
 void func_80056F80_main(s16 arg0);
 s16 func_8005630C_main(HuSprAnm *arg0);
 void func_800563A4_main(HuSprAnm *arg0);
-void func_800571C8_main(HuSprAnmDesc **arg0);
+void func_800571C8_main(struct SprPalAnim *arg0);
 void func_80054218_main(Gfx **gfx, Mtx *mtx, HuCamera *cam);
 void func_80053558_main(void);
 void func_80054170_main(void);
@@ -75,6 +102,7 @@ extern s16 D_800D418E_main; /* the viewport being drawn */
 void func_80089980_main(f32 mf[4][4], Mtx *m); /* guMtxL2F */
 f32 fabsf(f32);
 f64 fmod(f64, f64);
+f64 fabs(f64);
 void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
 
 /* HuSprite fields include/game/sprite.h types otherwise: the rotation (f32), the index of the
@@ -1414,7 +1442,7 @@ void func_80056650_main(HuSprite *sprite) {
     sprite->unk_18 = sprite->unk_50 * sprite->unk_60;
     sprite->unk_1C = sprite->unk_54 * sprite->unk_64;
     if (sprite->unk_98 != NULL) {
-        func_800571C8_main(&sprite->unk_98);
+        func_800571C8_main((struct SprPalAnim *) &sprite->unk_98);
     }
 }
 
@@ -1577,7 +1605,61 @@ void func_80056CD0_main(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80056D18_main);
+/* Loads a palette-animation file into a free slot (MP2 func_80083D08_84908). */
+s16 func_80056D18_main(u8* data) {
+    u8* p;
+    HuSprAnmDesc* desc;
+    SprPalGroup* grp;
+    SprPalFrame* frame;
+    SprPalEntry* e;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 slot;
+    u8* base = data;
+
+    for (i = 0; i < 256; i++) {
+        if (D_800D0A50_main[i] == NULL) {
+            break;
+        }
+    }
+    if (i == 256) {
+        return -1;
+    }
+    slot = i;
+    desc = HuMemAlloc(sizeof(HuSprAnmDesc));
+    desc->unk00 = func_80056C74_main(&data);
+    desc->unk02 = func_80056C74_main(&data);
+    desc->unk04 = HuMemAlloc(desc->unk02 * 4);
+    for (j = 0; j < desc->unk02; j++) {
+        desc->unk04[j] = (HuSprAnmEntry*)(grp = HuMemAlloc(sizeof(SprPalGroup)));
+        p = base + func_80056C98_main(&data);
+        grp->count = func_80056C74_main(&p);
+        if (grp->count != 0) {
+            grp->nframes = func_80056C74_main(&p);
+            grp->frames = HuMemAlloc(grp->nframes * 4);
+            for (k = 0; k < grp->nframes; k++) {
+                frame = HuMemAlloc(sizeof(SprPalFrame));
+                grp->frames[k] = frame;
+                frame->dur = func_80056C74_main(&p);
+                e = HuMemAlloc(grp->count * 4);
+                frame->entries = e;
+                for (i = 0; i < grp->count; i++, e++) {
+                    e->idx = func_80056C74_main(&p);
+                    e->color = func_80056C74_main(&p);
+                }
+            }
+        }
+    }
+    desc->unk08 = func_80056C74_main(&data);
+    desc->unk0C = HuMemAlloc(desc->unk08 * 2);
+    for (i = 0; i < desc->unk08; i++) {
+        ((u16*)desc->unk0C)[i] = func_80056C74_main(&data);
+    }
+    D_800D0A50_main[slot] = desc;
+    D_800D554E_main++;
+    return slot;
+}
 
 void func_80056F80_main(s16 arg0) {
     HuSprAnmDesc *desc = D_800D0A50_main[arg0];
@@ -1633,4 +1715,63 @@ void func_80057158_main(void) {
     }
 }
 
+/* Steps a sprite's palette animation; when a frame changes, rebuilds the palette in the next of
+   three buffers (MP2 func_800841B8_84DB8). */
+// register allocation, as in MP2 (masked 0, raw 6): the frame pointer shares v0 with dur where
+// retail loads it into v1 (three places).
+#ifdef NON_MATCHING
+void func_800571C8_main(SprPalAnim* pa) {
+    HuSprAnmDesc* desc;
+    SprPalGroup* grp;
+    SprPalEntry* e;
+    s32 changed;
+    s32 i;
+    s32 j;
+    s32 dur;
+
+    changed = 0;
+    desc = pa->desc;
+    for (i = 0; i < desc->unk02; i++) {
+        grp = (SprPalGroup*)desc->unk04[i];
+        if (grp->count != 0) {
+            pa->timer[i] -= pa->speed;
+            do {
+                if (pa->timer[i] <= 0.0f) {
+                    pa->frame[i]++;
+                    if (pa->frame[i] >= grp->nframes) {
+                        pa->frame[i] = 0;
+                        dur = (*grp->frames)->dur;
+                    } else if ((dur = grp->frames[pa->frame[i]]->dur) <= 0) {
+                        pa->frame[i] = 0;
+                        dur = (*grp->frames)->dur;
+                    }
+                    pa->timer[i] = dur + pa->timer[i];
+                    changed = 1;
+                }
+            } while (pa->timer[i] < 0.0f);
+        }
+    }
+    if (changed) {
+        if (pa->bufs[pa->bufIdx] == NULL) {
+            pa->bufs[pa->bufIdx] = HuMemAlloc(desc->unk08 * 2);
+        }
+        pa->cur = pa->bufs[pa->bufIdx];
+        bcopy(desc->unk0C, pa->cur, desc->unk08 * 2);
+        pa->bufIdx++;
+        if (pa->bufIdx >= 3) {
+            pa->bufIdx = 0;
+        }
+        for (j = 0; j < desc->unk02; j++) {
+            grp = (SprPalGroup*)desc->unk04[j];
+            if (grp->count != 0) {
+                e = grp->frames[pa->frame[j]]->entries;
+                for (i = 0; i < grp->count; i++, e++) {
+                    pa->cur[e->idx] = e->color;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/sprman", func_800571C8_main);
+#endif
