@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mallocblock.h"
 
 /* Model vertex animation (MP2 src/30560.c's tail, MP3 layouts): 16 animation slots, a model's
    vertex copy, and morph targets. Local views of MP3's HmfData (src/hmfman.c HmfDataM) and
