@@ -220,6 +220,7 @@ void func_8005CEB0_main(s16 winId);
 void func_8005CF94_main(s16 winId);
 s16 func_8005CFE0_main(s16 winId, s16 idx);
 void func_8005D294_main(s16 win_id);
+void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y);
 void func_8005D2D4_main(s16 winId);
 void func_8005D83C_main(s16 winId, s16 x, s16 y, s16 w, s16 h);
 u8* func_8005DAA4_main(s16 winId);
@@ -873,8 +874,6 @@ void func_8005C154_main(s16 winId, u8 r, u8 g, u8 b) {
     func_8005C060_main(winId, 0, r, g, b);
 }
 
-void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y);
-
 /* MP2 func_80089DDC_8A9DC (MP1 func_8006E318): prints the window's text up to the next stop;
    0 when the text has ended. MP3 adds outlined text (0x0F/0x16) and colour codes that an
    inserted string can skip. */
@@ -1224,9 +1223,114 @@ void func_8005D2D4_main(s16 winId) {
     func_8005B63C_main(winId, 0x40000, 0x40000);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005D2FC_main);
+void func_8005D2FC_main(void) {
+    D_800CD2A4_main = 1;
+}
 
+/* the font file (D_800D1FE4_main) */
+typedef struct TWFont {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 unk8; /* offset of the 4-bit glyphs */
+} TWFont;
+
+// register allocation (masked 44, all from one spill): retail keeps shadowHi in a stack slot
+// (sb/lbu 0x1F(sp), frame 0x48); here it gets s5. Tried computing it from unk33 directly and
+// as a nested assignment
+#ifdef NON_MATCHING
+/* MP2 func_8008AD94_8B994 (MP1 func_8006EEB8): draws character c (a 10x12 4-bit glyph) into the
+   window image in colour color; MP3 also edges the glyph's partial pixels in colour + 7, leaving
+   black (1) and shadow (unk33 + 1) pixels alone */
+void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    u8* buf;
+    u8* src;
+    u8* dst;
+    s16 row;
+    s16 i;
+    s16 w;
+    s16 h;
+    s16 stride;
+    s16 srcStride;
+    u8 shadow;
+    u8 shadowHi;
+    u8 v;
+
+    func_8005DD14_main(winId);
+    y = (y < 0) ? 0 : y;
+    x = (x < 0) ? 0 : x;
+    buf = func_8005DAA4_main(winId);
+    src = (u8*)D_800D1FE4_main + ((TWFont*)D_800D1FE4_main)->unk8 + (c - 0x30) * 60;
+    w = 10;
+    if (gLanguageIndex != 1 && !(tw->unk_38 & 0x80000)) {
+        w = D_800A2194_main[c];
+    }
+    tw->unk34 = w;
+    h = 12;
+    srcStride = 5;
+    if ((tw->unk_38 & 4) && c != 0x80 && c != 0x81 && color == 0) {
+        func_8005D83C_main(winId, x - 1, y - 2, tw->unk29 + 3 + w, 14);
+    }
+    dst = &buf[(x + y * tw->unk44) / 2];
+    stride = tw->unk44 / 2;
+    shadow = tw->unk33 + 1;
+    shadowHi = shadow << 4;
+    color++;
+    if (x & 1) {
+        for (row = 0; row < h; row++) {
+            for (i = 0; i < w / 2; i++) {
+                if ((*src & 0xF0) == 0xF0) {
+                    dst[i] = color | (dst[i] & 0xF0);
+                } else {
+                    v = dst[i];
+                    if ((v & 0xF) != 1 && (v & 0xF) != shadow && (*src & 0xF0) != 0 && color != 1) {
+                        dst[i] = (v & 0xF0) | (color + 7);
+                    }
+                }
+                if ((*src & 0xF) == 0xF) {
+                    *(dst + i + 1) = (*(dst + i + 1) & 0xF) | (color << 4);
+                } else {
+                    v = *(dst + i + 1);
+                    if ((v & 0xF0) != 0x10 && (v & 0xF0) != shadowHi && (*src & 0xF) != 0 && color != 1) {
+                        *(dst + i + 1) = (v & 0xF) | ((color + 7) << 4);
+                    }
+                }
+                src++;
+            }
+            src += srcStride - i;
+            dst += stride;
+        }
+    } else {
+        w >>= 1;
+        for (row = 0; row < h; row++) {
+            for (i = 0; i < w; i++) {
+                if ((*src & 0xF0) == 0xF0) {
+                    *dst = (*dst & 0xF) | (color << 4);
+                } else {
+                    v = *dst;
+                    if ((v & 0xF0) != 0x10 && (v & 0xF0) != shadowHi && (*src & 0xF0) != 0 && color != 1) {
+                        *dst = (v & 0xF) | ((color + 7) << 4);
+                    }
+                }
+                if ((*src & 0xF) == 0xF) {
+                    *dst = color | (*dst & 0xF0);
+                } else {
+                    v = *dst;
+                    if ((v & 0xF) != 1 && (v & 0xF) != shadow && (*src & 0xF) != 0 && color != 1) {
+                        *dst = (v & 0xF0) | (color + 7);
+                    }
+                }
+                src++;
+                dst++;
+            }
+            src += srcStride - i;
+            dst += stride - i;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_8005D30C_main);
+#endif
 
 /* MP1 func_8006F3BC: clears a w x h box of the text image */
 void func_8005D83C_main(s16 winId, s16 x, s16 y, s16 w, s16 h) {
