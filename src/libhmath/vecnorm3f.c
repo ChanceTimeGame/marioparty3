@@ -2,9 +2,10 @@
 #include "math.h"
 
 // https://decomp.me/scratch/6UMIQ
-// the original output has the function prologue near the end rather than the start
-#ifdef NONMATCHING
-void _HuVecNormalize3F(Vec *vec) {
+// scheduling: retail interleaves the prologue's register saves with the loads, which KMC GCC
+// 2.7.2 never does (its prologue is emitted as text, not scheduled RTL); logic checked
+#ifdef NON_MATCHING
+void HuVecNormalize3F(Vec *vec) {
     f32 x;
     f32 y;
     f32 z;
