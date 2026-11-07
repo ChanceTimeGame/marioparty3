@@ -1625,15 +1625,178 @@ void func_8002C914_main(HmfObj* arg0, char* arg1, HmfObj* arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C960_main);
+void func_8002C960_main(HmfObj* arg0, s16 arg1, HmfObj* arg2) {
+    s16 i;
+    s16 j;
+    s16 name;
+    HitXform* node;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002CAE4_main);
+    name = arg0->unk64[arg1].unk08;
+    for (i = 0; i < arg2->unk10; i++) {
+        if (arg2->unk64[i].unk08 == name && strcmp(arg2->unk64[i].unk12, arg0->unk64[arg1].unk12) == 0) {
+            break;
+        }
+    }
+    if (i != arg2->unk10) {
+        for (j = 0; j < arg0->unk68; j++) {
+            node = &arg0->unk6C[j];
+            if (node->unk00 == arg1) {
+                node->unk48 = arg2;
+                node->unk00 = i;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002CB6C_main);
+void func_8002CB6C_main(HmfObj*, s16);
+void func_8002CDF4_main(HmfObj*, s16);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002CDF4_main);
+void func_8002CAE4_main(HmfObj* arg0) {
+    if (arg0->unk14 != 0) {
+        D_800D5214_main = 0;
+        D_800D138A_main = 0;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D094_main);
+        func_8008A070_main(D_800D5A00_main[0]);
+
+        if (arg0->unk84 == (void*) -1) {
+            if (arg0->unk68 != 0) {
+                func_8002CB6C_main(arg0, 0);
+            }
+        } else if (arg0->unk16 != 0) {
+            func_8002CDF4_main(arg0, 0);
+        }
+    }
+}
+
+void func_8002CB6C_main(HmfObj* arg0, s16 arg1) {
+    HitXform* temp_s1 = &arg0->unk6C[arg1];
+    s16 var_s3 = 0;
+    s16 var_s0 = 0;
+    Matrix4f sp10;
+
+    func_8008A070_main(sp10);
+
+    if (arg0->unk90 == 0) {
+        if (temp_s1->unk08.x != 0.0f || temp_s1->unk08.y != 0.0f || temp_s1->unk08.z != 0.0f) {
+            func_80017C10_main((Mtx*) sp10, temp_s1->unk08.x, temp_s1->unk08.y, temp_s1->unk08.z);
+            var_s0 = 1;
+        }
+
+        if (temp_s1->unk14.x != 0.0f || temp_s1->unk14.y != 0.0f || temp_s1->unk14.z != 0.0f) {
+            arg0->unkD4(sp10, temp_s1->unk14.x, temp_s1->unk14.y, temp_s1->unk14.z);
+            var_s0 = 1;
+        }
+    }
+
+    if (temp_s1->unk20.x != 1.0f || temp_s1->unk20.y != 1.0f || temp_s1->unk20.z != 1.0f) {
+        func_80017CD0_main(sp10, temp_s1->unk20.x, temp_s1->unk20.y, temp_s1->unk20.z);
+        var_s3 = 1;
+        var_s0 = 1;
+    }
+
+    if (var_s0 != 0) {
+        D_800D138A_main++;
+        func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+    }
+
+    func_8002367C_main(temp_s1->unk4C, D_800D5A00_main[D_800D138A_main]);
+
+    if (temp_s1->unk04 != 0) {
+        func_8002CB6C_main(arg0, arg1 + temp_s1->unk04);
+    }
+
+    if (var_s0) {
+        D_800D138A_main--;
+    }
+
+    if (var_s3) {
+        D_800D5214_main--;
+    }
+
+    if (temp_s1->unk02 != 0) {
+        func_8002CB6C_main(arg0, arg1 + temp_s1->unk02);
+    }
+}
+
+void func_8002CDF4_main(HmfObj* arg0, s16 arg1) {
+    HmfMotionObj* temp_s1 = &arg0->unk84[arg1];
+    s16 var_s5 = 0;
+    s16 var_s2 = 0;
+    s16 i;
+    Matrix4f sp10;
+
+    func_8008A070_main(sp10);
+
+    if (temp_s1->unk04.x != 0.0f || temp_s1->unk04.y != 0.0f || temp_s1->unk04.z != 0.0f) {
+        func_80017C10_main((Mtx*) sp10, temp_s1->unk04.x, temp_s1->unk04.y, temp_s1->unk04.z);
+        var_s2 = 1;
+    }
+
+    if (temp_s1->unk10.x != 0.0f || temp_s1->unk10.y != 0.0f || temp_s1->unk10.z != 0.0f) {
+        arg0->unkD4(sp10, temp_s1->unk10.x, temp_s1->unk10.y, temp_s1->unk10.z);
+        var_s2 = 1;
+    }
+
+    if (temp_s1->unk1C.x != 1.0f || temp_s1->unk1C.y != 1.0f || temp_s1->unk1C.z != 1.0f) {
+        func_80017CD0_main(sp10, temp_s1->unk1C.x, temp_s1->unk1C.y, temp_s1->unk1C.z);
+        var_s5 = 1;
+        var_s2 = 1;
+    }
+
+    if (var_s2) {
+        D_800D138A_main++;
+        func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+    }
+
+    func_8002367C_main(temp_s1->unk58, D_800D5A00_main[D_800D138A_main]);
+
+    for (i = 0; i < temp_s1->unk00; i++) {
+        if ((temp_s1->unk50[i] & 0x8000) && (temp_s1->unk50[i] != -1)) {
+            func_8002CDF4_main(arg0, temp_s1->unk50[i] & ~0x8000);
+        }
+    }
+
+    if (var_s2) {
+        D_800D138A_main--;
+    }
+
+    if (var_s5) {
+        D_800D5214_main--;
+    }
+}
+
+void func_8002D094_main(Gfx** arg0, s16 arg1, s32 arg2) {
+    switch (arg1) {
+        case 0:
+        case 1:
+            gSPLightColor((*arg0)++, LIGHT_1, arg2);
+            break;
+        case 2:
+            gSPLightColor((*arg0)++, LIGHT_2, arg2);
+            break;
+        case 3:
+            gSPLightColor((*arg0)++, LIGHT_3, arg2);
+            break;
+        case 4:
+            gSPLightColor((*arg0)++, LIGHT_4, arg2);
+            break;
+        case 5:
+            gSPLightColor((*arg0)++, LIGHT_5, arg2);
+            break;
+        case 6:
+            gSPLightColor((*arg0)++, LIGHT_6, arg2);
+            break;
+        case 7:
+            gSPLightColor((*arg0)++, LIGHT_7, arg2);
+            break;
+        default:
+            gSPLightColor((*arg0)++, LIGHT_8, arg2);
+            break;
+    }
+}
+
+/* Unreferenced: the rodata word after func_8002D094_main's jump table */
+const s32 D_800A6CC8_main = 0;
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D260_main);
 
