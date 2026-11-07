@@ -196,6 +196,7 @@ $(W2BD_LIBAUDIO_U): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUIL
 build/src/2.0L/gu/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/io/pirawdma.c.o: OPTFLAGS = -O2
 # wave 2d E
+build/src/2.0L/os/createthread.c.o: OPTFLAGS = -O2
 build/src/2.0L/os/settimer.c.o: OPTFLAGS = -O2
 build/src/2.0L/os/timerintr.c.o: OPTFLAGS = -O2
 build/src/2.0L/os/initialize_msp.c.o: OPTFLAGS = -O3
