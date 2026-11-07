@@ -1,5 +1,6 @@
 #include "game/sprite.h"
 #include "game/hmfman.h"
+#include "game/camera.h"
 #include "mallocblock.h"
 #include "include_asm.h"
 #include "macros.h"
@@ -53,14 +54,22 @@ void func_80056F80_main(s16 arg0);
 s16 func_8005630C_main(HuSprAnm *arg0);
 void func_800563A4_main(HuSprAnm *arg0);
 void func_800571C8_main(HuSprAnmDesc **arg0);
-void func_80054218_main(Gfx **, s32, s32);
-void func_80054658_main(Gfx **, s32, s32);
+void func_80054218_main(Gfx **gfx, Mtx *mtx, HuCamera *cam);
+void func_80053558_main(void);
+void func_80054170_main(void);
+void func_800579E4_main(Gfx **gfx, HuSprite *obj, HuCamera *cam);
+s16 func_8004D6AC_main(u8 red, u8 green, u8 blue);
+void func_8004D6E8_main(s16 sampleIdx);
+void func_80054658_main(Gfx **gfx, Mtx *mtx, HuCamera *cam);
 void func_80055628_main(void);
 void func_80056CD0_main(void);
 void func_80057158_main(void);
 
 extern s32 D_800A1EA0_main; // redraw?
 extern Mtx D_800BD7C0_main;
+extern Vp D_800A1E90_main;
+extern Gfx *D_800BD800_main; /* the sprites drawn after the 3D layer (func_80054658_main) */
+extern void *D_800CCF30_main;
 extern HuSprite *D_800BD804_main; // head of sorted draw list
 extern s16 D_800D0468_main;
 extern s16 D_800D10F2_main;
@@ -96,9 +105,9 @@ void func_80052330_main(void) {
                 D_800D59F4_main = NULL;
     D_800D1FDC_main = NULL;
     guOrtho(&D_800BD7C0_main, -160.0f, 160.0f, -120.0f, 120.0f, 0.0f, 8000.0f, 2.0f);
-    D_800D0468_main = func_8001AC8C_main(0, func_80054218_main, 0);
+    D_800D0468_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) func_80054218_main, 0);
     func_8001C8A8_main(D_800D0468_main, 1);
-    D_800D10F2_main = func_8001AC8C_main(0, func_80054658_main, 6);
+    D_800D10F2_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) func_80054658_main, 6);
     func_80055628_main();
     func_80056CD0_main();
     D_800A1EA0_main = 1;
@@ -578,9 +587,96 @@ void func_80054170_main(void) {
     D_800D59F4_main = D_800CE1B8_main[D_800D2008_main];
 }
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80054218_main);
+/* The sprite layer's draw hook (MP2 SprExec, MP1 func_8006677C); MP3 adds the profiler marks and
+   no longer clears each sprite's list links. */
+void func_80054218_main(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
+    HuSprite* obj;
+    s16 flag = 0;
+    Gfx* branch = NULL;
+    Gfx* end = NULL;
+    s16 sample;
 
-INCLUDE_ASM("asm/nonmatchings/sprman", func_80054658_main);
+    D_800D1FDC_main = 0;
+    sample = func_8004D6AC_main(0, 200, 0);
+    func_80053558_main();
+    func_8004D6E8_main(sample);
+    obj = func_800530AC_main();
+    func_80054170_main();
+    D_800CCF30_main = HuMemAlloc(0x4000);
+    sample = func_8004D6AC_main(0, 0, 200);
+    gSPViewport((*gfx)++, &D_800A1E90_main);
+    gSPPerspNormalize((*gfx)++, 0x8000);
+    gSPMatrix((*gfx)++, osVirtualToPhysical(&D_800BD7C0_main), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+    gDPSetScissor((*gfx)++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+    gDPPipeSync((*gfx)++);
+    gDPSetTexturePersp((*gfx)++, G_TP_NONE);
+    gSPTexture((*gfx)++, 0xFFFF, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gSPClearGeometryMode((*gfx)++, G_CULL_BOTH);
+    gSPSetGeometryMode((*gfx)++, G_ZBUFFER | G_TEXTURE_GEN_LINEAR); /* 0x80001 */
+    gDPSetBlendColor((*gfx)++, 0, 0, 0, 1);
+    gDPSetAlphaCompare((*gfx)++, G_AC_THRESHOLD);
+    D_800BD800_main = NULL;
+    while (obj != NULL) {
+        if (obj->unk_24 & 0x4000) {
+            if (flag) {
+                if (branch != NULL) {
+                    gSPBranchList(branch, *gfx + 1);
+                }
+                end = (*gfx)++;
+            }
+            flag = 0;
+        } else {
+            if (!flag) {
+                if (end != NULL) {
+                    gSPBranchList(end, *gfx + 1);
+                }
+                branch = (*gfx)++;
+                if (D_800BD800_main == NULL) {
+                    D_800BD800_main = *gfx;
+                }
+            }
+            flag = 1;
+        }
+        func_800579E4_main(gfx, obj, cam);
+        obj = obj->unk_118;
+    }
+    if (flag) {
+        gSPEndDisplayList((*gfx)++);
+        if (branch != NULL) {
+            gSPBranchList(branch, *gfx);
+        }
+    } else if (D_800BD800_main != NULL) {
+        gSPEndDisplayList(end);
+    }
+    gDPSetTextureLUT((*gfx)++, G_TT_NONE);
+    HuMemFree(D_800CCF30_main);
+    gSPMatrix((*gfx)++, mtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+    gSPMatrix((*gfx)++, mtx + 1, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    gDPSetScissor((*gfx)++, G_SC_NON_INTERLACE, cam->screenLeft, cam->screenTop, cam->screenRight, cam->screenBottom);
+    func_8004D6E8_main(sample);
+}
+
+/* Draws the sprites SprExec set aside for after the 3D layer (MP2 SprLayerHook). */
+void func_80054658_main(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
+    if (D_800BD800_main != NULL) {
+        gSPViewport((*gfx)++, &D_800A1E90_main);
+        gSPPerspNormalize((*gfx)++, 0x8000);
+        gSPMatrix((*gfx)++, osVirtualToPhysical(&D_800BD7C0_main), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+        gDPSetScissor((*gfx)++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+        gDPPipeSync((*gfx)++);
+        gDPSetTexturePersp((*gfx)++, G_TP_NONE);
+        gSPTexture((*gfx)++, 0xFFFF, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+        gSPClearGeometryMode((*gfx)++, G_CULL_BOTH);
+        gSPSetGeometryMode((*gfx)++, G_ZBUFFER | G_TEXTURE_GEN_LINEAR); /* 0x80001 */
+        gDPSetBlendColor((*gfx)++, 0, 0, 0, 1);
+        gDPSetAlphaCompare((*gfx)++, G_AC_THRESHOLD);
+        gSPDisplayList((*gfx)++, D_800BD800_main);
+        gDPSetTextureLUT((*gfx)++, G_TT_NONE);
+        gSPMatrix((*gfx)++, mtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+        gSPMatrix((*gfx)++, mtx + 1, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        gDPSetScissor((*gfx)++, G_SC_NON_INTERLACE, cam->screenLeft, cam->screenTop, cam->screenRight, cam->screenBottom);
+    }
+}
 
 // HuSprPosSet?
 void func_80054904_main(s16 group, s16 member, s16 arg2, s16 arg3) {
