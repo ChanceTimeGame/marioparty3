@@ -5,7 +5,7 @@
    half in the last 16 (the guMtxL2F layout). */
 #define MTXL_GET(mtx, row, col)                                                                     \
     ((col) & 1 ? (((mtx)->m[(row) / 2][((row) & 1) * 2 + (col) / 2] << 16) & 0xFFFF0000) |           \
-                     (mtx)->m[(row) / 2 + 2][((row) & 1) * 2 + (col) / 2] & 0xFFFF                   \
+                     ((mtx)->m[(row) / 2 + 2][((row) & 1) * 2 + (col) / 2] & 0xFFFF)                 \
                : ((mtx)->m[(row) / 2][((row) & 1) * 2 + (col) / 2] & 0xFFFF0000) |                   \
                      (((mtx)->m[(row) / 2 + 2][((row) & 1) * 2 + (col) / 2] >> 16) & 0xFFFF))
 #define MTXL_SET(mtx, row, col, e0, e1)                                                             \
