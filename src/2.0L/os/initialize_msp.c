@@ -1,7 +1,157 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/rcp.h"
+#include "PR/R4300.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/initialize_msp", msp_proutSyncPrintf);
+typedef struct {
+    /* 0x0 */ unsigned int inst1;
+    /* 0x4 */ unsigned int inst2;
+    /* 0x8 */ unsigned int inst3;
+    /* 0xC */ unsigned int inst4;
+} __osExceptionVector;
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/initialize_msp", __osInitialize_msp);
+extern __osExceptionVector D_8007FB20_main[]; // __ptExceptionPreamble
+extern void *__printfunc;
+extern volatile unsigned int *D_800A3FD0_main; // stat
+extern volatile unsigned int *D_800A3FD4_main; // wport
+extern int D_800A3FDC_main;                    // column of msp_proutSyncPrintf
+extern u32 D_800CB9A0_main;                    // __msp_pt_mode
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/initialize_msp", __checkHardware_msp);
+
+
+
+
+
+static void rmonPutchar(char c) {
+    u32 data;
+
+    while (TRUE) {
+        osPiReadIo((u32)D_800A3FD0_main, &data);
+        if (data & 4) {
+            osPiWriteIo((u32)D_800A3FD4_main, c);
+            break;
+        }
+    }
+}
+
+void *msp_proutSyncPrintf(void* str, const char* buf, int n) {
+    int i;
+    char c;
+    char* p;
+    char* q;
+    char xbuf[128];
+    
+
+    p = &xbuf;
+
+    for (i = 0; i < n; i++) {
+        c = *buf++;
+
+        switch (c) {
+            case '\n':
+                *p++ = '\n';
+                D_800A3FDC_main = 0;
+                break;
+            case '\t':
+                do {
+                    *p++ = ' ';
+                } while (++D_800A3FDC_main % 8);
+                break;
+            default:
+                D_800A3FDC_main++;
+                *p++ = c;
+                break;
+        }
+
+        if (c == '\n' || (p - xbuf) > 100) {
+            rmonPutchar((p - xbuf) - 1);
+
+            q = xbuf;
+            while (q != p) {
+                rmonPutchar(*q++);
+            }
+            p = xbuf;
+        }
+    }
+    if (p != xbuf) {
+        rmonPutchar((p - xbuf) - 1);
+
+        q = xbuf;
+        while (q != p) {
+            rmonPutchar(*q++);
+        }
+    }
+    return (void*)1;
+}
+
+
+
+void __osInitialize_msp(void) {
+    if (!D_800CB9A0_main) {
+        int (*fnc)();
+        unsigned int* src;
+        unsigned int* dst;
+        unsigned int monadr;
+        volatile unsigned int* mon;
+        volatile unsigned int* stat;
+
+        stat = (unsigned*)0xbff08004;
+        mon = (unsigned*)0xBFF00000;
+        if (*mon != 0x4B4D4300) {
+            return;
+        }
+
+        src = (unsigned*)D_8007FB20_main;
+        dst = (unsigned*)E_VEC;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        src += 2;
+        dst += 2;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+
+        osWritebackDCache(E_VEC, 0x24);
+        osInvalICache(E_VEC, 0x24);
+
+        D_800CB9A0_main = TRUE;
+
+        if ((*stat & 0x10) == 0) {
+            monadr = *(mon + 1);
+            if (monadr != 0xBFF00000) {
+                unsigned int* src;
+                unsigned int* dst = monadr | 0x20000000;
+                unsigned int ct = 0x2000 / 4;
+
+                src = 0xBFF00000;
+
+                while (ct != 0) {
+                    *dst++ = *src++;
+                    ct--;
+                }
+            }
+            fnc = monadr + 8;
+            fnc(0x4B4D4300, 0);
+        }
+        __printfunc = msp_proutSyncPrintf;
+    }
+}
+
+int __checkHardware_msp(void) {
+    volatile unsigned int* mon = (unsigned*)0xBFF00000;
+
+    if (*mon == 0x4B4D4300) {
+        mon = (unsigned*)0xBFF00010;
+
+        if (*mon == 0) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        return FALSE;
+    }
+}
+
+

@@ -1,5 +1,20 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/rdb.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/initialize_emu", __osInitialize_emu);
+extern void *__printfunc;
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/initialize_emu", proutSyncPrintf);
+static void *proutSyncPrintf(void *str, const char *buf, u32 n);
+
+void __osInitialize_emu(void) {
+    __printfunc = proutSyncPrintf;
+}
+
+static void *proutSyncPrintf(void *str, const char *buf, u32 n) {
+    u32 sent = 0;
+
+    while (sent < n) {
+        sent += __osRdbSend((u8 *)buf + sent, n - sent, RDB_TYPE_GtoH_PRINT);
+    }
+    return (void *)1;
+}

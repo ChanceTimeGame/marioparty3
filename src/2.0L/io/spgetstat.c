@@ -1,3 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/spgetstat", __osSpGetStatus);
+u32 __osSpGetStatus(void) {
+    return IO_READ(SP_STATUS_REG);
+}

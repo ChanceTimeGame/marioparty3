@@ -1,3 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/aigetlen", osAiGetLength);
+u32 osAiGetLength(void) {
+    return IO_READ(AI_LEN_REG);
+}
