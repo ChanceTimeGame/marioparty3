@@ -25,12 +25,12 @@
 #include "common.h"
 
 
-static u32 __readVarLen(ALCSeq *s,u32 track);
-static u8  __getTrackByte(ALCSeq *s,u32 track);
-static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event); 
+static u32 func_8006E7F0_main(ALCSeq *s,u32 track);
+static u8  func_8006E738_main(ALCSeq *s,u32 track);
+static u32 func_8006E230_main(ALCSeq *seq, u32 track, ALEvent *event); 
 
 
-void alCSeqNew(ALCSeq *seq, u8 *ptr)
+void func_8006E030_main(ALCSeq *seq, u8 *ptr)
 {
     u32         i,tmpOff,flagTmp;
     
@@ -52,8 +52,8 @@ void alCSeqNew(ALCSeq *seq, u8 *ptr)
             flagTmp = 1 << i;
             seq->validTracks |= flagTmp;
             seq->curLoc[i] = (u8*)((u32)ptr + tmpOff);
-            seq->evtDeltaTicks[i] = __readVarLen(seq,i);
-            /*__alCSeqGetTrackEvent(seq,i); prime the event buffers  */
+            seq->evtDeltaTicks[i] = func_8006E7F0_main(seq,i);
+            /*func_8006E230_main(seq,i); prime the event buffers  */
         }
         else
             seq->curLoc[i] = 0;
@@ -62,7 +62,7 @@ void alCSeqNew(ALCSeq *seq, u8 *ptr)
     seq->qnpt = 1.0/(f32)seq->base->division;
 }
 
-void alCSeqNextEvent(ALCSeq *seq,ALEvent *evt)
+void func_8006E13C_main(ALCSeq *seq,ALEvent *evt)
 {
     u32     i;
     u32     firstTime = 0xFFFFFFFF;
@@ -90,13 +90,13 @@ void alCSeqNextEvent(ALCSeq *seq,ALEvent *evt)
         }
     }
  
-    __alCSeqGetTrackEvent(seq,firstTrack,evt);
+    func_8006E230_main(seq,firstTrack,evt);
 
     evt->msg.midi.ticks = firstTime;
     seq->lastTicks += firstTime;
     seq->lastDeltaTicks = firstTime;
     if(evt->type != AL_TRACK_END)
-	seq->evtDeltaTicks[firstTrack] += __readVarLen(seq,firstTrack);
+	seq->evtDeltaTicks[firstTrack] += func_8006E7F0_main(seq,firstTrack);
     seq->deltaFlag = 1;
 
 }
@@ -109,26 +109,26 @@ void alCSeqNextEvent(ALCSeq *seq,ALEvent *evt)
 */
 
 /* only call alCSeqGetTrackEvent with a valid track !! */
-static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event) 
+static u32 func_8006E230_main(ALCSeq *seq, u32 track, ALEvent *event) 
 {
     u32     offset;
     u8      status, loopCt, curLpCt, *tmpPtr;
     
 
-    status = __getTrackByte(seq,track);     /* read the status byte */
+    status = func_8006E738_main(seq,track);     /* read the status byte */
 
     if (status == AL_MIDI_Meta) /* running status not allowed on meta events!! */
     {
-        u8 type = __getTrackByte(seq,track);
+        u8 type = func_8006E738_main(seq,track);
         
         if (type == AL_MIDI_META_TEMPO)
         {
             event->type = AL_TEMPO_EVT;
             event->msg.tempo.status = status;
             event->msg.tempo.type = type;
-            event->msg.tempo.byte1 = __getTrackByte(seq,track);
-            event->msg.tempo.byte2 = __getTrackByte(seq,track);
-            event->msg.tempo.byte3 = __getTrackByte(seq,track);
+            event->msg.tempo.byte1 = func_8006E738_main(seq,track);
+            event->msg.tempo.byte2 = func_8006E738_main(seq,track);
+            event->msg.tempo.byte3 = func_8006E738_main(seq,track);
             seq->lastStatus[track] = 0;  /* lastStatus not supported after meta */
         }
         else if (type == AL_MIDI_META_EOT)
@@ -145,8 +145,8 @@ static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event)
         }
         else if (type == AL_CMIDI_LOOPSTART_CODE)
         {
-            status = __getTrackByte(seq,track); /* get next two bytes, ignore them */
-            status = __getTrackByte(seq,track);
+            status = func_8006E738_main(seq,track); /* get next two bytes, ignore them */
+            status = func_8006E738_main(seq,track);
             seq->lastStatus[track] = 0;
             event->type = AL_CSP_LOOPSTART;
         }
@@ -187,7 +187,7 @@ static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event)
         if (status & 0x80)  /* if high bit is set, then new status */
         {
             event->msg.midi.status = status;
-            event->msg.midi.byte1 = __getTrackByte(seq,track);
+            event->msg.midi.byte1 = func_8006E738_main(seq,track);
             seq->lastStatus[track] = status;
         }
         else     /* running status */
@@ -203,10 +203,10 @@ static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event)
         if (((event->msg.midi.status & 0xf0) != AL_MIDI_ProgramChange) &&
             ((event->msg.midi.status & 0xf0) != AL_MIDI_ChannelPressure))
         {
-            event->msg.midi.byte2 = __getTrackByte(seq,track);
+            event->msg.midi.byte2 = func_8006E738_main(seq,track);
             if((event->msg.midi.status & 0xf0) == AL_MIDI_NoteOn)
             {
-                event->msg.midi.duration = __readVarLen(seq,track);
+                event->msg.midi.duration = func_8006E7F0_main(seq,track);
 #ifdef _DEBUG                
                 if(event->msg.midi.byte2 == 0)
                     __osError( ERR_ALCSEQZEROVEL, 1, track);
@@ -224,14 +224,14 @@ static u32 __alCSeqGetTrackEvent(ALCSeq *seq, u32 track, ALEvent *event)
 
 
 
-void alCSeqNewMarker(ALCSeq *seq, ALCSeqMarker *m, u32 ticks)
+void func_8006E4A0_main(ALCSeq *seq, ALCSeqMarker *m, u32 ticks)
 {
     ALEvent     evt;
     ALCSeq      tempSeq;
     s32         i;
     
 
-    alCSeqNew(&tempSeq, (u8*)seq->base);
+    func_8006E030_main(&tempSeq, (u8*)seq->base);
     
     do {
         m->validTracks    = tempSeq.validTracks;
@@ -247,7 +247,7 @@ void alCSeqNewMarker(ALCSeq *seq, ALCSeqMarker *m, u32 ticks)
             m->evtDeltaTicks[i] = tempSeq.evtDeltaTicks[i];
         }
         
-        alCSeqNextEvent(&tempSeq, &evt);
+        func_8006E13C_main(&tempSeq, &evt);
         
         if (evt.type == AL_SEQ_END_EVT)
             break;
@@ -259,7 +259,7 @@ void alCSeqNewMarker(ALCSeq *seq, ALCSeqMarker *m, u32 ticks)
 
 
 /* non-aligned byte reading routines */
-static u8 __getTrackByte(ALCSeq *seq,u32 track)
+static u8 func_8006E738_main(ALCSeq *seq,u32 track)
 {
     u8      theByte;
 
@@ -309,18 +309,18 @@ static u8 __getTrackByte(ALCSeq *seq,u32 track)
     return theByte;    
 }
 
-static u32 __readVarLen(ALCSeq *seq,u32 track)
+static u32 func_8006E7F0_main(ALCSeq *seq,u32 track)
 {
     u32 value;
     u32 c;
 
-    value = (u32)__getTrackByte(seq,track);
+    value = (u32)func_8006E738_main(seq,track);
     if ( value & 0x00000080 )
     {
         value &= 0x7f;
         do
         {
-            c = (u32)__getTrackByte(seq,track);
+            c = (u32)func_8006E738_main(seq,track);
             value = (value << 7) + (c & 0x7f);
         } while (c & 0x80);
     }

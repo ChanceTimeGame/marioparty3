@@ -1,3 +1,15 @@
 #include "common.h"
+#include "math.h"
 
-INCLUDE_ASM("asm/nonmatchings/8AEA0", func_8008A2A0_main);
+typedef f32 Matrix4f[4][4];
+
+/* guRotateYF (Hudson), from MP2 src/B45F0.c (MP1 src/A4CD0.c) */
+void func_8008A2A0_main(f32* mtx, f32 angle) {
+    f32 (*m)[4] = (f32 (*)[4])mtx; /* declared f32* in functions.us.h */
+
+    sincosdf(angle, &m[2][0], &m[2][2]);
+    m[0][2] = -m[2][0];
+    m[0][0] = m[2][2];
+    m[0][1] = m[0][3] = m[1][0] = m[1][2] = m[1][3] = m[2][1] = m[2][3] = m[3][0] = m[3][1] = m[3][2] = 0.0f;
+    m[1][1] = m[3][3] = 1.0f;
+}

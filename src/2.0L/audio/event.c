@@ -23,7 +23,7 @@
 #include <ultraerror.h>
 
 
-void alEvtqNew(ALEventQueue *evtq, ALEventListItem *items, s32 itemCount)
+void func_800757B0_main(ALEventQueue *evtq, ALEventListItem *items, s32 itemCount)
 {
     s32 i;
     
@@ -38,7 +38,7 @@ void alEvtqNew(ALEventQueue *evtq, ALEventListItem *items, s32 itemCount)
     }
 }
 
-ALMicroTime alEvtqNextEvent(ALEventQueue *evtq, ALEvent *evt) 
+ALMicroTime func_8007582C_main(ALEventQueue *evtq, ALEvent *evt) 
 {
     ALEventListItem *item;
     ALMicroTime delta;
@@ -147,7 +147,7 @@ void alEvtqFlush(ALEventQueue *evtq)
 /*
   This routine flushes events according their type.
 */
-void alEvtqFlushType(ALEventQueue *evtq, s16 type)
+void func_80075A48_main(ALEventQueue *evtq, s16 type)
 {
     ALLink      	*thisNode;
     ALLink      	*nextNode;

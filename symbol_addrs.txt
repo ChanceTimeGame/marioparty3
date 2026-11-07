@@ -1620,20 +1620,11 @@ D_8010B018_mgresultboard = 0x8010B018; //size:0x30 segment:mgresultboard
 D_8010B048_mgresultboard = 0x8010B048; //size:0x30 segment:mgresultboard
 
 // batch 1 L1: libultra audio/gu names from MP1 src/lib/2.0I
-alCSeqNew = 0x8006E030;
-alCSeqNextEvent = 0x8006E13C;
-__alCSeqGetTrackEvent = 0x8006E230;
-alCSeqNewMarker = 0x8006E4A0;
-__getTrackByte = 0x8006E738;
-__readVarLen = 0x8006E7F0;
 alAdpcmPull = 0x80073C10;
 alRaw16Pull = 0x80074054;
 alLoadParam = 0x800743F0;
 _decodeChunk = 0x8007459C;
-alEvtqNew = 0x800757B0;
-alEvtqNextEvent = 0x8007582C;
 alEvtqFlush = 0x800759D0;
-alEvtqFlushType = 0x80075A48;
 alResamplePull = 0x80075C90;
 alResampleParam = 0x80075E7C;
 alHeapInit = 0x80077250;
@@ -1746,3 +1737,24 @@ osViModePalLan1 = 0x800A4160; //size:0x50
 osViModeMpalLan1 = 0x800A41B0; //size:0x50
 __osPiDevMgr = 0x800A2A30; //size:0x1C
 __OSGlobalIntMask = 0x800A3FB0; //size:0x4
+// batch 1 G: 6E960 = libultra audio/event.c (MP1 src/lib/2.0I/audio/event.c)
+alEvtqNew = 0x8006DD60;
+alEvtqNextEvent = 0x8006DDDC;
+alEvtqFlushType = 0x8006DF80;
+
+// batch 1 G: 77F20 = libultra audio/cseq.c, second copy (MP1 src/lib/2.0I/audio/cseq.c)
+alCSeqNew = 0x80077320;
+alCSeqNextEvent = 0x8007742C;
+__alCSeqNextDelta = 0x80077520;
+__alCSeqGetTrackEvent = 0x800775A0;
+alCSeqTicksToSec = 0x80077810;
+alCSeqSecToTicks = 0x8007788C;
+alCSeqNewMarker = 0x80077934;
+alCSeqSetLoc = 0x80077BCC;
+alCSeqGetLoc = 0x80077C40;
+__getTrackByte = 0x80077CB4;
+__readVarLen = 0x80077D6C;
+
+// batch 1 G: 72750 = libleo LeoBootGame (MP1 src/83490.c)
+LeoBootGame = 0x80071B50;
+__LeoBootGame2 = 0x80071C8C;

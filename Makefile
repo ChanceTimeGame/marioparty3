@@ -173,6 +173,16 @@ build/src/2.0L/audio/%.c.o: CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 
 build/src/2.0L/audio/%.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 build/src/8A6B0.c.o: OPTFLAGS = -O2 #Could also be -O3?
 build/src/8ACD0.c.o: OPTFLAGS = -O2
+# batch 1 G
+B1G_LIBAUDIO := build/src/6E960.c.o build/src/77F20.c.o
+$(B1G_LIBAUDIO): OPTFLAGS = -O3 -funsigned-char
+$(B1G_LIBAUDIO): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
+$(B1G_LIBAUDIO): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
+B1G_HMATH := build/src/88E10.c.o build/src/8A4F0.c.o build/src/8A580.c.o build/src/8AD20.c.o build/src/8AEA0.c.o build/src/8B030.c.o
+$(B1G_HMATH): CFLAGS = -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64align
+# 527E0 is libultra's audio/sndplayer.c built as MP1 builds 64FD0.c: default flags, lib audio headers
+build/src/527E0.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
+# end batch 1 G
 build/src/2.0L/gu/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/io/pirawdma.c.o: OPTFLAGS = -O2
 build/src/2.0L/libc/sprintf.c.o: OPTFLAGS = -O2
@@ -254,6 +264,8 @@ NOP_OBJECTS := \
 	build/src/overlays/ovl_80_shared_board/10C230.c.o \
 	build/src/overlays/ovl_48_ChillyWaters/31B9F0.c.o \
 	build/src/overlays/w06/39AD50.c.o
+# batch 1 G: 471D0 (light editor; no nop after the cosdf call)
+NOP_OBJECTS += build/src/471D0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
