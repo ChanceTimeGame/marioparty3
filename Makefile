@@ -196,6 +196,9 @@ $(W2BD_LIBAUDIO_U): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUIL
 build/src/2.0L/gu/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/io/pirawdma.c.o: OPTFLAGS = -O2
 # wave 2d E
+build/src/2.0L/gu/rotate.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synremoveplayer.c.o: OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/audio/synsetpan.c.o: OPTFLAGS = -O3 -funsigned-char
 build/src/2.0L/os/initialize.c.o: OPTFLAGS = -O3
 build/src/2.0L/os/createthread.c.o: OPTFLAGS = -O2
 build/src/2.0L/os/settimer.c.o: OPTFLAGS = -O2
