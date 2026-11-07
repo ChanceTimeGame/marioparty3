@@ -15,6 +15,7 @@ s32 func_80007080_main(s16, UnkAudStruct *);
 void func_80007BD4_main(s16, s16);
 void func_80007C80_main(s16, s16);
 void func_80007DD8_main(s16);
+s32 func_800034D8_main(s32);
 
 extern u8 D_800D09A8_main;
 extern str800D5298 D_800D5298_main;
@@ -27,9 +28,17 @@ typedef struct SndFadeWork {
     /* 0x08 */ f32* vol2;
     /* 0x0C */ f32* vol2Step;
     /* 0x10 */ u8* flags;
-} SndFadeWork; /* size 0x14 */
+    /* 0x14 */ s16 musFade[2];   // music player 0 (D_800CDBC8_main) / 1 (D_800D037E_main): fading
+    /* 0x18 */ s16 musFrames[2]; // fade-out length
+    /* 0x1C */ f32 musStep[2];   // volume change per frame
+    /* 0x24 */ f32 musMaxVol[2]; // volume before the fade-out
+    /* 0x2C */ f32 musVol[2];    // current volume
+    /* 0x34 */ s16 fadeInFrames; // music 0 fade-in length once music 1 stops (flag 0x10), or -1
+} SndFadeWork; /* size 0x38 */
 
 extern s16 D_800CDBC8_main; /* current music player */
+extern s16 D_800D037E_main; /* second music player */
+extern s16 D_800B23D0_main[6];
 extern s16 D_800CE218_main[]; /* per-slot sound volume */
 extern omObjData* D_800D6A40_main; /* sound fade object */
 extern s8 D_800D6A4C_main[4];
@@ -75,19 +84,119 @@ s16 HuAudSeqPlay(s16 musId) {
     return D_800CDBC8_main;
 }
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A5C4_main);
+s16 func_8004A5C4_main(s32 arg0) {
+    s16 musId = arg0;
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A650_main);
+    if (musId == 0) {
+        return -1;
+    }
+    if (D_800A1900_main == 0) {
+        return 0;
+    }
+    D_800A1906_main |= 0x20;
+    D_800A1906_main &= ~(0x10 | 0x80);
+    D_800D037E_main = func_80003310_main(musId);
+    if (D_800D6A40_main != NULL) {
+        ((SndFadeWork*)D_800D6A40_main->data)->fadeInFrames = -1;
+    }
+    return D_800D037E_main;
+}
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A670_main);
+void func_8004A650_main(s32 frames) {
+    if (D_800D6A40_main != NULL) {
+        ((SndFadeWork*)D_800D6A40_main->data)->fadeInFrames = frames;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A72C_main);
+void func_8004A670_main(s32 arg0) {
+    SndFadeWork* work;
+    s16 frames = arg0;
+    f32 vol;
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A7C4_main);
+    if (D_800D6A40_main != NULL) {
+        work = D_800D6A40_main->data;
+        vol = func_800037C4_main(D_800CDBC8_main);
+        work->musVol[0] = vol;
+        work->musMaxVol[0] = vol;
+        work->musFrames[0] = frames;
+        if (frames == 0) {
+            work->musStep[0] = -vol;
+            work->musVol[0] = 0.0f;
+            func_800036E8_main(D_800CDBC8_main, 0);
+        } else {
+            work->musStep[0] = -vol / frames;
+            work->musFade[0] = 1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A880_main);
+void func_8004A72C_main(s32 arg0) {
+    SndFadeWork* work;
+    s16 frames = arg0;
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004A918_main);
+    if (D_800D6A40_main != NULL) {
+        work = D_800D6A40_main->data;
+        if (frames == 0) {
+            work->musVol[0] = work->musMaxVol[0];
+            func_800036E8_main(D_800CDBC8_main, work->musMaxVol[0]);
+        } else {
+            if (frames < 0) {
+                work->musStep[0] = -work->musStep[0];
+            } else {
+                work->musStep[0] = work->musMaxVol[0] / frames;
+            }
+            work->musFade[0] = 1;
+        }
+    }
+}
+
+void func_8004A7C4_main(s32 arg0) {
+    SndFadeWork* work;
+    s16 frames = arg0;
+    f32 vol;
+
+    if (D_800D6A40_main != NULL) {
+        work = D_800D6A40_main->data;
+        vol = func_800037C4_main(D_800D037E_main);
+        work->musVol[1] = vol;
+        work->musMaxVol[1] = vol;
+        work->musFrames[1] = frames;
+        if (frames == 0) {
+            work->musStep[1] = -vol;
+            work->musVol[1] = 0.0f;
+            func_800036E8_main(D_800D037E_main, 0);
+        } else {
+            work->musStep[1] = -vol / frames;
+            work->musFade[1] = 1;
+        }
+    }
+}
+
+void func_8004A880_main(s32 arg0) {
+    SndFadeWork* work;
+    s16 frames = arg0;
+
+    if (D_800D6A40_main != NULL) {
+        work = D_800D6A40_main->data;
+        if (frames == 0) {
+            work->musVol[1] = work->musMaxVol[1];
+            func_800036E8_main(D_800D037E_main, work->musMaxVol[1]);
+        } else {
+            if (frames < 0) {
+                work->musStep[1] = -work->musStep[1];
+            } else {
+                work->musStep[1] = work->musMaxVol[1] / frames;
+            }
+            work->musFade[1] = 1;
+        }
+    }
+}
+
+void func_8004A918_main(s32 musId) {
+    func_8004A5C4_main((s16)musId);
+    func_800036E8_main(D_800D037E_main, 0x7F);
+    func_8004A7C4_main(0);
+}
 
 // HuAudSeqStop?
 void func_8004A950_main(void) {
@@ -230,7 +339,33 @@ void func_8004AE00_main(s16 arg0, s16 arg1) {
     func_80007C80_main(arg0, arg1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004AE28_main);
+void func_8004AE28_main(void) {
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        D_800B23D0_main[i] = -1;
+    }
+    switch (func_800034D8_main(D_800CDBC8_main)) {
+        case 0:
+            D_800A1906_main |= 1;
+            D_800A1906_main &= ~2;
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+    }
+    switch (func_800034D8_main(D_800D037E_main)) {
+        case 0:
+            D_800A1906_main |= 0x10;
+            D_800A1906_main &= ~(0x20 | 0x80);
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+    }
+}
 
 /* MP2 func_800799A4_7A5A4: fade sound slot ch out over frames, then stop it */
 void func_8004AEF0_main(s16 ch, s32 frames) {
