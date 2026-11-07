@@ -86,7 +86,10 @@ typedef struct HmfPal {
 typedef struct HmfTex {
     /* 0x00 */ char unk00[0x1C]; /* name */
     /* 0x1C */ u8 unk1C; /* format */
-    /* 0x1D */ char unk1D[5];
+    /* 0x1D */ u8 unk1D; /* texel size: 0 4-bit, 1 8-bit, 2 16-bit, 3 32-bit */
+    /* 0x1E */ char unk1E;
+    /* 0x1F */ u8 unk1F; /* bit 0: too large for one TMEM load */
+    /* 0x20 */ s16 unk20; /* palette colour count */
     /* 0x22 */ u16 unk22; /* name hash, 0 for a free entry */
     /* 0x24 */ u16 unk24; /* width */
     /* 0x26 */ u16 unk26; /* height */
@@ -308,9 +311,100 @@ HmfTex* func_80031A60_main(HmfTexData* arg0, u8* arg1) {
     return &D_800D1FCC_main[i];
 }
 
-INCLUDE_ASM("asm/nonmatchings/32160", func_80031B30_main);
+// Register allocation (masked 3, 190 vs 191): s1/s2 swapped for arg0/tex, and retail keeps the
+// RGB24 red byte as a u8 with an extra andi 0xff before the shifts.
+#ifdef NON_MATCHING
+/* Reads a texture image chunk into tex: size, format and texel size, then a copy of the
+   image (24-bit images are converted to RGBA16) (MP1 func_80038254). */
+void func_80031B30_main(u8* arg0, HmfTexData* arg1, HmfTex* tex) {
+    u16 bpp;
+    s32 size;
+    u16 i;
+    u32 c;
+    u8 x;
+    u8* dst;
+
+    arg0 += 0xB;
+    tex->unk24 = (arg0[2] << 8) + arg0[3];
+    tex->unk26 = (arg0[4] << 8) + arg0[5];
+    if (arg0[0] == 0x28) {
+        tex->unk1C = 2;
+        tex->unk30 = func_80032038_main(arg1, (arg0[6] << 8) + arg0[7]);
+        tex->unk20 = (arg0[8] << 8) + arg0[9];
+        tex->unk1D = 1;
+        bpp = 2;
+        if (tex->unk30->unk1E < 0x11) {
+            bpp = 1;
+        }
+        arg0 += 4;
+    } else {
+        switch (arg0[1]) {
+            case 8:
+                tex->unk1D = 1;
+                bpp = 2;
+                break;
+            case 16:
+                tex->unk1D = 2;
+                bpp = 4;
+                break;
+            case 4:
+                tex->unk1D = 0;
+                bpp = 1;
+                break;
+            case 32:
+                tex->unk1D = 3;
+                bpp = 8;
+                break;
+            default:
+                tex->unk1D = 2;
+                bpp = 6;
+                break;
+        }
+        switch (arg0[0]) {
+            case 0x26:
+                tex->unk1C = 0;
+                break;
+            case 0x27:
+                tex->unk1C = 0;
+                break;
+            case 0x25:
+                tex->unk1C = 3;
+                break;
+            default:
+                tex->unk1C = 4;
+                break;
+        }
+    }
+    size = tex->unk24 * tex->unk26 * bpp / 2;
+    tex->unk1F = 0;
+    if (bpp != 6) {
+        if ((tex->unk1C == 2 && size > 0x800) || size > 0x1000) {
+            tex->unk1F |= 1;
+        }
+        tex->unk28 = HuMemAllocTag(size, 15000);
+        bcopy(arg0 + 0xA, tex->unk28, size);
+    } else {
+        size = size / 3 * 2;
+        if (size > 0x1000) {
+            tex->unk1F |= 1;
+        }
+        dst = tex->unk28 = HuMemAllocTag(size, 15000);
+        arg0 += 0xA;
+        for (i = 0; i < size; i += 2) {
+            x = *arg0 & 0xF8;
+            c = ((x << 8) + (x << 3) + (x >> 2)) + 1;
+            arg0 += 3;
+            *dst++ = c >> 8;
+            *dst++ = c;
+        }
+    }
+}
 
 /* MP1 func_800384FC (src/388E0.c) */
+#else
+INCLUDE_ASM("asm/nonmatchings/32160", func_80031B30_main);
+#endif
+
 void func_80031DF4_main(HmfTexData* arg0) {
     HmfPal* var_s0;
     s16 temp_s4;
