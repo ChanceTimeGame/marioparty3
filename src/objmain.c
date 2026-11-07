@@ -1260,7 +1260,6 @@ u16 func_80049F98_main(void) {
 
 /* MP2 func_80078EC8_79AC8 (MP1 func_8005FD7C): pause every live object and process (bit 0x40) */
 /* Matches with functions.us.h declaring it s32 (it is void there; 2b-C.header.patch). */
-#ifdef NON_MATCHING
 s32 func_80049FB8_main(void) {
     s32 i;
 
@@ -1281,9 +1280,6 @@ s32 func_80049FB8_main(void) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/objmain", func_80049FB8_main);
-#endif
 
 /* MP1 func_8005FECC: resume them, and stop every controller's rumble */
 void func_8004A0E0_main(void) {

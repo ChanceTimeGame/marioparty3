@@ -4,7 +4,7 @@
 #include "common.h"
 #include "game/hvq.h"
 
-void func_80049FB8_main(void);
+s32 func_80049FB8_main(void);
 void func_8004A0E0_main(void);
 void func_8004A9DC_main(s8);
 void func_8005F904_main(void);
@@ -123,7 +123,7 @@ void func_8005D2D4_main(s16);
 void GWMgNoSet(s8);
 void func_80055484_main(s16 group, s16 member, u8 arg2, u8 arg3, u8 arg4, u16 arg5);
 void func_8004A0E0_main(void);
-void func_80049FB8_main(void);
+s32 func_80049FB8_main(void);
 s16 func_8004D6AC_main(u8, u8, u8);
 void func_80017C10_main(Mtx*, f32, f32, f32);
 void func_800185A4_main(Mtx*, f32);

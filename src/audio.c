@@ -193,7 +193,6 @@ s16 func_8004AC98_main(s16 arg0, s16 arg1) {
 
 // Matches once include/game/audio.h declares s16 func_8004ACE0_main(s16, s16)
 // (2b-D.header.patch; the header has void (s32, s16)).
-#ifdef NON_MATCHING
 /* MP2 func_800797DC_7A3DC: play player's character voice id + character + 1 */
 s16 func_8004ACE0_main(s16 id, s16 player) {
     if (D_800A1902_main == 0) {
@@ -204,9 +203,6 @@ s16 func_8004ACE0_main(s16 id, s16 player) {
     }
     return func_8004AC5C_main(id + GwPlayer[player].chr + 1, player);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/audio", func_8004ACE0_main);
-#endif
 
 void HuAudFXStop(s32 seNo) {
     func_80007DD8_main(seNo);
