@@ -181,7 +181,7 @@ extern s32 D_800D209C_main; /* last advance */
 extern u8 D_800A2194_main[256]; /* character widths */
 extern TWIcon D_800A2294_main[22];
 extern TWColor D_800A2154_main[10];
-extern u8 D_800A2174_main[0x14]; /* a window template (bcopy of 0x20 bytes) */
+extern u16 D_800A2174_main[16]; /* the window palette template (RGBA5551) */
 
 void func_8005A6B0_main(void);
 s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags);
@@ -1977,7 +1977,10 @@ void func_8005F7F4_main(s16* arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005F904_main);
+void func_8005F904_main(void) {
+    D_800D1F34_main = 0;
+    D_800D6A26_main = 0;
+}
 
 /* MP1 func_80071278: the buttons pressed on the window's ports (or queued in D_800FA048) */
 s16 func_8005F918_main(TextWindow* tw) {
@@ -2043,7 +2046,44 @@ void func_8005FBA4_main(u8* arg0, u8* arg1) {
     *arg0 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005FBF8_main);
+/* tints the window: sprite colour (r, g, b), and palette entries 9-15 blended 30:70 from the
+   template towards it; the sprite gets a fresh copy of the palette */
+void func_8005FBF8_main(s16 winId, s32 r, s32 g, s32 b) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    HuSprite* spr;
+    void* pal;
+    s16 i;
+    s16 nr;
+    s16 ng;
+    s16 nb;
+    u16 c;
+
+    tw->unk_2D = r;
+    tw->unk_2E = g;
+    tw->unk_2F = b;
+    func_80055420_main(tw->unk_6C, 0, r, g, b);
+    spr = HuSprGet(tw->unk_6C, 1);
+    for (i = 0; i < 7; i++) {
+        c = D_800A2174_main[i + 9];
+        nr = ((c >> 8) & 0xF8) * 0.3f + (u8)r * 0.7f;
+        if (nr >= 0x100) {
+            nr = 0xFF;
+        }
+        ng = ((c >> 3) & 0xF8) * 0.3f + (u8)g * 0.7f;
+        if (ng >= 0x100) {
+            ng = 0xFF;
+        }
+        nb = ((c << 2) & 0xF8) * 0.3f + (u8)b * 0.7f;
+        if (nb >= 0x100) {
+            nb = 0xFF;
+        }
+        tw->unk_00[i + 9] = ((nr << 8) & ~0x7FF) | ((ng << 3) & 0x7C0) | ((nb >> 2) & 0x3E) | 1;
+    }
+    pal = HuMemAlloc(0x20);
+    bcopy(tw, pal, 0x20);
+    func_80019C00_main(spr->unk_84->unk0C);
+    spr->unk_84->unk0C = pal;
+}
 
 /* MP1 func_8007155C: the controller ports that drive the window */
 void func_8005FE54_main(s16 winId, s16 ports) {
