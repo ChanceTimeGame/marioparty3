@@ -96,6 +96,8 @@ extern s8 D_800D6A58_main;
 extern u16 D_800D1100_main;
 
 unsigned int strlen(const char *);
+void *HuMemMemoryAllocPerm(u32 size);
+void HuMemMemoryFreePerm(void *ptr);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80036610_main);
 
@@ -855,7 +857,37 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D890_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DC88_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DCA4_main);
+void func_8003DCA4_main(GAMEMES *gMes, s32 fileId) {
+    void *temp_v0;
+    s16 temp_v0_2;
+    s16 temp_v0_4;
+    s16 temp_v0_5;
+
+    temp_v0 = DataReadTemp(fileId);
+    gMes->strSprId[0] = temp_v0_2 = func_80055810_main(temp_v0);
+    DataCloseTemp(temp_v0);
+
+    temp_v0 = DataReadTemp(fileId + 1);
+    gMes->strSprId[1] = temp_v0_4 = func_80055810_main(temp_v0);
+    DataCloseTemp(temp_v0);
+
+    gMes->strGId[0] = temp_v0_5 = HuSprGrpCreate(2, 5);
+
+    func_80055024_main(temp_v0_5, 0, temp_v0_2, 0);
+    func_80055458_main(temp_v0_5, 0, 0xFF);
+    HuSprPriSet(temp_v0_5, 0, 5);
+    HuSprAttrReset(temp_v0_5, 0, 0xFFFF);
+    HuSprAttrSet(temp_v0_5, 0, 0x1008);
+    func_80054904_main(temp_v0_5, 0, 0xA0, gMes->unk64);
+    func_800554C4_main(temp_v0_5, 0, -1);
+    func_80055024_main(temp_v0_5, 1, temp_v0_4, 0);
+    func_80055458_main(temp_v0_5, 1, 0xFF);
+    HuSprPriSet(temp_v0_5, 1, 6);
+    HuSprAttrReset(temp_v0_5, 1, 0xFFFF);
+    HuSprAttrSet(temp_v0_5, 1, 0x1008);
+    func_80055420_main(temp_v0_5, 1, 0x45, 2, 0x85);
+    func_800554C4_main(temp_v0_5, 1, 0);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/gamemes", D_800A76F8_main);
 
@@ -881,9 +913,76 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DE60_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003E4A4_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003EBC8_main);
+s32 func_80045208_main(void *arg0, void *arg1);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003EE98_main);
+s32 func_8003EBC8_main(GAMEMES *gMes, Gfx **arg1) {
+    f32 temp_f22;
+    f32 i;
+
+    if (gMes->unk04 == 0) {
+        char *temp_v0 = HuMemMemoryAllocPerm(256);
+
+        func_80045208_main(temp_v0, (void *)gMes->unk1C);
+        func_8003A37C_main(gMes, temp_v0, gMes->unk02, -1, -1);
+        gMes->unk08 = strlen(temp_v0);
+        func_80054904_main(gMes->strGId[0], 0, gMes->unk60, gMes->unk64);
+
+        HuMemMemoryFreePerm(temp_v0);
+    }
+
+    if (gMes->unk04 > gMes->unk06 || gMesCloseF != 0 || gMes->stat == 4) {
+        GMesSprKill(gMes);
+        return 0;
+    }
+
+    if (gMes->unk04 < 14) {
+        temp_f22 = sindf(gMes->unk04 * 10.0f) + (1.0f - sindf(130.0f));
+
+        for (i = 0.0f; i < gMes->unk08; i++) {
+            HuSprScaleSet(gMes->strGId[0], i + 1.0f, gMes->unk68, temp_f22 * gMes->unk6C);
+        }
+    }
+
+    if (gMes->unk04 > gMes->unk06 - 10) {
+        gMes->stat = 2;
+        temp_f22 = cosdf((gMes->unk04 - (gMes->unk06 - 10)) * 9.0f);
+
+        for (i = 0.0f; i < gMes->unk08; i++) {
+            HuSprScaleSet(gMes->strGId[0], i + 1.0f, gMes->unk68, temp_f22 * gMes->unk6C);
+        }
+    }
+
+    return 1;
+}
+
+s32 func_8003EE98_main(GAMEMES *gMes, Gfx **arg1) {
+    f32 i;
+
+    if (gMes->unk04 == 0) {
+        char *temp_v0 = HuMemMemoryAllocPerm(256);
+
+        func_80045208_main(temp_v0, (void *)gMes->unk1C);
+        func_8003A37C_main(gMes, temp_v0, gMes->unk02, -1, -1);
+        gMes->unk08 = strlen(temp_v0);
+
+        HuMemMemoryFreePerm(temp_v0);
+    }
+
+    if (gMes->unk04 > gMes->unk06 || gMesCloseF != 0 || gMes->stat == 4) {
+        GMesSprKill(gMes);
+        return 0;
+    }
+
+    func_80054904_main(gMes->strGId[0], 0, gMes->unk60, gMes->unk64);
+    func_800552DC_main(gMes->strGId[0], 0, gMes->unk70);
+
+    for (i = 0.0f; i < gMes->unk08; i++) {
+        HuSprScaleSet(gMes->strGId[0], i + 1.0f, gMes->unk68, gMes->unk6C);
+        func_80055458_main(gMes->strGId[0], i + 1.0f, gMes->unk03);
+    }
+
+    return 1;
+}
 
 s32 GMesTimerExec(GAMEMES *gMes, Gfx **arg1) {
     f32 temp_f22;
@@ -1019,7 +1118,6 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_80045010_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_800450B8_main);
 
-s32 func_80045208_main(void *arg0, void *arg1);
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80045208_main);
 
 s32 func_800452A0_main(void *arg0, void *arg1) {
