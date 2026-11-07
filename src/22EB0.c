@@ -1542,13 +1542,88 @@ s32 func_8002C4C0_main(HmfData *arg0, s16 arg1, Matrix4f arg2, Matrix4f arg3) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C520_main);
+s32 func_8002C5B8_main(HmfObj*, s16, s16);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C5B8_main);
+void func_8002C520_main(HmfObj* arg0, s16 arg1, Matrix4f arg2) {
+    D_800D138A_main = 0;
+    guMtxIdentF(D_800D5A00_main[0]);
+    if (arg0->unk84 == (HmfMotionObj*) -1 && arg0->unk68 != 0) {
+        func_8002C5B8_main(arg0, 0, arg1);
+        func_8002367C_main(arg2, D_800D5A00_main[D_800D138A_main]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C834_main);
+s32 func_8002C5B8_main(HmfObj* arg0, s16 arg1, s16 arg2) {
+    Matrix4f sp10;
+    HitXform* node;
+    s16 pushed;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C914_main);
+    node = &arg0->unk6C[arg1];
+    pushed = 0;
+    guMtxIdentF(sp10);
+    if (node->unk08.x != 0.0f || node->unk08.y != 0.0f || node->unk08.z != 0.0f) {
+        func_80017C10_main((Mtx*) sp10, node->unk08.x, node->unk08.y, node->unk08.z);
+        pushed = 1;
+    }
+    if (node->unk14.x != 0.0f || node->unk14.y != 0.0f || node->unk14.z != 0.0f) {
+        arg0->unkD4(sp10, node->unk14.x, node->unk14.y, node->unk14.z);
+        pushed = 1;
+    }
+    if (node->unk20.x != 1.0f || node->unk20.y != 1.0f || node->unk20.z != 1.0f) {
+        func_80017CD0_main(sp10, node->unk20.x, node->unk20.y, node->unk20.z);
+        pushed = 1;
+    }
+    if (pushed != 0) {
+        D_800D138A_main++;
+        func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+    }
+    if (arg2 == arg1) {
+        return 0;
+    }
+    if (node->unk04 != 0 && func_8002C5B8_main(arg0, arg1 + node->unk04, arg2) == 0) {
+        return 0;
+    }
+    if (pushed != 0) {
+        D_800D138A_main--;
+    }
+    if (node->unk02 != 0 && func_8002C5B8_main(arg0, arg1 + node->unk02, arg2) == 0) {
+        return 0;
+    }
+    return 1;
+}
+
+s16 func_80011460_main(char*);
+s32 strcmp(char*, char*);
+
+s16 func_8002C834_main(HmfObj* arg0, char* arg1) {
+    s16 temp_a1;
+    s16 i;
+
+    temp_a1 = func_80011460_main(arg1);
+    for (i = 0; i < arg0->unk10; i++) {
+        if (arg0->unk64[i].unk08 == temp_a1 && strcmp(arg0->unk64[i].unk12, arg1) == 0) {
+            break;
+        }
+    }
+
+    if (i == arg0->unk10) {
+        osSyncPrintf("Can't find ObjName %s\n", arg1);
+        return -1;
+    }
+
+    return i;
+}
+
+void func_8002C960_main(HmfObj*, s16, HmfObj*);
+
+void func_8002C914_main(HmfObj* arg0, char* arg1, HmfObj* arg2) {
+    s16 idx;
+
+    idx = func_8002C834_main(arg0, arg1);
+    if (idx != -1) {
+        func_8002C960_main(arg0, idx, arg2);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002C960_main);
 
