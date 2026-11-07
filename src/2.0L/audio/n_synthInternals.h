@@ -132,6 +132,30 @@ typedef struct N_PVoice_s {
     /* 0x88 */ s32 offset;
 } N_PVoice; /* size = 0x8C */
 
+typedef Acmd *(*N_ALCmdHandler)(s32, Acmd *);
+
+typedef struct N_ALFilter_s {
+    /* 0x00 */ struct N_ALFilter_s *source;
+    /* 0x04 */ N_ALCmdHandler handler;
+    /* 0x08 */ ALSetParam setParam;
+    /* 0x0C */ s16 inp;
+    /* 0x0E */ s16 outp;
+    /* 0x10 */ s32 type;
+} N_ALFilter; /* size = 0x14 */
+
+typedef struct N_ALMainBus_s {
+    /* 0x00 */ N_ALFilter filter;
+} N_ALMainBus; /* size = 0x14 */
+
+typedef struct N_ALAuxBus_s {
+    /* 0x00 */ ALFilter filter;
+    /* 0x14 */ s32 sourceCount;
+    /* 0x18 */ s32 maxSources;
+    /* 0x1C */ N_PVoice **sources;
+    /* 0x20 */ ALFx *fx;
+    /* 0x24 */ ALFx *fx_array[AL_MAX_AUX_BUS_SOURCES];
+} N_ALAuxBus; /* size = 0x44 */
+
 #define SAMPLES 184
 #define SAMPLE184(delta) ((((delta) + (SAMPLES / 2)) / SAMPLES) * SAMPLES)
 #define FIXED_SAMPLE SAMPLES
