@@ -2421,7 +2421,83 @@ void func_80060858_main(s32 winId, u16 btn) {
     tw->unkA6 = btn;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80060880_main);
+/* a portrait (guide) window: window size, text box and portrait sprites */
+typedef struct TWPortrait {
+    /* 0x00 */ s32 file;  /* portrait */
+    /* 0x04 */ s32 file2; /* second portrait sprite, or 0 */
+    /* 0x08 */ s16 w;
+    /* 0x0A */ s16 h;
+    /* 0x0C */ s16 textX;
+    /* 0x0E */ s16 textY;
+    /* 0x10 */ s16 textW;
+    /* 0x12 */ s16 textH;
+    /* 0x14 */ s16 x; /* func_8005BCA4_main offset, also the portrait sprites' origin */
+    /* 0x16 */ s16 y;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 attr;
+} TWPortrait; // size 0x1C
+
+extern TWPortrait D_800A2384_main[21];
+
+/* opens portrait window type (D_800A2384_main) at x, y; returns its id */
+s32 func_80060880_main(s32 x, s32 y, s32 type) {
+    TWPortrait* p = &D_800A2384_main[type];
+    TextWindow* tw;
+    s32 id;
+    s32 spr;
+    HuSprite* s;
+
+    id = func_8005A968_main(x, y, p->w, p->h, 0, 12);
+    func_8005BDFC_main(id, 0);
+    func_8005C060_main(id, 2, 0xFF, 0, 0);
+    func_8005C060_main(id, 4, 0x46, 0xE0, 0x46);
+    func_8005C060_main(id, 5, 0, 0xB0, 0xC0);
+    func_8005C060_main(id, 6, 0xFF, 0xAD, 0);
+    tw = &D_800CC69C_main[id];
+    tw->unk54 = tw->unk4C = p->textX;
+    tw->unk56 = tw->unk4E = p->textY;
+    tw->unk50 = p->textW;
+    tw->unk52 = p->textH;
+    func_8005BCA4_main(id, p->x, p->y);
+    tw->unk58 = tw->unk54 + p->textW - tw->unk27;
+    tw->unk5A = tw->unk56 + p->textH - tw->unk28;
+    tw->unk33 = 7;
+    func_8005C060_main(id, 7, 0x40, 0x40, 0x40);
+    if (type == 5) {
+        tw->unk29 = 0;
+    }
+    spr = func_8005B7B8_main(id, p->file, 0, 0, 0);
+    tw->unk274 = spr;
+    HuSprPriSet(tw->unk_6C, spr, 15000);
+    func_80054904_main(tw->unk_6C, spr, 0, 0);
+    HuSprScaleSet(tw->unk_6C, spr, 0.0f, 0.0f);
+    HuSprAttrSet(tw->unk_6C, spr, p->attr);
+    s = HuSprGet(tw->unk_6C, spr);
+    s->unk_84->unk00->unk08 = p->x;
+    s->unk_84->unk00->unk0A = p->y;
+    if (p->file2 != 0) {
+        spr = func_8005B7B8_main(id, p->file2, 0, 0, 0);
+        tw->unk276 = spr;
+        func_80055458_main(tw->unk_6C, spr, 0xFF);
+        HuSprPriSet(tw->unk_6C, spr, 15001);
+        func_80054904_main(tw->unk_6C, spr, 0, 0);
+        HuSprScaleSet(tw->unk_6C, spr, 0.0f, 0.0f);
+        func_80055420_main(tw->unk_6C, spr, 0x1B, 0x1B, 0xFF);
+        HuSprAttrSet(tw->unk_6C, spr, p->attr | 0x1000);
+        s = HuSprGet(tw->unk_6C, spr);
+        s->unk_84->unk00->unk08 = p->x;
+        s->unk_84->unk00->unk0A = p->y;
+    } else {
+        tw->unk276 = 0;
+    }
+    tw->unk_38 |= 0x2000;
+    func_8005BEE0_main(id, 0);
+    func_8005C154_main(id, 0xC0, 0xC0, 0xC0);
+    func_8005C02C_main(id, p->unk18);
+    func_8005FBF8_main(id, 0xFF, 0xFF, 0xFF);
+    func_8005BB18_main(id, 0.0f, 0.0f);
+    return id;
+}
 
 INCLUDE_ASM("asm/nonmatchings/window", func_80060C14_main);
 
