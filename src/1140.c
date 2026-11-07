@@ -3097,7 +3097,75 @@ void func_80006148_main(SndVoice* v) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_800062A8_main);
+void func_800062A8_main(SndVoice* v) {
+    s32 tmp;
+    s32 start;
+
+    if (v->flags & 0x40000) {
+        switch (v->sndState) {
+            case 1:
+                v->env.releaseTime = 184000000 / func_80000E9C_main()->cfg.outputRate;
+                func_8006DCE0_main();
+            case 2:
+                v->state = 1;
+                break;
+            default:
+                v->state = 0;
+                break;
+        }
+        v->flags = 0x800;
+        return;
+    }
+    start = 0;
+    if (v->flags & 0x1000) {
+        if (v->sndState == 0) {
+            start = 1;
+            v->flags &= ~0x1000;
+        } else if (v->sampleNo >= 0) {
+            func_8006DCE0_main();
+            v->flags |= 0x800;
+        }
+    }
+    if (start) {
+        if (v->flags & 0x02000000) {
+            tmp = v->sampleNo & 0x7FFF;
+            bcopy(&D_800A97BC_main->sounds[tmp], &v->sound, sizeof(ALSound));
+            if (v->flags & 0x01F00000) {
+                if (!(v->flags & 0x100000)) {
+                    v->env.attackVolume = v->sound.envelope->attackVolume;
+                }
+                if (!(v->flags & 0x200000)) {
+                    v->env.decayVolume = v->sound.envelope->decayVolume;
+                }
+                if (!(v->flags & 0x400000)) {
+                    v->env.attackTime = v->sound.envelope->attackTime;
+                }
+                if (!(v->flags & 0x800000)) {
+                    v->env.decayTime = v->sound.envelope->decayTime;
+                }
+                if (!(v->flags & 0x01000000)) {
+                    v->env.releaseTime = v->sound.envelope->releaseTime;
+                }
+            } else {
+                bcopy(v->sound.envelope, &v->env, sizeof(ALEnvelope));
+            }
+            v->sound.envelope = &v->env;
+            if (v->sampleNo >= 0) {
+                v->env.releaseTime = 184000000 / func_80000E9C_main()->cfg.outputRate;
+            }
+            if (!(v->flags & 0x04000000)) {
+                tmp = (s32)v->sound.keyMap;
+                v->rateRatio = (f32)tmp / (f32)func_80000E9C_main()->cfg.outputRate;
+            }
+            v->sound.keyMap = NULL;
+            v->flags &= ~0x07F00000;
+        }
+        if ((v->sndId = alSndpAllocate(&v->sound)) >= 0) {
+            func_8006DC40_main(v->sndId, 20);
+        }
+    }
+    func_8000658C_main(v, start);
+}
 
 // MP3 calls the n_audio sound player and sets flag 0x800 after a stop. Scheduling (5 instructions):
 // retail sums pan2 + (pan - 0x40) loading pan2 first; GCC reassociates the -0x40 or loads pan first.
