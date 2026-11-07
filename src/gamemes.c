@@ -131,6 +131,9 @@ s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
 s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
 u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
+s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
+s16 func_8003AE44_main(s16 arg0);
+u16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_80036610_main(void) {
     return GwSystem.minigame_index;
@@ -1678,7 +1681,72 @@ s16 func_8003A3C4_main(GAMEMES *gMes, char *arg1, u8 flag, s16 x0, s16 arg4, f32
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A3C4_main);
 #endif
 
+/* The font sprite (high half, loaded on first use) and frame (low half) for the character at str;
+   flag bit 0 is the large font. */
+// register allocation (masked 0): flag, its copy and c take s0-s2 in another order
+#ifdef NON_MATCHING
+u32 func_8003A81C_main(u8 *str, u8 flag) {
+    s32 frame;
+    u16 anim;
+    u8 c;
+    s32 type;
+
+    c = *str;
+    frame = 0;
+    type = func_8003A9C8_main(str, 0, &frame);
+    if (type == 2) {
+        if (flag & 1) {
+            if (D_800B1A70_main[2] == -1) {
+                anim = D_800B1A70_main[2] = func_8003AE44_main(0x87);
+            } else {
+                anim = D_800B1A70_main[2];
+            }
+        } else {
+            if (D_800B1A58_main[2] == -1) {
+                anim = D_800B1A58_main[2] = func_8003AE44_main(0x86);
+            } else {
+                anim = D_800B1A58_main[2];
+            }
+        }
+    } else if (type == 4) {
+        if (D_800B1A58_main[4] == -1) {
+            anim = D_800B1A58_main[4] = func_8003AE44_main(0x88);
+        } else {
+            anim = D_800B1A58_main[4];
+        }
+    } else if (type == 5) {
+        if (D_800B1A58_main[5] == -1) {
+            anim = D_800B1A58_main[5] = func_8003AE44_main(0x89);
+        } else {
+            anim = D_800B1A58_main[5];
+        }
+    } else if (type == 6) {
+        if (D_800B1A58_main[6] == -1) {
+            anim = D_800B1A58_main[6] = func_8003AE44_main(0x8A);
+        } else {
+            anim = D_800B1A58_main[6];
+        }
+    } else if (type == 7) {
+        if (D_800B1A58_main[7] == -1) {
+            anim = D_800B1A58_main[7] = func_8003AE44_main(0x8B);
+        } else {
+            anim = D_800B1A58_main[7];
+        }
+    } else {
+        if (type != 8) {
+            if (type != 0) {
+                if (type != 1) {
+                    frame = 0;
+                }
+            }
+        }
+        anim = func_8003AE9C_main(c, flag);
+    }
+    return (anim << 16) | frame;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A81C_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A9C8_main);
 
@@ -2057,6 +2125,9 @@ extern GMesStr6 D_800A7744_main;
 s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
 u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
+s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
+s16 func_8003AE44_main(s16 arg0);
+u16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
     char sp18[] = "LOST";
