@@ -136,7 +136,8 @@ s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width);
 s16 func_8003AE44_main(s16 arg0);
 extern u8 D_800A1334_main[];
 extern u8 D_800A136C_main[];
-u16 func_8003AE9C_main(u8 c, u8 flag);
+extern u8 D_800A13B0_main[];
+s16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_80036610_main(void) {
     return GwSystem.minigame_index;
@@ -1953,7 +1954,91 @@ s16 func_8003AE44_main(s16 arg0) {
     return ret;
 }
 
+/* The font sprite for character c, loaded on first use: upper case, lower case, kana and symbols
+   each have a cache of sprite ids; flag bit 0 is the large font. */
+// masked 11 (one instruction short): retail masks the kana table byte with an extra andi 0xFF
+#ifdef NON_MATCHING
+s16 func_8003AE9C_main(u8 c, u8 flag) {
+    s16 *slot;
+    s32 fileId;
+    s32 frame;
+    s32 i;
+    void *data;
+    s16 id;
+
+    frame = 0;
+    switch (c) {
+        case '}':
+            frame = 6;
+            break;
+        case 0x82:
+            frame = 10;
+            break;
+        case 0x84:
+            frame = 2;
+            break;
+        case 0x85:
+            frame = 7;
+            break;
+        case 0xC2:
+        case 0xC4:
+            frame = 1;
+            break;
+        case 0xC3:
+        case 0xC5:
+            frame = 3;
+            break;
+        case 0xC6:
+            frame = 8;
+            break;
+        case 0xC7:
+            frame = 8;
+            break;
+        case '\\':
+            frame = 5;
+            break;
+        case '=':
+            frame = 4;
+            break;
+    }
+    if (c >= 'A' && c <= 'Z') {
+        if (flag & 1) {
+            fileId = c - 'A' + 0xC003F;
+            slot = &D_800B1AF8_main[c - 'A'];
+        } else {
+            fileId = c - 'A' + 0xC0000;
+            slot = &D_800B1AC0_main[c - 'A'];
+        }
+    } else if (c >= 'a' && c <= 'z') {
+        fileId = c - 'a' + 0xC0025;
+        slot = &D_800B1A88_main[c - 'a'];
+    } else if ((c >= 0x90 && c < 0xB0) || (c >= 0xD0 && c < 0xF0)) {
+        for (i = 0; i < 36; i++) {
+            if (c == D_800A13B0_main[i]) {
+                break;
+            }
+        }
+        fileId = i + 0xC0061;
+        slot = &D_800B1B70_main[i];
+    } else if (flag & 1) {
+        fileId = frame + 0xC0059;
+        slot = &D_800B1B50_main[frame];
+    } else {
+        fileId = frame + 0xC001A;
+        slot = &D_800B1B30_main[frame];
+    }
+    if (*slot != -1) {
+        return *slot;
+    }
+    data = DataReadTemp(fileId);
+    id = func_80055810_main(data);
+    *slot = id;
+    DataCloseTemp(data);
+    return id;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AE9C_main);
+#endif
 
 void func_8003B128_main(GAMEMES *gMes) {
     GMesSprKill(gMes);
@@ -2323,7 +2408,8 @@ s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width);
 s16 func_8003AE44_main(s16 arg0);
 extern u8 D_800A1334_main[];
 extern u8 D_800A136C_main[];
-u16 func_8003AE9C_main(u8 c, u8 flag);
+extern u8 D_800A13B0_main[];
+s16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
     char sp18[] = "LOST";
