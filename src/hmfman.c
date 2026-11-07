@@ -314,6 +314,9 @@ void* func_80031A44_main();
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 
+void func_80017D24_main(f32 (*)[4], f32, f32, f32);
+void func_80088910_main(f32 (*)[4], f32, f32, f32);
+
 /* HmfModelData seen through the full layout */
 #define MDL ((HmfModelM*)HmfModelData)
 
@@ -500,7 +503,80 @@ s32 Hu3DModelLink(s16 linkMdlId) {
     return modelId;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001A894_main);
+/* MP2 func_80027FA4_28BA4: a model drawn from a display list (arg1) or a callback */
+s32 func_8001A894_main(s32 arg0, void* arg1, s32 arg2) {
+    HmfDataM* hmf;
+    HmfModelM* modelP;
+    s16 i;
+
+    for (i = 0; i < HU3D_MODEL_MAX; i++) {
+        if (MDL[i].hmf == NULL) {
+            break;
+        }
+    }
+    if (i == HU3D_MODEL_MAX) {
+        osSyncPrintf(D_800A6BBC_main);
+        return -1;
+    }
+    D_800D5204_main = i * 2 + 10000;
+    D_800CDD6A_main = i * 2 + 10001;
+    modelP = &MDL[i];
+    hmf = modelP->hmf = HuMemAllocTag(sizeof(HmfDataM), D_800CDD6A_main);
+    hmf->unk0E = D_800D5204_main;
+    hmf->unk3C = arg1;
+    hmf->unk0B = 1;
+    hmf->unk00 = ((u32)arg0 >> 10) & 7;
+    modelP->unk70 = NULL;
+    modelP->hmf->unk98 = NULL;
+    modelP->unk08 = 0xFF;
+    modelP->unk18 = arg0 | 1;
+    modelP->unk40 =
+        modelP->unk03 =
+            modelP->unk48 =
+                modelP->unk4C =
+                    modelP->unk05 =
+                        modelP->unk54 = 0;
+    modelP->unk44 = modelP->unk50 = 1.0f;
+    modelP->unk04 = 0xFF;
+    modelP->unk02 = 0xFF;
+    modelP->unk09 = 0xFF;
+    modelP->unkB4 = NULL;
+    modelP->pos.x = modelP->pos.y = modelP->pos.z = 0.0f;
+    modelP->rot.x = modelP->rot.y = modelP->rot.z = 0.0f;
+    modelP->scale.x = modelP->scale.y = modelP->scale.z = 1.0f;
+
+    switch (arg2 & 6) {
+        case 4:
+            func_8008A070_main(modelP->mtx);
+            hmf->unk3C = HuMemAllocTag(sizeof(void*), D_800CDD6A_main);
+            hmf->unk3C->unk00[0] = arg1;
+            hmf->unk60 = HuMemAllocTag(sizeof(HmfPartM), D_800CDD6A_main);
+            hmf->unk10 = 1;
+            hmf->unk14 = 1;
+            hmf->unk38 = NULL;
+            hmf->unkC8 = NULL;
+            hmf->unk60->unk50 = 0;
+            hmf->unk60->unk20 = -1;
+            hmf->unk60->unk5C = (void*)-1;
+            hmf->unk60->unk60 = NULL;
+            hmf->unkB4 = NULL;
+            hmf->unk0A = 0;
+            hmf->unkD4 = func_80017D24_main;
+            hmf->unkD8 = func_80088910_main;
+            hmf->unk60->unk42 = hmf->unk60->unk44 = hmf->unk60->unk46 = -0x8000;
+            hmf->unk60->unk48 = hmf->unk60->unk4A = hmf->unk60->unk4C = -0x8000;
+        case 0:
+        case 2:
+            modelP->unk01 = 0xFF;
+            break;
+        case 6:
+            modelP->unk01 = 0;
+            break;
+    }
+    modelP->unk00 = arg2 | 1;
+    D_800D1FE8_main++;
+    return i;
+}
 
 s16 func_8001ABD4_main(s16 arg0, s8 arg1) {
     s16 idx = Hu3DModelLink(arg0);
@@ -1553,7 +1629,29 @@ void func_8001FBBC_main(s16 arg0, s8 arg1, s8 arg2, s8 arg3) {
     }
 }
 
+/* the lights' direction: (x, y, z) normalised, scaled to 120. Register allocation, as in MP2:
+   retail loads unkB4 into v0 and copies it to s0 after the NULL test (masked 1) */
+#ifdef NON_MATCHING
+void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3) {
+    HmfData_UnkD0* l = MDL[arg0].unkB4;
+    f32 len;
+
+    if (l != NULL) {
+        len = HuSqrtf(arg1 * arg1 + arg2 * arg2 + arg3 * arg3);
+        if (len != 0.0f) {
+            l->unk04 = (arg1 / len) * 120.0f;
+            l->unk05 = (arg2 / len) * 120.0f;
+            l->unk06 = (arg3 / len) * 120.0f;
+        } else {
+            l->unk04 = 0;
+            l->unk05 = 120;
+            l->unk06 = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001FBFC_main);
+#endif
 
 /* mark every face unlit */
 void func_8001FD08_main(s16 arg0) {
