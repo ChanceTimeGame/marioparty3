@@ -114,6 +114,7 @@ ALDMAproc func_80008B94_main(void* state);
 void func_80008BAC_main(void);
 void func_80008CC0_main(s32 arg0, s32 remove);
 void func_80008D28_main(AMTask* t, AMAudioMsg* msg, Acmd* cmdp);
+Acmd* func_8006BA3C_main(Acmd* cmdList, s32* cmdLen, s16* outBuf, s32 outLen); /* n_alAudioFrame */
 
 s32 func_80008320_main(AMConfig* amc, ALHeap* heap) {
     ALSynConfig c;
@@ -234,7 +235,36 @@ void func_80008750_main(void* arg) {
     func_8006B764_main(&D_800AB7D8_main.g);
 }
 
-INCLUDE_ASM("asm/nonmatchings/8F20", func_8000889C_main);
+/* __amHandleFrameMsg (n_audio audiomgr.c): synthesize the next audio frame and send its task.
+   The first frame after a long enough backlog is the short (minFrameSize) one. */
+u32 func_8000889C_main(AudioInfo* info, AudioInfo* lastInfo) {
+    s16* audioPtr;
+    Acmd* cmdp;
+    s32 cmdLen;
+    s32 samplesLeft;
+
+    samplesLeft = osAiGetLength() >> 2;
+    func_80008BAC_main();
+    audioPtr = (s16*) osVirtualToPhysical(info->data);
+    if (lastInfo != NULL) {
+        osAiSetNextBuffer(lastInfo->data, lastInfo->frameSamples << 2);
+    }
+    if (samplesLeft > D_800ABA98_main + 184 && D_800ABE3C_main) {
+        info->frameSamples = D_800ABA8C_main;
+        D_800ABE3C_main = 0;
+    } else {
+        info->frameSamples = D_800ABA94_main;
+        D_800ABE3C_main = 1;
+    }
+    cmdp = func_8006BA3C_main(D_800AB7D8_main.ACMDList[D_800ABA88_main], &cmdLen, audioPtr, info->frameSamples);
+    if (cmdLen == 0) {
+        return 0;
+    }
+    func_80008D28_main(&info->task, &info->msg, cmdp);
+    osSendMesg(D_800AB7D0_main, &info->task, OS_MESG_BLOCK);
+    D_800ABA88_main ^= 1;
+    return 1;
+}
 
 void func_800089D8_main(AudioInfo* info) {
 }

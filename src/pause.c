@@ -275,9 +275,50 @@ s16 func_80045C64_main(u32 arg0, D_800B2350_main_Struct *arg1) {
     return var_a1;
 }
 
-// https://decomp.me/scratch/TTLIZ
-void func_80045D38_main(omObjData *);
+void func_8004AE00_main(s16, s16);
+void func_80045D38_main(omObjData *obj);
+// Load order (masked 4): retail sums each sound's base id as lh unk00 + lbu unk06, GCC here
+// loads unk06 first and narrows unk00 to lhu.
+#ifdef NON_MATCHING
+/* Plays the queued pause-menu sounds (D_800B2350_main) whose delay has run out. */
+void func_80045D38_main(omObjData *obj) {
+    s32 i;
+    s16 se;
+    u8 n;
+
+    for (i = 0; i < 8; i++) {
+        if (D_800B2350_main[i].unk00 < 0) {
+            continue;
+        }
+        if (D_800B2350_main[i].unk07 != 0) {
+            D_800B2350_main[i].unk07--;
+            continue;
+        }
+        n = D_800B2350_main[i].unk05;
+        if (n < 4) {
+            se = func_8004AC98_main(D_800B2350_main[i].unk00 + D_800B2350_main[i].unk06 + 1, (s8) n);
+        } else {
+            se = func_8004AC5C_main(D_800B2350_main[i].unk00 + D_800B2350_main[i].unk06 + 1, (s16) obj->work[0]);
+            obj->work[0]++;
+            if (obj->work[0] >= 4) {
+                obj->work[0] = 0;
+            }
+        }
+        if (se >= 0) {
+            if (D_800B2350_main[i].unk02 >= 0) {
+                func_8004AE00_main(se, D_800B2350_main[i].unk02);
+            }
+            if (D_800B2350_main[i].unk04 >= 0) {
+                func_8004AAD0_main(se, D_800B2350_main[i].unk04);
+            }
+        }
+        D_800B2350_main[i].unk00 = -1;
+    }
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/pause", func_80045D38_main);
+#endif
 
 omObjData *func_80045ED0_main(u32 arg0) {
     return func_80045F48_main(arg0, -1, -1, -1);

@@ -1786,3 +1786,5 @@ D_800BC880_main = 0x800BC880; // size:0x400
 // wave 2b D: 8F20 (MP2 src/169B0.c, MP1 src/138F0.c): audio manager and its DMA state
 D_800AB7D8_main = 0x800AB7D8; // size:0x288
 D_800ABA70_main = 0x800ABA70; // size:0x8
+// wave 2d B
+__osGetActiveQueue = 0x80086C30;

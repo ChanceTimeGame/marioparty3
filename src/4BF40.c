@@ -39,16 +39,12 @@ typedef struct SndFadeWork {
     /* 0x08 */ f32* vol2;     // flag 4 (with flag 2): fade to silence, keep playing
     /* 0x0C */ f32* vol2Step;
     /* 0x10 */ u8* flags;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s16 unk16;
-    /* 0x18 */ s16 unk18;
-    /* 0x1A */ s16 unk1A;
-    /* 0x1C */ s32 unk1C;
-    /* 0x20 */ s32 unk20;
-    /* 0x24 */ f32 unk24;
-    /* 0x28 */ f32 unk28;
-    /* 0x2C */ char unk2C[8];
-    /* 0x34 */ s16 unk34;
+    /* 0x14 */ s16 musFade[2];   // music player 0 (D_800CDBC8_main) / 1 (D_800D037E_main): fading
+    /* 0x18 */ s16 musFrames[2]; // fade-out length
+    /* 0x1C */ f32 musStep[2];   // volume change per frame
+    /* 0x24 */ f32 musMaxVol[2]; // volume before the fade-out
+    /* 0x2C */ f32 musVol[2];    // current volume
+    /* 0x34 */ s16 fadeInFrames; // music 0 fade-in length once music 1 stops (flag 0x10), or -1
 } SndFadeWork; /* size 0x38 */
 
 extern Gfx* gMainGfxPos;
@@ -58,6 +54,13 @@ extern omObjData* D_800D6A40_main;
 extern str800D5298 D_800D1398_main;
 extern s16 D_800A1910_main; /* sound slot count (audio.c declares it s16[8]) */
 extern u16 D_800D530C_main;
+extern s16 D_800CDBC8_main; /* music player 0 */
+extern s16 D_800D037E_main; /* music player 1 */
+extern u16 D_800A1906_main; /* music state flags */
+
+s32 func_800078F8_main(s32);
+void func_80007B28_main(s32, s32);
+void func_80007DD8_main(s16);
 
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 double fabs(double); /* the GCC builtin (abs.d) */
@@ -452,15 +455,86 @@ void func_8004CF30_main(void) {
     for (i = 0; i < D_800A1910_main; i++) {
         work->flags[i] = 0;
     }
-    work->unk14 = 0;
-    work->unk24 = -1.0f;
-    work->unk1C = 0;
-    work->unk18 = 0;
-    work->unk16 = 0;
-    work->unk28 = -1.0f;
-    work->unk20 = 0;
-    work->unk1A = 0;
-    work->unk34 = -1;
+    work->musFade[0] = 0;
+    work->musMaxVol[0] = -1.0f;
+    work->musStep[0] = 0.0f;
+    work->musFrames[0] = 0;
+    work->musFade[1] = 0;
+    work->musMaxVol[1] = -1.0f;
+    work->musStep[1] = 0.0f;
+    work->musFrames[1] = 0;
+    work->fadeInFrames = -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/4BF40", func_8004D094_main);
+/* Steps the per-slot sound fades and the two music players' volume fades. */
+void func_8004D094_main(omObjData* obj) {
+    SndFadeWork* work = D_800D6A40_main->data;
+    s16 i;
+    u8 flags;
+    s32 playing;
+    f32 vol;
+
+    for (i = 0; i < D_800A1910_main; i++) {
+        flags = work->flags[i];
+        playing = func_800078F8_main(i);
+        if (flags & 2) {
+            if (playing == 0) {
+                work->flags[i] &= ~1;
+                work->flags[i] &= ~4;
+            } else if (flags & 4) {
+                work->vol2[i] -= work->vol2Step[i];
+                if (work->vol2[i] <= 0.0f) {
+                    work->vol2[i] = 0.0f;
+                    func_80007B28_main(i, 0);
+                    work->flags[i] &= ~4;
+                } else {
+                    func_80007B28_main(i, (s16)work->vol2[i]);
+                }
+            }
+        } else if (work->flags[i] & 1) {
+            if (playing == 0) {
+                work->flags[i] &= ~1;
+            } else {
+                work->vol[i] -= work->volStep[i];
+                if (work->vol[i] <= 0.0f) {
+                    work->vol[i] = 0.0f;
+                    func_80007B28_main(i, 0);
+                    func_80007DD8_main(i);
+                    work->flags[i] &= ~1;
+                } else {
+                    func_80007B28_main(i, (s16)work->vol[i]);
+                }
+            }
+        }
+    }
+    if ((D_800A1906_main & 0x10) && work->fadeInFrames >= 0) {
+        func_8004A72C_main(work->fadeInFrames);
+        work->fadeInFrames = -1;
+    }
+    if (work->musFade[0] == 1) {
+        vol = work->musVol[0] += work->musStep[0];
+        if (work->musStep[0] < 0.0f) {
+            if (vol < 0.0f) {
+                vol = work->musVol[0] = 0.0f;
+                work->musFade[0] = 0;
+            }
+        } else if (work->musMaxVol[0] < vol) {
+            vol = work->musVol[0] = work->musMaxVol[0];
+            work->musFade[0] = 0;
+        }
+        func_800036E8_main(D_800CDBC8_main, vol);
+    }
+    if (work->musFade[1] == 1) {
+        vol = work->musVol[1] += work->musStep[1];
+        if (work->musStep[1] < 0.0f) {
+            if (vol < 0.0f) {
+                vol = work->musVol[1] = 0.0f;
+                work->musFade[1] = 0;
+            }
+        } else if (work->musMaxVol[1] < vol) {
+            vol = work->musVol[1] = work->musMaxVol[1];
+            work->musFade[1] = 0;
+        }
+        func_800036E8_main(D_800D037E_main, vol);
+    }
+}
