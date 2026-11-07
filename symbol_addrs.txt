@@ -1772,3 +1772,6 @@ D_800CB8C0_main = 0x800CB8C0; // size:0xDC
 D_800BBD20_main = 0x800BBD20; // size:0x400
 D_800BC2D0_main = 0x800BC2D0; // size:0x400
 D_800BC880_main = 0x800BC880; // size:0x400
+// wave 2b D: 8F20 (MP2 src/169B0.c, MP1 src/138F0.c): audio manager and its DMA state
+D_800AB7D8_main = 0x800AB7D8; // size:0x288
+D_800ABA70_main = 0x800ABA70; // size:0x8
