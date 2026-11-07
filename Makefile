@@ -183,6 +183,10 @@ $(B1G_HMATH): CFLAGS = -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64a
 # 527E0 is libultra's audio/sndplayer.c built as MP1 builds 64FD0.c: default flags, lib audio headers
 build/src/527E0.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 # end batch 1 G
+# wave 2d C: Hudson math units (-O2 -ffast-math, as B1G_HMATH and MP2's H1H_HMATH_UNITS)
+W2DC_HMATH := build/src/890B0.c.o build/src/89120.c.o build/src/89170.c.o build/src/89510.c.o build/src/898B0.c.o build/src/89FB0.c.o build/src/8A350.c.o build/src/8A3D0.c.o build/src/8A420.c.o build/src/8A460.c.o build/src/8A4A0.c.o build/src/8A4D0.c.o build/src/8AA90.c.o build/src/8ABF0.c.o build/src/8AC30.c.o build/src/8ADB0.c.o build/src/8AF30.c.o build/src/8B0C0.c.o build/src/8B1C0.c.o build/src/8B3F0.c.o build/src/8B560.c.o build/src/8B960.c.o build/src/8BF00.c.o build/src/8C2B0.c.o build/src/8C440.c.o build/src/8CB20.c.o build/src/8D1E0.c.o build/src/8D730.c.o build/src/8D790.c.o build/src/8D7F0.c.o build/src/8D860.c.o build/src/8D8C0.c.o build/src/8DEC0.c.o build/src/8E050.c.o build/src/8E1D0.c.o
+$(W2DC_HMATH): CFLAGS = -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64align
+# end wave 2d C
 # wave 2b D: libultra audio copies (MP2 B2E_LIB_UNITS flags: -O3, signed char; 6BA20 as 2.0L/audio/load.c)
 W2BD_LIBAUDIO := build/src/70C30.c.o build/src/6C9F0.c.o
 $(W2BD_LIBAUDIO): OPTFLAGS = -O3
