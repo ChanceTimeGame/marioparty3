@@ -276,7 +276,228 @@ void func_80030414_main(HmfData30C40* arg0, s16 arg1, f32 arg2) {
     }
 }
 
+/* Logic checked against the asm block by block. Not matching (masked 134, 672 vs 692): retail
+   saves s0 for a held -0x100 (frame 8), sign-extends the 16-bit delta's high byte at the join,
+   ORs the nibble/byte sign masks from registers (here ori 0xFFF0/0xFF00), keeps a copy of the
+   entry word for the skip path's second test, and schedules the target-buffer index
+   ((unk06 + 1) & 1) after the vertex remap load. rd/d as s32/u32/s16 and split per-width
+   readers were worse. */
+#ifdef NON_MATCHING
+/* Packed vertex animation reader: half != 0 means the next value starts at the low nibble of *p */
+#define HMF_RD4(v) \
+    if (half == 0) { \
+        v = *p >> 4; \
+    } else { \
+        v = (u8) (*p & 0xF); \
+        p++; \
+    } \
+    half ^= 1
+#define HMF_RD8(v) \
+    if (half == 0) { \
+        v = *p; \
+    } else { \
+        v = ((*p & 0xF) << 4) | (p[1] >> 4); \
+    } \
+    p++
+#define HMF_RD16(v) \
+    if (half == 0) { \
+        hi = *p << 8; \
+    } else { \
+        hi = (((u8) (*p & 0xF) << 4) | (p[1] >> 4)) << 8; \
+    } \
+    p++; \
+    if (half == 0) { \
+        v = hi | *p; \
+    } else { \
+        v = hi | (((*p & 0xF) << 4) | (p[1] >> 4)); \
+    } \
+    p++
+#define HMF_S4(v) ((v & 8) ? (s16) v | 0xFFF0 : (s16) v)
+
+/* Decode frame `frame` of vertex animation slot `slot` into the vertex copy's other buffer: start
+   from the current buffer (from the model's base vertices at frame 0), then apply the frame's
+   deltas. Per entry: bits 0-11 the vertex, 14-15 the position delta (3 nibbles, 3 bytes, 3
+   16-bit adds, none), 12-13 the colour delta (3 nibbles, none, 3 bytes). A vertex already set
+   this frame skips its data. */
+void func_800308C0_main(HmfVtxAnimSlot* slot, HmfData30C40* arg0, HmfVtxCopyM* c, s16 frame) {
+    HmfVtx30C40* v;
+    HmfVtxPos* pos;
+    HmfVtxPos* dpos;
+    HmfVtxPos* pv;
+    s8* col;
+    s8* dcol;
+    s8* pc;
+    u8* q;
+    u8* ent;
+    u8* p;
+    s32 e;
+    s32 vi;
+    s32 t;
+    u16 sv;
+    s32 bit;
+    u8 half;
+    u16 rd;
+    u16 d;
+    u8 by;
+    s16 hi;
+    s16 count;
+    s16 n;
+    s16 i;
+
+    q = &slot->unk08[frame * 4];
+    count = (q[0] << 8) + q[1];
+    p = slot->unk08 + (slot->unk0E + 1) * 4;
+    q = slot->unk08;
+    for (i = 0; i < frame; i++) {
+        p += ((q[0] << 8) + q[1]) * 2 + (q[2] << 8) + q[3];
+        q += 4;
+    }
+    ent = p;
+    p = ent + count * 2;
+    c->unk02[(c->unk06 + 1) & 1] = frame;
+    n = c->unk00;
+    if (frame == 0) {
+        pos = c->unk08[c->unk06];
+        col = c->unk10[c->unk06];
+        v = arg0->unk40;
+        for (i = 0; i < n; i++) {
+            pos->x = v->unk00;
+            pos->y = v->unk02;
+            pos->z = v->unk04;
+            col[0] = v->unk0C[0];
+            col[1] = v->unk0C[1];
+            col[2] = v->unk0C[2];
+            v++;
+            pos++;
+            col += 3;
+        }
+    }
+    pos = c->unk08[c->unk06];
+    dpos = c->unk08[(c->unk06 + 1) & 1];
+    col = c->unk10[c->unk06];
+    dcol = c->unk10[(c->unk06 + 1) & 1];
+    for (i = 0; i < n; i++) {
+        dpos->x = pos->x;
+        dpos->y = pos->y;
+        dpos->z = pos->z;
+        dcol[0] = col[0];
+        dcol[1] = col[1];
+        dcol[2] = col[2];
+        pos++;
+        col += 3;
+        dpos++;
+        dcol += 3;
+    }
+    for (i = 0; i < (n + 7) / 8; i++) {
+        c->unk18[i] = 0;
+    }
+    half = 0;
+    for (i = 0; i < count; i++) {
+        e = (ent[0] << 8) + ent[1];
+        vi = e & 0xFFF;
+        sv = arg0->unk5C[vi];
+        bit = 1 << (sv & 7);
+        by = sv >> 3;
+        if (c->unk18[by] & bit) {
+            t = e & 0xC000;
+            if (t != 0xC000) {
+                if (t == 0x8000) {
+                    p = p + 1 + (half != 0);
+                    half ^= 1;
+                } else if ((e & 0xC000) != 0x4000) {
+                    p += 6;
+                } else {
+                    p += 3;
+                }
+            }
+            t = e & 0x3000;
+            if (t != 0x2000) {
+                if (t != 0x1000) {
+                    p += 3;
+                } else {
+                    p = p + 1 + (half != 0);
+                    half ^= 1;
+                }
+            }
+        } else {
+            c->unk18[by] |= bit;
+            pv = &c->unk08[(c->unk06 + 1) & 1][arg0->unk5C[vi]];
+            t = e & 0xC000;
+            if (t != 0xC000) {
+                if (t == 0x8000) {
+                    HMF_RD4(rd);
+                    d = rd;
+                    if (rd & 8) {
+                        d = rd | ~0xF;
+                    }
+                    pv->x = pv->x + (f32) (s16) d;
+                    HMF_RD4(rd);
+                    d = rd;
+                    if (rd & 8) {
+                        d = rd | ~0xF;
+                    }
+                    pv->y = pv->y + (f32) (s16) d;
+                    HMF_RD4(rd);
+                    d = rd;
+                    if (rd & 8) {
+                        d = rd | ~0xF;
+                    }
+                    pv->z = pv->z + (f32) (s16) d;
+                } else if (t == 0x4000) {
+                    HMF_RD8(rd);
+                    d = rd;
+                    if (rd & 0x80) {
+                        d = rd | ~0xFF;
+                    }
+                    pv->x = pv->x + (f32) (s16) d;
+                    HMF_RD8(rd);
+                    d = rd;
+                    if (rd & 0x80) {
+                        d = rd | ~0xFF;
+                    }
+                    pv->y = pv->y + (f32) (s16) d;
+                    HMF_RD8(rd);
+                    d = rd;
+                    if (rd & 0x80) {
+                        d = rd | ~0xFF;
+                    }
+                    pv->z = pv->z + (f32) (s16) d;
+                } else {
+                    HMF_RD16(d);
+                    pv->x = pv->x + (f32) (s16) d;
+                    HMF_RD16(d);
+                    pv->y = pv->y + (f32) (s16) d;
+                    HMF_RD16(d);
+                    pv->z = pv->z + (f32) (s16) d;
+                }
+            }
+            pc = &c->unk10[(c->unk06 + 1) & 1][arg0->unk5C[vi] * 3];
+            t = e & 0x3000;
+            if (t != 0x2000) {
+                if (t == 0x1000) {
+                    HMF_RD4(rd);
+                    pc[0] += HMF_S4(rd);
+                    HMF_RD4(rd);
+                    pc[1] += HMF_S4(rd);
+                    HMF_RD4(rd);
+                    pc[2] += HMF_S4(rd);
+                } else {
+                    HMF_RD8(rd);
+                    pc[0] += rd;
+                    HMF_RD8(rd);
+                    pc[1] += rd;
+                    HMF_RD8(rd);
+                    pc[2] += rd;
+                }
+            }
+        }
+        ent += 2;
+    }
+    c->unk06 = (c->unk06 + 1) & 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/30C40", func_800308C0_main);
+#endif
 
 /* Apply the morph targets of frame arg1 to this frame's vertex buffer */
 void func_80031324_main(HmfData30C40* arg0, f32 arg1) {
