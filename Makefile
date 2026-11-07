@@ -184,7 +184,7 @@ $(B1G_HMATH): CFLAGS = -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64a
 build/src/527E0.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 # end batch 1 G
 # wave 2b D: libultra audio copies (MP2 B2E_LIB_UNITS flags: -O3, signed char)
-W2BD_LIBAUDIO := build/src/70C30.c.o
+W2BD_LIBAUDIO := build/src/70C30.c.o build/src/6C9F0.c.o
 $(W2BD_LIBAUDIO): OPTFLAGS = -O3
 $(W2BD_LIBAUDIO): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2BD_LIBAUDIO): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
