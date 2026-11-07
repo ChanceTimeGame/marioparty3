@@ -188,7 +188,7 @@ W2BD_LIBAUDIO := build/src/70C30.c.o build/src/6C9F0.c.o
 $(W2BD_LIBAUDIO): OPTFLAGS = -O3
 $(W2BD_LIBAUDIO): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2BD_LIBAUDIO): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
-W2BD_LIBAUDIO_U := build/src/6BA20.c.o
+W2BD_LIBAUDIO_U := build/src/6BA20.c.o build/src/6F470.c.o
 $(W2BD_LIBAUDIO_U): OPTFLAGS = -O3 -funsigned-char
 $(W2BD_LIBAUDIO_U): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2BD_LIBAUDIO_U): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
