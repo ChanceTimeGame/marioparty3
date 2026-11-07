@@ -59,10 +59,178 @@ void func_800636D8_main(Gfx** arg0, f32 arg1, f32 arg2);
 void func_800641C8_main(Gfx** arg0, f32 arg1);
 void func_8006619C_main(Gfx** arg0);
 void func_800661D4_main(Gfx** arg0);
+void func_80062844_main(Gfx** arg0);
+s32 func_800623F0_main(Gfx** arg0);
+s32 func_80062584_main(Gfx** arg0);
+s32 func_80063454_main(Gfx** arg0);
+s32 func_80063510_main(Gfx** arg0);
+s32 func_800640EC_main(Gfx** arg0);
+s32 func_80065094_main(Gfx** arg0);
+s32 func_8006515C_main(Gfx** arg0);
+void func_800651F0_main(Gfx** arg0, f32 arg1);
+s32 func_80065C9C_main(Gfx** arg0, s32 arg1);
+s32 func_80065D80_main(Gfx** arg0);
+s32 func_80065E88_main(Gfx** arg0);
+void func_8003661C_main(void); /* gamemes.c */
+void GMesExec(Gfx** arg0);
 
-INCLUDE_ASM("asm/nonmatchings/wipe", WipeInit);
+extern void* D_800D1F80_main[8]; /* WipeMalloc blocks */
 
-INCLUDE_ASM("asm/nonmatchings/wipe", WipeExecAlways);
+void WipeInit(void) {
+    s16 i;
+
+    D_800CCF84_main = 0;
+    D_800CC0BA_main = 0;
+    D_800D212E_main = 0;
+    D_800D0598_main = 0;
+    D_800CDA74_main = 0;
+    D_800D5304_main = 0;
+
+    for (i = 0; i < 8; i++) {
+        D_800D1F80_main[i] = NULL;
+    }
+
+    func_8003661C_main();
+}
+
+void WipeExecAlways(Gfx** arg0) {
+    s16 i;
+
+    if (D_800CC0BA_main == 3) {
+        switch (D_800A26D0_main) {
+            case 254:
+                func_80062844_main(arg0);
+                break;
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+                func_800651F0_main(arg0, 1.0f);
+                break;
+            default:
+                func_8006231C_main(arg0, 255, D_800A2728_main);
+                break;
+        }
+        return;
+    }
+
+    GMesExec(arg0);
+
+    if (D_800CC0BA_main == 0) {
+        return;
+    }
+
+    switch (D_800CC0BA_main) {
+        case 1:
+            switch (D_800A26D0_main) {
+                case 11:
+                    D_800CCF84_main = func_80062168_main(arg0);
+                    break;
+                case 254:
+                    D_800CCF84_main = func_800623F0_main(arg0);
+                    break;
+                case 1:
+                    D_800CCF84_main = func_80063454_main(arg0);
+                    break;
+                case 2:
+                    D_800CCF84_main = func_800640EC_main(arg0);
+                    break;
+                case 12:
+                    D_800CCF84_main = func_80065D80_main(arg0);
+                    break;
+                case 0:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                    D_800CCF84_main = func_8006515C_main(arg0);
+                    break;
+            }
+            D_800D51F4_main += 1.0f;
+            if (D_800CCF84_main == 0) {
+                WipeColorSet(0, 0, 0);
+                if (D_800A26D4_main != NULL) {
+                    if (D_800D5304_main == 0) {
+                        HuMemMemoryFreePerm(D_800A26D4_main);
+                    }
+                    D_800A26D4_main = NULL;
+                }
+                for (i = 0; i < 8; i++) {
+                    if (D_800D1F80_main[i] != NULL) {
+                        HuMemMemoryFreePerm(D_800D1F80_main[i]);
+                    }
+                    D_800D1F80_main[i] = NULL;
+                }
+                D_800D1F5C_main.data = NULL;
+                func_80019C68_main(28000);
+            }
+            break;
+        case 2:
+            switch (D_800A26D0_main) {
+                case 0:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 0);
+                    break;
+                case 11:
+                    D_800CCF84_main = func_80062244_main(arg0);
+                    break;
+                case 254:
+                    D_800CCF84_main = func_80062584_main(arg0);
+                    break;
+                case 1:
+                    D_800CCF84_main = func_80063510_main(arg0);
+                    break;
+                case 2:
+                    D_800CCF84_main = func_80065094_main(arg0);
+                    break;
+                case 12:
+                    D_800CCF84_main = func_80065E88_main(arg0);
+                    break;
+                case 3:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 18);
+                    break;
+                case 4:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 19);
+                    break;
+                case 5:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 20);
+                    break;
+                case 6:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 21);
+                    break;
+                case 7:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 22);
+                    break;
+                case 8:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 17);
+                    break;
+                case 9:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 16);
+                    break;
+                case 10:
+                    D_800CCF84_main = func_80065C9C_main(arg0, 15);
+                    break;
+            }
+            D_800D51F4_main += 1.0f;
+            break;
+    }
+
+    if (D_800CCF84_main == 0) {
+        if (D_800CC0BA_main == 2) {
+            D_800CC0BA_main = 3;
+        } else {
+            D_800CC0BA_main = 0;
+        }
+        D_800D51F4_main = 0.0f;
+    }
+}
 
 void WipeCreateIn(s32 arg0, s32 arg1) {
     s16 type = arg0;
@@ -95,7 +263,9 @@ s32 WipeCreateOut(s32 arg0, s32 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/wipe", WipeStatGet);
+s32 WipeStatGet(void) {
+    return D_800CCF84_main;
+}
 
 void WipeColorSet(u8 r, u8 g, u8 b) {
     D_800CDA74_main = r;
@@ -103,7 +273,21 @@ void WipeColorSet(u8 r, u8 g, u8 b) {
     D_800D212E_main = b;
 }
 
-INCLUDE_ASM("asm/nonmatchings/wipe", WipeMalloc);
+void* WipeMalloc(s32 size) {
+    s16 i;
+
+    for (i = 0; i < 8; i++) {
+        if (D_800D1F80_main[i] == NULL) {
+            break;
+        }
+    }
+
+    if (i == 8) {
+        return NULL;
+    }
+
+    return D_800D1F80_main[i] = HuMemMemoryAllocPerm(size);
+}
 
 s32 func_80062168_main(Gfx** arg0) {
     if (D_800D0A3C_main == 0.0f) {
@@ -420,11 +604,44 @@ s32 func_80065094_main(Gfx** arg0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/wipe", func_8006515C_main);
+s32 func_8006515C_main(Gfx** arg0) {
+    if (D_800D0A3C_main == 0.0f) {
+        return 0;
+    }
+
+    func_800651F0_main(arg0, 1.0f - 1.0f / D_800D0A3C_main * D_800D51F4_main);
+
+    if (D_800D51F4_main >= D_800D0A3C_main) {
+        return 0;
+    }
+
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/wipe", func_800651F0_main);
 
-INCLUDE_ASM("asm/nonmatchings/wipe", func_80065C9C_main);
+/* wipe out through the texture in data file arg1 (none for 0) */
+s32 func_80065C9C_main(Gfx** arg0, s32 arg1) {
+    if (D_800D0A3C_main == 0.0f) {
+        return 0;
+    }
+
+    if (D_800D51F4_main == 0.0f) {
+        if (arg1 != 0) {
+            func_800635F4_main(arg1);
+        } else {
+            D_800D1F5C_main.data = NULL;
+        }
+    }
+
+    func_800651F0_main(arg0, 1.0f / D_800D0A3C_main * D_800D51F4_main);
+
+    if (D_800D51F4_main >= D_800D0A3C_main) {
+        return 0;
+    }
+
+    return 1;
+}
 
 s32 func_80065D80_main(Gfx** arg0) {
     f32 var_a2;
