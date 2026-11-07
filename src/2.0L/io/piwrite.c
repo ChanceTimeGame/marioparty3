@@ -1,3 +1,12 @@
 #include "common.h"
+#include "piint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/piwrite", osPiWriteIo);
+s32 osPiWriteIo(u32 devAddr, u32 data) {
+    register s32 ret;
+
+    __osPiGetAccess();
+    ret = __osPiRawWriteIo(devAddr, data);
+    __osPiRelAccess();
+
+    return ret;
+}
