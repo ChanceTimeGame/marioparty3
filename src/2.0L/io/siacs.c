@@ -1,7 +1,25 @@
 #include "common.h"
+#include "PR/os_internal.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/siacs", func_8007C720_main);
+#define SI_Q_BUF_LEN 1
+extern u32 __osSiAccessQueueEnabled;
+extern OSMesg siAccessBuf[SI_Q_BUF_LEN];
+extern OSMesgQueue __osSiAccessQueue;
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/siacs", __osSiGetAccess);
+void __osSiCreateAccessQueue(void) {
+    __osSiAccessQueueEnabled = 1;
+    osCreateMesgQueue(&__osSiAccessQueue, siAccessBuf, SI_Q_BUF_LEN);
+    osSendMesg(&__osSiAccessQueue, NULL, OS_MESG_NOBLOCK);
+}
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/siacs", __osSiRelAccess);
+void __osSiGetAccess(void) {
+    OSMesg dummyMesg;
+    if (!__osSiAccessQueueEnabled) {
+        __osSiCreateAccessQueue();
+    }
+    osRecvMesg(&__osSiAccessQueue, &dummyMesg, OS_MESG_BLOCK);
+}
+
+void __osSiRelAccess(void) {
+    osSendMesg(&__osSiAccessQueue, NULL, OS_MESG_NOBLOCK);
+}

@@ -1,7 +1,25 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "piint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/piacs", __osPiCrateAccessQueue);
+#define PI_Q_BUF_LEN 1
+extern OSMesgQueue __osPiAccessQueue;
+extern u32 __osPiAccessQueueEnabled;
+extern OSMesg piAccessBuf[PI_Q_BUF_LEN];
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/piacs", __osPiGetAccess);
+void __osPiCrateAccessQueue(void) {
+    __osPiAccessQueueEnabled = 1;
+    osCreateMesgQueue(&__osPiAccessQueue, piAccessBuf, PI_Q_BUF_LEN);
+    osSendMesg(&__osPiAccessQueue, NULL, OS_MESG_NOBLOCK);
+}
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/piacs", __osPiRelAccess);
+void __osPiGetAccess(void) {
+    OSMesg dummyMesg;
+    if (!__osPiAccessQueueEnabled)
+        __osPiCrateAccessQueue();
+    osRecvMesg(&__osPiAccessQueue, &dummyMesg, OS_MESG_BLOCK);
+}
+
+void __osPiRelAccess(void) {
+    osSendMesg(&__osPiAccessQueue, NULL, OS_MESG_NOBLOCK);
+}

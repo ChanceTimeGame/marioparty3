@@ -1,3 +1,11 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/osint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/yieldthread", osYieldThread);
+void osYieldThread(void) {
+    register u32 saveMask = __osDisableInt();
+
+    __osRunningThread->state = OS_STATE_RUNNABLE;
+    __osEnqueueAndYield(&__osRunQueue);
+    __osRestoreInt(saveMask);
+}

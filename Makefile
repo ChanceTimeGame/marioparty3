@@ -125,6 +125,9 @@ DEPENDS := $(OBJECTS:=.d)
 
 ### Targets ###
 
+# batch 1 L2: units built like MP1 src/lib (-O3, unsigned char)
+L2_O3 := io/piacs io/siacs io/sptask io/motor io/contpfs libc/ldiv
+
 build/src/libhmath/%.o build/src/libm/%.o: CFLAGS := -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64align
 
 #build/src/libultra/os/%.o: CFLAGS := -O2 $(CFLAGSCOMMON)
@@ -287,3 +290,7 @@ MAKEFLAGS += --no-builtin-rules
 
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
+
+# batch 1 L2
+L2_O3_UNITS := $(patsubst %,build/src/2.0L/%.c.o,$(L2_O3))
+$(L2_O3_UNITS): OPTFLAGS = -O3 -funsigned-char
