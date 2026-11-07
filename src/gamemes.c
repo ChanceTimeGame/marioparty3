@@ -1098,7 +1098,79 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003C644_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003CA24_main);
 
+/* wave 2c B */
+s32 func_8003C058_main(GAMEMES *gMes);
+
+// register allocation and loop shape in the i + 1 loops (masked 24), as func_80037574_main
+#ifdef NON_MATCHING
+s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
+    s32 n = 6;
+    s32 ret;
+    s32 i;
+    f32 t;
+    f32 scale;
+
+    ret = func_8003C058_main(gMes);
+    switch (gMes->unk08) {
+        case 0:
+            for (i = 0; i < n; i++) {
+                HuSprScaleSet(gMes->strGId[0], i + 1, 1.0f, 1.0f);
+                func_80055458_main(gMes->strGId[0], i + 1, 225);
+            }
+            gMes->unk08 = 1;
+            break;
+        case 1:
+            gMes->unk08 = 2;
+            break;
+        case 2:
+            if (gMes->unk04 >= 30) {
+                gMes->unk08 = 5;
+                gMes->unk0C = 0;
+                gMes->unk0A = 0;
+            }
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            break;
+        case 5:
+            gMes->stat = 2;
+            if (gMes->unk04 >= 61) {
+                for (i = 0; i < n; i++) {
+                    HuSprAttrSet(gMes->strGId[0], i + 1, 0x8000);
+                    HuSprScaleSet(gMes->strGId[0], i + 1, 1.0f, 1.0f);
+                }
+                gMes->unk0C = 0;
+                gMes->unk08 = 6;
+            } else if (gMes->unk04 >= 51) {
+                t = (gMes->unk0C - 20.0f) / 10.0f;
+                if (t > 1.0f) {
+                    t = 1.0f;
+                }
+                gMes->unk0C++;
+                scale = 1.5f - t * 1.4f * t;
+                for (i = 0; i < n;) {
+                    i++;
+                    HuSprScaleSet(gMes->strGId[0], i, scale, scale);
+                }
+            } else {
+                t = gMes->unk0C / 20.0f;
+                if (t > 1.0f) {
+                    t = 1.0f;
+                }
+                gMes->unk0C++;
+                scale = t * t * 0.5f + 1.0f;
+                for (i = 0; i < n;) {
+                    i++;
+                    HuSprScaleSet(gMes->strGId[0], i, scale, scale);
+                }
+            }
+            break;
+        case 7:
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003CE20_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D134_main);
 
