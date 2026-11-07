@@ -6,6 +6,7 @@
 #include "2.0L/audio/synthInternals.h"
 #include <PR/n_libaudio.h>
 #include "2.0L/audio/n_synthInternals.h"
+#include <os.h>
 #include "include_asm.h"
 
 #define SCALE 16384

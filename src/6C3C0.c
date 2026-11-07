@@ -9,7 +9,7 @@
 Acmd *func_8006E870_main(s32 sampleOffset, Acmd *p);           /* n_alAuxBusPull */
 Acmd *func_8006EE30_main(s32 sampleOffset, Acmd *p);           /* n_alFxPull */
 void func_8006ECFC_main(N_PVoice *mv, ALDMANew dmaNew, ALHeap *hp); /* n_alPVoiceNew */
-ALFx *func_8006F980_main(s32 bus, ALSynConfig *c, ALHeap *hp);  /* n_alSynAllocFX */
+ALFx *func_8006F980_main(s16 bus, ALSynConfig *c, ALHeap *hp);  /* n_alSynAllocFX */
 Acmd *func_8006F820_main(s32 sampleOffset, Acmd *p);           /* n_alSavePull */
 void func_8006BC00_main(void);
 void func_8006BC60_main(N_PVoice *pvoice);
