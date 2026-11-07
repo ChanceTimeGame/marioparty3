@@ -1,6 +1,8 @@
 #include "guint.h"
 
 extern float D_800A3F80_main; /* dtor */
+extern float sinf(float x);
+extern float cosf(float x);
 
 void func_8007E0C0_main(float mf[4][4], float a, float x, float y, float z) { /* guRotateF */
     float sine;
