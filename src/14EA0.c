@@ -1,13 +1,19 @@
 /* functions.us.h declares these with other parameter types: HmfSprModelCreate's third is u8 there
    but 16-bit in retail (the callee stores it with sh unmasked and func_80014618_main passes it
-   masked to 0xFFFF); func_800142A0_main's is s32 there (s16 here), func_80014A3C_main's u32 (a signed compare here). Keep the header's out of this unit. */
+   masked to 0xFFFF); func_800142A0_main's is s32 there (s16 here), func_80014A3C_main's u32 (a signed
+   compare here), func_80017790_main's second s32 (sign-extended here),
+   func_80017AD8_main's return u8 (s16 here). Keep the header's out of this unit. */
 #define HmfSprModelCreate HmfSprModelCreate_header
 #define func_800142A0_main func_800142A0_main_header
 #define func_80014A3C_main func_80014A3C_main_header
+#define func_80017790_main func_80017790_main_header
+#define func_80017AD8_main func_80017AD8_main_header
 #include "common.h"
 #undef HmfSprModelCreate
 #undef func_800142A0_main
 #undef func_80014A3C_main
+#undef func_80017790_main
+#undef func_80017AD8_main
 #include "mallocblock.h"
 
 /* Sprite-model slots and the matrix helpers. C from MP2 src/21920.c / src/26370.c and MP1
@@ -119,14 +125,34 @@ typedef struct HmfMotionObj {
     /* 0x58 */ f32 unk58[4][4];
 } HmfMotionObj; /* size = 0x98 */
 
-/* The fields of HmfData this unit reads (include/game/hmfman.h leaves 0x16 and 0x80 unnamed). */
+/* A model part (MP2 HmfPart, there with its name at 0x12). */
+typedef struct HmfPartView {
+    /* 0x00 */ char unk00[0x26]; /* name */
+    /* 0x26 */ s16 unk26; /* name hash (func_80011460_main of unk00) */
+    /* 0x28 */ char unk28[0x40];
+} HmfPartView; /* size = 0x68 */
+
+/* A transform-tree node (MP2 HitXform). */
+typedef struct HitXformView {
+    /* 0x00 */ s16 unk00; /* part index, < 0 for none */
+    /* 0x02 */ char unk02[0x46];
+    /* 0x48 */ HmfData* unk48;
+    /* 0x4C */ f32 unk4C[4][4];
+} HitXformView; /* size 0x8C */
+
+/* The fields of HmfData this unit reads (include/game/hmfman.h leaves most of them unnamed). */
 typedef struct HmfDataView {
     /* 0x00 */ char unk00[0x10];
-    /* 0x10 */ s16 unk10;
+    /* 0x10 */ s16 unk10; /* part count */
     /* 0x12 */ char unk12[4];
     /* 0x16 */ s16 unk16; /* motion object count */
-    /* 0x18 */ char unk18[0x68];
-    /* 0x80 */ HmfMotionObj* unk80;
+    /* 0x18 */ char unk18[0x48];
+    /* 0x60 */ HmfPartView* unk60;
+    /* 0x64 */ s16 unk64; /* transform-tree node count */
+    /* 0x66 */ char unk66[2];
+    /* 0x68 */ HitXformView* unk68;
+    /* 0x6C */ char unk6C[0x14];
+    /* 0x80 */ HmfMotionObj* unk80; /* motion objects (unk16), -1 for none */
 } HmfDataView;
 
 extern Matrix4f* D_800D1358_main; /* matrix table being filled */
@@ -144,6 +170,28 @@ void func_80017D24_main(Matrix4f, f32, f32, f32);
 void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
 void func_800169E0_main(s16 arg0, s16 arg1, unk1EA70StructC* arg2, s16 arg3);
 void func_80016C2C_main(HmfData* arg0, s16 arg1, s16 arg2);
+s16 func_80011460_main(char*); /* name hash */
+
+/* Texture-animation slot (MP2 TexAnimSlot). */
+typedef struct TexAnimSlot {
+    /* 0x00 */ s16 unk_00; /* frame */
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ s16 unk_04;
+    /* 0x06 */ s16 unk_06;
+    /* 0x08 */ char unk_08[2];
+    /* 0x0A */ u8 unk_0A;
+    /* 0x0B */ u8 unk_0B;
+} TexAnimSlot; //sizeof 0xC
+
+extern TexAnimSlot* D_800D1714_main;
+extern s16 D_800D4090_main[6][3][7]; /* loaded texture animations, -1 none */
+extern u8 D_800D6A50_main[6]; /* set while a character has one loaded */
+extern u8 D_800D20B8_main[16][3];
+extern u8 D_800D5570_main[16][3];
+extern char* D_800A063C_main[3 * 16]; /* per set (x16) and animation: texture-animation name */
+void func_80032FC0_main(s16, u8, u8);
+void func_80033910_main(HmfData*);
+void func_80033970_main(HmfData*);
 s16 func_800329B4_main(void*);
 s32 HmfSprModelCreate(void* arg0, s32 arg1, u16 arg2);
 void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
@@ -700,19 +748,149 @@ void func_80017320_main(unk1EA70StructC* arg0) {
     HuMemMemoryFreePerm(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017358_main);
+/* Hangs model arg0's part arg1 onto model arg2's part arg3 (MP2 func_80023DAC_249AC, MP1
+   func_80020EA0). Retail compares each name against the address of the name argument (&arg1,
+   &arg3), and the first search reads the second model's part names, as MP1/MP2 do. */
+void func_80017358_main(s16 arg0, char* arg1, s16 arg2, char* arg3) {
+    HmfDataView* src;
+    HmfDataView* dst;
+    HitXformView* obj40;
+    HmfMotionObj* obj50;
+    s16 hash;
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 l;
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_8001766C_main);
+    src = (HmfDataView*) HmfModelData[arg0].hmf;
+    dst = (HmfDataView*) HmfModelData[arg2].hmf;
+    hash = func_80011460_main(arg1);
+    for (i = 0; i < src->unk10; i++) {
+        if (src->unk60[i].unk26 == hash && strcmp(dst->unk60[i].unk00, (const char*) &arg1) != 0) {
+            break;
+        }
+    }
+    if (i == src->unk10) {
+        osSyncPrintf("Can't find ObjName %s\n", arg1);
+        return;
+    }
+    hash = func_80011460_main(arg3);
+    for (j = 0; j < dst->unk10; j++) {
+        if (dst->unk60[j].unk26 == hash && strcmp(dst->unk60[j].unk00, (const char*) &arg3) != 0) {
+            break;
+        }
+    }
+    if (j == dst->unk10) {
+        osSyncPrintf("Can't find ObjName %s\n", arg3);
+        return;
+    }
+    if (dst->unk80 == (void*) -1) {
+        for (k = 0; k < dst->unk64; k++) {
+            obj40 = &dst->unk68[k];
+            if (obj40->unk00 == j) {
+                obj40->unk48 = (HmfData*) src;
+                obj40->unk00 = i;
+                return;
+            }
+        }
+    } else {
+        for (k = 0; k < dst->unk16; k++) {
+            obj50 = &dst->unk80[k];
+            for (l = 0; l < obj50->unk00; l++) {
+                if (obj50->unk50[l] == j) {
+                    obj50->unk54 = (HmfData*) src;
+                    obj50->unk50[l] = i;
+                    break;
+                }
+            }
+        }
+    }
+}
 
+/* Clears the per-character texture-animation slots (6 characters, 3 sets, 7 each) and the 16
+   colours (MP2 func_8002480C_2540C). */
+void func_8001766C_main(void) {
+    s16 k;
+    s16 j;
+    s16 i;
+
+    for (i = 0; i < 6; i++) {
+        D_800D6A50_main[i] = 0;
+        for (j = 0; j < 3; j++) {
+            for (k = 0; k < 7; k++) {
+                D_800D4090_main[i][j][k] = -1;
+            }
+        }
+    }
+    for (k = 0; k < 16; k++) {
+        D_800D20B8_main[k][0] = D_800D20B8_main[k][1] = D_800D20B8_main[k][2] = 0xFF;
+    }
+}
+
+/* Replaces texture animation arg2 of set arg1 on model arg0 with data file arg3; returns the
+   new animation's first frame (MP2 func_80025384_25F84). */
+// register allocation only: GCC keeps one more value live across the calls (s8 saved; masked
+// differs only in registers). Tried s32 parameters with casts and a local for the name pointer.
+#ifdef NON_MATCHING
+s16 func_80017790_main(s16 arg0, s16 arg1, s16 arg2, s32 arg3) {
+    void* file;
+    s16 slot;
+    u16 ret;
+
+    if (D_800D20B8_main[arg2][arg1] != 0xFF) {
+        func_80033354_main(D_800D20B8_main[arg2][arg1]);
+        func_80033354_main(D_800D5570_main[arg2][arg1]);
+    }
+    file = DataRead(arg3);
+    slot = HmfAnimCreate(HmfModelData[arg0].hmf, file, 0, D_800A063C_main[arg2 + arg1 * 16]);
+    D_800D5570_main[arg2][arg1] = slot;
+    func_80032FC0_main(slot, 1, 1);
+    DataClose(file);
+    ret = D_800D1714_main[slot].unk_00;
+    D_800D20B8_main[arg2][arg1] = func_80032694_main(HmfModelData[arg0].hmf, slot, 0, D_800A063C_main[arg2 + arg1 * 16]);
+    func_8001C448_main(arg0);
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017790_main);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017954_main);
+/* Pauses (arg3 -1) or restarts at frame arg3 the texture animation arg2 of set arg1 on model arg0
+   (MP2 func_80025554_26154). */
+void func_80017954_main(s16 arg0, s16 arg1, s16 arg2, s16 arg3) {
+    TexAnimSlot* p;
+
+    if (D_800D20B8_main[arg2][arg1] != 0xFF) {
+        if (arg3 == -1) {
+            func_80033910_main(HmfModelData[arg0].hmf);
+            return;
+        }
+        func_80033970_main(HmfModelData[arg0].hmf);
+        p = &D_800D1714_main[D_800D20B8_main[arg2][arg1]];
+        p->unk_00 = arg3;
+        p->unk_04 = 0;
+        p->unk_0A = 0;
+        p->unk_06 = 0;
+        p->unk_02 = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017A84_main);
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017AD8_main);
+/* Loads sprite bank file id (MP2 func_80025684_26284, MP1 func_800F6C80_CoinBlockBash). */
+s16 func_80017AD8_main(s32 id) {
+    void* file;
+    s16 sprite;
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017B20_main);
+    file = DataRead(id);
+    sprite = func_800329B4_main(file);
+    DataClose(file);
+    return sprite;
+}
+
+void func_80017B20_main(s16 arg0, s16 arg1, s32 arg2, s32 arg3) {
+    func_80032FC0_main(D_800D20B8_main[arg1][arg0], arg2, arg3);
+}
 
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017B6C_main);
 
