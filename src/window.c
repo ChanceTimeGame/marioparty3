@@ -2676,7 +2676,72 @@ void func_80061388_main(s16 winId) {
     func_800600C0_main(winId, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_800615B8_main);
+extern u8 D_800D2008_main; /* frame buffer index (0-2) */
+
+/* shows (show != 0: a circle growing from (10, 10)) or hides (a hole growing from (30, 30)) the
+   40x40 portrait, drawing each frame into one of three copies of its image */
+void func_800615B8_main(s16 winId, s32 show) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    u8* bufs[3];
+    HuSprite* spr;
+    u8* image;
+    u8* pal;
+    u8* dst;
+    f32 r;
+    s16 i;
+    s16 x;
+    s16 y;
+    s16 n;
+    u8 clear;
+
+    spr = HuSprGet(tw->unk_6C, tw->unk274);
+    image = spr->unk_84->unk00->unk00;
+    for (i = 0; i < 3; i++) {
+        bufs[i] = HuMemAllocTag(40 * 40, 0x7918);
+        memset(bufs[i], 0, 40 * 40);
+    }
+    /* the first transparent palette entry */
+    pal = spr->unk_84->unk0C;
+    pal++;
+    for (clear = 0; clear < spr->unk_84->unk1A; clear++, pal += 2) {
+        if (!(*pal & 1)) {
+            break;
+        }
+    }
+    n = 3;
+    if (show) {
+        n = 6;
+    }
+    for (i = 1; i <= n; i++) {
+        pal = image;
+        dst = bufs[D_800D2008_main];
+        r = HuSqrtf(1800.0f) * (1.0f - cosdf(90.0f / n * i));
+        for (y = 0; y < 40; y++) {
+            for (x = 0; x < 40; x++) {
+                if (show) {
+                    if ((s16)(x - 10) * (s16)(x - 10) + (s16)(y - 10) * (s16)(y - 10) < r * r) {
+                        *dst = (pal + y * 40)[x];
+                    } else {
+                        *dst = clear;
+                    }
+                } else {
+                    if ((s16)(x - 30) * (s16)(x - 30) + (s16)(y - 30) * (s16)(y - 30) < r * r) {
+                        *dst = clear;
+                    } else {
+                        *dst = (pal + y * 40)[x];
+                    }
+                }
+                dst++;
+            }
+        }
+        spr->unk_84->unk00->unk00 = bufs[D_800D2008_main];
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 3; i++) {
+        func_80019C00_main(bufs[i]);
+    }
+    spr->unk_84->unk00->unk00 = image;
+}
 
 void func_80061934_main(s16 winId, s16 arg1) {
     s16 temp_v0;
