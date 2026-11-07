@@ -1768,3 +1768,7 @@ SprPosPerspectiveSet = 0x80054EE0; //rom:0x55AE0
 AnimateSprite = 0x800563A4; //rom:0x56FA4
 // wave 2a D: hmfman (MP2 src/274D0.c): the scratch model for motion-only files (MP2 D_800F8438_F9038)
 D_800CB8C0_main = 0x800CB8C0; // size:0xDC
+// wave 2b D: nnsched (MP1 src/engine/nnsched.c): the scheduler threads' 0x400-byte stacks
+D_800BBD20_main = 0x800BBD20; // size:0x400
+D_800BC2D0_main = 0x800BC2D0; // size:0x400
+D_800BC880_main = 0x800BC880; // size:0x400
