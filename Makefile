@@ -125,6 +125,9 @@ DEPENDS := $(OBJECTS:=.d)
 
 ### Targets ###
 
+# batch 1 L2: units built like MP1 src/lib (-O3, unsigned char)
+L2_O3 := io/piacs io/siacs io/sptask io/motor io/contpfs libc/ldiv
+
 build/src/libhmath/%.o build/src/libm/%.o: CFLAGS := -O2 -G0 -mips3 -mgp32 -mfp32 -ffast-math -Wa,--force-n64align
 
 #build/src/libultra/os/%.o: CFLAGS := -O2 $(CFLAGSCOMMON)
@@ -325,3 +328,11 @@ MAKEFLAGS += --no-builtin-rules
 
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
+
+# batch 1 L2
+L2_O2 := io/aisetfreq io/cartrominit io/conteeplongread io/conteeplongwrite io/contreaddata io/controller io/contsetch io/crc io/devmgr io/epidma io/epirawdma io/epirawread io/epirawwrite io/epiread io/epiwrite io/pfsgetstatus io/pfsisplug io/pfsselectbank io/pigetcmdq io/si io/sirawdma io/sirawread io/sirawwrite io/sp io/sprawdma io/sprawread io/sprawwrite io/spsetpc io/sptaskyield io/sptaskyielded io/vi io/viblack io/vigetcurrframebuf io/vigetnextframebuf io/vimgr io/visetevent io/visetmode io/visetspecial io/viswapbuf io/viswapcontext os/afterprenmi os/destroythread os/getmemsize os/getthreadpri os/gettime os/resetglobalintmask os/seteventmesg os/setglobalintmask os/setthreadpri os/startthread os/virtualtophysical os/yieldthread
+L2_O2_UNITS := $(patsubst %,build/src/2.0L/%.c.o,$(L2_O2))
+$(L2_O2_UNITS): OPTFLAGS = -O2
+L2_O3_UNITS := $(patsubst %,build/src/2.0L/%.c.o,$(L2_O3))
+$(L2_O3_UNITS): OPTFLAGS = -O3 -funsigned-char
+build/src/2.0L/libc/xldtob.c.o: OPTFLAGS = -O3  # signed char (MP2 B0360)

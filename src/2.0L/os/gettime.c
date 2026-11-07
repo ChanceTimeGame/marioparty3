@@ -1,3 +1,17 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/osint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/gettime", osGetTime);
+OSTime osGetTime(void) {
+    u32 tmptime;
+    u32 elapseCount;
+    OSTime currentCount;
+    register u32 saveMask;
+
+    saveMask = __osDisableInt();
+    tmptime = osGetCount();
+    elapseCount = tmptime - __osBaseCounter;
+    currentCount = __osCurrentTime;
+    __osRestoreInt(saveMask);
+    return currentCount + elapseCount;
+}

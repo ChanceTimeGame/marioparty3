@@ -1,3 +1,14 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/viint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/visetevent", osViSetEvent);
+// TODO: this comes from a header
+
+void osViSetEvent(OSMesgQueue *mq, OSMesg m, u32 retraceCount) {
+    register u32 saveMask = __osDisableInt();
+
+    __osViNext->msgq = mq;
+    __osViNext->msg = m;
+    __osViNext->retraceCount = retraceCount;
+    __osRestoreInt(saveMask);
+}

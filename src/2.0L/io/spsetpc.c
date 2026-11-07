@@ -1,3 +1,14 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/R4300.h"
+#include "PR/rcp.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/spsetpc", __osSpSetPc);
+s32 __osSpSetPc(u32 pc) {
+    register u32 status = IO_READ(SP_STATUS_REG);
+
+    if (!(status & SP_STATUS_HALT)) {
+        return -1;
+    }
+    IO_WRITE(SP_PC_REG, pc);
+    return 0;
+}

@@ -1,3 +1,10 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/osint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/setglobalintmask", func_800809D0_main);
+void __osSetGlobalIntMask(OSHWIntr mask) {
+    register u32 saveMask = __osDisableInt();
+
+    __OSGlobalIntMask |= mask;
+    __osRestoreInt(saveMask);
+}

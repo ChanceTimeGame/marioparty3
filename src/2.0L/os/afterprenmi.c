@@ -1,3 +1,7 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/osint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/os/afterprenmi", func_8007EC00_main);
+s32 osAfterPreNMI(void) {
+    return __osSpSetPc(0);
+}

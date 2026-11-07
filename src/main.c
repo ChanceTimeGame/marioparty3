@@ -45,7 +45,6 @@ void InitVibrator(void);
 void dmaInit(void);
 void FlushController(void);
 void func_8004D814_main(void);
-void func_8007D740_main(s32);
 void func_8000F094_main(u32); // Set unk swap chain state
 void func_8004D7D8_main(void);
 s16 func_8004D6AC_main(u8 red, u8 green, u8 blue);
@@ -108,7 +107,7 @@ void func_800354A0_main() {
     AddSchedulerClient((void*)&otherMesgBuf, &D_800CCF60_main, 2); //TODO: (void*) cast
 
     FlushController();
-    func_8007D740_main(2);
+    osViSetSpecialFeatures(2);
     func_8000F094_main(2);
     HuPrcCreate(func_8000E3C0_main, 1, 0, 0);
 

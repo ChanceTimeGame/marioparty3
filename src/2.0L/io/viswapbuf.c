@@ -1,3 +1,13 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "PR/viint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/viswapbuf", osViSwapBuffer);
+// TODO: this comes from a header
+
+void osViSwapBuffer(void* frameBufPtr) {
+    u32 saveMask = __osDisableInt();
+
+    __osViNext->framep = frameBufPtr;
+    __osViNext->state |= VI_STATE_10;
+    __osRestoreInt(saveMask);
+}

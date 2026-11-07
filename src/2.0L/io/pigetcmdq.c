@@ -1,3 +1,11 @@
 #include "common.h"
+#include "PR/os_internal.h"
+#include "piint.h"
 
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/pigetcmdq", func_80080B30_main);
+OSMesgQueue* osPiGetCmdQueue() {
+    if (!__osPiDevMgr.active) {
+        return NULL;
+    } else {
+        return __osPiDevMgr.cmdQueue;
+    }
+}
