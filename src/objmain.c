@@ -37,6 +37,8 @@ extern u8 D_800A1740_main[][2];
 extern u16 D_800A1756_main;
 extern s32 omprevovl;
 extern u16 omovlstat;
+extern s16 D_800A1754_main; /* overlay loaded by func_8004A49C_main, -1 none */
+void func_8000B1A0_main(s32 arg0, u8 sectionFlags);
 extern u8 D_800A176C_main;
 extern omObjData *omobjall;
 extern s8 D_800A1784_main;
@@ -1356,4 +1358,22 @@ void func_8004A468_main(u16 arg0, u16 arg1, u16 arg2) {
     D_800D0A3A_main = 4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/objmain", func_8004A49C_main);
+void func_8004A49C_main(void) {
+    s16 mode;
+
+    if (omovlstat & 5) {
+        mode = 2;
+    } else if (omovlstat & 2) {
+        mode = 0;
+    } else if (omovlstat & 0x4000) {
+        mode = 1;
+    } else {
+        return;
+    }
+    if (mode == D_800A1754_main) {
+        func_8000B1A0_main(mode, 6);
+    } else {
+        func_8000B1A0_main(mode, 7);
+    }
+    D_800A1754_main = mode;
+}
