@@ -665,6 +665,9 @@ typedef struct HmfJitterTbl {
     /* 0x00 */ f32 v[8];
 } HmfJitterTbl;
 extern const HmfJitterTbl D_800A6C04_main;
+extern f32 D_800A0A7C_main; /* the twist angle of func_8001DDB8_main's morph */
+f32 sindf(f32 angle);
+f32 cosdf(f32 angle);
 /* D_800D0444_main (an s32 here) holds the current camera's matrices */
 #define CAMMTX (*(HuCamMtxs**)&D_800D0444_main)
 
@@ -1547,7 +1550,97 @@ void func_8001DACC_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) 
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001DDB8_main);
+void func_8001DDB8_main(HmfDataM* arg0, f32 arg1, f32 arg2, u16 arg3, u16 arg4) {
+    f32 sn[4];
+    f32 cs[4];
+    HmfJitterTbl tbl = D_800A6C04_main;
+    HmfFaceM* b = &arg0->unkB0[arg3];
+    f32 inv = 1.0f - arg1;
+    f32 s;
+    f32 c;
+    f32 dx, dy, dz;
+    HmfVtxM* src;
+    HmfVtxM* dst;
+    s16* idx;
+    s16 cx, cy, cz;
+    s16 sx, sy, sz;
+    s16 ax, ay, az;
+    s16 n;
+    s16 j;
+    s16 i;
+
+    sn[0] = sindf(D_800A0A7C_main);
+    cs[0] = cosdf(D_800A0A7C_main);
+    sn[1] = sindf(-D_800A0A7C_main / 2.0f);
+    cs[1] = cosdf(-D_800A0A7C_main / 2.0f);
+    sn[2] = sindf(D_800A0A7C_main / 2.0f);
+    cs[2] = cosdf(D_800A0A7C_main / 2.0f);
+    sn[3] = sindf(-D_800A0A7C_main);
+    cs[3] = cosdf(-D_800A0A7C_main);
+
+    for (i = 0; i < arg4; i++) {
+        s = sn[i & 3];
+        c = cs[i & 3];
+        cx = b->unk0C;
+        cy = b->unk10;
+        cz = b->unk14;
+        sx = cx * arg2 + cx * (1.0f - arg2) * tbl.v[i & 7];
+        sy = cy * arg2 + cy * (1.0f - arg2) * tbl.v[i & 7];
+        sz = cz * arg2 + cz * (1.0f - arg2) * tbl.v[i & 7];
+        n = (u8)(b->unk00 & 0x7F);
+        idx = b->unk04;
+        ax = (s8) b->unk01[0];
+        if (ax < 0) {
+            ax = -ax;
+        }
+        ay = (s8) b->unk01[1];
+        if (ay < 0) {
+            ay = -ay;
+        }
+        az = (s8) b->unk01[2];
+        if (az < 0) {
+            az = -az;
+        }
+        if ((ax > ay) & (ax > az)) {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = (dx * c + dy * s) * inv + sx;
+                dst->unk02 = (-dx * s + dy * c) * inv + sy;
+                dst->unk04 = dz * inv + sz;
+                idx++;
+            }
+        } else if (ay > az) {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = dx * inv + sx;
+                dst->unk02 = (dy * c + dz * s) * inv + sy;
+                dst->unk04 = (-dy * s + dz * c) * inv + sz;
+                idx++;
+            }
+        } else {
+            for (j = 0; j < n; j++) {
+                src = &arg0->unk40[*idx];
+                dst = &arg0->unk44[(u8)D_800D2008_main][*idx];
+                dx = src->unk00 - cx;
+                dy = src->unk02 - cy;
+                dz = src->unk04 - cz;
+                dst->unk00 = (dx * c - dz * s) * inv + sx;
+                dst->unk02 = dy * inv + sy;
+                dst->unk04 = (dx * s + dz * c) * inv + sz;
+                idx++;
+            }
+        }
+        b++;
+    }
+}
 
 /* MP1 func_80027AC8 (src/24740.c): point a model's texture arg1 at the loaded texture arg2 */
 void func_8001E500_main(s16 arg0, char* arg1, char* arg2) {
