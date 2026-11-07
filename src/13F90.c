@@ -240,4 +240,63 @@ void func_80013D4C_main(s16 model) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/13F90", func_80013FB4_main);
+/* Effect 2 (scatter): the polygons are thrown out along their directions and fall, bouncing
+   off the model's ground height, over 100 frames; flag 1 restarts it, flag 4 is set when it ends. */
+void func_80013FB4_main(s16 model) {
+    HmfFxData* hmf;
+    HmfFxWork* work;
+    HmfFxPart* part;
+    s16 count;
+    s16 i;
+    f32 scale;
+    f32 groundY;
+
+    hmf = FXDATA(model);
+    work = FXWORK(model);
+    if (work->unk00 == -1) {
+        count = hmf->unk1A;
+    } else {
+        count = hmf->unk60[work->unk00].groupCount;
+    }
+    if (work->unk02 >= 100) {
+        if (!(work->unk04 & 1)) {
+            return;
+        }
+        work->unk02 = 0;
+    }
+    scale = 2.0f * cosdf(work->unk02 * 0.9f);
+    if (work->unk02 <= 0) {
+        work->unk04 &= ~4;
+        scale = 0.0f;
+        part = work->parts;
+        for (i = 0; i < count; i++) {
+            part->pos.x = part->pos.y = part->pos.z = 0.0f;
+            part->vel.x = part->dir.x * 10.0f;
+            part->vel.y = part->dir.y * 10.0f;
+            part->vel.z = part->dir.z * 10.0f;
+            part++;
+        }
+    }
+    part = work->parts;
+    groundY = HmfModelData[model].pos.y;
+    for (i = 0; i < count; i++) {
+        part->pos.x += part->vel.x * part->speed;
+        part->pos.y += part->vel.y * part->speed;
+        part->pos.z += part->vel.z * part->speed;
+        part->vel.y -= 0.1f;
+        if (groundY + part->pos.y < 0.0f) {
+            part->pos.y = -groundY;
+            part->vel.x *= 0.9f;
+            part->vel.y = -(part->vel.y * 0.3f);
+            part->vel.z *= 0.9f;
+        }
+        part->vel.x *= 0.999f;
+        part->vel.y *= 0.999f;
+        part->vel.z *= 0.999f;
+        part->scale = scale;
+        part++;
+    }
+    if (++work->unk02 >= 100) {
+        work->unk04 |= 4;
+    }
+}
