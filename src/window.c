@@ -181,7 +181,7 @@ extern s32 D_800D209C_main; /* last advance */
 extern u8 D_800A2194_main[256]; /* character widths */
 extern TWIcon D_800A2294_main[22];
 extern TWColor D_800A2154_main[10];
-extern u8 D_800A2174_main[0x14]; /* a window template (bcopy of 0x20 bytes) */
+extern u16 D_800A2174_main[16]; /* the window palette template (RGBA5551) */
 
 void func_8005A6B0_main(void);
 s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags);
@@ -220,6 +220,7 @@ void func_8005CEB0_main(s16 winId);
 void func_8005CF94_main(s16 winId);
 s16 func_8005CFE0_main(s16 winId, s16 idx);
 void func_8005D294_main(s16 win_id);
+void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y);
 void func_8005D2D4_main(s16 winId);
 void func_8005D83C_main(s16 winId, s16 x, s16 y, s16 w, s16 h);
 u8* func_8005DAA4_main(s16 winId);
@@ -513,9 +514,79 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
 INCLUDE_ASM("asm/nonmatchings/window", func_8005A968_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005B040_main);
+extern u8 D_800A2324_main[8]; /* corner pixels (4-bit pairs), two bytes per corner line */
 
+/* window image border: frame lines and rounded corners (4-bit, two pixels per byte) */
+void func_8005B040_main(u8* mask, s16 w, s16 h) {
+    s16 stride = w / 2;
+    s16 i;
+    s16 j;
+    s16 k;
+    u8 c0;
+    u8 c1;
+
+    for (i = 0; i < stride; i++) {
+        mask[i] = 0x44;
+        (mask + stride)[i] = 0x77;
+        (mask + (h - 2) * stride)[i] = 0x77;
+        (mask + (h - 1) * stride)[i] = 0x44;
+    }
+
+    for (j = 0; j < h; j++) {
+        mask[stride * j] = 0x47;
+        *(mask + stride * j + stride - 1) = 0x74;
+    }
+
+    for (j = 0; j < 4; j++) {
+        k = j * 2;
+        mask[j * stride] = D_800A2324_main[k];
+        mask[j * stride + 1] = D_800A2324_main[k + 1];
+        mask[(h - j - 1) * stride] = D_800A2324_main[k];
+        mask[(h - j - 1) * stride + 1] = D_800A2324_main[k + 1];
+        c0 = (D_800A2324_main[k] >> 4) | (D_800A2324_main[k] << 4);
+        c1 = (D_800A2324_main[k + 1] >> 4) | (D_800A2324_main[k + 1] << 4);
+        mask[j * stride + stride - 2] = c1;
+        mask[j * stride + stride - 1] = c0;
+        mask[(h - j - 1) * stride + stride - 2] = c1;
+        mask[(h - j - 1) * stride + stride - 1] = c0;
+    }
+}
+
+// register allocation (masked 3): retail loads the third byte into the result register (beql)
+#ifdef NON_MATCHING
+/* clear the pixels outside the window's rounded corners (4-bit, two pixels per byte) */
+void func_8005B238_main(u8* mask, s16 w, s16 h) {
+    s16 r;
+    s16 stride;
+    s16 i;
+    s16 j;
+    s16 k;
+    u8 v;
+
+    if (w > h) {
+        r = h / 2;
+    } else {
+        r = w / 2;
+    }
+    stride = w / 2;
+
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < r - i; j++) {
+            v = (mask + i * stride)[j / 2];
+            (mask + i * stride)[j / 2] = (j & 1) ? v & 0xF0 : v & 0xF;
+            v = (mask + (h - i - 1) * stride)[j / 2];
+            (mask + (h - i - 1) * stride)[j / 2] = (j & 1) ? v & 0xF0 : v & 0xF;
+            k = stride * 2 - j - 1;
+            v = (mask + i * stride)[k / 2];
+            (mask + i * stride)[k / 2] = (k % 2 == 0) ? v & 0xF : v & 0xF0;
+            v = (mask + (h - i - 1) * stride)[k / 2];
+            (mask + (h - i - 1) * stride)[k / 2] = (k & 1) ? v & 0xF0 : v & 0xF;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_8005B238_main);
+#endif
 
 /* MP1 LoadStringIntoWindow: sets the window's text (a message id, or a pointer above 0x80000000)
    and its position (-2 = centred). Host: the id/pointer test assumes N64 addresses. */
@@ -803,7 +874,213 @@ void func_8005C154_main(s16 winId, u8 r, u8 g, u8 b) {
     func_8005C060_main(winId, 0, r, g, b);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005C190_main);
+/* MP2 func_80089DDC_8A9DC (MP1 func_8006E318): prints the window's text up to the next stop;
+   0 when the text has ended. MP3 adds outlined text (0x0F/0x16) and colour codes that an
+   inserted string can skip. */
+s32 func_8005C190_main(s16 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    TWEntry* e;
+    s16 skip;
+    s16 n;
+    s32 c;
+
+    skip = 0;
+    if (tw->unk25 == 0xFF) {
+        return 1;
+    }
+
+    while (tw->unk5C >= tw->unk26) {
+        while (*tw->unkCC < 0x21) {
+            if (*tw->unkCC == 0) {
+                if (tw->unkAC >= 0) {
+                    if (tw->unk_B2[tw->unkAC] != -1) {
+                        tw->unk22 = tw->unk_B2[5];
+                    }
+                    tw->unkAC = -1;
+                    tw->unkCC = tw->unkD8;
+                    continue;
+                }
+                if (tw->unkD4 != 0) {
+                    func_800365E8_main(tw->unkD0);
+                }
+                tw->unkD0 = NULL;
+                tw->unk20 = 0;
+                return 0;
+            }
+            if (*tw->unkCC < 9) {
+                if (tw->unkAC == -1 && skip != 0) {
+                    skip--;
+                } else {
+                    tw->unk22 = *tw->unkCC - 1;
+                    skip = 0;
+                    if (tw->unkAC != -1) {
+                        skip = (tw->unkCC[1] == 0) * 2;
+                    }
+                }
+            }
+            c = *tw->unkCC - 0x11;
+            if ((u8)c < 5) {
+                tw->unkAC = c;
+                if (tw->unk_B8[tw->unkAC] != NULL) {
+                    tw->unkD8 = ++tw->unkCC;
+                    tw->unkCC = tw->unk_B8[tw->unkAC];
+                    if (tw->unk_B2[tw->unkAC] != -1) {
+                        tw->unk_B2[5] = tw->unk22;
+                        tw->unk22 = tw->unk_B2[tw->unkAC];
+                    }
+                    continue;
+                }
+                tw->unkAC = -1;
+            }
+            if ((tw->unk_38 & 4) && (*tw->unkCC == 0x10 || *tw->unkCC == 0x20 || *tw->unkCC == 0x1A)) {
+                if (*tw->unkCC == 0x1A) {
+                    *tw->unkCC = 0x60;
+                } else {
+                    *tw->unkCC = 0x40;
+                }
+                break;
+            }
+            switch (*tw->unkCC) {
+                case 0x10:
+                case 0x1A:
+                case 0x20:
+                    tw->unk34 = (gLanguageIndex == 1 || *tw->unkCC == 0x1A || (tw->unk_38 & 0x80000)) ? 10 : 4;
+                    tw->unkCC++;
+                    if (func_8005CC18_main(tw) == 0) {
+                        tw->unk20 = 6;
+                        func_8005CEB0_main(winId);
+                        return 1;
+                    }
+                    continue;
+                case 10:
+                    if (!(tw->unk_38 & 0x40000) && func_8005CCF0_main(tw) == 0 && tw->unkCC[1] != 0) {
+                        tw->unk20 = 6;
+                        func_8005CEB0_main(winId);
+                        tw->unkCC++;
+                        return 1;
+                    }
+                    break;
+                case 0x17:
+                    if (!(tw->unk_38 & 0x40000) && func_8005CD38_main(tw) == 0) {
+                        tw->unkCC++;
+                        return 1;
+                    }
+                    break;
+                case 11:
+                    if (tw->unk_38 & 4) {
+                        func_8005CE10_main(tw);
+                    } else if (tw->unkAC < 0 && !(tw->unk_38 & 0x1800)) {
+                        func_8005CD84_main(tw);
+                    }
+                    break;
+                case 12:
+                    e = &tw->unk_F4[tw->unk_30];
+                    e->unk2 = tw->unk54 - tw->unk48;
+                    e->unk4 = tw->unk56 - tw->unk4A;
+                    tw->unk26 = 0;
+                    tw->unk5C = 0;
+                    break;
+                case 13:
+                    e = &tw->unk_F4[tw->unk_30];
+                    e->unk6 = tw->unk54 - e->unk2;
+                    e->unk8 = (tw->unk56 - e->unk4) + tw->unk28;
+                    e->unk0 = 0;
+                    tw->unk26 = tw->unk25;
+                    if (++tw->unk_30 >= 24) {
+                        osSyncPrintf("Select Max Over!\n");
+                        tw->unk_30--;
+                    }
+                    break;
+                case 14:
+                    n = ((s16)(tw->unk54 - tw->unk4C) + tw->unk35) / tw->unk35 * tw->unk35;
+                    if (n < tw->unk50) {
+                        tw->unk54 = n + tw->unk4C;
+                    }
+                    break;
+                case 15:
+                    tw->unk_38 |= 0x20000;
+                    break;
+                case 0x16:
+                    tw->unk_38 &= ~0x20000;
+                    break;
+                case 0x18:
+                    tw->unkCC++;
+                    break;
+                case 0x19:
+                    if (tw->unkAC == -1 && skip != 0) {
+                        skip--;
+                    } else {
+                        tw->unk22 = tw->unk23;
+                    }
+                    break;
+            }
+            tw->unkCC++;
+        }
+        if ((u32)(*tw->unkCC - 0x21) < 0xF) {
+            n = tw->unk29 + func_8005CFE0_main(winId, *tw->unkCC - 0x21);
+            tw->unkCC++;
+            if (func_8005CC3C_main(tw, n) == 0) {
+                tw->unk20 = 6;
+                func_8005CEB0_main(winId);
+                return 1;
+            }
+            continue;
+        }
+        if (*tw->unkCC == 0xFF) {
+            tw->unk20 = 2;
+            func_8005CEB0_main(winId);
+            tw->unkCC++;
+            return 1;
+        }
+        tw->unk5C -= tw->unk26;
+        if (tw->unk56 + tw->unk28 > tw->unk4E + tw->unk52) {
+            tw->unk20 = 6;
+            func_8005CEB0_main(winId);
+            return 1;
+        }
+        if (*tw->unkCC >= 0x30) {
+            if ((tw->unk_38 & 0x10000) && *tw->unkCC >= '0' && *tw->unkCC <= '9') {
+                *tw->unkCC += 0x70;
+            }
+            if (tw->unk_38 & 0x80) {
+                if (tw->unk22 != 0) {
+                    func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk54 + 2, tw->unk56 + 1);
+                }
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54 + 1, tw->unk56);
+            } else if (tw->unk_38 & 0x20000) {
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54, tw->unk56 - 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54, tw->unk56 + 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54 + 1, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54 - 1, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+            } else {
+                if (tw->unk22 != 0) {
+                    func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk54 + 1, tw->unk56 + 1);
+                }
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+            }
+        }
+        tw->unkCC++;
+        if ((u8)(*tw->unkCC + 0x80) < 2) {
+            if (tw->unk_38 & 0x20000) {
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 3, tw->unk56 - 2);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 3, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 4, tw->unk56 - 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 2, tw->unk56 - 1);
+            } else if (tw->unk22 != 0) {
+                func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk27 + tw->unk54 - 2, tw->unk56);
+            }
+            func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk27 + tw->unk54 - 3, tw->unk56 - 1);
+            tw->unkCC++;
+        }
+        if (func_8005CC18_main(tw) == 0) {
+            return 1;
+        }
+    }
+    tw->unk5C++;
+    return 1;
+}
 
 /* MP1 func_8006E87C's caller: advances past one character */
 s32 func_8005CC18_main(TextWindow* tw) {
@@ -946,9 +1223,114 @@ void func_8005D2D4_main(s16 winId) {
     func_8005B63C_main(winId, 0x40000, 0x40000);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005D2FC_main);
+void func_8005D2FC_main(void) {
+    D_800CD2A4_main = 1;
+}
 
+/* the font file (D_800D1FE4_main) */
+typedef struct TWFont {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 unk8; /* offset of the 4-bit glyphs */
+} TWFont;
+
+// register allocation (masked 44, all from one spill): retail keeps shadowHi in a stack slot
+// (sb/lbu 0x1F(sp), frame 0x48); here it gets s5. Tried computing it from unk33 directly and
+// as a nested assignment
+#ifdef NON_MATCHING
+/* MP2 func_8008AD94_8B994 (MP1 func_8006EEB8): draws character c (a 10x12 4-bit glyph) into the
+   window image in colour color; MP3 also edges the glyph's partial pixels in colour + 7, leaving
+   black (1) and shadow (unk33 + 1) pixels alone */
+void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    u8* buf;
+    u8* src;
+    u8* dst;
+    s16 row;
+    s16 i;
+    s16 w;
+    s16 h;
+    s16 stride;
+    s16 srcStride;
+    u8 shadow;
+    u8 shadowHi;
+    u8 v;
+
+    func_8005DD14_main(winId);
+    y = (y < 0) ? 0 : y;
+    x = (x < 0) ? 0 : x;
+    buf = func_8005DAA4_main(winId);
+    src = (u8*)D_800D1FE4_main + ((TWFont*)D_800D1FE4_main)->unk8 + (c - 0x30) * 60;
+    w = 10;
+    if (gLanguageIndex != 1 && !(tw->unk_38 & 0x80000)) {
+        w = D_800A2194_main[c];
+    }
+    tw->unk34 = w;
+    h = 12;
+    srcStride = 5;
+    if ((tw->unk_38 & 4) && c != 0x80 && c != 0x81 && color == 0) {
+        func_8005D83C_main(winId, x - 1, y - 2, tw->unk29 + 3 + w, 14);
+    }
+    dst = &buf[(x + y * tw->unk44) / 2];
+    stride = tw->unk44 / 2;
+    shadow = tw->unk33 + 1;
+    shadowHi = shadow << 4;
+    color++;
+    if (x & 1) {
+        for (row = 0; row < h; row++) {
+            for (i = 0; i < w / 2; i++) {
+                if ((*src & 0xF0) == 0xF0) {
+                    dst[i] = color | (dst[i] & 0xF0);
+                } else {
+                    v = dst[i];
+                    if ((v & 0xF) != 1 && (v & 0xF) != shadow && (*src & 0xF0) != 0 && color != 1) {
+                        dst[i] = (v & 0xF0) | (color + 7);
+                    }
+                }
+                if ((*src & 0xF) == 0xF) {
+                    *(dst + i + 1) = (*(dst + i + 1) & 0xF) | (color << 4);
+                } else {
+                    v = *(dst + i + 1);
+                    if ((v & 0xF0) != 0x10 && (v & 0xF0) != shadowHi && (*src & 0xF) != 0 && color != 1) {
+                        *(dst + i + 1) = (v & 0xF) | ((color + 7) << 4);
+                    }
+                }
+                src++;
+            }
+            src += srcStride - i;
+            dst += stride;
+        }
+    } else {
+        w >>= 1;
+        for (row = 0; row < h; row++) {
+            for (i = 0; i < w; i++) {
+                if ((*src & 0xF0) == 0xF0) {
+                    *dst = (*dst & 0xF) | (color << 4);
+                } else {
+                    v = *dst;
+                    if ((v & 0xF0) != 0x10 && (v & 0xF0) != shadowHi && (*src & 0xF0) != 0 && color != 1) {
+                        *dst = (v & 0xF) | ((color + 7) << 4);
+                    }
+                }
+                if ((*src & 0xF) == 0xF) {
+                    *dst = color | (*dst & 0xF0);
+                } else {
+                    v = *dst;
+                    if ((v & 0xF) != 1 && (v & 0xF) != shadow && (*src & 0xF) != 0 && color != 1) {
+                        *dst = (v & 0xF0) | (color + 7);
+                    }
+                }
+                src++;
+                dst++;
+            }
+            src += srcStride - i;
+            dst += stride - i;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_8005D30C_main);
+#endif
 
 /* MP1 func_8006F3BC: clears a w x h box of the text image */
 void func_8005D83C_main(s16 winId, s16 x, s16 y, s16 w, s16 h) {
@@ -1043,7 +1425,63 @@ void func_8005DD54_main(TextWindow* tw) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005DDDC_main);
+extern u8 D_800D6A90_main;
+
+/* MP2 func_8008B6F4_8C2F4 (MP1 func_8006F9B0): the window process, runs every open window once
+   per frame */
+void func_8005DDDC_main(void) {
+    TextWindow* tw;
+    s16 id;
+    u16 btn;
+
+    while (1) {
+        HuPrcVSleep();
+        id = D_800CC69C_main[0].unk64;
+        while (D_800CC69C_main[id].unk64 != -1) {
+            tw = &D_800CC69C_main[id];
+            if ((tw->unk_38 & 0x400) ||
+                ((D_800CB99C_main == 0 || (tw->unk_38 & 0x40)) && func_80049F98_main() + D_800D6A90_main != 0)) {
+                if (tw->unk_38 & 0x100) {
+                    func_8005DC94_main(id);
+                }
+                id = D_800CC69C_main[id].unk64;
+                continue;
+            }
+            tw->unk_38 &= ~0x200;
+            switch (tw->unk20) {
+                case 1:
+                    func_8005C190_main(id);
+                    break;
+                case 2:
+                case 6:
+                    if ((!(tw->unk_38 & 0x10) || tw->unk20 == 6) &&
+                        (((btn = func_8005F918_main(tw)) & 0xC000) || (btn & tw->unkA6))) {
+                        if (tw->unkAA != -1) {
+                            HuAudFXPlay(tw->unkAA);
+                        }
+                        if (tw->unk20 == 6) {
+                            func_8005D294_main(id);
+                        }
+                        tw->unk20 = 1;
+                        tw->unk_38 |= 0x200;
+                        tw->unkA8 = btn;
+                        func_8005CF94_main(id);
+                    }
+                    break;
+                case 5:
+                    if (func_8005E348_main(id) == 0) {
+                        tw->unk20 = 0;
+                    }
+                    break;
+            }
+            if (tw->unk_38 & 0x100) {
+                func_8005DC94_main(id);
+            }
+            func_8005EEE4_main(tw, &tw->unk_F4[tw->unk_31]);
+            id = D_800CC69C_main[id].unk64;
+        }
+    }
+}
 
 /* MP1 func_8006FCC0: the window's state; for -1 the states of all windows or'ed */
 s16 func_8005E0C0_main(s16 winId) {
@@ -1539,7 +1977,10 @@ void func_8005F7F4_main(s16* arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005F904_main);
+void func_8005F904_main(void) {
+    D_800D1F34_main = 0;
+    D_800D6A26_main = 0;
+}
 
 /* MP1 func_80071278: the buttons pressed on the window's ports (or queued in D_800FA048) */
 s16 func_8005F918_main(TextWindow* tw) {
@@ -1605,7 +2046,44 @@ void func_8005FBA4_main(u8* arg0, u8* arg1) {
     *arg0 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005FBF8_main);
+/* tints the window: sprite colour (r, g, b), and palette entries 9-15 blended 30:70 from the
+   template towards it; the sprite gets a fresh copy of the palette */
+void func_8005FBF8_main(s16 winId, s32 r, s32 g, s32 b) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    HuSprite* spr;
+    void* pal;
+    s16 i;
+    s16 nr;
+    s16 ng;
+    s16 nb;
+    u16 c;
+
+    tw->unk_2D = r;
+    tw->unk_2E = g;
+    tw->unk_2F = b;
+    func_80055420_main(tw->unk_6C, 0, r, g, b);
+    spr = HuSprGet(tw->unk_6C, 1);
+    for (i = 0; i < 7; i++) {
+        c = D_800A2174_main[i + 9];
+        nr = ((c >> 8) & 0xF8) * 0.3f + (u8)r * 0.7f;
+        if (nr >= 0x100) {
+            nr = 0xFF;
+        }
+        ng = ((c >> 3) & 0xF8) * 0.3f + (u8)g * 0.7f;
+        if (ng >= 0x100) {
+            ng = 0xFF;
+        }
+        nb = ((c << 2) & 0xF8) * 0.3f + (u8)b * 0.7f;
+        if (nb >= 0x100) {
+            nb = 0xFF;
+        }
+        tw->unk_00[i + 9] = ((nr << 8) & ~0x7FF) | ((ng << 3) & 0x7C0) | ((nb >> 2) & 0x3E) | 1;
+    }
+    pal = HuMemAlloc(0x20);
+    bcopy(tw, pal, 0x20);
+    func_80019C00_main(spr->unk_84->unk0C);
+    spr->unk_84->unk0C = pal;
+}
 
 /* MP1 func_8007155C: the controller ports that drive the window */
 void func_8005FE54_main(s16 winId, s16 ports) {
@@ -1943,11 +2421,139 @@ void func_80060858_main(s32 winId, u16 btn) {
     tw->unkA6 = btn;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80060880_main);
+/* a portrait (guide) window: window size, text box and portrait sprites */
+typedef struct TWPortrait {
+    /* 0x00 */ s32 file;  /* portrait */
+    /* 0x04 */ s32 file2; /* second portrait sprite, or 0 */
+    /* 0x08 */ s16 w;
+    /* 0x0A */ s16 h;
+    /* 0x0C */ s16 textX;
+    /* 0x0E */ s16 textY;
+    /* 0x10 */ s16 textW;
+    /* 0x12 */ s16 textH;
+    /* 0x14 */ s16 x; /* func_8005BCA4_main offset, also the portrait sprites' origin */
+    /* 0x16 */ s16 y;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 attr;
+} TWPortrait; // size 0x1C
 
+extern TWPortrait D_800A2384_main[21];
+
+/* opens portrait window type (D_800A2384_main) at x, y; returns its id */
+s32 func_80060880_main(s32 x, s32 y, s32 type) {
+    TWPortrait* p = &D_800A2384_main[type];
+    TextWindow* tw;
+    s32 id;
+    s32 spr;
+    HuSprite* s;
+
+    id = func_8005A968_main(x, y, p->w, p->h, 0, 12);
+    func_8005BDFC_main(id, 0);
+    func_8005C060_main(id, 2, 0xFF, 0, 0);
+    func_8005C060_main(id, 4, 0x46, 0xE0, 0x46);
+    func_8005C060_main(id, 5, 0, 0xB0, 0xC0);
+    func_8005C060_main(id, 6, 0xFF, 0xAD, 0);
+    tw = &D_800CC69C_main[id];
+    tw->unk54 = tw->unk4C = p->textX;
+    tw->unk56 = tw->unk4E = p->textY;
+    tw->unk50 = p->textW;
+    tw->unk52 = p->textH;
+    func_8005BCA4_main(id, p->x, p->y);
+    tw->unk58 = tw->unk54 + p->textW - tw->unk27;
+    tw->unk5A = tw->unk56 + p->textH - tw->unk28;
+    tw->unk33 = 7;
+    func_8005C060_main(id, 7, 0x40, 0x40, 0x40);
+    if (type == 5) {
+        tw->unk29 = 0;
+    }
+    spr = func_8005B7B8_main(id, p->file, 0, 0, 0);
+    tw->unk274 = spr;
+    HuSprPriSet(tw->unk_6C, spr, 15000);
+    func_80054904_main(tw->unk_6C, spr, 0, 0);
+    HuSprScaleSet(tw->unk_6C, spr, 0.0f, 0.0f);
+    HuSprAttrSet(tw->unk_6C, spr, p->attr);
+    s = HuSprGet(tw->unk_6C, spr);
+    s->unk_84->unk00->unk08 = p->x;
+    s->unk_84->unk00->unk0A = p->y;
+    if (p->file2 != 0) {
+        spr = func_8005B7B8_main(id, p->file2, 0, 0, 0);
+        tw->unk276 = spr;
+        func_80055458_main(tw->unk_6C, spr, 0xFF);
+        HuSprPriSet(tw->unk_6C, spr, 15001);
+        func_80054904_main(tw->unk_6C, spr, 0, 0);
+        HuSprScaleSet(tw->unk_6C, spr, 0.0f, 0.0f);
+        func_80055420_main(tw->unk_6C, spr, 0x1B, 0x1B, 0xFF);
+        HuSprAttrSet(tw->unk_6C, spr, p->attr | 0x1000);
+        s = HuSprGet(tw->unk_6C, spr);
+        s->unk_84->unk00->unk08 = p->x;
+        s->unk_84->unk00->unk0A = p->y;
+    } else {
+        tw->unk276 = 0;
+    }
+    tw->unk_38 |= 0x2000;
+    func_8005BEE0_main(id, 0);
+    func_8005C154_main(id, 0xC0, 0xC0, 0xC0);
+    func_8005C02C_main(id, p->unk18);
+    func_8005FBF8_main(id, 0xFF, 0xFF, 0xFF);
+    func_8005BB18_main(id, 0.0f, 0.0f);
+    return id;
+}
+
+/* functions.us.h declares winId s16; retail takes it as s32 (no entry extension, like
+   func_80060EA8_main). Matches, and the C path compiles, with that prototype fixed to
+   (s32, s32) (wave 2c E header patch). */
+#ifdef NON_MATCHING
+/* opens the portrait window with a growing (sine) animation */
+void func_80060C14_main(s32 winId, s32 sound) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    f32 scale;
+    s16 i;
+
+    if (!(tw->unk_38 & 0x4000)) {
+        func_800600C0_main(winId, 1);
+        if (sound != 0) {
+            if (tw->unk_38 & 0x20) {
+                HuAudFXPlay(0);
+            } else {
+                HuAudFXPlay(0x11D);
+            }
+        }
+        for (i = 0; i < 10; i++) {
+            scale = sindf(i * 10.0f) * ((f32)(tw->unk40 + 4) / tw->unk40);
+            HuSprScaleSet(tw->unk_6C, tw->unk274, scale, scale);
+            func_8005BB18_main(winId, scale, scale);
+            if (tw->unk276 != 0) {
+                HuSprScaleSet(tw->unk_6C, tw->unk276, scale, scale);
+            }
+            HuPrcVSleep();
+        }
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+        if (tw->unk276 != 0) {
+            HuSprScaleSet(tw->unk_6C, tw->unk276, 1.0f, 1.0f);
+        }
+        func_8005BB18_main(winId, 1.0f, 1.0f);
+        func_800600C0_main(winId, 0);
+        func_8005B63C_main(winId, 0x4000, 0x4000);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/window", func_80060C14_main);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80060DEC_main);
+/* shows the portrait window at full size at once */
+void func_80060DEC_main(s32 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    func_800600C0_main(winId, 1);
+    HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+    if (tw->unk276 != 0) {
+        HuSprScaleSet(tw->unk_6C, tw->unk276, 1.0f, 1.0f);
+    }
+    func_8005BB18_main(winId, 1.0f, 1.0f);
+    func_800600C0_main(winId, 0);
+    func_8005B63C_main(winId, 0x4000, 0x4000);
+}
 
 /* MP1 func_80071E80: closes the window with a shrinking animation (MP3 also shrinks the
    second portrait sprite unk276) */
@@ -1983,13 +2589,31 @@ void func_80060EA8_main(s32 winId, s32 sound) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8006105C_main);
+/* portrait sprites: translucent, alpha */
+void func_8006105C_main(s32 winId, u8 alpha) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    HuSprAttrSet(tw->unk_6C, tw->unk274, 0x1000);
+    func_80055458_main(tw->unk_6C, tw->unk274, alpha);
+    if (tw->unk276 != 0) {
+        func_80055458_main(tw->unk_6C, tw->unk276, alpha);
+    }
+}
 
 void func_800610E0_main(s16 arg0) {
     func_8005F364_main(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80061100_main);
+/* window and portrait sprite priorities */
+void func_80061100_main(s16 winId, s32 prio) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+
+    func_8005BE30_main(winId, prio);
+    HuSprPriSet(tw->unk_6C, tw->unk274, prio + 1);
+    if (tw->unk276 != 0) {
+        HuSprPriSet(tw->unk_6C, tw->unk276, prio + 2);
+    }
+}
 
 // Obtains a window handle
 s32 func_80061188_main(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u16 arg5) {
@@ -2025,9 +2649,99 @@ s32 func_80061188_main(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u16 arg
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80061388_main);
+/* opens the portrait window: unrolls it vertically, then bounces it, then shows the portrait */
+void func_80061388_main(s16 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/window", func_800615B8_main);
+    func_800600C0_main(winId, 1);
+    if (tw->unk276 != -1) {
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 0.0f, 0.0f);
+    }
+    func_8005FFA8_main(winId);
+    for (i = 1; i < 6; i++) {
+        func_8005BBC0_main(winId, 1.0f - cosdf(i * 18.0f), 2.0f / tw->unk42);
+        HuPrcVSleep();
+    }
+    for (i = 1; i < 4; i++) {
+        func_8005BBC0_main(winId, 1.0f, sindf(i * 30.0f) * 1.05f);
+        HuPrcVSleep();
+    }
+    func_8005BBC0_main(winId, 1.0f, 1.0f);
+    if (tw->unk276 != -1) {
+        func_80054904_main(tw->unk_6C, tw->unk274, 0x18 - tw->unk48, 0x18 - tw->unk4A);
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+        func_800615B8_main(winId, 1);
+    }
+    func_800600C0_main(winId, 0);
+}
+
+extern u8 D_800D2008_main; /* frame buffer index (0-2) */
+
+/* shows (show != 0: a circle growing from (10, 10)) or hides (a hole growing from (30, 30)) the
+   40x40 portrait, drawing each frame into one of three copies of its image */
+void func_800615B8_main(s16 winId, s32 show) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    u8* bufs[3];
+    HuSprite* spr;
+    u8* image;
+    u8* pal;
+    u8* dst;
+    f32 r;
+    s16 i;
+    s16 x;
+    s16 y;
+    s16 n;
+    u8 clear;
+
+    spr = HuSprGet(tw->unk_6C, tw->unk274);
+    image = spr->unk_84->unk00->unk00;
+    for (i = 0; i < 3; i++) {
+        bufs[i] = HuMemAllocTag(40 * 40, 0x7918);
+        memset(bufs[i], 0, 40 * 40);
+    }
+    /* the first transparent palette entry */
+    pal = spr->unk_84->unk0C;
+    pal++;
+    for (clear = 0; clear < spr->unk_84->unk1A; clear++, pal += 2) {
+        if (!(*pal & 1)) {
+            break;
+        }
+    }
+    n = 3;
+    if (show) {
+        n = 6;
+    }
+    for (i = 1; i <= n; i++) {
+        pal = image;
+        dst = bufs[D_800D2008_main];
+        r = HuSqrtf(1800.0f) * (1.0f - cosdf(90.0f / n * i));
+        for (y = 0; y < 40; y++) {
+            for (x = 0; x < 40; x++) {
+                if (show) {
+                    if ((s16)(x - 10) * (s16)(x - 10) + (s16)(y - 10) * (s16)(y - 10) < r * r) {
+                        *dst = (pal + y * 40)[x];
+                    } else {
+                        *dst = clear;
+                    }
+                } else {
+                    if ((s16)(x - 30) * (s16)(x - 30) + (s16)(y - 30) * (s16)(y - 30) < r * r) {
+                        *dst = clear;
+                    } else {
+                        *dst = (pal + y * 40)[x];
+                    }
+                }
+                dst++;
+            }
+        }
+        spr->unk_84->unk00->unk00 = bufs[D_800D2008_main];
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 3; i++) {
+        func_80019C00_main(bufs[i]);
+    }
+    spr->unk_84->unk00->unk00 = image;
+}
 
 void func_80061934_main(s16 winId, s16 arg1) {
     s16 temp_v0;
