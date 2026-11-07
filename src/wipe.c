@@ -14,6 +14,9 @@
 /* Frame-buffer addresses kept as integers (retail); a host build must widen this to intptr_t. */
 typedef s32 WipePtr;
 
+/* texture mask: log2 of a size rounded up (as in 14EA0.c) */
+#define WIPE_TEX_MASK(x) ((x) < 3 ? 1 : (x) < 5 ? 2 : (x) < 9 ? 3 : (x) < 17 ? 4 : (x) < 33 ? 5 : (x) < 65 ? 6 : (x) < 129 ? 7 : (x) < 257 ? 8 : 9)
+
 typedef struct WipeTex {
     /* 0x00 */ s16 w;
     /* 0x02 */ s16 h;
@@ -618,7 +621,61 @@ s32 func_8006515C_main(Gfx** arg0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/wipe", func_800651F0_main);
+/* ten horizontal bands of height arg1 * 24 about each band centre; bands over the wipe texture
+   draw its rows (4-bit I) instead of a flat fill */
+void func_800651F0_main(Gfx** arg0, f32 arg1) {
+    f32 alpha;
+    f32 half;
+    s16 i;
+    s16 y;
+    s16 row;
+    s32 top;
+
+    if (arg1 == 0.0f) {
+        return;
+    }
+
+    gSPDisplayList((*arg0)++, D_800A26D8_main);
+    gDPSetAlphaCompare((*arg0)++, G_AC_THRESHOLD);
+    gDPSetBlendColor((*arg0)++, 0, 0, 0, 1);
+
+    alpha = (arg1 + 0.2f) * 255.0f;
+    if (alpha > 255.0f) {
+        alpha = 255.0f;
+    }
+
+    for (i = 0; i < 10; i++) {
+        y = i * 24.0f + 12.0f;
+        half = arg1 * 24.0f / 2.0f;
+        gDPPipeSync((*arg0)++);
+        if (alpha == 255.0f) {
+            gDPSetRenderMode((*arg0)++, G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+        } else {
+            gDPSetRenderMode((*arg0)++, G_RM_CLD_SURF, G_RM_CLD_SURF2);
+        }
+        gDPSetCombineMode((*arg0)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+        gDPSetPrimColor((*arg0)++, 0, 0, 0, 0, 0, alpha);
+        gDPFillRectangle((*arg0)++, 0, y - half, WIPE_W, y + half);
+
+        if (D_800D1F5C_main.data != NULL) {
+            top = (WIPE_H - D_800D1F5C_main.h) / 2;
+            if (!(top > i * 24.0f) && !(D_800D1F5C_main.h + top <= i * 24.0f)) {
+                row = i * 24.0f - top;
+                gDPPipeSync((*arg0)++);
+                gDPSetRenderMode((*arg0)++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+                gDPSetCombineLERP((*arg0)++, 0, 0, 0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 0, 0, 0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                gDPSetPrimColor((*arg0)++, 0, 0, 255, 255, 255, alpha);
+                gDPLoadTextureTile_4b((*arg0)++, (u8*)D_800D1F5C_main.data + (u32)(row * D_800D1F5C_main.w) / 2, G_IM_FMT_I,
+                    D_800D1F5C_main.w, D_800D1F5C_main.h, 0, 0, D_800D1F5C_main.w, 24, 0,
+                    G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                    WIPE_TEX_MASK(D_800D1F5C_main.w), WIPE_TEX_MASK(D_800D1F5C_main.h), G_TX_NOLOD, G_TX_NOLOD);
+                gSPScisTextureRectangle((*arg0)++, (160 - D_800D1F5C_main.w / 2) * 4, (y - half) * 4.0f,
+                    (160 + D_800D1F5C_main.w / 2) * 4, (y + half) * 4.0f, G_TX_RENDERTILE, 0, 0,
+                    0x0400, 1.0f / arg1 * 1024.0f);
+            }
+        }
+    }
+}
 
 /* wipe out through the texture in data file arg1 (none for 0) */
 s32 func_80065C9C_main(Gfx** arg0, s32 arg1) {
