@@ -1230,9 +1230,91 @@ void func_80024814_main(HmfObj* arg0, s16 arg1, HmfDrawRec* arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024D94_main);
+void func_80089980_main(Matrix4f, void*);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024DF0_main);
+void func_80024D94_main(HmfObj* arg0, s16 arg1, void* arg2) {
+    Matrix4f sp10;
+
+    func_80089980_main(sp10, arg2);
+    func_80024DF0_main(arg0, arg1, arg2, sp10);
+}
+
+#define SQ(x) ((x) * (x))
+
+void func_80024DF0_main(HmfObj* arg0, s16 arg1, void* arg2, Matrix4f arg3) {
+    f32 temp_f4;
+    f32 temp_f0;
+    f32 temp_f2;
+    f32 var_f12;
+    u32 temp_v1;
+    s16 temp_v0;
+    s16 var_a1;
+    s16 temp_s4;
+    HmfLayerEnt* temp_a0;
+    HmfLayerEnt* temp_s0;
+    HmfDrawRec* rec;
+
+    temp_s4 = arg0->unk00;
+    temp_v0 = D_800D6AC8_main[temp_s4];
+
+    if (temp_v0 >= D_800A0AD0_main[temp_s4]) {
+        osSyncPrintf("Model Object Entry Over!! UCODE%d\n", temp_s4);
+        return;
+    }
+
+    temp_s0 = D_800D2070_main[temp_s4];
+
+    if (arg0->unk64[arg1].unk50 & 0x81210000) {
+        temp_f4 = arg3[3][0];
+        temp_f0 = arg3[3][1];
+        temp_f2 = arg3[3][2];
+
+        var_f12 = SQ(temp_f4) + SQ(temp_f0) + SQ(temp_f2);
+        if (var_f12 != 0.0f) {
+            var_f12 = HuSqrtf(var_f12);
+        } else {
+            var_f12 = 0.0f;
+        }
+
+        temp_v1 = arg0->unk64[arg1].unk50;
+        if (temp_v1 & 0x80210000) {
+            var_f12 = 100000.0f - var_f12;
+        } else if (temp_v1 & 0x01000000) {
+            var_f12 = -var_f12;
+        }
+
+        for (var_a1 = temp_s0->unk00; temp_s0[var_a1].unk00 != 0; var_a1 = temp_s0[var_a1].unk00) {
+            if (var_f12 < temp_s0[var_a1].unk04) {
+                break;
+            }
+        }
+    } else {
+        var_a1 = temp_s0->unk00;
+        var_f12 = 0.0f;
+    }
+
+    arg0->unk64[arg1].unk2F = temp_v0;
+    var_a1 = temp_s0[var_a1].unk01;
+
+    temp_a0 = &temp_s0[temp_v0];
+    temp_a0->unk01 = var_a1;
+    temp_a0->unk00 = temp_s0[var_a1].unk00;
+
+    temp_s0[var_a1].unk00 = temp_v0;
+    temp_s0[temp_a0->unk00].unk01 = temp_v0;
+
+    D_800D6AC8_main[temp_s4]++;
+
+    temp_a0->unk04 = var_f12;
+    rec = &D_800CC0BC_main[D_800D5564_main];
+    temp_a0->unk02 = D_800D5564_main++;
+    rec->unk44 = arg2;
+    rec->unk48 = arg0;
+    rec->unk00 = arg1;
+    rec->unk50 = D_800C9940_main;
+    rec->unk4C = arg0->unk64[arg1].unk50;
+    rec->unk54 = arg0->unkD0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800250D4_main);
 
