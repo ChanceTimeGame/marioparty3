@@ -128,6 +128,7 @@ typedef struct {
 extern GMesChr D_800B1BC0_main[];
 extern f32 D_800A1380_main[][2];
 s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
+s32 func_8003C058_main(GAMEMES *gMes, Gfx **arg1);
 s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
 u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
@@ -2319,7 +2320,61 @@ s32 func_8003BB84_main(GAMEMES *gMes, Gfx **arg1) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003C058_main);
+s32 func_8003C058_main(GAMEMES *gMes, Gfx **arg1) {
+    GMesChr *chr;
+    s32 n = 6;
+    s32 ret;
+    s32 i;
+
+    if (gMesCloseF || gMes->stat == 4) {
+        gMes->unk08 = 6;
+    }
+    ret = TRUE;
+    switch (gMes->unk08) {
+        case 0:
+            D_800D6A58_main = 1;
+            D_800D1100_main = 0;
+            for (i = 0; i < 32; i++) {
+                chr = &D_800B1BC0_main[i];
+                chr->unk00 = chr->unk04 = chr->unk18 = chr->unk1C = chr->unk28 = chr->unk2C = 0.0f;
+                chr->scaleX = chr->scaleY = 1.0f;
+                chr->alpha = 0xFF;
+                chr->unk34 = 0;
+                chr->unk38 = 0;
+            }
+            gMes->unk06 = gMes->unk04 = gMes->unk0A = gMes->unk0C = gMes->unk0E = 0;
+            gMes->unk60 = gMes->unk64 = 0.0f;
+            gMes->unk68 = gMes->unk6C = 1.0f;
+            gMes->unk70 = 0.0f;
+            gMes->unk1C = 0;
+            func_8003A37C_main(gMes, "FINISH", 1, -1, -1);
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            for (i = 0; i < n;) {
+                i++;
+                HuSprScaleSet(gMes->strGId[0], i, 1.0f, 0.0f);
+                func_80055458_main(gMes->strGId[0], i, 0);
+            }
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            GMesSprKill(gMes);
+            ret = FALSE;
+            break;
+    }
+    if (gMes->unk04 == 0) {
+        HuAudFXPlay(0x253);
+    }
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003C248_main);
 
