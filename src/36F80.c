@@ -1,6 +1,7 @@
 #include "common.h"
 #include "malloc.h"
 #include "rom.h"
+#include "decode.h"
 
 // string table parsing code.
 
@@ -56,7 +57,47 @@ void func_80036448_main(s32 arg0, struct str80036448 *arg1) {
     HuMemMemoryFreePerm(dirHeader);
 }
 
+// Register allocation and frame size (masked 18): retail tests the first loop against the
+// register holding str's NULL; `i = (s32) str` gives masked 0 (raw 15, s1/s2 swapped).
+#ifdef NON_MATCHING
+/* Loads message arg0 (directory << 8 | index) into a new perm-heap buffer: decodes the directory,
+   finds the entry by the offset table after the count, copies its s16-length text. */
+void* func_800364DC_main(void* arg0) {
+    struct str80036448 info;
+    s32 id;
+    u8* dir;
+    u8* p;
+    u8* str;
+    s16 len;
+    s32 i;
+
+    id = (s32) arg0;
+    func_80036448_main(id >> 8, &info);
+    str = NULL;
+    dir = HuMemMemoryAllocPerm((info.unk4 + 1) & ~1);
+    if (dir == NULL) {
+        return str;
+    }
+    DecodeData(info.unk0, dir, info.unk4, info.unk8);
+    p = dir + 4;
+    for (i = 0; i < (id & 0xFF); i++) {
+        p += 4;
+    }
+    p = dir + *(s32*) p;
+    len = *(s16*) p;
+    str = HuMemMemoryAllocPerm(len);
+    if (str != NULL) {
+        for (i = 0; i < len; i++) {
+            str[i] = p[i + 2];
+        }
+    }
+    HuMemMemoryFreePerm(dir);
+    return str;
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/36F80", func_800364DC_main);
+#endif
 
 void func_800365E8_main(void *ptr) {
     if (ptr != NULL) {
