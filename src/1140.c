@@ -2396,7 +2396,110 @@ void func_8000499C_main(SndVoice* v) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_800049E8_main);
+void func_800049E8_main(SndVoice* v) {
+    SndDef* def;
+    SndChild* child;
+    SndVoice* other;
+    s32 n;
+    s32 i;
+    s32 flags;
+
+    if (!(v->flags & 1)) {
+        return;
+    }
+    def = D_800A97BC_main->defs[v->defNo];
+    if (D_800A97BC_main->pause < 0x7F && !(def->flags & 1)) {
+        return;
+    }
+    v->state = 3;
+    if (v->sndState == 1) {
+        v->env.releaseTime = 184000000 / func_80000E9C_main()->cfg.outputRate;
+        func_8006DCE0_main();
+        v->flags |= 0x800;
+        return;
+    }
+    if (v->sndState == 2) {
+        return;
+    }
+    if (v->sndId >= 0) {
+        alSndpDeallocate(v->sndId);
+        v->sndId = -1;
+    }
+    if (v->part > 0) {
+        if (D_800A97BC_main->voices[v->child[0].slot].serial != v->child[0].serial) {
+            v->state = 0;
+            v->flags = 0;
+        }
+        return;
+    }
+    n = v->numChild;
+    child = v->child;
+    if (n != 0) {
+        for (i = 0; i < n; i++) {
+            other = &D_800A97BC_main->voices[child[i].slot];
+            if (other->serial == child[i].serial && other->sndId >= 0) {
+                return;
+            }
+        }
+    }
+    i = 0;
+    flags = 0;
+    if (def->flags & 1) {
+        flags |= 4;
+    }
+    if (def->flags & 2) {
+        flags |= 8;
+    }
+    do {
+        v->script = def->part[v->part].script;
+        v->wait = 0;
+        v->noteVol = 0x7F;
+        v->notePan = 0x40;
+        v->noteFxMix = 0;
+        v->lfoType = 0;
+        v->lfoDepth = 0;
+        v->penvBase = NULL;
+        v->penvScale = 1.0f;
+        v->portFlags = 0;
+        v->portState = 0;
+        v->loopDepth = 0;
+        v->loopCnt[0] = 0;
+        v->callDepth = 0;
+        v->randFlags = 0;
+        v->modMask = 0;
+        if (!(v->flags & 0x10)) {
+            v->vol = D_800A97BC_main->vol;
+        }
+        if (!(v->flags & 0x20)) {
+            v->pan = D_800A97BC_main->pan;
+        }
+        if (!(v->flags & 0x40)) {
+            v->pitch = D_800A97BC_main->pitch;
+        }
+        if (!(v->flags & 0x80)) {
+            v->fxMix = D_800A97BC_main->fxMix;
+        }
+        if (!(v->flags & 0x100)) {
+            v->vol2 = 0x7F;
+        }
+        if (!(v->flags & 0x200)) {
+            v->pan2 = 0x40;
+        }
+        if (!(v->flags & 0x400)) {
+            v->pitchMul = 1.0f;
+        }
+        v->unkAC = -1.0f;
+        v->flags = flags;
+        v->state = 4;
+        for (; i < n; i++) {
+            v = &D_800A97BC_main->voices[child[i].slot];
+            if (v->serial == child[i].serial) {
+                break;
+            }
+        }
+        i++;
+    } while (i <= n);
+}
 
 // MP3 adds the null-script check (flag 0x40000). Register allocation (masked 0, raw 17 as in MP2): i (the note-on loop counter, one variable with the 0x15/0x17
 // operand byte as in retail) and its sign-extended copy swap a0/a1. Tried: declaration order, t inline
