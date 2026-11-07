@@ -330,6 +330,16 @@ build/src/gamemes.c.o: src/gamemes.c
 	$(V)export COMPILER_PATH=tools/gcc_2.7.2/$(DETECTED_OS) && $(CC) $(OPTFLAGS) $(CFLAGS) $(CPPFLAGS) -S -o $(@:.o=.s) $< && sed -i '/^[[:space:]]*$$/d' $(@:.o=.s) && $(CC) $(OPTFLAGS) $(CFLAGS) -c -o $@ $(@:.o=.s)
 	@$(STRIP) $@ -N dummy-symbol-name
 
+# wave 2d C: built as gamemes is (blank lines removed from GCC's assembly), so KMC as adds no hazard
+# nop after a call whose delay slot GCC filled (89170 guRotateF: none before the mul.s after sincosdf)
+W2DC_BLANKSTRIP := build/src/89170.c.o
+$(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
+	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
+	@mkdir -p $(shell dirname $@)
+	@$(CC_HOST) $(CFLAGS_CHECK) $(CPPFLAGS) -MMD -MP -MT $@ -MF $@.d $<
+	$(V)export COMPILER_PATH=tools/gcc_2.7.2/$(DETECTED_OS) && $(CC) $(OPTFLAGS) $(CFLAGS) $(CPPFLAGS) -S -o $(@:.o=.s) $< && sed -i '/^[[:space:]]*$$/d' $(@:.o=.s) && $(CC) $(OPTFLAGS) $(CFLAGS) -c -o $@ $(@:.o=.s)
+	@$(STRIP) $@ -N dummy-symbol-name
+
 # Assemble .s files with modern gnu as
 $(BUILD_DIR)/asm/%.s.o: asm/%.s
 	$(ECHO)$(PRINT)$(GREEN)Assembling asm file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
