@@ -127,8 +127,7 @@ typedef struct TextWindow {
     /* 0x068 */ s16 unk68;
     /* 0x06A */ s16 unk6A;
     /* 0x06C */ s16 unk_6C; /* sprite group */
-    /* 0x06E */ s16 unk_6E[0xC];
-    /* 0x086 */ s16 unk86[0xA];
+    /* 0x06E */ s16 unk_6E[0x16];
     /* 0x09A */ s16 unk9A;
     /* 0x09C */ s16 unk9C;
     /* 0x09E */ s16 unk9E;
@@ -181,9 +180,13 @@ extern TWInput D_800CDA90_main[];
 extern s32 D_800D209C_main; /* last advance */
 extern u8 D_800A2194_main[256]; /* character widths */
 extern TWIcon D_800A2294_main[22];
+extern TWColor D_800A2154_main[10];
+extern u8 D_800A2174_main[0x14]; /* a window template (bcopy of 0x20 bytes) */
 
 void func_8005A6B0_main(void);
 s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags);
+void func_8005B040_main(u8* mask, s16 w, s16 h); /* window corner masks */
+void func_8005B238_main(u8* mask, s16 w, s16 h);
 void func_8005B43C_main(s16 win_id, void* str, s16 x, s16 y);
 s16 func_8005B5EC_main(u8* str);
 s16 func_8005B614_main(u8* str);
@@ -367,10 +370,11 @@ void func_8005A6B0_main(void) {
     }
 }
 
-// register allocation (masked 29): retail keeps the flags in fp and (s16)w, (s16)h in s5/s4 across the
-// HuMemAlloc and memset calls; this C keeps one register fewer
+// register allocation (masked 15): retail keeps (s16)w, (s16)h in s6/s5 from the HuMemFree call
+// on and reuses them for func_8005B238_main; declaration order does not change it. MP3 has 16
+// windows, other default colours and timer, and two corner-mask styles (flag 0x10)
 #ifdef NON_MATCHING
-/* MP3 func_8005A968_5B568, MP1 func_8006D010: opens a window, returns its id or -1 */
+/* MP1 func_8006D010: opens a window, returns its id or -1 */
 s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
     TextWindow* tw;
     HuSprite* spr;
@@ -379,12 +383,12 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
     s16 grp;
     s32 size;
 
-    for (id = 2; id < 14; id++) {
+    for (id = 2; id < WINDOWS_MAX; id++) {
         if (D_800CC69C_main[id].unk5E == -1) {
             break;
         }
     }
-    if (id == 14) {
+    if (id == WINDOWS_MAX) {
         return -1;
     }
     if (w & 1) {
@@ -423,13 +427,14 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
     tw->unk50 = w - 8;
     tw->unk52 = h - 8;
     tw->unk20 = 0;
-    tw->unk23 = tw->unk33 = tw->unk22 = 7;
+    tw->unk23 = tw->unk22 = 7;
+    tw->unk33 = 0;
     tw->unk25 = tw->unk26 = 1;
     tw->unk27 = 10;
     tw->unk28 = 12;
     tw->unk29 = 0;
     tw->unk2A = 2;
-    tw->unk58 = tw->unk40 - tw->unk27;
+    tw->unk58 = tw->unk40 - tw->unk27 - 4;
     tw->unk5A = tw->unk42 - tw->unk28;
     tw->unk48 = tw->unk4A = 0;
     tw->unk_2D = D_800A2154_main[0].r;
@@ -464,7 +469,7 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
     func_800550F4_main(grp, 0, 0);
     func_800554C4_main(grp, 0, -1);
     func_80054904_main(grp, 0, tw->unk3C, tw->unk3E);
-    func_80055420_main(tw->unk_6C, 0, 0x40, 0x40, 0x80);
+    func_80055420_main(tw->unk_6C, 0, 0x40, 0x20, 0xB0);
     spr = HuSprGet(grp, 0);
     if (!(flags & 8)) {
         spr->unk_84->unk00->unk04 = w;
@@ -474,7 +479,11 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
         spr->unk_84->unk00->unk00 = tw->unkDC = HuMemAlloc(size);
         memset(tw->unkDC, 0xFF, size);
         if (!(flags & 1)) {
-            func_80088F44_89B44(tw->unkDC, w, h);
+            if (flags & 0x10) {
+                func_8005B238_main(tw->unkDC, w, h);
+            } else {
+                func_8005B040_main(tw->unkDC, w, h);
+            }
         }
         func_80055458_main(grp, 0, 100);
         HuSprAttrReset(grp, 0, 0x8000);
@@ -497,7 +506,7 @@ s16 func_8005A968_main(s16 x, s16 y, s16 w, s16 h, s32 arg4, s16 flags) {
     HuSprPriSet(grp, 2, D_800D6B62_main - 1);
     tw->unk60 = D_800D6B62_main;
     D_800D6B62_main -= 0x20;
-    tw->unkAA = 0x32D;
+    tw->unkAA = 0x138;
     return id;
 }
 #else
@@ -528,7 +537,7 @@ void func_8005B43C_main(s16 win_id, void* str, s16 x, s16 y) {
         tw->unkCC = str;
     } else {
         tw->unkD4 = 1;
-        tw->unkCC = tw->unkD0 = func_800364DC_main((s32)str);
+        tw->unkCC = tw->unkD0 = func_800364DC_main(str);
     }
     if (x >= 0) {
         tw->unk54 = x;
@@ -609,13 +618,13 @@ s16 func_8005B7B8_main(s16 win_id, u32 spriteMainFsPair, s16 arg2, s16 arg3, s16
     void *spriteBytes;
     s16 i;
 
-    for (i = 4; i < ARRAY_COUNT(window->unk_6E); i++) {
+    for (i = 4; i < 12; i++) {
         if (window->unk_6E[i] != -1) {
             continue;
         }
         break;
     }
-    if (i >= ARRAY_COUNT(window->unk_6E)) {
+    if (i >= 12) {
         return -1;
     }
 
@@ -683,7 +692,7 @@ void func_8005BB18_main(s16 winId, f32 sx, f32 sy) {
     }
 }
 
-/* func_80089764 without the window's own sprites 4-11 */
+/* func_8005BB18_main without the window's own sprites 4-11 */
 void func_8005BBC0_main(s16 winId, f32 sx, f32 sy) {
     TextWindow* tw = &D_800CC69C_main[winId];
     s16 i;
@@ -829,7 +838,7 @@ s32 func_8005CCF0_main(TextWindow* tw) {
     return (tw->unk56 + tw->unk28 > tw->unk4E + tw->unk52) ^ 1;
 }
 
-/* func_8008A7A0 with a quarter-height line */
+/* func_8005CCF0_main with a quarter-height line */
 s32 func_8005CD38_main(TextWindow* tw) {
     tw->unk54 = tw->unk4C;
     tw->unk56 = tw->unk56 + ((tw->unk28 >> 2) + tw->unk2A);
@@ -884,7 +893,7 @@ void func_8005CF94_main(s16 winId) {
     HuSprAttrSet(tw->unk_6C, 3, 0x8000);
 }
 
-/* places icon idx (a sprite, cached in D_800ED8B8) at the text cursor; returns its width */
+/* places icon idx (a sprite, cached in D_800BDA50_main) at the text cursor; returns its width */
 s16 func_8005CFE0_main(s16 winId, s16 idx) {
     TextWindow* tw = &D_800CC69C_main[winId];
     s16 anim;
@@ -1087,8 +1096,9 @@ s32 func_8005E1D8_main(s16 winId, s8 start, s32 arg2) {
     return tw->unk_31;
 }
 
-// register allocation (masked 14; MP1 func_8006FE4C has the same residue): the new entry's index reuses
-// the compare's sign extension of sel where retail re-extends it. The (u16) on the unkA6 test lets btn
+// register allocation (one instruction short, the rest register renaming; MP1 func_8006FE4C and
+// MP2 have the same residue): the new entry's index reuses the compare's sign extension of sel where
+// retail re-extends it; an s32 sel is far worse. MP3 plays sound 0 when flag 0x20 is set. The (u16) on the unkA6 test lets btn
 // go unextended as in retail (same result: unkA6 is a u16).
 #ifdef NON_MATCHING
 /* MP1 func_8006FE4C: moves the choice cursor between the entries; 0 once one is chosen or cancelled */
@@ -1288,13 +1298,21 @@ s32 func_8005E348_main(s16 winId) {
         tw->unkA0 = e->unk2 - 12;
         tw->unkA2 = e->unk4 + 8;
         tw->unkA4 = 0;
-        HuAudFXPlay(1);
+        if (tw->unk_38 & 0x20) {
+            HuAudFXPlay(0);
+        } else {
+            HuAudFXPlay(1);
+        }
     }
     cancel = (tw->unk_38 & 1) ? 0 : 0x4000;
     if (btn & 0x8000) {
         if (tw->unk_F4[tw->unk_31].unk0 == 2) {
             if (tw->unkAA != -1) {
-                HuAudFXPlay(5);
+                if (tw->unk_38 & 0x20) {
+                    HuAudFXPlay(0);
+                } else {
+                    HuAudFXPlay(5);
+                }
             }
             return 1;
         }
@@ -1302,7 +1320,7 @@ s32 func_8005E348_main(s16 winId) {
         tw->unkA4 = 0;
         if (tw->unkAA != -1) {
             if (tw->unk_38 & 0x20) {
-                HuAudFXPlay(2);
+                HuAudFXPlay(0);
             } else {
                 HuAudFXPlay(3);
             }
@@ -1317,7 +1335,11 @@ s32 func_8005E348_main(s16 winId) {
         tw->unk_31 = -1;
         if (btn & cancel) {
             if (tw->unkAA != -1) {
-                HuAudFXPlay(4);
+                if (tw->unk_38 & 0x20) {
+                    HuAudFXPlay(0);
+                } else {
+                    HuAudFXPlay(4);
+                }
             }
         }
         tw->unk_38 |= 0x200;
@@ -1676,7 +1698,7 @@ void func_80060174_main(u8* arg0, u8* arg1) {
 void func_800601BC_main(s16 winId, void* str, s8 idx) {
     TextWindow* tw = &D_800CC69C_main[winId];
 
-    func_8005B6BC_main(winId, str, idx);
+    func_8005B6BC_main(winId, (u32)str, idx);
     func_80060174_main(tw->unk_B8[idx], tw->unk_B8[idx]);
 }
 
@@ -1686,7 +1708,7 @@ void func_8006022C_main(u32 str, s16 index) {
     D_800BDA6A_main = 1;
     D_800BDA6E_main = 0;
     D_800BDA6C_main = 0;
-    func_800605A4_main(str);
+    func_800605A4_main((u8*)str);
     D_800CD2A4_main = 0;
     D_800D5206_main[index] = D_800BDA6D_main;
 }
@@ -1705,7 +1727,7 @@ void func_80060290_main(u8* str, s16 idx) {
         text = str;
     } else {
         loaded = 1;
-        text = func_800364DC_main((s32)str);
+        text = func_800364DC_main(str);
     }
     func_80060174_main(text, text);
     func_800605A4_main(text);
@@ -1758,7 +1780,7 @@ void func_800604A8_main(s16 *arg0, s16 arg1, s16 arg2) {
     D_800BDA6C_main = 0;
 
     for (i = arg1; arg2 >= i; i++) {
-        func_800605A4_main(i);
+        func_800605A4_main((u8*)i);
     }
 
     for (i = 0; i < ARRAY_COUNT(D_800D5206_main); i++) {
@@ -1802,11 +1824,12 @@ INCLUDE_RODATA("asm/nonmatchings/window", D_800A7EA8_main);
 
 INCLUDE_RODATA("asm/nonmatchings/window", D_800A7ECC_main);
 
-// register allocation (masked 36): the text pointer and the character width swap a0/a1, which
-// moves the tab-stop arithmetic around; the code is otherwise retail's
+// register allocation (masked 100 of 169): the text pointer and the character width swap a0/a1,
+// and GCC keeps D_800CD2A4_main and D_800BDA6A_main in registers (u8 globals do not fix it).
+// MP3 no longer adds an icon's width for code 0x18.
 #ifdef NON_MATCHING
-/* measures one text (an id, or a pointer above 0x80000000) into the width D_800ED8E8 and
-   height D_800ED8EA. Host: the id/pointer test assumes N64 addresses. */
+/* measures one text (an id, or a pointer above 0x80000000) into the width D_800BDA6C_main and
+   height D_800BDA6E_main. Host: the id/pointer test assumes N64 addresses. */
 void func_800605A4_main(u8* str) {
     s32 cw;
     u8* p = str;
@@ -1820,7 +1843,7 @@ void func_800605A4_main(u8* str) {
         freeIt = 0;
     } else {
         freeIt = 1;
-        loaded = func_800364DC_main((s32)str);
+        loaded = func_800364DC_main(str);
         p = loaded;
     }
     h = 14;
@@ -1885,7 +1908,6 @@ void func_800605A4_main(u8* str) {
                 break;
             case 0x18:
                 p++;
-                cw = D_800A2294_main[*p].width;
                 break;
             case 0x11:
             case 0x12:
