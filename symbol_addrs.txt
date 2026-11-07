@@ -1768,3 +1768,9 @@ SprPosPerspectiveSet = 0x80054EE0; //rom:0x55AE0
 AnimateSprite = 0x800563A4; //rom:0x56FA4
 // wave 2a D: hmfman (MP2 src/274D0.c): the scratch model for motion-only files (MP2 D_800F8438_F9038)
 D_800CB8C0_main = 0x800CB8C0; // size:0xDC
+// wave 2b C: sprput (MP2 src/84FF0.c)
+SprDispCheck = 0x80057400; //rom:0x58000
+DispCheck = 0x800575D8; //rom:0x581D8
+SprDisp = 0x800579E4; //rom:0x585E4
+PutSprite = 0x800589F4; //rom:0x595F4
+SprTexLoad = 0x8005988C; //rom:0x5A48C
