@@ -2,26 +2,7 @@
 #include "PR/os_internal.h"
 #include "PR/R4300.h"
 #include "PR/osint.h"
-
-typedef struct {
-    u32 flag;
-    u32 count;
-    u64 time;
-} ThreadProf;
-
-// OSThread as the retail library lays it out (include/PR/os.h lacks thprof at 0x1C)
-typedef struct OSThreadFull_s {
-    struct OSThreadFull_s *next;
-    OSPri priority;
-    struct OSThreadFull_s **queue;
-    struct OSThreadFull_s *tlnext;
-    u16 state;
-    u16 flags;
-    OSId id;
-    int fp;
-    ThreadProf *thprof;
-    __OSThreadContext context;
-} OSThreadFull;
+#include "osthread_full.h"
 
 extern ThreadProf D_800D55E0_main[]; // thprof
 extern void D_80080930_main(void);            // __osCleanupThread
