@@ -399,12 +399,11 @@ void func_80031B30_main(u8* arg0, HmfTexData* arg1, HmfTex* tex) {
         }
     }
 }
-
-/* MP1 func_800384FC (src/388E0.c) */
 #else
 INCLUDE_ASM("asm/nonmatchings/32160", func_80031B30_main);
 #endif
 
+/* MP1 func_800384FC (src/388E0.c) */
 void func_80031DF4_main(HmfTexData* arg0) {
     HmfPal* var_s0;
     s16 temp_s4;
