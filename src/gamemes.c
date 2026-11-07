@@ -911,7 +911,89 @@ INCLUDE_RODATA("asm/nonmatchings/gamemes", D_800A7744_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DE60_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003E4A4_main);
+extern char *D_800A1410_main[];
+
+s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
+    char sp18[] = "LOST";
+    f64 var_f2;
+    f32 temp_f20;
+    f32 temp_f20_2;
+    f32 temp_f20_3;
+    f32 temp_f2;
+    f32 temp_f30;
+    s16 i;
+
+    var_f2 = strlen(D_800A1410_main[gMes->unk08]);
+    temp_f30 = var_f2;
+
+    var_f2 = strlen(sp18);
+    temp_f2 = var_f2;
+
+    if (gMes->unk04 == 0) {
+        func_8003A37C_main(gMes, D_800A1410_main[gMes->unk08], 1, -1, -1);
+        func_8003A37C_main(gMes, sp18, 1, -1, -1);
+
+        temp_f20 = (320.0f - (temp_f30 + temp_f2 + 1.0f) * 24.0f) / 2.0f;
+
+        func_80054904_main(gMes->strGId[0], 0, temp_f20 + temp_f30 * 24.0f / 2.0f, gMes->unk64 + 40.0f);
+        func_80054904_main(gMes->strGId[1], 0, (320.0f - temp_f20) - temp_f2 * 24.0f / 2.0f, gMes->unk64 + 40.0f);
+
+        for (i = 0; i < temp_f30; i++) {
+            HuSprAttrSet(gMes->strGId[0], i + 1, 0x8000);
+        }
+
+        for (i = 0; i < temp_f2; i++) {
+            HuSprAttrSet(gMes->strGId[1], i + 1, 0x8000);
+        }
+
+        gMes->unk0A = 0;
+    }
+
+    if (gMesCloseF != 0 || gMes->stat == 4) {
+        GMesSprKill(gMes);
+        return 0;
+    }
+
+    if (gMes->unk04 >= 81) {
+        gMes->stat = 2;
+    }
+
+    if (gMes->unk04 >= 51) {
+        gMes->unk0A++;
+        if (gMes->unk0A & 0x40) {
+            temp_f20_3 = (u16)gMes->unk0A % 32;
+            temp_f20_2 = cosdf(temp_f20_3 * (360.0f / 31)) * 55.0f + 200.0f;
+
+            for (i = 0; i < temp_f30; i++) {
+                func_80055458_main(gMes->strGId[0], i + 1, temp_f20_2);
+            }
+
+            for (i = 0; i < temp_f2; i++) {
+                func_80055458_main(gMes->strGId[1], i + 1, temp_f20_2);
+            }
+        }
+
+        return 1;
+    }
+
+    temp_f20_3 = gMes->unk04;
+    if (temp_f20_3 <= 30.0f) {
+        for (i = 0; i < temp_f30; i++) {
+            HuSprAttrReset(gMes->strGId[0], i + 1, 0x8000);
+            func_80055458_main(gMes->strGId[0], i + 1, temp_f20_3 * 8.5f);
+        }
+    }
+
+    temp_f20_3 = gMes->unk04 - 20;
+    if (temp_f20_3 <= 30.0f && temp_f20_3 > 0.0f) {
+        for (i = 0; i < temp_f2; i++) {
+            HuSprAttrReset(gMes->strGId[1], i + 1, 0x8000);
+            func_80055458_main(gMes->strGId[1], i + 1, temp_f20_3 * 8.5f);
+        }
+    }
+
+    return 1;
+}
 
 s32 func_80045208_main(void *arg0, void *arg1);
 
