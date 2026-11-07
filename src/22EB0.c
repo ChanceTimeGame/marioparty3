@@ -1188,6 +1188,22 @@ extern HmfDrawFace D_800CD6B0_main[];
 void func_800260F0_main(HmfObj*, s32*);
 void func_80029FB4_main(HmfObj* arg0, s16 arg1);
 
+/* MP3 only: HmfObj 0xC4 ("unkC8") points to 0x2C-byte records with a position at 0x20; 0xBC
+   ("unkC0") names three of them and keeps a copy of their positions that motion tracks can drive */
+typedef struct HmfObjC4 {
+    /* 0x00 */ char unk00[0x20];
+    /* 0x20 */ Vec unk20;
+} HmfObjC4; /* size 0x2C */
+
+typedef struct HmfObjBC {
+    /* 0x00 */ s16 unk00[3];
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ Vec unk08[3];
+} HmfObjBC; /* size 0x2C */
+
+f32 func_8002E78C_main(HmfMotionSlot*, HmfMotionTrack*, f32);
+f32 func_8002E8E8_main(HmfMotionSlot*, HmfMotionTrack*, f32);
+
 void func_80024354_main(HmfObj* arg0, s16 arg1) {
     HmfMotionObj* temp_s1;
     HmfPart* temp_s4;
@@ -2901,7 +2917,210 @@ s32 func_8002DF2C_main(HmfMotionSlot* arg0, HmfMotionFile* arg1) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DFF8_main);
+void func_8002DFF8_main(HmfObj* arg0, f32 arg1, void* arg2v, s32 arg3) {
+    HmfMotionSlot* arg2 = arg2v;
+    HitXform* p40;
+    HitXform* q;
+    HmfMotionObj* p50;
+    HmfMotionTrack* e;
+    HmfObjBC* bc;
+    f32* dst;
+    s32 i;
+    u32 idx;
+    s32 n;
+    s32 t;
+
+    bc = NULL;
+    if (arg3 != 0) {
+        if (arg0->unk84 == (void*) -1) {
+            idx = arg0->unk68;
+            p40 = arg0->unk6C;
+            for (i = 0; i < (s32) idx; i++) {
+                if (p40->unk44 != 0) {
+                    p40->unk2C = p40->unk08;
+                }
+                if (p40->unk45 != 0) {
+                    p40->unk38 = p40->unk14;
+                }
+                p40->unk44 = 0;
+                p40->unk45 = 0;
+                p40++;
+            }
+        } else {
+            p50 = arg0->unk84;
+            n = arg0->unk16;
+            for (i = 0; i < n; i++) {
+                if (p50->unk4C != 0) {
+                    p50->unk28 = p50->unk04;
+                }
+                if (p50->unk4D != 0) {
+                    p50->unk34 = p50->unk10;
+                }
+                if (p50->unk4E != 0) {
+                    p50->unk40 = p50->unk1C;
+                }
+                p50->unk4E = 0;
+                p50->unk4D = 0;
+                p50->unk4C = 0;
+                p50++;
+            }
+        }
+        if (arg0->unkC8 != NULL) {
+            bc = arg0->unkC0;
+            bc->unk08[0].x = ((HmfObjC4*) arg0->unkC8)[bc->unk00[0]].unk20.x;
+            bc->unk08[0].y = ((HmfObjC4*) arg0->unkC8)[bc->unk00[0]].unk20.y;
+            bc->unk08[0].z = ((HmfObjC4*) arg0->unkC8)[bc->unk00[0]].unk20.z;
+            bc->unk08[1].x = ((HmfObjC4*) arg0->unkC8)[bc->unk00[1]].unk20.x;
+            bc->unk08[1].y = ((HmfObjC4*) arg0->unkC8)[bc->unk00[1]].unk20.y;
+            bc->unk08[1].z = ((HmfObjC4*) arg0->unkC8)[bc->unk00[1]].unk20.z;
+            bc->unk08[2].x = ((HmfObjC4*) arg0->unkC8)[bc->unk00[2]].unk20.x;
+            bc->unk08[2].y = ((HmfObjC4*) arg0->unkC8)[bc->unk00[2]].unk20.y;
+            bc->unk08[2].z = ((HmfObjC4*) arg0->unkC8)[bc->unk00[2]].unk20.z;
+        }
+    }
+
+    if (arg2 != (HmfMotionSlot*) -1) {
+        n = arg2->unk00;
+        for (i = 0; i < n; i++) {
+            e = arg2->unk08[i];
+            if (e->unk_04 & 0x8000) {
+                continue;
+            }
+            idx = e->unk_08 & 0x7FFF;
+            if (idx == 0x7FFF) {
+                idx = 0;
+            }
+            if ((idx >> 14) & (t = (bc != NULL))) {
+                idx &= 0x3FFF;
+                if (bc->unk00[0] == idx) {
+                    dst = &bc->unk08[0].x;
+                } else if (bc->unk00[1] == idx) {
+                    dst = &bc->unk08[1].x;
+                } else {
+                    dst = &bc->unk08[2].x;
+                }
+                if (e->unk_01 != 'E') {
+                    if (e->unk_01 == 'F') {
+                        dst += 1;
+                    } else {
+                        dst += 2;
+                    }
+                }
+                if (e->unk_02 == 'I') {
+                    *dst = func_8002E78C_main(arg2, e, arg1);
+                } else {
+                    *dst = func_8002E8E8_main(arg2, e, arg1);
+                }
+                continue;
+            }
+            if (arg1 < arg2->unk10[e->unk_0A]) {
+                continue;
+            }
+            switch (arg2->unk0C[i]) {
+                case 78:
+                    switch (e->unk_00) {
+                        case 76:
+                            q = &arg0->unk6C[idx];
+                            dst = &q->unk38.x;
+                            if (e->unk_01 != 'E') {
+                                if (e->unk_01 == 'F') {
+                                    dst = &q->unk38.y;
+                                } else {
+                                    dst += 2;
+                                }
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            arg0->unk6C[idx].unk45 = 0x80;
+                            break;
+                        case 79:
+                            dst = &arg0->unk6C[idx].unk2C.x;
+                            if (e->unk_01 != 'E') {
+                                if (e->unk_01 == 'F') {
+                                    dst += 1;
+                                } else {
+                                    dst += 2;
+                                }
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            arg0->unk6C[idx].unk44 = 0x80;
+                            break;
+                        case 23:
+                            dst = &arg0->unk6C[idx].unk2C.x;
+                            if (e->unk_01 != 'E') {
+                                if (e->unk_01 == 'F') {
+                                    dst += 1;
+                                } else {
+                                    dst += 2;
+                                }
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            arg0->unk6C[idx].unk44 = 0x80;
+                            break;
+                    }
+                    break;
+                case 13:
+                    p50 = &arg0->unk84[idx];
+                    switch (e->unk_00) {
+                        case 23:
+                            dst = &p50->unk28.x;
+                            if (e->unk_01 == 'F') {
+                                dst = &p50->unk28.y;
+                            } else if (e->unk_01 == 'G') {
+                                dst += 2;
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            p50->unk4C = 0x80;
+                            break;
+                        case 76:
+                            dst = &p50->unk34.x;
+                            if (e->unk_01 == 'F') {
+                                dst = &p50->unk34.y;
+                            } else if (e->unk_01 == 'G') {
+                                dst += 2;
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            p50->unk4D = 0x80;
+                            break;
+                        case 27:
+                            dst = &p50->unk40.x;
+                            if (e->unk_01 == 'F') {
+                                dst = &p50->unk40.y;
+                            } else if (e->unk_01 == 'G') {
+                                dst += 2;
+                            }
+                            if (e->unk_02 == 'I') {
+                                *dst = func_8002E78C_main(arg2, e, arg1);
+                            } else {
+                                *dst = func_8002E8E8_main(arg2, e, arg1);
+                            }
+                            p50->unk4E = 0x80;
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
 
 f32 func_8002E78C_main(HmfMotionSlot* arg0, HmfMotionTrack* arg1, f32 arg2) {
     f32* vals;
