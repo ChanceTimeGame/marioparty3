@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mallocblock.h"
 
 /* One scattered polygon of the effect (0x30 bytes, one per face group). */
 typedef struct HmfFxPart {
@@ -70,12 +71,121 @@ extern HuCamera* gCameraList;
 extern u8 D_800CD6A6_main;  /* camera being drawn */
 extern u8 D_800D2008_main;  /* frame buffer index */
 s32 func_80018F18_main(HuMtx4F a, HuMtx4F out);
-s16 func_8002C834_main(void*, s32);
+s16 func_8002C834_main(void*, char*);
+void func_80013D44_main(void);
+void func_80013D4C_main(s16 model);
+void func_80013FB4_main(s16 model);
 
 #define FXWORK(model) ((HmfFxWork*) HmfModelData[model].unkBC)
 #define FXDATA(model) ((HmfFxData*) HmfModelData[model].hmf)
 
+// Masked 19 (374 vs 372): retail calls rand8 as if it returned int (no andi 0xff after the call;
+// include/functions.h declares u8), so the shuffle's index arithmetic differs; a2/a3 swapped in
+// the template loop. Logic checked against the asm.
+#ifdef NON_MATCHING
+/* Sets up the vertex-scatter effect on model: one particle per face group of motion name (all
+   groups if NULL), the group's polygon as the template, directions spread over a sphere in a
+   shuffled order. type 0/1/2 picks the update (none, burst, scatter); -1 uses hook. */
+void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16)) {
+    HmfModel* m;
+    HmfFxData* hmf;
+    HmfFxWork* work;
+    HmfFxPart* part;
+    HmfFxGroup* group;
+    Vtx* p;
+    s16* order;
+    s32 first;
+    s32 count;
+    s16 i;
+    s16 j;
+    s16 a;
+    s16 b;
+    s16 tmp;
+    s16 k;
+    s16 side;
+    f32 yaw;
+    f32 pitch;
+    f32 s;
+
+    m = &HmfModelData[model];
+    hmf = (HmfFxData*) m->hmf;
+    func_8001C258_main(model, 0x01000000, 0x01000000);
+    work = HuMemAllocTag(sizeof(HmfFxWork), (u16) hmf->unk0E + 1);
+    m->unkBC = (HmfModelData_UnkBC_Struct*) work;
+    part = HuMemAllocTag(hmf->unk1A * sizeof(HmfFxPart), (u16) hmf->unk0E + 1);
+    work->parts = part;
+    if (type == -1) {
+        work->unk18 = hook;
+    }
+    work->unk02 = 0;
+    work->unk04 = 0;
+    work->unk08 = work->unk0C = 0.0f;
+    if (name != NULL) {
+        work->unk00 = func_8002C834_main(FXDATA(model), name);
+        first = hmf->unk60[work->unk00].firstGroup;
+        count = hmf->unk60[work->unk00].groupCount;
+    } else {
+        work->unk00 = -1;
+        first = 0;
+        count = hmf->unk1A;
+    }
+    order = HuMemAlloc(hmf->unk1A * sizeof(s16));
+    for (i = 0; i < count; i++) {
+        order[i] = i;
+    }
+    for (i = 0; i < 200; i++) {
+        a = (rand8() * hmf->unk1A) >> 8;
+        b = (rand8() * hmf->unk1A) >> 8;
+        tmp = order[a];
+        order[a] = order[b];
+        order[b] = tmp;
+    }
+    group = &hmf->unkB0[first];
+    for (j = 0; j < group->count; j++) {
+        p = &hmf->unk40[group->vtx[j]];
+        work->verts[j].x = p->v.ob[0] - group->center.x;
+        work->verts[j].y = p->v.ob[1] - group->center.y;
+        work->verts[j].z = p->v.ob[2] - group->center.z;
+    }
+    if (type != -1) {
+        switch (type) {
+            case 0:
+                work->unk18 = (void (*)(s16)) func_80013D44_main;
+                break;
+            case 1:
+                work->unk18 = func_80013D4C_main;
+                break;
+            case 2:
+                work->unk18 = func_80013FB4_main;
+                break;
+        }
+        side = HuSqrtf(count);
+        for (i = 0; i < count; i++) {
+            part->speed = 1.0f;
+            part->pos.x = part->pos.y = part->pos.z = 0.0f;
+            k = order[i];
+            yaw = (360.0f / side) * (k % side);
+            s = sindf(yaw);
+            pitch = (180.0f / side) * (k / side);
+            part->vel.x = part->dir.x = s * sindf(pitch);
+            part->vel.y = part->dir.y = cosdf(pitch);
+            part->vel.z = part->dir.z = cosdf(yaw) * sindf(pitch);
+            part->scale = 1.0f;
+            part++;
+        }
+    } else {
+        for (i = 0; i < count; i++) {
+            part->pos.x = part->pos.y = part->pos.z = part->scale = part->dir.x = part->dir.y = part->dir.z = 0.0f;
+            part++;
+        }
+    }
+    HuMemFree(hmf->unk40);
+    HuMemFree(order);
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/13F90", func_80013390_main);
+#endif
 
 void func_800138EC_main(s16 model, u16 mask, u16 flags) {
     FXWORK(model)->unk04 = (FXWORK(model)->unk04 & ~mask) | flags;
