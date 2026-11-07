@@ -403,14 +403,14 @@ u8 func_800370A4_main(s16 mesId) {
     return gMesData[mesId].stat;
 }
 
-void func_800370D0_main(s16 mesId, s16 time) {
+void GMesMaxTimeGet(s16 mesId, s16 time) {
     if (time == -1) {
         time = 0x7FFF;
     }
     gMesData[mesId].unk06 = time;
 }
 
-void func_80037114_main(s16 mesId, f32 x, f32 y) {
+void GMesPosSet(s16 mesId, f32 x, f32 y) {
     gMesData[mesId].unk60 = x;
     gMesData[mesId].unk64 = y;
 }
@@ -430,7 +430,7 @@ void GMesClose(void) {
     D_800B1A52_main = 0;
 }
 
-s32 func_800371DC_main(void) {
+s32 GMesWait(void) {
     s32 stat;
 
     if (HmfPauseF == 0 && D_800D530C_main == 0) {
@@ -445,7 +445,7 @@ s32 func_800371DC_main(void) {
     return 1;
 }
 
-void func_8003724C_main(s16 time) {
+void GMesMaxWaitSet(s16 time) {
     D_800B1A54_main = time;
 }
 
