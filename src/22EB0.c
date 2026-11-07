@@ -1167,6 +1167,27 @@ extern u8 D_800CD2A0_main;
 extern u8 D_800D211C_main;
 extern u8 D_800D1F2A_main;
 
+/* A batch of faces drawn with one material and texture (MP2 HmfDrawFace) */
+typedef struct HmfDrawFace {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02[4];
+    /* 0x0A */ u8 unk0A;
+    /* 0x0B */ char unk0B;
+    /* 0x0C */ HmfMat* unk0C;
+    /* 0x10 */ HmfTexRef* unk10;
+} HmfDrawFace; /* size 0x14 */
+
+extern HmfPart* D_800B19F0_main;
+extern s32 D_800B19F4_main;
+extern s16 D_800D0A44_main;
+extern s16 D_800CDD66_main;
+extern s16 D_800CE1CE_main;
+extern s16 D_800D5562_main;
+extern u8 D_800A0AD8_main[];
+extern HmfDrawFace D_800CD6B0_main[];
+void func_800260F0_main(HmfObj*, s32*);
+void func_80029FB4_main(HmfObj* arg0, s16 arg1);
+
 void func_80024354_main(HmfObj* arg0, s16 arg1) {
     HmfMotionObj* temp_s1;
     HmfPart* temp_s4;
@@ -1538,7 +1559,205 @@ Gfx* func_800250D4_main(u16 arg0, Gfx* arg1, Gfx* arg2) {
     return var_s7;
 }
 
+/* MP2 func_800329E8_335E8 (NON_MATCHING the same way): batch a part's faces and their vertices. MP3 adds
+   a flush after a texture with flag bit 0 and records the face's unk01 bytes.
+   Register allocation (masked 100, 712 vs 713): retail spills the batch limit as a halfword and the
+   extended arg1 to the stack; here loop motion hoists the limit's zero-extension (word spill) and
+   keeps arg1 in s8, so every callee-saved register shifts */
+#ifdef NON_MATCHING
+void func_800257BC_main(HmfObj* arg0, s16 arg1) {
+    s16 i;
+    s16 count;
+    u16 limit;
+    HmfMat* curMat;
+    HmfTexRef* curTex;
+    s16 n;
+    s16 var_s4;
+    s16 var_s6;
+    s16 var_t1;
+    s16 temp_f2;
+    s16 temp_f2_2;
+    s16 var_a1;
+    s16 var_a2;
+    s16 var_a1_2;
+    s32 temp_v0;
+    s32 record;
+    s32 texFlush;
+    u8* var_a3;
+    HmfFaceRec* temp_s1;
+    HmfTexRef* var_s0;
+    HmfMat* temp_s2;
+    HmfTex* tex;
+    HmfDrawFace* temp_t2;
+    HmfVtx* var_a0;
+    ColVtx* temp_t0;
+
+    D_800B19F0_main = &arg0->unk64[arg1];
+    count = D_800B19F0_main->unk04;
+    D_800D0A44_main = 0;
+    D_800B19F4_main = -1;
+    D_800CDD66_main = D_800CE1CE_main;
+    temp_s1 = D_800B19F0_main->unk54;
+    curMat = &arg0->unk8C[temp_s1->unk30];
+    temp_v0 = D_800B19F0_main->unk50 &= ~0x00040000;
+    record = (temp_v0 & 0x06020000) == 0x20000;
+
+    if ((D_800C9940_main & 0x2001) == 0x2001) {
+        func_80029FB4_main(arg0, arg1);
+    }
+
+    var_s6 = var_s4 = temp_s1->unk00 & 0x80;
+    if (var_s4 != 0) {
+        gSPClearGeometryMode(gMainGfxPos++, G_LIGHTING);
+    } else {
+        gSPSetGeometryMode(gMainGfxPos++, G_LIGHTING);
+    }
+
+    if (temp_s1->unk32 >= 0) {
+        curTex = &arg0->unk88[temp_s1->unk32];
+    } else {
+        curTex = (HmfTexRef*) -1;
+    }
+    limit = D_800A0AD8_main[(D_800C9940_main & 0x1C00) >> 10];
+    texFlush = 0;
+
+    for (i = 0; i < count; i++) {
+        temp_s1 = &arg0->unk64[arg1].unk54[i];
+        if (temp_s1->unk00 >= 3) {
+            temp_s2 = &arg0->unk8C[temp_s1->unk30];
+
+            if (temp_s1->unk32 >= 0) {
+                var_s0 = &arg0->unk88[temp_s1->unk32];
+            } else {
+                var_s0 = (HmfTexRef*) -1;
+            }
+
+            var_s4 = temp_s1->unk00 & 0x80;
+
+            if (((limit < D_800CE1CE_main - D_800CDD66_main) | (curMat != temp_s2)) || curTex != var_s0
+                || ((D_800D0A44_main >= 48) | (var_s4 != var_s6)) || texFlush != 0) {
+                curMat = temp_s2;
+                curTex = var_s0;
+                func_800260F0_main(arg0, &D_800B19F0_main->unk50);
+                if (var_s4 != var_s6) {
+                    if (var_s4 != 0) {
+                        gSPClearGeometryMode(gMainGfxPos++, G_LIGHTING);
+                    } else {
+                        gSPSetGeometryMode(gMainGfxPos++, G_LIGHTING);
+                    }
+                    var_s6 = var_s4;
+                }
+                D_800D0A44_main = 0;
+                texFlush = 0;
+            }
+
+            temp_t2 = &D_800CD6B0_main[D_800D0A44_main];
+            n = temp_t2->unk00 = temp_s1->unk00 & 0x7F;
+
+            if (n == 2) {
+                continue;
+            }
+
+            temp_t2->unk0C = temp_s2;
+            temp_t2->unk10 = var_s0;
+
+            if (var_s0 != (HmfTexRef*) -1) {
+                tex = var_s0->unk0C;
+                var_a1 = tex->unk1E << 5;
+                var_a2 = tex->unk1F << 5;
+                if (tex->unk1F_ & 1) {
+                    texFlush = 1;
+                }
+            } else {
+                var_a1 = var_a2 = 0;
+            }
+
+            if (record) {
+                arg0->unkB4[D_800D5562_main].unk00 = n;
+                arg0->unkB4[D_800D5562_main].unk01[0] = temp_s1->unk01[0];
+                arg0->unkB4[D_800D5562_main].unk01[1] = temp_s1->unk01[1];
+                arg0->unkB4[D_800D5562_main].unk01[2] = temp_s1->unk01[2];
+            }
+
+            for (var_t1 = 0; var_t1 < n; var_t1++) {
+                temp_t0 = &arg0->unk54[temp_s1->unk04[var_t1]];
+
+                if (var_s4 != 0) {
+                    var_a3 = arg0->unk8C[temp_s1->unk2C[var_t1]].unk05;
+                } else {
+                    var_a3 = &arg0->unk58[temp_s1->unk04[var_t1] * 3];
+                }
+
+                temp_f2 = var_a1 * temp_s1->unk0C[var_t1];
+                temp_f2_2 = var_a2 * temp_s1->unk1C[var_t1];
+
+                var_a0 = &D_800D5308_main[D_800CE1CE_main - 1];
+                if (temp_v0 & 0x20000) {
+                    if (record) {
+                        arg0->unkB4[D_800D5562_main].unk02[var_t1] = D_800CE1CE_main;
+                    }
+                    var_a1_2 = D_800CDD66_main;
+                } else {
+                    for (var_a1_2 = D_800CE1CE_main - 1; var_a1_2 >= D_800CDD66_main; var_a1_2--, var_a0--) {
+                        if (var_a0->unk00 == temp_t0->x && var_a0->unk02 == temp_t0->y && var_a0->unk04 == temp_t0->z
+                            && (s8) var_a0->unk0C[0] == (s8) var_a3[0] && (s8) var_a0->unk0C[1] == (s8) var_a3[1] && (s8) var_a0->unk0C[2] == (s8) var_a3[2]
+                            && var_a0->unk08 == temp_f2 && var_a0->unk0A == temp_f2_2) {
+                            break;
+                        }
+                    }
+                }
+
+                if (var_a1_2 <= D_800CDD66_main) {
+                    var_a0 = &D_800D5308_main[D_800CE1CE_main];
+                    var_a0->unk00 = temp_t0->x;
+                    var_a0->unk02 = temp_t0->y;
+                    var_a0->unk04 = temp_t0->z;
+                    var_a0->unk0C[0] = var_a3[0];
+                    var_a0->unk0C[1] = var_a3[1];
+                    var_a0->unk0C[2] = var_a3[2];
+                    var_a0->unk08 = temp_f2;
+                    var_a0->unk0A = temp_f2_2;
+                    var_a0->unk0F = 255;
+                    temp_t2->unk02[var_t1] = D_800CE1CE_main - D_800CDD66_main;
+                    temp_t2->unk0A = var_s4;
+                    if (arg0->unk60 != NULL) {
+                        arg0->unk60[temp_s1->unk04[var_t1]] = D_800CE1CE_main;
+                    }
+                    D_800CE1CE_main++;
+                } else {
+                    temp_t2->unk02[var_t1] = var_a1_2 - D_800CDD66_main;
+                    if (arg0->unk60 != NULL) {
+                        arg0->unk60[temp_s1->unk04[var_t1]] = var_a1_2;
+                    }
+                }
+            }
+
+            if (record) {
+                D_800D5562_main++;
+            }
+
+            D_800D0A44_main++;
+        }
+    }
+
+    if (D_800CE1CE_main != D_800CDD66_main) {
+        if (var_s4 != var_s6) {
+            if (var_s4 != 0) {
+                gSPClearGeometryMode(gMainGfxPos++, G_LIGHTING);
+            } else {
+                gSPSetGeometryMode(gMainGfxPos++, G_LIGHTING);
+            }
+        }
+
+        func_800260F0_main(arg0, &D_800B19F0_main->unk50);
+        if (var_s4 != 0) {
+            gSPSetGeometryMode(gMainGfxPos++, G_LIGHTING);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800257BC_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800260F0_main);
 
