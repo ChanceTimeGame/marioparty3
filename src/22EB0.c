@@ -1155,7 +1155,80 @@ void func_8002404C_main(HmfObj* arg0, s16 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80024354_main);
+void func_80024354_main(HmfObj* arg0, s16 arg1) {
+    HmfMotionObj* temp_s1;
+    HmfPart* temp_s4;
+    s32 temp_s2;
+    s32 temp_s0;
+    s32 var_v1;
+    s32 var_a0_2;
+    Matrix4f sp10;
+    Matrix4f sp50;
+
+    temp_s1 = &arg0->unk84[arg1 & 0x7FFF];
+    temp_s2 = *temp_s1->unk50;
+    temp_s4 = &temp_s1->unk54->unk64[temp_s2];
+    if (temp_s4->unk24 == 1) {
+        return;
+    }
+    temp_s0 = temp_s4->unk50 & 0x70000000;
+    var_v1 = 0;
+    if (arg0->unk90 == NULL) {
+        func_80018044_main(temp_s1->unk58, D_800D5A00_main[0], sp10);
+        if (temp_s0 != 0 && (temp_s1->unk1C.x != 1.0f || temp_s1->unk1C.y != 1.0f || temp_s1->unk1C.z != 1.0f)) {
+            func_80088700_main(sp50, temp_s1->unk1C.x, temp_s1->unk1C.y, temp_s1->unk1C.z);
+            D_800D5214_main++;
+            func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+        }
+    } else {
+        if (temp_s1->unk28.x != 0.0f || temp_s1->unk28.y != 0.0f || temp_s1->unk28.z != 0.0f) {
+            func_80088800_main(sp10, temp_s1->unk28.x, temp_s1->unk28.y, temp_s1->unk28.z);
+            var_v1 = 1;
+        }
+        if (temp_s1->unk34.x != 0.0f || temp_s1->unk34.y != 0.0f || temp_s1->unk34.z != 0.0f) {
+            if (var_v1 == 0) {
+                arg0->unkD8(sp10, temp_s1->unk34.x, temp_s1->unk34.y, temp_s1->unk34.z);
+            } else {
+                arg0->unkD4(sp10, temp_s1->unk34.x, temp_s1->unk34.y, temp_s1->unk34.z);
+            }
+            var_v1 = 1;
+        }
+        if (temp_s1->unk40.x != 1.0f || temp_s1->unk40.y != 1.0f || temp_s1->unk40.z != 1.0f) {
+            if (var_v1 != 0) {
+                func_80017CD0_main(sp10, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+            } else {
+                func_80088700_main(sp10, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+            }
+            if (temp_s0 != 0) {
+                func_80088700_main(sp50, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+                D_800D5214_main++;
+                func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+            }
+            var_v1 = 1;
+        }
+        if (var_v1 != 0) {
+            D_800D138A_main++;
+            func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+        }
+        if (D_800C9932_main != 1 && arg0->unk0B == 1) {
+            func_8002367C_main(temp_s1->unk58, D_800D5A00_main[D_800D138A_main]);
+        }
+        func_80018044_main(D_800D5A00_main[D_800D138A_main], D_800D5A00_main[0], sp10);
+    }
+
+    func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+    var_a0_2 = MTXBufNum++;
+    if (temp_s4->unk50 & 0x70000000) {
+        func_8002C4C0_main((HmfData*) temp_s1->unk54, temp_s2, sp10, sp50);
+        func_80018044_main(D_800D41B0_main[D_800D5214_main + 1], sp50, sp10);
+        func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+        var_a0_2 = MTXBufNum++;
+    }
+    func_80024DF0_main(temp_s1->unk54, temp_s2, &MTXBuf[var_a0_2], sp10);
+    if (arg0->unk64[temp_s2].unk58 != NULL && arg0 == temp_s1->unk54) {
+        func_80023AF8_main(arg0->unk64[temp_s2].unk58, 0);
+    }
+}
 
 void func_8002AFEC_main(HmfObj*, s32, s16);
 void func_80033694_main(HmfObj*);
