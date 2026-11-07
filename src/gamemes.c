@@ -1133,6 +1133,12 @@ s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 s
 extern s32 D_800A1434_main[5][2];
 extern s32 D_800A145C_main[5][2];
 extern s32 D_800A1484_main[4][2];
+extern u8 D_800A14AC_main[];
+extern u8 D_800A1500_main[];
+extern u8 D_800A1554_main[];
+extern u8 D_800A156C_main[];
+u8 func_8005FA90_main(u8 *arg0);
+u16 func_800450B8_main(u16 code);
 
 // register allocation and loop shape in the i + 1 loops (masked 24), as func_80037574_main
 #ifdef NON_MATCHING
@@ -3041,9 +3047,55 @@ void func_80045010_main(const s16 *arg0, s32 arg1) {
     HuMemMemoryFreePerm(temp_v0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_800450B8_main);
+u16 func_800450B8_main(u16 code) {
+    u16 c;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80045208_main);
+    for (i = 0; D_800A14AC_main[i] != 0; i += 2) {
+        c = (D_800A14AC_main[i] << 8) | D_800A14AC_main[i + 1];
+        if (c == code) {
+            c = (D_800A1500_main[i] << 8) | D_800A1500_main[i + 1];
+            return (func_8005FA90_main((u8 *)&c) << 8) | 0x80;
+        }
+    }
+    for (i = 0; D_800A1554_main[i] != 0; i += 2) {
+        c = (D_800A1554_main[i] << 8) | D_800A1554_main[i + 1];
+        if (c == code) {
+            c = (D_800A156C_main[i] << 8) | D_800A156C_main[i + 1];
+            return (func_8005FA90_main((u8 *)&c) << 8) | 0x81;
+        }
+    }
+    return func_8005FA90_main((u8 *)&code) << 8;
+}
+
+s32 func_80045208_main(void *arg0, void *arg1) {
+    u8 *dst;
+    u8 *src;
+    s32 len;
+    u16 c;
+
+    dst = arg0;
+    len = 0;
+    src = arg1;
+
+    while (*src != 0) {
+        c = func_800450B8_main((src[0] << 8) | src[1]);
+        if (c & 0xFF) {
+            dst[0] = c >> 8;
+            dst[1] = c;
+            dst += 2;
+            src += 2;
+            len += 2;
+        } else {
+            dst[0] = c >> 8;
+            dst++;
+            len++;
+            src += 2;
+        }
+    }
+    *dst = 0;
+    return len + 1;
+}
 
 s32 func_800452A0_main(void *arg0, void *arg1) {
     return func_80045208_main(arg0, arg1);
