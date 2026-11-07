@@ -1,3 +1,6 @@
 #include "common.h"
+#include "PR/osint.h"
 
-INCLUDE_ASM("asm/nonmatchings/87830", func_80086C30_main);
+OSThread *func_80086C30_main(void) {
+    return __osActiveQueue;
+}

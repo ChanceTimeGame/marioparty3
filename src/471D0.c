@@ -34,6 +34,7 @@ typedef struct PfWin {
 #define LIGHTEDIT_WIN(obj) ((s16 *)(obj)->work)
 
 extern s8 D_800B23B0_main;
+extern s8 D_800B23B1_main;
 extern omObjData *D_800A1660_main;
 extern s16 D_800A1664_main;
 extern s16 D_800A1666_main;
@@ -60,11 +61,17 @@ s32 func_800465D0_main(void) {
     return D_800B23B0_main;
 }
 
-INCLUDE_ASM("asm/nonmatchings/471D0", func_800465DC_main);
+void func_800465DC_main(s8 arg0) {
+    D_800B23B0_main = arg0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/471D0", func_800465E8_main);
+s32 func_800465E8_main(void) {
+    return D_800B23B1_main;
+}
 
-INCLUDE_ASM("asm/nonmatchings/471D0", func_800465F4_main);
+void func_800465F4_main(s8 arg0) {
+    D_800B23B1_main = arg0;
+}
 
 void func_80046600_main(void) {
     omObjData* obj;
