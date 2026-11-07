@@ -2649,7 +2649,32 @@ s32 func_80061188_main(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u16 arg
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_80061388_main);
+/* opens the portrait window: unrolls it vertically, then bounces it, then shows the portrait */
+void func_80061388_main(s16 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    s16 i;
+
+    func_800600C0_main(winId, 1);
+    if (tw->unk276 != -1) {
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 0.0f, 0.0f);
+    }
+    func_8005FFA8_main(winId);
+    for (i = 1; i < 6; i++) {
+        func_8005BBC0_main(winId, 1.0f - cosdf(i * 18.0f), 2.0f / tw->unk42);
+        HuPrcVSleep();
+    }
+    for (i = 1; i < 4; i++) {
+        func_8005BBC0_main(winId, 1.0f, sindf(i * 30.0f) * 1.05f);
+        HuPrcVSleep();
+    }
+    func_8005BBC0_main(winId, 1.0f, 1.0f);
+    if (tw->unk276 != -1) {
+        func_80054904_main(tw->unk_6C, tw->unk274, 0x18 - tw->unk48, 0x18 - tw->unk4A);
+        HuSprScaleSet(tw->unk_6C, tw->unk274, 1.0f, 1.0f);
+        func_800615B8_main(winId, 1);
+    }
+    func_800600C0_main(winId, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/window", func_800615B8_main);
 
