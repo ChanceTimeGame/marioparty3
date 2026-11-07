@@ -1121,6 +1121,15 @@ typedef struct {
 
 extern GMesUnk3C D_800B1BC0_main[];
 
+extern char *D_800A1410_main[];
+
+typedef struct {
+    char str[6];
+} GMesStr6;
+extern GMesStr6 D_800A7744_main;
+
+s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
+
 // register allocation and loop shape in the i + 1 loops (masked 24), as func_80037574_main
 #ifdef NON_MATCHING
 s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
@@ -1476,16 +1485,79 @@ INCLUDE_RODATA("asm/nonmatchings/gamemes", D_800A773C_main);
 
 INCLUDE_RODATA("asm/nonmatchings/gamemes", D_800A7744_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DE60_main);
+s32 func_8003DE60_main(GAMEMES *gMes, Gfx **arg1) {
+    GMesStr6 won = D_800A7744_main;
+    s32 ret;
+    f32 len1;
+    f32 len2;
+    f32 total;
+    f32 i;
+    f32 scale;
 
-extern char *D_800A1410_main[];
+    len1 = strlen(D_800A1410_main[gMes->unk0E]);
+    len2 = strlen(won.str);
+    if (gMesCloseF != 0 || gMes->stat == 4) {
+        gMes->unk08 = 5;
+    }
+    ret = 1;
+    switch (gMes->unk08) {
+        case 0:
+            func_8003A3C4_main(gMes, D_800A1410_main[gMes->unk0E], 1, -1, -1, 1.0f, 1.0f);
+            func_8003A3C4_main(gMes, won.str, 1, -1, -1, 1.0f, 1.0f);
+            total = len1 + len2 + 1.0f;
+            gMes->unk60 = gMes->unk0A = 160.0f - total * 17.6f / 2.0f + len1 * 17.6f / 2.0f;
+            gMes->unk68 = gMes->unk6C = 1.0f;
+            func_80054904_main(gMes->strGId[0], 0, gMes->unk60, gMes->unk64);
+            for (i = 0.0f; i < len1; i++) {
+                HuSprScaleSet(gMes->strGId[0], i + 1.0f, 0.8f, gMes->unk6C);
+                func_80055458_main(gMes->strGId[0], i + 1.0f, 0xFF);
+            }
+            gMes->unk60 = gMes->unk0C = 160.0f - total * 17.6f / 2.0f + (len1 * 17.6f + 17.6f) + len2 * 17.6f / 2.0f;
+            func_80054904_main(gMes->strGId[1], 0, gMes->unk60, gMes->unk64);
+            for (i = 0.0f; i < len2; i++) {
+                HuSprScaleSet(gMes->strGId[1], i + 1.0f, 0.8f, gMes->unk6C);
+                func_80055458_main(gMes->strGId[1], i + 1.0f, 0xFF);
+            }
+            gMes->unk08 = 1;
+            gMes->unk10 = 0.0f;
+            gMes->unk14 = 0.0f;
+            break;
+        case 1:
+            gMes->unk64 += sindf(gMes->unk14);
+            gMes->unk60 = gMes->unk0C + sindf(gMes->unk10);
+            func_80054904_main(gMes->strGId[1], 0, gMes->unk60, gMes->unk64);
+            gMes->unk10 += 90.0f;
+            gMes->unk14 += 45.0f;
+            if (gMes->unk10 >= 360.0f) {
+                gMes->unk10 = 0.0f;
+            }
+            if (gMes->unk14 >= 360.0f) {
+                gMes->unk14 = 0.0f;
+            }
+            if (gMes->unk04 >= gMes->unk06) {
+                gMes->unk08 = 5;
+            }
+            if (gMes->unk04 > gMes->unk06 - 10) {
+                scale = (gMes->unk06 - gMes->unk04) / 10.0f * 0.8f;
+                for (i = 0.0f; i < len1; i++) {
+                    HuSprScaleSet(gMes->strGId[0], i + 1.0f, scale, scale);
+                }
+                for (i = 0.0f; i < len2; i++) {
+                    HuSprScaleSet(gMes->strGId[1], i + 1.0f, scale, scale);
+                }
+            }
+            break;
+        case 5:
+            GMesSprKill(gMes);
+            ret = 0;
+            break;
+    }
+    if (gMes->unk04 > gMes->unk06 - 5) {
+        gMes->stat = 2;
+    }
+    return ret;
+}
 
-typedef struct {
-    char str[6];
-} GMesStr6;
-extern GMesStr6 D_800A7744_main;
-
-s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
 
 s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
     char sp18[] = "LOST";
