@@ -606,7 +606,62 @@ s16 func_8001AC8C_main(s32 arg0, void (*arg1)(Gfx **, s32, s32), u8 arg2) {
     return idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001ACDC_main);
+/* wave 2c D */
+void func_8003186C_main(HmfDataM*);
+void func_80021B20_main(s16);
+void func_80030178_main(u8);
+
+/* MP2 func_800283DC_28FDC: release a model. MP3 also clears the cameras that follow it */
+void func_8001ACDC_main(s16 arg0) {
+    HmfDataM* hmf;
+    s16 i;
+
+    if (MDL[arg0].hmf == NULL) {
+        return;
+    }
+    D_800D1FE8_main--;
+    if (MDL[arg0].unk09 != 0xFF && MDL[arg0].unk14 != 0.0f) {
+        hmf = MDL[arg0].unk6C;
+    } else {
+        hmf = MDL[arg0].hmf;
+    }
+    MDL[arg0].hmf = NULL;
+    if (MDL[arg0].unk00 & 1) {
+        if (--hmf->unk0B == 0) {
+            func_80019C68_main(hmf->unk0E);
+            func_80019C68_main(hmf->unk0E + 1);
+        }
+    } else if ((u8) MDL[arg0].unk00 == 0) {
+        if (--hmf->unk0B == 0) {
+            if (hmf->unkBC != NULL) {
+                for (i = 0; i < 6; i++) {
+                    if (gCameraList[i].unk4 == arg0) {
+                        gCameraList[i].unk4 = -1;
+                        break;
+                    }
+                }
+            }
+            func_80019C68_main(hmf->unk0E);
+            func_80019C68_main(hmf->unk0E + 1);
+            func_8003186C_main(hmf);
+            if (hmf->unk38 != NULL) {
+                func_80021B20_main(MDL[arg0].unk10);
+            }
+            if (MDL[arg0].unk08 != 0xFF) {
+                func_80030178_main(MDL[arg0].unk08);
+            }
+            if (hmf->unkC8 != NULL) {
+                for (i = 0; i < hmf->unk2A; i++) {
+                    func_80033354_main(hmf->unkC8[i]);
+                }
+            }
+            func_80019C00_main(hmf);
+            if (MDL[arg0].unk02 != 0xFF) {
+                func_8002D4B8_main(MDL[arg0].unk02);
+            }
+        }
+    }
+}
 
 void func_8001AFE4_main(void) {
     s16 i;
