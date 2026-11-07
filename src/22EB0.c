@@ -1211,6 +1211,9 @@ typedef struct HmfHermiteKey {
     /* 0x08 */ f32 out;
 } HmfHermiteKey; /* size = 0xC */
 
+extern s16 D_800A0A78_main;
+extern f32 D_800D2120_main;
+
 void func_80024354_main(HmfObj* arg0, s16 arg1) {
     HmfMotionObj* temp_s1;
     HmfPart* temp_s4;
@@ -3540,7 +3543,29 @@ void func_8002FC14_main(HmfObj* arg0, f32 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002FC7C_main);
+f32 func_8002FC7C_main(HmfMotionSlot* arg0, s16 arg1, f32 arg2, f32 arg3, f32 arg4) {
+    arg4 *= D_800A0A78_main * D_800D2120_main;
+    if (!(arg1 & 9)) {
+        if (!(arg1 & 4)) {
+            arg2 += arg4;
+            if (arg0->unk02 <= arg2) {
+                if (arg1 & 2) {
+                    return arg3;
+                }
+                return arg0->unk02;
+            }
+        } else {
+            arg2 -= arg4;
+            if (arg2 < arg3) {
+                if (arg1 & 2) {
+                    return arg0->unk02 - arg4;
+                }
+                return arg3;
+            }
+        }
+    }
+    return arg2;
+}
 
 void func_8002FD48_main(HmfData *arg0) {
     arg0->unkA0 = 0;
@@ -3599,4 +3624,6 @@ void func_8002FE08_main(s16 arg0, s16 arg1, char* arg2, s16 arg3, u16 arg4, u16 
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80030030_main);
+void func_80030030_main(f32 arg0) {
+    D_800D2120_main = arg0;
+}
