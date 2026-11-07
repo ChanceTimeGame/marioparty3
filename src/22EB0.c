@@ -114,7 +114,8 @@ typedef struct HmfPart {
     /* 0x1D */ u8 unk2F; /* MP2 0x2F */
     /* 0x1E */ char unk1E[4];
     /* 0x22 */ s16 unk04; /* MP2 0x04: face count */
-    /* 0x24 */ char unk24[4];
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ char unk26[2];
     /* 0x28 */ s16 unk0A; /* MP2 0x0A: first vertex */
     /* 0x2A */ s16 unk0C; /* MP2 0x0C: vertex count */
     /* 0x2C */ u16 unk0E; /* MP2 0x0E: first face */
@@ -980,7 +981,114 @@ void func_80023700_main(HmfObj* arg0, s16 arg1) {
     }
 }
 
+extern s16 D_800C9932_main;
+void func_80088700_main(Matrix4f, f32, f32, f32);
+void func_80088800_main(Matrix4f, f32, f32, f32);
+
+#ifdef NON_MATCHING
+/* Register allocation only: list and the matrix index swap s3/s4 */
+void func_80023AF8_main(HmfObj* arg0, s16 arg1) {
+    HmfMotionObj* temp_s1;
+    s16* list;
+    HmfPart* part;
+    s32 count;
+    s32 temp_v1;
+    s32 var_s4;
+    s32 var_s7;
+    s32 var_s3;
+    Matrix4f sp10;
+    Matrix4f sp50;
+    s32 i;
+
+    temp_s1 = &arg0->unk84[arg1 & 0x7FFF];
+    var_s7 = 0;
+    var_s4 = 0;
+
+    if (arg0->unk90 == NULL) {
+        func_80018044_main(temp_s1->unk58, D_800D5A00_main[0], sp10);
+        if (temp_s1->unk1C.x != 1.0f || temp_s1->unk1C.y != 1.0f || temp_s1->unk1C.z != 1.0f) {
+            func_80088700_main(sp50, temp_s1->unk1C.x, temp_s1->unk1C.y, temp_s1->unk1C.z);
+            D_800D5214_main++;
+            func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+            var_s7 = 1;
+        }
+    } else {
+        if (temp_s1->unk28.x != 0.0f || temp_s1->unk28.y != 0.0f || temp_s1->unk28.z != 0.0f) {
+            func_80088800_main(sp10, temp_s1->unk28.x, temp_s1->unk28.y, temp_s1->unk28.z);
+            var_s4 = 1;
+        }
+        if (temp_s1->unk34.x != 0.0f || temp_s1->unk34.y != 0.0f || temp_s1->unk34.z != 0.0f) {
+            if (var_s4 == 0) {
+                arg0->unkD8(sp10, temp_s1->unk34.x, temp_s1->unk34.y, temp_s1->unk34.z);
+            } else {
+                arg0->unkD4(sp10, temp_s1->unk34.x, temp_s1->unk34.y, temp_s1->unk34.z);
+            }
+            var_s4 = 1;
+        }
+        if (temp_s1->unk40.x != 1.0f || temp_s1->unk40.y != 1.0f || temp_s1->unk40.z != 1.0f) {
+            if (var_s4 != 0) {
+                func_80017CD0_main(sp10, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+            } else {
+                func_80088700_main(sp10, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+            }
+            func_80088700_main(sp50, temp_s1->unk40.x, temp_s1->unk40.y, temp_s1->unk40.z);
+            D_800D5214_main++;
+            func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+            var_s7 = 1;
+            var_s4 = 1;
+        }
+        if (var_s4 != 0) {
+            D_800D138A_main++;
+            func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+        }
+        if (D_800C9932_main != 1 && arg0->unk0B == 1) {
+            func_8002367C_main(temp_s1->unk58, D_800D5A00_main[D_800D138A_main]);
+        }
+        func_80018044_main(D_800D5A00_main[D_800D138A_main], D_800D5A00_main[0], sp10);
+    }
+
+    func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+    var_s3 = MTXBufNum++;
+
+    count = temp_s1->unk00;
+    list = temp_s1->unk50;
+    for (i = 0; i < count; i++) {
+        temp_v1 = *list++;
+        if (temp_v1 & 0x8000) {
+            if (temp_v1 != -1) {
+                func_80023AF8_main(arg0, temp_v1 & 0x7FFF);
+            }
+        } else {
+            part = &temp_s1->unk54->unk64[temp_v1];
+            if (part->unk24 == 1) {
+                break;
+            }
+            if (part->unk50 & 0x70000000) {
+                func_8002C4C0_main((HmfData*) temp_s1->unk54, temp_v1, sp10, sp50);
+                func_80018044_main(D_800D41B0_main[D_800D5214_main + 1], sp50, sp10);
+                func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+                var_s3 = MTXBufNum++;
+            }
+            func_80024DF0_main(temp_s1->unk54, temp_v1, &MTXBuf[var_s3], sp10);
+            if (arg0->unk64[temp_v1].unk58 != NULL) {
+                if (arg0 == temp_s1->unk54) {
+                    func_80023AF8_main(arg0->unk64[temp_v1].unk58, 0);
+                }
+            }
+        }
+    }
+
+    if (var_s4 != 0) {
+        D_800D138A_main--;
+    }
+
+    if (var_s7 != 0) {
+        D_800D5214_main--;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023AF8_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002404C_main);
 
