@@ -25,6 +25,16 @@ typedef struct ECE0Osc {
     } data;
 } ECE0Osc; // size 0x14
 
+/* MP3: the managers' busy flag became two halves, one per writer: the API calls set `api` and the
+   per-frame update sets `upd`; the update tests both at once through `all`. */
+typedef union SndLock {
+    s32 all;
+    struct {
+        s16 api;
+        s16 upd;
+    } s;
+} SndLock;
+
 typedef struct {
     /* 0x00 */ s8 cmdType;
     /* 0x01 */ s8 voiceSlot;
@@ -168,7 +178,7 @@ typedef struct SndMgr {
     /* 0x031 */ s8 fadeVol;
     /* 0x032 */ s8 pause;
     /* 0x033 */ s8 unk33;
-    /* 0x034 */ s32 busy;     /* MP2: s8 at 0x33 */
+    /* 0x034 */ SndLock busy; /* MP2: s8 at 0x33 */
     /* 0x038 */ s32 cmdIndex;
     /* 0x03C */ AudioCmd cmds[0x80];
     /* 0x43C */ f32 nearDist;
@@ -334,9 +344,9 @@ typedef struct SeqMgr {
     /* 0x000 */ SeqPlayer* players;
     /* 0x004 */ SeqEntry* seqs;
     /* 0x008 */ SeqBankFile* bankFiles;
-    /* 0x00C */ s32 busy;
-    /* 0x010 */ ECE0Osc* oscFree; /* MP2 kept the oscillator lists in globals */
-    /* 0x014 */ ECE0Osc* oscs;
+    /* 0x00C */ ECE0Osc* oscs;    /* MP2 kept the oscillator lists in globals */
+    /* 0x010 */ ECE0Osc* oscFree;
+    /* 0x014 */ SndLock busy;     /* MP2: s32 at 0x0C */
     /* 0x018 */ s8 numPlayers;
     /* 0x019 */ s8 numActive;
     /* 0x01A */ s8 masterVol;
@@ -413,6 +423,10 @@ f32 sinf(f32);
 void func_800032B4_main(ECE0Osc* osc);
 SndState* func_80000E9C_main(void);
 void func_800048D0_main(SndVoice*);
+void func_80004928_main(SndVoice*);
+void func_800049E8_main(SndVoice*);
+void func_800062A8_main(SndVoice*);
+s32 func_80000650_main(void);
 s32 func_8000332C_main(s32 id, SeqPlayArgs* args);
 void func_80002300_main(s32 player, s32 type, s32 arg);
 
@@ -732,31 +746,19 @@ SndState* func_80000E9C_main(void) {
     return &D_800A9740_main;
 }
 
-#if 0 // TRY
 void func_80000EA8_main(str800D5298* arg0) {
     SndConfig* out = (SndConfig*)arg0;
-    u8* src = (u8*)func_80000E9C_main();
-    u32 i;
 
-    for (i = 0; i < sizeof(SndConfig); i++) {
-        ((u8*)out)[i] = src[i];
-    }
+    bcopy(func_80000E9C_main(), out, sizeof(SndConfig));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80000EA8_main);
-#endif
 
 s16 func_80000EDC_main(void) {
     return func_80000E9C_main()->fxdCount;
 }
 
-#if 0 // TRY
 s32 func_80000EFC_main(void) {
-    return 0x610103;
+    return 0x660104;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80000EFC_main);
-#endif
 
 s32 func_80000F08_main(void) {
     return 0;
@@ -1283,7 +1285,8 @@ s32 func_80001E10_main(SndConfig* cfg, ALHeap* heap, s32 numSeqs, s32 arg3) {
     D_800A97B8_main->unk13 = arg3;
     D_800A97B8_main->masterVol = 0x7F;
     D_800A97B8_main->cmdIdx = 0;
-    D_800A97B8_main->busy = 0;
+    D_800A97B8_main->busy.s.api = 0;
+    D_800A97B8_main->busy.s.upd = 0;
     return 0;
 }
 #else
@@ -1307,13 +1310,12 @@ void func_80002300_main(s32 player, s32 type, s32 arg) {
     osSetIntMask(mask);
 }
 
-#if 0 // TRY
 void func_800023B4_main(void) {
     SeqPlayer* p;
     s32 i;
 
-    if (D_800A97B8_main != NULL && D_800A97B8_main->busy == 0) {
-        D_800A97B8_main->busy = 1;
+    if (D_800A97B8_main != NULL && D_800A97B8_main->busy.all == 0) {
+        D_800A97B8_main->busy.s.upd = 1;
         func_80001408_main();
         D_800A97B8_main->numActive = 0;
         for (i = 0; i < D_800A97B8_main->numPlayers; i++) {
@@ -1332,12 +1334,9 @@ void func_800023B4_main(void) {
                 func_80001D20_main(p);
             }
         }
-        D_800A97B8_main->busy = 0;
+        D_800A97B8_main->busy.s.upd = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800023B4_main);
-#endif
 
 void func_80002528_main(void) {
     SeqPlayer* p;
@@ -1742,7 +1741,6 @@ f32 func_800032CC_main(u8 depth) {
 
 INCLUDE_ASM("asm/nonmatchings/1140", func_80003310_main);
 
-#if 0 // TRY
 s32 func_8000332C_main(s32 id, SeqPlayArgs* args) {
     SeqMgr* mgr = func_800025B4_main();
     SeqEntry* e;
@@ -1760,9 +1758,6 @@ s32 func_8000332C_main(s32 id, SeqPlayArgs* args) {
     player = e->flags & 0xF;
     type = (e->flags & 0xF0) ? 15 : 1;
     p = &mgr->players[player];
-    if (e->size > p->seqBufSize) {
-        return -1;
-    }
     if (args != NULL) {
         if (args->flags & 1) {
             player = args->player;
@@ -1783,15 +1778,15 @@ s32 func_8000332C_main(s32 id, SeqPlayArgs* args) {
             func_80002300_main(player, 14, args->fadeIn);
         }
     }
-    mgr->busy = 1;
+    if (mgr->seqs[id].size > p->seqBufSize) {
+        return -1;
+    }
+    mgr->busy.s.api = 1;
     func_80002300_main(player, type, id);
     p->status = 3;
-    mgr->busy = 0;
+    mgr->busy.s.api = 0;
     return player;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_8000332C_main);
-#endif
 
 s32 func_800034D8_main(s32 player) {
     SeqMgr* mgr = func_800025B4_main();
@@ -1802,18 +1797,14 @@ s32 func_800034D8_main(s32 player) {
     return mgr->players[player].status;
 }
 
-#if 0 // TRY
 s16 func_80003524_main(void) {
-    SndMgr* m = func_8000704C_main();
+    SeqMgr* mgr = func_800025B4_main();
 
-    if (m == NULL) {
+    if (mgr == NULL) {
         return 0;
     }
-    return m->numDefs;
+    return mgr->numSeqs;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80003524_main);
-#endif
 
 s16 func_8000354C_main(s32 player) {
     SeqMgr* mgr = func_800025B4_main();
@@ -1833,21 +1824,19 @@ s8 func_80003598_main(void) {
     return mgr->numPlayers;
 }
 
-#if 0 // TRY
 s8 func_800035C0_main(void) {
     SeqMgr* mgr = func_800025B4_main();
 
     if (mgr == NULL) {
         return 0;
     }
-    return mgr->numPlayers;
+    return mgr->numActive;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800035C0_main);
-#endif
 
 // decomp-permuter
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 void func_800035E8_main(s16 player)
 {
   SeqMgr *mgr = func_800025B4_main();
@@ -1858,28 +1847,28 @@ void func_800035E8_main(s16 player)
   {
     if (player < 0)
     {
-      func_80002300_main(0, 11, 0);
-      mgr->busy = 1;
+      func_80002300_main(0, 7, 0);
+      mgr->busy.s.api = 1;
       for (i = 0; i < mgr->numPlayers; i++)
       {
         p = (new_var = &mgr->players[i]);
-        if (p->status >= 3)
+        if (p->status >= 2)
         {
-          p->status = 2;
+          p->status = 1;
         }
       }
 
-      mgr->busy = 0;
+      mgr->busy.s.api = 0;
     }
     else
     {
       p = &mgr->players[player];
-      if (p->status >= 3)
+      if (p->status >= 2)
       {
-        mgr->busy = 1;
-        func_80002300_main(player, 10, 0);
-        p->status = 2;
-        mgr->busy = 0;
+        mgr->busy.s.api = 1;
+        func_80002300_main(player, 6, 0);
+        p->status = 1;
+        mgr->busy.s.api = 0;
       }
     }
   }
@@ -1888,7 +1877,9 @@ void func_800035E8_main(s16 player)
 INCLUDE_ASM("asm/nonmatchings/1140", func_800035E8_main);
 #endif
 
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 void func_800036E8_main(s16 player, s32 vol) {
     SeqMgr* mgr = func_800025B4_main();
     SeqPlayer* p;
@@ -1914,7 +1905,9 @@ void func_800036E8_main(s16 player, s32 vol) {
 INCLUDE_ASM("asm/nonmatchings/1140", func_800036E8_main);
 #endif
 
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 s32 func_800037C4_main(s16 player) {
     SeqMgr* mgr = func_800025B4_main();
 
@@ -1965,7 +1958,9 @@ s32 func_800038EC_main(s32 player) {
     return tempo;
 }
 
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 void func_800039A4_main(s16 player, s16 frames) {
     SeqMgr* mgr = func_800025B4_main();
 
@@ -1991,7 +1986,9 @@ s32 func_80003A24_main(s32 player) {
 }
 
 // decomp-permuter
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 void func_80003A70_main(s16 player)
 {
   SeqMgr *mgr = func_800025B4_main();
@@ -2003,7 +2000,7 @@ void func_80003A70_main(s16 player)
     if (player < 0)
     {
       func_80002300_main(0, 11, 0);
-      mgr->busy = 1;
+      mgr->busy.s.api = 1;
       for (i = 0; i < mgr->numPlayers; i++)
       {
         p = (new_var = &mgr->players[i]);
@@ -2013,17 +2010,17 @@ void func_80003A70_main(s16 player)
         }
       }
 
-      mgr->busy = 0;
+      mgr->busy.s.api = 0;
     }
     else
     {
       p = &mgr->players[player];
       if (p->status >= 3)
       {
-        mgr->busy = 1;
+        mgr->busy.s.api = 1;
         func_80002300_main(player, 10, 0);
         p->status = 2;
-        mgr->busy = 0;
+        mgr->busy.s.api = 0;
       }
     }
   }
@@ -2032,7 +2029,9 @@ void func_80003A70_main(s16 player)
 INCLUDE_ASM("asm/nonmatchings/1140", func_80003A70_main);
 #endif
 
-#if 0 // TRY
+// matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
+// which adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
 void func_80003B70_main(s16 player, s32 frames) {
     SeqMgr* mgr = func_800025B4_main();
     SeqPlayer* p;
@@ -3200,13 +3199,12 @@ void func_80006D80_main(s32 voiceSlot, s32 cmdType, f32 cmdArg) {
     osSetIntMask(mask);
 }
 
-#if 0 // TRY
 void func_80006E30_main(void) {
     SndVoice* v;
     s32 i;
 
-    if (D_800A97BC_main != NULL && D_800A97BC_main->busy == 0) {
-        D_800A97BC_main->busy = 1;
+    if (D_800A97BC_main != NULL && D_800A97BC_main->busy.all == 0) {
+        D_800A97BC_main->busy.s.upd = 1;
         D_800A97BC_main->active = 0;
         func_80003FB4_main();
         func_80006830_main();
@@ -3234,12 +3232,9 @@ void func_80006E30_main(void) {
         if (D_800A97BC_main->pause == 0x7F) {
             func_800068B8_main();
         }
-        D_800A97BC_main->busy = 0;
+        D_800A97BC_main->busy.s.upd = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80006E30_main);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/1140", func_80006FC4_main);
 
@@ -3372,7 +3367,6 @@ s32 func_800072A4_main(s32 defNo, s32 partNo, s32 slot, s32 shiftCount) {
 INCLUDE_ASM("asm/nonmatchings/1140", func_800072A4_main);
 #endif
 
-#if 0 // TRY
 void func_800076B8_main(s32 defNo, s32 slot, u8 priority, SndPlayParam* prm) {
     SndPosParam pos;
     SndMgr* m;
@@ -3382,11 +3376,11 @@ void func_800076B8_main(s32 defNo, s32 slot, u8 priority, SndPlayParam* prm) {
     func_80006CD4_main(slot, 0, 0);
     v = &m->voices[slot];
     v->state = 3;
-    v->defNo = defNo;
     v->serial = m->serial++;
     v->priority = priority;
     v->numChild = 0;
     v->unkA4 = v->unkA8 = 0.0f;
+    v->defNo = defNo;
     if (prm != NULL) {
         if (prm->flags & 1) {
             v->vol = prm->vol;
@@ -3426,9 +3420,6 @@ void func_800076B8_main(s32 defNo, s32 slot, u8 priority, SndPlayParam* prm) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800076B8_main);
-#endif
 
 s16 func_800078A4_main(void) {
     SndMgr* m = func_8000704C_main();
@@ -3591,14 +3582,13 @@ void func_80007D2C_main(s32 slot, s32 fxMix) {
     }
 }
 
-#if 0 // TRY
 void func_80007DD8_main(s32 slot) {
     SndMgr* m = func_8000704C_main();
     SndVoice* v;
     s32 i;
 
     if (m != NULL) {
-        m->busy = 1;
+        m->busy.s.api = 1;
         if (slot < 0) {
             func_80006CD4_main(0, 12, 0);
             for (i = 0; i < m->numVoices; i++) {
@@ -3614,12 +3604,9 @@ void func_80007DD8_main(s32 slot) {
                 v->state = 1;
             }
         }
-        m->busy = 0;
+        m->busy.s.api = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80007DD8_main);
-#endif
 
 void func_80007EC0_main(s32 arg) {
     if (func_8000704C_main() != NULL) {
@@ -3643,7 +3630,6 @@ s32 func_80007EF8_main(void)
   return ret;
 }
 
-#if 0 // TRY
 void func_80007F24_main(void) {
     SndMgr* m = func_8000704C_main();
     SndVoice* v;
@@ -3651,19 +3637,16 @@ void func_80007F24_main(void) {
 
     if (m != NULL && m->pause >= 0x7F) {
         func_80006CD4_main(0, 14, 0);
-        m->busy = 1;
+        m->busy.s.api = 1;
         for (i = 0; i < D_800A97BC_main->numVoices; i++) {
             v = &D_800A97BC_main->voices[i];
             if (v->state >= 2) {
                 v->state = 2;
             }
         }
-        m->busy = 0;
+        m->busy.s.api = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80007F24_main);
-#endif
 
 void func_80007FD4_main(s32 arg) {
     SndMgr* m = func_8000704C_main();
