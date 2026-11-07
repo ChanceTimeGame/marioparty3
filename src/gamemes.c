@@ -107,6 +107,27 @@ void HuMemMemoryFreePerm(void *ptr);
 /* wave 2c A */
 #include "game/gamework_data.h"
 
+typedef struct {
+    /* 0x00 */ f32 unk00;
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 scaleX;
+    /* 0x24 */ f32 scaleY;
+    /* 0x28 */ f32 unk28;
+    /* 0x2C */ f32 unk2C;
+    /* 0x30 */ u8 alpha;
+    /* 0x34 */ s32 unk34;
+    /* 0x38 */ s32 unk38;
+} GMesChr; // Size 0x3C
+
+extern GMesChr D_800B1BC0_main[];
+s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
+
 s32 func_80036610_main(void) {
     return GwSystem.minigame_index;
 }
@@ -763,7 +784,70 @@ s32 func_80037C44_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80037C44_main);
 #endif
 
+// "START" (unused variant): register allocation, i and chr swapped (masked 0)
+#ifdef NON_MATCHING
+s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1) {
+    GMesChr *chr;
+    s32 i;
+    s32 n = 5;
+    s32 ret;
+
+    if (gMesCloseF || gMes->stat == 4) {
+        gMes->unk08 = 6;
+    }
+    ret = TRUE;
+    switch (gMes->unk08) {
+        case 0:
+            for (i = 0; i < 32; i++) {
+                chr = &D_800B1BC0_main[i];
+                chr->unk00 = chr->unk04 = chr->unk18 = chr->unk1C = chr->unk28 = chr->unk2C = 0.0f;
+                chr->scaleX = chr->scaleY = 1.0f;
+                chr->alpha = 0x80;
+                chr->unk34 = 0;
+                chr->unk38 = 0;
+            }
+            func_8003A37C_main(gMes, D_800A7450_main, 1, -1, -1);
+            func_80054904_main(gMes->strGId[0], 0, 160, 120);
+            for (i = 0; i < n;) {
+                chr = &D_800B1BC0_main[i];
+                i++;
+                HuSprScaleSet(gMes->strGId[0], i, chr->scaleX, chr->scaleY);
+                func_80055458_main(gMes->strGId[0], i, chr->alpha);
+            }
+            gMes->unk06 = gMes->unk04 = gMes->unk0A = gMes->unk0C = gMes->unk0E = 0;
+            gMes->unk60 = gMes->unk64 = 0.0f;
+            gMes->unk68 = gMes->unk6C = 1.0f;
+            gMes->unk70 = 0.0f;
+            gMes->unk1C = 0;
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            GMesSprKill(gMes);
+            D_800D6A58_main = 0;
+            D_800D1100_main = 1;
+            ret = FALSE;
+            break;
+    }
+    if (gMes->unk04 == 60) {
+        HuAudFXPlay(0x251);
+    }
+    if (gMes->unk04 == 80) {
+        func_800452BC_main(func_80036610_main());
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038208_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
 
