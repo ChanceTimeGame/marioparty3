@@ -1024,7 +1024,7 @@ extern omDBGMenuItem D_800A184C_main[6];
 extern PauseFrameColor D_800CE1DC_main;
 extern u16 D_800CDD5C_main[4]; /* buttons pressed */
 extern u16 D_800CCF7C_main[4]; /* buttons held */
-extern u8 D_800A1752_main;
+extern u8 D_800A1752_main[2]; /* [0] HmfPauseF saved by the debug menu, [1] close the Start pause */
 extern s8 D_800A1785_main;
 extern u16 D_800CE214_main;
 extern s16 D_800B23CC_main; /* pause windows */
@@ -1174,7 +1174,7 @@ void func_80048EE8_main(omObjData* obj) {
         if (close == 1) {
             obj->work[0] &= ~1;
             if (!(D_800D2118_main->work[0] & 1)) {
-                HmfPauseF = D_800A1752_main;
+                HmfPauseF = D_800A1752_main[0];
                 for (j = 0; j < ommaxobjs; j++) {
                     if (!(omobjall[j].stat & 0x21)) {
                         omResetStatBit(&omobjall[j], 0x10);
@@ -1215,7 +1215,7 @@ void func_80048EE8_main(omObjData* obj) {
         for (i = 0; i < 4; i++) {
             if (CheckControllerRead(i) != 0 && (D_800CDD5C_main[i] & 0x20) &&
                 !((D_800CCF7C_main[i] | D_800CDD5C_main[i]) & 0x10)) {
-                D_800A1752_main = HmfPauseF;
+                D_800A1752_main[0] = HmfPauseF;
                 HmfPauseF = 1;
                 obj->work[0] = 1;
                 obj->work[1] = i;
@@ -1250,7 +1250,137 @@ void func_80048EE8_main(omObjData* obj) {
     }
 }
 
+extern u8 D_800D2132_main;  /* Start may resume the pause (pause.c: s8) */
+extern u8 D_800A2150_main;
+extern s16 D_800A1894_main[]; /* per minigame type: players (by group) allowed to pause */
+void func_800453BC_main(void);
+void func_80045A90_main(void);
+s32 func_800034D8_main(s32);
+void func_8004B0D4_main(void);
+// Matches with include/variables.h's D_800D6A58_main as u8 (retail reads it with lbu); as s8 the
+// first test is lb (masked 1). Header fix: ~/repos/mp3-wt/2d-B.header.patch.
+#ifdef NON_MATCHING
+/* The Start-button pause (MP2 func_80078A08_79608, MP1 omSystemKeyCheck): Start (or a forced
+   close) resumes every paused object and process; otherwise a player allowed to pause in this
+   minigame pauses them all, or the minigame-skip button ends the minigame. */
+void func_800499B0_main(omObjData *obj) {
+    s32 i;
+    s32 j;
+    u8 type;
+
+    if (D_800D6A58_main != 0) {
+        return;
+    }
+    if (obj->work[0] & 1) {
+        if (D_800D2132_main != 0 &&
+            ((D_800CDD5C_main[(u16) obj->work[1]] & 0x1000) || D_800A176C_main == 1 || D_800A1752_main[1] == 1)) {
+            D_800A1752_main[1] = 0;
+            HmfPauseF = 0;
+            obj->work[0] &= ~1;
+            for (j = 0; j < ommaxobjs; j++) {
+                if (!(omobjall[j].stat & 0x21)) {
+                    omResetStatBit(&omobjall[j], 0x10);
+                }
+            }
+            for (j = 0; j < D_800A1774_main; j++) {
+                if (!(D_800A177C_main[j].stat & 0x21)) {
+                    omPrcResetStatBit(D_800A177C_main[j].processInstance, 0x10);
+                    if (!(D_800A177C_main[j].stat & 0x40)) {
+                        D_800A177C_main[j].processInstance->stat &= ~1;
+                    }
+                }
+            }
+            if (_CheckFlag(0xF) != 0) {
+                func_8000BB54_main(D_800B23C4_main);
+            }
+            for (j = 0; j < 4; j++) {
+                if (CheckControllerRead(j) != 0) {
+                    ResetVibrator(j);
+                }
+            }
+            if (D_800CE214_main == 1) {
+                func_8005F524_main();
+            }
+            func_80045A90_main();
+            func_80003B70_main(D_800CDBC8_main, 0);
+            if (D_800A1785_main == 1) {
+                func_80003B70_main(1, 0);
+                D_800A1785_main = 0;
+            }
+            func_8004B0D4_main();
+            if (D_800A1906_main & 8) {
+                D_800A1906_main &= ~8;
+            }
+        }
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(GwPlayer[i].pad) != 0 && _CheckFlag(0xF) != 0 && D_800D1100_main == 1 &&
+            (D_800CDD5C_main[GwPlayer[i].pad] & 0x10)) {
+            D_800D530C_main = 1;
+            return;
+        }
+    }
+    if (WipeStatGet() != 1 && D_800D530C_main != 1 && D_800A176C_main != 1 && (omovlstat & 4)) {
+        for (i = 0; i < 4; i++) {
+            if (CheckControllerRead(GwPlayer[i].pad) == 0) {
+                continue;
+            }
+            type = D_800A6D44_main[GwSystem.minigame_index - 1].minigameType;
+            if (type == 7) {
+                if (i != 0) {
+                    continue;
+                }
+            } else if (GwPlayer[i].group >= D_800A1894_main[type]) {
+                continue;
+            }
+            if (D_800CDD5C_main[GwPlayer[i].pad] & 0x1000) {
+                D_800D2132_main = 0;
+                D_800A1752_main[1] = 0;
+                HmfPauseF = 1;
+                obj->work[0] = 1;
+                obj->work[1] = GwPlayer[i].pad;
+                for (j = 0; j < ommaxobjs; j++) {
+                    if (!(omobjall[j].stat & 0x21)) {
+                        omSetStatBit(&omobjall[j], 0x10);
+                    }
+                }
+                for (j = 0; j < D_800A1774_main; j++) {
+                    if (!(D_800A177C_main[j].stat & 0x21)) {
+                        omPrcSetStatBit(D_800A177C_main[j].processInstance, 0x10);
+                        D_800A177C_main[j].processInstance->stat |= 1;
+                    }
+                }
+                if (D_800A2150_main != 1) {
+                    func_8005A6B0_main();
+                    D_800CE214_main = 1;
+                } else {
+                    D_800CE214_main = 0;
+                }
+                func_800453BC_main();
+                if (_CheckFlag(0xF) != 0) {
+                    func_8000BB94_main(D_800B23C4_main);
+                }
+                func_80003A70_main(D_800CDBC8_main);
+                if (func_800034D8_main(1) == 4) {
+                    func_80003A70_main(1);
+                    D_800A1785_main = 1;
+                }
+                func_8004AFBC_main(4);
+                for (j = 0; j < 4; j++) {
+                    if (CheckControllerRead(j) != 0) {
+                        ResetVibrator(j);
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/objmain", func_800499B0_main);
+#endif
 
 /* MP1 func_8005FD5C: 1 while the debug pause menu is open */
 u16 func_80049F98_main(void) {
