@@ -182,7 +182,7 @@ void func_8001C8A8_main(s16, s16);
 void func_8001C8E4_main(s16, u32);
 void func_8001C92C_main(s16, f32);
 s32 func_8001C954_main(s16);
-void func_8001EF24_main(s32, s32, s32, s32, s32);
+void func_8001EF24_main(s16, s16, u8, u8, u8);
 s32 func_8001F1FC_main(void*, s32);
 void func_8001F304_main(s16, s16);
 void func_8001F38C_main(s32, s32, s32);

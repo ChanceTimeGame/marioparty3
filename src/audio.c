@@ -10,7 +10,6 @@ typedef struct {
 } UnkAudStruct; // Size unknown (min: 0x29, max: 0x30)
 
 void func_8000086C_main(str800D5298 *);
-s16 func_80003310_main(s16);
 s32 func_80007064_main(s32);
 s32 func_80007080_main(s16, UnkAudStruct *);
 void func_80007BD4_main(s16, s16);

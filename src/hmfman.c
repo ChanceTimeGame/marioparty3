@@ -305,12 +305,9 @@ extern HmfDataM D_800CB8C0_main; /* the scratch model for motion-only files */
 f32 func_8002FC7C_main(D_800CCF58_main_Struct*, s16, f32, f32, f32);
 void func_80032FC0_main(s16, u8, u8);
 void func_80034048_main(s16, s16);
-/* retail calls it with the model only (as MP1/MP2 do); the host passes no name */
-#ifdef TARGET_PC
-void* func_80031A44_main(HmfDataM*, u8*);
-#else
+/* retail calls it with the model only (as MP1/MP2 do), though its definition takes a name too:
+   a host build must pass NULL for it */
 void* func_80031A44_main();
-#endif
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 
@@ -1362,10 +1359,8 @@ void func_8001EED8_main(s16 arg0, u8 arg1, s8 arg2) {
     modelP->unk5C = 1.0f;
 }
 
-/* MP1 func_80028510 (src/24740.c). Retail reads arg4 as a byte (lbu 0x13(sp)): its definition
-   takes (s16, s16, u8, u8, u8), which hmfman.h's s32 prototype does not allow */
-#ifdef NON_MATCHING
-void func_8001EF24_main(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+/* MP1 func_80028510 (src/24740.c). Retail reads arg4 as a byte (lbu 0x13(sp)) */
+void func_8001EF24_main(s16 arg0, s16 arg1, u8 arg2, u8 arg3, u8 arg4) {
     D_800CE1C6_main = 1;
     D_800D6B64_main = arg0;
     D_800CC0B6_main = arg1;
@@ -1373,9 +1368,6 @@ void func_8001EF24_main(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     D_800D41C4_main = arg3;
     D_800CDA84_main = arg4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/hmfman", func_8001EF24_main);
-#endif
 
 void func_8001EF60_main(void) {
     D_800CE1C6_main = 0;
@@ -1394,11 +1386,7 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2) {
 void func_8001EFEC_main(s16 arg0) {
     HmfDataM* model = MDL[arg0].hmf;
 
-#ifdef TARGET_PC
-    model->unk9C = func_80031A44_main(model, NULL);
-#else
     model->unk9C = func_80031A44_main(model);
-#endif
 }
 
 /* MP1 func_80028668 (src/24740.c): advance a model's three motions */

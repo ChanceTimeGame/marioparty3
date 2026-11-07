@@ -4,7 +4,7 @@
 #include "ultra64.h"
 
 s16 HuAudSeqPlay(s16 musId);
-s16 func_80003310_main(s16 arg0);
+s32 func_80003310_main(s32 arg0);
 s16 func_8004A5C4_main(s32);
 void HuAudSeqFadeOut(s16 speed);
 s16 HuAudFXPlay(s16 seId);

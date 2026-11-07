@@ -200,7 +200,6 @@ extern f32 D_8011E6AC_ChillyWaters[][2];
 s16 MB1Ev_StarGuideMasuGet(void);
 s32 MB1Ev_YesNoChoiceGet(DecisionTreeNonLeafNode *arg0, s32 arg1);
 void func_80106EEC_ChillyWaters(Object*);
-s16 func_80003310_main(s16);
 s32 func_801059D0_ChillyWaters(s16, s16);
 void func_80105DB8_ChillyWaters(s32);
 void func_8011BBA4_ChillyWaters(void);

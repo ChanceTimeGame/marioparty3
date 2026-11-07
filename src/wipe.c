@@ -11,12 +11,8 @@
 #define WIPE_H 240
 
 /* a pointer held as an integer so it can be aligned by masking (MP1's PB_PTR32) */
-#ifdef TARGET_PC
-#include <stdint.h>
-typedef intptr_t WipePtr;
-#else
+/* Frame-buffer addresses kept as integers (retail); a host build must widen this to intptr_t. */
 typedef s32 WipePtr;
-#endif
 
 typedef struct WipeTex {
     /* 0x00 */ s16 w;

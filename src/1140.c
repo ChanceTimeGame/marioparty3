@@ -1756,13 +1756,9 @@ f32 func_800032CC_main(u8 depth) {
 
 // matches with s32 argument and return; include/game/audio.h declares s16 func_80003310_main(s16),
 // whose return truncation adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-s16 func_80003310_main(s16 id) {
+s32 func_80003310_main(s32 id) {
     return func_8000332C_main(id, NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80003310_main);
-#endif
 
 s32 func_8000332C_main(s32 id, SeqPlayArgs* args) {
     SeqMgr* mgr = func_800025B4_main();
@@ -1859,8 +1855,7 @@ s8 func_800035C0_main(void) {
 // decomp-permuter
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-void func_800035E8_main(s16 player)
+void func_800035E8_main(s32 player)
 {
   SeqMgr *mgr = func_800025B4_main();
   SeqPlayer *p;
@@ -1896,14 +1891,10 @@ void func_800035E8_main(s16 player)
     }
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800035E8_main);
-#endif
 
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-void func_800036E8_main(s16 player, s32 vol) {
+void func_800036E8_main(s32 player, s32 vol) {
     SeqMgr* mgr = func_800025B4_main();
     SeqPlayer* p;
     s32 i;
@@ -1924,14 +1915,10 @@ void func_800036E8_main(s16 player, s32 vol) {
         func_80002300_main(player, 2, vol);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800036E8_main);
-#endif
 
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-s32 func_800037C4_main(s16 player) {
+s32 func_800037C4_main(s32 player) {
     SeqMgr* mgr = func_800025B4_main();
 
     if (mgr == NULL) {
@@ -1939,9 +1926,6 @@ s32 func_800037C4_main(s16 player) {
     }
     return mgr->players[player].vol;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800037C4_main);
-#endif
 
 void func_80003810_main(s32 vol) {
     if (func_800025B4_main() != NULL) {
@@ -1983,8 +1967,7 @@ s32 func_800038EC_main(s32 player) {
 
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-void func_800039A4_main(s16 player, s16 frames) {
+void func_800039A4_main(s32 player, s32 frames) {
     SeqMgr* mgr = func_800025B4_main();
 
     if (mgr != NULL) {
@@ -1995,9 +1978,6 @@ void func_800039A4_main(s16 player, s16 frames) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_800039A4_main);
-#endif
 
 s32 func_80003A24_main(s32 player) {
     SeqMgr* mgr = func_800025B4_main();
@@ -2011,8 +1991,7 @@ s32 func_80003A24_main(s32 player) {
 // decomp-permuter
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-void func_80003A70_main(s16 player)
+void func_80003A70_main(s32 player)
 {
   SeqMgr *mgr = func_800025B4_main();
   SeqPlayer *p;
@@ -2048,14 +2027,10 @@ void func_80003A70_main(s16 player)
     }
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80003A70_main);
-#endif
 
 // matches (masked and raw 0) with the player argument as s32; include/functions.us.h declares it s16,
 // which adds a sign extension. Correct the prototype there and this C replaces the asm.
-#ifdef NON_MATCHING
-void func_80003B70_main(s16 player, s32 frames) {
+void func_80003B70_main(s32 player, s32 frames) {
     SeqMgr* mgr = func_800025B4_main();
     SeqPlayer* p;
 
@@ -2071,9 +2046,6 @@ void func_80003B70_main(s16 player, s32 frames) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80003B70_main);
-#endif
 
 void func_80003BF4_main(s32 player, s32 chan, SeqChlInfo* info) {
     SeqMgr* mgr = func_800025B4_main();
