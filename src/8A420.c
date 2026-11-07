@@ -1,3 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/8A420", func_80089820_main);
+/* |x| <= eps */
+s32 func_80089820_main(f32 x, f32 eps) {
+    return (-eps <= x) & (x <= eps);
+}
