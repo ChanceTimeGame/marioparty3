@@ -94,9 +94,38 @@ u8 GWPlayNumGet(s16 arg0) {
     return *GWBoardRecordGet(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/save", GWPlayNumInc);
+// MP2's 10-bit play counter (u16 with flags in the top bits) kept on an 8-bit record:
+// the 0xFC00 mask is always 0 and the 999 cap truncates to 0xE7 in the u8.
+void GWPlayNumInc(s16 board) {
+    u8 *record = GWBoardRecordGet(board);
 
-INCLUDE_ASM("asm/nonmatchings/save", GWCharPlayNumInc);
+    if (board < 0) {
+        board = GwSystem.current_board_index;
+    }
+    if (board < 8) {
+        u16 count;
+        u16 flags;
+
+        flags = *record & 0xFC00;
+        count = *record & 0x3FF;
+        if (++count > 999) {
+            count = 999;
+        }
+        *record = count | flags;
+    }
+}
+
+void GWCharPlayNumInc(s16 board, s16 chr) {
+    u8 *record = GWBoardRecordGet(board);
+    s16 idx = board;
+
+    if (board < 0) {
+        idx = GwSystem.current_board_index;
+    }
+    if (idx < 8 && *(record + chr + 1) < 99) {
+        (*(record + chr + 1))++;
+    }
+}
 
 s32 func_80035E3C_main(s16 arg0) {
     // 0x18 of stack is reserved but unused in the original; the array keeps the frame.
