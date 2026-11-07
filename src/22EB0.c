@@ -1322,15 +1322,146 @@ INCLUDE_ASM("asm/nonmatchings/22EB0", func_800257BC_main);
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_800260F0_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80029FB4_main);
+extern s16 D_800CDD66_main;
+
+void func_80029FB4_main(HmfObj* arg0, s16 arg1) {
+    s16* p;
+
+    gSPClearGeometryMode(gMainGfxPos++, G_LIGHTING);
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk42;
+    *p++ = arg0->unk64[arg1].unk44;
+    *p = arg0->unk64[arg1].unk46;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk42;
+    *p++ = arg0->unk64[arg1].unk4A;
+    *p = arg0->unk64[arg1].unk46;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk48;
+    *p++ = arg0->unk64[arg1].unk4A;
+    *p = arg0->unk64[arg1].unk46;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk48;
+    *p++ = arg0->unk64[arg1].unk44;
+    *p = arg0->unk64[arg1].unk46;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk42;
+    *p++ = arg0->unk64[arg1].unk44;
+    *p = arg0->unk64[arg1].unk4C;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk42;
+    *p++ = arg0->unk64[arg1].unk4A;
+    *p = arg0->unk64[arg1].unk4C;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk48;
+    *p++ = arg0->unk64[arg1].unk4A;
+    *p = arg0->unk64[arg1].unk4C;
+
+    p = &D_800D5308_main[D_800CE1CE_main++].unk00;
+    *p++ = arg0->unk64[arg1].unk48;
+    *p++ = arg0->unk64[arg1].unk44;
+    *p = arg0->unk64[arg1].unk4C;
+
+    gSPVertex(gMainGfxPos++, D_800CDD66_main * 16 + 0x01000000, D_800CE1CE_main - D_800CDD66_main, 0);
+
+    D_800CDD66_main = D_800CE1CE_main;
+
+    gSPCullDisplayList(gMainGfxPos++, 0, 7);
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002A358_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002AC5C_main);
+extern s16 D_800A0AE0_main[];
+extern s32 D_800A0AE8_main[];
+extern u8 D_800CD2A0_main;
+extern u8 D_800D1F2A_main;
+extern s32 D_800D1F74_main;
+extern u8 D_800D20A0_main;
+extern u8 D_800D211C_main;
+extern Gfx D_800A0A80_main[];
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002AF40_main);
+void func_8002AC5C_main(u16 arg0) {
+    u8 temp_v1;
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002AFEC_main);
+    temp_v1 = (arg0 >> 7) & 3;
+    if (temp_v1 != D_800D1F2A_main) {
+        D_800D1F2A_main = temp_v1;
+        gDPSetTextureFilter(gMainGfxPos++, G_TF_POINT | D_800A0AE0_main[temp_v1]);
+    }
+
+    if (D_800D20A0_main != D_800D211C_main) {
+        D_800D211C_main = D_800D20A0_main;
+        if (D_800D20A0_main == 0) {
+            gSPSetGeometryMode(gMainGfxPos++, G_SHADING_SMOOTH);
+        } else {
+            gSPClearGeometryMode(gMainGfxPos++, G_SHADING_SMOOTH);
+        }
+    }
+
+    temp_v1 = (arg0 >> 9) & 3;
+    if (temp_v1 != D_800CD2A0_main) {
+        D_800CD2A0_main = temp_v1;
+        switch (temp_v1) {
+            case 0:
+                gDPSetColorDither(gMainGfxPos++, G_CD_DISABLE);
+                break;
+            case 1:
+                gDPSetColorDither(gMainGfxPos++, G_CD_NOISE);
+                break;
+            case 2:
+                gDPSetColorDither(gMainGfxPos++, G_CD_BAYER);
+                break;
+            case 3:
+                gDPSetColorDither(gMainGfxPos++, G_CD_MAGICSQ);
+                break;
+            }
+    }
+
+    if (D_800CE1C6_main != 0) {
+        gSPFogFactor(gMainGfxPos++, 500 * 256 / (D_800CC0B6_main - D_800D6B64_main), (500 - D_800D6B64_main) * 256 / (D_800CC0B6_main - D_800D6B64_main));
+        gDPSetFogColor(gMainGfxPos++, D_800D0599_main, D_800D41C4_main, D_800CDA84_main, 255);
+    }
+}
+
+void func_8002AF40_main(void) {
+    gMoveWd(gMainGfxPos++, G_MW_CLIP, G_MWO_CLIP_RNX, *(D_800CC0A8_main * 2 + &D_800A0AE8_main[0]));
+    gMoveWd(gMainGfxPos++, G_MW_CLIP, G_MWO_CLIP_RNY, *(D_800CC0A8_main * 2 + &D_800A0AE8_main[0]));
+    gMoveWd(gMainGfxPos++, G_MW_CLIP, G_MWO_CLIP_RPX, *(D_800CC0A8_main * 2 + &D_800A0AE8_main[1]));
+    gMoveWd(gMainGfxPos++, G_MW_CLIP, G_MWO_CLIP_RPY, *(D_800CC0A8_main * 2 + &D_800A0AE8_main[1]));
+}
+
+void func_8002B104_main(HmfObj*, s16);
+void func_8002C0EC_main(HmfObj*, s16);
+
+void func_8002AFEC_main(HmfObj* arg0, s32 arg1, s16 arg2) {
+    if (D_800D1F74_main != arg1 || arg1 & 0x0E000000) {
+        D_800D1F74_main = arg1;
+
+        gSPDisplayList(gMainGfxPos++, D_800A0A80_main);
+
+        if (arg1 & 0x2000) {
+            gSPSetGeometryMode(gMainGfxPos++, G_CULL_BACK);
+        }
+
+        if (D_800CE1C6_main != 0) {
+            gDPSetCycleType(gMainGfxPos++, G_CYC_2CYCLE);
+            gSPSetGeometryMode(gMainGfxPos++, G_FOG);
+        }
+
+        if (arg1 & 0x06000000) {
+            func_8002C0EC_main(arg0, arg2);
+        } else if (arg1 & 0x08000000) {
+            func_8002B104_main(arg0, arg2);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002B104_main);
 
