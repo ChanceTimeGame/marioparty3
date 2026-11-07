@@ -22,17 +22,15 @@ typedef struct HmfVtxPos {
     /* 0x04 */ s16 z;
 } HmfVtxPos; /* size = 0x6 */
 
-/* A model's working copy of its vertices (HmfData 0x58; MP2 HmfVtxCopy, two buffers in MP3) */
+/* A model's working copy of its vertices (HmfData 0x58; MP2 HmfVtxCopy): two decoded frames,
+   between which func_80030414_main interpolates */
 typedef struct HmfVtxCopyM {
-    /* 0x00 */ s16 unk00; /* vertex count */
-    /* 0x02 */ s16 unk02; /* decoded frame, -1 none */
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ s16 unk06;
-    /* 0x08 */ HmfVtxPos* unk08;
-    /* 0x0C */ HmfVtxPos* unk0C;
-    /* 0x10 */ u8* unk10; /* colours, 3 bytes each */
-    /* 0x14 */ u8* unk14;
-    /* 0x18 */ u8* unk18; /* one bit per vertex */
+    /* 0x00 */ s16 unk00;    /* vertex count */
+    /* 0x02 */ s16 unk02[2]; /* frame decoded in each buffer, -1 none */
+    /* 0x06 */ s16 unk06;    /* current buffer */
+    /* 0x08 */ HmfVtxPos* unk08[2];
+    /* 0x10 */ s8* unk10[2]; /* colours, 3 bytes each (read signed) */
+    /* 0x18 */ u8* unk18;    /* one bit per vertex */
 } HmfVtxCopyM; /* size = 0x1C */
 
 typedef struct HmfVtx30C40 {
@@ -93,6 +91,7 @@ extern u8 D_800D2008_main;
 void func_80030178_main(s32 arg0);
 void func_80030414_main(HmfData30C40* arg0, s16 arg1, f32 arg2);
 void func_80031324_main(HmfData30C40* arg0, f32 arg1);
+void func_800308C0_main(HmfVtxAnimSlot* slot, HmfData30C40* arg0, HmfVtxCopyM* c, s16 frame);
 
 void func_80030040_main(void) {
     s16 i;
@@ -143,16 +142,16 @@ void func_80030208_main(HmfData30C40* arg0) {
     HmfVtxCopyM* c;
     HmfVtx30C40* v;
     HmfVtxPos* pos;
-    u8* col;
+    s8* col;
     s16 n;
     s16 i;
 
     if (arg0->unk58 != NULL) {
         c = arg0->unk58;
-        HuMemFree(c->unk08);
-        HuMemFree(c->unk0C);
-        HuMemFree(c->unk10);
-        HuMemFree(c->unk14);
+        HuMemFree(c->unk08[0]);
+        HuMemFree(c->unk08[1]);
+        HuMemFree(c->unk10[0]);
+        HuMemFree(c->unk10[1]);
         HuMemFree(c->unk18);
         HuMemFree(c);
     }
@@ -162,13 +161,13 @@ void func_80030208_main(HmfData30C40* arg0) {
     arg0->unk58 = c;
     c->unk00 = n;
     pos = HuMemAllocTag(n * sizeof(HmfVtxPos), D_800CDD6A_main);
-    c->unk08 = pos;
+    c->unk08[0] = pos;
     col = HuMemAllocTag(n * 3, D_800CDD6A_main);
-    c->unk10 = col;
-    c->unk0C = HuMemAllocTag(n * sizeof(HmfVtxPos), D_800CDD6A_main);
-    c->unk14 = HuMemAllocTag(n * 3, D_800CDD6A_main);
+    c->unk10[0] = col;
+    c->unk08[1] = HuMemAllocTag(n * sizeof(HmfVtxPos), D_800CDD6A_main);
+    c->unk10[1] = HuMemAllocTag(n * 3, D_800CDD6A_main);
     c->unk18 = HuMemAllocTag((n + 7) / 8, D_800CDD6A_main);
-    c->unk02 = c->unk04 = -1;
+    c->unk02[0] = c->unk02[1] = -1;
     c->unk06 = 0;
 
     v = arg0->unk40;
@@ -195,7 +194,87 @@ void func_800303C8_main(HmfModel30C40* arg0, f32 arg1) {
     func_80030414_main(hmf, arg0->unk08, arg1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/30C40", func_80030414_main);
+/* Interpolate model arg0's vertices at time arg2 of vertex animation slot arg1 between the two
+   decoded frames around it, into this frame's vertex buffer */
+void func_80030414_main(HmfData30C40* arg0, s16 arg1, f32 arg2) {
+    HmfVtxAnimSlot* slot;
+    HmfVtxCopyM* c;
+    HmfVtx30C40* v;
+    HmfVtxPos* pos0;
+    HmfVtxPos* pos1;
+    s8* col0;
+    s8* col1;
+    f32 t;
+    s16 f;
+    s16 next;
+    s16 start;
+    s16 b;
+    s16 n;
+    s16 i;
+
+    slot = &D_800D59F8_main[arg1];
+    c = arg0->unk58;
+    f = arg2 / slot->unk10;
+    if (f >= slot->unk0E - 1) {
+        f = slot->unk0E - 1;
+    }
+    t = (arg2 - f * slot->unk10) / slot->unk10;
+    next = f + 1;
+    if (next >= slot->unk0E) {
+        if ((slot->unk0C - 1) % slot->unk10 != 0) {
+            next = slot->unk0E;
+            t = 1.0f - (slot->unk0C - arg2) / (slot->unk0C - (slot->unk0E - 1) * slot->unk10);
+        } else {
+            next = slot->unk0E - 1;
+        }
+    }
+
+    if (c->unk02[0] != f && c->unk02[1] != f) {
+        start = c->unk02[c->unk06];
+        if (start < 0) {
+            start = 0;
+        }
+        if (start > f) {
+            start = 0;
+        }
+        for (i = start; i <= f; i++) {
+            func_800308C0_main(slot, arg0, c, i);
+        }
+        b = c->unk06;
+    } else if (c->unk02[0] == f) {
+        c->unk06 = 0;
+        b = 0;
+    } else {
+        c->unk06 = 1;
+        b = 1;
+    }
+    if (c->unk02[0] != next && c->unk02[1] != next) {
+        func_800308C0_main(slot, arg0, c, next);
+    }
+    if (f == next) {
+        t = 0.0f;
+    }
+
+    pos0 = c->unk08[b];
+    col0 = c->unk10[b];
+    pos1 = c->unk08[(b + 1) & 1];
+    col1 = c->unk10[(b + 1) & 1];
+    v = arg0->unk44[D_800D2008_main];
+    n = arg0->unk18;
+    for (i = 0; i < n; i++) {
+        v->unk00 = pos0->x * (1.0f - t) + pos1->x * t;
+        v->unk02 = pos0->y * (1.0f - t) + pos1->y * t;
+        v->unk04 = pos0->z * (1.0f - t) + pos1->z * t;
+        v->unk0C[0] = (s32) (col0[0] * (1.0f - t) + col1[0] * t);
+        v->unk0C[1] = (s32) (col0[1] * (1.0f - t) + col1[1] * t);
+        v->unk0C[2] = (s32) (col0[2] * (1.0f - t) + col1[2] * t);
+        v++;
+        pos0++;
+        col0 += 3;
+        pos1++;
+        col1 += 3;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/30C40", func_800308C0_main);
 
