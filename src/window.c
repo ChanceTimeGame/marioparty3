@@ -1425,7 +1425,63 @@ void func_8005DD54_main(TextWindow* tw) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005DDDC_main);
+extern u8 D_800D6A90_main;
+
+/* MP2 func_8008B6F4_8C2F4 (MP1 func_8006F9B0): the window process, runs every open window once
+   per frame */
+void func_8005DDDC_main(void) {
+    TextWindow* tw;
+    s16 id;
+    u16 btn;
+
+    while (1) {
+        HuPrcVSleep();
+        id = D_800CC69C_main[0].unk64;
+        while (D_800CC69C_main[id].unk64 != -1) {
+            tw = &D_800CC69C_main[id];
+            if ((tw->unk_38 & 0x400) ||
+                ((D_800CB99C_main == 0 || (tw->unk_38 & 0x40)) && func_80049F98_main() + D_800D6A90_main != 0)) {
+                if (tw->unk_38 & 0x100) {
+                    func_8005DC94_main(id);
+                }
+                id = D_800CC69C_main[id].unk64;
+                continue;
+            }
+            tw->unk_38 &= ~0x200;
+            switch (tw->unk20) {
+                case 1:
+                    func_8005C190_main(id);
+                    break;
+                case 2:
+                case 6:
+                    if ((!(tw->unk_38 & 0x10) || tw->unk20 == 6) &&
+                        (((btn = func_8005F918_main(tw)) & 0xC000) || (btn & tw->unkA6))) {
+                        if (tw->unkAA != -1) {
+                            HuAudFXPlay(tw->unkAA);
+                        }
+                        if (tw->unk20 == 6) {
+                            func_8005D294_main(id);
+                        }
+                        tw->unk20 = 1;
+                        tw->unk_38 |= 0x200;
+                        tw->unkA8 = btn;
+                        func_8005CF94_main(id);
+                    }
+                    break;
+                case 5:
+                    if (func_8005E348_main(id) == 0) {
+                        tw->unk20 = 0;
+                    }
+                    break;
+            }
+            if (tw->unk_38 & 0x100) {
+                func_8005DC94_main(id);
+            }
+            func_8005EEE4_main(tw, &tw->unk_F4[tw->unk_31]);
+            id = D_800CC69C_main[id].unk64;
+        }
+    }
+}
 
 /* MP1 func_8006FCC0: the window's state; for -1 the states of all windows or'ed */
 s16 func_8005E0C0_main(s16 winId) {
