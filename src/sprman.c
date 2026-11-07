@@ -79,15 +79,15 @@ void func_8008A0D0_main(Mtx *);
 void func_80052518_main(HuSprite *arg0);
 void func_80056F80_main(s16 arg0);
 s16 func_8005630C_main(HuSprAnm *arg0);
-void func_800563A4_main(HuSprAnm *arg0);
+void AnimateSprite(HuSprAnm *arg0);
 void func_800571C8_main(struct SprPalAnim *arg0);
-void func_80054218_main(Gfx **gfx, Mtx *mtx, HuCamera *cam);
+void SprExec(Gfx **gfx, Mtx *mtx, HuCamera *cam);
 void func_80053558_main(void);
 void func_80054170_main(void);
 void func_800579E4_main(Gfx **gfx, HuSprite *obj, HuCamera *cam);
 s16 func_8004D6AC_main(u8 red, u8 green, u8 blue);
 void func_8004D6E8_main(s16 sampleIdx);
-void func_80054658_main(Gfx **gfx, Mtx *mtx, HuCamera *cam);
+void SprLayerHook(Gfx **gfx, Mtx *mtx, HuCamera *cam);
 void func_80055628_main(void);
 void func_80056CD0_main(void);
 void func_80057158_main(void);
@@ -95,9 +95,9 @@ void func_80057158_main(void);
 extern s32 D_800A1EA0_main; // redraw?
 extern Mtx D_800BD7C0_main;
 extern Vp D_800A1E90_main;
-extern Gfx *D_800BD800_main; /* the sprites drawn after the 3D layer (func_80054658_main) */
+extern Gfx *D_800BD800_main; /* the sprites drawn after the 3D layer (SprLayerHook) */
 extern void *D_800CCF30_main;
-extern f32 D_800BD808_main; /* func_80054B1C_main's last view distance */
+extern f32 D_800BD808_main; /* SprPos3DSet's last view distance */
 extern s16 D_800D418E_main; /* the viewport being drawn */
 void func_80089980_main(f32 mf[4][4], Mtx *m); /* guMtxL2F */
 f32 fabsf(f32);
@@ -145,9 +145,9 @@ void func_80052330_main(void) {
                 D_800D59F4_main = NULL;
     D_800D1FDC_main = NULL;
     guOrtho(&D_800BD7C0_main, -160.0f, 160.0f, -120.0f, 120.0f, 0.0f, 8000.0f, 2.0f);
-    D_800D0468_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) func_80054218_main, 0);
+    D_800D0468_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) SprExec, 0);
     func_8001C8A8_main(D_800D0468_main, 1);
-    D_800D10F2_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) func_80054658_main, 6);
+    D_800D10F2_main = func_8001AC8C_main(0, (void (*)(Gfx **, s32, s32)) SprLayerHook, 6);
     func_80055628_main();
     func_80056CD0_main();
     D_800A1EA0_main = 1;
@@ -627,9 +627,9 @@ void func_80054170_main(void) {
     D_800D59F4_main = D_800CE1B8_main[D_800D2008_main];
 }
 
-/* The sprite layer's draw hook (MP2 SprExec, MP1 func_8006677C); MP3 adds the profiler marks and
+/* The sprite layer's draw hook (MP2 too; MP1 func_8006677C); MP3 adds the profiler marks and
    no longer clears each sprite's list links. */
-void func_80054218_main(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
+void SprExec(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
     HuSprite* obj;
     s16 flag = 0;
     Gfx* branch = NULL;
@@ -696,8 +696,8 @@ void func_80054218_main(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
     func_8004D6E8_main(sample);
 }
 
-/* Draws the sprites SprExec set aside for after the 3D layer (MP2 SprLayerHook). */
-void func_80054658_main(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
+/* Draws the sprites SprExec set aside for after the 3D layer. */
+void SprLayerHook(Gfx** gfx, Mtx* mtx, HuCamera* cam) {
     if (D_800BD800_main != NULL) {
         gSPViewport((*gfx)++, &D_800A1E90_main);
         gSPPerspNormalize((*gfx)++, 0x8000);
@@ -736,7 +736,7 @@ void func_800549C0_main(s16 group, s16 member, s16 arg2) {
     sprite->unk_44 = arg2;
 }
 
-void func_800549F4_main(Mtx* m, f32 x, f32 y, f32 z, f32 w, f32* ox, f32* oy, f32* oz, f32* ow) {
+void TransformPoint(Mtx* m, f32 x, f32 y, f32 z, f32 w, f32* ox, f32* oy, f32* oz, f32* ow) {
     f32 mf[4][4];
 
     func_80089980_main(mf, m);
@@ -747,8 +747,8 @@ void func_800549F4_main(Mtx* m, f32 x, f32 y, f32 z, f32 w, f32* ox, f32* oy, f3
 }
 
 /* Screen position (and depth in unk_44) of world point (x, y, z) seen from camera camIdx; returns
-   the view distance (MP2 SprPos3DSet; MP3 also flags the group and returns the distance). */
-f32 func_80054B1C_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
+   the view distance (as MP2; MP3 also flags the group and returns the distance). */
+f32 SprPos3DSet(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
     Mtx persp;
     Mtx lookAt;
     u16 perspNorm;
@@ -769,8 +769,8 @@ f32 func_80054B1C_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
     guPerspective(&persp, &perspNorm, cam->fov[0], 1.3333334f, cam->fov[1], cam->fov[2], 1.0f);
     guLookAt(&lookAt, cam->pos.x, cam->pos.y, cam->pos.z, cam->at.x, cam->at.y, cam->at.z, cam->up.x, cam->up.y,
              cam->up.z);
-    func_800549F4_main(&lookAt, x, y, z, 1.0f, &vx, &vy, &vz, &vw);
-    func_800549F4_main(&persp, vx, vy, vz, vw, &px, &py, &pz, &pw);
+    TransformPoint(&lookAt, x, y, z, 1.0f, &vx, &vy, &vz, &vw);
+    TransformPoint(&persp, vx, vy, vz, vw, &px, &py, &pz, &pw);
     if (pw != 0.0f) {
         depth = (cam->viewports[D_800D418E_main].vp.vscale[2] << 5) * pz / pw + (cam->viewports[D_800D418E_main].vp.vtrans[2] << 5);
     } else {
@@ -792,13 +792,13 @@ f32 func_80054B1C_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
     return D_800BD808_main;
 }
 
-/* SprPos3DSet plus the perspective scale for that distance (MP2 SprPosPerspectiveSet). */
-void func_80054EE0_main(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
+/* SprPos3DSet plus the perspective scale for that distance. */
+void SprPosPerspectiveSet(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z) {
     HuSprite* sprite = HuSprGrpData[grpIdx]->members[idx];
     HuCamera* cam = &gCameraList[camIdx];
     HuCamera* vp;
 
-    func_80054B1C_main(grpIdx, idx, camIdx, x, y, z);
+    SprPos3DSet(grpIdx, idx, camIdx, x, y, z);
     if (D_800BD808_main != 0.0) {
         vp = (HuCamera*) ((u8*) cam + D_800D418E_main * 16);
         sprite->unk_60 = vp->viewports[0].vp.vscale[0] / 4.0 / D_800BD808_main / 1.3333334f;
@@ -1341,8 +1341,8 @@ s16 func_8005630C_main(HuSprAnm *arg0) {
     return 0;
 }
 
-/* Steps a cel animation (MP2 AnimateSprite). */
-void func_800563A4_main(HuSprAnm* anm) {
+/* Steps a cel animation. */
+void AnimateSprite(HuSprAnm* anm) {
     HuSprite_Unk84_Struct* anim;
     HuSprCelAnm* bank;
     HuSprCelFrame* key;
@@ -1427,7 +1427,7 @@ void func_80056650_main(HuSprite *sprite) {
         }
     } else {
         if (HmfPauseF == 0 || (sprite->unk_24 & 0x1000000)) {
-            func_800563A4_main(anm);
+            AnimateSprite(anm);
         }
     }
     sprite->unk_88 = anm->unk04;
