@@ -1106,7 +1106,9 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D4DC_main);
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D890_main);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003DC88_main);
+s32 func_8003DC88_main(GAMEMES *gMes, Gfx **arg1) {
+    return func_8003D890_main(gMes, arg1);
+}
 
 void func_8003DCA4_main(GAMEMES *gMes, s32 fileId) {
     void *temp_v0;
