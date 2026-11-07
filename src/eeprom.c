@@ -41,7 +41,7 @@ s32 ReadEepromBox(s8 boxNo, u16 offset, u8 *dst, u16 size);
 s32 _ReadEeprom(EepData *arg0);
 extern u8 D_800A1E81_main;
 
-s32 _InitEeprom(s8 **arg0) {
+s32 _InitEeprom(u8 **arg0) {
     s16 eepromProbeResult;
     s32 var_s1;
     s16 i;
@@ -111,9 +111,9 @@ s32 _InitEeprom(s8 **arg0) {
     return 0;
 }
 
-s32 InitEeprom(unkfunc_8001AFD8 *arg0) {
+s32 InitEeprom(u8 *isNew) {
     unkMesg sp10;
-    unkfunc_8001AFD8 *sp20 = arg0; //?
+    u8 *sp20 = isNew;
 
     return RequestSIFunction(&sp10, (void *)&_InitEeprom, &sp20, 1);
 }
@@ -152,17 +152,20 @@ s32 WriteEepromBox2(s8 boxNo, u16 offset, u8 *src, u16 size) {
     return ret;
 }
 
-void WriteEepromBox(s8 saveFileIndex) {
+s32 WriteEepromBox(s8 saveFileIndex) {
     unkMesg sp10;
     EepData sp20;
+    s32 ret;
 
     D_800AC7F0_main = 0;
     sp20.eepFileOffset = (saveFileIndex * SAVE_FILE_SIZE) + SAVE_FILE_HEADER_SIZE;
     sp20.eepromBuffer = D_800D0E50_main;
     sp20.size = SAVE_FILE_SIZE;
-    if (RequestSIFunction(&sp10, &_WriteEeprom, &sp20, 1) == 0) {
+    ret = RequestSIFunction(&sp10, &_WriteEeprom, &sp20, 1);
+    if (ret == 0) {
         D_800AC7F1_main = saveFileIndex;
     }
+    return ret;
 }
 
 void func_8000C6C0_main(s8 boxNo, u16 offset, u8 *src, u16 size) {
@@ -249,7 +252,7 @@ s32 func_8000C9C8_main(s8 boxNo) {
     return (WriteEeprom(&D_800CE1A0_main, ((boxNo * SAVE_FILE_SIZE) + SAVE_FILE_HEADER_SIZE) >> 3, buf, 8) != 0) * 2;
 }
 
-void ClearBoxBuf(void) {
+void ClearBoxBuf(s8 boxNo) {
     memset(D_800D0E50_main, 0, SAVE_FILE_SIZE);
 }
 
