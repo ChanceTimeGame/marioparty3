@@ -15,6 +15,8 @@
 #undef func_80017790_main
 #undef func_80017AD8_main
 #include "mallocblock.h"
+#include "malloc.h"
+#include "gcc/string.h"
 
 /* Sprite-model slots and the matrix helpers. C from MP2 src/21920.c / src/26370.c and MP1
    src/1EA70.c / src/engine/math.c; functions with no reference stay in asm. */
@@ -1256,7 +1258,17 @@ INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018D68_main);
 
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018DD8_main);
 
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018E50_main);
+/* Cofactor: the determinant of a with row arg1 and column arg2 removed (shaped like MP2
+   func_8005A608_5B208, a wrapper passing a local to its neighbour). */
+f32 func_80018D68_main(Matrix3f);
+void func_80018DD8_main(Matrix4f, s32, s32, Matrix3f);
+
+f32 func_80018E50_main(Matrix4f a, s32 arg1, s32 arg2) {
+    Matrix3f minor;
+
+    func_80018DD8_main(a, arg1, arg2, minor);
+    return func_80018D68_main(minor);
+}
 
 INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018E74_main);
 
