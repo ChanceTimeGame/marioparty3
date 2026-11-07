@@ -1620,3 +1620,21 @@ D_800C9500_main = 0x800C9500; //size:0x4
 
 D_8010B018_mgresultboard = 0x8010B018; //size:0x30 segment:mgresultboard
 D_8010B048_mgresultboard = 0x8010B048; //size:0x30 segment:mgresultboard
+
+// batch 1 G: 6E960 = libultra audio/event.c (MP1 src/lib/2.0I/audio/event.c)
+alEvtqNew = 0x8006DD60;
+alEvtqNextEvent = 0x8006DDDC;
+alEvtqFlushType = 0x8006DF80;
+
+// batch 1 G: 77F20 = libultra audio/cseq.c, second copy (MP1 src/lib/2.0I/audio/cseq.c)
+alCSeqNew = 0x80077320;
+alCSeqNextEvent = 0x8007742C;
+__alCSeqNextDelta = 0x80077520;
+__alCSeqGetTrackEvent = 0x800775A0;
+alCSeqTicksToSec = 0x80077810;
+alCSeqSecToTicks = 0x8007788C;
+alCSeqNewMarker = 0x80077934;
+alCSeqSetLoc = 0x80077BCC;
+alCSeqGetLoc = 0x80077C40;
+__getTrackByte = 0x80077CB4;
+__readVarLen = 0x80077D6C;
