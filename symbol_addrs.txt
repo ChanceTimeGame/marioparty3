@@ -1779,3 +1779,10 @@ DispCheck = 0x800575D8; //rom:0x581D8
 SprDisp = 0x800579E4; //rom:0x585E4
 PutSprite = 0x800589F4; //rom:0x595F4
 SprTexLoad = 0x8005988C; //rom:0x5A48C
+// wave 2b D: nnsched (MP1 src/engine/nnsched.c): the scheduler threads' 0x400-byte stacks
+D_800BBD20_main = 0x800BBD20; // size:0x400
+D_800BC2D0_main = 0x800BC2D0; // size:0x400
+D_800BC880_main = 0x800BC880; // size:0x400
+// wave 2b D: 8F20 (MP2 src/169B0.c, MP1 src/138F0.c): audio manager and its DMA state
+D_800AB7D8_main = 0x800AB7D8; // size:0x288
+D_800ABA70_main = 0x800ABA70; // size:0x8
