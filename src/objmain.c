@@ -3,6 +3,7 @@
 #include "game/pause.h"
 #include "malloc.h"
 #include "mallocblock.h"
+#include "game/wipe.h"
 
 typedef struct unkProcessStruct {
     u16 stat;
@@ -1004,11 +1005,63 @@ INCLUDE_ASM("asm/nonmatchings/objmain", func_80048EE8_main);
 
 INCLUDE_ASM("asm/nonmatchings/objmain", func_800499B0_main);
 
-INCLUDE_ASM("asm/nonmatchings/objmain", func_80049F98_main);
+/* MP1 func_8005FD5C: 1 while the debug pause menu is open */
+u16 func_80049F98_main(void) {
+    if (D_800D2118_main == NULL) {
+        return 0;
+    }
+    return D_800D2118_main->work[0] & 1;
+}
 
+/* MP2 func_80078EC8_79AC8 (MP1 func_8005FD7C): pause every live object and process (bit 0x40) */
+/* Matches with functions.us.h declaring it s32 (it is void there; 2b-C.header.patch). */
+#ifdef NON_MATCHING
+s32 func_80049FB8_main(void) {
+    s32 i;
+
+    if (WipeStatGet() == 1 || D_800A176C_main == 1) {
+        return 0;
+    }
+    D_800D6A90_main = 1;
+    for (i = 0; i < ommaxobjs; i++) {
+        if (!(omobjall[i].stat & 0x81)) {
+            omSetStatBit(&omobjall[i], 0x40);
+        }
+    }
+    for (i = 0; i < D_800A1774_main; i++) {
+        if (!(D_800A177C_main[i].stat & 0x81)) {
+            omPrcSetStatBit(D_800A177C_main[i].processInstance, 0x40);
+            D_800A177C_main[i].processInstance->stat |= 1;
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/objmain", func_80049FB8_main);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/objmain", func_8004A0E0_main);
+/* MP1 func_8005FECC: resume them, and stop every controller's rumble */
+void func_8004A0E0_main(void) {
+    s32 i;
+
+    D_800D6A90_main = 0;
+    for (i = 0; i < ommaxobjs; i++) {
+        if (!(omobjall[i].stat & 0x81)) {
+            omResetStatBit(&omobjall[i], 0x40);
+        }
+    }
+    for (i = 0; i < D_800A1774_main; i++) {
+        if (!(D_800A177C_main[i].stat & 0x81)) {
+            omPrcResetStatBit(D_800A177C_main[i].processInstance, 0x40);
+            if (!(D_800A177C_main[i].stat & 0x10)) {
+                D_800A177C_main[i].processInstance->stat &= ~1;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        ResetVibrator(i);
+    }
+}
 
 void func_8004A208_main(void) {
     func_80045350_main();
