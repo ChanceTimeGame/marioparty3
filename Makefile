@@ -198,7 +198,7 @@ W2DD_O0 := build/src/66E70.c.o build/src/67000.c.o
 $(W2DD_O0): OPTFLAGS = -O0 -g
 $(W2DD_O0): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2DD_O0): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
-W2DD_LIB := build/src/6B050.c.o build/src/6C140.c.o build/src/6C320.c.o build/src/6C3A0.c.o build/src/6C3C0.c.o build/src/6DF70.c.o build/src/6DFA0.c.o build/src/6DFD0.c.o build/src/6E6B0.c.o build/src/6E720.c.o build/src/6E780.c.o build/src/6E7E0.c.o build/src/6E840.c.o build/src/6E880.c.o build/src/6E8E0.c.o build/src/6E940.c.o build/src/70420.c.o build/src/70470.c.o
+W2DD_LIB := build/src/6B050.c.o build/src/6C140.c.o build/src/6C320.c.o build/src/6C3A0.c.o build/src/6C3C0.c.o build/src/6DF70.c.o build/src/6DFA0.c.o build/src/6DFD0.c.o build/src/6E6B0.c.o build/src/6E720.c.o build/src/6E780.c.o build/src/6E7E0.c.o build/src/6E840.c.o build/src/6E880.c.o build/src/6E8E0.c.o build/src/6E940.c.o build/src/70420.c.o build/src/70470.c.o build/src/707B0.c.o build/src/70940.c.o build/src/709E0.c.o build/src/70A70.c.o build/src/70B20.c.o build/src/70BB0.c.o
 $(W2DD_LIB): OPTFLAGS = -O3 -funsigned-char
 $(W2DD_LIB): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2DD_LIB): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
