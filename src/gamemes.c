@@ -129,6 +129,8 @@ extern GMesChr D_800B1BC0_main[];
 extern f32 D_800A1380_main[][2];
 s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1);
 s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
+u32 func_8003A81C_main(u8 *str, u8 flag);
+s16 func_8005B5EC_main(u8 *str);
 
 s32 func_80036610_main(void) {
     return GwSystem.minigame_index;
@@ -1585,7 +1587,96 @@ s16 func_8003A37C_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4) {
     return func_8003A3C4_main(gMes, str, flag, x, arg4, 1.0f, 1.0f);
 }
 
+/* A sprite group with one member per character of str, as MP2 func_8006A67C_6B27C with an x scale
+   (sy is unused); flag bit 0 picks the large font, x0 == -1 centres the string. Returns the strGId slot. */
+// register allocation (masked 22): retail also loads the reused arg4 at entry, and adds str + skip the other way round
+#ifdef NON_MATCHING
+s16 func_8003A3C4_main(GAMEMES *gMes, char *arg1, u8 flag, s16 x0, s16 arg4, f32 sx, f32 sy) {
+    s16 id;
+    s16 hi = -1;
+    u8 *str;
+    u8 *p;
+    s16 i;
+    s16 len;
+    s16 total;
+    s16 x;
+    s16 idx;
+    s16 y;
+    s16 w;
+    u32 v;
+
+    str = (u8 *)arg1;
+    len = func_8005B5EC_main(str);
+
+    for (i = 0; i < 16; i++) {
+        if (gMes->strSprId[i] == -1 && gMes->strGId[i] == -1) {
+            break;
+        }
+    }
+
+    id = gMes->strGId[i] = HuSprGrpCreate(len + 1, 5);
+
+    w = 15;
+    if (flag & 1) {
+        w = 22;
+    }
+
+    p = str;
+    for (total = 0; *p != 0; p++) {
+        if ((*p >= 'a' && *p <= 'z') || (*p >= 0xD0 && *p < 0xF0)) {
+            total += 10;
+        } else if (*p == '\\') {
+            total += (w == 15) ? 4 : 8;
+        } else if ((*p == 0x10) | (*p == ' ')) {
+            total += (w == 15) ? 8 : 11;
+        } else {
+            total = w + total;
+        }
+    }
+
+    if (x0 == -1) {
+        x = -(total / 2) + (w * sx) / 2.0f;
+    } else {
+        x = -x0 * sx;
+    }
+
+    for (idx = 1; *str != 0; idx++) {
+        arg4 = id;
+        v = func_8003A81C_main(str, flag);
+        hi = v >> 16;
+        func_80055024_main(id, idx, hi, v & 0xFF);
+        /* retail tests the 0xD0 range's upper bound on p, which is at the string's end here */
+        y = 0;
+        if (*str >= 0xD0) {
+            y = (*p < 0xF0) ? -2 : 0;
+        }
+        func_80054904_main(arg4, idx, x, y);
+        func_80055458_main(arg4, idx, 255);
+        HuSprPriSet(arg4, idx, 5);
+        HuSprAttrReset(arg4, idx, 0xFFFF);
+        HuSprAttrSet(arg4, idx, 0x1008);
+        if ((*str >= 'a' && *str <= 'z') || (*str >= 0xD0 && *str < 0xF0)) {
+            x += 10;
+        } else if (*str == '\\') {
+            x += (w != 15) ? 12 : 8;
+        } else if ((*str == 0x10) | (*str == ' ')) {
+            x += (w == 15) ? 8 : 11;
+        } else {
+            x = x + w * sx;
+        }
+        func_800554C4_main(id, idx, 0);
+        str = &str[(u8)(str[1] + 0x80) < 2];
+        str++;
+    }
+
+    func_80055024_main(id, 0, hi, 0);
+    HuSprAttrSet(id, 0, 0x8000);
+    func_800554C4_main(id, 0, -1);
+    return i;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A3C4_main);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A81C_main);
 
@@ -1964,6 +2055,8 @@ typedef struct {
 extern GMesStr6 D_800A7744_main;
 
 s16 func_8003A3C4_main(GAMEMES *gMes, char *str, u8 flag, s16 x, s16 arg4, f32 sx, f32 sy);
+u32 func_8003A81C_main(u8 *str, u8 flag);
+s16 func_8005B5EC_main(u8 *str);
 
 s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
     char sp18[] = "LOST";
@@ -3067,7 +3160,7 @@ s32 func_800448C0_main(GAMEMES *gMes, Gfx **arg1) {
     return ret;
 }
 
-void func_8003A81C_main(u8 *str, u8 arg1);
+u32 func_8003A81C_main(u8 *str, u8 arg1);
 
 void func_80045010_main(const s16 *arg0, s32 arg1) {
     u8 *temp_v0;
