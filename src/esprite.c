@@ -59,7 +59,37 @@ s16 func_8000B838_main(s32 arg0) {
     return temp_s0;
 }
 
+extern HuSprite_Unk84_Struct *D_800C9530_main[]; /* sprite animations (sprman.c) */
+
+/* Scales each RGBA5551 entry of a sprite's palette by (r, g, b); alpha is kept.
+   From MP2 src/1AE60.c func_8001A340_1AF40, NON_MATCHING there: retail reloads *pal for the
+   alpha bit and has no andi after the first lhu (MP2: masked 21). */
+#ifdef NON_MATCHING
+void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b) {
+    HuSprite_Unk84_Struct *anim = D_800C9530_main[sprite];
+    u16 *pal = anim->unk0C;
+    u16 c;
+    u16 cg;
+    u16 cb;
+    u16 ca;
+    u32 nr;
+    u32 ng;
+    s32 i;
+
+    for (i = 0; i < anim->unk1A; i++) {
+        c = *pal;
+        cg = (c >> 6) & 0x1F;
+        cb = (c >> 1) & 0x1F;
+        ca = *pal & 1;
+        nr = (c >> 11) * r;
+        ng = cg * g;
+        *pal = ca | ((nr << 11) | (ng << 6) | ((u32)(cb * b) << 1));
+        pal++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/esprite", func_8000B880_main);
+#endif
 
 void func_8000BA00_main() {
     func_80056BAC_main();
@@ -67,7 +97,44 @@ void func_8000BA00_main() {
     D_800CD1DC_main = NULL;
 }
 
+/* from MP1 src/engine/esprite.c func_80018B2C (NON_MATCHING there).
+   NON_MATCHING: retail loads D_800CD1DC_main before indexing it and shares the clamp's store
+   (76 instructions, 56 differ); u16 i and MIN/MAX were worse. */
+#ifdef NON_MATCHING
+void func_8000BA30_main(void) {
+    s32 i;
+    s16 id;
+    D_800CD1DC_main_Struct *sprite;
+
+    if (D_800CD1DC_main != NULL) {
+        for (i = 0; i < D_800C951C_main; i++) {
+            sprite = &D_800CD1DC_main[i];
+            if (sprite->unk00 & 1) {
+                id = sprite->unk04;
+                func_80054904_main(id, 0, sprite->unkA, sprite->unkC);
+                if (sprite->unk00 & 2) {
+                    func_80055458_main(id, 0, sprite->unk1E);
+                    sprite->unk1E += sprite->unk20;
+                    if (sprite->unk20 > 0) {
+                        if (sprite->unk1C < sprite->unk1E) {
+                            sprite->unk1E = sprite->unk1C;
+                        }
+                    } else {
+                        if (sprite->unk1E < sprite->unk1C) {
+                            sprite->unk1E = sprite->unk1C;
+                        }
+                    }
+                    if (sprite->unk1E == sprite->unk1C) {
+                        sprite->unk00 &= ~2;
+                    }
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/esprite", func_8000BA30_main);
+#endif
 
 // espDispOn?
 void func_8000BB54_main(u16 arg0) {
