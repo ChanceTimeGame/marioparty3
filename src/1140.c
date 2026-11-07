@@ -1,9 +1,10 @@
 #include "common.h"
 
-
-/* Audio driver (MP3 src/1140.c is the same code, asm there). First half (w1-C): sound system
-   init and bank-header loading, the music sequence players and their command queue, the
-   oscillators (MP1 src/B980.c), the sound-bank loaders and the sound-effect command processor.
+/* Audio driver, from MP2 src/ECE0.c (MP2's names for MP2-only symbols kept where MP3 has none):
+   sound system init and bank-header loading, the music sequence players and their command queue,
+   the oscillators (MP1 src/B980.c), the sound-bank loaders and the sound-effect command processor.
+   MP3 differs from MP2 in the managers' layout (SndLock, SeqMgr's oscillator lists), a few added
+   config checks, and n_audio sound-player calls.
    Host concerns (N64 code kept as is): the bank loaders relocate 32-bit file offsets into pointers
    in place (ALSound/ALWaveTable fields, SndDef and the penv offset tables), and SndConfig.fxd
    holds a ROM address before it holds the loaded table. */
@@ -433,7 +434,6 @@ void func_80002300_main(s32 player, s32 type, s32 arg);
 s32 func_80001134_main(s32, s32);
 
 
-void func_800A0D20_A1920(ALSndPlayer*, s16); /* alSndpSetSound */
 void func_8006D3D0_main(ALSndPlayer*, ALSndpConfig*); /* alSndpNew */
 s16 func_8000113C_main(s32);
 void func_80003FB4_main(void);
@@ -441,12 +441,22 @@ void func_80004D4C_main(SndVoice*);
 s32 func_80005804_main(u8**);
 f32 func_80005850_main(SndVoice*);
 void func_8000658C_main(SndVoice*, s32);
+/* MP3's sound player calls are libultra's n_audio ones (no player argument) */
+void func_8006DD40_main(s16 id);  /* n_alSndpSetSound */
+void func_8006DC80_main(s16 vol); /* n_alSndpSetVol */
+void func_8006DB80_main(u8 pan);  /* n_alSndpSetPan */
+void func_8006DBE0_main(f32 pitch); /* n_alSndpSetPitch */
+void func_8006DB20_main(u8 mix);  /* n_alSndpSetFXMix */
+void func_8006DAB0_main(void);    /* n_alSndpPlay */
+void func_8006DCE0_main(void);    /* n_alSndpStop */
+s32 func_8006D3A0_main(void);     /* n_alSndpGetState */
+void func_8006DC40_main(ALSndId id, u8 priority); /* n_alSndpSetPriority */
+void func_8006D370_main(void);    /* n_alSndpDelete */
 void func_80006CD4_main(s32, s32, s32);
-s32 func_80014B30_15730(s32, SndPlayParam*);
 s32 func_800072A4_main(s32, s32, s32, s32);
 void func_800076B8_main(s32, s32, u8, SndPlayParam*);
 void func_8000810C_main(s32, SndPosParam*);
-s32 func_80007080_main(s32, s32);
+s32 func_80007080_main(s32, SndPlayParam*);
 
 void func_80000540_main(SndBankHdr* hdr, u32 rom) {
     SndState* st = &D_800A9740_main;
@@ -486,9 +496,9 @@ void func_80000540_main(SndBankHdr* hdr, u32 rom) {
     }
 }
 
-// register allocation (masked 0, raw 56 counting splat's D_800D5864/5870/58D4 labels): st/buf/rom take
-// s2/s0/s1 instead of s0/s1/s2. fxdId = idx = ... gives retail's lh. Tried: st-> for the fxd fields
-// (absolute stores, worse), rom in one expression (GCC reassociates the + 0x10, masked 2)
+// MP3 adds the func_80001134_main(0, 0x20) call. Register allocation (MP2 too): st/buf/rom take
+// s2/s0/s1 instead of retail's s0/s1/s2. MP2 tried st-> for the fxd fields and rom in one expression;
+// MP3 also tried st/buf assigned as statements (worse)
 #ifdef NON_MATCHING
 s32 func_80000650_main(void) {
     SndState* st = &D_800A9740_main;
@@ -524,6 +534,7 @@ find:
         return 0;
     }
     if (D_800A9740_main.fxdCount < (idx = st->cfg.fxdIndex)) {
+        func_80001134_main(0, 0x20);
         return 1;
     }
     rom = (idx - 1) * 0x208 + 0x10;
@@ -556,7 +567,6 @@ void func_800007FC_main(str800D5298* arg0) {
     func_8000086C_main(cfg);
 }
 
-#if 0 // TRY
 s32 func_8000086C_main(SndConfig* cfg) {
     SndConfig* st;
     SndBankHdr* hdr;
@@ -615,8 +625,12 @@ s32 func_8000086C_main(SndConfig* cfg) {
             if (st->mbfRom == 0) {
                 func_80000540_main(hdr, st->sbfRom);
             }
-            st->sndMaxVoices = hdr->maxVoices;
-            st->sndMaxEvents = hdr->maxEvents;
+            if (!(st->flags & 0x40000)) {
+                st->sndMaxVoices = hdr->maxVoices;
+            }
+            if (!(st->flags & 0x80000)) {
+                st->sndMaxEvents = hdr->maxEvents;
+            }
             sbfArg = hdr->unk28;
             sbfCount = hdr->count;
         }
@@ -625,8 +639,12 @@ s32 func_8000086C_main(SndConfig* cfg) {
         func_80000FE4_main(hdr, st->mbfRom, 0x40, 0);
         if (hdr->magic == 'MBF0') {
             func_80000540_main(hdr, st->mbfRom);
-            st->seqMaxVoices = hdr->maxVoices;
-            st->seqMaxEvents = hdr->maxEvents;
+            if (!(st->flags & 0x10000)) {
+                st->seqMaxVoices = hdr->maxVoices;
+            }
+            if (!(st->flags & 0x20000)) {
+                st->seqMaxEvents = hdr->maxEvents;
+            }
             mbfArg = hdr->unk28;
             mbfCount = hdr->count;
         }
@@ -711,9 +729,6 @@ s32 func_8000086C_main(SndConfig* cfg) {
     func_80008678_main(st);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_8000086C_main);
-#endif
 
 s32 func_80000DF0_main(void) {
     SeqMgr* seq = func_800025B4_main();
@@ -1739,7 +1754,15 @@ f32 func_800032CC_main(u8 depth) {
     return cents;
 }
 
+// matches with s32 argument and return; include/game/audio.h declares s16 func_80003310_main(s16),
+// whose return truncation adds a sign extension. Correct the prototype there and this C replaces the asm.
+#ifdef NON_MATCHING
+s16 func_80003310_main(s16 id) {
+    return func_8000332C_main(id, NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/1140", func_80003310_main);
+#endif
 
 s32 func_8000332C_main(s32 id, SeqPlayArgs* args) {
     SeqMgr* mgr = func_800025B4_main();
@@ -2144,7 +2167,6 @@ s32 func_80003EE4_main(u32 rom, SndBankInfo* info) {
     return 0;
 }
 
-#if 0 // TRY
 void func_80003FB4_main(void) {
     AudioCmd* cmd;
     SndVoice* v;
@@ -2157,7 +2179,7 @@ void func_80003FB4_main(void) {
         v = &D_800A97BC_main->voices[cmd->voiceSlot];
         switch (cmd->cmdType) {
             case 0:
-                v->flags |= 2;
+                v->flags = (v->flags & ~1) | 2;
                 v->state = 3;
                 break;
             case 1:
@@ -2364,13 +2386,28 @@ void func_80003FB4_main(void) {
     }
     D_800A97BC_main->cmdIndex = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_80003FB4_main);
-#endif
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_800048D0_main);
+void func_800048D0_main(SndVoice* v) {
+    v->flags = 0;
+    v->state = 0;
+    if (v->sndId >= 0) {
+        func_8006DD40_main(v->sndId);
+        func_8006DCE0_main();
+        v->state = 1;
+        v->flags |= 0x800; /* stop requested; func_80004928_main frees the sound once it stops */
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_80004928_main);
+void func_80004928_main(SndVoice* v) {
+    if (v->sndId >= 0) {
+        func_8006DD40_main(v->sndId);
+        if ((v->sndState = func_8006D3A0_main()) == 0 && (v->flags & 0x800)) {
+            alSndpDeallocate(v->sndId);
+            v->sndId = -1;
+            v->flags &= ~0x800;
+        }
+    }
+}
 
 void func_8000499C_main(SndVoice* v) {
     switch (v->state) {
@@ -2389,7 +2426,7 @@ void func_8000499C_main(SndVoice* v) {
 
 INCLUDE_ASM("asm/nonmatchings/1140", func_800049E8_main);
 
-// register allocation (masked 0, raw 17): i (the note-on loop counter, one variable with the 0x15/0x17
+// MP3 adds the null-script check (flag 0x40000). Register allocation (masked 0, raw 17 as in MP2): i (the note-on loop counter, one variable with the 0x15/0x17
 // operand byte as in retail) and its sign-extended copy swap a0/a1. Tried: declaration order, t inline
 #ifdef NON_MATCHING
 void func_80004D4C_main(SndVoice* v) {
@@ -2405,6 +2442,10 @@ void func_80004D4C_main(SndVoice* v) {
             v->wait--;
         } else {
             p = v->script;
+            if (p == NULL) {
+                v->flags |= 0x40000;
+                return;
+            }
             while (v->wait == 0) {
                 op = p++;
                 if (!(*op & 0x80)) {
@@ -2983,9 +3024,9 @@ void func_80006148_main(SndVoice* v) {
 
 INCLUDE_ASM("asm/nonmatchings/1140", func_800062A8_main);
 
-// scheduling (masked 2, raw 22): the pan sum loads pan before pan2, and pan sits in v1 where retail has
-// a1. Tried: pan2 + (pan - 0x40) in one expression or as mix += (GCC reassociates the -0x40); a separate
-// noteFxMix temporary (vol reused puts pan in a1 but changes the fx-mix branch, masked 11)
+// MP3 calls the n_audio sound player and sets flag 0x800 after a stop. Scheduling (5 instructions):
+// retail sums pan2 + (pan - 0x40) loading pan2 first; GCC reassociates the -0x40 or loads pan first.
+// Tried: mix += form, pan2 in a temporary, one expression (MP2 also tried these)
 #ifdef NON_MATCHING
 void func_8000658C_main(SndVoice* v, s32 start) {
     s32 vol;
@@ -2993,7 +3034,7 @@ void func_8000658C_main(SndVoice* v, s32 start) {
     s32 mix;
 
     if (v->sndId >= 0) {
-        func_800A0D20_A1920(D_800A97BC_main->sndp, v->sndId);
+        func_8006DD40_main(v->sndId);
         if ((v->flags & 0x4000) || start) {
             vol = v->noteVolOfs + v->noteVol;
             if (vol >= 0x80) {
@@ -3007,41 +3048,42 @@ void func_8000658C_main(SndVoice* v, s32 start) {
             if (!(v->flags & 4)) {
                 vol = vol * D_800A97BC_main->pause / 127;
             }
-            alSndpSetVol(D_800A97BC_main->sndp, func_8000113C_main(vol));
+            func_8006DC80_main(func_8000113C_main(vol));
         }
         if ((v->flags & 0x8000) || start) {
-            pan = 0x40;
+            vol = 0x40;
             if (!(D_800CB8AC_main & 1)) {
-                pan = v->notePanOfs + v->notePan;
-                mix = v->pan - 0x40;
-                mix = v->pan2 + mix;
-                pan = mix + (pan - 0x40);
-                if (pan < 0) {
-                    pan = 0;
+                vol = v->notePanOfs + v->notePan;
+                mix = v->pan2;
+                mix += v->pan - 0x40;
+                vol = mix + (vol - 0x40);
+                if (vol < 0) {
+                    vol = 0;
                 }
-                if (pan >= 0x80) {
-                    pan = 0x7F;
+                if (vol >= 0x80) {
+                    vol = 0x7F;
                 }
             }
-            alSndpSetPan(D_800A97BC_main->sndp, pan);
+            func_8006DB80_main(vol);
         }
         if ((v->flags & 0x20000) || start) {
-            alSndpSetPitch(D_800A97BC_main->sndp, alCents2Ratio(v->pitch + v->pitchOfs + v->note) * v->rateRatio * v->pitchMul);
+            vol = v->pitch + v->pitchOfs;
+            func_8006DBE0_main(alCents2Ratio(vol + v->note) * v->rateRatio * v->pitchMul);
         }
         if ((v->flags & 0x10000) || start) {
-            pan = v->noteFxMix;
-            if (pan != 0) {
-                mix = pan;
+            if ((pan = v->noteFxMix) != 0) {
+                vol = pan;
             } else {
-                mix = v->fxMix;
+                vol = v->fxMix;
             }
-            alSndpSetFXMix(D_800A97BC_main->sndp, mix);
+            func_8006DB20_main(vol);
         }
         if (start && v->sndState == 0) {
-            alSndpPlay(D_800A97BC_main->sndp);
+            func_8006DAB0_main();
         }
         if (v->flags & 0x2000) {
-            alSndpStop(D_800A97BC_main->sndp);
+            func_8006DCE0_main();
+            v->flags |= 0x800;
         }
         v->flags &= 0xFFFC1FFF;
     }
@@ -3236,13 +3278,29 @@ void func_80006E30_main(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_80006FC4_main);
+void func_80006FC4_main(void) {
+    SndVoice* v;
+    s32 i;
+
+    if (D_800A97BC_main != NULL) {
+        for (i = 0; i < D_800A97BC_main->numVoices; i++) {
+            v = &D_800A97BC_main->voices[i];
+            if (v->sndId >= 0) {
+                func_8006DD40_main(v->sndId);
+                func_8006DCE0_main();
+            }
+        }
+        func_8006D370_main();
+    }
+}
 
 SndMgr* func_8000704C_main(void) {
     return D_800A97BC_main;
 }
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_80007058_main);
+void func_80007058_main(void) {
+    D_800A97BC_main = NULL;
+}
 
 s32 func_80007064_main(s32 arg0) {
     return func_80007080_main(arg0, 0);
