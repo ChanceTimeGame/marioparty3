@@ -806,8 +806,8 @@ s32 func_80023264_main(HmfData *arg0) {
 
 extern u8 D_800CD6A6_main;
 extern s16 D_800D138A_main;
-extern f32 D_800D41F0_main[4][4];
 extern s16 D_800D5214_main;
+extern Matrix4f D_800D41B0_main[];
 extern Matrix4f D_800D5A00_main[];
 extern f32 D_800D5A40_main[4][4];
 void func_8002367C_main(Matrix4f, Matrix4f);
@@ -829,7 +829,7 @@ void func_80023404_main(HmfObj* arg0, Matrix4f arg1, Matrix4f arg2) {
         D_800D138A_main = 1;
         guMtxIdentF(D_800D5A40_main);
         D_800D5214_main = 0;
-        func_8002367C_main(D_800D41F0_main, arg2);
+        func_8002367C_main(D_800D41B0_main[1], arg2);
 
         if (arg0->unk01 & 4) {
             if (arg0->unk64->unk50 & 0x70000000) {
@@ -902,7 +902,83 @@ void func_8002367C_main(Matrix4f arg0, Matrix4f arg1) {
     arg0[3][3] = arg1[3][3];
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023700_main);
+void func_8008A070_main(Matrix4f);
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+
+void func_80023700_main(HmfObj* arg0, s16 arg1) {
+    HitXform* temp_s1;
+    s32 var_s3;
+    s32 var_s5;
+    s32 temp_s4;
+    Matrix4f sp10;
+    Matrix4f sp50;
+
+    temp_s1 = &arg0->unk6C[arg1];
+    temp_s4 = temp_s1->unk00;
+    var_s5 = 0;
+    var_s3 = 0;
+
+    if (arg0->unk90 == 0) {
+        func_80018044_main(temp_s1->unk4C, D_800D5A00_main[0], sp10);
+    } else {
+        func_8008A070_main(sp10);
+        if (temp_s1->unk2C.x != 0.0f || temp_s1->unk2C.y != 0.0f || temp_s1->unk2C.z != 0.0f) {
+            func_80017C10_main((Mtx*) sp10, temp_s1->unk2C.x, temp_s1->unk2C.y, temp_s1->unk2C.z);
+            var_s3 = 1;
+        }
+        if (temp_s1->unk38.x != 0.0f || temp_s1->unk38.y != 0.0f || temp_s1->unk38.z != 0.0f) {
+            arg0->unkD4(sp10, temp_s1->unk38.x, temp_s1->unk38.y, temp_s1->unk38.z);
+            var_s3 = 1;
+        }
+        if (temp_s1->unk20.x != 1.0f || temp_s1->unk20.y != 1.0f || temp_s1->unk20.z != 1.0f) {
+            func_80017CD0_main(sp10, temp_s1->unk20.x, temp_s1->unk20.y, temp_s1->unk20.z);
+            func_8008A070_main(sp50);
+            func_80017CD0_main(sp50, temp_s1->unk20.x, temp_s1->unk20.y, temp_s1->unk20.z);
+            D_800D5214_main++;
+            func_80018044_main(sp50, D_800D41B0_main[D_800D5214_main], D_800D41B0_main[D_800D5214_main + 1]);
+            var_s5 = 1;
+            var_s3 = 1;
+        }
+        if (var_s3 != 0) {
+            D_800D138A_main++;
+            func_80018044_main(sp10, D_800D5A00_main[D_800D138A_main - 1], D_800D5A00_main[D_800D138A_main]);
+        }
+        func_80018044_main(D_800D5A00_main[D_800D138A_main], D_800D5A00_main[0], sp10);
+    }
+
+    if (temp_s4 >= 0) {
+        if (temp_s1->unk48->unk64[temp_s4].unk50 & 0x70000000) {
+            func_8002C4C0_main((HmfData*) temp_s1->unk48, temp_s4, sp10, sp50);
+            func_80018044_main(D_800D41B0_main[D_800D5214_main + 1], sp50, sp10);
+        }
+
+        func_800898F0_main((Mtx*) sp10, &MTXBuf[MTXBufNum]);
+        func_80024DF0_main(temp_s1->unk48, temp_s4, &MTXBuf[MTXBufNum], sp10);
+        MTXBufNum++;
+    }
+
+    if (temp_s1->unk04 != 0) {
+        func_80023700_main(arg0, arg1 + temp_s1->unk04);
+    }
+
+    if (var_s3 != 0) {
+        D_800D138A_main--;
+    }
+
+    if (var_s5 != 0) {
+        D_800D5214_main--;
+    }
+
+    if (temp_s4 >= 0 && temp_s1->unk48 == arg0) {
+        if (arg0->unk64[temp_s4].unk58 != 0) {
+            func_80023700_main(arg0->unk64[temp_s4].unk58, 0);
+        }
+    }
+
+    if (temp_s1->unk02 != 0) {
+        func_80023700_main(arg0, arg1 + temp_s1->unk02);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_80023AF8_main);
 
