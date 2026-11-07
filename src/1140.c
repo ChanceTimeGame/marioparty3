@@ -3449,7 +3449,61 @@ s32 func_80007064_main(s32 arg0) {
     return func_80007080_main(arg0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1140", func_80007080_main);
+s32 func_80007080_main(s32 no, SndPlayParam* param) {
+    s32 slots[4];
+    SndMgr* mgr;
+    SndDef* def;
+    SndVoice* main;
+    s32 slot;
+    s32 shift;
+    s32 i;
+    s32 n;
+
+    mgr = func_8000704C_main();
+    if (mgr == NULL) {
+        return 0;
+    }
+    if (no >= mgr->numDefs) {
+        return -1;
+    }
+    def = mgr->defs[no];
+    if (def == NULL) {
+        return -1;
+    }
+    slot = -1;
+    if (param != NULL && (param->flags & 0x100)) {
+        slot = param->slot;
+    }
+    shift = 0;
+    if (param != NULL && (param->flags & 0x200)) {
+        shift = param->shift;
+    }
+    if ((slots[0] = func_800072A4_main(no, 0, slot, shift)) < 0) {
+        return -1;
+    }
+    func_800076B8_main(no, slots[0], 0xFF, param);
+    main = &mgr->voices[slots[0]];
+    n = 0;
+    for (i = def->numParts - 1; i > 0; i--) {
+        slot = slots[i] = func_800072A4_main(no, i, -1, shift);
+        if (slot >= 0) {
+            func_800076B8_main(no, slot, def->priority, param);
+            mgr->voices[slot].child[0].slot = (s8)slots[0];
+            mgr->voices[slot].child[0].serial = main->serial;
+            main->child[n].slot = slot;
+            main->child[n].serial = mgr->voices[slot].serial;
+            n++;
+        }
+    }
+    main->priority = def->priority;
+    for (i = def->numParts - 1; i > 0; i--) {
+        if (slots[i] >= 0) {
+            func_80006CD4_main(slots[i], 1, i);
+        }
+    }
+    func_80006CD4_main(slots[0], 1, n * 16);
+    return slots[0];
+}
 
 // register allocation (masked 0, raw 69): m, def and mask get t4/t5/a1 where retail has t5/t6/t2 (retail
 // allocates the scan loop's locals first). The shift amount through j took raw 120 -> 69. Tried:
