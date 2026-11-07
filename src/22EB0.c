@@ -282,12 +282,23 @@ typedef struct HmfMotionSlot {
     /* 0x00 */ u8 unk00;
     /* 0x01 */ char unk01;
     /* 0x02 */ s16 unk02;
-    /* 0x04 */ HmfMotionTrack** unk08; /* MP2 0x08 */
-    /* 0x08 */ u8* unk0C; /* MP2 0x0C */
-    /* 0x0C */ s16* unk10; /* MP2 0x10 */
-    /* 0x10 */ f32* unk14; /* MP2 0x14 */
-    /* 0x14 */ s32 unk18; /* MP2 0x18 */
-} HmfMotionSlot; /* size 0x18 (MP2 0x1C); which MP2 field MP3 lacks is unconfirmed */
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ HmfMotionTrack** unk08;
+    /* 0x0C */ u8* unk0C;
+    /* 0x10 */ s16* unk10;
+    /* 0x14 */ f32* unk14;
+} HmfMotionSlot; /* size 0x18 (MP2 0x1C: MP3 has no unk18) */
+
+/* A motion file loaded whole */
+typedef struct HmfMotionFile {
+    /* 0x00 */ char unk00[9];
+    /* 0x09 */ u8 unk09; /* track count */
+    /* 0x0A */ s16 unk0A; /* length */
+    /* 0x0C */ s32 unk0C; /* offsets from the file start: track kinds, */
+    /* 0x10 */ s32 unk10; /* key frames, */
+    /* 0x14 */ s32 unk14; /* key values, */
+    /* 0x18 */ s32 unk18[1]; /* and each track (unk09 of them) */
+} HmfMotionFile;
 
 typedef struct HmfLayerEnt {
     /* 0x00 */ u8 unk00;
@@ -1803,7 +1814,7 @@ extern s16 D_800CE2B4_main;
 void func_80030030_main(f32);
 s16 func_8002D3D0_main(HmfObj*, u8*, s16);
 s32 func_8002D5B0_main(HmfMotionSlot*, HmfObj*);
-s32 func_8002DF2C_main(HmfMotionSlot*, void*);
+s32 func_8002DF2C_main(HmfMotionSlot*, struct HmfMotionFile*);
 
 void func_8002D260_main(void) {
     s16 i;
@@ -1890,17 +1901,288 @@ void func_8002D514_main(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002D5B0_main);
+extern u16 D_800B1A00_main;
+extern u16 D_800B1A02_main;
+s16 func_8000FDAC_main(void*, s16);
+u8* func_80010A38_main(s32, void*, void*);
+void* func_80010AC8_main(void*);
+s32 func_8002DA98_main(HmfMotionSlot*, s16, u8*);
+s32 func_8002DD4C_main(HmfObj*, s16, u8*);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DA98_main);
+s32 func_8002D5B0_main(HmfMotionSlot* arg0, HmfObj* arg1) {
+    HmfAnimTrack* temp_v0;
+    HmfMotionTrack* sp14;
+    s16 sp1E;
+    s16 sp26;
+    s16 sp2E;
+    s16 sp36;
+    s16 var_s0;
+    s16 var_s5;
+    s16 var_s6;
+    s16 temp_a0;
+    s16 temp_s3;
+    f32* sp3C;
+    s16* sp44;
+    u8* var_s1;
+    u8* var_s2;
+    s16 i;
+
+    var_s1 = arg1->unk34;
+    var_s0 = 0;
+    sp2E = 0;
+
+    while (TRUE) {
+        var_s1 = func_80010A38_main(0x4D544E31, var_s1, arg1->unk30);
+        if (var_s1 == NULL) {
+            break;
+        }
+
+        temp_a0 = var_s1[2];
+        if (temp_a0 == 78 || temp_a0 == 13 || temp_a0 == 8) {
+            var_s0 += var_s1[10];
+        }
+        sp2E++;
+
+        var_s1 = func_80010AC8_main(var_s1 + 4);
+    }
+
+    if (var_s0 == 0) {
+        return 0;
+    }
+
+    arg0->unk08 = HuMemAllocTag(var_s0 * sizeof(HmfMotionTrack*), D_800CE2B4_main);
+    arg0->unk0C = HuMemAllocTag(var_s0 * sizeof(u8), D_800CE2B4_main);
+    sp44 = arg0->unk10 = HuMemAllocTag(4096 * sizeof(s16), D_800CE2B4_main);
+    sp3C = arg0->unk14 = HuMemAllocTag(4096 * sizeof(f32), D_800CE2B4_main);
+
+    D_800B1A02_main = 0;
+    D_800B1A00_main = 0;
+    sp36 = 0;
+
+    var_s1 = arg1->unk34;
+    for (var_s6 = var_s5 = sp1E = 0; sp1E < sp2E; sp1E++) {
+        var_s2 = var_s1 = func_80010A38_main(0x4D544E31, var_s1, arg1->unk30);
+        sp26 = func_8000FDAC_main(arg1, (var_s2[8] << 8) + var_s2[9]);
+
+        temp_s3 = var_s2[10];
+        if (temp_s3 != 0) {
+            if ((var_s2[11] << 8) + var_s2[12] > sp36) {
+                sp36 = (var_s2[11] << 8) + var_s2[12];
+            }
+
+            var_s2 += 13;
+            sp14 = HuMemAllocTag(temp_s3 * sizeof(HmfMotionTrack), D_800CE2B4_main);
+
+            for (i = 0; i < temp_s3; i++) {
+                temp_a0 = var_s2[2];
+
+                arg0->unk0C[var_s5] = temp_a0;
+                arg0->unk08[var_s5] = &sp14[i];
+
+                switch (temp_a0) {
+                    case 78:
+                        if (func_8002DA98_main(arg0, var_s5, var_s2 + 2) != 0) {
+                            var_s5++;
+                        }
+                        break;
+                    case 13:
+                        if (func_8002DA98_main(arg0, var_s5, var_s2 + 2) != 0) {
+                            arg0->unk08[var_s5]->unk_08 = sp26;
+                            if (sp26 == -1) {
+                                arg0->unk0C[var_s5] = 78;
+                            }
+                            var_s5++;
+                        }
+                        break;
+                    case 8:
+                        if (var_s6 == 0) {
+                            arg1->unk9C = HuMemAllocTag(sizeof(HmfAnim), arg1->unk0E + 1);
+                        }
+                        if (func_8002DD4C_main(arg1, var_s6, var_s2 + 4) != 0) {
+                            var_s6++;
+                        }
+                        break;
+                }
+
+                var_s2 += (var_s2[0] << 8) + var_s2[1] + 2;
+            }
+
+            var_s1 = func_80010AC8_main(var_s1 + 4);
+        }
+    }
+
+    if (var_s6 != 0) {
+        arg1->unk9C->unk00 = var_s6;
+        arg1->unk9C->unk08 = 0;
+
+        for (sp1E = i = 0; i < var_s6; i++) {
+            temp_v0 = &arg1->unk9C->unk0C[i];
+            if (temp_v0->unk06 > sp1E) {
+                sp1E = temp_v0->unk06;
+            }
+        }
+
+        arg1->unk9C->unk04 = sp1E;
+        arg1->unk9C->unk02 = 0;
+    }
+
+    arg0->unk10 = HuMemAllocTag(D_800B1A00_main * sizeof(s16), D_800CE2B4_main);
+    bcopy(sp44, arg0->unk10, D_800B1A00_main * sizeof(s16));
+    HuMemFree(sp44);
+
+    arg0->unk14 = HuMemAllocTag(D_800B1A02_main * sizeof(f32), D_800CE2B4_main);
+    bcopy(sp3C, arg0->unk14, D_800B1A02_main * sizeof(f32));
+    HuMemFree(sp3C);
+
+    arg0->unk02 = sp36;
+    arg0->unk00 = var_s5;
+
+    return 1;
+}
+
+s32 func_8002DA98_main(HmfMotionSlot *arg0, s16 arg1, u8 *arg2)
+{
+  HmfMotionTrack *p;
+  f32 scale;
+  s16 i;
+  f32 *var_a3;
+  union 
+  {
+    s32 i;
+    f32 f;
+  } u;
+  p = arg0->unk08[arg1];
+  arg1 = *(arg2++);
+  p->unk_00 = arg2[0];
+  scale = 1.0f;
+  p->unk_04 = (arg2[1] << 8) + arg2[2];
+  p->unk_06 = (arg2[3] << 8) + arg2[4];
+  p->unk_01 = arg2[5];
+  if (arg1 == 78)
+  {
+    p->unk_08 = arg2[6];
+    arg2++;
+  }
+  p->unk_02 = arg2[6];
+  arg2 += 7;
+  if ((*p).unk_02 == 73)
+  {
+    p->unk_03 = arg2[0];
+    p->unk_0E = arg2[1];
+    arg2 += 2;
+    p->unk_0A = D_800B1A00_main;
+    p->unk_0C = D_800B1A02_main;
+    for (i = 0; i < p->unk_0E; i++)
+    {
+      arg0->unk10[D_800B1A00_main++] = (arg2[0] << 8) + arg2[1];
+      if (1)
+      {
+        u.i = (((arg2[2] << 24) + (arg2[3] << 16)) + (arg2[4] << 8)) + arg2[5];
+        arg0->unk14[D_800B1A02_main++] = scale * u.f;
+      }
+      arg2 += 6;
+    }
+
+  }
+  else
+    if (p->unk_02 == 35)
+  {
+    if (arg1)
+    {
+      arg2++;
+      p->unk_0E = *(arg2++);
+      p->unk_0A = D_800B1A00_main;
+      p->unk_0C = D_800B1A02_main;
+      var_a3 = &arg0->unk14[D_800B1A02_main];
+    }
+    else
+    {
+      arg2++;
+      p->unk_0E = *(arg2++);
+      p->unk_0A = D_800B1A00_main;
+      p->unk_0C = D_800B1A02_main;
+      var_a3 = &arg0->unk14[D_800B1A02_main];
+    }
+    for (i = 0; i < p->unk_0E; i++)
+    {
+      arg0->unk10[D_800B1A00_main++] = (arg2[0] << 8) + arg2[1];
+      ((u8 *) var_a3)[0] = arg2[2];
+      ((u8 *) var_a3)[1] = arg2[3];
+      ((u8 *) var_a3)[2] = arg2[4];
+      ((u8 *) var_a3)[3] = arg2[5];
+      ((u8 *) var_a3)[4] = arg2[6];
+      ((u8 *) var_a3)[5] = arg2[7];
+      ((u8 *) var_a3)[6] = arg2[8];
+      ((u8 *) var_a3)[7] = arg2[9];
+      ((u8 *) var_a3)[8] = arg2[10];
+      ((u8 *) var_a3)[9] = arg2[11];
+      ((u8 *) var_a3)[10] = arg2[12];
+      ((u8 *) var_a3)[11] = arg2[13];
+      var_a3[0] = scale * var_a3[0];
+      var_a3 += 3;
+      D_800B1A02_main += 3;
+      arg2 += 14;
+    }
+
+  }
+  return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DD4C_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DF2C_main);
+
+s32 func_8002DF2C_main(HmfMotionSlot* arg0, HmfMotionFile* arg1) {
+    HmfMotionTrack** tracks;
+    HmfMotionTrack** var_v1;
+    s32* var_a0;
+    s16 temp_s3;
+    s16 i;
+
+    temp_s3 = arg0->unk00 = arg1->unk09;
+    arg0->unk02 = arg1->unk0A;
+    arg0->unk0C = (u8*) arg1 + arg1->unk0C;
+    arg0->unk10 = (s16*) ((u8*) arg1 + arg1->unk10);
+    arg0->unk14 = (f32*) ((u8*) arg1 + arg1->unk14);
+    tracks = HuMemAllocTag(temp_s3 * sizeof(HmfMotionTrack*), D_800CE2B4_main);
+    arg0->unk08 = tracks;
+
+    var_a0 = arg1->unk18;
+    var_v1 = tracks;
+    for (i = 0; i < temp_s3; i++) {
+        *var_v1 = (HmfMotionTrack*) ((u8*) arg1 + *var_a0);
+        var_v1++;
+        var_a0++;
+    }
+
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002DFF8_main);
 
-INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002E78C_main);
+f32 func_8002E78C_main(HmfMotionSlot* arg0, HmfMotionTrack* arg1, f32 arg2) {
+    f32* vals;
+    s16* keys;
+    s16 i;
+    s16 j;
+    s16 d;
+
+    vals = &arg0->unk14[arg1->unk_0C];
+    if (arg2 == 0.0f || arg1->unk_0E == 1) {
+        return vals[0];
+    }
+    keys = &arg0->unk10[arg1->unk_0A];
+    for (i = 0; i < arg1->unk_0E; i++) {
+        if (arg2 < keys[i]) {
+            break;
+        }
+    }
+    if (i == arg1->unk_0E) {
+        return vals[arg1->unk_0E - 1];
+    }
+    j = i - 1;
+    d = keys[i] - keys[j];
+    return (vals[i] - vals[j]) / d * (arg2 - keys[j]) + vals[j];
+}
 
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002E8E8_main);
 
