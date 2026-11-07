@@ -104,8 +104,12 @@ unsigned int strlen(const char *);
 void *HuMemMemoryAllocPerm(u32 size);
 void HuMemMemoryFreePerm(void *ptr);
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80036610_main);
-s32 func_80036610_main(void);
+/* wave 2c A */
+#include "game/gamework_data.h"
+
+s32 func_80036610_main(void) {
+    return GwSystem.minigame_index;
+}
 
 void func_8003661C_main(void) {
     s16 i;
