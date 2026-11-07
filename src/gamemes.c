@@ -133,6 +133,8 @@ u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
 s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
 s16 func_8003AE44_main(s16 arg0);
+extern u8 D_800A1334_main[];
+extern u8 D_800A136C_main[];
 u16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_80036610_main(void) {
@@ -1748,7 +1750,121 @@ u32 func_8003A81C_main(u8 *str, u8 flag) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A81C_main);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003A9C8_main);
+/* Classifies the character at str for the font: returns the font type (0 upper case, 1 lower case,
+   2 digit, 3 symbol, 4-7 kana tables, 8 a character the large font lacks) and its frame in *frame.
+   arg1 != 0 is the large font. */
+s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame) {
+    u16 c;
+    u8 next;
+    s32 i;
+
+    c = str[0];
+    next = str[1];
+    *frame = 0;
+    if (c >= 'A' && c <= 'Z') {
+        *frame = c - 'A';
+        return 0;
+    }
+    if (c >= 'a' && c <= 'z') {
+        *frame = c - 'a';
+        return 1;
+    }
+    if (c >= '0' && c <= '9') {
+        *frame = c - '0';
+        return 2;
+    }
+    if (arg1 == 0) {
+        if (c >= 0x86 && c < 0xBE) {
+            if ((u8)(next + 0x80) < 2) {
+                for (i = 0; i < 20; i++) {
+                    if (c == D_800A136C_main[i]) {
+                        break;
+                    }
+                }
+                if (next == 0x81) {
+                    i += 5;
+                }
+                *frame = i;
+                return 5;
+            }
+            for (i = 0; i < 55; i++) {
+                if (c == D_800A1334_main[i]) {
+                    break;
+                }
+            }
+            *frame = i;
+            return 4;
+        }
+        if (c >= 0xC6 && c < 0xFE) {
+            c -= 0x40;
+            if ((u8)(next + 0x80) < 2) {
+                for (i = 0; i < 20; i++) {
+                    if (c == D_800A136C_main[i]) {
+                        break;
+                    }
+                }
+                if (next == 0x81) {
+                    i += 5;
+                }
+                *frame = i;
+                return 7;
+            }
+            for (i = 0; i < 55; i++) {
+                if (c == D_800A1334_main[i]) {
+                    break;
+                }
+            }
+            *frame = i;
+            return 6;
+        }
+    } else {
+        if (c >= 0x90 && c < 0xB0) {
+            return 8;
+        }
+        if (c >= 0xD0 && c < 0xF0) {
+            return 8;
+        }
+    }
+    switch (c) {
+        case '}':
+            *frame = 6;
+            break;
+        case 0x82:
+            *frame = 10;
+            break;
+        case 0x84:
+            *frame = 2;
+            break;
+        case 0x85:
+            *frame = 7;
+            break;
+        case 0xC2:
+            *frame = 1;
+            break;
+        case 0xC3:
+            *frame = 3;
+            break;
+        case 0xC4:
+            *frame = 1;
+            break;
+        case 0xC5:
+            *frame = 3;
+            break;
+        case 0xC6:
+            *frame = 8;
+            break;
+        case 0xC7:
+            *frame = 9;
+            break;
+        case '\\':
+            *frame = 5;
+            break;
+        case '=':
+            *frame = 4;
+            break;
+    }
+    return 3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003AC9C_main);
 
@@ -2127,6 +2243,8 @@ u32 func_8003A81C_main(u8 *str, u8 flag);
 s16 func_8005B5EC_main(u8 *str);
 s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame);
 s16 func_8003AE44_main(s16 arg0);
+extern u8 D_800A1334_main[];
+extern u8 D_800A136C_main[];
 u16 func_8003AE9C_main(u8 c, u8 flag);
 
 s32 func_8003E4A4_main(GAMEMES *gMes, Gfx **arg1) {
