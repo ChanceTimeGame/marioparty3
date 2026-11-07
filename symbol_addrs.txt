@@ -1758,3 +1758,11 @@ __readVarLen = 0x80077D6C;
 // batch 1 G: 72750 = libleo LeoBootGame (MP1 src/83490.c)
 LeoBootGame = 0x80071B50;
 __LeoBootGame2 = 0x80071C8C;
+
+// wave 2a B: sprman (MP2 src/80230.c names)
+SprExec = 0x80054218; //rom:0x54E18
+SprLayerHook = 0x80054658; //rom:0x55258
+TransformPoint = 0x800549F4; //rom:0x555F4
+SprPos3DSet = 0x80054B1C; //rom:0x5571C
+SprPosPerspectiveSet = 0x80054EE0; //rom:0x55AE0
+AnimateSprite = 0x800563A4; //rom:0x56FA4
