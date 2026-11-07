@@ -873,7 +873,215 @@ void func_8005C154_main(s16 winId, u8 r, u8 g, u8 b) {
     func_8005C060_main(winId, 0, r, g, b);
 }
 
-INCLUDE_ASM("asm/nonmatchings/window", func_8005C190_main);
+void func_8005D30C_main(s16 winId, u8 c, u8 color, s16 x, s16 y);
+
+/* MP2 func_80089DDC_8A9DC (MP1 func_8006E318): prints the window's text up to the next stop;
+   0 when the text has ended. MP3 adds outlined text (0x0F/0x16) and colour codes that an
+   inserted string can skip. */
+s32 func_8005C190_main(s16 winId) {
+    TextWindow* tw = &D_800CC69C_main[winId];
+    TWEntry* e;
+    s16 skip;
+    s16 n;
+    s32 c;
+
+    skip = 0;
+    if (tw->unk25 == 0xFF) {
+        return 1;
+    }
+
+    while (tw->unk5C >= tw->unk26) {
+        while (*tw->unkCC < 0x21) {
+            if (*tw->unkCC == 0) {
+                if (tw->unkAC >= 0) {
+                    if (tw->unk_B2[tw->unkAC] != -1) {
+                        tw->unk22 = tw->unk_B2[5];
+                    }
+                    tw->unkAC = -1;
+                    tw->unkCC = tw->unkD8;
+                    continue;
+                }
+                if (tw->unkD4 != 0) {
+                    func_800365E8_main(tw->unkD0);
+                }
+                tw->unkD0 = NULL;
+                tw->unk20 = 0;
+                return 0;
+            }
+            if (*tw->unkCC < 9) {
+                if (tw->unkAC == -1 && skip != 0) {
+                    skip--;
+                } else {
+                    tw->unk22 = *tw->unkCC - 1;
+                    skip = 0;
+                    if (tw->unkAC != -1) {
+                        skip = (tw->unkCC[1] == 0) * 2;
+                    }
+                }
+            }
+            c = *tw->unkCC - 0x11;
+            if ((u8)c < 5) {
+                tw->unkAC = c;
+                if (tw->unk_B8[tw->unkAC] != NULL) {
+                    tw->unkD8 = ++tw->unkCC;
+                    tw->unkCC = tw->unk_B8[tw->unkAC];
+                    if (tw->unk_B2[tw->unkAC] != -1) {
+                        tw->unk_B2[5] = tw->unk22;
+                        tw->unk22 = tw->unk_B2[tw->unkAC];
+                    }
+                    continue;
+                }
+                tw->unkAC = -1;
+            }
+            if ((tw->unk_38 & 4) && (*tw->unkCC == 0x10 || *tw->unkCC == 0x20 || *tw->unkCC == 0x1A)) {
+                if (*tw->unkCC == 0x1A) {
+                    *tw->unkCC = 0x60;
+                } else {
+                    *tw->unkCC = 0x40;
+                }
+                break;
+            }
+            switch (*tw->unkCC) {
+                case 0x10:
+                case 0x1A:
+                case 0x20:
+                    tw->unk34 = (gLanguageIndex == 1 || *tw->unkCC == 0x1A || (tw->unk_38 & 0x80000)) ? 10 : 4;
+                    tw->unkCC++;
+                    if (func_8005CC18_main(tw) == 0) {
+                        tw->unk20 = 6;
+                        func_8005CEB0_main(winId);
+                        return 1;
+                    }
+                    continue;
+                case 10:
+                    if (!(tw->unk_38 & 0x40000) && func_8005CCF0_main(tw) == 0 && tw->unkCC[1] != 0) {
+                        tw->unk20 = 6;
+                        func_8005CEB0_main(winId);
+                        tw->unkCC++;
+                        return 1;
+                    }
+                    break;
+                case 0x17:
+                    if (!(tw->unk_38 & 0x40000) && func_8005CD38_main(tw) == 0) {
+                        tw->unkCC++;
+                        return 1;
+                    }
+                    break;
+                case 11:
+                    if (tw->unk_38 & 4) {
+                        func_8005CE10_main(tw);
+                    } else if (tw->unkAC < 0 && !(tw->unk_38 & 0x1800)) {
+                        func_8005CD84_main(tw);
+                    }
+                    break;
+                case 12:
+                    e = &tw->unk_F4[tw->unk_30];
+                    e->unk2 = tw->unk54 - tw->unk48;
+                    e->unk4 = tw->unk56 - tw->unk4A;
+                    tw->unk26 = 0;
+                    tw->unk5C = 0;
+                    break;
+                case 13:
+                    e = &tw->unk_F4[tw->unk_30];
+                    e->unk6 = tw->unk54 - e->unk2;
+                    e->unk8 = (tw->unk56 - e->unk4) + tw->unk28;
+                    e->unk0 = 0;
+                    tw->unk26 = tw->unk25;
+                    if (++tw->unk_30 >= 24) {
+                        osSyncPrintf("Select Max Over!\n");
+                        tw->unk_30--;
+                    }
+                    break;
+                case 14:
+                    n = ((s16)(tw->unk54 - tw->unk4C) + tw->unk35) / tw->unk35 * tw->unk35;
+                    if (n < tw->unk50) {
+                        tw->unk54 = n + tw->unk4C;
+                    }
+                    break;
+                case 15:
+                    tw->unk_38 |= 0x20000;
+                    break;
+                case 0x16:
+                    tw->unk_38 &= ~0x20000;
+                    break;
+                case 0x18:
+                    tw->unkCC++;
+                    break;
+                case 0x19:
+                    if (tw->unkAC == -1 && skip != 0) {
+                        skip--;
+                    } else {
+                        tw->unk22 = tw->unk23;
+                    }
+                    break;
+            }
+            tw->unkCC++;
+        }
+        if ((u32)(*tw->unkCC - 0x21) < 0xF) {
+            n = tw->unk29 + func_8005CFE0_main(winId, *tw->unkCC - 0x21);
+            tw->unkCC++;
+            if (func_8005CC3C_main(tw, n) == 0) {
+                tw->unk20 = 6;
+                func_8005CEB0_main(winId);
+                return 1;
+            }
+            continue;
+        }
+        if (*tw->unkCC == 0xFF) {
+            tw->unk20 = 2;
+            func_8005CEB0_main(winId);
+            tw->unkCC++;
+            return 1;
+        }
+        tw->unk5C -= tw->unk26;
+        if (tw->unk56 + tw->unk28 > tw->unk4E + tw->unk52) {
+            tw->unk20 = 6;
+            func_8005CEB0_main(winId);
+            return 1;
+        }
+        if (*tw->unkCC >= 0x30) {
+            if ((tw->unk_38 & 0x10000) && *tw->unkCC >= '0' && *tw->unkCC <= '9') {
+                *tw->unkCC += 0x70;
+            }
+            if (tw->unk_38 & 0x80) {
+                if (tw->unk22 != 0) {
+                    func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk54 + 2, tw->unk56 + 1);
+                }
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54 + 1, tw->unk56);
+            } else if (tw->unk_38 & 0x20000) {
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54, tw->unk56 - 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54, tw->unk56 + 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54 + 1, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk54 - 1, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+            } else {
+                if (tw->unk22 != 0) {
+                    func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk54 + 1, tw->unk56 + 1);
+                }
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk54, tw->unk56);
+            }
+        }
+        tw->unkCC++;
+        if ((u8)(*tw->unkCC + 0x80) < 2) {
+            if (tw->unk_38 & 0x20000) {
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 3, tw->unk56 - 2);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 3, tw->unk56);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 4, tw->unk56 - 1);
+                func_8005D30C_main(winId, *tw->unkCC, tw->unk33, tw->unk27 + tw->unk54 - 2, tw->unk56 - 1);
+            } else if (tw->unk22 != 0) {
+                func_8005D30C_main(winId, *tw->unkCC, 0, tw->unk27 + tw->unk54 - 2, tw->unk56);
+            }
+            func_8005D30C_main(winId, *tw->unkCC, tw->unk22, tw->unk27 + tw->unk54 - 3, tw->unk56 - 1);
+            tw->unkCC++;
+        }
+        if (func_8005CC18_main(tw) == 0) {
+            return 1;
+        }
+    }
+    tw->unk5C++;
+    return 1;
+}
 
 /* MP1 func_8006E87C's caller: advances past one character */
 s32 func_8005CC18_main(TextWindow* tw) {
