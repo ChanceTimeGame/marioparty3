@@ -1386,7 +1386,214 @@ void func_80029FB4_main(HmfObj* arg0, s16 arg1) {
     gSPCullDisplayList(gMainGfxPos++, 0, 7);
 }
 
+extern HmfPart* D_800B19F0_main;
+
+#ifdef NON_MATCHING
+/* MP2 func_80035FBC_36BBC is NON_MATCHING the same way: GCC turns the 64-bit combine if/else pairs into default-then-override and shares render-mode tails that retail keeps per arm (block layout). MP3 adds the arg2 >> 24 z-buffer case */
+void func_8002A358_main(HmfMat* arg0, HmfTexRef* arg1, s32 arg2) {
+    u64 cc;
+    s64 rm;
+    s32 flags;
+    s32 zbuf;
+    s16 zmode;
+    s32 t;
+
+    flags = arg0->unk0C;
+    if ((D_800C9940_main & 0x180) == 0x100) {
+        zbuf = (((u32) arg2 >> 24) ^ 1) & 1;
+    } else {
+        zbuf = D_800C9940_main & 0x180;
+    }
+    if (arg2 & 0x80000) {
+        return;
+    }
+    if (D_800C9940_main & 0x80000) {
+        cc = 0xFCFFFFFFFFFFFFFFLL;
+    } else if (D_800C9940_main & 0x10000) {
+        cc = 0xFC127E2455FDF2F9LL;
+    } else if (arg2 & 0x200000) {
+        cc = 0xFCFFFFFFFFFE793CLL;
+    } else if (arg1 == (HmfTexRef*) -1) {
+        if (arg0->unk0C & 1) {
+            cc = 0xFC327E64FFFFF7FBLL;
+        } else {
+            if (!(flags & 4)) {
+                gDPSetPrimColor(gMainGfxPos++, 0, 0, arg0->unk05[0], arg0->unk05[1], arg0->unk05[2], 1);
+            }
+            if (D_800CE1C6_main == 0) {
+                cc = 0xFC327E64FFFFFDFELL;
+            } else {
+                cc = 0xFC327FFFFFFFFC38LL;
+            }
+        }
+    } else if (arg1->unk0C->unk1C == 3) {
+        if (D_800CE1C6_main == 0) {
+            cc = 0xFC119623FF2FFFFFLL;
+            flags |= 1;
+        } else {
+            cc = 0xFC1197FFFFFFFE38LL;
+            flags |= 1;
+        }
+    } else if (arg1->unk0C->unk1C == 4) {
+        if (D_800CE1C6_main == 0) {
+            cc = 0xFCFF97FFFF2DFEFFLL;
+            flags |= 1;
+        } else {
+            cc = 0xFCFF97FFFFFDFE38LL;
+            flags |= 1;
+        }
+    } else if (arg1->unk0C->unk1D == 3) {
+        if (D_800CE1C6_main == 0) {
+            cc = 0xFC121624FF2FFFFFLL;
+            flags |= 1;
+        } else {
+            cc = 0xFC1217FFFFFFFE38LL;
+            flags |= 1;
+        }
+    } else if (flags & 1) {
+        if (D_800CE1C6_main == 0) {
+            cc = 0xFC121624FF2FFFFFLL;
+        } else {
+            cc = 0xFC1217FFFFFFFE38LL;
+        }
+    } else if (D_800CE1C6_main == 0) {
+        cc = 0xFC127E24FFFFF3F9LL;
+    } else {
+        cc = 0xFC127FFFFFFFF238LL;
+    }
+
+    t = D_800C9940_main & 0x60;
+    if (t == 0x20) {
+        zmode = 0x48;
+    } else {
+        zmode = (t == 0x40) ? 8 : 0;
+    }
+    if (D_800C9940_main & 0x80000) {
+        rm = 0x5553F0;
+    } else if (arg2 & 0x8000) {
+        gDPSetBlendColor(gMainGfxPos++, 0, 0, 0, 1);
+        gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+        if (!(flags & 4)) {
+            gDPSetPrimColor(gMainGfxPos++, 0, 0, arg0->unk05[0], arg0->unk05[1], arg0->unk05[2], arg0->unk0D);
+        }
+        rm = (arg1 == (HmfTexRef*) -1) ? 0x50007B : 0x50307B;
+        D_800CE2F0_main = 0;
+    } else if (arg2 & 0x200000) {
+        rm = 0x507858;
+    } else if (arg2 < 0) {
+        if (flags & 1) {
+            gDPSetBlendColor(gMainGfxPos++, 0, 0, 0, 1);
+            gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+            if (!(flags & 4)) {
+                gDPSetPrimColor(gMainGfxPos++, 0, 0, arg0->unk05[0], arg0->unk05[1], arg0->unk05[2], arg0->unk0D);
+            }
+            if (D_800CE1C6_main == 0) {
+                rm = 0x504DD8;
+            } else {
+                rm = (s32) 0xC8104DD8;
+            }
+        } else {
+            gDPSetAlphaCompare(gMainGfxPos++, G_AC_NONE);
+            if (D_800CE1C6_main == 0) {
+                rm = zmode | 0x553D10;
+            } else {
+                rm = (s32) 0xC8113D10 | zmode;
+            }
+        }
+        D_800B19F0_main->unk00 = arg0->unk00;
+    } else if (flags & 1) {
+        gDPSetBlendColor(gMainGfxPos++, 0, 0, 0, 1);
+        gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+        if (!(flags & 4)) {
+            gDPSetPrimColor(gMainGfxPos++, 0, 0, arg0->unk05[0], arg0->unk05[1], arg0->unk05[2], arg0->unk0D);
+        }
+        if (zmode != 0) {
+            zmode |= 0x180;
+        } else {
+            zmode |= 0x200;
+        }
+        if (zbuf != 0) {
+            if (D_800CE1C6_main == 0) {
+                rm = zmode | 0x504850;
+            } else {
+                rm = (s32) 0xC8104850 | zmode;
+            }
+        } else if (D_800CE1C6_main == 0) {
+            rm = zmode | 0x504040;
+        } else {
+            rm = (s32) 0xC8104040 | zmode;
+        }
+        D_800B19F0_main->unk00 = arg0->unk00;
+    } else {
+        gDPSetAlphaCompare(gMainGfxPos++, G_AC_NONE);
+        if (arg1 == (HmfTexRef*) -1) {
+            if (zmode == 0) {
+                zmode |= 0x200;
+            }
+            if (zbuf != 0) {
+                if (D_800CE1C6_main == 0) {
+                    rm = zmode | 0x552030;
+                } else {
+                    rm = (s32) 0xC8112030 | zmode;
+                }
+            } else if (D_800CE1C6_main == 0) {
+                rm = zmode | 0x552000;
+            } else {
+                rm = (s32) 0xC8112000 | zmode;
+            }
+        } else if (D_800C9940_main & 0x20000) {
+            if (zmode == 0) {
+                zmode |= 0x200;
+            }
+            if (zbuf != 0) {
+                if (D_800CE1C6_main == 0) {
+                    rm = zmode | 0x552030;
+                } else {
+                    rm = (s32) 0xC8112030 | zmode;
+                }
+            } else if (D_800CE1C6_main == 0) {
+                rm = zmode | 0x552000;
+            } else {
+                rm = (s32) 0xC8112000 | zmode;
+            }
+        } else if (zbuf != 0) {
+            if (D_800CE1C6_main == 0) {
+                rm = zmode | 0x553038;
+            } else {
+                rm = (s32) 0xC8113038 | zmode;
+            }
+        } else if (D_800CE1C6_main == 0) {
+            rm = zmode | 0x0F0A7008;
+        } else {
+            rm = (s32) 0xCB027008 | zmode;
+        }
+    }
+
+    if (D_800D1FD0_main != cc || D_800CE2F0_main != (u64) rm) {
+        gDPPipeSync(gMainGfxPos++);
+        if (D_800D1FD0_main != cc) {
+            D_800D1FD0_main = cc;
+            {
+                Gfx* g = gMainGfxPos++;
+
+                g->words.w0 = cc >> 32;
+                g->words.w1 = cc;
+            }
+        }
+        if (D_800CE2F0_main != (u64) rm) {
+            {
+                Gfx* g = gMainGfxPos++;
+
+                g->words.w0 = 0xE200001C;
+                g->words.w1 = rm;
+            }
+            D_800CE2F0_main = rm;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/22EB0", func_8002A358_main);
+#endif
 
 extern s16 D_800A0AE0_main[];
 extern s32 D_800A0AE8_main[];
