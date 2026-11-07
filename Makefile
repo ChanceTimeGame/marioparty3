@@ -223,6 +223,8 @@ NOP_OBJECTS := \
 	build/src/overlays/ovl_80_shared_board/10C230.c.o \
 	build/src/overlays/ovl_48_ChillyWaters/31B9F0.c.o \
 	build/src/overlays/w06/39AD50.c.o
+# batch 1 G: 471D0 (light editor; no nop after the cosdf call)
+NOP_OBJECTS += build/src/471D0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
