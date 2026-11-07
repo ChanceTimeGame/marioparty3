@@ -147,7 +147,94 @@ void func_8006ECFC_main(N_PVoice *mv, ALDMANew dmaNew, ALHeap *hp)
     mv->em_ctrlTail = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006EE30_main);
+#define N_AL_TEMP_0 0
+#define N_AL_TEMP_1 368
+#define N_AL_TEMP_2 736
+#define N_AL_AUX_R_OUT 2352
+#define N_REVERB_OUTCOUNT 184
+#define UNITY_PITCH 0x8000
+
+#define SWAP(in, out) \
+    { \
+        s16 t = out; \
+        out = in; \
+        in = t; \
+    }
+
+Acmd *func_8006F330_main(ALFx *r, ALDelay *d, s32 buff, Acmd *p);                  /* _n_loadOutputBuffer */
+Acmd *func_8006F540_main(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);    /* _n_loadBuffer */
+Acmd *func_8006F668_main(ALFx *r, s16 *curr_ptr, s32 buff, Acmd *p);               /* __n_saveBuffer */
+Acmd *func_8006F780_main(ALLowPass *lp, s32 buff, Acmd *p);                        /* __n_filterBuffer */
+f32 _doModFunc(ALDelay *d, s32 count);
+
+/* n_reverb.c n_alFxPull */
+Acmd *func_8006EE30_main(s32 sampleOffset, Acmd *p)
+{
+    ALFx *r = (ALFx *)n_syn->auxBus->fx;
+    s16 i, buff1, buff2, input, output;
+    s16 *in_ptr, *out_ptr, *prev_out_ptr = 0;
+    ALDelay *d;
+    Acmd *ptr;
+
+    ptr = func_8006E870_main(sampleOffset, p);
+
+    input = N_AL_AUX_L_OUT;
+    output = N_AL_AUX_R_OUT;
+    buff1 = N_AL_TEMP_0;
+    buff2 = N_AL_TEMP_1;
+
+    aMix(ptr++, 0, 0xDA83, N_AL_AUX_L_OUT, input);
+    aMix(ptr++, 0, 0x5A82, N_AL_AUX_R_OUT, input);
+
+    ptr = func_8006F668_main(r, r->input, input, ptr);
+
+    aClearBuffer(ptr++, output, N_REVERB_OUTCOUNT << 1);
+
+    for (i = 0; i < r->section_count; i++) {
+        d = &r->delay[i];
+        in_ptr = &r->input[-d->input];
+        out_ptr = &r->input[-d->output];
+
+        if (in_ptr == prev_out_ptr) {
+            SWAP(buff1, buff2);
+        } else {
+            ptr = func_8006F540_main(r, in_ptr, buff1, N_REVERB_OUTCOUNT, ptr);
+        }
+        ptr = func_8006F330_main(r, d, buff2, ptr);
+
+        if (d->ffcoef) {
+            aMix(ptr++, 0, (u16)d->ffcoef, buff1, buff2);
+            if (!d->rs && !d->lp) {
+                ptr = func_8006F668_main(r, out_ptr, buff2, ptr);
+            }
+        }
+
+        if (d->fbcoef) {
+            aMix(ptr++, 0, (u16)d->fbcoef, buff2, buff1);
+            ptr = func_8006F668_main(r, in_ptr, buff1, ptr);
+        }
+
+        if (d->lp)
+            ptr = func_8006F780_main(d->lp, buff2, ptr);
+
+        if (!d->rs)
+            ptr = func_8006F668_main(r, out_ptr, buff2, ptr);
+
+        if (d->gain)
+            aMix(ptr++, 0, (u16)d->gain, buff2, output);
+
+        /* retail adds d->output here (the SDK's loop compares in_ptr against it) */
+        prev_out_ptr = &r->input[d->output];
+    }
+
+    r->input += N_REVERB_OUTCOUNT;
+    if (r->input > &r->base[r->length])
+        r->input -= r->length;
+
+    aDMEMMove(ptr++, output, N_AL_AUX_L_OUT, N_REVERB_OUTCOUNT << 1);
+
+    return ptr;
+}
 
 #undef RANGE
 #define RANGE 2.0
@@ -210,10 +297,101 @@ s32 func_8006F140_main(void *filter, s32 paramID, void *param)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006F330_main);
+/* _n_loadOutputBuffer */
+Acmd *func_8006F330_main(ALFx *r, ALDelay *d, s32 buff, Acmd *p)
+{
+    Acmd *ptr = p;
+    s32 ratio, count, rbuff = N_AL_TEMP_2;
+    s16 *out_ptr;
+    f32 fincount, fratio, delta;
+    s32 ramalign = 0, length;
+    s32 inCount = N_REVERB_OUTCOUNT;
+    s8 tmp;
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006F540_main);
+    if (d->rs) {
+        length = d->output - d->input;
+        delta = _doModFunc(d, inCount);
+        delta /= length;
+        delta = (s32)(delta * UNITY_PITCH);
+        delta = delta / UNITY_PITCH;
+        fratio = 1.0 - delta;
+        fincount = d->rs->delta + (fratio * (f32)inCount);
+        count = (s32)fincount;
+        d->rs->delta = fincount - (f32)count;
+        out_ptr = &r->input[-(d->output - d->rsdelta)];
+        ramalign = (((s32)out_ptr & 0x7) >> 1);
+        ptr = func_8006F540_main(r, out_ptr - ramalign, rbuff, count + ramalign, ptr);
+        ratio = (s32)(fratio * UNITY_PITCH);
+        tmp = (buff >> 8);
+        n_aResample(ptr++, osVirtualToPhysical(d->rs->state), d->rs->first, ratio, rbuff + (ramalign << 1), tmp);
+        d->rs->first = 0;
+        d->rsdelta += count - inCount;
+    } else {
+        out_ptr = &r->input[-d->output];
+        ptr = func_8006F540_main(r, out_ptr, buff, inCount, ptr);
+    }
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006F668_main);
+    return ptr;
+}
 
-INCLUDE_ASM("asm/nonmatchings/6F470", func_8006F780_main);
+/* _n_loadBuffer */
+Acmd *func_8006F540_main(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p)
+{
+    Acmd *ptr = p;
+    s32 after_end, before_end;
+    s16 *updated_ptr, *delay_end;
+
+    delay_end = &r->base[r->length];
+    if (curr_ptr < r->base)
+        curr_ptr += r->length;
+    updated_ptr = curr_ptr + count;
+
+    if (updated_ptr > delay_end) {
+        after_end = updated_ptr - delay_end;
+        before_end = delay_end - curr_ptr;
+        n_aLoadBuffer(ptr++, before_end << 1, buff, osVirtualToPhysical(curr_ptr));
+        n_aLoadBuffer(ptr++, after_end << 1, buff + (before_end << 1), osVirtualToPhysical(r->base));
+    } else {
+        n_aLoadBuffer(ptr++, count << 1, buff, osVirtualToPhysical(curr_ptr));
+    }
+
+    return ptr;
+}
+
+/* __n_saveBuffer */
+Acmd *func_8006F668_main(ALFx *r, s16 *curr_ptr, s32 buff, Acmd *p)
+{
+    Acmd *ptr = p;
+    s32 after_end, before_end;
+    s16 *updated_ptr, *delay_end;
+
+    delay_end = &r->base[r->length];
+    if (curr_ptr < r->base)
+        curr_ptr += r->length;
+    updated_ptr = curr_ptr + N_REVERB_OUTCOUNT;
+
+    if (updated_ptr > delay_end) {
+        after_end = updated_ptr - delay_end;
+        before_end = delay_end - curr_ptr;
+        n_aSaveBuffer(ptr++, before_end << 1, buff, osVirtualToPhysical(curr_ptr));
+        n_aSaveBuffer(ptr++, after_end << 1, buff + (before_end << 1), osVirtualToPhysical(r->base));
+    } else {
+        n_aSaveBuffer(ptr++, N_REVERB_OUTCOUNT << 1, buff, osVirtualToPhysical(curr_ptr));
+    }
+
+    return ptr;
+}
+
+/* __n_filterBuffer */
+Acmd *func_8006F780_main(ALLowPass *lp, s32 buff, Acmd *p)
+{
+    Acmd *ptr = p;
+    s8 t8;
+
+    t8 = buff >> 8;
+    n_aLoadADPCM(ptr++, 32, osVirtualToPhysical(lp->fcvec.fccoef));
+    n_aPoleFilter(ptr++, lp->first, lp->fgain, t8, osVirtualToPhysical(lp->fstate));
+    lp->first = 0;
+
+    return ptr;
+}

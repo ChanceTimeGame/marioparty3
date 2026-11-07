@@ -202,6 +202,8 @@ W2DD_LIB := build/src/6B050.c.o build/src/6C140.c.o build/src/6C320.c.o build/sr
 $(W2DD_LIB): OPTFLAGS = -O3 -funsigned-char
 $(W2DD_LIB): CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 $(W2DD_LIB): CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
+# 6F470 holds auxbus.c and reverb.c code that retail compiled apart: keep n_alAuxBusPull out of n_alFxPull
+build/src/6F470.c.o: OPTFLAGS = -O3 -funsigned-char -fno-inline-functions
 # end wave 2d D
 build/src/2.0L/gu/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/io/pirawdma.c.o: OPTFLAGS = -O2
