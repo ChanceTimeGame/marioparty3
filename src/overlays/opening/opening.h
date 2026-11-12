@@ -310,9 +310,9 @@ void opWipeOutMain(omObjData *obj);
 void opWipeKill(s32 no);
 void opWipeInCreate(s32 no, s32 time);
 void opWipeOutCreate(s32 no, s32 time);
-void opWipeWhiteInCreate(s32 time);
-void opWipeWhiteOutCreate(s32 time);
-void func_801149A4_opening(s32 arg0);
+void opWipeWhiteInCreate(s32 no, s32 time);
+void opWipeWhiteOutCreate(s32 no, s32 time);
+void func_801149A4_opening(s32 chr);
 void opSleep(s32 time);
 void opContErrorCreate(void);
 void opContErrorDispOn(void);
@@ -376,6 +376,8 @@ void func_80017CD0_main(HuMtx4F mf, f32 sx, f32 sy, f32 sz);
 #define OP_STAR_POS(no) ((Vec *)&D_80117388_opening[no].w.f[1])
 void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
+extern u8 D_800D20B8_main[16][3]; /* 14EA0.c: texture animation slots per character */
+extern u8 D_800D5570_main[16][3];
 extern const Vec D_80114D84_opening; /* title camera position */
 extern const Vec D_80114D90_opening; /* title camera target */
 

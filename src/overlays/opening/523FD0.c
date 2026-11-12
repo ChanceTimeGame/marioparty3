@@ -1867,32 +1867,141 @@ void func_80114250_opening(s32 no, s32 model, f32 x, f32 y, f32 z) {
     func_80113AE8_opening(D_80117388_opening[no].obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeDraw);
+/* Draw hook of every wipe: a full-screen rectangle in slot 15's colour while its alpha is not 0. */
+void opWipeDraw(Gfx **gfx, s32 arg1, s32 arg2) {
+    if (D_80117388_opening[15].w.wipe.a != 0) {
+        gSPDisplayList((*gfx)++, D_80114BE8_opening);
+        gDPSetRenderMode((*gfx)++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+        gDPSetCombineMode((*gfx)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+        gDPSetPrimColor((*gfx)++, 0, 0, D_80117388_opening[15].w.wipe.r, D_80117388_opening[15].w.wipe.g,
+                        D_80117388_opening[15].w.wipe.b, D_80117388_opening[15].w.wipe.a);
+        gDPFillRectangle((*gfx)++, 0, 0, 320, 240);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeColorSet);
+void opWipeColorSet(s32 no, u8 r, u8 g, u8 b, u8 a) {
+    D_80117388_opening[no].w.wipe.r = r;
+    D_80117388_opening[no].w.wipe.b = b;
+    D_80117388_opening[no].w.wipe.g = g;
+    D_80117388_opening[no].w.wipe.a = a;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeInMain);
+/* Fade in: alpha 255 -> 0 over maxTime frames, then the wipe is freed. Retail passes the stored
+   b and g bytes as opWipeColorSet's g and b (the colours used are grey levels). */
+void opWipeInMain(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 time = D_80117388_opening[no].time;
+    s32 maxTime = D_80117388_opening[no].maxTime;
+    u8 r = D_80117388_opening[no].w.wipe.r;
+    u8 b = D_80117388_opening[no].w.wipe.b;
+    u8 g = D_80117388_opening[no].w.wipe.g;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeOutMain);
+    if (time >= maxTime) {
+        t = 0.0f;
+        opWipeKill(no);
+    } else {
+        t = (1.0f / maxTime) * (maxTime - time);
+        D_80117388_opening[no].time++;
+    }
+    opWipeColorSet(no, r, b, g, t * 255.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeKill);
+/* Fade out: alpha 0 -> 255 over maxTime frames, then held. */
+void opWipeOutMain(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 time = D_80117388_opening[no].time;
+    s32 maxTime = D_80117388_opening[no].maxTime;
+    u8 r = D_80117388_opening[no].w.wipe.r;
+    u8 b = D_80117388_opening[no].w.wipe.b;
+    u8 g = D_80117388_opening[no].w.wipe.g;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeInCreate);
+    if (time >= maxTime) {
+        t = 1.0f;
+    } else {
+        t = (1.0f / maxTime) * time;
+        D_80117388_opening[no].time++;
+    }
+    opWipeColorSet(no, r, b, g, t * 255.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeOutCreate);
+void opWipeKill(s32 no) {
+    if (D_80117388_opening[no].obj != NULL) {
+        func_8001ACDC_main(D_80117388_opening[no].w.wipe.gfx);
+        opDemoObjKill(no);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeWhiteInCreate);
+void opWipeInCreate(s32 no, s32 time) {
+    opWipeKill(no);
+    opDemoObjCreate(no, opWipeInMain);
+    D_80117388_opening[no].w.wipe.gfx = func_8001AC8C_main(0, opWipeDraw, 6);
+    opWipeColorSet(no, 0, 0, 0, 255);
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = time;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeWhiteOutCreate);
+void opWipeOutCreate(s32 no, s32 time) {
+    opWipeKill(no);
+    opDemoObjCreate(no, opWipeOutMain);
+    D_80117388_opening[no].w.wipe.gfx = func_8001AC8C_main(0, opWipeDraw, 6);
+    opWipeColorSet(no, 0, 0, 0, 255);
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = time;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801149A4_opening);
+void opWipeWhiteInCreate(s32 no, s32 time) {
+    opWipeInCreate(no, time);
+    opWipeColorSet(no, 255, 255, 255, 255);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSleep);
+void opWipeWhiteOutCreate(s32 no, s32 time) {
+    opWipeOutCreate(no, time);
+    opWipeColorSet(no, 255, 255, 255, 255);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opContErrorCreate);
+/* Frees texture animation 2 of character chr (14EA0.c's tables). */
+void func_801149A4_opening(s32 chr) {
+    if (D_800D20B8_main[chr][2] != 0xFF) {
+        func_80033354_main(D_800D20B8_main[chr][2]);
+        func_80033354_main(D_800D5570_main[chr][2]);
+        D_800D20B8_main[chr][2] = 0xFF;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opContErrorDispOn);
+void opSleep(s32 time) {
+    HuPrcSleep(time);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opContErrorDispOff);
+/* The "check the controller" sprite, unless a controller error is already shown. */
+void opContErrorCreate(void) {
+    if (GWContErrorGet() == 0) {
+        D_80117750_opening.anim = func_8000B838_main(0x100005);
+        D_80117750_opening.esp = InitEspriteSlot(D_80117750_opening.anim, 0, 1);
+        func_8000BBD4_main(D_80117750_opening.esp, 160, 168);
+        func_8000BCC8_main(D_80117750_opening.esp, 0);
+        func_8000BB94_main(D_80117750_opening.esp);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opContErrorKill);
+void opContErrorDispOn(void) {
+    if (GWContErrorGet() == 0) {
+        func_8000BB54_main(D_80117750_opening.esp);
+    }
+}
+
+void opContErrorDispOff(void) {
+    if (GWContErrorGet() == 0) {
+        func_8000BB94_main(D_80117750_opening.esp);
+    }
+}
+
+void opContErrorKill(void) {
+    if (GWContErrorGet() == 0) {
+        func_8000C184_main(D_80117750_opening.esp);
+        HuSprKill(D_80117750_opening.anim);
+    }
+}
+
+OP_FILE_END()
