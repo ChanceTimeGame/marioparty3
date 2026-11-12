@@ -150,7 +150,7 @@ void opSprBGDispOff(s32 no);
 void opSprPosSet(s32 no, s32 x, s32 y);
 void opSprPosGet(s32 no, s32 *x, s32 *y);
 void opSprScaleSet(s32 no, f32 x, f32 y);
-void opSprAlphaSet(s32 no, s16 alpha);
+void opSprAlphaSet(s32 no, u16 alpha); /* B: callers narrow to u16 (opTitleSprMain) */
 void opSprAttrSet(s32 no, u16 attr);
 void opSprAttrReset(s32 no, u16 attr);
 void func_80106734_opening(s32 no, u16 arg1);

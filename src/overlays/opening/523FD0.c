@@ -535,7 +535,97 @@ void opTitleSetup(void) {
     func_8000BCC8_main(esp, 9);
 }
 
+// Register allocation (masked 10): the first fade loop's clamp is copy-propagated and 1/60 is
+// held in a GPR; the logo/press-start reads relocate against D_80114EB0+0x70 (retail: split label
+// D_80114F20). Logic checked against the asm.
+#ifdef NON_MATCHING
+/* Title sequence: fade the first background out, bounce the logo in on a damped spring, fade the
+   press-start sprites in, then show the controller check for 780 frames and end the process. */
+void opTitleSprMain(void) {
+    s32 i;
+    f32 f;
+    f32 t;
+    f32 damp;
+    f32 vel;
+    f32 acc;
+    f32 scale;
+    u16 alpha;
+
+    opSprBGDispOff(2);
+    opSprBGDispOff(3);
+    opSprBGDispOff(4);
+    opSprBGDispOff(5);
+    HuAudFXPlay(0x240);
+    HuPrcSleep(16);
+    for (i = 0; i < 40; i++) {
+        HuPrcVSleep();
+        f = 1.0f - i * (1.0f / 60.0f);
+        t = f;
+        if (f < 0.0f) {
+            t = 0.0f;
+        }
+        opSprAlphaSet(0, (u8)(t * 255.0f));
+    }
+    opSprBGDispOn(2);
+    opSprScaleSet(2, 0.0f, 0.0f);
+    opSprScaleSet(3, 0.0f, 0.0f);
+    vel = -2.0f;
+    acc = 0.0f;
+    HuAudSeqPlay(2);
+    for (i = 40; i < 61; i++) {
+        HuPrcVSleep();
+        t = 1.0f - i * (1.0f / 60.0f);
+        if (t < 0.0f) {
+            t = 0.0f;
+        }
+        opSprAlphaSet(0, (u8)(t * 255.0f));
+        damp = 1.0f - (i - 40) * 0.05f;
+        if (damp < 0.0f) {
+            damp = 0.0f;
+        }
+        acc += vel * -0.8f;
+        vel += acc;
+        vel *= 0.7f;
+        scale = vel * damp + 1.0f;
+        if (scale < 0.0f) {
+            scale = 0.0f;
+        }
+        opSprScaleSet(2, scale, scale);
+        opSprScaleSet(3, scale, scale);
+    }
+    HuPrcVSleep();
+    opSprScaleSet(2, 1.0f, 1.0f);
+    opSprScaleSet(3, 1.0f, 1.0f);
+    opSprAlphaSet(0, 0);
+    opSprBGDispOn(4);
+    opSprBGDispOn(5);
+    func_80106768_opening(4, 0, 0);
+    func_80106768_opening(5, 0, 0);
+    opSprAlphaSet(4, 0);
+    opSprAlphaSet(5, 0);
+    func_8000BDDC_main(D_80114EB0_opening[4].espId, 0);
+    func_8000BDDC_main(D_80114EB0_opening[5].espId, 0);
+    for (i = 0; i < 9; i++) {
+        HuPrcVSleep();
+        alpha = i << 5;
+        opSprAlphaSet(4, alpha);
+        opSprAlphaSet(5, alpha);
+    }
+    opSprAlphaSet(4, 256);
+    opSprAlphaSet(5, 256);
+    func_8000BDDC_main(D_80114EB0_opening[4].espId, 1);
+    func_8000BDDC_main(D_80114EB0_opening[5].espId, 1);
+    opContErrorDispOn();
+    HuPrcSleep(780);
+    opContErrorDispOff();
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleSprMain);
+#endif
 
 void opTitleKill(void) {
     opSprKill(5);
