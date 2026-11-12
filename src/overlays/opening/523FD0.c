@@ -672,13 +672,68 @@ void opDemoObjCreate(s32 no, omObjFunc func) {
     obj->work[0] = no;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112A74_opening);
+/* Idle/action loop for a demo model: wait i[1] frames on motion i[3], play motion i[4] once,
+   then back. i[0] counts frames, -1 while the one-shot motion plays; i[2] is the model slot. */
+void func_80112A74_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.i[2];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112BA0_opening);
+    if (D_80117388_opening[no].w.i[0] < 0) {
+        if (opMotionEndCheck(model) != 0) {
+            opMotionShiftSet(model, D_80117388_opening[no].w.i[4], 4, 4, 2);
+            D_80117388_opening[no].w.i[0] = 0;
+        }
+    } else if (D_80117388_opening[no].w.i[0] >= D_80117388_opening[no].w.i[1]) {
+        opMotionShiftSet(model, D_80117388_opening[no].w.i[3], 4, 4, 0);
+        D_80117388_opening[no].w.i[0] = -1;
+    } else {
+        D_80117388_opening[no].w.i[0]++;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112C8C_opening);
+/* Starts func_80112A74_opening in slot no for model slot model: one-shot motion motA, loop motion
+   motB, start frame time (< 0: start on the loop), loop length wait. */
+void func_80112BA0_opening(s32 no, s32 model, s32 motA, s32 motB, s32 time, s32 wait) {
+    opDemoObjCreate(no, func_80112A74_opening);
+    D_80117388_opening[no].w.i[2] = model;
+    D_80117388_opening[no].w.i[3] = motA;
+    D_80117388_opening[no].w.i[4] = motB;
+    D_80117388_opening[no].w.i[1] = wait;
+    D_80117388_opening[no].w.i[0] = time;
+    if (time >= 0) {
+        opMotionSet(model, motA, 0);
+        opMotionTimeSet(model, time);
+    } else {
+        opMotionSet(model, motB, 2);
+        opMotionTimeSet(model, 0);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112D30_opening);
+/* Restarts model slot i[2]'s motion from frame 0 every i[1] frames. */
+void func_80112C8C_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.i[2];
+
+    if (D_80117388_opening[no].w.i[0] >= D_80117388_opening[no].w.i[1]) {
+        opMotionTimeSet(model, 0);
+        D_80117388_opening[no].w.i[0] = 0;
+    } else {
+        D_80117388_opening[no].w.i[0]++;
+    }
+}
+
+void func_80112D30_opening(s32 no, s32 model, s32 time, s32 wait) {
+    opDemoObjCreate(no, func_80112C8C_opening);
+    D_80117388_opening[no].w.i[2] = model;
+    D_80117388_opening[no].w.i[0] = time;
+    D_80117388_opening[no].w.i[1] = wait;
+    func_80106DD0_opening(model, 3);
+    if (time > 0) {
+        opMotionTimeSet(model, time);
+    } else {
+        opMotionTimeSet(model, 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoOutEffMain);
 
