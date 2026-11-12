@@ -735,13 +735,95 @@ void func_80112D30_opening(s32 no, s32 model, s32 time, s32 wait) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoOutEffMain);
+/* A character leaving: its model and shadow shrink to nothing over 7 frames while the swirl
+   effect spins up; hidden at frame 20, effect and object freed at frame 40. */
+void opDemoOutEffMain(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = OP_FX_MODEL(no);
+    s32 shadow = model + 32;
+    s16 fx = OP_FX_FX(no);
+    f32 scale = OP_FX_SCALE(no);
+    f32 pos[3];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoOutEffCreate);
+    HuVecCopy3F((Vec *)pos, OP_FX_POS(no));
+    if (OP_FX_TIME(no) >= 40) {
+        func_8001ACDC_main(fx);
+        OP_FX_TIME(no) = 0;
+        opDemoObjKill(no);
+    } else if (OP_FX_TIME(no) >= 20) {
+        opModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+        opModelScaleSet(shadow, 3.0f, 1.0f, 3.0f);
+        opModelDispOff(model);
+        opModelDispOff(shadow);
+        OP_FX_TIME(no)++;
+    } else {
+        scale -= 1.0f / 7.0f;
+        if (scale <= 0.0f) {
+            scale = 0.0f;
+        }
+        func_80111C88_opening(fx, pos[0], pos[1], pos[2]);
+        opModelScaleSet(model, scale, 1.0f, scale);
+        opModelScaleSet(shadow, scale, 1.0f, scale);
+        OP_FX_SCALE(no) = scale;
+        OP_FX_TIME(no)++;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoGuideInEffMain);
+void opDemoOutEffCreate(s32 no, s32 model) {
+    f32 pos[3];
+    s16 fx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoGuideInEffCreate);
+    opDemoObjCreate(no, opDemoOutEffMain);
+    fx = func_801117D4_opening(0x110012, 0x689);
+    OP_FX_MODEL(no) = model;
+    OP_FX_FX(no) = fx;
+    opModelPosGet(model, &pos[0], &pos[1], &pos[2]);
+    pos[1] += 60.0f;
+    HuVecCopy3F(OP_FX_POS(no), (Vec *)pos);
+    OP_FX_SCALE(no) = 1.0f;
+    OP_FX_TIME(no) = 0;
+}
+
+/* The guide arriving: the swirl effect runs 25 units above its position for 50 frames, then the
+   effect and object are freed at frame 80. */
+void opDemoGuideInEffMain(omObjData *obj) {
+    s8 no = obj->work[0];
+    s16 fx = OP_FX_FX(no);
+    f32 scale = OP_FX_SCALE(no);
+    f32 pos[3];
+
+    HuVecCopy3F((Vec *)pos, OP_FX_POS(no));
+    if (OP_FX_TIME(no) >= 80) {
+        func_8001ACDC_main(fx);
+        OP_FX_TIME(no) = 0;
+        opDemoObjKill(no);
+    } else if (OP_FX_TIME(no) >= 50) {
+        OP_FX_TIME(no)++;
+    } else {
+        scale -= 1.0f / 7.0f;
+        if (scale <= 0.0f) {
+            scale = 0.0f;
+        }
+        func_80111C88_opening(fx, pos[0], pos[1] + 25.0f, pos[2]);
+        OP_FX_SCALE(no) = scale;
+        OP_FX_TIME(no)++;
+    }
+}
+
+void opDemoGuideInEffCreate(s32 no, s32 model) {
+    f32 pos[3];
+    s16 fx;
+
+    opDemoObjCreate(no, opDemoGuideInEffMain);
+    fx = func_801117D4_opening(0x110012, 0x689);
+    OP_FX_MODEL(no) = model;
+    OP_FX_FX(no) = fx;
+    opModelPosGet(model, &pos[0], &pos[1], &pos[2]);
+    pos[1] += 60.0f;
+    HuVecCopy3F(OP_FX_POS(no), (Vec *)pos);
+    OP_FX_SCALE(no) = 1.0f;
+    OP_FX_TIME(no) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoStarWaitMain);
 

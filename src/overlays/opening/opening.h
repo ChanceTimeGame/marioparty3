@@ -314,6 +314,15 @@ typedef struct OpFxHmf {
 #define OP_FX_WORK(m) ((OpFxWork *)(m)->unkBC)
 #define OP_FX_GROUPS(m) (((OpFxHmf *)(m)->hmf)->groupCount)
 
+/* OpDemoObj.w as the opDemo*Eff* objects use it: i[0] frame, i[2] OpModel slot (+32 its shadow),
+   the s16 at +0x10 (wipe.gfx) the effect model (func_801117D4_opening), f[4..6] position,
+   f[7] scale. *(s16 *)&w.i[3] would cost 8 frame bytes under GCC 2.7.2. */
+#define OP_FX_TIME(no) (D_80117388_opening[no].w.i[0])
+#define OP_FX_MODEL(no) (D_80117388_opening[no].w.i[2])
+#define OP_FX_FX(no) (D_80117388_opening[no].w.wipe.gfx)
+#define OP_FX_POS(no) ((Vec *)&D_80117388_opening[no].w.f[4])
+#define OP_FX_SCALE(no) (D_80117388_opening[no].w.f[7])
+
 void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
 void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
