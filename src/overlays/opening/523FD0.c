@@ -943,9 +943,36 @@ INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80113AE8_opening);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80113E8C_opening);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80114150_opening);
+/* Sends hover object no flying from its model's position to (x, y, z) over time frames. */
+void func_80114150_opening(s32 no, f32 x, f32 y, f32 z, s32 time) {
+    f32 pos[3];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80114250_opening);
+    opModelPosGet(D_80117388_opening[no].w.fly.model, &pos[0], &pos[1], &pos[2]);
+    HuVecCopy3F(&D_80117388_opening[no].w.fly.base, (Vec *)pos);
+    HuVecCopyXYZ(&D_80117388_opening[no].w.fly.target, x, y, z);
+    D_80117388_opening[no].w.fly.phase[0] = 0.0f;
+    D_80117388_opening[no].w.fly.phase[1] = 0.0f;
+    D_80117388_opening[no].w.fly.phase[2] = 0.0f;
+    D_80117388_opening[no].obj->func = func_80113E8C_opening;
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = time;
+}
+
+/* Starts hover object no for model slot model around (x, y, z) at random phases. */
+void func_80114250_opening(s32 no, s32 model, f32 x, f32 y, f32 z) {
+    opDemoObjCreate(no, func_80113AE8_opening);
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = 20;
+    D_80117388_opening[no].w.fly.model = model;
+    D_80117388_opening[no].w.fly.phase[0] = D_80117388_opening[no].w.fly.phase[1] =
+        D_80117388_opening[no].w.fly.phase[2] = 0.0f;
+    D_80117388_opening[no].w.fly.phase[0] = rand8();
+    D_80117388_opening[no].w.fly.phase[1] = rand8();
+    D_80117388_opening[no].w.fly.base.x = x;
+    D_80117388_opening[no].w.fly.base.y = y;
+    D_80117388_opening[no].w.fly.base.z = z;
+    func_80113AE8_opening(D_80117388_opening[no].obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opWipeDraw);
 
