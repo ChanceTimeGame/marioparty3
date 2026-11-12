@@ -2,6 +2,40 @@
 #include "../ovl_80_shared_board/FA250.h"
 #include "opening.h"
 
+OvlEntrypoint D_80114B50_opening[] = {
+    { 0, opTitleObjectSetup },
+    { 1, func_80105C2C_opening },
+    { 2, opDemoObjectSetup },
+    { -1, NULL },
+};
+
+Vec D_80114B70_opening[2] = { { 350.0f, 190.0f, 3770.0f }, { -1000.0f, 130.0f, 450.0f } };
+Vec D_80114B88_opening[2] = { { 220.0f, 963.0f, 1900.0f }, { 4340.0f, 4720.0f, 5925.0f } };
+Vec D_80114BA0_opening = { 0.0f, 700.0f, 1500.0f };
+Vec D_80114BAC_opening = { 0.0f, 0.0f, -500.0f };
+Vec D_80114BB8_opening = { 640.0f, 480.0f, 511.0f };
+Vec D_80114BC4_opening = { 640.0f, 480.0f, 511.0f };
+RectF D_80114BD0_opening = { 8.0f, 8.0f, 312.0f, 232.0f };
+s32 D_80114BE0_opening = 0;
+
+Gfx D_80114BE8_opening[] = {
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
+    gsDPSetRenderMode(G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2),
+    gsDPSetPrimColor(0, 0, 0, 0, 0, 192),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTextureFilter(G_TF_POINT),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetAlphaDither(G_AD_DISABLE),
+    gsSPEndDisplayList(),
+};
+OP_DATA_FILE_END()
+
+Vec D_80114C40_opening = { 0.0f, 0.0f, 100.0f };
+Vec D_80114C4C_opening = { 0.0f, 0.0f, 0.0f };
+Vec D_80114C58_opening = { 0.0f, 1.0f, 0.0f };
+
 void func_801059A0_opening(void) {
     ovlEventCall(D_80114B50_opening, omovlevtno);
 }

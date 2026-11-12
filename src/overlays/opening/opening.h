@@ -13,6 +13,12 @@
 #else
 #define OP_FILE_END() __asm__(".section .text\n    .align 4\n");
 #endif
+/* The same for .data: the wipe display list ends a file; the camera vectors (D_80114C40) start the next. */
+#ifdef NON_MATCHING
+#define OP_DATA_FILE_END()
+#else
+#define OP_DATA_FILE_END() __asm__(".section .data\n    .align 4\n");
+#endif
 
 /* Sprite slot (opSpr*): D_80114EB0_opening[64]. */
 typedef struct OpSpr {
