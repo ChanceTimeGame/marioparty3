@@ -50,6 +50,12 @@ typedef struct OpCamera {
     /* 0x24 */ omObjData *obj;
 } OpCamera; /* size = 0x28 */
 
+/* A model part as func_8001D33C_main returns it (hmfman.c's HmfMotionObjM, 0x98 bytes). */
+typedef struct OpHmfPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} OpHmfPart; /* size = 0x98 */
+
 /* Effect object slot (opDemoObj*, opWipe*, opDemo*Eff*): D_80117388_opening[16].
    The work words are reused per effect; `wipe` is the opWipe* view. */
 typedef struct OpDemoObj {
@@ -63,6 +69,17 @@ typedef struct OpDemoObj {
             /* 0x0C */ u8 r, g, b, a;
             /* 0x10 */ s16 gfx; /* func_8001AC8C_main handle */
         } wipe;
+        struct { /* B: func_801139B0_opening's jump; pointers kept as pointers for the host */
+            /* 0x04 */ s32 time;
+            /* 0x08 */ s32 maxTime;
+            /* 0x0C */ s32 model;
+            /* 0x10 */ s32 unk10;
+            /* 0x14 */ f32 angle;
+            /* 0x18 */ f32 amp;
+            /* 0x1C */ Vec from;
+            /* 0x28 */ Vec to;
+            /* 0x34 */ struct OpHmfPart *part[2]; /* func_8001D33C_main records */
+        } jump;
     } w;
 } OpDemoObj; /* size = 0x3C */
 
@@ -324,6 +341,12 @@ typedef struct OpFxHmf {
 #define OP_FX_SCALE(no) (D_80117388_opening[no].w.f[7])
 
 void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
+void *func_8001D33C_main(s16 model, char *name);
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
+void func_80017CD0_main(HuMtx4F mf, f32 sx, f32 sy, f32 sz);
+
+/* opDemoStarWait: i[1] period, i[2] OpModel slot, f[3..5] position, f[6] bob height, f[7] angle. */
+#define OP_STAR_POS(no) ((Vec *)&D_80117388_opening[no].w.f[3])
 void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
 extern const Vec D_80114D84_opening; /* title camera position */

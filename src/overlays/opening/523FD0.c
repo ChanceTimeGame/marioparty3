@@ -825,13 +825,69 @@ void opDemoGuideInEffCreate(s32 no, s32 model) {
     OP_FX_TIME(no) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoStarWaitMain);
+/* A star bobbing in place: height sin(angle) * f[6], one turn every i[1] frames. */
+void opDemoStarWaitMain(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.i[2];
+    f32 step;
+    f32 angle;
+    f32 dy;
+    f32 pos[3];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoStarWaitCreate);
+    step = 1.0f / D_80117388_opening[no].w.i[1];
+    angle = step * 360.0f + D_80117388_opening[no].w.f[7];
+    if (angle > 360.0f) {
+        angle -= 360.0f;
+    }
+    D_80117388_opening[no].w.f[7] = angle;
+    dy = sindf(angle) * D_80117388_opening[no].w.f[6];
+    HuVecCopy3F((Vec *)pos, OP_STAR_POS(no));
+    opModelPosSet(model, pos[0], dy + pos[1], pos[2]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801134FC_opening);
+void opDemoStarWaitCreate(s32 no, s32 model, f32 x, f32 y, f32 z, f32 height, s32 period) {
+    opDemoObjCreate(no, opDemoStarWaitMain);
+    D_80117388_opening[no].w.i[2] = model;
+    HuVecCopyXYZ(OP_STAR_POS(no), x, y, z);
+    D_80117388_opening[no].w.f[6] = height;
+    D_80117388_opening[no].w.f[7] = 0.0f;
+    D_80117388_opening[no].w.i[0] = 0;
+    D_80117388_opening[no].w.i[1] = period;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8011361C_opening);
+/* Places the jump's two parts: part 0 at pos, part 1 (the shadow) 4 above shadow; both scaled
+   (scale, 1, scale) and turned by rotY. */
+void func_801134FC_opening(s32 no, Vec *pos, Vec *shadow, f32 scale, f32 rotY) {
+    func_80088800_main(D_80117388_opening[no].w.jump.part[0]->mtx, pos->x, pos->y, pos->z);
+    func_80017CD0_main(D_80117388_opening[no].w.jump.part[0]->mtx, scale, 1.0f, scale);
+    func_800185A4_main((Mtx *)D_80117388_opening[no].w.jump.part[0]->mtx, rotY);
+    func_80088800_main(D_80117388_opening[no].w.jump.part[1]->mtx, shadow->x, shadow->y + 4.0f, shadow->z);
+    func_80017CD0_main(D_80117388_opening[no].w.jump.part[1]->mtx, scale, 1.0f, scale);
+    func_800185A4_main((Mtx *)D_80117388_opening[no].w.jump.part[1]->mtx, rotY);
+}
+
+/* After landing: bob 12 units, one turn every maxTime frames. */
+void func_8011361C_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    Vec pos;
+    Vec shadow;
+    f32 step;
+    f32 angle;
+    f32 dy;
+
+    step = 1.0f / D_80117388_opening[no].w.jump.maxTime;
+    angle = step * 360.0f + D_80117388_opening[no].w.jump.angle;
+    if (angle > 360.0f) {
+        angle -= 360.0f;
+    }
+    D_80117388_opening[no].w.jump.angle = angle;
+    dy = sindf(angle) * D_80117388_opening[no].w.jump.amp;
+    HuVecCopy3F(&pos, &D_80117388_opening[no].w.jump.to);
+    pos.y += dy;
+    HuVecCopy3F(&shadow, &D_80117388_opening[no].w.jump.to);
+    shadow.y = 0.0f;
+    func_801134FC_opening(no, &pos, &shadow, 1.0f, 0.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8011373C_opening);
 
