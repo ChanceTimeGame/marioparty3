@@ -805,8 +805,8 @@ void func_80108118_opening(s32 no, u32 mes) {
 
 #ifdef NON_MATCHING
 void opDemoEvent(void) {
-    f32 s1C0, s1C4, s1C8, s1CC, s1D0, s248, s24C, s250, s254, s258, s25C;
-    f32 s368, s36C, s370, s374, s378, s37C, s4D0, s4D4;
+    f32 s1C0, s1C4, s1C8, s1CC, s1D0;
+    f32 s4D0, s4D4;
     s32 flag;
     s32 j;
     f32 ang;
@@ -2177,6 +2177,7 @@ void opDemoEvent(void) {
     opModelPosSet(0x1C, -580.0f, 60.0f, 2580.0f);
     {
     Vec v218, v228, v238;
+    f32 rotY1[8];
     opModelPosGet(0, &v238.x, &v238.y, &v238.z);
     opModelRotSet(0x1C, 0.0f, func_80111164_opening(v238.x, v238.z, D_80114B70_opening[0].x, D_80114B70_opening[0].z), 0.0f);
     opModelScaleSet(0x1C, 1.0f, 1.0f, 1.0f);
@@ -2191,12 +2192,12 @@ void opDemoEvent(void) {
     }
     opMotionEndWait(1);
     opMotionShiftSet(1, 0x38, 4, 4, 2);
-    opModelRotGet(0, &v228.x, &s248, &v228.z);
-    opModelRotGet(1, &v228.x, &s24C, &v228.z);
-    opModelRotGet(2, &v228.x, &s250, &v228.z);
-    opModelRotGet(3, &v228.x, &s254, &v228.z);
-    opModelRotGet(4, &v228.x, &s258, &v228.z);
-    opModelRotGet(5, &v228.x, &s25C, &v228.z);
+    opModelRotGet(0, &v228.x, &rotY1[0], &v228.z);
+    opModelRotGet(1, &v228.x, &rotY1[1], &v228.z);
+    opModelRotGet(2, &v228.x, &rotY1[2], &v228.z);
+    opModelRotGet(3, &v228.x, &rotY1[3], &v228.z);
+    opModelRotGet(4, &v228.x, &rotY1[4], &v228.z);
+    opModelRotGet(5, &v228.x, &rotY1[5], &v228.z);
     opModelPosGet(0xB, &v228.x, &v228.y, &v228.z);
     opMotionShiftSet(2, 0x46, 4, 4, 2);
     opMotionShiftSet(3, 0x4D, 4, 4, 2);
@@ -2205,15 +2206,15 @@ void opDemoEvent(void) {
     do {
         temp_f20_12 = (f32) var_s3 * 0.125f;
         opModelPosGet(0, &v218.x, &v218.y, &v218.z);
-        opModelRotSet(0, 0.0f, func_80111490_opening(s248, v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
+        opModelRotSet(0, 0.0f, func_80111490_opening(rotY1[0], v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
         opModelPosGet(2, &v218.x, &v218.y, &v218.z);
-        opModelRotSet(2, 0.0f, func_80111490_opening(s250, v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
+        opModelRotSet(2, 0.0f, func_80111490_opening(rotY1[2], v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
         opModelPosGet(3, &v218.x, &v218.y, &v218.z);
-        opModelRotSet(3, 0.0f, func_80111490_opening(s254, v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
+        opModelRotSet(3, 0.0f, func_80111490_opening(rotY1[3], v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
         opModelPosGet(4, &v218.x, &v218.y, &v218.z);
-        opModelRotSet(4, 0.0f, func_80111490_opening(s258, v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
+        opModelRotSet(4, 0.0f, func_80111490_opening(rotY1[4], v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
         opModelPosGet(5, &v218.x, &v218.y, &v218.z);
-        opModelRotSet(5, 0.0f, func_80111490_opening(s25C, v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
+        opModelRotSet(5, 0.0f, func_80111490_opening(rotY1[5], v228.x - v218.x, v228.z - v218.z, temp_f20_12), 0.0f);
         opModelPosSet(5, v218.x - (temp_f20_12 * 7.5f), v218.y, v218.z);
         var_s3 += 1;
         HuPrcVSleep();
@@ -2363,6 +2364,7 @@ void opDemoEvent(void) {
     opMotionShiftSet(0xF, 0x69, 4, 4, 2);
     {
     Vec v308, v318, v328, v338, v348, v358;
+    f32 rotY2[8];
     func_801110AC_opening(&v308.x, &v308.y, &v308.z, &v318.x, &v318.y, &v318.z);
     temp_f26 = func_80111164_opening(v318.x, v318.z, v308.x, v308.z);
     v328.y = 150.0f;
@@ -2394,12 +2396,12 @@ void opDemoEvent(void) {
     opDemoObjKill(2);
     opDemoObjKill(3);
     opModelPosGet(0xF, &v358.x, &v358.y, &v358.z);
-    opModelRotGet(0, &v338.x, &s368, &v338.z);
-    opModelRotGet(1, &v338.x, &s36C, &v338.z);
-    opModelRotGet(2, &v338.x, &s370, &v338.z);
-    opModelRotGet(3, &v338.x, &s374, &v338.z);
-    opModelRotGet(4, &v338.x, &s378, &v338.z);
-    opModelRotGet(5, &v338.x, &s37C, &v338.z);
+    opModelRotGet(0, &v338.x, &rotY2[0], &v338.z);
+    opModelRotGet(1, &v338.x, &rotY2[1], &v338.z);
+    opModelRotGet(2, &v338.x, &rotY2[2], &v338.z);
+    opModelRotGet(3, &v338.x, &rotY2[3], &v338.z);
+    opModelRotGet(4, &v338.x, &rotY2[4], &v338.z);
+    opModelRotGet(5, &v338.x, &rotY2[5], &v338.z);
     opMotionShiftSet(0, 0x33, 4, 4, 2);
     opMotionShiftSet(1, 0x3D, 4, 4, 2);
     opMotionShiftSet(2, 0x46, 4, 4, 2);
@@ -2410,17 +2412,17 @@ void opDemoEvent(void) {
     do {
         temp_f20_19 = (f32) var_s0_18 * 0.125f;
         opModelPosGet(0, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(0, 0.0f, func_80111490_opening(s368, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(0, 0.0f, func_80111490_opening(rotY2[0], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         opModelPosGet(1, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(1, 0.0f, func_80111490_opening(s36C, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(1, 0.0f, func_80111490_opening(rotY2[1], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         opModelPosGet(2, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(2, 0.0f, func_80111490_opening(s370, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(2, 0.0f, func_80111490_opening(rotY2[2], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         opModelPosGet(3, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(3, 0.0f, func_80111490_opening(s374, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(3, 0.0f, func_80111490_opening(rotY2[3], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         opModelPosGet(4, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(4, 0.0f, func_80111490_opening(s378, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(4, 0.0f, func_80111490_opening(rotY2[4], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         opModelPosGet(5, &v328.x, &v328.y, &v328.z);
-        opModelRotSet(5, 0.0f, func_80111490_opening(s37C, v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
+        opModelRotSet(5, 0.0f, func_80111490_opening(rotY2[5], v358.x - v328.x, v358.z - v328.z, temp_f20_19), 0.0f);
         var_s0_18 += 1;
         HuPrcVSleep();
     } while (var_s0_18 < 9);
