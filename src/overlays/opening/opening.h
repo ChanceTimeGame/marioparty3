@@ -268,7 +268,7 @@ f32 func_80111164_opening(f32 x0, f32 z0, f32 x1, f32 z1);
 f32 func_801111AC_opening(f32 from, f32 to, f32 step);
 f32 func_8011124C_opening(f32 x0, f32 z0, f32 x1, f32 z1, f32 t);
 f32 func_80111490_opening(f32 angle, f32 x, f32 z, f32 t);
-void func_80111580_opening(void);
+void func_80111580_opening(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
 s16 func_801117D4_opening(s32 arg0, s32 arg1);
 s16 func_80111984_opening(s32 arg0, s32 arg1);
 u32 func_80111B34_opening(u32 seed);
@@ -380,5 +380,38 @@ extern u8 D_800D20B8_main[16][3]; /* 14EA0.c: texture animation slots per charac
 extern u8 D_800D5570_main[16][3];
 extern const Vec D_80114D84_opening; /* title camera position */
 extern const Vec D_80114D90_opening; /* title camera target */
+
+/* D */
+/* opDemoEvent's opening-star table entry (local array, rodata D_80114CE4). */
+typedef struct OpDemoStar {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 y;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ u32 color;
+} OpDemoStar; /* size = 0x10 */
+
+/* View of main's HmfMotionObj (22EB0.c) as returned by func_8001D33C_main. */
+typedef struct OpHmfMotionObj {
+    /* 0x00 */ char unk00[0x1C];
+    /* 0x1C */ Vec unk1C;
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec unk40;
+    /* 0x4C */ char unk4C[0xC];
+    /* 0x58 */ f32 unk58[4][4];
+} OpHmfMotionObj; /* size = 0x98 */
+
+extern Vec D_80114B70_opening[2]; /* camera position, target */
+extern Vec D_80114B88_opening[2]; /* camera position, target */
+extern Vec D_80114BA0_opening;
+extern Vec D_80114BAC_opening;
+
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
+void func_80017A84_main(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void *func_8001D33C_main(s16 arg0, char *arg1);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
+void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]);
+void func_80046030_main(s16 arg0, s16 arg1);
+void func_80088700_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
+void func_80088800_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
 
 #endif
