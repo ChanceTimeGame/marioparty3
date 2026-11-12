@@ -220,6 +220,7 @@ void func_80107DD8_opening(s32 no, s16 arg1, s32 arg2);
 s16 func_80107E10_opening(s32 no);
 void func_80107E2C_opening(s32 no);
 void func_80107E80_opening(s32 btn);
+void func_80107EBC_opening(s32 no, s16 arg1);
 u16 func_80107EF4_opening(s32 arg0);
 void opDemoEventSetup(void);
 void func_80108118_opening(s32 no, u32 mes);

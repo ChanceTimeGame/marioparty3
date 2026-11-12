@@ -757,7 +757,9 @@ void func_80107E80_opening(s32 btn) {
     } while (!(btn & D_800D5558_main[0]));
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107EBC_opening);
+void func_80107EBC_opening(s32 no, s16 arg1) {
+    func_8005BE30_main(D_801171B8_opening[no].id, arg1);
+}
 
 u16 func_80107EF4_opening(s32 val) {
     char buf[0x100];
