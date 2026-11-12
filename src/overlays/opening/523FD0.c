@@ -672,22 +672,22 @@ void opDemoObjCreate(s32 no, omObjFunc func) {
     obj->work[0] = no;
 }
 
-/* Idle/action loop for a demo model: wait i[1] frames on motion i[3], play motion i[4] once,
-   then back. i[0] counts frames, -1 while the one-shot motion plays; i[2] is the model slot. */
+/* Idle/action loop for a demo model: wait maxTime frames on motion w.i[1], play motion w.i[2]
+   once, then back. time counts frames, -1 while the one-shot motion plays; w.i[0] is the model. */
 void func_80112A74_opening(omObjData *obj) {
     s8 no = obj->work[0];
-    s32 model = D_80117388_opening[no].w.i[2];
+    s32 model = D_80117388_opening[no].w.i[0];
 
-    if (D_80117388_opening[no].w.i[0] < 0) {
+    if (D_80117388_opening[no].time < 0) {
         if (opMotionEndCheck(model) != 0) {
-            opMotionShiftSet(model, D_80117388_opening[no].w.i[4], 4, 4, 2);
-            D_80117388_opening[no].w.i[0] = 0;
+            opMotionShiftSet(model, D_80117388_opening[no].w.i[2], 4, 4, 2);
+            D_80117388_opening[no].time = 0;
         }
-    } else if (D_80117388_opening[no].w.i[0] >= D_80117388_opening[no].w.i[1]) {
-        opMotionShiftSet(model, D_80117388_opening[no].w.i[3], 4, 4, 0);
-        D_80117388_opening[no].w.i[0] = -1;
+    } else if (D_80117388_opening[no].time >= D_80117388_opening[no].maxTime) {
+        opMotionShiftSet(model, D_80117388_opening[no].w.i[1], 4, 4, 0);
+        D_80117388_opening[no].time = -1;
     } else {
-        D_80117388_opening[no].w.i[0]++;
+        D_80117388_opening[no].time++;
     }
 }
 
@@ -695,11 +695,11 @@ void func_80112A74_opening(omObjData *obj) {
    motB, start frame time (< 0: start on the loop), loop length wait. */
 void func_80112BA0_opening(s32 no, s32 model, s32 motA, s32 motB, s32 time, s32 wait) {
     opDemoObjCreate(no, func_80112A74_opening);
-    D_80117388_opening[no].w.i[2] = model;
-    D_80117388_opening[no].w.i[3] = motA;
-    D_80117388_opening[no].w.i[4] = motB;
-    D_80117388_opening[no].w.i[1] = wait;
-    D_80117388_opening[no].w.i[0] = time;
+    D_80117388_opening[no].w.i[0] = model;
+    D_80117388_opening[no].w.i[1] = motA;
+    D_80117388_opening[no].w.i[2] = motB;
+    D_80117388_opening[no].maxTime = wait;
+    D_80117388_opening[no].time = time;
     if (time >= 0) {
         opMotionSet(model, motA, 0);
         opMotionTimeSet(model, time);
@@ -709,24 +709,24 @@ void func_80112BA0_opening(s32 no, s32 model, s32 motA, s32 motB, s32 time, s32 
     }
 }
 
-/* Restarts model slot i[2]'s motion from frame 0 every i[1] frames. */
+/* Restarts model slot w.i[0]'s motion from frame 0 every maxTime frames. */
 void func_80112C8C_opening(omObjData *obj) {
     s8 no = obj->work[0];
-    s32 model = D_80117388_opening[no].w.i[2];
+    s32 model = D_80117388_opening[no].w.i[0];
 
-    if (D_80117388_opening[no].w.i[0] >= D_80117388_opening[no].w.i[1]) {
+    if (D_80117388_opening[no].time >= D_80117388_opening[no].maxTime) {
         opMotionTimeSet(model, 0);
-        D_80117388_opening[no].w.i[0] = 0;
+        D_80117388_opening[no].time = 0;
     } else {
-        D_80117388_opening[no].w.i[0]++;
+        D_80117388_opening[no].time++;
     }
 }
 
 void func_80112D30_opening(s32 no, s32 model, s32 time, s32 wait) {
     opDemoObjCreate(no, func_80112C8C_opening);
-    D_80117388_opening[no].w.i[2] = model;
-    D_80117388_opening[no].w.i[0] = time;
-    D_80117388_opening[no].w.i[1] = wait;
+    D_80117388_opening[no].w.i[0] = model;
+    D_80117388_opening[no].time = time;
+    D_80117388_opening[no].maxTime = wait;
     func_80106DD0_opening(model, 3);
     if (time > 0) {
         opMotionTimeSet(model, time);
@@ -825,34 +825,34 @@ void opDemoGuideInEffCreate(s32 no, s32 model) {
     OP_FX_TIME(no) = 0;
 }
 
-/* A star bobbing in place: height sin(angle) * f[6], one turn every i[1] frames. */
+/* A star bobbing in place: height sin(angle) * w.f[4], one turn every maxTime frames. */
 void opDemoStarWaitMain(omObjData *obj) {
     s8 no = obj->work[0];
-    s32 model = D_80117388_opening[no].w.i[2];
+    s32 model = D_80117388_opening[no].w.i[0];
     f32 step;
     f32 angle;
     f32 dy;
     f32 pos[3];
 
-    step = 1.0f / D_80117388_opening[no].w.i[1];
-    angle = step * 360.0f + D_80117388_opening[no].w.f[7];
+    step = 1.0f / D_80117388_opening[no].maxTime;
+    angle = step * 360.0f + D_80117388_opening[no].w.f[5];
     if (angle > 360.0f) {
         angle -= 360.0f;
     }
-    D_80117388_opening[no].w.f[7] = angle;
-    dy = sindf(angle) * D_80117388_opening[no].w.f[6];
+    D_80117388_opening[no].w.f[5] = angle;
+    dy = sindf(angle) * D_80117388_opening[no].w.f[4];
     HuVecCopy3F((Vec *)pos, OP_STAR_POS(no));
     opModelPosSet(model, pos[0], dy + pos[1], pos[2]);
 }
 
 void opDemoStarWaitCreate(s32 no, s32 model, f32 x, f32 y, f32 z, f32 height, s32 period) {
     opDemoObjCreate(no, opDemoStarWaitMain);
-    D_80117388_opening[no].w.i[2] = model;
+    D_80117388_opening[no].w.i[0] = model;
     HuVecCopyXYZ(OP_STAR_POS(no), x, y, z);
-    D_80117388_opening[no].w.f[6] = height;
-    D_80117388_opening[no].w.f[7] = 0.0f;
-    D_80117388_opening[no].w.i[0] = 0;
-    D_80117388_opening[no].w.i[1] = period;
+    D_80117388_opening[no].w.f[4] = height;
+    D_80117388_opening[no].w.f[5] = 0.0f;
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = period;
 }
 
 /* Places the jump's two parts: part 0 at pos, part 1 (the shadow) 4 above shadow; both scaled
@@ -875,7 +875,7 @@ void func_8011361C_opening(omObjData *obj) {
     f32 angle;
     f32 dy;
 
-    step = 1.0f / D_80117388_opening[no].w.jump.maxTime;
+    step = 1.0f / D_80117388_opening[no].maxTime;
     angle = step * 360.0f + D_80117388_opening[no].w.jump.angle;
     if (angle > 360.0f) {
         angle -= 360.0f;
@@ -889,9 +889,55 @@ void func_8011361C_opening(omObjData *obj) {
     func_801134FC_opening(no, &pos, &shadow, 1.0f, 0.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8011373C_opening);
+/* The jump: maxTime frames along a parabola (peak 100) from `from` to `to`, the model's two parts
+   growing from 0.2 to full scale with the shadow on the ground; then func_8011361C_opening. */
+void func_8011373C_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.jump.model;
+    Vec from;
+    Vec to;
+    Vec cur;
+    Vec pos;
+    Vec shadow;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801139B0_opening);
+    HuVecCopy3F(&from, &D_80117388_opening[no].w.jump.from);
+    HuVecCopy3F(&to, &D_80117388_opening[no].w.jump.to);
+    t = (1.0f / D_80117388_opening[no].maxTime) * D_80117388_opening[no].time;
+    HuVecCopyXYZ(&cur, t * (to.x - from.x) + from.x,
+                 t * (to.y - from.y) + from.y + (0.25 - (t - 0.5f) * (t - 0.5f)) * 4.0 * 5.0 * 20.0,
+                 t * (to.z - from.z) + from.z);
+    HuVecCopy3F(&from, &D_80117388_opening[no].w.jump.from);
+    opModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    HuVecCopyXYZ(&pos, cur.x, cur.y, cur.z);
+    HuVecCopyXYZ(&shadow, cur.x, 0.0f, cur.z);
+    func_801134FC_opening(no, &pos, &shadow, t * 0.8 + 0.2f, 0.0f);
+    if (D_80117388_opening[no].time >= D_80117388_opening[no].maxTime) {
+        D_80117388_opening[no].time = 0;
+        obj->func = func_8011361C_opening;
+    } else {
+        D_80117388_opening[no].time++;
+    }
+}
+
+/* Starts a jump in slot no for model slot model from *from to *to; partA / partB name the model
+   parts placed by func_801134FC_opening (the body and its shadow). */
+void func_801139B0_opening(s32 no, s32 model, Vec *from, Vec *to, char *partA, char *partB) {
+    s16 id;
+
+    opDemoObjCreate(no, func_8011373C_opening);
+    D_80117388_opening[no].w.jump.model = model;
+    HuVecCopy3F(&D_80117388_opening[no].w.jump.from, from);
+    HuVecCopy3F(&D_80117388_opening[no].w.jump.to, to);
+    D_80117388_opening[no].w.jump.amp = 12.0f;
+    D_80117388_opening[no].w.jump.angle = 0.0f;
+    D_80117388_opening[no].time = 0;
+    D_80117388_opening[no].maxTime = 20;
+    id = opModelIdGet(model);
+    D_80117388_opening[no].w.jump.part[0] = func_8001D33C_main(id, partA);
+    D_80117388_opening[no].w.jump.part[1] = func_8001D33C_main(id, partB);
+    func_8011373C_opening(D_80117388_opening[no].obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80113AE8_opening);
 

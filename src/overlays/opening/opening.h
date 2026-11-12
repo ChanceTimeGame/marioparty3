@@ -56,22 +56,22 @@ typedef struct OpHmfPart {
     /* 0x58 */ HuMtx4F mtx;
 } OpHmfPart; /* size = 0x98 */
 
-/* Effect object slot (opDemoObj*, opWipe*, opDemo*Eff*): D_80117388_opening[16].
-   The work words are reused per effect; `wipe` is the opWipe* view. */
+/* Effect object slot (opDemoObj*, opWipe*, opDemo*Eff*): D_80117388_opening[16]. Only fork B's
+   functions use it. The per-effect words form a union at 0x0C: retail materialises
+   &D_80117388_opening[no] + 0x0C as the base of the Vec fields (func_8011373C_opening,
+   func_80114150_opening), which GCC 2.7.2 does only at an aggregate boundary there. */
 typedef struct OpDemoObj {
     /* 0x00 */ omObjData *obj;
-    /* 0x04 */ union {
-        s32 i[14];
-        f32 f[14];
-        struct {
-            /* 0x04 */ s32 time;
-            /* 0x08 */ s32 maxTime;
+    /* 0x04 */ s32 time;
+    /* 0x08 */ s32 maxTime;
+    /* 0x0C */ union {
+        s32 i[12];
+        f32 f[12];
+        struct { /* opWipe* */
             /* 0x0C */ u8 r, g, b, a;
             /* 0x10 */ s16 gfx; /* func_8001AC8C_main handle */
         } wipe;
-        struct { /* B: func_801139B0_opening's jump; pointers kept as pointers for the host */
-            /* 0x04 */ s32 time;
-            /* 0x08 */ s32 maxTime;
+        struct { /* func_801139B0_opening's jump; pointers kept as pointers for the host */
             /* 0x0C */ s32 model;
             /* 0x10 */ s32 unk10;
             /* 0x14 */ f32 angle;
@@ -80,6 +80,12 @@ typedef struct OpDemoObj {
             /* 0x28 */ Vec to;
             /* 0x34 */ struct OpHmfPart *part[2]; /* func_8001D33C_main records */
         } jump;
+        struct { /* func_80114250_opening's hover / func_80114150_opening's flight */
+            /* 0x0C */ s32 model;
+            /* 0x10 */ Vec base;
+            /* 0x1C */ Vec target;
+            /* 0x28 */ f32 phase[3];
+        } fly;
     } w;
 } OpDemoObj; /* size = 0x3C */
 
@@ -272,7 +278,7 @@ void opDemoStarWaitCreate(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 
 void func_801134FC_opening(s32 arg0, Vec *arg1, Vec *arg2, f32 arg3, f32 arg4);
 void func_8011361C_opening(omObjData *obj);
 void func_8011373C_opening(omObjData *obj);
-void func_801139B0_opening(s32 arg0, s32 arg1, Vec *arg2, Vec *arg3, char *arg4, char *arg5);
+void func_801139B0_opening(s32 no, s32 model, Vec *from, Vec *to, char *partA, char *partB);
 void func_80113AE8_opening(omObjData *obj);
 void func_80113E8C_opening(omObjData *obj);
 void func_80114150_opening(s32 arg0, f32 arg1, f32 arg2, f32 arg3, s32 arg4);
@@ -331,22 +337,23 @@ typedef struct OpFxHmf {
 #define OP_FX_WORK(m) ((OpFxWork *)(m)->unkBC)
 #define OP_FX_GROUPS(m) (((OpFxHmf *)(m)->hmf)->groupCount)
 
-/* OpDemoObj.w as the opDemo*Eff* objects use it: i[0] frame, i[2] OpModel slot (+32 its shadow),
-   the s16 at +0x10 (wipe.gfx) the effect model (func_801117D4_opening), f[4..6] position,
-   f[7] scale. *(s16 *)&w.i[3] would cost 8 frame bytes under GCC 2.7.2. */
-#define OP_FX_TIME(no) (D_80117388_opening[no].w.i[0])
-#define OP_FX_MODEL(no) (D_80117388_opening[no].w.i[2])
+/* OpDemoObj as the opDemo*Eff* objects use it: time, w.i[0] OpModel slot (+32 its shadow), the
+   s16 at 0x10 (wipe.gfx) the effect model (func_801117D4_opening), w.f[2..4] position, w.f[5]
+   scale. A cast store *(s16 *)&w.i[1] would cost 8 frame bytes under GCC 2.7.2. */
+#define OP_FX_TIME(no) (D_80117388_opening[no].time)
+#define OP_FX_MODEL(no) (D_80117388_opening[no].w.i[0])
 #define OP_FX_FX(no) (D_80117388_opening[no].w.wipe.gfx)
-#define OP_FX_POS(no) ((Vec *)&D_80117388_opening[no].w.f[4])
-#define OP_FX_SCALE(no) (D_80117388_opening[no].w.f[7])
+#define OP_FX_POS(no) ((Vec *)&D_80117388_opening[no].w.f[2])
+#define OP_FX_SCALE(no) (D_80117388_opening[no].w.f[5])
 
 void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
 void *func_8001D33C_main(s16 model, char *name);
 void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 void func_80017CD0_main(HuMtx4F mf, f32 sx, f32 sy, f32 sz);
 
-/* opDemoStarWait: i[1] period, i[2] OpModel slot, f[3..5] position, f[6] bob height, f[7] angle. */
-#define OP_STAR_POS(no) ((Vec *)&D_80117388_opening[no].w.f[3])
+/* opDemoStarWait: maxTime period, w.i[0] OpModel slot, w.f[1..3] position, w.f[4] bob height,
+   w.f[5] angle. */
+#define OP_STAR_POS(no) ((Vec *)&D_80117388_opening[no].w.f[1])
 void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
 extern const Vec D_80114D84_opening; /* title camera position */
