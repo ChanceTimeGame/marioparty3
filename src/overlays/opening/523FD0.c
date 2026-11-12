@@ -3127,6 +3127,11 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/opening/523FD0", D_80114DA8_opening);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEvent);
 #endif
+#ifdef NON_MATCHING
+/* Shared with opTitleSetup: retail emits one copy of these initialisers for both functions. */
+const Vec D_80114D84_opening = { 600.0f, 80.0f, 800.0f };
+const Vec D_80114D90_opening = { 0.0f, 0.0f, -100.0f };
+#endif
 
 void opDemoEventKill(void) {
     func_80107B74_opening();
