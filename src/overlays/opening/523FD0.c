@@ -1764,9 +1764,77 @@ void func_801139B0_opening(s32 no, s32 model, Vec *from, Vec *to, char *partA, c
     func_8011373C_opening(D_80117388_opening[no].obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80113AE8_opening);
+/* Hover: the model drifts around fly.base on three phases (x sway 65, y bob 0..40, z sway 11),
+   facing its direction of travel. */
+void func_80113AE8_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.fly.model;
+    s32 time = D_80117388_opening[no].time;
+    f32 p0 = D_80117388_opening[no].w.fly.phase[0];
+    f32 p1 = D_80117388_opening[no].w.fly.phase[1];
+    f32 p2 = D_80117388_opening[no].w.fly.phase[2];
+    Vec old;
+    Vec cur;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80113E8C_opening);
+    old.x = sindf(p0) * 65.0f + D_80117388_opening[no].w.fly.base.x;
+    old.y = (sindf(p1) + 1.0f) * 20.0f + D_80117388_opening[no].w.fly.base.y;
+    old.z = cosdf(p2) * 11.0f + D_80117388_opening[no].w.fly.base.z;
+    p0 = (p0 + 1.45f < 360.0f) ? p0 + 1.45f : p0 - 360.0f + 1.45f;
+    p1 = (p1 + 13.99f < 360.0f) ? p1 + 13.99f : p1 - 360.0f + 13.99f;
+    p2 = (p2 + 0.8f < 360.0f) ? p2 + 0.8f : p2 - 360.0f + 0.8f;
+    cur.x = D_80117388_opening[no].w.fly.base.x + sindf(p0) * 65.0f;
+    cur.y = (sindf(p1) + 1.0f) * 20.0f + D_80117388_opening[no].w.fly.base.y;
+    cur.z = cosdf(p2) * 11.0f + D_80117388_opening[no].w.fly.base.z;
+    opModelPosSet(model, cur.x, cur.y, cur.z);
+    opModelRotSet(model, 0.0f, func_80111164_opening(old.x, old.z, cur.x, cur.z), 0.0f);
+    if (++time > 256) {
+        time = 0;
+    }
+    D_80117388_opening[no].time = time;
+    D_80117388_opening[no].w.fly.phase[0] = p0 + (rand8() & 7) * 0.3f;
+    D_80117388_opening[no].w.fly.phase[1] = p1 + (rand8() & 3) * 0.3f;
+    D_80117388_opening[no].w.fly.phase[2] = p2;
+}
+
+/* Flight: maxTime frames in a straight line from fly.base to fly.target with the hover bob,
+   facing the target; then the object ends. */
+void func_80113E8C_opening(omObjData *obj) {
+    s8 no = obj->work[0];
+    s32 model = D_80117388_opening[no].w.fly.model;
+    s32 time = D_80117388_opening[no].time;
+    f32 t = (1.0f / D_80117388_opening[no].maxTime) * D_80117388_opening[no].time;
+    Vec from;
+    Vec to;
+    Vec cur;
+    f32 p0;
+    f32 p1;
+    f32 p2;
+
+    time++;
+    if (t < 1.0f) {
+        HuVecCopyXYZ(&from, D_80117388_opening[no].w.fly.base.x, D_80117388_opening[no].w.fly.base.y,
+                     D_80117388_opening[no].w.fly.base.z);
+        HuVecCopyXYZ(&to, D_80117388_opening[no].w.fly.target.x, D_80117388_opening[no].w.fly.target.y,
+                     D_80117388_opening[no].w.fly.target.z);
+        p0 = D_80117388_opening[no].w.fly.phase[0];
+        p1 = D_80117388_opening[no].w.fly.phase[1];
+        p2 = D_80117388_opening[no].w.fly.phase[2];
+        cur.x = (to.x - from.x) * t + from.x;
+        cur.y = (to.y - from.y) * t + from.y;
+        cur.z = (to.z - from.z) * t + from.z;
+        p1 = (p1 + 13.99f < 360.0f) ? p1 + 13.99f : p1 - 360.0f + 13.99f;
+        cur.y = (sindf(p1) + 1.0f) * 20.0f + cur.y;
+        opModelPosSet(model, cur.x, cur.y, cur.z);
+        opModelRotSet(model, 0.0f, func_80111164_opening(cur.x, cur.z, to.x, to.z), 0.0f);
+        D_80117388_opening[no].time = time;
+        D_80117388_opening[no].w.fly.phase[0] = p0;
+        D_80117388_opening[no].w.fly.phase[1] = p1;
+        D_80117388_opening[no].w.fly.phase[2] = p2;
+    } else {
+        opDemoObjKill(no);
+    }
+    D_80117388_opening[no].time = time; /* retail stores it again, also after the kill */
+}
 
 /* Sends hover object no flying from its model's position to (x, y, z) over time frames. */
 void func_80114150_opening(s32 no, f32 x, f32 y, f32 z, s32 time) {
