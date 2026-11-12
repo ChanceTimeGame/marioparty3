@@ -813,47 +813,260 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/opening/523FD0", D_80114DA8_opening);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEvent);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEventKill);
+void opDemoEventKill(void) {
+    func_80107B74_opening();
+    opContErrorKill();
+    func_80110B9C_opening();
+    opWipeKill(15);
+    opDemoObjKillAll();
+    opDemoModelKill();
+    opDemoSprKill();
+    MBBackKill();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110B90_opening);
+void func_80110B90_opening(void) {
+    D_80117338_opening.obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110B9C_opening);
+void func_80110B9C_opening(void) {
+    if (D_80117338_opening.obj != NULL) {
+        CameraViewportSet(0, &D_80114BB8_opening, &D_80114BC4_opening);
+        MBCameraOffsetSet(0, 0);
+        omDelObj(D_80117338_opening.obj);
+    }
+    D_80117338_opening.obj = NULL;
+}
 
+#ifdef NON_MATCHING
+void func_80110C04_opening(omObjData *obj) {
+    Vec trans;
+    f32 rnd;
+    f32 ofs;
+
+    if ((D_80117338_opening.sign = ~D_80117338_opening.sign)) {
+        rnd = rand8() & 0xFF;
+    } else {
+        rnd = -(f32)(rand8() & 0xFF);
+    }
+    ofs = rnd * (1.0f / 255.0f) * ((1.0f - D_80117338_opening.time * 0.125f) * 0.8f + 0.2f) *
+          D_80117338_opening.power;
+    HuVecCopy3F(&trans, &D_80114BC4_opening);
+    trans.y += ofs + ofs;
+    CameraViewportSet(0, &D_80114BB8_opening, &trans);
+    MBCameraOffsetSet(0, -ofs);
+    if (++D_80117338_opening.time > D_80117338_opening.maxTime) {
+        CameraViewportSet(0, &D_80114BB8_opening, &D_80114BC4_opening);
+        MBCameraOffsetSet(0, 0);
+        func_80110B9C_opening();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110C04_opening);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110D8C_opening);
+void func_80110D8C_opening(s32 time, f32 power) {
+    D_80117338_opening.time = 0;
+    D_80117338_opening.maxTime = time;
+    D_80117338_opening.power = power;
+    D_80117338_opening.sign = 1;
+    D_80117338_opening.obj = omAddObj(6, 0, 0, -1, func_80110C04_opening);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoCharCreate);
+void opDemoCharCreate(s32 no, s32 dataNum, f32 x, f32 y, f32 z) {
+    opModelCreate(no, dataNum, 0x6A9);
+    opModelPosSet(no, x, y, z);
+    opModelRotSet(no, 0.0f, 0.0f, 0.0f);
+    opModelScaleSet(no, 1.0f, 1.0f, 1.0f);
+    opMotionFlagSet(no, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoShadowCreate);
+void opDemoShadowCreate(s32 no, f32 x, f32 y, f32 z) {
+    opModelCreate(no, 9, 0x229);
+    opModelPosSet(no, x, y, z);
+    opModelRotSet(no, 0.0f, 0.0f, 0.0f);
+    opModelScaleSet(no, 1.0f, 1.0f, 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoModelKill);
+void opDemoModelKill(void) {
+    opModelKillAll();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoSprKill);
+void opDemoSprKill(void) {
+    opSprKillAll();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110F48_opening);
+void func_80110F48_opening(void) {
+    D_80117350_opening.obj = NULL;
+    HuVecCopyXYZ(&D_80117350_opening.pos, 350.0f, 190.0f, 3770.0f);
+    HuVecCopyXYZ(&D_80117350_opening.at, -1000.0f, 130.0f, 450.0f);
+    HuVecCopyXYZ(&D_80117350_opening.up, 0.0f, 1.0f, 0.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80110FB0_opening);
+void func_80110FB0_opening(Vec *pos, Vec *at) {
+    func_80111028_opening();
+    HuVecCopy3F(&D_80117350_opening.pos, pos);
+    HuVecCopy3F(&D_80117350_opening.at, at);
+    D_80117350_opening.obj = omAddObj(6, 0, 0, -1, func_80111090_opening);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111028_opening);
+void func_80111028_opening(void) {
+    if (D_80117350_opening.obj != NULL) {
+        omDelObj(D_80117350_opening.obj);
+    }
+    D_80117350_opening.obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8011105C_opening);
+void func_8011105C_opening(void) {
+    Hu3DCamSetPositionOrientation(0, &D_80117350_opening.pos, &D_80117350_opening.at, &D_80117350_opening.up);
+    Hu3DCamUpdateMtx(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111090_opening);
+void func_80111090_opening(omObjData *obj) {
+    func_8011105C_opening();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801110AC_opening);
+void func_801110AC_opening(f32 *posX, f32 *posY, f32 *posZ, f32 *atX, f32 *atY, f32 *atZ) {
+    *posX = D_80117350_opening.pos.x;
+    *posY = D_80117350_opening.pos.y;
+    *posZ = D_80117350_opening.pos.z;
+    *atX = D_80117350_opening.at.x;
+    *atY = D_80117350_opening.at.y;
+    *atZ = D_80117350_opening.at.z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801110F0_opening);
+void func_801110F0_opening(f32 posX, f32 posY, f32 posZ, f32 atX, f32 atY, f32 atZ) {
+    HuVecCopyXYZ(&D_80117350_opening.pos, posX, posY, posZ);
+    HuVecCopyXYZ(&D_80117350_opening.at, atX, atY, atZ);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111164_opening);
+f32 func_80111164_opening(f32 x0, f32 z0, f32 x1, f32 z1) {
+    return -(atan2df(z1 - z0, x1 - x0) - 90.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801111AC_opening);
+f32 func_801111AC_opening(f32 from, f32 to, f32 step) {
+    f32 diff = to - from;
+    f32 abs;
 
+    abs = diff;
+    if (diff < 0.0f) {
+        abs = diff + 360.0f;
+    }
+    diff = abs;
+    if (diff > 180.0f) {
+        if (360.0f - step < diff) {
+            return to;
+        }
+        return from - step;
+    }
+    if (diff < step) {
+        return to;
+    }
+    return from + step;
+}
+
+#ifdef NON_MATCHING
+f32 func_8011124C_opening(f32 x0, f32 z0, f32 x1, f32 z1, f32 t) {
+    f32 a0;
+    f32 a1;
+    f32 target;
+    f32 ret;
+
+    a0 = func_80111164_opening(0.0f, 0.0f, x0, z0);
+    if (a0 < 0.0f) {
+        a0 += 360.0f;
+    }
+    a1 = func_80111164_opening(0.0f, 0.0f, x1, z1);
+    if (a1 < 0.0f) {
+        a1 += 360.0f;
+    }
+    if ((a1 - a0 < 0.0f ? -(a1 - a0) : a1 - a0) < 5.0f) {
+        return a1;
+    }
+    if (-z0 * x1 + x0 * z1 > 0.0f) {
+        target = a1;
+        if (!(a1 - a0 < 0.0f)) {
+            target = a1 - 360.0f;
+        }
+        ret = (target - a0) * t + a0;
+        if (ret < 0.0f) {
+            ret += 360.0f;
+        }
+    } else {
+        target = a1;
+        if (!(a1 - a0 > 0.0f)) {
+            target = a1 + 360.0f;
+        }
+        ret = (target - a0) * t + a0;
+        if (ret > 360.0f) {
+            ret -= 360.0f;
+        }
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8011124C_opening);
+#endif
 
+#ifdef NON_MATCHING
+f32 func_80111490_opening(f32 angle, f32 x, f32 z, f32 t) {
+    f32 diff = func_80111164_opening(0.0f, 0.0f, x, z);
+    f32 ret;
+
+    if (diff < 0.0f) {
+        diff += 360.0f;
+    }
+    diff -= angle;
+    if (diff < 0.0f) {
+        diff += 360.0f;
+    }
+    if (!(diff > 180.0f)) {
+        ret = diff * t;
+    } else {
+        ret = -(360.0f - diff) * t;
+    }
+    return ret + angle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111490_opening);
+#endif
 
+#ifdef NON_MATCHING
+void func_80111580_opening(void) {
+    Vec pos;
+    s16 model0;
+    s16 model1;
+    s32 i;
+    f32 t;
+    f32 angle;
+    f32 scale;
+
+    model0 = func_80111984_opening(0x110012, 0x689);
+    model1 = func_80111984_opening(0x110012, 0x689);
+    HuVecCopyXYZ(&pos, 0.0f, 0.0f, 0.0f);
+    for (i = 0; i < 120; i++) {
+        if (i == 90) {
+            func_80107CA0_opening(0);
+        }
+        t = i * (1.0f / 120.0f);
+        HuSqrtf(t);
+        angle = t * 360.0f;
+        scale = (1.0f - t) * 8.0f;
+        pos.x = (1.0f - t) * 100.0f * sindf(angle);
+        pos.y = 40.0f - pos.x * 0.2f - (1.0f - t) * 120.0f * cosdf(angle);
+        pos.z = (1.0f - t) * 800.0f * cosdf(angle) + -200.0f;
+        func_80111DDC_opening(model0, pos.x, pos.y, pos.z, scale);
+        func_80111DDC_opening(model0, pos.x, pos.y, pos.z, scale);
+        func_80111DDC_opening(model1, pos.x, pos.y, pos.z, scale);
+        func_80111DDC_opening(model1, pos.x, pos.y, pos.z, scale);
+        HuPrcVSleep();
+    }
+    HuPrcSleep(30);
+    func_8001ACDC_main(model0);
+    func_8001ACDC_main(model1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111580_opening);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801117D4_opening);
 
