@@ -74,6 +74,14 @@ typedef struct OpDemoObj {
     } w;
 } OpDemoObj; /* size = 0x3C */
 
+/* Camera view a model's HmfData points to at 0xBC (read by the debug print func_80107EF4_opening). */
+typedef struct OpHmfCamView {
+    /* 0x00 */ char unk0[8];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ Vec at;
+    /* 0x20 */ Vec up;
+} OpHmfCamView;
+
 /* Controller-error sprite: D_80117750_opening. */
 typedef struct OpContError {
     /* 0x00 */ s16 anim;
@@ -122,6 +130,7 @@ s32 func_80050064_main(s32 write);
 extern s8 D_800D2132_main; /* pause.c */
 s32 func_800452A0_main(void *arg0, void *arg1);
 void MBCameraOffsetSet(s16 arg0, s16 arg1);
+void func_800601BC_main(s16 win, s32 arg1, s8 arg2);
 
 /* 523FD0.c */
 void func_801059A0_opening(void);
@@ -166,7 +175,7 @@ void func_80106734_opening(s32 no, u16 arg1);
 void func_80106768_opening(s32 no, u16 arg1, u16 arg2);
 void func_801067D4_opening(void);
 void opModelCreate(s32 no, s32 arg1, s32 dataNum);
-void opMotionCreate(s32 no, s32 dataNum, s16 arg2);
+void opMotionCreate(s32 no, s32 dataNum, s32 arg2);
 void opModelKill(s32 no);
 void opModelKillAll(void);
 s16 opModelIdGet(s32 no);
@@ -191,12 +200,12 @@ void func_80107048_opening(s32 dataNum);
 void func_801070AC_opening(void);
 u32 func_801070D8_opening(u32 mes);
 void func_80107140_opening(s32 no, u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type);
-s16 func_8010738C_opening(u32 mes, s16 x, s16 y, s16 w, s16 h);
-s16 func_801074D8_opening(u32 mes, s16 x, s16 y, s16 w, s16 h);
-s16 func_80107640_opening(u32 mes, s16 x, s16 y, s16 w, s16 h);
-s16 func_801077E8_opening(u32 mes, s16 x, s16 y);
-s16 func_801078B4_opening(u32 mes, s16 x, s16 y);
-s16 func_80107980_opening(u32 mes, s16 x, s16 y);
+s16 func_8010738C_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type);
+s16 func_801074D8_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type);
+s16 func_80107640_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type);
+s16 func_801077E8_opening(u32 mes, s16 x, s16 y, s16 type);
+s16 func_801078B4_opening(u32 mes, s16 x, s16 y, s16 type);
+s16 func_80107980_opening(u32 mes, s16 x, s16 y, s16 type);
 void func_80107A4C_opening(void);
 void func_80107A90_opening(s32 no);
 void func_80107B74_opening(void);
@@ -209,10 +218,10 @@ void func_80107D9C_opening(s32 no, s8 arg1, s32 arg2);
 void func_80107DD8_opening(s32 no, s16 arg1, s32 arg2);
 s16 func_80107E10_opening(s32 no);
 void func_80107E2C_opening(s32 no);
-void func_80107E80_opening(u16 btn);
+void func_80107E80_opening(s32 btn);
 u16 func_80107EF4_opening(s32 arg0);
 void opDemoEventSetup(void);
-void func_80108118_opening(void);
+void func_80108118_opening(s32 no, u32 mes);
 void opDemoEvent(void);
 void opDemoEventKill(void);
 void func_80110B90_opening(void);

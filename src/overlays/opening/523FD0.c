@@ -346,105 +346,445 @@ void opSprAttrReset(s32 no, u16 attr) {
     func_8000BC88_main(D_80114EB0_opening[no].espId, attr);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80106734_opening);
+void func_80106734_opening(s32 no, u16 arg1) {
+    func_8000BCC8_main(D_80114EB0_opening[no].espId, arg1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80106768_opening);
+void func_80106768_opening(s32 no, u16 arg1, u16 arg2) {
+    func_8000BDDC_main(D_80114EB0_opening[no].espId, 1);
+    func_8000BD94_main(D_80114EB0_opening[no].espId, arg1, arg2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801067D4_opening);
+void func_801067D4_opening(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelCreate);
+    for (i = 0; i < 160; i++) {
+        D_80115630_opening[i].model = -1;
+        D_80115630_opening[i].motion = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionCreate);
+void opModelCreate(s32 no, s32 arg1, s32 dataNum) {
+    s16 model = func_8000B108_main(arg1, dataNum);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelKill);
+    D_80115630_opening[no].model = model;
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelKillAll);
+void opMotionCreate(s32 no, s32 dataNum, s32 arg2) {
+    void *data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelIdGet);
+    if (arg2 == -1) {
+        arg2 = 0x6AD;
+    }
+    data = DataRead(dataNum);
+    D_80115630_opening[no].motion = func_8001F1FC_main(data, (s16)arg2);
+    DataClose(data);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionIdGet);
+void opModelKill(s32 no) {
+    if (D_80115630_opening[no].model != -1) {
+        func_8001ACDC_main(D_80115630_opening[no].model);
+        D_80115630_opening[no].model = -1;
+    }
+    if (D_80115630_opening[no].motion != -1) {
+        func_8002D4B8_main(D_80115630_opening[no].motion);
+        D_80115630_opening[no].motion = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelRotSet);
+void opModelKillAll(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelPosSet);
+    for (i = 0; i < 160; i++) {
+        opModelKill(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelScaleSet);
+s16 opModelIdGet(s32 no) {
+    return D_80115630_opening[no].model;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelPosGet);
+s16 opMotionIdGet(s32 no) {
+    return D_80115630_opening[no].motion;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelRotGet);
+void opModelRotSet(s32 no, f32 x, f32 y, f32 z) {
+    D_80115630_opening[no].rot.x = x;
+    D_80115630_opening[no].rot.y = y;
+    D_80115630_opening[no].rot.z = z;
+    Hu3DModelRotSet(D_80115630_opening[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelScaleGet);
+void opModelPosSet(s32 no, f32 x, f32 y, f32 z) {
+    D_80115630_opening[no].pos[0] = x;
+    D_80115630_opening[no].pos[1] = y;
+    D_80115630_opening[no].pos[2] = z;
+    Hu3DModelPosSet(D_80115630_opening[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelDispOff);
+void opModelScaleSet(s32 no, f32 x, f32 y, f32 z) {
+    D_80115630_opening[no].scale.x = x;
+    D_80115630_opening[no].scale.y = y;
+    D_80115630_opening[no].scale.z = z;
+    Hu3DModelScaleSet(D_80115630_opening[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opModelDispOn);
+void opModelPosGet(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80115630_opening[no].pos[0];
+    *y = D_80115630_opening[no].pos[1];
+    *z = D_80115630_opening[no].pos[2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionFlagSet);
+void opModelRotGet(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80115630_opening[no].rot.x;
+    *y = D_80115630_opening[no].rot.y;
+    *z = D_80115630_opening[no].rot.z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionShiftSet);
+void opModelScaleGet(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80115630_opening[no].scale.x;
+    *y = D_80115630_opening[no].scale.y;
+    *z = D_80115630_opening[no].scale.z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80106DD0_opening);
+void opModelDispOff(s32 no) {
+    func_8001C258_main(D_80115630_opening[no].model, 4, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionSpeedSet);
+void opModelDispOn(s32 no) {
+    func_8001C258_main(D_80115630_opening[no].model, 4, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionTimeSet);
+void opMotionFlagSet(s32 no, s16 flag) {
+    func_8001C814_main(D_80115630_opening[no].model, -1, flag);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionEndWait);
+void opMotionShiftSet(s32 no, s32 motNo, s16 arg2, s16 arg3, s16 arg4) {
+    func_8001C624_main(D_80115630_opening[no].model, D_80115630_opening[motNo].motion, arg2, arg3, arg4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionEndCheck);
+void func_80106DD0_opening(s32 no, s16 arg1) {
+    func_8001C814_main(D_80115630_opening[no].model, arg1, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opMotionSet);
+void opMotionSpeedSet(s32 no, f32 speed) {
+    func_8001C92C_main(D_80115630_opening[no].model, speed);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107048_opening);
+void opMotionTimeSet(s32 no, u32 time) {
+    func_8001C6A8_main(D_80115630_opening[no].model, time);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801070AC_opening);
+void opMotionEndWait(s32 no) {
+    while (HmfModelData[D_80115630_opening[no].model].unk40 !=
+           D_800CCF58_main[HmfModelData[D_80115630_opening[no].model].unk02].unk02) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801070D8_opening);
+s32 opMotionEndCheck(s32 no) {
+    return HmfModelData[D_80115630_opening[no].model].unk40 ==
+           D_800CCF58_main[HmfModelData[D_80115630_opening[no].model].unk02].unk02;
+}
 
+void opMotionSet(s32 no, s32 motNo, s16 flag) {
+    s16 model = opModelIdGet(no);
+    s16 motion = opMotionIdGet(motNo);
+
+    func_8001F304_main(model, motion);
+    func_8001C814_main(model, -1, flag);
+}
+
+void func_80107048_opening(s32 dataNum) {
+    D_801171B0_opening = func_8000B838_main(dataNum);
+    D_801171B2_opening = InitEspriteSlot(D_801171B0_opening, 0, 0);
+    func_8000BC48_main(D_801171B2_opening, 0x4000);
+    func_8000BBD4_main(D_801171B2_opening, 160, 120);
+}
+
+void func_801070AC_opening(void) {
+    func_8000C184_main(D_801171B2_opening);
+    HuSprKill(D_801171B0_opening);
+}
+
+u32 func_801070D8_opening(u32 mes) {
+    u8 buf[0x100];
+    s32 size;
+    void *copy;
+    u32 ret;
+
+    if (mes <= 0x80000000) {
+        ret = mes;
+    } else {
+        size = func_800452A0_main(buf, (void *)mes);
+        copy = HuMemAlloc(size);
+        bcopy(buf, copy, size);
+        ret = (u32)copy;
+    }
+    return ret;
+}
+
+#ifdef NON_MATCHING
+void func_80107140_opening(s32 no, u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type) {
+    u32 buf;
+    s16 id;
+
+    switch (type) {
+        case 1:
+            buf = func_801070D8_opening(mes);
+            id = func_801074D8_opening(buf, x, y, w, h, type);
+            break;
+        case 2:
+            buf = func_801070D8_opening(mes);
+            id = func_80107640_opening(buf, x, y, w, h, type);
+            break;
+        case 3:
+            buf = func_801070D8_opening(mes);
+            id = func_801077E8_opening(buf, x, y, type);
+            break;
+        case 4:
+            buf = func_801070D8_opening(mes);
+            id = func_801078B4_opening(buf, x, y, type);
+            break;
+        case 5:
+            buf = func_801070D8_opening(mes);
+            id = func_80107980_opening(buf, x, y, type);
+            break;
+        case 0:
+        default:
+            buf = func_801070D8_opening(mes);
+            id = func_8010738C_opening(buf, x, y, w, h, type);
+            break;
+    }
+    if (buf > 0x80000000) {
+        D_801171B8_opening[no].mesBuf = buf;
+    }
+    D_801171B8_opening[no].id = id;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107140_opening);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8010738C_opening);
+s16 func_8010738C_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type) {
+    s16 win = func_8005A968_main(x, y, w, h, 0, 8);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801074D8_opening);
+    func_8005B63C_main(win, -1, 0x11);
+    func_8005BDFC_main(win, 0);
+    func_8005BEE0_main(win, 0xFF);
+    func_80060144_main(win);
+    func_8005BE30_main(win, 1);
+    func_8005FE54_main(win, 1);
+    func_8005C154_main(win, 0xC0, 0xC0, 0xC0);
+    func_8005FBF8_main(win, 0, 0x40, 0x40);
+    func_8005C02C_main(win, 7);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_8005D294_main(win);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107640_opening);
+s16 func_801074D8_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type) {
+    s16 win = func_8005A968_main(x, y, w, h, 0, 4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801077E8_opening);
+    func_8005B63C_main(win, -1, 0x11);
+    func_8005BDFC_main(win, 0);
+    func_8005BEE0_main(win, 0xFF);
+    func_80060144_main(win);
+    func_8005BE30_main(win, 1);
+    func_8005FE54_main(win, 1);
+    func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_8005C154_main(win, 0xC0, 0xC0, 0xC0);
+    func_8005FBF8_main(win, 0xFF, 0xFF, 0xFF);
+    func_8005C02C_main(win, 1);
+    func_8005D294_main(win);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801078B4_opening);
+s16 func_80107640_opening(u32 mes, s16 x, s16 y, s16 w, s16 h, s16 type) {
+    s16 win = func_8005A968_main(x, y, w, h, 0, 8);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107980_opening);
+    func_8005B63C_main(win, -1, 0x11);
+    func_8005BDFC_main(win, 0);
+    func_80060144_main(win);
+    func_8005BE30_main(win, 1);
+    func_8005FE54_main(win, 1);
+    func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
+    func_8005C060_main(win, 7, 0xFF, 0xFF, 0xFF);
+    func_8005C060_main(win, 0, 0, 0, 0);
+    func_8005C060_main(win, 3, 0, 0, 0);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_8005C154_main(win, 0xC0, 0xC0, 0);
+    func_8005FBF8_main(win, 0xFF, 0xFF, 0xFF);
+    func_8005C02C_main(win, 6);
+    func_8005D294_main(win);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107A4C_opening);
+s16 func_801077E8_opening(u32 mes, s16 x, s16 y, s16 type) {
+    s16 win = func_80060880_main(x, y, 0x13);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107A90_opening);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_80060C14_main(win, 1);
+    func_8005FE54_main(win, 1);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107B74_opening);
+s16 func_801078B4_opening(u32 mes, s16 x, s16 y, s16 type) {
+    s16 win = func_80060880_main(x, y, 0x14);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107BD8_opening);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_80060C14_main(win, 0);
+    func_8005FE54_main(win, 1);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107C08_opening);
+s16 func_80107980_opening(u32 mes, s16 x, s16 y, s16 type) {
+    s16 win = func_80060880_main(x, y, 0x13);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107C70_opening);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_8005FE54_main(win, 1);
+    func_80060C14_main(win, 0);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107CA0_opening);
+void func_80107A4C_opening(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107CD0_opening);
+    for (i = 0; i < 32; i++) {
+        D_801171B8_opening[i].id = -1;
+        D_801171B8_opening[i].mesBuf = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107D9C_opening);
+void func_80107A90_opening(s32 no) {
+    if (D_801171B8_opening[no].type == 3) {
+        func_80060EA8_main(D_801171B8_opening[no].id, 1);
+        func_800610E0_main(D_801171B8_opening[no].id);
+    } else {
+        func_8005FE90_main(D_801171B8_opening[no].id);
+        func_8005F364_main(D_801171B8_opening[no].id);
+        D_801171B8_opening[no].id = -1;
+    }
+    if (D_801171B8_opening[no].mesBuf != 0) {
+        func_80019C00_main((void *)D_801171B8_opening[no].mesBuf);
+        D_801171B8_opening[no].mesBuf = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107DD8_opening);
+void func_80107B74_opening(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107E10_opening);
+    for (i = 0; i < 32; i++) {
+        if (D_801171B8_opening[i].id != -1) {
+            func_80107A90_opening(i);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107E2C_opening);
+void func_80107BD8_opening(s32 no, f32 x, f32 y) {
+    func_8005BB18_main(D_801171B8_opening[no].id, x, y);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107E80_opening);
+void func_80107C08_opening(s32 no, f32 x, f32 y) {
+    func_8005BA90_main(D_801171B8_opening[no].id, x, y);
+}
+
+void func_80107C70_opening(s32 no) {
+    func_8005FFA8_main(D_801171B8_opening[no].id);
+}
+
+void func_80107CA0_opening(s32 no) {
+    func_8005FE90_main(D_801171B8_opening[no].id);
+}
+
+void func_80107CD0_opening(s32 no, u32 mes) {
+    u32 buf;
+
+    func_8005D294_main(D_801171B8_opening[no].id);
+    if (D_801171B8_opening[no].mesBuf != 0) {
+        func_80019C00_main((void *)D_801171B8_opening[no].mesBuf);
+        D_801171B8_opening[no].mesBuf = 0;
+    }
+    buf = func_801070D8_opening(mes);
+    if (buf > 0x80000000) {
+        D_801171B8_opening[no].mesBuf = buf;
+    }
+    func_8005B43C_main(D_801171B8_opening[no].id, buf, -1, -1);
+}
+
+void func_80107D9C_opening(s32 no, s8 arg1, s32 arg2) {
+    func_800601BC_main(D_801171B8_opening[no].id, arg2, arg1);
+}
+
+void func_80107DD8_opening(s32 no, s16 arg1, s32 arg2) {
+    func_8005E1D8_main(D_801171B8_opening[no].id, arg1, arg2);
+}
+
+s16 func_80107E10_opening(s32 no) {
+    return D_801171B8_opening[no].id;
+}
+
+void func_80107E2C_opening(s32 no) {
+    while (func_8005E0C0_main(D_801171B8_opening[no].id) != 0) {
+        HuPrcVSleep();
+    }
+}
+
+void func_80107E80_opening(s32 btn) {
+    do {
+        HuPrcVSleep();
+    } while (!(btn & D_800D5558_main[0]));
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107EBC_opening);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80107EF4_opening);
+u16 func_80107EF4_opening(s32 val) {
+    char buf[0x100];
+    OpHmfCamView *view;
+
+    HuPrcSleep(3);
+    while (TRUE) {
+        if (D_800D5558_main[0] & 0xD010) {
+            sprintf(buf, "\n%d\n", val);
+            break;
+        }
+        if (D_800D5558_main[0] & 0x2000) {
+            view = *(OpHmfCamView **)&HmfModelData[gCameraList->unk4].hmf->unkB8[4];
+            sprintf(buf, "POS:%4.2f,%4.2f,%4.2f", view->pos.x, view->pos.y, view->pos.z);
+            print8(16, 180, buf);
+            sprintf(buf, "A T:%4.2f,%4.2f,%4.2f", view->at.x, view->at.y, view->at.z);
+            print8(16, 190, buf);
+            sprintf(buf, "U P:%4.2f,%4.2f,%4.2f", view->up.x, view->up.y, view->up.z);
+            print8(16, 200, buf);
+        } else {
+            sprintf(buf, "%d", val);
+            print8(16, 220, buf);
+        }
+        HuPrcVSleep();
+    }
+    return D_800D5558_main[0];
+}
 
 void opDemoEventSetup(void) {
     func_801061F0_opening();
@@ -457,7 +797,9 @@ void opDemoEventSetup(void) {
     opContErrorCreate();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80108118_opening);
+void func_80108118_opening(s32 no, u32 mes) {
+    func_80107140_opening(no, mes, 160, 194, 0, 0, 4);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/opening/523FD0", D_80114CE4_opening);
 
