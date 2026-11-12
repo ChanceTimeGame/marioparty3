@@ -1,15 +1,6 @@
 #include "common.h"
 #include "../ovl_80_shared_board/FA250.h"
-
-void func_801061F0_opening(void);
-void func_80110B90_opening(void);
-void func_80110F48_opening(void);
-void func_80112944_opening(void);
-void opContErrorCreate(void);
-
-extern Vec D_80114BB8_opening;
-extern Vec D_80114BC4_opening;
-extern RectF D_80114BD0_opening;
+#include "opening.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801059A0_opening);
 
