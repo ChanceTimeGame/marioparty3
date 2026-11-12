@@ -315,5 +315,9 @@ typedef struct OpFxHmf {
 #define OP_FX_GROUPS(m) (((OpFxHmf *)(m)->hmf)->groupCount)
 
 void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
+void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
+
+extern const Vec D_80114D84_opening; /* title camera position */
+extern const Vec D_80114D90_opening; /* title camera target */
 
 #endif

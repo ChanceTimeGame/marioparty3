@@ -488,19 +488,99 @@ void func_80112120_opening(s16 model) {
     work->frame++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleSetup);
+/* Title screen: camera, the two background layers and the logo / press-start sprites. */
+void opTitleSetup(void) {
+    Vec pos;
+    Vec at;
+    u16 esp;
+
+    func_801061F0_opening();
+    func_80110F48_opening();
+    opContErrorCreate();
+    func_80112944_opening();
+    pos = D_80114D84_opening;
+    at = D_80114D90_opening;
+    func_80110FB0_opening(&pos, &at);
+    opSprBGCreate(0, 0x100000);
+    opSprPosSet(0, 160, 120);
+    func_8000BCC8_main(opEspIdGet(0), 9);
+    opSprBGDispOn(0);
+    opSprBGCreate(1, 0x100001);
+    opSprPosSet(1, 160, 120);
+    func_8000BCC8_main(opEspIdGet(1), 11);
+    opSprBGDispOn(1);
+    opSprBGCreate(2, 0x100002);
+    opSprPosSet(2, 160, 71);
+    opSprAttrSet(2, 8);
+    opSprAlphaSet(2, 255);
+    func_8000BCC8_main(opEspIdGet(2), 8);
+    opSprBGCreate(3, 0x100005);
+    opSprPosSet(3, 160, 71);
+    opSprAttrSet(3, 8);
+    opSprAlphaSet(3, 255);
+    esp = opEspIdGet(3);
+    func_8000BEAC_main(esp, 255, 255, 255);
+    func_8000BCC8_main(esp, 9);
+    opSprBGCreate(4, 0x100003);
+    opSprPosSet(4, 158, 197);
+    opSprAttrSet(4, 8);
+    opSprAlphaSet(4, 255);
+    func_8000BCC8_main(opEspIdGet(4), 8);
+    opSprBGCreate(5, 0x100004);
+    opSprPosSet(5, 158, 197);
+    opSprAttrSet(5, 0x1008);
+    opSprAlphaSet(5, 255);
+    esp = opEspIdGet(5);
+    func_8000BEAC_main(esp, 0, 6, 115);
+    func_8000BCC8_main(esp, 9);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleSprMain);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleKill);
+void opTitleKill(void) {
+    opSprKill(5);
+    opSprKill(4);
+    opSprKill(3);
+    opSprKill(2);
+    opSprKill(1);
+    opSprKill(0);
+    opContErrorKill();
+    opDemoObjKillAll();
+    opDemoModelKill();
+    opDemoSprKill();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112944_opening);
+void func_80112944_opening(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoObjKillAll);
+    for (i = 0; i < 16; i++) {
+        D_80117388_opening[i].obj = NULL;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoObjKill);
+void opDemoObjKillAll(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoObjCreate);
+    for (i = 0; i < 16; i++) {
+        opDemoObjKill(i);
+    }
+}
+
+void opDemoObjKill(s32 no) {
+    if (D_80117388_opening[no].obj != NULL) {
+        omDelObj(D_80117388_opening[no].obj);
+    }
+    D_80117388_opening[no].obj = NULL;
+}
+
+void opDemoObjCreate(s32 no, omObjFunc func) {
+    omObjData *obj;
+
+    opDemoObjKill(no);
+    obj = omAddObj(6, 0, 0, -1, func);
+    D_80117388_opening[no].obj = obj;
+    obj->work[0] = no;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112A74_opening);
 
