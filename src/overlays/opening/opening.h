@@ -2,6 +2,7 @@
 #define _OPENING_H_
 
 #include "common.h"
+#include "mallocblock.h"
 
 /* Overlay 0x7A `opening`: the title screen and the scripted opening demo. */
 
