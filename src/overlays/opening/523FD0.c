@@ -334,7 +334,7 @@ void opSprScaleSet(s32 no, f32 x, f32 y) {
     func_8000BE5C_main(D_80114EB0_opening[no].espId, x, y);
 }
 
-void opSprAlphaSet(s32 no, s16 alpha) {
+void opSprAlphaSet(s32 no, u16 alpha) {
     func_8000BBFC_main(D_80114EB0_opening[no].espId, alpha);
 }
 
