@@ -228,7 +228,7 @@ f32 func_80111490_opening(f32 angle, f32 x, f32 z, f32 t);
 void func_80111580_opening(void);
 s16 func_801117D4_opening(s32 arg0, s32 arg1);
 s16 func_80111984_opening(s32 arg0, s32 arg1);
-s32 func_80111B34_opening(s32 seed);
+u32 func_80111B34_opening(u32 seed);
 void func_80111C08_opening(void);
 u32 func_80111C30_opening(u32 max);
 s32 func_80111C88_opening(s16 model, f32 x, f32 y, f32 z);
@@ -275,5 +275,45 @@ void opContErrorCreate(void);
 void opContErrorDispOn(void);
 void opContErrorDispOff(void);
 void opContErrorKill(void);
+
+/* B */
+/* hmfman's vertex-scatter effect (HmfModel.unkBC, 13F90.c's HmfFxWork) as this overlay's hooks
+   use it: one OpFxPart per face group. */
+typedef struct OpFxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 phase; /* 0..180 while live, >= 180 idle */
+    /* 0x08 */ f32 scale;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ f32 angle;
+    /* 0x1C */ f32 radiusStep;
+    /* 0x20 */ f32 radius;
+    /* 0x24 */ Vec vel; /* func_80111F58_opening: x = angle step, y/z = height/radius factors */
+} OpFxPart; /* size 0x30 */
+
+typedef struct OpFxWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ void (*hook)(s16);
+    /* 0x1C */ Vec center;
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ OpFxPart *parts;
+} OpFxWork; /* size 0x5C */
+
+/* HmfData's face group count (hmfman.h does not name it). */
+typedef struct OpFxHmf {
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 groupCount;
+} OpFxHmf;
+
+#define OP_FX_WORK(m) ((OpFxWork *)(m)->unkBC)
+#define OP_FX_GROUPS(m) (((OpFxHmf *)(m)->hmf)->groupCount)
+
+void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
 
 #endif

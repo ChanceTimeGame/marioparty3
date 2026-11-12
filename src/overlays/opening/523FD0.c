@@ -245,23 +245,248 @@ INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111490_opening);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111580_opening);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801117D4_opening);
+/* Starts the swirl effect on model (file dir/no): vertex-scatter with func_80111F58_opening as the
+   update; every face group idle. */
+s16 func_801117D4_opening(s32 arg0, s32 arg1) {
+    HmfModel *m;
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 model;
+    s16 i;
+    f32 radius;
+    f32 step;
+    f32 speed;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111984_opening);
+    HuVecCopyXYZ(&D_80117378_opening, 0.0f, 0.0f, 0.0f);
+    D_80117384_opening = 0;
+    model = func_8000B108_main(arg0, arg1);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_80111F58_opening);
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->unk08 = 30.0f;
+    work->unk0C = 720.0f;
+    work->unk10 = 80.0f;
+    work->unk14 = 5.0f;
+    radius = work->unk10 / 10.0f;
+    step = (work->unk10 - radius) / work->unk08;
+    speed = work->unk0C / work->unk08;
+    for (i = 0; i < hmf->groupCount; i++) {
+        part->pos.x = part->pos.y = part->pos.z = 0.0f;
+        part->angle = 0.0f;
+        part->radius = radius;
+        part->radiusStep = step;
+        part->vel.x = speed;
+        part->vel.y = 0.0f;
+        part->vel.z = 0.0f;
+        part->scale = 0.0f;
+        part->phase = 180.0f;
+        part++;
+    }
+    return model;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111B34_opening);
+/* As func_801117D4_opening with func_80112120_opening (falling sparks) as the update. */
+s16 func_80111984_opening(s32 arg0, s32 arg1) {
+    HmfModel *m;
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 model;
+    s16 i;
+    f32 radius;
+    f32 step;
+    f32 speed;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111C08_opening);
+    HuVecCopyXYZ(&D_80117378_opening, 0.0f, 0.0f, 0.0f);
+    D_80117384_opening = 0;
+    model = func_8000B108_main(arg0, arg1);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_80112120_opening);
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->unk08 = 30.0f;
+    work->unk0C = 720.0f;
+    work->unk10 = 80.0f;
+    work->unk14 = 5.0f;
+    radius = work->unk10 / 10.0f;
+    step = (work->unk10 - radius) / work->unk08;
+    speed = work->unk0C / work->unk08;
+    for (i = 0; i < hmf->groupCount; i++) {
+        part->pos.x = part->pos.y = part->pos.z = 0.0f;
+        part->angle = 0.0f;
+        part->radius = radius;
+        part->radiusStep = step;
+        part->vel.x = speed;
+        part->vel.y = 0.0f;
+        part->vel.z = 0.0f;
+        part->scale = 0.0f;
+        part->phase = 180.0f;
+        part++;
+    }
+    return model;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111C30_opening);
+/* Park-Miller minimal standard step (Schrage): seed 0 reseeds from rand8 and the count register. */
+u32 func_80111B34_opening(u32 seed) {
+    s32 hi, lo;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111C88_opening);
+    if (seed == 0) {
+        seed = rand8();
+        seed = seed ^ osGetCount();
+        seed ^= 0xD826BC89;
+    }
+    hi = seed / 0x1F31D;
+    lo = seed - (hi * 0x1F31D);
+    seed = hi * 0xB14;
+    seed = seed - lo * 0x41A7;
+    return seed;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111DDC_opening);
+void func_80111C08_opening(void) {
+    D_80114BE0_opening = func_80111B34_opening(D_80114BE0_opening);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80111F58_opening);
+/* Random number in 0..max-1. */
+u32 func_80111C30_opening(u32 max) {
+    D_80114BE0_opening = func_80111B34_opening(D_80114BE0_opening);
+    return (D_80114BE0_opening & 0x7FFFFFFF) % max;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80112120_opening);
+/* Swirl: launches the first idle face group from (x, y, z); 1 if one was free. */
+s32 func_80111C88_opening(s16 model, f32 x, f32 y, f32 z) {
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 i;
+    f32 tilt;
+
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->center.x = x;
+    work->center.y = y;
+    work->center.z = z;
+    for (i = 0; i < hmf->groupCount; i++, part++) {
+        if (part->phase >= 180.0f) {
+            part->angle = func_80111C30_opening(360);
+            part->radius = work->unk10 / 10.0f;
+            tilt = (f32)func_80111C30_opening(150) - 75.0f;
+            part->vel.y = sindf(tilt);
+            part->vel.z = cosdf(tilt);
+            part->scale = 0.0f;
+            part->phase = 0.0f;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Sparks: launches the first idle face group from (x, y, z) in a random direction at scale. */
+s32 func_80111DDC_opening(s16 model, f32 x, f32 y, f32 z, f32 scale) {
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 i;
+
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    D_80117378_opening.x = x; /* retail stores x in all three */
+    D_80117378_opening.y = x;
+    D_80117378_opening.z = x;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->center.x = x;
+    work->center.y = y;
+    work->center.z = z;
+    for (i = 0; i < hmf->groupCount; i++, part++) {
+        if (part->phase >= 180.0f) {
+            part->phase = 0.0f;
+            part->vel.x = sindf(func_80111C30_opening(360));
+            part->vel.y = sindf(func_80111C30_opening(360));
+            part->vel.z = sindf(func_80111C30_opening(360));
+            part->pos.x = work->center.x;
+            part->pos.z = work->center.z;
+            part->pos.y = work->center.y;
+            part->scale = scale;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Swirl update: each live group circles the centre on a widening radius while it fades in. */
+void func_80111F58_opening(s16 model) {
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 i;
+    s16 count;
+    f32 r;
+
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    count = hmf->groupCount;
+    for (i = 0; i < count; i++, part++) {
+        if (part->phase < 180.0f) {
+            part->angle += part->vel.x;
+            if (part->angle < 0.0f) {
+                part->angle += 360.0f;
+            } else if (part->angle >= 360.0f) {
+                part->angle -= 360.0f;
+            }
+            part->radius += part->radiusStep;
+            r = part->radius * part->vel.z;
+            part->pos.x = r * sindf(part->angle) + work->center.x;
+            part->pos.z = r * cosdf(part->angle) + work->center.z;
+            part->pos.y = part->radius * part->vel.y + work->center.y;
+            part->phase += work->unk14;
+            if (part->phase > 180.0f) {
+                part->phase = 180.0f;
+            }
+            part->scale = sindf(part->phase) * work->unk14;
+        }
+    }
+    work->frame++;
+}
+
+/* Sparks update: each live group moves by 3 x its velocity and falls; it shrinks, idle at 0. */
+void func_80112120_opening(s16 model) {
+    OpFxHmf *hmf;
+    OpFxWork *work;
+    OpFxPart *part;
+    s16 i;
+    s16 count;
+
+    hmf = (OpFxHmf *)HmfModelData[model].hmf;
+    work = (OpFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    count = hmf->groupCount;
+    for (i = 0; i < count; i++, part++) {
+        if (part->phase < 180.0f) {
+            part->pos.x = part->vel.x * 3.0f + part->pos.x;
+            part->pos.y = part->vel.y * 3.0f + part->pos.y - 1.0f;
+            part->pos.z = part->vel.z * 3.0f + part->pos.z;
+            part->scale = (part->scale - 0.2f > 0.0f) ? part->scale - 0.4f : 0.0f;
+            if (part->scale <= 0.0f) {
+                part->scale = 0.0f;
+                part->phase = 180.0f;
+            }
+        }
+    }
+    work->frame++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleSetup);
 
