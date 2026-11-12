@@ -5,6 +5,14 @@
 
 /* Overlay 0x7A `opening`: the title screen and the scripted opening demo. */
 
+/* The overlay was linked from several source files; each one starts 16-byte aligned. In the single
+   unit here, OP_FILE_END() after the last function of a file reproduces that padding (zero words). */
+#ifdef NON_MATCHING
+#define OP_FILE_END()
+#else
+#define OP_FILE_END() __asm__(".section .text\n    .align 4\n");
+#endif
+
 /* Sprite slot (opSpr*): D_80114EB0_opening[64]. */
 typedef struct OpSpr {
     /* 0x00 */ s16 espId; /* esprite slot, -1 when free */
@@ -111,6 +119,7 @@ void func_8000BDDC_main(u16 spriteId, s32 arg1);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80030030_main(f32);
 s32 func_80050064_main(s32 write);
+extern s8 D_800D2132_main; /* pause.c */
 s32 func_800452A0_main(void *arg0, void *arg1);
 void MBCameraOffsetSet(s16 arg0, s16 arg1);
 
@@ -130,7 +139,7 @@ void opTitleMain(void);
 s32 opBtnStartCheck(void);
 void opDemoEndReset(void);
 void opDemoEndSet(s32 flag);
-s32 opDemoEndGet(s32 unused); /* retail callers pass a mask it ignores */
+s32 opDemoEndGet(void);
 void func_801061F0_opening(void);
 void func_8010621C_opening(void);
 s16 opAnimIdGet(s32 no);

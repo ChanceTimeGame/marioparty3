@@ -2,81 +2,349 @@
 #include "../ovl_80_shared_board/FA250.h"
 #include "opening.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801059A0_opening);
+void func_801059A0_opening(void) {
+    ovlEventCall(D_80114B50_opening, omovlevtno);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opObjectInit);
+OP_FILE_END()
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleObjectSetup);
+void opObjectInit(void) {
+    Vec pos;
+    Vec target;
+    Vec up;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80105C2C_opening);
+    omInitObjMan(0x20, 8);
+    func_800142A0_main(8);
+    func_8004A208_main();
+    func_8000B5F0_main(1);
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    pos = D_80114C40_opening;
+    target = D_80114C4C_opening;
+    up = D_80114C58_opening;
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 41.0f, 80.0f, 8000.0f);
+    Hu3DCamSetPositionOrientation(0, &pos, &target, &up);
+    func_80030030_main(1.0f);
+    func_8004A950_main();
+    pfInit();
+    func_8005A6B0_main();
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightDirSet(1, 0.0f, 64.0f, 192.0f);
+    D_800D2132_main = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoObjectSetup);
+void opTitleObjectSetup(void) {
+    opObjectInit();
+    opTitleCreate();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opEventInit);
+void func_80105C2C_opening(void) {
+    opObjectInit();
+    opDemoCreate();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleCreate);
+void opDemoObjectSetup(void) {
+    opObjectInit();
+    opDemoCreate();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoCreate);
+OP_FILE_END()
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEventCreate);
+void opEventInit(void) {
+    opDemoEndReset();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoMain);
+void opTitleCreate(void) {
+    opEventInit();
+    D_80114EA0_opening = omAddPrcObj(opTitleMain, 0x5000, 0x800, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80105F68_opening);
+void opDemoCreate(void) {
+    opEventInit();
+    D_80114EA0_opening = omAddPrcObj(opDemoMain, 0x5000, 0x800, 0);
+}
 
+Process *opDemoEventCreate(void) {
+    Process *parent = HuPrcCurrentGet();
+    Process *child = omAddPrcObj(opDemoEvent, 0x5000, 0x2000, 0);
+
+    HuPrcChildLink(parent, child);
+    return child;
+}
+
+void opDemoMain(void) {
+    Process *self;
+    Process *event;
+
+    func_8001F38C_main(0, 0, 0);
+    opDemoEventSetup();
+    self = HuPrcCurrentGet();
+    event = opDemoEventCreate();
+    WipeCreateIn(0xB, 0x10);
+    HuPrcSleep(0x10);
+    while (TRUE) {
+        HuPrcVSleep();
+        if (omovlevtno == 1) {
+            if (opBtnStartCheck() != 0 && _CheckFlag(0x32) != 0) {
+                WipeColorSet(0xFF, 0xFF, 0xFF);
+                WipeCreateOut(0xB, 0x14);
+                HuAudSeqFadeOut(0x14);
+                break;
+            }
+        } else if (opBtnStartCheck() != 0) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            WipeCreateOut(0xB, 0x14);
+            HuAudSeqFadeOut(0x14);
+            break;
+        }
+        if (HuPrcChildGet(self) == 0 || opDemoEndGet() != 0) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            WipeCreateOut(0xB, 0x14);
+            HuAudSeqFadeOut(0x32);
+            break;
+        }
+    }
+    do {
+        HuPrcVSleep();
+    } while (WipeStatGet() != 0);
+    if (HuPrcChildGet(self) != 0) {
+        omDelPrcObj(event);
+    }
+    opDemoEventKill();
+    func_8005F524_main();
+    omOvlKill();
+    if (omovlevtno == 0) {
+        omOvlGotoEx(0x7A, 0, 0x82);
+    } else if (omovlevtno == 1) {
+        if (_CheckFlag(0x32) == 0) {
+            _SetFlag(0x32);
+            func_80050064_main(1);
+        }
+        omOvlReturnEx(1);
+    } else {
+        omOvlGotoEx(0x7A, 0, 0x82);
+    }
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+
+Process *func_80105F68_opening(void) {
+    Process *parent = HuPrcCurrentGet();
+    Process *child = omAddPrcObj(opTitleSprMain, 0x5000, 0x2000, 0);
+
+    HuPrcChildLink(parent, child);
+    return child;
+}
+
+#ifdef NON_MATCHING
+void opTitleMain(void) {
+    Process *self;
+    Process *spr;
+    s32 time;
+
+    func_8001F38C_main(0, 0x40, 0x40);
+    time = 0;
+    opTitleSetup();
+    self = HuPrcCurrentGet();
+    spr = func_80105F68_opening();
+    WipeColorSet(0xFF, 0xFF, 0xFF);
+    WipeCreateIn(0xB, 0x10);
+    HuPrcSleep(0x10);
+    HuPrcSleep(0x3C);
+    do {
+        HuPrcVSleep();
+        if (opBtnStartCheck() != 0) {
+            WipeCreateOut(0xB, 0x14);
+            HuAudSeqFadeOut(0x14);
+            do {
+                HuPrcVSleep();
+            } while (WipeStatGet() != 0);
+            if (HuPrcChildGet(self) != 0) {
+                omDelPrcObj(spr);
+            }
+            opTitleKill();
+            func_8005F524_main();
+            omOvlKill();
+            omOvlGotoEx(0x79, 0, 0x91);
+            omDelPrcObj(NULL);
+            while (TRUE) {
+                HuPrcVSleep();
+            }
+        }
+        if (HuPrcChildGet(self) == 0 || opDemoEndGet() != 0) {
+            break;
+        }
+    } while (time++ < 0x1519);
+    WipeCreateOut(0xB, 0x14);
+    HuAudSeqFadeOut(0x14);
+    do {
+        HuPrcVSleep();
+    } while (WipeStatGet() != 0);
+    if (HuPrcChildGet(self) != 0) {
+        omDelPrcObj(spr);
+    }
+    opTitleKill();
+    func_8005F524_main();
+    omOvlKill();
+    omOvlGotoEx(0x58, 1, 0x90);
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opTitleMain);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opBtnStartCheck);
+s32 opBtnStartCheck(void) {
+    if (GWContErrorGet() == 1) {
+        return (D_800D5558_main[0] >> 12) & 1;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEndReset);
+void opDemoEndReset(void) {
+    D_80114EA4_opening = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEndSet);
+void opDemoEndSet(s32 flag) {
+    D_80114EA4_opening = flag;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opDemoEndGet);
+s32 opDemoEndGet(void) {
+    return D_80114EA4_opening;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_801061F0_opening);
+OP_FILE_END()
 
+void func_801061F0_opening(void) {
+    func_8010621C_opening();
+    func_801067D4_opening();
+    func_80107A4C_opening();
+}
+
+#ifdef NON_MATCHING
+void func_8010621C_opening(void) {
+    s32 i;
+
+    for (i = 0; i < 64; i++) {
+        D_801155B0_opening[i] = -1;
+        D_80114EB0_opening[i].espId = -1;
+        D_80114EB0_opening[i].x = D_80114EB0_opening[i].y = 0;
+        D_80114EB0_opening[i].scaleX = D_80114EB0_opening[i].scaleY = 0.0f;
+        D_80114EB0_opening[i].unk14 = 0.0f;
+        D_80114EB0_opening[i].unk18 = 0xFF;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_8010621C_opening);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opAnimIdGet);
+s16 opAnimIdGet(s32 no) {
+    return D_801155B0_opening[no];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opEspIdGet);
+s16 opEspIdGet(s32 no) {
+    return D_80114EB0_opening[no].espId;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opAnimCreate);
+void opAnimCreate(s32 no, s32 dataNum) {
+    D_801155B0_opening[no] = func_8000B838_main(dataNum);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opAnimKill);
+void opAnimKill(s32 no) {
+    if (D_801155B0_opening[no] != -1) {
+        HuSprKill(D_801155B0_opening[no]);
+    }
+    D_801155B0_opening[no] = -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opEspCreate);
+void opEspCreate(s32 no, s16 animNo) {
+    D_80114EB0_opening[no].espId = InitEspriteSlot(D_801155B0_opening[animNo], 0, 0);
+    opSprPosSet(no, 160, 120);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opEspKill);
+void opEspKill(s32 no) {
+    if (D_80114EB0_opening[no].espId != -1) {
+        func_8000C184_main(D_80114EB0_opening[no].espId);
+    }
+    D_80114EB0_opening[no].espId = -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprCreate);
+void opSprCreate(s32 no, s32 dataNum) {
+    opAnimCreate(no, dataNum);
+    opEspCreate(no, no);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprBGCreate);
+void opSprBGCreate(s32 no, s32 dataNum) {
+    opSprCreate(no, dataNum);
+    func_8000BC48_main(D_80114EB0_opening[no].espId, 0x4000);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprKill);
+void opSprKill(s32 no) {
+    opEspKill(no);
+    opAnimKill(no);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprKillAll);
+void opSprKillAll(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprDispOn);
+    for (i = 0; i < 64; i++) {
+        opSprKill(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprDispOff);
+void opSprDispOn(s32 no) {
+    func_8000BB54_main(D_80114EB0_opening[no].espId);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprBGDispOn);
+void opSprDispOff(s32 no) {
+    func_8000BB94_main(D_80114EB0_opening[no].espId);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprBGDispOff);
+void opSprBGDispOn(s32 no) {
+    opSprDispOn(no);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprPosSet);
+void opSprBGDispOff(s32 no) {
+    opSprDispOff(no);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprPosGet);
+void opSprPosSet(s32 no, s32 x, s32 y) {
+    D_80114EB0_opening[no].x = x;
+    D_80114EB0_opening[no].y = y;
+    func_8000BBD4_main(D_80114EB0_opening[no].espId, x, y);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprScaleSet);
+void opSprPosGet(s32 no, s32 *x, s32 *y) {
+    *x = D_80114EB0_opening[no].x;
+    *y = D_80114EB0_opening[no].y;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprAlphaSet);
+void opSprScaleSet(s32 no, f32 x, f32 y) {
+    D_80114EB0_opening[no].scaleX = x;
+    D_80114EB0_opening[no].scaleY = y;
+    func_8000BE5C_main(D_80114EB0_opening[no].espId, x, y);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprAttrSet);
+void opSprAlphaSet(s32 no, s16 alpha) {
+    func_8000BBFC_main(D_80114EB0_opening[no].espId, alpha);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", opSprAttrReset);
+void opSprAttrSet(s32 no, u16 attr) {
+    func_8000BC48_main(D_80114EB0_opening[no].espId, attr);
+}
+
+void opSprAttrReset(s32 no, u16 attr) {
+    func_8000BC88_main(D_80114EB0_opening[no].espId, attr);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opening/523FD0", func_80106734_opening);
 
