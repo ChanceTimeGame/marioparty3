@@ -48,7 +48,16 @@ typedef struct UnkFileSelect {
     /* 0x3C */ s32 unk_3C; /* fork C: shown as two digits */
     /* 0x40 */ s32 unk_40; /* fork C: index 0..5 */
     /* 0x44 */ s32 unk_44; /* fork C: passed to func_801126C0_filesel */
-    /* 0x48 */ char unk_48[0x38];
+    /* 0x48 */ char unk_48[0xE];
+    /* 0x56 */ u16 unk_56; /* fork C */
+    /* 0x58 */ char unk_58[4];
+    /* 0x5C */ s32 unk_5C; /* fork C: shown as two digits */
+    /* 0x60 */ s32 unk_60; /* fork C: shown as two digits; 20 is special */
+    /* 0x64 */ char unk_64[0xE];
+    /* 0x72 */ u16 unk_72; /* fork C */
+    /* 0x74 */ char unk_74[4];
+    /* 0x78 */ s32 unk_78; /* fork C: shown as two digits */
+    /* 0x7C */ s32 unk_7C; /* fork C: shown as two digits */
     /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE (fork A) */
 } UnkFileSelect; /* size = 0x84 */
 
