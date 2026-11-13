@@ -68,10 +68,15 @@ typedef struct FsHmfCamView {
 /* .data */
 extern OvlEntrypoint D_801127A0_filesel[];
 
+/* .rodata (still INCLUDE_RODATA) */
+extern const char D_80112A64_filesel[]; /* "" */
+extern const u8 D_80112A68_filesel[];   /* story board -> overlay table, 0xFF = none */
+
 /* .bss */
 extern s32 D_80112E90_filesel;
 extern Process *D_80114468_filesel; /* main process (func_80107CF8_filesel) */
 extern omObjData *D_8011446C_filesel;
+extern s16 D_80114188_filesel; /* window id (first field of a 0x150-byte block) */
 extern FsSpr D_80112ED0_filesel[64];
 extern s16 D_801135D0_filesel[64]; /* sprite animations */
 extern FsModel D_80113650_filesel[64];
@@ -80,7 +85,12 @@ extern s16 D_80114152_filesel; /* background esprite */
 extern UnkFileSelect2 D_80114158_filesel[32];
 extern UnkFileSelect D_801142DC_filesel[3];
 
-/* main functions without a shared prototype */
+/* main functions and data without a shared prototype */
+extern u8 D_800D09A9_main;
+extern u8 D_800CE20A_main;
+void func_800465DC_main(s8 arg0);
+void func_800465F4_main(s8 arg0);
+void func_80050CFC_main(void);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -178,7 +188,7 @@ void func_801088DC_filesel(void);
 void func_80108A94_filesel(void);
 void func_80108C34_filesel(void);
 void func_80108D74_filesel(void);
-u32 func_80108EB8_filesel(void);
+s32 func_80108EB8_filesel(void); /* fork A: callers test the result with bltz */
 u32 func_801099A8_filesel(u32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80109B2C_filesel(void);
 void func_8010A028_filesel(void);
@@ -205,7 +215,7 @@ s32 func_8010BE30_filesel(s32 arg0);
 s32 func_8010C25C_filesel(s32 arg0);
 s32 func_8010C688_filesel(s32 arg0);
 s32 func_8010C9B4_filesel(u32 arg0);
-s32 func_8010CCA8_filesel(void);
+s32 func_8010CCA8_filesel(s32 no); /* fork A: the caller passes the file in a0 (unused by the asm) */
 void func_8010D13C_filesel(s32 arg0);
 void func_8010D660_filesel(s32 arg0);
 void func_8010DD54_filesel(void);

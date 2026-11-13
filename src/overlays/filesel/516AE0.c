@@ -621,7 +621,191 @@ void func_80107C84_filesel(void) {
     D_8011446C_filesel = omAddObj(6, 0, 0, -1, func_80107C50_filesel);
 }
 
+#ifdef NON_MATCHING
+/* Differs only in scheduling and register use: retail hoists 0.0f and 31.0f into FPRs out of the
+   retry loop, keeps &D_800D09A9_main in s0, and builds the omovlhis entry with swapped temporaries. */
+void func_80107CF8_filesel(void) {
+    Vec world;
+    Vec2f screen;
+    Vec pos;
+    s32 sel;
+    s32 no;
+    s32 result;
+    omOvlHisData *his;
+    u8 board;
+    s32 ovl;
+
+    func_8001F38C_main(0, 0x40, 0x40);
+    func_8010F12C_filesel();
+    func_80106A48_filesel(0x1F0000);
+    HuPrcSleep(1);
+    func_8010F168_filesel();
+    HuAudSeqPlay(3);
+    WipeCreateIn(11, 16);
+    HuPrcSleep(16);
+    do {
+        func_8010F65C_filesel();
+        func_8010F678_filesel(0);
+        func_801083AC_filesel();
+        func_80110C84_filesel();
+        func_8010FBE0_filesel(0, 24);
+        func_8010FBE0_filesel(1, 24);
+        func_8010FBE0_filesel(2, 24);
+        HuAudFXPlay(0x2F3);
+        HuPrcSleep(24);
+        func_801076D0_filesel(4, (u32)D_80112A64_filesel);
+        func_80108C34_filesel();
+        func_801088DC_filesel();
+        func_801076D0_filesel(4, 0x2A00);
+        do {
+            sel = func_80108EB8_filesel();
+            HuPrcVSleep();
+        } while (sel < 0);
+        no = sel;
+        func_80108440_filesel();
+        func_8010F65C_filesel();
+        func_8010F678_filesel(1);
+        func_8010D13C_filesel(no);
+        func_8010D660_filesel(no);
+        HuPrcSleep(3);
+        func_801065B8_filesel(no, &pos.x, &pos.y, &pos.z);
+        pos.z = 0.0f;
+        if (pos.y < 120.0f) {
+            pos.x = 0.0f;
+            pos.y = 120.0f;
+            func_8010F874_filesel(no);
+            func_80110B7C_filesel(no, pos.x, pos.y, pos.z, 16);
+            HuAudFXPlay(0x2F0);
+            HuPrcSleep(16);
+        } else {
+            pos.x = 0.0f;
+            pos.y = 120.0f;
+            func_8010F874_filesel(no);
+            func_80110B7C_filesel(no, pos.x, pos.y, pos.z, 32);
+            HuAudFXPlay(0x2F0);
+            HuPrcSleep(32);
+        }
+        func_801064DC_filesel(no, pos.x, pos.y, pos.z);
+        func_801064DC_filesel(no + 3, pos.x, pos.y, pos.z);
+        func_8010F844_filesel(no);
+        HuVecCopyXYZ(&world, pos.x, pos.y, pos.z);
+        Hu3DCam3DToScreen(0, &world, &screen);
+        func_8005BA90_main(func_80107810_filesel(no + 1), screen.x - 31.0f, screen.y);
+        func_80105FBC_filesel(no + 13, screen.x, screen.y + 9.0f);
+        func_801066DC_filesel(no);
+        func_801066DC_filesel(no + 3);
+        func_8010F844_filesel(no);
+        func_801076D0_filesel(4, (u32)D_80112A64_filesel);
+        func_80108C34_filesel();
+        func_801076D0_filesel(4, 0x2A0C);
+        func_8010DDC0_filesel(no);
+        func_8010DFF4_filesel(no);
+        while (TRUE) {
+            if (D_800D5558_main[0] & 0x8000) {
+                break;
+            }
+            if (D_800D5558_main[0] & 0x4000) {
+                break;
+            }
+            HuPrcVSleep();
+        }
+        func_8005D294_main(D_80114188_filesel);
+        HuAudFXPlay(0x138);
+        result = func_8010CCA8_filesel(sel);
+        if (result == -1) {
+        func_8010DEEC_filesel();
+        func_8010E1B4_filesel();
+        func_8010F874_filesel(no);
+        func_80110B7C_filesel(no, -1000.0f, 1000.0f, 0.0f, 30);
+        HuAudFXPlay(0x2F0);
+        HuPrcSleep(30);
+        func_8010669C_filesel(0);
+        func_8010669C_filesel(3);
+        func_8010669C_filesel(1);
+        func_8010669C_filesel(4);
+        func_8010669C_filesel(2);
+        func_8010669C_filesel(5);
+        func_8010F874_filesel(0);
+        func_8010F874_filesel(1);
+        func_8010F874_filesel(2);
+        func_8010DD54_filesel();
+        func_8010DF58_filesel();
+        HuPrcVSleep();
+        }
+    } while (result == -1);
+    D_800D09A9_main = sel;
+    func_800465F4_main(0);
+    D_800D09A9_main = sel;
+    func_80050CFC_main();
+    HuAudFXPlay(0x155);
+    func_8010F10C_filesel();
+    func_8010F874_filesel(sel);
+    func_80111944_filesel(40);
+    func_80105F54_filesel(12);
+    func_8010684C_filesel(sel, 0);
+    func_801067D0_filesel(sel, 7);
+    HuPrcSleep(20);
+    WipeColorSet(0xFF, 0xFF, 0xFF);
+    func_80112684_filesel();
+    WipeCreateOut(11, 20);
+    HuAudSeqFadeOut(20);
+    HuPrcSleep(20);
+    func_8010F5C8_filesel();
+    func_80106AAC_filesel();
+    func_80107574_filesel();
+    func_8005F524_main();
+    omOvlKill();
+    switch (result) {
+        case 0:
+            func_800465DC_main(1);
+            omOvlCallEx(0x77, 1, 0x91);
+            func_80112758_filesel();
+            break;
+        case 1:
+            func_800465DC_main(0);
+            func_80112758_filesel();
+            if (_CheckFlag(0x28) != 0) {
+                omOvlCallEx(0x77, 0, 0x81);
+                omOvlHisChg(1, 0x7A, 0, 0x81);
+            } else {
+                board = GwStory.unk0;
+                if (D_80112A68_filesel[board] != 0xFF) {
+                    his = &omovlhis[++omovlhisidx];
+                    his->overlayID = 0x7A;
+                    his->event = 0;
+                    his->stat = 0x82;
+                    D_800CE20A_main = D_80112A68_filesel[board];
+                    ovl = 0x75;
+                } else {
+                    ovl = 0x77;
+                }
+                omOvlCallEx(ovl, 0, 0x81);
+                omOvlHisChg(1, 0x77, 0, 0x81);
+            }
+            break;
+        case 2:
+            func_80112758_filesel();
+            func_800465DC_main(0);
+            his = &omovlhis[++omovlhisidx];
+            his->overlayID = 0x7A;
+            his->event = 0;
+            his->stat = 0x82;
+            omOvlCallEx(0x78, 4, 0x81);
+            omOvlHisChg(1, 0x77, 0, 0x81);
+            break;
+        default:
+            while (TRUE) {
+                HuPrcVSleep();
+            }
+    }
+    omDelPrcObj(D_80114468_filesel);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80107CF8_filesel);
+#endif
 
 void func_801083AC_filesel(void) {
     func_80105E48_filesel(1, 0x1F000D);
