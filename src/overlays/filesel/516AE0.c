@@ -1,36 +1,12 @@
 #include "common.h"
 #include "game/vibrator.h"
 
-#define UNK_VALUE 0x91
+#include "filesel.h"
+#include "mallocblock.h"
 
-typedef struct UnkFileSelect2 {
-    s16 unk_00;
-    u32 unk_04; // can be messageID or message pointer
-    void *unk_08;
-} UnkFileSelect2;
-
-typedef struct UnkFileSelect {
-    u8 unk_00;
-    u8 unk_01[0xB];
-    char unk_0C[0x78];
-} UnkFileSelect; // sizeof 0x84
-
-void func_801076D0_filesel(s32, u32);
-s32 func_80108834_filesel(void);
-void func_8010AB1C_filesel(s32, u32);
-void func_8010AB58_filesel(s32, u32);
-void func_8010AB60_filesel(s32, u32);
-void func_80110FB0_filesel(u32);
-void func_801110F0_filesel(u32);
-s32 func_80111B14_filesel(s32);
-void func_80019C00_main(s32);
-u32 func_80106AD8_filesel(u32);
-s32 func_8010AC58_filesel(s32);
-s32 func_80112494_filesel(s32, u8 *);
+#define UNK_VALUE FS_FILE_USED
 
 extern u16 D_800D1244_main;
-extern UnkFileSelect D_801142DC_filesel[3];
-extern UnkFileSelect2 D_80114158_filesel[];
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801059A0_filesel);
 
@@ -171,7 +147,7 @@ void func_801076D0_filesel(s32 arg0, u32 arg1) {
 
     func_8005D294_main(D_80114158_filesel[arg0].unk_00);
     if (D_80114158_filesel[arg0].unk_04 != 0) {
-        func_80019C00_main(D_80114158_filesel[arg0].unk_04);
+        func_80019C00_main((void *)D_80114158_filesel[arg0].unk_04);
         D_80114158_filesel[arg0].unk_04 = 0;
     }
 
