@@ -114,7 +114,24 @@ typedef struct MgWork {
     /* 0x57 */ s8 unk_57;   /* controller port */
     /* 0x58 */ u8 unk_58;
     /* 0x59 */ s8 unk_59;   /* player */
-    /* 0x5A */ char unk_5A[0x5A];
+    /* 0x5A */ char unk_5A[2];
+    /* 0x5C */ s32 unk_5C;
+    /* 0x60 */ f32 unk_60;
+    /* 0x64 */ f32 unk_64;
+    /* 0x68 */ char unk_68[4];
+    /* 0x6C */ f32 unk_6C;
+    /* 0x70 */ f32 unk_70;
+    /* 0x74 */ s32 unk_74[6]; /* packed (x << 16) | (y & 0xFFFF) stick samples */
+    /* 0x8C */ f32 unk_8C;  /* ceiling height */
+    /* 0x90 */ f32 unk_90;  /* ground velocity */
+    /* 0x94 */ f32 unk_94;
+    /* 0x98 */ f32 unk_98;
+    /* 0x9C */ f32 unk_9C;  /* tilt x */
+    /* 0xA0 */ f32 unk_A0;
+    /* 0xA4 */ f32 unk_A4;  /* tilt z */
+    /* 0xA8 */ char unk_A8[4];
+    /* 0xAC */ f32 unk_AC;
+    /* 0xB0 */ f32 unk_B0;
     /* 0xB4 */ f32 unk_B4;  /* speed factor */
 } MgWork; /* size 0x15C (MP2) */
 
@@ -135,6 +152,7 @@ f32 func_800E2ED4_minigame(f32 ax, f32 az, f32 bx, f32 bz);  /* B3CE0: cos of th
 s32 func_800E5690_minigame(omObjData* obj, s32 motion);      /* B7600: set a motion */
 void omVibrate(s16 player, s16 duration, s16 off, s16 on);
 extern f32 D_800EB760_minigame;
+f64 fabs(f64);
 void func_80021C14_main(s16 mi, HitList* l, s32 (*cb)(), void* probe); /* src/20A20.c: faces near probe */
 void func_800DC354_minigame(omObjData* obj, Vec4f* s, Vec4f* p); /* A: shape 8 (ignores p) */
 void func_800DCCB0_minigame(omObjData* obj, Vec4f* s, Vec4f* p, f32 h);
@@ -436,7 +454,51 @@ s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2) {
     return D_800EC286_minigame;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DDB60_minigame);
+/* Tilt the player toward the floor normal n; a slow player levels out. */
+void func_800DDB60_minigame(omObjData* obj, Vec* n) {
+    MgWork* w = obj->data;
+    f32 rx, rz;
+    f32 cx, cz;
+
+    if (w->unk_40 > D_800EB764_minigame) {
+        rx = -(atan2df(n->y, n->z) - 90.0f);
+        rz = atan2df(n->y, n->x);
+        cx = w->unk_9C;
+        cz = w->unk_A4;
+        rz -= 90.0f;
+        if (cx < rx) {
+            w->unk_9C += 4.0f;
+            if (rx < w->unk_9C) {
+                w->unk_9C = rx;
+            }
+        } else if (rx < cx) {
+            w->unk_9C -= 4.0f;
+            if (w->unk_9C < rx) {
+                w->unk_9C = rx;
+            }
+        }
+        if (cz < rz) {
+            w->unk_A4 += 4.0f;
+            if (rz < w->unk_A4) {
+                w->unk_A4 = rz;
+            }
+        } else if (rz < cz) {
+            w->unk_A4 -= 4.0f;
+            if (w->unk_A4 < rz) {
+                w->unk_A4 = rz;
+            }
+        }
+    } else {
+        if (fabs(w->unk_9C) > 2.0) {
+            obj->rot.x = w->unk_9C = w->unk_9C * 0.3;
+        }
+        if (fabs(w->unk_A4) > 2.0) {
+            obj->rot.z = w->unk_A4 = w->unk_A4 * 0.3;
+        }
+    }
+    obj->rot.x = w->unk_9C;
+    obj->rot.z = w->unk_A4;
+}
 
 void func_800DDD70_minigame(omObjData* obj) {
     D_800EBDD0_minigame.x = obj->trans.x;
