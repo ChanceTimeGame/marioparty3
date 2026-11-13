@@ -163,7 +163,7 @@ void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 ma
     work->unk14 = arg1;
     work->unkA0 = minX;
     work->unkA4 = minZ;
-    work->unkA8 = maxX;
+    work->unkA8.f = maxX;
     work->unkAC = maxZ;
 }
 
@@ -176,7 +176,7 @@ void func_800E13CC_minigame(omObjData* obj, f32 arg1, f32 arg2, f32 minX, f32 mi
     work->unk98 = arg2;
     work->unkA0 = minX;
     work->unkA4 = minZ;
-    work->unkA8 = maxX;
+    work->unkA8.f = maxX;
     work->unkAC = maxZ;
 }
 
@@ -879,7 +879,7 @@ s32 func_800E30B8_minigame(Vec* p, MgWork* g) {
     x = p->x;
     z = p->z;
     if (g->unk06 & 0x10) {
-        if (g->unkA0 <= x && x <= g->unkA8 && g->unkA4 <= z && z <= g->unkAC) {
+        if (g->unkA0 <= x && x <= g->unkA8.f && g->unkA4 <= z && z <= g->unkAC) {
             return 1;
         }
     } else if (HuSqrtf(x * x + z * z) <= g->unk9C) {

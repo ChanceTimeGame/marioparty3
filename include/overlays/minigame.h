@@ -4,12 +4,24 @@
 #include "ultra64.h"
 #include "game/object.h"
 
+/* A player's motion slot (MgWork::unkE8[slot]). */
 typedef struct {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ s16 unk04;
-    /* 0x08 */ s32 unk08;
+    /* 0x00 */ u16 unk00; /* flags: 1 loop, 2 not interruptible, 4 motion file */
+    /* 0x02 */ u16 unk02; /* speed */
+    /* 0x04 */ s16 unk04; /* passed on as MgMotionReq::unk06 */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ s32 unk08; /* key func_800E5A98_minigame looks up */
 } func_800E1BA8_minigame_UnkE8_ObjData; // Size 0xC
+
+/* A pending motion request (MgWork::unkD8). */
+typedef struct {
+    /* 0x00 */ u16 flags;
+    /* 0x02 */ u16 motion;
+    /* 0x04 */ char unk04[2];
+    /* 0x06 */ s16 unk06; /* < 0: none; else the 4th argument of func_80017954_main */
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ f32 speed;
+} MgMotionReq; // Size 0x10
 
 typedef struct {
     /* 0x000 */ char unk00[4];
@@ -53,25 +65,29 @@ typedef struct {
     /* 0x09C */ f32 unk9C;
     /* 0x0A0 */ f32 unkA0;
     /* 0x0A4 */ f32 unkA4;
-    /* 0x0A8 */ f32 unkA8;
+    /* 0x0A8 */ union {
+        f32 f;     /* ground object: box maxX */
+        u16 timer; /* player: squash timer */
+    } unkA8;
     /* 0x0AC */ f32 unkAC;
     /* 0x0B0 */ f32 unkB0;
     /* 0x0B4 */ f32 unkB4;
-    /* 0x0B8 */ char unkB8[4];
+    /* 0x0B8 */ f32 unkB8; /* end frame of the current motion */
     /* 0x0BC */ u16 unkBC;
     /* 0x0BE */ u16 unkBE;
     /* 0x0C0 */ u16 unkC0;
-    /* 0x0C2 */ char unkC2;
+    /* 0x0C2 */ u8 unkC2; /* blink phase */
     /* 0x0C3 */ s8 unkC3;
     /* 0x0C4 */ s8 unkC4;
     /* 0x0C5 */ s8 unkC5;
     /* 0x0C6 */ s16 unkC6;
     /* 0x0C8 */ void* unkC8;
     /* 0x0CC */ f32 unkCC;
-    /* 0x0D0 */ u16 unkD0;
-    /* 0x0D2 */ char unkD2[8];
-    /* 0x0DA */ u16 unkDA;
-    /* 0x0DC */ char unkDC[0xC];
+    /* 0x0D0 */ u16 unkD0; /* current motion step, 0xFFFF idle */
+    /* 0x0D2 */ u16 unkD2; /* motion step count */
+    /* 0x0D4 */ char unkD4[2];
+    /* 0x0D6 */ u16 unkD6; /* request pending */
+    /* 0x0D8 */ MgMotionReq unkD8;
     /* 0x0E8 */ func_800E1BA8_minigame_UnkE8_ObjData* unkE8;
     /* 0x0EC */ s32 (*unkEC)(omObjData*, omObjData*);
     /* 0x0F0 */ u16 unkF0;
