@@ -4,6 +4,20 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+/* camera zoom: D_801146B0_filesel */
+typedef struct FsCam {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 dist;
+    /* 0x1C */ s32 time;
+    /* 0x20 */ s32 total;
+} FsCam; /* size = 0x24 */
+
+extern FsCam D_801146B0_filesel;
+extern s32 D_801129A0_filesel; /* last stick direction (button mask) */
+extern s32 D_801146D4_filesel; /* stick repeat counter */
+
+
 /* model effect slot: D_80114598_filesel[3] */
 typedef struct FsEffect {
     /* 0x00 */ omObjData *obj;
@@ -1259,15 +1273,194 @@ void func_80111660_filesel(s32 arg0, s32 arg1, s32 arg2) {
     D_80114598_filesel[arg1].total = arg2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111790_filesel);
+void func_80111790_filesel(omObjData *obj) {
+    Vec pos;
+    Vec rot;
+    Vec eye;
+    Vec at;
+    Vec up;
+    f32 total;
+    f32 time;
+    f32 t;
+    f32 dist;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111944_filesel);
+    total = D_801146B0_filesel.total;
+    time = D_801146B0_filesel.time;
+    HuVecCopy3F(&pos, &D_801146B0_filesel.pos);
+    HuVecCopy3F(&rot, &D_801146B0_filesel.rot);
+    t = time / total;
+    if (t > 1.0f) {
+        t = 1.0f;
+    }
+    rot.x = t * -88.0f;
+    dist = ((1.0f - t) * 0.75f + 0.25f) * 3000.0f;
+    HuVecCopy3F(&D_801146B0_filesel.pos, &pos);
+    HuVecCopy3F(&D_801146B0_filesel.rot, &rot);
+    D_801146B0_filesel.dist = dist;
+    func_8010E250_filesel(&pos, &rot, dist, &eye, &at, &up);
+    Hu3DCamSetPositionOrientation(0, &eye, &at, &up);
+    Hu3DCamUpdateMtx(0);
+    if (time == total) {
+        omDelObj(obj);
+    } else {
+        time += 1.0f;
+        D_801146B0_filesel.time = time;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801119F4_filesel);
+omObjData *func_80111944_filesel(u32 arg0) {
+    omObjData *obj;
 
+    obj = omAddObj(6, 0, 0, -1, func_80111790_filesel);
+    obj->work[0] = 0;
+    obj->work[1] = arg0;
+    obj->work[2] = 0;
+    HuVecCopyXYZ(&D_801146B0_filesel.pos, 0.0f, 200.0f, 0.0f);
+    HuVecCopyXYZ(&D_801146B0_filesel.rot, 0.0f, 0.0f, 0.0f);
+    D_801146B0_filesel.dist = 3000.0f;
+    D_801146B0_filesel.total = arg0;
+    D_801146B0_filesel.time = 0;
+    return obj;
+}
+
+void func_801119F4_filesel(void) {
+    D_801129A0_filesel = 0;
+    D_801146D4_filesel = 0;
+}
+
+/* Stick direction as a d-pad mask, repeated every 9 frames while held. */
+// branch-likely on the first test and the load order of the stick bytes (masked 1)
+#ifdef NON_MATCHING
+s32 func_80111A08_filesel(s32 pad) {
+    s32 ax;
+    s32 ay;
+    s32 y;
+    s32 x;
+    s32 dir;
+
+    x = D_800CBB6E_main[pad];
+    y = D_800D20A1_main[pad];
+    if ((y != 0) | (x != 0)) {
+        ax = x;
+        if (x < 0) {
+            ax = -ax;
+        }
+        ay = y;
+        if (y < 0) {
+            ay = -ay;
+        }
+        if (ay < ax) {
+            if (ay * 2 < ax) {
+                dir = 0x100;
+                if (x < 0) {
+                    dir = 0x200;
+                }
+            } else if (y > 0) {
+                dir = 0x900;
+                if (x < 0) {
+                    dir = 0xA00;
+                }
+            } else {
+                dir = 0x500;
+                if (x < 0) {
+                    dir = 0x600;
+                }
+            }
+        } else if (ax * 2 < ay) {
+            dir = 0x800;
+            if (y < 0) {
+                dir = 0x400;
+            }
+        } else if (y > 0) {
+            dir = 0x900;
+                if (x < 0) {
+                    dir = 0xA00;
+                }
+        } else {
+            dir = 0x500;
+                if (x < 0) {
+                    dir = 0x600;
+                }
+        }
+        if (D_801129A0_filesel != dir || ++D_801146D4_filesel >= 9) {
+            D_801129A0_filesel = dir;
+            D_801146D4_filesel = 0;
+            return dir;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111A08_filesel);
+#endif
 
+/* Stick direction as a d-pad mask, once per push. */
+// retail keeps the two diagonal blocks separate; this C cross-jumps them (masked 45, logic checked)
+#ifdef NON_MATCHING
+s32 func_80111B14_filesel(s32 pad) {
+    s32 ax;
+    s32 ay;
+    s32 y;
+    s32 x;
+    s32 dir;
+
+    x = D_800CBB6E_main[pad];
+    y = D_800D20A1_main[pad];
+    if (D_801129A0_filesel != 0) {
+        if ((x == 0) & (y == 0)) {
+            D_801129A0_filesel = 0;
+        }
+        return 0;
+    }
+    if ((x != 0) | (y != 0)) {
+        ax = x;
+        if (x < 0) {
+            ax = -ax;
+        }
+        ay = y;
+        if (y < 0) {
+            ay = -ay;
+        }
+        if (ay < ax) {
+            if (ay * 2 < ax) {
+                dir = 0x100;
+                if (x < 0) {
+                    dir = 0x200;
+                }
+            } else if (y > 0) {
+                dir = 0x900;
+                if (x < 0) {
+                    dir = 0xA00;
+                }
+            } else {
+                dir = 0x500;
+                if (x < 0) {
+                    dir = 0x600;
+                }
+            }
+        } else if (ax * 2 < ay) {
+            dir = 0x800;
+            if (y < 0) {
+                dir = 0x400;
+            }
+        } else if (y > 0) {
+            dir = 0x900;
+                if (x < 0) {
+                    dir = 0xA00;
+                }
+        } else {
+            dir = 0x500;
+                if (x < 0) {
+                    dir = 0x600;
+                }
+        }
+        D_801129A0_filesel = dir;
+    }
+    return D_801129A0_filesel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111B14_filesel);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111C30_filesel);
 
