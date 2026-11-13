@@ -1,3 +1,5 @@
+#include "common.h"
+#include "game/hmfman.h"
 #include "overlays/minigame.h"
 #include "gcc/memory.h"
 #include "game/gamework_data.h"
@@ -28,20 +30,61 @@ extern f32 D_800EB760_minigame;
 extern f32 D_800EB764_minigame;
 extern f32 D_800EB768_minigame;
 extern f32 D_800EB76C_minigame;
-extern s32 D_800EB770_minigame;
+extern f32 D_800EB770_minigame;
 extern f32 D_800EB774_minigame;
 extern f32 D_800EB778_minigame;
 extern f32 D_800EB77C_minigame;
 extern s16 D_800EB784_minigame[][14];
 
-void func_800E1160_minigame(omObjData *, s32, s32, s32, s32, f32);
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1160_minigame);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E123C_minigame);
+typedef func_800E1BA8_minigame_ObjData MgWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E12B0_minigame);
+/* An entry of D_800CBB60_main (0x24 bytes; src/14EA0.c's unk_800ECDE0). */
+typedef struct {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[0x22];
+} MgSprModel;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E12E0_minigame);
+extern MgSprModel* D_800CBB60_main;
+extern s32 D_800EB730_minigame; /* scene state, copied to D_800EBE24_minigame */
+extern u8 D_800EB734_minigame;
+extern s32 D_800EB800_minigame[]; /* per character: its file directory */
+extern s32 D_800EBE24_minigame;
+extern s16 D_800EBE10_minigame[];
+
+u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
+s16 HmfAnimRead(HmfData* arg0, s32 arg1, char* arg2);
+void func_80032FC0_main(s16 arg0, u8 arg1, u8 arg2);
+void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
+void func_8001F450_main(s16 arg0, s16 arg1, f32 arg2);
+f32 func_800202A8_main(f32 angle);
+
+/* Loads player `player`'s character model into slot idx. */
+void func_800E1160_minigame(omObjData* obj, u16 idx, u16 player, s32 file, s32 flags, f32 arg5) {
+    s32 dir = D_800EB800_minigame[GwPlayer[player].chr];
+    s16 mot;
+
+    obj->model[idx] = func_8000B108_main(file, flags & ~0x11);
+    mot = func_80017790_main(obj->model[idx], 0, GwPlayer[player].chr, dir);
+    func_80017954_main(obj->model[idx], 0, GwPlayer[player].chr, mot);
+}
+
+void func_800E123C_minigame(omObjData* obj, u16 idx, s32 dir, s32 file, f32 arg4) {
+    s16 mdl = func_8000B108_main(dir, file);
+
+    obj->model[idx] = mdl;
+    func_8001F450_main(obj->model[0], mdl, arg4);
+}
+
+void func_800E12B0_minigame(omObjData* obj, f32 angle) {
+    MgWork* work = obj->data;
+
+    work->unk3C = func_800202A8_main(angle);
+}
+
+void func_800E12E0_minigame(omObjData* obj, f32 arg1) {
+    ((MgWork*)obj->data)->unk40 = arg1;
+}
 
 void func_800E12EC_minigame(omObjData *arg0, f32 arg1) {
     func_800E1BA8_minigame_ObjData *temp_data = arg0->data;
@@ -55,11 +98,17 @@ void func_800E12F8_minigame(omObjData *arg0, f32 arg1) {
     temp_data->unk44 = arg1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1304_minigame);
+void func_800E1304_minigame(omObjData* obj, f32 arg1) {
+    ((MgWork*)obj->data)->unk08 = arg1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1310_minigame);
+void func_800E1310_minigame(omObjData* obj, f32 arg1) {
+    ((MgWork*)obj->data)->unk0C = arg1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E131C_minigame);
+void func_800E131C_minigame(omObjData* obj, f32 arg1) {
+    ((MgWork*)obj->data)->unk10 = arg1;
+}
 
 void func_800E1328_minigame(omObjData *arg0, f32 arg1) {
     func_800E1BA8_minigame_ObjData *temp_data = arg0->data;
@@ -97,57 +146,202 @@ void func_800E1364_minigame(omObjData *arg0, f32 arg1) {
     temp_data->unk70 = arg1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1370_minigame);
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E139C_minigame);
+    work->unk06 = (u8)flags | work->unk06;
+    if (flags & 2) {
+        work->unk14 = arg2;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E13CC_minigame);
+/* Hit box: radius and XZ bounds. */
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1404_minigame);
+    work->unk06 |= 8;
+    work->unk14 = arg1;
+    work->unkA0 = minX;
+    work->unkA4 = minZ;
+    work->unkA8.f = maxX;
+    work->unkAC = maxZ;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1420_minigame);
+/* Hit box with its own radius. */
+void func_800E13CC_minigame(omObjData* obj, f32 arg1, f32 arg2, f32 minX, f32 minZ, f32 maxX, f32 maxZ) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1440_minigame);
+    work->unk06 |= 0x10;
+    work->unk14 = arg1;
+    work->unk98 = arg2;
+    work->unkA0 = minX;
+    work->unkA4 = minZ;
+    work->unkA8.f = maxX;
+    work->unkAC = maxZ;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1454_minigame);
+void func_800E1404_minigame(omObjData* obj, f32 arg1, f32 arg2) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1468_minigame);
+    work->unk06 |= 0x20;
+    work->unk14 = arg1;
+    work->unk9C = arg2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E147C_minigame);
+/* Cylinder hit shape: top, depth below it, radius. */
+void func_800E1420_minigame(omObjData* obj, f32 top, f32 depth, f32 radius) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1490_minigame);
+    work->unk06 |= 0x40;
+    work->unk14 = top;
+    work->unk98 = depth;
+    work->unk9C = radius;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E149C_minigame);
+void func_800E1440_minigame(omObjData* obj) {
+    ((MgWork*)obj->data)->unk06 |= 0x80;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E14B0_minigame);
+void func_800E1454_minigame(omObjData* obj) {
+    ((MgWork*)obj->data)->unk06 |= 0x100;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1510_minigame);
+void func_800E1468_minigame(omObjData* obj) {
+    ((MgWork*)obj->data)->unk06 |= 0x200;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1594_minigame);
+void func_800E147C_minigame(omObjData* obj) {
+    ((MgWork*)obj->data)->unk06 |= 0x400;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1610_minigame);
+void func_800E1490_minigame(u16 arg0) {
+    D_800EB734_minigame = arg0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1718_minigame);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val) {
+    u8* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E17D4_minigame);
+    work[idx] = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E17E4_minigame);
+void func_800E14B0_minigame(omObjData* obj, u8 idx, u8 on) {
+    if (on == 0) {
+        func_8001C258_main(obj->model[idx], 4, 4);
+    } else {
+        func_8001C258_main(obj->model[idx], 4, 0);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E17F4_minigame);
+/* 0 when the ground object with id `id` has flag 0x200 (or id < 0). */
+s32 func_800E1510_minigame(s8 id) {
+    s32 i;
+    MgWork* work;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1804_minigame);
+    if (id < 0) {
+        return 0;
+    }
+    for (i = 0; i < (u16)D_800EBE28_minigame; i++) {
+        work = D_800EC1C0_minigame[i]->data;
+        if (work->unk04 == id) {
+            if (work->unk06 & 0x200) {
+                return 0;
+            }
+            break;
+        }
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1810_minigame);
+void func_800E1594_minigame(omObjData* obj, s32 dir, s32 file, s32 arg3) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1820_minigame);
+    work->unk55 = SprModelRead(dir, file, arg3);
+    obj->model[0] = D_800CBB60_main[work->unk55].unk00;
+    func_8001C2FC_main(obj->model[0], 0x70000000, 0x70000000);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1830_minigame);
+void func_800E1610_minigame(omObjData* obj, u8 idx, s32 dir, s32 arg3, char* arg4, s32 arg5) {
+    u8* work = obj->data;
+    HmfModel* m;
+    u8 r;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1840_minigame);
+    obj->model[idx] = func_8000B0D4_main(dir, arg5);
+    m = &HmfModelData[obj->model[idx]];
+    r = HmfAnimRead(m->hmf, arg3, arg4);
+    (work + idx)[0x21] = r;
+    func_8001C448_main(obj->model[idx]);
+    func_80032FC0_main(r, 1, 1);
+    func_80032FC0_main(r, 2, 2);
+    Hu3DModelScaleSet(obj->model[idx], 2.0f, 2.0f, 2.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1854_minigame);
+void func_800E1718_minigame(omObjData* obj, s32 idx, s32 dir, s32 file, s32 arg4) {
+    u8* work = obj->data;
+    u16 img = SprModelRead(dir, file, arg4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E18B4_minigame);
+    obj->model[(u8)idx] = D_800CBB60_main[(u8)img].unk00;
+    work += (u8)idx;
+    work[0x21] = img;
+    func_8001C2FC_main(D_800CBB60_main[(u8)img].unk00, 0x70000000, 0x70000000);
+    func_800146DC_main((u8)img, 4, 4);
+}
+
+void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    obj->trans.x = x;
+    obj->trans.y = y;
+    obj->trans.z = z;
+}
+
+void func_800E17E4_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    obj->rot.x = x;
+    obj->rot.y = y;
+    obj->rot.z = z;
+}
+
+void func_800E17F4_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    obj->scale.x = x;
+    obj->scale.y = y;
+    obj->scale.z = z;
+}
+
+void func_800E1804_minigame(void) {
+    D_800EB730_minigame = 0;
+}
+
+void func_800E1810_minigame(void) {
+    D_800EB730_minigame = 2;
+}
+
+void func_800E1820_minigame(void) {
+    D_800EB730_minigame = 3;
+}
+
+void func_800E1830_minigame(void) {
+    D_800EB730_minigame = 1;
+}
+
+void func_800E1840_minigame(void) {
+    D_800EBE24_minigame = D_800EB730_minigame;
+}
+
+/* Index of the ground object whose byte 0x5F (retail reads the low byte of the object's own
+   `data` pointer, not a field of its work block) is `id`; D_800EB734_minigame if none. */
+s32 func_800E1854_minigame(s32 id) {
+    s32 i;
+
+    for (i = 0; i < (u16)D_800EBE28_minigame; i++) {
+        if (((u8*)D_800EC1C0_minigame[i])[0x5F] == id) {
+            return i;
+        }
+    }
+    return D_800EB734_minigame;
+}
+
+void func_800E18B4_minigame(void) {
+    s32 buf;
+
+    memset(&buf, 0, 1);
+}
 
 void func_800E18D8_minigame(void) {
     D_800EB73C_minigame = 15.0f;
@@ -169,17 +363,52 @@ void func_800E18D8_minigame(void) {
     D_800EB73A_minigame = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E19E4_minigame);
+void func_800E19E4_minigame(u8 arg0) {
+    D_800EB73A_minigame = arg0;
+}
 
 void func_800E19F0_minigame(s8 arg0) {
     D_800EB739_minigame = arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E19FC_minigame);
+/* Plays the player's voice/sound `arg1` (D_800EB784_minigame) unless it is already playing. */
+void func_800E19FC_minigame(MgWork* work, s32 arg1) {
+    s8 player = work->unk59;
+    s16 id = D_800EB784_minigame[player][arg1];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1A9C_minigame);
+    if (id >= 0) {
+        if (work->unkC4 != arg1) {
+            work->unkC5 = func_8004AC98_main(id, player);
+            work->unkC4 = arg1;
+            D_800EBE10_minigame[work->unk59] = id;
+        }
+    } else {
+        work->unkC4 = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E1B3C_minigame);
+void func_800E1A9C_minigame(MgWork* work, s32 arg1) {
+    s8 player = work->unk59;
+    s16 id = D_800EB784_minigame[player][arg1];
+
+    if (id >= 0) {
+        if (work->unkC4 != arg1) {
+            work->unkC5 = func_8004AC98_main(id, player);
+            work->unkC4 = arg1;
+            D_800EBE10_minigame[work->unk59] = id;
+        }
+    } else {
+        work->unkC4 = -1;
+    }
+}
+
+void func_800E1B3C_minigame(void) {
+    s32 i;
+
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        HuAudFXStop(((MgWork*)D_800EC598_minigame[i]->data)->unkC5);
+    }
+}
 
 void func_800E1BA8_minigame(omObjData *arg0, u32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5) {
     func_800E1BA8_minigame_ObjData *temp_s0;
@@ -263,50 +492,524 @@ void func_800E1BA8_minigame(omObjData *arg0, u32 arg1, s32 arg2, u16 arg3, s32 a
     D_800EB784_minigame[temp_s0->unk59][13] = var_a0 + 0xB8;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E210C_minigame);
+extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
+extern s32 D_800EB820_minigame[][7]; /* per character: motion keys */
+extern u16 D_800EBE18_minigame[]; /* frames since the last quadrant change */
+extern u8 D_800EBE20_minigame[];  /* last stick quadrant */
+extern s8 D_800EC1BA_minigame[];  /* rotation direction (-1, 0, 1) */
+extern s8 D_800EC282_minigame[];  /* frames held in one quadrant */
+extern s16 D_800EC28A_minigame[]; /* frames per half turn */
+extern u8 D_800EC5DC_minigame[];  /* quadrant two changes ago */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E21B8_minigame);
+s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
+s32 func_800202FC_main(Vec* v); /* normalise */
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
+void func_8008A070_main(HuMtx4F mf); /* identity */
+void func_80017D24_main(HuMtx4F mf, f32 x, f32 y, f32 z);
+void func_8002367C_main(HuMtx4F dst, HuMtx4F src); /* matrix copy */
+s32 func_80018F18_main(HuMtx4F a, HuMtx4F out);
 
+/* With MgWork::unk06 & 0x80 two matrices are kept at 0x18 and 0x58 (func_800E2780_minigame). */
+#define MG_MTX(w, off) ((f32(*)[4])((u8*)(w) + (off)))
+
+/* Plays motion `motion` of the player's character on model `model`. */
+void func_800E210C_minigame(omObjData* obj, s16 model, s16 motion) {
+    MgWork* work = obj->data;
+    s32 chr;
+    s32 dir;
+
+    work->unk5A = model;
+    work->unk5B = motion;
+    chr = GwPlayer[work->unk59].chr;
+    dir = D_800A178C_main[chr][0];
+    func_80017790_main(model, motion, chr, dir | func_80017B6C_main(chr, motion, 0));
+}
+
+/* Loads motion key `idx` of `player`'s character into slot idx. Retail takes the file directory
+   from player 0's character, not `player`'s. */
+void func_800E21B8_minigame(omObjData* obj, s32 player, s32 idx) {
+    MgWork* work = obj->data;
+
+    work->unkF2[idx] = func_80017AD8_main(D_800EB820_minigame[GwPlayer[player].chr][idx] |
+                                          D_800A178C_main[GwPlayer[0].chr][0]);
+}
+
+// NON_MATCHING: register allocation (masked 2, raw 18), as MP1 func_80009C90 and MP2
+// func_8000CDC8_D9C8: retail keeps sx in a0 and i in a1 (ours swapped).
+#ifdef NON_MATCHING
+/* Averages the last six stick samples. */
+s32 func_800E2250_minigame(omObjData* obj, s16 x, s16 y) {
+    MgWork* work = obj->data;
+    s32 v = (x << 16) | (y & 0xFFFF);
+    s16 sy;
+    s16 sx;
+    u8 i;
+
+    work->unk74[work->unk58++] = v;
+    if (work->unk58 >= 6) {
+        work->unk58 = 0;
+    }
+    sy = 0;
+    sx = 0;
+    for (i = 0; i < 6; i++) {
+        sx += work->unk74[i] >> 16;
+        sy += (u16)work->unk74[i];
+    }
+    return ((sx / 6) << 16) | ((sy / 6) & 0xFFFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2250_minigame);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2308_minigame);
+/* Clamps the stick vector (x, y) to length 60. */
+void func_800E2308_minigame(s16* x, s16* y) {
+    Vec v;
+    f32 fx = *x;
+    f32 fy = *y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E23E0_minigame);
+    if (HuSqrtf(fx * fx + fy * fy) > 60.0f) {
+        v.x = fx;
+        v.y = 0.0f;
+        v.z = fy;
+        func_800202FC_main(&v);
+        *x = v.x * 60.0f;
+        *y = v.z * 60.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E240C_minigame);
+void func_800E23E0_minigame(omObjData* obj) {
+    MgWork* work = obj->data;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2780_minigame);
+    for (i = 0; i < 6; i++) {
+        work->unk74[i] = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E28BC_minigame);
+/* Stick rotation counter: +-1 (x2 for a fast half turn) per quadrant turned in one direction. */
+s16 func_800E240C_minigame(s16 player, s16 limit, s8 x, s8 y) {
+    s16 mult = 1;
+    s16 quad;
+    s16 d;
+    s8 dir;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2B58_minigame);
+    if ((x == 0) & (y == 0)) {
+        return 0;
+    }
+    quad = atan2df(y, x);
+    if (quad < 0) {
+        quad += 360;
+    }
+    quad /= 90;
+    if (quad == D_800EBE20_minigame[player]) {
+        if (++D_800EC282_minigame[player] > limit) {
+            D_800EC282_minigame[player] = limit;
+            D_800EC1BA_minigame[player] = 0;
+            D_800EC5DC_minigame[player] = quad;
+            D_800EBE18_minigame[player] = 0;
+            return 0;
+        }
+        D_800EBE18_minigame[player]++;
+        return D_800EC1BA_minigame[player];
+    }
+    D_800EBE18_minigame[player]++;
+    D_800EC282_minigame[player] = 0;
+    if (D_800EC5DC_minigame[player] == quad) {
+        mult = 2;
+        D_800EC28A_minigame[player] = D_800EBE18_minigame[player];
+        D_800EBE18_minigame[player] = 0;
+    }
+    d = quad - D_800EBE20_minigame[player];
+    if ((d < 0 ? -d : d) == 3) {
+        d = -d;
+    }
+    dir = (d >> 31) | 1;
+    if (dir != 0 && dir != D_800EC1BA_minigame[player]) {
+        D_800EC1BA_minigame[player] = dir;
+        D_800EBE20_minigame[player] = quad;
+        D_800EC282_minigame[player] = 0;
+        D_800EC5DC_minigame[player] = quad;
+        D_800EBE18_minigame[player] = 0;
+        return 0;
+    }
+    D_800EBE18_minigame[player]++;
+    if (((D_800EBE20_minigame[player] + D_800EC1BA_minigame[player]) & 3) == quad) {
+        D_800EBE20_minigame[player] = quad;
+        return D_800EC1BA_minigame[player] * mult;
+    }
+    D_800EC1BA_minigame[player] = dir;
+    D_800EBE20_minigame[player] = quad;
+    D_800EC282_minigame[player] = 0;
+    D_800EBE18_minigame[player] = 0;
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2BD4_minigame);
+/* Builds the two matrices func_800E28BC_minigame uses with flag 0x80 from obj's translation and
+   rotation. */
+void func_800E2780_minigame(omObjData* obj) {
+    s32 mdl = obj->model[0];
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2C68_minigame);
+    if (obj->trans.x != 0.0f || obj->trans.y != 0.0f || obj->trans.z != 0.0f) {
+        func_80088800_main(MG_MTX(work, 0x18), obj->trans.x, obj->trans.y, obj->trans.z);
+    } else {
+        func_8008A070_main(MG_MTX(work, 0x18));
+    }
+    if (obj->rot.x != 0.0f || obj->rot.y != 0.0f || obj->rot.z != 0.0f) {
+        func_80017D24_main(MG_MTX(work, 0x18), obj->rot.x, obj->rot.y, obj->rot.z);
+    }
+    if (work->unk06 & 0x100) {
+        guMtxCatF((f32(*)[4])HmfModelData[mdl].mtx, MG_MTX(work, 0x18), MG_MTX(work, 0x18));
+    }
+    func_80018F18_main(MG_MTX(work, 0x18), MG_MTX(work, 0x58));
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2CA4_minigame);
+/* Transforms p by obj's translation and rotation (or by the matrices stored in its work when
+   flag 0x80 is set); m is scratch, out receives the matrix. */
+void func_800E28BC_minigame(HuMtx4F m, HuMtx4F out, Vec* p, omObjData* obj) {
+    MgWork* work = obj->data;
+    s32 mdl = obj->model[0];
+    f32 rx = obj->rot.x;
+    f32 ry = obj->rot.y;
+    f32 rz = obj->rot.z;
+    f32 tx = obj->trans.x;
+    f32 ty = obj->trans.y;
+    f32 tz = obj->trans.z;
+    f32 x = p->x;
+    f32 y = p->y;
+    f32 z = p->z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2DA4_minigame);
+    if (work->unk06 & 0x80) {
+        func_8002367C_main(m, MG_MTX(work, 0x18));
+        func_8002367C_main(out, MG_MTX(work, 0x58));
+    } else {
+        if (((tx != 0.0f) | (ty != 0.0f)) || tz != 0.0f) {
+            func_80088800_main(m, tx, ty, tz);
+        } else {
+            func_8008A070_main(m);
+        }
+        if (((rx != 0.0f) | (ry != 0.0f)) || rz != 0.0f) {
+            func_80017D24_main(m, rx, ry, rz);
+        }
+        if (work->unk06 & 0x100) {
+            guMtxCatF((f32(*)[4])HmfModelData[mdl].mtx, m, m);
+        }
+        func_80018F18_main(m, out);
+    }
+    p->x = x * out[0][0] + y * out[1][0] + z * out[2][0] + out[3][0];
+    p->y = x * out[0][1] + y * out[1][1] + z * out[2][1] + out[3][1];
+    p->z = x * out[0][2] + y * out[1][2] + z * out[2][2] + out[3][2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2E98_minigame);
+void func_800E2B58_minigame(f32 m[4][4], Vec* v) {
+    f32 x = v->x;
+    f32 y = v->y;
+    f32 z = v->z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2ED4_minigame);
+    v->x = x * m[0][0] + y * m[1][0] + z * m[2][0];
+    v->y = x * m[0][1] + y * m[1][1] + z * m[2][1];
+    v->z = x * m[0][2] + y * m[1][2] + z * m[2][2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2F40_minigame);
+void func_800E2BD4_minigame(f32 m[4][4], Vec* v) {
+    f32 x = v->x;
+    f32 y = v->y;
+    f32 z = v->z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2FD8_minigame);
+    v->x = x * m[0][0] + y * m[1][0] + z * m[2][0] + m[3][0];
+    v->y = x * m[0][1] + y * m[1][1] + z * m[2][1] + m[3][1];
+    v->z = x * m[0][2] + y * m[1][2] + z * m[2][2] + m[3][2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E30B8_minigame);
+void func_800E2C68_minigame(f32 m[4][4], Vec* v) {
+    f32 x = v->x;
+    f32 y = v->y;
+    f32 z = v->z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E317C_minigame);
+    v->y = x * m[0][1] + y * m[1][1] + z * m[2][1] + m[3][1];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E341C_minigame);
+/* Work block of an item a player can carry (MgWork::unkC8). */
+typedef struct MgItemWork {
+    /* 0x00 */ char unk00[0x50];
+    /* 0x50 */ u16 unk50; /* flags: 0x10 carried, 0x20 can be picked up, 0x40 passed to the holder */
+    /* 0x52 */ char unk52[0x22];
+    /* 0x74 */ f32 unk74; /* holder's unkB4 while carried */
+    /* 0x78 */ char unk78[8];
+    /* 0x80 */ omObjData* unk80; /* carrier */
+} MgItemWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E34D8_minigame);
+void func_800D853C_minigame(omObjData* obj, omObjData* item);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+f32 HuVecDot3F(Vec* a, Vec* b);
+void func_800E2308_minigame(s16* x, s16* y);
+s32 func_800E2250_minigame(omObjData* obj, s16 x, s16 y);
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
+void func_800E341C_minigame(MgWork* work, f32 dx, f32 dz);
+int abs(int);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3568_minigame);
+/* Drops the held item unless the holder's hook refuses. */
+void func_800E2CA4_minigame(omObjData* obj, f32 arg1) {
+    MgWork* work = obj->data;
+    omObjData* item;
+    MgItemWork* itemWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3584_minigame);
+    if (work->unk50 & 0x10) {
+        item = work->unkC8;
+        itemWork = item->data;
+        if (work->unk104[19] != NULL && work->unk104[19](obj, item) == 1) {
+            return;
+        }
+        work->unk50 &= ~0x150;
+        itemWork->unk50 &= ~0x10;
+        func_8001C258_main(item->model[0], 0x4000, 0);
+        HmfModelData[obj->model[0]].unk06 = 0xFF;
+        if (item->model[1] != 0) {
+            func_8001C258_main(item->model[1], 4, 0);
+        }
+        func_800D853C_minigame(obj, item);
+        work->unkC8 = NULL;
+        work->unkB4 = 1.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3628_minigame);
+/* Picks up `item`. */
+s32 func_800E2DA4_minigame(omObjData* obj, omObjData* item) {
+    MgWork* work = obj->data;
+    MgItemWork* itemWork = item->data;
+
+    if (!(itemWork->unk50 & 0x20)) {
+        return 0;
+    }
+    if (itemWork->unk50 & 0x10) {
+        return 0;
+    }
+    if (work->unk50 & 0x10) {
+        return 0;
+    }
+    work->unk50 |= 0x110;
+    itemWork->unk50 |= 0x10;
+    if (itemWork->unk50 & 0x40) {
+        work->unk50 |= 0x40;
+    }
+    work->unkC8 = item;
+    itemWork->unk80 = obj;
+    func_8001EF6C_main(item->model[0], obj->model[0], "item_hook");
+    func_8001C258_main(item->model[0], 0x4000, 0x4000);
+    work->unkB4 = itemWork->unk74;
+    if (item->model[1] != 0) {
+        func_8001C258_main(item->model[1], 4, 4);
+    }
+    return 1;
+}
+
+void func_800E2E98_minigame(omObjData* obj) {
+    MgWork* work = obj->data;
+
+    HmfModelData[obj->model[0]].unk06 = 0xFF;
+    work->unk50 &= ~0x100;
+}
+
+/* Dot product of the normalised XZ directions (x1, z1) and (x2, z2). */
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2) {
+    Vec a;
+    Vec b;
+
+    a.x = x1;
+    a.y = 0.0f;
+    a.z = z1;
+    func_800202FC_main(&a);
+    b.x = x2;
+    b.y = 0.0f;
+    b.z = z2;
+    func_800202FC_main(&b);
+    return HuVecDot3F(&b, &a);
+}
+
+/* XZ bounds of a collision model. */
+typedef struct MgColBounds {
+    /* 0x00 */ char unk00[0x42];
+    /* 0x42 */ s16 minX;
+    /* 0x44 */ s16 minY;
+    /* 0x46 */ s16 minZ;
+    /* 0x48 */ s16 maxX;
+    /* 0x4A */ s16 maxY;
+    /* 0x4C */ s16 maxZ;
+} MgColBounds;
+
+s32 func_800E2F40_minigame(MgColBounds* b, Vec* p) {
+    f32 minX = b->minX;
+    f32 minZ = b->minZ;
+    f32 maxX = b->maxX;
+    f32 maxZ = b->maxZ;
+
+    if (minX <= p->x && minZ <= p->z && p->x <= maxX && p->z <= maxZ) {
+        return 1;
+    }
+    return 0;
+}
+
+s32 func_800E2FD8_minigame(MgColBounds* b, Vec* p, f32 r) {
+    f32 x = p->x;
+    f32 z = p->z;
+    f32 minX = b->minX - r;
+    f32 maxZ;
+    f32 maxX;
+    f32 minZ = b->minZ - r;
+
+    maxX = b->maxX + r;
+    maxZ = b->maxZ + r;
+
+    if ((minX <= x) & (minZ <= z)) {
+        if ((x <= maxX) & (z <= maxZ)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Whether p is inside g's play area: a box (flag 0x10) or a circle (flag 0x40). */
+s32 func_800E30B8_minigame(Vec* p, MgWork* g) {
+    f32 x;
+    f32 z;
+
+    if (!(g->unk06 & 0x50)) {
+        return 1;
+    }
+    x = p->x;
+    z = p->z;
+    if (g->unk06 & 0x10) {
+        if (g->unkA0 <= x && x <= g->unkA8.f && g->unkA4 <= z && z <= g->unkAC) {
+            return 1;
+        }
+    } else if (HuSqrtf(x * x + z * z) <= g->unk9C) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Bounce off a wall: turn with the stick, or away from the wall (dx, dz) when it is idle. */
+void func_800E317C_minigame(omObjData* obj, f32 dx, f32 dz) {
+    MgWork* work = obj->data;
+    s16 stick[2];
+    s32 avg;
+
+    if (work->unk5C & 0x200) {
+        work->unk4C = 0.7f;
+    } else {
+        work->unk4C = 0.6f;
+    }
+    func_800E5690_minigame(obj, 6);
+    if (abs(D_800CBB6E_main[work->unk57]) >= 9 || abs(D_800D20A1_main[work->unk57]) >= 9) {
+        s32 sx = D_800CBB6E_main[work->unk57];
+        s32 sy;
+
+        stick[0] = sx;
+        sy = D_800D20A1_main[work->unk57];
+        stick[1] = sy;
+        if (sx > 60) {
+            stick[0] = 60;
+        }
+        if (stick[1] > 60) {
+            stick[1] = 60;
+        }
+        if (stick[0] < -60) {
+            stick[0] = -60;
+        }
+        if (stick[1] < -60) {
+            stick[1] = -60;
+        }
+        func_800E2308_minigame(&stick[0], &stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        avg = func_800E2250_minigame(obj, stick[0], stick[1]);
+        stick[0] = avg >> 16;
+        stick[1] = avg;
+        work->unk3C = atan2df(stick[0], -stick[1]) + work->unk60;
+        work->unk40 = D_800EB760_minigame;
+    } else if (func_800E2ED4_minigame(sindf(work->unk3C), cosdf(work->unk3C), dx, dz) < 0.0f) {
+        work->unk40 = D_800EB760_minigame;
+    } else {
+        work->unk40 = -D_800EB760_minigame;
+    }
+    work->unk38 = -D_800EB744_minigame * 0.9f;
+    work->unk50 |= 0x8;
+}
+
+void func_800E341C_minigame(MgWork* work, f32 dx, f32 dz) {
+    f32 s = sindf(work->unk3C);
+
+    if (func_800E2ED4_minigame(s, cosdf(work->unk3C), dx, dz) >= 0.0f) {
+        work->unk40 = D_800EB764_minigame;
+    } else {
+        work->unk40 = -D_800EB764_minigame;
+    }
+    work->unk50 |= 8;
+    func_800E19FC_minigame(work, 7);
+}
+
+/* Two players bump into each other: both bounce apart. */
+void func_800E34D8_minigame(omObjData* a, omObjData* b) {
+    MgWork* bw = b->data;
+
+    func_800E341C_minigame(a->data, a->trans.x - b->trans.x, a->trans.z - b->trans.z);
+    func_800E341C_minigame(bw, b->trans.x - a->trans.x, b->trans.z - a->trans.z);
+}
+
+/* Sets a minigame player's override hook (MgWork::unk104). */
+void func_800E3568_minigame(MgWork* work, s32 slot, void* hook) {
+    if (slot < 21) {
+        work->unk104[slot] = hook;
+    }
+}
+
+/* HmfData::unk18 (vertex count) is padding in game/hmfman.h's HmfData. */
+extern u8 D_800D2008_main; /* frame buffer index */
+#define HMF_VTXCNT(hmf) (*(s16*)((u8*)(hmf) + 0x18))
+
+/* Copies a model's base vertices into every frame buffer. */
+void func_800E3584_minigame(s16 arg0) {
+    HmfData* hmf;
+    s16 i;
+
+    func_8001C954_main(arg0);
+    hmf = HmfModelData[arg0].hmf;
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        bcopy(hmf->unk40, hmf->unk44[i], HMF_VTXCNT(hmf) * sizeof(Vtx));
+    }
+}
+
+/* Flattens model arg0's vertices onto the plane through its position with normal n, keeping
+   their length (retail mixes the base x with the current z in the squared length). */
+void func_800E3628_minigame(s16 arg0, Vec* n) {
+    HmfModel* obj = &HmfModelData[arg0];
+    Vtx* v = obj->hmf->unk44[D_800D2008_main];
+    Vtx* b = obj->hmf->unk40;
+    f32 d = n->x * obj->pos.x + n->y * obj->pos.y + n->z * obj->pos.z;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 s;
+    s16 i;
+    Vec unused; /* retail keeps a 16-byte frame */
+
+    for (i = 0; i < HMF_VTXCNT(obj->hmf); i++) {
+        x = v->v.ob[0] + obj->pos.x;
+        z = v->v.ob[2] + obj->pos.z;
+        y = d - x * n->x - z * n->z;
+        y /= n->y;
+        v->v.ob[1] = y - obj->pos.y + 0.5f;
+        x = b->v.ob[0];
+        y = v->v.ob[1];
+        z = b->v.ob[2];
+        s = (f32)(b->v.ob[0] * b->v.ob[0] + v->v.ob[2] * v->v.ob[2]) / (x * x + y * y + z * z);
+        v->v.ob[0] = x * s;
+        v->v.ob[1] = v->v.ob[1] * s;
+        v->v.ob[2] = b->v.ob[2] * s;
+        v++;
+        b++;
+    }
+}
