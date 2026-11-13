@@ -269,8 +269,8 @@ void func_80061A5C_main(s16 arg0, s16 arg1);
 extern TextWindow *D_800CC69C_main;
 extern u8 D_800A2150_main;
 extern u8 gLanguageIndex;
-extern u8 D_800A232C_main[];
-extern u8 *D_800A2344_main[];
+extern u8 D_800A232C_main[24]; /* glyph codes, two bytes each */
+extern u8 *D_800A2344_main[16]; /* 16 rows of 16 two-byte glyph codes (0x24-byte strings) */
 extern s16 D_800BDA50_main[12];
 extern s8 D_800BDA6D_main;
 extern s16 D_800BDA68_main;
