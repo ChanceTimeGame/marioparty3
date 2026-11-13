@@ -13,6 +13,14 @@
 #define MS_FILE_END()
 #else
 #define MS_FILE_END() __asm__(".section .text\n    .align 4\n");
+/* fork B: corrected prototypes (the originals above were removed: C cannot redeclare them). The
+   float arguments travel in a1-a3 because the first argument is an integer. */
+void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set + apply */
+void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set */
+void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
+void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
+/* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
+
 #endif
 
 /* Sprite slot: D_8010F710_modesel[64] (filesel FsSpr). */
@@ -89,9 +97,6 @@ extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
 extern s32 D_80110BD4_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010AF90 8010BA70 8010E3A4 */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
-extern s32 D_80110C68_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC */
-extern s32 D_80110C6C_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC 80109E90 */
-extern s32 D_80110C70_modesel;                   /* .bss 0x4 bytes; lw,sw: 80109B74 80109C8C 80109CEC 80109E90 */
 
 /* Not declared here (mixed or address-only accesses; the fork that decompiles their users types them):
    D_801109A4_modesel D_80110B18_modesel D_80110B24_modesel D_80110B30_modesel D_80110B70_modesel D_80110B88_modesel
@@ -223,7 +228,6 @@ void func_80109290_modesel(omObjData *arg0);
 void func_80109408_modesel(void);
 void func_80109444_modesel(void);
 f32 func_801094A8_modesel(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
-void func_801094F0_modesel(void *arg0, void *arg1, f32 arg2, void *arg3);
 void func_801096D4_modesel(omObjData *arg0);
 omObjData *func_80109968_modesel(s32 arg0, s32 arg1);
 s32 func_80109A58_modesel(s32 arg0);
@@ -253,9 +257,6 @@ void func_8010ADC8_modesel(omObjData *arg0);
 omObjData *func_8010AF18_modesel(void);
 void func_8010AF90_modesel(void);
 void func_8010B6B0_modesel(void);
-void func_8010B75C_modesel(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4);
-void func_8010B790_modesel(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4);
-void func_8010B804_modesel(s32 arg0, s32 arg1);
 void func_8010B824_modesel(s32 arg0);
 void func_8010B940_modesel(s32 arg0, f32 arg1);
 Process *func_8010B9C4_modesel(void);
@@ -297,5 +298,13 @@ s32 func_8010F204_modesel(s32 arg0); /* D_8010F2A0_modesel[arg0]; callers use v0
 u8 func_8010F214_modesel(s32 arg0);
 s32 func_8010F234_modesel(s32 arg0);
 u8 func_8010F258_modesel(s32 arg0);
+
+/* fork B: corrected prototypes (the originals above were removed: C cannot redeclare them). The
+   float arguments travel in a1-a3 because the first argument is an integer. */
+void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set + apply */
+void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set */
+void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
+void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
+/* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
 
 #endif

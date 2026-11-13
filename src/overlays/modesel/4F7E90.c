@@ -1239,29 +1239,299 @@ f32 func_801094A8_modesel(f32 x0, f32 y0, f32 x1, f32 y1) {
 
 
 
+#ifdef NON_MATCHING
+/* Turns the horizontal direction a towards b by the fraction t (angles about y, shortest way round);
+   writes the unit direction to out. */
+void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out) {
+    f32 end;
+    f32 ang;
+    f32 angA;
+    f32 angB;
+
+    angA = func_801094A8_modesel(0.0f, 0.0f, a->x, a->z);
+    if (angA < 0.0f) {
+        angA += 360.0f;
+    }
+    angB = func_801094A8_modesel(0.0f, 0.0f, b->x, b->z);
+    if (angB < 0.0f) {
+        angB += 360.0f;
+    }
+    if (-a->z * b->x + a->x * b->z > 0.0f) {
+        end = (angB - angA < 0.0f) ? angB : angB - 360.0f;
+        ang = (end - angA) * t + angA;
+        if (ang < 0.0f) {
+            ang += 360.0f;
+        }
+    } else {
+        end = (angB - angA > 0.0f) ? angB : angB + 360.0f;
+        ang = (end - angA) * t + angA;
+        if (ang > 360.0f) {
+            ang -= 360.0f;
+        }
+    }
+    out->x = sindf(ang);
+    out->y = 0.0f;
+    out->z = cosdf(ang);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801094F0_modesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801096D4_modesel);
+/* Camera target move along an arc around the eye (func_80109968_modesel). Retail adds the full y
+   difference (to.y - from.y) without the time factor. */
+void func_801096D4_modesel(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec dir;
+    Vec from;
+    Vec to;
+    Vec d0;
+    Vec d1;
+    f32 t0;
+    f32 t;
+    f32 s;
+    f32 len0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109968_modesel);
+    t0 = (f32)D_80110C10_modesel.t / (f32)D_80110C10_modesel.len;
+    if (t0 < 0.0f) {
+        t0 = 0.0f;
+    }
+    if (t0 > 1.0f) {
+        t = 1.0f;
+    } else {
+        t = t0;
+    }
+    func_801089DC_modesel(&eye, &at, &up);
+    HuVecCopy3F(&from, &D_80110C10_modesel.from);
+    HuVecCopy3F(&to, &D_80110C10_modesel.to);
+    HuVecCopyXYZ(&at, (to.x - from.x) * t + from.x, (to.y - from.y) * t + from.y, (to.z - from.z) * t + from.z);
+    HuVecCopyXYZ(&d0, from.x - eye.x, 0.0f, from.z - eye.z);
+    HuVecCopyXYZ(&d1, to.x - eye.x, 0.0f, to.z - eye.z);
+    s = sindf(t * 90.0f);
+    func_801094F0_modesel(&d0, &d1, s, &dir);
+    len0 = HuVecGetLength3F(&d0);
+    t0 = (HuVecGetLength3F(&d1) - len0) * s + len0;
+    HuVecCopyXYZ(&at, t0 * dir.x + eye.x, (to.y - from.y) + from.y, t0 * dir.z + eye.z);
+    if (D_80110C10_modesel.t > D_80110C10_modesel.len) {
+        omDelObj(obj);
+        func_80108A34_modesel(&eye, &D_80110C10_modesel.to, &up);
+        D_80110C10_modesel.obj = NULL;
+        return;
+    }
+    D_80110C10_modesel.t++;
+    func_80108A34_modesel(&eye, &at, &up);
+}
 
+omObjData *func_80109968_modesel(s32 no, s32 len) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    omObjData *obj;
+
+    if (D_80110C10_modesel.obj != NULL) {
+        omDelObj(D_80110C10_modesel.obj);
+    }
+    obj = omAddObj(6, 0, 0, -1, func_801096D4_modesel);
+    obj->work[0] = 0;
+    obj->work[1] = 0;
+    D_80110C10_modesel.obj = obj;
+    D_80110C10_modesel.t = 0;
+    D_80110C10_modesel.len = len;
+    D_80110C10_modesel.no = no;
+    func_801089DC_modesel(&eye, &at, &up);
+    HuVecCopy3F(&D_80110C10_modesel.from, &at);
+    if (no < 0) {
+        at.x = 0.0f;
+    } else {
+        func_8010E138_modesel(no, &at.x, &at.y, &at.z);
+    }
+    HuVecCopyXYZ(&D_80110C10_modesel.to, at.x, at.y, at.z);
+    return obj;
+}
+
+#ifdef NON_MATCHING
+/* Stick direction of controller `pad` as a button mask (0x100 right, 0x200 left, 0x800 up, 0x400 down
+   and their diagonals), reported once each time the stick leaves the centre. */
+s32 func_80109A58_modesel(s32 pad) {
+    s32 ax;
+    s32 ay;
+    s32 x;
+    s32 y;
+
+    x = D_800CBB6E_main[pad];
+    y = D_800D20A1_main[pad];
+    if (D_8010F2C8_modesel != 0) {
+        if ((x == 0) & (y == 0)) {
+            D_8010F2C8_modesel = 0;
+            return 0;
+        }
+        return 0;
+    }
+    if ((x != 0) | (y != 0)) {
+        ax = (x < 0) ? -x : x;
+        ay = (y < 0) ? -y : y;
+        if (ay < ax) {
+            if (ay * 2 < ax) {
+                D_8010F2C8_modesel = (x < 0) ? 0x200 : 0x100;
+            } else if (y > 0) {
+                D_8010F2C8_modesel = (x < 0) ? 0xA00 : 0x900;
+            } else {
+                D_8010F2C8_modesel = (x < 0) ? 0x600 : 0x500;
+            }
+        } else if (ax * 2 < ay) {
+            D_8010F2C8_modesel = (y < 0) ? 0x400 : 0x800;
+        } else if (y > 0) {
+            D_8010F2C8_modesel = (x < 0) ? 0xA00 : 0x900;
+        } else {
+            D_8010F2C8_modesel = (x < 0) ? 0x600 : 0x500;
+        }
+    }
+    return D_8010F2C8_modesel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109A58_modesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109B74_modesel);
+/* Bobbing objects for models 7..9: D_80110C68_modesel[no - 7]. */
+typedef struct MsBob {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ omObjData *obj;
+    /* 0x0C */ Vec pos; /* height when the bob stopped (func_80109E90_modesel) */
+} MsBob; /* size = 0x18 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109BC0_modesel);
+extern MsBob D_80110C68_modesel[3];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109C8C_modesel);
+void func_80109B74_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109CEC_modesel);
+    for (i = 0; i < 3; i++) {
+        D_80110C68_modesel[i].obj = NULL;
+        D_80110C68_modesel[i].unk4 = 0;
+        D_80110C68_modesel[i].unk0 = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109DB8_modesel);
+void func_80109BC0_modesel(omObjData *obj) {
+    s32 no;
+    s32 t;
+    f32 s;
+    f32 ft;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109E90_modesel);
+    no = obj->work[0];
+    t = obj->work[1];
+    ft = t;
+    ft *= 1.4117647f;
+    s = sindf(ft);
+    func_8010648C_modesel(no);
+    func_8010B75C_modesel(no, 0.0f, s * 8.0f + 8.0f + 8.0f, 0.0f, s * 16.0f + 20.0f);
+    obj->work[1] = t + 4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109FCC_modesel);
+void func_80109C8C_modesel(s32 no) {
+    s32 i = no - 7;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A020_modesel);
+    if (D_80110C68_modesel[i].obj != NULL) {
+        omDelObj(D_80110C68_modesel[i].obj);
+    }
+    D_80110C68_modesel[i].obj = NULL;
+}
+
+omObjData *func_80109CEC_modesel(u32 no) {
+    omObjData *obj;
+    s32 i = no - 7;
+
+    if (D_80110C68_modesel[i].obj != NULL) {
+        func_80109C8C_modesel(no);
+    }
+    obj = omAddObj(6, 0, 0, -1, func_80109BC0_modesel);
+    D_80110C68_modesel[i].obj = obj;
+    obj->work[0] = no;
+    obj->work[1] = rand8() & 0xFF;
+    D_80110C68_modesel[i].unk0 = 0;
+    D_80110C68_modesel[i].unk4 = 0;
+    return obj;
+}
+
+void func_80109DB8_modesel(omObjData *obj) {
+    s32 no;
+    s32 i;
+    s32 t;
+    f32 s0;
+    f32 s;
+
+    no = obj->work[0];
+    i = no - 7;
+    t = obj->work[1];
+    s0 = t;
+    s0 *= 0.1f;
+    s0 = 1.0f - s0;
+    if (s0 < 0.0f) {
+        s = 0.0f;
+    } else {
+        s = s0;
+    }
+    func_8010B75C_modesel(no, 0.0f, (D_80110C68_modesel[i].pos.y - 10.0f) * s + 10.0f, 0.0f, 0.0f);
+    if (t < 10) {
+        t++;
+    }
+    obj->work[1] = t;
+}
+
+/* Stops the bob of model `no` and settles it. Retail stores `no` into the old (just deleted)
+   object's work[0] and returns that object, or writes through NULL when there was none. */
+void *func_80109E90_modesel(s32 no) {
+    s32 i = no - 7;
+    omObjData *obj;
+    f32 ft;
+
+    obj = D_80110C68_modesel[i].obj;
+    if (obj != NULL) {
+        ft = (s32)obj->work[1];
+        ft *= 1.4117647f;
+        ft = sindf(ft);
+        HuVecCopyXYZ(&D_80110C68_modesel[i].pos, 0.0f, ft * 8.0f + 8.0f + 8.0f, 0.0f);
+        omDelObj(D_80110C68_modesel[i].obj);
+    } else {
+        HuVecCopyXYZ(&D_80110C68_modesel[i].pos, 0.0f, 0.0f, 0.0f);
+    }
+    D_80110C68_modesel[i].obj = omAddObj(6, 0, 0, -1, func_80109DB8_modesel);
+    D_80110C68_modesel[i].unk4 = 0;
+    obj->work[0] = no;
+    return obj;
+}
+
+void func_80109FCC_modesel(omObjData *obj) {
+    s32 no = obj->work[0];
+    s32 t = obj->work[1];
+
+    if (t == 200) {
+        func_8010677C_modesel(no, 0);
+    } else if (t == 0) {
+        func_8010677C_modesel(no, 1);
+    }
+    t += 4;
+    obj->work[1] = t;
+}
+
+void func_8010A020_modesel(u32 no) {
+    omObjData *obj = omAddObj(6, 0, 0, -1, func_80109FCC_modesel);
+
+    obj->work[0] = no;
+    obj->work[1] = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A068_modesel);
 
