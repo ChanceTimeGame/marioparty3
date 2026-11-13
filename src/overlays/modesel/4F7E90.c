@@ -670,7 +670,321 @@ void func_80107CB0_modesel(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F454_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80107CEC_modesel);
+extern const char D_8010F454_modesel[]; /* "" */
+
+void func_80107CEC_modesel(void) {
+    s32 i;
+    s32 ok;
+    s32 j;
+    s16 model;
+    omOvlHisData *his;
+
+    D_80110BD8_modesel = 0;
+    for (i = 0; i < 6; i++) {
+        if (func_800E905C_minigame(i) >= 0) {
+            D_80110BD8_modesel = i;
+            break;
+        }
+    }
+    if (_CheckFlag(0x21)) {
+        D_80110BD8_modesel = 0;
+    } else if (_CheckFlag(0x22)) {
+        D_80110BD8_modesel = 1;
+    } else if (_CheckFlag(0x23)) {
+        D_80110BD8_modesel = 2;
+    } else if (_CheckFlag(0x24)) {
+        D_80110BD8_modesel = 3;
+    } else if (_CheckFlag(0x25)) {
+        D_80110BD8_modesel = 4;
+    } else if (_CheckFlag(0x26)) {
+        D_80110BD8_modesel = 5;
+    }
+    func_8001F38C_main(0, 0x40, 0x40);
+    D_800CD280_main = 0;
+    func_80109B74_modesel();
+    func_8010E7B4_modesel();
+    func_8010AF90_modesel();
+    func_8010E50C_modesel();
+    func_80108FC4_modesel();
+    func_8010E984_modesel();
+    func_8010EBF8_modesel();
+    if (GwStory.unk0 == 12 && func_800465D0_main() == 0) {
+        HuAudSeqPlay(0x29);
+    } else {
+        HuAudSeqPlay(4);
+    }
+    D_80110BE0_modesel = func_8010B9C4_modesel();
+    if (omovlevtno != 1) {
+        if (omovlevtno == 2) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+        }
+        WipeCreateIn(0xB, 0x10);
+        model = func_8010648C_modesel(0xB);
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        func_80013320_main(model, 0);
+        HuPrcSleep(0x10);
+    } else {
+        WipeColorSet(0xFF, 0xFF, 0xFF);
+        WipeCreateIn(0xB, 0x10);
+        func_8010EC40_modesel();
+        HuPrcSleep(1);
+        func_801068AC_modesel(0xD, 0);
+        func_80106830_modesel(0xD, 1);
+        HuPrcSleep(0xF);
+        func_80106910_modesel(0xD);
+        model = func_8010648C_modesel(0xB);
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        func_80013320_main(model, 0);
+        func_8010EBF8_modesel();
+    }
+    if (func_800465D0_main() == 1) {
+        if (_CheckFlag(0x16) || _CheckFlag(0x17)) {
+            func_801068AC_modesel(5, 0);
+            func_80106830_modesel(5, 1);
+            func_80106910_modesel(5);
+        }
+    } else if (_CheckFlag(0x28)) {
+        func_801068AC_modesel(5, 0);
+        func_80106830_modesel(5, 1);
+        func_80106910_modesel(5);
+    }
+    if (GwStory.unk0 == 12 && func_800465D0_main() == 0) {
+        omDelPrcObj(D_80110BE0_modesel);
+        D_80110BE0_modesel = func_8010899C_modesel();
+        D_80110BD0_modesel = func_8010AA48_modesel(0xA);
+    } else {
+        D_80110BD0_modesel = func_8010A9B8_modesel(0xA);
+    }
+    func_8010673C_modesel(0xA);
+    HuPrcSleep(0x28);
+    func_801067C0_modesel(0xA, 0x13, 8, 8, 2);
+    HuAudFXPlay(0x159);
+    if (func_800465D0_main() == 1) {
+        if (func_800465E8_main() == 0) {
+            func_80106BA0_modesel(0, 0x3100, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+            HuPrcSleep(0x1E);
+            func_8010788C_modesel(0);
+            i = -1;
+            if (_CheckFlag(0x21)) {
+                i = 0;
+            } else if (_CheckFlag(0x22)) {
+                i = 1;
+            } else if (_CheckFlag(0x23)) {
+                i = 2;
+            } else if (_CheckFlag(0x24)) {
+                i = 3;
+            } else if (_CheckFlag(0x25)) {
+                i = 4;
+            } else if (_CheckFlag(0x26)) {
+                i = 5;
+            }
+            _ClearFlag(0x21);
+            _ClearFlag(0x22);
+            _ClearFlag(0x23);
+            _ClearFlag(0x24);
+            _ClearFlag(0x25);
+            _ClearFlag(0x26);
+            if (i != -1) {
+                func_80107730_modesel(0, 0x311A);
+                func_801077FC_modesel(0, 0, i + 0x1C00);
+                func_8010788C_modesel(0);
+                ok = 1;
+                for (j = 0; j < 12; j++) {
+                    ok &= -(GwStory.unk10[i][j] >= 4);
+                }
+                ok &= -(GwStory.unk58[i] >= 4);
+                if (ok) {
+                    func_80107730_modesel(0, 0x313B);
+                    func_8010788C_modesel(0);
+                    func_801074F0_modesel(0);
+                    func_80106BA0_modesel(0, (u32)D_8010F454_modesel, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+                }
+            }
+            func_800465F4_main(1);
+            func_80107730_modesel(0, 0x3101);
+        } else {
+            func_80106BA0_modesel(0, 0x3101, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+        }
+        func_8010788C_modesel(0);
+        HuPrcVSleep();
+    } else {
+        i = -1;
+        if (GwStory.unk0 == 12) {
+            func_80106BA0_modesel(0, 0x3136, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+            func_8010788C_modesel(0);
+            func_80107730_modesel(0, 0x3119);
+        } else {
+            if (_CheckFlag(0x21)) {
+                i = 0;
+            } else if (_CheckFlag(0x22)) {
+                i = 1;
+            } else if (_CheckFlag(0x23)) {
+                i = 2;
+            } else if (_CheckFlag(0x24)) {
+                i = 3;
+            } else if (_CheckFlag(0x25)) {
+                i = 4;
+            } else if (_CheckFlag(0x26)) {
+                i = 5;
+            }
+            _ClearFlag(0x21);
+            _ClearFlag(0x22);
+            _ClearFlag(0x23);
+            _ClearFlag(0x24);
+            _ClearFlag(0x25);
+            _ClearFlag(0x26);
+            if (i != -1) {
+                func_80106BA0_modesel(0, (u32)D_8010F454_modesel, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+                func_80107730_modesel(0, 0x311A);
+                func_801077FC_modesel(0, 0, i + 0x1C00);
+                func_8010788C_modesel(0);
+                ok = 1;
+                for (j = 0; j < 12; j++) {
+                    ok &= -(GwStory.unk10[i][j] >= 4);
+                }
+                ok &= -(GwStory.unk58[i] >= 4);
+                if (ok) {
+                    func_80107730_modesel(0, 0x313B);
+                    func_8010788C_modesel(0);
+                }
+                func_801074F0_modesel(0);
+            }
+            i = func_8010F204_modesel(GwStory.unk0);
+            func_80106BA0_modesel(0, (u32)D_8010F454_modesel, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+            func_801077FC_modesel(0, 0, i + 0x3127);
+            func_80107730_modesel(0, 0x3134);
+        }
+        func_8010788C_modesel(0);
+    }
+    func_801067C0_modesel(0xA, 0x14, 8, 8, 2);
+    i = func_8010BA70_modesel();
+    D_800CD280_main = 1;
+    if (i == 0x10) {
+        WipeColorSet(0xFF, 0xFF, 0xFF);
+    }
+    WipeCreateOut(0xB, 0x14);
+    HuAudSeqFadeOut(0x14);
+    HuPrcSleep(0x14);
+    func_801074F0_modesel(0);
+    func_80109154_modesel();
+    func_8010E790_modesel(D_80110BE0_modesel);
+    func_8010EBC4_modesel();
+    func_8010E5B8_modesel();
+    func_8010B6B0_modesel();
+    omDelPrcObj(D_80110BDC_modesel);
+    func_8005F524_main();
+    omOvlKill();
+    switch (i) {
+        case 0:
+            omOvlCallEx(0x7C, D_80110BDA_modesel, 0x4000);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 1:
+            omOvlCallEx(0x7B, 0, 0x91);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 2:
+            while (TRUE) {
+                HuPrcVSleep();
+            }
+        case 4:
+            GwSystem.playMode = (GwSystem.playMode & 4) | 2;
+            omOvlCallEx(0x78, 1, 0x4090);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 5:
+            func_80050974_main();
+            _SetFlag(0);
+            GwSystem.playMode = 2;
+            omOvlCallEx(0x5A, 0, 0x4090);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 6:
+            GwSystem.playMode = 2;
+            omOvlCallEx(0x78, 8, 0x91);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 7:
+            GwSystem.playMode = 1;
+            omOvlCallEx(0x78, 0, 0x91);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 8:
+            func_8005086C_main();
+            GwSystem.playMode = 1;
+            _SetFlag(0);
+            omOvlCallEx(0x47, 0, 0x92);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 9:
+            GwSystem.playMode = (GwSystem.playMode & 4) | 1;
+            omOvlCallEx(0x78, 7, 0x91);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            break;
+        case 10:
+            if (GwStory.unk0 == 12) {
+                omOvlCallEx(0x41, 0, 0x94);
+                omOvlHisChg(1, 0x77, 0, 0x91);
+                func_800E989C_minigame();
+                func_80107B08_modesel();
+            } else if (GwSystem.playMode & 1) {
+                omOvlCallEx(0x78, 2, 0x91);
+                omOvlHisChg(1, 0x77, 0, 0x91);
+            } else {
+                omOvlCallEx(0x78, 3, 0x91);
+                omOvlHisChg(1, 0x77, 0, 0x91);
+            }
+            break;
+        case 11:
+            func_80050ABC_main();
+            _SetFlag(0);
+            if (GwStory.unk0 == 12) {
+                while (TRUE) {
+                    HuPrcVSleep();
+                }
+            }
+            if (GwSystem.playMode & 1) {
+                omOvlCallEx(0x47, 0, 0x92);
+            } else {
+                omOvlCallEx(0x5A, 0, 0x4090);
+            }
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            his = &omovlhis[omovlhisidx];
+            his->overlayID = 0x7D;
+            his->event = 0;
+            his->stat = 0x4090;
+            omovlhisidx++;
+            break;
+        case 12:
+            break;
+        case 13:
+            if (func_800465D0_main() == 1) {
+                omOvlCallEx(0x78, 5, 0x91);
+                omOvlHisChg(1, 0x77, 0, 0x91);
+            } else {
+                omOvlCallEx(0x78, 6, 0x91);
+                omOvlHisChg(1, 0x77, 0, 0x91);
+            }
+            break;
+        case 14:
+            omOvlCallEx(0x41, 0, 0x94);
+            omOvlHisChg(1, 0x77, 0, 0x91);
+            func_800E989C_minigame();
+            func_80107B08_modesel();
+            break;
+        case 15:
+        case 16:
+        default:
+            omOvlHisChg(1, 0x7A, 0, 0x92);
+            if ((u16)omOvlReturnEx(1) == 0) {
+                osSyncPrintf("\n%d:omMapReturn ERROR!\n", 944);
+            }
+            break;
+    }
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 void func_801088AC_modesel(void) {
     Hu3DCamSetPerspective(0, D_8010F2BC_modesel, D_8010F2C0_modesel, D_8010F2C4_modesel);
@@ -697,9 +1011,9 @@ void func_8010893C_modesel(Process *proc) {
     omDelPrcObj(proc);
 }
 
-void func_8010899C_modesel(void) {
+Process *func_8010899C_modesel(void) {
     func_80108AE0_modesel(&D_80110BE8_modesel[0], &D_80110BE8_modesel[1], &D_80110BE8_modesel[2]);
-    omAddPrcObj(func_801088F8_modesel, 0x5000, 0x1800, 0);
+    return omAddPrcObj(func_801088F8_modesel, 0x5000, 0x1800, 0);
 }
 
 void func_801089DC_modesel(Vec *eye, Vec *at, Vec *up) {

@@ -86,9 +86,9 @@ extern f32 D_80110B2C_modesel;                   /* .bss 0x4 bytes; swc1: 8010B7
 extern s32 D_80110BA8_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern s32 D_80110BB0_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
-extern s32 D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
+extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
 extern s32 D_80110BD4_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010AF90 8010BA70 8010E3A4 */
-extern s32 D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
+extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
 extern s32 D_80110C68_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC */
 extern s32 D_80110C6C_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC 80109E90 */
 extern s32 D_80110C70_modesel;                   /* .bss 0x4 bytes; lw,sw: 80109B74 80109C8C 80109CEC 80109E90 */
@@ -108,6 +108,12 @@ void func_800465DC_main(s8 arg0);
 void func_800465F4_main(s8 arg0);
 void func_80050CFC_main(void);
 s32 func_800465D0_main(void);
+s32 func_800465E8_main(void);
+s32 func_8005086C_main(void);
+void func_80013320_main(s16 modelIndex, s16 camIndex);
+void func_80013350_main(s16 camIndex);
+s16 func_800E905C_minigame(s16 slot);
+void func_800E989C_minigame(void);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -203,7 +209,7 @@ void func_80107CEC_modesel(void); /* main process */
 void func_801088AC_modesel(void);
 void func_801088F8_modesel(void);
 void func_8010893C_modesel(Process *proc);
-void func_8010899C_modesel(void);
+Process *func_8010899C_modesel(void);
 void func_801089DC_modesel(Vec *eye, Vec *at, Vec *up); /* camera get */
 void func_80108A34_modesel(Vec *eye, Vec *at, Vec *up); /* camera set */
 void func_80108A94_modesel(s32 arg0); /* arg0 unused; the caller passes 0 */
@@ -252,7 +258,7 @@ void func_8010B790_modesel(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4);
 void func_8010B804_modesel(s32 arg0, s32 arg1);
 void func_8010B824_modesel(s32 arg0);
 void func_8010B940_modesel(s32 arg0, f32 arg1);
-void func_8010B9C4_modesel(void);
+Process *func_8010B9C4_modesel(void);
 s32 func_8010BA70_modesel(void);
 s32 func_8010C094_modesel(void);
 void func_8010C874_modesel(void);
@@ -276,7 +282,7 @@ void func_8010E558_modesel(s32 arg0);
 void func_8010E5B8_modesel(void);
 void func_8010E5F0_modesel(omObjData *arg0);
 void func_8010E6D8_modesel(s32 arg0);
-void func_8010E790_modesel(void);
+void func_8010E790_modesel(Process *proc);
 void func_8010E7B4_modesel(void);
 void func_8010E984_modesel(void);
 void func_8010EBC4_modesel(void);
@@ -287,7 +293,7 @@ void func_8010ECAC_modesel(omObjData *obj);
 void func_8010ED00_modesel(void);
 void func_8010ED3C_modesel(void);
 s32 func_8010F1FC_modesel(void);
-u8 func_8010F204_modesel(s32 arg0);
+s32 func_8010F204_modesel(s32 arg0); /* D_8010F2A0_modesel[arg0]; callers use v0 unmasked */
 u8 func_8010F214_modesel(s32 arg0);
 s32 func_8010F234_modesel(s32 arg0);
 u8 func_8010F258_modesel(s32 arg0);
