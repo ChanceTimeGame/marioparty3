@@ -378,7 +378,9 @@ build/src/gamemes.c.o: src/gamemes.c
 # nop after a call whose delay slot GCC filled (89170 guRotateF: none before the mul.s after sincosdf).
 # wave 3b: wipe and 14EA0 too, as MP2 builds their counterparts (no mul-fix nop after a branch-likely)
 W2DC_BLANKSTRIP := build/src/89170.c.o build/src/wipe.c.o build/src/14EA0.c.o
-# minigame A: AB1C0 likewise (func_800D9028_minigame: no nop before the mul.s after cosdf)
+# minigame AB1C0 likewise (func_800D9028/func_800DD1F4_minigame: no nop after the cosdf call). Not
+# NOP_OBJECTS: that rule assembles without -O1, which puts the delay-slot nop of a jump-table
+# `j` at the start of .text (func_800E04C8_minigame).
 W2DC_BLANKSTRIP += build/src/overlays/minigame/AB1C0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
