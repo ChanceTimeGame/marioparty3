@@ -97,10 +97,7 @@ void func_8000BA00_main() {
     D_800CD1DC_main = NULL;
 }
 
-/* from MP1 src/engine/esprite.c func_80018B2C (NON_MATCHING there).
-   NON_MATCHING: retail loads D_800CD1DC_main before indexing it and shares the clamp's store
-   (76 instructions, 56 differ); u16 i and MIN/MAX were worse. */
-#ifdef NON_MATCHING
+/* MP1 src/engine/esprite.c func_80018B2C: index the table for the flag test, then take the entry. */
 void func_8000BA30_main(void) {
     s32 i;
     s16 id;
@@ -108,15 +105,15 @@ void func_8000BA30_main(void) {
 
     if (D_800CD1DC_main != NULL) {
         for (i = 0; i < D_800C951C_main; i++) {
-            sprite = &D_800CD1DC_main[i];
-            if (sprite->unk00 & 1) {
+            if (D_800CD1DC_main[i].unk00 & 1) {
+                sprite = &D_800CD1DC_main[i];
                 id = sprite->unk04;
                 func_80054904_main(id, 0, sprite->unkA, sprite->unkC);
                 if (sprite->unk00 & 2) {
                     func_80055458_main(id, 0, sprite->unk1E);
                     sprite->unk1E += sprite->unk20;
                     if (sprite->unk20 > 0) {
-                        if (sprite->unk1C < sprite->unk1E) {
+                        if (sprite->unk1E > sprite->unk1C) {
                             sprite->unk1E = sprite->unk1C;
                         }
                     } else {
@@ -132,9 +129,6 @@ void func_8000BA30_main(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/esprite", func_8000BA30_main);
-#endif
 
 // espDispOn?
 void func_8000BB54_main(u16 arg0) {

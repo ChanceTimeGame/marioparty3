@@ -1199,12 +1199,9 @@ void func_80018978_main(Matrix4f m, f32 x, f32 y, f32 z) {
     m[3][3] = 1.0f;
 }
 
-// MP1 func_80022D9C (src/engine/math.c), also NON_MATCHING there. NON_MATCHING: register
-// allocation (masked 0, raw 26 since the unit is assembled with blank lines stripped, which removed
-// the extra mul-fix nop): FPRs from the found branch's midSlope on. S3-Q05 tried: r = u / ... as its
-// own statement (masked 6), midSlope/midVal and x0..s1 declared in other orders (no change).
-#ifdef NON_MATCHING
-// Piecewise-quadratic interpolation through four keys (y[], x[]) at time t.
+// MP2 func_8002662C_2722C (src/26370.c): piecewise-quadratic interpolation through four keys
+// (y[], x[]) at time t. Matches with the unit assembled blank-line stripped and MP2's permuter
+// temporary new_var.
 f32 func_80018ACC_main(f32* y, f32* x, f32 t) {
     f32 slope[2];
     s32 i;
@@ -1223,6 +1220,7 @@ f32 func_80018ACC_main(f32* y, f32* x, f32 t) {
     f32 y0;
     f32 y1;
     f32 s0;
+    f32 new_var;
     f32 s1;
 
     if (y[0] == y[1] && y[0] == y[2] && y[0] == y[3]) {
@@ -1247,7 +1245,7 @@ f32 func_80018ACC_main(f32* y, f32* x, f32 t) {
     } else {
         u = mid - x[1];
         midVal = (y[2] + y[1]) * (r = u / (x[2] - x[1]));
-        midSlope = ((y[2] - y[1]) + (y[2] - y[1])) / (x[2] - x[1]) - (slope[1] + slope[0]) * r;
+        midSlope = ((new_var = y[2] - y[1]) + (y[2] - y[1])) / (x[2] - x[1]) - (slope[1] + slope[0]) * r;
     }
     if (t < mid) {
         x0 = x[1];
@@ -1268,9 +1266,6 @@ f32 func_80018ACC_main(f32* y, f32* x, f32 t) {
     w = x1 - x0;
     return ds / (w + w) * (t - x0) * (t - x0) + ((y1 - y0) / w - ds / 2.0f) * (t - x0) + y0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80018ACC_main);
-#endif
 
 /* Determinant of a 3x3 matrix. */
 f32 func_80018D68_main(Matrix3f m) {

@@ -506,10 +506,9 @@ void* func_800635F4_main(s32 arg0) {
     return data;
 }
 
-/* MP2 func_8009110C_91D0C. Same instructions, but the KMC assembler's VR4300 mul fix (on for
-   this unit: func_80062A30_main needs it) adds a nop before the mult after the first bgezl. */
-#ifdef NON_MATCHING
-/* MP2 func_8009110C_91D0C: draw the wipe texture scaled by arg1 about the centre, fill the rest */
+/* MP2 func_8009110C_91D0C: draw the wipe texture scaled by arg1 about the centre, fill the rest.
+   Matches with the unit assembled as MP2 assembles it (blank lines stripped from GCC's output: KMC as
+   then adds no mul-fix nop before the mult after the first bgezl). */
 void func_800636D8_main(Gfx** arg0, f32 arg1, f32 arg2) {
     s16 var_t1;
     s16 var_t2;
@@ -565,9 +564,6 @@ void func_800636D8_main(Gfx** arg0, f32 arg1, f32 arg2) {
         gDPScisFillRectangle((*arg0)++, var_t4, var_t1, WIPE_W, var_t2);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/wipe", func_800636D8_main);
-#endif
 
 s32 func_800640EC_main(Gfx** arg0) {
     if (D_800D0A3C_main == 0.0f) {
