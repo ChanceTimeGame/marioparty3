@@ -78,7 +78,8 @@ s32 D_80101318_shared_board[] = {
     0, 0x00130248, 0x00130249, 0, 0x0013024B, 0x0013024C, 0x00130250, 0x0013024D,
     0, 0x0013024F, 0, 0, 0x00130251, 0x0013024E, 0x00130252, 0x0013024A,
 };
-/* two unreferenced 200x200 quads */
+/* two 200x200 quads (32x32 and 8x8 texels): FA250.c's space-marker draw loads them by their physical
+   addresses D_101358 ([0]) and D_101398 ([4]), absolute symbols in the matching build */
 Vtx D_80101358_shared_board[] = {
     { { { 100, 0, -100 }, 0, { 992, 992 }, { 0, 0, 0x7F, 0xFF } } },
     { { { -100, 0, -100 }, 0, { 0, 992 }, { 0, 0, 0x7F, 0xFF } } },

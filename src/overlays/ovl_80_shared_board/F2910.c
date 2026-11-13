@@ -75,18 +75,12 @@ typedef struct UnkData_CD0A0 {
     s8 recentMinigames[MINIGAME_TYPE_END][PREV_MINIGAME_LIST_LENGTH]; /* recent minigames per player, up to 2 */
 } UnkData_CD0A0;
 
-typedef struct Unk800CC3DC {
-    char unk_00[4];
-    s8 unk_04[8]; // unknown size
-} Unk800CC3DC;
-
-extern Unk800CC3DC D_800CC3DC_main;
 extern UnkData_CD0A0 D_800CC4A0_main;
 extern omObjData *D_80102C04_shared_board;
 extern s16 D_80102C0E_shared_board;
 extern s16 D_80102C10_shared_board;
 extern s16 D_80102C14_shared_board;
-extern u8 D_800CC3E0_main[];
+extern s8 D_800CC3E0_main[]; /* per-category recent-minigame ring index */
 extern u8 D_80100E18_shared_board[];
 extern u8 D_80100E20_shared_board[];
 extern u8 D_80100E28_shared_board[];
@@ -246,13 +240,13 @@ static void MBMgCallListExec(omObjData *arg0) {
             if (arg0->work[3] != 0) {
                 arg0->work[3]--;
             } else {
-                D_800CC4A0_main.recentMinigames[D_80102C0D_shared_board][D_800CC3DC_main.unk_04[D_80102C0D_shared_board]] = D_80102C08_shared_board[arg0->work[2]];
-                D_800CC3DC_main.unk_04[D_80102C0D_shared_board]++;
+                D_800CC4A0_main.recentMinigames[D_80102C0D_shared_board][D_800CC3E0_main[D_80102C0D_shared_board]] = D_80102C08_shared_board[arg0->work[2]];
+                D_800CC3E0_main[D_80102C0D_shared_board]++;
 
                 if (_CheckFlag(0x20) != 0) {
-                    D_800CC3DC_main.unk_04[D_80102C0D_shared_board] = (D_800CC3DC_main.unk_04[D_80102C0D_shared_board] % (s32)D_80100E28_shared_board[D_80102C0D_shared_board]);
+                    D_800CC3E0_main[D_80102C0D_shared_board] = (D_800CC3E0_main[D_80102C0D_shared_board] % (s32)D_80100E28_shared_board[D_80102C0D_shared_board]);
                 } else {
-                    D_800CC3DC_main.unk_04[D_80102C0D_shared_board] = (D_800CC3DC_main.unk_04[D_80102C0D_shared_board] % (s32)D_80100E20_shared_board[D_80102C0D_shared_board]);
+                    D_800CC3E0_main[D_80102C0D_shared_board] = (D_800CC3E0_main[D_80102C0D_shared_board] % (s32)D_80100E20_shared_board[D_80102C0D_shared_board]);
                 }
                 GWMgNoSet(D_80102C08_shared_board[arg0->work[2]]);
                 if (GwSystem.current_board_index != 6) {
