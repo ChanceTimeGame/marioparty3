@@ -13,14 +13,6 @@
 #define MS_FILE_END()
 #else
 #define MS_FILE_END() __asm__(".section .text\n    .align 4\n");
-/* fork B: corrected prototypes (the originals above were removed: C cannot redeclare them). The
-   float arguments travel in a1-a3 because the first argument is an integer. */
-void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set + apply */
-void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set */
-void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
-void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
-/* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
-
 #endif
 
 /* Sprite slot: D_8010F710_modesel[64] (filesel FsSpr). */
@@ -80,9 +72,6 @@ extern f32 D_8010F2BC_modesel;                   /* .data; lw: 801088AC */
 extern f32 D_8010F2C0_modesel;                   /* .data; lw: 801088AC */
 extern f32 D_8010F2C4_modesel;                   /* .data; lw: 801088AC */
 extern s32 D_8010F2C8_modesel;                   /* .data; lw,sw: 80109A58 */
-extern f32 D_8010F2CC_modesel;                   /* .data; lwc1,swc1: 8010A068 8010A1C4 8010A2E8 8010A420 */
-extern f32 D_8010F2D0_modesel;                   /* .data; lwc1,swc1: 8010A068 8010A1C4 8010A2E8 8010A420 */
-extern f32 D_8010F2D4_modesel[];                  /* .data; lwc1,swc1: 8010A068 8010A1C4 8010A2E8 8010A420 */
 extern s32 D_8010F2F0_modesel[];                  /* .data; lw: 8010DC6C */
 extern f32 D_8010F304_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
 extern f32 D_8010F308_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
@@ -305,6 +294,7 @@ void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part 
 void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part set */
 void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
 void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
+extern Vec D_8010F2CC_modesel[3]; /* .data: bob part positions of models 7..9 (were f32 D_8010F2CC/2D0/2D4) */
 /* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
 
 #endif
