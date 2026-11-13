@@ -10,17 +10,66 @@ typedef struct MsHmfCamView {
     /* 0x20 */ Vec up;
 } MsHmfCamView;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801059A0_modesel);
+void func_801059A0_modesel(void) {
+    ovlEventCall(D_8010F270_modesel, omovlevtno);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801059D0_modesel);
+MS_FILE_END()
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80105BD8_modesel);
+void func_801059D0_modesel(void) {
+    Vec pos;
+    Vec target;
+    Vec up;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80105BFC_modesel);
+    omInitObjMan(0x40, 0x20);
+    func_800142A0_main(0x20);
+    func_8004A208_main();
+    func_8000B5F0_main(1);
+    pos = D_8010F3B0_modesel;
+    target = D_8010F3BC_modesel;
+    up = D_8010F3C8_modesel;
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 41.0f, 80.0f, 8000.0f);
+    Hu3DCamSetPositionOrientation(0, &pos, &target, &up);
+    func_80030030_main(1.0f);
+    if (func_800465D0_main() != 0) {
+        func_8004A950_main();
+    }
+    pfInit();
+    func_8005A6B0_main();
+    HmfLightMaxSet(1);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightColorSet(3, 0, 0, 0);
+    HmfLightDirSet(1, 0.0f, 64.0f, 192.0f);
+    D_800D2132_main = 0;
+    _ClearFlag(0xD);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80105C20_modesel);
+void func_80105BD8_modesel(void) {
+    func_801059D0_modesel();
+    func_80107CB0_modesel();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80105C50_modesel);
+void func_80105BFC_modesel(void) {
+    func_801059D0_modesel();
+    func_80107CB0_modesel();
+}
+
+void func_80105C20_modesel(void) {
+    func_801059D0_modesel();
+    func_80107CB0_modesel();
+}
+
+MS_FILE_END()
+
+void func_80105C50_modesel(void) {
+    func_80105C7C_modesel();
+    func_80106234_modesel();
+    func_801074AC_modesel();
+}
 
 #ifdef NON_MATCHING
 void func_80105C7C_modesel(void) {
@@ -614,25 +663,65 @@ void func_80107B08_modesel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80107CB0_modesel);
+void func_80107CB0_modesel(void) {
+    func_80105C50_modesel();
+    D_80110BDC_modesel = omAddPrcObj(func_80107CEC_modesel, 0x5000, 0x2000, 0);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F454_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80107CEC_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801088AC_modesel);
+void func_801088AC_modesel(void) {
+    Hu3DCamSetPerspective(0, D_8010F2BC_modesel, D_8010F2C0_modesel, D_8010F2C4_modesel);
+    while (TRUE) {
+        func_80108A94_modesel(0);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801088F8_modesel);
+void func_801088F8_modesel(void) {
+    while (TRUE) {
+        func_80108F8C_modesel(&D_80110BE8_modesel[0], &D_80110BE8_modesel[1], &D_80110BE8_modesel[2]);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010893C_modesel);
+void func_8010893C_modesel(Process *proc) {
+    Vec eye;
+    Vec at;
+    Vec up;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010899C_modesel);
+    func_80108AE0_modesel(&eye, &at, &up);
+    func_80108F8C_modesel(&eye, &at, &up);
+    omDelPrcObj(proc);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801089DC_modesel);
+void func_8010899C_modesel(void) {
+    func_80108AE0_modesel(&D_80110BE8_modesel[0], &D_80110BE8_modesel[1], &D_80110BE8_modesel[2]);
+    omAddPrcObj(func_801088F8_modesel, 0x5000, 0x1800, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108A34_modesel);
+void func_801089DC_modesel(Vec *eye, Vec *at, Vec *up) {
+    HuVecCopy3F(eye, &D_80110BE8_modesel[0]);
+    HuVecCopy3F(at, &D_80110BE8_modesel[1]);
+    HuVecCopy3F(up, &D_80110BE8_modesel[2]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108A94_modesel);
+void func_80108A34_modesel(Vec *eye, Vec *at, Vec *up) {
+    HuVecCopy3F(&D_80110BE8_modesel[0], eye);
+    HuVecCopy3F(&D_80110BE8_modesel[1], at);
+    HuVecCopy3F(&D_80110BE8_modesel[2], up);
+}
+
+void func_80108A94_modesel(s32 arg0) {
+    Vec eye;
+    Vec at;
+    Vec up;
+
+    func_80108AE0_modesel(&eye, &at, &up);
+    func_80108F8C_modesel(&eye, &at, &up);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108AE0_modesel);
 

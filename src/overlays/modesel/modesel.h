@@ -7,6 +7,14 @@
    window helpers (func_80105C7C..func_80107B08) are filesel's library (filesel.h, 516AE0.c) shifted
    by 0x60 bytes, with the same slot counts. */
 
+/* The overlay was linked from several source files; each one starts 16-byte aligned. In the single
+   unit here, MS_FILE_END() after the last function of a file reproduces that padding. */
+#ifdef NON_MATCHING
+#define MS_FILE_END()
+#else
+#define MS_FILE_END() __asm__(".section .text\n    .align 4\n");
+#endif
+
 /* Sprite slot: D_8010F710_modesel[64] (filesel FsSpr). */
 typedef struct MsSpr {
     /* 0x00 */ s16 espId; /* esprite slot, -1 when free */
@@ -99,6 +107,7 @@ void func_80030030_main(f32);
 void func_800465DC_main(s8 arg0);
 void func_800465F4_main(s8 arg0);
 void func_80050CFC_main(void);
+s32 func_800465D0_main(void);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -197,7 +206,7 @@ void func_8010893C_modesel(Process *proc);
 void func_8010899C_modesel(void);
 void func_801089DC_modesel(Vec *eye, Vec *at, Vec *up); /* camera get */
 void func_80108A34_modesel(Vec *eye, Vec *at, Vec *up); /* camera set */
-void func_80108A94_modesel(void);
+void func_80108A94_modesel(s32 arg0); /* arg0 unused; the caller passes 0 */
 s32 func_80108AE0_modesel(Vec *eye, Vec *at, Vec *up);
 void func_80108F8C_modesel(Vec *eye, Vec *at, Vec *up);
 void func_80108FC4_modesel(void);
