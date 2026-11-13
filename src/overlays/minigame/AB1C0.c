@@ -52,6 +52,24 @@ typedef struct Vec4f {
     /* 0xC */ f32 w; /* radius */
 } Vec4f;
 
+/* A probe sphere plus the actor's position (MP2 collision.h ColSphere). */
+typedef struct ColSphere {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ f32 z;
+    /* 0x0C */ f32 r;
+    /* 0x10 */ f32 x2;
+    /* 0x14 */ f32 y2;
+    /* 0x18 */ f32 z2;
+} ColSphere;
+
+/* Result list of func_80021C14_main (src/20A20.c HitList). */
+typedef struct HitList {
+    /* 0x00 */ u16** list;
+    /* 0x04 */ u16 count;
+    /* 0x06 */ u16 pos;
+} HitList;
+
 /* omObjData.data of a ground / platform object (MP2 collision.h GroundWork; offsets checked
    against MP3's asm). */
 typedef struct GroundWork {
@@ -117,6 +135,24 @@ f32 func_800E2ED4_minigame(f32 ax, f32 az, f32 bx, f32 bz);  /* B3CE0: cos of th
 s32 func_800E5690_minigame(omObjData* obj, s32 motion);      /* B7600: set a motion */
 void omVibrate(s16 player, s16 duration, s16 off, s16 on);
 extern f32 D_800EB760_minigame;
+void func_80021C14_main(s16 mi, HitList* l, s32 (*cb)(), void* probe); /* src/20A20.c: faces near probe */
+void func_800DC354_minigame(omObjData* obj, Vec4f* s, Vec4f* p); /* A: shape 8 (ignores p) */
+void func_800DCCB0_minigame(omObjData* obj, Vec4f* s, Vec4f* p, f32 h);
+void func_800DC7D8_minigame(omObjData* obj, Vec4f* s);         /* A: shape 0x20 */
+void func_800DC8E4_minigame(omObjData* obj, Vec4f* s, f32 h);  /* A: shape 0x40 */
+s32 func_800DB724_minigame();                                  /* A: face callbacks for func_80021C14_main */
+s32 func_800DBCF4_minigame();
+void func_800DD1F4_minigame(omObjData* obj, Vec* s, f32 arg2);
+s32 func_800E1510_minigame(s8 surface);                        /* B3CE0 */
+void func_800E28BC_minigame(f32 (*l2w)[4], f32 (*w2l)[4], Vec* p, omObjData* obj); /* B3CE0 */
+void func_800E2B58_minigame(f32 (*m)[4], Vec* v);              /* B3CE0: rotate v */
+s32 func_800E2FD8_minigame(HmfModelData_Unk64_Unk60_Struct* b, Vec* p, f32 r); /* B3CE0 */
+extern u8 D_800EB734_minigame;          /* ground object the player stands on */
+extern u16 D_800EBE28_minigame;         /* ground object count */
+extern f32 D_800EBE30_minigame[4][4];   /* ground object: world to local */
+extern HitList D_800EBEB0_minigame;
+extern omObjData* D_800EC1C0_minigame[]; /* ground objects */
+extern s8 D_800EC286_minigame;          /* surface id of the last object touched */
 void func_800E2BD4_minigame(f32 (*m)[4], Vec* v); /* B3CE0: v = m * v (MP1 func_8000A464) */
 extern f32 D_800EC240_minigame[4][4]; /* ground object: local to world */
 void func_800E048C_minigame(f32 x, f32 y, f32 z);
@@ -306,7 +342,99 @@ void func_800DD1F4_minigame(omObjData* obj, Vec* s, f32 arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DD530_minigame);
+/* Push the player's sphere out of every ground object: the one it stands on (D_800EB734_minigame, in
+   world space) first, then the others in their local space. Returns the surface id of the last
+   object touched (-1 none); func_800DD1F4_minigame then handles a wall hit. */
+s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2) {
+    Vec4f s;
+    ColSphere s2;
+    MgWork* w = obj->data;
+    omObjData* o;
+    GroundWork* g;
+    s16 prev;
+    s16 i;
+
+    s.x = p->x;
+    s.y = w->unk_34 / 2.0f + p->y;
+    s.z = p->z;
+    s.w = p->w;
+    D_800EC286_minigame = -1;
+    D_800EB736_minigame = 0;
+    prev = D_800EB736_minigame;
+    if (!(w->unk_00[D_800EB734_minigame] & 1)) {
+        o = D_800EC1C0_minigame[D_800EB734_minigame];
+        g = o->data;
+        if (g->unk_06 & 8) {
+            s.x += D_800EBE2C_minigame;
+            s.y += D_800EC5D8_minigame;
+            func_800DC354_minigame(o, &s, &s);
+        } else if (g->unk_06 & 0x10) {
+            s.x += D_800EBE2C_minigame;
+            s.y += D_800EC5D8_minigame;
+            func_800DCCB0_minigame(o, &s, &s, w->unk_34 / 2.0f);
+        } else if (g->unk_06 & 0x20) {
+            s.x += D_800EBE2C_minigame;
+            s.y += D_800EC5D8_minigame;
+            func_800DC7D8_minigame(o, &s);
+        } else if (g->unk_06 & 0x40) {
+            s.x += D_800EBE2C_minigame;
+            s.y += D_800EC5D8_minigame;
+            func_800DC8E4_minigame(o, &s, w->unk_34 / 2.0f);
+        } else if (!(g->unk_06 & 2)) {
+            func_80021C14_main(*D_800EC1C0_minigame[D_800EB734_minigame]->model, &D_800EBEB0_minigame, func_800DB724_minigame, &s);
+        }
+        if (prev != D_800EB736_minigame) {
+            D_800EC286_minigame = g->unk_04;
+        }
+    }
+    for (i = 0; i < D_800EBE28_minigame; i++) {
+        o = D_800EC1C0_minigame[i];
+        g = o->data;
+        if (i == D_800EB734_minigame || (g->unk_06 & 2) || (w->unk_00[i] & 1)) {
+            continue;
+        }
+        prev = D_800EB736_minigame;
+        s2.x = s2.x2 = p->x;
+        s2.y = s2.y2 = w->unk_34 / 2.0f + p->y;
+        s2.z = s2.z2 = p->z;
+        s2.r = s.w = p->w;
+        func_800E28BC_minigame(D_800EC240_minigame, D_800EBE30_minigame, (Vec*)&s2, o);
+        if ((g->unk_06 & 4) && func_800E2FD8_minigame(HmfModelData[*o->model].hmf->unk60, (Vec*)&s2, w->unk_48) == 0) {
+            continue;
+        }
+        if (g->unk_06 & 8) {
+            s2.x += D_800EBE2C_minigame;
+            s2.y += D_800EC5D8_minigame;
+            func_800DC354_minigame(o, (Vec4f*)&s2, (Vec4f*)&s2.x2);
+        } else if (g->unk_06 & 0x10) {
+            s2.x += D_800EBE2C_minigame;
+            s2.y += D_800EC5D8_minigame;
+            func_800DCCB0_minigame(o, (Vec4f*)&s2, (Vec4f*)&s2.x2, w->unk_34 / 2.0f);
+        } else if (g->unk_06 & 0x20) {
+            s2.x += D_800EBE2C_minigame;
+            s2.y += D_800EC5D8_minigame;
+            func_800DC7D8_minigame(o, (Vec4f*)&s2);
+        } else if (g->unk_06 & 0x40) {
+            s2.x += D_800EBE2C_minigame;
+            s2.y += D_800EC5D8_minigame;
+            func_800DC8E4_minigame(o, (Vec4f*)&s2, w->unk_34 / 2.0f);
+        } else {
+            func_80021C14_main(*D_800EC1C0_minigame[i]->model, &D_800EBEB0_minigame, func_800DBCF4_minigame, &s2);
+        }
+        if (prev != D_800EB736_minigame) {
+            D_800EC286_minigame = g->unk_04;
+            func_800E2B58_minigame(D_800EC240_minigame, &D_800EC298_minigame[D_800EB736_minigame - 1]);
+        }
+    }
+    s.x = p->x + D_800EBE2C_minigame;
+    s.y = w->unk_34 / 2.0f + p->y;
+    s.z = p->z + D_800EC5D8_minigame;
+    s.w = p->w;
+    if (func_800E1510_minigame(D_800EC286_minigame) == 1) {
+        func_800DD1F4_minigame(obj, (Vec*)&s, arg2);
+    }
+    return D_800EC286_minigame;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DDB60_minigame);
 
