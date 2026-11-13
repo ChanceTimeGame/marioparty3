@@ -73,17 +73,12 @@ extern f32 D_8010F2C0_modesel;                   /* .data; lw: 801088AC */
 extern f32 D_8010F2C4_modesel;                   /* .data; lw: 801088AC */
 extern s32 D_8010F2C8_modesel;                   /* .data; lw,sw: 80109A58 */
 extern s32 D_8010F2F0_modesel[];                  /* .data; lw: 8010DC6C */
-extern f32 D_8010F304_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
-extern f32 D_8010F308_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
-extern f32 D_8010F30C_modesel[];                  /* .data; lwc1: 8010E000 8010E138 */
 extern s32 D_80110B1C_modesel;                   /* .bss 0x4 bytes; lw: 8010B824 */
 extern s32 D_80110B20_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
 extern s32 D_80110B28_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
 extern f32 D_80110B2C_modesel;                   /* .bss 0x4 bytes; swc1: 8010B790 */
-extern s32 D_80110BA8_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
-extern s32 D_80110BB0_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
-extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
+/* D_80110BD4_modesel, D_8010F304_modesel: fork C block */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
 
 /* Not declared here (mixed or address-only accesses; the fork that decompiles their users types them):
@@ -259,6 +254,7 @@ void func_8010DC6C_modesel(u32 arg0);
 void func_8010DE88_modesel(u32 arg0);
 void func_8010DF70_modesel(void);
 void func_8010DFB4_modesel(void);
+/* func_8010DFD0_modesel: fork C block */
 void func_8010E000_modesel(u32 arg0, s32 *arg1, s32 *arg2);
 void func_8010E138_modesel(u32 arg0, f32 *arg1, f32 *arg2, f32 *arg3);
 void func_8010E22C_modesel(s32 arg0, s32 arg1);
@@ -281,7 +277,7 @@ void func_8010ED00_modesel(void);
 void func_8010ED3C_modesel(void);
 s32 func_8010F1FC_modesel(void);
 s32 func_8010F204_modesel(s32 arg0); /* D_8010F2A0_modesel[arg0]; callers use v0 unmasked */
-u8 func_8010F214_modesel(s32 arg0);
+/* func_8010F214_modesel: fork C block */
 s32 func_8010F234_modesel(s32 arg0);
 u8 func_8010F258_modesel(s32 arg0);
 
@@ -292,9 +288,60 @@ void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part 
 void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
 void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
 extern Vec D_8010F2CC_modesel[3]; /* .data: bob part positions of models 7..9 (were f32 D_8010F2CC/2D0/2D4) */
-extern void *D_80110BD4_modesel; /* cannon part "taiho" (func_8001D33C_main); was s32 */
 void func_8010DFD0_modesel(u32 no); /* passes no to func_8010E000_modesel; was (void) */
 s32 func_8010CD00_modesel(u32 no, s32 btn); /* func_8010BA70_modesel passes the buttons in a1 */
 /* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
+/* fork C */
+/* func_8010DFD0_modesel passes its a0 on to func_8010E000_modesel (was declared (void)). */
+
+/* Item animation slots: D_80110CF0_modesel[21] (splat also names D_80110CF4/CF8). */
+typedef struct MsAnimSlot {
+    /* 0x00 */ s32 time;
+    /* 0x04 */ s32 len;
+    /* 0x08 */ omObjData *obj;
+} MsAnimSlot; /* size = 0xC */
+extern MsAnimSlot D_80110CF0_modesel[21];
+extern s32 D_80110DEC_modesel; /* rumble timer */
+s32 func_8010F214_modesel(s32 arg0); /* returns an int (was u8) */
+
+/* Choice points in world space (D_8010F304_modesel[8]; splat also names D_8010F308/F30C). */
+extern Vec D_8010F304_modesel[];
+
+/* A motion object of a model (MP3 hmfman.c HmfMotionObjM, size 0x98), from func_8001D33C_main. */
+typedef struct MsMotObj {
+    /* 0x00 */ char unk0[0x1C];
+    /* 0x1C */ Vec unk1C; /* scale */
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec unk40; /* scale */
+    /* 0x4C */ char unk4C[0x4C];
+} MsMotObj; /* size = 0x98 */
+extern MsMotObj *D_80110BD4_modesel; /* was s32: func_8010AF90_modesel stores func_8001D33C_main's pointer */
+
+/* Summary of a saved game for the resume prompt (func_8010E7B4_modesel): board play
+   D_80110B88_modesel (4 players; splat also names D_80110B98/BA8/BAC/BB0) and the 2-player save
+   D_80110BB4_modesel (splat: D_80110BBC/BC4/BC8/BCC). */
+typedef struct MsSaveSum4 {
+    /* 0x00 */ s32 chr[4];
+    /* 0x10 */ s32 com[4]; /* player stat bit 0 */
+    /* 0x20 */ s32 length; /* game length, at most 3 */
+    /* 0x24 */ s32 turn;   /* at most 99 */
+    /* 0x28 */ s32 turnMax;
+} MsSaveSum4; /* size = 0x2C */
+typedef struct MsSaveSum2 {
+    /* 0x00 */ s32 chr[2];
+    /* 0x08 */ s32 com[2];
+    /* 0x10 */ s32 length;
+    /* 0x14 */ s32 turn;
+    /* 0x18 */ s32 turnMax;
+} MsSaveSum2; /* size = 0x1C */
+typedef struct MsUnkB70 {
+    s32 unk0, unk4, unk8, unkC, unk10, unk14; /* only cleared, by func_8010E7B4_modesel */
+} MsUnkB70;
+extern MsUnkB70 D_80110B70_modesel;
+extern MsSaveSum4 D_80110B88_modesel;
+extern MsSaveSum2 D_80110BB4_modesel;
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c (as filesel.h) */
+void func_800E9170_minigame(void); /* mini-game picker process; user_data points at an s16 slot/result */
+extern s16 D_800EBAF0_minigame;
 
 #endif

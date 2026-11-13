@@ -1,6 +1,7 @@
 #include "common.h"
 #include "modesel.h"
 #include "mallocblock.h"
+#include "game/vibrator.h"
 
 /* Camera view a model's HmfData points to at 0xBC (read by the debug print func_80107954_modesel). */
 typedef struct MsHmfCamView {
@@ -2331,79 +2332,1431 @@ s32 func_8010BA70_modesel(void) {
     return ret;
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: masked 0, register allocation only (retail keeps i in s1 and the summary base in s2); logic checked against the asm. */
+/* Build the two save summaries' sprites (0xA-0x27): characters, COM marks, board, turns. */
+s32 func_8010C094_modesel(void) {
+    s32 i;
+    s32 y;
+    s32 x;
+    s32 chr;
+
+    func_8005086C_main();
+    x = 80;
+    y = 104;
+    func_80105EA8_modesel(10, 0x1F0019);
+    func_8010601C_modesel(10, x, y);
+    func_80105FB4_modesel(10);
+    for (i = 0; i < 4; i++) {
+        if (i == 0) {
+            func_80105EA8_modesel(11, 0x1F0004);
+        } else {
+            func_80105DD0_modesel(i + 11, 11);
+        }
+        func_80106194_modesel(i + 11, 5);
+        func_8010601C_modesel(i + 11, x + (i - 2) * 16 + 8, y - 21);
+        func_801061C8_modesel(i + 11, D_80110B88_modesel.chr[i], 0);
+        func_80105FB4_modesel(i + 11);
+        if (i == 0) {
+            func_80105EA8_modesel(15, 0x1F0008);
+        } else {
+            func_80105DD0_modesel(i + 15, 15);
+        }
+        func_80106194_modesel(i + 15, 5);
+        func_8010601C_modesel(i + 15, x + (i - 2) * 16 + 8, y - 9);
+        func_80105FB4_modesel(i + 15);
+    }
+    func_80105EA8_modesel(19, 0x1F000C);
+    func_80106194_modesel(19, 5);
+    func_8010601C_modesel(19, x, y - 36);
+    func_801061C8_modesel(19, 0, 0);
+    func_80105FB4_modesel(19);
+    func_80105EA8_modesel(20, 0x1F000B);
+    func_80106194_modesel(20, 5);
+    func_8010601C_modesel(20, x, y + 6);
+    func_801061C8_modesel(20, GwSystem.current_board_index, 0);
+    func_80105FB4_modesel(20);
+    func_80105EA8_modesel(21, 0x1F0006);
+    func_80106194_modesel(21, 5);
+    func_8010601C_modesel(21, x - 24, y + 30);
+    func_80105FB4_modesel(21);
+    func_80105EA8_modesel(22, 0x1F0007);
+    func_80106194_modesel(22, 5);
+    func_8010601C_modesel(22, x + 8, y + 30);
+    func_801061C8_modesel(22, D_80110B88_modesel.turn % 10, 0);
+    func_80105FB4_modesel(22);
+    func_80105DD0_modesel(23, 22);
+    func_80106194_modesel(23, 5);
+    func_8010601C_modesel(23, x, y + 30);
+    func_801061C8_modesel(23, D_80110B88_modesel.turn / 10, 0);
+    func_80105FB4_modesel(23);
+    func_80105EA8_modesel(24, 0x1F0028);
+    func_8010601C_modesel(24, x + 16, y + 30);
+    func_80106194_modesel(24, 5);
+    func_80105FB4_modesel(24);
+    func_80105DD0_modesel(25, 22);
+    func_80106194_modesel(25, 5);
+    func_8010601C_modesel(25, x + 32, y + 30);
+    func_801061C8_modesel(25, D_80110B88_modesel.turnMax % 10, 0);
+    func_80105FB4_modesel(25);
+    func_80105DD0_modesel(26, 22);
+    func_80106194_modesel(26, 5);
+    func_8010601C_modesel(26, x + 24, y + 30);
+    func_801061C8_modesel(26, D_80110B88_modesel.turnMax / 10, 0);
+    func_80105FB4_modesel(26);
+    func_80050974_main();
+    x = 240;
+    y = 104;
+    func_80105DD0_modesel(27, 10);
+    func_8010601C_modesel(27, x, y);
+    func_80105FB4_modesel(27);
+    for (i = 0; i < 2; i++) {
+        if (i == 0) {
+            func_80105EA8_modesel(28, 0x1F0004);
+        } else {
+            func_80105DD0_modesel(i + 28, 28);
+        }
+        chr = D_80110BB4_modesel.chr[i];
+        func_80106194_modesel(i + 28, 5);
+        func_8010601C_modesel(i + 28, x + i * 32 - 16, y - 21);
+        func_801061C8_modesel(i + 28, chr, 0);
+        func_80105FB4_modesel(i + 28);
+        if (i == 0) {
+            func_80105EA8_modesel(30, 0x1F0008);
+        } else {
+            func_80105DD0_modesel(i + 30, 30);
+        }
+        func_80106194_modesel(i + 30, 5);
+        func_8010601C_modesel(i + 30, x + i * 32 - 16, y - 9);
+        func_80105FB4_modesel(i + 30);
+    }
+    x = 240;
+    y = 104;
+    func_80105DD0_modesel(32, 19);
+    func_80106194_modesel(32, 5);
+    func_8010601C_modesel(32, x, y - 36);
+    func_801061C8_modesel(32, 1, 0);
+    func_80105FB4_modesel(32);
+    func_80105EA8_modesel(33, 0x1F000A);
+    func_80106194_modesel(33, 5);
+    func_8010601C_modesel(33, x, y + 6);
+    func_801061C8_modesel(33, GwSystem.current_board_index, 0);
+    func_80105FB4_modesel(33);
+    func_80105DD0_modesel(34, 21);
+    func_80106194_modesel(34, 5);
+    func_8010601C_modesel(34, x - 24, y + 30);
+    func_80105FB4_modesel(34);
+    func_80105DD0_modesel(35, 22);
+    func_80106194_modesel(35, 5);
+    func_8010601C_modesel(35, x + 8, y + 30);
+    func_801061C8_modesel(35, D_80110BB4_modesel.turn % 10, 0);
+    func_80105FB4_modesel(35);
+    func_80105DD0_modesel(36, 22);
+    func_80106194_modesel(36, 5);
+    func_8010601C_modesel(36, x, y + 30);
+    func_801061C8_modesel(36, D_80110BB4_modesel.turn / 10, 0);
+    func_80105FB4_modesel(36);
+    if (D_80110BB4_modesel.turnMax != 20) {
+        func_80105EA8_modesel(37, 0x1F0027);
+        func_8010601C_modesel(37, x, y + 30);
+    } else {
+        func_80105EA8_modesel(37, 0x1F0028);
+        func_8010601C_modesel(37, x + 16, y + 30);
+    }
+    func_80106194_modesel(37, 5);
+    func_80105FB4_modesel(37);
+    func_80105DD0_modesel(38, 22);
+    func_80106194_modesel(38, 5);
+    func_8010601C_modesel(38, x + 32, y + 30);
+    func_801061C8_modesel(38, D_80110BB4_modesel.turnMax % 10, 0);
+    func_80105FB4_modesel(38);
+    func_80105DD0_modesel(39, 22);
+    func_80106194_modesel(39, 5);
+    func_8010601C_modesel(39, x + 24, y + 30);
+    func_801061C8_modesel(39, D_80110BB4_modesel.turnMax / 10, 0);
+    func_80105FB4_modesel(39);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C094_modesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C874_modesel);
+/* Show the two save summaries' sprites (0xA-0x27). */
+void func_8010C874_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CA30_modesel);
+    func_80105FE4_modesel(10);
+    func_80105FE4_modesel(11);
+    func_80105FE4_modesel(12);
+    func_80105FE4_modesel(13);
+    func_80105FE4_modesel(14);
+    for (i = 0; i < 4; i++) {
+        if (D_80110B88_modesel.com[i] != 0) {
+            func_80105FE4_modesel(i + 15);
+        }
+    }
+    func_80105FE4_modesel(19);
+    func_80105FE4_modesel(20);
+    func_80105FE4_modesel(21);
+    func_80105FE4_modesel(24);
+    if (D_80110B88_modesel.turn / 10 != 0) {
+        func_80105FE4_modesel(23);
+    }
+    func_80105FE4_modesel(22);
+    func_80105FE4_modesel(26);
+    func_80105FE4_modesel(25);
+    func_80105FE4_modesel(27);
+    func_80105FE4_modesel(28);
+    func_80105FE4_modesel(29);
+    for (i = 0; i < 2; i++) {
+        if (D_80110BB4_modesel.com[i] != 0) {
+            func_80105FE4_modesel(i + 30);
+        }
+    }
+    func_80105FE4_modesel(32);
+    func_80105FE4_modesel(33);
+    func_80105FE4_modesel(34);
+    func_80105FE4_modesel(37);
+    if (D_80110BB4_modesel.turnMax == 20) {
+        if (D_80110BB4_modesel.turn / 10 != 0) {
+            func_80105FE4_modesel(36);
+        }
+        func_80105FE4_modesel(35);
+        func_80105FE4_modesel(39);
+        func_80105FE4_modesel(38);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CB34_modesel);
+void func_8010CA30_modesel(void) {
+    func_80106000_modesel(10);
+    func_80106000_modesel(11);
+    func_80106000_modesel(12);
+    func_80106000_modesel(13);
+    func_80106000_modesel(14);
+    func_80106000_modesel(15);
+    func_80106000_modesel(16);
+    func_80106000_modesel(17);
+    func_80106000_modesel(18);
+    func_80106000_modesel(19);
+    func_80106000_modesel(20);
+    func_80106000_modesel(21);
+    func_80106000_modesel(22);
+    func_80106000_modesel(23);
+    func_80106000_modesel(24);
+    func_80106000_modesel(25);
+    func_80106000_modesel(26);
+    func_80106000_modesel(27);
+    func_80106000_modesel(28);
+    func_80106000_modesel(29);
+    func_80106000_modesel(30);
+    func_80106000_modesel(31);
+    func_80106000_modesel(32);
+    func_80106000_modesel(33);
+    func_80106000_modesel(34);
+    func_80106000_modesel(35);
+    func_80106000_modesel(36);
+    func_80106000_modesel(37);
+    func_80106000_modesel(38);
+    func_80106000_modesel(39);
+}
 
+void func_8010CB34_modesel(void) {
+    func_80105F20_modesel(39);
+    func_80105F20_modesel(38);
+    func_80105F20_modesel(36);
+    func_80105F20_modesel(35);
+    func_80105F20_modesel(26);
+    func_80105F20_modesel(25);
+    func_80105F20_modesel(23);
+    func_80105F20_modesel(22);
+    func_80105F20_modesel(37);
+    func_80105F20_modesel(24);
+    func_80105F20_modesel(34);
+    func_80105F20_modesel(21);
+    func_80105F20_modesel(33);
+    func_80105F20_modesel(20);
+    func_80105F20_modesel(32);
+    func_80105F20_modesel(19);
+    func_80105F20_modesel(31);
+    func_80105F20_modesel(30);
+    func_80105F20_modesel(18);
+    func_80105F20_modesel(17);
+    func_80105F20_modesel(16);
+    func_80105F20_modesel(15);
+    func_80105F20_modesel(29);
+    func_80105F20_modesel(28);
+    func_80105F20_modesel(14);
+    func_80105F20_modesel(13);
+    func_80105F20_modesel(12);
+    func_80105F20_modesel(11);
+    func_80105F20_modesel(27);
+    func_80105F20_modesel(10);
+}
+
+#ifdef NON_MATCHING
+/* The two-choice prompt (NON_MATCHING: retail enters the loop with a0 = 14 as a constant and lays the
+   B branch out with a j instead of branch-likely; logic checked against the asm): the cursor sprite moves between choices 14 and 15; A returns the choice, B -1. */
+s32 func_8010CC38_modesel(void) {
+    s32 x;
+    s32 y;
+    s32 btn;
+    u32 sel;
+
+    func_8010C094_modesel();
+    sel = 14;
+    func_8010C874_modesel();
+    while (TRUE) {
+        func_8010E000_modesel(sel, &x, &y);
+        func_8010601C_modesel(1, x, y);
+        HuPrcVSleep();
+        btn = D_800D5558_main[0];
+        btn |= func_80109A58_modesel(0);
+        if (!(btn & 0x8000)) {
+            if (btn & 0x4000) {
+                sel = -1;
+            } else {
+                if (btn & 0xF00) {
+                    sel = (sel == 14) ? 15 : 14;
+                    func_8010E280_modesel(1, sel);
+                }
+                continue;
+            }
+        }
+        break;
+    }
+    func_8010CA30_modesel();
+    func_8010CB34_modesel();
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CC38_modesel);
+#endif
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 909 of 987 instructions: GCC cross-jumps the identical prompt tails of cases 7 and 8 and keeps the refusal message in a variable, where retail keeps separate copies; the case 2 result poll compares -3/-2/-1 in registers; logic checked against the asm. */
+/* Choice `choice` confirmed with A: runs its prompts and returns the mode to start (-1 for none):
+   0 mini-game (2), 1 (3), 4-10, 11, 13, 14. */
+s32 func_8010CD00_modesel(u32 choice) {
+    s32 ret = -1;
+    s16 slot;
+    s32 answer;
+    u32 mes;
+    s32 i;
+    s32 k;
+    s32 name;
+    s32 chr;
+    s32 max;
+    s32 best;
+
+    switch (choice) {
+    case 0:
+        break;
+    case 2:
+        func_80107700_modesel(0);
+        func_80106000_modesel(1);
+        func_8010EC40_modesel();
+        D_800EBAF0_minigame = 0;
+        slot = D_80110BDA_modesel;
+        HuPrcVSleep();
+        if (func_800E905C_minigame(slot) < 0) {
+            while (TRUE) {
+                HuPrcVSleep();
+            }
+        }
+        omAddPrcObj(func_800E9170_minigame, 0x4000, 0x800, 0)->user_data = &slot;
+        while (TRUE) {
+            if (slot == -3 || slot == -2) {
+                break;
+            }
+            if (slot == -1) {
+                ret = 0;
+                break;
+            }
+            HuPrcVSleep();
+        }
+        func_801076D0_modesel(0);
+        func_80105FE4_modesel(1);
+        func_8010EBF8_modesel();
+        return ret;
+    case 3:
+        HuAudFXPlay(3);
+        ret = 1;
+        break;
+    case 5:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        if (func_800465D0_main() == 1) {
+            if (_CheckFlag(0x16) && _CheckFlag(0x17)) {
+                func_80107730_modesel(0, 0x3112);
+                answer = func_8010CC38_modesel();
+                if (answer != -1) {
+                    ret = 5;
+                    if (answer == 14) {
+                        ret = 8;
+                    }
+                    func_80107700_modesel(0);
+                    func_80106000_modesel(1);
+                } else {
+                    func_80107730_modesel(0, 0x3102);
+                }
+            } else if (_CheckFlag(0x16) && !_CheckFlag(0x17)) {
+                ret = 8;
+                func_80107700_modesel(0);
+                func_80106000_modesel(1);
+            } else if (!_CheckFlag(0x16) && _CheckFlag(0x17)) {
+                ret = 5;
+                func_80107700_modesel(0);
+                func_80106000_modesel(1);
+            }
+        } else {
+            func_80107700_modesel(0);
+            func_80106000_modesel(1);
+            ret = 11;
+        }
+        if (ret != -1) {
+            RepeatVibrator(0, 30, 0, 30);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 7:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            mes = 0x3118;
+            goto refuse7;
+        }
+        if (func_800465D0_main() == 0 && !(GwSystem.playMode & 2)) {
+            mes = 0x3118;
+            goto refuse7;
+        }
+        func_80107730_modesel(0, 0x310A);
+        func_8010788C_modesel(0);
+        switch (func_80107838_modesel(0, 1, 0)) {
+        case 0:
+            ret = 6;
+            break;
+        case 1:
+            if (func_800465D0_main() == 1) {
+                if (!_CheckFlag(0x17)) {
+                    ret = 4;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    func_8010788C_modesel(0);
+                    HuPrcVSleep();
+                    func_80107730_modesel(0, 0x310D);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310E);
+                        func_8010788C_modesel(0);
+                        ret = 4;
+                    } else {
+                        mes = 0x3110;
+                        goto refuse7;
+                    }
+                }
+            } else if (GwSystem.playMode & 2) {
+                if (!_CheckFlag(0x28)) {
+                    ret = 10;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    HuPrcSleep(8);
+                    func_801078E0_modesel(0xC000);
+                    func_80107730_modesel(0, 0x310C);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310F);
+                        func_8010788C_modesel(0);
+                        if (func_80107838_modesel(0, 1, 1) == 0) {
+                            ret = 10;
+                            break;
+                        }
+                    }
+                    func_80107730_modesel(0, 0x3110);
+                    func_8010788C_modesel(0);
+                    func_8010DC6C_modesel(choice);
+                }
+            } else {
+                mes = 0x3118;
+                goto refuse7;
+            }
+            break;
+        default:
+            func_8010DC6C_modesel(choice);
+            break;
+        }
+        goto end7;
+    refuse7:
+        func_80107730_modesel(0, mes);
+        func_8010788C_modesel(0);
+        func_80107730_modesel(0, 0x3104);
+    end7:
+        if (ret != -1) {
+            func_80107730_modesel(0, 0x3117);
+            func_8010788C_modesel(0);
+            func_80107730_modesel(0, (u32)D_8010F454_modesel);
+        } else {
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 8:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            mes = 0x3118;
+            goto refuse8;
+        }
+        if (func_800465D0_main() == 0 && (GwSystem.playMode & 2)) {
+            mes = 0x3118;
+            goto refuse8;
+        }
+        func_80107730_modesel(0, 0x3109);
+        func_8010788C_modesel(0);
+        switch (func_80107838_modesel(0, 1, 0)) {
+        case 0:
+            ret = 9;
+            break;
+        case 1:
+            if (func_800465D0_main() == 1) {
+                if (!_CheckFlag(0x16)) {
+                    ret = 7;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    func_8010788C_modesel(0);
+                    HuPrcVSleep();
+                    func_80107730_modesel(0, 0x310D);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310E);
+                        func_8010788C_modesel(0);
+                        ret = 7;
+                    } else {
+                        mes = 0x3110;
+                        goto refuse8;
+                    }
+                }
+            } else if (GwSystem.playMode & 2) {
+                mes = 0x3118;
+                goto refuse8;
+            } else if (!_CheckFlag(0x28)) {
+                ret = 10;
+            } else {
+                func_80107730_modesel(0, 0x310B);
+                func_8010788C_modesel(0);
+                HuPrcVSleep();
+                func_80107730_modesel(0, 0x310C);
+                func_8010788C_modesel(0);
+                if (func_80107838_modesel(0, 1, 1) == 0) {
+                    func_80107730_modesel(0, 0x310F);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        ret = 10;
+                        break;
+                    }
+                }
+                func_80107730_modesel(0, 0x3110);
+                func_8010788C_modesel(0);
+                func_8010DC6C_modesel(choice);
+            }
+            break;
+        default:
+            func_8010DC6C_modesel(choice);
+            break;
+        }
+        goto end8;
+    refuse8:
+        func_80107730_modesel(0, mes);
+        func_8010788C_modesel(0);
+        func_80107730_modesel(0, 0x3103);
+    end8:
+        if (ret != -1) {
+            func_80107730_modesel(0, 0x3117);
+            func_8010788C_modesel(0);
+            func_80107730_modesel(0, (u32)D_8010F454_modesel);
+        } else {
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 9:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        for (i = 0; i < 72; i++) {
+            if (GWMgUnlockCheck(i) != 0) {
+                break;
+            }
+        }
+        if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x3118);
+            func_8010788C_modesel(0);
+            mes = 0x313E;
+        } else if (i == 72) {
+            func_80107730_modesel(0, 0x3111);
+            func_8010788C_modesel(0);
+            mes = 0x3105;
+        } else {
+            func_80107730_modesel(0, 0x3133);
+            func_8010788C_modesel(0);
+            if (func_80107838_modesel(0, 1, 0) == 0) {
+                ret = 13;
+                func_80107730_modesel(0, 0x3117);
+                func_8010788C_modesel(0);
+                func_80107730_modesel(0, (u32)D_8010F454_modesel);
+                func_801067C0_modesel(10, 0x14, 8, 8, 2);
+                break;
+            }
+            if (func_800465D0_main() == 0) {
+                mes = 0x313E;
+            } else {
+                mes = 0x3105;
+            }
+        }
+        func_80107730_modesel(0, mes);
+        func_80105F84_modesel(1);
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 10:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            func_80106000_modesel(1);
+            func_80107730_modesel(0, 0x313C);
+            func_8010788C_modesel(0);
+            if (func_80107838_modesel(0, 1, 1) == 0) {
+                func_80107730_modesel(0, 0x313D);
+                func_8010788C_modesel(0);
+                func_80107730_modesel(0, (u32)D_8010F454_modesel);
+                ret = 14;
+            } else {
+                func_80107730_modesel(0, 0x3119);
+                func_80105FE4_modesel(1);
+            }
+        } else {
+            func_80106000_modesel(1);
+            if (func_800465D0_main() == 0) {
+                func_80107730_modesel(0, 0x3137);
+                func_8010788C_modesel(0);
+                answer = func_80107838_modesel(0, 1, 0);
+                if (answer == 0) {
+                    func_80107730_modesel(0, 0x3138);
+                    func_8010788C_modesel(0);
+                    func_801074F0_modesel(0);
+                    func_80106BA0_modesel(0, (u32)D_8010F454_modesel, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+                }
+                if (answer == 1) {
+                    func_80107730_modesel(0, 0x3139);
+                    func_8010788C_modesel(0);
+                    answer = func_80107838_modesel(0, 1, 0);
+                    if (answer == 0) {
+                        func_8010ED3C_modesel();
+                    }
+                    if (answer == 1) {
+                        func_80107730_modesel(0, 0x313A);
+                        func_8010788C_modesel(0);
+                    }
+                }
+                func_80107730_modesel(0, 0x3122);
+            } else {
+                /* A random board: name its best player from the per-board win records
+                   (GwCommon 0x20 / 0x56, 9 bytes per entry), unless two share the best. */
+                u8 *rec;
+
+                best = -1;
+                k = (rand8() & 0xFF) * 0.039215688f;
+                name = func_8010F204_modesel(k);
+                chr = func_8010F214_modesel(k);
+                max = 0;
+                if (func_8010F234_modesel(k) == 2) {
+                    rec = (u8 *)&GwCommon + 0x56 + chr * 9;
+                } else {
+                    rec = (u8 *)&GwCommon + 0x20 + chr * 9;
+                }
+                for (i = 0; i < 8; i++) {
+                    if (max < rec[i]) {
+                        max = rec[i];
+                        best = i;
+                    }
+                }
+                for (i = 0; i < 8; i++) {
+                    if (rec[i] == max && best != i) {
+                        best = -1;
+                        break;
+                    }
+                }
+                mes = name + 0x3127;
+                func_801077FC_modesel(0, 0, mes);
+                func_80107730_modesel(0, 0x3125);
+                func_8010788C_modesel(0);
+                if (best != -1) {
+                    func_801077FC_modesel(0, 0, mes);
+                    func_801077FC_modesel(0, 1, best + 0x1C00);
+                    func_80107730_modesel(0, 0x3126);
+                    func_8010788C_modesel(0);
+                }
+                func_80107730_modesel(0, 0x3124);
+                HuPrcSleep(3);
+            }
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CD00_modesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010D8DC_modesel);
+/* Move the cursor from choice `cur` with the D-pad buttons `btn` (0x800 up, 0x400 down, 0x200 left,
+   0x100 right); choices 0-2 cycle the mini-game slot D_80110BD8_modesel. Returns the new choice. */
+u32 func_8010D8DC_modesel(u32 cur, s32 btn) {
+    u32 sel = cur;
+    s32 unlocked;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DC6C_modesel);
+    if (func_800465D0_main() == 1) {
+        unlocked = 0;
+        if (_CheckFlag(0x16) || _CheckFlag(0x17)) {
+            unlocked = 1;
+        }
+    } else {
+        unlocked = _CheckFlag(0x28);
+    }
+    switch (cur) {
+    case 0:
+    case 1:
+    case 2:
+        if (btn & 0x200) {
+            do {
+                D_80110BD8_modesel = (D_80110BD8_modesel - 1 < 0) ? 5 : D_80110BD8_modesel - 1;
+            } while (func_800E905C_minigame(D_80110BDA_modesel) < 0);
+        } else if (btn & 0x100) {
+            do {
+                D_80110BD8_modesel = (D_80110BD8_modesel + 1 < 6) ? D_80110BD8_modesel + 1 : 0;
+            } while (func_800E905C_minigame(D_80110BDA_modesel) < 0);
+        } else if (btn & 0x400) {
+            sel = 3;
+        }
+        break;
+    case 3:
+        if (btn & 0x800) {
+            for (i = 0; i < 6; i++) {
+                if (func_800E905C_minigame(i) >= 0) {
+                    sel = 2;
+                }
+            }
+        } else if (btn & 0x200) {
+            sel = 8;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 == 12) ? 10 : 8;
+            }
+        } else if (btn & 0x100) {
+            sel = (unlocked == 0) ? 7 : 5;
+        } else if (btn & 0x400) {
+            sel = 9;
+        }
+        break;
+    case 4:
+    case 5:
+        if (btn & 0x800) {
+            sel = 3;
+        } else if (btn & 0x200) {
+            sel = 9;
+        } else if (btn & 0x400) {
+            sel = 7;
+        }
+        break;
+    case 6:
+    case 7:
+        if (btn & 0x800) {
+            sel = 9;
+            if (unlocked != 0) {
+                sel = 5;
+            }
+        } else if (btn & 0x200) {
+            sel = 10;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 != 12) ? 10 : 8;
+            }
+        }
+        break;
+    case 8:
+        if (btn & 0x800) {
+            sel = 9;
+            if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+                sel = 10;
+            }
+        } else if (btn & 0x100) {
+            sel = 10;
+            if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+                sel = 7;
+            }
+        }
+        break;
+    case 9:
+        if (btn & 0x800) {
+            sel = 3;
+        } else if (btn & 0x200) {
+            sel = 8;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 == 12) ? 10 : 8;
+            }
+        } else if (btn & 0x400) {
+            sel = 10;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 != 12) ? 10 : 8;
+            }
+        } else if (btn & 0x100) {
+            sel = (unlocked == 0) ? 7 : 5;
+        }
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            if (btn & 0x800) {
+                sel = 9;
+            } else if (btn & 0x200) {
+            } else if (btn & 0x400) {
+                sel = 8;
+            } else if (btn & 0x100) {
+                sel = 9;
+            }
+        } else {
+            if (btn & 0x800) {
+                sel = 9;
+            } else if (btn & 0x200) {
+                sel = 8;
+            } else if (btn & 0x400) {
+            } else if (btn & 0x100) {
+                sel = 7;
+            }
+        }
+        break;
+    }
+    func_8010DE88_modesel(sel);
+    func_8010DC6C_modesel(sel);
+    return sel;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DE88_modesel);
+/* Help message (window 0) for choice `choice`. */
+void func_8010DC6C_modesel(u32 choice) {
+    s32 rank;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DF70_modesel);
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        rank = func_800E905C_minigame(D_80110BDA_modesel);
+        rank = (rank >= 0) ? ((rank >= 5) ? 4 : rank) : 0;
+        func_80107730_modesel(0, 0x3114);
+        func_801077FC_modesel(0, 0, D_8010F2F0_modesel[rank]);
+        func_801077FC_modesel(0, 1, D_80110BD8_modesel + 0x1C00);
+        break;
+    case 3:
+        func_80107730_modesel(0, 0x3107);
+        break;
+    case 4:
+    case 5:
+        func_80107730_modesel(0, 0x3106);
+        break;
+    case 7:
+        if (func_800465D0_main() == 1) {
+            func_80107730_modesel(0, 0x3104);
+        } else if ((GwSystem.playMode & 2) && GwStory.unk0 != 12) {
+            func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+            func_80107730_modesel(0, 0x3135);
+        } else {
+            func_80107730_modesel(0, 0x3104);
+        }
+        break;
+    case 8:
+        if (func_800465D0_main() == 1) {
+            func_80107730_modesel(0, 0x3103);
+        } else if ((GwSystem.playMode & 1) && GwStory.unk0 != 12) {
+            func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+            func_80107730_modesel(0, 0x3135);
+        } else {
+            func_80107730_modesel(0, 0x3103);
+        }
+        break;
+    case 9:
+        if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x313E);
+        } else {
+            func_80107730_modesel(0, 0x3105);
+        }
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            func_80107730_modesel(0, 0x3119);
+        } else if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x3122);
+        } else {
+            func_80107730_modesel(0, 0x3124);
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DFB4_modesel);
+/* Choice `choice` picked: start its model animation and move the cursor to it. */
+void func_8010DE88_modesel(u32 choice) {
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        func_800E905C_minigame(D_80110BDA_modesel);
+        func_8010E280_modesel(1, 2);
+        break;
+    case 3:
+        func_80109188_modesel(3, 8);
+        func_8010E280_modesel(1, 3);
+        break;
+    case 4:
+    case 5:
+        func_80109188_modesel(5, 8);
+        func_8010E280_modesel(1, 5);
+        break;
+    case 7:
+        func_80109188_modesel(7, 8);
+        func_8010E280_modesel(1, 7);
+        break;
+    case 8:
+        func_80109188_modesel(8, 8);
+        func_8010E280_modesel(1, 8);
+        break;
+    case 9:
+        func_80109188_modesel(9, 8);
+        func_8010E280_modesel(1, 9);
+        break;
+    case 10:
+        func_800465D0_main();
+        func_80109188_modesel(10, 8);
+        func_8010E280_modesel(1, 10);
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DFD0_modesel);
+void func_8010DF70_modesel(void) {
+    func_80105EA8_modesel(1, 0x88);
+    func_80106194_modesel(1, 5);
+    func_8010601C_modesel(1, 160, 113);
+    func_80105F84_modesel(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E000_modesel);
+void func_8010DFB4_modesel(void) {
+    func_80105F20_modesel(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E138_modesel);
+/* Cursor sprite to the position of choice arg0. */
+void func_8010DFD0_modesel(u32 arg0) {
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E22C_modesel);
+    func_8010E000_modesel(arg0, &x, &y);
+    func_8010601C_modesel(1, x, y);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E280_modesel);
+/* Screen position of choice `choice` (0-10 project a point of D_8010F304_modesel; 14/15 are fixed). */
+void func_8010E000_modesel(u32 choice, s32 *x, s32 *y) {
+    Vec pos;
+    Vec2f scr;
+    s32 i = 0;
 
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        i = D_80110BD8_modesel + 8;
+        break;
+    case 3:
+        i = 3;
+        break;
+    case 4:
+    case 5:
+    case 6:
+        i = 4;
+        break;
+    case 7:
+        i = 0;
+        break;
+    case 8:
+        i = 1;
+        break;
+    case 9:
+        i = 2;
+        break;
+    case 10:
+        if (func_800465D0_main() == 0) {
+            i = (GwStory.unk0 == 12) ? 7 : 6;
+        } else {
+            i = 6;
+        }
+        break;
+    case 14:
+        *x = 0x70;
+        *y = 0x3C;
+        return;
+    case 15:
+        *x = 0x110;
+        *y = 0x3C;
+        return;
+    }
+    pos.x = D_8010F304_modesel[i].x;
+    pos.y = D_8010F304_modesel[i].y;
+    pos.z = D_8010F304_modesel[i].z;
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    *x = scr.x;
+    *y = scr.y;
+}
+
+/* World position of choice `choice` (the points of D_8010F304_modesel). */
+void func_8010E138_modesel(u32 choice, f32 *x, f32 *y, f32 *z) {
+    s32 i = 0;
+
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        i = 5;
+        break;
+    case 3:
+        i = 3;
+        break;
+    case 4:
+    case 5:
+    case 6:
+        i = 4;
+        break;
+    case 7:
+        i = 0;
+        break;
+    case 8:
+        i = 1;
+        break;
+    case 9:
+        i = 2;
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            i = 7;
+        } else {
+            i = 2;
+        }
+        break;
+    case 14:
+    case 15:
+        break;
+    }
+    *x = D_8010F304_modesel[i].x;
+    *y = D_8010F304_modesel[i].y;
+    *z = D_8010F304_modesel[i].z;
+}
+
+void func_8010E22C_modesel(s32 no, s32 dy) {
+    s32 x;
+    s32 y;
+
+    func_80106074_modesel(no, &x, &y);
+    y += dy;
+    func_8010601C_modesel(no, x, y);
+}
+
+/* Slide sprite no to choice arg1's position over eight frames. */
+void func_8010E280_modesel(s32 no, u32 arg1) {
+    s32 x;
+    s32 y;
+    s32 x0;
+    s32 y0;
+    f32 t;
+    s32 i;
+
+    func_8010E000_modesel(arg1, &x, &y);
+    func_80106074_modesel(no, &x0, &y0);
+    for (i = 0; i < 8; i++) {
+        t = i * 0.14285715f;
+        func_8010E000_modesel(arg1, &x, &y);
+        func_8010601C_modesel(no, x0 + t * (x - x0), y0 + t * (y - y0));
+        HuPrcVSleep();
+    }
+    func_8010601C_modesel(no, x, y);
+}
+
+#ifdef NON_MATCHING
+/* One frame (t in 0..1) of item no's selection animation: a sine pulse of its scale.
+   NON_MATCHING: retail loads 1.0f before the multiply (one nop fewer); logic checked against the asm. */
+void func_8010E3A4_modesel(s32 no, f32 t) {
+    s32 item = no;
+    f32 angle;
+    f32 sine;
+    f32 cosine;
+    f32 scale;
+
+    if (t > 1.0f) {
+        t = 1.0f;
+    }
+    if (t < 0.0f) {
+        return;
+    }
+    angle = t * 360.0f;
+    sine = sindf(angle);
+    cosine = cosdf(angle);
+    scale = sine * 0.1f + 1.0f;
+    switch (item) {
+    case 2:
+        func_801065B0_modesel(no, 1.0f, 1.0f, 1.0f);
+        break;
+    case 3:
+        func_801065B0_modesel(no, scale, scale, 1.0f);
+        break;
+    case 5:
+        scale = sine * 0.3f + 1.0f;
+        D_80110BD4_modesel->unk1C.z = D_80110BD4_modesel->unk40.z = scale;
+        D_80110BD4_modesel->unk1C.y = D_80110BD4_modesel->unk40.y = scale;
+        D_80110BD4_modesel->unk1C.x = D_80110BD4_modesel->unk40.x = scale;
+        break;
+    case 7:
+    case 8:
+    case 9:
+        func_8010B940_modesel(no, 7.826087f);
+        func_8010B824_modesel(no);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E3A4_modesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E50C_modesel);
+void func_8010E50C_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E558_modesel);
+    for (i = 0; i < 21; i++) {
+        D_80110CF0_modesel[i].obj = NULL;
+        D_80110CF0_modesel[i].time = 0;
+        D_80110CF0_modesel[i].len = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E5B8_modesel);
+void func_8010E558_modesel(s32 no) {
+    if (D_80110CF0_modesel[no].obj != NULL) {
+        omDelObj(D_80110CF0_modesel[no].obj);
+    }
+    D_80110CF0_modesel[no].obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E5F0_modesel);
+void func_8010E5B8_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E6D8_modesel);
+    for (i = 0; i < 21; i++) {
+        func_8010E558_modesel(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E790_modesel);
+/* Per-frame object of an item animation: drives func_8010E3A4_modesel from 0 to 1, then ends. */
+void func_8010E5F0_modesel(omObjData *obj) {
+    u32 no = obj->work[0];
+    s32 slot = no;
+    f32 t = (f32)D_80110CF0_modesel[no].time / D_80110CF0_modesel[no].len;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E7B4_modesel);
+    if (D_80110CF0_modesel[no].time <= D_80110CF0_modesel[no].len - 1) {
+        func_8010E3A4_modesel(no, t);
+        D_80110CF0_modesel[no].time++;
+    } else {
+        func_8010E3A4_modesel(no, t);
+        func_8010E558_modesel(slot);
+        D_80110CF0_modesel[no].time = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E984_modesel);
+void func_8010E6D8_modesel(s32 no) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EBC4_modesel);
+    if (D_80110CF0_modesel[no].obj == NULL) {
+        obj = omAddObj(6, 0, 0, -1, func_8010E5F0_modesel);
+        obj->work[0] = no;
+        D_80110CF0_modesel[no].obj = obj;
+        if (no < 10) {
+            if (no >= 7) {
+                D_80110CF0_modesel[no].len = 45;
+            } else {
+                D_80110CF0_modesel[no].len = 20;
+            }
+        } else {
+            D_80110CF0_modesel[no].len = 20;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EBF8_modesel);
+void func_8010E790_modesel(Process *proc) {
+    omDelPrcObj(proc);
+    func_80013350_main(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EC40_modesel);
+/* Summaries of the two saved games (board play, then the 2-player one) for the resume prompt. */
+void func_8010E7B4_modesel(void) {
+    s32 i;
+    s32 v;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EC74_modesel);
+    D_80110B70_modesel.unk0 = D_80110B70_modesel.unk4 = D_80110B70_modesel.unk8 = D_80110B70_modesel.unkC =
+        D_80110B70_modesel.unk10 = D_80110B70_modesel.unk14 = 0;
+    if (func_800465D0_main() == 1) {
+        func_8005086C_main();
+        for (i = 0; i < 4; i++) {
+            D_80110B88_modesel.chr[i] = GwPlayer[i].chr;
+            D_80110B88_modesel.com[i] = GwPlayer[i].stat & 1;
+        }
+        v = 3;
+        if (GwSystem.current_game_length < 3) {
+            v = GwSystem.current_game_length;
+        }
+        D_80110B88_modesel.length = v;
+        v = 99;
+        if (GwSystem.current_turn < 99) {
+            v = GwSystem.current_turn;
+        }
+        D_80110B88_modesel.turn = v;
+        v = 99;
+        if (GwSystem.total_turns < 99) {
+            v = GwSystem.total_turns;
+        }
+        D_80110B88_modesel.turnMax = v;
+        func_80050974_main();
+        for (i = 0; i < 2; i++) {
+            D_80110BB4_modesel.chr[i] = GwPlayer[i].chr;
+            D_80110BB4_modesel.com[i] = GwPlayer[i].stat & 1;
+        }
+        v = 3;
+        if (GwSystem.current_game_length < 3) {
+            v = GwSystem.current_game_length;
+        }
+        D_80110BB4_modesel.length = v;
+        v = 99;
+        if (GwSystem.current_turn < 99) {
+            v = GwSystem.current_turn;
+        }
+        D_80110BB4_modesel.turn = v;
+        v = 99;
+        if (GwSystem.total_turns < 99) {
+            v = GwSystem.total_turns;
+        }
+        D_80110BB4_modesel.turnMax = v;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ECAC_modesel);
+/* Title sprites (6-9) of the mode-select screen: the story chapter in story mode. */
+void func_8010E984_modesel(void) {
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ED00_modesel);
+    if (func_800465D0_main() == 1) {
+        func_80105EA8_modesel(6, 0xD0011);
+        func_8010601C_modesel(6, 64, 28);
+        func_80105FB4_modesel(6);
+        func_80055420_main(func_80105D24_modesel(6), 0, 0xFF, 0xFF, 0);
+        func_80105EA8_modesel(7, 0xD0013);
+        func_8010601C_modesel(7, 64, 28);
+        func_80105FB4_modesel(7);
+        func_80105EA8_modesel(8, 0xD0014);
+        func_8010601C_modesel(8, 64, 28);
+        func_80105FB4_modesel(8);
+        func_80105EA8_modesel(9, 0x1F0004);
+        func_8010601C_modesel(9, 38, 36);
+    } else {
+        x = 64;
+        func_80105EA8_modesel(6, 0xD0010);
+        func_8010601C_modesel(6, x, 38);
+        func_80105FB4_modesel(6);
+        func_80055420_main(func_80105D24_modesel(6), 0, 0xFF, 0xFF, 0);
+        func_80105EA8_modesel(7, 0xD0012);
+        func_8010601C_modesel(7, x, 28);
+        func_80105FB4_modesel(7);
+        switch (GwStory.unk2) {
+        case 0:
+            func_80105EA8_modesel(8, 0xD0014);
+            y = 46;
+            break;
+        case 2:
+            func_80105EA8_modesel(8, 0xD0016);
+            y = 46;
+            break;
+        case 3:
+            func_80105EA8_modesel(8, 0xD0017);
+            y = 46;
+            break;
+        case 1:
+        default:
+            func_80105EA8_modesel(8, 0xD0015);
+            y = 46;
+            break;
+        }
+        func_8010601C_modesel(8, x + 10, y);
+        func_80105FB4_modesel(8);
+        func_80105EA8_modesel(9, 0x1F0004);
+        func_8010601C_modesel(9, x - 26, y);
+        func_801061C8_modesel(9, GwStory.unk1, 0);
+    }
+    func_80105FB4_modesel(9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ED3C_modesel);
+void func_8010EBC4_modesel(void) {
+    func_80105F20_modesel(6);
+    func_80105F20_modesel(7);
+    func_80105F20_modesel(8);
+    func_80105F20_modesel(9);
+}
+
+void func_8010EBF8_modesel(void) {
+    func_80105FE4_modesel(6);
+    func_80105FE4_modesel(7);
+    if (func_800465D0_main() != 1) {
+        func_80105FE4_modesel(8);
+        func_80105FE4_modesel(9);
+    }
+}
+
+void func_8010EC40_modesel(void) {
+    func_80106000_modesel(6);
+    func_80106000_modesel(7);
+    func_80106000_modesel(8);
+    func_80106000_modesel(9);
+}
+
+f32 func_8010EC74_modesel(f32 x, f32 y) {
+    return -(atan2df(y, x) - 90.0f);
+}
+
+/* Rumble pulse every 12 frames. */
+void func_8010ECAC_modesel(omObjData *obj) {
+    if (D_80110DEC_modesel == 0) {
+        RepeatVibrator(0, 5, 0, 5);
+    }
+    {
+        s32 *timer = &D_80110DEC_modesel;
+        *timer = (*timer >= 11) ? 0 : *timer + 1;
+    }
+}
+
+void func_8010ED00_modesel(void) {
+    D_80110DEC_modesel = 0;
+    omAddObj(6, 0, 0, -1, func_8010ECAC_modesel);
+}
+
+/* Controller-pak notice (window 1, messages 0x5F01/0x5F02 paged with the shoulder buttons)
+   over a fading backdrop; B closes it. */
+void func_8010ED3C_modesel(void) {
+    u16 spr;
+    s32 i;
+
+    func_80105EA8_modesel(3, 0x140064);
+    func_8010601C_modesel(3, 160, 120);
+    func_801060A4_modesel(3, 10.0f, 8.0f);
+    func_801060F4_modesel(3, 0);
+    func_80105FB4_modesel(3);
+    spr = func_80105D24_modesel(3);
+    func_8000BEAC_main(spr, 0, 0, 0);
+    func_8000BCC8_main(spr, 0x4BA);
+    func_80105EA8_modesel(2, 0xD0018);
+    func_8010601C_modesel(2, 160, 120);
+    func_801060A4_modesel(2, 1.0f, 1.0f);
+    func_80105FB4_modesel(2);
+    spr = func_80105D24_modesel(2);
+    func_8000BEAC_main(spr, 0, 0, 0);
+    func_8000BCC8_main(spr, 11);
+    func_80105EA8_modesel(4, 0x150003);
+    func_8010601C_modesel(4, 28, 120);
+    func_80105FB4_modesel(4);
+    func_80105EA8_modesel(5, 0x150003);
+    func_8010601C_modesel(5, 292, 120);
+    func_80105FB4_modesel(5);
+    func_8000BC48_main(func_80105D24_modesel(5), 1);
+    func_80106000_modesel(1);
+    func_80107700_modesel(0);
+    func_8010EC40_modesel();
+    func_80105F84_modesel(3);
+    func_80105F84_modesel(2);
+    func_80105FB4_modesel(4);
+    func_80105F84_modesel(5);
+    i = 0;
+    do {
+        func_801060F4_modesel(2, i * 36.57143f);
+        if (i * 36.57143f < 128.0f) {
+            func_801060F4_modesel(3, i * 36.57143f);
+        } else {
+            func_801060F4_modesel(3, 128);
+        }
+        i++;
+        HuPrcVSleep();
+    } while (i < 8);
+    func_801060F4_modesel(2, 256);
+    func_801060F4_modesel(3, 128);
+    func_80106BA0_modesel(1, 0x5F01, 0, 16, 304, 208, 0);
+    func_8005C154_main(D_80110998_modesel[1].id, 64, 64, 64);
+    func_8005C060_main(D_80110998_modesel[1].id, 4, 0, 0xFF, 0);
+    func_8005C060_main(D_80110998_modesel[1].id, 6, 0xFF, 0xFF, 0x80);
+    while (TRUE) {
+        if (D_800D5558_main[0] & 0x4000) {
+            break;
+        }
+        if (D_800C9520_main[0] & 0x200) {
+            func_80105FB4_modesel(4);
+            func_80105F84_modesel(5);
+            func_80107730_modesel(1, 0x5F01);
+        } else if (D_800D5546_main[0] & 0x100) {
+            func_80105F84_modesel(4);
+            func_80105FB4_modesel(5);
+            func_80107730_modesel(1, 0x5F02);
+        }
+        HuPrcVSleep();
+    }
+    func_801074F0_modesel(1);
+    for (i = 0; i < 7; i++) {
+        func_801060F4_modesel(2, (7 - i) * 36.428574f);
+        HuPrcVSleep();
+    }
+    func_80105FB4_modesel(2);
+    func_80105FB4_modesel(3);
+    func_80105FB4_modesel(4);
+    func_80105FB4_modesel(5);
+    func_80105F20_modesel(3);
+    func_80105F20_modesel(2);
+    func_80105F20_modesel(4);
+    func_80105F20_modesel(5);
+    func_80105FE4_modesel(1);
+    func_801076D0_modesel(0);
+    func_8010EBF8_modesel();
+}
 
 void func_8010F1F4_modesel(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F1FC_modesel);
+s32 func_8010F1FC_modesel(void) {
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F204_modesel);
+s32 func_8010F204_modesel(s32 no) {
+    return D_8010F2A0_modesel[no];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F214_modesel);
+s32 func_8010F214_modesel(s32 no) {
+    s32 v = D_8010F2A0_modesel[no];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F234_modesel);
+    if (v >= 6) {
+        v -= 6;
+    }
+    return v;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F258_modesel);
+s32 func_8010F234_modesel(s32 no) {
+    s32 v = 2;
+    s32 t = D_8010F2A0_modesel[no];
+
+    if (t < 6) {
+        v = 1;
+    }
+    return v;
+}
+
+u8 func_8010F258_modesel(s32 no) {
+    return D_8010F2B0_modesel[no];
+}
