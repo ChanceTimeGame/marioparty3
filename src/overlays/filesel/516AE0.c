@@ -14,7 +14,34 @@ void func_801059A0_filesel(void) {
 
 FS_FILE_END()
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801059D0_filesel);
+void func_801059D0_filesel(void) {
+    Vec pos;
+    Vec target;
+    Vec up;
+
+    omInitObjMan(0x40, 0x20);
+    func_800142A0_main(0x20);
+    func_8004A208_main();
+    func_8000B5F0_main(1);
+    pos = D_801129C0_filesel;
+    target = D_801129CC_filesel;
+    up = D_801129D8_filesel;
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 41.0f, 80.0f, 8000.0f);
+    Hu3DCamSetPositionOrientation(0, &pos, &target, &up);
+    func_80030030_main(1.0f);
+    func_8004A950_main();
+    pfInit();
+    func_8005A6B0_main();
+    HmfLightMaxSet(3);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0x40, 0x40, 0x60);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightColorSet(3, 0, 0, 0);
+    HmfLightDirSet(1, 0.0f, 64.0f, 192.0f);
+    D_800D2132_main = 0;
+}
 
 void func_80105BC0_filesel(void) {
     D_80112E90_filesel = 0;
@@ -30,7 +57,24 @@ void func_80105BF0_filesel(void) {
     func_8010744C_filesel();
 }
 
+#ifdef NON_MATCHING
+/* Same as opening's func_8010621C_opening: GCC hoists &D_801135D0_filesel into a register (retail
+   addresses it through $at each iteration). */
+void func_80105C1C_filesel(void) {
+    s32 i;
+
+    for (i = 0; i < 64; i++) {
+        D_801135D0_filesel[i] = -1;
+        D_80112ED0_filesel[i].espId = -1;
+        D_80112ED0_filesel[i].x = D_80112ED0_filesel[i].y = 0;
+        D_80112ED0_filesel[i].scaleX = D_80112ED0_filesel[i].scaleY = 0.0f;
+        D_80112ED0_filesel[i].unk14 = 0.0f;
+        D_80112ED0_filesel[i].unk18 = 0xFF;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80105C1C_filesel);
+#endif
 
 s16 func_80105CB0_filesel(s32 no) {
     return D_801135D0_filesel[no];

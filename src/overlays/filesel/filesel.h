@@ -67,6 +67,9 @@ typedef struct FsHmfCamView {
 
 /* .data */
 extern OvlEntrypoint D_801127A0_filesel[];
+extern Vec D_801129C0_filesel; /* camera position */
+extern Vec D_801129CC_filesel; /* camera target */
+extern Vec D_801129D8_filesel; /* camera up */
 
 /* .rodata (still INCLUDE_RODATA) */
 extern const char D_80112A64_filesel[]; /* "" */
@@ -87,6 +90,8 @@ extern UnkFileSelect D_801142DC_filesel[3];
 
 /* main functions and data without a shared prototype */
 extern u8 D_800D09A9_main;
+extern s8 D_800D2132_main; /* pause.c */
+void func_80030030_main(f32);
 extern u8 D_800CE20A_main;
 void func_800465DC_main(s8 arg0);
 void func_800465F4_main(s8 arg0);
