@@ -82,8 +82,8 @@ void func_80105EC0_filesel(s32 arg0);
 void func_80105EEC_filesel(void);
 void func_80105F24_filesel(s32 arg0);
 void func_80105F54_filesel(s32 arg0);
-void func_80105F84_filesel(void);
-void func_80105FA0_filesel(void);
+void func_80105F84_filesel(s32 no); /* fork D: takes the sprite slot (passes a0 to func_80105F24) */
+void func_80105FA0_filesel(s32 no); /* fork D: takes the sprite slot (passes a0 to func_80105F54) */
 void func_80105FBC_filesel(s32 no, s32 x, s32 y); /* sprite pos set */
 void func_80106014_filesel(s32 no, s32 *x, s32 *y);
 void func_80106044_filesel(s32 no, f32 x, f32 y); /* sprite scale set */
