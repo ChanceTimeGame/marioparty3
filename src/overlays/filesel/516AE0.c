@@ -4,7 +4,7 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
-/* filesel B: name entry state, D_80114470_filesel..D_801144D4_filesel */
+/* filesel B: name entry state, D_80114470_filesel..D_801144D4_filesel (offsets from D_80114470) */
 extern s32 D_80114470_filesel; /* name changed */
 
 typedef struct FsNameEntry {
@@ -17,23 +17,17 @@ typedef struct FsNameEntry {
     /* 0x20 */ u16 name[16];  /* D_80114490: 16-bit characters, 0-terminated */
     /* 0x40 */ u16 saved[16]; /* D_801144B0 */
     /* 0x60 */ s32 len;       /* D_801144D0 */
-} FsNameEntry; /* size = 0x5C; offsets are from D_80114470 */
+} FsNameEntry; /* size = 0x5C */
 
 extern FsNameEntry D_80114478_filesel;
-
 
 extern s32 D_801127B0_filesel[3];
 extern s32 D_801127BC_filesel[8][2]; /* cursor positions */
 extern f32 D_800A0A7C_main;
 
-
-/* filesel B: name entry state */
 extern u8 *D_801127FC_filesel[18];
 extern u8 *D_80112844_filesel[18];
 extern u8 *D_8011288C_filesel[5];
-extern s32 D_8011447C_filesel[4];
-extern s32 D_8011448C_filesel; /* blink counter */
-extern u8 D_80114490_filesel[0x20]; /* name being edited */
 
 
 #define UNK_VALUE FS_FILE_USED
@@ -710,13 +704,13 @@ s32 func_8010B528_filesel(s32 arg0, s32 arg1) {
 }
 
 void func_8010B554_filesel(void *arg0) {
-    bzero(D_80114490_filesel, sizeof(D_80114490_filesel));
-    bcopy(arg0, D_80114490_filesel, sizeof(D_80114490_filesel));
+    bzero(D_80114478_filesel.name, sizeof(D_80114478_filesel.name));
+    bcopy(arg0, D_80114478_filesel.name, sizeof(D_80114478_filesel.name));
 }
 
 void func_8010B598_filesel(void *arg0) {
-    bzero(arg0, sizeof(D_80114490_filesel));
-    bcopy(D_80114490_filesel, arg0, sizeof(D_80114490_filesel));
+    bzero(arg0, sizeof(D_80114478_filesel.name));
+    bcopy(D_80114478_filesel.name, arg0, sizeof(D_80114478_filesel.name));
 }
 
 s32 func_8010B5D4_filesel(s32 arg0, s32 arg1, s32 arg2, s16 *arg3, s16 *arg4) {
@@ -806,7 +800,7 @@ void func_8010B6F4_filesel(s32 arg0) {
     } else {
         func_80105F24_filesel(0x34);
     }
-    D_8011448C_filesel = 0;
+    D_80114478_filesel.blink = 0;
 }
 
 void func_8010B80C_filesel(s32 arg0) {
@@ -816,11 +810,11 @@ void func_8010B80C_filesel(s32 arg0) {
     f32 f;
     u8 alpha;
 
-    cnt = D_8011448C_filesel;
+    cnt = D_80114478_filesel.blink;
     if (cnt < 0) {
         cnt = -cnt;
     }
-    pos = D_8011448C_filesel >= 0;
+    pos = D_80114478_filesel.blink >= 0;
     f = 1.0f;
     if (f > 1.0f) { /* dead clamp: retail does not fold f * 255 */
         f = 1.0f;
@@ -831,7 +825,7 @@ void func_8010B80C_filesel(s32 arg0) {
     } else {
         alpha = (1.0f - f) * 255.0f;
     }
-    p = &D_8011448C_filesel;
+    p = &D_80114478_filesel.blink;
     *p = cnt;
     if (pos < 0) {
         *p = -cnt;
@@ -1079,7 +1073,7 @@ void func_8010BDC4_filesel(void) {
     s16 x;
     s16 y;
 
-    func_8010B5D4_filesel(D_8011447C_filesel[0], D_8011447C_filesel[2], D_8011447C_filesel[3], &x, &y);
+    func_8010B5D4_filesel(D_80114478_filesel.group, D_80114478_filesel.col, D_80114478_filesel.line, &x, &y);
     func_80105FBC_filesel(0x11, x, y);
     func_80105F24_filesel(0x11);
 }
@@ -1088,19 +1082,13 @@ void func_8010BE14_filesel(void) {
     func_80105F54_filesel(0x11);
 }
 
-// cross-jump order of the U/D-pad tails and the shared Z/R tails differ (masked ~90); logic checked
-#ifdef NON_MATCHING
 s32 func_8010BE30_filesel(s32 btn) {
-    s32 group;
-
     if (btn & START_BUTTON) {
         D_80114478_filesel.done = 1;
         D_80114478_filesel.button = 11;
         func_8010BE14_filesel();
         func_8010B6F4_filesel(D_80114478_filesel.button);
-        return 0;
-    }
-    if (btn & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
+    } else if (btn & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
         func_8010BDC4_filesel();
         if (btn & U_JPAD) {
             if (--D_80114478_filesel.line < 0) {
@@ -1109,38 +1097,31 @@ s32 func_8010BE30_filesel(s32 btn) {
                 D_80114478_filesel.button = 7;
                 func_8010B6F4_filesel(7);
                 func_8010BE14_filesel();
-                return 0;
+            } else {
+                func_8010BDC4_filesel();
             }
-            goto moved;
-        }
-        if (btn & D_JPAD) {
+        } else if (btn & D_JPAD) {
             if (++D_80114478_filesel.line >= 5) {
                 D_80114478_filesel.line = 4;
                 D_80114478_filesel.done = 1;
                 D_80114478_filesel.button = 7;
                 func_8010B6F4_filesel(7);
                 func_8010BE14_filesel();
-                return 0;
+            } else {
+                func_8010BDC4_filesel();
             }
-            goto moved;
-        }
-        if (btn & L_JPAD) {
+        } else if (btn & L_JPAD) {
             if (--D_80114478_filesel.col < 0) {
                 D_80114478_filesel.col = 17;
             }
-            goto moved;
+            func_8010BDC4_filesel();
+        } else if (btn & R_JPAD) {
+            if (++D_80114478_filesel.col >= 18) {
+                D_80114478_filesel.col = 0;
+            }
+            func_8010BDC4_filesel();
         }
-        if (!(btn & R_JPAD)) {
-            return 0;
-        }
-        if (++D_80114478_filesel.col >= 18) {
-            D_80114478_filesel.col = 0;
-        }
-    moved:
-        func_8010BDC4_filesel();
-        return 0;
-    }
-    if (D_800D5558_main[0] & A_BUTTON) {
+    } else if (D_800D5558_main[0] & A_BUTTON) {
         if (D_80114478_filesel.len < 5) {
             HuAudFXPlay(0x2EE);
             D_80114478_filesel.name[D_80114478_filesel.len] =
@@ -1151,17 +1132,14 @@ s32 func_8010BE30_filesel(s32 btn) {
         D_80114478_filesel.name[D_80114478_filesel.len] = 0;
         func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
         func_8010A978_filesel(D_80114478_filesel.len + 1);
-        if (D_80114478_filesel.len < 5) {
-            return 0;
+        if (D_80114478_filesel.len >= 5) {
+            D_80114478_filesel.done = 1;
+            D_80114478_filesel.button = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.group);
+            func_8010BE14_filesel();
         }
-        D_80114478_filesel.done = 1;
-        D_80114478_filesel.button = 11;
-        func_8010B6F4_filesel(11);
-        func_8010B684_filesel(D_80114478_filesel.group);
-        func_8010BE14_filesel();
-        return 0;
-    }
-    if (D_800D5558_main[0] & B_BUTTON) {
+    } else if (D_800D5558_main[0] & B_BUTTON) {
         D_80114478_filesel.name[D_80114478_filesel.len] = 0;
         if (D_80114478_filesel.len > 0) {
             HuAudFXPlay(0x2EF);
@@ -1170,39 +1148,38 @@ s32 func_8010BE30_filesel(s32 btn) {
             func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
             func_8010A978_filesel(D_80114478_filesel.len + 1);
             D_80114470_filesel = 1;
-            return 0;
+        } else {
+            HuAudFXPlay(1);
+            D_80114478_filesel.done = 1;
+            D_80114478_filesel.button = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.group);
+            func_8010BE14_filesel();
         }
-        HuAudFXPlay(1);
-        D_80114478_filesel.done = 1;
-        D_80114478_filesel.button = 11;
-        func_8010B6F4_filesel(11);
-        func_8010B684_filesel(D_80114478_filesel.group);
-        func_8010BE14_filesel();
-        return 0;
-    }
-    if (btn & Z_TRIG) {
+    } else if (btn & Z_TRIG) {
         HuAudFXPlay(1);
         switch (D_80114478_filesel.group) {
-            case 5:
-                group = 4;
-                goto setGroup;
             case 4:
                 D_80114478_filesel.group = 6;
                 if (D_80114478_filesel.col >= 13) {
                     D_80114478_filesel.col = 12;
                 }
-                goto redraw;
+                func_8010BDC4_filesel();
+                break;
+            case 5:
+                D_80114478_filesel.group = 4;
+                break;
             case 6:
-                group = 5;
-            setGroup:
-                D_80114478_filesel.group = group;
-                goto show;
+                D_80114478_filesel.group = 5;
+                break;
         }
-        goto show;
-    }
-    if (btn & R_TRIG) {
+        func_8010B684_filesel(D_80114478_filesel.group);
+    } else if (btn & R_TRIG) {
         HuAudFXPlay(1);
         switch (D_80114478_filesel.group) {
+            case 4:
+                D_80114478_filesel.group = 5;
+                break;
             case 5:
                 D_80114478_filesel.group = 6;
                 if (D_80114478_filesel.col >= 13) {
@@ -1210,39 +1187,23 @@ s32 func_8010BE30_filesel(s32 btn) {
                 }
                 func_8010BDC4_filesel();
                 break;
-            case 4:
-                group = 5;
-                goto setGroup2;
             case 6:
-                group = 4;
-            setGroup2:
-                D_80114478_filesel.group = group;
+                D_80114478_filesel.group = 4;
                 break;
         }
-    redraw:
         func_8010BDC4_filesel();
-    show:
         func_8010B684_filesel(D_80114478_filesel.group);
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010BE30_filesel);
-#endif
 
-// cross-jump order of the U/D-pad tails and the shared Z/R tails differ (masked ~90); logic checked
-#ifdef NON_MATCHING
 s32 func_8010C25C_filesel(s32 btn) {
-    s32 group;
-
     if (btn & START_BUTTON) {
         D_80114478_filesel.done = 1;
         D_80114478_filesel.button = 11;
         func_8010BE14_filesel();
         func_8010B6F4_filesel(D_80114478_filesel.button);
-        return 0;
-    }
-    if (btn & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
+    } else if (btn & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
         func_8010BDC4_filesel();
         if (btn & U_JPAD) {
             if (--D_80114478_filesel.line < 0) {
@@ -1251,38 +1212,31 @@ s32 func_8010C25C_filesel(s32 btn) {
                 D_80114478_filesel.button = 8;
                 func_8010B6F4_filesel(8);
                 func_8010BE14_filesel();
-                return 0;
+            } else {
+                func_8010BDC4_filesel();
             }
-            goto moved;
-        }
-        if (btn & D_JPAD) {
+        } else if (btn & D_JPAD) {
             if (++D_80114478_filesel.line >= 5) {
                 D_80114478_filesel.line = 4;
                 D_80114478_filesel.done = 1;
                 D_80114478_filesel.button = 8;
                 func_8010B6F4_filesel(8);
                 func_8010BE14_filesel();
-                return 0;
+            } else {
+                func_8010BDC4_filesel();
             }
-            goto moved;
-        }
-        if (btn & L_JPAD) {
+        } else if (btn & L_JPAD) {
             if (--D_80114478_filesel.col < 0) {
                 D_80114478_filesel.col = 17;
             }
-            goto moved;
+            func_8010BDC4_filesel();
+        } else if (btn & R_JPAD) {
+            if (++D_80114478_filesel.col >= 18) {
+                D_80114478_filesel.col = 0;
+            }
+            func_8010BDC4_filesel();
         }
-        if (!(btn & R_JPAD)) {
-            return 0;
-        }
-        if (++D_80114478_filesel.col >= 18) {
-            D_80114478_filesel.col = 0;
-        }
-    moved:
-        func_8010BDC4_filesel();
-        return 0;
-    }
-    if (D_800D5558_main[0] & A_BUTTON) {
+    } else if (D_800D5558_main[0] & A_BUTTON) {
         if (D_80114478_filesel.len < 5) {
             HuAudFXPlay(0x2EE);
             D_80114478_filesel.name[D_80114478_filesel.len] =
@@ -1293,17 +1247,14 @@ s32 func_8010C25C_filesel(s32 btn) {
         D_80114478_filesel.name[D_80114478_filesel.len] = 0;
         func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
         func_8010A978_filesel(D_80114478_filesel.len + 1);
-        if (D_80114478_filesel.len < 5) {
-            return 0;
+        if (D_80114478_filesel.len >= 5) {
+            D_80114478_filesel.done = 1;
+            D_80114478_filesel.button = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.group);
+            func_8010BE14_filesel();
         }
-        D_80114478_filesel.done = 1;
-        D_80114478_filesel.button = 11;
-        func_8010B6F4_filesel(11);
-        func_8010B684_filesel(D_80114478_filesel.group);
-        func_8010BE14_filesel();
-        return 0;
-    }
-    if (D_800D5558_main[0] & B_BUTTON) {
+    } else if (D_800D5558_main[0] & B_BUTTON) {
         D_80114478_filesel.name[D_80114478_filesel.len] = 0;
         if (D_80114478_filesel.len > 0) {
             HuAudFXPlay(0x2EF);
@@ -1312,39 +1263,38 @@ s32 func_8010C25C_filesel(s32 btn) {
             func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
             func_8010A978_filesel(D_80114478_filesel.len + 1);
             D_80114470_filesel = 1;
-            return 0;
+        } else {
+            HuAudFXPlay(1);
+            D_80114478_filesel.done = 1;
+            D_80114478_filesel.button = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.group);
+            func_8010BE14_filesel();
         }
-        HuAudFXPlay(1);
-        D_80114478_filesel.done = 1;
-        D_80114478_filesel.button = 11;
-        func_8010B6F4_filesel(11);
-        func_8010B684_filesel(D_80114478_filesel.group);
-        func_8010BE14_filesel();
-        return 0;
-    }
-    if (btn & Z_TRIG) {
+    } else if (btn & Z_TRIG) {
         HuAudFXPlay(1);
         switch (D_80114478_filesel.group) {
-            case 5:
-                group = 4;
-                goto setGroup;
             case 4:
                 D_80114478_filesel.group = 6;
                 if (D_80114478_filesel.col >= 13) {
                     D_80114478_filesel.col = 12;
                 }
-                goto redraw;
+                func_8010BDC4_filesel();
+                break;
+            case 5:
+                D_80114478_filesel.group = 4;
+                break;
             case 6:
-                group = 5;
-            setGroup:
-                D_80114478_filesel.group = group;
-                goto show;
+                D_80114478_filesel.group = 5;
+                break;
         }
-        goto show;
-    }
-    if (btn & R_TRIG) {
+        func_8010B684_filesel(D_80114478_filesel.group);
+    } else if (btn & R_TRIG) {
         HuAudFXPlay(1);
         switch (D_80114478_filesel.group) {
+            case 4:
+                D_80114478_filesel.group = 5;
+                break;
             case 5:
                 D_80114478_filesel.group = 6;
                 if (D_80114478_filesel.col >= 13) {
@@ -1352,25 +1302,15 @@ s32 func_8010C25C_filesel(s32 btn) {
                 }
                 func_8010BDC4_filesel();
                 break;
-            case 4:
-                group = 5;
-                goto setGroup2;
             case 6:
-                group = 4;
-            setGroup2:
-                D_80114478_filesel.group = group;
+                D_80114478_filesel.group = 4;
                 break;
         }
-    redraw:
         func_8010BDC4_filesel();
-    show:
         func_8010B684_filesel(D_80114478_filesel.group);
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C25C_filesel);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C688_filesel);
 
