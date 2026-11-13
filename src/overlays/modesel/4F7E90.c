@@ -1324,9 +1324,101 @@ void func_8010DFD0_modesel(u32 arg0) {
     func_8010601C_modesel(1, x, y);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E000_modesel);
+/* Screen position of choice `choice` (0-10 project a point of D_8010F304_modesel; 14/15 are fixed). */
+void func_8010E000_modesel(u32 choice, s32 *x, s32 *y) {
+    Vec pos;
+    Vec2f scr;
+    s32 i = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E138_modesel);
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        i = D_80110BD8_modesel + 8;
+        break;
+    case 3:
+        i = 3;
+        break;
+    case 4:
+    case 5:
+    case 6:
+        i = 4;
+        break;
+    case 7:
+        i = 0;
+        break;
+    case 8:
+        i = 1;
+        break;
+    case 9:
+        i = 2;
+        break;
+    case 10:
+        if (func_800465D0_main() == 0) {
+            i = (GwStory.unk0 == 12) ? 7 : 6;
+        } else {
+            i = 6;
+        }
+        break;
+    case 14:
+        *x = 0x70;
+        *y = 0x3C;
+        return;
+    case 15:
+        *x = 0x110;
+        *y = 0x3C;
+        return;
+    }
+    pos.x = D_8010F304_modesel[i].x;
+    pos.y = D_8010F304_modesel[i].y;
+    pos.z = D_8010F304_modesel[i].z;
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    *x = scr.x;
+    *y = scr.y;
+}
+
+/* World position of choice `choice` (the points of D_8010F304_modesel). */
+void func_8010E138_modesel(u32 choice, f32 *x, f32 *y, f32 *z) {
+    s32 i = 0;
+
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        i = 5;
+        break;
+    case 3:
+        i = 3;
+        break;
+    case 4:
+    case 5:
+    case 6:
+        i = 4;
+        break;
+    case 7:
+        i = 0;
+        break;
+    case 8:
+        i = 1;
+        break;
+    case 9:
+        i = 2;
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            i = 7;
+        } else {
+            i = 2;
+        }
+        break;
+    case 14:
+    case 15:
+        break;
+    }
+    *x = D_8010F304_modesel[i].x;
+    *y = D_8010F304_modesel[i].y;
+    *z = D_8010F304_modesel[i].z;
+}
 
 void func_8010E22C_modesel(s32 no, s32 dy) {
     s32 x;
@@ -1357,7 +1449,50 @@ void func_8010E280_modesel(s32 no, u32 arg1) {
     func_8010601C_modesel(no, x, y);
 }
 
+#ifdef NON_MATCHING
+/* One frame (t in 0..1) of item no's selection animation: a sine pulse of its scale.
+   NON_MATCHING: retail loads 1.0f before the multiply (one nop fewer); logic checked against the asm. */
+void func_8010E3A4_modesel(s32 no, f32 t) {
+    s32 item = no;
+    f32 angle;
+    f32 sine;
+    f32 cosine;
+    f32 scale;
+
+    if (t > 1.0f) {
+        t = 1.0f;
+    }
+    if (t < 0.0f) {
+        return;
+    }
+    angle = t * 360.0f;
+    sine = sindf(angle);
+    cosine = cosdf(angle);
+    scale = sine * 0.1f + 1.0f;
+    switch (item) {
+    case 2:
+        func_801065B0_modesel(no, 1.0f, 1.0f, 1.0f);
+        break;
+    case 3:
+        func_801065B0_modesel(no, scale, scale, 1.0f);
+        break;
+    case 5:
+        scale = sine * 0.3f + 1.0f;
+        D_80110BD4_modesel->unk1C.z = D_80110BD4_modesel->unk40.z = scale;
+        D_80110BD4_modesel->unk1C.y = D_80110BD4_modesel->unk40.y = scale;
+        D_80110BD4_modesel->unk1C.x = D_80110BD4_modesel->unk40.x = scale;
+        break;
+    case 7:
+    case 8:
+    case 9:
+        func_8010B940_modesel(no, 7.826087f);
+        func_8010B824_modesel(no);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E3A4_modesel);
+#endif
 
 void func_8010E50C_modesel(void) {
     s32 i;

@@ -76,9 +76,6 @@ extern f32 D_8010F2CC_modesel;                   /* .data; lwc1,swc1: 8010A068 8
 extern f32 D_8010F2D0_modesel;                   /* .data; lwc1,swc1: 8010A068 8010A1C4 8010A2E8 8010A420 */
 extern f32 D_8010F2D4_modesel[];                  /* .data; lwc1,swc1: 8010A068 8010A1C4 8010A2E8 8010A420 */
 extern s32 D_8010F2F0_modesel[];                  /* .data; lw: 8010DC6C */
-extern f32 D_8010F304_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
-extern f32 D_8010F308_modesel;                   /* .data; lwc1: 8010E000 8010E138 */
-extern f32 D_8010F30C_modesel[];                  /* .data; lwc1: 8010E000 8010E138 */
 extern s32 D_80110B1C_modesel;                   /* .bss 0x4 bytes; lw: 8010B824 */
 extern s32 D_80110B20_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
 extern s32 D_80110B28_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
@@ -87,7 +84,7 @@ extern s32 D_80110BA8_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4
 extern s32 D_80110BB0_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
-extern s32 D_80110BD4_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010AF90 8010BA70 8010E3A4 */
+/* D_80110BD4_modesel, D_8010F304_modesel: fork C block */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
 extern s32 D_80110C68_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC */
 extern s32 D_80110C6C_modesel;                   /* .bss 0x4 bytes; sw: 80109B74 80109CEC 80109E90 */
@@ -311,5 +308,18 @@ typedef struct MsAnimSlot {
 extern MsAnimSlot D_80110CF0_modesel[21];
 extern s32 D_80110DEC_modesel; /* rumble timer */
 s32 func_8010F214_modesel(s32 arg0); /* returns an int (was u8) */
+
+/* Choice points in world space (D_8010F304_modesel[8]; splat also names D_8010F308/F30C). */
+extern Vec D_8010F304_modesel[];
+
+/* A motion object of a model (MP3 hmfman.c HmfMotionObjM, size 0x98), from func_8001D33C_main. */
+typedef struct MsMotObj {
+    /* 0x00 */ char unk0[0x1C];
+    /* 0x1C */ Vec unk1C; /* scale */
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec unk40; /* scale */
+    /* 0x4C */ char unk4C[0x4C];
+} MsMotObj; /* size = 0x98 */
+extern MsMotObj *D_80110BD4_modesel; /* was s32: func_8010AF90_modesel stores func_8001D33C_main's pointer */
 
 #endif
