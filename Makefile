@@ -377,6 +377,8 @@ build/src/gamemes.c.o: src/gamemes.c
 # wave 2d C: built as gamemes is (blank lines removed from GCC's assembly), so KMC as adds no hazard
 # nop after a call whose delay slot GCC filled (89170 guRotateF: none before the mul.s after sincosdf)
 W2DC_BLANKSTRIP := build/src/89170.c.o
+# minigame A: AB1C0 likewise (func_800D9028_minigame: no nop before the mul.s after cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/minigame/AB1C0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

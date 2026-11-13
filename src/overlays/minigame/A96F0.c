@@ -117,7 +117,7 @@ void func_800D80DC_minigame(omObjData* obj);
 /* AB1C0 */
 f32 func_800D8818_minigame(f32 x, f32 y, f32 z, ColVtx* verts, ColTri* tri, Vec* dir, Vec* out);
 s32 func_800DB704_minigame(s32 n, u16* idx, ColVtx* verts, HitProbe* probe);
-s32 func_800DBCF4_minigame(s32 n, u16* idx, ColVtx* verts, HitProbe* probe);
+s32 func_800DBCF4_minigame(s32 n, s16* idx, ColVtx* verts, HitProbe* probe);
 void func_800DC354_minigame(omObjData* g, Vec4f* p, Vec* save);
 void func_800DC7D8_minigame(omObjData* g, Vec4f* p);
 void func_800DC8E4_minigame(omObjData* g, Vec4f* p, f32 h);
@@ -583,7 +583,8 @@ void func_800D7C14_minigame(omObjData* obj, Vec4f* p) {
             probe.y += D_800EC5D8_minigame;
             func_800DC8E4_minigame(g, &probe, w->unk_34 / 2.0f);
         } else {
-            func_80021C14_main(*D_800EC1C0_minigame[i]->model, &D_800EBEB0_minigame, func_800DBCF4_minigame,
+            func_80021C14_main(*D_800EC1C0_minigame[i]->model, &D_800EBEB0_minigame,
+                               (s32 (*)(s32, u16*, ColVtx*, HitProbe*))func_800DBCF4_minigame,
                                (HitProbe*)&probe);
         }
         if (prev != D_800EB736_minigame) {
