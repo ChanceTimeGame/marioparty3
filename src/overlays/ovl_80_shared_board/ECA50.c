@@ -12,12 +12,6 @@ typedef struct UnkObj {
     f32 unk_04;
 } UnkObj;
 
-typedef struct UnkTemp {
-    s32 unk_00;
-    s32 unk_04;
-    f32 unk_08;
-    f32 unk_0C;
-} UnkTemp; //sizeof 0x10
 
 extern UnkTemp D_80100850_shared_board[];
 extern Object* D_80102AB0_shared_board;

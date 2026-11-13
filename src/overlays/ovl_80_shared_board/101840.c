@@ -49,7 +49,7 @@ extern s32 D_80101520_shared_board[];
 extern s32 D_80101540_shared_board[];
 extern s32 D_8010159C_shared_board;
 extern s16 D_80105556_shared_board;
-extern s32 D_801015A0_shared_board;
+extern s32 D_801015A0_shared_board[];
 extern s16 D_80105560_shared_board[];
 extern s32 D_80101514_shared_board[];
 extern s32 D_800A12C0_main;
@@ -1258,7 +1258,7 @@ static s32 MBPauseQuitWinExec(s32 arg0) {
         HuPrcVSleep();
     }
     
-    temp_s3 = MBPauseMesCreate(&D_801015A0_shared_board, 0, temp_v0);
+    temp_s3 = MBPauseMesCreate(D_801015A0_shared_board, 0, temp_v0);
     func_8005FE54_main(temp_v0, 1 << arg0);
     temp = func_8005E1D8_main(temp_v0, 0, 0);
     if (temp == 1) {

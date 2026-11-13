@@ -10,12 +10,6 @@
 
 extern u32 D_800D2094_main;
 extern u32 D_80100EE8_shared_board;
-typedef struct ItemRect {
-    s16 x;
-    s16 y;
-    s16 w;
-    s16 h;
-} ItemRect;
 
 typedef struct DefinitelyNotItemRect {
     s8 x[100500];
@@ -55,7 +49,7 @@ extern u8 D_80100EEC_shared_board[];
 extern u8 D_80100EF4_shared_board[];
 extern u8 D_80100E20_shared_board[]; /* normal mode: recent minigame avoid count per category */
 extern u8 D_80100E28_shared_board[]; /* hard mode: recent minigame avoid count per category */
-extern u8 D_80100E9B_shared_board[];
+extern u8 D_80100E9C_shared_board[];
 extern u8 D_80100E30_shared_board[][3];
 extern u8 D_80100DA0_shared_board[];
 extern u8 D_80100DC0_shared_board[];
@@ -70,8 +64,8 @@ extern u8 D_80100DFC_shared_board[];
 extern u8 D_80100DF0_shared_board[];
 extern u8 D_80100E10_shared_board[];
 
-extern ItemRect D_80100E44_shared_board;
-extern ItemRect D_80100E5C_shared_board;
+extern ItemRect D_80100E44_shared_board[];
+extern ItemRect D_80100E5C_shared_board[];
 
 #define PREV_MINIGAME_LIST_LENGTH 10
 
@@ -501,7 +495,7 @@ void MBMgCallListCreate(s32 arg0) {
             func_8005B43C_main(entry->obj, 0x4748, -2, 4);
         }
 
-        func_8005C02C_main(entry->obj, D_80100E9B_shared_board[D_80102C08_shared_board[i]]);
+        func_8005C02C_main(entry->obj, D_80100E9C_shared_board[D_80102C08_shared_board[i] - 1]);
         func_8005BDFC_main(entry->obj, 0);
     }
 
@@ -702,12 +696,12 @@ static void MBMgCallColorGet(u8 *outSpaceTypes) {
 }
 
 ItemRectTable const D_801020B0_shared_board = {
-    { &D_80100E5C_shared_board,
-      &D_80100E44_shared_board,
-      &D_80100E44_shared_board,
-      &D_80100E44_shared_board,
-      &D_80100E44_shared_board,
-      &D_80100E5C_shared_board }
+    { D_80100E5C_shared_board,
+      D_80100E44_shared_board,
+      D_80100E44_shared_board,
+      D_80100E44_shared_board,
+      D_80100E44_shared_board,
+      D_80100E5C_shared_board }
 };
 
 DefinitelyNotItemRectTable const D_801020C8_shared_board = {
