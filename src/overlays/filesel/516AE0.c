@@ -4858,3 +4858,83 @@ void func_80112758_filesel(void) {
     }
 }
 
+
+/* .data */
+OvlEntrypoint D_801127A0_filesel[] = {
+    { 0, func_80105BC0_filesel },
+    { -1, NULL },
+};
+
+s32 D_801127B0_filesel[3] = { 0x1F002D, 0x1F002E, 0x1F002F };
+
+s32 D_801127BC_filesel[8][2] = {
+    { 0x70, 0x68 }, { 0xC0, 0x68 }, { 0x110, 0x68 }, { 0xD2, 0x24 },
+    { 0x102, 0x24 }, { 0x50, 0x80 }, { 0xA0, 0x80 }, { 0xF0, 0x80 },
+};
+
+/* Name-entry character grids: hiragana, katakana, then the Latin/digit rows. */
+u8 *D_801127FC_filesel[18] = {
+    (u8 *)D_80112BE4_filesel, (u8 *)D_80112BD8_filesel, (u8 *)D_80112BCC_filesel,
+    (u8 *)D_80112BC0_filesel, (u8 *)D_80112BB4_filesel, (u8 *)D_80112BA8_filesel,
+    (u8 *)D_80112B9C_filesel, (u8 *)D_80112B90_filesel, (u8 *)D_80112B84_filesel,
+    (u8 *)D_80112B78_filesel, (u8 *)D_80112B6C_filesel, (u8 *)D_80112B60_filesel,
+    (u8 *)D_80112B54_filesel, (u8 *)D_80112B48_filesel, (u8 *)D_80112B3C_filesel,
+    (u8 *)D_80112B30_filesel, (u8 *)D_80112B24_filesel, (u8 *)D_80112B18_filesel,
+};
+
+u8 *D_80112844_filesel[18] = {
+    (u8 *)D_80112CBC_filesel, (u8 *)D_80112CB0_filesel, (u8 *)D_80112CA4_filesel,
+    (u8 *)D_80112C98_filesel, (u8 *)D_80112C8C_filesel, (u8 *)D_80112C80_filesel,
+    (u8 *)D_80112C74_filesel, (u8 *)D_80112C68_filesel, (u8 *)D_80112C5C_filesel,
+    (u8 *)D_80112C50_filesel, (u8 *)D_80112C44_filesel, (u8 *)D_80112C38_filesel,
+    (u8 *)D_80112C2C_filesel, (u8 *)D_80112C20_filesel, (u8 *)D_80112C14_filesel,
+    (u8 *)D_80112C08_filesel, (u8 *)D_80112BFC_filesel, (u8 *)D_80112BF0_filesel,
+};
+
+u8 *D_8011288C_filesel[5] = {
+    (u8 *)D_80112D38_filesel, (u8 *)D_80112D1C_filesel, (u8 *)D_80112D00_filesel,
+    (u8 *)D_80112CE4_filesel, (u8 *)D_80112CC8_filesel,
+};
+
+f32 D_801128A0_filesel = 58.0f;
+
+Vec D_801128A4_filesel[3] = {
+    { -400.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 400.0f, 0.0f, 0.0f },
+};
+
+Vec D_801128C8_filesel[3][2] = {
+    { { -400.0f, 0.0f, -10000.0f }, { -400.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, -10000.0f }, { 0.0f, 0.0f, 0.0f } },
+    { { 400.0f, 0.0f, -10000.0f }, { 400.0f, 0.0f, 0.0f } },
+};
+
+Vec D_80112910_filesel[3][2] = {
+    { { -400.0f, 0.0f, -2000.0f }, { -400.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, -2000.0f }, { 0.0f, 0.0f, 0.0f } },
+    { { 400.0f, 0.0f, -2000.0f }, { 400.0f, 0.0f, 0.0f } },
+};
+
+Vec D_80112958_filesel[3] = {
+    { -400.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 400.0f, 0.0f, 0.0f },
+};
+
+Vec D_8011297C_filesel[3] = {
+    { -400.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 400.0f, 0.0f, 0.0f },
+};
+
+s32 D_801129A0_filesel = 0;
+
+/* Story chapter pairs (see func_801126C0_filesel). */
+u8 D_801129A4_filesel[28] = {
+    0, 1, 0, 2, 1, 1, 1, 2, 2, 1, 2, 2, 3, 1, 3, 2, 4, 1, 4, 2, 5, 2, 5, 1,
+};
+
+Vec D_801129C0_filesel = { 0.0f, 0.0f, 100.0f };
+Vec D_801129CC_filesel = { 0.0f, 0.0f, 0.0f };
+Vec D_801129D8_filesel = { 0.0f, 1.0f, 0.0f };

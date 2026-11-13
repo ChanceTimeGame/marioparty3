@@ -2395,7 +2395,7 @@ segments:
     bss_size: 0x1850
     subsegments:
       - [0x516AE0, c]
-      - [0x5238E0, data, 516AE0] #801127A0
+      - [0x5238E0, .data, 516AE0] #801127A0
       - [0x523B30, .rodata, 516AE0] #801129F0
       - {0x523FD0, type: bss, vram: 0x80112E90, name: filesel_bss}
 
