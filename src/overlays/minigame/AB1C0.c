@@ -88,7 +88,11 @@ typedef struct MgWork {
     /* 0x54 */ s8 unk_54;
     /* 0x55 */ u8 unk_55;
     /* 0x56 */ u8 unk_56;   /* surface id of the ceiling (GroundWork.unk_04) */
-    /* 0x57 */ char unk_57[0x35];
+    /* 0x57 */ char unk_57[2];
+    /* 0x59 */ s8 unk_59;   /* player */
+    /* 0x5A */ char unk_5A[2];
+    /* 0x5C */ s32 unk_5C;  /* flags (0x200: stomp) */
+    /* 0x60 */ char unk_60[0x2C];
     /* 0x8C */ f32 unk_8C;  /* ceiling height, 65536.0f none */
     /* 0x90 */ f32 unk_90;  /* ground velocity */
     /* 0x94 */ f32 unk_94;
@@ -98,7 +102,32 @@ typedef struct MgWork {
     /* 0xA4 */ f32 unk_A4;
     /* 0xA8 */ char unk_A8[0xC];
     /* 0xB4 */ f32 unk_B4;  /* speed factor */
+    /* 0xB8 */ char unk_B8[6];
+    /* 0xBE */ u16 unk_BE;  /* 105 after a hazard actor hit, counting down; while set, touches only count D_800EC288_minigame */
+    /* 0xC0 */ char unk_C0[0x2C];
+    /* 0xEC */ s32 (*unk_EC)(omObjData* obj, omObjData* actor); /* actor touch hook; 1 skips the default */
+    /* 0xF0 */ u16 unk_F0;
 } MgWork;
+
+/* omObjData::data of an item actor (A96F0.c), 0xAC bytes */
+typedef struct ColActorWork {
+    /* 0x00 */ u8 unk_00[0x20];
+    /* 0x20 */ char unk_20[4];
+    /* 0x24 */ u8 unk_24;
+    /* 0x25 */ char unk_25[0xF];
+    /* 0x34 */ f32 unk_34;      /* height */
+    /* 0x38 */ f32 unk_38;      /* vertical speed; 1000.0f on the ground */
+    /* 0x3C */ f32 unk_3C;      /* heading (degrees) */
+    /* 0x40 */ f32 unk_40;      /* speed */
+    /* 0x44 */ f32 unk_44;
+    /* 0x48 */ f32 unk_48;      /* radius */
+    /* 0x4C */ char unk_4C[4];
+    /* 0x50 */ u16 unk_50;      /* flags */
+    /* 0x52 */ u8 unk_52;       /* kind (7: hazard) */
+    /* 0x53 */ s8 unk_53;
+    /* 0x54 */ u8 unk_54;       /* active */
+    /* 0x55 */ char unk_55[0x57];
+} ColActorWork; /* size = 0xAC */
 
 f32 func_800D8640_minigame(omObjData* g, MgWork* w, f32 y);
 f32 func_800D8778_minigame(omObjData* g, MgWork* w, f32 h, f32 y, Vec* n);
@@ -120,6 +149,9 @@ void func_800DC354_minigame(omObjData* g, Vec4f* p, Vec* save);
 void func_800DC7D8_minigame(omObjData* g, Vec4f* p);
 void func_800DC8E4_minigame(omObjData* g, Vec4f* p, f32 h);
 
+/* A96F0 */
+void func_800D81C8_minigame(omObjData* obj, omObjData* actor);
+
 /* AB1C0 (fork B) */
 void func_800DCCB0_minigame(omObjData* g, Vec4f* p, Vec* save, f32 h);
 s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
@@ -128,6 +160,13 @@ void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
 void func_800E0430_minigame(f32 nx, f32 ny, f32 nz);
 void func_800E048C_minigame(f32 x, f32 y, f32 z);
 /* B3CE0, B63A0, B7600 */
+void func_800E1A9C_minigame(MgWork* w, s32 state);
+void func_800E2CA4_minigame(omObjData* obj, f32 arg1);
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
+void func_800E317C_minigame(omObjData* obj, f32 dx, f32 dz);
+void func_800E34D8_minigame(omObjData* a, omObjData* b);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+void func_800E561C_minigame(omObjData* obj, u8 flags);
 void func_800E1810_minigame(void);
 void func_800E19FC_minigame(MgWork* w, s32 state);
 void func_800E28BC_minigame(f32 (*l2w)[4], f32 (*w2l)[4], Vec* p, omObjData* g);
@@ -155,6 +194,12 @@ f32 fabsf(f32);
 extern u8 D_800EB734_minigame;  /* ground object tested first (the one stood on) */
 extern s16 D_800EB736_minigame; /* contact count */
 extern u8 D_800EB738_minigame;  /* ground object of the last floor found */
+extern u8 D_800EB735_minigame;
+extern f32 D_800EB744_minigame;
+extern f32 D_800EB760_minigame;
+extern f32 D_800EB768_minigame;
+extern f32 D_800EB76C_minigame;
+extern f32 D_800EB770_minigame;
 extern f32 D_800EB778_minigame;
 extern f32 D_800EB77C_minigame;
 
@@ -164,9 +209,14 @@ extern f32 D_800EBE2C_minigame;          /* push x this frame */
 extern f32 D_800EBE30_minigame[4][4];    /* ground object: world to local */
 extern HitList D_800EBEB0_minigame;      /* face query */
 extern Vec D_800EBEB8_minigame[];        /* contact points */
+extern omObjData* D_800EBE70_minigame[]; /* item actors (ColActorWork) */
+extern u16 D_800EC1B8_minigame;          /* their count */
 extern omObjData* D_800EC1C0_minigame[]; /* ground objects */
 extern f32 D_800EC240_minigame[4][4];    /* ground object: local to world */
+extern u16 D_800EC280_minigame;          /* player count */
+extern u16 D_800EC288_minigame;          /* actor touches while MgWork.unk_BE is set */
 extern Vec D_800EC298_minigame[];        /* contact normals */
+extern omObjData* D_800EC598_minigame[]; /* player objects */
 extern f32 D_800EC5D8_minigame;          /* push z this frame */
 
 f32 func_800D8640_minigame(omObjData* g, MgWork* w, f32 y) {
@@ -796,7 +846,250 @@ s32 func_800DA540_minigame(Vec* p, ColTri* tri, ColVtx* verts) {
     return 1;
 }
 
+/* The player's step against the item actors (D_800EBE70_minigame: hazards, bouncing actors, coins)
+   and the other players. Returns 2 when the player stomped or bumped another player, else 0. */
+// register allocation (masked 0, raw 79): y and the radius swap s4/s5, and dy/dz and 0.0f swap
+// $f22/$f26/$f30, as in MP2's func_80004168_4D68; declaration order made it worse
+#ifdef NON_MATCHING
+s32 func_800DA768_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    MgWork* w = obj->data;
+    f32 radius = w->unk_48;
+    f32 speed = w->unk_40;
+    f32 py;
+    omObjData* o;
+    ColActorWork* ow;
+    MgWork* ow2;
+    f32 dx, dy, dz;
+    f32 dist, flat;
+    f32 dxx, dzz;
+    f32 a;
+    f32 dz2;
+    u16 i;
+
+    if (w->unk_50 & 6) {
+        speed *= 0.6f;
+    }
+    speed *= (w->unk_38 != 1000.0f) ? w->unk_4C * w->unk_B4 : w->unk_B4;
+    x += sindf(w->unk_3C) * speed;
+    z += cosdf(w->unk_3C) * speed;
+    w->unk_F0 = 0;
+
+    for (i = 0; i < D_800EC1B8_minigame; i++) {
+        o = D_800EBE70_minigame[i];
+        ow = o->data;
+        if (ow->unk_54 == 0) {
+            continue;
+        }
+        dx = o->trans.x - (x + D_800EBE2C_minigame);
+        dy = o->trans.y - y;
+        dz = o->trans.z - (z + D_800EC5D8_minigame);
+        flat = 100.0f;
+        if (ow->unk_34 != 0.0f && o->trans.y <= y && y <= o->trans.y + ow->unk_34) {
+            flat = HuSqrtf(dx * dx + dz * dz) - (radius + ow->unk_48);
+        }
+        dist = HuSqrtf(dx * dx + dy * dy + dz * dz) - (radius + ow->unk_48);
+        if ((dist < 0.0f) | (flat < 0.0f)) {
+            if (w->unk_EC != NULL && w->unk_EC(obj, o) == 1) {
+                continue;
+            }
+            if (ow->unk_52 == 7) {
+                if (w->unk_BE != 0) {
+                    D_800EC288_minigame++;
+                    continue;
+                }
+                if (w->unk_50 & 0x200) {
+                    continue;
+                }
+                a = func_800E2ED4_minigame(sindf(w->unk_3C), cosdf(w->unk_3C), dx, dz);
+                if (w->unk_50 & 0x10) {
+                    func_800E2CA4_minigame(obj, D_800EB768_minigame);
+                }
+                if (a > 0.0f) {
+                    func_800E5690_minigame(obj, 9);
+                    w->unk_40 = -D_800EB760_minigame;
+                } else {
+                    func_800E5690_minigame(obj, 10);
+                    w->unk_40 = D_800EB760_minigame;
+                }
+                w->unk_38 = -D_800EB744_minigame * 0.7f;
+                w->unk_BE = 105;
+                func_800E4C88_minigame(obj, 5, o->trans.x, y, o->trans.z, 0.0f, atan2df(dx, dz) + 180.0f);
+                func_800E19FC_minigame(w, 8);
+                omVibrate(w->unk_59, 20, 0, 20);
+            } else if (ow->unk_50 & 0x20) {
+                if (!(ow->unk_50 & 0x10)) {
+                    dist = HuSqrtf(dx * dx + dy * dy + dz * dz) - (ow->unk_48 + w->unk_48);
+                    if (dist < 0.0f) {
+                        if (ow->unk_38 < 1000.0f) {
+                            ow->unk_38 = -D_800EB744_minigame * 0.6f;
+                            if (func_800E2ED4_minigame(sindf(ow->unk_3C), cosdf(ow->unk_3C), dx, dz) < 0.0f) {
+                                ow->unk_40 = -D_800EB76C_minigame;
+                            } else {
+                                ow->unk_40 = D_800EB76C_minigame;
+                            }
+                        } else if (ow->unk_40 == D_800EB770_minigame) {
+                            if (w->unk_38 != 1000.0f) {
+                                func_800E317C_minigame(obj, dx, dz);
+                                func_800E1A9C_minigame(w, 9);
+                            } else {
+                                if ((dx == 0.0f) & (dz == 0.0f)) {
+                                    dx = sindf(w->unk_3C);
+                                    dz = cosdf(w->unk_3C);
+                                }
+                                func_800DFCDC_minigame(dx, dz, dist);
+                            }
+                        } else {
+                            ow->unk_40 = -ow->unk_40;
+                        }
+                    }
+                }
+            } else if (w->unk_BE != 0) {
+                D_800EC288_minigame++;
+            } else {
+                func_800D81C8_minigame(obj, o);
+            }
+        }
+    }
+
+    py = y + w->unk_48;
+    if (w->unk_50 & 0x400) {
+        return 0;
+    }
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        o = D_800EC598_minigame[i];
+        ow2 = o->data;
+        if (w == ow2) {
+            continue;
+        }
+        dx = o->trans.x - (x + D_800EBE2C_minigame);
+        dy = (o->trans.y + ow2->unk_48) - py;
+        dz2 = o->trans.z - (z + D_800EC5D8_minigame);
+        if (ow2->unk_50 & 0x400) {
+            continue;
+        }
+        dxx = dx * dx;
+        dzz = dz2 * dz2;
+        dist = HuSqrtf(dxx + dzz) - (w->unk_48 + ow2->unk_48) * 0.6f;
+        flat = HuSqrtf(dxx + dy * dy + dzz) - (ow2->unk_48 + w->unk_48);
+        if (((dist < 0.0f) | (flat < 0.0f)) && w->unk_38 != 1000.0f && !(w->unk_50 & 0x8000)) {
+            if (py - (ow2->unk_34 + ow2->unk_48) <= o->trans.y && o->trans.y <= (py - w->unk_48) + w->unk_34) {
+                if (!(ow2->unk_50 & 7) && w->unk_BE == 0 && ow2->unk_BE == 0) {
+                    if (ow2->unk_38 != 1000.0f) {
+                        if (w->unk_5C & 0x200) {
+                            if (!(dist < 0.0f && dy < -w->unk_34 * 0.5f)) {
+                                goto block_93;
+                            }
+                            func_800E4C88_minigame(obj, 7, x, py, z, 0.0f, 0.0f);
+                            if (!(ow2->unk_50 & 0x200)) {
+                                func_800E561C_minigame(o, 1);
+                                func_800E5690_minigame(o, 0x1E);
+                                if (ow2->unk_50 & 0x10) {
+                                    func_800E2CA4_minigame(o, D_800EB76C_minigame);
+                                }
+                            }
+                            ow2->unk_38 = w->unk_38;
+                            goto block_104;
+                        block_93:
+                            if (D_800EB735_minigame != 1) {
+                                goto block_78;
+                            }
+                            func_800E34D8_minigame(obj, o);
+                            return 0;
+                        }
+                        if (!(dist < 0.0f && dy < -w->unk_34 * 0.2)) {
+                            goto block_93;
+                        }
+                        if (!(ow2->unk_50 & 0x200)) {
+                            func_800E4C88_minigame(obj, 6, x, py, z, -90.0f, 0.0f);
+                            if (ow2->unk_50 & 0x10) {
+                                func_800E2CA4_minigame(o, D_800EB76C_minigame);
+                            }
+                        }
+                        if (ow2->unk_38 < 0.0f) {
+                            ow2->unk_38 = 0.0f;
+                        }
+                    block_104:
+                        ow2->unk_40 = D_800EB770_minigame;
+                        func_800E317C_minigame(obj, dx, dz2);
+                        func_800E1A9C_minigame(w, 9);
+                        goto block_105;
+                    block_78:
+                        func_800DFCDC_minigame(dx, dz2, HuSqrtf(dx * dx + dz2 * dz2) - (ow2->unk_48 + w->unk_48));
+                        return 0;
+                    block_105:
+                        omVibrate(w->unk_59, 2, 3, 10);
+                        omVibrate(ow2->unk_59, 2, 3, 10);
+                        return 2;
+                    }
+                    if ((dist < 0.0f) & (dy < 0.0f)) {
+                        if (!(ow2->unk_50 & 0x200)) {
+                            if (w->unk_5C & 0x200) {
+                                func_800E561C_minigame(o, 1);
+                                func_800E5690_minigame(o, 0);
+                                func_800E4C88_minigame(obj, 7, x, py, z, 0.0f, 0.0f);
+                            } else {
+                                func_800E4C88_minigame(obj, 6, x, py, z, -90.0f, 0.0f);
+                                func_800E561C_minigame(o, 2);
+                            }
+                            if (ow2->unk_50 & 0x10) {
+                                func_800E2CA4_minigame(o, D_800EB76C_minigame);
+                            }
+                        }
+                        func_800E317C_minigame(obj, dx, dz2);
+                        func_800E1A9C_minigame(w, 9);
+                        omVibrate(w->unk_59, 2, 3, 10);
+                        omVibrate(ow2->unk_59, 20, 0, 20);
+                        return 2;
+                    }
+                    func_800E317C_minigame(obj, dx, dz2);
+                    w->unk_38 = -D_800EB744_minigame * 0.6f;
+                    w->unk_40 = w->unk_40 * 0.5;
+                    func_800E1A9C_minigame(w, 9);
+                    omVibrate(w->unk_59, 2, 3, 10);
+                    omVibrate(ow2->unk_59, 20, 0, 20);
+                } else if (w->unk_38 != 1000.0f && ow2->unk_38 != 1000.0f) {
+                    if (w->unk_BE != 0 || ow2->unk_BE != 0) {
+                        if (D_800EB735_minigame == 1) {
+                            func_800E34D8_minigame(obj, o);
+                            omVibrate(w->unk_59, 2, 3, 10);
+                            return 0;
+                        }
+                        func_800DFCDC_minigame(dx, dz2, flat);
+                        return 0;
+                    }
+                } else {
+                    if (w->unk_5C & 0x200) {
+                        func_800E4C88_minigame(obj, 7, x, py, z, 0.0f, 0.0f);
+                    } else {
+                        func_800E4C88_minigame(obj, 6, x, py, z, -90.0f, 0.0f);
+                    }
+                    omVibrate(w->unk_59, 2, 3, 10);
+                    func_800E317C_minigame(obj, dx, dz2);
+                    func_800E1A9C_minigame(w, 9);
+                }
+            } else if (flat < 0.0f) {
+                if (D_800EB735_minigame == 1) {
+                    func_800E34D8_minigame(obj, o);
+                } else {
+                    func_800DFCDC_minigame(dx, dz2, flat);
+                }
+            }
+        } else {
+            flat = HuSqrtf(dx * dx + dy * dy + dz2 * dz2) - (ow2->unk_48 + w->unk_48);
+            if (flat < 0.0f) {
+                if (ow2->unk_38 != 1000.0f && w->unk_38 == 1000.0f) {
+                    continue;
+                }
+                func_800DFCDC_minigame(dx, dz2, flat);
+                w->unk_54 = i;
+            }
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DA768_minigame);
+#endif
 
 
 /* Clamp this frame's push: a push longer than the radius is replaced by one opposite the heading. */
