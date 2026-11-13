@@ -133,9 +133,23 @@ typedef struct MgWork {
     /* 0xAC */ f32 unk_AC;
     /* 0xB0 */ f32 unk_B0;
     /* 0xB4 */ f32 unk_B4;  /* speed factor */
-    /* 0xB8 */ char unk_B8[0x14];
+    /* 0xB8 */ char unk_B8[4];
+    /* 0xBC */ u16 unk_BC;
+    /* 0xBE */ u16 unk_BE;  /* hazard hit countdown */
+    /* 0xC0 */ char unk_C0[0xC];
     /* 0xCC */ f32 unk_CC;
-} MgWork; /* size 0x15C (MP2) */
+    /* 0xD0 */ char unk_D0[0x1C];
+    /* 0xEC */ s32 (*unk_EC)(omObjData* obj, omObjData* actor); /* actor touch hook; 1 skips the default */
+    /* 0xF0 */ u16 unk_F0;
+} MgWork;
+
+/* omObjData.data of a minigame item actor (MP2 collision.h ColActorWork); fields this unit uses. */
+typedef struct ColActorWork {
+    /* 0x00 */ char unk_00[0x48];
+    /* 0x48 */ f32 unk_48;      /* radius */
+    /* 0x4C */ char unk_4C[4];
+    /* 0x50 */ u16 unk_50;      /* flags */
+} ColActorWork; /* size 0x15C (MP2) */
 
 extern s16 D_800EB736_minigame;     /* contact count (MP2 D_800BF796_C0396) */
 extern f32 D_800EB764_minigame;
@@ -172,6 +186,16 @@ void func_80014850_main(s16 index);
 void func_800E1810_minigame(void);                              /* B3CE0 */
 void func_800E2CA4_minigame(omObjData* obj, f32 speed);        /* B3CE0: throw the held item (speed unused) */
 extern f32 D_800EB770_minigame;
+s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
+void func_800E2DA4_minigame(omObjData* obj, omObjData* actor);  /* B3CE0: touch an item actor */
+s32 func_800E4510_minigame(omObjData* obj, omObjData* other);   /* B63A0 */
+void func_800E454C_minigame(omObjData* obj, omObjData* other, f32 dx, f32 dz, u16 i); /* B63A0: hit a player */
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b); /* B7600: effect */
+extern u16 D_800EC1B8_minigame;          /* item actor count */
+extern omObjData* D_800EBE70_minigame[]; /* item actors */
+extern u16 D_800EC280_minigame;          /* player count */
+extern omObjData* D_800EC598_minigame[]; /* players */
+extern u16 D_800EC288_minigame;          /* touches while invulnerable */
 extern u8 D_800EB734_minigame;          /* ground object the player stands on */
 extern u16 D_800EBE28_minigame;         /* ground object count */
 extern f32 D_800EBE30_minigame[4][4];   /* ground object: world to local */
@@ -572,7 +596,94 @@ void func_800DFE44_minigame(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DFF3C_minigame);
+/* A player's attack (motion frames 16-20) against the other players and the item actors, then a
+   wall push for the attack point. */
+void func_800DFF3C_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    Vec4f v;
+    MgWork* w = obj->data;
+    MgWork* ow;
+    ColActorWork* aw;
+    omObjData* o;
+    f32 frame;
+    f32 rot;
+    f32 len;
+    f32 nx, ny, nz;
+    f32 dx, dy, dz;
+    f32 ang;
+    u16 i;
+
+    frame = func_8001C7D0_main(*obj->model);
+    if (frame == -1.0f) {
+        frame = HmfModelData[*obj->model].unk40;
+    }
+    if ((frame < 16.0f) | (frame > 20.0f)) {
+        return;
+    }
+    if (w->unk_BE != 0) {
+        D_800EC288_minigame++;
+        return;
+    }
+    if (w->unk_50 & 0x400) {
+        return;
+    }
+    len = w->unk_64 + w->unk_48;
+    rot = w->unk_3C;
+    nx = x + sindf(rot) * len;
+    ny = y;
+    nz = z + cosdf(rot) * len;
+    w->unk_F0 = 1;
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        o = D_800EC598_minigame[i];
+        ow = o->data;
+        if (!(ow->unk_5C & 0x8C00) && !(ow->unk_50 & 7) && ow->unk_BE == 0 && !(ow->unk_50 & 0x400)) {
+            if (w == ow) {
+                continue;
+            }
+            if (func_800E4510_minigame(obj, o) != 1) {
+                continue;
+            }
+            dx = o->trans.x - nx;
+            dy = o->trans.y - ny;
+            dz = o->trans.z - nz;
+            if (HuSqrtf(dx * dx + dy * dy + dz * dz) < ow->unk_48 + 30.0f) {
+                func_800E454C_minigame(obj, o, dx, dz, i);
+            }
+        }
+    }
+    if (!(w->unk_50 & 0x17)) {
+        for (i = 0; i < D_800EC1B8_minigame; i++) {
+            o = D_800EBE70_minigame[i];
+            aw = o->data;
+            if (!(aw->unk_50 & 0x20)) {
+                continue;
+            }
+            if (!(aw->unk_50 & 0x10)) {
+                if (w->unk_BE != 0) {
+                    D_800EC288_minigame++;
+                } else {
+                    dx = o->trans.x - nx;
+                    dy = o->trans.y - ny;
+                    dz = o->trans.z - nz;
+                    len = HuSqrtf(dx * dx + dy * dy + dz * dz) - (aw->unk_48 + w->unk_48);
+                    if (len < 0.0f && (w->unk_EC == NULL || w->unk_EC(obj, o) != 1)) {
+                        func_800E2DA4_minigame(obj, o);
+                    }
+                }
+            }
+        }
+    }
+    v.x = sindf(rot) * w->unk_48 + obj->trans.x;
+    v.y = ny;
+    v.z = cosdf(rot) * w->unk_48 + obj->trans.z;
+    v.w = w->unk_64;
+    w->unk_55 = func_800DD530_minigame(obj, &v, -D_800EB760_minigame);
+    if (D_800EB736_minigame != 0 && func_800E1510_minigame(D_800EC286_minigame) == 1) {
+        ang = atan2df(D_800EBEB8_minigame[0].x - obj->trans.x, D_800EBEB8_minigame[0].z - obj->trans.z);
+        func_800E4C88_minigame(obj, 6, nx, ny, nz, 0.0f, ang + 180.0f);
+    }
+    D_800EB736_minigame = 0;
+    D_800EBE2C_minigame = D_800EC5D8_minigame = 0.0f;
+}
 
 /* Records contact normal number D_800EB736_minigame, normalised. */
 void func_800E0430_minigame(f32 x, f32 y, f32 z) {
