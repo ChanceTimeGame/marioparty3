@@ -149,55 +149,168 @@ void func_801061D4_filesel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106220_filesel);
+void func_80106220_filesel(s32 no, s32 arg1, s32 dataNum) {
+    s16 model = func_8000B108_main(arg1, dataNum);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801062BC_filesel);
+    D_80113650_filesel[no].model = model;
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106344_filesel);
+void func_801062BC_filesel(s32 no, s32 dataNum, s32 arg2) {
+    void *data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801063F4_filesel);
+    if (arg2 == -1) {
+        arg2 = 0x6AD;
+    }
+    data = DataRead(dataNum);
+    D_80113650_filesel[no].motion = func_8001F1FC_main(data, (s16)arg2);
+    DataClose(data);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010642C_filesel);
+void func_80106344_filesel(s32 no) {
+    if (D_80113650_filesel[no].model != -1) {
+        func_8001ACDC_main(D_80113650_filesel[no].model);
+        D_80113650_filesel[no].model = -1;
+    }
+    if (D_80113650_filesel[no].motion != -1) {
+        func_8002D4B8_main(D_80113650_filesel[no].motion);
+        D_80113650_filesel[no].motion = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106450_filesel);
+void func_801063F4_filesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106474_filesel);
+    for (i = 0; i < 64; i++) {
+        func_80106344_filesel(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801064DC_filesel);
+s16 func_8010642C_filesel(s32 no) {
+    return D_80113650_filesel[no].model;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106550_filesel);
+s16 func_80106450_filesel(s32 no) {
+    return D_80113650_filesel[no].motion;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801065B8_filesel);
+void func_80106474_filesel(s32 no, f32 x, f32 y, f32 z) {
+    D_80113650_filesel[no].rot.x = x;
+    D_80113650_filesel[no].rot.y = y;
+    D_80113650_filesel[no].rot.z = z;
+    Hu3DModelRotSet(D_80113650_filesel[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010660C_filesel);
+void func_801064DC_filesel(s32 no, f32 x, f32 y, f32 z) {
+    D_80113650_filesel[no].pos[0] = x;
+    D_80113650_filesel[no].pos[1] = y;
+    D_80113650_filesel[no].pos[2] = z;
+    Hu3DModelPosSet(D_80113650_filesel[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106654_filesel);
+void func_80106550_filesel(s32 no, f32 x, f32 y, f32 z) {
+    D_80113650_filesel[no].scale.x = x;
+    D_80113650_filesel[no].scale.y = y;
+    D_80113650_filesel[no].scale.z = z;
+    Hu3DModelScaleSet(D_80113650_filesel[no].model, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010669C_filesel);
+void func_801065B8_filesel(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80113650_filesel[no].pos[0];
+    *y = D_80113650_filesel[no].pos[1];
+    *z = D_80113650_filesel[no].pos[2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801066DC_filesel);
+void func_8010660C_filesel(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80113650_filesel[no].rot.x;
+    *y = D_80113650_filesel[no].rot.y;
+    *z = D_80113650_filesel[no].rot.z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010671C_filesel);
+void func_80106654_filesel(s32 no, f32 *x, f32 *y, f32 *z) {
+    *x = D_80113650_filesel[no].scale.x;
+    *y = D_80113650_filesel[no].scale.y;
+    *z = D_80113650_filesel[no].scale.z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106760_filesel);
+void func_8010669C_filesel(s32 no) {
+    func_8001C258_main(D_80113650_filesel[no].model, 4, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801067D0_filesel);
+void func_801066DC_filesel(s32 no) {
+    func_8001C258_main(D_80113650_filesel[no].model, 4, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106814_filesel);
+void func_8010671C_filesel(s32 no, s16 flag) {
+    func_8001C814_main(D_80113650_filesel[no].model, -1, flag);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010684C_filesel);
+void func_80106760_filesel(s32 no, s32 motNo, s16 arg2, s16 arg3, s16 arg4) {
+    func_8001C624_main(D_80113650_filesel[no].model, D_80113650_filesel[motNo].motion, arg2, arg3, arg4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801068B0_filesel);
+void func_801067D0_filesel(s32 no, s16 arg1) {
+    func_8001C814_main(D_80113650_filesel[no].model, arg1, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106950_filesel);
+void func_80106814_filesel(s32 no, f32 speed) {
+    func_8001C92C_main(D_80113650_filesel[no].model, speed);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801069D8_filesel);
+void func_8010684C_filesel(s32 no, u32 time) {
+    func_8001C6A8_main(D_80113650_filesel[no].model, time);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106A48_filesel);
+void func_801068B0_filesel(s32 no) {
+    while (HmfModelData[D_80113650_filesel[no].model].unk40 !=
+           D_800CCF58_main[HmfModelData[D_80113650_filesel[no].model].unk02].unk02) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106AAC_filesel);
+s32 func_80106950_filesel(s32 no) {
+    return HmfModelData[D_80113650_filesel[no].model].unk40 ==
+           D_800CCF58_main[HmfModelData[D_80113650_filesel[no].model].unk02].unk02;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106AD8_filesel);
+void func_801069D8_filesel(s32 no, s32 motNo, s16 flag) {
+    s16 model = func_8010642C_filesel(no);
+    s16 motion = func_80106450_filesel(motNo);
+
+    func_8001F304_main(model, motion);
+    func_8001C814_main(model, -1, flag);
+}
+
+void func_80106A48_filesel(s32 dataNum) {
+    D_80114150_filesel = func_8000B838_main(dataNum);
+    D_80114152_filesel = InitEspriteSlot(D_80114150_filesel, 0, 0);
+    func_8000BC48_main(D_80114152_filesel, 0x4000);
+    func_8000BBD4_main(D_80114152_filesel, 160, 120);
+}
+
+void func_80106AAC_filesel(void) {
+    func_8000C184_main(D_80114152_filesel);
+    HuSprKill(D_80114150_filesel);
+}
+
+u32 func_80106AD8_filesel(u32 mes) {
+    u8 buf[0x100];
+    s32 size;
+    void *copy;
+    u32 ret;
+
+    if (mes <= 0x80000000) {
+        ret = mes;
+    } else {
+        size = func_800452A0_main(buf, (void *)mes);
+        copy = HuMemAlloc(size);
+        bcopy(buf, copy, size);
+        ret = (u32)copy;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80106B40_filesel);
 
