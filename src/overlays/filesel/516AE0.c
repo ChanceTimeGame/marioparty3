@@ -4,6 +4,9 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+extern char D_80112AF0_filesel[];
+
+
 extern Vec D_80112EA0_filesel; /* camera eye */
 extern Vec D_80112EAC_filesel; /* camera target */
 extern Vec D_80112EB8_filesel; /* camera up */
@@ -1392,11 +1395,87 @@ void func_8010E864_filesel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F10C_filesel);
+void func_8010F10C_filesel(void) {
+    omDelPrcObj(D_80114504_filesel);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F12C_filesel);
+void func_8010F12C_filesel(void) {
+    func_8010E740_filesel(-1);
+    D_80114504_filesel = omAddPrcObj(func_8010E864_filesel, 1, 0x2000, 0);
+}
 
+// the window width is kept in a register for the first window's stack argument, float register choice (masked ~20)
+#ifdef NON_MATCHING
+void func_8010F168_filesel(void) {
+    Vec pos;
+    Vec2f scr;
+    s16 win;
+    u16 w;
+    f32 y;
+
+    func_80106B40_filesel(0, 0x2A11, 0x18, 0x14, 0xC8, 0x18, 2);
+    win = func_80107810_filesel(0);
+    func_8005FBF8_main(win, 0x80, 0x80, 0x80);
+    func_8005C02C_main(win, 7);
+    func_801078BC_filesel(0, 0x78);
+    func_801076A0_filesel(0);
+    func_8010F678_filesel(0);
+    func_80106B40_filesel(4, 0x2A00, 0xA0, 0xAF, 0, 0, 5);
+    func_801076A0_filesel(4);
+    func_80105E48_filesel(0x12, 0x88);
+    func_80106134_filesel(0x12, 5);
+    func_80105F54_filesel(0x12);
+    w = 0x3E;
+    HuVecCopyXYZ(&pos, -400.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    y = 168.0f;
+    func_80106B40_filesel(1, (u32)D_801142DC_filesel[0].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    win = func_80107810_filesel(1);
+    func_8005B63C_main(win, 0x80000, 0x80000);
+    func_8005FBF8_main(win, 0xC0, 0xC0, 0xC0);
+    func_8005C02C_main(win, 7);
+    if ((D_801142DC_filesel[0].unk_01[0] | D_801142DC_filesel[0].unk_01[1]) == 0) {
+        func_801076D0_filesel(1, (u32)D_80112AF0_filesel);
+        func_8010F760_filesel(0, 0);
+    } else {
+        func_8010F760_filesel(0, 1);
+    }
+    func_8010F874_filesel(0);
+    HuVecCopyXYZ(&pos, 0.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    func_80106B40_filesel(2, (u32)D_801142DC_filesel[1].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    win = func_80107810_filesel(2);
+    func_8005B63C_main(win, 0x80000, 0x80000);
+    func_8005FBF8_main(win, 0xC0, 0xC0, 0xC0);
+    func_8005C02C_main(win, 7);
+    if ((D_801142DC_filesel[1].unk_01[0] | D_801142DC_filesel[1].unk_01[1]) == 0) {
+        func_801076D0_filesel(2, (u32)D_80112AF0_filesel);
+        func_8010F760_filesel(1, 0);
+    } else {
+        func_8010F760_filesel(1, 1);
+    }
+    func_8010F874_filesel(1);
+    HuVecCopyXYZ(&pos, 400.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    func_80106B40_filesel(3, (u32)D_801142DC_filesel[2].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    win = func_80107810_filesel(3);
+    func_8005B63C_main(win, 0x80000, 0x80000);
+    func_8005FBF8_main(win, 0x80, 0x80, 0x80);
+    func_8005C02C_main(win, 7);
+    if ((D_801142DC_filesel[2].unk_01[0] | D_801142DC_filesel[2].unk_01[1]) == 0) {
+        func_801076D0_filesel(3, (u32)D_80112AF0_filesel);
+        func_8010F760_filesel(2, 0);
+    } else {
+        func_8010F760_filesel(2, 1);
+    }
+    func_8010F874_filesel(2);
+    func_8010A680_filesel(0, -400.0f, 0.0f, 0.0f);
+    func_8010A680_filesel(1, -400.0f, 0.0f, 0.0f);
+    func_8010A680_filesel(2, -400.0f, 0.0f, 0.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F168_filesel);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F5C8_filesel);
 

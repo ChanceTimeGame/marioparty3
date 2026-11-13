@@ -290,7 +290,8 @@ extern Vec D_801144E0_filesel; /* target */
 extern Vec D_801144EC_filesel; /* up */
 extern f32 D_801144F8_filesel; /* near */
 extern f32 D_801144FC_filesel; /* far */
-extern s32 D_80114500_filesel;
+extern s32 D_80114500_filesel; /* camera mode: -1/0 orbit (0 with stick control), 1 fixed, else free eye */
+extern Process *D_80114504_filesel; /* camera process */
 extern f32 D_801128A0_filesel; /* .data: fov */
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c */
 
