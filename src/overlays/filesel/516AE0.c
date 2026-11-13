@@ -676,11 +676,82 @@ void func_80108878_filesel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801088DC_filesel);
+void func_801088DC_filesel(void) {
+    Vec from;
+    Vec to;
+    Vec pos;
+    f32 t;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108A94_filesel);
+    for (i = 0; i < 3; i++) {
+    }
+    func_80105F24_filesel(1);
+    func_80105F24_filesel(2);
+    func_80105F24_filesel(3);
+    func_80108878_filesel();
+    for (i = 0; i < 11; i++) {
+        t = i * 0.1f;
+        if (t > 1.0f) {
+            t = 1.0f;
+        }
+        HuVecCopyXYZ(&from, 352.0f, 40.0f, 0.0f);
+        HuVecCopyXYZ(&to, 224.0f, 40.0f, 0.0f);
+        pos.x = (to.x - from.x) * t + from.x;
+        pos.y = (to.y - from.y) * t + from.y;
+        func_80105FBC_filesel(1, pos.x, pos.y);
+        func_80105FBC_filesel(2, pos.x - 22.0f, pos.y);
+        func_80105FBC_filesel(3, pos.x + 26.0f, pos.y);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108C34_filesel);
+void func_80108A94_filesel(void) {
+    Vec from;
+    Vec to;
+    Vec pos;
+    f32 t;
+    s32 i;
+
+    for (i = 0; i < 11; i++) {
+        t = 1.0f - i * 0.1f;
+        if (t < 0.0f) {
+            t = 0.0f;
+        }
+        HuVecCopyXYZ(&from, 352.0f, 40.0f, 0.0f);
+        HuVecCopyXYZ(&to, 224.0f, 40.0f, 0.0f);
+        pos.x = (to.x - from.x) * t + from.x;
+        pos.y = (to.y - from.y) * t + from.y;
+        func_80105FBC_filesel(1, pos.x, pos.y);
+        func_80105FBC_filesel(2, pos.x - 22.0f, pos.y);
+        func_80105FBC_filesel(3, pos.x + 26.0f, pos.y);
+        HuPrcVSleep();
+    }
+    func_80105F54_filesel(1);
+    func_80105F54_filesel(2);
+    func_80105F54_filesel(3);
+}
+
+void func_80108C34_filesel(void) {
+    Vec from;
+    Vec to;
+    Vec pos;
+    f32 t;
+    s32 i;
+
+    func_80107670_filesel(4);
+    for (i = 0; i < 11; i++) {
+        t = i * 0.1f;
+        if (t > 1.0f) {
+            t = 1.0f;
+        }
+        HuVecCopyXYZ(&from, 160.0f, 288.0f, 0.0f);
+        HuVecCopyXYZ(&to, 160.0f, 192.0f, 0.0f);
+        pos.x = (to.x - from.x) * t + from.x;
+        pos.y = (to.y - from.y) * t + from.y;
+        func_80107608_filesel(4, 160.0f, (96.0f - t * 96.0f) + 208.0f);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108D74_filesel);
 
