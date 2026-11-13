@@ -22,3 +22,21 @@ m254_funcGroups = 0x801137E8;
 func_80107CC4_silly_screws = 0x80107CC4;
 D_8010BF80_silly_screws = 0x8010BF80;
 D_8010BF84_silly_screws = 0x8010BF84;
+
+/* minigame .data in C (A96F0.c): labels inside its arrays */
+D_800EB786_minigame = D_800EB784_minigame + 0x2;
+D_800EB788_minigame = D_800EB784_minigame + 0x4;
+D_800EB78A_minigame = D_800EB784_minigame + 0x6;
+D_800EB78C_minigame = D_800EB784_minigame + 0x8;
+D_800EB78E_minigame = D_800EB784_minigame + 0xA;
+D_800EB790_minigame = D_800EB784_minigame + 0xC;
+D_800EB792_minigame = D_800EB784_minigame + 0xE;
+D_800EB794_minigame = D_800EB784_minigame + 0x10;
+D_800EB796_minigame = D_800EB784_minigame + 0x12;
+D_800EB798_minigame = D_800EB784_minigame + 0x14;
+D_800EB79A_minigame = D_800EB784_minigame + 0x16;
+D_800EB79C_minigame = D_800EB784_minigame + 0x18;
+D_800EB79E_minigame = D_800EB784_minigame + 0x1A;
+D_800EBA59_minigame = D_800EBA58_minigame + 0x1;
+D_800EBA5A_minigame = D_800EBA58_minigame + 0x2;
+D_800EBA76_minigame = D_800EBA74_minigame + 0x2;

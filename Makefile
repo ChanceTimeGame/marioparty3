@@ -378,6 +378,8 @@ build/src/gamemes.c.o: src/gamemes.c
 # nop after a call whose delay slot GCC filled (89170 guRotateF: none before the mul.s after sincosdf).
 # wave 3b: wipe and 14EA0 too, as MP2 builds their counterparts (no mul-fix nop after a branch-likely)
 W2DC_BLANKSTRIP := build/src/89170.c.o build/src/wipe.c.o build/src/14EA0.c.o
+# minigame A: AB1C0 likewise (func_800D9028_minigame: no nop before the mul.s after cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/minigame/AB1C0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
