@@ -1895,7 +1895,60 @@ void func_8010E7B4_modesel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E984_modesel);
+/* Title sprites (6-9) of the mode-select screen: the story chapter in story mode. */
+void func_8010E984_modesel(void) {
+    s32 x;
+    s32 y;
+
+    if (func_800465D0_main() == 1) {
+        func_80105EA8_modesel(6, 0xD0011);
+        func_8010601C_modesel(6, 64, 28);
+        func_80105FB4_modesel(6);
+        func_80055420_main(func_80105D24_modesel(6), 0, 0xFF, 0xFF, 0);
+        func_80105EA8_modesel(7, 0xD0013);
+        func_8010601C_modesel(7, 64, 28);
+        func_80105FB4_modesel(7);
+        func_80105EA8_modesel(8, 0xD0014);
+        func_8010601C_modesel(8, 64, 28);
+        func_80105FB4_modesel(8);
+        func_80105EA8_modesel(9, 0x1F0004);
+        func_8010601C_modesel(9, 38, 36);
+    } else {
+        x = 64;
+        func_80105EA8_modesel(6, 0xD0010);
+        func_8010601C_modesel(6, x, 38);
+        func_80105FB4_modesel(6);
+        func_80055420_main(func_80105D24_modesel(6), 0, 0xFF, 0xFF, 0);
+        func_80105EA8_modesel(7, 0xD0012);
+        func_8010601C_modesel(7, x, 28);
+        func_80105FB4_modesel(7);
+        switch (GwStory.unk2) {
+        case 0:
+            func_80105EA8_modesel(8, 0xD0014);
+            y = 46;
+            break;
+        case 2:
+            func_80105EA8_modesel(8, 0xD0016);
+            y = 46;
+            break;
+        case 3:
+            func_80105EA8_modesel(8, 0xD0017);
+            y = 46;
+            break;
+        case 1:
+        default:
+            func_80105EA8_modesel(8, 0xD0015);
+            y = 46;
+            break;
+        }
+        func_8010601C_modesel(8, x + 10, y);
+        func_80105FB4_modesel(8);
+        func_80105EA8_modesel(9, 0x1F0004);
+        func_8010601C_modesel(9, x - 26, y);
+        func_801061C8_modesel(9, GwStory.unk1, 0);
+    }
+    func_80105FB4_modesel(9);
+}
 
 void func_8010EBC4_modesel(void) {
     func_80105F20_modesel(6);
@@ -1940,7 +1993,90 @@ void func_8010ED00_modesel(void) {
     omAddObj(6, 0, 0, -1, func_8010ECAC_modesel);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ED3C_modesel);
+/* Controller-pak notice (window 1, messages 0x5F01/0x5F02 paged with the shoulder buttons)
+   over a fading backdrop; B closes it. */
+void func_8010ED3C_modesel(void) {
+    u16 spr;
+    s32 i;
+
+    func_80105EA8_modesel(3, 0x140064);
+    func_8010601C_modesel(3, 160, 120);
+    func_801060A4_modesel(3, 10.0f, 8.0f);
+    func_801060F4_modesel(3, 0);
+    func_80105FB4_modesel(3);
+    spr = func_80105D24_modesel(3);
+    func_8000BEAC_main(spr, 0, 0, 0);
+    func_8000BCC8_main(spr, 0x4BA);
+    func_80105EA8_modesel(2, 0xD0018);
+    func_8010601C_modesel(2, 160, 120);
+    func_801060A4_modesel(2, 1.0f, 1.0f);
+    func_80105FB4_modesel(2);
+    spr = func_80105D24_modesel(2);
+    func_8000BEAC_main(spr, 0, 0, 0);
+    func_8000BCC8_main(spr, 11);
+    func_80105EA8_modesel(4, 0x150003);
+    func_8010601C_modesel(4, 28, 120);
+    func_80105FB4_modesel(4);
+    func_80105EA8_modesel(5, 0x150003);
+    func_8010601C_modesel(5, 292, 120);
+    func_80105FB4_modesel(5);
+    func_8000BC48_main(func_80105D24_modesel(5), 1);
+    func_80106000_modesel(1);
+    func_80107700_modesel(0);
+    func_8010EC40_modesel();
+    func_80105F84_modesel(3);
+    func_80105F84_modesel(2);
+    func_80105FB4_modesel(4);
+    func_80105F84_modesel(5);
+    i = 0;
+    do {
+        func_801060F4_modesel(2, i * 36.57143f);
+        if (i * 36.57143f < 128.0f) {
+            func_801060F4_modesel(3, i * 36.57143f);
+        } else {
+            func_801060F4_modesel(3, 128);
+        }
+        i++;
+        HuPrcVSleep();
+    } while (i < 8);
+    func_801060F4_modesel(2, 256);
+    func_801060F4_modesel(3, 128);
+    func_80106BA0_modesel(1, 0x5F01, 0, 16, 304, 208, 0);
+    func_8005C154_main(D_80110998_modesel[1].id, 64, 64, 64);
+    func_8005C060_main(D_80110998_modesel[1].id, 4, 0, 0xFF, 0);
+    func_8005C060_main(D_80110998_modesel[1].id, 6, 0xFF, 0xFF, 0x80);
+    while (TRUE) {
+        if (D_800D5558_main[0] & 0x4000) {
+            break;
+        }
+        if (D_800C9520_main[0] & 0x200) {
+            func_80105FB4_modesel(4);
+            func_80105F84_modesel(5);
+            func_80107730_modesel(1, 0x5F01);
+        } else if (D_800D5546_main[0] & 0x100) {
+            func_80105F84_modesel(4);
+            func_80105FB4_modesel(5);
+            func_80107730_modesel(1, 0x5F02);
+        }
+        HuPrcVSleep();
+    }
+    func_801074F0_modesel(1);
+    for (i = 0; i < 7; i++) {
+        func_801060F4_modesel(2, (7 - i) * 36.428574f);
+        HuPrcVSleep();
+    }
+    func_80105FB4_modesel(2);
+    func_80105FB4_modesel(3);
+    func_80105FB4_modesel(4);
+    func_80105FB4_modesel(5);
+    func_80105F20_modesel(3);
+    func_80105F20_modesel(2);
+    func_80105F20_modesel(4);
+    func_80105F20_modesel(5);
+    func_80105FE4_modesel(1);
+    func_801076D0_modesel(0);
+    func_8010EBF8_modesel();
+}
 
 void func_8010F1F4_modesel(void) {
 }
