@@ -25,7 +25,7 @@ extern f32 D_800EB76C_minigame;
 extern f32 D_800EB770_minigame;
 extern u8 D_800EB739_minigame;
 
-void func_800E19FC_minigame(MgWork* work, s8 state);
+void func_800E19FC_minigame(MgWork* work, s32 state);
 void func_800E23E0_minigame(omObjData* obj);
 void func_800E2CA4_minigame(omObjData* obj, f32 arg1);
 void func_800E2E98_minigame(omObjData* obj);

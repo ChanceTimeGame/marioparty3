@@ -12,8 +12,15 @@ typedef struct {
 } func_800E1BA8_minigame_UnkE8_ObjData; // Size 0xC
 
 typedef struct {
-    /* 0x000 */ u8 unk00[0x20];
-    /* 0x020 */ char unk20[0x14];
+    /* 0x000 */ char unk00[4];
+    /* 0x004 */ u8 unk04; /* id */
+    /* 0x005 */ char unk05;
+    /* 0x006 */ u16 unk06; /* flags */
+    /* 0x008 */ f32 unk08;
+    /* 0x00C */ f32 unk0C;
+    /* 0x010 */ f32 unk10;
+    /* 0x014 */ f32 unk14;
+    /* 0x018 */ char unk18[0x1C];
     /* 0x034 */ f32 unk34;
     /* 0x038 */ f32 unk38;
     /* 0x03C */ f32 unk3C;
@@ -45,7 +52,7 @@ typedef struct {
     /* 0x09C */ f32 unk9C;
     /* 0x0A0 */ f32 unkA0;
     /* 0x0A4 */ f32 unkA4;
-    /* 0x0A8 */ char unkA8[4];
+    /* 0x0A8 */ f32 unkA8;
     /* 0x0AC */ f32 unkAC;
     /* 0x0B0 */ f32 unkB0;
     /* 0x0B4 */ f32 unkB4;
