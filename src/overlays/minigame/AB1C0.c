@@ -195,6 +195,18 @@ extern u16 D_800EC1B8_minigame;          /* item actor count */
 extern omObjData* D_800EBE70_minigame[]; /* item actors */
 extern u16 D_800EC280_minigame;          /* player count */
 extern omObjData* D_800EC598_minigame[]; /* players */
+extern s32 fontcolor;
+extern u8 D_800EB73B_minigame;          /* debug menu: homing camera */
+extern f32 D_800EB73C_minigame;         /* movement tuning (debug menu rows 2-10) */
+extern f32 D_800EB740_minigame;
+extern f32 D_800EB744_minigame;         /* jump speed */
+extern f32 D_800EB748_minigame;         /* gravity */
+extern f32 D_800EB74C_minigame;
+extern f32 D_800EB750_minigame;
+extern f32 D_800EB754_minigame;         /* player radius */
+extern f32 D_800EB758_minigame;         /* attack reach */
+extern f32 D_800EB75C_minigame;
+extern s8 D_800EB780_minigame;          /* debug menu row */
 extern u16 D_800EC288_minigame;          /* touches while invulnerable */
 extern u8 D_800EB734_minigame;          /* ground object the player stands on */
 extern u16 D_800EBE28_minigame;         /* ground object count */
@@ -704,4 +716,210 @@ void func_800E048C_minigame(f32 x, f32 y, f32 z) {
     D_800EBEB8_minigame[i].z = z;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800E04C8_minigame);
+/* Movement tuning debug menu for port 0 (MP2 func_80009E48_AA48): C buttons turn and zoom the
+   camera, L/R pick a row (only row 0 is reachable), A/B toggle the homing camera or step the
+   selected value. Retail bug: w is only set by the loops in rows 9 and 10, so the homing camera
+   writes through an unset pointer (host hazard). */
+void func_800E04C8_minigame(omObjData* obj, s32 port) {
+    MgWork* w;
+    s32 i;
+    f32 cy;
+
+    if (port != 0) {
+        return;
+    }
+    if (D_800CDA7C_main[port] & 0x10) {
+        CZoom -= 20.0f;
+    }
+    if (D_800CDA7C_main[port] & 0x20) {
+        CZoom += 20.0f;
+    }
+    if (D_800CDA7C_main[port] & 8) {
+        CRot.x += 0.3f;
+    }
+    if (D_800CDA7C_main[port] & 4) {
+        CRot.x -= 0.3f;
+    }
+    if (D_800CDA7C_main[port] & 1) {
+        CRot.y += 1.0f;
+    }
+    if (D_800CDA7C_main[port] & 2) {
+        CRot.y -= 1.0f;
+    }
+    if (D_800D5558_main[port] & 0x800) {
+        D_800EB780_minigame--;
+    } else if (D_800D5558_main[port] & 0x400) {
+        D_800EB780_minigame++;
+    }
+    if (D_800EB780_minigame < 0) {
+        D_800EB780_minigame = 0;
+    }
+    if (D_800EB780_minigame > 0) {
+        D_800EB780_minigame = 0;
+    }
+    switch (D_800EB780_minigame) {
+        case 0:
+            if (D_800D5558_main[port] & 0x300) {
+                if (D_800EB73B_minigame != 0) {
+                    D_800EB73B_minigame = 0;
+                } else {
+                    D_800EB73B_minigame = 1;
+                }
+            }
+            break;
+        case 2:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB73C_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB73C_minigame -= 0.1f;
+            }
+            if (D_800EB73C_minigame > 50.0f) {
+                D_800EB73C_minigame = 50.0f;
+            }
+            if (D_800EB73C_minigame < 1.0f) {
+                D_800EB73C_minigame = 1.0f;
+            }
+            break;
+        case 3:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB740_minigame += 0.001f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB740_minigame -= 0.001f;
+            }
+            if (D_800EB740_minigame > 0.999f) {
+                D_800EB740_minigame = 0.999f;
+            }
+            if (D_800EB740_minigame < 0.001f) {
+                D_800EB740_minigame = 0.001f;
+            }
+            break;
+        case 4:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB744_minigame += 0.01f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB744_minigame -= 0.01f;
+            }
+            if (D_800EB744_minigame > 2.0f) {
+                D_800EB744_minigame = 2.0f;
+            }
+            if (D_800EB744_minigame < 0.7f) {
+                D_800EB744_minigame = 0.7f;
+            }
+            break;
+        case 5:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB748_minigame += 0.001f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB748_minigame -= 0.001f;
+            }
+            if (D_800EB748_minigame > 0.2f) {
+                D_800EB748_minigame = 0.2f;
+            }
+            if (D_800EB748_minigame < 0.01f) {
+                D_800EB748_minigame = 0.01f;
+            }
+            break;
+        case 6:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB74C_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB74C_minigame -= 0.1f;
+            }
+            if (D_800EB74C_minigame > 30.0f) {
+                D_800EB74C_minigame = 30.0f;
+            }
+            if (D_800EB74C_minigame < 0.0f) {
+                D_800EB74C_minigame = 0.0f;
+            }
+            break;
+        case 7:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB750_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB750_minigame -= 0.1f;
+            }
+            if (D_800EB750_minigame > 100.0f) {
+                D_800EB750_minigame = 100.0f;
+            }
+            if (D_800EB750_minigame < 20.0f) {
+                D_800EB750_minigame = 20.0f;
+            }
+            break;
+        case 8:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB760_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB760_minigame -= 0.1f;
+            }
+            if (D_800EB760_minigame > 30.0f) {
+                D_800EB760_minigame = 30.0f;
+            }
+            if (D_800EB760_minigame < 10.0f) {
+                D_800EB760_minigame = 10.0f;
+            }
+            D_800EB76C_minigame = D_800EB760_minigame / 4.0f;
+            D_800EB768_minigame = D_800EB760_minigame / 2.0f;
+            D_800EB764_minigame = D_800EB76C_minigame * 3.0f;
+            D_800EB75C_minigame = 60.0f / D_800EB760_minigame;
+            break;
+        case 9:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB754_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB754_minigame -= 0.1f;
+            }
+            if (D_800EB754_minigame > 100.0f) {
+                D_800EB754_minigame = 100.0f;
+            }
+            if (D_800EB754_minigame < 40.0f) {
+                D_800EB754_minigame = 40.0f;
+            }
+            for (i = 0; i < D_800EC280_minigame; i++) {
+                w = D_800EC598_minigame[i]->data;
+                w->unk_48 = D_800EB754_minigame;
+            }
+            break;
+        case 10:
+            if (D_800CDA7C_main[port] & 0x100) {
+                D_800EB758_minigame += 0.1f;
+            }
+            if (D_800CDA7C_main[port] & 0x200) {
+                D_800EB758_minigame -= 0.1f;
+            }
+            if (D_800EB758_minigame > 100.0f) {
+                D_800EB758_minigame = 100.0f;
+            }
+            if (D_800EB758_minigame < 10.0f) {
+                D_800EB758_minigame = 40.0f;
+            }
+            for (i = 0; i < D_800EC280_minigame; i++) {
+                w = D_800EC598_minigame[i]->data;
+                w->unk_64 = D_800EB758_minigame;
+            }
+            break;
+    }
+    fontcolor = 15;
+    sprintf(D_800D5218_main, "*");
+    print8(16, (D_800EB780_minigame + 2) * 8, D_800D5218_main);
+    sprintf(D_800D5218_main, "CAMERA :[%s]", D_800EB73B_minigame ? "HOMING" : "LOCK");
+    print8(24, 16, D_800D5218_main);
+    if (D_800EB73B_minigame != 0) {
+        cy = HmfModelData[obj->model[1]].pos.y;
+        if (cy != Center.y) {
+            cy = Center.y + (cy - Center.y) / 20.0f;
+        }
+        Center.x = HmfModelData[obj->model[1]].pos.x;
+        Center.y = cy;
+        Center.z = HmfModelData[obj->model[1]].pos.z;
+        w->unk_60 = CRot.y;
+    }
+}
+

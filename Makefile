@@ -326,8 +326,6 @@ NOP_OBJECTS := \
 NOP_OBJECTS += build/src/471D0.c.o
 # wave 2b C: sprput (MP2 builds 84FF0.c the same way: SprDisp has no nop after a branch-likely delay slot)
 NOP_OBJECTS += build/src/sprput.c.o
-# minigame B: AB1C0 (func_800DD1F4_minigame: no nop after the cosdf call)
-NOP_OBJECTS += build/src/overlays/minigame/AB1C0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
@@ -379,6 +377,10 @@ build/src/gamemes.c.o: src/gamemes.c
 # wave 2d C: built as gamemes is (blank lines removed from GCC's assembly), so KMC as adds no hazard
 # nop after a call whose delay slot GCC filled (89170 guRotateF: none before the mul.s after sincosdf)
 W2DC_BLANKSTRIP := build/src/89170.c.o
+# minigame B: AB1C0 the same way (func_800DD1F4_minigame: no nop after the cosdf call). Not
+# NOP_OBJECTS: that rule assembles without -O1, which puts the delay-slot nop of a jump-table
+# `j` at the start of .text (func_800E04C8_minigame).
+W2DC_BLANKSTRIP += build/src/overlays/minigame/AB1C0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
