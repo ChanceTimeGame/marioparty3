@@ -307,15 +307,16 @@ s32 func_8010F214_modesel(s32 arg0); /* returns an int (was u8) */
 /* Choice points in world space (D_8010F304_modesel[8]; splat also names D_8010F308/F30C). */
 extern Vec D_8010F304_modesel[];
 
-/* A motion object of a model (MP3 hmfman.c HmfMotionObjM, size 0x98), from func_8001D33C_main. */
-typedef struct MsMotObj {
-    /* 0x00 */ char unk0[0x1C];
-    /* 0x1C */ Vec unk1C; /* scale */
+/* A model part (func_8001D33C_main; MP3 hmfman.c HmfMotionObjM, size 0x98): forks B and C. */
+typedef struct MsHmfPart {
+    /* 0x00 */ char unk00[0x1C];
+    /* 0x1C */ Vec unk1C; /* scale (func_8010BA70_modesel resets both to 1) */
     /* 0x28 */ char unk28[0x18];
-    /* 0x40 */ Vec unk40; /* scale */
-    /* 0x4C */ char unk4C[0x4C];
-} MsMotObj; /* size = 0x98 */
-extern MsMotObj *D_80110BD4_modesel; /* was s32: func_8010AF90_modesel stores func_8001D33C_main's pointer */
+    /* 0x40 */ Vec unk40;
+    /* 0x4C */ char unk4C[0xC];
+    /* 0x58 */ HuMtx4F mtx;
+} MsHmfPart; /* size = 0x98 */
+extern MsHmfPart *D_80110BD4_modesel; /* was s32: func_8010AF90_modesel stores func_8001D33C_main's pointer */
 
 /* Summary of a saved game for the resume prompt (func_8010E7B4_modesel): board play
    D_80110B88_modesel (4 players; splat also names D_80110B98/BA8/BAC/BB0) and the 2-player save

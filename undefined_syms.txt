@@ -40,3 +40,5 @@ D_800EB79E_minigame = D_800EB784_minigame + 0x1A;
 D_800EBA59_minigame = D_800EBA58_minigame + 0x1;
 D_800EBA5A_minigame = D_800EBA58_minigame + 0x2;
 D_800EBA76_minigame = D_800EBA74_minigame + 0x2;
+D_8010F2D0_modesel = D_8010F2CC_modesel + 0x4;
+D_8010F2D4_modesel = D_8010F2CC_modesel + 0x8;

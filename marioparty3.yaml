@@ -2367,7 +2367,7 @@ segments:
     bss_size: 0x16E0
     subsegments:
       - [0x4F7E90, c]
-      - [0x501760, data, 4F7E90] #8010F270
+      - [0x501760, .data, 4F7E90] #8010F270
       - [0x5018D0, .rodata, 4F7E90] #8010F3E0
       - {0x501C00, type: bss, vram: 0x8010F710, name: modesel_bss}
 

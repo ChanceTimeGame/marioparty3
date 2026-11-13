@@ -1930,14 +1930,7 @@ omObjData *func_8010AF18_modesel(void) {
 
 
 /* Bob parts of models 7..9: two model parts (func_8001D33C_main) placed at pos and turned by rot. */
-typedef struct MsHmfPart {
-    /* 0x00 */ char unk00[0x1C];
-    /* 0x1C */ Vec unk1C; /* scale (func_8010BA70_modesel resets both to 1) */
-    /* 0x28 */ char unk28[0x18];
-    /* 0x40 */ Vec unk40;
-    /* 0x4C */ char unk4C[0xC];
-    /* 0x58 */ HuMtx4F mtx;
-} MsHmfPart; /* size = 0x98 */
+/* MsHmfPart: modesel.h */
 
 typedef struct MsBobPart {
     /* 0x00 */ MsHmfPart *part[2];
@@ -3758,3 +3751,49 @@ s32 func_8010F234_modesel(s32 no) {
 u8 func_8010F258_modesel(s32 no) {
     return D_8010F2B0_modesel[no];
 }
+
+/* .data (0x8010F270) */
+OvlEntrypoint D_8010F270_modesel[] = {
+    { 0, func_80105BD8_modesel },
+    { 1, func_80105BFC_modesel },
+    { 2, func_80105C20_modesel },
+    { -1, NULL },
+};
+
+s32 D_8010F290_modesel = 0x1C;
+s16 D_8010F294_modesel = 0;
+u16 D_8010F296_modesel = 0xD0; /* prompt window y */
+s32 D_8010F298_modesel[2] = { 0x18, 2 };
+
+u8 D_8010F2A0_modesel[16] = { 0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 11, 5, 0, 0, 0, 0 };
+u8 D_8010F2B0_modesel[12] = { 0, 1, 2, 3, 4, 5, 7, 6, 0, 0, 0, 0 };
+f32 D_8010F2BC_modesel = 55.0f;
+f32 D_8010F2C0_modesel = 100.0f;
+f32 D_8010F2C4_modesel = 2080.0f;
+s32 D_8010F2C8_modesel = 0;
+
+Vec D_8010F2CC_modesel[3] = { { 250.0f, 25.0f, 355.0f }, { -250.0f, 25.0f, 355.0f }, { 0.0f, 25.0f, 70.0f } };
+
+s32 D_8010F2F0_modesel[5] = { 0x3121, 0x3120, 0x311D, 0x311C, 0x311B };
+
+Vec D_8010F304_modesel[14] = {
+    { 250.0f, 45.0f, 355.0f },
+    { -250.0f, 45.0f, 355.0f },
+    { 0.0f, 45.0f, 70.0f },
+    { 0.0f, 200.0f, 0.0f },
+    { 325.0f, 102.5f, 45.0f },
+    { 0.0f, 360.0f, -355.0f },
+    { 50.0f, 25.0f, 300.0f },
+    { -250.0f, 225.0f, 300.0f },
+    { -500.0f, 440.0f, -355.0f },
+    { -300.0f, 590.0f, -355.0f },
+    { -100.0f, 590.0f, -355.0f },
+    { 150.0f, 590.0f, -355.0f },
+    { 425.0f, 590.0f, -355.0f },
+    { 575.0f, 440.0f, -355.0f },
+};
+f32 D_8010F3AC_modesel = 0.0f;
+
+Vec D_8010F3B0_modesel = { 0.0f, 0.0f, 100.0f };
+Vec D_8010F3BC_modesel = { 0.0f, 0.0f, 0.0f };
+Vec D_8010F3C8_modesel = { 0.0f, 1.0f, 0.0f };
