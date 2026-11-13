@@ -52,6 +52,14 @@ typedef struct UnkFileSelect {
     /* 0x0C */ char unk_0C[0x78];
 } UnkFileSelect; /* size = 0x84 */
 
+/* Camera view a model's HmfData points to at 0xBC (read by the debug print func_801078F4_filesel). */
+typedef struct FsHmfCamView {
+    /* 0x00 */ char unk0[8];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ Vec at;
+    /* 0x20 */ Vec up;
+} FsHmfCamView;
+
 /* .data */
 extern OvlEntrypoint D_801127A0_filesel[];
 
