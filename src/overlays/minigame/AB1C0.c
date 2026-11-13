@@ -133,6 +133,8 @@ typedef struct MgWork {
     /* 0xAC */ f32 unk_AC;
     /* 0xB0 */ f32 unk_B0;
     /* 0xB4 */ f32 unk_B4;  /* speed factor */
+    /* 0xB8 */ char unk_B8[0x14];
+    /* 0xCC */ f32 unk_CC;
 } MgWork; /* size 0x15C (MP2) */
 
 extern s16 D_800EB736_minigame;     /* contact count (MP2 D_800BF796_C0396) */
@@ -165,6 +167,11 @@ s32 func_800E1510_minigame(s8 surface);                        /* B3CE0 */
 void func_800E28BC_minigame(f32 (*l2w)[4], f32 (*w2l)[4], Vec* p, omObjData* obj); /* B3CE0 */
 void func_800E2B58_minigame(f32 (*m)[4], Vec* v);              /* B3CE0: rotate v */
 s32 func_800E2FD8_minigame(HmfModelData_Unk64_Unk60_Struct* b, Vec* p, f32 r); /* B3CE0 */
+void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
+void func_80014850_main(s16 index);
+void func_800E1810_minigame(void);                              /* B3CE0 */
+void func_800E2CA4_minigame(omObjData* obj, f32 speed);        /* B3CE0: throw the held item (speed unused) */
+extern f32 D_800EB770_minigame;
 extern u8 D_800EB734_minigame;          /* ground object the player stands on */
 extern u16 D_800EBE28_minigame;         /* ground object count */
 extern f32 D_800EBE30_minigame[4][4];   /* ground object: world to local */
@@ -535,9 +542,35 @@ f32 func_800DFD48_minigame(f32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DFD9C_minigame);
+/* Motion 0x10 on a type-2 ground object; puts model[2] at (x, y, z). */
+void func_800DFD9C_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
+    MgWork* w = obj->data;
+    u8 slot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DFE44_minigame);
+    func_800E5690_minigame(obj, 0x10);
+    slot = ((u8*)w->unk_20)[3]; /* 0x23, in MgWork.unk_20 padding: an effect slot */
+    func_80014850_main(slot);
+    func_800146DC_main(slot, 4, 4);
+    Hu3DModelPosSet(obj->model[2], x, y, z);
+    w->unk_40 = D_800EB770_minigame;
+    func_800E1810_minigame();
+}
+
+/* Between motion frames 28 and 29 the held item is thrown. */
+void func_800DFE44_minigame(omObjData* obj) {
+    MgWork* w = obj->data;
+    f32 frame = func_8001C7D0_main(obj->model[0]);
+    s32 a, b;
+
+    if (frame == -1.0f) {
+        frame = HmfModelData[obj->model[0]].unk40;
+    }
+    a = !(frame >= 28.0f) ? 0 : 1;
+    b = !(frame <= 29.0f) ? 0 : 1;
+    if (a & b) {
+        func_800E2CA4_minigame(obj, (w->unk_40 + D_800EB768_minigame) * w->unk_CC);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DFF3C_minigame);
 
