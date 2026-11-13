@@ -1489,7 +1489,135 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CC38_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CD00_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010D8DC_modesel);
+/* Move the cursor from choice `cur` with the D-pad buttons `btn` (0x800 up, 0x400 down, 0x200 left,
+   0x100 right); choices 0-2 cycle the mini-game slot D_80110BD8_modesel. Returns the new choice. */
+u32 func_8010D8DC_modesel(u32 cur, s32 btn) {
+    u32 sel = cur;
+    s32 unlocked;
+    s32 i;
+
+    if (func_800465D0_main() == 1) {
+        unlocked = 0;
+        if (_CheckFlag(0x16) || _CheckFlag(0x17)) {
+            unlocked = 1;
+        }
+    } else {
+        unlocked = _CheckFlag(0x28);
+    }
+    switch (cur) {
+    case 0:
+    case 1:
+    case 2:
+        if (btn & 0x200) {
+            do {
+                D_80110BD8_modesel = (D_80110BD8_modesel - 1 < 0) ? 5 : D_80110BD8_modesel - 1;
+            } while (func_800E905C_minigame(D_80110BDA_modesel) < 0);
+        } else if (btn & 0x100) {
+            do {
+                D_80110BD8_modesel = (D_80110BD8_modesel + 1 < 6) ? D_80110BD8_modesel + 1 : 0;
+            } while (func_800E905C_minigame(D_80110BDA_modesel) < 0);
+        } else if (btn & 0x400) {
+            sel = 3;
+        }
+        break;
+    case 3:
+        if (btn & 0x800) {
+            for (i = 0; i < 6; i++) {
+                if (func_800E905C_minigame(i) >= 0) {
+                    sel = 2;
+                }
+            }
+        } else if (btn & 0x200) {
+            sel = 8;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 == 12) ? 10 : 8;
+            }
+        } else if (btn & 0x100) {
+            sel = (unlocked == 0) ? 7 : 5;
+        } else if (btn & 0x400) {
+            sel = 9;
+        }
+        break;
+    case 4:
+    case 5:
+        if (btn & 0x800) {
+            sel = 3;
+        } else if (btn & 0x200) {
+            sel = 9;
+        } else if (btn & 0x400) {
+            sel = 7;
+        }
+        break;
+    case 6:
+    case 7:
+        if (btn & 0x800) {
+            sel = 9;
+            if (unlocked != 0) {
+                sel = 5;
+            }
+        } else if (btn & 0x200) {
+            sel = 10;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 != 12) ? 10 : 8;
+            }
+        }
+        break;
+    case 8:
+        if (btn & 0x800) {
+            sel = 9;
+            if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+                sel = 10;
+            }
+        } else if (btn & 0x100) {
+            sel = 10;
+            if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+                sel = 7;
+            }
+        }
+        break;
+    case 9:
+        if (btn & 0x800) {
+            sel = 3;
+        } else if (btn & 0x200) {
+            sel = 8;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 == 12) ? 10 : 8;
+            }
+        } else if (btn & 0x400) {
+            sel = 10;
+            if (func_800465D0_main() == 0) {
+                sel = (GwStory.unk0 != 12) ? 10 : 8;
+            }
+        } else if (btn & 0x100) {
+            sel = (unlocked == 0) ? 7 : 5;
+        }
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            if (btn & 0x800) {
+                sel = 9;
+            } else if (btn & 0x200) {
+            } else if (btn & 0x400) {
+                sel = 8;
+            } else if (btn & 0x100) {
+                sel = 9;
+            }
+        } else {
+            if (btn & 0x800) {
+                sel = 9;
+            } else if (btn & 0x200) {
+                sel = 8;
+            } else if (btn & 0x400) {
+            } else if (btn & 0x100) {
+                sel = 7;
+            }
+        }
+        break;
+    }
+    func_8010DE88_modesel(sel);
+    func_8010DC6C_modesel(sel);
+    return sel;
+}
 
 /* Help message (window 0) for choice `choice`. */
 void func_8010DC6C_modesel(u32 choice) {
