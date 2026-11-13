@@ -4,6 +4,15 @@
 #include "common.h"
 #include "game/board.h"
 
+typedef struct UnkTemp {
+    s32 unk_00;
+    s32 unk_04;
+    f32 unk_08;
+    f32 unk_0C;
+} UnkTemp; //sizeof 0x10
+
+extern UnkTemp D_80100850_shared_board[];
+
 s16 func_800D8E88_shared_board(s32 arg0);
 void MBMotionKill(s16 arg0);
 void MBModelInit(void);

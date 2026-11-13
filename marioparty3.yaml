@@ -667,7 +667,7 @@ segments:
       - [0x10C230, c]
       - [0x113520, c]
       - [0x113750, c]
-      - [0x1143C0, data, EA790] #801007A0
+      - [0x1143C0, .data, EA790] #801007A0
       - [0x114B40, .data, F5B90]
       - [0x114BB0, .data, F5E80]
       - [0x114DC0, .data, F9DE0]

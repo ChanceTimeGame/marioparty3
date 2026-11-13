@@ -3,6 +3,13 @@
 
 #include "common.h"
 
+typedef struct ItemRect {
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 h;
+} ItemRect;
+
 void MBMgCallHisInit(void);
 void func_800DF854_shared_board(void);
 void MBMgCallClose(void);
