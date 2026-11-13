@@ -729,28 +729,287 @@ void func_800E2C68_minigame(f32 m[4][4], Vec* v) {
     v->y = x * m[0][1] + y * m[1][1] + z * m[2][1] + m[3][1];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2CA4_minigame);
+/* Work block of an item a player can carry (MgWork::unkC8). */
+typedef struct MgItemWork {
+    /* 0x00 */ char unk00[0x50];
+    /* 0x50 */ u16 unk50; /* flags: 0x10 carried, 0x20 can be picked up, 0x40 passed to the holder */
+    /* 0x52 */ char unk52[0x22];
+    /* 0x74 */ f32 unk74; /* holder's unkB4 while carried */
+    /* 0x78 */ char unk78[8];
+    /* 0x80 */ omObjData* unk80; /* carrier */
+} MgItemWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2DA4_minigame);
+void func_800D853C_minigame(omObjData* obj, omObjData* item);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+f32 HuVecDot3F(Vec* a, Vec* b);
+void func_800E2308_minigame(s16* x, s16* y);
+s32 func_800E2250_minigame(omObjData* obj, s16 x, s16 y);
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
+void func_800E341C_minigame(MgWork* work, f32 dx, f32 dz);
+int abs(int);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2E98_minigame);
+/* Drops the held item unless the holder's hook refuses. */
+void func_800E2CA4_minigame(omObjData* obj, f32 arg1) {
+    MgWork* work = obj->data;
+    omObjData* item;
+    MgItemWork* itemWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2ED4_minigame);
+    if (work->unk50 & 0x10) {
+        item = work->unkC8;
+        itemWork = item->data;
+        if (work->unk104[19] != NULL && work->unk104[19](obj, item) == 1) {
+            return;
+        }
+        work->unk50 &= ~0x150;
+        itemWork->unk50 &= ~0x10;
+        func_8001C258_main(item->model[0], 0x4000, 0);
+        HmfModelData[obj->model[0]].unk06 = 0xFF;
+        if (item->model[1] != 0) {
+            func_8001C258_main(item->model[1], 4, 0);
+        }
+        func_800D853C_minigame(obj, item);
+        work->unkC8 = NULL;
+        work->unkB4 = 1.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2F40_minigame);
+/* Picks up `item`. */
+s32 func_800E2DA4_minigame(omObjData* obj, omObjData* item) {
+    MgWork* work = obj->data;
+    MgItemWork* itemWork = item->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E2FD8_minigame);
+    if (!(itemWork->unk50 & 0x20)) {
+        return 0;
+    }
+    if (itemWork->unk50 & 0x10) {
+        return 0;
+    }
+    if (work->unk50 & 0x10) {
+        return 0;
+    }
+    work->unk50 |= 0x110;
+    itemWork->unk50 |= 0x10;
+    if (itemWork->unk50 & 0x40) {
+        work->unk50 |= 0x40;
+    }
+    work->unkC8 = item;
+    itemWork->unk80 = obj;
+    func_8001EF6C_main(item->model[0], obj->model[0], "item_hook");
+    func_8001C258_main(item->model[0], 0x4000, 0x4000);
+    work->unkB4 = itemWork->unk74;
+    if (item->model[1] != 0) {
+        func_8001C258_main(item->model[1], 4, 4);
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E30B8_minigame);
+void func_800E2E98_minigame(omObjData* obj) {
+    MgWork* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E317C_minigame);
+    HmfModelData[obj->model[0]].unk06 = 0xFF;
+    work->unk50 &= ~0x100;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E341C_minigame);
+/* Dot product of the normalised XZ directions (x1, z1) and (x2, z2). */
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2) {
+    Vec a;
+    Vec b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E34D8_minigame);
+    a.x = x1;
+    a.y = 0.0f;
+    a.z = z1;
+    func_800202FC_main(&a);
+    b.x = x2;
+    b.y = 0.0f;
+    b.z = z2;
+    func_800202FC_main(&b);
+    return HuVecDot3F(&b, &a);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3568_minigame);
+/* XZ bounds of a collision model. */
+typedef struct MgColBounds {
+    /* 0x00 */ char unk00[0x42];
+    /* 0x42 */ s16 minX;
+    /* 0x44 */ s16 minY;
+    /* 0x46 */ s16 minZ;
+    /* 0x48 */ s16 maxX;
+    /* 0x4A */ s16 maxY;
+    /* 0x4C */ s16 maxZ;
+} MgColBounds;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3584_minigame);
+s32 func_800E2F40_minigame(MgColBounds* b, Vec* p) {
+    f32 minX = b->minX;
+    f32 minZ = b->minZ;
+    f32 maxX = b->maxX;
+    f32 maxZ = b->maxZ;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B3CE0", func_800E3628_minigame);
+    if (minX <= p->x && minZ <= p->z && p->x <= maxX && p->z <= maxZ) {
+        return 1;
+    }
+    return 0;
+}
+
+s32 func_800E2FD8_minigame(MgColBounds* b, Vec* p, f32 r) {
+    f32 x = p->x;
+    f32 z = p->z;
+    f32 minX = b->minX - r;
+    f32 maxZ;
+    f32 maxX;
+    f32 minZ = b->minZ - r;
+
+    maxX = b->maxX + r;
+    maxZ = b->maxZ + r;
+
+    if ((minX <= x) & (minZ <= z)) {
+        if ((x <= maxX) & (z <= maxZ)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Whether p is inside g's play area: a box (flag 0x10) or a circle (flag 0x40). */
+s32 func_800E30B8_minigame(Vec* p, MgWork* g) {
+    f32 x;
+    f32 z;
+
+    if (!(g->unk06 & 0x50)) {
+        return 1;
+    }
+    x = p->x;
+    z = p->z;
+    if (g->unk06 & 0x10) {
+        if (g->unkA0 <= x && x <= g->unkA8 && g->unkA4 <= z && z <= g->unkAC) {
+            return 1;
+        }
+    } else if (HuSqrtf(x * x + z * z) <= g->unk9C) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Bounce off a wall: turn with the stick, or away from the wall (dx, dz) when it is idle. */
+void func_800E317C_minigame(omObjData* obj, f32 dx, f32 dz) {
+    MgWork* work = obj->data;
+    s16 stick[2];
+    s32 avg;
+
+    if (work->unk5C & 0x200) {
+        work->unk4C = 0.7f;
+    } else {
+        work->unk4C = 0.6f;
+    }
+    func_800E5690_minigame(obj, 6);
+    if (abs(D_800CBB6E_main[work->unk57]) >= 9 || abs(D_800D20A1_main[work->unk57]) >= 9) {
+        s32 sx = D_800CBB6E_main[work->unk57];
+        s32 sy;
+
+        stick[0] = sx;
+        sy = D_800D20A1_main[work->unk57];
+        stick[1] = sy;
+        if (sx > 60) {
+            stick[0] = 60;
+        }
+        if (stick[1] > 60) {
+            stick[1] = 60;
+        }
+        if (stick[0] < -60) {
+            stick[0] = -60;
+        }
+        if (stick[1] < -60) {
+            stick[1] = -60;
+        }
+        func_800E2308_minigame(&stick[0], &stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        func_800E2250_minigame(obj, stick[0], stick[1]);
+        avg = func_800E2250_minigame(obj, stick[0], stick[1]);
+        stick[0] = avg >> 16;
+        stick[1] = avg;
+        work->unk3C = atan2df(stick[0], -stick[1]) + work->unk60;
+        work->unk40 = D_800EB760_minigame;
+    } else if (func_800E2ED4_minigame(sindf(work->unk3C), cosdf(work->unk3C), dx, dz) < 0.0f) {
+        work->unk40 = D_800EB760_minigame;
+    } else {
+        work->unk40 = -D_800EB760_minigame;
+    }
+    work->unk38 = -D_800EB744_minigame * 0.9f;
+    work->unk50 |= 0x8;
+}
+
+void func_800E341C_minigame(MgWork* work, f32 dx, f32 dz) {
+    f32 s = sindf(work->unk3C);
+
+    if (func_800E2ED4_minigame(s, cosdf(work->unk3C), dx, dz) >= 0.0f) {
+        work->unk40 = D_800EB764_minigame;
+    } else {
+        work->unk40 = -D_800EB764_minigame;
+    }
+    work->unk50 |= 8;
+    func_800E19FC_minigame(work, 7);
+}
+
+/* Two players bump into each other: both bounce apart. */
+void func_800E34D8_minigame(omObjData* a, omObjData* b) {
+    MgWork* bw = b->data;
+
+    func_800E341C_minigame(a->data, a->trans.x - b->trans.x, a->trans.z - b->trans.z);
+    func_800E341C_minigame(bw, b->trans.x - a->trans.x, b->trans.z - a->trans.z);
+}
+
+/* Sets a minigame player's override hook (MgWork::unk104). */
+void func_800E3568_minigame(MgWork* work, s32 slot, void* hook) {
+    if (slot < 21) {
+        work->unk104[slot] = hook;
+    }
+}
+
+/* HmfData::unk18 (vertex count) is padding in game/hmfman.h's HmfData. */
+extern u8 D_800D2008_main; /* frame buffer index */
+#define HMF_VTXCNT(hmf) (*(s16*)((u8*)(hmf) + 0x18))
+
+/* Copies a model's base vertices into every frame buffer. */
+void func_800E3584_minigame(s16 arg0) {
+    HmfData* hmf;
+    s16 i;
+
+    func_8001C954_main(arg0);
+    hmf = HmfModelData[arg0].hmf;
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        bcopy(hmf->unk40, hmf->unk44[i], HMF_VTXCNT(hmf) * sizeof(Vtx));
+    }
+}
+
+/* Flattens model arg0's vertices onto the plane through its position with normal n, keeping
+   their length (retail mixes the base x with the current z in the squared length). */
+void func_800E3628_minigame(s16 arg0, Vec* n) {
+    HmfModel* obj = &HmfModelData[arg0];
+    Vtx* v = obj->hmf->unk44[D_800D2008_main];
+    Vtx* b = obj->hmf->unk40;
+    f32 d = n->x * obj->pos.x + n->y * obj->pos.y + n->z * obj->pos.z;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 s;
+    s16 i;
+    Vec unused; /* retail keeps a 16-byte frame */
+
+    for (i = 0; i < HMF_VTXCNT(obj->hmf); i++) {
+        x = v->v.ob[0] + obj->pos.x;
+        z = v->v.ob[2] + obj->pos.z;
+        y = d - x * n->x - z * n->z;
+        y /= n->y;
+        v->v.ob[1] = y - obj->pos.y + 0.5f;
+        x = b->v.ob[0];
+        y = v->v.ob[1];
+        z = b->v.ob[2];
+        s = (f32)(b->v.ob[0] * b->v.ob[0] + v->v.ob[2] * v->v.ob[2]) / (x * x + y * y + z * z);
+        v->v.ob[0] = x * s;
+        v->v.ob[1] = v->v.ob[1] * s;
+        v->v.ob[2] = b->v.ob[2] * s;
+        v++;
+        b++;
+    }
+}

@@ -40,7 +40,7 @@ typedef struct {
     /* 0x05A */ u8 unk5A; /* model of the last motion (func_800E210C_minigame) */
     /* 0x05B */ u8 unk5B; /* that motion */
     /* 0x05C */ s32 unk5C;
-    /* 0x060 */ s32 unk60;
+    /* 0x060 */ f32 unk60; /* heading offset added to the stick angle */
     /* 0x064 */ f32 unk64;
     /* 0x068 */ f32 unk68;
     /* 0x06C */ f32 unk6C;
