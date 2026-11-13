@@ -86,6 +86,9 @@ extern Vec D_800EBEB8_minigame[];   /* contact points */
 extern Vec D_800EC298_minigame[];   /* contact normals */
 
 void func_800E0430_minigame(f32 x, f32 y, f32 z);
+void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
+void func_800E2BD4_minigame(f32 (*m)[4], Vec* v); /* B3CE0: v = m * v (MP1 func_8000A464) */
+extern f32 D_800EC240_minigame[4][4]; /* ground object: local to world */
 void func_800E048C_minigame(f32 x, f32 y, f32 z);
 
 /* Box corners: a probe beyond a corner of the box (GroundWork.unk_A0..unk_AC) touching it adds the
@@ -140,7 +143,78 @@ s32 func_800DCA34_minigame(Vec4f* s, GroundWork* g) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DCCB0_minigame);
+/* Shape 0x10: the outside of a box (GroundWork.unk_A0..unk_AC, top unk_14, height unk_98): a corner
+   (func_800DCA34_minigame) or the face the sphere is beyond adds a contact; then the actor is pushed
+   out from each new contact, measured from p (MP2 func_800066BC_72BC measures from s). */
+void func_800DCCB0_minigame(omObjData* obj, Vec4f* s, Vec4f* p, f32 h) {
+    s32 i = D_800EB736_minigame;
+    GroundWork* g = obj->data;
+    f32 x = s->x;
+    f32 z = s->z;
+    f32 x0, z0, x1, z1;
+    f32 cx, cz;
+
+    if (s->y < h + g->unk_14 && g->unk_14 - g->unk_98 - h < s->y) {
+        x0 = g->unk_A0 - s->w;
+        z0 = g->unk_A4 - s->w;
+        x1 = g->unk_A8 + s->w;
+        z1 = g->unk_AC + s->w;
+        if ((x0 <= x) & (x < x1)) {
+            if ((z0 < z) & (z < z1)) {
+                if (func_800DCA34_minigame(s, g) == 1) {
+                    if (x0 <= x && x <= (cx = g->unk_A0)) {
+                        if (g->unk_A4 <= s->z && s->z <= g->unk_AC) {
+                            if (cx == s->x) {
+                                cx += 1.0f;
+                            }
+                            func_800E048C_minigame(cx, s->y, s->z);
+                            func_800E0430_minigame(-1.0f, 0.0f, 0.0f);
+                            D_800EB736_minigame++;
+                        }
+                    } else if (x <= x1 && (cx = g->unk_A8) <= x) {
+                        if (g->unk_A4 <= s->z && s->z <= g->unk_AC) {
+                            if (cx == s->x) {
+                                cx -= 1.0f;
+                            }
+                            func_800E048C_minigame(cx, s->y, s->z);
+                            func_800E0430_minigame(1.0f, 0.0f, 0.0f);
+                            D_800EB736_minigame++;
+                        }
+                    } else if (z0 <= z && z <= g->unk_A4) {
+                        if (g->unk_A0 <= s->x && s->x <= g->unk_A8) {
+                            cz = g->unk_A4;
+                            if (cz == s->z) {
+                                cz += 1.0f;
+                            }
+                            func_800E048C_minigame(s->x, s->y, cz);
+                            func_800E0430_minigame(0.0f, 0.0f, -1.0f);
+                            D_800EB736_minigame++;
+                        }
+                    } else if (z <= z1 && g->unk_AC <= z) {
+                        if (g->unk_A0 <= s->x && s->x <= g->unk_A8) {
+                            cz = g->unk_AC;
+                            if (cz == s->z) {
+                                cz -= 1.0f;
+                            }
+                            func_800E048C_minigame(s->x, s->y, cz);
+                            func_800E0430_minigame(0.0f, 0.0f, 1.0f);
+                            D_800EB736_minigame++;
+                        }
+                    }
+                }
+                for (; i < D_800EB736_minigame; i++) {
+                    if (obj->trans.x != 0.0f || obj->trans.y != 0.0f || obj->trans.z != 0.0f ||
+                        obj->rot.x != 0.0f || obj->rot.y != 0.0f || obj->rot.z != 0.0f) {
+                        func_800E2BD4_minigame(D_800EC240_minigame, &D_800EBEB8_minigame[i]);
+                    }
+                    x0 = D_800EBEB8_minigame[i].x - p->x;
+                    z0 = D_800EBEB8_minigame[i].z - p->z;
+                    func_800DFCDC_minigame(x0, z0, HuSqrtf(x0 * x0 + z0 * z0) - s->w);
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DD1F4_minigame);
 
