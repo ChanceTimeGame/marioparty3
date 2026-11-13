@@ -723,7 +723,48 @@ void func_80108A94_modesel(s32 arg0) {
     func_80108F8C_modesel(&eye, &at, &up);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108AE0_modesel);
+/* The current camera's eye and target, and an up vector square to the view direction. */
+s32 func_80108AE0_modesel(Vec *eye, Vec *at, Vec *up) {
+    MsHmfCamView *view;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 rz;
+
+    view = *(MsHmfCamView **)&HmfModelData[gCameraList->unk4].hmf->unkB8[4];
+    eye->x = view->pos.x;
+    eye->y = view->pos.y;
+    eye->z = view->pos.z;
+    at->x = view->at.x;
+    at->y = view->at.y;
+    at->z = view->at.z;
+    rz = -90.0f;
+    dx = at->x - eye->x;
+    dy = at->y - eye->y;
+    dz = at->z - eye->z;
+    len = dx * dx + dy * dy + dz * dz;
+    len = HuSqrtf(len);
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    ux = dy * dz - dz * (dy + 1.0f);
+    uy = dz * dx - dx * dz;
+    uz = dx * (dy + 1.0f) - dy * dx;
+    up->x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+          + uy * (dy * dx * (1.0f - cosdf(rz)) - dz * sindf(rz))
+          + uz * (dz * dx * (1.0f - cosdf(rz)) + dy * sindf(rz));
+    up->y = ux * (dy * dx * (1.0f - cosdf(rz)) + dz * sindf(rz))
+          + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+          + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+    up->z = ux * (dz * dx * (1.0f - cosdf(rz)) - dy * sindf(rz))
+          + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+          + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108F8C_modesel);
 
