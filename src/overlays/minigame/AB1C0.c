@@ -75,6 +75,31 @@ typedef struct GroundWork {
     /* 0xAC */ f32 unk_AC; /* box max z */
 } GroundWork; /* size unknown */
 
+/* omObjData.data of a minigame player (MP2 collision.h MgWork, 0x15C bytes); only the fields this
+   unit's B functions use are named, offsets from MP3's asm. */
+typedef struct MgWork {
+    /* 0x00 */ u8 unk_00[0x20]; /* per ground object flags: 1 ignore it, 8 hazard */
+    /* 0x20 */ char unk_20[0x14];
+    /* 0x34 */ f32 unk_34;  /* height */
+    /* 0x38 */ f32 unk_38;  /* vertical speed; 1000.0f on the ground */
+    /* 0x3C */ f32 unk_3C;  /* heading */
+    /* 0x40 */ f32 unk_40;  /* speed */
+    /* 0x44 */ char unk_44[4];
+    /* 0x48 */ f32 unk_48;  /* radius */
+    /* 0x4C */ f32 unk_4C;
+    /* 0x50 */ u16 unk_50;  /* flags */
+    /* 0x52 */ u8 unk_52;
+    /* 0x53 */ s8 unk_53;   /* ground object index, -1 none */
+    /* 0x54 */ s8 unk_54;
+    /* 0x55 */ u8 unk_55;
+    /* 0x56 */ u8 unk_56;
+    /* 0x57 */ s8 unk_57;   /* controller port */
+    /* 0x58 */ u8 unk_58;
+    /* 0x59 */ s8 unk_59;   /* player */
+    /* 0x5A */ char unk_5A[0x5A];
+    /* 0xB4 */ f32 unk_B4;  /* speed factor */
+} MgWork; /* size 0x15C (MP2) */
+
 extern s16 D_800EB736_minigame;     /* contact count (MP2 D_800BF796_C0396) */
 extern f32 D_800EB764_minigame;
 extern f32 D_800EB768_minigame;
@@ -87,6 +112,11 @@ extern Vec D_800EC298_minigame[];   /* contact normals */
 
 void func_800E0430_minigame(f32 x, f32 y, f32 z);
 void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
+void func_800E19FC_minigame(MgWork* w, s32 state);           /* B3CE0: set the motion state */
+f32 func_800E2ED4_minigame(f32 ax, f32 az, f32 bx, f32 bz);  /* B3CE0: cos of the xz angle */
+s32 func_800E5690_minigame(omObjData* obj, s32 motion);      /* B7600: set a motion */
+void omVibrate(s16 player, s16 duration, s16 off, s16 on);
+extern f32 D_800EB760_minigame;
 void func_800E2BD4_minigame(f32 (*m)[4], Vec* v); /* B3CE0: v = m * v (MP1 func_8000A464) */
 extern f32 D_800EC240_minigame[4][4]; /* ground object: local to world */
 void func_800E048C_minigame(f32 x, f32 y, f32 z);
@@ -216,7 +246,65 @@ void func_800DCCB0_minigame(omObjData* obj, Vec4f* s, Vec4f* p, f32 h) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DD1F4_minigame);
+/* After the wall pushes: a fast player running into a wall bounces off it. */
+void func_800DD1F4_minigame(omObjData* obj, Vec* s, f32 arg2) {
+    MgWork* w;
+    f32 speed;
+    f32 sa, sb;
+    f32 dx, dy, dz;
+    f32 lim;
+    s32 i;
+
+    if (D_800EB736_minigame == 0) {
+        return;
+    }
+    w = obj->data;
+    if (w->unk_52 == 0) {
+        sa = w->unk_40;
+        sb = w->unk_B4;
+        if (w->unk_50 & 6) {
+            speed = sa * 0.6f * sb;
+        } else {
+            speed = sa * sb;
+        }
+    } else {
+        speed = w->unk_40;
+    }
+    if (w->unk_38 != 1000.0f) {
+        speed *= w->unk_4C;
+    }
+    for (i = 0; i < D_800EB736_minigame; i++) {
+        dx = D_800EBEB8_minigame[i].x - s->x;
+        dy = D_800EBEB8_minigame[i].y - s->y;
+        dz = D_800EBEB8_minigame[i].z - s->z;
+        HuSqrtf(dx * dx + dy * dy + dz * dz);
+        if (func_800E2ED4_minigame(sindf(w->unk_3C) * speed + D_800EBE2C_minigame, cosdf(w->unk_3C) * speed + D_800EC5D8_minigame, dx, dz) > 0.9f &&
+            w->unk_38 != 1000.0f && w->unk_40 > D_800EB764_minigame) {
+            lim = w->unk_40;
+            if (w->unk_50 & 6) {
+                lim *= 0.6f;
+            }
+            lim *= w->unk_4C * w->unk_B4 * 0.98f;
+            if (HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame) < lim) {
+                if (w->unk_50 & 8) {
+                    w->unk_40 = -D_800EB760_minigame;
+                } else {
+                    w->unk_40 = -D_800EB76C_minigame;
+                }
+                func_800E5690_minigame(obj, 0x1E);
+                func_800E19FC_minigame(w, 7);
+                omVibrate(w->unk_59, 5, 0, 5);
+                return;
+            }
+        }
+        if (arg2 != 0.0f) {
+            w->unk_40 = arg2;
+            func_800E19FC_minigame(w, 7);
+            omVibrate(w->unk_59, 2, 3, 10);
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DD530_minigame);
 

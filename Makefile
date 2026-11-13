@@ -326,6 +326,8 @@ NOP_OBJECTS := \
 NOP_OBJECTS += build/src/471D0.c.o
 # wave 2b C: sprput (MP2 builds 84FF0.c the same way: SprDisp has no nop after a branch-likely delay slot)
 NOP_OBJECTS += build/src/sprput.c.o
+# minigame B: AB1C0 (func_800DD1F4_minigame: no nop after the cosdf call)
+NOP_OBJECTS += build/src/overlays/minigame/AB1C0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
