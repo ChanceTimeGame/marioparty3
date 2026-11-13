@@ -12,28 +12,36 @@ typedef struct {
 } func_800E1BA8_minigame_UnkE8_ObjData; // Size 0xC
 
 typedef struct {
-    /* 0x000 */ char unk00[0x34];
+    /* 0x000 */ u8 unk00[0x20];
+    /* 0x020 */ char unk20[0x14];
     /* 0x034 */ f32 unk34;
     /* 0x038 */ f32 unk38;
-    /* 0x03C */ char unk3C[8];
+    /* 0x03C */ f32 unk3C;
+    /* 0x040 */ f32 unk40;
     /* 0x044 */ f32 unk44;
     /* 0x048 */ f32 unk48;
     /* 0x04C */ f32 unk4C;
-    /* 0x050 */ char unk50[2];
+    /* 0x050 */ u16 unk50;
     /* 0x052 */ s8 unk52;
-    /* 0x053 */ char unk53[4];
+    /* 0x053 */ s8 unk53;
+    /* 0x054 */ s8 unk54;
+    /* 0x055 */ u8 unk55;
+    /* 0x056 */ u8 unk56;
     /* 0x057 */ s8 unk57;
-    /* 0x058 */ char unk58[1];
+    /* 0x058 */ u8 unk58;
     /* 0x059 */ s8 unk59;
-    /* 0x05A */ char unk5A[6];
+    /* 0x05A */ char unk5A[2];
+    /* 0x05C */ s32 unk5C;
     /* 0x060 */ s32 unk60;
     /* 0x064 */ f32 unk64;
     /* 0x068 */ f32 unk68;
     /* 0x06C */ f32 unk6C;
     /* 0x070 */ f32 unk70;
-    /* 0x074 */ char unk74[0x18];
+    /* 0x074 */ s32 unk74[6];
     /* 0x08C */ f32 unk8C;
-    /* 0x090 */ char unk90[0xC];
+    /* 0x090 */ f32 unk90;
+    /* 0x094 */ f32 unk94;
+    /* 0x098 */ f32 unk98;
     /* 0x09C */ f32 unk9C;
     /* 0x0A0 */ f32 unkA0;
     /* 0x0A4 */ f32 unkA4;
@@ -41,17 +49,27 @@ typedef struct {
     /* 0x0AC */ f32 unkAC;
     /* 0x0B0 */ f32 unkB0;
     /* 0x0B4 */ f32 unkB4;
-    /* 0x0B8 */ char unkB8[0xB];
+    /* 0x0B8 */ char unkB8[4];
+    /* 0x0BC */ u16 unkBC;
+    /* 0x0BE */ u16 unkBE;
+    /* 0x0C0 */ u16 unkC0;
+    /* 0x0C2 */ char unkC2;
     /* 0x0C3 */ s8 unkC3;
     /* 0x0C4 */ s8 unkC4;
-    /* 0x0C5 */ char unkC5[7];
+    /* 0x0C5 */ s8 unkC5;
+    /* 0x0C6 */ s16 unkC6;
+    /* 0x0C8 */ void* unkC8;
     /* 0x0CC */ f32 unkCC;
     /* 0x0D0 */ u16 unkD0;
-    /* 0x0D2 */ char unkD2[0x16];
+    /* 0x0D2 */ char unkD2[8];
+    /* 0x0DA */ u16 unkDA;
+    /* 0x0DC */ char unkDC[0xC];
     /* 0x0E8 */ func_800E1BA8_minigame_UnkE8_ObjData* unkE8;
-    /* 0x0EC */ char unkEC[0x18];
-    /* 0x104 */ s32 unk104[21];
-    /* 0x158 */ char unk158[4];
+    /* 0x0EC */ s32 (*unkEC)(omObjData*, omObjData*);
+    /* 0x0F0 */ u16 unkF0;
+    /* 0x0F2 */ char unkF2[0x12];
+    /* 0x104 */ s32 (*unk104[21])(); /* minigame override hooks; 1 = handled */
+    /* 0x158 */ void* unk158;
 } func_800E1BA8_minigame_ObjData; // Size 0x15C
 
 typedef struct {
@@ -76,7 +94,7 @@ void func_800E18D8_minigame(void);
 void func_800E19F0_minigame(s8);
 void func_800E1BA8_minigame(omObjData*, u32, s32, u16, s32, s32);
 void func_800E4E30_minigame(omObjData*);
-void func_800E5690_minigame(omObjData*, u16);
+s32 func_800E5690_minigame(omObjData*, u16);
 void func_800E5A00_minigame(omObjData*, u16, s32, s32, u16);
 void func_800E5EA0_minigame(D_80111B50_vine_with_me_Struct*);
 u8 func_800E6E8C_minigame(void);
