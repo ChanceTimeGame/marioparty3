@@ -1930,21 +1930,136 @@ omObjData *func_8010AF18_modesel(void) {
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4C8_modesel);
+/* Bob parts of models 7..9: two model parts (func_8001D33C_main) placed at pos and turned by rot. */
+typedef struct MsHmfPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} MsHmfPart; /* size = 0x98 */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4D0_modesel);
+typedef struct MsBobPart {
+    /* 0x00 */ MsHmfPart *part[2];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 rot;
+} MsBobPart; /* size = 0x1C */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4D8_modesel);
+extern MsBobPart D_80110B18_modesel[3];
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
+void *func_8001D33C_main(s16 model, char *name);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4E0_modesel);
+/* Builds the mode-select scene: the board models, the cannon (model 5, part "taiho"), the three star
+   models 7..9 with their bob parts, model 10 and the camera models 11..13. Characters not yet
+   unlocked (func_800E905C_minigame bit 15 set) are moved out of view on model 2. */
+void func_8010AF90_modesel(void) {
+    s16 model;
+    s32 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4E8_modesel);
+    func_80106280_modesel(0, 0xD0000, 0x2002A9);
+    func_8010653C_modesel(0, 0.0f, 0.0f, 0.0f);
+    func_801065B0_modesel(0, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(0, 0);
+    func_8010677C_modesel(0, 1);
+    func_80106280_modesel(1, 0xD0001, 0x229);
+    func_8010653C_modesel(1, 0.0f, 0.0f, 0.0f);
+    func_801065B0_modesel(1, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(1, 0);
+    func_8010677C_modesel(1, 1);
+    func_80106280_modesel(2, 0xD0002, 0x6A9);
+    func_8010653C_modesel(2, 0.0f, 0.0f, -585.0f);
+    func_801065B0_modesel(2, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(2, 0);
+    func_8010677C_modesel(2, 1);
+    {
+        char *names[6] = { "mario", "luigi", "peach", "yoshi", "wario", "donkey" };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4F0_modesel);
+        model = func_8010648C_modesel(2);
+        for (i = 0; i < 6; i++) {
+            if (func_800E905C_minigame(i) < 0) { /* bit 15: not unlocked */
+                func_80088800_main(((MsHmfPart *)func_8001D33C_main(model, names[i]))->mtx, 0.0f, -4000.0f, 0.0f);
+            }
+        }
+    }
+    {
+        Vec pos;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4F8_modesel);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010AF90_modesel);
+        HuVecCopyXYZ(&pos, 0.0f, 0.0f, -200.0f);
+        pos.z = pos.z - 8.0f - 2.5f;
+        func_80106280_modesel(3, 0xD0003, 0x7A9);
+        func_8010653C_modesel(3, pos.x, pos.y, pos.z);
+    }
+    func_801065B0_modesel(3, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(3, 0);
+    func_8010677C_modesel(3, 1);
+    func_80106280_modesel(4, 0xD0004, 0xAA9);
+    func_8010653C_modesel(4, 0.0f, 0.0f, 0.0f);
+    func_801065B0_modesel(4, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(4, 0);
+    func_8010677C_modesel(4, 1);
+    func_80106280_modesel(5, 0xD0005, 0x6A9);
+    func_8010653C_modesel(5, 325.0f, 9.5f, 45.0f);
+    func_801065B0_modesel(5, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(5, 0);
+    func_8010677C_modesel(5, 1);
+    D_80110BD4_modesel = func_8001D33C_main(func_8010648C_modesel(5), "taiho");
+    func_8010631C_modesel(17, 0xD000B, -1);
+    func_80106280_modesel(18, 0xD000C, 0xAA9);
+    func_8010653C_modesel(18, 275.0f, 97.0f, 122.5f);
+    func_801065B0_modesel(18, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(18, 0);
+    func_8010677C_modesel(18, 2);
+    func_801066FC_modesel(18);
+    func_80106280_modesel(7, 0xD0007, 0xAA9);
+    func_8010653C_modesel(7, 250.0f, 25.0f, 355.0f);
+    func_801065B0_modesel(7, 1.0f, 1.0f, 1.0f);
+    func_8010677C_modesel(7, 1);
+    func_80109CEC_modesel(7);
+    model = func_8010648C_modesel(7);
+    D_80110B18_modesel[0].part[0] = func_8001D33C_main(model, "star_red");
+    D_80110B18_modesel[0].part[1] = func_8001D33C_main(model, "red_kage");
+    func_8010B804_modesel(7, 0.0f);
+    func_8010B75C_modesel(7, 0.0f, 16.0f, 0.0f, 20.0f);
+    func_80106280_modesel(8, 0xD0008, 0xAA9);
+    func_8010653C_modesel(8, -250.0f, 25.0f, 355.0f);
+    func_801065B0_modesel(8, 1.0f, 1.0f, 1.0f);
+    func_8010677C_modesel(8, 1);
+    func_80109CEC_modesel(8);
+    model = func_8010648C_modesel(8);
+    D_80110B18_modesel[1].part[0] = func_8001D33C_main(model, "star_blue");
+    D_80110B18_modesel[1].part[1] = func_8001D33C_main(model, "blue_kage");
+    func_8010B804_modesel(8, 0.0f);
+    func_8010B75C_modesel(8, 0.0f, 0.0f, 16.0f, 20.0f);
+    func_80106280_modesel(9, 0xD0009, 0x6A9);
+    func_8010653C_modesel(9, 0.0f, 25.0f, 70.0f);
+    func_801065B0_modesel(9, 1.0f, 1.0f, 1.0f);
+    func_8010677C_modesel(9, 1);
+    func_80109CEC_modesel(9);
+    model = func_8010648C_modesel(9);
+    D_80110B18_modesel[2].part[0] = func_8001D33C_main(model, "star_yellow");
+    D_80110B18_modesel[2].part[1] = func_8001D33C_main(model, "yellow_kage");
+    func_8010B75C_modesel(9, 0.0f, 0.0f, 16.0f, 20.0f);
+    func_80106280_modesel(10, 0xA0122, 0xAA9);
+    if (GwStory.unk0 == 12 && func_800465D0_main() == 0) {
+        func_8010653C_modesel(10, -300.0f, 225.0f, 300.0f);
+        func_8010673C_modesel(10);
+    } else {
+        func_8010653C_modesel(10, 0.0f, -75.0f, 300.0f);
+        func_801066FC_modesel(10);
+    }
+    func_801065B0_modesel(10, 1.0f, 1.0f, 1.0f);
+    func_801068AC_modesel(10, 0);
+    func_800461B4_main(func_8010648C_modesel(10));
+    func_8010631C_modesel(19, 0xA0125, 0);
+    func_8010631C_modesel(20, 0xA0123, 0);
+    func_80106280_modesel(11, 0xD000D, 0x200009);
+    func_801068AC_modesel(11, 0);
+    func_8010677C_modesel(11, 1);
+    func_80106280_modesel(12, 0xD000E, 0x2002B9);
+    func_801068AC_modesel(12, 0);
+    func_8010677C_modesel(12, 1);
+    func_80106280_modesel(13, 0xD000F, 0x2002B9);
+    func_801068AC_modesel(13, 0);
+    func_8010677C_modesel(13, 1);
+}
 
 void func_8010B6B0_modesel(void) {
     func_801063A4_modesel(0);
@@ -1965,22 +2080,6 @@ void func_8010B6B0_modesel(void) {
     func_801063A4_modesel(11);
     func_801063A4_modesel(12);
 }
-
-/* Bob parts of models 7..9: two model parts (func_8001D33C_main) placed at pos and turned by rot. */
-typedef struct MsHmfPart {
-    /* 0x00 */ char unk00[0x58];
-    /* 0x58 */ HuMtx4F mtx;
-} MsHmfPart; /* size = 0x98 */
-
-typedef struct MsBobPart {
-    /* 0x00 */ MsHmfPart *part[2];
-    /* 0x08 */ Vec pos;
-    /* 0x14 */ f32 unk14;
-    /* 0x18 */ f32 rot;
-} MsBobPart; /* size = 0x1C */
-
-extern MsBobPart D_80110B18_modesel[3];
-void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
 void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14) {
     func_8010B790_modesel(no, x, y, z, unk14);

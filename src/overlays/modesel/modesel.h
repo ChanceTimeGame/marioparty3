@@ -84,7 +84,6 @@ extern s32 D_80110BA8_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4
 extern s32 D_80110BB0_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
-extern s32 D_80110BD4_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010AF90 8010BA70 8010E3A4 */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
 
 /* Not declared here (mixed or address-only accesses; the fork that decompiles their users types them):
@@ -295,6 +294,7 @@ void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14); /* bob part 
 void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
 void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
 extern Vec D_8010F2CC_modesel[3]; /* .data: bob part positions of models 7..9 (were f32 D_8010F2CC/2D0/2D4) */
+extern void *D_80110BD4_modesel; /* cannon part "taiho" (func_8001D33C_main); was s32 */
 /* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
 
 #endif
