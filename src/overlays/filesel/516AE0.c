@@ -6,6 +6,11 @@
 
 void func_8004FCF0_main(void);
 s32 func_80050DDC_main(s16 srcBox, s16 dstBox);
+s32 func_80050064_main(s32 write);
+extern const char D_80112AE0_filesel[]; /* "1" */
+extern const char D_80112AE4_filesel[]; /* "2" */
+extern const char D_80112AE8_filesel[]; /* "3" */
+extern const u8 D_80112AF0_filesel[8];  /* empty name */
 
 
 /* filesel B: name entry state, D_80114470_filesel..D_801144D4_filesel (offsets from D_80114470) */
@@ -748,13 +753,13 @@ void func_80109B2C_filesel(void) {
         }
         switch (src) {
             case 0:
-                func_8010779C_filesel(4, 0, (s32)"1");
+                func_8010779C_filesel(4, 0, (s32)D_80112AE0_filesel);
                 break;
             case 1:
-                func_8010779C_filesel(4, 0, (s32)"2");
+                func_8010779C_filesel(4, 0, (s32)D_80112AE4_filesel);
                 break;
             case 2:
-                func_8010779C_filesel(4, 0, (s32)"3");
+                func_8010779C_filesel(4, 0, (s32)D_80112AE8_filesel);
                 break;
         }
         for (i = 0; i < 3; i++) {
@@ -842,12 +847,177 @@ cancel:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80109B2C_filesel);
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE0_filesel);
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE4_filesel);
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE8_filesel);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010A028_filesel);
+INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE0_filesel);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE4_filesel);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE8_filesel);
+
+void func_8010A028_filesel(void) {
+    s32 timer;
+    s32 i;
+    s32 cur;
+    s32 next;
+    u16 btn;
+    s32 temp;
+    s16 model;
+    s16 *win;
+
+    timer = 0;
+    func_80106168_filesel(3, 2, 0);
+    func_8010F65C_filesel();
+    func_8010F678_filesel(3);
+    for (i = 0; i < 3; i++) {
+        cur = i;
+        if (D_801142DC_filesel[cur].unk_00 == FS_FILE_USED) {
+            break;
+        }
+    }
+    if (i == 3) {
+        func_80108878_filesel();
+        func_8010F65C_filesel();
+        func_8010F678_filesel(0);
+        func_801076D0_filesel(4, 0x2A13);
+        return;
+    }
+    func_801076D0_filesel(4, 0x2A08);
+    next = cur;
+    func_8010AB60_filesel(0x12, cur);
+    while (1) {
+        HuPrcVSleep();
+        func_8010AB1C_filesel(0x12, cur);
+        func_8010AB58_filesel(0x12, -(timer / 8));
+        timer = (timer < 20) ? timer + 1 : 0;
+        btn = D_800D1244_main;
+        temp = func_80111B14_filesel(0);
+        if (temp != -1) {
+            btn |= temp;
+        }
+        if (D_800D5558_main[0] & A_BUTTON) {
+            if (D_801142DC_filesel[cur].unk_00 == FS_FILE_USED) {
+                HuAudFXPlay(3);
+                func_80105F54_filesel(0x12);
+                HuPrcSleep(3);
+                if (cur == 0) {
+                    func_8010779C_filesel(4, 0, (s32)D_80112AE0_filesel);
+                } else if (cur == 1) {
+                    func_8010779C_filesel(4, 0, (s32)D_80112AE4_filesel);
+                } else if (cur == 2) {
+                    func_8010779C_filesel(4, 0, (s32)D_80112AE8_filesel);
+                }
+                func_8010779C_filesel(4, 1, (s32)"0");
+                func_8010779C_filesel(4, 2, (s32)"0");
+                func_8010779C_filesel(4, 3, (s32)"0");
+                win = &D_80114188_filesel;
+                func_8005B63C_main(*win, 0x11, 0);
+                func_8005FE54_main(*win, 1);
+                func_801076D0_filesel(4, 0x2A09);
+                while (func_8005E0C0_main(D_80114188_filesel) != 0) {
+                    HuPrcVSleep();
+                }
+                if (func_801077D8_filesel(4, 1, 0) == 0) {
+                    func_801076D0_filesel(4, 0x2A0A);
+                    while (func_8005E0C0_main(D_80114188_filesel) != 0) {
+                        HuPrcVSleep();
+                    }
+                    if (func_801077D8_filesel(4, 1, 0) == 0) {
+                        func_801076D0_filesel(4, 0x2A17);
+                        HuPrcSleep(3);
+                        SLCurBoxNoSet(cur);
+                        D_801142DC_filesel[cur].unk_00 = 0;
+                        GwCommon.unk_00 = 0;
+                        func_80050064_main(1);
+                        func_80105F54_filesel(0x12);
+                        model = func_8010642C_filesel(cur);
+                        func_801076A0_filesel(4);
+                        func_8010F874_filesel(cur);
+                        func_8010669C_filesel(cur + 3);
+                        func_80106220_filesel(cur, 0x1F0029, 0x6A9);
+                        switch (cur) {
+                            case 0:
+                                func_801064DC_filesel(0, -400.0f, 0.0f, 0.0f);
+                                break;
+                            case 1:
+                                func_801064DC_filesel(1, 0.0f, 0.0f, 0.0f);
+                                break;
+                            case 2:
+                                func_801064DC_filesel(2, 400.0f, 0.0f, 0.0f);
+                                break;
+                        }
+                        func_80106550_filesel(cur, 0.6f, 0.6f, 0.6f);
+                        func_80106550_filesel(cur + 3, 0.6f, 0.6f, 0.6f);
+                        func_8010684C_filesel(cur, 0);
+                        func_8010671C_filesel(cur, 1);
+                        func_801066DC_filesel(cur);
+                        func_801066DC_filesel(cur + 3);
+                        RepeatVibrator(0, 30, 0, 30);
+                        func_8011132C_filesel(cur);
+                        HuAudFXPlay(0x2F8);
+                        func_8010A7D8_filesel(model);
+                        func_80105EC0_filesel(cur + 13);
+                        func_8010F760_filesel(cur, 0);
+                        func_80112494_filesel(cur, (u8 *)D_80112AF0_filesel);
+                        func_801076D0_filesel(cur + 1, (u32)D_80112AF0_filesel);
+                        HuPrcSleep(3);
+                        func_801066DC_filesel(cur);
+                        func_801066DC_filesel(cur + 3);
+                        func_80106550_filesel(cur, 0.8f, 0.8f, 0.8f);
+                        func_80106550_filesel(cur + 3, 0.8f, 0.8f, 0.8f);
+                        HuPrcSleep(16);
+                        func_8010F844_filesel(cur);
+                        func_8005B63C_main(D_80114188_filesel, -1, 0x11);
+                        func_801076D0_filesel(4, 0x2A0B);
+                        func_80107670_filesel(4);
+                        func_80105F24_filesel(0x12);
+                        break;
+                    }
+                }
+                func_8005B63C_main(D_80114188_filesel, -1, 0x11);
+                func_801076D0_filesel(4, 0x2A08);
+                break;
+            }
+        } else if (D_800D5558_main[0] & B_BUTTON) {
+            if (func_80108834_filesel() == 0) {
+                func_801076D0_filesel(4, 0x2A04);
+            } else {
+                func_801076D0_filesel(4, 0x2A07);
+            }
+            break;
+        }
+        switch (cur) {
+            case 0:
+            case 1:
+            case 2:
+                    if (btn & L_JPAD) {
+                        next = cur;
+                        do {
+                            next--;
+                            if (next < 0) {
+                                next = 2;
+                            }
+                        } while (D_801142DC_filesel[next].unk_00 != FS_FILE_USED);
+                    } else if (btn & R_JPAD) {
+                        next = cur;
+                        do {
+                            next++;
+                            next = CLAMP_BELOW(next, 3);
+                        } while (D_801142DC_filesel[next].unk_00 != FS_FILE_USED);
+                    }
+                break;
+        }
+        if (cur != next) {
+            func_8010AB60_filesel(0x12, next);
+            cur = next;
+        }
+    }
+    func_80105F24_filesel(0x12);
+    func_8010AB60_filesel(0x12, 4);
+    func_80108878_filesel();
+    func_8010F65C_filesel();
+    func_8010F678_filesel(0);
+}
 
 void func_8010A680_filesel(s32 no, f32 x, f32 y, f32 z) {
     s32 no2;
