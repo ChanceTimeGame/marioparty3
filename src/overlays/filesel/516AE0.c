@@ -1275,7 +1275,25 @@ void func_8010E250_filesel(void *arg0, void *arg1, f32 dist, void *arg3, void *a
                      + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010E740_filesel);
+void func_8010E740_filesel(s32 arg0) {
+    D_80114500_filesel = arg0;
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 200.0f;
+    Center.z = 0.0f;
+    CZoom = 3000.0f;
+    D_801144F8_filesel = 80.0f;
+    D_801144FC_filesel = 8000.0f;
+    D_801128A0_filesel = 20.0f;
+    HuVecCopyXYZ(&D_801144D4_filesel, 10.0f, CRot.x, CRot.x); /* retail reads CRot.x (0.0f here) */
+    HuVecCopyXYZ(&D_801144E0_filesel, 0.0f, 0.0f, 0.0f);
+    HuVecCopyXYZ(&D_801144EC_filesel, 0.0f, 1.0f, 0.0f);
+    Hu3DCamSetPerspective(0, D_801128A0_filesel, D_801144F8_filesel, D_801144FC_filesel);
+    Hu3DCamSetPositionOrientation(0, &D_801144D4_filesel, &D_801144E0_filesel, &D_801144EC_filesel);
+    Hu3DCamUpdateMtx(0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010E864_filesel);
 

@@ -284,6 +284,14 @@ typedef struct FsKbd {
 } FsKbd; /* size = 0x5C */
 extern FsKbd D_80114478_filesel;
 extern s32 D_80114470_filesel; /* the name changed */
+/* camera (func_8010E740_filesel) */
+extern Vec D_801144D4_filesel; /* eye (splat also names D_801144D8/DC) */
+extern Vec D_801144E0_filesel; /* target */
+extern Vec D_801144EC_filesel; /* up */
+extern f32 D_801144F8_filesel; /* near */
+extern f32 D_801144FC_filesel; /* far */
+extern s32 D_80114500_filesel;
+extern f32 D_801128A0_filesel; /* .data: fov */
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c */
 
 #endif
