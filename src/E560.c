@@ -6,8 +6,6 @@
 f32 HuVecDot3F(Vec* a, Vec* b);
 void HuVecCross(Vec* out, Vec* a, Vec* b);
 
-s32 func_8000DD38_main(Vec* org, Vec* u, Vec* v, Vec* n, Vec* p, Vec* out);
-
 /* Inverse of an affine matrix (rotation/scale rows 0-2, translation row 3). */
 void func_8000D960_main(HuMtx4F src, HuMtx4F dst) {
     f32 ae, af, ah, ai;

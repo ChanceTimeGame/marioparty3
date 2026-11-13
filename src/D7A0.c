@@ -56,14 +56,6 @@ void func_800138EC_main(s16 model, u16 mask, u16 flags);
 s16 func_80013928_main(s16 model);
 void func_80013954_main(s16 model, s16 value);
 
-s16 func_8000CBA0_main(s32 arg0, s32 arg1);
-s16 func_8000CC98_main(s32 arg0, s32 arg1);
-s32 func_8000CD74_main(s16 model, f32 x, f32 y, f32 z);
-void func_8000D06C_main(omObjData* obj);
-void func_8000D268_main(s16 model);
-s16 func_8000D3E0_main(s32 arg0, s32 arg1, s16 count, void (*hook)(s16));
-void func_8000D694_main(s16 model);
-
 extern u8 D_80097720_main[4]; /* flicker: 0, 1, 2, 1 */
 extern FxPool* D_800D6A00_main[8];
 
