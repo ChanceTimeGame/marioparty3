@@ -1946,19 +1946,109 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F4F8_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010AF90_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B6B0_modesel);
+void func_8010B6B0_modesel(void) {
+    func_801063A4_modesel(0);
+    func_801063A4_modesel(1);
+    func_801063A4_modesel(2);
+    func_801063A4_modesel(3);
+    func_801063A4_modesel(4);
+    func_801063A4_modesel(17);
+    func_801063A4_modesel(18);
+    func_801063A4_modesel(5);
+    func_801063A4_modesel(7);
+    func_801063A4_modesel(8);
+    func_801063A4_modesel(9);
+    func_80046558_main(func_8010648C_modesel(10));
+    func_801063A4_modesel(10);
+    omDelObj(D_80110BD0_modesel);
+    func_80109154_modesel();
+    func_801063A4_modesel(11);
+    func_801063A4_modesel(12);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B75C_modesel);
+/* Bob parts of models 7..9: two model parts (func_8001D33C_main) placed at pos and turned by rot. */
+typedef struct MsHmfPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} MsHmfPart; /* size = 0x98 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B790_modesel);
+typedef struct MsBobPart {
+    /* 0x00 */ MsHmfPart *part[2];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 rot;
+} MsBobPart; /* size = 0x1C */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B804_modesel);
+extern MsBobPart D_80110B18_modesel[3];
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B824_modesel);
+void func_8010B75C_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14) {
+    func_8010B790_modesel(no, x, y, z, unk14);
+    func_8010B824_modesel(no);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B940_modesel);
+void func_8010B790_modesel(s32 no, f32 x, f32 y, f32 z, f32 unk14) {
+    no -= 7;
+    D_80110B18_modesel[no].pos.x = x;
+    D_80110B18_modesel[no].pos.y = y;
+    D_80110B18_modesel[no].pos.z = z;
+    D_80110B18_modesel[no].unk14 = (unk14 < 0.0f) ? 0.0f : unk14;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B9C4_modesel);
+void func_8010B804_modesel(s32 no, f32 rot) {
+    D_80110B18_modesel[no - 7].rot = rot;
+}
+
+/* Applies pos and rot to both parts; the second (shadow) part sits at y 4 when the bob is above 8,
+   else out of view at -200. */
+void func_8010B824_modesel(s32 no) {
+    f32 y;
+
+    no -= 7;
+    func_80088800_main(D_80110B18_modesel[no].part[0]->mtx, D_80110B18_modesel[no].pos.x,
+                       D_80110B18_modesel[no].pos.y, D_80110B18_modesel[no].pos.z);
+    func_800185A4_main((Mtx *)D_80110B18_modesel[no].part[0]->mtx, D_80110B18_modesel[no].rot);
+    if (D_80110B18_modesel[no].pos.y > 8.0f) {
+        y = 4.0f;
+    } else {
+        y = -200.0f;
+    }
+    func_80088800_main(D_80110B18_modesel[no].part[1]->mtx, D_80110B18_modesel[no].pos.x, y,
+                       D_80110B18_modesel[no].pos.z);
+    func_800185A4_main((Mtx *)D_80110B18_modesel[no].part[1]->mtx, D_80110B18_modesel[no].rot);
+}
+
+void func_8010B940_modesel(s32 no, f32 speed) {
+    f32 rot;
+
+    no -= 7;
+    if (speed > 360.0f) {
+        speed = 360.0f;
+    }
+    rot = speed + D_80110B18_modesel[no].rot;
+    D_80110B18_modesel[no].rot = rot;
+    if (rot > 360.0f) {
+        D_80110B18_modesel[no].rot = rot - 360.0f;
+    }
+}
+
+Process *func_8010B9C4_modesel(void) {
+    s16 model;
+
+    model = func_8010648C_modesel(omovlevtno != 1 ? 11 : 13);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    func_80013320_main(model, 0);
+    func_8001C6A8_main(model, 0.0f);
+    func_8001C814_main(model, 1, 1);
+    func_80108AE0_modesel(&D_80110BE8_modesel[0], &D_80110BE8_modesel[1], &D_80110BE8_modesel[2]);
+    return omAddPrcObj(func_801088AC_modesel, 0x5000, 0x2000, 0);
+}
+
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010BA70_modesel);
 
