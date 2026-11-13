@@ -1232,7 +1232,48 @@ void func_8010E1B4_filesel(void) {
     func_80105FA0_filesel(0x2B);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010E250_filesel);
+void func_8010E250_filesel(void *arg0, void *arg1, f32 dist, void *arg3, void *arg4, void *arg5) {
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+
+    rx = ((Vec *)arg1)->x;
+    ry = ((Vec *)arg1)->y;
+    rz = ((Vec *)arg1)->z;
+    ((Vec *)arg3)->x = sindf(ry) * cosdf(rx) * dist + ((Vec *)arg0)->x;
+    ((Vec *)arg3)->y = -sindf(rx) * dist + ((Vec *)arg0)->y;
+    ((Vec *)arg3)->z = cosdf(ry) * cosdf(rx) * dist + ((Vec *)arg0)->z;
+    ((Vec *)arg4)->x = ((Vec *)arg0)->x;
+    ((Vec *)arg4)->y = ((Vec *)arg0)->y;
+    ((Vec *)arg4)->z = ((Vec *)arg0)->z;
+    ux = sindf(ry) * sindf(rx);
+    uy = cosdf(rx);
+    uz = cosdf(ry) * sindf(rx);
+    dx = ((Vec *)arg4)->x - ((Vec *)arg3)->x;
+    dy = ((Vec *)arg4)->y - ((Vec *)arg3)->y;
+    dz = ((Vec *)arg4)->z - ((Vec *)arg3)->z;
+    len = dx * dx + dy * dy + dz * dz;
+    len = HuSqrtf(len);
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    ((Vec *)arg5)->x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+                     + uy * (dx * dy * (1.0f - cosdf(rz)) - dz * sindf(rz))
+                     + uz * (dx * dz * (1.0f - cosdf(rz)) + dy * sindf(rz));
+    ((Vec *)arg5)->y = ux * (dx * dy * (1.0f - cosdf(rz)) + dz * sindf(rz))
+                     + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+                     + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+    ((Vec *)arg5)->z = ux * (dx * dz * (1.0f - cosdf(rz)) - dy * sindf(rz))
+                     + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+                     + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010E740_filesel);
 
