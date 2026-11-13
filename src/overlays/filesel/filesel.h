@@ -41,7 +41,15 @@ typedef struct UnkFileSelect2 {
 typedef struct UnkFileSelect {
     /* 0x00 */ u8 unk_00; /* FS_FILE_USED when the file holds a save */
     /* 0x01 */ u8 unk_01[0xB]; /* name */
-    /* 0x0C */ char unk_0C[0x78];
+    /* 0x0C */ char unk_0C[0x1C];
+    /* 0x28 */ u8 unk_28; /* fork C */
+    /* 0x29 */ char unk_29[0xF];
+    /* 0x38 */ s32 unk_38; /* fork C: shown as two digits */
+    /* 0x3C */ s32 unk_3C; /* fork C: shown as two digits */
+    /* 0x40 */ s32 unk_40; /* fork C: index 0..5 */
+    /* 0x44 */ s32 unk_44; /* fork C: passed to func_801126C0_filesel */
+    /* 0x48 */ char unk_48[0x38];
+    /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE (fork A) */
 } UnkFileSelect; /* size = 0x84 */
 
 /* .bss */
@@ -267,5 +275,6 @@ typedef struct FsKbd {
 } FsKbd; /* size = 0x5C */
 extern FsKbd D_80114478_filesel;
 extern s32 D_80114470_filesel; /* the name changed */
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c */
 
 #endif
