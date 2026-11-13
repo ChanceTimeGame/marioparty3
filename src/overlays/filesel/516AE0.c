@@ -4,6 +4,42 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+/* Board summary in a save file view: party (flag 0x16) and mini-game/duel (flag 0x17) boards. */
+typedef struct FsSaveBoard {
+    /* 0x00 */ s16 chr[4];
+    /* 0x08 */ s32 mode;  /* play-mode bit, inverted */
+    /* 0x0C */ s32 board;
+    /* 0x10 */ s32 length;
+    /* 0x14 */ s32 turn;  /* clamped to 99 */
+    /* 0x18 */ s32 total; /* clamped to 99 */
+} FsSaveBoard; /* size = 0x1C */
+
+/* Save file summary, the same memory as D_801142DC_filesel (UnkFileSelect) seen from 4 bytes
+   earlier: func_801122B0_filesel writes D_801142D8_filesel + no * 0x84, so each entry starts with
+   its EEPROM-error flag. The word after the third entry is FS_LAST_FILE. */
+typedef struct FsSaveInfo {
+    /* 0x00 */ s32 bad;    /* the save box failed to load (D_800D20EC_main bit) */
+    /* 0x04 */ u8 used;    /* FS_FILE_USED */
+    /* 0x05 */ u8 name[0x20]; /* 5 two-byte characters, then zeros */
+    /* 0x25 */ char pad25[7];
+    /* 0x2C */ u8 storyChr; /* GwStory.unk1 */
+    /* 0x30 */ s32 story[7];
+    /* 0x4C */ FsSaveBoard party;
+    /* 0x68 */ FsSaveBoard duel;
+} FsSaveInfo; /* size = 0x84 */
+
+extern FsSaveInfo D_801142D8_filesel[3];
+extern u8 D_801129A4_filesel[]; /* story chapter pairs */
+extern s32 D_801146D8_filesel;
+extern u8 D_800D20EC_main; /* saveload.c: bit per box that failed to load */
+
+s32 func_8005086C_main(void);
+s32 func_80050064_main(s32 write);
+
+/* the file name in the common save data */
+#define FS_GW_NAME ((u8 *)&GwCommon + 0x94)
+
+
 /* camera zoom: D_801146B0_filesel */
 typedef struct FsCam {
     /* 0x00 */ Vec pos;
@@ -1462,17 +1498,175 @@ s32 func_80111B14_filesel(s32 pad) {
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111B14_filesel);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111C30_filesel);
+void func_80111C30_filesel(void) {
+    s32 i;
 
+    FS_LAST_FILE = 0;
+    for (i = 0; i < 3; i++) {
+        SLCurBoxNoSet(i);
+        func_80050800_main();
+        if (GwCommon.unk_00 == FS_FILE_USED && D_800D09A9_main == i) {
+            FS_LAST_FILE = i;
+        }
+        func_801122B0_filesel(i);
+        func_80112184_filesel(i);
+    }
+}
+
+// the 99 clamps branch the other way (bnez/move vs beqz/li) and use other registers; logic checked
+#ifdef NON_MATCHING
+void func_80111CBC_filesel(s32 no) {
+    s32 v;
+    u8 a;
+    u8 b;
+
+    D_801142D8_filesel[no].storyChr = 0;
+    D_801142D8_filesel[no].story[0] = 0;
+    D_801142D8_filesel[no].story[1] = 0;
+    D_801142D8_filesel[no].story[2] = 0;
+    D_801142D8_filesel[no].story[3] = 99;
+    D_801142D8_filesel[no].story[4] = 99;
+    D_801142D8_filesel[no].story[5] = 0;
+    D_801142D8_filesel[no].story[6] = 0;
+    if (_CheckFlag(0x18) != 0) {
+        func_80112758_filesel();
+        D_801142D8_filesel[no].storyChr = GwStory.unk1;
+        D_801142D8_filesel[no].story[6] = GwStory.unk0;
+        func_801126C0_filesel(GwStory.unk0, &a, &b);
+        D_801142D8_filesel[no].story[0] = b;
+        D_801142D8_filesel[no].story[1] = a;
+        D_801142D8_filesel[no].story[2] = (GwSystem.current_turn < 4) ? GwSystem.current_game_length : 3;
+        D_801142D8_filesel[no].story[3] = ((v = GwSystem.current_turn) < 100) ? v : 99;
+        D_801142D8_filesel[no].story[4] = ((v = GwSystem.total_turns) < 100) ? v : 99;
+        D_801142D8_filesel[no].story[5] = GwStory.unk2;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111CBC_filesel);
+#endif
 
+// the 99 clamps branch the other way (bnez/move vs beqz/li) and use other registers; logic checked
+#ifdef NON_MATCHING
+void func_80111E78_filesel(s32 no) {
+    s32 v;
+
+    D_801142D8_filesel[no].duel.mode = 0;
+    D_801142D8_filesel[no].duel.board = 0;
+    D_801142D8_filesel[no].duel.length = 0;
+    D_801142D8_filesel[no].duel.turn = 0;
+    D_801142D8_filesel[no].duel.total = 99;
+    if (_CheckFlag(0x16) != 0) {
+        func_8005086C_main();
+        D_801142D8_filesel[no].duel.chr[0] = 0;
+        D_801142D8_filesel[no].duel.chr[1] = 1;
+        D_801142D8_filesel[no].duel.chr[2] = 2;
+        D_801142D8_filesel[no].duel.chr[3] = 3;
+        D_801142D8_filesel[no].duel.mode = (GwSystem.playMode ^ 1) & 1;
+        D_801142D8_filesel[no].duel.board = GwSystem.current_board_index;
+        D_801142D8_filesel[no].duel.length = (GwSystem.current_turn < 4) ? GwSystem.current_game_length : 3;
+        D_801142D8_filesel[no].duel.turn = ((v = GwSystem.current_turn) < 100) ? v : 99;
+        D_801142D8_filesel[no].duel.total = ((v = GwSystem.total_turns) < 100) ? v : 99;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111E78_filesel);
+#endif
 
+// the 99 clamps branch the other way (bnez/move vs beqz/li) and use other registers; logic checked
+#ifdef NON_MATCHING
+void func_80111FFC_filesel(s32 no) {
+    s32 v;
+
+    D_801142D8_filesel[no].party.mode = 0;
+    D_801142D8_filesel[no].party.board = 0;
+    D_801142D8_filesel[no].party.length = 0;
+    D_801142D8_filesel[no].party.turn = 0;
+    D_801142D8_filesel[no].party.total = 99;
+    if (_CheckFlag(0x17) != 0) {
+        func_80050974_main();
+        D_801142D8_filesel[no].party.chr[0] = 0;
+        D_801142D8_filesel[no].party.chr[1] = 1;
+        D_801142D8_filesel[no].party.chr[2] = 2;
+        D_801142D8_filesel[no].party.chr[3] = 3;
+        D_801142D8_filesel[no].party.mode = (((u8)GwSystem.playMode >> 1) ^ 1) & 1;
+        D_801142D8_filesel[no].party.board = GwSystem.current_board_index;
+        D_801142D8_filesel[no].party.length = (GwSystem.current_turn < 4) ? GwSystem.current_game_length : 3;
+        D_801142D8_filesel[no].party.turn = ((v = GwSystem.current_turn) < 100) ? v : 99;
+        D_801142D8_filesel[no].party.total = ((v = GwSystem.total_turns) < 100) ? v : 99;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111FFC_filesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112184_filesel);
+void func_80112184_filesel(s32 no) {
+    s32 i;
 
+    D_801142D8_filesel[no].used = GwCommon.unk_00;
+    if (D_801142D8_filesel[no].used == FS_FILE_USED) {
+        for (i = 0; i < 10; i += 2) {
+            D_801142D8_filesel[no].name[i] = FS_GW_NAME[i];
+            D_801142D8_filesel[no].name[i + 1] = FS_GW_NAME[i + 1];
+        }
+        if ((D_801142D8_filesel[no].name[0] | D_801142D8_filesel[no].name[1]) == 0) {
+            D_801142D8_filesel[no].used = 0;
+        }
+    } else {
+        D_801142D8_filesel[no].name[1] = 0;
+        D_801142D8_filesel[no].name[0] = 0;
+    }
+    func_80111CBC_filesel(no);
+    func_80111E78_filesel(no);
+    func_80111FFC_filesel(no);
+}
+
+// register choice for no/mask and the name-terminator addressing (masked 28, logic checked)
+#ifdef NON_MATCHING
+void func_801122B0_filesel(s32 no) {
+    s32 i;
+    s32 mask;
+
+    for (i = 0; i < 16; i++) {
+        D_801142D8_filesel[no].name[i] = 0;
+    }
+    switch (no) {
+    case 0:
+        mask = 1;
+        break;
+    case 1:
+        mask = 2;
+        break;
+    case 2:
+        mask = 4;
+        break;
+    default:
+        mask = 7;
+        break;
+    }
+    D_801142D8_filesel[no].bad = (D_800D20EC_main & mask) != 0;
+    i = 0;
+    if (D_801142D8_filesel[no].bad != 0) {
+        for (i = 0; i < 10; i++) {
+            D_801142D8_filesel[no].name[i] = 0;
+        }
+    } else {
+        for (i = 0; i < 10; i += 2) {
+            if (((FS_GW_NAME[i] << 8) | FS_GW_NAME[i + 1]) == 0) {
+                break;
+            }
+            D_801142D8_filesel[no].name[i] = FS_GW_NAME[i];
+            D_801142D8_filesel[no].name[i + 1] = FS_GW_NAME[i + 1];
+        }
+        D_801142D8_filesel[no].name[i + 1] = 0;
+        D_801142D8_filesel[no].name[i] = 0;
+    }
+    if (((D_801142D8_filesel[no].name[0] << 8) | D_801142D8_filesel[no].name[1]) == 0) {
+        bzero(D_801142D8_filesel[no].name, 0x20);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801122B0_filesel);
+#endif
 
 s32 func_80112494_filesel(s32 arg0, u8 *arg1) {
     s32 i;
@@ -1487,17 +1681,96 @@ s32 func_80112494_filesel(s32 arg0, u8 *arg1) {
     return i;
 }
 
+// register allocation of the name-pair test (raw only)
+#ifdef NON_MATCHING
+s32 func_80112508_filesel(s32 no, u8 *out) {
+    s32 i;
+
+    for (i = 0; i < 10; i += 2) {
+        if (((D_801142D8_filesel[no].name[i] << 8) | D_801142D8_filesel[no].name[i + 1]) == 0) {
+            break;
+        }
+        out[i] = D_801142D8_filesel[no].name[i];
+        out[i + 1] = D_801142D8_filesel[no].name[i + 1];
+    }
+    out[i] = 0;
+    out[i + 1] = 0;
+    return i;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112508_filesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112584_filesel);
+void func_80112584_filesel(u32 no) {
+    SLCurBoxNoSet(no);
+    func_80050800_main();
+    bcopy(D_801142D8_filesel[no].name, FS_GW_NAME, 10);
+    D_800D09A9_main = no;
+    func_80050064_main(1);
+}
 
+/* Terminates a two-byte-character string after at most 5 characters; returns its length. */
+// register allocation of i/len (raw only)
+#ifdef NON_MATCHING
+s32 func_801125E8_filesel(u8 *str) {
+    s32 i;
+    s32 len;
+
+    len = 0;
+    for (i = 0; i < 10; i += 2) {
+        if ((((str + i)[0] << 8) | (str + i)[1]) == 0) {
+            break;
+        }
+        len++;
+    }
+    (str + i)[1] = 0;
+    (str + i)[0] = 0;
+    return len;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801125E8_filesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112630_filesel);
+void func_80112630_filesel(void) {
+    s32 *p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112684_filesel);
+    if (D_801146D8_filesel == 0) {
+        RepeatVibrator(0, 5, 0, 5);
+    }
+    p = &D_801146D8_filesel;
+    *p = (*p >= 11) ? 0 : *p + 1;
+}
 
+void func_80112684_filesel(void) {
+    D_801146D8_filesel = 0;
+    omAddObj(6, 0, 0, -1, (omObjFunc)func_80112630_filesel);
+}
+
+// callee-saved register choice for the three arguments (raw only)
+#ifdef NON_MATCHING
+void func_801126C0_filesel(s32 arg0, u8 *arg1, u8 *arg2) {
+    s32 k;
+
+    *arg1 = D_801129A4_filesel[0];
+    *arg2 = D_801129A4_filesel[1];
+    if (_CheckFlag(0x18) != 0) {
+        if (_CheckFlag(0x28) != 0) {
+            k = arg0 * 2;
+        } else {
+            k = (arg0 - 1) * 2;
+        }
+        *arg1 = D_801129A4_filesel[k];
+        *arg2 = D_801129A4_filesel[k + 1];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801126C0_filesel);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112758_filesel);
+void func_80112758_filesel(void) {
+    func_80050ABC_main();
+    if (GwStory.unk0 == 0 && _CheckFlag(0x18) != 0) {
+        _SetFlag(0x28);
+    }
+}
 

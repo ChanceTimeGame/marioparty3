@@ -278,9 +278,9 @@ void func_80111E78_filesel(s32 arg0);
 void func_80111FFC_filesel(s32 arg0);
 void func_80112184_filesel(s32 no); /* fork A: one argument (callers set a0 only) */
 void func_801122B0_filesel(s32 arg0);
-s32 func_80112508_filesel(s32 arg0, s32 arg1);
+s32 func_80112508_filesel(s32 no, u8 *out);
 void func_80112584_filesel(u32 arg0);
-s32 func_801125E8_filesel(s32 arg0);
+s32 func_801125E8_filesel(u8 *str);
 void func_80112630_filesel(void);
 void func_80112684_filesel(void);
 void func_801126C0_filesel(s32 arg0, u8 *arg1, u8 *arg2);
