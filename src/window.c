@@ -179,7 +179,7 @@ extern TWInput D_800CDA8E_main[];
 extern TWInput D_800CDA90_main[];
 extern s32 D_800D209C_main; /* last advance */
 extern u8 D_800A2194_main[256]; /* character widths */
-extern TWIcon D_800A2294_main[22];
+extern TWIcon D_800A2294_main[20]; /* 0xF0 bytes: D_800A2384_main (the portrait table) follows */
 extern TWColor D_800A2154_main[10];
 extern u16 D_800A2174_main[16]; /* the window palette template (RGBA5551) */
 
