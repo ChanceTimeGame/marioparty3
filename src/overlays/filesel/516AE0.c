@@ -4,6 +4,14 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+extern u16 D_80112D6C_filesel[];
+extern u16 D_80112D7C_filesel[];
+extern u16 D_80112D8C_filesel[];
+extern u16 D_80112D9C_filesel[];
+extern u16 D_80112DAC_filesel[];
+extern u16 D_80112DBC_filesel[];
+
+
 #define UNK_VALUE FS_FILE_USED
 
 extern u16 D_800D1244_main;
@@ -666,7 +674,100 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112DAC_filesel);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112DBC_filesel);
 
+// struct base register choice (the stores and the loop index from D_80114490/D_8011447C in retail) and s-register order (masked 22)
+#ifdef NON_MATCHING
+s32 func_8010C9B4_filesel(u32 arg0) {
+    s32 btn;
+    s32 prev;
+    s32 len;
+
+    len = func_801125E8_filesel((s32)D_80114478_filesel.name);
+    D_80114478_filesel.unk04 = 6;
+    D_80114478_filesel.unk00 = 1;
+    D_80114478_filesel.unk08 = 11;
+    D_80114478_filesel.col = 0;
+    D_80114478_filesel.row = 0;
+    D_80114478_filesel.unk14 = 0;
+    D_80114478_filesel.len = len;
+    switch (rand16() % 6) {
+        case 1:
+            bcopy(D_80112D7C_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+        case 2:
+            bcopy(D_80112D8C_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+        case 3:
+            bcopy(D_80112D9C_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+        case 4:
+            bcopy(D_80112DAC_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+        case 5:
+            bcopy(D_80112DBC_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+        case 0:
+        default:
+            bcopy(D_80112D6C_filesel, D_80114478_filesel.unk38, 0x12);
+            break;
+    }
+    func_8010B684_filesel(D_80114478_filesel.unk04);
+    func_8010B6F4_filesel(D_80114478_filesel.unk08);
+    HuPrcVSleep();
+    func_80105F24_filesel(0x13);
+    func_80106134_filesel(0x13, 0);
+    func_8010A978_filesel(D_80114478_filesel.len + 1);
+    while (1) {
+        prev = D_80114478_filesel.unk08;
+        btn = D_800D1244_main;
+        btn |= func_80111A08_filesel(0);
+        if (D_80114478_filesel.unk00 != 0) {
+            btn = func_8010B998_filesel(btn);
+            func_8010B80C_filesel(prev);
+        } else {
+            btn = func_8010C688_filesel(btn);
+        }
+        if (btn == 11) {
+            if (((D_80114478_filesel.name[0] << 8) | D_80114478_filesel.name[1]) & 0xFFFF) {
+            } else {
+                switch (arg0) {
+                    case 0:
+                        bcopy(D_80112D6C_filesel, D_80114478_filesel.name, 0x12);
+                        break;
+                    case 1:
+                        bcopy(D_80112D7C_filesel, D_80114478_filesel.name, 0x12);
+                        break;
+                    case 2:
+                        bcopy(D_80112D8C_filesel, D_80114478_filesel.name, 0x12);
+                        break;
+                    case 3:
+                        bcopy(D_80112D9C_filesel, D_80114478_filesel.unk38, 0x12);
+                        break;
+                    case 4:
+                        bcopy(D_80112DAC_filesel, D_80114478_filesel.unk38, 0x12);
+                        break;
+                    case 5:
+                        bcopy(D_80112DBC_filesel, D_80114478_filesel.unk38, 0x12);
+                        break;
+                    default:
+                        bcopy(D_80112D6C_filesel, D_80114478_filesel.unk38, 0x12);
+                        break;
+                }
+                D_80114470_filesel = 1;
+            }
+            func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
+            HuPrcSleep(3);
+            D_80114470_filesel = 1;
+            return 1;
+        }
+        if (btn == -1) {
+            return -1;
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C9B4_filesel);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010CCA8_filesel);
 

@@ -261,8 +261,8 @@ typedef struct FsKbd {
     /* 0x0C */ s32 col;       /* D_80114484: 0..12 */
     /* 0x10 */ s32 row;       /* D_80114488: 0..4 */
     /* 0x14 */ s32 unk14;     /* D_8011448C */
-    /* 0x18 */ s16 name[16];  /* D_80114490: the name being typed, 0-terminated */
-    /* 0x38 */ s16 unk38[16]; /* D_801144B0 */
+    /* 0x18 */ u16 name[16];  /* D_80114490: the name being typed, 0-terminated */
+    /* 0x38 */ u16 unk38[16]; /* D_801144B0 */
     /* 0x58 */ s32 len;       /* D_801144D0: characters typed, at most 5 */
 } FsKbd; /* size = 0x5C */
 extern FsKbd D_80114478_filesel;
