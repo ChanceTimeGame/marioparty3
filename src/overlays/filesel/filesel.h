@@ -91,7 +91,7 @@ s16 func_80105CB0_filesel(s32 arg0);
 s16 func_80105CC4_filesel(s32 arg0);
 void func_80105CE0_filesel(s32 no, s32 dataNum); /* sprite anim create */
 void func_80105D18_filesel(s32 arg0);
-void func_80105D70_filesel(s32 no, s32 animNo); /* esprite create */
+void func_80105D70_filesel(s32 no, s16 animNo); /* esprite create */
 void func_80105DD8_filesel(s32 arg0);
 void func_80105E48_filesel(s32 no, s32 dataNum); /* sprite create */
 void func_80105E7C_filesel(s32 no, s32 dataNum); /* BG sprite create */
@@ -195,7 +195,7 @@ s32 func_8010BE30_filesel(s32 arg0);
 s32 func_8010C25C_filesel(s32 arg0);
 s32 func_8010C688_filesel(s32 arg0);
 s32 func_8010C9B4_filesel(u32 arg0);
-s32 func_8010CCA8_filesel(void);
+s32 func_8010CCA8_filesel(s32 no); /* fork A: the caller passes the file in a0 (unused by the asm) */
 void func_8010D13C_filesel(s32 arg0);
 void func_8010D660_filesel(s32 arg0);
 void func_8010DD54_filesel(void);

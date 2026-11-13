@@ -772,7 +772,7 @@ s32 func_8010C9B4_filesel(u32 arg0) {
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C9B4_filesel);
 #endif
 
-s32 func_8010CCA8_filesel(void) {
+s32 func_8010CCA8_filesel(s32 no) {
     s32 timer = 0;
     f32 pos[4] = { 80.0f, 48.0f, 240.0f, 48.0f };
     s32 x;
