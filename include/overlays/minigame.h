@@ -37,7 +37,8 @@ typedef struct {
     /* 0x057 */ s8 unk57;
     /* 0x058 */ u8 unk58;
     /* 0x059 */ s8 unk59;
-    /* 0x05A */ char unk5A[2];
+    /* 0x05A */ u8 unk5A; /* model of the last motion (func_800E210C_minigame) */
+    /* 0x05B */ u8 unk5B; /* that motion */
     /* 0x05C */ s32 unk5C;
     /* 0x060 */ s32 unk60;
     /* 0x064 */ f32 unk64;
@@ -74,7 +75,7 @@ typedef struct {
     /* 0x0E8 */ func_800E1BA8_minigame_UnkE8_ObjData* unkE8;
     /* 0x0EC */ s32 (*unkEC)(omObjData*, omObjData*);
     /* 0x0F0 */ u16 unkF0;
-    /* 0x0F2 */ char unkF2[0x12];
+    /* 0x0F2 */ s8 unkF2[0x12]; /* motion per slot (func_800E21B8_minigame) */
     /* 0x104 */ s32 (*unk104[21])(); /* minigame override hooks; 1 = handled */
     /* 0x158 */ void* unk158;
 } func_800E1BA8_minigame_ObjData; // Size 0x15C
