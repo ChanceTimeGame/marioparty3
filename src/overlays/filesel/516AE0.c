@@ -1090,13 +1090,84 @@ void func_8010D660_filesel(s32 arg0) {
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010D660_filesel);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010DD54_filesel);
+void func_8010DD54_filesel(void) {
+    func_80105EC0_filesel(0x14);
+    func_80105EC0_filesel(0x15);
+    func_80105EC0_filesel(0x16);
+    func_80105EC0_filesel(0x17);
+    func_80105EC0_filesel(0x18);
+    func_80105EC0_filesel(0x19);
+    func_80105EC0_filesel(0x1E);
+    func_80105EC0_filesel(0x1D);
+    func_80105EC0_filesel(0x1C);
+    func_80105EC0_filesel(0x1B);
+    func_80105EC0_filesel(0x1A);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010DDC0_filesel);
+void func_8010DDC0_filesel(s32 arg0) {
+    func_80105F84_filesel(0x14);
+    if (_CheckFlag(0x18) == 0) {
+        func_80105FA0_filesel(0x15);
+        func_80105FA0_filesel(0x16);
+        func_80105FA0_filesel(0x17);
+        func_80105FA0_filesel(0x18);
+        func_80105F84_filesel(0x19);
+        func_80105FA0_filesel(0x1A);
+        func_80105FA0_filesel(0x1B);
+        func_80105FA0_filesel(0x1C);
+        func_80105FA0_filesel(0x1D);
+        func_80105FA0_filesel(0x1E);
+        return;
+    }
+    func_80105F84_filesel(0x15);
+    func_80105F84_filesel(0x16);
+    func_80105F84_filesel(0x17);
+    func_80105F84_filesel(0x18);
+    func_80105F84_filesel(0x19);
+    if (_CheckFlag(0x28) != 0) {
+        func_80105F84_filesel(0x1E);
+        func_80105F84_filesel(0x1C);
+        func_80105F84_filesel(0x1D);
+        func_80105F84_filesel(0x1A);
+        if (D_801142DC_filesel[arg0].unk_38 / 10 != 0) {
+            func_80105F84_filesel(0x1B);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010DEEC_filesel);
+void func_8010DEEC_filesel(void) {
+    func_80105FA0_filesel(0x14);
+    func_80105FA0_filesel(0x15);
+    func_80105FA0_filesel(0x16);
+    func_80105FA0_filesel(0x17);
+    func_80105FA0_filesel(0x18);
+    func_80105FA0_filesel(0x19);
+    func_80105FA0_filesel(0x1A);
+    func_80105FA0_filesel(0x1B);
+    func_80105FA0_filesel(0x1C);
+    func_80105FA0_filesel(0x1D);
+    func_80105FA0_filesel(0x1E);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010DF58_filesel);
+void func_8010DF58_filesel(void) {
+    func_80105EC0_filesel(0x1F);
+    func_80105EC0_filesel(0x28);
+    func_80105EC0_filesel(0x20);
+    func_80105EC0_filesel(0x21);
+    func_80105EC0_filesel(0x22);
+    func_80105EC0_filesel(0x27);
+    func_80105EC0_filesel(0x26);
+    func_80105EC0_filesel(0x25);
+    func_80105EC0_filesel(0x24);
+    func_80105EC0_filesel(0x23);
+    func_80105EC0_filesel(0x29);
+    func_80105EC0_filesel(0x2A);
+    func_80105EC0_filesel(0x2F);
+    func_80105EC0_filesel(0x2E);
+    func_80105EC0_filesel(0x2D);
+    func_80105EC0_filesel(0x2C);
+    func_80105EC0_filesel(0x2B);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010DFF4_filesel);
 
