@@ -4,6 +4,9 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+void func_8004FCF0_main(void);
+
+
 /* filesel B: name entry state, D_80114470_filesel..D_801144D4_filesel (offsets from D_80114470) */
 extern s32 D_80114470_filesel; /* name changed */
 
@@ -262,7 +265,182 @@ void func_80108D74_filesel(void) {
     func_801076A0_filesel(4);
 }
 
+
+
+
+// 255 - alpha is folded to ~alpha (retail keeps 255 in a register), shifting s3/s4 (masked 23); logic checked
+#ifdef NON_MATCHING
+s32 func_80108EB8_filesel(void) {
+    Vec pos;
+    Vec2f scr;
+    Vec mpos;
+    s16 models[2];
+    s32 x;
+    u32 file;
+    s32 i;
+    s32 alpha;
+    s32 ret;
+    s32 no;
+
+    HuVecCopyXYZ(&pos, -400.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    x = scr.x - 31.0f;
+    func_8005BA90_main(func_80107810_filesel(1), x, 0xA8);
+    func_80105FBC_filesel(13, x + 31, 0xB1);
+    HuVecCopyXYZ(&pos, 0.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    x = scr.x - 31.0f;
+    func_8005BA90_main(func_80107810_filesel(2), x, 0xA8);
+    func_80105FBC_filesel(14, x + 31, 0xB1);
+    HuVecCopyXYZ(&pos, 400.0f, 0.0f, 0.0f);
+    Hu3DCam3DToScreen(0, &pos, &scr);
+    x = scr.x - 31.0f;
+    func_8005BA90_main(func_80107810_filesel(3), x, 0xA8);
+    func_80105FBC_filesel(15, x + 31, 0xB1);
+    func_8010F844_filesel(0);
+    func_8010F844_filesel(1);
+    func_8010F844_filesel(2);
+    func_801075D8_filesel(1, 1.0f, 1.0f);
+    func_801075D8_filesel(2, 1.0f, 1.0f);
+    func_801075D8_filesel(3, 1.0f, 1.0f);
+    func_80107670_filesel(4);
+    ret = func_8010846C_filesel();
+    HuPrcVSleep();
+    file = ret;
+    no = ret;
+    if (D_801142DC_filesel[file].unk_00 != FS_FILE_USED
+        || (D_801142DC_filesel[file].unk_01[0] | D_801142DC_filesel[file].unk_01[1]) == 0) {
+        /* empty file: enter a name */
+        func_80108D74_filesel();
+        func_80108A94_filesel();
+        func_80105FA0_filesel(12);
+        func_8010F874_filesel(0);
+        func_8010F874_filesel(1);
+        func_8010F874_filesel(2);
+        for (i = 0; i < 3; i++) {
+            if (file != i) {
+                func_8010F874_filesel(i);
+                func_8010FF48_filesel(i, 16);
+            }
+        }
+        HuAudFXPlay(0x2F2);
+        func_80110320_filesel(file, 32);
+        HuAudFXPlay(0x2F0);
+        HuPrcSleep(16);
+        for (i = 0; i < 3; i++) {
+            if (file != i) {
+                func_8010669C_filesel(i);
+                func_8010669C_filesel(i + 3);
+            }
+        }
+        HuPrcSleep(16);
+        func_80107670_filesel(0);
+        func_8010F65C_filesel();
+        func_8010F678_filesel(4);
+        if (func_80109904_filesel(file) != 0) {
+            func_801076A0_filesel(0);
+            func_8010F65C_filesel();
+            func_80107670_filesel(4);
+            func_80107608_filesel(4, 160.0f, 208.0f);
+            func_801076D0_filesel(4, 0x2A14);
+            HuPrcSleep(3);
+            SLCurBoxNoSet(file);
+            func_8004FCF0_main();
+            func_80112584_filesel(file);
+            func_80112184_filesel(file);
+            func_801076A0_filesel(4);
+            HuPrcSleep(3);
+            func_801065B8_filesel(file, &mpos.x, &mpos.y, &mpos.z);
+            func_80106220_filesel(6, 0x1F002B, 0x6A9);
+            func_80106220_filesel(7, 0x1F002C, 0x6A9);
+            func_801064DC_filesel(6, mpos.x, mpos.y, mpos.z);
+            func_80106550_filesel(6, 0.48f, 0.48f, 0.48f);
+            func_801064DC_filesel(7, mpos.x, mpos.y, mpos.z);
+            func_80106550_filesel(7, 0.48f, 0.48f, 0.48f);
+            func_8010669C_filesel(file);
+            func_8010669C_filesel(file + 3);
+            func_80106344_filesel(file);
+            func_80106220_filesel(no, 0x1F002A, 0x6A9);
+            func_801064DC_filesel(file, mpos.x, mpos.y, mpos.z);
+            func_80106550_filesel(file, 0.48f, 0.48f, 0.48f);
+            func_8010684C_filesel(file, 0);
+            func_8010671C_filesel(file, 1);
+            func_8010669C_filesel(file);
+            models[0] = func_8010642C_filesel(6);
+            models[1] = func_8010642C_filesel(7);
+            alpha = 255;
+        func_8001FA68_main(models[0]);
+            func_8001FA68_main(models[1]);
+            func_801066DC_filesel(6);
+            func_8010669C_filesel(7);
+            for (i = 0, alpha = 255; i < 16; i++) {
+                func_8001F9E4_main(models[0], alpha);
+                alpha -= 16;
+                HuPrcVSleep();
+            }
+            func_8010669C_filesel(6);
+            func_801066DC_filesel(7);
+            for (i = 0, alpha = 255; i < 16; i++) {
+                func_8001F9E4_main(models[1], 255 - alpha);
+                alpha -= 16;
+                HuPrcVSleep();
+            }
+            func_8001F9E4_main(models[1], 255);
+            func_801066DC_filesel(file);
+            func_801066DC_filesel(file + 3);
+            func_80106344_filesel(6);
+            func_80106344_filesel(7);
+            func_80105EC0_filesel(file + 13);
+            func_8010F760_filesel(file, 1);
+            func_80105FA0_filesel(file + 13);
+            return ret;
+        }
+        func_801076A0_filesel(0);
+        func_8010F65C_filesel();
+        func_8011072C_filesel(file, 32);
+        HuAudFXPlay(0x2F1);
+        HuPrcSleep(16);
+        for (i = 0; i < 3; i++) {
+            if (file != i) {
+                func_8010FBE0_filesel(i, 16);
+            }
+        }
+        for (i = 0; i < 3; i++) {
+            if (file != i) {
+                func_801066DC_filesel(i);
+                func_801066DC_filesel(i + 3);
+            }
+        }
+        HuPrcSleep(16);
+        for (i = 0; i < 3; i++) {
+            func_8010F844_filesel(i);
+        }
+        func_8010F678_filesel(0);
+        func_801076D0_filesel(4, 0x2A00);
+        func_801088DC_filesel();
+        func_80108C34_filesel();
+        return -1;
+    }
+    /* existing save: load it */
+    /* existing save: load it */
+    SLCurBoxNoSet(file);
+    func_80050800_main();
+    func_80112184_filesel(file);
+    func_80108D74_filesel();
+    func_80108A94_filesel();
+    for (i = 0; i < 3; i++) {
+        if (file != i) {
+            func_8010F874_filesel(i);
+            func_8010FF48_filesel(i, 16);
+        }
+    }
+    HuAudFXPlay(0x2F2);
+    HuPrcSleep(16);
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108EB8_filesel);
+#endif
 
 #define CLAMP_BELOW(val, limit) ((val) < (limit) ? (val) : 0)
 
