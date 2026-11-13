@@ -30,6 +30,7 @@ extern s32 D_800EB924_minigame;
 extern s16 D_800EB92A_minigame;
 extern s32 D_800EB92C_minigame;
 extern s16 D_800EB934_minigame;
+extern f32 D_800EB938_minigame;
 extern D_80111B50_vine_with_me_Struct *D_800EBDE0_minigame;
 extern s16 D_800EBDE4_minigame;
 extern s16 D_800EBDE6_minigame;
@@ -226,7 +227,52 @@ void func_800E6670_minigame(s16 idx, s16 time) {
     func_800550F4_main(g, 6, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B8A20", func_800E6968_minigame);
+void func_800E6968_minigame(s16 idx, s16 time) {
+    s16 g;
+    s16 d;
+    s16 sec;
+    s16 cs;
+
+    g = D_800EBDE8_minigame[idx];
+    if ((D_800EB938_minigame += 10.0f) > 180.0f) {
+        D_800EB938_minigame = 180.0f;
+    }
+    HuSprScaleSet(g, 0, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 1, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 2, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 3, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 4, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 5, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprScaleSet(g, 6, sindf(D_800EB938_minigame) + 1.0f, sindf(D_800EB938_minigame) + 1.0f);
+    HuSprAttrReset(g, 0, 0x8000);
+    d = time / 3600;
+    func_80055140_main(g, 0, d, 0);
+    func_800550F4_main(g, 0, 1);
+    time -= d * 3600;
+    HuSprAttrReset(g, 1, 0x8000);
+    func_80055140_main(g, 1, 10, 0);
+    func_800550F4_main(g, 1, 1);
+    HuSprAttrReset(g, 2, 0x8000);
+    d = time / 600;
+    func_80055140_main(g, 2, d, 0);
+    func_800550F4_main(g, 2, 1);
+    time -= d * 600;
+    sec = time / 60;
+    HuSprAttrReset(g, 3, 0x8000);
+    func_80055140_main(g, 3, sec, 0);
+    func_800550F4_main(g, 3, 1);
+    cs = time * 100 / 60 - sec * 100;
+    HuSprAttrReset(g, 4, 0x8000);
+    func_80055140_main(g, 4, 11, 0);
+    func_800550F4_main(g, 4, 1);
+    HuSprAttrReset(g, 5, 0x8000);
+    func_80055140_main(g, 5, cs / 10, 0);
+    func_800550F4_main(g, 5, 1);
+    cs %= 10;
+    HuSprAttrReset(g, 6, 0x8000);
+    func_80055140_main(g, 6, cs, 0);
+    func_800550F4_main(g, 6, 1);
+}
 
 void func_800E6E4C_minigame(s16 arg0) {
     D_800EBDE0_minigame->unk1C = arg0;
