@@ -4,6 +4,9 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+extern char D_80112A64_filesel[];
+
+
 extern u16 D_80112D6C_filesel[];
 extern u16 D_80112D7C_filesel[];
 extern u16 D_80112D8C_filesel[];
@@ -769,7 +772,109 @@ s32 func_8010C9B4_filesel(u32 arg0) {
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C9B4_filesel);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010CCA8_filesel);
+s32 func_8010CCA8_filesel(void) {
+    s32 timer = 0;
+    f32 pos[4] = { 80.0f, 48.0f, 240.0f, 48.0f };
+    s32 x;
+    s32 y;
+    s32 tx;
+    s32 ty;
+    f32 t;
+    s32 i;
+    s32 r;
+    s32 sel;
+    u32 btn;
+    s32 ret;
+
+    sel = 1;
+    func_80105FBC_filesel(0x12, pos[2], pos[3]);
+    func_80105F24_filesel(0x12);
+    func_801076D0_filesel(4, 0x2A0E);
+    while (1) {
+        HuPrcVSleep();
+        btn = D_800D1244_main;
+        r = func_80111B14_filesel(0);
+        if (r != -1) {
+            btn |= r;
+        }
+        if (D_800D5558_main[0] & B_BUTTON) {
+            ret = -1;
+            break;
+        }
+        if (D_800D5558_main[0] & A_BUTTON) {
+            func_80105FA0_filesel(0x12);
+            if (sel == 0) {
+                HuAudFXPlay(3);
+                if (_CheckFlag(0x18) != 0) {
+                    func_801076D0_filesel(4, 0x2A0F);
+                    func_8010782C_filesel(4);
+                    r = func_801077D8_filesel(4, 0, 0);
+                    if (r == 0) {
+                        ret = 1;
+                        break;
+                    }
+                    if (r == 1) {
+                        func_801076D0_filesel(4, 0x2A10);
+                        func_8010782C_filesel(4);
+                        if (func_801077D8_filesel(4, 0, 0) == 0) {
+                            func_801076D0_filesel(4, (u32)D_80112A64_filesel);
+                            HuPrcVSleep();
+                            func_8005B63C_main(D_80114158_filesel[4].unk_00, 0x11, 0);
+                            func_801076D0_filesel(4, 0x2A18);
+                            func_8010782C_filesel(4);
+                            func_801076D0_filesel(4, 0x2A19);
+                            func_8010782C_filesel(4);
+                            ret = func_801077D8_filesel(4, 1, 0) ? -1 : 2;
+                            func_8005B63C_main(D_80114158_filesel[4].unk_00, -1, 0x11);
+                            break;
+                        }
+                    }
+                } else {
+                    ret = 2;
+                    break;
+                }
+                func_801076D0_filesel(4, 0x2A0D);
+                func_80105F84_filesel(0x12);
+            } else {
+                HuAudFXPlay(3);
+                ret = 0;
+                break;
+            }
+        } else if (btn & 0x300) {
+            sel = ((btn >> 9) ^ 1) & 1;
+            if (sel == 0) {
+                func_80106014_filesel(0x12, &x, &y);
+                tx = pos[0];
+                ty = pos[1];
+                for (i = 0; i < 5; i++) {
+                    t = i * 0.25f;
+                    func_80105FBC_filesel(0x12, x + t * (tx - x), y + t * (ty - y));
+                    HuPrcVSleep();
+                }
+                func_80105FBC_filesel(0x12, pos[0], pos[1]);
+                func_801076D0_filesel(4, 0x2A0D);
+            } else {
+                func_80106014_filesel(0x12, &x, &y);
+                tx = pos[2];
+                ty = pos[3];
+                for (i = 0; i < 5; i++) {
+                    t = i * 0.25f;
+                    func_80105FBC_filesel(0x12, x + t * (tx - x), y + t * (ty - y));
+                    HuPrcVSleep();
+                }
+                func_80105FBC_filesel(0x12, pos[2], pos[3]);
+                func_801076D0_filesel(4, 0x2A0E);
+            }
+        }
+        func_8010AB58_filesel(0x12, -(timer / 8));
+        timer = (timer < 20) ? timer + 1 : 0;
+    }
+    func_80105F54_filesel(0x12);
+    func_80108D74_filesel();
+    func_8010DEEC_filesel();
+    func_8010E1B4_filesel();
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010D13C_filesel);
 
@@ -802,8 +907,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F168_filesel);
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F5C8_filesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010F65C_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112DF8_filesel);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112E08_filesel);
 
