@@ -28,7 +28,7 @@ void func_800143F0_main(void);
 void func_80014A3C_main(u32 arg0);
 void func_800224BC_main(void);
 void GWInit(void); // save.h
-void GWMgRecordSet(s16 arg0, s16 arg1); // save.h
+void GWMgRecordSet(s16 arg0, u16 arg1); // save.h
 void func_80036380_main(u32 stringsRomPtr);
 void pfInit(void);
 void func_8004F290_main(void);

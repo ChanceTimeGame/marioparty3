@@ -356,10 +356,7 @@ void func_800E6F34_minigame(s32 arg0) {
     D_800EB91A_minigame = arg0;
 }
 
-// Matches once ~/repos/mp3-wt/mgD.header.patch is applied (and needs it to compile): the
-// headers declare this function void (retail returns the state) and GWMgRecordSet's
-// second parameter s16 (retail passes it as u16).
-#ifdef NON_MATCHING
+// Returns the state (the headers used to declare it void).
 u8 func_800E6F40_minigame(void) {
     char *stateNames[4] = { "OPENING", "PLAYING", "DIRECTION", "ENDING" };
     s16 mes;
@@ -597,16 +594,3 @@ u8 func_800E6F40_minigame(void) {
     }
     return D_800EBDE0_minigame->unk00;
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/minigame/B8A20", D_800EBCF4_minigame);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/minigame/B8A20", D_800EBCFC_minigame);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/minigame/B8A20", D_800EBD04_minigame);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/minigame/B8A20", D_800EBD10_minigame);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/minigame/B8A20", D_800EBD18_minigame);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B8A20", func_800E6F40_minigame);
-#endif

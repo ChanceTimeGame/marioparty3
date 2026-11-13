@@ -124,7 +124,7 @@ void func_800E5EA0_minigame(D_80111B50_vine_with_me_Struct*);
 u8 func_800E6E8C_minigame(void);
 void func_800E6F1C_minigame(void);
 void func_800E6F34_minigame(s32);
-void func_800E6F40_minigame(void);
+u8 func_800E6F40_minigame(void);
 
 extern s16 D_800EBE28_minigame;
 extern s16 D_800EC1B8_minigame;
