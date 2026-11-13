@@ -1189,7 +1189,51 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010BA70_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C094_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C874_modesel);
+/* Show the two save summaries' sprites (0xA-0x27). */
+void func_8010C874_modesel(void) {
+    s32 i;
+
+    func_80105FE4_modesel(10);
+    func_80105FE4_modesel(11);
+    func_80105FE4_modesel(12);
+    func_80105FE4_modesel(13);
+    func_80105FE4_modesel(14);
+    for (i = 0; i < 4; i++) {
+        if (D_80110B88_modesel.com[i] != 0) {
+            func_80105FE4_modesel(i + 15);
+        }
+    }
+    func_80105FE4_modesel(19);
+    func_80105FE4_modesel(20);
+    func_80105FE4_modesel(21);
+    func_80105FE4_modesel(24);
+    if (D_80110B88_modesel.turn / 10 != 0) {
+        func_80105FE4_modesel(23);
+    }
+    func_80105FE4_modesel(22);
+    func_80105FE4_modesel(26);
+    func_80105FE4_modesel(25);
+    func_80105FE4_modesel(27);
+    func_80105FE4_modesel(28);
+    func_80105FE4_modesel(29);
+    for (i = 0; i < 2; i++) {
+        if (D_80110BB4_modesel.com[i] != 0) {
+            func_80105FE4_modesel(i + 30);
+        }
+    }
+    func_80105FE4_modesel(32);
+    func_80105FE4_modesel(33);
+    func_80105FE4_modesel(34);
+    func_80105FE4_modesel(37);
+    if (D_80110BB4_modesel.turnMax == 20) {
+        if (D_80110BB4_modesel.turn / 10 != 0) {
+            func_80105FE4_modesel(36);
+        }
+        func_80105FE4_modesel(35);
+        func_80105FE4_modesel(39);
+        func_80105FE4_modesel(38);
+    }
+}
 
 void func_8010CA30_modesel(void) {
     func_80106000_modesel(10);
@@ -1300,9 +1344,103 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CD00_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010D8DC_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DC6C_modesel);
+/* Help message (window 0) for choice `choice`. */
+void func_8010DC6C_modesel(u32 choice) {
+    s32 rank;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DE88_modesel);
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        rank = func_800E905C_minigame(D_80110BDA_modesel);
+        rank = (rank >= 0) ? ((rank >= 5) ? 4 : rank) : 0;
+        func_80107730_modesel(0, 0x3114);
+        func_801077FC_modesel(0, 0, D_8010F2F0_modesel[rank]);
+        func_801077FC_modesel(0, 1, D_80110BD8_modesel + 0x1C00);
+        break;
+    case 3:
+        func_80107730_modesel(0, 0x3107);
+        break;
+    case 4:
+    case 5:
+        func_80107730_modesel(0, 0x3106);
+        break;
+    case 7:
+        if (func_800465D0_main() == 1) {
+            func_80107730_modesel(0, 0x3104);
+        } else if ((GwSystem.playMode & 2) && GwStory.unk0 != 12) {
+            func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+            func_80107730_modesel(0, 0x3135);
+        } else {
+            func_80107730_modesel(0, 0x3104);
+        }
+        break;
+    case 8:
+        if (func_800465D0_main() == 1) {
+            func_80107730_modesel(0, 0x3103);
+        } else if ((GwSystem.playMode & 1) && GwStory.unk0 != 12) {
+            func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+            func_80107730_modesel(0, 0x3135);
+        } else {
+            func_80107730_modesel(0, 0x3103);
+        }
+        break;
+    case 9:
+        if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x313E);
+        } else {
+            func_80107730_modesel(0, 0x3105);
+        }
+        break;
+    case 10:
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            func_80107730_modesel(0, 0x3119);
+        } else if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x3122);
+        } else {
+            func_80107730_modesel(0, 0x3124);
+        }
+        break;
+    }
+}
+
+/* Choice `choice` picked: start its model animation and move the cursor to it. */
+void func_8010DE88_modesel(u32 choice) {
+    switch (choice) {
+    case 0:
+    case 1:
+    case 2:
+        func_800E905C_minigame(D_80110BDA_modesel);
+        func_8010E280_modesel(1, 2);
+        break;
+    case 3:
+        func_80109188_modesel(3, 8);
+        func_8010E280_modesel(1, 3);
+        break;
+    case 4:
+    case 5:
+        func_80109188_modesel(5, 8);
+        func_8010E280_modesel(1, 5);
+        break;
+    case 7:
+        func_80109188_modesel(7, 8);
+        func_8010E280_modesel(1, 7);
+        break;
+    case 8:
+        func_80109188_modesel(8, 8);
+        func_8010E280_modesel(1, 8);
+        break;
+    case 9:
+        func_80109188_modesel(9, 8);
+        func_8010E280_modesel(1, 9);
+        break;
+    case 10:
+        func_800465D0_main();
+        func_80109188_modesel(10, 8);
+        func_8010E280_modesel(1, 10);
+        break;
+    }
+}
 
 void func_8010DF70_modesel(void) {
     func_80105EA8_modesel(1, 0x88);
@@ -1559,7 +1697,56 @@ void func_8010E790_modesel(Process *proc) {
     func_80013350_main(0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E7B4_modesel);
+/* Summaries of the two saved games (board play, then the 2-player one) for the resume prompt. */
+void func_8010E7B4_modesel(void) {
+    s32 i;
+    s32 v;
+
+    D_80110B70_modesel.unk0 = D_80110B70_modesel.unk4 = D_80110B70_modesel.unk8 = D_80110B70_modesel.unkC =
+        D_80110B70_modesel.unk10 = D_80110B70_modesel.unk14 = 0;
+    if (func_800465D0_main() == 1) {
+        func_8005086C_main();
+        for (i = 0; i < 4; i++) {
+            D_80110B88_modesel.chr[i] = GwPlayer[i].chr;
+            D_80110B88_modesel.com[i] = GwPlayer[i].stat & 1;
+        }
+        v = 3;
+        if (GwSystem.current_game_length < 3) {
+            v = GwSystem.current_game_length;
+        }
+        D_80110B88_modesel.length = v;
+        v = 99;
+        if (GwSystem.current_turn < 99) {
+            v = GwSystem.current_turn;
+        }
+        D_80110B88_modesel.turn = v;
+        v = 99;
+        if (GwSystem.total_turns < 99) {
+            v = GwSystem.total_turns;
+        }
+        D_80110B88_modesel.turnMax = v;
+        func_80050974_main();
+        for (i = 0; i < 2; i++) {
+            D_80110BB4_modesel.chr[i] = GwPlayer[i].chr;
+            D_80110BB4_modesel.com[i] = GwPlayer[i].stat & 1;
+        }
+        v = 3;
+        if (GwSystem.current_game_length < 3) {
+            v = GwSystem.current_game_length;
+        }
+        D_80110BB4_modesel.length = v;
+        v = 99;
+        if (GwSystem.current_turn < 99) {
+            v = GwSystem.current_turn;
+        }
+        D_80110BB4_modesel.turn = v;
+        v = 99;
+        if (GwSystem.total_turns < 99) {
+            v = GwSystem.total_turns;
+        }
+        D_80110BB4_modesel.turnMax = v;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E984_modesel);
 

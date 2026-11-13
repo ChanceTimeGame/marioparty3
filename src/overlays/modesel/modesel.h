@@ -80,9 +80,6 @@ extern s32 D_80110B1C_modesel;                   /* .bss 0x4 bytes; lw: 8010B824
 extern s32 D_80110B20_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
 extern s32 D_80110B28_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
 extern f32 D_80110B2C_modesel;                   /* .bss 0x4 bytes; swc1: 8010B790 */
-extern s32 D_80110BA8_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
-extern s32 D_80110BB0_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
-extern s32 D_80110BC4_modesel;                   /* .bss 0x4 bytes; sw: 8010E7B4 */
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
 /* D_80110BD4_modesel, D_8010F304_modesel: fork C block */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
@@ -321,5 +318,29 @@ typedef struct MsMotObj {
     /* 0x4C */ char unk4C[0x4C];
 } MsMotObj; /* size = 0x98 */
 extern MsMotObj *D_80110BD4_modesel; /* was s32: func_8010AF90_modesel stores func_8001D33C_main's pointer */
+
+/* Summary of a saved game for the resume prompt (func_8010E7B4_modesel): board play
+   D_80110B88_modesel (4 players; splat also names D_80110B98/BA8/BAC/BB0) and the 2-player save
+   D_80110BB4_modesel (splat: D_80110BBC/BC4/BC8/BCC). */
+typedef struct MsSaveSum4 {
+    /* 0x00 */ s32 chr[4];
+    /* 0x10 */ s32 com[4]; /* player stat bit 0 */
+    /* 0x20 */ s32 length; /* game length, at most 3 */
+    /* 0x24 */ s32 turn;   /* at most 99 */
+    /* 0x28 */ s32 turnMax;
+} MsSaveSum4; /* size = 0x2C */
+typedef struct MsSaveSum2 {
+    /* 0x00 */ s32 chr[2];
+    /* 0x08 */ s32 com[2];
+    /* 0x10 */ s32 length;
+    /* 0x14 */ s32 turn;
+    /* 0x18 */ s32 turnMax;
+} MsSaveSum2; /* size = 0x1C */
+typedef struct MsUnkB70 {
+    s32 unk0, unk4, unk8, unkC, unk10, unk14; /* only cleared, by func_8010E7B4_modesel */
+} MsUnkB70;
+extern MsUnkB70 D_80110B70_modesel;
+extern MsSaveSum4 D_80110B88_modesel;
+extern MsSaveSum2 D_80110BB4_modesel;
 
 #endif
