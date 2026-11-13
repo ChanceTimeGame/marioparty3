@@ -92,18 +92,7 @@ extern s32 D_80102CB0_shared_board;
 extern s32 (*MBItemFunctions[])(void);
 extern s32 D_800D41B0_main[];
 
-typedef struct SomeStruct {
-    u8 unk_00[10];
-} SomeStruct;
-
-extern SomeStruct D_80102250_shared_board;
 extern s32 D_80102D50_shared_board;
-
-typedef struct SomeStruct2 {
-    u16 unk_00[8];
-} SomeStruct2;
-
-extern SomeStruct2 D_8010225C_shared_board;
 
 // s32 D_80100F90_shared_board = -1;
 // s8 D_80100F94_shared_board[] = {5, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10, 15, 10, 10, 20, -1, -1, -1, -1, 30};

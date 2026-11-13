@@ -6,6 +6,18 @@
 
 extern Object *D_801011FC_shared_board;
 
+/* defined in F9DE0.c's .rodata, used by F5E80.c */
+typedef struct SomeStruct {
+    u8 unk_00[10];
+} SomeStruct;
+
+typedef struct SomeStruct2 {
+    u16 unk_00[8];
+} SomeStruct2;
+
+extern const SomeStruct D_80102250_shared_board;
+extern const SomeStruct2 D_8010225C_shared_board;
+
 Object* MBKSuitCreate(void);
 void MBKSuitKill(void);
 void MBKSuitInit(void);
