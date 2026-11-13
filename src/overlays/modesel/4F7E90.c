@@ -2636,7 +2636,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CC38_modesel);
 /* NON_MATCHING: 909 of 987 instructions: GCC cross-jumps the identical prompt tails of cases 7 and 8 and keeps the refusal message in a variable, where retail keeps separate copies; the case 2 result poll compares -3/-2/-1 in registers; logic checked against the asm. */
 /* Choice `choice` confirmed with A: runs its prompts and returns the mode to start (-1 for none):
    0 mini-game (2), 1 (3), 4-10, 11, 13, 14. */
-s32 func_8010CD00_modesel(u32 choice) {
+s32 func_8010CD00_modesel(u32 choice, s32 btn) { /* btn: unused (the caller leaves its buttons in a1) */
     s32 ret = -1;
     s16 slot;
     s32 answer;
