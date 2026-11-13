@@ -7,6 +7,14 @@
    (func_80105CB0..func_801078F4) are the same library as opening's (523FD0.c, opSpr* / opModel*),
    with 64 model slots instead of 160. */
 
+/* The overlay was linked from several source files; each one starts 16-byte aligned. In the single
+   unit here, FS_FILE_END() after the last function of a file reproduces that padding. */
+#ifdef NON_MATCHING
+#define FS_FILE_END()
+#else
+#define FS_FILE_END() __asm__(".section .text\n    .align 4\n");
+#endif
+
 #define FS_FILE_USED 0x91 /* UnkFileSelect.unk_00 of a file that holds a save */
 
 /* Sprite slot: D_80112ED0_filesel[64]. */
@@ -41,10 +49,37 @@ typedef struct UnkFileSelect2 {
 typedef struct UnkFileSelect {
     /* 0x00 */ u8 unk_00; /* FS_FILE_USED when the file holds a save */
     /* 0x01 */ u8 unk_01[0xB]; /* name */
-    /* 0x0C */ char unk_0C[0x78];
+    /* 0x0C */ char unk_0C[0x74];
+    /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE */
 } UnkFileSelect; /* size = 0x84 */
 
+/* The last-used save file (0..2). Retail reaches it as D_801142DC_filesel + 0x188, the last word of
+   the file table's 0x18C bytes. */
+#define FS_LAST_FILE (D_801142DC_filesel[2].unk_80)
+
+/* Camera view a model's HmfData points to at 0xBC (read by the debug print func_801078F4_filesel). */
+typedef struct FsHmfCamView {
+    /* 0x00 */ char unk0[8];
+    /* 0x08 */ Vec pos;
+    /* 0x14 */ Vec at;
+    /* 0x20 */ Vec up;
+} FsHmfCamView;
+
+/* .data */
+extern OvlEntrypoint D_801127A0_filesel[];
+extern Vec D_801129C0_filesel; /* camera position */
+extern Vec D_801129CC_filesel; /* camera target */
+extern Vec D_801129D8_filesel; /* camera up */
+
+/* .rodata (still INCLUDE_RODATA) */
+extern const char D_80112A64_filesel[]; /* "" */
+extern const u8 D_80112A68_filesel[];   /* story board -> overlay table, 0xFF = none */
+
 /* .bss */
+extern s32 D_80112E90_filesel;
+extern Process *D_80114468_filesel; /* main process (func_80107CF8_filesel) */
+extern omObjData *D_8011446C_filesel;
+extern s16 D_80114188_filesel; /* window id (first field of a 0x150-byte block) */
 extern FsSpr D_80112ED0_filesel[64];
 extern s16 D_801135D0_filesel[64]; /* sprite animations */
 extern FsModel D_80113650_filesel[64];
@@ -53,7 +88,14 @@ extern s16 D_80114152_filesel; /* background esprite */
 extern UnkFileSelect2 D_80114158_filesel[32];
 extern UnkFileSelect D_801142DC_filesel[3];
 
-/* main functions without a shared prototype */
+/* main functions and data without a shared prototype */
+extern u8 D_800D09A9_main;
+extern s8 D_800D2132_main; /* pause.c */
+void func_80030030_main(f32);
+extern u8 D_800CE20A_main;
+void func_800465DC_main(s8 arg0);
+void func_800465F4_main(s8 arg0);
+void func_80050CFC_main(void);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -74,7 +116,7 @@ s16 func_80105CB0_filesel(s32 arg0);
 s16 func_80105CC4_filesel(s32 arg0);
 void func_80105CE0_filesel(s32 no, s32 dataNum); /* sprite anim create */
 void func_80105D18_filesel(s32 arg0);
-void func_80105D70_filesel(s32 no, s32 animNo); /* esprite create */
+void func_80105D70_filesel(s32 no, s16 animNo); /* esprite create */
 void func_80105DD8_filesel(s32 arg0);
 void func_80105E48_filesel(s32 no, s32 dataNum); /* sprite create */
 void func_80105E7C_filesel(s32 no, s32 dataNum); /* BG sprite create */
@@ -82,8 +124,8 @@ void func_80105EC0_filesel(s32 arg0);
 void func_80105EEC_filesel(void);
 void func_80105F24_filesel(s32 arg0);
 void func_80105F54_filesel(s32 arg0);
-void func_80105F84_filesel(void);
-void func_80105FA0_filesel(void);
+void func_80105F84_filesel(s32 no); /* BG sprite disp on */
+void func_80105FA0_filesel(s32 no); /* BG sprite disp off */
 void func_80105FBC_filesel(s32 no, s32 x, s32 y); /* sprite pos set */
 void func_80106014_filesel(s32 no, s32 *x, s32 *y);
 void func_80106044_filesel(s32 no, f32 x, f32 y); /* sprite scale set */
@@ -140,7 +182,7 @@ void func_80107880_filesel(s32 btn); /* wait for button */
 void func_801078BC_filesel(s32 no, s16 arg1);
 u16 func_801078F4_filesel(s32 val); /* debug value print */
 void func_80107AA8_filesel(void);
-void func_80107C50_filesel(void);
+void func_80107C50_filesel(omObjData *obj);
 void func_80107C84_filesel(void);
 void func_80107CF8_filesel(void);
 void func_801083AC_filesel(void);
@@ -151,7 +193,7 @@ void func_801088DC_filesel(void);
 void func_80108A94_filesel(void);
 void func_80108C34_filesel(void);
 void func_80108D74_filesel(void);
-u32 func_80108EB8_filesel(void);
+s32 func_80108EB8_filesel(void); /* fork A: callers test the result with bltz */
 u32 func_801099A8_filesel(u32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80109B2C_filesel(void);
 void func_8010A028_filesel(void);
@@ -178,7 +220,7 @@ s32 func_8010BE30_filesel(s32 arg0);
 s32 func_8010C25C_filesel(s32 arg0);
 s32 func_8010C688_filesel(s32 arg0);
 s32 func_8010C9B4_filesel(u32 arg0);
-s32 func_8010CCA8_filesel(void);
+s32 func_8010CCA8_filesel(s32 no); /* fork A: the caller passes the file in a0 (unused by the asm) */
 void func_8010D13C_filesel(s32 arg0);
 void func_8010D660_filesel(s32 arg0);
 void func_8010DD54_filesel(void);
@@ -234,7 +276,7 @@ void func_80111C30_filesel(void);
 void func_80111CBC_filesel(s32 arg0);
 void func_80111E78_filesel(s32 arg0);
 void func_80111FFC_filesel(s32 arg0);
-void func_80112184_filesel(s32 arg0, s32 arg1, u8 *arg2, u8 *arg3);
+void func_80112184_filesel(s32 no); /* fork A: one argument (callers set a0 only) */
 void func_801122B0_filesel(s32 arg0);
 s32 func_80112508_filesel(s32 arg0, s32 arg1);
 void func_80112584_filesel(u32 arg0);
