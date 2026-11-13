@@ -94,12 +94,12 @@ extern Vec D_80112EB8_filesel; /* camera up */
 
 
 
-extern u16 D_80112D6C_filesel[];
-extern u16 D_80112D7C_filesel[];
-extern u16 D_80112D8C_filesel[];
-extern u16 D_80112D9C_filesel[];
-extern u16 D_80112DAC_filesel[];
-extern u16 D_80112DBC_filesel[];
+extern const char D_80112D6C_filesel[];
+extern const char D_80112D7C_filesel[];
+extern const char D_80112D8C_filesel[];
+extern const char D_80112D9C_filesel[];
+extern const char D_80112DAC_filesel[];
+extern const char D_80112DBC_filesel[];
 void func_8004FCF0_main(void);
 s32 func_80050DDC_main(s16 srcBox, s16 dstBox);
 s32 func_80050064_main(s32 write);
@@ -989,9 +989,11 @@ void func_80108440_filesel(void) {
     func_80105EC0_filesel(3);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112A64_filesel);
+const char D_80112A64_filesel[] = "";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112A68_filesel);
+const u8 D_80112A68_filesel[] = {
+    0x02, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF,
+};
 
 u32 func_8010846C_filesel(void) {
     s32 sel;
@@ -1792,7 +1794,7 @@ void func_80109B2C_filesel(void) {
         HuAudFXPlay(0x2F7);
         func_801068B0_filesel(src);
         HuPrcSleep(3);
-        func_80112508_filesel(dst, (s32)name);
+        func_80112508_filesel(dst, name);
         func_80105EC0_filesel(dst + 13);
         func_8010F760_filesel(dst, 1);
         func_801076D0_filesel(dst + 1, (u32)name);
@@ -1818,11 +1820,11 @@ cancel:
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80109B2C_filesel);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE0_filesel);
+const char D_80112AE0_filesel[] = "1";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE4_filesel);
+const char D_80112AE4_filesel[] = "2";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE8_filesel);
+const char D_80112AE8_filesel[] = "3";
 
 void func_8010A028_filesel(void) {
     s32 timer;
@@ -2050,7 +2052,7 @@ void func_8010A978_filesel(s32 arg0) {
     func_80105FBC_filesel(0x13, arg0 * 10 + 0x68, 0x3D);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AF0_filesel);
+const u8 D_80112AF0_filesel[8] = { 0 };
 
 void func_8010A9B4_filesel(s32 arg0, u32 arg1, s32 *arg2, s32 *arg3) {
     Vec pos;
@@ -2201,7 +2203,7 @@ s32 func_8010AC58_filesel(s32 arg0) {
     func_80105F54_filesel(0x34);
     D_80114470_filesel = 0;
     bzero(name, sizeof(name));
-    func_80112508_filesel(arg0, (s32)name);
+    func_80112508_filesel(arg0, name);
     func_80106B40_filesel(10, (u32)name, 0x68, 0x2E, 0x3E, 0x14, 2);
     win = func_80107810_filesel(10);
     func_8005B63C_main(win, 0x80000, 0x80000);
@@ -2431,87 +2433,87 @@ void func_8010B80C_filesel(s32 arg0) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B18_filesel);
+const char D_80112B18_filesel[12] = "\x82\xC1\x81\x40\x81\x7C\x81\x40\x81\x40"; /* "っ　−　　" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B24_filesel);
+const char D_80112B24_filesel[12] = "\x82\xE1\x81\x40\x82\xE3\x81\x40\x82\xE5"; /* "ゃ　ゅ　ょ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B30_filesel);
+const char D_80112B30_filesel[12] = "\x82\x9F\x82\xA1\x82\xA3\x82\xA5\x82\xA7"; /* "ぁぃぅぇぉ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B3C_filesel);
+const char D_80112B3C_filesel[12] = "\x82\xCF\x82\xD2\x82\xD5\x82\xD8\x82\xDB"; /* "ぱぴぷぺぽ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B48_filesel);
+const char D_80112B48_filesel[12] = "\x82\xCE\x82\xD1\x82\xD4\x82\xD7\x82\xDA"; /* "ばびぶべぼ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B54_filesel);
+const char D_80112B54_filesel[12] = "\x82\xBE\x82\xC0\x82\xC3\x82\xC5\x82\xC7"; /* "だぢづでど" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B60_filesel);
+const char D_80112B60_filesel[12] = "\x82\xB4\x82\xB6\x82\xB8\x82\xBA\x82\xBC"; /* "ざじずぜぞ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B6C_filesel);
+const char D_80112B6C_filesel[12] = "\x82\xAA\x82\xAC\x82\xAE\x82\xB0\x82\xB2"; /* "がぎぐげご" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B78_filesel);
+const char D_80112B78_filesel[12] = "\x82\xED\x81\x40\x82\xF0\x81\x40\x82\xF1"; /* "わ　を　ん" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B84_filesel);
+const char D_80112B84_filesel[12] = "\x82\xE7\x82\xE8\x82\xE9\x82\xEA\x82\xEB"; /* "らりるれろ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B90_filesel);
+const char D_80112B90_filesel[12] = "\x82\xE2\x81\x40\x82\xE4\x81\x40\x82\xE6"; /* "や　ゆ　よ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112B9C_filesel);
+const char D_80112B9C_filesel[12] = "\x82\xDC\x82\xDD\x82\xDE\x82\xDF\x82\xE0"; /* "まみむめも" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BA8_filesel);
+const char D_80112BA8_filesel[12] = "\x82\xCD\x82\xD0\x82\xD3\x82\xD6\x82\xD9"; /* "はひふへほ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BB4_filesel);
+const char D_80112BB4_filesel[12] = "\x82\xC8\x82\xC9\x82\xCA\x82\xCB\x82\xCC"; /* "なにぬねの" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BC0_filesel);
+const char D_80112BC0_filesel[12] = "\x82\xBD\x82\xBF\x82\xC2\x82\xC4\x82\xC6"; /* "たちつてと" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BCC_filesel);
+const char D_80112BCC_filesel[12] = "\x82\xB3\x82\xB5\x82\xB7\x82\xB9\x82\xBB"; /* "さしすせそ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BD8_filesel);
+const char D_80112BD8_filesel[12] = "\x82\xA9\x82\xAB\x82\xAD\x82\xAF\x82\xB1"; /* "かきくけこ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BE4_filesel);
+const char D_80112BE4_filesel[12] = "\x82\xA0\x82\xA2\x82\xA4\x82\xA6\x82\xA8"; /* "あいうえお" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BF0_filesel);
+const char D_80112BF0_filesel[12] = "\x83\x62\x81\x40\x81\x7C\x81\x40\x81\x40"; /* "ッ　−　　" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112BFC_filesel);
+const char D_80112BFC_filesel[12] = "\x83\x83\x81\x40\x83\x85\x81\x40\x83\x87"; /* "ャ　ュ　ョ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C08_filesel);
+const char D_80112C08_filesel[12] = "\x83\x40\x83\x42\x83\x44\x83\x46\x83\x48"; /* "ァィゥェォ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C14_filesel);
+const char D_80112C14_filesel[12] = "\x83\x70\x83\x73\x83\x76\x83\x79\x83\x7C"; /* "パピプペポ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C20_filesel);
+const char D_80112C20_filesel[12] = "\x83\x6F\x83\x72\x83\x75\x83\x78\x83\x7B"; /* "バビブベボ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C2C_filesel);
+const char D_80112C2C_filesel[12] = "\x83\x5F\x83\x61\x83\x64\x83\x66\x83\x68"; /* "ダヂヅデド" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C38_filesel);
+const char D_80112C38_filesel[12] = "\x83\x55\x83\x57\x83\x59\x83\x5B\x83\x5D"; /* "ザジズゼゾ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C44_filesel);
+const char D_80112C44_filesel[12] = "\x83\x4B\x83\x4D\x83\x4F\x83\x51\x83\x53"; /* "ガギグゲゴ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C50_filesel);
+const char D_80112C50_filesel[12] = "\x83\x8F\x81\x40\x83\x92\x81\x40\x83\x93"; /* "ワ　ヲ　ン" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C5C_filesel);
+const char D_80112C5C_filesel[12] = "\x83\x89\x83\x8A\x83\x8B\x83\x8C\x83\x8D"; /* "ラリルレロ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C68_filesel);
+const char D_80112C68_filesel[12] = "\x83\x84\x81\x40\x83\x86\x81\x40\x83\x88"; /* "ヤ　ユ　ヨ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C74_filesel);
+const char D_80112C74_filesel[12] = "\x83\x7D\x83\x7E\x83\x80\x83\x81\x83\x82"; /* "マミムメモ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C80_filesel);
+const char D_80112C80_filesel[12] = "\x83\x6E\x83\x71\x83\x74\x83\x77\x83\x7A"; /* "ハヒフヘホ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C8C_filesel);
+const char D_80112C8C_filesel[12] = "\x83\x69\x83\x6A\x83\x6B\x83\x6C\x83\x6D"; /* "ナニヌネノ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112C98_filesel);
+const char D_80112C98_filesel[12] = "\x83\x5E\x83\x60\x83\x63\x83\x65\x83\x67"; /* "タチツテト" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112CA4_filesel);
+const char D_80112CA4_filesel[12] = "\x83\x54\x83\x56\x83\x58\x83\x5A\x83\x5C"; /* "サシスセソ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112CB0_filesel);
+const char D_80112CB0_filesel[12] = "\x83\x4A\x83\x4C\x83\x4E\x83\x50\x83\x52"; /* "カキクケコ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112CBC_filesel);
+const char D_80112CBC_filesel[12] = "\x83\x41\x83\x43\x83\x45\x83\x47\x83\x49"; /* "アイウエオ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112CC8_filesel);
+const char D_80112CC8_filesel[28] = "\x82\x50\x82\x51\x82\x52\x82\x53\x82\x54\x82\x55\x82\x56\x82\x57\x82\x58\x82\x4F\x81\x44\x81\x7C\x81\x40"; /* "１２３４５６７８９０．−　" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112CE4_filesel);
+const char D_80112CE4_filesel[28] = "\x82\x8E\x82\x8F\x82\x90\x82\x91\x82\x92\x82\x93\x82\x94\x82\x95\x82\x96\x82\x97\x82\x98\x82\x99\x82\x9A"; /* "ｎｏｐｑｒｓｔｕｖｗｘｙｚ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D00_filesel);
+const char D_80112D00_filesel[28] = "\x82\x81\x82\x82\x82\x83\x82\x84\x82\x85\x82\x86\x82\x87\x82\x88\x82\x89\x82\x8A\x82\x8B\x82\x8C\x82\x8D"; /* "ａｂｃｄｅｆｇｈｉｊｋｌｍ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D1C_filesel);
+const char D_80112D1C_filesel[28] = "\x82\x6D\x82\x6E\x82\x6F\x82\x70\x82\x71\x82\x72\x82\x73\x82\x74\x82\x75\x82\x76\x82\x77\x82\x78\x82\x79"; /* "ＮＯＰＱＲＳＴＵＶＷＸＹＺ" */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D38_filesel);
+const char D_80112D38_filesel[32] = "\x82\x60\x82\x61\x82\x62\x82\x63\x82\x64\x82\x65\x82\x66\x82\x67\x82\x68\x82\x69\x82\x6A\x82\x6B\x82\x6C"; /* "ＡＢＣＤＥＦＧＨＩＪＫＬＭ" */
 
 s32 func_8010B998_filesel(s32 btn) {
     s32 len;
@@ -2556,7 +2558,7 @@ s32 func_8010B998_filesel(s32 btn) {
                 }
                 bcopy(D_80114478_filesel.saved, D_80114478_filesel.name, sizeof(D_80114478_filesel.name));
                 func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
-                len = func_801125E8_filesel((s32)D_80114478_filesel.name);
+                len = func_801125E8_filesel((u8 *)D_80114478_filesel.name);
                 D_80114478_filesel.name[len] = 0;
                 D_80114478_filesel.len = len;
                 func_8010A978_filesel(len + 1);
@@ -2893,6 +2895,21 @@ s32 func_8010C25C_filesel(s32 btn) {
     return 0;
 }
 
+/* Placed before func_8010C688 (which emits no rodata) so GCC is back in .text
+   when func_8010C9B4's asm follows: GCC does not see the asm's section switch
+   and would put the next function's constant pool into .text. */
+const char D_80112D6C_filesel[16] = "\x82\x6C\x82\x81\x82\x92\x82\x89\x82\x8F"; /* "Ｍａｒｉｏ" */
+
+const char D_80112D7C_filesel[16] = "\x82\x6B\x82\x95\x82\x89\x82\x87\x82\x89"; /* "Ｌｕｉｇｉ" */
+
+const char D_80112D8C_filesel[16] = "\x82\x6F\x82\x85\x82\x81\x82\x83\x82\x88"; /* "Ｐｅａｃｈ" */
+
+const char D_80112D9C_filesel[16] = "\x82\x78\x82\x8F\x82\x93\x82\x88\x82\x89"; /* "Ｙｏｓｈｉ" */
+
+const char D_80112DAC_filesel[16] = "\x82\x76\x82\x81\x82\x92\x82\x89\x82\x8F"; /* "Ｗａｒｉｏ" */
+
+const char D_80112DBC_filesel[12] = "\x82\x63\x81\x40\x82\x6A"; /* "Ｄ　Ｋ" */
+
 s32 func_8010C688_filesel(s32 btn) {
     if (btn & 0x1000) {
         D_80114478_filesel.done = 1;
@@ -2976,18 +2993,6 @@ s32 func_8010C688_filesel(s32 btn) {
     return 0;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D6C_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D7C_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D8C_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D9C_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112DAC_filesel);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112DBC_filesel);
-
 // struct base register choice (the stores and the loop index from D_80114490/D_8011447C in retail) and s-register order (masked 22)
 #ifdef NON_MATCHING
 s32 func_8010C9B4_filesel(u32 arg0) {
@@ -2995,7 +3000,7 @@ s32 func_8010C9B4_filesel(u32 arg0) {
     s32 prev;
     s32 len;
 
-    len = func_801125E8_filesel((s32)D_80114478_filesel.name);
+    len = func_801125E8_filesel((u8 *)D_80114478_filesel.name);
     D_80114478_filesel.group = 6;
     D_80114478_filesel.done = 1;
     D_80114478_filesel.button = 11;
@@ -3804,7 +3809,7 @@ void func_8010F65C_filesel(void) {
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112E08_filesel);
+const u8 D_80112E08_filesel[6] = { 0, 1, 2, 3, 4, 5 };
 
 void func_8010F678_filesel(u32 arg0) {
     s32 dataNum;
