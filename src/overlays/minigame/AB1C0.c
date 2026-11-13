@@ -44,6 +44,37 @@ INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DC8E4_minigame);
    src/1130.c func_8000396C on). */
 s32 func_800202FC_main(Vec*); /* normalise */
 
+/* A probe sphere (MP2 collision.h Vec4f). */
+typedef struct Vec4f {
+    /* 0x0 */ f32 x;
+    /* 0x4 */ f32 y;
+    /* 0x8 */ f32 z;
+    /* 0xC */ f32 w; /* radius */
+} Vec4f;
+
+/* omObjData.data of a ground / platform object (MP2 collision.h GroundWork; offsets checked
+   against MP3's asm). */
+typedef struct GroundWork {
+    /* 0x00 */ u8 unk_00;
+    /* 0x01 */ u8 unk_01;
+    /* 0x02 */ char unk_02;
+    /* 0x03 */ u8 unk_03;
+    /* 0x04 */ u8 unk_04;  /* surface id */
+    /* 0x05 */ char unk_05;
+    /* 0x06 */ u16 unk_06; /* flags: 2 skip, 4 test the part list, 8/0x10/0x20/0x40 shapes */
+    /* 0x08 */ f32 unk_08;
+    /* 0x0C */ f32 unk_0C;
+    /* 0x10 */ f32 unk_10;
+    /* 0x14 */ f32 unk_14; /* top surface height */
+    /* 0x18 */ char unk_18[0x80];
+    /* 0x98 */ f32 unk_98; /* height */
+    /* 0x9C */ f32 unk_9C; /* cylinder radius */
+    /* 0xA0 */ f32 unk_A0; /* box min x */
+    /* 0xA4 */ f32 unk_A4; /* box min z */
+    /* 0xA8 */ f32 unk_A8; /* box max x */
+    /* 0xAC */ f32 unk_AC; /* box max z */
+} GroundWork; /* size unknown */
+
 extern s16 D_800EB736_minigame;     /* contact count (MP2 D_800BF796_C0396) */
 extern f32 D_800EB764_minigame;
 extern f32 D_800EB768_minigame;
@@ -57,7 +88,57 @@ extern Vec D_800EC298_minigame[];   /* contact normals */
 void func_800E0430_minigame(f32 x, f32 y, f32 z);
 void func_800E048C_minigame(f32 x, f32 y, f32 z);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DCA34_minigame);
+/* Box corners: a probe beyond a corner of the box (GroundWork.unk_A0..unk_AC) touching it adds the
+   corner as a contact and returns 0; otherwise 1. */
+s32 func_800DCA34_minigame(Vec4f* s, GroundWork* g) {
+    f32 x = s->x;
+    f32 y = s->y;
+    f32 z = s->z;
+    f32 dx, dz;
+
+    if (x <= g->unk_A0) {
+        dx = g->unk_A0 - x;
+        dz = g->unk_A4;
+        if (z <= dz) {
+            dz -= z;
+            if (HuSqrtf(dx * dx + dz * dz) - s->w < 0.0f) {
+                func_800E048C_minigame(g->unk_A0, y, g->unk_A4);
+                func_800E0430_minigame(x - g->unk_A0, 0.0f, z - g->unk_A4);
+                D_800EB736_minigame++;
+                return 0;
+            }
+        } else if ((dz = g->unk_AC) <= z) {
+            dz -= z;
+            if (HuSqrtf(dx * dx + dz * dz) - s->w < 0.0f) {
+                func_800E048C_minigame(g->unk_A0, y, g->unk_AC);
+                func_800E0430_minigame(x - g->unk_A0, 0.0f, z - g->unk_AC);
+                D_800EB736_minigame++;
+                return 0;
+            }
+        }
+    } else if (s->x >= g->unk_A8) {
+        dx = g->unk_A8 - x;
+        dz = g->unk_A4;
+        if (z <= dz) {
+            dz -= z;
+            if (HuSqrtf(dx * dx + dz * dz) - s->w < 0.0f) {
+                func_800E048C_minigame(g->unk_A8, y, g->unk_A4);
+                func_800E0430_minigame(x - g->unk_A8, 0.0f, z - g->unk_A4);
+                D_800EB736_minigame++;
+                return 0;
+            }
+        } else if ((dz = g->unk_AC) <= z) {
+            dz -= z;
+            if (HuSqrtf(dx * dx + dz * dz) - s->w < 0.0f) {
+                func_800E048C_minigame(g->unk_A8, y, g->unk_AC);
+                func_800E0430_minigame(x - g->unk_A8, 0.0f, z - g->unk_AC);
+                D_800EB736_minigame++;
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DCCB0_minigame);
 
