@@ -49,8 +49,13 @@ typedef struct UnkFileSelect2 {
 typedef struct UnkFileSelect {
     /* 0x00 */ u8 unk_00; /* FS_FILE_USED when the file holds a save */
     /* 0x01 */ u8 unk_01[0xB]; /* name */
-    /* 0x0C */ char unk_0C[0x78];
+    /* 0x0C */ char unk_0C[0x74];
+    /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE */
 } UnkFileSelect; /* size = 0x84 */
+
+/* The last-used save file (0..2). Retail reaches it as D_801142DC_filesel + 0x188, the last word of
+   the file table's 0x18C bytes. */
+#define FS_LAST_FILE (D_801142DC_filesel[2].unk_80)
 
 /* Camera view a model's HmfData points to at 0xBC (read by the debug print func_801078F4_filesel). */
 typedef struct FsHmfCamView {
@@ -256,7 +261,7 @@ void func_80111C30_filesel(void);
 void func_80111CBC_filesel(s32 arg0);
 void func_80111E78_filesel(s32 arg0);
 void func_80111FFC_filesel(s32 arg0);
-void func_80112184_filesel(s32 arg0, s32 arg1, u8 *arg2, u8 *arg3);
+void func_80112184_filesel(s32 no); /* fork A: one argument (callers set a0 only) */
 void func_801122B0_filesel(s32 arg0);
 s32 func_80112508_filesel(s32 arg0, s32 arg1);
 void func_80112584_filesel(u32 arg0);
