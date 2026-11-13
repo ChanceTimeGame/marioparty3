@@ -39,7 +39,6 @@ typedef struct TelopData {
 // void MBMasuCurSet(s16);
 // void MBStatusItemIconSprReinit(s32);
 // void func_8003B128_main(char*);
-// void func_8005FBA4_main(u8 *, s32);
 // s32 func_80060880_main(s32 arg0, s32 arg1, s32 arg2);
 // extern void sincosdf(f32, f32*, f32*);
 // void func_800610E0_main(s16);
@@ -105,7 +104,7 @@ void func_800E2260_shared_board(s32 arg0, char *arg1) {
     if (arg0 == CUR_PLAYER) {
         arg0 = GwSystem.current_player_index;
     }
-    func_8005FBA4_main((u8 *)arg1, (s32)D_80101060_shared_board[GwPlayer[arg0].chr]);
+    func_8005FBA4_main((u8 *)arg1, (u8 *)D_80101060_shared_board[GwPlayer[arg0].chr]);
 }
 
 void MBItemWarpBlockSwapInit(void) {

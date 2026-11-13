@@ -70,7 +70,7 @@ void func_8006010C_main(s16, s16);
 void Hu3DCam3DToScreen(s16 camIndex, Vec * worldPos, Vec2f * outPos);
 s32 func_80017BB8_main(s16, s16);
 void func_800039A4_main(s32, s32);
-void func_8005FBA4_main(u8*, s32);
+void func_8005FBA4_main(u8*, u8*);
 s32 func_80061188_main(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u16 arg5);
 void func_8005D294_main(s16);
 void func_8005FBF8_main(s16, s32, s32, s32);
