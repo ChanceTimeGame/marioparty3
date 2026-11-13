@@ -571,7 +571,88 @@ INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010BE30_filesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C25C_filesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010C688_filesel);
+s32 func_8010C688_filesel(s32 btn) {
+    if (btn & 0x1000) {
+        D_80114478_filesel.unk00 = 1;
+        D_80114478_filesel.unk08 = 11;
+        func_8010BE14_filesel();
+        func_8010B6F4_filesel(D_80114478_filesel.unk08);
+    } else if (btn & 0xF00) {
+        func_8010BDC4_filesel();
+        if (btn & 0x800) {
+            if (--D_80114478_filesel.row < 0) {
+                D_80114478_filesel.row = 0;
+                D_80114478_filesel.unk00 = 1;
+                D_80114478_filesel.unk08 = 10;
+                func_8010B6F4_filesel(10);
+                func_8010BE14_filesel();
+            } else {
+                func_8010BDC4_filesel();
+            }
+        } else if (btn & 0x400) {
+            if (++D_80114478_filesel.row >= 5) {
+                D_80114478_filesel.row = 4;
+                D_80114478_filesel.unk00 = 1;
+                D_80114478_filesel.unk08 = 10;
+                func_8010B6F4_filesel(10);
+                func_8010BE14_filesel();
+            } else {
+                func_8010BDC4_filesel();
+            }
+        } else if (btn & 0x200) {
+            if (--D_80114478_filesel.col < 0) {
+                D_80114478_filesel.col = 12;
+            }
+            func_8010BDC4_filesel();
+        } else if (btn & 0x100) {
+            if (++D_80114478_filesel.col >= 13) {
+                D_80114478_filesel.col = 0;
+            }
+            func_8010BDC4_filesel();
+        }
+    } else if (D_800D5558_main[0] & A_BUTTON) {
+        if (D_80114478_filesel.len < 5) {
+            HuAudFXPlay(0x2EE);
+            D_80114478_filesel.name[D_80114478_filesel.len] = func_8010B528_filesel(D_80114478_filesel.col, D_80114478_filesel.row);
+            D_80114478_filesel.len++;
+            D_80114470_filesel = 1;
+        }
+        D_80114478_filesel.name[D_80114478_filesel.len] = 0;
+        func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
+        func_8010A978_filesel(D_80114478_filesel.len + 1);
+        if (D_80114478_filesel.len >= 5) {
+            D_80114478_filesel.unk00 = 1;
+            D_80114478_filesel.unk08 = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.unk04);
+            func_8010BE14_filesel();
+        }
+    } else if (D_800D5558_main[0] & B_BUTTON) {
+        D_80114478_filesel.name[D_80114478_filesel.len] = 0;
+        if (D_80114478_filesel.len > 0) {
+            HuAudFXPlay(0x2EF);
+            D_80114478_filesel.len--;
+            D_80114478_filesel.name[D_80114478_filesel.len] = 0;
+            func_801076D0_filesel(10, (u32)D_80114478_filesel.name);
+            func_8010A978_filesel(D_80114478_filesel.len + 1);
+            D_80114470_filesel = 1;
+        } else {
+            HuAudFXPlay(1);
+            D_80114478_filesel.unk00 = 1;
+            D_80114478_filesel.unk08 = 11;
+            func_8010B6F4_filesel(11);
+            func_8010B684_filesel(D_80114478_filesel.unk04);
+            func_8010BE14_filesel();
+        }
+    } else if (btn & 0x2000) {
+        func_8010BDC4_filesel();
+        func_8010B684_filesel(D_80114478_filesel.unk04);
+    } else if (btn & 0x10) {
+        func_8010BDC4_filesel();
+        func_8010B684_filesel(D_80114478_filesel.unk04);
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112D6C_filesel);
 

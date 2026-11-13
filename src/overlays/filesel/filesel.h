@@ -251,4 +251,21 @@ s32 func_80109968_filesel(s32 arg0);
 void func_8010AB58_filesel(s32 arg0, u32 arg1);
 s32 func_80112494_filesel(s32 arg0, u8 *arg1);
 
+
+/* fork C */
+/* Name-entry keyboard state: 0x80114478..0x801144D4 (splat split it into D_80114478..D_801144D0). */
+typedef struct FsKbd {
+    /* 0x00 */ s32 unk00;     /* D_80114478 */
+    /* 0x04 */ s32 unk04;     /* D_8011447C */
+    /* 0x08 */ s32 unk08;     /* D_80114480 */
+    /* 0x0C */ s32 col;       /* D_80114484: 0..12 */
+    /* 0x10 */ s32 row;       /* D_80114488: 0..4 */
+    /* 0x14 */ s32 unk14;     /* D_8011448C */
+    /* 0x18 */ s16 name[16];  /* D_80114490: the name being typed, 0-terminated */
+    /* 0x38 */ s16 unk38[16]; /* D_801144B0 */
+    /* 0x58 */ s32 len;       /* D_801144D0: characters typed, at most 5 */
+} FsKbd; /* size = 0x5C */
+extern FsKbd D_80114478_filesel;
+extern s32 D_80114470_filesel; /* the name changed */
+
 #endif
