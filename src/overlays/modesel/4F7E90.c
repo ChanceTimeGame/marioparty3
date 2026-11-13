@@ -1187,7 +1187,154 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010B9C4_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010BA70_modesel);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: masked 0, register allocation only (retail keeps i in s1 and the summary base in s2); logic checked against the asm. */
+/* Build the two save summaries' sprites (0xA-0x27): characters, COM marks, board, turns. */
+s32 func_8010C094_modesel(void) {
+    s32 i;
+    s32 y;
+    s32 x;
+    s32 chr;
+
+    func_8005086C_main();
+    x = 80;
+    y = 104;
+    func_80105EA8_modesel(10, 0x1F0019);
+    func_8010601C_modesel(10, x, y);
+    func_80105FB4_modesel(10);
+    for (i = 0; i < 4; i++) {
+        if (i == 0) {
+            func_80105EA8_modesel(11, 0x1F0004);
+        } else {
+            func_80105DD0_modesel(i + 11, 11);
+        }
+        func_80106194_modesel(i + 11, 5);
+        func_8010601C_modesel(i + 11, x + (i - 2) * 16 + 8, y - 21);
+        func_801061C8_modesel(i + 11, D_80110B88_modesel.chr[i], 0);
+        func_80105FB4_modesel(i + 11);
+        if (i == 0) {
+            func_80105EA8_modesel(15, 0x1F0008);
+        } else {
+            func_80105DD0_modesel(i + 15, 15);
+        }
+        func_80106194_modesel(i + 15, 5);
+        func_8010601C_modesel(i + 15, x + (i - 2) * 16 + 8, y - 9);
+        func_80105FB4_modesel(i + 15);
+    }
+    func_80105EA8_modesel(19, 0x1F000C);
+    func_80106194_modesel(19, 5);
+    func_8010601C_modesel(19, x, y - 36);
+    func_801061C8_modesel(19, 0, 0);
+    func_80105FB4_modesel(19);
+    func_80105EA8_modesel(20, 0x1F000B);
+    func_80106194_modesel(20, 5);
+    func_8010601C_modesel(20, x, y + 6);
+    func_801061C8_modesel(20, GwSystem.current_board_index, 0);
+    func_80105FB4_modesel(20);
+    func_80105EA8_modesel(21, 0x1F0006);
+    func_80106194_modesel(21, 5);
+    func_8010601C_modesel(21, x - 24, y + 30);
+    func_80105FB4_modesel(21);
+    func_80105EA8_modesel(22, 0x1F0007);
+    func_80106194_modesel(22, 5);
+    func_8010601C_modesel(22, x + 8, y + 30);
+    func_801061C8_modesel(22, D_80110B88_modesel.turn % 10, 0);
+    func_80105FB4_modesel(22);
+    func_80105DD0_modesel(23, 22);
+    func_80106194_modesel(23, 5);
+    func_8010601C_modesel(23, x, y + 30);
+    func_801061C8_modesel(23, D_80110B88_modesel.turn / 10, 0);
+    func_80105FB4_modesel(23);
+    func_80105EA8_modesel(24, 0x1F0028);
+    func_8010601C_modesel(24, x + 16, y + 30);
+    func_80106194_modesel(24, 5);
+    func_80105FB4_modesel(24);
+    func_80105DD0_modesel(25, 22);
+    func_80106194_modesel(25, 5);
+    func_8010601C_modesel(25, x + 32, y + 30);
+    func_801061C8_modesel(25, D_80110B88_modesel.turnMax % 10, 0);
+    func_80105FB4_modesel(25);
+    func_80105DD0_modesel(26, 22);
+    func_80106194_modesel(26, 5);
+    func_8010601C_modesel(26, x + 24, y + 30);
+    func_801061C8_modesel(26, D_80110B88_modesel.turnMax / 10, 0);
+    func_80105FB4_modesel(26);
+    func_80050974_main();
+    x = 240;
+    y = 104;
+    func_80105DD0_modesel(27, 10);
+    func_8010601C_modesel(27, x, y);
+    func_80105FB4_modesel(27);
+    for (i = 0; i < 2; i++) {
+        if (i == 0) {
+            func_80105EA8_modesel(28, 0x1F0004);
+        } else {
+            func_80105DD0_modesel(i + 28, 28);
+        }
+        chr = D_80110BB4_modesel.chr[i];
+        func_80106194_modesel(i + 28, 5);
+        func_8010601C_modesel(i + 28, x + i * 32 - 16, y - 21);
+        func_801061C8_modesel(i + 28, chr, 0);
+        func_80105FB4_modesel(i + 28);
+        if (i == 0) {
+            func_80105EA8_modesel(30, 0x1F0008);
+        } else {
+            func_80105DD0_modesel(i + 30, 30);
+        }
+        func_80106194_modesel(i + 30, 5);
+        func_8010601C_modesel(i + 30, x + i * 32 - 16, y - 9);
+        func_80105FB4_modesel(i + 30);
+    }
+    x = 240;
+    y = 104;
+    func_80105DD0_modesel(32, 19);
+    func_80106194_modesel(32, 5);
+    func_8010601C_modesel(32, x, y - 36);
+    func_801061C8_modesel(32, 1, 0);
+    func_80105FB4_modesel(32);
+    func_80105EA8_modesel(33, 0x1F000A);
+    func_80106194_modesel(33, 5);
+    func_8010601C_modesel(33, x, y + 6);
+    func_801061C8_modesel(33, GwSystem.current_board_index, 0);
+    func_80105FB4_modesel(33);
+    func_80105DD0_modesel(34, 21);
+    func_80106194_modesel(34, 5);
+    func_8010601C_modesel(34, x - 24, y + 30);
+    func_80105FB4_modesel(34);
+    func_80105DD0_modesel(35, 22);
+    func_80106194_modesel(35, 5);
+    func_8010601C_modesel(35, x + 8, y + 30);
+    func_801061C8_modesel(35, D_80110BB4_modesel.turn % 10, 0);
+    func_80105FB4_modesel(35);
+    func_80105DD0_modesel(36, 22);
+    func_80106194_modesel(36, 5);
+    func_8010601C_modesel(36, x, y + 30);
+    func_801061C8_modesel(36, D_80110BB4_modesel.turn / 10, 0);
+    func_80105FB4_modesel(36);
+    if (D_80110BB4_modesel.turnMax != 20) {
+        func_80105EA8_modesel(37, 0x1F0027);
+        func_8010601C_modesel(37, x, y + 30);
+    } else {
+        func_80105EA8_modesel(37, 0x1F0028);
+        func_8010601C_modesel(37, x + 16, y + 30);
+    }
+    func_80106194_modesel(37, 5);
+    func_80105FB4_modesel(37);
+    func_80105DD0_modesel(38, 22);
+    func_80106194_modesel(38, 5);
+    func_8010601C_modesel(38, x + 32, y + 30);
+    func_801061C8_modesel(38, D_80110BB4_modesel.turnMax % 10, 0);
+    func_80105FB4_modesel(38);
+    func_80105DD0_modesel(39, 22);
+    func_80106194_modesel(39, 5);
+    func_8010601C_modesel(39, x + 24, y + 30);
+    func_801061C8_modesel(39, D_80110BB4_modesel.turnMax / 10, 0);
+    func_80105FB4_modesel(39);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C094_modesel);
+#endif
 
 /* Show the two save summaries' sprites (0xA-0x27). */
 void func_8010C874_modesel(void) {
