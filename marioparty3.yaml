@@ -573,7 +573,7 @@ segments:
       - [0xBA4B0, c]
       - [0xBC7A0, c]
       - [0xBD210, c]
-      - [0xBE2A0, data, A96F0] #800EB720
+      - [0xBE2A0, .data, A96F0] #800EB720
       - [0xBE690, .rodata, A96F0] #800EBB10
       - [0xBE6B0, .rodata, AB1C0] #800EBB30
       - [0xBE750, .rodata, B3CE0] #800EBBD0

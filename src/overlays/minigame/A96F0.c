@@ -100,6 +100,167 @@ typedef struct MgWork {
     /* 0x59 */ s8 unk_59;   /* player */
 } MgWork;
 
+/* .data (0x800EB720-0x800EBB10): actor and player physics constants (the first 0x60 bytes as MP2
+   src/1130.c), then tables the other units and the minigame overlays use. */
+/* 800EB720 size 0x4 */ f32 D_800EB720_minigame = 1.0f;
+/* 800EB724 size 0x4 */ f32 D_800EB724_minigame = 20.0f;
+/* 800EB728 size 0x4 */ f32 D_800EB728_minigame = 4.0f;
+/* 800EB72C size 0x4 */ f32 D_800EB72C_minigame = 0.06f;
+/* 800EB730 size 0x4 */ s32 D_800EB730_minigame = 0;
+/* 800EB734 size 0x1 */ u8 D_800EB734_minigame = 0x00;
+/* 800EB735 size 0x1 */ u8 D_800EB735_minigame = 0x01;
+/* 800EB736 size 0x2 */ s16 D_800EB736_minigame = 0x0000;
+/* 800EB738 size 0x1 */ u8 D_800EB738_minigame = 0xFF;
+/* 800EB739 size 0x1 */ u8 D_800EB739_minigame = 0x00;
+/* 800EB73A size 0x1 */ u8 D_800EB73A_minigame = 0x00;
+/* 800EB73B size 0x1 */ u8 D_800EB73B_minigame = 0x00;
+/* 800EB73C size 0x4 */ f32 D_800EB73C_minigame = 15.0f;
+/* 800EB740 size 0x4 */ f32 D_800EB740_minigame = 0.5f;
+/* 800EB744 size 0x4 */ f32 D_800EB744_minigame = 1.47f;
+/* 800EB748 size 0x4 */ f32 D_800EB748_minigame = 0.15f;
+/* 800EB74C size 0x4 */ f32 D_800EB74C_minigame = 7.0f;
+/* 800EB750 size 0x4 */ f32 D_800EB750_minigame = 30.0f;
+/* 800EB754 size 0x4 */ f32 D_800EB754_minigame = 60.0f;
+/* 800EB758 size 0x4 */ f32 D_800EB758_minigame = 20.0f;
+/* 800EB75C size 0x4 */ f32 D_800EB75C_minigame = 3.3333333f;
+/* 800EB760 size 0x4 */ f32 D_800EB760_minigame = 18.0f;
+/* 800EB764 size 0x4 */ f32 D_800EB764_minigame = 13.5f;
+/* 800EB768 size 0x4 */ f32 D_800EB768_minigame = 9.0f;
+/* 800EB76C size 0x4 */ f32 D_800EB76C_minigame = 4.5f;
+/* 800EB770 size 0x4 */ f32 D_800EB770_minigame = 0.0f;
+/* 800EB774 size 0x4 */ f32 D_800EB774_minigame = 1.7f;
+/* 800EB778 size 0x4 */ f32 D_800EB778_minigame = 0.5f;
+/* 800EB77C size 0x4 */ f32 D_800EB77C_minigame = 0.147f;
+/* 800EB780 */ s8 D_800EB780_minigame = 0;
+/* 800EB784: per player sound ids (MP2 D_800BF7E4_C03E4); asm names row 0's elements
+   1-13 (undefined_syms.txt) */
+u16 D_800EB784_minigame[4][14] = { 0 };
+/* 800EB7F4 */ s32 D_800EB7F4_minigame[3] = { 0, 0, 0 }; /* unreferenced */
+/* 800EB800 size 0x20 */ u32 D_800EB800_minigame[8] = {
+    0x000200A3, 0x000300A3, 0x000700A3, 0x000400A3,
+    0x000500A3, 0x000600A3, 0x000800A3, 0x0009001A,
+};
+/* 800EB820 size 0xE0 */ u32 D_800EB820_minigame[56] = {
+    0x000000A4, 0x000000A5, 0x000000A6, 0x000000A7,
+    0x000000A8, 0x000000A9, 0x000000AA, 0x000000A4,
+    0x000000A5, 0x000000A6, 0x000000A7, 0x000000A8,
+    0x000000A9, 0x000000AA, 0x000000A4, 0x000000A5,
+    0x000000A6, 0x000000A7, 0x000000A8, 0x000000A9,
+    0x000000AA, 0x000000A4, 0x000000A5, 0x000000A6,
+    0x000000A7, 0x000000A8, 0x000000A9, 0x000000AA,
+    0x000000A4, 0x000000A5, 0x000000A6, 0x000000A7,
+    0x000000A8, 0x000000A9, 0x000000AA, 0x000000A4,
+    0x000000A5, 0x000000A6, 0x000000A7, 0x000000A8,
+    0x000000A9, 0x000000AA, 0x000000A4, 0x000000A5,
+    0x000000A6, 0x000000A7, 0x000000A8, 0x000000A9,
+    0x000000AA, 0x000000A4, 0x000000A5, 0x000000A6,
+    0x000000A7, 0x000000A8, 0x000000A9, 0x000000AA,
+};
+/* 800EB900 size 0x10 */ u32 D_800EB900_minigame[4] = {
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+};
+/* 800EB910 size 0x2 */ s16 D_800EB910_minigame = 0x0000;
+/* 800EB912 size 0x2 */ s16 D_800EB912_minigame = 0x0000;
+/* 800EB914 size 0x2 */ s16 D_800EB914_minigame = 0x0000;
+/* 800EB916 size 0x2 */ s16 D_800EB916_minigame = 0x0000;
+/* 800EB918 size 0x2 */ s16 D_800EB918_minigame = 0x0000;
+/* 800EB91A size 0x2 */ s16 D_800EB91A_minigame = 0x0000;
+/* 800EB91C size 0x4 */ u32 D_800EB91C_minigame = 0x00000090;
+/* 800EB920 size 0x4 */ u32 D_800EB920_minigame = 0x000000D0;
+/* 800EB924 size 0x2 */ s16 D_800EB924_minigame = 0x0000;
+/* 800EB926 */ s16 D_800EB926_minigame = 0x0001;
+/* 800EB928 */ s16 D_800EB928_minigame = 0x0000;
+/* 800EB92A size 0x2 */ s16 D_800EB92A_minigame = -1;
+/* 800EB92C size 0x2 */ s16 D_800EB92C_minigame = -1;
+/* 800EB92E size 0x2 */ s16 D_800EB92E_minigame = -1;
+/* 800EB930 size 0x2 */ s16 D_800EB930_minigame = -1;
+/* 800EB932 size 0x2 */ s16 D_800EB932_minigame = 0x004B;
+/* 800EB934 size 0x4 */ s16 D_800EB934_minigame[2] = {
+    0x0000, 0x0000,
+};
+/* 800EB938 size 0x4 */ f32 D_800EB938_minigame = 0.0f;
+/* 800EB93C size 0x4 */ u32 D_800EB93C_minigame = 0x00000000;
+/* 800EB940 size 0x10 */ u32 D_800EB940_minigame[4] = {
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+};
+/* 800EB950 size 0x78 */ u32 D_800EB950_minigame[30] = {
+    0x00150000, 0x0000FFB5, 0x00150002, 0x00000008,
+    0x00150011, 0xFFAAFFEA, 0x00150012, 0x0000FFEA,
+    0x00150013, 0x0056FFEA, 0x00150014, 0xFFAA0018,
+    0x00150015, 0x00000018, 0x00150016, 0x00560018,
+    0x00150017, 0xFFAAFFEA, 0x00150018, 0x0000FFEA,
+    0x00150019, 0x0056FFEA, 0x0015001A, 0xFFAA0018,
+    0x0015001B, 0x00000018, 0x0015001C, 0x00560018,
+    0x0015001E, 0x00000001,
+};
+/* 800EB9C8 size 0x1C */ u32 D_800EB9C8_minigame[7] = {
+    0x0015000D, 0x0015000C, 0x0015000B, 0x0015000A,
+    0x0015000A, 0x0015000A, 0x0015000A,
+};
+/* 800EB9E4 size 0x18 */ u32 D_800EB9E4_minigame[6] = {
+    0x00150004, 0x00150005, 0x00150006, 0x00150007,
+    0x00150008, 0x00150009,
+};
+/* 800EB9FC size 0x18 */ u32 D_800EB9FC_minigame[6] = {
+    0x00001C00, 0x00001C01, 0x00001C02, 0x00001C03,
+    0x00001C04, 0x00001C05,
+};
+/* 800EBA14 size 0x10 */ u32 D_800EBA14_minigame[4] = {
+    0x00006102, 0x00006103, 0x00006104, 0x00006105,
+};
+/* 800EBA24 size 0x1C */ u32 D_800EBA24_minigame[7] = {
+    0x00006112, 0x00006113, 0x00006116, 0x00006117,
+    0x00006118, 0x00006118, 0x00006118,
+};
+/* 800EBA40 size 0xC */ u32 D_800EBA40_minigame[3] = {
+    0xFF505050, 0xFF50FFFF, 0x50000000,
+};
+/* 800EBA4C size 0xC */ u32 D_800EBA4C_minigame[3] = {
+    0xFF5050FF, 0xFFFF0000, 0x00000000,
+};
+/* 800EBA58 size 0x18; asm names +1 and +2 (undefined_syms.txt) */ u8 D_800EBA58_minigame[24] = {
+    0x8C, 0x87, 0x87, 0x7B, 0x2A, 0xBF, 0xF0, 0xD9, 0x12, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00,
+};
+/* 800EBA70 size 0x2 */ s16 D_800EBA70_minigame = -72;
+/* 800EBA72 size 0x2 */ s16 D_800EBA72_minigame = -98;
+/* 800EBA74 size 0x2C; asm names +2 (undefined_syms.txt) */ s16 D_800EBA74_minigame[22] = {
+    0x0050, 0x0030, 0x0006, -98, 0x0070, 0x0014, 0x0006, -84,
+    0x0070, 0x0014, 0x0006, -70, 0x0070, 0x0014, -120, -50,
+    0x00F0, 0x0014, -104, -18, 0x0070, 0x0069,
+};
+/* 800EBAA0 size 0x1C */ u32 D_800EBAA0_minigame[7] = {
+    0xFFAAFFFD, 0x0000FFFD, 0x0056FFFD, 0xFFAA002B,
+    0x0000002B, 0x0056002B, 0x00000014,
+};
+/* 800EBABC size 0x10 */ u32 D_800EBABC_minigame[4] = {
+    0x00006106, 0x00006107, 0x00006108, 0x00006109,
+};
+/* 800EBACC size 0x8 */ u8 D_800EBACC_minigame[8] = {
+    0x00, 0x02, 0x04, 0x06, 0x08, 0x0B, 0x00, 0x00,
+};
+/* 800EBAD4 size 0x8 */ u8 D_800EBAD4_minigame[8] = {
+    0x01, 0x03, 0x05, 0x07, 0x09, 0x0A, 0x00, 0x00,
+};
+/* 800EBADC size 0x8 */ u8 D_800EBADC_minigame[8] = {
+    0x00, 0x00, 0x01, 0x02, 0x03, 0x00, 0x00, 0x00,
+};
+/* 800EBAE4 size 0x8 */ u8 D_800EBAE4_minigame[8] = {
+    0x00, 0x00, 0x01, 0x02, 0x03, 0x00, 0x00, 0x00,
+};
+/* 800EBAEC size 0x4 */ u8 D_800EBAEC_minigame[4] = {
+    0x0D, 0x1A, 0x1E, 0x22,
+};
+/* 800EBAF0 size 0x4 */ s16 D_800EBAF0_minigame[2] = {
+    0x0000, 0x0000,
+};
+/* 800EBAF4 size 0x1C */ u8 D_800EBAF4_minigame[28] = {
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+    0x00, 0x01, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+};
+
 f32 func_800D6E14_minigame(omObjData* obj, f32 x, f32 y, f32 z);
 void func_800D6E74_minigame(omObjData* obj, Vec* n);
 void func_800D6F20_minigame(omObjData* obj, Vec* n);
@@ -151,16 +312,6 @@ void func_800147FC_main(s16 index, u8 arg1, u8 arg2, u8 arg3);
 f32 HuVecDot3F(Vec* a, Vec* b);
 f64 fabs(f64);
 
-extern f32 D_800EB720_minigame;
-extern f32 D_800EB724_minigame;
-extern f32 D_800EB728_minigame;
-extern f32 D_800EB72C_minigame;
-extern s16 D_800EB736_minigame; /* contact count */
-extern u8 D_800EB739_minigame;
-extern f32 D_800EB740_minigame;
-extern f32 D_800EB744_minigame;
-extern f32 D_800EB760_minigame;
-extern f32 D_800EB770_minigame;
 
 extern Vec D_800EBDC0_minigame;          /* the actor's position at the start of its step */
 extern u16 D_800EBE28_minigame;          /* ground object count */
