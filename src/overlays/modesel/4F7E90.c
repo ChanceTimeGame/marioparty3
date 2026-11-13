@@ -1080,23 +1080,164 @@ s32 func_80108AE0_modesel(Vec *eye, Vec *at, Vec *up) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108F8C_modesel);
+/* Camera move (func_80109188_modesel): eases the camera target from `from` to `to` over `len` frames. */
+typedef struct MsCamMove {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s32 t;
+    /* 0x08 */ s32 len;
+    /* 0x0C */ s32 no;
+    /* 0x10 */ Vec from;
+    /* 0x1C */ Vec to;
+} MsCamMove; /* size = 0x28 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108FC4_modesel);
+/* Camera shake (func_80109444_modesel). */
+typedef struct MsCamShake {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s32 t;
+    /* 0x08 */ s32 sign;
+    /* 0x0C */ Vec eye;
+    /* 0x18 */ Vec at;
+    /* 0x24 */ Vec up;
+} MsCamShake; /* size = 0x30 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80108FD0_modesel);
+extern MsCamMove D_80110C10_modesel;
+extern MsCamShake D_80110C38_modesel;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109154_modesel);
+void func_80108F8C_modesel(Vec *eye, Vec *at, Vec *up) {
+    Hu3DCamSetPositionOrientation(0, eye, at, up);
+    Hu3DCamUpdateMtx(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109188_modesel);
+void func_80108FC4_modesel(void) {
+    D_80110C10_modesel.obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109290_modesel);
+void func_80108FD0_modesel(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec from;
+    Vec to;
+    Vec cur;
+    f32 t;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109408_modesel);
+    HuVecCopy3F(&from, &D_80110C10_modesel.from);
+    HuVecCopy3F(&to, &D_80110C10_modesel.to);
+    t = (f32)D_80110C10_modesel.t / (f32)D_80110C10_modesel.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        s = 1.0f;
+    } else {
+        s = sindf(t * 90.0f);
+    }
+    HuVecCopyXYZ(&cur, (to.x - from.x) * s + from.x, (to.y - from.y) * s + from.y, (to.z - from.z) * s + from.z);
+    func_801089DC_modesel(&eye, &at, &up);
+    if (D_80110C10_modesel.t > D_80110C10_modesel.len) {
+        omDelObj(obj);
+        func_80108A34_modesel(&eye, &to, &up);
+        D_80110C10_modesel.obj = NULL;
+        return;
+    }
+    D_80110C10_modesel.t++;
+    func_80108A34_modesel(&eye, &cur, &up);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109444_modesel);
+void func_80109154_modesel(void) {
+    if (D_80110C10_modesel.obj != NULL) {
+        omDelObj(D_80110C10_modesel.obj);
+    }
+    D_80110C10_modesel.obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801094A8_modesel);
+/* Moves the camera target to point `no` (x only) over `len` frames. */
+omObjData *func_80109188_modesel(s32 no, s32 len) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec pos;
+    omObjData *obj;
+
+    if (D_80110C10_modesel.obj != NULL) {
+        omDelObj(D_80110C10_modesel.obj);
+    }
+    obj = omAddObj(6, 0, 0, -1, func_80108FD0_modesel);
+    obj->work[0] = 0;
+    obj->work[1] = 0;
+    D_80110C10_modesel.obj = obj;
+    D_80110C10_modesel.t = 0;
+    D_80110C10_modesel.len = len;
+    D_80110C10_modesel.no = no;
+    func_801089DC_modesel(&eye, &at, &up);
+    HuVecCopyXYZ(&D_80110C10_modesel.from, at.x, at.y, at.z);
+    if (no < 0) {
+        pos.x = 0.0f;
+    } else {
+        func_8010E138_modesel(no, &pos.x, &pos.y, &pos.z);
+    }
+    pos.y = at.y;
+    pos.z = at.z;
+    HuVecCopyXYZ(&D_80110C10_modesel.to, pos.x, pos.y, pos.z);
+    return obj;
+}
+
+void func_80109290_modesel(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    f32 d;
+    f32 amp;
+    s32 t;
+
+    t = D_80110C38_modesel.t;
+    HuVecCopy3F(&eye, &D_80110C38_modesel.eye);
+    HuVecCopy3F(&at, &D_80110C38_modesel.at);
+    if (t > 32) {
+        omDelObj(obj);
+        D_80110C38_modesel.obj = NULL;
+        t = 0;
+    } else {
+        D_80110C38_modesel.sign = ~D_80110C38_modesel.sign;
+        if (D_80110C38_modesel.sign) {
+            d = rand8() & 0xFF;
+        } else {
+            d = -(f32)(rand8() & 0xFF);
+        }
+        d = d * (1.0f / 255.0f) * ((1.0f - t * (1.0f / 32.0f)) * 0.8f + 0.2f);
+        amp = d * 40.0f;
+        eye.y += amp;
+        at.y += amp;
+    }
+    func_80108A34_modesel(&eye, &at, &D_80110C38_modesel.up);
+    D_80110C38_modesel.t = t + 1;
+}
+
+void func_80109408_modesel(void) {
+    if (D_80110C38_modesel.obj != NULL) {
+        omDelObj(D_80110C38_modesel.obj);
+        D_80110C38_modesel.obj = NULL;
+    }
+}
+
+void func_80109444_modesel(void) {
+    D_80110C38_modesel.obj = omAddObj(6, 0, 0, -1, func_80109290_modesel);
+    D_80110C38_modesel.t = 0;
+    func_801089DC_modesel(&D_80110C38_modesel.eye, &D_80110C38_modesel.at, &D_80110C38_modesel.up);
+    D_80110C38_modesel.sign = 1;
+}
+
+f32 func_801094A8_modesel(f32 x0, f32 y0, f32 x1, f32 y1) {
+    return -(atan2df(y1 - y0, x1 - x0) - 90.0f);
+}
+
+
+
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801094F0_modesel);
 
