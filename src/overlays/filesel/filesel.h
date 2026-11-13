@@ -7,6 +7,14 @@
    (func_80105CB0..func_801078F4) are the same library as opening's (523FD0.c, opSpr* / opModel*),
    with 64 model slots instead of 160. */
 
+/* The overlay was linked from several source files; each one starts 16-byte aligned. In the single
+   unit here, FS_FILE_END() after the last function of a file reproduces that padding. */
+#ifdef NON_MATCHING
+#define FS_FILE_END()
+#else
+#define FS_FILE_END() __asm__(".section .text\n    .align 4\n");
+#endif
+
 #define FS_FILE_USED 0x91 /* UnkFileSelect.unk_00 of a file that holds a save */
 
 /* Sprite slot: D_80112ED0_filesel[64]. */
@@ -44,7 +52,11 @@ typedef struct UnkFileSelect {
     /* 0x0C */ char unk_0C[0x78];
 } UnkFileSelect; /* size = 0x84 */
 
+/* .data */
+extern OvlEntrypoint D_801127A0_filesel[];
+
 /* .bss */
+extern s32 D_80112E90_filesel;
 extern FsSpr D_80112ED0_filesel[64];
 extern s16 D_801135D0_filesel[64]; /* sprite animations */
 extern FsModel D_80113650_filesel[64];
@@ -74,7 +86,7 @@ s16 func_80105CB0_filesel(s32 arg0);
 s16 func_80105CC4_filesel(s32 arg0);
 void func_80105CE0_filesel(s32 no, s32 dataNum); /* sprite anim create */
 void func_80105D18_filesel(s32 arg0);
-void func_80105D70_filesel(s32 no, s32 animNo); /* esprite create */
+void func_80105D70_filesel(s32 no, s16 animNo); /* esprite create */
 void func_80105DD8_filesel(s32 arg0);
 void func_80105E48_filesel(s32 no, s32 dataNum); /* sprite create */
 void func_80105E7C_filesel(s32 no, s32 dataNum); /* BG sprite create */
@@ -82,8 +94,8 @@ void func_80105EC0_filesel(s32 arg0);
 void func_80105EEC_filesel(void);
 void func_80105F24_filesel(s32 arg0);
 void func_80105F54_filesel(s32 arg0);
-void func_80105F84_filesel(void);
-void func_80105FA0_filesel(void);
+void func_80105F84_filesel(s32 no); /* BG sprite disp on */
+void func_80105FA0_filesel(s32 no); /* BG sprite disp off */
 void func_80105FBC_filesel(s32 no, s32 x, s32 y); /* sprite pos set */
 void func_80106014_filesel(s32 no, s32 *x, s32 *y);
 void func_80106044_filesel(s32 no, f32 x, f32 y); /* sprite scale set */
