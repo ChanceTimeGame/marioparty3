@@ -4,6 +4,20 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+/* model effect slot: D_80114598_filesel[3] */
+typedef struct FsEffect {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ Vec start;
+    /* 0x10 */ Vec end;
+    /* 0x1C */ char unk1C[0x34];
+    /* 0x50 */ s32 time; /* also the wobble angle of func_80111004 */
+    /* 0x54 */ s32 angle;
+    /* 0x58 */ s32 total;
+} FsEffect; /* size = 0x5C */
+
+extern FsEffect D_80114598_filesel[3];
+
+
 /* model move slot: D_80114508_filesel[4] */
 typedef struct FsMove {
     /* 0x00 */ omObjData *obj;
@@ -1059,31 +1073,191 @@ omObjData *func_80110B7C_filesel(u32 arg0, f32 x, f32 y, f32 z, s32 time) {
     return obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110C84_filesel);
+void func_80110C84_filesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110CC0_filesel);
+    for (i = 0; i < 3; i++) {
+        D_80114598_filesel[i].obj = NULL;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110D0C_filesel);
+void func_80110CC0_filesel(s32 arg0) {
+    omDelObj(D_80114598_filesel[arg0].obj);
+    D_80114598_filesel[arg0].obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110E70_filesel);
+void func_80110D0C_filesel(omObjData *obj) {
+    Vec start;
+    Vec end;
+    Vec pos;
+    u32 no;
+    s32 mdl;
+    f32 r;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110F04_filesel);
+    no = obj->work[0];
+    mdl = no;
+    r = (f32)D_80114598_filesel[no].time / (f32)D_80114598_filesel[no].total;
+    t = (r > 1.0f) ? 1.0f : r;
+    HuVecCopy3F(&start, &D_80114598_filesel[no].start);
+    HuVecCopy3F(&end, &D_80114598_filesel[no].end);
+    HuVecCopyXYZ(&pos, (end.x - start.x) * t + start.x, (end.y - start.y) * t + start.y,
+                 (end.z - start.z) * t + start.z);
+    func_801064DC_filesel(mdl, pos.x, pos.y, pos.z);
+    if (t > 1.0f) {
+        func_80110CC0_filesel(no);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80110FB0_filesel);
+void func_80110E70_filesel(u32 arg0, omObjFunc func) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111004_filesel);
+    if (D_80114598_filesel[arg0].obj != NULL) {
+        omDelObj(D_80114598_filesel[arg0].obj);
+    }
+    obj = omAddObj(6, 0, 0, -1, func);
+    obj->work[0] = arg0;
+    D_80114598_filesel[arg0].obj = obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801110F0_filesel);
+/* Retail copies the slot's start into a local and builds the target in another local: the
+   slot's start, end, time and total are never set (see func_80110D0C_filesel). */
+void func_80110F04_filesel(s32 arg0, f32 x, f32 y, f32 z) {
+    Vec pos;
+    Vec end;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111144_filesel);
+    func_80110E70_filesel(arg0, func_80110D0C_filesel);
+    func_8010642C_filesel(arg0);
+    func_801065B8_filesel(arg0, &pos.x, &pos.y, &pos.z);
+    HuVecCopy3F(&pos, &D_80114598_filesel[arg0].start);
+    HuVecCopyXYZ(&end, x, y, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8011132C_filesel);
+void func_80110FB0_filesel(u32 arg0) {
+    func_80110CC0_filesel(arg0);
+    func_80106550_filesel(arg0, 0.8f, 0.8f, 0.8f);
+    func_80106550_filesel(arg0 + 3, 0.8f, 0.8f, 0.8f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8011139C_filesel);
+void func_80111004_filesel(omObjData *obj) {
+    u32 no;
+    s32 angle;
+    f32 s;
+    f32 sx;
+    f32 sy;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801113E8_filesel);
+    no = obj->work[0];
+    angle = D_80114598_filesel[no].time;
+    angle += 27;
+    if (angle > 360) {
+        angle -= 360;
+    }
+    D_80114598_filesel[no].time = angle;
+    s = sindf(angle) * 0.1f;
+    sx = 0.8f + s;
+    sy = 0.8f - s;
+    func_80106550_filesel(no, sx, sy, sx);
+    func_80106550_filesel(no + 3, sx, sy, sx);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111660_filesel);
+void func_801110F0_filesel(u32 arg0) {
+    func_80110E70_filesel(arg0, func_80111004_filesel);
+    D_80114598_filesel[arg0].time = 0;
+    func_8010642C_filesel(arg0);
+}
+
+void func_80111144_filesel(omObjData *obj) {
+    u32 no;
+    s32 mdl;
+    s32 angle;
+    s32 time;
+    s32 total;
+    f32 r;
+    f32 t;
+    f32 a;
+    f32 b;
+
+    no = obj->work[0];
+    mdl = no;
+    angle = D_80114598_filesel[no].angle;
+    time = D_80114598_filesel[no].time;
+    total = D_80114598_filesel[no].total;
+    r = 1.0f - time * 0.022222223f;
+    t = (r < 0.0f) ? 0.0f : r;
+    angle += 27;
+    if (angle > 360.0f) {
+        angle = angle - 360.0f;
+    }
+    a = 0.0f;
+    b = 0.0f;
+    if (time >= total) {
+        func_80110FB0_filesel(mdl);
+    } else {
+        a = sindf(angle) * 0.3f * t;
+        b = 1.0f / (a + 1.0f) - 1.0f;
+    }
+    D_80114598_filesel[no].angle = angle;
+    D_80114598_filesel[no].time = time + 1;
+    func_80106550_filesel(no, a + 0.8f, b + 0.8f, a + 0.8f);
+    func_80106550_filesel(no + 3, a + 0.8f, b + 0.8f, a + 0.8f);
+}
+
+void func_8011132C_filesel(s32 arg0) {
+    func_80110E70_filesel(arg0, func_80111144_filesel);
+    D_80114598_filesel[arg0].total = 45;
+    D_80114598_filesel[arg0].time = 0;
+    D_80114598_filesel[arg0].angle = 0;
+    func_8010642C_filesel(arg0);
+}
+
+void func_8011139C_filesel(s32 arg0) {
+    omDelObj(D_80114598_filesel[arg0].obj);
+    D_80114598_filesel[arg0].obj = NULL;
+}
+
+void func_801113E8_filesel(omObjData *obj) {
+    Vec start;
+    Vec end;
+    Vec pos;
+    u32 no;
+    s32 time;
+    f32 r;
+    f32 t;
+    f32 h;
+    f32 scale;
+
+    no = obj->work[0];
+    time = D_80114598_filesel[no].time;
+    r = (f32)time / (f32)D_80114598_filesel[no].total;
+    t = (r > 1.0f) ? 1.0f : r;
+    h = (t - 0.2f) * -1.6666666f * (t - 0.2f) + 1.0666666f - (-t + 1.0f);
+    HuVecCopy3F(&start, &D_80114598_filesel[no].start);
+    HuVecCopy3F(&end, &D_80114598_filesel[no].end);
+    HuVecCopyXYZ(&pos, (end.x - start.x) * t + start.x, (end.y - start.y) * t + h * 400.0f + start.y,
+                 (end.z - start.z) * t + start.z);
+    func_801064DC_filesel(no, pos.x, pos.y, pos.z);
+    func_801064DC_filesel(no + 3, pos.x, pos.y, pos.z);
+    scale = (t * 0.7f + 0.3f) * 0.8f;
+    func_80106550_filesel(no, scale, scale, scale);
+    func_80106550_filesel(no + 3, scale, scale, scale);
+    time++;
+    D_80114598_filesel[no].time = time;
+    if (r > 1.0f) {
+        func_8011139C_filesel(no);
+    }
+}
+
+void func_80111660_filesel(s32 arg0, s32 arg1, s32 arg2) {
+    Vec tbl[3] = { { -400.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 400.0f, 0.0f, 0.0f } };
+
+    func_80110E70_filesel(arg1, func_801113E8_filesel);
+    func_8010642C_filesel(arg1);
+    HuVecCopy3F(&D_80114598_filesel[arg1].start, &tbl[arg0]);
+    D_80114598_filesel[arg1].start.y += 100.0f;
+    HuVecCopy3F(&D_80114598_filesel[arg1].end, &tbl[arg1]);
+    D_80114598_filesel[arg1].time = 0;
+    D_80114598_filesel[arg1].total = arg2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80111790_filesel);
 
@@ -1134,4 +1308,3 @@ INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801126C0_filesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80112758_filesel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112E68_filesel);
