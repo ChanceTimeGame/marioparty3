@@ -4,6 +4,11 @@
 #include "filesel.h"
 #include "mallocblock.h"
 
+extern s32 D_801127B0_filesel[3];
+extern s32 D_801127BC_filesel[8][2]; /* cursor positions */
+extern f32 D_800A0A7C_main;
+
+
 /* filesel B: name entry state */
 extern u8 *D_801127FC_filesel[18];
 extern u8 *D_80112844_filesel[18];
@@ -221,7 +226,29 @@ INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108A94_filesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108C34_filesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108D74_filesel);
+void func_80108D74_filesel(void) {
+    Vec from;
+    Vec to;
+    Vec cur;
+    f32 t;
+    s32 i;
+
+    i = 0;
+    do {
+        t = 1.0f - i * 0.1f;
+        if (t < 0.0f) {
+            t = 0.0f;
+        }
+        HuVecCopyXYZ(&from, 160.0f, 288.0f, 0.0f);
+        HuVecCopyXYZ(&to, 160.0f, 192.0f, 0.0f);
+        cur.x = (to.x - from.x) * t + from.x;
+        cur.y = (to.y - from.y) * t + from.y;
+        func_80107608_filesel(4, 160.0f, (96.0f - t * 96.0f) + 208.0f);
+        i++;
+        HuPrcVSleep();
+    } while (i < 11);
+    func_801076A0_filesel(4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108EB8_filesel);
 
@@ -439,7 +466,55 @@ s32 func_80109968_filesel(s32 arg0) {
     return temp_s0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801099A8_filesel);
+u32 func_801099A8_filesel(u32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 enabled[3];
+    s32 cur;
+    s32 timer;
+    u16 btn;
+    s32 temp;
+
+    cur = arg0;
+    timer = 0;
+    enabled[0] = arg1;
+    enabled[1] = arg2;
+    enabled[2] = arg3;
+    func_8010AB60_filesel(0x12, cur);
+    while (1) {
+        HuPrcVSleep();
+        func_8010AB1C_filesel(0x12, cur);
+        func_8010AB58_filesel(0x12, -(timer / 8));
+        timer = (timer < 20) ? timer + 1 : 0;
+        btn = D_800D1244_main;
+        temp = func_80111B14_filesel(0);
+        if (temp != -1) {
+            btn |= temp;
+        }
+        if (D_800D5558_main[0] & B_BUTTON) {
+            return -1;
+        }
+        if (D_800D5558_main[0] & A_BUTTON) {
+            HuAudFXPlay(3);
+            if (enabled[cur] == 1) {
+                break;
+            }
+        } else if (btn & L_JPAD) {
+            do {
+                cur--;
+                if (cur < 0) {
+                    cur = 2;
+                }
+            } while (enabled[cur] != 1);
+            func_8010AB60_filesel(0x12, cur);
+        } else if (btn & R_JPAD) {
+            do {
+                cur++;
+                cur = CLAMP_BELOW(cur, 3);
+            } while (enabled[cur] != 1);
+            func_8010AB60_filesel(0x12, cur);
+        }
+    }
+    return cur;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80109B2C_filesel);
 
@@ -451,9 +526,60 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AE8_filesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010A028_filesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010A680_filesel);
+void func_8010A680_filesel(s32 no, f32 x, f32 y, f32 z) {
+    s32 no2;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010A7D8_filesel);
+    i = no;
+    no2 = no + 3;
+    if (D_801142DC_filesel[no].unk_00 != FS_FILE_USED) {
+        func_80106220_filesel(i, 0x1F0029, 0x6A9);
+    } else {
+        func_80106220_filesel(i, 0x1F002A, 0x6A9);
+    }
+    func_801064DC_filesel(i, x, y, z);
+    func_80106550_filesel(i, 0.8f, 0.8f, 0.8f);
+    func_8010684C_filesel(i, 0);
+    func_8010671C_filesel(i, 1);
+    func_8010669C_filesel(i);
+    func_80106220_filesel(no2, D_801127B0_filesel[no], 0x6A9);
+    func_801064DC_filesel(no2, x, y, z);
+    func_80106550_filesel(no2, 0.8f, 0.8f, 0.8f);
+    func_8010684C_filesel(no2, 0);
+    func_8010671C_filesel(no2, 1);
+    func_8010669C_filesel(no2);
+}
+
+void func_8010A7D8_filesel(s16 arg0) {
+    f32 t;
+    f32 angle;
+    f32 scale;
+
+    func_8001C2FC_main(arg0, 0x22000, 0x20000);
+    func_8001C448_main(arg0);
+    func_8001C954_main(arg0);
+    HuPrcVSleep();
+    t = 0.0f;
+    angle = 0.0f;
+    scale = 1.0f;
+    while (1) {
+        if (t > 1.0f) {
+            break;
+        }
+        D_800A0A7C_main = angle;
+        func_8001D558_main(arg0, t, scale, 2);
+        angle += 46.0f;
+        if (angle > 360.0f) {
+            angle -= 360.0f;
+        }
+        t += 0.1f;
+        scale += (10.0f - scale) / 67.0f * 4.0f;
+        HuPrcVSleep();
+    }
+    func_8001C258_main(arg0, 4, 4);
+    func_8001ACDC_main(arg0);
+    HuPrcSleep(3);
+}
 
 void func_8010A978_filesel(s32 arg0) {
     if (arg0 >= 6) {
@@ -464,7 +590,52 @@ void func_8010A978_filesel(s32 arg0) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112AF0_filesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010A9B4_filesel);
+void func_8010A9B4_filesel(s32 arg0, u32 arg1, s32 *arg2, s32 *arg3) {
+    Vec pos;
+    Vec2f scr;
+    s32 x;
+    s32 y;
+
+    x = D_801127BC_filesel[arg1][0];
+    y = D_801127BC_filesel[arg1][1];
+    switch (arg1) {
+        case 0:
+        case 1:
+        case 2:
+            func_801065B8_filesel(arg1, &pos.x, &pos.y, &pos.z);
+            pos.x += 30.0f;
+            pos.y += 300.0f;
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            x = scr.x;
+            y = scr.y;
+            break;
+        case 3:
+        case 4:
+            x = D_801127BC_filesel[arg1][0];
+            y = D_801127BC_filesel[arg1][1];
+            break;
+        case 5:
+            HuVecCopyXYZ(&pos, -400.0f, 0.0f, 0.0f);
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            x = scr.x + 31.0f;
+            y = 0xA8;
+            break;
+        case 6:
+            HuVecCopyXYZ(&pos, 0.0f, 0.0f, 0.0f);
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            x = scr.x + 31.0f;
+            y = 0xA8;
+            break;
+        case 7:
+            HuVecCopyXYZ(&pos, 400.0f, 0.0f, 0.0f);
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            x = scr.x + 31.0f;
+            y = 0xA8;
+            break;
+    }
+    *arg2 = x;
+    *arg3 = y;
+}
 
 void func_8010AB1C_filesel(s32 arg0, u32 arg1) {
     s32 x;
@@ -477,7 +648,25 @@ void func_8010AB1C_filesel(s32 arg0, u32 arg1) {
 void func_8010AB58_filesel(s32 arg0, u32 arg1) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010AB60_filesel);
+void func_8010AB60_filesel(s32 arg0, u32 arg1) {
+    s32 tx;
+    s32 ty;
+    s32 sx;
+    s32 sy;
+    s32 i;
+    f32 t;
+
+    func_8010A9B4_filesel(arg0, arg1, &tx, &ty);
+    func_80106014_filesel(arg0, &sx, &sy);
+    i = 0;
+    do {
+        t = i * 0.25f;
+        func_80105FBC_filesel(arg0, sx + t * (tx - sx), sy + t * (ty - sy));
+        i++;
+        HuPrcVSleep();
+    } while (i < 5);
+    func_80105FBC_filesel(arg0, tx, ty);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_8010AC58_filesel);
 
