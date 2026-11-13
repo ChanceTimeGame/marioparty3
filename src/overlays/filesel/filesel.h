@@ -65,6 +65,8 @@ extern OvlEntrypoint D_801127A0_filesel[];
 
 /* .bss */
 extern s32 D_80112E90_filesel;
+extern Process *D_80114468_filesel; /* main process (func_80107CF8_filesel) */
+extern omObjData *D_8011446C_filesel;
 extern FsSpr D_80112ED0_filesel[64];
 extern s16 D_801135D0_filesel[64]; /* sprite animations */
 extern FsModel D_80113650_filesel[64];
@@ -160,7 +162,7 @@ void func_80107880_filesel(s32 btn); /* wait for button */
 void func_801078BC_filesel(s32 no, s16 arg1);
 u16 func_801078F4_filesel(s32 val); /* debug value print */
 void func_80107AA8_filesel(void);
-void func_80107C50_filesel(void);
+void func_80107C50_filesel(omObjData *obj);
 void func_80107C84_filesel(void);
 void func_80107CF8_filesel(void);
 void func_801083AC_filesel(void);

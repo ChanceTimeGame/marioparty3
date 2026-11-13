@@ -575,17 +575,72 @@ u16 func_801078F4_filesel(s32 val) {
     return D_800D5558_main[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80107AA8_filesel);
+void func_80107AA8_filesel(void) {
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 n;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80107C50_filesel);
+    for (i = 0; i < 4; i++) {
+        GwPlayer[i].pad = 0xFF;
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (CheckControllerRead(i) != 0) {
+            GwPlayer[n].pad = i;
+            n++;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].pad == 0xFF) {
+            for (j = 0; j < 4; j++) {
+                for (k = 0; k < 4; k++) {
+                    if (GwPlayer[k].pad == j) {
+                        break;
+                    }
+                }
+                if (k == 4) {
+                    break;
+                }
+            }
+            GwPlayer[i].pad = j;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80107C84_filesel);
+void func_80107C50_filesel(omObjData *obj) {
+    if (D_800D5558_main[0] & 0x4000) {
+        func_8001F38C_main(0xFF, 0, 0);
+    }
+}
+
+void func_80107C84_filesel(void) {
+    func_80105BF0_filesel();
+    func_801119F4_filesel();
+    func_80111C30_filesel();
+    D_80114468_filesel = omAddPrcObj(func_80107CF8_filesel, 0x5000, 0x2000, 0);
+    D_8011446C_filesel = omAddObj(6, 0, 0, -1, func_80107C50_filesel);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80107CF8_filesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801083AC_filesel);
+void func_801083AC_filesel(void) {
+    func_80105E48_filesel(1, 0x1F000D);
+    func_80105F54_filesel(1);
+    func_80105E48_filesel(2, 0x1F000E);
+    func_80106168_filesel(2, 0, 0);
+    func_801060CC_filesel(2, 0x800);
+    func_80105F54_filesel(2);
+    func_80105E48_filesel(3, 0x1F000F);
+    func_80106168_filesel(3, 0, 0);
+    func_801060CC_filesel(3, 0x800);
+    func_80105F54_filesel(3);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108440_filesel);
+void func_80108440_filesel(void) {
+    func_80105EC0_filesel(1);
+    func_80105EC0_filesel(2);
+    func_80105EC0_filesel(3);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/filesel/516AE0", D_80112A64_filesel);
 
@@ -606,7 +661,20 @@ s32 func_80108834_filesel(void) {
     return total;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_80108878_filesel);
+void func_80108878_filesel(void) {
+    s32 n = func_80108834_filesel();
+
+    if (n == 1 || n == 2) {
+        func_80106168_filesel(2, 1, 0);
+    } else {
+        func_80106168_filesel(2, 0, 0);
+    }
+    if (n != 0) {
+        func_80106168_filesel(3, 1, 0);
+    } else {
+        func_80106168_filesel(3, 0, 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/filesel/516AE0", func_801088DC_filesel);
 
