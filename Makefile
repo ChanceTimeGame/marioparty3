@@ -382,6 +382,8 @@ W2DC_BLANKSTRIP := build/src/89170.c.o build/src/wipe.c.o build/src/14EA0.c.o
 # NOP_OBJECTS: that rule assembles without -O1, which puts the delay-slot nop of a jump-table
 # `j` at the start of .text (func_800E04C8_minigame).
 W2DC_BLANKSTRIP += build/src/overlays/minigame/AB1C0.c.o
+# filesel C: 516AE0 likewise (func_8010E250_filesel: no nop before the mul.s after the cosdf call)
+W2DC_BLANKSTRIP += build/src/overlays/filesel/516AE0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

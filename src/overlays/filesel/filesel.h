@@ -49,8 +49,24 @@ typedef struct UnkFileSelect2 {
 typedef struct UnkFileSelect {
     /* 0x00 */ u8 unk_00; /* FS_FILE_USED when the file holds a save */
     /* 0x01 */ u8 unk_01[0xB]; /* name */
-    /* 0x0C */ char unk_0C[0x74];
-    /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE */
+    /* 0x0C */ char unk_0C[0x1C];
+    /* 0x28 */ u8 unk_28; /* fork C */
+    /* 0x29 */ char unk_29[0xF];
+    /* 0x38 */ s32 unk_38; /* fork C: shown as two digits */
+    /* 0x3C */ s32 unk_3C; /* fork C: shown as two digits */
+    /* 0x40 */ s32 unk_40; /* fork C: index 0..5 */
+    /* 0x44 */ s32 unk_44; /* fork C: passed to func_801126C0_filesel */
+    /* 0x48 */ char unk_48[0xE];
+    /* 0x56 */ u16 unk_56; /* fork C */
+    /* 0x58 */ char unk_58[4];
+    /* 0x5C */ s32 unk_5C; /* fork C: shown as two digits */
+    /* 0x60 */ s32 unk_60; /* fork C: shown as two digits; 20 is special */
+    /* 0x64 */ char unk_64[0xE];
+    /* 0x72 */ u16 unk_72; /* fork C */
+    /* 0x74 */ char unk_74[4];
+    /* 0x78 */ s32 unk_78; /* fork C: shown as two digits */
+    /* 0x7C */ s32 unk_7C; /* fork C: shown as two digits */
+    /* 0x80 */ s32 unk_80; /* only entry 2's is used: FS_LAST_FILE (fork A) */
 } UnkFileSelect; /* size = 0x84 */
 
 /* The last-used save file (0..2). Retail reaches it as D_801142DC_filesel + 0x188, the last word of
@@ -292,5 +308,32 @@ s32 func_80109904_filesel(s32 arg0);
 s32 func_80109968_filesel(s32 arg0);
 void func_8010AB58_filesel(s32 arg0, u32 arg1);
 s32 func_80112494_filesel(s32 arg0, u8 *arg1);
+
+
+/* fork C */
+/* Name-entry keyboard state: 0x80114478..0x801144D4 (splat split it into D_80114478..D_801144D0). */
+typedef struct FsKbd {
+    /* 0x00 */ s32 unk00;     /* D_80114478 */
+    /* 0x04 */ s32 unk04;     /* D_8011447C */
+    /* 0x08 */ s32 unk08;     /* D_80114480 */
+    /* 0x0C */ s32 col;       /* D_80114484: 0..12 */
+    /* 0x10 */ s32 row;       /* D_80114488: 0..4 */
+    /* 0x14 */ s32 unk14;     /* D_8011448C */
+    /* 0x18 */ u16 name[16];  /* D_80114490: the name being typed, 0-terminated */
+    /* 0x38 */ u16 unk38[16]; /* D_801144B0 */
+    /* 0x58 */ s32 len;       /* D_801144D0: characters typed, at most 5 */
+} FsKbd; /* size = 0x5C */
+extern FsKbd D_80114478_filesel;
+extern s32 D_80114470_filesel; /* the name changed */
+/* camera (func_8010E740_filesel) */
+extern Vec D_801144D4_filesel; /* eye (splat also names D_801144D8/DC) */
+extern Vec D_801144E0_filesel; /* target */
+extern Vec D_801144EC_filesel; /* up */
+extern f32 D_801144F8_filesel; /* near */
+extern f32 D_801144FC_filesel; /* far */
+extern s32 D_80114500_filesel; /* camera mode: -1/0 orbit (0 with stick control), 1 fixed, else free eye */
+extern Process *D_80114504_filesel; /* camera process */
+extern f32 D_801128A0_filesel; /* .data: fov */
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c */
 
 #endif
