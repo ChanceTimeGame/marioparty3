@@ -669,9 +669,7 @@ void func_80107CB0_modesel(void) {
     D_80110BDC_modesel = omAddPrcObj(func_80107CEC_modesel, 0x5000, 0x2000, 0);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/modesel/4F7E90", D_8010F454_modesel);
-
-extern const char D_8010F454_modesel[]; /* "" */
+const char D_8010F454_modesel[4] = ""; /* the empty message */
 
 void func_80107CEC_modesel(void) {
     s32 i;
