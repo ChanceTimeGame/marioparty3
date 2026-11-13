@@ -1,4 +1,5 @@
 #include "common.h"
+#include "modesel.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801059A0_modesel);
 
