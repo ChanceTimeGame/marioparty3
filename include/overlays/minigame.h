@@ -41,7 +41,7 @@ typedef struct {
     /* 0x048 */ f32 unk48;
     /* 0x04C */ f32 unk4C;
     /* 0x050 */ u16 unk50;
-    /* 0x052 */ s8 unk52;
+    /* 0x052 */ u8 unk52; /* motion changes locked */
     /* 0x053 */ s8 unk53;
     /* 0x054 */ s8 unk54;
     /* 0x055 */ u8 unk55;
