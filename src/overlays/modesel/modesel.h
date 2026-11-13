@@ -254,13 +254,11 @@ void func_8010C874_modesel(void);
 void func_8010CA30_modesel(void);
 void func_8010CB34_modesel(void);
 s32 func_8010CC38_modesel(void);
-s32 func_8010CD00_modesel(u32 arg0);
 u32 func_8010D8DC_modesel(u32 arg0, s32 arg1);
 void func_8010DC6C_modesel(u32 arg0);
 void func_8010DE88_modesel(u32 arg0);
 void func_8010DF70_modesel(void);
 void func_8010DFB4_modesel(void);
-void func_8010DFD0_modesel(void);
 void func_8010E000_modesel(u32 arg0, s32 *arg1, s32 *arg2);
 void func_8010E138_modesel(u32 arg0, f32 *arg1, f32 *arg2, f32 *arg3);
 void func_8010E22C_modesel(s32 arg0, s32 arg1);
@@ -295,6 +293,8 @@ void func_8010B804_modesel(s32 no, f32 rot); /* bob part rotation set */
 void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out);
 extern Vec D_8010F2CC_modesel[3]; /* .data: bob part positions of models 7..9 (were f32 D_8010F2CC/2D0/2D4) */
 extern void *D_80110BD4_modesel; /* cannon part "taiho" (func_8001D33C_main); was s32 */
+void func_8010DFD0_modesel(u32 no); /* passes no to func_8010E000_modesel; was (void) */
+s32 func_8010CD00_modesel(u32 no, s32 btn); /* func_8010BA70_modesel passes the buttons in a1 */
 /* D_80110C68/C6C/C70_modesel are one array of structs (MsBob in 4F7E90.c); their s32 externs were removed. */
 
 #endif

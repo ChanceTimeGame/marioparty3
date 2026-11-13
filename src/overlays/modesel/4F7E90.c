@@ -1932,7 +1932,11 @@ omObjData *func_8010AF18_modesel(void) {
 
 /* Bob parts of models 7..9: two model parts (func_8001D33C_main) placed at pos and turned by rot. */
 typedef struct MsHmfPart {
-    /* 0x00 */ char unk00[0x58];
+    /* 0x00 */ char unk00[0x1C];
+    /* 0x1C */ Vec unk1C; /* scale (func_8010BA70_modesel resets both to 1) */
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec unk40;
+    /* 0x4C */ char unk4C[0xC];
     /* 0x58 */ HuMtx4F mtx;
 } MsHmfPart; /* size = 0x98 */
 
@@ -2149,7 +2153,183 @@ Process *func_8010B9C4_modesel(void) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010BA70_modesel);
+/* Mode-select menu loop: picks a model (sel) with the stick or D-pad, confirms with A
+   (func_8010CD00_modesel), B asks whether to go back. Returns the choice after its exit animation. */
+s32 func_8010BA70_modesel(void) {
+    s32 sel;
+    s32 ret;
+    s32 btn;
+    s32 res;
+    s16 model;
+    MsHmfPart *part;
+
+    sel = 10;
+    if (func_800465D0_main() == 1) {
+        if (_CheckFlag(0x16) == 0 && _CheckFlag(0x17) == 0) {
+            func_80107730_modesel(0, 0x3124);
+        } else {
+            goto cannon;
+        }
+    } else if (_CheckFlag(0x28) != 0) {
+    cannon:
+        sel = 5;
+        func_80107730_modesel(0, 0x3106);
+    } else if (GwStory.unk0 != 12) {
+        sel = 7;
+        func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+        func_80107730_modesel(0, 0x3135);
+        if (GwSystem.playMode & 1) {
+            sel = 8;
+        }
+    }
+    func_8010DF70_modesel();
+    func_8010DFD0_modesel(sel);
+    omDelPrcObj(D_80110BE0_modesel);
+    D_80110BE0_modesel = func_8010899C_modesel();
+    func_80013350_main(0);
+    func_80109188_modesel(sel, 7);
+    while (TRUE) {
+        btn = D_800D5558_main[0];
+        btn |= func_80109A58_modesel(0);
+        if (btn & 0x8000) {
+            ret = func_8010CD00_modesel(sel, btn);
+            if (ret >= 0) {
+                break;
+            }
+        } else if (btn & 0xF00) {
+            ret = func_8010D8DC_modesel(sel, btn);
+            if (ret >= 0) {
+                sel = ret;
+            }
+        } else if (btn & 0x4000) {
+            func_80105FB4_modesel(1);
+            func_80109188_modesel(10, 8);
+            HuPrcSleep(8);
+            func_801074F0_modesel(0);
+            func_801067C0_modesel(10, 19, 8, 8, 2);
+            func_80106BA0_modesel(0, 0x3115, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+            func_8010788C_modesel(0);
+            res = func_80107838_modesel(0, 1, 0);
+            func_801067C0_modesel(10, 20, 8, 8, 2);
+            if (res == 0) {
+                ret = 16;
+                HuPrcVSleep();
+                func_80107730_modesel(0, 0x3116);
+                func_8010788C_modesel(0);
+                break;
+            }
+            if (func_800465D0_main() == 1) {
+                func_8005F698_main(-0x8000, 0, 0, 0, 1);
+                func_80107730_modesel(0, 0x3101);
+            } else if (GwStory.unk0 == 12) {
+                func_80107730_modesel(0, 0x3136);
+            } else {
+                func_801077FC_modesel(0, 0, func_8010F204_modesel(GwStory.unk0) + 0x3127);
+                func_80107730_modesel(0, 0x3134);
+            }
+            func_8010788C_modesel(0);
+            func_8010DC6C_modesel(sel);
+            func_80109188_modesel(sel, 8);
+            HuPrcSleep(8);
+            func_80105F84_modesel(1);
+        }
+        func_8010DFD0_modesel(sel);
+        func_8010E6D8_modesel(sel);
+        HuPrcVSleep();
+    }
+    switch (ret) {
+    case 0:
+        func_80105FB4_modesel(1);
+    case 16:
+        break;
+    case 1:
+        func_80105FB4_modesel(1);
+        func_80107700_modesel(0);
+        func_8010EC40_modesel();
+        func_80109188_modesel(-1, 20);
+        func_80109E90_modesel(9);
+        if (GwStory.unk0 != 12 || func_800465D0_main() != 0) {
+            func_8010ABB4_modesel(10);
+        }
+        HuPrcSleep(20);
+        model = func_8010648C_modesel(12);
+        func_80013320_main(model, 0);
+        func_8001C6A8_main(model, 2.0f);
+        func_8001C92C_main(model, 0.7f);
+        func_8001C814_main(model, 3, 0);
+        HuPrcSleep(20);
+        HuAudFXPlay(0x2E1);
+        func_80106830_modesel(3, 3);
+        HuPrcSleep(30);
+        break;
+    case 4:
+    case 6:
+    case 7:
+    case 9:
+    case 10:
+    case 13:
+        func_80105FB4_modesel(1);
+        func_80107700_modesel(0);
+        func_8010EC40_modesel();
+        func_8010E558_modesel(sel);
+        HuAudFXPlay(0x2E0);
+        func_8010A62C_modesel(sel);
+        func_80109188_modesel(-1, 20);
+        omDelObj(D_80110BD0_modesel);
+        if (GwStory.unk0 != 12 || func_800465D0_main() != 0) {
+            D_80110BD0_modesel = func_8010ABB4_modesel(10);
+        }
+        goto zoom;
+    case 5:
+    case 8:
+    case 11:
+        func_8010E558_modesel(5);
+        part = D_80110BD4_modesel;
+        part->unk1C.z = 1.0f;
+        part->unk40.z = 1.0f;
+        part->unk1C.y = 1.0f;
+        part->unk40.y = 1.0f;
+        part->unk1C.x = 1.0f;
+        part->unk40.x = 1.0f;
+        HuPrcSleep(8);
+        func_80106A38_modesel(5, 17, 0);
+        func_801068AC_modesel(18, 0);
+        func_8010677C_modesel(18, 0);
+        func_8010673C_modesel(18);
+        func_80109154_modesel();
+        HuPrcSleep(4);
+        HuAudFXPlay(0x2FA);
+        func_80109444_modesel();
+        func_80106910_modesel(18);
+        HuPrcSleep(24);
+        func_80109408_modesel();
+        break;
+    case 14:
+        func_80105FB4_modesel(1);
+        func_80107700_modesel(0);
+        func_8010EC40_modesel();
+        func_8010E558_modesel(sel);
+        omDelObj(D_80110BD0_modesel);
+        func_8010AF18_modesel();
+        func_80109188_modesel(-1, 20);
+    zoom:
+        HuPrcSleep(20);
+        model = func_8010648C_modesel(11);
+        func_80013320_main(model, 0);
+        func_8001C6A8_main(model, 0.0f);
+        func_8001C92C_main(model, 0.7f);
+        func_8001C814_main(model, 3, 0);
+        HuPrcSleep(50);
+        func_8010ED00_modesel();
+        break;
+    default:
+        while (TRUE) {
+            HuPrcVSleep();
+        }
+    }
+    func_8010DFB4_modesel();
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C094_modesel);
 
