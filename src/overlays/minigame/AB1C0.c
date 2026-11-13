@@ -134,13 +134,26 @@ typedef struct MgWork {
     /* 0xB0 */ f32 unk_B0;
     /* 0xB4 */ f32 unk_B4;  /* speed factor */
     /* 0xB8 */ char unk_B8[4];
-    /* 0xBC */ u16 unk_BC;
+    /* 0xBC */ u16 unk_BC;  /* frames running, at most 200 */
     /* 0xBE */ u16 unk_BE;  /* hazard hit countdown */
-    /* 0xC0 */ char unk_C0[0xC];
+    /* 0xC0 */ u16 unk_C0;  /* spin countdown */
+    /* 0xC2 */ char unk_C2;
+    /* 0xC3 */ s8 unk_C3;
+    /* 0xC4 */ s8 unk_C4;
+    /* 0xC5 */ s8 unk_C5;
+    /* 0xC6 */ s16 unk_C6;  /* turn lean, -12..12 */
+    /* 0xC8 */ void* unk_C8; /* held item, an omObjData* */
     /* 0xCC */ f32 unk_CC;
-    /* 0xD0 */ char unk_D0[0x1C];
+    /* 0xD0 */ u16 unk_D0;
+    /* 0xD2 */ char unk_D2[8];
+    /* 0xDA */ u16 unk_DA;
+    /* 0xDC */ char unk_DC[0xC];
+    /* 0xE8 */ void* unk_E8;
     /* 0xEC */ s32 (*unk_EC)(omObjData* obj, omObjData* actor); /* actor touch hook; 1 skips the default */
     /* 0xF0 */ u16 unk_F0;
+    /* 0xF2 */ char unk_F2[0x12];
+    /* 0x104 */ s32 (*unk_104[21])(); /* the minigame's override hooks; 1 = handled */
+    /* 0x158 */ void* unk_158;
 } MgWork;
 
 /* omObjData.data of a minigame item actor (MP2 collision.h ColActorWork); fields this unit uses. */
@@ -208,6 +221,34 @@ extern f32 D_800EB758_minigame;         /* attack reach */
 extern f32 D_800EB75C_minigame;
 extern s8 D_800EB780_minigame;          /* debug menu row */
 extern u16 D_800EC288_minigame;          /* touches while invulnerable */
+f32 func_800202A8_main(f32 angle);
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
+f32 func_800D9028_minigame(omObjData* obj, f32 x, f32 y, f32 z, f32 unused); /* A: ceiling height */
+f32 func_800D972C_minigame(omObjData* obj, f32 rot, f32 x, f32 y, f32 z);    /* A: ground height, 65536.0f none */
+f32 func_800DFD48_minigame(f32 speed);
+void func_800DFD9C_minigame(omObjData* obj, f32 x, f32 y, f32 z);
+void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z);     /* B3CE0: obj->trans */
+void func_800E1A9C_minigame(MgWork* w, s32 arg1);                     /* B3CE0 */
+s32 func_800E2250_minigame(omObjData* obj, s16 x, s16 y);             /* B3CE0: stick sample */
+void func_800E2308_minigame(s16* x, s16* y);                          /* B3CE0: stick dead zone */
+void func_800E23E0_minigame(omObjData* obj);                          /* B3CE0 */
+s16 func_800E240C_minigame(s16 player, s16 limit, s8 x, s8 y);        /* B3CE0 */
+void func_800E3820_minigame(omObjData* obj, MgWork* w);               /* B63A0 */
+void func_800E38A4_minigame(omObjData* obj, MgWork* w);               /* B63A0 */
+void func_800E39CC_minigame(omObjData* obj, MgWork* w, GroundWork* g, s16 x, s16 y); /* B63A0 */
+void func_800E3AB8_minigame(omObjData* obj, MgWork* w);               /* B63A0 */
+void func_800E3B98_minigame(omObjData* obj, MgWork* w, GroundWork* g, f32 x, f32 y, f32 z); /* B63A0 */
+void func_800E3CA0_minigame(omObjData* obj, MgWork* w, GroundWork* g, f32 x, f32 y, f32 z); /* B63A0 */
+void func_800E3D3C_minigame(omObjData* obj, MgWork* w);               /* B63A0 */
+void func_800E3E24_minigame(omObjData* obj, f32 x, f32 y, f32 z);     /* B63A0 */
+void func_800E3F44_minigame(omObjData* obj, s32 flags, f32 x, f32 y, f32 z); /* B63A0 */
+void func_800E3FD8_minigame(omObjData* obj, f32 x, f32 y, f32 z);     /* B63A0 */
+void func_800E4248_minigame(omObjData* obj, f32 x, f32 y, f32 z);     /* B63A0 */
+s32 func_800E4A90_minigame(omObjData* obj);                           /* B7600: motion state flags */
+void func_800E4E30_minigame(omObjData* obj);                          /* B7600 */
+void func_800E5138_minigame(omObjData* obj);                          /* B7600 */
+u8 func_800E6E8C_minigame(void);                                      /* B8A20 */
+extern f32 D_800EB774_minigame;
 extern u8 D_800EB734_minigame;          /* ground object the player stands on */
 extern u16 D_800EBE28_minigame;         /* ground object count */
 extern f32 D_800EBE30_minigame[4][4];   /* ground object: world to local */
@@ -549,7 +590,597 @@ void func_800DDD70_minigame(omObjData* obj) {
     D_800EBDD0_minigame.z = obj->trans.z;
 }
 
+/* A minigame player's step (MP2 func_80007790_8390, MP1 func_80005A28): stick and buttons, then one
+   branch per motion state (func_800E4A90_minigame's flags), then the move along the heading. MP3
+   reads the stick only when func_800E6E8C_minigame() is 2, and stops the turn sound only when
+   unk_C5 > 0.
+   register allocation (masked 0, raw 3): the cos * mag product in the 0x320 branch takes $f12
+   instead of $f4, as in MP2 (raw 3) and MP1. Tried: a temp for the product (moves the residue to
+   the rx * rx below), assigning it back to mag. */
+#ifdef NON_MATCHING
+void func_800DDD94_minigame(omObjData* obj) {
+    s16 sx;
+    s16 sy;
+    f32 x;
+    f32 y;
+    f32 z;
+    MgWork* w = obj->data;
+    GroundWork* g;
+    GroundWork* gr;
+    omObjData* o;
+    u8 port = w->unk_57;
+    f32 mag = 0.0f;
+    u16 mdl;
+    f32 vy0;
+    u16 btn;
+    u16 trg;
+    s32 flags;
+    s32 ok;
+    u16 anim;
+    s32 r;
+    s16 rx, ry;
+    s16 r2;
+    f32 dx, dy;
+    f32 frame;
+    f32 v;
+    f32 ny;
+    f32 vv1;
+    f32 vv;
+    f32 v1, ny1, v3, v5, frame5, frame2, frame6;
+    omObjData* o7;
+    f32 lim;
+    f32 acc;
+    f32 ang;
+    f32 px;
+
+    x = obj->trans.x;
+    y = obj->trans.y;
+    z = obj->trans.z;
+    func_800DDD70_minigame(obj);
+    mdl = obj->model[0];
+    vy0 = w->unk_38;
+    D_800EBE2C_minigame = D_800EC5D8_minigame = mag;
+    D_800EC288_minigame = 0;
+    *(s8*)&w->unk_55 = -1; /* s8 here (MP1 s8; collision.h u8) */
+    D_800EC286_minigame = -1;
+    if (w->unk_104[0] != 0) {
+        ((void (*)(omObjData*))w->unk_104[0])(obj);
+    }
+    if (func_800E6E8C_minigame() == 2 && (s8)port >= 0 && !(w->unk_50 & 1)) {
+        sx = D_800CBB6E_main[(s8)port];
+        sy = D_800D20A1_main[(s8)port];
+        if (sx > 60) {
+            sx = 60;
+        }
+        if (sy > 60) {
+            sy = 60;
+        }
+        if (sx < -60) {
+            sx = -60;
+        }
+        if (sy < -60) {
+            sy = -60;
+        }
+        func_800E2308_minigame(&sx, &sy);
+        if (!(w->unk_50 & 6)) {
+            trg = D_800D5558_main[(s8)port];
+            btn = D_800CDA7C_main[(s8)port];
+        } else {
+            btn = 0;
+            trg = 0;
+        }
+    } else {
+        sx = sy = 0;
+        btn = 0;
+        trg = 0;
+    }
+    flags = func_800E4A90_minigame(obj);
+    if (flags & 1) {
+        ok = 1;
+        if (w->unk_38 == 1000.0f) {
+            if (func_800D972C_minigame(obj, w->unk_3C, x, y, z) != 65536.0f && (trg & 0x8000)) {
+                func_800E3820_minigame(obj, w);
+                ok = 0;
+            }
+        } else {
+            v1 = w->unk_38;
+            if (v1 > D_800EB774_minigame) {
+                v1 = D_800EB774_minigame;
+            }
+            vv1 = v1 * v1;
+            ny1 = y + vv1 * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+            w->unk_38 += D_800EB748_minigame;
+            if (func_800E5690_minigame(obj, 6) == 1) {
+                func_800E19FC_minigame(w, 3);
+                ok = 0;
+            }
+            y = func_800D9028_minigame(obj, x, ny1, z, y);
+            if (w->unk_38 == 1000.0f) {
+                o = D_800EC1C0_minigame[w->unk_53];
+                if (((GroundWork*)o->data)->unk_03 == 2) {
+                    func_800DFD9C_minigame(obj, x, o->trans.y, z);
+                }
+            }
+        }
+        if (ok == 1) {
+            func_800E5690_minigame(obj, 0);
+        }
+        w->unk_C6 = 0;
+    } else if (flags & 0x100000) {
+        w->unk_C0--;
+        if (w->unk_C0 == 0) {
+            func_800E5690_minigame(obj, 0x13);
+        }
+        if (w->unk_C0 - 52 < 0) {
+            w->unk_40 = D_800EB770_minigame;
+            obj->rot.y = 0.0f;
+        } else {
+            obj->rot.y = func_800202A8_main(w->unk_C0 * 45.0f);
+            if (w->unk_40 < D_800EB770_minigame) {
+                w->unk_40 += D_800EB740_minigame * 0.2f;
+                if (D_800EB770_minigame <= w->unk_40) {
+                    w->unk_40 = D_800EB770_minigame;
+                }
+            } else if (D_800EB770_minigame <= w->unk_40) {
+                w->unk_40 += -D_800EB740_minigame * 0.2f;
+                if (w->unk_40 <= D_800EB770_minigame) {
+                    w->unk_40 = D_800EB770_minigame;
+                }
+            }
+        }
+        ny = func_800D972C_minigame(obj, w->unk_3C, x, y, z);
+        if (ny != 65536.0f) {
+            y = ny;
+        }
+    } else if (flags & 0x18C18) {
+        if (flags & 0x10000) {
+            if (trg & 0x8000) {
+                func_800E3820_minigame(obj, w);
+            }
+        } else if (w->unk_40 == D_800EB770_minigame) {
+            if (flags & 0x400) {
+                func_800E5690_minigame(obj, 0x21);
+            } else if (flags & 0x10) {
+                func_800E5690_minigame(obj, 0x12);
+            } else if (flags & 0x800) {
+                func_800E5690_minigame(obj, 0x22);
+            } else if (flags & 8) {
+                func_800E5690_minigame(obj, 0x13);
+            } else {
+                func_800E5690_minigame(obj, 0);
+            }
+        } else if (w->unk_40 < D_800EB770_minigame) {
+            w->unk_40 += D_800EB740_minigame * 2.0f;
+            if (D_800EB770_minigame <= w->unk_40) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        } else if (D_800EB770_minigame <= w->unk_40) {
+            w->unk_40 += -D_800EB740_minigame * 2.0f;
+            if (w->unk_40 <= D_800EB770_minigame) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        }
+        v3 = w->unk_38;
+        if (v3 == 1000.0f) {
+            if (flags & 0x10) {
+                if (w->unk_40 > D_800EB760_minigame) {
+                    w->unk_3C += -(f32)sx / D_800EB750_minigame;
+                } else {
+                    lim = (w->unk_40 <= D_800EB76C_minigame) ? D_800EB76C_minigame : w->unk_40;
+                    w->unk_3C += -(sx / D_800EB750_minigame) * (lim / D_800EB760_minigame);
+                }
+            }
+            goto ground;
+        } else {
+            if (v3 > D_800EB774_minigame) {
+                v3 = D_800EB774_minigame;
+            }
+            vv = v3 * v3;
+            ny = y + vv * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+            w->unk_38 += D_800EB748_minigame;
+            y = func_800D9028_minigame(obj, x, ny, z, y);
+            if (w->unk_38 != 1000.0f) {
+            } else {
+                o = D_800EC1C0_minigame[w->unk_53];
+                if (((GroundWork*)o->data)->unk_03 == 2) {
+                    func_800DFD9C_minigame(obj, x, o->trans.y, z);
+                } else if (flags & 0x10) {
+                    func_800E5690_minigame(obj, 0x12);
+                } else if (flags & 8) {
+                    func_800E5690_minigame(obj, 0x13);
+                } else if (flags & 0xC00) {
+                } else {
+                    func_800E5690_minigame(obj, 0);
+                }
+            }
+        }
+        w->unk_C6 = 0;
+    } else if (flags & 0x6000) {
+        func_800E2250_minigame(obj, sx, sy);
+        frame = func_8001C7D0_main(mdl);
+        if (frame == -1.0f) {
+            frame = HmfModelData[(s16)mdl].unk40;
+        }
+        if (flags & 0x4000) {
+            w->unk_3C += 25.0f;
+            if (frame >= 14.0f) {
+                func_800E5690_minigame(obj, 1);
+                w->unk_40 = D_800EB76C_minigame;
+                func_800E19FC_minigame(w, 1);
+            }
+        } else if (frame >= 10.0f) {
+            if (abs(sx) >= 9 || abs(sy) >= 9) {
+                if (w->unk_40 < D_800EB76C_minigame) {
+                    if (func_800E2ED4_minigame(sx, -sy, sindf(w->unk_3C), cosdf(w->unk_3C)) < 0.0f) {
+                        func_800E5690_minigame(obj, 0x20);
+                    }
+                }
+            }
+            if (frame >= 15.0f && w->unk_40 < D_800EB76C_minigame) {
+                if (abs(sx) >= 9 || abs(sy) >= 9) {
+                    if (w->unk_40 < D_800EB76C_minigame) {
+                        if (func_800E2ED4_minigame(sx, -sy, sindf(w->unk_3C), cosdf(w->unk_3C)) < 0.0f) {
+                            func_800E5690_minigame(obj, 0x20);
+                        } else {
+                            func_800E5690_minigame(obj, 2);
+                            w->unk_40 = D_800EB764_minigame;
+                            func_800E19FC_minigame(w, 1);
+                        }
+                    }
+                } else {
+                    func_800E5690_minigame(obj, 0);
+                }
+            }
+        }
+        if (w->unk_53 >= 0) {
+            acc = ((GroundWork*)D_800EC1C0_minigame[w->unk_53]->data)->unk_08;
+        } else {
+            acc = D_800EB740_minigame;
+        }
+        acc *= 2.0f;
+        if (w->unk_40 < D_800EB770_minigame) {
+            w->unk_40 = acc + w->unk_40;
+            if (D_800EB770_minigame <= w->unk_40) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        } else if (D_800EB770_minigame <= w->unk_40) {
+            w->unk_40 = w->unk_40 - acc;
+            if (w->unk_40 <= D_800EB770_minigame) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        }
+        ny = func_800D972C_minigame(obj, w->unk_3C, x, y, z);
+        if (ny != 65536.0f) {
+            y = ny;
+            if (trg & 0x8000) {
+                func_800E3820_minigame(obj, w);
+            } else if (trg & 0x4000) {
+                func_800E38A4_minigame(obj, w);
+                func_800E23E0_minigame(obj);
+            }
+        }
+        w->unk_C6 = 0;
+    } else if (flags & 0x320) {
+        frame2 = func_8001C7D0_main(mdl);
+        if (frame2 == -1.0f) {
+            frame2 = HmfModelData[(s16)mdl].unk40;
+        }
+        v = w->unk_38;
+        if (!(flags & 0x300)) {
+            if (((frame2 > 5.0f) & (frame2 < 7.0f)) && !(btn & 0x8000)) {
+                if (!(w->unk_50 & 8) & (v < 0.0f)) {
+                    w->unk_38 = -D_800EB744_minigame * 0.2f;
+                }
+            }
+            if (abs(sx) >= 9 || abs(sy) >= 9) {
+                D_800EBE2C_minigame = sx / D_800EB74C_minigame * w->unk_B4;
+                D_800EC5D8_minigame = -(f32)sy / D_800EB74C_minigame * w->unk_B4;
+                mag = HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame);
+                ang = atan2df(D_800EBE2C_minigame, D_800EC5D8_minigame) + w->unk_60;
+                D_800EBE2C_minigame = sindf(ang) * mag;
+                D_800EC5D8_minigame = cosdf(ang) * mag;
+                if (w->unk_50 & 8) {
+                    D_800EBE2C_minigame *= 0.2f;
+                    D_800EC5D8_minigame *= 0.2f;
+                }
+            }
+            if (trg & 0x4000) {
+                func_800E3D3C_minigame(obj, w);
+            }
+            if ((trg & 0x2000) && !(w->unk_50 & 8)) {
+                func_800E3AB8_minigame(obj, w);
+            }
+            if (v > D_800EB774_minigame) {
+                v = D_800EB774_minigame;
+            }
+            ny = y + v * v * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+            w->unk_38 += D_800EB748_minigame;
+        } else {
+            if (v > D_800EB774_minigame) {
+                v = D_800EB774_minigame;
+            }
+            if (frame2 > 26.0f) {
+                ny = y + v * v * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+                w->unk_38 += D_800EB748_minigame * 2.0f;
+            } else if (flags & 0x100) {
+                ny = y + v * v * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+                w->unk_38 += D_800EB748_minigame / 2.0f;
+            } else {
+                ny = y;
+            }
+            if (flags & 0x100) {
+                func_800E3E24_minigame(obj, x, ny, z);
+            }
+        }
+        y = func_800D9028_minigame(obj, x, ny, z, y);
+        if (w->unk_38 != 1000.0f) {
+        } else {
+            o = D_800EC1C0_minigame[w->unk_53];
+            g = o->data;
+            if (g->unk_03 == 2) {
+                func_800DFD9C_minigame(obj, x, o->trans.y, z);
+            } else if (flags & 0x200) {
+                if (!(w->unk_50 & 0x80) && w->unk_BE == 0) {
+                    func_800E3B98_minigame(obj, w, g, x, y, z);
+                } else {
+                    func_800E3CA0_minigame(obj, w, g, x, y, z);
+                }
+            } else {
+                func_800E39CC_minigame(obj, w, g, sx, sy);
+            }
+        }
+        w->unk_C6 = 0;
+    } else if (flags & 0xC0) {
+        func_800E3F44_minigame(obj, flags, x, y, z);
+        if (w->unk_38 == 1000.0f) {
+            if (w->unk_40 < D_800EB770_minigame) {
+                w->unk_40 += D_800EB740_minigame * 2.0f;
+                if (D_800EB770_minigame < w->unk_40) {
+                    w->unk_40 = D_800EB770_minigame;
+                }
+            } else if (D_800EB770_minigame < w->unk_40) {
+                w->unk_40 += -D_800EB740_minigame * 2.0f;
+                if (w->unk_40 < D_800EB770_minigame) {
+                    w->unk_40 = D_800EB770_minigame;
+                }
+            }
+        ground:
+            ny = func_800D972C_minigame(obj, w->unk_3C, x, y, z);
+            if (ny != 65536.0f) {
+                y = ny;
+            }
+        } else {
+            v5 = w->unk_38;
+            if (v5 > D_800EB774_minigame) {
+                v5 = D_800EB774_minigame;
+            }
+            frame5 = func_8001C7D0_main(mdl);
+            if (frame5 == -1.0f) {
+                frame5 = HmfModelData[(s16)mdl].unk40;
+            }
+            ny = y + v5 * v5 * ((w->unk_38 >= 0.0f) ? -35.0f : 35.0f);
+            if (frame5 > 30.0f) {
+                w->unk_38 += D_800EB748_minigame * 2.0f;
+            } else {
+                w->unk_38 += D_800EB748_minigame / 2.0f;
+            }
+            y = func_800D9028_minigame(obj, x, ny, z, y);
+            if (w->unk_38 != 1000.0f) {
+            } else {
+                o = D_800EC1C0_minigame[w->unk_53];
+                if (((GroundWork*)o->data)->unk_03 == 2) {
+                    func_800DFD9C_minigame(obj, x, o->trans.y, z);
+                } else if (abs(sx) < 8 && abs(sy) < 8) {
+                    w->unk_40 = D_800EB770_minigame;
+                    func_800E5690_minigame(obj, 0x15);
+                    func_800E19FC_minigame(w, 4);
+                } else {
+                    func_800E5690_minigame(obj, 1);
+                    w->unk_40 = D_800EB768_minigame;
+                    func_800E19FC_minigame(w, 1);
+                }
+            }
+        }
+        w->unk_C6 = 0;
+    } else if (flags & 6) {
+        r = func_800E2250_minigame(obj, sx, sy);
+        rx = r >> 16;
+        ry = r;
+        mag = HuSqrtf(rx * rx + ry * ry) / D_800EB75C_minigame;
+        if (w->unk_53 >= 0) {
+            gr = D_800EC1C0_minigame[w->unk_53]->data;
+            if (gr->unk_0C != 0.0f) {
+                w->unk_40 += mag / gr->unk_0C;
+            } else {
+                w->unk_40 += mag / D_800EB73C_minigame;
+            }
+            if (sx | sy) {
+                w->unk_40 = w->unk_40 - gr->unk_08;
+            } else {
+                w->unk_40 = -gr->unk_08 * 3.0f + w->unk_40;
+            }
+        } else {
+            w->unk_40 += mag / D_800EB73C_minigame;
+            if (sx | sy) {
+                w->unk_40 = w->unk_40 - D_800EB740_minigame;
+            } else {
+                w->unk_40 = -D_800EB740_minigame * 3.0f + w->unk_40;
+            }
+        }
+        mag = func_800DFD48_minigame(mag);
+        if (w->unk_40 > mag) {
+            w->unk_40 = mag;
+        }
+        if (w->unk_40 < D_800EB770_minigame) {
+            w->unk_40 = D_800EB770_minigame;
+        }
+        if (abs(rx) >= 9 || abs(ry) >= 9) {
+            w->unk_3C = atan2df(rx, -ry) + w->unk_60;
+        }
+        ny = func_800D972C_minigame(obj, w->unk_3C, x, y, z);
+        if (ny != 65536.0f) {
+            y = ny;
+            if (!(func_800E4A90_minigame(obj) & 0xC00)) {
+                if (trg & 0x8000) {
+                    func_800E3820_minigame(obj, w);
+                } else if (trg & 0x4000) {
+                    func_800E38A4_minigame(obj, w);
+                } else if (dx = sx - rx, dy = sy - ry, HuSqrtf(dx * dx + dy * dy) > 65.0f) {
+                    if (fabs(w->unk_40) >= D_800EB764_minigame) {
+                        func_800E5690_minigame(obj, 0x11);
+                        w->unk_40 = D_800EB768_minigame;
+                        func_800E19FC_minigame(w, 2);
+                        px = x + sindf(w->unk_3C) * 70.0f;
+                        func_800E4C88_minigame(obj, 4, px, y, z + cosdf(w->unk_3C) * 70.0f, 0.0f, w->unk_3C + 180.0f);
+                    }
+                } else if (HuSqrtf(rx * rx + ry * ry) > 43.0f && abs(sx) < 8 && abs(sy) < 8) {
+                    if (fabs(w->unk_40) >= D_800EB764_minigame) {
+                        func_800E5690_minigame(obj, 0x11);
+                        w->unk_40 = D_800EB768_minigame;
+                        func_800E19FC_minigame(w, 2);
+                        px = x + sindf(w->unk_3C) * 70.0f;
+                        func_800E4C88_minigame(obj, 4, px, y, z + cosdf(w->unk_3C) * 70.0f, 0.0f, w->unk_3C + 180.0f);
+                    }
+                } else if (w->unk_40 == D_800EB770_minigame) {
+                    w->unk_C6 = 0;
+                    func_800E5690_minigame(obj, 0);
+                    if (w->unk_C4 > 0) {
+                        if (w->unk_C5 > 0) {
+                            HuAudFXStop(w->unk_C5);
+                        }
+                        w->unk_C4 = -1;
+                    }
+                } else if (mag > D_800EB764_minigame) {
+                    anim = 2;
+                    r2 = func_800E240C_minigame(w->unk_59, 12, sx, sy);
+                    if (r2 > 0) {
+                        w->unk_C6++;
+                        if (w->unk_C6 >= 0) {
+                            if (w->unk_C6 >= 13) {
+                                w->unk_C6 = 12;
+                                anim = 4;
+                            }
+                        }
+                    } else if (r2 < 0) {
+                        w->unk_C6--;
+                        if (w->unk_C6 < 0) {
+                            if (w->unk_C6 < -12) {
+                                w->unk_C6 = -12;
+                                anim = 3;
+                            }
+                        }
+                    } else {
+                        w->unk_C6 = 0;
+                    }
+                    if (func_800E5690_minigame(obj, anim) == 1) {
+                        func_800E1A9C_minigame(w, 1);
+                    } else {
+                        frame6 = func_8001C7D0_main(mdl);
+                        if (frame6 == -1.0f) {
+                            frame6 = HmfModelData[(s16)mdl].unk40;
+                        }
+                        if (frame6 == 0.0f) {
+                            func_800E1A9C_minigame(w, 1);
+                        }
+                    }
+                    if (w->unk_BC < 60) {
+                        px = x - sindf(w->unk_3C) * 20.0f;
+                        func_800E4C88_minigame(obj, 3, px, y, z - cosdf(w->unk_3C) * 20.0f, 0.0f, w->unk_3C);
+                    }
+                    w->unk_BC++;
+                    if (w->unk_BC > 200) {
+                        w->unk_BC = 200;
+                    }
+                    if (w->unk_90 > D_800EB768_minigame || w->unk_98 > D_800EB768_minigame) {
+                        px = x - sindf(w->unk_3C) * 20.0f;
+                        func_800E4C88_minigame(obj, 3, px, y, z - cosdf(w->unk_3C) * 20.0f, 0.0f, w->unk_3C);
+                    }
+                } else {
+                    w->unk_C6 = 0;
+                    if (func_800E5690_minigame(obj, 1) == 1) {
+                        func_800E1A9C_minigame(w, 0);
+                    } else {
+                        frame6 = func_8001C7D0_main(mdl);
+                        if (frame6 == -1.0f) {
+                            frame6 = HmfModelData[(s16)mdl].unk40;
+                        }
+                        if (frame6 == 0.0f) {
+                            func_800E1A9C_minigame(w, 0);
+                        }
+                    }
+                    w->unk_BC = 0;
+                }
+            }
+        }
+    } else if (flags & 0x20000) {
+        o7 = D_800EC1C0_minigame[w->unk_53];
+        y -= 20.0f;
+        if (y < o7->trans.y - 75.0f) {
+            y = o7->trans.y - 75.0f;
+        }
+        if (w->unk_40 > D_800EB770_minigame) {
+            w->unk_40 -= D_800EB740_minigame;
+            if (w->unk_40 <= D_800EB770_minigame) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        } else if (w->unk_40 < D_800EB770_minigame) {
+            w->unk_40 += D_800EB740_minigame;
+            if (D_800EB770_minigame <= w->unk_40) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        }
+        if (obj->model[2] != 0) {
+            Hu3DModelPosSet(obj->model[2], x, o7->trans.y - 64.0f, z);
+            Hu3DModelScaleSet(obj->model[2], 6.0f, 6.0f, 6.0f);
+        }
+    } else if (flags & 0xC0000) {
+        if (flags & 0x40000) {
+            func_800E3FD8_minigame(obj, x, y, z);
+        } else {
+            func_800E4248_minigame(obj, x, y, z);
+        }
+        if (w->unk_40 < D_800EB770_minigame) {
+            w->unk_40 += D_800EB740_minigame * 2.0f;
+            if (D_800EB770_minigame < w->unk_40) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        } else if (D_800EB770_minigame < w->unk_40) {
+            w->unk_40 += -D_800EB740_minigame * 2.0f;
+            if (w->unk_40 < D_800EB770_minigame) {
+                w->unk_40 = D_800EB770_minigame;
+            }
+        }
+        ny = func_800D972C_minigame(obj, w->unk_3C, x, y, z);
+        if (ny != 65536.0f) {
+            y = ny;
+        }
+    } else if (flags & 0x1000) {
+        w->unk_40 = D_800EB770_minigame;
+    } else if (flags & 0x200000) {
+        if (w->unk_104[20] != 0) {
+            ((void (*)(omObjData*, f32*, f32*, f32*))w->unk_104[20])(obj, &x, &y, &z);
+        }
+    }
+    mag = w->unk_40;
+    if (w->unk_50 & 6) {
+        mag *= 0.6f;
+    }
+    mag *= (vy0 != 1000.0f) ? w->unk_4C * w->unk_B4 : w->unk_B4;
+    x += sindf(w->unk_3C) * mag + D_800EBE2C_minigame;
+    z += cosdf(w->unk_3C) * mag + D_800EC5D8_minigame;
+    func_80088910_main((f32 (*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, w->unk_3C, 0.0f);
+    func_800E17D4_minigame(obj, x, y, z);
+    if (w->unk_104[1] != 0) {
+        ((void (*)(omObjData*))w->unk_104[1])(obj);
+    }
+    func_800E4E30_minigame(obj);
+    func_800E5138_minigame(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/AB1C0", func_800DDD94_minigame);
+#endif
+
+
 
 /* Push the actor by d along (dx, 0, dz), normalised. */
 void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d) {
