@@ -343,5 +343,7 @@ extern MsUnkB70 D_80110B70_modesel;
 extern MsSaveSum4 D_80110B88_modesel;
 extern MsSaveSum2 D_80110BB4_modesel;
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* esprite.c (as filesel.h) */
+void func_800E9170_minigame(void); /* mini-game picker process; user_data points at an s16 slot/result */
+extern s16 D_800EBAF0_minigame;
 
 #endif

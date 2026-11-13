@@ -1487,7 +1487,383 @@ s32 func_8010CC38_modesel(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CC38_modesel);
 #endif
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 909 of 987 instructions: GCC cross-jumps the identical prompt tails of cases 7 and 8 and keeps the refusal message in a variable, where retail keeps separate copies; the case 2 result poll compares -3/-2/-1 in registers; logic checked against the asm. */
+/* Choice `choice` confirmed with A: runs its prompts and returns the mode to start (-1 for none):
+   0 mini-game (2), 1 (3), 4-10, 11, 13, 14. */
+s32 func_8010CD00_modesel(u32 choice) {
+    s32 ret = -1;
+    s16 slot;
+    s32 answer;
+    u32 mes;
+    s32 i;
+    s32 k;
+    s32 name;
+    s32 chr;
+    s32 max;
+    s32 best;
+
+    switch (choice) {
+    case 0:
+        break;
+    case 2:
+        func_80107700_modesel(0);
+        func_80106000_modesel(1);
+        func_8010EC40_modesel();
+        D_800EBAF0_minigame = 0;
+        slot = D_80110BDA_modesel;
+        HuPrcVSleep();
+        if (func_800E905C_minigame(slot) < 0) {
+            while (TRUE) {
+                HuPrcVSleep();
+            }
+        }
+        omAddPrcObj(func_800E9170_minigame, 0x4000, 0x800, 0)->user_data = &slot;
+        while (TRUE) {
+            if (slot == -3 || slot == -2) {
+                break;
+            }
+            if (slot == -1) {
+                ret = 0;
+                break;
+            }
+            HuPrcVSleep();
+        }
+        func_801076D0_modesel(0);
+        func_80105FE4_modesel(1);
+        func_8010EBF8_modesel();
+        return ret;
+    case 3:
+        HuAudFXPlay(3);
+        ret = 1;
+        break;
+    case 5:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        if (func_800465D0_main() == 1) {
+            if (_CheckFlag(0x16) && _CheckFlag(0x17)) {
+                func_80107730_modesel(0, 0x3112);
+                answer = func_8010CC38_modesel();
+                if (answer != -1) {
+                    ret = 5;
+                    if (answer == 14) {
+                        ret = 8;
+                    }
+                    func_80107700_modesel(0);
+                    func_80106000_modesel(1);
+                } else {
+                    func_80107730_modesel(0, 0x3102);
+                }
+            } else if (_CheckFlag(0x16) && !_CheckFlag(0x17)) {
+                ret = 8;
+                func_80107700_modesel(0);
+                func_80106000_modesel(1);
+            } else if (!_CheckFlag(0x16) && _CheckFlag(0x17)) {
+                ret = 5;
+                func_80107700_modesel(0);
+                func_80106000_modesel(1);
+            }
+        } else {
+            func_80107700_modesel(0);
+            func_80106000_modesel(1);
+            ret = 11;
+        }
+        if (ret != -1) {
+            RepeatVibrator(0, 30, 0, 30);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 7:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            mes = 0x3118;
+            goto refuse7;
+        }
+        if (func_800465D0_main() == 0 && !(GwSystem.playMode & 2)) {
+            mes = 0x3118;
+            goto refuse7;
+        }
+        func_80107730_modesel(0, 0x310A);
+        func_8010788C_modesel(0);
+        switch (func_80107838_modesel(0, 1, 0)) {
+        case 0:
+            ret = 6;
+            break;
+        case 1:
+            if (func_800465D0_main() == 1) {
+                if (!_CheckFlag(0x17)) {
+                    ret = 4;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    func_8010788C_modesel(0);
+                    HuPrcVSleep();
+                    func_80107730_modesel(0, 0x310D);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310E);
+                        func_8010788C_modesel(0);
+                        ret = 4;
+                    } else {
+                        mes = 0x3110;
+                        goto refuse7;
+                    }
+                }
+            } else if (GwSystem.playMode & 2) {
+                if (!_CheckFlag(0x28)) {
+                    ret = 10;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    HuPrcSleep(8);
+                    func_801078E0_modesel(0xC000);
+                    func_80107730_modesel(0, 0x310C);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310F);
+                        func_8010788C_modesel(0);
+                        if (func_80107838_modesel(0, 1, 1) == 0) {
+                            ret = 10;
+                            break;
+                        }
+                    }
+                    func_80107730_modesel(0, 0x3110);
+                    func_8010788C_modesel(0);
+                    func_8010DC6C_modesel(choice);
+                }
+            } else {
+                mes = 0x3118;
+                goto refuse7;
+            }
+            break;
+        default:
+            func_8010DC6C_modesel(choice);
+            break;
+        }
+        goto end7;
+    refuse7:
+        func_80107730_modesel(0, mes);
+        func_8010788C_modesel(0);
+        func_80107730_modesel(0, 0x3104);
+    end7:
+        if (ret != -1) {
+            func_80107730_modesel(0, 0x3117);
+            func_8010788C_modesel(0);
+            func_80107730_modesel(0, (u32)D_8010F454_modesel);
+        } else {
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 8:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            mes = 0x3118;
+            goto refuse8;
+        }
+        if (func_800465D0_main() == 0 && (GwSystem.playMode & 2)) {
+            mes = 0x3118;
+            goto refuse8;
+        }
+        func_80107730_modesel(0, 0x3109);
+        func_8010788C_modesel(0);
+        switch (func_80107838_modesel(0, 1, 0)) {
+        case 0:
+            ret = 9;
+            break;
+        case 1:
+            if (func_800465D0_main() == 1) {
+                if (!_CheckFlag(0x16)) {
+                    ret = 7;
+                } else {
+                    func_80107730_modesel(0, 0x310B);
+                    func_8010788C_modesel(0);
+                    HuPrcVSleep();
+                    func_80107730_modesel(0, 0x310D);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        func_80107730_modesel(0, 0x310E);
+                        func_8010788C_modesel(0);
+                        ret = 7;
+                    } else {
+                        mes = 0x3110;
+                        goto refuse8;
+                    }
+                }
+            } else if (GwSystem.playMode & 2) {
+                mes = 0x3118;
+                goto refuse8;
+            } else if (!_CheckFlag(0x28)) {
+                ret = 10;
+            } else {
+                func_80107730_modesel(0, 0x310B);
+                func_8010788C_modesel(0);
+                HuPrcVSleep();
+                func_80107730_modesel(0, 0x310C);
+                func_8010788C_modesel(0);
+                if (func_80107838_modesel(0, 1, 1) == 0) {
+                    func_80107730_modesel(0, 0x310F);
+                    func_8010788C_modesel(0);
+                    if (func_80107838_modesel(0, 1, 1) == 0) {
+                        ret = 10;
+                        break;
+                    }
+                }
+                func_80107730_modesel(0, 0x3110);
+                func_8010788C_modesel(0);
+                func_8010DC6C_modesel(choice);
+            }
+            break;
+        default:
+            func_8010DC6C_modesel(choice);
+            break;
+        }
+        goto end8;
+    refuse8:
+        func_80107730_modesel(0, mes);
+        func_8010788C_modesel(0);
+        func_80107730_modesel(0, 0x3103);
+    end8:
+        if (ret != -1) {
+            func_80107730_modesel(0, 0x3117);
+            func_8010788C_modesel(0);
+            func_80107730_modesel(0, (u32)D_8010F454_modesel);
+        } else {
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 9:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        func_80105FB4_modesel(1);
+        for (i = 0; i < 72; i++) {
+            if (GWMgUnlockCheck(i) != 0) {
+                break;
+            }
+        }
+        if (func_800465D0_main() == 0) {
+            func_80107730_modesel(0, 0x3118);
+            func_8010788C_modesel(0);
+            mes = 0x313E;
+        } else if (i == 72) {
+            func_80107730_modesel(0, 0x3111);
+            func_8010788C_modesel(0);
+            mes = 0x3105;
+        } else {
+            func_80107730_modesel(0, 0x3133);
+            func_8010788C_modesel(0);
+            if (func_80107838_modesel(0, 1, 0) == 0) {
+                ret = 13;
+                func_80107730_modesel(0, 0x3117);
+                func_8010788C_modesel(0);
+                func_80107730_modesel(0, (u32)D_8010F454_modesel);
+                func_801067C0_modesel(10, 0x14, 8, 8, 2);
+                break;
+            }
+            if (func_800465D0_main() == 0) {
+                mes = 0x313E;
+            } else {
+                mes = 0x3105;
+            }
+        }
+        func_80107730_modesel(0, mes);
+        func_80105F84_modesel(1);
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    case 10:
+        HuAudFXPlay(3);
+        func_801067C0_modesel(10, 0x13, 8, 8, 2);
+        if (func_800465D0_main() == 0 && GwStory.unk0 == 12) {
+            func_80106000_modesel(1);
+            func_80107730_modesel(0, 0x313C);
+            func_8010788C_modesel(0);
+            if (func_80107838_modesel(0, 1, 1) == 0) {
+                func_80107730_modesel(0, 0x313D);
+                func_8010788C_modesel(0);
+                func_80107730_modesel(0, (u32)D_8010F454_modesel);
+                ret = 14;
+            } else {
+                func_80107730_modesel(0, 0x3119);
+                func_80105FE4_modesel(1);
+            }
+        } else {
+            func_80106000_modesel(1);
+            if (func_800465D0_main() == 0) {
+                func_80107730_modesel(0, 0x3137);
+                func_8010788C_modesel(0);
+                answer = func_80107838_modesel(0, 1, 0);
+                if (answer == 0) {
+                    func_80107730_modesel(0, 0x3138);
+                    func_8010788C_modesel(0);
+                    func_801074F0_modesel(0);
+                    func_80106BA0_modesel(0, (u32)D_8010F454_modesel, 0xA0, D_8010F296_modesel + 4, 0, 0, 3);
+                }
+                if (answer == 1) {
+                    func_80107730_modesel(0, 0x3139);
+                    func_8010788C_modesel(0);
+                    answer = func_80107838_modesel(0, 1, 0);
+                    if (answer == 0) {
+                        func_8010ED3C_modesel();
+                    }
+                    if (answer == 1) {
+                        func_80107730_modesel(0, 0x313A);
+                        func_8010788C_modesel(0);
+                    }
+                }
+                func_80107730_modesel(0, 0x3122);
+            } else {
+                /* A random board: name its best player from the per-board win records
+                   (GwCommon 0x20 / 0x56, 9 bytes per entry), unless two share the best. */
+                u8 *rec;
+
+                best = -1;
+                k = (rand8() & 0xFF) * 0.039215688f;
+                name = func_8010F204_modesel(k);
+                chr = func_8010F214_modesel(k);
+                max = 0;
+                if (func_8010F234_modesel(k) == 2) {
+                    rec = (u8 *)&GwCommon + 0x56 + chr * 9;
+                } else {
+                    rec = (u8 *)&GwCommon + 0x20 + chr * 9;
+                }
+                for (i = 0; i < 8; i++) {
+                    if (max < rec[i]) {
+                        max = rec[i];
+                        best = i;
+                    }
+                }
+                for (i = 0; i < 8; i++) {
+                    if (rec[i] == max && best != i) {
+                        best = -1;
+                        break;
+                    }
+                }
+                mes = name + 0x3127;
+                func_801077FC_modesel(0, 0, mes);
+                func_80107730_modesel(0, 0x3125);
+                func_8010788C_modesel(0);
+                if (best != -1) {
+                    func_801077FC_modesel(0, 0, mes);
+                    func_801077FC_modesel(0, 1, best + 0x1C00);
+                    func_80107730_modesel(0, 0x3126);
+                    func_8010788C_modesel(0);
+                }
+                func_80107730_modesel(0, 0x3124);
+                HuPrcSleep(3);
+            }
+            func_80105FE4_modesel(1);
+        }
+        func_801067C0_modesel(10, 0x14, 8, 8, 2);
+        break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CD00_modesel);
+#endif
 
 /* Move the cursor from choice `cur` with the D-pad buttons `btn` (0x800 up, 0x400 down, 0x200 left,
    0x100 right); choices 0-2 cycle the mini-game slot D_80110BD8_modesel. Returns the new choice. */
