@@ -271,7 +271,7 @@ void func_8010DC6C_modesel(u32 arg0);
 void func_8010DE88_modesel(u32 arg0);
 void func_8010DF70_modesel(void);
 void func_8010DFB4_modesel(void);
-void func_8010DFD0_modesel(void);
+/* func_8010DFD0_modesel: fork C block */
 void func_8010E000_modesel(u32 arg0, s32 *arg1, s32 *arg2);
 void func_8010E138_modesel(u32 arg0, f32 *arg1, f32 *arg2, f32 *arg3);
 void func_8010E22C_modesel(s32 arg0, s32 arg1);
@@ -294,8 +294,22 @@ void func_8010ED00_modesel(void);
 void func_8010ED3C_modesel(void);
 s32 func_8010F1FC_modesel(void);
 s32 func_8010F204_modesel(s32 arg0); /* D_8010F2A0_modesel[arg0]; callers use v0 unmasked */
-u8 func_8010F214_modesel(s32 arg0);
+/* func_8010F214_modesel: fork C block */
 s32 func_8010F234_modesel(s32 arg0);
 u8 func_8010F258_modesel(s32 arg0);
+
+/* fork C */
+/* func_8010DFD0_modesel passes its a0 on to func_8010E000_modesel (was declared (void)). */
+void func_8010DFD0_modesel(u32 arg0);
+
+/* Item animation slots: D_80110CF0_modesel[21] (splat also names D_80110CF4/CF8). */
+typedef struct MsAnimSlot {
+    /* 0x00 */ s32 time;
+    /* 0x04 */ s32 len;
+    /* 0x08 */ omObjData *obj;
+} MsAnimSlot; /* size = 0xC */
+extern MsAnimSlot D_80110CF0_modesel[21];
+extern s32 D_80110DEC_modesel; /* rumble timer */
+s32 func_8010F214_modesel(s32 arg0); /* returns an int (was u8) */
 
 #endif

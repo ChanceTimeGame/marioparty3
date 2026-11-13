@@ -1,6 +1,7 @@
 #include "common.h"
 #include "modesel.h"
 #include "mallocblock.h"
+#include "game/vibrator.h"
 
 /* Camera view a model's HmfData points to at 0xBC (read by the debug print func_80107954_modesel). */
 typedef struct MsHmfCamView {
@@ -1190,11 +1191,110 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C094_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010C874_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CA30_modesel);
+void func_8010CA30_modesel(void) {
+    func_80106000_modesel(10);
+    func_80106000_modesel(11);
+    func_80106000_modesel(12);
+    func_80106000_modesel(13);
+    func_80106000_modesel(14);
+    func_80106000_modesel(15);
+    func_80106000_modesel(16);
+    func_80106000_modesel(17);
+    func_80106000_modesel(18);
+    func_80106000_modesel(19);
+    func_80106000_modesel(20);
+    func_80106000_modesel(21);
+    func_80106000_modesel(22);
+    func_80106000_modesel(23);
+    func_80106000_modesel(24);
+    func_80106000_modesel(25);
+    func_80106000_modesel(26);
+    func_80106000_modesel(27);
+    func_80106000_modesel(28);
+    func_80106000_modesel(29);
+    func_80106000_modesel(30);
+    func_80106000_modesel(31);
+    func_80106000_modesel(32);
+    func_80106000_modesel(33);
+    func_80106000_modesel(34);
+    func_80106000_modesel(35);
+    func_80106000_modesel(36);
+    func_80106000_modesel(37);
+    func_80106000_modesel(38);
+    func_80106000_modesel(39);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CB34_modesel);
+void func_8010CB34_modesel(void) {
+    func_80105F20_modesel(39);
+    func_80105F20_modesel(38);
+    func_80105F20_modesel(36);
+    func_80105F20_modesel(35);
+    func_80105F20_modesel(26);
+    func_80105F20_modesel(25);
+    func_80105F20_modesel(23);
+    func_80105F20_modesel(22);
+    func_80105F20_modesel(37);
+    func_80105F20_modesel(24);
+    func_80105F20_modesel(34);
+    func_80105F20_modesel(21);
+    func_80105F20_modesel(33);
+    func_80105F20_modesel(20);
+    func_80105F20_modesel(32);
+    func_80105F20_modesel(19);
+    func_80105F20_modesel(31);
+    func_80105F20_modesel(30);
+    func_80105F20_modesel(18);
+    func_80105F20_modesel(17);
+    func_80105F20_modesel(16);
+    func_80105F20_modesel(15);
+    func_80105F20_modesel(29);
+    func_80105F20_modesel(28);
+    func_80105F20_modesel(14);
+    func_80105F20_modesel(13);
+    func_80105F20_modesel(12);
+    func_80105F20_modesel(11);
+    func_80105F20_modesel(27);
+    func_80105F20_modesel(10);
+}
 
+#ifdef NON_MATCHING
+/* The two-choice prompt (NON_MATCHING: retail enters the loop with a0 = 14 as a constant and lays the
+   B branch out with a j instead of branch-likely; logic checked against the asm): the cursor sprite moves between choices 14 and 15; A returns the choice, B -1. */
+s32 func_8010CC38_modesel(void) {
+    s32 x;
+    s32 y;
+    s32 btn;
+    u32 sel;
+
+    func_8010C094_modesel();
+    sel = 14;
+    func_8010C874_modesel();
+    while (TRUE) {
+        func_8010E000_modesel(sel, &x, &y);
+        func_8010601C_modesel(1, x, y);
+        HuPrcVSleep();
+        btn = D_800D5558_main[0];
+        btn |= func_80109A58_modesel(0);
+        if (!(btn & 0x8000)) {
+            if (btn & 0x4000) {
+                sel = -1;
+            } else {
+                if (btn & 0xF00) {
+                    sel = (sel == 14) ? 15 : 14;
+                    func_8010E280_modesel(1, sel);
+                }
+                continue;
+            }
+        }
+        break;
+    }
+    func_8010CA30_modesel();
+    func_8010CB34_modesel();
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CC38_modesel);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010CD00_modesel);
 
@@ -1204,61 +1304,205 @@ INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DC6C_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DE88_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DF70_modesel);
+void func_8010DF70_modesel(void) {
+    func_80105EA8_modesel(1, 0x88);
+    func_80106194_modesel(1, 5);
+    func_8010601C_modesel(1, 160, 113);
+    func_80105F84_modesel(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DFB4_modesel);
+void func_8010DFB4_modesel(void) {
+    func_80105F20_modesel(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010DFD0_modesel);
+/* Cursor sprite to the position of choice arg0. */
+void func_8010DFD0_modesel(u32 arg0) {
+    s32 x;
+    s32 y;
+
+    func_8010E000_modesel(arg0, &x, &y);
+    func_8010601C_modesel(1, x, y);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E000_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E138_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E22C_modesel);
+void func_8010E22C_modesel(s32 no, s32 dy) {
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E280_modesel);
+    func_80106074_modesel(no, &x, &y);
+    y += dy;
+    func_8010601C_modesel(no, x, y);
+}
+
+/* Slide sprite no to choice arg1's position over eight frames. */
+void func_8010E280_modesel(s32 no, u32 arg1) {
+    s32 x;
+    s32 y;
+    s32 x0;
+    s32 y0;
+    f32 t;
+    s32 i;
+
+    func_8010E000_modesel(arg1, &x, &y);
+    func_80106074_modesel(no, &x0, &y0);
+    for (i = 0; i < 8; i++) {
+        t = i * 0.14285715f;
+        func_8010E000_modesel(arg1, &x, &y);
+        func_8010601C_modesel(no, x0 + t * (x - x0), y0 + t * (y - y0));
+        HuPrcVSleep();
+    }
+    func_8010601C_modesel(no, x, y);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E3A4_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E50C_modesel);
+void func_8010E50C_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E558_modesel);
+    for (i = 0; i < 21; i++) {
+        D_80110CF0_modesel[i].obj = NULL;
+        D_80110CF0_modesel[i].time = 0;
+        D_80110CF0_modesel[i].len = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E5B8_modesel);
+void func_8010E558_modesel(s32 no) {
+    if (D_80110CF0_modesel[no].obj != NULL) {
+        omDelObj(D_80110CF0_modesel[no].obj);
+    }
+    D_80110CF0_modesel[no].obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E5F0_modesel);
+void func_8010E5B8_modesel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E6D8_modesel);
+    for (i = 0; i < 21; i++) {
+        func_8010E558_modesel(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E790_modesel);
+/* Per-frame object of an item animation: drives func_8010E3A4_modesel from 0 to 1, then ends. */
+void func_8010E5F0_modesel(omObjData *obj) {
+    u32 no = obj->work[0];
+    s32 slot = no;
+    f32 t = (f32)D_80110CF0_modesel[no].time / D_80110CF0_modesel[no].len;
+
+    if (D_80110CF0_modesel[no].time <= D_80110CF0_modesel[no].len - 1) {
+        func_8010E3A4_modesel(no, t);
+        D_80110CF0_modesel[no].time++;
+    } else {
+        func_8010E3A4_modesel(no, t);
+        func_8010E558_modesel(slot);
+        D_80110CF0_modesel[no].time = 0;
+    }
+}
+
+void func_8010E6D8_modesel(s32 no) {
+    omObjData *obj;
+
+    if (D_80110CF0_modesel[no].obj == NULL) {
+        obj = omAddObj(6, 0, 0, -1, func_8010E5F0_modesel);
+        obj->work[0] = no;
+        D_80110CF0_modesel[no].obj = obj;
+        if (no < 10) {
+            if (no >= 7) {
+                D_80110CF0_modesel[no].len = 45;
+            } else {
+                D_80110CF0_modesel[no].len = 20;
+            }
+        } else {
+            D_80110CF0_modesel[no].len = 20;
+        }
+    }
+}
+
+void func_8010E790_modesel(Process *proc) {
+    omDelPrcObj(proc);
+    func_80013350_main(0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E7B4_modesel);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010E984_modesel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EBC4_modesel);
+void func_8010EBC4_modesel(void) {
+    func_80105F20_modesel(6);
+    func_80105F20_modesel(7);
+    func_80105F20_modesel(8);
+    func_80105F20_modesel(9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EBF8_modesel);
+void func_8010EBF8_modesel(void) {
+    func_80105FE4_modesel(6);
+    func_80105FE4_modesel(7);
+    if (func_800465D0_main() != 1) {
+        func_80105FE4_modesel(8);
+        func_80105FE4_modesel(9);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EC40_modesel);
+void func_8010EC40_modesel(void) {
+    func_80106000_modesel(6);
+    func_80106000_modesel(7);
+    func_80106000_modesel(8);
+    func_80106000_modesel(9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010EC74_modesel);
+f32 func_8010EC74_modesel(f32 x, f32 y) {
+    return -(atan2df(y, x) - 90.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ECAC_modesel);
+/* Rumble pulse every 12 frames. */
+void func_8010ECAC_modesel(omObjData *obj) {
+    if (D_80110DEC_modesel == 0) {
+        RepeatVibrator(0, 5, 0, 5);
+    }
+    {
+        s32 *timer = &D_80110DEC_modesel;
+        *timer = (*timer >= 11) ? 0 : *timer + 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ED00_modesel);
+void func_8010ED00_modesel(void) {
+    D_80110DEC_modesel = 0;
+    omAddObj(6, 0, 0, -1, func_8010ECAC_modesel);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010ED3C_modesel);
 
 void func_8010F1F4_modesel(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F1FC_modesel);
+s32 func_8010F1FC_modesel(void) {
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F204_modesel);
+s32 func_8010F204_modesel(s32 no) {
+    return D_8010F2A0_modesel[no];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F214_modesel);
+s32 func_8010F214_modesel(s32 no) {
+    s32 v = D_8010F2A0_modesel[no];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F234_modesel);
+    if (v >= 6) {
+        v -= 6;
+    }
+    return v;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010F258_modesel);
+s32 func_8010F234_modesel(s32 no) {
+    s32 v = 2;
+    s32 t = D_8010F2A0_modesel[no];
+
+    if (t < 6) {
+        v = 1;
+    }
+    return v;
+}
+
+u8 func_8010F258_modesel(s32 no) {
+    return D_8010F2B0_modesel[no];
+}
