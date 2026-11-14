@@ -1,23 +1,76 @@
 #include "common.h"
 #include "option.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801059A0_option);
+void func_801059A0_option(void) {
+    ovlEventCall(D_801134B0_option, omovlevtno);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801059D0_option);
+OP_FILE_END()
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105C14_option);
+void func_801059D0_option(void) {
+    Vec pos;
+    Vec target;
+    Vec up;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105C38_option);
+    omInitObjMan(0x40, 0x20);
+    func_800142A0_main(0x20);
+    func_8004A208_main();
+    func_8000B5F0_main(1);
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    pos = D_801139E0_option;
+    target = D_801139EC_option;
+    up = D_801139F8_option;
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 41.0f, 80.0f, 8000.0f);
+    Hu3DCamSetPositionOrientation(0, &pos, &target, &up);
+    func_80030030_main(1.0f);
+    pfInit();
+    func_8005A6B0_main();
+    HmfLightMaxSet(3);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0x40, 0x40, 0x60);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightColorSet(3, 0, 0, 0);
+    HmfLightDirSet(1, 0.0f, 64.0f, 192.0f);
+    D_800D2132_main = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105C5C_option);
+void func_80105C14_option(void) {
+    func_801059D0_option();
+    func_80108A68_option();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105C80_option);
+void func_80105C38_option(void) {
+    func_801059D0_option();
+    func_80108A68_option();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105CA4_option);
+void func_80105C5C_option(void) {
+    func_801059D0_option();
+    func_80108A68_option();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105CC8_option);
+void func_80105C80_option(void) {
+    func_801059D0_option();
+    func_80108A68_option();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105CEC_option);
+void func_80105CA4_option(void) {
+    func_801059D0_option();
+    func_80108AAC_option();
+}
+
+void func_80105CC8_option(void) {
+    func_801059D0_option();
+    func_80108AAC_option();
+}
+
+void func_80105CEC_option(void) {
+    func_801059D0_option();
+    func_80108AF0_option();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105D10_option);
 
