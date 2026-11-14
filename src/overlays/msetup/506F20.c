@@ -939,7 +939,70 @@ void func_8010F43C_msetup(s16 model, char *name, Vec2f *out) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F43C_msetup);
 #endif
 
+// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10); same logic
+#ifdef NON_MATCHING
+void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set) {
+    Vec pos;
+    s16 *tbl[4];
+    MsLift *lift;
+    Vec *from;
+    f32 t;
+    f32 ry;
+    s32 i;
+    s32 j;
+
+    if (count == 3) {
+        for (i = 0; i < 4; i++) {
+            tbl[i] = D_8011A078_msetup[i];
+        }
+    } else {
+        for (i = 0; i < 4; i++) {
+            tbl[i] = D_8011A058_msetup[i];
+        }
+    }
+    for (i = 0; i < count; i++) {
+        lifts[i].slot = tbl[set][i];
+    }
+    for (j = 0; j < 15; j++) {
+        t = sindf(j * (90.0f / 14.0f));
+        for (i = 0; i < count; i++) {
+            lift = &lifts[i];
+            from = &D_8011A028_msetup[lift->curSlot];
+            pos = D_8011A028_msetup[lift->slot];
+            pos.x -= from->x;
+            pos.y -= from->y;
+            pos.z -= from->z;
+            pos.x = t * pos.x;
+            pos.y = t * pos.y;
+            pos.z = t * pos.z;
+            pos.x += from->x;
+            pos.y += from->y;
+            pos.z += from->z;
+            Hu3DModelPosSet(lift->model, pos.x, pos.y, pos.z);
+            if (lift->slot == 0) {
+                ry = sindf(j * (90.0f / 14.0f)) * 180.0f;
+            } else {
+                lift = &lifts[i];
+                if (lift->curSlot != 0) {
+                    continue;
+                }
+                ry = 180.0f - sindf(j * (90.0f / 14.0f)) * 180.0f;
+            }
+            Hu3DModelRotSet(lift->model, 0.0f, ry, 0.0f);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < count; i++) {
+        lift = &lifts[i];
+        from = &D_8011A028_msetup[lift->slot];
+        Hu3DModelPosSet(lift->model, from->x, from->y, from->z);
+        lift->pos = *from;
+        lift->curSlot = lift->slot;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F4E0_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
 

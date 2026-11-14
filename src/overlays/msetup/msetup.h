@@ -37,17 +37,6 @@ typedef struct MsCamKey {
 /* Called by func_801068F4_msetup each frame (func_80107F88_msetup). */
 typedef void (*MsCamFunc)(s16, s16, s16);
 
-/* One Star Lift (the 3D lift models); func_8010E32C_msetup fills an array of them on the stack. */
-typedef struct MsLift {
-    /* 0x00 */ Vec pos;
-    /* 0x0C */ Vec rot;
-    /* 0x18 */ s16 model;
-    /* 0x1A */ s16 unk1A;
-    /* 0x1C */ s32 unk1C;
-    /* 0x20 */ s16 unk20;
-    /* 0x22 */ s16 unk22;
-} MsLift; /* size = 0x24 */
-
 /* user_data of the func_80117820_msetup process (D_8011A882_msetup, memset 6 by its creators):
    state indexes the D_80119FF0_msetup table of state functions, each returning the next state. */
 typedef struct MsSetupWork {
@@ -280,13 +269,9 @@ s16 func_8010E00C_msetup(omObjData *obj, s16 arg1);
 void func_8010E044_msetup(omObjData *obj, s16 arg1, s16 arg2, f32 x, f32 y, f32 z);
 void func_8010E09C_msetup(omObjData *obj);
 omObjData * func_8010E21C_msetup(void);
-void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
-void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
-void func_8010E4D8_msetup(MsLift *lifts, s32 count);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
 void func_8010F33C_msetup(s16 model, Vec *out, f32 (*mtx)[4]);
-void func_8010F4E0_msetup(s32 arg0, s16 arg1, s32 arg2);
 s32 func_8010F87C_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_8011035C_msetup(void); /* process */
 void func_80110954_msetup(void); /* process */
@@ -318,6 +303,20 @@ void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
 /* fork C */
+/* One Star Lift (the 3D lift models); func_8010E32C_msetup fills an array of them on the stack. */
+typedef struct MsLift {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ s16 model;
+    /* 0x1A */ s16 unk1A;
+    /* 0x1C */ s16 slot;    /* D_8011A028_msetup position the lift moves to (func_8010F4E0_msetup) */
+    /* 0x1E */ s16 curSlot; /* position it is at */
+    /* 0x20 */ s16 unk20;   /* bit 0: skipped by the move functions */
+    /* 0x22 */ s16 unk22;
+} MsLift; /* size = 0x24 */
+void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
+void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
+void func_8010E4D8_msetup(MsLift *lifts, s32 count);
 /* user_data of the func_8010D6D0_msetup sprite process (func_801132C4_msetup and
    func_80117A3C_msetup fill one per sprite). */
 typedef struct MsSprWork {
@@ -400,5 +399,10 @@ void func_80017CD0_main(f32 (*mf)[4], f32 sx, f32 sy, f32 sz);
 void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void func_80018044_main(f32 (*a)[4], f32 (*b)[4], f32 (*c)[4]);
 void func_80016B00_main(s16 model, s16 arg1, char *name, f32 (*mtx)[4][4]);
+
+extern Vec D_8011A028_msetup[4];      /* Star Lift positions */
+extern s16 D_8011A058_msetup[4][4];   /* lift slot per set (2-player layouts?) */
+extern s16 D_8011A078_msetup[4][4];   /* lift slot per set when 3 lifts */
+void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set);
 
 #endif
