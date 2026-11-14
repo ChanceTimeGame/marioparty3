@@ -310,8 +310,6 @@ void func_8011035C_msetup(void); /* process */
 void func_80110954_msetup(void); /* process */
 s32 func_80111650_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_80112804_msetup(void); /* process */
-s16 func_80112E08_msetup(s16 arg0, s16 *arg1, void *arg2);
-s16 func_80112F5C_msetup(s16 *arg0, u16 arg1, s16 *arg2, void *arg3);
 s32 func_801132C4_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113DEC_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113E20_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
@@ -335,6 +333,19 @@ void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
 /* fork D */
+/* user_data of a func_8010D6D0_msetup cursor process (801132C4 keeps two on its stack). */
+typedef struct MsCursorWork {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 (*pos)[2]; /* per-choice x, y (NULL: fixed) */
+    /* 0x08 */ s32 file;      /* sprite data id */
+    /* 0x0C */ s16 sel;
+    /* 0x0E */ s16 state;     /* 1 show, 2 hide, -1 kill */
+    /* 0x10 */ s16 steps;
+    /* 0x12 */ s16 attr;
+} MsCursorWork; /* size = 0x14 */
+s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor);
+s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor);
 s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */
 
 #endif

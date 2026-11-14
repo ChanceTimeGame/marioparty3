@@ -164,9 +164,150 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7AC_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112804_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112E08_msetup);
+extern s32 D_80119E18_msetup[2];
 
+/* Two-way choice on a func_8010D6D0_msetup cursor: left/up = 0, right/down = 1; A keeps it,
+   B returns -1. */
+s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor) {
+    s16 prev;
+    s32 btn;
+
+    func_8010B82C_msetup(0x1514);
+    prev = -1;
+    func_8010B858_msetup();
+    cursor->sel = sel;
+    HuPrcVSleep();
+    cursor->steps = 4;
+    cursor->state = 1;
+    func_8010D684_msetup(D_8011A948_msetup, pad);
+    while (1) {
+        if (prev != sel) {
+            prev = sel;
+            func_8010B82C_msetup(D_80119E18_msetup[sel]);
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, pad);
+        if (btn & (U_JPAD | R_JPAD)) {
+            sel = 0;
+        } else if (btn & (D_JPAD | L_JPAD)) {
+            sel = 1;
+        }
+        if (sel != cursor->sel) {
+            HuAudFXPlay(1);
+            cursor->sel = sel;
+        }
+        if (btn & B_BUTTON) {
+            HuAudFXPlay(4);
+            sel = -1;
+            break;
+        }
+        if (btn & A_BUTTON) {
+            HuAudFXPlay(2);
+            break;
+        }
+        HuPrcVSleep();
+    }
+    cursor->state = 2;
+    return sel;
+}
+
+/* COM difficulty: `individual` != 0 sets each COM player (D_8011AA40_msetup on) in turn, else all
+   at once; `count` levels. Returns the level chosen, -1 on cancel. */
+#ifdef NON_MATCHING
+/* Residue: retail builds D_8011AA40_msetup's address once (lui/addiu, lbu 0/1) and never hoists
+   D_8011A9F2_msetup's base out of the loop; this C hoists it (one more saved register, frame +8). */
+s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor) {
+    s16 players[4];
+    u8 *cfg;
+    s16 idx;
+    s16 n;
+    s16 p;
+    s16 prev;
+    s16 sel;
+    s16 coms;
+    s32 btn;
+    s32 i;
+
+    cfg = &D_8011AA40_msetup;
+    p = cfg[0];
+    coms = cfg[1]; /* D_8011AA41_msetup */
+    for (n = 0; p < 4; p++) {
+        players[n++] = p;
+    }
+    n = 0;
+    prev = -1;
+    cursor->steps = 0;
+    sel = D_8011AA38_msetup[players[0]];
+    cursor->sel = sel;
+    HuPrcVSleep();
+    HuPrcVSleep();
+    cursor->steps = 4;
+    cursor->state = 1;
+    func_8010D684_msetup(D_8011A948_msetup, pad);
+while (1) {
+        if (prev != n) {
+            s32 mess;
+
+            if (individual != 0) {
+                func_8010B968_msetup(D_8011AA34_msetup[players[n]] + 0x1C00, 0);
+                mess = 0x1518;
+            } else {
+                mess = 0x1517;
+            }
+            prev = n;
+            func_8010B82C_msetup(mess);
+            sel = D_8011AA38_msetup[players[n]];
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, pad);
+        if (btn & (U_JPAD | R_JPAD)) {
+            sel++;
+            if (sel >= count) {
+                sel = count - 1;
+            }
+        } else if (btn & (D_JPAD | L_JPAD)) {
+            sel--;
+            if (sel < 0) {
+                sel = 0;
+            }
+        }
+        if (sel != cursor->sel) {
+            HuAudFXPlay(1);
+            cursor->sel = sel;
+        }
+        if (btn & B_BUTTON) {
+            HuAudFXPlay(4);
+            if (individual == 0 || --n < 0) {
+                sel = -1;
+                break;
+            }
+            idx = players[n];
+            ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 6;
+        }
+        if (btn & A_BUTTON) {
+            HuAudFXPlay(2);
+            if (individual != 0) {
+                idx = players[n];
+                D_8011AA38_msetup[idx] = sel;
+                ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 5;
+                if (++n >= coms) {
+                    break;
+                }
+            } else {
+                for (i = 0; i < coms; i++) {
+                    idx = players[i];
+                    D_8011AA38_msetup[idx] = sel;
+                    ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 5;
+                }
+                break;
+            }
+        }
+        HuPrcVSleep();
+    }
+    cursor->state = 2;
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112F5C_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801132C4_msetup);
 
