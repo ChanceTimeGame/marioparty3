@@ -411,3 +411,9 @@ void func_8010C8B4_inst(void) {
 void func_8010C8D0_inst(void) {
     D_8010D5B0_inst = 1;
 }
+
+/* .data (8010D5B0) */
+s8 D_8010D5B0_inst = 0;
+s8 D_8010D5B1_inst = 0;
+s32 D_8010D5B4_inst = 0;
+s32 D_8010D5B8_inst = -64; /* the window's drop-in y */

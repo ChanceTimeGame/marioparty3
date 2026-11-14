@@ -32,15 +32,36 @@ extern s8 D_8010D40A_inst;
 extern s8 D_8010D40C_inst[];
 extern f32 D_8010D414_inst;
 extern InstHookList *D_8010D4C0_inst[][2];
-extern s8 D_8010D550_inst;
-extern s8 D_8010D551_inst;
-extern u8 D_8010D554_inst[];
-extern s32 D_8010D558_inst;
-extern char *D_8010D55C_inst[];
-extern s32 D_8010D57C_inst[];
-extern char *D_8010D58C_inst[];
-extern s32 D_8010D59C_inst;
-extern s32 D_8010D5A0_inst;
+extern const char D_8010DA24_inst[];
+extern const char D_8010DA34_inst[];
+extern const char D_8010DA44_inst[];
+extern const char D_8010DA54_inst[];
+extern const char D_8010DA64_inst[];
+extern const char D_8010DA74_inst[];
+extern const char D_8010DA84_inst[];
+extern const char D_8010DA94_inst[];
+extern const char D_8010DAA4_inst[];
+extern const char D_8010DAB0_inst[];
+extern const char D_8010DABC_inst[];
+extern const char D_8010DAC8_inst[];
+/* .data (8010D550), defined here: after the last function KMC as puts that function's
+   delay-slot nop at the start of .text. */
+s8 D_8010D550_inst = 0;
+s8 D_8010D551_inst = 0;
+u8 D_8010D554_inst[4] = { 0, 0, 0, 0 }; /* hook colour per player */
+s32 D_8010D558_inst = 0;
+/* Per character: the grid part the hook hangs from. */
+char *D_8010D55C_inst[8] = {
+    (char *)D_8010DA94_inst, (char *)D_8010DA84_inst, (char *)D_8010DA74_inst, (char *)D_8010DA64_inst,
+    (char *)D_8010DA54_inst, (char *)D_8010DA44_inst, (char *)D_8010DA34_inst, (char *)D_8010DA24_inst,
+};
+s32 D_8010D57C_inst[4] = { 0x17002A, 0x17002B, 0x17002C, 0x17002D }; /* hook model per colour */
+/* Per hook colour: its part name. */
+char *D_8010D58C_inst[4] = {
+    (char *)D_8010DAC8_inst, (char *)D_8010DABC_inst, (char *)D_8010DAB0_inst, (char *)D_8010DAA4_inst,
+};
+s32 D_8010D59C_inst = 0;
+s32 D_8010D5A0_inst = 0;
 extern omObjData *D_8010DC90_inst;
 extern void (*D_8010DC94_inst)(omObjData *);
 extern f32 D_8010DC50_inst[4][4];
@@ -379,3 +400,4 @@ void func_8010B628_inst(omObjData *obj) {
     }
     D_8010DC94_inst = func_8010B038_inst;
 }
+

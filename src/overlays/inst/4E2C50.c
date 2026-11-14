@@ -124,3 +124,7 @@ void func_8010A0E8_inst(omObjData *obj) {
 
 void func_8010A1BC_inst(omObjData *obj) {
 }
+
+/* .data (8010D540) */
+s32 D_8010D540_inst = 0;
+s32 D_8010D544_inst = 0;
