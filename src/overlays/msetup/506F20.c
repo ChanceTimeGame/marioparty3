@@ -12,8 +12,6 @@ extern f32 D_8011A0A8_msetup[4]; /* Star Lift rotY per position (D_8011A028_mset
 
 extern u8 D_800D20B8_main[16][3];
 extern u8 D_800D5570_main[16][3];
-void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
-s16 func_8000B13C_main(s32 file);
 
 
 /* fork B: main declarations without a shared prototype */
@@ -2270,7 +2268,330 @@ void func_8011035C_msetup(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8011035C_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80110954_msetup);
+/* One cursor of the character select board (user_data MsChrWork, owner func_80111650_msetup):
+   a player (or, player 4, the COMs) picks work->unk16 of the eight slots; each pick puts a badge
+   esprite on the slot. work->state: 1 show, 2 hide, -1 kill. work->result: 1 done, -1 cancelled. */
+void func_80110954_msetup(void) {
+    s16 id[4];
+    s16 chosen[4];
+    s16 spr[4];
+    s16 eslot[4];
+    u8 used[8];
+    s16 prevBtn;
+    MsChrWork *work;
+    s16 *cur;
+    s32 *mess;
+    s16 sprId;
+    s16 slot;
+    s16 prevState;
+    s16 shown;
+    s16 alpha;
+    s16 alphaStep;
+    s16 x;
+    s16 y;
+    s16 x0;
+    s16 y0;
+    s16 tx;
+    s16 ty;
+    s16 dx;
+    s16 dy;
+    s16 ofsX;
+    s16 ofsY;
+    s16 prevSel;
+    s16 time;
+    s16 help;
+    s16 sel;
+    s16 n;
+    s32 i;
+    s32 btn;
+    s16 redraw;
+    s16 active;
+    s16 next;
+    s32 j;
+    MsChrSlot *slots;
+    f32 s;
+
+    work = HuPrcCurrentGet()->user_data;
+    help = 0;
+    switch (D_8011A938_msetup) {
+    case 0:
+    default:
+        mess = D_80119CC0_msetup;
+        break;
+    case 1:
+        mess = D_80119CE0_msetup;
+        help = 1;
+        break;
+    case 5:
+        mess = D_80119D00_msetup;
+        break;
+    case 6:
+        mess = D_80119D20_msetup;
+        break;
+    }
+    if (work->player < 0) {
+        sprId = func_8000B838_main(0x11000E);
+        slot = InitEspriteSlot(sprId, 0, 1);
+    } else {
+        sprId = func_8000B838_main(0x140042);
+        /* retail called it unprototyped here (lh of the s16 player, promoted to int) */
+        slot = ((s16 (*)())InitEspriteSlot)(sprId, work->player, 1);
+    }
+    func_8000BCC8_main(slot, 1);
+    cur = work->cur;
+    ofsX = -((work->player & 1) == 0) | 1;
+    ofsY = -((work->player & 2) == 0) | 1;
+    if (work->pos != NULL && work->sel >= 0) {
+        work->cur[0] = ofsX + work->pos[work->sel][0];
+        work->cur[1] = ofsY + work->pos[work->sel][1];
+    }
+    x = tx = cur[0];
+    y = ty = cur[1];
+    func_8000BBD4_main(slot, x, ty);
+    func_8000BB94_main(slot);
+    shown = 0;
+    alpha = 0;
+    alphaStep = 0;
+    prevSel = work->sel;
+    time = 0;
+    prevState = work->state;
+    x0 = x;
+    y0 = y;
+    dy = 0;
+    dx = 0;
+    sel = prevSel;
+    work->result = 0;
+    n = 0;
+    active = 0;
+    for (i = 0; i < work->unk16; i = j) {
+        id[i] = work->player + (j = i + 1);
+    }
+    HuPrcVSleep();
+    for (i = 0; i < 4; i++) {
+        spr[i] = eslot[i] = -1;
+    }
+    for (i = 0; i < work->unk16; i++) {
+        spr[i] = func_8000B838_main(D_80119AD0_msetup[work->player]);
+        eslot[i] = InitEspriteSlot(spr[i], 0, 1);
+        func_8000BCC8_main(eslot[i], 2);
+        func_8000BE5C_main(eslot[i], 0.75f, 0.75f);
+        func_8000BBFC_main(eslot[i], 0x100);
+        func_8000BB94_main(eslot[i]);
+    }
+    redraw = 0;
+    HuPrcVSleep();
+    if (help) {
+        D_8011A906_msetup = sel;
+    }
+    while (TRUE) {
+        if (prevState != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                alphaStep = 0x40;
+                if (shown != 0) {
+                    break;
+                }
+                if (work->result == 1) {
+                    n--;
+                    i = chosen[n];
+                    if (id[n] == work->slots[i].owner) {
+                        work->slots[i].owner = 0;
+                        HuSprAttrSet(work->slots[i].grp, work->slots[i].spr1, 0x8000);
+                        HuSprAttrReset(work->slots[i].grp, work->slots[i].spr0, 0x8000);
+                        func_8000BB94_main(eslot[n]);
+                    }
+                }
+                work->result = 0;
+                alpha = 0;
+                func_8000BBFC_main(slot, 0);
+                func_8000BB54_main(slot);
+                func_8010D684_msetup(work->pad, &prevBtn);
+                func_8010D684_msetup(work->pad, &prevBtn);
+                shown = 1;
+                redraw = 1;
+                sel = prevSel;
+                active = 1;
+                if ((work->slots[sel].owner & 0xFFEF) == 0) {
+                    work->slots[sel].owner = 0x10;
+                }
+                break;
+            case 2:
+                if (shown == 0) {
+                    break;
+                }
+                alphaStep = -0x40;
+                shown = 0;
+                active = 0;
+                if ((work->slots[sel].owner & 0xFFEF) == 0) {
+                    work->slots[sel].owner = 0;
+                }
+                HuSprAttrSet(work->slots[sel].grp, work->slots[sel].spr1, 0x8000);
+                HuSprAttrReset(work->slots[sel].grp, work->slots[sel].spr0, 0x8000);
+                break;
+            case -1:
+                func_8000C184_main(slot);
+                HuSprKill(sprId);
+                for (i = 0; i < 4; i++) {
+                    if (eslot[i] >= 0) {
+                        func_8000C184_main(eslot[i]);
+                    }
+                    if (spr[i] >= 0) {
+                        HuSprKill(spr[i]);
+                    }
+                }
+                work->state = 100;
+                while (TRUE) {
+                    HuPrcVSleep();
+                }
+            }
+            prevState = work->state;
+        }
+        if (shown != 0) {
+            if (redraw != 0) {
+                if (work->player == 4) {
+                    func_8010B82C_msetup(mess[sel]);
+                }
+                if (help) {
+                    D_8011A906_msetup = sel;
+                }
+                HuSprAttrSet(work->slots[sel].grp, work->slots[sel].spr0, 0x8000);
+                HuSprAttrReset(work->slots[sel].grp, work->slots[sel].spr1, 0x8000);
+                redraw = 0;
+            }
+            btn = func_8010D684_msetup(work->pad, &prevBtn);
+            if (btn & 0x4000) {
+                HuAudFXPlay(4);
+                if (n != 0) {
+                    n--;
+                    i = chosen[n];
+                    if (id[n] == work->slots[i].owner) {
+                        work->slots[i].owner = 0;
+                        if (i == sel) {
+                            work->slots[i].owner = 0x10;
+                        } else {
+                            HuSprAttrSet(work->slots[i].grp, work->slots[i].spr1, 0x8000);
+                            HuSprAttrReset(work->slots[i].grp, work->slots[i].spr0, 0x8000);
+                        }
+                        func_8000BB94_main(eslot[n]);
+                    }
+                    work->result = 0;
+                    active = 1;
+                } else {
+                    work->result = -1;
+                }
+            } else if (active == 0) {
+                goto moved;
+            } else if (btn & 0x8000) {
+                if ((work->slots[sel].owner & 0xFFEF) != 0) {
+                    goto pick;
+                }
+                if (work->player != 4) {
+                    func_8004AC5C_main(D_80119CB0_msetup[sel], work->pad);
+                    RepeatVibrator(work->pad, 5, 0, 5);
+                } else {
+                    HuAudFXPlay(D_80119CB0_msetup[sel]);
+                }
+                work->slots[sel].owner = id[n];
+                HuSprAttrSet(work->slots[sel].grp, work->slots[sel].spr0, 0x8000);
+                HuSprAttrReset(work->slots[sel].grp, work->slots[sel].spr1, 0x8000);
+                chosen[n] = sel;
+                func_8000BBD4_main(eslot[n], tx, ty + 13);
+                func_8000BB54_main(eslot[n]);
+                if (++n >= work->unk16) {
+                    work->result = 1;
+                    active = 0;
+                } else {
+                    for (i = sel + 1; i < 8; i++) {
+                        if (work->slots[i].owner == 0) {
+                            break;
+                        }
+                    }
+                    if (i < 8) {
+                        sel = i;
+                    } else {
+                        for (i = 0; i < sel; i++) {
+                            if (work->slots[i].owner == 0) {
+                                break;
+                            }
+                        }
+                        sel = i = (i < 8) ? i : 0;
+                    }
+                    work->sel = sel;
+                    work->slots[(s16)i].owner = 0x10;
+                    redraw = 1;
+                }
+            }
+        pick:
+            if (active != 0 && (btn & 0xF00)) {
+                for (i = 0; i < 8; i++) {
+                    used[i] = work->slots[i].owner;
+                }
+                next = func_8010D4DC_msetup(work->pos, used, 8, sel, work->pad, (s16)btn);
+                if (next >= 0) {
+                    HuAudFXPlay(1);
+                    if ((work->slots[sel].owner & 0xFFEF) == 0) {
+                        work->slots[sel].owner = 0;
+                    }
+                    HuSprAttrSet(work->slots[sel].grp, work->slots[sel].spr1, 0x8000);
+                    HuSprAttrReset(work->slots[sel].grp, work->slots[sel].spr0, 0x8000);
+                    sel = next;
+                    work->sel = sel;
+                    work->slots[sel].owner = 0x10;
+                    redraw = 1;
+                }
+            }
+        }
+    moved:
+        if (prevSel != work->sel) {
+            prevSel = work->sel;
+            if (work->pos != NULL) {
+                cur[0] = ofsX + work->pos[prevSel][0];
+                cur[1] = ofsY + work->pos[prevSel][1];
+            }
+            sel = prevSel;
+        }
+        if (tx != cur[0] || ty != cur[1]) {
+            tx = cur[0];
+            ty = cur[1];
+            if ((time = work->unk10) != 0) {
+                x0 = x;
+                y0 = y;
+                dx = tx - x;
+                dy = ty - y;
+            }
+        }
+        if (alphaStep != 0) {
+            alpha += alphaStep;
+            if (alpha >= 0x100) {
+                alpha = 0xFF;
+                alphaStep = 0;
+                work->state = 0;
+            } else if (alpha < 0) {
+                alpha = 0;
+                alphaStep = 0;
+                func_8000BB94_main(slot);
+                shown = 0;
+                work->state = 0;
+            }
+            func_8000BBFC_main(slot, alpha);
+        }
+        if ((x != tx) | (y != ty)) {
+            if (time == 0) {
+                x = tx;
+                y = ty;
+            } else {
+                time--;
+                s = sindf((90.0f / work->unk10) * (work->unk10 - time));
+                x = x0 + dx * s;
+                y = y0 + dy * s;
+            }
+            func_8000BBD4_main(slot, x, y);
+        }
+        HuPrcVSleep();
+    }
+}
 
 extern s32 D_80119C70_msetup[];  /* sprite files per character slot (8; 8 pointers follow) */
 extern char *D_80119D68_msetup[8]; /* model part names of the 8 character slots */

@@ -547,8 +547,7 @@ typedef struct MsChrSlot {
 /* user_data of each func_80110954_msetup cursor process (func_80111650_msetup keeps four). */
 typedef struct MsChrWork {
     /* 0x00 */ MsChrSlot *slots;
-    /* 0x04 */ s16 unk4;
-    /* 0x06 */ s16 unk6;
+    /* 0x04 */ s16 cur[2];    /* cursor x, y (fork G: was unk4, unk6) */
     /* 0x08 */ s16 (*pos)[2]; /* per-slot cursor x, y */
     /* 0x0C */ s16 sel;
     /* 0x0E */ s16 state;  /* 1 run, 2 stop, -1 kill */
@@ -578,5 +577,14 @@ typedef struct MsStoryWork {
 } MsStoryWork; /* size = 0x18 */
 /* arg0 is a table of choice positions, arg1 a u8 array (unused): pointers, not s32 */
 s16 func_8010D4DC_msetup(s16 (*pos)[2], u8 *arg1, s32 count, s16 sel, s16 pad, s32 btn);
+
+/* fork G */
+/* MsChrWork.cur (0x04) was unk4/unk6: func_80110954_msetup addresses them as one s16[2] */
+extern s32 D_80119CC0_msetup[8]; /* COM pick help messages per cursor slot, by D_8011A938_msetup */
+extern s32 D_80119CE0_msetup[8];
+extern s32 D_80119D00_msetup[8];
+extern s32 D_80119D20_msetup[8];
+s16 func_8000B13C_main(s32 file);
+void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
 
 #endif
