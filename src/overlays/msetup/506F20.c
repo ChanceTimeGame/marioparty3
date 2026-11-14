@@ -3,6 +3,13 @@
 #include "game/vibrator.h"
 #include "mallocblock.h"
 
+s16 HmfAnimRead(HmfData *hmf, s32 dataNum, char *name);
+void func_800332D4_main(s16 arg0, f32 arg1);
+extern char D_8011A6D8_msetup[]; /* "03tex_DEF" (INCLUDE_RODATA; asm users remain) */
+extern s32 D_8011A098_msetup[4]; /* the lifts' sign data numbers */
+extern f32 D_8011A0A8_msetup[4]; /* Star Lift rotY per position (D_8011A028_msetup) */
+
+
 extern u8 D_800D20B8_main[16][3];
 extern u8 D_800D5570_main[16][3];
 void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
@@ -1892,7 +1899,235 @@ void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F4E0_msetup);
 #endif
 
+/* Register allocation and scheduling only (masked ~93): retail keeps the lift count in s7 and
+   spills its copy for the move loop, and reads D_8011AA44/D_8011AA40 through one base register.
+   Logic checked block by block against the asm. */
+#ifdef NON_MATCHING
+/* State: the human player count on up to four Star Lifts (D_8011AA30_msetup.unk14 lifts, at least
+   two): work->unk4 is the choice, D_8011A0B8_msetup[choice] the count it stands for; B asks to quit
+   (-1). Sets D_8011AA40/41 (humans, COMs) and buzzes the human players' controllers. */
+s32 func_8010F87C_msetup(MsSetupWork *work) {
+    MsLift lifts[4];
+    Vec pos;
+    s16 *sets[4];
+    s16 prevBtn;
+    omObjData *arrows;
+    s16 n;
+    s16 *set;
+    s32 cnt;
+    s32 i;
+    s16 j;
+    s16 sel;
+    s32 count;
+    u16 model;
+    s32 redraw;
+    s32 btn;
+    s32 humans;
+    f32 t;
+    f32 rotY;
+    MsLift *lift;
+    Vec *dst;
+    Vec *rot;
+    s16 slot;
+    s16 m;
+
+    arrows = NULL;
+    n = D_8011AA30_msetup.unk14;
+    if (work->unk4 < 0) {
+        for (sel = 0; sel < 4; sel++) {
+            if ((f32)D_8011AA30_msetup.unk10 == D_8011A0B8_msetup[sel]) {
+                break;
+            }
+        }
+        work->unk4 = sel = (sel < 4) ? sel : 0;
+    } else {
+        if (work->unk4 >= 4) {
+            work->unk4 = 0;
+        }
+        sel = work->unk4;
+    }
+    if ((f32)n < D_8011A0B8_msetup[sel]) {
+        for (sel = 0; sel < 4; sel++) {
+            if ((f32)n == D_8011A0B8_msetup[sel]) {
+                break;
+            }
+        }
+        work->unk4 = sel = (sel < 4) ? sel : 0;
+    }
+    func_8010B998_msetup();
+    count = (u16)n;
+    if (count < 2) {
+        count = 2;
+    }
+    for (i = 0; i < count; i++) {
+        model = func_8000B108_main(0x140003, 0x2A9);
+        lift = &lifts[i];
+        lift->model = model;
+        lift->unk1A = HmfAnimRead(HmfModelData[(s16)model].hmf, D_8011A098_msetup[i], D_8011A6D8_msetup);
+        func_800332D4_main(lift->unk1A, 0.75f);
+        func_8001C448_main(model);
+        func_8001C514_main(model);
+        lift->unk20 = 0;
+        rot = &lift->rot;
+        lift->rot.x = lift->rot.y = lift->rot.z = 0.0f;
+        if (i & 1) {
+            lift->rot.y = 180.0f;
+        }
+        Hu3DModelRotSet(model, rot->x, rot->y, rot->z);
+        lift->pos = D_80119B20_msetup;
+        Hu3DModelPosSet(model, lift->pos.x, lift->pos.y, lift->pos.z);
+        Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
+        HuPrcVSleep();
+    }
+    if (count == 3) {
+        for (i = 0; i < 4; i++) {
+            sets[i] = D_8011A078_msetup[i];
+        }
+    } else {
+        for (i = 0; i < 4; i++) {
+            sets[i] = D_8011A058_msetup[i];
+        }
+    }
+    if (n >= 2) {
+        arrows = func_8010DE38_msetup(0x40, 0x100, 0x40);
+    }
+    func_8010B82C_msetup(0x1503);
+    func_8010B858_msetup();
+    redraw = 1;
+    HuAudFXPlay(0x2D9);
+    func_8010E8C8_msetup(lifts, count, 15, 720.0f, 565.0f, 0.1f, 1.0f, redraw);
+    if (n >= 2) {
+        arrows->work[0] = redraw;
+        arrows->work[1] = 0x24;
+        cnt = count;
+        for (j = 0; j < 7; j++) {
+            t = j / 7.0f;
+            for (i = 0; i < cnt; i++) {
+                slot = sets[sel][i];
+                lift = &lifts[i];
+                dst = &D_8011A028_msetup[slot];
+                pos.x = (dst->x - lift->pos.x) * t;
+                pos.y = (dst->y - lift->pos.y) * t;
+                pos.z = (dst->z - lift->pos.z) * t;
+                pos.x += lift->pos.x;
+                pos.y += lift->pos.y;
+                pos.z += lift->pos.z;
+                rotY = (D_8011A0A8_msetup[slot] - lift->rot.y) * t;
+                m = lift->model;
+                Hu3DModelRotSet(m, lift->rot.x, rotY + lift->rot.y, lift->rot.z);
+                Hu3DModelPosSet(m, pos.x, pos.y, pos.z);
+            }
+            HuPrcVSleep();
+        }
+        for (i = 0; i < count; i++) {
+            slot = sets[sel][i];
+            lift = &lifts[i];
+            lift->pos = D_8011A028_msetup[slot];
+            lift->rot.y = D_8011A0A8_msetup[slot];
+            m = lift->model;
+            Hu3DModelPosSet(m, lift->pos.x, lift->pos.y, lift->pos.z);
+            Hu3DModelRotSet(m, lift->rot.x, lift->rot.y, lift->rot.z);
+        }
+    } else {
+        func_8001C258_main(lifts[1].model, 4, 4);
+        rotY = lifts[0].rot.y;
+        m = lifts[0].model;
+        for (j = 0; j < 7; j++) {
+            rotY += 25.714285f;
+            if (rotY > 360.0f) {
+                rotY -= 360.0f;
+            }
+            Hu3DModelRotSet(m, 0.0f, rotY, 0.0f);
+            HuPrcVSleep();
+        }
+        lifts[0].rot.y = rotY;
+    }
+    for (i = 0; i < (s16)count; i++) {
+        lifts[i].slot = lifts[i].curSlot = sets[sel][i];
+    }
+    redraw = 1;
+    func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+    while (TRUE) {
+        if (redraw) {
+            redraw = 0;
+            func_8010B82C_msetup(D_80119B34_msetup[work->unk4]);
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+        if (btn & 0x4000) {
+            HuAudFXPlay(4);
+            func_8010B82C_msetup(0x1501);
+            if (func_8010B858_msetup() == 0) {
+                work->unk4 = -1;
+                break;
+            }
+            func_8010B82C_msetup(0x1503);
+            redraw = 1;
+            func_8010B858_msetup();
+            btn = func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+        } else if (btn & 0x8000) {
+            HuAudFXPlay(2);
+            humans = D_8011A0B8_msetup[work->unk4];
+            D_8011AA30_msetup.unk10 = humans;
+            D_8011AA30_msetup.unk11 = 4 - humans;
+            for (i = 0; i < D_8011AA40_msetup; i++) {
+                RepeatVibrator(D_8011AA30_msetup.pad[i], 10, 0, 10);
+            }
+            break;
+        }
+        if (n >= 2) {
+            if (btn & 0x900) {
+                if (++work->unk4 >= n) {
+                    work->unk4 = 0;
+                }
+                arrows->work[0] = 4;
+            } else if (btn & 0x600) {
+                if (--work->unk4 < 0) {
+                    work->unk4 = n - 1;
+                }
+                arrows->work[0] = 3;
+            }
+        }
+        if (sel != work->unk4) {
+            HuAudFXPlay(1);
+            func_8010F4E0_msetup(lifts, count, work->unk4);
+            redraw = 1;
+            sel = work->unk4;
+        }
+        HuPrcVSleep();
+    }
+    if (n >= 2) {
+        arrows->work[0] = 2;
+        arrows->work[1] = 0x11;
+    } else {
+        rotY = lifts[0].rot.y;
+        m = lifts[0].model;
+        for (j = 0; j < 7; j++) {
+            rotY += 25.714285f;
+            if (rotY > 360.0f) {
+                rotY -= 360.0f;
+            }
+            Hu3DModelRotSet(m, 0.0f, rotY, 0.0f);
+            HuPrcVSleep();
+        }
+        lifts[0].rot.y = rotY;
+        func_8001C258_main(lifts[1].model, 4, 0);
+    }
+    func_8010B998_msetup();
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, count, 7, 360.0f, 400.0f, 1.0f, 0.1f, 4);
+    if (n >= 2) {
+        func_8010DDD8_msetup(arrows);
+    }
+    for (i = 0; i < count; i++) {
+        lift = &lifts[i];
+        func_80033430_main(lift->unk1A);
+        func_8001ACDC_main(lift->model);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
+#endif
 
 // register allocation and operand order around the D_80119C10 rows (masked 28, 3 fewer instructions: retail re-extends cur for the second row); same logic
 #ifdef NON_MATCHING
