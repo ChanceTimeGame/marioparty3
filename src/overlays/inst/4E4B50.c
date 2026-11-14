@@ -5,8 +5,7 @@ typedef struct InstMgEntry {
     /* 0x00 */ s32 unk0;
     /* 0x04 */ u8 type;
     /* 0x05 */ char unk5[3];
-    /* 0x08 */ s16 mesId;
-    /* 0x0A */ char unkA[0xA];
+    /* 0x08 */ s16 mes[6]; /* pages: first, second, three optional (< 0: none), last */
 } InstMgEntry; /* size = 0x14 */
 
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -18,18 +17,23 @@ void func_80060DEC_main(s32 winId);
 void func_8010BE28_inst(omObjData *obj);
 void func_8010BE78_inst(omObjData *obj);
 void func_8010C124_inst(omObjData *obj);
+void func_8010C5C4_inst(omObjData *obj);
 void func_8010C8B4_inst(void);
+u16 func_8010C8E0_inst(u16 btn);
+void func_8010CBB8_inst(s32 page);
 void func_8010CC14_inst(void);
 void func_8010CDE4_inst(s32 mesId, s32 x, s32 y);
 void func_8010CED0_inst(s16 x, s16 y);
 void func_8010CF14_inst(void);
 void func_8010CFF4_inst(void);
 void func_8010D044_inst(void);
+void func_8010D1D4_inst(void);
 
 extern InstMgEntry D_800A6D40_main[];
 extern u16 D_800CC698_main;
 
 extern s8 D_8010D408_inst;
+extern s8 D_8010D409_inst;
 extern s8 D_8010D40A_inst;
 extern s8 D_8010D40B_inst;
 extern s8 D_8010D411_inst;
@@ -100,7 +104,7 @@ void func_8010B990_inst(void) {
     D_8010DCA8_inst[5] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000F, 200, -33, 0);
     D_8010DCA8_inst[6] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000C, 38, -33, 0);
     D_8010DCD4_inst = 0;
-    mes = D_8010DCD0_inst->mesId;
+    mes = D_8010DCD0_inst->mes[0];
     D_8010DCCC_inst = mes;
     if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
         D_8010DCCC_inst = mes + 1;
@@ -185,7 +189,122 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB24_inst);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB30_inst);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C124_inst);
+void func_8010C124_inst(omObjData *obj) {
+    s16 mes;
+
+    if (D_8010D409_inst == 1) {
+        return;
+    }
+    if (func_8010C8E0_inst(0x10)) {
+        func_8010D1D4_inst();
+        D_8010DCA4_inst = func_8010C5C4_inst;
+        return;
+    }
+    switch (D_8010DCD4_inst) {
+        case 0:
+            if (func_8010C8E0_inst(1)) {
+                D_8010DCCC_inst = D_8010DCD0_inst->mes[1];
+                if (D_8010DCD0_inst->mes[2] < 0) {
+                    func_8010CBB8_inst(1);
+                    D_8010DCD4_inst = 1;
+                } else {
+                    func_8010CBB8_inst(3);
+                    D_8010DCD4_inst = 3;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+            }
+            break;
+        case 1:
+            if (func_8010C8E0_inst(1)) {
+                mes = D_8010DCD0_inst->mes[5];
+                D_8010DCCC_inst = mes;
+                if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                    D_8010DCCC_inst = mes + 1;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+                func_8010CBB8_inst(2);
+                D_8010DCD4_inst = 2;
+            }
+            break;
+        case 3:
+            if (func_8010C8E0_inst(1)) {
+                if (D_8010DCD0_inst->mes[2] < 0) {
+                    mes = D_8010DCD0_inst->mes[5];
+                    D_8010DCCC_inst = mes;
+                    if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                        D_8010DCCC_inst = mes + 1;
+                    }
+                    func_8010CBB8_inst(2);
+                    D_8010DCD4_inst = 2;
+                } else {
+                    D_8010DCCC_inst = D_8010DCD0_inst->mes[2];
+                    func_8010CBB8_inst(4);
+                    D_8010DCD4_inst = 4;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+            }
+            break;
+        case 4:
+            if (func_8010C8E0_inst(1)) {
+                if (D_8010DCD0_inst->mes[3] < 0) {
+                    mes = D_8010DCD0_inst->mes[5];
+                    D_8010DCCC_inst = mes;
+                    if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                        D_8010DCCC_inst = mes + 1;
+                    }
+                    func_8010CBB8_inst(2);
+                    D_8010DCD4_inst = 2;
+                } else {
+                    D_8010DCCC_inst = D_8010DCD0_inst->mes[3];
+                    func_8010CBB8_inst(6);
+                    D_8010DCD4_inst = 6;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+            }
+            break;
+        case 6:
+            if (func_8010C8E0_inst(1)) {
+                if (D_8010DCD0_inst->mes[4] < 0) {
+                    mes = D_8010DCD0_inst->mes[5];
+                    D_8010DCCC_inst = mes;
+                    if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                        D_8010DCCC_inst = mes + 1;
+                    }
+                    func_8010CBB8_inst(2);
+                    D_8010DCD4_inst = 2;
+                } else {
+                    D_8010DCCC_inst = D_8010DCD0_inst->mes[4];
+                    func_8010CBB8_inst(7);
+                    D_8010DCD4_inst = 7;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+            }
+            break;
+        case 7:
+            if (func_8010C8E0_inst(1)) {
+                D_8010DCCC_inst = D_8010DCD0_inst->mes[5];
+                func_8010CBB8_inst(2);
+                D_8010DCD4_inst = 2;
+                if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                    D_8010DCCC_inst++;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+            }
+            break;
+        case 2:
+            if (func_8010C8E0_inst(1)) {
+                mes = D_8010DCD0_inst->mes[0];
+                D_8010DCCC_inst = mes;
+                if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+                    D_8010DCCC_inst = mes + 1;
+                }
+                func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+                func_8010CBB8_inst(0);
+                D_8010DCD4_inst = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C55C_inst);
 
