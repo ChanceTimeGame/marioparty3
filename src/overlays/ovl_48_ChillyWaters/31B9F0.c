@@ -8478,13 +8478,14 @@ s32 func_8011C7A4_ChillyWaters(s32 arg0, s32 arg1) {
     return ret;
 }
 
-extern DecisionTreeNonLeafNode D_8011EB98_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011EBEC_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011EE38_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011EFA0_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F18C_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F4EC_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F66C_ChillyWaters;
+
+extern DecisionTreeNonLeafNode D_8011EB98_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011EBEC_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011EE38_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011EFA0_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011F18C_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011F4EC_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011F66C_ChillyWaters[];
 
 s32 MB1_ComItemDecide(void) {
     s32 curPlayer = MBPlayerTurnGet();
@@ -8560,7 +8561,7 @@ s32 MB1_ComItemDecide(void) {
                 if (func_8011C750_ChillyWaters() != 0) {
                     break;
                 }
-                if (MBComTreeExec(&D_8011EB98_ChillyWaters) != 0) {
+                if (MBComTreeExec(D_8011EB98_ChillyWaters) != 0) {
                     continue;
                 }
                 break;
@@ -8568,17 +8569,17 @@ s32 MB1_ComItemDecide(void) {
                 if (func_8011C750_ChillyWaters() != 0) {
                     break;
                 }
-                if (MBComTreeExec(&D_8011EBEC_ChillyWaters) != 0) {
+                if (MBComTreeExec(D_8011EBEC_ChillyWaters) != 0) {
                     continue;
                 }
                 break;
             case ITEM_WARP_BLOCK:
-                if (MBComTreeExec(&D_8011EE38_ChillyWaters) != 0) {
+                if (MBComTreeExec(D_8011EE38_ChillyWaters) != 0) {
                     continue;
                 }
                 break;
             case ITEM_POISON_MUSHROOM:
-                if (MBComTreeExec(&D_8011F18C_ChillyWaters) == 0) {
+                if (MBComTreeExec(D_8011F18C_ChillyWaters) == 0) {
                     s32 target = func_8011C5E0_ChillyWaters();
 
                     D_8011FBBC_ChillyWaters = target;
@@ -8589,7 +8590,7 @@ s32 MB1_ComItemDecide(void) {
                 }
                 continue;
             case ITEM_REVERSE_MUSHROOM:
-                if (MBComTreeExec(&D_8011F4EC_ChillyWaters) == 0) {
+                if (MBComTreeExec(D_8011F4EC_ChillyWaters) == 0) {
                     s32 target = func_8011C68C_ChillyWaters();
 
                     D_8011FBB8_ChillyWaters = target;
@@ -8677,7 +8678,7 @@ s32 MB1_ComItemDecide(void) {
                 if (GwPlayer[curPlayer].coin < 20) {
                     continue;
                 }
-                if (MBComTreeExec(&D_8011EFA0_ChillyWaters) != 0) {
+                if (MBComTreeExec(D_8011EFA0_ChillyWaters) != 0) {
                     continue;
                 }
                 break;
@@ -8687,7 +8688,7 @@ s32 MB1_ComItemDecide(void) {
                 }
                 break;
             case ITEM_LUCKY_LAMP:
-                if (MBComTreeExec(&D_8011F66C_ChillyWaters) != 0) {
+                if (MBComTreeExec(D_8011F66C_ChillyWaters) != 0) {
                     continue;
                 }
                 break;
@@ -9517,41 +9518,44 @@ event_list_entry D_8011E078_ChillyWaters[2] = {
     { 1, 1, MB1Ev_BankMasu },
     { 0, 0, NULL },
 };
-u8 D_8011E088_ChillyWaters[24] = {
-    0, 0, 0, 0, 1, 0, 0, 0,
-    2, 3, 4, 4, 0, 0, 0, 0,
-    1, 0, 0, 0, 2, 3, 4, 4,
+u8 D_8011E088_ChillyWaters[2][3][4] = {
+    { { 0, 0, 0, 0 },
+    { 1, 0, 0, 0 },
+    { 2, 3, 4, 4 } },
+    { { 0, 0, 0, 0 },
+    { 1, 0, 0, 0 },
+    { 2, 3, 4, 4 } },
 };
 s8 D_8011E0A0_ChillyWaters[2][5][7] = {
     { { 0, 1, 4, 5, 10, 14, 19 }, { 0, 1, 4, 5, 10, 12, 19 }, { 0, 1, 4, 5, 10, 19, -1 }, { 0, 1, 4, 8, 10, 12, 19 }, { 0, 1, 8, 10, 12, 14, 19 } },
     { { 1, 2, 3, 6, 13, 11, 19 }, { 1, 2, 3, 6, 9, 13, 19 }, { 1, 2, 3, 7, 13, 19, -1 }, { 1, 3, 6, 7, 9, 13, 19 }, { 1, 3, 6, 7, 9, 11, 19 } },
 };
-s32 D_8011E0E8_ChillyWaters[6] = {
-    257, 0x1020203, 0x2030304, 257, 0x1020203, 0x2030304,
+u8 D_8011E0E8_ChillyWaters[2][3][4] = {
+    { { 0, 0, 1, 1 }, { 1, 2, 2, 3 }, { 2, 3, 3, 4 } },
+    { { 0, 0, 1, 1 }, { 1, 2, 2, 3 }, { 2, 3, 3, 4 } },
 };
-u8 D_8011E100_ChillyWaters[100] = {
-    25, 55, 65, 76, 81, 86, 91, 96,
-    98, 100, 30, 50, 60, 70, 75, 85,
-    90, 95, 97, 100, 25, 45, 52, 62,
-    67, 82, 88, 95, 97, 100, 20, 35,
-    40, 45, 55, 75, 85, 95, 97, 100,
-    15, 25, 30, 40, 45, 70, 80, 92,
-    95, 100, 33, 53, 68, 73, 78, 83,
-    93, 98, 100, 0, 25, 40, 55, 63,
-    73, 81, 91, 98, 100, 0, 20, 38,
-    58, 68, 75, 82, 90, 98, 100, 0,
-    15, 35, 55, 65, 72, 79, 85, 97,
-    100, 0, 15, 25, 45, 55, 65, 75,
-    80, 95, 100, 0,
+s8 D_8011E100_ChillyWaters[2][5][10] = {
+    { { 25, 55, 65, 76, 81, 86, 91, 96, 98, 100 },
+    { 30, 50, 60, 70, 75, 85, 90, 95, 97, 100 },
+    { 25, 45, 52, 62, 67, 82, 88, 95, 97, 100 },
+    { 20, 35, 40, 45, 55, 75, 85, 95, 97, 100 },
+    { 15, 25, 30, 40, 45, 70, 80, 92, 95, 100 } },
+    { { 33, 53, 68, 73, 78, 83, 93, 98, 100, 0 },
+    { 25, 40, 55, 63, 73, 81, 91, 98, 100, 0 },
+    { 20, 38, 58, 68, 75, 82, 90, 98, 100, 0 },
+    { 15, 35, 55, 65, 72, 79, 85, 97, 100, 0 },
+    { 15, 25, 45, 55, 65, 75, 80, 95, 100, 0 } },
 };
-u8 D_8011E164_ChillyWaters[20] = {
-    0, 1, 4, 5, 8, 10, 12, 14,
-    15, 16, 1, 2, 3, 6, 7, 9,
-    13, 11, 17, 1,
+u8 D_8011E164_ChillyWaters[2][10] = {
+    { 0, 1, 4, 5, 8, 10, 12, 14, 15, 16 },
+    { 1, 2, 3, 6, 7, 9, 13, 11, 17, 1 },
 };
-s32 D_8011E178_ChillyWaters[10] = {
-    15109, 15621, 15110, 15622, 15111, 15623, 15112, 15624,
-    15113, 15625,
+s32 D_8011E178_ChillyWaters[5][2] = {
+    { 15109, 15621 },
+    { 15110, 15622 },
+    { 15111, 15623 },
+    { 15112, 15624 },
+    { 15113, 15625 },
 };
 s32 D_8011E1A0_ChillyWaters[2] = {
     15104, 15616,
@@ -9568,10 +9572,10 @@ s32 D_8011E1B8_ChillyWaters[2] = {
 s32 D_8011E1C0_ChillyWaters[2] = {
     15108, 15620,
 };
-s32 D_8011E1C8_ChillyWaters[2] = {
+u32 D_8011E1C8_ChillyWaters[2] = {
     1, 0xA0017,
 };
-s32 D_8011E1D0_ChillyWaters[2] = {
+u32 D_8011E1D0_ChillyWaters[2] = {
     1, 0xA00F0,
 };
 s32 D_8011E1D8_ChillyWaters = 0;
@@ -9975,8 +9979,8 @@ DecisionTreeNonLeafNode D_8011EB98_ChillyWaters[7] = {
     { 2, { .data = 0x00000080 }, { .node_data = D_8011EB38_ChillyWaters } },
     { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
 };
-s32 D_8011EBEC_ChillyWaters[3] = {
-    0, 0, 0xA119E32,
+DecisionTreeNonLeafNode D_8011EBEC_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x0A119E32 } },
 };
 DecisionTreeNonLeafNode D_8011EBF8_ChillyWaters[7] = {
     { 10, { .data = 0x0001090C }, { .data = 0x0000028A } },
