@@ -21,6 +21,7 @@ extern s32 D_8010AE70_mgresultboard[4];
 extern omObjData *D_8010AEA0_mgresultboard;
 extern void (*D_8010AEA4_mgresultboard)(omObjData *);
 extern ResultSlot D_8010AEA8_mgresultboard[4][5];
+extern const s16 D_8010AD58_mgresultboard[4][5];
 extern const u8 D_8010AD28_mgresultboard[8][3];
 
 const u8 D_8010AD28_mgresultboard[8][3] = {
@@ -357,15 +358,106 @@ void func_80108C60_mgresultboard(omObjData *obj) {
 void func_8010913C_mgresultboard(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109144_mgresultboard);
+void func_80109144_mgresultboard(void) {
+    s8 j;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_801092E0_mgresultboard);
+    for (j = 0; j < 4; j++) {
+        for (i = 0; i < 2; i++) {
+            D_8010AEA8_mgresultboard[j][i].unk_00 = 0;
+            D_8010AEA8_mgresultboard[j][i].unk_02 = 0;
+            D_8010AEA8_mgresultboard[j][i].unk_04 = -1;
+            D_8010AEA8_mgresultboard[j][i].unk_06 = D_8010AD58_mgresultboard[j][i];
+            D_8010AEA8_mgresultboard[j][i].unk_08 = D_8010AD58_mgresultboard[j][i] + 20;
+            D_8010AEA8_mgresultboard[j][i].unk_0A = 0;
+        }
+        for (; i < 5; i++) {
+            D_8010AEA8_mgresultboard[j][i].unk_00 = 0;
+            D_8010AEA8_mgresultboard[j][i].unk_02 = 0;
+            D_8010AEA8_mgresultboard[j][i].unk_04 = -1;
+            D_8010AEA8_mgresultboard[j][i].unk_06 = D_8010AD58_mgresultboard[j][i];
+            D_8010AEA8_mgresultboard[j][i].unk_08 = D_8010AD58_mgresultboard[j][i] + 20;
+            D_8010AEA8_mgresultboard[j][i].unk_0A = 0;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109498_mgresultboard);
+s32 func_801092E0_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[2];
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109650_mgresultboard);
+    if (D_8010AEA8_mgresultboard[player][0].unk_04 >= 0) {
+        return 0;
+    }
+    if (value >= 100) {
+        value = 99;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 10) % 10;
+    digit[1] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 11;
+    }
+    for (i = 0; i < 2; i++) {
+        D_8010AEA8_mgresultboard[player][i].unk_04 = digit[i];
+        if (D_8010AEA8_mgresultboard[player][i].unk_08 >= 0) {
+            func_8001C258_main(obj->model[D_8010AEA8_mgresultboard[player][i].unk_08 + 1], 4, 0);
+        }
+        D_8010AEA8_mgresultboard[player][i].unk_00 = 1;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_801096E0_mgresultboard);
+s32 func_80109498_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[2];
+    s8 i;
+
+    if (D_8010AEA8_mgresultboard[player][0].unk_04 >= 0) {
+        return 0;
+    }
+    if (value >= 100) {
+        value = 99;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 10) % 10;
+    digit[1] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 10;
+    }
+    for (i = 0; i < 2; i++) {
+        D_8010AEA8_mgresultboard[player][i].unk_04 = digit[i];
+        if (D_8010AEA8_mgresultboard[player][i].unk_08 >= 0) {
+            func_8001C258_main(obj->model[D_8010AEA8_mgresultboard[player][i].unk_08 + 1], 4, 0);
+        }
+        D_8010AEA8_mgresultboard[player][i].unk_00 = 1;
+    }
+    return 1;
+}
+
+s32 func_80109650_mgresultboard(omObjData *obj, s8 player) {
+    s8 i;
+
+    if (D_8010AEA8_mgresultboard[player][0].unk_04 >= 0) {
+        return 0;
+    }
+    for (i = 0; i < 2; i++) {
+        D_8010AEA8_mgresultboard[player][i].unk_00 = 0;
+    }
+    return 1;
+}
+
+s32 func_801096E0_mgresultboard(omObjData *obj, s8 player) {
+    s8 i;
+
+    for (i = 0; i < 2; i++) {
+        D_8010AEA8_mgresultboard[player][i].unk_00 = 1;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109744_mgresultboard);
 
@@ -381,7 +473,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109DAC_mgre
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109F30_mgresultboard);
 
-const s16 D_8010AD58_mgresultboard[20] = { 0, 1, 8, 9, 10, 2, 3, 11, 12, 13, 4, 5, 14, 15, 16, 6, 7, 17, 18, 19 };
+const s16 D_8010AD58_mgresultboard[4][5] = {
+    { 0, 1, 8, 9, 10 }, { 2, 3, 11, 12, 13 }, { 4, 5, 14, 15, 16 }, { 6, 7, 17, 18, 19 },
+};
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A000_mgresultboard);
 
