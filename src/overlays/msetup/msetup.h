@@ -318,7 +318,6 @@ s32 func_80113ED4_msetup(MsSetupWork *work); /* state 8: board select */
 s32 func_801145D0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80114AA0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801150A0_msetup(s16 arg0);
-s16 func_801152C4_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, u16 arg4); /* arg1 unused */
 s32 func_801157B8_msetup(s16 arg0, s16 arg1, s16 *arg2, s16 arg3, void *arg4, void *arg5);
 s16 func_80115A9C_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, s32 arg4); /* arg1 unused */
 void func_80115E78_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
@@ -351,6 +350,12 @@ typedef struct MsLiftKey {
 /* fork C's function: arg0, arg1 and arg4 are pointers (lifts, keys, extra models), not s32 */
 void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 steps, s16 *models, u16 nmodels, f32 scale0, f32 scale1);
 s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor);
+/* A model part (func_8001D33C_main's result; MP3 hmfman.c HmfMotionObjM, 0x98): only its matrix. */
+typedef struct MsPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} MsPart; /* size = 0x98 */
+s16 func_801152C4_msetup(s16 model, s32 arg1, HuMtx4F hand, s16 *pad, s16 sel); /* arg1 unused */
 s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor);
 s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */
 

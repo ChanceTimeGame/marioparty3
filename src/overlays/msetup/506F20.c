@@ -818,7 +818,146 @@ s32 func_801150A0_msetup(s16 pad) {
     return dir;
 }
 
+/* Rules lift helpers (fork D) */
+void *func_8001D33C_main(s16 model, char *name);
+void func_8002367C_main(HuMtx4F dst, HuMtx4F src);
+void func_80017CD0_main(HuMtx4F mtx, f32 x, f32 y, f32 z);
+void func_80017D24_main(HuMtx4F mtx, f32 x, f32 y, f32 z);
+f32 fabsf(f32);
+extern char D_8011A7D8_msetup[]; /* "20turn" (INCLUDE_RODATA: later asm uses these too) */
+extern char D_8011A7E0_msetup[]; /* "35turn" */
+extern char D_8011A7E8_msetup[]; /* "50turn" */
+extern char D_8011A7F0_msetup[]; /* "q_turn" */
+extern char D_8011A7F8_msetup[]; /* "hari" (the dial's hand) */
+extern f32 D_8011A908_msetup;    /* hand angle (80115EE0 clears it with sw) */
+
+/* Turn count dial on model `model`: four labelled parts (20/35/50 turns, ?), the selected one
+   pulses; the hand ("hari", base matrix `hand`) turns to D_80119F4C_msetup[sel]. Returns the
+   choice, -1 on B. */
+#ifdef NON_MATCHING
+/* Register allocation only: retail keeps `pad` in s8 and spills `hand`, keeps the dpad test in
+   s0 (the later `dir`), and holds fabsf(diff) in f20 and the +-24 step in f2. */
+s16 func_801152C4_msetup(s16 model, s32 arg1, HuMtx4F hand, s16 *pad, s16 sel) {
+    MsPart *parts[4];
+    u8 unused[4];
+    HuMtx4F base[4];
+    s16 i;
+    s16 prev;
+    s16 dir;
+    s32 btn;
+    f32 pulse;
+    f32 angle;
+    f32 target;
+    f32 diff;
+    f32 scale;
+    HuMtx4F *mtx;
+
+    parts[0] = func_8001D33C_main(model, D_8011A7D8_msetup);
+    func_8002367C_main(base[0], parts[0]->mtx);
+    parts[1] = func_8001D33C_main(model, D_8011A7E0_msetup);
+    func_8002367C_main(base[1], parts[1]->mtx);
+    parts[2] = func_8001D33C_main(model, D_8011A7E8_msetup);
+    func_8002367C_main(base[2], parts[2]->mtx);
+    parts[3] = func_8001D33C_main(model, D_8011A7F0_msetup);
+    func_8002367C_main(base[3], parts[3]->mtx);
+    pulse = 0.0f;
+    for (i = 0; i < 4; i++) {
+        unused[i] = 0;
+    }
+    angle = D_8011A908_msetup;
+    target = D_80119F4C_msetup[sel];
+    prev = -1;
+    while (1) {
+        btn = func_8010D684_msetup(D_8011A948_msetup, pad);
+        if (btn & B_BUTTON) {
+            HuAudFXPlay(4);
+            sel = -1;
+            break;
+        }
+        if (btn & A_BUTTON) {
+            if (sel < 3) {
+                HuAudFXPlay(0x139);
+            } else {
+                HuAudFXPlay(2);
+            }
+            break;
+        }
+        dir = ((u32)btn >> 8) & 0xF;
+        if (dir != 0) {
+            if (D_800CDA7C_main[D_8011A948_msetup] & 0x300) {
+                if (D_800CDA7C_main[D_8011A948_msetup] & 0x100) {
+                    sel++;
+                    if (sel >= 4) {
+                        sel = 0;
+                    }
+                } else if (D_800CDA7C_main[D_8011A948_msetup] & 0x200) {
+                    sel--;
+                    if (sel < 0) {
+                        sel = 3;
+                    }
+                } else {
+                    goto moved;
+                }
+                HuAudFXPlay(1);
+            } else {
+                dir = func_801150A0_msetup(D_8011A948_msetup);
+                if (dir >= 0) {
+                    if (sel != dir) {
+                        HuAudFXPlay(1);
+                        sel = dir;
+                    }
+                }
+            }
+        }
+    moved:
+        if (prev != sel) {
+            func_8010B82C_msetup(D_80119F3C_msetup[sel]);
+            target = D_80119F4C_msetup[sel];
+            D_8011A908_msetup = target;
+            if (prev >= 0) {
+                mtx = &parts[prev]->mtx;
+                func_8002367C_main(*mtx, base[prev]);
+                func_80017CD0_main(*mtx, 1.0f, 1.0f, 1.0f);
+            }
+            prev = sel;
+        }
+        if (target != angle) {
+            diff = target - angle;
+            if (fabsf(diff) > 180.0f) {
+                diff = -diff;
+            }
+            if (diff < 0.0f) {
+                angle += -24.0f;
+            } else {
+                angle += 24.0f;
+            }
+            if (angle > 360.0f) {
+                angle -= 360.0f;
+            } else if (angle < 0.0f) {
+                angle += 360.0f;
+            }
+            mtx = &((MsPart *)func_8001D33C_main(model, D_8011A7F8_msetup))->mtx;
+            func_8002367C_main(*mtx, hand);
+            func_80017D24_main(*mtx, 0.0f, 0.0f, angle);
+        }
+        pulse += 12.0f;
+        if (pulse >= 180.0f) {
+            pulse -= 180.0f;
+        }
+        scale = sindf(pulse) * 0.5f + 1.0f;
+        mtx = &parts[sel]->mtx;
+        func_8002367C_main(*mtx, base[sel]);
+        func_80017CD0_main(*mtx, scale, scale, scale);
+        HuPrcVSleep();
+    }
+    mtx = &parts[prev]->mtx;
+    func_8002367C_main(*mtx, base[prev]);
+    func_80017CD0_main(*mtx, 1.0f, 1.0f, 1.0f);
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801152C4_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801157B8_msetup);
 
