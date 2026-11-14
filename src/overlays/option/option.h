@@ -370,4 +370,5 @@ void func_80110F58_option(s32 no, s32 motNo, u16 flag);
 void func_801132AC_option(s32 no, s32 flag);
 void func_801132C8_option(s32 no, s32 arg1);
 void func_8011331C_option(s32 no, s32 motNo, s32 flag);
+extern u8 D_800D09A8_main; /* first byte of the save common buffer (saveload.c SaveCommonBuf): bit 0 is the sound mode */
 #endif

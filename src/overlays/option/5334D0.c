@@ -926,7 +926,94 @@ void func_8011239C_option(void) {
     func_80111AF4_option();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801123D8_option);
+void func_801123D8_option(void) {
+    s16 model;
+    void *data;
+
+    func_80112FF4_option(0, 0xE000D, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(1, 0xE000E, 0.0f, 0.0f, 0.0f);
+    func_80112F48_option(2, 0xE0010, -250.0f, 0.0f, -401.15002f);
+    func_801109F4_option(2, 0.0f, 10.0f, 0.0f);
+    model = func_80113218_option(2);
+    data = DataRead(0xE0020);
+    func_80032FC0_main(HmfAnimCreate(HmfModelData[model].hmf, data, 0, "oumu0_1_DEF"), 1, 0);
+    DataClose(data);
+    func_8001C448_main(model);
+    func_80033910_main(HmfModelData[model].hmf);
+    func_80112F48_option(3, 0xE0013, 250.0f, 0.0f, -401.15002f);
+    func_801109F4_option(3, 0.0f, -11.0f, 0.0f);
+    model = func_80113218_option(3);
+    data = DataRead(0xE0021);
+    func_80032FC0_main(HmfAnimCreate(HmfModelData[model].hmf, data, 0, "tranpet_DEF"), 1, 0);
+    DataClose(data);
+    data = DataRead(0xE0022);
+    func_80032FC0_main(HmfAnimCreate(HmfModelData[model].hmf, data, 0, "doramu2_DEF"), 1, 0);
+    DataClose(data);
+    data = DataRead(0xE0023);
+    func_80032FC0_main(HmfAnimCreate(HmfModelData[model].hmf, data, 0, "sinbaru_DEF"), 1, 0);
+    DataClose(data);
+    func_8001C448_main(model);
+    func_80033910_main(HmfModelData[model].hmf);
+    func_80112F48_option(4, 0xE0016, 0.0f, 0.0f, 0.0f);
+    func_80112F48_option(5, 0xE0019, 0.0f, 0.0f, 0.0f);
+    func_80112FD8_option(17, 0xE0017, 0);
+    func_80112FD8_option(18, 0xE0018, 0);
+    func_80112FD8_option(19, 0xE001A, 0);
+    func_80112FD8_option(20, 0xE001B, 0);
+    if (!(D_800D09A8_main & 1)) {
+        func_8011331C_option(4, 18, 0);
+        func_801132C8_option(4, 7);
+        func_801132AC_option(4, 2);
+        func_801132E4_option(5, 1);
+        func_801132C8_option(5, 7);
+        func_801132AC_option(5, 4);
+    } else {
+        func_8011331C_option(5, 20, 0);
+        func_801132C8_option(5, 7);
+        func_801132AC_option(5, 2);
+        func_801132E4_option(4, 1);
+        func_801132C8_option(4, 7);
+        func_801132AC_option(4, 4);
+    }
+    func_80112F48_option(6, 0xE001C, 90.0f, 108.2f, -300.0f);
+    func_80112F48_option(7, 0xE001C, -90.0f, 108.2f, -300.0f);
+    func_80112EB8_option(8, 0xA00B0, 0.0f, 20.0f, -401.15002f);
+    func_80110C9C_option(8, 2);
+    func_80017790_main(func_80113218_option(8), 0, 13, 0xA00B7);
+    func_80112EB8_option(9, 0xE001E, 0.0f, 0.0f, 0.0f);
+    func_80110C9C_option(9, 2);
+    func_80112EB8_option(21, 0xE001F, 0.0f, 22.25f, -310.7f);
+    func_80110C9C_option(21, 1);
+    func_80112FD8_option(10, 0xA00B1, 0);
+    func_80110F58_option(8, 10, 2);
+    func_80112FD8_option(11, 0xA00B2, 2);
+    func_80112FD8_option(12, 0xE000F, 0);
+    func_80112FD8_option(13, 0xE0011, 0);
+    func_80112FD8_option(14, 0xE0014, 0);
+    func_80112FD8_option(15, 0xE0012, 0);
+    func_80112FD8_option(16, 0xE0015, 0);
+    func_801103C8_option(1, 0x30);
+    func_801106B4_option(1, 5);
+    func_8011053C_option(1, 0xA0, 0x71);
+    func_801104D4_option(1);
+    func_801103C8_option(2, 0xE0024);
+    func_801106B4_option(2, 0x2718);
+    func_8011053C_option(2, 0xA0, 0x71);
+    func_801104D4_option(2);
+    func_80105DA0_option(func_80113218_option(0), 41.539f);
+    func_80105F08_option(41.539f);
+    {
+        Vec eye = { 0.0f, 264.9f, 364.27f };
+        Vec at = { 0.0f, 184.59999f, 61.300003f };
+        Vec curEye;
+        Vec curAt;
+        Vec up;
+
+        func_80105FF8_option(&curEye, &curAt, &up);
+        func_80106508_option(&eye, &at, &up);
+    }
+    func_80113088_option();
+}
 
 void func_80112A44_option(void) {
     func_801130CC_option();
@@ -952,10 +1039,6 @@ void func_80112A44_option(void) {
     func_8011046C_option();
     func_80111AF4_option();
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146BC_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146C8_option);
 
 void func_80112B08_option(void) {
     s16 model;
