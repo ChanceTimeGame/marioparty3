@@ -640,11 +640,94 @@ omObjData *func_80107428_msetup(void) {
     return obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801077E0_msetup);
+/* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
+   are fields of records 0, 1 and 3). */
+typedef struct MsPlayerUi {
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2; /* state */
+    /* 0x04 */ s16 unk4[8];
+} MsPlayerUi; /* size = 0x14 */
 
+s16 func_801077E0_msetup(s32 arg0) {
+    D_8011A882_msetup.state = 1;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
+
+#ifdef NON_MATCHING
+/* Residue: GCC hoists the D_8011A9F0_msetup record base out of the loop; retail indexes the symbol (lui/addu/sh %lo). */
+s16 func_80107840_msetup(s32 arg0) {
+    s32 i;
+
+    D_8011A882_msetup.state = 2;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    if (D_8011A886_msetup[0] != -1) {
+        D_8011A990_msetup[0] = 0;
+        for (i = 7; i != 0; i--) {
+            HuPrcVSleep();
+        }
+        func_8010BBF4_msetup(D_8011A880_msetup);
+        for (i = 4; i != 0; i--) {
+            HuPrcVSleep();
+        }
+        HuAudFXPlay(0x2DB);
+        for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
+            ((MsPlayerUi *)&D_8011A9F0_msetup)[i].unk2 = 1;
+        }
+        while (D_8011AA2E_msetup != 0) {
+            HuPrcVSleep();
+        }
+    }
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80107840_msetup);
+#endif
 
+#ifdef NON_MATCHING
+/* Residue: as func_80107840_msetup (record base hoisted out of the loop). */
+s16 func_80107964_msetup(s32 arg0) {
+    s32 i;
+
+    if (D_8011AA41_msetup != 0) {
+        for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
+            ((MsPlayerUi *)&D_8011A9F0_msetup)[i].unk2 = 7;
+        }
+        D_8011A882_msetup.state = 3;
+        do {
+            HuPrcVSleep();
+        } while (D_8011A882_msetup.state != 0);
+    } else {
+        D_8011A990_msetup[0] = 1;
+    }
+    if (D_8011A886_msetup[0] == -1) {
+        HuAudFXPlay(0x2E4);
+        func_8010BE8C_msetup(D_8011A880_msetup);
+    }
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80107964_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80107A58_msetup);
 
