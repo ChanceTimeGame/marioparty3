@@ -634,7 +634,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D234_msetup);
 
 // register allocation: retail copies arg0 to t3 and loads pad into a0 (masked 16, same blocks)
 #ifdef NON_MATCHING
-s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 pad, s32 btn) {
+s16 func_8010D4DC_msetup(s16 (*arg0)[2], u8 *arg1, s32 arg2, s16 arg3, s16 pad, s32 btn) {
     s16 x = -D_800CBB6E_main[pad];
     s16 y = D_800D20A1_main[pad];
 
@@ -1721,7 +1721,425 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8011035C_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80110954_msetup);
 
+extern s32 D_80119C70_msetup[];  /* sprite files per character slot (8; 8 pointers follow) */
+extern char *D_80119D68_msetup[8]; /* model part names of the 8 character slots */
+extern s32 D_80119DA8_msetup[4]; /* party: messages (players, then by COM count) */
+extern s32 D_80119DB8_msetup[4]; /* mini-game mode: same */
+extern MsLiftKey D_80119C28_msetup[2];
+extern MsLiftKey D_80119C48_msetup[2];
+
+/* Character select lift (state of func_80117820_msetup): the board's eight character slots, one
+   func_80110954_msetup cursor process per human player (then one for the COMs); writes the chosen
+   characters to D_8011AA30_msetup.chr and .com; work->unk4 = -1 on cancel. */
+#ifdef NON_MATCHING
+s32 func_80111650_msetup(MsSetupWork *work) {
+    MsLift lifts[2];
+    MsChrSlot slots[8];
+    MsChrWork works[4];
+    Process *procs[4];
+    s16 sprites[16];
+    Vec2f vec;
+    s16 pos[8][2];
+    s32 files[2];
+    s8 sel[4];
+    s16 model;
+    s32 *mess;
+    s16 grp;
+    u16 nCom;
+    s16 nHuman;
+    s16 back;
+    s16 esp;
+    s16 espFile;
+    s32 nProc;
+    s32 i;
+    s32 j;
+    s32 k;
+    s16 si;
+    s16 sj;
+    s16 lock;
+    s16 alpha;
+    s16 step;
+    s16 cnt;
+    s16 ok;
+    s16 owner;
+    MsChrWork *w;
+    MsChrSlot *slot;
+
+    func_8010B998_msetup();
+    work->unk4 = 0;
+    D_8011A900_msetup = NULL;
+    espFile = -1;
+    esp = -1;
+    switch (D_8011A938_msetup) {
+        case 0:
+        default:
+            mess = D_80119DA8_msetup;
+            break;
+        case 1:
+            mess = D_80119DB8_msetup;
+            D_8011A904_msetup.state = 0;
+            D_8011A904_msetup.unk2 = 0;
+            D_8011A900_msetup = omAddPrcObj(func_8011035C_msetup, 0x3F00, 0x600, 0);
+            D_8011A900_msetup->user_data = &D_8011A904_msetup;
+            break;
+    }
+    func_8010E4BC_msetup(lifts, 2, 90.0f);
+    func_8010E4D8_msetup(lifts, 2);
+    model = func_8000B108_main(0x140007, 0x289);
+    func_8001C448_main(model);
+    func_8001C258_main(model, 4, 4);
+    Hu3DModelScaleSet(model, 1.2f, 1.2f, 1.2f);
+    Hu3DModelPosSet(model, 0.0f, 300.0f, -280.0f);
+    func_8001C814_main(model, 1, 1);
+    grp = HuSprGrpCreate(0x10, 0);
+    for (i = 0; i < 8; i++) {
+        func_8010F43C_msetup(model, D_80119D68_msetup[i], &vec);
+        files[0] = D_80119D88_msetup[i];
+        files[1] = D_80119C70_msetup[i];
+        lock = 0;
+        if (i == 3) {
+            lock = _CheckFlag(0x2E) ? 0 : -1;
+        } else if (i == 7) {
+            if (_CheckFlag(0x2F) == 0) {
+                lock = -1;
+            }
+        }
+        if (lock == -1) {
+            files[1] = files[0] = 0x14001C;
+        }
+        slots[i].grp = grp;
+        slots[i].spr0 = i;
+        slots[i].spr1 = i + 8;
+        slots[i].owner = lock;
+        pos[i][0] = vec.x + 6.0f;
+        pos[i][1] = vec.y - 2.0f;
+        for (j = 0, k = i; j < 2; j++, k += 8) {
+            s16 spr = func_8000B838_main(files[j]);
+
+            sprites[k] = spr;
+            func_80055458_main(grp, k, 0x100);
+            HuSprAttrReset(grp, k, 0xFFFF);
+            HuSprAttrSet(grp, k, 0x9000);
+            HuSprScaleSet(grp, k, 1.0f, 1.0f);
+            func_800550F4_main(grp, k, 0);
+            func_80055024_main(grp, k, spr, 0);
+            HuSprPriSet(grp, k, 0x258);
+            func_80054904_main(grp, k, vec.x, vec.y);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 4; i++) {
+        procs[i] = NULL;
+        sel[i] = -1;
+    }
+    nHuman = D_8011AA30_msetup.unk10;
+    nCom = D_8011AA30_msetup.unk11;
+    if (nCom != 0) {
+        nProc = nHuman + 1;
+    } else {
+        nProc = nHuman;
+    }
+    for (i = 0; i < nHuman; i++) {
+        if (slots[i].owner == 0) {
+            sel[i] = i;
+        } else {
+            for (sj = i + 1; sj < 8; sj++) {
+                if (slots[sj].owner == 0) {
+                    break;
+                }
+            }
+            if (sj >= 8) {
+                sj = i;
+            }
+            sel[i] = sj;
+        }
+    }
+    for (i = 0; i < nProc; i++) {
+        procs[i] = omAddPrcObj(func_80110954_msetup, 0x3F00, 0x800, 0);
+        w = &works[i];
+        procs[i]->user_data = w;
+        w->slots = slots;
+        w->pos = pos;
+        w->state = 0;
+        if (i < nHuman) {
+            w->player = i;
+            w->pad = D_8011AA30_msetup.pad[i];
+            w->sel = sel[i];
+            w->unk10 = 4;
+            w->unk16 = 1;
+        } else {
+            w->player = 4;
+            w->pad = D_8011A948_msetup;
+            w->sel = 0;
+            w->unk10 = 0;
+            w->unk16 = nCom;
+        }
+        w->result = 0;
+    }
+    HuAudFXPlay(0x2D9);
+    func_8010E8C8_msetup(lifts, 2, 0xF, 720.0f, 565.0f, 0.1f, 1.0f, 1);
+    Hu3DModelPosSet(model, 0.0f, 300.0f, -280.0f);
+    func_8001C258_main(model, 4, 0);
+    func_8010E52C_msetup(lifts, D_80119C28_msetup, 2, 7, &model, 1, 0.1f, 1.2f);
+    for (i = 0; i < 8; i++) {
+        HuSprAttrReset(grp, i, 0x8000);
+    }
+    for (alpha = 0; alpha < 0x100; alpha += 0x24) {
+        for (i = 0; i < 8; i++) {
+            func_80055458_main(grp, i, alpha);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 8; i++) {
+        func_80055458_main(grp, i, 0x100);
+    }
+    switch (D_8011A938_msetup) {
+        case 0:
+        default:
+            back = 0;
+            step = 0;
+            break;
+        case 1:
+            back = 2;
+            step = 2;
+            D_8011A904_msetup.unk2 = 0;
+            D_8011A904_msetup.state = 1;
+            break;
+        case 6:
+            back = 3;
+            step = 3;
+            for (sj = 0; sj < 8; sj++) {
+                if (D_80119C68_msetup[sj] == D_8011AA34_msetup[0]) {
+                    break;
+                }
+            }
+            si = (sj < 8) ? sj : 0;
+            slot = &slots[si];
+            slot->owner = 1;
+            espFile = func_8000B838_main(D_80119AD0_msetup[0]);
+            esp = InitEspriteSlot(espFile, 0, 1);
+            func_8000BCC8_main(esp, 2);
+            func_8000BE5C_main(esp, 0.75f, 0.75f);
+            func_8000BBFC_main(esp, 0x100);
+            func_8000BBD4_main(esp, pos[si][0], pos[si][1] + 12);
+            HuSprAttrSet(grp, slot->spr0, 0x8000);
+            HuSprAttrReset(grp, slot->spr1, 0x8000);
+            break;
+    }
+    do {
+        switch (step) {
+            case 0:
+                func_8010B82C_msetup(mess[0]);
+                func_8010B858_msetup();
+                for (i = 0; i < nHuman; i++) {
+                    works[i].state = 1;
+                }
+                do {
+                    cnt = 0;
+                    HuPrcVSleep();
+                    ok = 1;
+                    for (i = 0; i < nHuman; i++) {
+                        if (works[i].result > 0) {
+                            cnt++;
+                        }
+                    }
+                    if (works[0].result < 0) {
+                        ok = 0;
+                    }
+                } while (ok && cnt < nHuman);
+                for (i = 0; i < nHuman; i++) {
+                    works[i].state = 2;
+                    owner = works[i].player + 1;
+                    for (sj = 0; sj < 8; sj++) {
+                        if (owner == slots[sj].owner) {
+                            break;
+                        }
+                    }
+                    D_8011AA34_msetup[i] = D_80119C68_msetup[sj];
+                    D_8011AA38_msetup[i] = 0xFF;
+                }
+                step = nCom ? 1 : -1;
+                if (!ok) {
+                    step = -1;
+                    work->unk4 = step;
+                }
+                break;
+            case 1:
+                func_8010B82C_msetup(mess[nCom]);
+                func_8010B858_msetup();
+                w = &works[nHuman];
+                for (i = 0; i < 8; i++) {
+                    if (slots[i].owner == 0) {
+                        break;
+                    }
+                }
+                i = (i < 8) ? i : 0;
+                w->unk10 = 0;
+                w->sel = i;
+                HuPrcVSleep();
+                w->unk10 = 4;
+                w->state = 1;
+                do {
+                    HuPrcVSleep();
+                } while (w->result == 0);
+                w->state = 2;
+                if (w->result < 0) {
+                    step = back;
+                    break;
+                }
+                for (sj = 0; sj < 8; sj++) {
+                    if (w->player < slots[sj].owner) {
+                        k = nHuman + (s16)(slots[sj].owner - w->player - 1);
+                        if (k < 4) {
+                            D_8011AA34_msetup[k] = D_80119C68_msetup[sj];
+                            D_8011AA38_msetup[k] = 1;
+                        }
+                    }
+                }
+                step = -1;
+                break;
+            case 2:
+                func_8010B82C_msetup(mess[0]);
+                func_8010B858_msetup();
+                step = nCom ? 1 : -1;
+                for (si = 0; si < nHuman; si++) {
+                    w = &works[si];
+                    owner = w->player + 1;
+                    for (i = 0; i < 8; i++) {
+                        if (owner == slots[i].owner) {
+                            break;
+                        }
+                    }
+                    if (i >= 8) {
+                        for (i = 0; i < 8; i++) {
+                            if (slots[i].owner == 0) {
+                                break;
+                            }
+                        }
+                        i = (i < 8) ? i : 0;
+                    }
+                    w->unk10 = 0;
+                    w->sel = i;
+                    HuPrcVSleep();
+                    w->unk10 = 4;
+                    w->state = 1;
+                    do {
+                        HuPrcVSleep();
+                    } while (w->result == 0);
+                    w->state = 2;
+                    if (w->result < 0) {
+                        if (--si < 0) {
+                            step = -1;
+                            work->unk4 = step;
+                            break;
+                        }
+                        si--;
+                        continue;
+                    }
+                    owner = works[si].player + 1;
+                    for (i = 0; i < 8; i++) {
+                        if (owner == slots[i].owner) {
+                            break;
+                        }
+                    }
+                    D_8011AA34_msetup[si] = D_80119C68_msetup[i];
+                    D_8011AA38_msetup[si] = 0xFF;
+                }
+                break;
+            case 3:
+                func_8010B82C_msetup(mess[nCom]);
+                func_8010B858_msetup();
+                w = &works[nHuman];
+                for (i = 0; i < 8; i++) {
+                    if (slots[i].owner == 0) {
+                        break;
+                    }
+                }
+                i = (i < 8) ? i : 0;
+                w->unk10 = 0;
+                w->sel = i;
+                HuPrcVSleep();
+                w->unk10 = 4;
+                w->state = 1;
+                do {
+                    HuPrcVSleep();
+                } while (w->result == 0);
+                w->state = 2;
+                if (w->result < 0) {
+                    func_8010B82C_msetup(0x1501);
+                    step = 3;
+                    if (func_8010B858_msetup() != 0) {
+                        break;
+                    }
+                    work->unk4 = -1;
+                } else {
+                    for (sj = 0; sj < 8; sj++) {
+                        if (w->player < slots[sj].owner) {
+                            k = nHuman + (s16)(slots[sj].owner - w->player - 1);
+                            if (k < 4) {
+                                D_8011AA34_msetup[k] = D_80119C68_msetup[sj];
+                                D_8011AA38_msetup[k] = 1;
+                            }
+                        }
+                    }
+                }
+                func_8000BB94_main(esp);
+                step = -1;
+                break;
+        }
+        HuPrcVSleep();
+    } while (step >= 0);
+    func_8010B998_msetup();
+    if (D_8011A900_msetup != NULL) {
+        D_8011A904_msetup.state = 2;
+    }
+    for (i = 0; i < 4; i++) {
+        if (procs[i] != NULL) {
+            works[i].state = -1;
+        }
+    }
+    for (alpha = 0x100; alpha > 0; alpha -= 0x24) {
+        for (i = 0; i < 16; i++) {
+            func_80055458_main(grp, i, alpha);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 16; i++) {
+        HuSprAttrSet(grp, i, 0x8000);
+    }
+    func_8010E52C_msetup(lifts, D_80119C48_msetup, 2, 7, &model, 1, 1.2f, 0.0f);
+    if (D_8011A900_msetup != NULL) {
+        D_8011A904_msetup.state = 3;
+    }
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, 2, 7, 360.0f, 400.0f, 1.0f, 0.1f, 1);
+    if (D_8011A900_msetup != NULL) {
+        omDelPrcObj(D_8011A900_msetup);
+    }
+    for (i = 0; i < 4; i++) {
+        if (procs[i] != NULL) {
+            omDelPrcObj(procs[i]);
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001ACDC_main(lifts[i].model);
+    }
+    HuSprGrpKill(grp);
+    for (i = 0; i < 16; i++) {
+        HuSprKill(sprites[i]);
+    }
+    func_8001ACDC_main(model);
+    if (esp >= 0) {
+        func_8000C184_main(esp);
+    }
+    if (espFile >= 0) {
+        HuSprKill(espFile);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80111650_msetup);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A6D8_msetup);
 
@@ -1770,7 +2188,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7A4_msetup);
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7AC_msetup);
 
 extern s32 D_80119E38_msetup[6];
-extern s32 D_80119E20_msetup[6];
+extern char *D_80119E20_msetup[6]; /* part names (fork F: were s32) */
 
 /* Process of func_801132C4_msetup's board (user_data its MsSetupWork: state = command, unk2 =
    board model, unk4 = COM level count): two sprite panels (sprites D_80119E50..E54_msetup[i]
@@ -2053,7 +2471,7 @@ while (1) {
             HuAudFXPlay(2);
             if (individual != 0) {
                 idx = players[n];
-                D_8011AA30_msetup.com[idx] = sel;
+                D_8011AA38_msetup[idx] = sel;
                 D_8011A9F0_msetup[idx].unk2 = 5;
                 if (++n >= coms) {
                     break;
@@ -2061,7 +2479,7 @@ while (1) {
             } else {
                 for (i = 0; i < coms; i++) {
                     idx = players[i];
-                    D_8011AA30_msetup.com[idx] = sel;
+                    D_8011AA38_msetup[idx] = sel;
                     D_8011A9F0_msetup[idx].unk2 = 5;
                 }
                 break;
@@ -3843,7 +4261,426 @@ void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, 
     }
 }
 
+/* A story page sprite: data file and offset from the page's position (func_80117A3C_msetup). */
+typedef struct MsStorySpr {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ Vec pos;
+} MsStorySpr; /* size = 0x10 */
+
+extern Vec *D_8011A16C_msetup[3];     /* per page: the four positions it moves between */
+extern MsStorySpr D_8011A178_msetup[10]; /* page 0 sprites (group 1) */
+extern MsStorySpr D_8011A218_msetup[10]; /* page 1 */
+extern MsStorySpr D_8011A2B8_msetup[11]; /* page 2 */
+extern Vec D_8011A368_msetup[3];      /* per page: the two models' offset */
+extern Vec D_8011A38C_msetup[3];      /* per page: the two models' rotation */
+extern MsStorySpr D_8011A3B8_msetup[7]; /* page 0 choices (group 2) */
+extern MsStorySpr D_8011A428_msetup[5]; /* page 1, flag 0x2D set */
+extern MsStorySpr D_8011A478_msetup[5]; /* page 1, flag 0x2D clear */
+extern MsStorySpr D_8011A4C8_msetup[4]; /* page 2 */
+extern s16 D_8011A514_msetup[6][2];   /* page 0: choice positions (func_8010D4DC_msetup) */
+extern s16 (*D_8011A544_msetup[3])[2]; /* per page: the cursor's positions */
+
+/* Story-mode setup page process (user_data a MsStoryWork from func_80118D48_msetup; id 0-2): two
+   sprite groups (and a shadow group on page 0) and two models that follow w->pos; w->state 1-7
+   moves the page between its four positions, 5 runs its menu (w->result: the choice, -1 back). */
+#ifdef NON_MATCHING
+void func_80117A3C_msetup(void) {
+    MsCursorWork cursor;
+    Vec offs[16];
+    Vec tmp;
+    Vec prev;
+    Vec from;
+    Vec delta;
+    s16 spr1[16];
+    s16 spr2[8];
+    s16 angles[16];
+    u8 flags[6];
+    s16 padv;
+    MsStoryWork *w;
+    MsStorySpr *tbl1;
+    MsStorySpr *tbl2;
+    Vec *keys;
+    Vec *ofs;
+    Vec *mofs;
+    Vec *target;
+    s16 n1;
+    s16 n2;
+    s16 nSel;
+    s16 grp1;
+    s16 grp2;
+    s16 grp3;
+    s16 spr;
+    s16 model1;
+    s16 model2;
+    s16 last;
+    s16 sel;
+    s16 btn;
+    s32 r;
+    s32 key;
+    s32 i;
+    f32 t;
+    f32 tmax;
+    f32 s;
+    f32 x;
+    f32 y;
+    f32 z;
+
+    w = HuPrcCurrentGet()->user_data;
+    switch (w->id) {
+        case 0:
+        default:
+            tbl1 = D_8011A178_msetup;
+            n1 = 10;
+            tbl2 = D_8011A3B8_msetup;
+            n2 = 7;
+            break;
+        case 1:
+            tbl1 = D_8011A218_msetup;
+            n1 = 10;
+            if (_CheckFlag(0x2D) != 0) {
+                tbl2 = D_8011A428_msetup;
+                n2 = 5;
+                nSel = 4;
+            } else {
+                tbl2 = D_8011A478_msetup;
+                n2 = 5;
+                nSel = 3;
+            }
+            break;
+        case 2:
+            tbl1 = D_8011A2B8_msetup;
+            n1 = 11;
+            tbl2 = D_8011A4C8_msetup;
+            n2 = 4;
+            break;
+    }
+    keys = D_8011A16C_msetup[w->id];
+    for (i = 0; i < n1; i++) {
+        spr1[i] = -1;
+    }
+    for (i = 0; i < n2; i++) {
+        spr2[i] = -1;
+    }
+    grp3 = -1;
+    w->pos = keys[0];
+    grp1 = HuSprGrpCreate(n1, 0);
+    for (i = 0; i < (u16)n1; i++) {
+        spr1[i] = func_8000B838_main(tbl1[i].file);
+        func_80055458_main(grp1, i, 0x100);
+        HuSprAttrReset(grp1, i, 0xFFFF);
+        HuSprAttrSet(grp1, i, 0x1000);
+        HuSprScaleSet(grp1, i, 1.0f, 1.0f);
+        func_800550F4_main(grp1, i, 0);
+        func_80055024_main(grp1, i, spr1[i], 0);
+        HuSprPriSet(grp1, i, 0x258);
+        func_80055420_main(grp1, i, 0xFF, 0xFF, 0xFF);
+        offs[i] = tbl1[i].pos;
+        angles[i] = (i * 95) % 360;
+    }
+    if (w->id == 2) {
+        HuSprScaleSet(grp1, 0, 4.0f, 2.0f);
+    }
+    grp2 = HuSprGrpCreate(n2, 0);
+    for (i = 0; i < (u16)n2; i++) {
+        spr2[i] = func_8000B838_main(tbl2[i].file);
+        HuSprAttrReset(grp2, i, 0xFFFF);
+        HuSprAttrSet(grp2, i, 0x1000);
+        func_800550F4_main(grp2, i, 0);
+        func_80055024_main(grp2, i, spr2[i], 0);
+        func_80055458_main(grp2, i, 0x100);
+        if (i != 0) {
+            HuSprPriSet(grp2, i, 0x190);
+            switch (w->id) {
+                case 0:
+                    HuSprAttrSet(grp2, i, 0x9000);
+                    break;
+                case 1:
+                    func_80055458_main(grp2, i, 0x40);
+                    break;
+            }
+        } else {
+            HuSprPriSet(grp2, i, 0x1F4);
+        }
+    }
+    if (w->id == 0) {
+        grp3 = HuSprGrpCreate(n2, 0);
+        spr = func_8000B838_main(0x140064);
+        for (i = 0; i < (u16)n2; i++) {
+            HuSprAttrReset(grp3, i, 0xFFFF);
+            HuSprAttrSet(grp3, i, 0x9000);
+            func_800550F4_main(grp3, i, 0);
+            func_80055024_main(grp3, i, spr, 0);
+            func_80055458_main(grp3, i, 0x80);
+            HuSprPriSet(grp3, i, 0x1C2);
+            func_80055420_main(grp3, i, 0, 0, 0);
+        }
+    } else if (w->id == 2) {
+        HuSprPriSet(grp2, 1, 0x1F4);
+        func_80055458_main(grp2, 0, 0x40);
+        func_80055458_main(grp2, 1, 0x40);
+    }
+    model1 = func_8000B108_main(0xA0089, 0x29D);
+    model2 = func_8000B108_main(0x140068, 0x29D);
+    func_8001C814_main(model1, 2, 2);
+    func_8001C258_main(model1, 4, 0);
+    func_8001C258_main(model2, 4, 0);
+    Hu3DModelScaleSet(model1, 0.8f, 0.8f, 0.8f);
+    Hu3DModelScaleSet(model2, 0.8f, 0.8f, 0.8f);
+    target = &D_8011A38C_msetup[w->id];
+    Hu3DModelRotSet(model1, target->x, target->y, target->z);
+    Hu3DModelRotSet(model2, target->x, target->y, target->z);
+    mofs = &D_8011A368_msetup[w->id];
+    tmp.x = w->pos.x + mofs->x;
+    tmp.y = w->pos.y + mofs->y;
+    tmp.z = w->pos.z + mofs->z;
+    Hu3DModelPosSet(model1, tmp.x, tmp.y, tmp.z);
+    Hu3DModelPosSet(model2, tmp.x, tmp.y, tmp.z);
+    omAddPrcObj(func_8010D6D0_msetup, 0x3F00, 0x800, 0)->user_data = &cursor;
+    cursor.x = 0xA0;
+    cursor.y = 0x78;
+    cursor.pos = D_8011A544_msetup[w->id];
+    cursor.file = D_8011A508_msetup[w->id];
+    cursor.sel = -1;
+    cursor.state = 0;
+    cursor.steps = 0;
+    cursor.attr = 0;
+    HuPrcVSleep();
+    for (i = 0; i < ARRAY_COUNTU(flags); i++) {
+        flags[i] = 0;
+    }
+    prev.z = prev.y = prev.x = 0.0f;
+    key = 0;
+    t = 0.0f;
+    tmax = t;
+    last = 0;
+    sel = D_8011A550_msetup[w->id];
+    cursor.sel = sel;
+    cursor.steps = 4;
+    func_8010D684_msetup(D_8011A948_msetup, &padv);
+    while (TRUE) {
+        if (last != w->state) {
+            switch (w->state) {
+                case 0:
+                    break;
+                case 6:
+                    cursor.state = 2;
+                    from = keys[key];
+                    tmp = keys[key];
+                    tmp.y += 800.0f;
+                    target = &tmp;
+                    key = 0;
+                    goto move;
+                case 4:
+                    cursor.state = 2;
+                    from = keys[key];
+                    target = &keys[0];
+                    key = 0;
+                    goto move;
+                case 3:
+                    cursor.state = 2;
+                    from = keys[key];
+                    target = &keys[2];
+                    key = 2;
+                    goto move;
+                case 7:
+                    cursor.state = 2;
+                    from = keys[key];
+                    target = &keys[3];
+                    key = 3;
+                    goto move;
+                case 2:
+                    switch (w->id) {
+                        case 0:
+                            for (i = 0; i < (u16)n2; i++) {
+                                HuSprAttrSet(grp3, i, 0x8000);
+                            }
+                            break;
+                        case 1:
+                            func_80055458_main(grp2, sel + 1, 0x40);
+                            break;
+                    }
+                    /* fallthrough */
+                case 1:
+                    from = keys[key];
+                    target = &keys[1];
+                    key = 1;
+                move:
+                    delta.x = target->x - from.x;
+                    delta.y = target->y - from.y;
+                    delta.z = target->z - from.z;
+                    if (delta.x == 0.0f && delta.y == 0.0f && delta.z == 0.0f) {
+                        t = 0.0f;
+                        tmax = t;
+                        w->state = 0;
+                    } else {
+                        tmax = 30.0f;
+                        t = 0.0f;
+                    }
+                    break;
+                case 5:
+                    func_8010D684_msetup(D_8011A948_msetup, &padv);
+                    cursor.state = 1;
+                    switch (w->id) {
+                        case 0:
+                            HuSprAttrReset(grp2, sel + 1, 0x8000);
+                            break;
+                        case 1:
+                            func_80055458_main(grp2, sel + 1, 0x100);
+                            break;
+                        case 2:
+                            func_80055458_main(grp2, sel, 0x100);
+                            break;
+                    }
+                    break;
+            }
+            last = w->state;
+        }
+        if (tmax != 0.0f) {
+            t += 1.0f;
+            s = sindf(3.0f * t);
+            w->pos.x = s * delta.x + from.x;
+            w->pos.y = s * delta.y + from.y;
+            w->pos.z = s * delta.z + from.z;
+            if (tmax <= t) {
+                t = 0.0f;
+                tmax = t;
+                w->state = 0;
+            }
+        }
+        for (i = 0; i < (u16)n1; i++) {
+            ofs = &offs[i];
+            x = w->pos.x + ofs->x + sindf(angles[i]);
+            y = w->pos.y + ofs->y + cosdf(angles[i] * 2);
+            z = w->pos.z + ofs->z;
+            angles[i] += 4;
+            if (angles[i] > 360) {
+                angles[i] -= 360;
+            }
+            func_80117910_msetup(grp1, i, 0, x, y, z, 2.5f);
+        }
+        for (i = 0; i < (u16)n2; i++) {
+            x = w->pos.x + tbl2[i].pos.x;
+            y = w->pos.y + tbl2[i].pos.y;
+            z = w->pos.z + tbl2[i].pos.z;
+            func_80117910_msetup(grp2, i, 0, x, y, z, 2.5f);
+            if (w->id == 0) {
+                func_80117910_msetup(grp3, i, 0, x, y, z, 2.5f);
+            }
+        }
+        tmp.x = w->pos.x + mofs->x;
+        tmp.y = w->pos.y + mofs->y;
+        tmp.z = w->pos.z + mofs->z;
+        Hu3DModelPosSet(model1, tmp.x, tmp.y, tmp.z);
+        Hu3DModelPosSet(model2, tmp.x, tmp.y, tmp.z);
+        if (key == 1 && prev.x == w->pos.x && prev.y == w->pos.y && prev.z == w->pos.z) {
+            for (i = 0; i < (u16)n2; i++) {
+                HuSprScaleSet(grp2, i, 1.0f, 1.0f);
+            }
+        }
+        prev.x = w->pos.x;
+        prev.y = w->pos.y;
+        prev.z = w->pos.z;
+        btn = func_8010D684_msetup(D_8011A948_msetup, &padv);
+        if (last == 5) {
+            switch (w->id) {
+                case 0:
+                    if (btn & 0xF00) {
+                        r = func_8010D4DC_msetup(D_8011A514_msetup, flags, 6, sel, D_8011A948_msetup, btn);
+                        if (r >= 0 && r < ARRAY_COUNTU(flags)) {
+                            sel = r;
+                        }
+                        if (cursor.sel != sel) {
+                            HuAudFXPlay(1);
+                            HuSprAttrSet(grp2, cursor.sel + 1, 0x8000);
+                            HuSprAttrReset(grp2, sel + 1, 0x8000);
+                            cursor.sel = sel;
+                        }
+                    }
+                    if (btn & 0x8000) {
+                        w->state = 0;
+                        w->result = sel;
+                        HuSprAttrReset(grp2, sel + 1, 0x8000);
+                        HuAudFXPlay(D_8011A0D0_msetup[sel]);
+                        RepeatVibrator(D_8011A948_msetup, 5, 0, 5);
+                        for (i = 1; i < (u16)n2; i++) {
+                            if (i != sel + 1) {
+                                HuSprAttrReset(grp3, i, 0x8000);
+                            }
+                        }
+                    } else if (btn & 0x4000) {
+                        switch (w->id) {
+                            case 0:
+                                HuAudFXPlay(5);
+                                break;
+                            case 1:
+                                HuAudFXPlay(4);
+                                w->state = 0;
+                                w->result = -1;
+                                break;
+                        }
+                    }
+                    break;
+                case 1:
+                    if (btn & 0x600) {
+                        sel++;
+                        if (sel >= nSel) {
+                            sel = nSel - 1;
+                        }
+                    } else if (btn & 0x900) {
+                        sel--;
+                        if (sel < 0) {
+                            sel = 0;
+                        }
+                    }
+                    if (cursor.sel != sel) {
+                        HuAudFXPlay(1);
+                        func_80055458_main(grp2, cursor.sel + 1, 0x40);
+                        func_80055458_main(grp2, sel + 1, 0x100);
+                        cursor.sel = sel;
+                    }
+                    if (btn & 0x8000) {
+                        HuAudFXPlay(2);
+                        w->state = 0;
+                        w->result = sel;
+                    } else if (btn & 0x4000) {
+                        HuAudFXPlay(4);
+                        w->state = 0;
+                        w->result = -1;
+                        func_80055458_main(grp2, cursor.sel + 1, 0x40);
+                    }
+                    break;
+                case 2:
+                    if (btn & 0x600) {
+                        sel = 0;
+                    } else if (btn & 0x900) {
+                        sel = 1;
+                    }
+                    if (cursor.sel != sel) {
+                        HuAudFXPlay(1);
+                        func_80055458_main(grp2, cursor.sel, 0x40);
+                        func_80055458_main(grp2, sel, 0x100);
+                        cursor.sel = sel;
+                        w->result = sel;
+                    }
+                    if (btn & 0x8000) {
+                        HuAudFXPlay(2);
+                        w->state = 0;
+                        w->result = sel;
+                    } else if (btn & 0x4000) {
+                        HuAudFXPlay(4);
+                        w->state = 0;
+                        w->result = -1;
+                        func_80055458_main(grp2, cursor.sel, 0x40);
+                    }
+                    break;
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117A3C_msetup);
+#endif
 
 extern u8 D_800CE20A_main;
 extern MsCamKey D_8011A554_msetup;
@@ -3870,21 +4707,21 @@ void func_80118D48_msetup(void) {
     memset(&w[0], 0, 0x14);
     omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[0];
     w[0].id = 0;
-    w[0].unk0 = 0;
-    w[0].unk4 = 0;
-    w[0].unk8 = 0;
+    w[0].pos.x = 0.0f;
+    w[0].pos.y = 0.0f;
+    w[0].pos.z = 0.0f;
     memset(&w[1], 0, 0x14);
     omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[1];
     w[1].id = 1;
-    w[1].unk0 = 0;
-    w[1].unk4 = 0;
-    w[1].unk8 = 0;
+    w[1].pos.x = 0.0f;
+    w[1].pos.y = 0.0f;
+    w[1].pos.z = 0.0f;
     memset(&w[2], 0, 0x14);
     omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[2];
     w[2].id = 2;
-    w[2].unk0 = 0;
-    w[2].unk4 = 0;
-    w[2].unk8 = 0;
+    w[2].pos.x = 0.0f;
+    w[2].pos.y = 0.0f;
+    w[2].pos.z = 0.0f;
     spr = InitEspriteSlot(func_8000B838_main(0x140067), 0, 0);
     func_8000BC48_main(spr, 0x4000);
     func_8000BBD4_main(spr, 0xA0, 0x78);

@@ -118,8 +118,6 @@ extern s32 D_8011A508_msetup[];                  /* .data 0xC; lw: 80117A3C */
 extern u8 D_8011A550_msetup[];                   /* .data 0x4; lbu: 80117A3C */
 extern s16 D_8011A880_msetup;                    /* .bss 0x2; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107ECC 80107FB4 801084 */
 extern s16 D_8011A890_msetup;                    /* .bss 0x2; lh,lhu,sh: 8010B5D0 8010B82C 8010B858 8010B8E0 8010B968 8010B998 8010B9 */
-extern s32 D_8011A900_msetup;                    /* .bss 0x4; lw,sw: 80111650 */
-extern s16 D_8011A904_msetup;                    /* .bss 0x2; addiu,sh: 80111650 */
 extern s16 D_8011A906_msetup;                    /* .bss 0x2; addiu,sh: 80110954 80111650 */
 extern s16 D_8011A910_msetup[];                  /* .bss 0x10; lh,sh: 80118D48 */
 extern s16 D_8011A938_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 8010A35C 8010BA6C 8010BEF8 8010EB94 801109 */
@@ -215,7 +213,6 @@ void func_8010BE8C_msetup(s16 arg0);
 s16 func_8010BEB0_msetup(s16 arg0, s16 arg1);
 void func_8010BEF8_msetup(void); /* process */
 void func_8010CE8C_msetup(s16 model); /* func_80013390_main hook */
-s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 arg4, s32 arg5); /* arg1 unused */
 s16 func_8010D5EC_msetup(s16 arg0);
 s32 func_8010D684_msetup(s16 arg0, s16 *arg1);
 void func_8010D6D0_msetup(void); /* process */
@@ -278,18 +275,6 @@ extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0
 s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
 /* was void: returns the yes/no answer (func_801167B8_msetup tests v0) */
 s32 func_8010B858_msetup(void);
-/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
-   stack, 0x18 apart; memset 0x14) */
-typedef struct MsStoryWork {
-    /* 0x00 */ s32 unk0;
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ s32 unk8;
-    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
-    /* 0x0E */ s16 id;     /* page 0-2 */
-    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s32 unk14;
-} MsStoryWork; /* size = 0x18 */
 
 /* fork A */
 /* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
@@ -548,5 +533,50 @@ void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
 s16 func_8010CAF0_msetup(s32 dir, s32 file); /* starts the effect on a new model; returns it */
 void func_8010CC70_msetup(s16 model, f32 unk08, f32 unk0C, f32 unk10, f32 unk14);
 s32 func_8010CD14_msetup(s16 model, f32 x, f32 y, f32 z); /* launches one idle group: 1 if one was free */
+
+/* fork F */
+/* arg1 is a model part name (D_80119D68_msetup, D_80119E20_msetup hold char *), not s32 */
+void func_8010F43C_msetup(s16 model, char *part, Vec2f *out);
+/* One of the eight character slots of func_80111650_msetup's board (on its stack). */
+typedef struct MsChrSlot {
+    /* 0x00 */ s16 grp;   /* sprite group */
+    /* 0x02 */ s16 spr0;  /* member: the character */
+    /* 0x04 */ s16 spr1;  /* member: i + 8 */
+    /* 0x06 */ s16 owner; /* 0 free, -1 locked, else player + 1 */
+} MsChrSlot; /* size = 0x8 */
+/* user_data of each func_80110954_msetup cursor process (func_80111650_msetup keeps four). */
+typedef struct MsChrWork {
+    /* 0x00 */ MsChrSlot *slots;
+    /* 0x04 */ s16 unk4;
+    /* 0x06 */ s16 unk6;
+    /* 0x08 */ s16 (*pos)[2]; /* per-slot cursor x, y */
+    /* 0x0C */ s16 sel;
+    /* 0x0E */ s16 state;  /* 1 run, 2 stop, -1 kill */
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 pad;    /* controller port */
+    /* 0x14 */ s16 player; /* 4: the COMs */
+    /* 0x16 */ s16 unk16;  /* 1 for a player, else the COM count */
+    /* 0x18 */ s16 result; /* > 0 chosen, < 0 cancelled */
+} MsChrWork; /* size = 0x1C */
+/* user_data of the func_8011035C_msetup process (D_8011A906_msetup is .unk2) */
+typedef struct MsCmdWork {
+    /* 0x00 */ s16 state;
+    /* 0x02 */ s16 unk2;
+} MsCmdWork; /* size = 0x4 */
+extern Process *D_8011A900_msetup; /* was s32: the func_8011035C_msetup process */
+extern MsCmdWork D_8011A904_msetup; /* was s16 */
+
+/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
+   stack, 0x18 apart; memset 0x14). Moved from fork E's block: 0x00-0x08 is the page position (f32). */
+typedef struct MsStoryWork {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
+    /* 0x0E */ s16 id;     /* page 0-2 */
+    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s32 unk14;
+} MsStoryWork; /* size = 0x18 */
+/* arg0 is a table of choice positions, arg1 a u8 array (unused): pointers, not s32 */
+s16 func_8010D4DC_msetup(s16 (*pos)[2], u8 *arg1, s32 count, s16 sel, s16 pad, s32 btn);
 
 #endif
