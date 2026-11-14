@@ -68,12 +68,17 @@ extern f32 D_8010D414_inst; /* board tilt */
 extern s32 D_8010D4A4_inst; /* instruction message */
 extern s32 D_8010D508_inst;
 extern f32 D_8010D50C_inst;
+extern s32 D_8010D510_inst;
 extern InstPartList *D_8010D4C0_inst[9][2];
 extern void *D_8010DC10_inst;
 extern void *D_8010DC14_inst;
 extern void *D_8010DC18_inst;
-extern omObjData *D_8010DDD8_inst;
-extern void (*D_8010DDDC_inst)(omObjData *);
+/* The board object and its current page handler. */
+typedef struct InstBoard {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+} InstBoard;
+extern InstBoard D_8010DDD8_inst;
 
 u16 func_8000B0D4_main(s32, s32);
 void *func_8001D33C_main(s16 model, const char *name);
@@ -82,6 +87,8 @@ void func_801079CC_inst(omObjData *);
 void func_80107A24_inst(omObjData *);
 void func_80107BF8_inst(omObjData *);
 void func_80107E18_inst(omObjData *);
+void func_80107F98_inst(omObjData *);
+void func_8010B124_inst(void);
 s8 func_8010B10C_inst(void);
 void func_80107EE0_inst(void);
 void func_8010815C_inst(omObjData *);
@@ -89,7 +96,7 @@ void func_80108AF0_inst(s16, void *, void *, void *);
 
 /* Process: builds the instruction board object (model 0 the board, 2 the text page, 4 the
    title, 6 the cursor, 8 the frame), marks the parts named by the type's part lists, loads
-   the message pages and runs the current page handler (D_8010DDDC_inst) every frame. */
+   the message pages and runs the current page handler (D_8010DDD8_inst.func) every frame. */
 #ifdef NON_MATCHING
 /* Matches except scheduling in the part loop (masked 2: the parts pointer is loaded before
    the index arithmetic). */
@@ -104,7 +111,7 @@ void func_80107470_inst(void) {
     s16 idx;
 
     obj = omAddObj(0x14, 10, 5, -1, NULL);
-    D_8010DDD8_inst = obj;
+    D_8010DDD8_inst.obj = obj;
     obj->model[0] = func_8000B0D4_main(D_8010D90C_inst[D_8010D40A_inst][0] | 0x170000, 0x16B9);
     obj->model[1] = func_8000B0D4_main(0x170029, 0x1E89);
     obj->model[2] = func_8000B0D4_main(D_8010D954_inst[D_8010D40A_inst], 0x1AB9);
@@ -154,12 +161,12 @@ void func_80107470_inst(void) {
     HmfModelData[obj->model[1]].rot.x = -90.0f;
     omPrcSetDestructor(0, func_80107EE0_inst);
     if (D_8010D408_inst == 0) {
-        D_8010DDDC_inst = func_80107938_inst;
+        D_8010DDD8_inst.func = func_80107938_inst;
     } else {
-        D_8010DDDC_inst = func_8010815C_inst;
+        D_8010DDD8_inst.func = func_8010815C_inst;
     }
     while (TRUE) {
-        D_8010DDDC_inst(obj);
+        D_8010DDD8_inst.func(obj);
         HuPrcVSleep();
     }
 }
@@ -174,14 +181,14 @@ void func_80107938_inst(omObjData *obj) {
         func_8001C814_main(obj->model[2], 1, 0);
         func_8001C258_main(obj->model[1], 4, 0);
         func_8001C258_main(obj->model[2], 4, 0);
-        D_8010DDDC_inst = func_801079CC_inst;
+        D_8010DDD8_inst.func = func_801079CC_inst;
     }
 }
 
 void func_801079CC_inst(omObjData *obj) {
     func_8001C814_main(obj->model[3], 1, 0);
     func_8001C258_main(obj->model[3], 4, 0);
-    D_8010DDDC_inst = func_80107A24_inst;
+    D_8010DDD8_inst.func = func_80107A24_inst;
 }
 
 /* Page handler: tilts the board and title up and grows the page models with the cursor
@@ -201,14 +208,14 @@ void func_80107A24_inst(omObjData *obj) {
     }
     D_8010D508_inst++;
     if (D_8010D508_inst == frames) {
-        D_8010DDDC_inst = func_80107E18_inst;
+        D_8010DDD8_inst.func = func_80107E18_inst;
         D_8010D50C_inst = 0.0f;
         D_8010D508_inst = 0;
     }
 }
 
 void func_80107BE4_inst(void) {
-    D_8010DDDC_inst = func_80107BF8_inst;
+    D_8010DDD8_inst.func = func_80107BF8_inst;
 }
 
 const char D_8010D978_inst[] = "gamen";
@@ -252,25 +259,75 @@ void func_80107BF8_inst(omObjData *obj) {
         parts[j]->unk60 = 1.3f;
         parts[j]->unk74 = 1.3f;
     }
-    D_8010DDDC_inst = func_80107E18_inst;
+    D_8010DDD8_inst.func = func_80107E18_inst;
 }
 
 void func_80107E18_inst(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107E20_inst);
+/* 1 once the board model's motion has reached its last frame. */
+s32 func_80107E20_inst(void) {
+    s16 m = D_8010DDD8_inst.obj->model[0];
+    f32 frame = HmfModelData[m].unk40;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107E98_inst);
+    if (D_800CCF58_main[HmfModelData[m].unk02].unk02 <= frame) {
+        return 1;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107EE0_inst);
+void func_80107E98_inst(void) {
+    func_8001C6A8_main(D_8010DDD8_inst.obj->model[0], 0.0f);
+    func_8001C814_main(D_8010DDD8_inst.obj->model[0], 1, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107F18_inst);
+void func_80107EE0_inst(void) {
+    DataClose(D_8010DC18_inst);
+    DataClose(D_8010DC10_inst);
+    DataClose(D_8010DC14_inst);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107F98_inst);
+void func_80107F18_inst(void) {
+    omObjData *obj = D_8010DDD8_inst.obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801080A8_inst);
+    func_8001C814_main(obj->model[3], 1, 0);
+    func_8001C814_main(obj->model[3], 4, 4);
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_8010B124_inst();
+    D_8010DDD8_inst.func = func_80107F98_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801080FC_inst);
+/* Page handler: tilts the board back down, then pulses the page. */
+void func_80107F98_inst(omObjData *obj) {
+    f32 frames;
+    f32 rot;
+
+    frames = D_800CCF58_main[HmfModelData[obj->model[3]].unk02].unk02 - 25.0f;
+    rot = D_8010D414_inst - D_8010D510_inst / frames * D_8010D414_inst;
+    HmfModelData[obj->model[1]].rot.x = rot - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = rot;
+    D_8010D510_inst++;
+    if (D_8010D510_inst == frames) {
+        D_8010DDD8_inst.func = func_80107BF8_inst;
+        D_8010D510_inst = 0;
+    }
+}
+
+/* 1 once the board model's motion is back at frame 0. */
+s32 func_801080A8_inst(void) {
+    if (HmfModelData[D_8010DDD8_inst.obj->model[0]].unk40 == 0.0f) {
+        return 1;
+    }
+    return 0;
+}
+
+void func_801080FC_inst(void) {
+    omObjData *obj = D_8010DDD8_inst.obj;
+
+    func_8001C814_main(obj->model[0], 1, 0);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C814_main(obj->model[0], 4, 4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_8010815C_inst);
 
