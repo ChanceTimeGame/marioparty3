@@ -110,7 +110,6 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
    end of this file. */
 extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
 extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
-extern f32 D_801138EC_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F0_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F4_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F8_option;                /* .data ; lwc1: 8010C3E4 */
@@ -122,7 +121,6 @@ extern f32 D_8011390C_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113910_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113914_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113918_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113970_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_80113974_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_80113978_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_8011397C_option;                /* .data ; lwc1: 8010D5B0 */
@@ -299,14 +297,10 @@ void func_80110B8C_option(s32 no, f32 *x, f32 *y, f32 *z); /* model rot get */
 void func_80110BD4_option(s32 no, f32 *x, f32 *y, f32 *z); /* model scale get */
 void func_80110C1C_option(s32 arg0);
 void func_80110C5C_option(s32 arg0);
-void func_80110C9C_option(s32 no, s16 flag);
-void func_80110CE0_option(s32 no, s32 motNo, s16 arg2, s16 arg3, s16 arg4);
-void func_80110D50_option(s32 no, s16 arg1);
 void func_80110D94_option(s32 no, f32 speed);
 void func_80110DCC_option(s32 no, u32 time);
 void func_80110E30_option(s32 arg0);
 s32 func_80110ED0_option(s32 arg0);
-void func_80110F58_option(s32 no, s32 motNo, s16 flag);
 void func_80110FC8_option(s32 dataNum);
 void func_8011102C_option(void);
 u32 func_80111058_option(u32 mes); /* heap copy of a message when mes is a pointer */
@@ -333,7 +327,6 @@ void func_80111E00_option(s32 btn); /* wait for button */
 void func_80111E3C_option(s32 no, s16 arg1);
 u16 func_80111E74_option(s32 val); /* debug value print */
 void func_80112028_option(s32 arg0, s32 arg1, s32 arg2);
-void func_80112044_option(s32 arg0, s32 arg1);
 void func_80112060_option(void);
 void func_80112084_option(void);
 void func_8011239C_option(void);
@@ -354,11 +347,8 @@ void func_8011323C_option(s32 arg0);
 void func_80113258_option(s32 arg0);
 void func_80113274_option(s32 arg0, f32 *arg1, f32 *arg2, f32 *arg3);
 void func_80113290_option(s32 arg0, f32 arg1, f32 arg2, f32 arg3);
-void func_801132AC_option(s32 arg0, s16 arg1);
-void func_801132C8_option(s32 arg0, s16 arg1);
 void func_801132E4_option(s32 arg0, u32 arg1);
 void func_80113300_option(s32 arg0);
-void func_8011331C_option(s32 arg0, s32 arg1, s32 arg2);
 void func_80113338_option(s32 arg0, s32 arg1, s16 arg2, s16 arg3, u16 arg4);
 void func_80113368_option(s32 arg0, s32 *arg1, s32 *arg2);
 void func_80113384_option(s32 arg0);
@@ -371,4 +361,41 @@ void func_80113440_option(s32 arg0);
 void func_8011345C_option(s32 arg0);
 void func_80113490_option(s32 arg0);
 
+/* fork D */
+/* Model sound object: D_801147E0_option (func_8010FE10_option..func_8010FF0C_option). */
+typedef struct OpSeObj {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s32 seNo; /* also func_800078F8_main's slot; HuAudFXStop takes its low half */
+} OpSeObj; /* size = 0x8 */
+extern OpSeObj D_801147E0_option;
+extern s32 D_801147E8_option; /* rumble repeat counter */
+
+/* The word before each MinigameTable entry (D_800A6D44_main), read with the table's 0x14 stride. */
+typedef struct OpMgTableHead {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ char unk4[0x10];
+} OpMgTableHead;
+extern OpMgTableHead D_800A6D40_main[];
+void func_80112044_option(s32 no, u16 alpha);
+void func_80110C9C_option(s32 no, s32 flag);
+void func_80110D50_option(s32 no, s32 arg1);
+void func_80110CE0_option(s32 no, s32 motNo, s16 arg2, s16 arg3, u16 arg4);
+void func_80110F58_option(s32 no, s32 motNo, u16 flag);
+void func_801132AC_option(s32 no, s32 flag);
+void func_801132C8_option(s32 no, s32 arg1);
+void func_8011331C_option(s32 no, s32 motNo, s32 flag);
+extern u8 D_800D09A8_main; /* first byte of the save common buffer (saveload.c SaveCommonBuf): bit 0 is the sound mode */
+/* .data (fork D). Inner labels of these objects are aliases in undefined_syms.txt. */
+#ifdef NON_MATCHING
+#define OP_DATA_FILE_END()
+#else
+#define OP_DATA_FILE_END() __asm__(".section .data\n    .align 4\n");
+#endif
+extern Vec D_801134F0_option[3];
+extern Vec D_80113514_option[9];
+extern Vec D_8011376C_option; /* D_80113770_option and D_80113774_option are its y and z */
+extern f32 D_801138EC_option[6][4]; /* D_801138F0..D_80113918 are elements of it */
+extern s32 D_801138C8_option[9];
+extern s32 D_8011394C_option[9];
+extern f32 D_80113970_option[6][4]; /* D_80113974..D_8011399C are elements of it */
 #endif
