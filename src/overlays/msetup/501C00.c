@@ -3,6 +3,9 @@
 
 #include "game/vibrator.h"
 
+extern u8 D_8011A949_msetup; /* low byte of D_8011A948_msetup (big-endian) */
+
+
 /* omObjData::data of the func_80107428_msetup background object (HuMemAllocTag 0x88). */
 typedef struct MsShaftWork {
     /* 0x00 */ f32 wallY[3];
@@ -1252,7 +1255,85 @@ void func_80108AB8_msetup(void) {
     }
 }
 
+/* Story Mode: the board, turns and four players from GwStory (chapter unk0, character unk1,
+   COM level unk2); the other two or three characters are shuffled. */
+#ifdef NON_MATCHING
+/* Residue: register allocation (board copy, the rest[] loop registers, the n < 4 entry test). */
+void func_80108F74_msetup(void) {
+    u8 rest[4];
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 rival;
+    s32 star;
+    s32 board;
+    u8 t;
+    u32 r;
+
+    GwSystem.current_board_index = D_80119478_msetup[GwStory.unk0];
+    GwSystem.current_game_length = 0;
+    board = D_80119488_msetup[GwStory.unk0];
+    star = 0;
+    if (board == 1) {
+        GwSystem.total_turns = 20;
+        star = 5;
+    } else {
+        GwSystem.total_turns = 15;
+    }
+    GwPlayer[0].chr = GwStory.unk1;
+    GwPlayer[0].star = star;
+    GwPlayer[0].pad = D_8011A949_msetup;
+    GwPlayer[0].cpu_difficulty = 1;
+    GwPlayer[0].stat = 0;
+    GwPlayer[0].coin = 0;
+    rival = D_80119498_msetup[GwStory.unk0];
+    if ((u8)rival == GwStory.unk1) {
+        rival = 1;
+    }
+    n = 0;
+    if (board == 1) {
+        GwPlayer[1].chr = rival;
+        GwPlayer[1].star = star;
+        GwPlayer[1].pad = D_8011AA30_msetup.pad[1];
+        GwPlayer[1].cpu_difficulty = GwStory.unk2;
+        GwPlayer[1].stat = 1;
+        GwPlayer[1].coin = 0;
+        return;
+    }
+    for (i = 0; n < 4; i++) {
+        if ((u8)i != GwStory.unk1 && (u8)i != (u8)rival) {
+            rest[n] = i;
+            n++;
+        }
+    }
+    for (n = 0x60; n != 0; n--) {
+        r = func_801061E0_msetup();
+        t = rest[r & 3];
+        rest[r & 3] = rest[(r >> 2) & 3];
+        rest[(r >> 2) & 3] = t;
+    }
+    j = 1;
+    if (GwStory.unk0 >= 11) {
+        GwPlayer[j].chr = rival;
+        GwPlayer[j].star = star;
+        GwPlayer[j].pad = D_8011AA30_msetup.pad[j];
+        GwPlayer[j].cpu_difficulty = GwStory.unk2;
+        GwPlayer[j].stat = 1;
+        GwPlayer[j].coin = 0;
+        j = 2;
+    }
+    for (n = 0; j < 4; j++, n++) {
+        GwPlayer[j].chr = rest[n];
+        GwPlayer[j].star = star;
+        GwPlayer[j].pad = D_8011AA30_msetup.pad[j];
+        GwPlayer[j].cpu_difficulty = GwStory.unk2;
+        GwPlayer[j].stat = 1;
+        GwPlayer[j].coin = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108F74_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80109218_msetup);
 
