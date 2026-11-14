@@ -4680,8 +4680,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115EE0_msetup);
 
 void func_800332D4_main(s16 arg0, f32 arg1);
 extern s32 D_80119FDC_msetup[2]; /* the two lifts' sign data numbers */
-extern s32 D_80119F94_msetup[];  /* func_8010E52C_msetup tables (0x20 bytes each) */
-extern s32 D_80119FB4_msetup[];
+extern MsLiftKey D_80119F94_msetup[2]; /* func_8010E52C_msetup lift targets (two lifts) */
+extern MsLiftKey D_80119FB4_msetup[2];
 extern char D_8011A6D8_msetup[];  /* sign texture name (shared with earlier functions) */
 
 /* State: the 1P/2P team choice on two lifts (only offered with 2+ players):
