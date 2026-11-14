@@ -11,6 +11,8 @@ typedef struct TexAnimSlot {
 
 extern TexAnimSlot *D_800D1714_main;
 s16 func_800329B4_main(void *);
+void func_80033910_main(HmfData *);
+void func_80033970_main(HmfData *);
 s16 func_8000B0D4_main(s32, s32);
 
 extern Vec D_8010AB40_mgresultboard[4];
@@ -542,44 +544,68 @@ s32 func_80109A90_mgresultboard(omObjData *obj, s8 player, s16 value) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109CB0_mgresultboard);
+/* Retail runs i to 3: the last pass writes one slot past the player's three coin digits (for the
+   last player, the first byte of D_8010AF98). */
+s32 func_80109CB0_mgresultboard(omObjData *obj, s8 player) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109D44_mgresultboard);
+    if (D_8010AEA8_mgresultboard[player][2].unk_04 >= 0) {
+        return 0;
+    }
+    for (i = 0; i < 4; i++) {
+        D_8010AEA8_mgresultboard[player][i + 2].unk_00 = 0;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109DAC_mgresultboard);
+/* Same one-slot overrun as func_80109CB0_mgresultboard. */
+s32 func_80109D44_mgresultboard(omObjData *obj, s8 player) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109F30_mgresultboard);
+    for (i = 0; i < 4; i++) {
+        D_8010AEA8_mgresultboard[player][i + 2].unk_00 = 1;
+    }
+    return 1;
+}
+
+s32 func_80109DAC_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[3];
+    s8 i;
+
+    if (value >= 1000) {
+        value = 999;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 100) % 10;
+    digit[1] = (s16)(value / 10) % 10;
+    digit[2] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 11;
+    }
+    for (i = 0; i < 3; i++) {
+        D_8010AEA8_mgresultboard[player][i + 2].unk_02 = digit[i];
+        D_8010AEA8_mgresultboard[player][i + 2].unk_04 = -1;
+        D_8010AEA8_mgresultboard[player][i + 2].unk_00 = 0;
+    }
+    return 1;
+}
+
+void func_80109F30_mgresultboard(s16 model, s16 slot, s16 frame) {
+    TexAnimSlot *p;
+
+    if (slot >= 0) {
+        if (frame == -1) {
+            func_80033910_main(HmfModelData[model].hmf);
+            return;
+        }
+        func_80033970_main(HmfModelData[model].hmf);
+        p = &D_800D1714_main[slot];
+        p->unk_00 = frame;
+    }
+}
 
 const s16 D_8010AD58_mgresultboard[4][5] = {
     { 0, 1, 8, 9, 10 }, { 2, 3, 11, 12, 13 }, { 4, 5, 14, 15, 16 }, { 6, 7, 17, 18, 19 },
 };
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A000_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A334_mgresultboard);
-
-void func_8010A350_mgresultboard(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A358_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A3E4_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A454_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A4A0_mgresultboard);
-
-s32 func_8010A864_mgresultboard(omObjData *arg0, s8 arg1, s8 arg2) {
-    if (D_8010AFB0_mgresultboard[arg1].unk_04 >= 0) {
-        return 0;
-    }
-
-    D_8010AFB0_mgresultboard[arg1].unk_04 = arg2;
-
-    if (D_8010AFB0_mgresultboard[arg1].unk_08 >= 0) {
-        func_8001C258_main(arg0->model[D_8010AFB0_mgresultboard[arg1].unk_08 + 1], 4, 0);
-    }
-
-    D_8010AFB0_mgresultboard[arg1].unk_00 = 1;
-    return 1;
-}
