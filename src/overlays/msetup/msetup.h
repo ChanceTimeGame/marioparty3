@@ -56,16 +56,6 @@ typedef struct MsSetupWork {
     /* 0x04 */ s16 unk4; /* also labelled D_8011A886_msetup */
 } MsSetupWork; /* size = 0x6 */
 
-/* omObjData::data of the func_8010DE38_msetup arrows object (HuMemAllocTag 0x10). */
-typedef struct MsArrowWork {
-    /* 0x00 */ f32 unk0;
-    /* 0x04 */ f32 unk4;
-    /* 0x08 */ s16 x0; /* left arrow */
-    /* 0x0A */ s16 y0;
-    /* 0x0C */ s16 x1; /* right arrow */
-    /* 0x0E */ s16 y1;
-} MsArrowWork; /* size = 0x10 */
-
 /* main functions without a shared prototype (as the units declared them) */
 void func_8000BBFC_main(u16, s16);
 void func_8000BC48_main(u16, s32);
@@ -348,5 +338,14 @@ typedef struct MsSprWork {
     /* 0x10 */ s16 time;      /* frames per move (0: jump) */
     /* 0x12 */ s16 prio;
 } MsSprWork; /* size = 0x14 */
+
+/* omObjData::unk_5C of the func_8010DE38_msetup arrows object (HuMemAllocTag 0x10); model[0..1]
+   esprite slots, model[2..3] their sprites; work[0] request, [1] rate/frames, [2] alpha or arrow
+   index, [3] current state. */
+typedef struct MsArrowWork {
+    /* 0x00 */ f32 angle;
+    /* 0x04 */ f32 speed;
+    /* 0x08 */ s16 pos[2][2]; /* left arrow x,y; right arrow x,y */
+} MsArrowWork; /* size = 0x10 */
 
 #endif

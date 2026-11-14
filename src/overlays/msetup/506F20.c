@@ -238,9 +238,115 @@ void func_8010D6D0_msetup(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D6D0_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DAC4_msetup);
+// register allocation only (masked 0): work/slot/y in s4/s3/s2
+#ifdef NON_MATCHING
+void func_8010DAC4_msetup(omObjData *obj) {
+    MsArrowWork *work;
+    s32 i;
+    s16 slot;
+    s16 x;
+    s16 y;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DDD8_msetup);
+    work = obj->data;
+
+    if (obj->work[0] != obj->work[3]) {
+        switch (obj->work[0]) {
+        case 0:
+            break;
+        case 1:
+            obj->work[2] = 0;
+            func_8000BB54_main(obj->model[0]);
+            func_8000BB54_main(obj->model[1]);
+            break;
+        case 2:
+            obj->work[2] = 0xFF;
+            break;
+        case 3:
+            if (obj->work[3] == 4) {
+                i = obj->work[2];
+                func_8000BBD4_main(obj->model[i], work->pos[i][0], work->pos[i][1]);
+            }
+            obj->work[2] = 0;
+            obj->work[1] = 5;
+            work->angle = 360.0f;
+            work->speed = -36.0f;
+            break;
+        case 4:
+            if (obj->work[3] == 3) {
+                i = obj->work[2];
+                func_8000BBD4_main(obj->model[i], work->pos[i][0], work->pos[i][1]);
+            }
+            obj->work[2] = 1;
+            obj->work[1] = 5;
+            work->angle = 0.0f;
+            work->speed = 36.0f;
+            break;
+        case 0xFF:
+            func_8000C184_main(obj->model[0]);
+            func_8000C184_main(obj->model[1]);
+            HuSprKill(obj->model[2]);
+            HuSprKill(obj->model[3]);
+            obj->work[0] = 0;
+            break;
+        }
+        obj->work[3] = obj->work[0];
+    }
+    switch (obj->work[3]) {
+    case 0:
+        break;
+    case 1:
+        i = obj->work[2] + obj->work[1];
+        if (i >= 0x100) {
+            i = 0xFF;
+            obj->work[0] = 0;
+        }
+        obj->work[2] = i;
+        func_8000BBFC_main(obj->model[0], i);
+        func_8000BBFC_main(obj->model[1], i);
+        break;
+    case 2:
+        i = obj->work[2] - obj->work[1];
+        if (i < 0) {
+            i = 0;
+            func_8000BB94_main(obj->model[0]);
+            func_8000BB94_main(obj->model[1]);
+            obj->work[0] = 0;
+        }
+        obj->work[2] = i;
+        func_8000BBFC_main(obj->model[0], i);
+        func_8000BBFC_main(obj->model[1], i);
+        break;
+    case 3:
+    case 4:
+        i = obj->work[2];
+        slot = obj->model[i];
+        x = work->pos[i][0];
+        y = work->pos[i][1];
+        if (obj->work[1] == 0) {
+            obj->work[0] = 0;
+        } else {
+            obj->work[1]--;
+            work->angle += work->speed;
+            s = sindf(work->angle) * 12.0f;
+            x += s;
+        }
+        func_8000BBD4_main(slot, x, y);
+        break;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DAC4_msetup);
+#endif
+
+void func_8010DDD8_msetup(omObjData *obj) {
+    func_8000C184_main(obj->model[0]);
+    func_8000C184_main(obj->model[1]);
+    HuSprKill(obj->model[2]);
+    HuSprKill(obj->model[3]);
+    HuMemFree(obj->data);
+    omDelObj(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DE38_msetup);
 
