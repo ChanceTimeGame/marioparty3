@@ -1,48 +1,25 @@
 #include "common.h"
+#include "inst.h"
 
 /* Model part name lists (D_8010D4C0_inst[type][0..1]): the parts of the instruction board
    model func_80107470_inst marks. */
-#define INST_PART_LIST(n) struct { s16 count; const char *names[n]; }
-typedef INST_PART_LIST(1) InstPartList; /* names[count] */
 
-const INST_PART_LIST(4) D_8010D770_inst = { 4, { "4p_1", "4p_2", "4p_3", "4p_4" } };
-const INST_PART_LIST(1) D_8010D7A4_inst = { 0, { "" } };
-const INST_PART_LIST(4) D_8010D7B0_inst = { 4, { "2vs2_1", "2vs2_2", "2vs2_3", "2vs2_4" } };
-const INST_PART_LIST(1) D_8010D7E4_inst = { 0, { "" } };
-const INST_PART_LIST(4) D_8010D7EC_inst = { 4, { "3vs1_1", "3vs1_2", "3vs1_3", "3vs1_4" } };
-const INST_PART_LIST(1) D_8010D820_inst = { 0, { "" } };
-const INST_PART_LIST(4) D_8010D828_inst = { 4, { "battle1", "battle2", "battle3", "battle4" } };
-const INST_PART_LIST(1) D_8010D85C_inst = { 0, { "" } };
-const INST_PART_LIST(2) D_8010D864_inst = { 2, { "duel1", "duel2" } };
-const INST_PART_LIST(1) D_8010D880_inst = { 0, { "" } };
-const INST_PART_LIST(1) D_8010D888_inst = { 1, { "item_chara" } };
-const INST_PART_LIST(5) D_8010D89C_inst = { 5, { "item1", "item2", "item3", "item4", "item5" } };
-const INST_PART_LIST(1) D_8010D8DC_inst = { 1, { "omake1" } };
-const INST_PART_LIST(1) D_8010D8EC_inst = { 0, { "" } };
-const INST_PART_LIST(1) D_8010D8F4_inst = { 1, { "last1" } };
-const INST_PART_LIST(1) D_8010D904_inst = { 0, { "" } };
-
-/* Views of hmfman.c's HmfMotionObjM / HmfDataM / HmfPartM (func_8001D33C_main's result). */
-typedef struct InstHmfPart {
-    /* 0x00 */ char unk00[0x24];
-    /* 0x24 */ s16 unk24;
-    /* 0x26 */ char unk26[0x42];
-} InstHmfPart; /* size 0x68 */
-typedef struct InstHmfData {
-    /* 0x00 */ char unk00[0x60];
-    /* 0x60 */ InstHmfPart *parts;
-} InstHmfData;
-typedef struct InstMotionObj {
-    /* 0x00 */ s16 count;
-    /* 0x02 */ char unk02[0x4A];
-    /* 0x4C */ f32 unk4C; /* x scale */
-    /* 0x50 */ s16 *children; /* part index, or 0x8000 | motion object index */
-    /* 0x54 */ InstHmfData *hmf;
-    /* 0x58 */ char unk58[8];
-    /* 0x60 */ f32 unk60; /* y scale */
-    /* 0x64 */ char unk64[0x10];
-    /* 0x74 */ f32 unk74; /* z scale */
-} InstMotionObj;
+const INST_HOOK_LIST(4) D_8010D770_inst = { 4, { "4p_1", "4p_2", "4p_3", "4p_4" } };
+const INST_HOOK_LIST(1) D_8010D7A4_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D7B0_inst = { 4, { "2vs2_1", "2vs2_2", "2vs2_3", "2vs2_4" } };
+const INST_HOOK_LIST(1) D_8010D7E4_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D7EC_inst = { 4, { "3vs1_1", "3vs1_2", "3vs1_3", "3vs1_4" } };
+const INST_HOOK_LIST(1) D_8010D820_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D828_inst = { 4, { "battle1", "battle2", "battle3", "battle4" } };
+const INST_HOOK_LIST(1) D_8010D85C_inst = { 0, { "" } };
+const INST_HOOK_LIST(2) D_8010D864_inst = { 2, { "duel1", "duel2" } };
+const INST_HOOK_LIST(1) D_8010D880_inst = { 0, { "" } };
+const INST_HOOK_LIST(1) D_8010D888_inst = { 1, { "item_chara" } };
+const INST_HOOK_LIST(5) D_8010D89C_inst = { 5, { "item1", "item2", "item3", "item4", "item5" } };
+const INST_HOOK_LIST(1) D_8010D8DC_inst = { 1, { "omake1" } };
+const INST_HOOK_LIST(1) D_8010D8EC_inst = { 0, { "" } };
+const INST_HOOK_LIST(1) D_8010D8F4_inst = { 1, { "last1" } };
+const INST_HOOK_LIST(1) D_8010D904_inst = { 0, { "" } };
 
 /* Per minigame type: the board's two texture/model ids (low halves of 0x0017xxxx). */
 const s32 D_8010D90C_inst[9][2] = {
@@ -55,45 +32,6 @@ const s32 D_8010D954_inst[9] = {
     0x00170025, 0x00170025, 0x00170027, 0x00170026,
 };
 
-extern s8 D_8010D400_inst[7];
-extern s8 D_8010D404_inst;
-extern s8 D_8010D405_inst;
-extern s8 D_8010D406_inst;
-extern s8 D_8010D407_inst;
-extern s8 D_8010D408_inst;
-extern s8 D_8010D409_inst;
-extern s8 D_8010D40A_inst; /* minigame type */
-extern s8 D_8010D40B_inst; /* minigame index */
-extern f32 D_8010D414_inst; /* board tilt */
-extern s32 D_8010D4A4_inst; /* instruction message */
-extern s32 D_8010D508_inst;
-extern f32 D_8010D50C_inst;
-extern s32 D_8010D510_inst;
-extern InstPartList *D_8010D4C0_inst[9][2];
-extern void *D_8010DC10_inst;
-extern void *D_8010DC14_inst;
-extern void *D_8010DC18_inst;
-/* The board object and its current page handler. */
-typedef struct InstBoard {
-    /* 0x00 */ omObjData *obj;
-    /* 0x04 */ void (*func)(omObjData *);
-} InstBoard;
-extern InstBoard D_8010DDD8_inst;
-
-u16 func_8000B0D4_main(s32, s32);
-void *func_8001D33C_main(s16 model, const char *name);
-void func_80107938_inst(omObjData *);
-void func_801079CC_inst(omObjData *);
-void func_80107A24_inst(omObjData *);
-void func_80107BF8_inst(omObjData *);
-void func_80107E18_inst(omObjData *);
-void func_80107F98_inst(omObjData *);
-void func_8010B124_inst(void);
-s8 func_8010B10C_inst(void);
-void func_80107EE0_inst(void);
-void func_8010815C_inst(omObjData *);
-void func_80108AF0_inst(s16, void *, void *, void *);
-
 /* Process: builds the instruction board object (model 0 the board, 2 the text page, 4 the
    title, 6 the cursor, 8 the frame), marks the parts named by the type's part lists, loads
    the message pages and runs the current page handler (D_8010DDD8_inst.func) every frame. */
@@ -102,7 +40,7 @@ void func_80108AF0_inst(s16, void *, void *, void *);
    the index arithmetic). */
 void func_80107470_inst(void) {
     omObjData *obj;
-    InstPartList *list;
+    InstHookList *list;
     InstHmfData *hmf;
     InstMotionObj *part;
     s32 i;
@@ -329,34 +267,29 @@ void func_801080FC_inst(void) {
     func_8001C814_main(obj->model[0], 4, 4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_8010815C_inst);
+/* Page handler for a repeat visit (D_8010D408_inst): the board shown at once, already tilted
+   and grown. */
+void func_8010815C_inst(omObjData *obj) {
+    InstMotionObj *parts[2];
+    f32 frames;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108350_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_8010872C_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108808_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108870_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108954_inst);
-
-void func_80108A10_inst(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108A18_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80108AF0_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801094B0_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801097DC_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_8010986C_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801098D8_inst);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801099C0_inst);
-
-void func_80109A84_inst(void) {
+    frames = D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02;
+    func_8001C814_main(obj->model[0], 1, 0);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C6A8_main(obj->model[0], frames);
+    HmfModelData[obj->model[1]].rot.x = D_8010D414_inst - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = D_8010D414_inst;
+    for (i = 0; i < 3; i++) {
+        Hu3DModelScaleSet(obj->model[i + 1], 0.6f, 0.6f, 0.6f);
+        func_8001C258_main(obj->model[i + 1], 4, 0);
+    }
+    parts[0] = func_8001D33C_main(obj->model[1], D_8010D978_inst);
+    parts[1] = func_8001D33C_main(obj->model[2], D_8010D980_inst);
+    for (i = 0; i < 2; i++) {
+        parts[i]->unk4C = 1.3f;
+        parts[i]->unk60 = 1.3f;
+        parts[i]->unk74 = 1.3f;
+    }
+    D_8010DDD8_inst.func = func_80107E18_inst;
 }
