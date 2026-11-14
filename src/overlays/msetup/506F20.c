@@ -1,5 +1,6 @@
 #include "common.h"
 #include "msetup.h"
+#include "game/vibrator.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
 
