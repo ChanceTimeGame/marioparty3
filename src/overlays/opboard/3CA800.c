@@ -1,5 +1,3 @@
-#include "common.h"
-#include "../ovl_80_shared_board/FA250.h"
 
 #include "common.h"
 #include "game/board.h"
@@ -9,6 +7,13 @@
 #include "../ovl_80_shared_board/101840.h"
 #include "../ovl_80_shared_board/105D50.h"
 #include "../ovl_80_shared_board/106640.h"
+
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+
+extern Vec D_80108D74_opboard[3];
+extern Vec D_80108DA4_opboard[4];
+extern omObjData *D_80108F3C_opboard;
+
 
 /* opboard (0x53): the board's opening. */
 
@@ -351,7 +356,103 @@ void func_80106388_opboard(void) {
     D_80108F34_opboard = NULL;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_801066F0_opboard);
+/* the opening: players and the board's centre model rise out of the ground, the logo shows,
+   then the centre model zooms in under a white wipe */
+void func_801066F0_opboard(void) {
+    omObjData *obj;
+    s32 i;
+    f32 scale;
+    f32 rise;
+    Object *ring;
+
+    for (i = 0; i < 4; i++) {
+        D_80109068_opboard[i] = MBPlayerGet(i);
+        MBPlayerModelCreate(i, (u32 *)D_80108EF4_opboard[GwPlayer[i].chr], 2);
+        HuVecCopy3F(&D_80109068_opboard[i]->player_obj->coords, &D_80108DA4_opboard[i]);
+        MBModelTempAllocFree(D_80109068_opboard[i]->player_obj);
+        D_80109068_opboard[i]->stat |= 4;
+    }
+    D_80108F1C_opboard = MBModelFileCreate(0x1301FE, -1, 1.0f, 0.0f, NULL);
+    D_80108F24_opboard = MBModelFileCreate(0x1301FD, -1, 1.0f, 0.0f, NULL);
+    HuVecCopy3F(&D_80108F1C_opboard->coords, &D_80108D74_opboard[0]);
+    HuVecCopy3F(&D_80108F24_opboard->coords, &D_80108D74_opboard[0]);
+    D_80108F24_opboard->coords.y = 0.0f;
+    HuVecCopyXYZ(&D_80108F24_opboard->scale, D_80108F24_opboard->coords.y, D_80108F24_opboard->coords.y,
+                 D_80108F24_opboard->coords.y);
+    D_80108F2C_opboard = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8000CD00_main(D_80108F2C_opboard, 2.0f, 20.0f, 1.0f);
+    func_8000D018_main(D_80108F2C_opboard, 40.0f);
+    func_800138EC_main(D_80108F2C_opboard, 1, 0);
+    MBBackTPLvlSet(0x80);
+    WipeCreateIn(2, 0x10);
+    HuPrcSleep(17);
+    D_80108F3C_opboard = omAddObj(0x1000, 0, 0, -1, func_801061FC_opboard);
+    HuAudSeqPlay(0x6E);
+    func_80106388_opboard();
+    for (i = 0x80; i < 0x100; i += 8) {
+        MBBackTPLvlSet(i);
+        HuPrcVSleep();
+    }
+    MBBackTPLvlSet(0xFF);
+    HuAudFXPlay(0x2ED);
+    while (D_80108F1C_opboard->coords.y >= 10.0f) {
+        D_80108F1C_opboard->coords.y -= 3.0f;
+        for (i = 0; i < 4; i++) {
+            D_80109068_opboard[i]->player_obj->coords.y -= 3.0f;
+        }
+        ring = D_80108F24_opboard;
+        rise = 1.0f - D_80108F1C_opboard->coords.y / 250.0f;
+        HuVecCopyXYZ(&ring->scale, rise, rise, rise);
+        HuPrcVSleep();
+    }
+    obj = D_80108F28_opboard = omAddObj(0x1000, 0, 0, -1, func_801062CC_opboard);
+    obj->rot.x = 180.0f;
+    obj->rot.y = 5.0f;
+    obj->rot.z = D_80108F1C_opboard->coords.y;
+    HuPrcSleep(30);
+    func_8000CFA4_main(D_80108F2C_opboard, D_80108F1C_opboard->coords.x, D_80108F1C_opboard->coords.y + 40.0f,
+                       D_80108F1C_opboard->coords.z);
+    func_800138EC_main(D_80108F2C_opboard, 0, 1);
+    HuAudFXPlay(0x2E4);
+    HuPrcSleep(30);
+    for (scale = 1.0f; scale >= 0.0f; scale -= 0.1f) {
+        for (i = 0; i < 4; i++) {
+            HuVecCopyXYZ(&D_80109068_opboard[i]->player_obj->scale, scale, 1.0f, scale);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 4; i++) {
+        MBModelDispOff(D_80109068_opboard[i]->player_obj);
+    }
+    func_800138EC_main(D_80108F2C_opboard, 1, 0);
+    HuPrcSleep(20);
+    if (D_80108F40_opboard != 0) {
+        HuPrcSleep(-1);
+    } else {
+        omDelObj(D_80108F3C_opboard);
+        D_80108F3C_opboard = NULL;
+    }
+    for (i = 0, scale = 1.0f; scale < 10.0f; scale += 0.5f, i++) {
+        HuVecCopyXYZ(&D_80108F1C_opboard->scale, scale, scale, scale);
+        HuPrcVSleep();
+        if (i == 5) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            WipeCreateOut(0xB, 0x10);
+        }
+    }
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    func_8000D044_main(D_80108F2C_opboard);
+    D_80108F2C_opboard = -1;
+    MBModelKill(D_80108F1C_opboard);
+    D_80108F1C_opboard = NULL;
+    MBModelKill(D_80108F24_opboard);
+    D_80108F24_opboard = NULL;
+    omDelObj(D_80108F28_opboard);
+    D_80108F28_opboard = NULL;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80106CFC_opboard);
 
