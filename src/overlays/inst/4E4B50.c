@@ -1,6 +1,108 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010B990_inst);
+/* An entry of the main minigame table (D_800A6D40_main, stride 0x14; D_800A6D44_main is its +4). */
+typedef struct InstMgEntry {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ u8 type;
+    /* 0x05 */ char unk5[3];
+    /* 0x08 */ s16 mesId;
+    /* 0x0A */ char unkA[0xA];
+} InstMgEntry; /* size = 0x14 */
+
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BD94_main(u16 spriteId, s32 arg1, s32 arg2);
+TextWindow *func_8005BA28_main(s16 arg0);
+
+void func_8010BE28_inst(omObjData *obj);
+void func_8010C8B4_inst(void);
+void func_8010CC14_inst(void);
+void func_8010CDE4_inst(s32 mesId, s32 x, s32 y);
+void func_8010CF14_inst(void);
+void func_8010CFF4_inst(void);
+
+extern InstMgEntry D_800A6D40_main[];
+extern u16 D_800CC698_main;
+
+extern s8 D_8010D40A_inst;
+extern s8 D_8010D40B_inst;
+extern s8 D_8010D411_inst;
+extern omObjData *D_8010DCA0_inst;
+extern void (*D_8010DCA4_inst)(omObjData *);
+extern s16 D_8010DCA8_inst[7];
+extern s16 D_8010DCC0_inst[2];
+extern s16 D_8010DCC4_inst[3];
+extern s32 D_8010DCCC_inst;
+extern InstMgEntry *D_8010DCD0_inst;
+extern s8 D_8010DCD4_inst;
+
+const s32 D_8010DAF8_inst[] = { 95, 105, 115 };
+
+void func_8010B990_inst(void) {
+    s32 digits[3];
+    omObjData *obj;
+    s32 n;
+    s32 sprite;
+    s16 mes;
+    s32 i;
+
+    obj = omAddObj(0x14, 5, 0, -1, NULL);
+    D_8010DCA0_inst = obj;
+    D_8010DCD0_inst = &D_800A6D40_main[D_8010D40B_inst];
+    D_8010DCC0_inst[0] = InitEspriteSlot(func_8000B838_main(0x170008), 0, 1);
+    func_8000BC48_main(D_8010DCC0_inst[0], 0x1000);
+    func_8000BBFC_main(D_8010DCC0_inst[0], 0xFF);
+    func_8000BBD4_main(D_8010DCC0_inst[0], 160, -100);
+    func_8010CDE4_inst(D_8010D40B_inst + 0x4700, 160, -100);
+    func_8010CF14_inst();
+    func_8010CFF4_inst();
+    if (D_8010D40A_inst == 3) {
+        D_8010DCC0_inst[1] = InitEspriteSlot(func_8000B838_main(0x17000E), 0, 1);
+        func_8000BC48_main(D_8010DCC0_inst[1], 0x1000);
+        func_8000BBFC_main(D_8010DCC0_inst[1], 0xFF);
+        func_8000BBD4_main(D_8010DCC0_inst[1], 160, -78);
+        n = D_800CC698_main;
+        sprite = func_8000B838_main(0x1300CF);
+        if (n >= 1000) {
+            n = 999;
+        } else if (n < 0) {
+            n = 0;
+        }
+        digits[0] = n / 100 % 10;
+        digits[1] = n / 10 - n / 100 * 10;
+        digits[2] = n % 10;
+        for (i = 0; i < 3; i++) {
+            D_8010DCC4_inst[i] = InitEspriteSlot(sprite, 0, 0);
+            func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], -78);
+            func_8000BD94_main(D_8010DCC4_inst[i], (u16)digits[i], 0);
+        }
+    }
+    D_8010DCA8_inst[0] = func_80060880_main(72, 188, 7);
+    func_8005C060_main(D_8010DCA8_inst[0], 2, 0, 0xFF, 0xFF);
+    func_8005C060_main(D_8010DCA8_inst[0], 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(D_8010DCA8_inst[0], 6, 0xFF, 0xFF, 0x40);
+    func_8005BA28_main(D_8010DCA8_inst[0])->unk_29 = 1;
+    func_8010CC14_inst();
+    D_8010DCA8_inst[1] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000B, 60, -33, 0);
+    D_8010DCA8_inst[2] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x170009, 148, -33, 0);
+    D_8010DCA8_inst[3] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000A, 200, -33, 0);
+    D_8010DCA8_inst[4] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000D, 60, -33, 0);
+    D_8010DCA8_inst[5] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000F, 200, -33, 0);
+    D_8010DCA8_inst[6] = func_8005B7B8_main(D_8010DCA8_inst[0], 0x17000C, 38, -33, 0);
+    D_8010DCD4_inst = 0;
+    mes = D_8010DCD0_inst->mesId;
+    D_8010DCCC_inst = mes;
+    if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
+        D_8010DCCC_inst = mes + 1;
+    }
+    func_8005B43C_main(D_8010DCA8_inst[0], D_8010DCCC_inst, -1, -1);
+    omPrcSetDestructor(0, func_8010C8B4_inst);
+    D_8010DCA4_inst = func_8010BE28_inst;
+    while (TRUE) {
+        D_8010DCA4_inst(obj);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010BE28_inst);
 
@@ -8,8 +110,6 @@ void func_8010BE70_inst(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010BE78_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DAF8_inst);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB04_inst);
 
