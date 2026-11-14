@@ -897,15 +897,33 @@ INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112B08_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112E14_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112EB8_option);
+void func_80112EB8_option(s32 no, s32 arg1, f32 x, f32 y, f32 z) {
+    func_801107A0_option(no, arg1, 0x2A9);
+    func_80110A5C_option(no, x, y, z);
+    func_80110AD0_option(no, 1.0f, 1.0f, 1.0f);
+    func_80110DCC_option(no, 0);
+    func_80110C9C_option(no, 1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112F48_option);
+void func_80112F48_option(s32 no, s32 arg1, f32 x, f32 y, f32 z) {
+    func_801107A0_option(no, arg1, 0x6A9);
+    func_80110A5C_option(no, x, y, z);
+    func_80110AD0_option(no, 1.0f, 1.0f, 1.0f);
+    func_80110DCC_option(no, 0);
+    func_80110C9C_option(no, 1);
+}
 
 void func_80112FD8_option(s32 no, s32 dataNum, s32 arg2) {
     func_8011083C_option(no, dataNum, arg2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112FF4_option);
+void func_80112FF4_option(s32 no, s32 arg1, f32 x, f32 y, f32 z) {
+    func_801107A0_option(no, arg1, 0x2002A9);
+    func_80110A5C_option(no, x, y, z);
+    func_80110AD0_option(no, 1.0f, 1.0f, 1.0f);
+    func_80110DCC_option(no, 0);
+    func_80110C9C_option(no, 1);
+}
 
 void func_80113088_option(void) {
     func_801103C8_option(0, 0x88);
@@ -918,7 +936,52 @@ void func_801130CC_option(void) {
     func_80110440_option(0);
 }
 
+#ifdef NON_MATCHING
+s32 func_801130E8_option(s32 pad) {
+    s32 ax;
+    s32 ay;
+    s32 x;
+    s32 y;
+
+    x = D_800CBB6E_main[pad];
+    y = D_800D20A1_main[pad];
+    if (D_801139D0_option != 0) {
+        if ((x == 0) & (y == 0)) {
+            D_801139D0_option = 0;
+            return 0;
+        }
+        return 0;
+    }
+    if ((x != 0) | (y != 0)) {
+        ax = x;
+        if (x < 0) {
+            ax = -ax;
+        }
+        ay = y;
+        if (y < 0) {
+            ay = -ay;
+        }
+        if (ay < ax) {
+            if (ay * 2 < ax) {
+                D_801139D0_option = (x < 0) ? 0x200 : 0x100;
+            } else if (y > 0) {
+                D_801139D0_option = (x < 0) ? 0xA00 : 0x900;
+            } else {
+                D_801139D0_option = (x < 0) ? 0x600 : 0x500;
+            }
+        } else if (ax * 2 < ay) {
+            D_801139D0_option = (y < 0) ? 0x400 : 0x800;
+        } else if (y > 0) {
+            D_801139D0_option = (x < 0) ? 0xA00 : 0x900;
+        } else {
+            D_801139D0_option = (x < 0) ? 0x600 : 0x500;
+        }
+    }
+    return D_801139D0_option;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801130E8_option);
+#endif
 
 u16 func_80113204_option(s32 pad) {
     return D_800D0590_main[pad];
