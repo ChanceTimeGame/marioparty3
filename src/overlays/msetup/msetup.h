@@ -213,7 +213,7 @@ void func_80106260_msetup(MsCamKey *key); /* camera set */
 void func_80106320_msetup(void); /* process */
 void func_801068F4_msetup(MsCamKey *keys, f32 speed, MsCamFunc func);
 void func_80106DF8_msetup(void);
-f32 func_80106FC0_msetup(void *arg0, s32 arg1, f32 arg2);
+
 void func_801070FC_msetup(omObjData *obj);
 omObjData * func_80107428_msetup(void);
 s16 func_801077E0_msetup(s32 arg0);
@@ -335,6 +335,7 @@ void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
 /* fork A */
+f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius); /* random drop and angle */
 void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
 
 #endif

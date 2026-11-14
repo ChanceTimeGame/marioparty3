@@ -430,9 +430,82 @@ void func_801068F4_msetup(MsCamKey *keys, f32 speed, MsCamFunc func) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801068F4_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106DF8_msetup);
+/* Resets the per-player setup (D_8011AA30_msetup .. D_8011AA47_msetup, one block): the pads
+   plugged in go first, the other players take the free port numbers. */
+#ifdef NON_MATCHING
+/* Residue: retail keeps &D_8011AA42_msetup in a register for the tail stores (offsets -0x12..5); GCC here folds each address. */
+void func_80106DF8_msetup(void) {
+    u8 *cfg;
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 n;
 
+    for (i = 0; i < 4; i++) {
+        D_8011AA30_msetup[i] = 0xFF;
+        D_8011AA34_msetup[i] = i;
+        D_8011AA38_msetup[i] = 0xFF;
+        D_8011AA3C_msetup[i] = 0;
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (CheckControllerRead(i) != 0) {
+            D_8011AA30_msetup[n] = i;
+            n++;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (D_8011AA30_msetup[i] == 0xFF) {
+            for (k = 0; k < 4; k++) {
+                for (j = 0; j < 4; j++) {
+                    if (D_8011AA30_msetup[j] == k) {
+                        break;
+                    }
+                }
+                if (j == 4) {
+                    break;
+                }
+            }
+            D_8011AA30_msetup[i] = k;
+        }
+    }
+    cfg = D_8011AA30_msetup;
+    cfg[0x12] = 0;
+    cfg[0x16] = 0;
+    cfg[0x13] = 0;
+    cfg[0x14] = n;
+    cfg[0x10] = 0;
+    cfg[0x11] = 4;
+    cfg[0x15] = 0;
+    cfg[0x17] = 0;
+    D_8011A948_msetup = cfg[0];
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106DF8_msetup);
+#endif
+
+#ifdef NON_MATCHING
+/* Only residue: hazard nops after cosdf()/sindf() (matches with W2DC_BLANKSTRIP). */
+f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius) {
+    f32 angle;
+    u32 r;
+
+    r = func_801061E0_msetup() & mask;
+    pos->y -= r;
+    r = func_801061E0_msetup() & 0x7FFFFFFF;
+    if (D_8011AA4A_msetup != 0) {
+        r = r % 120;
+        r += 120;
+    } else {
+        r = r % 360;
+    }
+    angle = r;
+    pos->x = radius * sindf(angle);
+    pos->z = radius * cosdf(angle);
+    return angle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106FC0_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801070FC_msetup);
 
