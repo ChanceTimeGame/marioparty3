@@ -59,11 +59,63 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D0C8_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D234_msetup);
 
+// register allocation: retail copies arg0 to t3 and loads pad into a0 (masked 16, same blocks)
+#ifdef NON_MATCHING
+s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 pad, s32 btn) {
+    s16 x = -D_800CBB6E_main[pad];
+    s16 y = D_800D20A1_main[pad];
+
+    if (btn & 0x200) {
+        if (x < 30) {
+            x = 100;
+        }
+    } else if (btn & 0x100) {
+        if (x > -30) {
+            x = -100;
+        }
+    }
+    if (btn & 0x800) {
+        if (y < 30) {
+            y = 100;
+        }
+    } else if (btn & 0x400) {
+        if (y > -30) {
+            y = -100;
+        }
+    }
+    return func_8010D234_msetup(arg0, arg1, arg2, arg3, x, y);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D4DC_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D5EC_msetup);
+s16 func_8010D5EC_msetup(s16 pad) {
+    u16 btn = D_800CDA7C_main[pad];
+    s8 y = D_800D20A1_main[pad];
+    s8 x = D_800CBB6E_main[pad];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D684_msetup);
+    if (x > 30) {
+        btn |= 0x100;
+    } else if (x < -30) {
+        btn |= 0x200;
+    }
+    if (y > 30) {
+        btn |= 0x800;
+    } else if (y < -30) {
+        btn |= 0x400;
+    }
+    return btn;
+}
+
+s32 func_8010D684_msetup(s16 pad, s16 *prev) {
+    u16 old = *prev;
+    s16 now = func_8010D5EC_msetup(pad);
+
+    old &= now;
+    old ^= now;
+    *prev = now;
+    return (s16)old;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D6D0_msetup);
 
