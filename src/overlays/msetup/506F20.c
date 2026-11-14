@@ -602,13 +602,6 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A800_msetup);
 
 s16 HmfAnimRead(HmfData *hmf, s32 dataNum, char *name);
 
-/* D_8011AA42_msetup and D_8011AA46_msetup written through one base (a struct view in retail). */
-typedef struct MseCfg {
-    /* 0x00 */ u8 chr;
-    /* 0x01 */ u8 unk1[3];
-    /* 0x04 */ u8 sel;
-} MseCfg;
-#define MSE_CFG ((MseCfg *)D_8011AA42_msetup)
 
 /* Rules table (s16 values, 0x80119F6C..0x80119F8B in .data: entries 0-2 the party lengths
    (20/35/50 turns), 6-14 the nine picker values). Retail reads the low bytes through the split
@@ -638,7 +631,6 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
     omObjData *arrows;
     f32 r;
     Vec *liftRot;
-    MseCfg *cfg;
     f32 speed;
 
     work->unk4 = 0;
@@ -724,9 +716,8 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
             if (sel < 0) {
                 work->unk4 = -1;
             } else if (sel < 3) {
-                cfg = MSE_CFG;
-                cfg->chr = (D_80119F78_msetup - 6)[sel];
-                cfg->sel = sel;
+                D_8011AA30_msetup.turns = (D_80119F78_msetup - 6)[sel];
+                D_8011AA30_msetup.length = sel;
                 sel = -1;
             } else {
                 sel = 0;
@@ -741,9 +732,8 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
                 sel = 3;
                 step--;
             } else {
-                cfg = MSE_CFG;
-                cfg->chr = D_80119F78_msetup[sel];
-                cfg->sel = 3;
+                D_8011AA30_msetup.turns = D_80119F78_msetup[sel];
+                D_8011AA30_msetup.length = 3;
                 sel = -1;
             }
             arrows->work[0] = 2;
@@ -757,7 +747,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
                 work->unk4 = -1;
                 sel = -1;
             } else {
-                D_8011AA42_msetup[0] = (sel == 0) ? 20 : 0xFF;
+                D_8011AA42_msetup = (sel == 0) ? 20 : 0xFF;
                 sel = -1;
             }
             break;
@@ -792,7 +782,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
         switch (D_8011A938_msetup) {
         case 0:
             for (i = 0; i < 9; i++) {
-                if (D_8011AA42_msetup[0] == D_80119F78_msetup[i]) {
+                if (D_8011AA42_msetup == D_80119F78_msetup[i]) {
                     break;
                 }
             }
@@ -801,7 +791,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
             }
             break;
         case 1:
-            if (D_8011AA42_msetup[0] == 0xFF) {
+            if (D_8011AA42_msetup == 0xFF) {
                 i = 9;
             } else {
                 i = 2;
@@ -995,7 +985,7 @@ s32 func_801167B8_msetup(MsSetupWork *work) {
         D_8011AA40_msetup = n;
         D_8011AA41_msetup = 2 - n;
         for (i = 0; i < D_8011AA40_msetup; i++) {
-            RepeatVibrator(D_8011AA30_msetup[i], 10, 0, 10);
+            RepeatVibrator(D_8011AA30_msetup.pad[i], 10, 0, 10);
         }
     }
     if (players < 2) {
