@@ -187,11 +187,11 @@ omObjData *func_80106F88_option(Vec *eye, Vec *at, s32 len); /* camera move (arc
 void func_80107058_option(omObjData *obj);
 omObjData *func_8010737C_option(Vec *eye, Vec *at, s32 len);
 void func_8010744C_option(omObjData *obj);
-void func_80107758_option(Vec *eye, Vec *at, s32 len);
-void func_8010778C_option(Vec *eye, Vec *at, s32 len);
+omObjData *func_80107758_option(Vec *eye, Vec *at, s32 len);
+omObjData *func_8010778C_option(Vec *eye, Vec *at, s32 len);
 void func_801077BC_option(omObjData *obj);
-void func_80107AD4_option(Vec *eye, Vec *at, s32 len);
-void func_80107B08_option(Vec *eye, Vec *at, s32 len);
+omObjData *func_80107AD4_option(Vec *eye, Vec *at, s32 len);
+omObjData *func_80107B08_option(Vec *eye, Vec *at, s32 len);
 f32 func_80107B38_option(f32 x0, f32 y0, f32 x1, f32 y1); /* modesel func_801094A8_modesel */
 void func_80107B80_option(Vec *a, Vec *b, f32 t, Vec *out); /* modesel func_801094F0_modesel */
 void func_80107D64_option(Vec *a, Vec *b, f32 t, Vec *out);

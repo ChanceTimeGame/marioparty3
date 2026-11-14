@@ -495,17 +495,98 @@ void func_8010744C_option(omObjData *obj) {
     func_80106508_option(&eye, &at, &up);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107758_option);
+omObjData *func_80107758_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010778C_option);
+    obj = func_80106F88_option(eye, at, len);
+    obj->func = func_8010744C_option;
+    D_80114764_option = 1;
+    return obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801077BC_option);
+omObjData *func_8010778C_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107AD4_option);
+    obj = func_80106F88_option(eye, at, len);
+    obj->func = func_8010744C_option;
+    D_80114764_option = 0;
+    return obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B08_option);
+/* As func_8010744C_option, with the eye-to-target distance eased too. */
+void func_801077BC_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec fromEye;
+    Vec toEye;
+    Vec dir;
+    Vec fromAt;
+    Vec toAt;
+    Vec d0;
+    Vec d1;
+    f32 len0;
+    f32 t;
+    f32 u;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B38_option);
+    t = (f32)D_801146F0_option.t / (f32)D_801146F0_option.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        u = 1.0f;
+    } else {
+        u = t;
+    }
+    HuVecCopy3F(&fromEye, &D_801146F0_option.fromEye);
+    HuVecCopy3F(&toEye, &D_801146F0_option.toEye);
+    HuVecCopyXYZ(&eye, (toEye.x - fromEye.x) * u + fromEye.x, (toEye.y - fromEye.y) * u + fromEye.y, (toEye.z - fromEye.z) * u + fromEye.z);
+    HuVecCopy3F(&fromAt, &D_801146F0_option.fromAt);
+    HuVecCopy3F(&toAt, &D_801146F0_option.toAt);
+    HuVecCopyXYZ(&at, (toAt.x - fromAt.x) * u + fromAt.x, (toAt.y - fromAt.y) * u + fromAt.y, (toAt.z - fromAt.z) * u + fromAt.z);
+    HuVecCopyXYZ(&d0, fromAt.x - fromEye.x, 0.0f, fromAt.z - fromEye.z);
+    HuVecCopyXYZ(&d1, toAt.x - toEye.x, 0.0f, toAt.z - toEye.z);
+    s = sindf(u * 90.0f);
+    if (D_80114764_option != 0) {
+        func_80107B80_option(&d0, &d1, s, &dir);
+    } else {
+        func_80107D64_option(&d0, &d1, s, &dir);
+    }
+    len0 = HuVecGetLength3F(&d0);
+    t = (HuVecGetLength3F(&d1) - len0) * s + len0;
+    HuVecCopyXYZ(&at, t * dir.x + eye.x, (toAt.y - fromAt.y) * u + fromAt.y, t * dir.z + eye.z);
+    if (D_801146F0_option.t > D_801146F0_option.len) {
+        omDelObj(obj);
+        func_80106508_option(&D_801146F0_option.toEye, &D_801146F0_option.toAt, &up);
+        D_801146F0_option.moveObj = NULL;
+        return;
+    }
+    D_801146F0_option.t++;
+    func_80106508_option(&eye, &at, &up);
+}
+
+omObjData *func_80107AD4_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
+
+    obj = func_80106F88_option(eye, at, len);
+    obj->func = func_801077BC_option;
+    D_80114764_option = 1;
+    return obj;
+}
+
+omObjData *func_80107B08_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
+
+    obj = func_80106F88_option(eye, at, len);
+    obj->func = func_801077BC_option;
+    D_80114764_option = 0;
+    return obj;
+}
+
+f32 func_80107B38_option(f32 x0, f32 y0, f32 x1, f32 y1) {
+    return -(atan2df(y1 - y0, x1 - x0) - 90.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B80_option);
 
