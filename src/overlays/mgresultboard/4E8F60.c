@@ -1,13 +1,11 @@
 #include "common.h"
-#include "game/audio.h"
+#include "game/hmfman.h"
+#include "mgresultboard.h"
 
-void func_8001C6A8_main(s32, f32);
 s16 func_8000B0D4_main(s32, s32);
 void func_80107CEC_mgresultboard(omObjData *);
 void func_80107CF4_mgresultboard(void);
 
-extern s32 D_8010AAF8_mgresultboard;
-extern omObjData *D_8010AF98_mgresultboard;
 extern void (*D_8010AF9C_mgresultboard)(omObjData *);
 extern Vec D_8010AB10_mgresultboard[4];
 

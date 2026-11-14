@@ -2,7 +2,6 @@
 #include "game/hmfman.h"
 #include "mgresultboard.h"
 
-void func_8001C6A8_main(s32, f32);
 s16 func_8000B0D4_main(s32, s32);
 void func_8010AADC_mgresultboard(omObjData *);
 void func_8010AAE4_mgresultboard(void);

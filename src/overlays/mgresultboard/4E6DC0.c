@@ -1,18 +1,8 @@
 #include "common.h"
 #include "../ovl_80_shared_board/105D50.h"
+#include "mgresultboard.h"
 
-typedef struct PlayerResult {
-    /* 0x00 */ s8 idx;
-    /* 0x01 */ s8 unk_01;
-    /* 0x02 */ s8 unk_02;
-    /* 0x03 */ s8 unk_03;
-    /* 0x04 */ s16 score;
-    /* 0x06 */ s16 coin;
-    /* 0x08 */ s16 gameCoin;
-    /* 0x0A */ s16 bonusCoin;
-} PlayerResult; // sizeof 0x0C
-extern PlayerResult D_8010B018_mgresultboard[4];
-extern PlayerResult D_8010B048_mgresultboard[4];
+
 extern s8 D_8010AAFC_mgresultboard;
 extern const u8 D_8010AD24_mgresultboard[4];
 
@@ -21,9 +11,6 @@ void func_8000BC48_main(u16, u16);
 void func_8000BEAC_main(u16, u8, u8, u8);
 void func_8010705C_mgresultboard(Gfx**, s32, s32);
 void func_80107B40_mgresultboard(void);
-void func_80107D00_mgresultboard(void);
-void func_80108700_mgresultboard(void);
-void func_8010A000_mgresultboard(void);
 void func_8010A930_mgresultboard(void);
 void func_80105C08_mgresultboard(void);
 void func_80105CE8_mgresultboard(omObjData *);
@@ -48,22 +35,14 @@ void func_80107650_mgresultboard(s32);
 void func_80107800_mgresultboard(s32);
 void func_801079B0_mgresultboard(s32);
 void func_80107A58_mgresultboard(void);
-s32 func_80109A90_mgresultboard(omObjData *, s8, s16);
 
 typedef struct Unk {
     omObjData *unk_00;
 } Unk;
 extern Unk D_8010AEA0_mgresultboard;
 extern u32 D_8010AAF0_mgresultboard;
-extern f32 D_8010AAF4_mgresultboard;
-extern s32 D_8010AAF8_mgresultboard;
 extern s32 D_8010AD90_mgresultboard;
 extern s8 D_8010AD94_mgresultboard;
-s32 func_8010A864_mgresultboard(omObjData *, s8, s8); /* extern */
-extern omObjData *D_8010AFE0_mgresultboard;
-extern omObjData *D_8010AFA8_mgresultboard;
-extern omObjData *D_8010AFA0_mgresultboard;
-extern omObjData *D_8010AF98_mgresultboard;
 extern void (*D_8010AF9C_mgresultboard)(omObjData *);
 extern s32 D_8010AB00_mgresultboard[3];
 extern s32 D_8010AB0C_mgresultboard;
@@ -464,9 +443,6 @@ void func_80105CE8_mgresultboard(omObjData *arg0) {
     D_8010AAF4_mgresultboard = ((buttonPressed & 0x8000) || (cpuCount >= 4)) ? 4.0f : 1.0f;
 }
 
-s32 func_80108250_mgresultboard(omObjData *, s32, s8, s8);  /* extern */
-s32 func_801092E0_mgresultboard(omObjData *, s32, s16);     /* extern */
-s32 func_80109878_mgresultboard(omObjData *, s32, s16);     /* extern */
 
 s32 func_80106A80_mgresultboard(s8 arg0) {
     u16 var_s0;
