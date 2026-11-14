@@ -1025,7 +1025,190 @@ s32 func_801167B8_msetup(MsSetupWork *work) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801167B8_msetup);
 #endif
 
+void func_80032FC0_main(s16, u8, u8);
+extern s16 D_80119FE4_msetup[5]; /* the five star/handicap values; the low byte is stored */
+
+/* State: per-team handicap board (MsConfig.star) for two players in turn: left/right turns the
+   sign through D_80119FE4_msetup, A stores it and moves on, B goes back (-1 before the first). */
+#ifdef NON_MATCHING
+/* masked ~21: the scheduling around the turn direction flag and the loop counters (s0) differs */
+s32 func_80116FE0_msetup(MsSetupWork *work) {
+    MsLift lifts[2];
+    s16 prevBtn;
+    MsSetupWork *w;
+    s16 sprModel;
+    s16 prevPlayer;
+    s16 model;
+    s16 sel;
+    s16 player;
+    s16 shown;
+    s32 btn;
+    s16 back;
+    s32 i;
+    f32 r;
+    f32 step;
+    omObjData *arrows;
+
+    w = work;
+    work->unk4 = 0;
+    for (sel = 0; sel < 5; sel++) {
+        if (D_8011AA30_msetup.star[0] == D_80119FE4_msetup[sel]) {
+            break;
+        }
+    }
+    if (sel >= 5) {
+        sel = 0;
+    }
+    player = 0;
+    func_8010B998_msetup();
+    func_8010E4BC_msetup(lifts, 2, 0.0f);
+    func_8010E4D8_msetup(lifts, 2);
+    model = func_8000B108_main(0x14000A, 0x2A9);
+    sprModel = HmfAnimRead(HmfModelData[model].hmf, 0x140034, "sitagocoro_DEF");
+    func_8001C448_main(model);
+    func_8001C514_main(model);
+    func_80032FC0_main(sprModel, 1, 1);
+    func_80032FF8_main(sprModel, sel);
+    func_8001C258_main(model, 4, 4);
+    arrows = func_8010DE38_msetup(0x60, 0xE0, 0x48);
+    HuAudFXPlay(0x2D9);
+    func_8010E8C8_msetup(lifts, 2, 15, 720.0f, 565.0f, 0.1f, 1.0f, 1);
+    arrows->work[0] = 1;
+    arrows->work[1] = 0x24;
+    func_8001C258_main(lifts[1].model, 4, 4);
+    Hu3DModelPosSet(model, D_80119B20_msetup.x, D_80119B20_msetup.y + 565.0f, D_80119B20_msetup.z + 0.5f);
+    Hu3DModelRotSet(model, 0.0f, 180.0f, 0.0f);
+    func_8001C258_main(model, 4, 0);
+    r = 0.0f;
+    do {
+        Hu3DModelRotSet(lifts[0].model, 0.0f, r, 0.0f);
+        Hu3DModelRotSet(model, 0.0f, r + 180.0f, 0.0f);
+        HuPrcVSleep();
+        r += 25.714285f;
+    } while (r < 180.0f);
+    Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(lifts[0].model, 0.0f, 180.0f, 0.0f);
+    shown = sel;
+    prevPlayer = -1;
+    func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+    while (TRUE) {
+        if (prevPlayer != player) {
+            func_8010B968_msetup(D_8011AA30_msetup.chr[player] + 0x1C00, 0);
+            func_8010B82C_msetup(0x2413);
+            prevPlayer = player;
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+        if (btn & 0x8000) {
+            HuAudFXPlay(2);
+            D_8011AA30_msetup.star[player] = D_80119FE4_msetup[sel];
+            D_8011A9F0_msetup[player].unk2 = 0xD;
+            player++;
+            if (player >= 2) {
+                w->unk4 = 0;
+                break;
+            }
+            i = D_8011AA30_msetup.star[player];
+            for (sel = 0; sel < 5; sel++) {
+                if (i == D_80119FE4_msetup[sel]) {
+                    break;
+                }
+            }
+            if (sel >= 5) {
+                sel = 0;
+            }
+        } else if (btn & 0x4000) {
+            HuAudFXPlay(4);
+            player--;
+            if (player < 0) {
+                w->unk4 = -1;
+                break;
+            }
+            D_8011A9F0_msetup[player].unk2 = 0xE;
+            i = D_8011AA30_msetup.star[player];
+            for (sel = 0; sel < 5; sel++) {
+                if (i == D_80119FE4_msetup[sel]) {
+                    break;
+                }
+            }
+            if (sel >= 5) {
+                sel = 0;
+            }
+        }
+        back = 0;
+        if (btn & 0x900) {
+            sel++;
+            if (sel >= 5) {
+                sel = 0;
+            }
+            arrows->work[0] = 4;
+        } else if (btn & 0x600) {
+            sel--;
+            if (sel < 0) {
+                sel = 4;
+            }
+            arrows->work[0] = 3;
+            back = 1;
+        }
+        if (shown != sel) {
+            HuAudFXPlay(1);
+            step = 45.0f;
+            if (back) {
+                step = -45.0f;
+            }
+            r = 0.0f;
+            for (i = 4; i != 0; i--) {
+                r += step;
+                if (r < 0.0f) {
+                    r += 360.0f;
+                }
+                Hu3DModelRotSet(model, 0.0f, r, 0.0f);
+                Hu3DModelRotSet(lifts[0].model, 0.0f, r + 180.0f, 0.0f);
+                HuPrcVSleep();
+            }
+            func_80032FF8_main(sprModel, sel);
+            r = 180.0f;
+            for (i = 4; i != 0; i--) {
+                r += step;
+                if (r >= 360.0f) {
+                    r -= 360.0f;
+                }
+                Hu3DModelRotSet(model, 0.0f, r, 0.0f);
+                Hu3DModelRotSet(lifts[0].model, 0.0f, r + 180.0f, 0.0f);
+                HuPrcVSleep();
+            }
+            shown = sel;
+        }
+        HuPrcVSleep();
+    }
+    arrows->work[0] = 2;
+    arrows->work[1] = 0x11;
+    r = 0.0f;
+    do {
+        Hu3DModelRotSet(model, 0.0f, r, 0.0f);
+        Hu3DModelRotSet(lifts[0].model, 0.0f, r + 180.0f, 0.0f);
+        HuPrcVSleep();
+        r += 25.714285f;
+    } while (r < 180.0f);
+    func_8001C258_main(lifts[1].model, 4, 0);
+    Hu3DModelRotSet(lifts[1].model, 0.0f, 0.0f, 0.0f);
+    func_8001C258_main(model, 4, 4);
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, 2, 7, 360.0f, 400.0f, 1.0f, 0.1f, 2);
+    func_8010DDD8_msetup(arrows);
+    if (sprModel >= 0) {
+        func_80033430_main(sprModel);
+    }
+    if (model >= 0) {
+        func_8001ACDC_main(model);
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001ACDC_main(lifts[i].model);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80116FE0_msetup);
+#endif
 
 s32 func_80117818_msetup(MsSetupWork *work) {
     return 0;
