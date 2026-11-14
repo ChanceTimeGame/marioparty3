@@ -3,6 +3,12 @@
 #include "game/vibrator.h"
 #include "mallocblock.h"
 
+extern u8 D_800D20B8_main[16][3];
+extern u8 D_800D5570_main[16][3];
+void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
+s16 func_8000B13C_main(s32 file);
+
+
 /* fork B: main declarations without a shared prototype */
 typedef struct MsTexAnimSlot {
     /* 0x00 */ s16 unk_00; /* frame */
@@ -390,7 +396,317 @@ s16 func_8010BEB0_msetup(s16 player, s16 value) {
     return old;
 }
 
+/* Register allocation only: retail keeps the model and character in s1/s2 across the first calls
+   (GCC here reloads them from their spill slots, 8 bytes higher), and re-extends the badge index
+   (`sll 16; sra 15`) at each use. Logic checked block by block against the asm. */
+#ifdef NON_MATCHING
+/* The per-player process (user_data MsPlayerWork): the character model on its pad, its shadow,
+   a sparkle effect and up to three esprite badges (0 COM level, 1 handicap, 2 star) above it.
+   work->state requests: 1 sparkle in, 2/4 shrink out, 3 grow in, 5/8/13 show badge 0/1/2,
+   6/9/14 fade it out (7/10/15: and free it), 11/12 fade all in/out, 16/17 motions, 18 end. */
+void func_8010BEF8_msetup(void) {
+    s16 ofs[2];
+    Vec2f scr;
+    s16 spr[4];
+    s16 slot[4];
+    s16 alpha[4];
+    s16 step[4];
+    s16 target[4];
+    s16 kill[4];
+    s16 mot[2];
+    MsPlayerWork *work;
+    Vec *pos;
+    s32 i;
+    s16 idx;
+    s32 file;
+    s32 motFile;
+    s32 n;
+    s16 motDef;
+    s16 model;
+    u16 shadow;
+    u16 fx;
+    u16 chr;
+    s16 noMot;
+    s16 play;
+    s16 state;
+    f32 scale;
+    f32 rate;
+    HmfModel *m;
+
+    work = HuPrcCurrentGet()->user_data;
+    for (i = 0; i < 4; i++) {
+        spr[i] = slot[i] = -1;
+        kill[i] = alpha[i] = target[i] = step[i] = 0;
+    }
+    mot[1] = mot[0] = -1;
+    chr = D_8011AA34_msetup[work->player];
+    model = func_8000B108_main(D_80119964_msetup[chr], 0x2A9);
+    func_8001C814_main(model, 2, 2);
+    func_8001C258_main(model, 4, 4);
+    pos = &work->pos;
+    Hu3DModelPosSet(model, work->pos.x, work->pos.y, work->pos.z);
+    Hu3DModelRotSet(model, 0.0f, work->unkC, 0.0f);
+    motDef = HmfModelData[model].unk02;
+    HuPrcVSleep();
+    if (D_80119984_msetup[chr] != 0) {
+        func_80017790_main(model, 1, chr, func_80017BB8_main(chr, 0xA4));
+    } else {
+        func_80017790_main(model, 0, chr, func_80017BB8_main(chr, 0xA3));
+    }
+    func_8001C514_main(model);
+    HuPrcVSleep();
+    if (D_801198C0_msetup < 0) {
+        shadow = D_801198C0_msetup = func_8000B108_main(9, 0x299);
+    } else {
+        shadow = Hu3DModelLink(D_801198C0_msetup);
+    }
+    func_8001C258_main(shadow, 4, 4);
+    Hu3DModelPosSet(shadow, pos->x, 0.0f, pos->z);
+    HuPrcVSleep();
+    noMot = 0;
+    if ((D_80119ACC_msetup[0] >> D_8011A938_msetup) & 1) {
+        noMot = 1;
+        motFile = D_801199AC_msetup[chr];
+    } else {
+        motFile = D_8011998C_msetup[chr];
+    }
+    state = 0;
+    mot[0] = func_8000B13C_main(motFile);
+    HuPrcVSleep();
+    mot[1] = func_8000B13C_main(D_801199EC_msetup[chr]);
+    HuPrcVSleep();
+    fx = func_8010CAF0_msetup(0x110012, 0x289);
+    scale = 0.0f;
+    rate = scale;
+    play = 0;
+    do {
+        HuPrcVSleep();
+        if (state != work->state) {
+            state = work->state;
+        }
+        switch (state) {
+        case 0:
+            break;
+        case 1:
+            for (i = 15; i != 0; i--) {
+                func_8010CD14_msetup(fx, pos->x, pos->y + 50.0f, pos->z);
+                HuPrcVSleep();
+            }
+            work->state = 3;
+            break;
+        case 3:
+            func_8001C258_main(model, 4, 0);
+            func_8001C258_main(shadow, 4, 0);
+            if (mot[0] >= 0 && (noMot == 0 || work->player != 0)) {
+                func_8001C5B4_main(model, mot[0]);
+                play = 1;
+            }
+            scale = 0.0f;
+            rate = 1.0f / 15;
+            for (i = 15; i != 0; i--) {
+                scale += rate;
+                Hu3DModelScaleSet(model, scale, 1.0f, scale);
+                Hu3DModelScaleSet(shadow, scale, 1.0f, scale);
+                HuPrcVSleep();
+            }
+            work->state = 0;
+            break;
+        case 2:
+            scale = 1.0f;
+            rate = 1.0f / 7;
+            work->state = 4;
+            break;
+        case 4:
+            scale -= rate;
+            if (scale <= 0.0f) {
+                scale = 0.0f;
+                func_8001C258_main(model, 4, 4);
+                func_8001C258_main(shadow, 4, 4);
+                work->state = 0;
+            }
+            Hu3DModelScaleSet(model, scale, 1.0f, scale);
+            Hu3DModelScaleSet(shadow, scale, 1.0f, scale);
+            func_8010CD14_msetup(fx, pos->x, pos->y + 50.0f, pos->z);
+            break;
+        case 11:
+            for (i = 0; i < 4; i++) {
+                if (slot[i] >= 0) {
+                    func_8000BB54_main(slot[i]);
+                    target[i] = D_80119AC8_msetup[i];
+                    step[i] = (u8)(D_80119AC8_msetup[i] / 5);
+                }
+            }
+            work->state = 0;
+            break;
+        case 12:
+            for (i = 0; i < 4; i++) {
+                target[i] = 0;
+                step[i] = -alpha[i] / 5;
+            }
+            work->state = 0;
+            break;
+        case 13:
+            n = D_8011AA3C_msetup[work->player] - 1;
+            if (n < 0) {
+                break;
+            }
+            file = D_80119AB4_msetup[n];
+            idx = 2;
+            ofs[0] = 28;
+            ofs[1] = -48;
+            goto show;
+        case 15:
+            kill[2] = 1;
+        case 14:
+            idx = 2;
+            goto hide;
+        case 5:
+            file = D_80119A7C_msetup[D_8011AA38_msetup[work->player]];
+            idx = 0;
+            ofs[0] = 8;
+            ofs[1] = -6;
+            goto show;
+        case 7:
+            kill[0] = 1;
+        case 6:
+            idx = 0;
+            goto hide;
+        case 8:
+            file = D_80119A8C_msetup[D_8011AA3C_msetup[work->player]];
+            idx = 1;
+            ofs[0] = 16;
+            ofs[1] = -30;
+        show:
+            if (slot[idx] >= 0) {
+                func_8000C184_main(slot[idx]);
+            }
+            if (spr[idx] >= 0) {
+                HuSprKill(spr[idx]);
+            }
+            kill[idx] = 0;
+            spr[idx] = func_8000B838_main(file);
+            slot[idx] = InitEspriteSlot(spr[idx], 0, 1);
+            func_8000BCC8_main(slot[idx], 1);
+            func_80012B14_main(0, pos, &scr);
+            func_8000BBD4_main(slot[idx], ofs[0] + scr.x, ofs[1] + scr.y);
+            func_8000BBFC_main(slot[idx], 0);
+            func_8000BB54_main(slot[idx]);
+            target[idx] = D_80119AC8_msetup[idx];
+            step[idx] = (u8)(D_80119AC8_msetup[idx] / 7);
+            work->state = 0;
+            break;
+        case 10:
+            kill[1] = 1;
+        case 9:
+            idx = 1;
+        hide:
+            target[idx] = 0;
+            step[idx] = -alpha[idx] / 7;
+            work->state = 0;
+            if (alpha[idx] == 0 && kill[idx] != 0) {
+                kill[idx] = 0;
+                if (slot[idx] >= 0) {
+                    func_8000C184_main(slot[idx]);
+                    slot[idx] = -1;
+                }
+                if (spr[idx] >= 0) {
+                    HuSprKill(spr[idx]);
+                    spr[idx] = -1;
+                }
+            }
+            break;
+        case 16:
+            if (mot[1] >= 0) {
+                func_8001C5B4_main(model, mot[1]);
+            }
+            work->state = 0;
+            break;
+        case 17:
+            if (mot[0] >= 0) {
+                func_8001C624_main(model, HmfModelData[mot[0]].unk02, 0, 6, 0);
+            }
+            work->state = 0;
+            play = 1;
+            break;
+        case 18:
+            state = -1;
+            break;
+        }
+        if (play != 0) {
+            m = &HmfModelData[model];
+            if (D_800CCF58_main[m->unk02].unk02 <= m->unk40) {
+                func_8001C624_main(model, motDef, 0, 30, 2);
+                play = 0;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (slot[i] < 0) {
+                continue;
+            }
+            if (step[i] == 0) {
+                continue;
+            }
+            alpha[i] += step[i];
+            if (step[i] < 0) {
+                if (alpha[i] <= target[i]) {
+                    alpha[i] = target[i];
+                    step[i] = 0;
+                }
+            } else if (alpha[i] >= target[i]) {
+                alpha[i] = target[i];
+                step[i] = 0;
+            }
+            func_8000BBFC_main(slot[i], alpha[i]);
+            if (alpha[i] != 0) {
+                continue;
+            }
+            func_8000BB94_main(slot[i]);
+            if (kill[i] == 0) {
+                continue;
+            }
+            kill[i] = 0;
+            if (slot[i] >= 0) {
+                func_8000C184_main(slot[i]);
+                slot[i] = -1;
+            }
+            if (spr[i] >= 0) {
+                HuSprKill(spr[i]);
+                spr[i] = -1;
+            }
+        }
+    } while (state >= 0);
+    for (i = 0; i < 4; i++) {
+        if (slot[i] >= 0) {
+            func_8000C184_main(slot[i]);
+        }
+        if (spr[i] >= 0) {
+            HuSprKill(spr[i]);
+        }
+    }
+    if (D_800D20B8_main[chr][1] != 0xFF) {
+        func_80033354_main(D_800D20B8_main[chr][1]);
+        func_80033354_main(D_800D5570_main[chr][1]);
+        D_800D20B8_main[chr][1] = 0xFF;
+    }
+    func_8001ACDC_main(model);
+    func_8001ACDC_main(shadow);
+    if (D_801198C0_msetup == (s16)shadow) {
+        D_801198C0_msetup = -1;
+    }
+    for (i = 0; i < 2; i++) {
+        if (mot[i] >= 0) {
+            func_8001ACDC_main(mot[i]);
+        }
+    }
+    func_8001ACDC_main(fx);
+    work->state = 0;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BEF8_msetup);
+#endif
 
 s16 func_8010CAF0_msetup(s32 dir, s32 file) {
     MsFxHmf *hmf;
