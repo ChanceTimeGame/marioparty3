@@ -256,10 +256,10 @@ void func_8010AF40_msetup(void *arg0, s32 arg1, s16 *arg2);
 void func_8010B1F4_msetup(void); /* process */
 s16 func_8010B388_msetup(s16 arg0, void *arg1, s32 arg2, s8 *arg3);
 void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
-s16 func_8010B588_msetup(void);
+s16 func_8010B588_msetup(s32 file);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
-void func_8010B858_msetup(void);
+s32 func_8010B858_msetup(void);
 s32 func_8010B8E0_msetup(void);
 void func_8010B968_msetup(u32 arg0, s8 arg1);
 void func_8010B998_msetup(void);
@@ -276,8 +276,8 @@ s16 func_8010CAF0_msetup(s32 arg0, s32 arg1);
 void func_8010CC70_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4);
 s32 func_8010CD14_msetup(s16 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_8010CE8C_msetup(s16 model); /* func_80013390_main hook */
-void func_8010D060_msetup(void *arg0, s32 arg1);
-void func_8010D094_msetup(void *arg0, s32 arg1);
+void func_8010D060_msetup(HmfData *hmf, s16 idx);
+void func_8010D094_msetup(HmfData *hmf, s16 idx);
 s32 func_8010D0C8_msetup(s16 arg0, s32 arg1);
 s16 func_8010D234_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5);
 s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 arg4, s32 arg5); /* arg1 unused */

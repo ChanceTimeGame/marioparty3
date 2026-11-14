@@ -1,6 +1,22 @@
 #include "common.h"
 #include "msetup.h"
 
+/* fork B: main declarations without a shared prototype */
+typedef struct MsTexAnimSlot {
+    /* 0x00 */ s16 unk_00; /* frame */
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ s16 unk_04;
+    /* 0x06 */ s16 unk_06;
+    /* 0x08 */ char unk_08[2];
+    /* 0x0A */ u8 unk_0A;
+    /* 0x0B */ u8 unk_0B;
+} MsTexAnimSlot; /* size = 0xC (MP2 TexAnimSlot) */
+extern MsTexAnimSlot *D_800D1714_main;
+void func_80033910_main(HmfData *);
+void func_80033970_main(HmfData *);
+s16 func_800329B4_main(void *);
+
+
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010AF40_msetup);
@@ -9,37 +25,111 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B1F4_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B388_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B4B8_msetup);
+void func_8010B4B8_msetup(s16 model, s16 *slot, s16 frame) {
+    MsTexAnimSlot *anim;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B588_msetup);
+    if (*slot >= 0) {
+        if (frame == -1) {
+            func_80033910_main(HmfModelData[model].hmf);
+        } else {
+            func_80033970_main(HmfModelData[model].hmf);
+            anim = &D_800D1714_main[*slot];
+            anim->unk_00 = frame;
+            anim->unk_04 = 0;
+            anim->unk_0A = 0;
+            anim->unk_06 = 0;
+            anim->unk_02 = 0;
+        }
+    }
+}
+
+s16 func_8010B588_msetup(s32 file) {
+    void *data;
+    s16 ret;
+
+    data = DataRead(file);
+    ret = func_800329B4_main(data);
+    DataClose(data);
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B5D0_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B82C_msetup);
+void func_8010B82C_msetup(s32 mes) {
+    func_8005B43C_main(D_8011A890_msetup, mes, -1, -1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B858_msetup);
+s32 func_8010B858_msetup(void) {
+    while (TRUE) {
+        if (func_8005E0C0_main(D_8011A890_msetup) == 0) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    if (D_800CC69C_main[D_8011A890_msetup].unk_30 != 0) {
+        return func_8005E1D8_main(D_8011A890_msetup, 0, 0);
+    } else {
+        return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B8E0_msetup);
+s32 func_8010B8E0_msetup(void) {
+    while (TRUE) {
+        if (func_8005E0C0_main(D_8011A890_msetup) == 0) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    if (D_800CC69C_main[D_8011A890_msetup].unk_30 != 0) {
+        return func_8005E1D8_main(D_8011A890_msetup, 1, 0);
+    } else {
+        return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B968_msetup);
+void func_8010B968_msetup(u32 mes, s8 arg1) {
+    func_8005B6BC_main(D_8011A890_msetup, mes, arg1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B998_msetup);
+void func_8010B998_msetup(void) {
+    func_8005D294_main(D_8011A890_msetup);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B9B8_msetup);
+void func_8010B9B8_msetup(s32 mask, s32 value) {
+    while ((~func_8005B68C_main(D_8011A890_msetup) & mask) == value) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BA10_msetup);
+void func_8010BA10_msetup(s32 arg0, s32 arg1) {
+    func_8005B63C_main(D_8011A890_msetup, arg0, arg1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BA3C_msetup);
+s16 func_8010BA3C_msetup(void) {
+    /* TextWindow 0xA8 (inside window.h pad86) */
+    return *(s16 *)&D_800CC69C_main[D_8011A890_msetup].pad86[0x22];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BA6C_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BBF4_msetup);
+void func_8010BBF4_msetup(s16 arg0) {
+    func_8010BA6C_msetup(0, arg0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BC18_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BE8C_msetup);
+void func_8010BE8C_msetup(s16 arg0) {
+    func_8010BC18_msetup(0, arg0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BEB0_msetup);
+s16 func_8010BEB0_msetup(s16 player, s16 value) {
+    s16 old = D_8011A9F2_msetup[player][0];
+
+    if (value >= 0) {
+        D_8011A9F2_msetup[player][0] = value;
+    }
+    return old;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BEF8_msetup);
 
@@ -51,9 +141,17 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CD14_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CE8C_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D060_msetup);
+void func_8010D060_msetup(HmfData *hmf, s16 idx) {
+    if ((s8)hmf->unk84[idx].unk3 != -1) {
+        hmf->unk84[idx].unk9 |= 0x80;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D094_msetup);
+void func_8010D094_msetup(HmfData *hmf, s16 idx) {
+    if ((s8)hmf->unk84[idx].unk3 != -1) {
+        hmf->unk84[idx].unk9 &= 0x7F;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D0C8_msetup);
 
