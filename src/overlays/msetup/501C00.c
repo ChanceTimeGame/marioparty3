@@ -3,6 +3,11 @@
 
 #include "game/vibrator.h"
 
+f32 func_80018ACC_main(f32 *y, f32 *x, f32 t);
+extern f32 D_8011A998_msetup; /* D_8011A994_msetup.y */
+extern f32 D_8011A99C_msetup; /* D_8011A994_msetup.z */
+
+
 extern f32 D_800CB890_main;
 extern f32 D_800CE17C_main[];
 extern f32 D_800D5210_main;
@@ -321,7 +326,109 @@ void func_80106320_msetup(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106320_msetup);
 #endif
 
+/* Flies the camera along a path of keys (ended by zoom 0) at speed units per frame (MP2
+   name_4E's func_8010BCB8): each key's arrival time goes in unk20 (speed 0: the table's own
+   times), then every frame takes a spline through four keys for each of the eight values. */
+#ifdef NON_MATCHING
+/* Residue: two hazard nops after cosdf() (W2DC_BLANKSTRIP) and f2/f12 swapped in the distance sum. */
+void func_801068F4_msetup(MsCamKey *keys, f32 speed, MsCamFunc func) {
+    f32 out[10];
+    f32 y[4];
+    f32 x[4];
+    MsCamFunc fn;
+    MsCamKey *cur;
+    f32 *p0;
+    f32 *p1;
+    f32 *p2;
+    f32 *p3;
+    f32 *o;
+    f32 total;
+    f32 d;
+    f32 px, py, pz;
+    f32 dz, dy, dx;
+    f32 lx, ly, lz;
+    s16 i;
+    s16 seg;
+    s16 j;
+
+    fn = func;
+    lz = 0.0f;
+    ly = 0.0f;
+    lx = 0.0f;
+    total = 0.0f;
+    cur = keys;
+    for (i = 0; cur->zoom != 0.0f; cur = &keys[++i]) {
+        if (speed != 0.0f) {
+            px = sindf(cur->rot.y) * cosdf(cur->rot.x) * cur->zoom + cur->center.x;
+            py = -sindf(cur->rot.x) * cur->zoom + cur->center.y;
+            pz = cosdf(cur->rot.y) * cosdf(cur->rot.x) * cur->zoom + cur->center.z;
+            if (i > 0) {
+                dx = lx - px;
+                dy = ly - py;
+                dz = lz - pz;
+                d = dx * dx + dy * dy + dz * dz;
+            d = HuSqrtf(d);
+                if (d == 0.0f) {
+                    d = speed * 10.0f;
+                }
+                total += d / speed;
+                cur->unk20 = total;
+            }
+            lx = px;
+            ly = py;
+            lz = pz;
+        } else {
+            total = cur->unk20;
+        }
+    }
+    total -= 10.0f;
+    for (i = 10, seg = 1; i < total; i++) {
+        if (i > keys[seg + 1].unk20) {
+            seg++;
+        }
+        x[0] = keys[seg - 1].unk20;
+        x[1] = keys[seg].unk20;
+        x[2] = keys[seg + 1].unk20;
+        x[3] = keys[seg + 2].unk20;
+        p0 = &keys[seg - 1].rot.x;
+        p1 = &keys[seg].rot.x;
+        p2 = &keys[seg + 1].rot.x;
+        p3 = &keys[seg + 2].rot.x;
+        o = out;
+        for (j = 0; j < 8; j++) {
+            y[0] = *p0++;
+            y[1] = *p1++;
+            y[2] = *p2++;
+            y[3] = *p3++;
+            *o++ = func_80018ACC_main(y, x, i);
+        }
+        Center.x = out[3];
+        Center.y = out[4];
+        Center.z = out[5];
+        D_8011A994_msetup.x = CRot.x = out[0];
+        D_8011A998_msetup = CRot.y = out[1];
+        D_8011A99C_msetup = CRot.z = out[2];
+        CZoom = out[6];
+        gCameraList->fov[0] = D_80119414_msetup = out[7];
+        if (func != NULL) {
+            fn((s16)total, seg, i);
+        }
+        HuPrcVSleep();
+    }
+    i = seg + 1;
+    D_8011A994_msetup.x = CRot.x = keys[i].rot.x;
+    D_8011A994_msetup.y = CRot.y = keys[i].rot.y;
+    D_8011A994_msetup.z = CRot.z = keys[i].rot.z;
+    CZoom = keys[i].zoom;
+    Center.x = keys[i].center.x;
+    Center.y = keys[i].center.y;
+    Center.z = keys[i].center.z;
+    gCameraList->fov[0] = D_80119414_msetup = keys[i].fov;
+    D_800CB99C_main = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801068F4_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106DF8_msetup);
 
