@@ -72,19 +72,83 @@ void func_80105CEC_option(void) {
     func_80108AF0_option();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105D10_option);
+void func_80105D10_option(void) {
+    D_801146F0_option.proc = NULL;
+    D_801146F0_option.moveObj = NULL;
+    D_801146F0_option.view = -1;
+    D_801146F0_option.fov = 50.0f;
+    D_801146F0_option.nearZ = 80.0f;
+    D_801146F0_option.farZ = 4000.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105D5C_option);
+void func_80105D5C_option(f32 fov, f32 nearZ, f32 farZ) {
+    D_801146F0_option.fov = fov;
+    D_801146F0_option.nearZ = nearZ;
+    D_801146F0_option.farZ = farZ;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105D74_option);
+void func_80105D74_option(void) {
+    while (TRUE) {
+        func_80012E54_main(0);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105DA0_option);
+void func_80105DA0_option(s16 view, f32 fov) {
+    if (D_801146F0_option.proc != NULL) {
+        func_80105E40_option();
+    }
+    func_80013320_main(view, 0);
+    D_801146F0_option.view = view;
+    D_801146F0_option.fov = fov;
+    Hu3DCamSetPerspective(0, fov, D_801146F0_option.nearZ, D_801146F0_option.farZ);
+    func_80012E54_main(0);
+    D_801146F0_option.proc = omAddPrcObj(func_80105D74_option, 0x5000, 0x2000, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105E40_option);
+void func_80105E40_option(void) {
+    if (D_801146F0_option.proc != NULL) {
+        omDelPrcObj(D_801146F0_option.proc);
+    } else {
+        while (TRUE) {
+            HuPrcVSleep();
+        }
+    }
+    if (D_801146F0_option.view != -1) {
+        func_80013350_main(0);
+        D_801146F0_option.view = -1;
+    }
+    D_801146F0_option.proc = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105EB8_option);
+void func_80105EB8_option(void) {
+    while (TRUE) {
+        Hu3DCamSetPositionOrientation(0, &D_801146F0_option.eye, &D_801146F0_option.at, &D_801146F0_option.up);
+        Hu3DCamUpdateMtx(0);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105F08_option);
+void func_80105F08_option(f32 fov) {
+    Vec eye;
+    Vec at;
+    Vec up;
+
+    D_801146F0_option.fov = fov;
+    if (D_801146F0_option.view != -1) {
+        func_80105FF8_option(&eye, &at, &up);
+        HuVecCopy3F(&D_801146F0_option.eye, &eye);
+        HuVecCopy3F(&D_801146F0_option.at, &at);
+        HuVecCopy3F(&D_801146F0_option.up, &up);
+    }
+    if (D_801146F0_option.proc != NULL) {
+        func_80105E40_option();
+    }
+    Hu3DCamSetPositionOrientation(0, &D_801146F0_option.eye, &D_801146F0_option.at, &D_801146F0_option.up);
+    Hu3DCamUpdateMtx(0);
+    Hu3DCamSetPerspective(0, D_801146F0_option.fov, D_801146F0_option.nearZ, D_801146F0_option.farZ);
+    D_801146F0_option.proc = omAddPrcObj(func_80105EB8_option, 0x5000, 0x2000, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105FF8_option);
 

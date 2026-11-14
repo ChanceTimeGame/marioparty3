@@ -61,7 +61,7 @@ typedef struct OpCam {
     /* 0x28 */ f32 fov;
     /* 0x2C */ f32 nearZ;
     /* 0x30 */ f32 farZ;
-    /* 0x34 */ s32 view;           /* model camera followed (func_80013320_main), -1 for none */
+    /* 0x34 */ s16 view;           /* model camera followed (func_80013320_main), -1 for none */
     /* 0x38 */ omObjData *moveObj; /* camera move object (func_80106BAC_option and siblings) */
     /* 0x3C */ Vec fromEye;
     /* 0x48 */ Vec fromAt;
