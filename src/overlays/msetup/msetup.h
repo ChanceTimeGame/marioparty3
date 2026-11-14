@@ -171,7 +171,6 @@ extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
 extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
 extern u8 D_8011AA40_msetup;                     /* .bss 0x1; addiu,lbu: 80105C4C 80109218 80109868 8010A7A0 8010A7EC 8010F87C 801116 */
 extern u8 D_8011AA41_msetup;                     /* .bss 0x1; lbu: 80107964 801085D4 8010A10C 801132C4 */
-extern u8 D_8011AA42_msetup;                     /* .bss 0x1; addiu,lbu,sb: 80106DF8 80115EE0 */
 extern u8 D_8011AA43_msetup;                     /* .bss 0x1; lbu,sb: 80107E48 80107FB4 */
 extern u8 D_8011AA47_msetup;                     /* .bss 0x1; lbu,sb: 80107D84 80107FB4 80108938 80108AB8 80109218 80109868 */
 extern s16 D_8011AA48_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 80107FB4 80108AB8 80109218 80109868 8010A3 */
@@ -322,7 +321,6 @@ s32 func_80113ED4_msetup(MsSetupWork *work); /* state 8: board select */
 s32 func_801145D0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80114AA0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801150A0_msetup(s16 arg0);
-s16 func_801152C4_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, u16 arg4); /* arg1 unused */
 void func_80115E78_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 s32 func_80115EE0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801167B8_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
@@ -340,5 +338,10 @@ s16 func_801157B8_msetup(s16 model, s16 sprModel, s16 *pad, s16 sel, MsLift *lif
 /* arg2: the "hari" part's rest matrix (HuMtx4F) */
 s16 func_80115A9C_msetup(s16 model, s32 arg1, HuMtx4F needleMtx, s16 *pad, s32 selIn); /* arg1 unused */
 extern f32 D_8011A908_msetup; /* the needle's angle (swc1; sw of 0.0f) */
+extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0_msetup) */
+/* was u8: a byte array (func_80115EE0_msetup writes [0] and [4] through one base, 80106DF8 takes its address) */
+extern u8 D_8011AA42_msetup[];
+/* arg4 was u16: func_80115EE0_msetup sign-extends it (sll/sra), so s16 at the call; arg2 the needle matrix */
+s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
 
 #endif
