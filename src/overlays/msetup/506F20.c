@@ -1,5 +1,6 @@
 #include "common.h"
 #include "msetup.h"
+#include "mallocblock.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
 
@@ -348,15 +349,135 @@ void func_8010DDD8_msetup(omObjData *obj) {
     omDelObj(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DE38_msetup);
+omObjData *func_8010DE38_msetup(s32 x0, s32 x1, s32 y) {
+    omObjData *obj;
+    MsArrowWork *work;
+    s16 spr;
+    s16 slot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E00C_msetup);
+    obj = omAddObj(0x17D0, 4, 0, -1, func_8010DAC4_msetup);
+    if (obj == NULL) {
+        return NULL;
+    }
+    omSetStatBit(obj, 0x100);
+    work = HuMemAllocTag(sizeof(MsArrowWork), 0x7918);
+    memset(work, 0, sizeof(MsArrowWork));
+    obj->data = work;
+    spr = func_8000B838_main(0x140012);
+    slot = InitEspriteSlot(spr, 0, 1);
+    obj->model[0] = slot;
+    obj->model[2] = spr;
+    func_8000BCC8_main(slot, 0x4800);
+    func_8000BBD4_main(slot, x0, y);
+    func_8000BB94_main(slot);
+    work->pos[0][0] = x0;
+    work->pos[0][1] = y;
+    spr = func_8000B838_main(0x140013);
+    slot = InitEspriteSlot(spr, 0, 1);
+    obj->model[1] = slot;
+    obj->model[3] = spr;
+    func_8000BCC8_main(slot, 0x4800);
+    func_8000BBD4_main(slot, x1, y);
+    func_8000BB94_main(slot);
+    work->pos[1][0] = x1;
+    work->pos[1][1] = y;
+    for (slot = 0; slot < 4; slot++) {
+        obj->work[slot] = 0;
+    }
+    return obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E044_msetup);
+s16 func_8010E00C_msetup(omObjData *obj, s16 count) {
+    MsEmitWork *work;
 
+    if (obj == NULL) {
+        return 0;
+    }
+    work = obj->data;
+    if (count >= 5) {
+        count = 4;
+    }
+    work->count = count;
+    return count;
+}
+
+void func_8010E044_msetup(omObjData *obj, s16 idx, s16 arg2, f32 x, f32 y, f32 z) {
+    MsEmitWork *work;
+
+    if (obj != NULL) {
+        work = obj->data;
+        if (idx < work->count) {
+            work->pos[idx].x = x;
+            work->pos[idx].y = y;
+            work->pos[idx].z = z;
+            work->range[idx] = arg2;
+        }
+    }
+}
+
+// retail loads model[0] straight into a0 and copies it to s1 (one instruction fewer); otherwise the same
+#ifdef NON_MATCHING
+void func_8010E09C_msetup(omObjData *obj) {
+    MsEmitWork *work;
+    Vec *pos;
+    s32 model;
+    s32 range;
+    s32 i;
+    f32 dx;
+    f32 dz;
+    s32 pad[2]; /* retail's frame is 8 bytes larger */
+
+    model = obj->model[0];
+    if (obj->work[1] != obj->work[2]) {
+        func_8000CD00_main(model, D_80119AF4_msetup, D_80119AF8_msetup, D_80119AFC_msetup[0]);
+        obj->work[2] = obj->work[1];
+    }
+    work = obj->data;
+    switch (obj->work[0]) {
+    case 0:
+        break;
+    case 1:
+        for (i = 0; i < work->count; i++) {
+            range = work->range[i];
+            pos = &work->pos[i];
+            dx = (rand8() * range / 256 - range / 2);
+            dz = (rand8() * range / 256 - range / 2);
+            func_8000CD74_main(model, dx + pos->x, pos->y, dz + pos->z);
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E09C_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E21C_msetup);
+omObjData *func_8010E21C_msetup(void) {
+    omObjData *obj;
+    MsEmitWork *work;
+    MsFxWork *fx;
+    s16 model;
+
+    D_80119AF0_msetup = obj = omAddObj(0x17D0, 1, 0, -1, func_8010E09C_msetup);
+    if (obj == NULL) {
+        return NULL;
+    } else {
+        omSetStatBit(obj, 0x100);
+        work = HuMemAllocTag(sizeof(MsEmitWork), 0x7918);
+        memset(work, 0, sizeof(MsEmitWork));
+        obj->data = work;
+        model = func_8000CBA0_main(0x110012, 0x289);
+        obj->model[0] = model;
+        fx = MS_FX_WORK(model);
+        fx->origin.x = fx->origin.y = fx->origin.z = 0.0f;
+        fx->spread = 100.0f;
+        obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+        obj->work[0] = 0;
+        obj->work[1] = 0;
+        obj->work[2] = 0xFF;
+        obj->work[3] = 0;
+        return obj;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E32C_msetup);
 

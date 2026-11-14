@@ -113,9 +113,6 @@ extern s32 D_80119AB4_msetup[];                  /* .data 0x14; lw: 8010BEF8 */
 extern u8 D_80119AC8_msetup[];                   /* .data 0x4; lbu: 8010BEF8 */
 extern u16 D_80119ACC_msetup[];                  /* .data 0x4; lhu: 8010BEF8 */
 extern s32 D_80119AD0_msetup[8];                 /* .data 0x20; addiu,lw: 80110954 80111650 */
-extern s32 D_80119AF4_msetup;                    /* .data 0x4; lw: 8010E09C */
-extern s32 D_80119AF8_msetup;                    /* .data 0x4; lw: 8010E09C */
-extern s32 D_80119AFC_msetup[];                  /* .data 0x10; lw: 8010E09C */
 extern s32 D_80119B34_msetup[];                  /* .data 0x10; lw: 8010F87C */
 extern s16 D_80119B60_msetup;                    /* .data 0x2; lh: 8011035C */
 extern s16 D_80119B62_msetup[];                  /* .data 0x2E; lh: 8011035C */
@@ -347,5 +344,30 @@ typedef struct MsArrowWork {
     /* 0x04 */ f32 speed;
     /* 0x08 */ s16 pos[2][2]; /* left arrow x,y; right arrow x,y */
 } MsArrowWork; /* size = 0x10 */
+
+/* omObjData::data of the func_8010E21C_msetup particle object (D_80119AF0_msetup; HuMemAllocTag
+   0x3C): up to four emitters, each spawning at pos[i] +- range[i]/2 in x and z every frame. */
+typedef struct MsEmitWork {
+    /* 0x00 */ Vec pos[4];
+    /* 0x30 */ s16 range[4];
+    /* 0x38 */ s16 unk38;
+    /* 0x3A */ s16 count; /* func_8010E00C_msetup clamps it to 4 */
+} MsEmitWork; /* size = 0x3C */
+
+/* The fields of hmfman's particle work (HmfModelData[model].unkBC; 13F90.c's HmfFxWork, D7A0.c's
+   FxWork) that func_8010E21C_msetup sets. */
+typedef struct MsFxWork {
+    /* 0x00 */ char unk00[0x10];
+    /* 0x10 */ f32 spread;
+    /* 0x14 */ f32 timer;
+    /* 0x18 */ void (*unk18)(s16);
+    /* 0x1C */ Vec origin;
+} MsFxWork; /* partial; size 0x5C */
+#define MS_FX_WORK(model) ((MsFxWork *)HmfModelData[model].unkBC)
+
+/* func_8000CD00_main arguments (f32 in a1-a3): the particle colour/scale set when work[1] changes */
+extern f32 D_80119AF4_msetup;
+extern f32 D_80119AF8_msetup;
+extern f32 D_80119AFC_msetup[]; /* .data 0x10; only [0] read */
 
 #endif
