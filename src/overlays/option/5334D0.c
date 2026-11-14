@@ -953,7 +953,51 @@ void func_80112A44_option(void) {
     func_80111AF4_option();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112B08_option);
+INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146BC_option);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146C8_option);
+
+void func_80112B08_option(void) {
+    s16 model;
+
+    func_80112EB8_option(0, 0xE0025, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(1, 0xE0026, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(2, 0xE0027, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(3, 0xE0028, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(4, 0xE0029, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(5, 0xE002A, 0.0f, 0.0f, 0.0f);
+    func_80112FF4_option(6, 0xE002B, 0.0f, 0.0f, 0.0f);
+    func_80110C1C_option(6);
+    func_80112FF4_option(7, 0xE002C, 0.0f, 0.0f, 0.0f);
+    func_80110C1C_option(7);
+    func_80112EB8_option(8, 0xA008E, -74.9735f, 56.406998f, -735.0f);
+    func_80110C9C_option(8, 2);
+    func_80017790_main(func_80113218_option(8), 0, 9, 0xA00A3);
+    func_80112EB8_option(9, 0xA00A2, 64.9735f, 60.8265f, -720.0f);
+    func_80110C9C_option(9, 2);
+    model = func_80113218_option(9);
+    func_80017790_main(model, 0, 8, 0xA00A3);
+    func_80017A84_main(model, 0, 8, 1, 0);
+    func_80112FD8_option(10, 0xA009E, 1);
+    func_80110F58_option(8, 10, 2);
+    func_80112FD8_option(11, 0xA009F, 1);
+    func_80110F58_option(9, 11, 2);
+    func_80112FD8_option(12, 0xA008F, 1);
+    func_80105DA0_option(func_80113218_option(6), 55.0f);
+    func_80105D5C_option(50.0f, 12.0f, 4800.0f);
+    func_80105F08_option(50.0f);
+    {
+        Vec eye = { 0.0f, 225.0f, 0.0f };
+        Vec at = { 0.0f, 225.0f, -220.0f };
+        Vec curEye;
+        Vec curAt;
+        Vec up;
+
+        func_80105FF8_option(&curEye, &curAt, &up);
+        func_80106508_option(&eye, &at, &up);
+    }
+    func_80113088_option();
+}
 
 void func_80112E14_option(void) {
     func_801130CC_option();
@@ -1151,10 +1195,4 @@ void func_80113490_option(s32 no) {
     func_80111DAC_option(no);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146BC_option);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146C8_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146D4_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_801146E0_option);
