@@ -2,6 +2,7 @@
 #include "option.h"
 #include "mallocblock.h"
 #include "game/vibrator.h"
+#include "pad.h"
 
 void func_801059A0_option(void) {
     ovlEventCall(D_801134B0_option, omovlevtno);
@@ -1139,37 +1140,968 @@ INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C224_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C3E4_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010D5B0_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010E77C_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010E7FC_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010E8E0_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010F138_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010F914_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010F94C_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FA28_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FA7C_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FB40_option);
-
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D78_option);
+#endif
 
+#ifdef NON_MATCHING
+/* Records board: per-page counts and one record per character, paged with left/right until B. */
+void func_8010C3E4_option(s32 dataNum, s16 x, s16 y) {
+    OpRecSpr w;
+    s32 mes[6] = { 0x5002, 0x5003, 0x5004, 0x5005, 0x5006, 0x5007 };
+    char buf[8];
+    s16 i;
+    s16 j;
+    s32 page;
+    s32 sel;
+    s16 boardData;
+    s16 board;
+    s16 iconData;
+    s16 numData;
+    s16 cursorWin;
+    s32 tens;
+    s32 ones;
+    s32 count;
+    s32 k;
+    f32 bx;
+    f32 by;
+    f32 s;
+    s32 btn;
+
+    sel = 0;
+    page = 0;
+    HuPrcSleep(3);
+    boardData = func_8000B838_main(dataNum);
+    board = InitEspriteSlot(boardData, 0, 1);
+    func_8000BBD4_main(board, x, y);
+    func_8000BCC8_main(board, 0x8000);
+    func_8000BE5C_main(board, 0.0f, 0.0f);
+    iconData = func_8000B838_main(0x1F0004);
+    for (i = 0; i < 8; i++) {
+        w.icon[i] = InitEspriteSlot(iconData, 0, 1);
+        func_8000BBD4_main(w.icon[i], x + i * 24 - 84, y + 12);
+        func_8000BCC8_main(w.icon[i], 0x8000);
+        func_8000BE5C_main(w.icon[i], 1.0f, 1.0f);
+        func_8000BDDC_main(w.icon[i], 1);
+        func_8000BD94_main(w.icon[i], (u16)D_801138C8_option[i], 0);
+        func_8000BB94_main(w.icon[i]);
+    }
+    numData = func_8000B838_main(0x1F0007);
+    for (i = 0; i < 8; i++) {
+        w.digit[i].tens = InitEspriteSlot(numData, 0, 1);
+        w.digit[i].ones = InitEspriteSlot(numData, 0, 1);
+        func_8000BBD4_main(w.digit[i].tens, x + i * 24 - 96 + 8, y + 26);
+        func_8000BBD4_main(w.digit[i].ones, x + i * 24 - 96 + 16, y + 26);
+        func_8000BCC8_main(w.digit[i].tens, 0x8000);
+        func_8000BCC8_main(w.digit[i].ones, 0x8000);
+        func_8000BE5C_main(w.digit[i].tens, 1.0f, 1.0f);
+        func_8000BE5C_main(w.digit[i].ones, 1.0f, 1.0f);
+        func_8000BDDC_main(w.digit[i].tens, 1);
+        func_8000BDDC_main(w.digit[i].ones, 1);
+        tens = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] / 10);
+        if (tens >= 10) {
+            tens = 9;
+        }
+        ones = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] % 10);
+        func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+        func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    cursorWin = func_80061188_main(-1, 0, 0, 210, 14, 1);
+    func_8005FBF8_main(cursorWin, 255, 255, 255);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        s = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(board, s, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    bx = x - 104;
+    by = y - 71;
+    while (TRUE) {
+        w.win[0] = func_80061188_main(-1, bx + D_801138EC_option[0].x, by + D_801138EC_option[0].y, D_801138EC_option[0].w, D_801138EC_option[0].h, 0);
+        func_8005BEE0_main(w.win[0], 0);
+        func_8005B43C_main(w.win[0], 0x5000, -1, -1);
+        w.win[1] = func_80061188_main(-1, bx + D_801138EC_option[1].x, by + D_801138EC_option[1].y, D_801138EC_option[1].w, D_801138EC_option[1].h, 0);
+        func_8005BEE0_main(w.win[1], 0);
+        func_8005B43C_main(w.win[1], mes[page], -1, -1);
+        k = 2;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        count = OP_RECCOUNT(2, page);
+        if (count >= 100) {
+            count = 99;
+        }
+        sprintf(buf, D_80113A50_option, count);
+        func_8005B6BC_main(w.win[k], (u32)buf, 0);
+        func_8005B43C_main(w.win[k], 0x500E, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x500F, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5010, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5011, -1, -1);
+        k++;
+        for (i = 0; i < 4; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_801138EC_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        for (i = 0; i < 8; i++) {
+            func_8000BB54_main(w.icon[i]);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 10);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 8; i++) {
+            tens = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] / 10);
+            if (tens >= 10) {
+                tens = 9;
+            }
+            ones = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] % 10);
+            func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+            func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+            func_8000BDDC_main(w.digit[i].tens, 1);
+            func_8000BDDC_main(w.digit[i].ones, 1);
+            if (tens != 0) {
+                func_8000BB54_main(w.digit[i].tens);
+            } else {
+                func_8000BB94_main(w.digit[i].tens);
+            }
+            func_8000BB54_main(w.digit[i].ones);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 25);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        func_8005FE90_main(cursorWin);
+        for (i = 4; i < k; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_801138EC_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        do {
+            HuPrcVSleep();
+            btn = D_800D5558_main[0] | func_801130E8_option(0);
+        } while (!(btn & 0x4300));
+        if (btn & 0x4000) {
+            break;
+        }
+        if (btn & 0x200) {
+            sel--;
+            if (sel < 0) {
+                sel = 5;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 4;
+            }
+        }
+        if (btn & 0x100) {
+            sel++;
+            if (sel >= 6) {
+                sel = 0;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 0;
+            }
+        }
+        page = sel;
+        for (i = 0; i < 8; i++) {
+            func_8000BB94_main(w.icon[i]);
+            func_8000BB94_main(w.digit[i].tens);
+            func_8000BB94_main(w.digit[i].ones);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005FE90_main(w.win[i]);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005F364_main(w.win[i]);
+        }
+        HuPrcSleep(3);
+    }
+    HuAudFXPlay(0x2E9);
+    func_8005F364_main(cursorWin);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(w.icon[i]);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005FE90_main(w.win[i]);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005F364_main(w.win[i]);
+    }
+    HuPrcSleep(3);
+    for (i = 1; i < 11; i++) {
+        s = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(board, s, s);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 8; i++) {
+        func_8000C184_main(w.icon[i]);
+        func_8000C184_main(w.digit[i].tens);
+        func_8000C184_main(w.digit[i].ones);
+    }
+    HuSprKill(iconData);
+    HuSprKill(numData);
+    func_8000C184_main(board);
+    HuSprKill(boardData);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C3E4_option);
+#endif
+
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D90_option);
+#endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113DA8_option);
+#ifdef NON_MATCHING
+/* The second records board (func_8010C3E4_option with the table at GwCommon.unk_1D + 0x38). */
+void func_8010D5B0_option(s32 dataNum, s16 x, s16 y) {
+    OpRecSpr w;
+    s32 mes[6] = { 0x5008, 0x5009, 0x500A, 0x500B, 0x500C, 0x500D };
+    char buf[8];
+    s16 i;
+    s16 j;
+    s32 page;
+    s32 sel;
+    s16 boardData;
+    s16 board;
+    s16 iconData;
+    s16 numData;
+    s16 cursorWin;
+    s32 tens;
+    s32 ones;
+    s32 count;
+    s32 k;
+    f32 bx;
+    f32 by;
+    f32 s;
+    s32 btn;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_8011421C_option);
+    sel = 0;
+    page = 0;
+    HuPrcSleep(3);
+    boardData = func_8000B838_main(dataNum);
+    board = InitEspriteSlot(boardData, 0, 1);
+    func_8000BBD4_main(board, x, y);
+    func_8000BCC8_main(board, 0x8000);
+    func_8000BE5C_main(board, 0.0f, 0.0f);
+    iconData = func_8000B838_main(0x1F0004);
+    for (i = 0; i < 8; i++) {
+        w.icon[i] = InitEspriteSlot(iconData, 0, 1);
+        func_8000BBD4_main(w.icon[i], x + i * 24 - 84, y + 12);
+        func_8000BCC8_main(w.icon[i], 0x8000);
+        func_8000BE5C_main(w.icon[i], 1.0f, 1.0f);
+        func_8000BDDC_main(w.icon[i], 1);
+        func_8000BD94_main(w.icon[i], (u16)D_8011394C_option[i], 0);
+        func_8000BB94_main(w.icon[i]);
+    }
+    numData = func_8000B838_main(0x1F0007);
+    for (i = 0; i < 8; i++) {
+        w.digit[i].tens = InitEspriteSlot(numData, 0, 1);
+        w.digit[i].ones = InitEspriteSlot(numData, 0, 1);
+        func_8000BBD4_main(w.digit[i].tens, x + i * 24 - 96 + 8, y + 26);
+        func_8000BBD4_main(w.digit[i].ones, x + i * 24 - 96 + 16, y + 26);
+        func_8000BCC8_main(w.digit[i].tens, 0x8000);
+        func_8000BCC8_main(w.digit[i].ones, 0x8000);
+        func_8000BE5C_main(w.digit[i].tens, 1.0f, 1.0f);
+        func_8000BE5C_main(w.digit[i].ones, 1.0f, 1.0f);
+        func_8000BDDC_main(w.digit[i].tens, 1);
+        func_8000BDDC_main(w.digit[i].ones, 1);
+        tens = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] / 10);
+        if (tens >= 10) {
+            tens = 9;
+        }
+        ones = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] % 10);
+        func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+        func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    cursorWin = func_80061188_main(-1, 0, 0, 210, 14, 1);
+    func_8005FBF8_main(cursorWin, 255, 255, 255);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        s = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(board, s, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    bx = x - 104;
+    by = y - 71;
+    while (TRUE) {
+        w.win[0] = func_80061188_main(-1, bx + D_80113970_option[0].x, by + D_80113970_option[0].y, D_80113970_option[0].w, D_80113970_option[0].h, 0);
+        func_8005BEE0_main(w.win[0], 0);
+        func_8005B43C_main(w.win[0], 0x5001, -1, -1);
+        w.win[1] = func_80061188_main(-1, bx + D_80113970_option[1].x, by + D_80113970_option[1].y, D_80113970_option[1].w, D_80113970_option[1].h, 0);
+        func_8005BEE0_main(w.win[1], 0);
+        func_8005B43C_main(w.win[1], mes[page], -1, -1);
+        k = 2;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        count = OP_RECCOUNT(0x38, page);
+        if (count >= 100) {
+            count = 99;
+        }
+        sprintf(buf, D_80113A50_option, count);
+        func_8005B6BC_main(w.win[k], (u32)buf, 0);
+        func_8005B43C_main(w.win[k], 0x500E, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x500F, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5010, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5011, -1, -1);
+        k++;
+        for (i = 0; i < 4; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_80113970_option[i].y + 9.0f);
+            HuAudFXPlay(0x2E8);
+            func_8005FFA8_main(cursorWin);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        for (i = 0; i < 8; i++) {
+            func_8000BB54_main(w.icon[i]);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 10);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 8; i++) {
+            tens = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] / 10);
+            if (tens >= 10) {
+                tens = 9;
+            }
+            ones = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] % 10);
+            func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+            func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+            func_8000BDDC_main(w.digit[i].tens, 1);
+            func_8000BDDC_main(w.digit[i].ones, 1);
+            if (tens != 0) {
+                func_8000BB54_main(w.digit[i].tens);
+            } else {
+                func_8000BB94_main(w.digit[i].tens);
+            }
+            func_8000BB54_main(w.digit[i].ones);
+        }
+        HuAudFXPlay(0x2E8);
+        func_8005FFA8_main(cursorWin);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 25);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        func_8005FE90_main(cursorWin);
+        for (i = 4; i < k; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_80113970_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        do {
+            HuPrcVSleep();
+            btn = D_800D5558_main[0] | func_801130E8_option(0);
+        } while (!(btn & 0x4300));
+        if (btn & 0x4000) {
+            break;
+        }
+        if (btn & 0x200) {
+            sel--;
+            if (sel < 0) {
+                sel = 5;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 4;
+            }
+        }
+        if (btn & 0x100) {
+            sel++;
+            if (sel >= 6) {
+                sel = 0;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 0;
+            }
+        }
+        page = sel;
+        for (i = 0; i < 8; i++) {
+            func_8000BB94_main(w.icon[i]);
+            func_8000BB94_main(w.digit[i].tens);
+            func_8000BB94_main(w.digit[i].ones);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005FE90_main(w.win[i]);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005F364_main(w.win[i]);
+        }
+        HuPrcSleep(3);
+    }
+    HuAudFXPlay(0x2E9);
+    func_8005F364_main(cursorWin);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(w.icon[i]);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005FE90_main(w.win[i]);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005F364_main(w.win[i]);
+    }
+    HuPrcSleep(3);
+    for (i = 1; i < 11; i++) {
+        s = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(board, s, s);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 8; i++) {
+        func_8000C184_main(w.icon[i]);
+        func_8000C184_main(w.digit[i].tens);
+        func_8000C184_main(w.digit[i].ones);
+    }
+    HuSprKill(iconData);
+    HuSprKill(numData);
+    func_8000C184_main(board);
+    HuSprKill(boardData);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010D5B0_option);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FC40_option);
+void func_8010E77C_option(s32 x, s32 y, s32 t) {
+    func_80112028_option(1, (s32)(x + sindf(t * 18) * 4.0f) - 2, y);
+}
+
+void func_8010E7FC_option(s32 x0, s32 y0, s32 x1, s32 y1, s32 len) {
+    f32 t;
+    s32 i;
+
+    i = 0;
+    while (TRUE) {
+        HuPrcVSleep();
+        t = (f32)i / len;
+        func_80112028_option(1, (x1 - x0) * t + x0, (y1 - y0) * t + y0);
+        if (i == len) {
+            break;
+        }
+        i++;
+    }
+}
+
+
+/* Sound test: fifteen pages of nine sound effects (a word per message id, a halfword per effect). */
+void func_8010E8E0_option(void) {
+    s16 win[16]; /* [0..8] the entries, [10] the help window */
+    OpSndPage pages[15] = {
+        { 0x4C01, { { 0x4C10, 0x2B5 }, { 0x4C11, 0x263 }, { 0x4C14, 0x275 }, { 0x4C12, 0x290 }, { 0x4C13, 0x27E }, { 0x4C15, 0x26C }, { 0x4C16, 0x287 }, { 0x4C17, 0x2AC }, { -1, -1 } } },
+        { 0x4C02, { { 0x4C10, 0x2B6 }, { 0x4C11, 0x264 }, { 0x4C14, 0x276 }, { 0x4C12, 0x291 }, { 0x4C13, 0x27F }, { 0x4C15, 0x26D }, { 0x4C16, 0x288 }, { 0x4C17, 0x2AD }, { -1, -1 } } },
+        { 0x4C03, { { 0x4C10, 0x2B7 }, { 0x4C11, 0x265 }, { 0x4C14, 0x277 }, { 0x4C12, 0x292 }, { 0x4C13, 0x280 }, { 0x4C15, 0x26E }, { 0x4C16, 0x289 }, { 0x4C17, 0x2AE }, { -1, -1 } } },
+        { 0x4C04, { { 0x4C10, 0x2B8 }, { 0x4C11, 0x266 }, { 0x4C14, 0x278 }, { 0x4C12, 0x293 }, { 0x4C13, 0x281 }, { 0x4C15, 0x26F }, { 0x4C16, 0x28A }, { 0x4C17, 0x2AF }, { -1, -1 } } },
+        { 0x4C05, { { 0x4C10, 0x2B9 }, { 0x4C11, 0x267 }, { 0x4C14, 0x279 }, { 0x4C12, 0x294 }, { 0x4C13, 0x282 }, { 0x4C15, 0x270 }, { 0x4C16, 0x28B }, { 0x4C17, 0x2B0 }, { -1, -1 } } },
+        { 0x4C06, { { 0x4C10, 0x2BA }, { 0x4C11, 0x268 }, { 0x4C14, 0x27A }, { 0x4C12, 0x295 }, { 0x4C13, 0x283 }, { 0x4C15, 0x271 }, { 0x4C16, 0x28C }, { 0x4C17, 0x2B1 }, { -1, -1 } } },
+        { 0x4C07, { { 0x4C10, 0x2BC }, { 0x4C11, 0x26A }, { 0x4C14, 0x27C }, { 0x4C12, 0x297 }, { 0x4C13, 0x285 }, { 0x4C15, 0x273 }, { 0x4C16, 0x28E }, { 0x4C17, 0x2B3 }, { -1, -1 } } },
+        { 0x4C08, { { 0x4C10, 0x2BB }, { 0x4C11, 0x269 }, { 0x4C14, 0x27B }, { 0x4C12, 0x296 }, { 0x4C13, 0x284 }, { 0x4C15, 0x272 }, { 0x4C16, 0x28D }, { 0x4C17, 0x2B2 }, { -1, -1 } } },
+        { 0x4C09, { { 0x4C18, 0x2A6 }, { 0x4C19, 0x2A7 }, { 0x4C1A, 0x2A8 }, { 0x4C1B, 0x2A9 }, { 0x4C1C, 0x2AA }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0A, { { 0x4C1D, 0x29B }, { 0x4C1E, 0x298 }, { 0x4C1F, 0x299 }, { 0x4C20, 0x29A }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0B, { { 0x4C21, 0x29C }, { 0x4C22, 0x29D }, { 0x4C23, 0x29E }, { 0x4C24, 0x29F }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0C, { { 0x4C25, 0x259 }, { 0x4C26, 0x25B }, { 0x4C27, 0x256 }, { 0x4C28, 0x257 }, { 0x4C29, 0x25D }, { 0x4C2A, 0x2A3 }, { 0x4C2B, 0x2A4 }, { 0x4C2C, 0x2A2 }, { -1, -1 } } },
+        { 0x4C0D, { { 0x4C2D, 0x258 }, { 0x4C2E, 0x2A5 }, { 0x4C2F, 0x2A0 }, { 0x4C30, 0x2A1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0E, { { 0x4C31, 0x251 }, { 0x4C32, 0x253 }, { 0x4C33, 0x252 }, { 0x4C34, 0x254 }, { 0x4C35, 0x255 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0F, { { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+    };
+    s32 i;
+    s32 page;
+    s32 cur;
+    s32 t;
+    s32 unlocked;
+    s32 prev;
+    s16 titleWin;
+    s32 fx;
+    s32 btn;
+
+    func_801132E4_option(2, 0);
+    func_8011331C_option(2, 13, 0);
+    func_801132C8_option(2, 7);
+    cur = 0;
+    page = 0;
+    func_80112028_option(2, 90, 116);
+    func_80113384_option(2);
+    func_80112028_option(1, 30, 40);
+    func_80113384_option(1);
+    titleWin = func_80061188_main(-1, 24, 28, 120, 20, 0);
+    func_8005BEE0_main(titleWin, 0);
+    func_8005C154_main(titleWin, 192, 192, 192);
+    func_8005FBF8_main(titleWin, 255, 255, 255);
+    func_8005C060_main(titleWin, 0, 0, 0, 0);
+    func_8005C02C_main(titleWin, 0);
+    func_8005B43C_main(titleWin, pages[0].title, -1, -1);
+    func_8005FFA8_main(titleWin);
+    unlocked = FALSE;
+    if (func_800E905C_minigame(0) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[1].mes = 0x4C37;
+        pages[14].item[1].fx = 0x2C7;
+    }
+    if (func_800E905C_minigame(1) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[2].mes = 0x4C38;
+        pages[14].item[2].fx = 0x2C8;
+    }
+    if (func_800E905C_minigame(2) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[3].mes = 0x4C39;
+        pages[14].item[3].fx = 0x2C9;
+    }
+    if (func_800E905C_minigame(3) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[4].mes = 0x4C3A;
+        pages[14].item[4].fx = 0x2CA;
+    }
+    if (func_800E905C_minigame(4) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[5].mes = 0x4C3B;
+        pages[14].item[5].fx = 0x2CB;
+    }
+    if (func_800E905C_minigame(5) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[6].mes = 0x4C3C;
+        pages[14].item[6].fx = 0x2CC;
+    }
+    if (unlocked) {
+        pages[14].item[0].mes = 0x4C36;
+        pages[14].item[0].fx = 0x240;
+    }
+    for (i = 0; i < 9; i++) {
+        win[i] = func_80061188_main(-1, 36, (i + 1) * 14 + 28, 120, 20, 0);
+        func_8005BEE0_main(win[i], 0);
+        func_8005C154_main(win[i], 192, 192, 192);
+        func_8005FBF8_main(win[i], 255, 255, 255);
+        func_8005C060_main(win[i], 0, 0, 0, 0);
+        func_8005C02C_main(win[i], 0);
+        if (pages[page].item[i].mes != -1) {
+            func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+        } else {
+            func_8005D294_main(win[i]);
+        }
+        func_8005FFA8_main(win[i]);
+    }
+    win[10] = func_80061188_main(-1, 36, 176, 120, 44, 0);
+    func_8005BEE0_main(win[10], 0);
+    func_8005C154_main(win[10], 192, 192, 192);
+    func_8005FBF8_main(win[10], 255, 255, 255);
+    func_8005C060_main(win[10], 0, 0, 0, 0);
+    func_8005C02C_main(win[10], 0);
+    func_8005B43C_main(win[10], 0x5D00, -1, -1);
+    t = 0;
+    func_8005FFA8_main(win[10]);
+    while (TRUE) {
+        HuPrcVSleep();
+        btn = (u16)D_800D1244_main[0];
+        btn |= func_80113204_option(0);
+        btn = (btn & ~0xC000) | (D_800D5558_main[0] & 0xC000);
+        if (btn & 0x4000) {
+            func_80033910_main(HmfModelData[func_80113218_option(2)].hmf);
+            break;
+        }
+        if (btn & 0x8000) {
+            if (pages[page].item[cur].fx != -1) {
+                if (func_8010FE00_option() != 0) {
+                    func_8010FE10_option();
+                }
+                fx = HuAudFXPlay(pages[page].item[cur].fx);
+                func_80033970_main(HmfModelData[func_80113218_option(2)].hmf);
+                func_8010FF0C_option(fx);
+            } else {
+                func_80113218_option(2);
+            }
+        } else if (btn & 0x300) {
+            if (btn & 0x200) {
+                page--;
+            } else {
+                page++;
+            }
+            if (page >= 15) {
+                page = 0;
+            }
+            if (page < 0) {
+                page = 14;
+            }
+            if (page == 14) {
+                if (!unlocked) {
+                    page = (btn & 0x200) ? 13 : 0;
+                }
+            }
+            func_8005B43C_main(titleWin, pages[page].title, -1, -1);
+            for (i = 0; i < 9; i++) {
+                if (pages[page].item[i].mes != -1) {
+                    func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+                } else {
+                    func_8005D294_main(win[i]);
+                }
+            }
+            while (TRUE) {
+                if (pages[page].item[cur].fx != -1) {
+                    break;
+                }
+                cur--;
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            }
+        } else if (btn & 0xC00) {
+            prev = cur;
+            do {
+                if (btn & 0x800) {
+                    cur--;
+                } else {
+                    cur++;
+                }
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            } while (pages[page].item[cur].fx == -1);
+            func_8010E7FC_option(30, (prev + 1) * 14 + 40, 30, (cur + 1) * 14 + 40, 4);
+        }
+        t = (t < 11) ? t + 1 : 0;
+        func_8010E77C_option(30, (cur + 1) * 14 + 40, t);
+    }
+    func_8005FE90_main(titleWin);
+    func_8005F364_main(titleWin);
+    for (i = 0; i < 9; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    for (i = 0; i < 9; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8005FE90_main(win[10]);
+    func_8005F364_main(win[10]);
+    HuAudFXPlay(0x2F9);
+    func_8011331C_option(2, 15, 1);
+    func_801132E4_option(2, 40);
+    HuPrcSleep(3);
+    func_801133A0_option(1);
+    func_801133A0_option(2);
+}
+
+/* Music test: twelve pages of nine songs; some appear only once unlocked. */
+void func_8010F138_option(void) {
+    s16 win[16]; /* [0..8] the entries, [10] the help window */
+    OpSndPage pages[12] = {
+        { 0x5D01, { { 0x5D0F, 0x3 }, { 0x5D10, 0x9 }, { 0x5D11, 0xB }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D02, { { 0x5D12, 0x4 }, { 0x5D13, 0x7 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D03, { { 0x5D14, 0x8 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D04, { { 0x5D17, 0x18 }, { 0x5D18, 0x19 }, { 0x5D19, 0x1A }, { 0x5D1A, 0x1B }, { 0x5D1B, 0x1C }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D05, { { 0x5D1D, 0x1E }, { 0x5D1E, 0x1F }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D06, { { 0x5D20, 0xD }, { 0x5D21, 0x12 }, { 0x5D22, 0x17 }, { 0x5D23, 0x24 }, { 0x5D24, 0x13 }, { 0x5D25, 0xF }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D07, { { 0x5D26, 0x10 }, { 0x5D27, 0x3E }, { 0x5D28, 0x14 }, { 0x5D29, 0x15 }, { 0x5D2A, 0x16 }, { 0x5D2B, 0x46 }, { 0x5D2C, 0x47 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D08, { { 0x5D2D, 0x2D }, { 0x5D2E, 0x2E }, { 0x5D2F, 0x2F }, { 0x5D30, 0x30 }, { 0x5D31, 0x31 }, { 0x5D32, 0x32 }, { 0x5D33, 0x33 }, { 0x5D34, 0x34 }, { -1, -1 } } },
+        { 0x5D09, { { 0x5D35, 0x35 }, { 0x5D36, 0x36 }, { 0x5D37, 0x37 }, { 0x5D38, 0x38 }, { 0x5D39, 0x44 }, { 0x5D3A, 0x43 }, { 0x5D3B, 0x42 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0A, { { 0x5D3D, 0xA }, { 0x5D3E, 0x39 }, { 0x5D3F, 0x3A }, { 0x5D40, 0x3B }, { 0x5D41, 0x26 }, { 0x5D42, 0x21 }, { 0x5D43, 0x2C }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0B, { { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0C, { { 0x5D48, 0x3C }, { 0x5D49, 0x3D }, { 0x5D4A, 0x48 }, { 0x5D4B, 0x45 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+    };
+    s32 i;
+    s32 page;
+    s32 cur;
+    s32 t;
+    s32 prev;
+    s16 titleWin;
+    s32 btn;
+
+    func_801132E4_option(3, 0);
+    func_8011331C_option(3, 14, 0);
+    func_801132C8_option(3, 7);
+    cur = 0;
+    page = 0;
+    func_80112028_option(2, 230, 116);
+    func_80113384_option(2);
+    func_80112028_option(1, 170, 40);
+    func_80113384_option(1);
+    titleWin = func_80061188_main(-1, 164, 28, 120, 20, 0);
+    func_8005BEE0_main(titleWin, 0);
+    func_8005C154_main(titleWin, 192, 192, 192);
+    func_8005FBF8_main(titleWin, 255, 255, 255);
+    func_8005C060_main(titleWin, 0, 0, 0, 0);
+    func_8005C02C_main(titleWin, 0);
+    func_8005B43C_main(titleWin, 0x5D01, -1, -1);
+    func_8005FFA8_main(titleWin);
+    if (func_80110018_option() != 0) {
+        pages[2].item[1].mes = 0x5D15;
+        pages[2].item[1].fx = 0x4C;
+    }
+    if (_CheckFlag(0x1D) != 0) {
+        pages[2].item[2].mes = 0x5D16;
+        pages[2].item[2].fx = 0x4D;
+    }
+    if (_CheckFlag(0x31) != 0) {
+        pages[3].item[5].mes = 0x5D1C;
+        pages[3].item[5].fx = 0x1D;
+    }
+    if (_CheckFlag(0x30) != 0) {
+        pages[4].item[2].mes = 0x5D1F;
+        pages[4].item[2].fx = 0x20;
+    }
+    if (_CheckFlag(0x1E) != 0) {
+        pages[8].item[7].mes = 0x5D3C;
+        pages[8].item[7].fx = 0x41;
+        pages[10].item[0].mes = 0x5D44;
+        pages[10].item[0].fx = 0x28;
+        pages[10].item[1].mes = 0x5D45;
+        pages[10].item[1].fx = 0x29;
+        pages[10].item[2].mes = 0x5D46;
+        pages[10].item[2].fx = 0x2A;
+        pages[10].item[3].mes = 0x5D47;
+        pages[10].item[3].fx = 6;
+    }
+    for (i = 0; i < 9; i++) {
+        win[i] = func_80061188_main(-1, 180, (i + 1) * 14 + 28, 118, 20, 0);
+        func_8005BEE0_main(win[i], 0);
+        func_8005C154_main(win[i], 192, 192, 192);
+        func_8005FBF8_main(win[i], 255, 255, 255);
+        func_8005C060_main(win[i], 0, 0, 0, 0);
+        func_8005C02C_main(win[i], 0);
+        if (pages[page].item[i].mes != -1) {
+            func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+        } else {
+            func_8005D294_main(win[i]);
+        }
+        func_8005FFA8_main(win[i]);
+    }
+    win[10] = func_80061188_main(-1, 176, 190, 120, 44, 0);
+    func_8005BEE0_main(win[10], 0);
+    func_8005C154_main(win[10], 192, 192, 192);
+    func_8005FBF8_main(win[10], 255, 255, 255);
+    func_8005C060_main(win[10], 0, 0, 0, 0);
+    func_8005C02C_main(win[10], 0);
+    func_8005B43C_main(win[10], 0x5D00, -1, -1);
+    t = 0;
+    func_8005FFA8_main(win[10]);
+    while (TRUE) {
+        HuPrcVSleep();
+        btn = (u16)D_800D1244_main[0];
+        btn |= func_80113204_option(0);
+        btn = (btn & ~0xC000) | (D_800D5558_main[0] & 0xC000);
+        if (btn & 0x4000) {
+            func_80033910_main(HmfModelData[func_80113218_option(3)].hmf);
+            break;
+        }
+        if (btn & 0x8000) {
+            func_8004A950_main();
+            if (pages[page].item[cur].fx != -1) {
+                HuAudSeqPlay(pages[page].item[cur].fx);
+            }
+            func_80033970_main(HmfModelData[func_80113218_option(3)].hmf);
+        } else if (btn & 0x300) {
+            if (btn & 0x200) {
+                page--;
+            } else {
+                page++;
+            }
+            if (page >= 12) {
+                page = 0;
+            }
+            if (page < 0) {
+                page = 11;
+            }
+            if (page == 10) {
+                if (!_CheckFlag(0x1E)) {
+                    page = (btn & 0x200) ? 9 : 11;
+                }
+            }
+            func_8005B43C_main(titleWin, pages[page].title, -1, -1);
+            for (i = 0; i < 9; i++) {
+                if (pages[page].item[i].mes != -1) {
+                    func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+                } else {
+                    func_8005D294_main(win[i]);
+                }
+            }
+            while (TRUE) {
+                if (pages[page].item[cur].fx != -1) {
+                    break;
+                }
+                cur--;
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            }
+        } else if (btn & 0xC00) {
+            prev = cur;
+            do {
+                if (btn & 0x800) {
+                    cur--;
+                } else {
+                    cur++;
+                }
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            } while (pages[page].item[cur].fx == -1);
+            func_8010E7FC_option(170, (prev + 1) * 14 + 40, 170, (cur + 1) * 14 + 40, 4);
+        }
+        t = (t < 11) ? t + 1 : 0;
+        func_8010E77C_option(170, (cur + 1) * 14 + 40, t);
+    }
+    func_8005FE90_main(titleWin);
+    func_8005F364_main(titleWin);
+    for (i = 0; i < 9; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    for (i = 0; i < 9; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8005FE90_main(win[10]);
+    func_8005F364_main(win[10]);
+    HuAudFXPlay(0x2F9);
+    func_8011331C_option(3, 16, 1);
+    func_801132E4_option(3, 40);
+    HuPrcSleep(3);
+    func_801133A0_option(1);
+    func_801133A0_option(2);
+}
+
+f32 func_8010F914_option(f32 x, f32 z) {
+    return -(atan2df(z, x) - 90.0f);
+}
+
+void func_8010F94C_option(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        HuVecCopyXYZ(&D_80114788_option[i].unk0, 0.0f, 0.0f, 0.0f);
+        HuVecCopyXYZ(&D_80114788_option[i].unkC, 0.0f, 0.0f, 0.0f);
+        HuVecCopyXYZ(&D_80114788_option[i].pos, 0.0f, 0.0f, 0.0f);
+        D_80114788_option[i].obj = NULL;
+    }
+}
+
+void func_8010FA28_option(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        omDelObj(D_80114788_option[i].obj);
+    }
+}
+
+void func_8010FA7C_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec pos;
+    Vec dir;
+    s32 model;
+
+    model = D_80114788_option[obj->work[0]].model;
+    func_80105FF8_option(&eye, &at, &up);
+    func_80113274_option(model, &pos.x, &pos.y, &pos.z);
+    HuVecCopyXYZ(&dir, eye.x - pos.x, eye.y - pos.y, eye.z - pos.z);
+    func_80113290_option(model, 0.0f, func_8010F914_option(dir.x, dir.z), 0.0f);
+}
+
+void func_8010FB40_option(u32 no, s32 model) {
+    f32 x;
+    f32 y;
+    f32 z;
+    omObjData *obj;
+
+    if (D_80114788_option[no].obj != NULL) {
+        omDelObj(D_80114788_option[no].obj);
+    }
+    func_80113274_option(model, &x, &y, &z);
+    HuVecCopyXYZ(&D_80114788_option[no].unkC, 0.0f, 0.0f, 0.0f);
+    HuVecCopyXYZ(&D_80114788_option[no].pos, x, y, z);
+    D_80114788_option[no].model = model;
+    obj = omAddObj(6, 0, 0, -1, func_8010FA7C_option);
+    D_80114788_option[no].obj = obj;
+    obj->work[0] = no;
+}
+
+
+
+
+
+
+
+u16 func_8010FC40_option(s32 val) {
+    char buf[0x100];
+    OpHmfCamView *view;
+
+    HuPrcSleep(3);
+    while (TRUE) {
+        if (D_800D5558_main[0] & 0xD010) {
+            sprintf(buf, "\n%d\n", val);
+            break;
+        }
+        if (D_800D5558_main[0] & 0x2000) {
+            view = *(OpHmfCamView **)&HmfModelData[gCameraList->unk4].hmf->unkB8[4];
+            sprintf(buf, "POS:%4.2f,%4.2f,%4.2f", view->pos.x, view->pos.y, view->pos.z);
+            print8(16, 180, buf);
+            sprintf(buf, "A T:%4.2f,%4.2f,%4.2f", view->at.x, view->at.y, view->at.z);
+            print8(16, 190, buf);
+            sprintf(buf, "U P:%4.2f,%4.2f,%4.2f", view->up.x, view->up.y, view->up.z);
+            print8(16, 200, buf);
+        } else {
+            sprintf(buf, D_80113A4C_option, val);
+            print8(16, 220, buf);
+        }
+        HuPrcVSleep();
+    }
+    return D_800D5558_main[0];
+}
 
 void func_8010FDF4_option(void) {
     D_801147E0_option.obj = NULL;
@@ -1791,6 +2723,10 @@ void func_80111E3C_option(s32 no, s16 arg1) {
     func_8005BE30_main(D_80115A78_option[no].id, arg1);
 }
 
+extern const char D_80114620_option[];
+extern const char D_80114628_option[];
+extern const char D_80114640_option[];
+extern const char D_80114658_option[];
 extern const char D_80114670_option[];
 
 u16 func_80111E74_option(s32 val) {
@@ -1800,16 +2736,16 @@ u16 func_80111E74_option(s32 val) {
     HuPrcSleep(3);
     while (TRUE) {
         if (D_800D5558_main[0] & 0xD010) {
-            sprintf(buf, "\n%d\n", val);
+            sprintf(buf, D_80114620_option, val);
             break;
         }
         if (D_800D5558_main[0] & 0x2000) {
             view = *(OpHmfCamView **)&HmfModelData[gCameraList->unk4].hmf->unkB8[4];
-            sprintf(buf, "POS:%4.2f,%4.2f,%4.2f", view->pos.x, view->pos.y, view->pos.z);
+            sprintf(buf, D_80114628_option, view->pos.x, view->pos.y, view->pos.z);
             print8(16, 180, buf);
-            sprintf(buf, "A T:%4.2f,%4.2f,%4.2f", view->at.x, view->at.y, view->at.z);
+            sprintf(buf, D_80114640_option, view->at.x, view->at.y, view->at.z);
             print8(16, 190, buf);
-            sprintf(buf, "U P:%4.2f,%4.2f,%4.2f", view->up.x, view->up.y, view->up.z);
+            sprintf(buf, D_80114658_option, view->up.x, view->up.y, view->up.z);
             print8(16, 200, buf);
         } else {
             sprintf(buf, D_80114670_option, val);
@@ -1820,6 +2756,11 @@ u16 func_80111E74_option(s32 val) {
     return D_800D5558_main[0];
 }
 
+/* func_80111E74_option's own strings: retail keeps them apart from func_8010FC40_option's identical ones */
+const char D_80114620_option[] = "\n%d\n";
+const char D_80114628_option[] = "POS:%4.2f,%4.2f,%4.2f";
+const char D_80114640_option[] = "A T:%4.2f,%4.2f,%4.2f";
+const char D_80114658_option[] = "U P:%4.2f,%4.2f,%4.2f";
 const char D_80114670_option[] = "%d"; /* its own copy in retail: GCC would merge a literal with func_80107F50_option's */
 
 void func_80112028_option(s32 no, s32 x, s32 y) {
@@ -2149,8 +3090,8 @@ s32 func_801130E8_option(s32 pad) {
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801130E8_option);
 #endif
 
-u16 func_80113204_option(s32 pad) {
-    return D_800D0590_main[pad];
+s32 func_80113204_option(s32 pad) {
+    return (u16)D_800D0590_main[pad];
 }
 
 s16 func_80113218_option(s32 no) {
@@ -2364,7 +3305,7 @@ Vec D_801138A4_option = { -50.0f, 225.0f, 475.0f };
 Vec D_801138B0_option = { 0.0f, 225.0f, 275.0f };
 Vec D_801138BC_option = { 0.0f, 225.0f, 575.0f };
 s32 D_801138C8_option[9] = { 0, 1, 2, 3, 4, 5, 7, 6, 8 };
-f32 D_801138EC_option[6][4] = {
+OpRect D_801138EC_option[6] = {
     { 0.0f, 0.0f, 213.0f, 20.0f },
     { 0.0f, 19.0f, 213.0f, 20.0f },
     { 0.0f, 34.0f, 213.0f, 20.0f },
@@ -2373,7 +3314,7 @@ f32 D_801138EC_option[6][4] = {
     { 0.0f, 120.0f, 213.0f, 20.0f },
 };
 s32 D_8011394C_option[9] = { 0, 1, 2, 3, 4, 5, 7, 6, 8 };
-f32 D_80113970_option[6][4] = {
+OpRect D_80113970_option[6] = {
     { 0.0f, 0.0f, 213.0f, 20.0f },
     { 0.0f, 19.0f, 213.0f, 20.0f },
     { 0.0f, 34.0f, 213.0f, 20.0f },

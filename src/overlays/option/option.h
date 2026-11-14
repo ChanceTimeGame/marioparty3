@@ -110,30 +110,7 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
    end of this file. */
 extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
 extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
-extern f32 D_801138F0_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138F4_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138F8_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138FC_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113900_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113904_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113908_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_8011390C_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113910_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113914_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113918_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113974_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113978_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011397C_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113980_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113984_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113988_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011398C_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113990_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113994_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113998_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011399C_option;                /* .data ; lwc1: 8010D5B0 */
 extern s32 D_801139D0_option;                /* .data ; lw,sw: 801130E8 */
-extern s32 D_801147AC_option;                /* .bss 0x4 bytes; lw,sw: 8010FA7C 8010FB40 */
 extern s16 D_801147E6_option;                /* .bss 0x2 bytes; lh: 8010FE84 */
 
 /* Not declared here (address-only or mixed accesses; the fork that decompiles their users types them):
@@ -247,7 +224,6 @@ void func_8010F138_option(void);
 f32 func_8010F914_option(f32 arg0, f32 arg1); /* modesel func_8010EC74_modesel */
 void func_8010F94C_option(void);
 void func_8010FA28_option(void);
-void func_8010FA7C_option(void *arg0);
 void func_8010FB40_option(u32 arg0, s32 arg1);
 u16 func_8010FC40_option(s32 arg0);
 void func_8010FDF4_option(void);
@@ -341,7 +317,6 @@ void func_80112FF4_option(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4);
 void func_80113088_option(void);
 void func_801130CC_option(void);
 s32 func_801130E8_option(s32 arg0);
-u16 func_80113204_option(s32 arg0);
 s16 func_80113218_option(s32 arg0);
 void func_8011323C_option(s32 arg0);
 void func_80113258_option(s32 arg0);
@@ -394,8 +369,61 @@ extern u8 D_800D09A8_main; /* first byte of the save common buffer (saveload.c S
 extern Vec D_801134F0_option[3];
 extern Vec D_80113514_option[9];
 extern Vec D_8011376C_option; /* D_80113770_option and D_80113774_option are its y and z */
-extern f32 D_801138EC_option[6][4]; /* D_801138F0..D_80113918 are elements of it */
 extern s32 D_801138C8_option[9];
 extern s32 D_8011394C_option[9];
-extern f32 D_80113970_option[6][4]; /* D_80113974..D_8011399C are elements of it */
+/* fork C */
+/* Model facing the camera: D_80114788_option[2] (func_8010FB40_option starts one; splat names the
+   fields D_80114794_option .. D_801147B0_option). */
+typedef struct OpFace {
+    /* 0x00 */ Vec unk0;
+    /* 0x0C */ Vec unkC;
+    /* 0x18 */ Vec pos;       /* model position when started */
+    /* 0x24 */ s32 model;     /* model slot (func_80113274_option) */
+    /* 0x28 */ omObjData *obj; /* func_8010FA7C_option */
+} OpFace; /* size = 0x2C */
+extern OpFace D_80114788_option[2];
+void func_8010FA7C_option(omObjData *obj); /* turns a model to face the camera */
+/* Sound and music test page (the local tables of func_8010E8E0_option and func_8010F138_option). */
+typedef struct OpSndItem {
+    /* 0x00 */ s32 mes; /* message id, -1 for none */
+    /* 0x04 */ s16 fx;  /* sound effect (func_8010E8E0_option) or song (func_8010F138_option), -1 for none */
+} OpSndItem; /* size = 0x8 */
+typedef struct OpSndPage {
+    /* 0x00 */ s32 title;
+    /* 0x04 */ OpSndItem item[9];
+} OpSndPage; /* size = 0x4C */
+s32 func_80113204_option(s32 pad); /* pad buttons (lhu D_800D0590_main[pad]); callers use the whole register */
+/* Records boards (func_8010C3E4_option, func_8010D5B0_option): window rectangles relative to the board. */
+typedef struct OpRect {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ f32 w;
+    /* 0x0C */ f32 h;
+} OpRect; /* size = 0x10 */
+/* Records board sprites and windows (a local of func_8010C3E4_option and func_8010D5B0_option). Each
+   records page is 9 bytes of GwCommon (from unk_1D + 2 and unk_1D + 0x38): a count, then a byte per
+   character. */
+typedef struct OpRecSpr {
+    /* 0x00 */ s16 win[12]; /* [0..5] used */
+    /* 0x18 */ s16 icon[8];
+    /* 0x28 */ struct {
+        s16 tens;
+        s16 ones;
+    } digit[8];
+} OpRecSpr; /* size = 0x48 */
+/* Records page `page` of the table at GwCommon.unk_1D[off]: the count, and the byte of character n. */
+#define OP_RECCOUNT(off, page) (((u8 *)GwCommon.unk_1D)[(off) + (page) * 9])
+#define OP_RECVAL(off, page) (((OpRecVals *)&GwCommon.unk_1D[(off) + 1])[page].val)
+/* A records row seen from its first character byte: the next row's count follows. */
+typedef struct OpRecVals {
+    /* 0x00 */ u8 val[8];
+    /* 0x08 */ u8 next;
+} OpRecVals; /* size = 0x9 */
+extern s32 D_801138C8_option[9];   /* character icon -> record column (also the icon frame) */
+extern OpRect D_801138EC_option[6];
+extern s32 D_8011394C_option[9];
+extern OpRect D_80113970_option[6];
+extern char D_80113A50_option[]; /* "%2d" (first used by func_80107F50_option): a literal once that is C */
+extern char D_80113A4C_option[]; /* "%d" (also func_80107F50_option): a literal once both users are C */
+
 #endif
