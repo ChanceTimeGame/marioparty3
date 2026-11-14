@@ -36,14 +36,24 @@ typedef struct InstMgEntry {
 s16 func_8003A37C_main(InstGMes *gMes, char *str, u8 flag, s16 x, s16 arg4);
 
 void func_8010CBB8_inst(u8 page);
+void func_8010CF98_inst(void);
 void func_8010CFF4_inst(void);
 
 extern s8 D_8010D400_inst[];
 extern s8 D_8010D409_inst;
 extern s8 D_8010D40A_inst;
+extern s8 D_8010D40B_inst;
 extern s8 D_8010D411_inst;
 extern s8 D_8010D5B1_inst;
 extern s16 D_8010DCA8_inst[7];
+
+/* 4E4B50.c */
+extern const s16 D_8010DB04_inst[2][3];
+extern const s16 D_8010DB10_inst[2][3];
+extern const s16 D_8010DB1C_inst[3];
+extern const s16 D_8010DB24_inst[2][3];
+extern const s16 D_8010DB30_inst[3];
+
 extern s32 D_8010DCCC_inst;
 extern InstMgEntry *D_8010DCD0_inst;
 extern s8 D_8010DCD4_inst;
@@ -232,4 +242,63 @@ void func_8010D044_inst(void) {
     D_8010D5B1_inst = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E5AA0", func_8010D1D4_inst);
+void func_8010D1D4_inst(void) {
+    TextWindow *win;
+    s32 mes;
+    s8 i;
+
+    win = &D_800CC69C_main[D_8010DCA8_inst[0]];
+    if (D_8010D409_inst == 1) {
+        return;
+    }
+    func_8010CF98_inst();
+    for (i = 0; i < 2; i++) {
+        HuSprAttrReset(win->unk_6C, D_8010DCA8_inst[4 + i], 0x8000);
+    }
+    HuSprAttrSet(win->unk_6C, D_8010DCA8_inst[6], 0x8000);
+    for (i = 0; i < 3; i++) {
+        if (i != 1) {
+            HuSprAttrSet(win->unk_6C, D_8010DCA8_inst[1 + i], 0x8000);
+        }
+    }
+    switch (D_8010D40B_inst) {
+        case 8:
+        case 16:
+        case 27:
+            mes = D_8010DB1C_inst[0];
+            break;
+        default:
+            switch (D_8010D40A_inst) {
+                case 5:
+                    mes = D_8010DB04_inst[1][0];
+                    break;
+                case 4:
+                    mes = D_8010DB10_inst[0][0];
+                    mes += (D_8010D411_inst != 2);
+                    break;
+                case 3:
+                    mes = D_8010DB10_inst[1][0];
+                    break;
+                case 7:
+                    if (D_8010D40B_inst == 70) {
+                        mes = D_8010DB24_inst[1][0];
+                    } else {
+                        mes = D_8010DB30_inst[0];
+                    }
+                    break;
+                case 8:
+                    mes = D_8010DB24_inst[0][0];
+                    break;
+                case 0:
+                case 1:
+                case 2:
+                case 6:
+                default:
+                    mes = D_8010DB04_inst[0][0];
+                    break;
+            }
+            break;
+    }
+    func_8005B43C_main(D_8010DCA8_inst[0], mes, -1, -1);
+    D_8010D5B1_inst = 1;
+}
