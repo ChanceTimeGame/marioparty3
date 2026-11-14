@@ -194,7 +194,56 @@ s16 func_8010B588_msetup(s32 file) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B5D0_msetup);
+void func_8010B5D0_msetup(void) {
+    s16 win;
+    s16 prev;
+
+    win = func_80060880_main(0xFA, 0xCC, 8);
+    func_8005FE54_main(win, 1 << D_8011A948_msetup);
+    func_8006105C_main(win, 0xE0);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    D_8011A890_msetup = D_8011A892_msetup[0] = win;
+    win = func_80060880_main(0xFA, 0xCC, 0x12);
+    func_8005FE54_main(win, 1 << D_8011A948_msetup);
+    func_8006105C_main(win, 0xE0);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    D_8011A892_msetup[1] = win;
+    D_8011A990_msetup = 0;
+    prev = 0;
+    while (TRUE) {
+        if (prev != D_8011A990_msetup) {
+            switch (D_8011A990_msetup) {
+            case 0:
+                func_80060EA8_main(D_8011A890_msetup, 1);
+                break;
+            case 1:
+                win = D_8011A890_msetup;
+                D_8011A890_msetup = D_8011A892_msetup[0];
+                if (prev != 0) {
+                    func_80060EA8_main(win, 1);
+                }
+                func_8005D294_main(D_8011A890_msetup);
+                func_80060C14_main(D_8011A890_msetup, 1);
+                break;
+            case 2:
+                win = D_8011A890_msetup;
+                D_8011A890_msetup = D_8011A892_msetup[1];
+                if (prev != 0) {
+                    func_80060EA8_main(win, 1);
+                }
+                func_8005D294_main(D_8011A890_msetup);
+                func_80060C14_main(D_8011A890_msetup, 1);
+                break;
+            }
+            prev = D_8011A990_msetup;
+        }
+        HuPrcVSleep();
+    }
+}
 
 void func_8010B82C_msetup(s32 mes) {
     func_8005B43C_main(D_8011A890_msetup, mes, -1, -1);
@@ -251,7 +300,44 @@ s16 func_8010BA3C_msetup(void) {
     return *(s16 *)&D_800CC69C_main[D_8011A890_msetup].pad86[0x22];
 }
 
+/* one operand order: retail `addu v0,v0,s5` (index + table) for &pos[i], GCC here `addu v0,s5,v0`
+   (tried pos + i, i + pos, a direct struct copy, per-field copy). */
+#ifdef NON_MATCHING
+void func_8010BA6C_msetup(s16 start, s16 count) {
+    Vec *pos;
+    Vec *src;
+    f32 *unkC;
+    s32 i;
+    s16 delay;
+    MsPlayerWork *w;
+    Process *proc;
+
+    if (count != 2) {
+        pos = D_80119A0C_msetup;
+        unkC = D_80119A54_msetup;
+    } else {
+        pos = D_80119A3C_msetup;
+        unkC = D_80119A64_msetup;
+    }
+    delay = D_80119A6C_msetup[D_8011A938_msetup];
+    for (i = start; i < count; i++) {
+        D_8011A9E0_msetup[i].state = 0;
+        D_8011A9E0_msetup[i].player = i;
+        src = &pos[i];
+        w = &D_8011A9E0_msetup[i];
+        w->pos = *src;
+        D_8011A9E0_msetup[i].unkC = unkC[i];
+        proc = omAddPrcObj(func_8010BEF8_msetup, 0x4000, 0xC00, 0);
+        D_8011A898_msetup[i] = proc;
+        proc->user_data = w;
+        if (delay != 0) {
+            HuPrcSleep(delay);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BA6C_msetup);
+#endif
 
 void func_8010BBF4_msetup(s16 arg0) {
     func_8010BA6C_msetup(0, arg0);
@@ -264,10 +350,10 @@ void func_8010BE8C_msetup(s16 arg0) {
 }
 
 s16 func_8010BEB0_msetup(s16 player, s16 value) {
-    s16 old = D_8011A9F2_msetup[player][0];
+    s16 old = D_8011A9E0_msetup[player].state;
 
     if (value >= 0) {
-        D_8011A9F2_msetup[player][0] = value;
+        D_8011A9E0_msetup[player].state = value;
     }
     return old;
 }
@@ -445,7 +531,7 @@ s32 func_80113ED4_msetup(MsSetupWork *arg0) {
 
     boardDescriptionId = NULL;
     mainFSArray = NULL;
-    curBoardIndex = D_8011AA45_msetup;
+    curBoardIndex = D_8011AA30_msetup.board;
     arg0->unk4 = 0;
     backgroundEspriteSlot = -1;
     var_s6 = -1;
@@ -560,7 +646,7 @@ s32 func_80113ED4_msetup(MsSetupWork *arg0) {
 
     arg0->unk4 = curBoardIndex;
     if (curBoardIndex >= 0) {
-        D_8011AA45_msetup = curBoardIndex;
+        D_8011AA30_msetup.board = curBoardIndex;
     }
 
     temp_s5->work[0] = 2;
