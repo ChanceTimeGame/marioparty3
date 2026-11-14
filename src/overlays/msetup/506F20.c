@@ -1006,7 +1006,146 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F4E0_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
 
+// register allocation and operand order around the D_80119C10 rows (masked 28, 3 fewer instructions: retail re-extends cur for the second row); same logic
+#ifdef NON_MATCHING
+void func_8011035C_msetup(void) {
+    struct {
+        s16 spr[8];
+        s16 unk10[8];
+        s16 chr[8];
+        s16 win[2];
+    } w;
+    MsInfoWork *work;
+    s32 i;
+    s16 j;
+    s16 grp;
+    s16 grp2;
+    s16 spr;
+    s16 cur;
+    s16 prev;
+    s16 shown;
+    s16 win;
+    u8 *row;
+
+    grp2 = -1;
+    work = HuPrcCurrentGet()->user_data;
+    for (i = 0; i < 8; i++) {
+        w.spr[i] = w.unk10[i] = -1;
+    }
+    for (i = 0; i < 2; i++) {
+        w.win[i] = -1;
+    }
+    for (i = 0; i < 8; i++) {
+        w.chr[i] = func_8000B838_main(D_80119BA0_msetup[i]);
+        if (i & 1) {
+            HuPrcVSleep();
+        }
+    }
+    grp = HuSprGrpCreate(8, 0);
+    for (j = 0; j < 8; j++) {
+        if (j == 7) {
+            spr = w.chr[work->sel];
+        } else {
+            spr = func_8000B838_main(D_80119B44_msetup[j]);
+            w.spr[j] = spr;
+        }
+        func_80055458_main(grp, j, 0x100);
+        HuSprAttrReset(grp, j, 0xFFFF);
+        HuSprAttrSet(grp, j, 0x9000);
+        HuSprScaleSet(grp, j, 1.0f, 1.0f);
+        func_800550F4_main(grp, j, 1);
+        func_80055024_main(grp, j, spr, 0);
+        HuSprPriSet(grp, j, 0x3A98);
+        func_80054904_main(grp, j, D_80119B60_msetup[j][0], D_80119B60_msetup[j][1]);
+        HuPrcVSleep();
+    }
+    row = D_80119C10_msetup[work->sel];
+    for (i = 0, j = 4; i < 2; i++, j++) {
+        func_80054FF8_main(grp, j, row[i]);
+    }
+    for (i = 0; i < 2; i++) {
+        win = func_8005A968_main(D_80119B90_msetup[i][0], D_80119B90_msetup[i][1], D_80119B90_msetup[i][2],
+                                 D_80119B90_msetup[i][3], 0, 12);
+        w.win[i] = win;
+        func_8005BDFC_main(win, 0);
+        func_8005BEE0_main(win, 0);
+        func_8005FBF8_main(win, 0xFF, 0xFF, 0xFF);
+        func_8005D294_main(win);
+        func_8005FE90_main(win);
+        HuPrcVSleep();
+    }
+    shown = 0;
+    func_8005F904_main();
+    cur = work->sel;
+    prev = 0;
+    do {
+        if (prev != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                for (i = 0; i < 8; i++) {
+                    HuSprAttrReset(grp, i, 0x8000);
+                }
+                cur = -1;
+                func_8005FFA8_main(w.win[0]);
+                shown = 1;
+                func_8005FFA8_main(w.win[1]);
+                break;
+            case 2:
+                for (i = 0; i < 8; i++) {
+                    HuSprAttrSet(grp, i, 0x8000);
+                }
+                shown = 0;
+                func_8005FE90_main(w.win[0]);
+                func_8005FE90_main(w.win[1]);
+                break;
+            }
+            prev = work->state;
+        }
+        if (shown != 0 && cur != work->sel) {
+            cur = work->sel;
+            func_80055024_main(grp, 7, w.chr[cur], 0);
+            row = D_80119C10_msetup[cur];
+            for (i = 0, j = 4; i < 3; i++, j++) {
+                func_80054FF8_main(grp, j, row[i]);
+            }
+            func_8005B43C_main(w.win[0], D_80119BD0_msetup[cur], -1, -1);
+            func_8005D294_main(w.win[1]);
+            func_8005B43C_main(w.win[1], D_80119BF0_msetup[cur], -2, -1);
+            cur = work->sel;
+        }
+        HuPrcVSleep();
+    } while (prev != 3);
+    for (i = 0; i < 8; i++) {
+        if (w.chr[i] >= 0) {
+            HuSprKill(w.chr[i]);
+        }
+    }
+    for (i = 0; i < 8; i++) {
+        if (w.spr[i] >= 0) {
+            HuSprKill(w.spr[i]);
+        }
+    }
+    if (grp >= 0) {
+        HuSprGrpKill(grp);
+    }
+    if (grp2 >= 0) {
+        HuSprGrpKill(grp2);
+    }
+    for (i = 0; i < 2; i++) {
+        if (w.win[i] >= 0) {
+            func_8005F364_main(w.win[i]);
+        }
+    }
+    work->state = 0;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8011035C_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80110954_msetup);
 

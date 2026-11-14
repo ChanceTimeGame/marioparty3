@@ -103,14 +103,6 @@ extern u8 D_80119AC8_msetup[];                   /* .data 0x4; lbu: 8010BEF8 */
 extern u16 D_80119ACC_msetup[];                  /* .data 0x4; lhu: 8010BEF8 */
 extern s32 D_80119AD0_msetup[8];                 /* .data 0x20; addiu,lw: 80110954 80111650 */
 extern s32 D_80119B34_msetup[];                  /* .data 0x10; lw: 8010F87C */
-extern s16 D_80119B60_msetup;                    /* .data 0x2; lh: 8011035C */
-extern s16 D_80119B62_msetup[];                  /* .data 0x2E; lh: 8011035C */
-extern s16 D_80119B90_msetup;                    /* .data 0x2; lh: 8011035C */
-extern s16 D_80119B92_msetup;                    /* .data 0x2; lh: 8011035C */
-extern s16 D_80119B94_msetup;                    /* .data 0x2; lh: 8011035C */
-extern s16 D_80119B96_msetup[];                  /* .data 0xA; lh: 8011035C */
-extern s32 D_80119BD0_msetup[];                  /* .data 0x20; lw: 8011035C */
-extern s32 D_80119BF0_msetup[];                  /* .data 0x20; lw: 8011035C */
 extern u8 D_80119C68_msetup[];                   /* .data 0x8; lbu: 80111650 */
 extern s16 D_80119CB0_msetup[];                  /* .data 0x10; lh: 80110954 */
 extern s32 D_80119D88_msetup[];                  /* .data 0x20; lw: 80111650 */
@@ -404,5 +396,18 @@ extern Vec D_8011A028_msetup[4];      /* Star Lift positions */
 extern s16 D_8011A058_msetup[4][4];   /* lift slot per set (2-player layouts?) */
 extern s16 D_8011A078_msetup[4][4];   /* lift slot per set when 3 lifts */
 void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set);
+
+/* func_8011035C_msetup (the character info panel process) */
+typedef struct MsInfoWork {
+    /* 0x00 */ s16 state; /* 1 show, 2 hide, 3 end */
+    /* 0x02 */ s16 sel;   /* character shown */
+} MsInfoWork;
+extern s32 D_80119B44_msetup[7];     /* panel sprite files */
+extern s16 D_80119B60_msetup[8][2];  /* panel sprite x, y (splat labels [0][1] D_80119B62_msetup) */
+extern s16 D_80119B90_msetup[2][4];  /* window x, y, w, h (splat labels D_80119B92/94/96_msetup) */
+extern s32 D_80119BA0_msetup[8];     /* character sprite files */
+extern s32 D_80119BD0_msetup[8];     /* character name message */
+extern s32 D_80119BF0_msetup[8];     /* character description message */
+extern u8 D_80119C10_msetup[][3];    /* per character: sprite banks of panel members 4-6 */
 
 #endif
