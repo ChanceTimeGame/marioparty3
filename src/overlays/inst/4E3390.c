@@ -20,7 +20,10 @@ void func_8010AC30_inst(omObjData *obj);
 void func_8010AD78_inst(omObjData *obj);
 void func_8010B038_inst(omObjData *obj);
 void func_8010B040_inst(void);
+void func_8010B2A4_inst(omObjData *obj);
 void func_8010B628_inst(omObjData *obj);
+
+extern u8 D_800CB8B1_main[];
 
 extern s8 D_8010D400_inst[];
 extern s8 D_8010D408_inst;
@@ -236,15 +239,72 @@ const char D_8010DAB0_inst[] = "hook_midori";
 const char D_8010DABC_inst[] = "hook_aka";
 const char D_8010DAC8_inst[] = "hook_ao";
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B040_inst);
+void func_8010B040_inst(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B0FC_inst);
+    switch (D_8010D40A_inst) {
+        case 0:
+        case 1:
+        case 2:
+            for (i = 0; i < 4; i++) {
+                if (D_800CB8B1_main[D_8010D400_inst[i]] == 0) {
+                    D_8010D554_inst[i] = 0;
+                } else {
+                    D_8010D554_inst[i] = 1;
+                }
+            }
+            break;
+        case 3:
+        case 4:
+        case 5:
+        case 7:
+            D_8010D554_inst[0] = 2;
+            D_8010D554_inst[1] = 2;
+            D_8010D554_inst[2] = 2;
+            D_8010D554_inst[3] = 2;
+            break;
+        case 8:
+            D_8010D554_inst[0] = 3;
+            D_8010D554_inst[1] = 3;
+            D_8010D554_inst[2] = 3;
+            D_8010D554_inst[3] = 3;
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B10C_inst);
+void func_8010B0FC_inst(void) {
+    D_8010D550_inst = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B118_inst);
+s8 func_8010B10C_inst(void) {
+    return D_8010D550_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B124_inst);
+s8 func_8010B118_inst(void) {
+    return D_8010D551_inst;
+}
+
+void func_8010B124_inst(void) {
+    omObjData *obj;
+    InstHookList *list;
+    s8 i;
+
+    obj = D_8010DC90_inst;
+    D_8010D558_inst = 1;
+    list = D_8010D4C0_inst[D_8010D40A_inst][0];
+    for (i = 0; i < list->count; i++) {
+        func_8001C814_main(obj->model[5 + i], 1, 0);
+        func_8001C814_main(obj->model[5 + i], 4, 4);
+        func_8001C258_main(obj->model[5 + i], 4, 0);
+    }
+    list = D_8010D4C0_inst[D_8010D40A_inst][1];
+    for (i = 0; i < list->count; i++) {
+        func_8001C814_main(obj->model[15 + i], 1, 0);
+        func_8001C814_main(obj->model[15 + i], 4, 4);
+        func_8001C258_main(obj->model[15 + i], 4, 0);
+    }
+    D_8010DC94_inst = func_8010B2A4_inst;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B2A4_inst);
 
