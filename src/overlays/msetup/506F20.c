@@ -16,6 +16,7 @@ void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
 s16 func_800329B4_main(void *);
 void func_80032FC0_main(s16, u8, u8);
+void func_8006105C_main(s32 winId, u8 alpha);
 
 
 /* Matches with 506F20.c in the Makefile's W2DC_BLANKSTRIP list (only residue: KMC as adds a nop
