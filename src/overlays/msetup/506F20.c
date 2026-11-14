@@ -552,7 +552,59 @@ void func_8010D094_msetup(HmfData *hmf, s16 idx) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D0C8_msetup);
 
+/* logic checked; retail keeps dx/dy as words (lw, then sll/sra at each use) where GCC here reads
+   the stack halfword, which changes the frame and register allocation. */
+#ifdef NON_MATCHING
+s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy) {
+    f32 cx;
+    f32 cy;
+    f32 len;
+    f32 fx;
+    f32 fy;
+    f32 best;
+    f32 d;
+    f32 ddx;
+    f32 ddy;
+    f32 nx;
+    f32 ny;
+    s16 bestIdx;
+    s16 i;
+
+    cx = pos[cur][0];
+    cy = pos[cur][1];
+    len = HuSqrtf((s16)dx * (s16)dx + (s16)dy * (s16)dy);
+    if (len != 0.0f) {
+        fx = (s16)dx / len;
+        fy = (s16)dy / len;
+        best = 100000.0f;
+        bestIdx = -1;
+        for (i = 0; i < count; i++) {
+            if (i == cur || used[i] != 0) {
+                continue;
+            }
+            ddx = cx - pos[i][0];
+            ddy = cy - pos[i][1];
+            d = HuSqrtf(ddx * ddx + ddy * ddy);
+            if (d != 0.0f) {
+                nx = ddx / d;
+                ny = ddy / d;
+            } else {
+                nx = ny = 0.0f;
+            }
+            ddx = fx - nx;
+            ddy = fy - ny;
+            if (!(ddx * ddx + ddy * ddy > 0.25f) && d < best) {
+                best = d;
+                bestIdx = i;
+            }
+        }
+        cur = bestIdx;
+    }
+    return cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D234_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D4DC_msetup);
 

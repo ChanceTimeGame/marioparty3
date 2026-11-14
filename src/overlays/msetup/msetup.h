@@ -248,7 +248,6 @@ s16 func_8010BEB0_msetup(s16 arg0, s16 arg1);
 void func_8010BEF8_msetup(void); /* process */
 void func_8010CE8C_msetup(s16 model); /* func_80013390_main hook */
 s32 func_8010D0C8_msetup(s16 arg0, s32 arg1);
-s16 func_8010D234_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5);
 s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 arg4, s32 arg5); /* arg1 unused */
 s16 func_8010D5EC_msetup(s16 arg0);
 s32 func_8010D684_msetup(s16 arg0, s16 *arg1);
@@ -392,6 +391,8 @@ extern f32 D_80119A64_msetup[2];
 extern s16 D_80119A6C_msetup[]; /* start delay, by D_8011A938_msetup */
 void func_8010BA6C_msetup(s16 start, s16 count);
 void func_8010BC18_msetup(s16 start, s16 count);
+/* cursor move: the unused entry nearest cur in the stick direction (dx, dy); -1 if none */
+s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy);
 
 
 /* hmfman's vertex-scatter effect (HmfModel.unkBC; opening's OpFxWork/OpFxPart, same layout) as
