@@ -154,8 +154,6 @@ extern s16 D_8011A880_msetup;                    /* .bss 0x2; lh,lhu,sh: 8010784
 extern s16 D_8011A890_msetup;                    /* .bss 0x2; lh,lhu,sh: 8010B5D0 8010B82C 8010B858 8010B8E0 8010B968 8010B998 8010B9 */
 extern u16 D_8011A892_msetup;                    /* .bss 0x2; addiu,lhu: 8010B5D0 */
 extern u16 D_8011A894_msetup[];                  /* .bss 0x4; lhu: 8010B5D0 */
-extern s32 D_8011A900_msetup;                    /* .bss 0x4; lw,sw: 80111650 */
-extern s16 D_8011A904_msetup;                    /* .bss 0x2; addiu,sh: 80111650 */
 extern s16 D_8011A906_msetup;                    /* .bss 0x2; addiu,sh: 80110954 80111650 */
 extern s16 D_8011A910_msetup[];                  /* .bss 0x10; lh,sh: 80118D48 */
 extern s16 D_8011A938_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 8010A35C 8010BA6C 8010BEF8 8010EB94 801109 */
@@ -292,7 +290,6 @@ Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A
 s16 func_8010F2F4_msetup(Process *proc, s16 arg1);
 void func_8010F320_msetup(Process *proc, s32 idx, s16 arg2, s16 arg3);
 void func_8010F33C_msetup(s16 model, Vec *out, f32 (*mtx)[4]);
-void func_8010F43C_msetup(s16 model, s32 arg1, Vec2f *out);
 void func_8010F4E0_msetup(s32 arg0, s16 arg1, s32 arg2);
 s32 func_8010F87C_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_8011035C_msetup(void); /* process */
@@ -410,5 +407,38 @@ typedef struct MsPart {
 s16 func_801152C4_msetup(s16 model, s32 arg1, HuMtx4F hand, s16 *pad, s16 sel); /* arg1 unused */
 s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor);
 s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */
+
+
+/* fork F */
+/* arg1 is a model part name (D_80119D68_msetup, D_80119E20_msetup hold char *), not s32 */
+void func_8010F43C_msetup(s16 model, char *part, Vec2f *out);
+/* One of the eight character slots of func_80111650_msetup's board (on its stack). */
+typedef struct MsChrSlot {
+    /* 0x00 */ s16 grp;   /* sprite group */
+    /* 0x02 */ s16 spr0;  /* member: the character */
+    /* 0x04 */ s16 spr1;  /* member: i + 8 */
+    /* 0x06 */ s16 owner; /* 0 free, -1 locked, else player + 1 */
+} MsChrSlot; /* size = 0x8 */
+/* user_data of each func_80110954_msetup cursor process (func_80111650_msetup keeps four). */
+typedef struct MsChrWork {
+    /* 0x00 */ MsChrSlot *slots;
+    /* 0x04 */ s16 unk4;
+    /* 0x06 */ s16 unk6;
+    /* 0x08 */ s16 (*pos)[2]; /* per-slot cursor x, y */
+    /* 0x0C */ s16 sel;
+    /* 0x0E */ s16 state;  /* 1 run, 2 stop, -1 kill */
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 pad;    /* controller port */
+    /* 0x14 */ s16 player; /* 4: the COMs */
+    /* 0x16 */ s16 unk16;  /* 1 for a player, else the COM count */
+    /* 0x18 */ s16 result; /* > 0 chosen, < 0 cancelled */
+} MsChrWork; /* size = 0x1C */
+/* user_data of the func_8011035C_msetup process (D_8011A906_msetup is .unk2) */
+typedef struct MsCmdWork {
+    /* 0x00 */ s16 state;
+    /* 0x02 */ s16 unk2;
+} MsCmdWork; /* size = 0x4 */
+extern Process *D_8011A900_msetup; /* was s32: the func_8011035C_msetup process */
+extern MsCmdWork D_8011A904_msetup; /* was s16 */
 
 #endif
