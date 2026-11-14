@@ -118,7 +118,70 @@ s32 func_80108250_mgresultboard(omObjData *obj, s8 arg1, s8 arg2, s8 arg3) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108330_mgresultboard);
+void func_80108330_mgresultboard(omObjData *obj) {
+    s16 model;
+    f32 time;
+    f32 end;
+    s16 b;
+    s16 a;
+    s16 tmp;
+    s8 i;
+
+    for (i = 0; i < 4; i++) {
+        b = D_8010AFE8_mgresultboard[i].unk_08;
+        a = D_8010AFE8_mgresultboard[i].unk_06;
+        model = obj->model[a + 1];
+        time = HmfModelData[model].unk40;
+        end = D_800CCF58_main[HmfModelData[model].unk02].unk02;
+        switch (D_8010AFE8_mgresultboard[i].unk_00) {
+            case 1:
+                if (a >= 0) {
+                    func_8001C814_main(model, 1, 0);
+                    func_8001C258_main(obj->model[a + 1], 4, 0);
+                    func_8001C92C_main(obj->model[a + 1], D_8010AAF4_mgresultboard);
+                }
+                if (b >= 0) {
+                    func_8001C814_main(obj->model[b + 1], 1, 0);
+                    func_8001C258_main(obj->model[b + 1], 4, 0);
+                    func_8001C92C_main(obj->model[b + 1], D_8010AAF4_mgresultboard);
+                }
+                if (D_8010AFE8_mgresultboard[i].unk_04 >= 0) {
+                    if (end <= time) {
+                        func_80032FF8_main((s16)D_8010ADB0_mgresultboard[b], D_8010AFE8_mgresultboard[i].unk_04);
+                        D_8010AFE8_mgresultboard[i].unk_02 = D_8010AFE8_mgresultboard[i].unk_04;
+                        D_8010AFE8_mgresultboard[i].unk_04 = -1;
+                        if (a >= 0) {
+                            func_8001C6A8_main(obj->model[a + 1], 0.0f);
+                        }
+                        if (b >= 0) {
+                            func_8001C6A8_main(obj->model[b + 1], 20.0f);
+                        }
+                        tmp = D_8010AFE8_mgresultboard[i].unk_06;
+                        D_8010AFE8_mgresultboard[i].unk_06 = D_8010AFE8_mgresultboard[i].unk_08;
+                        D_8010AFE8_mgresultboard[i].unk_08 = tmp;
+                    }
+                    break;
+                }
+                D_8010AFE8_mgresultboard[i].unk_00 = 0;
+                /* fallthrough */
+            case 0:
+                if (end <= time) {
+                    /* Retail tests each model index and then uses the other one. */
+                    if (a >= 0) {
+                        func_8001C6A8_main(obj->model[b + 1], 20.0f);
+                        func_8001C814_main(obj->model[b + 1], 1, 1);
+                        func_8001C258_main(obj->model[b + 1], 4, 4);
+                        func_80032FF8_main((s16)D_8010ADB0_mgresultboard[b], D_8010AFE8_mgresultboard[i].unk_02);
+                    }
+                    if (b >= 0) {
+                        func_8001C6A8_main(obj->model[a + 1], end);
+                        func_8001C814_main(obj->model[a + 1], 1, 1);
+                    }
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108700_mgresultboard);
 

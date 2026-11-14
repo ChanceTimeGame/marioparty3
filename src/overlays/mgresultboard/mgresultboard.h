@@ -17,7 +17,7 @@ typedef struct PlayerResult {
 /* One player's animated result figure: two models (obj->model[mdlA + 1], obj->model[mdlB + 1])
    that swap when the playing motion ends. */
 typedef struct ResultSlot {
-    /* 0x00 */ u8 unk_00;
+    /* 0x00 */ s8 unk_00;
     /* 0x02 */ s16 unk_02;
     /* 0x04 */ s16 unk_04;
     /* 0x06 */ s16 unk_06;
