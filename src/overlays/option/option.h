@@ -283,14 +283,10 @@ void func_80110B8C_option(s32 no, f32 *x, f32 *y, f32 *z); /* model rot get */
 void func_80110BD4_option(s32 no, f32 *x, f32 *y, f32 *z); /* model scale get */
 void func_80110C1C_option(s32 arg0);
 void func_80110C5C_option(s32 arg0);
-void func_80110C9C_option(s32 no, s16 flag);
-void func_80110CE0_option(s32 no, s32 motNo, s16 arg2, s16 arg3, s16 arg4);
-void func_80110D50_option(s32 no, s16 arg1);
 void func_80110D94_option(s32 no, f32 speed);
 void func_80110DCC_option(s32 no, u32 time);
 void func_80110E30_option(s32 arg0);
 s32 func_80110ED0_option(s32 arg0);
-void func_80110F58_option(s32 no, s32 motNo, s16 flag);
 void func_80110FC8_option(s32 dataNum);
 void func_8011102C_option(void);
 u32 func_80111058_option(u32 mes); /* heap copy of a message when mes is a pointer */
@@ -317,7 +313,6 @@ void func_80111E00_option(s32 btn); /* wait for button */
 void func_80111E3C_option(s32 no, s16 arg1);
 u16 func_80111E74_option(s32 val); /* debug value print */
 void func_80112028_option(s32 arg0, s32 arg1, s32 arg2);
-void func_80112044_option(s32 arg0, s32 arg1);
 void func_80112060_option(void);
 void func_80112084_option(void);
 void func_8011239C_option(void);
@@ -338,11 +333,8 @@ void func_8011323C_option(s32 arg0);
 void func_80113258_option(s32 arg0);
 void func_80113274_option(s32 arg0, f32 *arg1, f32 *arg2, f32 *arg3);
 void func_80113290_option(s32 arg0, f32 arg1, f32 arg2, f32 arg3);
-void func_801132AC_option(s32 arg0, s16 arg1);
-void func_801132C8_option(s32 arg0, s16 arg1);
 void func_801132E4_option(s32 arg0, u32 arg1);
 void func_80113300_option(s32 arg0);
-void func_8011331C_option(s32 arg0, s32 arg1, s32 arg2);
 void func_80113338_option(s32 arg0, s32 arg1, s16 arg2, s16 arg3, u16 arg4);
 void func_80113368_option(s32 arg0, s32 *arg1, s32 *arg2);
 void func_80113384_option(s32 arg0);
@@ -370,5 +362,12 @@ typedef struct OpMgTableHead {
     /* 0x04 */ char unk4[0x10];
 } OpMgTableHead;
 extern OpMgTableHead D_800A6D40_main[];
-
+void func_80112044_option(s32 no, u16 alpha);
+void func_80110C9C_option(s32 no, s32 flag);
+void func_80110D50_option(s32 no, s32 arg1);
+void func_80110CE0_option(s32 no, s32 motNo, s16 arg2, s16 arg3, u16 arg4);
+void func_80110F58_option(s32 no, s32 motNo, u16 flag);
+void func_801132AC_option(s32 no, s32 flag);
+void func_801132C8_option(s32 no, s32 arg1);
+void func_8011331C_option(s32 no, s32 motNo, s32 flag);
 #endif
