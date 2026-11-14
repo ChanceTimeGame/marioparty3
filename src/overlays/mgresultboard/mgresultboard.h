@@ -63,6 +63,13 @@ s32 func_80109D44_mgresultboard(omObjData *, s8);
 s32 func_80109DAC_mgresultboard(omObjData *, s8, s16);
 void func_80109F30_mgresultboard(s16, s16, s16);
 s32 func_80109A90_mgresultboard(omObjData *, s8, s16);
+void func_8010A000_mgresultboard(void);
+void func_8010A334_mgresultboard(omObjData *);
+void func_8010A350_mgresultboard(void);
+void func_8010A358_mgresultboard(void);
+void func_8010A3E4_mgresultboard(omObjData *);
+s32 func_8010A454_mgresultboard(omObjData *, s8, s8);
+void func_8010A4A0_mgresultboard(omObjData *);
 s32 func_8010A864_mgresultboard(omObjData *, s8, s8);
 
 #endif
