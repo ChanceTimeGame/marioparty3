@@ -73,10 +73,6 @@ extern f32 D_8010F2C0_modesel;                   /* .data; lw: 801088AC */
 extern f32 D_8010F2C4_modesel;                   /* .data; lw: 801088AC */
 extern s32 D_8010F2C8_modesel;                   /* .data; lw,sw: 80109A58 */
 extern s32 D_8010F2F0_modesel[];                  /* .data; lw: 8010DC6C */
-extern s32 D_80110B1C_modesel;                   /* .bss 0x4 bytes; lw: 8010B824 */
-extern s32 D_80110B20_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
-extern s32 D_80110B28_modesel;                   /* .bss 0x4 bytes; lw,sw: 8010B790 8010B824 */
-extern f32 D_80110B2C_modesel;                   /* .bss 0x4 bytes; swc1: 8010B790 */
 extern omObjData *D_80110BD0_modesel;                   /* .bss 0x4 bytes; lw,sw: 80107CEC 8010B6B0 8010BA70 */
 /* D_80110BD4_modesel, D_8010F304_modesel: fork C block */
 extern Process *D_80110BE0_modesel;                   /* .bss 0x8 bytes; lw,sw: 80107CEC 8010BA70 */
