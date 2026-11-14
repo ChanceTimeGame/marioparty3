@@ -32,6 +32,25 @@ const s32 D_8010D954_inst[9] = {
     0x00170025, 0x00170025, 0x00170027, 0x00170026,
 };
 
+/* .data (8010D4C0), defined before the functions: after the last one KMC as would put its
+   delay-slot nop at the start of .text. */
+#define INST_HL(x) ((InstHookList *)&(x))
+/* Per minigame type: the board's part lists (players, then the second list). */
+InstHookList *D_8010D4C0_inst[9][2] = {
+    { INST_HL(D_8010D770_inst), INST_HL(D_8010D7A4_inst) },
+    { INST_HL(D_8010D7B0_inst), INST_HL(D_8010D7E4_inst) },
+    { INST_HL(D_8010D7EC_inst), INST_HL(D_8010D820_inst) },
+    { INST_HL(D_8010D828_inst), INST_HL(D_8010D85C_inst) },
+    { INST_HL(D_8010D864_inst), INST_HL(D_8010D880_inst) },
+    { INST_HL(D_8010D888_inst), INST_HL(D_8010D89C_inst) },
+    { INST_HL(D_8010D888_inst), INST_HL(D_8010D89C_inst) },
+    { INST_HL(D_8010D8DC_inst), INST_HL(D_8010D8EC_inst) },
+    { INST_HL(D_8010D8F4_inst), INST_HL(D_8010D904_inst) },
+};
+s32 D_8010D508_inst = 0; /* board grow frame */
+f32 D_8010D50C_inst = 0.0f; /* board grow scale */
+s32 D_8010D510_inst = 0; /* board tilt-back frame */
+
 /* Process: builds the instruction board object (model 0 the board, 2 the text page, 4 the
    title, 6 the cursor, 8 the frame), marks the parts named by the type's part lists, loads
    the message pages and runs the current page handler (D_8010DDD8_inst.func) every frame. */
