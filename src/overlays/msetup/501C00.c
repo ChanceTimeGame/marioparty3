@@ -661,9 +661,9 @@ s16 func_80107840_msetup(s32 arg0) {
         }
         HuAudFXPlay(0x2DB);
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 1;
+            D_8011A9E0_msetup[i].state = 1;
         }
-        while (D_8011AA2E_msetup != 0) {
+        while (D_8011A9E0_msetup[3].state != 0) {
             HuPrcVSleep();
         }
     }
@@ -680,7 +680,7 @@ s16 func_80107964_msetup(s32 arg0) {
 
     if (D_8011AA41_msetup != 0) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 7;
+            D_8011A9E0_msetup[i].state = 7;
         }
         D_8011A882_msetup.state = 3;
         do {
@@ -706,7 +706,7 @@ s16 func_80107A58_msetup(s32 arg0) {
 
     if (D_8011A886_msetup[0] < 0) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 10;
+            D_8011A9E0_msetup[i].state = 10;
         }
     }
     D_8011A882_msetup.state = 6;
@@ -739,7 +739,7 @@ s16 func_80107B8C_msetup(s32 arg0) {
     s32 i;
 
     for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-        D_8011A9F0_msetup[i].unk2 = 12;
+        D_8011A9E0_msetup[i].state = 12;
     }
     D_8011A990_msetup = 2;
     HuPrcVSleep();
@@ -757,7 +757,7 @@ s16 func_80107B8C_msetup(s32 arg0) {
     HuPrcVSleep();
     func_8010B9B8_msetup(0x4000, 0x4000);
     for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-        D_8011A9F0_msetup[i].unk2 = 11;
+        D_8011A9E0_msetup[i].state = 11;
     }
     HuPrcVSleep();
     if (D_8011A886_msetup[0] < 0) {
@@ -913,11 +913,11 @@ void func_80107FB4_msetup(void) {
     D_8011A990_msetup = 0;
     if (step < -1) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 12;
+            D_8011A9E0_msetup[i].state = 12;
         }
         HuPrcVSleep();
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 16;
+            D_8011A9E0_msetup[i].state = 16;
         }
         HuAudSeqFadeOut(0x186);
         D_80119412_msetup = 1;
@@ -992,9 +992,9 @@ s16 func_801084C4_msetup(s32 arg0) {
         func_8010BBF4_msetup(D_8011A880_msetup);
         HuAudFXPlay(0x2DB);
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 1;
+            D_8011A9E0_msetup[i].state = 1;
         }
-        while (D_8011A9F0_msetup[1].unk2 != 0) {
+        while (D_8011A9E0_msetup[1].state != 0) {
             HuPrcVSleep();
         }
     }
@@ -1011,7 +1011,7 @@ s16 func_801085D4_msetup(s32 arg0) {
 
     if (D_8011AA41_msetup != 0) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 6;
+            D_8011A9E0_msetup[i].state = 6;
         }
         D_8011A882_msetup.state = 3;
         do {
@@ -1036,7 +1036,7 @@ s16 func_801086C8_msetup(s32 arg0) {
     s32 i;
 
     for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-        D_8011A9F0_msetup[i].unk2 = 14;
+        D_8011A9E0_msetup[i].state = 14;
     }
     D_8011A882_msetup.state = 11;
     do {
@@ -1203,11 +1203,11 @@ void func_80108AB8_msetup(void) {
     D_8011A990_msetup = 0;
     if (step < -1) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 12;
+            D_8011A9E0_msetup[i].state = 12;
         }
         HuPrcVSleep();
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-            D_8011A9F0_msetup[i].unk2 = 16;
+            D_8011A9E0_msetup[i].state = 16;
         }
         HuAudSeqFadeOut(0x186);
         D_80119412_msetup = 1;
@@ -1372,7 +1372,7 @@ void func_80109218_msetup(void) {
     D_8011AA4A_msetup = 1;
     wait[0] = 1;
     HuAudFXPlay(0x2DB);
-    D_8011A9F0_msetup[0].unk2 = 1;
+    D_8011A9E0_msetup[0].state = 1;
     while (wait[0] == 1) {
         HuPrcVSleep();
     }
@@ -1401,13 +1401,13 @@ void func_80109218_msetup(void) {
     D_8011A990_msetup = 0;
     HuAudFXPlay(0x2DB);
     for (; j < (s16)(u16)D_8011A880_msetup; j++) {
-        D_8011A9F0_msetup[j].unk2 = 1;
+        D_8011A9E0_msetup[j].state = 1;
     }
     for (i = 7; i != 0; i--) {
         HuPrcVSleep();
     }
-    D_8011A9F0_msetup[0].unk2 = 17;
-    while (D_8011A9F0_msetup[D_8011A880_msetup - 1].unk2 != 0) {
+    D_8011A9E0_msetup[0].state = 17;
+    while (D_8011A9E0_msetup[D_8011A880_msetup - 1].state != 0) {
         HuPrcVSleep();
     }
     D_8011A990_msetup = 1;
@@ -1430,7 +1430,7 @@ void func_80109218_msetup(void) {
             HuAudFXPlay(0x2A6);
             D_8011A990_msetup = 0;
             for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
-                D_8011A9F0_msetup[i].unk2 = 16;
+                D_8011A9E0_msetup[i].state = 16;
             }
             HuAudSeqFadeOut(0x186);
             D_80119412_msetup = 1;

@@ -3337,14 +3337,14 @@ while (1) {
                 break;
             }
             idx = players[n];
-            D_8011A9F0_msetup[idx].unk2 = 6;
+            D_8011A9E0_msetup[idx].state = 6;
         }
         if (btn & A_BUTTON) {
             HuAudFXPlay(2);
             if (individual != 0) {
                 idx = players[n];
                 D_8011AA38_msetup[idx] = sel;
-                D_8011A9F0_msetup[idx].unk2 = 5;
+                D_8011A9E0_msetup[idx].state = 5;
                 if (++n >= coms) {
                     break;
                 }
@@ -3352,7 +3352,7 @@ while (1) {
                 for (i = 0; i < coms; i++) {
                     idx = players[i];
                     D_8011AA38_msetup[idx] = sel;
-                    D_8011A9F0_msetup[idx].unk2 = 5;
+                    D_8011A9E0_msetup[idx].state = 5;
                 }
                 break;
             }
@@ -3987,9 +3987,9 @@ s32 func_80114AA0_msetup(MsSetupWork *work) {
             HuAudFXPlay(2);
             D_8011AA30_msetup.star[n] = val;
             if (val != 0) {
-                D_8011A9F0_msetup[n].unk2 = 8;
+                D_8011A9E0_msetup[n].state = 8;
             } else {
-                D_8011A9F0_msetup[n].unk2 = 10;
+                D_8011A9E0_msetup[n].state = 10;
             }
             if (++n >= 4) {
                 work->unk4 = 0;
@@ -4002,7 +4002,7 @@ s32 func_80114AA0_msetup(MsSetupWork *work) {
                 work->unk4 = -1;
                 break;
             }
-            D_8011A9F0_msetup[n].unk2 = 9;
+            D_8011A9E0_msetup[n].state = 9;
             val = D_8011AA30_msetup.star[n];
         }
         dir = 0;
@@ -4967,7 +4967,7 @@ s32 func_80116FE0_msetup(MsSetupWork *work) {
         if (btn & 0x8000) {
             HuAudFXPlay(2);
             D_8011AA30_msetup.star[player] = D_80119FE4_msetup[sel];
-            D_8011A9F0_msetup[player].unk2 = 0xD;
+            D_8011A9E0_msetup[player].state = 0xD;
             player++;
             if (player >= 2) {
                 w->unk4 = 0;
@@ -4989,7 +4989,7 @@ s32 func_80116FE0_msetup(MsSetupWork *work) {
                 w->unk4 = -1;
                 break;
             }
-            D_8011A9F0_msetup[player].unk2 = 0xE;
+            D_8011A9E0_msetup[player].state = 0xE;
             i = D_8011AA30_msetup.star[player];
             for (sel = 0; sel < 5; sel++) {
                 if (i == D_80119FE4_msetup[sel]) {

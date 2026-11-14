@@ -124,10 +124,6 @@ extern s16 D_8011A938_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80
 extern s16 D_8011A93A_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C */
 extern s16 D_8011A944_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 80105DB4 80107FB4 80108AB8 80109218 801098 */
 extern s16 D_8011A946_msetup;                    /* .bss 0x2; lh,sh: 80105DB4 80107FB4 80108AB8 80109218 80109868 8010A35C 8010A7 */
-extern f32 D_8011A9EC_msetup;                    /* .bss 0x4; swc1: 8010BA6C */
-extern s16 D_8011A9F2_msetup[];                  /* .bss 0x14; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107FB4 801084C4 801085 */
-extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
-extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
 extern u8 D_8011AA40_msetup;                     /* .bss 0x1; addiu,lbu: 80105C4C 80109218 80109868 8010A7A0 8010A7EC 8010F87C 801116 */
 extern u8 D_8011AA41_msetup;                     /* .bss 0x1; lbu: 80107964 801085D4 8010A10C 801132C4 */
 extern u8 D_8011AA43_msetup;                     /* .bss 0x1; lbu,sb: 80107E48 80107FB4 */
@@ -296,14 +292,6 @@ typedef struct MsConfig {
 } MsConfig; /* size = 0x18 */
 extern MsConfig D_8011AA30_msetup; /* was u8 D_8011AA30_msetup[4]: write .pad[i] */
 extern s16 D_8011A990_msetup; /* was s16[2]; only lh/sh of the first halfword */
-/* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
-   are fields of records 0, 1 and 3). */
-typedef struct MsPlayerUi {
-    /* 0x00 */ s16 unk0;
-    /* 0x02 */ s16 unk2; /* state */
-    /* 0x04 */ s16 unk4[8];
-} MsPlayerUi; /* size = 0x14 */
-extern MsPlayerUi D_8011A9F0_msetup[];
 /* menu step functions (D_80119434/D_80119458/D_80119510/D_80119524_msetup tables): s16 (*)(s32 step) */
 s16 func_80107A58_msetup(s32 arg0);
 s16 func_80107ECC_msetup(s32 arg0);
@@ -466,7 +454,8 @@ s16 func_8010B388_msetup(s16 model, MsTexAnim *anim, s32 file, char *name);
 void func_8010B4B8_msetup(s16 model, MsTexAnim *anim, s16 frame);
 
 /* Per-player work (.bss D_8011A9E0_msetup[4]): user_data of the func_8010BEF8_msetup processes.
-   splat also labels .unkC/.player/.state of player 0 (D_8011A9EC/D_8011A9F0/D_8011A9F2_msetup). */
+   splat also labels .unkC/.player/.state of player 0 (D_8011A9EC/D_8011A9F0/D_8011A9F2_msetup) and
+   player 3's .state (D_8011AA2E_msetup); C uses only this array (fork G removed the MsPlayerUi view). */
 typedef struct MsPlayerWork {
     /* 0x00 */ Vec pos;
     /* 0x0C */ f32 unkC;
