@@ -20,6 +20,7 @@ extern s32 D_8010ADD0_mgresultboard[40];
 extern s32 D_8010AE70_mgresultboard[4];
 extern omObjData *D_8010AEA0_mgresultboard;
 extern void (*D_8010AEA4_mgresultboard)(omObjData *);
+extern ResultSlot D_8010AEA8_mgresultboard[4][5];
 extern const u8 D_8010AD28_mgresultboard[8][3];
 
 const u8 D_8010AD28_mgresultboard[8][3] = {
@@ -270,9 +271,88 @@ void func_80108700_mgresultboard(void) {
 void func_80108BBC_mgresultboard(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108BC4_mgresultboard);
+void func_80108BC4_mgresultboard(omObjData *obj) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108C60_mgresultboard);
+    for (i = 0; i < 4; i++) {
+        func_80109744_mgresultboard(obj, i, D_8010B048_mgresultboard[i].score);
+        func_80109DAC_mgresultboard(obj, i, D_8010B048_mgresultboard[i].coin);
+    }
+}
+
+void func_80108C60_mgresultboard(omObjData *obj) {
+    s16 model;
+    f32 time;
+    f32 end;
+    s16 b;
+    s16 a;
+    s16 tmp;
+    s8 i;
+    s8 j;
+
+    for (j = 0; j < 4; j++) {
+        for (i = 0; i < 5; i++) {
+            b = D_8010AEA8_mgresultboard[j][i].unk_08;
+            a = D_8010AEA8_mgresultboard[j][i].unk_06;
+            model = obj->model[a + 1];
+            time = HmfModelData[model].unk40;
+            end = D_800CCF58_main[HmfModelData[model].unk02].unk02;
+            switch (D_8010AEA8_mgresultboard[j][i].unk_00) {
+                case 1:
+                    if (a >= 0) {
+                        func_8001C814_main(model, 1, 0);
+                        func_8001C258_main(obj->model[a + 1], 4, 0);
+                        func_8001C92C_main(obj->model[a + 1], D_8010AAF4_mgresultboard);
+                    }
+                    if (b >= 0) {
+                        func_8001C814_main(obj->model[b + 1], 1, 0);
+                        func_8001C258_main(obj->model[b + 1], 4, 0);
+                        func_8001C92C_main(obj->model[b + 1], D_8010AAF4_mgresultboard);
+                    }
+                    if (D_8010AEA8_mgresultboard[j][i].unk_04 >= 0) {
+                        if (end <= time) {
+                            func_80032FF8_main((s16)D_8010ADD0_mgresultboard[b], D_8010AEA8_mgresultboard[j][i].unk_04);
+                            D_8010AEA8_mgresultboard[j][i].unk_02 = D_8010AEA8_mgresultboard[j][i].unk_04;
+                            D_8010AEA8_mgresultboard[j][i].unk_04 = -1;
+                            if (a >= 0) {
+                                func_8001C6A8_main(obj->model[a + 1], 0.0f);
+                            }
+                            if (b >= 0) {
+                                func_8001C6A8_main(obj->model[b + 1], 20.0f);
+                            }
+                            tmp = D_8010AEA8_mgresultboard[j][i].unk_06;
+                            D_8010AEA8_mgresultboard[j][i].unk_06 = D_8010AEA8_mgresultboard[j][i].unk_08;
+                            D_8010AEA8_mgresultboard[j][i].unk_08 = tmp;
+                            if (D_8010AEA8_mgresultboard[j][i].unk_0A == 0) {
+                                func_80109F30_mgresultboard(obj->model[b + 1], D_8010ADD0_mgresultboard[b],
+                                                            D_8010AE70_mgresultboard[0]);
+                            } else {
+                                func_80109F30_mgresultboard(obj->model[b + 1], D_8010ADD0_mgresultboard[b],
+                                                            D_8010AE70_mgresultboard[1]);
+                            }
+                        }
+                        break;
+                    }
+                    D_8010AEA8_mgresultboard[j][i].unk_00 = 0;
+                    /* fallthrough */
+                case 0:
+                    if (end <= time) {
+                        if (b >= 0) {
+                            func_8001C6A8_main(obj->model[b + 1], 20.0f);
+                            func_8001C814_main(obj->model[b + 1], 1, 1);
+                            func_8001C258_main(obj->model[b + 1], 4, 4);
+                        }
+                        if (a >= 0) {
+                            func_80032FF8_main((s16)D_8010ADD0_mgresultboard[a], D_8010AEA8_mgresultboard[j][i].unk_02);
+                            func_8001C6A8_main(obj->model[a + 1], end);
+                            func_8001C814_main(obj->model[a + 1], 1, 1);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+}
 
 void func_8010913C_mgresultboard(void) {
 }

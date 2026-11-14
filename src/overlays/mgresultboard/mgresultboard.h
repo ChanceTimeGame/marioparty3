@@ -54,6 +54,9 @@ void func_80108BC4_mgresultboard(omObjData *);
 void func_80108C60_mgresultboard(omObjData *);
 void func_8010913C_mgresultboard(void);
 void func_80109144_mgresultboard(void);
+s32 func_80109744_mgresultboard(omObjData *, s8, s16);
+s32 func_80109DAC_mgresultboard(omObjData *, s8, s16);
+void func_80109F30_mgresultboard(s16, s16, s16);
 s32 func_80109A90_mgresultboard(omObjData *, s8, s16);
 s32 func_8010A864_mgresultboard(omObjData *, s8, s8);
 
