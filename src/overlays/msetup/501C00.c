@@ -1,5 +1,6 @@
 #include "common.h"
 #include "msetup.h"
+#include "mallocblock.h"
 
 #include "game/vibrator.h"
 
