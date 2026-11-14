@@ -563,7 +563,23 @@ void func_80107024_mgresultboard(void) {
     func_8001C8A8_main(func_8001AC8C_main(0, func_8010705C_mgresultboard, 2), 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_8010705C_mgresultboard);
+void func_8010705C_mgresultboard(Gfx** gfx, s32 arg1, s32 arg2) {
+    Gfx* g = *gfx;
+
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_SHADING_SMOOTH | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
+                                   G_TEXTURE_GEN_LINEAR | G_LOD);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 127);
+    gDPSetRenderMode(g++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+    gDPSetCombineMode(g++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+    gDPSetTextureLUT(g++, G_TT_NONE);
+    gDPSetFillColor(g++, 0x10001);
+    gDPFillRectangle(g++, 0, 0, 319, 239);
+    *gfx = g;
+}
 
 void func_80107188_mgresultboard(void) {
     u16 temp_s0;
