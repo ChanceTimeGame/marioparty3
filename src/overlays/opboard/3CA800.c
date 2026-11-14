@@ -7,6 +7,16 @@
 #include "../ovl_80_shared_board/101840.h"
 #include "../ovl_80_shared_board/105D50.h"
 #include "../ovl_80_shared_board/106640.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5B90.h"
+#include "../ovl_80_shared_board/FFB10.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/113520.h"
+
+extern s32 D_80100D90_shared_board;
+extern s32 D_80108D70_opboard;
+void func_800DCCE0_shared_board(void);
+
 
 void func_800138EC_main(s16 model, u16 mask, u16 flags);
 
@@ -454,7 +464,122 @@ void func_801066F0_opboard(void) {
     omDelPrcObj(NULL);
 }
 
+// register allocation and store order in the roll sort (masked 0)
+#ifdef NON_MATCHING
+/* deciding the turn order: each player hits a dice block (A, or a random delay for CPUs),
+   the highest roll goes first; then each player is introduced in the new order */
+void func_80106CFC_opboard(void) {
+    s32 state[4];
+    s32 count[4];
+    s32 timer[4];
+    s32 order[4];
+    Unk3 *help;
+    s32 i;
+    s32 j;
+    s32 tmp;
+
+    func_800DB5DC_shared_board();
+    func_800DB56C_shared_board();
+    for (i = 0; i < 4; i++) {
+        if (i != 0) {
+            D_80100D90_shared_board = 0;
+        }
+        func_800DC128_shared_board(i);
+        func_800DB6A8_shared_board(i);
+    }
+    func_800DCCE0_shared_board();
+    HuPrcSleep(20);
+    help = func_800E210C_shared_board(2, 0xBE, 1);
+    for (i = 0; i < 4; i++) {
+        state[i] = 1;
+        count[i] = 0;
+        timer[i] = (u8)(rand8() % 30) + 5;
+    }
+    while (TRUE) {
+        for (i = 0; i < 4; i++) {
+            tmp = timer[i] - 1;
+            timer[i] = tmp;
+            if (state[i] == 1) {
+                if (GwPlayer[i].stat & 1) {
+                    if (tmp <= 0) {
+                        goto hit;
+                    }
+                } else if (D_800C9520_main[GwPlayer[i].pad] & 0x8000) {
+                hit:
+                    state[i] = 2;
+                    MBMotionSet(D_80109068_opboard[i]->player_obj, 2, 0);
+                    func_800EE884_shared_board(D_80109068_opboard[i]->player_obj, -1, 2);
+                }
+            } else if (state[i] == 2) {
+                if (++count[i] == 5) {
+                    func_800DCBCC_shared_board(i);
+                    state[i] = 0;
+                }
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (state[i] != 0) {
+                break;
+            }
+        }
+        if (i == 4) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    MBHelpWinKill(help);
+    HuPrcSleep(20);
+    for (i = 0; i < 4; i++) {
+        state[i] = func_800DCD9C_shared_board(i);
+        order[i] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = i; j < 4; j++) {
+            if (state[i] < state[j]) {
+                tmp = state[j];
+                state[j] = state[i];
+                state[i] = tmp;
+                tmp = order[i];
+                order[i] = order[j];
+                order[j] = tmp;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        GwPlayer[order[i]].turn = i;
+        func_800DBE6C_shared_board(i);
+    }
+    func_80106014_opboard();
+    func_800F453C_shared_board();
+    D_80108D70_opboard = 1;
+    for (i = 0; i < 4; i++) {
+        MBStatusDispSideSet(i, 1);
+    }
+    HuPrcSleep(5);
+    for (i = 0; i < 4; i++) {
+        s32 mes[4] = { 0x1812, 0x1813, 0x1814, 0x1815 };
+
+        MBMotionShiftSet(D_80108F1C_opboard, 0, 0, 5, 2);
+        func_800EC92C_shared_board(-1, mes[i], mbCharNameMesTbl[GwPlayer[i].chr], 0, 0, 0, 0);
+        MBDlgWinClose();
+        MBDlgWinKill();
+        MBMotionShiftSet(D_80108F1C_opboard, -1, 0, 5, 2);
+        func_8004ACE0_main(0x274, i);
+        func_800EE94C_shared_board(D_80109068_opboard[i]->player_obj, 3, 0);
+        func_800EE884_shared_board(D_80109068_opboard[i]->player_obj, -1, 2);
+        func_800DBEC0_shared_board(order[i]);
+        MBStatusDispMoveSet(i + 10);
+        while (func_800F5278_shared_board() != 0) {
+            HuPrcVSleep();
+        }
+        MBPlayerVibrate(i, 3);
+        HuPrcSleep(20);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80106CFC_opboard);
+INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108FB0_opboard);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_801071F4_opboard);
 
@@ -478,7 +603,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C8C_opboard);
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108FB0_opboard);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108FC0_opboard);
 
