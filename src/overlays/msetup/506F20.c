@@ -1,6 +1,7 @@
 #include "common.h"
 #include "msetup.h"
 #include "game/vibrator.h"
+#include "mallocblock.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
 
@@ -60,58 +61,1092 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D0C8_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D234_msetup);
 
+// register allocation: retail copies arg0 to t3 and loads pad into a0 (masked 16, same blocks)
+#ifdef NON_MATCHING
+s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 pad, s32 btn) {
+    s16 x = -D_800CBB6E_main[pad];
+    s16 y = D_800D20A1_main[pad];
+
+    if (btn & 0x200) {
+        if (x < 30) {
+            x = 100;
+        }
+    } else if (btn & 0x100) {
+        if (x > -30) {
+            x = -100;
+        }
+    }
+    if (btn & 0x800) {
+        if (y < 30) {
+            y = 100;
+        }
+    } else if (btn & 0x400) {
+        if (y > -30) {
+            y = -100;
+        }
+    }
+    return func_8010D234_msetup(arg0, arg1, arg2, arg3, x, y);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D4DC_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D5EC_msetup);
+s16 func_8010D5EC_msetup(s16 pad) {
+    u16 btn = D_800CDA7C_main[pad];
+    s8 y = D_800D20A1_main[pad];
+    s8 x = D_800CBB6E_main[pad];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D684_msetup);
+    if (x > 30) {
+        btn |= 0x100;
+    } else if (x < -30) {
+        btn |= 0x200;
+    }
+    if (y > 30) {
+        btn |= 0x800;
+    } else if (y < -30) {
+        btn |= 0x400;
+    }
+    return btn;
+}
 
+s32 func_8010D684_msetup(s16 pad, s16 *prev) {
+    u16 old = *prev;
+    s16 now = func_8010D5EC_msetup(pad);
+
+    old &= now;
+    old ^= now;
+    *prev = now;
+    return (s16)old;
+}
+
+// retail passes work->prio with lh (called unprototyped?), lhu here (masked 1); s7/s8 swapped
+#ifdef NON_MATCHING
+void func_8010D6D0_msetup(void) {
+    MsSprWork *work;
+    s16 *xy;
+    s16 spr;
+    s16 slot;
+    s16 prevState;
+    s16 shown;
+    s16 startX;
+    s16 startY;
+    s16 dx;
+    s16 dy;
+    s16 prevIdx;
+    s16 alpha;
+    s16 step;
+    s16 tx;
+    s16 ty;
+    s16 x;
+    s16 y;
+    s16 t;
+    f32 s;
+
+    work = HuPrcCurrentGet()->user_data;
+    xy = &work->x;
+    spr = func_8000B838_main(work->file);
+    slot = InitEspriteSlot(spr, work->prio, 1);
+    func_8000BCC8_main(slot, 1);
+    x = tx = work->x;
+    y = ty = work->y;
+    func_8000BBD4_main(slot, x, y);
+    func_8000BB94_main(slot);
+    shown = 0;
+    alpha = 0;
+    step = 0;
+    prevIdx = work->idx;
+    t = 0;
+    prevState = work->state;
+    startX = x;
+    startY = y;
+    dy = 0;
+    dx = 0;
+    while (1) {
+        if (prevState != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                step = 0x40;
+                if (shown == 0) {
+                    alpha = 0;
+                    func_8000BBFC_main(slot, 0);
+                    func_8000BB54_main(slot);
+                    shown = 1;
+                }
+                break;
+            case 2:
+                if (shown != 0) {
+                    step = -0x40;
+                }
+                break;
+            case -1:
+                func_8000C184_main(slot);
+                HuSprKill(spr);
+                work->state = 100;
+                while (1) {
+                    HuPrcVSleep();
+                }
+            }
+            prevState = work->state;
+        }
+        if (prevIdx != work->idx) {
+            prevIdx = work->idx;
+            if (work->pos != NULL) {
+                xy[0] = work->pos[prevIdx][0];
+                xy[1] = work->pos[prevIdx][1];
+            }
+        }
+        if (tx != xy[0] || ty != xy[1]) {
+            tx = xy[0];
+            ty = xy[1];
+            t = work->time;
+            if (t != 0) {
+                startX = x;
+                startY = y;
+                dx = tx - x;
+                dy = ty - y;
+            }
+        }
+        if (step != 0) {
+            alpha += step;
+            if (alpha >= 0x100) {
+                alpha = 0xFF;
+                step = 0;
+            } else if (alpha < 0) {
+                alpha = 0;
+                step = 0;
+                func_8000BB94_main(slot);
+                shown = 0;
+            }
+            func_8000BBFC_main(slot, alpha);
+        }
+        if ((x != tx) | (y != ty)) {
+            if (t == 0) {
+                x = tx;
+                y = ty;
+            } else {
+                t--;
+                s = sindf((90.0f / work->time) * (work->time - t));
+                x = startX + dx * s;
+                y = startY + dy * s;
+            }
+            func_8000BBD4_main(slot, x, y);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D6D0_msetup);
+#endif
 
+// register allocation only (masked 0): work/slot/y in s4/s3/s2
+#ifdef NON_MATCHING
+void func_8010DAC4_msetup(omObjData *obj) {
+    MsArrowWork *work;
+    s32 i;
+    s16 slot;
+    s16 x;
+    s16 y;
+    f32 s;
+
+    work = obj->data;
+
+    if (obj->work[0] != obj->work[3]) {
+        switch (obj->work[0]) {
+        case 0:
+            break;
+        case 1:
+            obj->work[2] = 0;
+            func_8000BB54_main(obj->model[0]);
+            func_8000BB54_main(obj->model[1]);
+            break;
+        case 2:
+            obj->work[2] = 0xFF;
+            break;
+        case 3:
+            if (obj->work[3] == 4) {
+                i = obj->work[2];
+                func_8000BBD4_main(obj->model[i], work->pos[i][0], work->pos[i][1]);
+            }
+            obj->work[2] = 0;
+            obj->work[1] = 5;
+            work->angle = 360.0f;
+            work->speed = -36.0f;
+            break;
+        case 4:
+            if (obj->work[3] == 3) {
+                i = obj->work[2];
+                func_8000BBD4_main(obj->model[i], work->pos[i][0], work->pos[i][1]);
+            }
+            obj->work[2] = 1;
+            obj->work[1] = 5;
+            work->angle = 0.0f;
+            work->speed = 36.0f;
+            break;
+        case 0xFF:
+            func_8000C184_main(obj->model[0]);
+            func_8000C184_main(obj->model[1]);
+            HuSprKill(obj->model[2]);
+            HuSprKill(obj->model[3]);
+            obj->work[0] = 0;
+            break;
+        }
+        obj->work[3] = obj->work[0];
+    }
+    switch (obj->work[3]) {
+    case 0:
+        break;
+    case 1:
+        i = obj->work[2] + obj->work[1];
+        if (i >= 0x100) {
+            i = 0xFF;
+            obj->work[0] = 0;
+        }
+        obj->work[2] = i;
+        func_8000BBFC_main(obj->model[0], i);
+        func_8000BBFC_main(obj->model[1], i);
+        break;
+    case 2:
+        i = obj->work[2] - obj->work[1];
+        if (i < 0) {
+            i = 0;
+            func_8000BB94_main(obj->model[0]);
+            func_8000BB94_main(obj->model[1]);
+            obj->work[0] = 0;
+        }
+        obj->work[2] = i;
+        func_8000BBFC_main(obj->model[0], i);
+        func_8000BBFC_main(obj->model[1], i);
+        break;
+    case 3:
+    case 4:
+        i = obj->work[2];
+        slot = obj->model[i];
+        x = work->pos[i][0];
+        y = work->pos[i][1];
+        if (obj->work[1] == 0) {
+            obj->work[0] = 0;
+        } else {
+            obj->work[1]--;
+            work->angle += work->speed;
+            s = sindf(work->angle) * 12.0f;
+            x += s;
+        }
+        func_8000BBD4_main(slot, x, y);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DAC4_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DDD8_msetup);
+void func_8010DDD8_msetup(omObjData *obj) {
+    func_8000C184_main(obj->model[0]);
+    func_8000C184_main(obj->model[1]);
+    HuSprKill(obj->model[2]);
+    HuSprKill(obj->model[3]);
+    HuMemFree(obj->data);
+    omDelObj(obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DE38_msetup);
+omObjData *func_8010DE38_msetup(s32 x0, s32 x1, s32 y) {
+    omObjData *obj;
+    MsArrowWork *work;
+    s16 spr;
+    s16 slot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E00C_msetup);
+    obj = omAddObj(0x17D0, 4, 0, -1, func_8010DAC4_msetup);
+    if (obj == NULL) {
+        return NULL;
+    }
+    omSetStatBit(obj, 0x100);
+    work = HuMemAllocTag(sizeof(MsArrowWork), 0x7918);
+    memset(work, 0, sizeof(MsArrowWork));
+    obj->data = work;
+    spr = func_8000B838_main(0x140012);
+    slot = InitEspriteSlot(spr, 0, 1);
+    obj->model[0] = slot;
+    obj->model[2] = spr;
+    func_8000BCC8_main(slot, 0x4800);
+    func_8000BBD4_main(slot, x0, y);
+    func_8000BB94_main(slot);
+    work->pos[0][0] = x0;
+    work->pos[0][1] = y;
+    spr = func_8000B838_main(0x140013);
+    slot = InitEspriteSlot(spr, 0, 1);
+    obj->model[1] = slot;
+    obj->model[3] = spr;
+    func_8000BCC8_main(slot, 0x4800);
+    func_8000BBD4_main(slot, x1, y);
+    func_8000BB94_main(slot);
+    work->pos[1][0] = x1;
+    work->pos[1][1] = y;
+    for (slot = 0; slot < 4; slot++) {
+        obj->work[slot] = 0;
+    }
+    return obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E044_msetup);
+s16 func_8010E00C_msetup(omObjData *obj, s16 count) {
+    MsEmitWork *work;
 
+    if (obj == NULL) {
+        return 0;
+    }
+    work = obj->data;
+    if (count >= 5) {
+        count = 4;
+    }
+    work->count = count;
+    return count;
+}
+
+void func_8010E044_msetup(omObjData *obj, s16 idx, s16 arg2, f32 x, f32 y, f32 z) {
+    MsEmitWork *work;
+
+    if (obj != NULL) {
+        work = obj->data;
+        if (idx < work->count) {
+            work->pos[idx].x = x;
+            work->pos[idx].y = y;
+            work->pos[idx].z = z;
+            work->range[idx] = arg2;
+        }
+    }
+}
+
+// retail loads model[0] straight into a0 and copies it to s1 (one instruction fewer); otherwise the same
+#ifdef NON_MATCHING
+void func_8010E09C_msetup(omObjData *obj) {
+    MsEmitWork *work;
+    Vec *pos;
+    s32 model;
+    s32 range;
+    s32 i;
+    f32 dx;
+    f32 dz;
+    s32 pad[2]; /* retail's frame is 8 bytes larger */
+
+    model = obj->model[0];
+    if (obj->work[1] != obj->work[2]) {
+        func_8000CD00_main(model, D_80119AF4_msetup, D_80119AF8_msetup, D_80119AFC_msetup[0]);
+        obj->work[2] = obj->work[1];
+    }
+    work = obj->data;
+    switch (obj->work[0]) {
+    case 0:
+        break;
+    case 1:
+        for (i = 0; i < work->count; i++) {
+            range = work->range[i];
+            pos = &work->pos[i];
+            dx = (rand8() * range / 256 - range / 2);
+            dz = (rand8() * range / 256 - range / 2);
+            func_8000CD74_main(model, dx + pos->x, pos->y, dz + pos->z);
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E09C_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E21C_msetup);
+omObjData *func_8010E21C_msetup(void) {
+    omObjData *obj;
+    MsEmitWork *work;
+    MsFxWork *fx;
+    s16 model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E32C_msetup);
+    D_80119AF0_msetup = obj = omAddObj(0x17D0, 1, 0, -1, func_8010E09C_msetup);
+    if (obj == NULL) {
+        return NULL;
+    } else {
+        omSetStatBit(obj, 0x100);
+        work = HuMemAllocTag(sizeof(MsEmitWork), 0x7918);
+        memset(work, 0, sizeof(MsEmitWork));
+        obj->data = work;
+        model = func_8000CBA0_main(0x110012, 0x289);
+        obj->model[0] = model;
+        fx = MS_FX_WORK(model);
+        fx->origin.x = fx->origin.y = fx->origin.z = 0.0f;
+        fx->spread = 100.0f;
+        obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+        obj->work[0] = 0;
+        obj->work[1] = 0;
+        obj->work[2] = 0xFF;
+        obj->work[3] = 0;
+        return obj;
+    }
+}
+
+void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link) {
+    MsLift *lift;
+    Vec *rot;
+    s32 i;
+    s16 model;
+    s16 base;
+
+    base = -1;
+    for (i = 0; i < count; i++) {
+        if ((base < 0) | (link == 0)) {
+            model = base = func_8000B108_main(0x140003, 0x2A9);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        lifts[i].model = model;
+        lifts[i].unk20 = 0;
+        lift = &lifts[i];
+        rot = &lift->rot;
+        rot->x = rot->z = 0.0f;
+        if (i != 0) {
+            rot->y = rotY + 180.0f;
+        } else {
+            rot->y = rotY;
+        }
+        Hu3DModelRotSet(model, rot->x, rot->y, rot->z);
+        lift->pos = D_80119B20_msetup;
+        Hu3DModelPosSet(model, lift->pos.x, lift->pos.y, lift->pos.z);
+        Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
+        HuPrcVSleep();
+    }
+}
 
 
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY) {
     func_8010E32C_msetup(lifts, count, rotY, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E4D8_msetup);
+void func_8010E4D8_msetup(MsLift *lifts, s32 count) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E52C_msetup);
+    for (i = 0; i < count; i++, lifts++) {
+        func_8001C514_main(lifts->model);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E8C8_msetup);
+void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 frames, s16 *models, u16 nmodels,
+                         f32 scale0, f32 scale1) {
+    Vec pos;
+    MsLift *lift;
+    MsLiftKey *key;
+    Vec *rot;
+    f32 dscale;
+    f32 t;
+    f32 ry;
+    f32 scale;
+    s32 i;
+    s32 j;
+    s32 k;
+    s16 model;
 
+    dscale = scale1 - scale0;
+    for (i = 0; i < frames; i++) {
+        t = (f32)i / frames;
+        for (j = 0; j < count; j++) {
+            if (lifts[j].unk20 & 1) {
+                continue;
+            }
+            model = lifts[j].model;
+            lift = &lifts[j];
+            key = &keys[j];
+            pos.x = (key->pos.x - lift->pos.x) * t;
+            pos.y = (key->pos.y - lift->pos.y) * t;
+            pos.z = (key->pos.z - lift->pos.z) * t;
+            pos.x += lift->pos.x;
+            pos.y += lift->pos.y;
+            pos.z += lift->pos.z;
+            rot = &lift->rot;
+            if (lift->rot.y > 180.0f) {
+                scale = lift->rot.y - 360.0f;
+                ry = (key->rotY - scale) * t + scale;
+            } else {
+                ry = (keys[j].rotY - rot->y) * t + rot->y;
+            }
+            Hu3DModelRotSet(model, rot->x, ry, rot->z);
+            Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        }
+        scale = scale0 + t * dscale;
+        if (models != NULL) {
+            for (k = 0; k < (s16)nmodels; k++) {
+                if (models[k] >= 0) {
+                    Hu3DModelScaleSet(models[k], scale, scale, scale);
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+    for (j = 0; j < count; j++) {
+        if (lifts[j].unk20 & 1) {
+            continue;
+        }
+        model = lifts[j].model;
+        lift = &lifts[j];
+        lift->pos = keys[j].pos;
+        lift->rot.y = keys[j].rotY;
+        Hu3DModelPosSet(model, lift->pos.x, lift->pos.y, lift->pos.z);
+        Hu3DModelRotSet(model, lift->rot.x, lift->rot.y, lift->rot.z);
+    }
+    if (models != NULL) {
+        for (k = 0; k < (s16)nmodels; k++) {
+            if (models[k] >= 0) {
+                Hu3DModelScaleSet(models[k], scale1, scale1, scale1);
+            }
+        }
+    }
+}
+
+void func_8010E8C8_msetup(MsLift *lifts, s16 count, s16 frames, f32 rotY, f32 posY, f32 scale0, f32 scale1,
+                         s16 nfx) {
+    MsLift *lift;
+    Vec *pos;
+    Vec *rot;
+    f32 drot;
+    f32 dy;
+    f32 dscale;
+    s16 n;
+    s32 i;
+    s16 model;
+
+    if ((D_80119AF0_msetup != NULL) & (nfx != 0)) {
+        D_80119AF0_msetup->work[0] = 1;
+        D_80119AF0_msetup->work[1] = 1;
+        n = func_8010E00C_msetup(D_80119AF0_msetup, nfx);
+    } else {
+        n = 0;
+    }
+    drot = rotY / frames;
+    dy = posY / frames;
+    dscale = (scale1 - scale0) / frames;
+    while (frames != 0) {
+        lift = lifts;
+        for (i = 0; i < count; i++) {
+            if (lift->unk20 & 1) {
+                continue;
+            }
+            model = lift->model;
+            pos = &lift->pos;
+            rot = &lift->rot;
+            lift->rot.y += drot;
+            if (lift->rot.y >= 360.0f) {
+                lift->rot.y -= 360.0f;
+            }
+            if (rot->y < 0.0f) {
+                rot->y += 360.0f;
+            }
+            pos->y += dy;
+            Hu3DModelRotSet(model, rot->x, rot->y, rot->z);
+            Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+            Hu3DModelScaleSet(model, scale0, scale0, scale0);
+            if (i < n) {
+                func_8010E044_msetup(D_80119AF0_msetup, i, 0x78, pos->x, pos->y, pos->z);
+            }
+            lift++;
+        }
+        scale0 += dscale;
+        HuPrcVSleep();
+        frames--;
+    }
+    lift = lifts;
+    for (i = 0; i < count; i++) {
+        if (lift->unk20 & 1) {
+            continue;
+        }
+        Hu3DModelScaleSet(lift->model, scale1, scale1, scale1);
+        lift++;
+    }
+    if (n != 0) {
+        D_80119AF0_msetup->work[0] = 0;
+    }
+}
+
+// float registers: 0.8f and -1/7 hoisted into f24/f22 swapped (masked 2)
+#ifdef NON_MATCHING
+void func_8010EB94_msetup(void) {
+    /* Retail's 8-entry loops (init, case 9) index kill[] up to 7: they reach step, alpha and the
+       two halfwords after them (in-object here; past retail's 0x1C-byte block). Init zeroes them;
+       case 9 sets kill[4..7] to 1 only for obj[4..7] >= 0, which nothing sets. */
+    struct {
+        f32 scale[2];
+        f32 speed[2];
+        s16 kill[4];
+        s16 step[1];
+        s16 alpha[1];
+        s16 unk1C[2];
+    } w;
+    MsPreviewWork *work;
+    s16 *obj;
+    s16 *res;
+    s32 i;
+    s16 j;
+    s16 m;
+    s16 prev;
+    f32 sc;
+
+    work = HuPrcCurrentGet()->user_data;
+    obj = work->obj;
+    res = work->res;
+    for (i = 0; i < 8; i++) {
+        obj[i] = -1;
+        res[i] = -1;
+        w.kill[i] = 0;
+    }
+    for (i = 0; i < 2; i++) {
+        w.speed[i] = 0.0f;
+    }
+    for (i = 0; i < 1; i++) {
+        w.step[i] = 0;
+    }
+    work->state = 0;
+    prev = 0;
+    sc = 0.8f;
+    while (1) {
+        if (prev != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                if (obj[0] >= 0 && obj[2] >= 0) {
+                    w.scale[0] = 0.0f;
+                    w.speed[0] = 1.0f / 7.0f;
+                    m = obj[0];
+                    func_8001C258_main(m, 4, 0);
+                    Hu3DModelPosSet(m, 260.0f, 345.0f, -40.0f);
+                    Hu3DModelRotSet(m, 0.0f, 180.0f, 0.0f);
+                    w.alpha[0] = 0;
+                    w.step[0] = 25;
+                    m = obj[2];
+                    if (D_8011A938_msetup == 0) {
+                        goto scale;
+                    }
+                    if (D_8011A938_msetup == 1) {
+                    scale:
+                        func_8000BE5C_main(m, sc, sc);
+                    }
+                    func_8000BBD4_main(m, 0x107, 0x30);
+                    func_8000BB54_main(m);
+                    w.kill[0] = 0;
+                    w.kill[2] = 0;
+                }
+                work->state = 0;
+                break;
+            case 3:
+                w.kill[0] = 1;
+                w.kill[2] = 1;
+                /* fallthrough */
+            case 2:
+                if (obj[0] >= 0 && obj[2] >= 0) {
+                    w.speed[0] = -1.0f / 7.0f;
+                    w.alpha[0] = 0xFF;
+                    w.step[0] = -36;
+                }
+                work->state = 0;
+                break;
+            case 4:
+                if (obj[1] >= 0) {
+                    w.scale[1] = 0.0f;
+                    w.speed[1] = 1.0f / 7.0f;
+                    m = obj[1];
+                    func_8001C258_main(m, 4, 0);
+                    Hu3DModelPosSet(m, 260.0f, 175.0f, -80.0f);
+                    Hu3DModelRotSet(m, 0.0f, 180.0f, 0.0f);
+                    w.kill[1] = 0;
+                }
+                work->state = 0;
+                break;
+            case 6:
+                w.kill[1] = 1;
+                /* fallthrough */
+            case 5:
+                if (obj[1] >= 0) {
+                    w.speed[1] = -1.0f / 7.0f;
+                }
+                work->state = 0;
+                break;
+            case 9:
+                for (i = 0; i < 8; i++) {
+                    if (obj[i] >= 0) {
+                        w.kill[i] = 1;
+                    }
+                }
+                /* fallthrough */
+            case 8:
+                for (m = 0, i = 0; i < 2; i++, m++) {
+                    if (obj[m] >= 0) {
+                        w.speed[i] = -1.0f / 7.0f;
+                    }
+                }
+                for (m = 2, i = 0; i < 1; i++, m++) {
+                    if (obj[m] >= 0) {
+                        w.step[i] = -36;
+                    }
+                }
+                break;
+            case 0xFF:
+                for (m = 0, i = 0; i < 2; i++, m++) {
+                    if (res[m] >= 0) {
+                        func_80033430_main(res[m]);
+                    }
+                    if (obj[m] >= 0) {
+                        func_8001ACDC_main(obj[m]);
+                    }
+                }
+                for (m = 2, i = 0; i < 1; i++) {
+                    if (obj[m] >= 0) {
+                        func_8000C184_main(obj[m]);
+                    }
+                    if (res[m] >= 0) {
+                        HuSprKill(res[m]);
+                    }
+                }
+                for (i = 0; i < 2; i++) {
+                    w.speed[i] = 0.0f;
+                }
+                for (i = 0; i < 1; i++) {
+                    w.step[i] = 0;
+                }
+                work->state = 0;
+                break;
+            }
+            prev = work->state;
+        }
+        for (i = 0; i < 2; i++) {
+            if (w.speed[i] == 0.0f) {
+                continue;
+            }
+            j = i;
+            m = obj[j];
+            if (m < 0) {
+                continue;
+            }
+            w.scale[i] += w.speed[i];
+            if (D_80119B0C_msetup[j] <= w.scale[i]) {
+                w.scale[i] = D_80119B0C_msetup[j];
+                w.speed[i] = 0.0f;
+            } else if (w.scale[i] <= 0.0f) {
+                w.scale[i] = 0.0f;
+                w.speed[i] = 0.0f;
+                func_8001C258_main(m, 4, 4);
+                if (w.kill[j] != 0) {
+                    if (res[j] >= 0) {
+                        func_80033430_main(res[j]);
+                        res[j] = -1;
+                    }
+                    func_8001ACDC_main(m);
+                    w.kill[j] = 0;
+                    obj[j] = -1;
+                    m = -1;
+                }
+            }
+            if (m >= 0) {
+                Hu3DModelScaleSet(m, w.scale[i], w.scale[i], w.scale[i]);
+            }
+        }
+        for (i = 0; i < 1; i++) {
+            if (w.step[i] == 0) {
+                continue;
+            }
+            j = i + 2;
+            m = obj[j];
+            if (m < 0) {
+                continue;
+            }
+            w.alpha[i] += w.step[i];
+            if (w.alpha[i] >= 0x100) {
+                w.alpha[i] = 0xFF;
+                w.step[i] = 0;
+            } else if (w.alpha[i] < 0) {
+                w.alpha[i] = 0;
+                w.step[i] = 0;
+                func_8000BB94_main(m);
+                if (w.kill[j] != 0) {
+                    func_8000C184_main(m);
+                    if (res[j] >= 0) {
+                        HuSprKill(res[j]);
+                        res[j] = -1;
+                    }
+                    w.kill[j] = 0;
+                    obj[j] = -1;
+                    m = -1;
+                }
+            }
+            if (m >= 0) {
+                func_8000BBFC_main(m, w.alpha[i]);
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010EB94_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F2BC_msetup);
+Process *func_8010F2BC_msetup(void) {
+    Process *proc = omAddPrcObj(func_8010EB94_msetup, 0x3F00, 0x600, 0);
 
+    proc->user_data = &D_8011A8B0_msetup;
+    return proc;
+}
+
+// retail sign-extends state at entry and loads the old state with lh (masked 6); same logic
+#ifdef NON_MATCHING
+s16 func_8010F2F4_msetup(Process *proc, s16 state) {
+    MsPreviewWork *work = proc->user_data;
+
+    if (state != 0) {
+        work->state = state;
+    } else {
+        state = work->state;
+    }
+    return state;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F2F4_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F320_msetup);
+void func_8010F320_msetup(Process *proc, s16 idx, s16 obj, s16 res) {
+    MsPreviewWork *work = proc->user_data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F33C_msetup);
+    work->obj[idx] = obj;
+    work->res[idx] = res;
+}
 
+void func_8010F33C_msetup(s16 model, Vec *out, f32 (*mtx)[4]) {
+    f32 local[4][4];
+    f32 world[4][4];
+    HmfModel *m;
+
+    m = &HmfModelData[model];
+    func_80088800_main(local, m->pos.x, m->pos.y, m->pos.z);
+    func_80017D24_main(local, m->rot.x, m->rot.y, m->rot.z);
+    func_80017CD0_main(local, m->scale.x, m->scale.y, m->scale.z);
+    func_80018044_main(mtx, local, world);
+    out->x = world[0][0] + world[1][0] + world[2][0] + world[3][0];
+    out->y = world[0][1] + world[1][1] + world[2][1] + world[3][1];
+    out->z = world[0][2] + world[1][2] + world[2][2] + world[3][2];
+}
+
+// identical code, but retail pads it with a nop to 0x8010F4E0: a TU boundary (506F20.c needs a split there); asm keeps the pad
+#ifdef NON_MATCHING
+void func_8010F43C_msetup(s16 model, char *name, Vec2f *out) {
+    f32 mtx[4][4];
+    Vec pos;
+
+    func_80016B00_main(model, HmfModelData[model].unk40, name, &mtx);
+    func_8010F33C_msetup(model, &pos, mtx);
+    Hu3DCam3DToScreen(0, &pos, out);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F43C_msetup);
+#endif
 
+// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10); same logic
+#ifdef NON_MATCHING
+void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set) {
+    Vec pos;
+    s16 *tbl[4];
+    MsLift *lift;
+    Vec *from;
+    f32 t;
+    f32 ry;
+    s32 i;
+    s32 j;
+
+    if (count == 3) {
+        for (i = 0; i < 4; i++) {
+            tbl[i] = D_8011A078_msetup[i];
+        }
+    } else {
+        for (i = 0; i < 4; i++) {
+            tbl[i] = D_8011A058_msetup[i];
+        }
+    }
+    for (i = 0; i < count; i++) {
+        lifts[i].slot = tbl[set][i];
+    }
+    for (j = 0; j < 15; j++) {
+        t = sindf(j * (90.0f / 14.0f));
+        for (i = 0; i < count; i++) {
+            lift = &lifts[i];
+            from = &D_8011A028_msetup[lift->curSlot];
+            pos = D_8011A028_msetup[lift->slot];
+            pos.x -= from->x;
+            pos.y -= from->y;
+            pos.z -= from->z;
+            pos.x = t * pos.x;
+            pos.y = t * pos.y;
+            pos.z = t * pos.z;
+            pos.x += from->x;
+            pos.y += from->y;
+            pos.z += from->z;
+            Hu3DModelPosSet(lift->model, pos.x, pos.y, pos.z);
+            if (lift->slot == 0) {
+                ry = sindf(j * (90.0f / 14.0f)) * 180.0f;
+            } else {
+                lift = &lifts[i];
+                if (lift->curSlot != 0) {
+                    continue;
+                }
+                ry = 180.0f - sindf(j * (90.0f / 14.0f)) * 180.0f;
+            }
+            Hu3DModelRotSet(lift->model, 0.0f, ry, 0.0f);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < count; i++) {
+        lift = &lifts[i];
+        from = &D_8011A028_msetup[lift->slot];
+        Hu3DModelPosSet(lift->model, from->x, from->y, from->z);
+        lift->pos = *from;
+        lift->curSlot = lift->slot;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F4E0_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
 
+// register allocation and operand order around the D_80119C10 rows (masked 28, 3 fewer instructions: retail re-extends cur for the second row); same logic
+#ifdef NON_MATCHING
+void func_8011035C_msetup(void) {
+    struct {
+        s16 spr[8];
+        s16 unk10[8];
+        s16 chr[8];
+        s16 win[2];
+    } w;
+    MsInfoWork *work;
+    s32 i;
+    s16 j;
+    s16 grp;
+    s16 grp2;
+    s16 spr;
+    s16 cur;
+    s16 prev;
+    s16 shown;
+    s16 win;
+    u8 *row;
+
+    grp2 = -1;
+    work = HuPrcCurrentGet()->user_data;
+    for (i = 0; i < 8; i++) {
+        w.spr[i] = w.unk10[i] = -1;
+    }
+    for (i = 0; i < 2; i++) {
+        w.win[i] = -1;
+    }
+    for (i = 0; i < 8; i++) {
+        w.chr[i] = func_8000B838_main(D_80119BA0_msetup[i]);
+        if (i & 1) {
+            HuPrcVSleep();
+        }
+    }
+    grp = HuSprGrpCreate(8, 0);
+    for (j = 0; j < 8; j++) {
+        if (j == 7) {
+            spr = w.chr[work->sel];
+        } else {
+            spr = func_8000B838_main(D_80119B44_msetup[j]);
+            w.spr[j] = spr;
+        }
+        func_80055458_main(grp, j, 0x100);
+        HuSprAttrReset(grp, j, 0xFFFF);
+        HuSprAttrSet(grp, j, 0x9000);
+        HuSprScaleSet(grp, j, 1.0f, 1.0f);
+        func_800550F4_main(grp, j, 1);
+        func_80055024_main(grp, j, spr, 0);
+        HuSprPriSet(grp, j, 0x3A98);
+        func_80054904_main(grp, j, D_80119B60_msetup[j][0], D_80119B60_msetup[j][1]);
+        HuPrcVSleep();
+    }
+    row = D_80119C10_msetup[work->sel];
+    for (i = 0, j = 4; i < 2; i++, j++) {
+        func_80054FF8_main(grp, j, row[i]);
+    }
+    for (i = 0; i < 2; i++) {
+        win = func_8005A968_main(D_80119B90_msetup[i][0], D_80119B90_msetup[i][1], D_80119B90_msetup[i][2],
+                                 D_80119B90_msetup[i][3], 0, 12);
+        w.win[i] = win;
+        func_8005BDFC_main(win, 0);
+        func_8005BEE0_main(win, 0);
+        func_8005FBF8_main(win, 0xFF, 0xFF, 0xFF);
+        func_8005D294_main(win);
+        func_8005FE90_main(win);
+        HuPrcVSleep();
+    }
+    shown = 0;
+    func_8005F904_main();
+    cur = work->sel;
+    prev = 0;
+    do {
+        if (prev != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                for (i = 0; i < 8; i++) {
+                    HuSprAttrReset(grp, i, 0x8000);
+                }
+                cur = -1;
+                func_8005FFA8_main(w.win[0]);
+                shown = 1;
+                func_8005FFA8_main(w.win[1]);
+                break;
+            case 2:
+                for (i = 0; i < 8; i++) {
+                    HuSprAttrSet(grp, i, 0x8000);
+                }
+                shown = 0;
+                func_8005FE90_main(w.win[0]);
+                func_8005FE90_main(w.win[1]);
+                break;
+            }
+            prev = work->state;
+        }
+        if (shown != 0 && cur != work->sel) {
+            cur = work->sel;
+            func_80055024_main(grp, 7, w.chr[cur], 0);
+            row = D_80119C10_msetup[cur];
+            for (i = 0, j = 4; i < 3; i++, j++) {
+                func_80054FF8_main(grp, j, row[i]);
+            }
+            func_8005B43C_main(w.win[0], D_80119BD0_msetup[cur], -1, -1);
+            func_8005D294_main(w.win[1]);
+            func_8005B43C_main(w.win[1], D_80119BF0_msetup[cur], -2, -1);
+            cur = work->sel;
+        }
+        HuPrcVSleep();
+    } while (prev != 3);
+    for (i = 0; i < 8; i++) {
+        if (w.chr[i] >= 0) {
+            HuSprKill(w.chr[i]);
+        }
+    }
+    for (i = 0; i < 8; i++) {
+        if (w.spr[i] >= 0) {
+            HuSprKill(w.spr[i]);
+        }
+    }
+    if (grp >= 0) {
+        HuSprGrpKill(grp);
+    }
+    if (grp2 >= 0) {
+        HuSprGrpKill(grp2);
+    }
+    for (i = 0; i < 2; i++) {
+        if (w.win[i] >= 0) {
+            func_8005F364_main(w.win[i]);
+        }
+    }
+    work->state = 0;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8011035C_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80110954_msetup);
 
