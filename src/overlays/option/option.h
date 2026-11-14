@@ -94,30 +94,6 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
    end of this file. */
 extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
 extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
-extern f32 D_801138EC_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138F0_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138F4_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138F8_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_801138FC_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113900_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113904_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113908_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_8011390C_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113910_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113914_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113918_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113970_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113974_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113978_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011397C_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113980_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113984_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113988_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011398C_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113990_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113994_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_80113998_option;                /* .data ; lwc1: 8010D5B0 */
-extern f32 D_8011399C_option;                /* .data ; lwc1: 8010D5B0 */
 extern s32 D_801139D0_option;                /* .data ; lw,sw: 801130E8 */
 extern s16 D_801147E6_option;                /* .bss 0x2 bytes; lh: 8010FE84 */
 
@@ -374,6 +350,37 @@ typedef struct OpSndPage {
     /* 0x04 */ OpSndItem item[9];
 } OpSndPage; /* size = 0x4C */
 s32 func_80113204_option(s32 pad); /* pad buttons (lhu D_800D0590_main[pad]); callers use the whole register */
+/* Records boards (func_8010C3E4_option, func_8010D5B0_option): window rectangles relative to the board. */
+typedef struct OpRect {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ f32 w;
+    /* 0x0C */ f32 h;
+} OpRect; /* size = 0x10 */
+/* Records board sprites and windows (a local of func_8010C3E4_option and func_8010D5B0_option). Each
+   records page is 9 bytes of GwCommon (from unk_1D + 2 and unk_1D + 0x38): a count, then a byte per
+   character. */
+typedef struct OpRecSpr {
+    /* 0x00 */ s16 win[12]; /* [0..5] used */
+    /* 0x18 */ s16 icon[8];
+    /* 0x28 */ struct {
+        s16 tens;
+        s16 ones;
+    } digit[8];
+} OpRecSpr; /* size = 0x48 */
+/* Records page `page` of the table at GwCommon.unk_1D[off]: the count, and the byte of character n. */
+#define OP_RECCOUNT(off, page) (((u8 *)GwCommon.unk_1D)[(off) + (page) * 9])
+#define OP_RECVAL(off, page) (((OpRecVals *)&GwCommon.unk_1D[(off) + 1])[page].val)
+/* A records row seen from its first character byte: the next row's count follows. */
+typedef struct OpRecVals {
+    /* 0x00 */ u8 val[8];
+    /* 0x08 */ u8 next;
+} OpRecVals; /* size = 0x9 */
+extern s32 D_801138C8_option[9];   /* character icon -> record column (also the icon frame) */
+extern OpRect D_801138EC_option[6];
+extern s32 D_8011394C_option[9];
+extern OpRect D_80113970_option[6];
+extern char D_80113A50_option[]; /* "%2d" (first used by func_80107F50_option): a literal once that is C */
 extern char D_80113A4C_option[]; /* "%d" (also func_80107F50_option): a literal once both users are C */
 
 #endif

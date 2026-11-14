@@ -182,13 +182,475 @@ INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C224_option);
 
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D78_option);
+#endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D90_option);
+#ifdef NON_MATCHING
+/* Records board: per-page counts and one record per character, paged with left/right until B. */
+void func_8010C3E4_option(s32 dataNum, s16 x, s16 y) {
+    OpRecSpr w;
+    s32 mes[6] = { 0x5002, 0x5003, 0x5004, 0x5005, 0x5006, 0x5007 };
+    char buf[8];
+    s16 i;
+    s16 j;
+    s32 page;
+    s32 sel;
+    s16 boardData;
+    s16 board;
+    s16 iconData;
+    s16 numData;
+    s16 cursorWin;
+    s32 tens;
+    s32 ones;
+    s32 count;
+    s32 k;
+    f32 bx;
+    f32 by;
+    f32 s;
+    s32 btn;
 
+    sel = 0;
+    page = 0;
+    HuPrcSleep(3);
+    boardData = func_8000B838_main(dataNum);
+    board = InitEspriteSlot(boardData, 0, 1);
+    func_8000BBD4_main(board, x, y);
+    func_8000BCC8_main(board, 0x8000);
+    func_8000BE5C_main(board, 0.0f, 0.0f);
+    iconData = func_8000B838_main(0x1F0004);
+    for (i = 0; i < 8; i++) {
+        w.icon[i] = InitEspriteSlot(iconData, 0, 1);
+        func_8000BBD4_main(w.icon[i], x + i * 24 - 84, y + 12);
+        func_8000BCC8_main(w.icon[i], 0x8000);
+        func_8000BE5C_main(w.icon[i], 1.0f, 1.0f);
+        func_8000BDDC_main(w.icon[i], 1);
+        func_8000BD94_main(w.icon[i], (u16)D_801138C8_option[i], 0);
+        func_8000BB94_main(w.icon[i]);
+    }
+    numData = func_8000B838_main(0x1F0007);
+    for (i = 0; i < 8; i++) {
+        w.digit[i].tens = InitEspriteSlot(numData, 0, 1);
+        w.digit[i].ones = InitEspriteSlot(numData, 0, 1);
+        func_8000BBD4_main(w.digit[i].tens, x + i * 24 - 96 + 8, y + 26);
+        func_8000BBD4_main(w.digit[i].ones, x + i * 24 - 96 + 16, y + 26);
+        func_8000BCC8_main(w.digit[i].tens, 0x8000);
+        func_8000BCC8_main(w.digit[i].ones, 0x8000);
+        func_8000BE5C_main(w.digit[i].tens, 1.0f, 1.0f);
+        func_8000BE5C_main(w.digit[i].ones, 1.0f, 1.0f);
+        func_8000BDDC_main(w.digit[i].tens, 1);
+        func_8000BDDC_main(w.digit[i].ones, 1);
+        tens = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] / 10);
+        if (tens >= 10) {
+            tens = 9;
+        }
+        ones = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] % 10);
+        func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+        func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    cursorWin = func_80061188_main(-1, 0, 0, 210, 14, 1);
+    func_8005FBF8_main(cursorWin, 255, 255, 255);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        s = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(board, s, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    bx = x - 104;
+    by = y - 71;
+    while (TRUE) {
+        w.win[0] = func_80061188_main(-1, bx + D_801138EC_option[0].x, by + D_801138EC_option[0].y, D_801138EC_option[0].w, D_801138EC_option[0].h, 0);
+        func_8005BEE0_main(w.win[0], 0);
+        func_8005B43C_main(w.win[0], 0x5000, -1, -1);
+        w.win[1] = func_80061188_main(-1, bx + D_801138EC_option[1].x, by + D_801138EC_option[1].y, D_801138EC_option[1].w, D_801138EC_option[1].h, 0);
+        func_8005BEE0_main(w.win[1], 0);
+        func_8005B43C_main(w.win[1], mes[page], -1, -1);
+        k = 2;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        count = OP_RECCOUNT(2, page);
+        if (count >= 100) {
+            count = 99;
+        }
+        sprintf(buf, D_80113A50_option, count);
+        func_8005B6BC_main(w.win[k], (u32)buf, 0);
+        func_8005B43C_main(w.win[k], 0x500E, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x500F, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5010, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_801138EC_option[k].x, by + D_801138EC_option[k].y, D_801138EC_option[k].w, D_801138EC_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5011, -1, -1);
+        k++;
+        for (i = 0; i < 4; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_801138EC_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        for (i = 0; i < 8; i++) {
+            func_8000BB54_main(w.icon[i]);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 10);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 8; i++) {
+            tens = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] / 10);
+            if (tens >= 10) {
+                tens = 9;
+            }
+            ones = (u8)(OP_RECVAL(2, page)[D_801138C8_option[i]] % 10);
+            func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+            func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+            func_8000BDDC_main(w.digit[i].tens, 1);
+            func_8000BDDC_main(w.digit[i].ones, 1);
+            if (tens != 0) {
+                func_8000BB54_main(w.digit[i].tens);
+            } else {
+                func_8000BB94_main(w.digit[i].tens);
+            }
+            func_8000BB54_main(w.digit[i].ones);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 25);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        func_8005FE90_main(cursorWin);
+        for (i = 4; i < k; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_801138EC_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        do {
+            HuPrcVSleep();
+            btn = D_800D5558_main[0] | func_801130E8_option(0);
+        } while (!(btn & 0x4300));
+        if (btn & 0x4000) {
+            break;
+        }
+        if (btn & 0x200) {
+            sel--;
+            if (sel < 0) {
+                sel = 5;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 4;
+            }
+        }
+        if (btn & 0x100) {
+            sel++;
+            if (sel >= 6) {
+                sel = 0;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 0;
+            }
+        }
+        page = sel;
+        for (i = 0; i < 8; i++) {
+            func_8000BB94_main(w.icon[i]);
+            func_8000BB94_main(w.digit[i].tens);
+            func_8000BB94_main(w.digit[i].ones);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005FE90_main(w.win[i]);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005F364_main(w.win[i]);
+        }
+        HuPrcSleep(3);
+    }
+    HuAudFXPlay(0x2E9);
+    func_8005F364_main(cursorWin);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(w.icon[i]);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005FE90_main(w.win[i]);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005F364_main(w.win[i]);
+    }
+    HuPrcSleep(3);
+    for (i = 1; i < 11; i++) {
+        s = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(board, s, s);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 8; i++) {
+        func_8000C184_main(w.icon[i]);
+        func_8000C184_main(w.digit[i].tens);
+        func_8000C184_main(w.digit[i].ones);
+    }
+    HuSprKill(iconData);
+    HuSprKill(numData);
+    func_8000C184_main(board);
+    HuSprKill(boardData);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C3E4_option);
+#endif
 
+#ifndef NON_MATCHING
+INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D90_option);
+#endif
+
+#ifdef NON_MATCHING
+/* The second records board (func_8010C3E4_option with the table at GwCommon.unk_1D + 0x38). */
+void func_8010D5B0_option(s32 dataNum, s16 x, s16 y) {
+    OpRecSpr w;
+    s32 mes[6] = { 0x5008, 0x5009, 0x500A, 0x500B, 0x500C, 0x500D };
+    char buf[8];
+    s16 i;
+    s16 j;
+    s32 page;
+    s32 sel;
+    s16 boardData;
+    s16 board;
+    s16 iconData;
+    s16 numData;
+    s16 cursorWin;
+    s32 tens;
+    s32 ones;
+    s32 count;
+    s32 k;
+    f32 bx;
+    f32 by;
+    f32 s;
+    s32 btn;
+
+    sel = 0;
+    page = 0;
+    HuPrcSleep(3);
+    boardData = func_8000B838_main(dataNum);
+    board = InitEspriteSlot(boardData, 0, 1);
+    func_8000BBD4_main(board, x, y);
+    func_8000BCC8_main(board, 0x8000);
+    func_8000BE5C_main(board, 0.0f, 0.0f);
+    iconData = func_8000B838_main(0x1F0004);
+    for (i = 0; i < 8; i++) {
+        w.icon[i] = InitEspriteSlot(iconData, 0, 1);
+        func_8000BBD4_main(w.icon[i], x + i * 24 - 84, y + 12);
+        func_8000BCC8_main(w.icon[i], 0x8000);
+        func_8000BE5C_main(w.icon[i], 1.0f, 1.0f);
+        func_8000BDDC_main(w.icon[i], 1);
+        func_8000BD94_main(w.icon[i], (u16)D_8011394C_option[i], 0);
+        func_8000BB94_main(w.icon[i]);
+    }
+    numData = func_8000B838_main(0x1F0007);
+    for (i = 0; i < 8; i++) {
+        w.digit[i].tens = InitEspriteSlot(numData, 0, 1);
+        w.digit[i].ones = InitEspriteSlot(numData, 0, 1);
+        func_8000BBD4_main(w.digit[i].tens, x + i * 24 - 96 + 8, y + 26);
+        func_8000BBD4_main(w.digit[i].ones, x + i * 24 - 96 + 16, y + 26);
+        func_8000BCC8_main(w.digit[i].tens, 0x8000);
+        func_8000BCC8_main(w.digit[i].ones, 0x8000);
+        func_8000BE5C_main(w.digit[i].tens, 1.0f, 1.0f);
+        func_8000BE5C_main(w.digit[i].ones, 1.0f, 1.0f);
+        func_8000BDDC_main(w.digit[i].tens, 1);
+        func_8000BDDC_main(w.digit[i].ones, 1);
+        tens = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] / 10);
+        if (tens >= 10) {
+            tens = 9;
+        }
+        ones = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] % 10);
+        func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+        func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    cursorWin = func_80061188_main(-1, 0, 0, 210, 14, 1);
+    func_8005FBF8_main(cursorWin, 255, 255, 255);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        s = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(board, s, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    bx = x - 104;
+    by = y - 71;
+    while (TRUE) {
+        w.win[0] = func_80061188_main(-1, bx + D_80113970_option[0].x, by + D_80113970_option[0].y, D_80113970_option[0].w, D_80113970_option[0].h, 0);
+        func_8005BEE0_main(w.win[0], 0);
+        func_8005B43C_main(w.win[0], 0x5001, -1, -1);
+        w.win[1] = func_80061188_main(-1, bx + D_80113970_option[1].x, by + D_80113970_option[1].y, D_80113970_option[1].w, D_80113970_option[1].h, 0);
+        func_8005BEE0_main(w.win[1], 0);
+        func_8005B43C_main(w.win[1], mes[page], -1, -1);
+        k = 2;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        count = OP_RECCOUNT(0x38, page);
+        if (count >= 100) {
+            count = 99;
+        }
+        sprintf(buf, D_80113A50_option, count);
+        func_8005B6BC_main(w.win[k], (u32)buf, 0);
+        func_8005B43C_main(w.win[k], 0x500E, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x500F, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5010, -1, -1);
+        k++;
+        w.win[k] = func_80061188_main(-1, bx + D_80113970_option[k].x, by + D_80113970_option[k].y, D_80113970_option[k].w, D_80113970_option[k].h, 0);
+        func_8005BEE0_main(w.win[k], 0);
+        func_8005B43C_main(w.win[k], 0x5011, -1, -1);
+        k++;
+        for (i = 0; i < 4; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_80113970_option[i].y + 9.0f);
+            HuAudFXPlay(0x2E8);
+            func_8005FFA8_main(cursorWin);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        for (i = 0; i < 8; i++) {
+            func_8000BB54_main(w.icon[i]);
+        }
+        func_8005FFA8_main(cursorWin);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 10);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 8; i++) {
+            tens = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] / 10);
+            if (tens >= 10) {
+                tens = 9;
+            }
+            ones = (u8)(OP_RECVAL(0x38, page)[D_8011394C_option[i]] % 10);
+            func_8000BD94_main(w.digit[i].tens, (u16)tens, 0);
+            func_8000BD94_main(w.digit[i].ones, (u16)ones, 0);
+            func_8000BDDC_main(w.digit[i].tens, 1);
+            func_8000BDDC_main(w.digit[i].ones, 1);
+            if (tens != 0) {
+                func_8000BB54_main(w.digit[i].tens);
+            } else {
+                func_8000BB94_main(w.digit[i].tens);
+            }
+            func_8000BB54_main(w.digit[i].ones);
+        }
+        HuAudFXPlay(0x2E8);
+        func_8005FFA8_main(cursorWin);
+        for (j = 1; j < 4; j++) {
+            func_8005BA90_main(cursorWin, x, y + 25);
+            func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+        func_8005FE90_main(cursorWin);
+        for (i = 4; i < k; i++) {
+            func_8005FFA8_main(w.win[i]);
+            func_8005BA90_main(cursorWin, bx + 104.0f, by + D_80113970_option[i].y + 9.0f);
+            func_8005FFA8_main(cursorWin);
+            HuAudFXPlay(0x2E8);
+            for (j = 1; j < 4; j++) {
+                func_8005BEE0_main(cursorWin, (1.0f - j / 3.0f) * 256.0f);
+                HuPrcVSleep();
+            }
+        }
+        do {
+            HuPrcVSleep();
+            btn = D_800D5558_main[0] | func_801130E8_option(0);
+        } while (!(btn & 0x4300));
+        if (btn & 0x4000) {
+            break;
+        }
+        if (btn & 0x200) {
+            sel--;
+            if (sel < 0) {
+                sel = 5;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 4;
+            }
+        }
+        if (btn & 0x100) {
+            sel++;
+            if (sel >= 6) {
+                sel = 0;
+            }
+            if (!_CheckFlag(0x31) && sel == 5) {
+                sel = 0;
+            }
+        }
+        page = sel;
+        for (i = 0; i < 8; i++) {
+            func_8000BB94_main(w.icon[i]);
+            func_8000BB94_main(w.digit[i].tens);
+            func_8000BB94_main(w.digit[i].ones);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005FE90_main(w.win[i]);
+        }
+        for (i = 0; i < k; i++) {
+            func_8005F364_main(w.win[i]);
+        }
+        HuPrcSleep(3);
+    }
+    HuAudFXPlay(0x2E9);
+    func_8005F364_main(cursorWin);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(w.icon[i]);
+        func_8000BB94_main(w.digit[i].tens);
+        func_8000BB94_main(w.digit[i].ones);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005FE90_main(w.win[i]);
+    }
+    for (i = 0; i < k; i++) {
+        func_8005F364_main(w.win[i]);
+    }
+    HuPrcSleep(3);
+    for (i = 1; i < 11; i++) {
+        s = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(board, s, s);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 8; i++) {
+        func_8000C184_main(w.icon[i]);
+        func_8000C184_main(w.digit[i].tens);
+        func_8000C184_main(w.digit[i].ones);
+    }
+    HuSprKill(iconData);
+    HuSprKill(numData);
+    func_8000C184_main(board);
+    HuSprKill(boardData);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010D5B0_option);
+#endif
 
 void func_8010E77C_option(s32 x, s32 y, s32 t) {
     func_80112028_option(1, (s32)(x + sindf(t * 18) * 4.0f) - 2, y);
