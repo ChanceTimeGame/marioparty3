@@ -815,11 +815,175 @@ s32 func_8010A940_option(s32 sel, s32 btn) {
     return sel;
 }
 
+#ifdef NON_MATCHING
+/* Matches except s3/s4 swapped (ret and the hoisted constant 2). */
+s32 func_8010AF54_option(s32 sel, s32 btn) {
+    s32 no;
+    s16 model;
+    u8 *flag;
+    s32 ret = -1;
+
+    switch (sel) {
+    case 0: {
+        Vec cam[2] = { { 0.0f, 264.9f, 164.27f }, { 0.0f, 184.6f, -138.7f } };
+
+        func_80113258_option(6);
+        func_80113258_option(7);
+        func_801133A0_option(0);
+        func_80113440_option(0);
+        func_80106F88_option(&cam[0], &cam[1], 8);
+        HuPrcSleep(8);
+        func_801133EC_option(0);
+        flag = &D_800D09A8_main;
+        do {
+            if (!(*flag & 1)) {
+                func_801133BC_option(0, 0x4E07);
+                func_80113408_option(0, 0x4E07);
+                no = func_8011345C_option(0);
+                if (no == 0) {
+                    func_801133A0_option(0);
+                    HuPrcVSleep();
+                    *flag |= 1;
+                    func_80000F30_main(1);
+                    RepeatVibrator(0, 5, 0, 5);
+                    func_80050CFC_main();
+                    func_80113440_option(0);
+                    func_801133EC_option(0);
+                    func_80113338_option(8, 11, 0, 8, 0);
+                    func_801132C8_option(21, 1);
+                    func_801132E4_option(21, 0);
+                    func_80113300_option(8);
+                    func_80113338_option(8, 10, 0, 8, 2);
+                    func_801132C8_option(4, 7);
+                    func_80113300_option(4);
+                    func_8011331C_option(4, 17, 0);
+                    func_801132E4_option(4, 40);
+                    func_801132AC_option(4, 4);
+                    HuAudFXPlay(0x2F5);
+                    func_8011331C_option(5, 19, 0);
+                    func_801132C8_option(5, 7);
+                    func_801132E4_option(5, 0);
+                    func_80113300_option(5);
+                    func_8011331C_option(5, 20, 2);
+                    func_801132AC_option(5, 2);
+                }
+            } else {
+                func_801133BC_option(0, 0x4E08);
+                func_80113408_option(0, 0x4E08);
+                no = func_8011345C_option(0);
+                if (no == 0) {
+                    func_801133A0_option(0);
+                    HuPrcVSleep();
+                    *flag &= 0xFE;
+                    func_80000F30_main(0);
+                    RepeatVibrator(0, 5, 0, 5);
+                    func_80050CFC_main();
+                    func_801133EC_option(0);
+                    func_80113338_option(8, 11, 0, 2, 0);
+                    func_801132C8_option(21, 1);
+                    func_801132E4_option(21, 0);
+                    func_80113300_option(8);
+                    func_80113338_option(8, 10, 0, 8, 2);
+                    func_801132C8_option(5, 7);
+                    func_80113300_option(5);
+                    func_8011331C_option(5, 19, 0);
+                    func_801132E4_option(5, 40);
+                    func_801132AC_option(5, 4);
+                    HuAudFXPlay(0x2F5);
+                    func_8011331C_option(4, 17, 0);
+                    func_801132C8_option(4, 7);
+                    func_801132E4_option(4, 0);
+                    func_80113300_option(4);
+                    func_8011331C_option(4, 18, 2);
+                    func_801132AC_option(4, 2);
+                }
+            }
+            func_8010B654_option(sel, 0);
+        } while (no == 0);
+        func_80113408_option(0, 0x4E06);
+        {
+            Vec cam2[2] = { { 0.0f, 264.9f, 364.27f }, { 0.0f, 184.6f, 61.3f } };
+
+            func_80113440_option(0);
+            func_80106F88_option(&cam2[0], &cam2[1], 8);
+        }
+        HuPrcSleep(8);
+        func_80113384_option(0);
+        func_80113424_option(0);
+        func_8011323C_option(6);
+        func_8011323C_option(7);
+        break;
+    }
+    case 1:
+        break;
+    case 2:
+        func_801133A0_option(0);
+        func_80106F88_option(&D_8011382C_option[0], &D_8011382C_option[1], 8);
+        HuAudFXPlay(0x2EA);
+        func_801132E4_option(2, 0);
+        func_801132C8_option(2, 7);
+        func_801132AC_option(2, 0);
+        func_80113300_option(2);
+        func_80113440_option(0);
+        func_8004A9DC_main(0x60);
+        func_8010E8E0_option();
+        func_8004A9DC_main(0x7F);
+        func_80106F88_option(&D_80113844_option[0], &D_80113844_option[1], 8);
+        func_801132E4_option(2, 40);
+        func_801132C8_option(2, 7);
+        func_801132AC_option(2, 4);
+        model = func_80113218_option(2);
+        while (HmfModelData[model].unk40 != 0.0f) {
+            HuPrcVSleep();
+        }
+        func_80113424_option(0);
+        func_80113384_option(0);
+        break;
+    case 3:
+        func_80113440_option(0);
+        func_801133A0_option(0);
+        func_80106F88_option(&D_8011385C_option[0], &D_8011385C_option[1], 8);
+        HuAudFXPlay(0x2EA);
+        func_801132E4_option(3, 0);
+        func_801132C8_option(3, 7);
+        func_801132AC_option(3, 0);
+        func_80113300_option(3);
+        func_8010F138_option();
+        HuAudSeqPlay(0x4A);
+        func_80106F88_option(&D_80113874_option[0], &D_80113874_option[1], 8);
+        func_801132E4_option(3, 40);
+        func_801132C8_option(3, 7);
+        func_801132AC_option(3, 4);
+        model = func_80113218_option(3);
+        while (HmfModelData[model].unk40 != 0.0f) {
+            HuPrcVSleep();
+        }
+        func_80113424_option(0);
+        func_80113384_option(0);
+        break;
+    case 4:
+    case 5:
+        func_801133A0_option(0);
+        func_80113408_option(0, 0x4E0C);
+        if (func_8011345C_option(0) != 0) {
+            func_80113408_option(0, 0x4E0B);
+            func_80113384_option(0);
+            return -1;
+        }
+    case 9:
+    default:
+        ret = sel;
+        break;
+    }
+    return ret;
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113CB8_option);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113CD0_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010AF54_option);
+#endif
 
 void func_8010B654_option(s32 sel, s32 btn) {
     s32 x, y;

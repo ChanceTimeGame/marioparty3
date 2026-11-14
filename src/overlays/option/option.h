@@ -383,4 +383,10 @@ extern Vec D_80113820_option;
 void func_8010A8DC_option(s32 sel, s32 *x, s32 *y); /* cursor position of a submenu item */
 extern u8 D_800D09A8_main; /* audio.c (bit 0 tested) */
 
+#include "game/vibrator.h"
+extern Vec D_8011382C_option[2]; /* camera eye, target: entering item 2 */
+extern Vec D_80113844_option[2]; /* leaving item 2 */
+extern Vec D_8011385C_option[2]; /* entering item 3 */
+extern Vec D_80113874_option[2]; /* leaving item 3 */
+
 #endif
