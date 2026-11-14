@@ -865,6 +865,7 @@ void func_80107F88_msetup(s16 arg0, s16 arg1, s16 arg2) {
 
 
 extern s16 (*D_80119434_msetup[])(s32);
+extern s16 (*D_80119458_msetup[])(s32);
 extern MsCamKey D_80119580_msetup;
 extern MsCamKey D_801195A0_msetup[];
 extern MsCamKey D_801196C0_msetup[];
@@ -1157,7 +1158,99 @@ s16 func_801089FC_msetup(s32 arg0) {
     return arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108AB8_msetup);
+/* Duel Mode setup process: as func_80107FB4_msetup with two players and D_80119458_msetup. */
+void func_80108AB8_msetup(void) {
+    Process *proc;
+    s16 wait[2];
+    s16 step;
+    s32 i;
+
+    D_8011A880_msetup = 2;
+    _ClearFlag(0);
+    Hu3DModelPosSet(func_8000B108_main(D_80119428_msetup, 0x2B9), 0.0f, -37.5f, 100.0f);
+    func_80107428_msetup();
+    proc = omAddPrcObj(func_80117820_msetup, 0xBB8, 0x1000, 0);
+    memset(&D_8011A882_msetup, 0, sizeof(MsSetupWork));
+    D_8011A886_msetup[0] = -1;
+    proc->user_data = &D_8011A886_msetup[-2];
+    D_80119420_msetup = func_8010F2BC_msetup();
+    proc = omAddPrcObj(func_8010B1F4_msetup, 0x3E8, 0x600, 0);
+    memset(wait, 0, sizeof(wait));
+    proc->user_data = wait;
+    func_80106260_msetup(&D_80119580_msetup);
+    HuPrcVSleep();
+    for (i = 0; i < D_8011A880_msetup; i++) {
+        D_8011AA3C_msetup[i] = 5;
+    }
+    WipeCreateIn(D_8011AA48_msetup, 0x10);
+    HuAudFXPlay(0x2D8);
+    func_801068F4_msetup(D_801195A0_msetup, 22.0f, func_80107F88_msetup);
+    D_8011AA4A_msetup = 1;
+    wait[0] = 1;
+    do {
+        HuPrcVSleep();
+    } while (wait[0] == 1);
+    D_8011A990_msetup[0] = 1;
+    func_8010B9B8_msetup(0x4000, 0x4000);
+    if (_CheckFlag(0x19) == 0) {
+        _SetFlag(0x19);
+        func_8010B82C_msetup(0x2400);
+        func_8010B858_msetup();
+    }
+    func_8010B82C_msetup(0x2402);
+    func_8010B858_msetup();
+    step = 0;
+    do {
+        step = D_80119458_msetup[step](step);
+    } while (step >= 0);
+    func_8010F2F4_msetup(D_80119420_msetup, 8);
+    D_8011A990_msetup[0] = 0;
+    if (step < -1) {
+        for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
+            D_8011A9F0_msetup[i].unk2 = 12;
+        }
+        HuPrcVSleep();
+        for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
+            D_8011A9F0_msetup[i].unk2 = 16;
+        }
+        HuAudSeqFadeOut(0x186);
+        D_80119412_msetup = 1;
+        HuAudFXPlay(0x2DF);
+        func_801068F4_msetup(D_801197BC_msetup, 22.0f, NULL);
+        GwSystem.current_board_index = D_8011AA30_msetup.board;
+        GwSystem.total_turns = D_8011AA30_msetup.turns;
+        for (i = 0; i < D_8011A880_msetup; i++) {
+            GwPlayer[i].chr = D_8011AA34_msetup[i];
+            GwPlayer[i].star = D_8011AA3C_msetup[i];
+            GwPlayer[i].coin = 0;
+            GwPlayer[i].pad = D_8011AA30_msetup.pad[i];
+            if (D_8011AA38_msetup[i] < 4) {
+                GwPlayer[i].cpu_difficulty = D_8011AA38_msetup[i];
+                GwPlayer[i].stat = 1;
+            } else {
+                GwPlayer[i].cpu_difficulty = 1;
+                GwPlayer[i].stat = 0;
+            }
+        }
+        if (D_8011AA47_msetup != 0) {
+            _SetFlag(0x20);
+        } else {
+            _ClearFlag(0x20);
+        }
+        D_8011A944_msetup = 3;
+        D_8011AA4C_msetup[0] = 0x5A;
+        D_8011A946_msetup = 0;
+    } else {
+        D_80119410_msetup = 0x4B;
+        HuAudFXPlay(0x2EC);
+        func_801068F4_msetup(D_801196C0_msetup, 25.0f, NULL);
+    }
+    func_8010F2F4_msetup(D_80119420_msetup, 0xFF);
+    D_80119410_msetup = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108F74_msetup);
 
