@@ -2,6 +2,7 @@
 #include "common.h"
 #include "game/board.h"
 #include "malloc.h"
+#include "mallocblock.h"
 #include "../ovl_80_shared_board/FA250.h"
 #include "../ovl_80_shared_board/ECA50.h"
 #include "../ovl_80_shared_board/101840.h"
@@ -581,9 +582,93 @@ INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80106CFC_opboard);
 INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108FB0_opboard);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_801071F4_opboard);
+/* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry): segment i runs
+   from points[i] to points[i + 1] and covers [segs[i].start, segs[i].end] of the path's
+   length (0..1). flags & 1: closed (the last segment returns to points[0]). */
+typedef struct ObPathSeg {
+    /* 0x00 */ f32 start;
+    /* 0x04 */ f32 end;
+} ObPathSeg; /* size = 0x8 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_8010727C_opboard);
+typedef struct ObPath {
+    /* 0x00 */ s16 count;
+    /* 0x02 */ s16 flags;
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ Vec *points;
+    /* 0x0C */ ObPathSeg *segs;
+} ObPath; /* size = 0x10 */
+
+/* sways the board's centre model */
+void func_801071F4_opboard(omObjData *obj) {
+    D_80108F1C_opboard->velocity.x = sindf(obj->rot.x) * 20.0f + obj->rot.y;
+    obj->rot.x += 5.0f;
+    if (obj->rot.x >= 360.0f) {
+        obj->rot.x -= 360.0f;
+    }
+}
+
+ObPath *func_8010727C_opboard(Vec *points, s16 flags) {
+    ObPath *path;
+    Vec *prev;
+    Vec *cur;
+    ObPathSeg *seg;
+    f32 total;
+    f32 pos;
+    f32 len;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    s16 n;
+    s16 i;
+
+    path = HuMemAllocTag(sizeof(ObPath), 0x7918);
+    path->flags = flags;
+    path->points = points;
+    prev = points;
+    cur = prev + 1;
+    total = 0.0f;
+    n = 0;
+    while (cur->x != 9999.0f || cur->y != 9999.0f || cur->z != 9999.0f) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+        n++;
+        cur++;
+        prev++;
+    }
+    if (flags & 1) {
+        dx = points->x - prev->x;
+        dy = points->y - prev->y;
+        dz = points->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+    }
+    n++;
+    path->count = n;
+    seg = HuMemAllocTag(n * sizeof(ObPathSeg), 0x7918);
+    path->segs = seg;
+    prev = points;
+    cur = prev + 1;
+    pos = 0.0f;
+    for (i = 0; i < n; i++, prev++, cur++, seg++) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        if ((flags & 1) && i == n - 1) {
+            dx = points->x - prev->x;
+            dy = points->y - prev->y;
+            dz = points->z - prev->z;
+        }
+        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+        seg->start = pos / total;
+        seg->end = (pos + len) / total;
+        if (seg->end > 1.0f) {
+            seg->end = 1.0001f;
+        }
+        pos += len;
+    }
+    return path;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80107580_opboard);
 
