@@ -550,7 +550,35 @@ void func_8010D094_msetup(HmfData *hmf, s16 idx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D0C8_msetup);
+s16 func_8010D0C8_msetup(s16 model, char *name) {
+    HmfData *hmf;
+    MsTexEntry *found;
+    s16 hash;
+    s32 i;
+
+    hmf = HmfModelData[model].hmf;
+    hash = func_80011460_main(name);
+    found = NULL;
+    for (i = 0; i < 128; i++) {
+        if (D_800D1FCC_main[i].hash == hash && strcmp(D_800D1FCC_main[i].name, name) == 0) {
+            found = &D_800D1FCC_main[i];
+            break;
+        }
+    }
+    if (i == 128 || found == NULL) {
+        osSyncPrintf("Can't Find TextureName! mSetupGetMpAttrIdx\n");
+        return -1;
+    }
+    for (i = 0; i < hmf->unk12; i++) {
+        if ((MsTexEntry *)hmf->unk84[i].unkC == found) {
+            break;
+        }
+    }
+    if (i >= hmf->unk12) {
+        i = -1;
+    }
+    return i;
+}
 
 /* logic checked; retail keeps dx/dy as words (lw, then sll/sra at each use) where GCC here reads
    the stack halfword, which changes the frame and register allocation. */
