@@ -1,5 +1,8 @@
 #include "common.h"
 #include "inst.h"
+#include "malloc.h"
+#include "mallocblock.h"
+#include "game/hvq.h"
 
 extern s32 D_8010D520_inst;
 extern s32 D_8010D524_inst;
@@ -17,6 +20,7 @@ void func_80109A84_inst(omObjData *);
 void func_8010C8D0_inst(void);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
+s16 func_8002C834_main(HmfData *, char *);
 
 /* Process: the host character (model 0xA0075 with its motions and texture animation) beside
    the board; runs its handler (D_8010DDE0_inst.func) every frame. */
@@ -153,7 +157,174 @@ void func_80108A18_inst(s16 model, s16 anim, s16 frame) {
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108A18_inst);
 #endif
 
+/* A face of a model part (HmfModelData_Unk64_Unk60_Unk54_Struct): count vertex indices. */
+typedef struct InstFace {
+    /* 0x00 */ u8 count;
+    /* 0x01 */ char unk01[3];
+    /* 0x04 */ s16 vtx[4];
+    /* 0x0C */ char unk0C[0x28];
+} InstFace; /* size 0x34 */
+#define INST_POS(hmf) ((s16(*)[3])(hmf)->unk50)
+#define INST_FACES(obj) ((InstFace *)(obj)->unk54)
+#define INST_GFX(pkt, a, b) \
+    { \
+        Gfx *_g = (Gfx *)(pkt); \
+        _g->words.w0 = (a); \
+        _g->words.w1 = (b); \
+    }
+
+/* Decodes the HVQ image (data, an RGBA5551 128x96 picture) and its 8-bit alpha (alpha, at
+   the offset its header's bytes 0x0A/0x0B give) into an RGBA32 texture, then builds the
+   display list of model's "gamen" (screen) part: each face gets its own texture tile, the
+   bounding box of the face within the whole part mapped onto the picture. */
+#ifdef NON_MATCHING
+/* Masked 5: retail loads the first pass's vertex index twice (lhu into the kept index, lh
+   for the first compare); the rest is register allocation (data/alpha argument registers,
+   the pixel loop's float registers). */
+void func_80108AF0_inst(s16 model, void *start, void *data, void *alpha) {
+    HmfData *hmf;
+    u16 *pixels;
+    u8 *work;
+    u8 *tex;
+    u8 *mask;
+    s16 w;
+    s16 h;
+    f32 x;
+    f32 y;
+    s16 i;
+    s16 j;
+    s16 part;
+    HmfModelData_Unk64_Unk60_Struct *obj;
+    Vtx *vtx;
+    Vtx *vtxStart;
+    Gfx *gfx;
+    Gfx *dl;
+    s16 n;
+    f32 s, tt;
+    s32 tuls, tlrs, tult, tlrt;
+    f32 minX, maxX, minY, maxY;
+    f32 baseX, baseY;
+    f32 rangeX, rangeY;
+    f32 vx, vy;
+    u16 c;
+    u16 k;
+
+    w = 0x80;
+    h = 0x60;
+    hmf = HmfModelData[model].hmf;
+    pixels = HuMemMemoryAllocPerm(0x6000);
+    hvqMpsInit1(0xFF);
+    hvqMpsDecodeStart1(start);
+    work = HuMemMemoryAllocPerm(0xC00);
+    hvqMpsDecode1(data, pixels, 0x80, work);
+    HuMemMemoryFreePerm(work);
+    tex = HuMemAllocTag(0xC000, hmf->unk0E);
+    mask = (u8 *)alpha + ((((u8 *)alpha)[10] << 16) + ((u8 *)alpha)[11]);
+    i = 0;
+    for (y = 0.0f; y < h; y += 1.0f) {
+        for (x = 0.0f; x < w; x += 1.0f) {
+            c = pixels[i];
+            tex[i * 4 + 0] = (c >> 8) & 0xF8;
+            tex[i * 4 + 1] = (c >> 3) & 0xF8;
+            tex[i * 4 + 2] = (c << 2) & ~7;
+            tex[i * 4 + 3] = mask[i];
+            i++;
+        }
+    }
+    HuMemMemoryFreePerm(pixels);
+    part = func_8002C834_main(hmf, "gamen");
+    obj = &hmf->unk60[part];
+    vtx = HuMemAllocTag(0x640, hmf->unk0E);
+    dl = HuMemAllocTag(0x2000, hmf->unk0E);
+    hmf->unk3C->unk00[part] = gfx = dl;
+    obj->unk50 |= 0x10000;
+    INST_GFX(gfx++, 0xFCFFFFFF, 0xFFFCF279); /* combine: texture colour, texture x shade alpha */
+    INST_GFX(gfx++, 0xE200001C, 0x005049D8); /* render mode */
+    gSPClearGeometryMode(gfx++, G_LIGHTING);
+    gDPSetTextureFilter(gfx++, G_TF_BILERP);
+    gSPTexture(gfx++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+    maxX = -100000.0f;
+    maxY = -100000.0f;
+    minX = 100000.0f;
+    minY = 100000.0f;
+    for (i = 0; i < obj->unk22; i++) {
+        for (j = 0; j < INST_FACES(obj)[i].count; j++) {
+            k = INST_FACES(obj)[i].vtx[j];
+            if (INST_POS(hmf)[INST_FACES(obj)[i].vtx[j]][0] < minX) {
+                minX = INST_POS(hmf)[(s16)k][0];
+            }
+            if (maxX < INST_POS(hmf)[(s16)k][0]) {
+                maxX = INST_POS(hmf)[(s16)k][0];
+            }
+            if (INST_POS(hmf)[(s16)k][1] < minY) {
+                minY = INST_POS(hmf)[(s16)k][1];
+            }
+            if (maxY < INST_POS(hmf)[(s16)k][1]) {
+                maxY = INST_POS(hmf)[(s16)k][1];
+            }
+        }
+    }
+    rangeX = maxX - minX;
+    rangeY = maxY - minY;
+    baseX = minX;
+    baseY = minY;
+    for (i = 0; i < obj->unk22; i++) {
+        vtxStart = vtx;
+        maxX = -100000.0f;
+        maxY = -100000.0f;
+        minX = 100000.0f;
+        minY = 100000.0f;
+        for (j = 0; j < INST_FACES(obj)[i].count; j++) {
+            n = INST_FACES(obj)[i].vtx[j];
+            vx = vtx->v.ob[0] = INST_POS(hmf)[n][0];
+            vy = vtx->v.ob[1] = INST_POS(hmf)[n][1];
+            vtx->v.ob[2] = INST_POS(hmf)[n][2];
+            if (vx < minX) {
+                minX = vx;
+            }
+            if (maxX < vx) {
+                maxX = vx;
+            }
+            if (vy < minY) {
+                minY = vy;
+            }
+            if (maxY < vy) {
+                maxY = vy;
+            }
+            vtx->n.n[0] = vtx->n.n[1] = vtx->n.n[2] = -1; /* white */
+            s = w - w * ((-vx - baseX) / rangeX);
+            tt = h * ((-vy - baseY) / rangeY);
+            vtx->v.tc[0] = s * 32.0f;
+            vtx->v.tc[1] = tt * 32.0f;
+            vtx->v.cn[3] = 0xFF;
+            vtx++;
+        }
+        minX = ((minX - baseX) / rangeX) * w;
+        maxX = ((maxX - baseX) / rangeX) * w;
+        minY = h - ((minY - baseY) / rangeY) * h;
+        if (minY == h) {
+            minY = h - 0.1f;
+        }
+        maxY = h - ((maxY - baseY) / rangeY) * h;
+        tult = maxY;
+        tlrt = minY;
+        tlrs = maxX;
+        tuls = minX;
+        gDPSetTextureLUT(gfx++, G_TT_NONE);
+        gDPLoadTextureTile(gfx++, tex, G_IM_FMT_RGBA, G_IM_SIZ_32b, w, h, (s16)tuls, (u16)tult,
+                           (s16)tlrs, (u16)tlrt, 0, 0, 0, 0, 0, 0, 0);
+        gSPVertex(gfx++, vtxStart, INST_FACES(obj)[i].count, 0);
+        if (INST_FACES(obj)[i].count == 3) {
+            gSP1Triangle(gfx++, 0, 1, 2, 0);
+        } else {
+            gSP1Quadrangle(gfx++, 0, 1, 2, 3, 0);
+        }
+    }
+    gSPEndDisplayList(gfx++);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108AF0_inst);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801094B0_inst);
 
