@@ -119,17 +119,133 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B1C_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108B58_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109504_option);
+s32 func_80109504_option(void) {
+    Vec at;
+    s32 x, y;
+    s32 sel;
+    s32 btn;
+    s32 ret;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801096B8_option);
+    sel = 0;
+    if (func_800465E8_main() != 0) {
+        func_800465F4_main(1);
+        func_801133BC_option(0, 0x4E00);
+        func_80113490_option(0);
+        func_80113408_option(0, 0x4E02);
+    } else {
+        func_801133BC_option(0, 0x4E02);
+    }
+    func_80113384_option(0);
+    func_8010A3E8_option(sel, 0);
+    while (1) {
+        btn = D_800D5558_main[0];
+        btn |= func_801130E8_option(0);
+        if (btn & 0x8000) {
+            ret = func_80109D04_option(sel, btn);
+            if (ret != -1) {
+                sel = ret;
+                break;
+            }
+        } else if (btn & 0xF00) {
+            sel = func_80109EF4_option(sel, btn);
+        } else if (btn & 0x4000) {
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            switch (sel) {
+            case 2:
+                goto move;
+            case 0:
+            case 1:
+            move:
+                HuVecCopy3F(&at, &D_80113514_option[0]);
+                func_80107758_option(&D_80113514_option[-1], &at, 30);
+                HuPrcSleep(30);
+                break;
+            case 3:
+                break;
+            }
+            sel = 3;
+            func_80109908_option(0.0f, 100.0f, 1275.0f, &x, &y);
+            func_80112028_option(0, x, y);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E03);
+            func_80113384_option(0);
+        }
+        HuPrcVSleep();
+    }
+    func_801133EC_option(0);
+    return sel;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801096E4_option);
+void func_801096B8_option(s32 arg0, s32 x, s32 y) {
+    D_80114778_option.x = x;
+    D_80114778_option.y = y;
+    func_80112028_option(arg0, 160, y);
+}
 
+void func_801096E4_option(s32 arg0) {
+    if (++D_80114778_option.unkC > 20) {
+        D_80114778_option.unkC = 0;
+    }
+    D_80114778_option.unk8 = 0;
+    func_80112028_option(arg0, D_80114778_option.x, D_80114778_option.y);
+}
+
+#ifdef NON_MATCHING
+/* Matches except two FP registers swapped (dy <-> fov). */
+void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y) {
+    f32 mtx[4][4];
+    f32 dx, dy, dz;
+    f32 vx, vy, vz;
+
+    guLookAtF(mtx, eye->x, eye->y, eye->z, at->x, at->y, at->z, up->x, up->y, up->z);
+    dx = pos->x;
+    dy = pos->y;
+    dz = pos->z;
+    dx -= eye->x;
+    dy -= eye->y;
+    dz -= eye->z;
+    vx = dx * mtx[0][0] + dy * mtx[1][0] + dz * mtx[2][0];
+    vy = dx * mtx[0][1] + dy * mtx[1][1] + dz * mtx[2][1];
+    vz = dx * mtx[0][2] + dy * mtx[1][2] + dz * mtx[2][2];
+    fov /= 2.0f;
+    dy = sindf(fov);
+    dx = dy / cosdf(fov) * vz * 1.3333334f;
+    dy = sindf(fov);
+    dy = dy / cosdf(fov) * vz;
+    *x = vx * (160.0f / -dx) + 160.0f;
+    *y = vy * (120.0f / dy) + 120.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109730_option);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109908_option);
+void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY) {
+    Vec pos;
+    f32 sx, sy;
+    HuCamera *cam = gCameraList;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010998C_option);
+    pos.x = x;
+    pos.y = y;
+    pos.z = z;
+    func_80109730_option(&cam->pos, &cam->at, &cam->up, cam->fov[0], &pos, &sx, &sy);
+    *outX = sx;
+    *outY = sy;
+}
+
+void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *outX, s32 *outY) {
+    Vec pos;
+    f32 sx, sy;
+
+    pos.x = x;
+    pos.y = y;
+    pos.z = z;
+    func_80109730_option(eye, at, up, gCameraList->fov[0], &pos, &sx, &sy);
+    *outX = sx;
+    *outY = sy;
+}
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109A0C_option);
 

@@ -92,8 +92,6 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
 
 /* Typed from their loads and stores only; a fork that learns more corrects them in a block at the
    end of this file. */
-extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
-extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
 extern f32 D_801138EC_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F0_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F4_option;                /* .data ; lwc1: 8010C3E4 */
@@ -203,16 +201,13 @@ void func_80108B34_option(void);
 void func_80108B58_option(void); /* main process */
 s32 func_80109504_option(void);
 void func_801096B8_option(s32 arg0, s32 arg1, s32 arg2);
-void func_801096E4_option(void);
 void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y); /* world to screen */
 void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY); /* world to screen, current camera */
 void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *outX, s32 *outY);
 void func_80109A0C_option(s32 arg0, void *arg1, void *arg2, s32 arg3);
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void func_80109CB0_option(u32 arg0, s32 *arg1, s32 *arg2);
-u32 func_80109D04_option(u32 arg0);
 u32 func_80109EF4_option(u32 arg0, s32 arg1);
-void func_8010A3E8_option(s32 arg0);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
 void func_8010A8DC_option(u32 arg0, s32 *arg1, s32 *arg2);
@@ -352,7 +347,22 @@ void func_801133EC_option(s32 arg0);
 void func_80113408_option(s32 arg0, u32 arg1);
 void func_80113424_option(s32 arg0);
 void func_80113440_option(s32 arg0);
-void func_8011345C_option(s32 arg0);
 void func_80113490_option(s32 arg0);
+
+/* fork B */
+/* Cursor position (func_801096B8_option, func_801096E4_option). */
+typedef struct OpCursor {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 y;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ s32 unkC; /* blink counter, 0..20 */
+} OpCursor; /* size = 0x10 */
+extern OpCursor D_80114778_option;
+extern Vec D_80113514_option[]; /* camera target; [-1] (0x80113508, inside D_801134B0_option's block) is the eye */
+extern Vec D_8011376C_option[4]; /* cursor anchor per top-menu item (func_8010A3E8_option) */
+void func_801096E4_option(s32 arg0);
+s32 func_80109D04_option(s32 sel, s32 btn); /* top menu: A pressed (btn unused) */
+void func_8010A3E8_option(s32 sel, s32 arg1); /* arg1 unused */
+s32 func_8011345C_option(s32 arg0);
 
 #endif
