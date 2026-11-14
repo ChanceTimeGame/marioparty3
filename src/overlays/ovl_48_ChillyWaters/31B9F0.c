@@ -6137,7 +6137,263 @@ void func_80118E2C_ChillyWaters() {
     }
 }
 
+typedef struct SnowmanRollWork {
+    /* 0x00 */ s32 player;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 order;
+    /* 0x0C */ s32 path;
+    /* 0x10 */ s32 count;
+} SnowmanRollWork; /* allocated 0x20 */
+
+extern Object *D_8011FAE4_ChillyWaters;
+Process *func_80119C54_ChillyWaters(Vec *arg0, Vec *arg1, Vec *out, f32 speed);
+extern DecisionTreeNonLeafNode *D_8011E5BC_ChillyWaters[];
+extern s16 D_8011E64C_ChillyWaters[];
+extern s16 D_8011E654_ChillyWaters[];
+extern f32 D_8011E664_ChillyWaters[][2];
+extern f32 D_8011E674_ChillyWaters[][2];
+extern f32 D_8011E68C_ChillyWaters[][2];
+
+// chilly B: NON_MATCHING: masked 46 (raw 61), 789 of 795 instructions: retail keeps the 50.0f/40.0f
+// if/else unscheduled (bc1f + j; bc1fl here) and computes the |order + 1 - count| difference twice (a1/a0).
+// The rest is branch offsets. Logic checked against the asm.
+#ifdef NON_MATCHING
+void MB1Ev_SnowmanRoll(void) {
+    Vec pos;
+    Vec snowPos;
+    Process *proc;
+    UnkVibrateProcess *vib;
+    SnowmanRollWork *work;
+    GW_PLAYER *player;
+    Object *obj;
+    Object *snowman;
+    SpaceData *masu;
+    s16 *list;
+    u16 *temp;
+    u16 motId;
+    f32 range;
+    f32 dist;
+    f32 grav;
+    f32 speed;
+    f32 y;
+    f32 vy;
+    s32 frames;
+    s32 n;
+    s32 order;
+    s32 path;
+    s32 idx;
+    s32 state;
+    s32 btn;
+    s32 i;
+
+    work = HuPrcCurrentGet()->user_data;
+    range = 20.0f;
+    snowman = D_8011FAE4_ChillyWaters;
+    player = MBPlayerGet(work->player);
+    obj = player->player_obj;
+    order = work->order;
+    path = work->path;
+    list = D_8011E63C_ChillyWaters[path];
+    proc = HuPrcCurrentGet();
+    MBPlayerMotionLoad(work->player, 6, 0x70);
+    if (path & 1) {
+        range = 15.0f;
+    }
+    vib = MBPlayerVibrateObjCreate(work->player, 0, 5);
+    state = 0;
+    while (1) {
+        masu = MBMasuGet(MBMasuLinkMasuIdGet(player->clink, player->cidx));
+        HuVecCopy3F(&pos, &obj->coords);
+        HuVecCopy3F(&snowPos, &snowman->coords);
+        if (path & 1) {
+            pos.x = snowPos.x = 0.0f;
+        } else {
+            pos.z = snowPos.z = 0.0f;
+        }
+        if (HuVecDistance(&pos, &snowPos) < D_8011FADC_ChillyWaters * 2.0f + 100.0f + order * range && state == 0) {
+            D_8011FAF8_ChillyWaters[work->player] = 2;
+        }
+        if (HuVecDistance(&pos, &snowPos) < order * range + 100.0f) {
+            if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state != 0)))) {
+                if (state != 2) {
+                    D_8011FAF8_ChillyWaters[work->player] = 4;
+                    if (work->player == GwSystem.current_player_index) {
+                        MBPlayerMotionSet(-1, 4, 2);
+                    } else {
+                        MBMotionSet(obj, 4, 2);
+                    }
+                }
+                state = 2;
+            }
+            if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state == 0)))) {
+                state = 1;
+            }
+        } else if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state == 0)))) {
+            if (state != 2) {
+                D_8011FAF8_ChillyWaters[work->player] = 4;
+                if (work->player == GwSystem.current_player_index) {
+                    MBPlayerMotionSet(-1, 4, 2);
+                } else {
+                    MBMotionSet(obj, 4, 2);
+                }
+            }
+            state = 2;
+        }
+        if (HuVecDistance(&pos, &snowPos) < order * range + 31.0f) {
+            break;
+        }
+        MBVecDirGet(&obj->coords, &snowman->coords, &obj->rot);
+        HuPrcVSleep();
+    }
+    if (MBPlayerComCheck(work->player) && MBComTreeExec(D_8011E5BC_ChillyWaters[path])) {
+        state = 1;
+    }
+    if (state == 1) {
+        MBPlayerVibrateObjKill(vib);
+        D_8011FAF8_ChillyWaters[work->player] = 3;
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 2, 0);
+        } else {
+            MBMotionSet(obj, 2, 0);
+        }
+        func_8004ACE0_main(0x274, work->player);
+        func_8004ACE0_main(0x3A, work->player);
+        dist = HuVecDistance(&pos, &snowPos);
+        speed = D_8011FADC_ChillyWaters;
+        frames = ((D_8011FAE0_ChillyWaters < speed) ? dist + 50.0f : dist + 40.0f) / speed;
+        grav = -0.5f;
+        while (1) {
+            y = 0.0f;
+            vy = 7.0f;
+            n = 0;
+            while (y >= 0.0f) {
+                vy += grav;
+                y += vy;
+                n++;
+            }
+            if (frames < n) {
+                break;
+            }
+            grav += 0.05f;
+            if (!(grav < -0.2f)) {
+                break;
+            }
+        }
+        func_800EE688_shared_board(obj, 7.0f, grav);
+        func_800EE6C0_shared_board(obj);
+        func_8004ACE0_main(0x31, work->player);
+        func_800F2388_shared_board(work->player, -1, 0, 5, 2);
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+    } else {
+        D_8011FAF8_ChillyWaters[work->player] = 4;
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 6, 2);
+        } else {
+            MBMotionSet(obj, 1, 2);
+        }
+        for (; *list != -1; list++) {
+            masu = MBMasuGet(*list);
+        }
+        HuVecCopy3F(&pos, &masu->coords);
+        MBVecDirGet(&obj->coords, &pos, &obj->rot);
+        func_8004ACE0_main(0x286, work->player);
+        HuPrcChildLink(proc, func_80119C54_ChillyWaters(&obj->coords, &pos, &obj->coords, D_8011FAE0_ChillyWaters));
+        HuPrcChildWait();
+        HuVecCopy3F(&pos, &MBMasuGet(D_8011E64C_ChillyWaters[path])->coords);
+        n = order + 1;
+        idx = n - work->count;
+        if (n - work->count < 0) {
+            idx = work->count - n;
+        }
+        switch (work->count) {
+        case 2:
+            pos.x += D_8011E664_ChillyWaters[idx][0];
+            pos.z += D_8011E664_ChillyWaters[idx][1];
+            break;
+        case 3:
+            pos.x += D_8011E674_ChillyWaters[idx][0];
+            pos.z += D_8011E674_ChillyWaters[idx][1];
+            break;
+        case 4:
+            pos.x += D_8011E68C_ChillyWaters[idx][0];
+            pos.z += D_8011E68C_ChillyWaters[idx][1];
+            break;
+        }
+        if (path == 1) {
+            pos.x -= 20.0f;
+        }
+        MBVecDirGet(&obj->coords, &pos, &obj->rot);
+        HuPrcChildLink(proc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, D_8011FADC_ChillyWaters));
+        HuPrcChildWait();
+        if (!(path & 1)) {
+            pos.z += 35.0f;
+            MBVecDirGet(&obj->coords, &pos, &obj->rot);
+            HuPrcChildLink(proc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, D_8011FADC_ChillyWaters));
+            HuPrcChildWait();
+        }
+        MBPlayerVibrateObjKill(vib);
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+        if (!(path & 1)) {
+            func_800ED20C_shared_board(work->player, 10, D_8011E654_ChillyWaters[path]);
+        }
+        switch (path) {
+        case 0:
+            player->clink = 0xC;
+            player->cidx = 1;
+            player->nlink = 0xC;
+            player->nidx = 2;
+            player->blink = 0xA;
+            player->bidx = 0xB;
+            break;
+        case 1:
+            player->clink = 1;
+            player->cidx = 1;
+            player->nlink = 1;
+            player->nidx = 2;
+            player->blink = 1;
+            player->bidx = 0;
+            break;
+        case 2:
+            player->clink = 5;
+            player->cidx = 7;
+            player->nlink = 5;
+            player->nidx = 8;
+            player->blink = 5;
+            player->bidx = 6;
+            break;
+        default:
+            player->clink = 3;
+            player->cidx = 0;
+            player->nlink = 3;
+            player->nidx = 1;
+            player->blink = 0xF;
+            player->bidx = 0xA;
+            break;
+        }
+        if (GwSystem.current_player_index == work->player && (player->rev & 0x80)) {
+            i = player->nlink;
+            player->nlink = player->blink;
+            player->blink = i;
+            i = player->nidx;
+            player->nidx = player->bidx;
+            player->bidx = i;
+        }
+    }
+    MOTION_ID_GET(7, temp, n);
+    MBPlayerMotionLoad(work->player, 6, motId);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_SnowmanRoll);
+#endif
 
 s32 MB1Ev_SnowmanPathGet(s32 path) {
     GW_PLAYER *player;
