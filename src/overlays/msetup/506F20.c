@@ -460,7 +460,123 @@ end:
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801157B8_msetup);
 #endif
 
+f32 fabsf(f32);
+f32 sindf(f32 angle);
+void *func_8001D33C_main(s16 model, char *name);
+void func_8002367C_main(HuMtx4F, HuMtx4F); /* matrix copy */
+void func_80017CD0_main(HuMtx4F, f32, f32, f32); /* scale */
+void func_80017D24_main(HuMtx4F, f32, f32, f32); /* rotate */
+
+/* A model part (func_8001D33C_main; MP3 hmfman.c HmfMotionObjM): only its matrix is used here. */
+typedef struct MseHmfPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} MseHmfPart; /* size = 0x98 */
+
+extern char D_8011A7D8_msetup[]; /* "20turn" (shared with func_801152C4_msetup) */
+extern char D_8011A7E0_msetup[]; /* "35turn" */
+extern char D_8011A7E8_msetup[]; /* "50turn" */
+extern char D_8011A7F0_msetup[]; /* "q_turn" */
+extern char D_8011A7F8_msetup[]; /* "hari" */
+extern char D_8011A800_msetup[]; /* "mugen" */
+
+/* Two-way choice on the board model: the chosen part ("20turn" / "mugen") pulses, the "hari"
+   needle turns to D_80119F60_msetup[sel]. Returns the choice, -1 on B. */
+#ifdef NON_MATCHING
+/* masked 49: loop.c hoists the 1.0f scale constant (retail loads it per call) and keeps 180.0f in a
+   GPR, shifting the frame by 8 and the register allocation; the logic follows the asm */
+s16 func_80115A9C_msetup(s16 model, s32 arg1, HuMtx4F needleMtx, s16 *pad, s32 selIn) {
+    MseHmfPart *parts[2];
+    HuMtx4F mtx[2];
+    s16 sel;
+    s16 prev;
+    s32 btn;
+    f32 phase;
+    f32 rot;
+    f32 target;
+    f32 d;
+    f32 scale;
+    MseHmfPart *part;
+
+    sel = selIn;
+    parts[0] = func_8001D33C_main(model, D_8011A7D8_msetup);
+    func_8002367C_main(mtx[0], parts[0]->mtx);
+    parts[1] = func_8001D33C_main(model, D_8011A800_msetup);
+    func_8002367C_main(mtx[1], parts[1]->mtx);
+    phase = 0.0f;
+    rot = D_8011A908_msetup;
+    target = D_80119F60_msetup[sel];
+    prev = -1;
+    while (TRUE) {
+        btn = func_8010D684_msetup(D_8011A948_msetup, pad);
+        if (btn & 0x4000) {
+            HuAudFXPlay(4);
+            sel = -1;
+            break;
+        }
+        if (btn & 0x8000) {
+            HuAudFXPlay(0x139);
+            break;
+        }
+        if (btn & 0x900) {
+            if (sel != 0) {
+                HuAudFXPlay(1);
+            }
+            sel = 0;
+        } else if (btn & 0x600) {
+            if (sel == 0) {
+                HuAudFXPlay(1);
+            }
+            sel = 1;
+        }
+        if (prev != sel) {
+            func_8010B82C_msetup(D_80119F8C_msetup[sel]);
+            target = D_80119F60_msetup[sel];
+            D_8011A908_msetup = target;
+            if (prev >= 0) {
+                part = parts[prev];
+                func_8002367C_main(part->mtx, mtx[prev]);
+                func_80017CD0_main(part->mtx, 1.0f, 1.0f, 1.0f);
+            }
+            prev = sel;
+        }
+        if (target != rot) {
+            d = target - rot;
+            if (fabsf(d) > 180.0f) {
+                d = -d;
+            }
+            if (d < 0.0f) {
+                rot += -24.0f;
+            } else {
+                rot += 24.0f;
+            }
+            if (rot > 360.0f) {
+                rot -= 360.0f;
+            } else if (rot < 0.0f) {
+                rot += 360.0f;
+            }
+            part = func_8001D33C_main(model, D_8011A7F8_msetup);
+            func_8002367C_main(part->mtx, needleMtx);
+            func_80017D24_main(part->mtx, 0.0f, 0.0f, rot);
+        }
+        phase += 12.0f;
+        if (phase >= 180.0f) {
+            phase -= 180.0f;
+        }
+        scale = sindf(phase) * 0.5f + 1.0f;
+        part = parts[sel];
+        func_8002367C_main(part->mtx, mtx[sel]);
+        func_80017CD0_main(part->mtx, scale, scale, scale);
+        HuPrcVSleep();
+    }
+    part = parts[prev];
+    func_8002367C_main(part->mtx, mtx[prev]);
+    func_80017CD0_main(part->mtx, 1.0f, 1.0f, 1.0f);
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115A9C_msetup);
+#endif
 
 /* Moves a model by (x, y, z). */
 void func_80115E78_msetup(s16 model, f32 x, f32 y, f32 z) {
