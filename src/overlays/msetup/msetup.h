@@ -78,7 +78,6 @@ extern s16 D_80119412_msetup;                    /* .data 0x2; lh,sh: 80105C4C 8
 extern f32 D_80119414_msetup;                    /* .data 0x4; lwc1,swc1: 801059A0 80106260 801068F4 */
 extern s8 D_80119418_msetup;                     /* .data 0x1; lb: 80106320 */
 extern s32 D_8011941C_msetup;                    /* .data 0x4; lw,sw: 801061E0 80106208 */
-extern s32 D_80119424_msetup;                    /* .data 0x4; lw: 8010A35C 8010A7EC */
 extern s32 D_80119428_msetup;                    /* .data 0x4; lw: 80108AB8 80109868 */
 extern s32 D_8011942C_msetup;                    /* .data 0x4; lw: 80107FB4 80109218 */
 extern u8 D_80119478_msetup[];                   /* .data 0x10; lbu: 80108F74 */
@@ -93,7 +92,6 @@ extern u8 D_80119984_msetup[];                   /* .data 0x8; lbu: 8010BEF8 */
 extern s32 D_8011998C_msetup[];                  /* .data 0x20; lw: 8010BEF8 */
 extern s32 D_801199AC_msetup[];                  /* .data 0x40; lw: 8010BEF8 */
 extern s32 D_801199EC_msetup[];                  /* .data 0x20; lw: 8010BEF8 */
-extern u16 D_80119A6C_msetup[];                  /* .data 0x10; lhu: 8010BA6C */
 extern s32 D_80119A7C_msetup[];                  /* .data 0x10; lw: 8010BEF8 */
 extern s32 D_80119A8C_msetup[];                  /* .data 0x28; lw: 8010BEF8 */
 extern s32 D_80119AB4_msetup[];                  /* .data 0x14; lw: 8010BEF8 */
@@ -120,8 +118,6 @@ extern s32 D_8011A508_msetup[];                  /* .data 0xC; lw: 80117A3C */
 extern u8 D_8011A550_msetup[];                   /* .data 0x4; lbu: 80117A3C */
 extern s16 D_8011A880_msetup;                    /* .bss 0x2; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107ECC 80107FB4 801084 */
 extern s16 D_8011A890_msetup;                    /* .bss 0x2; lh,lhu,sh: 8010B5D0 8010B82C 8010B858 8010B8E0 8010B968 8010B998 8010B9 */
-extern u16 D_8011A892_msetup;                    /* .bss 0x2; addiu,lhu: 8010B5D0 */
-extern u16 D_8011A894_msetup[];                  /* .bss 0x4; lhu: 8010B5D0 */
 extern s32 D_8011A900_msetup;                    /* .bss 0x4; lw,sw: 80111650 */
 extern s16 D_8011A904_msetup;                    /* .bss 0x2; addiu,sh: 80111650 */
 extern s16 D_8011A906_msetup;                    /* .bss 0x2; addiu,sh: 80110954 80111650 */
@@ -199,25 +195,13 @@ void func_80108AB8_msetup(void);
 void func_80108F74_msetup(void);
 void func_80109218_msetup(void);
 void func_80109868_msetup(void);
-s16 func_80109EA0_msetup(s32 arg0);
-s16 func_80109F04_msetup(s32 arg0);
-s16 func_80109F7C_msetup(s32 arg0);
-s16 func_8010A10C_msetup(s32 arg0);
-s32 func_8010A204_msetup(s32 arg0);
-s32 func_8010A2B0_msetup(s32 arg0);
-void func_8010A35C_msetup(s32 arg0);
 void func_8010A780_msetup(void);
 void func_8010A7A0_msetup(void);
 void func_8010A7EC_msetup(s16 arg0);
 void func_8010AC78_msetup(void);
 void func_8010AC94_msetup(void);
 void func_8010ACB0_msetup(void);
-void func_8010ACC0_msetup(s16 arg0, s16 arg1, s32 arg2); /* arg2: the caller sets a2 */
-void func_8010AF40_msetup(void *arg0, s32 arg1, s16 *arg2);
 void func_8010B1F4_msetup(void); /* process */
-s16 func_8010B388_msetup(s16 arg0, void *arg1, s32 arg2, s8 *arg3);
-void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
-s16 func_8010B588_msetup(void);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
 s32 func_8010B8E0_msetup(void);
@@ -226,20 +210,11 @@ void func_8010B998_msetup(void);
 void func_8010B9B8_msetup(s32 arg0, s32 arg1);
 void func_8010BA10_msetup(s32 arg0, s32 arg1);
 s16 func_8010BA3C_msetup(void);
-void func_8010BA6C_msetup(s16 arg0, s16 arg1);
 void func_8010BBF4_msetup(s16 arg0);
-void func_8010BC18_msetup(s16 arg0, s16 arg1);
 void func_8010BE8C_msetup(s16 arg0);
 s16 func_8010BEB0_msetup(s16 arg0, s16 arg1);
 void func_8010BEF8_msetup(void); /* process */
-s16 func_8010CAF0_msetup(s32 arg0, s32 arg1);
-void func_8010CC70_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4);
-s32 func_8010CD14_msetup(s16 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_8010CE8C_msetup(s16 model); /* func_80013390_main hook */
-void func_8010D060_msetup(void *arg0, s32 arg1);
-void func_8010D094_msetup(void *arg0, s32 arg1);
-s32 func_8010D0C8_msetup(s16 arg0, s32 arg1);
-s16 func_8010D234_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5);
 s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 arg4, s32 arg5); /* arg1 unused */
 s16 func_8010D5EC_msetup(s16 arg0);
 s32 func_8010D684_msetup(s16 arg0, s16 *arg1);
@@ -400,16 +375,6 @@ typedef struct MsEmitWork {
     /* 0x3A */ s16 count; /* func_8010E00C_msetup clamps it to 4 */
 } MsEmitWork; /* size = 0x3C */
 
-/* The fields of hmfman's particle work (HmfModelData[model].unkBC; 13F90.c's HmfFxWork, D7A0.c's
-   FxWork) that func_8010E21C_msetup sets. */
-typedef struct MsFxWork {
-    /* 0x00 */ char unk00[0x10];
-    /* 0x10 */ f32 spread;
-    /* 0x14 */ f32 timer;
-    /* 0x18 */ void (*unk18)(s16);
-    /* 0x1C */ Vec origin;
-} MsFxWork; /* partial; size 0x5C */
-#define MS_FX_WORK(model) ((MsFxWork *)HmfModelData[model].unkBC)
 
 /* func_8000CD00_main arguments (f32 in a1-a3): the particle colour/scale set when work[1] changes */
 extern f32 D_80119AF4_msetup;
@@ -480,5 +445,108 @@ extern s32 D_80119BA0_msetup[8];     /* character sprite files */
 extern s32 D_80119BD0_msetup[8];     /* character name message */
 extern s32 D_80119BF0_msetup[8];     /* character description message */
 extern u8 D_80119C10_msetup[][3];    /* per character: sprite banks of panel members 4-6 */
+/* fork B */
+s16 func_80109EA0_msetup(s16 arg0); /* s16 parameter (matches only so); MsMenuFunc tables cast it */
+s16 func_80109F04_msetup(s16 arg0);
+s16 func_80109F7C_msetup(s32 arg0);
+s16 func_8010A10C_msetup(s32 arg0);
+s16 func_8010A204_msetup(s32 arg0);
+s16 func_8010A2B0_msetup(s32 arg0);
+s16 func_8010B588_msetup(s32 file);
+void func_8010D060_msetup(HmfData *hmf, s16 idx);
+void func_8010D094_msetup(HmfData *hmf, s16 idx);
+typedef s16 (*MsMenuFunc)(s32); /* menu step: takes and returns the step index; < 0 ends */
+extern MsMenuFunc D_80119510_msetup[];
+extern MsMenuFunc D_80119524_msetup[];
+extern MsCamKey D_80119580_msetup;
+extern MsCamKey D_801195A0_msetup[];
+extern MsCamKey D_801196C0_msetup[];
+extern MsCamKey D_801197BC_msetup[];
+void func_8010A35C_msetup(MsMenuFunc *menu);
+extern s32 D_80119424_msetup[]; /* model files, indexed by mode */
+extern s32 D_80119534_msetup[5]; /* message ids: 4 pages + confirm */
+extern s32 D_80119548_msetup[5];
+
+/* Texture animation of one model (func_8010B388_msetup sets it, func_8010B4B8_msetup restarts it). */
+typedef struct MsTexAnim {
+    /* 0x00 */ s16 slot;  /* func_80032694_main; < 0: none */
+    /* 0x02 */ s16 anim;  /* HmfAnimCreate */
+    /* 0x04 */ s16 frame; /* first frame */
+    /* 0x06 */ s16 unk6;  /* not seen used; func_8010B1F4_msetup's frame keeps it 8 bytes */
+} MsTexAnim; /* size = 0x8 */
+extern MsModelDef D_801198C4_msetup[4];
+void func_8010ACC0_msetup(s16 model, s16 shadow);
+void func_8010AF40_msetup(MsModelSlot *slots, MsTexAnim *anim, s16 *frame);
+s16 func_8010B388_msetup(s16 model, MsTexAnim *anim, s32 file, char *name);
+void func_8010B4B8_msetup(s16 model, MsTexAnim *anim, s16 frame);
+
+/* Per-player work (.bss D_8011A9E0_msetup[4]): user_data of the func_8010BEF8_msetup processes.
+   splat also labels .unkC/.player/.state of player 0 (D_8011A9EC/D_8011A9F0/D_8011A9F2_msetup). */
+typedef struct MsPlayerWork {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ f32 unkC;
+    /* 0x10 */ s16 player;
+    /* 0x12 */ s16 state;
+} MsPlayerWork; /* size = 0x14 */
+extern MsPlayerWork D_8011A9E0_msetup[4];
+extern Process *D_8011A898_msetup[6]; /* func_8010BEF8_msetup processes */
+extern s16 D_8011A892_msetup[2]; /* message windows (D_8011A890_msetup is the current one) */
+extern Vec D_80119A0C_msetup[4];
+extern Vec D_80119A3C_msetup[2];
+extern f32 D_80119A54_msetup[4];
+extern f32 D_80119A64_msetup[2];
+extern s16 D_80119A6C_msetup[]; /* start delay, by D_8011A938_msetup */
+void func_8010BA6C_msetup(s16 start, s16 count);
+void func_8010BC18_msetup(s16 start, s16 count);
+/* hmfman's loaded-texture table (hmfman.c HmfTexM) */
+typedef struct MsTexEntry {
+    /* 0x00 */ char name[0x22];
+    /* 0x22 */ u16 hash; /* func_80011460_main of name */
+    /* 0x24 */ char unk24[0x10];
+} MsTexEntry; /* size = 0x34 */
+extern MsTexEntry *D_800D1FCC_main; /* 128 entries */
+s16 func_80011460_main(char *name);
+int strcmp(const char *, const char *);
+s16 func_8010D0C8_msetup(s16 model, char *name); /* model's texture slot using the loaded texture name; -1 */
+/* cursor move: the unused entry nearest cur in the stick direction (dx, dy); -1 if none */
+s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy);
+
+
+/* hmfman's vertex-scatter effect (HmfModel.unkBC; opening's OpFxWork/OpFxPart, same layout) as
+   func_8010CAF0_msetup..func_8010CE8C_msetup use it: one MsFxPart per face group. */
+typedef struct MsFxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 phase; /* 0..180 while live, >= 180 idle */
+    /* 0x08 */ f32 scale;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ f32 angle;
+    /* 0x1C */ f32 radiusStep;
+    /* 0x20 */ f32 radius;
+    /* 0x24 */ Vec vel; /* x = angle step, y/z = height/radius factors */
+} MsFxPart; /* size = 0x30 */
+typedef struct MsFxWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* frames to full radius */
+    /* 0x0C */ f32 unk0C; /* degrees turned over unk08 */
+    /* 0x10 */ f32 unk10; /* full radius */
+    /* 0x14 */ f32 unk14; /* phase step, also scale */
+    /* 0x18 */ void (*hook)(s16);
+    /* 0x1C */ Vec center;
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ MsFxPart *parts;
+} MsFxWork; /* size = 0x5C */
+/* hmfman's particle work of a model (HmfModelData[model].unkBC; 13F90.c HmfFxWork) */
+#define MS_FX_WORK(model) ((MsFxWork *)HmfModelData[model].unkBC)
+typedef struct MsFxHmf { /* HmfData's face group count (hmfman.h does not name it) */
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 groupCount;
+} MsFxHmf;
+void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
+s16 func_8010CAF0_msetup(s32 dir, s32 file); /* starts the effect on a new model; returns it */
+void func_8010CC70_msetup(s16 model, f32 unk08, f32 unk0C, f32 unk10, f32 unk14);
+s32 func_8010CD14_msetup(s16 model, f32 x, f32 y, f32 z); /* launches one idle group: 1 if one was free */
 
 #endif
