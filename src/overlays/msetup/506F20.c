@@ -813,7 +813,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115EE0_msetup);
 #endif
 
 void func_800332D4_main(s16 arg0, f32 arg1);
-extern u8 D_8011AA44_msetup;     /* players taking part (1-4) */
 extern s32 D_80119FDC_msetup[2]; /* the two lifts' sign data numbers */
 extern s32 D_80119F94_msetup[];  /* func_8010E52C_msetup tables (0x20 bytes each) */
 extern s32 D_80119FB4_msetup[];
@@ -841,11 +840,11 @@ s32 func_801167B8_msetup(MsSetupWork *work) {
     s16 m;
     omObjData *arrows;
 
-    players = D_8011AA44_msetup;
+    players = D_8011AA30_msetup.unk14;
     arrows = NULL;
     if (work->unk4 < 0) {
         for (sel = 0; sel < 2; sel++) {
-            if ((f32)D_8011AA40_msetup == D_8011A0B8_msetup[sel]) {
+            if ((f32)D_8011AA30_msetup.unk10 == D_8011A0B8_msetup[sel]) {
                 break;
             }
         }
@@ -982,9 +981,9 @@ s32 func_801167B8_msetup(MsSetupWork *work) {
     }
     if (work->unk4 >= 0) {
         n = D_8011A0B8_msetup[work->unk4];
-        D_8011AA40_msetup = n;
-        D_8011AA41_msetup = 2 - n;
-        for (i = 0; i < D_8011AA40_msetup; i++) {
+        D_8011AA30_msetup.unk10 = n;
+        D_8011AA30_msetup.unk11 = 2 - n;
+        for (i = 0; i < D_8011AA30_msetup.unk10; i++) {
             RepeatVibrator(D_8011AA30_msetup.pad[i], 10, 0, 10);
         }
     }
