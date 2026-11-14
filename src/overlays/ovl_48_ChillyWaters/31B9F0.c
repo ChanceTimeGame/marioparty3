@@ -2535,7 +2535,7 @@ itemSelect:
             shopTable = D_8011E0A0_ChillyWaters;
             shopItems = shopTable[i];
             itemPtr = (s8 *)(row * 7);
-            itemPtr += (s32)shopItems;
+            itemPtr += (s8 *)shopItems - (s8 *)NULL; /* fakematch: row * 7 must be computed first */
             itemPtr += sel;
             MBCoinChangeCreate(system->current_player_index, -D_80100F94_shared_board[*itemPtr]);
             MBCoinTakeCreate(system->current_player_index, -D_80100F94_shared_board[*itemPtr]);
@@ -2590,7 +2590,8 @@ itemSelect:
                     timer = 30;
 
                     if ((*(u16 *)((u8 *)D_800C9520_main + (GwPlayer[system->current_player_index].pad << 1)) & 0x8000) == 0) {
-                        row = (s32)D_800C9520_main;
+                        /* fakematch: the pad table rides in the dead spaceB (a fresh u16 * gets s2, not s3) */
+                        spaceB = (void *)D_800C9520_main;
                         while (1) {
                             if (MBPlayerComCheck(-1) != 0) {
                                 timer--;
@@ -2599,7 +2600,7 @@ itemSelect:
                                 }
                             }
                             HuPrcVSleep();
-                            if (((u16 *)row)[GwPlayer[system->current_player_index].pad] & 0x8000) {
+                            if (((u16 *)spaceB)[GwPlayer[system->current_player_index].pad] & 0x8000) {
                                 break;
                             }
                         }
