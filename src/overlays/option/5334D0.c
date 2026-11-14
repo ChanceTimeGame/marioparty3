@@ -458,9 +458,88 @@ s32 func_80109EF4_option(s32 sel, s32 btn) {
     return sel;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A3E8_option);
+void func_8010A3E8_option(s32 sel, s32 arg1) {
+    s32 i;
+    s32 x, y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A498_option);
+    i = 0;
+    switch (sel) {
+    case 0:
+        i = 0;
+        break;
+    case 1:
+        i = 1;
+        break;
+    case 2:
+        i = 2;
+        break;
+    case 3:
+        i = 3;
+        break;
+    }
+    func_80109908_option(D_8011376C_option[i].x, D_8011376C_option[i].y, D_8011376C_option[i].z, &x, &y);
+    func_80112028_option(0, x, y);
+}
+
+s32 func_8010A498_option(void) {
+    Vec eye;
+    Vec at;
+    s32 sel;
+    s32 btn;
+    s32 ret;
+
+    sel = 0;
+    func_80105F08_option(41.539f);
+    func_801133BC_option(0, 0x4E05);
+    func_80113490_option(0);
+    func_80113408_option(0, 0x4E06);
+    func_80113384_option(0);
+    func_8010B654_option(0, 0);
+    while (1) {
+        btn = D_800D5558_main[0];
+        btn |= func_801130E8_option(0);
+        if (btn & 0x8000) {
+            ret = func_8010AF54_option(sel, btn);
+            if (ret != -1) {
+                sel = ret;
+                break;
+            }
+        } else if (btn & 0xF00) {
+            sel = func_8010A940_option(sel, btn);
+        } else if (btn & 0x4000) {
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            switch (sel) {
+            case 0:
+            case 1:
+            case 2:
+                sel = 4;
+                HuVecCopy3F(&eye, &D_801135E0_option[0]);
+                HuVecCopy3F(&at, &D_801135E0_option[1]);
+                func_80107758_option(&eye, &at, 20);
+                HuPrcSleep(20);
+                break;
+            case 3:
+                sel = 5;
+                HuVecCopy3F(&eye, &D_801135F8_option[0]);
+                HuVecCopy3F(&at, &D_801135F8_option[1]);
+                func_80107758_option(&eye, &at, 20);
+                HuPrcSleep(20);
+                break;
+            case 4:
+            case 5:
+                break;
+            }
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E0B);
+            func_80113384_option(0);
+        }
+        func_8010B654_option(sel, btn);
+        HuPrcVSleep();
+    }
+    func_801133EC_option(0);
+    return sel;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A66C_option);
 
