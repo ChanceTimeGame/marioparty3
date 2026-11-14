@@ -6254,7 +6254,244 @@ s32 func_8011C7A4_ChillyWaters(s32 arg0, s32 arg1) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1_ComItemDecide);
+extern DecisionTreeNonLeafNode D_8011EB98_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011EBEC_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011EE38_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011EFA0_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011F18C_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011F4EC_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011F66C_ChillyWaters;
+
+s32 MB1_ComItemDecide(void) {
+    s32 curPlayer = MBPlayerTurnGet();
+    GW_SYSTEM *loc = &GwSystem;
+    s32 results[3];
+    s32 item;
+    s32 i;
+    s32 j;
+    s32 count;
+    s32 best;
+    s32 slot;
+
+    if (GwSystem.cur_player_used_item & 1) {
+        return -1;
+    }
+    for (slot = 0; slot < 3; slot++) {
+        results[slot] = -1;
+        item = GwPlayer[curPlayer].itemNo[slot];
+        switch (item) {
+            case ITEM_NONE:
+                continue;
+            case ITEM_SKELETON_KEY:
+            case ITEM_BOO_REPELLENT:
+            case ITEM_KOOPA_KARD:
+                for (i = 0, count = 0; i < 3; i++) {
+                    if (GwPlayer[curPlayer].itemNo[i] == item) {
+                        count++;
+                    }
+                }
+                if (count < 2) {
+                    continue;
+                }
+                break;
+            case ITEM_WACKY_WATCH:
+                if (loc->total_turns == loc->current_turn) {
+                    if (MBPlayerStealRankGet(loc->current_player_index) != 0) {
+                        break;
+                    }
+                }
+                if (loc->total_turns - loc->current_turn < 6) {
+                    continue;
+                }
+                if (MBPlayerStealRankGet(loc->current_player_index) == 0) {
+                    break;
+                }
+                continue;
+            case ITEM_MUSHROOM:
+            case ITEM_LUCKY_CHARM:
+                if (func_8011C750_ChillyWaters() != 0) {
+                    break;
+                }
+                if (MBRandCheck100(80) == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BOWSER_PHONE:
+                if (GwPlayer[curPlayer].coin == 0) {
+                    break;
+                }
+                for (i = 0; i < 4; i++) {
+                    if (i != curPlayer && GwPlayer[i].coin == 0) {
+                        break;
+                    }
+                }
+                if (i >= 4) {
+                    break;
+                }
+                if (MBRandCheck100(70) != 0 && func_8011C750_ChillyWaters() == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_GOLDEN_MUSHROOM:
+                if (func_8011C750_ChillyWaters() != 0) {
+                    break;
+                }
+                if (MBComTreeExec(&D_8011EB98_ChillyWaters) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BOWSER_SUIT:
+                if (func_8011C750_ChillyWaters() != 0) {
+                    break;
+                }
+                if (MBComTreeExec(&D_8011EBEC_ChillyWaters) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_WARP_BLOCK:
+                if (MBComTreeExec(&D_8011EE38_ChillyWaters) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_POISON_MUSHROOM:
+                if (MBComTreeExec(&D_8011F18C_ChillyWaters) == 0) {
+                    s32 target = func_8011C5E0_ChillyWaters();
+
+                    D_8011FBBC_ChillyWaters = target;
+                    if ((GwSystem.slow_dice_flags >> target) & 1) {
+                        continue;
+                    }
+                    break;
+                }
+                continue;
+            case ITEM_REVERSE_MUSHROOM:
+                if (MBComTreeExec(&D_8011F4EC_ChillyWaters) == 0) {
+                    s32 target = func_8011C68C_ChillyWaters();
+
+                    D_8011FBB8_ChillyWaters = target;
+                    if (GwPlayer[target].rev & 0x80) {
+                        continue;
+                    }
+                    break;
+                }
+                continue;
+            case ITEM_PLUNDER_CHEST:
+                for (i = 0, best = 0, D_8011FB74_ChillyWaters = -1; i < 4; i++) {
+                    if (i != curPlayer) {
+                        for (j = 0; j < 3; j++) {
+                            s8 it = GwPlayer[i].itemNo[j];
+
+                            if (it != -1) {
+                                if (best < D_80100FA8_shared_board[it]) {
+                                    best = D_80100FA8_shared_board[it];
+                                    D_8011FB74_ChillyWaters = i;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (D_8011FB74_ChillyWaters == -1) {
+                    continue;
+                }
+                if (best >= 4) {
+                    break;
+                }
+                if (MBRandCheck100(5) == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BARTER_BOX:
+                for (i = 0, best = 0; i < 3; i++) {
+                    if (i != slot) {
+                        s8 it = GwPlayer[loc->current_player_index].itemNo[i];
+
+                        if (it != -1) {
+                            best += D_80100FA8_shared_board[it];
+                        }
+                    }
+                }
+                for (i = 0, D_8011FB70_ChillyWaters = -1; i < 4; i++) {
+                    if (i != curPlayer) {
+                        count = 0;
+                        for (j = 0; j < 3; j++) {
+                            s8 it = GwPlayer[i].itemNo[j];
+
+                            if (it != -1) {
+                                count += D_80100FA8_shared_board[it];
+                            }
+                        }
+                        if (best < count) {
+                            D_8011FB70_ChillyWaters = i;
+                            best = count;
+                        }
+                    }
+                }
+                if (D_8011FB70_ChillyWaters == -1) {
+                    continue;
+                }
+                break;
+            case ITEM_BOO_BELL:
+                if (func_8011C7A4_ChillyWaters(0x32, 0xA) == 0) {
+                    break;
+                }
+                if (GwPlayer[curPlayer].coin < 5) {
+                    continue;
+                }
+                break;
+            case ITEM_CELLULAR_SHOPPER:
+                if (loc->total_turns == loc->current_turn) {
+                    continue;
+                }
+                if (GwPlayer[curPlayer].coin < 5) {
+                    continue;
+                }
+                break;
+            case ITEM_MAGIC_LAMP:
+                if (func_8011C7A4_ChillyWaters(0x3C, 0xA) == 0) {
+                    break;
+                }
+                if (GwPlayer[curPlayer].coin < 20) {
+                    continue;
+                }
+                if (MBComTreeExec(&D_8011EFA0_ChillyWaters) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_DUEL_GLOVE:
+                if (GwPlayer[curPlayer].coin < 10 && func_8011C750_ChillyWaters() == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_LUCKY_LAMP:
+                if (MBComTreeExec(&D_8011F66C_ChillyWaters) != 0) {
+                    continue;
+                }
+                break;
+        }
+        results[slot] = GwPlayer[curPlayer].itemNo[slot];
+    }
+    slot = 0;
+    i = 0;
+    for (j = 0; j < 3; j++) {
+        item = results[j];
+        if (item == -1) {
+            continue;
+        }
+        if (loc->total_turns == loc->current_turn) {
+            if (item == ITEM_WACKY_WATCH) {
+                return j;
+            }
+        }
+        if (slot < D_80100FF4_shared_board[results[j]]) {
+            i = j;
+            slot = D_80100FF4_shared_board[results[j]];
+        }
+    }
+    if (slot == 0) {
+        return -1;
+    }
+    return i;
+}
 
 s32 func_8011CE94_ChillyWaters(void) {
     s32 sp14;
