@@ -14,6 +14,7 @@ typedef struct PlayerResult {
 extern PlayerResult D_8010B018_mgresultboard[4];
 extern PlayerResult D_8010B048_mgresultboard[4];
 extern s8 D_8010AAFC_mgresultboard;
+extern const u8 D_8010AD24_mgresultboard[4];
 
 void func_8000BBFC_main(u16, u8);
 void func_8000BC48_main(u16, u16); 
@@ -592,7 +593,68 @@ void func_80107188_mgresultboard(void) {
     func_8000BBD4_main(InitEspriteSlot(func_8000B838_main(0x180009), 0, 0), 0xA0, 0x20);
 }
 
+#ifdef NON_MATCHING
+// Masked 17: retail reloads sc[] from the stack and recomputes j * 12 before the tie-break test.
+void func_80107234_mgresultboard(void) {
+    s32 rank[4];
+    s32 sc[2];
+    PlayerResult tmp;
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 base;
+
+    for (i = 0; i < 4; i++) {
+        D_8010B048_mgresultboard[i].idx = i;
+        D_8010B048_mgresultboard[i].unk_01 = 0;
+        D_8010B048_mgresultboard[i].unk_03 = 0;
+        D_8010B048_mgresultboard[i].unk_02 = GwPlayer[i].chr;
+        D_8010B048_mgresultboard[i].score = GwPlayer[i].star;
+        D_8010B048_mgresultboard[i].coin = GwPlayer[i].coin;
+        D_8010B048_mgresultboard[i].gameCoin = GwPlayer[i].gameCoin;
+        D_8010B048_mgresultboard[i].gameCoin += GwPlayer[i].bonusCoin;
+        D_8010B048_mgresultboard[i].bonusCoin = GwPlayer[i].bonusCoin;
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = i + 1; j < 4; j++) {
+            sc[0] = D_8010B048_mgresultboard[i].score * 1000 + D_8010B048_mgresultboard[i].coin;
+            sc[1] = D_8010B048_mgresultboard[j].score * 1000 + D_8010B048_mgresultboard[j].coin;
+            if (sc[0] < sc[1] || (sc[0] == sc[1] && D_8010B048_mgresultboard[i].idx > D_8010B048_mgresultboard[j].idx)) {
+                tmp = D_8010B048_mgresultboard[i];
+                D_8010B048_mgresultboard[i] = D_8010B048_mgresultboard[j];
+                D_8010B048_mgresultboard[j] = tmp;
+            }
+        }
+    }
+    n = 0;
+    D_8010B048_mgresultboard[0].unk_01 = 0;
+    D_8010B048_mgresultboard[0].unk_03 = D_8010AD24_mgresultboard[0];
+    for (i = 1; i < 4; i++) {
+        sc[0] = D_8010B048_mgresultboard[i - 1].score * 1000 + D_8010B048_mgresultboard[i - 1].coin;
+        sc[1] = D_8010B048_mgresultboard[i].score * 1000 + D_8010B048_mgresultboard[i].coin;
+        n += sc[0] != sc[1];
+        D_8010B048_mgresultboard[i].unk_01 = n;
+    }
+    base = 0;
+    n = 0;
+    for (j = 0; j < 4; j++) {
+        for (i = 0; i < 4; i++) {
+            if (j == D_8010B048_mgresultboard[i].unk_01) {
+                n++;
+                rank[i] = base;
+            }
+        }
+        base += n;
+        n = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        D_8010B048_mgresultboard[i].unk_01 = rank[i];
+        D_8010B048_mgresultboard[i].unk_03 = D_8010AD24_mgresultboard[rank[i]];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107234_mgresultboard);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107650_mgresultboard);
 
@@ -612,6 +674,6 @@ void func_80107CF4_mgresultboard(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD0C_mgresultboard);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD24_mgresultboard);
+const u8 D_8010AD24_mgresultboard[4] = { 1, 0, 0, 2 };
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD28_mgresultboard);
