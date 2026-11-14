@@ -17,7 +17,54 @@ void func_80033970_main(HmfData *);
 s16 func_800329B4_main(void *);
 
 
+/* Matches with 506F20.c in the Makefile's W2DC_BLANKSTRIP list (only residue: KMC as adds a nop
+   before each mul.s after the sindf/cosdf calls). */
+#ifdef NON_MATCHING
+void func_8010ACC0_msetup(s16 model, s16 shadow, s32 arg2) {
+    f32 angle;
+    f32 dAngle;
+    f32 t;
+    f32 dt;
+    f32 y;
+    f32 dy;
+    f32 x;
+    f32 z;
+    f32 f;
+    s32 i;
+
+    angle = 330.0f;
+    dAngle = -4.0f;
+    t = 0.0f;
+    dt = 5.625f;
+    y = 260.0f;
+    dy = -18.571428f;
+    x = -86.0f;
+    z = 617.0f;
+    for (i = 0; i < 15; i++) {
+        Hu3DModelPosSet(model, x, y, z);
+        Hu3DModelPosSet(shadow, x, 0.0f, z);
+        f = y + 100.0f;
+        func_8010E044_msetup(D_80119AF0_msetup, 0, 100, x, f, z);
+        func_8010E044_msetup(D_80119AF0_msetup, 1, 100, x, f, z);
+        f = (1.0 - y * 0.009) * 0.6;
+        if (f < 0.0f) {
+            f = 0.0f;
+        }
+        Hu3DModelScaleSet(shadow, f, 1.0f, f);
+        angle += dAngle;
+        y += dy;
+        t += dt;
+        f = 500.0f - sindf(t) * 500.0f;
+        x = f * sindf(angle) + 194.0f;
+        z = f * cosdf(angle) + 197.0f;
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, 194.0f, 0.0f, 197.0f);
+    Hu3DModelPosSet(shadow, 194.0f, 0.0f, 197.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010AF40_msetup);
 
