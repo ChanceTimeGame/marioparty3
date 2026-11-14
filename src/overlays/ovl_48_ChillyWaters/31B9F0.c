@@ -72,14 +72,14 @@ extern Object* D_8011FB78_ChillyWaters;
 extern u8 D_8011E494_ChillyWaters[];
 extern u8 D_8011E498_ChillyWaters[];
 extern s32 D_8011E490_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F2F4_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F600_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011F0E4_ChillyWaters;
-extern DecisionTreeNonLeafNode D_8011E058_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011F2F4_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011F600_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011F0E4_ChillyWaters[];
+extern DecisionTreeNonLeafNode D_8011E058_ChillyWaters[];
 extern u32 D_8011E070_ChillyWaters[];
 extern s16 mbItemBtnF;
 extern const char D_8011F8D4_ChillyWaters[];
-extern DecisionTreeNonLeafNode D_8011E3D4_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011E3D4_ChillyWaters[];
 extern s32 D_8011FB5C_ChillyWaters;
 extern s16 D_8011FB5E_ChillyWaters;
 extern s32 D_8011E440_ChillyWaters[];
@@ -161,7 +161,7 @@ extern DecisionTreeNonLeafNode* D_8011F8B0_ChillyWaters[];
 extern u8 D_80100F94_shared_board[];
 extern s32 D_8011E1D8_ChillyWaters;
 extern s32 D_8011F75C_ChillyWaters;
-extern u8* D_8011F7E0_ChillyWaters[16]; //pointers to item IDs for cpu preference?
+extern u8* D_8011F7E0_ChillyWaters[8]; //pointers to item IDs for cpu preference?
 extern s8* D_8011F880_ChillyWaters[]; //pointers to item chances for cpu preference decision?
 extern DecisionTreeNonLeafNode* D_8011F8A0_ChillyWaters[2];
 extern DecisionTreeNonLeafNode* D_8011F8A8_ChillyWaters[];
@@ -170,7 +170,7 @@ extern u8 D_8011E240_ChillyWaters[14][3];
 extern s32 D_80101040_shared_board[];
 extern s16 D_8011E6EC_ChillyWaters[];
 extern u32 *D_80101734_shared_board[];
-extern DecisionTreeNonLeafNode D_8011D788_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011D788_ChillyWaters[];
 extern s16 D_8011DBA4_ChillyWaters[];
 extern s16 D_8011DBAC_ChillyWaters[];
 extern s16 D_8011DBB4_ChillyWaters[];
@@ -178,7 +178,7 @@ extern s16 D_8011DBC0_ChillyWaters[];
 extern s16 D_8011DBCC_ChillyWaters[];
 extern s16 D_8011DBD8_ChillyWaters[];
 extern s16 D_8011DBE4_ChillyWaters[];
-extern DecisionTreeNonLeafNode D_8011E508_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011E508_ChillyWaters[];
 extern s8 D_800A12D0_main;
 extern omObjData *D_800CE194_main;
 extern s16 D_800CE198_main;
@@ -1339,7 +1339,7 @@ void MB1Ev_Branch4(void) {
     func_800D742C_shared_board(win, GwSystem.current_player_index, 0);
 
     if (MBPlayerComCheck(-1) != 0) {
-        sel = MBComTreeExec(&D_8011D788_ChillyWaters);
+        sel = MBComTreeExec(D_8011D788_ChillyWaters);
         for (i = 0; i < sel; i++) {
             func_800D7250_shared_board(win, -2);
         }
@@ -2073,7 +2073,7 @@ void MB1Ev_BankMasu(void) {
     if (MBItemFind(-1, 0xF) != -1) {
         loopstart:
         MBDlgWinInsertCreate(-1, 0x3A1D, 0, 0, 0, 0, 0);
-        ret = MB1Ev_YesNoChoiceGet(&D_8011E058_ChillyWaters, 0);
+        ret = MB1Ev_YesNoChoiceGet(D_8011E058_ChillyWaters, 0);
         MBDlgWinClose();
         MBDlgWinKill();
 
@@ -4180,7 +4180,7 @@ void MB1Ev_ItemShopPhone(void) {
     
     label:
     MBDlgWinInsertCreate(-1, 0x3A01, 0, 0, 0, 0, 0);
-    sel = MB1Ev_YesNoChoiceGet(&D_8011E3D4_ChillyWaters, 0);
+    sel = MB1Ev_YesNoChoiceGet(D_8011E3D4_ChillyWaters, 0);
     MBDlgWinClose();
     MBDlgWinKill();
 
@@ -4563,7 +4563,7 @@ void MB1Ev_ItemStarYoke(void) {
     HuPrcSleep(-1);
 }
 
-extern DecisionTreeNonLeafNode D_8011E454_ChillyWaters;
+extern DecisionTreeNonLeafNode D_8011E454_ChillyWaters[];
 Process* MB1Ev_ItemMoveCreate(s32 sprGrp, s16 startX, s16 startY, s16 endX, s16 endY, s16 frames);
 // ItemFunctions[IFUNC_KEYMAN] - throwing away a skeleton key
 void MB1Ev_ItemKeyManUse(void) {
@@ -4622,7 +4622,7 @@ void MB1Ev_ItemKeyManUse(void) {
 
 choiceLoop:
     MBDlgWinInsertCreate(0x38, 0x4100, 0, 0, 0, 0, 0);
-    ret = MB1Ev_YesNoChoiceGet(&D_8011E454_ChillyWaters, 0);
+    ret = MB1Ev_YesNoChoiceGet(D_8011E454_ChillyWaters, 0);
     MBDlgWinClose();
     MBDlgWinKill();
 
@@ -5106,7 +5106,271 @@ void func_80113708_ChillyWaters(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_ItemExchangeBox);
+void MB1Ev_ItemExchangeBox(void) {
+    char playerNames[4][16];
+    u8 choices[16];
+    Vec2f position;
+    Vec2f target;
+    s32 xPos;
+    s16 fadeGroup;
+    s32 yPos;
+    u16 spriteId;
+    Object *box;
+    Process *process;
+    GW_SYSTEM *system = &GwSystem;
+    s32 targetPlayer;
+    s32 noAnimation = 0;
+    s32 itemCount;
+    s32 itemSlot;
+    s32 sleepTime;
+    s32 i;
+    s32 j;
+    s32 item;
+    f32 angle;
+    f32 angleStep;
+    f32 spinStep;
+    f32 scale;
+    f32 scaleY;
+    f32 itemAngle;
+    f32 scaleZ;
+    f32 finalScale;
+
+    func_8010FE54_ChillyWaters();
+    box = MBModelCreate(0x20, NULL);
+    func_8001C2FC_main(box->omObj1->model[0], 0x20000, 0x20000);
+    func_8001C448_main(box->omObj1->model[0]);
+    func_8001C954_main(box->omObj1->model[0]);
+    func_8001C514_main(box->omObj1->model[0]);
+    Hu3DModelScaleSet(box->omObj1->model[0], 0.0f, 0.0f, 0.0f);
+    HuVecCopy3F(&box->coords, &MBPlayerGet(-1)->player_obj->coords);
+    func_8001C814_main(box->omObj1->model[0], 2, 1);
+    box->velocity.x = 100.0f;
+    HuAudFXPlay(0x142);
+    while (box->velocity.x > 30.0f) {
+        box->velocity.x -= 1.0f;
+        HuPrcVSleep();
+    }
+
+    for (itemSlot = 0; itemSlot < 4; itemSlot++) {
+        if (GwSystem.current_player_index == itemSlot) {
+            playerNames[itemSlot][0] = 1;
+            choices[itemSlot] = 0;
+        } else {
+            playerNames[itemSlot][0] = 8;
+            choices[itemSlot] = 1;
+        }
+        func_800E2260_shared_board(itemSlot, &playerNames[itemSlot][1]);
+    }
+    choices[4] = 1;
+    choices[5] = 1;
+    MBDlgWinInsertCreate(-1, 0x5C01, (s32)playerNames[0], (s32)playerNames[1], (s32)playerNames[2],
+                         (s32)playerNames[3], 0);
+    targetPlayer = func_80113364_ChillyWaters(choices, 1);
+    MBDlgWinClose();
+    MBDlgWinKill();
+    if (targetPlayer == 4) {
+        targetPlayer = func_800EF0D8_shared_board(1);
+    }
+
+    itemSlot = MBItemSelNoGet();
+    if (GwPlayer[GwSystem.current_player_index].itemNo[itemSlot] == 0x10 &&
+        MBItemFindEmpty(GwSystem.current_player_index) == 1 && MBItemFindEmpty(targetPlayer) == 0) {
+        noAnimation = 1;
+    }
+
+    if (!noAnimation) {
+        HuAudFXPlay(0x149);
+        func_8001C814_main(box->omObj1->model[0], 1, 0);
+        HuPrcSleep(20);
+        position.x = 160.0f;
+        position.y = 84.0f;
+        for (itemSlot = 0; itemSlot < 3; itemSlot++) {
+            for (j = 0; j < 3; j++) {
+                spriteId = 0x4790;
+                if (j == itemSlot) {
+                    spriteId = 0x4786;
+                }
+                MBStatusItemPriSet(system->current_player_index, j, spriteId);
+            }
+            if (GwPlayer[system->current_player_index].itemNo[itemSlot] != -1) {
+                if (itemSlot != MBItemSelNoGet()) {
+                    func_801106A4_ChillyWaters(system->current_player_index, itemSlot, 10, &position.x, 0);
+                    HuPrcSleep(2);
+                }
+            }
+        }
+        func_8001C814_main(box->omObj1->model[0], 4, 4);
+        while (HmfModelData[box->omObj1->model[0]].unk40 != 0.0f) {
+            HuPrcVSleep();
+        }
+        HuAudFXPlay(0x150);
+        HuPrcSleep(20);
+        process = omAddPrcObj(func_801135FC_ChillyWaters, 0x4800, 0, 0);
+        process->user_data = (void *)targetPlayer;
+        HuAudFXPlay(0x151);
+
+        angle = 0.0f;
+        spinStep = 5.0f;
+        i = 0;
+        while (1) {
+            box->rot.x = -sindf(angle);
+            box->rot.z = cosdf(angle);
+            angle += spinStep;
+            if (angle > 360.0f) {
+                angle -= 360.0f;
+            }
+            spinStep += 2.0f;
+            if (spinStep > 45.0f) {
+                spinStep = 45.0f;
+                if (i++ >= 31) {
+                    break;
+                }
+            }
+            HuPrcVSleep();
+        }
+
+        i = 0;
+        while (1) {
+            box->rot.x = -sindf(angle);
+            box->rot.z = cosdf(angle);
+            angle += spinStep;
+            if (angle > 360.0f) {
+                angle -= 360.0f;
+                if (++i >= 2) {
+                    break;
+                }
+            }
+            spinStep -= 2.0f;
+            if (spinStep < 5.0f) {
+                spinStep = 5.0f;
+            }
+            HuPrcVSleep();
+        }
+        box->rot.x = 0.0f;
+        box->rot.z = 1.0f;
+        HuAudFXPlay(0x152);
+        for (itemSlot = 0; itemSlot < 1441; itemSlot += 40) {
+            scale = itemSlot;
+            angleStep = sindf(scale) / 1.5f + 1.0f;
+            scaleY = sindf(scale) / 1.5f + 1.0f;
+            scaleZ = sindf(scale) / 1.5f + 1.0f;
+            HuVecCopyXYZ(&box->scale, angleStep, scaleY, scaleZ);
+            HuPrcVSleep();
+        }
+
+        HuAudFXPlay(0x149);
+        func_8001C814_main(box->omObj1->model[0], 4, 0);
+        HuPrcSleep(20);
+        process = omAddPrcObj(func_80113708_ChillyWaters, 0x4800, 0, 0);
+        process->user_data = (void *)targetPlayer;
+        itemCount = MBItemFindEmpty(targetPlayer);
+        target.y = 70.0f;
+
+        switch (itemCount) {
+            case 0:
+                break;
+            case 1:
+                target.x = 160.0f;
+                MBStatusItemPosSet(targetPlayer, 0, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 10, &target.x, 1);
+                HuPrcSleep(20);
+                MBStatusItemPosGet(system->current_player_index, 0, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 0, 0x4790);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 7, &target.x, 2);
+                break;
+            case 2:
+                target.x = 130.0f;
+                MBStatusItemPosSet(targetPlayer, 0, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 10, &target.x, 1);
+                target.x = 190.0f;
+                MBStatusItemPosSet(targetPlayer, 1, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 1, 10, &target.x, 1);
+                HuPrcSleep(20);
+                MBStatusItemPosGet(system->current_player_index, 0, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 0, 0x4790);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 7, &target.x, 2);
+                MBStatusItemPosGet(system->current_player_index, 1, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 1, 0x478F);
+                func_801106A4_ChillyWaters(targetPlayer, 1, 7, &target.x, 2);
+                break;
+            default:
+                target.x = 110.0f;
+                MBStatusItemPosSet(targetPlayer, 0, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 10, &target.x, 1);
+                target.x = 210.0f;
+                MBStatusItemPosSet(targetPlayer, 1, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 1, 10, &target.x, 1);
+                target.x = 160.0f;
+                MBStatusItemPosSet(targetPlayer, 2, 160, 84);
+                func_801106A4_ChillyWaters(targetPlayer, 2, 10, &target.x, 1);
+                HuPrcSleep(20);
+                MBStatusItemPosGet(system->current_player_index, 0, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 0, 0x4790);
+                func_801106A4_ChillyWaters(targetPlayer, 0, 7, &target.x, 2);
+                MBStatusItemPosGet(system->current_player_index, 1, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 1, 0x478F);
+                func_801106A4_ChillyWaters(targetPlayer, 1, 7, &target.x, 2);
+                MBStatusItemPosGet(system->current_player_index, 2, &xPos, &yPos);
+                target.x = xPos;
+                target.y = yPos;
+                MBStatusItemPriSet(targetPlayer, 2, 0x478E);
+                func_801106A4_ChillyWaters(targetPlayer, 2, 7, &target.x, 2);
+                break;
+        }
+        HuPrcSleep(2);
+    }
+
+    itemSlot = MBItemSelNoGet();
+    GwPlayer[system->current_player_index].itemNo[itemSlot] = -1;
+    MBItemRemoveEmpty(system->current_player_index);
+    for (itemSlot = 0; itemSlot < 3; itemSlot++) {
+        item = GwPlayer[targetPlayer].itemNo[itemSlot];
+        GwPlayer[targetPlayer].itemNo[itemSlot] = GwPlayer[system->current_player_index].itemNo[itemSlot];
+        GwPlayer[system->current_player_index].itemNo[itemSlot] = item;
+    }
+    if (!noAnimation) {
+        MBStatusItemSprKill(-1);
+        MBStatusItemSprKill(targetPlayer);
+        sleepTime = 10;
+    } else {
+        sleepTime = 20;
+    }
+    HuPrcSleep(sleepTime);
+    HuAudFXPlay(0x15B);
+    finalScale = 0.1f;
+    for (i = 0; i < 20; i++) {
+        finalScale += 0.044999998f;
+        func_8001D558_main(box->omObj1->model[0], finalScale, finalScale * 10.0f, 1);
+        HuPrcVSleep();
+    }
+    MBModelKill(box);
+
+    if (noAnimation) {
+        func_8004ACE0_main(0x286, system->current_player_index);
+        MBPlayerMotionSet(-1, 3, 0);
+        HuPrcSleep(70);
+    } else {
+        func_8004ACE0_main(0x274, system->current_player_index);
+        MBPlayerMotionSet(-1, 5, 0);
+        HuPrcSleep(50);
+    }
+    func_800F2388_shared_board(-1, -1, 0, 10, 2);
+    MBDlgWinInsertCreate(-1, noAnimation ? 0x3A2E : 0x3A2D,
+                         mbCharNameMesTbl[GwPlayer[system->current_player_index].chr],
+                         mbCharNameMesTbl[GwPlayer[targetPlayer].chr], 0, 0, 0);
+    MBDlgWinClose();
+    MBDlgWinKill();
+}
 
 void func_80114590_ChillyWaters(void) {
     Object* temp_s1;
@@ -6485,7 +6749,195 @@ void MB1Ev_ItemRobBox(void) {
     func_80110024_ChillyWaters();
 }
 
+Process *func_800ED75C_shared_board(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
+
+// chilly B: NON_MATCHING: masked 9 (raw 12): retail reloads the spilled `slip` (lw t0,0x3C(sp)) before
+// the first test, and fills the 0x47 beq's delay slot with `li v0,0x5A` (beql here). Logic checked.
+#ifdef NON_MATCHING
+void MB1Ev_TuruturuMain(void) {
+    Vec pos;
+    Vec dest;
+    s32 slip;
+    s32 seNo = 0;
+    GW_PLAYER *player;
+    GW_PLAYER *other = NULL;
+    GW_SYSTEM *system = &GwSystem;
+    GW_PLAYER *cur;
+    GW_PLAYER *p;
+    Object *obj;
+    SpaceData *dirMasu;
+    SpaceData *backMasu;
+    SpaceData *fallMasu;
+    Process *proc;
+    Vec *coords;
+    u16 *temp;
+    u16 motId;
+    f32 angle;
+    f32 speed;
+    s32 played;
+    s32 i;
+    s8 chance;
+    s8 link;
+
+    MBPlayerMotionLoad(system->current_player_index, 5, 0xA);
+    MBPlayerMotionLoad(system->current_player_index, 6, 0x10);
+    chance = 0x46;
+    if ((GwSystem.boardData.halfWordBytes[1] >> system->current_player_index) & 1) {
+        chance = 0x5A;
+    }
+    slip = MBRandCheck100(chance) != 0;
+    if (!slip) {
+        GwSystem.boardData.halfWordBytes[1] |= 1 << system->current_player_index;
+        mbWalkNum = 0;
+    } else {
+        GwSystem.boardData.halfWordBytes[1] &= ~(1 << system->current_player_index);
+    }
+    func_800DBEC0_shared_board(system->current_player_index);
+    player = MBPlayerGet(-1);
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+    case 0x5A:
+        MBMasuGet(0x5B);
+        dirMasu = MBMasuGet(0x74);
+        backMasu = MBMasuGet(0x5A);
+        fallMasu = MBMasuGet(0x8A);
+        break;
+    case 0x47:
+        MBMasuGet(0x48);
+        dirMasu = MBMasuGet(0x75);
+        backMasu = MBMasuGet(0x47);
+        fallMasu = MBMasuGet(0x8B);
+        break;
+    default:
+        MBMasuGet(0x79);
+        dirMasu = MBMasuGet(0x76);
+        backMasu = MBMasuGet(0x3E);
+        fallMasu = MBMasuGet(0x8C);
+        break;
+    }
+    cur = MBPlayerGet(-1);
+    obj = cur->player_obj;
+    HuVecCopy3F(&dest, &dirMasu->coords);
+    MBVecDirGet(&obj->coords, &dest, &obj->rot);
+    MBPlayerMotionSet(-1, 0, 2);
+    angle = atan2df(obj->rot.x, -obj->rot.z) + 180.0f;
+    speed = 2.0f;
+    for (i = 0; i < 3; i++) {
+        obj->coords.x += sindf(angle) * speed;
+        obj->coords.z -= cosdf(angle) * speed;
+        HuPrcVSleep();
+    }
+    func_800F2388_shared_board(-1, -1, 0, 2, 2);
+    HuPrcSleep(2);
+    HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+    HuPrcChildWait();
+    MBPlayerMotionSet(-1, 1, 2);
+    for (i = 0; i < 4; i++) {
+        if (i == system->current_player_index) {
+            continue;
+        }
+        p = MBPlayerGet(i);
+        switch (MBMasuLinkMasuIdGet(p->clink, p->cidx)) {
+        case 0x5A:
+            coords = &p->player_obj->coords;
+            HuVecCopy3F(&pos, coords);
+            pos.x += 5.0f;
+            break;
+        case 0x47:
+            coords = &p->player_obj->coords;
+            HuVecCopy3F(&pos, coords);
+            pos.x += 10.0f;
+            break;
+        default:
+            continue;
+        }
+        pos.z -= 5.0f;
+        func_800ED75C_shared_board(coords, &pos, coords, 2.0f);
+    }
+    MBPlayerVibrate(-1, 1);
+    angle -= 180.0f;
+    speed = 4.0f;
+    for (i = 0, played = 0; i < 30; i++) {
+        obj->coords.x += sindf(angle) * speed;
+        obj->coords.z -= cosdf(angle) * speed;
+        if (speed > 0.0f) {
+            speed -= 0.25f;
+        } else if (!played) {
+            played = 1;
+            seNo = HuAudFXPlay(0x187);
+            MBPlayerSpeedSet(system->current_player_index, 2.0f);
+        }
+        HuPrcVSleep();
+    }
+    HuAudFXStop(seNo);
+    if (slip) {
+        func_800DB884_shared_board(system->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+        switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x5A:
+            cur->clink = 7;
+            cur->cidx = 3;
+            cur->nlink = 7;
+            cur->nidx = 4;
+            cur->blink = 7;
+            cur->bidx = 2;
+            break;
+        default:
+            link = 9;
+            goto set;
+        case 0x47:
+            link = 8;
+        set:
+            cur->clink = link;
+            cur->cidx = 2;
+            cur->nlink = link;
+            cur->nidx = 3;
+            cur->blink = link;
+            cur->bidx = 1;
+            break;
+        }
+    } else {
+        MBPlayerVibrate(-1, 3);
+        HuAudFXPlay(0x188);
+        MBPlayerMotionSet(-1, 5, 0);
+        MBPlayerMotionWait(-1);
+        MBPlayerMotionSet(-1, 6, 1);
+        HuVecCopy3F(&pos, &backMasu->coords);
+        MBVecDirGet(&pos, &obj->coords, &obj->rot);
+        proc = func_800ED75C_shared_board(&obj->coords, &pos, &obj->coords, 2.0f);
+        HuPrcChildLink(HuPrcCurrentGet(), proc);
+        for (i = 0; i < 4; i++) {
+            if (system->current_player_index == i) {
+                continue;
+            }
+            other = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == MBMasuLinkMasuIdGet(other->clink, other->cidx)) {
+                break;
+            }
+        }
+        if (i < 4) {
+            func_800ED5E0_shared_board(&other->player_obj->coords, &fallMasu->coords, &other->player_obj->coords, 2.0f);
+        }
+        HuPrcChildWait();
+        MBWinOpen(0x300);
+        func_800EC39C_shared_board(system->current_player_index);
+        func_800EC3E4_shared_board();
+        MBPlayerMotionSet(-1, 6, 0);
+        MBPlayerMotionWait(-1);
+        MBPlayerMotionSet(-1, -1, 2);
+    }
+    MOTION_ID_GET(6, temp, i);
+    MBPlayerMotionLoad(system->current_player_index, 5, motId);
+    MOTION_ID_GET(7, temp, i);
+    MBPlayerMotionLoad(system->current_player_index, 6, motId);
+    if (!slip) {
+        HuPrcSleep(5);
+        MBItemKSuitEnd();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_TuruturuMain);
+#endif
 
 void MB1Ev_Turuturu() {
     GW_PLAYER *player;
@@ -6603,7 +7055,263 @@ void func_80118E2C_ChillyWaters() {
     }
 }
 
+typedef struct SnowmanRollWork {
+    /* 0x00 */ s32 player;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 order;
+    /* 0x0C */ s32 path;
+    /* 0x10 */ s32 count;
+} SnowmanRollWork; /* allocated 0x20 */
+
+extern Object *D_8011FAE4_ChillyWaters;
+Process *func_80119C54_ChillyWaters(Vec *arg0, Vec *arg1, Vec *out, f32 speed);
+extern DecisionTreeNonLeafNode *D_8011E5BC_ChillyWaters[];
+extern s16 D_8011E64C_ChillyWaters[];
+extern s16 D_8011E654_ChillyWaters[];
+extern f32 D_8011E664_ChillyWaters[][2];
+extern f32 D_8011E674_ChillyWaters[][2];
+extern f32 D_8011E68C_ChillyWaters[][2];
+
+// chilly B: NON_MATCHING: masked 46 (raw 61), 789 of 795 instructions: retail keeps the 50.0f/40.0f
+// if/else unscheduled (bc1f + j; bc1fl here) and computes the |order + 1 - count| difference twice (a1/a0).
+// The rest is branch offsets. Logic checked against the asm.
+#ifdef NON_MATCHING
+void MB1Ev_SnowmanRoll(void) {
+    Vec pos;
+    Vec snowPos;
+    Process *proc;
+    UnkVibrateProcess *vib;
+    SnowmanRollWork *work;
+    GW_PLAYER *player;
+    Object *obj;
+    Object *snowman;
+    SpaceData *masu;
+    s16 *list;
+    u16 *temp;
+    u16 motId;
+    f32 range;
+    f32 dist;
+    f32 grav;
+    f32 speed;
+    f32 y;
+    f32 vy;
+    s32 frames;
+    s32 n;
+    s32 order;
+    s32 path;
+    s32 idx;
+    s32 state;
+    s32 btn;
+    s32 i;
+
+    work = HuPrcCurrentGet()->user_data;
+    range = 20.0f;
+    snowman = D_8011FAE4_ChillyWaters;
+    player = MBPlayerGet(work->player);
+    obj = player->player_obj;
+    order = work->order;
+    path = work->path;
+    list = D_8011E63C_ChillyWaters[path];
+    proc = HuPrcCurrentGet();
+    MBPlayerMotionLoad(work->player, 6, 0x70);
+    if (path & 1) {
+        range = 15.0f;
+    }
+    vib = MBPlayerVibrateObjCreate(work->player, 0, 5);
+    state = 0;
+    while (1) {
+        masu = MBMasuGet(MBMasuLinkMasuIdGet(player->clink, player->cidx));
+        HuVecCopy3F(&pos, &obj->coords);
+        HuVecCopy3F(&snowPos, &snowman->coords);
+        if (path & 1) {
+            pos.x = snowPos.x = 0.0f;
+        } else {
+            pos.z = snowPos.z = 0.0f;
+        }
+        if (HuVecDistance(&pos, &snowPos) < D_8011FADC_ChillyWaters * 2.0f + 100.0f + order * range && state == 0) {
+            D_8011FAF8_ChillyWaters[work->player] = 2;
+        }
+        if (HuVecDistance(&pos, &snowPos) < order * range + 100.0f) {
+            if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state != 0)))) {
+                if (state != 2) {
+                    D_8011FAF8_ChillyWaters[work->player] = 4;
+                    if (work->player == GwSystem.current_player_index) {
+                        MBPlayerMotionSet(-1, 4, 2);
+                    } else {
+                        MBMotionSet(obj, 4, 2);
+                    }
+                }
+                state = 2;
+            }
+            if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state == 0)))) {
+                state = 1;
+            }
+        } else if (((D_800C9520_main[GwPlayer[work->player].pad] >> 15) & (btn = (state == 0)))) {
+            if (state != 2) {
+                D_8011FAF8_ChillyWaters[work->player] = 4;
+                if (work->player == GwSystem.current_player_index) {
+                    MBPlayerMotionSet(-1, 4, 2);
+                } else {
+                    MBMotionSet(obj, 4, 2);
+                }
+            }
+            state = 2;
+        }
+        if (HuVecDistance(&pos, &snowPos) < order * range + 31.0f) {
+            break;
+        }
+        MBVecDirGet(&obj->coords, &snowman->coords, &obj->rot);
+        HuPrcVSleep();
+    }
+    if (MBPlayerComCheck(work->player) && MBComTreeExec(D_8011E5BC_ChillyWaters[path])) {
+        state = 1;
+    }
+    if (state == 1) {
+        MBPlayerVibrateObjKill(vib);
+        D_8011FAF8_ChillyWaters[work->player] = 3;
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 2, 0);
+        } else {
+            MBMotionSet(obj, 2, 0);
+        }
+        func_8004ACE0_main(0x274, work->player);
+        func_8004ACE0_main(0x3A, work->player);
+        dist = HuVecDistance(&pos, &snowPos);
+        speed = D_8011FADC_ChillyWaters;
+        frames = ((D_8011FAE0_ChillyWaters < speed) ? dist + 50.0f : dist + 40.0f) / speed;
+        grav = -0.5f;
+        while (1) {
+            y = 0.0f;
+            vy = 7.0f;
+            n = 0;
+            while (y >= 0.0f) {
+                vy += grav;
+                y += vy;
+                n++;
+            }
+            if (frames < n) {
+                break;
+            }
+            grav += 0.05f;
+            if (!(grav < -0.2f)) {
+                break;
+            }
+        }
+        func_800EE688_shared_board(obj, 7.0f, grav);
+        func_800EE6C0_shared_board(obj);
+        func_8004ACE0_main(0x31, work->player);
+        func_800F2388_shared_board(work->player, -1, 0, 5, 2);
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+    } else {
+        D_8011FAF8_ChillyWaters[work->player] = 4;
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 6, 2);
+        } else {
+            MBMotionSet(obj, 1, 2);
+        }
+        for (; *list != -1; list++) {
+            masu = MBMasuGet(*list);
+        }
+        HuVecCopy3F(&pos, &masu->coords);
+        MBVecDirGet(&obj->coords, &pos, &obj->rot);
+        func_8004ACE0_main(0x286, work->player);
+        HuPrcChildLink(proc, func_80119C54_ChillyWaters(&obj->coords, &pos, &obj->coords, D_8011FAE0_ChillyWaters));
+        HuPrcChildWait();
+        HuVecCopy3F(&pos, &MBMasuGet(D_8011E64C_ChillyWaters[path])->coords);
+        n = order + 1;
+        idx = n - work->count;
+        if (n - work->count < 0) {
+            idx = work->count - n;
+        }
+        switch (work->count) {
+        case 2:
+            pos.x += D_8011E664_ChillyWaters[idx][0];
+            pos.z += D_8011E664_ChillyWaters[idx][1];
+            break;
+        case 3:
+            pos.x += D_8011E674_ChillyWaters[idx][0];
+            pos.z += D_8011E674_ChillyWaters[idx][1];
+            break;
+        case 4:
+            pos.x += D_8011E68C_ChillyWaters[idx][0];
+            pos.z += D_8011E68C_ChillyWaters[idx][1];
+            break;
+        }
+        if (path == 1) {
+            pos.x -= 20.0f;
+        }
+        MBVecDirGet(&obj->coords, &pos, &obj->rot);
+        HuPrcChildLink(proc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, D_8011FADC_ChillyWaters));
+        HuPrcChildWait();
+        if (!(path & 1)) {
+            pos.z += 35.0f;
+            MBVecDirGet(&obj->coords, &pos, &obj->rot);
+            HuPrcChildLink(proc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, D_8011FADC_ChillyWaters));
+            HuPrcChildWait();
+        }
+        MBPlayerVibrateObjKill(vib);
+        if (work->player == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+        if (!(path & 1)) {
+            func_800ED20C_shared_board(work->player, 10, D_8011E654_ChillyWaters[path]);
+        }
+        switch (path) {
+        case 0:
+            player->clink = 0xC;
+            player->cidx = 1;
+            player->nlink = 0xC;
+            player->nidx = 2;
+            player->blink = 0xA;
+            player->bidx = 0xB;
+            break;
+        case 1:
+            player->clink = 1;
+            player->cidx = 1;
+            player->nlink = 1;
+            player->nidx = 2;
+            player->blink = 1;
+            player->bidx = 0;
+            break;
+        case 2:
+            player->clink = 5;
+            player->cidx = 7;
+            player->nlink = 5;
+            player->nidx = 8;
+            player->blink = 5;
+            player->bidx = 6;
+            break;
+        default:
+            player->clink = 3;
+            player->cidx = 0;
+            player->nlink = 3;
+            player->nidx = 1;
+            player->blink = 0xF;
+            player->bidx = 0xA;
+            break;
+        }
+        if (GwSystem.current_player_index == work->player && (player->rev & 0x80)) {
+            i = player->nlink;
+            player->nlink = player->blink;
+            player->blink = i;
+            i = player->nidx;
+            player->nidx = player->bidx;
+            player->bidx = i;
+        }
+    }
+    MOTION_ID_GET(7, temp, n);
+    MBPlayerMotionLoad(work->player, 6, motId);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_SnowmanRoll);
+#endif
 
 s32 MB1Ev_SnowmanPathGet(s32 path) {
     GW_PLAYER *player;
@@ -6706,7 +7414,220 @@ Process* func_80119C54_ChillyWaters(Vec* arg0, Vec* arg1, Vec* out, f32 speed) {
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_ActionTimeSpr);
+void MB1Ev_ActionTimeSpr(void) {
+    s32 spr[3][4];
+    s32 titleSpr;
+    s32 frameSpr;
+    s32 grp;
+    Process *proc;
+    Unk3 *win;
+    void *data;
+    s32 playerGrp;
+    s32 alpha;
+    s32 mask;
+    s32 clamped;
+    s32 fading;
+    s32 wrapped;
+    s32 count;
+    s32 i;
+    s32 j;
+    f32 angle;
+    f32 speed;
+
+    i = 0;
+    proc = HuPrcCurrentGet();
+    data = DataRead(0x1300F7);
+    titleSpr = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F8);
+    spr[0][0] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FB);
+    spr[0][1] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F9);
+    spr[0][2] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FA);
+    spr[0][3] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FC);
+    frameSpr = func_80055810_main(data);
+    DataClose(data);
+    for (; i < 4; i++) {
+        data = DataRead((GwPlayer[i].chr + 8) | 0x210000);
+        spr[1][i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    grp = HuSprGrpCreate(1, 5);
+    func_80055024_main(grp, 0, titleSpr, 0);
+    HuSprAttrReset(grp, 0, 0xFFFF);
+    HuSprAttrSet(grp, 0, 0x1008);
+    HuSprPriSet(grp, 0, 0x1000);
+    func_80054904_main(grp, 0, 0xA0, 0x5A);
+    angle = 0.0f;
+    speed = 30.0f;
+    count = 0;
+    wrapped = 0;
+    while (1) {
+        if ((angle >= 90.0f) & (wrapped == 0)) {
+            wrapped = 1;
+            count++;
+        }
+        if (angle >= 360.0f) {
+            wrapped = 0;
+            angle -= 360.0f;
+        }
+        if ((angle >= 180.0f) & (angle <= 360.0f)) {
+            HuSprAttrSet(grp, 0, 2);
+        } else {
+            HuSprAttrReset(grp, 0, 2);
+        }
+        HuSprScaleSet(grp, 0, 1.0f, sindf(angle >= 180.0f ? angle - 180.0f : angle));
+        if (count >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += speed;
+    }
+    HuSprAttrReset(grp, 0, 2);
+    HuSprScaleSet(grp, 0, 1.0f, 1.0f);
+    win = func_800E210C_shared_board(0x14, 0xA0, 1);
+    for (i = 0; i < 4; i++) {
+        playerGrp = spr[2][i] = HuSprGrpCreate(6, 5);
+        func_80055024_main(playerGrp, 0, frameSpr, 0);
+        func_800550F4_main(playerGrp, 0, 0);
+        HuSprAttrReset(playerGrp, 0, 0xFFFF);
+        if (D_8011FAF8_ChillyWaters[i] != 0) {
+            HuSprAttrSet(playerGrp, 0, 8);
+        } else {
+            HuSprAttrSet(playerGrp, 0, 0x8000);
+        }
+        HuSprPriSet(playerGrp, 0, 0x1000);
+        func_800554C4_main(playerGrp, 0, -1);
+        func_80055024_main(playerGrp, 1, spr[1][i], 0);
+        func_800550F4_main(playerGrp, 1, 0);
+        HuSprAttrReset(playerGrp, 1, 0xFFFF);
+        if (D_8011FAF8_ChillyWaters[i] != 0) {
+            HuSprAttrSet(playerGrp, 1, 8);
+        } else {
+            HuSprAttrSet(playerGrp, 1, 0x8000);
+        }
+        HuSprPriSet(playerGrp, 1, 0x1000);
+        func_80054904_main(playerGrp, 1, 0, -9);
+        func_800554C4_main(playerGrp, 1, 0);
+        for (j = 0; j < 4; j++) {
+            func_80055024_main(playerGrp, j + 2, spr[0][j], 0);
+            func_800550F4_main(playerGrp, j + 2, 1);
+            HuSprAttrReset(playerGrp, j + 2, 0xFFFF);
+            if (D_8011FAF8_ChillyWaters[i] == j + 1) {
+                HuSprAttrSet(playerGrp, j + 2, 8);
+            } else {
+                HuSprAttrSet(playerGrp, j + 2, 0x8000);
+            }
+            HuSprPriSet(playerGrp, j + 2, 0x1000);
+            func_80054904_main(playerGrp, j + 2, 0, 9);
+            func_800554C4_main(playerGrp, j + 2, 0);
+        }
+        func_80054904_main(playerGrp, 0, i * 70 + 55, 200);
+    }
+    HuPrcSleep(20);
+    angle = 90.0f;
+    count = 0;
+    fading = 0;
+    wrapped = 0;
+    alpha = 255;
+    while (1) {
+        if ((angle >= 360.0f) & (wrapped == 0)) {
+            wrapped = 1;
+            count++;
+        }
+        if (angle >= 360.0f) {
+            wrapped = 0;
+            angle -= 360.0f;
+        }
+        if ((fading == 0) & (count != 0)) {
+            if ((angle >= 90.0f) & (angle < 180.0f)) {
+                fading = 1;
+            }
+        }
+        if (fading != 0) {
+            alpha -= 21;
+            mask = -(alpha > 0);
+            clamped = mask & alpha;
+            alpha = clamped;
+        }
+        func_80055458_main(grp, 0, alpha);
+        if (count >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += speed;
+    }
+    HuSprScaleSet(grp, 0, 1.0f, 0.0f);
+    HuSprGrpKill(grp);
+    HuSprKill(titleSpr);
+    proc->user_data = (void *)1;
+    while (1) {
+        for (i = 0; i < 4; i++) {
+            switch (D_8011FAF8_ChillyWaters[i]) {
+            case 0:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrSet(spr[2][i], j, 0x8000);
+                }
+                break;
+            case 1:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 2, 0x8000);
+                break;
+            case 2:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 3, 0x8000);
+                break;
+            case 3:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 4, 0x8000);
+                break;
+            case 4:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 5, 0x8000);
+                break;
+            default:
+                goto end;
+            }
+        }
+        HuPrcVSleep();
+    }
+end:
+    MBHelpWinKill(win);
+    HuSprKill(frameSpr);
+    for (i = 0; i < 4; i++) {
+        HuSprKill(spr[0][i]);
+        HuSprKill(spr[1][i]);
+        HuSprGrpKill(spr[2][i]);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_8011A764_ChillyWaters() {
     Object *temp_v0;
@@ -7170,7 +8091,7 @@ void MB1Ev_Snowman(void) {
     } else {
         choiceLoop:
         MBDlgWinInsertCreate(0x37, 0x201, 0, 0, 0, 0, 0);
-        sel = MB1Ev_YesNoChoiceGet(&D_8011E508_ChillyWaters, 0);
+        sel = MB1Ev_YesNoChoiceGet(D_8011E508_ChillyWaters, 0);
         MBDlgWinClose();
         MBDlgWinKill();
         switch (sel) {
@@ -7482,7 +8403,7 @@ s32 func_8011C5E0_ChillyWaters(void) {
     for (i = 0, bestRank = 99, best = MBPlayerTurnGet(); i < 4; i++) {
         if (i != MBPlayerTurnGet()) {
             func_800DA778_shared_board(i);
-            if ((MBComTreeExec(&D_8011F0E4_ChillyWaters) == 0) &&
+            if ((MBComTreeExec(D_8011F0E4_ChillyWaters) == 0) &&
                 (BoardPlayerRankCalc(i) < bestRank)) {
                 bestRank = BoardPlayerRankCalc(i);
                 best = i;
@@ -7498,11 +8419,11 @@ s32 func_8011C68C_ChillyWaters(void) {
     s32 i;
 
     best = MBPlayerTurnGet();
-    if (MBComTreeExec(&D_8011F2F4_ChillyWaters) != 0) {
+    if (MBComTreeExec(D_8011F2F4_ChillyWaters) != 0) {
         for (i = 0, bestRank = 99; i < 4; i++) {
             if (i != MBPlayerTurnGet()) {
                 func_800DA778_shared_board(i);
-                if ((MBComTreeExec(&D_8011F600_ChillyWaters) == 0) &&
+                if ((MBComTreeExec(D_8011F600_ChillyWaters) == 0) &&
                     (BoardPlayerRankCalc(i) < bestRank)) {
                     bestRank = BoardPlayerRankCalc(i);
                     best = i;
@@ -7876,3 +8797,1639 @@ s32 func_8011D1F8_ChillyWaters(void) {
     }
     return MBComTreeExec(D_8011F8B0_ChillyWaters[D_8011E1D8_ChillyWaters]) + 1;
 }
+
+/* .data (0x8011D280, 0x2640 bytes): the overlay's initialised data, in address order. */
+s16 D_8011D280_ChillyWaters[8] = {
+    1, 2, 3, 0, 4, 5, 6, 7,
+};
+s16 D_8011D290_ChillyWaters[8] = {
+    0, 0, 0, 1, 1, 1, 1, 2,
+};
+s16 mb1ev_StarFlag[8] = {
+    6, 7, 8, 9, 10, 11, 12, 13,
+};
+s16 mb1ev_StarMasu[8] = {
+    54, 47, 94, 18, 81, 96, 77, 41,
+};
+s16 mb1ev_StarGuideMasu[8] = {
+    98, 99, 100, 101, 102, 103, 104, 105,
+};
+s32 D_8011D2D0_ChillyWaters[7] = {
+    0xA007E, 0xA007F, 0xA0080, 0xA0081, 0xA0082, 0xA0083, 0xA0084,
+};
+s32 D_8011D2EC_ChillyWaters[7] = {
+    24066, 24067, 24068, 24069, 24070, 24071, 24072,
+};
+s32 D_8011D308_ChillyWaters = 0;
+s32 D_8011D30C_ChillyWaters = 0;
+f32 D_8011D310_ChillyWaters = -1.0f;
+Object * D_8011D314_ChillyWaters = NULL;
+Object * D_8011D318_ChillyWaters = NULL;
+s16 D_8011D31C_ChillyWaters = -1;
+s16 D_8011D320_ChillyWaters[10] = {
+    54, 47, 94, 18, 81, 96, 77, 41,
+    -1, 0,
+};
+s16 D_8011D334_ChillyWaters[8][2] = {
+    { 7, -1 },
+    { 1, -6 },
+    { 1, -7 },
+    { 1, -7 },
+    { -5, -5 },
+    { 2, -7 },
+    { 1, -7 },
+    { -4, -9 },
+};
+s16 D_8011D354_ChillyWaters[2][2] = {
+    { 2, 0 },
+    { 2, 0 },
+};
+s16 D_8011D35C_ChillyWaters[2][2] = {
+    { 1, -2 },
+    { 0, -4 },
+};
+s16 D_8011D364_ChillyWaters[2][2] = {
+    { 1, -4 },
+    { 5, 0 },
+};
+s16 D_8011D36C_ChillyWaters[2][2] = {
+    { 0, 0 },
+    { 0, -3 },
+};
+s16 D_8011D374_ChillyWaters[2][2] = {
+    { 123, 76 },
+    { 121, 63 },
+};
+s16 D_8011D37C_ChillyWaters[8] = {
+    98, 99, 100, 101, 102, 103, 104, 105,
+};
+s16 D_8011D38C_ChillyWaters[8] = {
+    6, 7, 8, 9, 10, 11, 12, 13,
+};
+s16 D_8011D39C_ChillyWaters[2] = {
+    106, 0,
+};
+s16 D_8011D3A0_ChillyWaters[2] = {
+    114, 112,
+};
+Vec D_8011D3A4_ChillyWaters[5] = {
+    { -3.0f, 0.0f, -2.0f },
+    { 0.0f, 2.0f, 2.0f },
+    { 1.0f, 5.5f, -3.0f },
+    { 3.5f, 8.0f, 4.0f },
+    { -1.0f, 12.0f, 11.0f },
+};
+Vec D_8011D3E0_ChillyWaters[5] = {
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { -15.0f, 0.0f, 0.0f },
+    { 20.0f, 0.0f, -30.0f },
+    { 45.0f, 0.0f, 45.0f },
+};
+s16 D_8011D41C_ChillyWaters[2] = {
+    109, 147,
+};
+u8 D_8011D420_ChillyWaters[6][2] = {
+    { 0, 38 },
+    { 0, 39 },
+    { 0, 40 },
+    { 0, 41 },
+    { 0, 42 },
+    { 0, 43 },
+};
+u32 D_8011D42C_ChillyWaters[2] = {
+    0x1, 0x130163,
+};
+u32 D_8011D434_ChillyWaters[2] = {
+    0x1, 0x130168,
+};
+u32 D_8011D43C_ChillyWaters[2] = {
+    0x1, 0x13016F,
+};
+u32 D_8011D444_ChillyWaters[2] = {
+    0x1, 0x130176,
+};
+u32 D_8011D44C_ChillyWaters[2] = {
+    0x1, 0x130180,
+};
+u32 D_8011D454_ChillyWaters[2] = {
+    0x1, 0x130184,
+};
+u32 * D_8011D45C_ChillyWaters[6] = {
+    D_8011D42C_ChillyWaters, D_8011D434_ChillyWaters, D_8011D43C_ChillyWaters, D_8011D444_ChillyWaters, D_8011D44C_ChillyWaters, D_8011D454_ChillyWaters,
+};
+s32 D_8011D474_ChillyWaters[9] = {
+    328, 328, 328, 328, 328, 328, -1, -1,
+    -1,
+};
+s32 D_8011D498_ChillyWaters[9] = {
+    -1, -1, -1, -1, -1, -1, -1, -1,
+    -1,
+};
+s32 D_8011D4BC_ChillyWaters[9] = {
+    -1, -1, -1, -1, -1, -1, -1, -1,
+    -1,
+};
+s32 D_8011D4E0_ChillyWaters[9] = {
+    -1, -1, -1, -1, -1, -1, -1, -1,
+    -1,
+};
+s16 D_8011D504_ChillyWaters[2] = {
+    113, 111,
+};
+s16 D_8011D508_ChillyWaters[2] = {
+    115, 110,
+};
+DecisionTreeNonLeafNode D_8011D50C_ChillyWaters[3] = {
+    { 2, { .data = 0x00000001 }, { .data = 0x1C96A846 } },
+    { 2, { .data = 0x00000042 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D530_ChillyWaters[3] = {
+    { 2, { .data = 0x00000001 }, { .data = 0x1C96A846 } },
+    { 3, { .data = 0x00000002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D554_ChillyWaters[3] = {
+    { 2, { .data = 0x00000042 }, { .data = 0x1C96A846 } },
+    { 3, { .data = 0x00000002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * mb1ev_Branch2ComTree[3] = {
+    D_8011D50C_ChillyWaters, D_8011D530_ChillyWaters, D_8011D554_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D584_ChillyWaters[3] = {
+    { 2, { .data = 0x00000002 }, { .data = 0x0C96A846 } },
+    { 2, { .data = 0x00000040 }, { .data = 0x1C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D5A8_ChillyWaters[3] = {
+    { 2, { .data = 0x00000001 }, { .data = 0x0C96A846 } },
+    { 2, { .data = 0x00000040 }, { .data = 0x1C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D5CC_ChillyWaters[3] = {
+    { 2, { .data = 0x00000002 }, { .data = 0x1C96A846 } },
+    { 2, { .data = 0x00000001 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D5F0_ChillyWaters[3] = {
+    D_8011D584_ChillyWaters, D_8011D5A8_ChillyWaters, D_8011D5CC_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D5FC_ChillyWaters[4] = {
+    { 2, { .data = 0x00000043 }, { .data = 0x0B54233C } },
+    { 2, { .data = 0x00000004 }, { .data = 0x064C9932 } },
+    { 2, { .data = 0x00000038 }, { .data = 0x1C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D62C_ChillyWaters[3] = {
+    { 2, { .data = 0x00000038 }, { .data = 0x1C96A846 } },
+    { 2, { .data = 0x00000047 }, { .data = 0x0A119E32 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D650_ChillyWaters[2] = {
+    { 2, { .data = 0x00000047 }, { .data = 0x1A119E32 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D668_ChillyWaters[3] = {
+    D_8011D5FC_ChillyWaters, D_8011D62C_ChillyWaters, D_8011D650_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D674_ChillyWaters[4] = {
+    { 3, { .data = 0x00000004 }, { .data = 0x1BF6A33C } },
+    { 3, { .data = 0x00000010 }, { .data = 0x0BF6A33C } },
+    { 3, { .data = 0x00000003 }, { .data = 0x0BF6A33C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D6A4_ChillyWaters[2] = {
+    { 3, { .data = 0x00000002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011D674_ChillyWaters } },
+};
+DecisionTreeNonLeafNode D_8011D6BC_ChillyWaters[2] = {
+    { 3, { .data = 0x00000004 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011D674_ChillyWaters } },
+};
+DecisionTreeNonLeafNode D_8011D6D4_ChillyWaters[4] = {
+    { 2, { .data = 0x00000004 }, { .data = 0x0C96A846 } },
+    { 5, { .data = 0x0000000C }, { .node_data = D_8011D6A4_ChillyWaters } },
+    { 12, { .data = 0x0000000A }, { .node_data = D_8011D6BC_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x164C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D704_ChillyWaters[3] = {
+    { 3, { .data = 0x00000008 }, { .data = 0x1B54233C } },
+    { 3, { .data = 0x00000020 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011D674_ChillyWaters } },
+};
+DecisionTreeNonLeafNode D_8011D728_ChillyWaters[3] = {
+    { 2, { .data = 0x0000000A }, { .node_data = D_8011D704_ChillyWaters } },
+    { 8, { .data = 0x00000001 }, { .node_data = D_8011D6D4_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011D674_ChillyWaters } },
+};
+DecisionTreeNonLeafNode D_8011D74C_ChillyWaters[2] = {
+    { 2, { .data = 0x00000008 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D764_ChillyWaters[2] = {
+    { 2, { .data = 0x00000008 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * mb1ev_Branch3RevComTree[3] = {
+    D_8011D728_ChillyWaters, D_8011D74C_ChillyWaters, D_8011D764_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D788_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D794_ChillyWaters[3] = {
+    { 2, { .data = 0x0000001C }, { .data = 0x0B54233C } },
+    { 2, { .data = 0x000000E3 }, { .data = 0x1B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D7B8_ChillyWaters[2] = {
+    { 2, { .data = 0x0000000E }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x1B54233C } },
+};
+DecisionTreeNonLeafNode D_8011D7D0_ChillyWaters[3] = {
+    { 2, { .data = 0x0000000E }, { .data = 0x0B54233C } },
+    { 2, { .data = 0x00000010 }, { .data = 0x1B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D7F4_ChillyWaters[3] = {
+    D_8011D794_ChillyWaters, D_8011D7B8_ChillyWaters, D_8011D7D0_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D800_ChillyWaters[4] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x1B54233C } },
+    { 2, { .data = 0x00000020 }, { .data = 0x0C96A846 } },
+    { 2, { .data = 0x000000C3 }, { .data = 0x1C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D830_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x18CF1928 } },
+};
+DecisionTreeNonLeafNode D_8011D83C_ChillyWaters[2] = {
+    { 2, { .data = 0x00000020 }, { .data = 0x1C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A846 } },
+};
+DecisionTreeNonLeafNode * D_8011D854_ChillyWaters[3] = {
+    D_8011D800_ChillyWaters, D_8011D830_ChillyWaters, D_8011D83C_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D860_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D86C_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D878_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D884_ChillyWaters[3] = {
+    D_8011D860_ChillyWaters, D_8011D86C_ChillyWaters, D_8011D878_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D890_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D89C_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D8A8_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D8B4_ChillyWaters[3] = {
+    D_8011D890_ChillyWaters, D_8011D89C_ChillyWaters, D_8011D8A8_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D8C0_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D8CC_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D8D8_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D8E4_ChillyWaters[3] = {
+    D_8011D8C0_ChillyWaters, D_8011D8CC_ChillyWaters, D_8011D8D8_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D8F0_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D8FC_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D908_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D914_ChillyWaters[3] = {
+    D_8011D8F0_ChillyWaters, D_8011D8FC_ChillyWaters, D_8011D908_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D920_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D92C_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D938_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D944_ChillyWaters[3] = {
+    D_8011D920_ChillyWaters, D_8011D92C_ChillyWaters, D_8011D938_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D950_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D95C_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D968_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D974_ChillyWaters[3] = {
+    D_8011D950_ChillyWaters, D_8011D95C_ChillyWaters, D_8011D968_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D980_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D98C_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_8011D998_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011D9A4_ChillyWaters[3] = {
+    D_8011D980_ChillyWaters, D_8011D98C_ChillyWaters, D_8011D998_ChillyWaters,
+};
+DecisionTreeNonLeafNode D_8011D9B0_ChillyWaters[2] = {
+    { 9, { .data = 0x00000010 }, { .data = 0x1B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0A119E32 } },
+};
+DecisionTreeNonLeafNode D_8011D9C8_ChillyWaters[3] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x0B541E32 } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011D9B0_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0A119E32 } },
+};
+DecisionTreeNonLeafNode D_8011D9EC_ChillyWaters[2] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x1C96A33C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0A119E32 } },
+};
+DecisionTreeNonLeafNode D_8011DA04_ChillyWaters[2] = {
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011D9EC_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x1BF6A33C } },
+};
+DecisionTreeNonLeafNode D_8011DA1C_ChillyWaters[2] = {
+    { 9, { .data = 0x00000008 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x1A119E32 } },
+};
+DecisionTreeNonLeafNode D_8011DA34_ChillyWaters[3] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x1B541E32 } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011DA1C_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode * D_8011DA58_ChillyWaters[3] = {
+    D_8011D9C8_ChillyWaters, D_8011DA04_ChillyWaters, D_8011DA34_ChillyWaters,
+};
+event_list_entry D_8011DA64_ChillyWaters[2] = {
+    { 8, 1, MB1Ev_Branch1 },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DA74_ChillyWaters[2] = {
+    { 1, 1, MB1Ev_Branch1Rev },
+    { 0, 0, NULL },
+};
+s16 mb1ev_Branch2Masu[3][3] = {
+    { 77, 53, -1 },
+    { 66, 53, -1 },
+    { 66, 77, -1 },
+};
+BranchLink mb1ev_Branch2Link[3][2] = {
+    { { 15, 0, 0 }, { 2, 0, 0 } },
+    { { 1, 12, 1 }, { 2, 0, 0 } },
+    { { 1, 12, 1 }, { 15, 0, 0 } },
+};
+event_list_entry D_8011DABC_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Branch2 },
+    { 0, 0, NULL },
+};
+s16 D_8011DACC_ChillyWaters[3][3] = {
+    { 50, 51, -1 },
+    { 57, 51, -1 },
+    { 57, 50, -1 },
+};
+BranchLink D_8011DAE0_ChillyWaters[3][2] = {
+    { { 3, 5, 1 }, { 4, 0, 0 } },
+    { { 2, 3, 0 }, { 4, 0, 0 } },
+    { { 2, 3, 0 }, { 3, 5, 1 } },
+};
+event_list_entry D_8011DB04_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Branch2Rev },
+    { 0, 0, NULL },
+};
+s16 D_8011DB14_ChillyWaters[3][3] = {
+    { 45, 8, -1 },
+    { 7, 8, -1 },
+    { 7, 45, -1 },
+};
+BranchLink D_8011DB28_ChillyWaters[3][2] = {
+    { { 3, 0, 0 }, { 5, 0, 0 } },
+    { { 15, 9, 1 }, { 5, 0, 0 } },
+    { { 15, 9, 1 }, { 3, 0, 0 } },
+};
+event_list_entry D_8011DB4C_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Branch3 },
+    { 0, 0, NULL },
+};
+s16 mb1ev_Branch3RevMasu[3][3] = {
+    { 75, 20, -1 },
+    { 19, 20, -1 },
+    { 19, 75, -1 },
+};
+BranchLink mb1ev_Branch3RevLink[3][2] = {
+    { { 6, 0, 0 }, { 10, 0, 0 } },
+    { { 5, 10, 1 }, { 10, 0, 0 } },
+    { { 5, 10, 1 }, { 6, 0, 0 } },
+};
+event_list_entry D_8011DB94_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Branch3Rev },
+    { 0, 0, NULL },
+};
+s16 D_8011DBA4_ChillyWaters[4] = {
+    87, 70, 61, -1,
+};
+s16 D_8011DBAC_ChillyWaters[4] = {
+    87, 70, -1, 0,
+};
+s16 D_8011DBB4_ChillyWaters[6] = {
+    87, 70, 61, 86, -1, 0,
+};
+s16 D_8011DBC0_ChillyWaters[6] = {
+    60, 70, 61, 86, -1, 0,
+};
+s16 D_8011DBCC_ChillyWaters[6] = {
+    60, 87, 61, 86, -1, 0,
+};
+s16 D_8011DBD8_ChillyWaters[6] = {
+    60, 87, 70, 86, -1, 0,
+};
+s16 D_8011DBE4_ChillyWaters[6] = {
+    60, 87, 70, 61, -1, 0,
+};
+event_list_entry D_8011DBF0_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Branch4 },
+    { 0, 0, NULL },
+};
+s16 D_8011DC00_ChillyWaters[3][3] = {
+    { 79, 31, -1 },
+    { 30, 31, -1 },
+    { 30, 79, -1 },
+};
+BranchLink D_8011DC14_ChillyWaters[3][2] = {
+    { { 11, 0, 0 }, { 12, 1, 0 } },
+    { { 10, 10, 1 }, { 12, 1, 0 } },
+    { { 10, 10, 1 }, { 11, 0, 0 } },
+};
+event_list_entry D_8011DC38_ChillyWaters[2] = {
+    { 1, 2, func_80109390_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DC48_ChillyWaters[3][3] = {
+    { 95, 35, -1 },
+    { 34, 35, -1 },
+    { 34, 95, -1 },
+};
+BranchLink D_8011DC5C_ChillyWaters[3][2] = {
+    { { 13, 0, 0 }, { 14, 0, 0 } },
+    { { 12, 3, 1 }, { 14, 0, 0 } },
+    { { 12, 3, 1 }, { 13, 0, 0 } },
+};
+event_list_entry D_8011DC80_ChillyWaters[2] = {
+    { 1, 2, func_801093C8_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DC90_ChillyWaters[3][3] = {
+    { 33, 69, -1 },
+    { 11, 69, -1 },
+    { 11, 33, -1 },
+};
+BranchLink D_8011DCA4_ChillyWaters[3][2] = {
+    { { 1, 9, 0 }, { 16, 4, 1 } },
+    { { 1, 7, 1 }, { 16, 4, 1 } },
+    { { 1, 7, 1 }, { 1, 9, 0 } },
+};
+event_list_entry D_8011DCC8_ChillyWaters[2] = {
+    { 1, 1, func_80109430_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DCD8_ChillyWaters[3][3] = {
+    { 2, 52, -1 },
+    { 88, 52, -1 },
+    { 88, 2, -1 },
+};
+BranchLink D_8011DCEC_ChillyWaters[3][2] = {
+    { { 15, 3, 0 }, { 4, 1, 1 } },
+    { { 15, 1, 1 }, { 4, 1, 1 } },
+    { { 15, 1, 1 }, { 15, 3, 0 } },
+};
+event_list_entry D_8011DD10_ChillyWaters[2] = {
+    { 1, 1, func_801094A4_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DD20_ChillyWaters[3][3] = {
+    { 92, 94, -1 },
+    { 78, 94, -1 },
+    { 78, 92, -1 },
+};
+BranchLink D_8011DD34_ChillyWaters[3][2] = {
+    { { 7, 5, 1 }, { 7, 7, 0 } },
+    { { 6, 4, 1 }, { 7, 7, 0 } },
+    { { 6, 4, 1 }, { 7, 5, 1 } },
+};
+event_list_entry D_8011DD58_ChillyWaters[2] = {
+    { 1, 1, func_80109518_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DD68_ChillyWaters[3][3] = {
+    { 84, 97, -1 },
+    { 82, 97, -1 },
+    { 82, 84, -1 },
+};
+BranchLink D_8011DD7C_ChillyWaters[3][2] = {
+    { { 11, 5, 0 }, { 13, 2, 1 } },
+    { { 11, 3, 1 }, { 13, 2, 1 } },
+    { { 11, 3, 1 }, { 11, 5, 0 } },
+};
+event_list_entry D_8011DDA0_ChillyWaters[2] = {
+    { 1, 1, func_8010958C_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DDB0_ChillyWaters[3][3] = {
+    { 13, 94, -1 },
+    { 10, 94, -1 },
+    { 10, 13, -1 },
+};
+BranchLink D_8011DDC4_ChillyWaters[3][2] = {
+    { { 5, 4, 0 }, { 7, 7, 1 } },
+    { { 5, 2, 1 }, { 7, 7, 1 } },
+    { { 5, 2, 1 }, { 5, 4, 0 } },
+};
+event_list_entry D_8011DDE8_ChillyWaters[2] = {
+    { 1, 1, func_80109600_ChillyWaters },
+    { 0, 0, NULL },
+};
+s16 D_8011DDF8_ChillyWaters[3][3] = {
+    { 58, 122, -1 },
+    { 56, 122, -1 },
+    { 56, 58, -1 },
+};
+BranchLink D_8011DE0C_ChillyWaters[3][2] = {
+    { { 2, 4, 0 }, { 3, 6, 1 } },
+    { { 2, 2, 1 }, { 3, 6, 1 } },
+    { { 2, 2, 1 }, { 2, 4, 0 } },
+};
+event_list_entry D_8011DE30_ChillyWaters[2] = {
+    { 1, 1, func_80109674_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE40_ChillyWaters[2] = {
+    { 1, 1, func_801096B8_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE50_ChillyWaters[2] = {
+    { 1, 1, func_80109718_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE60_ChillyWaters[2] = {
+    { 1, 1, func_8010973C_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE70_ChillyWaters[2] = {
+    { 1, 1, func_80109760_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE80_ChillyWaters[2] = {
+    { 1, 1, func_80109784_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DE90_ChillyWaters[2] = {
+    { 1, 1, func_801097E4_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DEA0_ChillyWaters[3] = {
+    { 1, 1, func_80109808_ChillyWaters },
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DEB8_ChillyWaters[3] = {
+    { 1, 1, func_8010982C_ChillyWaters },
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DED0_ChillyWaters[2] = {
+    { 1, 1, func_80109850_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DEE0_ChillyWaters[3] = {
+    { 1, 1, func_80109874_ChillyWaters },
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DEF8_ChillyWaters[2] = {
+    { 1, 1, func_801098D4_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF08_ChillyWaters[2] = {
+    { 1, 1, func_801098F8_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF18_ChillyWaters[2] = {
+    { 1, 1, func_8010991C_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF28_ChillyWaters[3] = {
+    { 1, 1, func_80109940_ChillyWaters },
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF40_ChillyWaters[2] = {
+    { 1, 1, func_80109964_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF50_ChillyWaters[2] = {
+    { 1, 1, func_80109988_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF60_ChillyWaters[2] = {
+    { 1, 1, func_801099AC_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF70_ChillyWaters[2] = {
+    { 1, 1, func_801099D0_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF80_ChillyWaters[3] = {
+    { 8, 1, func_801099F4_ChillyWaters },
+    { 1, 1, func_80109A28_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DF98_ChillyWaters[2] = {
+    { 1, 1, func_80109A6C_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DFA8_ChillyWaters[2] = {
+    { 1, 1, func_80109A90_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DFB8_ChillyWaters[2] = {
+    { 1, 1, func_80109AB4_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011DFC8_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_KeyManMasu },
+    { 0, 0, NULL },
+};
+s16 D_8011DFD8_ChillyWaters[3][3] = {
+    { 21, 24, -1 },
+    { 74, 24, -1 },
+    { 74, 21, -1 },
+};
+BranchLink D_8011DFEC_ChillyWaters[3][2] = {
+    { { 10, 1, 1 }, { 10, 3, 0 } },
+    { { 8, 6, 1 }, { 10, 3, 0 } },
+    { { 8, 6, 1 }, { 10, 1, 1 } },
+};
+s16 D_8011E010_ChillyWaters[3][3] = {
+    { 64, 37, -1 },
+    { 38, 37, -1 },
+    { 38, 64, -1 },
+};
+BranchLink D_8011E024_ChillyWaters[3][2] = {
+    { { 9, 6, 1 }, { 14, 2, 1 } },
+    { { 1, 0, 0 }, { 14, 2, 1 } },
+    { { 1, 0, 0 }, { 9, 6, 1 } },
+};
+event_list_entry D_8011E048_ChillyWaters[2] = {
+    { 1, 1, MB1Ev_StarMasu },
+    { 0, 0, NULL },
+};
+DecisionTreeNonLeafNode D_8011E058_ChillyWaters[2] = {
+    { 4, { .data = 0x00F50014 }, { .data = 0x0B541E1E } },
+    { 0, { .data = 0x00000000 }, { .data = 0x1B541E1E } },
+};
+u32 D_8011E070_ChillyWaters[2] = {
+    0x1, 0xA009D,
+};
+event_list_entry D_8011E078_ChillyWaters[2] = {
+    { 1, 1, MB1Ev_BankMasu },
+    { 0, 0, NULL },
+};
+u8 D_8011E088_ChillyWaters[24] = {
+    0, 0, 0, 0, 1, 0, 0, 0,
+    2, 3, 4, 4, 0, 0, 0, 0,
+    1, 0, 0, 0, 2, 3, 4, 4,
+};
+s8 D_8011E0A0_ChillyWaters[2][5][7] = {
+    { { 0, 1, 4, 5, 10, 14, 19 }, { 0, 1, 4, 5, 10, 12, 19 }, { 0, 1, 4, 5, 10, 19, -1 }, { 0, 1, 4, 8, 10, 12, 19 }, { 0, 1, 8, 10, 12, 14, 19 } },
+    { { 1, 2, 3, 6, 13, 11, 19 }, { 1, 2, 3, 6, 9, 13, 19 }, { 1, 2, 3, 7, 13, 19, -1 }, { 1, 3, 6, 7, 9, 13, 19 }, { 1, 3, 6, 7, 9, 11, 19 } },
+};
+s32 D_8011E0E8_ChillyWaters[6] = {
+    257, 0x1020203, 0x2030304, 257, 0x1020203, 0x2030304,
+};
+u8 D_8011E100_ChillyWaters[100] = {
+    25, 55, 65, 76, 81, 86, 91, 96,
+    98, 100, 30, 50, 60, 70, 75, 85,
+    90, 95, 97, 100, 25, 45, 52, 62,
+    67, 82, 88, 95, 97, 100, 20, 35,
+    40, 45, 55, 75, 85, 95, 97, 100,
+    15, 25, 30, 40, 45, 70, 80, 92,
+    95, 100, 33, 53, 68, 73, 78, 83,
+    93, 98, 100, 0, 25, 40, 55, 63,
+    73, 81, 91, 98, 100, 0, 20, 38,
+    58, 68, 75, 82, 90, 98, 100, 0,
+    15, 35, 55, 65, 72, 79, 85, 97,
+    100, 0, 15, 25, 45, 55, 65, 75,
+    80, 95, 100, 0,
+};
+u8 D_8011E164_ChillyWaters[20] = {
+    0, 1, 4, 5, 8, 10, 12, 14,
+    15, 16, 1, 2, 3, 6, 7, 9,
+    13, 11, 17, 1,
+};
+s32 D_8011E178_ChillyWaters[10] = {
+    15109, 15621, 15110, 15622, 15111, 15623, 15112, 15624,
+    15113, 15625,
+};
+s32 D_8011E1A0_ChillyWaters[2] = {
+    15104, 15616,
+};
+s32 D_8011E1A8_ChillyWaters[2] = {
+    15105, 15617,
+};
+s32 D_8011E1B0_ChillyWaters[2] = {
+    15106, 15618,
+};
+s32 D_8011E1B8_ChillyWaters[2] = {
+    15107, 15619,
+};
+s32 D_8011E1C0_ChillyWaters[2] = {
+    15108, 15620,
+};
+s32 D_8011E1C8_ChillyWaters[2] = {
+    1, 0xA0017,
+};
+s32 D_8011E1D0_ChillyWaters[2] = {
+    1, 0xA00F0,
+};
+s32 D_8011E1D8_ChillyWaters = 0;
+event_list_entry D_8011E1DC_ChillyWaters[2] = {
+    { 1, 1, MB1Ev_ShopMasu },
+    { 0, 0, NULL },
+};
+f32 D_8011E1EC_ChillyWaters[4][2] = {
+    { 76.0f, 52.0f },
+    { 244.0f, 52.0f },
+    { 76.0f, 192.0f },
+    { 244.0f, 192.0f },
+};
+f32 D_8011E20C_ChillyWaters[4][2] = {
+    { -1.0f, -1.0f },
+    { 1.0f, -1.0f },
+    { -1.0f, 1.0f },
+    { 1.0f, 1.0f },
+};
+u8 D_8011E22C_ChillyWaters[6][3] = {
+    { 1, 5, 15 },
+    { 6, 15, 25 },
+    { 16, 25, 27 },
+    { 26, 35, 30 },
+    { 36, 45, 32 },
+    { 46, 50, 35 },
+};
+u8 D_8011E240_ChillyWaters[14][3] = {
+    { 0, 0, 0 },
+    { 1, 10, 1 },
+    { 11, 11, 4 },
+    { 12, 14, 2 },
+    { 15, 15, 4 },
+    { 16, 23, 3 },
+    { 24, 33, 4 },
+    { 34, 37, 5 },
+    { 38, 39, 2 },
+    { 40, 49, 6 },
+    { 50, 54, 5 },
+    { 55, 63, 7 },
+    { 64, 64, 8 },
+    { 65, 255, 9 },
+};
+u8 D_8011E26C_ChillyWaters[8] = {
+    9, 7, 4, 1, 0, 0, 0, 0,
+};
+s32 D_8011E274_ChillyWaters[3] = {
+    50, 80, 100,
+};
+s32 D_8011E280_ChillyWaters[7] = {
+    1, 0, 1, 0, 0, 1, 0,
+};
+event_list_entry D_8011E29C_ChillyWaters[2] = {
+    { 1, 1, MB1Ev_Teresa },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011E2AC_ChillyWaters[2] = {
+    { 1, 1, func_8010F050_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_list_entry D_8011E2BC_ChillyWaters[2] = {
+    { 1, 1, func_8010F06C_ChillyWaters },
+    { 0, 0, NULL },
+};
+event_table_entry mb1_CommonEventTbl[15] = {
+    { 54, D_8011E048_ChillyWaters },
+    { 47, D_8011E048_ChillyWaters },
+    { 94, D_8011E048_ChillyWaters },
+    { 18, D_8011E048_ChillyWaters },
+    { 81, D_8011E048_ChillyWaters },
+    { 96, D_8011E048_ChillyWaters },
+    { 77, D_8011E048_ChillyWaters },
+    { 41, D_8011E048_ChillyWaters },
+    { 55, D_8011E078_ChillyWaters },
+    { 23, D_8011E078_ChillyWaters },
+    { 119, D_8011E1DC_ChillyWaters },
+    { 124, D_8011E1DC_ChillyWaters },
+    { 109, D_8011E2AC_ChillyWaters },
+    { 147, D_8011E2BC_ChillyWaters },
+    { -1, NULL },
+};
+event_table_entry mb1_TeresaEventTbl[2] = {
+    { 146, D_8011E29C_ChillyWaters },
+    { -1, NULL },
+};
+f32 D_8011E354_ChillyWaters[4][2] = {
+    { 164.0f, 76.0f },
+    { 140.0f, 76.0f },
+    { 164.0f, 76.0f },
+    { 140.0f, 76.0f },
+};
+f32 D_8011E374_ChillyWaters[4][2] = {
+    { 132.0f, 62.0f },
+    { 220.0f, 62.0f },
+    { 132.0f, 180.0f },
+    { 220.0f, 180.0f },
+};
+f32 D_8011E394_ChillyWaters[4][2] = {
+    { 164.0f, 66.0f },
+    { 164.0f, 66.0f },
+    { 164.0f, 66.0f },
+    { 164.0f, 66.0f },
+};
+f32 D_8011E3B4_ChillyWaters[4][2] = {
+    { 164.0f, 76.0f },
+    { 164.0f, 76.0f },
+    { 164.0f, 76.0f },
+    { 164.0f, 76.0f },
+};
+DecisionTreeNonLeafNode D_8011E3D4_ChillyWaters[9] = {
+    { 13, { .data = 0x00000000 }, { .data = 0x0A142850 } },
+    { 13, { .data = 0x00000001 }, { .data = 0x064C9932 } },
+    { 13, { .data = 0x00000002 }, { .data = 0x03C78F1E } },
+    { 13, { .data = 0x00000003 }, { .data = 0x08D1A346 } },
+    { 13, { .data = 0x00000004 }, { .data = 0x078F1E3C } },
+    { 13, { .data = 0x00000005 }, { .data = 0x064C9932 } },
+    { 13, { .data = 0x00000006 }, { .data = 0x03C78F1E } },
+    { 13, { .data = 0x00000007 }, { .data = 0x078F1E3C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+s32 D_8011E440_ChillyWaters[5] = {
+    20, 60, 30, 50, 70,
+};
+DecisionTreeNonLeafNode D_8011E454_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x0C993264 } },
+};
+f32 D_8011E460_ChillyWaters[6][2] = {
+    { -10.0f, 0.0f },
+    { 10.0f, -5.0f },
+    { 10.0f, 5.0f },
+    { -5.0f, -5.0f },
+    { 10.0f, 0.0f },
+    { -5.0f, 5.0f },
+};
+s32 D_8011E490_ChillyWaters = -1;
+u8 D_8011E494_ChillyWaters[4] = {
+    67, 68, 69, 0,
+};
+u8 D_8011E498_ChillyWaters[4] = {
+    20, 60, 100, 0,
+};
+u16 D_8011E49C_ChillyWaters[7][2] = {
+    { 0x0, 0x32 },
+    { 0x2, 0x50 },
+    { 0x4, 0x5A },
+    { 0x8, 0x5E },
+    { 0x10, 0x61 },
+    { 0x20, 0x63 },
+    { 0x40, 0x64 },
+};
+RGB D_8011E4B8_ChillyWaters[2] = {
+    { 240, 222, 53 }, { 247, 26, 66 },
+};
+event_list_entry D_8011E4C0_ChillyWaters[3] = {
+    { 7, 1, MB1Ev_NKinokoTurnStart },
+    { 7, 1, MB1Ev_RKinokoTurnStart },
+    { 0, 0, NULL },
+};
+event_table_entry mb1_TurnStatusEventTbl[2] = {
+    { -5, D_8011E4C0_ChillyWaters },
+    { -1, NULL },
+};
+event_list_entry D_8011E4E8_ChillyWaters[4] = {
+    { 9, 1, func_80118AE8_ChillyWaters },
+    { 1, 1, MB1Ev_Turuturu },
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+DecisionTreeNonLeafNode D_8011E508_ChillyWaters[4] = {
+    { 2, { .data = 0x00000043 }, { .data = 0x0A119E32 } },
+    { 12, { .data = 0x00000019 }, { .data = 0x00000F32 } },
+    { 2, { .data = 0x000000A8 }, { .data = 0x0C96A332 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A28F32 } },
+};
+DecisionTreeNonLeafNode D_8011E538_ChillyWaters[2] = {
+    { 2, { .data = 0x000000E1 }, { .data = 0x0B542332 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A50F32 } },
+};
+DecisionTreeNonLeafNode D_8011E550_ChillyWaters[2] = {
+    { 2, { .data = 0x000000C1 }, { .data = 0x0B542332 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A50F32 } },
+};
+DecisionTreeNonLeafNode D_8011E568_ChillyWaters[2] = {
+    { 2, { .data = 0x0000000E }, { .data = 0x0B542332 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A50F32 } },
+};
+DecisionTreeNonLeafNode D_8011E580_ChillyWaters[2] = {
+    { 8, { .data = 0x00000001 }, { .data = 0x0B541E32 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A50F32 } },
+};
+DecisionTreeNonLeafNode D_8011E598_ChillyWaters[3] = {
+    { 2, { .data = 0x00000002 }, { .data = 0x0B542332 } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011E580_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00A50F32 } },
+};
+DecisionTreeNonLeafNode * D_8011E5BC_ChillyWaters[4] = {
+    D_8011E538_ChillyWaters, D_8011E550_ChillyWaters, D_8011E568_ChillyWaters, D_8011E598_ChillyWaters,
+};
+s16 D_8011E5CC_ChillyWaters[18] = {
+    134, 17, 18, 19, 141, 20, 21, 23,
+    24, 25, 143, 26, 27, 28, 29, 30,
+    144, -1,
+};
+s16 D_8011E5F0_ChillyWaters[10] = {
+    31, 32, 34, 145, 35, 36, 37, 146,
+    38, -1,
+};
+s16 D_8011E604_ChillyWaters[18] = {
+    127, 144, 30, 29, 28, 27, 26, 143,
+    25, 24, 23, 21, 20, 141, 19, 18,
+    17, -1,
+};
+s16 D_8011E628_ChillyWaters[10] = {
+    16, 15, 14, 13, 12, 10, 9, 8,
+    -1, 0,
+};
+s16 * D_8011E63C_ChillyWaters[4] = {
+    D_8011E5CC_ChillyWaters, D_8011E5F0_ChillyWaters, D_8011E604_ChillyWaters, D_8011E628_ChillyWaters,
+};
+s16 D_8011E64C_ChillyWaters[4] = {
+    31, 39, 16, 45,
+};
+s16 D_8011E654_ChillyWaters[4] = {
+    127, 38, 126, 8,
+};
+s16 D_8011E65C_ChillyWaters[4] = {
+    18, 31, 144, 16,
+};
+f32 D_8011E664_ChillyWaters[2][2] = {
+    { -7.0f, 0.0f },
+    { 7.0f, 0.0f },
+};
+f32 D_8011E674_ChillyWaters[3][2] = {
+    { -7.0f, 4.0f },
+    { 7.0f, 4.0f },
+    { 0.0f, -8.0f },
+};
+f32 D_8011E68C_ChillyWaters[4][2] = {
+    { -7.0f, 4.0f },
+    { 7.0f, 4.0f },
+    { -7.0f, -8.0f },
+    { 7.0f, -8.0f },
+};
+f32 D_8011E6AC_ChillyWaters[2][2] = {
+    { -7.0f, -7.0f },
+    { 7.0f, 7.0f },
+};
+event_list_entry D_8011E6BC_ChillyWaters[2] = {
+    { 1, 2, MB1Ev_Snowman },
+    { 0, 0, NULL },
+};
+s32 D_8011E6CC_ChillyWaters[4][2] = {
+    { 90, 17 },
+    { 71, 20 },
+    { 70, 35 },
+    { 87, 38 },
+};
+s16 D_8011E6EC_ChillyWaters[14] = {
+    90, 89, 87, 71, 70, 84, 85, 86,
+    62, 61, 58, 59, 60, -1,
+};
+event_list_entry D_8011E708_ChillyWaters[2] = {
+    { 5, 2, MB1Ev_Lake },
+    { 0, 0, NULL },
+};
+event_table_entry mb1_SpecialEventTbl[52] = {
+    { 107, D_8011DA64_ChillyWaters },
+    { 0, D_8011DA74_ChillyWaters },
+    { 108, D_8011DABC_ChillyWaters },
+    { 122, D_8011DB04_ChillyWaters },
+    { 130, D_8011DB4C_ChillyWaters },
+    { 141, D_8011DB94_ChillyWaters },
+    { 125, D_8011DBF0_ChillyWaters },
+    { 144, D_8011DC38_ChillyWaters },
+    { 145, D_8011DC80_ChillyWaters },
+    { 22, D_8011DCC8_ChillyWaters },
+    { 1, D_8011DD10_ChillyWaters },
+    { 93, D_8011DD58_ChillyWaters },
+    { 83, D_8011DDA0_ChillyWaters },
+    { 12, D_8011DDE8_ChillyWaters },
+    { 57, D_8011DE30_ChillyWaters },
+    { 53, D_8011DE40_ChillyWaters },
+    { 45, D_8011DE50_ChillyWaters },
+    { 51, D_8011DE60_ChillyWaters },
+    { 52, D_8011DE70_ChillyWaters },
+    { 75, D_8011DE80_ChillyWaters },
+    { 78, D_8011DE90_ChillyWaters },
+    { 87, D_8011DEA0_ChillyWaters },
+    { 70, D_8011DEB8_ChillyWaters },
+    { 74, D_8011DED0_ChillyWaters },
+    { 61, D_8011DEE0_ChillyWaters },
+    { 64, D_8011DEF8_ChillyWaters },
+    { 20, D_8011DF08_ChillyWaters },
+    { 79, D_8011DF18_ChillyWaters },
+    { 86, D_8011DF28_ChillyWaters },
+    { 95, D_8011DF40_ChillyWaters },
+    { 97, D_8011DF50_ChillyWaters },
+    { 35, D_8011DF60_ChillyWaters },
+    { 69, D_8011DF70_ChillyWaters },
+    { 120, D_8011DF80_ChillyWaters },
+    { 8, D_8011DF98_ChillyWaters },
+    { 38, D_8011DFA8_ChillyWaters },
+    { 31, D_8011DFB8_ChillyWaters },
+    { 90, D_8011E4E8_ChillyWaters },
+    { 71, D_8011E4E8_ChillyWaters },
+    { 62, D_8011E4E8_ChillyWaters },
+    { 143, D_8011E6BC_ChillyWaters },
+    { 123, D_8011DFC8_ChillyWaters },
+    { 121, D_8011DFC8_ChillyWaters },
+    { 76, D_8011DFC8_ChillyWaters },
+    { 63, D_8011DFC8_ChillyWaters },
+    { 89, D_8011E708_ChillyWaters },
+    { 84, D_8011E708_ChillyWaters },
+    { 85, D_8011E708_ChillyWaters },
+    { 58, D_8011E708_ChillyWaters },
+    { 59, D_8011E708_ChillyWaters },
+    { 60, D_8011E708_ChillyWaters },
+    { -1, NULL },
+};
+RectF D_8011E8B8_ChillyWaters = { 0.0f, 0.0f, 320.0f, 240.0f };
+DecisionTreeNonLeafNode D_8011E8C8_ChillyWaters[4] = {
+    { 10, { .data = 0x000C0004 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000D0002 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000E0003 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011E8F8_ChillyWaters[13] = {
+    { 12, { .data = 0x0000000A }, { .data = 0x0000001E } },
+    { 16, { .data = 0x0000000A }, { .node_data = D_8011E8C8_ChillyWaters } },
+    { 12, { .data = 0x00000019 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x00010008 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00100004 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x0000001E }, { .data = 0x0000001E } },
+    { 10, { .data = 0x000A0204 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x00000023 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x0005080A }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00080006 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000A0001 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00060000 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011E994_ChillyWaters[9] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x00010B0C }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000F0006 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00030305 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00040001 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x00000019 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x0001040A }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00100104 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EA00_ChillyWaters[9] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x00010B0C }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000F0609 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00020006 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00030005 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x00000019 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x0001060A }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00100304 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EA6C_ChillyWaters[8] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x000F0009 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00020006 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00030305 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00040001 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00050003 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00070007 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EACC_ChillyWaters[9] = {
+    { 12, { .data = 0x00000014 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x000A0208 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x00000019 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x00020206 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x0005030A }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x00080006 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000A0001 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000B0307 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EB38_ChillyWaters[8] = {
+    { 12, { .data = 0x00000005 }, { .data = 0x0000001E } },
+    { 10, { .data = 0x000A020A }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000C0003 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000E0001 }, { .data = 0x0C96A846 } },
+    { 12, { .data = 0x0000000A }, { .data = 0x0000001E } },
+    { 10, { .data = 0x00080406 }, { .data = 0x0C96A846 } },
+    { 10, { .data = 0x000A0001 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EB98_ChillyWaters[7] = {
+    { 2, { .data = 0x00000041 }, { .node_data = D_8011E8F8_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011E994_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011EA00_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011EA6C_ChillyWaters } },
+    { 2, { .data = 0x00000030 }, { .node_data = D_8011EACC_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011EB38_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+s32 D_8011EBEC_ChillyWaters[3] = {
+    0, 0, 0xA119E32,
+};
+DecisionTreeNonLeafNode D_8011EBF8_ChillyWaters[7] = {
+    { 10, { .data = 0x0001090C }, { .data = 0x0000028A } },
+    { 10, { .data = 0x00020000 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x0001090C }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x00020000 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011EC4C_ChillyWaters[7] = {
+    { 10, { .data = 0x000F0709 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x00030001 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x000F0709 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x00030001 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011ECA0_ChillyWaters[5] = {
+    { 10, { .data = 0x00070106 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x00070106 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011ECDC_ChillyWaters[7] = {
+    { 10, { .data = 0x00050408 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x00050408 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x000A0004 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x000A0004 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011ED30_ChillyWaters[7] = {
+    { 10, { .data = 0x000A080A }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000B0001 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x000A080A }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000B0001 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011ED84_ChillyWaters[5] = {
+    { 10, { .data = 0x000C0103 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000D0000 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000D0000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011EDC0_ChillyWaters[5] = {
+    { 10, { .data = 0x0001080C }, { .data = 0x0000028A } },
+    { 11, { .data = 0x0001080C }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0002 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011EDFC_ChillyWaters[5] = {
+    { 10, { .data = 0x00010002 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000E0102 }, { .data = 0x0000028A } },
+    { 11, { .data = 0x0001080C }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0102 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x02878F1E } },
+};
+DecisionTreeNonLeafNode D_8011EE38_ChillyWaters[9] = {
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011EBF8_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011EC4C_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011ECA0_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011ECDC_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011ED30_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011ED84_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011EDC0_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011EDFC_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011EEA4_ChillyWaters[3] = {
+    { 10, { .data = 0x0001090C }, { .data = 0x0000028A } },
+    { 10, { .data = 0x00020000 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EEC8_ChillyWaters[3] = {
+    { 10, { .data = 0x000F0709 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x00030001 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EEEC_ChillyWaters[2] = {
+    { 10, { .data = 0x00070106 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EF04_ChillyWaters[2] = {
+    { 10, { .data = 0x00050408 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EF1C_ChillyWaters[3] = {
+    { 10, { .data = 0x000A080A }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000B0001 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EF40_ChillyWaters[3] = {
+    { 10, { .data = 0x000C0103 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000D0000 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EF64_ChillyWaters[2] = {
+    { 10, { .data = 0x0001080C }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EF7C_ChillyWaters[3] = {
+    { 10, { .data = 0x00010002 }, { .data = 0x0000028A } },
+    { 10, { .data = 0x000E0102 }, { .data = 0x0000028A } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0BF6A83C } },
+};
+DecisionTreeNonLeafNode D_8011EFA0_ChillyWaters[9] = {
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011EEA4_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011EEC8_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011EEEC_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011EF04_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011EF1C_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011EF40_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011EF64_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011EF7C_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F00C_ChillyWaters[2] = {
+    { 11, { .data = 0x0001090B }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F024_ChillyWaters[2] = {
+    { 11, { .data = 0x000F0709 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F03C_ChillyWaters[2] = {
+    { 11, { .data = 0x00070104 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F054_ChillyWaters[2] = {
+    { 11, { .data = 0x00050406 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F06C_ChillyWaters[2] = {
+    { 11, { .data = 0x000A080A }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F084_ChillyWaters[3] = {
+    { 11, { .data = 0x000C0102 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000A0A0A }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F0A8_ChillyWaters[2] = {
+    { 11, { .data = 0x0001080A }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F0C0_ChillyWaters[3] = {
+    { 11, { .data = 0x00010000 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0102 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F0E4_ChillyWaters[9] = {
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011F00C_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011F024_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011F03C_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011F054_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011F06C_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011F084_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011F0A8_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011F0C0_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F150_ChillyWaters[5] = {
+    { 10, { .data = 0x0001080A }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x000A0001 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00050A0A }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00040000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F18C_ChillyWaters[3] = {
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011F0E4_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011F150_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F1B0_ChillyWaters[4] = {
+    { 10, { .data = 0x00020206 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x000F0003 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00030305 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F1E0_ChillyWaters[4] = {
+    { 10, { .data = 0x00020404 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00030305 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00040001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F210_ChillyWaters[2] = {
+    { 10, { .data = 0x00050407 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F228_ChillyWaters[4] = {
+    { 10, { .data = 0x00050A0A }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00060000 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x000A0001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F258_ChillyWaters[3] = {
+    { 10, { .data = 0x000D0000 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F27C_ChillyWaters[2] = {
+    { 10, { .data = 0x000B0001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F294_ChillyWaters[4] = {
+    { 10, { .data = 0x000F0106 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00020006 }, { .data = 0x0B54233C } },
+    { 10, { .data = 0x00040001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F2C4_ChillyWaters[4] = {
+    { 10, { .data = 0x00010405 }, { .data = 0x0B54233C } },
+    { 12, { .data = 0x0000000A }, { .data = 0x00028A1E } },
+    { 10, { .data = 0x00010607 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F2F4_ChillyWaters[12] = {
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011F2C4_ChillyWaters } },
+    { 12, { .data = 0x00000005 }, { .data = 0x00000A1E } },
+    { 10, { .data = 0x00010004 }, { .data = 0x0BF6A33C } },
+    { 12, { .data = 0x00000014 }, { .data = 0x00028A1E } },
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011F1B0_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011F1E0_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011F210_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011F228_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011F258_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011F27C_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011F294_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F384_ChillyWaters[3] = {
+    { 11, { .data = 0x0001090C }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x00020000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F3A8_ChillyWaters[3] = {
+    { 11, { .data = 0x000F0709 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x00030001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F3CC_ChillyWaters[2] = {
+    { 11, { .data = 0x00070106 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F3E4_ChillyWaters[2] = {
+    { 11, { .data = 0x00050408 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F3FC_ChillyWaters[3] = {
+    { 11, { .data = 0x000A080A }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000B0001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F420_ChillyWaters[3] = {
+    { 11, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000D0000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F444_ChillyWaters[2] = {
+    { 11, { .data = 0x0001080C }, { .data = 0x0C94233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F45C_ChillyWaters[3] = {
+    { 11, { .data = 0x00010002 }, { .data = 0x0B54233C } },
+    { 11, { .data = 0x000E0102 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F480_ChillyWaters[9] = {
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011F384_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011F3A8_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011F3CC_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011F3E4_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011F3FC_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011F420_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011F444_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011F45C_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F4EC_ChillyWaters[2] = {
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011F2F4_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F504_ChillyWaters[3] = {
+    { 15, { .data = 0x0001090C }, { .data = 0x0B54233C } },
+    { 15, { .data = 0x00020000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F528_ChillyWaters[3] = {
+    { 15, { .data = 0x000F0709 }, { .data = 0x0B54233C } },
+    { 15, { .data = 0x00030001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F54C_ChillyWaters[2] = {
+    { 15, { .data = 0x00070106 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F564_ChillyWaters[2] = {
+    { 15, { .data = 0x00050408 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F57C_ChillyWaters[3] = {
+    { 15, { .data = 0x000A080A }, { .data = 0x0B54233C } },
+    { 15, { .data = 0x000B0001 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F5A0_ChillyWaters[3] = {
+    { 15, { .data = 0x000C0103 }, { .data = 0x0B54233C } },
+    { 15, { .data = 0x000D0000 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F5C4_ChillyWaters[2] = {
+    { 15, { .data = 0x0001080C }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F5DC_ChillyWaters[3] = {
+    { 15, { .data = 0x00010002 }, { .data = 0x0B54233C } },
+    { 15, { .data = 0x000E0102 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000A1E } },
+};
+DecisionTreeNonLeafNode D_8011F600_ChillyWaters[9] = {
+    { 2, { .data = 0x00000001 }, { .node_data = D_8011F504_ChillyWaters } },
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011F528_ChillyWaters } },
+    { 2, { .data = 0x00000004 }, { .node_data = D_8011F54C_ChillyWaters } },
+    { 2, { .data = 0x00000008 }, { .node_data = D_8011F564_ChillyWaters } },
+    { 2, { .data = 0x00000010 }, { .node_data = D_8011F57C_ChillyWaters } },
+    { 2, { .data = 0x00000020 }, { .node_data = D_8011F5A0_ChillyWaters } },
+    { 2, { .data = 0x00000040 }, { .node_data = D_8011F5C4_ChillyWaters } },
+    { 2, { .data = 0x00000080 }, { .node_data = D_8011F5DC_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F66C_ChillyWaters[2] = {
+    { 0, { .data = 0x00000000 }, { .node_data = D_8011F480_ChillyWaters } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F684_ChillyWaters[3] = {
+    { 8, { .data = 0x00000001 }, { .data = 0x00000514 } },
+    { 2, { .data = 0x00000004 }, { .data = 0x0B54233C } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F6A8_ChillyWaters[1] = {
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F6B4_ChillyWaters[2] = {
+    { 2, { .data = 0x000000B0 }, { .data = 0x08CF1932 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F6CC_ChillyWaters[2] = {
+    { 2, { .data = 0x00000041 }, { .data = 0x08CF1932 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x00000000 } },
+};
+DecisionTreeNonLeafNode D_8011F6E4_ChillyWaters[2] = {
+    { 1, { .data = 0x00000019 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0000051E } },
+};
+DecisionTreeNonLeafNode D_8011F6FC_ChillyWaters[3] = {
+    { 2, { .data = 0x00000002 }, { .node_data = D_8011F6E4_ChillyWaters } },
+    { 1, { .data = 0x00000019 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0B54233C } },
+};
+DecisionTreeNonLeafNode D_8011F720_ChillyWaters[2] = {
+    { 1, { .data = 0x0000001E }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0000051E } },
+};
+DecisionTreeNonLeafNode D_8011F738_ChillyWaters[3] = {
+    { 2, { .data = 0x00000030 }, { .node_data = D_8011F720_ChillyWaters } },
+    { 1, { .data = 0x00000019 }, { .data = 0x0C96A846 } },
+    { 0, { .data = 0x00000000 }, { .data = 0x0B54233C } },
+};
+s32 D_8011F75C_ChillyWaters = 0;
+u8 D_8011F760_ChillyWaters[16] = {
+    14, 10, 0, 3, 2, 4, 19, 11,
+    5, 6, 12, 13, 9, 7, 8, 1,
+};
+u8 D_8011F770_ChillyWaters[16] = {
+    14, 1, 11, 10, 19, 12, 0, 6,
+    9, 3, 13, 4, 8, 7, 2, 5,
+};
+u8 D_8011F780_ChillyWaters[16] = {
+    14, 11, 6, 9, 12, 7, 3, 13,
+    2, 4, 10, 19, 0, 8, 5, 1,
+};
+u8 D_8011F790_ChillyWaters[16] = {
+    14, 5, 9, 10, 11, 7, 19, 12,
+    0, 6, 3, 13, 4, 8, 2, 1,
+};
+u8 D_8011F7A0_ChillyWaters[16] = {
+    14, 8, 13, 11, 10, 19, 6, 7,
+    12, 0, 9, 3, 4, 2, 5, 1,
+};
+u8 D_8011F7B0_ChillyWaters[16] = {
+    14, 3, 11, 10, 19, 12, 0, 6,
+    9, 13, 4, 8, 7, 2, 5, 1,
+};
+u8 D_8011F7C0_ChillyWaters[16] = {
+    14, 2, 9, 3, 6, 7, 8, 5,
+    4, 19, 11, 13, 10, 12, 0, 1,
+};
+u8 D_8011F7D0_ChillyWaters[16] = {
+    14, 4, 19, 9, 11, 10, 3, 12,
+    7, 0, 1, 6, 13, 8, 2, 5,
+};
+u8* D_8011F7E0_ChillyWaters[8] = {
+    D_8011F760_ChillyWaters, D_8011F770_ChillyWaters, D_8011F780_ChillyWaters, D_8011F790_ChillyWaters, D_8011F7A0_ChillyWaters, D_8011F7B0_ChillyWaters, D_8011F7C0_ChillyWaters, D_8011F7D0_ChillyWaters,
+};
+s8 D_8011F800_ChillyWaters[16] = {
+    90, 70, 60, 30, 20, 20, 20, 20,
+    10, 10, 10, 10, 10, 10, 10, 10,
+};
+s8 D_8011F810_ChillyWaters[16] = {
+    80, 50, 20, 20, 20, 10, 20, 10,
+    10, 10, 20, 10, 10, 10, 10, 0,
+};
+s8 D_8011F820_ChillyWaters[16] = {
+    80, 30, 50, 30, 30, 20, 20, 20,
+    20, 20, 30, 20, 30, 10, 10, 10,
+};
+s8 D_8011F830_ChillyWaters[16] = {
+    90, 50, 20, 30, 20, 10, 20, 10,
+    30, 10, 10, 10, 10, 10, 10, 10,
+};
+s8 D_8011F840_ChillyWaters[16] = {
+    90, 50, 30, 30, 30, 20, 20, 20,
+    10, 30, 10, 10, 10, 10, 10, 10,
+};
+s8 D_8011F850_ChillyWaters[16] = {
+    90, 50, 30, 60, 20, 20, 30, 20,
+    10, 10, 10, 10, 10, 10, 10, 10,
+};
+s8 D_8011F860_ChillyWaters[16] = {
+    70, 40, 40, 40, 30, 20, 30, 30,
+    20, 40, 40, 30, 40, 10, 40, 10,
+};
+s8 D_8011F870_ChillyWaters[16] = {
+    80, 50, 60, 20, 20, 30, 20, 30,
+    10, 30, 20, 10, 10, 10, 10, 10,
+};
+s8* D_8011F880_ChillyWaters[8] = {
+    D_8011F800_ChillyWaters, D_8011F810_ChillyWaters, D_8011F820_ChillyWaters, D_8011F830_ChillyWaters, D_8011F840_ChillyWaters, D_8011F850_ChillyWaters, D_8011F860_ChillyWaters, D_8011F870_ChillyWaters,
+};
+DecisionTreeNonLeafNode* D_8011F8A0_ChillyWaters[2] = {
+    D_8011F684_ChillyWaters, D_8011F6A8_ChillyWaters,
+};
+DecisionTreeNonLeafNode* D_8011F8A8_ChillyWaters[2] = {
+    D_8011F6B4_ChillyWaters, D_8011F6CC_ChillyWaters,
+};
+DecisionTreeNonLeafNode* D_8011F8B0_ChillyWaters[4] = {
+    D_8011F6FC_ChillyWaters, D_8011F738_ChillyWaters, NULL, NULL,
+};
