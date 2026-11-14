@@ -24,7 +24,7 @@ void func_8010C8B4_inst(void);
 s32 func_8010C8E0_inst(u16 btn);
 void func_8010CBB8_inst(s32 page);
 void func_8010CC14_inst(void);
-void func_8010CDE4_inst(s32 mesId, s32 x, s32 y);
+void func_8010CDE4_inst(s32 mesId, s16 x, s16 y);
 void func_8010CED0_inst(s16 x, s16 y);
 void func_8010CF14_inst(void);
 void func_8010CFF4_inst(void);

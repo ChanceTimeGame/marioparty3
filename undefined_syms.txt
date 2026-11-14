@@ -96,3 +96,6 @@ D_8011E65E_ChillyWaters = D_8011E65C_ChillyWaters + 0x2;
 D_8011E668_ChillyWaters = D_8011E664_ChillyWaters + 0x4;
 D_8011E678_ChillyWaters = D_8011E674_ChillyWaters + 0x4;
 D_8011E690_ChillyWaters = D_8011E68C_ChillyWaters + 0x4;
+
+/* inst 4E5AA0: the GAMEMES inside D_8010DCD4_inst's bss space */
+D_8010DCD8_inst = D_8010DCD4_inst + 0x4;
