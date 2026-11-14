@@ -732,3 +732,33 @@ void func_80107A58_mgresultboard(void) {
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD0C_mgresultboard);
 
 const u8 D_8010AD24_mgresultboard[4] = { 1, 0, 0, 2 };
+
+/* .data */
+u32 D_8010AAF0_mgresultboard = 0;
+f32 D_8010AAF4_mgresultboard = 1.0f; /* animation speed: 4.0f when skipped (button or all CPUs) */
+s32 D_8010AAF8_mgresultboard = 0;
+s8 D_8010AAFC_mgresultboard = 0;
+s32 D_8010AB00_mgresultboard[3] = { 0, 0, 0 }; /* result sounds playing */
+s32 D_8010AB0C_mgresultboard = 0;
+Vec D_8010AB10_mgresultboard[4] = {
+    { 86.0f, 90.0f, 0.0f }, { 86.0f, 30.0f, 0.0f }, { 86.0f, -30.0f, 0.0f }, { 86.0f, -90.0f, 0.0f },
+};
+Vec D_8010AB40_mgresultboard[4] = {
+    { -84.0f, 90.0f, 0.0f }, { -84.0f, 30.0f, 0.0f }, { -84.0f, -30.0f, 0.0f }, { -84.0f, -90.0f, 0.0f },
+};
+Vec D_8010AB70_mgresultboard[8] = {
+    { 16.0f, 90.0f, 0.0f },  { 36.0f, 90.0f, 0.0f },  { 16.0f, 30.0f, 0.0f },  { 36.0f, 30.0f, 0.0f },
+    { 16.0f, -30.0f, 0.0f }, { 36.0f, -30.0f, 0.0f }, { 16.0f, -90.0f, 0.0f }, { 36.0f, -90.0f, 0.0f },
+};
+Vec D_8010ABD0_mgresultboard[12] = {
+    { 121.0f, 90.0f, 0.0f },  { 141.0f, 90.0f, 0.0f },  { 161.0f, 90.0f, 0.0f },
+    { 121.0f, 30.0f, 0.0f },  { 141.0f, 30.0f, 0.0f },  { 161.0f, 30.0f, 0.0f },
+    { 121.0f, -30.0f, 0.0f }, { 141.0f, -30.0f, 0.0f }, { 161.0f, -30.0f, 0.0f },
+    { 121.0f, -90.0f, 0.0f }, { 141.0f, -90.0f, 0.0f }, { 161.0f, -90.0f, 0.0f },
+};
+Vec D_8010AC60_mgresultboard[4] = {
+    { -142.5f, 90.0f, 0.0f }, { -142.5f, 30.0f, 0.0f }, { -142.5f, -30.0f, 0.0f }, { -142.5f, -90.0f, 0.0f },
+};
+Vec D_8010AC90_mgresultboard[4] = {
+    { -19.0f, 90.0f, 0.0f }, { -19.0f, 30.0f, 0.0f }, { -19.0f, -30.0f, 0.0f }, { -19.0f, -90.0f, 0.0f },
+};
