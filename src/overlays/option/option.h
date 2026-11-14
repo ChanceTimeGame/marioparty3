@@ -204,9 +204,8 @@ void func_801096B8_option(s32 arg0, s32 arg1, s32 arg2);
 void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y); /* world to screen */
 void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY); /* world to screen, current camera */
 void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *outX, s32 *outY);
-void func_80109A0C_option(s32 arg0, void *arg1, void *arg2, s32 arg3);
+
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void func_80109CB0_option(u32 arg0, s32 *arg1, s32 *arg2);
 u32 func_80109EF4_option(u32 arg0, s32 arg1);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
@@ -364,5 +363,9 @@ void func_801096E4_option(s32 arg0);
 s32 func_80109D04_option(s32 sel, s32 btn); /* top menu: A pressed (btn unused) */
 void func_8010A3E8_option(s32 sel, s32 arg1); /* arg1 unused */
 s32 func_8011345C_option(s32 arg0);
+
+void func_80109A0C_option(s32 arg0, Vec *from, Vec *to, s32 len); /* cursor glide between two world points */
+
+void func_80109CB0_option(s32 sel, s32 *x, s32 *y); /* cursor position of a sound-menu item */
 
 #endif

@@ -247,25 +247,117 @@ void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109A0C_option);
+void func_80109A0C_option(s32 arg0, Vec *from, Vec *to, s32 len) {
+    f32 p0[2];
+    f32 p1[2];
+    s32 x, y;
+    f32 t;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109B7C_option);
+    for (i = 0; i <= len; i++) {
+        func_80109908_option(from->x, from->y, from->z, &x, &y);
+        p0[0] = x;
+        p0[1] = y;
+        func_80109908_option(to->x, to->y, to->z, &x, &y);
+        p1[0] = x;
+        p1[1] = y;
+        t = (1.0f / len) * i;
+        func_80112028_option(arg0, t * (p1[0] - p0[0]) + p0[0], t * (p1[1] - p0[1]) + p0[1]);
+        HuPrcVSleep();
+    }
+    func_80112028_option(arg0, p1[0], p1[1]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109CB0_option);
+void func_80109B7C_option(s32 arg0, s32 x0, s32 y0, s32 x1, s32 y1, s32 len) {
+    f32 t;
+    s32 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B90_option);
+    for (i = 0; i <= len; i++) {
+        t = (1.0f / len) * i;
+        func_80112028_option(arg0, x0 + t * (x1 - x0), y0 + t * (y1 - y0));
+        HuPrcVSleep();
+    }
+    func_80112028_option(arg0, x1, y1);
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B9C_option);
+void func_80109CB0_option(s32 sel, s32 *x, s32 *y) {
+    s32 xpos = 160;
+    s32 ypos = 120;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113BA8_option);
+    switch (sel) {
+    case 0:
+        xpos = 160;
+        ypos = 80;
+        break;
+    case 1:
+    case 2:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 3:
+    case 4:
+        xpos = 160;
+        ypos = 110;
+        break;
+    case 5:
+        break;
+    }
+    *x = xpos;
+    *y = ypos;
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113BB4_option);
+s32 func_80109D04_option(s32 sel, s32 btn) {
+    switch (sel) {
+    case 0:
+        func_801133A0_option(0);
+        func_80113440_option(0);
+        {
+            Vec eye = { 0.0f, 430.0f, -150.0f };
+            Vec at = { 0.0f, 430.0f, -550.0f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113BC0_option);
+            func_8010737C_option(&eye, &at, 30);
+        }
+        func_80113338_option(9, 11, 0, 8, 0);
+        func_80113338_option(10, 12, 0, 8, 0);
+        HuPrcSleep(30);
+        break;
+    case 1:
+        func_801133A0_option(0);
+        func_80113440_option(0);
+        {
+            Vec eye = { -535.0f, 128.72f, -150.0f };
+            Vec at = { -535.0f, 78.72f, -550.0f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113BCC_option);
+            func_8010737C_option(&eye, &at, 20);
+        }
+        HuPrcSleep(20);
+        break;
+    case 2:
+        func_801133A0_option(0);
+        func_80113440_option(0);
+        {
+            Vec eye = { 535.0f, 128.72f, -150.0f };
+            Vec at = { 535.0f, 78.72f, -550.0f };
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109D04_option);
+            func_8010737C_option(&eye, &at, 20);
+        }
+        HuPrcSleep(20);
+        break;
+    case 3:
+        func_801133A0_option(0);
+        func_80113408_option(0, 0x4E04);
+        if (func_8011345C_option(0) != 0) {
+            func_80113408_option(0, 0x4E03);
+            func_80113384_option(0);
+            return -1;
+        }
+        sel = 3;
+        break;
+    case 9:
+        break;
+    }
+    return sel;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109EF4_option);
 
