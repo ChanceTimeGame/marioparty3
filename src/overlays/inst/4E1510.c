@@ -441,3 +441,12 @@ INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801099C0_inst);
 
 void func_80109A84_inst(omObjData *obj) {
 }
+
+/* .data (8010D520). Retail has 8 zero bytes after each host's pair of counters (the text
+   also pads to 16 bytes after func_80108A18_inst and func_80108AF0_inst), but the unit's
+   rodata strings run on without a file boundary, so the unit stays one file here. */
+s32 D_8010D520_inst = 0; /* the host's wait timer */
+s32 D_8010D524_inst = 0; /* the host's jump frame */
+s32 D_8010D528_inst[2] = { 0, 0 }; /* unreferenced */
+s32 D_8010D530_inst = 0; /* the second host's wait timer */
+s32 D_8010D534_inst = 0; /* the second host's jump frame */
