@@ -330,7 +330,6 @@ void func_80112FF4_option(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4);
 void func_80113088_option(void);
 void func_801130CC_option(void);
 s32 func_801130E8_option(s32 arg0);
-u16 func_80113204_option(s32 arg0);
 s16 func_80113218_option(s32 arg0);
 void func_8011323C_option(s32 arg0);
 void func_80113258_option(s32 arg0);
@@ -365,6 +364,16 @@ typedef struct OpFace {
 } OpFace; /* size = 0x2C */
 extern OpFace D_80114788_option[2];
 void func_8010FA7C_option(omObjData *obj); /* turns a model to face the camera */
+/* Sound test page (func_8010E8E0_option's local table, D_80113DA8_option). */
+typedef struct OpSndItem {
+    /* 0x00 */ s32 mes; /* message id, -1 for none */
+    /* 0x04 */ s16 fx;  /* sound effect, -1 for none */
+} OpSndItem; /* size = 0x8 */
+typedef struct OpSndPage {
+    /* 0x00 */ s32 title;
+    /* 0x04 */ OpSndItem item[9];
+} OpSndPage; /* size = 0x4C */
+s32 func_80113204_option(s32 pad); /* pad buttons (lhu D_800D0590_main[pad]); callers use the whole register */
 extern char D_80113A4C_option[]; /* "%d" (also func_80107F50_option): a literal once both users are C */
 
 #endif

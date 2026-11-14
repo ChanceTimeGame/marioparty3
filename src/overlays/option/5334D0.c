@@ -1,5 +1,6 @@
 #include "common.h"
 #include "option.h"
+#include "pad.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801059A0_option);
 
@@ -181,6 +182,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C224_option);
 
+INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D78_option);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D90_option);
+
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C3E4_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010D5B0_option);
@@ -206,7 +211,205 @@ void func_8010E7FC_option(s32 x0, s32 y0, s32 x1, s32 y1, s32 len) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010E8E0_option);
+/* Sound test: fifteen pages of nine sound effects (a word per message id, a halfword per effect). */
+void func_8010E8E0_option(void) {
+    s16 win[16]; /* [0..8] the effects, [10] the help window */
+    OpSndPage pages[15] = {
+        { 0x4C01, { { 0x4C10, 0x2B5 }, { 0x4C11, 0x263 }, { 0x4C14, 0x275 }, { 0x4C12, 0x290 }, { 0x4C13, 0x27E }, { 0x4C15, 0x26C }, { 0x4C16, 0x287 }, { 0x4C17, 0x2AC }, { -1, -1 } } },
+        { 0x4C02, { { 0x4C10, 0x2B6 }, { 0x4C11, 0x264 }, { 0x4C14, 0x276 }, { 0x4C12, 0x291 }, { 0x4C13, 0x27F }, { 0x4C15, 0x26D }, { 0x4C16, 0x288 }, { 0x4C17, 0x2AD }, { -1, -1 } } },
+        { 0x4C03, { { 0x4C10, 0x2B7 }, { 0x4C11, 0x265 }, { 0x4C14, 0x277 }, { 0x4C12, 0x292 }, { 0x4C13, 0x280 }, { 0x4C15, 0x26E }, { 0x4C16, 0x289 }, { 0x4C17, 0x2AE }, { -1, -1 } } },
+        { 0x4C04, { { 0x4C10, 0x2B8 }, { 0x4C11, 0x266 }, { 0x4C14, 0x278 }, { 0x4C12, 0x293 }, { 0x4C13, 0x281 }, { 0x4C15, 0x26F }, { 0x4C16, 0x28A }, { 0x4C17, 0x2AF }, { -1, -1 } } },
+        { 0x4C05, { { 0x4C10, 0x2B9 }, { 0x4C11, 0x267 }, { 0x4C14, 0x279 }, { 0x4C12, 0x294 }, { 0x4C13, 0x282 }, { 0x4C15, 0x270 }, { 0x4C16, 0x28B }, { 0x4C17, 0x2B0 }, { -1, -1 } } },
+        { 0x4C06, { { 0x4C10, 0x2BA }, { 0x4C11, 0x268 }, { 0x4C14, 0x27A }, { 0x4C12, 0x295 }, { 0x4C13, 0x283 }, { 0x4C15, 0x271 }, { 0x4C16, 0x28C }, { 0x4C17, 0x2B1 }, { -1, -1 } } },
+        { 0x4C07, { { 0x4C10, 0x2BC }, { 0x4C11, 0x26A }, { 0x4C14, 0x27C }, { 0x4C12, 0x297 }, { 0x4C13, 0x285 }, { 0x4C15, 0x273 }, { 0x4C16, 0x28E }, { 0x4C17, 0x2B3 }, { -1, -1 } } },
+        { 0x4C08, { { 0x4C10, 0x2BB }, { 0x4C11, 0x269 }, { 0x4C14, 0x27B }, { 0x4C12, 0x296 }, { 0x4C13, 0x284 }, { 0x4C15, 0x272 }, { 0x4C16, 0x28D }, { 0x4C17, 0x2B2 }, { -1, -1 } } },
+        { 0x4C09, { { 0x4C18, 0x2A6 }, { 0x4C19, 0x2A7 }, { 0x4C1A, 0x2A8 }, { 0x4C1B, 0x2A9 }, { 0x4C1C, 0x2AA }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0A, { { 0x4C1D, 0x29B }, { 0x4C1E, 0x298 }, { 0x4C1F, 0x299 }, { 0x4C20, 0x29A }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0B, { { 0x4C21, 0x29C }, { 0x4C22, 0x29D }, { 0x4C23, 0x29E }, { 0x4C24, 0x29F }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0C, { { 0x4C25, 0x259 }, { 0x4C26, 0x25B }, { 0x4C27, 0x256 }, { 0x4C28, 0x257 }, { 0x4C29, 0x25D }, { 0x4C2A, 0x2A3 }, { 0x4C2B, 0x2A4 }, { 0x4C2C, 0x2A2 }, { -1, -1 } } },
+        { 0x4C0D, { { 0x4C2D, 0x258 }, { 0x4C2E, 0x2A5 }, { 0x4C2F, 0x2A0 }, { 0x4C30, 0x2A1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0E, { { 0x4C31, 0x251 }, { 0x4C32, 0x253 }, { 0x4C33, 0x252 }, { 0x4C34, 0x254 }, { 0x4C35, 0x255 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x4C0F, { { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+    };
+    s32 i;
+    s32 page;
+    s32 cur;
+    s32 t;
+    s32 unlocked;
+    s32 prev;
+    s16 titleWin;
+    s32 fx;
+    s32 btn;
+
+    func_801132E4_option(2, 0);
+    func_8011331C_option(2, 13, 0);
+    func_801132C8_option(2, 7);
+    cur = 0;
+    page = 0;
+    func_80112028_option(2, 90, 116);
+    func_80113384_option(2);
+    func_80112028_option(1, 30, 40);
+    func_80113384_option(1);
+    titleWin = func_80061188_main(-1, 24, 28, 120, 20, 0);
+    func_8005BEE0_main(titleWin, 0);
+    func_8005C154_main(titleWin, 192, 192, 192);
+    func_8005FBF8_main(titleWin, 255, 255, 255);
+    func_8005C060_main(titleWin, 0, 0, 0, 0);
+    func_8005C02C_main(titleWin, 0);
+    func_8005B43C_main(titleWin, pages[0].title, -1, -1);
+    func_8005FFA8_main(titleWin);
+    unlocked = FALSE;
+    if (func_800E905C_minigame(0) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[1].mes = 0x4C37;
+        pages[14].item[1].fx = 0x2C7;
+    }
+    if (func_800E905C_minigame(1) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[2].mes = 0x4C38;
+        pages[14].item[2].fx = 0x2C8;
+    }
+    if (func_800E905C_minigame(2) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[3].mes = 0x4C39;
+        pages[14].item[3].fx = 0x2C9;
+    }
+    if (func_800E905C_minigame(3) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[4].mes = 0x4C3A;
+        pages[14].item[4].fx = 0x2CA;
+    }
+    if (func_800E905C_minigame(4) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[5].mes = 0x4C3B;
+        pages[14].item[5].fx = 0x2CB;
+    }
+    if (func_800E905C_minigame(5) >= 0) {
+        unlocked = TRUE;
+        pages[14].item[6].mes = 0x4C3C;
+        pages[14].item[6].fx = 0x2CC;
+    }
+    if (unlocked) {
+        pages[14].item[0].mes = 0x4C36;
+        pages[14].item[0].fx = 0x240;
+    }
+    for (i = 0; i < 9; i++) {
+        win[i] = func_80061188_main(-1, 36, (i + 1) * 14 + 28, 120, 20, 0);
+        func_8005BEE0_main(win[i], 0);
+        func_8005C154_main(win[i], 192, 192, 192);
+        func_8005FBF8_main(win[i], 255, 255, 255);
+        func_8005C060_main(win[i], 0, 0, 0, 0);
+        func_8005C02C_main(win[i], 0);
+        if (pages[page].item[i].mes != -1) {
+            func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+        } else {
+            func_8005D294_main(win[i]);
+        }
+        func_8005FFA8_main(win[i]);
+    }
+    win[10] = func_80061188_main(-1, 36, 176, 120, 44, 0);
+    func_8005BEE0_main(win[10], 0);
+    func_8005C154_main(win[10], 192, 192, 192);
+    func_8005FBF8_main(win[10], 255, 255, 255);
+    func_8005C060_main(win[10], 0, 0, 0, 0);
+    func_8005C02C_main(win[10], 0);
+    func_8005B43C_main(win[10], 0x5D00, -1, -1);
+    t = 0;
+    func_8005FFA8_main(win[10]);
+    while (TRUE) {
+        HuPrcVSleep();
+        btn = (u16)D_800D1244_main[0];
+        btn |= func_80113204_option(0);
+        btn = (btn & ~0xC000) | (D_800D5558_main[0] & 0xC000);
+        if (btn & 0x4000) {
+            func_80033910_main(HmfModelData[func_80113218_option(2)].hmf);
+            break;
+        }
+        if (btn & 0x8000) {
+            if (pages[page].item[cur].fx != -1) {
+                if (func_8010FE00_option() != 0) {
+                    func_8010FE10_option();
+                }
+                fx = HuAudFXPlay(pages[page].item[cur].fx);
+                func_80033970_main(HmfModelData[func_80113218_option(2)].hmf);
+                func_8010FF0C_option(fx);
+            } else {
+                func_80113218_option(2);
+            }
+        } else if (btn & 0x300) {
+            if (btn & 0x200) {
+                page--;
+            } else {
+                page++;
+            }
+            if (page >= 15) {
+                page = 0;
+            }
+            if (page < 0) {
+                page = 14;
+            }
+            if (page == 14) {
+                if (!unlocked) {
+                    page = (btn & 0x200) ? 13 : 0;
+                }
+            }
+            func_8005B43C_main(titleWin, pages[page].title, -1, -1);
+            for (i = 0; i < 9; i++) {
+                if (pages[page].item[i].mes != -1) {
+                    func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+                } else {
+                    func_8005D294_main(win[i]);
+                }
+            }
+            while (TRUE) {
+                if (pages[page].item[cur].fx != -1) {
+                    break;
+                }
+                cur--;
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            }
+        } else if (btn & 0xC00) {
+            prev = cur;
+            do {
+                if (btn & 0x800) {
+                    cur--;
+                } else {
+                    cur++;
+                }
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            } while (pages[page].item[cur].fx == -1);
+            func_8010E7FC_option(30, (prev + 1) * 14 + 40, 30, (cur + 1) * 14 + 40, 4);
+        }
+        t = (t < 11) ? t + 1 : 0;
+        func_8010E77C_option(30, (cur + 1) * 14 + 40, t);
+    }
+    func_8005FE90_main(titleWin);
+    func_8005F364_main(titleWin);
+    for (i = 0; i < 9; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    for (i = 0; i < 9; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8005FE90_main(win[10]);
+    func_8005F364_main(win[10]);
+    HuAudFXPlay(0x2F9);
+    func_8011331C_option(2, 15, 1);
+    func_801132E4_option(2, 40);
+    HuPrcSleep(3);
+    func_801133A0_option(1);
+    func_801133A0_option(2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010F138_option);
 
@@ -270,11 +473,6 @@ void func_8010FB40_option(u32 no, s32 model) {
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D78_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113D90_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113DA8_option);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_8011421C_option);
 
