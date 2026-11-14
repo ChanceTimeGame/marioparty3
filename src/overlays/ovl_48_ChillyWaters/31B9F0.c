@@ -5831,7 +5831,195 @@ void MB1Ev_ItemRobBox(void) {
     func_80110024_ChillyWaters();
 }
 
+Process *func_800ED75C_shared_board(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
+
+// chilly B: NON_MATCHING: masked 9 (raw 12): retail reloads the spilled `slip` (lw t0,0x3C(sp)) before
+// the first test, and fills the 0x47 beq's delay slot with `li v0,0x5A` (beql here). Logic checked.
+#ifdef NON_MATCHING
+void MB1Ev_TuruturuMain(void) {
+    Vec pos;
+    Vec dest;
+    s32 slip;
+    s32 seNo = 0;
+    GW_PLAYER *player;
+    GW_PLAYER *other = NULL;
+    GW_SYSTEM *system = &GwSystem;
+    GW_PLAYER *cur;
+    GW_PLAYER *p;
+    Object *obj;
+    SpaceData *dirMasu;
+    SpaceData *backMasu;
+    SpaceData *fallMasu;
+    Process *proc;
+    Vec *coords;
+    u16 *temp;
+    u16 motId;
+    f32 angle;
+    f32 speed;
+    s32 played;
+    s32 i;
+    s8 chance;
+    s8 link;
+
+    MBPlayerMotionLoad(system->current_player_index, 5, 0xA);
+    MBPlayerMotionLoad(system->current_player_index, 6, 0x10);
+    chance = 0x46;
+    if ((GwSystem.boardData.halfWordBytes[1] >> system->current_player_index) & 1) {
+        chance = 0x5A;
+    }
+    slip = MBRandCheck100(chance) != 0;
+    if (!slip) {
+        GwSystem.boardData.halfWordBytes[1] |= 1 << system->current_player_index;
+        mbWalkNum = 0;
+    } else {
+        GwSystem.boardData.halfWordBytes[1] &= ~(1 << system->current_player_index);
+    }
+    func_800DBEC0_shared_board(system->current_player_index);
+    player = MBPlayerGet(-1);
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+    case 0x5A:
+        MBMasuGet(0x5B);
+        dirMasu = MBMasuGet(0x74);
+        backMasu = MBMasuGet(0x5A);
+        fallMasu = MBMasuGet(0x8A);
+        break;
+    case 0x47:
+        MBMasuGet(0x48);
+        dirMasu = MBMasuGet(0x75);
+        backMasu = MBMasuGet(0x47);
+        fallMasu = MBMasuGet(0x8B);
+        break;
+    default:
+        MBMasuGet(0x79);
+        dirMasu = MBMasuGet(0x76);
+        backMasu = MBMasuGet(0x3E);
+        fallMasu = MBMasuGet(0x8C);
+        break;
+    }
+    cur = MBPlayerGet(-1);
+    obj = cur->player_obj;
+    HuVecCopy3F(&dest, &dirMasu->coords);
+    MBVecDirGet(&obj->coords, &dest, &obj->rot);
+    MBPlayerMotionSet(-1, 0, 2);
+    angle = atan2df(obj->rot.x, -obj->rot.z) + 180.0f;
+    speed = 2.0f;
+    for (i = 0; i < 3; i++) {
+        obj->coords.x += sindf(angle) * speed;
+        obj->coords.z -= cosdf(angle) * speed;
+        HuPrcVSleep();
+    }
+    func_800F2388_shared_board(-1, -1, 0, 2, 2);
+    HuPrcSleep(2);
+    HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+    HuPrcChildWait();
+    MBPlayerMotionSet(-1, 1, 2);
+    for (i = 0; i < 4; i++) {
+        if (i == system->current_player_index) {
+            continue;
+        }
+        p = MBPlayerGet(i);
+        switch (MBMasuLinkMasuIdGet(p->clink, p->cidx)) {
+        case 0x5A:
+            coords = &p->player_obj->coords;
+            HuVecCopy3F(&pos, coords);
+            pos.x += 5.0f;
+            break;
+        case 0x47:
+            coords = &p->player_obj->coords;
+            HuVecCopy3F(&pos, coords);
+            pos.x += 10.0f;
+            break;
+        default:
+            continue;
+        }
+        pos.z -= 5.0f;
+        func_800ED75C_shared_board(coords, &pos, coords, 2.0f);
+    }
+    MBPlayerVibrate(-1, 1);
+    angle -= 180.0f;
+    speed = 4.0f;
+    for (i = 0, played = 0; i < 30; i++) {
+        obj->coords.x += sindf(angle) * speed;
+        obj->coords.z -= cosdf(angle) * speed;
+        if (speed > 0.0f) {
+            speed -= 0.25f;
+        } else if (!played) {
+            played = 1;
+            seNo = HuAudFXPlay(0x187);
+            MBPlayerSpeedSet(system->current_player_index, 2.0f);
+        }
+        HuPrcVSleep();
+    }
+    HuAudFXStop(seNo);
+    if (slip) {
+        func_800DB884_shared_board(system->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+        switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x5A:
+            cur->clink = 7;
+            cur->cidx = 3;
+            cur->nlink = 7;
+            cur->nidx = 4;
+            cur->blink = 7;
+            cur->bidx = 2;
+            break;
+        default:
+            link = 9;
+            goto set;
+        case 0x47:
+            link = 8;
+        set:
+            cur->clink = link;
+            cur->cidx = 2;
+            cur->nlink = link;
+            cur->nidx = 3;
+            cur->blink = link;
+            cur->bidx = 1;
+            break;
+        }
+    } else {
+        MBPlayerVibrate(-1, 3);
+        HuAudFXPlay(0x188);
+        MBPlayerMotionSet(-1, 5, 0);
+        MBPlayerMotionWait(-1);
+        MBPlayerMotionSet(-1, 6, 1);
+        HuVecCopy3F(&pos, &backMasu->coords);
+        MBVecDirGet(&pos, &obj->coords, &obj->rot);
+        proc = func_800ED75C_shared_board(&obj->coords, &pos, &obj->coords, 2.0f);
+        HuPrcChildLink(HuPrcCurrentGet(), proc);
+        for (i = 0; i < 4; i++) {
+            if (system->current_player_index == i) {
+                continue;
+            }
+            other = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == MBMasuLinkMasuIdGet(other->clink, other->cidx)) {
+                break;
+            }
+        }
+        if (i < 4) {
+            func_800ED5E0_shared_board(&other->player_obj->coords, &fallMasu->coords, &other->player_obj->coords, 2.0f);
+        }
+        HuPrcChildWait();
+        MBWinOpen(0x300);
+        func_800EC39C_shared_board(system->current_player_index);
+        func_800EC3E4_shared_board();
+        MBPlayerMotionSet(-1, 6, 0);
+        MBPlayerMotionWait(-1);
+        MBPlayerMotionSet(-1, -1, 2);
+    }
+    MOTION_ID_GET(6, temp, i);
+    MBPlayerMotionLoad(system->current_player_index, 5, motId);
+    MOTION_ID_GET(7, temp, i);
+    MBPlayerMotionLoad(system->current_player_index, 6, motId);
+    if (!slip) {
+        HuPrcSleep(5);
+        MBItemKSuitEnd();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_TuruturuMain);
+#endif
 
 void MB1Ev_Turuturu() {
     GW_PLAYER *player;
