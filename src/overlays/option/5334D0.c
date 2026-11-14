@@ -1275,7 +1275,65 @@ s32 func_8010C04C_option(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C224_option);
+void func_8010C224_option(void) {
+    Vec eye;
+    Vec at;
+    s32 sel;
+    s32 mode;
+
+    func_8001F38C_main(0, 64, 64);
+    func_80112B08_option();
+    func_8004A9DC_main(0x60);
+    WipeCreateIn(11, 16);
+    HuPrcSleep(16);
+    sel = func_8010C04C_option();
+    func_801133A0_option(0);
+    switch (sel) {
+    case 3:
+        HuVecCopy3F(&eye, &D_801138B0_option);
+        eye.z -= 200.0f;
+        eye.y -= 40.0f;
+        HuVecCopy3F(&at, &D_801138BC_option);
+        at.y -= 40.0f;
+        HuAudFXPlay(0x2EB);
+        func_801132E4_option(1, 0);
+        func_801132C8_option(1, 7);
+        func_80113300_option(1);
+        eye.z += 200.0f;
+        func_80106F88_option(&eye, &at, 20);
+        mode = sel;
+        func_8010FFDC_option();
+        WipeColorSet(255, 255, 255);
+        WipeCreateOut(11, 20);
+        func_8004A9DC_main(0x7F);
+        HuPrcSleep(20);
+        break;
+    case 9:
+    default:
+        sel = 9;
+    case 0:
+    case 1:
+    case 2:
+    case 4:
+        mode = sel;
+        break;
+    }
+    func_80112E14_option();
+    func_8005F524_main();
+    omOvlKill();
+    switch (mode) {
+    case 3:
+        omOvlReturnEx(1);
+        break;
+    default:
+        omOvlReturnEx(1);
+        break;
+    }
+    omDelPrcObj(D_80114770_option);
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C3E4_option);
 

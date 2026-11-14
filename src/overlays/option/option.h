@@ -396,4 +396,7 @@ s32 func_8010BACC_option(s32 sel, s32 btn); /* second submenu: A pressed (btn un
 
 void func_8010BFA4_option(s32 sel, s32 btn); /* second submenu cursor update (btn unused) */
 
+extern Vec D_801138B0_option; /* camera eye, target for leaving the second submenu */
+extern Vec D_801138BC_option;
+
 #endif
