@@ -22,7 +22,7 @@ void func_80107234_mgresultboard(void);
 void func_800E6630_shared_board(u32);
 void MBBackCreate(s32, s32);
 void func_80107024_mgresultboard(void);
-extern s32 D_8010AD0C_mgresultboard[];
+extern const s32 D_8010AD0C_mgresultboard[6];
 void MBBackClose(void);
 void MBBackKill(void);
 s32 func_80106A80_mgresultboard(s8);
@@ -729,7 +729,7 @@ void func_80107A58_mgresultboard(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD0C_mgresultboard);
+const s32 D_8010AD0C_mgresultboard[6] = { 4, 7, 10, 13, 16, 19 }; /* MBBackCreate background per board */
 
 const u8 D_8010AD24_mgresultboard[4] = { 1, 0, 0, 2 };
 
