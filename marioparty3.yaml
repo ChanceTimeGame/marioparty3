@@ -2272,9 +2272,15 @@ segments:
     bss_size: 0x1F0
     subsegments:
       - [0x4DEB60, c]
+      - [0x4E0630, c] # 80107470
+      - [0x4E1510, c] # 80108350
       - [0x4E2C50, c]
       - [0x4E65C0, data, 4DEB60] #8010D400
+      - [0x4E6680, data, 4E0630] #8010D4C0
+      - [0x4E66E0, data, 4E1510] #8010D520
       - [0x4E6780, .rodata, 4DEB60] #8010D5C0
+      - [0x4E6930, .rodata, 4E0630] #8010D770
+      - [0x4E6B50, .rodata, 4E1510] #8010D990
       - [0x4E6B70, .rodata, 4E2C50] #8010D9B0
       - {0x4E6DC0, type: bss, vram: 0x8010DC00, name: inst_bss}
 

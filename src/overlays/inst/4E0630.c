@@ -1,0 +1,295 @@
+#include "common.h"
+#include "inst.h"
+
+/* Model part name lists (D_8010D4C0_inst[type][0..1]): the parts of the instruction board
+   model func_80107470_inst marks. */
+
+const INST_HOOK_LIST(4) D_8010D770_inst = { 4, { "4p_1", "4p_2", "4p_3", "4p_4" } };
+const INST_HOOK_LIST(1) D_8010D7A4_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D7B0_inst = { 4, { "2vs2_1", "2vs2_2", "2vs2_3", "2vs2_4" } };
+const INST_HOOK_LIST(1) D_8010D7E4_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D7EC_inst = { 4, { "3vs1_1", "3vs1_2", "3vs1_3", "3vs1_4" } };
+const INST_HOOK_LIST(1) D_8010D820_inst = { 0, { "" } };
+const INST_HOOK_LIST(4) D_8010D828_inst = { 4, { "battle1", "battle2", "battle3", "battle4" } };
+const INST_HOOK_LIST(1) D_8010D85C_inst = { 0, { "" } };
+const INST_HOOK_LIST(2) D_8010D864_inst = { 2, { "duel1", "duel2" } };
+const INST_HOOK_LIST(1) D_8010D880_inst = { 0, { "" } };
+const INST_HOOK_LIST(1) D_8010D888_inst = { 1, { "item_chara" } };
+const INST_HOOK_LIST(5) D_8010D89C_inst = { 5, { "item1", "item2", "item3", "item4", "item5" } };
+const INST_HOOK_LIST(1) D_8010D8DC_inst = { 1, { "omake1" } };
+const INST_HOOK_LIST(1) D_8010D8EC_inst = { 0, { "" } };
+const INST_HOOK_LIST(1) D_8010D8F4_inst = { 1, { "last1" } };
+const INST_HOOK_LIST(1) D_8010D904_inst = { 0, { "" } };
+
+/* Per minigame type: the board's two texture/model ids (low halves of 0x0017xxxx). */
+const s32 D_8010D90C_inst[9][2] = {
+    { 0x10, 0x18 }, { 0x11, 0x19 }, { 0x12, 0x1A }, { 0x13, 0x1B }, { 0x14, 0x1C },
+    { 0x15, 0x1D }, { 0x15, 0x1D }, { 0x17, 0x1F }, { 0x16, 0x1E },
+};
+/* Per minigame type: the title model. */
+const s32 D_8010D954_inst[9] = {
+    0x00170020, 0x00170021, 0x00170022, 0x00170023, 0x00170024,
+    0x00170025, 0x00170025, 0x00170027, 0x00170026,
+};
+
+/* Process: builds the instruction board object (model 0 the board, 2 the text page, 4 the
+   title, 6 the cursor, 8 the frame), marks the parts named by the type's part lists, loads
+   the message pages and runs the current page handler (D_8010DDD8_inst.func) every frame. */
+#ifdef NON_MATCHING
+/* Matches except scheduling in the part loop (masked 2: the parts pointer is loaded before
+   the index arithmetic). */
+void func_80107470_inst(void) {
+    omObjData *obj;
+    InstHookList *list;
+    InstHmfData *hmf;
+    InstMotionObj *part;
+    s32 i;
+    s32 j;
+    s32 k;
+    s16 idx;
+
+    obj = omAddObj(0x14, 10, 5, -1, NULL);
+    D_8010DDD8_inst.obj = obj;
+    obj->model[0] = func_8000B0D4_main(D_8010D90C_inst[D_8010D40A_inst][0] | 0x170000, 0x16B9);
+    obj->model[1] = func_8000B0D4_main(0x170029, 0x1E89);
+    obj->model[2] = func_8000B0D4_main(D_8010D954_inst[D_8010D40A_inst], 0x1AB9);
+    obj->model[3] = func_8000B0D4_main(0x170028, 0x2B9);
+    obj->model[4] = func_8000B0D4_main(D_8010D90C_inst[D_8010D40A_inst][1] | 0x170000, 0x239);
+    func_8001C814_main(obj->model[0], 2, 0);
+    func_8001C814_main(obj->model[1], 2, 0);
+    func_8001C814_main(obj->model[2], 2, 0);
+    func_8001C814_main(obj->model[3], 2, 0);
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C814_main(obj->model[1], 1, 1);
+    func_8001C814_main(obj->model[2], 1, 1);
+    func_8001C814_main(obj->model[3], 1, 1);
+    func_8001C258_main(obj->model[3], 4, 4);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], 56.0f, 0.0f, 61.5f);
+    Hu3DModelPosSet(obj->model[2], 56.0f, 0.0f, 61.5f);
+    Hu3DModelPosSet(obj->model[3], 56.0f, 0.0f, 61.5f);
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.5f;
+    for (i = 0; i < 5; i++) {
+        Hu3DModelScaleSet(obj->model[i], 0.5f, 0.5f, 0.5f);
+    }
+    for (i = 0; i < 3; i++) {
+        Hu3DModelScaleSet(obj->model[i + 1], 0.45f, 0.45f, 0.45f);
+    }
+    for (k = 0; k < 2; k++) {
+        list = D_8010D4C0_inst[D_8010D40A_inst][k];
+        for (j = 0; j < list->count; j++) {
+            part = func_8001D33C_main(obj->model[0], list->names[j]);
+            hmf = part->hmf;
+            for (i = 0; i < part->count; i++) {
+                idx = part->children[i];
+                if (idx >= 0) {
+                    hmf->parts[idx].unk24 = 1;
+                }
+            }
+        }
+    }
+    D_8010DC10_inst = DataRead(D_8010D4A4_inst | 0x170000);
+    D_8010DC18_inst = DataRead((D_8010D4A4_inst + 1) | 0x170000);
+    D_8010DC14_inst = DataRead(0x170007);
+    func_80108AF0_inst(obj->model[1], D_8010DC18_inst, D_8010DC10_inst, D_8010DC14_inst);
+    HmfModelData[obj->model[1]].rot.x = -90.0f;
+    omPrcSetDestructor(0, func_80107EE0_inst);
+    if (D_8010D408_inst == 0) {
+        D_8010DDD8_inst.func = func_80107938_inst;
+    } else {
+        D_8010DDD8_inst.func = func_8010815C_inst;
+    }
+    while (TRUE) {
+        D_8010DDD8_inst.func(obj);
+        HuPrcVSleep();
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107470_inst);
+#endif
+
+/* Page handler: waits for the text window, then starts the board and title motions. */
+void func_80107938_inst(omObjData *obj) {
+    if (func_8010B10C_inst() == 1) {
+        func_8001C814_main(obj->model[1], 1, 0);
+        func_8001C814_main(obj->model[2], 1, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+        func_8001C258_main(obj->model[2], 4, 0);
+        D_8010DDD8_inst.func = func_801079CC_inst;
+    }
+}
+
+void func_801079CC_inst(omObjData *obj) {
+    func_8001C814_main(obj->model[3], 1, 0);
+    func_8001C258_main(obj->model[3], 4, 0);
+    D_8010DDD8_inst.func = func_80107A24_inst;
+}
+
+/* Page handler: tilts the board and title up and grows the page models with the cursor
+   model's motion, then idles. */
+void func_80107A24_inst(omObjData *obj) {
+    f32 frames;
+    f32 rot;
+    s32 i;
+
+    frames = D_800CCF58_main[HmfModelData[obj->model[3]].unk02].unk02 - 25.0f;
+    rot = D_8010D508_inst / frames * D_8010D414_inst;
+    HmfModelData[obj->model[1]].rot.x = rot - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = rot;
+    D_8010D50C_inst = 0.15f / frames * D_8010D508_inst;
+    for (i = 0; i < 3; i++) {
+        Hu3DModelScaleSet(obj->model[i + 1], D_8010D50C_inst + 0.45f, D_8010D50C_inst + 0.45f, D_8010D50C_inst + 0.45f);
+    }
+    D_8010D508_inst++;
+    if (D_8010D508_inst == frames) {
+        D_8010DDD8_inst.func = func_80107E18_inst;
+        D_8010D50C_inst = 0.0f;
+        D_8010D508_inst = 0;
+    }
+}
+
+void func_80107BE4_inst(void) {
+    D_8010DDD8_inst.func = func_80107BF8_inst;
+}
+
+const char D_8010D978_inst[] = "gamen";
+const char D_8010D980_inst[] = "frame";
+
+/* Page handler: pulses the screen and frame parts (a sine swell, then a cosine settle). */
+void func_80107BF8_inst(omObjData *obj) {
+    InstMotionObj *parts[2];
+    f32 scale;
+    s32 i;
+    s32 j;
+
+    parts[0] = func_8001D33C_main(obj->model[1], D_8010D978_inst);
+    parts[1] = func_8001D33C_main(obj->model[2], D_8010D980_inst);
+    if (parts[0] == (InstMotionObj *)-1 || parts[1] == (InstMotionObj *)-1) {
+        osSyncPrintf("ERROR\n");
+    }
+    for (i = 0; i < 5; i++) {
+        scale = sindf(i * 18.0f) * 0.5f;
+        for (j = 0; j < 2; j++) {
+            parts[j]->unk4C = scale + 1.0f;
+            parts[j]->unk60 = scale + 1.0f;
+            parts[j]->unk74 = scale + 1.0f;
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 5; i++) {
+        scale = cosdf(i * 18.0f) * 0.5f;
+        if (scale < 0.3f) {
+            scale = 0.3f;
+        }
+        for (j = 0; j < 2; j++) {
+            parts[j]->unk4C = scale + 1.0f;
+            parts[j]->unk60 = scale + 1.0f;
+            parts[j]->unk74 = scale + 1.0f;
+        }
+        HuPrcVSleep();
+    }
+    for (j = 0; j < 2; j++) {
+        parts[j]->unk4C = 1.3f;
+        parts[j]->unk60 = 1.3f;
+        parts[j]->unk74 = 1.3f;
+    }
+    D_8010DDD8_inst.func = func_80107E18_inst;
+}
+
+void func_80107E18_inst(omObjData *obj) {
+}
+
+/* 1 once the board model's motion has reached its last frame. */
+s32 func_80107E20_inst(void) {
+    s16 m = D_8010DDD8_inst.obj->model[0];
+    f32 frame = HmfModelData[m].unk40;
+
+    if (D_800CCF58_main[HmfModelData[m].unk02].unk02 <= frame) {
+        return 1;
+    }
+    return 0;
+}
+
+void func_80107E98_inst(void) {
+    func_8001C6A8_main(D_8010DDD8_inst.obj->model[0], 0.0f);
+    func_8001C814_main(D_8010DDD8_inst.obj->model[0], 1, 0);
+}
+
+void func_80107EE0_inst(void) {
+    DataClose(D_8010DC18_inst);
+    DataClose(D_8010DC10_inst);
+    DataClose(D_8010DC14_inst);
+}
+
+void func_80107F18_inst(void) {
+    omObjData *obj = D_8010DDD8_inst.obj;
+
+    func_8001C814_main(obj->model[3], 1, 0);
+    func_8001C814_main(obj->model[3], 4, 4);
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_8010B124_inst();
+    D_8010DDD8_inst.func = func_80107F98_inst;
+}
+
+/* Page handler: tilts the board back down, then pulses the page. */
+void func_80107F98_inst(omObjData *obj) {
+    f32 frames;
+    f32 rot;
+
+    frames = D_800CCF58_main[HmfModelData[obj->model[3]].unk02].unk02 - 25.0f;
+    rot = D_8010D414_inst - D_8010D510_inst / frames * D_8010D414_inst;
+    HmfModelData[obj->model[1]].rot.x = rot - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = rot;
+    D_8010D510_inst++;
+    if (D_8010D510_inst == frames) {
+        D_8010DDD8_inst.func = func_80107BF8_inst;
+        D_8010D510_inst = 0;
+    }
+}
+
+/* 1 once the board model's motion is back at frame 0. */
+s32 func_801080A8_inst(void) {
+    if (HmfModelData[D_8010DDD8_inst.obj->model[0]].unk40 == 0.0f) {
+        return 1;
+    }
+    return 0;
+}
+
+void func_801080FC_inst(void) {
+    omObjData *obj = D_8010DDD8_inst.obj;
+
+    func_8001C814_main(obj->model[0], 1, 0);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C814_main(obj->model[0], 4, 4);
+}
+
+/* Page handler for a repeat visit (D_8010D408_inst): the board shown at once, already tilted
+   and grown. */
+void func_8010815C_inst(omObjData *obj) {
+    InstMotionObj *parts[2];
+    f32 frames;
+    s32 i;
+
+    frames = D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02;
+    func_8001C814_main(obj->model[0], 1, 0);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C6A8_main(obj->model[0], frames);
+    HmfModelData[obj->model[1]].rot.x = D_8010D414_inst - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = D_8010D414_inst;
+    for (i = 0; i < 3; i++) {
+        Hu3DModelScaleSet(obj->model[i + 1], 0.6f, 0.6f, 0.6f);
+        func_8001C258_main(obj->model[i + 1], 4, 0);
+    }
+    parts[0] = func_8001D33C_main(obj->model[1], D_8010D978_inst);
+    parts[1] = func_8001D33C_main(obj->model[2], D_8010D980_inst);
+    for (i = 0; i < 2; i++) {
+        parts[i]->unk4C = 1.3f;
+        parts[i]->unk60 = 1.3f;
+        parts[i]->unk74 = 1.3f;
+    }
+    D_8010DDD8_inst.func = func_80107E18_inst;
+}
