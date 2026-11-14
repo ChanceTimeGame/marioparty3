@@ -3013,6 +3013,7 @@ s32 func_80111650_msetup(MsSetupWork *work) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80111650_msetup);
 #endif
 
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A6D8_msetup);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A6E4_msetup);
@@ -3058,6 +3059,31 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A79C_msetup);
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7A4_msetup);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7AC_msetup);
+#else
+char D_8011A6D8_msetup[] = "03tex_DEF";
+char D_8011A6E4_msetup[] = "waruigi_DEF";
+char D_8011A6F0_msetup[] = "donkey_DEF";
+char D_8011A6FC_msetup[] = "wario_DEF";
+char D_8011A708_msetup[] = "yoshi_DEF";
+char D_8011A714_msetup[] = "daisy_DEF";
+char D_8011A720_msetup[] = "peach_DEF";
+char D_8011A72C_msetup[] = "ruigi_DEF";
+char D_8011A738_msetup[] = "mario_DEF";
+char D_8011A744_msetup[] = "waluigi";
+char D_8011A74C_msetup[] = "donkey";
+char D_8011A754_msetup[] = "wario";
+char D_8011A75C_msetup[] = "yoshi";
+char D_8011A764_msetup[] = "daisy";
+char D_8011A76C_msetup[] = "peach";
+char D_8011A774_msetup[] = "luigi";
+char D_8011A77C_msetup[] = "mario";
+char D_8011A784_msetup[] = "kobetu";
+char D_8011A78C_msetup[] = "zenin";
+char D_8011A794_msetup[] = "s_tuyoi";
+char D_8011A79C_msetup[] = "tuyoi";
+char D_8011A7A4_msetup[] = "futuu";
+char D_8011A7AC_msetup[] = "yowai";
+#endif
 
 extern s32 D_80119E38_msetup[6];
 extern char *D_80119E20_msetup[6]; /* part names (fork F: were s32) */
@@ -4454,6 +4480,7 @@ void func_80115E78_msetup(s16 model, f32 x, f32 y, f32 z) {
     }
 }
 
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7D8_msetup);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7E0_msetup);
@@ -4465,6 +4492,14 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7F0_msetup);
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7F8_msetup);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A800_msetup);
+#else
+char D_8011A7D8_msetup[] = "20turn";
+char D_8011A7E0_msetup[] = "35turn";
+char D_8011A7E8_msetup[] = "50turn";
+char D_8011A7F0_msetup[] = "q_turn";
+char D_8011A7F8_msetup[] = "hari";
+char D_8011A800_msetup[] = "mugen";
+#endif
 
 s16 HmfAnimRead(HmfData *hmf, s32 dataNum, char *name);
 
