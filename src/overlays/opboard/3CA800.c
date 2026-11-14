@@ -15,6 +15,14 @@
 #include "../ovl_80_shared_board/113520.h"
 #include "../ovl_80_shared_board/1006F0.h"
 
+extern u16 D_800D530C_main;
+void func_800EE700_shared_board(void);
+void func_800EE740_shared_board(void);
+void func_80108BB0_opboard(omObjData *obj);
+void func_80108C8C_opboard(void);
+void func_80108D44_opboard(void);
+
+
 void func_800461B4_main(s16 arg0);
 void func_8001C258_main(s16 arg0, s32 arg1, s32 arg2);
 
@@ -96,6 +104,8 @@ void func_80108B3C_opboard(void);
 void func_80108C0C_opboard(omObjData *obj);
 void func_80108C58_opboard(void);
 void func_80108CC0_opboard(void);
+void func_801066F0_opboard(void);
+void func_80107E58_opboard(void);
 s16 func_80105AE0_opboard(s32 dir, s32 file);
 s32 func_80105C60_opboard(s16 model, f32 x, f32 y, f32 z);
 void func_80106CFC_opboard(void);
@@ -975,15 +985,51 @@ void func_80107E58_opboard(void) {
     func_8000D044_main(D_80108F2C_opboard);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108B3C_opboard);
+/* the overlay's main process */
+void func_80108B3C_opboard(void) {
+    D_80108F30_opboard = omAddPrcObj(func_801066F0_opboard, 0x300, 0x2000, 0);
+    HuPrcChildLink(HuPrcCurrentGet(), D_80108F30_opboard);
+    HuPrcChildWait();
+    func_80107E58_opboard();
+    D_800D530C_main = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108BB0_opboard);
+void func_80108BB0_opboard(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        func_80108D44_opboard();
+        func_80108C8C_opboard();
+        func_8005F524_main();
+        if (D_80108D70_opboard != 0) {
+            func_800F4730_shared_board();
+        }
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C0C_opboard);
+void func_80108C0C_opboard(omObjData *obj) {
+    if (D_800D530C_main != 0) {
+        WipeCreateOut(2, 0x14);
+        HuAudSeqFadeOut(0x3C);
+        obj->func = func_80108BB0_opboard;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C58_opboard);
+void func_80108C58_opboard(void) {
+    MBModelInit();
+    func_800F26E8_shared_board();
+    func_800EE700_shared_board();
+    func_800F2A20_shared_board();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C8C_opboard);
+void func_80108C8C_opboard(void) {
+    func_800F2A34_shared_board();
+    func_800EE740_shared_board();
+    func_800F27C4_shared_board();
+    MBModelClose();
+}
 
 
 
