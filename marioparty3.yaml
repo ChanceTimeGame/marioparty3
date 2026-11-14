@@ -2273,9 +2273,15 @@ segments:
     subsegments:
       - [0x4DEB60, c]
       - [0x4E2C50, c]
+      - [0x4E3390, c]
+      - [0x4E4B50, c]
+      - [0x4E5AA0, c]
       - [0x4E65C0, data, 4DEB60] #8010D400
       - [0x4E6780, .rodata, 4DEB60] #8010D5C0
       - [0x4E6B70, .rodata, 4E2C50] #8010D9B0
+      - [0x4E6B88, .rodata, 4E3390] #8010D9C8
+      - [0x4E6CB8, .rodata, 4E4B50] #8010DAF8
+      - [0x4E6D40, .rodata, 4E5AA0] #8010DB80
       - {0x4E6DC0, type: bss, vram: 0x8010DC00, name: inst_bss}
 
   - type: code
