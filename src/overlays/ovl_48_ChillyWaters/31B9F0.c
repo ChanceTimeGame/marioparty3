@@ -6496,7 +6496,220 @@ Process* func_80119C54_ChillyWaters(Vec* arg0, Vec* arg1, Vec* out, f32 speed) {
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_48_ChillyWaters/31B9F0", MB1Ev_ActionTimeSpr);
+void MB1Ev_ActionTimeSpr(void) {
+    s32 spr[3][4];
+    s32 titleSpr;
+    s32 frameSpr;
+    s32 grp;
+    Process *proc;
+    Unk3 *win;
+    void *data;
+    s32 playerGrp;
+    s32 alpha;
+    s32 mask;
+    s32 clamped;
+    s32 fading;
+    s32 wrapped;
+    s32 count;
+    s32 i;
+    s32 j;
+    f32 angle;
+    f32 speed;
+
+    i = 0;
+    proc = HuPrcCurrentGet();
+    data = DataRead(0x1300F7);
+    titleSpr = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F8);
+    spr[0][0] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FB);
+    spr[0][1] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F9);
+    spr[0][2] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FA);
+    spr[0][3] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FC);
+    frameSpr = func_80055810_main(data);
+    DataClose(data);
+    for (; i < 4; i++) {
+        data = DataRead((GwPlayer[i].chr + 8) | 0x210000);
+        spr[1][i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    grp = HuSprGrpCreate(1, 5);
+    func_80055024_main(grp, 0, titleSpr, 0);
+    HuSprAttrReset(grp, 0, 0xFFFF);
+    HuSprAttrSet(grp, 0, 0x1008);
+    HuSprPriSet(grp, 0, 0x1000);
+    func_80054904_main(grp, 0, 0xA0, 0x5A);
+    angle = 0.0f;
+    speed = 30.0f;
+    count = 0;
+    wrapped = 0;
+    while (1) {
+        if ((angle >= 90.0f) & (wrapped == 0)) {
+            wrapped = 1;
+            count++;
+        }
+        if (angle >= 360.0f) {
+            wrapped = 0;
+            angle -= 360.0f;
+        }
+        if ((angle >= 180.0f) & (angle <= 360.0f)) {
+            HuSprAttrSet(grp, 0, 2);
+        } else {
+            HuSprAttrReset(grp, 0, 2);
+        }
+        HuSprScaleSet(grp, 0, 1.0f, sindf(angle >= 180.0f ? angle - 180.0f : angle));
+        if (count >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += speed;
+    }
+    HuSprAttrReset(grp, 0, 2);
+    HuSprScaleSet(grp, 0, 1.0f, 1.0f);
+    win = func_800E210C_shared_board(0x14, 0xA0, 1);
+    for (i = 0; i < 4; i++) {
+        playerGrp = spr[2][i] = HuSprGrpCreate(6, 5);
+        func_80055024_main(playerGrp, 0, frameSpr, 0);
+        func_800550F4_main(playerGrp, 0, 0);
+        HuSprAttrReset(playerGrp, 0, 0xFFFF);
+        if (D_8011FAF8_ChillyWaters[i] != 0) {
+            HuSprAttrSet(playerGrp, 0, 8);
+        } else {
+            HuSprAttrSet(playerGrp, 0, 0x8000);
+        }
+        HuSprPriSet(playerGrp, 0, 0x1000);
+        func_800554C4_main(playerGrp, 0, -1);
+        func_80055024_main(playerGrp, 1, spr[1][i], 0);
+        func_800550F4_main(playerGrp, 1, 0);
+        HuSprAttrReset(playerGrp, 1, 0xFFFF);
+        if (D_8011FAF8_ChillyWaters[i] != 0) {
+            HuSprAttrSet(playerGrp, 1, 8);
+        } else {
+            HuSprAttrSet(playerGrp, 1, 0x8000);
+        }
+        HuSprPriSet(playerGrp, 1, 0x1000);
+        func_80054904_main(playerGrp, 1, 0, -9);
+        func_800554C4_main(playerGrp, 1, 0);
+        for (j = 0; j < 4; j++) {
+            func_80055024_main(playerGrp, j + 2, spr[0][j], 0);
+            func_800550F4_main(playerGrp, j + 2, 1);
+            HuSprAttrReset(playerGrp, j + 2, 0xFFFF);
+            if (D_8011FAF8_ChillyWaters[i] == j + 1) {
+                HuSprAttrSet(playerGrp, j + 2, 8);
+            } else {
+                HuSprAttrSet(playerGrp, j + 2, 0x8000);
+            }
+            HuSprPriSet(playerGrp, j + 2, 0x1000);
+            func_80054904_main(playerGrp, j + 2, 0, 9);
+            func_800554C4_main(playerGrp, j + 2, 0);
+        }
+        func_80054904_main(playerGrp, 0, i * 70 + 55, 200);
+    }
+    HuPrcSleep(20);
+    angle = 90.0f;
+    count = 0;
+    fading = 0;
+    wrapped = 0;
+    alpha = 255;
+    while (1) {
+        if ((angle >= 360.0f) & (wrapped == 0)) {
+            wrapped = 1;
+            count++;
+        }
+        if (angle >= 360.0f) {
+            wrapped = 0;
+            angle -= 360.0f;
+        }
+        if ((fading == 0) & (count != 0)) {
+            if ((angle >= 90.0f) & (angle < 180.0f)) {
+                fading = 1;
+            }
+        }
+        if (fading != 0) {
+            alpha -= 21;
+            mask = -(alpha > 0);
+            clamped = mask & alpha;
+            alpha = clamped;
+        }
+        func_80055458_main(grp, 0, alpha);
+        if (count >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += speed;
+    }
+    HuSprScaleSet(grp, 0, 1.0f, 0.0f);
+    HuSprGrpKill(grp);
+    HuSprKill(titleSpr);
+    proc->user_data = (void *)1;
+    while (1) {
+        for (i = 0; i < 4; i++) {
+            switch (D_8011FAF8_ChillyWaters[i]) {
+            case 0:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrSet(spr[2][i], j, 0x8000);
+                }
+                break;
+            case 1:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 2, 0x8000);
+                break;
+            case 2:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 3, 0x8000);
+                break;
+            case 3:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 4, 0x8000);
+                break;
+            case 4:
+                for (j = 0; j < 6; j++) {
+                    HuSprAttrReset(spr[2][i], j, 0x8000);
+                }
+                for (j = 0; j < 4; j++) {
+                    HuSprAttrSet(spr[2][i], j + 2, 0x8000);
+                }
+                HuSprAttrReset(spr[2][i], 5, 0x8000);
+                break;
+            default:
+                goto end;
+            }
+        }
+        HuPrcVSleep();
+    }
+end:
+    MBHelpWinKill(win);
+    HuSprKill(frameSpr);
+    for (i = 0; i < 4; i++) {
+        HuSprKill(spr[0][i]);
+        HuSprKill(spr[1][i]);
+        HuSprGrpKill(spr[2][i]);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_8011A764_ChillyWaters() {
     Object *temp_v0;
