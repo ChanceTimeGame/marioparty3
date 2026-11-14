@@ -26,7 +26,7 @@ void func_80109A90_inst(void);         /* extern */
 void func_8010A1D0_inst(void);         /* extern */
 void func_8010B990_inst(void);         /* extern */
 
-extern s8 D_8010D400_inst[7];
+extern s8 D_8010D400_inst[4];
 extern s8 D_8010D407_inst;
 extern s8 D_8010D408_inst;
 extern s8 D_8010D40A_inst;
@@ -81,6 +81,37 @@ extern const s32 D_8010D658_inst[];
 void func_8000BC48_main(u16, s32);
 void func_80037258_main(void);
 void func_8005F524_main(void);
+
+/* .data (8010D400), defined before the functions: after the last one KMC as would put its
+   delay-slot nop at the start of .text. */
+s8 D_8010D400_inst[4] = { 0, 1, 2, 3 }; /* play order: player per slot */
+s8 D_8010D404_inst = 0;
+s8 D_8010D405_inst = 0;
+s8 D_8010D406_inst = 0;
+s8 D_8010D407_inst = 0;
+s8 D_8010D408_inst = 0;
+s8 D_8010D409_inst = 0;
+s8 D_8010D40A_inst = 0; /* minigame type */
+s8 D_8010D40B_inst = 0; /* minigame index */
+u8 D_8010D40C_inst[5] = { 0, 0, 0, 0, 0 }; /* item minigame: the items on offer */
+s8 D_8010D411_inst = 0;
+f32 D_8010D414_inst = 45.0f; /* board tilt */
+Vec D_8010D418_inst = { 0.0f, 0.0f, 0.0f }; /* camera position */
+Vec D_8010D424_inst = { 0.0f, 0.0f, 0.0f }; /* camera target */
+Vec D_8010D430_inst = { 0.0f, 1.0f, -0.000001f }; /* camera up */
+u32 D_8010D43C_inst = 0;
+s32 D_8010D440_inst = 0;
+Vec D_8010D444_inst[4] = { /* camera positions */
+    { 70.0f, 560.0f, 1210.0f }, { 0.0f, 560.0f, 1210.0f }, { 0.0f, 470.0f, 830.0f }, { 67.5f, 300.0f, 537.5f },
+};
+Vec D_8010D474_inst[4] = { /* camera targets */
+    { 70.0f, 0.0f, -210.0f }, { 0.0f, 0.0f, -210.0f }, { 0.0f, 0.0f, -10.0f }, { 67.5f, 50.0f, 37.5f },
+};
+s32 D_8010D4A4_inst = 0; /* instruction message */
+s8 D_8010D4A8_inst = 0;
+u32 D_8010D4AC_inst = 0;
+u8 D_8010D4B0_inst[8] = { 0, 1, 4, 5, 8, 10, 12, 14 };
+u8 D_8010D4B8_inst[8] = { 1, 2, 3, 6, 7, 9, 13, 11 };
 
 void func_801059A0_inst(void) {
     void (*procFunc)(void) = NULL;

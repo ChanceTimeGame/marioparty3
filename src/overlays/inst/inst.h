@@ -35,7 +35,7 @@ typedef struct InstMotionObj {
     /* 0x74 */ f32 unk74; /* z scale */
 } InstMotionObj;
 
-extern s8 D_8010D400_inst[7];
+extern s8 D_8010D400_inst[4];
 extern s8 D_8010D404_inst;
 extern s8 D_8010D405_inst;
 extern s8 D_8010D406_inst;
