@@ -344,7 +344,40 @@ void func_8010BBF4_msetup(s16 arg0) {
     func_8010BA6C_msetup(0, arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BC18_msetup);
+void func_8010BC18_msetup(s16 start, s16 count) {
+    s32 i;
+    s32 last = count - 1;
+
+    for (i = start; i < count; i++) {
+        D_8011A9E0_msetup[i].state = 0xC;
+    }
+    while (D_8011A9E0_msetup[last].state != 0) {
+        HuPrcVSleep();
+    }
+    for (i = start; i < count; i++) {
+        D_8011A9E0_msetup[i].state = 2;
+    }
+    while (D_8011A9E0_msetup[last].state != 0) {
+        HuPrcVSleep();
+    }
+    for (i = 30; i != 0; i--) {
+        HuPrcVSleep();
+    }
+    for (i = start; i < count; i++) {
+        D_8011A9E0_msetup[i].state = 0x12;
+    }
+    HuPrcVSleep();
+    while (D_8011A9E0_msetup[last].state != 0) {
+        HuPrcVSleep();
+    }
+    HuPrcVSleep();
+    for (i = start; i < count; i++) {
+        omDelPrcObj(D_8011A898_msetup[i]);
+        D_8011A898_msetup[i] = NULL;
+    }
+    HuPrcVSleep();
+    HuPrcVSleep();
+}
 
 void func_8010BE8C_msetup(s16 arg0) {
     func_8010BC18_msetup(0, arg0);

@@ -243,7 +243,6 @@ void func_8010B9B8_msetup(s32 arg0, s32 arg1);
 void func_8010BA10_msetup(s32 arg0, s32 arg1);
 s16 func_8010BA3C_msetup(void);
 void func_8010BBF4_msetup(s16 arg0);
-void func_8010BC18_msetup(s16 arg0, s16 arg1);
 void func_8010BE8C_msetup(s16 arg0);
 s16 func_8010BEB0_msetup(s16 arg0, s16 arg1);
 void func_8010BEF8_msetup(void); /* process */
@@ -392,6 +391,7 @@ extern f32 D_80119A54_msetup[4];
 extern f32 D_80119A64_msetup[2];
 extern s16 D_80119A6C_msetup[]; /* start delay, by D_8011A938_msetup */
 void func_8010BA6C_msetup(s16 start, s16 count);
+void func_8010BC18_msetup(s16 start, s16 count);
 
 
 /* hmfman's vertex-scatter effect (HmfModel.unkBC; opening's OpFxWork/OpFxPart, same layout) as
