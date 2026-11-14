@@ -1852,7 +1852,7 @@ segments:
     bss_size: 0x20
     subsegments:
       - [0x3CA800, c]
-      - [0x3CDBD0, data, 3CA800] #80108D70
+      - [0x3CDBD0, .data, 3CA800] #80108D70
       - [0x3CDDE0, .rodata, 3CA800]
       - {0x3CDEC0, type: bss, vram: 0x80109060, name: opboard_bss}
 
