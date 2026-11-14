@@ -168,7 +168,6 @@ extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
 extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
 extern u8 D_8011AA40_msetup;                     /* .bss 0x1; addiu,lbu: 80105C4C 80109218 80109868 8010A7A0 8010A7EC 8010F87C 801116 */
 extern u8 D_8011AA41_msetup;                     /* .bss 0x1; lbu: 80107964 801085D4 8010A10C 801132C4 */
-extern u8 D_8011AA42_msetup;                     /* .bss 0x1; addiu,lbu,sb: 80106DF8 80115EE0 */
 extern u8 D_8011AA43_msetup;                     /* .bss 0x1; lbu,sb: 80107E48 80107FB4 */
 extern u8 D_8011AA47_msetup;                     /* .bss 0x1; lbu,sb: 80107D84 80107FB4 80108938 80108AB8 80109218 80109868 */
 extern s16 D_8011AA48_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 80107FB4 80108AB8 80109218 80109868 8010A3 */
@@ -287,7 +286,6 @@ omObjData * func_8010E21C_msetup(void);
 void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
 void func_8010E4D8_msetup(MsLift *lifts, s32 count);
-void func_8010E52C_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
 void func_8010E8C8_msetup(MsLift *lifts, s32 count, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, s32 arg7);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
@@ -313,18 +311,43 @@ s32 func_80113ED4_msetup(MsSetupWork *work); /* state 8: board select */
 s32 func_801145D0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80114AA0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801150A0_msetup(s16 arg0);
-s16 func_801152C4_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, u16 arg4); /* arg1 unused */
-s32 func_801157B8_msetup(s16 arg0, s16 arg1, s16 *arg2, s16 arg3, void *arg4, void *arg5);
-s16 func_80115A9C_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, s32 arg4); /* arg1 unused */
 void func_80115E78_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 s32 func_80115EE0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801167B8_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80116FE0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80117818_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119FF0_msetup) */
-void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork E */
+/* a3 is SprPos3DSet's x, passed through */
+void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, f32 scale);
+/* returns the s16 choice (sra 16); arg4 is the MsLift pair, arg5 the arrows object */
+s16 func_801157B8_msetup(s16 model, s16 sprModel, s16 *pad, s16 sel, MsLift *lifts, omObjData *arrows);
+/* arg2: the "hari" part's rest matrix (HuMtx4F) */
+s16 func_80115A9C_msetup(s16 model, s32 arg1, HuMtx4F needleMtx, s16 *pad, s32 selIn); /* arg1 unused */
+extern f32 D_8011A908_msetup; /* the needle's angle (swc1; sw of 0.0f) */
+extern u8 D_8011AA42_msetup;                     /* .bss 0x1; addiu,lbu,sb: 80106DF8 80115EE0 */
+extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0_msetup) */
+/* arg4 was u16: func_80115EE0_msetup sign-extends it (sll/sra), so s16 at the call; arg2 the needle matrix */
+s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
+/* was void: returns the yes/no answer (func_801167B8_msetup tests v0) */
+s32 func_8010B858_msetup(void);
+/* arg0/arg1 were s32: the MsLift array and a 0x20-byte .data table (func_801167B8_msetup) */
+void func_8010E52C_msetup(MsLift *lifts, void *arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
+/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
+   stack, 0x18 apart; memset 0x14) */
+typedef struct MsStoryWork {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
+    /* 0x0E */ s16 id;     /* page 0-2 */
+    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s32 unk14;
+} MsStoryWork; /* size = 0x18 */
 
 /* fork A */
 /* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
