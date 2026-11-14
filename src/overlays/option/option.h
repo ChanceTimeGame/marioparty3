@@ -94,7 +94,6 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
    end of this file. */
 extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
 extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
-extern f32 D_801138EC_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F0_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F4_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_801138F8_option;                /* .data ; lwc1: 8010C3E4 */
@@ -106,7 +105,6 @@ extern f32 D_8011390C_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113910_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113914_option;                /* .data ; lwc1: 8010C3E4 */
 extern f32 D_80113918_option;                /* .data ; lwc1: 8010C3E4 */
-extern f32 D_80113970_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_80113974_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_80113978_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_8011397C_option;                /* .data ; lwc1: 8010D5B0 */
@@ -371,4 +369,19 @@ void func_801132AC_option(s32 no, s32 flag);
 void func_801132C8_option(s32 no, s32 arg1);
 void func_8011331C_option(s32 no, s32 motNo, s32 flag);
 extern u8 D_800D09A8_main; /* first byte of the save common buffer (saveload.c SaveCommonBuf): bit 0 is the sound mode */
+/* .data (fork D). Inner labels of these objects are aliases in undefined_syms.txt. */
+#ifdef NON_MATCHING
+#define OP_DATA_FILE_END()
+#else
+#define OP_DATA_FILE_END() __asm__(".section .data\n    .align 4\n");
+#endif
+extern Vec D_801134F0_option[3];
+extern Vec D_80113514_option[9];
+extern Vec D_8011376C_option; /* D_80113770_option and D_80113774_option are its y and z */
+extern f32 D_801138EC_option[6][4]; /* D_801138F0..D_80113918 are elements of it */
+extern s32 D_801138C8_option[9];
+extern s32 D_8011394C_option[9];
+extern f32 D_80113970_option[6][4]; /* D_80113974..D_8011399C are elements of it */
+extern u8 D_80113A08_option[12];
+extern u8 D_80113A14_option[12];
 #endif
