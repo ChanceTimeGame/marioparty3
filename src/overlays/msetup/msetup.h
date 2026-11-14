@@ -335,4 +335,18 @@ void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
+/* fork C */
+/* user_data of the func_8010D6D0_msetup sprite process (func_801132C4_msetup and
+   func_80117A3C_msetup fill one per sprite). */
+typedef struct MsSprWork {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 (*pos)[2]; /* positions, indexed by idx; may be NULL */
+    /* 0x08 */ s32 file;      /* func_8000B838_main data id */
+    /* 0x0C */ s16 idx;
+    /* 0x0E */ s16 state;     /* 0 idle, 1 fade in, 2 fade out, -1 kill (then 100) */
+    /* 0x10 */ s16 time;      /* frames per move (0: jump) */
+    /* 0x12 */ s16 prio;
+} MsSprWork; /* size = 0x14 */
+
 #endif

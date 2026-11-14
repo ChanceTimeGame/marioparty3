@@ -117,7 +117,126 @@ s32 func_8010D684_msetup(s16 pad, s16 *prev) {
     return (s16)old;
 }
 
+// retail passes work->prio with lh (called unprototyped?), lhu here (masked 1); s7/s8 swapped
+#ifdef NON_MATCHING
+void func_8010D6D0_msetup(void) {
+    MsSprWork *work;
+    s16 *xy;
+    s16 spr;
+    s16 slot;
+    s16 prevState;
+    s16 shown;
+    s16 startX;
+    s16 startY;
+    s16 dx;
+    s16 dy;
+    s16 prevIdx;
+    s16 alpha;
+    s16 step;
+    s16 tx;
+    s16 ty;
+    s16 x;
+    s16 y;
+    s16 t;
+    f32 s;
+
+    work = HuPrcCurrentGet()->user_data;
+    xy = &work->x;
+    spr = func_8000B838_main(work->file);
+    slot = InitEspriteSlot(spr, work->prio, 1);
+    func_8000BCC8_main(slot, 1);
+    x = tx = work->x;
+    y = ty = work->y;
+    func_8000BBD4_main(slot, x, y);
+    func_8000BB94_main(slot);
+    shown = 0;
+    alpha = 0;
+    step = 0;
+    prevIdx = work->idx;
+    t = 0;
+    prevState = work->state;
+    startX = x;
+    startY = y;
+    dy = 0;
+    dx = 0;
+    while (1) {
+        if (prevState != work->state) {
+            switch (work->state) {
+            case 0:
+                break;
+            case 1:
+                step = 0x40;
+                if (shown == 0) {
+                    alpha = 0;
+                    func_8000BBFC_main(slot, 0);
+                    func_8000BB54_main(slot);
+                    shown = 1;
+                }
+                break;
+            case 2:
+                if (shown != 0) {
+                    step = -0x40;
+                }
+                break;
+            case -1:
+                func_8000C184_main(slot);
+                HuSprKill(spr);
+                work->state = 100;
+                while (1) {
+                    HuPrcVSleep();
+                }
+            }
+            prevState = work->state;
+        }
+        if (prevIdx != work->idx) {
+            prevIdx = work->idx;
+            if (work->pos != NULL) {
+                xy[0] = work->pos[prevIdx][0];
+                xy[1] = work->pos[prevIdx][1];
+            }
+        }
+        if (tx != xy[0] || ty != xy[1]) {
+            tx = xy[0];
+            ty = xy[1];
+            t = work->time;
+            if (t != 0) {
+                startX = x;
+                startY = y;
+                dx = tx - x;
+                dy = ty - y;
+            }
+        }
+        if (step != 0) {
+            alpha += step;
+            if (alpha >= 0x100) {
+                alpha = 0xFF;
+                step = 0;
+            } else if (alpha < 0) {
+                alpha = 0;
+                step = 0;
+                func_8000BB94_main(slot);
+                shown = 0;
+            }
+            func_8000BBFC_main(slot, alpha);
+        }
+        if ((x != tx) | (y != ty)) {
+            if (t == 0) {
+                x = tx;
+                y = ty;
+            } else {
+                t--;
+                s = sindf((90.0f / work->time) * (work->time - t));
+                x = startX + dx * s;
+                y = startY + dy * s;
+            }
+            func_8000BBD4_main(slot, x, y);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010D6D0_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010DAC4_msetup);
 
