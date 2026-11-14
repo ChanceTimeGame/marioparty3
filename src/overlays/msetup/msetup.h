@@ -296,7 +296,6 @@ omObjData * func_8010E21C_msetup(void);
 void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
 void func_8010E4D8_msetup(MsLift *lifts, s32 count);
-void func_8010E52C_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
 void func_8010E8C8_msetup(MsLift *lifts, s32 count, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, s32 arg7);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
@@ -344,6 +343,13 @@ typedef struct MsCursorWork {
     /* 0x10 */ s16 steps;
     /* 0x12 */ s16 attr;
 } MsCursorWork; /* size = 0x14 */
+/* Lift move key: func_8010E52C_msetup steps each lift from its pose to keys[i] (0x10 stride). */
+typedef struct MsLiftKey {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ f32 rotY;
+} MsLiftKey; /* size = 0x10 */
+/* fork C's function: arg0, arg1 and arg4 are pointers (lifts, keys, extra models), not s32 */
+void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 steps, s16 *models, u16 nmodels, f32 scale0, f32 scale1);
 s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor);
 s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor);
 s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */

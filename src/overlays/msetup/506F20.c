@@ -309,7 +309,146 @@ while (1) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112F5C_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801132C4_msetup);
+extern s16 (*D_80119E0C_msetup[2])[2];
+extern s16 D_80119DFC_msetup[4][2];
+extern s32 D_80119B2C_msetup[2];
+extern MsLiftKey D_80119DC8_msetup[2];
+extern MsLiftKey D_80119C48_msetup[2];
+
+/* COM setup lift: a board with two cursors, first how COM levels are set (individual/all,
+   func_80112E08_msetup), then the level (func_80112F5C_msetup); work->unk4 = -1 on cancel. */
+s32 func_801132C4_msetup(MsSetupWork *work) {
+    Process *cursorProcs[2];
+    MsCursorWork cursors[2];
+    MsSetupWork board;
+    MsLift lifts[2];
+    s16 model;
+    s16 pad;
+    Process *boardProc;
+    s32 i;
+    s16 levels;
+    s16 step;
+    s16 sel;
+    s16 ret;
+    f32 rot;
+    MsCursorWork *cursor;
+
+    work->unk4 = 0;
+    func_8010B998_msetup();
+    func_8010E4BC_msetup(lifts, 2, 90.0f);
+    func_8010E4D8_msetup(lifts, 2);
+    model = func_8000B108_main(0x140007, 0x289);
+    func_8001C448_main(model);
+    func_8001C258_main(model, 4, 4);
+    Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+    Hu3DModelPosSet(model, 0.0f, -300.0f, -280.0f);
+    func_8001C814_main(model, 1, 1);
+    if (_CheckFlag(0x2D) != 0) {
+        func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
+        levels = 4;
+    } else {
+        func_8001C6A8_main(model, 0.0f);
+        levels = 3;
+    }
+    if (D_8011AA41_msetup == 1) {
+        Hu3DModelRotSet(model, 180.0f, 0.0f, 0.0f);
+    }
+    board.state = 0;
+    board.unk2 = model;
+    board.unk4 = levels;
+    boardProc = omAddPrcObj(func_80112804_msetup, 0x3F00, 0x800, 0);
+    boardProc->user_data = &board;
+    for (i = 0; i < 2; i++) {
+        cursorProcs[i] = omAddPrcObj(func_8010D6D0_msetup, 0x3F00, 0x800, 0);
+        cursor = &cursors[i];
+        cursorProcs[i]->user_data = cursor;
+        cursor->x = 0xA0;
+        cursor->y = 0x78;
+        if (i == 1 && levels == 4) {
+            cursor->pos = D_80119DFC_msetup;
+        } else {
+            cursor->pos = D_80119E0C_msetup[i];
+        }
+        cursor->file = D_80119B2C_msetup[1 - i];
+        cursor->sel = -1;
+        cursor->state = 0;
+        cursor->steps = 0;
+        cursor->attr = 0;
+    }
+    HuAudFXPlay(0x2D9);
+    func_8010E8C8_msetup(lifts, 2, 0xF, 720.0f, 565.0f, 0.1f, 1.0f, 1);
+    Hu3DModelPosSet(model, 0.0f, 300.0f, -280.0f);
+    D_8011A990_msetup[0] = 1;
+    Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
+    func_8001C258_main(model, 4, 0);
+    if (D_8011AA41_msetup == 1) {
+        board.state = 3;
+    } else {
+        board.state = 1;
+    }
+    func_8010E52C_msetup(lifts, D_80119DC8_msetup, 2, 7, &model, 1, 0.1f, 1.2f);
+    step = 1;
+    if (D_8011AA41_msetup == 1) {
+        step = 2;
+    }
+    sel = 0;
+    do {
+        switch (step) {
+            case 1:
+                ret = func_80112E08_msetup(sel, &pad, &cursors[0]);
+                if (ret < 0) {
+                    work->unk4 = -1;
+                    step = -1;
+                    break;
+                }
+                sel = ret;
+                step++;
+                rot = 0.0f;
+                board.state = 5;
+                for (i = 0; i < 7; i++) {
+                    rot += 180.0f / 7.0f;
+                    Hu3DModelRotSet(model, rot, 0.0f, 0.0f);
+                    HuPrcVSleep();
+                }
+                break;
+            case 2:
+                if (func_80112F5C_msetup(sel, levels, &pad, &cursors[1]) < 0) {
+                    if (D_8011AA41_msetup == 1) {
+                        work->unk4 = -1;
+                        step = -1;
+                        break;
+                    }
+                    step = 1;
+                    rot = 180.0f;
+                    board.state = 5;
+                    for (i = 0; i < 7; i++) {
+                        rot -= 180.0f / 7.0f;
+                        Hu3DModelRotSet(model, rot, 0.0f, 0.0f);
+                        HuPrcVSleep();
+                    }
+                    break;
+                }
+                step = -1;
+                break;
+        }
+        HuPrcVSleep();
+    } while (step > 0);
+    board.state = 6;
+    func_8010E52C_msetup(lifts, D_80119C48_msetup, 2, 7, &model, 1, 1.1f, 0.0f);
+    cursors[0].state = -1;
+    cursors[1].state = -1;
+    board.state = 7;
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, 2, 7, 360.0f, 400.0f, 1.0f, 0.1f, 1);
+    omDelPrcObj(boardProc);
+    omDelPrcObj(cursorProcs[0]);
+    omDelPrcObj(cursorProcs[1]);
+    for (i = 0; i < 2; i++) {
+        func_8001ACDC_main(lifts[i].model);
+    }
+    func_8001ACDC_main(model);
+    return 0;
+}
 
 extern s32 D_80119E58_msetup[3];
 extern s32 D_80119E64_msetup[3];
