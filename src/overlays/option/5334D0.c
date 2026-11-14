@@ -211,7 +211,43 @@ s32 func_80105FF8_option(Vec *eye, Vec *at, Vec *up) {
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105FF8_option);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106508_option);
+/* Stores eye and target as the camera, with an up vector square to the view direction (also written
+   to *up). */
+void func_80106508_option(Vec *eye, Vec *at, Vec *up) {
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 rz;
+
+    rz = -90.0f;
+    dx = at->x - eye->x;
+    dy = at->y - eye->y;
+    dz = at->z - eye->z;
+    len = dx * dx + dy * dy + dz * dz;
+    len = HuSqrtf(len);
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    ux = dy * dz - dz * (dy + 1.0f);
+    uy = dz * dx - dx * dz;
+    uz = dx * (dy + 1.0f) - dy * dx;
+    up->x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+          + uy * (dy * dx * (1.0f - cosdf(rz)) - dz * sindf(rz))
+          + uz * (dz * dx * (1.0f - cosdf(rz)) + dy * sindf(rz));
+    up->y = ux * (dy * dx * (1.0f - cosdf(rz)) + dz * sindf(rz))
+          + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+          + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+    up->z = ux * (dz * dx * (1.0f - cosdf(rz)) - dy * sindf(rz))
+          + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+          + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+    HuVecCopy3F(&D_801146F0_option.eye, eye);
+    HuVecCopy3F(&D_801146F0_option.at, at);
+    HuVecCopy3F(&D_801146F0_option.up, up);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106998_option);
 
