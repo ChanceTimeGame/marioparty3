@@ -285,10 +285,7 @@ void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
 void func_8010E4D8_msetup(MsLift *lifts, s32 count);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
-s16 func_8010F2F4_msetup(Process *proc, s16 arg1);
-void func_8010F320_msetup(Process *proc, s32 idx, s16 arg2, s16 arg3);
 void func_8010F33C_msetup(s16 model, Vec *out, f32 (*mtx)[4]);
-void func_8010F43C_msetup(s16 model, s32 arg1, Vec2f *out);
 void func_8010F4E0_msetup(s32 arg0, s16 arg1, s32 arg2);
 s32 func_8010F87C_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_8011035C_msetup(void); /* process */
@@ -378,5 +375,30 @@ void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 frames,
                          f32 scale0, f32 scale1);
 void func_8010E8C8_msetup(MsLift *lifts, s16 count, s16 frames, f32 rotY, f32 posY, f32 scale0, f32 scale1,
                          s16 nfx);
+
+/* user_data of the func_8010EB94_msetup board-preview process (D_8011A8B0_msetup, 0x30 bytes):
+   obj[0..1] 3D models scaled in and out, obj[2] an esprite slot faded in and out; res[i] is what
+   frees obj[i] when it is killed (func_80033430_main data, or the sprite for slot 2). */
+typedef struct MsPreviewWork {
+    /* 0x00 */ s16 state; /* func_8010F2F4_msetup; 0 idle, 1-9 and 0xFF requests */
+    /* 0x02 */ s16 unk2;
+    /* 0x04 */ s16 obj[8];
+    /* 0x14 */ s16 res[8];
+    /* 0x24 */ char unk24[0xC];
+} MsPreviewWork; /* size = 0x30 */
+
+extern MsPreviewWork D_8011A8B0_msetup;
+extern f32 D_80119B0C_msetup[]; /* full scale of preview models 0 and 1 (.data 0x14) */
+
+s16 func_8010F2F4_msetup(Process *proc, s16 state); /* sets the state if nonzero; returns it */
+void func_8010F320_msetup(Process *proc, s16 idx, s16 obj, s16 res);
+void func_8010F43C_msetup(s16 model, char *name, Vec2f *out);
+
+/* main functions without a shared prototype (14EA0.c, 89400 area) */
+void func_80088800_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
+void func_80017CD0_main(f32 (*mf)[4], f32 sx, f32 sy, f32 sz);
+void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
+void func_80018044_main(f32 (*a)[4], f32 (*b)[4], f32 (*c)[4]);
+void func_80016B00_main(s16 model, s16 arg1, char *name, f32 (*mtx)[4][4]);
 
 #endif
