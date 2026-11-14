@@ -5,6 +5,14 @@ void func_801061EC_inst(void);         /* extern */
 void func_80106310_inst(omObjData *);  /* extern */
 void func_80106388_inst(void);         /* extern */
 void func_801063F4_inst(void);
+s32 func_80106418_inst(Vec *posA, Vec *posB, Vec *atA, Vec *atB, s32 frames);
+void func_80107BE4_inst(void);
+s32 func_80107E20_inst(void);
+void func_80107E98_inst(void);
+void func_8010B0FC_inst(void);
+s8 func_8010B118_inst(void);
+u16 func_8010CA74_inst(s32, s16);
+void func_8010CFF4_inst(void);
 void func_8010674C_inst(omObjData *);  /* extern */
 void func_801067CC_inst(void);         /* extern */
 void func_80106850_inst(Vec *, Vec *); /* extern */
@@ -24,16 +32,23 @@ extern s8 D_8010D408_inst;
 extern s8 D_8010D40A_inst;
 extern s8 D_8010D40B_inst;
 extern s8 D_8010D411_inst;
-extern Vec D_8010D45C_inst;
-extern Vec D_8010D48C_inst;
+extern s8 D_8010D404_inst;
+extern s8 D_8010D405_inst;
+extern s8 D_8010D406_inst;
+extern s8 D_8010D409_inst;
+extern u32 D_8010D43C_inst;
+extern s32 D_8010D440_inst;
+extern Vec D_8010D444_inst[4]; /* camera positions */
+extern Vec D_8010D474_inst[4]; /* camera targets */
+extern s32 D_8010DC00_inst;
+extern s16 D_8010DC02_inst; /* low half of D_8010DC00_inst */
 extern s8 D_8010D5B1_inst;
 extern s8 D_8010D4A8_inst;
+extern u32 D_8010D4AC_inst;
 extern f32 D_8010D414_inst;
 extern Vec D_8010D418_inst;
 extern Vec D_8010D424_inst;
 extern Vec D_8010D430_inst;
-extern Vec D_8010D450_inst[2];
-extern Vec D_8010D480_inst[2];
 
 /* The word before each MinigameTable entry (D_800A6D44_main), read with the table's 0x14 stride. */
 typedef struct InstMgTableHead {
@@ -143,12 +158,130 @@ void func_801059A0_inst(void) {
     omAddObj(0, 0, 0, -1, func_80105D9C_inst);
     omAddObj(0, 0, 0, -1, func_80106310_inst);
     func_80106388_inst();
-    func_80106850_inst(&D_8010D45C_inst, &D_8010D48C_inst);
+    func_80106850_inst(&D_8010D444_inst[2], &D_8010D474_inst[2]);
     func_801067CC_inst();
     WipeCreateIn(0xFF, 0x10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80105D9C_inst);
+/* Main state machine of the instruction screen: camera moves in, the pages are shown, and
+   once a player confirms the camera moves out and the minigame starts. */
+void func_80105D9C_inst(omObjData *arg0) {
+    s32 i;
+
+    switch (D_8010D43C_inst) {
+        case 0:
+            HuAudSeqPlay(0x10);
+            func_801067CC_inst();
+            D_8010DC00_inst = 0;
+            D_8010D405_inst = 0;
+            if (D_8010D408_inst != 0) {
+                D_8010D418_inst.x = D_8010D444_inst[2].x;
+                D_8010D418_inst.y = D_8010D444_inst[2].y;
+                D_8010D418_inst.z = D_8010D444_inst[2].z;
+                D_8010D424_inst.x = D_8010D474_inst[2].x;
+                D_8010D424_inst.y = D_8010D474_inst[2].y;
+                D_8010D424_inst.z = D_8010D474_inst[2].z;
+                D_8010D430_inst.x = 0.0f;
+                D_8010D430_inst.y = 1.0f;
+                D_8010D430_inst.z = -0.000001f;
+                D_8010D43C_inst = 6;
+                break;
+            }
+            D_8010D43C_inst++;
+            break;
+        case 1:
+            if (++D_8010DC00_inst >= 21) {
+                func_80107E98_inst();
+                D_8010D43C_inst += 2;
+            }
+            break;
+        case 2:
+            if (func_80106418_inst(&D_8010D444_inst[0], &D_8010D444_inst[1], &D_8010D474_inst[0], &D_8010D474_inst[1], 5) != 0) {
+                func_80107E98_inst();
+                D_8010D43C_inst++;
+            }
+            break;
+        case 3:
+            if (func_80107E20_inst() != 0) {
+                func_8010B0FC_inst();
+                D_8010D43C_inst++;
+            }
+            break;
+        case 4:
+            if (func_8010B118_inst() != 0) {
+                D_8010D43C_inst++;
+            }
+            break;
+        case 5:
+            if (func_80106418_inst(&D_8010D444_inst[1], &D_8010D444_inst[2], &D_8010D474_inst[1], &D_8010D474_inst[2], 7) != 0) {
+                func_80107BE4_inst();
+                D_8010D43C_inst++;
+            }
+            break;
+        case 6:
+            D_8010DC00_inst = 60;
+            D_8010D43C_inst++;
+            break;
+        case 7:
+            if (D_8010D440_inst == 1) {
+                D_8010DC00_inst--;
+                if (func_8010CA74_inst(0x1000, D_8010DC02_inst) != 0 || D_8010D406_inst == 1) {
+                    D_8010DC00_inst = 0;
+                    switch (D_8010D40A_inst) {
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:
+                            if (!(GwPlayer[D_8010D400_inst[0]].stat & 1)) {
+                                omVibrate(D_8010D400_inst[0], 10, 0, 10);
+                            }
+                            break;
+                        case 4:
+                            for (i = 0; i < 2; i++) {
+                                if (!(GwPlayer[D_8010D400_inst[i]].stat & 1)) {
+                                    omVibrate(D_8010D400_inst[i], 10, 0, 10);
+                                }
+                            }
+                            break;
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        default:
+                            for (i = 0; i < 4; i++) {
+                                if (!(GwPlayer[D_8010D400_inst[i]].stat & 1)) {
+                                    omVibrate(D_8010D400_inst[i], 10, 0, 10);
+                                }
+                            }
+                            break;
+                    }
+                    func_8010CFF4_inst();
+                    D_8010D409_inst = 1;
+                    D_8010D43C_inst++;
+                }
+            }
+            break;
+        case 8:
+            if (++D_8010DC00_inst >= 15) {
+                D_8010D404_inst = 1;
+                D_8010D43C_inst++;
+            }
+            break;
+        case 9:
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            WipeCreateOut(11, 20);
+            HuAudSeqFadeOut(30);
+            HuAudFXPlay(0x154);
+            D_8010D43C_inst++;
+            break;
+        case 10:
+            if (func_80106418_inst(&D_8010D444_inst[2], &D_8010D444_inst[3], &D_8010D474_inst[2], &D_8010D474_inst[3], 25) != 0 && WipeStatGet() == 0) {
+                func_801063F4_inst();
+                func_801061EC_inst();
+            }
+            break;
+    }
+}
 
 /* Leaves the instruction screen for the minigame (or, if it was skipped, back). */
 void func_801061EC_inst(void) {
@@ -220,7 +353,27 @@ const s32 D_8010D658_inst[] = {
     0x00170005, 0x00170005, 0x00170006, 0x00140067,
 };
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106418_inst);
+/* One step of an eased (sine) camera move from posA/atA to posB/atB over frames steps;
+   returns 1 (and resets the step counter) once the move is complete. */
+s32 func_80106418_inst(Vec *posA, Vec *posB, Vec *atA, Vec *atB, s32 frames) {
+    s32 ret;
+
+    D_8010D418_inst.x = (posB->x - posA->x) * sindf(D_8010D4AC_inst * (90.0f / frames)) + posA->x;
+    D_8010D418_inst.y = (posB->y - posA->y) * sindf(D_8010D4AC_inst * (90.0f / frames)) + posA->y;
+    D_8010D418_inst.z = (posB->z - posA->z) * sindf(D_8010D4AC_inst * (90.0f / frames)) + posA->z;
+    D_8010D424_inst.x = (atB->x - atA->x) * sindf(D_8010D4AC_inst * (90.0f / frames)) + atA->x;
+    D_8010D424_inst.y = (atB->y - atA->y) * sindf(D_8010D4AC_inst * (90.0f / frames)) + atA->y;
+    D_8010D424_inst.z = (atB->z - atA->z) * sindf(D_8010D4AC_inst * (90.0f / frames)) + atA->z;
+    D_8010D430_inst.x = 0.0f;
+    D_8010D430_inst.y = 1.0f;
+    D_8010D430_inst.z = -0.000001f;
+    ret = 0;
+    if (++D_8010D4AC_inst > frames) {
+        D_8010D4AC_inst = 0;
+        ret = 1;
+    }
+    return ret;
+}
 
 void func_8010674C_inst(omObjData *arg0) {
     D_800CE17C_main[0] = D_8010D418_inst.x;
@@ -234,12 +387,12 @@ void func_8010674C_inst(omObjData *arg0) {
 }
 
 void func_801067CC_inst(void) {
-    D_8010D418_inst.x = D_8010D450_inst[0].x;
-    D_8010D418_inst.y = D_8010D450_inst[0].y;
-    D_8010D418_inst.z = D_8010D450_inst[0].z;
-    D_8010D424_inst.x = D_8010D480_inst[0].x;
-    D_8010D424_inst.y = D_8010D480_inst[0].y;
-    D_8010D424_inst.z = D_8010D480_inst[0].z;
+    D_8010D418_inst.x = D_8010D444_inst[1].x;
+    D_8010D418_inst.y = D_8010D444_inst[1].y;
+    D_8010D418_inst.z = D_8010D444_inst[1].z;
+    D_8010D424_inst.x = D_8010D474_inst[1].x;
+    D_8010D424_inst.y = D_8010D474_inst[1].y;
+    D_8010D424_inst.z = D_8010D474_inst[1].z;
     D_8010D430_inst.x = 0.0f;
     D_8010D430_inst.y = 1.0f;
     D_8010D430_inst.z = -0.000001f;
