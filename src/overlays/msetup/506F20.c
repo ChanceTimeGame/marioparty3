@@ -524,7 +524,76 @@ void func_8010E4D8_msetup(MsLift *lifts, s32 count) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E52C_msetup);
+void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 frames, s16 *models, u16 nmodels,
+                         f32 scale0, f32 scale1) {
+    Vec pos;
+    MsLift *lift;
+    MsLiftKey *key;
+    Vec *rot;
+    f32 dscale;
+    f32 t;
+    f32 ry;
+    f32 scale;
+    s32 i;
+    s32 j;
+    s32 k;
+    s16 model;
+
+    dscale = scale1 - scale0;
+    for (i = 0; i < frames; i++) {
+        t = (f32)i / frames;
+        for (j = 0; j < count; j++) {
+            if (lifts[j].unk20 & 1) {
+                continue;
+            }
+            model = lifts[j].model;
+            lift = &lifts[j];
+            key = &keys[j];
+            pos.x = (key->pos.x - lift->pos.x) * t;
+            pos.y = (key->pos.y - lift->pos.y) * t;
+            pos.z = (key->pos.z - lift->pos.z) * t;
+            pos.x += lift->pos.x;
+            pos.y += lift->pos.y;
+            pos.z += lift->pos.z;
+            rot = &lift->rot;
+            if (lift->rot.y > 180.0f) {
+                scale = lift->rot.y - 360.0f;
+                ry = (key->rotY - scale) * t + scale;
+            } else {
+                ry = (keys[j].rotY - rot->y) * t + rot->y;
+            }
+            Hu3DModelRotSet(model, rot->x, ry, rot->z);
+            Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        }
+        scale = scale0 + t * dscale;
+        if (models != NULL) {
+            for (k = 0; k < (s16)nmodels; k++) {
+                if (models[k] >= 0) {
+                    Hu3DModelScaleSet(models[k], scale, scale, scale);
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+    for (j = 0; j < count; j++) {
+        if (lifts[j].unk20 & 1) {
+            continue;
+        }
+        model = lifts[j].model;
+        lift = &lifts[j];
+        lift->pos = keys[j].pos;
+        lift->rot.y = keys[j].rotY;
+        Hu3DModelPosSet(model, lift->pos.x, lift->pos.y, lift->pos.z);
+        Hu3DModelRotSet(model, lift->rot.x, lift->rot.y, lift->rot.z);
+    }
+    if (models != NULL) {
+        for (k = 0; k < (s16)nmodels; k++) {
+            if (models[k] >= 0) {
+                Hu3DModelScaleSet(models[k], scale1, scale1, scale1);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E8C8_msetup);
 
