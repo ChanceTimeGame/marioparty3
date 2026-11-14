@@ -215,21 +215,86 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_8011421C_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FC40_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FDF4_option);
+void func_8010FDF4_option(void) {
+    D_801147E0_option.obj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FE00_option);
+s32 func_8010FE00_option(void) {
+    return D_801147E0_option.obj != NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FE10_option);
+void func_8010FE10_option(void) {
+    if (D_801147E0_option.obj != NULL) {
+        func_80033910_main(HmfModelData[func_80113218_option(2)].hmf);
+        HuAudFXStop((s16)D_801147E0_option.seNo);
+        omDelObj(D_801147E0_option.obj);
+        D_801147E0_option.obj = NULL;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FE84_option);
+void func_8010FE84_option(omObjData *obj) {
+    if (func_800078F8_main(D_801147E0_option.seNo) == 0) {
+        func_80033910_main(HmfModelData[func_80113218_option(2)].hmf);
+        HuAudFXStop((s16)D_801147E0_option.seNo);
+        omDelObj(obj);
+        D_801147E0_option.obj = NULL;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FF0C_option);
+omObjData *func_8010FF0C_option(s32 seNo) {
+    if (D_801147E0_option.obj != NULL) {
+        omDelObj(D_801147E0_option.obj);
+    }
+    D_801147E0_option.obj = omAddObj(6, 0, 0, -1, func_8010FE84_option);
+    D_801147E0_option.seNo = seNo;
+    func_800078F8_main(seNo);
+    return D_801147E0_option.obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FF88_option);
+void func_8010FF88_option(void) {
+    s32 *p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010FFDC_option);
+    if (D_801147E8_option == 0) {
+        RepeatVibrator(0, 5, 0, 5);
+    }
+    p = &D_801147E8_option;
+    *p = (*p >= 11) ? 0 : *p + 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80110018_option);
+void func_8010FFDC_option(void) {
+    D_801147E8_option = 0;
+    omAddObj(6, 0, 0, -1, (void (*)(omObjData *))func_8010FF88_option);
+}
+
+s32 func_80110018_option(void) {
+    s16 count[9];
+    s16 i;
+    s16 type;
+
+    for (i = 0; i < 9; i++) {
+        count[i] = 0;
+    }
+    for (i = 0; i < 0x47; i++) {
+        type = D_800A6D44_main[i].minigameType;
+        if (D_800A6D40_main[i].unk0 == 0x70 || D_800A6D40_main[i].unk0 == -1) {
+            continue;
+        }
+        if (i == 0x1B || i == 8) {
+            continue;
+        }
+        if (i == 0x10) {
+            continue;
+        }
+        if (type < 5 && GWMgUnlockCheck(i) != 0) {
+            if (++count[type] >= 3) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+OP_FILE_END()
 
 void func_80110170_option(void) {
     func_8011019C_option();

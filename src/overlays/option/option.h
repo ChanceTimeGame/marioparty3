@@ -355,4 +355,20 @@ void func_80113440_option(s32 arg0);
 void func_8011345C_option(s32 arg0);
 void func_80113490_option(s32 arg0);
 
+/* fork D */
+/* Model sound object: D_801147E0_option (func_8010FE10_option..func_8010FF0C_option). */
+typedef struct OpSeObj {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s32 seNo; /* also func_800078F8_main's slot; HuAudFXStop takes its low half */
+} OpSeObj; /* size = 0x8 */
+extern OpSeObj D_801147E0_option;
+extern s32 D_801147E8_option; /* rumble repeat counter */
+
+/* The word before each MinigameTable entry (D_800A6D44_main), read with the table's 0x14 stride. */
+typedef struct OpMgTableHead {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ char unk4[0x10];
+} OpMgTableHead;
+extern OpMgTableHead D_800A6D40_main[];
+
 #endif
