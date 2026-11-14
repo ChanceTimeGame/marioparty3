@@ -378,7 +378,14 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801157B8_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115A9C_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115E78_msetup);
+/* Moves a model by (x, y, z). */
+void func_80115E78_msetup(s16 model, f32 x, f32 y, f32 z) {
+    if (model >= 0 && HmfModelData[model].hmf != NULL) {
+        HmfModelData[model].pos.x += x;
+        HmfModelData[model].pos.y += y;
+        HmfModelData[model].pos.z += z;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7D8_msetup);
 
@@ -398,11 +405,62 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801167B8_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80116FE0_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117818_msetup);
+s32 func_80117818_msetup(MsSetupWork *work) {
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117820_msetup);
+/* The overlay was linked from several source files, each 16-byte aligned (as modesel's MS_FILE_END). */
+#ifndef MSETUP_FILE_END
+#ifdef NON_MATCHING
+#define MSETUP_FILE_END()
+#else
+#define MSETUP_FILE_END() __asm__(".section .text\n    .align 4\n");
+#endif
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117910_msetup);
+extern s32 (*D_80119FF0_msetup[])(MsSetupWork *);
+
+/* Runs the MsSetupWork state machine: each state function returns the next state. */
+void func_80117820_msetup(void) {
+    MsSetupWork *work = HuPrcCurrentGet()->user_data;
+    s16 state; /* also the loop counter */
+
+    for (state = 0; state < 4; state++) {
+        D_8011A8E0_msetup[state][0] = -1;
+        D_8011A8E0_msetup[state][1] = -1;
+        D_8011A8E0_msetup[state][2] = -1;
+        D_8011A8E0_msetup[state][3] = -1;
+    }
+    func_8010E21C_msetup();
+    state = 0;
+    while (TRUE) {
+        if (state != work->state) {
+            state = ((u16)work->state < 14) ? work->state : 0;
+        }
+        work->state = D_80119FF0_msetup[state](work);
+        HuPrcVSleep();
+    }
+}
+
+MSETUP_FILE_END()
+
+f32 SprPos3DSet(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z);
+extern s16 D_800D418E_main; /* the viewport being drawn */
+
+/* SprPos3DSet plus a perspective scale (sprman's SprPosPerspectiveSet with a size factor). */
+void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, f32 scale) {
+    HuSprite *sprite = HuSprGrpData[grpIdx]->members[idx];
+    HuCamera *cam = &gCameraList[camIdx];
+    HuCamera *vp;
+    f64 dist;
+
+    dist = SprPos3DSet(grpIdx, idx, camIdx, x, y, z);
+    if (dist != 0.0) {
+        vp = (HuCamera *)((u8 *)cam + D_800D418E_main * 16);
+        sprite->unk_60 = vp->viewports[0].vp.vscale[0] * scale / 4.0 / dist / 1.3333334f;
+        sprite->unk_64 = vp->viewports[0].vp.vscale[1] * scale / 4.0 / dist;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117A3C_msetup);
 

@@ -331,8 +331,11 @@ s32 func_801167B8_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80116FE0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80117818_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119FF0_msetup) */
-void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork E */
+/* a3 is SprPos3DSet's x, passed through */
+void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, f32 scale);
 
 #endif
