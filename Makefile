@@ -326,6 +326,8 @@ NOP_OBJECTS := \
 NOP_OBJECTS += build/src/471D0.c.o
 # wave 2b C: sprput (MP2 builds 84FF0.c the same way: SprDisp has no nop after a branch-likely delay slot)
 NOP_OBJECTS += build/src/sprput.c.o
+# wave 3h: opboard (no nop between a call returning a float and its mul.s)
+NOP_OBJECTS += build/src/overlays/opboard/3CA800.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 

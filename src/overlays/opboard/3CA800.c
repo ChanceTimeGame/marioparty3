@@ -308,7 +308,48 @@ void func_801062CC_opboard(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80106388_opboard);
+/* the board's logo: drops in with a wobble, then its subtitle */
+void func_80106388_opboard(void) {
+    s32 logo[6] = { 0x130016, 0x130017, 0x130018, 0x130019, 0x13001A, 0x13001B };
+    s32 subtitle[6] = { 0x13001C, 0x13001D, 0x13001E, 0x13001F, 0x130020, 0x130021 };
+    void *data;
+    f32 amp;
+    f32 angle;
+
+    HuPrcSleep(10);
+    D_80108F34_opboard = func_800F2C48_shared_board(1, 0);
+    data = DataRead(logo[GwSystem.current_board_index]);
+    D_80108F34_opboard->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80108F34_opboard->spriteGroup, 0, D_80108F34_opboard->model[0], 0);
+    HuSprPriSet(D_80108F34_opboard->spriteGroup, 0, 10);
+    HuSprAttrSet(D_80108F34_opboard->spriteGroup, 0, 0);
+    func_80054904_main(D_80108F34_opboard->spriteGroup, 0, 160, 100);
+    HuSprScaleSet(D_80108F34_opboard->spriteGroup, 0, 0.0f, 0.0f);
+    for (amp = 0.5f, angle = 0.0f; angle <= 720.0f; angle += 45.0f) {
+        HuSprScaleSet(D_80108F34_opboard->spriteGroup, 0, sindf(angle) * amp + 1.0f, sindf(angle) * amp + 1.0f);
+        amp -= 0.03125f;
+        if (amp < 0.0f) {
+            amp = 0.0f;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcSleep(20);
+    HuSprScaleSet(D_80108F34_opboard->spriteGroup, 0, 1.0f, 1.0f);
+    D_80108F38_opboard = func_800F2C48_shared_board(1, 0);
+    data = DataRead(subtitle[GwSystem.current_board_index]);
+    D_80108F38_opboard->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80108F38_opboard->spriteGroup, 0, D_80108F38_opboard->model[0], 0);
+    HuSprPriSet(D_80108F38_opboard->spriteGroup, 0, 9);
+    HuSprAttrSet(D_80108F38_opboard->spriteGroup, 0, 0);
+    func_80054904_main(D_80108F38_opboard->spriteGroup, 0, 160, 70);
+    HuPrcSleep(75);
+    func_800F2CA4_shared_board(D_80108F38_opboard);
+    func_800F2CA4_shared_board(D_80108F34_opboard);
+    D_80108F38_opboard = NULL;
+    D_80108F34_opboard = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_801066F0_opboard);
 
@@ -334,9 +375,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C58_opboard);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opboard/3CA800", func_80108C8C_opboard);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108F80_opboard);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108F98_opboard);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/opboard/3CA800", D_80108FB0_opboard);
 
