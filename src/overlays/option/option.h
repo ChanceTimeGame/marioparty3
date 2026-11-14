@@ -208,7 +208,6 @@ void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
-u32 func_8010B68C_option(u32 arg0, s32 arg1);
 s32 func_8010BACC_option(u32 arg0);
 void func_8010BFA4_option(s32 arg0);
 s32 func_8010C04C_option(void);
@@ -388,5 +387,11 @@ extern Vec D_8011382C_option[2]; /* camera eye, target: entering item 2 */
 extern Vec D_80113844_option[2]; /* leaving item 2 */
 extern Vec D_8011385C_option[2]; /* entering item 3 */
 extern Vec D_80113874_option[2]; /* leaving item 3 */
+
+s32 func_8010B68C_option(s32 sel, s32 btn); /* second submenu: d-pad */
+extern Vec D_8011367C_option[2]; /* camera eye, target: second submenu item 1 */
+extern Vec D_80113694_option[2]; /* second submenu item 2 */
+extern Vec D_801136AC_option[2]; /* [1]: target for item 3 */
+extern Vec D_8011388C_option[3]; /* cursor anchor, second submenu items 1..3 */
 
 #endif
