@@ -712,35 +712,242 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A54_option);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", jtbl_80113A58_option);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A80_option);
+/* Camera points of the screen process (func_80108B58_option); D_80113A98_option is the up vector. */
+const Vec D_80113A80_option = { 0.0f, 271.19f, 1191.11f };
+const Vec D_80113A8C_option = { 0.0f, 228.72f, -550.0f };
+const Vec D_80113A98_option = { 0.0f, 1.0f, 0.0f };
+const Vec D_80113AA4_option = { 0.0f, 271.19f, 350.0f };
+const Vec D_80113AB0_option = { -535.0f, 228.72f, -550.0f };
+const Vec D_80113ABC_option = { 0.0f, 228.72f, 350.0f };
+const Vec D_80113AC8_option = { -160.0f, 228.72f, 50.0f };
+const Vec D_80113AD4_option = { 450.0f, 228.72f, 1191.11f };
+const Vec D_80113AE0_option = { 535.0f, 228.72f, -550.0f };
+const Vec D_80113AEC_option = { 160.0f, 228.72f, 50.0f };
+const Vec D_80113AF8_option = { -450.0f, 228.72f, 1191.11f };
+const Vec D_80113B04_option = { 0.0f, 410.0f, -550.0f };
+const Vec D_80113B10_option = { 0.0f, 228.72f, 50.0f };
+const Vec D_80113B1C_option = { 0.0f, 228.72f, 1191.11f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A8C_option);
+/* The screen process: camera flight in for the entry (omovlevtno), the menu (func_80109504_option),
+   camera flight out, then the next overlay. */
+void func_80108B58_option(void) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec eye2_0;
+    Vec at2_0;
+    Vec eye0_1;
+    Vec at0_1;
+    Vec up0_1;
+    Vec eye1_1;
+    Vec at1_1;
+    Vec eye2_1;
+    Vec at2_1;
+    Vec eye0_2;
+    Vec at0_2;
+    Vec up0_2;
+    Vec eye1_2;
+    Vec at1_2;
+    Vec eye2_2;
+    Vec at2_2;
+    Vec eye0_3;
+    Vec at0_3;
+    Vec up0_3;
+    Vec eye1_3;
+    Vec at1_3;
+    Vec eye2_3;
+    Vec at2_3;
+    Vec eye3_3;
+    Vec at3_3;
+    Vec eye0_D;
+    Vec at0_D;
+    s32 choice;
+    s32 next;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A98_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AA4_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AB0_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113ABC_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AC8_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AD4_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AE0_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AEC_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113AF8_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B04_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B10_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113B1C_option);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108B58_option);
+    next = 1;
+    func_8001F38C_main(0, 0x40, 0x40);
+    func_80112084_option();
+    func_8010FB40_option(0, 9);
+    func_8010FB40_option(1, 10);
+    switch (omovlevtno) {
+        case 0:
+            func_8004A5C4_main(7);
+            WipeCreateIn(11, 16);
+            eye = D_80113A80_option;
+            at = D_80113A8C_option;
+            up = D_80113A98_option;
+            func_80106508_option(&eye, &at, &up);
+            eye2_0 = D_80113AA4_option;
+            at2_0 = D_80113A8C_option;
+            func_8010737C_option(&eye2_0, &at2_0, 45);
+            HuPrcSleep(45);
+            break;
+        case 1:
+            func_8004A5C4_main(7);
+            WipeColorSet(255, 255, 255);
+            WipeCreateIn(11, 16);
+            eye0_1 = D_80113AB0_option;
+            at0_1 = D_80113ABC_option;
+            up0_1 = D_80113A98_option;
+            func_80106508_option(&eye0_1, &at0_1, &up0_1);
+            eye1_1 = D_80113AC8_option;
+            at1_1 = D_80113AD4_option;
+            func_80107AD4_option(&eye1_1, &at1_1, 46);
+            HuPrcSleep(46);
+            eye2_1 = D_80113AA4_option;
+            at2_1 = D_80113A8C_option;
+            func_80107758_option(&eye2_1, &at2_1, 45);
+            HuPrcSleep(45);
+            break;
+        case 2:
+            func_8004A5C4_main(7);
+            WipeColorSet(255, 255, 255);
+            WipeCreateIn(11, 16);
+            eye0_2 = D_80113AE0_option;
+            at0_2 = D_80113ABC_option;
+            up0_2 = D_80113A98_option;
+            func_80106508_option(&eye0_2, &at0_2, &up0_2);
+            eye1_2 = D_80113AEC_option;
+            at1_2 = D_80113AF8_option;
+            func_80107AD4_option(&eye1_2, &at1_2, 46);
+            HuPrcSleep(46);
+            eye2_2 = D_80113AA4_option;
+            at2_2 = D_80113A8C_option;
+            func_80107758_option(&eye2_2, &at2_2, 45);
+            HuPrcSleep(45);
+            break;
+        case 3:
+            WipeColorSet(255, 255, 255);
+            WipeCreateIn(11, 16);
+            eye0_3 = D_80113B04_option;
+            at0_3 = D_80113ABC_option;
+            up0_3 = D_80113A98_option;
+            func_80106508_option(&eye0_3, &at0_3, &up0_3);
+            eye1_3 = D_80113B10_option;
+            at1_3 = D_80113ABC_option;
+            func_80106F88_option(&eye1_3, &at1_3, 50);
+            HuPrcSleep(50);
+            eye2_3 = D_80113ABC_option;
+            at2_3 = D_80113B1C_option;
+            func_8010737C_option(&eye2_3, &at2_3, 25);
+            HuPrcSleep(25);
+            eye3_3 = D_80113ABC_option;
+            at3_3 = D_80113A8C_option;
+            func_80107758_option(&eye3_3, &at3_3, 35);
+            HuPrcSleep(35);
+            break;
+        default:
+            func_8004A5C4_main(7);
+            WipeCreateIn(11, 16);
+            eye0_D = D_80113A80_option;
+            at0_D = D_80113A8C_option;
+            func_80107758_option(&eye0_D, &at0_D, 45);
+            HuPrcSleep(16);
+            break;
+    }
+    choice = func_80109504_option();
+    func_801133A0_option(0);
+    switch (choice) {
+        case 0:
+            HuVecCopy3F(&eye, &D_801136F4_option);
+            eye.y += 20.0f;
+            HuVecCopy3F(&at, &D_80113700_option);
+            at.y += 20.0f;
+            HuAudFXPlay(0x2EB);
+            func_801132AC_option(0, 0);
+            func_801132E4_option(0, 0);
+            func_80113300_option(0);
+            func_80106F88_option(&eye, &at, 20);
+            func_8010FFDC_option();
+            WipeCreateOut(11, 20);
+            HuPrcSleep(20);
+            break;
+        case 1:
+            HuVecCopy3F(&eye, &D_8011370C_option);
+            eye.z += 200.0f;
+            HuVecCopy3F(&at, &D_80113718_option);
+            func_80113338_option(9, 12, 0, 8, 0);
+            HuAudFXPlay(0x2EB);
+            func_8011331C_option(0, 6, 0);
+            func_80113300_option(0);
+            eye.z -= 200.0f;
+            at.z -= 200.0f;
+            func_80106F88_option(&eye, &at, 20);
+            func_8010FFDC_option();
+            WipeCreateOut(11, 20);
+            HuAudSeqFadeOut(20);
+            HuPrcSleep(20);
+            break;
+        case 2:
+            HuVecCopy3F(&eye, &D_80113724_option);
+            eye.z += 200.0f;
+            HuVecCopy3F(&at, &D_80113730_option);
+            func_80113338_option(10, 11, 0, 8, 0);
+            HuAudFXPlay(0x2EB);
+            func_8011331C_option(0, 7, 0);
+            func_801132E4_option(0, 0);
+            func_80113300_option(0);
+            eye.z -= 200.0f;
+            at.z -= 200.0f;
+            func_80106F88_option(&eye, &at, 20);
+            func_8010FFDC_option();
+            WipeCreateOut(11, 20);
+            HuAudSeqFadeOut(20);
+            HuPrcSleep(20);
+            break;
+        case 3:
+        case 4:
+            HuVecCopy3F(&eye, &D_8011373C_option);
+            HuVecCopy3F(&at, &D_80113748_option);
+            func_80106F88_option(&eye, &at, 30);
+            HuPrcSleep(20);
+            func_80106B78_option();
+            HuAudFXPlay(0x2E1);
+            func_801132AC_option(1, 0);
+            func_801132E4_option(1, 0);
+            func_80113300_option(1);
+            func_80106F88_option(&eye, &at, 20);
+            func_8010FFDC_option();
+            WipeColorSet(255, 255, 255);
+            WipeCreateOut(11, 20);
+            HuAudSeqFadeOut(20);
+            HuPrcSleep(20);
+            break;
+        case 9:
+        default:
+            choice = 9;
+            break;
+    }
+    next = choice;
+    func_8010FA28_option();
+    func_8011239C_option();
+    func_8005F524_main();
+    omOvlKill();
+    switch (next) {
+        case 0:
+            omOvlHisChg(0, 0x7B, 3, 0x91);
+            omOvlCallEx(0x7B, 6, 0x91);
+            break;
+        case 1:
+            omOvlGotoEx(0x7B, 4, 0x91);
+            break;
+        case 2:
+            omOvlGotoEx(0x7B, 5, 0x91);
+            break;
+        case 3:
+            omOvlReturnEx(1);
+            omOvlHisChg(0, 0x77, 3, 0x91);
+            break;
+        case 9:
+        default:
+            omOvlReturnEx(1);
+            break;
+    }
+    omDelPrcObj(D_80114770_option);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109504_option);
 

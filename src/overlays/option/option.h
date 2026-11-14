@@ -76,6 +76,15 @@ extern OvlEntrypoint D_801134B0_option[];
 extern Vec D_801139E0_option; /* initial camera eye */
 extern Vec D_801139EC_option; /* initial camera target */
 extern Vec D_801139F8_option; /* initial camera up */
+/* camera eye and target before the flight out of the screen process (func_80108B58_option), by choice */
+extern Vec D_801136F4_option;
+extern Vec D_80113700_option;
+extern Vec D_8011370C_option;
+extern Vec D_80113718_option;
+extern Vec D_80113724_option;
+extern Vec D_80113730_option;
+extern Vec D_8011373C_option;
+extern Vec D_80113748_option;
 
 /* .bss: camera (fork A) */
 extern OpCam D_801146F0_option;
@@ -124,8 +133,8 @@ extern s16 D_801147E6_option;                /* .bss 0x2 bytes; lh: 8010FE84 */
 
 /* Not declared here (address-only or mixed accesses; the fork that decompiles their users types them):
    D_80113514_option D_80113580_option D_801135E0_option D_801135F8_option D_8011367C_option D_80113694_option
-   D_801136AC_option D_801136B8_option D_801136F4_option D_80113700_option D_8011370C_option D_80113718_option
-   D_80113724_option D_80113730_option D_8011373C_option D_80113748_option D_8011376C_option D_80113778_option
+   D_801136AC_option D_801136B8_option
+   D_8011376C_option D_80113778_option
    D_80113784_option D_80113790_option D_8011379C_option D_801137B4_option D_801137CC_option D_801137E4_option
    D_801137FC_option D_80113808_option D_80113814_option D_80113820_option D_8011382C_option D_80113844_option
    D_8011385C_option D_80113874_option D_8011388C_option D_80113898_option D_801138A4_option D_801138B0_option
