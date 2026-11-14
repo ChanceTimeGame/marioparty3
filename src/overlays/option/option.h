@@ -108,8 +108,6 @@ extern OpWin D_80115A78_option[32];  /* D_80110998_modesel */
 
 /* Typed from their loads and stores only; a fork that learns more corrects them in a block at the
    end of this file. */
-extern f32 D_80113770_option;                /* .data ; lwc1: 8010A3E8 */
-extern s32 D_80113774_option;                /* .data ; lw: 8010A3E8 */
 extern s32 D_801139D0_option;                /* .data ; lw,sw: 801130E8 */
 extern s16 D_801147E6_option;                /* .bss 0x2 bytes; lh: 8010FE84 */
 
@@ -194,25 +192,13 @@ void func_80108B34_option(void);
 void func_80108B58_option(void); /* main process */
 s32 func_80109504_option(void);
 void func_801096B8_option(s32 arg0, s32 arg1, s32 arg2);
-void func_801096E4_option(void);
 void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y); /* world to screen */
 void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY); /* world to screen, current camera */
 void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *outX, s32 *outY);
-void func_80109A0C_option(s32 arg0, void *arg1, void *arg2, s32 arg3);
+
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void func_80109CB0_option(u32 arg0, s32 *arg1, s32 *arg2);
-u32 func_80109D04_option(u32 arg0);
-u32 func_80109EF4_option(u32 arg0, s32 arg1);
-void func_8010A3E8_option(s32 arg0);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
-void func_8010A8DC_option(u32 arg0, s32 *arg1, s32 *arg2);
-u32 func_8010A940_option(u32 arg0, s32 arg1);
-u32 func_8010AF54_option(u32 arg0);
-void func_8010B654_option(void);
-u32 func_8010B68C_option(u32 arg0, s32 arg1);
-s32 func_8010BACC_option(u32 arg0);
-void func_8010BFA4_option(s32 arg0);
 s32 func_8010C04C_option(void);
 void func_8010C224_option(void); /* process */
 void func_8010C3E4_option(s32 arg0, s16 arg1, s16 arg2);
@@ -333,7 +319,6 @@ void func_801133EC_option(s32 arg0);
 void func_80113408_option(s32 arg0, u32 arg1);
 void func_80113424_option(s32 arg0);
 void func_80113440_option(s32 arg0);
-void func_8011345C_option(s32 arg0);
 void func_80113490_option(s32 arg0);
 
 /* fork D */
@@ -368,7 +353,6 @@ extern u8 D_800D09A8_main; /* first byte of the save common buffer (saveload.c S
 #endif
 extern Vec D_801134F0_option[3];
 extern Vec D_80113514_option[9];
-extern Vec D_8011376C_option; /* D_80113770_option and D_80113774_option are its y and z */
 extern s32 D_801138C8_option[9];
 extern s32 D_8011394C_option[9];
 /* fork C */
@@ -425,5 +409,63 @@ extern s32 D_8011394C_option[9];
 extern OpRect D_80113970_option[6];
 extern char D_80113A50_option[]; /* "%2d" (first used by func_80107F50_option): a literal once that is C */
 extern char D_80113A4C_option[]; /* "%d" (also func_80107F50_option): a literal once both users are C */
+/* fork B */
+/* Cursor position (func_801096B8_option, func_801096E4_option). */
+typedef struct OpCursor {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 y;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ s32 unkC; /* blink counter, 0..20 */
+} OpCursor; /* size = 0x10 */
+extern OpCursor D_80114778_option;
+extern Vec D_80113514_option[]; /* camera target; [-1] (0x80113508, inside D_801134B0_option's block) is the eye */
+extern Vec D_8011376C_option[4]; /* cursor anchor per top-menu item (func_8010A3E8_option) */
+void func_801096E4_option(s32 arg0);
+s32 func_80109D04_option(s32 sel, s32 btn); /* top menu: A pressed (btn unused) */
+void func_8010A3E8_option(s32 sel, s32 arg1); /* arg1 unused */
+s32 func_8011345C_option(s32 arg0);
+
+void func_80109A0C_option(s32 arg0, Vec *from, Vec *to, s32 len); /* cursor glide between two world points */
+
+void func_80109CB0_option(s32 sel, s32 *x, s32 *y); /* cursor position of a menu item */
+
+s32 func_80109EF4_option(s32 sel, s32 btn); /* top menu: d-pad moves the camera between the four items */
+extern const Vec D_80113A98_option; /* rodata (0, 1, 0): up vector, shared by several functions */
+extern Vec D_8011379C_option[2]; /* camera eye, target per top-menu item (0) */
+extern Vec D_801137B4_option[2]; /* (3) */
+extern Vec D_801137CC_option[2]; /* (1) */
+extern Vec D_801137E4_option[2]; /* (2) */
+
+void func_8010B654_option(s32 sel, s32 btn); /* btn unused */
+s32 func_8010AF54_option(s32 sel, s32 btn); /* submenu: A pressed (btn unused) */
+s32 func_8010A940_option(s32 sel, s32 btn); /* submenu: d-pad */
+extern Vec D_80113580_option[6][2]; /* camera eye, target per submenu item; splat labels [4] D_801135E0_option and [5] D_801135F8_option */
+
+extern Vec D_801137FC_option; /* camera eye, target for leaving through item 4 */
+extern Vec D_80113808_option;
+extern Vec D_80113814_option; /* camera eye, target for leaving through item 5 */
+extern Vec D_80113820_option;
+
+void func_8010A8DC_option(s32 sel, s32 *x, s32 *y); /* cursor position of a submenu item */
+extern u8 D_800D09A8_main; /* audio.c (bit 0 tested) */
+
+#include "game/vibrator.h"
+extern Vec D_8011382C_option[2]; /* camera eye, target: entering item 2 */
+extern Vec D_80113844_option[2]; /* leaving item 2 */
+extern Vec D_8011385C_option[2]; /* entering item 3 */
+extern Vec D_80113874_option[2]; /* leaving item 3 */
+
+s32 func_8010B68C_option(s32 sel, s32 btn); /* second submenu: d-pad */
+extern Vec D_8011367C_option[2]; /* camera eye, target: second submenu item 1 */
+extern Vec D_80113694_option[2]; /* second submenu item 2 */
+extern Vec D_801136AC_option[2]; /* [1]: target for item 3 */
+extern Vec D_8011388C_option[3]; /* cursor anchor, second submenu items 1..3 */
+
+s32 func_8010BACC_option(s32 sel, s32 btn); /* second submenu: A pressed (btn unused) */
+
+void func_8010BFA4_option(s32 sel, s32 btn); /* second submenu cursor update (btn unused) */
+
+extern Vec D_801138B0_option; /* camera eye, target for leaving the second submenu */
+extern Vec D_801138BC_option;
 
 #endif
