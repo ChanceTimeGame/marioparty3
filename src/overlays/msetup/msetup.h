@@ -260,7 +260,6 @@ void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
 s16 func_8010B588_msetup(void);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
-void func_8010B858_msetup(void);
 s32 func_8010B8E0_msetup(void);
 void func_8010B968_msetup(u32 arg0, s8 arg1);
 void func_8010B998_msetup(void);
@@ -295,7 +294,6 @@ omObjData * func_8010E21C_msetup(void);
 void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
 void func_8010E4D8_msetup(MsLift *lifts, s32 count);
-void func_8010E52C_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
 void func_8010E8C8_msetup(MsLift *lifts, s32 count, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, s32 arg7);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
@@ -343,5 +341,9 @@ extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0
 extern u8 D_8011AA42_msetup[];
 /* arg4 was u16: func_80115EE0_msetup sign-extends it (sll/sra), so s16 at the call; arg2 the needle matrix */
 s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
+/* was void: returns the yes/no answer (func_801167B8_msetup tests v0) */
+s32 func_8010B858_msetup(void);
+/* arg0/arg1 were s32: the MsLift array and a 0x20-byte .data table (func_801167B8_msetup) */
+void func_8010E52C_msetup(MsLift *lifts, void *arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
 
 #endif

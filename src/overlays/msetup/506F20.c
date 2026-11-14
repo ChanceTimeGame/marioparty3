@@ -821,7 +821,219 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115EE0_msetup);
 #endif
 
+void func_800332D4_main(s16 arg0, f32 arg1);
+extern u8 D_8011AA44_msetup;     /* players taking part (1-4) */
+extern s32 D_80119FDC_msetup[2]; /* the two lifts' sign data numbers */
+extern s32 D_80119F94_msetup[];  /* func_8010E52C_msetup tables (0x20 bytes each) */
+extern s32 D_80119FB4_msetup[];
+extern char D_8011A6D8_msetup[];  /* sign texture name (shared with earlier functions) */
+
+/* State: the 1P/2P team choice on two lifts (only offered with 2+ players):
+   work->unk4 is the choice, D_8011A0B8_msetup[choice] the human count it stands for; B asks to
+   quit (-1). Sets D_8011AA40/41 and buzzes the chosen players' controllers. */
+#ifdef NON_MATCHING
+s32 func_801167B8_msetup(MsSetupWork *work) {
+    MsLift lifts[2];
+    s16 prevBtn;
+    s32 noArrows;
+    s32 players;
+    s16 sel;
+    s16 prev;
+    s32 i;
+    s32 redraw;
+    s32 btn;
+    s32 n;
+    f32 rotY;
+    f32 a;
+    f32 b;
+    MsLift *lift;
+    s16 m;
+    omObjData *arrows;
+
+    players = D_8011AA44_msetup;
+    arrows = NULL;
+    if (work->unk4 < 0) {
+        for (sel = 0; sel < 2; sel++) {
+            if ((f32)D_8011AA40_msetup == D_8011A0B8_msetup[sel]) {
+                break;
+            }
+        }
+        if (sel >= 2) {
+            sel = 0;
+        }
+        work->unk4 = sel;
+    } else {
+        if (work->unk4 >= 2) {
+            work->unk4 = 0;
+        }
+        sel = work->unk4;
+    }
+    if ((f32)players < D_8011A0B8_msetup[sel]) {
+        for (sel = 0; sel < 2; sel++) {
+            if ((f32)players == D_8011A0B8_msetup[sel]) {
+                break;
+            }
+        }
+        if (sel >= 2) {
+            sel = 0;
+        }
+        work->unk4 = sel;
+    }
+    func_8010B998_msetup();
+    rotY = 0.0f;
+    if (players >= 2) {
+        rotY = 90.0f;
+    }
+    func_8010E32C_msetup(lifts, 2, rotY, 0);
+    for (i = 0; i < 2; i++) {
+        lift = &lifts[i];
+        m = lift->model;
+        lift->unk1A = HmfAnimRead(HmfModelData[m].hmf, D_80119FDC_msetup[i], D_8011A6D8_msetup);
+        func_8001C448_main(m);
+        func_800332D4_main(lift->unk1A, 0.75f);
+    }
+    func_8010E4D8_msetup(lifts, 2);
+    if (players >= 2) {
+        arrows = func_8010DE38_msetup(0x40, 0x100, 0x48);
+    }
+    func_8010B82C_msetup(0x2403);
+    func_8010B858_msetup();
+    redraw = 1;
+    HuAudFXPlay(0x2D9);
+    a = 1.0f;
+    func_8010E8C8_msetup(lifts, 2, 15, 720.0f, 565.0f, 0.1f, a, redraw);
+    if (players >= 2) {
+        arrows->work[0] = redraw;
+        arrows->work[1] = 0x24;
+        func_8010E52C_msetup(lifts, D_80119F94_msetup, 2, 7, 0, 0, 0.0f, a);
+        i = 4;
+        do {
+            a += 0.1f;
+            Hu3DModelScaleSet(lifts[sel].model, a, a, a);
+            i--;
+            HuPrcVSleep();
+        } while (i != 0);
+    } else {
+        func_8001C258_main(lifts[1].model, 4, 4);
+        rotY = lifts[0].rot.y;
+        m = lifts[0].model;
+        i = 0;
+        do {
+            rotY += 25.714285f;
+            if (rotY > 360.0f) {
+                rotY -= 360.0f;
+            }
+            Hu3DModelRotSet(m, 0.0f, rotY, 0.0f);
+            i++;
+            HuPrcVSleep();
+        } while (i < 7);
+        lifts[0].rot.y = rotY;
+    }
+    prev = sel;
+    redraw = 1;
+    func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+    noArrows = players < 2;
+    while (TRUE) {
+        if (redraw) {
+            func_8010B82C_msetup(D_80119FD4_msetup[sel]);
+            redraw = 0;
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+        if (btn & 0x8000) {
+            HuAudFXPlay(2);
+            work->unk4 = sel;
+            break;
+        }
+        if (btn & 0x4000) {
+            HuAudFXPlay(4);
+            func_8010B82C_msetup(0x2401);
+            redraw = 1;
+            if (func_8010B858_msetup() == 0) {
+                work->unk4 = -1;
+                break;
+            }
+            func_8010B82C_msetup(0x2403);
+            func_8010B858_msetup();
+            btn = func_8010D684_msetup(D_8011A948_msetup, &prevBtn);
+        }
+        if (!noArrows) {
+            if (btn & 0x900) {
+                sel++;
+                if (sel >= 2) {
+                    sel = 0;
+                }
+                arrows->work[0] = 4;
+            } else if (btn & 0x600) {
+                sel--;
+                if (sel < 0) {
+                    sel = 1;
+                }
+                arrows->work[0] = 3;
+            }
+        }
+        if (prev != sel) {
+            HuAudFXPlay(1);
+            a = 1.0f;
+            b = 1.4f;
+            i = 4;
+            do {
+                a += 0.1f;
+                b += -0.1f;
+                Hu3DModelScaleSet(lifts[sel].model, a, a, a);
+                Hu3DModelScaleSet(lifts[prev].model, b, b, b);
+                i--;
+                HuPrcVSleep();
+            } while (i != 0);
+            prev = sel;
+            redraw = 1;
+        }
+        HuPrcVSleep();
+    }
+    if (work->unk4 >= 0) {
+        n = D_8011A0B8_msetup[work->unk4];
+        D_8011AA40_msetup = n;
+        D_8011AA41_msetup = 2 - n;
+        for (i = 0; i < D_8011AA40_msetup; i++) {
+            RepeatVibrator(D_8011AA30_msetup[i], 10, 0, 10);
+        }
+    }
+    if (players < 2) {
+        rotY = lifts[0].rot.y;
+        m = lifts[0].model;
+        i = 0;
+        do {
+            rotY += 25.714285f;
+            if (rotY > 360.0f) {
+                rotY -= 360.0f;
+            }
+            Hu3DModelRotSet(m, 0.0f, rotY, 0.0f);
+            i++;
+            HuPrcVSleep();
+        } while (i < 7);
+        lifts[0].rot.y = rotY;
+        func_8001C258_main(lifts[1].model, 4, 0);
+    } else {
+        arrows->work[0] = 2;
+        arrows->work[1] = 0x11;
+        func_8010E52C_msetup(lifts, D_80119FB4_msetup, 2, 7, 0, 0, 0.0f, 1.0f);
+    }
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, 2, 7, 360.0f, 400.0f, 1.0f, 0.1f, 2);
+    i = 0;
+    if (players >= 2) {
+        func_8010DDD8_msetup(arrows);
+        i = 0;
+    }
+    for (; i < 2; i++) {
+        lift = &lifts[i];
+        func_80033430_main(lift->unk1A);
+        func_8001ACDC_main(lift->model);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801167B8_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80116FE0_msetup);
 
