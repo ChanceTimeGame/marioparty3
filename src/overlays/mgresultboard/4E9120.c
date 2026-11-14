@@ -459,11 +459,88 @@ s32 func_801096E0_mgresultboard(omObjData *obj, s8 player) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109744_mgresultboard);
+s32 func_80109744_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[2];
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109878_mgresultboard);
+    if (value >= 100) {
+        value = 99;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 10) % 10;
+    digit[1] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 11;
+    }
+    for (i = 0; i < 2; i++) {
+        D_8010AEA8_mgresultboard[player][i].unk_02 = digit[i];
+        D_8010AEA8_mgresultboard[player][i].unk_04 = -1;
+        D_8010AEA8_mgresultboard[player][i].unk_00 = 0;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109A90_mgresultboard);
+s32 func_80109878_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[3];
+    s8 i;
+
+    if (D_8010AEA8_mgresultboard[player][2].unk_04 >= 0) {
+        return 0;
+    }
+    if (value >= 1000) {
+        value = 999;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 100) % 10;
+    digit[1] = (s16)(value / 10) % 10;
+    digit[2] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 11;
+    }
+    for (i = 0; i < 3; i++) {
+        D_8010AEA8_mgresultboard[player][i + 2].unk_04 = digit[i];
+        D_8010AEA8_mgresultboard[player][i + 2].unk_00 = 1;
+        if (D_8010AEA8_mgresultboard[player][i + 2].unk_08 >= 0) {
+            func_8001C258_main(obj->model[D_8010AEA8_mgresultboard[player][i + 2].unk_08 + 1], 4, 0);
+        }
+        D_8010AEA8_mgresultboard[player][i + 2].unk_0A = 0;
+    }
+    return 1;
+}
+
+s32 func_80109A90_mgresultboard(omObjData *obj, s8 player, s16 value) {
+    s16 digit[3];
+    s8 i;
+
+    if (D_8010AEA8_mgresultboard[player][2].unk_04 >= 0) {
+        return 0;
+    }
+    if (value >= 1000) {
+        value = 999;
+    }
+    if (value < 0) {
+        value = 0;
+    }
+    digit[0] = (s16)(value / 100) % 10;
+    digit[1] = (s16)(value / 10) % 10;
+    digit[2] = value % 10;
+    if (digit[0] == 0) {
+        digit[0] = 10;
+    }
+    for (i = 0; i < 3; i++) {
+        D_8010AEA8_mgresultboard[player][i + 2].unk_04 = digit[i];
+        D_8010AEA8_mgresultboard[player][i + 2].unk_00 = 1;
+        if (D_8010AEA8_mgresultboard[player][i + 2].unk_08 >= 0) {
+            func_8001C258_main(obj->model[D_8010AEA8_mgresultboard[player][i + 2].unk_08 + 1], 4, 0);
+        }
+        D_8010AEA8_mgresultboard[player][i + 2].unk_0A = 1;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109CB0_mgresultboard);
 
