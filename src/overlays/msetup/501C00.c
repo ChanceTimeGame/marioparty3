@@ -1,17 +1,208 @@
 #include "common.h"
 #include "msetup.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801059A0_msetup);
+#include "game/vibrator.h"
+extern process_func D_8011955C_msetup[];
+extern s16 D_8011A950_msetup[];
+extern s16 D_8011A9A0_msetup[];
 
+
+void func_801059A0_msetup(void) {
+    Hu3DCamInit(1);
+    Hu3DAnimInit(1);
+    func_800142A0_main(0x19);
+    omInitObjMan(0x33, 0x19);
+    func_8005A6B0_main();
+    func_8004A208_main();
+    D_800CD280_main = 1;
+    D_8011A940_msetup = 80.0f;
+    D_8011A93C_msetup = 6000.0f;
+    D_80119414_msetup = 58.0f;
+    Hu3DCamSetPerspective(0, 58.0f, 80.0f, 6000.0f);
+    D_8011A994_msetup.x = 0.0f;
+    D_8011A994_msetup.y = 0.0f;
+    D_8011A994_msetup.z = 0.0f;
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    D_801198C0_msetup = -1;
+    omAddObj(0x2710, 0, 0, -1, func_80105C4C_msetup);
+    HmfLightMaxSet(3);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightDirSet(2, 0.0f, 0.0f, 100.0f);
+    HmfLightColorSet(3, 0xF0, 0xF0, 0xF0);
+    HmfLightDirSet(3, 0.0f, 100.0f, 0.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    func_8001F38C_main(0x10, 0x10, 0xF0);
+    omPrcSetStatBit(omAddPrcObj(func_80106320_msetup, 0x1100, 0x400, 0), 0xA0);
+    D_8011A944_msetup = 0;
+    func_80106DF8_msetup();
+    D_8011A938_msetup = -1;
+    switch (omovlevtno) {
+        case 0:
+            D_8011A938_msetup = 0;
+            break;
+        case 1:
+            D_8011A938_msetup = 1;
+            break;
+        case 2:
+            D_8011A938_msetup = 2;
+            break;
+        case 3:
+            D_8011A938_msetup = 3;
+            break;
+        case 4:
+            D_8011A938_msetup = 4;
+            break;
+        case 5:
+            D_8011A938_msetup = 5;
+            break;
+        case 6:
+            D_8011A938_msetup = 6;
+            break;
+        case 7:
+            D_8011A938_msetup = 7;
+            break;
+        case 8:
+            D_8011A938_msetup = 8;
+            break;
+    }
+    if (D_8011A938_msetup < 0) {
+        D_80119410_msetup = 1;
+    } else {
+        omAddPrcObj(D_8011955C_msetup[D_8011A938_msetup], 0x3F00, 0x1000, 0);
+    }
+    if (D_8011A938_msetup == 4) {
+        WipeColorSet(0xFF, 0xFF, 0xFF);
+    } else {
+        WipeColorSet(0, 0, 0);
+    }
+    D_8011AA48_msetup = 0xB;
+    D_8011A93A_msetup = 0x14;
+}
+
+#ifdef NON_MATCHING
+/* D_8011AA48_msetup: retail stores it and reloads it (lh) before the >= 0 test; this keeps the register. */
+void func_80105C4C_msetup(omObjData *obj) {
+    s32 i;
+    s32 wipe;
+
+    if (D_80119412_msetup != 0) {
+        D_80119419_msetup--;
+        if (D_80119419_msetup == 0) {
+            for (i = 0; i < D_8011AA40_msetup; i++) {
+                RepeatVibrator(D_8011AA30_msetup[i], 5, 0, 5);
+            }
+            D_80119419_msetup = 10;
+        }
+    }
+    if (D_80119410_msetup == 0) {
+        if (D_800D530C_main != 0) {
+            goto out;
+        }
+    } else {
+        if (D_80119410_msetup != 1) {
+            D_80119410_msetup--;
+            return;
+        }
+    out:
+        wipe = 2;
+        if (D_8011A938_msetup == 4) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            wipe = 0xB;
+        }
+        D_8011AA48_msetup = wipe;
+        if (D_8011AA48_msetup >= 0) {
+            WipeCreateOut(D_8011AA48_msetup, D_8011A93A_msetup);
+        }
+        if (D_8011A944_msetup == 0) {
+            HuAudSeqFadeOut(0xF);
+        }
+        obj->func = func_80105DB4_msetup;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80105C4C_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80105DB4_msetup);
+void func_80105DB4_msetup(omObjData *obj) {
+    s32 stat;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80105E90_msetup);
+    if (WipeStatGet() == 0) {
+        func_8005F524_main();
+        func_8010ACB0_msetup();
+        stat = 0x14;
+        switch (D_8011A944_msetup) {
+            case 0:
+            default:
+                omOvlReturnEx(1);
+                break;
+            case 2:
+                omOvlCallEx(D_8011AA4C_msetup[0], D_8011A946_msetup, stat);
+                break;
+            case 1:
+                omOvlGotoEx(D_8011AA4C_msetup[0], D_8011A946_msetup, stat);
+                break;
+            case 3:
+                stat = 0x4090;
+                omOvlGotoEx(D_8011AA4C_msetup[0], D_8011A946_msetup, stat);
+                break;
+            case 4:
+                stat = 0x92;
+                omOvlGotoEx(D_8011AA4C_msetup[0], D_8011A946_msetup, stat);
+                break;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80105F7C_msetup);
+void func_80105E90_msetup(MsModelDef *def) {
+    s16 i;
+    u16 model;
+    s16 slot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106030_msetup);
+    for (i = 0; def->unk0 != -1; i++, def++) {
+        model = func_8000B108_main(def->unk0, def->unk4);
+        D_8011A950_msetup[i] = model;
+        func_80105F7C_msetup(def, model);
+        D_8011A9A0_msetup[i] = slot = HmfModelData[(s16)model].unk02;
+        if (slot != -1) {
+            func_8001C814_main(model, -1, def->unkA);
+        }
+    }
+}
+
+void func_80105F7C_msetup(MsModelDef *def, s16 model) {
+    switch ((u32)def->unkC) {
+        case 1:
+            Hu3DModelPosSet(model, def->pos.x, def->pos.y, def->pos.z);
+            Hu3DModelRotSet(model, def->rot.x, def->rot.y, def->rot.z);
+            break;
+        case 0:
+            break;
+        case 2:
+            Hu3DModelPosSet(model, def->pos.x * 5.0f, def->pos.y * 5.0f, def->pos.z * 5.0f);
+            Hu3DModelRotSet(model, def->rot.x, def->rot.y, def->rot.z);
+            break;
+    }
+}
+
+void func_80106030_msetup(MsModelDef *defs, MsModelSlot *slots, s32 count) {
+    s16 i;
+    u16 model;
+
+    if (defs == NULL || slots == NULL) {
+        return;
+    }
+    for (i = 0; i < count; defs++, i++, slots++) {
+        model = func_8000B108_main(defs->unk0, defs->unk4);
+        slots->model = model;
+        func_80105F7C_msetup(defs, model);
+        slots->unk2 = HmfModelData[(s16)model].unk02;
+        if (slots->unk2 >= 0) {
+            func_8001C814_main(model, -1, defs->unkA);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_8010610C_msetup);
 

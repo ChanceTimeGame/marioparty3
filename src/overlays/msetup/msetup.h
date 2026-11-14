@@ -204,7 +204,6 @@ ptrs,40) 80119CC0(addiu,20) 80119CE0(addiu,20) 80119D00(addiu,20) 80119D20(addiu
 void func_801059A0_msetup(void);
 void func_80105C4C_msetup(omObjData *obj);
 void func_80105DB4_msetup(omObjData *obj);
-void func_80105E90_msetup(s32 *arg0);
 void func_80105F7C_msetup(MsModelDef *def, s16 model);
 void func_80106030_msetup(MsModelDef *defs, MsModelSlot *slots, s32 count);
 u32 func_8010610C_msetup(u32 seed); /* random step (MP1 BoxMountainMayhem) */
@@ -334,5 +333,8 @@ void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119F
 void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork A */
+void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
 
 #endif
