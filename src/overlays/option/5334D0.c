@@ -681,13 +681,28 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A20_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107F50_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108A68_option);
+void func_80108A68_option(void) {
+    func_80108B34_option();
+    func_80112060_option();
+    D_80114770_option = omAddPrcObj(func_80108B58_option, 0x5000, 0x2000, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108AAC_option);
+void func_80108AAC_option(void) {
+    func_80108B34_option();
+    func_80112060_option();
+    D_80114770_option = omAddPrcObj(func_8010A66C_option, 0x5000, 0x2000, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108AF0_option);
+void func_80108AF0_option(void) {
+    func_80108B34_option();
+    func_80112060_option();
+    D_80114770_option = omAddPrcObj(func_8010C224_option, 0x5000, 0x2000, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80108B34_option);
+void func_80108B34_option(void) {
+    func_8010F94C_option();
+    func_8010FDF4_option();
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A4C_option);
 
