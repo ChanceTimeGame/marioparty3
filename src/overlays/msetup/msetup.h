@@ -283,7 +283,6 @@ omObjData * func_8010E21C_msetup(void);
 void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link);
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY);
 void func_8010E4D8_msetup(MsLift *lifts, s32 count);
-void func_8010E8C8_msetup(MsLift *lifts, s32 count, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, s32 arg7);
 void func_8010EB94_msetup(void); /* process */
 Process *func_8010F2BC_msetup(void); /* board-preview process, user_data D_8011A8B0_msetup */
 s16 func_8010F2F4_msetup(Process *proc, s16 arg1);
@@ -377,5 +376,7 @@ typedef struct MsLiftKey {
 extern Vec D_80119B20_msetup;   /* Star Lift start position (func_8010E32C_msetup) */
 void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 frames, s16 *models, u16 nmodels,
                          f32 scale0, f32 scale1);
+void func_8010E8C8_msetup(MsLift *lifts, s16 count, s16 frames, f32 rotY, f32 posY, f32 scale0, f32 scale1,
+                         s16 nfx);
 
 #endif

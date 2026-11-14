@@ -595,7 +595,69 @@ void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 frames,
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E8C8_msetup);
+void func_8010E8C8_msetup(MsLift *lifts, s16 count, s16 frames, f32 rotY, f32 posY, f32 scale0, f32 scale1,
+                         s16 nfx) {
+    MsLift *lift;
+    Vec *pos;
+    Vec *rot;
+    f32 drot;
+    f32 dy;
+    f32 dscale;
+    s16 n;
+    s32 i;
+    s16 model;
+
+    if ((D_80119AF0_msetup != NULL) & (nfx != 0)) {
+        D_80119AF0_msetup->work[0] = 1;
+        D_80119AF0_msetup->work[1] = 1;
+        n = func_8010E00C_msetup(D_80119AF0_msetup, nfx);
+    } else {
+        n = 0;
+    }
+    drot = rotY / frames;
+    dy = posY / frames;
+    dscale = (scale1 - scale0) / frames;
+    while (frames != 0) {
+        lift = lifts;
+        for (i = 0; i < count; i++) {
+            if (lift->unk20 & 1) {
+                continue;
+            }
+            model = lift->model;
+            pos = &lift->pos;
+            rot = &lift->rot;
+            lift->rot.y += drot;
+            if (lift->rot.y >= 360.0f) {
+                lift->rot.y -= 360.0f;
+            }
+            if (rot->y < 0.0f) {
+                rot->y += 360.0f;
+            }
+            pos->y += dy;
+            Hu3DModelRotSet(model, rot->x, rot->y, rot->z);
+            Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+            Hu3DModelScaleSet(model, scale0, scale0, scale0);
+            if (i < n) {
+                func_8010E044_msetup(D_80119AF0_msetup, i, 0x78, pos->x, pos->y, pos->z);
+            }
+            lift++;
+        }
+        scale0 += dscale;
+        HuPrcVSleep();
+        frames--;
+    }
+    lift = lifts;
+    for (i = 0; i < count; i++) {
+        if (lift->unk20 & 1) {
+            continue;
+        }
+        Hu3DModelScaleSet(lift->model, scale1, scale1, scale1);
+        lift++;
+    }
+    if (n != 0) {
+        D_80119AF0_msetup->work[0] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010EB94_msetup);
 
