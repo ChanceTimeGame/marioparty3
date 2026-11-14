@@ -359,7 +359,104 @@ s32 func_80109D04_option(s32 sel, s32 btn) {
     return sel;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109EF4_option);
+s32 func_80109EF4_option(s32 sel, s32 btn) {
+    Vec up = D_80113A98_option;
+    s32 x0, y0, x1, y1;
+
+    switch (sel) {
+    case 0:
+        if (btn & 0x200) {
+            sel = 1;
+            func_80107758_option(&D_801137CC_option[0], &D_801137CC_option[1], 7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010998C_option(&D_801137CC_option[0], &D_801137CC_option[1], &up, D_8011376C_option[1].x, D_8011376C_option[1].y, D_8011376C_option[1].z, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 7);
+            func_80113408_option(0, 0x4E01);
+        } else if (btn & 0x100) {
+            sel = 2;
+            func_80107758_option(&D_801137E4_option[0], &D_801137E4_option[1], 7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010998C_option(&D_801137E4_option[0], &D_801137E4_option[1], &up, D_8011376C_option[2].x, D_8011376C_option[2].y, D_8011376C_option[2].z, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 7);
+            func_80113408_option(0, 0x4E01);
+        }
+        break;
+    case 1:
+        if (btn & 0x200) {
+            sel = 3;
+            func_80107758_option(&D_801137B4_option[0], &D_801137B4_option[1], 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            HuPrcSleep(20);
+            func_80109908_option(D_8011376C_option[3].x, D_8011376C_option[3].y, D_8011376C_option[3].z, &x0, &y0);
+            func_80112028_option(0, x0, y0);
+            func_80113258_option(0);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E03);
+        } else if (btn & 0x100) {
+            sel = 0;
+            func_80107758_option(&D_8011379C_option[0], &D_8011379C_option[1], 7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010998C_option(&D_8011379C_option[0], &D_8011379C_option[1], &up, D_8011376C_option[0].x, D_8011376C_option[0].y, D_8011376C_option[0].z, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 7);
+            func_80113408_option(0, 0x4E02);
+        }
+        break;
+    case 2:
+        if (btn & 0x200) {
+            sel = 0;
+            func_80107758_option(&D_8011379C_option[0], &D_8011379C_option[1], 7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010998C_option(&D_8011379C_option[0], &D_8011379C_option[1], &up, D_8011376C_option[0].x, D_8011376C_option[0].y, D_8011376C_option[0].z, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 7);
+            func_80113408_option(0, 0x4E02);
+        } else if (btn & 0x100) {
+            sel = 3;
+            func_80107758_option(&D_801137B4_option[0], &D_801137B4_option[1], 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            HuPrcSleep(20);
+            func_80109908_option(D_8011376C_option[3].x, D_8011376C_option[3].y, D_8011376C_option[3].z, &x0, &y0);
+            func_80112028_option(0, x0, y0);
+            func_80113258_option(0);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E03);
+        }
+        break;
+    case 3:
+        if (btn & 0x200) {
+            sel = 2;
+            func_80107758_option(&D_801137E4_option[0], &D_801137E4_option[1], 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_8011323C_option(0);
+            HuPrcSleep(20);
+            func_80109908_option(D_8011376C_option[2].x, D_8011376C_option[2].y, D_8011376C_option[2].z, &x0, &y0);
+            func_80112028_option(0, x0, y0);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E01);
+        } else if (btn & 0x100) {
+            sel = 1;
+            func_80107758_option(&D_801137CC_option[0], &D_801137CC_option[1], 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_8011323C_option(0);
+            HuPrcSleep(20);
+            func_80109908_option(D_8011376C_option[1].x, D_8011376C_option[1].y, D_8011376C_option[1].z, &x0, &y0);
+            func_80112028_option(0, x0, y0);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E01);
+        }
+        break;
+    case 4:
+        break;
+    }
+    return sel;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A3E8_option);
 

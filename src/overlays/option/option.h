@@ -206,7 +206,6 @@ void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY); /* world t
 void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *outX, s32 *outY);
 
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-u32 func_80109EF4_option(u32 arg0, s32 arg1);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
 void func_8010A8DC_option(u32 arg0, s32 *arg1, s32 *arg2);
@@ -367,5 +366,12 @@ s32 func_8011345C_option(s32 arg0);
 void func_80109A0C_option(s32 arg0, Vec *from, Vec *to, s32 len); /* cursor glide between two world points */
 
 void func_80109CB0_option(s32 sel, s32 *x, s32 *y); /* cursor position of a sound-menu item */
+
+s32 func_80109EF4_option(s32 sel, s32 btn); /* top menu: d-pad moves the camera between the four items */
+extern Vec D_80113A98_option; /* rodata (0, 1, 0): up vector, shared by several functions */
+extern Vec D_8011379C_option[2]; /* camera eye, target per top-menu item (0) */
+extern Vec D_801137B4_option[2]; /* (3) */
+extern Vec D_801137CC_option[2]; /* (1) */
+extern Vec D_801137E4_option[2]; /* (2) */
 
 #endif
