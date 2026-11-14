@@ -875,7 +875,48 @@ void func_80112060_option(void) {
     func_80105D10_option();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80112084_option);
+void func_80112084_option(void) {
+    s16 model;
+
+    func_80112FF4_option(0, 0xE0004, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(1, 0xE0007, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(3, 0xE0009, 0.0f, 0.0f, 0.0f);
+    func_80112EB8_option(4, 0xE000A, 0.0f, 0.0f, 0.0f);
+    func_80110C9C_option(4, 2);
+    func_80112FD8_option(6, 0xE0005, 1);
+    func_80112FD8_option(7, 0xE0006, 1);
+    func_80112EB8_option(9, 0xA0000, -385.0f, -6.25f, -500.0f);
+    func_80110AD0_option(9, 0.75f, 0.75f, 0.75f);
+    func_80110C9C_option(9, 2);
+    func_80112EB8_option(10, 0xA0000, 385.0f, -6.25f, -500.0f);
+    func_80110AD0_option(10, 0.75f, 0.75f, 0.75f);
+    func_80110C9C_option(10, 2);
+    func_80017790_main(func_80113218_option(9), 0, 10, 0xA002A);
+    model = func_80113218_option(10);
+    func_80017790_main(model, 0, 10, 0xA002A);
+    func_80017A84_main(model, 0, 10, 1, 0);
+    func_80112FD8_option(11, 0xA001D, 1);
+    func_80112FD8_option(12, 0xA001E, 1);
+    func_80112FD8_option(13, 0xA001D, 1);
+    func_80112FD8_option(14, 0xA001E, 1);
+    func_80112FD8_option(15, 0xA0001, 1);
+    func_80112EB8_option(20, 9, -385.0f, 0.049999997f, -500.0f);
+    func_80112EB8_option(21, 9, 385.0f, 0.049999997f, -500.0f);
+    func_80105DA0_option(func_80113218_option(0), 68.0f);
+    func_80105D5C_option(68.0f, 45.0f, 3200.0f);
+    func_80105F08_option(68.0f);
+    {
+        Vec eye = { 0.0f, 271.19f, 841.11f };
+        Vec at = { 0.0f, 228.72f, -550.0f };
+        Vec curEye;
+        Vec curAt;
+        Vec up;
+
+        func_80105FF8_option(&curEye, &curAt, &up);
+        func_80106508_option(&eye, &at, &up);
+    }
+    func_80113088_option();
+}
 
 void func_8011239C_option(void) {
     func_801130CC_option();
@@ -884,10 +925,6 @@ void func_8011239C_option(void) {
     func_8011046C_option();
     func_80111AF4_option();
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80114674_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80114680_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801123D8_option);
 
