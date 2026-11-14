@@ -101,7 +101,6 @@ extern s16 D_80119412_msetup;                    /* .data 0x2; lh,sh: 80105C4C 8
 extern f32 D_80119414_msetup;                    /* .data 0x4; lwc1,swc1: 801059A0 80106260 801068F4 */
 extern s8 D_80119418_msetup;                     /* .data 0x1; lb: 80106320 */
 extern s32 D_8011941C_msetup;                    /* .data 0x4; lw,sw: 801061E0 80106208 */
-extern s32 D_80119424_msetup;                    /* .data 0x4; lw: 8010A35C 8010A7EC */
 extern s32 D_80119428_msetup;                    /* .data 0x4; lw: 80108AB8 80109868 */
 extern s32 D_8011942C_msetup;                    /* .data 0x4; lw: 80107FB4 80109218 */
 extern u8 D_80119478_msetup[];                   /* .data 0x10; lbu: 80108F74 */
@@ -343,5 +342,8 @@ extern MsCamKey D_801195A0_msetup[];
 extern MsCamKey D_801196C0_msetup[];
 extern MsCamKey D_801197BC_msetup[];
 void func_8010A35C_msetup(MsMenuFunc *menu);
+extern s32 D_80119424_msetup[]; /* model files, indexed by mode */
+extern s32 D_80119534_msetup[5]; /* message ids: 4 pages + confirm */
+extern s32 D_80119548_msetup[5];
 
 #endif
