@@ -45,6 +45,19 @@ extern s16 D_8010DC02_inst; /* low half of D_8010DC00_inst */
 extern s8 D_8010D5B1_inst;
 extern s8 D_8010D4A8_inst;
 extern u32 D_8010D4AC_inst;
+extern u8 D_8010D40C_inst[5]; /* item minigame: the items on offer */
+extern u8 D_8010D4B0_inst[8];
+extern u8 D_8010D4B8_inst[8];
+extern u16 D_800A11D0_main[6];
+extern s16 D_800A11DC_main[5];
+extern const u8 D_8010D6B0_inst[8][5];
+extern const s8 D_8010D6D8_inst[4][3];
+extern const u8 D_8010D6E4_inst[8][5];
+extern const s8 D_8010D70C_inst[4][3];
+extern const u8 D_8010D718_inst[10];
+extern const s8 D_8010D724_inst[8];
+s32 BoardGetTurnTier(s32 turn);
+s32 BoardPlayerRankCalc(s32 player);
 extern f32 D_8010D414_inst;
 extern Vec D_8010D418_inst;
 extern Vec D_8010D424_inst;
@@ -402,19 +415,126 @@ void func_80106850_inst(Vec *pos, Vec *at) {
     D_8010D414_inst = 90.0f - atan2df(pos->y - at->y, pos->z - at->z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106898_inst);
+/* Item minigames (type 5): picks the five items on offer (D_8010D40C_inst, copied to
+   D_800A11D0_main) by weighted draw from the turn tier and the player's rank, and their
+   prices (D_800A11DC_main: the player's character item gets the 40-coin price). */
+void func_80106898_inst(void) {
+    u8 weight[8];
+    s8 used[8];
+    u8 *items;
+    s8 i;
+    s8 n;
+    s8 budget;
+    s8 sum;
+    s8 found;
+    s8 tier;
+    s8 rank;
+    s8 col;
+    s8 item;
+    u8 target;
+    u16 r;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D6B0_inst);
+    if (D_8010D40A_inst == 5) {
+        if (_CheckFlag(0x1C) != 0) {
+            r = rand8() & 3;
+            if (rand8() & 1) {
+                for (i = 0; i < 5; i++) {
+                    D_8010D40C_inst[i] = D_8010D4B0_inst[i + r];
+                }
+            } else {
+                for (i = 0; i < 5; i++) {
+                    D_8010D40C_inst[i] = D_8010D4B8_inst[i + r];
+                }
+            }
+            for (i = 0; i < 5; i++) {
+                D_800A11D0_main[i] = (s8)D_8010D40C_inst[i];
+            }
+        } else if (D_8010D407_inst == 0) {
+            for (i = 0; i < 8; i++) {
+                used[i] = 0;
+            }
+            tier = BoardGetTurnTier(-1);
+            rank = BoardPlayerRankCalc(D_8010D400_inst[0]);
+            if ((u8)(rand8() % 3) == 0) {
+                items = D_8010D4B0_inst;
+                col = D_8010D6D8_inst[rank][tier];
+                for (i = 0; i < 8; i++) {
+                    weight[i] = D_8010D6B0_inst[i][col];
+                }
+            } else {
+                items = D_8010D4B8_inst;
+                col = D_8010D70C_inst[rank][tier];
+                for (i = 0; i < 8; i++) {
+                    weight[i] = D_8010D6E4_inst[i][col];
+                }
+            }
+            budget = 100;
+            for (n = 0; n < 5; n++) {
+                target = rand8() % (budget + 1);
+                sum = 0;
+                for (i = 0; i < 8; i++) {
+                    if (used[i] == 0) {
+                        sum += weight[i];
+                        if (sum >= target) {
+                            used[i] = 1;
+                            budget -= weight[i];
+                            D_8010D40C_inst[n] = items[i];
+                            break;
+                        }
+                    }
+                }
+            }
+            for (i = 0; i < 5; i++) {
+                D_800A11D0_main[i] = (s8)D_8010D40C_inst[i];
+            }
+            item = D_8010D724_inst[GwPlayer[D_8010D400_inst[0]].chr];
+            found = -1;
+            for (i = 0; i < 5; i++) {
+                if (item == D_800A11D0_main[i]) {
+                    found = i;
+                    break;
+                }
+            }
+            if (found >= 0) {
+                for (i = 0, n = 0; i < 5; i++) {
+                    if (i == found) {
+                        D_800A11DC_main[i] = (s8)D_8010D718_inst[9];
+                    } else {
+                        D_800A11DC_main[i] = (s8)D_8010D718_inst[5 + n];
+                        n++;
+                    }
+                }
+            } else {
+                for (i = 0; i < 5; i++) {
+                    D_800A11DC_main[i] = (s8)D_8010D718_inst[i];
+                }
+            }
+        } else {
+            for (i = 0; i < 5; i++) {
+                D_8010D40C_inst[i] = D_800A11D0_main[i];
+            }
+        }
+    }
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D6D8_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D6E4_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D70C_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D718_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D724_inst);
+/* Item weights per item slot and column (picked by rank and turn tier). */
+const u8 D_8010D6B0_inst[8][5] = {
+    { 0x28, 0x28, 0x1E, 0x14, 0x14 }, { 0x14, 0x14, 0x0A, 0x0A, 0x0A }, { 0x0A, 0x0A, 0x0A, 0x05, 0x05 },
+    { 0x0A, 0x0A, 0x0C, 0x0F, 0x05 }, { 0x02, 0x02, 0x05, 0x0A, 0x0A }, { 0x0A, 0x0A, 0x14, 0x14, 0x14 },
+    { 0x03, 0x05, 0x0A, 0x0A, 0x0A }, { 0x05, 0x03, 0x03, 0x0A, 0x14 },
+};
+const s8 D_8010D6D8_inst[4][3] = { { 0, 1, 2 }, { 0, 0, 3 }, { 0, 0, 4 }, { 0, 0, 4 } };
+const u8 D_8010D6E4_inst[8][5] = {
+    { 0x1E, 0x1E, 0x1E, 0x14, 0x14 }, { 0x14, 0x14, 0x0A, 0x0A, 0x0A }, { 0x0A, 0x0A, 0x0F, 0x0A, 0x0F },
+    { 0x0A, 0x0A, 0x05, 0x0F, 0x0F }, { 0x0A, 0x0A, 0x0A, 0x05, 0x05 }, { 0x07, 0x0A, 0x0F, 0x14, 0x14 },
+    { 0x05, 0x05, 0x0C, 0x0A, 0x05 }, { 0x08, 0x05, 0x03, 0x0A, 0x14 },
+};
+const s8 D_8010D70C_inst[4][3] = { { 0, 1, 2 }, { 0, 0, 3 }, { 0, 0, 4 }, { 0, 0, 4 } };
+/* Prices: [0..4] with no character item on offer, [5..8] the others and [9] the character
+   item when it is. */
+const u8 D_8010D718_inst[10] = { 20, 10, 20, 30, 20, 20, 10, 10, 20, 40 };
+/* Each character's own item. */
+const s8 D_8010D724_inst[8] = { 10, 1, 6, 5, 8, 3, 4, 2 };
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106EB4_inst);
 
