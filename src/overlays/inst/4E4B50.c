@@ -17,6 +17,8 @@ void func_80060DEC_main(s32 winId);
 void func_8010BE28_inst(omObjData *obj);
 void func_8010BE78_inst(omObjData *obj);
 void func_8010C124_inst(omObjData *obj);
+void func_8010BE70_inst(omObjData *obj);
+s32 func_8010C55C_inst(void);
 void func_8010C5C4_inst(omObjData *obj);
 void func_8010C8B4_inst(void);
 u16 func_8010C8E0_inst(u16 btn);
@@ -32,6 +34,7 @@ void func_8010D1D4_inst(void);
 extern InstMgEntry D_800A6D40_main[];
 extern u16 D_800CC698_main;
 
+extern s8 D_8010D406_inst;
 extern s8 D_8010D408_inst;
 extern s8 D_8010D409_inst;
 extern s8 D_8010D40A_inst;
@@ -127,7 +130,7 @@ void func_8010BE28_inst(omObjData *obj) {
     }
 }
 
-void func_8010BE70_inst(void) {
+void func_8010BE70_inst(omObjData *obj) {
 }
 
 /* NON_MATCHING: retail loads the 1 stored to D_8010D440_inst into v1, this into v0; logic matches.
@@ -179,15 +182,12 @@ void func_8010BE78_inst(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010BE78_inst);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB04_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB10_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB1C_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB24_inst);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E4B50", D_8010DB30_inst);
+/* Instruction page message IDs, by minigame type (also read by func_8010D1D4_inst). */
+const s16 D_8010DB04_inst[2][3] = { { 0x3900, 0x3901, 0x3902 }, { 0x3908, 0x3909, 0x390A } };
+const s16 D_8010DB10_inst[2][3] = { { 0x3910, 0x3912, 0x3914 }, { 0x390C, 0x390D, 0x390E } };
+const s16 D_8010DB1C_inst[3] = { 0x3904, 0x3905, 0x3906 };
+const s16 D_8010DB24_inst[2][3] = { { 0x3803, 0x3804, 0x3805 }, { 0x380A, 0x380B, 0x380C } };
+const s16 D_8010DB30_inst[3] = { 0x3811, 0x3812, 0x3813 };
 
 void func_8010C124_inst(omObjData *obj) {
     s16 mes;
@@ -306,14 +306,108 @@ void func_8010C124_inst(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C55C_inst);
+s32 func_8010C55C_inst(void) {
+    s32 skip = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C5C4_inst);
+    if (func_8010C8E0_inst(0x10) && D_8010D409_inst != 1) {
+        skip = 1;
+        func_8010D044_inst();
+        D_8010DCA4_inst = func_8010C124_inst;
+    }
+    HuPrcVSleep();
+    return skip;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C848_inst);
+void func_8010C5C4_inst(omObjData *obj) {
+    s32 mes;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C890_inst);
+    if (D_8010D409_inst == 1) {
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        switch (D_8010D40B_inst) {
+            case 8:
+            case 16:
+            case 27:
+                mes = D_8010DB1C_inst[i];
+                break;
+            default:
+                switch (D_8010D40A_inst) {
+                    case 5:
+                        mes = D_8010DB04_inst[1][i];
+                        break;
+                    case 4:
+                        mes = D_8010DB10_inst[0][i];
+                        mes += (D_8010D411_inst != 2);
+                        break;
+                    case 3:
+                        mes = D_8010DB10_inst[1][i];
+                        break;
+                    case 7:
+                        if (D_8010D40B_inst == 70) {
+                            mes = D_8010DB24_inst[1][i];
+                        } else {
+                            mes = D_8010DB30_inst[i];
+                        }
+                        break;
+                    case 8:
+                        mes = D_8010DB24_inst[0][i];
+                        break;
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 6:
+                    default:
+                        mes = D_8010DB04_inst[0][i];
+                        break;
+                }
+                break;
+        }
+        func_8005B43C_main(D_8010DCA8_inst[0], mes, -1, -1);
+    wait_page:
+        if (func_8005E0C0_main(D_8010DCA8_inst[0])) {
+            if (func_8010C55C_inst()) {
+                return;
+            }
+            goto wait_page;
+        }
+    }
+    mes = D_8010DCD0_inst->mes[5];
+    if (D_8010D40A_inst == 4) {
+        mes += (D_8010D411_inst != 2);
+    }
+    func_8005B43C_main(D_8010DCA8_inst[0], mes, -1, -1);
+    while (func_8005E0C0_main(D_8010DCA8_inst[0])) {
+        if (func_8010C55C_inst()) {
+            return;
+        }
+    }
+    while (!func_8010C8E0_inst(0x8000)) {
+        if (func_8010C55C_inst()) {
+            return;
+        }
+    }
+    D_8010D406_inst = 1;
+    D_8010DCA4_inst = func_8010BE70_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C8B4_inst);
+void func_8010C848_inst(void) {
+    if (D_8010D408_inst == 0) {
+        HuAudFXPlay(0x11D);
+        func_80060C14_main(D_8010DCA8_inst[0], 0);
+        D_8010D440_inst = 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010C8D0_inst);
+void func_8010C890_inst(void) {
+    func_80060EA8_main(D_8010DCA8_inst[0], 1);
+}
+
+void func_8010C8B4_inst(void) {
+    GMesClose();
+}
+
+void func_8010C8D0_inst(void) {
+    D_8010D5B0_inst = 1;
+}
