@@ -1067,13 +1067,95 @@ s16 func_801086C8_msetup(s32 arg0) {
     return arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801087F4_msetup);
+s16 func_801087F4_msetup(s32 arg0) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801088A8_msetup);
+    D_8011A882_msetup.state = 8;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    if (D_8011A886_msetup[0] < 0) {
+        func_8010F2F4_msetup(D_80119420_msetup, 0xFF);
+    } else {
+        func_8010F2F4_msetup(D_80119420_msetup, 1);
+        for (i = 7; i != 0; i--) {
+            HuPrcVSleep();
+        }
+    }
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108938_msetup);
+s16 func_801088A8_msetup(s32 arg0) {
+    D_8011A882_msetup.state = 5;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    if (D_8011A886_msetup[0] == -1) {
+        func_8010F2F4_msetup(D_80119420_msetup, 3);
+    } else {
+        func_8010F2F4_msetup(D_80119420_msetup, 4);
+    }
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801089FC_msetup);
+s16 func_80108938_msetup(s32 arg0) {
+    s32 i;
+
+    D_8011A882_msetup.state = 13;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    if (D_8011A886_msetup[0] == 0) {
+        D_8011AA47_msetup = 0;
+    } else {
+        D_8011AA47_msetup = 1;
+    }
+    if (D_8011A886_msetup[0] == -1) {
+        func_8010F2F4_msetup(D_80119420_msetup, 6);
+        for (i = 7; i != 0; i--) {
+            HuPrcVSleep();
+        }
+    }
+    if (D_8011A886_msetup[0] < 0) {
+        arg0--;
+    } else {
+        arg0++;
+    }
+    return arg0;
+}
+
+s16 func_801089FC_msetup(s32 arg0) {
+    D_8011A886_msetup[0] = 0;
+    func_8010B82C_msetup(0x241B);
+    if (func_8010B858_msetup() == 0) {
+        func_8010B82C_msetup(0x241D);
+        func_8010B858_msetup();
+        HuAudFXPlay(0x2A6);
+        arg0 = -2;
+    } else {
+        func_8010B82C_msetup(0x241C);
+        if (func_8010B858_msetup() == 0) {
+            func_8010F2F4_msetup(D_80119420_msetup, 9);
+            HuAudFXPlay(0x2E4);
+            func_8010BE8C_msetup(D_8011A880_msetup);
+            arg0 = 0;
+        } else {
+            D_8011A886_msetup[0] = -1;
+            arg0--;
+        }
+    }
+    return arg0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108AB8_msetup);
 
