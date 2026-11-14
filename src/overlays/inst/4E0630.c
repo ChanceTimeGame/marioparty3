@@ -34,9 +34,14 @@ typedef struct InstHmfData {
 } InstHmfData;
 typedef struct InstMotionObj {
     /* 0x00 */ s16 count;
-    /* 0x02 */ char unk02[0x4E];
+    /* 0x02 */ char unk02[0x4A];
+    /* 0x4C */ f32 unk4C; /* x scale */
     /* 0x50 */ s16 *children; /* part index, or 0x8000 | motion object index */
     /* 0x54 */ InstHmfData *hmf;
+    /* 0x58 */ char unk58[8];
+    /* 0x60 */ f32 unk60; /* y scale */
+    /* 0x64 */ char unk64[0x10];
+    /* 0x74 */ f32 unk74; /* z scale */
 } InstMotionObj;
 
 /* Per minigame type: the board's two texture/model ids (low halves of 0x0017xxxx). */
@@ -206,11 +211,49 @@ void func_80107BE4_inst(void) {
     D_8010DDDC_inst = func_80107BF8_inst;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E0630", D_8010D978_inst);
+const char D_8010D978_inst[] = "gamen";
+const char D_8010D980_inst[] = "frame";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E0630", D_8010D980_inst);
+/* Page handler: pulses the screen and frame parts (a sine swell, then a cosine settle). */
+void func_80107BF8_inst(omObjData *obj) {
+    InstMotionObj *parts[2];
+    f32 scale;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107BF8_inst);
+    parts[0] = func_8001D33C_main(obj->model[1], D_8010D978_inst);
+    parts[1] = func_8001D33C_main(obj->model[2], D_8010D980_inst);
+    if (parts[0] == (InstMotionObj *)-1 || parts[1] == (InstMotionObj *)-1) {
+        osSyncPrintf("ERROR\n");
+    }
+    for (i = 0; i < 5; i++) {
+        scale = sindf(i * 18.0f) * 0.5f;
+        for (j = 0; j < 2; j++) {
+            parts[j]->unk4C = scale + 1.0f;
+            parts[j]->unk60 = scale + 1.0f;
+            parts[j]->unk74 = scale + 1.0f;
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 5; i++) {
+        scale = cosdf(i * 18.0f) * 0.5f;
+        if (scale < 0.3f) {
+            scale = 0.3f;
+        }
+        for (j = 0; j < 2; j++) {
+            parts[j]->unk4C = scale + 1.0f;
+            parts[j]->unk60 = scale + 1.0f;
+            parts[j]->unk74 = scale + 1.0f;
+        }
+        HuPrcVSleep();
+    }
+    for (j = 0; j < 2; j++) {
+        parts[j]->unk4C = 1.3f;
+        parts[j]->unk60 = 1.3f;
+        parts[j]->unk74 = 1.3f;
+    }
+    D_8010DDDC_inst = func_80107E18_inst;
+}
 
 void func_80107E18_inst(omObjData *obj) {
 }
