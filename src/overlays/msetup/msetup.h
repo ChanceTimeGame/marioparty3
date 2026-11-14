@@ -226,11 +226,9 @@ void func_80107FB4_msetup(void);
 s16 func_80108464_msetup(s32 arg0);
 s16 func_801084C4_msetup(s32 arg0);
 s16 func_801085D4_msetup(s32 arg0);
-s32 func_801086C8_msetup(s32 arg0);
 s16 func_801087F4_msetup(s32 arg0);
 s16 func_801088A8_msetup(s32 arg0);
 s16 func_80108938_msetup(s32 arg0);
-s32 func_801089FC_msetup(s32 arg0);
 void func_80108AB8_msetup(void);
 void func_80108F74_msetup(void);
 void func_80109218_msetup(void);
@@ -359,6 +357,8 @@ extern MsPlayerUi D_8011A9F0_msetup[];
 /* menu step functions (D_80119434/D_80119458/D_80119510/D_80119524_msetup tables): s16 (*)(s32 step) */
 s16 func_80107A58_msetup(s32 arg0);
 s16 func_80107ECC_msetup(s32 arg0);
+s16 func_801086C8_msetup(s32 arg0);
+s16 func_801089FC_msetup(s32 arg0);
 s32 func_8010B858_msetup(void); /* returns the window choice (func_8005E1D8_main) */
 f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius); /* random drop and angle */
 void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
