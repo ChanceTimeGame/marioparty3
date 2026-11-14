@@ -588,9 +588,94 @@ f32 func_80107B38_option(f32 x0, f32 y0, f32 x1, f32 y1) {
     return -(atan2df(y1 - y0, x1 - x0) - 90.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B80_option);
+#ifdef NON_MATCHING
+/* Turns the horizontal direction a towards b by the fraction t, the short way round (modesel
+   func_801094F0_modesel); writes the unit direction to out. */
+void func_80107B80_option(Vec *a, Vec *b, f32 t, Vec *out) {
+    f32 end;
+    f32 ang;
+    f32 angA;
+    f32 angB;
 
+    angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
+    if (angA < 0.0f) {
+        angA += 360.0f;
+    }
+    angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
+    if (angB < 0.0f) {
+        angB += 360.0f;
+    }
+    if (-a->z * b->x + a->x * b->z > 0.0f) {
+        end = angB;
+        if (!(angB - angA < 0.0f)) {
+            end = angB - 360.0f;
+        }
+        ang = (end - angA) * t + angA;
+        if (ang < 0.0f) {
+            ang += 360.0f;
+        }
+    } else {
+        end = angB;
+        if (!(angB - angA > 0.0f)) {
+            end = angB + 360.0f;
+        }
+        ang = (end - angA) * t + angA;
+        if (ang > 360.0f) {
+            ang -= 360.0f;
+        }
+    }
+    out->x = sindf(ang);
+    out->y = 0.0f;
+    out->z = cosdf(ang);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B80_option);
+#endif
+
+#ifdef NON_MATCHING
+/* As func_80107B80_option, the long way round. */
+void func_80107D64_option(Vec *a, Vec *b, f32 t, Vec *out) {
+    f32 end;
+    f32 ang;
+    f32 angA;
+    f32 angB;
+
+    angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
+    if (angA < 0.0f) {
+        angA += 360.0f;
+    }
+    angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
+    if (angB < 0.0f) {
+        angB += 360.0f;
+    }
+    if (-a->z * b->x + a->x * b->z > 0.0f) {
+        end = angB;
+        if (!(angB - angA > 0.0f)) {
+            end = angB + 360.0f;
+        }
+        ang = (end - angA) * t + angA;
+        if (ang > 360.0f) {
+            ang -= 360.0f;
+        }
+    } else {
+        end = angB;
+        if (!(angB - angA < 0.0f)) {
+            end = angB - 360.0f;
+        }
+        ang = (end - angA) * t + angA;
+        if (ang < 0.0f) {
+            ang += 360.0f;
+        }
+    }
+    out->x = sindf(ang);
+    out->y = 0.0f;
+    out->z = cosdf(ang);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107D64_option);
+#endif
+
+OP_FILE_END()
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A20_option);
 
