@@ -66,8 +66,13 @@ extern Vec D_8010D430_inst;
 /* The word before each MinigameTable entry (D_800A6D44_main), read with the table's 0x14 stride. */
 typedef struct InstMgTableHead {
     /* 0x00 */ s32 unk0;
-    /* 0x04 */ char unk4[0x10];
+    /* 0x04 */ u8 type; /* D_800A6D44_main[].minigameType */
+    /* 0x05 */ u8 unk5;
+    /* 0x06 */ u16 unk6; /* instruction message; 0x4000: has variants, 0x3800: their count */
+    /* 0x08 */ char unk8[0xC];
 } InstMgTableHead;
+extern u8 D_800CE20A_main; /* minigame variant */
+extern s32 D_8010D4A4_inst;
 extern InstMgTableHead D_800A6D40_main[];
 extern f32 D_800CB890_main;
 extern f32 D_800CE17C_main[];
@@ -635,4 +640,39 @@ void func_80106EB4_inst(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80107308_inst);
+/* Picks the instruction message for the minigame (D_8010D4A4_inst): the table's base
+   message plus, for minigames with variants, twice the variant (drawn here, kept for 0x46). */
+void func_80107308_inst(void) {
+    s32 draw = 1;
+    s32 mes = 0;
+    u16 flags;
+    u32 var;
+    u32 n;
+
+    if (D_8010D407_inst == 1 && (D_8010D40B_inst == 0x1D || D_8010D40B_inst == 0x37)) {
+        mes = (D_800A6D40_main[D_8010D40B_inst].unk6 & 0x7FF) + D_800CE20A_main * 2;
+        draw = 0;
+    }
+    if (draw == 1) {
+        flags = D_800A6D40_main[D_8010D40B_inst].unk6;
+        mes = flags & 0x7FF;
+        if (flags & 0x4000) {
+            if (D_8010D40B_inst != 0x46) {
+                n = (flags & 0x3800) >> 11;
+                var = rand8() % n;
+                D_800CE20A_main = var;
+                var *= 2;
+            } else {
+                var = D_800CE20A_main * 2;
+            }
+            mes += var;
+        } else if (D_8010D40B_inst == 0x47) {
+            D_800CE20A_main = 2;
+        } else if (D_8010D40B_inst == 0x1E && _CheckFlag(0x1C) != 0) {
+            D_800CE20A_main = 1;
+        } else {
+            D_800CE20A_main = 0;
+        }
+    }
+    D_8010D4A4_inst = mes;
+}
