@@ -1,5 +1,7 @@
 #include "common.h"
 #include "option.h"
+#include "mallocblock.h"
+#include "game/vibrator.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_801059A0_option);
 
