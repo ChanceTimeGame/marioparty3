@@ -313,7 +313,6 @@ void func_80112804_msetup(void); /* process */
 s16 func_80112E08_msetup(s16 arg0, s16 *arg1, void *arg2);
 s16 func_80112F5C_msetup(s16 *arg0, u16 arg1, s16 *arg2, void *arg3);
 s32 func_801132C4_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
-s32 func_801138F8_msetup(void *arg0, s32 arg1, s32 *arg2, s16 arg3);
 s16 func_80113DEC_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113E20_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113E54_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
@@ -334,5 +333,8 @@ void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119F
 void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork D */
+s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */
 
 #endif
