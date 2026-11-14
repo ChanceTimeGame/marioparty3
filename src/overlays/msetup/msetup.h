@@ -270,7 +270,6 @@ void func_8010D060_msetup(void *arg0, s32 arg1);
 void func_8010D094_msetup(void *arg0, s32 arg1);
 s32 func_8010D0C8_msetup(s16 arg0, s32 arg1);
 s16 func_8010D234_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5);
-s16 func_8010D4DC_msetup(s32 arg0, s32 arg1, s32 arg2, s16 arg3, s16 arg4, s32 arg5); /* arg1 unused */
 s16 func_8010D5EC_msetup(s16 arg0);
 s32 func_8010D684_msetup(s16 arg0, s16 *arg1);
 void func_8010D6D0_msetup(void); /* process */
@@ -328,18 +327,6 @@ extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0
 s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
 /* was void: returns the yes/no answer (func_801167B8_msetup tests v0) */
 s32 func_8010B858_msetup(void);
-/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
-   stack, 0x18 apart; memset 0x14) */
-typedef struct MsStoryWork {
-    /* 0x00 */ s32 unk0;
-    /* 0x04 */ s32 unk4;
-    /* 0x08 */ s32 unk8;
-    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
-    /* 0x0E */ s16 id;     /* page 0-2 */
-    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s32 unk14;
-} MsStoryWork; /* size = 0x18 */
 
 /* fork A */
 /* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
@@ -440,5 +427,18 @@ typedef struct MsCmdWork {
 } MsCmdWork; /* size = 0x4 */
 extern Process *D_8011A900_msetup; /* was s32: the func_8011035C_msetup process */
 extern MsCmdWork D_8011A904_msetup; /* was s16 */
+
+/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
+   stack, 0x18 apart; memset 0x14). Moved from fork E's block: 0x00-0x08 is the page position (f32). */
+typedef struct MsStoryWork {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
+    /* 0x0E */ s16 id;     /* page 0-2 */
+    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s32 unk14;
+} MsStoryWork; /* size = 0x18 */
+/* arg0 is a table of choice positions, arg1 a u8 array (unused): pointers, not s32 */
+s16 func_8010D4DC_msetup(s16 (*pos)[2], u8 *arg1, s32 count, s16 sel, s16 pad, s32 btn);
 
 #endif
