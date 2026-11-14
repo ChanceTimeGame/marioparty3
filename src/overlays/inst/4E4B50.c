@@ -21,7 +21,7 @@ void func_8010BE70_inst(omObjData *obj);
 s32 func_8010C55C_inst(void);
 void func_8010C5C4_inst(omObjData *obj);
 void func_8010C8B4_inst(void);
-u16 func_8010C8E0_inst(u16 btn);
+s32 func_8010C8E0_inst(u16 btn);
 void func_8010CBB8_inst(s32 page);
 void func_8010CC14_inst(void);
 void func_8010CDE4_inst(s32 mesId, s32 x, s32 y);
@@ -195,14 +195,14 @@ void func_8010C124_inst(omObjData *obj) {
     if (D_8010D409_inst == 1) {
         return;
     }
-    if (func_8010C8E0_inst(0x10)) {
+    if ((u16)func_8010C8E0_inst(0x10)) {
         func_8010D1D4_inst();
         D_8010DCA4_inst = func_8010C5C4_inst;
         return;
     }
     switch (D_8010DCD4_inst) {
         case 0:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 D_8010DCCC_inst = D_8010DCD0_inst->mes[1];
                 if (D_8010DCD0_inst->mes[2] < 0) {
                     func_8010CBB8_inst(1);
@@ -215,7 +215,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 1:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 mes = D_8010DCD0_inst->mes[5];
                 D_8010DCCC_inst = mes;
                 if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
@@ -227,7 +227,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 3:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 if (D_8010DCD0_inst->mes[2] < 0) {
                     mes = D_8010DCD0_inst->mes[5];
                     D_8010DCCC_inst = mes;
@@ -245,7 +245,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 4:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 if (D_8010DCD0_inst->mes[3] < 0) {
                     mes = D_8010DCD0_inst->mes[5];
                     D_8010DCCC_inst = mes;
@@ -263,7 +263,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 6:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 if (D_8010DCD0_inst->mes[4] < 0) {
                     mes = D_8010DCD0_inst->mes[5];
                     D_8010DCCC_inst = mes;
@@ -281,7 +281,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 7:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 D_8010DCCC_inst = D_8010DCD0_inst->mes[5];
                 func_8010CBB8_inst(2);
                 D_8010DCD4_inst = 2;
@@ -292,7 +292,7 @@ void func_8010C124_inst(omObjData *obj) {
             }
             break;
         case 2:
-            if (func_8010C8E0_inst(1)) {
+            if ((u16)func_8010C8E0_inst(1)) {
                 mes = D_8010DCD0_inst->mes[0];
                 D_8010DCCC_inst = mes;
                 if (D_8010D40A_inst == 4 && D_8010D411_inst != 2) {
@@ -309,7 +309,7 @@ void func_8010C124_inst(omObjData *obj) {
 s32 func_8010C55C_inst(void) {
     s32 skip = 0;
 
-    if (func_8010C8E0_inst(0x10) && D_8010D409_inst != 1) {
+    if ((u16)func_8010C8E0_inst(0x10) && D_8010D409_inst != 1) {
         skip = 1;
         func_8010D044_inst();
         D_8010DCA4_inst = func_8010C124_inst;
@@ -383,7 +383,7 @@ void func_8010C5C4_inst(omObjData *obj) {
             return;
         }
     }
-    while (!func_8010C8E0_inst(0x8000)) {
+    while (!(u16)func_8010C8E0_inst(0x8000)) {
         if (func_8010C55C_inst()) {
             return;
         }
