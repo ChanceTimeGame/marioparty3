@@ -119,7 +119,6 @@ extern f32 D_80113994_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_80113998_option;                /* .data ; lwc1: 8010D5B0 */
 extern f32 D_8011399C_option;                /* .data ; lwc1: 8010D5B0 */
 extern s32 D_801139D0_option;                /* .data ; lw,sw: 801130E8 */
-extern s32 D_801147AC_option;                /* .bss 0x4 bytes; lw,sw: 8010FA7C 8010FB40 */
 extern s16 D_801147E6_option;                /* .bss 0x2 bytes; lh: 8010FE84 */
 
 /* Not declared here (address-only or mixed accesses; the fork that decompiles their users types them):
@@ -233,7 +232,6 @@ void func_8010F138_option(void);
 f32 func_8010F914_option(f32 arg0, f32 arg1); /* modesel func_8010EC74_modesel */
 void func_8010F94C_option(void);
 void func_8010FA28_option(void);
-void func_8010FA7C_option(void *arg0);
 void func_8010FB40_option(u32 arg0, s32 arg1);
 u16 func_8010FC40_option(s32 arg0);
 void func_8010FDF4_option(void);
@@ -354,5 +352,19 @@ void func_80113424_option(s32 arg0);
 void func_80113440_option(s32 arg0);
 void func_8011345C_option(s32 arg0);
 void func_80113490_option(s32 arg0);
+
+/* fork C */
+/* Model facing the camera: D_80114788_option[2] (func_8010FB40_option starts one; splat names the
+   fields D_80114794_option .. D_801147B0_option). */
+typedef struct OpFace {
+    /* 0x00 */ Vec unk0;
+    /* 0x0C */ Vec unkC;
+    /* 0x18 */ Vec pos;       /* model position when started */
+    /* 0x24 */ s32 model;     /* model slot (func_80113274_option) */
+    /* 0x28 */ omObjData *obj; /* func_8010FA7C_option */
+} OpFace; /* size = 0x2C */
+extern OpFace D_80114788_option[2];
+void func_8010FA7C_option(omObjData *obj); /* turns a model to face the camera */
+extern char D_80113A4C_option[]; /* "%d" (also func_80107F50_option): a literal once both users are C */
 
 #endif
