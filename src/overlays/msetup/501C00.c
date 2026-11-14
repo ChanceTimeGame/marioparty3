@@ -204,13 +204,42 @@ void func_80106030_msetup(MsModelDef *defs, MsModelSlot *slots, s32 count) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_8010610C_msetup);
+u32 func_8010610C_msetup(u32 seed) {
+    s32 hi, lo;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801061E0_msetup);
+    if (seed == 0) {
+        seed = rand8();
+        seed = seed ^ osGetCount();
+        seed ^= 0xD826BC89;
+    }
+    hi = seed / 0x1F31D;
+    lo = seed - (hi * 0x1F31D);
+    seed = hi * 0xB14;
+    seed = seed - lo * 0x41A7;
+    return seed;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106208_msetup);
+u32 func_801061E0_msetup(void) {
+    return D_8011941C_msetup = func_8010610C_msetup(D_8011941C_msetup);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106260_msetup);
+u32 func_80106208_msetup(u32 max) {
+    return ((D_8011941C_msetup = func_8010610C_msetup(D_8011941C_msetup)) & 0x7FFFFFFF) % max;
+}
+
+void func_80106260_msetup(MsCamKey *key) {
+    f32 fov;
+
+    CRot = key->rot;
+    D_8011A994_msetup = CRot;
+    Center = key->center;
+    CZoom = key->zoom;
+    fov = key->fov;
+    if (fov != D_80119414_msetup) {
+        D_80119414_msetup = fov;
+        Hu3DCamSetPerspective(0, fov, D_8011A940_msetup, D_8011A93C_msetup);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106320_msetup);
 
