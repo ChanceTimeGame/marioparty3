@@ -541,7 +541,93 @@ s32 func_8010A498_option(void) {
     return sel;
 }
 
+#ifdef NON_MATCHING
+/* Only difference: retail sets sel = 9 then copies it to mode in the default case (li s1,9; move s0,s1); this C gives li s0,9. */
+void func_8010A66C_option(void) {
+    Vec eye;
+    Vec at;
+    s32 sel;
+    s32 mode;
+
+    func_8001F38C_main(0, 64, 64);
+    func_801123D8_option();
+    HuAudSeqPlay(0x4A);
+    WipeCreateIn(11, 16);
+    HuPrcSleep(16);
+    sel = func_8010A498_option();
+    func_801133A0_option(0);
+    switch (sel) {
+    case 4:
+        HuVecCopy3F(&eye, &D_801137FC_option);
+        HuVecCopy3F(&at, &D_80113808_option);
+        eye.z -= 200.0f;
+        func_80106F88_option(&eye, &at, 20);
+        HuPrcSleep(20);
+        HuAudFXPlay(0x2EB);
+        func_801132AC_option(1, 0);
+        func_801132E4_option(1, 0);
+        func_80113300_option(1);
+        eye.z += 200.0f;
+        func_80106F88_option(&eye, &at, 20);
+        goto fade;
+    case 5:
+        HuVecCopy3F(&eye, &D_80113814_option);
+        HuVecCopy3F(&at, &D_80113820_option);
+        eye.z -= 200.0f;
+        func_80106F88_option(&eye, &at, 20);
+        HuPrcSleep(20);
+        HuAudFXPlay(0x2EB);
+        func_801132AC_option(1, 0);
+        func_8011331C_option(1, 12, 0);
+        func_801132E4_option(1, 0);
+        func_80113300_option(1);
+        eye.z += 200.0f;
+        func_80106F88_option(&eye, &at, 20);
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    fade:
+        mode = sel;
+        func_8010FFDC_option();
+        WipeColorSet(255, 255, 255);
+        WipeCreateOut(11, 20);
+        HuAudSeqFadeOut(20);
+        HuPrcSleep(20);
+        break;
+    case 9:
+    default:
+        sel = 9;
+        mode = sel;
+        break;
+    }
+    func_80112A44_option();
+    func_8005F524_main();
+    omOvlKill();
+    switch (mode) {
+    case 4:
+        omOvlGotoEx(0x7B, 1, 0x91);
+        break;
+    case 5:
+        omOvlGotoEx(0x7B, 2, 0x91);
+        break;
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 9:
+    default:
+        omOvlReturnEx(1);
+        break;
+    }
+    omDelPrcObj(D_80114770_option);
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A66C_option);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A8DC_option);
 

@@ -377,4 +377,9 @@ s32 func_8010A940_option(s32 sel, s32 btn); /* submenu: d-pad */
 extern Vec D_801135E0_option[2];
 extern Vec D_801135F8_option[2];
 
+extern Vec D_801137FC_option; /* camera eye, target for leaving through item 4 */
+extern Vec D_80113808_option;
+extern Vec D_80113814_option; /* camera eye, target for leaving through item 5 */
+extern Vec D_80113820_option;
+
 #endif
