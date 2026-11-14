@@ -398,6 +398,7 @@ typedef struct MsTexEntry {
 } MsTexEntry; /* size = 0x34 */
 extern MsTexEntry *D_800D1FCC_main; /* 128 entries */
 s16 func_80011460_main(char *name);
+int strcmp(const char *, const char *);
 s16 func_8010D0C8_msetup(s16 model, char *name); /* model's texture slot using the loaded texture name; -1 */
 /* cursor move: the unused entry nearest cur in the stick direction (dx, dy); -1 if none */
 s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy);
