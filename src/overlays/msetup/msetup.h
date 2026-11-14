@@ -341,6 +341,19 @@ s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4);
 s32 func_8010B858_msetup(void);
 /* arg0/arg1 were s32: the MsLift array and a 0x20-byte .data table (func_801167B8_msetup) */
 void func_8010E52C_msetup(MsLift *lifts, void *arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
+/* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
+   stack, 0x18 apart; memset 0x14) */
+typedef struct MsStoryWork {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ s16 state;  /* set by the owner, cleared by the page when done */
+    /* 0x0E */ s16 id;     /* page 0-2 */
+    /* 0x10 */ s16 result; /* < 0: cancelled; page 1's low byte is GwStory.unk2 */
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s32 unk14;
+} MsStoryWork; /* size = 0x18 */
+
 /* copied from fork A's header (4688b0f) so this branch builds; drop on merge */
 /* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
    (a base register at the first field used, other fields relative); splat split it into the

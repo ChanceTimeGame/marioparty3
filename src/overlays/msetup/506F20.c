@@ -1269,4 +1269,210 @@ void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, 
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80117A3C_msetup);
 
+void func_8006105C_main(s16, s32);
+extern u8 D_800CE20A_main;
+extern MsCamKey D_8011A554_msetup;
+
+/* Story-mode setup process: three func_80117A3C_msetup page processes (one MsStoryWork each, ids
+   0-2) driven through a message window; on confirm it seeds GwStory and starts story play. */
+#ifdef NON_MATCHING
+/* masked ~70: retail reloads D_8011A910_msetup by address each time where this C keeps a base;
+   otherwise branch offsets and one store order */
+void func_80118D48_msetup(void) {
+    MsStoryWork w[3];
+    s16 unk60[16]; /* never read: two of its halfwords are set to -1 six times */
+    s32 i;
+    s32 step;
+    s16 shown;
+    u16 spr;
+
+    D_800CD280_main = 1;
+    func_80106260_msetup(&D_8011A554_msetup);
+    for (i = 0; i < 6; i++) {
+        unk60[14] = -1;
+        unk60[6] = -1;
+    }
+    memset(&w[0], 0, 0x14);
+    omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[0];
+    w[0].id = 0;
+    w[0].unk0 = 0;
+    w[0].unk4 = 0;
+    w[0].unk8 = 0;
+    memset(&w[1], 0, 0x14);
+    omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[1];
+    w[1].id = 1;
+    w[1].unk0 = 0;
+    w[1].unk4 = 0;
+    w[1].unk8 = 0;
+    memset(&w[2], 0, 0x14);
+    omAddPrcObj(func_80117A3C_msetup, 0x3F00, 0x800, 0)->user_data = &w[2];
+    w[2].id = 2;
+    w[2].unk0 = 0;
+    w[2].unk4 = 0;
+    w[2].unk8 = 0;
+    spr = InitEspriteSlot(func_8000B838_main(0x140067), 0, 0);
+    func_8000BC48_main(spr, 0x4000);
+    func_8000BBD4_main(spr, 0xA0, 0x78);
+    D_8011A910_msetup[0] = func_80060880_main(0xA0, 0xCC, 0x13);
+    func_8005FE54_main(D_8011A910_msetup[0], 0x10000 << D_8011A948_msetup >> 16);
+    func_8006105C_main(D_8011A910_msetup[0], 0xE0);
+    func_8005C060_main(D_8011A910_msetup[0], 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(D_8011A910_msetup[0], 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(D_8011A910_msetup[0], 6, 0xFF, 0xFF, 0x40);
+    func_80060C14_main(D_8011A910_msetup[0], 0);
+    HuAudSeqPlay(0xA);
+    WipeColorSet(0xFF, 0xFF, 0xFF);
+    WipeCreateIn(D_8011AA48_msetup, 0x10);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    step = 0;
+    D_800CD280_main = 0;
+    do {
+        switch (step) {
+        case 0:
+            func_8005B43C_main(D_8011A910_msetup[0], 0x6000, -1, -1);
+            while (func_8005E0C0_main(D_8011A910_msetup[0]) != 0) {
+                HuPrcVSleep();
+            }
+            step++;
+            break;
+        case 1:
+            HuAudFXPlay(0x213);
+            w[0].state = 2;
+            do {
+                HuPrcVSleep();
+            } while (w[0].state != 0);
+            func_8005B43C_main(D_8011A910_msetup[0], 0x6001, -1, -1);
+            w[0].state = 5;
+            do {
+                HuPrcVSleep();
+            } while (w[0].state != 0);
+            func_8005D294_main(D_8011A910_msetup[0]);
+            if (w[0].result >= 0) {
+                w[0].state = 3;
+                step++;
+            }
+            break;
+        case 2:
+            HuAudFXPlay(0x213);
+            w[1].state = 2;
+            do {
+                HuPrcVSleep();
+            } while (w[1].state != 0);
+            func_8005B43C_main(D_8011A910_msetup[0], 0x6002, -1, -1);
+            w[1].state = 5;
+            do {
+                HuPrcVSleep();
+            } while (w[1].state != 0);
+            func_8005D294_main(D_8011A910_msetup[0]);
+            if (w[1].result >= 0) {
+                w[0].state = 4;
+                w[1].state = 4;
+                step++;
+            } else {
+                w[1].state = 3;
+                step--;
+            }
+            break;
+        case 3:
+            HuAudFXPlay(0x213);
+            w[2].state = 2;
+            do {
+                HuPrcVSleep();
+            } while (w[2].state != 0);
+            func_8005B43C_main(D_8011A910_msetup[0], 0x6004, -1, -1);
+            while (func_8005E0C0_main(D_8011A910_msetup[0]) != 0) {
+                HuPrcVSleep();
+            }
+            shown = -1;
+            w[2].state = 5;
+            do {
+                if (shown != w[2].result) {
+                    shown = w[2].result;
+                    if (shown != 0) {
+                        func_8005B43C_main(D_8011A910_msetup[0], 0x6006, -1, -1);
+                    } else {
+                        func_8005B43C_main(D_8011A910_msetup[0], 0x6005, -1, -1);
+                    }
+                }
+                HuPrcVSleep();
+            } while (w[2].state != 0);
+            func_8005D294_main(D_8011A910_msetup[0]);
+            if (w[2].result >= 0) {
+                w[2].state = 7;
+                step++;
+            } else {
+                w[2].state = 3;
+                w[0].state = 3;
+                step--;
+            }
+            break;
+        case 4:
+            HuAudFXPlay(0x213);
+            w[0].state = 7;
+            w[1].state = 7;
+            do {
+                HuPrcVSleep();
+            } while (w[1].state != 0);
+            func_8005B43C_main(D_8011A910_msetup[0], 0x6003, -1, -1);
+            while (func_8005E0C0_main(D_8011A910_msetup[0]) != 0) {
+                HuPrcVSleep();
+            }
+            if (func_8005E1D8_main(D_8011A910_msetup[0], 0, 0) != 0) {
+                w[0].state = 4;
+                w[1].state = 4;
+                step--;
+            } else {
+                step = -2;
+                if ((u16)w[0].result < 6) {
+                    GwStory.unk1 = D_8011A3B0_msetup[w[0].result];
+                    GwStory.unk2 = w[1].result;
+                    GwStory.unk0 = 0;
+                    GwStory.unkF = 0;
+                    for (i = 0; i < 12; i++) {
+                        GwStory.unk3[i] = 0;
+                    }
+                    GwSystem.playMode = 5;
+                    if (w[2].result == 1) {
+                        _SetFlag(0x29);
+                    } else {
+                        _ClearFlag(0x29);
+                    }
+                    _ClearFlag(0x18);
+                    _ClearFlag(0x28);
+                    _ClearFlag(0);
+                    /* unk_64: a copy of the first 0x10 bytes */
+                    GwStory.unk_64[1] = GwStory.unk1;
+                    GwStory.unk_64[0] = 0;
+                    GwStory.unk_64[0xF] = 0;
+                    GwStory.unk_64[2] = GwStory.unk2;
+                    for (i = 0; i < 12; i++) {
+                        GwStory.unk_64[3 + i] = 0;
+                    }
+                    func_8005035C_main(1);
+                }
+                HuAudFXPlay(0x214);
+                w[0].state = 6;
+                w[1].state = 6;
+                w[2].state = 6;
+            }
+            func_8005D294_main(D_8011A910_msetup[0]);
+            break;
+        }
+        HuPrcVSleep();
+    } while (step >= 0);
+    if (step < -1) {
+        D_8011A944_msetup = 1;
+        D_8011AA4C_msetup[0] = 0x75;
+        D_8011A946_msetup = 0;
+        D_800CE20A_main = 1;
+    }
+    D_80119410_msetup = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80118D48_msetup);
+#endif
