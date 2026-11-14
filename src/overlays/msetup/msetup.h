@@ -299,10 +299,7 @@ void func_8011035C_msetup(void); /* process */
 void func_80110954_msetup(void); /* process */
 s32 func_80111650_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 void func_80112804_msetup(void); /* process */
-s16 func_80112E08_msetup(s16 arg0, s16 *arg1, void *arg2);
-s16 func_80112F5C_msetup(s16 *arg0, u16 arg1, s16 *arg2, void *arg3);
 s32 func_801132C4_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
-s32 func_801138F8_msetup(void *arg0, s32 arg1, s32 *arg2, s16 arg3);
 s16 func_80113DEC_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113E20_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s16 func_80113E54_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
@@ -334,8 +331,6 @@ extern Vec D_80119B20_msetup; /* the board model's start position (func_80115EE0
 s16 func_801152C4_msetup(s16 arg0, s32 arg1, HuMtx4F arg2, s16 *arg3, s16 arg4); /* arg1 unused */
 /* was void: returns the yes/no answer (func_801167B8_msetup tests v0) */
 s32 func_8010B858_msetup(void);
-/* arg0/arg1 were s32: the MsLift array and a 0x20-byte .data table (func_801167B8_msetup) */
-void func_8010E52C_msetup(MsLift *lifts, void *arg1, s16 arg2, s16 arg3, s32 arg4, u16 arg5, f32 arg6, f32 arg7);
 /* user_data of each func_80117A3C_msetup page process (func_80118D48_msetup keeps three on its
    stack, 0x18 apart; memset 0x14) */
 typedef struct MsStoryWork {
@@ -385,5 +380,35 @@ s16 func_801089FC_msetup(s32 arg0);
 s32 func_8010B858_msetup(void); /* returns the window choice (func_8005E1D8_main) */
 f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius); /* random drop and angle */
 void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
+
+
+/* fork D */
+/* user_data of a func_8010D6D0_msetup cursor process (801132C4 keeps two on its stack). */
+typedef struct MsCursorWork {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 (*pos)[2]; /* per-choice x, y (NULL: fixed) */
+    /* 0x08 */ s32 file;      /* sprite data id */
+    /* 0x0C */ s16 sel;
+    /* 0x0E */ s16 state;     /* 1 show, 2 hide, -1 kill */
+    /* 0x10 */ s16 steps;
+    /* 0x12 */ s16 attr;
+} MsCursorWork; /* size = 0x14 */
+/* Lift move key: func_8010E52C_msetup steps each lift from its pose to keys[i] (0x10 stride). */
+typedef struct MsLiftKey {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ f32 rotY;
+} MsLiftKey; /* size = 0x10 */
+/* fork C's function: arg0, arg1 and arg4 are pointers (lifts, keys, extra models), not s32 */
+void func_8010E52C_msetup(MsLift *lifts, MsLiftKey *keys, s16 count, s16 steps, s16 *models, u16 nmodels, f32 scale0, f32 scale1);
+s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor);
+/* A model part (func_8001D33C_main's result; MP3 hmfman.c HmfMotionObjM, 0x98): only its matrix. */
+typedef struct MsPart {
+    /* 0x00 */ char unk00[0x58];
+    /* 0x58 */ HuMtx4F mtx;
+} MsPart; /* size = 0x98 */
+s16 func_801152C4_msetup(s16 model, s32 arg1, HuMtx4F hand, s16 *pad, s16 sel); /* arg1 unused */
+s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor);
+s32 func_801138F8_msetup(MsSetupWork *work, s32 anim, s32 *mess, s16 sel); /* mess: [0] title, [1+sel] per choice */
 
 #endif
