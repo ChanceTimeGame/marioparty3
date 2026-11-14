@@ -786,7 +786,37 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801145D0_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80114AA0_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801150A0_msetup);
+/* Stick direction of pad `pad` by quadrant of atan2(x, y): 0 [0, 90), 1, 2, 3; -1 inside the
+   +-30 dead zone. */
+s32 func_801150A0_msetup(s16 pad) {
+    s8 x;
+    s8 y;
+    f32 angle;
+    s32 dir;
+
+    x = D_800CBB6E_main[pad];
+    y = D_800D20A1_main[pad];
+    dir = 0;
+    if (x >= -30 && x <= 30) {
+        if (y >= -30 && y <= 30) {
+            return -1;
+        }
+    }
+    angle = atan2df(x, y);
+    if (angle < 0.0f) {
+        angle += 360.0f;
+    }
+    if (angle >= 0.0f && angle < 90.0f) {
+        dir = 0;
+    } else if (angle >= 90.0f && angle < 180.0f) {
+        dir = 1;
+    } else if (angle >= 180.0f && angle < 270.0f) {
+        dir = 2;
+    } else if (angle >= 270.0f && angle < 360.0f) {
+        dir = 3;
+    }
+    return dir;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801152C4_msetup);
 
