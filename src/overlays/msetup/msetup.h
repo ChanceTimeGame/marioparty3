@@ -85,7 +85,6 @@ extern MsSetupWork D_8011A882_msetup;
 extern s16 D_8011A886_msetup[5];     /* .bss 0xA; begins at D_8011A882_msetup.unk4 (one object, two labels); indexed in 80109F7C */
 extern s16 D_8011A8E0_msetup[4][4];  /* 80117820 stores [i][0..3]; splat also labels D_8011A8E2/E4/E6 */
 extern s16 D_8011A948_msetup;        /* .bss split 0x1 + D_8011A949_msetup 0x7: lh reads both bytes */
-extern s16 D_8011A990_msetup[2];
 extern Vec D_8011A994_msetup;        /* splat also labels .y/.z as D_8011A998/D_8011A99C_msetup */
 extern f32 D_8011A93C_msetup;        /* far plane (func_80106260_msetup perspective) */
 extern f32 D_8011A940_msetup;        /* near plane */
@@ -346,6 +345,7 @@ typedef struct MsConfig {
     /* 0x17 */ u8 unk17;    /* D_8011AA47_msetup */
 } MsConfig; /* size = 0x18 */
 extern MsConfig D_8011AA30_msetup; /* was u8 D_8011AA30_msetup[4]: write .pad[i] */
+extern s16 D_8011A990_msetup; /* was s16[2]; only lh/sh of the first halfword */
 /* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
    are fields of records 0, 1 and 3). */
 typedef struct MsPlayerUi {

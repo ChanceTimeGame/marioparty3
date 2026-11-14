@@ -658,7 +658,7 @@ s16 func_80107840_msetup(s32 arg0) {
         HuPrcVSleep();
     } while (D_8011A882_msetup.state != 0);
     if (D_8011A886_msetup[0] != -1) {
-        D_8011A990_msetup[0] = 0;
+        D_8011A990_msetup = 0;
         for (i = 7; i != 0; i--) {
             HuPrcVSleep();
         }
@@ -694,7 +694,7 @@ s16 func_80107964_msetup(s32 arg0) {
             HuPrcVSleep();
         } while (D_8011A882_msetup.state != 0);
     } else {
-        D_8011A990_msetup[0] = 1;
+        D_8011A990_msetup = 1;
     }
     if (D_8011A886_msetup[0] == -1) {
         HuAudFXPlay(0x2E4);
@@ -748,7 +748,7 @@ s16 func_80107B8C_msetup(s32 arg0) {
     for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
         D_8011A9F0_msetup[i].unk2 = 12;
     }
-    D_8011A990_msetup[0] = 2;
+    D_8011A990_msetup = 2;
     HuPrcVSleep();
     func_8010B9B8_msetup(0x4000, 0x4000);
     D_8011A882_msetup.state = 8;
@@ -760,7 +760,7 @@ s16 func_80107B8C_msetup(s32 arg0) {
     } else {
         func_8010F2F4_msetup(D_80119420_msetup, 1);
     }
-    D_8011A990_msetup[0] = 1;
+    D_8011A990_msetup = 1;
     HuPrcVSleep();
     func_8010B9B8_msetup(0x4000, 0x4000);
     for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
@@ -903,7 +903,7 @@ void func_80107FB4_msetup(void) {
     do {
         HuPrcVSleep();
     } while (wait[0] == 1);
-    D_8011A990_msetup[0] = 1;
+    D_8011A990_msetup = 1;
     func_8010B9B8_msetup(0x4000, 0x4000);
     if (_CheckFlag(0x1A) == 0) {
         _SetFlag(0x1A);
@@ -917,7 +917,7 @@ void func_80107FB4_msetup(void) {
         step = D_80119434_msetup[step](step);
     } while (step >= 0);
     func_8010F2F4_msetup(D_80119420_msetup, 8);
-    D_8011A990_msetup[0] = 0;
+    D_8011A990_msetup = 0;
     if (step < -1) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
             D_8011A9F0_msetup[i].unk2 = 12;
@@ -992,7 +992,7 @@ s16 func_801084C4_msetup(s32 arg0) {
         HuPrcVSleep();
     } while (D_8011A882_msetup.state != 0);
     if (D_8011A886_msetup[0] != -1) {
-        D_8011A990_msetup[0] = 0;
+        D_8011A990_msetup = 0;
         for (i = 7; i != 0; i--) {
             HuPrcVSleep();
         }
@@ -1025,7 +1025,7 @@ s16 func_801085D4_msetup(s32 arg0) {
             HuPrcVSleep();
         } while (D_8011A882_msetup.state != 0);
     } else {
-        D_8011A990_msetup[0] = 1;
+        D_8011A990_msetup = 1;
     }
     if (D_8011A886_msetup[0] == -1) {
         HuAudFXPlay(0x2E4);
@@ -1193,7 +1193,7 @@ void func_80108AB8_msetup(void) {
     do {
         HuPrcVSleep();
     } while (wait[0] == 1);
-    D_8011A990_msetup[0] = 1;
+    D_8011A990_msetup = 1;
     func_8010B9B8_msetup(0x4000, 0x4000);
     if (_CheckFlag(0x19) == 0) {
         _SetFlag(0x19);
@@ -1207,7 +1207,7 @@ void func_80108AB8_msetup(void) {
         step = D_80119458_msetup[step](step);
     } while (step >= 0);
     func_8010F2F4_msetup(D_80119420_msetup, 8);
-    D_8011A990_msetup[0] = 0;
+    D_8011A990_msetup = 0;
     if (step < -1) {
         for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
             D_8011A9F0_msetup[i].unk2 = 12;
@@ -1335,7 +1335,145 @@ void func_80108F74_msetup(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80108F74_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80109218_msetup);
+/* Story Mode setup process: players from func_80108F74_msetup, the intro messages, then the
+   start or cancel choice. */
+void func_80109218_msetup(void) {
+    Process *proc;
+    s16 wait[2];
+    s32 i;
+    s32 j;
+    s32 loop;
+
+    D_8011A880_msetup = 4;
+    func_80108F74_msetup();
+    D_8011AA30_msetup.board = GwSystem.current_board_index;
+    D_8011AA30_msetup.turns = GwSystem.total_turns;
+    D_8011AA30_msetup.unk17 = _CheckFlag(0x29);
+    for (i = 0; i < D_8011A880_msetup; i++) {
+        D_8011AA34_msetup[i] = GwPlayer[i].chr;
+        D_8011AA3C_msetup[i] = GwPlayer[i].star;
+        D_8011AA30_msetup.pad[i] = GwPlayer[i].pad;
+        if (GwPlayer[i].stat & 1) {
+            D_8011AA38_msetup[i] = GwPlayer[i].cpu_difficulty;
+        } else {
+            D_8011AA38_msetup[i] = 0xFF;
+        }
+    }
+    D_8011AA30_msetup.unk10 = 1;
+    D_8011AA30_msetup.unk11 = 3;
+    Hu3DModelPosSet(func_8000B108_main(D_8011942C_msetup, 0x2B9), 0.0f, -37.5f, 100.0f);
+    func_80107428_msetup();
+    proc = omAddPrcObj(func_80117820_msetup, 0xBB8, 0x1000, 0);
+    memset(&D_8011A882_msetup, 0, sizeof(MsSetupWork));
+    D_8011A886_msetup[0] = -1;
+    proc->user_data = &D_8011A886_msetup[-2];
+    proc = omAddPrcObj(func_8010B1F4_msetup, 0x3E8, 0x600, 0);
+    memset(wait, 0, sizeof(wait));
+    proc->user_data = wait;
+    func_80106260_msetup(&D_80119580_msetup);
+    func_8010BBF4_msetup(D_8011A880_msetup);
+    HuPrcVSleep();
+    WipeCreateIn(D_8011AA48_msetup, 0x10);
+    HuAudFXPlay(0x2D8);
+    func_801068F4_msetup(D_801195A0_msetup, 22.0f, func_80107F88_msetup);
+    D_8011AA4A_msetup = 1;
+    wait[0] = 1;
+    HuAudFXPlay(0x2DB);
+    D_8011A9F0_msetup[0].unk2 = 1;
+    while (wait[0] == 1) {
+        HuPrcVSleep();
+    }
+    D_8011A990_msetup = 1;
+    func_8010B9B8_msetup(0x4000, 0x4000);
+    func_8010B998_msetup();
+    func_8010B968_msetup(D_8011AA30_msetup.chr[0] + 0x1C00, 0);
+    func_8010B82C_msetup(0x1A00);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(D_801194A8_msetup[D_8011AA30_msetup.board]);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(0x1A07);
+    func_8010B858_msetup();
+    func_8010B998_msetup();
+    D_8011A990_msetup = 2;
+    D_8011A882_msetup.state = 12;
+    do {
+        HuPrcVSleep();
+    } while (D_8011A882_msetup.state != 0);
+    D_8011A990_msetup = 1;
+    j = 1;
+    HuPrcVSleep();
+    func_8010B9B8_msetup(0x4000, 0x4000);
+    func_8010B82C_msetup(0x1A08);
+    func_8010B858_msetup();
+    D_8011A990_msetup = 0;
+    HuAudFXPlay(0x2DB);
+    for (; j < (s16)(u16)D_8011A880_msetup; j++) {
+        D_8011A9F0_msetup[j].unk2 = 1;
+    }
+    for (i = 7; i != 0; i--) {
+        HuPrcVSleep();
+    }
+    D_8011A9F0_msetup[0].unk2 = 17;
+    while (D_8011A9F0_msetup[D_8011A880_msetup - 1].unk2 != 0) {
+        HuPrcVSleep();
+    }
+    D_8011A990_msetup = 1;
+    func_8010B82C_msetup(0x1A09);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(0x1A0A);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(0x1A0B);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(D_8011AA47_msetup != 0 ? 0x1A10 : 0x1A0F);
+    func_8010B858_msetup();
+    func_8010B82C_msetup(0x1A0C);
+    func_8010B858_msetup();
+    loop = 1;
+    do {
+        func_8010B82C_msetup(0x1A0D);
+        if (func_8010B858_msetup() == 0) {
+            func_8010B82C_msetup(0x1A0E);
+            func_8010B858_msetup();
+            HuAudFXPlay(0x2A6);
+            D_8011A990_msetup = 0;
+            for (i = 0; i < (s16)(u16)D_8011A880_msetup; i++) {
+                D_8011A9F0_msetup[i].unk2 = 16;
+            }
+            HuAudSeqFadeOut(0x186);
+            D_80119412_msetup = 1;
+            HuAudFXPlay(0x2DF);
+            func_801068F4_msetup(D_801197BC_msetup, 22.0f, NULL);
+            _ClearFlag(0);
+            _ClearFlag(0x28);
+            _SetFlag(0x1B);
+            if (D_8011AA47_msetup != 0) {
+                _SetFlag(0x20);
+            } else {
+                _ClearFlag(0x20);
+            }
+            GwSystem.playMode = 5;
+            D_8011A944_msetup = 4;
+            D_8011AA4C_msetup[0] = 0x47;
+            D_8011A946_msetup = 0;
+            omOvlHisChg(0, 0x7D, 0, 0x4090);
+            omovlhisidx++;
+            loop = 0;
+        } else {
+            func_8010B82C_msetup(0x1501);
+            if (func_8010B858_msetup() == 0) {
+                loop = 0;
+                D_8011A990_msetup = 0;
+                D_80119410_msetup = 0x4B;
+                HuAudFXPlay(0x2EC);
+                func_801068F4_msetup(D_801196C0_msetup, 25.0f, NULL);
+            }
+        }
+    } while (loop != 0);
+    D_80119410_msetup = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80109868_msetup);
 
