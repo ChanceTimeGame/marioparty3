@@ -323,7 +323,6 @@ s32 func_801145D0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_80114AA0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
 s32 func_801150A0_msetup(s16 arg0);
 s16 func_801152C4_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, u16 arg4); /* arg1 unused */
-s32 func_801157B8_msetup(s16 arg0, s16 arg1, s16 *arg2, s16 arg3, void *arg4, void *arg5);
 s16 func_80115A9C_msetup(s16 arg0, s32 arg1, void *arg2, s16 *arg3, s32 arg4); /* arg1 unused */
 void func_80115E78_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 s32 func_80115EE0_msetup(MsSetupWork *work); /* state (D_80119FF0_msetup) */
@@ -337,5 +336,7 @@ void func_80118D48_msetup(void);
 /* fork E */
 /* a3 is SprPos3DSet's x, passed through */
 void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, f32 scale);
+/* returns the s16 choice (sra 16); arg4 is the MsLift pair, arg5 the arrows object */
+s16 func_801157B8_msetup(s16 model, s16 sprModel, s16 *pad, s16 sel, MsLift *lifts, omObjData *arrows);
 
 #endif

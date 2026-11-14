@@ -374,7 +374,91 @@ INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801150A0_msetup);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801152C4_msetup);
 
+/* Turns the board model to its back and lets the player pick one of 9 values (left/right wrap);
+   B cancels (-1). Returns the choice. */
+#ifdef NON_MATCHING
+/* masked 0; raw 8: s-register allocation (pad, arrows, sprModel, right rotated) */
+s16 func_801157B8_msetup(s16 model, s16 sprModel, s16 *pad, s16 sel, MsLift *lifts, omObjData *arrows) {
+    f32 rot;
+    s16 prev;
+    s32 btn;
+    s16 lift;
+    u32 right; /* GCC keeps this constant in a register across the goto loop */
+
+    func_80032FF8_main(sprModel, sel);
+    rot = 0.0f;
+    do {
+        Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        HuPrcVSleep();
+        rot += 25.714285f;
+    } while (rot <= 180.0f);
+    func_8010B82C_msetup(0x1529);
+    prev = -1;
+    right = 4;
+loop:
+    btn = func_8010D684_msetup(D_8011A948_msetup, pad);
+    if (btn & 0x4000) {
+        goto cancel;
+    }
+    if (btn & 0x8000) {
+        goto decide;
+    }
+    if (btn & 0x900) {
+        sel++;
+        if (sel >= 9) {
+            sel = 0;
+        }
+        HuAudFXPlay(1);
+        arrows->work[0] = right;
+    } else if (btn & 0x600) {
+        sel--;
+        if (sel < 0) {
+            sel = 8;
+        }
+        HuAudFXPlay(1);
+        arrows->work[0] = 3;
+    }
+    if (prev != sel) {
+        func_80032FF8_main(sprModel, sel);
+        prev = sel;
+    }
+    HuPrcVSleep();
+    goto loop;
+done:
+    if (sel < 0) {
+        goto back;
+    }
+    lift = lifts->model;
+    func_8001C258_main(lift, 4, 0);
+    Hu3DModelRotSet(lift, 0.0f, 180.0f, 0.0f);
+    rot = 180.0f;
+    do {
+        Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        Hu3DModelRotSet(lift, 0.0f, rot, 0.0f);
+        HuPrcVSleep();
+        rot += 25.714285f;
+    } while (rot < 360.0f);
+    goto end;
+decide:
+    HuAudFXPlay(0x139);
+    goto done;
+cancel:
+    HuAudFXPlay(4);
+    sel = -1;
+    goto done;
+back:
+    rot = 180.0f;
+    do {
+        Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        HuPrcVSleep();
+        rot -= 25.714285f;
+    } while (rot >= 0.0f);
+end:
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_801157B8_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80115A9C_msetup);
 
