@@ -150,7 +150,66 @@ void func_80105F08_option(f32 fov) {
     D_801146F0_option.proc = omAddPrcObj(func_80105EB8_option, 0x5000, 0x2000, 0);
 }
 
+#ifdef NON_MATCHING
+/* The followed model camera's eye and target, and an up vector square to the view direction
+   (modesel func_80108AE0_modesel); the stored camera when none is followed. Waits forever while the
+   model camera has no view. */
+s32 func_80105FF8_option(Vec *eye, Vec *at, Vec *up) {
+    HmfData *hmf;
+    OpHmfCamView *view;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 rz;
+
+    if (D_801146F0_option.view == -1) {
+        HuVecCopy3F(eye, &D_801146F0_option.eye);
+        HuVecCopy3F(at, &D_801146F0_option.at);
+        HuVecCopy3F(up, &D_801146F0_option.up);
+        return 0;
+    }
+    hmf = HmfModelData[gCameraList->unk4].hmf;
+    if (hmf == NULL || (view = *(OpHmfCamView **)&hmf->unkB8[4]) == NULL) {
+        while (TRUE) {
+            HuPrcVSleep();
+        }
+    }
+    eye->x = view->pos.x;
+    eye->y = view->pos.y;
+    eye->z = view->pos.z;
+    at->x = view->at.x;
+    at->y = view->at.y;
+    at->z = view->at.z;
+    rz = -90.0f;
+    dx = at->x - eye->x;
+    dy = at->y - eye->y;
+    dz = at->z - eye->z;
+    len = dx * dx + dy * dy + dz * dz;
+    len = HuSqrtf(len);
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    ux = dy * dz - dz * (dy + 1.0f);
+    uy = dz * dx - dx * dz;
+    uz = dx * (dy + 1.0f) - dy * dx;
+    up->x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+          + uy * (dy * dx * (1.0f - cosdf(rz)) - dz * sindf(rz))
+          + uz * (dz * dx * (1.0f - cosdf(rz)) + dy * sindf(rz));
+    up->y = ux * (dy * dx * (1.0f - cosdf(rz)) + dz * sindf(rz))
+          + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+          + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+    up->z = ux * (dz * dx * (1.0f - cosdf(rz)) - dy * sindf(rz))
+          + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+          + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80105FF8_option);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106508_option);
 
