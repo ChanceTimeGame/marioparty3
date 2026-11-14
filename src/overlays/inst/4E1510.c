@@ -1,6 +1,16 @@
 #include "common.h"
 #include "inst.h"
 
+extern s32 D_8010D520_inst;
+extern s32 D_8010D524_inst;
+void func_80108808_inst(omObjData *);
+void func_80108870_inst(omObjData *);
+void func_80108954_inst(omObjData *);
+void func_8010C848_inst(void);
+void func_8010C8D0_inst(void);
+void func_80033910_main(HmfData *);
+void func_80033970_main(HmfData *);
+
 /* Process: the host character (model 0xA0075 with its motions and texture animation) beside
    the board; runs its handler (D_8010DDE0_inst.func) every frame. */
 void func_80108350_inst(void) {
@@ -58,18 +68,83 @@ void func_80108350_inst(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_8010872C_inst);
+/* Host handlers: below the screen, waits, jumps up (sound 0x2A7), lands and idles. */
+void func_8010872C_inst(omObjData *obj) {
+    obj->trans.x = -86.0f;
+    obj->trans.y = -148.0f;
+    obj->trans.z = 253.0f;
+    obj->rot.x = -20.0f;
+    obj->rot.y = 15.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C5B4_main(obj->model[0], obj->motion[1]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    func_80108A18_inst(obj->model[0], D_8010DC28_inst, D_8010DC22_inst);
+    D_8010DDE0_inst.func = func_80108808_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108808_inst);
+void func_80108808_inst(omObjData *obj) {
+    if (++D_8010D520_inst >= 100) {
+        func_8001C258_main(obj->model[0], 4, 0);
+        HuAudFXPlay(0x135);
+        D_8010DDE0_inst.func = func_80108870_inst;
+        D_8010D520_inst = 0;
+        func_8010C8D0_inst();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108870_inst);
+void func_80108870_inst(omObjData *obj) {
+    D_8010D524_inst++;
+    obj->trans.y = sindf(D_8010D524_inst * 5) * 200.0f + -148.0f;
+    if (D_8010D524_inst >= 17) {
+        obj->trans.y = 52.0f;
+        D_8010D524_inst = 0;
+        func_8001C5B4_main(obj->model[0], obj->motion[2]);
+        func_8001C814_main(obj->model[0], 2, 0);
+        HuPrcSleep(10);
+        HuAudFXPlay(0x2A7);
+        D_8010DDE0_inst.func = func_80108954_inst;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108954_inst);
+void func_80108954_inst(omObjData *obj) {
+    s16 m = obj->model[0];
+    f32 frame = HmfModelData[m].unk40;
+
+    if (D_800CCF58_main[HmfModelData[m].unk02].unk02 <= frame) {
+        func_8001C5B4_main(m, obj->motion[3]);
+        func_8001C814_main(obj->model[0], 2, 2);
+        func_8010C848_inst();
+        D_8010DDE0_inst.func = func_80108A10_inst;
+    }
+}
 
 void func_80108A10_inst(omObjData *obj) {
 }
 
+/* Starts texture animation anim of model at frame (frame -1: plays it as it is). */
+#ifdef NON_MATCHING
+/* Instruction-identical, but retail has a nop after it (func_80108AF0_inst is 16-byte
+   aligned in retail; no file split explains it, see the report). */
+void func_80108A18_inst(s16 model, s16 anim, s16 frame) {
+    TexAnimSlot *slot;
+
+    if (anim >= 0) {
+        if (frame == -1) {
+            func_80033910_main(HmfModelData[model].hmf);
+        } else {
+            func_80033970_main(HmfModelData[model].hmf);
+            slot = &D_800D1714_main[anim];
+            slot->unk_00 = frame;
+            slot->unk_04 = 0;
+            slot->unk_0A = 0;
+            slot->unk_06 = 0;
+            slot->unk_02 = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108A18_inst);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108AF0_inst);
 
