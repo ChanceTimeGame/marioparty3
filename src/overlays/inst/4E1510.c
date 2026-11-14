@@ -17,6 +17,10 @@ void func_8010986C_inst(omObjData *);
 void func_801098D8_inst(omObjData *);
 void func_801099C0_inst(omObjData *);
 void func_80109A84_inst(omObjData *);
+void func_801097DC_inst(omObjData *);
+extern s32 D_8010DC30_inst; /* the second host's texture animation */
+extern s16 D_8010DC32_inst; /* low half of D_8010DC30_inst */
+extern void (*D_8010DDEC_inst)(omObjData *); /* D_8010DDE8_inst.func */
 void func_8010C8D0_inst(void);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
@@ -326,7 +330,57 @@ void func_80108AF0_inst(s16 model, void *start, void *data, void *alpha) {
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108AF0_inst);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801094B0_inst);
+/* Process: the second host character (model 0xA0000, the 2-player screen) beside the board;
+   runs its handler (D_8010DDE8_inst.func) every frame. */
+void func_801094B0_inst(void) {
+    omObjData *obj;
+    void *data;
+
+    obj = omAddObj(0x19, 5, 8, -1, NULL);
+    D_8010DDE8_inst.obj = obj;
+    obj->model[0] = func_8000B108_main(0xA0000, 0x16A9);
+    func_8000B460_main(obj, 0, 0xA0001);
+    func_8000B460_main(obj, 1, 0xA0002);
+    func_8000B460_main(obj, 2, 0xA0006);
+    func_8000B460_main(obj, 3, 0xA0023);
+    func_8000B460_main(obj, 4, 0xA0018);
+    func_8001C5B4_main(obj->model[0], obj->motion[1]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    data = DataRead(0xA002A);
+    D_8010DC30_inst = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "c160n_0_DEF");
+    HuMemMemoryFreePerm(data);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_80032FC0_main(D_8010DC32_inst, 1, 0);
+    func_80032FF8_main(D_8010DC32_inst, 0);
+    obj->trans.x = -91.0f;
+    obj->trans.y = -171.0f;
+    obj->trans.z = 210.0f;
+    obj->rot.x = -20.0f;
+    obj->rot.y = 15.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.5f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.4f;
+    Hu3DModelScaleSet(obj->model[0], 0.4f, 0.4f, 0.4f);
+    func_8001C258_main(obj->model[0], 4, 4);
+    if (D_8010D408_inst == 1) {
+        func_8001C5B4_main(obj->model[0], obj->motion[3]);
+        func_8001C814_main(obj->model[0], 2, 2);
+        func_8001C258_main(obj->model[0], 4, 0);
+        obj->trans.x = -91.0f;
+        obj->trans.y = 29.0f;
+        obj->trans.z = 210.0f;
+        obj->rot.x = -20.0f;
+        obj->rot.y = 15.0f;
+        D_8010DDE8_inst.func = func_80109A84_inst;
+    } else {
+        D_8010DDEC_inst = func_801097DC_inst;
+    }
+    while (TRUE) {
+        D_8010DDEC_inst(obj);
+        HuPrcVSleep();
+    }
+}
 
 /* Second host's handlers (the 2-player screen): waits, jumps up (sound 0x298), lands. */
 void func_801097DC_inst(omObjData *obj) {
