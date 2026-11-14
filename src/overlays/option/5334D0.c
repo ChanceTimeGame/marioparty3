@@ -1085,7 +1085,7 @@ s32 func_8010B68C_option(s32 sel, s32 btn) {
     return sel;
 }
 
-s32 func_8010BACC_option(s32 sel) {
+s32 func_8010BACC_option(s32 sel, s32 btn) {
     Vec eye;
     Vec at;
     s32 ret = -1;
@@ -1192,9 +1192,88 @@ s32 func_8010BACC_option(s32 sel) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010BFA4_option);
+void func_8010BFA4_option(s32 sel, s32 btn) {
+    s32 x = 160;
+    s32 y = 120;
 
+    switch (sel) {
+    case 0:
+        break;
+    case 1:
+        func_80109908_option(D_8011388C_option[0].x, D_8011388C_option[0].y, D_8011388C_option[0].z, &x, &y);
+        break;
+    case 2:
+        func_80109908_option(D_8011388C_option[1].x, D_8011388C_option[1].y, D_8011388C_option[1].z, &x, &y);
+        break;
+    case 3:
+        func_80109908_option(D_8011388C_option[2].x, D_8011388C_option[2].y, D_8011388C_option[2].z, &x, &y);
+        break;
+    }
+    func_801096B8_option(0, x, y);
+    func_801096E4_option(0);
+}
+
+#ifdef NON_MATCHING
+/* Matches except that this C hoists the constant -1 (the A-press result test) out of the loop into s5. */
+s32 func_8010C04C_option(void) {
+    s32 pos[2];
+    Vec eye;
+    Vec at;
+    s32 sel;
+    s32 btn;
+    s32 ret;
+
+    func_801133BC_option(0, 0x4E0D);
+    func_80113490_option(0);
+    func_80113408_option(0, 0x4E10);
+    sel = 1;
+    func_80107758_option(&D_8011367C_option[0], &D_8011367C_option[1], 20);
+    HuPrcSleep(20);
+    func_80109908_option(D_8011388C_option[0].x, D_8011388C_option[0].y, D_8011388C_option[0].z, &pos[0], &pos[1]);
+    func_80112028_option(0, pos[0], pos[1]);
+    func_80113384_option(0);
+    func_8010BFA4_option(1, 0);
+    while (1) {
+        btn = D_800D5558_main[0];
+        btn |= func_801130E8_option(0);
+        if (btn & 0x8000) {
+            ret = func_8010BACC_option(sel, btn);
+            if (ret != -1) {
+                sel = ret;
+                break;
+            }
+        } else if (btn & 0xF00) {
+            sel = func_8010B68C_option(sel, btn);
+        } else if (btn & 0x4000) {
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            switch (sel) {
+            case 0:
+            case 1:
+            case 2:
+                HuVecCopy3F(&eye, &D_801136AC_option[0]);
+                HuVecCopy3F(&at, &D_801136AC_option[1]);
+                func_80107758_option(&eye, &at, 20);
+                HuPrcSleep(20);
+                sel = 3;
+                break;
+            default:
+                sel = 3;
+                break;
+            }
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E12);
+            func_80113384_option(0);
+        }
+        func_8010BFA4_option(sel, btn);
+        HuPrcVSleep();
+    }
+    func_801133EC_option(0);
+    return sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C224_option);
 
