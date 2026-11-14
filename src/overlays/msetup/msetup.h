@@ -165,7 +165,6 @@ extern s16 D_8011A93A_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80
 extern s16 D_8011A944_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 80105DB4 80107FB4 80108AB8 80109218 801098 */
 extern s16 D_8011A946_msetup;                    /* .bss 0x2; lh,sh: 80105DB4 80107FB4 80108AB8 80109218 80109868 8010A35C 8010A7 */
 extern f32 D_8011A9EC_msetup;                    /* .bss 0x4; swc1: 8010BA6C */
-extern s16 D_8011A9F0_msetup;                    /* .bss 0x2; sh: 8010BA6C */
 extern s16 D_8011A9F2_msetup[];                  /* .bss 0x14; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107FB4 801084C4 801085 */
 extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
 extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
@@ -219,12 +218,10 @@ omObjData * func_80107428_msetup(void);
 s16 func_801077E0_msetup(s32 arg0);
 s16 func_80107840_msetup(s32 arg0);
 s16 func_80107964_msetup(s32 arg0);
-s32 func_80107A58_msetup(s32 arg0);
 s16 func_80107B8C_msetup(s32 arg0);
 s16 func_80107CF4_msetup(s32 arg0);
 s16 func_80107D84_msetup(s32 arg0);
 s16 func_80107E48_msetup(s32 arg0);
-s32 func_80107ECC_msetup(s32 arg0);
 void func_80107F88_msetup(s16 arg0, s16 arg1, s16 arg2); /* MsCamFunc */
 void func_80107FB4_msetup(void);
 s16 func_80108464_msetup(s32 arg0);
@@ -260,7 +257,6 @@ void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
 s16 func_8010B588_msetup(void);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
-void func_8010B858_msetup(void);
 s32 func_8010B8E0_msetup(void);
 void func_8010B968_msetup(u32 arg0, s8 arg1);
 void func_8010B998_msetup(void);
@@ -335,6 +331,18 @@ void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
 /* fork A */
+/* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
+   are fields of records 0, 1 and 3). */
+typedef struct MsPlayerUi {
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2; /* state */
+    /* 0x04 */ s16 unk4[8];
+} MsPlayerUi; /* size = 0x14 */
+extern MsPlayerUi D_8011A9F0_msetup[];
+/* menu step functions (D_80119434/D_80119458/D_80119510/D_80119524_msetup tables): s16 (*)(s32 step) */
+s16 func_80107A58_msetup(s32 arg0);
+s16 func_80107ECC_msetup(s32 arg0);
+s32 func_8010B858_msetup(void); /* returns the window choice (func_8005E1D8_main) */
 f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius); /* random drop and angle */
 void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
 
