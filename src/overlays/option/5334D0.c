@@ -677,9 +677,143 @@ INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107D64_option);
 
 OP_FILE_END()
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A20_option);
+/* The records board: ten windows, one per record (D_80113A08_option: the record numbers for
+   GWMgRecordGet; D_80113A14_option: the unlock that names it, plus one), shown under a sprite
+   (dataNum) at (x, y) until A or B is pressed. Times are frames: minutes, seconds and hundredths. */
+void func_80107F50_option(s32 dataNum, s16 x, s16 y) {
+    s16 win[10];
+    u8 buf0[32];
+    u8 buf1[32];
+    u8 buf2[32];
+    OpRecIds ids = D_80113A08_option;
+    OpRecIds unlock = D_80113A14_option;
+    s32 mes[10] = { 0x4501, 0x4502, 0x4503, 0x4504, 0x4505, 0x4506, 0x4507, 0x4508, 0x4509, 0x450A };
+    s16 spr;
+    s16 esp;
+    s16 w;
+    s16 rec;
+    s16 i;
+    s16 j;
+    f32 scale;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107F50_option);
+    HuPrcSleep(3);
+    spr = func_8000B838_main(dataNum);
+    esp = InitEspriteSlot(spr, 0, 1);
+    func_8000BBD4_main(esp, x, y);
+    func_8000BCC8_main(esp, 0x8000);
+    func_8000BE5C_main(esp, 0.0f, 0.0f);
+    for (i = 0; i < 10; i++) {
+        win[i] = func_80061188_main(-1, x - 104, y - 71 + i * 14, 213, 20, 0);
+        func_8005BEE0_main(win[i], 0);
+    }
+    w = func_80061188_main(-1, 0, 0, 210, 14, 1);
+    func_8005FBF8_main(w, 255, 255, 255);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        scale = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(esp, scale, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 10; i++) {
+        rec = GWMgRecordGet(ids.id[i]);
+        if (rec < 0) {
+            rec = 0;
+        }
+        switch (ids.id[i]) {
+            case 0:
+                sprintf((char *)buf0, "%3d", rec);
+                func_8005B6BC_main(win[i], (u32)buf0, 0);
+                break;
+            case 1:
+            case 2:
+            case 5:
+            case 6:
+            case 7:
+                sprintf((char *)buf0, "%d", (s16)(rec / 3600));
+                func_8005B6BC_main(win[i], (u32)buf0, 0);
+                rec %= 3600;
+                sprintf((char *)buf1, "%2d", (s16)(rec / 60));
+                if (buf1[0] == ' ') {
+                    buf1[0] = '0';
+                }
+                func_8005B6BC_main(win[i], (u32)buf1, 1);
+                sprintf((char *)buf2, "%2d", (s16)((f32)(s16)(rec % 60) / 60.0f * 100.0f));
+                if (buf2[0] == ' ') {
+                    buf2[0] = '0';
+                }
+                func_8005B6BC_main(win[i], (u32)buf2, 2);
+                break;
+            case 4:
+                sprintf((char *)buf0, "%3d", (s16)(rec / 100));
+                rec %= 100;
+                func_8005B6BC_main(win[i], (u32)buf0, 0);
+                sprintf((char *)buf1, "%2d", rec);
+                if (buf1[0] == ' ') {
+                    buf1[0] = '0';
+                }
+                func_8005B6BC_main(win[i], (u32)buf1, 1);
+                break;
+            case 3:
+            case 9:
+                sprintf((char *)buf0, "%d", (s16)(rec / 1800));
+                func_8005B6BC_main(win[i], (u32)buf0, 0);
+                rec %= 1800;
+                sprintf((char *)buf1, "%2d", (s16)(rec / 30));
+                if (buf1[0] == ' ') {
+                    buf1[0] = '0';
+                }
+                func_8005B6BC_main(win[i], (u32)buf1, 1);
+                sprintf((char *)buf2, "%2d", (s16)((f32)(s16)(rec % 30) * (1.0f / 30.0f) * 99.0f));
+                if (buf2[0] == ' ') {
+                    buf2[0] = '0';
+                }
+                func_8005B6BC_main(win[i], (u32)buf2, 2);
+                break;
+            case 8:
+                sprintf((char *)buf0, "%4d", rec);
+                func_8005B6BC_main(win[i], (u32)buf0, 0);
+                break;
+        }
+        func_8005FFA8_main(win[i]);
+        rec = (s8)unlock.id[i] - 1; /* the unlock now */
+        if (rec == 70 && _CheckFlag(0x2B)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (rec >= 0 && GWMgUnlockCheck(rec)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (rec == -1 && _CheckFlag(0x1E)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (rec == -2 && _CheckFlag(0x1F)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else {
+            func_8005B43C_main(win[i], 0x4500, -1, -1);
+        }
+        func_8005BA90_main(w, x, y - 62 + i * 14);
+        func_8005FFA8_main(w);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BEE0_main(w, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+    }
+    func_8005F364_main(w);
+    do {
+        HuPrcVSleep();
+    } while (!(D_800D5558_main[0] & 0xC000));
+    for (i = 0; i < 10; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    HuAudFXPlay(0x2E9);
+    for (i = 1; i < 11; i++) {
+        scale = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(esp, scale, scale);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 10; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8000C184_main(esp);
+    HuSprKill(spr);
+}
 
 void func_80108A68_option(void) {
     func_80108B34_option();
@@ -703,14 +837,6 @@ void func_80108B34_option(void) {
     func_8010F94C_option();
     func_8010FDF4_option();
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A4C_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A50_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113A54_option);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", jtbl_80113A58_option);
 
 /* Camera points of the screen process (func_80108B58_option); D_80113A98_option is the up vector. */
 const Vec D_80113A80_option = { 0.0f, 271.19f, 1191.11f };

@@ -42,3 +42,5 @@ D_800EBA5A_minigame = D_800EBA58_minigame + 0x2;
 D_800EBA76_minigame = D_800EBA74_minigame + 0x2;
 D_8010F2D0_modesel = D_8010F2CC_modesel + 0x4;
 D_8010F2D4_modesel = D_8010F2CC_modesel + 0x8;
+D_80113A4C_option = 0x80113A4C; /* "%d" of func_80107F50_option, also used by asm functions */
+D_80113A50_option = 0x80113A50; /* "%2d" */

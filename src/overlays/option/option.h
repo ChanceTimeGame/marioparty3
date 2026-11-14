@@ -86,6 +86,13 @@ extern Vec D_80113730_option;
 extern Vec D_8011373C_option;
 extern Vec D_80113748_option;
 
+/* The records board's record numbers and unlocks (func_80107F50_option copies them whole). */
+typedef struct OpRecIds {
+    u8 id[10];
+} OpRecIds;
+extern OpRecIds D_80113A08_option; /* GWMgRecordGet numbers */
+extern OpRecIds D_80113A14_option; /* unlock (GWMgUnlockCheck) + 1; 0 and -1 are flags 0x1E and 0x1F, 71 flag 0x2B */
+
 /* .bss: camera (fork A) */
 extern OpCam D_801146F0_option;
 extern s32 D_80114764_option;     /* camera move: aim the up vector (func_8010744C_option/func_801077BC_option) */
