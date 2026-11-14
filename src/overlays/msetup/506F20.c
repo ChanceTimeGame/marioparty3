@@ -459,6 +459,14 @@ s32 func_8010CD14_msetup(s16 model, f32 x, f32 y, f32 z) {
     return 0;
 }
 
+/* retail .rodata holds 8 zero bytes after func_8010CD14_msetup's 2^32 (unreferenced; likely the
+   end of a retail object, as the text padding before func_8010D060_msetup) */
+const s32 D_8011A688_msetup[2] = { 0, 0 };
+
+
+/* Instruction-identical, but retail pads 12 bytes (nops) after it so func_8010D060_msetup starts
+   16-aligned: func_8010D060_msetup probably begins another retail object (split the unit there). */
+#ifdef NON_MATCHING
 void func_8010CE8C_msetup(s16 model) {
     MsFxHmf *hmf;
     MsFxWork *work;
@@ -493,6 +501,9 @@ void func_8010CE8C_msetup(s16 model) {
     }
     work->frame++;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CE8C_msetup);
+#endif
 
 void func_8010D060_msetup(HmfData *hmf, s16 idx) {
     if ((s8)hmf->unk84[idx].unk3 != -1) {
