@@ -208,7 +208,6 @@ void func_8010998C_option(Vec *eye, Vec *at, Vec *up, f32 x, f32 y, f32 z, s32 *
 void func_80109B7C_option(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 s32 func_8010A498_option(void);
 void func_8010A66C_option(void); /* process */
-void func_8010A8DC_option(u32 arg0, s32 *arg1, s32 *arg2);
 u32 func_8010B68C_option(u32 arg0, s32 arg1);
 s32 func_8010BACC_option(u32 arg0);
 void func_8010BFA4_option(s32 arg0);
@@ -381,5 +380,8 @@ extern Vec D_801137FC_option; /* camera eye, target for leaving through item 4 *
 extern Vec D_80113808_option;
 extern Vec D_80113814_option; /* camera eye, target for leaving through item 5 */
 extern Vec D_80113820_option;
+
+void func_8010A8DC_option(s32 sel, s32 *x, s32 *y); /* cursor position of a submenu item */
+extern u8 D_800D09A8_main; /* audio.c (bit 0 tested) */
 
 #endif

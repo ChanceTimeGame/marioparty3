@@ -629,7 +629,46 @@ void func_8010A66C_option(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A66C_option);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A8DC_option);
+void func_8010A8DC_option(s32 sel, s32 *x, s32 *y) {
+    s32 xpos = 160;
+    s32 ypos = 120;
+
+    switch (sel) {
+    case 0:
+        if (!(D_800D09A8_main & 1)) {
+            xpos = 224;
+            ypos = 56;
+        } else {
+            xpos = 184;
+            ypos = 56;
+        }
+        break;
+    case 1:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 2:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 3:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 4:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 5:
+        xpos = 160;
+        ypos = 130;
+        break;
+    case 6:
+        break;
+    }
+    *x = xpos;
+    *y = ypos;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A940_option);
 
@@ -639,7 +678,14 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113CD0_option);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010AF54_option);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010B654_option);
+void func_8010B654_option(s32 sel, s32 btn) {
+    s32 x, y;
+
+    func_8010A8DC_option(sel, &x, &y);
+    func_801096B8_option(0, x, y);
+    func_801096E4_option(0);
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010B68C_option);
 
