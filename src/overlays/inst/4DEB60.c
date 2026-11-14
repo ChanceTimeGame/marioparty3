@@ -4,6 +4,7 @@ void func_80105D9C_inst(omObjData *);  /* extern */
 void func_801061EC_inst(void);         /* extern */
 void func_80106310_inst(omObjData *);  /* extern */
 void func_80106388_inst(void);         /* extern */
+void func_801063F4_inst(void);
 void func_8010674C_inst(omObjData *);  /* extern */
 void func_801067CC_inst(void);         /* extern */
 void func_80106850_inst(Vec *, Vec *); /* extern */
@@ -25,6 +26,28 @@ extern s8 D_8010D40B_inst;
 extern s8 D_8010D411_inst;
 extern Vec D_8010D45C_inst;
 extern Vec D_8010D48C_inst;
+extern s8 D_8010D5B1_inst;
+extern s8 D_8010D4A8_inst;
+extern f32 D_8010D414_inst;
+extern Vec D_8010D418_inst;
+extern Vec D_8010D424_inst;
+extern Vec D_8010D430_inst;
+extern Vec D_8010D450_inst[2];
+extern Vec D_8010D480_inst[2];
+
+/* The word before each MinigameTable entry (D_800A6D44_main), read with the table's 0x14 stride. */
+typedef struct InstMgTableHead {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ char unk4[0x10];
+} InstMgTableHead;
+extern InstMgTableHead D_800A6D40_main[];
+extern f32 D_800CB890_main;
+extern f32 D_800CE17C_main[];
+extern f32 D_800D5210_main;
+extern const s32 D_8010D658_inst[];
+void func_8000BC48_main(u16, s32);
+void func_80037258_main(void);
+void func_8005F524_main(void);
 
 void func_801059A0_inst(void) {
     void (*procFunc)(void) = NULL;
@@ -127,23 +150,104 @@ void func_801059A0_inst(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80105D9C_inst);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_801061EC_inst);
+/* Leaves the instruction screen for the minigame (or, if it was skipped, back). */
+void func_801061EC_inst(void) {
+    s32 pad[6];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106310_inst);
+    omOvlCallEx(D_800A6D40_main[D_8010D40B_inst].unk0, 0, 0x14);
+    if (D_8010D5B1_inst == 1) {
+        _SetFlag(0xF);
+        return;
+    }
+    if (_CheckFlag(0xD) != 0) {
+        goto back;
+    }
+    switch (D_8010D40A_inst) {
+        case 6:
+            omOvlHisChg(1, 0x72, 0, 0x14);
+            break;
+        case 4:
+            if (GwSystem.playMode & 2) {
+                omOvlHisChg(1, 0x73, 0, 0x4010);
+                break;
+            }
+            goto back;
+        case 3:
+            omOvlHisChg(1, 0x74, 0, 0x12);
+            break;
+        case 5:
+        case 7:
+        case 8:
+        back:
+            if (omovlhisidx > 0) {
+                omovlhisidx--;
+            }
+            break;
+        default:
+            omOvlHisChg(1, 0x71, 0, 0x12);
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106388_inst);
+void func_80106310_inst(omObjData *arg0) {
+    if (D_800D530C_main == 1) {
+        if (D_8010D4A8_inst == 0) {
+            WipeCreateOut(0, 0x14);
+            D_8010D4A8_inst = 1;
+        } else if (WipeStatGet() == 0) {
+            HuAudSeqFadeOut(0x1E);
+            func_801063F4_inst();
+            omOvlReturnEx(1);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_801063F4_inst);
+void func_80106388_inst(void) {
+    u16 id = InitEspriteSlot(func_8000B838_main(D_8010D658_inst[D_8010D40A_inst]), 0, 0);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4DEB60", D_8010D658_inst);
+    func_8000BBD4_main(id, 0xA0, 0x78);
+    func_8000BC48_main(id, 0x4000);
+}
+
+void func_801063F4_inst(void) {
+    func_80037258_main();
+    func_8005F524_main();
+}
+
+/* Title sprite per minigame type. */
+const s32 D_8010D658_inst[] = {
+    0x00170000, 0x00170001, 0x00170002, 0x00170003, 0x00170004,
+    0x00170005, 0x00170005, 0x00170006, 0x00140067,
+};
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106418_inst);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_8010674C_inst);
+void func_8010674C_inst(omObjData *arg0) {
+    D_800CE17C_main[0] = D_8010D418_inst.x;
+    D_800CE17C_main[1] = D_8010D418_inst.z;
+    D_800CE17C_main[-1] = 0;
+    D_800CE17C_main[2] = gCameraList->fov[0];
+    D_800CE17C_main[3] = D_800D5210_main;
+    D_800CE17C_main[4] = D_800CB890_main;
+    Hu3DCamSetPositionOrientation(0, &D_8010D418_inst, &D_8010D424_inst, &D_8010D430_inst);
+    Hu3DCamUpdateMtx(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_801067CC_inst);
+void func_801067CC_inst(void) {
+    D_8010D418_inst.x = D_8010D450_inst[0].x;
+    D_8010D418_inst.y = D_8010D450_inst[0].y;
+    D_8010D418_inst.z = D_8010D450_inst[0].z;
+    D_8010D424_inst.x = D_8010D480_inst[0].x;
+    D_8010D424_inst.y = D_8010D480_inst[0].y;
+    D_8010D424_inst.z = D_8010D480_inst[0].z;
+    D_8010D430_inst.x = 0.0f;
+    D_8010D430_inst.y = 1.0f;
+    D_8010D430_inst.z = -0.000001f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106850_inst);
+void func_80106850_inst(Vec *pos, Vec *at) {
+    D_8010D414_inst = 90.0f - atan2df(pos->y - at->y, pos->z - at->z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4DEB60", func_80106898_inst);
 
