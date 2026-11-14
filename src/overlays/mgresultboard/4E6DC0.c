@@ -64,6 +64,14 @@ extern omObjData *D_8010AFE0_mgresultboard;
 extern omObjData *D_8010AFA8_mgresultboard;
 extern omObjData *D_8010AFA0_mgresultboard;
 extern omObjData *D_8010AF98_mgresultboard;
+extern void (*D_8010AF9C_mgresultboard)(omObjData *);
+extern s32 D_8010AB00_mgresultboard[3];
+extern s32 D_8010AB0C_mgresultboard;
+extern Vec D_8010AB10_mgresultboard[4];
+extern s16 D_8010AD96_mgresultboard[3];
+s16 func_8000B0D4_main(s32, s32);
+void func_80107CEC_mgresultboard(omObjData *);
+void func_80107CF4_mgresultboard(void);
 
 // updates mg star coins on results scene load
 void func_801059A0_mgresultboard(void) {
@@ -709,20 +717,42 @@ void func_80107800_mgresultboard(s32 arg0) {
     func_8001C8A8_main(obj->model[arg0 * 3 + 31], 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_801079B0_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107A58_mgresultboard);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107B40_mgresultboard);
-
-void func_80107CEC_mgresultboard(void) {
+void func_801079B0_mgresultboard(s32 arg0) {
+    if (arg0 > 0) {
+        if (D_8010AAF4_mgresultboard == 4.0f) {
+            if (D_8010AB00_mgresultboard[0] == 0) {
+                D_8010AD96_mgresultboard[0] = HuAudFXPlay(0x11E);
+                D_8010AB00_mgresultboard[0] = 1;
+            }
+        } else {
+            if (D_8010AB00_mgresultboard[1] == 0) {
+                D_8010AD96_mgresultboard[1] = HuAudFXPlay(0x11F);
+                D_8010AB00_mgresultboard[1] = 1;
+            }
+        }
+    }
+    D_8010AB0C_mgresultboard = 20;
 }
 
-void func_80107CF4_mgresultboard(void) {
+void func_80107A58_mgresultboard(void) {
+    s32 i;
+
+    if (D_8010AAF4_mgresultboard == 4.0f) {
+        D_8010AB0C_mgresultboard = 0;
+    }
+    if (D_8010AB0C_mgresultboard > 0) {
+        D_8010AB0C_mgresultboard--;
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        if (D_8010AB00_mgresultboard[i] == 1) {
+            HuAudFXStop(D_8010AD96_mgresultboard[i]);
+            D_8010AB00_mgresultboard[i] = 0;
+            HuAudFXPlay(0x15F);
+        }
+    }
 }
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD0C_mgresultboard);
 
 const u8 D_8010AD24_mgresultboard[4] = { 1, 0, 0, 2 };
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E6DC0", D_8010AD28_mgresultboard);

@@ -11,6 +11,8 @@ typedef struct UnkTemp { // is this just a copy of PlayerResult ?
 
 extern UnkTemp D_8010AFB0_mgresultboard[];
 
+INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E9120", D_8010AD28_mgresultboard);
+
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80107D00_mgresultboard);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_801080C4_mgresultboard);
