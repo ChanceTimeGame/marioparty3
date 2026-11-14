@@ -2275,6 +2275,9 @@ segments:
       - [0x4E0630, c] # 80107470
       - [0x4E1510, c] # 80108350
       - [0x4E2C50, c]
+      - [0x4E3390, c]
+      - [0x4E4B50, c]
+      - [0x4E5AA0, c]
       - [0x4E65C0, data, 4DEB60] #8010D400
       - [0x4E6680, data, 4E0630] #8010D4C0
       - [0x4E66E0, data, 4E1510] #8010D520
@@ -2282,6 +2285,9 @@ segments:
       - [0x4E6930, .rodata, 4E0630] #8010D770
       - [0x4E6B50, .rodata, 4E1510] #8010D990
       - [0x4E6B70, .rodata, 4E2C50] #8010D9B0
+      - [0x4E6B88, .rodata, 4E3390] #8010D9C8
+      - [0x4E6CB8, .rodata, 4E4B50] #8010DAF8
+      - [0x4E6D40, .rodata, 4E5AA0] #8010DB80
       - {0x4E6DC0, type: bss, vram: 0x8010DC00, name: inst_bss}
 
   - type: code

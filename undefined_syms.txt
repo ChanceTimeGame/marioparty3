@@ -98,3 +98,6 @@ D_8011E678_ChillyWaters = D_8011E674_ChillyWaters + 0x4;
 D_8011E690_ChillyWaters = D_8011E68C_ChillyWaters + 0x4;
 /* inst: inner labels of rodata/data now defined in C */
 D_8010D910_inst = D_8010D90C_inst + 0x4;
+
+/* inst 4E5AA0: the GAMEMES inside D_8010DCD4_inst's bss space */
+D_8010DCD8_inst = D_8010DCD4_inst + 0x4;
