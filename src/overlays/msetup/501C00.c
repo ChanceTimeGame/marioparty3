@@ -271,7 +271,6 @@ void func_80106260_msetup(MsCamKey *key) {
    func_80111D8C): the eye orbits Center at CZoom with rotation CRot, the up vector turned by
    CRot.z about the line of sight; or, while D_80119418_msetup is set, the fixed eye and target
    D_8011A92C/D_8011A920 with up +y. */
-#ifdef NON_MATCHING
 /* Only residue: two hazard nops before the mul.s after cosdf(); matches with 501C00.c in W2DC_BLANKSTRIP (tested). */
 void func_80106320_msetup(void) {
     Vec pos;
@@ -336,9 +335,6 @@ void func_80106320_msetup(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106320_msetup);
-#endif
 
 /* Flies the camera along a path of keys (ended by zoom 0) at speed units per frame (MP2
    name_4E's func_8010BCB8): each key's arrival time goes in unk20 (speed 0: the table's own
@@ -490,7 +486,6 @@ void func_80106DF8_msetup(void) {
     D_8011A948_msetup = D_8011AA30_msetup.pad[0];
 }
 
-#ifdef NON_MATCHING
 /* Only residue: hazard nops after cosdf()/sindf() (matches with W2DC_BLANKSTRIP). */
 f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius) {
     f32 angle;
@@ -510,9 +505,6 @@ f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius) {
     pos->z = radius * cosdf(angle);
     return angle;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106FC0_msetup);
-#endif
 
 void func_801070FC_msetup(omObjData *obj) {
     MsShaftWork *work;

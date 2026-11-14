@@ -23,7 +23,6 @@ void func_8006105C_main(s32 winId, u8 alpha);
 
 /* Matches with 506F20.c in the Makefile's W2DC_BLANKSTRIP list (only residue: KMC as adds a nop
    before each mul.s after the sindf/cosdf calls). */
-#ifdef NON_MATCHING
 void func_8010ACC0_msetup(s16 model, s16 shadow) {
     f32 angle;
     f32 dAngle;
@@ -66,9 +65,6 @@ void func_8010ACC0_msetup(s16 model, s16 shadow) {
     Hu3DModelPosSet(model, 194.0f, 0.0f, 197.0f);
     Hu3DModelPosSet(shadow, 194.0f, 0.0f, 197.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
-#endif
 
 void func_8010AF40_msetup(MsModelSlot *slots, MsTexAnim *anim, s16 *frame) {
     s16 model = slots[0].model;
