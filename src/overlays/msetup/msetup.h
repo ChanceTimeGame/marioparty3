@@ -89,7 +89,6 @@ extern s16 D_8011A990_msetup[2];
 extern Vec D_8011A994_msetup;        /* splat also labels .y/.z as D_8011A998/D_8011A99C_msetup */
 extern f32 D_8011A93C_msetup;        /* far plane (func_80106260_msetup perspective) */
 extern f32 D_8011A940_msetup;        /* near plane */
-extern u8 D_8011AA30_msetup[4];      /* per player; splat also labels D_8011AA31_msetup */
 extern u8 D_8011AA34_msetup[4];      /* per player; splat also labels D_8011AA35_msetup */
 extern u8 D_8011AA38_msetup[4];      /* per player */
 extern u8 D_8011AA3C_msetup[4];      /* per player */
@@ -331,6 +330,24 @@ void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
 
 /* fork A */
+/* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
+   (a base register at the first field used, other fields relative); splat split it into the
+   D_8011AA34..D_8011AA47_msetup labels, which stay declared for the code that names them. */
+typedef struct MsConfig {
+    /* 0x00 */ u8 pad[4];   /* controller port per player */
+    /* 0x04 */ u8 chr[4];   /* D_8011AA34_msetup */
+    /* 0x08 */ u8 com[4];   /* D_8011AA38_msetup: COM difficulty, >= 4 for a human */
+    /* 0x0C */ u8 star[4];  /* D_8011AA3C_msetup */
+    /* 0x10 */ u8 unk10;    /* D_8011AA40_msetup */
+    /* 0x11 */ u8 unk11;    /* D_8011AA41_msetup */
+    /* 0x12 */ u8 turns;    /* D_8011AA42_msetup */
+    /* 0x13 */ u8 unk13;    /* D_8011AA43_msetup */
+    /* 0x14 */ u8 unk14;    /* D_8011AA44_msetup */
+    /* 0x15 */ u8 board;    /* D_8011AA45_msetup */
+    /* 0x16 */ u8 length;   /* game length (GwSystem.current_game_length) */
+    /* 0x17 */ u8 unk17;    /* D_8011AA47_msetup */
+} MsConfig; /* size = 0x18 */
+extern MsConfig D_8011AA30_msetup; /* was u8 D_8011AA30_msetup[4]: write .pad[i] */
 /* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
    are fields of records 0, 1 and 3). */
 typedef struct MsPlayerUi {
