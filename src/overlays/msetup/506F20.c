@@ -162,7 +162,172 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7A4_msetup);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/msetup/506F20", D_8011A7AC_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112804_msetup);
+extern s32 D_80119E38_msetup[6];
+extern s32 D_80119E20_msetup[6];
+
+/* Process of func_801132C4_msetup's board (user_data its MsSetupWork: state = command, unk2 =
+   board model, unk4 = COM level count): two sprite panels (sprites D_80119E50..E54_msetup[i]
+   placed on the board's points) fade in (1, 3), out (2, 4), swap (5), all out (6); 7 ends. */
+void func_80112804_msetup(void) {
+    s16 spr[6];
+    Vec2f pos;
+    s16 alpha[2];
+    s16 speed[2];
+    s16 active[2];
+    s16 delay[2];
+    MsSetupWork *board;
+    s16 model;
+    s16 grp;
+    s16 last;
+    s16 first; /* n: sprite id, panel index, then the panel's old alpha (one variable in retail) */
+    s16 end;
+    s32 j;
+    s16 n;
+    s32 i;
+
+    i = 0;
+    board = HuPrcCurrentGet()->user_data;
+    model = board->unk2;
+    grp = HuSprGrpCreate(6, 0);
+    for (; i < 6; i++) {
+        n = func_8000B838_main(D_80119E38_msetup[i]);
+        spr[i] = n;
+        func_80055458_main(grp, i, 0);
+        HuSprAttrReset(grp, i, 0xFFFF);
+        HuSprAttrSet(grp, i, 0x9000);
+        HuSprScaleSet(grp, i, 1.0f, 1.0f);
+        func_800550F4_main(grp, i, 0);
+        func_80055024_main(grp, i, n, 0);
+        HuSprPriSet(grp, i, 0x258);
+    }
+    for (i = 0; i < 2; i++) {
+        alpha[i] = 0;
+        speed[i] = 0;
+        active[i] = 0;
+        delay[i] = 0;
+    }
+    last = 0;
+    do {
+        if (last != board->state) {
+            switch (board->state) {
+                case 0:
+                    break;
+                case 1:
+                    n = 0;
+                    goto show;
+                case 3:
+                    n = 1;
+                show:
+                    if (active[n] == 0) {
+                        alpha[n] = 0;
+                        speed[n] = 36;
+                        active[n] = 1;
+                        delay[n] = 3;
+                    }
+                    board->state = 0;
+                    break;
+                case 2:
+                    n = 0;
+                    goto hide;
+                case 4:
+                    n = 1;
+                hide:
+                    if (active[n] != 0) {
+                        alpha[n] = 0x100;
+                        speed[n] = -36;
+                        delay[n] = 0;
+                    }
+                    board->state = 0;
+                    break;
+                case 5:
+                    n = 0;
+                    j = 0;
+                    if (active[0] != 0 && active[1] == 0) {
+                        j = 1;
+                    } else if (active[1] != 0 && active[0] == 0) {
+                        n = 1;
+                        j = 0;
+                    }
+                    if (n != 0 || j != 0) {
+                        alpha[n] = 0x100;
+                        speed[n] = -85;
+                        delay[n] = 0;
+                        alpha[j] = 0;
+                        speed[j] = 85;
+                        active[j] = 1;
+                        delay[j] = 4;
+                    }
+                    board->state = 0;
+                    break;
+                case 6:
+                    for (n = 0; n < 2; n++) {
+                        if (active[n] != 0) {
+                            alpha[n] = 0x100;
+                            speed[n] = -36;
+                            delay[n] = 0;
+                        }
+                    }
+                    board->state = 0;
+                    break;
+                case 7:
+                    board->state = -1;
+                    break;
+            }
+            last = board->state;
+        }
+        for (j = 0; j < 2; j++) {
+            if (active[j] == 0) {
+                continue;
+            }
+            if (delay[j] != 0) {
+                delay[j]--;
+                continue;
+            }
+            first = D_80119E50_msetup[j];
+            end = D_80119E54_msetup[j];
+            if (j == 1 && board->unk4 == 3) {
+                end--;
+            }
+            for (i = first; i <= end; i++) {
+                func_8010F43C_msetup(model, D_80119E20_msetup[i], &pos);
+                func_80054904_main(grp, i, pos.x, pos.y);
+            }
+            if (speed[j] != 0) {
+                n = alpha[j];
+                alpha[j] = n + speed[j];
+                if (alpha[j] <= 0) {
+                    alpha[j] = 0;
+                    speed[j] = 0;
+                    active[j] = 0;
+                    for (i = first; i <= end; i++) {
+                        HuSprAttrSet(grp, i, 0x8000);
+                    }
+                } else if (alpha[j] >= 0x100) {
+                    alpha[j] = 0x100;
+                    speed[j] = 0;
+                } else if (n == 0) {
+                    for (i = first; i <= end; i++) {
+                        HuSprAttrReset(grp, i, 0x8000);
+                    }
+                }
+                for (i = first; i <= end; i++) {
+                    func_80055458_main(grp, i, alpha[j]);
+                }
+            }
+        }
+        HuPrcVSleep();
+    } while (last >= 0);
+    HuSprGrpKill(grp);
+    for (i = 0; i < 6; i++) {
+        if (spr[i] >= 0) {
+            HuSprKill(spr[i]);
+        }
+    }
+    board->state = 0;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 extern s32 D_80119E18_msetup[2];
 
