@@ -3364,7 +3364,7 @@ while (1) {
 }
 
 
-extern s16 (*D_80119E0C_msetup[2])[2];
+extern s16 (*D_80119E0C_msetup[3])[2];
 extern s16 D_80119DFC_msetup[4][2];
 extern s32 D_80119B2C_msetup[2];
 extern MsLiftKey D_80119DC8_msetup[2];
@@ -4471,8 +4471,7 @@ s16 HmfAnimRead(HmfData *hmf, s32 dataNum, char *name);
 
 /* Rules table (s16 values, 0x80119F6C..0x80119F8B in .data: entries 0-2 the party lengths
    (20/35/50 turns), 6-14 the nine picker values). Retail reads the low bytes through the split
-   labels D_80119F6D/D_80119F79; index it from D_80119F78 (entry 6). */
-extern s16 D_80119F78_msetup[];
+   labels D_80119F6D/D_80119F79; C indexes D_80119F6C_msetup (the picker values from entry 6). */
 
 /* State: the game-length board. Lifts bring the board model up; step 0 picks the length
    (func_801152C4_msetup), step 1 the custom turn count (func_801157B8_msetup), step 2 (duel) the
@@ -4582,7 +4581,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
             if (sel < 0) {
                 work->unk4 = -1;
             } else if (sel < 3) {
-                D_8011AA30_msetup.turns = (D_80119F78_msetup - 6)[sel];
+                D_8011AA30_msetup.turns = D_80119F6C_msetup[sel];
                 D_8011AA30_msetup.length = sel;
                 sel = -1;
             } else {
@@ -4598,7 +4597,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
                 sel = 3;
                 step--;
             } else {
-                D_8011AA30_msetup.turns = D_80119F78_msetup[sel];
+                D_8011AA30_msetup.turns = D_80119F6C_msetup[6 + sel];
                 D_8011AA30_msetup.length = 3;
                 sel = -1;
             }
@@ -4648,7 +4647,7 @@ s32 func_80115EE0_msetup(MsSetupWork *work) {
         switch (D_8011A938_msetup) {
         case 0:
             for (i = 0; i < 9; i++) {
-                if (D_8011AA42_msetup == D_80119F78_msetup[i]) {
+                if (D_8011AA42_msetup == D_80119F6C_msetup[6 + i]) {
                     break;
                 }
             }
@@ -5133,11 +5132,6 @@ void func_80117910_msetup(s16 grpIdx, s16 idx, s16 camIdx, f32 x, f32 y, f32 z, 
     }
 }
 
-/* A story page sprite: data file and offset from the page's position (func_80117A3C_msetup). */
-typedef struct MsStorySpr {
-    /* 0x00 */ s32 file;
-    /* 0x04 */ Vec pos;
-} MsStorySpr; /* size = 0x10 */
 
 extern Vec *D_8011A16C_msetup[3];     /* per page: the four positions it moves between */
 extern MsStorySpr D_8011A178_msetup[10]; /* page 0 sprites (group 1) */

@@ -78,8 +78,6 @@ extern s16 D_80119412_msetup;                    /* .data 0x2; lh,sh: 80105C4C 8
 extern f32 D_80119414_msetup;                    /* .data 0x4; lwc1,swc1: 801059A0 80106260 801068F4 */
 extern s8 D_80119418_msetup;                     /* .data 0x1; lb: 80106320 */
 extern s32 D_8011941C_msetup;                    /* .data 0x4; lw,sw: 801061E0 80106208 */
-extern s32 D_80119428_msetup;                    /* .data 0x4; lw: 80108AB8 80109868 */
-extern s32 D_8011942C_msetup;                    /* .data 0x4; lw: 80107FB4 80109218 */
 extern u8 D_80119478_msetup[];                   /* .data 0x10; lbu: 80108F74 */
 extern u8 D_80119488_msetup[];                   /* .data 0x10; lbu: 80108F74 */
 extern u8 D_80119498_msetup[];                   /* .data 0x10; lbu: 80108F74 */
@@ -107,8 +105,6 @@ extern u16 D_80119E54_msetup[];                  /* .data 0x4; lhu: 80112804 */
 extern s32 D_80119F3C_msetup[];                  /* .data 0x10; lw: 801152C4 */
 extern f32 D_80119F4C_msetup[];                  /* .data 0x14; lwc1: 801152C4 */
 extern f32 D_80119F60_msetup[];                  /* .data 0xD; lwc1: 80115A9C */
-extern u8 D_80119F6D_msetup[];                   /* .data 0xB; lbu: 80115EE0 */
-extern u8 D_80119F79_msetup[];                   /* .data 0x13; lbu: 80115EE0 */
 extern s32 D_80119F8C_msetup[];                  /* .data 0x8; lw: 80115A9C */
 extern s32 D_80119FD4_msetup[];                  /* .data 0x8; lw: 801167B8 */
 extern f32 D_8011A0B8_msetup[6];                 /* .data 0x18; addiu,lwc1: 8010F87C 801167B8 */
@@ -431,12 +427,11 @@ void func_8010D094_msetup(HmfData *hmf, s16 idx);
 typedef s16 (*MsMenuFunc)(s32); /* menu step: takes and returns the step index; < 0 ends */
 extern MsMenuFunc D_80119510_msetup[];
 extern MsMenuFunc D_80119524_msetup[];
-extern MsCamKey D_80119580_msetup;
 extern MsCamKey D_801195A0_msetup[];
 extern MsCamKey D_801196C0_msetup[];
 extern MsCamKey D_801197BC_msetup[];
 void func_8010A35C_msetup(MsMenuFunc *menu);
-extern s32 D_80119424_msetup[]; /* model files, indexed by mode */
+extern s32 D_80119424_msetup[3]; /* model files, indexed by mode (splat labels [1], [2] D_80119428/D_8011942C_msetup) */
 extern s32 D_80119534_msetup[5]; /* message ids: 4 pages + confirm */
 extern s32 D_80119548_msetup[5];
 
@@ -575,5 +570,29 @@ extern s32 D_80119D00_msetup[8];
 extern s32 D_80119D20_msetup[8];
 s16 func_8000B13C_main(s32 file);
 void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
+
+/* The first 0x20 bytes of an MsCamKey (D_80119580_msetup has no unk20; func_80106260_msetup reads
+   only these fields, so it is passed as an MsCamKey *). */
+typedef struct MsCamView {
+    /* 0x00 */ Vec rot;
+    /* 0x0C */ Vec center;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 fov;
+} MsCamView; /* size = 0x20 */
+extern MsCamView D_80119580_msetup;
+/* a D_80119FF0_msetup state function: takes the setup work, returns the next state */
+typedef s32 (*MsStateFunc)(MsSetupWork *);
+/* A story page sprite: data file and offset from the page's position (func_80117A3C_msetup). */
+typedef struct MsStorySpr {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ Vec pos;
+} MsStorySpr; /* size = 0x10 */
+extern s16 D_80119F6C_msetup[16]; /* game rules values; splat labels D_80119F6D/D_80119F78/D_80119F79 inside it */
+/* Each original source file's .data was 16-byte aligned: reproduce the padding at a file end. */
+#ifdef NON_MATCHING
+#define MSETUP_DATA_FILE_END()
+#else
+#define MSETUP_DATA_FILE_END() __asm__(".section .data\n    .align 4\n");
+#endif
 
 #endif
