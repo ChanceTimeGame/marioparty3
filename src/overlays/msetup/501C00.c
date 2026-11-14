@@ -2,6 +2,13 @@
 #include "msetup.h"
 
 #include "game/vibrator.h"
+
+extern f32 D_800CB890_main;
+extern f32 D_800CE17C_main[];
+extern f32 D_800D5210_main;
+extern Vec D_8011A920_msetup; /* fixed camera target */
+extern Vec D_8011A92C_msetup; /* fixed camera eye */
+
 extern process_func D_8011955C_msetup[];
 extern s16 D_8011A950_msetup[];
 extern s16 D_8011A9A0_msetup[];
@@ -241,7 +248,78 @@ void func_80106260_msetup(MsCamKey *key) {
     }
 }
 
+/* The camera process (MP3 main's omOutView plus a roll; MP2 MinigameParkSetup's
+   func_80111D8C): the eye orbits Center at CZoom with rotation CRot, the up vector turned by
+   CRot.z about the line of sight; or, while D_80119418_msetup is set, the fixed eye and target
+   D_8011A92C/D_8011A920 with up +y. */
+#ifdef NON_MATCHING
+/* Only residue: two hazard nops before the mul.s after cosdf(); matches with 501C00.c in W2DC_BLANKSTRIP (tested). */
+void func_80106320_msetup(void) {
+    Vec pos;
+    Vec at;
+    Vec up;
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+
+    while (1) {
+        if (D_80119418_msetup == 0) {
+            rx = CRot.x;
+            ry = CRot.y;
+            rz = CRot.z;
+            pos.x = sindf(ry) * cosdf(rx) * CZoom + Center.x;
+            pos.y = -sindf(rx) * CZoom + Center.y;
+            pos.z = cosdf(ry) * cosdf(rx) * CZoom + Center.z;
+            at.x = Center.x;
+            at.y = Center.y;
+            at.z = Center.z;
+            ux = sindf(ry) * sindf(rx);
+            uy = cosdf(rx);
+            uz = cosdf(ry) * sindf(rx);
+            dx = at.x - pos.x;
+            dy = at.y - pos.y;
+            dz = at.z - pos.z;
+            len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+            dx /= len;
+            dy /= len;
+            dz /= len;
+            up.x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+                 + uy * (dx * dy * (1.0f - cosdf(rz)) - dz * sindf(rz))
+                 + uz * (dx * dz * (1.0f - cosdf(rz)) + dy * sindf(rz));
+            up.y = ux * (dx * dy * (1.0f - cosdf(rz)) + dz * sindf(rz))
+                 + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+                 + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+            up.z = ux * (dx * dz * (1.0f - cosdf(rz)) - dy * sindf(rz))
+                 + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+                 + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+        } else {
+            pos = D_8011A92C_msetup;
+            at = D_8011A920_msetup;
+            up.x = 0.0f;
+            up.y = 1.0f;
+            up.z = 0.0f;
+        }
+        D_800CE17C_main[0] = pos.x;
+        D_800CE17C_main[1] = pos.z;
+        D_800CE17C_main[-1] = CRot.y;
+        D_800CE17C_main[2] = gCameraList->fov[0];
+        D_800CE17C_main[3] = D_800D5210_main;
+        D_800CE17C_main[4] = D_800CB890_main;
+        Hu3DCamSetPositionOrientation(0, &pos, &at, &up);
+        Hu3DCamUpdateMtx(0);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106320_msetup);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801068F4_msetup);
 
