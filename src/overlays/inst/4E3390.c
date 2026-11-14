@@ -13,6 +13,7 @@ void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]);
 void func_80018044_main(f32 (*a)[4], f32 (*b)[4], f32 (*c)[4]);
 void func_80017358_main(s16 arg0, char *arg1, s16 arg2, char *arg3);
 s32 func_80107E20_inst(void);
+void func_801080FC_inst(void);
 
 void func_8010A750_inst(omObjData *obj);
 void func_8010AC04_inst(omObjData *obj);
@@ -39,6 +40,7 @@ extern char *D_8010D55C_inst[];
 extern s32 D_8010D57C_inst[];
 extern char *D_8010D58C_inst[];
 extern s32 D_8010D59C_inst;
+extern s32 D_8010D5A0_inst;
 extern omObjData *D_8010DC90_inst;
 extern void (*D_8010DC94_inst)(omObjData *);
 extern f32 D_8010DC50_inst[4][4];
@@ -306,6 +308,74 @@ void func_8010B124_inst(void) {
     D_8010DC94_inst = func_8010B2A4_inst;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B2A4_inst);
+void func_8010B2A4_inst(omObjData *obj) {
+    f32 rot[4][4];
+    f32 mtx[4][4];
+    InstHookList *list;
+    f32 frames;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E3390", func_8010B628_inst);
+    frames = D_800CCF58_main[HmfModelData[obj->model[5]].unk02].unk02 - 20.0f;
+    list = D_8010D4C0_inst[D_8010D40A_inst][0];
+    for (i = 0; i < list->count; i++) {
+        func_8008A120_main(rot, 1.0f / frames * D_8010D414_inst);
+        func_8002367C_main(mtx, (f32 (*)[4])HmfModelData[obj->model[1 + i]].mtx);
+        func_80018044_main(rot, mtx, (f32 (*)[4])HmfModelData[obj->model[1 + i]].mtx);
+    }
+    list = D_8010D4C0_inst[D_8010D40A_inst][1];
+    for (i = 0; i < list->count; i++) {
+        func_8008A120_main(rot, 1.0f / frames * D_8010D414_inst);
+        func_8002367C_main(mtx, (f32 (*)[4])HmfModelData[obj->model[10 + i]].mtx);
+        func_80018044_main(rot, mtx, (f32 (*)[4])HmfModelData[obj->model[10 + i]].mtx);
+    }
+    D_8010D5A0_inst++;
+    if (D_8010D5A0_inst == frames) {
+        list = D_8010D4C0_inst[D_8010D40A_inst][0];
+        for (i = 0; i < list->count; i++) {
+            func_8001C258_main(obj->model[5 + i], 4, 4);
+        }
+        list = D_8010D4C0_inst[D_8010D40A_inst][1];
+        for (i = 0; i < list->count; i++) {
+            func_8001C258_main(obj->model[15 + i], 4, 4);
+        }
+        func_801080FC_inst();
+        D_8010DC94_inst = func_8010A750_inst;
+        D_8010D5A0_inst = 0;
+    }
+}
+
+void func_8010B628_inst(omObjData *obj) {
+    f32 rot[4][4];
+    f32 mtx[4][4];
+    InstHookList *list;
+    f32 end;
+    s32 i;
+
+    end = D_800CCF58_main[HmfModelData[obj->model[5]].unk02].unk02;
+    list = D_8010D4C0_inst[D_8010D40A_inst][0];
+    for (i = 0; i < list->count; i++) {
+        func_8001C258_main(obj->model[5 + i], 4, 0);
+        func_8001C6A8_main(obj->model[5 + i], end);
+        func_8001C814_main(obj->model[5 + i], 1, 0);
+    }
+    list = D_8010D4C0_inst[D_8010D40A_inst][1];
+    end = D_800CCF58_main[HmfModelData[obj->model[15]].unk02].unk02;
+    for (i = 0; i < list->count; i++) {
+        func_8001C258_main(obj->model[15 + i], 4, 0);
+        func_8001C6A8_main(obj->model[15 + i], end);
+        func_8001C814_main(obj->model[15 + i], 1, 0);
+    }
+    list = D_8010D4C0_inst[D_8010D40A_inst][0];
+    for (i = 0; i < list->count; i++) {
+        func_8008A120_main(rot, D_8010D414_inst);
+        func_8002367C_main(mtx, (f32 (*)[4])HmfModelData[obj->model[1 + i]].mtx);
+        func_80018044_main(rot, mtx, (f32 (*)[4])HmfModelData[obj->model[1 + i]].mtx);
+    }
+    list = D_8010D4C0_inst[D_8010D40A_inst][1];
+    for (i = 0; i < list->count; i++) {
+        func_8008A120_main(rot, D_8010D414_inst);
+        func_8002367C_main(mtx, (f32 (*)[4])HmfModelData[obj->model[10 + i]].mtx);
+        func_80018044_main(rot, mtx, (f32 (*)[4])HmfModelData[obj->model[10 + i]].mtx);
+    }
+    D_8010DC94_inst = func_8010B038_inst;
+}
