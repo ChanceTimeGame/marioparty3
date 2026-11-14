@@ -15,12 +15,13 @@ extern MsTexAnimSlot *D_800D1714_main;
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
 s16 func_800329B4_main(void *);
+void func_80032FC0_main(s16, u8, u8);
 
 
 /* Matches with 506F20.c in the Makefile's W2DC_BLANKSTRIP list (only residue: KMC as adds a nop
    before each mul.s after the sindf/cosdf calls). */
 #ifdef NON_MATCHING
-void func_8010ACC0_msetup(s16 model, s16 shadow, s32 arg2) {
+void func_8010ACC0_msetup(s16 model, s16 shadow) {
     f32 angle;
     f32 dAngle;
     f32 t;
@@ -66,26 +67,119 @@ void func_8010ACC0_msetup(s16 model, s16 shadow, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010ACC0_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010AF40_msetup);
+void func_8010AF40_msetup(MsModelSlot *slots, MsTexAnim *anim, s16 *frame) {
+    s16 model = slots[0].model;
+    s16 shadow = slots[3].model;
 
+    D_80119AF0_msetup->work[0] = 1;
+    D_80119AF0_msetup->work[1] = 1;
+    func_8010E00C_msetup(D_80119AF0_msetup, 2);
+    func_8001C258_main(model, 4, 0);
+    func_8001C258_main(shadow, 4, 0);
+    func_8010ACC0_msetup(model, shadow);
+    D_80119AF0_msetup->work[0] = 0;
+    HuAudFXPlay(0x135);
+    func_8001C814_main(model, 2, 0);
+    while (HmfModelData[model].unk40 < 40.0) {
+        HuPrcVSleep();
+    }
+    func_8001C5B4_main(model, slots[2].model);
+    while (HmfModelData[model].unk40 < 45.0) {
+        HuPrcVSleep();
+    }
+    HuAudFXPlay(0x2A8);
+    func_8010B4B8_msetup(model, anim, *frame);
+    while (HmfModelData[model].unk40 < 80.0) {
+        HuPrcVSleep();
+    }
+    func_8001F304_main(model, slots[0].unk2);
+    func_8001C814_main(model, 2, 2);
+}
+
+/* register allocation only: model and shadow swap s2/s3 (tried declaration and assignment order,
+   an s32 model). */
+#ifdef NON_MATCHING
+void func_8010B1F4_msetup(void) {
+    MsModelSlot slots[4];
+    MsTexAnim anim;
+    s16 frame;
+    s16 *work;
+    s16 state;
+    s32 shadow;
+    u16 model;
+    s32 pad[2]; /* retail frame is 8 bytes larger */
+
+    work = HuPrcCurrentGet()->user_data;
+    omAddPrcObj(func_8010B5D0_msetup, 0x3F00, 0x800, 0);
+    func_80106030_msetup(D_801198C4_msetup, slots, 4);
+    model = slots[0].model;
+    shadow = slots[3].model;
+    Hu3DModelScaleSet(shadow, 0.6f, 1.0f, 0.6f);
+    func_8001F304_main(model, slots[1].unk2);
+    func_8001C814_main(model, 2, 2);
+    anim.slot = -1;
+    frame = func_8010B388_msetup(model, &anim, 0xA007E, "c204n_0_DEF");
+    func_8010B4B8_msetup(model, &anim, -1);
+    state = 0;
+    while (TRUE) {
+        if (state != *work) {
+            state = *work;
+        }
+        switch (state) {
+        case 0:
+            break;
+        case 1:
+            func_8010AF40_msetup(slots, &anim, &frame);
+            *work = 0;
+            break;
+        case 2:
+            func_8001C258_main(model, 4, 4);
+            func_8001C258_main(shadow, 4, 4);
+            *work = 0;
+            break;
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B1F4_msetup);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010B388_msetup);
+s16 func_8010B388_msetup(s16 model, MsTexAnim *anim, s32 file, char *name) {
+    void *data;
+    s32 slot;
+    u16 ret;
 
-void func_8010B4B8_msetup(s16 model, s16 *slot, s16 frame) {
-    MsTexAnimSlot *anim;
+    if (anim->slot >= 0) {
+        func_80033354_main(anim->slot);
+        func_80033354_main(anim->anim);
+    }
+    data = DataRead(file);
+    slot = HmfAnimCreate(HmfModelData[model].hmf, data, 0, name);
+    anim->anim = slot;
+    func_80032FC0_main(slot, 1, 1);
+    DataClose(data);
+    ret = D_800D1714_main[(s16)slot].unk_00;
+    anim->frame = ret;
+    anim->slot = func_80032694_main(HmfModelData[model].hmf, slot, 0, name);
+    func_8001C448_main(model);
+    return ret;
+}
 
-    if (*slot >= 0) {
+void func_8010B4B8_msetup(s16 model, MsTexAnim *anim, s16 frame) {
+    MsTexAnimSlot *p;
+
+    if (anim->slot >= 0) {
         if (frame == -1) {
             func_80033910_main(HmfModelData[model].hmf);
         } else {
             func_80033970_main(HmfModelData[model].hmf);
-            anim = &D_800D1714_main[*slot];
-            anim->unk_00 = frame;
-            anim->unk_04 = 0;
-            anim->unk_0A = 0;
-            anim->unk_06 = 0;
-            anim->unk_02 = 0;
+            p = &D_800D1714_main[anim->slot];
+            p->unk_00 = frame;
+            p->unk_04 = 0;
+            p->unk_0A = 0;
+            p->unk_06 = 0;
+            p->unk_02 = 0;
         }
     }
 }

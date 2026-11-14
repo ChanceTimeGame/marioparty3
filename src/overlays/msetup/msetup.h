@@ -250,11 +250,7 @@ void func_8010A7EC_msetup(s16 arg0);
 void func_8010AC78_msetup(void);
 void func_8010AC94_msetup(void);
 void func_8010ACB0_msetup(void);
-void func_8010ACC0_msetup(s16 arg0, s16 arg1, s32 arg2); /* arg2: the caller sets a2 */
-void func_8010AF40_msetup(void *arg0, s32 arg1, s16 *arg2);
 void func_8010B1F4_msetup(void); /* process */
-s16 func_8010B388_msetup(s16 arg0, void *arg1, s32 arg2, s8 *arg3);
-void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
 s16 func_8010B588_msetup(s32 file);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
@@ -345,5 +341,18 @@ void func_8010A35C_msetup(MsMenuFunc *menu);
 extern s32 D_80119424_msetup[]; /* model files, indexed by mode */
 extern s32 D_80119534_msetup[5]; /* message ids: 4 pages + confirm */
 extern s32 D_80119548_msetup[5];
+
+/* Texture animation of one model (func_8010B388_msetup sets it, func_8010B4B8_msetup restarts it). */
+typedef struct MsTexAnim {
+    /* 0x00 */ s16 slot;  /* func_80032694_main; < 0: none */
+    /* 0x02 */ s16 anim;  /* HmfAnimCreate */
+    /* 0x04 */ s16 frame; /* first frame */
+    /* 0x06 */ s16 unk6;  /* not seen used; func_8010B1F4_msetup's frame keeps it 8 bytes */
+} MsTexAnim; /* size = 0x8 */
+extern MsModelDef D_801198C4_msetup[4];
+void func_8010ACC0_msetup(s16 model, s16 shadow);
+void func_8010AF40_msetup(MsModelSlot *slots, MsTexAnim *anim, s16 *frame);
+s16 func_8010B388_msetup(s16 model, MsTexAnim *anim, s32 file, char *name);
+void func_8010B4B8_msetup(s16 model, MsTexAnim *anim, s16 frame);
 
 #endif
