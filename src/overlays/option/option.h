@@ -364,10 +364,10 @@ typedef struct OpFace {
 } OpFace; /* size = 0x2C */
 extern OpFace D_80114788_option[2];
 void func_8010FA7C_option(omObjData *obj); /* turns a model to face the camera */
-/* Sound test page (func_8010E8E0_option's local table, D_80113DA8_option). */
+/* Sound and music test page (the local tables of func_8010E8E0_option and func_8010F138_option). */
 typedef struct OpSndItem {
     /* 0x00 */ s32 mes; /* message id, -1 for none */
-    /* 0x04 */ s16 fx;  /* sound effect, -1 for none */
+    /* 0x04 */ s16 fx;  /* sound effect (func_8010E8E0_option) or song (func_8010F138_option), -1 for none */
 } OpSndItem; /* size = 0x8 */
 typedef struct OpSndPage {
     /* 0x00 */ s32 title;

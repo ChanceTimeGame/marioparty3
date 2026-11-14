@@ -213,7 +213,7 @@ void func_8010E7FC_option(s32 x0, s32 y0, s32 x1, s32 y1, s32 len) {
 
 /* Sound test: fifteen pages of nine sound effects (a word per message id, a halfword per effect). */
 void func_8010E8E0_option(void) {
-    s16 win[16]; /* [0..8] the effects, [10] the help window */
+    s16 win[16]; /* [0..8] the entries, [10] the help window */
     OpSndPage pages[15] = {
         { 0x4C01, { { 0x4C10, 0x2B5 }, { 0x4C11, 0x263 }, { 0x4C14, 0x275 }, { 0x4C12, 0x290 }, { 0x4C13, 0x27E }, { 0x4C15, 0x26C }, { 0x4C16, 0x287 }, { 0x4C17, 0x2AC }, { -1, -1 } } },
         { 0x4C02, { { 0x4C10, 0x2B6 }, { 0x4C11, 0x264 }, { 0x4C14, 0x276 }, { 0x4C12, 0x291 }, { 0x4C13, 0x27F }, { 0x4C15, 0x26D }, { 0x4C16, 0x288 }, { 0x4C17, 0x2AD }, { -1, -1 } } },
@@ -411,7 +411,188 @@ void func_8010E8E0_option(void) {
     func_801133A0_option(2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010F138_option);
+/* Music test: twelve pages of nine songs; some appear only once unlocked. */
+void func_8010F138_option(void) {
+    s16 win[16]; /* [0..8] the entries, [10] the help window */
+    OpSndPage pages[12] = {
+        { 0x5D01, { { 0x5D0F, 0x3 }, { 0x5D10, 0x9 }, { 0x5D11, 0xB }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D02, { { 0x5D12, 0x4 }, { 0x5D13, 0x7 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D03, { { 0x5D14, 0x8 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D04, { { 0x5D17, 0x18 }, { 0x5D18, 0x19 }, { 0x5D19, 0x1A }, { 0x5D1A, 0x1B }, { 0x5D1B, 0x1C }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D05, { { 0x5D1D, 0x1E }, { 0x5D1E, 0x1F }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D06, { { 0x5D20, 0xD }, { 0x5D21, 0x12 }, { 0x5D22, 0x17 }, { 0x5D23, 0x24 }, { 0x5D24, 0x13 }, { 0x5D25, 0xF }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D07, { { 0x5D26, 0x10 }, { 0x5D27, 0x3E }, { 0x5D28, 0x14 }, { 0x5D29, 0x15 }, { 0x5D2A, 0x16 }, { 0x5D2B, 0x46 }, { 0x5D2C, 0x47 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D08, { { 0x5D2D, 0x2D }, { 0x5D2E, 0x2E }, { 0x5D2F, 0x2F }, { 0x5D30, 0x30 }, { 0x5D31, 0x31 }, { 0x5D32, 0x32 }, { 0x5D33, 0x33 }, { 0x5D34, 0x34 }, { -1, -1 } } },
+        { 0x5D09, { { 0x5D35, 0x35 }, { 0x5D36, 0x36 }, { 0x5D37, 0x37 }, { 0x5D38, 0x38 }, { 0x5D39, 0x44 }, { 0x5D3A, 0x43 }, { 0x5D3B, 0x42 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0A, { { 0x5D3D, 0xA }, { 0x5D3E, 0x39 }, { 0x5D3F, 0x3A }, { 0x5D40, 0x3B }, { 0x5D41, 0x26 }, { 0x5D42, 0x21 }, { 0x5D43, 0x2C }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0B, { { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+        { 0x5D0C, { { 0x5D48, 0x3C }, { 0x5D49, 0x3D }, { 0x5D4A, 0x48 }, { 0x5D4B, 0x45 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } } },
+    };
+    s32 i;
+    s32 page;
+    s32 cur;
+    s32 t;
+    s32 prev;
+    s16 titleWin;
+    s32 btn;
+
+    func_801132E4_option(3, 0);
+    func_8011331C_option(3, 14, 0);
+    func_801132C8_option(3, 7);
+    cur = 0;
+    page = 0;
+    func_80112028_option(2, 230, 116);
+    func_80113384_option(2);
+    func_80112028_option(1, 170, 40);
+    func_80113384_option(1);
+    titleWin = func_80061188_main(-1, 164, 28, 120, 20, 0);
+    func_8005BEE0_main(titleWin, 0);
+    func_8005C154_main(titleWin, 192, 192, 192);
+    func_8005FBF8_main(titleWin, 255, 255, 255);
+    func_8005C060_main(titleWin, 0, 0, 0, 0);
+    func_8005C02C_main(titleWin, 0);
+    func_8005B43C_main(titleWin, 0x5D01, -1, -1);
+    func_8005FFA8_main(titleWin);
+    if (func_80110018_option() != 0) {
+        pages[2].item[1].mes = 0x5D15;
+        pages[2].item[1].fx = 0x4C;
+    }
+    if (_CheckFlag(0x1D) != 0) {
+        pages[2].item[2].mes = 0x5D16;
+        pages[2].item[2].fx = 0x4D;
+    }
+    if (_CheckFlag(0x31) != 0) {
+        pages[3].item[5].mes = 0x5D1C;
+        pages[3].item[5].fx = 0x1D;
+    }
+    if (_CheckFlag(0x30) != 0) {
+        pages[4].item[2].mes = 0x5D1F;
+        pages[4].item[2].fx = 0x20;
+    }
+    if (_CheckFlag(0x1E) != 0) {
+        pages[8].item[7].mes = 0x5D3C;
+        pages[8].item[7].fx = 0x41;
+        pages[10].item[0].mes = 0x5D44;
+        pages[10].item[0].fx = 0x28;
+        pages[10].item[1].mes = 0x5D45;
+        pages[10].item[1].fx = 0x29;
+        pages[10].item[2].mes = 0x5D46;
+        pages[10].item[2].fx = 0x2A;
+        pages[10].item[3].mes = 0x5D47;
+        pages[10].item[3].fx = 6;
+    }
+    for (i = 0; i < 9; i++) {
+        win[i] = func_80061188_main(-1, 180, (i + 1) * 14 + 28, 118, 20, 0);
+        func_8005BEE0_main(win[i], 0);
+        func_8005C154_main(win[i], 192, 192, 192);
+        func_8005FBF8_main(win[i], 255, 255, 255);
+        func_8005C060_main(win[i], 0, 0, 0, 0);
+        func_8005C02C_main(win[i], 0);
+        if (pages[page].item[i].mes != -1) {
+            func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+        } else {
+            func_8005D294_main(win[i]);
+        }
+        func_8005FFA8_main(win[i]);
+    }
+    win[10] = func_80061188_main(-1, 176, 190, 120, 44, 0);
+    func_8005BEE0_main(win[10], 0);
+    func_8005C154_main(win[10], 192, 192, 192);
+    func_8005FBF8_main(win[10], 255, 255, 255);
+    func_8005C060_main(win[10], 0, 0, 0, 0);
+    func_8005C02C_main(win[10], 0);
+    func_8005B43C_main(win[10], 0x5D00, -1, -1);
+    t = 0;
+    func_8005FFA8_main(win[10]);
+    while (TRUE) {
+        HuPrcVSleep();
+        btn = (u16)D_800D1244_main[0];
+        btn |= func_80113204_option(0);
+        btn = (btn & ~0xC000) | (D_800D5558_main[0] & 0xC000);
+        if (btn & 0x4000) {
+            func_80033910_main(HmfModelData[func_80113218_option(3)].hmf);
+            break;
+        }
+        if (btn & 0x8000) {
+            func_8004A950_main();
+            if (pages[page].item[cur].fx != -1) {
+                HuAudSeqPlay(pages[page].item[cur].fx);
+            }
+            func_80033970_main(HmfModelData[func_80113218_option(3)].hmf);
+        } else if (btn & 0x300) {
+            if (btn & 0x200) {
+                page--;
+            } else {
+                page++;
+            }
+            if (page >= 12) {
+                page = 0;
+            }
+            if (page < 0) {
+                page = 11;
+            }
+            if (page == 10) {
+                if (!_CheckFlag(0x1E)) {
+                    page = (btn & 0x200) ? 9 : 11;
+                }
+            }
+            func_8005B43C_main(titleWin, pages[page].title, -1, -1);
+            for (i = 0; i < 9; i++) {
+                if (pages[page].item[i].mes != -1) {
+                    func_8005B43C_main(win[i], pages[page].item[i].mes, -1, -1);
+                } else {
+                    func_8005D294_main(win[i]);
+                }
+            }
+            while (TRUE) {
+                if (pages[page].item[cur].fx != -1) {
+                    break;
+                }
+                cur--;
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            }
+        } else if (btn & 0xC00) {
+            prev = cur;
+            do {
+                if (btn & 0x800) {
+                    cur--;
+                } else {
+                    cur++;
+                }
+                if (cur >= 9) {
+                    cur = 0;
+                }
+                if (cur < 0) {
+                    cur = 8;
+                }
+            } while (pages[page].item[cur].fx == -1);
+            func_8010E7FC_option(170, (prev + 1) * 14 + 40, 170, (cur + 1) * 14 + 40, 4);
+        }
+        t = (t < 11) ? t + 1 : 0;
+        func_8010E77C_option(170, (cur + 1) * 14 + 40, t);
+    }
+    func_8005FE90_main(titleWin);
+    func_8005F364_main(titleWin);
+    for (i = 0; i < 9; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    for (i = 0; i < 9; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8005FE90_main(win[10]);
+    func_8005F364_main(win[10]);
+    HuAudFXPlay(0x2F9);
+    func_8011331C_option(3, 16, 1);
+    func_801132E4_option(3, 40);
+    HuPrcSleep(3);
+    func_801133A0_option(1);
+    func_801133A0_option(2);
+}
 
 f32 func_8010F914_option(f32 x, f32 z) {
     return -(atan2df(z, x) - 90.0f);
@@ -474,7 +655,6 @@ void func_8010FB40_option(u32 no, s32 model) {
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_8011421C_option);
 
 u16 func_8010FC40_option(s32 val) {
     char buf[0x100];
