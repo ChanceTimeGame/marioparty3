@@ -373,8 +373,7 @@ extern Vec D_801137E4_option[2]; /* (2) */
 void func_8010B654_option(s32 sel, s32 btn); /* btn unused */
 s32 func_8010AF54_option(s32 sel, s32 btn); /* submenu: A pressed (btn unused) */
 s32 func_8010A940_option(s32 sel, s32 btn); /* submenu: d-pad */
-extern Vec D_801135E0_option[2];
-extern Vec D_801135F8_option[2];
+extern Vec D_80113580_option[6][2]; /* camera eye, target per submenu item; splat labels [4] D_801135E0_option and [5] D_801135F8_option */
 
 extern Vec D_801137FC_option; /* camera eye, target for leaving through item 4 */
 extern Vec D_80113808_option;

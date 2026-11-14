@@ -514,15 +514,15 @@ s32 func_8010A498_option(void) {
             case 1:
             case 2:
                 sel = 4;
-                HuVecCopy3F(&eye, &D_801135E0_option[0]);
-                HuVecCopy3F(&at, &D_801135E0_option[1]);
+                HuVecCopy3F(&eye, &D_80113580_option[4][0]);
+                HuVecCopy3F(&at, &D_80113580_option[4][1]);
                 func_80107758_option(&eye, &at, 20);
                 HuPrcSleep(20);
                 break;
             case 3:
                 sel = 5;
-                HuVecCopy3F(&eye, &D_801135F8_option[0]);
-                HuVecCopy3F(&at, &D_801135F8_option[1]);
+                HuVecCopy3F(&eye, &D_80113580_option[5][0]);
+                HuVecCopy3F(&at, &D_80113580_option[5][1]);
                 func_80107758_option(&eye, &at, 20);
                 HuPrcSleep(20);
                 break;
@@ -670,7 +670,150 @@ void func_8010A8DC_option(s32 sel, s32 *x, s32 *y) {
     *y = ypos;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010A940_option);
+s32 func_8010A940_option(s32 sel, s32 btn) {
+    Vec eye;
+    Vec at;
+    s32 x0, y0, x1, y1;
+
+    switch (sel) {
+    case 0:
+        if (btn & 0x200) {
+            sel = 2;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113258_option(6);
+            func_80113258_option(7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E0A);
+        } else if (btn & 0x100) {
+            sel = 3;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113258_option(6);
+            func_80113258_option(7);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E09);
+        }
+        break;
+    case 1:
+        break;
+    case 2:
+        if (btn & 0x200) {
+            sel = 4;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 20);
+            HuPrcSleep(12);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E0B);
+        } else if (btn & 0x100) {
+            sel = 0;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E06);
+            func_8011323C_option(6);
+            func_8011323C_option(7);
+        }
+        break;
+    case 3:
+        if (btn & 0x200) {
+            sel = 0;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E06);
+            func_8011323C_option(6);
+            func_8011323C_option(7);
+        } else if (btn & 0x100) {
+            sel = 5;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 20);
+            HuPrcSleep(12);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E0B);
+        }
+        break;
+    case 4:
+        if (btn & 0x200) {
+            sel = 5;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E0B);
+        } else if (btn & 0x100) {
+            sel = 2;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 20);
+            HuPrcSleep(12);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E0A);
+        }
+        break;
+    case 5:
+        if (btn & 0x200) {
+            sel = 3;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 20);
+            func_801133A0_option(0);
+            func_80113440_option(0);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 20);
+            HuPrcSleep(12);
+            func_80113384_option(0);
+            func_80113424_option(0);
+            func_80113408_option(0, 0x4E09);
+        } else if (btn & 0x100) {
+            sel = 4;
+            HuVecCopy3F(&eye, &D_80113580_option[sel][0]);
+            HuVecCopy3F(&at, &D_80113580_option[sel][1]);
+            func_80107758_option(&eye, &at, 8);
+            func_80113368_option(0, &x0, &y0);
+            func_8010A8DC_option(sel, &x1, &y1);
+            func_80109B7C_option(0, x0, y0, x1, y1, 8);
+            func_80113408_option(0, 0x4E0B);
+        }
+        break;
+    }
+    return sel;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/option/5334D0", D_80113CB8_option);
 
