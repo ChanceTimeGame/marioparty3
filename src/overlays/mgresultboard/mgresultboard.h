@@ -48,6 +48,12 @@ s32 func_80108250_mgresultboard(omObjData *, s8, s8, s8);
 void func_80108330_mgresultboard(omObjData *);
 s32 func_801092E0_mgresultboard(omObjData *, s8, s16);
 s32 func_80109878_mgresultboard(omObjData *, s8, s16);
+void func_80108700_mgresultboard(void);
+void func_80108BBC_mgresultboard(omObjData *);
+void func_80108BC4_mgresultboard(omObjData *);
+void func_80108C60_mgresultboard(omObjData *);
+void func_8010913C_mgresultboard(void);
+void func_80109144_mgresultboard(void);
 s32 func_80109A90_mgresultboard(omObjData *, s8, s16);
 s32 func_8010A864_mgresultboard(omObjData *, s8, s8);
 

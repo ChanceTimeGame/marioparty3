@@ -4,7 +4,22 @@
 
 void func_80032FC0_main(s16, u8, u8);
 
+typedef struct TexAnimSlot {
+    /* 0x00 */ s16 unk_00;
+    /* 0x02 */ char unk_02[0xA];
+} TexAnimSlot; // sizeof 0xC
+
+extern TexAnimSlot *D_800D1714_main;
+s16 func_800329B4_main(void *);
+s16 func_8000B0D4_main(s32, s32);
+
 extern Vec D_8010AB40_mgresultboard[4];
+extern Vec D_8010AB70_mgresultboard[8];
+extern Vec D_8010ABD0_mgresultboard[12];
+extern s32 D_8010ADD0_mgresultboard[40];
+extern s32 D_8010AE70_mgresultboard[4];
+extern omObjData *D_8010AEA0_mgresultboard;
+extern void (*D_8010AEA4_mgresultboard)(omObjData *);
 extern const u8 D_8010AD28_mgresultboard[8][3];
 
 const u8 D_8010AD28_mgresultboard[8][3] = {
@@ -183,9 +198,76 @@ void func_80108330_mgresultboard(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108700_mgresultboard);
+void func_80108700_mgresultboard(void) {
+    omObjData *obj;
+    void *data;
+    s32 i;
 
-void func_80108BBC_mgresultboard(void) {
+    obj = omAddObj(0x14, 0x32, 0, -1, NULL);
+    D_8010AEA0_mgresultboard = obj;
+    obj->model[1] = func_8000B0D4_main(0x180000, 0x2A8);
+    data = DataRead(0x180005);
+    D_8010ADD0_mgresultboard[0] = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, "zero_DEF");
+    HuMemMemoryFreePerm(data);
+    D_8010AE70_mgresultboard[0] = D_800D1714_main[D_8010ADD0_mgresultboard[0]].unk_00;
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80032FC0_main(D_8010ADD0_mgresultboard[0], 1, 1);
+    func_80032FF8_main((s16)D_8010ADD0_mgresultboard[0], 0);
+    func_8001C8A8_main(obj->model[1], 2);
+    data = DataRead(0x180006);
+    D_8010AE70_mgresultboard[1] = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    data = DataRead(0x180000);
+    for (i = 1; i < 40; i++) {
+        obj->model[i + 1] = Hu3DModelCreate(data, 0x2A0);
+        func_8001C8A8_main(obj->model[i + 1], 2);
+        D_8010ADD0_mgresultboard[i] =
+            func_80032694_main(HmfModelData[obj->model[i + 1]].hmf, D_8010ADD0_mgresultboard[0], 0, "zero_DEF");
+        func_8001C448_main(obj->model[i + 1]);
+        func_8001C514_main(obj->model[i + 1]);
+        func_80032FC0_main(D_8010ADD0_mgresultboard[i], 1, 1);
+        func_80032FF8_main((s16)D_8010ADD0_mgresultboard[i], 0);
+    }
+    HuMemMemoryFreePerm(data);
+    for (i = 0; i < 8; i++) {
+        Hu3DModelPosSet(obj->model[i + 1], D_8010AB70_mgresultboard[i].x, D_8010AB70_mgresultboard[i].y,
+                        D_8010AB70_mgresultboard[i].z);
+        func_8001C6A8_main(obj->model[i + 1], 40.0f);
+        func_8001C814_main(obj->model[i + 1], 2, 0);
+        Hu3DModelPosSet(obj->model[i + 21], D_8010AB70_mgresultboard[i].x, D_8010AB70_mgresultboard[i].y,
+                        D_8010AB70_mgresultboard[i].z);
+        func_8001C6A8_main(obj->model[i + 21], 20.0f);
+        func_8001C814_main(obj->model[i + 21], 2, 0);
+    }
+    for (i = 0; i < 12; i++) {
+        Hu3DModelPosSet(obj->model[i + 9], D_8010ABD0_mgresultboard[i].x, D_8010ABD0_mgresultboard[i].y,
+                        D_8010ABD0_mgresultboard[i].z);
+        func_8001C6A8_main(obj->model[i + 9], 40.0f);
+        func_8001C814_main(obj->model[i + 9], 2, 0);
+        Hu3DModelPosSet(obj->model[i + 29], D_8010ABD0_mgresultboard[i].x, D_8010ABD0_mgresultboard[i].y,
+                        D_8010ABD0_mgresultboard[i].z);
+        func_8001C6A8_main(obj->model[i + 29], 20.0f);
+        func_8001C814_main(obj->model[i + 29], 2, 0);
+    }
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    func_80109144_mgresultboard();
+    omPrcSetDestructor(0, func_8010913C_mgresultboard);
+    while (D_8010AAF8_mgresultboard == 0) {
+        HuPrcVSleep();
+    }
+    D_8010AEA4_mgresultboard = func_80108BBC_mgresultboard;
+    func_80108BC4_mgresultboard(obj);
+    while (TRUE) {
+        D_8010AEA4_mgresultboard(obj);
+        func_80108C60_mgresultboard(obj);
+        HuPrcVSleep();
+    }
+}
+
+void func_80108BBC_mgresultboard(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80108BC4_mgresultboard);
@@ -219,7 +301,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109DAC_mgre
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_80109F30_mgresultboard);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultboard/4E9120", D_8010AD58_mgresultboard);
+const s16 D_8010AD58_mgresultboard[20] = { 0, 1, 8, 9, 10, 2, 3, 11, 12, 13, 4, 5, 14, 15, 16, 6, 7, 17, 18, 19 };
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E9120", func_8010A000_mgresultboard);
 
