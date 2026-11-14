@@ -3,6 +3,16 @@
 
 #include "game/vibrator.h"
 
+/* omObjData::data of the func_80107428_msetup background object (HuMemAllocTag 0x88). */
+typedef struct MsShaftWork {
+    /* 0x00 */ f32 wallY[3];
+    /* 0x0C */ f32 ringY[3];
+    /* 0x18 */ f32 rotY;
+    /* 0x1C */ Vec star[3];
+    /* 0x40 */ Vec item[6];
+} MsShaftWork; /* size = 0x88 */
+
+
 f32 func_80018ACC_main(f32 *y, f32 *x, f32 t);
 extern f32 D_8011A998_msetup; /* D_8011A994_msetup.y */
 extern f32 D_8011A99C_msetup; /* D_8011A994_msetup.z */
@@ -507,9 +517,128 @@ f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80106FC0_msetup);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801070FC_msetup);
+void func_801070FC_msetup(omObjData *obj) {
+    MsShaftWork *work;
+    s32 i;
+    u16 model;
+    f32 y;
+    Vec *pos;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_80107428_msetup);
+    work = obj->data;
+    for (i = 0; i < 3; i++) {
+        model = obj->model[i + 4];
+        y = work->wallY[i];
+        y += 100.0f;
+        if (y >= 4000.0f) {
+            y -= 12000.0f;
+        }
+        Hu3DModelPosSet(model, 0.0f, y, 0.0f);
+        Hu3DModelRotSet(model, 0.0f, work->rotY, 0.0f);
+        work->wallY[i] = y;
+    }
+    work->rotY += 2.0f;
+    for (i = 0; i < 3; i++) {
+        model = obj->model[i + 1];
+        y = work->ringY[i];
+        y += 60.0f;
+        if (y >= 4000.0f) {
+            y -= 12000.0f;
+        }
+        Hu3DModelPosSet(model, 0.0f, y, 0.0f);
+        work->ringY[i] = y;
+    }
+    for (i = 0; i < 3; i++) {
+        model = obj->model[i + 7];
+        pos = &work->star[i];
+        pos->y += 40.0f;
+        if (pos->y > 1000.0f) {
+            pos->y -= 12000.0f;
+            func_80106FC0_msetup(pos, 0xFFF, 900.00006f);
+        }
+        Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+    }
+    for (i = 0; i < 6; i++) {
+        model = obj->model[i + 10];
+        pos = &work->item[i];
+        pos->y += 75.0f;
+        if (pos->y > 1000.0f) {
+            pos->y -= 12000.0f;
+            y = func_80106FC0_msetup(pos, 0xFFF, 906.00006f);
+            Hu3DModelRotSet(model, 0.0f, y - 180.0f, 0.0f);
+        }
+        Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+    }
+}
+
+omObjData *func_80107428_msetup(void) {
+    omObjData *obj;
+    MsShaftWork *work;
+    s32 i;
+    s16 base;
+    u16 model;
+    f32 y;
+    f32 angle;
+    Vec *pos;
+
+    D_8011AA4A_msetup = 0;
+    D_80119430_msetup = obj = omAddObj(0x17D0, 0x10, 0, -1, func_801070FC_msetup);
+    if (obj == NULL) {
+        return NULL;
+    }
+    obj->model[0] = -1;
+    work = HuMemAllocTag(sizeof(MsShaftWork), 0x7918);
+    memset(work, 0, sizeof(MsShaftWork));
+    obj->data = work;
+    for (y = 0.0f, base = -1, i = 0; i < 3; i++, y -= 4000.0f) {
+        if (base < 0) {
+            base = model = func_8000B108_main(0x140000, 0x2B9);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        obj->model[i + 4] = model;
+        Hu3DModelPosSet(model, 0.0f, y, 0.0f);
+        Hu3DModelScaleSet(model, 1.2f, 2.0f, 1.2f);
+        work->wallY[i] = y;
+    }
+    work->rotY = 0.0f;
+    for (y = work->rotY, base = -1, i = 0; i < 3; i++, y -= 4000.0f) {
+        if (base < 0) {
+            base = model = func_8000B108_main(0x140004, 0x299);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        obj->model[i + 1] = model;
+        Hu3DModelPosSet(model, 0.0f, y, 0.0f);
+        Hu3DModelScaleSet(model, 1.2f, 2.0f, 1.2f);
+        work->ringY[i] = y;
+    }
+    for (base = -1, i = 0; i < 3; i++) {
+        if (base < 0) {
+            base = model = func_8000B108_main(0x140002, 0x299);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        obj->model[i + 7] = model;
+        pos = &work->star[i];
+        pos->y = 0.0f;
+        func_80106FC0_msetup(pos, 0x1FFF, 900.00006f);
+        Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+    }
+    for (base = -1, i = 0; i < 6; i++) {
+        if (base < 0) {
+            base = model = func_8000B108_main(0x140005, 0x299);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        obj->model[i + 10] = model;
+        pos = &work->item[i];
+        pos->y = 0.0f;
+        angle = func_80106FC0_msetup(pos, 0x1FFF, 906.00006f);
+        Hu3DModelPosSet(model, pos->x, pos->y, pos->z);
+        Hu3DModelRotSet(model, 0.0f, angle - 180.0f, 0.0f);
+    }
+    return obj;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/501C00", func_801077E0_msetup);
 
