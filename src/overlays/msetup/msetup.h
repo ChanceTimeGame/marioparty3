@@ -166,7 +166,6 @@ extern s16 D_8011A944_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80
 extern s16 D_8011A946_msetup;                    /* .bss 0x2; lh,sh: 80105DB4 80107FB4 80108AB8 80109218 80109868 8010A35C 8010A7 */
 extern f32 D_8011A9EC_msetup;                    /* .bss 0x4; swc1: 8010BA6C */
 extern s16 D_8011A9F0_msetup;                    /* .bss 0x2; sh: 8010BA6C */
-extern s16 D_8011A9F2_msetup[];                  /* .bss 0x14; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107FB4 801084C4 801085 */
 extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
 extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
 extern u8 D_8011AA40_msetup;                     /* .bss 0x1; addiu,lbu: 80105C4C 80109218 80109868 8010A7A0 8010A7EC 8010F87C 801116 */
@@ -240,13 +239,12 @@ void func_80108AB8_msetup(void);
 void func_80108F74_msetup(void);
 void func_80109218_msetup(void);
 void func_80109868_msetup(void);
-s16 func_80109EA0_msetup(s32 arg0);
-s16 func_80109F04_msetup(s32 arg0);
+s16 func_80109EA0_msetup(s16 arg0);
+s16 func_80109F04_msetup(s16 arg0);
 s16 func_80109F7C_msetup(s32 arg0);
 s16 func_8010A10C_msetup(s32 arg0);
 s32 func_8010A204_msetup(s32 arg0);
 s32 func_8010A2B0_msetup(s32 arg0);
-void func_8010A35C_msetup(s32 arg0);
 void func_8010A780_msetup(void);
 void func_8010A7A0_msetup(void);
 void func_8010A7EC_msetup(s16 arg0);
@@ -334,5 +332,16 @@ void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119F
 void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork B */
+typedef s16 (*MsMenuFunc)(s16); /* menu step: takes and returns the step index; < 0 ends */
+extern s16 D_8011A9F2_msetup[][10]; /* .bss, 0x14 stride per player (sh [i][0]) */
+extern MsMenuFunc D_80119510_msetup[];
+extern MsMenuFunc D_80119524_msetup[];
+extern MsCamKey D_80119580_msetup;
+extern MsCamKey D_801195A0_msetup[];
+extern MsCamKey D_801196C0_msetup[];
+extern MsCamKey D_801197BC_msetup[];
+void func_8010A35C_msetup(MsMenuFunc *menu);
 
 #endif
