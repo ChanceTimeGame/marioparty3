@@ -44,17 +44,16 @@ s32 func_80106D50_mgresultboard(s32, s32);
 s32 func_80106D88_mgresultboard(s32, s16);
 s32 func_80106DB8_mgresultboard(s8, s16);
 void func_80107234_mgresultboard(void);
-void func_80107650_mgresultboard(s8);
+void func_80107650_mgresultboard(s32);
 void func_80107800_mgresultboard(s32);
 void func_801079B0_mgresultboard(s32);
 void func_80107A58_mgresultboard(void);
-s32 func_80109A90_mgresultboard(s32, s8, s16);
+s32 func_80109A90_mgresultboard(omObjData *, s8, s16);
 
 typedef struct Unk {
-    s32 unk_00;
+    omObjData *unk_00;
 } Unk;
-
-extern Unk D_8010AEA0_mgresultboard; //unknown size
+extern Unk D_8010AEA0_mgresultboard;
 extern u32 D_8010AAF0_mgresultboard;
 extern f32 D_8010AAF4_mgresultboard;
 extern s32 D_8010AAF8_mgresultboard;
@@ -62,6 +61,9 @@ extern s32 D_8010AD90_mgresultboard;
 extern s8 D_8010AD94_mgresultboard;
 s32 func_8010A864_mgresultboard(omObjData *, s8, s8); /* extern */
 extern omObjData *D_8010AFE0_mgresultboard;
+extern omObjData *D_8010AFA8_mgresultboard;
+extern omObjData *D_8010AFA0_mgresultboard;
+extern omObjData *D_8010AF98_mgresultboard;
 
 // updates mg star coins on results scene load
 void func_801059A0_mgresultboard(void) {
@@ -454,10 +456,9 @@ void func_80105CE8_mgresultboard(omObjData *arg0) {
     D_8010AAF4_mgresultboard = ((buttonPressed & 0x8000) || (cpuCount >= 4)) ? 4.0f : 1.0f;
 }
 
-s32 func_80108250_mgresultboard(s32, s32, s8, s8);  /* extern */
-s32 func_801092E0_mgresultboard(s32, s32, s16);     /* extern */
-s32 func_80109878_mgresultboard(s32, s32, s16);     /* extern */
-extern s32 D_8010AFA8_mgresultboard;
+s32 func_80108250_mgresultboard(omObjData *, s32, s8, s8);  /* extern */
+s32 func_801092E0_mgresultboard(omObjData *, s32, s16);     /* extern */
+s32 func_80109878_mgresultboard(omObjData *, s32, s16);     /* extern */
 
 s32 func_80106A80_mgresultboard(s8 arg0) {
     u16 var_s0;
@@ -656,9 +657,57 @@ void func_80107234_mgresultboard(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107234_mgresultboard);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107650_mgresultboard);
+void func_80107650_mgresultboard(s32 arg0) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_80107800_mgresultboard);
+    obj = D_8010AFE0_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 1);
+    func_8001C8A8_main(obj->model[arg0 + 5], 1);
+    obj = D_8010AFA8_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 1);
+    func_8001C8A8_main(obj->model[arg0 + 5], 1);
+    obj = D_8010AFA0_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 1);
+    obj = D_8010AF98_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 1);
+    obj = D_8010AEA0_mgresultboard.unk_00;
+    func_8001C8A8_main(obj->model[arg0 * 2 + 1], 1);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 2], 1);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 21], 1);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 22], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 9], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 10], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 11], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 29], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 30], 1);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 31], 1);
+}
+
+void func_80107800_mgresultboard(s32 arg0) {
+    omObjData *obj;
+
+    obj = D_8010AFE0_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 2);
+    func_8001C8A8_main(obj->model[arg0 + 5], 2);
+    obj = D_8010AFA8_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 2);
+    func_8001C8A8_main(obj->model[arg0 + 5], 2);
+    obj = D_8010AFA0_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 2);
+    obj = D_8010AF98_mgresultboard;
+    func_8001C8A8_main(obj->model[arg0 + 1], 2);
+    obj = D_8010AEA0_mgresultboard.unk_00;
+    func_8001C8A8_main(obj->model[arg0 * 2 + 1], 2);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 2], 2);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 21], 2);
+    func_8001C8A8_main(obj->model[arg0 * 2 + 22], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 9], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 10], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 11], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 29], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 30], 2);
+    func_8001C8A8_main(obj->model[arg0 * 3 + 31], 2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultboard/4E6DC0", func_801079B0_mgresultboard);
 
