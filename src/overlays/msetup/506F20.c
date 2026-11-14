@@ -210,14 +210,10 @@ s16 func_80112E08_msetup(s16 sel, s16 *pad, MsCursorWork *cursor) {
     return sel;
 }
 
-/* COM difficulty: `individual` != 0 sets each COM player (D_8011AA40_msetup on) in turn, else all
+/* COM difficulty: `individual` != 0 sets each COM player (D_8011AA30_msetup.unk10 on) in turn, else all
    at once; `count` levels. Returns the level chosen, -1 on cancel. */
-#ifdef NON_MATCHING
-/* Residue: retail builds D_8011AA40_msetup's address once (lui/addiu, lbu 0/1) and never hoists
-   D_8011A9F2_msetup's base out of the loop; this C hoists it (one more saved register, frame +8). */
 s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *cursor) {
     s16 players[4];
-    u8 *cfg;
     s16 idx;
     s16 n;
     s16 p;
@@ -227,16 +223,15 @@ s16 func_80112F5C_msetup(s16 individual, s16 count, s16 *pad, MsCursorWork *curs
     s32 btn;
     s32 i;
 
-    cfg = &D_8011AA40_msetup;
-    p = cfg[0];
-    coms = cfg[1]; /* D_8011AA41_msetup */
-    for (n = 0; p < 4; p++) {
-        players[n++] = p;
+    p = D_8011AA30_msetup.unk10;
+    coms = D_8011AA30_msetup.unk11;
+    for (n = 0; p < 4; n++, p++) {
+        players[n] = p;
     }
     n = 0;
     prev = -1;
     cursor->steps = 0;
-    sel = D_8011AA38_msetup[players[0]];
+    sel = D_8011AA30_msetup.com[players[0]];
     cursor->sel = sel;
     HuPrcVSleep();
     HuPrcVSleep();
@@ -248,14 +243,14 @@ while (1) {
             s32 mess;
 
             if (individual != 0) {
-                func_8010B968_msetup(D_8011AA34_msetup[players[n]] + 0x1C00, 0);
+                func_8010B968_msetup(D_8011AA30_msetup.chr[players[n]] + 0x1C00, 0);
                 mess = 0x1518;
             } else {
                 mess = 0x1517;
             }
             prev = n;
             func_8010B82C_msetup(mess);
-            sel = D_8011AA38_msetup[players[n]];
+            sel = D_8011AA30_msetup.com[players[n]];
         }
         btn = func_8010D684_msetup(D_8011A948_msetup, pad);
         if (btn & (U_JPAD | R_JPAD)) {
@@ -280,22 +275,22 @@ while (1) {
                 break;
             }
             idx = players[n];
-            ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 6;
+            D_8011A9F0_msetup[idx].unk2 = 6;
         }
         if (btn & A_BUTTON) {
             HuAudFXPlay(2);
             if (individual != 0) {
                 idx = players[n];
-                D_8011AA38_msetup[idx] = sel;
-                ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 5;
+                D_8011AA30_msetup.com[idx] = sel;
+                D_8011A9F0_msetup[idx].unk2 = 5;
                 if (++n >= coms) {
                     break;
                 }
             } else {
                 for (i = 0; i < coms; i++) {
                     idx = players[i];
-                    D_8011AA38_msetup[idx] = sel;
-                    ((s16 (*)[10])D_8011A9F2_msetup)[idx][0] = 5;
+                    D_8011AA30_msetup.com[idx] = sel;
+                    D_8011A9F0_msetup[idx].unk2 = 5;
                 }
                 break;
             }
@@ -305,9 +300,7 @@ while (1) {
     cursor->state = 2;
     return sel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80112F5C_msetup);
-#endif
+
 
 extern s16 (*D_80119E0C_msetup[2])[2];
 extern s16 D_80119DFC_msetup[4][2];
@@ -350,7 +343,7 @@ s32 func_801132C4_msetup(MsSetupWork *work) {
         func_8001C6A8_main(model, 0.0f);
         levels = 3;
     }
-    if (D_8011AA41_msetup == 1) {
+    if (D_8011AA30_msetup.unk11 == 1) {
         Hu3DModelRotSet(model, 180.0f, 0.0f, 0.0f);
     }
     board.state = 0;
@@ -378,17 +371,17 @@ s32 func_801132C4_msetup(MsSetupWork *work) {
     HuAudFXPlay(0x2D9);
     func_8010E8C8_msetup(lifts, 2, 0xF, 720.0f, 565.0f, 0.1f, 1.0f, 1);
     Hu3DModelPosSet(model, 0.0f, 300.0f, -280.0f);
-    D_8011A990_msetup[0] = 1;
+    D_8011A990_msetup = 1;
     Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
     func_8001C258_main(model, 4, 0);
-    if (D_8011AA41_msetup == 1) {
+    if (D_8011AA30_msetup.unk11 == 1) {
         board.state = 3;
     } else {
         board.state = 1;
     }
     func_8010E52C_msetup(lifts, D_80119DC8_msetup, 2, 7, &model, 1, 0.1f, 1.2f);
     step = 1;
-    if (D_8011AA41_msetup == 1) {
+    if (D_8011AA30_msetup.unk11 == 1) {
         step = 2;
     }
     sel = 0;
@@ -413,7 +406,7 @@ s32 func_801132C4_msetup(MsSetupWork *work) {
                 break;
             case 2:
                 if (func_80112F5C_msetup(sel, levels, &pad, &cursors[1]) < 0) {
-                    if (D_8011AA41_msetup == 1) {
+                    if (D_8011AA30_msetup.unk11 == 1) {
                         work->unk4 = -1;
                         step = -1;
                         break;
@@ -803,7 +796,7 @@ s32 func_801145D0_msetup(MsSetupWork *work) {
 
     mess = NULL;
     files = NULL;
-    board = D_8011AA45_msetup;
+    board = D_8011AA30_msetup.board;
     work->unk4 = 0;
     y = 70;
     scale = 1.0f;
@@ -878,7 +871,140 @@ s32 func_801145D0_msetup(MsSetupWork *work) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_80114AA0_msetup);
+/* Per-player 0-9 setting lift (D_8011AA30_msetup.star[4], shown as texture `val` of motion 0x140023):
+   left/right change it, A stores it and moves to the next player, B goes back. */
+s32 func_80114AA0_msetup(MsSetupWork *work) {
+    MsLift lifts[2];
+    s16 sp68;
+    s16 anim;
+    s16 model;
+    s16 val;
+    s16 n;
+    s16 shown;
+    s16 prev;
+    s16 dir;
+    omObjData *arrows;
+    s32 btn;
+    s32 i;
+    f32 rot;
+    f32 step;
+
+    work->unk4 = 0;
+    val = D_8011AA30_msetup.star[0];
+    n = 0;
+    func_8010B998_msetup();
+    func_8010E4BC_msetup(lifts, 2, 0.0f);
+    model = lifts[0].model;
+    anim = HmfAnimRead(HmfModelData[model].hmf, 0x140023, D_8011A6D8_msetup);
+    func_8001C448_main(model);
+    func_80032FC0_main(anim, 1, 1);
+    func_8010E4D8_msetup(lifts, 2);
+    func_80032FF8_main(anim, val);
+    arrows = func_8010DE38_msetup(0x60, 0xE0, 0x48);
+    HuAudFXPlay(0x2D9);
+    func_8010E8C8_msetup(lifts, 2, 0xF, 720.0f, 565.0f, 0.1f, 1.4f, 1);
+    arrows->work[0] = 1;
+    arrows->work[1] = 36;
+    func_8001C258_main(lifts[1].model, 4, 4);
+    for (rot = 0.0f; rot < 180.0f; rot += (180.0f / 7.0f)) {
+        Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        HuPrcVSleep();
+    }
+    Hu3DModelRotSet(model, 0.0f, 180.0f, 0.0f);
+    shown = val;
+    prev = -1;
+    func_8010D684_msetup(D_8011A948_msetup, &sp68);
+    while (1) {
+        if (prev != n) {
+            func_8010B968_msetup(D_8011AA30_msetup.chr[n] + 0x1C00, 0);
+            func_8010B82C_msetup(0x151C);
+            prev = n;
+        }
+        btn = func_8010D684_msetup(D_8011A948_msetup, &sp68);
+        if (btn & A_BUTTON) {
+            HuAudFXPlay(2);
+            D_8011AA30_msetup.star[n] = val;
+            if (val != 0) {
+                D_8011A9F0_msetup[n].unk2 = 8;
+            } else {
+                D_8011A9F0_msetup[n].unk2 = 10;
+            }
+            if (++n >= 4) {
+                work->unk4 = 0;
+                break;
+            }
+            val = D_8011AA30_msetup.star[n];
+        } else if (btn & B_BUTTON) {
+            HuAudFXPlay(4);
+            if (--n < 0) {
+                work->unk4 = -1;
+                break;
+            }
+            D_8011A9F0_msetup[n].unk2 = 9;
+            val = D_8011AA30_msetup.star[n];
+        }
+        dir = 0;
+        if (btn & (U_JPAD | R_JPAD)) {
+            val++;
+            if (val >= 10) {
+                val = 0;
+            }
+            arrows->work[0] = 4;
+        } else if (btn & (D_JPAD | L_JPAD)) {
+            val--;
+            if (val < 0) {
+                val = 9;
+            }
+            arrows->work[0] = 3;
+            dir = 1;
+        }
+        if (shown != val) {
+            HuAudFXPlay(1);
+            if (dir != 0) {
+                step = -45.0f;
+            } else {
+                step = 45.0f;
+            }
+            i = 4;
+            rot = 180.0f;
+            do {
+                rot += step;
+                Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+                i--;
+                HuPrcVSleep();
+            } while (i != 0);
+            func_80032FF8_main(anim, val);
+            i = 4;
+            rot = 0.0f;
+            do {
+                rot += step;
+                Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+                i--;
+                HuPrcVSleep();
+            } while (i != 0);
+            shown = val;
+        }
+        HuPrcVSleep();
+    }
+    arrows->work[0] = 2;
+    arrows->work[1] = 17;
+    for (rot = 180.0f; rot < 360.0f; rot += (180.0f / 7.0f)) {
+        Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        HuPrcVSleep();
+    }
+    Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+    func_8001C258_main(lifts[1].model, 4, 0);
+    HuAudFXPlay(0x2DA);
+    func_8010E8C8_msetup(lifts, 2, 7, 360.0f, 400.0f, 1.4f, 0.1f, 1);
+    func_8010DDD8_msetup(arrows);
+    if (anim >= 0) {
+        func_80033430_main(anim);
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001ACDC_main(lifts[i].model);
+    }
+    return 0;
+}
 
 /* Stick direction of pad `pad` by quadrant of atan2(x, y): 0 [0, 90), 1, 2, 3; -1 inside the
    +-30 dead zone. */

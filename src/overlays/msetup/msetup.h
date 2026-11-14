@@ -85,11 +85,9 @@ extern MsSetupWork D_8011A882_msetup;
 extern s16 D_8011A886_msetup[5];     /* .bss 0xA; begins at D_8011A882_msetup.unk4 (one object, two labels); indexed in 80109F7C */
 extern s16 D_8011A8E0_msetup[4][4];  /* 80117820 stores [i][0..3]; splat also labels D_8011A8E2/E4/E6 */
 extern s16 D_8011A948_msetup;        /* .bss split 0x1 + D_8011A949_msetup 0x7: lh reads both bytes */
-extern s16 D_8011A990_msetup[2];
 extern Vec D_8011A994_msetup;        /* splat also labels .y/.z as D_8011A998/D_8011A99C_msetup */
 extern f32 D_8011A93C_msetup;        /* far plane (func_80106260_msetup perspective) */
 extern f32 D_8011A940_msetup;        /* near plane */
-extern u8 D_8011AA30_msetup[4];      /* per player; splat also labels D_8011AA31_msetup */
 extern u8 D_8011AA34_msetup[4];      /* per player; splat also labels D_8011AA35_msetup */
 extern u8 D_8011AA38_msetup[4];      /* per player */
 extern u8 D_8011AA3C_msetup[4];      /* per player */
@@ -165,7 +163,6 @@ extern s16 D_8011A93A_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80
 extern s16 D_8011A944_msetup;                    /* .bss 0x2; lh,sh: 801059A0 80105C4C 80105DB4 80107FB4 80108AB8 80109218 801098 */
 extern s16 D_8011A946_msetup;                    /* .bss 0x2; lh,sh: 80105DB4 80107FB4 80108AB8 80109218 80109868 8010A35C 8010A7 */
 extern f32 D_8011A9EC_msetup;                    /* .bss 0x4; swc1: 8010BA6C */
-extern s16 D_8011A9F0_msetup;                    /* .bss 0x2; sh: 8010BA6C */
 extern s16 D_8011A9F2_msetup[];                  /* .bss 0x14; lh,lhu,sh: 80107840 80107964 80107A58 80107B8C 80107FB4 801084C4 801085 */
 extern s16 D_8011AA06_msetup[];                  /* .bss 0x28; lh: 801084C4 */
 extern s16 D_8011AA2E_msetup;                    /* .bss 0x2; lh: 80107840 */
@@ -204,7 +201,6 @@ ptrs,40) 80119CC0(addiu,20) 80119CE0(addiu,20) 80119D00(addiu,20) 80119D20(addiu
 void func_801059A0_msetup(void);
 void func_80105C4C_msetup(omObjData *obj);
 void func_80105DB4_msetup(omObjData *obj);
-void func_80105E90_msetup(s32 *arg0);
 void func_80105F7C_msetup(MsModelDef *def, s16 model);
 void func_80106030_msetup(MsModelDef *defs, MsModelSlot *slots, s32 count);
 u32 func_8010610C_msetup(u32 seed); /* random step (MP1 BoxMountainMayhem) */
@@ -214,28 +210,24 @@ void func_80106260_msetup(MsCamKey *key); /* camera set */
 void func_80106320_msetup(void); /* process */
 void func_801068F4_msetup(MsCamKey *keys, f32 speed, MsCamFunc func);
 void func_80106DF8_msetup(void);
-f32 func_80106FC0_msetup(void *arg0, s32 arg1, f32 arg2);
+
 void func_801070FC_msetup(omObjData *obj);
 omObjData * func_80107428_msetup(void);
 s16 func_801077E0_msetup(s32 arg0);
 s16 func_80107840_msetup(s32 arg0);
 s16 func_80107964_msetup(s32 arg0);
-s32 func_80107A58_msetup(s32 arg0);
 s16 func_80107B8C_msetup(s32 arg0);
 s16 func_80107CF4_msetup(s32 arg0);
 s16 func_80107D84_msetup(s32 arg0);
 s16 func_80107E48_msetup(s32 arg0);
-s32 func_80107ECC_msetup(s32 arg0);
 void func_80107F88_msetup(s16 arg0, s16 arg1, s16 arg2); /* MsCamFunc */
 void func_80107FB4_msetup(void);
 s16 func_80108464_msetup(s32 arg0);
 s16 func_801084C4_msetup(s32 arg0);
 s16 func_801085D4_msetup(s32 arg0);
-s32 func_801086C8_msetup(s32 arg0);
 s16 func_801087F4_msetup(s32 arg0);
 s16 func_801088A8_msetup(s32 arg0);
 s16 func_80108938_msetup(s32 arg0);
-s32 func_801089FC_msetup(s32 arg0);
 void func_80108AB8_msetup(void);
 void func_80108F74_msetup(void);
 void func_80109218_msetup(void);
@@ -261,7 +253,6 @@ void func_8010B4B8_msetup(s16 arg0, s16 *arg1, s16 arg2);
 s16 func_8010B588_msetup(void);
 void func_8010B5D0_msetup(void); /* process */
 void func_8010B82C_msetup(s32 arg0);
-void func_8010B858_msetup(void);
 s32 func_8010B8E0_msetup(void);
 void func_8010B968_msetup(u32 arg0, s8 arg1);
 void func_8010B998_msetup(void);
@@ -329,6 +320,44 @@ void func_80117820_msetup(void); /* process: MsSetupWork state machine (D_80119F
 void func_80117910_msetup(s16 arg0, s16 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6); /* arg3 unused */
 void func_80117A3C_msetup(void); /* process */
 void func_80118D48_msetup(void);
+
+/* fork A */
+/* The per-player setup block at 0x8011AA30 (0x18 bytes). Retail addresses it as one struct
+   (a base register at the first field used, other fields relative); splat split it into the
+   D_8011AA34..D_8011AA47_msetup labels, which stay declared for the code that names them. */
+typedef struct MsConfig {
+    /* 0x00 */ u8 pad[4];   /* controller port per player */
+    /* 0x04 */ u8 chr[4];   /* D_8011AA34_msetup */
+    /* 0x08 */ u8 com[4];   /* D_8011AA38_msetup: COM difficulty, >= 4 for a human */
+    /* 0x0C */ u8 star[4];  /* D_8011AA3C_msetup */
+    /* 0x10 */ u8 unk10;    /* D_8011AA40_msetup */
+    /* 0x11 */ u8 unk11;    /* D_8011AA41_msetup */
+    /* 0x12 */ u8 turns;    /* D_8011AA42_msetup */
+    /* 0x13 */ u8 unk13;    /* D_8011AA43_msetup */
+    /* 0x14 */ u8 unk14;    /* D_8011AA44_msetup */
+    /* 0x15 */ u8 board;    /* D_8011AA45_msetup */
+    /* 0x16 */ u8 length;   /* game length (GwSystem.current_game_length) */
+    /* 0x17 */ u8 unk17;    /* D_8011AA47_msetup */
+} MsConfig; /* size = 0x18 */
+extern MsConfig D_8011AA30_msetup; /* was u8 D_8011AA30_msetup[4]: write .pad[i] */
+extern s16 D_8011A990_msetup; /* was s16[2]; only lh/sh of the first halfword */
+/* D_8011A9F0_msetup: one 0x14-byte record per player (splat labels D_8011A9F2/D_8011AA06/D_8011AA2E
+   are fields of records 0, 1 and 3). */
+typedef struct MsPlayerUi {
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2; /* state */
+    /* 0x04 */ s16 unk4[8];
+} MsPlayerUi; /* size = 0x14 */
+extern MsPlayerUi D_8011A9F0_msetup[];
+/* menu step functions (D_80119434/D_80119458/D_80119510/D_80119524_msetup tables): s16 (*)(s32 step) */
+s16 func_80107A58_msetup(s32 arg0);
+s16 func_80107ECC_msetup(s32 arg0);
+s16 func_801086C8_msetup(s32 arg0);
+s16 func_801089FC_msetup(s32 arg0);
+s32 func_8010B858_msetup(void); /* returns the window choice (func_8005E1D8_main) */
+f32 func_80106FC0_msetup(Vec *pos, s32 mask, f32 radius); /* random drop and angle */
+void func_80105E90_msetup(MsModelDef *defs); /* list ends at unk0 == -1 */
+
 
 /* fork D */
 /* user_data of a func_8010D6D0_msetup cursor process (801132C4 keeps two on its stack). */
