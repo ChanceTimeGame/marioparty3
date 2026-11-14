@@ -7,6 +7,13 @@ void func_80108808_inst(omObjData *);
 void func_80108870_inst(omObjData *);
 void func_80108954_inst(omObjData *);
 void func_8010C848_inst(void);
+extern InstBoard D_8010DDE8_inst; /* the second host */
+extern s32 D_8010D530_inst;
+extern s32 D_8010D534_inst;
+void func_8010986C_inst(omObjData *);
+void func_801098D8_inst(omObjData *);
+void func_801099C0_inst(omObjData *);
+void func_80109A84_inst(omObjData *);
 void func_8010C8D0_inst(void);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
@@ -150,13 +157,62 @@ INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_80108AF0_inst);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801094B0_inst);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801097DC_inst);
+/* Second host's handlers (the 2-player screen): waits, jumps up (sound 0x298), lands. */
+void func_801097DC_inst(omObjData *obj) {
+    obj->trans.x = -91.0f;
+    obj->trans.y = -171.0f;
+    obj->trans.z = 210.0f;
+    obj->rot.x = -20.0f;
+    obj->rot.y = 15.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    D_8010DDE8_inst.func = func_8010986C_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_8010986C_inst);
+void func_8010986C_inst(omObjData *obj) {
+    if (++D_8010D530_inst >= 100) {
+        D_8010DDE8_inst.func = func_801098D8_inst;
+        D_8010D530_inst = 0;
+        func_8001C258_main(obj->model[0], 4, 0);
+        HuAudFXPlay(0x298);
+        func_8010C8D0_inst();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801098D8_inst);
+void func_801098D8_inst(omObjData *obj) {
+    D_8010D534_inst++;
+    obj->trans.y = sindf(D_8010D534_inst * 5) * 200.0f + -171.0f;
+    if (D_8010D534_inst == 13) {
+        func_8001C5B4_main(obj->model[0], obj->motion[4]);
+        func_8001C814_main(obj->model[0], 2, 0);
+    }
+    if (D_8010D534_inst >= 17) {
+        obj->trans.y = 29.0f;
+        D_8010D534_inst = 0;
+        D_8010DDE8_inst.func = func_801099C0_inst;
+    }
+}
 
+/* Retail indexes HmfModelData with the motion id (obj->motion[3]) for the blend length. */
+#ifdef NON_MATCHING
+/* Masked 2: the HmfModelData load is scheduled before the model index. */
+void func_801099C0_inst(omObjData *obj) {
+    HmfModel *models;
+    HmfModel *model;
+    s16 m;
+
+    m = obj->model[0];
+    models = HmfModelData;
+    model = &models[m];
+
+    if (D_800CCF58_main[model->unk02].unk02 <= model->unk40) {
+        func_8001C624_main(m, models[obj->motion[3]].unk02, 0, 30, 2);
+        func_8010C848_inst();
+        D_8010DDE8_inst.func = func_80109A84_inst;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E1510", func_801099C0_inst);
+#endif
 
-void func_80109A84_inst(void) {
+void func_80109A84_inst(omObjData *obj) {
 }
