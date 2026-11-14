@@ -249,21 +249,251 @@ void func_80106508_option(Vec *eye, Vec *at, Vec *up) {
     HuVecCopy3F(&D_801146F0_option.up, up);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106998_option);
+/* Camera move, straight: eye and target both move linearly. */
+void func_80106998_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec from;
+    Vec to;
+    f32 t;
+    f32 u;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106B78_option);
+    t = (f32)D_801146F0_option.t / (f32)D_801146F0_option.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        u = 1.0f;
+    } else {
+        u = t;
+    }
+    HuVecCopy3F(&from, &D_801146F0_option.fromEye);
+    HuVecCopy3F(&to, &D_801146F0_option.toEye);
+    HuVecCopyXYZ(&eye, (to.x - from.x) * u + from.x, (to.y - from.y) * u + from.y, (to.z - from.z) * u + from.z);
+    HuVecCopy3F(&from, &D_801146F0_option.fromAt);
+    HuVecCopy3F(&to, &D_801146F0_option.toAt);
+    HuVecCopyXYZ(&at, (to.x - from.x) * u + from.x, (to.y - from.y) * u + from.y, (to.z - from.z) * u + from.z);
+    if (D_801146F0_option.t > D_801146F0_option.len) {
+        omDelObj(obj);
+        func_80106508_option(&D_801146F0_option.toEye, &D_801146F0_option.toAt, &up);
+        D_801146F0_option.moveObj = NULL;
+        return;
+    }
+    D_801146F0_option.t++;
+    func_80106508_option(&eye, &at, &up);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106BAC_option);
+void func_80106B78_option(void) {
+    if (D_801146F0_option.moveObj != NULL) {
+        omDelObj(D_801146F0_option.moveObj);
+    }
+    D_801146F0_option.moveObj = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106C7C_option);
+omObjData *func_80106BAC_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80106F88_option);
+    func_80106B78_option();
+    obj = omAddObj(6, 0, 0, -1, func_80106998_option);
+    obj->work[0] = 0;
+    obj->work[1] = 0;
+    D_801146F0_option.moveObj = obj;
+    D_801146F0_option.t = 0;
+    D_801146F0_option.len = len;
+    HuVecCopy3F(&D_801146F0_option.fromAt, &D_801146F0_option.at);
+    HuVecCopy3F(&D_801146F0_option.fromEye, &D_801146F0_option.eye);
+    HuVecCopyXYZ(&D_801146F0_option.toAt, at->x, at->y, at->z);
+    HuVecCopyXYZ(&D_801146F0_option.toEye, eye->x, eye->y, eye->z);
+    return obj;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107058_option);
+/* Camera move keeping the horizontal eye-to-target distance in step (linear). */
+void func_80106C7C_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec fromEye;
+    Vec toEye;
+    Vec d;
+    Vec fromAt;
+    Vec toAt;
+    Vec d0;
+    Vec d1;
+    f32 len0;
+    f32 t;
+    f32 u;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010737C_option);
+    t = (f32)D_801146F0_option.t / (f32)D_801146F0_option.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        u = 1.0f;
+    } else {
+        u = t;
+    }
+    s = u;
+    HuVecCopy3F(&fromEye, &D_801146F0_option.fromEye);
+    HuVecCopy3F(&toEye, &D_801146F0_option.toEye);
+    HuVecCopyXYZ(&eye, (toEye.x - fromEye.x) * s + fromEye.x, (toEye.y - fromEye.y) * s + fromEye.y, (toEye.z - fromEye.z) * s + fromEye.z);
+    HuVecCopy3F(&fromAt, &D_801146F0_option.fromAt);
+    HuVecCopy3F(&toAt, &D_801146F0_option.toAt);
+    HuVecCopyXYZ(&at, (toAt.x - fromAt.x) * s + fromAt.x, (toAt.y - fromAt.y) * s + fromAt.y, (toAt.z - fromAt.z) * s + fromAt.z);
+    HuVecCopyXYZ(&d0, fromAt.x - fromEye.x, 0.0f, fromAt.z - fromEye.z);
+    HuVecCopyXYZ(&d1, toAt.x - toEye.x, 0.0f, toAt.z - toEye.z);
+    len0 = HuVecGetLength3F(&d0);
+    t = HuVecGetLength3F(&d1);
+    HuVecCopyXYZ(&d, at.x - eye.x, 0.0f, at.z - eye.z);
+    t = ((t - len0) * s + len0) / HuVecGetLength3F(&d);
+    HuVecCopyXYZ(&at, t * d.x + eye.x, (toAt.y - fromAt.y) * s + fromAt.y, t * d.z + eye.z);
+    if (D_801146F0_option.t > D_801146F0_option.len) {
+        omDelObj(obj);
+        func_80106508_option(&D_801146F0_option.toEye, &D_801146F0_option.toAt, &up);
+        D_801146F0_option.moveObj = NULL;
+        return;
+    }
+    D_801146F0_option.t++;
+    func_80106508_option(&eye, &at, &up);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010744C_option);
+omObjData *func_80106F88_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
+
+    func_80106B78_option();
+    obj = omAddObj(6, 0, 0, -1, func_80106C7C_option);
+    obj->work[0] = 0;
+    obj->work[1] = 0;
+    D_801146F0_option.moveObj = obj;
+    D_801146F0_option.t = 0;
+    D_801146F0_option.len = len;
+    HuVecCopy3F(&D_801146F0_option.fromAt, &D_801146F0_option.at);
+    HuVecCopy3F(&D_801146F0_option.fromEye, &D_801146F0_option.eye);
+    HuVecCopyXYZ(&D_801146F0_option.toAt, at->x, at->y, at->z);
+    HuVecCopyXYZ(&D_801146F0_option.toEye, eye->x, eye->y, eye->z);
+    return obj;
+}
+
+/* As func_80106C7C_option, eased (sine). */
+void func_80107058_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec fromEye;
+    Vec toEye;
+    Vec d;
+    Vec fromAt;
+    Vec toAt;
+    Vec d0;
+    Vec d1;
+    f32 len0;
+    f32 t;
+    f32 u;
+    f32 s;
+
+    t = (f32)D_801146F0_option.t / (f32)D_801146F0_option.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        u = 1.0f;
+    } else {
+        u = t;
+    }
+    u = sindf(u * 90.0f);
+    HuVecCopy3F(&fromEye, &D_801146F0_option.fromEye);
+    HuVecCopy3F(&toEye, &D_801146F0_option.toEye);
+    HuVecCopyXYZ(&eye, (toEye.x - fromEye.x) * u + fromEye.x, (toEye.y - fromEye.y) * u + fromEye.y, (toEye.z - fromEye.z) * u + fromEye.z);
+    HuVecCopy3F(&fromAt, &D_801146F0_option.fromAt);
+    HuVecCopy3F(&toAt, &D_801146F0_option.toAt);
+    HuVecCopyXYZ(&at, (toAt.x - fromAt.x) * u + fromAt.x, (toAt.y - fromAt.y) * u + fromAt.y, (toAt.z - fromAt.z) * u + fromAt.z);
+    HuVecCopyXYZ(&d0, fromAt.x - fromEye.x, 0.0f, fromAt.z - fromEye.z);
+    HuVecCopyXYZ(&d1, toAt.x - toEye.x, 0.0f, toAt.z - toEye.z);
+    len0 = HuVecGetLength3F(&d0);
+    t = HuVecGetLength3F(&d1);
+    HuVecCopyXYZ(&d, at.x - eye.x, 0.0f, at.z - eye.z);
+    t = ((t - len0) * u + len0) / HuVecGetLength3F(&d);
+    HuVecCopyXYZ(&at, t * d.x + eye.x, (toAt.y - fromAt.y) * u + fromAt.y, t * d.z + eye.z);
+    if (D_801146F0_option.t > D_801146F0_option.len) {
+        omDelObj(obj);
+        func_80106508_option(&D_801146F0_option.toEye, &D_801146F0_option.toAt, &up);
+        D_801146F0_option.moveObj = NULL;
+        return;
+    }
+    D_801146F0_option.t++;
+    func_80106508_option(&eye, &at, &up);
+}
+
+omObjData *func_8010737C_option(Vec *eye, Vec *at, s32 len) {
+    omObjData *obj;
+
+    func_80106B78_option();
+    obj = omAddObj(6, 0, 0, -1, func_80107058_option);
+    obj->work[0] = 0;
+    obj->work[1] = 0;
+    D_801146F0_option.moveObj = obj;
+    D_801146F0_option.t = 0;
+    D_801146F0_option.len = len;
+    HuVecCopy3F(&D_801146F0_option.fromAt, &D_801146F0_option.at);
+    HuVecCopy3F(&D_801146F0_option.fromEye, &D_801146F0_option.eye);
+    HuVecCopyXYZ(&D_801146F0_option.toAt, at->x, at->y, at->z);
+    HuVecCopyXYZ(&D_801146F0_option.toEye, eye->x, eye->y, eye->z);
+    return obj;
+}
+
+/* Camera move turning the horizontal view direction round (D_80114764_option picks the way). */
+void func_8010744C_option(omObjData *obj) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    Vec fromEye;
+    Vec toEye;
+    Vec dir;
+    Vec fromAt;
+    Vec toAt;
+    Vec d0;
+    Vec d1;
+    f32 len0;
+    f32 t;
+    f32 u;
+    f32 s;
+
+    t = (f32)D_801146F0_option.t / (f32)D_801146F0_option.len;
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    if (t > 1.0f) {
+        u = 1.0f;
+    } else {
+        u = t;
+    }
+    HuVecCopy3F(&fromEye, &D_801146F0_option.fromEye);
+    HuVecCopy3F(&toEye, &D_801146F0_option.toEye);
+    HuVecCopyXYZ(&eye, (toEye.x - fromEye.x) * u + fromEye.x, (toEye.y - fromEye.y) * u + fromEye.y, (toEye.z - fromEye.z) * u + fromEye.z);
+    HuVecCopy3F(&fromAt, &D_801146F0_option.fromAt);
+    HuVecCopy3F(&toAt, &D_801146F0_option.toAt);
+    HuVecCopyXYZ(&at, (toAt.x - fromAt.x) * u + fromAt.x, (toAt.y - fromAt.y) * u + fromAt.y, (toAt.z - fromAt.z) * u + fromAt.z);
+    HuVecCopyXYZ(&d0, fromAt.x - fromEye.x, 0.0f, fromAt.z - fromEye.z);
+    HuVecCopyXYZ(&d1, toAt.x - toEye.x, 0.0f, toAt.z - toEye.z);
+    s = sindf(u * 90.0f);
+    if (D_80114764_option != 0) {
+        func_80107B80_option(&d0, &d1, s, &dir);
+    } else {
+        func_80107D64_option(&d0, &d1, s, &dir);
+    }
+    len0 = HuVecGetLength3F(&d0);
+    t = (HuVecGetLength3F(&d1) - len0) * u + len0;
+    HuVecCopyXYZ(&at, t * dir.x + eye.x, (toAt.y - fromAt.y) * u + fromAt.y, t * dir.z + eye.z);
+    if (D_801146F0_option.t > D_801146F0_option.len) {
+        omDelObj(obj);
+        func_80106508_option(&D_801146F0_option.toEye, &D_801146F0_option.toAt, &up);
+        D_801146F0_option.moveObj = NULL;
+        return;
+    }
+    D_801146F0_option.t++;
+    func_80106508_option(&eye, &at, &up);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107758_option);
 
