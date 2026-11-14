@@ -479,14 +479,50 @@ omObjData *func_8010E21C_msetup(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E32C_msetup);
+void func_8010E32C_msetup(MsLift *lifts, s32 count, f32 rotY, s32 link) {
+    MsLift *lift;
+    Vec *rot;
+    s32 i;
+    s16 model;
+    s16 base;
+
+    base = -1;
+    for (i = 0; i < count; i++) {
+        if ((base < 0) | (link == 0)) {
+            model = base = func_8000B108_main(0x140003, 0x2A9);
+        } else {
+            model = Hu3DModelLink(base);
+        }
+        lifts[i].model = model;
+        lifts[i].unk20 = 0;
+        lift = &lifts[i];
+        rot = &lift->rot;
+        rot->x = rot->z = 0.0f;
+        if (i != 0) {
+            rot->y = rotY + 180.0f;
+        } else {
+            rot->y = rotY;
+        }
+        Hu3DModelRotSet(model, rot->x, rot->y, rot->z);
+        lift->pos = D_80119B20_msetup;
+        Hu3DModelPosSet(model, lift->pos.x, lift->pos.y, lift->pos.z);
+        Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
+        HuPrcVSleep();
+    }
+}
 
 
 void func_8010E4BC_msetup(MsLift *lifts, s32 count, f32 rotY) {
     func_8010E32C_msetup(lifts, count, rotY, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E4D8_msetup);
+void func_8010E4D8_msetup(MsLift *lifts, s32 count) {
+    s32 i;
+
+    for (i = 0; i < count; i++, lifts++) {
+        func_8001C514_main(lifts->model);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010E52C_msetup);
 

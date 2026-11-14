@@ -369,5 +369,6 @@ typedef struct MsFxWork {
 extern f32 D_80119AF4_msetup;
 extern f32 D_80119AF8_msetup;
 extern f32 D_80119AFC_msetup[]; /* .data 0x10; only [0] read */
+extern Vec D_80119B20_msetup;   /* Star Lift start position (func_8010E32C_msetup) */
 
 #endif
