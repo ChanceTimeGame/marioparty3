@@ -59,7 +59,10 @@ extern s8 D_8010D408_inst;
 extern s8 D_8010D409_inst;
 extern s8 D_8010D40A_inst; /* minigame type */
 extern s8 D_8010D40B_inst; /* minigame index */
+extern f32 D_8010D414_inst; /* board tilt */
 extern s32 D_8010D4A4_inst; /* instruction message */
+extern s32 D_8010D508_inst;
+extern f32 D_8010D50C_inst;
 extern InstPartList *D_8010D4C0_inst[9][2];
 extern void *D_8010DC10_inst;
 extern void *D_8010DC14_inst;
@@ -70,6 +73,11 @@ extern void (*D_8010DDDC_inst)(omObjData *);
 u16 func_8000B0D4_main(s32, s32);
 void *func_8001D33C_main(s16 model, const char *name);
 void func_80107938_inst(omObjData *);
+void func_801079CC_inst(omObjData *);
+void func_80107A24_inst(omObjData *);
+void func_80107BF8_inst(omObjData *);
+void func_80107E18_inst(omObjData *);
+s8 func_8010B10C_inst(void);
 void func_80107EE0_inst(void);
 void func_8010815C_inst(omObjData *);
 void func_80108AF0_inst(s16, void *, void *, void *);
@@ -154,13 +162,49 @@ void func_80107470_inst(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107470_inst);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107938_inst);
+/* Page handler: waits for the text window, then starts the board and title motions. */
+void func_80107938_inst(omObjData *obj) {
+    if (func_8010B10C_inst() == 1) {
+        func_8001C814_main(obj->model[1], 1, 0);
+        func_8001C814_main(obj->model[2], 1, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+        func_8001C258_main(obj->model[2], 4, 0);
+        D_8010DDDC_inst = func_801079CC_inst;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_801079CC_inst);
+void func_801079CC_inst(omObjData *obj) {
+    func_8001C814_main(obj->model[3], 1, 0);
+    func_8001C258_main(obj->model[3], 4, 0);
+    D_8010DDDC_inst = func_80107A24_inst;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107A24_inst);
+/* Page handler: tilts the board and title up and grows the page models with the cursor
+   model's motion, then idles. */
+void func_80107A24_inst(omObjData *obj) {
+    f32 frames;
+    f32 rot;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107BE4_inst);
+    frames = D_800CCF58_main[HmfModelData[obj->model[3]].unk02].unk02 - 25.0f;
+    rot = D_8010D508_inst / frames * D_8010D414_inst;
+    HmfModelData[obj->model[1]].rot.x = rot - 90.0f;
+    HmfModelData[obj->model[2]].rot.x = rot;
+    D_8010D50C_inst = 0.15f / frames * D_8010D508_inst;
+    for (i = 0; i < 3; i++) {
+        Hu3DModelScaleSet(obj->model[i + 1], D_8010D50C_inst + 0.45f, D_8010D50C_inst + 0.45f, D_8010D50C_inst + 0.45f);
+    }
+    D_8010D508_inst++;
+    if (D_8010D508_inst == frames) {
+        D_8010DDDC_inst = func_80107E18_inst;
+        D_8010D50C_inst = 0.0f;
+        D_8010D508_inst = 0;
+    }
+}
+
+void func_80107BE4_inst(void) {
+    D_8010DDDC_inst = func_80107BF8_inst;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E0630", D_8010D978_inst);
 
@@ -168,7 +212,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/inst/4E0630", D_8010D980_inst);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107BF8_inst);
 
-void func_80107E18_inst(void) {
+void func_80107E18_inst(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E0630", func_80107E20_inst);
