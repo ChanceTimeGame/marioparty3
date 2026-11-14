@@ -361,13 +361,138 @@ s16 func_8010BEB0_msetup(s16 player, s16 value) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010BEF8_msetup);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CAF0_msetup);
+s16 func_8010CAF0_msetup(s32 dir, s32 file) {
+    MsFxHmf *hmf;
+    MsFxWork *work;
+    MsFxPart *part;
+    s16 model;
+    s16 i;
+    f32 radius;
+    f32 step;
+    f32 speed;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CC70_msetup);
+    model = func_8000B108_main(dir, file);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_8010CE8C_msetup);
+    hmf = (MsFxHmf *)HmfModelData[model].hmf;
+    work = (MsFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->unk08 = 30.0f;
+    work->unk0C = 720.0f;
+    work->unk10 = 80.0f;
+    work->unk14 = 5.0f;
+    radius = work->unk10 / 10.0f;
+    step = (work->unk10 - radius) / work->unk08;
+    speed = work->unk0C / work->unk08;
+    for (i = 0; i < hmf->groupCount; i++) {
+        part->pos.x = part->pos.y = part->pos.z = 0.0f;
+        part->angle = 0.0f;
+        part->radius = radius;
+        part->radiusStep = step;
+        part->vel.x = speed;
+        part->vel.y = 0.0f;
+        part->vel.z = 0.0f;
+        part->scale = 0.0f;
+        part->phase = 180.0f;
+        part++;
+    }
+    return model;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CD14_msetup);
+void func_8010CC70_msetup(s16 model, f32 unk08, f32 unk0C, f32 unk10, f32 unk14) {
+    MsFxHmf *hmf;
+    MsFxWork *work;
+    MsFxPart *part;
+    s16 i;
+    f32 step;
+    f32 speed;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010CE8C_msetup);
+    hmf = (MsFxHmf *)HmfModelData[model].hmf;
+    work = (MsFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->unk08 = unk08;
+    work->unk0C = unk0C;
+    work->unk10 = unk10;
+    work->unk14 = unk14;
+    step = (unk10 - unk10 / 10.0f) / unk08;
+    speed = unk0C / unk08;
+    for (i = 0; i < hmf->groupCount; i++) {
+        part->radiusStep = step;
+        part->vel.x = speed;
+        part++;
+    }
+}
+
+s32 func_8010CD14_msetup(s16 model, f32 x, f32 y, f32 z) {
+    MsFxHmf *hmf;
+    MsFxWork *work;
+    MsFxPart *part;
+    s16 i;
+    f32 tilt;
+
+    hmf = (MsFxHmf *)HmfModelData[model].hmf;
+    work = (MsFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    work->center.x = x;
+    work->center.y = y;
+    work->center.z = z;
+    for (i = 0; i < hmf->groupCount; i++, part++) {
+        if (part->phase >= 180.0f) {
+            part->angle = func_80106208_msetup(360);
+            part->radius = work->unk10 / 10.0f;
+            tilt = func_80106208_msetup(150);
+            tilt -= 75.0f;
+            if (tilt < 0.0f) {
+                tilt += 360.0f;
+            }
+            part->vel.y = sindf(tilt);
+            part->vel.z = cosdf(tilt);
+            part->scale = 0.0f;
+            part->phase = 0.0f;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void func_8010CE8C_msetup(s16 model) {
+    MsFxHmf *hmf;
+    MsFxWork *work;
+    MsFxPart *part;
+    s16 i;
+    s16 count;
+    f32 r;
+
+    hmf = (MsFxHmf *)HmfModelData[model].hmf;
+    work = (MsFxWork *)HmfModelData[model].unkBC;
+    part = work->parts;
+    count = hmf->groupCount;
+    for (i = 0; i < count; i++, part++) {
+        if (part->phase < 180.0f) {
+            part->angle += part->vel.x;
+            if (part->angle < 0.0f) {
+                part->angle += 360.0f;
+            } else if (part->angle >= 360.0f) {
+                part->angle -= 360.0f;
+            }
+            part->radius += part->radiusStep;
+            r = part->radius * part->vel.z;
+            part->pos.x = r * sindf(part->angle) + work->center.x;
+            part->pos.z = r * cosdf(part->angle) + work->center.z;
+            part->pos.y = part->radius * part->vel.y + work->center.y;
+            part->phase += work->unk14;
+            if (part->phase > 180.0f) {
+                part->phase = 180.0f;
+            }
+            part->scale = sindf(part->phase) * work->unk14;
+        }
+    }
+    work->frame++;
+}
 
 void func_8010D060_msetup(HmfData *hmf, s16 idx) {
     if ((s8)hmf->unk84[idx].unk3 != -1) {

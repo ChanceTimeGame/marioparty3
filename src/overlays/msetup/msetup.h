@@ -247,9 +247,6 @@ void func_8010BC18_msetup(s16 arg0, s16 arg1);
 void func_8010BE8C_msetup(s16 arg0);
 s16 func_8010BEB0_msetup(s16 arg0, s16 arg1);
 void func_8010BEF8_msetup(void); /* process */
-s16 func_8010CAF0_msetup(s32 arg0, s32 arg1);
-void func_8010CC70_msetup(s16 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4);
-s32 func_8010CD14_msetup(s16 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_8010CE8C_msetup(s16 model); /* func_80013390_main hook */
 s32 func_8010D0C8_msetup(s16 arg0, s32 arg1);
 s16 func_8010D234_msetup(s32 arg0, s32 arg1, s16 arg2, s16 arg3, s32 arg4, s32 arg5);
@@ -395,5 +392,41 @@ extern f32 D_80119A54_msetup[4];
 extern f32 D_80119A64_msetup[2];
 extern s16 D_80119A6C_msetup[]; /* start delay, by D_8011A938_msetup */
 void func_8010BA6C_msetup(s16 start, s16 count);
+
+
+/* hmfman's vertex-scatter effect (HmfModel.unkBC; opening's OpFxWork/OpFxPart, same layout) as
+   func_8010CAF0_msetup..func_8010CE8C_msetup use it: one MsFxPart per face group. */
+typedef struct MsFxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 phase; /* 0..180 while live, >= 180 idle */
+    /* 0x08 */ f32 scale;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ f32 angle;
+    /* 0x1C */ f32 radiusStep;
+    /* 0x20 */ f32 radius;
+    /* 0x24 */ Vec vel; /* x = angle step, y/z = height/radius factors */
+} MsFxPart; /* size = 0x30 */
+typedef struct MsFxWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* frames to full radius */
+    /* 0x0C */ f32 unk0C; /* degrees turned over unk08 */
+    /* 0x10 */ f32 unk10; /* full radius */
+    /* 0x14 */ f32 unk14; /* phase step, also scale */
+    /* 0x18 */ void (*hook)(s16);
+    /* 0x1C */ Vec center;
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ MsFxPart *parts;
+} MsFxWork; /* size = 0x5C */
+typedef struct MsFxHmf { /* HmfData's face group count (hmfman.h does not name it) */
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 groupCount;
+} MsFxHmf;
+void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
+s16 func_8010CAF0_msetup(s32 dir, s32 file); /* starts the effect on a new model; returns it */
+void func_8010CC70_msetup(s16 model, f32 unk08, f32 unk0C, f32 unk10, f32 unk14);
+s32 func_8010CD14_msetup(s16 model, f32 x, f32 y, f32 z); /* launches one idle group: 1 if one was free */
 
 #endif
