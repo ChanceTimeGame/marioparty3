@@ -210,13 +210,16 @@ void func_80106240_duel01(void) {
 }
 
 // duel b1: arg0/arg1 typed (were s32, unkStruct05*)
-void func_80106260_duel01(Object *arg0, GW_PLAYER *arg1, s32 arg2, f32 arg3) {
+Process *func_80106260_duel01(Object *arg0, GW_PLAYER *arg1, s32 arg2, f32 arg3) { // duel b1: returns the camera move (was void)
+    Process *process;
+
     arg3 = arg3 + 0.5f;
     if (arg2 & 9) {
-        func_800EC1E4_name_81(&D_80105540_name_81, &arg0->coords, &D_80105540_name_81, arg3);
+        process = func_800EC1E4_name_81(&D_80105540_name_81, &arg0->coords, &D_80105540_name_81, arg3);
     } else {
-        func_800EC1E4_name_81(&D_80105540_name_81, &arg1->player_obj->coords, &D_80105540_name_81, arg3);
+        process = func_800EC1E4_name_81(&D_80105540_name_81, &arg1->player_obj->coords, &D_80105540_name_81, arg3);
     }
+    return process;
 }
 
 // duel b1: typed; retail passes func_800EBF2C_name_81 no frame count (its $a3 is left over)
@@ -1103,7 +1106,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80108550_duel01);
 #endif
 
 // duel b1: a partner drifts into the target and fades out (and back in)
-void func_80109404_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags) {
+void func_80109404_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
     Vec dest;
     Vec start;
     Vec diff;
@@ -1176,7 +1179,166 @@ void func_80109404_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Obj
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80109888_duel01);
+// duel b1: a partner vanishes and reappears beside the target to strike (level 2: two blinks around the camera
+// focus first); flag 0x10 in the level picks the fade-through attack instead
+void func_80109888_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
+    Vec dest;
+    Vec start;
+    Vec near;
+    Vec dir;
+    Vec mid;
+    GW_PLAYER *player;
+    Process *process;
+    s32 seNo;
+    s32 i;
+    f32 baseAngle;
+    s32 angle;
+    Vec *midp;
+
+    player = MBDGetPlayerStruct(targetIndex);
+    process = HuPrcCurrentGet();
+    seNo = -1;
+    if (level & 0x10) {
+        func_80109404_duel01(playerIndex, targetIndex, partner, target, flags, 1);
+        return;
+    }
+    level &= ~0x10;
+    func_800D90D0_name_81(partner, 0, 2);
+    func_8010615C_duel01(partner, target, player, &near, &start, 6.0f);
+    func_8010615C_duel01(partner, target, player, &dest, &start, 8.0f);
+    func_80106240_duel01();
+    for (i = 0; i < 10; i++) {
+        func_8001F9E4_main(partner->omObj1->model[0], 0xFF - (i * 255) / 10);
+        func_8001F9E4_main(partner->omObj2->model[0], 0xFF - (i * 255) / 10);
+        HuPrcVSleep();
+    }
+    func_8001F9E4_main(partner->omObj1->model[0], 0);
+    func_8001F9E4_main(partner->omObj2->model[0], 0);
+    HuPrcChildLink(process, func_80106260_duel01(target, player, flags, 3.0f));
+    HuPrcChildWait();
+    if (level == 2) {
+        seNo = HuAudFXPlay(0x1DF);
+        func_800EB708_name_81(&D_80105540_name_81, &partner->coords, &dir);
+        baseAngle = func_800D76D0_name_81(&dir);
+        angle = baseAngle + 90.0f;
+        HuVecCopyXYZ(&partner->coords, D_80105540_name_81.x + sindf(angle) * 8.0f, D_80105540_name_81.y,
+                     D_80105540_name_81.z + cosdf(angle) * 8.0f);
+        func_800EB708_name_81(&partner->coords, &D_80105540_name_81, &partner->rot);
+        for (i = 0; i <= 128; i += 20) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            func_8001F9E4_main(partner->omObj2->model[0], i);
+            HuPrcVSleep();
+        }
+        HuAudFXPlay(0x257);
+        for (i = 128; i >= 0; i -= 20) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            func_8001F9E4_main(partner->omObj2->model[0], i);
+            HuPrcVSleep();
+        }
+        func_8001F9E4_main(partner->omObj1->model[0], 0);
+        func_8001F9E4_main(partner->omObj2->model[0], 0);
+        HuPrcVSleep();
+        angle = baseAngle + -90.0f;
+        HuVecCopyXYZ(&partner->coords, D_80105540_name_81.x + sindf(angle) * 8.0f, D_80105540_name_81.y,
+                     D_80105540_name_81.z + cosdf(angle) * 8.0f);
+        func_800EB708_name_81(&partner->coords, &D_80105540_name_81, &partner->rot);
+        for (i = 0; i <= 128; i += 20) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            func_8001F9E4_main(partner->omObj2->model[0], i);
+            HuPrcVSleep();
+        }
+        HuAudFXPlay(0x257);
+        for (i = 128; i >= 0; i -= 20) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            func_8001F9E4_main(partner->omObj2->model[0], i);
+            HuPrcVSleep();
+        }
+        func_8001F9E4_main(partner->omObj1->model[0], 0);
+        func_8001F9E4_main(partner->omObj2->model[0], 0);
+        HuPrcVSleep();
+    }
+    HuVecCopy3F(&partner->coords, &dest);
+    func_800EB708_name_81(&partner->coords, &D_80105540_name_81, &partner->rot);
+    for (i = 0; i < 255; i += 10) {
+        func_8001F9E4_main(partner->omObj1->model[0], i);
+        func_8001F9E4_main(partner->omObj2->model[0], i);
+        HuPrcVSleep();
+        if (i == 160) {
+            if (seNo != -1) {
+                HuAudFXStop((s16)seNo);
+            }
+            HuAudFXPlay(0x257);
+        }
+    }
+    func_8001F9E4_main(partner->omObj1->model[0], 0xFF);
+    func_8001F9E4_main(partner->omObj2->model[0], 0xFF);
+    HuPrcSleep((level == 1) ? 10 : 3);
+    HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &near, &partner->coords, 3));
+    if (flags & 8) {
+        if (level == 1) {
+            func_801060D0_duel01(player, target, 0, 20);
+        } else {
+            func_801060D0_duel01(player, target, 0, 40);
+        }
+        HuPrcChildWait();
+        if (level == 2) {
+            HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &dest, &partner->coords, 10));
+            HuPrcChildWait();
+            HuPrcSleep(5);
+            HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &near, &partner->coords, 3));
+            HuPrcChildWait();
+        }
+    } else {
+        HuPrcChildWait();
+        midp = &mid;
+        if (flags & 1) {
+            HuVecAdd(midp, &target->coords, &partner->coords);
+        } else {
+            HuVecAdd(midp, &player->player_obj->coords, &partner->coords);
+        }
+        HuVecMulScalar(midp, 0.5f, midp);
+        mid.y += 3.0f;
+        func_800DCE40_name_81(0x59, &mid, NULL, 1.0f);
+        HuAudFXPlay(0x1E0);
+        if (level == 2) {
+            HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &dest, &partner->coords, 10));
+            HuPrcChildWait();
+            HuPrcSleep(5);
+            HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &near, &partner->coords, 3));
+            HuPrcChildWait();
+            func_800DCE40_name_81(0x59, &mid, NULL, 1.0f);
+            HuAudFXPlay(0x1E0);
+        }
+        func_800FAC1C_name_81(&D_80105540_name_81);
+        if (flags & 1) {
+            func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
+            HuAudFXPlay((D_80105718_name_81 & 8) ? 0x1CE : 0x1CD);
+        }
+        if (flags & 2) {
+            func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_80105718_name_81 & 1, -1);
+            if (!(flags & 1)) {
+                HuAudFXPlay((D_80105718_name_81 & 1) ? 0x1CE : 0x1CD);
+            }
+        }
+    }
+    HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &dest, &partner->coords, 10));
+    HuPrcChildWait();
+    for (i = 0; i < 10; i++) {
+        func_8001F9E4_main(partner->omObj1->model[0], 0xFF - (i * 255) / 10);
+        func_8001F9E4_main(partner->omObj2->model[0], 0xFF - (i * 255) / 10);
+        HuPrcVSleep();
+    }
+    func_8001F9E4_main(partner->omObj1->model[0], 0);
+    func_8001F9E4_main(partner->omObj2->model[0], 0);
+    func_800ED214_name_81(playerIndex);
+    for (i = 0; i < 256; i += 10) {
+        func_8001F9E4_main(partner->omObj1->model[0], i);
+        func_8001F9E4_main(partner->omObj2->model[0], i);
+        HuPrcVSleep();
+    }
+    func_8001F9E4_main(partner->omObj1->model[0], 0xFF);
+    func_8001F9E4_main(partner->omObj2->model[0], 0xFF);
+}
 
 // duel b2: local types and prototypes for func_8010A210..func_8010DB2C
 #include "mallocblock.h"
