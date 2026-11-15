@@ -444,15 +444,138 @@ void func_80106410_boulder_ball(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106410_boulder_ball);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106B58_boulder_ball);
+/* The slope (ground object). */
+void func_80106B58_boulder_ball(omObjData* obj) {
+    BbGround* gw;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106C8C_boulder_ball);
+    D_800EB73C_minigame = 15.0f;
+    obj->model[0] = func_8000B0A0_main(0x250000, 0x6B9);
+    obj->model[1] = func_8000B0A0_main(0x250003, 0xAB9);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(BbGround), 31000);
+    memset(gw, 0, sizeof(BbGround));
+    obj->func = func_80106410_boulder_ball;
+    gw->unk03 = 1;
+    func_800E147C_minigame(obj);
+    func_800E1370_minigame(obj, 1, 0.0f);
+    func_800E1304_minigame(obj, 0.2f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E131C_minigame(obj, 22.5f);
+    func_800E1468_minigame(obj);
+    gw->unk04 = 0;
+    omSetStatBit(obj, 0xA0);
+}
 
+/* The second ground object (the finish area). */
+void func_80106C8C_boulder_ball(omObjData* obj) {
+    BbGround* gw;
+
+    D_800EB73C_minigame = 15.0f;
+    obj->model[0] = func_8000B0A0_main(0x250001, 0x29D);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(BbGround), 31000);
+    memset(gw, 0, sizeof(BbGround));
+    obj->func = NULL;
+    gw->unk03 = 1;
+    func_800E147C_minigame(obj);
+    func_800E1370_minigame(obj, 1, 0.0f);
+    func_800E1304_minigame(obj, 0.2f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E131C_minigame(obj, 22.5f);
+    func_800E1468_minigame(obj);
+    gw->unk04 = 1;
+    omSetStatBit(obj, 0xA0);
+}
+
+/* A player: models, motions and hooks. */
+// masked 2: retail loads both stack constants (0xAC9, 0xA99) before storing them, GCC here interleaves (scheduling only)
+#ifdef NON_MATCHING
+void func_80106DAC_boulder_ball(omObjData* obj, s32 arg1, s32 arg2, u16 arg3) {
+    MgWork* w;
+    s32 chr;
+
+    func_800E1BA8_minigame(obj, arg1, arg2, arg3, 0xAC9, 0xA99);
+    w = obj->data;
+    chr = GwPlayer[w->unk59].chr;
+    obj->model[3] = func_8000B108_main(3, 0x88D);
+    obj->model[4] = func_8000B108_main(4, 0x88D);
+    obj->model[5] = func_8000B108_main(6, 0x88D);
+    obj->model[7] = func_8000B108_main(8, 0x88D);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 0x11, func_80017BB8_main(chr, 0xE), 1, 0xF);
+    func_800E5A00_minigame(obj, 3, func_80017BB8_main(chr, 0x1D), 1, 0);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x1E), 1, 0);
+    func_800E5A00_minigame(obj, 0x1E, func_80017BB8_main(chr, 0x20), 2, 0);
+    func_800E5A00_minigame(obj, 0x1F, func_80017BB8_main(chr, 0x21), 2, 0);
+    func_800E5A00_minigame(obj, 0x20, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5978_minigame(obj, 0xD, func_80017BB8_main(chr, 0x2F), 1, 0x78);
+    func_800E5978_minigame(obj, 0xE, func_80017BB8_main(chr, 0x36), 1, 0x78);
+    w->unk4C = 0.05f;
+    w->unkB4 = 0.8f;
+    w->unkEC = func_8010707C_boulder_ball;
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E149C_minigame(obj, 1, 1);
+    func_800E3568_minigame(w, 0, func_80107298_boulder_ball);
+    func_800E3568_minigame(w, 1, func_80107194_boulder_ball);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106DAC_boulder_ball);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_8010707C_boulder_ball);
+/* A player touched by a boulder: knocked flat. */
+s32 func_8010707C_boulder_ball(omObjData* obj, omObjData* other) {
+    MgWork* w;
+    f32 x;
+    f32 y;
+    f32 z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80107194_boulder_ball);
+    w = obj->data;
+    if (func_800E6E8C_minigame() == 2) {
+        if (w->unkBE != 0) {
+            D_800EC288_minigame++;
+            return 1;
+        }
+        x = obj->trans.x;
+        y = obj->trans.y;
+        z = obj->trans.z;
+        func_8004AC98_main(GwPlayer[w->unk59].chr + 0x287, w->unk59);
+        func_8004AC98_main(0x320, w->unk59);
+        func_800E561C_minigame(obj, 1);
+        func_800E5690_minigame(obj, 0);
+        func_800E4C88_minigame(obj, 7, x, y, z, 0.0f, 0.0f);
+        w->unkBE = 0x69;
+        omVibrate(w->unk59, 20, 0, 20);
+    }
+    return 1;
+}
+
+/* A player's per-frame hook: a CPU's controller state is restored; a runner past the line wins for the three. */
+s32 func_80107194_boulder_ball(omObjData* obj) {
+    MgWork* w;
+
+    w = obj->data;
+    if (GwPlayer[w->unk59].stat & 1) {
+        D_800D5558_main[w->unk57] = D_80109892_boulder_ball;
+        D_800CDA7C_main[w->unk57] = D_8010988E_boulder_ball;
+        D_800CBB6E_main[w->unk57] = D_80109897_boulder_ball;
+        D_800D20A1_main[w->unk57] = D_8010989B_boulder_ball;
+    }
+    if (func_800E6E8C_minigame() == 2 && obj->trans.z <= -600.0f) {
+        func_800E6F0C_minigame(3);
+        D_8010975C_boulder_ball = 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80107298_boulder_ball);
 
