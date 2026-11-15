@@ -703,9 +703,8 @@ void func_8010EFBC_duel01(void) {
     data = HuPrcCurrentGet()->user_data;
     angle2 = 0.0f;
     angle1 = 90.0f;
-    win = data[0];
-    /* The window id's low half (big-endian s16 at +2). */
-    func_8005FBF8_main(((s16 *)data)[1], 0x43, 0x80, 1);
+    win = *data;
+    func_8005FBF8_main(*data, 0x43, 0x80, 1);
     while (TRUE) {
         if (D_8011889C_duel01 != 0) {
             g = sindf(angle1) * 128.0f;
