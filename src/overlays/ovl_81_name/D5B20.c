@@ -273,9 +273,160 @@ Process* func_800EE40C_name_81(s32 playerNo) {
     return proc;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE468_name_81);
+void func_800EE468_name_81(s32 mode) {
+    HmfModel* hmf2;
+    HmfModel* hmf;
+    f32 speed;
+    f32 angle;
+    f32 zero;
+    f32 one;
+    s32 i;
 
+    switch (mode) {
+    case 0:
+        while (D_801011F0_name_81->velocity.x <= 70.0f) {
+            D_801011F0_name_81->velocity.x += 4.0f;
+            HuPrcVSleep();
+        }
+        break;
+    case 1:
+        while (D_801011F0_name_81->velocity.x <= 120.0f) {
+            D_801011F0_name_81->velocity.x += 2.5f;
+            D_801011F0_name_81->coords.x += 2.5f;
+            HuPrcVSleep();
+        }
+        break;
+    case 2:
+        speed = 3.0f;
+        angle = 0.0f;
+        for (i = 0; i < 35; i++) {
+            D_801011F0_name_81->velocity.x += speed;
+            speed -= 0.2f;
+            D_801011F0_name_81->coords.x += 2.0f;
+            if (i >= 11) {
+                hmf2 = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                sincosdf(angle, &hmf2->mtx[1], &hmf2->mtx[0]);
+                HmfModelData[D_801011F0_name_81->omObj1->model[0]].mtx[4] = -HmfModelData[D_801011F0_name_81->omObj1->model[0]].mtx[1];
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                hmf->mtx[5] = hmf->mtx[0];
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                zero = 0.0f;
+                hmf->mtx[14] = zero;
+                hmf->mtx[13] = zero;
+                hmf->mtx[12] = zero;
+                hmf->mtx[11] = zero;
+                hmf->mtx[9] = zero;
+                hmf->mtx[8] = zero;
+                hmf->mtx[6] = zero;
+                hmf->mtx[7] = zero;
+                hmf->mtx[3] = zero;
+                hmf->mtx[2] = zero;
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                one = 1.0f;
+                hmf->mtx[15] = one;
+                hmf->mtx[10] = one;
+                angle -= 3.0f;
+            }
+            HuPrcVSleep();
+        }
+        break;
+    }
+}
+
+// Matches (masked and raw 0); kept NON_MATCHING only for .rodata: retail pads this switch's jump
+// table to 0x20 bytes because a retail source file ends here (the next file's {1, 2, 4, 8}
+// initialiser is at .rodata+0x20). Splitting D5B20 at the file boundary lets the C emit it.
+#ifdef NON_MATCHING
+// Host model spin with a light effect (0: spin and sway, 1: spin, 2: spin without effect,
+// 3: slower effect, 4: second effect); 720 degrees in 48 frames.
+void func_800EE74C_name_81(u32 mode) {
+    Vec start;
+    f32 base;
+    f32 angle;
+    s32 i;
+
+    switch (mode) {
+    case 0:
+        D_801011F8_name_81 = func_8000CED8_main(0xB0004, 0xAA9);
+        func_8001C8A8_main(D_801011F8_name_81, 1);
+        func_8000CD00_main(D_801011F8_name_81, 1.0f, 30.0f, 1.0f);
+        func_8000D018_main(D_801011F8_name_81, 10.0f);
+        HuVecCopy3F(&start, &D_801011F0_name_81->coords);
+        base = func_800D76D0_name_81(&D_801011F0_name_81->rot);
+        for (i = 0; i <= 720; i += 15) {
+            func_8000CFA4_main(D_801011F8_name_81, D_801011F0_name_81->coords.x, D_801011F0_name_81->velocity.x, D_801011F0_name_81->coords.z);
+            HuVecCopyXYZ(&D_801011F0_name_81->coords, sindf(i) * 12.0f + start.x, start.y, 2.0f * cosdf(i) + start.z);
+            angle = i * 3;
+            angle += base;
+            D_801011F0_name_81->rot.z = cosdf(angle);
+            D_801011F0_name_81->rot.x = sindf(angle);
+            HuPrcVSleep();
+        }
+        break;
+    case 1:
+        D_801011F8_name_81 = func_8000CED8_main(0xB0004, 0xAA9);
+        func_8001C8A8_main(D_801011F8_name_81, 1);
+        func_8000CD00_main(D_801011F8_name_81, 1.0f, 30.0f, 1.0f);
+        func_8000D018_main(D_801011F8_name_81, 10.0f);
+        base = func_800D76D0_name_81(&D_801011F0_name_81->rot);
+        for (i = 0; i <= 720; i += 15) {
+            func_8000CFA4_main(D_801011F8_name_81, D_801011F0_name_81->coords.x, D_801011F0_name_81->velocity.x, D_801011F0_name_81->coords.z);
+            angle = i * 3;
+            angle += base;
+            D_801011F0_name_81->rot.z = cosdf(angle);
+            D_801011F0_name_81->rot.x = sindf(angle);
+            HuPrcVSleep();
+        }
+        break;
+    case 2:
+        base = func_800D76D0_name_81(&D_801011F0_name_81->rot);
+        for (i = 0; i <= 720; i += 15) {
+            angle = i * 3;
+            angle += base;
+            D_801011F0_name_81->rot.z = cosdf(angle);
+            D_801011F0_name_81->rot.x = sindf(angle);
+            HuPrcVSleep();
+        }
+        break;
+    case 3:
+        D_801011F8_name_81 = func_8000CED8_main(0xB000C, 0xAA9);
+        func_8001C8A8_main(D_801011F8_name_81, 1);
+        func_8000CD00_main(D_801011F8_name_81, 0.3f, 30.0f, 1.0f);
+        func_8000D018_main(D_801011F8_name_81, 10.0f);
+        base = func_800D76D0_name_81(&D_801011F0_name_81->rot);
+        for (i = 0; i <= 720; i += 15) {
+            func_8000CFA4_main(D_801011F8_name_81, D_801011F0_name_81->coords.x, D_801011F0_name_81->velocity.x, D_801011F0_name_81->coords.z);
+            angle = i * 3;
+            angle += base;
+            D_801011F0_name_81->rot.z = cosdf(angle);
+            D_801011F0_name_81->rot.x = sindf(angle);
+            HuPrcVSleep();
+        }
+        break;
+    case 4:
+        D_801011F8_name_81 = func_8000CED8_main(0xB0005, 0xAA9);
+        func_8001C8A8_main(D_801011F8_name_81, 1);
+        func_8000CD00_main(D_801011F8_name_81, 1.0f, 30.0f, 1.0f);
+        func_8000D018_main(D_801011F8_name_81, 10.0f);
+        base = func_800D76D0_name_81(&D_801011F0_name_81->rot);
+        for (i = 0; i <= 720; i += 15) {
+            func_8000CFA4_main(D_801011F8_name_81, D_801011F0_name_81->coords.x, D_801011F0_name_81->velocity.x, D_801011F0_name_81->coords.z);
+            angle = i * 3;
+            angle += base;
+            D_801011F0_name_81->rot.z = cosdf(angle);
+            D_801011F0_name_81->rot.x = sindf(angle);
+            HuPrcVSleep();
+        }
+        break;
+    }
+    if (D_801011F8_name_81 != -1) {
+        func_8000D044_main(D_801011F8_name_81);
+        D_801011F8_name_81 = -1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE74C_name_81);
+#endif
 
 Object* func_800EEC40_name_81(Vec* pos) {
     D_801011F0_name_81 = func_800D8010_name_81(0x3E, NULL);
