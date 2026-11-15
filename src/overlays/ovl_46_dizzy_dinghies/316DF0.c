@@ -7,6 +7,13 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+typedef struct Vec4f {
+    /* 0x0 */ f32 x;
+    /* 0x4 */ f32 y;
+    /* 0x8 */ f32 z;
+    /* 0xC */ f32 w; /* radius */
+} Vec4f;
+
 /* What func_8001D33C_main returns (a model's motion group or hit transform), as far as used here */
 typedef struct DdPart {
     /* 0x00 */ char unk00[0x1C];
@@ -66,6 +73,8 @@ void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z);
 void func_800E2308_minigame(s16* x, s16* y);
+s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
+f64 fabs(f64);
 void func_800EA178_minigame(s16 idx, f32 value);
 
 extern f32 D_800EBE2C_minigame;
@@ -83,6 +92,7 @@ extern s32 D_80109E04_dizzy_dinghies; /* last splash slot */
 extern s16 D_80109E08_dizzy_dinghies[20]; /* history for the running mean func_80108488 */
 extern s32 D_80109E30_dizzy_dinghies;
 extern s32 D_80109E34_dizzy_dinghies;
+extern s32 D_80109E3C_dizzy_dinghies; /* rumble cooldown */
 
 extern Vec D_80109F60_dizzy_dinghies[6]; /* splash positions */
 extern f32 D_80109FA8_dizzy_dinghies[6]; /* splash speeds */
@@ -112,6 +122,7 @@ s32 func_80108488_dizzy_dinghies(s32 player, s16 v);
 void func_80108514_dizzy_dinghies(s32 player, f32 speed, Vec* out);
 void func_80108E30_dizzy_dinghies(Vec* a, Vec* b, Vec* c, Vec* n);
 void func_80108EC4_dizzy_dinghies(omObjData* obj, f32 x, f32 z);
+void func_801090BC_dizzy_dinghies(omObjData* obj, f32 x, f32 z);
 f32 func_80109238_dizzy_dinghies(omObjData* obj, f32 x, f32 y, f32 z);
 void func_801095D4_dizzy_dinghies(omObjData* obj);
 void func_801085F4_dizzy_dinghies(omObjData* obj);
@@ -1097,9 +1108,71 @@ void func_80108EC4_dizzy_dinghies(omObjData* obj, f32 x, f32 z) {
     obj->rot.z = work->unk98;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801090BC_dizzy_dinghies);
+/* After a collision push: undo it if larger than the radius; rumble the pad. */
+void func_801090BC_dizzy_dinghies(omObjData* obj, f32 x, f32 z) {
+    MgWork* work;
+    f32 r;
+    f32 d;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80109238_dizzy_dinghies);
+    work = obj->data;
+    r = work->unk48;
+    d = HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame);
+    if (r < d || fabs(D_800EBE2C_minigame) > r || fabs(D_800EC5D8_minigame) > r) {
+        D_800EBE2C_minigame = D_80109794_dizzy_dinghies.x - x;
+        D_800EC5D8_minigame = D_80109794_dizzy_dinghies.z - z;
+    }
+    if (func_800E6E8C_minigame() == 2) {
+        if (D_80109E3C_dizzy_dinghies == 0) {
+            if (d > 0.0f) {
+                if (d < r / 3.0f) {
+                    omVibrate(work->unk59, 2, 3, 10);
+                } else {
+                    omVibrate(work->unk59, 10, 0, 10);
+                }
+                D_80109E3C_dizzy_dinghies = 10;
+            }
+        } else {
+            D_80109E3C_dizzy_dinghies--;
+        }
+    }
+}
+
+/* Collide the dinghy moving to (x, y, z) with the course; a hit slows it and pushes it away. Returns the sea height. */
+f32 func_80109238_dizzy_dinghies(omObjData* obj, f32 x, f32 y, f32 z) {
+    Vec4f p;
+    MgWork* work;
+    f32 speed;
+    f32 d;
+
+    work = obj->data;
+    speed = work->unk40;
+    p.x = x + sindf(work->unk3C) * speed + D_800EBE2C_minigame;
+    p.y = y;
+    p.z = z + cosdf(work->unk3C) * speed + D_800EC5D8_minigame;
+    p.w = work->unk48;
+    work->unk54 = -1;
+    work->unk53 = -1;
+    p.x += D_800EBE2C_minigame;
+    p.z += D_800EC5D8_minigame;
+    func_800DD530_minigame(obj, &p, 0.0f);
+    d = HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame);
+    if (d != 0.0f) {
+        if (d > D_80109770_dizzy_dinghies * 0.5f) {
+            work->unk40 *= D_80109784_dizzy_dinghies;
+        } else {
+            work->unk40 *= D_80109780_dizzy_dinghies;
+        }
+        if (d > D_801097AC_dizzy_dinghies) {
+            D_801097A0_dizzy_dinghies.x = D_800EBE2C_minigame;
+            D_801097A0_dizzy_dinghies.y = 0.0f;
+            D_801097A0_dizzy_dinghies.z = D_800EC5D8_minigame;
+            func_800202FC_main(&D_801097A0_dizzy_dinghies);
+            D_801097AC_dizzy_dinghies = 16.0f;
+        }
+    }
+    func_801090BC_dizzy_dinghies(obj, x, z);
+    return func_80105D90_dizzy_dinghies(p.x, p.z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80109420_dizzy_dinghies);
 
