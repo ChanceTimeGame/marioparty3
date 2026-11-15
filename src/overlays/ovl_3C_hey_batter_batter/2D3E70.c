@@ -21,6 +21,11 @@ typedef struct HbCam {
     /* 0x10 */ Vec center;
 } HbCam; /* size 0x1C */
 
+typedef struct HbStand {
+    /* 0x00 */ s16 target; /* target board */
+    /* 0x02 */ s16 base;   /* its base */
+} HbStand;
+
 
 // main (functions.us.h is left out: its func_80017AD8_main returns u8, the function returns s16)
 void func_80017954_main(s16, s16, s16, s16);
@@ -42,6 +47,17 @@ typedef struct HbMotInfo {
 } HbMotInfo; /* size 0x18 */
 extern HbMotInfo* D_800CCF58_main;
 extern u16 D_800D5558_main[4];
+s16 func_8000CED8_main(s32, s32);
+u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_8001473C_main(s16 index, u16 arg1); /* src/14EA0.c defines arg1 as s16; retail calls it with a u16 here */
+
+/* An entry of D_800CBB60_main (0x24 bytes; minigame BD210.c MgSprModel): its model at 0x00 */
+typedef struct HbSprModel {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[0x22];
+} HbSprModel;
+extern HbSprModel* D_800CBB60_main;
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
@@ -74,6 +90,7 @@ void func_80106C6C_hey_batter_batter(omObjData* obj);
 void func_80106FA8_hey_batter_batter(omObjData* obj);
 void func_80107464_hey_batter_batter(omObjData* obj);
 void func_80107C48_hey_batter_batter(omObjData* obj);
+void func_80108D90_hey_batter_batter(omObjData* obj);
 s16 func_80109A78_hey_batter_batter(s32 file, u16 attr, u16 prio, s16 x, s16 y);
 s16 func_80109B24_hey_batter_batter(s32 arg0);
 void func_80106CE4_hey_batter_batter(omObjData* obj);
@@ -116,6 +133,9 @@ extern s16 D_80109EA8_hey_batter_batter; /* hit speed y */
 extern s16 D_80109EAA_hey_batter_batter; /* hit speed z */
 extern s16 D_80109EAC_hey_batter_batter; /* foul ball frame */
 extern s16 D_80109EAE_hey_batter_batter; /* 1: swung */
+extern Vec D_80109D04_hey_batter_batter[5]; /* stand target positions */
+extern HbStand D_80109F18_hey_batter_batter[5];
+extern s16 D_80109F2C_hey_batter_batter[5]; /* coin-count sprite models */
 extern s16 D_80109B60_hey_batter_batter;
 extern s16 D_80109C30_hey_batter_batter; /* director state */
 extern s16 D_80109C32_hey_batter_batter; /* result message */
@@ -871,7 +891,40 @@ void func_80107C48_hey_batter_batter(omObjData* obj) {
     Hu3DModelScaleSet(obj->model[4], scale, scale, scale);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80108B48_hey_batter_batter);
+/* The five stand targets with their coin prizes, the hit flash and the home-run effect. */
+void func_80108B48_hey_batter_batter(omObjData* obj) {
+    s16 i;
+    s16 spr;
+    u16 target;
+    u16 base;
+    u16 count;
+    HbStand* stand;
+
+    for (i = 0; i < 5; i++) {
+        target = func_8000B108_main(0x5D0006, 0x6A9);
+        stand = &D_80109F18_hey_batter_batter[i];
+        stand->target = target;
+        Hu3DModelPosSet(target, D_80109D04_hey_batter_batter[i].x, D_80109D04_hey_batter_batter[i].y + 1.0f,
+                        D_80109D04_hey_batter_batter[i].z);
+        base = func_8000B108_main(0x5D0007, 0x2A9);
+        stand->base = base;
+        Hu3DModelPosSet(base, D_80109D04_hey_batter_batter[i].x, D_80109D04_hey_batter_batter[i].y,
+                        D_80109D04_hey_batter_batter[i].z);
+        spr = SprModelRead(0x21002C, 0xA0, 0x10);
+        count = D_800CBB60_main[spr].unk00;
+        D_80109F2C_hey_batter_batter[i] = count;
+        func_8001473C_main(spr, D_800A11D0_main[i]);
+        Hu3DModelPosSet(count, D_80109D04_hey_batter_batter[i].x, D_80109D04_hey_batter_batter[i].y + 250.0f,
+                        D_80109D04_hey_batter_batter[i].z + 2.0f);
+        Hu3DModelScaleSet(count, 6.0f, 6.0f, 6.0f);
+    }
+    obj->model[2] = func_8000B108_main(9, 0x6A9);
+    func_8001C8A8_main(obj->model[2], 0);
+    obj->model[3] = func_8000CED8_main(0xB0004, 0x6A9);
+    func_800138EC_main(obj->model[3], 1, 0);
+    D_80109EEE_hey_batter_batter = 0;
+    obj->func = func_80108D90_hey_batter_batter;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80108D90_hey_batter_batter);
 
