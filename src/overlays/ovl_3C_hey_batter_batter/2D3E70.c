@@ -1117,3 +1117,71 @@ s16 func_80109B24_hey_batter_batter(s32 arg0) {
     }
     return ret;
 }
+
+/* .data (80109B60) */
+s16 D_80109B60_hey_batter_batter = 0; /* batter cue: 1 intro, 2 swing */
+Vec D_80109B64_hey_batter_batter[4] = {
+    { -15.0f, 0.0f, 0.0f },
+    { 5.0f, 90.0f, 0.0f },
+    { 5.0f, -90.0f, 0.0f },
+    { 10.0f, 0.0f, 0.0f },
+};
+Vec D_80109B94_hey_batter_batter[4] = {
+    { 0.0f, 175.0f, -200.0f },
+    { -800.0f, 170.0f, 0.0f },
+    { 890.0f, 170.0f, -10.0f },
+    { 0.0f, 225.0f, -1700.0f },
+};
+Vec D_80109BC4_hey_batter_batter[2] = { { 5.0f, 0.0f, 0.0f }, { 5.0f, 0.0f, 0.0f } };
+Vec D_80109BDC_hey_batter_batter[2] = { { -110.0f, 200.0f, -575.0f }, { 110.0f, 200.0f, -575.0f } };
+Vec D_80109BF4_hey_batter_batter[5] = {
+    { 600.0f, 250.0f, -1000.0f }, { 400.0f, 250.0f, -1400.0f }, { 0.0f, 250.0f, -1600.0f },
+    { -400.0f, 250.0f, -1400.0f }, { -600.0f, 250.0f, -1000.0f },
+};
+s16 D_80109C30_hey_batter_batter = 0;
+s16 D_80109C32_hey_batter_batter = 0;
+s16 D_80109C34_hey_batter_batter = 0;
+s16 D_80109C36_hey_batter_batter = 0;
+s16 D_80109C38_hey_batter_batter = 0;
+f32 D_80109C3C_hey_batter_batter = 0.0f;
+s16 D_80109C40_hey_batter_batter = 0;
+s16 D_80109C42_hey_batter_batter = 0;
+s16 D_80109C44_hey_batter_batter = 0;
+s16 D_80109C46_hey_batter_batter = 4;
+s16 D_80109C48_hey_batter_batter = 0;
+s16 D_80109C4A_hey_batter_batter = 0;
+Vec D_80109C4C_hey_batter_batter[5] = {
+    { 600.0f, 500.0f, -2200.0f }, { -600.0f, 700.0f, -2200.0f }, { -2000.0f, 500.0f, -700.0f },
+    { -2000.0f, 1000.0f, 0.0f }, { -2000.0f, 800.0f, 800.0f },
+};
+s16 D_80109C88_hey_batter_batter = 999;
+s16 D_80109C8A_hey_batter_batter = 0;
+s16 D_80109C8C_hey_batter_batter = 0;
+s16 D_80109C8E_hey_batter_batter = 999;
+f32 D_80109C90_hey_batter_batter = 0.0f;
+s16 D_80109C94_hey_batter_batter = 0;
+s16 D_80109C96_hey_batter_batter = 0;
+f32 D_80109C98_hey_batter_batter = 30.0f;
+f32 D_80109C9C_hey_batter_batter = 1000.0f;
+f32 D_80109CA0_hey_batter_batter = 100.0f;
+s16 D_80109CA4_hey_batter_batter = 0;
+Vec D_80109CA8_hey_batter_batter[7] = {
+    { 4.0f, 0.0f, 0.05f },        { 575.0f, 225.0f, -999.0f },  { 375.0f, 225.0f, -1399.0f },
+    { 0.0f, 225.0f, -1599.0f },   { -375.0f, 225.0f, -1399.0f }, { -575.0f, 225.0f, -999.0f },
+    { -3.0f, 0.0f, 2.0f },
+};
+s16 D_80109CFC_hey_batter_batter = 0;
+f32 D_80109D00_hey_batter_batter = 1.47f;
+Vec D_80109D04_hey_batter_batter[5] = {
+    { 600.0f, 5.0f, -1000.0f }, { 400.0f, 5.0f, -1400.0f }, { 0.0f, 5.0f, -1600.0f },
+    { -400.0f, 5.0f, -1400.0f }, { -600.0f, 5.0f, -1000.0f },
+};
+s32 D_80109D40_hey_batter_batter[20] = {
+    0x21002D, 0x21002E, 0x21002F, 0x210030, 0x210031, 0x210032, 0x210033, 0x210034, 0x210035, 0x210036,
+    0x210037, 0x210038, 0x210039, 0x21003A, 0x21003B, 0x21003C, 0x21003D, 0x21003E, 0x21003F, 0x210040,
+};
+u16 D_80109D90_hey_batter_batter = 0;
+u16 D_80109D92_hey_batter_batter = 0;
+s16 D_80109D94_hey_batter_batter = 0;
+s16 D_80109D96_hey_batter_batter = 0;
+s16 D_80109D98_hey_batter_batter = 0;
