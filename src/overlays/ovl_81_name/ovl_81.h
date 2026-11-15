@@ -23,8 +23,8 @@ typedef struct PartnerBaseAttributes {
     /* 0x01 */ u8 hp;
     /* 0x02 */ s8 power;
     /* 0x03 */ s8 cost;
-    /* 0x04 */ void (*func1)(s16, s32, Object*, Object*, s32, s32);
-    /* 0x08 */ void (*func2)(s16, s32, Object*, Object*, s32, s32);
+    /* 0x04 */ void (*func1)(s32, s32, Object*, Object*, s32, s32); // duel n8: s32 first parameter
+    /* 0x08 */ void (*func2)(s32, s32, Object*, Object*, s32, s32); // duel n8: s32 first parameter
     /* 0x0C */ void (*func3)(void);
     /* 0x10 */ void (*func4)(void);
 } PartnerBaseAttributes; //sizeof 0x14
@@ -232,7 +232,7 @@ extern s32 D_80105718_name_81;
 extern s32 D_8010571C_name_81;
 
 Process* func_800E415C_name_81(void);
-Process* func_800E47B8_name_81(s16, s8, Vec*, Vec*, s32);
+Process* func_800E47B8_name_81(s32, s8, Vec*, Vec*, s32); // duel n8: first parameter s32 (callee does not extend it)
 void func_800E5954_name_81(void);
 void func_800E5964_name_81(void);
 void MBDBackTPLvlSet(u8);

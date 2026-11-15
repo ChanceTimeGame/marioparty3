@@ -1399,7 +1399,187 @@ void func_800FB524_name_81(void *arg0) {
     HuPrcChildWait();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/DFD60", func_800FB59C_name_81);
+// duel n8: a partner attack with fixed results (playerIndex's partner partnerNo against the opponent's targetNo):
+// the opponent loses starLoss stars and damage HP, the attacker loses selfStars stars and selfDamage
+void func_800FB59C_name_81(s32 playerIndex, s32 partnerNo, s32 targetNo, s32 starLoss, s32 damage, s32 selfStars, s32 selfDamage) {
+    s32 opposingPlayerIndex;
+    GW_PLAYER *player;
+    GW_PLAYER *opposingPlayer;
+    s32 counterFlags;
+    s32 hitFlags;
+    Object *partner;
+    Object *target;
+    s32 poweredUp;
+    Object *eff;
+    Object *eff2;
+    Process *process;
+    s32 i;
+
+    opposingPlayerIndex = playerIndex ^ 1;
+    player = MBDGetPlayerStruct(playerIndex);
+    opposingPlayer = MBDGetPlayerStruct(opposingPlayerIndex);
+    counterFlags = 0;
+    process = HuPrcCurrentGet();
+    D_80105558_name_81 = starLoss;
+    D_80105550_name_81 = damage;
+    hitFlags = (starLoss != 0) * 2;
+    if (damage != 0) {
+        hitFlags |= 1;
+    }
+    if ((hitFlags == 0) & (selfStars != -1)) {
+        if (selfDamage != -1) {
+            hitFlags |= 8;
+        }
+    }
+    if (selfStars > 0) {
+        counterFlags |= 2;
+    }
+    if (selfDamage > 0) {
+        counterFlags |= 1;
+    }
+    func_800FAEE8_name_81();
+    if (partnerNo == PARTNER_FRONT) {
+        D_80101968_name_81 = &player->stats.partners.frontHp;
+        D_80101974_name_81 = &player->stats.partners.frontID;
+        poweredUp = player->stats.partners.frontPoweredUp;
+    } else {
+        D_80101968_name_81 = &player->stats.partners.backHp;
+        D_80101974_name_81 = &player->stats.partners.backID;
+        poweredUp = player->stats.partners.backPoweredUp;
+    }
+    if (targetNo == PARTNER_FRONT) {
+        D_8010196C_name_81 = &opposingPlayer->stats.partners.frontHp;
+        D_80101978_name_81 = &opposingPlayer->stats.partners.frontID;
+        D_80101970_name_81 = &opposingPlayer->stats.partners.backHp;
+        D_8010197C_name_81 = &opposingPlayer->stats.partners.backID;
+    } else if (targetNo == PARTNER_BACK) {
+        D_8010196C_name_81 = &opposingPlayer->stats.partners.backHp;
+        D_80101978_name_81 = &opposingPlayer->stats.partners.backID;
+        D_80101970_name_81 = &opposingPlayer->stats.partners.frontHp;
+        D_8010197C_name_81 = &opposingPlayer->stats.partners.frontID;
+    } else {
+        D_8010196C_name_81 = NULL;
+        D_80101978_name_81 = NULL;
+        D_80101970_name_81 = NULL;
+        D_8010197C_name_81 = NULL;
+    }
+    partner = MBDGetPlayerPartnerRef(playerIndex, partnerNo);
+    target = MBDGetPlayerPartnerRef(opposingPlayerIndex, targetNo);
+    HuPrcChildLink(process, MBDCameraZoomMotStart(3.0f));
+    HuPrcChildWait();
+    func_800F74E4_name_81(-1);
+    HuVecCopy3F(&D_80105540_name_81, &player->player_obj->coords);
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&D_80105540_name_81);
+    HuPrcChildLink(process, func_800EC1E4_name_81(&D_80105540_name_81, &partner->coords, &D_80105540_name_81, 4.0f));
+    HuPrcChildWait();
+    func_800FC8C4_name_81(&partner->coords);
+    if (damage == 200) {
+        *D_8010196C_name_81 -= 1;
+        *D_80101970_name_81 -= 1;
+        opposingPlayer->star -= 1;
+    } else {
+        if (D_8010196C_name_81 != NULL) {
+            *D_8010196C_name_81 -= damage;
+        }
+        opposingPlayer->star -= starLoss;
+    }
+    if (selfDamage > 0) {
+        // retail bug: moves the HP pointer instead of taking selfDamage from the partner's HP
+        D_80101968_name_81 -= selfDamage;
+    }
+    if (selfStars > 0) {
+        player->star -= selfStars;
+    }
+    for (i = 255; i > 64; i -= 16) {
+        MBDBackTPLvlSet(i);
+        HuPrcVSleep();
+    }
+    MBDBackTPLvlSet(0x40);
+    HuPrcChildLink(process, func_800E47B8_name_81(playerIndex, *D_80101974_name_81, &player->player_obj->coords, &opposingPlayer->player_obj->coords, 1));
+    eff = func_800D8010_name_81(0x36, 0);
+    HuVecCopy3F(&eff->coords, &partner->coords);
+    func_8001C814_main(eff->omObj1->model[0], 2, 0);
+    HuAudFXPlay(0x1CC);
+    func_800EFABC_name_81(eff);
+    func_800D8F3C_name_81(eff);
+    HuPrcChildWait();
+    func_800FAB1C_name_81();
+    if (PartnersBaseStats[*D_80101974_name_81].func1 != 0) {
+        D_8010571C_name_81 = (D_80101978_name_81 == 0) ? (-1) : (*D_80101978_name_81);
+        D_8010570C_name_81 = (D_8010197C_name_81 == 0) ? (-1) : (*D_8010197C_name_81);
+        PartnersBaseStats[*D_80101974_name_81].func1(playerIndex, opposingPlayerIndex, partner, target, hitFlags, poweredUp);
+    }
+    func_800FAC4C_name_81();
+    if (counterFlags != 0) {
+        HuVecCopy3F(&D_80105540_name_81, func_800FC8D0_name_81());
+        func_800FC8C4_name_81(&D_80105540_name_81);
+        func_800FC888_name_81(4);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&D_80105540_name_81, &target->coords, &D_80105540_name_81, 4.0f));
+        HuPrcChildWait();
+        func_800FC8C4_name_81(&target->coords);
+        HuPrcChildLink(process, func_800E47B8_name_81(opposingPlayerIndex, *D_80101978_name_81, &opposingPlayer->player_obj->coords, &player->player_obj->coords, 0));
+        eff2 = func_800D8010_name_81(0x36, 0);
+        HuVecCopy3F(&eff2->coords, &target->coords);
+        func_8001C814_main(eff2->omObj1->model[0], 2, 0);
+        HuAudFXPlay(0x1CC);
+        func_800EFABC_name_81(eff2);
+        func_800D8F3C_name_81(eff2);
+        HuPrcChildWait();
+        func_800FAB1C_name_81();
+        if (((*D_80101978_name_81) != (-1)) && (PartnersBaseStats[*D_80101978_name_81].func2 != 0)) {
+            s8 temp = *D_80101974_name_81;
+            D_8010571C_name_81 = !(temp) == 0 ? temp : -1;
+            D_8010570C_name_81 = -1;
+            PartnersBaseStats[*D_80101978_name_81].func2(opposingPlayerIndex, playerIndex, target, partner, counterFlags, poweredUp + 0x10);
+        }
+        func_800FAC4C_name_81();
+    }
+    if ((*D_80101974_name_81) != (-1)) {
+        if (PartnersBaseStats[*D_80101974_name_81].func3 != 0) {
+            PartnersBaseStats[*D_80101974_name_81].func3();
+        }
+    }
+    if (D_80101978_name_81 != NULL && (*D_80101978_name_81) != (-1)) {
+        if (PartnersBaseStats[*D_80101978_name_81].func4 != 0) {
+            PartnersBaseStats[*D_80101978_name_81].func4();
+        }
+    }
+    if ((*D_80101968_name_81) <= 0) {
+        *D_80101974_name_81 = -1;
+        *D_80101968_name_81 = 0;
+        func_800F8358_name_81(playerIndex);
+        func_800F57B0_name_81(playerIndex);
+        func_800F5E2C_name_81(playerIndex);
+    }
+    if (D_8010196C_name_81 != NULL && (*D_8010196C_name_81) <= 0) {
+        *D_80101978_name_81 = -1;
+        *D_8010196C_name_81 = 0;
+        func_800F8358_name_81(opposingPlayerIndex);
+        func_800F57B0_name_81(opposingPlayerIndex);
+        func_800F5E2C_name_81(opposingPlayerIndex);
+    }
+    if (D_80101970_name_81 != NULL && (*D_80101970_name_81) <= 0) {
+        *D_8010197C_name_81 = -1;
+        *D_80101970_name_81 = 0;
+        func_800F8358_name_81(opposingPlayerIndex);
+        func_800F57B0_name_81(opposingPlayerIndex);
+        func_800F5E2C_name_81(opposingPlayerIndex);
+    }
+    for (i = 64; i < 255; i += 16) {
+        MBDBackTPLvlSet(i);
+        HuPrcVSleep();
+    }
+    MBDBackTPLvlSet(0xFF);
+    func_800F75EC_name_81(-1);
+    HuVecCopy3F(&D_80105540_name_81, func_800FC8D0_name_81());
+    func_800FC8C4_name_81(&D_80105540_name_81);
+    func_800FC888_name_81(4);
+    HuPrcChildLink(process, func_800EC1E4_name_81(&D_80105540_name_81, &player->player_obj->coords, &D_80105540_name_81, 4.0f));
+    HuPrcChildWait();
+    func_800FC888_name_81(1);
+    func_800FAFAC_name_81();
+}
 
 void func_800FBDD4_name_81(void) {
     s32 sp20[1][2];
