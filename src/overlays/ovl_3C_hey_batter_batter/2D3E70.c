@@ -288,7 +288,72 @@ void func_80105DE0_hey_batter_batter(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80105DE0_hey_batter_batter);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106048_hey_batter_batter);
+/* The minigame's director: wipe in, the intro, the batting phase, the result and the exit. */
+void func_80106048_hey_batter_batter(omObjData* obj) {
+    switch (D_80109C30_hey_batter_batter) {
+    case 0:
+        WipeCreateIn(0xFF, 16);
+        D_80109C30_hey_batter_batter++;
+        break;
+    case 1:
+        obj->func = func_801062E0_hey_batter_batter;
+        D_80109C30_hey_batter_batter++;
+        break;
+    case 2:
+        if (++D_80109C34_hey_batter_batter == 1) {
+            GMesCreate(8);
+        } else if (GMesStatGet() == 0) {
+            D_80109C34_hey_batter_batter = 0;
+            D_80109C30_hey_batter_batter++;
+        }
+        break;
+    case 3:
+        obj->func = func_80106744_hey_batter_batter;
+        D_80109C30_hey_batter_batter++;
+        break;
+    case 4:
+        if (++D_80109C34_hey_batter_batter == 1) {
+            func_80017954_main(D_80109EF4_hey_batter_batter->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr,
+                               D_80109EF8_hey_batter_batter[1]);
+            D_80109B60_hey_batter_batter = 1;
+            GMesCreate(0x13);
+            HuAudSeqFadeOut(120);
+        } else if (GMesStatGet() == 0) {
+            D_80109C34_hey_batter_batter = 0;
+            D_80109C30_hey_batter_batter++;
+        }
+        break;
+    case 5:
+        obj->func = func_80106928_hey_batter_batter;
+        D_80109C30_hey_batter_batter++;
+        break;
+    case 6:
+        if (++D_80109C34_hey_batter_batter == 1) {
+            switch (D_80109EE0_hey_batter_batter) {
+            case 0:
+                HuAudSeqPlay(0x68);
+                D_80109C32_hey_batter_batter = GMesCreate(0x24);
+                GwPlayer[D_80109ED0_hey_batter_batter].bonusCoin = D_800A11D0_main[D_80109EF0_hey_batter_batter];
+                break;
+            case 1:
+                HuAudSeqPlay(0x6B);
+                D_80109C32_hey_batter_batter = GMesCreate(0x1D);
+                GwPlayer[D_80109ED0_hey_batter_batter].bonusCoin = -1;
+                break;
+            }
+            GMesMaxTimeGet(D_80109C32_hey_batter_batter, 120);
+        } else if (D_80109C34_hey_batter_batter >= 135) {
+            D_80109C34_hey_batter_batter = 0;
+            D_80109C30_hey_batter_batter++;
+        }
+        break;
+    case 7:
+        obj->func = func_80106C24_hey_batter_batter;
+        break;
+    case 8:
+        break;
+    }
+}
 
 /* Intro: the camera tours the field from the batter to the stands and back. */
 void func_801062E0_hey_batter_batter(omObjData* obj) {
