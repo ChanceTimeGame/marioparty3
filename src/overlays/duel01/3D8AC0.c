@@ -321,17 +321,170 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_801192CC_duel01);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80110C3C_duel01);
 
+#ifdef NON_MATCHING
+// duel b4: logic checked; masked 8: the turn if-chain, where retail keeps buf's address out of s0 and leaves a j/nop pair (509 vs 512 instructions)
+// duel b4: bell space: ring the bell; at zero coins the bell pays out and the board ends the turn
+void func_80111DFC_duel01(void) {
+    Vec pos;
+    char buf[8];
+    GW_PLAYER *player;
+    SpaceData *space;
+    DuelB4HmfPart *part;
+    f32 ofs;
+    s32 i;
+    char *str;
+    GW_SYSTEM *system = &GwSystem;
+
+    player = MBDGetPlayerStruct(-1);
+    space = MBDMasuGet(0x1D);
+    func_800DB3E0_name_81(system->current_player_index);
+    func_800F38DC_name_81(-1, -1, 2);
+    HuPrcChildLink(HuPrcCurrentGet(), MBDCameraZoomMotStart(2.0f));
+    HuVecCopy3F(&pos, &player->player_obj->coords);
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&pos);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_b4(&pos, &space->coords, &pos, 4.0f));
+    func_800D90D0_name_81(D_80119490_duel01, 2, 0);
+    func_8002FD8C_main(D_80119490_duel01->omObj1->model[0],
+                       HmfModelData[D_80119490_duel01->omObj1->model[0]].unk02, D_80118F18_duel01, 0x4C, 0x46);
+    func_8002FD8C_main(D_80119490_duel01->omObj1->model[0], D_80119490_duel01->omObj1->motion[2],
+                       D_80118F18_duel01, 0x4C, 0x46);
+    i = 0;
+    ((DuelB4HmfPart *)func_8001D33C_main(D_80119490_duel01->omObj1->model[0], D_80118F18_duel01))->unk_14 =
+        (GwSystem.bank_coins - 5) * 60;
+    while (!(func_800D9234_name_81(D_80119490_duel01) & 1)) {
+        if (++i == 8) {
+            HuAudFXPlay(0x1C5);
+        }
+        HuPrcVSleep();
+    }
+    func_8002FD8C_main(D_80119490_duel01->omObj1->model[0],
+                       HmfModelData[D_80119490_duel01->omObj1->model[0]].unk02, D_80118F18_duel01, 0x4C, 0x46);
+    part = func_8001D33C_main(D_80119490_duel01->omObj1->model[0], D_80118F18_duel01);
+    part->unk_14 = (GwSystem.bank_coins - 5) * 60;
+    HuAudFXPlay(0x1C7);
+    for (ofs = 0.0f; ofs >= -60.0f; ofs -= 4.0f) {
+        part->unk_14 = (GwSystem.bank_coins - 5) * 60 + ofs;
+        HuPrcVSleep();
+    }
+    HuPrcChildWait();
+    if (GwSystem.bank_coins != 0) {
+        GwSystem.bank_coins--;
+    }
+    func_8010DC04_duel01();
+    D_8011872C_duel01 = 12.0f;
+    if (GwSystem.bank_coins != 0) {
+        HuAudFXPlay(0x207);
+        func_800D918C_name_81(D_80119490_duel01, 0, 0, 5, 2);
+        func_8002FD8C_main(D_80119490_duel01->omObj1->model[0], D_80119490_duel01->omObj1->motion[0],
+                           D_80118F18_duel01, 0x4C, 0x46);
+        func_8001C92C_main(D_80119490_duel01->omObj1->model[0], (5.0f - GwSystem.bank_coins) / 4.0f + 1.0f);
+        HuPrcSleep(0x18);
+        func_800D90D0_name_81(D_80119490_duel01, -1, 2);
+    } else {
+        HuAudFXPlay(0x1C6);
+        func_800D918C_name_81(D_80119490_duel01, 1, 0, 5, 2);
+        func_8002FD8C_main(D_80119490_duel01->omObj1->model[0], D_80119490_duel01->omObj1->motion[1],
+                           D_80118F18_duel01, 0x4C, 0x46);
+        func_8001C92C_main(D_80119490_duel01->omObj1->model[0], 1.0f);
+        func_8010DC04_duel01();
+        func_800F74E4_name_81(-1);
+        func_800EEC40_name_81(&pos);
+        if (system->current_turn < 11) {
+            str = "20";
+        } else if (system->current_turn >= 20) {
+            str = "40";
+        } else {
+            str = "30";
+        }
+        sprintf(buf, str);
+        HuAudFXPlay(0x2A7);
+        func_800EB49C_name_81(0x15, 0x1F30, (s32)buf, 0, 0, 0, 0);
+        func_800EB58C_name_81();
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        func_80118414_duel01();
+        D_80100F44_name_81 = D_80119490_duel01;
+        func_800FD620_name_81();
+        HuPrcSleep(-1);
+    }
+    D_8011872C_duel01 = 3.0f;
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_b4(&pos, &player->player_obj->coords, &pos, 4.0f));
+    func_800DADA0_name_81(system->current_player_index);
+    HuPrcChildLink(HuPrcCurrentGet(), MBDCameraZoomMotStart(1.7f));
+    HuPrcChildWait();
+    func_800FC888_name_81(1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80111DFC_duel01);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801123E8_duel01);
+// duel b4: the current player's partner effect: restore the player's star field (duel HP) to 5
+void func_801123E8_duel01(void) {
+    GW_PLAYER *player;
+    void *win;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801124D8_duel01);
+    player = MBDGetPlayerStruct(-1);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuAudFXPlay(0x1FF);
+    win = func_800FFC2C_name_81(-1, 3, 5);
+    func_800EE74C_name_81(3);
+    func_800FFCCC_name_81(win);
+    func_800EDF78_name_81();
+    func_800EE468_name_81(2);
+    func_800EDDBC_name_81();
+    func_800F3880_name_81(-1, 6, 0);
+    func_8004ACE0_main(0x2BD, GwSystem.current_player_index);
+    func_800EFABC_name_81(player->player_obj);
+    func_800F3880_name_81(-1, -1, 2);
+    GwPlayer[GwSystem.current_player_index].star = 5;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112514_duel01);
+void func_801124D8_duel01(void) {
+    func_800E18C0_name_81();
+    func_800E1960_name_81();
+    func_800E1F38_name_81();
+    func_800ED214_name_81(0);
+    func_800ED214_name_81(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112590_duel01);
+// duel b4: lose up to 10 coins
+void func_80112514_duel01(void) {
+    GW_SYSTEM *system = &GwSystem;
+    s32 coins = GwPlayer[system->current_player_index].coin;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801125CC_duel01);
+    if (coins > 10) {
+        coins = 10;
+    }
+    func_800E14D8_name_81(system->current_player_index, -coins);
+    func_800F7378_name_81(system->current_player_index, -coins);
+    HuPrcSleep(30);
+}
+
+// duel b4: gain 10 coins
+void func_80112590_duel01(void) {
+    GW_SYSTEM *system = &GwSystem;
+
+    func_800E14D8_name_81(system->current_player_index, 10);
+    func_800F7378_name_81(system->current_player_index, 10);
+    HuPrcSleep(30);
+}
+
+// duel b4: warp the current player to their start space
+void func_801125CC_duel01(void) {
+    s8 link;
+    s8 idx;
+    s8 backLink = -1;
+    s8 backIdx = -1;
+
+    func_800E9F4C_name_81(MBDGetCurrentPlayerIndex() == 0 ? 0x1C : 0x1B, &link, &idx);
+    func_80118320_b4(&backLink, &backIdx);
+    func_800E24AC_name_81(link, idx, backLink, backIdx);
+    func_800ED214_name_81(GwSystem.current_player_index);
+    func_80110068_duel01(MBDGetCurrentPlayerIndex());
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8011264C_duel01);
 
@@ -343,7 +496,14 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112DA0_duel01);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801135D8_duel01);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801138D0_duel01);
+// duel b4: gain 20 coins
+void func_801138D0_duel01(void) {
+    GW_SYSTEM *system = &GwSystem;
+
+    func_800E14D8_name_81(system->current_player_index, 20);
+    func_800F7378_name_81(system->current_player_index, 20);
+    HuPrcSleep(30);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8011390C_duel01);
 

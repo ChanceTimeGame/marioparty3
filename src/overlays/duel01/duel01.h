@@ -81,3 +81,56 @@ s16 MBDGetCurrentPlayerIndex(void);
 GW_PLAYER* MBDGetPlayerStruct(s32);
 void func_800F38DC_name_81(s32, s32, s32);
 void func_80110068_duel01(s32);
+// duel b4: prototypes for func_80111DFC_duel01..func_801147FC_duel01
+typedef struct DuelB4HmfPart {
+/* 0x00 */ char unk_00[0x14];
+/* 0x14 */ f32 unk_14;
+} DuelB4HmfPart;
+extern Object *D_80119490_duel01;
+extern f32 D_8011872C_duel01;
+extern char D_80118F18_duel01[];
+extern Object *D_80100F44_name_81;
+SpaceData *MBDMasuGet(s16);
+Process *MBDCameraZoomMotStart(f32);
+void *func_8001D33C_main(s16, char *);
+void func_8002FD8C_main(s16, s16, char *, s16, s16);
+void func_8001C92C_main(s16, f32);
+void func_800D90D0_name_81(Object *, s16, u16);
+void func_800D918C_name_81(Object *, s16, s16, s16, u16);
+s32 func_800D9234_name_81(Object *);
+void func_800DADA0_name_81(s32);
+s32 func_800DB3E0_name_81(s32);
+void func_800EB278_name_81(void);
+void func_800EB29C_name_81(void);
+void func_800EB49C_name_81(s16, s32, s32, s32, s32, s32, s32);
+void func_800EB58C_name_81(void);
+/* func_800EC1E4_name_81 returns its Process*; the older prototype above declares void and an s32 target. */
+#define func_800EC1E4_b4 ((Process *(*)(Vec *, Vec *, Vec *, f32))func_800EC1E4_name_81)
+Object *func_800EEC40_name_81(Vec *);
+void func_800F74E4_name_81(s32);
+void func_800FC888_name_81(s32);
+void func_800FD620_name_81(void);
+void func_8010DC04_duel01(void);
+void func_80118414_duel01(void);
+Object *func_800EDD50_name_81(Vec *);
+void func_800EDDBC_name_81(void);
+void func_800EDF48_name_81(void);
+void func_800EDF78_name_81(void);
+void func_800EE0F4_name_81(s32);
+void func_800EE468_name_81(s32);
+void func_800EE74C_name_81(u32);
+void func_800EFABC_name_81(Object *);
+void func_800F3880_name_81(s32, s16, u16);
+void *func_800FFC2C_name_81(s16, s16, s32);
+void func_800FFCCC_name_81(void *);
+void func_800E18C0_name_81(void);
+s32 func_800E1960_name_81(void);
+void func_800E1F38_name_81(void);
+void func_800ED214_name_81(s32);
+void func_800E14D8_name_81(s32, s32);
+void func_800F7378_name_81(s32, s32);
+void func_800E24AC_name_81(s16, s16, s16, s16);
+s16 func_8004ACE0_main(s16, s16);
+void func_80118320_duel01(void);
+/* retail passes the back link/index addresses to the empty func_80118320_duel01 */
+#define func_80118320_b4 ((void (*)(s8 *, s8 *))func_80118320_duel01)
