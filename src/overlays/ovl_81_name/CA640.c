@@ -1,11 +1,11 @@
 #include "common.h"
 #include "ovl_81.h"
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102450_name_81);
+const char D_80102450_name_81[] = "\x03%2d\x08";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102458_name_81);
+const char D_80102458_name_81[] = "  HAPPENING!  ";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102468_name_81);
+const char D_80102468_name_81[] = "  1 VS 1 GAME ";
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102478_name_81);
 
