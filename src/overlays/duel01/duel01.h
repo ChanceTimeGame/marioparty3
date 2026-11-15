@@ -156,3 +156,5 @@ void func_8001C6A8_main(s32, f32);
 void func_800EF7C8_name_81(Object*, f32, f32);
 void func_800EF800_name_81(Object*);
 void func_8010615C_duel01(Object*, Object*, GW_PLAYER*, Vec*, Vec*, f32);
+void func_800F0378_name_81(Object*, char*, s16);
+void func_800EB804_name_81(Object*);
