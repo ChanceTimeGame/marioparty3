@@ -75,6 +75,12 @@ void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z);
 void func_800E2308_minigame(s16* x, s16* y);
 s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
 f64 fabs(f64);
+void func_800E6F0C_minigame(s8 arg0);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_800E9C20_minigame(s16 count, u16 len);
+void func_800E9F40_minigame(s16 idx, s32 x, s32 y, s16 dir);
+void func_800EA0FC_minigame(s16 idx, f32 min, f32 max);
+void func_800EA2A8_minigame(s16 idx);
 void func_800EA178_minigame(s16 idx, f32 value);
 
 extern f32 D_800EBE2C_minigame;
@@ -93,6 +99,8 @@ extern s16 D_80109E08_dizzy_dinghies[20]; /* history for the running mean func_8
 extern s32 D_80109E30_dizzy_dinghies;
 extern s32 D_80109E34_dizzy_dinghies;
 extern s32 D_80109E3C_dizzy_dinghies; /* rumble cooldown */
+extern s32 D_80109E40_dizzy_dinghies;
+extern Vec D_80109E44_dizzy_dinghies[][3]; /* three points of the goal plane per board */
 
 extern Vec D_80109F60_dizzy_dinghies[6]; /* splash positions */
 extern f32 D_80109FA8_dizzy_dinghies[6]; /* splash speeds */
@@ -1174,9 +1182,67 @@ f32 func_80109238_dizzy_dinghies(omObjData* obj, f32 x, f32 y, f32 z) {
     return func_80105D90_dizzy_dinghies(p.x, p.z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80109420_dizzy_dinghies);
+/* HUD: the speed meter and the player's face (one player). */
+void func_80109420_dizzy_dinghies(omObjData* obj) {
+    s32 pos[4];
+    s16 frame;
+    u16 spr;
+    s32 i;
+    void* data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801095D4_dizzy_dinghies);
+    pos[0] = 0x3E;
+    pos[1] = 0x20;
+    pos[2] = 0x2C;
+    pos[3] = 0x1C;
+    frame = func_8000B838_main(0x670008);
+    func_8000B838_main(0x440014);
+    func_8000B838_main(0x440015);
+    data = DataRead(0x440013);
+    func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i <= 0; i++) {
+        spr = InitEspriteSlot(frame, 0, 1);
+        func_8000BB54_main(spr);
+        func_8000BBD4_main(spr, pos[0], pos[1]);
+        func_8000BCC8_main(spr, 0xFFFF);
+        func_8000BBFC_main(spr, 200);
+        spr = InitEspriteSlot(func_8000B838_main((GwPlayer[i].chr + 8) | 0x210000), 0, 1);
+        func_8000BB54_main(spr);
+        func_8000BBD4_main(spr, pos[2] - 10, pos[3] + 4);
+        func_8000BCC8_main(spr, 100);
+        func_800E9C20_minigame(1, 5);
+        func_800EA0FC_minigame(0, 0.0f, D_80109770_dizzy_dinghies);
+        func_800E9F40_minigame(0, 0x2C, 0x1B, 0);
+        func_800EA2A8_minigame(0);
+    }
+    obj->func = NULL;
+}
+
+/* Goal: the dinghy has crossed the board's goal plane within 1400 of its first point. */
+void func_801095D4_dizzy_dinghies(omObjData* obj) {
+    Vec n;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    s32 hit;
+
+    func_80108E30_dizzy_dinghies(&D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][0], &D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][1], &D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][2], &n);
+    dx = obj->trans.x - D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][0].x;
+    dy = obj->trans.y - D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][0].y;
+    dz = obj->trans.z - D_80109E44_dizzy_dinghies[D_801097EC_dizzy_dinghies][0].z;
+    hit = 1;
+    if (!(dx * n.x + dy * n.y + dz * n.z >= 0.0f)) {
+        hit = 0;
+    }
+    if (HuSqrtf(dx * dx + dz * dz) > 1400.0f) {
+        hit = 0;
+    }
+    if (hit == 1 && func_800E6E8C_minigame() == 2) {
+        func_800E6F0C_minigame(3);
+        D_801097D4_dizzy_dinghies = hit;
+        D_80109E40_dizzy_dinghies = HuAudFXPlay(0x425);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", D_80109EF0_dizzy_dinghies);
 
