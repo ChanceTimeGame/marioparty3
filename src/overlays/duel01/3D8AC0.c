@@ -1102,7 +1102,79 @@ void func_80108550_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Obj
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80108550_duel01);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80109404_duel01);
+// duel b1: a partner drifts into the target and fades out (and back in)
+void func_80109404_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags) {
+    Vec dest;
+    Vec start;
+    Vec diff;
+    Vec pos;
+    GW_PLAYER *player;
+    Process *process;
+    s32 frames;
+    s32 i;
+    f32 scale;
+
+    player = MBDGetPlayerStruct(targetIndex);
+    process = HuPrcCurrentGet();
+    HuAudFXPlay(0x1F4);
+    func_800D90D0_name_81(partner, 0, 2);
+    func_8010615C_duel01(partner, target, player, &dest, &start, 0.0f);
+    HuVecSubtract(&diff, &partner->coords, &dest);
+    func_80106240_duel01();
+    func_80106260_duel01(target, player, flags, 3.0f);
+    dest.y -= 5.0f;
+    HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 3.0f));
+    frames = HuVecGetLength3F(&diff) / 3.0f;
+    partner->flags |= 1;
+    if (flags & 8) {
+        func_801060D0_duel01(player, target, HuVecGetLength3F(&diff) / 3.0f, 20);
+        for (i = 0; i < frames; i++) {
+            func_8001F9E4_main(partner->omObj1->model[0], 0xFF - (i * 128) / frames);
+            scale = 2.0f * i / frames + 1.0f;
+            HuVecCopyXYZ(&partner->scale, scale, scale, scale);
+            HuPrcVSleep();
+        }
+        for (i = 128; i >= 0; i -= 10) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            HuPrcVSleep();
+        }
+        func_8001F9E4_main(partner->omObj1->model[0], 0);
+    } else {
+        for (i = 0; i < frames; i++) {
+            func_8001F9E4_main(partner->omObj1->model[0], 0xFF - (i * 128) / 10);
+            scale = 2.0f * i / frames + 1.0f;
+            HuVecCopyXYZ(&partner->scale, scale, scale, scale);
+            HuPrcVSleep();
+        }
+        HuVecCopy3F(&pos, &partner->coords);
+        pos.y += 10.0f;
+        func_800DCE40_name_81(0x44, &pos, NULL, 1.0f);
+        HuPrcSleep(10);
+        func_800DCE40_name_81(0x44, &pos, NULL, 1.0f);
+        HuPrcSleep(12);
+        for (i = 128; i >= 0; i -= 10) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            HuPrcVSleep();
+        }
+        func_8001F9E4_main(partner->omObj1->model[0], 0);
+        func_800FAC1C_name_81(&D_80105540_name_81);
+        if (flags & 1) {
+            func_800FAB68_name_81(target, D_80105550_name_81, 1, D_8010554C_name_81 & 8, D_8010571C_name_81);
+        }
+        if (flags & 2) {
+            func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_8010554C_name_81 & 1, -1);
+        }
+    }
+    if (!(D_80105718_name_81 & 0x10)) {
+        func_800ED214_name_81(playerIndex);
+        HuVecCopyXYZ(&partner->scale, 1.0f, 1.0f, 1.0f);
+        for (i = 0; i < 256; i += 10) {
+            func_8001F9E4_main(partner->omObj1->model[0], i);
+            HuPrcVSleep();
+        }
+        func_8001F9E4_main(partner->omObj1->model[0], 0xFF);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80109888_duel01);
 

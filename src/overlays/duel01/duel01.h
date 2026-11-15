@@ -174,3 +174,4 @@ void MBDBackTPLvlSet(u8);
     mdl->mtx[0] = mdl->mtx[15] = 1.0f
 Process* func_800DCB04_name_81(s32, s32, Vec*, f32, s32);
 void func_800D974C_name_81(Object*);
+extern s32 D_8010554C_name_81;
