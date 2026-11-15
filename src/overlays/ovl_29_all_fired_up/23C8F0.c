@@ -151,7 +151,7 @@ extern s8 D_80109A05_all_fired_up;
 extern s8 D_80109A06_all_fired_up;
 extern s32 D_80109A08_all_fired_up[4];
 extern s32 D_80109A18_all_fired_up[4][4];
-extern f32 D_80109A58_all_fired_up[6];
+extern f32 D_80109A58_all_fired_up[4];
 
 extern s32 D_80109AC0_all_fired_up;
 extern s8 D_80109AC4_all_fired_up;
@@ -1357,3 +1357,41 @@ void func_801097B0_all_fired_up(omObjData* obj) {
     g->unk04 = 0;
     g->unk08 = 0.5f;
 }
+
+/* Start slot of each player: one row per permutation of the four spots. */
+u8 D_80109930_all_fired_up[24][4] = {
+    { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 }, { 0, 3, 2, 1 },
+    { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 1, 2, 3, 0 }, { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 1, 3, 2, 0 },
+    { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 2, 1, 0, 3 }, { 2, 1, 3, 0 }, { 2, 3, 0, 1 }, { 2, 3, 1, 0 },
+    { 3, 0, 1, 2 }, { 3, 0, 2, 1 }, { 3, 1, 0, 2 }, { 3, 1, 2, 0 }, { 3, 2, 0, 1 }, { 3, 2, 1, 0 },
+};
+Vec D_80109990_all_fired_up[4] = {
+    { 60.0f, 0.0f, -60.0f },
+    { 60.0f, 0.0f, 60.0f },
+    { -60.0f, 0.0f, 60.0f },
+    { -60.0f, 0.0f, -60.0f },
+};
+u16 D_801099C0_all_fired_up[4] = { 1800, 1800, 1800, 1800 };
+s8 D_801099C8_all_fired_up = 0;
+s8 D_801099C9_all_fired_up = 15;
+f32 D_801099CC_all_fired_up = 400.0f;
+s8 D_801099D0_all_fired_up = 0;
+/* Formation order (0 circle, 1 cross, 2 jumping line): one row per game. */
+u8 D_801099D4_all_fired_up[6][6] = {
+    { 0, 1, 2, 1, 0, 2 }, { 0, 2, 1, 0, 1, 2 }, { 0, 2, 0, 1, 2, 1 },
+    { 2, 0, 2, 1, 2, 0 }, { 2, 0, 1, 0, 2, 1 }, { 2, 1, 0, 2, 0, 1 },
+};
+s32 D_801099F8_all_fired_up = 0;
+s8 D_801099FC_all_fired_up = 0;
+f32 D_80109A00_all_fired_up = 1.0f;
+s8 D_80109A04_all_fired_up = 0;
+s8 D_80109A05_all_fired_up = 0;
+s8 D_80109A06_all_fired_up = -1;
+s32 D_80109A08_all_fired_up[4] = { 0, 0, 0, 0 };
+s32 D_80109A18_all_fired_up[4][4] = {
+    { 0, -2, -4, -6 },
+    { 0, -2, -4, -6 },
+    { 0, -2, -4, -6 },
+    { 0, -2, -4, -6 },
+};
+f32 D_80109A58_all_fired_up[4] = { 1.0f, 1.5f, 2.0f, 2.5f };
