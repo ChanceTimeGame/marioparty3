@@ -341,6 +341,8 @@ NOP_OBJECTS += build/src/overlays/ovl_81_name/D5B20.c.o
 NOP_OBJECTS += build/src/overlays/duel01/3D8AC0.c.o
 # duel c1: opduel (opboard copy: no nop between a call returning a float and its mul.s)
 NOP_OBJECTS += build/src/overlays/opduel/460790.c.o
+# duel r1: duelresult 4554C0 (no nop after the sindf calls in func_8010709C)
+NOP_OBJECTS += build/src/overlays/duelresult/4554C0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
