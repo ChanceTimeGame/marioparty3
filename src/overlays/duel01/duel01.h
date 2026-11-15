@@ -161,3 +161,16 @@ void func_800EB804_name_81(Object*);
 void func_800FAE98_name_81(Object*, s16, s16, s16, s16);
 void func_8001C92C_main(s16, f32);
 void MBDBackTPLvlSet(u8);
+// duel b1: the same for an X rotation
+#define B1_MODEL_ROTX(obj, angle, mdl)                                                                        \
+    sincosdf(angle, &HmfModelData[(obj)->omObj1->model[0]].mtx[6], &HmfModelData[(obj)->omObj1->model[0]].mtx[5]); \
+    HmfModelData[(obj)->omObj1->model[0]].mtx[9] = -HmfModelData[(obj)->omObj1->model[0]].mtx[6];               \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[10] = mdl->mtx[5];                                                                                  \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[1] = mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[7] = mdl->mtx[8] = mdl->mtx[11] =           \
+        mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                                                       \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[0] = mdl->mtx[15] = 1.0f
+Process* func_800DCB04_name_81(s32, s32, Vec*, f32, s32);
+void func_800D974C_name_81(Object*);

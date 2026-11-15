@@ -910,7 +910,197 @@ void func_801084A4_duel01(s32 playerIndex, s32 arg1, Object *partner, Object *ta
     func_800FADB4_name_81();
 }
 
+// duel b1: a partner rears up and slams down on the target (level 2: three slams, then a wobble)
+#ifdef NON_MATCHING // duel b1: masked 0; float registers of the final squash loop ($f20/$f22/$f24) rotated
+void func_80108550_duel01(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
+    Vec dest;
+    Vec start;
+    Vec diff;
+    GW_PLAYER *player;
+    Process *process;
+    Object *standIn;
+    Object *dust;
+    HmfModel *mdl;
+    s32 model;
+    s32 i;
+    f32 amp;
+    f32 height;
+    f32 scale;
+    f32 angle;
+
+    player = MBDGetPlayerStruct(targetIndex);
+    process = HuPrcCurrentGet();
+    model = -1;
+    if (target == NULL) {
+        HuPrcSleep(20);
+        return;
+    }
+    standIn = func_80106740_duel01(0x55);
+    func_8010615C_duel01(partner, target, player, &dest, &start, 9.0f);
+    for (height = 0.0f; height <= 20.0f; height += 2.0f) {
+        partner->velocity.x = height;
+        HuPrcVSleep();
+    }
+    HuPrcSleep(5);
+    func_80106240_duel01();
+    func_80106260_duel01(target, player, flags, 3.0f);
+    B1_MODEL_ROTX(partner, 20.0f, mdl);
+    HuVecSubtract(&diff, &dest, &partner->coords);
+    HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &dest, &partner->coords, 10));
+    for (i = 20; i > 0; i--) {
+        B1_MODEL_ROTX(partner, i, mdl);
+        HuPrcVSleep();
+    }
+    B1_MODEL_ROTX(partner, 0.0f, mdl);
+    HuPrcSleep(5);
+    for (height = 20.0f; height >= 0.0f; height -= 10.0f) {
+        partner->velocity.x = height;
+        HuPrcVSleep();
+    }
+    func_800DCB04_name_81(0x5A, 1, &partner->coords, 1.0f, 0);
+    HuAudFXPlay(0x1E7);
+    HuAudFXPlay(0x1E8);
+    HuPrcSleep(10);
+    if (target != NULL) {
+        HuPrcSleep(10);
+        for (height = 0.0f; height <= 24.0f; height += 2.0f) {
+            partner->velocity.x = height;
+            HuPrcVSleep();
+        }
+        HuVecCopy3F(&dest, &target->coords);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 3.0f));
+        HuPrcChildWait();
+        HuPrcSleep(10);
+        if (flags & 8) {
+            if (level == 1) {
+                func_801060D0_duel01(player, target, 0, 55);
+            } else {
+                func_801060D0_duel01(player, target, 0, 120);
+            }
+            for (height = 24.0f; height >= 0.0f; height -= 8.0f) {
+                partner->velocity.x = height;
+                HuPrcVSleep();
+            }
+            if (level == 1) {
+                HuAudFXPlay(0x1E7);
+                HuAudFXPlay(0x1E8);
+            } else {
+                HuAudFXPlay(0x1E9);
+            }
+            func_800DCB04_name_81(0x5A, 1, &partner->coords, 1.0f, 0);
+        } else {
+            for (height = 24.0f; height >= 0.0f; height -= 8.0f) {
+                scale = height / 24.0f;
+                partner->velocity.x = height;
+                if (scale > 1.0f) {
+                    scale = 1.0f;
+                }
+                if (scale < 0.1f) {
+                    scale = 0.1f;
+                }
+                HuVecCopyXYZ(&target->scale, 1.0f, scale, 1.0f);
+                HuPrcVSleep();
+            }
+            HuAudFXPlay((level == 1) ? 0x1F3 : 0x1E9);
+            HuVecCopyXYZ(&target->scale, 1.0f, 0.1f, 1.0f);
+            func_801064C8_duel01(targetIndex, 2);
+            if (level == 1) {
+                func_800EB804_name_81(standIn);
+                func_801067D4_duel01(standIn, &target->coords);
+                func_800DCE40_name_81(0x47, &target->coords, NULL, 1.0f);
+            } else {
+                dust = func_800D8010_name_81(0x5A, 0);
+                func_800D974C_name_81(dust);
+                HuVecCopy3F(&dust->coords, &partner->coords);
+                model = func_800DD1E0_name_81(0xB0023, D_80118E60_duel01);
+                func_800DD2DC_name_81(model, &partner->coords);
+            }
+        }
+        if (level == 1) {
+            func_8010645C_duel01(10, 1);
+            HuPrcSleep(40);
+        } else {
+            HuPrcChildLink(process, func_8010645C_duel01(5, 2));
+            HuPrcChildWait();
+            for (i = 0; i < 3; i++) {
+                for (height = 0.0f; height < 9.0f; height += 3.0f) {
+                    partner->velocity.x = height;
+                    HuPrcVSleep();
+                }
+                for (; height >= 0.0f; height -= 4.5f) {
+                    partner->velocity.x = height;
+                    HuPrcVSleep();
+                }
+                if (i == 2) {
+                    HuAudFXPlay(0x1F3);
+                    func_800EB804_name_81(standIn);
+                    func_801067D4_duel01(standIn, &partner->coords);
+                    func_800DCE40_name_81(0x47, &partner->coords, NULL, 1.0f);
+                } else {
+                    HuAudFXPlay(0x1E9);
+                    dust = func_800D8010_name_81(0x5A, 0);
+                    func_800D974C_name_81(dust);
+                    HuVecCopy3F(&dust->coords, &partner->coords);
+                }
+                HuPrcChildLink(process, func_8010645C_duel01(5, 2));
+                HuPrcChildWait();
+            }
+            angle = func_800D76D0_name_81(&partner->rot);
+            for (i = 0; i < 30; i++) {
+                partner->rot.x = sindf(angle + sindf(i * 60) * (30 - i));
+                partner->rot.z = cosdf(angle + sindf(i * 60) * (30 - i));
+                HuPrcVSleep();
+            }
+            partner->rot.x = sindf(angle);
+            partner->rot.z = cosdf(angle);
+            HuPrcSleep(10);
+        }
+    }
+    for (height = 0.0f; height <= 24.0f; height += 2.0f) {
+        partner->velocity.x = height;
+        HuPrcVSleep();
+    }
+    HuPrcSleep(5);
+    B1_MODEL_ROTX(partner, 20.0f, mdl);
+    HuVecSubtract(&diff, &start, &partner->coords);
+    HuPrcChildLink(process, func_800EBF2C_name_81(&partner->coords, &start, &partner->coords, 20));
+    for (i = 20; i > 0; i--) {
+        B1_MODEL_ROTX(partner, i, mdl);
+        HuPrcVSleep();
+    }
+    B1_MODEL_ROTX(partner, 0.0f, mdl);
+    HuPrcSleep(5);
+    for (height = 24.0f; height >= 0.0f; height -= 6.0f) {
+        partner->velocity.x = height;
+        HuPrcVSleep();
+    }
+    HuAudFXPlay(0x1E7);
+    HuAudFXPlay(0x1E8);
+    func_800DCB04_name_81(0x5A, 1, &partner->coords, 1.0f, 0);
+    func_800ED214_name_81(playerIndex);
+    if (target != NULL && !(flags & 8)) {
+        func_801064C8_duel01(targetIndex, 3);
+        amp = 1.0f;
+        for (i = 0; i < 1080; i += 54) {
+            HuVecCopyXYZ(&target->scale, 1.0f, sindf(i) * amp + 1.0f, 1.0f);
+            amp -= 0.025f;
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&target->scale, 1.0f, 1.0f, 1.0f);
+        func_800FAC1C_name_81(&D_80105540_name_81);
+        func_800FAB68_name_81(target, -1, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
+    }
+    func_800D8F3C_name_81(standIn);
+    if (model != -1) {
+        while (func_800DD3B4_name_81(model) == 0) {
+            HuPrcVSleep();
+        }
+        func_800DD2BC_name_81(model);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80108550_duel01);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80109404_duel01);
 
