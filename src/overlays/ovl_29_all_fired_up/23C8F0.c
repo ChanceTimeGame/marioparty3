@@ -89,6 +89,9 @@ extern u8 D_800D6A90_main;
 extern Vec Center;
 extern Vec CRot;
 extern f32 CZoom;
+extern s8 D_800CBB6E_main[];  /* CPU stick x */
+extern s8 D_800D20A1_main[];  /* CPU stick y */
+extern u16 D_800D5558_main[]; /* CPU buttons */
 
 // minigame
 void func_800DDD94_minigame(omObjData* obj);
@@ -100,6 +103,7 @@ void func_800E1840_minigame(void);
 u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
 
+extern f32 D_800EB76C_minigame;
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[];
@@ -1091,7 +1095,215 @@ void func_80108958_all_fired_up(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_29_all_fired_up/23C8F0", func_80108958_all_fired_up);
 #endif
 
+// masked 234 of 836: retail keeps the nearest flame (a Vec at sp+0x14), the try count and the stick speed in the
+// frame (0x98) and hoists the player position out of the nearest-flame loop; this C keeps more in registers. The
+// logic is checked against the asm block by block (difficulty speeds, retry loop, ring and flame jumps, headings).
+#ifdef NON_MATCHING
+/* CPU: pick a heading away from the flames (and the ring's edge), set the stick and the jump button. */
+void func_80108AA0_all_fired_up(omObjData* obj) {
+    MgWork* pw;
+    AfPlayer* ex;
+    omObjData* fl;
+    Vec near;
+    f32 best;
+    f32 dx;
+    f32 dz;
+    f32 d;
+    f32 dist;
+    f32 diag;
+    f32 s;
+    f32 c;
+    f32 r;
+    f32 stick;
+    s32 i;
+    s32 tries;
+    s32 hit;
+    s32 jump;
+    u16 speed;
+
+    near.z = 0.0f;
+    near.x = near.z;
+    hit = 0;
+    jump = 0;
+    if (obj->work[0] == 0) {
+        pw = obj->data;
+        ex = pw->unk158;
+        switch (GwPlayer[pw->unk59].cpu_difficulty) {
+            case 0:
+                speed = 51;
+                break;
+            case 1:
+                speed = 54;
+                break;
+            case 2:
+                speed = 57;
+                break;
+            case 3:
+                speed = 60;
+                break;
+            default:
+                speed = 54;
+                break;
+        }
+        if (ex->unk08 == 0) {
+            ex->unk0C = (rand8() & 0xF) * 360 / 16;
+            ex->unk08++;
+        } else {
+            ex->unk08++;
+            if (ex->unk08 >= 15) {
+                ex->unk08 = 0;
+            }
+        }
+        best = 1960000.0f;
+        for (i = 0; i < D_801099C9_all_fired_up; i++) {
+            fl = D_80109B00_all_fired_up[i];
+            dx = fl->trans.x - obj->trans.x;
+            dz = fl->trans.z - obj->trans.z;
+            d = dx * dx + dz * dz;
+            if (d < best) {
+                near.x = fl->trans.x;
+                near.z = fl->trans.z;
+                best = d;
+            }
+        }
+        dist = HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z);
+        tries = 0;
+        do {
+            if (ex->unk0C >= 360.0f) {
+                ex->unk0C -= 360.0f;
+            }
+            s = sindf(ex->unk0C);
+            c = cosdf(ex->unk0C);
+            for (i = 0; i < D_801099C9_all_fired_up; i++) {
+                fl = D_80109B00_all_fired_up[i];
+                hit = 0;
+                if (D_80109C54_all_fired_up == 0 && D_801099C8_all_fired_up == 3) {
+                    if (D_80109C59_all_fired_up != 0) {
+                        if (AF_ABS(D_801099CC_all_fired_up - dist) < 120.0f) {
+                            jump = 1;
+                        }
+                    } else {
+                        if (AF_ABS(D_801099CC_all_fired_up - dist) < 140.0f) {
+                            jump = 1;
+                        }
+                    }
+                } else {
+                    if (D_801099C8_all_fired_up == 2) {
+                        r = 250.0f;
+                    } else if (D_801099C8_all_fired_up == 1) {
+                        r = 200.0f;
+                    } else if (D_801099C8_all_fired_up == 3) {
+                        r = 150.0f;
+                    } else {
+                        r = 100.0f;
+                    }
+                    dx = fl->trans.x - obj->trans.x;
+                    dz = fl->trans.z - obj->trans.z;
+                    if (HuSqrtf(dx * dx + dz * dz) < r) {
+                        if (jump == 1) {
+                            if (fl->trans.y > 0.0f) {
+                                jump = 0;
+                            }
+                        } else if (fl->trans.y == 0.0f) {
+                            jump = 1;
+                        }
+                    }
+                }
+                if (D_801099C8_all_fired_up == 3 || D_801099C8_all_fired_up == 2) {
+                    r = 400.0f;
+                } else {
+                    r = 200.0f;
+                }
+                dx = fl->trans.x - (s * r + obj->trans.x);
+                dz = fl->trans.z - (c * r + obj->trans.z);
+                if (HuSqrtf(dx * dx + dz * dz) < r) {
+                    hit = 1;
+                    break;
+                }
+            }
+            if (hit == 0) {
+                dx = s * 50.0f + obj->trans.x;
+                dz = c * 50.0f + obj->trans.z;
+                if (!(dx * dx + dz * dz > 490000.0f)) {
+                    break;
+                }
+            }
+            tries++;
+            ex->unk0C += 0.022222222222222223;
+        } while (tries < 8);
+        diag = HuSqrtf(2.0f * (obj->trans.x * obj->trans.x));
+        if (D_801099C8_all_fired_up == 1) {
+            if (D_80109C56_all_fired_up < 21) {
+                ex->unk0C = atan2df(obj->trans.x, obj->trans.z);
+            } else {
+                ex->unk0C = atan2df(obj->trans.x - near.x, obj->trans.z - near.z);
+            }
+        } else if (D_80109C54_all_fired_up == 0 && D_801099C8_all_fired_up == 3) {
+            if (D_80109C59_all_fired_up != 0) {
+                if (D_801099CC_all_fired_up > 350.0f) {
+                    if (AF_ABS(obj->trans.x) < 150.0f && AF_ABS(obj->trans.z) < 150.0f) {
+                        speed = 0;
+                        pw->unk3C = atan2df(obj->trans.x, obj->trans.z);
+                    } else {
+                        ex->unk0C = pw->unk3C = atan2df(-obj->trans.x, -obj->trans.z);
+                    }
+                } else {
+                    ex->unk0C = pw->unk3C = atan2df(obj->trans.x, obj->trans.z);
+                }
+            } else if (D_801099CC_all_fired_up < 350.0f) {
+                ex->unk0C = pw->unk3C = atan2df(obj->trans.x, obj->trans.z);
+            } else if (AF_ABS(obj->trans.x) < 150.0f && AF_ABS(obj->trans.z) < 150.0f) {
+                speed = 0;
+                pw->unk3C = atan2df(obj->trans.x, obj->trans.z);
+            } else {
+                ex->unk0C = pw->unk3C = atan2df(-obj->trans.x, -obj->trans.z);
+            }
+        } else if (D_801099C8_all_fired_up == 2) {
+            if (D_80109C54_all_fired_up == 1 || D_80109C54_all_fired_up == 2) {
+                if (AF_ABS(obj->trans.z) < 200.0f) {
+                    if (obj->trans.z < 0.0f) {
+                        ex->unk0C = 180.0f;
+                    } else {
+                        ex->unk0C = 0.0f;
+                    }
+                } else if (AF_ABS(obj->trans.x) < 200.0f) {
+                    if (obj->trans.x < 0.0f) {
+                        ex->unk0C = 270.0f;
+                    } else {
+                        ex->unk0C = 90.0f;
+                    }
+                } else {
+                    ex->unk0C = atan2df(obj->trans.x - near.x, obj->trans.z - near.z);
+                }
+            }
+        } else if (D_801099C8_all_fired_up != 3) {
+            if (hit == 1) {
+                ex->unk0C = atan2df(obj->trans.x - near.x, obj->trans.z - near.z);
+            }
+            speed *= 0.8f;
+        } else if (D_80109C54_all_fired_up == 1 || D_80109C54_all_fired_up == 2) {
+            func_80109660_all_fired_up(obj, diag, jump);
+            if (D_800EB76C_minigame <= pw->unk40) {
+                dx = sindf(pw->unk3C) * 200.0f + obj->trans.x - near.x;
+                dz = cosdf(pw->unk3C) * 200.0f + obj->trans.z - near.z;
+                if (dx * dx + dz * dz < 40000.0f) {
+                    speed = 0;
+                }
+            }
+        }
+        stick = speed;
+        D_800CBB6E_main[pw->unk57] = sindf(ex->unk0C) * stick;
+        D_800D20A1_main[pw->unk57] = -cosdf(ex->unk0C) * stick;
+        if (jump == 1) {
+            D_800D5558_main[pw->unk57] |= 0x8000;
+        } else {
+            D_800D5558_main[pw->unk57] &= 0x7FFF;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_29_all_fired_up/23C8F0", func_80108AA0_all_fired_up);
+#endif
 
 /* CPU: the heading to dodge the circle (outward or inward, by the spin). */
 void func_80109660_all_fired_up(omObjData* obj, f32 dist, s8 inner) {
