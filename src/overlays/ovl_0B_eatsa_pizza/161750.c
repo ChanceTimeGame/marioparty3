@@ -1231,3 +1231,19 @@ void* func_801090B4_eatsa_pizza(s16 tex, s16 frame) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801090B4_eatsa_pizza);
 #endif
+
+u8 D_80109100_eatsa_pizza[4][2] = { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 } }; /* [n][1]: the n-th player to spawn */
+u8 D_80109108_eatsa_pizza = 0;
+u8 D_8010910C_eatsa_pizza[4] = { 0, 0, 0, 0 };
+s16 D_80109110_eatsa_pizza[4][3] = {
+    { -85, -75, -200 },
+    { -85, 75, -200 },
+    { 85, -75, -200 },
+    { 85, 75, -200 },
+};
+f32 D_80109128_eatsa_pizza[4] = { 45.0f, 135.0f, -45.0f, -135.0f };
+s32 D_80109138_eatsa_pizza = 0; /* D_8010913A (undefined_syms.txt) is its low half */
+u16 D_8010913C_eatsa_pizza = 0;
+s32 D_80109140_eatsa_pizza = -1;
+s16 D_80109144_eatsa_pizza = 0;
+u32 D_80109148_eatsa_pizza = 0x41C64E6D;

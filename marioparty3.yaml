@@ -853,7 +853,7 @@ segments:
     bss_size: 0x180
     subsegments:
       - [0x161750, c]
-      - [0x164EB0, data, 161750] #80109100
+      - [0x164EB0, .data, 161750] #80109100
       - [0x164F00, .rodata, 161750] #80109150
       - {0x165010, type: bss, vram: 0x80109260, name: ovl_0B_bss}
 
