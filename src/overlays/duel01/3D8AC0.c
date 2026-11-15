@@ -245,6 +245,12 @@ extern Object *D_80119498_duel01;
 extern f32 D_8011949C_duel01;
 extern Object *D_801194A0_duel01;
 extern f32 D_801194A4_duel01;
+extern s16 D_80118750_duel01[2];
+extern s16 D_80118754_duel01[2][2]; /* each a pair of space ids (splat label D_80118756 is [0][1]) */
+extern s32 D_8011875C_duel01;
+extern Object *D_801194A8_duel01;
+extern Object *D_801194AC_duel01[2];
+Object *func_800D8B18_name_81(Object *arg0);
 
 void func_8010DC04_duel01(void) {
     s16 model = D_80119490_duel01->omObj1->model[0];
@@ -496,19 +502,105 @@ void func_8010E904_duel01(void) {
     func_8001C92C_main(D_801194A0_duel01->omObj1->model[0], 1.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E954_duel01);
+void func_8010E954_duel01(s16 no) {
+    s32 pad[2]; /* retail's frame is 8 bytes larger */
+    Object *obj;
+    SpaceData *from;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EA74_duel01);
+    if (D_801194AC_duel01[no] == NULL) {
+        if (D_801194A8_duel01 == NULL) {
+            obj = func_800D8010_name_81(0x2D, 0);
+            func_800D8944_name_81(obj);
+            D_801194A8_duel01 = obj;
+        } else {
+            obj = func_800D8B18_name_81(D_801194A8_duel01);
+        }
+        D_801194AC_duel01[no] = obj;
+        obj->flags |= 2;
+        func_8001C814_main(obj->omObj1->model[0], 2, 1);
+        HuVecCopy3F(&obj->coords, &MBDMasuGet(D_80118750_duel01[no])->coords);
+        from = MBDMasuGet(D_80118754_duel01[no][0]);
+        func_800EB708_name_81((s32)&from->coords, (s32)&MBDMasuGet(D_80118754_duel01[no][1])->coords,
+                              (unkStruct01 *)&obj->rot);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EAD4_duel01);
+void func_8010EA74_duel01(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EB44_duel01);
+    D_801194A8_duel01 = NULL;
+    for (i = 0; i < 2; i++) {
+        D_801194AC_duel01[i] = NULL;
+        func_8010E954_duel01(i);
+    }
+}
 
+void func_8010EAD4_duel01(s32 no) {
+    if (D_8011875C_duel01 == 0) {
+        HuAudFXPlay(0x1C4);
+    }
+    D_8011875C_duel01 = 1;
+    func_8001C814_main(D_801194AC_duel01[no]->omObj1->model[0], 5, 0);
+    HuPrcSleep(10);
+}
+
+void func_8010EB44_duel01(s32 no) {
+    func_8001C814_main(D_801194AC_duel01[no]->omObj1->model[0], 1, 4);
+    D_8011875C_duel01 = 0;
+}
+
+// register allocation: GCC keeps &GwSystem.current_player_index in s0 across the call (masked 22)
+#ifdef NON_MATCHING
+s32 func_8010EB88_duel01(void) {
+    GW_PLAYER *rival;
+    s32 chance;
+    s32 dist;
+
+    rival = MBDGetPlayerStruct((s8)(GwSystem.current_player_index ^ 1));
+    chance = (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
+    if (mbWalkNum < 4) {
+        if (GwSystem.current_player_index == 0) {
+            if (rival->clink == 0) {
+                dist = rival->cidx - 8;
+                if (dist == mbWalkNum) {
+                    chance = 0;
+                }
+                if (dist < mbWalkNum) {
+                    chance += 20;
+                }
+            }
+        } else if (rival->clink == 1) {
+            dist = rival->cidx - 8;
+            if (dist == mbWalkNum) {
+                chance = 0;
+            }
+            if (dist < mbWalkNum) {
+                chance += 20;
+            }
+        }
+    }
+    return chance;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EB88_duel01);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EC78_duel01);
+s16 func_8010EC78_duel01(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
+    s16 tbl[12] = { 40, 90, 30, 50, 90, 10, 80, 15, 60, 80, 70, 90 };
+    s32 prize = player->stats.prize.gamblePrize;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010ED20_duel01);
+    if (prize == -1) {
+        return 0;
+    }
+    return tbl[prize];
+}
+
+s16 func_8010ED20_duel01(s32 no) {
+    s16 tbl[12] = { 70, 10, 50, 20, 30, 90, 10, 10, 20, 80, 60, 30 };
+
+    return tbl[no];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EDA0_duel01);
 
@@ -540,9 +632,7 @@ void func_80110BD8_duel01(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F30_duel01);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F48_duel01);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F60_duel01);
 
