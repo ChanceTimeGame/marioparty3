@@ -485,7 +485,8 @@ void func_800E3A0C_name_81(void) {
     HuSprAttrReset(D_80102CCC_name_81->unk_0A, member = data->idx, 0x8000);
     HuSprAttrReset(D_80102CD0_name_81->unk_0A, member, 0x8000);
     do {
-        HuSprScaleSet(D_80102CCC_name_81->unk_0A, idx, scale = (f32)(0x78 - y) / 20.0f + 1.0f, scale);
+        scale = (f32)(0x78 - y) / 20.0f + 1.0f;
+        HuSprScaleSet(D_80102CCC_name_81->unk_0A, idx, scale, scale);
         HuSprScaleSet(D_80102CD0_name_81->unk_0A, idx, scale, scale);
         func_80054904_main(D_80102CCC_name_81->unk_0A, idx, D_80100FD4_name_81[idx], y);
         func_80054904_main(D_80102CD0_name_81->unk_0A, idx, D_80100FD4_name_81[idx], y);
