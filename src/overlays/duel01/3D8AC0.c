@@ -213,6 +213,9 @@ typedef Process *(*DuelB2MoveFunc)(Vec *, Vec *, Vec *, f32);             // fun
 typedef void (*DuelB2DirFunc)(Vec *, Vec *, Vec *);                       // func_800EB708_name_81
 /* func_80106260_duel01 is defined void, but retail returns func_800EC1E4's process and callers use it. */
 typedef Process *(*DuelB2Move2Func)(Object *, GW_PLAYER *, s32, f32);    // func_80106260_duel01
+typedef Process *(*DuelB2JumpFunc)(Vec *, Vec *, Vec *, s32);             // func_800EBF2C_name_81
+/* func_801062C0_duel01 is defined with an unused f32 last parameter; retail passes the int 30. */
+typedef Process *(*DuelB2Jump2Func)(Object *, GW_PLAYER *, s32, s32);    // func_801062C0_duel01
 
 extern s32 D_80118710_duel01[];
 extern s32 D_80105550_name_81;
@@ -238,6 +241,11 @@ Process *func_800EC36C_name_81(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
 void func_800FAE98_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
 void func_800FC888_name_81(s32 arg0);
 void MBDBackTPLvlSet(u8 arg0);
+Object *func_800D8B18_name_81(Object *obj);
+void func_800EF7C8_name_81(Object *obj, f32 arg1, f32 arg2);
+s32 func_800EF7D4_name_81(Object *obj);
+s32 func_800EFE20_name_81(f32 arg0);
+Process *func_800DCC8C_name_81(s32 type, Vec *pos, Vec *vel, f32 scale, s32 delay, f32 speed);
 void func_800D918C_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, u16 arg4);
 void func_8010AAB0_duel01(Object *obj, s32 create);
 void func_8010AD48_duel01(Object *obj);
@@ -290,7 +298,179 @@ void func_80118328_duel01(void);
 extern event_table_entry D_80118914_duel01[];
 extern event_table_entry D_80118DEC_duel01[];
 
+#ifdef NON_MATCHING
+// duel b2: masked 24 of 655: register choice around the &sp98/&sp78 arguments of HuVecSubtract (retail recomputes them per arm); logic checked block by block.
+void func_8010A210_duel01(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
+    DuelB2DirFunc dir = (DuelB2DirFunc)(void (*)(void))func_800EB708_name_81;
+    DuelB2JumpFunc jump = (DuelB2JumpFunc)(void (*)(void))func_800EBF2C_name_81;
+    DuelB2Jump2Func jump2 = (DuelB2Jump2Func)(void (*)(void))func_801062C0_duel01;
+    DuelB2ObjFunc objHide = (DuelB2ObjFunc)func_800D8E88_name_81;
+    Vec sp18;
+    Vec sp28;
+    Object *parts[16];
+    Vec sp78;
+    Vec sp88;
+    Vec sp98;
+    GW_PLAYER *player;
+    Process *process;
+    Object *obj;
+    Object *extra2;
+    Object *extra1;
+    s32 i;
+    s32 count;
+    Vec *vel;
+
+    player = MBDGetPlayerStruct(playerNo);
+    process = HuPrcCurrentGet();
+    extra2 = NULL;
+    func_800FAD04_name_81(0xA);
+    if (variant == 2) {
+        extra2 = func_80106740_duel01(0x51);
+        HuVecCopyXYZ(&extra2->scale, 2.0f, 2.0f, 2.0f);
+        HuPrcVSleep();
+    }
+    extra1 = func_80106740_duel01(0x4C);
+    HuVecCopyXYZ(&extra1->scale, 2.0f, 2.0f, 2.0f);
+    HuPrcVSleep();
+    if (target != NULL) {
+        HuVecCopy3F(&sp18, &target->coords);
+    } else {
+        HuVecCopy3F(&sp18, &player->player_obj->coords);
+    }
+    dir(&partner->coords, &sp18, &partner->rot);
+    obj = func_800D8010_name_81(0x57, 0);
+    func_800D8F0C_name_81(obj);
+    HuVecCopy3F(&obj->coords, &partner->coords);
+    obj->coords.y += 5.0f;
+    sp18.y += 5.0f;
+    if (variant == 2) {
+        HuVecCopyXYZ(&obj->scale, 2.0f, 2.0f, 2.0f);
+        for (i = 0; i < 16; i++) {
+            parts[i] = func_800D8B18_name_81(obj);
+            HuVecCopy3F(&parts[i]->coords, &obj->coords);
+            func_800D8F0C_name_81(parts[i]);
+            HuVecCopyXYZ(&parts[i]->scale, 0.5f, 0.5f, 0.5f);
+        }
+    }
+    func_800FAE18_name_81(partner, 0, 0);
+    HuPrcSleep(0x14);
+    objHide(obj);
+    func_800EF7C8_name_81(obj, 3.0f, -0.18f);
+    HuPrcChildLink(process, jump(&obj->coords, &sp18, &obj->coords, 0x1E));
+    if (variant == 2) {
+        for (i = 0; i < 16; i++) {
+            HuVecCopy3F(&sp28, &sp18);
+            sp28.x += func_800EFE20_name_81(100.0f) / 15.0f - 3.3f;
+            sp28.y += func_800EFE20_name_81(100.0f) / 15.0f - 3.3f;
+            sp28.z += func_800EFE20_name_81(100.0f) / 15.0f - 3.3f;
+            func_800EF7C8_name_81(parts[i], 3.0f, -0.18f);
+            HuPrcChildLink(process, jump(&parts[i]->coords, &sp28, &parts[i]->coords, 0x1E));
+        }
+    }
+    HuAudFXPlay(0x1E1);
+    func_80106240_duel01();
+    jump2(target, player, flags, 0x1E); // host: func_801062C0_duel01 must take an s32 here
+    if (flags & 8) {
+        HuVecCopy3F(&sp78, &target->coords);
+        sp78.y += 5.0f;
+        func_801060D0_duel01(player, target, 0x19, 0x28);
+        if (variant == 1) {
+            HuPrcSleep(0x20);
+        } else {
+            HuPrcSleep(0x14);
+            func_800D8F0C_name_81(obj);
+            HuVecCopy3F(&sp88, &obj->coords);
+            sp88.y += obj->velocity.x;
+            HuVecSubtract(&sp98, &target->coords, &sp88);
+            HuVecMulScalar(&sp98, 0.05f, &sp98);
+            func_800DCC8C_name_81(0x4E, &sp88, &sp98, 1.5f, 0, 2.4f);
+            for (i = 0; i < 16; i++) {
+                objHide(parts[i]);
+                parts[i]->velocity.z = func_800EFE20_name_81(100.0f) / 1000.0f + -0.18f - 0.05f;
+                parts[i]->velocity.y += func_800EFE20_name_81(100.0f) / 100.0f;
+            }
+            HuAudFXPlay(0x1E2);
+            HuPrcChildWait();
+        }
+        func_801067D4_duel01(extra1, &sp78);
+        if (variant == 2) {
+            func_801067D4_duel01(extra2, &sp78);
+        }
+    } else {
+        if (variant != 1) {
+            HuPrcSleep(0x14);
+            func_800D8F0C_name_81(obj);
+            HuVecCopy3F(&sp78, &obj->coords);
+            sp78.y += obj->velocity.x;
+            vel = &sp98;
+            if (flags & 1) {
+                HuVecSubtract(vel, &target->coords, &sp78);
+            } else {
+                HuVecSubtract(vel, &player->player_obj->coords, &sp78);
+            }
+            HuVecMulScalar(vel, 0.05f, vel);
+            func_800DCC8C_name_81(0x4E, &sp78, vel, 1.5f, 0, 2.4f);
+            for (i = 0; i < 16; i++) {
+                objHide(parts[i]);
+                parts[i]->velocity.z = func_800EFE20_name_81(100.0f) / 1000.0f + -0.18f - 0.05f;
+                parts[i]->velocity.y += func_800EFE20_name_81(100.0f) / 100.0f;
+            }
+            HuAudFXPlay(0x1E2);
+        }
+        HuPrcChildWait();
+        if (flags & 1) {
+            HuVecCopy3F(&sp78, &target->coords);
+        } else {
+            HuVecCopy3F(&sp78, &player->player_obj->coords);
+        }
+        sp78.y += 5.0f;
+        func_801067D4_duel01(extra1, &sp78);
+        if (variant == 2) {
+            func_801067D4_duel01(extra2, &sp78);
+        }
+        func_800FAC1C_name_81((Vec *)&D_80105540_name_81);
+        if (flags & 1) {
+            func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
+            HuAudFXPlay((D_80105718_name_81 & 8) ? 0x1CE : 0x1CD);
+        }
+        if (flags & 2) {
+            func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_80105718_name_81 & 1, -1);
+            if (!(flags & 1)) {
+                HuAudFXPlay((D_80105718_name_81 & 1) ? 0x1CE : 0x1CD);
+            }
+        }
+    }
+    if (variant == 2) {
+        while (TRUE) {
+            count = 0;
+            for (i = 0; i < 16; i++) {
+                if (func_800EF7D4_name_81(parts[i]) == 0) {
+                    count++;
+                    func_800D8F0C_name_81(parts[i]);
+                }
+            }
+            if (i == count) {
+                break;
+            }
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 16; i++) {
+            func_800D8F3C_name_81(parts[i]);
+        }
+    }
+    func_800D8F3C_name_81(obj);
+    func_800D90D0_name_81(partner, -1, 2);
+    func_800ED214_name_81(arg0);
+    HuPrcSleep(0x1E);
+    func_800D8F3C_name_81(extra1);
+    if (variant == 2) {
+        func_800D8F3C_name_81(extra2);
+    }
+    func_800FADB4_name_81();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010A210_duel01);
+#endif
 
 /* A smoke puff (model 0x21) grows over obj; with create, model 8 (D_80119488) is made, then hidden at obj's place. */
 void func_8010AAB0_duel01(Object *obj, s32 create) {
