@@ -80,6 +80,10 @@ extern UnkBoard D_80105560_name_81[16];
 u16 func_800D9234_name_81(Object* arg0);
 void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
 s32 func_800F73AC_name_81(void);
+f32 func_800D76D0_name_81(Vec* arg0);
+f64 fabs(f64);
+void func_800F8CD8_name_81(s32 playerNo, f32 speed);
+void func_800F7FDC_name_81(void);
 s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
 void func_80017B20_main(s16 arg0, s16 arg1, s32 arg2, s32 arg3);
 s32 func_800EFE8C_name_81(Object* arg0, Vec* arg1, f32 arg2);
@@ -694,10 +698,73 @@ s32 func_800F001C_name_81(UnkPathMove* move) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F008C_name_81);
+// Turns obj toward target by at most speed * 1.2 degrees; returns 1 once it faces it.
+s32 func_800F008C_name_81(Object* obj, Vec* target, f32 speed) {
+    Vec dir;
+    f32 step = speed * 1.2f;
+    f32 targetAngle;
+    f32 angle;
+    f32 diff;
+
+    func_800EB708_name_81(&obj->coords, target, &dir);
+    targetAngle = func_800D76D0_name_81(&dir);
+    angle = func_800D76D0_name_81(&obj->rot);
+    diff = targetAngle - angle;
+    if (fabs(diff) > step) {
+        if (diff < 0.0f) {
+            diff += 360.0f;
+        }
+        if (diff < 180.0f) {
+            if (step < diff) {
+                angle += step;
+            } else {
+                angle += diff;
+            }
+        } else if (step < 360.0f - diff) {
+            angle -= step;
+        } else {
+            angle -= 360.0f - diff;
+        }
+    } else {
+        angle = targetAngle;
+    }
+    dir.x = sindf(angle);
+    dir.z = cosdf(angle);
+    obj->rot = dir;
+    return angle == targetAngle;
+}
 
 
+// Matches (masked and raw 0); kept NON_MATCHING only for .rodata: retail pads its two u32->f32
+// constants to 16 bytes (D_80102590 ends with 8 zero bytes) because a retail source file ends
+// here. Splitting D5B20 at the file boundary lets the C emit it.
+#ifdef NON_MATCHING
+// Zooms the camera from zoom to end over frames * 1.2 frames, keeping it on pos.
+void func_800F0208_name_81(Vec* pos, f32 zoom, f32 end, u32 frames) {
+    f32 step;
+
+    frames *= 1.2f;
+    step = (end - zoom) / frames;
+    while (1) {
+        zoom += step;
+        if (step >= 0.0f) {
+            if (zoom >= end) {
+                zoom = end;
+            }
+        } else if (zoom <= end) {
+            zoom = end;
+        }
+        MBDCameraZoomSet(zoom);
+        MBDCameraPos3DSet(pos);
+        if ((step >= 0.0f) ? (zoom >= end) : (zoom <= end)) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F0208_name_81);
+#endif
 
 void func_800F0378_name_81(Object* obj, char* hook, s16 model) {
     func_8001EF6C_main(model, obj->omObj1->model[0], hook);
@@ -1912,15 +1979,48 @@ s32 func_800F3850_name_81(s32 playerNo, s32 requiredCoins) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3880_name_81);
+void func_800F3880_name_81(s32 playerNo, s16 motion, u16 attr) {
+    GW_PLAYER* player = MBDGetPlayerStruct(playerNo);
 
+    if (player == MBDGetPlayerStruct(-1)) {
+        func_800D90D0_name_81(player->player_obj, motion, attr);
+    }
+}
+
+// Retail passes attr to func_800F89D0 zero-extended (that call saw no s16 prototype); ovl_81.h's
+// s16 arg3 adds a sign extension. The callee narrows it to s16 either way.
+#ifdef NON_MATCHING
+void func_800F38DC_name_81(s32 playerNo, s16 motion, s32 arg2) {
+    GW_PLAYER* player = MBDGetPlayerStruct(playerNo);
+    u16 attr;
+
+    if (player == MBDGetPlayerStruct(-1)) {
+        attr = arg2;
+        func_800D90D0_name_81(player->player_obj, motion, attr);
+        if (motion < 4) {
+            func_800F89D0_name_81(playerNo, PARTNER_FRONT, motion, attr);
+            func_800F89D0_name_81(playerNo, PARTNER_BACK, motion, attr);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F38DC_name_81);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F397C_name_81);
+void func_800F397C_name_81(s32 playerNo, s16 motion, s16 arg2, s16 arg3, u16 attr) {
+    GW_PLAYER* player = MBDGetPlayerStruct(playerNo);
+
+    if (player == MBDGetPlayerStruct(-1)) {
+        func_800D918C_name_81(player->player_obj, motion, arg2, arg3, attr);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3A04_name_81);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3AF4_name_81);
+void func_800F3AF4_name_81(s32 playerNo, f32 speed) {
+    func_8001C92C_main(MBDGetPlayerStruct(playerNo)->player_obj->omObj1->model[0], speed);
+    func_800F8CD8_name_81(playerNo, speed);
+}
 
 void func_800F3B54_name_81(s32 playerNo, u8 arg1) {
     MBDGetPlayerStruct(playerNo)->cpu_difficulty = D_80101370_name_81[arg1];
@@ -1929,7 +2029,17 @@ void func_800F3B54_name_81(s32 playerNo, u8 arg1) {
 void func_800F3B8C_name_81(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3B94_name_81);
+void func_800F3B94_name_81(s32 playerNo, Vec* scale) {
+    GW_PLAYER* player = MBDGetPlayerStruct(playerNo);
+
+    HuVecCopy3F(&player->player_obj->scale, scale);
+    if (player->stats.partners.frontID != PARTNER_NONE) {
+        HuVecCopy3F(&MBDGetPlayerPartnerRef(playerNo, PARTNER_FRONT)->scale, scale);
+    }
+    if (player->stats.partners.backID != PARTNER_NONE) {
+        HuVecCopy3F(&MBDGetPlayerPartnerRef(playerNo, PARTNER_BACK)->scale, scale);
+    }
+}
 
 static void func_800F3C28_name_81(void) {
     GW_PLAYER *player = HuPrcCurrentGet()->user_data;
@@ -2030,4 +2140,11 @@ void func_800F3F4C_name_81(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F4030_name_81);
+void func_800F4030_name_81(void) {
+    s32 i;
+
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        func_800F3EC0_name_81(i);
+    }
+    func_800F7FDC_name_81();
+}
