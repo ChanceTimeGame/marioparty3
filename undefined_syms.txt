@@ -136,4 +136,7 @@ D_801188E4_duel01 = D_801188E8_duel01 - 0x4;
 /* duel c1: opduel .data inner labels the asm still uses */
 D_80109258_opduel = D_80109250_opduel + 0x8;
 D_801092B0_opduel = D_801092A4_opduel + 0xC;
+/* duel c1: opduel .data inner label func_801059A0_opduel (NON_MATCHING asm) uses */
 D_80109350_opduel = D_8010934C_opduel + 0x4;
+D_80101200_name_81 = 0x80101200; /* duel c1: ovl_81 data with no label yet (character name messages) */
+D_80101960_name_81 = 0x80101960; /* duel c1: ovl_81 data with no label yet (partner display index per character) */
