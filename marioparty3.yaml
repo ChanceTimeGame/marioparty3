@@ -1961,7 +1961,7 @@ segments:
       - [0x3D8A90, c]
       - [0x3D8AC0, c]
       - [0x3EB7D0, .data, 3D8A90] #801186E0
-      - [0x3EB800, data, 3D8AC0]
+      - [0x3EB800, .data, 3D8AC0]
       - [0x3EBF50, .rodata, 3D8AC0] #80118E60
       - {0x3EC560, type: bss, vram: 0x80119470, name: duel01_bss}
 

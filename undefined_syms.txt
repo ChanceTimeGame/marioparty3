@@ -123,3 +123,13 @@ D_80101255_name_81 = D_80101254_name_81 + 0x1;
 D_80101256_name_81 = D_80101254_name_81 + 0x2;
 D_801015A6_name_81 = D_801015A4_name_81 + 0x2;
 D_801015B2_name_81 = D_801015B0_name_81 + 0x2;
+/* duel b5: duel01/3D8AC0 .data inner labels the remaining asm uses */
+D_80118742_duel01 = D_80118740_duel01 + 0x2;
+D_8011874A_duel01 = D_80118748_duel01 + 0x2;
+D_80118754_duel01 = D_80118750_duel01 + 0x4;
+D_80118756_duel01 = D_80118750_duel01 + 0x6;
+D_80118761_duel01 = D_80118760_duel01 + 0x1;
+D_8011887E_duel01 = D_8011887C_duel01 + 0x2;
+D_80118882_duel01 = D_8011887C_duel01 + 0x6;
+D_80118886_duel01 = D_8011887C_duel01 + 0xA;
+D_801188E4_duel01 = D_801188E8_duel01 - 0x4;
