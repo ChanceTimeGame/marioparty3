@@ -11,6 +11,7 @@
 #include "game/window.h"
 #include "game/hmfman.h"
 #include "game/esprite.h"
+#include "game/data.h"
 
 // batter A: Hey, Batter, Batter! (one player bats pitches into the stands)
 
@@ -29,6 +30,9 @@ s16 func_80017AD8_main(s32);
 extern u16 D_800D530C_main;
 void func_8001C92C_main(s16 model, f32 arg1);
 omObjData* func_80045ED0_main(u32 arg0);
+s32 HmfAnimCreate(HmfData*, void*, s32, char*);
+void func_80032FF8_main(s32, u8);
+void func_80032FC0_main(s16, u8, u8);
 
 /* D_800CCF58_main's records (common_structs.h D_800CCF58_main_Struct): motion length at 0x02 */
 typedef struct HbMotInfo {
@@ -68,6 +72,7 @@ void func_80106CBC_hey_batter_batter(omObjData* obj);
 void func_80106C6C_hey_batter_batter(omObjData* obj);
 void func_80106FA8_hey_batter_batter(omObjData* obj);
 void func_80107464_hey_batter_batter(omObjData* obj);
+void func_80107C48_hey_batter_batter(omObjData* obj);
 s16 func_80109A78_hey_batter_batter(s32 file, u16 attr, u16 prio, s16 x, s16 y);
 s16 func_80109B24_hey_batter_batter(s32 arg0);
 void func_80106CE4_hey_batter_batter(omObjData* obj);
@@ -616,7 +621,39 @@ void func_80107464_hey_batter_batter(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_801079D0_hey_batter_batter);
+/* The pitcher: model with its glove and ball, shadows, and its motions. */
+void func_801079D0_hey_batter_batter(omObjData* obj) {
+    void* data;
+    s16 anim;
+
+    obj->model[0] = func_8000B108_main(0xA00EE, 0x2A9);
+    obj->model[1] = func_8000B108_main(0x5D0009, 0x2A9);
+    obj->model[2] = func_8000B108_main(9, 0x6A9);
+    obj->model[3] = func_8000B108_main(0x5D0004, 0x2A9);
+    obj->model[4] = func_8000B108_main(9, 0x6A9);
+    data = DataRead(0xA0100);
+    anim = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "c162n_0_DEF");
+    DataClose(data);
+    func_8001C448_main(obj->model[0]);
+    func_80032FF8_main(anim, 0);
+    func_80032FC0_main(anim, 1, 0);
+    func_8000B460_main(obj, 0, 0xA00F7);
+    func_8000B460_main(obj, 1, 0xA00F6);
+    func_8000B460_main(obj, 2, 0xA00F2);
+    func_8000B460_main(obj, 3, 0xA00F8);
+    func_8000B460_main(obj, 4, 0xA00F9);
+    func_8000B460_main(obj, 5, 0xA00FA);
+    func_8001C258_main(obj->model[1], 0x4000, 0x4000);
+    func_8001EF6C_main(obj->model[1], obj->model[0], "c162_000-te2");
+    func_8001C8A8_main(obj->model[1], 1);
+    omSetTra(obj, 0.0f, 5.5f, -1000.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 4.0f, -1000.0f);
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 2, 2);
+    D_80109EDA_hey_batter_batter = 0;
+    func_8001C8A8_main(obj->model[3], 0);
+    func_8001C8A8_main(obj->model[4], 0);
+    obj->func = func_80107C48_hey_batter_batter;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107C48_hey_batter_batter);
 
