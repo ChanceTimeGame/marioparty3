@@ -73,6 +73,10 @@ void func_800142A0_main(s32);
 omObjData* func_80045ED0_main(u32 arg0);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
 f64 fabs(f64);
+void func_80088800_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
+void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
+void func_8004AE00_main(s16 handle, s16 pan);
+f32 HuVecDot3F(Vec* a, Vec* b);
 void func_80088700_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
 
 extern s32 D_800A178C_main[][6];
@@ -91,7 +95,7 @@ void func_800E1468_minigame(omObjData* obj);
 void func_800E147C_minigame(omObjData* obj);
 void func_800E1490_minigame(u16 arg0);
 void func_800D6B70_minigame(omObjData* obj);
-void func_800D861C_minigame(BbBall* w, s32 slot, s32 (*fn)());
+void func_800D861C_minigame(BbBall* w, s32 slot, void* fn);
 s32 func_800E4A90_minigame(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E1804_minigame(void);
@@ -116,6 +120,7 @@ extern s16 D_800EB934_minigame[];
 extern omObjData* D_800EBE70_minigame[];
 extern s32 D_800EBEB0_minigame[];
 extern u16 D_800EC288_minigame;
+extern Vec D_800EC298_minigame[]; /* wall normal of the last wall hit */
 
 // LOCAL
 void func_80105E74_boulder_ball(omObjData* obj);
@@ -137,10 +142,11 @@ void func_80108000_boulder_ball(omObjData* obj);
 void func_80108798_boulder_ball(omObjData* obj);
 void func_80108A08_boulder_ball(omObjData* obj);
 s32 func_80108CF4_boulder_ball(void);
-s32 func_80108E5C_boulder_ball();
-s32 func_801093B8_boulder_ball();
-s32 func_80109410_boulder_ball();
-s32 func_801095A0_boulder_ball();
+void func_80108CFC_boulder_ball(omObjData* obj);
+s32 func_80108E5C_boulder_ball(omObjData* obj);
+void func_801093B8_boulder_ball(omObjData* obj);
+s32 func_80109410_boulder_ball(omObjData* obj);
+s32 func_801095A0_boulder_ball(omObjData* obj);
 
 extern s32 D_80109700_boulder_ball[8]; /* per boulder: state */
 extern Vec D_80109720_boulder_ball[3]; /* the runners' start positions */
@@ -157,6 +163,8 @@ extern s32 D_801097B4_boulder_ball[4]; /* per player: CPU mode */
 extern s32 D_801097C4_boulder_ball; /* the next runner's player */
 extern s32 D_801097CC_boulder_ball; /* frames since the finish */
 extern s32 D_801097D0_boulder_ball; /* boulders created */
+extern f32 D_801097D4_boulder_ball[8]; /* per boulder: roll angle */
+extern s32 D_801097F4_boulder_ball; /* the boulder whose turn it is */
 extern s32 D_801097C8_boulder_ball; /* lone CPU: target runner 0-2, 3/4 a side, 5 choose */
 
 extern f32 D_80109880_boulder_ball; /* finish camera steps */
@@ -1131,10 +1139,193 @@ void func_80108CFC_boulder_ball(omObjData* obj) {
     }
 }
 
+// masked: one instruction; retail schedules D_80109744[idx]'s index shift into the mfc1 delay slot of the pan
+// argument, GCC here computes it before (an extra nop shifts the rest); logic checked against the asm
+#ifdef NON_MATCHING
+/* A boulder hook (slot 0): the boulder's states. 0 waits above the lone player for its turn, 1 drops onto the
+   slope, 2 waits to be thrown, 3 rolls down, 4 fell off the bottom. */
+s32 func_80108E5C_boulder_ball(omObjData* obj) {
+    BbBall* ball;
+    s32 idx;
+    s32 ret;
+    s32 i;
+    f32 pan;
+    f32 step;
+
+    ret = 0;
+    switch (func_800E6E8C_minigame()) {
+        case 3:
+            func_80108CFC_boulder_ball(obj);
+            return 1;
+        case 0:
+        case 2:
+            break;
+        default:
+            return 1;
+    }
+    ball = obj->data;
+    idx = ball->unk56;
+    func_80088800_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, 90.0f, 0.0f);
+    func_80017D24_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, D_801097D4_boulder_ball[idx], 0.0f, 0.0f);
+    obj->rot.y = ball->unk3C;
+    switch (D_80109700_boulder_ball[idx]) {
+        case 0:
+            obj->trans.x = 0.0f;
+            obj->trans.y = 1500.0f;
+            obj->trans.z = -900.0f;
+            ball->unk38 = 0.0f;
+            ball->unk40 = 0.0f;
+            ball->unk3C = 0.0f;
+            D_801097D4_boulder_ball[idx] = 0.0f;
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 4);
+            if (D_801097F4_boulder_ball == idx) {
+                ball->unk78++;
+                if (ball->unk78 >= 26) {
+                    D_80109700_boulder_ball[idx] = 1;
+                    ball->unk78 = 0;
+                    func_8001C258_main(obj->model[0], 4, 0);
+                    func_8001C258_main(obj->model[1], 4, 0);
+                }
+            }
+            ret = 1;
+            break;
+        case 1:
+            if (obj->trans.y == 700.0f) {
+                D_80109700_boulder_ball[idx] = 2;
+                D_80109758_boulder_ball = 1;
+                D_801098A0_boulder_ball = D_800EBE70_minigame[D_801097F4_boulder_ball];
+                D_80109754_boulder_ball = -D_800EB744_minigame * 0.5f;
+                for (i = 0; i < 4; i++) {
+                    omVibrate(i, 2, 2, 20);
+                }
+            }
+            break;
+        case 2:
+            if (D_80109758_boulder_ball == 0) {
+                D_80109700_boulder_ball[idx] = 3;
+                D_801097F4_boulder_ball++;
+                if (D_801097F4_boulder_ball == (u16)D_800EC1B8_minigame) {
+                    D_801097F4_boulder_ball = 0;
+                }
+                D_80109744_boulder_ball[idx] = HuAudFXPlay(0x31D);
+            }
+            ret = 1;
+            break;
+        case 3:
+            step = ball->unk40 / 502.64f * 360.0f;
+            D_801097D4_boulder_ball[idx] = step + D_801097D4_boulder_ball[idx];
+            if (D_80109744_boulder_ball[idx] != -1) {
+                if (ball->unk38 > 0.0f) {
+                    func_8004AAD0_main((s16)D_80109744_boulder_ball[idx], 0x7F);
+                } else {
+                    func_8004AAD0_main((s16)D_80109744_boulder_ball[idx], 0x60);
+                }
+                pan = obj->trans.x / 400.0f;
+                if (pan > 1.0f) {
+                    pan = 1.0f;
+                }
+                if (pan < -1.0f) {
+                    pan = -1.0f;
+                }
+                func_8004AE00_main((s16)D_80109744_boulder_ball[idx], pan * 32.0f + 64.0f);
+            }
+            if (obj->trans.z > 1400.0f) {
+                D_80109700_boulder_ball[idx] = 4;
+                ball->unk40 = 0.0f;
+                D_801097D4_boulder_ball[idx] = 0.0f;
+                func_8001C258_main(obj->model[2], 4, 4);
+                func_8001C258_main(obj->model[3], 4, 4);
+                func_8001C258_main(obj->model[4], 4, 4);
+                func_8001C258_main(obj->model[5], 4, 4);
+                HuAudFXStop((s16)D_80109744_boulder_ball[idx]);
+                D_80109744_boulder_ball[idx] = -1;
+            }
+            break;
+        case 4:
+            ball->unk78++;
+            if (ball->unk78 >= 11) {
+                D_80109700_boulder_ball[idx] = 0;
+                ball->unk78 = 0;
+            }
+            ret = 1;
+            break;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80108E5C_boulder_ball);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_801093B8_boulder_ball);
+/* A boulder hook (slot 1): accelerate while rolling. Returns nothing although the hook table is s32 (*)(). */
+void func_801093B8_boulder_ball(omObjData* obj) {
+    BbBall* ball = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80109410_boulder_ball);
+    ball->unk40 += 0.3f;
+    ball->unk78++;
+    if (ball->unk40 > 35.0f) {
+        ball->unk40 = 35.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_801095A0_boulder_ball);
+/* A boulder hook (slot 4): a bounce while rolling puffs dust; sets a new random bounce. */
+s32 func_80109410_boulder_ball(omObjData* obj) {
+    BbBall* ball;
+    s32 i;
+    s32 sel;
+    f32 max;
+    f32 v;
+
+    ball = obj->data;
+    sel = ball->unk56;
+    if (D_80109700_boulder_ball[sel] == 3) {
+        sel = 0;
+        if (ball->unk38 > 0.4f) {
+            max = 0.0f;
+            for (i = 0; i < 4; i++) {
+                v = HmfModelData[obj->model[i + 2]].unk40;
+                if (v == 0.0f) {
+                    sel = i;
+                    break;
+                }
+                if (max < v) {
+                    max = v;
+                    sel = i;
+                }
+            }
+            Hu3DModelPosSet(obj->model[sel + 2], obj->trans.x, obj->trans.y + 10.0f, obj->trans.z);
+            func_8001C6A8_main(obj->model[sel + 2], 0.0f);
+            func_8001C258_main(obj->model[sel + 2], 4, 0);
+        }
+    }
+    ball->unk38 = rand8() / 500.0f + 0.0f;
+    return 1;
+}
+
+/* A boulder hook (slot 5): bounce off a side wall (reflect the heading about the wall normal). */
+s32 func_801095A0_boulder_ball(omObjData* obj) {
+    BbBall* ball;
+    Vec n;
+    Vec d;
+    Vec r;
+    f32 dot;
+    s32 i;
+
+    ball = obj->data;
+    n.x = D_800EC298_minigame[0].x;
+    n.y = d.y = 0.0f;
+    n.z = D_800EC298_minigame[0].z;
+    d.x = sindf(ball->unk3C + 180.0f);
+    d.z = cosdf(ball->unk3C + 180.0f);
+    dot = HuVecDot3F(&n, &d);
+    n.x *= dot;
+    n.z *= dot;
+    HuVecSubtract(&r, &n, &d);
+    HuVecAdd(&r, &n, &r);
+    ball->unk3C = atan2df(r.x, r.z);
+    for (i = 0; i < 4; i++) {
+        omVibrate(i, 2, 3, 10);
+    }
+    func_8004AE00_main(HuAudFXPlay(0x31E), n.x > 0.0f ? 0x20 : 0x60);
+    return 1;
+}
