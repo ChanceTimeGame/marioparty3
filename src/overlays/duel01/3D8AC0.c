@@ -334,6 +334,7 @@ void func_80111DFC_duel01(void) {
     s32 i;
     char *str;
     GW_SYSTEM *system = &GwSystem;
+    DuelB4MoveFunc move = (DuelB4MoveFunc)(void (*)(void))func_800EC1E4_name_81;
 
     player = MBDGetPlayerStruct(-1);
     space = MBDMasuGet(0x1D);
@@ -343,7 +344,7 @@ void func_80111DFC_duel01(void) {
     HuVecCopy3F(&pos, &player->player_obj->coords);
     func_800FC888_name_81(4);
     func_800FC8C4_name_81(&pos);
-    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_b4(&pos, &space->coords, &pos, 4.0f));
+    HuPrcChildLink(HuPrcCurrentGet(), move(&pos, &space->coords, &pos, 4.0f));
     func_800D90D0_name_81(D_80119490_duel01, 2, 0);
     func_8002FD8C_main(D_80119490_duel01->omObj1->model[0],
                        HmfModelData[D_80119490_duel01->omObj1->model[0]].unk02, D_80118F18_duel01, 0x4C, 0x46);
@@ -409,7 +410,7 @@ void func_80111DFC_duel01(void) {
         HuPrcSleep(-1);
     }
     D_8011872C_duel01 = 3.0f;
-    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_b4(&pos, &player->player_obj->coords, &pos, 4.0f));
+    HuPrcChildLink(HuPrcCurrentGet(), move(&pos, &player->player_obj->coords, &pos, 4.0f));
     func_800DADA0_name_81(system->current_player_index);
     HuPrcChildLink(HuPrcCurrentGet(), MBDCameraZoomMotStart(1.7f));
     HuPrcChildWait();
@@ -480,7 +481,7 @@ void func_801125CC_duel01(void) {
     s8 backIdx = -1;
 
     func_800E9F4C_name_81(MBDGetCurrentPlayerIndex() == 0 ? 0x1C : 0x1B, &link, &idx);
-    func_80118320_b4(&backLink, &backIdx);
+    func_80118320_duel01(&backLink, &backIdx);
     func_800E24AC_name_81(link, idx, backLink, backIdx);
     func_800ED214_name_81(GwSystem.current_player_index);
     func_80110068_duel01(MBDGetCurrentPlayerIndex());

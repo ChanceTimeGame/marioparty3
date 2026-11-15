@@ -105,7 +105,7 @@ void func_800EB29C_name_81(void);
 void func_800EB49C_name_81(s16, s32, s32, s32, s32, s32, s32);
 void func_800EB58C_name_81(void);
 /* func_800EC1E4_name_81 returns its Process*; the older prototype above declares void and an s32 target. */
-#define func_800EC1E4_b4 ((Process *(*)(Vec *, Vec *, Vec *, f32))func_800EC1E4_name_81)
+typedef Process *(*DuelB4MoveFunc)(Vec *, Vec *, Vec *, f32);
 Object *func_800EEC40_name_81(Vec *);
 void func_800F74E4_name_81(s32);
 void func_800FC888_name_81(s32);
@@ -131,9 +131,8 @@ void func_800E14D8_name_81(s32, s32);
 void func_800F7378_name_81(s32, s32);
 void func_800E24AC_name_81(s16, s16, s16, s16);
 s16 func_8004ACE0_main(s16, s16);
-void func_80118320_duel01(void);
-/* retail passes the back link/index addresses to the empty func_80118320_duel01 */
-#define func_80118320_b4 ((void (*)(s8 *, s8 *))func_80118320_duel01)
+/* retail passes the back link/index addresses to the empty func_80118320_duel01, so no prototype here */
+void func_80118320_duel01();
 // duel b4 (2)
 extern s32 D_80101200_name_81[]; /* character name messages, 0x1C00 + chr (inner label of ovl_81's D_801011FC data) */
 void func_800D8F3C_name_81(Object *);
