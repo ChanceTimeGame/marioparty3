@@ -30,6 +30,8 @@ extern UnkData_CD0A0 D_800CC4A0_main;
 extern s8 D_800CC3E0_main[];
 
 extern u32 D_80100F38_name_81;
+extern s32 D_80100F3C_name_81;
+extern s32 D_80100F40_name_81;
 extern u8 D_80100E84_name_81[]; // list length per category
 extern u8 D_80100E88_name_81[]; // recent-minigame avoid count
 extern s32 D_80100EE4_name_81[]; // first board-call file per category
@@ -238,7 +240,217 @@ void func_800DD9EC_name_81(omObjData *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/C5770", func_800DE4D0_name_81);
+void func_800DE4D0_name_81(omObjData *arg0) {
+    ItemSlotEntry *entry = NULL;
+    s32 i;
+    s16 new_var;
+    s32 rnd;
+
+    switch (arg0->work[0]) {
+        case 3:
+            break;
+        case 0:
+            if (arg0->work[1] == 0) {
+                arg0->scale.y += 0.25f;
+                if (arg0->scale.y > 1.0f) {
+                    arg0->scale.y = 1.0f;
+                }
+                for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                    new_var = 0xE0;
+                    entry = &D_80102B70_name_81[i];
+                    func_8005BA90_main(entry->obj, (entry->x + (entry->w / 2)), (entry->y + ((entry->h / 2) - new_var)));
+                    func_8005BB18_main(entry->obj, 0.0f, arg0->scale.y);
+                }
+
+                new_var = 0xE0;
+                func_80054904_main(D_80102BB0_name_81, 0, 0xA0, (D_80102B70_name_81[0].y + (D_80100ECC_name_81[D_80102BAD_name_81] - new_var)));
+
+                HuSprScaleSet(D_80102BB0_name_81, 0, sindf(arg0->scale.x), arg0->scale.y);
+                if (arg0->scale.y >= 1.0f) {
+                    arg0->work[0] = 4;
+                    arg0->work[1] = 0;
+                }
+            } else {
+                arg0->work[1] -= 1;
+            }
+            break;
+        case 4:
+            if (arg0->work[1] != 0) {
+                arg0->work[1] -= 1;
+                break;
+            }
+
+            arg0->scale.x += 30.0f;
+            if (arg0->scale.x > 90.0f) {
+                arg0->scale.x = 90.0f;
+            }
+
+            for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                new_var = 0xE0;
+                entry = &D_80102B70_name_81[i];
+                func_8005BA90_main(entry->obj, (entry->x + (entry->w / 2)), (entry->y + ((entry->h / 2) - new_var)));
+                func_8005BB18_main(entry->obj, sindf(arg0->scale.x), arg0->scale.y);
+            }
+
+            new_var = 0xE0;
+            func_80054904_main(D_80102BB0_name_81, 0, 0xA0,
+                                (D_80102B70_name_81[0].y + (D_80100ECC_name_81[D_80102BAD_name_81] - new_var)));
+
+            HuSprScaleSet(D_80102BB0_name_81, 0, sindf(arg0->scale.x), arg0->scale.y);
+
+            if (arg0->scale.x >= 90.0f) {
+                func_800DD9A0_name_81();
+                arg0->work[0] = 1;
+                arg0->scale.x = 1.0f;
+                arg0->scale.z = -1.0f;
+                arg0->scale.y = 0.0f;
+                arg0->work[1] = 0;
+                arg0->work[2] = func_800EFE20_name_81((f32)D_80100E84_name_81[D_80102BAD_name_81]);
+                arg0->work[3] = 0;
+                func_800DF49C_name_81();
+                D_80100F40_name_81 = func_800E1824_name_81(1, 0xC0, 1);
+                D_80100F3C_name_81 = 0;
+            }
+            break;
+        case 1:
+            arg0->scale.z += arg0->scale.x;
+
+            if (arg0->scale.z >= 1.0f) {
+                if ((arg0->work[3] != 0) && (arg0->scale.x <= 0.08f)) {
+                    arg0->work[3]--;
+                }
+                arg0->scale.z -= 1.0f;
+                if (arg0->scale.y >= 0.0f) {
+                    arg0->work[1]++;
+                    arg0->work[1] = arg0->work[1] % D_80100E84_name_81[D_80102BAD_name_81];
+                } else {
+                    arg0->work[1]--;
+                    if (arg0->work[1] >= 0x80U) {
+                        arg0->work[1] = D_80100E84_name_81[D_80102BAD_name_81] - 1;
+                    }
+                }
+                func_800DD9A0_name_81();
+            }
+
+            for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                entry = &D_80102B70_name_81[i];
+                if (i == arg0->work[1]) {
+                    func_8005FBF8_main(entry->obj, 0, 0xC8, 0);
+                    func_8005BEE0_main(entry->obj, 0x100);
+                    func_8005BE30_main(entry->obj, 0x2328);
+                } else {
+                    func_8005FBF8_main(entry->obj, 0x40, 0x40, 0x80);
+                    func_8005BEE0_main(entry->obj, 0);
+                    func_8005BE30_main(entry->obj, 0x2710);
+                }
+            }
+
+            if (D_80100F3C_name_81 == 0) {
+                if (func_800F37B8_name_81(GwSystem.current_player_index) != 0) {
+                    D_80100F3C_name_81 = 1;
+                } else if (D_800C9520_main[GwPlayer[GwSystem.current_player_index].pad] & A_BUTTON) {
+                    D_80100F3C_name_81 = 1;
+                }
+            } else {
+                if ((arg0->work[1] == arg0->work[2]) || (arg0->scale.x < 1.0f)) {
+                    arg0->scale.x -= 0.02;
+                }
+
+                if (arg0->scale.x <= 0.08f) {
+                    arg0->scale.x = 0.08f;
+                    if ((arg0->work[1] == arg0->work[2]) && (arg0->work[3] == 0) && ((arg0->scale.z + 0.08f) >= 1.0f)) {
+                        if (arg0->scale.y != 0.0f) {
+                        pick:
+                            HuAudFXPlay(0x105);
+                            switch ((s8)(D_80102BA8_name_81[arg0->work[2]] - 1)) {
+                                case 0:
+                                case 5:
+                                    func_800FFAE0_name_81(-1, 4);
+                                    break;
+                                case 1:
+                                case 4:
+                                case 6:
+                                case 7:
+                                    func_800FFAE0_name_81(-1, 2);
+                                    break;
+                                case 8:
+                                    func_800FFAE0_name_81(-1, 1);
+                                    break;
+                                case 9:
+                                    func_800FFAE0_name_81(-1, 3);
+                                    break;
+                            }
+
+                            arg0->work[0] = 2;
+                            arg0->work[3] = 0x3C;
+                            func_8005D2D4_main(D_80102B70_name_81[arg0->work[1]].obj);
+                            func_8005D294_main(D_80102B70_name_81[arg0->work[1]].obj);
+                            func_8005B43C_main(D_80102B70_name_81[arg0->work[1]].obj,
+                                                D_80100EE4_name_81[D_80102BAD_name_81] + D_80102BA8_name_81[arg0->work[1]] - 1, -2, 4);
+                            func_8005C02C_main(D_80102B70_name_81[arg0->work[1]].obj, 1);
+                            func_8005C154_main(D_80102B70_name_81[arg0->work[1]].obj, 0xA0, 0xA0, 0xA0);
+                            func_8005FBF8_main(D_80102B70_name_81[arg0->work[1]].obj, 0xFE, 0xFF, 0xD0);
+                            func_8005BDFC_main(D_80102B70_name_81[arg0->work[1]].obj, 0);
+                        } else {
+                            rnd = func_800EFE20_name_81(100.0f);
+                            if (rnd < 15) {
+                                goto pick;
+                            }
+                            if (rnd < 65) {
+                                arg0->scale.y = 1.0f;
+                                arg0->work[2] += 1;
+                                arg0->work[2] = arg0->work[2] % D_80100E84_name_81[D_80102BAD_name_81];
+                            } else if (rnd < 85) {
+                                arg0->scale.y = 1.0f;
+                                arg0->work[2] += 2;
+                                arg0->work[2] = arg0->work[2] % D_80100E84_name_81[D_80102BAD_name_81];
+                            } else {
+                                if (rnd < 95) {
+                                    arg0->scale.y = -1.0f;
+                                } else {
+                                    arg0->scale.y = -1.0f;
+                                    arg0->work[2]--;
+                                    if (arg0->work[2] >= 128) {
+                                        arg0->work[2] = D_80100E84_name_81[D_80102BAD_name_81] - 1;
+                                    }
+                                }
+                                arg0->work[2]--;
+                                if (arg0->work[2] >= 128) {
+                                    arg0->work[2] = D_80100E84_name_81[D_80102BAD_name_81] - 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            if (arg0->work[3] != 0) {
+                arg0->work[3]--;
+            } else {
+                D_800CC4A0_main.recentMinigames[D_80102BAD_name_81][D_800CC3E0_main[D_80102BAD_name_81]] = D_80102BA8_name_81[arg0->work[2]];
+                D_800CC3E0_main[D_80102BAD_name_81]++;
+                D_800CC3E0_main[D_80102BAD_name_81] = D_800CC3E0_main[D_80102BAD_name_81] % (s32)D_80100E88_name_81[D_80102BAD_name_81 + D_80102BAE_name_81];
+                GWMgNoSet(D_80102BA8_name_81[arg0->work[2]]);
+                if ((GwSystem.current_board_index != 6) || (D_80102BAD_name_81 == 1)) {
+                    func_800E1854_name_81(D_80100F40_name_81);
+                    func_800DF210_name_81();
+                }
+            }
+            arg0->rot.z += 1.0f;
+            if (arg0->rot.z >= 13.0f) {
+                arg0->rot.z -= 13.0f;
+            }
+            break;
+    }
+    if (D_80102BB4_name_81 != -1) {
+        for (i = 0; !(arg0->rot.z < (f32)*D_80100EDC_name_81[i]); i++) {}
+
+        func_80054904_main(D_80102BB4_name_81, 0,
+                            (D_80100ED0_name_81[D_80102BAD_name_81] + D_80100EDC_name_81[i][1]),
+                            (D_80100ED8_name_81[D_80102BAD_name_81] + (D_80100ED4_name_81[D_80102BAD_name_81] * arg0->work[1])));
+    }
+}
 
 void func_800DF154_name_81(void) {
     s32 category;
