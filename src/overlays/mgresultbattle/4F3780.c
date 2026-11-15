@@ -20,6 +20,8 @@ void MBBackCreate(s32, s32);
 void func_80105CAC_mgresultbattle(omObjData *);
 void func_80105E64_mgresultbattle(omObjData *);
 void func_80105F50_mgresultbattle(void);
+void func_80106908_mgresultbattle(void);
+void func_80106910_mgresultbattle(omObjData *);
 void func_80105F78_mgresultbattle(Gfx **, s32, s32);
 void func_801075FC_mgresultbattle(void);
 void MBBackKill(void);
@@ -31,6 +33,15 @@ extern s8 D_801088D8_mgresultbattle;
 
 extern s8 D_80108F8C_mgresultbattle[4];
 extern s32 D_80108F70_mgresultbattle;
+extern s32 D_800A178C_main[][6];
+
+typedef struct ResultFigure {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+} ResultFigure; // sizeof 0x08 on N64
+
+extern ResultFigure D_80108F50_mgresultbattle[4];
+extern const Vec D_801089D0_mgresultbattle[4];
 extern u16 D_800CC698_main;
 extern const f32 D_80108920_mgresultbattle[8][4];
 extern const s8 D_801089A0_mgresultbattle[8];
@@ -337,12 +348,49 @@ void func_801060A4_mgresultbattle(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801060A4_mgresultbattle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106660_mgresultbattle);
+// Creates the four player figures (character and a shadow model) and runs their per-frame hooks.
+void func_80106660_mgresultbattle(void) {
+    omObjData *obj;
+    s32 i;
+    s32 chr;
+
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(0x14, 4, 8, -1, NULL);
+        D_80108F50_mgresultbattle[i].obj = obj;
+        chr = GwPlayer[D_80108F8C_mgresultbattle[i]].chr;
+        obj->model[1] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+        func_8001C814_main(obj->model[1], 2, 2);
+        obj->model[2] = func_8000B108_main(9, 0x2B9);
+        Hu3DModelPosSet(obj->model[2], 0.0f, -5.0f, 0.0f);
+        func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+        func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x2F));
+        func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x36));
+        func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x25));
+        func_8001C5B4_main(obj->model[1], obj->motion[0]);
+        func_8001C814_main(obj->model[1], 2, 2);
+        Hu3DModelPosSet(obj->model[1], D_801089D0_mgresultbattle[i].x, D_801089D0_mgresultbattle[i].y,
+                        D_801089D0_mgresultbattle[i].z);
+        Hu3DModelPosSet(obj->model[2], D_801089D0_mgresultbattle[i].x, D_801089D0_mgresultbattle[i].y,
+                        D_801089D0_mgresultbattle[i].z);
+        obj->trans.x = 0.0f;
+        obj->trans.y = 0.0f;
+        obj->trans.z = 0.0f;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, 0.0f);
+        omPrcSetDestructor(0, func_80106908_mgresultbattle);
+        D_80108F50_mgresultbattle[i].func = func_80106910_mgresultbattle;
+    }
+    while (1) {
+        for (i = 0; i < 4; i++) {
+            D_80108F50_mgresultbattle[i].func(obj);
+            HuPrcVSleep();
+        }
+    }
+}
 
 void func_80106908_mgresultbattle(void) {
 }
 
-void func_80106910_mgresultbattle(void) {
+void func_80106910_mgresultbattle(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106918_mgresultbattle);
