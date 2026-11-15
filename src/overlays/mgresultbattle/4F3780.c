@@ -2,6 +2,9 @@
 #include "game/gamework_data.h"
 #include "game/object.h"
 #include "game/wipe.h"
+#include "game/audio.h"
+#include "game/gamemes.h"
+#include "game/hmfman.h"
 #include "../ovl_80_shared_board/FA250.h"
 
 void func_80105E0C_mgresultbattle(void);
@@ -16,6 +19,14 @@ void MBBackCreate(s32, s32);
 void func_80105CAC_mgresultbattle(omObjData *);
 void func_80105E64_mgresultbattle(omObjData *);
 void func_80105F50_mgresultbattle(void);
+void func_80105F78_mgresultbattle(Gfx **, s32, s32);
+void func_801075FC_mgresultbattle(void);
+void MBBackKill(void);
+void MBBackClose(void);
+
+extern s8 D_801088D0_mgresultbattle;
+extern s32 D_801088D4_mgresultbattle;
+extern s8 D_801088D8_mgresultbattle;
 
 extern u8 D_80108F8C_mgresultbattle[4];
 extern s32 D_80108908_mgresultbattle[];
@@ -79,11 +90,82 @@ void func_801059A0_mgresultbattle(void) {
     WipeCreateIn(0xFF, 0x10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80105CAC_mgresultbattle);
+void func_80105CAC_mgresultbattle(omObjData *obj) {
+    s32 state = D_801088D0_mgresultbattle;
+    s32 i;
+    s32 coin;
+    s16 newCoin;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80105E0C_mgresultbattle);
+    switch (state) {
+    case 0:
+        HuAudSeqPlay(0x15);
+        D_801088D4_mgresultbattle = 0;
+        state++;
+        break;
+    case 1:
+        state++;
+        break;
+    case 2:
+        if (D_801088D4_mgresultbattle++ >= 6) {
+            func_801075FC_mgresultbattle();
+            D_801088D4_mgresultbattle = 0;
+            state++;
+        }
+        break;
+    case 4:
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            coin = (s16)GwPlayer[i].coin + (s16)GwPlayer[i].gameCoin;
+            newCoin = 999;
+            if (coin < 1000) {
+                newCoin = coin;
+            }
+            GwPlayer[i].coin = newCoin;
+            MBPlayerCoinAdd(i, 0);
+        }
+        WipeCreateOut(0, 0x14);
+        HuAudSeqFadeOut(0x1E);
+        func_8004AB0C_main(0x1E);
+        state++;
+        break;
+    case 5:
+        if (WipeStatGet() == 0) {
+            func_80037258_main();
+            MBBackKill();
+            MBBackClose();
+            omOvlReturnEx(1);
+        }
+        break;
+    }
+    D_801088D0_mgresultbattle = state;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80105E64_mgresultbattle);
+void func_80105E0C_mgresultbattle(void) {
+    CZoom = 2300.0f;
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 390.0f;
+    Center.z = -460.0f;
+}
+
+void func_80105E64_mgresultbattle(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        if (D_801088D8_mgresultbattle == 0) {
+            WipeCreateOut(0, 0x14);
+            D_801088D8_mgresultbattle = 1;
+            return;
+        }
+        if (WipeStatGet() == 0) {
+            HuAudSeqFadeOut(0x1E);
+            func_8004AB0C_main(0x1E);
+            func_80037258_main();
+            MBBackKill();
+            MBBackClose();
+            omOvlReturnEx(1);
+        }
+    }
+}
 
 void func_80105EF4_mgresultbattle(void) {
     GW_SYSTEM *system = &GwSystem;
@@ -98,9 +180,27 @@ void func_80105EF4_mgresultbattle(void) {
     func_80105F50_mgresultbattle();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80105F50_mgresultbattle);
+void func_80105F50_mgresultbattle(void) {
+    func_8001AC8C_main(0, func_80105F78_mgresultbattle, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80105F78_mgresultbattle);
+void func_80105F78_mgresultbattle(Gfx **gfx, s32 arg1, s32 arg2) {
+    Gfx *g = *gfx;
+
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_SHADING_SMOOTH | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
+                                   G_TEXTURE_GEN_LINEAR | G_LOD);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 127);
+    gDPSetRenderMode(g++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+    gDPSetCombineMode(g++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+    gDPSetTextureLUT(g++, G_TT_NONE);
+    gDPSetFillColor(g++, 0x10001);
+    gDPFillRectangle(g++, 0, 0, 319, 239);
+    *gfx = g;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801060A4_mgresultbattle);
 
