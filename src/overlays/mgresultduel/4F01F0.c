@@ -86,18 +86,18 @@ void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
 void DataClose(void *);
 
-/* .data */
-extern s8 D_80108E70_mgresultduel;  /* results state */
-extern s32 D_80108E74_mgresultduel; /* state timer */
-extern s8 D_80108E78_mgresultduel;  /* reset wipe started */
-extern s32 D_80108E80_mgresultduel; /* coin burst frame */
-extern s32 D_80108E84_mgresultduel; /* coins to throw */
-extern s32 D_80108E88_mgresultduel; /* coins thrown */
-extern s32 D_80108E8C_mgresultduel; /* coins landed */
-extern s32 D_80108E90_mgresultduel; /* throw cap */
-extern s32 D_80108E94_mgresultduel; /* frames between throws */
-extern s32 D_80108E98_mgresultduel; /* winner rumbled */
-extern s8 D_80108E9C_mgresultduel;  /* last-coin cue given */
+/* .data (defined at the end of the unit) */
+extern s8 D_80108E70_mgresultduel;
+extern s32 D_80108E74_mgresultduel;
+extern s8 D_80108E78_mgresultduel;
+extern s32 D_80108E80_mgresultduel;
+extern s32 D_80108E84_mgresultduel;
+extern s32 D_80108E88_mgresultduel;
+extern s32 D_80108E8C_mgresultduel;
+extern s32 D_80108E90_mgresultduel;
+extern s32 D_80108E94_mgresultduel;
+extern s32 D_80108E98_mgresultduel;
+extern s8 D_80108E9C_mgresultduel;
 
 /* .bss */
 typedef struct DuelSprIds {
@@ -1084,3 +1084,18 @@ void func_80108E2C_mgresultduel(omObjData *arg0) {
     func_80108D30_mgresultduel(arg0->model[1], D_8010930C_mgresultduel, D_80109300_mgresultduel[2]);
     D_80109324_mgresultduel.objFunc = func_80108818_mgresultduel;
 }
+
+/* .data (80108E70). Retail has 4 zero bytes after D_80108E78_mgresultduel: the .data side of the
+   TU boundary that pads the text to 0x80106930 (see func_80106850_mgresultduel). */
+s8 D_80108E70_mgresultduel = 0;  /* results state */
+s32 D_80108E74_mgresultduel = 0; /* state timer */
+s8 D_80108E78_mgresultduel = 0;  /* reset wipe started */
+s32 D_80108E7C_mgresultduel = 0; /* unreferenced (file padding) */
+s32 D_80108E80_mgresultduel = 0; /* coin burst frame */
+s32 D_80108E84_mgresultduel = 0; /* coins to throw */
+s32 D_80108E88_mgresultduel = 0; /* coins thrown */
+s32 D_80108E8C_mgresultduel = 0; /* coins landed */
+s32 D_80108E90_mgresultduel = 0; /* throw cap */
+s32 D_80108E94_mgresultduel = 0; /* frames between throws */
+s32 D_80108E98_mgresultduel = 0; /* winner rumbled */
+s8 D_80108E9C_mgresultduel = 0;  /* last-coin cue given */

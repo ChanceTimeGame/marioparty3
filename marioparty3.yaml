@@ -2334,7 +2334,7 @@ segments:
     bss_size: 0x420
     subsegments:
       - [0x4F01F0, c]
-      - [0x4F36C0, data, 4F01F0] #80108E70
+      - [0x4F36C0, .data, 4F01F0] #80108E70
       - [0x4F36F0, .rodata, 4F01F0] #80108EA0
       - {0x4F3780, type: bss, vram: 0x80108F30, name: mgresultduel_bss}
 
