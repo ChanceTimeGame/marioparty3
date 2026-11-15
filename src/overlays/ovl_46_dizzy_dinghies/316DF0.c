@@ -62,12 +62,16 @@ extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[]; /* minigame mgcol.h HitList */
 
 extern s32 D_80109E04_dizzy_dinghies; /* last splash slot */
+extern s16 D_80109E08_dizzy_dinghies[20]; /* history for the running mean func_80108488 */
+extern s32 D_80109E30_dizzy_dinghies;
+extern s32 D_80109E34_dizzy_dinghies;
 
 extern Vec D_80109F60_dizzy_dinghies[6]; /* splash positions */
 extern f32 D_80109FA8_dizzy_dinghies[6]; /* splash speeds */
 extern Vec D_80109FC0_dizzy_dinghies[6]; /* splash directions (x, z) */
 extern f32 D_8010A008_dizzy_dinghies[6]; /* splash scales */
 extern s32 D_8010A020_dizzy_dinghies;
+extern Vec D_8010A028_dizzy_dinghies[20]; /* history for the running mean func_80108514 */
 extern u16 D_8010A022_dizzy_dinghies;
 
 // LOCAL
@@ -84,6 +88,8 @@ void func_80106DF4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107738_dizzy_dinghies(omObjData* obj, s32 player);
 void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale);
+s32 func_80108488_dizzy_dinghies(omObjData* obj, s16 v);
+void func_80108514_dizzy_dinghies(omObjData* obj, f32 unused, Vec* out);
 void func_801085F4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107DE8_dizzy_dinghies(omObjData* obj);
@@ -96,6 +102,7 @@ extern f32 D_80109768_dizzy_dinghies; /* start heading */
 extern f32 D_80109770_dizzy_dinghies;
 extern f32 D_80109774_dizzy_dinghies;
 extern f32 D_80109778_dizzy_dinghies;
+extern Vec D_80109788_dizzy_dinghies;
 extern f32 D_80109780_dizzy_dinghies;
 extern f32 D_80109784_dizzy_dinghies;
 extern f32 D_801097B0_dizzy_dinghies;
@@ -805,9 +812,41 @@ void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107E04_dizzy_dinghies);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108488_dizzy_dinghies);
+/* Mean of the last 20 values passed. */
+s32 func_80108488_dizzy_dinghies(omObjData* obj, s16 v) {
+    s32 sum;
+    u8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108514_dizzy_dinghies);
+    D_80109E08_dizzy_dinghies[D_80109E34_dizzy_dinghies] = v;
+    D_80109E34_dizzy_dinghies++;
+    if (D_80109E34_dizzy_dinghies >= 20) {
+        D_80109E34_dizzy_dinghies = 0;
+    }
+    sum = 0;
+    for (i = 0; i < 20; i++) {
+        sum += D_80109E08_dizzy_dinghies[i];
+    }
+    return sum / 20;
+}
+
+/* Mean x and z of the last 20 values of D_80109788. */
+void func_80108514_dizzy_dinghies(omObjData* obj, f32 unused, Vec* out) {
+    s32 i;
+
+    out->x = out->y = out->z = 0.0f;
+    D_8010A028_dizzy_dinghies[D_80109E30_dizzy_dinghies].x = D_80109788_dizzy_dinghies.x;
+    D_8010A028_dizzy_dinghies[D_80109E30_dizzy_dinghies].z = D_80109788_dizzy_dinghies.z;
+    D_80109E30_dizzy_dinghies++;
+    if (D_80109E30_dizzy_dinghies >= 20) {
+        D_80109E30_dizzy_dinghies = 0;
+    }
+    for (i = 0; i < 20; i++) {
+        out->x += D_8010A028_dizzy_dinghies[i].x;
+        out->z += D_8010A028_dizzy_dinghies[i].z;
+    }
+    out->x /= 20.0f;
+    out->z /= 20.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801085F4_dizzy_dinghies);
 
