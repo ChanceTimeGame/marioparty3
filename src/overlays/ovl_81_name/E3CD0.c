@@ -559,11 +559,160 @@ void func_800FCCCC_name_81(s16 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/E3CD0", func_800FCD44_name_81);
+// duel n8
+SpaceData *MBDMasuGet(s16 spaceIdx);
+s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
+void func_800EB680_name_81(s16 playerIndex, s16 spaceIdx, Vec *out);
+void func_800EB708_name_81(Vec *from, Vec *to, Vec *dir);
+Process *func_800EBF2C_name_81(Vec *from, Vec *to, Vec *out, s32 frames);
+f32 func_800D76D0_name_81(Vec *vec);
+extern Vec D_801054B8_name_81[];
+extern Vec D_801054D0_name_81[][2];
+extern f32 D_80101AA4_name_81[][2];
+extern f32 D_80101ACC_name_81[][2];
 
+void func_800FCD44_name_81(s32 playerIndex, Vec *out) {
+    Vec sp10;
+    Vec sp20;
+    Vec sp30;
+    Vec sp40;
+    Vec sp50;
+    GW_PLAYER *player;
+    f32 len;
+
+    player = MBDGetPlayerStruct(playerIndex);
+    func_800EB680_name_81(playerIndex, MBDMasuLinkMasuIdGet(player->clink, player->cidx), &sp10);
+    func_800EB680_name_81(playerIndex, MBDMasuLinkMasuIdGet(player->nlink, player->nidx), &sp20);
+    func_800EB680_name_81(playerIndex, MBDMasuLinkMasuIdGet(player->blink, player->bidx), &sp30);
+    func_800EB708_name_81(&sp10, &sp20, &sp40);
+    len = HuVecGetLength3F(&sp40);
+    func_800EB708_name_81(&sp10, &sp30, &sp50);
+    HuVecAdd(&sp40, &sp40, &sp50);
+    if (HuVecGetLength3F(&sp40) <= len) {
+        func_800EB708_name_81(&sp10, &sp20, &sp40);
+        func_800D7934_name_81(&sp40, 90.0f);
+        func_800D7828_name_81(&sp40);
+        if (GwSystem.current_board_index == 4 && player->clink == 6 && player->cidx == 0) {
+            HuVecMulScalar(&sp40, 24.0f, &sp40);
+        } else {
+            HuVecMulScalar(&sp40, 16.968f, &sp40);
+        }
+    } else {
+        func_800D7828_name_81(&sp40);
+        HuVecMulScalar(&sp40, 24.0f, &sp40);
+    }
+    HuVecCopy3F(out, &sp40);
+}
+
+#ifdef NON_MATCHING
+// masked 0: player and shareSpace swap s2/s3
+void func_800FCF50_name_81(s32 playerIndex, s32 frames) {
+    Vec sp10;
+    Vec sp20;
+    Vec sp30;
+    GW_SYSTEM *system = &GwSystem;
+    GW_PLAYER *curPlayer;
+    SpaceData *space;
+    Object *partner;
+    s32 shareSpace;
+    GW_PLAYER *player;
+
+    player = MBDGetPlayerStruct(playerIndex);
+    space = MBDMasuGet(MBDMasuLinkMasuIdGet(player->clink, player->cidx));
+    if (system->current_player_index == playerIndex) {
+        HuVecCopy3F(&player->player_obj->coords, &space->coords);
+        func_800ED214_name_81(playerIndex);
+        return;
+    }
+    shareSpace = 0;
+    curPlayer = MBDGetPlayerStruct(system->current_player_index);
+    if (player->clink == curPlayer->clink) {
+        shareSpace = player->cidx == curPlayer->cidx;
+    }
+    HuVecCopy3F(&D_801054B8_name_81[playerIndex], &space->coords);
+    if (shareSpace == 1) {
+        func_800FCD44_name_81(playerIndex, &sp10);
+        HuVecAdd(&D_801054B8_name_81[playerIndex], &D_801054B8_name_81[playerIndex], &sp10);
+    }
+    if (frames < 2) {
+        HuVecCopy3F(&player->player_obj->coords, &D_801054B8_name_81[playerIndex]);
+    } else {
+        func_800EBF2C_name_81(&player->player_obj->coords, &D_801054B8_name_81[playerIndex], &player->player_obj->coords, frames);
+    }
+    func_800ECF1C_name_81(playerIndex, &sp20, &sp30);
+    if (player->stats.partners.frontID != PARTNER_NONE) {
+        partner = MBDGetPlayerPartnerRef(playerIndex, PARTNER_FRONT);
+        HuVecCopyXYZ(&D_801054D0_name_81[playerIndex][0], D_801054B8_name_81[playerIndex].x + sp20.x,
+                     D_801054B8_name_81[playerIndex].y + sp20.y, D_801054B8_name_81[playerIndex].z + sp20.z);
+        if (frames < 2) {
+            HuVecCopy3F(&partner->coords, &D_801054D0_name_81[playerIndex][0]);
+        } else {
+            func_800EBF2C_name_81(&partner->coords, &D_801054D0_name_81[playerIndex][0], &partner->coords, frames);
+        }
+    }
+    if (player->stats.partners.backID != PARTNER_NONE) {
+        partner = MBDGetPlayerPartnerRef(playerIndex, PARTNER_BACK);
+        HuVecCopyXYZ(&D_801054D0_name_81[playerIndex][1], D_801054B8_name_81[playerIndex].x + sp30.x,
+                     D_801054B8_name_81[playerIndex].y + sp30.y, D_801054B8_name_81[playerIndex].z + sp30.z);
+        if (frames < 2) {
+            HuVecCopy3F(&partner->coords, &D_801054D0_name_81[playerIndex][1]);
+        } else {
+            func_800EBF2C_name_81(&partner->coords, &D_801054D0_name_81[playerIndex][1], &partner->coords, frames);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/E3CD0", func_800FCF50_name_81);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/E3CD0", func_800FD298_name_81);
+// if player should jump to next space
+s32 func_800FD298_name_81(s32 playerIndex) {
+    Vec sp10;
+    GW_PLAYER *curPlayer;
+    GW_PLAYER *player;
+    f32 angle;
+    SpaceData *space;
+    s32 nextCount;
+    s32 curCount;
+    s32 i;
+
+    curPlayer = MBDGetPlayerStruct(playerIndex);
+    nextCount = 0;
+    curCount = 0;
+
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        if (i == playerIndex) {
+            continue;
+        }
+        player = MBDGetPlayerStruct(i);
+        if (curPlayer->clink == player->clink) {
+            curCount += curPlayer->cidx == player->cidx;
+        }
+        if (curPlayer->nlink == player->clink) {
+            nextCount += curPlayer->nidx == player->cidx;
+        }
+    }
+
+    space = MBDMasuGet(MBDMasuLinkMasuIdGet(curPlayer->clink, curPlayer->cidx));
+    HuVecSubtract(&sp10, &MBDMasuGet(MBDMasuLinkMasuIdGet(curPlayer->nlink, curPlayer->nidx))->coords, &space->coords);
+    angle = func_800D76D0_name_81(&sp10);
+    if ((curCount == 0) || (!(D_80101AA4_name_81[curCount][0] < angle)) || (!(angle <= D_80101AA4_name_81[curCount][1]))) {
+        if (nextCount != 0) {
+            if (D_80101ACC_name_81[nextCount][0] < 0.0f) {
+                angle -= 360.0f;
+            }
+            if (!(D_80101ACC_name_81[nextCount][0] < angle) || (!(angle <= D_80101ACC_name_81[nextCount][1]))) {
+                return 0;
+            } else {
+                return 1;
+            }
+        } else {
+            return 0;
+        }
+    } else {
+        return 1;
+    }
+}
 
 u8 func_800FD498_name_81(void) {
     s32 var_a0 = (GwSystem.current_turn - 1) / 5;
