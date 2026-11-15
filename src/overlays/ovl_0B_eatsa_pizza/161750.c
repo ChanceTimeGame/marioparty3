@@ -5,6 +5,8 @@
 #include "game/camera.h"
 #include "game/hmfman.h"
 #include "game/pause.h"
+#include "game/sprite.h"
+#include "game/data.h"
 #include "mallocblock.h"
 
 // eatsa A: Eatsa Pizza (two teams of two eat a pizza from opposite halves of the screen)
@@ -49,7 +51,10 @@ f32 sqrtf(f32);
 
 extern s32 D_800A178C_main[][6];
 
+u8 rand8(void);
+
 // minigame
+void func_800E1490_minigame(u16 arg0);
 void func_800E1804_minigame(void);
 void func_800E12EC_minigame(omObjData* obj, f32 arg1);
 void func_800E1328_minigame(omObjData* obj, f32 arg1);
@@ -73,12 +78,26 @@ void func_801078C4_eatsa_pizza(omObjData* obj);
 void func_80107A64_eatsa_pizza(omObjData* obj);
 u16 func_80107E6C_eatsa_pizza(omObjData* obj);
 void func_801083BC_eatsa_pizza(void);
+void func_80108470_eatsa_pizza(omObjData* obj);
+void func_801084F8_eatsa_pizza(omObjData* obj);
+void func_801087DC_eatsa_pizza(omObjData* obj);
+s16 func_80108E48_eatsa_pizza(u16 color, EpPlayer* ep);
+u32 func_80108F4C_eatsa_pizza(void);
+s16 func_80108FA4_eatsa_pizza(s32 file);
+s16 func_80108FEC_eatsa_pizza(s16 tex, s16 n);
+void* func_801090B4_eatsa_pizza(s16 tex, s16 frame);
 
 extern u8 D_80109100_eatsa_pizza[4][2]; /* [n][1]: the n-th player to spawn */
 extern u8 D_80109108_eatsa_pizza; /* players spawned */
 extern u8 D_8010910C_eatsa_pizza[4]; /* players spawned per team */
 extern s16 D_80109110_eatsa_pizza[4][3]; /* start positions [team * 2 + slot] */
 extern f32 D_80109128_eatsa_pizza[4]; /* start headings [team * 2 + slot] */
+extern u32 D_80109148_eatsa_pizza; /* random seed */
+extern s16 D_80109278_eatsa_pizza; /* pizza texture */
+extern s16 D_80109284_eatsa_pizza; /* bite mark texture */
+extern s16 D_80109288_eatsa_pizza[]; /* [0]: pizza sprite group */
+extern s16 D_8010928E_eatsa_pizza; /* bite mark sprite group */
+extern s16 D_80109298_eatsa_pizza[16]; /* bite mark members in use */
 extern s16 D_80109350_eatsa_pizza; /* game state */
 extern EpPlayer* D_80109268_eatsa_pizza[2][2]; /* [team][slot] */
 
@@ -514,26 +533,144 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80107A64
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80107E6C_eatsa_pizza);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801083A8_eatsa_pizza);
+void func_801083A8_eatsa_pizza(omObjData* obj, MgWork** work, EpPlayer** ep) {
+    MgWork* w = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801083BC_eatsa_pizza);
+    *work = w;
+    *ep = w->unk158;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108470_eatsa_pizza);
+void func_801083BC_eatsa_pizza(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80108470_eatsa_pizza);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_801084F8_eatsa_pizza);
+    D_80109350_eatsa_pizza = 0;
+}
+
+/* The pizza sprite: loads it and hands over to func_801087DC_eatsa_pizza. */
+void func_80108470_eatsa_pizza(omObjData* obj) {
+    D_80109278_eatsa_pizza = func_80108FA4_eatsa_pizza(0x2C0000);
+    D_80109288_eatsa_pizza[0] = func_80108FEC_eatsa_pizza(D_80109278_eatsa_pizza, 1);
+    func_80054904_main(D_80109288_eatsa_pizza[0], 0, 160, 120);
+    HuSprAttrSet(D_80109288_eatsa_pizza[0], 0, 0x4000);
+    obj->func = func_801087DC_eatsa_pizza;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801084F8_eatsa_pizza);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801087DC_eatsa_pizza);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108C50_eatsa_pizza);
+/* Bite marks: step each live one's animation, hide it at its last frame. */
+void func_80108C50_eatsa_pizza(void) {
+    HuSprite* spr;
+    s16* live;
+    s16 grp;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108D1C_eatsa_pizza);
+    grp = D_8010928E_eatsa_pizza;
+    for (i = 0; i < 16; i++) {
+        live = &D_80109298_eatsa_pizza[i];
+        if (*live != 0) {
+            spr = HuSprGet(grp, i);
+            func_800551AC_main(grp, i);
+            if (spr->unk_8A >= spr->unk_84->unk10 - 1) {
+                HuSprAttrSet(grp, i, 0x8000);
+                *live = 0;
+            }
+        }
+    }
+}
 
+/* Shows a bite mark (texture tex) at screen (x, y), rotated; returns its member or -1. */
+s16 func_80108D1C_eatsa_pizza(s16 tex, s16 x, s16 y, f32 rot) {
+    s16 grp;
+    s32 i;
+
+    if (tex == -1) {
+        return -1;
+    }
+    for (i = 0; i < 16; i++) {
+        if (D_80109298_eatsa_pizza[i] == 0) {
+            break;
+        }
+    }
+    if (i >= 16) {
+        return -1;
+    }
+    D_80109298_eatsa_pizza[i] = 1;
+    grp = D_8010928E_eatsa_pizza;
+    func_80055024_main(grp, i, tex, 0);
+    func_800550F4_main(grp, i, 2);
+    func_80054904_main(grp, i, x, y);
+    func_800552DC_main(grp, i, rot);
+    HuSprAttrReset(grp, i, 0x8000);
+    return i;
+}
+
+/* A bite mark at the player, tinted with an RGBA5551 colour. */
+#ifdef NON_MATCHING
+/* masked 3: retail copies grp into the colour's register after the colour is unpacked (one extra move) */
+s16 func_80108E48_eatsa_pizza(u16 color, EpPlayer* ep) {
+    s32 grp;
+    s32 i;
+    u32 c;
+
+    grp = D_8010928E_eatsa_pizza;
+    i = func_80108D1C_eatsa_pizza(D_80109284_eatsa_pizza, ep->x + 160.0, ep->y + 120.0, ep->heading);
+    if (i == -1) {
+        return -1;
+    }
+    c = color;
+    func_80055484_main(grp, i, (c >> 11) << 3, (c >> 3) & 0xF8, (c << 2) & 0xF8, 0x100);
+    HuSprScaleSet(grp, i, 0.75f, 0.75f);
+    return i;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108E48_eatsa_pizza);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108F4C_eatsa_pizza);
+/* Random number: a 16-bit LCG output, mixed with rand8. */
+u32 func_80108F4C_eatsa_pizza(void) {
+    D_80109148_eatsa_pizza = D_80109148_eatsa_pizza * 0x41C64E6D + 0x3039;
+    D_80109148_eatsa_pizza += rand8();
+    return D_80109148_eatsa_pizza >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108FA4_eatsa_pizza);
+s16 func_80108FA4_eatsa_pizza(s32 file) {
+    void* data;
+    s16 tex;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80108FEC_eatsa_pizza);
+    data = DataRead(file);
+    tex = func_80055810_main(data);
+    DataClose(data);
+    return tex;
+}
 
+/* A sprite group of n members showing texture tex. */
+s16 func_80108FEC_eatsa_pizza(s16 tex, s16 n) {
+    s16 grp;
+    s32 i;
+
+    if (tex == -1) {
+        return -1;
+    }
+    grp = HuSprGrpCreate(n, 0);
+    if (grp == -1) {
+        return -1;
+    }
+    for (i = 0; i < n; i++) {
+        func_80055024_main(grp, i, tex, 0);
+    }
+    return grp;
+}
+
+/* Texel data of frame `frame` of texture tex. */
+#ifdef NON_MATCHING
+/* masked 2: retail scales the index before loading unk00 (scheduling only) */
+void* func_801090B4_eatsa_pizza(s16 tex, s16 frame) {
+    return func_80055194_main(tex)->unk00[frame].unk00;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801090B4_eatsa_pizza);
+#endif
