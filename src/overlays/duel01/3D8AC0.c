@@ -353,25 +353,148 @@ void func_8010E008_duel01(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F18_duel01);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E1B4_duel01);
+void func_8010E1B4_duel01(void) {
+    f32 amp;
+    f32 dy;
+    s32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E2CC_duel01);
+    func_8001C814_main(D_80119498_duel01->omObj1->model[0], 5, 0);
+    angle = 0;
+    func_8001C92C_main(D_80119498_duel01->omObj1->model[0], 1.5f);
+    func_800EFABC_name_81(D_80119498_duel01);
+    amp = 0.5f;
+    do {
+        dy = 1.0f - cosdf(angle) * amp;
+        angle += 60;
+        amp -= 0.013888888888888888;
+        HuVecCopyXYZ(&D_80119498_duel01->scale, 1.0f, dy, 1.0f);
+        HuPrcVSleep();
+    } while (angle < 2160);
+    HuVecCopyXYZ(&D_80119498_duel01->scale, 1.0f, 1.0f, 1.0f);
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E2F8_duel01);
+void func_8010E2CC_duel01(void) {
+    omAddPrcObj(func_8010E1B4_duel01, 0xA, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E348_duel01);
+void func_8010E2F8_duel01(void) {
+    func_8001C814_main(D_80119498_duel01->omObj1->model[0], 1, 4);
+    func_8001C92C_main(D_80119498_duel01->omObj1->model[0], 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E3F8_duel01);
+void func_8010E348_duel01(void) {
+    Object *obj;
+    SpaceData *from;
+    SpaceData *to;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E574_duel01);
+    obj = func_800D8010_name_81(0x33, 0);
+    func_800D8944_name_81(obj);
+    D_801194A0_duel01 = obj;
+    obj->flags |= 2;
+    func_8001C814_main(obj->omObj1->model[0], 2, 1);
+    from = MBDMasuGet(D_80118748_duel01);
+    to = MBDMasuGet(D_8011874A_duel01);
+    HuVecCopy3F(&obj->coords, &from->coords);
+    func_800EB708_name_81((s32)&from->coords, (s32)&to->coords, (unkStruct01 *)&obj->rot);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E614_duel01);
+void func_8010E3F8_duel01(void) {
+    HmfModel *mdl;
+    s32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E7C0_duel01);
+    angle = *(s32 *)HuPrcCurrentGet()->user_data;
+    while (TRUE) {
+        f32 rot = sindf(angle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E8D8_duel01);
+        angle += 45;
+        rot *= D_801194A4_duel01;
+        sincosdf(rot, &HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[1],
+                 &HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[0]);
+        HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[4] =
+            -HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[1];
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[5] = mdl->mtx[0];
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[7] = mdl->mtx[6] = mdl->mtx[8] = mdl->mtx[9] = mdl->mtx[11] =
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[10] = mdl->mtx[15] = 1.0f;
+        if (angle >= 360) {
+            angle -= 360;
+        }
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E904_duel01);
+void func_8010E574_duel01(Vec *pos) {
+    Process *process;
+    s32 *angle;
+
+    D_801194A4_duel01 = 10.0f;
+    process = omAddPrcObj(func_8010E3F8_duel01, 0xA, 0, 0x40);
+    D_8011874C_duel01 = process;
+    angle = HuMemMemoryAlloc(process->heap, 0x10);
+    process->user_data = angle;
+    if (pos->x <= D_801194A0_duel01->coords.x) {
+        *angle = 180;
+    } else {
+        *angle = 0;
+    }
+}
+
+void func_8010E614_duel01(void) {
+    HmfModel *mdl;
+
+    if (D_8011874C_duel01 != NULL) {
+        while (D_801194A4_duel01 >= 0.0f) {
+            D_801194A4_duel01 -= 1.0f;
+            HuPrcVSleep();
+        }
+        omDelPrcObj(D_8011874C_duel01);
+        sincosdf(0.0f, &HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[1],
+                 &HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[0]);
+        HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[4] =
+            -HmfModelData[D_801194A0_duel01->omObj1->model[0]].mtx[1];
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[5] = mdl->mtx[0];
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[7] = mdl->mtx[6] = mdl->mtx[8] = mdl->mtx[9] = mdl->mtx[11] =
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;
+        mdl = &HmfModelData[D_801194A0_duel01->omObj1->model[0]];
+        mdl->mtx[10] = mdl->mtx[15] = 1.0f;
+    }
+}
+
+void func_8010E7C0_duel01(void) {
+    f32 amp;
+    f32 dy;
+    s32 angle;
+
+    func_8001C814_main(D_801194A0_duel01->omObj1->model[0], 5, 0);
+    angle = 0;
+    func_8001C92C_main(D_801194A0_duel01->omObj1->model[0], 1.5f);
+    func_800EFABC_name_81(D_801194A0_duel01);
+    amp = 0.5f;
+    do {
+        dy = 1.0f - cosdf(angle) * amp;
+        angle += 60;
+        amp -= 0.013888888888888888;
+        HuVecCopyXYZ(&D_801194A0_duel01->scale, 1.0f, dy, 1.0f);
+        HuPrcVSleep();
+    } while (angle < 2160);
+    HuVecCopyXYZ(&D_801194A0_duel01->scale, 1.0f, 1.0f, 1.0f);
+    omDelPrcObj(NULL);
+}
+
+void func_8010E8D8_duel01(void) {
+    omAddPrcObj(func_8010E7C0_duel01, 0xA, 0, 0);
+}
+
+void func_8010E904_duel01(void) {
+    func_8001C814_main(D_801194A0_duel01->omObj1->model[0], 1, 4);
+    func_8001C92C_main(D_801194A0_duel01->omObj1->model[0], 1.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E954_duel01);
 
