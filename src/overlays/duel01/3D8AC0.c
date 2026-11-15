@@ -1994,11 +1994,268 @@ void func_8010B54C_duel01(s32 arg0, s32 playerNo, Object *partner, Object *targe
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010B54C_duel01);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010BCD4_duel01);
+// duel b6
+Process *func_800DCE10_name_81(s32 type, Vec *pos, Vec *vel, f32 scale, s32 delay);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118E98_duel01);
+/* Partner attack (level 1: a charge that knocks the player and partners down; otherwise a ground pound that squashes them). */
+void func_8010BCD4_duel01(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
+    Vec dest;
+    Vec start;
+    Vec diff;
+    GW_PLAYER *player = MBDGetPlayerStruct(playerNo);
+    Process *process = HuPrcCurrentGet();
+    Object *front = NULL;
+    Object *back = NULL;
+    s32 frontNo = -1;
+    s32 backNo = -1;
+    s32 hitTime[3] = { -1, -1, -1 };
+    Process *spinPrc[3] = { NULL, NULL, NULL };
+    Vec pos;
+    Object *obj;
+    HmfModel *mdl;
+    s32 i;
+    f32 scale;
+    f32 amp;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118EA4_duel01);
+    func_800FAD04_name_81(8);
+    obj = func_800D8010_name_81(D_80118710_duel01[variant - 1] & 0xFF, 0);
+    func_8001C8E4_main(obj->omObj1->model[0], 0);
+    func_8001C448_main(obj->omObj1->model[0]);
+    func_800D8944_name_81(obj);
+    func_800D8F0C_name_81(obj);
+    HuVecCopy3F(&start, &partner->coords);
+    HuVecCopy3F(&dest, &player->player_obj->coords);
+    func_800EB708_name_81(&partner->coords, &dest, &partner->rot);
+    HuVecSubtract(&diff, &partner->coords, &player->player_obj->coords);
+    hitTime[0] = HuVecGetLength3F(&diff) / 7.0f - 1.0f;
+    if (hitTime[0] < 0) {
+        hitTime[0] = 0;
+    }
+    if (player->stats.partners.frontID != -1) {
+        front = MBDGetPlayerPartnerRef(playerNo, 0);
+        frontNo = GwPlayer[playerNo].stats.partners.frontID;
+        HuVecSubtract(&diff, &partner->coords, &front->coords);
+        hitTime[1] = HuVecGetLength3F(&diff) / 7.0f - 1.0f;
+        if (hitTime[1] < 0) {
+            hitTime[1] = 0;
+        }
+    }
+    if (player->stats.partners.backID != -1) {
+        back = MBDGetPlayerPartnerRef(playerNo, 1);
+        backNo = GwPlayer[playerNo].stats.partners.backID;
+        HuVecSubtract(&diff, &partner->coords, &back->coords);
+        hitTime[2] = HuVecGetLength3F(&diff) / 7.0f - 1.0f;
+        if (hitTime[2] < 0) {
+            hitTime[2] = 0;
+        }
+    }
+    func_80106240_duel01();
+    func_80106260_duel01(target, player, 0, 7.0f);
+    if (variant == 1) {
+        func_800FAE18_name_81(partner, 0, 2);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 7.0f));
+        func_800D8E88_name_81(obj);
+        func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
+        HuVecCopy3F(&obj->coords, &partner->coords);
+        func_800EB708_name_81(&obj->coords, &dest, &obj->rot);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&obj->coords, &dest, &obj->coords, 7.0f));
+        for (i = 0; ; i++) {
+            if (i == hitTime[0]) {
+                HuAudFXPlay((D_80105718_name_81 & 1) ? 0x1CE : 0x1E5);
+                spinPrc[0] = func_800D9668_name_81(player->player_obj, func_800D76D0_name_81(&player->player_obj->rot), 50.0f, -1);
+                func_800EF7C8_name_81(player->player_obj, 7.0f, -0.4f);
+                hitTime[0] = -1;
+                HuVecCopy3F(&pos, &player->player_obj->coords);
+                pos.y += 5.0f;
+                func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+            }
+            if (i == hitTime[1]) {
+                HuAudFXPlay((D_80105718_name_81 & 2) ? 0x1CE : 0x1E5);
+                spinPrc[1] = func_800D9668_name_81(front, func_800D76D0_name_81(&front->rot), 50.0f, -1);
+                func_800EF7C8_name_81(front, 7.0f, -0.4f);
+                hitTime[1] = -1;
+                HuVecCopy3F(&pos, &front->coords);
+                pos.y += 5.0f;
+                func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+            }
+            if (i == hitTime[2]) {
+                HuAudFXPlay((D_80105718_name_81 & 4) ? 0x1CE : 0x1E5);
+                spinPrc[2] = func_800D9668_name_81(back, func_800D76D0_name_81(&back->rot), 50.0f, -1);
+                func_800EF7C8_name_81(back, 7.0f, -0.4f);
+                hitTime[2] = -1;
+                HuVecCopy3F(&pos, &back->coords);
+                pos.y += 5.0f;
+                func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+            }
+            if (HuPrcChildGet(process) == 0) {
+                break;
+            }
+            HuPrcVSleep();
+        }
+        if (hitTime[0] != -1) {
+            spinPrc[0] = func_800D9668_name_81(player->player_obj, func_800D76D0_name_81(&player->player_obj->rot), 50.0f, -1);
+            func_800EF7C8_name_81(player->player_obj, 7.0f, -0.4f);
+            HuVecCopy3F(&pos, &player->player_obj->coords);
+            pos.y += 5.0f;
+            func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+        }
+        if (hitTime[1] != -1) {
+            spinPrc[1] = func_800D9668_name_81(front, func_800D76D0_name_81(&front->rot), 50.0f, -1);
+            func_800EF7C8_name_81(front, 7.0f, -0.4f);
+            HuVecCopy3F(&pos, &front->coords);
+            pos.y += 5.0f;
+            func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+        }
+        if (hitTime[2] != -1) {
+            spinPrc[2] = func_800D9668_name_81(back, func_800D76D0_name_81(&back->rot), 50.0f, -1);
+            func_800EF7C8_name_81(back, 7.0f, -0.4f);
+            HuVecCopy3F(&pos, &back->coords);
+            pos.y += 5.0f;
+            func_800DCE40_name_81(0x4A, &pos, NULL, 1.5f);
+        }
+        HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &start, &partner->coords, 3.0f));
+        HuVecCopy3F(&obj->coords, &partner->coords);
+        func_800EB708_name_81(&obj->coords, &start, &obj->rot);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&obj->coords, &start, &obj->coords, 3.0f));
+        HuPrcChildWait();
+        func_800D90D0_name_81(partner, -1, 2);
+        func_800ED214_name_81(arg0);
+        func_800D8F3C_name_81(obj);
+        while (TRUE) {
+            if (spinPrc[0] != NULL && func_800EF7D4_name_81(player->player_obj) == 0) {
+                B1_MODEL_ROTY(player->player_obj, 0.0f, mdl);
+                omDelPrcObj(spinPrc[0]);
+                spinPrc[0] = NULL;
+            }
+            if (spinPrc[1] != NULL && func_800EF7D4_name_81(front) == 0) {
+                B1_MODEL_ROTY(front, 0.0f, mdl);
+                omDelPrcObj(spinPrc[1]);
+                spinPrc[1] = NULL;
+            }
+            if (spinPrc[2] != NULL && func_800EF7D4_name_81(back) == 0) {
+                B1_MODEL_ROTY(back, 0.0f, mdl);
+                omDelPrcObj(spinPrc[2]);
+                spinPrc[2] = NULL;
+            }
+            if (spinPrc[0] == NULL && spinPrc[1] == NULL && spinPrc[2] == NULL) {
+                break;
+            }
+            HuPrcVSleep();
+        }
+    } else {
+        dest.y = 20.0f;
+        HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 7.0f));
+        func_800D8E88_name_81(obj);
+        func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
+        HuVecCopy3F(&obj->coords, &partner->coords);
+        func_800EB708_name_81(&obj->coords, &dest, &obj->rot);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&obj->coords, &dest, &obj->coords, 7.0f));
+        HuPrcChildWait();
+        func_800D8F0C_name_81(obj);
+        partner->velocity.x = partner->coords.y;
+        partner->coords.y = 0.0f;
+        HuPrcSleep(10);
+        HuAudFXPlay(0x1E6);
+        for (i = 0; i < 20; i++) {
+            f32 grow = i / 10.0f + 1.0f;
+            HuVecCopyXYZ(&partner->scale, grow, grow, grow);
+            HuPrcVSleep();
+        }
+        HuPrcSleep(10);
+        if (front != NULL) {
+            func_800DCE10_name_81(0x4C, &front->coords, NULL, 2.0f, 4);
+        }
+        if (back != NULL) {
+            func_800DCE10_name_81(0x4C, &back->coords, NULL, 2.0f, 4);
+        }
+        func_800DCE10_name_81(0x51, &player->player_obj->coords, NULL, 3.0f, 4);
+        func_800EF7C8_name_81(partner, -1.0f, -2.0f);
+        player->stat |= 4;
+        for (i = 0; i < 6; i++) {
+            scale = (10 - i) * 0.9f / 10.0f + 0.1f;
+            if (scale > 1.0f) {
+                scale = 1.0f;
+            }
+            HuVecCopyXYZ(&player->player_obj->scale, 1.0f, scale, 1.0f);
+            if (front != NULL) {
+                HuVecCopyXYZ(&front->scale, 1.0f, scale, 1.0f);
+            }
+            if (back != NULL) {
+                HuVecCopyXYZ(&back->scale, 1.0f, scale, 1.0f);
+            }
+            HuPrcVSleep();
+        }
+        func_801064C8_duel01(playerNo, 0);
+        func_800EF800_name_81(partner);
+        HuAudFXPlay(0x1F0);
+        HuPrcChildLink(process, func_8010645C_duel01(10, 1));
+        HuPrcChildWait();
+        HuPrcSleep(10);
+        for (i = 20; i >= 0; i -= 2) {
+            f32 grow = i / 10.0f + 1.0f;
+            HuVecCopyXYZ(&partner->scale, grow, grow, grow);
+            HuPrcVSleep();
+        }
+        HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &start, &partner->coords, 3.0f));
+        func_800D8E88_name_81(obj);
+        func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
+        HuVecCopy3F(&obj->coords, &partner->coords);
+        func_800EB708_name_81(&obj->coords, &start, &obj->rot);
+        HuPrcChildLink(process, func_800EC1E4_name_81(&obj->coords, &start, &obj->coords, 3.0f));
+        HuPrcChildWait();
+        func_800D90D0_name_81(partner, -1, 2);
+        func_800ED214_name_81(arg0);
+        func_800D8F3C_name_81(obj);
+        func_801064C8_duel01(playerNo, 1);
+        amp = 1.0f;
+        for (i = 0; i < 1080; i += 54) {
+            HuVecCopyXYZ(&player->player_obj->scale, 1.0f, sindf(i) * amp + 1.0f, 1.0f);
+            if (front != NULL) {
+                HuVecCopyXYZ(&front->scale, 1.0f, sindf(i) * amp + 1.0f, 1.0f);
+            }
+            if (back != NULL) {
+                HuVecCopyXYZ(&back->scale, 1.0f, sindf(i) * amp + 1.0f, 1.0f);
+            }
+            amp -= 0.025f;
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&player->player_obj->scale, 1.0f, 1.0f, 1.0f);
+        if (front != NULL) {
+            HuVecCopyXYZ(&front->scale, 1.0f, 1.0f, 1.0f);
+        }
+        if (back != NULL) {
+            HuVecCopyXYZ(&back->scale, 1.0f, 1.0f, 1.0f);
+        }
+        player->stat &= ~4;
+    }
+    func_800FAC1C_name_81(&D_80105540_name_81);
+    if (flags & 0x20) {
+        func_800FAB68_name_81(player->player_obj, 4, 3, D_80105718_name_81 & 1, -1);
+        if (front != NULL) {
+            func_800FAB68_name_81(front, 4, 1, D_80105718_name_81 & 2, frontNo);
+        }
+        if (back != NULL) {
+            func_800FAB68_name_81(back, 4, 1, D_80105718_name_81 & 4, backNo);
+        }
+    } else if (flags & 0x10) {
+        func_800FAB68_name_81(player->player_obj, 2, 3, D_80105718_name_81 & 1, -1);
+        if (front != NULL) {
+            func_800FAB68_name_81(front, 2, 1, D_80105718_name_81 & 2, frontNo);
+        }
+        if (back != NULL) {
+            func_800FAB68_name_81(back, 2, 1, D_80105718_name_81 & 4, backNo);
+        }
+    } else {
+        func_800FAB68_name_81(player->player_obj, 1, 3, D_80105718_name_81 & 1, -1);
+        if (front != NULL) {
+            func_800FAB68_name_81(front, 1, 1, D_80105718_name_81 & 2, frontNo);
+        }
+        if (back != NULL) {
+            func_800FAB68_name_81(back, 1, 1, D_80105718_name_81 & 4, backNo);
+        }
+    }
+    func_800FADB4_name_81();
+}
 
 #ifdef NON_MATCHING
 // duel b2: masked 84 of 463: register/stack allocation (retail frame 8 bytes larger, 5.0f kept in $f20, extra1/extra2 slots swapped); logic checked block by block.
