@@ -172,7 +172,7 @@ void func_800E4F50_name_81(Addr);
 void MBDBackLoad(s32);
 void func_800E8D10_name_81(void);
 void func_800E94D0_name_81(void);
-void func_800E9B10_name_81(s32, s16);
+s32 func_800E9B10_name_81(s32, s16);
 void func_800EB664_name_81(void);
 void func_800EF840_name_81(void);
 void func_800EF880_name_81(void);
