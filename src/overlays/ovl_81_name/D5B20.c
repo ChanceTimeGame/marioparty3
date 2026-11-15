@@ -81,6 +81,7 @@ extern UnkBoard D_80105560_name_81[16];
 u16 func_800D9234_name_81(Object* arg0);
 void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
 s32 func_800F73AC_name_81(void);
+s32 func_800F8AEC_name_81(s32 playerIndex, s32 arg1, s16 arg2, s16 arg3, u16 arg4, u16 flags); // DFD60
 f32 func_800D76D0_name_81(Vec* arg0);
 f64 fabs(f64);
 void func_800F8CD8_name_81(s32 playerNo, f32 speed);
@@ -2292,7 +2293,23 @@ void func_800F397C_name_81(s32 playerNo, s16 motion, s16 arg2, s16 arg3, u16 att
     }
 }
 
+// Retail calls func_800F8AEC with no prototype in scope (arg3 and attr go through as ints, with no
+// s16 -> u16 conversion); with DFD60's prototype the C adds that conversion. Same values either way.
+#ifdef NON_MATCHING
+void func_800F3A04_name_81(s32 playerNo, s16 motion, s16 arg2, s16 arg3, u16 attr) {
+    GW_PLAYER* player = MBDGetPlayerStruct(playerNo);
+
+    if (player == MBDGetPlayerStruct(-1)) {
+        func_800D918C_name_81(player->player_obj, motion, arg2, arg3, attr);
+        if (motion < 4) {
+            func_800F8AEC_name_81(playerNo, PARTNER_FRONT, motion, arg2, arg3, attr);
+            func_800F8AEC_name_81(playerNo, PARTNER_BACK, motion, arg2, arg3, attr);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3A04_name_81);
+#endif
 
 void func_800F3AF4_name_81(s32 playerNo, f32 speed) {
     func_8001C92C_main(MBDGetPlayerStruct(playerNo)->player_obj->omObj1->model[0], speed);
