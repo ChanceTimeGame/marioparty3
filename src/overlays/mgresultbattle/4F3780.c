@@ -30,9 +30,9 @@ void func_801075FC_mgresultbattle(void);
 void MBBackKill(void);
 void MBBackClose(void);
 
-extern s8 D_801088D0_mgresultbattle;
-extern s32 D_801088D4_mgresultbattle;
-extern s8 D_801088D8_mgresultbattle;
+extern s8 D_801088D0_mgresultbattle;  /* func_80105CAC_mgresultbattle state */
+extern s32 D_801088D4_mgresultbattle; /* its timer */
+extern s8 D_801088D8_mgresultbattle;  /* func_80105E64_mgresultbattle: the wipe-out has started */
 
 extern s8 D_80108F8C_mgresultbattle[4];
 extern s32 D_80108F70_mgresultbattle;
@@ -475,3 +475,7 @@ const f32 D_80108920_mgresultbattle[8][4] = {
 
 /* Nonzero: the pot is divided by the share rather than multiplied. */
 const s8 D_801089A0_mgresultbattle[8] = { 0, 0, 0, 1, 0, 0, 0, 0 };
+
+s8 D_801088D0_mgresultbattle = 0;
+s32 D_801088D4_mgresultbattle = 0;
+s8 D_801088D8_mgresultbattle = 0;

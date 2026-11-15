@@ -37,7 +37,7 @@ extern RbSprModel *D_800CBB60_main;
 extern RbCoin D_80108A30_mgresultbattle[40];
 extern omObjData *D_80108F74_mgresultbattle;
 extern void (*D_80108F78_mgresultbattle)(omObjData *);
-extern s32 D_801088E0_mgresultbattle[4];
+extern s32 D_801088E0_mgresultbattle[4]; /* a coin has rumbled this figure's player */
 extern s32 D_80108F70_mgresultbattle;
 extern const s32 D_801089C0_mgresultbattle[4];
 
@@ -362,3 +362,5 @@ void func_80107CA4_mgresultbattle(void) {
 
 /* Leftover-coin lottery weight per placing (last place most likely). */
 const s32 D_801089C0_mgresultbattle[4] = { 10, 20, 30, 40 };
+
+s32 D_801088E0_mgresultbattle[4] = { 0, 0, 0, 0 };
