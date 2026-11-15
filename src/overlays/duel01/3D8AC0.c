@@ -2469,6 +2469,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801147FC_duel01);
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_801193E8_duel01);
 
 // duel b5
+typedef struct DuelSpaceTbl {
+    u8 idx[6];
+} DuelSpaceTbl;
+extern const DuelSpaceTbl D_801193E8_duel01;
+extern const DuelSpaceTbl D_80119410_duel01;
 s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
 SpaceData *MBDMasuGet(s16 spaceIdx);
 void func_800E27D4_name_81(s16 playerIndex, Vec *pos, Vec *frontPos, Vec *backPos);
@@ -2487,8 +2492,65 @@ void func_8010EAD4_duel01(s32);
 void func_8010EB44_duel01(s32);
 extern DecisionTreeNonLeafNode D_80118CF0_duel01[];
 extern s16 D_80118DE4_duel01[];
+s32 func_800EFE20_name_81(f32);
 
+// duel b5: masked 17 (retail reloads cidx and the table entry after the equality test)
+#ifdef NON_MATCHING
+s32 func_80115850_duel01(void) {
+    DuelSpaceTbl spaceIdx;
+    GW_PLAYER *cur;
+    GW_PLAYER *other;
+    s32 otherNo;
+    s32 walk;
+    s32 chance;
+
+    otherNo = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    cur = MBDGetPlayerStruct(CUR_PLAYER);
+    other = MBDGetPlayerStruct(otherNo);
+    walk = mbWalkNum;
+    spaceIdx = D_801193E8_duel01;
+    if ((other->rev & 1) || other->nlink == 0) {
+        if (other->cidx == spaceIdx.idx[walk]) {
+            goto yes;
+        }
+        return spaceIdx.idx[walk] >= other->cidx;
+    }
+    if (!(other->cidx < spaceIdx.idx[walk])) {
+        return 1;
+    }
+    if (!(other->stats.partners.frontPower < cur->star + cur->stats.partners.backHp)) {
+        return 0;
+    }
+    if (other->stats.partners.frontPower < cur->stats.partners.frontPower) {
+        return 1;
+    }
+    if (cur->stats.partners.frontPower == 0) {
+        return 0;
+    }
+    switch (GwPlayer[MBDGetCurrentPlayerIndex()].chr) {
+    case 4:
+    case 5:
+    case 6:
+        chance = func_800EFE20_name_81(100.0f) < 80;
+        break;
+    case 0:
+    case 3:
+    case 7:
+        chance = func_800EFE20_name_81(100.0f) < 50;
+        break;
+    default:
+        chance = func_800EFE20_name_81(100.0f) < 20;
+        break;
+    }
+    if (!chance) {
+        return 0;
+    }
+yes:
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80115850_duel01);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801159F8_duel01);
 
@@ -2496,7 +2558,63 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80116484_duel01);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80119410_duel01);
 
+// duel b5: masked 13 (retail reloads the table entry after the equality test)
+#ifdef NON_MATCHING
+s32 func_80117480_duel01(void) {
+    DuelSpaceTbl spaceIdx;
+    GW_PLAYER *cur;
+    GW_PLAYER *other;
+    s32 otherNo;
+    s32 walk;
+    s32 chance;
+
+    otherNo = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    cur = MBDGetPlayerStruct(CUR_PLAYER);
+    other = MBDGetPlayerStruct(otherNo);
+    walk = mbWalkNum;
+    spaceIdx = D_80119410_duel01;
+    if (!(other->rev & 1) && other->nlink != 0) {
+        if (other->cidx != spaceIdx.idx[walk]) {
+            return other->cidx >= spaceIdx.idx[walk];
+        }
+        goto yes;
+    }
+    if (!(spaceIdx.idx[walk] < other->cidx)) {
+        return 1;
+    }
+    if (!(other->stats.partners.frontPower < cur->star + cur->stats.partners.backHp)) {
+        return 0;
+    }
+    if (other->stats.partners.frontPower < cur->stats.partners.frontPower) {
+        return 1;
+    }
+    if (cur->stats.partners.frontPower == 0) {
+        return 0;
+    }
+    switch (GwPlayer[MBDGetCurrentPlayerIndex()].chr) {
+    case 4:
+    case 5:
+    case 6:
+        chance = func_800EFE20_name_81(100.0f) < 80;
+        break;
+    case 0:
+    case 3:
+    case 7:
+        chance = func_800EFE20_name_81(100.0f) < 50;
+        break;
+    default:
+        chance = func_800EFE20_name_81(100.0f) < 20;
+        break;
+    }
+    if (!chance) {
+        return 0;
+    }
+yes:
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80117480_duel01);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80117624_duel01);
 
