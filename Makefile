@@ -328,6 +328,8 @@ NOP_OBJECTS += build/src/471D0.c.o
 NOP_OBJECTS += build/src/sprput.c.o
 # wave 3h: opboard (no nop between a call returning a float and its mul.s)
 NOP_OBJECTS += build/src/overlays/opboard/3CA800.c.o
+# wave 3l fired A: All Fired Up (no nop after the sindf/cosdf calls)
+NOP_OBJECTS += build/src/overlays/ovl_29_all_fired_up/23C8F0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
