@@ -1465,7 +1465,7 @@ void func_8010DD3C_duel01(void);
 void func_8010E348_duel01(void);
 void func_8010EA74_duel01(void);
 void func_8011390C_duel01(void);
-void func_80118328_duel01(void);
+s32 func_80118328_duel01(void);
 extern event_table_entry D_80118914_duel01[];
 extern event_table_entry D_80118DEC_duel01[];
 
