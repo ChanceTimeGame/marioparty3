@@ -7,6 +7,8 @@
 #include "game/pause.h"
 #include "game/sprite.h"
 #include "game/data.h"
+#include "game/gamemes.h"
+#include "game/wipe.h"
 #include "mallocblock.h"
 
 // eatsa A: Eatsa Pizza (two teams of two eat a pizza from opposite halves of the screen)
@@ -93,7 +95,13 @@ extern u8 D_80109108_eatsa_pizza; /* players spawned */
 extern u8 D_8010910C_eatsa_pizza[4]; /* players spawned per team */
 extern s16 D_80109110_eatsa_pizza[4][3]; /* start positions [team * 2 + slot] */
 extern f32 D_80109128_eatsa_pizza[4]; /* start headings [team * 2 + slot] */
+extern s32 D_80109138_eatsa_pizza; /* message / wipe timer */
+extern s16 D_8010913A_eatsa_pizza[]; /* [0]: the low half of D_80109138 (big-endian), read as the wipe-out speed */
+extern u16 D_8010913C_eatsa_pizza; /* game timer, frames */
+extern s32 D_80109140_eatsa_pizza; /* winning team, -1 none */
+extern s16 D_80109144_eatsa_pizza; /* frames since the wipe-in finished */
 extern u32 D_80109148_eatsa_pizza; /* random seed */
+extern s32 D_80109260_eatsa_pizza[2]; /* per team: slice pixels at the start */
 extern s16 D_80109278_eatsa_pizza; /* pizza texture */
 extern s16 D_8010927A_eatsa_pizza[2]; /* per team: its pizza's remaining-slice texture */
 extern s16 D_8010927E_eatsa_pizza[2]; /* per team: its pizza's mask texture */
@@ -102,6 +110,7 @@ extern s16 D_80109284_eatsa_pizza;
 extern s16 D_801092B8_eatsa_pizza[2]; /* per team: slice pixels left */
 extern s16 D_801092C0_eatsa_pizza[2][5][7]; /* per team: slice pixels left per 32x32 cell [x][y] */ /* bite mark texture */
 extern s16 D_80109288_eatsa_pizza[]; /* [0]: pizza sprite group */
+extern s16 D_8010928A_eatsa_pizza[2]; /* per team: its pizza's sprite group */
 extern s16 D_8010928E_eatsa_pizza; /* bite mark sprite group */
 extern s16 D_80109298_eatsa_pizza[16]; /* bite mark members in use */
 extern s16 D_80109350_eatsa_pizza; /* game state */
@@ -810,7 +819,107 @@ void func_80108470_eatsa_pizza(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801084F8_eatsa_pizza);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801087DC_eatsa_pizza);
+/* The game flow: start message, 30 s countdown, result, wipe out, return. */
+void func_801087DC_eatsa_pizza(omObjData* obj) {
+    s32 i;
+
+    switch (D_80109350_eatsa_pizza) {
+        case 0:
+            GMesCreate(5);
+            D_8010913C_eatsa_pizza = 900;
+            D_80109350_eatsa_pizza++;
+        case 1:
+            if (WipeStatGet() == 0) {
+                if (++D_80109144_eatsa_pizza == 1) {
+                    HuAudSeqPlay(0x36);
+                }
+            }
+            if (GMesStatGet() == 0) {
+                D_80109350_eatsa_pizza++;
+                GMesCreate(0x1A, (D_8010913C_eatsa_pizza + 29) / 30, 160, 32);
+                HuAudFXPlay(0xE);
+                for (i = 0; i < 2; i++) {
+                    D_80109260_eatsa_pizza[i] = D_801092B8_eatsa_pizza[i];
+                }
+            }
+            break;
+        case 2:
+            for (i = 0; i < 2; i++) {
+                if (D_801092B8_eatsa_pizza[i] == 0) {
+                    D_80109350_eatsa_pizza = 3;
+                }
+            }
+            D_8010913C_eatsa_pizza--;
+            func_8003F578_main((D_8010913C_eatsa_pizza + 29) / 30);
+            if (D_8010913C_eatsa_pizza == 0) {
+                D_80109350_eatsa_pizza = 3;
+            }
+            break;
+        case 3:
+            for (i = 0; i < 2; i++) {
+                HuSprAttrSet(D_8010928A_eatsa_pizza[i], 0, 0x4000);
+            }
+            if (D_80109260_eatsa_pizza[0] == D_801092B8_eatsa_pizza[0] && D_80109260_eatsa_pizza[1] == D_801092B8_eatsa_pizza[1]) {
+                D_80109140_eatsa_pizza = -1;
+            } else if (D_801092B8_eatsa_pizza[0] < D_801092B8_eatsa_pizza[1]) {
+                D_80109268_eatsa_pizza[0][0]->unk34 = 1;
+                D_80109268_eatsa_pizza[0][1]->unk34 = 1;
+                D_80109140_eatsa_pizza = 0;
+            } else {
+                D_80109268_eatsa_pizza[1][0]->unk34 = 1;
+                D_80109268_eatsa_pizza[1][1]->unk34 = 1;
+                D_80109140_eatsa_pizza = 1;
+            }
+            func_8003F5C0_main();
+            GMesCreate(0x10);
+            HuAudSeqFadeOut(120);
+            D_80109138_eatsa_pizza = 15;
+            D_80109350_eatsa_pizza++;
+            break;
+        case 4:
+            if (GMesStatGet() == 0) {
+                if (--D_80109138_eatsa_pizza == 0) {
+                    if (D_80109140_eatsa_pizza == -1) {
+                        GMesCreate(0x20);
+                        HuAudSeqPlay(0x6C);
+                    } else {
+                        GMesCreate(0x1E, GwPlayer[D_80109268_eatsa_pizza[D_80109140_eatsa_pizza][0]->player].chr,
+                                   GwPlayer[D_80109268_eatsa_pizza[D_80109140_eatsa_pizza][1]->player].chr);
+                        HuAudSeqPlay(0x66);
+                    }
+                    D_80109138_eatsa_pizza = 15;
+                    D_80109350_eatsa_pizza++;
+                }
+            }
+            break;
+        case 5:
+            if (GMesStatGet() == 0) {
+                if (--D_80109138_eatsa_pizza == 0) {
+                    D_80109350_eatsa_pizza++;
+                }
+            }
+            break;
+        case 6:
+            if (D_80109138_eatsa_pizza != 0) {
+                if (--D_80109138_eatsa_pizza == 0) {
+                    D_80109350_eatsa_pizza++;
+                }
+            } else {
+                D_80109138_eatsa_pizza = 16;
+                WipeCreateOut(0, D_8010913A_eatsa_pizza[0]);
+                HuAudSeqFadeOut(D_8010913A_eatsa_pizza[0]);
+                func_8004AB0C_main(D_8010913A_eatsa_pizza[0]);
+            }
+            break;
+        case 7:
+            func_8004A950_main();
+            omOvlReturnEx(1);
+            break;
+    }
+    if (D_800D530C_main == 1 && WipeStatGet() == 0) {
+        D_80109350_eatsa_pizza = 6;
+    }
+}
 
 /* Bite marks: step each live one's animation, hide it at its last frame. */
 void func_80108C50_eatsa_pizza(void) {
