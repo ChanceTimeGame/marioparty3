@@ -8,6 +8,8 @@
 #include "game/util.h"
 #include "game/wipe.h"
 #include "game/window.h"
+#include "game/hmfman.h"
+#include "game/esprite.h"
 
 // batter A: Hey, Batter, Batter! (one player bats pitches into the stands)
 
@@ -27,6 +29,8 @@ void GMesMaxTimeGet(s16 mesId, s16 time);
 f32 sindf(f32);
 void GMesPosSet(s16 mesId, f32 x, f32 y);
 void func_800557A0_main(void);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+s16 func_8000B13C_main(s32 arg0);
 extern u16 D_800A11D0_main[6];
 extern s16 D_800A11DC_main[5];
 
@@ -44,6 +48,9 @@ void func_80106928_hey_batter_batter(omObjData* obj);
 void func_80106C24_hey_batter_batter(omObjData* obj);
 void func_80106CBC_hey_batter_batter(omObjData* obj);
 void func_80106C6C_hey_batter_batter(omObjData* obj);
+void func_80106FA8_hey_batter_batter(omObjData* obj);
+s16 func_80109A78_hey_batter_batter(s32 file, u16 attr, u16 prio, s16 x, s16 y);
+s16 func_80109B24_hey_batter_batter(s32 arg0);
 void func_80106CE4_hey_batter_batter(omObjData* obj);
 void func_801070D8_hey_batter_batter(omObjData* obj);
 void func_80107144_hey_batter_batter(omObjData* obj);
@@ -82,6 +89,9 @@ extern s16 D_80109EFC_hey_batter_batter;
 extern s16 D_80109EFE_hey_batter_batter;
 extern s16 D_80109C48_hey_batter_batter; /* result step */
 extern s16 D_80109C4A_hey_batter_batter; /* result camera frame */
+extern Vec D_80109C4C_hey_batter_batter[5]; /* flag positions */
+extern s16 D_80109F00_hey_batter_batter[5]; /* flag models */
+extern s16 D_80109F0C_hey_batter_batter[5]; /* flag sway phases */
 extern Vec D_80109BC4_hey_batter_batter[2]; /* result camera rotations */
 extern Vec D_80109BDC_hey_batter_batter[2]; /* result camera centres */
 extern Vec D_80109B64_hey_batter_batter[4]; /* camera rotations */
@@ -404,11 +414,57 @@ void func_80106CBC_hey_batter_batter(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106CE4_hey_batter_batter);
+/* Background sprite and the five sway flags around the stands. */
+void func_80106CE4_hey_batter_batter(omObjData* obj) {
+    s16 i;
+    u16 mdl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106FA8_hey_batter_batter);
+    func_80109A78_hey_batter_batter(0x5D0000, 0x4000, 1000, 160, 120);
+    for (i = 0; i < 2; i++) {
+        mdl = func_8000B108_main(0x5D0003, 0x2A9);
+        D_80109F00_hey_batter_batter[i] = mdl;
+        Hu3DModelPosSet(mdl, D_80109C4C_hey_batter_batter[i].x, D_80109C4C_hey_batter_batter[i].y,
+                        D_80109C4C_hey_batter_batter[i].z);
+        Hu3DModelScaleSet(mdl, 2.0f, 2.0f, 2.0f);
+        HmfModelData[(s16)mdl].rot.x = 20.0f;
+        D_80109F0C_hey_batter_batter[i] = rand8() % 90;
+    }
+    for (; i < 5; i++) {
+        mdl = func_8000B108_main(0x5D0003, 0x2A9);
+        D_80109F00_hey_batter_batter[i] = mdl;
+        Hu3DModelPosSet(mdl, D_80109C4C_hey_batter_batter[i].x, D_80109C4C_hey_batter_batter[i].y,
+                        D_80109C4C_hey_batter_batter[i].z);
+        Hu3DModelScaleSet(mdl, 2.0f, 2.0f, 2.0f);
+        HmfModelData[(s16)mdl].rot.x = 20.0f;
+        HmfModelData[(s16)mdl].rot.y = 90.0f;
+        D_80109F0C_hey_batter_batter[i] = rand8() % 90;
+    }
+    obj->func = func_80106FA8_hey_batter_batter;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_801070D8_hey_batter_batter);
+void func_80106FA8_hey_batter_batter(omObjData* obj) {
+    s16 i;
+    u16 mdl;
+    s16* phase;
+
+    for (i = 0; i < 5; i++) {
+        mdl = D_80109F00_hey_batter_batter[i];
+        phase = &D_80109F0C_hey_batter_batter[i];
+        HmfModelData[(s16)mdl].scale.x = HmfModelData[(s16)mdl].scale.y = HmfModelData[(s16)mdl].scale.z =
+            sindf(2.0f * *phase) * 0.5f + 2.0f;
+        if ((*phase)++ >= 180.0f) {
+            *phase = 0;
+        }
+    }
+}
+
+/* The stadium: field model and stands. */
+void func_801070D8_hey_batter_batter(omObjData* obj) {
+    obj->model[0] = func_8000B108_main(0x5D0001, 0x2A9);
+    obj->model[1] = func_8000B108_main(0x5D0002, 0x2A9);
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, -1000.0f);
+    obj->func = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107144_hey_batter_batter);
 
@@ -442,6 +498,20 @@ void func_801098DC_hey_batter_batter(f32 zoom0, Vec rot0, Vec center0, f32 zoom1
     D_80109EB4_hey_batter_batter.center = Center;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80109A78_hey_batter_batter);
+s16 func_80109A78_hey_batter_batter(s32 file, u16 attr, u16 prio, s16 x, s16 y) {
+    s16 id = InitEspriteSlot(func_8000B838_main(file), 0, 0);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80109B24_hey_batter_batter);
+    func_8000BC48_main(id, attr);
+    func_8000BCC8_main(id, prio);
+    func_8000BBD4_main(id, x, y);
+    return id;
+}
+
+s16 func_80109B24_hey_batter_batter(s32 arg0) {
+    s16 ret = func_8000B13C_main(arg0);
+
+    if (ret < 0) {
+        ret = -1;
+    }
+    return ret;
+}
