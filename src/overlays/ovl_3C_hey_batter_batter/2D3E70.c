@@ -24,6 +24,7 @@ void func_8000B5F0_main(u8 arg0);
 s16 func_8000B638_main(void);
 void GMesMaxTimeGet(s16 mesId, s16 time);
 f32 sindf(f32);
+void GMesPosSet(s16 mesId, f32 x, f32 y);
 extern u16 D_800A11D0_main[6];
 extern s16 D_800A11DC_main[5];
 
@@ -65,6 +66,14 @@ extern s16 D_80109C36_hey_batter_batter; /* intro camera step */
 extern s16 D_80109C38_hey_batter_batter; /* intro timer */
 extern f32 D_80109C3C_hey_batter_batter; /* intro camera move frame */
 extern s16 D_80109ED2_hey_batter_batter;
+extern s16 D_80109C40_hey_batter_batter; /* batting phase step */
+extern s16 D_80109C42_hey_batter_batter; /* batting phase timer */
+extern s16 D_80109C44_hey_batter_batter; /* "start" message */
+extern s16 D_80109C46_hey_batter_batter; /* countdown frames */
+extern s16 D_80109ED4_hey_batter_batter;
+extern s16 D_80109ED8_hey_batter_batter;
+extern s16 D_80109EDA_hey_batter_batter;
+extern s16 D_80109EDE_hey_batter_batter;
 extern Vec D_80109B64_hey_batter_batter[4]; /* camera rotations */
 extern Vec D_80109B94_hey_batter_batter[4]; /* camera centres */
 
@@ -261,7 +270,53 @@ void func_801062E0_hey_batter_batter(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106744_hey_batter_batter);
+/* The batting phase: start message, the countdown, then wait for the last pitch to settle. */
+void func_80106744_hey_batter_batter(omObjData* obj) {
+    switch (D_80109C40_hey_batter_batter) {
+    case 0:
+        D_80109C42_hey_batter_batter = 0;
+        D_80109C40_hey_batter_batter = 0;
+        D_80109C44_hey_batter_batter = 0;
+        D_80109C46_hey_batter_batter = 91;
+        D_80109C40_hey_batter_batter = 1;
+        break;
+    case 1:
+        if (D_80109C42_hey_batter_batter++ >= 30) {
+            D_80109EDA_hey_batter_batter = 3;
+            D_80109C40_hey_batter_batter++;
+        }
+        break;
+    case 2:
+        HuAudFXPlay(8);
+        D_80109C44_hey_batter_batter = GMesCreate(0x1A, 3, 150, 160);
+        GMesPosSet(D_80109C44_hey_batter_batter, 150.0f, 160.0f);
+        D_80109C40_hey_batter_batter++;
+        break;
+    case 3:
+        if (D_80109C46_hey_batter_batter-- >= 0) {
+            func_8003F578_main((D_80109C46_hey_batter_batter + 29) / 30);
+        } else {
+            func_8003F5C0_main();
+            D_80109EDA_hey_batter_batter = 4;
+            D_80109C40_hey_batter_batter++;
+        }
+        break;
+    case 4:
+        D_80109ED8_hey_batter_batter = 1;
+        D_80109C40_hey_batter_batter++;
+        break;
+    case 5:
+        if (D_80109EDE_hey_batter_batter == 2) {
+            if ((D_80109ED4_hey_batter_batter == 1 && D_80109C42_hey_batter_batter++ >= 30) ||
+                D_80109ED4_hey_batter_batter == 2) {
+                obj->func = func_80106048_hey_batter_batter;
+            }
+        }
+        break;
+    case 6:
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106928_hey_batter_batter);
 
