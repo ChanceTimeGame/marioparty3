@@ -64,12 +64,6 @@ typedef struct BbCtrl {
     /* 0x26 */ s16 unk26;
 } BbCtrl;
 
-/* A boulder's rolling sound. */
-typedef struct BbSound {
-    /* 0x00 */ s16 active; /* -1 none */
-    /* 0x02 */ s16 handle;
-} BbSound;
-
 // main
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -135,7 +129,7 @@ void func_80108798_boulder_ball(omObjData* obj);
 void func_80108A08_boulder_ball(omObjData* obj);
 
 extern s32 D_80109700_boulder_ball[8]; /* per boulder: state */
-extern BbSound D_80109744_boulder_ball[4]; /* per boulder: rolling sound */
+extern s32 D_80109744_boulder_ball[4]; /* per boulder: rolling sound, -1 none */
 extern f32 D_80109754_boulder_ball; /* slope bounce speed, 1000.0f none */
 extern s32 D_80109758_boulder_ball;
 extern s32 D_8010975C_boulder_ball; /* 1: the three won */
@@ -320,7 +314,135 @@ void func_801060D0_boulder_ball(void) {
     Hu3DModelRotSet(D_801098A4_boulder_ball->model[1], 0.0f, D_801098A4_boulder_ball->rot.y, 0.0f);
 }
 
+/* The slope: runs the minigame's states. */
+// masked 0; raw: the finish loop that slows the three runners (unk3C *= 0.8f) loads the object into a0, GCC here
+// into v0 (register allocation only)
+#ifdef NON_MATCHING
+void func_80106410_boulder_ball(omObjData* obj) {
+    s32 i;
+    s32 n;
+    MgWork* w;
+    f32 t;
+
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        func_800E6E9C_minigame();
+        switch (func_800E6F40_minigame()) {
+            case 0:
+                func_801060D0_boulder_ball();
+                break;
+            case 2:
+                func_80105EA0_boulder_ball();
+                break;
+            case 3:
+                if (D_801097A0_boulder_ball == 0) {
+                    D_801098A4_boulder_ball->func = func_80108798_boulder_ball;
+                    func_800E131C_minigame(D_800EC1C0_minigame[0], 0.0f);
+                    for (i = 0; i < (u16)D_800EC1B8_minigame; i++) {
+                        func_8001C258_main(D_800EBE70_minigame[i]->model[0], 4, 4);
+                        func_8001C258_main(D_800EBE70_minigame[i]->model[1], 4, 4);
+                        if (D_80109744_boulder_ball[i] != -1) {
+                            HuAudFXStop((s16)D_80109744_boulder_ball[i]);
+                            D_80109744_boulder_ball[i] = -1;
+                        }
+                    }
+                    if (D_8010975C_boulder_ball == 0) {
+                        /* the lone player wins */
+                        D_80109760_boulder_ball.unk06 = 0;
+                        D_80109760_boulder_ball.unk18[0] = D_8010989F_boulder_ball;
+                        func_8001C258_main(D_801098A4_boulder_ball->model[0], 4, 0);
+                        func_8001C258_main(D_801098A4_boulder_ball->model[1], 4, 4);
+                        func_800E5798_minigame(D_801098A4_boulder_ball, 6);
+                        ((MgWork*)D_801098A4_boulder_ball->data)->unk38 = -D_800EB744_minigame;
+                    } else {
+                        /* the three win */
+                        D_80109760_boulder_ball.unk06 = 2;
+                        n = 0;
+                        for (i = 0; i < 4; i++) {
+                            if (D_8010989C_boulder_ball != i) {
+                                D_80109760_boulder_ball.unk18[n++] = i;
+                            }
+                        }
+                    }
+                    D_80109880_boulder_ball = (CRot.x - 340.0f) / 60.0f;
+                    D_80109884_boulder_ball = (Center.y - 700.0f) / 60.0f;
+                    D_80109888_boulder_ball = (Center.z - -800.0f) / 60.0f;
+                    D_801097A0_boulder_ball = 1;
+                }
+                for (i = 0; i < 3; i++) {
+                    ((MgWork*)D_800EC598_minigame[i]->data)->unk3C *= 0.8f;
+                }
+                D_801098A4_boulder_ball->rot.y *= 0.8f;
+                if (D_8010975C_boulder_ball == 0) {
+                    CRot.x -= D_80109880_boulder_ball;
+                    if (CRot.x < 340.0f) {
+                        CRot.x = 340.0f;
+                    }
+                    Center.y -= D_80109884_boulder_ball;
+                    if (Center.y > 700.0f) {
+                        Center.y = 700.0f;
+                    }
+                    Center.z -= D_80109888_boulder_ball;
+                    if (Center.z < -800.0f) {
+                        Center.z = -800.0f;
+                    }
+                }
+                break;
+            case 4:
+                if (D_800EB934_minigame[0] == 1) {
+                    if (D_8010975C_boulder_ball == D_800EB934_minigame[0]) {
+                        for (i = 0; i < 3; i++) {
+                            w = D_800EC598_minigame[i]->data;
+                            func_800E5798_minigame(D_800EC598_minigame[i], 0xD);
+                            func_80045ED0_main(D_800A178C_main[GwPlayer[w->unk59].chr][0] | 0x2F);
+                            GwPlayer[w->unk59].bonusCoin += 10;
+                        }
+                    } else {
+                        GwPlayer[D_8010989C_boulder_ball].bonusCoin += 10;
+                        for (i = 0; i < 3; i++) {
+                            func_800E5798_minigame(D_800EC598_minigame[i], 0xE);
+                        }
+                        func_800E5798_minigame(D_801098A4_boulder_ball, 0xD);
+                        func_80045ED0_main(D_800A178C_main[GwPlayer[D_8010989C_boulder_ball].chr][0] | 0x2F);
+                    }
+                }
+                break;
+            case 5:
+                WipeCreateOut(0, 20);
+                obj->func = func_80105E74_boulder_ball;
+                break;
+        }
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            ((MgWork*)D_800EC598_minigame[i]->data)->unk60 = CRot.y;
+        }
+        if (D_800D530C_main == 1) {
+            WipeCreateOut(0, 20);
+            HuAudSeqFadeOut(30);
+            func_8004AB0C_main(30);
+            obj->func = func_80105E74_boulder_ball;
+        }
+        if (D_80109754_boulder_ball != 1000.0f) {
+            /* the slope's bounce after a boulder lands */
+            t = D_80109754_boulder_ball;
+            if (D_800EB774_minigame < t) {
+                t = D_800EB774_minigame;
+            }
+            D_80109798_boulder_ball += t * t * (D_80109754_boulder_ball >= 0.0f ? -36.75f : 36.75f);
+            D_80109754_boulder_ball += D_800EB748_minigame;
+            if (D_80109798_boulder_ball < 0.0f) {
+                D_80109798_boulder_ball = 0.0f;
+                if (D_80109754_boulder_ball > 0.5f) {
+                    D_80109754_boulder_ball = -D_80109754_boulder_ball * 0.5f;
+                } else {
+                    D_80109754_boulder_ball = 1000.0f;
+                }
+            }
+            Hu3DModelPosSet(obj->model[1], 0.0f, D_80109798_boulder_ball, 0.0f);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106410_boulder_ball);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80106B58_boulder_ball);
 
