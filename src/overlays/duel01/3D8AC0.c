@@ -1893,7 +1893,7 @@ void func_8010B54C_duel01(s32 arg0, s32 playerNo, Object *partner, Object *targe
         HuVecAdd(&sp18, &sp18, &offset);
         HuPrcChildLink(process, move(&D_80119488_duel01->coords, &sp18, &D_80119488_duel01->coords, 0.5f));
         func_80106240_duel01();
-        func_80106260_duel01((s32)target, (unkStruct05 *)player, flags, 0.8f); // host: pointer through s32
+        func_80106260_duel01(target, player, flags, 0.8f);
         objHide(obj);
         func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
         HuVecCopy3F(&obj->coords, &D_80119488_duel01->coords);
@@ -2171,7 +2171,7 @@ void func_8010D424_duel01(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800D90D0_name_81(partner, 0, 2);
     func_8010615C_duel01(partner, target, player, &sp18, &sp28, 7.5f);
     func_80106240_duel01();
-    func_80106260_duel01((s32)target, (unkStruct05 *)player, flags, 3.0f); // host: pointer through s32
+    func_80106260_duel01(target, player, flags, 3.0f);
     HuPrcChildLink(process, move(partnerPos, &sp18, partnerPos, 3.0f));
     objHide(partner);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
