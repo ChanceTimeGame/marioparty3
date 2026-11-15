@@ -61,6 +61,12 @@ extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[]; /* minigame mgcol.h HitList */
 
+extern s32 D_80109E04_dizzy_dinghies; /* last splash slot */
+
+extern Vec D_80109F60_dizzy_dinghies[6]; /* splash positions */
+extern f32 D_80109FA8_dizzy_dinghies[6]; /* splash speeds */
+extern Vec D_80109FC0_dizzy_dinghies[6]; /* splash directions (x, z) */
+extern f32 D_8010A008_dizzy_dinghies[6]; /* splash scales */
 extern s32 D_8010A020_dizzy_dinghies;
 extern u16 D_8010A022_dizzy_dinghies;
 
@@ -77,6 +83,7 @@ void func_80106970_dizzy_dinghies(omObjData* obj);
 void func_80106DF4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107738_dizzy_dinghies(omObjData* obj, s32 player);
+void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale);
 void func_801085F4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107DE8_dizzy_dinghies(omObjData* obj);
@@ -720,9 +727,83 @@ void func_80107738_dizzy_dinghies(omObjData* obj, s32 player) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107DE8_dizzy_dinghies);
+void func_80107DE8_dizzy_dinghies(omObjData* obj) {
+    func_80107738_dizzy_dinghies(obj, 0);
+}
 
+#ifdef NON_MATCHING
+/* Differs only by one nop after the sindf call of the z position (scheduling). */
+/* Spawn a splash behind the dinghy and move the live ones (models 1..6; also 7..12 for the wide dinghy). */
+void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale) {
+    f32 heading;
+    f32 rnd;
+    f32 a;
+    f32 ox;
+    f32 oz;
+    f32 ox2;
+    f32 oz2;
+    f32 s;
+    s32 idx;
+    s32 i;
+
+    heading = ((MgWork*)obj->data)->unk3C;
+    idx = D_80109E04_dizzy_dinghies + 1;
+    if (idx == 6) {
+        idx = 0;
+    }
+    D_80109E04_dizzy_dinghies = idx;
+    D_8010A008_dizzy_dinghies[idx] = 1.0f;
+    D_80109FA8_dizzy_dinghies[idx] = scale * 10.0f;
+    rnd = (rand8() - 128) / 4;
+    D_80109F60_dizzy_dinghies[idx].x = sindf(heading + 180.0f) * 150.0f + obj->trans.x + sindf(heading + 90.0f) + rnd;
+    D_80109F60_dizzy_dinghies[idx].y = obj->trans.y;
+    D_80109F60_dizzy_dinghies[idx].z = cosdf(heading + 180.0f) * 150.0f + obj->trans.z + sindf(heading + 90.0f) + rnd;
+    rnd = (rand8() - 128) / 4;
+    a = heading + 180.0f + rnd;
+    D_80109FC0_dizzy_dinghies[idx].x = sindf(a);
+    D_80109FC0_dizzy_dinghies[idx].z = cosdf(a);
+    if (D_8010A020_dizzy_dinghies == 2) {
+        for (i = 0; i < 6; i++) {
+            if (D_80109FA8_dizzy_dinghies[i] > 0.0f) {
+                ox = sindf(heading + 90.0f) * 60.0f;
+                oz = cosdf(heading + 90.0f) * 60.0f;
+                ox2 = sindf(heading + 90.0f) * -60.0f;
+                oz2 = cosdf(heading + 90.0f) * -60.0f;
+                D_80109F60_dizzy_dinghies[i].x += D_80109FC0_dizzy_dinghies[i].x * D_80109FA8_dizzy_dinghies[i] * scale;
+                D_80109F60_dizzy_dinghies[i].y -= 20.0f;
+                D_80109F60_dizzy_dinghies[i].z += D_80109FC0_dizzy_dinghies[i].z * D_80109FA8_dizzy_dinghies[i] * scale;
+                s = scale * (D_8010A008_dizzy_dinghies[i] *= 1.3f);
+                Hu3DModelPosSet(obj->model[i + 1], ox + D_80109F60_dizzy_dinghies[i].x, D_80109F60_dizzy_dinghies[i].y, oz + D_80109F60_dizzy_dinghies[i].z);
+                Hu3DModelScaleSet(obj->model[i + 1], s, s, s);
+                func_8001C258_main(obj->model[i + 1], 4, 0);
+                Hu3DModelPosSet(obj->model[i + 7], ox2 + D_80109F60_dizzy_dinghies[i].x, D_80109F60_dizzy_dinghies[i].y, oz2 + D_80109F60_dizzy_dinghies[i].z);
+                Hu3DModelScaleSet(obj->model[i + 7], s, s, s);
+                func_8001C258_main(obj->model[i + 7], 4, 0);
+            } else {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+                func_8001C258_main(obj->model[i + 7], 4, 4);
+            }
+        }
+    } else {
+        for (i = 0; i < 6; i++) {
+            if (D_80109FA8_dizzy_dinghies[i] > 0.0f) {
+                D_80109F60_dizzy_dinghies[i].x += D_80109FC0_dizzy_dinghies[i].x * D_80109FA8_dizzy_dinghies[i] * scale;
+                D_80109F60_dizzy_dinghies[i].y -= 20.0f;
+                D_80109F60_dizzy_dinghies[i].z += D_80109FC0_dizzy_dinghies[i].z * D_80109FA8_dizzy_dinghies[i] * scale;
+                Hu3DModelPosSet(obj->model[i + 1], D_80109F60_dizzy_dinghies[i].x, D_80109F60_dizzy_dinghies[i].y, D_80109F60_dizzy_dinghies[i].z);
+                s = scale * (D_8010A008_dizzy_dinghies[i] *= 1.3f);
+                Hu3DModelScaleSet(obj->model[i + 1], s, s, s);
+                func_8001C258_main(obj->model[i + 1], 4, 0);
+            } else {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+        }
+    }
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107E04_dizzy_dinghies);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108488_dizzy_dinghies);
 
