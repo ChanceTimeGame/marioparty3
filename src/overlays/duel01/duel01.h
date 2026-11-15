@@ -67,7 +67,7 @@ void func_80105CC0_duel01(void); //probably takes object as arg
 void func_800FC8C4_name_81(void*);
 extern Vec D_80105540_name_81; // duel b1: was s32
 Process* func_800EC1E4_name_81(Vec*, Vec*, Vec*, f32); // duel b1: was (void*, s32, void*, f32)
-Process* func_800EBF2C_name_81(); // duel b1: (Vec* from, Vec* to, Vec* out, s32 frames); unprototyped because func_801062C0_duel01 passes no frames (retail)
+Process* func_800EBF2C_name_81(Vec* from, Vec* to, Vec* out, s32 frames); // duel b1/b7: ovl_81 DFD60.c
 void func_80106308_duel01(void);
 void func_8001C258_main(s16, s32, s32);
 void func_8001C448_main(s16);
