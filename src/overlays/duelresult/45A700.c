@@ -110,12 +110,182 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010ACC4_duelres
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010BDA4_duelresult);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C13C_duelresult);
+/* Starts a particle at pos with velocity vel and colour (r, g, b) in the first free slot of model's
+   effect; returns the slot (one past the last if none is free). */
+DrFxPart* func_8010C13C_duelresult(s16 model, f32 x, f32 y, f32 z, f32 vx, f32 vy, f32 vz, u8 r, u8 g, u8 b) {
+    DrFxPart* part;
+    s16 i;
+    s16 count;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C21C_duelresult);
+    count = DR_FXDATA(model)->count;
+    part = DR_FXWORK(model)->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (part->scale <= 0.0f) {
+            part->pos.x = x;
+            part->pos.y = y;
+            part->pos.z = z;
+            part->vel.x = vx;
+            part->vel.y = vy;
+            part->vel.z = vz;
+            part->color[0] = r;
+            part->color[1] = g;
+            part->color[2] = b;
+            part->scale = 2.0f;
+            break;
+        }
+    }
+    return part;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C72C_duelresult);
+/* Effect hook of the burst: the particles fly out to the shape (vel), twinkle, then fall. */
+void func_8010C21C_duelresult(s16 model) {
+    DrFxData* data;
+    DrFxWork* fx;
+    DrFxPart* part;
+    DrFxPart* src;
+    DrFxPart* dst;
+    s16 count;
+    s16 i;
+    s16 j;
+    s16 n;
+    f32 t;
+    u8 r;
+    u8 g;
+    u8 b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C880_duelresult);
+    data = DR_FXDATA(model);
+    fx = DR_FXWORK(model);
+    count = data->count;
+    if (fx->frame == 0) {
+        fx->flags &= ~4;
+        part = fx->parts;
+        for (i = 0; i < count; i++, part++) {
+            if (part->vel.z > 0.0f) {
+                part->scale = 1.0f;
+            }
+        }
+    }
+    part = fx->parts;
+    r = rand8() | 0x80;
+    g = rand8() | 0x80;
+    b = rand8() | 0x80;
+    if (fx->frame <= fx->dist) {
+        if (fx->frame > 20) {
+            for (j = 0; j < 2; j++) {
+                src = &fx->parts[(rand8() * count) >> 8];
+                if (src->vel.z > 0.0f) {
+                    dst = &fx->parts[(rand8() * count) >> 8];
+                    if (dst->vel.z <= 0.0f) {
+                        dst->pos.x = src->pos.x;
+                        dst->pos.y = src->pos.y;
+                        dst->pos.z = src->pos.z;
+                        dst->scale = 1.0f;
+                    }
+                }
+            }
+        }
+        for (i = 0; i < count; i++, part++) {
+            if (part->scale > 0.0f) {
+                part->color[0] = r;
+                part->color[1] = g;
+                part->color[2] = b;
+                if (part->vel.z > 0.0f) {
+                    t = fx->frame * part->speed;
+                    if (t > 90.0f) {
+                        t = 90.0f;
+                    }
+                    part->pos.x = sindf(t) * part->vel.x;
+                    part->pos.y = sindf(t) * part->vel.y;
+                    part->pos.z = 0.0f;
+                    part->scale = ((fx->frame + i) & 1) * 0.5f + 1.0f;
+                } else {
+                    part->pos.y -= 10.0f;
+                    part->scale -= 0.04f;
+                }
+            } else {
+                part->scale = 0.0f;
+            }
+        }
+    } else {
+        for (i = 0, n = 0; i < count; i++, part++) {
+            if (part->scale > 0.0f) {
+                part->color[0] = r;
+                part->color[1] = g;
+                part->color[2] = b;
+                if (part->vel.z > 0.0f) {
+                    if (part->dir.x <= 0.0f) {
+                        part->pos.y -= part->speed * 5.0f;
+                        part->scale -= 0.02f;
+                        if (part->scale < 0.0f) {
+                            part->scale = 0.0f;
+                        }
+                    } else {
+                        part->dir.x -= 1.0f;
+                        part->scale = ((fx->frame + i) & 1) * 0.5f + 1.0f;
+                    }
+                } else {
+                    part->pos.y -= 10.0f;
+                    part->scale -= 0.04f;
+                }
+            } else {
+                part->scale = 0.0f;
+                n++;
+            }
+        }
+        if (n >= i) {
+            fx->flags |= 2;
+            return;
+        }
+    }
+    fx->frame++;
+}
+
+/* Effect hook of the rising rocket: the trail particles move, sink and fade. */
+void func_8010C72C_duelresult(s16 model) {
+    DrFxData* data;
+    DrFxWork* fx;
+    DrFxPart* part;
+    s16 count;
+    s16 i;
+
+    data = DR_FXDATA(model);
+    fx = DR_FXWORK(model);
+    count = data->count;
+    if (fx->frame == 0) {
+        fx->flags &= ~4;
+        part = fx->parts;
+        for (i = 0; i < count; i++, part++) {
+            part->scale = part->pos.x = part->pos.y = part->pos.z = 0.0f;
+        }
+        fx->frame++;
+    }
+    part = fx->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (part->scale > 0.0f) {
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y;
+            part->pos.z += part->vel.z;
+            part->pos.y -= 5.0f;
+            part->scale -= 0.05f;
+        } else {
+            part->scale = 0.0f;
+        }
+    }
+}
+
+void func_8010C8E0_duelresult(void);
+
+DuelResultWork* func_8010C880_duelresult(void) {
+    Process* process;
+    DuelResultWork* work;
+
+    process = omAddPrcObj(func_8010C8E0_duelresult, 0x3F00, 0x2000, 0);
+    work = HuMemAllocTag(sizeof(DuelResultWork), 0x7918);
+    process->user_data = work;
+    work->unk_18.x = 0.0f;
+    work->unk_18.y = 100.0f;
+    work->unk_18.z = 0.0f;
+    return work;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C8E0_duelresult);
