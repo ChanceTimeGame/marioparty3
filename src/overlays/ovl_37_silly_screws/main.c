@@ -598,7 +598,7 @@ void m255_InitCamera(FuncContext *ctx) {
 // TODO: only works with -Wa,--vr4300mul-off.
 #ifdef NON_MATCHING
 void m255_ExecCameraIntro(FuncContext *ctx) {
-    s16 camId = ctx->unk06;
+    s16 camId = ctx->param;
     f32 temp_f22;
 
     switch (ctx->state) {
@@ -633,7 +633,7 @@ void m255_ExecCameraIntro(FuncContext *ctx) {
                 CRotM[camId].y = 77.0f;
                 m255_ResetFunc(FGRP_CAMERA, ctx);
                 m255_minigame->unk04 = 1;
-                m255_SetFunc(FGRP_CAMERA, 0, camId, &m255_minigame->unk00[camId], m255_FollowPlayerWithCamera, FALSE, FALSE);
+                m255_SetFunc(FGRP_CAMERA, 0, camId, m255_minigame->worlds, m255_FollowPlayerWithCamera, FALSE, FALSE);
             }
             break;
     }
