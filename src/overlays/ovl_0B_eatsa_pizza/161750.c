@@ -76,7 +76,7 @@ void func_8010679C_eatsa_pizza(omObjData* obj);
 u16 func_801070E8_eatsa_pizza(omObjData* obj);
 void func_801078C4_eatsa_pizza(omObjData* obj);
 void func_80107A64_eatsa_pizza(omObjData* obj);
-u16 func_80107E6C_eatsa_pizza(omObjData* obj);
+s16 func_80107E6C_eatsa_pizza(omObjData* obj);
 void func_801083A8_eatsa_pizza(omObjData* obj, MgWork** work, EpPlayer** ep);
 void func_801083BC_eatsa_pizza(void);
 void func_80108470_eatsa_pizza(omObjData* obj);
@@ -98,7 +98,9 @@ extern s16 D_80109278_eatsa_pizza; /* pizza texture */
 extern s16 D_8010927A_eatsa_pizza[2]; /* per team: its pizza's remaining-slice texture */
 extern s16 D_8010927E_eatsa_pizza[2]; /* per team: its pizza's mask texture */
 extern s16 D_80109282_eatsa_pizza; /* bite shape texture */
-extern s16 D_80109284_eatsa_pizza; /* bite mark texture */
+extern s16 D_80109284_eatsa_pizza;
+extern s16 D_801092B8_eatsa_pizza[2]; /* per team: slice pixels left */
+extern s16 D_801092C0_eatsa_pizza[2][5][7]; /* per team: slice pixels left per 32x32 cell [x][y] */ /* bite mark texture */
 extern s16 D_80109288_eatsa_pizza[]; /* [0]: pizza sprite group */
 extern s16 D_8010928E_eatsa_pizza; /* bite mark sprite group */
 extern s16 D_80109298_eatsa_pizza[16]; /* bite mark members in use */
@@ -656,7 +658,131 @@ void func_80107A64_eatsa_pizza(omObjData* obj) {
     }
 }
 
+/* A bite: subtract the bite shape (D_80109282, 32x32, 4 bits per pixel) from the team's pizza mask in
+   front of the player; every 2x2 block eaten down to nothing clears its slice pixels and counts them off.
+   Returns 0 when nothing was eaten, else 2, or 3 when the bite hit a thick part (it also rumbles). */
+#ifdef NON_MATCHING
+/* 356 of 361 instructions, masked 89: register allocation and a 16-byte smaller frame (retail keeps more of
+   the loop state on the stack); logic checked block by block against the asm */
+s16 func_80107E6C_eatsa_pizza(omObjData* obj) {
+    MgWork* work;
+    EpPlayer* ep;
+    u16* slice;
+    u8* mask;
+    u8* shape;
+    u16 color;
+    s32 cx;
+    s32 cy;
+    s16 x0;
+    s16 x1;
+    s16 y0;
+    s16 y1;
+    s32 x;
+    s32 y;
+    s32 r;
+    s32 c;
+    s32 i;
+    s32 j;
+    u32 b;
+    u32 s;
+    u32 n;
+    u8 cnt;
+    s16 ret;
+
+    ret = 0;
+    func_801083A8_eatsa_pizza(obj, &work, &ep);
+    slice = func_801090B4_eatsa_pizza(D_8010927A_eatsa_pizza[ep->side], 0);
+    mask = func_801090B4_eatsa_pizza(D_8010927E_eatsa_pizza[ep->side], 0);
+    shape = func_801090B4_eatsa_pizza(D_80109282_eatsa_pizza, 0);
+    if (ep->side != 0) {
+        cx = ep->x - sindf(work->unk3C) * 2.0;
+    } else {
+        cx = ep->x + 160.0 - sindf(work->unk3C) * 2.0;
+    }
+    cy = ep->y + 120.0 - cosdf(work->unk3C) * 2.0;
+    y0 = cy - 16;
+    if (y0 < 0) {
+        y0 = 0;
+    }
+    y1 = cy + 16;
+    if (y1 > 240) {
+        y1 = 240;
+    }
+    x0 = cx - 16;
+    if (x0 < 0) {
+        x0 = 0;
+    }
+    x1 = cx + 16;
+    if (x1 > 320) {
+        x1 = 320;
+    }
+    if (x0 & 1) {
+        x0++;
+    }
+    for (y = y0, r = 0; y < y1; y++, r++) {
+        for (x = x0, c = 0; x < x1; x++, c++) {
+            i = (y * 160 + x) >> 1;
+            if (y & 1) {
+                j = ((y - 1) * 160 + x) >> 1;
+            } else {
+                j = ((y + 1) * 160 + x) >> 1;
+            }
+            if (slice[i * 2 + (x & 1)] & 1) {
+                b = mask[i];
+                if (c & 1) {
+                    s = shape[((r << 5) + c) >> 1];
+                    if ((b & 0xF) != 0 && (n = s & 0xF) != 0 && !(s & 8)) {
+                        if ((b & 0xF) >= 4) {
+                            omVibrate(work->unk59, 5, 0, 5);
+                            ret |= 0x8000;
+                        }
+                        b -= n;
+                    }
+                } else {
+                    s = shape[((r << 5) + c) >> 1];
+                    if ((b & 0xF0) != 0 && (n = s & 0xF0) != 0 && !(s & 0x80)) {
+                        if ((b & 0xF0) >= 0x40) {
+                            omVibrate(work->unk59, 5, 0, 5);
+                            ret |= 0x8000;
+                        }
+                        b -= n;
+                    }
+                }
+                mask[i] = b;
+                if (mask[i] == 0 && mask[j] == 0) {
+                    ret++;
+                    cnt = 0;
+                    if (slice[i * 2] & 1) {
+                        cnt = 1;
+                    }
+                    if (slice[i * 2 + 1] & 1) {
+                        cnt++;
+                    }
+                    if (slice[j * 2] & 1) {
+                        cnt++;
+                    }
+                    if (slice[j * 2 + 1] & 1) {
+                        cnt++;
+                    }
+                    color = slice[i * 2] &= ~1;
+                    slice[i * 2 + 1] &= ~1;
+                    slice[j * 2] &= ~1;
+                    slice[j * 2 + 1] &= ~1;
+                    D_801092B8_eatsa_pizza[ep->side] -= cnt;
+                    D_801092C0_eatsa_pizza[ep->side][x >> 5][(y - 8) >> 5] -= cnt;
+                }
+            }
+        }
+    }
+    if (ret != 0) {
+        func_80108E48_eatsa_pizza(color, ep);
+        ret = (ret & 0x8000) ? 3 : 2;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80107E6C_eatsa_pizza);
+#endif
 
 void func_801083A8_eatsa_pizza(omObjData* obj, MgWork** work, EpPlayer** ep) {
     MgWork* w = obj->data;
