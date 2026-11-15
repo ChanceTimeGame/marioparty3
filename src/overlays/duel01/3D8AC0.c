@@ -639,7 +639,83 @@ void func_80112BB4_duel01(void) {
     func_800EDDBC_name_81();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112DA0_duel01);
+// duel b4: spin the partner's model about Y by ang * 10 degrees (the model matrix is rebuilt as a pure Y rotation)
+#define B4_PARTNER_SPIN(obj, vel, ang)                                                                         \
+    {                                                                                                          \
+        HmfModel *mdl;                                                                                         \
+        (obj)->velocity.x = (vel);                                                                             \
+        sincosdf((ang) * 10.0f, &HmfModelData[(obj)->omObj1->model[0]].mtx[8],                                 \
+                 &HmfModelData[(obj)->omObj1->model[0]].mtx[10]);                                              \
+        HmfModelData[(obj)->omObj1->model[0]].mtx[2] = -HmfModelData[(obj)->omObj1->model[0]].mtx[8];         \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[0] = mdl->mtx[10];                                                                            \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[1] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[6] = mdl->mtx[7] = mdl->mtx[9] = mdl->mtx[11] =     \
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                                                 \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[5] = mdl->mtx[15] = 1.0f;                                                                     \
+    }
+
+// duel b4: partner swap space: both partners spin, swap front and back, and spin back
+void func_80112DA0_duel01(void) {
+    GW_PLAYER *player;
+    Object *obj;
+    void *win;
+    f32 angle;
+    s32 cur;
+
+    player = MBDGetPlayerStruct(-1);
+    cur = MBDGetCurrentPlayerIndex();
+    func_800DD41C_name_81(&player->player_obj->coords);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuAudFXPlay(0x1F6);
+    func_800EE74C_name_81(1);
+    HuAudFXPlay(0x1FD);
+    func_800DD554_name_81();
+    win = func_800FFC2C_name_81(-1, 1, 5);
+    for (angle = 0.0f; angle < 120.0f; angle += 5.0f) {
+        if (player->stats.prize.gamblePrize != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 0);
+            B4_PARTNER_SPIN(obj, angle, angle);
+        }
+        if (player->stats.prize.duelNo != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 1);
+            B4_PARTNER_SPIN(obj, angle, angle);
+        }
+        HuPrcVSleep();
+    }
+    Duel_SwapPartnerPositions(cur);
+    func_800DD564_name_81();
+    for (angle = 120.0f; angle > 0.0f; angle -= 5.0f) {
+        if (player->stats.prize.gamblePrize != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 0);
+            B4_PARTNER_SPIN(obj, angle, angle);
+        }
+        if (player->stats.prize.duelNo != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 1);
+            B4_PARTNER_SPIN(obj, angle, angle);
+        }
+        HuPrcVSleep();
+    }
+    func_800FFCCC_name_81(win);
+    /* angle is 0 here: the loop steps from 120 by 5 */
+    if (player->stats.prize.gamblePrize != -1) {
+        obj = MBDGetPlayerPartnerRef(cur, 0);
+        B4_PARTNER_SPIN(obj, 0.0f, angle);
+    }
+    if (player->stats.prize.duelNo != -1) {
+        obj = MBDGetPlayerPartnerRef(cur, 1);
+        B4_PARTNER_SPIN(obj, 0.0f, angle);
+    }
+    func_800DD570_name_81();
+    HuAudFXPlay(0x159);
+    func_800EB140_name_81(0x16, 0x1F2C);
+    func_800EDF78_name_81();
+    func_800EE468_name_81(1);
+    func_800EDDBC_name_81();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801135D8_duel01);
 

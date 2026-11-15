@@ -146,3 +146,10 @@ Object *MBDGetPlayerPartnerRef(s32, s32);
 Process *func_800E4A74_name_81(s32);
 Process *func_800EE40C_name_81(s32);
 void func_8001C814_main(s16, s16, s16);
+// duel b4 (3)
+void Duel_SwapPartnerPositions(s32);
+void func_800DD41C_name_81(Vec *);
+void func_800DD554_name_81(void);
+void func_800DD564_name_81(void);
+void func_800DD570_name_81(void);
+void func_800EB140_name_81(s32, s32);
