@@ -12,17 +12,14 @@ D_8011564C_vine_with_me = 0x8011564C;
 D_8011565C_vine_with_me = 0x8011565C;
 D_8011565E_vine_with_me = 0x8011565E;
 D_80115660_vine_with_me = 0x80115660;
-
 m254_minigame = 0x801137C4;
 m254_playerId = 0x801137D4;
 m254_sprites = 0x801137E0;
 m254_animModels = 0x801137E4;
 m254_funcGroups = 0x801137E8;
-
 func_80107CC4_silly_screws = 0x80107CC4;
 D_8010BF80_silly_screws = 0x8010BF80;
 D_8010BF84_silly_screws = 0x8010BF84;
-
 /* minigame .data in C (A96F0.c): labels inside its arrays */
 D_800EB786_minigame = D_800EB784_minigame + 0x2;
 D_800EB788_minigame = D_800EB784_minigame + 0x4;
@@ -44,7 +41,6 @@ D_8010F2D0_modesel = D_8010F2CC_modesel + 0x4;
 D_8010F2D4_modesel = D_8010F2CC_modesel + 0x8;
 D_80113A4C_option = 0x80113A4C; /* "%d" of func_80107F50_option, also used by asm functions */
 D_80113A50_option = 0x80113A50; /* "%2d" */
-
 /* option .data inner labels (fork D) */
 D_80113770_option = D_8011376C_option + 0x4;
 D_80113774_option = D_8011376C_option + 0x8;
@@ -70,7 +66,6 @@ D_80113990_option = D_80113970_option + 0x20;
 D_80113994_option = D_80113970_option + 0x24;
 D_80113998_option = D_80113970_option + 0x28;
 D_8011399C_option = D_80113970_option + 0x2C;
-
 /* option .data: inner labels of fork B's arrays (merge of B and D) */
 D_80113778_option = D_8011376C_option + 0xC;
 D_80113784_option = D_8011376C_option + 0x18;
@@ -99,7 +94,6 @@ D_8011E690_ChillyWaters = D_8011E68C_ChillyWaters + 0x4;
 /* inst: inner labels of rodata/data now defined in C */
 D_8010D910_inst = D_8010D90C_inst + 0x4;
 D_8010D5BA_inst = D_8010D5B8_inst + 0x2; /* func_8010BE78_inst (NON_MATCHING asm) reads the low half */
-
 /* inst 4E5AA0: the GAMEMES inside D_8010DCD4_inst's bss space */
 D_8010DCD8_inst = D_8010DCD4_inst + 0x4;
 /* ice rink A: inner labels of ovl_19 .data now defined in C (NON_MATCHING asm) */
@@ -113,3 +107,4 @@ D_80109766_boulder_ball = D_80109760_boulder_ball + 0x6;
 D_80109778_boulder_ball = D_80109760_boulder_ball + 0x18;
 D_801097AA_bobbing_bow_loons = D_801097A8_bobbing_bow_loons + 0x2;
 D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
+D_80109C36_hey_batter_batter = D_80109C34_hey_batter_batter + 0x2;
