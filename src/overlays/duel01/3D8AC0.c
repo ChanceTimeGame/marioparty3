@@ -261,6 +261,7 @@ typedef struct Duel01Weight {
 
 extern s8 D_80118760_duel01[]; /* value, chance pairs as Duel01Weight (splat label D_80118761 is [1]) */
 extern Duel01Weight *D_8011885C_duel01[]; /* per character */
+extern s32 D_8011889C_duel01;
 
 void func_8010DC04_duel01(void) {
     s16 model = D_80119490_duel01->omObj1->model[0];
@@ -665,7 +666,50 @@ s32 func_8010EDA0_duel01(void) {
     return result;
 }
 
+// float constants: retail keeps 64.0f and 3.0f out of registers (loop hoisting), frame 8 bytes larger (masked 24)
+#ifdef NON_MATCHING
+void func_8010EFBC_duel01(void) {
+    s32 *data;
+    f32 angle1;
+    f32 angle2;
+    s32 win;
+    s16 r;
+    s16 g;
+    s16 b;
+
+    r = 0x43;
+    data = HuPrcCurrentGet()->user_data;
+    angle2 = 0.0f;
+    angle1 = 90.0f;
+    win = data[0];
+    /* The window id's low half (big-endian s16 at +2). */
+    func_8005FBF8_main(((s16 *)data)[1], 0x43, 0x80, 1);
+    while (TRUE) {
+        if (D_8011889C_duel01 != 0) {
+            g = sindf(angle1) * 128.0f;
+            if (g < 0) {
+                g = -g;
+            }
+            angle1 += 6.0f;
+            if (angle1 > 360.0f) {
+                angle1 -= 360.0f;
+            }
+            b = sindf(angle2) * 64.0f;
+            if (b < 0) {
+                b = -b;
+            }
+            angle2 += 3.0f;
+            if (angle2 > 360.0f) {
+                angle2 -= 360.0f;
+            }
+            func_8005FBF8_main(win, (u8)r, (u8)g, (u8)b);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EFBC_duel01);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010F12C_duel01);
 
