@@ -47,18 +47,6 @@ const DuelTelopSprIds D_80102478_name_81 = { { 0, 0, 1, 2, 3, 3, 3, 3, 3, 4 } };
 
 const DuelTelopChrFiles D_80102484_name_81 = { { 0xEE, 0xEF, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5 } };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102494_name_81);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_801024A0_name_81);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_801024D0_name_81);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102500_name_81);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102520_name_81);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/CA640", D_80102540_name_81);
-
 void func_800E2870_name_81(void) {
     D_80102CA4_name_81 = -1;
     D_80102CA6_name_81 = 0;
@@ -424,19 +412,387 @@ Process* func_800E39AC_name_81(s32 playerNo) {
     return proc;
 }
 
+
+
+
+
+
+
+
+typedef struct DuelLetterData {
+    s32 idx;
+    char unk_04[0xC];
+} DuelLetterData; // sizeof 0x10
+
+typedef struct DuelLetterSprIds {
+    u8 unk_00[11];
+} DuelLetterSprIds;
+
+typedef struct DuelVsOffsets {
+    s32 unk_00[4][3];
+} DuelVsOffsets;
+
+typedef struct DuelVsPos {
+    f32 unk_00[4][2];
+} DuelVsPos;
+
+typedef struct DuelVsData {
+    /* 0x00 */ s32 playerNo;
+    /* 0x04 */ s32 fileOfs;
+    /* 0x08 */ Vec* from;
+    /* 0x0C */ Vec* to;
+    /* 0x10 */ s32 kind;
+    /* 0x14 */ char unk_14[0xC];
+} DuelVsData; // sizeof 0x20
+
+typedef struct DuelVsBannerData {
+    s32 side;
+    char unk_04[0xC];
+} DuelVsBannerData; // sizeof 0x10
+
+extern s16 D_80100FD4_name_81[]; /* x of each letter */
+extern UnkBoard4* D_80102CCC_name_81;
+extern UnkBoard4* D_80102CD0_name_81;
+
+f32 func_800D76D0_name_81(Vec*);
+void func_800EB708_name_81(Vec* from, Vec* to, Vec* out);
+void func_800E3A0C_name_81(void);
+
+const DuelLetterSprIds D_80102494_name_81 = { { 0, 1, 2, 2, 3, 4, 5, 2, 1, 6, 2 } };
+
+const DuelVsOffsets D_801024A0_name_81 = { { { 0, 0, -24 }, { 0, 0, 0 }, { 0, 0, 24 }, { 0, 0, 0 } } };
+
+const DuelVsOffsets D_801024D0_name_81 = { { { 0, 0, 45 }, { 0, 0, 37 }, { 0, 0, 45 }, { 0, 0, 37 } } };
+
+const DuelVsPos D_80102500_name_81 = { { { 80.0f, -220.0f }, { -200.0f, 60.0f }, { 240.0f, 440.0f }, { 520.0f, 60.0f } } };
+
+const DuelVsPos D_80102520_name_81 = { { { 130.0f, -220.0f }, { -200.0f, 110.0f }, { 190.0f, 440.0f }, { 520.0f, 110.0f } } };
+
+const DuelVsPos D_80102540_name_81 = { { { 0.0f, 32.0f }, { 32.0f, 0.0f }, { 0.0f, -32.0f }, { -32.0f, 0.0f } } };
+
+#ifdef NON_MATCHING
+/* masked 2: retail loads data->idx after D_80102CCC (scheduling) and has 8 more bytes of frame; logic checked */
+void func_800E3A0C_name_81(void) {
+    DuelLetterData* data;
+    s32 idx;
+    s16 member;
+    s32 y;
+    f32 scale;
+
+    y = 0;
+    data = HuPrcCurrentGet()->user_data;
+    idx = data->idx;
+    HuSprAttrReset(D_80102CCC_name_81->unk_0A, member = data->idx, 0x8000);
+    HuSprAttrReset(D_80102CD0_name_81->unk_0A, member, 0x8000);
+    do {
+        HuSprScaleSet(D_80102CCC_name_81->unk_0A, idx, scale = (f32)(0x78 - y) / 20.0f + 1.0f, scale);
+        HuSprScaleSet(D_80102CD0_name_81->unk_0A, idx, scale, scale);
+        func_80054904_main(D_80102CCC_name_81->unk_0A, idx, D_80100FD4_name_81[idx], y);
+        func_80054904_main(D_80102CD0_name_81->unk_0A, idx, D_80100FD4_name_81[idx], y);
+        func_80055458_main(D_80102CCC_name_81->unk_0A, idx, y * 2);
+        func_80055458_main(D_80102CD0_name_81->unk_0A, idx, y * 2);
+        y += 0x17;
+        HuPrcVSleep();
+    } while (y < 0x5D);
+    HuSprScaleSet(D_80102CCC_name_81->unk_0A, idx, 1.0f, 1.0f);
+    HuSprScaleSet(D_80102CD0_name_81->unk_0A, idx, 1.0f, 1.0f);
+    func_80054904_main(D_80102CCC_name_81->unk_0A, idx, D_80100FD4_name_81[idx], 0x5C);
+    func_80054904_main(D_80102CD0_name_81->unk_0A, idx, D_80100FD4_name_81[idx], 0x5C);
+    func_80055458_main(D_80102CCC_name_81->unk_0A, idx, 0x100);
+    func_80055458_main(D_80102CD0_name_81->unk_0A, idx, 0x100);
+    omDelPrcObj(NULL);
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E3A0C_name_81);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E3C6C_name_81);
+void func_800E3C6C_name_81(void) {
+    DuelLetterSprIds sprIds = D_80102494_name_81;
+    void* file;
+    UnkBoard4* flash;
+    Process* proc;
+    DuelLetterData* data;
+    s32 i;
+    f32 rot;
+    f32 scale;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E415C_name_81);
+    file = DataRead(0x130121);
+    D_80102CCC_name_81 = func_800F4528_name_81(7, 0);
+    D_80102CCC_name_81->unk_0C[0] = func_80055810_main(file);
+    for (i = 0; i < 7; i++) {
+        func_80055024_main(D_80102CCC_name_81->unk_0A, i, D_80102CCC_name_81->unk_0C[0], sprIds.unk_00[i]);
+        HuSprPriSet(D_80102CCC_name_81->unk_0A, i, 1);
+        HuSprAttrSet(D_80102CCC_name_81->unk_0A, i, 0x1000);
+        func_80054904_main(D_80102CCC_name_81->unk_0A, i, D_80100FD4_name_81[i], 0x5C);
+        HuSprAttrSet(D_80102CCC_name_81->unk_0A, i, 0x8000);
+    }
+    DataClose(file);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4188_name_81);
+    file = DataRead(0x130122);
+    D_80102CD0_name_81 = func_800F4528_name_81(7, 0);
+    D_80102CD0_name_81->unk_0C[0] = func_80055810_main(file);
+    for (i = 0; i < 7; i++) {
+        func_80055024_main(D_80102CD0_name_81->unk_0A, i, D_80102CD0_name_81->unk_0C[0], sprIds.unk_00[i]);
+        HuSprPriSet(D_80102CD0_name_81->unk_0A, i, 2);
+        HuSprAttrSet(D_80102CD0_name_81->unk_0A, i, 0x1000);
+        func_80054904_main(D_80102CD0_name_81->unk_0A, i, D_80100FD4_name_81[i], 0x5C);
+        func_80055420_main(D_80102CD0_name_81->unk_0A, i, 0, 0x15, 0xE9);
+        HuSprAttrSet(D_80102CD0_name_81->unk_0A, i, 0x8000);
+    }
+    DataClose(file);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E47B8_name_81);
+    for (i = 0; i < 7; i++) {
+        HuPrcSleep(3);
+        proc = omAddPrcObj(func_800E3A0C_name_81, 0xA, 0, 0x40);
+        data = HuMemMemoryAlloc(proc->heap, sizeof(DuelLetterData));
+        proc->user_data = data;
+        data->idx = i;
+    }
 
+    HuAudFXPlay(0x1CF);
+    file = DataRead(0x130133);
+    flash = func_800F4528_name_81(1, 0);
+    flash->unk_0C[0] = func_80055810_main(file);
+    func_80055024_main(flash->unk_0A, 0, flash->unk_0C[0], 0);
+    HuSprPriSet(flash->unk_0A, 0, 1);
+    HuSprAttrSet(flash->unk_0A, 0, 0x1000);
+    func_80054904_main(flash->unk_0A, 0, 0xA0, 0x5C);
+    HuSprScaleSet(flash->unk_0A, 0, 0.0f, 0.0f);
+    func_80055420_main(flash->unk_0A, 0, 0xFF, 0xFF, 0);
+    func_80055458_main(flash->unk_0A, 0, 0xC8);
+    DataClose(file);
+
+    rot = 0.0f;
+    for (scale = 1.0f; scale <= 4.0f; scale += 1.0f) {
+        HuSprScaleSet(flash->unk_0A, 0, scale, scale);
+        func_800552DC_main(flash->unk_0A, 0, rot);
+        rot += 75.0f;
+        HuPrcVSleep();
+    }
+    for (; scale >= 0.0f; scale -= 1.0f) {
+        HuSprScaleSet(flash->unk_0A, 0, scale, scale);
+        func_800552DC_main(flash->unk_0A, 0, rot);
+        rot += 75.0f;
+        HuPrcVSleep();
+    }
+    HuSprAttrSet(flash->unk_0A, 0, 0x8000);
+    HuPrcSleep(15);
+    func_800F4584_name_81(D_80102CCC_name_81);
+    func_800F4584_name_81(D_80102CD0_name_81);
+    func_800F4584_name_81(flash);
+    omDelPrcObj(NULL);
+}
+
+Process* func_800E415C_name_81(void) {
+    return omAddPrcObj(func_800E3C6C_name_81, 0, 0, 0);
+}
+
+void func_800E4188_name_81(void) {
+    Vec dir;
+    s32 files[2];
+    DuelVsOffsets xOfs;
+    DuelVsOffsets yOfs;
+    DuelVsPos posA;
+    DuelVsPos posB;
+    DuelVsPos vel;
+    DuelVsData* data;
+    UnkBoard4* spr;
+    void* file;
+    Vec* from;
+    Vec* to;
+    s32 playerNo;
+    s32 fileOfs;
+    s32 kind;
+    s32 side;
+    s32 i;
+    f32 angle;
+
+    data = HuPrcCurrentGet()->user_data;
+    playerNo = data->playerNo;
+    fileOfs = data->fileOfs;
+    from = data->from;
+    to = data->to;
+    kind = data->kind;
+    files[0] = 0x130124;
+    files[1] = 0x130125;
+    xOfs = D_801024A0_name_81;
+    yOfs = D_801024D0_name_81;
+    posA = D_80102500_name_81;
+    posB = D_80102520_name_81;
+    vel = D_80102540_name_81;
+    func_800EB708_name_81(from, to, &dir);
+    angle = func_800D76D0_name_81(&dir) + 45.0f;
+    if (angle >= 360.0f) {
+        angle -= 360.0f;
+    }
+    side = angle / 90.0f;
+    if (side >= 4) {
+        side = 3;
+    }
+    spr = func_800F4528_name_81(3, 2);
+    for (i = 0; i < 3; i++) {
+        if ((kind == 1 || kind == 2) && i == 2) {
+            continue;
+        }
+        if (kind == 3 && i != 2) {
+            continue;
+        }
+        switch (i) {
+        case 0:
+            file = DataRead(files[playerNo]);
+            break;
+        case 1:
+            file = DataRead(fileOfs + 0x130126);
+            break;
+        default:
+            file = DataRead(0x130123);
+            break;
+        }
+        spr->unk_0C[i] = func_80055810_main(file);
+        func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 0);
+        HuSprPriSet(spr->unk_0A, i, 1);
+        HuSprAttrSet(spr->unk_0A, i, 0);
+        if (kind == 3) {
+            func_80054904_main(spr->unk_0A, i, xOfs.unk_00[side][i], yOfs.unk_00[side][i]);
+        } else {
+            func_80054904_main(spr->unk_0A, i, 0, yOfs.unk_00[side][i]);
+        }
+        DataClose(file);
+    }
+    func_800552DC_main(spr->unk_0A, 0, (side - 1) * 90);
+    if (side == 2 || side == 3) {
+        HuSprAttrSet(spr->unk_0A, 1, 1);
+    }
+    if (side == 3) {
+        HuSprAttrSet(spr->unk_0A, 0, 2);
+    }
+    if (!(kind & 1)) {
+        func_80054904_main(spr->unk_0A, 0, posA.unk_00[side][0], posA.unk_00[side][1]);
+        for (i = 0; i < 10; i++) {
+            func_80054904_main(spr->unk_0A, 0, posA.unk_00[side][0] + i * vel.unk_00[side][0],
+                               posA.unk_00[side][1] + i * vel.unk_00[side][1]);
+            HuPrcVSleep();
+        }
+    } else {
+        func_80054904_main(spr->unk_0A, 0, posB.unk_00[side][0], posB.unk_00[side][1]);
+        HuPrcSleep(kind + 2);
+        for (i = 0; i < 10; i++) {
+            func_80054904_main(spr->unk_0A, 0, posB.unk_00[side][0] + i * vel.unk_00[side][0],
+                               posB.unk_00[side][1] + i * vel.unk_00[side][1]);
+            HuPrcVSleep();
+        }
+    }
+    if (!(kind & 1)) {
+        HuPrcSleep(15);
+    } else {
+        HuPrcSleep(12 - kind);
+    }
+    func_800F4584_name_81(spr);
+    omDelPrcObj(NULL);
+}
+
+Process* func_800E47B8_name_81(s32 playerNo, s32 fileOfs, Vec* from, Vec* to, s32 split) {
+    Process* proc;
+    DuelVsData* data;
+    s32 flag;
+
+    proc = omAddPrcObj(func_800E4188_name_81, 0, 0x1000, 0x40);
+    data = HuMemMemoryAlloc(proc->heap, sizeof(DuelVsData));
+    proc->user_data = data;
+    data->playerNo = playerNo;
+    data->fileOfs = fileOfs;
+    data->from = from;
+    data->to = to;
+    data->kind = 0;
+    if (split != 0) {
+        if (playerNo == 0) {
+            flag = GWBoardFlagCheck(0x12);
+        } else {
+            flag = GWBoardFlagCheck(0x13);
+        }
+        if (flag != 0) {
+            data->kind = 2;
+            proc = omAddPrcObj(func_800E4188_name_81, 0, 0x1000, 0x40);
+            data = HuMemMemoryAlloc(proc->heap, sizeof(DuelVsData));
+            proc->user_data = data;
+            data->playerNo = playerNo;
+            data->fileOfs = fileOfs;
+            data->from = from;
+            data->to = to;
+            data->kind = 1;
+            proc = omAddPrcObj(func_800E4188_name_81, 0, 0x1000, 0x40);
+            data = HuMemMemoryAlloc(proc->heap, sizeof(DuelVsData));
+            proc->user_data = data;
+            data->playerNo = playerNo;
+            data->fileOfs = fileOfs;
+            data->from = from;
+            data->to = to;
+            data->kind = 3;
+        }
+    }
+    return proc;
+}
+
+#ifdef NON_MATCHING
+/* masked 0: speed and the loop counter take each other's registers; logic checked */
+void func_800E4914_name_81(void) {
+    s32 files[2];
+    s32 ys[2];
+    UnkBoard4* spr;
+    void* file;
+    s32 side;
+    s32 i;
+    s32 ofs;
+    s32 speed;
+
+    side = ((DuelVsBannerData*)HuPrcCurrentGet()->user_data)->side;
+    files[0] = 0x130101;
+    files[1] = 0x130102;
+    ys[0] = 0x78;
+    ys[1] = 0x5A;
+    spr = func_800F4528_name_81(1, 2);
+    speed = 0;
+    file = DataRead(files[side]);
+    spr->unk_0C[0] = func_80055810_main(file);
+    func_80055024_main(spr->unk_0A, 0, spr->unk_0C[0], 0);
+    HuSprPriSet(spr->unk_0A, 0, 0x2010);
+    HuSprAttrSet(spr->unk_0A, 0, 0);
+    DataClose(file);
+    ofs = 0;
+    i = 0;
+    do {
+        func_80054904_main(spr->unk_0A, 0, 0xA0, ys[side] + ofs);
+        if (side == 0) {
+            ofs -= speed;
+        } else {
+            ofs += speed;
+        }
+        speed += 2;
+        HuPrcVSleep();
+        i++;
+    } while (i < 7);
+    HuPrcSleep(20);
+    func_800F4584_name_81(spr);
+    omDelPrcObj(NULL);
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4914_name_81);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4A74_name_81);
+void func_800E4914_name_81(void);
+
+Process* func_800E4A74_name_81(s32 side) {
+    Process* proc;
+    DuelVsBannerData* data;
+
+    proc = omAddPrcObj(func_800E4914_name_81, 0, 0, 0x40);
+    data = HuMemMemoryAlloc(proc->heap, sizeof(DuelVsBannerData));
+    proc->user_data = data;
+    data->side = side;
+    return proc;
+}
 
 extern Vec D_80102CE0_name_81;
 extern Vec D_80102CEC_name_81;

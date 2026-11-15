@@ -232,7 +232,7 @@ extern s32 D_80105718_name_81;
 extern s32 D_8010571C_name_81;
 
 Process* func_800E415C_name_81(void);
-Process* func_800E47B8_name_81(s32, s8, Vec*, Vec*, s32); // duel n8: first parameter s32 (callee does not extend it)
+Process* func_800E47B8_name_81(s32, s32, Vec*, Vec*, s32);
 void func_800E5954_name_81(void);
 void func_800E5964_name_81(void);
 void MBDBackTPLvlSet(u8);
