@@ -7,6 +7,14 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+/* What func_8001D33C_main returns (a model's motion group or hit transform), as far as used here */
+typedef struct DdPart {
+    /* 0x00 */ char unk00[0x1C];
+    /* 0x1C */ Vec unk1C;
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec unk40;
+} DdPart;
+
 /* omObjData::data of the sea (the framework's ground object, minigame mgcol.h GroundWork) */
 typedef struct DdGround {
     /* 0x00 */ char unk00[3];
@@ -21,6 +29,9 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void func_800142A0_main(s32);
 void Hu3DAnimInit(s32);
 void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
+void* func_8001D33C_main(s16 model, char* name);
+f32 func_800202A8_main(f32 angle);
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 s16 func_8000B13C_main(s32 file);
 void func_8001FB34_main(s16 arg0, u8 arg1);
 void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
@@ -52,6 +63,12 @@ void func_800E1340_minigame(omObjData* obj, f32 arg1);
 void func_800E134C_minigame(omObjData* obj, f32 arg1);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z);
+void func_800E2308_minigame(s16* x, s16* y);
+void func_800EA178_minigame(s16 idx, f32 value);
+
+extern f32 D_800EBE2C_minigame;
+extern f32 D_800EC5D8_minigame;
 void func_800E147C_minigame(omObjData* obj);
 u16 func_800E6E9C_minigame(void);
 
@@ -72,6 +89,8 @@ extern Vec D_80109FC0_dizzy_dinghies[6]; /* splash directions (x, z) */
 extern f32 D_8010A008_dizzy_dinghies[6]; /* splash scales */
 extern s32 D_8010A020_dizzy_dinghies;
 extern Vec D_8010A028_dizzy_dinghies[20]; /* history for the running mean func_80108514 */
+extern s32 D_8010A118_dizzy_dinghies; /* the pad's buttons, taken from the game this frame */
+extern s32 D_8010A11C_dizzy_dinghies; /* the pad's stick x, taken likewise */
 extern u16 D_8010A022_dizzy_dinghies;
 
 // LOCAL
@@ -88,8 +107,11 @@ void func_80106DF4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107738_dizzy_dinghies(omObjData* obj, s32 player);
 void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale);
-s32 func_80108488_dizzy_dinghies(omObjData* obj, s16 v);
-void func_80108514_dizzy_dinghies(omObjData* obj, f32 unused, Vec* out);
+s32 func_80108488_dizzy_dinghies(s32 player, s16 v);
+void func_80108514_dizzy_dinghies(s32 player, f32 speed, Vec* out);
+void func_80108EC4_dizzy_dinghies(omObjData* obj, f32 x, f32 z);
+f32 func_80109238_dizzy_dinghies(omObjData* obj, f32 x, f32 y, f32 z);
+void func_801095D4_dizzy_dinghies(omObjData* obj);
 void func_801085F4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107DE8_dizzy_dinghies(omObjData* obj);
@@ -102,7 +124,10 @@ extern f32 D_80109768_dizzy_dinghies; /* start heading */
 extern f32 D_80109770_dizzy_dinghies;
 extern f32 D_80109774_dizzy_dinghies;
 extern f32 D_80109778_dizzy_dinghies;
-extern Vec D_80109788_dizzy_dinghies;
+extern Vec D_80109788_dizzy_dinghies; /* last move */
+extern Vec D_80109794_dizzy_dinghies; /* position before the move */
+extern Vec D_801097A0_dizzy_dinghies; /* push direction */
+extern f32 D_801097AC_dizzy_dinghies; /* push strength */
 extern f32 D_80109780_dizzy_dinghies;
 extern f32 D_80109784_dizzy_dinghies;
 extern f32 D_801097B0_dizzy_dinghies;
@@ -813,7 +838,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107
 #endif
 
 /* Mean of the last 20 values passed. */
-s32 func_80108488_dizzy_dinghies(omObjData* obj, s16 v) {
+s32 func_80108488_dizzy_dinghies(s32 player, s16 v) {
     s32 sum;
     u8 i;
 
@@ -830,7 +855,7 @@ s32 func_80108488_dizzy_dinghies(omObjData* obj, s16 v) {
 }
 
 /* Mean x and z of the last 20 values of D_80109788. */
-void func_80108514_dizzy_dinghies(omObjData* obj, f32 unused, Vec* out) {
+void func_80108514_dizzy_dinghies(s32 player, f32 speed, Vec* out) {
     s32 i;
 
     out->x = out->y = out->z = 0.0f;
@@ -848,7 +873,179 @@ void func_80108514_dizzy_dinghies(omObjData* obj, f32 unused, Vec* out) {
     out->z /= 20.0f;
 }
 
+#ifdef NON_MATCHING
+/* Differs only in f20/f22 allocation (speed and y). */
+/* The player's dinghy: paddle with A, steer with the stick; the sea and pushes move it. */
+void func_801085F4_dizzy_dinghies(omObjData* obj) {
+    Vec vel;
+    Vec mean;
+    s16 sx;
+    s16 sy;
+    MgWork* work;
+    DdPart* part;
+    s32 mode;
+    s32 player;
+    s32 pad;
+    f32 y;
+    f32 speed;
+    f32 x;
+    f32 z;
+    f32 h;
+    f32 d;
+    f32 mot;
+    s32 ax;
+
+    work = obj->data;
+    D_800EBE2C_minigame = D_800EC5D8_minigame = 0.0f;
+    player = work->unk59;
+    pad = work->unk57;
+    speed = work->unk40;
+    D_80109794_dizzy_dinghies.x = x = obj->trans.x;
+    D_80109794_dizzy_dinghies.y = y = obj->trans.y;
+    D_80109794_dizzy_dinghies.z = z = obj->trans.z;
+    D_8010A118_dizzy_dinghies = (u16)D_800CDA7C_main[pad];
+    D_8010A11C_dizzy_dinghies = D_800CBB6E_main[pad];
+    D_800CBB6E_main[pad] = 0;
+    D_800CDA7C_main[pad] = 0;
+    mode = func_800E6E8C_minigame();
+    if (mode == 2) {
+        sx = (u16)D_8010A11C_dizzy_dinghies;
+        sy = 0;
+        if (sx > 60) {
+            sx = 60;
+        }
+        if (sy > 60) {
+            sy = 60;
+        }
+        if (sx < -60) {
+            sx = -60;
+        }
+        if (sy < -60) {
+            sy = -60;
+        }
+        func_800E2308_minigame(&sx, &sy);
+    } else {
+        sy = 0;
+        sx = 0;
+        D_8010A118_dizzy_dinghies = 0;
+        if (mode == 3) {
+            if (work->unk3C > 180.0f) {
+                work->unk3C += 2.0f;
+                if (work->unk3C > 360.0f) {
+                    work->unk3C = 0.0f;
+                }
+            } else {
+                work->unk3C -= 2.0f;
+                if (work->unk3C < 0.0f) {
+                    work->unk3C = 0.0f;
+                }
+            }
+        }
+    }
+    if (D_8010A118_dizzy_dinghies & 0x8000) {
+        if (speed == 0.0f) {
+            speed = 1.0f;
+        }
+        speed *= 1.08f;
+        D_801097B0_dizzy_dinghies *= D_80109774_dizzy_dinghies;
+    } else {
+        speed *= D_80109778_dizzy_dinghies;
+        D_801097B0_dizzy_dinghies *= 0.9f;
+    }
+    y = func_80108488_dizzy_dinghies(player, sx) / 15.0f;
+    if (speed < 1.0f) {
+        speed = 0.0f;
+    }
+    if (speed > D_80109770_dizzy_dinghies) {
+        speed = D_80109770_dizzy_dinghies;
+    }
+    if (D_801097B0_dizzy_dinghies < 0.05f) {
+        D_801097B0_dizzy_dinghies = 0.05f;
+    }
+    if (D_801097B0_dizzy_dinghies > 1.0f) {
+        D_801097B0_dizzy_dinghies = 1.0f;
+    }
+    if (D_801097E8_dizzy_dinghies != -1) {
+        HuAudFXPitchSet((s16)D_801097E8_dizzy_dinghies, (s16)(D_801097B0_dizzy_dinghies * 400.0f + -400.0f));
+    }
+    work->unk40 = speed;
+    vel.x = sindf(work->unk3C) * (speed * D_801097B0_dizzy_dinghies);
+    vel.y = 0.0f;
+    vel.z = cosdf(work->unk3C) * (speed * D_801097B0_dizzy_dinghies);
+    work->unk3C = func_800202A8_main(work->unk3C - y);
+    func_80108514_dizzy_dinghies(player, speed, &mean);
+    mean.x += vel.x;
+    mean.z += vel.z;
+    d = HuSqrtf(mean.x * mean.x + mean.z * mean.z);
+    if (speed < d) {
+        mean.x = (speed / d) * mean.x;
+        mean.z = (speed / d) * mean.z;
+    }
+    x += D_801097A0_dizzy_dinghies.x * D_801097AC_dizzy_dinghies + mean.x;
+    z += D_801097A0_dizzy_dinghies.z * D_801097AC_dizzy_dinghies + mean.z;
+    h = func_80109238_dizzy_dinghies(obj, x, 0.0f, z);
+    D_80109788_dizzy_dinghies.x = x - D_80109794_dizzy_dinghies.x;
+    D_80109788_dizzy_dinghies.y = 0.0f;
+    D_80109788_dizzy_dinghies.z = z - D_80109794_dizzy_dinghies.z;
+    x += D_800EBE2C_minigame;
+    z += D_800EC5D8_minigame;
+    D_801097D8_dizzy_dinghies -= (obj->trans.x - x) * 32.0f / 1000.0f;
+    D_801097DC_dizzy_dinghies += (obj->trans.z - z) * 32.0f / 1000.0f;
+    func_80108EC4_dizzy_dinghies(obj, x, z);
+    speed = work->unk40;
+    func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, work->unk3C, 0.0f);
+    func_800E17D4_minigame(obj, x, h - 40.0f, z);
+    func_80107E04_dizzy_dinghies(obj, D_801097B0_dizzy_dinghies);
+    if (D_801097AC_dizzy_dinghies != 0.0f) {
+        D_801097AC_dizzy_dinghies *= 0.9f;
+        if (D_801097AC_dizzy_dinghies < 1.0f) {
+            D_801097AC_dizzy_dinghies = 0.0f;
+        }
+    }
+    mot = HmfModelData[obj->model[0]].unk40;
+    ax = sx;
+    if (ax < 0) {
+        ax = -ax;
+    }
+    if (ax < 10) {
+        if (mot > 5.0f) {
+            mot *= 0.9f;
+            if (mot < 5.0f) {
+                mot = 5.0f;
+            }
+        } else {
+            mot *= 1.1f;
+            if (mot > 5.0f) {
+                mot = 5.0f;
+            }
+            if (mot < 1.0f) {
+                mot = 1.0f;
+            }
+        }
+    } else {
+        mot -= sx / 100.0f;
+    }
+    if (mot < 0.0f) {
+        mot = 0.0f;
+    }
+    if (mot > 10.0f) {
+        mot = 10.0f;
+    }
+    func_8001C6A8_main(obj->model[0], mot);
+    func_801095D4_dizzy_dinghies(obj);
+    D_800CDA7C_main[pad] = (u16)D_8010A118_dizzy_dinghies;
+    D_800CBB6E_main[pad] = (u8)D_8010A11C_dizzy_dinghies;
+    part = func_8001D33C_main(obj->model[0], D_80109F50_dizzy_dinghies);
+    if (part != (void*)-1) {
+        part->unk1C.z = part->unk1C.y = part->unk1C.x = D_801097E4_dizzy_dinghies;
+        part->unk40.z = part->unk40.y = part->unk40.x = D_801097E4_dizzy_dinghies;
+    }
+    func_800EA178_minigame(0, speed);
+}
+
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801085F4_dizzy_dinghies);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108E30_dizzy_dinghies);
 
