@@ -22,7 +22,10 @@ typedef struct DuelFxWork {
     /* 0x06 */ char unk06[2];
     /* 0x08 */ f32 rise;
     /* 0x0C */ f32 speed;
-    /* 0x10 */ char unk10[0x48];
+    /* 0x10 */ char unk10[8];
+    /* 0x18 */ void (*unk18)(s16);
+    /* 0x1C */ char unk1C[0xC];
+    /* 0x28 */ Vec verts[4];
     /* 0x58 */ DuelFxPart* parts;
 } DuelFxWork;
 
@@ -36,11 +39,16 @@ typedef struct DuelFxObj {
     /* 0x58 */ char unk58[0x10];
 } DuelFxObj; /* size 0x68 */
 
-/* HmfData as the effects read it. */
+/* HmfData as the effects read it (13F90's HmfFxData; pointer slots kept for the host). */
 typedef struct DuelFxData {
     /* 0x00 */ char unk00[0x1A];
     /* 0x1A */ s16 count; /* face group count */
-    /* 0x1C */ char unk1C[0x44];
+    /* 0x1C */ char unk1C[0x10];
+    /* 0x2C */ void* unk2C[4];
+    /* 0x3C */ void* unk3C;
+    /* 0x40 */ Vtx* unk40;
+    /* 0x44 */ Vtx* unk44[3];
+    /* 0x50 */ void* unk50[4];
     /* 0x60 */ DuelFxObj* objs;
 } DuelFxData;
 
