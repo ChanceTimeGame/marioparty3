@@ -1,9 +1,19 @@
 #include "common.h"
 #include "overlays/minigame.h"
+#include "gcc/memory.h"
+#include "mallocblock.h"
 
 // dinghies A: Dizzy Dinghies (players steer dinghies on a rippling sea)
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
+
+/* omObjData::data of the sea (the framework's ground object, minigame mgcol.h GroundWork) */
+typedef struct DdGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} DdGround; /* size 0xB4 */
 
 // main
 s32 func_8000B638_main(void);
@@ -11,6 +21,9 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void func_800142A0_main(s32);
 void Hu3DAnimInit(s32);
 void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
+s16 func_8000B13C_main(s32 file);
+void func_8001FB34_main(s16 arg0, u8 arg1);
+void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 
 extern f32 D_800CB890_main;
 extern u8 D_800CE20A_main;
@@ -21,6 +34,11 @@ extern u8 D_800D6A90_main;
 // minigame
 void func_800E1490_minigame(u16 arg0);
 void func_800E1804_minigame(void);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
+void func_800E147C_minigame(omObjData* obj);
 u16 func_800E6E9C_minigame(void);
 
 extern f32 D_800EB73C_minigame;
@@ -76,6 +94,8 @@ extern Vec D_80109B78_dizzy_dinghies[];
 extern Vec D_80109C50_dizzy_dinghies[];
 extern s8 D_80109D28_dizzy_dinghies[];
 extern D_80111B50_vine_with_me_Struct D_80109D3C_dizzy_dinghies;
+extern s32 D_80109D84_dizzy_dinghies[][3]; /* course object model files per board */
+extern s32 D_80109DA8_dizzy_dinghies[][3]; /* their motion files */
 extern u8 D_80109D40_dizzy_dinghies;
 extern s8 D_80109D42_dizzy_dinghies;
 extern f32 D_80109D70_dizzy_dinghies;
@@ -458,7 +478,88 @@ void func_80106DF4_dizzy_dinghies(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107098_dizzy_dinghies);
+/* The sea (ground object): its models, the course object models, and the ground setup. */
+void func_80107098_dizzy_dinghies(omObjData* obj) {
+    s16 mot;
+    DdGround* gw;
+
+    obj->model[0] = func_8000B0A0_main((D_801097EC_dizzy_dinghies + 3) | 0x670000, 0x4B9);
+    obj->model[1] = func_8000B0A0_main(0x670006, 0x4A9);
+    obj->model[2] = func_8000B0A0_main(0x670007, 0x8C9);
+    obj->model[3] = func_8000B0A0_main(0xA0089, 0x8C9);
+    obj->model[9] = func_8000B0A0_main(D_80109D84_dizzy_dinghies[D_801097EC_dizzy_dinghies][0], 0x4DD);
+    obj->model[10] = Hu3DModelLink(obj->model[9]);
+    obj->model[11] = Hu3DModelLink(obj->model[9]);
+    obj->model[12] = Hu3DModelLink(obj->model[9]);
+    mot = func_8000B13C_main(D_80109DA8_dizzy_dinghies[D_801097EC_dizzy_dinghies][0]);
+    func_8001C5B4_main(obj->model[9], mot);
+    func_8001C5B4_main(obj->model[10], mot);
+    func_8001C5B4_main(obj->model[11], mot);
+    func_8001C5B4_main(obj->model[12], mot);
+    func_8001C814_main(obj->model[9], 2, 2);
+    func_8001C814_main(obj->model[10], 2, 2);
+    func_8001C814_main(obj->model[11], 2, 2);
+    func_8001C814_main(obj->model[12], 2, 2);
+    obj->model[19] = func_8000B0A0_main(D_80109D84_dizzy_dinghies[D_801097EC_dizzy_dinghies][1], 0x4DD);
+    obj->model[20] = Hu3DModelLink(obj->model[19]);
+    obj->model[21] = Hu3DModelLink(obj->model[19]);
+    obj->model[22] = Hu3DModelLink(obj->model[19]);
+    mot = func_8000B13C_main(D_80109DA8_dizzy_dinghies[D_801097EC_dizzy_dinghies][1]);
+    func_8001C5B4_main(obj->model[19], mot);
+    func_8001C5B4_main(obj->model[20], mot);
+    func_8001C5B4_main(obj->model[21], mot);
+    func_8001C5B4_main(obj->model[22], mot);
+    func_8001C814_main(obj->model[19], 2, 2);
+    func_8001C814_main(obj->model[20], 2, 2);
+    func_8001C814_main(obj->model[21], 2, 2);
+    func_8001C814_main(obj->model[22], 2, 2);
+    obj->model[29] = func_8000B0A0_main(D_80109D84_dizzy_dinghies[D_801097EC_dizzy_dinghies][2], 0x4DD);
+    obj->model[30] = Hu3DModelLink(obj->model[29]);
+    obj->model[31] = Hu3DModelLink(obj->model[29]);
+    obj->model[32] = Hu3DModelLink(obj->model[29]);
+    mot = func_8000B13C_main(D_80109DA8_dizzy_dinghies[D_801097EC_dizzy_dinghies][2]);
+    func_8001C5B4_main(obj->model[29], mot);
+    func_8001C5B4_main(obj->model[30], mot);
+    func_8001C5B4_main(obj->model[31], mot);
+    func_8001C5B4_main(obj->model[32], mot);
+    func_8001C814_main(obj->model[29], 2, 2);
+    func_8001C814_main(obj->model[30], 2, 2);
+    func_8001C814_main(obj->model[31], 2, 2);
+    func_8001C814_main(obj->model[32], 2, 2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(DdGround), 31000);
+    memset(gw, 0, sizeof(DdGround));
+    obj->func = func_80106DF4_dizzy_dinghies;
+    gw->unk03 = 1;
+    Center.x = -224.0f;
+    Center.y = 300.0f;
+    Center.z = 300.0f;
+    CRot.x = 330.0f;
+    CRot.y = 5.0f;
+    CZoom = 4500.0f;
+    func_800E147C_minigame(obj);
+    func_800E1370_minigame(obj, 1, 0.0f);
+    func_800E1304_minigame(obj, 0.2f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E131C_minigame(obj, 25.0f);
+    gw->unk04 = 0;
+    func_8001FB34_main(obj->model[1], 1);
+    func_8001FBFC_main(obj->model[1], -66.0f, -99.0f, -9.0f);
+    func_8001C2FC_main(obj->model[1], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[1]);
+    func_8001C954_main(obj->model[1]);
+    omSetStatBit(obj, 0xA0);
+    Hu3DModelPosSet(obj->model[2], D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].x + 500.0f, D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].y + 500.0f, D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].z);
+    Hu3DModelPosSet(obj->model[3], D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].x + 500.0f, D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].y + 500.0f, D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].z);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 2.0f, 2.0f);
+    Hu3DModelScaleSet(obj->model[3], 2.0f, 2.0f, 2.0f);
+    func_8001C814_main(obj->model[2], 1, 1);
+    func_8001C814_main(obj->model[3], 2, 2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107738_dizzy_dinghies);
 
