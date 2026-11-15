@@ -3,6 +3,7 @@
 #include "gcc/memory.h"
 #include "game/camera.h"
 #include "game/hmfman.h"
+#include "mallocblock.h"
 
 // eatsa A: Eatsa Pizza (two teams of two eat a pizza from opposite halves of the screen)
 
@@ -42,8 +43,14 @@ void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]); /* matrix copy */
 void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
 f32 fabsf(f32);
 
+extern s32 D_800A178C_main[][6];
+
 // minigame
 void func_800E1804_minigame(void);
+void func_800E12EC_minigame(omObjData* obj, f32 arg1);
+void func_800E1328_minigame(omObjData* obj, f32 arg1);
+void func_800E1334_minigame(omObjData* obj, f32 arg1);
+void func_800E1340_minigame(omObjData* obj, f32 arg1);
 
 extern s32 D_800EBEB0_minigame[];
 
@@ -53,7 +60,16 @@ void func_80105BE4_eatsa_pizza(f32 (*m)[4], f32 x, f32 y, f32 z, f32* out);
 void func_80105C64_eatsa_pizza(f32 (*src)[4], f32 (*dst)[4]);
 void func_80105FF0_eatsa_pizza(void);
 void func_80106084_eatsa_pizza(omObjData* obj);
+void func_80106504_eatsa_pizza(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4);
+void func_8010679C_eatsa_pizza(omObjData* obj);
 void func_801083BC_eatsa_pizza(void);
+
+extern u8 D_80109100_eatsa_pizza[4][2]; /* [n][1]: the n-th player to spawn */
+extern u8 D_80109108_eatsa_pizza; /* players spawned */
+extern u8 D_8010910C_eatsa_pizza[4]; /* players spawned per team */
+extern s16 D_80109110_eatsa_pizza[4][3]; /* start positions [team * 2 + slot] */
+extern f32 D_80109128_eatsa_pizza[4]; /* start headings [team * 2 + slot] */
+extern EpPlayer* D_80109268_eatsa_pizza[2][2]; /* [team][slot] */
 
 extern f32 D_80109358_eatsa_pizza[4][4]; /* world to view (D_80109390 is its [3][2]) */
 extern f32 D_80109390_eatsa_pizza; /* D_80109358[3][2]: the view depth offset */
@@ -181,9 +197,118 @@ void func_80105FF0_eatsa_pizza(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80106084_eatsa_pizza);
+void func_80106084_eatsa_pizza(omObjData* obj) {
+    u8 player;
+    u8 group;
+    s8 chr;
+    s32 file0;
+    s32 file1;
+    MgWork* work;
+    EpPlayer* ep;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80106504_eatsa_pizza);
+    player = D_80109100_eatsa_pizza[D_80109108_eatsa_pizza][1];
+    group = GwPlayer[player].group;
+    chr = GwPlayer[player].chr;
+    file0 = D_800A178C_main[chr][0];
+    file1 = D_800A178C_main[chr][1];
+    func_800E19F0_minigame(1);
+    func_80106504_eatsa_pizza(obj, file0, file1, player, 0x2D9);
+    work = obj->data;
+    obj->trans.x = D_80109110_eatsa_pizza[group * 2 + D_8010910C_eatsa_pizza[group]][0];
+    obj->trans.y = D_80109110_eatsa_pizza[group * 2 + D_8010910C_eatsa_pizza[group]][1];
+    obj->trans.z = D_80109110_eatsa_pizza[group * 2 + D_8010910C_eatsa_pizza[group]][2];
+    obj->rot.x = 90.0f;
+    obj->rot.z = D_80109128_eatsa_pizza[group * 2 + D_8010910C_eatsa_pizza[group]];
+    work->unk3C = obj->rot.z + 180.0;
+    obj->scale.x = obj->scale.y = obj->scale.z = work->unkAC * 0.15;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    ep = work->unk158;
+    ep->player = player;
+    ep->side = group;
+    ep->slot = D_8010910C_eatsa_pizza[group];
+    ep->cpuHeading = ep->heading = work->unk3C;
+    ep->cpu = GwPlayer[player].stat & 1;
+    ep->difficulty = GwPlayer[player].cpu_difficulty;
+    ep->model = file0 | 0x4E;
+    ep->unk34 = 0;
+    ep->unk36 = 0;
+    ep->radius = 11.0f;
+    ep->x = obj->trans.x;
+    ep->y = obj->trans.y;
+    ep->z = obj->trans.z;
+    ep->tgtX = ep->tgtY = -1;
+    ep->timer = 8;
+    ep->pushed = 0;
+    D_80109268_eatsa_pizza[group][D_8010910C_eatsa_pizza[group]] = ep;
+    obj->model[3] = func_8000B108_main(3, 0x2DD);
+    obj->model[4] = func_8000B108_main(4, 0x2DD);
+    obj->model[6] = func_8000B108_main(5, 0x2DD);
+    obj->model[5] = func_8000B108_main(6, 0x2DD);
+    obj->model[7] = func_8000B108_main(8, 0x2DD);
+    obj->model[8] = func_8000B108_main(7, 0x2DD);
+    obj->func = func_8010679C_eatsa_pizza;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 16, func_80017BB8_main(chr, 0x3E), 1, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(chr, 0x4E), 2, 120);
+    func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x3A), 2, 60);
+    func_800E5690_minigame(obj, 0);
+    D_80109108_eatsa_pizza++;
+    D_8010910C_eatsa_pizza[group]++;
+}
+
+/* A player's actor work: the framework's func_800E1BA8_minigame cut down, plus the EpPlayer block. */
+void func_80106504_eatsa_pizza(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {
+    MgWork* work;
+    s32 i;
+
+    for (i = 0; i < obj->mdlcnt; i++) {
+        obj->model[i] = 0;
+    }
+    obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
+    memset(obj->data, 0, sizeof(MgWork));
+    work = obj->data;
+    work->unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    memset(work->unkE8, 0, obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData));
+    work->unk158 = HuMemAllocTag(sizeof(EpPlayer), 0x7918);
+    memset(work->unk158, 0, sizeof(EpPlayer));
+    obj->model[0] = func_8000B108_main(file0 | file1, arg4);
+    for (i = 0; i < obj->mtncnt; i++) {
+        obj->motion[i] = -1;
+    }
+    for (i = 0; i < obj->mtncnt; i++) {
+        func_800E1BA8_minigame_UnkE8_ObjData* mtn = work->unkE8;
+        mtn[i].unk02 = 0;
+        mtn[i].unk00 = 0;
+    }
+    work->unk57 = GwPlayer[(u16)player].pad;
+    work->unk52 = 0;
+    work->unkB4 = 1.0f;
+    work->unkD0 = 0xFFFF;
+    work->unk4C = 0.5f;
+    work->unkCC = 1.0f;
+    work->unkA0 = work->unk9C = work->unkA4 = 0.0f;
+    work->unk59 = player;
+    work->unk3C = atan2df(-obj->trans.x, -obj->trans.z);
+    func_800E1328_minigame(obj, 60.0f);
+    func_800E1334_minigame(obj, 150.0f);
+    func_800E1340_minigame(obj, 20.0f);
+    func_800E12EC_minigame(obj, 1000.0f);
+    switch (file0 >> 16) {
+        case 6:
+            work->unkAC = 0.8f;
+            break;
+        case 5:
+            work->unkAC = 0.9f;
+            break;
+        case 4:
+        default:
+            work->unkAC = 1.0f;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_8010679C_eatsa_pizza);
 
