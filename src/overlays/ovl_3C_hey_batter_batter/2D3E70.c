@@ -1,4 +1,5 @@
-#include "common.h"
+#include "ultra64.h"
+#include "include_asm.h"
 #include "game/object.h"
 #include "game/audio.h"
 #include "game/camera.h"
@@ -20,7 +21,12 @@ typedef struct HbCam {
 } HbCam; /* size 0x1C */
 
 
-// main
+// main (functions.us.h is left out: its func_80017AD8_main returns u8, the function returns s16)
+void func_80017954_main(s16, s16, s16, s16);
+s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
+s32 func_80017BB8_main(s16, s16);
+s16 func_80017AD8_main(s32);
+extern u16 D_800D530C_main;
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
@@ -31,6 +37,8 @@ void GMesPosSet(s16 mesId, f32 x, f32 y);
 void func_800557A0_main(void);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 s16 func_8000B13C_main(s32 arg0);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+extern s32 D_800A178C_main[][6];
 extern u16 D_800A11D0_main[6];
 extern s16 D_800A11DC_main[5];
 
@@ -49,6 +57,7 @@ void func_80106C24_hey_batter_batter(omObjData* obj);
 void func_80106CBC_hey_batter_batter(omObjData* obj);
 void func_80106C6C_hey_batter_batter(omObjData* obj);
 void func_80106FA8_hey_batter_batter(omObjData* obj);
+void func_80107464_hey_batter_batter(omObjData* obj);
 s16 func_80109A78_hey_batter_batter(s32 file, u16 attr, u16 prio, s16 x, s16 y);
 s16 func_80109B24_hey_batter_batter(s32 arg0);
 void func_80106CE4_hey_batter_batter(omObjData* obj);
@@ -67,7 +76,7 @@ extern s16 D_80109EE2_hey_batter_batter;
 extern s16 D_80109EE4_hey_batter_batter;
 extern omObjData* D_80109EF4_hey_batter_batter;
 extern s16 D_80109EF0_hey_batter_batter;
-extern s16 D_80109EFA_hey_batter_batter;
+extern s16 D_80109EF8_hey_batter_batter[4]; /* batter motions */
 extern s16 D_80109B60_hey_batter_batter;
 extern s16 D_80109C30_hey_batter_batter; /* director state */
 extern s16 D_80109C32_hey_batter_batter; /* result message */
@@ -85,8 +94,6 @@ extern s16 D_80109ED8_hey_batter_batter;
 extern s16 D_80109EDA_hey_batter_batter;
 extern s16 D_80109EDE_hey_batter_batter;
 extern s16 D_80109EEE_hey_batter_batter;
-extern s16 D_80109EFC_hey_batter_batter;
-extern s16 D_80109EFE_hey_batter_batter;
 extern s16 D_80109C48_hey_batter_batter; /* result step */
 extern s16 D_80109C4A_hey_batter_batter; /* result camera frame */
 extern Vec D_80109C4C_hey_batter_batter[5]; /* flag positions */
@@ -372,13 +379,13 @@ void func_80106928_hey_batter_batter(omObjData* obj) {
     case 2:
         if (D_80109EE0_hey_batter_batter == 1) {
             func_80017954_main(D_80109EF4_hey_batter_batter->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr,
-                               D_80109EFE_hey_batter_batter);
+                               D_80109EF8_hey_batter_batter[3]);
             D_80109ED2_hey_batter_batter = 3;
             D_80109EDA_hey_batter_batter = 1;
             HuAudFXPlay(0x4D8);
         } else if (D_80109EE0_hey_batter_batter == 0) {
             func_80017954_main(D_80109EF4_hey_batter_batter->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr,
-                               D_80109EFC_hey_batter_batter);
+                               D_80109EF8_hey_batter_batter[2]);
             D_80109ED2_hey_batter_batter = 2;
             D_80109EDA_hey_batter_batter = 2;
         }
@@ -466,7 +473,44 @@ void func_801070D8_hey_batter_batter(omObjData* obj) {
     obj->func = NULL;
 }
 
+/* The batter: character model, bat and shadow, motions. */
+// masked 7: retail keeps the character in one register and copies it once; GCC 2.7.2 here re-zero-extends the
+// u8 (andi) into a second saved register (frame 8 bytes larger); calls and stores are the same
+#ifdef NON_MATCHING
+void func_80107144_hey_batter_batter(omObjData* obj) {
+    u8 chr = GwPlayer[D_80109ED0_hey_batter_batter].chr;
+
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][2], 0x6A8);
+    obj->model[1] = func_8000B108_main(0x5D0005, 0x6A9);
+    obj->model[2] = func_8000B108_main(9, 0x2A9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x82));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x35));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x38));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x83));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 1));
+    if (chr == 5) {
+        func_8000B460_main(obj, 6, 0x5D000A);
+    }
+    func_8001C258_main(obj->model[1], 0x4000, 0x4000);
+    func_8001EF6C_main(obj->model[1], obj->model[0], "item_hook");
+    omSetTra(obj, -150.0f, 15.0f, 0.0f);
+    omSetRot(obj, 0.0f, 180.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[2], -150.0f, 15.0f, 0.0f);
+    GwPlayer[D_80109ED0_hey_batter_batter].bonusCoin = -1;
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 2, 2);
+    D_80109ED2_hey_batter_batter = 1;
+    D_80109EF8_hey_batter_batter[0] = func_80017790_main(obj->model[0], 1, chr, func_80017BB8_main(chr, 0xAA));
+    D_80109EF8_hey_batter_batter[1] = func_80017AD8_main(func_80017BB8_main(chr, 0xA4));
+    D_80109EF8_hey_batter_batter[2] = func_80017AD8_main(func_80017BB8_main(chr, 0xA5));
+    D_80109EF8_hey_batter_batter[3] = func_80017AD8_main(func_80017BB8_main(chr, 0xA6));
+    func_8001C514_main(obj->model[0]);
+    func_80017954_main(obj->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr, D_80109EF8_hey_batter_batter[0]);
+    obj->func = func_80107464_hey_batter_batter;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107144_hey_batter_batter);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107464_hey_batter_batter);
 
