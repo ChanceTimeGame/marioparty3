@@ -40,6 +40,7 @@ extern s32 D_80101220_name_81;
 extern s16 D_80101248_name_81;
 extern s16 D_8010124A_name_81;
 extern s32 D_8010124C_name_81;
+extern s32 D_80101230_name_81[];
 extern s32 D_80101250_name_81;
 extern u8 D_80101254_name_81[][3];
 extern s32 D_80101260_name_81[];
@@ -100,7 +101,6 @@ void func_800D898C_name_81(Object* arg0, u8 arg1);
 void func_800F3EC0_name_81(s16 playerNo);
 void func_800EDFAC_name_81(s32 arg0);
 u16 func_800D92A8_name_81(Object* arg0);
-void func_800EE114_name_81(void);
 static void func_800EED5C_name_81(s32 arg0);
 static void func_800EEDA0_name_81(s32, s32, s32);
 static void func_800EF0D8_name_81(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -202,7 +202,67 @@ void func_800EE0F4_name_81(s32 arg0) {
     func_800EDFAC_name_81(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE114_name_81);
+void func_800EE114_name_81(void) {
+    UnkSharedBoard* work = HuPrcCurrentGet()->user_data;
+    HmfModel* hmf2;
+    HmfModel* hmf;
+    f32 speed;
+    f32 angle;
+    f32 zero;
+    f32 one;
+    s32 i;
+
+    switch (work->playerNo) {
+    case 0:
+        while (D_801011F0_name_81->velocity.x <= 70.0f) {
+            D_801011F0_name_81->velocity.x += 2.0f;
+            HuPrcVSleep();
+        }
+        break;
+    case 1:
+        while (D_801011F0_name_81->velocity.x <= 120.0f) {
+            D_801011F0_name_81->velocity.x += 2.5f;
+            D_801011F0_name_81->coords.x += 2.5f;
+            HuPrcVSleep();
+        }
+        break;
+    case 2:
+        speed = 3.0f;
+        angle = 0.0f;
+        for (i = 0; i < 35; i++) {
+            D_801011F0_name_81->velocity.x += speed;
+            speed -= 0.2f;
+            D_801011F0_name_81->coords.x += 2.0f;
+            if (i >= 11) {
+                hmf2 = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                sincosdf(angle, &hmf2->mtx[1], &hmf2->mtx[0]);
+                HmfModelData[D_801011F0_name_81->omObj1->model[0]].mtx[4] = -HmfModelData[D_801011F0_name_81->omObj1->model[0]].mtx[1];
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                hmf->mtx[5] = hmf->mtx[0];
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                zero = 0.0f;
+                hmf->mtx[14] = zero;
+                hmf->mtx[13] = zero;
+                hmf->mtx[12] = zero;
+                hmf->mtx[11] = zero;
+                hmf->mtx[9] = zero;
+                hmf->mtx[8] = zero;
+                hmf->mtx[6] = zero;
+                hmf->mtx[7] = zero;
+                hmf->mtx[3] = zero;
+                hmf->mtx[2] = zero;
+                hmf = &HmfModelData[D_801011F0_name_81->omObj1->model[0]];
+                one = 1.0f;
+                hmf->mtx[15] = one;
+                hmf->mtx[10] = one;
+                angle -= 3.0f;
+            }
+            HuPrcVSleep();
+        }
+        break;
+    }
+    omDelPrcObj(NULL);
+}
 
 Process* func_800EE40C_name_81(s32 playerNo) {
     Process* proc = omAddPrcObj(func_800EE114_name_81, 0xA, 0, 0x40);
@@ -865,7 +925,73 @@ static void func_800F0708_name_81(UnkBoard4* arg0, s16 arg1, s16 arg2, s16 arg3,
     DataClose(temp_s5);
 }
 
+// Register allocation only: the C keeps the constant 20 in a saved register across the second and
+// third total_turns checks (retail rematerialises it), adding s3 to the frame.
+#ifdef NON_MATCHING
+UnkBoard4* func_800F08BC_name_81(void) {
+    UnkBoard4* turn;
+    void* data;
+    void* data2;
+    void* data3;
+    void* data4;
+    s32 id;
+
+    turn = func_800F4528_name_81(0x10, 0);
+    if (GwSystem.playMode & 4) {
+        data = DataRead(0x13008B);
+        D_80101250_name_81 = 2;
+    } else {
+        if (GwSystem.total_turns == 20) {
+            D_80101250_name_81 = 0;
+            id = 0x130084;
+        } else {
+            D_80101250_name_81 = 1;
+            id = 0x130086;
+        }
+        data = DataRead(id);
+    }
+    turn->unk_0C[0] = func_80055810_main(data);
+    func_80055024_main(turn->unk_0A, 0, turn->unk_0C[0], 0);
+    HuSprPriSet(turn->unk_0A, 0, 7);
+    HuSprAttrSet(turn->unk_0A, 0, 0x1000);
+    func_80054904_main(turn->unk_0A, 0, 0xA0, 0x73);
+    func_80055420_main(turn->unk_0A, 0, D_80101254_name_81[D_80101250_name_81][0], D_80101254_name_81[D_80101250_name_81][1], D_80101254_name_81[D_80101250_name_81][2]);
+    DataClose(data);
+    id = 0x130089;
+    if (GwSystem.total_turns == 20) {
+        id = 0x130088;
+    }
+    data2 = DataRead(id);
+    turn->unk_0C[1] = func_80055810_main(data2);
+    func_80055024_main(turn->unk_0A, 1, turn->unk_0C[1], 0);
+    HuSprPriSet(turn->unk_0A, 1, 7);
+    HuSprAttrSet(turn->unk_0A, 1, 0x1000);
+    func_80054904_main(turn->unk_0A, 1, 0xA0, 0x90);
+    func_80055420_main(turn->unk_0A, 1, D_80101254_name_81[D_80101250_name_81][0], D_80101254_name_81[D_80101250_name_81][1], D_80101254_name_81[D_80101250_name_81][2]);
+    DataClose(data2);
+    if (GwSystem.total_turns == 20) {
+        func_800F0708_name_81(turn, 2, 20, 0xCB, 0x90);
+        func_800F0708_name_81(turn, 4, GwSystem.current_turn, 0xA1, 0x90);
+    }
+    data3 = DataRead(0x130083);
+    turn->unk_0C[6] = func_80055810_main(data3);
+    func_80055024_main(turn->unk_0A, 6, turn->unk_0C[6], 0);
+    HuSprPriSet(turn->unk_0A, 6, 7);
+    HuSprAttrSet(turn->unk_0A, 6, 0x1000);
+    func_80054904_main(turn->unk_0A, 6, 0xA0, 0x3C);
+    DataClose(data3);
+    data4 = DataRead(D_80101230_name_81[GwSystem.current_board_index]);
+    turn->unk_0C[7] = func_80055810_main(data4);
+    func_80055024_main(turn->unk_0A, 7, turn->unk_0C[7], 0);
+    HuSprPriSet(turn->unk_0A, 7, 6);
+    HuSprAttrSet(turn->unk_0A, 7, 0x1000);
+    func_80054904_main(turn->unk_0A, 7, 0xA0, 0x22);
+    DataClose(data4);
+    return turn;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F08BC_name_81);
+#endif
 
 static void func_800F0C30_name_81(UnkBoard4* arg0) {
     func_800F4584_name_81(arg0);
