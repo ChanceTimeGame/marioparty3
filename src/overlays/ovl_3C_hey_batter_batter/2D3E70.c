@@ -27,6 +27,16 @@ s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
 s32 func_80017BB8_main(s16, s16);
 s16 func_80017AD8_main(s32);
 extern u16 D_800D530C_main;
+void func_8001C92C_main(s16 model, f32 arg1);
+omObjData* func_80045ED0_main(u32 arg0);
+
+/* D_800CCF58_main's records (common_structs.h D_800CCF58_main_Struct): motion length at 0x02 */
+typedef struct HbMotInfo {
+    /* 0x00 */ char unk00[2];
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ char unk04[0x14];
+} HbMotInfo; /* size 0x18 */
+extern HbMotInfo* D_800CCF58_main;
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
@@ -77,6 +87,10 @@ extern s16 D_80109EE4_hey_batter_batter;
 extern omObjData* D_80109EF4_hey_batter_batter;
 extern s16 D_80109EF0_hey_batter_batter;
 extern s16 D_80109EF8_hey_batter_batter[4]; /* batter motions */
+extern s16 D_80109C88_hey_batter_batter; /* batter motion shown */
+extern s16 D_80109C8A_hey_batter_batter; /* batter cue step */
+extern s16 D_80109C8C_hey_batter_batter; /* batter cue timer */
+extern s16 D_80109EEC_hey_batter_batter;
 extern s16 D_80109B60_hey_batter_batter;
 extern s16 D_80109C30_hey_batter_batter; /* director state */
 extern s16 D_80109C32_hey_batter_batter; /* result message */
@@ -512,7 +526,95 @@ void func_80107144_hey_batter_batter(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107144_hey_batter_batter);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107464_hey_batter_batter);
+/* The batter: play the motion for D_80109ED2 when it changes, and the intro and swing cues. */
+void func_80107464_hey_batter_batter(omObjData* obj) {
+    if (D_80109C88_hey_batter_batter != D_80109ED2_hey_batter_batter) {
+        switch (D_80109ED2_hey_batter_batter) {
+        case 0:
+        case 1:
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[D_80109ED2_hey_batter_batter]].unk02, 0, 30, 2);
+            break;
+        case 2:
+            func_8001C5B4_main(obj->model[0], obj->motion[2]);
+            func_80045ED0_main(D_800A178C_main[GwPlayer[D_80109ED0_hey_batter_batter].chr][0] | 0x35);
+            break;
+        case 3:
+            func_8001C5B4_main(obj->model[0], obj->motion[3]);
+            func_80045ED0_main(D_800A178C_main[GwPlayer[D_80109ED0_hey_batter_batter].chr][0] | 0x38);
+            break;
+        case 4:
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[D_80109ED2_hey_batter_batter]].unk02, 0, 15, 0);
+            break;
+        case 5:
+            func_8001C5B4_main(obj->model[0], obj->motion[4]);
+            func_8001C6A8_main(obj->model[0], D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02);
+            func_8001C92C_main(obj->model[0], -0.9f);
+            break;
+        case 6:
+            func_8001C92C_main(obj->model[0], 1.0f);
+            break;
+        case 7:
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[5]].unk02, 0, 10, 2);
+            break;
+        case 8:
+            func_8001C5B4_main(obj->model[0], obj->motion[6]);
+            break;
+        }
+        D_80109C88_hey_batter_batter = D_80109ED2_hey_batter_batter;
+    }
+    if (D_80109B60_hey_batter_batter == 1) {
+        switch (D_80109C8A_hey_batter_batter) {
+        case 0:
+            D_80109EEC_hey_batter_batter = 1;
+            if (GwPlayer[D_80109ED0_hey_batter_batter].chr == 5 && D_80109ED2_hey_batter_batter == 4) {
+                D_80109ED2_hey_batter_batter = 8;
+            } else {
+                D_80109ED2_hey_batter_batter = 0;
+            }
+            func_8001C8A8_main(obj->model[1], 0);
+            D_80109C8A_hey_batter_batter++;
+            break;
+        case 1:
+            if (D_80109C8C_hey_batter_batter++ >= 45) {
+                D_80109C8A_hey_batter_batter++;
+            }
+            break;
+        case 2:
+            if (obj->rot.y > 0.0f) {
+                D_80109ED2_hey_batter_batter = 7;
+                obj->rot.y -= 10.0f;
+            } else {
+                D_80109ED2_hey_batter_batter = 0;
+                D_80109C8A_hey_batter_batter++;
+            }
+            break;
+        }
+    }
+    if (D_80109B60_hey_batter_batter == 2) {
+        switch (D_80109C8A_hey_batter_batter) {
+        case 0:
+            HuAudFXPlay(0x4D0);
+            D_80109ED2_hey_batter_batter = 4;
+            D_80109C8A_hey_batter_batter++;
+            break;
+        case 1:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 == HmfModelData[obj->model[0]].unk40) {
+                D_80109ED2_hey_batter_batter = 5;
+                D_80109C8A_hey_batter_batter++;
+            }
+            break;
+        case 2:
+            if (HmfModelData[obj->model[0]].unk40 <= 3.0f) {
+                D_80109ED2_hey_batter_batter = 1;
+                func_8001C92C_main(obj->model[0], 0.0f);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                D_80109C8A_hey_batter_batter = 0;
+                D_80109B60_hey_batter_batter = 0;
+            }
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_801079D0_hey_batter_batter);
 
