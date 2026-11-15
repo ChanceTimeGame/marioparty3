@@ -864,7 +864,148 @@ void func_80107DA4_all_fired_up(omObjData* obj) {
     D_80109A05_all_fired_up++;
 }
 
+// masked 0: the burnt-player counters get $a1 where retail has $v1 (registers only); logic checked
+#ifdef NON_MATCHING
+/* A player's states: intro walk, play (CPU, hit test, burnt jump), results (rank by burn time), the finish. */
+void func_801080C8_all_fired_up(omObjData* obj) {
+    MgWork* pw = obj->data;
+    s32 n;
+    s32 i;
+    s32 rank;
+    s32 voice;
+
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        switch (func_800E6E8C_minigame()) {
+            case 0:
+                func_801085A4_all_fired_up(obj);
+                break;
+            case 2:
+                if (GwPlayer[pw->unk59].stat & 1) {
+                    func_80108AA0_all_fired_up(obj);
+                }
+                func_800DDD94_minigame(obj);
+                if (obj->work[0] == 1) {
+                    func_800E5690_minigame(obj, 0xE);
+                    func_80108710_all_fired_up(obj);
+                    obj->work[0] = 2;
+                } else if (obj->work[0] == 2) {
+                    func_80108710_all_fired_up(obj);
+                }
+                n = 0;
+                if (pw->unk59 == 3) {
+                    for (i = 0; i < 4; i++) {
+                        n += D_800EC598_minigame[i]->work[0] != 0;
+                    }
+                    if (n >= 3) {
+                        func_800E6F0C_minigame(3);
+                    }
+                }
+                break;
+            case 3:
+                rank = 0;
+                if (D_80109A08_all_fired_up[pw->unk59] == 0) {
+                    for (i = 0; i < 4; i++) {
+                        if (i != pw->unk59) {
+                            rank += D_801099C0_all_fired_up[pw->unk59] < D_801099C0_all_fired_up[i];
+                        }
+                    }
+                    GwPlayer[pw->unk59].bonusCoin = rank;
+                    D_80109A08_all_fired_up[pw->unk59] = 1;
+                }
+                if (obj->work[0] == 0) {
+                    pw->unk3C *= 0.9f;
+                }
+                func_800DDD94_minigame(obj);
+                if (obj->work[0] == 2) {
+                    func_80108710_all_fired_up(obj);
+                }
+                break;
+            case 4:
+                if (func_800E6E9C_minigame() == 0) {
+                    if (obj->work[0] == 0) {
+                        switch (GwPlayer[pw->unk59].chr) {
+                            case 0:
+                            default:
+                                voice = 2;
+                                break;
+                            case 1:
+                                voice = 3;
+                                break;
+                            case 2:
+                                voice = 7;
+                                break;
+                            case 3:
+                                voice = 4;
+                                break;
+                            case 4:
+                                voice = 5;
+                                break;
+                            case 5:
+                                voice = 6;
+                                break;
+                            case 6:
+                                voice = 8;
+                                break;
+                            case 7:
+                                voice = 9;
+                                break;
+                        }
+                        func_80045ED0_main((voice << 16) | 0x2F);
+                        func_800E5690_minigame(obj, 0xD);
+                        D_80109A06_all_fired_up = 0;
+                    }
+                    if (pw->unk59 == 3 && D_80109A06_all_fired_up == -1) {
+                        D_80109A06_all_fired_up = 1;
+                    }
+                    switch (D_80109A06_all_fired_up) {
+                        case 0:
+                            for (n = 0, i = 0; i < 4; i++) {
+                                n += GwPlayer[i].bonusCoin == 0;
+                            }
+                            if (n == 1) {
+                                HuAudSeqPlay(0x65);
+                            } else {
+                                HuAudSeqPlay(0x66);
+                            }
+                            break;
+                        case 1:
+                            for (i = 0; i < 3; i++) {
+                                if (D_801099C0_all_fired_up[i] != D_801099C0_all_fired_up[i + 1]) {
+                                    break;
+                                }
+                            }
+                            if (i == 3) {
+                                for (i = 0; i < 4; i++) {
+                                    GwPlayer[i].bonusCoin = 3;
+                                }
+                            }
+                            HuAudSeqPlay(0x6C);
+                            D_80109A06_all_fired_up = 1;
+                            break;
+                    }
+                } else if ((D_80109A06_all_fired_up == 0 && func_800E6E9C_minigame() >= 100) ||
+                           (D_80109A06_all_fired_up == 1 && func_800E6E9C_minigame() >= 145)) {
+                    func_800E6F0C_minigame(5);
+                }
+                func_800DDD94_minigame(obj);
+                break;
+            default:
+                func_800DDD94_minigame(obj);
+                if (obj->work[0] == 2) {
+                    func_80108710_all_fired_up(obj);
+                }
+                break;
+        }
+        obj->scale.z = 1.2f;
+        obj->scale.x = 1.2f;
+        if (!(pw->unk50 & 6)) {
+            obj->scale.y = 1.2f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_29_all_fired_up/23C8F0", func_801080C8_all_fired_up);
+#endif
 
 /* Intro: walk in from the start spot. */
 void func_801085A4_all_fired_up(omObjData* obj) {
