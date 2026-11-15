@@ -6,6 +6,7 @@
 #include "game/gamemes.h"
 #include "game/hmfman.h"
 #include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/105D50.h"
 
 void func_80105E0C_mgresultbattle(void);
 void func_80105EF4_mgresultbattle(void);
@@ -28,7 +29,11 @@ extern s8 D_801088D0_mgresultbattle;
 extern s32 D_801088D4_mgresultbattle;
 extern s8 D_801088D8_mgresultbattle;
 
-extern u8 D_80108F8C_mgresultbattle[4];
+extern s8 D_80108F8C_mgresultbattle[4];
+extern s32 D_80108F70_mgresultbattle;
+extern u16 D_800CC698_main;
+extern const f32 D_80108920_mgresultbattle[8][4];
+extern const s8 D_801089A0_mgresultbattle[8];
 extern s32 D_80108908_mgresultbattle[];
 
 void func_801059A0_mgresultbattle(void) {
@@ -202,7 +207,135 @@ void func_80105F78_mgresultbattle(Gfx **gfx, s32 arg1, s32 arg2) {
     *gfx = g;
 }
 
+#ifdef NON_MATCHING
+// battleres A: masked 0, raw 20 (register allocation of the counters).
+// Splits the battle pot (D_800CC698_main) by placing; GwPlayer[].bonusCoin holds the placing here.
+void func_801060A4_mgresultbattle(void) {
+    s32 order[4];
+    s32 rank[4];
+    s8 count[4];
+    s32 n;
+    s32 i;
+    s32 j;
+    s32 r;
+    s32 type;
+    s32 total;
+
+    for (n = 0, i = 0; i < MB_MAX_PLAYERS; i++) {
+        n += GwPlayer[i].bonusCoin >= 3;
+    }
+    r = 0;
+    if (n >= 4) {
+        D_80108F70_mgresultbattle = 0;
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            GwPlayer[i].gameCoin = 0;
+            GwPlayer[i].coin += GwPlayer[i].checkCoin;
+        }
+        return;
+    }
+
+    for (n = 0, j = 0; j < 4; j++) {
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            if (j == GwPlayer[i].bonusCoin) {
+                n++;
+                rank[i] = r;
+            }
+        }
+        r += n;
+        n = 0;
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        GwPlayer[i].bonusCoin = rank[i];
+    }
+    for (i = 0; i < 4; i++) {
+        count[i] = 0;
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        count[GwPlayer[i].bonusCoin]++;
+    }
+
+    type = 0;
+    if (count[0] == 1 && count[1] == 1 && count[2] == 1 && count[3] == 1) {
+    } else if (count[0] == 2 && count[2] == 2) {
+        type = 2;
+    } else if (count[0] == 2) {
+        type = 1;
+    } else if (count[0] == 3) {
+        type = 3;
+    } else if (count[1] == 2) {
+        type = 4;
+    } else if (count[1] == 3) {
+        type = 5;
+    } else if (count[2] == 2) {
+        type = 6;
+    } else if (count[0] == 4) {
+        type = 7;
+    }
+
+    total = 0;
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (D_801089A0_mgresultbattle[type] == 0) {
+            GwPlayer[i].gameCoin = D_800CC698_main * D_80108920_mgresultbattle[type][GwPlayer[i].bonusCoin];
+        } else if (D_80108920_mgresultbattle[type][GwPlayer[i].bonusCoin] != 0.0f) {
+            GwPlayer[i].gameCoin = D_800CC698_main / D_80108920_mgresultbattle[type][GwPlayer[i].bonusCoin];
+        } else {
+            GwPlayer[i].gameCoin = 0;
+        }
+        total += GwPlayer[i].gameCoin;
+    }
+
+    D_80108F70_mgresultbattle = D_800CC698_main - total;
+    switch (type) {
+    case 4:
+        if (D_80108F70_mgresultbattle == 2) {
+            for (i = 0; i < MB_MAX_PLAYERS; i++) {
+                if (GwPlayer[i].bonusCoin == 1) {
+                    GwPlayer[i].gameCoin += 1;
+                }
+            }
+            D_80108F70_mgresultbattle = 0;
+        }
+        break;
+    case 5:
+        if (D_80108F70_mgresultbattle == 3) {
+            for (i = 0; i < MB_MAX_PLAYERS; i++) {
+                if (GwPlayer[i].bonusCoin == 1) {
+                    GwPlayer[i].gameCoin += 1;
+                }
+            }
+            D_80108F70_mgresultbattle = 0;
+        }
+        break;
+    case 6:
+        if (D_80108F70_mgresultbattle == 2) {
+            for (i = 0; i < MB_MAX_PLAYERS; i++) {
+                if (GwPlayer[i].bonusCoin == 0) {
+                    GwPlayer[i].gameCoin += 2;
+                    break;
+                }
+            }
+            D_80108F70_mgresultbattle = 0;
+        }
+        break;
+    }
+
+    n = 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            r = D_80108F8C_mgresultbattle[j];
+            if (i == GwPlayer[r].bonusCoin) {
+                order[n] = r;
+                n++;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        D_80108F8C_mgresultbattle[i] = order[i];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801060A4_mgresultbattle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106660_mgresultbattle);
 
