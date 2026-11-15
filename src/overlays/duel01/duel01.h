@@ -172,3 +172,10 @@ Process *func_800E0924_name_81(void);
 DuelB4SprGrp *func_800F4528_name_81(s16, s16);
 void func_800F4584_name_81(DuelB4SprGrp *);
 void func_800F75EC_name_81(s32);
+// duel b4 (5)
+typedef struct DuelB4Dist {
+    u8 v[6];
+} DuelB4Dist;
+extern const DuelB4Dist D_801193E8_duel01; /* {0xFF, 0, 1, 2, 4, 5}: indexed by mbWalkNum (retail reads it unsigned) */
+s32 func_800F8980_name_81(s32);
+s32 func_800EFE20_name_81(f32); /* random percent roll */
