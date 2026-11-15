@@ -77,6 +77,7 @@ u16 func_801070E8_eatsa_pizza(omObjData* obj);
 void func_801078C4_eatsa_pizza(omObjData* obj);
 void func_80107A64_eatsa_pizza(omObjData* obj);
 u16 func_80107E6C_eatsa_pizza(omObjData* obj);
+void func_801083A8_eatsa_pizza(omObjData* obj, MgWork** work, EpPlayer** ep);
 void func_801083BC_eatsa_pizza(void);
 void func_80108470_eatsa_pizza(omObjData* obj);
 void func_801084F8_eatsa_pizza(omObjData* obj);
@@ -94,6 +95,9 @@ extern s16 D_80109110_eatsa_pizza[4][3]; /* start positions [team * 2 + slot] */
 extern f32 D_80109128_eatsa_pizza[4]; /* start headings [team * 2 + slot] */
 extern u32 D_80109148_eatsa_pizza; /* random seed */
 extern s16 D_80109278_eatsa_pizza; /* pizza texture */
+extern s16 D_8010927A_eatsa_pizza[2]; /* per team: its pizza's remaining-slice texture */
+extern s16 D_8010927E_eatsa_pizza[2]; /* per team: its pizza's mask texture */
+extern s16 D_80109282_eatsa_pizza; /* bite shape texture */
 extern s16 D_80109284_eatsa_pizza; /* bite mark texture */
 extern s16 D_80109288_eatsa_pizza[]; /* [0]: pizza sprite group */
 extern s16 D_8010928E_eatsa_pizza; /* bite mark sprite group */
@@ -527,9 +531,130 @@ void func_8010679C_eatsa_pizza(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801070E8_eatsa_pizza);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801078C4_eatsa_pizza);
+/* Push the player out of the other players. */
+void func_801078C4_eatsa_pizza(omObjData* obj) {
+    MgWork* work;
+    EpPlayer* ep;
+    MgWork* work2;
+    EpPlayer* ep2;
+    f32 dx;
+    f32 dy;
+    f32 d;
+    f32 r;
+    f32 r2;
+    s32 i;
+    s32 j;
+    s32 hits;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80107A64_eatsa_pizza);
+    hits = 0;
+    func_801083A8_eatsa_pizza(obj, &work, &ep);
+    r = ep->radius;
+    for (i = 0, j = 0; i < 4; i++, j++) {
+        if (work->unk59 != j) {
+            func_801083A8_eatsa_pizza(D_800EC598_minigame[i], &work2, &ep2);
+            dx = ep2->x - ep->x;
+            dy = ep2->y - ep->y;
+            r2 = ep2->radius;
+            d = sqrtf(dx * dx + dy * dy);
+            if (d < r + r2) {
+                if (d != 0.0) {
+                    dx /= d;
+                    dy /= d;
+                }
+                d = r + r2 - d;
+                ep->x -= dx * d;
+                ep->y -= dy * d;
+                hits++;
+            }
+        }
+    }
+    if (hits != 0) {
+        ep->pushed++;
+    } else {
+        ep->pushed = 0;
+    }
+}
+
+/* Keep the player off the pizza's edge: push it back to its radius from the nearest pizza
+   pixel in its 32x32 neighbourhood (D_8010927E: the team's pizza mask, 4 bits per pixel). */
+void func_80107A64_eatsa_pizza(omObjData* obj) {
+    MgWork* work;
+    EpPlayer* ep;
+    u8* mask;
+    f32 cx;
+    f32 cy;
+    f32 dx;
+    f32 dy;
+    f32 d;
+    f32 best;
+    f32 bestX;
+    f32 bestY;
+    s16 x0;
+    s16 x1;
+    s16 y0;
+    s16 y1;
+    s32 x;
+    s32 y;
+    s32 n;
+
+    bestY = 65535.0f;
+    bestX = 65535.0f;
+    best = 65535.0f;
+    n = 0;
+    func_801083A8_eatsa_pizza(obj, &work, &ep);
+    mask = func_801090B4_eatsa_pizza(D_8010927E_eatsa_pizza[ep->side], 0);
+    cx = ep->x + 160.0f;
+    cy = ep->y + 120.0f;
+    y0 = cy - 16.0f;
+    if (y0 < 0) {
+        y0 = 0;
+    }
+    y1 = cy + 16.0f;
+    if (y1 > 240) {
+        y1 = 240;
+    }
+    x0 = cx - 16.0f;
+    if (x0 < 0) {
+        x0 = 0;
+    }
+    x1 = cx + 16.0f;
+    if (x1 > 320) {
+        x1 = 320;
+    }
+    if (ep->side == 1) {
+        cx -= 160.0f;
+        x0 -= 160;
+        x1 -= 160;
+    }
+    for (y = y0; y <= y1; y++) {
+        for (x = x0; x <= x1; x++) {
+            u8 b = mask[(y * 160 + x) >> 1];
+
+            if ((x & 1) ? (b & 0xF0) : (b & 0xF)) {
+                dx = x - cx;
+                dy = y - cy;
+                d = sqrtf(dx * dx + dy * dy);
+                if (!(best < d)) {
+                    best = d;
+                    bestX = x - 160 + ep->side * 160;
+                    bestY = y - 120;
+                    n++;
+                }
+            }
+        }
+    }
+    if (n != 0 && best < ep->radius) {
+        dx = bestX - ep->prevX;
+        dy = bestY - ep->prevY;
+        d = sqrtf(dx * dx + dy * dy);
+        if (d != 0.0) {
+            dx /= d;
+            dy /= d;
+            ep->x = bestX - dx * ep->radius;
+            ep->y = bestY - dy * ep->radius;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_80107E6C_eatsa_pizza);
 
