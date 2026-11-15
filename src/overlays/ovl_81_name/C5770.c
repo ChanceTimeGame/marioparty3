@@ -1,6 +1,7 @@
 #include "common.h"
 #include "ovl_81.h"
 #include "game/sprite.h"
+#include "game/hmfman.h"
 
 // duel n3: minigame call list (2-player roulette) and coin change popups.
 
@@ -75,6 +76,13 @@ extern f32 D_80102BD8_name_81[2][2];
 void func_800E3868_name_81(void);
 void func_800DF348_name_81(void);
 s32 func_800EAA7C_name_81(s32);
+Object *func_800EED24_name_81(void);
+void func_800E363C_name_81(s32, Vec *);
+s32 func_800E3858_name_81(void);
+void func_800F66BC_name_81(s32);
+s32 func_800F6CA0_name_81(void);
+void func_800F6CEC_name_81(void);
+void func_800F6F84_name_81(void);
 void func_800DF49C_name_81(void);
 void func_800DD9EC_name_81(omObjData *);
 void func_800DE4D0_name_81(omObjData *);
@@ -914,7 +922,145 @@ void func_800E0310_name_81(u8 *output, s32 count) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/C5770", func_800E03F0_name_81);
+void func_800E03F0_name_81(void) {
+    Process *process;
+    Object *host;
+    Object *model;
+    HmfModel *hmf;
+    UnkSize10 *data;
+    f32 angle;
+    f32 scaleX;
+    f32 zero;
+    f32 one;
+    s32 timer;
+    s32 spinning;
+    s32 growing;
+    s32 stopped;
+    s32 i;
+
+    timer = 0;
+    process = HuPrcCurrentGet();
+    host = func_800EED24_name_81();
+    angle = 360.0f;
+    spinning = 0;
+    growing = 0;
+    stopped = 0;
+    scaleX = 0.0f;
+    model = func_800D8314_name_81(0x130204, -1, 1.4f, 0, 0);
+    func_8001C258_main(model->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(model->omObj1->model[0], 0x1800);
+    func_8001C448_main(model->omObj1->model[0]);
+    func_800D8944_name_81(model);
+    HuVecCopy3F(&model->coords, &host->coords);
+    HuVecCopyXYZ(&model->scale, 0.0f, 1.0f, 1.0f);
+    model->coords.y += 38.0f;
+    data = process->user_data;
+
+    while (1) {
+        if (spinning != 0) {
+            sincosdf(angle, &HmfModelData[host->omObj1->model[0]].mtx[8], &HmfModelData[host->omObj1->model[0]].mtx[10]);
+            HmfModelData[host->omObj1->model[0]].mtx[2] = -HmfModelData[host->omObj1->model[0]].mtx[8];
+            hmf = &HmfModelData[host->omObj1->model[0]];
+            hmf->mtx[0] = hmf->mtx[10];
+            hmf = &HmfModelData[host->omObj1->model[0]];
+            zero = 0.0f;
+            hmf->mtx[14] = zero;
+            hmf->mtx[13] = zero;
+            hmf->mtx[12] = zero;
+            hmf->mtx[11] = zero;
+            hmf->mtx[9] = zero;
+            hmf->mtx[7] = zero;
+            hmf->mtx[6] = zero;
+            hmf->mtx[4] = zero;
+            hmf->mtx[3] = zero;
+            hmf->mtx[1] = zero;
+            hmf = &HmfModelData[host->omObj1->model[0]];
+            one = 1.0f;
+            hmf->mtx[15] = one;
+            hmf->mtx[5] = one;
+            if (angle > 0.0f) {
+                angle -= 30.0f;
+                if (angle <= 270.0f) {
+                    growing = 1;
+                }
+            } else {
+                stopped++;
+                if (stopped >= 2) {
+                    func_800D8F0C_name_81(host);
+                }
+            }
+            if (growing == 1) {
+                HuVecCopyXYZ(&model->scale, scaleX, 1.0f, 1.0f);
+                scaleX += 0.12f;
+                if (scaleX > 1.0f) {
+                    scaleX = 1.0f;
+                }
+            }
+        }
+
+        switch (data->unk_00) {
+            case 0:
+                data->unk_00 = 1;
+                break;
+            case 1:
+                HuPrcSleep(1);
+                func_800E363C_name_81(0, &model->coords);
+                HuPrcSleep(15);
+                data->unk_00++;
+                break;
+            case 2:
+                func_800F66BC_name_81(2);
+                func_800F6CEC_name_81();
+                data->unk_00++;
+                timer = 0;
+                break;
+            case 3:
+                timer++;
+                if (timer >= 5) {
+                    if (spinning == 0) {
+                        spinning = 1;
+                        HuAudFXPlay(0x206);
+                    }
+                }
+                if (func_800F6CA0_name_81() == 0) {
+                    for (i = 0; i < 2; i++) {
+                        if (!(GwPlayer[i].stat & PLAYER_IS_CPU)) {
+                            break;
+                        }
+                    }
+                    if (i == 2) {
+                        func_800E0300_name_81();
+                        func_800F66BC_name_81(5);
+                        data->unk_00++;
+                        break;
+                    } else {
+                        for (i = 0; i < 2; i++) {
+                            if (!(D_800D5558_main[GwPlayer[i].pad] & A_BUTTON) || (GwPlayer[i].stat & PLAYER_IS_CPU)) {
+                                continue;
+                            } else {
+                                break;
+                            }
+                        }
+                        if (i != 2) {
+                            func_800E0300_name_81();
+                            func_800F66BC_name_81(5);
+                            data->unk_00++;
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 4:
+                if (func_800E3858_name_81() == 0) {
+                    func_800F6F84_name_81();
+                    func_800D8F3C_name_81(model);
+                    omDelPrcObj(NULL);
+                }
+                break;
+        }
+        HuPrcVSleep();
+    }
+}
 
 Process *func_800E0888_name_81(void) {
     Process *proc;
