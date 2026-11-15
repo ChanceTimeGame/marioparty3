@@ -66,8 +66,8 @@ unkStruct03* func_80047EA0_main(void*, s32, s32, s32);
 void func_80105CC0_duel01(void); //probably takes object as arg
 void func_800FC8C4_name_81(void*);
 extern s32 D_80105540_name_81;
-void func_800EC1E4_name_81(void*, s32, void*, f32);
-void func_800EBF2C_name_81(void*, s32, void*);
+Process* func_800EC1E4_name_81(Vec*, Vec*, Vec*, f32); /* duel b3: ovl_81 C5770.c types */
+Process* func_800EBF2C_name_81(Vec*, Vec*, Vec*, ...); /* duel b3: ovl_81 takes (Vec*, Vec*, Vec*, s32); func_801062C0_duel01 passes three */
 void func_80106308_duel01(void);
 void func_8001C258_main(s16, s32, s32);
 void func_8001C448_main(s16);
@@ -76,7 +76,7 @@ void* func_800D8010_name_81(s32, s32);
 void func_800D8944_name_81(Object*);
 void func_800D8F0C_name_81(Object*);
 void func_80089A20_main(Vec*, s32);
-void func_800D8E88_name_81(void);
+void func_800D8E88_name_81(Object*); /* duel b3: ovl_81 BFB40.c */
 s16 MBDGetCurrentPlayerIndex(void);
 GW_PLAYER* MBDGetPlayerStruct(s32);
 void func_800F38DC_name_81(s32, s32, s32);

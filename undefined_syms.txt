@@ -117,3 +117,5 @@ D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
 D_801097EA_dizzy_dinghies = D_801097E8_dizzy_dinghies + 0x2;
 /* mgresultduel: the host's path knot times are one f32[5] in C; func_80108820_mgresultduel (NON_MATCHING asm) names the third */
 D_80108F18_mgresultduel = D_80108F10_mgresultduel + 0x8;
+/* duel b3: duel01 per-player space ids are one s32[2][3] at 0x8011887C, inside splat's D_8011885C_duel01 */
+D_8011887C_duel01 = D_8011885C_duel01 + 0x20;
