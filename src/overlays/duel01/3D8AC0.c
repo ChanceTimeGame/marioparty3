@@ -251,6 +251,16 @@ extern s32 D_8011875C_duel01;
 extern Object *D_801194A8_duel01;
 extern Object *D_801194AC_duel01[2];
 Object *func_800D8B18_name_81(Object *arg0);
+s32 func_800EFE20_name_81(f32 range);
+
+/* A weighted choice: an entry is taken when a roll of 100 falls under its chance; value -1 ends a list. */
+typedef struct Duel01Weight {
+    /* 0x00 */ s8 value;
+    /* 0x01 */ s8 chance;
+} Duel01Weight;
+
+extern s8 D_80118760_duel01[]; /* value, chance pairs as Duel01Weight (splat label D_80118761 is [1]) */
+extern Duel01Weight *D_8011885C_duel01[]; /* per character */
 
 void func_8010DC04_duel01(void) {
     s16 model = D_80119490_duel01->omObj1->model[0];
@@ -602,7 +612,58 @@ s16 func_8010ED20_duel01(s32 no) {
     return tbl[no];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EDA0_duel01);
+s32 func_8010EDA0_duel01(void) {
+    GW_PLAYER *player;
+    s32 result;
+    s32 roll;
+    s32 i;
+
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    result = -1;
+    roll = func_800EFE20_name_81(10.0f);
+    switch (player->cpu_difficulty) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+        case 3:
+            /* Both prize bytes (gamblePrize, duelNo) unset, read as one big-endian word. */
+            if ((*(u32 *)&player->stats.prize.gamblePrize & 0xFFFF0000) != 0xFFFF0000) {
+                if (roll < 6) {
+                    if (player->stats.prize.gamblePrize != -1) {
+                        result = player->stats.prize.gamblePrize;
+                    }
+                    if (player->stats.prize.duelNo != -1) {
+                        result = player->stats.prize.duelNo;
+                    }
+                    break;
+                }
+                if (roll < 8) {
+                    for (i = 0; D_80118760_duel01[i * 2] != -1; i++) {
+                        if (D_80118760_duel01[i * 2 + 1] > func_800EFE20_name_81(100.0f)) {
+                            break;
+                        }
+                    }
+                    result = D_80118760_duel01[i * 2];
+                    break;
+                }
+            }
+            for (i = 0; D_8011885C_duel01[player->chr][i].value != -1; i++) {
+                if (D_8011885C_duel01[player->chr][i].chance > func_800EFE20_name_81(100.0f)) {
+                    break;
+                }
+            }
+            result = D_8011885C_duel01[player->chr][i].value;
+            break;
+    }
+    if (result == -1) {
+        result = func_800EFE20_name_81(12.0f);
+    }
+    if (result < 0 || result >= 12) {
+        result = 0;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EFBC_duel01);
 
