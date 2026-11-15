@@ -614,7 +614,7 @@ segments:
       - [0xE3CD0, c]
       - [0xE78B0, c]
       - [0xE7AE0, c]
-      - [0xE8BE0, data] #80100E10
+      - [0xE8BE0, .data, E8BE0] #80100E10
       - [0xE98E0, .data, E78B0]
       - [0xE98F0, .data, E7AE0] #80101B20
       - [0xE99F0, .data, BE940]

@@ -117,3 +117,9 @@ D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
 D_801097EA_dizzy_dinghies = D_801097E8_dizzy_dinghies + 0x2;
 /* mgresultduel: the host's path knot times are one f32[5] in C; func_80108820_mgresultduel (NON_MATCHING asm) names the third */
 D_80108F18_mgresultduel = D_80108F10_mgresultduel + 0x8;
+/* duel n10: ovl_81_name's shared .data block (E8BE0.c); inner labels that asm still uses */
+D_80100EEB_name_81 = D_80100EEC_name_81 - 0x1;
+D_80101255_name_81 = D_80101254_name_81 + 0x1;
+D_80101256_name_81 = D_80101254_name_81 + 0x2;
+D_801015A6_name_81 = D_801015A4_name_81 + 0x2;
+D_801015B2_name_81 = D_801015B0_name_81 + 0x2;

@@ -49,7 +49,7 @@ extern u8 D_80100E88_name_81[]; // recent-minigame avoid count
 extern s32 D_80100EE4_name_81[]; // first board-call file per category
 extern ItemRect D_80100E8C_name_81[];
 extern ItemRect D_80100EB4_name_81[];
-extern u8 D_80100EEB_name_81[]; // indexed by minigame id: the table starts at 0x80100EEC
+extern u8 D_80100EEC_name_81[]; // per minigame id - 1 (asm names it one byte before as D_80100EEB)
 extern u8 D_80100ECC_name_81[];
 extern u8 D_80100ED0_name_81[];
 extern u8 D_80100ED4_name_81[];
@@ -707,7 +707,7 @@ void func_800DF594_name_81(s32 arg0) {
             func_8005B43C_main(entry->obj, D_80102BA8_name_81[i] + D_80100EE4_name_81[cat] - 1, -2, 4);
         }
 
-        func_8005C02C_main(entry->obj, D_80100EEB_name_81[D_80102BA8_name_81[i]]);
+        func_8005C02C_main(entry->obj, D_80100EEC_name_81[D_80102BA8_name_81[i] - 1]);
         func_8005BDFC_main(entry->obj, 0);
     }
 
@@ -862,7 +862,7 @@ void func_800DFBF4_name_81(void) {
             func_8005B43C_main(entry->obj, D_80102BA8_name_81[i] + D_80100EE4_name_81[cat] - 1, -2, 4);
         }
 
-        func_8005C02C_main(entry->obj, D_80100EEB_name_81[D_80102BA8_name_81[i]]);
+        func_8005C02C_main(entry->obj, D_80100EEC_name_81[D_80102BA8_name_81[i] - 1]);
         func_8005BDFC_main(entry->obj, 0);
         HuPrcVSleep();
     }
