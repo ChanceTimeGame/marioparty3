@@ -17,7 +17,7 @@ typedef struct ItemSlotEntry {
 typedef struct UnkData_CD0A0 {
     s16 unk_00;
     char unk_02[6];
-    s8 recentMinigames[1][PREV_MINIGAME_LIST_LENGTH];
+    s8 recentMinigames[2][PREV_MINIGAME_LIST_LENGTH];
 } UnkData_CD0A0;
 
 typedef struct UnkSize10 {
@@ -30,14 +30,21 @@ extern UnkData_CD0A0 D_800CC4A0_main;
 extern s8 D_800CC3E0_main[];
 
 extern u32 D_80100F38_name_81;
+extern u8 D_80100E84_name_81[]; // list length per category
+extern u8 D_80100E88_name_81[]; // recent-minigame avoid count
+extern s32 D_80100EE4_name_81[]; // first board-call file per category
 extern u8 D_80100ECC_name_81[];
 extern u8 D_80100ED0_name_81[];
+extern u8 D_80100ED4_name_81[];
+extern u8 D_80100ED8_name_81[];
+extern s8 D_80100EDC_name_81[][2];
 extern f32 D_80100F50_name_81[2][2];
 
 extern ItemSlotEntry D_80102B70_name_81[5];
 extern omObjData *D_80102BA4_name_81;
 extern s8 D_80102BA8_name_81[5]; // generated minigame list
 extern s8 D_80102BAD_name_81;
+extern s8 D_80102BAE_name_81;
 extern s16 D_80102BB0_name_81;
 extern s16 D_80102BB2_name_81;
 extern s16 D_80102BB4_name_81;
@@ -49,6 +56,7 @@ extern omObjData *D_80102BCC_name_81[2];
 extern u8 D_80102BD4_name_81;
 extern f32 D_80102BD8_name_81[2][2];
 
+void func_800E3868_name_81(void);
 void func_800DF348_name_81(void);
 void func_800DF49C_name_81(void);
 void func_800DF594_name_81(s32);
@@ -66,7 +74,169 @@ void func_800DD9A0_name_81(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/C5770", func_800DD9EC_name_81);
+void func_800DD9EC_name_81(omObjData *arg0) {
+    ItemSlotEntry *entry = NULL;
+    s32 i;
+    s16 new_var;
+
+    switch (arg0->work[0]) {
+        case 3:
+            break;
+        case 0:
+            if (arg0->work[1] == 0) {
+                arg0->scale.y += 0.1f;
+                if (arg0->scale.y > 1.0f) {
+                    arg0->scale.y = 1.0f;
+                }
+                for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                    new_var = 0xE0;
+                    entry = &D_80102B70_name_81[i];
+                    func_8005BA90_main(entry->obj, (entry->x + (entry->w / 2)), (entry->y + ((entry->h / 2) - new_var)));
+                    func_8005BB18_main(entry->obj, 0.0f, arg0->scale.y);
+                }
+
+                new_var = 0xE0;
+                func_80054904_main(D_80102BB0_name_81, 0, 0xA0, (D_80102B70_name_81[0].y + (D_80100ECC_name_81[D_80102BAD_name_81] - new_var)));
+
+                HuSprScaleSet(D_80102BB0_name_81, 0, sindf(arg0->scale.x), arg0->scale.y);
+                if (arg0->scale.y >= 1.0f) {
+                    arg0->work[0] = 4;
+                    arg0->work[1] = 5;
+                }
+            } else {
+                arg0->work[1] -= 1;
+            }
+            break;
+        case 4:
+            if (arg0->work[1] != 0) {
+                arg0->work[1] -= 1;
+                break;
+            }
+
+            arg0->scale.x += 10.0f;
+            if (arg0->scale.x > 90.0f) {
+                arg0->scale.x = 90.0f;
+            }
+
+            for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                new_var = 0xE0;
+                entry = &D_80102B70_name_81[i];
+                func_8005BA90_main(entry->obj, (entry->x + (entry->w / 2)), (entry->y + ((entry->h / 2) - new_var)));
+                func_8005BB18_main(entry->obj, sindf(arg0->scale.x), arg0->scale.y);
+            }
+
+            new_var = 0xE0;
+            func_80054904_main(D_80102BB0_name_81, 0, 0xA0,
+                                (D_80102B70_name_81[0].y + (D_80100ECC_name_81[D_80102BAD_name_81] - new_var)));
+
+            HuSprScaleSet(D_80102BB0_name_81, 0, sindf(arg0->scale.x), arg0->scale.y);
+
+            if (arg0->scale.x >= 90.0f) {
+                func_800DD9A0_name_81();
+                arg0->work[0] = 1;
+                arg0->scale.x = 1.0f;
+                arg0->scale.z = -1.0f;
+                arg0->scale.y = 0.0f;
+                arg0->work[1] = 0;
+                arg0->work[2] = func_800EFE20_name_81((f32)D_80100E84_name_81[D_80102BAD_name_81]);
+                arg0->work[3] = 0;
+                func_800DF49C_name_81();
+            }
+            break;
+        case 1:
+            arg0->scale.z += arg0->scale.x;
+
+            if (arg0->scale.z >= 1.0f) {
+                if ((arg0->work[3] != 0) && (arg0->scale.x <= 0.08f)) {
+                    arg0->work[3]--;
+                }
+                arg0->scale.z -= 1.0f;
+                if (arg0->scale.y == 0.0f) {
+                    arg0->work[1]++;
+                    arg0->work[1] = arg0->work[1] % D_80100E84_name_81[D_80102BAD_name_81];
+                } else {
+                    arg0->work[1]--;
+                    if (arg0->work[1] >= 0x80U) {
+                        arg0->work[1] = D_80100E84_name_81[D_80102BAD_name_81] - 1;
+                    }
+                }
+                func_800DD9A0_name_81();
+            }
+
+            for (i = 0; i < D_80100E84_name_81[D_80102BAD_name_81]; i++) {
+                entry = &D_80102B70_name_81[i];
+                if (i == arg0->work[1]) {
+                    func_8005FBF8_main(entry->obj, 0, 0xC8, 0);
+                    func_8005BEE0_main(entry->obj, 0x100);
+                    func_8005BE30_main(entry->obj, 0x2328);
+                } else {
+                    func_8005FBF8_main(entry->obj, 0x40, 0x40, 0x80);
+                    func_8005BEE0_main(entry->obj, 0);
+                    func_8005BE30_main(entry->obj, 0x2710);
+                }
+            }
+
+            if ((arg0->work[1] == arg0->work[2]) || (arg0->scale.x < 1.0f)) {
+                arg0->scale.x -= 0.02;
+            }
+
+            if (arg0->scale.x <= 0.08f) {
+                arg0->scale.x = 0.08f;
+                if ((arg0->work[1] == arg0->work[2]) && (arg0->work[3] == 0) && ((arg0->scale.z + 0.08f) >= 1.0f)) {
+                    if ((rand8() & 0xF) || (arg0->scale.y == 1.0f) || (arg0->work[1] == 0)) {
+                        if ((GwSystem.show_minigame_explanations == FALSE) || (GwSystem.current_board_index == 6)) {
+                            HuAudFXPlay(0x105);
+                        } else {
+                            HuAudFXPlay(0x112);
+                        }
+
+                        arg0->work[0] = 2;
+                        arg0->work[3] = 0x3C;
+                        func_8005D2D4_main(D_80102B70_name_81[arg0->work[1]].obj);
+                        func_8005D294_main(D_80102B70_name_81[arg0->work[1]].obj);
+                        func_8005B43C_main(D_80102B70_name_81[arg0->work[1]].obj,
+                                            D_80100EE4_name_81[D_80102BAD_name_81] + D_80102BA8_name_81[arg0->work[1]] - 1, -2, 4);
+                        func_8005C02C_main(D_80102B70_name_81[arg0->work[1]].obj, 1);
+                        func_8005C154_main(D_80102B70_name_81[arg0->work[1]].obj, 0xA0, 0xA0, 0xA0);
+                        func_8005FBF8_main(D_80102B70_name_81[arg0->work[1]].obj, 0xFE, 0xFF, 0xD0);
+                        func_8005BDFC_main(D_80102B70_name_81[arg0->work[1]].obj, 0);
+                    } else {
+                        arg0->scale.y = 1.0f;
+                        arg0->work[2]--;
+                        if (arg0->work[2] >= 128) {
+                            arg0->work[2] = D_80100E84_name_81[D_80102BAD_name_81] - 1;
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            if (arg0->work[3] != 0) {
+                arg0->work[3]--;
+            } else {
+                D_800CC4A0_main.recentMinigames[D_80102BAD_name_81][D_800CC3E0_main[D_80102BAD_name_81]] = D_80102BA8_name_81[arg0->work[2]];
+                D_800CC3E0_main[D_80102BAD_name_81]++;
+                D_800CC3E0_main[D_80102BAD_name_81] = D_800CC3E0_main[D_80102BAD_name_81] % (s32)D_80100E88_name_81[D_80102BAD_name_81 + D_80102BAE_name_81];
+                GWMgNoSet(D_80102BA8_name_81[arg0->work[2]]);
+                if ((GwSystem.current_board_index != 6) || (D_80102BAD_name_81 == 1)) {
+                    func_800E3868_name_81();
+                    func_800DF210_name_81();
+                }
+            }
+            arg0->rot.z += 1.0f;
+            if (arg0->rot.z >= 13.0f) {
+                arg0->rot.z -= 13.0f;
+            }
+            break;
+    }
+    if (D_80102BB4_name_81 != -1) {
+        for (i = 0; !(arg0->rot.z < (f32)*D_80100EDC_name_81[i]); i++) {}
+
+        func_80054904_main(D_80102BB4_name_81, 0,
+                            (D_80100ED0_name_81[D_80102BAD_name_81] + D_80100EDC_name_81[i][1]),
+                            (D_80100ED8_name_81[D_80102BAD_name_81] + (D_80100ED4_name_81[D_80102BAD_name_81] * arg0->work[1])));
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/C5770", func_800DE4D0_name_81);
 
