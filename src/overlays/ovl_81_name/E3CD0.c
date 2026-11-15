@@ -793,9 +793,141 @@ void func_800FF420_name_81(void) {
     HuPrcVSleep();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/E3CD0", func_800FF480_name_81);
+// duel n8
+extern u8 D_800CC0BA_main;
+void func_800DC3AC_name_81(s32 playerIndex);
+void func_800DC410_name_81(s32 playerIndex);
+void func_800F3500_name_81(s32 playerIndex);
+void func_800FB524_name_81(void *arg0);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/E3CD0", func_800FF640_name_81);
+void func_800FF480_name_81(void) {
+    Vec2f sp10;
+    s32 curPlayerNo;
+    s32 i;
+    s32 playerPadNo;
+
+    while (1) {
+        HuPrcVSleep();
+        if (WipeStatGet() != 0) {
+            continue;
+        }
+        if (mbItemBtnF == 0) {
+            continue;
+        }
+        if (D_800CC0BA_main == 3) {
+            continue;
+        }
+        curPlayerNo = MBDGetCurrentPlayerIndex();
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            if (D_800C9520_main[i] & START_BUTTON) {
+                func_800DC3AC_name_81(curPlayerNo);
+                MBDCameraPos2DGet(&sp10);
+                MBDCameraPos2DSet(&sp10);
+                func_800F3500_name_81(i);
+                func_800DC410_name_81(curPlayerNo);
+                break;
+            }
+            if (i < MBD_MAX_PLAYERS && func_800F37B8_name_81(i) == 0) {
+                playerPadNo = GwPlayer[i].pad;
+                if (i == curPlayerNo) {
+                    if (D_800D51F8_main != 0 && (D_800C9520_main[playerPadNo] & B_BUTTON)) {
+                        func_800DC3AC_name_81(i);
+                        D_800CB99C_main = 1;
+                        func_80049FB8_main();
+                        func_800FB524_name_81((void *)i);
+                        func_8004A0E0_main();
+                        D_800CB99C_main = 0;
+                        func_800DC410_name_81(i);
+                        break;
+                    }
+                    if (mbCameraBtnF != 0 && (D_800C9520_main[playerPadNo] & R_TRIG)) {
+                        func_800DC3AC_name_81(curPlayerNo);
+                        func_80100CEC_name_81(playerPadNo);
+                        func_800DC410_name_81(curPlayerNo);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// duel n8
+void func_800EB6C4_name_81(s16 playerIndex, s16 spaceIdx);
+void func_800F40E4_name_81(void);
+void func_800DC7CC_name_81(void);
+void func_800FC8E8_name_81(void);
+void func_800FD6F4_name_81(void);
+void func_800FCAB4_name_81(void);
+
+void func_800FF640_name_81(u32 arg0) {
+    GW_PLAYER *player;
+    s32 i;
+
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        s16 masuID;
+        player = MBDGetPlayerStruct(i);
+        masuID = MBDMasuLinkMasuIdGet(player->clink, player->cidx);
+        func_800EB6C4_name_81(i, masuID);
+        func_800ED214_name_81(i);
+    }
+
+    func_800E5954_name_81();
+    func_800E856C_name_81(1.0f);
+    MBDCameraSpeedSet(-1.0f);
+    D_800CD280_main = 1;
+    switch (arg0) {
+        case 0:
+            switch (mbGameMode) {
+                case 0:
+                case 1:
+                    WipeCreateIn(0, 0);
+                    func_800F40E4_name_81();
+                    break;
+                default:
+                    if (D_800A12C8_main != -1) {
+                        if (D_800A12C8_main == 0) {
+                            WipeColorSet(255, 255, 255);
+                        } else {
+                            WipeColorSet(0, 0, 0);
+                        }
+                        WipeCreateIn(D_800A12C8_main, 0x10);
+                        D_800A12C8_main = -1;
+                        func_800FFAE0_name_81(0, 0);
+                        func_800FFAE0_name_81(1, 0);
+                    } else {
+                        WipeCreateIn(0xFF, 0x10);
+                    }
+                    MBDCameraZoomSet(D_800C9938_main);
+                    func_800F4080_name_81();
+                    break;
+            }
+            MBDCameraPos3DSet(&GwPlayer[GwSystem.current_player_index].player_obj->coords);
+            omAddPrcObj(func_800FD6F4_name_81, 0xEFFF, 0x4000, 0);
+            omAddPrcObj(func_800FCAB4_name_81, 0x1005, 0, 0);
+            omPrcSetStatBit(omAddPrcObj(func_800FF480_name_81, 0x1001, 0, 0), 0x80);
+            mbCameraBtnF = 0;
+            mbItemBtnF = 0;
+            D_800D51F8_main = 0;
+            omAddPrcObj(func_800FC8E8_name_81, 0x1005, 0, 0);
+            func_800FC888_name_81(1);
+            if (func_800037C4_main(D_800CDBC8_main) < 0x7F) {
+                func_800DC7CC_name_81();
+                return;
+            }
+            return;
+        case 1:
+            MBDCameraPos3DSet(&GwPlayer[GwSystem.current_player_index].player_obj->coords);
+            omAddPrcObj(func_800FCAB4_name_81, 0x1005, 0, 0);
+            omPrcSetStatBit(omAddPrcObj(func_800FF420_name_81, 0x1005, 0, 0), 0x80);
+            mbCameraBtnF = 1;
+            return;
+        case 2:
+            func_800F73C0_name_81();
+            func_800FC888_name_81(0);
+            break;
+    }
+}
 
 void func_800FF944_name_81(s16 arg0) {
     D_800CD2A0_main.unk_02 = 1;
