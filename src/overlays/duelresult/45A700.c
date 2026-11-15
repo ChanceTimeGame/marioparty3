@@ -53,6 +53,10 @@ typedef struct DuelResultWork {
 } DuelResultWork; // sizeof 0x4C
 
 void func_8010ACC4_duelresult(void);
+void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+s16 func_80013928_main(s16 model);
+void func_80013954_main(s16 model, s16 value);
 
 DuelResultWork* func_8010ABE0_duelresult(s32 arg0) {
     Process* process;
@@ -106,9 +110,250 @@ void func_8010ACBC_duelresult(DuelResultWork *arg0, s16 arg1) {
     arg0->unk_06 = arg1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010ACC4_duelresult);
+void func_8010BDA4_duelresult(s16 model, s32 dataId);
+DrFxPart* func_8010C13C_duelresult(s16 model, f32 x, f32 y, f32 z, f32 vx, f32 vy, f32 vz, u8 r, u8 g, u8 b);
+void func_8010C21C_duelresult(s16 model);
+void func_8010C72C_duelresult(s16 model);
 
+/* Rows of the matrix turning a vector by angle a about the unit axis (x, y, z), applied to
+   (vx, vy, vz) (the camera roll in camera.c's func_80013220-style code). */
+#define DR_ROT_X(x, y, z, a, vx, vy, vz)                                                         \
+    ((vx) * ((x) * (x) + (1.0f - (x) * (x)) * cosdf(a)) +                                       \
+     (vy) * ((x) * (y) * (1.0f - cosdf(a)) - (z) * sindf(a)) +                                  \
+     (vz) * ((x) * (z) * (1.0f - cosdf(a)) + (y) * sindf(a)))
+#define DR_ROT_Y(x, y, z, a, vx, vy, vz)                                                         \
+    ((vx) * ((x) * (y) * (1.0f - cosdf(a)) + (z) * sindf(a)) +                                  \
+     (vy) * ((y) * (y) + (1.0f - (y) * (y)) * cosdf(a)) +                                       \
+     (vz) * ((y) * (z) * (1.0f - cosdf(a)) - (x) * sindf(a)))
+#define DR_ROT_Z(x, y, z, a, vx, vy, vz)                                                         \
+    ((vx) * ((x) * (z) * (1.0f - cosdf(a)) - (y) * sindf(a)) +                                  \
+     (vy) * ((y) * (z) * (1.0f - cosdf(a)) + (x) * sindf(a)) +                                  \
+     (vz) * ((z) * (z) + (1.0f - (z) * (z)) * cosdf(a)))
+
+// duel r2: NON_MATCHING (register allocation and spills); call sequence and flow match.
+#ifdef NON_MATCHING
+/* The firework: a rocket flies from work->unk_18 to work->unk_0C along a wobbling arc, trailing
+   sparks, then bursts into the shape of sprite data work->unk_00; repeats while work->unk_04
+   bit 1 is clear (bit 0 is set while it waits). Never returns. */
+void func_8010ACC4_duelresult(void) {
+    Vec pos;
+    Vec prev;
+    DuelResultWork* work;
+    HmfData* hmf;
+    HmfModelData_Unk64_Unk60_Struct* obj;
+    HmfModelData_Unk64_Unk60_Unk54_Struct* face;
+    DrFxWork* fx;
+    s16 model;
+    s16 head;
+    s16 i;
+    s16 j;
+    s16 count;
+    s16 t;
+    s16 spin;
+    f32 roll;
+    f32 r;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    f32 sc;
+    f32 ease;
+    f32 wave;
+
+    roll = 0.0f;
+    work = HuPrcCurrentGet()->user_data;
+    spin = 0;
+    model = func_8000B108_main(0xB0034, 0x2A8);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    hmf = HmfModelData[model].hmf;
+    for (j = 0; j < hmf->unk10; j++) {
+        obj = &hmf->unk60[j];
+        count = obj->unk22;
+        face = obj->unk54;
+        for (i = 0; i < count; i++, face++) {
+            face->unk00 |= 0x80;
+        }
+    }
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_8010C21C_duelresult);
+    func_800138EC_main(model, 8, 8);
+    fx = DR_FXWORK(model);
+    func_8001C258_main(model, 4, 4);
+    head = func_8000B108_main(0xB0035, 0x2B9);
+    func_8001C258_main(head, 4, 4);
+    Hu3DModelScaleSet(head, 2.0f, 2.0f, 2.0f);
+    func_8001C92C_main(head, 2.0f);
+    while (TRUE) {
+        work->unk_04 &= ~1;
+        work->unk_30 = work->unk_18;
+        work->unk_24 = work->unk_0C;
+        work->unk_08 = work->unk_0A;
+        r = rand8() * 2 + 400;
+        work->unk_3C.x = r - r / 2.0f;
+        r = rand8() * 2 + 200;
+        work->unk_3C.y = r - r / 2.0f;
+        r = rand8() * 2 + 200;
+        work->unk_3C.z = r - r / 2.0f;
+        work->unk_48 = (rand8() & 1) ? 180.0f : 0.0f;
+        fx->dist = work->unk_06;
+        prev = pos = work->unk_30;
+        HuAudFXPlay(0x16F);
+        func_8001C258_main(model, 4, 0);
+        func_80013954_main(model, 0);
+        fx->hook = func_8010C72C_duelresult;
+        func_800138EC_main(model, 2, 0);
+        for (t = 0; t <= work->unk_08; t++) {
+            HuPrcVSleep();
+            prev = pos;
+            dx = work->unk_24.x - work->unk_30.x;
+            dy = work->unk_24.y - work->unk_30.y;
+            dz = work->unk_24.z - work->unk_30.z;
+            ease = sindf(90.0f / work->unk_08 * t);
+            wave = sindf(180.0f / work->unk_08 * t + work->unk_48);
+            pos.x = ease * dx + work->unk_30.x + wave * work->unk_3C.x;
+            pos.y = ease * dy + work->unk_30.y + wave * work->unk_3C.y;
+            pos.z = ease * dz + work->unk_30.z + wave * work->unk_3C.z;
+            spin += 5;
+            if (spin > 360) {
+                spin -= 360;
+            }
+            roll += 20.0f;
+            if (roll > 360.0f) {
+                roll -= 360.0f;
+            }
+            dx = prev.x - pos.x;
+            dy = prev.y - pos.y;
+            dz = prev.z - pos.z;
+            len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+            if (len != 0.0f) {
+                dx /= len;
+                dy /= len;
+                dz /= len;
+                for (i = 0; i < 2; i++) {
+                    rx = dx * (((s32) (rand8() * 15) >> 7) * 0.01f + 1.0f);
+                    ry = dy * (((s32) (rand8() * 15) >> 7) * 0.01f + 1.0f);
+                    rz = dz * (((s32) (rand8() * 15) >> 7) * 0.01f + 1.0f);
+                    sc = len * ((s32) ((u32) (rand8() * 25) >> 7) * 0.01f);
+                    rx *= sc;
+                    ry *= sc;
+                    rz *= sc;
+                    func_8010C13C_duelresult(model, rx + pos.x, ry + pos.y, rz + pos.z, rx, ry, rz, 0xFF, 0xFF, 0xC0);
+                }
+                func_8010C13C_duelresult(model, pos.x, pos.y, pos.z,
+                                         (dx * 0.5f + DR_ROT_X(dx, dy, dz, roll, 0.0f, 1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         (dy * 0.5f + DR_ROT_Y(dx, dy, dz, roll, 0.0f, 1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         (dz * 0.5f + DR_ROT_Z(dx, dy, dz, roll, 0.0f, 1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         0xFF, 0x20, 0x20);
+                func_8010C13C_duelresult(model, pos.x, pos.y, pos.z,
+                                         (dx * 0.5f + DR_ROT_X(dx, dy, dz, roll, 0.0f, -1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         (dy * 0.5f + DR_ROT_Y(dx, dy, dz, roll, 0.0f, -1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         (dz * 0.5f + DR_ROT_Z(dx, dy, dz, roll, 0.0f, -1.0f, 0.0f) * 0.5f) * len / 2.0f,
+                                         0xFF, 0x40, 0x00);
+            }
+        }
+        HuPrcSleep(15);
+        func_8001C258_main(model, 4, 4);
+        func_8001C6A8_main(head, 0.0f);
+        func_8001C258_main(head, 4, 0);
+        Hu3DModelPosSet(head, pos.x, pos.y, pos.z);
+        HuPrcVSleep();
+        HuAudFXPlay(0x170);
+        func_8010BDA4_duelresult(model, work->unk_00);
+        fx->hook = func_8010C21C_duelresult;
+        func_80013954_main(model, 0);
+        func_8001C258_main(model, 4, 0);
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        func_800138EC_main(model, 2, 0);
+        while (!(func_80013928_main(model) & 2)) {
+            HuPrcVSleep();
+        }
+        func_8001C258_main(head, 4, 4);
+        func_8001C258_main(model, 4, 4);
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        work->unk_04 |= 1;
+        if (work->unk_04 & 2) {
+            HuPrcVSleep();
+        } else {
+            while (work->unk_04 & 1) {
+                HuPrcVSleep();
+            }
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010ACC4_duelresult);
+#endif
+
+// duel r2: masked 3: retail stores scale in rand8's delay slot with 3.0f still hoisted; only
+// the source order that hoists it (scale before vel.z) fills the slot with vel.z. Logic checked.
+#ifdef NON_MATCHING
+/* Lays model's particles out on the white (0xFFFF) texels of sprite data dataId: each one's target
+   offset (vel) is its texel's position from the centre, 12 units per texel; spare particles are
+   cleared. */
+void func_8010BDA4_duelresult(s16 model, s32 dataId) {
+    s16 sprId;
+    s16 grp;
+    s16 total;
+    DrFxWork* fx;
+    HuSprite* spr;
+    DrFxPart* part;
+    u16* pix;
+    s16 w;
+    s16 h;
+    s16 x;
+    s16 y;
+    s16 i;
+    s16 n;
+    s16 white;
+
+    sprId = func_8000B838_main(dataId);
+    grp = HuSprGrpCreate(1, 0);
+    func_80055024_main(grp, 0, sprId, 0);
+    spr = HuSprGet(grp, 0);
+    pix = spr->unk_84->unk00->unk00;
+    w = spr->unk_84->unk00->unk04;
+    h = spr->unk_84->unk00->unk06;
+    white = 0;
+    for (i = 0; i < w * h; i++) {
+        if (*pix++ == 0xFFFF) {
+            white++;
+        }
+    }
+    pix = spr->unk_84->unk00->unk00;
+    fx = DR_FXWORK(model);
+    total = DR_FXDATA(model)->count;
+    part = fx->parts;
+    y = 0;
+    n = 0;
+    for (; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            if (*pix++ == 0xFFFF && n < total) {
+                part = &fx->parts[n];
+                part->dir.x = rand8() & 0xF;
+                part->vel.x = (x - w / 2) * 12;
+                part->vel.y = (h / 2 - y) * 12;
+                part->scale = 3.0f;
+                part->vel.z = 1.0f;
+                part->speed = (s32) ((u32) (rand8() * 5) >> 7) * 0.1f + 3.0f;
+                n++;
+                part++;
+            }
+        }
+    }
+    for (i = 0; i < total - n; i++, part++) {
+        part->scale = part->vel.z = part->pos.x = part->pos.y = part->pos.z = 0.0f;
+    }
+    HuSprGrpKill(grp);
+    HuSprKill(sprId);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010BDA4_duelresult);
+#endif
 
 /* Starts a particle at pos with velocity vel and colour (r, g, b) in the first free slot of model's
    effect; returns the slot (one past the last if none is free). */
@@ -288,4 +533,137 @@ DuelResultWork* func_8010C880_duelresult(void) {
     return work;
 }
 
+/* Spark colours (r, g, b, pad); one table in the overlay's .data (splat splits it at +1 and +2). */
+extern u8 D_8010D6C0_duelresult[4][4];
+
+// duel r2: NON_MATCHING (register allocation; retail hoists 1.0f/0.7f into s8/s7). Logic checked.
+#ifdef NON_MATCHING
+/* Two sparklers circling work->unk_18 (150 units out, opposite each other), each leaving sparks
+   behind it in a spiral around its direction of travel. Never returns. */
+void func_8010C8E0_duelresult(void) {
+    s16 angle[2];
+    Vec cur[2];
+    Vec prev[2];
+    f32 roll[2];
+    f32 tilt[2];
+    DuelResultWork* work;
+    HmfData* hmf;
+    HmfModelData_Unk64_Unk60_Struct* obj;
+    HmfModelData_Unk64_Unk60_Unk54_Struct* face;
+    DrFxWork* fx;
+    s16 model;
+    s16 i;
+    s16 j;
+    s16 count;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 a;
+    f32 len;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 yy;
+    f32 x7;
+    f32 y7;
+    f32 z7;
+    s32 k;
+
+    work = HuPrcCurrentGet()->user_data;
+    model = func_8000B108_main(0xB0034, 0x6A8);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    hmf = HmfModelData[model].hmf;
+    for (j = 0; j < hmf->unk10; j++) {
+        obj = &hmf->unk60[j];
+        count = obj->unk22;
+        face = obj->unk54;
+        for (i = 0; i < count; i++, face++) {
+            face->unk00 |= 0x80;
+        }
+    }
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_8010C21C_duelresult);
+    func_800138EC_main(model, 8, 8);
+    fx = DR_FXWORK(model);
+    func_8001C258_main(model, 4, 4);
+    func_8001C258_main(model, 4, 0);
+    func_80013954_main(model, 0);
+    fx->hook = func_8010C72C_duelresult;
+    func_800138EC_main(model, 2, 0);
+    work->unk_30 = work->unk_18;
+    cur[0].x = sindf(0.0f) * 150.0f + work->unk_30.x;
+    cur[0].y = work->unk_30.y;
+    cur[0].z = cosdf(0.0f) * 150.0f + work->unk_30.z;
+    prev[0] = cur[0];
+    roll[0] = 0.0f;
+    tilt[0] = 0.0f;
+    angle[0] = 0;
+    cur[1].x = sindf(180.0f) * 150.0f + work->unk_30.x;
+    cur[1].y = work->unk_30.y;
+    cur[1].z = cosdf(180.0f) * 150.0f + work->unk_30.z;
+    prev[1] = cur[1];
+    roll[1] = 180.0f;
+    tilt[1] = 180.0f;
+    angle[1] = 180;
+    while (TRUE) {
+        HuPrcVSleep();
+        for (i = 0; i < 2; i++) {
+            prev[i] = cur[i];
+            x = sindf(angle[i]) * 150.0f;
+            z = cosdf(angle[i]) * 150.0f;
+            a = sindf(tilt[i]) * 10.0f;
+            cur[i].x = x * cosdf(a) + work->unk_30.x;
+            cur[i].y = x * -sindf(a) + work->unk_30.y;
+            cur[i].z = z + work->unk_30.z;
+            angle[i] += 5;
+            if (angle[i] > 360) {
+                angle[i] -= 360;
+            }
+            roll[i] += 20.0f;
+            if (roll[i] > 360.0f) {
+                roll[i] -= 360.0f;
+            }
+            tilt[i] += 1.0f;
+            if (tilt[i] > 360.0f) {
+                tilt[i] -= 360.0f;
+            }
+            x = prev[i].x - cur[i].x;
+            y = prev[i].y - cur[i].y;
+            z = prev[i].z - cur[i].z;
+            len = HuSqrtf(x * x + y * y + z * z);
+            if (len != 0.0f) {
+                x /= len;
+                y /= len;
+                z /= len;
+                a = roll[i];
+                /* (0, 1, 0) turned by a about the direction of travel */
+                ux = x * y * (1.0f - cosdf(a)) - z * sindf(a);
+                yy = y * y;
+                uy = yy + (1.0f - yy) * cosdf(a);
+                uz = y * z * (1.0f - cosdf(a)) + x * sindf(a);
+                k = rand8() & 3;
+                func_8010C13C_duelresult(model, cur[i].x, cur[i].y, cur[i].z,
+                                         ((x7 = x * 0.7f) + ux * 0.3f) * len * 0.7f,
+                                         ((y7 = y * 0.7f) + uy * 0.3f) * len * 0.7f,
+                                         ((z7 = z * 0.7f) + uz * 0.3f) * len * 0.7f,
+                                         D_8010D6C0_duelresult[k][0], D_8010D6C0_duelresult[k][1],
+                                         D_8010D6C0_duelresult[k][2])->scale = 1.0f;
+                ux = -(x * y * (1.0f - cosdf(a)) - z * sindf(a));
+                uy = -(yy + (1.0f - yy) * cosdf(a));
+                uz = -(y * z * (1.0f - cosdf(a)) + x * sindf(a));
+                k = rand8() & 3;
+                func_8010C13C_duelresult(model, cur[i].x, cur[i].y, cur[i].z,
+                                         (x7 + ux * 0.3f) * len * 0.7f,
+                                         (y7 + uy * 0.3f) * len * 0.7f,
+                                         (z7 + uz * 0.3f) * len * 0.7f,
+                                         D_8010D6C0_duelresult[k][0], D_8010D6C0_duelresult[k][1],
+                                         D_8010D6C0_duelresult[k][2])->scale = 1.0f;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult/45A700", func_8010C8E0_duelresult);
+#endif
