@@ -2347,8 +2347,12 @@ segments:
     bss_size: 0x570
     subsegments:
       - [0x4F3780, c]
+      - [0x4F4980, c]
+      - [0x4F5AF0, c]
       - [0x4F66B0, data, 4F3780] #801088D0
       - [0x4F66D0, .rodata, 4F3780] #801088F0
+      - [0x4F6788, .rodata, 4F4980] #801089A8
+      - [0x4F67B0, .rodata, 4F5AF0] #801089D0
       - {0x4F6810, type: bss, vram: 0x80108A30, name: mgresultbattle_bss}
 
   - type: code

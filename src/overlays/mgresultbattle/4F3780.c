@@ -5,6 +5,8 @@
 #include "game/audio.h"
 #include "game/gamemes.h"
 #include "game/hmfman.h"
+#include "game/process.h"
+#include "variables.h"
 #include "../ovl_80_shared_board/FA250.h"
 #include "../ovl_80_shared_board/105D50.h"
 
@@ -22,6 +24,7 @@ void func_80105E64_mgresultbattle(omObjData *);
 void func_80105F50_mgresultbattle(void);
 void func_80106908_mgresultbattle(void);
 void func_80106910_mgresultbattle(omObjData *);
+void func_801069FC_mgresultbattle(omObjData *);
 void func_80105F78_mgresultbattle(Gfx **, s32, s32);
 void func_801075FC_mgresultbattle(void);
 void MBBackKill(void);
@@ -393,80 +396,70 @@ void func_80106908_mgresultbattle(void) {
 void func_80106910_mgresultbattle(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106918_mgresultbattle);
+#ifdef NON_MATCHING
+// battleres A: masked 0, raw 12 (s0/s1 swapped between i and motion).
+// Plays each figure's win (coins earned) or lose motion, then hands figure 0's hook to the wait below.
+void func_80106918_mgresultbattle(void) {
+    s32 motion;
+    omObjData *obj;
+    s8 player;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801069FC_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106BA0_mgresultbattle);
-
-void func_80106E98_mgresultbattle(void) {
+    for (i = 0; i < 4; i++) {
+        obj = D_80108F50_mgresultbattle[i].obj;
+        player = D_80108F8C_mgresultbattle[i];
+        motion = 1;
+        if (GwPlayer[player].gameCoin > 0) {
+            func_8004ACE0_main(0x274, player);
+        } else {
+            motion = 2;
+        }
+        func_8001C624_main(obj->model[1], HmfModelData[obj->motion[motion]].unk02, 0, 0x14, 0);
+    }
+    D_80108F50_mgresultbattle[0].func = func_801069FC_mgresultbattle;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106918_mgresultbattle);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106EA0_mgresultbattle);
+// Waits for the motion to finish, then up to 40 frames for a human player's A press, then ends the screen.
+void func_801069FC_mgresultbattle(omObjData *obj) {
+    s32 pressed;
+    s32 t;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80106ED0_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107260_mgresultbattle);
+    HuPrcSleep(5);
+    while (!(func_8001C7D0_main(obj->model[1]) < 0.0f)) {
+        HuPrcVSleep();
+    }
+    while (1) {
+        if (D_800CCF58_main[HmfModelData[obj->model[1]].unk02].unk02 <= HmfModelData[obj->model[1]].unk40) {
+            pressed = 0;
+            for (t = 0; t < 40; t++) {
+                for (i = 0; i < MB_MAX_PLAYERS; i++) {
+                    if (GwPlayer[i].stat & 1) {
+                        continue;
+                    }
+                    if (D_800D5558_main[GwPlayer[i].pad] & 0x8000) {
+                        pressed = 1;
+                        break;
+                    }
+                }
+                if (pressed == 1) {
+                    break;
+                }
+                HuPrcVSleep();
+            }
+            D_801088D0_mgresultbattle = 4;
+            break;
+        }
+        HuPrcVSleep();
+    }
+    D_80108F50_mgresultbattle[0].func = func_80106910_mgresultbattle;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108908_mgresultbattle);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108920_mgresultbattle);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089A0_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107400_mgresultbattle);
-
-void func_801075EC_mgresultbattle(void) {
-}
-
-void func_801075F4_mgresultbattle(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801075FC_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107610_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107B5C_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107BDC_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107C44_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107CA4_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107D10_mgresultbattle);
-
-void func_80107F94_mgresultbattle(void) {
-}
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089C0_mgresultbattle);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089D0_mgresultbattle);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089D4_mgresultbattle);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089D8_mgresultbattle);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108A00_mgresultbattle);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108A10_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80107F9C_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801080A0_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80108130_mgresultbattle);
-
-void func_8010829C_mgresultbattle(void) {
-}
-
-void func_801082A4_mgresultbattle(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801082AC_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_801082C0_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80108510_mgresultbattle);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultbattle/4F3780", func_80108858_mgresultbattle);
