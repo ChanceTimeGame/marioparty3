@@ -4723,7 +4723,601 @@ s32 func_80113CAC_duel01(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80113CAC_duel01);
 #endif
 
+// duel b7
+u8 func_800FD498_name_81(void); /* defined s32 in ovl_81; the callers here read it as u8 */
+
+#ifdef NON_MATCHING
+// duel b7: m2c-derived, block order differs from retail (masked ~1450 of 1147). Logic checked by running retail
+// and this build in a MIPS interpreter on 15000 random player/board states: same result and call sequence on all,
+// covering every reachable retail instruction (the walk == 7 block is dead in retail too).
+// COM decision mirroring func_80113CAC_duel01: whether the current player should act against the opponent.
+s32 func_801147FC_duel01(void) {
+    GW_PLAYER *me;
+    DuelSpaceTbl dist;
+    GW_PLAYER *opp;
+    SpaceData *temp_a0_3;
+    s16 temp_s0;
+    s16 cur;
+    s32 temp_s1;
+    s32 walk;
+    s32 var_s1;
+    s32 var_s1_2;
+    s32 var_s1_3;
+    s32 var_s1_4;
+    s32 var_s1_5;
+    s32 var_s1_6;
+    s32 var_s1_7;
+    s32 var_v0;
+    s32 var_v0_10;
+    s32 var_v0_11;
+    s32 var_v0_2;
+    s32 var_v0_4;
+    s32 var_v0_5;
+    s32 var_v0_6;
+    s32 var_v0_7;
+    s32 var_v1_2;
+    s32 var_v1_3;
+    s32 var_v1_4;
+    s8 temp_a0;
+    s8 temp_a0_2;
+    s8 temp_a0_4;
+    s8 temp_a0_5;
+    s8 temp_v0_2;
+    s8 temp_v1;
+    s8 temp_v1_2;
+    s8 temp_v1_3;
+    s8 temp_v1_4;
+    s8 temp_v1_5;
+    s8 var_a1;
+    s8 var_a1_2;
+    s8 var_v0_3;
+    s8 var_v0_8;
+    s8 var_v0_9;
+    s8 var_v1;
+    u8 temp_s0_2;
+    u8 temp_s0_3;
+
+    cur = MBDGetCurrentPlayerIndex();
+    temp_s0 = MBDGetCurrentPlayerIndex() ^ 1;
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct((s32) temp_s0);
+    walk = mbWalkNum;
+    dist = D_801193E8_duel01;
+    temp_v1 = opp->clink;
+    if (temp_v1 != 1) {
+        if (temp_v1 >= 2) {
+            if (temp_v1 != 2) {
+                return 1;
+            }
+            if ((opp->rev & 1) || (opp->nlink == 0)) {
+                if (dist.idx[walk] >= opp->cidx) {
+                    var_v0 = 1;
+                    if (opp->stats.partners.frontID == 4) {
+                        temp_a0_2 = me->stats.partners.frontPower;
+                        if (temp_a0_2 >= (me->star + me->stats.partners.frontHp)) {
+                            return temp_a0_2 >= (opp->stats.partners.frontHp + opp->star);
+                        }
+                        goto block_236;
+                    }
+                    return var_v0;
+                }
+                if (opp->stats.partners.frontID == 8) {
+                    var_v0 = 0;
+                    if (me->star >= 2) {
+                        goto block_172;
+                    }
+                    return var_v0;
+                }
+block_172:
+                if (((opp->stats.partners.frontID != 3) || (var_v0 = 0, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) && ((opp->stats.partners.frontID != 0xA) || (var_v0 = 0, ((opp->stats.partners.frontPower < (me->stats.partners.backHp + me->star)) != 0))) && ((temp_v1_2 = me->stats.partners.frontHp, ((temp_v1_2 < opp->stats.partners.frontPower) == 0)) || (var_v0 = 0, ((me->stats.partners.backHp < temp_v1_2) != 0)))) {
+                    var_v0 = 1;
+                    if (func_800EFE20_name_81(100.0f) >= 0x32) {
+                        return 0;
+                    }
+                }
+                return var_v0;
+            }
+            if (dist.idx[walk] < opp->cidx) {
+                if ((walk == 2) && (me->stats.partners.frontPoweredUp != walk)) {
+                    var_s1_2 = 0x64;
+                    if (func_800F8980_name_81(cur) != 0) {
+                        var_s1_3 = GwPlayer[cur].coin - 5;
+                        var_v0_6 = func_800F8980_name_81(cur) * 2;
+                        goto block_198;
+                    }
+                    goto block_199;
+                }
+                if (walk == 3) {
+                    goto block_186;
+                }
+                temp_a0_3 = MBDMasuGet(0x13);
+                if (walk == 1) {
+                    if ((temp_a0_3->space_type - 0xB) == GwPlayer[cur].chr) {
+                        var_s1_2 = 0x64;
+                        if (func_800F8980_name_81(cur) != 0) {
+                            temp_s0_2 = func_800FD498_name_81();
+                            var_s1_3 = GwPlayer[cur].coin + (temp_s0_2 - 5);
+                            var_v0_6 = func_800F8980_name_81(cur) * 2;
+                            goto block_198;
+                        }
+                    } else if (temp_a0_3->space_type == 6) {
+                        var_s1_2 = 0x64;
+                        if (func_800F8980_name_81(cur) != 0) {
+                            goto block_197;
+                        }
+                    } else {
+                        var_s1_2 = 0x64;
+                        if (func_800F8980_name_81(cur) != 0) {
+                            temp_s0_3 = func_800FD498_name_81();
+                            var_s1_3 = GwPlayer[cur].coin - (temp_s0_3 + 5);
+                            var_v0_6 = func_800F8980_name_81(cur) * 2;
+                            goto block_198;
+                        }
+                    }
+                } else {
+                    var_s1_2 = 0x64;
+                    if (func_800F8980_name_81(cur) != 0) {
+block_197:
+                        var_v0_6 = func_800F8980_name_81(cur);
+                        var_s1_3 = GwPlayer[cur].coin - 5;
+                        goto block_198;
+                    }
+                }
+                goto block_199;
+            }
+            if (me->stats.partners.frontID == 8) {
+                var_v0 = 1;
+                if (opp->star >= 2) {
+                    goto block_203;
+                }
+                return var_v0;
+            }
+block_203:
+            if ((me->stats.partners.frontID != 3) || (var_v0 = 1, ((me->stats.partners.frontPoweredUp < opp->star) != 0))) {
+                if (me->stats.partners.frontID == 0xA) {
+                    if (me->stats.partners.frontPower >= (opp->stats.partners.frontHp + opp->star)) {
+                        return 1;
+                    }
+                    goto block_209;
+                }
+                var_v0 = 1;
+                if (me->stats.partners.frontPower < (opp->star + opp->stats.partners.backHp)) {
+block_209:
+                    if (opp->stats.partners.backID == 4) {
+                        if (me->stats.partners.frontPower >= (me->stats.partners.frontHp + me->star)) {
+                            return 0;
+                        }
+                        temp_s1 = me->stats.partners.frontHp - me->stats.partners.frontPower;
+                        var_v0_5 = (me->star + me->stats.partners.backHp) - (-(temp_s1 < 1) & temp_s1);
+                        goto block_214;
+                    }
+                    var_s1_4 = 0x64;
+                    if (func_800F8980_name_81(cur) != 0) {
+                        var_s1_4 = (s32) (GwPlayer[cur].coin - 5) / func_800F8980_name_81(cur);
+                    }
+                    var_v0 = 1;
+                    if (!((walk == 6) & (var_s1_4 >= 2))) {
+                        if (opp->cidx != dist.idx[walk]) {
+                            if (opp->stats.partners.frontID == 8) {
+                                var_v0 = 0;
+                                if (me->star >= 2) {
+                                    goto block_226;
+                                }
+                                return var_v0;
+                            }
+block_226:
+                            if ((opp->stats.partners.frontID != 3) || (var_v0 = 0, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) {
+                                if (opp->stats.partners.frontID == 0xA) {
+                                    var_v0_7 = me->stats.partners.frontHp + me->star;
+                                } else {
+                                    var_v0_7 = me->star + me->stats.partners.backHp;
+                                }
+                                if (opp->stats.partners.frontPower >= var_v0_7) {
+                                    return 0;
+                                }
+                                var_v0 = 1;
+                                if (me->stats.partners.frontPower == 0) {
+                                    return opp->stats.partners.frontPower == 0;
+                                }
+                                return var_v0;
+                            }
+                            return var_v0;
+                        }
+                        var_v0_4 = me->stats.partners.frontPower == 0;
+                        var_v1_3 = walk == 1;
+                        goto block_222;
+                    }
+                    return var_v0;
+                }
+                return var_v0;
+            }
+            return var_v0;
+        }
+        if (temp_v1 != 0) {
+            return 1;
+        }
+        if (opp->cidx == (walk - 6)) {
+            var_v0 = 1;
+            if (opp->stats.partners.backID == 4) {
+                var_v1 = me->stats.partners.frontPower;
+                var_v0_2 = me->star + me->stats.partners.frontHp;
+                goto block_148;
+            }
+            return var_v0;
+        }
+        if (opp->cidx < (walk - 6)) {
+            var_a1 = me->star;
+            if (me->stats.partners.frontID == 8) {
+                var_v0 = 1;
+                if (opp->star >= 2) {
+                    goto block_15;
+                }
+                return var_v0;
+            }
+block_15:
+            if ((me->stats.partners.frontID != 3) || (var_v0 = 1, ((me->stats.partners.frontPoweredUp < opp->star) != 0))) {
+                if (me->stats.partners.frontID == 0xA) {
+                    var_v0_8 = opp->stats.partners.frontHp;
+                } else {
+                    var_v0_8 = opp->stats.partners.backHp;
+                }
+                if (me->stats.partners.frontPower < (var_v0_8 + opp->star)) {
+                    if (opp->stats.partners.backID == 4) {
+                        var_v0 = 0;
+                        if (me->stats.partners.frontPower < (me->star + me->stats.partners.frontHp)) {
+                            temp_a0_4 = me->stats.partners.frontPower;
+                            temp_v1_3 = me->stats.partners.frontHp;
+                            if (temp_v1_3 < temp_a0_4) {
+                                var_a1 -= temp_a0_4 - temp_v1_3;
+                            }
+                            goto block_26;
+                        }
+                        return var_v0;
+                    }
+block_26:
+                    if (walk == 0xA) {
+                        if (me->stats.partners.backPower < (opp->stats.partners.frontHp + opp->star)) {
+                            var_v0 = 1;
+                            if (opp->stats.partners.frontID == 4) {
+                                return me->stats.partners.backPower < (var_a1 + me->stats.partners.backHp);
+                            }
+                            return var_v0;
+                        }
+                        goto block_236;
+                    }
+                    if (((GwSystem.current_turn != GwSystem.total_turns) | (cur == 0)) != 0) {
+                        if (opp->stats.partners.frontID == 8) {
+                            var_v0 = 0;
+                            if (me->star >= 2) {
+                                goto block_34;
+                            }
+                            return var_v0;
+                        }
+block_34:
+                        if ((opp->stats.partners.frontID != 3) || (var_v0 = 0, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) {
+                            if (opp->stats.partners.frontID == 0xA) {
+                                var_v0_5 = me->stats.partners.frontHp + me->star;
+block_214:
+                                return opp->stats.partners.frontPower < var_v0_5;
+                            }
+                            var_v0 = 0;
+                            if ((me->stats.partners.backHp + me->star) >= opp->stats.partners.frontPower) {
+                                goto block_39;
+                            }
+                            return var_v0;
+                        }
+                        return var_v0;
+                    }
+block_39:
+                    var_v0 = 1;
+                    if (me->stats.partners.frontPower == 0) {
+                        var_v0 = 1;
+                        if (me->stats.partners.backID != 4) {
+                            return 0;
+                        }
+                    }
+                    return var_v0;
+                }
+                goto block_236;
+            }
+            return var_v0;
+        }
+        if (walk == 1) {
+            if (opp->cidx >= 6) {
+                if (me->stats.partners.backID == 8) {
+                    var_v0 = 0;
+                    if (opp->star >= 2) {
+                        goto block_47;
+                    }
+                    return var_v0;
+                }
+block_47:
+                if ((me->stats.partners.backID != 3) || (var_v0 = 0, ((me->stats.partners.frontPoweredUp < opp->star) != 0))) {
+                    if (me->stats.partners.backID == 0xA) {
+                        if (me->stats.partners.backPower >= (opp->stats.partners.backHp + opp->star)) {
+                            goto block_51;
+                        }
+                        goto block_55;
+                    }
+                    if ((opp->stats.partners.frontHp + opp->star) < me->stats.partners.backPower) {
+                        return 0;
+                    }
+block_55:
+                    var_v0 = 0;
+                    if (opp->stats.partners.frontID == 4) {
+                        var_v0_3 = me->stats.partners.backPower;
+                        var_v1_2 = me->star + me->stats.partners.backHp;
+                        goto block_126;
+                    }
+                    return var_v0;
+                }
+                return var_v0;
+            }
+            if (opp->stats.partners.frontPower != 0) {
+                if (opp->stats.partners.frontID == 8) {
+                    var_v0 = 1;
+                    if (me->star >= 2) {
+                        goto block_61;
+                    }
+                    return var_v0;
+                }
+block_61:
+                if ((opp->stats.partners.frontID != 3) || (var_v0 = 1, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) {
+                    if (opp->stats.partners.frontID == 0xA) {
+                        if (opp->stats.partners.frontPower >= (me->stats.partners.frontHp + me->star)) {
+                            return 1;
+                        }
+                        goto block_68;
+                    }
+                    var_v0 = 0;
+                    if (me->stats.partners.backHp < opp->stats.partners.frontPower) {
+                        if (opp->stats.partners.frontPower < (me->stats.partners.backHp + me->star)) {
+block_68:
+                            return (MBDMasuGet(0x13)->space_type - 0xB) == GwPlayer[cur].chr;
+                        }
+block_236:
+                        var_v0 = 1;
+                        return var_v0;
+                    }
+                    return var_v0;
+                }
+                return var_v0;
+            }
+            goto block_51;
+        }
+        var_v0 = 1;
+        if ((u32) (walk - 6) >= 2U) {
+            if (walk == 3) {
+                goto block_186;
+            }
+            if (walk == 2 && me->stats.partners.frontPoweredUp != walk) {
+                {
+                    var_s1_2 = 0x64;
+                    if (func_800F8980_name_81(cur) != 0) {
+                        var_s1_3 = GwPlayer[cur].coin - 5;
+                        var_v0_6 = func_800F8980_name_81(cur) * 2;
+block_198:
+                        var_s1_2 = var_s1_3 / var_v0_6;
+                    }
+block_199:
+                    return var_s1_2 >= 2;
+                }
+            }
+            if (walk == 7) { /* never true here: walk 6 and 7 returned above */
+                {
+                    var_s1_5 = 0x64;
+                    if (func_800F8980_name_81(cur) != 0) {
+                        var_s1_5 = (s16) GwPlayer[cur].coin / func_800F8980_name_81(cur);
+                    }
+                    if ((me->stats.partners.frontPower == 0) || (var_v0 = 0, (((me->stats.partners.backHp != 0) & (var_s1_5 >= 4)) == 0))) {
+                        if (opp->stats.partners.frontID == 8) {
+                            var_v0 = 1;
+                            if (me->star >= 2) {
+                                goto block_83;
+                            }
+                            return var_v0;
+                        }
+block_83:
+                        if ((opp->stats.partners.frontID != 3) || (var_v0 = 1, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) {
+                            if (opp->stats.partners.frontID == 0xA) {
+                                if (opp->stats.partners.frontPower >= (me->stats.partners.frontHp + me->star)) {
+                                    return 1;
+                                }
+                                goto block_89;
+                            }
+                            var_v0 = 1;
+                            if (opp->stats.partners.frontPower < (me->stats.partners.backHp + me->star)) {
+                                goto block_89;
+                            }
+                            return var_v0;
+                        }
+                        return var_v0;
+                    }
+                    return var_v0;
+                }
+            }
+            {
+block_89:
+                var_s1_6 = 0x64;
+                if (func_800F8980_name_81(cur) == 0) {
+                    var_v1_4 = 0x64;
+                } else {
+                    var_s1_6 = (GwPlayer[cur].coin - 5) / func_800F8980_name_81(cur);
+                    var_v1_4 = GwPlayer[cur].coin / func_800F8980_name_81(cur);
+                }
+                var_v0_4 = var_s1_6 < 2;
+                var_v1_3 = var_v1_4 >= 2;
+block_222:
+                return (var_v0_4 & var_v1_3) == 0;
+            }
+        } else {
+            return var_v0;
+        }
+    } else {
+        if (opp->cidx == (walk - 1)) {
+            if (me->stats.partners.frontID != 3) {
+                if (opp->stats.partners.backID == 4) {
+                    temp_a0 = me->stats.partners.frontPower;
+                    if (temp_a0 >= (me->star + me->stats.partners.frontHp)) {
+                        return temp_a0 < (opp->stats.partners.backHp + opp->star);
+                    }
+                }
+                return (me->stats.partners.frontPower == 0) & (walk != 6);
+            }
+            goto block_51;
+        }
+        if (opp->cidx < (walk - 1)) {
+            var_a1_2 = me->star;
+            if (me->stats.partners.frontID == 8) {
+                var_v0 = 0;
+                if (opp->star >= 2) {
+                    goto block_103;
+                }
+                return var_v0;
+            }
+block_103:
+            if ((me->stats.partners.frontID != 3) || (var_v0 = 0, ((me->stats.partners.frontPoweredUp < opp->star) != 0))) {
+                if (me->stats.partners.frontID == 0xA) {
+                    var_v0_9 = opp->stats.partners.frontHp;
+                } else {
+                    var_v0_9 = opp->stats.partners.backHp;
+                }
+                if (me->stats.partners.frontPower < (var_v0_9 + opp->star)) {
+                    if (opp->stats.partners.backID == 4) {
+                        var_v0 = 1;
+                        if (me->stats.partners.frontPower < (me->star + me->stats.partners.frontHp)) {
+                            temp_a0_5 = me->stats.partners.frontPower;
+                            temp_v1_4 = me->stats.partners.frontHp;
+                            if (temp_v1_4 < temp_a0_5) {
+                                var_a1_2 -= temp_a0_5 - temp_v1_4;
+                            }
+                            goto block_114;
+                        }
+                        return var_v0;
+                    }
+block_114:
+                    if (walk == 7) {
+                        if (me->stats.partners.backPower < (opp->stats.partners.frontHp + opp->star)) {
+                            var_v0 = 0;
+                            if (opp->stats.partners.frontID == 4) {
+                                var_v0_3 = me->stats.partners.backPower;
+                                var_v1_2 = var_a1_2 + me->stats.partners.backHp;
+                                goto block_126;
+                            }
+                            return var_v0;
+                        }
+                        goto block_51;
+                    }
+                    if (((GwSystem.current_turn != GwSystem.total_turns) | (cur == 0)) != 0) {
+                        if (opp->stats.partners.frontID == 8) {
+                            var_v0 = 1;
+                            if (me->star >= 2) {
+                                goto block_122;
+                            }
+                            return var_v0;
+                        }
+block_122:
+                        if ((opp->stats.partners.frontID != 3) || (var_v0 = 1, ((opp->stats.partners.frontPoweredUp < me->star) != 0))) {
+                            if (opp->stats.partners.frontID == 0xA) {
+                                var_v1_2 = me->stats.partners.frontHp + me->star;
+                                var_v0_3 = opp->stats.partners.frontPower;
+block_126:
+                                return var_v0_3 >= var_v1_2;
+                            }
+                            var_v0 = 1;
+                            if ((me->stats.partners.backHp + me->star) >= opp->stats.partners.frontPower) {
+                                goto block_128;
+                            }
+                            return var_v0;
+                        }
+                        return var_v0;
+                    }
+block_128:
+                    temp_v0_2 = me->stats.partners.frontID;
+                    var_v0 = 0;
+                    if (((temp_v0_2 == 3) | (temp_v0_2 == 8)) == 0) {
+                        if (me->stats.partners.frontID == 0xA) {
+                            if (me->stats.partners.frontPower < opp->stats.partners.frontHp) {
+                                var_v0_10 = opp->stats.partners.frontPower < opp->stats.partners.backHp;
+                                goto block_132;
+                            }
+                            goto block_136;
+                        }
+                        temp_v1_5 = opp->stats.partners.backHp;
+                        if (me->stats.partners.frontPower < temp_v1_5) {
+                            var_v0_10 = opp->stats.partners.frontPower < temp_v1_5;
+block_132:
+                            if (var_v0_10 == 0) {
+                                return 1;
+                            }
+                            goto block_136;
+                        }
+block_136:
+                        var_v0 = 0;
+                        if (me->stats.partners.frontPower == 0) {
+                            var_v0 = 0;
+                            if (me->stats.partners.backID != 4) {
+                                return 1;
+                            }
+                        }
+                        return var_v0;
+                    }
+                    return var_v0;
+                }
+block_51:
+                return 0;
+            }
+            return var_v0;
+        }
+        var_v0 = 0;
+        if (walk != 1) {
+            if (opp->cidx >= 8) {
+                if ((opp->stats.partners.frontID == 3) || (opp->stats.partners.frontPower != 0)) {
+                    if (walk != 6) {
+                        return 0;
+                    }
+                    var_v0 = 1;
+                    if (opp->stats.partners.frontID == 4) {
+                        var_v1 = me->stats.partners.backPower;
+                        var_v0_2 = me->stats.partners.backHp + me->star;
+block_148:
+                        return var_v1 < var_v0_2;
+                    }
+                    return var_v0;
+                }
+                if (walk != 3) {
+                    if ((walk == 2) && (me->stats.partners.frontPoweredUp != walk)) {
+                        var_s1 = 0x64;
+                        if (func_800F8980_name_81(cur) != 0) {
+                            var_s1_7 = GwPlayer[cur].coin - 5;
+                            var_v0_11 = func_800F8980_name_81(cur) * 2;
+                            goto block_156;
+                        }
+                    } else {
+                        var_s1 = 0x64;
+                        if (func_800F8980_name_81(cur) != 0) {
+                            var_v0_11 = func_800F8980_name_81(cur);
+                            var_s1_7 = GwPlayer[cur].coin - 5;
+block_156:
+                            var_s1 = var_s1_7 / var_v0_11;
+                        }
+                    }
+                    return var_s1 > 0;
+                }
+block_186:
+                return func_800EFE20_name_81(100.0f) < 0x32;
+            }
+            if (opp->cidx < 5) {
+                return 0;
+            }
+            return (u32) (walk - 9) < 2U;
+        }
+        return var_v0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801147FC_duel01);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_801193E8_duel01);
 
@@ -4759,7 +5353,6 @@ void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
 void func_800ED788_name_81(s32 playerNo);
 void func_800F7378_name_81(s32 playerIndex, s32 coinAmount);
 void func_800FB524_name_81(s32 playerNo);
-u8 func_800FD498_name_81(void);
 s32 func_800F8980_name_81(s32 playerIndex); // ovl_81 defines it with a void * (stored as process user_data)
 
 // duel b5: masked 17 (retail reloads cidx and the table entry after the equality test)
