@@ -31,6 +31,7 @@ void Hu3DAnimInit(s32);
 void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 void* func_8001D33C_main(s16 model, char* name);
 f32 func_800202A8_main(f32 angle);
+s32 func_800202FC_main(Vec* v);
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 s16 func_8000B13C_main(s32 file);
 void func_8001FB34_main(s16 arg0, u8 arg1);
@@ -109,6 +110,7 @@ void func_80107738_dizzy_dinghies(omObjData* obj, s32 player);
 void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale);
 s32 func_80108488_dizzy_dinghies(s32 player, s16 v);
 void func_80108514_dizzy_dinghies(s32 player, f32 speed, Vec* out);
+void func_80108E30_dizzy_dinghies(Vec* a, Vec* b, Vec* c, Vec* n);
 void func_80108EC4_dizzy_dinghies(omObjData* obj, f32 x, f32 z);
 f32 func_80109238_dizzy_dinghies(omObjData* obj, f32 x, f32 y, f32 z);
 void func_801095D4_dizzy_dinghies(omObjData* obj);
@@ -331,8 +333,6 @@ void func_80106494_dizzy_dinghies(omObjData* obj) {
     }
 }
 
-#ifdef NON_MATCHING
-/* Differs only by one nop after the sindf call (scheduling). */
 void func_8010655C_dizzy_dinghies(omObjData* obj) {
     f32 x;
     f32 y;
@@ -363,9 +363,6 @@ void func_8010655C_dizzy_dinghies(omObjData* obj) {
     }
 }
 
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_8010655C_dizzy_dinghies);
-#endif
 
 void func_80106818_dizzy_dinghies(omObjData* obj) {
     f32 x;
@@ -763,8 +760,6 @@ void func_80107DE8_dizzy_dinghies(omObjData* obj) {
     func_80107738_dizzy_dinghies(obj, 0);
 }
 
-#ifdef NON_MATCHING
-/* Differs only by one nop after the sindf call of the z position (scheduling). */
 /* Spawn a splash behind the dinghy and move the live ones (models 1..6; also 7..12 for the wide dinghy). */
 void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale) {
     f32 heading;
@@ -833,9 +828,6 @@ void func_80107E04_dizzy_dinghies(omObjData* obj, f32 scale) {
     }
 }
 
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107E04_dizzy_dinghies);
-#endif
 
 /* Mean of the last 20 values passed. */
 s32 func_80108488_dizzy_dinghies(s32 player, s16 v) {
@@ -1047,9 +1039,63 @@ void func_801085F4_dizzy_dinghies(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801085F4_dizzy_dinghies);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108E30_dizzy_dinghies);
+/* Unit normal of the triangle a, b, c. */
+void func_80108E30_dizzy_dinghies(Vec* a, Vec* b, Vec* c, Vec* n) {
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 vx;
+    f32 vy;
+    f32 vz;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80108EC4_dizzy_dinghies);
+    ux = b->x - a->x;
+    uy = b->y - a->y;
+    uz = b->z - a->z;
+    vx = c->x - a->x;
+    vy = c->y - a->y;
+    vz = c->z - a->z;
+    n->x = uy * vz - uz * vy;
+    n->y = uz * vx - ux * vz;
+    n->z = ux * vy - uy * vx;
+    func_800202FC_main(n);
+}
+
+/* Tilt the dinghy (rot.x, rot.z) toward the sea's slope at (x, z), one degree a frame. */
+void func_80108EC4_dizzy_dinghies(omObjData* obj, f32 x, f32 z) {
+    Vec p0;
+    Vec p1;
+    Vec p2;
+    Vec n;
+    MgWork* work;
+
+    p0.x = x;
+    p0.y = func_80105D90_dizzy_dinghies(x, z);
+    p0.z = z;
+    p1.x = x + sindf(0.0f) * 10.0f;
+    p1.z = z + cosdf(0.0f) * 10.0f;
+    p1.y = func_80105D90_dizzy_dinghies(p1.x, p1.z);
+    p2.x = x + sindf(90.0f) * 10.0f;
+    p2.z = z + cosdf(90.0f) * 10.0f;
+    p2.y = func_80105D90_dizzy_dinghies(p2.x, p2.z);
+    func_80108E30_dizzy_dinghies(&p0, &p1, &p2, &n);
+    n.y = 0.0f;
+    func_800202FC_main(&n);
+    work = obj->data;
+    n.x *= 5.0f;
+    n.z *= 20.0f;
+    if (work->unk90 < n.x) {
+        work->unk90 += 1.0f;
+    } else if (work->unk90 > n.x) {
+        work->unk90 -= 1.0f;
+    }
+    if (work->unk98 < n.z) {
+        work->unk98 += 1.0f;
+    } else if (work->unk98 > n.z) {
+        work->unk98 -= 1.0f;
+    }
+    obj->rot.x = work->unk90;
+    obj->rot.z = work->unk98;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_801090BC_dizzy_dinghies);
 
