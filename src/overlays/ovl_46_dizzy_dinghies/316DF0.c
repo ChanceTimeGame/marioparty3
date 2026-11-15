@@ -24,8 +24,16 @@ void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 s16 func_8000B13C_main(s32 file);
 void func_8001FB34_main(s16 arg0, u8 arg1);
 void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
+void func_80017358_main(s16 arg0, char* arg1, s16 arg2, char* arg3);
+u8 rand8(void);
 
-extern f32 D_800CB890_main;
+extern s32 D_800A178C_main[][6];
+
+/* D_800CB890_main: a float (far distance) then a s16 the dinghy model file and speed depend on (0..2) */
+extern struct {
+    f32 unk00;
+    s16 unk04;
+} D_800CB890_main;
 extern u8 D_800CE20A_main;
 extern u8 D_800D2008_main;
 extern f32 D_800D5210_main;
@@ -34,10 +42,16 @@ extern u8 D_800D6A90_main;
 // minigame
 void func_800E1490_minigame(u16 arg0);
 void func_800E1804_minigame(void);
+void func_800E12EC_minigame(omObjData* obj, f32 arg1);
 void func_800E1304_minigame(omObjData* obj, f32 arg1);
 void func_800E1310_minigame(omObjData* obj, f32 arg1);
 void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E1328_minigame(omObjData* obj, f32 arg1);
+void func_800E1334_minigame(omObjData* obj, f32 arg1);
+void func_800E1340_minigame(omObjData* obj, f32 arg1);
+void func_800E134C_minigame(omObjData* obj, f32 arg1);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E147C_minigame(omObjData* obj);
 u16 func_800E6E9C_minigame(void);
 
@@ -47,6 +61,7 @@ extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[]; /* minigame mgcol.h HitList */
 
+extern s32 D_8010A020_dizzy_dinghies;
 extern u16 D_8010A022_dizzy_dinghies;
 
 // LOCAL
@@ -61,13 +76,21 @@ void func_80106818_dizzy_dinghies(omObjData* obj);
 void func_80106970_dizzy_dinghies(omObjData* obj);
 void func_80106DF4_dizzy_dinghies(omObjData* obj);
 void func_80107098_dizzy_dinghies(omObjData* obj);
+void func_80107738_dizzy_dinghies(omObjData* obj, s32 player);
+void func_801085F4_dizzy_dinghies(omObjData* obj);
+void func_80107098_dizzy_dinghies(omObjData* obj);
 void func_80107DE8_dizzy_dinghies(omObjData* obj);
 void func_80109420_dizzy_dinghies(omObjData* obj);
 
 extern s16 D_800EB934_minigame;
 
 extern Vec D_80109740_dizzy_dinghies[]; /* start positions, one per board (D_801097EC) */
+extern f32 D_80109768_dizzy_dinghies; /* start heading */
+extern f32 D_80109770_dizzy_dinghies;
+extern f32 D_80109774_dizzy_dinghies;
 extern f32 D_80109778_dizzy_dinghies;
+extern f32 D_80109780_dizzy_dinghies;
+extern f32 D_80109784_dizzy_dinghies;
 extern f32 D_801097B0_dizzy_dinghies;
 extern f32 D_801097B4_dizzy_dinghies; /* wave 1 phase */
 extern f32 D_801097B8_dizzy_dinghies; /* wave 1 period */
@@ -81,6 +104,7 @@ extern f32 D_801097D8_dizzy_dinghies;
 extern f32 D_801097DC_dizzy_dinghies;
 extern s32 D_801097D4_dizzy_dinghies;
 extern f32 D_801097E0_dizzy_dinghies;
+extern f32 D_801097E4_dizzy_dinghies;
 extern s32 D_801097E8_dizzy_dinghies; /* looping sound handle (func_8004AC98_main), -1 none */
 extern s32 D_801097EC_dizzy_dinghies;
 /* Course objects per board (D_801097EC): position, rotation, kind (0..2; -1 ends the list) */
@@ -96,6 +120,12 @@ extern s8 D_80109D28_dizzy_dinghies[];
 extern D_80111B50_vine_with_me_Struct D_80109D3C_dizzy_dinghies;
 extern s32 D_80109D84_dizzy_dinghies[][3]; /* course object model files per board */
 extern s32 D_80109DA8_dizzy_dinghies[][3]; /* their motion files */
+extern char* D_80109DCC_dizzy_dinghies[]; /* head part name per character */
+extern s8 D_80109DF8_dizzy_dinghies[4];
+extern s16 D_80109DFC_dizzy_dinghies; /* shared models, -1 until loaded */
+extern s16 D_80109DFE_dizzy_dinghies;
+extern s16 D_80109E00_dizzy_dinghies;
+extern char D_80109F50_dizzy_dinghies[];
 extern u8 D_80109D40_dizzy_dinghies;
 extern s8 D_80109D42_dizzy_dinghies;
 extern f32 D_80109D70_dizzy_dinghies;
@@ -119,7 +149,7 @@ void func_801059A0_dizzy_dinghies(void) {
     ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
     Hu3DCamSetPerspective(0, 20.0f, 80.0f, 8000.0f);
     D_800D5210_main = 20000.0f;
-    D_800CB890_main = 12000.0f;
+    D_800CB890_main.unk00 = 12000.0f;
     func_8001F38C_main(0, 0, 0x40);
     HmfLightMaxSet(2);
     HmfLightDirSet(1, -98.0f, 14.0f, 66.0f);
@@ -561,7 +591,134 @@ void func_80107098_dizzy_dinghies(omObjData* obj) {
     func_8001C814_main(obj->model[3], 2, 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107738_dizzy_dinghies);
+/* The player: character and dinghy models, actor work, start position. */
+void func_80107738_dizzy_dinghies(omObjData* obj, s32 player) {
+    MgWork* work;
+    s32 chrMdl;
+    s32 file0;
+    s32 file1;
+    s32 kind;
+    s32 attr;
+    s32 i;
+
+    attr = 0x6D9;
+    for (i = 0; i < obj->mdlcnt; i++) {
+        obj->model[i] = 0;
+    }
+    obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
+    memset(obj->data, 0, sizeof(MgWork));
+    work = obj->data;
+    file1 = D_800A178C_main[GwPlayer[(u16)player].chr][2];
+    file0 = D_800A178C_main[GwPlayer[(u16)player].chr][0];
+    chrMdl = func_8000B108_main(file0 | file1, attr | 4);
+    kind = D_800CB890_main.unk04;
+    D_8010A020_dizzy_dinghies = kind;
+    obj->model[0] = func_8000B108_main(kind | 0x670000, attr);
+    func_80017358_main(chrMdl, D_80109DCC_dizzy_dinghies[GwPlayer[(u16)player].chr], obj->model[0], D_80109F50_dizzy_dinghies);
+    switch (kind) {
+    case 0:
+        D_80109770_dizzy_dinghies = 80.0f;
+        D_80109774_dizzy_dinghies = 1.1f;
+        D_80109778_dizzy_dinghies = 0.975f;
+        D_80109780_dizzy_dinghies = 0.925f;
+        D_80109784_dizzy_dinghies = 0.775f;
+        break;
+    case 1:
+        D_80109770_dizzy_dinghies = 85.0f;
+        D_80109774_dizzy_dinghies = 1.025f;
+        D_80109778_dizzy_dinghies = 0.97f;
+        D_80109780_dizzy_dinghies = 0.92f;
+        D_80109784_dizzy_dinghies = 0.76f;
+        break;
+    case 2:
+    default:
+        D_80109770_dizzy_dinghies = 90.0f;
+        D_80109774_dizzy_dinghies = 1.0125f;
+        D_80109778_dizzy_dinghies = 0.96f;
+        D_80109780_dizzy_dinghies = 0.9125f;
+        D_80109784_dizzy_dinghies = 0.75f;
+        break;
+    }
+    work->unk57 = GwPlayer[(u16)player].pad;
+    obj->func = func_801085F4_dizzy_dinghies;
+    work->unk52 = 0;
+    work->unkB4 = 1.0f;
+    work->unk8C = 65536.0f;
+    work->unkD0 = 0xFFFF;
+    work->unk4C = 0.5f;
+    work->unkCC = 1.0f;
+    work->unk60 = 0;
+    func_800E1328_minigame(obj, 100.0f);
+    func_800E1334_minigame(obj, 150.0f);
+    func_800E1340_minigame(obj, 20.0f);
+    func_800E134C_minigame(obj, 30.0f);
+    func_800E12EC_minigame(obj, 1000.0f);
+    work->unk9C = work->unkA0 = work->unkA4 = 0.0f;
+    work->unk59 = player;
+    work->unkC3 = -1;
+    work->unkC4 = -1;
+    work->unkB0 = 1.0f;
+    work->unkAC = 1.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    for (i = 0; i < 6; i++) {
+        if (i == 3 || i == 0) {
+            if (D_80109DFC_dizzy_dinghies < 0) {
+                obj->model[i + 1] = D_80109DFC_dizzy_dinghies = func_8000B108_main(0x440006, 0x889);
+            } else {
+                obj->model[i + 1] = Hu3DModelLink(D_80109DFC_dizzy_dinghies);
+            }
+        } else if (i == 4 || i == 1) {
+            if (D_80109DFE_dizzy_dinghies < 0) {
+                obj->model[i + 1] = D_80109DFE_dizzy_dinghies = func_8000B108_main(0x440007, 0x889);
+            } else {
+                obj->model[i + 1] = Hu3DModelLink(D_80109DFE_dizzy_dinghies);
+            }
+        } else {
+            if (D_80109E00_dizzy_dinghies < 0) {
+                obj->model[i + 1] = D_80109E00_dizzy_dinghies = func_8000B108_main(0x440008, 0x889);
+            } else {
+                obj->model[i + 1] = Hu3DModelLink(D_80109E00_dizzy_dinghies);
+            }
+        }
+        func_8001C2FC_main(obj->model[i + 1], 0x70000000, 0x70000000);
+    }
+    if (kind == 2) {
+        for (i = 0; i < 6; i++) {
+            if (i == 3 || i == 0) {
+                obj->model[i + 7] = Hu3DModelLink(D_80109DFC_dizzy_dinghies);
+            } else if (i == 4 || i == 1) {
+                obj->model[i + 7] = Hu3DModelLink(D_80109DFE_dizzy_dinghies);
+            } else {
+                obj->model[i + 7] = Hu3DModelLink(D_80109E00_dizzy_dinghies);
+            }
+            func_8001C2FC_main(obj->model[i + 7], 0x70000000, 0x70000000);
+        }
+    }
+    work = obj->data;
+    work->unk3C = D_80109768_dizzy_dinghies;
+    func_800E149C_minigame(obj, 0, 2);
+    do {
+        i = rand8() & 3;
+    } while (D_80109DF8_dizzy_dinghies[i] != -1);
+    obj->trans.x = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].x;
+    obj->trans.y = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].y;
+    obj->trans.z = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].z;
+    Center.x = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].x;
+    Center.y = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].y;
+    Center.z = D_80109740_dizzy_dinghies[D_801097EC_dizzy_dinghies].z;
+    func_8001C6A8_main(obj->model[0], 5.0f);
+    func_8001C814_main(obj->model[0], 1, 1);
+    switch (GwPlayer[(u16)player].chr) {
+    case 2:
+    case 6:
+    case 7:
+        D_801097E4_dizzy_dinghies = 3.0f;
+        break;
+    case 4:
+        D_801097E4_dizzy_dinghies = 1.8f;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", func_80107DE8_dizzy_dinghies);
 
