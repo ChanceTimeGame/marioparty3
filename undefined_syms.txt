@@ -113,3 +113,5 @@ D_80109766_boulder_ball = D_80109760_boulder_ball + 0x6;
 D_80109778_boulder_ball = D_80109760_boulder_ball + 0x18;
 D_801097AA_bobbing_bow_loons = D_801097A8_bobbing_bow_loons + 0x2;
 D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
+/* dizzy dinghies: inner label of data now defined in C; func_801085F4_dizzy_dinghies (NON_MATCHING asm) reads the low half */
+D_801097EA_dizzy_dinghies = D_801097E8_dizzy_dinghies + 0x2;

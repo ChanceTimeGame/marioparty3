@@ -14,6 +14,27 @@ typedef struct Vec4f {
     /* 0xC */ f32 w; /* radius */
 } Vec4f;
 
+/* The minigame control block (minigame B8A20.c MgCtrl; the header's D_80111B50_vine_with_me_Struct) */
+typedef struct DdCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04; /* 1: the goal was reached */
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ u16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ s16 unk26;
+    /* 0x28 */ Vec unk28;
+} DdCtrl; /* size 0x34 */
+
 /* What func_8001D33C_main returns (a model's motion group or hit transform), as far as used here */
 typedef struct DdPart {
     /* 0x00 */ char unk00[0x1C];
@@ -145,6 +166,7 @@ extern f32 D_80109768_dizzy_dinghies; /* start heading */
 extern f32 D_80109770_dizzy_dinghies;
 extern f32 D_80109774_dizzy_dinghies;
 extern f32 D_80109778_dizzy_dinghies;
+extern f32 D_8010977C_dizzy_dinghies;
 extern Vec D_80109788_dizzy_dinghies; /* last move */
 extern Vec D_80109794_dizzy_dinghies; /* position before the move */
 extern Vec D_801097A0_dizzy_dinghies; /* push direction */
@@ -177,7 +199,7 @@ extern s8 D_80109B64_dizzy_dinghies[];
 extern Vec D_80109B78_dizzy_dinghies[];
 extern Vec D_80109C50_dizzy_dinghies[];
 extern s8 D_80109D28_dizzy_dinghies[];
-extern D_80111B50_vine_with_me_Struct D_80109D3C_dizzy_dinghies;
+extern DdCtrl D_80109D3C_dizzy_dinghies;
 extern s32 D_80109D84_dizzy_dinghies[][3]; /* course object model files per board */
 extern s32 D_80109DA8_dizzy_dinghies[][3]; /* their motion files */
 extern char* D_80109DCC_dizzy_dinghies[]; /* head part name per character */
@@ -185,9 +207,12 @@ extern s8 D_80109DF8_dizzy_dinghies[4];
 extern s16 D_80109DFC_dizzy_dinghies; /* shared models, -1 until loaded */
 extern s16 D_80109DFE_dizzy_dinghies;
 extern s16 D_80109E00_dizzy_dinghies;
+extern char D_80109EF0_dizzy_dinghies[];
+extern char D_80109F04_dizzy_dinghies[];
+extern char D_80109F14_dizzy_dinghies[];
+extern char D_80109F24_dizzy_dinghies[];
+extern char D_80109F3C_dizzy_dinghies[];
 extern char D_80109F50_dizzy_dinghies[];
-extern u8 D_80109D40_dizzy_dinghies;
-extern s8 D_80109D42_dizzy_dinghies;
 extern f32 D_80109D70_dizzy_dinghies;
 extern f32 D_80109D74_dizzy_dinghies;
 extern f32 D_80109D78_dizzy_dinghies;
@@ -229,7 +254,7 @@ void func_801059A0_dizzy_dinghies(void) {
     omSetStatBit(omAddObj(100, 0, 0, -1, func_80109420_dizzy_dinghies), 0xA0);
     D_800EB73C_minigame = 10.0f;
     WipeCreateIn(0xFF, 16);
-    func_800E5EA0_minigame(&D_80109D3C_dizzy_dinghies);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)&D_80109D3C_dizzy_dinghies);
     D_800EB930_minigame = 0x32;
     D_800EB932_minigame = 0x48;
     D_801097EC_dizzy_dinghies = D_800CE20A_main;
@@ -532,12 +557,12 @@ void func_80106DF4_dizzy_dinghies(omObjData* obj) {
                 D_80109778_dizzy_dinghies -= 0.025f;
             }
             D_801097E0_dizzy_dinghies *= 0.95f;
-            D_80109D42_dizzy_dinghies = 9;
+            D_80109D3C_dizzy_dinghies.unk06 = 9;
         case 4:
             if (D_800EB934_minigame == 1) {
                 if (D_801097D4_dizzy_dinghies == 0) {
                     HuAudSeqPlay(0x6B);
-                } else if (D_80109D40_dizzy_dinghies == 1) {
+                } else if (D_80109D3C_dizzy_dinghies.unk04 == 1) {
                     HuAudSeqPlay(0x6A);
                 } else {
                     HuAudSeqPlay(0x65);
@@ -1243,6 +1268,215 @@ void func_801095D4_dizzy_dinghies(omObjData* obj) {
         D_80109E40_dizzy_dinghies = HuAudFXPlay(0x425);
     }
 }
+
+Vec D_80109740_dizzy_dinghies[3] = {
+    { 4500.0f, 0.0f, 7300.0f },
+    { 6500.0f, 0.0f, 2300.0f },
+    { 5500.0f, 0.0f, 6300.0f }
+}; /* start positions per board */
+f32 D_80109764_dizzy_dinghies = 180.0f;
+f32 D_80109768_dizzy_dinghies = 180.0f; /* start heading */
+f32 D_8010976C_dizzy_dinghies = 0.0f;
+f32 D_80109770_dizzy_dinghies = 80.0f; /* top speed */
+f32 D_80109774_dizzy_dinghies = 1.1f;
+f32 D_80109778_dizzy_dinghies = 0.975f;
+f32 D_8010977C_dizzy_dinghies = 0.925f;
+f32 D_80109780_dizzy_dinghies = 0.925f;
+f32 D_80109784_dizzy_dinghies = 0.775f;
+Vec D_80109788_dizzy_dinghies = { 0.0f, 0.0f, 0.0f };
+Vec D_80109794_dizzy_dinghies = { 0.0f, 0.0f, 0.0f };
+Vec D_801097A0_dizzy_dinghies = { 0.0f, 0.0f, 0.0f };
+f32 D_801097AC_dizzy_dinghies = 0.0f;
+f32 D_801097B0_dizzy_dinghies = 0.1f;
+f32 D_801097B4_dizzy_dinghies = 0.0f;
+f32 D_801097B8_dizzy_dinghies = 0.2f;
+f32 D_801097BC_dizzy_dinghies = 50.0f;
+f32 D_801097C0_dizzy_dinghies = 55.0f;
+f32 D_801097C4_dizzy_dinghies = 0.0f;
+f32 D_801097C8_dizzy_dinghies = 0.13f;
+f32 D_801097CC_dizzy_dinghies = 40.0f;
+f32 D_801097D0_dizzy_dinghies = 40.0f;
+s32 D_801097D4_dizzy_dinghies = 0;
+f32 D_801097D8_dizzy_dinghies = 0.0f; /* sea texture scroll */
+f32 D_801097DC_dizzy_dinghies = 0.0f;
+f32 D_801097E0_dizzy_dinghies = 300.0f;
+f32 D_801097E4_dizzy_dinghies = 2.0f;
+s32 D_801097E8_dizzy_dinghies = -1;
+s32 D_801097EC_dizzy_dinghies = 0; /* board */
+Vec D_801097F0_dizzy_dinghies[17] = {
+    { 3800.0f, 112.5f, 7200.0f },
+    { 5200.0f, 112.5f, 7200.0f },
+    { 5200.0f, 112.5f, 4600.0f },
+    { 3700.0f, 112.5f, 2700.0f },
+    { 4600.0f, 112.5f, -900.0f },
+    { 3500.0f, 112.5f, -2800.0f },
+    { 5900.0f, 112.5f, -7100.0f },
+    { 1600.0f, 112.5f, -8400.0f },
+    { -1100.0f, 112.5f, -9100.0f },
+    { -3400.0f, 112.5f, -8400.0f },
+    { -5200.0f, 112.5f, -9400.0f },
+    { -4500.0f, 112.5f, -3600.0f },
+    { -3600.0f, 112.5f, -1300.0f },
+    { -4700.0f, 112.5f, 600.0f },
+    { -3700.0f, 112.5f, 3100.0f },
+    { -5200.0f, 112.5f, 7300.0f },
+    { -3800.0f, 112.5f, 7200.0f }
+};
+Vec D_801098BC_dizzy_dinghies[17] = {
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 225.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f }
+};
+s8 D_80109988_dizzy_dinghies[20] = { 0, 0, 1, 2, 1, 1, 0, 1, 2, 1, 0, 1, 2, 1, 2, 0, 0, -1, 0, 0 };
+Vec D_8010999C_dizzy_dinghies[19] = {
+    { 5800.0f, 112.5f, 2100.0f },
+    { 7200.0f, 112.5f, 2100.0f },
+    { 5700.0f, 112.5f, -1000.0f },
+    { 7200.0f, 112.5f, -3500.0f },
+    { 6600.0f, 112.5f, -7000.0f },
+    { 1900.0f, 112.5f, -6200.0f },
+    { 4500.0f, 112.5f, -5700.0f },
+    { 3200.0f, 112.5f, -900.0f },
+    { 1500.0f, 112.5f, 3700.0f },
+    { 200.0f, 112.5f, 0.0f },
+    { 900.0f, 112.5f, -2100.0f },
+    { 1300.0f, 112.5f, -7400.0f },
+    { -2700.0f, 112.5f, -9200.0f },
+    { -5400.0f, 112.5f, -7900.0f },
+    { -3300.0f, 112.5f, -4200.0f },
+    { -3500.0f, 112.5f, -2000.0f },
+    { -1900.0f, 112.5f, 300.0f },
+    { -3200.0f, 112.5f, 5300.0f },
+    { -1800.0f, 112.5f, 5200.0f }
+};
+Vec D_80109A80_dizzy_dinghies[19] = {
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 180.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f }
+};
+s8 D_80109B64_dizzy_dinghies[20] = { 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 2, 1, 0, 2, 0, 1, 0, 0, -1 };
+Vec D_80109B78_dizzy_dinghies[18] = {
+    { 4600.0f, -150.0f, 6200.0f },
+    { 6400.0f, -150.0f, 6200.0f },
+    { 5300.0f, -150.0f, 1000.0f },
+    { 7200.0f, 0.0f, -4000.0f },
+    { 3000.0f, -150.0f, -6800.0f },
+    { 2100.0f, -150.0f, -1700.0f },
+    { 2600.0f, -150.0f, 2300.0f },
+    { 2100.0f, 0.0f, 7200.0f },
+    { -300.0f, -150.0f, 8200.0f },
+    { -2800.0f, -150.0f, 8000.0f },
+    { -3600.0f, -150.0f, 4600.0f },
+    { -4600.0f, 0.0f, 200.0f },
+    { -800.0f, 0.0f, -3800.0f },
+    { -1500.0f, -150.0f, -7000.0f },
+    { -6200.0f, -150.0f, -3600.0f },
+    { -5400.0f, -150.0f, -200.0f },
+    { -7500.0f, -150.0f, 3900.0f },
+    { -5500.0f, -150.0f, 3900.0f }
+};
+Vec D_80109C50_dizzy_dinghies[18] = {
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { -40.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { -40.0f, 320.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { -40.0f, 45.0f, 0.0f },
+    { -40.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f },
+    { 0.0f, 45.0f, 0.0f },
+    { 0.0f, 320.0f, 0.0f }
+};
+s8 D_80109D28_dizzy_dinghies[20] = { 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, -1, 0 };
+DdCtrl D_80109D3C_dizzy_dinghies = {
+    0, 7, 1, 1, 0, 0, 0, 0,
+    { 0.0f, 0.0f, 0.0f, 0.0f },
+    { 0, 0, 0, 0 },
+    75, 65535, 5400, 90, 135, 0,
+    { 101.0f, -51.0f, 38.0f },
+};
+f32 D_80109D70_dizzy_dinghies = -2000.0f;
+f32 D_80109D74_dizzy_dinghies = -20.0f;
+f32 D_80109D78_dizzy_dinghies = -90.0f;
+f32 D_80109D7C_dizzy_dinghies = 20.0f;
+f32 D_80109D80_dizzy_dinghies = 5.0f;
+s32 D_80109D84_dizzy_dinghies[3][3] = {
+    { 0xA0000, 0xA008E, 0xA00A5 },
+    { 0xA00C3, 0xA00E7, 0xA00CE },
+    { 0xA0086, 0xA0059, 0xA0154 }
+};
+s32 D_80109DA8_dizzy_dinghies[3][3] = {
+    { 0xA0017, 0xA0095, 0xA00B2 },
+    { 0xA00BC, 0xA00ED, 0xA00D0 },
+    { 0xA0088, 0xA005A, 0xA0154 }
+};
+char* D_80109DCC_dizzy_dinghies[11] = {
+    D_80109F50_dizzy_dinghies,
+    D_80109F3C_dizzy_dinghies,
+    D_80109F24_dizzy_dinghies,
+    D_80109F14_dizzy_dinghies,
+    D_80109F04_dizzy_dinghies,
+    D_80109EF0_dizzy_dinghies,
+    D_80109F3C_dizzy_dinghies,
+    D_80109F24_dizzy_dinghies,
+    D_80109F50_dizzy_dinghies,
+    D_80109F50_dizzy_dinghies,
+    D_80109F50_dizzy_dinghies
+};
+s8 D_80109DF8_dizzy_dinghies[4] = { -1, -1, -1, -1 };
+s16 D_80109DFC_dizzy_dinghies = -1;
+s16 D_80109DFE_dizzy_dinghies = -1;
+s16 D_80109E00_dizzy_dinghies = -1;
+s32 D_80109E04_dizzy_dinghies = 0;
+s16 D_80109E08_dizzy_dinghies[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+s32 D_80109E30_dizzy_dinghies = 0;
+s32 D_80109E34_dizzy_dinghies = 0;
+f32 D_80109E38_dizzy_dinghies = 1.0f;
+s32 D_80109E3C_dizzy_dinghies = 0;
+s32 D_80109E40_dizzy_dinghies = -1;
+Vec D_80109E44_dizzy_dinghies[3][3] = {
+    { { -4000.0f, 100.0f, 7000.0f }, { -5000.0f, 100.0f, 7000.0f }, { 0.0f, -500.0f, 7000.0f } },
+    { { -2000.0f, 100.0f, 5000.0f }, { -3000.0f, 100.0f, 5000.0f }, { 0.0f, -500.0f, 5000.0f } },
+    { { -5800.0f, 100.0f, 4000.0f }, { -7200.0f, 100.0f, 4000.0f }, { 0.0f, -500.0f, 4000.0f } }
+};
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_46_dizzy_dinghies/316DF0", D_80109EF0_dizzy_dinghies);
 
