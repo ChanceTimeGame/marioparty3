@@ -2493,6 +2493,31 @@ void func_8010EB44_duel01(s32);
 extern DecisionTreeNonLeafNode D_80118CF0_duel01[];
 extern s16 D_80118DE4_duel01[];
 s32 func_800EFE20_name_81(f32);
+typedef struct DuelPadMask {
+    u8 mask[4];
+} DuelPadMask;
+typedef struct DuelChoiceTbl {
+    s16 choice[4];
+} DuelChoiceTbl;
+extern const DuelPadMask D_80118FE4_duel01;
+extern const DuelChoiceTbl D_80118FE8_duel01;
+extern DecisionTreeNonLeafNode D_80118AEC_duel01[];
+extern DecisionTreeNonLeafNode D_80118CC0_duel01[];
+extern s16 D_8010555C_name_81;
+extern s16 mbItemBtnF;
+void func_800DADA0_name_81(s32);
+s32 func_800DB3E0_name_81(s32);
+void func_800E14D8_name_81(s32 player, s32 coins);
+void func_800EB140_name_81(s32 arg0, s32 arg1);
+void func_800EB1D8_name_81(s32 arg0, s32 arg1);
+void func_800EB278_name_81(void);
+void func_800EB29C_name_81(void);
+void func_800EBDDC_name_81(s16 playerNo, s32 arg1, s16 spaceIdx);
+void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
+void func_800ED788_name_81(s32 playerNo);
+s32 func_800EED50_name_81(void);
+void func_800F7378_name_81(s32 playerIndex, s32 coinAmount);
+void func_800FB524_name_81(s32 playerNo); // ovl_81 defines it with a void * (stored as process user_data)
 
 // duel b5: masked 17 (retail reloads cidx and the table entry after the equality test)
 #ifdef NON_MATCHING
@@ -2616,9 +2641,152 @@ yes:
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80117480_duel01);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80117624_duel01);
+void func_80117624_duel01(void) {
+    DuelPadMask padMask;
+    DuelChoiceTbl choice;
+    s32 playerNo;
+    GW_PLAYER *player;
+    s32 space;
+    s16 result;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801179AC_duel01);
+    playerNo = MBDGetCurrentPlayerIndex();
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+    if (space == 1) {
+        return;
+    }
+    if (space == 0x13) {
+        func_800ECD88_name_81(-1, 1, 0);
+        func_8010EB44_duel01(0);
+        return;
+    }
+    func_800ECD88_name_81(-1, 1, 0);
+    func_800F38DC_name_81(-1, -1, 2);
+    func_800EBDDC_name_81(-1, 8, 0x23);
+    HuPrcSleep(8);
+    func_800DB3E0_name_81(playerNo);
+    if (player->coin < 5) {
+        func_800EB140_name_81(0x12, 0x2103);
+    } else {
+        padMask = D_80118FE4_duel01;
+        choice = D_80118FE8_duel01;
+    loop:
+        func_800EB1D8_name_81(0x12, 0x2100);
+        if (func_800F37B8_name_81(playerNo) == 0) {
+            func_8005FE54_main(D_8010555C_name_81, padMask.mask[GwPlayer[playerNo].pad]);
+            choice.choice[GwPlayer[playerNo].pad] = -1;
+            func_8005F744_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3]);
+        } else {
+            if (func_800D97B0_name_81(D_80118AEC_duel01) == 0) {
+                choice.choice[GwPlayer[playerNo].pad] = 0x400;
+                func_8005F698_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3], func_800EED50_name_81());
+            }
+            choice.choice[GwPlayer[playerNo].pad] = -0x8000;
+            func_8005F698_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3], func_800EED50_name_81());
+            func_8005B63C_main(D_8010555C_name_81, 2, 2);
+        }
+        result = func_8005E1D8_main(D_8010555C_name_81, 0, 1);
+        choice.choice[GwPlayer[playerNo].pad] = 0;
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        if (result == 2) {
+            func_801059D0_duel01();
+            goto loop;
+        }
+        if (result == 3) {
+            mbItemBtnF = 0;
+            func_800FB524_name_81(playerNo);
+            mbItemBtnF = 1;
+            goto loop;
+        }
+        if (result == 0) {
+            func_800E14D8_name_81(playerNo, -5);
+            func_800F7378_name_81(playerNo, -5);
+            HuPrcSleep(30);
+            func_800ECD88_name_81(-1, 2, 0);
+            func_800ED788_name_81(playerNo);
+            func_800EB140_name_81(0x12, 0x2101);
+            func_8010EAD4_duel01(0);
+        } else {
+            func_800EB140_name_81(0x12, 0x2102);
+        }
+    }
+    func_800DADA0_name_81(playerNo);
+}
+
+void func_801179AC_duel01(void) {
+    DuelPadMask padMask;
+    DuelChoiceTbl choice;
+    s32 playerNo;
+    GW_PLAYER *player;
+    s32 space;
+    s16 result;
+
+    playerNo = MBDGetCurrentPlayerIndex();
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+    if (space == 0xD) {
+        return;
+    }
+    if (space == 0xF) {
+        func_800ECD88_name_81(-1, 0, 0);
+        func_8010EB44_duel01(1);
+        return;
+    }
+    func_800F38DC_name_81(-1, -1, 2);
+    func_800ECD88_name_81(-1, 0, 0);
+    func_800EBDDC_name_81(-1, 8, 0x20);
+    HuPrcSleep(8);
+    func_800DB3E0_name_81(playerNo);
+    if (player->coin < 5) {
+        func_800EB140_name_81(0x12, 0x2103);
+    } else {
+        padMask = D_80118FE4_duel01;
+        choice = D_80118FE8_duel01;
+    loop:
+        func_800EB1D8_name_81(0x12, 0x2100);
+        if (func_800F37B8_name_81(playerNo) == 0) {
+            func_8005FE54_main(D_8010555C_name_81, padMask.mask[GwPlayer[playerNo].pad]);
+            choice.choice[GwPlayer[playerNo].pad] = -1;
+            func_8005F744_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3]);
+        } else {
+            if (func_800D97B0_name_81(D_80118CC0_duel01) == 0) {
+                choice.choice[GwPlayer[playerNo].pad] = 0x400;
+                func_8005F698_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3], func_800EED50_name_81());
+            }
+            choice.choice[GwPlayer[playerNo].pad] = -0x8000;
+            func_8005F698_main(choice.choice[0], choice.choice[1], choice.choice[2], choice.choice[3], func_800EED50_name_81());
+            func_8005B63C_main(D_8010555C_name_81, 2, 2);
+        }
+        result = func_8005E1D8_main(D_8010555C_name_81, 0, 1);
+        choice.choice[GwPlayer[playerNo].pad] = 0;
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        if (result == 2) {
+            func_801059D0_duel01();
+            goto loop;
+        }
+        if (result == 3) {
+            mbItemBtnF = 0;
+            func_800FB524_name_81(playerNo);
+            mbItemBtnF = 1;
+            goto loop;
+        }
+        if (result == 0) {
+            func_800E14D8_name_81(playerNo, -5);
+            func_800F7378_name_81(playerNo, -5);
+            HuPrcSleep(30);
+            func_800ECD88_name_81(-1, 2, 5);
+            func_800ECDE8_name_81();
+            func_800ED788_name_81(playerNo);
+            func_800EB140_name_81(0x12, 0x2101);
+            func_8010EAD4_duel01(1);
+        } else {
+            func_800EB140_name_81(0x12, 0x2102);
+        }
+    }
+    func_800DADA0_name_81(playerNo);
+}
 
 void func_80117D3C_duel01(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
