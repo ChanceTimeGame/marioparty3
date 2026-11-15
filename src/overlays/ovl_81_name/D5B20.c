@@ -15,6 +15,14 @@ typedef struct UnkSharedBoard {
     char unk_08[8];
 } UnkSharedBoard; //sizeof 0x10
 
+typedef struct UnkPathMove {
+    /* 0x00 */ Object* obj;
+    /* 0x04 */ u16 count;
+    /* 0x06 */ u16 index;
+    /* 0x08 */ f32 speed;
+    /* 0x0C */ Vec* path;
+} UnkPathMove; //sizeof 0x10
+
 typedef struct UnkPauseMesWork {
     /* 0x00 */ s32 *mes;
     /* 0x04 */ u16 unk_04;
@@ -24,7 +32,9 @@ extern s32 D_800A12C0_main;
 extern s32 D_800A12C4_main;
 extern s8 D_800A176D_main;
 extern s16 D_800D10F2_main;
-extern s32 D_801011F0_name_81;
+extern Object* D_801011F0_name_81;
+extern Process* D_801011F4_name_81;
+extern s16 D_801011F8_name_81;
 extern s32 D_801011FC_name_81;
 extern s32 D_80101220_name_81;
 extern s16 D_80101248_name_81;
@@ -70,6 +80,11 @@ extern UnkBoard D_80105560_name_81[16];
 u16 func_800D9234_name_81(Object* arg0);
 void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
 s32 func_800F73AC_name_81(void);
+s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
+void func_80017B20_main(s16 arg0, s16 arg1, s32 arg2, s32 arg3);
+s32 func_800EFE8C_name_81(Object* arg0, Vec* arg1, f32 arg2);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+Process* func_800EDEC4_name_81(Object* arg0, f32 arg1, f32 arg2);
 void func_800F3B54_name_81(s32 playerNo, u8 arg1);
 UnkMBGuideData* func_800E4B64_name_81(s32 arg0, s32 arg1);
 void func_800E4E64_name_81(UnkMBGuideData* arg0);
@@ -79,7 +94,8 @@ void func_800E9190_name_81(void);
 void Duel_ClearPartnerObjects(void);
 void func_800D898C_name_81(Object* arg0, u8 arg1);
 void func_800F3EC0_name_81(s16 playerNo);
-void func_800EDFAC_name_81(void);
+void func_800EDFAC_name_81(s32 arg0);
+u16 func_800D92A8_name_81(Object* arg0);
 void func_800EE114_name_81(void);
 static void func_800EED5C_name_81(s32 arg0);
 static void func_800EEDA0_name_81(s32, s32, s32);
@@ -91,9 +107,22 @@ UnkBoard4* func_800F08BC_name_81(void);
 s32 func_800F1784_name_81(s32 arg0);
 s32 func_800F2618_name_81(s32 arg0);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EDD50_name_81);
+Object* func_800EDD50_name_81(Vec* pos) {
+    D_801011F0_name_81 = func_800D8010_name_81(0x3B, NULL);
+    HuVecCopy3F(&D_801011F0_name_81->coords, pos);
+    D_801011F0_name_81->flags |= 1;
+    func_800461B4_main(D_801011F0_name_81->omObj1->model[0]);
+    return D_801011F0_name_81;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EDDBC_name_81);
+void func_800EDDBC_name_81(void) {
+    func_80046558_main(D_801011F0_name_81->omObj1->model[0]);
+    func_800D8F3C_name_81(D_801011F0_name_81);
+    if (D_801011F8_name_81 != -1) {
+        func_8000D044_main(D_801011F8_name_81);
+        D_801011F8_name_81 = -1;
+    }
+}
 
 static void func_800EDE1C_name_81(void) {
     UnkUserData* temp_v0 = HuPrcCurrentGet()->user_data;
@@ -126,20 +155,47 @@ Process* func_800EDEC4_name_81(Object* arg0, f32 arg1, f32 arg2) {
     return temp_v0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EDF48_name_81);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EDF78_name_81);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EDFAC_name_81);
-
-void func_800EE0D0_name_81(void) {
-    D_801011FC_name_81 = 1;
-    func_800EDFAC_name_81();
+void func_800EDF48_name_81(void) {
+    D_801011F4_name_81 = func_800EDEC4_name_81(D_801011F0_name_81, 5.0f, 2.0f);
 }
 
-void func_800EE0F4_name_81(void) {
+void func_800EDF78_name_81(void) {
+    if (D_801011F4_name_81 != NULL) {
+        omDelPrcObj(D_801011F4_name_81);
+        D_801011F4_name_81 = NULL;
+    }
+}
+
+void func_800EDFAC_name_81(s32 arg0) {
+    if (D_801011FC_name_81 != 0) {
+        HuAudFXPlay(0x1EA);
+    }
+    switch (arg0) {
+    case 0:
+        D_801011F0_name_81->velocity.x = 70.0f;
+        do {
+            D_801011F0_name_81->velocity.x -= 2.0f;
+            HuPrcVSleep();
+        } while (D_801011F0_name_81->velocity.x >= 30.0f);
+        break;
+    case 1:
+        D_801011F0_name_81->velocity.x = 120.0f;
+        do {
+            D_801011F0_name_81->velocity.x -= 2.5f;
+            HuPrcVSleep();
+        } while (D_801011F0_name_81->velocity.x >= 30.0f);
+        break;
+    }
+}
+
+void func_800EE0D0_name_81(s32 arg0) {
+    D_801011FC_name_81 = 1;
+    func_800EDFAC_name_81(arg0);
+}
+
+void func_800EE0F4_name_81(s32 arg0) {
     D_801011FC_name_81 = 0;
-    func_800EDFAC_name_81();
+    func_800EDFAC_name_81(arg0);
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE114_name_81);
@@ -157,9 +213,20 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE468_name_81
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EE74C_name_81);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EEC40_name_81);
+Object* func_800EEC40_name_81(Vec* pos) {
+    D_801011F0_name_81 = func_800D8010_name_81(0x3E, NULL);
+    func_800D8944_name_81(D_801011F0_name_81);
+    HuVecCopy3F(&D_801011F0_name_81->coords, pos);
+    D_801011F0_name_81->velocity.x = 120.0f;
+    do {
+        D_801011F0_name_81->velocity.x -= 2.5f;
+        HuPrcVSleep();
+    } while (D_801011F0_name_81->velocity.x >= 30.0f);
+    D_801011F4_name_81 = func_800EDEC4_name_81(D_801011F0_name_81, 5.0f, 2.0f);
+    return D_801011F0_name_81;
+}
 
-s32 func_800EED24_name_81(void) {
+Object* func_800EED24_name_81(void) {
     return D_801011F0_name_81;
 }
 
@@ -472,9 +539,27 @@ void func_800EFABC_name_81(Object *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EFB00_name_81);
+void func_800EFB00_name_81(Object* arg0) {
+    do {
+        HuPrcVSleep();
+    } while (!(func_800D92A8_name_81(arg0) & 1));
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EFB3C_name_81);
+s32 func_800EFB3C_name_81(s32 player) {
+    s32 score[MBD_MAX_PLAYERS];
+    s32 rank;
+    s32 i;
+
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        score[i] = GwPlayer[i].star * 1000 + GwPlayer[i].coin;
+    }
+    for (i = 0, rank = 0; i < MBD_MAX_PLAYERS; i++) {
+        if (i != player) {
+            rank += score[player] < score[i];
+        }
+    }
+    return rank;
+}
 
 s32 func_800EFBE8_name_81(s32 arg0) {
     return GwPlayer[arg0].star * 1000 + GwPlayer[arg0].coin;
@@ -585,22 +670,54 @@ s32 func_800EFEC8_name_81(Object* arg0, Vec* arg1, f32 arg2, Vec* arg3) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EFFBC_name_81);
+UnkPathMove* func_800EFFBC_name_81(Object* obj, f32 speed, s16 count, Vec* path) {
+    UnkPathMove* move = HuMemMemoryAllocPerm(sizeof(UnkPathMove));
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F001C_name_81);
+    move->obj = obj;
+    move->count = count;
+    move->index = 0;
+    move->speed = speed;
+    move->path = path;
+    return move;
+}
+
+s32 func_800F001C_name_81(UnkPathMove* move) {
+    u16 prev;
+
+    if (func_800EFE8C_name_81(move->obj, &move->path[move->index], move->speed) != 0) {
+        prev = move->index;
+        if ((move->index = prev + 1) >= move->count) {
+            move->index = prev;
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F008C_name_81);
 
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F0208_name_81);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F0378_name_81);
+void func_800F0378_name_81(Object* obj, char* hook, s16 model) {
+    func_8001EF6C_main(model, obj->omObj1->model[0], hook);
+    func_8001C258_main(model, 0x4000, 0x4000);
+}
 
 void func_800F03C8_name_81(s16 arg0) {
     func_8001C258_main(arg0, 0x4000, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F03F0_name_81);
+s16 func_800F03F0_name_81(s16 x, s16 y, s16 w, s16 h) {
+    s16 win = func_8005A968_main(x, y, w, h, 0, 0);
+    s32 id = win;
+
+    func_8005BEE0_main(id, 0xC8);
+    func_80060144_main(win);
+    func_8005B63C_main(id, 0x40, 0x40);
+    func_8005BDFC_main(id, 0);
+    return win;
+}
 
 void func_800F0480_name_81(Object *arg0, s16 arg1, s16 arg2, s32 arg3) {
     arg0->omObj1->work[0] = (u8)func_80017790_main(arg0->omObj1->model[0], arg1, arg2, arg3);
@@ -608,7 +725,17 @@ void func_800F0480_name_81(Object *arg0, s16 arg1, s16 arg2, s32 arg3) {
     arg0->omObj1->work[2] = (u8)arg2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F04FC_name_81);
+void func_800F04FC_name_81(GW_PLAYER* player, s16 motion, s16 arg2) {
+    s32 chr = player->chr;
+    Object* obj = player->player_obj;
+    s32 file = func_80017B6C_main(chr, motion, arg2);
+
+    if (file != -1) {
+        obj->omObj1->work[0] = (u8)func_80017790_main(obj->omObj1->model[0], motion, chr, file);
+        obj->omObj1->work[1] = (u8)motion;
+        obj->omObj1->work[2] = (u8)chr;
+    }
+}
 
 void func_800F05AC_name_81(void) {
 }
@@ -619,11 +746,26 @@ void func_800F05B4_name_81(Object* arg0, s32 arg1) {
     func_80017954_main(arg0->omObj1->model[0], arg0->omObj1->work[1], arg0->omObj1->work[2], arg0->omObj1->work[0]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F061C_name_81);
+// work[0..2] hold the motion, motion index and character; read back as their low halfwords
+void func_800F061C_name_81(GW_PLAYER* player, s16 arg1) {
+    Object* obj = player->player_obj;
+    s32 file = func_80017B6C_main((s16)obj->omObj1->work[2], (s16)obj->omObj1->work[1], arg1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F06A8_name_81);
+    if (file != -1) {
+        func_800333B0_main((s16)obj->omObj1->work[0]);
+        obj->omObj1->work[0] = func_80017AD8_main(file);
+        func_80017954_main(obj->omObj1->model[0], (s16)obj->omObj1->work[1], (s16)obj->omObj1->work[2],
+                           (s16)obj->omObj1->work[0]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F06D4_name_81);
+void func_800F06A8_name_81(Object* obj) {
+    func_80017B20_main((s16)obj->omObj1->work[1], (s16)obj->omObj1->work[2], 1, 1);
+}
+
+void func_800F06D4_name_81(Object* obj) {
+    func_80017B20_main((s16)obj->omObj1->work[1], (s16)obj->omObj1->work[2], 1, 0);
+}
 
 s32 func_800F0700_name_81(s32 arg0) {
     return arg0;
