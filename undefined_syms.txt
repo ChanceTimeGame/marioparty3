@@ -133,3 +133,7 @@ D_8011887E_duel01 = D_8011887C_duel01 + 0x2;
 D_80118882_duel01 = D_8011887C_duel01 + 0x6;
 D_80118886_duel01 = D_8011887C_duel01 + 0xA;
 D_801188E4_duel01 = D_801188E8_duel01 - 0x4;
+/* duel c1: opduel .data inner labels the asm still uses */
+D_80109258_opduel = D_80109250_opduel + 0x8;
+D_801092B0_opduel = D_801092A4_opduel + 0xC;
+D_80109350_opduel = D_8010934C_opduel + 0x4;
