@@ -268,7 +268,65 @@ void func_8010AFB4_duel01(void) {
     puffs->delay = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010B130_duel01);
+void func_8010B130_duel01(omObjData *obj) {
+    DuelB2Puffs *puffs = obj->data;
+    s32 i;
+
+    for (i = 0; i < 16; i++) {
+        if (puffs->active[i] != 0) {
+            puffs->pos[i].x += puffs->vel[i].x;
+            puffs->pos[i].y += puffs->vel[i].y;
+            puffs->pos[i].z += puffs->vel[i].z;
+            if (puffs->pos[i].y < 0.0f) {
+                puffs->pos[i].y = 0.0f;
+            }
+            Hu3DModelPosSet(puffs->model[i], puffs->pos[i].x, puffs->pos[i].y, puffs->pos[i].z);
+            puffs->life[i] -= 2.0f;
+            if (puffs->life[i] <= 0.0f) {
+                puffs->active[i] = 0;
+                func_8001C258_main(puffs->model[i], 4, 4);
+                func_800146DC_main(puffs->spr[i], 0, 0x80);
+            }
+            puffs->scale[i] += 0.02f;
+            if (puffs->scale[i] >= 3.0f) {
+                puffs->scale[i] = 3.0f;
+            }
+            Hu3DModelScaleSet(puffs->model[i], puffs->scale[i], puffs->scale[i], puffs->scale[i]);
+        }
+    }
+    if (obj->work[0] == 1) {
+        if (puffs->delay == 0) {
+            for (i = 0; i < 16; i++) {
+                if (puffs->active[i] == 0) {
+                    break;
+                }
+            }
+            if (i != 16) {
+                puffs->active[i] = 1;
+                puffs->delay = 1;
+                puffs->vel[i].x = D_80119488_duel01->rot.x;
+                puffs->vel[i].y = -0.8f;
+                puffs->vel[i].z = D_80119488_duel01->rot.z;
+                func_800D7828_name_81(&puffs->vel[i]);
+                puffs->vel[i].x = 2.0f * puffs->vel[i].x;
+                puffs->vel[i].y = 2.0f * puffs->vel[i].y;
+                puffs->vel[i].z = 2.0f * puffs->vel[i].z;
+                puffs->pos[i].x = D_80119488_duel01->rot.x * 10.0f + D_80119488_duel01->coords.x;
+                puffs->pos[i].z = D_80119488_duel01->rot.z * 10.0f + D_80119488_duel01->coords.z;
+                puffs->pos[i].y = D_80119488_duel01->coords.y + 6.0f;
+                puffs->life[i] = 15.0f;
+                puffs->scale[i] = 0.1f;
+                func_8001C258_main(puffs->model[i], 4, 0);
+                func_80014850_main(puffs->spr[i]);
+                Hu3DModelPosSet(puffs->model[i], puffs->pos[i].x, puffs->pos[i].y, puffs->pos[i].z);
+                Hu3DModelScaleSet(puffs->model[i], puffs->scale[i], puffs->scale[i], puffs->scale[i]);
+                func_8001C8A8_main(puffs->model[i], 1);
+            }
+        } else {
+            puffs->delay--;
+        }
+    }
+}
 
 s32 func_8010B480_duel01(void) {
     DuelB2Puffs *puffs = D_8011948C_duel01->data;
