@@ -153,3 +153,22 @@ void func_800DD554_name_81(void);
 void func_800DD564_name_81(void);
 void func_800DD570_name_81(void);
 void func_800EB140_name_81(s32, s32);
+// duel b4 (4)
+typedef struct DuelB4SprGrp { /* ovl_81's UnkBoard4 */
+/* 0x00 */ struct DuelB4SprGrp *prev;
+/* 0x04 */ struct DuelB4SprGrp *next;
+/* 0x08 */ s16 unk_08;
+/* 0x0A */ s16 group;
+/* 0x0C */ s16 *sprite;
+/* 0x10 */ f32 *unk_10;
+/* 0x14 */ f32 *unk_14;
+/* 0x18 */ s16 *unk_18;
+/* 0x1C */ s16 *unk_1C;
+} DuelB4SprGrp; // sizeof 0x20
+extern void (*D_801188E4_duel01[])(void); /* space events by GwSystem.minigame_index */
+void func_800EA8DC_name_81(void);
+/* defined void in ovl_81 C5770.c, but it returns omAddPrcObj's Process* (retail reads v0) */
+Process *func_800E0924_name_81(void);
+DuelB4SprGrp *func_800F4528_name_81(s16, s16);
+void func_800F4584_name_81(DuelB4SprGrp *);
+void func_800F75EC_name_81(s32);

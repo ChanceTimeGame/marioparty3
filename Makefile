@@ -400,6 +400,8 @@ W2DC_BLANKSTRIP += build/src/overlays/msetup/501C00.c.o build/src/overlays/msetu
 W2DC_BLANKSTRIP += build/src/overlays/ovl_3D_bobbing_bow_loons/2D8370.c.o
 # wave 3l: dizzy dinghies likewise (no nop before the mul.s after the sindf/cosdf calls)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_46_dizzy_dinghies/316DF0.c.o
+# duel b4: duel01 3D8AC0 likewise (func_8011390C: no nop before the mul.s after the sindf calls)
+W2DC_BLANKSTRIP += build/src/overlays/duel01/3D8AC0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

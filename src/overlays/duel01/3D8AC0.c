@@ -717,7 +717,58 @@ void func_80112DA0_duel01(void) {
     func_800EDDBC_name_81();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801135D8_duel01);
+// duel b4: partner downgrade space (the mirror of the swap space's spin)
+void func_801135D8_duel01(void) {
+    void *win[2];
+    GW_PLAYER *player;
+    Object *obj;
+    f32 rot;
+    f32 scale;
+
+    player = MBDGetPlayerStruct(-1);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuPrcSleep(10);
+    HuAudFXPlay(0x1FB);
+    func_800EE74C_name_81(4);
+    HuPrcSleep(15);
+    obj = func_800D8010_name_81(0x22, 0);
+    func_8001C258_main(obj->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(obj->omObj1->model[0], 0);
+    HuVecCopy3F(&obj->coords, &player->player_obj->coords);
+    obj->coords.y += 30.0f;
+    HuAudFXPlay(0x1FE);
+    win[0] = func_800FFC2C_name_81(0, 2, 5);
+    win[1] = func_800FFC2C_name_81(1, 2, 5);
+    rot = 0.0f;
+    for (scale = 1.0f; scale < 20.0f; scale += 0.5) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800EA8DC_name_81();
+    func_800EA97C_name_81();
+    for (; scale >= 1.0f; scale -= 0.5) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800FFCCC_name_81(win[0]);
+    func_800FFCCC_name_81(win[1]);
+    func_800D8F3C_name_81(obj);
+    HuPrcSleep(15);
+    HuAudFXPlay(0x159);
+    func_800EB140_name_81(0x16, 0x1F2D);
+    func_800EDF78_name_81();
+    func_800EE468_name_81(2);
+    func_800EDDBC_name_81();
+    CharFXPlay(0x286, GwPlayer[GwSystem.current_player_index].chr);
+    func_800F3880_name_81(-1, 5, 0);
+    func_800EFABC_name_81(player->player_obj);
+}
 
 // duel b4: gain 20 coins
 void func_801138D0_duel01(void) {
@@ -728,7 +779,60 @@ void func_801138D0_duel01(void) {
     HuPrcSleep(30);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8011390C_duel01);
+// duel b4: the event roulette's result: a banner drops in and bounces, then the chosen space event runs
+void func_8011390C_duel01(void) {
+    DuelB4SprGrp *grp;
+    void *data;
+    s32 i;
+    s32 y;
+
+    mbItemBtnF = 0;
+    func_800F74E4_name_81(-1);
+    HuAudFXPlay(0x204);
+    grp = func_800F4528_name_81(2, 2);
+    data = DataRead(0x130103);
+    grp->sprite[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(grp->group, 0, grp->sprite[0], 0);
+    HuSprPriSet(grp->group, 0, 1);
+    HuSprAttrSet(grp->group, 0, 0x1000);
+    func_80054904_main(grp->group, 0, 160, -32);
+    func_800555E8_main(grp->group, 0, 16, 12, 304, 228);
+    data = DataRead(0x130104);
+    grp->sprite[1] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(grp->group, 1, grp->sprite[1], 0);
+    HuSprPriSet(grp->group, 1, 2);
+    HuSprAttrSet(grp->group, 1, 0x1000);
+    func_80054904_main(grp->group, 1, 0, 0);
+    func_800555E8_main(grp->group, 0, 16, 12, 304, 228);
+    func_80055420_main(grp->group, 1, 251, 203, 0);
+    for (i = 90; i < 180; i += 10) {
+        func_80054904_main(grp->group, 0, 160, sindf(i) * -152.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 180; i += 15) {
+        func_80054904_main(grp->group, 0, 160, sindf(i) * -60.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 180; i += 20) {
+        func_80054904_main(grp->group, 0, 160, sindf(i) * -30.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    func_80054904_main(grp->group, 0, 160, 120);
+    for (y = 0, i = 0; i < 9; i++) {
+        y += i * 2;
+        func_80054904_main(grp->group, 0, 160, 120 - y);
+        HuPrcVSleep();
+    }
+    HuPrcChildLink(HuPrcCurrentGet(), func_800E0924_name_81());
+    HuPrcChildWait();
+    func_800F4584_name_81(grp);
+    func_800F75EC_name_81(-1);
+    D_801188E4_duel01[GwSystem.minigame_index]();
+    mbItemBtnF = 1;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80113CAC_duel01);
 
