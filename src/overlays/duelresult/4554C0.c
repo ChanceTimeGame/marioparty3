@@ -10,6 +10,16 @@ typedef struct DrMotList {
     /* 0x04 */ s32 ids[1]; /* [count] */
 } DrMotList;
 
+typedef struct DrMotList2 {
+    /* 0x00 */ u32 count;
+    /* 0x04 */ s32 ids[2];
+} DrMotList2; /* size = 0xC */
+
+typedef struct DrMotList6 {
+    /* 0x00 */ u32 count;
+    /* 0x04 */ s32 ids[6];
+} DrMotList6; /* size = 0x1C */
+
 typedef struct DuelResultWork DuelResultWork; /* 45A700.c */
 
 DuelResultWork *func_8010ABE0_duelresult(s32 file);
@@ -105,11 +115,11 @@ extern DrF8 D_8010D720_duelresult;
 /* .data */
 extern s32 D_8010D290_duelresult;
 extern Vec D_8010D378_duelresult[];
-extern DrMotList D_8010D4C8_duelresult;
-extern DrMotList D_8010D4D4_duelresult;
+extern DrMotList2 D_8010D4C8_duelresult;
+extern DrMotList6 D_8010D4D4_duelresult;
 extern DrMotList *D_8010D608_duelresult[8];
 extern DrMotList *D_8010D628_duelresult[8];
-extern omObjData *D_8010D668_duelresult[2];
+extern omObjData *D_8010D668_duelresult[4];
 extern s32 D_8010D678_duelresult;
 extern f32 D_8010D67C_duelresult;
 extern s32 D_8010D680_duelresult[6];
@@ -814,3 +824,122 @@ void func_8010ABB0_duelresult() {
 }
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duelresult/4554C0", D_8010D83C_duelresult);
+
+/* .data */
+
+s32 D_8010D290_duelresult = 0;
+Vec D_8010D294_duelresult = { -750.0f, 400.0f, 2000.0f };
+Vec D_8010D2A0_duelresult = { 750.0f, 400.0f, 2000.0f };
+Vec D_8010D2AC_duelresult = { -750.0f, 500.0f, 4000.0f };
+Vec D_8010D2B8_duelresult[2] = {
+    { -250.0f, 0.0f, 2500.0f },
+    { -250.0f, -400.0f, 2500.0f },
+};
+Vec D_8010D2D0_duelresult = { -500.0f, 400.0f, 3500.0f };
+Vec D_8010D2DC_duelresult[3] = {
+    { 750.0f, 250.0f, 4000.0f },
+    { -150.0f, 250.0f, 2000.0f },
+    { 150.0f, 250.0f, 2000.0f },
+};
+Vec D_8010D300_duelresult[3] = {
+    { 0.0f, -700.0f, 1500.0f },
+    { 0.0f, -500.0f, 1000.0f },
+    { 0.0f, -300.0f, 500.0f },
+};
+Vec D_8010D324_duelresult = { -200.0f, 400.0f, -150.0f };
+Vec D_8010D330_duelresult = { 0.0f, 750.0f, 2500.0f };
+Vec D_8010D33C_duelresult = { 0.0f, 250.0f, 2500.0f };
+Vec D_8010D348_duelresult = { 0.0f, 400.0f, 2500.0f };
+Vec D_8010D354_duelresult = { 0.0f, 1000.0f, 2500.0f };
+Vec D_8010D360_duelresult = { 0.0f, 100.0f, 2500.0f };
+Vec D_8010D36C_duelresult = { 500.0f, 50.0f, 500.0f };
+Vec D_8010D378_duelresult[16] = {
+    { -150.0f, 750.0f, 2000.0f },
+    { 150.0f, 750.0f, 2000.0f },
+    { -150.0f, 250.0f, 2000.0f },
+    { 150.0f, 250.0f, 2000.0f },
+    { -150.0f, 100.0f, 2000.0f },
+    { 150.0f, 100.0f, 2000.0f },
+    { -150.0f, 0.0f, 2000.0f },
+    { 150.0f, 0.0f, 2000.0f },
+    { -150.0f, -500.0f, 2000.0f },
+    { 150.0f, -500.0f, 2000.0f },
+    { -150.0f, 800.0f, 2000.0f },
+    { 150.0f, 800.0f, 2000.0f },
+    { -150.0f, 150.0f, 2000.0f },
+    { 150.0f, 150.0f, 2000.0f },
+    { -150.0f, 350.0f, 2000.0f },
+    { 150.0f, 350.0f, 2000.0f },
+};
+Vec D_8010D438_duelresult[8] = {
+    { 0.0f, 270.0f, 3000.0f },
+    { 0.0f, 250.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+    { 0.0f, 270.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+    { 0.0f, 240.0f, 3000.0f },
+    { 0.0f, 250.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+};
+Vec D_8010D498_duelresult[2] = {
+    { -750.0f, 150.0f, 1500.0f },
+    { 750.0f, 150.0f, 1500.0f },
+};
+Vec D_8010D4B0_duelresult[2] = {
+    { -225.0f, 150.0f, 2500.0f },
+    { 225.0f, 150.0f, 2500.0f },
+};
+DrMotList2 D_8010D4C8_duelresult = { 2, { 0x2001B, 0x20024 } };
+DrMotList6 D_8010D4D4_duelresult = { 6, { 0x2001F, 0x20030, 0x20034, 0x20039, 0x20029, 0x2008F } };
+DrMotList2 D_8010D4F0_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D4FC_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D518_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D524_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D540_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D54C_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D568_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D574_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D590_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D59C_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D5B8_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D5C4_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList2 D_8010D5E0_duelresult = { 2, { 0, 0 } };
+DrMotList6 D_8010D5EC_duelresult = { 6, { 0, 0, 0, 0, 0, 0 } };
+DrMotList *D_8010D608_duelresult[8] = {
+    (DrMotList *)&D_8010D4C8_duelresult,
+    (DrMotList *)&D_8010D4F0_duelresult,
+    (DrMotList *)&D_8010D518_duelresult,
+    (DrMotList *)&D_8010D540_duelresult,
+    (DrMotList *)&D_8010D568_duelresult,
+    (DrMotList *)&D_8010D590_duelresult,
+    (DrMotList *)&D_8010D5B8_duelresult,
+    (DrMotList *)&D_8010D5E0_duelresult,
+};
+DrMotList *D_8010D628_duelresult[8] = {
+    (DrMotList *)&D_8010D4D4_duelresult,
+    (DrMotList *)&D_8010D4FC_duelresult,
+    (DrMotList *)&D_8010D524_duelresult,
+    (DrMotList *)&D_8010D54C_duelresult,
+    (DrMotList *)&D_8010D574_duelresult,
+    (DrMotList *)&D_8010D59C_duelresult,
+    (DrMotList *)&D_8010D5C4_duelresult,
+    (DrMotList *)&D_8010D5EC_duelresult,
+};
+s32 D_8010D648_duelresult[5] = { 0x13015C, 0x13015D, 0x13015E, 0x13015F, 0x130160 };
+DrMotList2 D_8010D65C_duelresult = { 2, { 0xA0077, 0xA0078 } };
+omObjData *D_8010D668_duelresult[4] = { NULL, NULL, NULL, NULL };
+s32 D_8010D678_duelresult = 0;
+f32 D_8010D67C_duelresult = 50.0f;
+s32 D_8010D680_duelresult[6] = { 0, 0, 0, 0, 0, 0 };
+s32 D_8010D698_duelresult[10] = { 0xB003E, 0xB003F, 0xB0040, 0xB0041, 0xB0042, 0xB0043, 0xB0044, 0xB0045, 0, 0 };
+u8 D_8010D6C0_duelresult[5][3] = {
+    { 0x00, 0xFF, 0xFF },
+    { 0x00, 0xFF, 0xA0 },
+    { 0x28, 0x00, 0xFF },
+    { 0xFF, 0x00, 0x00 },
+    { 0x00, 0xFF, 0x00 },
+};
+DrFiles4 D_8010D6D0_duelresult = { { 0x1301C1, 0x1301C2, 0x1301C3, 0x1301C4 } };
+DrPos4 D_8010D6E0_duelresult = { { { 200.0f, 60.0f }, { 80.0f, 0.0f }, { 0.0f, 120.0f }, { 80.0f, 120.0f } } };
+DrPos4 D_8010D700_duelresult = { { { 120.0f, 60.0f }, { -80.0f, 0.0f }, { 0.0f, 120.0f }, { -80.0f, 120.0f } } };
+DrF8 D_8010D720_duelresult = { { 120.0f, 120.0f, 180.0f, 160.0f, 160.0f, 190.0f, 120.0f, 180.0f } };

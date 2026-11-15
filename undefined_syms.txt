@@ -138,3 +138,11 @@ D_80109258_opduel = D_80109250_opduel + 0x8;
 D_801092B0_opduel = D_801092A4_opduel + 0xC;
 /* duel c1: opduel .data inner label func_801059A0_opduel (NON_MATCHING asm) uses */
 D_80109350_opduel = D_8010934C_opduel + 0x4;
+/* duel r1 duelresult: inner labels of data now defined in C (4554C0.c): the result-scene position table
+   (func_8010856C, asm) and the RGB table (45A700's func_8010C8E0) */
+D_8010D3C0_duelresult = D_8010D378_duelresult + 0x48;
+D_8010D3D8_duelresult = D_8010D378_duelresult + 0x60;
+D_8010D3F0_duelresult = D_8010D378_duelresult + 0x78;
+D_8010D420_duelresult = D_8010D378_duelresult + 0xA8;
+D_8010D6C1_duelresult = D_8010D6C0_duelresult + 0x1;
+D_8010D6C2_duelresult = D_8010D6C0_duelresult + 0x2;
