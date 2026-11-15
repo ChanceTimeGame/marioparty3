@@ -193,6 +193,9 @@ typedef struct DuelB2SprModel {
 extern DuelB2SprModel *D_800CBB60_main;
 extern Object *D_80119488_duel01;
 extern omObjData *D_8011948C_duel01;
+extern s32 D_80118718_duel01[];
+/* duel01.h declares func_800D8E88_name_81(void); it takes the Object (ovl_81.h). */
+typedef void (*DuelB2ObjFunc)(Object *);
 
 u16 func_80014618_main(s16 index, u16 arg1);
 void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
@@ -202,6 +205,7 @@ void func_80014850_main(s16 index);
 void func_80016638_main(s32 index);
 void func_800166D0_main(void);
 void func_800D7828_name_81(Vec *vec);
+void func_800D8F3C_name_81(Object *arg0);
 void func_800FAC94_name_81(DuelB2PartnerFunc *arg0, DuelB2PartnerFunc *arg1);
 void func_800EA7D4_name_81(void);
 void func_800EA97C_name_81(void);
@@ -235,9 +239,85 @@ extern event_table_entry D_80118DEC_duel01[];
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010A210_duel01);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010AAB0_duel01);
+/* A smoke puff (model 0x21) grows over obj; with create, model 8 (D_80119488) is made, then hidden at obj's place. */
+void func_8010AAB0_duel01(Object *obj, s32 create) {
+    DuelB2ObjFunc objHide = (DuelB2ObjFunc)func_800D8E88_name_81;
+    Object *puff;
+    f32 rot;
+    f32 scale;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010AD48_duel01);
+    if (create != 0) {
+        D_80119488_duel01 = func_800D8010_name_81(8, (s32)D_80118718_duel01); // host: pointer through s32 (duel01.h prototype)
+        func_800D8944_name_81(D_80119488_duel01);
+        func_800D8F0C_name_81(D_80119488_duel01);
+    } else {
+        HuPrcSleep(3);
+    }
+    puff = func_800D8010_name_81(0x21, 0);
+    func_8001C258_main(puff->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(puff->omObj1->model[0], 0x800);
+    func_8001C448_main(puff->omObj1->model[0]);
+    HuVecCopy3F(&puff->coords, &obj->coords);
+    puff->coords.y += 5.0f;
+    HuAudFXPlay(0x1E3);
+    rot = 0.0f;
+    for (scale = 1.0f; scale < 10.0f; scale += 1.0) {
+        HuVecCopyXYZ(&puff->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[puff->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    if (create != 0) {
+        HuVecCopy3F(&D_80119488_duel01->coords, &obj->coords);
+        HuVecCopy3F(&D_80119488_duel01->rot, &obj->rot);
+        objHide(D_80119488_duel01);
+        func_800D8F0C_name_81(obj);
+    }
+    for (; scale >= 1.0f; scale -= 1.0) {
+        HuVecCopyXYZ(&puff->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[puff->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800D8F3C_name_81(puff);
+}
+
+/* Smoke puff over D_80119488: obj takes its place and hides, and that model is freed. */
+void func_8010AD48_duel01(Object *obj) {
+    DuelB2ObjFunc objHide = (DuelB2ObjFunc)func_800D8E88_name_81;
+    Object *puff;
+    f32 rot;
+    f32 scale;
+
+    puff = func_800D8010_name_81(0x21, 0);
+    func_8001C258_main(puff->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(puff->omObj1->model[0], 0x800);
+    func_8001C448_main(puff->omObj1->model[0]);
+    HuVecCopy3F(&puff->coords, &D_80119488_duel01->coords);
+    puff->coords.y += 5.0f;
+    if (GwSystem.current_board_index == 6) {
+        HuAudFXPlay(0x1E3);
+    }
+    rot = 0.0f;
+    for (scale = 1.0f; scale < 10.0f; scale += 1.0) {
+        HuVecCopyXYZ(&puff->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[puff->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    HuVecCopy3F(&obj->coords, &D_80119488_duel01->coords);
+    HuVecCopy3F(&obj->rot, &D_80119488_duel01->rot);
+    func_800D8F3C_name_81(D_80119488_duel01);
+    objHide(obj);
+    obj->flags &= ~1;
+    for (; scale >= 1.0f; scale -= 1.0) {
+        HuVecCopyXYZ(&puff->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[puff->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800D8F3C_name_81(puff);
+}
 
 void func_8010AFB4_duel01(void) {
     DuelB2Puffs *puffs;
