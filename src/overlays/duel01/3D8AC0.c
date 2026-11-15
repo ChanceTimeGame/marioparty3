@@ -486,11 +486,158 @@ void func_801125CC_duel01(void) {
     func_80110068_duel01(MBDGetCurrentPlayerIndex());
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8011264C_duel01);
+// duel b4: swap space: a growing spin swaps the two players' places
+void func_8011264C_duel01(void) {
+    void *win[2];
+    GW_PLAYER *player;
+    Object *obj;
+    f32 rot;
+    f32 scale;
+    s32 cur;
+    s32 other;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_801129C8_duel01);
+    cur = MBDGetCurrentPlayerIndex();
+    other = (cur + 1) & 1;
+    player = MBDGetPlayerStruct(-1);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuPrcSleep(10);
+    HuAudFXPlay(0x1F6);
+    func_800EE74C_name_81(1);
+    HuPrcSleep(15);
+    obj = func_800D8010_name_81(0x21, 0);
+    func_8001C258_main(obj->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(obj->omObj1->model[0], 0);
+    HuVecCopy3F(&obj->coords, &player->player_obj->coords);
+    obj->coords.y += 30.0f;
+    HuAudFXPlay(0x1F9);
+    win[0] = func_800FFC2C_name_81(0, 3, 5);
+    win[1] = func_800FFC2C_name_81(1, 3, 5);
+    rot = 0.0f;
+    for (scale = 1.0f; scale < 20.0f; scale += 0.5) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800EA898_name_81(other, cur);
+    func_800EA7D4_name_81();
+    func_800EA97C_name_81();
+    for (; scale >= 1.0f; scale -= 0.5) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        HuPrcVSleep();
+    }
+    func_800FFCCC_name_81(win[0]);
+    func_800FFCCC_name_81(win[1]);
+    func_800D8F3C_name_81(obj);
+    HuPrcSleep(15);
+    HuAudFXPlay(0x159);
+    func_800EB49C_name_81(0x16, 0x1F2B, D_80101200_name_81[GwPlayer[GwSystem.current_player_index ^ 1].chr], 0, 0, 0, 0);
+    func_800EB278_name_81();
+    func_800EB29C_name_81();
+    func_800EDF78_name_81();
+    func_800EE468_name_81(2);
+    func_800EDDBC_name_81();
+    func_800F3880_name_81(-1, 6, 0);
+    func_8004ACE0_main(0x2BD, GwSystem.current_player_index);
+    func_800EFABC_name_81(player->player_obj);
+    func_800F3880_name_81(-1, -1, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112BB4_duel01);
+// duel b4: partner power-up space: each partner flashes and gains power
+void func_801129C8_duel01(void) {
+    Object *partner[2];
+    GW_PLAYER *player;
+    void *win;
+    GW_SYSTEM *system = &GwSystem;
+
+    player = MBDGetPlayerStruct(-1);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuAudFXPlay(0x1F6);
+    win = func_800FFC2C_name_81(-1, 0, 5);
+    func_800EE74C_name_81(0);
+    func_800FFCCC_name_81(win);
+    func_800EDF78_name_81();
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EE40C_name_81(2));
+    partner[0] = NULL;
+    partner[1] = NULL;
+    if (player->stats.prize.gamblePrize != -1) {
+        partner[0] = func_800D8010_name_81(0x38, 0);
+        func_800D8944_name_81(partner[0]);
+        HuVecCopy3F(&partner[0]->coords, &MBDGetPlayerPartnerRef(system->current_player_index, 0)->coords);
+        func_8001C814_main(partner[0]->omObj1->model[0], 2, 0);
+    }
+    if (player->stats.prize.duelNo != -1) {
+        partner[1] = func_800D8010_name_81(0x38, 0);
+        func_800D8944_name_81(partner[1]);
+        HuVecCopy3F(&partner[1]->coords, &MBDGetPlayerPartnerRef(system->current_player_index, 1)->coords);
+        func_8001C814_main(partner[1]->omObj1->model[0], 2, 0);
+    }
+    HuAudFXPlay(0x1FA);
+    if (partner[0] != NULL) {
+        func_800EFABC_name_81(partner[0]);
+        func_800D8F3C_name_81(partner[0]);
+    }
+    if (partner[1] != NULL) {
+        func_800EFABC_name_81(partner[1]);
+        func_800D8F3C_name_81(partner[1]);
+    }
+    Duel_PowerUpPartners(system->current_player_index);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800E4A74_name_81(0));
+    HuPrcChildWait();
+    func_800EDDBC_name_81();
+}
+
+// duel b4: partner power-down space
+void func_80112BB4_duel01(void) {
+    Object *partner[2];
+    GW_PLAYER *player;
+    void *win;
+    GW_SYSTEM *system = &GwSystem;
+
+    player = MBDGetPlayerStruct(-1);
+    func_800EDD50_name_81(&player->player_obj->coords);
+    func_800EE0F4_name_81(1);
+    func_800EDF48_name_81();
+    HuAudFXPlay(0x1FB);
+    win = func_800FFC2C_name_81(-1, 0, 5);
+    func_800EE74C_name_81(4);
+    func_800FFCCC_name_81(win);
+    func_800EDF78_name_81();
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EE40C_name_81(2));
+    partner[0] = NULL;
+    partner[1] = NULL;
+    if (player->stats.prize.gamblePrize != -1) {
+        partner[0] = func_800D8010_name_81(0x3A, 0);
+        func_800D8944_name_81(partner[0]);
+        HuVecCopy3F(&partner[0]->coords, &MBDGetPlayerPartnerRef(system->current_player_index, 0)->coords);
+        func_8001C814_main(partner[0]->omObj1->model[0], 2, 0);
+    }
+    if (player->stats.prize.duelNo != -1) {
+        partner[1] = func_800D8010_name_81(0x3A, 0);
+        func_800D8944_name_81(partner[1]);
+        HuVecCopy3F(&partner[1]->coords, &MBDGetPlayerPartnerRef(system->current_player_index, 1)->coords);
+        func_8001C814_main(partner[1]->omObj1->model[0], 2, 0);
+    }
+    if (partner[0] != NULL) {
+        func_800EFABC_name_81(partner[0]);
+        func_800D8F3C_name_81(partner[0]);
+    }
+    if (partner[1] != NULL) {
+        func_800EFABC_name_81(partner[1]);
+        func_800D8F3C_name_81(partner[1]);
+    }
+    Duel_PowerDownPartners(system->current_player_index);
+    HuAudFXPlay(0x1FC);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800E4A74_name_81(1));
+    HuPrcChildWait();
+    func_800EDDBC_name_81();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80112DA0_duel01);
 

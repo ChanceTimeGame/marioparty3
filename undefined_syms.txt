@@ -117,3 +117,5 @@ D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
 D_801097EA_dizzy_dinghies = D_801097E8_dizzy_dinghies + 0x2;
 /* mgresultduel: the host's path knot times are one f32[5] in C; func_80108820_mgresultduel (NON_MATCHING asm) names the third */
 D_80108F18_mgresultduel = D_80108F10_mgresultduel + 0x8;
+/* duel b4: duel01's swap space reads ovl_81's character-name message table (D_801011FC_name_81's data runs on into it) */
+D_80101200_name_81 = D_801011FC_name_81 + 0x4;

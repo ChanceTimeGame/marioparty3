@@ -134,3 +134,15 @@ s16 func_8004ACE0_main(s16, s16);
 void func_80118320_duel01(void);
 /* retail passes the back link/index addresses to the empty func_80118320_duel01 */
 #define func_80118320_b4 ((void (*)(s8 *, s8 *))func_80118320_duel01)
+// duel b4 (2)
+extern s32 D_80101200_name_81[]; /* character name messages, 0x1C00 + chr (inner label of ovl_81's D_801011FC data) */
+void func_800D8F3C_name_81(Object *);
+void func_800EA7D4_name_81(void);
+void func_800EA898_name_81(s32, s32);
+void func_800EA97C_name_81(void);
+void Duel_PowerUpPartners(s32);
+void Duel_PowerDownPartners(s32);
+Object *MBDGetPlayerPartnerRef(s32, s32);
+Process *func_800E4A74_name_81(s32);
+Process *func_800EE40C_name_81(s32);
+void func_8001C814_main(s16, s16, s16);
