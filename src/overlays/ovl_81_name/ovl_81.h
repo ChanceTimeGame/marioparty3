@@ -61,7 +61,7 @@ extern s32 D_80101A94_name_81;
 extern s32 D_80101A98_name_81;
 extern s16 D_80105494_name_81;
 extern s16 D_80105496_name_81;
-extern u8* D_80101980_name_81;
+extern s32 D_80101980_name_81; // duel n8: attack effects still running (was u8*)
 extern s32 D_80101984_name_81;
 extern Object* D_80101988_name_81;
 extern s32* D_801017DC_name_81[];
