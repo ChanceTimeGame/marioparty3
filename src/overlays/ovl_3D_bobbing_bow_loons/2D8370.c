@@ -205,12 +205,6 @@ void func_80109594_bobbing_bow_loons(void);
 void func_80109680_bobbing_bow_loons(void);
 void func_801096E8_bobbing_bow_loons(void);
 
-extern BlCtrl D_80109720_bobbing_bow_loons;
-extern f32 D_80109748_bobbing_bow_loons[8];   /* x offset of the player's balloon, per character */
-extern s32 D_80109768_bobbing_bow_loons[8];   /* data directory, per character */
-extern char* D_80109788_bobbing_bow_loons[8]; /* hand object name, per character */
-extern s32 D_801097A8_bobbing_bow_loons[8];   /* character index (read as s16) */
-
 /* .bss (ovl_3D_bss) */
 extern u8 D_80109B04_bobbing_bow_loons;  /* 0 missed, 2 time up, 3 drop the hook, 4 dropped */
 extern s16 D_80109B06_bobbing_bow_loons;
@@ -233,17 +227,18 @@ extern omObjData* D_80109B5C_bobbing_bow_loons;
 extern omObjData* D_80109B60_bobbing_bow_loons;
 extern omObjData* D_80109B64_bobbing_bow_loons;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_801097D0_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_801097E4_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_801097F8_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_8010980C_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109820_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109834_bobbing_bow_loons);
+/* .data (0x80109720-0x801097D0). Defined before the functions: retail emits the hand names in
+   .rodata ahead of every function's constants. */
+BlCtrl D_80109720_bobbing_bow_loons = {
+    0, 3, 2, 0, 0, 0, 5, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 30, 300, -1, 90, 135,
+};
+f32 D_80109748_bobbing_bow_loons[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+s32 D_80109768_bobbing_bow_loons[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+char* D_80109788_bobbing_bow_loons[8] = {
+    "migi-te3_2_1",       "c001_000-migi-te2_3", "C002_000b-bmerge16", "c003_000-bmerge1_8",
+    "Luigi1-migi-te1_1", "c005_000-bmerge6",    "c001_000-migi-te2_3", "C002_000b-bmerge16",
+};
+s32 D_801097A8_bobbing_bow_loons[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 void func_801059A0_bobbing_bow_loons(void) {
     omInitObjMan(30, 10);
