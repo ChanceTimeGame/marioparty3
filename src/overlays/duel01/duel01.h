@@ -158,3 +158,6 @@ void func_800EF800_name_81(Object*);
 void func_8010615C_duel01(Object*, Object*, GW_PLAYER*, Vec*, Vec*, f32);
 void func_800F0378_name_81(Object*, char*, s16);
 void func_800EB804_name_81(Object*);
+void func_800FAE98_name_81(Object*, s16, s16, s16, s16);
+void func_8001C92C_main(s16, f32);
+void MBDBackTPLvlSet(u8);
