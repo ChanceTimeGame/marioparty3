@@ -4,7 +4,7 @@
 #include "game/window.h"
 #include "malloc.h"
 
-typedef void (*PartnerFunc)(s16, s32, Object*, Object*, s32, s32);
+typedef void (*PartnerFunc)(s32, s32, Object*, Object*, s32, s32); // duel n8: s32 first parameter
 
 typedef enum PartnerObjIndex {
     /* 0 */ PARTNEROBJINDEX_FRONT,
