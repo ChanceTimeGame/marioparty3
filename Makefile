@@ -330,6 +330,8 @@ NOP_OBJECTS += build/src/sprput.c.o
 NOP_OBJECTS += build/src/overlays/opboard/3CA800.c.o
 # wave 3l fired A: All Fired Up (no nop after the sindf/cosdf calls)
 NOP_OBJECTS += build/src/overlays/ovl_29_all_fired_up/23C8F0.c.o
+# duel n1: ovl_81 BECB0 (EC3B0 copy: no nop after HuVecGetLength3F)
+NOP_OBJECTS += build/src/overlays/ovl_81_name/BECB0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
