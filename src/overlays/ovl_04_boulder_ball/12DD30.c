@@ -577,7 +577,143 @@ s32 func_80107194_boulder_ball(omObjData* obj) {
     return 0;
 }
 
+// masked ~30: retail recomputes GwPlayer[player]'s offset for cpu_difficulty and keeps diff in s7 where GCC here
+// CSEs the offset and spills diff, which shifts the loop registers; two nops after sindf/cosdf; logic checked
+// block by block against the asm
+#ifdef NON_MATCHING
+/* CPU control of a runner: dodge the boulder nearest the slope's centre line. Saves the CPU's controller state
+   (D_8010988C..D_80109898, restored by func_80107194) and writes its stick. */
+s32 func_80107298_boulder_ball(omObjData* obj) {
+    Vec v;
+    f32 reach[4] = { 70.0f, 80.0f, 90.0f, 100.0f }; /* per difficulty: dodge distance beyond the two radii */
+    f32 gain[4] = { 0.5f, 0.55f, 0.6f, 0.65f }; /* per difficulty: stick gain */
+    MgWork* w;
+    BbBall* ball;
+    omObjData* b;
+    s32 i;
+    s32 near;
+    f32 bx;
+    f32 bz;
+    f32 d;
+    f32 dist;
+    f32 heading;
+    f32 speed;
+    s32 player;
+    s32 pad;
+    s32 diff;
+
+    w = obj->data;
+    player = w->unk59;
+    pad = w->unk57;
+    if (func_800E6E8C_minigame() == 2) {
+        if (GwPlayer[player].stat & 1) {
+            D_80109890_boulder_ball = D_800D5558_main[pad];
+            D_8010988C_boulder_ball = (u16)D_800CDA7C_main[pad];
+            D_80109894_boulder_ball = D_800CBB6E_main[pad];
+            D_80109898_boulder_ball = D_800D20A1_main[pad];
+            D_800D20A1_main[pad] = 0;
+            D_800CBB6E_main[pad] = 0;
+            D_800D5558_main[pad] = 0;
+            D_800CDA7C_main[pad] = 0;
+            diff = GwPlayer[player].cpu_difficulty;
+            bx = bz = v.x = v.y = v.z = 0.0f;
+            near = -1;
+            d = 30000.0f;
+            for (i = 0; i < (u16)D_800EC1B8_minigame; i++) {
+                b = D_800EBE70_minigame[i];
+                ball = b->data;
+                if (D_80109700_boulder_ball[ball->unk56] == 3) {
+                    bx = b->trans.x;
+                    bz = b->trans.z;
+                    dist = HuSqrtf(bx * bx + bz * bz);
+                    if (dist < d) {
+                        d = dist;
+                        near = i;
+                    }
+                }
+            }
+            if (near != -1) {
+                /* step the boulder forward until it passes the runner */
+                b = D_800EBE70_minigame[near];
+                ball = b->data;
+                bx = b->trans.x;
+                bz = b->trans.z;
+                heading = b->rot.y;
+                speed = ball->unk40;
+                for (i = 0; i < 100; i++) {
+                    bx += sindf(heading) * speed;
+                    bz += cosdf(heading) * speed;
+                    speed += 0.3f;
+                    if (speed > 35.0f) {
+                        speed = 35.0f;
+                    }
+                    if (fabs(bx) > 450.0f - ball->unk48) {
+                        heading = -heading;
+                    }
+                    if (obj->trans.z < bz) {
+                        break;
+                    }
+                }
+                v.x = obj->trans.x - bx;
+                v.z = obj->trans.z - bz;
+                v.y = 0.0f;
+                func_800202FC_main(&v);
+            }
+            switch (D_801097B4_boulder_ball[player]) {
+                case 0: /* wait */
+                    D_800D20A1_main[pad] = 60;
+                    if (near != -1) {
+                        bx = obj->trans.x - bx;
+                        bz = obj->trans.z - bz;
+                        if (HuSqrtf(bx * bx + bz * bz) < w->unk48 + ball->unk48 + reach[diff]) {
+                            D_800CBB6E_main[pad] = v.x * 60.0f * gain[diff];
+                            D_801097B4_boulder_ball[player] = 1;
+                        }
+                    }
+                    break;
+                case 1: /* dodge away from the boulder */
+                    v.x = obj->trans.x - bx;
+                    v.z = obj->trans.z - bz;
+                    v.y = 0.0f;
+                    func_800202FC_main(&v);
+                    D_800CBB6E_main[pad] = v.x * 60.0f * gain[diff];
+                    D_800D20A1_main[pad] = 60;
+                    bx = obj->trans.x - bx;
+                    bz = obj->trans.z - bz;
+                    d = HuSqrtf(bx * bx + bz * bz);
+                    if (near == -1) {
+                        D_801097B4_boulder_ball[player] = 2;
+                    } else if (w->unk48 + ball->unk48 + reach[diff] < d) {
+                        D_801097B4_boulder_ball[player] = 2;
+                    }
+                    break;
+                case 2: /* return to its lane */
+                    D_800D20A1_main[pad] = 60;
+                    v.x = obj->trans.x - D_801097A4_boulder_ball[player];
+                    v.z = 0.0f;
+                    v.y = 0.0f;
+                    func_800202FC_main(&v);
+                    D_800CBB6E_main[pad] = -v.x * 60.0f * gain[diff];
+                    if (D_801097A4_boulder_ball[player] - 50.0f < obj->trans.x &&
+                        obj->trans.x < D_801097A4_boulder_ball[player] + 50.0f) {
+                        D_801097B4_boulder_ball[player] = 0;
+                    }
+                    if (near != -1) {
+                        bx = obj->trans.x - bx;
+                        bz = obj->trans.z - bz;
+                        if (HuSqrtf(bx * bx + bz * bz) < w->unk48 + ball->unk48 + reach[diff]) {
+                            D_801097B4_boulder_ball[player] = 1;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80107298_boulder_ball);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_04_boulder_ball/12DD30", func_80107924_boulder_ball);
 
