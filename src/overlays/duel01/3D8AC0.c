@@ -262,6 +262,28 @@ typedef struct Duel01Weight {
 extern s8 D_80118760_duel01[]; /* value, chance pairs as Duel01Weight (splat label D_80118761 is [1]) */
 extern Duel01Weight *D_8011885C_duel01[]; /* per character */
 extern s32 D_8011889C_duel01;
+extern s32 D_80118894_duel01;
+
+/* ovl_81's sprite group (UnkBoard4 there). */
+typedef struct Duel01SprGrp {
+    /* 0x00 */ struct Duel01SprGrp *unk_00;
+    /* 0x04 */ struct Duel01SprGrp *unk_04;
+    /* 0x08 */ s16 unk_08;
+    /* 0x0A */ s16 unk_0A;
+    /* 0x0C */ s16 *unk_0C;
+    /* 0x10 */ f32 *unk_10;
+    /* 0x14 */ f32 *unk_14;
+    /* 0x18 */ s16 *unk_18;
+    /* 0x1C */ s16 *unk_1C;
+} Duel01SprGrp;
+
+Duel01SprGrp *func_800F4528_name_81(s16 arg0, s16 arg1);
+void func_800F4584_name_81(Duel01SprGrp *arg0);
+s32 func_800F37B8_name_81(s16 playerIndex);
+void func_800E0310_name_81(u8 *output, s32 count);
+extern u16 D_800C9520_main[];
+s32 func_8010EDA0_duel01(void);
+void func_8010EFBC_duel01(void);
 
 void func_8010DC04_duel01(void) {
     s16 model = D_80119490_duel01->omObj1->model[0];
@@ -711,7 +733,152 @@ void func_8010EFBC_duel01(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010EFBC_duel01);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010F12C_duel01);
+void func_8010F12C_duel01(void) {
+    s16 pos[3][2] = { { 160, -80 }, { 160, -160 }, { 160, -80 } };
+    s32 files[6] = { 0x13011C, 0x13011F, 0x13011E, 0x13011D, 0x130120, 0x13011E }; /* [player * 3 + i] */
+    u8 order[32];
+    s32 player;
+    s32 msg;
+    s16 win;
+    Process *proc;
+    s32 kind;
+    s32 cpuChoice;
+    s32 cpuCount;
+    s32 wait;
+    s32 n;
+    s32 i;
+    s32 *data;
+    void *file;
+    Duel01SprGrp *grp;
+    u8 last;
+
+    player = *(s32 *)HuPrcCurrentGet()->user_data;
+    proc = NULL;
+    cpuChoice = -1;
+    mbItemBtnF = 0;
+    if (player == 0) {
+        kind = (u8)GwSystem.playerIndexVisitingBowser;
+    } else {
+        kind = (GwSystem.playerIndexVisitingBowser / 256) & 0xFF;
+    }
+    win = func_8005A968_main(60, -160, 200, 160, 0, 0);
+    func_8005FBF8_main(win, 0x43, 5, 1);
+    func_8005BEE0_main(win, 0xC0);
+    if (kind == 2) {
+        proc = omAddPrcObj(func_8010EFBC_duel01, 0xA, 0, 0x40);
+        data = HuMemMemoryAlloc(proc->heap, 0x10);
+        proc->user_data = data;
+        *data = win;
+    }
+    grp = func_800F4528_name_81(3, 0);
+    for (i = 0; i < 3; i++) {
+        file = DataRead(files[player * 3 + i]);
+        grp->unk_0C[i] = func_80055810_main(file);
+        func_80055024_main(grp->unk_0A, i, grp->unk_0C[i], 0);
+        HuSprPriSet(grp->unk_0A, i, i + 1);
+        HuSprAttrSet(grp->unk_0A, i, 0);
+        func_80054904_main(grp->unk_0A, i, pos[i][0], pos[i][1]);
+        DataClose(file);
+        if (i == 2) {
+            func_80055140_main(grp->unk_0A, 2, func_800EFE20_name_81(12.0f), 0);
+        }
+    }
+    for (wait = 90; wait < 180; wait += 15) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -200.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -200.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    for (wait = 0; wait < 180; wait += 20) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -50.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -50.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    for (wait = 0; wait < 180; wait += 20) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -30.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -30.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    if (func_800F37B8_name_81(CUR_PLAYER) != 0) {
+        cpuCount = func_800EFE20_name_81(10.0f) + 10;
+        cpuChoice = func_8010EDA0_duel01();
+        if (kind == 2 && cpuChoice != -1) {
+            cpuCount = 5;
+        }
+    } else {
+        cpuCount = -1;
+    }
+    msg = func_800E1824_name_81(0x13, 0xB9, 0);
+    D_8011889C_duel01 = 1;
+    last = 0xFF;
+    n = 11;
+    do {
+        func_800E0310_name_81(order, n);
+        if (last == order[0]) {
+            last = order[n];
+            order[n] = order[0];
+            order[0] = last;
+            last = 0xFF;
+        }
+        for (i = 0; i <= n; i++) {
+            HuAudFXPlay(0x1C8);
+            last = order[i];
+            func_80055140_main(grp->unk_0A, 2, order[i], 0);
+            func_800550F4_main(grp->unk_0A, 2, 1);
+            wait = (kind == 2) ? 15 : 1;
+            while (TRUE) {
+                if (cpuCount > 0) {
+                    if (kind != 2 || cpuChoice == -1 || cpuChoice == order[i]) {
+                        if (--cpuCount == 0) {
+                            break;
+                        }
+                    }
+                } else if (D_800C9520_main[GwPlayer[player].pad] & 0x8000) {
+                    break;
+                }
+                HuPrcVSleep();
+                if (--wait == 0) {
+                    break;
+                }
+            }
+            if (wait != 0) {
+                break;
+            }
+        }
+    } while (i == n + 1);
+    {
+        s32 sfx[12] = { 0x25A, 0x25B, 0x298, 0x256, 0x257, 0x25D, 0x2A3, 0x2A4, 0x2A2, 0x1E7, 0x2A5, 0x2A0 };
+
+        HuAudFXPlay(sfx[order[i]]);
+    }
+    D_8011889C_duel01 = 0;
+    if (player == 0) {
+        if (kind == 2) {
+            GwSystem.playerIndexVisitingBowser &= 0xFF00;
+        } else {
+            GwSystem.playerIndexVisitingBowser++;
+        }
+    } else if (kind == 2) {
+        GwSystem.playerIndexVisitingBowser &= 0xFF;
+    } else {
+        GwSystem.playerIndexVisitingBowser += 0x100;
+    }
+    HuPrcSleep(30);
+    D_80118894_duel01 = order[i];
+    func_800E1854_name_81(msg);
+    if (proc != NULL) {
+        omDelPrcObj(proc);
+    }
+    func_800F4584_name_81(grp);
+    func_8005F364_main(win);
+    mbItemBtnF = 1;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010F99C_duel01);
 
@@ -739,11 +906,8 @@ void func_80110BD8_duel01(void) {
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F60_duel01);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F6C_duel01);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F84_duel01);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118FB4_duel01);
 
