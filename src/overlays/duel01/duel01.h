@@ -126,3 +126,33 @@ void func_800FAD04_name_81(s32);
 void func_800FAE18_name_81(Object*, s16, s16);
 void func_800FADB4_name_81(void);
 void func_800ED214_name_81(s32);
+// duel b1: a model's Y-rotation written straight into its HmfModel matrix (as ovl_81's func_800D9668 process does)
+#define B1_MODEL_ROTY(obj, angle, mdl)                                                                        \
+    sincosdf(angle, &HmfModelData[(obj)->omObj1->model[0]].mtx[8], &HmfModelData[(obj)->omObj1->model[0]].mtx[10]); \
+    HmfModelData[(obj)->omObj1->model[0]].mtx[2] = -HmfModelData[(obj)->omObj1->model[0]].mtx[8];               \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[0] = mdl->mtx[10];                                                                                  \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[1] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[6] = mdl->mtx[7] = mdl->mtx[9] = mdl->mtx[11] =           \
+        mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                                                       \
+    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
+    mdl->mtx[5] = mdl->mtx[15] = 1.0f
+
+extern s32 D_80118710_duel01[]; // partner attack effect model ids, by level - 1 (read as u8)
+extern char D_80118E60_duel01[]; // "obj1"
+extern s32 D_80105550_name_81;
+extern s32 D_80105558_name_81;
+extern s32 D_80105718_name_81;
+extern s32 D_8010571C_name_81;
+Process* func_800D9668_name_81(Object*, f32, f32, s32);
+Process* func_800DCE40_name_81(s32, Vec*, Vec*, f32);
+s32 func_800DD1E0_name_81(s32, char*);
+void func_800DD2DC_name_81(s32, Vec*); // s16 in ovl_81
+s32 func_800DD3B4_name_81(s32);
+void func_800DD2BC_name_81(s32); // s16 in ovl_81
+Process* func_800FAB68_name_81(Object*, s32, s32, s32, s32);
+void func_800FAC1C_name_81(Vec*);
+void func_8001C6A8_main(s32, f32);
+void func_800EF7C8_name_81(Object*, f32, f32);
+void func_800EF800_name_81(Object*);
+void func_8010615C_duel01(Object*, Object*, GW_PLAYER*, Vec*, Vec*, f32);
