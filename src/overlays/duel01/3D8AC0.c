@@ -213,17 +213,143 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118EE0_duel01);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DB2C_duel01);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DC04_duel01);
+// duel b3: declarations for func_8010DC04_duel01..func_80110C3C_duel01
+SpaceData *MBDMasuGet(s16 spaceIdx);
+void func_8002FD8C_main(s16 arg0, s16 arg1, char *arg2, s16 arg3, s16 arg4);
+void *func_8001D33C_main(s16 model, char *name);
+void func_800EFABC_name_81(Object *arg0);
+void func_8010DB2C_duel01(void);
+void func_8010DC04_duel01(void);
+void func_8010DDEC_duel01(void);
+void func_8010E1B4_duel01(void);
+void func_8010E3F8_duel01(void);
+void func_8010E7C0_duel01(void);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DCA8_duel01);
+/* The bell model part func_8001D33C_main returns: only its +0x14 float is used here. */
+typedef struct Duel01Part {
+    /* 0x00 */ char unk_00[0x14];
+    /* 0x14 */ f32 unk_14;
+} Duel01Part;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DD3C_duel01);
+extern char D_80118F18_duel01[]; /* "bell" (rodata; func_80111DFC_duel01 uses it too) */
+extern s32 D_80118730_duel01[];
+extern s16 D_80118740_duel01;
+extern s16 D_80118742_duel01;
+extern Process *D_80118744_duel01;
+extern s16 D_80118748_duel01;
+extern s16 D_8011874A_duel01;
+extern Process *D_8011874C_duel01;
+extern Object *D_80119490_duel01;
+extern Process *D_80119494_duel01;
+extern Object *D_80119498_duel01;
+extern f32 D_8011949C_duel01;
+extern Object *D_801194A0_duel01;
+extern f32 D_801194A4_duel01;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DDEC_duel01);
+void func_8010DC04_duel01(void) {
+    s16 model = D_80119490_duel01->omObj1->model[0];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DF68_duel01);
+    func_8002FD8C_main(model, HmfModelData[model].unk02, D_80118F18_duel01, 0x4C, 0x46);
+    ((Duel01Part *)func_8001D33C_main(D_80119490_duel01->omObj1->model[0], D_80118F18_duel01))->unk_14 =
+        (GwSystem.bank_coins - 5) * 60;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010E008_duel01);
+void func_8010DCA8_duel01(void) {
+    Object *obj;
+
+    obj = func_800D8010_name_81(0x34, (s32)D_80118730_duel01);
+    func_800D8944_name_81(obj);
+    D_80119490_duel01 = obj;
+    obj->flags |= 2;
+    HuVecCopy3F(&obj->coords, &MBDMasuGet(0x1D)->coords);
+    func_8010DC04_duel01();
+    D_80119494_duel01 = omAddPrcObj(func_8010DB2C_duel01, 0xA, 0, 0);
+    omPrcSetStatBit(D_80119494_duel01, 0xA0);
+}
+
+void func_8010DD3C_duel01(void) {
+    Object *obj;
+    SpaceData *from;
+    SpaceData *to;
+
+    obj = func_800D8010_name_81(0x32, 0);
+    func_800D8944_name_81(obj);
+    D_80119498_duel01 = obj;
+    obj->flags |= 2;
+    func_8001C814_main(obj->omObj1->model[0], 2, 1);
+    from = MBDMasuGet(D_80118740_duel01);
+    to = MBDMasuGet(D_80118742_duel01);
+    HuVecCopy3F(&obj->coords, &from->coords);
+    func_800EB708_name_81((s32)&from->coords, (s32)&to->coords, (unkStruct01 *)&obj->rot);
+}
+
+void func_8010DDEC_duel01(void) {
+    HmfModel *mdl;
+    s32 angle;
+
+    angle = *(s32 *)HuPrcCurrentGet()->user_data;
+    while (TRUE) {
+        f32 rot = sindf(angle);
+
+        angle += 45;
+        rot *= D_8011949C_duel01;
+        sincosdf(rot, &HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[1],
+                 &HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[0]);
+        HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[4] =
+            -HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[1];
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[5] = mdl->mtx[0];
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[7] = mdl->mtx[6] = mdl->mtx[8] = mdl->mtx[9] = mdl->mtx[11] =
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[10] = mdl->mtx[15] = 1.0f;
+        if (angle >= 360) {
+            angle -= 360;
+        }
+        HuPrcVSleep();
+    }
+}
+
+void func_8010DF68_duel01(Vec *pos) {
+    Process *process;
+    s32 *angle;
+
+    D_8011949C_duel01 = 10.0f;
+    process = omAddPrcObj(func_8010DDEC_duel01, 0xA, 0, 0x40);
+    D_80118744_duel01 = process;
+    angle = HuMemMemoryAlloc(process->heap, 0x10);
+    process->user_data = angle;
+    if (pos->x <= D_80119498_duel01->coords.x) {
+        *angle = 180;
+    } else {
+        *angle = 0;
+    }
+}
+
+void func_8010E008_duel01(void) {
+    HmfModel *mdl;
+
+    if (D_80118744_duel01 != NULL) {
+        while (D_8011949C_duel01 >= 0.0f) {
+            D_8011949C_duel01 -= 1.0f;
+            HuPrcVSleep();
+        }
+        omDelPrcObj(D_80118744_duel01);
+        sincosdf(0.0f, &HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[1],
+                 &HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[0]);
+        HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[4] =
+            -HmfModelData[D_80119498_duel01->omObj1->model[0]].mtx[1];
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[5] = mdl->mtx[0];
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[7] = mdl->mtx[6] = mdl->mtx[8] = mdl->mtx[9] = mdl->mtx[11] =
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;
+        mdl = &HmfModelData[D_80119498_duel01->omObj1->model[0]];
+        mdl->mtx[10] = mdl->mtx[15] = 1.0f;
+    }
+}
+
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel01/3D8AC0", D_80118F18_duel01);
 
