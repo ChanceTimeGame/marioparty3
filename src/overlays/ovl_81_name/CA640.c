@@ -438,12 +438,134 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4914_name_81
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4A74_name_81);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4AD0_name_81);
+extern Vec D_80102CE0_name_81;
+extern Vec D_80102CEC_name_81;
+extern Vec D_80102CF8_name_81;
+extern Vec D_80102D04_name_81;
+extern Vec D_80102D10_name_81;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4B38_name_81);
+void func_800E4AD0_name_81(void) {
+    Hu3DCamSetPerspective(1, 40.0f, 80.0f, 8000.0f);
+    Hu3DCamSetPositionOrientation(1, &D_80102CE0_name_81, &D_80102CEC_name_81, &D_80102CF8_name_81);
+    Hu3DCamUpdateMtx(1);
+    CameraViewportSet(1, &D_80102D04_name_81, &D_80102D10_name_81);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4B64_name_81);
+void func_800E4B38_name_81(void) {
+    while (1) {
+        func_800E4AD0_name_81();
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4E64_name_81);
+UnkMBGuideData* func_800E4B64_name_81(u32* arg0, s32 arg1) {
+    s32 var_a1;
+    f32 var_f0;
+    f32 var_f1;
+    HmfModel* temp_a2;
+    HmfModel* temp_hmf;
+    Object* temp_v0_2;
+    Process* temp_v0_7;
+    UnkMBGuideData* temp_v0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4EAC_name_81);
+    temp_v0 = HuMemMemoryAllocTemp(sizeof(UnkMBGuideData));
+    if (temp_v0 != NULL) {
+        temp_v0_2 = func_800D8010_name_81(0x3E, NULL);
+        temp_v0->obj = temp_v0_2;
+        HuVecCopyXYZ(&temp_v0_2->scale, 1.43f, 1.43f, 1.43f);
+        temp_v0->obj->flags |= 1;
+
+        func_8001C8A8_main(temp_v0->obj->omObj1->model[0], 2);
+
+        temp_a2 = &HmfModelData[temp_v0->obj->omObj1->model[0]];
+        sincosdf(15.0f, &temp_a2->mtx[6], &temp_a2->mtx[5]);
+
+        HmfModelData[temp_v0->obj->omObj1->model[0]].mtx[9] = -HmfModelData[temp_v0->obj->omObj1->model[0]].mtx[6];
+
+        temp_hmf = &HmfModelData[temp_v0->obj->omObj1->model[0]];
+        temp_hmf->mtx[10] = temp_hmf->mtx[5];
+
+        temp_hmf = &HmfModelData[temp_v0->obj->omObj1->model[0]];
+        var_f0 = 0.0f;
+        temp_hmf->mtx[14] = var_f0;
+        temp_hmf->mtx[13] = var_f0;
+        temp_hmf->mtx[12] = var_f0;
+        temp_hmf->mtx[11] = var_f0;
+        temp_hmf->mtx[8] = var_f0;
+        temp_hmf->mtx[7] = var_f0;
+        temp_hmf->mtx[4] = var_f0;
+        temp_hmf->mtx[3] = var_f0;
+        temp_hmf->mtx[2] = var_f0;
+        temp_hmf->mtx[1] = var_f0;
+
+        temp_hmf = &HmfModelData[temp_v0->obj->omObj1->model[0]];
+        var_f1 = 1.0f;
+        temp_hmf->mtx[15] = var_f1;
+        temp_hmf->mtx[0] = var_f1;
+
+        temp_v0_7 = omAddPrcObj(func_800E4B38_name_81, 0x4000, 0, 0);
+        temp_v0->unk_04 = temp_v0_7;
+        temp_v0_7->user_data = temp_v0;
+
+        temp_v0->spriteGroup = 0x69;
+
+        D_80102CE0_name_81.x = var_f0;
+        D_80102CE0_name_81.y = var_f0;
+        D_80102CE0_name_81.z = 120.0f;
+
+        D_80102CEC_name_81.x = var_f0;
+        D_80102CEC_name_81.y = var_f0;
+        D_80102CEC_name_81.z = var_f0;
+
+        D_80102CF8_name_81.x = var_f0;
+        D_80102CF8_name_81.y = var_f1;
+        D_80102CF8_name_81.z = var_f0;
+
+        D_80102D04_name_81.x = 1280.0f;
+        D_80102D04_name_81.y = 960.0f;
+        D_80102D04_name_81.z = 511.0f;
+
+        D_80102D10_name_81.x = 240.0f;
+        D_80102D10_name_81.y = (f32)temp_v0->spriteGroup * 4.0f + 480.0f;
+        D_80102D10_name_81.z = 511.5f;
+
+        func_800E4AD0_name_81();
+
+        if (arg1 != 0) {
+            var_a1 = temp_v0->spriteGroup;
+            var_a1 = var_a1 + 0x5a + arg1;
+            temp_v0->amount = func_80060880_main(0x5b, var_a1, 0x11);
+        } else {
+            var_a1 = temp_v0->spriteGroup;
+            var_a1 = var_a1 + 0x5a + arg1;
+            temp_v0->amount = func_80060880_main(0x4b, var_a1, 0x10);
+        }
+    }
+    return temp_v0;
+}
+
+void func_800E4E64_name_81(UnkMBGuideData* arg0) {
+    if (arg0 != NULL) {
+        func_800D8F3C_name_81(arg0->obj);
+        omDelPrcObj(arg0->unk_04);
+        func_800610E0_main(arg0->amount);
+        HuMemMemoryFreeTemp(arg0);
+    }
+}
+
+void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2) {
+    s16 var1;
+    s16 var2;
+
+    arg0->spriteGroup = arg1;
+    D_80102D10_name_81.y = (arg1 * 4.0f) + 480.0f;
+    if ((arg2) != 0) {
+        var1 = 0x5B;
+        var2 = 0x50;
+        func_8005BA90_main(arg0->amount, var1, arg0->spriteGroup + (arg2 + var2));
+    } else {
+        var1 = 0x4B;
+        var2 = 0x5A;
+        func_8005BA90_main(arg0->amount, var1, arg0->spriteGroup + (arg2 + var2));
+    }
+}
