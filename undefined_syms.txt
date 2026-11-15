@@ -110,3 +110,4 @@ D_80109726_bobbing_bow_loons = D_80109720_bobbing_bow_loons + 0x6;
 D_80109C36_hey_batter_batter = D_80109C34_hey_batter_batter + 0x2;
 D_80109C42_hey_batter_batter = D_80109C40_hey_batter_batter + 0x2;
 D_80109C4A_hey_batter_batter = D_80109C48_hey_batter_batter + 0x2;
+D_80109C96_hey_batter_batter = D_80109C94_hey_batter_batter + 0x2;
