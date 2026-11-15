@@ -332,6 +332,8 @@ NOP_OBJECTS += build/src/overlays/opboard/3CA800.c.o
 NOP_OBJECTS += build/src/overlays/ovl_29_all_fired_up/23C8F0.c.o
 # duel n1: ovl_81 BECB0 (EC3B0 copy: no nop after HuVecGetLength3F)
 NOP_OBJECTS += build/src/overlays/ovl_81_name/BECB0.c.o
+# duel n2: ovl_81 C45D0 (func_800DCE6C: no nop before the mul.s after the sindf calls)
+NOP_OBJECTS += build/src/overlays/ovl_81_name/C45D0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
