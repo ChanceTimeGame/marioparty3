@@ -52,6 +52,12 @@ extern s16 D_80109EE0_hey_batter_batter;
 extern s16 D_80109EE2_hey_batter_batter;
 extern s16 D_80109EE4_hey_batter_batter;
 extern omObjData* D_80109EF4_hey_batter_batter;
+extern s16 D_80109EF0_hey_batter_batter;
+extern s16 D_80109EFA_hey_batter_batter;
+extern s16 D_80109B60_hey_batter_batter;
+extern s16 D_80109C30_hey_batter_batter; /* director state */
+extern s16 D_80109C32_hey_batter_batter; /* result message */
+extern s16 D_80109C34_hey_batter_batter; /* director timer */
 
 void func_801059A0_hey_batter_batter(void) {
     func_801059BC_hey_batter_batter();
