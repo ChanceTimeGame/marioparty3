@@ -1329,3 +1329,31 @@ s32 func_801095A0_boulder_ball(omObjData* obj) {
     func_8004AE00_main(HuAudFXPlay(0x31E), n.x > 0.0f ? 0x20 : 0x60);
     return 1;
 }
+
+s32 D_80109700_boulder_ball[8] = { 2, 0, 0, 0, 0, 0, 0, 0 }; /* per boulder: state */
+Vec D_80109720_boulder_ball[3] = {
+    { 320.0f, 0.0f, 1000.0f },
+    { 0.0f, 0.0f, 1000.0f },
+    { -320.0f, 0.0f, 1000.0f },
+}; /* the runners' start positions (D_8010972C, D_80109738 are [1], [2]) */
+s32 D_80109744_boulder_ball[4] = { -1, -1, -1, -1 }; /* per boulder: rolling sound; D_80109746 (undefined_syms.txt) is [0]'s low half */
+f32 D_80109754_boulder_ball = 1000.0f;
+s32 D_80109758_boulder_ball = 1;
+s32 D_8010975C_boulder_ball = 0;
+BbCtrl D_80109760_boulder_ball = {
+    0, 2, 1, 2, 0, 0, 0, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 135, 900, -1, 75, 150, 0,
+}; /* D_80109766, D_80109778 (undefined_syms.txt) are its unk06, unk18 */
+s32 D_80109788_boulder_ball[3] = { 0, 0, 0 }; /* unreferenced */
+s32 D_80109794_boulder_ball = 0;
+f32 D_80109798_boulder_ball = 0.0f;
+s32 D_8010979C_boulder_ball = 0; /* unreferenced */
+s32 D_801097A0_boulder_ball = 0;
+f32 D_801097A4_boulder_ball[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+s32 D_801097B4_boulder_ball[4] = { 0, 0, 0, 0 };
+s32 D_801097C4_boulder_ball = 0;
+s32 D_801097C8_boulder_ball = 5;
+s32 D_801097CC_boulder_ball = 0;
+s32 D_801097D0_boulder_ball = 0;
+f32 D_801097D4_boulder_ball[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+s32 D_801097F4_boulder_ball = 0;
+s32 D_801097F8_boulder_ball[2] = { 0, 0 }; /* unreferenced: pads .data to 0x100 (without it KMC as also shifts .text by a word) */

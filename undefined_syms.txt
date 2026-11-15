@@ -107,3 +107,6 @@ D_801085B4_ice_rink_risk = D_801085B0_ice_rink_risk + 0x4;
 D_80108612_ice_rink_risk = D_8010860C_ice_rink_risk + 0x6;
 D_80108624_ice_rink_risk = D_8010860C_ice_rink_risk + 0x18;
 D_8010913A_eatsa_pizza = D_80109138_eatsa_pizza + 0x2;
+D_80109746_boulder_ball = D_80109744_boulder_ball + 0x2;
+D_80109766_boulder_ball = D_80109760_boulder_ball + 0x6;
+D_80109778_boulder_ball = D_80109760_boulder_ball + 0x18;
