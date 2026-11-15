@@ -335,6 +335,9 @@ NOP_OBJECTS += build/src/overlays/ovl_81_name/BECB0.c.o
 # duel n2: ovl_81 C45D0 (func_800DCE6C: no nop before the mul.s after the sindf calls)
 NOP_OBJECTS += build/src/overlays/ovl_81_name/C45D0.c.o
 
+# wave 3n duel n6: D5B20 (no nop after the sindf call in func_800EDE1C)
+NOP_OBJECTS += build/src/overlays/ovl_81_name/D5B20.c.o
+
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
 .PRECIOUS: $(NOP_ASM)

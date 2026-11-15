@@ -238,7 +238,7 @@ void func_800E5964_name_81(void);
 void MBDBackTPLvlSet(u8);
 void func_800EAFC4_name_81(s32);
 Process* func_800EC1E4_name_81(Vec*, Vec*, Vec*, f32);
-void func_800EFABC_name_81(void*);
+void func_800EFABC_name_81(Object*);
 void func_800F57B0_name_81(s32 playerNo); // duel n7: was s16; the callee does not sign-extend
 void func_800F5E2C_name_81(s32 playerNo); // duel n7: was u32
 void func_800F74E4_name_81(s32);
