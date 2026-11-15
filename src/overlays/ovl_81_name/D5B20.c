@@ -22,6 +22,8 @@ typedef struct UnkPauseMesWork {
 
 extern s32 D_800A12C0_main;
 extern s32 D_800A12C4_main;
+extern s8 D_800A176D_main;
+extern s16 D_800D10F2_main;
 extern s32 D_801011F0_name_81;
 extern s32 D_801011FC_name_81;
 extern s32 D_80101220_name_81;
@@ -38,12 +40,24 @@ extern s32 D_801012C8_name_81[];
 extern s32 D_801012D4_name_81[];
 extern s32 D_801012E0_name_81;
 extern s32 D_801012E4_name_81;
+extern s32 D_801012E8_name_81;
+extern s32 D_8010128C_name_81[];
+extern s32 D_8010126C_name_81[];
 extern s32 D_801012EC_name_81[];
 extern u8 D_80101370_name_81[];
+extern u32 D_80101374_name_81[]; // count, then the ids (splat also labels +4 as D_80101378)
+extern s16 D_80101348_name_81[];
+extern s16 D_8010134C_name_81[];
+extern s32 D_801012F4_name_81[];
+extern s32 D_80101314_name_81[];
+extern s8 D_80101338_name_81[];
+extern s8 D_80101340_name_81[];
+extern s16 D_80101350_name_81[][4];
 extern s32 *D_80101494_name_81[];
 extern u8 D_801014B4_name_81[];
 extern u8 D_801014BC_name_81[];
 extern UnkMBGuideData* D_801053E0_name_81;
+extern s16 D_801053E4_name_81;
 extern s16 D_801053E6_name_81;
 extern s32 D_801053E8_name_81;
 extern s16 D_801053EA_name_81;
@@ -56,6 +70,15 @@ extern UnkBoard D_80105560_name_81[16];
 u16 func_800D9234_name_81(Object* arg0);
 void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
 s32 func_800F73AC_name_81(void);
+void func_800F3B54_name_81(s32 playerNo, u8 arg1);
+UnkMBGuideData* func_800E4B64_name_81(s32 arg0, s32 arg1);
+void func_800E4E64_name_81(UnkMBGuideData* arg0);
+void func_800D8944_name_81(Object* arg0);
+void func_800E9180_name_81(void);
+void func_800E9190_name_81(void);
+void Duel_ClearPartnerObjects(void);
+void func_800D898C_name_81(Object* arg0, u8 arg1);
+void func_800F3EC0_name_81(s16 playerNo);
 void func_800EDFAC_name_81(void);
 void func_800EE114_name_81(void);
 static void func_800EED5C_name_81(s32 arg0);
@@ -573,7 +596,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F0208_name_81
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F0378_name_81);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F03C8_name_81);
+void func_800F03C8_name_81(s16 arg0) {
+    func_8001C258_main(arg0, 0x4000, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F03F0_name_81);
 
@@ -945,7 +970,248 @@ static void func_800F159C_name_81(UnkBoard4 *arg0, s32 arg1) {
     D_8010124A_name_81 = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F1784_name_81);
+s32 func_800F1784_name_81(s32 arg0) {
+    void *data;
+    Process *mesProc;
+    UnkBoard4 *icons;
+    UnkBoard4 *cursor;
+    s32 dataNum;
+    s8 ret;
+    s16 sel;
+    s16 prevSel;
+    s32 i;
+    u8 sleepFlag;
+    GW_SYSTEM* system;
+    GW_COMMON* common = &GwCommon;
+    s8 temp;
+
+    ret = 4;
+    sel = 0;
+    prevSel = 0;
+    mesProc =  NULL;
+    icons = NULL; // s4
+    cursor = NULL;
+    sleepFlag = 0;
+    system = &GwSystem;
+    
+    if (!D_801053E6_name_81) {
+        sel = D_80101248_name_81;
+        prevSel = sel;
+        icons = func_800F4528_name_81(8, 0);
+        
+        for (i = 0; i < 8; i++) {
+            switch (i) {
+            case 0:
+                if ((func_800F14A8_name_81()) != 0) {
+                    dataNum = D_801012E8_name_81;
+                } else {
+                    dataNum = D_8010128C_name_81[0];
+                }
+                break;
+            case 1:
+                dataNum = D_801012AC_name_81[system->show_minigame_explanations];
+                break;
+            case 2:
+                dataNum = D_801012B4_name_81[system->show_com_minigames];
+                break;
+            case 5:
+                dataNum = D_801012BC_name_81[system->message_speed];
+                break;
+            case 4:
+                dataNum = D_801012C8_name_81[system->walk_speed];
+                break;
+            case 6:
+                dataNum = D_801012D4_name_81[system->save_mode];
+                break;
+            case 3:
+                if (_CheckFlag(0x20) != 0) {
+                    dataNum = D_801012E4_name_81;
+                } else {
+                    dataNum = D_801012E0_name_81;
+                }
+                break;
+            default:
+                dataNum = D_8010128C_name_81[i];
+                break;
+            }
+    
+            data = DataRead(dataNum);
+            icons->unk_0C[i] = func_80055810_main(data);
+            DataClose(data);
+            func_80055024_main(icons->unk_0A, i, icons->unk_0C[i], 0);
+            HuSprPriSet(icons->unk_0A, i, 8);
+            HuSprAttrSet(icons->unk_0A, i, 0x1000);
+            func_80054904_main(icons->unk_0A, i,
+                                ((i % 4) << 6) + 0x46,
+                                ((i / 4) * 0x3C) + 0x3C);
+        }
+    
+        if (D_801053E0_name_81 == NULL) {
+            HuPrcVSleep();
+            D_801053E0_name_81 = func_800E4B64_name_81(0, 8);
+            HuVecCopyXYZ(&D_801053E0_name_81->obj->scale, 1.0f, 1.0f, 1.0f);
+            func_8005E1A8_main(D_801053E0_name_81->amount, 0x2C);
+            func_800D8944_name_81(D_801053E0_name_81->obj);
+            func_8001C258_main(D_801053E0_name_81->obj->omObj1->model[0], 0x8000, 0x8000);
+            D_801053E0_name_81->obj->flags |= 0x10;
+            func_800E4EAC_name_81(D_801053E0_name_81, 0x104, 8);
+            func_800F0D1C_name_81(D_801053E0_name_81, 0x69);
+            func_80061100_main(D_801053E0_name_81->amount, 5);
+            func_80060C14_main(D_801053E0_name_81->amount, 1);
+        }
+    
+        cursor = func_800F4528_name_81(1, 0);
+        data = DataRead(0x13009C);
+        cursor->unk_0C[0] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(cursor->unk_0A, 0, cursor->unk_0C[0], 0);
+        HuSprPriSet(cursor->unk_0A, 0, 7);
+        HuSprAttrSet(cursor->unk_0A, 0, 0x1000);
+        func_80054904_main(cursor->unk_0A, 0,
+                            ((D_80101248_name_81 % 4) * 64) + 0x2A,
+                            ((D_80101248_name_81 / 4) * 60) + 0x20);
+    
+        mesProc = func_800F1340_name_81(D_8010126C_name_81, 1, -1);
+    
+    restart:
+        while (1) {
+            HuPrcVSleep();
+    
+            if (D_800D0590_main[arg0] & 0x200) {
+                sel--;
+                if ((sel == 3) || (sel == -1)) {
+                    sel += 4;
+                }
+            }
+            if (D_800D0590_main[arg0] & 0x100) {
+                sel++;
+                if ((sel == 4) || (sel == 8)) {
+                    sel -= 4;
+                }
+            }
+            if (D_800D0590_main[arg0] & 0x800) {
+                sel -= 4;
+                if (sel < 0) {
+                    sel += 8;
+                }
+            }
+            if (D_800D0590_main[arg0] & 0x400) {
+                sel += 4;
+                if (sel >= 8) {
+                    sel -= 8;
+                }
+            }
+    
+            if (D_800C9520_main[arg0] & 0x8000) {
+                HuAudFXPlay(2);
+                break;
+            }
+            if (D_800C9520_main[arg0] & 0x4000) {
+                HuAudFXPlay(4);
+                sel = -1;
+                break;
+            }
+    
+            if (sel != -1) {
+                D_80101248_name_81 = sel;
+            }
+            if (prevSel != sel) {
+                prevSel = sel;
+                HuAudFXPlay(1);
+            }
+            func_80054904_main(cursor->unk_0A, 0,
+                                ((D_80101248_name_81 % 4) * 64) + 0x2A,
+                                ((D_80101248_name_81 / 4) * 0x3C) + 0x20);
+        }
+    
+        switch (sel) {
+        case 0:
+            if ((func_800F14A8_name_81()) == 0) {
+                ret = 2;
+            }
+            break;
+        case 1:
+            system->show_minigame_explanations ^= 1;
+            func_800F159C_name_81(icons, 1);
+            break;
+        case 2:
+            system->show_com_minigames ^= 1;
+            func_800F159C_name_81(icons, 2);
+            break;
+        case 5:
+            temp = (system->message_speed + 1);
+            system->message_speed = temp % 3;
+            func_800F159C_name_81(icons, 5);
+            break;
+        case 4:
+            temp = (system->walk_speed + 1);
+            system->walk_speed = temp % 3;
+            func_800F159C_name_81(icons, 4);
+            break;
+        case 6:
+            temp = (system->save_mode + 1);
+            system->save_mode = temp % 3;
+            func_800F159C_name_81(icons, 6);
+            break;
+        case 3:
+            if (_CheckFlag(0x20) != 0) {
+                _ClearFlag(0x20);
+            } else {
+                _SetFlag(0x20);
+            }
+            func_800F159C_name_81(icons, 3);
+            break;
+        case 7:
+            ret = 9;
+            break;
+        case -1:
+            ret = 1;
+            break;
+        }
+    
+        common->unk9E = system->save_mode;
+        common->unk9F = system->show_minigame_explanations;
+        common->unkA0 = system->message_speed;
+        common->unkA1 = system->walk_speed;
+        common->unkA2 = system->show_com_minigames;
+        func_800EBAD4_name_81(common->unkA0);
+        if ((ret == 2) || (ret == 9)) {
+            func_800F4584_name_81(icons);
+            func_800F4584_name_81(cursor);
+            icons = NULL;
+            cursor = NULL;
+        }
+    } else {
+        ret = 0;
+    }
+
+    switch (ret) {
+    case 0:
+    case 1:
+        if (D_801053E0_name_81 != NULL) {
+            func_80060EA8_main(D_801053E0_name_81->amount, 1);
+            func_800F0D1C_name_81(D_801053E0_name_81, 0x104);
+            func_800E4E64_name_81(D_801053E0_name_81);
+            D_801053E0_name_81 = NULL;
+            if (icons != NULL) {
+                func_800F4584_name_81(icons);
+                func_800F4584_name_81(cursor);
+            }
+            sleepFlag = 1;
+        }
+        break;
+    case 4:
+        goto restart;
+    }
+
+    if (mesProc != NULL) {
+        func_800F13C0_name_81(mesProc);
+    }
+    if (sleepFlag != 0) {
+        HuPrcSleep(5);
+    }
+    return ret;
+}
 
 static s32 func_800F2090_name_81(s32 arg0) {
     Process* temp_s3;
@@ -1055,7 +1321,11 @@ static void func_800F23FC_name_81(s16 arg0) {
     D_801053F4_name_81 = arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F2408_name_81);
+static void func_800F2408_name_81(UnkBoard4* arg0, s16 arg1) {
+    func_80054904_main(arg0->unk_0A, 0, (D_80101348_name_81[arg1] - 50), (D_8010134C_name_81[arg1] - 8));
+    func_80054904_main(arg0->unk_0A, 1, (D_80101348_name_81[arg1] + 50), ((u16)D_8010134C_name_81[arg1] + 4));
+    func_80054904_main(arg0->unk_0A, 2, (D_80101348_name_81[arg1] - 50), ((u16)D_8010134C_name_81[arg1] + 4));
+}
 
 static void func_800F24DC_name_81(void) {
     f32 var_f20;
@@ -1087,7 +1357,240 @@ static void func_800F24DC_name_81(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F2618_name_81);
+s32 func_800F2618_name_81(s32 arg0) {
+    s16 sel;
+    UnkBoard4* panel;
+    UnkBoard4* chr;
+    UnkBoard4* icon;
+    UnkBoard4* cursor;
+    UnkBoard4* bg;
+    Process* proc;
+    GW_PLAYER* player;
+    void* data;
+    u16* trg;
+    u16* dwn;
+    s32 mess;
+    s32 setting;
+    s16 dir;
+    s32 i;
+    s32 diff;
+
+    mess = 0;
+    sel = 0;
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        if ((func_800F37B8_name_81(i) == 0) && (GwPlayer[i].pad == arg0)) {
+            sel = i;
+            break;
+        }
+    }
+
+    bg = func_800F4528_name_81(1, 0);
+    data = DataRead(0x1300AA);
+    bg->unk_0C[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(bg->unk_0A, 0, bg->unk_0C[0], 0);
+    HuSprPriSet(bg->unk_0A, 0, 8);
+    HuSprAttrSet(bg->unk_0A, 0, 0x1000);
+    func_80054904_main(bg->unk_0A, 0, 0xA0, (D_8010134C_name_81[0] + D_8010134C_name_81[1]) / 2);
+
+    panel = func_800F4528_name_81(4, 0);
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        if (i == 0) {
+            data = DataRead(0x1300A7);
+            panel->unk_0C[2] = func_80055810_main(data);
+            DataClose(data);
+        }
+        func_80055024_main(panel->unk_0A, i + 2, panel->unk_0C[2], 0);
+        HuSprPriSet(panel->unk_0A, i + 2, 8);
+        HuSprAttrSet(panel->unk_0A, i + 2, 0x1000);
+        func_80054904_main(panel->unk_0A, i + 2, D_80101348_name_81[i], D_8010134C_name_81[i]);
+    }
+
+    chr = func_800F4528_name_81(2, 0);
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        data = DataRead(D_801012F4_name_81[MBDGetPlayerStruct(i)->chr]);
+        chr->unk_0C[i] = func_80055810_main(data);
+        func_80055024_main(chr->unk_0A, i, chr->unk_0C[i], 0);
+        HuSprPriSet(chr->unk_0A, i, 7);
+        HuSprAttrSet(chr->unk_0A, i, 0x1000);
+        func_80054904_main(chr->unk_0A, i, D_80101348_name_81[i] - 0x14, D_8010134C_name_81[i] + 4);
+        DataClose(data);
+        if (i != 0) {
+            HuSprAttrSet(chr->unk_0A, i, 1);
+        }
+    }
+
+    icon = func_800F4528_name_81(9, 0);
+    for (i = 0; i < 9; i++) {
+        data = DataRead(D_80101314_name_81[i]);
+        icon->unk_0C[i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    for (i = 0; i < MBD_MAX_PLAYERS; i++) {
+        if (func_800F37B8_name_81(i) != 0) {
+            func_80055024_main(icon->unk_0A, i,
+                icon->unk_0C[D_80101340_name_81[GwPlayer[i].cpu_difficulty * 2 + 0]], 0);
+            func_80055024_main(icon->unk_0A, i + 2,
+                icon->unk_0C[D_80101340_name_81[GwPlayer[i].cpu_difficulty * 2 + 1]], 0);
+            func_80054904_main(icon->unk_0A, i,
+                D_80101348_name_81[i] + 0x10,
+                D_8010134C_name_81[i] - 6);
+        } else {
+            func_80055024_main(icon->unk_0A, i,
+                icon->unk_0C[D_80101338_name_81[GwPlayer[i].pad * 2]], 0);
+            func_80055024_main(icon->unk_0A, i + 2,
+                icon->unk_0C[D_80101338_name_81[GwPlayer[i].pad * 2]], 0);
+            func_80054904_main(icon->unk_0A, i,
+                D_80101348_name_81[i] + 0x10,
+                D_8010134C_name_81[i] + 2);
+            HuSprAttrSet(icon->unk_0A, i + 2, 0x8000);
+        }
+        HuSprPriSet(icon->unk_0A, i, 7);
+        HuSprAttrSet(icon->unk_0A, i, 0x01001000);
+        HuSprPriSet(icon->unk_0A, i + 2, 7);
+        HuSprAttrSet(icon->unk_0A, i + 2, 0x01001000);
+        func_80054904_main(icon->unk_0A, i + 2,
+            D_80101348_name_81[i] + 0x10,
+            D_8010134C_name_81[i] + 0xA);
+    }
+
+    cursor = func_800F4528_name_81(3, 0);
+    data = DataRead(0x13009C);
+    cursor->unk_0C[0] = func_80055810_main(data);
+    func_80055024_main(cursor->unk_0A, 0, cursor->unk_0C[0], 0);
+    HuSprAttrSet(cursor->unk_0A, 0, 0x1808);
+    HuSprPriSet(cursor->unk_0A, 0, 8);
+    DataClose(data);
+
+    data = DataRead(0x1300A9);
+    cursor->unk_0C[1] = func_80055810_main(data);
+    func_80055024_main(cursor->unk_0A, 1, cursor->unk_0C[1], 0);
+    HuSprAttrSet(cursor->unk_0A, 1, 0x9808);
+    HuSprPriSet(cursor->unk_0A, 1, 8);
+    func_80055420_main(cursor->unk_0A, 1, 0xFF, 0, 0);
+    HuSprAttrSet(cursor->unk_0A, 1, 1);
+    DataClose(data);
+
+    data = DataRead(0x1300A9);
+    cursor->unk_0C[2] = func_80055810_main(data);
+    func_80055024_main(cursor->unk_0A, 2, cursor->unk_0C[2], 0);
+    HuSprAttrSet(cursor->unk_0A, 2, 0x9808);
+    HuSprPriSet(cursor->unk_0A, 2, 8);
+    func_80055420_main(cursor->unk_0A, 2, 0xFF, 0, 0);
+    DataClose(data);
+
+    func_800F2408_name_81(cursor, sel);
+    func_800F23FC_name_81(0);
+    proc = omAddPrcObj(func_800F24DC_name_81, 0x1005, 0, 0);
+    proc->user_data = cursor;
+
+    do {
+        if (mess != 0x5112) {
+            mess = 0x5112;
+            func_800F0DF8_name_81(D_801053E0_name_81->amount, 0x5112);
+        }
+        HuPrcVSleep();
+
+        dir = -1;
+        if (D_800C9520_main[arg0] & 0x800) dir = 0;
+        if (D_800C9520_main[arg0] & 0x400) dir = 1;
+        if (D_800C9520_main[arg0] & 0x200) dir = 2;
+        if (D_800C9520_main[arg0] & 0x100) dir = 3;
+
+        if (dir != -1) {
+            sel += D_80101350_name_81[sel][dir];
+            func_800F2408_name_81(cursor, sel);
+            HuAudFXPlay(1);
+        } else if (D_800D5558_main[arg0] & 0x8000) {
+            HuAudFXPlay(2);
+            player = MBDGetPlayerStruct(sel);
+            func_800F23FC_name_81(1);
+            diff = player->cpu_difficulty;
+            i = (func_800F37B8_name_81(sel) != 0) ? 4 : -1;
+
+            while (1) {
+                HuPrcVSleep();
+                if (mess != 0x5113) {
+                    mess = 0x5113;
+                    func_800F0DF8_name_81(D_801053E0_name_81->amount, 0x5113);
+                }
+
+                if (D_800C9520_main[arg0] & 0x200) {
+                    if ((i != 4) || (diff == 0)) {
+                        i = func_800F22E8_name_81(player, -1);
+                        if (i == 4) {
+                            diff = _CheckFlag(0x2D) ? 3 : 2;
+                        }
+                    } else {
+                        diff--;
+                    }
+                    func_800F3B54_name_81(sel, diff);
+                    HuAudFXPlay(1);
+                } else if (D_800C9520_main[arg0] & 0x100) {
+                    if (_CheckFlag(0x2D) != 0) {
+                        if ((i != 4) || (diff == 3)) {
+                            i = func_800F22E8_name_81(player, 1);
+                            diff = -(i != 4) & diff;
+                        } else {
+                            diff++;
+                        }
+                        
+                    } else if ((i != 4) || (diff == 2)) {
+                        i = func_800F22E8_name_81(player, 1);
+                        diff = -(i != 4) & diff;
+                    } else {
+                        diff++;
+                    }
+                    func_800F3B54_name_81(sel, diff);
+                    HuAudFXPlay(1);
+                }
+
+                if (i >= 0) {
+                    func_800F2238_name_81(player, i);
+                    if (func_800F37B8_name_81(sel) != 0) {
+                        func_80055024_main(icon->unk_0A, sel,
+                            icon->unk_0C[D_80101340_name_81[GwPlayer[sel].cpu_difficulty * 2 + 0]], 0);
+                        func_80055024_main(icon->unk_0A, sel + 2,
+                            icon->unk_0C[D_80101340_name_81[GwPlayer[sel].cpu_difficulty * 2 + 1]], 0);
+                        func_80054904_main(icon->unk_0A, sel,
+                            D_80101348_name_81[sel] + 0x10,
+                            D_8010134C_name_81[sel] - 6);
+                        HuSprAttrReset(icon->unk_0A, sel + 2, 0x8000);
+                    } else {
+                        func_80055024_main(icon->unk_0A, sel,
+                            icon->unk_0C[D_80101338_name_81[GwPlayer[sel].pad * 2]], 0);
+                        func_80054904_main(icon->unk_0A, sel,
+                            D_80101348_name_81[sel] + 0x10,
+                            D_8010134C_name_81[sel] + 2);
+                        HuSprAttrSet(icon->unk_0A, sel + 2, 0x8000);
+                    }
+                }
+
+                if (D_800C9520_main[arg0] & 0x8000) {
+                    HuAudFXPlay(2);
+                    func_800F3B54_name_81(sel, diff);
+                    break;
+                }
+                if (D_800C9520_main[arg0] & 0x4000) {
+                    HuAudFXPlay(4);
+                    break;
+                }
+            }
+
+            func_800F23FC_name_81(0);
+            HuPrcVSleep();
+        }
+    } while (!(D_800D5558_main[arg0] & 0x4000));
+
+    HuAudFXPlay(4);
+    omDelPrcObj(proc);
+    func_800F4584_name_81(cursor);
+    func_800F4584_name_81(icon);
+    func_800F4584_name_81(chr);
+    func_800F4584_name_81(panel);
+    func_800F4584_name_81(bg);
+    return 4;
+}
 
 static s16 func_800F32CC_name_81(s16 arg0, s32 arg1) {
     switch (arg0) {
@@ -1150,7 +1653,75 @@ static void func_800F336C_name_81(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3500_name_81);
+void func_800F3500_name_81(s32 arg0) {
+    Process* temp_s1_2;
+    Process* temp_v0;
+    s16 var_a0;
+    s32 temp_s1;
+    s32 temp_s2;
+    s32 var_v0;
+    s32 i;
+
+    func_800E9190_name_81();
+    D_800CB99C_main = 1;
+    func_80049FB8_main();
+    temp_s2 = _CheckFlag(0x20) != 0;
+    
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) != 0) {
+            ResetVibrator(i);
+        }        
+    }
+
+    func_8004A9DC_main(0x60);
+    if (D_800C9930_main != -1) {
+        func_800036E8_main(D_800C9930_main, 0x60);
+    }
+    
+    func_8001AC34_main(D_800D10F2_main, 2);
+    func_8001C8A8_main(D_800D10F2_main, 1);
+    D_801053E0_name_81 = 0;
+    D_801053E4_name_81 = 0;
+    D_801053E6_name_81 = 0;
+    temp_s1_2 = HuPrcCurrentGet();
+    temp_v0 = omAddPrcObj(func_800F336C_name_81, 0xEFFFU, 0x1000, 0);
+    temp_v0->user_data = (void*)arg0;
+    omPrcSetStatBit(temp_v0, 0x80);
+    HuPrcChildLink(temp_s1_2, temp_v0);
+    HuPrcChildWait();
+    func_8001AC34_main(D_800D10F2_main, 6);
+    func_8004A9DC_main(0x7F);
+    if (D_800C9930_main != -1) {
+        func_800036E8_main(D_800C9930_main, 0x7F);
+    }
+    if (((_CheckFlag(0x20) != 0) && (temp_s2 == 0)) || ((_CheckFlag(0x20) == 0) && (temp_s2 != 0))) {
+        func_800DF154_name_81();
+    }
+    if (D_801053E6_name_81 != 0) {
+        D_800A176D_main = 0;
+        HuAudSeqFadeOut(0x5A);
+        if (D_800C9930_main != -1) {
+            func_800039A4_main(D_800C9930_main, 0x5A);
+            D_800C9930_main = -1;
+            func_8004A950_main();
+        }
+        WipeCreateOut(0, 0x10);
+        HuPrcSleep(0x11);
+        func_800FC4E4_name_81();
+        func_800FC108_name_81();
+        if (GwSystem.playMode & 4) {
+            omOvlReturnEx(3);
+        } else {
+            omOvlReturnEx(1);
+        }
+        
+        omOvlKill();
+        HuPrcVSleep();
+    }
+    func_8004A0E0_main();
+    D_800CB99C_main = 0;
+    func_800E9180_name_81();
+}
 
 s16 MBDGetCurrentPlayerIndex(void) {
     return GwSystem.current_player_index;
@@ -1269,13 +1840,21 @@ void func_800F3DC0_name_81(s16 playerNo) {
     func_800F3C98_name_81(playerNo, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3DFC_name_81);
+void func_800F3DFC_name_81(s32 arg0) {
+    s16 playerNo = arg0;
+
+    func_800F3C98_name_81(playerNo, D_80101494_name_81[MBDGetPlayerStruct(playerNo)->chr], 0);
+    func_800F8108_name_81(playerNo);
+    func_800ED214_name_81(playerNo);
+}
 
 u8 func_800F3E58_name_81(s16 playerNo) {
     return D_801014BC_name_81[MBDGetPlayerStruct(playerNo)->chr];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3E88_name_81);
+void func_800F3E88_name_81(s16 playerNo, s32 arg1) {
+    func_800D898C_name_81(MBDGetPlayerStruct(playerNo)->player_obj, arg1);
+}
 
 void func_800F3EC0_name_81(s16 playerNo) {
     GW_PLAYER *player = MBDGetPlayerStruct(playerNo);
@@ -1289,8 +1868,24 @@ void func_800F3EC0_name_81(s16 playerNo) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3F18_name_81);
+void func_800F3F18_name_81(s16 playerNo) {
+    func_800F3EC0_name_81(playerNo);
+    func_800F82EC_name_81(playerNo);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F3F4C_name_81);
+void func_800F3F4C_name_81(void) {
+    s32 i, j;
+
+    for (j = 0; j < 3; j++) {
+        MBDGetPlayerStruct(j)->player_obj = NULL;
+    }
+    Duel_ClearPartnerObjects();
+
+    for (i = 1; i < 8; i++) {
+        for (j = 0; j < D_80101374_name_81[0]; j++) {
+            D_80101494_name_81[i][j + 1] = func_80017BB8_main(i, D_80101374_name_81[j + 1]);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800F4030_name_81);
