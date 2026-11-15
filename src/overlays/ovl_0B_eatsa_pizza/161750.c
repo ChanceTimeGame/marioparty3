@@ -30,7 +30,7 @@ typedef struct EpPlayer {
     /* 0x24 */ s16 tgtX; /* CPU: target cell */
     /* 0x26 */ s16 tgtY;
     /* 0x28 */ u16 timer; /* CPU: frames to the next decision */
-    /* 0x2A */ u16 pushed; /* frames pushed by another player */
+    /* 0x2A */ s16 pushed; /* frames pushed by another player */
     /* 0x2C */ s32 model; /* model file */
     /* 0x30 */ u8 player;
     /* 0x31 */ u8 difficulty;
@@ -540,7 +540,160 @@ void func_8010679C_eatsa_pizza(omObjData* obj) {
     func_800E4E30_minigame(obj);
 }
 
+/* CPU player: returns the bite button (bit 15) and steers ep->cpuHeading at the nearest slice pixel of its
+   target cell, or at the nearest non-empty cell around it (not the partner's). */
+#ifdef NON_MATCHING
+/* 536 of 533 instructions, masked ~100: register allocation and the heading wrap-around code; logic checked
+   block by block against the asm */
+u16 func_801070E8_eatsa_pizza(omObjData* obj) {
+    MgWork* work;
+    EpPlayer* ep;
+    EpPlayer* mate;
+    u16* slice;
+    s16 cx;
+    s16 cy;
+    s16 fx;
+    s16 fy;
+    s16 ox;
+    s16 oy;
+    s16 ccx;
+    s16 ccy;
+    s16 xx;
+    s16 yy;
+    s16 found;
+    s16 v;
+    u16 btn;
+    f32 best;
+    f32 px;
+    f32 py;
+    f32 tx;
+    f32 ty;
+    f32 dx;
+    f32 dy;
+    f32 d;
+    f32 h;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 a;
+    s32 b;
+    s32 n;
+
+    found = 0;
+    best = 65536.0f;
+    func_801083A8_eatsa_pizza(obj, &work, &ep);
+    btn = ((s32)func_80108F4C_eatsa_pizza() % (9 - ep->difficulty * 2) == 0) << 15;
+    if (ep->pushed >= 4) {
+        h = ep->cpuHeading + 60.0 - (func_80108F4C_eatsa_pizza() & 1) * 120;
+        if (h > 360.0) {
+            h -= 360.0;
+        }
+        if (h < 0.0) {
+            h += 360.0;
+        }
+        ep->cpuHeading = h;
+        ep->timer = (func_80108F4C_eatsa_pizza() & 7) + 5;
+    }
+    if (work->unk3C == ep->cpuHeading) {
+        if (--ep->timer == 0) {
+            if (ep->side != 0) {
+                px = ep->x;
+            } else {
+                px = ep->x + 160.0f;
+            }
+            h = work->unk3C + (f32)((s32)func_80108F4C_eatsa_pizza() - 0x8000) * (1.0 / 32768.0) * 20.0;
+            px = px - sindf(h) * 4.0;
+            py = ep->y + 120.0f - cosdf(h) * 4.0;
+            if (ep->tgtX == -1 || ep->tgtY == -1) {
+                ep->tgtX = ep->cellX;
+                ep->tgtY = ep->cellY;
+            }
+            cx = ep->tgtX;
+            cy = ep->tgtY;
+            if (D_801092C0_eatsa_pizza[ep->side][cx][cy] != 0) {
+                /* tx, ty stay unset (retail) when the cell has no pixel left */
+                slice = func_801090B4_eatsa_pizza(D_8010927A_eatsa_pizza[ep->side], 0);
+                for (j = 0; j < 32; j++) {
+                    yy = (cy << 5) + j + 8;
+                    for (i = 0; i < 32; i++) {
+                        xx = (cx << 5) + i;
+                        if (slice[(u16)(xx + yy * 160)] & 1) {
+                            dx = px - xx;
+                            dy = py - yy;
+                            d = sqrtf(dx * dx + dy * dy);
+                            if (!(best < d)) {
+                                best = d;
+                                ep->timer = (func_80108F4C_eatsa_pizza() & 3) + 3;
+                                tx = xx;
+                                ty = yy;
+                            }
+                        }
+                    }
+                }
+                dx = px - tx;
+            } else {
+                k = func_80108F4C_eatsa_pizza() & 1;
+                for (;;) {
+                    k++;
+                    if (k >= 7) {
+                        break;
+                    }
+                    mate = D_80109268_eatsa_pizza[ep->side][ep->slot ^ 1];
+                    ox = mate->tgtX;
+                    oy = mate->tgtY;
+                    for (a = k; a >= -k; a--) {
+                        b = k - ((a < 0) ? -a : a);
+                        for (n = 0; n < 2; n++) {
+                            ccx = cx - a;
+                            ccy = cy - b;
+                            if (ccx >= 0 && ccy >= 0 && ccx < 5 && ccy < 7 && !(ccx == ox && ccy == oy)) {
+                                dx = px - (ccx << 5) + 16.0f;
+                                dy = py - (ccy << 5) + 24.0f;
+                                d = sqrtf(dx * dx + dy * dy);
+                                if (!(best < d)) {
+                                    v = D_801092C0_eatsa_pizza[ep->side][ccx][ccy];
+                                    if (v != 0) {
+                                        best = d;
+                                        found = v;
+                                        fx = ccx;
+                                        fy = ccy;
+                                    }
+                                }
+                            }
+                            b = -b;
+                        }
+                    }
+                    if (found != 0) {
+                        break;
+                    }
+                }
+                /* nothing found: aim at the partner's cell, but fx, fy stay unset (retail) */
+                if (found != 0) {
+                    ep->tgtX = fx;
+                    ep->tgtY = fy;
+                } else {
+                    ep->tgtX = ox;
+                    ep->tgtY = oy;
+                }
+                ty = (fy << 5) + 24;
+                ep->timer = (func_80108F4C_eatsa_pizza() & 7) + 5;
+                dx = px - ((fx << 5) + 16);
+            }
+            h = atan2df(dx, py - ty);
+            if (h > 360.0) {
+                h -= 360.0;
+            }
+            if (h < 0.0) {
+                h += 360.0;
+            }
+            ep->cpuHeading = h;
+        }
+    }
+    return btn;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801070E8_eatsa_pizza);
+#endif
 
 /* Push the player out of the other players. */
 void func_801078C4_eatsa_pizza(omObjData* obj) {
