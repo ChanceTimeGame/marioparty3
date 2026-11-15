@@ -193,7 +193,8 @@ void func_80107260_mgresultbattle(f32 x, f32 y, f32 z, s32 count, f32 floor) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F4980", D_801089A8_mgresultbattle);
+/* Unreferenced in retail. */
+const Vec D_801089A8_mgresultbattle = { 0.0f, 300.0f, 0.0f };
 
 // Creates the coin-dropping flyer (body, held item and a third model) and runs its hook.
 void func_80107400_mgresultbattle(void) {
@@ -359,4 +360,5 @@ void func_80107CA4_mgresultbattle(void) {
     func_8001C258_main(obj->model[3], 4, 4);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F4980", D_801089C0_mgresultbattle);
+/* Leftover-coin lottery weight per placing (last place most likely). */
+const s32 D_801089C0_mgresultbattle[4] = { 10, 20, 30, 40 };

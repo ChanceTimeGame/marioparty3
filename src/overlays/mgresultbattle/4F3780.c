@@ -48,7 +48,7 @@ extern const Vec D_801089D0_mgresultbattle[4];
 extern u16 D_800CC698_main;
 extern const f32 D_80108920_mgresultbattle[8][4];
 extern const s8 D_801089A0_mgresultbattle[8];
-extern s32 D_80108908_mgresultbattle[];
+extern const s32 D_80108908_mgresultbattle[6];
 
 void func_801059A0_mgresultbattle(void) {
     s16 var_a0_2;
@@ -458,8 +458,20 @@ void func_801069FC_mgresultbattle(omObjData *obj) {
     D_80108F50_mgresultbattle[0].func = func_80106910_mgresultbattle;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108908_mgresultbattle);
+/* Results backdrop per board. */
+const s32 D_80108908_mgresultbattle[6] = { 4, 7, 10, 13, 16, 19 };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_80108920_mgresultbattle);
+/* Share of the pot per placing, by tie pattern (see func_801060A4_mgresultbattle). */
+const f32 D_80108920_mgresultbattle[8][4] = {
+    { 0.7f, 0.3f, 0.0f, 0.0f }, // 1-2-3-4
+    { 0.5f, 0.0f, 0.0f, 0.0f }, // two tied first
+    { 0.5f, 0.0f, 0.0f, 0.0f }, // two tied first, two tied third
+    { 3.0f, 0.0f, 0.0f, 0.0f }, // three tied first (pot divided by 3)
+    { 0.6f, 0.2f, 0.0f, 0.0f }, // two tied second
+    { 0.7f, 0.1f, 0.0f, 0.0f }, // three tied second
+    { 0.7f, 0.3f, 0.0f, 0.0f }, // two tied third
+    { 0.25f, 0.0f, 0.0f, 0.0f }, // four tied first
+};
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mgresultbattle/4F3780", D_801089A0_mgresultbattle);
+/* Nonzero: the pot is divided by the share rather than multiplied. */
+const s8 D_801089A0_mgresultbattle[8] = { 0, 0, 0, 1, 0, 0, 0, 0 };
