@@ -194,6 +194,17 @@ extern DuelB2SprModel *D_800CBB60_main;
 extern Object *D_80119488_duel01;
 extern omObjData *D_8011948C_duel01;
 extern s32 D_80118718_duel01[];
+extern f32 D_8011872C_duel01;
+extern Object *D_80119490_duel01;
+
+/* Part of a model looked up by name (func_8001D33C_main). */
+typedef struct DuelB2HmfPart {
+    /* 0x00 */ char unk_00[0x14];
+    /* 0x14 */ f32 rotY;
+} DuelB2HmfPart;
+
+void func_8002FD8C_main(s16 arg0, s16 arg1, char *arg2, s16 arg3, s16 arg4);
+void *func_8001D33C_main(s16 model, char *name);
 /* duel01.h declares func_800D8E88_name_81(void); it takes the Object (ovl_81.h). */
 typedef void (*DuelB2ObjFunc)(Object *);
 
@@ -501,7 +512,23 @@ void func_8010DB00_duel01(void) {
     func_800FF640_name_81(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DB2C_duel01);
+/* Process: spins the "neji" (screw) part of D_80119490's model forever. */
+void func_8010DB2C_duel01(void) {
+    DuelB2HmfPart *part;
+    f32 angle;
+
+    angle = 0.0f;
+    while (TRUE) {
+        func_8002FD8C_main(D_80119490_duel01->omObj1->model[0], HmfModelData[D_80119490_duel01->omObj1->model[0]].unk02, "neji", 0x4C, 0x46);
+        part = func_8001D33C_main(D_80119490_duel01->omObj1->model[0], "neji");
+        angle += D_8011872C_duel01;
+        if (angle >= 360.0f) {
+            angle -= 360.0f;
+        }
+        part->rotY = angle;
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_8010DC04_duel01);
 
