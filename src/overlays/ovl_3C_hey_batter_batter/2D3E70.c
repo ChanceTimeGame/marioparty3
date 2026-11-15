@@ -7,6 +7,7 @@
 #include "game/hmflight.h"
 #include "game/util.h"
 #include "game/wipe.h"
+#include "game/window.h"
 
 // batter A: Hey, Batter, Batter! (one player bats pitches into the stands)
 
@@ -25,6 +26,7 @@ s16 func_8000B638_main(void);
 void GMesMaxTimeGet(s16 mesId, s16 time);
 f32 sindf(f32);
 void GMesPosSet(s16 mesId, f32 x, f32 y);
+void func_800557A0_main(void);
 extern u16 D_800A11D0_main[6];
 extern s16 D_800A11DC_main[5];
 
@@ -41,6 +43,7 @@ void func_80106744_hey_batter_batter(omObjData* obj);
 void func_80106928_hey_batter_batter(omObjData* obj);
 void func_80106C24_hey_batter_batter(omObjData* obj);
 void func_80106CBC_hey_batter_batter(omObjData* obj);
+void func_80106C6C_hey_batter_batter(omObjData* obj);
 void func_80106CE4_hey_batter_batter(omObjData* obj);
 void func_801070D8_hey_batter_batter(omObjData* obj);
 void func_80107144_hey_batter_batter(omObjData* obj);
@@ -74,6 +77,13 @@ extern s16 D_80109ED4_hey_batter_batter;
 extern s16 D_80109ED8_hey_batter_batter;
 extern s16 D_80109EDA_hey_batter_batter;
 extern s16 D_80109EDE_hey_batter_batter;
+extern s16 D_80109EEE_hey_batter_batter;
+extern s16 D_80109EFC_hey_batter_batter;
+extern s16 D_80109EFE_hey_batter_batter;
+extern s16 D_80109C48_hey_batter_batter; /* result step */
+extern s16 D_80109C4A_hey_batter_batter; /* result camera frame */
+extern Vec D_80109BC4_hey_batter_batter[2]; /* result camera rotations */
+extern Vec D_80109BDC_hey_batter_batter[2]; /* result camera centres */
 extern Vec D_80109B64_hey_batter_batter[4]; /* camera rotations */
 extern Vec D_80109B94_hey_batter_batter[4]; /* camera centres */
 
@@ -318,13 +328,81 @@ void func_80106744_hey_batter_batter(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106928_hey_batter_batter);
+/* The result: decide win or loss, move the camera onto the batter and play the reaction. */
+void func_80106928_hey_batter_batter(omObjData* obj) {
+    switch (D_80109C48_hey_batter_batter) {
+    case 0:
+        switch (D_80109ED4_hey_batter_batter) {
+        case 1:
+            D_80109EE0_hey_batter_batter = 0;
+            break;
+        case 2:
+            D_80109EE0_hey_batter_batter = 1;
+            break;
+        }
+        D_80109C48_hey_batter_batter++;
+        break;
+    case 1:
+        if (D_80109EE0_hey_batter_batter == 0) {
+            D_80109EEE_hey_batter_batter = 3;
+            func_801098DC_hey_batter_batter(D_80109EB4_hey_batter_batter.zoom, D_80109B64_hey_batter_batter[0],
+                                            D_80109B94_hey_batter_batter[0], D_80109EB4_hey_batter_batter.zoom,
+                                            D_80109BC4_hey_batter_batter[0], D_80109BDC_hey_batter_batter[0], 30.0f,
+                                            D_80109C4A_hey_batter_batter);
+            if (sindf(D_80109C4A_hey_batter_batter * 3.0f) >= 1.0f) {
+                D_80109C48_hey_batter_batter++;
+                D_80109C4A_hey_batter_batter = 0;
+            } else {
+                D_80109C4A_hey_batter_batter++;
+            }
+        } else if (D_80109EE0_hey_batter_batter == 1) {
+            D_80109C48_hey_batter_batter++;
+        }
+        break;
+    case 2:
+        if (D_80109EE0_hey_batter_batter == 1) {
+            func_80017954_main(D_80109EF4_hey_batter_batter->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr,
+                               D_80109EFE_hey_batter_batter);
+            D_80109ED2_hey_batter_batter = 3;
+            D_80109EDA_hey_batter_batter = 1;
+            HuAudFXPlay(0x4D8);
+        } else if (D_80109EE0_hey_batter_batter == 0) {
+            func_80017954_main(D_80109EF4_hey_batter_batter->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr,
+                               D_80109EFC_hey_batter_batter);
+            D_80109ED2_hey_batter_batter = 2;
+            D_80109EDA_hey_batter_batter = 2;
+        }
+        D_80109C48_hey_batter_batter++;
+        break;
+    case 3:
+        obj->func = func_80106048_hey_batter_batter;
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106C24_hey_batter_batter);
+void func_80106C24_hey_batter_batter(omObjData* obj) {
+    WipeCreateOut(0, 20);
+    HuAudSeqFadeOut(30);
+    func_8004AB0C_main(30);
+    obj->func = func_80106C6C_hey_batter_batter;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106C6C_hey_batter_batter);
+void func_80106C6C_hey_batter_batter(omObjData* obj) {
+    if (WipeStatGet() != 1) {
+        osViBlack(0);
+        GMesClose();
+        func_8005F524_main();
+        func_800557A0_main();
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106CBC_hey_batter_batter);
+/* Leave when the pause menu quits the minigame. */
+void func_80106CBC_hey_batter_batter(omObjData* obj) {
+    if (D_800D530C_main == 1) {
+        obj->func = func_80106C24_hey_batter_batter;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80106CE4_hey_batter_batter);
 
