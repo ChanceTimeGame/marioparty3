@@ -978,3 +978,37 @@ void func_80108384_ice_rink_risk(omObjData* obj, f32 dx, f32 dz) {
     D_801085B0_ice_rink_risk[w->unk56].pos.y = obj->trans.y;
     D_801085B0_ice_rink_risk[w->unk56].pos.z = dz + obj->trans.z;
 }
+
+/* .data (0x80108550-0x801086B0) */
+Vec D_80108550_ice_rink_risk[4] = { /* player start positions */
+    { -150.0f, 100.0f, -150.0f },
+    { -150.0f, 100.0f, 150.0f },
+    { 150.0f, 100.0f, -150.0f },
+    { 150.0f, 100.0f, 150.0f },
+};
+Vec D_80108580_ice_rink_risk[4] = { /* puck drop positions (only y is read) */
+    { 40.0f, 900.0f, 10.0f },
+    { 30.0f, 900.0f, 20.0f },
+    { 20.0f, 900.0f, 30.0f },
+    { 10.0f, 900.0f, 40.0f },
+};
+IrHit D_801085B0_ice_rink_risk[3] = {
+    { -1, 20, { 0.0f, 0.0f, 0.0f } },
+    { -1, 20, { 0.0f, 0.0f, 0.0f } },
+    { -1, 20, { 0.0f, 0.0f, 0.0f } },
+};
+s32 D_801085EC_ice_rink_risk[3] = { 0, 0, 0 }; /* puck released */
+s32 D_801085F8_ice_rink_risk = 0;              /* pucks released */
+s32 D_801085FC_ice_rink_risk[4] = { 1, 1, 1, 1 }; /* player still on the rink */
+IrCtrl D_8010860C_ice_rink_risk = {
+    0, 0, 1, 2, 0, 0, 0, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 60, 900, -1, 75, 135,
+};
+s32 D_80108634_ice_rink_risk = 1; /* the finish still has to stop the pucks */
+s32 D_80108638_ice_rink_risk = 0; /* frames played */
+s32 D_8010863C_ice_rink_risk[4] = { 0, 0, 0, 0 }; /* frames knocked out */
+s32 D_8010864C_ice_rink_risk[4] = { 0, 0, 0, 0 }; /* knocked out */
+s8 D_8010865C_ice_rink_risk[4][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } }; /* CPU stick */
+f32 D_80108664_ice_rink_risk[4] = { 0.75f, 0.8f, 0.9f, 1.0f }; /* CPU stick scale per difficulty */
+f32 D_80108674_ice_rink_risk[4] = { 30.0f, 20.0f, 10.0f, 0.0f }; /* CPU dodge range - 150 per difficulty */
+s32 D_80108684_ice_rink_risk = 0; /* pucks created */
+f32 D_80108688_ice_rink_risk[10] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f }; /* puck spin */

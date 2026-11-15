@@ -102,4 +102,7 @@ D_8010D5BA_inst = D_8010D5B8_inst + 0x2; /* func_8010BE78_inst (NON_MATCHING asm
 
 /* inst 4E5AA0: the GAMEMES inside D_8010DCD4_inst's bss space */
 D_8010DCD8_inst = D_8010DCD4_inst + 0x4;
-D_80108580_ice_rink_risk = D_80108584_ice_rink_risk - 0x4; /* ice rink A: temporary */
+/* ice rink A: inner labels of ovl_19 .data now defined in C (NON_MATCHING asm) */
+D_801085B4_ice_rink_risk = D_801085B0_ice_rink_risk + 0x4;
+D_80108612_ice_rink_risk = D_8010860C_ice_rink_risk + 0x6;
+D_80108624_ice_rink_risk = D_8010860C_ice_rink_risk + 0x18;
