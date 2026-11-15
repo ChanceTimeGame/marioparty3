@@ -834,8 +834,8 @@ void func_800F38DC_name_81(s32, s16, u16);
 void func_800F397C_name_81(s32, s16, s16, s16, u16);
 void func_800F3A04_name_81(s32, s16, s16, s16, u16);
 void func_800F3AF4_name_81(s32, f32);
-Process *func_800F41DC_name_81(void); // defined void in DBE50.c
-Process *func_800F429C_name_81(void); // defined void in DBE50.c
+Process *func_800F41DC_name_81(void); /* DBE50.c */
+Process *func_800F429C_name_81(void); /* DBE50.c */
 s32 func_800F42C8_name_81(void);
 void func_800F7378_name_81(s32, s32);
 void func_800F924C_name_81(s32);

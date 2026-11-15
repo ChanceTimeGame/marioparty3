@@ -36,8 +36,8 @@ void func_800F413C_name_81(void) {
     omDelPrcObj(NULL);
 }
 
-void func_800F41DC_name_81(void) {
-    omAddPrcObj(func_800F413C_name_81, 0x1002, 0, 0);
+Process* func_800F41DC_name_81(void) {
+    return omAddPrcObj(func_800F413C_name_81, 0x1002, 0, 0);
 }
 
 void func_800F4208_name_81(void) {
@@ -54,8 +54,8 @@ void func_800F4208_name_81(void) {
     omDelPrcObj(NULL);
 }
 
-void func_800F429C_name_81(void) {
-    omAddPrcObj(func_800F4208_name_81, 0x1002, 0, 0);
+Process* func_800F429C_name_81(void) {
+    return omAddPrcObj(func_800F4208_name_81, 0x1002, 0, 0);
 }
 
 s32 func_800F42C8_name_81(void) {
