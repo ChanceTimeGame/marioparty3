@@ -58,7 +58,8 @@ void func_8001473C_main(s16 index, u16 arg1); /* src/14EA0.c defines arg1 as s16
 /* An entry of D_800CBB60_main (0x24 bytes; minigame BD210.c MgSprModel): its model at 0x00 */
 typedef struct HbSprModel {
     /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[0x22];
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20; /* src/14EA0.c unk_800ECDE0: key-frame list */
 } HbSprModel;
 extern HbSprModel* D_800CBB60_main;
 void Hu3DAnimInit(s32);

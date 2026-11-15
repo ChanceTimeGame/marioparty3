@@ -114,7 +114,8 @@ typedef struct BlEsprite {
 /* An entry of D_800CBB60_main (minigame BD210.c's MgSprModel) */
 typedef struct BlSprModel {
     /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[0x22];
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20; /* src/14EA0.c unk_800ECDE0: key-frame list */
 } BlSprModel; /* size 0x24 */
 
 /* What func_8001D33C_main returns (a model's named object) */

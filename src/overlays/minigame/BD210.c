@@ -40,7 +40,8 @@ typedef struct MgStarWork {
 /* An entry of D_800CBB60_main (0x24 bytes; src/14EA0.c's unk_800ECDE0). */
 typedef struct {
     /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[0x22];
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20; /* src/14EA0.c unk_800ECDE0: key-frame list */
 } MgSprModel;
 
 extern MgSprModel* D_800CBB60_main;
