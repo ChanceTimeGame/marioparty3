@@ -59,6 +59,7 @@ void func_8010E280_chancetime(omObjData *obj);
 void func_8010E4D0_chancetime(omObjData *obj);
 void func_8010F1F8_chancetime(omObjData *obj);
 void func_8010F984_chancetime(omObjData *obj);
+void func_8010F44C_chancetime(s8 prize, s16 total, s16 amount);
 
 extern s8 D_8010FB80_chancetime;
 extern s8 D_8010FB81_chancetime;
@@ -671,6 +672,7 @@ s32 func_8010E4C4_chancetime(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010E4D0_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD68_chancetime);
 
 void func_8010F1DC_chancetime(void) {
     D_8010FC10_chancetime = 0;
@@ -689,19 +691,51 @@ void func_8010F42C_chancetime(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F44C_chancetime);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F984_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD68_chancetime);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD8C_chancetime);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDB0_chancetime);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDD4_chancetime);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDF8_chancetime);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FE1C_chancetime);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FE3C_chancetime);
+void func_8010F984_chancetime(omObjData *obj) {
+    static const ChancePos16 D_8010FE3C_chancetime[9] = {
+        { 1000, 0 }, { 30, 0 }, { 20, 0 }, { 10, 0 }, { 1, 0 }, { 0, 1000 }, { 0, 3 }, { 0, 2 }, { 0, 1 },
+    };
+    s32 found[4];
+    s32 i;
+    s32 j;
+    s32 coins;
+    u16 coinAmt;
+    s32 stars;
+    s16 starAmt;
+    u16 isStar;
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            if (D_801100DD_chancetime[i] == GwPlayer[D_801100D0_chancetime[j]].chr) {
+                found[i] = D_801100D0_chancetime[j];
+                break;
+            }
+        }
+    }
+    coinAmt = D_8010FE3C_chancetime[D_801100DD_chancetime[2]].x;
+    coins = D_8010FE3C_chancetime[D_801100DD_chancetime[2]].x;
+    stars = D_8010FE3C_chancetime[D_801100DD_chancetime[2]].y;
+    starAmt = stars;
+    if (coins > 0) {
+        if (GwPlayer[found[0]].coin < coins) {
+            coinAmt = GwPlayer[found[0]].coin;
+        }
+        isStar = 0;
+    } else {
+        if (starAmt > GwPlayer[found[0]].star) {
+            starAmt = GwPlayer[found[0]].star;
+        }
+        isStar = 1;
+    }
+    if (isStar == 0) {
+        func_8010F44C_chancetime(D_801100DD_chancetime[2], coins, coinAmt);
+    } else {
+        func_8010F44C_chancetime(D_801100DD_chancetime[2], stars, starAmt);
+    }
+}
