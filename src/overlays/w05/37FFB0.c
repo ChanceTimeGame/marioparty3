@@ -223,6 +223,8 @@ typedef struct {
 extern s16 D_8011D070_w05[]; /* star-space id per star spawn */
 extern X2DirTable D_80120630_w05; /* lamp particle directions */
 extern const f64 D_80120690_w05; /* 0.3 */
+extern Vec2f D_8011EB4C_w05[]; /* per-player star sprite position */
+extern Vec2f D_8011EB6C_w05[]; /* per-player star sprite step */
 
 typedef struct {
     /* 0x00 */ Vec vel;
@@ -247,6 +249,7 @@ void func_8010D298_w05(void);
 void func_8010E790_w05(omObjData *arg0);
 void func_8010EE9C_w05(void);
 void func_8010F400_w05(void);
+void func_80111D84_w05(void);
 
 void func_8010BEC0_w05(Object *obj) {
     s32 i;
@@ -278,7 +281,75 @@ void func_8010BF60_w05(Object *obj) {
     MBModelDispOff(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010C000_w05);
+s32 func_8010C000_w05(s32 playerIndex) {
+    s32 hasRareItem = 0;
+    s16 grp;
+    void *data;
+    s16 spriteId;
+    s32 i;
+    s32 duration;
+    Process *process;
+
+    grp = HuSprGrpCreate(1, 5);
+    data = DataRead(0x13020E);
+    spriteId = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(grp, 0, spriteId, 0);
+    HuSprPriSet(grp, 0, 0xA);
+    func_800550F4_main(grp, 0, 0);
+    HuSprAttrSet(grp, 0, 0x1000);
+    func_80054904_main(grp, 0, D_8011EB4C_w05[playerIndex].x,
+                        D_8011EB4C_w05[playerIndex].y);
+    func_80055458_main(grp, 0, 0);
+    HuAudFXPlay(0x134);
+
+    for (i = 0; i < 0x11; i++) {
+        func_80054904_main(grp, 0,
+                            (i * D_8011EB6C_w05[playerIndex].x) +
+                                D_8011EB4C_w05[playerIndex].x,
+                            (i * D_8011EB6C_w05[playerIndex].y) +
+                                D_8011EB4C_w05[playerIndex].y);
+        func_80055458_main(grp, 0, i << 4);
+        HuPrcVSleep();
+    }
+    func_80055458_main(grp, 0, 0xFF);
+
+    if (MBItemFind(playerIndex, 0xC) != -1) {
+        hasRareItem = 1;
+        process = omAddPrcObj(func_80111D84_w05, 0x4002, 0, 0);
+        process->user_data = (void *)playerIndex;
+    }
+
+    if (!hasRareItem) {
+        GwPlayer[playerIndex].star--;
+    }
+    MBPlayerVibrate(playerIndex, 5);
+    HuAudFXPlay(0x257);
+
+    duration = hasRareItem ? 0x78 : 0x1E;
+    for (i = 0; i < duration; i++) {
+        func_80054904_main(grp, 0,
+                            (D_8011EB6C_w05[playerIndex].x * 16.0f) +
+                                D_8011EB4C_w05[playerIndex].x,
+                            (D_8011EB6C_w05[playerIndex].y * 16.0f) +
+                                D_8011EB4C_w05[playerIndex].y +
+                                (sindf(i * 90) * 4.0f));
+        HuPrcVSleep();
+    }
+
+    for (i = 0x10; i >= 0; i--) {
+        func_80054904_main(grp, 0,
+                            (i * D_8011EB6C_w05[playerIndex].x) +
+                                D_8011EB4C_w05[playerIndex].x,
+                            (i * D_8011EB6C_w05[playerIndex].y) +
+                                D_8011EB4C_w05[playerIndex].y);
+        func_80055458_main(grp, 0, i << 4);
+        HuPrcVSleep();
+    }
+    HuSprGrpKill(grp);
+    HuSprKill(spriteId);
+    return !hasRareItem;
+}
 
 void func_8010C448_w05(void) {
     func_800EC3E4_shared_board();
