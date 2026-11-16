@@ -708,3 +708,27 @@ void func_80107594_opboardtutorial() {
     MBBackKill();
     MBBackClose();
 }
+
+/* .data */
+s32 D_801075C0_opboardtutorial = 0; /* set once the turn order is decided: the exit starts the status display */
+Vec D_801075C4_opboardtutorial = { -170.0f, 125.0f, 3000.0f }; /* the host's position */
+Vec D_801075D0_opboardtutorial[3] = { { 0.0f, 250.0f, 0.0f }, { 0.0f, 100.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; /* only [0] read */
+Vec D_801075F4_opboardtutorial = { 0.0f, 0.0f, 1750.0f };
+Vec D_80107600_opboardtutorial[4] = {
+    { -18.0f, 250.0f, 0.0f }, { -6.0f, 250.0f, 0.0f }, { 6.0f, 250.0f, 0.0f }, { 18.0f, 250.0f, 0.0f },
+};
+Vec D_80107630_opboardtutorial[4] = {
+    { -175.0f, 0.0f, 2000.0f }, { 0.0f, 0.0f, 2000.0f }, { 175.0f, 0.0f, 2000.0f }, { 350.0f, 0.0f, 2000.0f },
+};
+OtMotList D_80107660_opboardtutorial = { 5, { 0x20001, 0x20002, 0x2002B, 0x20033, 0x20031 } };
+OtMotList D_80107678_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_80107690_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_801076A8_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_801076C0_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_801076D8_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_801076F0_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList D_80107708_opboardtutorial = { 5, { 0, 0, 0, 0, 0 } };
+OtMotList *D_80107720_opboardtutorial[8] = {
+    &D_80107660_opboardtutorial, &D_80107678_opboardtutorial, &D_80107690_opboardtutorial, &D_801076A8_opboardtutorial,
+    &D_801076C0_opboardtutorial, &D_801076D8_opboardtutorial, &D_801076F0_opboardtutorial, &D_80107708_opboardtutorial,
+};

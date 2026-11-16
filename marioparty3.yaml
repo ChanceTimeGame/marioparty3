@@ -1865,7 +1865,7 @@ segments:
     bss_size: 0x40
     subsegments:
       - [0x3CDEC0, c]
-      - [0x3CFAE0, data, 3CDEC0] #801075C0
+      - [0x3CFAE0, .data, 3CDEC0] #801075C0
       - [0x3CFC60, .rodata, 3CDEC0] #80107740
       - {0x3CFC80, type: bss, vram: 0x80107760, name: opboardtutorial_bss}
 
