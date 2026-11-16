@@ -228,7 +228,75 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FCE8_chancet
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FCF8_chancetime);
 
+// NON_MATCHING: one register (top is stored from the s16 temp instead of the copy in s1); logic checked
+#ifdef NON_MATCHING
+void func_8010D320_chancetime(omObjData *obj) {
+    static const f32 D_8010FD08_chancetime[3][2] = { { 10.0f, 10.0f }, { 20.0f, 20.0f }, { 40.0f, 40.0f } };
+    static const s32 D_8010FD20_chancetime[3][2] = { { 125, 71 }, { 198, 71 }, { 161, 141 } };
+    static const Vec D_8010FD38_chancetime[3] = {
+        { -111.0f, 486.0f, -541.0f },
+        { 119.0f, 486.0f, -541.0f },
+        { 3.0f, 265.0f, -541.0f },
+    };
+    s16 n;
+    s16 k;
+    ChanceWheel *w;
+    s8 i;
+    s8 j;
+
+    for (i = 0; i < 3; i++) {
+        w = &D_8010FED0_chancetime[i];
+        if (w->state == 4) {
+            w->speed += D_8010FD08_chancetime[D_8010FBF0_chancetime - 1][0];
+            w->speed = (w->speed > D_8010FD08_chancetime[D_8010FBF0_chancetime - 1][1])
+                ? D_8010FD08_chancetime[D_8010FBF0_chancetime - 1][1] : w->speed;
+        }
+        if (w->state == 1) {
+            w->target = ((s32)(w->pos / 100.0f) + 1) * 100.0f;
+            w->state = 2;
+        }
+        w->pos += w->speed;
+        w->speed *= 0.98f;
+        if (w->state == 2 && w->pos >= w->target) {
+            w->pos = w->target;
+            w->speed = 0.0f;
+            w->state = 3;
+        }
+        if (w->pos >= 200.0f) {
+            w->pos -= 200.0f;
+            n = w->next;
+            if (n >= w->count) {
+                n -= w->count;
+            }
+            w->next = n;
+            k = n;
+            w->top = k;
+            for (j = 0; j < 3; j++) {
+                func_8003302C_main(w->anim[j], w->items[k]);
+                k = ((s16)(k - 1) < 0) ? w->count + (s16)(k - 1) : (s16)(k - 1);
+            }
+            w->next += 2;
+            w->next = (w->next >= w->count) ? w->next - w->count : w->next;
+        }
+        if (w->state == 3) {
+            n = w->top + (s32)(w->pos / 100.0f) - 2;
+            n = (n < 0) ? w->count + n : n;
+            n = (n >= w->count) ? n - w->count : n;
+            D_801100DD_chancetime[i] = w->items[n];
+            w->state = 0;
+        }
+        Hu3DModelPosSet(obj->model[i + 1], D_8010FD38_chancetime[i].x, D_8010FD38_chancetime[i].y - w->pos,
+                        D_8010FD38_chancetime[i].z);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010D320_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD0C_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD20_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD38_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD3C_chancetime);
+INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD40_chancetime);
+#endif
 
 void func_8010D6A4_chancetime(s8 wheel) {
     s8 i;
@@ -398,16 +466,6 @@ void func_8010F42C_chancetime(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F44C_chancetime);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F984_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD0C_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD20_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD38_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD3C_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD40_chancetime);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD5C_chancetime);
 
