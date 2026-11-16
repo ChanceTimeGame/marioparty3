@@ -46,6 +46,16 @@ void func_80108578_chancetime(omObjData *obj);
 void func_80108738_chancetime(omObjData *obj);
 void func_80108C08_chancetime(s16 arg0, s16 arg1, s16 arg2);
 void func_80106B18_chancetime(void);
+void func_80108EDC_chancetime(omObjData *obj);
+s32 func_8010B6F4_chancetime(s16 model);
+void func_8010B7A0_chancetime(s16 model);
+void func_8010B818_chancetime(omObjData *obj, Vec *to, s32 frames);
+void func_8010B834_chancetime(omObjData *obj, Vec *to, s32 frames, s32 turn);
+void func_8010BA68_chancetime(omObjData *obj, Vec *to, s32 frames);
+void func_8010BC10_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+f32 func_8010BC3C_chancetime(Vec *from, Vec *to);
+void func_8010BC88_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_8010BD40_chancetime(void);
 
 extern ChanceSprModel *D_800CBB60_main;
 extern TexAnimSlot *D_800D1714_main;
@@ -55,6 +65,8 @@ extern char D_8010FC8C_chancetime[]; // "item_hook"
 extern s32 D_8010FB00_chancetime;
 extern s32 D_8010FB04_chancetime;
 extern s32 D_8010FB08_chancetime;
+extern Vec D_8010FB0C_chancetime;
+extern s32 D_8010FB60_chancetime;
 extern f32 D_8010FB64_chancetime;
 extern s32 D_8010FB68_chancetime;
 extern f32 D_8010FB6C_chancetime;
@@ -71,6 +83,7 @@ typedef struct ChanceHost {
     /* 0x04 */ void (*func)(omObjData *);
 } ChanceHost;
 
+extern ChanceHost D_80110088_chancetime;
 extern ChanceHost D_801100D4_chancetime;
 
 void func_80107300_chancetime(void) {
@@ -420,9 +433,116 @@ void func_80108C08_chancetime(s16 model, s16 slot, s16 frame) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_80108CDC_chancetime);
+/* The second host (D_80110088_chancetime): appears at D_8010FB0C_chancetime and runs its state. */
+void func_80108CDC_chancetime(void) {
+    omObjData *obj;
+    omObjData *host;
+    void *data;
+    s32 anim;
 
+    obj = omAddObj(0x14, 4, 0, -1, NULL);
+    D_80110088_chancetime.obj = obj;
+    host = D_801100D4_chancetime.obj;
+    obj->model[1] = func_8000B108_main(0xA0000, 0x2A9);
+    Hu3DModelPosSet(obj->model[1], D_8010FB0C_chancetime.x, D_8010FB0C_chancetime.y, D_8010FB0C_chancetime.z);
+    func_8001C8A8_main(obj->model[1], 2);
+    data = DataRead(0xA002A);
+    anim = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_8010FC80_chancetime);
+    HuMemMemoryFreePerm(data);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80032FC0_main(anim, 1, 0);
+    func_80032FF8_main(anim, 0);
+    obj->model[2] = func_8000B108_main(9, 0x2B9);
+    Hu3DModelPosSet(obj->model[2], D_8010FB0C_chancetime.x, D_8010FB0C_chancetime.y, D_8010FB0C_chancetime.z);
+    func_8001C8A8_main(obj->model[2], 2);
+    func_8001C624_main(obj->model[1], HmfModelData[host->motion[0]].unk02, 0, 30, 2);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_80110088_chancetime.func = func_80108EDC_chancetime;
+    while (TRUE) {
+        D_80110088_chancetime.func(obj);
+        HuPrcVSleep();
+    }
+}
+
+/* NON_MATCHING: in the final hop loop retail keeps model*3 and model*192 in separate registers
+ * for the landing test and reloads 0.0f each pass (4 instructions); logic matches. */
+#ifdef NON_MATCHING
+void func_80108EDC_chancetime(omObjData *obj) {
+    HmfModel *m;
+    omObjData *host;
+    f32 y;
+    f32 vel;
+    s32 i;
+    s32 j;
+    u16 model;
+
+    model = obj->model[1];
+    host = D_801100D4_chancetime.obj;
+    HuPrcSleep(5);
+    HuPrcSleep(2);
+    y = HmfModelData[(s16)model].pos.y;
+    for (j = 0; j < 3; j++) {
+        func_8001C624_main(model, HmfModelData[host->motion[12]].unk02, 0, 10, 0);
+        for (i = 0; i < 9; i++) {
+            HmfModelData[(s16)model].pos.y = y + sindf(i * 20.0f) * 50.0f;
+            HuPrcVSleep();
+        }
+    }
+    HmfModelData[(s16)model].pos.y = y;
+    func_8001C624_main(obj->model[1], HmfModelData[host->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(3);
+    for (j = 0; j < 1; j++) {
+        for (i = 0; i < 2; i++) {
+            func_8001C624_main(model, HmfModelData[host->motion[5]].unk02, 0, 10, 0);
+            func_8001C92C_main(model, 1.5f);
+            func_8010B7A0_chancetime(model);
+        }
+        func_8001C624_main(model, HmfModelData[host->motion[6]].unk02, 0, 10, 0);
+        func_8001C92C_main(model, 1.5f);
+        func_8010B7A0_chancetime(model);
+        func_8001C624_main(model, HmfModelData[host->motion[7]].unk02, 0, 10, 0);
+        func_8001C92C_main(model, 1.5f);
+        func_8010B7A0_chancetime(model);
+    }
+    HuPrcSleep(1);
+    func_8001C624_main(model, HmfModelData[host->motion[8]].unk02, 0, 10, 0);
+    HuPrcSleep(20);
+    omAddPrcObj(func_8010BD40_chancetime, 0x1001, 0x2000, 0);
+    HuPrcSleep(10);
+    func_8001C624_main(obj->model[1], HmfModelData[host->motion[12]].unk02, 0, 10, 0);
+    /* retail also copies the model's position here into an unused Vec */
+    vel = 20.0f;
+    while (TRUE) {
+        m = &HmfModelData[(s16)model];
+        m->pos.y += vel;
+        m->pos.z += 20.0f;
+        if (m->pos.z >= -250.0f) {
+            HmfModelData[obj->model[2]].pos.x = m->pos.x;
+            HmfModelData[obj->model[2]].pos.y = 0.0f;
+            HmfModelData[obj->model[2]].pos.z = m->pos.z;
+            func_8001C258_main(obj->model[2], 4, 0);
+        }
+        if (HmfModelData[(s16)model].pos.y <= 0.0f) {
+            break;
+        }
+        vel -= 3.0f;
+        HuPrcVSleep();
+    }
+    m = &HmfModelData[(s16)model];
+    m->pos.y = 0.0f;
+    HmfModelData[obj->model[2]].pos.x = m->pos.x;
+    HmfModelData[obj->model[2]].pos.y = 0.0f;
+    HmfModelData[obj->model[2]].pos.z = m->pos.z;
+    func_8001C624_main(obj->model[1], HmfModelData[host->motion[1]].unk02, 0, 10, 2);
+    func_8010BC88_chancetime(obj, 0.0f, 0.0f, 500.0f, 5);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_80110088_chancetime.func = func_80107A80_chancetime;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_80108EDC_chancetime);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_801094CC_chancetime);
 
@@ -448,29 +568,156 @@ INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B030_chancet
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B124_chancetime);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B6F4_chancetime);
+/* -1 once model's motion has stopped at its last frame, else 0. */
+s32 func_8010B6F4_chancetime(s16 model) {
+    f32 frame;
+    s32 ret;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B7A0_chancetime);
+    frame = func_8001C7D0_main(model);
+    ret = 0;
+    if (frame == -1.0f) {
+        if (D_800CCF58_main[HmfModelData[model].unk02].unk02 <= HmfModelData[model].unk40) {
+            ret = -1;
+        }
+    }
+    return ret;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B7EC_chancetime);
+void func_8010B7A0_chancetime(s16 model) {
+    HuPrcSleep(15);
+    while (func_8010B6F4_chancetime(model) == 0) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B818_chancetime);
+void func_8010B7EC_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
+    Vec to;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B834_chancetime);
+    to.x = x;
+    to.y = y;
+    to.z = z;
+    func_8010B818_chancetime(obj, &to, frames);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BA68_chancetime);
+void func_8010B818_chancetime(omObjData *obj, Vec *to, s32 frames) {
+    func_8010B834_chancetime(obj, to, frames, 1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BC10_chancetime);
+/* Walks model[1] (and its shadow model[2], if any) in a straight line to `to` over `frames`
+   frames, turning it to face the way first when `turn` is set. */
+void func_8010B834_chancetime(omObjData *obj, Vec *to, s32 frames, s32 turn) {
+    Vec from;
+    Vec dist;
+    Vec step;
+    Vec pos;
+    f32 t;
+    s16 model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BC3C_chancetime);
+    model = obj->model[1];
+    from.x = HmfModelData[model].pos.x;
+    from.y = HmfModelData[model].pos.y;
+    from.z = HmfModelData[model].pos.z;
+    dist.x = to->x - from.x;
+    dist.y = to->y - from.y;
+    dist.z = to->z - from.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(dist.z, dist.x) - 90.0f), 0.0f);
+    }
+    t = frames;
+    step.x = dist.x / t;
+    step.y = dist.y / t;
+    step.z = dist.z / t;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        pos.x = t * step.x + from.x;
+        pos.y = t * step.y + from.y;
+        pos.z = t * step.z + from.z;
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        if (obj->model[2] >= 0) {
+            Hu3DModelPosSet(obj->model[2], pos.x, 0.0f, pos.z);
+        }
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, to->x, to->y, to->z);
+    if (obj->model[2] >= 0) {
+        Hu3DModelPosSet(obj->model[2], to->x, 0.0f, to->z);
+    }
+    HuPrcVSleep();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BC88_chancetime);
+/* Eases model[1]'s rotation to `to` over `frames` frames (sine ease-out). */
+void func_8010BA68_chancetime(omObjData *obj, Vec *to, s32 frames) {
+    Vec from;
+    Vec dist;
+    Vec rot;
+    f32 t;
+    f32 angle;
+    s16 model;
+
+    model = obj->model[1];
+    from.x = HmfModelData[model].rot.x;
+    from.y = HmfModelData[model].rot.y;
+    from.z = HmfModelData[model].rot.z;
+    dist.x = to->x - from.x;
+    dist.y = to->y - from.y;
+    dist.z = to->z - from.z;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        angle = 90.0f / frames * t;
+        rot.x = sindf(angle) * dist.x + from.x;
+        rot.y = sindf(angle) * dist.y + from.y;
+        rot.z = sindf(angle) * dist.z + from.z;
+        Hu3DModelRotSet(model, rot.x, rot.y, rot.z);
+        HuPrcVSleep();
+    }
+    Hu3DModelRotSet(model, to->x, to->y, to->z);
+    HuPrcVSleep();
+}
+
+void func_8010BC10_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
+    Vec to;
+
+    to.x = x;
+    to.y = y;
+    to.z = z;
+    func_8010BA68_chancetime(obj, &to, frames);
+}
+
+/* Facing angle (degrees, model rot.y) from `from` toward `to`. */
+f32 func_8010BC3C_chancetime(Vec *from, Vec *to) {
+    Vec d;
+
+    d.x = to->x - from->x;
+    d.z = to->z - from->z;
+    return -(atan2df(d.z, d.x) - 90.0f);
+}
+
+/* Turns model[1] toward (x, y, z) over 10 frames, then walks there over `frames` frames. */
+void func_8010BC88_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
+    Vec from;
+    Vec to;
+    s16 model;
+
+    model = obj->model[1];
+    from.x = HmfModelData[model].pos.x;
+    from.y = HmfModelData[model].pos.y;
+    from.z = HmfModelData[model].pos.z;
+    to.x = x;
+    to.y = y;
+    to.z = z;
+    func_8010BC10_chancetime(obj, 0.0f, func_8010BC3C_chancetime(&from, &to), 0.0f, 10);
+    func_8010B818_chancetime(obj, &to, frames);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BD40_chancetime);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BF3C_chancetime);
+s32 func_8010BF3C_chancetime(void) {
+    return D_8010FB60_chancetime;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BF48_chancetime);
+void func_8010BF48_chancetime(void) {
+    omObjData *obj = D_801100D4_chancetime.obj;
+
+    func_8010BC10_chancetime(obj, 0.0f, 45.0f, 0.0f, 10);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/4832D0", D_8010FC80_chancetime);
 
