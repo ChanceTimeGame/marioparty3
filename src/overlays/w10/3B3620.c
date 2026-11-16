@@ -6,6 +6,7 @@
 #include "game/data.h"
 #include "../ovl_80_shared_board/1006F0.h"
 #include "game/wipe.h"
+#include "math.h"
 #include "../ovl_80_shared_board/1063F0.h"
 #include "../ovl_80_shared_board/106A50.h"
 #include "../ovl_80_shared_board/10C230.h"
@@ -38,6 +39,11 @@ extern s16 D_8010BA50_w10;
 extern s16 D_8010BA52_w10;
 extern s16 D_8010BA54_w10;
 extern Vec D_8010BA58_w10;
+extern s16 D_8010B8FC_w10;
+extern Object *D_8010BA68_w10;
+extern Object *D_8010BA6C_w10;
+extern Object *D_8010BA70_w10;
+extern Object *D_8010BA74_w10;
 
 /* Three-sprite panel: frame, tinted backing, picture. */
 typedef struct W10SprWork {
@@ -473,15 +479,78 @@ void func_801070B8_w10(UnkMBGuideData *guide) {
     MBMotionSet(guide->obj, -1, 2);
 }
 
+#ifdef NON_MATCHING
+// board h1: masked 0; raw residue is the register allocation (guide s1/step s2 in retail)
+/* Slide the guide window from its x position to x over 14 frames. */
+void func_8010714C_w10(UnkMBGuideData *guide, s16 x) {
+    s32 i;
+    s32 step;
+    s16 start = guide->spriteGroup;
+    Object *obj = guide->obj;
+
+    obj->velocity.y = 4.0f;
+    obj->velocity.z = -0.5f;
+    step = (x - start) / 14;
+    for (i = 0; i < 14; i++) {
+        MBGuidePosSet(guide, guide->spriteGroup + step, 0);
+        HuPrcVSleep();
+    }
+    MBGuidePosSet(guide, x, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010714C_w10);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107228_w10);
+/* Motion player: plays the motion requested through func_80107344_w10 (-2 = default). */
+void func_80107228_w10(void) {
+    Object **objp = HuPrcCurrentGet()->user_data;
+    s16 req;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107344_w10);
+    while (1) {
+        HuPrcVSleep();
+        if (D_8010B8FC_w10 == -1) {
+            continue;
+        }
+        if (D_8010B8FC_w10 == -2) {
+            D_8010B8FC_w10 = -1;
+            MBMotionShiftSet(*objp, -1, 0, 10, 0);
+        } else {
+            MBMotionShiftSet(*objp, D_8010B8FC_w10, 0, 10, 0);
+        }
+        req = D_8010B8FC_w10;
+        D_8010B8FC_w10 = -1;
+        while (MBMotionCheck(*objp) == 0 && D_8010B8FC_w10 == -1) {
+            HuPrcVSleep();
+        }
+        switch (req) {
+        case 1:
+            MBMotionSet(*objp, 3, 2);
+            break;
+        case 2:
+            MBMotionSet(*objp, 4, 2);
+            break;
+        default:
+            MBMotionSet(*objp, -1, 2);
+            break;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107350_w10);
+void func_80107344_w10(s16 req) {
+    D_8010B8FC_w10 = req;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801073C8_w10);
+void func_80107350_w10(omObjData *obj) {
+    D_8010BA68_w10->coords.y = -sindf(obj->rot.x) * 3.0f;
+    D_8010BA6C_w10->coords.y = -sindf(obj->rot.x) * 3.0f;
+    obj->rot.x += 3.0f;
+}
+
+void func_801073C8_w10(omObjData *obj) {
+    D_8010BA70_w10->coords.y = sindf(obj->rot.x) * 3.0f;
+    D_8010BA74_w10->coords.y = sindf(obj->rot.x) * 3.0f;
+    obj->rot.x += 10.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107444_w10);
 
