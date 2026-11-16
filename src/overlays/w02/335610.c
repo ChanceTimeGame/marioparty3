@@ -1511,9 +1511,157 @@ void func_801095EC_w02(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8010964C_w02);
+s32 func_8010964C_w02(s32 arg0) {
+    s32 var_s2 = 0;
+    s16 sp18[MB_MAX_PLAYERS];
+    u8 sp20[MB_MAX_PLAYERS];
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8010985C_w02);
+    *(g1Unk4Bytes *)sp20 = *(g1Unk4Bytes *)D_8011EA70_w02;
+
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i == GwSystem.current_player_index) {
+            if (GwPlayer[i].stat & 1) {
+                var_s2 = 1;
+                sp18[GwPlayer[i].pad] = 0x400;
+            } else {
+                func_8005FE54_main(mbDlgWinId, sp20[GwPlayer[i].pad]);
+                sp18[GwPlayer[i].pad] = -1;
+            }
+        } else {
+            sp18[GwPlayer[i].pad] = 0;
+        }
+    }
+
+    if (var_s2 != 0) {
+        func_8005B63C_main(mbDlgWinId, 2, 2);
+        for (j = 0; var_s2 != 0; j++) {
+            if (--var_s2 == 0) {
+                sp18[GwPlayer[GwSystem.current_player_index].pad] = -0x8000;
+            }
+            if (j == 0) {
+                func_8005F698_main(sp18[0], sp18[1], sp18[2], sp18[3], func_800EDC40_shared_board());
+            } else {
+                func_8005F698_main(sp18[0], sp18[1], sp18[2], sp18[3], 0x10);
+            }
+        }
+    } else {
+        func_8005F744_main(sp18[0], sp18[1], sp18[2], sp18[3]);
+    }
+
+    return func_8005E1D8_main(mbDlgWinId, 0, 1);
+}
+
+void func_8010985C_w02(void) {
+    GW_SYSTEM *loc;
+    GW_PLAYER *player;
+    s32 flag;
+    s32 choice;
+    void *prc;
+    s16 sp18;
+    s16 masuId;
+
+    loc = &GwSystem;
+    player = MBPlayerGet(GwSystem.current_player_index);
+    flag = 1;
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x6A) {
+        if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x6B) {
+            if (MBItemFind(GwSystem.current_player_index, 1) != -1) {
+                func_800DBEC0_shared_board(GwSystem.current_player_index);
+                MBPlayerMotionSet(-1, -1, 2);
+                sp18 = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+                switch (sp18) {
+                    case 0x85:
+                    case 0x86:
+                        func_800ED20C_shared_board(-1, 8, 0x6A);
+                        break;
+                    default:
+                        func_800ED20C_shared_board(-1, 8, 0x6B);
+                        break;
+                }
+                HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+                HuPrcChildWait();
+                MBPlayerVibrate(-1, 1);
+
+                while (1) {
+                    MBDlgWinCreate(0x38, 0x4103);
+                    choice = func_8010964C_w02(0);
+                    MBDlgWinClose();
+                    MBDlgWinKill();
+
+                    switch (choice) {
+                        case 0:
+                            MBDlgWinExec(0x38, 0x4104);
+                            GwPlayer[loc->current_player_index].itemNo[MBItemFind(loc->current_player_index, 1)] = -1;
+                            MBItemRemoveEmpty(GwSystem.current_player_index);
+                            MBStatusItemIconSprReinit(-1);
+                            sp18 = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+                            switch (sp18) {
+                                case 0x85:
+                                    func_801084A8_w02(0, 0);
+                                    break;
+                                case 0x86:
+                                    func_801084A8_w02(0, 1);
+                                    break;
+                                case 0x87:
+                                    func_801084A8_w02(1, 0);
+                                    break;
+                                default:
+                                    func_801084A8_w02(1, 1);
+                                    break;
+                            }
+                            flag = 0;
+                            prc = MBPlayerVibrateObjCreate(-1, 2, 5);
+                            HuPrcSleep(0x14);
+                            MBPlayerVibrateObjKill(prc);
+                            break;
+                        case 1:
+                            MBDlgWinExec(0x38, 0x4105);
+                            break;
+                        case 2:
+                            func_80106AB0_w02();
+                            continue;
+                        default:
+                            break;
+                    }
+                    break;
+                }
+
+                func_800DB884_shared_board(loc->current_player_index);
+                HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+                HuPrcChildWait();
+            } else {
+                MBDlgWinExec(-1, 0x4106);
+            }
+        }
+    }
+
+    if (flag != 0) {
+        masuId = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+        switch (masuId) {
+            case 0x85:
+                MBMoveNextMasuSet(-1, 3, 0);
+                player->rev |= 1;
+                break;
+            case 0x86:
+                MBMoveNextMasuSet(-1, 3, 4);
+                player->rev &= ~1;
+                break;
+            case 0x87:
+                MBMoveNextMasuSet(-1, 9, 0);
+                player->rev |= 1;
+                break;
+            default:
+                MBMoveNextMasuSet(-1, 9, 4);
+                player->rev &= ~1;
+                break;
+        }
+    }
+
+    omDelPrcObj(NULL);
+}
 
 void func_80109C80_w02(void) {
 }
