@@ -41,6 +41,13 @@ void GMesClose(void);
 extern s8 D_8010FAE0_chancetime;
 extern s32 D_8010FAE4_chancetime;
 extern s8 D_8010FAE8_chancetime;
+/* Strings in 487F50's .rodata. */
+extern char D_8010FCC0_chancetime[];
+extern char D_8010FCC8_chancetime[];
+extern char D_8010FCD0_chancetime[];
+extern char D_8010FCD8_chancetime[];
+extern char D_8010FCE8_chancetime[];
+extern char D_8010FCF8_chancetime[];
 extern s32 D_8010FE60_chancetime;
 extern s8 D_8010FE64_chancetime[3];
 extern s8 D_801100D0_chancetime[4];
@@ -286,3 +293,55 @@ void func_801062DC_chancetime(void) {
         func_800F5EF0_shared_board();
     }
 }
+
+/* .data (0x48BAB0-0x48BBF0), the whole overlay's; event e1. */
+s8 D_8010FAE0_chancetime = 0; /* main state (func_80105E08) */
+s32 D_8010FAE4_chancetime = 0; /* 1: close the shared board on exit */
+s8 D_8010FAE8_chancetime = 0; /* reset pressed: wipe out started */
+s32 D_8010FAEC_chancetime = 0; /* unreferenced */
+s32 D_8010FAF0_chancetime = 0; /* host's block hit done */
+f32 D_8010FAF4_chancetime = 360.0f; /* host walk-in x */
+f32 D_8010FAF8_chancetime = 0.0f; /* host turn angle */
+f32 D_8010FAFC_chancetime = 0.2f; /* block scale */
+s32 D_8010FB00_chancetime = 0;
+s32 D_8010FB04_chancetime = 0;
+s32 D_8010FB08_chancetime = 0;
+Vec D_8010FB0C_chancetime = { 0.0f, 80.0f, -300.0f };
+Vec D_8010FB18_chancetime = { -210.0f, 0.0f, -50.0f };
+Vec D_8010FB24_chancetime = { -70.0f, 0.0f, -50.0f };
+Vec D_8010FB30_chancetime = { 70.0f, 0.0f, -50.0f };
+Vec D_8010FB3C_chancetime = { 210.0f, 0.0f, -50.0f };
+Vec D_8010FB48_chancetime = { -200.0f, 80.0f, -300.0f };
+Vec D_8010FB54_chancetime = { 200.0f, 80.0f, -300.0f };
+s32 D_8010FB60_chancetime = 0;
+f32 D_8010FB64_chancetime = 0.0f;
+s32 D_8010FB68_chancetime = 0;
+f32 D_8010FB6C_chancetime = 0.0f;
+f32 D_8010FB70_chancetime = 0.0f;
+f32 D_8010FB74_chancetime = 0.0f;
+f32 D_8010FB78_chancetime = 0.0f;
+f32 D_8010FB7C_chancetime = 0.0f;
+s8 D_8010FB80_chancetime = 0;
+s8 D_8010FB81_chancetime = 0;
+s16 D_8010FB84_chancetime[2] = { 0, -240 }; /* screen x, y */
+f32 D_8010FB88_chancetime = 600.0f;
+f32 D_8010FB8C_chancetime[2] = { 0.0f, -138.0f };
+Vec D_8010FB94_chancetime[5] = {
+    { 406.0f, -216.0f, 152.0f }, { 406.0f, -216.0f, 7.0f },   { 146.0f, -216.0f, -150.0f },
+    { -30.0f, -216.0f, 0.0f },   { -30.0f, -216.0f, 150.0f },
+};
+f32 D_8010FBD0_chancetime[2] = { -30.0f, -216.0f }; /* unreferenced (a sixth entry's x, y) */
+char *D_8010FBD8_chancetime[6] = {
+    D_8010FCD0_chancetime, D_8010FCC8_chancetime, D_8010FCC0_chancetime,
+    D_8010FCF8_chancetime, D_8010FCE8_chancetime, D_8010FCD8_chancetime,
+};
+s32 D_8010FBF0_chancetime = 0;
+s32 D_8010FBF4_chancetime = 0;
+s32 D_8010FBF8_chancetime = 0;
+s32 D_8010FBFC_chancetime = 0;
+s32 D_8010FC00_chancetime = 0;
+s32 D_8010FC04_chancetime[3] = { 0, 0, 0 }; /* unreferenced */
+s32 D_8010FC10_chancetime = 0;
+s32 D_8010FC14_chancetime = 0;
+s32 D_8010FC18_chancetime = 0;
+s32 D_8010FC1C_chancetime = 0;
