@@ -372,6 +372,9 @@ s32 func_8010AFBC_w04(void);
 s32 func_8011AA64_w04(void);
 s32 func_8011AB34_w04(void);
 void func_80106120_w04(void);
+extern s16 D_8011C998_w04[2];
+extern s16 D_8011C99C_w04[2];
+extern Object *D_8011E118_w04[2];
 // end board q4 declarations
 
 void func_8011621C_w04(s32 arg0) {
@@ -971,11 +974,116 @@ void func_80117800_w04(void) {
     func_8010FBC4_w04();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80117EA8_w04);
+void func_80117EA8_w04(void) {
+    void *data;
+    s32 sprite;
+    s32 group;
+    s32 turns;
+    s32 counted;
+    s32 fading;
+    s32 alpha;
+    f32 angle;
+    f32 a;
+    f32 step;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80118240_w04);
+    data = DataRead(0x1300F7);
+    sprite = func_80055810_main(data);
+    DataClose(data);
+    group = HuSprGrpCreate(1, 5);
+    func_80055024_main(group, 0, sprite, 0);
+    HuSprAttrReset(group, 0, 0xFFFF);
+    HuSprAttrSet(group, 0, 0x1008);
+    HuSprPriSet(group, 0, 0x1000);
+    func_80054904_main(group, 0, 0xA0, 0x5A);
+    angle = 0.0f;
+    step = 30.0f;
+    turns = 0;
+    counted = 0;
+    while (TRUE) {
+        if ((angle >= 90.0f) & (counted == 0)) {
+            counted = 1;
+            turns++;
+        }
+        if (angle >= 360.0f) {
+            counted = 0;
+            angle -= 360.0f;
+        }
+        if ((angle >= 180.0f) & (angle <= 360.0f)) {
+            HuSprAttrSet(group, 0, 2);
+        } else {
+            HuSprAttrReset(group, 0, 2);
+        }
+        a = angle;
+        if (angle >= 180.0f) {
+            a = angle - 180.0f;
+        }
+        HuSprScaleSet(group, 0, 1.0f, sindf(a));
+        if (turns >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprAttrReset(group, 0, 2);
+    HuSprScaleSet(group, 0, 1.0f, 1.0f);
+    HuPrcSleep(20);
+    angle = 90.0f;
+    turns = 0;
+    fading = 0;
+    counted = 0;
+    alpha = 0xFF;
+    while (TRUE) {
+        if ((angle >= 360.0f) & (counted == 0)) {
+            counted = 1;
+            turns++;
+        }
+        if (angle >= 360.0f) {
+            counted = 0;
+            angle -= 360.0f;
+        }
+        if ((fading == 0) & (turns != 0)) {
+            if ((angle >= 90.0f) & (angle < 180.0f)) {
+                fading = 1;
+            }
+        }
+        if (fading != 0) {
+            alpha -= 21;
+            if (alpha <= 0) {
+                alpha = 0;
+            }
+        }
+        func_80055458_main(group, 0, alpha);
+        if (turns >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprScaleSet(group, 0, 1.0f, 0.0f);
+    HuSprGrpKill(group);
+    HuSprKill(sprite);
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011826C_w04);
+Process *func_80118240_w04(void) {
+    return omAddPrcObj(func_80117EA8_w04, 0x1000, 0, 0);
+}
+
+void func_8011826C_w04(omObjData *obj) {
+    s32 i;
+
+    if (obj->work[0] == 0) {
+        for (i = 0; i < 2; i++) {
+            HuVecCopy3F(&D_8011E118_w04[i]->coords, &MBMasuGet(D_8011C998_w04[i])->coords);
+            D_8011E118_w04[i]->coords.x = (MBRand(30.0f) / 10.0f - 1.5f) + D_8011E118_w04[i]->coords.x;
+        }
+    } else {
+        for (i = 0; i < 2; i++) {
+            HuVecCopy3F(&D_8011E118_w04[i]->coords, &MBMasuGet(D_8011C99C_w04[i])->coords);
+            D_8011E118_w04[i]->coords.x = (MBRand(30.0f) / 10.0f - 1.5f) + D_8011E118_w04[i]->coords.x;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801183D4_w04);
 
