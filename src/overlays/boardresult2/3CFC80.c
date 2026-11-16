@@ -74,6 +74,21 @@ void func_8005B43C_main(s16, s32, s32, s32);
 void func_80105B98_boardresult2(s16 model, s16 frame);
 void func_801074B4_boardresult2(void);
 int sprintf(char* s, const char* fmt, ...);
+void* func_800E172C_name_81(s16 msgIdx, s16 x, s16 y, u16 hideOnFlag); /* DuelHelpWin* */
+void func_800E1854_minigame(void* win);                                  /* ovl_81 func_800E1854 */
+void func_80105CB0_boardresult2(void);
+void func_80106924_boardresult2(void);
+void func_801069A4_boardresult2(void);
+void func_80106A9C_boardresult2(void);
+void func_80107964_boardresult2(void);
+void func_80108548_boardresult2(void);
+void func_801085F8_boardresult2(void);
+void func_8010879C_boardresult2(void);
+void func_80108958_boardresult2(void);
+void func_80108A48_boardresult2(void);
+void func_80108C70_boardresult2(void);
+extern u16 D_800C9520_main[];
+extern s16 D_800D0590_main[];
 s16 func_80105A8C_boardresult2(s16 model, s32 file, char* name);
 s16 func_80105C68_boardresult2(s32 file);
 void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
@@ -896,7 +911,197 @@ void func_80108C70_boardresult2(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108C70_boardresult2);
 #endif
 
+// NON_MATCHING: masked identical except the two gas nops after the sindf calls' delay-slot mov.s
+// (see func_80108C70_boardresult2).
+#ifdef NON_MATCHING
+/* The results page's main process: builds both pages, drops the ranking in, then lets any human
+   player open the board record (A), scroll it (D-pad), close it (A) or leave (Start); with only
+   COM players it leaves after 60 frames. */
+void func_80108E1C_boardresult2(void) {
+    Process* prc;
+    s32* work;
+    f32 angle;
+    f32 amp;
+    void* winA;
+    void* winB;
+    s32 open;
+    s32 allCom;
+    s32 timer;
+    s32 oldRow;
+    s32 oldPage;
+    s32 i;
+
+    winA = NULL;
+    winB = NULL;
+    D_801099A0_boardresult2 = func_800F4528_name_81(6, 0);
+    {
+        void* data = DataRead(0x13002F);
+        *D_801099A0_boardresult2->unk_0C = func_80055810_main(data);
+        DataClose(data);
+    }
+    for (i = 0; i < 6; i++) {
+        func_80055024_main(D_801099A0_boardresult2->unk_0A, i, *D_801099A0_boardresult2->unk_0C, 0);
+        HuSprPriSet(D_801099A0_boardresult2->unk_0A, i, 0xC8);
+        HuSprAttrSet(D_801099A0_boardresult2->unk_0A, i, 0x4000);
+        func_80054904_main(D_801099A0_boardresult2->unk_0A, i, i / 2 * 128 + 64, (i & 1) * 128 + 64);
+    }
+    open = 0;
+    func_80105CB0_boardresult2();
+    func_80107964_boardresult2();
+    func_80108958_boardresult2();
+    func_801085F8_boardresult2();
+    func_80106A9C_boardresult2();
+    for (i = 0; i < 4; i++) {
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, 0, 0x6F, -40);
+    }
+    func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, -40);
+    func_80054904_main(D_801099C4_boardresult2->unk_0A, 0, 0x37, -40);
+    WipeCreateIn(2, 16);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    for (i = 3; i >= 0; i--) {
+        prc = omAddPrcObj(func_80108A48_boardresult2, 0x1000, 0, 0x40);
+        work = HuMemMemoryAlloc(prc->heap, 0x20);
+        prc->user_data = work;
+        *work = i;
+        HuPrcSleep(15);
+    }
+    omAddPrcObj(func_80108C70_boardresult2, 0x1000, 0, 0);
+    HuPrcSleep(20);
+    angle = 90.0f;
+    do {
+        func_80054904_main(D_801099C4_boardresult2->unk_0A, 0, 0x37, sindf(angle) * -73.0f + 41.0f);
+        HuPrcVSleep();
+        angle += 10.0f;
+    } while (angle < 180.0f);
+    amp = -4.0f;
+    HuAudFXPlay(0x17A);
+    angle = 0.0f;
+    do {
+        func_80054904_main(D_801099C4_boardresult2->unk_0A, 0, 0x37, sindf(angle) * amp + 41.0f);
+        amp += 0.2777778f;
+        if (amp > 0.0f) {
+            amp = 0.0f;
+        }
+        HuPrcVSleep();
+        angle += 50.0f;
+    } while (angle <= 720.0f);
+    func_80054904_main(D_801099C4_boardresult2->unk_0A, 0, 0x37, 0x29);
+    allCom = 0;
+    for (i = 0; i < 4; i++) {
+        if (func_800F37B8_name_81(i) == 0) {
+            break;
+        }
+    }
+    if (i == 4) {
+        allCom = 1;
+    }
+    timer = 60;
+    while (1) {
+        if (allCom) {
+            if (--timer == 0) {
+                break;
+            }
+            if (winA == NULL) {
+                winA = func_800E172C_name_81(0x16, 0x3C, 0xCF, 1);
+            }
+            if (winB == NULL) {
+                winB = func_800E172C_name_81(0x17, 0xC8, 0xCF, 1);
+            }
+        } else {
+            for (i = 0; i < 4; i++) {
+                if (func_800F37B8_name_81(i) != 0) {
+                    continue;
+                }
+                if (!open) {
+                    if (winA == NULL) {
+                        winA = func_800E172C_name_81(0x16, 0x3C, 0xCF, 1);
+                    }
+                    if (winB == NULL) {
+                        winB = func_800E172C_name_81(0x17, 0xC8, 0xCF, 1);
+                    }
+                    if (D_800C9520_main[GwPlayer[i].pad] & 0x1000) {
+                        open = 1;
+                        func_801069A4_boardresult2();
+                        func_8010879C_boardresult2();
+                        if (winA != NULL) {
+                            func_800E1854_minigame(winA);
+                            winA = NULL;
+                        }
+                        if (winB != NULL) {
+                            func_800E1854_minigame(winB);
+                            winB = NULL;
+                        }
+                    } else if (D_800C9520_main[GwPlayer[i].pad] & 0x8000) {
+                        goto exit;
+                    }
+                } else {
+                    oldRow = D_801097B4_boardresult2;
+                    oldPage = D_801097B0_boardresult2;
+                    if (D_800C9520_main[GwPlayer[i].pad] & 0x1000) {
+                        open = 0;
+                        func_801085F8_boardresult2();
+                        func_80106A9C_boardresult2();
+                    } else if (D_800D0590_main[GwPlayer[i].pad] & 0x100) {
+                        if (++D_801097B4_boardresult2 >= 4) {
+                            D_801097B4_boardresult2 = 3;
+                            if (++D_801097B0_boardresult2 >= 10) {
+                                D_801097B0_boardresult2 = 9;
+                            }
+                        }
+                    } else if (D_800D0590_main[GwPlayer[i].pad] & 0x200) {
+                        if (--D_801097B4_boardresult2 < 0) {
+                            D_801097B4_boardresult2 = 0;
+                            if (--D_801097B0_boardresult2 < 0) {
+                                D_801097B0_boardresult2 = 0;
+                            }
+                        }
+                    }
+                    if (D_801097B4_boardresult2 != oldRow || D_801097B0_boardresult2 != oldPage) {
+                        func_80108958_boardresult2();
+                        func_801074B4_boardresult2();
+                    }
+                }
+            }
+            if (open == 1) {
+                if (D_801097B0_boardresult2 == 0 && D_801097B4_boardresult2 == 0) {
+                    HuSprAttrSet(D_801099E8_boardresult2->unk_0A, 0, 0x8000);
+                } else {
+                    HuSprAttrReset(D_801099E8_boardresult2->unk_0A, 0, 0x8000);
+                }
+                if (D_801097B0_boardresult2 == 9 && D_801097B4_boardresult2 == 3) {
+                    HuSprAttrSet(D_801099E8_boardresult2->unk_0A, 1, 0x8000);
+                } else {
+                    HuSprAttrReset(D_801099E8_boardresult2->unk_0A, 1, 0x8000);
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+exit:
+    if (winA != NULL) {
+        func_800E1854_minigame(winA);
+    }
+    if (winB != NULL) {
+        func_800E1854_minigame(winB);
+    }
+    if (!(GwSystem.playMode & 4) || (GwPlayer[kakusiMasuItemHis[0]].stat & 1)) {
+        HuAudSeqFadeOut(60);
+    }
+    WipeCreateOut(0, 20);
+    HuPrcSleep(20);
+    func_80106924_boardresult2();
+    func_80108548_boardresult2();
+    func_800F4584_name_81(D_801099A0_boardresult2);
+    D_800D530C_main = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108E1C_boardresult2);
+#endif
 
 void func_801096AC_boardresult2(omObjData* obj) {
     if (WipeStatGet() == 0) {
