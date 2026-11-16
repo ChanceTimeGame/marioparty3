@@ -1,7 +1,13 @@
 #include "common.h"
 #include "game/board.h"
 #include "game/object.h"
+#include "malloc.h"
+#include "game/sprite.h"
+#include "game/data.h"
 #include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/1063F0.h"
+#include "../ovl_80_shared_board/EA790.h"
+#include "../ovl_80_shared_board/EAB00.h"
 #include "../ovl_80_shared_board/105D50.h"
 #include "../ovl_80_shared_board/ECA50.h"
 #include "../ovl_80_shared_board/FA250.h"
@@ -16,7 +22,22 @@ extern Object *D_8010BA2C_w10;
 extern Object *D_8010BA30_w10;
 extern Object *D_8010BA38_w10[2];
 
+extern s16 D_8010B890_w10[];
+extern s16 D_8010B898_w10[];
+extern s32 D_8010B8C0_w10[];
+extern s32 D_8010B8E8_w10[];
+extern s16 D_8010BA4C_w10;
+extern s16 D_8010BA4E_w10;
+
+/* Three-sprite panel: frame, tinted backing, picture. */
+typedef struct W10SprWork {
+    /* 0x00 */ s16 group;
+    /* 0x02 */ s16 spr[3];
+} W10SprWork; // size 0x8
+
 void func_800461B4_main(s16 model);
+void func_80105DC4_w10(void);
+void func_80105E08_w10(void);
 void func_8001FA68_main(s16 model);
 
 void func_801059D0_w10(void) {
@@ -120,19 +141,104 @@ void func_80105DC4_w10(void) {
 void func_80105E08_w10(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80105E10_w10);
+void func_80105E10_w10(void) {
+    UnkEA790Struct *choice;
+    s32 i;
+    s32 count;
+    s32 result;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80105F20_w10);
+    MBPlayerMotionSet(-1, -1, 2);
+    func_80105DC4_w10();
+    choice = func_800D76A0_shared_board(-1, D_8010B890_w10);
+    func_800D742C_shared_board(choice, -1, 0);
+    if (MBPlayerComCheck(-1) != 0) {
+        count = D_8010B898_w10[GwSystem.boardData.halfWordBytes[0]++];
+        for (i = 0; i < count; i++) {
+            func_800D7250_shared_board(choice, -2);
+        }
+        func_800D7250_shared_board(choice, -4);
+    }
+    result = func_800D7518_shared_board(choice);
+    func_800D6CA0_shared_board(choice);
+    func_80105E08_w10();
+    if (result == 0) {
+        MBMoveNextMasuSet(-1, 1, 0);
+    } else {
+        MBMoveNextMasuSet(-1, 2, 0);
+    }
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80105F64_w10);
+void func_80105F20_w10(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80105FA0_w10);
+    for (i = 0; i < 4; i++) {
+        MBPlayerGet(i)->stat |= 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80105FDC_w10);
+void func_80105F64_w10(void) {
+    HuPrcChildLink(HuPrcCurrentGet(), func_800F292C_shared_board());
+    HuPrcChildWait();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801061E8_w10);
+void func_80105FA0_w10(void) {
+    HuPrcChildLink(HuPrcCurrentGet(), func_800F29EC_shared_board());
+    HuPrcChildWait();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106230_w10);
+W10SprWork *func_80105FDC_w10(s16 arg0, s16 x, s16 y) {
+    W10SprWork *work;
+    void *data;
+
+    work = HuMemMemoryAllocTemp(sizeof(W10SprWork));
+    work->group = HuSprGrpCreate(3, 0);
+    data = DataRead(0x130000);
+    work->spr[0] = func_80055810_main(data);
+    func_80055024_main(work->group, 0, work->spr[0], 0);
+    HuSprPriSet(work->group, 0, 11);
+    HuSprAttrSet(work->group, 0, 0x1000);
+    func_80054904_main(work->group, 0, x + 5, y);
+    DataClose(data);
+    data = DataRead(0x130001);
+    work->spr[1] = func_80055810_main(data);
+    func_80055024_main(work->group, 1, work->spr[1], 0);
+    HuSprPriSet(work->group, 1, 12);
+    HuSprAttrSet(work->group, 1, 0x1000);
+    func_80054904_main(work->group, 1, x + 5, y);
+    func_80055458_main(work->group, 1, 0xFF);
+    func_80055420_main(work->group, 1, 0x1F, 0xB0, 0x3F);
+    DataClose(data);
+    data = DataRead(D_8010B8C0_w10[arg0]);
+    work->spr[2] = func_80055810_main(data);
+    func_80055024_main(work->group, 2, work->spr[2], 0);
+    HuSprPriSet(work->group, 2, 10);
+    HuSprAttrSet(work->group, 2, 0x1000);
+    func_80054904_main(work->group, 2, x, y);
+    DataClose(data);
+    return work;
+}
+
+void func_801061E8_w10(W10SprWork *work) {
+    HuSprKill(work->spr[0]);
+    HuSprKill(work->spr[1]);
+    HuSprKill(work->spr[2]);
+    HuSprGrpKill(work->group);
+    HuMemMemoryFreeTemp(work);
+}
+
+void func_80106230_w10(s16 arg0, s16 x, s16 y) {
+    void *data;
+
+    D_8010BA4C_w10 = HuSprGrpCreate(1, 0);
+    data = DataRead(D_8010B8E8_w10[arg0]);
+    D_8010BA4E_w10 = func_80055810_main(data);
+    func_80055024_main(D_8010BA4C_w10, 0, D_8010BA4E_w10, 0);
+    HuSprPriSet(D_8010BA4C_w10, 0, 11);
+    HuSprAttrSet(D_8010BA4C_w10, 0, 0x1000);
+    func_80054904_main(D_8010BA4C_w10, 0, x, y);
+    DataClose(data);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106314_w10);
 
