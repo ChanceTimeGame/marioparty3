@@ -377,6 +377,10 @@ extern s16 D_8011C998_w04[2];
 extern s16 D_8011C99C_w04[2];
 extern Object *D_8011E118_w04[2];
 void func_800DC104_shared_board(s32 arg0, s8 arg1);
+extern Object *D_8011E09C_w04[3];
+extern s16 D_8011B9C4_w04[3];
+void func_8010873C_w04(void);
+void func_800EC5B4_shared_board(s16 arg0, s32 arg1);
 // end board q4 declarations
 
 void func_8011621C_w04(s32 arg0) {
@@ -1590,13 +1594,103 @@ void func_801191B8_w04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801191B8_w04);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80119FCC_w04);
+void func_80119FCC_w04(s32 index, s32 arg1) {
+    s16 spaces[3] = { 0x81, 0x83, 0x82 };
+    Object *base;
+    Object *gust;
+    Object *target;
+    SpaceData *space;
+    HmfModel *mdl;
+    f32 start;
+    f32 angle;
+    s32 i;
+    s32 played;
+
+    played = 0;
+    base = MBModelFileCreate(0x130178, -1, 1.0f, 0.0f, NULL);
+    func_8001C8E4_main(base->omObj1->model[0], 0);
+    func_8001C258_main(base->omObj1->model[0], 0x80000, 0x80000);
+    func_8001C448_main(base->omObj1->model[0]);
+    MBModelTempAllocFree(base);
+    if (index == -1) {
+        space = MBMasuGet(spaces[0]);
+        target = D_8011E09C_w04[0];
+    } else {
+        space = MBMasuGet(spaces[index]);
+        target = D_8011E09C_w04[index];
+    }
+    HuVecCopy3F(&base->coords, &space->coords);
+    gust = MBModelFileCreate(0xA0156, -1, 0.9f, 0.0f, NULL);
+    HuVecCopyXYZ(&gust->scale, 1.8f, 1.8f, 1.8f);
+    MBModelTempAllocFree(gust);
+    HuVecCopy3F(&gust->coords, &space->coords);
+    gust->velocity.x = -30.0f;
+    HuAudFXPlay(0x1A2);
+    angle = 0.0f;
+    do {
+        gust->velocity.x = sindf(angle) * 35.0f - 30.0f;
+        HuPrcVSleep();
+        angle += 15.0f;
+    } while (angle <= 135.0f);
+    HuPrcSleep(10);
+    angle = start = MBVecAngleGet(&target->rot);
+    for (i = 0; i < 361; i += 20) {
+        sincosdf(i, &HmfModelData[gust->omObj1->model[0]].mtx[8], &HmfModelData[gust->omObj1->model[0]].mtx[10]);
+        HmfModelData[gust->omObj1->model[0]].mtx[2] = -HmfModelData[gust->omObj1->model[0]].mtx[8];
+        mdl = &HmfModelData[gust->omObj1->model[0]];
+        mdl->mtx[0] = mdl->mtx[10];
+        mdl = &HmfModelData[gust->omObj1->model[0]];
+        mdl->mtx[1] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[6] = mdl->mtx[7] = mdl->mtx[9] = mdl->mtx[11] =
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;
+        mdl = &HmfModelData[gust->omObj1->model[0]];
+        mdl->mtx[5] = mdl->mtx[15] = 1.0f;
+        if (i >= 181) {
+            angle -= 20.0f;
+            if (played == 0) {
+                HuAudFXPlay(0x1A4);
+                played = 1;
+            }
+        }
+        target->rot.x = sindf(angle);
+        target->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    while (start - 180.0f <= angle) {
+        target->rot.x = sindf(angle);
+        target->rot.z = cosdf(angle);
+        HuPrcVSleep();
+        angle -= 20.0f;
+    }
+    HuAudFXPlay(0x1A3);
+    angle = 135.0f;
+    do {
+        gust->velocity.x = sindf(angle) * 25.0f - 20.0f;
+        HuPrcVSleep();
+        angle -= 20.0f;
+    } while (angle >= 0.0f);
+    MBModelKill(gust);
+    MBModelKill(base);
+    HuPrcSleep(5);
+    if (index == -1) {
+        for (i = 0; i < 3; i++) {
+            GwSystem.boardData.halfWordBytes[D_8011B9C4_w04[i]] ^= 1;
+        }
+        func_8010873C_w04();
+        if (arg1 == 0) {
+            MBDlgResultWinExec(0xB03);
+        } else {
+            func_800EC5B4_shared_board(-1, 0xB05);
+        }
+    } else {
+        GwSystem.boardData.halfWordBytes[D_8011B9C4_w04[index]] ^= 1;
+        func_8010873C_w04();
+        MBDlgResultWinExec(0xA00);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011A4E0_w04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011A5DC_w04);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/w04/367960", D_8011DE80_w04);
 
 // main func for reroll event in woody woods
 void func_8011A858_w04(void) {
