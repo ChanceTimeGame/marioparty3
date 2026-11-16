@@ -46,6 +46,7 @@ extern W04Bytes4_q1 D_8011DDD0_w04;
 s32 func_8011B350_w04(void);
 s32 func_8011B6B4_w04(void);
 extern s32 D_8011E054_w04;
+extern s32 D_8011E058_w04;
 extern Object *D_8011E03C_w04;
 
 void func_80116024_w04(s16 *links, s16 *spaces, void **arrows);
@@ -592,7 +593,48 @@ void func_80107170_w04(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801072A0_w04);
+void func_801072A0_w04(void) {
+    s32 order[MB_MAX_PLAYERS];
+    s32 cur = GwSystem.current_player_index;
+    s32 i;
+    s32 rank;
+    s32 player;
+
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        order[i] = -1;
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        rank = MBPlayerStealRankGet(i);
+        while (TRUE) {
+            if (order[rank] == -1) {
+                break;
+            }
+            rank++;
+        }
+        order[rank] = i;
+    }
+    func_80107170_w04();
+    if (D_8011E054_w04 == 1) {
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            player = order[i];
+            if (player != cur && GwPlayer[player].star != 0) {
+                D_8011E058_w04 = player;
+                break;
+            }
+        }
+    } else if (D_8011E054_w04 == 0) {
+        for (i = 0; i < MB_MAX_PLAYERS; i++) {
+            player = order[i];
+            if (player != cur && GwPlayer[player].coin >= 5) {
+                D_8011E058_w04 = player;
+                break;
+            }
+        }
+    }
+    if (i == MB_MAX_PLAYERS) {
+        D_8011E054_w04 = 2;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107438_w04);
 
