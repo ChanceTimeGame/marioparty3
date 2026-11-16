@@ -150,3 +150,4 @@ D_8010E730_boardresult = D_8010E72C_boardresult + 0x4;
 D_8010E73C_boardresult = D_8010E738_boardresult + 0x4;
 D_8010E951_boardresult = D_8010E950_boardresult + 0x1;
 D_8010E952_boardresult = D_8010E950_boardresult + 0x2;
+D_8011C7F0_w02 = D_8011C7F1_w02 - 0x1; /* board g1: s16 model table split by splat */
