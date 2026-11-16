@@ -55,8 +55,7 @@ extern s16 D_80108338_majinlamp;
 extern s16 D_8010833A_majinlamp;
 extern s32 D_8010833C_majinlamp; /* the player */
 extern s16 D_8010833E_majinlamp;
-extern s16 D_80108340_majinlamp;
-extern s16 D_80108342_majinlamp;
+extern s16 D_80108340_majinlamp[2]; /* the player's ride motion, then its second id (D_80108342) */
 extern omObjData *D_80108350_majinlamp[32]; /* the movers */
 
 void func_801059A0_majinlamp(void) {
@@ -355,7 +354,137 @@ void func_80106D3C_majinlamp(omObjData *obj) {
     }
 }
 
+/* event e5: NON_MATCHING. With func_80017AD8_main returning s16 (functions.us.h says u8: one extra
+   andi 0xFF) only stack offsets differ: retail lays the four Vecs over motA/motB (0x18..0x57), which
+   KMC GCC does not do for sibling blocks. */
+#ifdef NON_MATCHING
+void func_80106E74_majinlamp(void) {
+    omObjData *obj;
+    void *data;
+    f32 speed;
+    s32 i;
+
+    D_80108338_majinlamp = HuSprGrpCreate(1, 5);
+    data = DataRead(0x1301BF);
+    D_8010833A_majinlamp = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80108338_majinlamp, 0, D_8010833A_majinlamp, 0);
+    HuSprPriSet(D_80108338_majinlamp, 0, 10);
+    func_800550F4_main(D_80108338_majinlamp, 0, 1);
+    HuSprAttrSet(D_80108338_majinlamp, 0, 0x5000);
+    func_80054904_main(D_80108338_majinlamp, 0, 160, 120);
+    HuSprScaleSet(D_80108338_majinlamp, 0, 50.0f, 50.0f);
+    D_80108334_majinlamp = MBPlayerGet(D_8010833C_majinlamp);
+    MBPlayerModelCreate(D_8010833E_majinlamp, D_80101734_shared_board[GwPlayer[D_8010833C_majinlamp].chr], 2);
+    {
+        s32 motA[8] = { 0x200A4, 0x300A4, 0x700A4, 0x400A4, 0x500A4, 0x600A4, 0x800A4, 0x9001B };
+        s32 motB[8] = { 0x200AB, 0x300AB, 0x700AB, 0x400AB, 0x500AB, 0x600AB, 0x800AB, 0x90027 };
+
+        D_80108340_majinlamp[0] = func_80017790_main(D_80108334_majinlamp->player_obj->omObj1->model[0], 2, GwPlayer[D_8010833C_majinlamp].chr,
+                                                  motA[GwPlayer[D_8010833C_majinlamp].chr]);
+        D_80108340_majinlamp[1] = func_80017AD8_main(motB[GwPlayer[D_8010833C_majinlamp].chr]);
+    }
+    func_80017954_main(D_80108334_majinlamp->player_obj->omObj1->model[0], 2, GwPlayer[D_8010833C_majinlamp].chr, D_80108340_majinlamp[0]);
+    MBPlayerMotionSet(D_8010833C_majinlamp, 4, 2);
+    HuVecCopyXYZ(&D_80108334_majinlamp->player_obj->coords, 150.0f, -100.0f, 3000.0f);
+    D_80108334_majinlamp->player_obj->flags |= 1;
+    D_8010832C_majinlamp = MBModelCreate(0x25, NULL);
+    HuVecCopyXYZ(&D_8010832C_majinlamp->coords, -150.0f, -50.0f, 3000.0f);
+    obj = omAddObj(0x1000, 0, 0, -1, func_80106D3C_majinlamp);
+    obj->rot.y = 0.0f;
+    obj->scale.x = 0.0f;
+    D_800C9930_main = func_8004A5C4_main(60);
+    HuAudFXPlay(0x129);
+    WipeColorSet(255, 255, 255);
+    WipeCreateIn(11, 16);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    HuPrcSleep(30);
+    func_800F2388_shared_board(D_8010833C_majinlamp, -1, 0, 10, 2);
+    HuPrcSleep(15);
+    MBDlgResultWinExec(0x3A17);
+    D_801080EC_majinlamp = 0;
+    speed = 20.0f;
+    while (D_8010832C_majinlamp->velocity.x < 1000.0f) {
+        D_8010832C_majinlamp->velocity.x += speed;
+        speed += 5.0f;
+        HuPrcVSleep();
+    }
+    HuVecCopyXYZ(&D_8010832C_majinlamp->coords, -1600.0f, -100.0f, 1600.0f);
+    D_801080EC_majinlamp = 1;
+    func_8008A120_main((f32 (*)[4])HmfModelData[D_8010832C_majinlamp->omObj1->model[0]].mtx, 60.0f);
+    D_8010832C_majinlamp->rot.x = sindf(45.0f);
+    D_8010832C_majinlamp->rot.z = cosdf(45.0f);
+    speed = 50.0f;
+    while (D_8010832C_majinlamp->coords.x < 0.0f) {
+        D_8010832C_majinlamp->coords.x += 2.0f * speed;
+        D_8010832C_majinlamp->coords.z += 2.0f * speed;
+        speed -= 1.6f;
+        if (speed <= 5.0f) {
+            speed = 5.0f;
+        }
+        HuPrcVSleep();
+    }
+    MBPlayerMotionSet(D_8010833C_majinlamp, 2, 0);
+    {
+        Vec pos = { 0.0f, -90.0f, 3200.0f };
+
+        MBPlayerPosMoveCreate(&D_80108334_majinlamp->player_obj->coords, &pos, &D_80108334_majinlamp->player_obj->coords, 20);
+    }
+    D_80108334_majinlamp->player_obj->velocity.y = 30.0f;
+    D_80108334_majinlamp->player_obj->velocity.z = -2.5f;
+    HuPrcSleep(20);
+    {
+        Object *player = D_80108334_majinlamp->player_obj;
+
+        player->velocity.y = player->velocity.z = 0.0f;
+    }
+    D_801080F0_majinlamp = D_80108334_majinlamp->player_obj->coords.y - D_8010832C_majinlamp->coords.y - 15.0f;
+    D_801080E8_majinlamp = 1;
+    D_801080EA_majinlamp = 1;
+    MBPlayerMotionSet(D_8010833C_majinlamp, -1, 2);
+    {
+        Vec target = { 500.0f, 0.0f, 4000.0f };
+
+        func_801069B8_majinlamp(D_8010833C_majinlamp, &target, 5, NULL);
+    }
+    HuPrcSleep(5);
+    MBDlgWinExecY(-1, 0x3A18, 40);
+    HuAudFXPlay(0x12B);
+    {
+        Vec pos = { 200.0f, 200.0f, 5000.0f };
+        Vec arc = { 0.0f, 0.0f, -200.0f };
+
+        func_801069B8_majinlamp(0, &pos, 30, D_8010832C_majinlamp);
+        func_80106634_majinlamp(D_8010832C_majinlamp, &pos, 30, &arc);
+    }
+    speed = 60.0f;
+    for (i = 0; i < 30; i++) {
+        func_8008A120_main((f32 (*)[4])HmfModelData[D_8010832C_majinlamp->omObj1->model[0]].mtx, speed);
+        func_8008A120_main((f32 (*)[4])HmfModelData[D_80108334_majinlamp->player_obj->omObj1->model[0]].mtx, speed - 60.0f);
+        speed -= 2.0f;
+        HuPrcVSleep();
+    }
+    HuPrcSleep(5);
+    WipeColorSet(255, 255, 255);
+    WipeCreateOut(11, 2);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    MBModelDispOff(D_80108334_majinlamp->player_obj);
+    MBModelDispOff(D_8010832C_majinlamp);
+    func_80055458_main(D_80108338_majinlamp, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80106E74_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_80108270_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_80108290_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082B0_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082BC_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082C8_majinlamp);
+INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082D4_majinlamp);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_8010771C_majinlamp);
 
@@ -428,14 +557,3 @@ void func_80107F54_majinlamp(void) {
 void func_801080C4_majinlamp(void) {
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_80108270_majinlamp);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_80108290_majinlamp);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082B0_majinlamp);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082BC_majinlamp);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082C8_majinlamp);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082D4_majinlamp);
