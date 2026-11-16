@@ -1,3 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B35F0", func_801059A0_w10);
+extern OvlEntrypoint D_8010B7D0_w10[];
+
+void func_801059A0_w10(void) {
+    ovlEventCall(D_8010B7D0_w10, omovlevtno);
+}
