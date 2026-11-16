@@ -61,7 +61,7 @@ void func_8010E4D0_chancetime(omObjData *obj);
 void func_8010F1F8_chancetime(omObjData *obj);
 void func_8010F984_chancetime(omObjData *obj);
 void func_8010F42C_chancetime(omObjData *obj);
-void func_8010F44C_chancetime(s8 prize, s16 total, s16 amount);
+void func_8010F44C_chancetime(s32 prize, s32 total, s32 amount);
 
 extern s8 D_8010FB80_chancetime;
 extern s8 D_8010FB81_chancetime;
@@ -724,12 +724,94 @@ void func_8010F42C_chancetime(omObjData *obj) {
     D_80110084_chancetime = func_8010DF70_chancetime;
 }
 
+// NON_MATCHING: matches with the header fix in e3A.header.patch (func_80060EA8_main takes an s32 window id); logic
+// checked
+#ifdef NON_MATCHING
+void func_8010F44C_chancetime(s32 prize, s32 total, s32 amount) {
+    static const s32 D_8010FD8C_chancetime[9] = { 0x1B0C, 0x1B06, 0x1B06, 0x1B06, 0x1B04, 0x1B0E, 0x1B09, 0x1B09, 0x1B09 };
+    static const s32 D_8010FDB0_chancetime[9] = { 0, 0x1B07, 0x1B07, 0x1B07, 0, 0, 0x1B0A, 0x1B0A, 0x1B0A };
+    static const s32 D_8010FDD4_chancetime[9] = { 0x1B0D, 0x1B08, 0x1B08, 0x1B08, 0x1B05, 0x1B0F, 0x1B0B, 0x1B0B, 0x1B0B };
+    static const s32 D_8010FDF8_chancetime[9] = { 0, 0x1B1A, 0x1B19, 0x1B18, 0, 0, 0x1B1D, 0x1B1C, 0x1B1B };
+    static const s32 D_8010FE1C_chancetime[8] = { 0x1B10, 0x1B11, 0x1B12, 0x1B13, 0x1B14, 0x1B15, 0x1B16, 0x1B17 };
+    s32 mes;
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        func_8005B6BC_main(((s16 *)&D_80110004_chancetime)[1], D_8010FE1C_chancetime[D_801100DD_chancetime[i]], i);
+    }
+    if (D_801100DD_chancetime[2] < 5) {
+        if (D_8010FDF8_chancetime[D_801100DD_chancetime[2]] != 0) {
+            func_8005B6BC_main(((s16 *)&D_80110004_chancetime)[1], D_8010FDF8_chancetime[D_801100DD_chancetime[2]], 2);
+        }
+    } else {
+        if (D_8010FDF8_chancetime[D_801100DD_chancetime[2]] != 0) {
+            func_8005B6BC_main(((s16 *)&D_80110004_chancetime)[1], D_8010FDF8_chancetime[D_801100DD_chancetime[2]], 3);
+        }
+    }
+    func_8005D294_main(((s16 *)&D_80110004_chancetime)[1]);
+    if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
+        func_8005B63C_main(((s16 *)&D_80110004_chancetime)[1], 2, 2);
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+    }
+    func_80108B50_chancetime();
+    func_8005B43C_main(((s16 *)&D_80110004_chancetime)[1], D_8010FD8C_chancetime[prize], -1, -1);
+    func_80060C14_main(D_80110004_chancetime, 1);
+    while (func_8005E0C0_main(((s16 *)&D_80110004_chancetime)[1]) != 0) {
+        HuPrcVSleep();
+    }
+    if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
+        func_8005B63C_main(((s16 *)&D_80110004_chancetime)[1], 2, 2);
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+    }
+    if (amount < total) {
+        if (amount > 0) {
+            mes = D_8010FDB0_chancetime[prize];
+            if (mes != 0) {
+                func_80060EA8_main(D_80110004_chancetime, 1);
+                func_8005B43C_main(((s16 *)&D_80110004_chancetime)[1], mes, -1, -1);
+                HuAudFXPlay(0x29A);
+                func_80060C14_main(D_80110004_chancetime, 1);
+                while (func_8005E0C0_main(((s16 *)&D_80110004_chancetime)[1]) != 0) {
+                    HuPrcVSleep();
+                }
+            }
+        } else {
+            func_80060EA8_main(D_80110004_chancetime, 1);
+            func_8005B43C_main(((s16 *)&D_80110004_chancetime)[1], D_8010FDD4_chancetime[prize], -1, -1);
+            HuAudFXPlay(0x29A);
+            func_80060C14_main(D_80110004_chancetime, 1);
+            while (func_8005E0C0_main(((s16 *)&D_80110004_chancetime)[1]) != 0) {
+                HuPrcVSleep();
+            }
+        }
+    }
+    func_80060EA8_main(D_80110004_chancetime, 1);
+    func_80108A88_chancetime();
+    if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
+        func_8005F904_main();
+    }
+    D_80110084_chancetime = func_8010E1E0_chancetime;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F44C_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD8C_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDB0_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDD4_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDF8_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FE1C_chancetime);
+#endif
 
 void func_8010F984_chancetime(omObjData *obj) {
     static const ChancePos16 D_8010FE3C_chancetime[9] = {
@@ -768,8 +850,8 @@ void func_8010F984_chancetime(omObjData *obj) {
         isStar = 1;
     }
     if (isStar == 0) {
-        func_8010F44C_chancetime(D_801100DD_chancetime[2], coins, coinAmt);
+        func_8010F44C_chancetime(D_801100DD_chancetime[2], (s16)coins, (s16)coinAmt);
     } else {
-        func_8010F44C_chancetime(D_801100DD_chancetime[2], stars, starAmt);
+        func_8010F44C_chancetime(D_801100DD_chancetime[2], (s16)stars, starAmt);
     }
 }
