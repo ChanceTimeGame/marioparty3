@@ -193,6 +193,7 @@ extern s16 D_8011CDF0_w03[];
 extern s16 D_8011CDF8_w03[];
 extern s16 D_8011CE00_w03[];
 extern s16 D_8011CE08_w03[];
+void func_800D7770_shared_board(s32 arg0); /* not in EB2F0.h */
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -282,7 +283,7 @@ void func_80105C50_w03(void) {
     }
 }
 
-s32 func_80105D20_w03(s16 arg0) {
+s16 func_80105D20_w03(s16 arg0) {
     s32 i;
     GW_SYSTEM *loc = &GwSystem;
 
@@ -1890,7 +1891,139 @@ void func_8010A284_w03(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8010A2C4_w03);
+void func_8010A2C4_w03(void) {
+    GW_SYSTEM *loc;
+    s16 spaceIdx;
+    s16 choice;
+    Object *model;
+    SpaceData *space;
+    s32 alpha;
+    f32 scale;
+    f32 scaleMax;
+
+    spaceIdx = MBMasuCurGet();
+    loc = &GwSystem;
+    spaceIdx = func_80105D20_w03(spaceIdx);
+    if (spaceIdx == 1) {
+        func_800DBEC0_shared_board(loc->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 8, func_801059D0_w03());
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+        HuPrcChildWait();
+        HuPrcSleep(0x14);
+        HuAudFXPlay(0x159);
+
+        if (GwPlayer[loc->current_player_index].itemTurn != 0) {
+            MBDlgWinInsertCreate(0x16, 0x4805, GwPlayer[loc->current_player_index].chr + 0x1C00, 0, 0, 0, 0);
+            func_800EC9DC_shared_board();
+            MBDlgWinClose();
+            MBDlgWinKill();
+        }
+
+        if (GwPlayer[loc->current_player_index].star >= 99) {
+            MBDlgWinExec(0x16, 0x4804);
+        } else {
+            if (GwPlayer[loc->current_player_index].coin >= 20) {
+            purchaseMenu:
+                MBDlgWinInsertCreate(0x16, 0x4800, GwPlayer[loc->current_player_index].chr + 0x1C00, 0, 0, 0, 0);
+                choice = func_80109F44_w03(2, 0);
+                MBDlgWinClose();
+                MBDlgWinKill();
+
+                switch (choice) {
+                    case 0:
+                        MBCoinChangeCreate(loc->current_player_index, -20);
+                        MBCoinTakeCreate(loc->current_player_index, -20);
+                        HuPrcSleep(30);
+                        MBDlgWinExec(0x16, 0x4802);
+                        if (D_800A12D0_main != 0) {
+                            func_8004A950_main();
+                            func_800039A4_main(D_800C9930_main, 60);
+                            D_800C9930_main = -1;
+                        } else {
+                            HuAudSeqFadeOut(0x5A);
+                        }
+                        func_80106C2C_w03(D_8011EAC0_w03);
+                        HuPrcSleep(30);
+                        func_800EDA58_shared_board();
+                        func_800FF7F0_shared_board(2);
+                        goto end;
+                    case 1:
+                        if (D_800A12D0_main != 0) {
+                            func_800039A4_main(D_800C9930_main, 60);
+                            func_80003310_main(D_800CE198_main);
+                            func_8004A670_main(0);
+                            func_8004A72C_main(0x5A);
+                            D_800C9930_main = -1;
+                        }
+                        MBDlgWinExec(0x16, 0x4803);
+                        func_800DB884_shared_board(loc->current_player_index);
+                        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+                        HuPrcChildWait();
+                        goto end;
+                    case 2:
+                        func_80106CA0_w03();
+                        goto purchaseMenu;
+                    default:
+                        goto end;
+                }
+            } else {
+                MBDlgWinExec(0x16, 0x4801);
+            }
+        }
+
+        if (D_800A12D0_main != 0) {
+            func_800039A4_main(D_800C9930_main, 60);
+            func_80003310_main(D_800CE198_main);
+            func_8004A670_main(0);
+            func_8004A72C_main(0x5A);
+            D_800C9930_main = -1;
+        }
+
+        func_800DB884_shared_board(loc->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+    }
+end:
+    if (spaceIdx == 2) {
+        func_800DBEC0_shared_board(loc->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 8, D_8011C150_w03[GwSystem.boardData.halfWordBytes[0]]);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+        HuPrcChildWait();
+        HuPrcSleep(0x14);
+        HuAudFXPlay(0x19C);
+        model = D_8011EAC8_w03[GwSystem.boardData.halfWordBytes[0]];
+        for (alpha = 0xFF; alpha > 0; alpha -= 10) {
+            func_8001F9E4_main(model->omObj1->model[0], alpha);
+            func_8001F9E4_main(model->omObj2->model[0], alpha);
+            HuPrcVSleep();
+        }
+        MBModelDispOff(model);
+        GWBoardFlagSet(0x12);
+        func_800D7770_shared_board(GwSystem.boardData.halfWordBytes[1]);
+        space = MBMasuGet(D_8011C140_w03[GwSystem.boardData.halfWordBytes[0]]);
+        scaleMax = space->rot.x;
+        for (scale = scaleMax; scale > 0.0f; scale -= scaleMax / 10.0f) {
+            HuVecCopyXYZ(&space->rot, scale, scale, scale);
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&space->rot, 0.0f, 0.0f, 0.0f);
+        MBMasuTypeSet(D_8011C140_w03[GwSystem.boardData.halfWordBytes[0]], 1);
+        func_800EBDAC_shared_board();
+        for (; scale < scaleMax; scale += scaleMax / 10.0f) {
+            HuVecCopyXYZ(&space->rot, scale, scale, scale);
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&space->rot, scaleMax, scaleMax, scaleMax);
+        GwSystem.boardData.halfWordBytes[0] = -1;
+        MBDlgResultWinExec(0x800);
+        func_800DB884_shared_board(loc->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+    }
+    func_80109E98_w03();
+}
 
 void func_8010A930_w03(void) {
     Object *model;
