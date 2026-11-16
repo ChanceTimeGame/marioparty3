@@ -261,23 +261,203 @@ void func_80105BD8_boardresult(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010685C_boardresult);
+typedef struct BrTexAnim { /* D_800D1714_main entry */
+    /* 0x00 */ s16 unk_00;
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ s16 unk_04;
+    /* 0x06 */ s16 unk_06;
+    /* 0x08 */ char unk_08[2];
+    /* 0x0A */ u8 unk_0A;
+    /* 0x0B */ char unk_0B;
+} BrTexAnim; /* size = 0xC */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106968_boardresult);
+extern BrTexAnim *D_800D1714_main;
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
+void func_80032FC0_main(s16, u8, u8);
+s16 func_800329B4_main(void *);
+void func_80033910_main(HmfData *);
+void func_80033970_main(HmfData *);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106A38_boardresult);
+extern Vec D_8010E4D4_boardresult[]; /* [4 + i]: where player i lands on its block */
+extern Object *D_8010EB48_boardresult[6]; /* the cloud models */
+extern Object *D_8010EB60_boardresult[4]; /* the players' blocks */
+extern Object *D_8010EB70_boardresult;
+extern s16 D_8010EB74_boardresult;
+extern s16 D_8010EB76_boardresult;
+extern s32 D_8010EB88_boardresult[4]; /* coin count sprite groups */
+extern s32 D_8010EB98_boardresult;    /* the digit sprite */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106A80_boardresult);
+s16 func_8010685C_boardresult(s16 model, s32 file, char *name) {
+    void *data;
+    s32 anim;
+    u16 tex;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106CA8_boardresult);
+    data = DataRead(file);
+    anim = HmfAnimCreate(HmfModelData[model].hmf, data, 0, name);
+    D_8010EB74_boardresult = anim;
+    func_80032FC0_main(anim, 1, 1);
+    DataClose(data);
+    tex = D_800D1714_main[(s16)anim].unk_00;
+    D_8010EB76_boardresult = func_80032694_main(HmfModelData[model].hmf, anim, 0, name);
+    func_8001C448_main(model);
+    return tex;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106DA4_boardresult);
+void func_80106968_boardresult(s16 model, s16 tex) {
+    BrTexAnim *slot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80106F54_boardresult);
+    if (D_8010EB76_boardresult != 0xFF) {
+        if (tex == -1) {
+            func_80033910_main(HmfModelData[model].hmf);
+        } else {
+            func_80033970_main(HmfModelData[model].hmf);
+            slot = &D_800D1714_main[D_8010EB76_boardresult];
+            slot->unk_00 = tex;
+            slot->unk_04 = 0;
+            slot->unk_0A = 0;
+            slot->unk_06 = 0;
+            slot->unk_02 = 0;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_801070F8_boardresult);
+s16 func_80106A38_boardresult(s32 file) {
+    void *data;
+    s16 ret;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80107598_boardresult);
+    data = DataRead(file);
+    ret = func_800329B4_main(data);
+    DataClose(data);
+    return ret;
+}
+
+/* Scrolls the cloud texture of the three cloud layers. */
+void func_80106A80_boardresult(omObjData *obj) {
+    func_8001E888_main(D_8010EB48_boardresult[0]->omObj1->model[0], obj->trans.x, 0, 0x40, 0x2B, "kumo-endkumo", 0);
+    func_8001E888_main(D_8010EB48_boardresult[1]->omObj1->model[0], obj->trans.y, 0, 0x40, 0x2B, "kumo-endkumo", 0);
+    func_8001E888_main(D_8010EB48_boardresult[2]->omObj1->model[0], obj->trans.z, 0, 0x40, 0x2B, "kumo-endkumo", 0);
+    obj->trans.x -= 4.0f;
+    obj->trans.y -= 2.0f;
+    obj->trans.z -= 1.0f;
+    if (obj->trans.x >= 64.0f) {
+        obj->trans.x -= 64.0f;
+    }
+    if (obj->trans.y >= 64.0f) {
+        obj->trans.y -= 64.0f;
+    }
+    if (obj->trans.z >= 64.0f) {
+        obj->trans.z -= 64.0f;
+    }
+    if (obj->trans.x <= -64.0f) {
+        obj->trans.x += 64.0f;
+    }
+    if (obj->trans.y <= -64.0f) {
+        obj->trans.y += 64.0f;
+    }
+    if (obj->trans.z <= -64.0f) {
+        obj->trans.z += 64.0f;
+    }
+}
+
+void func_80106CA8_boardresult(omObjData *obj) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        D_8010EB60_boardresult[i]->rot.x = sindf(obj->rot.x);
+        D_8010EB60_boardresult[i]->rot.z = cosdf(obj->rot.x);
+    }
+    if (obj->work[0] == 0) {
+        obj->rot.x += 20.0f;
+        if (obj->rot.x >= 360.0f) {
+            obj->rot.x -= 360.0f;
+        }
+    } else if (obj->rot.x < 360.0f) {
+        obj->rot.x += 20.0f;
+    } else {
+        obj->rot.x = 360.0f;
+    }
+}
+
+void func_80106DA4_boardresult(omObjData *obj) {
+    Object *o = D_8010EB60_boardresult[obj->work[1]];
+
+    obj->work[0]++;
+    o->coords.x += sindf(obj->work[0] * 180.0f / obj->work[2]) * -700.0f;
+    o->coords.y += sindf(obj->work[0] * 180.0f / obj->work[2]) * 0.0f;
+    o->coords.z += sindf(obj->work[0] * 180.0f / obj->work[2]) * 0.0f;
+    if (obj->work[0] == obj->work[2]) {
+        omDelObj(obj);
+    }
+}
+
+void func_80106F54_boardresult(omObjData *obj) {
+    Object *o = D_8010EB70_boardresult;
+
+    obj->work[0]++;
+    o->coords.x += sindf(obj->work[0] * 180.0f / obj->work[2]) * 700.0f;
+    o->coords.y += sindf(obj->work[0] * 180.0f / obj->work[2]) * 0.0f;
+    o->coords.z += sindf(obj->work[0] * 180.0f / obj->work[2]) * 0.0f;
+    if (obj->work[0] == obj->work[2]) {
+        omDelObj(obj);
+    }
+}
+
+/* Rotates model about X by angle (degrees). */
+#define BR_ROTX(model, angle)                                                                      \
+    sincosdf(angle, &HmfModelData[model].mtx[6], &HmfModelData[model].mtx[5]);                    \
+    HmfModelData[model].mtx[9] = -HmfModelData[model].mtx[6];                                      \
+    HmfModelData[model].mtx[10] = HmfModelData[model].mtx[5];                                      \
+    HmfModelData[model].mtx[1] = HmfModelData[model].mtx[2] = HmfModelData[model].mtx[3] =          \
+        HmfModelData[model].mtx[4] = HmfModelData[model].mtx[7] = HmfModelData[model].mtx[8] =      \
+        HmfModelData[model].mtx[11] = HmfModelData[model].mtx[12] = HmfModelData[model].mtx[13] =   \
+        HmfModelData[model].mtx[14] = 0.0f;                                                       \
+    HmfModelData[model].mtx[0] = HmfModelData[model].mtx[15] = 1.0f
+
+/* Process: player *(s32 *)user_data jumps out of its block. */
+void func_801070F8_boardresult(void) {
+    s32 i;
+    s32 k;
+    f32 angle;
+
+    i = *(s32 *)HuPrcCurrentGet()->user_data;
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords,
+                                                           &D_8010E4D4_boardresult[i + 4],
+                                                           &D_8010EB38_boardresult[i]->player_obj->coords, 10));
+    func_800D90D0_name_81(D_8010EB38_boardresult[i]->player_obj, 0, 0);
+    angle = 90.0f;
+    do {
+        BR_ROTX(D_8010EB60_boardresult[3 - i]->omObj1->model[0], angle);
+        HuPrcVSleep();
+        angle -= 9.0f;
+    } while (angle > 0.0f);
+    BR_ROTX(D_8010EB60_boardresult[3 - i]->omObj1->model[0], 0.0f);
+    HuAudFXPlay(0x175);
+    k = 0;
+    for (angle = 30.0f; angle <= 180.0f; angle += 10.0f) {
+        HuVecCopyXYZ(&D_8010EB38_boardresult[i]->player_obj->coords, D_8010E4D4_boardresult[i + 4].x,
+                     D_8010E4D4_boardresult[i + 4].y - sindf(angle) * 100.0f + k, D_8010E4D4_boardresult[i + 4].z);
+        HuVecCopyXYZ(&D_8010EB60_boardresult[3 - i]->coords, D_8010E4D4_boardresult[i + 4].x,
+                     D_8010E4D4_boardresult[i + 4].y - sindf(angle) * 100.0f + k, D_8010E4D4_boardresult[i + 4].z);
+        k -= 10;
+        HuPrcVSleep();
+    }
+    func_800D90D0_name_81(D_8010EB38_boardresult[i]->player_obj, -1, 2);
+    omDelPrcObj(NULL);
+}
+
+void func_80107598_boardresult(omObjData *obj) {
+    f32 scale;
+    s32 i;
+
+    scale = sinf(obj->rot.x * (M_PI / 180.0)) * 0.3f + 1.0;
+    for (i = 0; i < obj->work[1]; i++) {
+        HuSprScaleSet(D_8010EB88_boardresult[obj->work[0]], i, scale, scale);
+    }
+    obj->rot.x += 30.0f;
+    if (obj->rot.x >= 360.0f) {
+        obj->rot.x -= 360.0f;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_801076A0_boardresult);
 
