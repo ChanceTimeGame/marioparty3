@@ -73,6 +73,8 @@ void func_8005D294_main(s16);
 void func_8005B43C_main(s16, s32, s32, s32);
 void func_80105B98_boardresult2(s16 model, s16 frame);
 void func_801074B4_boardresult2(void);
+int sprintf(char* s, const char* fmt, ...);
+s32 func_80106B94_boardresult2(s32 row);
 
 void func_801059A0_boardresult2(void) {
     u32 i;
@@ -494,11 +496,126 @@ s32 func_80106B94_boardresult2(s32 row) {
     return mask;
 }
 
+// NON_MATCHING: loop-invariant placement and register allocation (retail hoists k * 16 and k * 11
+// into stack slots, keeps the value in a2); the "" after "%4d" in retail .rodata is not emitted.
+#ifdef NON_MATCHING
+/* Draws the four visible record rows (D_801097B0 onwards): each place's value in four digit
+   sprites of D_801099F0, the row leaders in the second digit set, then the row cursor. */
+void func_801074B4_boardresult2(void) {
+    u8 buf[8];
+    s32 offs[5] = { 0, -30, -25, -20, -15 };
+    GW_PLAYER* player;
+    s32 lead;
+    s32 digits;
+    s32 value;
+    s32 row;
+    s32 k;
+    s32 p;
+    s32 c;
+    s32 member;
+
+    for (row = 0; row < 13; row++) {
+        HuSprAttrSet(D_801099EC_boardresult2->unk_0A, row, 0x8000);
+    }
+    for (row = D_801097B0_boardresult2, k = 0; row < D_801097B0_boardresult2 + 4; row++, k++) {
+        HuSprAttrReset(D_801099EC_boardresult2->unk_0A, row, 0x8000);
+        func_80054904_main(D_801099EC_boardresult2->unk_0A, row, k * 44 + 0x91, 0x34);
+    }
+    for (row = 0; row < 64; row++) {
+        HuSprAttrSet(D_801099F0_boardresult2->unk_0A, row, 0x8000);
+    }
+    for (row = D_801097B0_boardresult2, k = 0; row < D_801097B0_boardresult2 + 4; row++, k++) {
+        for (p = 0; p < 4; p++) {
+            player = MBDGetPlayerStruct(kakusiMasuItemHis[p]);
+            digits = 1;
+            value = 1;
+            lead = func_80106B94_boardresult2(row);
+            switch (row) {
+        case 0:
+            value = player->star;
+            digits = 2;
+            break;
+        case 1:
+            value = player->coin;
+            digits = 3;
+            break;
+        case 2:
+            value = player->gamePrize;
+            if (value >= 1000) {
+                value = 999;
+            }
+            digits = 3;
+            break;
+        case 3:
+            value = player->coinPrize;
+            digits = 3;
+            break;
+        case 4:
+            value = player->stats.prize.bluePrize;
+            digits = 2;
+            break;
+        case 5:
+            value = player->stats.prize.redPrize;
+            digits = 2;
+            break;
+        case 6:
+            value = player->stats.prize.hatenaPrize;
+            digits = 2;
+            break;
+        case 7:
+            value = player->stats.prize.eventPrize;
+            digits = 2;
+            break;
+        case 8:
+            value = player->stats.prize.kupaPrize;
+            digits = 2;
+            break;
+        case 9:
+            value = player->stats.prize.battlePrize;
+            digits = 2;
+            break;
+        case 10:
+            value = player->stats.prize.itemPrize;
+            digits = 2;
+            break;
+        case 11:
+            value = player->stats.prize.bankPrize;
+            digits = 2;
+            break;
+        case 12:
+            value = player->stats.prize.gamblePrize;
+            digits = 2;
+            break;
+            }
+            sprintf((char*)buf, "%4d", value);
+            member = k * 16 + p * 4;
+            for (c = 0; c < 4; c++) {
+                if (buf[c] == ' ') {
+                    HuSprAttrSet(D_801099F0_boardresult2->unk_0A, member + c, 0x8000);
+                    continue;
+                }
+                if (lead & (1 << p)) {
+                    func_80055024_main(D_801099F0_boardresult2->unk_0A, member + c, D_801099F0_boardresult2->unk_0C[1], 0);
+                } else {
+                    func_80055024_main(D_801099F0_boardresult2->unk_0A, member + c, D_801099F0_boardresult2->unk_0C[0], 0);
+                }
+                HuSprAttrReset(D_801099F0_boardresult2->unk_0A, member + c, 0x8000);
+                func_80054904_main(D_801099F0_boardresult2->unk_0A, member + c, c * 10 + 0x91 + k * 44 + offs[digits],
+                                   p * 22 + 0x49);
+                func_80055140_main(D_801099F0_boardresult2->unk_0A, member + c, buf[c] - '0', 0);
+                func_800550F4_main(D_801099F0_boardresult2->unk_0A, member + c, 1);
+            }
+        }
+    }
+    func_80054904_main(D_801099F4_boardresult2->unk_0A, 0, D_801097B4_boardresult2 * 44 + 0x92, 0x60);
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_80109864_boardresult2);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_801074B4_boardresult2);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_80109880_boardresult2);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_801098B4_boardresult2);
 
