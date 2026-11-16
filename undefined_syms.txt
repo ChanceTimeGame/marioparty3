@@ -142,3 +142,4 @@ D_8010D3F0_duelresult = D_8010D378_duelresult + 0x78;
 D_8010D420_duelresult = D_8010D378_duelresult + 0xA8;
 D_8010D6C1_duelresult = D_8010D6C0_duelresult + 0x1;
 D_8010D6C2_duelresult = D_8010D6C0_duelresult + 0x2;
+D_801074F2_last5 = D_801074F0_last5 + 0x2;

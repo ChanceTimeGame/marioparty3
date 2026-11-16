@@ -540,3 +540,19 @@ void func_80107450_last5(void) {
     MBBackKill();
     MBBackClose();
 }
+
+/* event e5: .data */
+Vec D_80107480_last5 = { 750.0f, 0.0f, 2250.0f }; /* the host's start (and exit) */
+Vec D_8010748C_last5 = { 150.0f, 0.0f, 1750.0f }; /* where the host walks to */
+Vec D_80107498_last5[2] = { { 150.0f, 0.0f, 2000.0f }, { 150.0f, 0.0f, 2000.0f } }; /* the lamp */
+Vec D_801074B0_last5 = { 0.0f, 0.0f, 2250.0f };
+u32 D_801074BC_last5[2] = { 1, 0xA0019 }; /* MBModelCreate file lists: count, then ids */
+u32 D_801074C4_last5[2] = { 1, 0xA00FB };
+u32 D_801074CC_last5[2] = { 1, 0xA00D0 };
+u32 D_801074D4_last5[3] = { 2, 0xA0035, 0xA0042 };
+u32 D_801074E0_last5[2] = { 1, 0xA0125 };
+u8 D_801074E8_last5[4] = { 5, 15, 50, 100 }; /* cumulative odds of picking rank 1..4 (coin gift) */
+u8 D_801074EC_last5[4] = { 50, 85, 95, 100 }; /* the same for the coin loss */
+s32 D_801074F0_last5[4] = { 0x11, 0x49, 0x81, 0xB9 }; /* status box y of each rank */
+s32 D_80107500_last5 = 0xA002A;
+s32 D_80107504_last5 = 0xA002B;

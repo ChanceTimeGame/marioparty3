@@ -1826,7 +1826,7 @@ segments:
     bss_size: 0x30
     subsegments:
       - [0x3C6310, c]
-      - [0x3C7DF0, data, 3C6310] #80107480
+      - [0x3C7DF0, .data, 3C6310] #80107480
       - [0x3C7E80, .rodata, 3C6310]
       - {0x3C7EC0, type: bss, vram: 0x80107550, name: last5_bss}
 
