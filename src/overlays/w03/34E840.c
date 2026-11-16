@@ -137,6 +137,41 @@ extern s16 D_8011C120_w03[]; /* order constraints */
 void func_801059F8_w03(void);
 extern s16 D_8011C130_w03[]; /* star board flags */
 extern s16 D_8011C140_w03[]; /* star spaces */
+void func_8010DF54_w03(void);
+void func_8010F3D4_w03(void);
+void func_8010F79C_w03(void);
+void func_8010F808_w03(void);
+void func_80117D38_w03(void);
+void func_80110A14_w03(void);
+void func_80110CA0_w03(void);
+void func_8010FCFC_w03(void);
+void func_8011026C_w03(void);
+void func_801105B8_w03(void);
+void func_80117034_w03(void);
+void func_801178B4_w03(void);
+void func_801110F0_w03(void);
+void func_801113B0_w03(void);
+void func_80111750_w03(void);
+void func_8011214C_w03(void);
+void func_80112CA4_w03(void);
+void func_801139BC_w03(void);
+void func_80114C58_w03(void);
+void func_80115C58_w03(void);
+void func_80116E84_w03(void);
+void func_8011777C_w03(void);
+void func_80105B44_w03(void);
+void func_80105C50_w03(void);
+void func_80107F30_w03(void);
+void func_80116B78_w03(void);
+void func_8011908C_w03(void);
+s32 func_8011B71C_w03(void);
+extern s16 D_8011C164_w03[]; /* blocked-space extension table */
+extern s16 D_8011C16C_w03[]; /* blocked spaces */
+void func_80108118_w03(void);
+void func_801083DC_w03(void);
+void func_801085B0_w03(void);
+void func_80108820_w03(void);
+void func_801088A0_w03(void);
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -853,7 +888,59 @@ void func_80107970_w03(void) {
     omOvlReturnEx(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80107A04_w03);
+void func_80107A04_w03(void) {
+    s32 i;
+
+    omInitObjMan(0xA0, 0x28);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(2, 0xC8, 0xC8, 0xC8);
+    MBObjectSetup(9, 0x23C, 0xB, 0);
+    MBMasuBlockTblExtSet(D_8011C164_w03);
+    MBMasuBlockTblSet(D_8011C16C_w03);
+    MBItemHookSet(0, &func_8010DF54_w03);
+    MBItemHookSet(1, &func_8010F3D4_w03);
+    MBItemHookSet(9, &func_8010F79C_w03);
+    MBItemHookSet(2, &func_8010F808_w03);
+    MBItemHookSet(3, &func_80117D38_w03);
+    MBItemHookSet(4, &func_80110A14_w03);
+    MBItemHookSet(5, &func_80110CA0_w03);
+    MBItemHookSet(6, &func_8010FCFC_w03);
+    MBItemHookSet(7, &func_8011026C_w03);
+    MBItemHookSet(8, &func_801105B8_w03);
+    MBItemHookSet(0xA, &func_80117034_w03);
+    MBItemHookSet(0xB, &func_801178B4_w03);
+    MBItemHookSet(0xE, &func_801110F0_w03);
+    MBItemHookSet(0xF, &func_801113B0_w03);
+    MBItemHookSet(0x10, &func_80111750_w03);
+    MBItemHookSet(0x11, &func_8011214C_w03);
+    MBItemHookSet(0x12, &func_80112CA4_w03);
+    MBItemHookSet(0x13, &func_801139BC_w03);
+    MBItemHookSet(0x14, &func_80114C58_w03);
+    MBItemHookSet(0x15, &func_80115C58_w03);
+    MBItemHookSet(0xC, &func_80116E84_w03);
+    MBItemHookSet(0xD, &func_8011777C_w03);
+    MBComItemDecideHookSet(func_8011B71C_w03);
+
+    for (i = 0; i < 8; i++) {
+        MBMasuStarSet(i, D_8011C150_w03[i]);
+    }
+
+    if (GWBoardFlagCheck(0xE) != 0) {
+        GWBoardFlagClear(0xE);
+        func_80105B44_w03();
+    }
+
+    func_80105C50_w03();
+    func_80107F30_w03();
+    func_80108118_w03();
+    func_801083DC_w03();
+    func_801085B0_w03();
+    func_80108820_w03();
+    func_801088A0_w03();
+    func_80116B78_w03();
+    func_800EBDAC_shared_board();
+    omAddPrcObj(func_8011908C_w03, 0x4800, 0, 0);
+}
 
 // entrypoint 2
 void func_80107CA4_w03() {
