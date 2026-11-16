@@ -6,6 +6,33 @@ void func_801183D4_w04(void);
 void func_801191B8_w04(void);
 void func_8011A4E0_w04(s32);
 
+// board q1
+#include "../ovl_80_shared_board/1006F0.h"
+
+void func_80116024_w04(s16 *links, s16 *spaces, void **arrows);
+extern s16 D_8011C1B0_w04[];
+extern s16 D_8011C1C4_w04[];
+extern void *D_8011BCF0_w04[];
+extern s16 D_8011C1F8_w04[];
+extern s16 D_8011C20C_w04[];
+extern void *D_8011BD38_w04[];
+extern s16 D_8011C240_w04[];
+extern s16 D_8011C254_w04[];
+extern void *D_8011BD68_w04[];
+extern s16 D_8011C288_w04[];
+extern s16 D_8011C29C_w04[];
+extern void *D_8011BDE0_w04[];
+extern s16 D_8011C2D0_w04[];
+extern s16 D_8011C2E4_w04[];
+extern void *D_8011BE28_w04[];
+extern s16 D_8011C318_w04[];
+extern s16 D_8011C32C_w04[];
+extern void *D_8011BE88_w04[];
+extern s16 D_8011C360_w04[];
+extern s16 D_8011C374_w04[];
+extern void *D_8011BF0C_w04[];
+// end board q1
+
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801059D0_w04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801059F8_w04);
@@ -112,59 +139,207 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108B4C_w04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108C00_w04);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108CA8_w04);
+void func_80108CA8_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C1B0_w04, D_8011C1C4_w04, D_8011BCF0_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108D00_w04);
+void func_80108D00_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C1F8_w04, D_8011C20C_w04, D_8011BD38_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108D58_w04);
+void func_80108D58_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C240_w04, D_8011C254_w04, D_8011BD68_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108DB0_w04);
+void func_80108DB0_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C288_w04, D_8011C29C_w04, D_8011BDE0_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108E08_w04);
+void func_80108E08_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C2D0_w04, D_8011C2E4_w04, D_8011BE28_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108E60_w04);
+void func_80108E60_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C318_w04, D_8011C32C_w04, D_8011BE88_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108EB8_w04);
+void func_80108EB8_w04(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && (mbWalkNum != 0)) {
+        func_80116024_w04(D_8011C360_w04, D_8011C374_w04, D_8011BF0C_w04);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108F10_w04);
+void func_80108F10_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108F70_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x28) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0xD, 0xB);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108FD0_w04);
+void func_80108F70_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109030_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x5B) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x1, 0x19);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109090_w04);
+void func_80108FD0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801090F0_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x41) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x1, 0x19);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109150_w04);
+void func_80109030_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801091B0_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x57) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x1, 0x12);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109210_w04);
+void func_80109090_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109270_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x51) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x2, 0x7);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801092D0_w04);
+void func_801090F0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109330_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x70) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x4, 0x4);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109390_w04);
+void func_80109150_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801093F0_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0xC) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x4, 0x4);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109450_w04);
+void func_801091B0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801094B0_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x9) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x6, 0x2);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109510_w04);
+void func_80109210_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109570_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x9) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x1, 0xE);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801095D0_w04);
+void func_80109270_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109630_w04);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0xE) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x6, 0x2);
+    }
+}
+
+void func_801092D0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x10) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0xC, 0x7);
+    }
+}
+
+void func_80109330_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x4D) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x2, 0x7);
+    }
+}
+
+void func_80109390_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x42) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x9, 0x6);
+    }
+}
+
+void func_801093F0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x58) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x2, 0x4);
+    }
+}
+
+void func_80109450_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x3D) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x9, 0x6);
+    }
+}
+
+void func_801094B0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x19) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0xB, 0x4);
+    }
+}
+
+void func_80109510_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x37) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0x1, 0x5);
+    }
+}
+
+void func_80109570_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x1C) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0xB, 0x4);
+    }
+}
+
+void func_801095D0_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x3A) {
+        MBMoveNextMasuSet(CUR_PLAYER, 0xD, 0xB);
+    }
+}
+
+void func_80109630_w04(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x66) {
+        MBMoveBackMasuSet(CUR_PLAYER, 0x1, 0x14);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109690_w04);
 
