@@ -343,6 +343,8 @@ NOP_OBJECTS += build/src/overlays/duel01/3D8AC0.c.o
 NOP_OBJECTS += build/src/overlays/opduel/460790.c.o
 # duel r1: duelresult 4554C0 (no nop after the sindf calls in func_8010709C)
 NOP_OBJECTS += build/src/overlays/duelresult/4554C0.c.o
+# wave 3p board g2: w02 335610 (no nop between the sindf calls and their mul.s, func_8010AFF0_w02)
+NOP_OBJECTS += build/src/overlays/w02/335610.c.o
 # wave 3o e6: boardresult 3B9670 (duelresult copy: no nop before the mul.s after the sindf call in func_80105BD8)
 NOP_OBJECTS += build/src/overlays/boardresult/3B9670.c.o
 # event e5: last5 3C6310 and majinlamp 3C7EC0 (no nop before the mul.s after the sindf calls)
