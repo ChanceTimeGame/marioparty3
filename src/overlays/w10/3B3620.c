@@ -982,9 +982,73 @@ void func_80107F0C_w10(void) {
     omDelPrcObj(NULL);
 }
 
+// board h2
+#include "../ovl_80_shared_board/ovl_80.h"
+#include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/101840.h"
+#include "../ovl_80_shared_board/105D50.h"
+#include "../ovl_80_shared_board/1063F0.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/10AD50.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/113750.h"
+#include "../ovl_80_shared_board/EA790.h"
+#include "../ovl_80_shared_board/EAB00.h"
+#include "../ovl_80_shared_board/EB2F0.h"
+#include "../ovl_80_shared_board/EC3B0.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/EDDB0.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F2910.h"
+#include "../ovl_80_shared_board/F5070.h"
+#include "../ovl_80_shared_board/F5B90.h"
+#include "../ovl_80_shared_board/F5E80.h"
+#include "../ovl_80_shared_board/F9DE0.h"
+#include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/FFB10.h"
+
+void func_80105B70_w10(void);
+void func_80105C28_w10(void);
+void func_80105D6C_w10(void);
+void func_80106574_w10(void);
+void func_80109444_w10(void);
+s16 func_8010B12C_w10(s32 padNo);
+void func_8010B434_w10(void);
+void func_80108F28_w10(void);
+extern event_table_entry D_8010B8B0_w10[];
+extern u8 D_800CC0BA_main;
+extern s32 D_8010BA20_w10;
+extern Process *D_8010BA28_w10;
+extern Object *D_8010BA90_w10;
+extern s32 D_8010BA94_w10;
+
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801084CC_w10);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80108F28_w10);
+// Spins a model above space 0x2E while D_8010BA94_w10 is set.
+void func_80108F28_w10(void) {
+    Object *obj;
+
+    D_8010BA94_w10 = 0;
+    obj = MBModelCreate(0x4E, NULL);
+    D_8010BA90_w10 = obj;
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(0x2E)->coords);
+    HuVecCopyXYZ(&obj->rot, 0.0f, 0.0f, -1.0f);
+    obj->velocity.x = 15.0f;
+    while (D_8010BA94_w10 == 0) {
+        HuPrcVSleep();
+    }
+    while (D_8010BA94_w10 != 0) {
+        obj->omObj1->rot.z -= 15.0f;
+        if (obj->omObj1->rot.z < 0.0f) {
+            obj->omObj1->rot.z += 360.0f;
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109050_w10);
 
@@ -994,6 +1058,94 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010AF68_w10);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010B12C_w10);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010B434_w10);
+// Pause watcher: Start opens the tutorial pause menu; quitting leaves the board.
+void func_8010B434_w10(void) {
+    Vec2f sp10;
+    s32 curPlayerNo;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010B5A4_w10);
+    D_8010BA20_w10 = 0;
+    while (1) {
+        HuPrcVSleep();
+        if (WipeStatGet() != 0) {
+            continue;
+        }
+        if (D_800CC0BA_main == 3) {
+            continue;
+        }
+        curPlayerNo = (s16)MBPlayerTurnGet();
+        for (i = 0; i < 4; i++) {
+            if (!(D_800C9520_main[i] & START_BUTTON)) {
+                continue;
+            }
+            if (D_8010BA20_w10 != 0) {
+                continue;
+            }
+            func_800DE874_shared_board(curPlayerNo);
+            MBCameraPos2DGet(&sp10);
+            MBCameraPos2DSet(&sp10);
+            D_800CB99C_main = 1;
+            func_80049FB8_main();
+            HmfPauseF = 1;
+            if (func_8010B12C_w10(i) != 0) {
+                HuAudSeqFadeOut(0x5A);
+                WipeCreateOut(0, 0x10);
+                HuPrcSleep(0x11);
+                omDelPrcObj(D_8010BA28_w10);
+                MBExit();
+                func_800F884C_shared_board();
+                omOvlReturnEx(1);
+                omOvlKill();
+                HuPrcVSleep();
+            }
+            HmfPauseF = 0;
+            func_8004A0E0_main();
+            D_800CB99C_main = 0;
+            func_800DE8D8_shared_board(curPlayerNo);
+            break;
+        }
+    }
+}
+
+// Board setup: lights, board objects, ten coins each, event table, then the tutorial processes.
+void func_8010B5A4_w10(void) {
+    Vec sp10;
+    SpaceData *space;
+    GW_PLAYER *player;
+    s32 i;
+
+    Hu3DCamInit(2);
+    omInitObjMan(0x50, 0x28);
+    func_8004A208_main();
+    HmfLightMaxSet(1);
+    HmfLightColorSet(0, 0x78, 0x78, 0x78);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -100.0f, 100.0f, 300.0f);
+    MBObjectSetup(0x15, 0x240, 0, 0);
+    space = MBMasuGet(0x2A);
+    MBVecDirGet(&space->coords, &MBMasuGet(0x2B)->coords, &sp10);
+    MBMasuArrowAngleAdd(MBVecAngleGet(&sp10) + 180.0f);
+    for (i = 0; i < 4; i++) {
+        MBPlayerGet(i)->coin = 10;
+    }
+    func_80105B70_w10();
+    func_80105C28_w10();
+    func_80105D6C_w10();
+    MBMasuEventTblAdd(D_8010B8B0_w10);
+    for (i = 0; i < 4; i++) {
+        s16 masuID;
+        player = MBPlayerGet(i);
+        masuID = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+        MBPlayerPosMasuSet(i, masuID);
+        MBPlayerForwardSet(i);
+    }
+    func_800EBDAC_shared_board();
+    func_800E6FBC_shared_board();
+    func_800E9730_shared_board(1.0f);
+    MBCameraSpeedSet(-1.0f);
+    MBCameraPos3DSet(&MBPlayerGet(-1)->player_obj->coords);
+    omAddPrcObj(func_80109444_w10, 0xEFFF, 0, 0);
+    omAddPrcObj(func_80106574_w10, 0x1005, 0, 0);
+    omPrcSetStatBit(omAddPrcObj(func_8010B434_w10, 0x1005, 0, 0), 0x80);
+    omAddPrcObj(func_80108F28_w10, 0x4800, 0, 0);
+}
