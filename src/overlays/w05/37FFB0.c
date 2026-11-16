@@ -335,6 +335,66 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801178B4_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80117908_w05);
 
+// board r4: declarations for func_80118364_w05..func_8011CFB4_w05
+#include "../ovl_80_shared_board/F5E80.h"
+#include "../ovl_80_shared_board/101840.h"
+#include "../ovl_80_shared_board/113750.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "game/board.h"
+#include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/F5B90.h"
+#include "../ovl_80_shared_board/EAB00.h"
+#include "../ovl_80_shared_board/EC3B0.h"
+#include "../ovl_80_shared_board/EDDB0.h"
+#include "../ovl_80_shared_board/105D50.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/EA790.h"
+#include "../ovl_80_shared_board/EB2F0.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5070.h"
+#include "../ovl_80_shared_board/F9DE0.h"
+#include "../ovl_80_shared_board/FFB10.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "gcc/memory.h"
+#include "mallocblock.h"
+#include "input.h"
+#include "game/window.h"
+#include "game/hmfman.h"
+
+void func_80106120_w05(void);
+void func_8010782C_w05(void);
+s32 func_8010A944_w05(s32);
+s32 func_8010A9CC_w05(void);
+s32 func_8011C50C_w05(void);
+s32 func_8011C39C_w05(void);
+s32 func_8011C448_w05(void);
+s32 func_8011C560_w05(s32, s32);
+extern RectF D_8011F128_w05;
+extern s32 D_8011EB38_w05;
+extern s32 D_801204B8_w05;
+extern DecisionTreeNonLeafNode D_8011F5DC_w05[];
+extern DecisionTreeNonLeafNode D_8011F648_w05[];
+extern DecisionTreeNonLeafNode D_8011F924_w05[];
+extern DecisionTreeNonLeafNode D_8011FB04_w05[];
+extern DecisionTreeNonLeafNode D_8011FCC0_w05[];
+extern DecisionTreeNonLeafNode D_8011FD50_w05[];
+extern DecisionTreeNonLeafNode D_8011FFA8_w05[];
+extern DecisionTreeNonLeafNode D_801201D0_w05[];
+extern DecisionTreeNonLeafNode D_80120344_w05[];
+extern DecisionTreeNonLeafNode D_801203B0_w05[];
+extern u8 *D_8012053C_w05[8];
+extern s8 *D_801205DC_w05[8];
+extern DecisionTreeNonLeafNode *D_801205FC_w05[2];
+extern DecisionTreeNonLeafNode *D_80120604_w05[2];
+extern DecisionTreeNonLeafNode *D_8012060C_w05[2];
+extern s32 D_80120848_w05;
+extern s32 D_8012084C_w05;
+extern s32 D_80120890_w05;
+extern s32 D_80120894_w05;
+
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118364_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118464_w05);
@@ -379,18 +439,399 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C2A8_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C2F8_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C348_w05);
+void func_8011C348_w05(void) {
+    Hu3DCamInit(2);
+    CameraScissorSet(1, &D_8011F128_w05);
+    func_8010782C_w05();
+    MBStart(2);
+    omAddPrcObj(func_80106120_w05, 0x1005, 0x1000, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C39C_w05);
+s32 func_8011C39C_w05(void) {
+    s32 best;
+    s32 bestRank;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C448_w05);
+    for (i = 0, bestRank = 99, best = MBPlayerTurnGet(); i < 4; i++) {
+        if (i != MBPlayerTurnGet()) {
+            func_800DA778_shared_board(i);
+            if ((MBComTreeExec(D_8011FCC0_w05) == 0) &&
+                (BoardPlayerRankCalc(i) < bestRank)) {
+                bestRank = BoardPlayerRankCalc(i);
+                best = i;
+            }
+        }
+    }
+    return best;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C50C_w05);
+s32 func_8011C448_w05(void) {
+    s32 best;
+    s32 bestRank;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C560_w05);
+    best = MBPlayerTurnGet();
+    if (MBComTreeExec(D_8011FFA8_w05) != 0) {
+        for (i = 0, bestRank = 99; i < 4; i++) {
+            if (i != MBPlayerTurnGet()) {
+                func_800DA778_shared_board(i);
+                if ((MBComTreeExec(D_80120344_w05) == 0) &&
+                    (BoardPlayerRankCalc(i) < bestRank)) {
+                    bestRank = BoardPlayerRankCalc(i);
+                    best = i;
+                }
+            }
+        }
+    }
+    return best;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C648_w05);
+s32 func_8011C50C_w05(void) {
+    s32 turnsLeft;
+    s32 slot;
+    GW_SYSTEM *sys = &GwSystem;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011CC50_w05);
+    turnsLeft = sys->total_turns - sys->current_turn + 1;
+    slot = MBItemFindEmpty(-1);
+    if (slot == -1) {
+        slot = 3;
+    }
+    return (slot < turnsLeft) ? 0 : 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011CFB4_w05);
+s32 func_8011C560_w05(s32 base, s32 perLevel) {
+    s32 ret;
+    s32 i;
+    s32 j;
+
+    ret = 1;
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i != GwSystem.current_player_index) {
+            for (j = 0; j < ARRAY_COUNT(GwPlayer->itemNo); j++) {
+                if ((GwPlayer[i].itemNo[j] == ITEM_PLUNDER_CHEST) ||
+                    (GwPlayer[i].itemNo[j] == ITEM_BARTER_BOX)) {
+                    break;
+                }
+            }
+            if (j < 3) {
+                break;
+            }
+        }
+    }
+    if ((i < MB_MAX_PLAYERS) && MBRandCheck100(base + (perLevel * GwPlayer[i].cpu_difficulty)) != 0) {
+        ret = 0;
+    }
+    return ret;
+}
+
+s32 func_8011C648_w05(void) {
+    s32 curPlayer = MBPlayerTurnGet();
+    GW_SYSTEM *loc = &GwSystem;
+    s32 results[3];
+    s32 item;
+    s32 i;
+    s32 j;
+    s32 count;
+    s32 best;
+    s32 slot;
+
+    if (GwSystem.cur_player_used_item & 1) {
+        return -1;
+    }
+    for (slot = 0; slot < 3; slot++) {
+        results[slot] = -1;
+        item = GwPlayer[curPlayer].itemNo[slot];
+        switch (item) {
+            case ITEM_NONE:
+                continue;
+            case ITEM_SKELETON_KEY:
+            case ITEM_BOO_REPELLENT:
+            case ITEM_KOOPA_KARD:
+                for (i = 0, count = 0; i < 3; i++) {
+                    if (GwPlayer[curPlayer].itemNo[i] == item) {
+                        count++;
+                    }
+                }
+                if (count < 2) {
+                    continue;
+                }
+                break;
+            case ITEM_WACKY_WATCH:
+                if (loc->total_turns == loc->current_turn) {
+                    if (MBPlayerStealRankGet(loc->current_player_index) != 0) {
+                        break;
+                    }
+                }
+                if (loc->total_turns - loc->current_turn < 6) {
+                    continue;
+                }
+                if (MBPlayerStealRankGet(loc->current_player_index) == 0) {
+                    break;
+                }
+                continue;
+            case ITEM_MUSHROOM:
+            case ITEM_LUCKY_CHARM:
+                if (func_8011C50C_w05() != 0) {
+                    break;
+                }
+                if (MBRandCheck100(80) == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BOWSER_PHONE:
+                if (GwPlayer[curPlayer].coin == 0) {
+                    break;
+                }
+                for (i = 0; i < 4; i++) {
+                    if (i != curPlayer && GwPlayer[i].coin == 0) {
+                        break;
+                    }
+                }
+                if (i >= 4) {
+                    break;
+                }
+                if (MBRandCheck100(70) != 0 && func_8011C50C_w05() == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_GOLDEN_MUSHROOM:
+                if (func_8011C50C_w05() != 0) {
+                    break;
+                }
+                if (MBComTreeExec(D_8011F5DC_w05) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BOWSER_SUIT:
+                if (func_8011C50C_w05() != 0) {
+                    break;
+                }
+                if (MBComTreeExec(D_8011F648_w05) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_WARP_BLOCK:
+                if (MBComTreeExec(D_8011F924_w05) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_POISON_MUSHROOM:
+                if (MBComTreeExec(D_8011FD50_w05) == 0) {
+                    s32 target = func_8011C39C_w05();
+
+                    D_80120894_w05 = target;
+                    if ((GwSystem.slow_dice_flags >> target) & 1) {
+                        continue;
+                    }
+                    break;
+                }
+                continue;
+            case ITEM_REVERSE_MUSHROOM:
+                if (MBComTreeExec(D_801201D0_w05) == 0) {
+                    s32 target = func_8011C448_w05();
+
+                    D_80120890_w05 = target;
+                    if (GwPlayer[target].rev & 0x80) {
+                        continue;
+                    }
+                    break;
+                }
+                continue;
+            case ITEM_PLUNDER_CHEST:
+                for (i = 0, best = 0, D_8012084C_w05 = -1; i < 4; i++) {
+                    if (i != curPlayer) {
+                        for (j = 0; j < 3; j++) {
+                            s8 it = GwPlayer[i].itemNo[j];
+
+                            if (it != -1) {
+                                if (best < D_80100FA8_shared_board[it]) {
+                                    best = D_80100FA8_shared_board[it];
+                                    D_8012084C_w05 = i;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (D_8012084C_w05 == -1) {
+                    continue;
+                }
+                if (best >= 4) {
+                    break;
+                }
+                if (MBRandCheck100(5) == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_BARTER_BOX:
+                for (i = 0, best = 0; i < 3; i++) {
+                    if (i != slot) {
+                        s8 it = GwPlayer[loc->current_player_index].itemNo[i];
+
+                        if (it != -1) {
+                            best += D_80100FA8_shared_board[it];
+                        }
+                    }
+                }
+                for (i = 0, D_80120848_w05 = -1; i < 4; i++) {
+                    if (i != curPlayer) {
+                        count = 0;
+                        for (j = 0; j < 3; j++) {
+                            s8 it = GwPlayer[i].itemNo[j];
+
+                            if (it != -1) {
+                                count += D_80100FA8_shared_board[it];
+                            }
+                        }
+                        if (best < count) {
+                            D_80120848_w05 = i;
+                            best = count;
+                        }
+                    }
+                }
+                if (D_80120848_w05 == -1) {
+                    continue;
+                }
+                break;
+            case ITEM_BOO_BELL:
+                if (func_8011C560_w05(0x32, 0xA) == 0) {
+                    break;
+                }
+                if (GwPlayer[curPlayer].coin < 5) {
+                    continue;
+                }
+                break;
+            case ITEM_CELLULAR_SHOPPER:
+                if (loc->total_turns == loc->current_turn) {
+                    continue;
+                }
+                if (GwPlayer[curPlayer].coin < 5) {
+                    continue;
+                }
+                break;
+            case ITEM_MAGIC_LAMP:
+                if (func_8011C560_w05(0x3C, 0xA) == 0) {
+                    break;
+                }
+                if (GwPlayer[curPlayer].coin < 20) {
+                    continue;
+                }
+                if (MBComTreeExec(D_8011FB04_w05) != 0) {
+                    continue;
+                }
+                break;
+            case ITEM_DUEL_GLOVE:
+                if (GwPlayer[curPlayer].coin < 10 && func_8011C50C_w05() == 0) {
+                    continue;
+                }
+                break;
+            case ITEM_LUCKY_LAMP:
+                if (MBComTreeExec(D_801203B0_w05) != 0) {
+                    continue;
+                }
+                break;
+        }
+        results[slot] = GwPlayer[curPlayer].itemNo[slot];
+    }
+    slot = 0;
+    i = 0;
+    for (j = 0; j < 3; j++) {
+        item = results[j];
+        if (item == -1) {
+            continue;
+        }
+        if (loc->total_turns == loc->current_turn) {
+            if (item == ITEM_WACKY_WATCH) {
+                return j;
+            }
+        }
+        if (slot < D_80100FF4_shared_board[results[j]]) {
+            i = j;
+            slot = D_80100FF4_shared_board[results[j]];
+        }
+    }
+    if (slot == 0) {
+        return -1;
+    }
+    return i;
+}
+
+s32 func_8011CC50_w05(void) {
+    s32 sp14;
+    GW_PLAYER* temp_s3;
+    s32 var_s1_2;
+    s32 temp_v0;
+    s32 var_s2;
+    s32 var_s2_2;
+    s32 temp_s0;
+    u8 temp_s0_2;
+    s32 i;
+    GW_SYSTEM* system = &GwSystem;
+
+    temp_s3 = MBPlayerGet(CUR_PLAYER);
+    sp14 = 1;
+
+    for (i = 0; i < 16; i++) {
+        temp_s0 = D_8012053C_w05[temp_s3->chr][i];
+        var_s2 = func_8010A944_w05(temp_s0);
+        if (var_s2 != -1 && D_80100F94_shared_board[temp_s0] + 20 <= GwPlayer[system->current_player_index].coin &&
+            MBRandCheck100(D_801205DC_w05[temp_s3->chr][i])) {
+            break;
+        }
+    }
+    if (i == 16) {
+        var_s2 = -1;
+    }
+
+    if (var_s2 != -1) {
+        if ((func_8010A944_w05(0xE) != var_s2) &&
+        ((func_8010A944_w05(0xB) != var_s2) ||
+        ((D_80100F94_shared_board[0xB] + 50) > (GwPlayer[system->current_player_index].coin)) != 0)) {
+            if ((func_8010A944_w05(4) == var_s2) &&
+            (MBItemFind(system->current_player_index, 4) != -1)) {
+                var_s2 = -1;
+                sp14 = 0;
+            }
+        } else {
+            return var_s2 + 1;
+        }
+    }
+    if ((MBComTreeExec(D_801205FC_w05[D_8011EB38_w05]) == 0) && GwPlayer[system->current_player_index].coin >= D_80100F94_shared_board[1]) {
+        temp_v0 = func_8010A944_w05(1);
+        if (temp_v0 != -1) {
+            return temp_v0 + 1;
+        }
+    }
+    if (var_s2 == -1) {
+        i = MBComTreeExec(D_80120604_w05[D_8011EB38_w05]);
+        if (i == 0) {
+            do {
+                temp_s0_2 = D_8012053C_w05[temp_s3->chr][i];
+                //this line below has to be written very specific
+                if ((temp_s0_2 == 4 && sp14 == 0) == 0) {
+                    var_s2_2 = func_8010A944_w05(temp_s0_2);
+                    if ((var_s2_2 != -1) && !(D_80100F94_shared_board[temp_s0_2] > (GwPlayer[system->current_player_index].coin))) {
+                        if ((MBRandCheck100(D_801205DC_w05[temp_s3->chr][i]))) {
+                            return var_s2_2 + 1;
+                        }
+                    }
+                }
+            } while (++i < 16);
+        }
+
+        var_s2_2 = func_8010A944_w05(0);
+        if (var_s2_2 == -1) {
+            D_801204B8_w05 = 1;
+            return func_8010A9CC_w05() + 2;
+        }
+        return var_s2_2 + 1;
+    }
+    return var_s2 + 1;
+}
+
+s32 func_8011CFB4_w05(void) {
+    if (D_801204B8_w05 != 0) {
+        D_801204B8_w05 = 0;
+        return 2;
+    }
+    return MBComTreeExec(D_8012060C_w05[D_8011EB38_w05]) + 1;
+}
