@@ -481,6 +481,12 @@ extern s32 D_8011ECB4_w02;
 extern s32 D_8011ECB8_w02;
 extern s32 D_8011ECF8_w02;
 extern s32 D_8011ECFC_w02;
+extern u8 *D_8011E998_w02[8];
+extern s8 *D_8011EA38_w02[8];
+extern DecisionTreeNonLeafNode *D_8011EA58_w02[2];
+extern DecisionTreeNonLeafNode *D_8011EA60_w02[2];
+s32 func_8010AF00_w02(s32 item);
+s32 func_8010AF88_w02(void);
 
 // board g6
 void func_80119D84_w02(void) {
@@ -846,7 +852,79 @@ s32 func_8011BC6C_w02(void) {
     return i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011C274_w02);
+// board g6
+s32 func_8011C274_w02(void) {
+    s32 sp14;
+    GW_PLAYER* temp_s3;
+    s32 var_s1_2;
+    s32 temp_v0;
+    s32 var_s2;
+    s32 var_s2_2;
+    s32 temp_s0;
+    u8 temp_s0_2;
+    s32 i;
+    GW_SYSTEM* system = &GwSystem;
+
+    temp_s3 = MBPlayerGet(CUR_PLAYER);
+    sp14 = 1;
+
+    for (i = 0; i < 16; i++) {
+        temp_s0 = D_8011E998_w02[temp_s3->chr][i];
+        var_s2 = func_8010AF00_w02(temp_s0);
+        if (var_s2 != -1 && D_80100F94_shared_board[temp_s0] + 20 <= GwPlayer[system->current_player_index].coin &&
+            MBRandCheck100(D_8011EA38_w02[temp_s3->chr][i])) {
+            break;
+        }
+    }
+    if (i == 16) {
+        var_s2 = -1;
+    }
+
+    if (var_s2 != -1) {
+        if ((func_8010AF00_w02(0xE) != var_s2) &&
+        ((func_8010AF00_w02(0xB) != var_s2) ||
+        ((D_80100F94_shared_board[0xB] + 50) > (GwPlayer[system->current_player_index].coin)) != 0)) {
+            if ((func_8010AF00_w02(4) == var_s2) &&
+            (MBItemFind(system->current_player_index, 4) != -1)) {
+                var_s2 = -1;
+                sp14 = 0;
+            }
+        } else {
+            return var_s2 + 1;
+        }
+    }
+    if ((MBComTreeExec(D_8011EA58_w02[D_8011D594_w02]) == 0) && GwPlayer[system->current_player_index].coin >= D_80100F94_shared_board[1]) {
+        temp_v0 = func_8010AF00_w02(1);
+        if (temp_v0 != -1) {
+            return temp_v0 + 1;
+        }
+    }
+    if (var_s2 == -1) {
+        i = MBComTreeExec(D_8011EA60_w02[D_8011D594_w02]);
+        if (i == 0) {
+            do {
+                temp_s0_2 = D_8011E998_w02[temp_s3->chr][i];
+                //this line below has to be written very specific
+                if ((temp_s0_2 == 4 && sp14 == 0) == 0) {
+                    var_s2_2 = func_8010AF00_w02(temp_s0_2);
+                    if ((var_s2_2 != -1) && !(D_80100F94_shared_board[temp_s0_2] > (GwPlayer[system->current_player_index].coin))) {
+                        if ((MBRandCheck100(D_8011EA38_w02[temp_s3->chr][i]))) {
+                            return var_s2_2 + 1;
+                        }
+                    }
+                }
+            } while (++i < 16);
+        }
+
+        var_s2_2 = func_8010AF00_w02(0);
+        if (var_s2_2 == -1) {
+            D_8011E914_w02 = 1;
+            return func_8010AF88_w02() + 2;
+        }
+        return var_s2_2 + 1;
+    }
+    return var_s2 + 1;
+}
 
 // board g6
 s32 func_8011C5D8_w02(void) {
