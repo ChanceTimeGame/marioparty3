@@ -472,6 +472,10 @@ extern Vec2f D_8011D2AC_w03[]; /* D_8011D2AC / D_8011D2B0 likewise */
 s32 func_8011343C_w03(u8 *arg0, s32 arg1);
 Process *func_8010FC2C_w03(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
 extern s32 D_8011EB40_w03[];
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
+extern Object *D_8011EB30_w03;
+extern Object *D_8011EB34_w03;
+extern Object *D_8011EB38_w03;
 extern DecisionTreeNonLeafNode D_8011E0DC_w03[];
 extern DecisionTreeNonLeafNode D_8011E64C_w03[];
 extern DecisionTreeNonLeafNode D_8011E3A0_w03[];
@@ -531,6 +535,11 @@ void func_801169DC_w03(s32 arg0, s32 arg1) {
 }
 
 
+
+
+
+
+
 void func_80116ADC_w03(s32 arg) {
     D_8011EBF0_w03[arg] = omAddObj(0x3FFF, 0, 0, -1, func_80116830_w03);
     D_8011EBF0_w03[arg]->work[0] = arg;
@@ -539,6 +548,11 @@ void func_80116ADC_w03(s32 arg) {
     D_8011EBF0_w03[arg]->rot.x = (f32)MBRand(360.0f);
     D_8011EBF0_w03[arg]->trans.x = 0;
 }
+
+
+
+
+
 
 
 void func_80116B78_w03(void) {
@@ -565,6 +579,11 @@ void func_80116B78_w03(void) {
     }
     func_800F8D54_shared_board(func_801167CC_w03);
 }
+
+
+
+
+
 
 
 void func_80116C78_w03(void) {
@@ -605,6 +624,11 @@ void func_80116C78_w03(void) {
 }
 
 
+
+
+
+
+
 void func_80116E84_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     s16 *slowDiceFlags = &loc->slow_dice_flags;
@@ -631,6 +655,11 @@ void func_80116E84_w03(void) {
 }
 
 
+
+
+
+
+
 void func_80116FE4_w03(void) {
     void *data;
     s32 i;
@@ -646,6 +675,11 @@ void func_80116FE4_w03(void) {
     MBPlayerVibrateObjKill(data);
     omDelPrcObj(NULL);
 }
+
+
+
+
+
 
 
 void func_80117034_w03(void) {
@@ -762,6 +796,11 @@ void func_80117034_w03(void) {
 }
 
 
+
+
+
+
+
 void func_801175AC_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     GW_PLAYER *player = MBPlayerGet(-1);
@@ -796,6 +835,11 @@ void func_801175AC_w03(void) {
 }
 
 
+
+
+
+
+
 void func_8011777C_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     GW_PLAYER *player = MBPlayerGet(-1);
@@ -817,6 +861,11 @@ void func_8011777C_w03(void) {
         HuPrcSleep(0xF);
     }
 }
+
+
+
+
+
 
 
 void func_801178B4_w03(void) {
@@ -916,6 +965,11 @@ void func_801178B4_w03(void) {
         func_801175AC_w03();
     }
 }
+
+
+
+
+
 
 
 void func_80117D38_w03(void) {
@@ -1037,6 +1091,11 @@ void func_80117D38_w03(void) {
     MBDlgWinKill();
     func_801100FC_w03();
 }
+
+
+
+
+
 
 
 void func_801183E0_w03(void) {
@@ -1255,17 +1314,110 @@ end:
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80118E3C_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80118F64_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011908C_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80119120_w03);
+
+
+void func_80118E3C_w03(omObjData *obj) {
+    func_8001E888_main(D_8011EB30_w03->omObj1->model[0], 0, obj->trans.x, 0x40, 0x40, "R3-cyl4", 0);
+    obj->trans.x += 1.0f;
+    if (obj->trans.x >= 64.0f) {
+        obj->trans.x -= 64.0f;
+    }
+    if (obj->trans.y >= 64.0f) {
+        obj->trans.y -= 64.0f;
+    }
+    if (obj->trans.x <= -64.0f) {
+        obj->trans.x += 64.0f;
+    }
+    if (obj->trans.y <= -64.0f) {
+        obj->trans.y += 64.0f;
+    }
+}
+
+void func_80118F64_w03(omObjData *obj) {
+    func_8001E888_main(D_8011EB30_w03->omObj1->model[0], 0, obj->trans.x, 0x40, 0x40, "R3-cyl5_2", 0);
+    obj->trans.x += 1.0f;
+    if (obj->trans.x >= 64.0f) {
+        obj->trans.x -= 64.0f;
+    }
+    if (obj->trans.y >= 64.0f) {
+        obj->trans.y -= 64.0f;
+    }
+    if (obj->trans.x <= -64.0f) {
+        obj->trans.x += 64.0f;
+    }
+    if (obj->trans.y <= -64.0f) {
+        obj->trans.y += 64.0f;
+    }
+}
+
+void func_8011908C_w03(void) {
+    Object *obj;
+
+    obj = D_8011EB34_w03 = MBModelCreate(0x4A, NULL);
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(0x85)->coords);
+    obj = D_8011EB38_w03 = MBModelCreate(0x4B, NULL);
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(0x87)->coords);
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+
+void func_80119120_w03(void) {
+    f32 angle;
+    f32 scale;
+    s32 count;
+    Object *obj;
+    omObjData *work;
+
+    if (HuPrcCurrentGet()->user_data == NULL) {
+        obj = D_8011EB34_w03;
+    } else {
+        obj = D_8011EB38_w03;
+    }
+    angle = 0.0f;
+    scale = 1.0f;
+    do {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        scale = 1.0f + 0.3f * sindf(angle);
+        HuPrcVSleep();
+        angle += 22.5f;
+    } while (angle < 90.0f);
+    count = 0;
+    work = obj->omObj1;
+    work->rot.z = 0.0f;
+    angle = work->rot.z;
+    scale = 5.0f;
+    do {
+        obj->omObj1->rot.z = sindf(angle) * scale;
+        if (angle > 360.0f) {
+            count++;
+            angle -= 360.0f;
+            scale -= 1.0f;
+        }
+        HuPrcVSleep();
+        angle += 45.0f;
+    } while (count < 4);
+    obj->omObj1->rot.z = 0.0f;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80119290_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A2BC_w03);
+void func_8011A2BC_w03(void) {
+    GW_PLAYER *player = MBPlayerGet((s32)HuPrcCurrentGet()->user_data);
+    s32 i;
+
+    for (i = 0; i < 60; i++) {
+        player->player_obj->velocity.x -= 0.41666666f;
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A338_w03);
 
@@ -1303,6 +1455,11 @@ s32 func_8011B470_w03(void) {
 }
 
 
+
+
+
+
+
 s32 func_8011B51C_w03(void) {
     s32 best;
     s32 bestRank;
@@ -1325,6 +1482,11 @@ s32 func_8011B51C_w03(void) {
 }
 
 
+
+
+
+
+
 s32 func_8011B5E0_w03(void) {
     s32 turnsLeft;
     s32 slot;
@@ -1337,6 +1499,11 @@ s32 func_8011B5E0_w03(void) {
     }
     return (slot < turnsLeft) ? 0 : 1;
 }
+
+
+
+
+
 
 
 s32 func_8011B634_w03(s32 base, s32 perLevel) {
@@ -1363,6 +1530,11 @@ s32 func_8011B634_w03(s32 base, s32 perLevel) {
     }
     return ret;
 }
+
+
+
+
+
 
 
 s32 func_8011B71C_w03(void) {
@@ -1597,6 +1769,11 @@ s32 func_8011B71C_w03(void) {
 }
 
 
+
+
+
+
+
 s32 func_8011BD24_w03(void) {
     s32 sp14;
     GW_PLAYER* temp_s3;
@@ -1671,6 +1848,11 @@ s32 func_8011BD24_w03(void) {
 }
 
 
+
+
+
+
+
 s32 func_8011C088_w03(void) {
     if (D_8011E7A8_w03 != 0) {
         D_8011E7A8_w03 = 0;
@@ -1678,4 +1860,9 @@ s32 func_8011C088_w03(void) {
     }
     return MBComTreeExec(D_8011E8FC_w03[D_8011D0D0_w03]) + 1;
 }
+
+
+
+
+
 
