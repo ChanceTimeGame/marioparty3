@@ -212,6 +212,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010AC0C_w05);
 #include "../ovl_80_shared_board/FFB10.h"
 #include "../ovl_80_shared_board/113520.h"
 #include "../ovl_80_shared_board/105D50.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/F5E80.h"
 
 typedef struct {
     /* 0x00 */ Vec dir[8];
@@ -431,7 +433,34 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010EC70_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010ECDC_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010EE9C_w05);
+void func_8010EE9C_w05(void) {
+    X2SpriteMoveWork *work = HuPrcCurrentGet()->user_data;
+    f32 deltaX;
+    f32 deltaY;
+    f32 spriteX;
+    f32 spriteY;
+    s32 i;
+
+    deltaX = (f32)(work->endX - work->startX) / (f32)work->duration;
+    deltaY = (f32)(work->endY - work->startY) / (f32)work->duration;
+    func_800F6848_shared_board(GwSystem.current_player_index, MBItemSelNoGet(), &spriteX, &spriteY);
+
+    for (i = 1; i <= work->duration; i++) {
+        if (work->spriteGroup != -1) {
+            func_80054904_main(work->spriteGroup, 0, work->startX + (deltaX * i), work->startY + (deltaY * i));
+        }
+        MBStatusItemPosSet(GwSystem.current_player_index, MBItemSelNoGet(), spriteX + (deltaX * i), spriteY + (deltaY * i));
+        HuPrcVSleep();
+    }
+
+    if (work->spriteGroup != -1) {
+        func_80054904_main(work->spriteGroup, 0, work->endX, work->endY);
+    }
+    MBStatusItemPosSet(GwSystem.current_player_index, MBItemSelNoGet(),
+                       work->endX + spriteX - work->startX,
+                       work->endY + spriteY - work->startY);
+    omDelPrcObj(NULL);
+}
 
 Process *func_8010F100_w05(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration) {
     Process *process;
