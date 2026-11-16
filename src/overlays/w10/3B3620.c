@@ -663,9 +663,76 @@ void func_80107780_w10(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107ABC_w10);
+/* Grow two models in from above the current player, bob them until *status != 1, then
+ * lift them away; *status = 3 when done. */
+void func_80107ABC_w10(void) {
+    s32 *status = HuPrcCurrentGet()->user_data;
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+    omObjData *bob;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107D64_w10);
+    D_8010BA70_w10 = MBModelCreate(12, NULL);
+    Hu3DModelScaleSet(D_8010BA70_w10->omObj1->model[0], 0.0f, 0.0f, 0.0f);
+    func_8001FDE8_main(D_8010BA70_w10->omObj1->model[0]);
+    D_8010BA70_w10->flags |= 1;
+    D_8010BA74_w10 = MBModelCreate(0x1F, NULL);
+    Hu3DModelScaleSet(D_8010BA74_w10->omObj1->model[0], 0.0f, 0.0f, 0.0f);
+    HuVecCopy3F(&D_8010BA70_w10->coords, &player->player_obj->coords);
+    HuVecCopy3F(&D_8010BA74_w10->coords, &player->player_obj->coords);
+    D_8010BA70_w10->velocity.x = 120.0f;
+    D_8010BA74_w10->velocity.x = 122.0f;
+    while (D_8010BA70_w10->velocity.x > 30.0f) {
+        HuPrcVSleep();
+        D_8010BA70_w10->velocity.x -= 2.0f;
+        D_8010BA74_w10->velocity.x -= 2.0f;
+    }
+    bob = omAddObj(500, 0, 0, -1, func_801073C8_w10);
+    bob->rot.x = 180.0f;
+    *status = 1;
+    HuPrcVSleep();
+    while (*status == 1) {
+        HuPrcVSleep();
+    }
+    while (D_8010BA70_w10->velocity.x < 120.0f) {
+        HuPrcVSleep();
+        D_8010BA70_w10->velocity.x += 2.0f;
+        D_8010BA74_w10->velocity.x += 2.0f;
+    }
+    *status = 3;
+    MBModelKill(D_8010BA70_w10);
+    MBModelKill(D_8010BA74_w10);
+    omDelObj(bob);
+    omDelPrcObj(NULL);
+}
+
+/* Lower one model onto the current player and orbit it until *status != 1, then lift it. */
+void func_80107D64_w10(void) {
+    s32 *status = HuPrcCurrentGet()->user_data;
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+    Process *orbit;
+
+    D_8010BA68_w10 = MBModelCreate(0x3E, NULL);
+    MBModelTempAllocFree(D_8010BA68_w10);
+    HuVecCopy3F(&D_8010BA68_w10->coords, &player->player_obj->coords);
+    D_8010BA68_w10->velocity.x = 100.0f;
+    do {
+        D_8010BA68_w10->velocity.x -= 2.0f;
+        HuPrcVSleep();
+    } while (D_8010BA68_w10->velocity.x >= 30.0f);
+    orbit = func_800EDB98_shared_board(D_8010BA68_w10, 5.0f, 2.0f);
+    *status = 1;
+    HuPrcVSleep();
+    while (*status == 1) {
+        HuPrcVSleep();
+    }
+    omDelPrcObj(orbit);
+    while (D_8010BA68_w10->velocity.x < 100.0f) {
+        D_8010BA68_w10->velocity.x += 2.0f;
+        HuPrcVSleep();
+    }
+    *status = 3;
+    MBModelKill(D_8010BA68_w10);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107F0C_w10);
 
