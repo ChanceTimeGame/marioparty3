@@ -84,6 +84,22 @@ extern Process *D_8011E018_w04[];
 extern s16 D_8011B7E4_w04[][2];
 extern s16 D_8011B82C_w04[];
 extern s16 D_8011B83C_w04[];
+extern Object *D_8011E05C_w04;
+extern Object *D_8011E060_w04[];
+extern Object *D_8011E064_w04;
+extern Object *D_8011E068_w04[];
+extern s16 D_8011B804_w04[][2];
+extern s16 D_8011B84C_w04[];
+extern s16 D_8011B850_w04[];
+extern Vec D_8011B854_w04[];
+extern Vec D_8011B890_w04[];
+extern Object *D_8011E090_w04;
+extern Object *D_8011E094_w04[];
+extern s16 D_8011B8CC_w04[];
+extern s16 D_8011B8D0_w04[];
+extern u32 *D_8011B90C_w04[];
+extern s16 D_8011B824_w04[][2];
+extern s16 D_8011B81C_w04[][2];
 extern s16 D_8011B7CC_w04[];
 extern s16 D_8011B7D0_w04[];
 extern event_table_entry D_8011C77C_w04[];
@@ -907,17 +923,118 @@ void func_80107D70_w04(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107E1C_w04);
+void func_80107E1C_w04(s16 arg0) {
+    Object *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107F3C_w04);
+    if (D_8011E060_w04[arg0] != NULL) {
+        return;
+    }
+    if (D_8011E05C_w04 == NULL) {
+        obj = MBModelCreate(0xA, NULL);
+        func_8001FA68_main(obj->omObj1->model[0]);
+        func_8001FA68_main(obj->omObj2->model[0]);
+        D_8011E05C_w04 = obj;
+    } else {
+        obj = MBModelLinkCreate(D_8011E05C_w04);
+    }
+    MBModelDispOff(obj);
+    D_8011E060_w04[arg0] = obj;
+    obj->flags |= 2;
+    obj->velocity.x = 15.0f;
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011B84C_w04[arg0])->coords);
+    func_800D771C_shared_board(0xA, obj, D_8011B804_w04[arg0][0], D_8011B804_w04[arg0][1]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107F98_w04);
+void func_80107F3C_w04(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108094_w04);
+    D_8011E05C_w04 = 0;
+    for (i = 0; i <= 0; i++) {
+        D_8011E060_w04[i] = NULL;
+        func_80107E1C_w04(i);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108200_w04);
+void func_80107F98_w04(void) {
+    s32 i;
+    s32 j;
+    s32 count;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108268_w04);
+    for (i = 0; i < 2; i++) {
+        count = (GwSystem.bank_coins + 9) / 10;
+        if (count > 5) {
+            count = 5;
+        }
+        for (j = 0; j < count; j++) {
+            MBModelDispOn(D_8011E068_w04[i * 5 + j]);
+        }
+        for (; j < 5; j++) {
+            MBModelDispOff(D_8011E068_w04[i * 5 + j]);
+        }
+    }
+}
+
+void func_80108094_w04(s16 arg0) {
+    Object *obj;
+
+    if (D_8011E068_w04[arg0] != NULL) {
+        return;
+    }
+    if (D_8011E064_w04 == NULL) {
+        obj = MBModelCreate(0x1E, NULL);
+        MBModelTempAllocFree(obj);
+        D_8011E064_w04 = obj;
+    } else {
+        obj = MBModelLinkCreate(D_8011E064_w04);
+    }
+    D_8011E068_w04[arg0] = obj;
+    obj->flags |= 2;
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011B850_w04[arg0 / 5])->coords);
+    HuVecAdd(&obj->coords, &D_8011B854_w04[arg0 % 5], &obj->coords);
+    obj->omObj1->rot.x = D_8011B890_w04[arg0 % 5].x;
+    obj->omObj1->rot.z = D_8011B890_w04[arg0 % 5].z;
+    MBModelDispOff(obj);
+}
+
+void func_80108200_w04(void) {
+    s32 i;
+
+    D_8011E064_w04 = 0;
+    for (i = 0; i < 0xA; i++) {
+        D_8011E068_w04[i] = NULL;
+        func_80108094_w04(i);
+    }
+    func_80107F98_w04();
+}
+
+void func_80108268_w04(s16 arg0) {
+    Object *obj;
+    s32 unk[2]; // unreferenced; preserves an 8-byte stack slot
+
+    if (D_8011E094_w04[arg0] != NULL) {
+        return;
+    }
+    if (D_8011E090_w04 == NULL) {
+        s32 board = GwSystem.current_board_index;
+
+        obj = MBModelCreate(D_8011B8D0_w04[board], D_8011B90C_w04[board]);
+        MBModelTempAllocFree(obj);
+        D_8011E090_w04 = obj;
+    } else {
+        obj = MBModelLinkCreate(D_8011E090_w04);
+    }
+    D_8011E094_w04[arg0] = obj;
+    obj->flags |= 2;
+    func_8001C814_main(obj->omObj1->model[0], 2, 1);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011B8CC_w04[arg0])->coords);
+    {
+        SpaceData *masuA = MBMasuGet(D_8011B824_w04[arg0][0]);
+        SpaceData *masuB = MBMasuGet(D_8011B824_w04[arg0][1]);
+
+        MBVecDirGet(&masuB->coords, &masuA->coords, &obj->rot);
+    }
+    func_800D771C_shared_board(0xC, obj, D_8011B81C_w04[arg0][0], D_8011B81C_w04[arg0][1]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801083D4_w04);
 
