@@ -359,19 +359,71 @@ INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80106E74_majinlam
 
 INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_8010771C_majinlamp);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107D98_majinlamp);
+void func_80107D98_majinlamp(void) {
+    func_80106E74_majinlamp();
+    func_8010771C_majinlamp();
+    D_800D530C_main = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107DD8_majinlamp);
+void func_80107DD8_majinlamp(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        func_801080C4_majinlamp();
+        func_80107E64_majinlamp();
+        func_8005F524_main();
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107E1C_majinlamp);
+void func_80107E1C_majinlamp(omObjData *obj) {
+    if (D_800D530C_main != 0) {
+        obj->func = func_80107DD8_majinlamp;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107E40_majinlamp);
+void func_80107E40_majinlamp(void) {
+    MBModelInit();
+    func_800F26E8_shared_board();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107E64_majinlamp);
+void func_80107E64_majinlamp(void) {
+    HuSprKill(D_8010833A_majinlamp);
+    HuSprGrpKill(D_80108338_majinlamp);
+    func_800F27C4_shared_board();
+    MBModelClose();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107EA0_majinlamp);
+void func_80107EA0_majinlamp(void) {
+    while (TRUE) {
+        Hu3DCamSetPerspective(0, D_801080D0_majinlamp, D_801080D4_majinlamp, D_801080D8_majinlamp);
+        Hu3DCamSetPositionOrientation(0, &D_801082E4_majinlamp, &D_801082F0_majinlamp, &D_801082FC_majinlamp);
+        Hu3DCamUpdateMtx(0);
+        Hu3DCamSetPerspective(1, D_801080DC_majinlamp, D_801080E0_majinlamp, D_801080E4_majinlamp);
+        Hu3DCamSetPositionOrientation(1, &D_80108308_majinlamp, &D_80108314_majinlamp, &D_80108320_majinlamp);
+        Hu3DCamUpdateMtx(1);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_80107F54_majinlamp);
+void func_80107F54_majinlamp(void) {
+    Hu3DCamInit(2);
+    D_801082E0_majinlamp = omAddPrcObj(func_80107EA0_majinlamp, 0x1001, 0, 0);
+    omPrcSetStatBit(D_801082E0_majinlamp, 0x80);
+    HuVecCopyXYZ(&D_801082E4_majinlamp, 0.0f, 0.0f, 5000.0f);
+    HuVecCopyXYZ(&D_801082F0_majinlamp, 0.0f, 0.0f, 0.0f);
+    HuVecCopyXYZ(&D_801082FC_majinlamp, 0.0f, 1.0f, 0.0f);
+    Hu3DCamSetPerspective(0, D_801080D0_majinlamp, D_801080D4_majinlamp, D_801080D8_majinlamp);
+    Hu3DCamSetPositionOrientation(0, &D_801082E4_majinlamp, &D_801082F0_majinlamp, &D_801082FC_majinlamp);
+    Hu3DCamUpdateMtx(0);
+    HuVecCopyXYZ(&D_80108308_majinlamp, 0.0f, 0.0f, 5000.0f);
+    HuVecCopyXYZ(&D_80108314_majinlamp, 0.0f, 0.0f, 0.0f);
+    HuVecCopyXYZ(&D_80108320_majinlamp, 0.0f, 1.0f, 0.0f);
+    Hu3DCamSetPerspective(1, D_801080DC_majinlamp, D_801080E0_majinlamp, D_801080E4_majinlamp);
+    Hu3DCamSetPositionOrientation(1, &D_80108308_majinlamp, &D_80108314_majinlamp, &D_80108320_majinlamp);
+    Hu3DCamUpdateMtx(1);
+}
 
 void func_801080C4_majinlamp(void) {
 }
