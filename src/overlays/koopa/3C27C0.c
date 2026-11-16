@@ -31,7 +31,19 @@ typedef struct UnkBowser2 {
 void func_8005A6B0_main(void);
 void func_80108D2C_koopa(void);
 void func_80109220_koopa(omObjData *);
-s32 func_8010926C_koopa(void);
+void func_8010926C_koopa(void);
+// event e4
+#include "../ovl_80_shared_board/1006F0.h"
+void func_80108360_koopa(s32 file);
+void func_801091C4_koopa(omObjData *obj);
+void func_801092A0_koopa(void);
+void func_80109320_koopa(void);
+void func_800E4A94_shared_board(void);
+void func_800E4B18_shared_board(void);
+void func_800EE700_shared_board(void);
+void func_800EE740_shared_board(void);
+void func_800F5828_shared_board(s32 arg0);
+void func_800F591C_shared_board(s32 arg0);
 void func_801092D4_koopa(void);
 void func_80107724_koopa(void);
 s32 func_80107A9C_koopa(void);
@@ -495,15 +507,154 @@ INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107A9C_koopa);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107DDC_koopa);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108360_koopa);
+// event e4
+void func_80108360_koopa(s32 file) {
+    Object *obj;
+    f32 rot;
+    f32 scale;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_801085E4_koopa);
+    MBMotionShiftSet(D_801094F8_koopa, 5, 0, 5, 0);
+    obj = MBModelFileCreate(file, -1, 1.0f, 0.0f, NULL);
+    func_8001C258_main(obj->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(obj->omObj1->model[0], 0);
+    HuVecCopy3F(&obj->coords, &D_801094F8_koopa->coords);
+    obj->coords.y += 200.0f;
+    rot = 0.0f;
+    for (scale = 1.0f, i = 0; scale < 12.0f; scale += 0.25) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        if (i == 5) {
+            HuAudFXPlay(0x12D);
+        }
+        i++;
+        HuPrcVSleep();
+    }
+    for (i = 0; scale >= 1.0f; scale -= 0.25) {
+        HuVecCopyXYZ(&obj->scale, scale, scale, scale);
+        func_8008A430_main(&HmfModelData[obj->omObj1->model[0]].mtx, rot);
+        rot += 20.0f;
+        if (i == 32) {
+            HuAudFXPlay(0x13E);
+        }
+        i++;
+        HuPrcVSleep();
+    }
+    MBModelKill(obj);
+    MBModelMotionWait(D_801094F8_koopa);
+    MBMotionShiftSet(D_801094F8_koopa, -1, 0, 5, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108664_koopa);
+s32 func_801085E4_koopa(void) {
+    MBWinOpen(0x4217);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    func_80108360_koopa(0xB0036);
+    MBWinOpen(0x4218);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    func_800E4A94_shared_board();
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_801086E4_koopa);
+s32 func_80108664_koopa(void) {
+    MBWinOpen(0x421A);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    func_80108360_koopa(0xB0037);
+    MBWinOpen(0x421B);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    func_800E4B18_shared_board();
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_801087F0_koopa);
+s32 func_801086E4_koopa(void) {
+    s32 self;
+    s32 other;
+    s32 first;
+    s32 second;
+    s32 i;
+
+    MBWinOpen(0x421D);
+    self = 0;
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    func_80108360_koopa(0xB0038);
+    other = MBRand(3.0f) + 1;
+    MBPlayerMasuSwap(0, other);
+    second = -1;
+    first = -1;
+    for (i = 0; i < 4; i++) {
+        if ((i != self) & (i != other)) {
+            if (first == -1) {
+                first = i;
+            } else {
+                second = i;
+            }
+        }
+    }
+    MBPlayerMasuSwap(first, second);
+    MBWinOpen(0x421E);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    return 0;
+}
+
+void func_801087F0_koopa(void) {
+    s32 total;
+    s32 maxGain;
+    s32 maxPlayer;
+    s32 i;
+
+    for (total = 0, i = 0; i < MB_MAX_PLAYERS; i++) {
+        total += GwPlayer[i].coin;
+    }
+    HuAudFXPlay(0x152);
+    total /= 4;
+    maxGain = 0;
+    maxPlayer = 0;
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        func_800F5828_shared_board(i);
+        if (maxGain < total - GwPlayer[i].coin) {
+            maxGain = total - GwPlayer[i].coin;
+            maxPlayer = i;
+        }
+    }
+    for (i = 0; i < 60; i++) {
+        MBStatusColorSet(0, i % 5);
+        MBStatusColorSet(1, i % 5);
+        MBStatusColorSet(2, i % 5);
+        MBStatusColorSet(3, i % 5);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        s32 isMax = (i == maxPlayer);
+        MBCoinTakeCreateSound(i, total - GwPlayer[i].coin, isMax);
+    }
+    for (i = 0; i < 30; i++) {
+        MBStatusColorSet(0, i % 5);
+        MBStatusColorSet(1, i % 5);
+        MBStatusColorSet(2, i % 5);
+        MBStatusColorSet(3, i % 5);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        MBStatusColorSet(i, GwPlayer[i].color);
+        func_800F591C_shared_board(i);
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108A2C_koopa);
 
@@ -511,13 +662,39 @@ INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108BB0_koopa);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108D2C_koopa);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_801091C4_koopa);
+void func_801091C4_koopa(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        func_80109320_koopa();
+        func_801092A0_koopa();
+        func_800F4730_shared_board();
+        func_8005F524_main();
+        func_800EB09C_shared_board();
+        func_800EA694_shared_board();
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80109220_koopa);
+void func_80109220_koopa(omObjData *obj) {
+    if (D_800D530C_main != 0) {
+        WipeCreateOut(3, 20);
+        HuAudSeqFadeOut(60);
+        obj->func = func_801091C4_koopa;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_8010926C_koopa);
+void func_8010926C_koopa(void) {
+    MBModelInit();
+    func_800F26E8_shared_board();
+    func_800EE700_shared_board();
+    func_800F2A20_shared_board();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_801092A0_koopa);
+void func_801092A0_koopa(void) {
+    func_800F2A34_shared_board();
+    func_800EE740_shared_board();
+    func_800F27C4_shared_board();
+    MBModelClose();
+}
 
 void func_801092D4_koopa(void) {
     Hu3DCamInit(1);
