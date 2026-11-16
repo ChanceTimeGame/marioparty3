@@ -455,6 +455,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801199EC_w02);
 #include "../ovl_80_shared_board/EDDB0.h"
 #include "../ovl_80_shared_board/1006F0.h"
 #include "../ovl_80_shared_board/105D50.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/FFB10.h"
 
 void func_801199EC_w02(void);
 void func_80107830_w02(void);
@@ -481,6 +483,23 @@ extern s32 D_8011ECB4_w02;
 extern s32 D_8011ECB8_w02;
 extern s32 D_8011ECF8_w02;
 extern s32 D_8011ECFC_w02;
+extern s16 D_8011D9A4_w02[20];
+
+/* Sets a model's matrix to a rotation of `angle` degrees about z. */
+#define W02_MODEL_ROTZ(obj, angle)                                                                   \
+    {                                                                                              \
+        HmfModel *mdl;                                                                             \
+        sincosdf(angle, &HmfModelData[(obj)->omObj1->model[0]].mtx[1],                             \
+                 &HmfModelData[(obj)->omObj1->model[0]].mtx[0]);                                   \
+        HmfModelData[(obj)->omObj1->model[0]].mtx[4] = -HmfModelData[(obj)->omObj1->model[0]].mtx[1]; \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                              \
+        mdl->mtx[5] = mdl->mtx[0];                                                                 \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                              \
+        mdl->mtx[2] = mdl->mtx[3] = mdl->mtx[7] = mdl->mtx[6] = mdl->mtx[8] = mdl->mtx[9] =         \
+            mdl->mtx[11] = mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                      \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                              \
+        mdl->mtx[10] = mdl->mtx[15] = 1.0f;                                                        \
+    }
 extern u8 *D_8011E998_w02[8];
 extern s8 *D_8011EA38_w02[8];
 extern DecisionTreeNonLeafNode *D_8011EA58_w02[2];
@@ -495,7 +514,118 @@ void func_80119D84_w02(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119DB0_w02);
 
+// board g6
+/* Whirlpool space: the player sinks into a whirlpool and comes out at the paired space. */
+#ifdef NON_MATCHING
+// One instruction off: retail has no nop after the first sindf call of the second loop
+// (GCC filled that delay slot itself here, so gas adds a nop).
+void func_8011B038_w02(s16 masu) {
+    f32 screen[2];
+    Vec pos;
+    Vec target;
+    GW_PLAYER *player;
+    SpaceData *space;
+    SpaceData *dest;
+    Object *obj;
+    UnkVibrateProcess *vib;
+    s32 offscreen;
+    s32 destMasu;
+    s32 i;
+
+    player = MBPlayerGet(-1);
+    space = MBMasuGet(0x72);
+    destMasu = 0;
+    for (i = 0; i < ARRAY_COUNTU(D_8011D9A4_w02); i += 2) {
+        if (D_8011D9A4_w02[i] == masu) {
+            destMasu = D_8011D9A4_w02[i + 1];
+            break;
+        }
+    }
+    dest = MBMasuGet(destMasu);
+    MBCamera3Dto2D(&space->coords, screen);
+    offscreen = 1;
+    if (screen[0] >= 24.0f && screen[0] <= 296.0f && screen[1] >= 12.0f && screen[1] <= 228.0f) {
+        offscreen = 0;
+        HuVecCopy3F(&target, &space->coords);
+        HuVecCopy3F(&pos, &player->player_obj->coords);
+        MBCameraFocusModeSet(4);
+        MBCameraFocusVecSet(&pos);
+        HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&pos, &target, &pos, 20));
+        HuPrcChildWait();
+    } else {
+        offscreen = 1;
+        WipeCreateOut(4, 16);
+        while (WipeStatGet() != 0) {
+            HuPrcVSleep();
+        }
+        HuVecCopy3F(&pos, &space->coords);
+        MBCameraFocusModeSet(4);
+        MBCameraFocusVecSet(&pos);
+        func_800E9AF0_shared_board(&pos, 0);
+        HuPrcVSleep();
+        WipeCreateIn(4, 16);
+        while (WipeStatGet() != 0) {
+            HuPrcVSleep();
+        }
+    }
+    MBDlgWinExec(0x3A, 0x500);
+    HuVecAdd(&target, &player->player_obj->coords, &dest->coords);
+    HuVecMulScalar(&target, 0.5f, &target);
+    if (offscreen == 0) {
+        HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&pos, &target, &pos, 20));
+        HuPrcChildWait();
+    } else {
+        WipeCreateOut(4, 16);
+        while (WipeStatGet() != 0) {
+            HuPrcVSleep();
+        }
+        HuVecCopy3F(&pos, &target);
+        func_800E9AF0_shared_board(&pos, 0);
+        HuPrcVSleep();
+        WipeCreateIn(4, 16);
+        while (WipeStatGet() != 0) {
+            HuPrcVSleep();
+        }
+    }
+    obj = MBModelFileCreate(0x13016A, -1, 1.0f, 0.0f, NULL);
+    HuVecCopy3F(&obj->coords, &player->player_obj->coords);
+    obj->velocity.x = 150.0f;
+    for (i = 90; i <= 180; i += 3) {
+        obj->velocity.x = sindf(i) * 150.0f;
+        W02_MODEL_ROTZ(obj, 180 - i);
+        HuPrcVSleep();
+    }
+    func_800EB24C_shared_board(destMasu, &player->clink, &player->cidx);
+    MBMoveMasuSet(MBPlayerTurnGet(), player->clink, player->cidx);
+    for (i = 0; i < 4; i++) {
+        if (i != MBPlayerTurnGet()) {
+            MBPlayerPosFixSet(i, 5);
+        }
+    }
+    HuAudFXPlay(0x191);
+    vib = MBPlayerVibrateObjCreate(-1, 2, 5);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&player->player_obj->coords, &dest->coords, &player->player_obj->coords, 18));
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&obj->coords, &dest->coords, &obj->coords, 18));
+    for (i = 0; i <= 180; i += 10) {
+        obj->velocity.x = sindf(i) * 50.0f;
+        W02_MODEL_ROTZ(obj, -sindf(i) * 30.0f);
+        player->player_obj->velocity.x = sindf(i) * 50.0f;
+        HuPrcVSleep();
+    }
+    MBPlayerVibrateObjKill(vib);
+    player->player_obj->velocity.x = 0.0f;
+    for (i = 0; i <= 90; i += 10) {
+        obj->velocity.x = sindf(i) * 150.0f;
+        W02_MODEL_ROTZ(obj, i);
+        HuPrcVSleep();
+    }
+    MBModelKill(obj);
+    MBCameraFocusModeSet(3);
+    HuPrcSleep(5);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B038_w02);
+#endif
 
 // board g6
 void func_8011B8A0_w02(void) {
