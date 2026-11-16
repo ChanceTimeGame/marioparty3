@@ -106,6 +106,14 @@ extern s32 D_8011B96C_w04[];
 extern s32 D_8011B990_w04[];
 extern s16 D_8011B9B4_w04[];
 extern s16 D_8011B80C_w04[][2];
+extern s16 D_8011B814_w04[][2];
+extern s16 D_8011B9B8_w04[];
+extern s16 D_8011B9BC_w04[];
+extern s16 D_8011B9C4_w04[];
+extern Object *D_8011E09C_w04[];
+extern s16 D_8011BFB8_w04[];
+extern s16 D_8011BFCC_w04[];
+extern void *D_8011BA08_w04[];
 extern s16 D_8011B7CC_w04[];
 extern s16 D_8011B7D0_w04[];
 extern event_table_entry D_8011C77C_w04[];
@@ -1114,17 +1122,61 @@ void func_80108644_w04(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801086C4_w04);
+void func_801086C4_w04(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010873C_w04);
+    for (i = 0; i < 2; i++) {
+        func_800D7790_shared_board(9, &MBMasuGet(D_8011B9B8_w04[i])->coords,
+                                         D_8011B814_w04[i][0], D_8011B814_w04[i][1]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801087CC_w04);
+void func_8010873C_w04(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010886C_w04);
+    for (i = 0; i < 3; i++) {
+        if (GwSystem.boardData.halfWordBytes[D_8011B9C4_w04[i]] == 0) {
+            D_8011E09C_w04[i]->rot.x = 0.0f;
+            D_8011E09C_w04[i]->rot.z = -1.0f;
+        } else {
+            D_8011E09C_w04[i]->rot.x = 0.0f;
+            D_8011E09C_w04[i]->rot.z = 1.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801088C8_w04);
+void func_801087CC_w04(s32 arg0) {
+    Object *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801088FC_w04);
+    if (D_8011E09C_w04[arg0] != NULL) {
+        return;
+    }
+    obj = MBModelFileCreate(0x130177, 0, 3.0f, 0, 0);
+    MBModelTempAllocFree(obj);
+    D_8011E09C_w04[arg0] = obj;
+    obj->flags |= 2;
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011B9BC_w04[arg0])->coords);
+}
+
+void func_8010886C_w04(void) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        D_8011E09C_w04[i] = NULL;
+        func_801087CC_w04(i);
+    }
+    func_8010873C_w04();
+}
+
+void func_801088C8_w04(void) {
+    MBMoveNextMasuSet(CUR_PLAYER, 1, 0x15);
+    MBMoveBackMasuSet(CUR_PLAYER, 1, 0x15);
+}
+
+void func_801088FC_w04(void) {
+    func_80116024_w04(D_8011BFB8_w04, D_8011BFCC_w04, D_8011BA08_w04);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80108934_w04);
 
