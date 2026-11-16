@@ -1697,7 +1697,108 @@ s32 func_801098C8_w03(s32 arg0) {
     return func_8005E1D8_main(mbDlgWinId, 0, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80109AD8_w03);
+void func_80109AD8_w03(void) {
+    GW_PLAYER *player;
+    Process *proc;
+    UnkVibrateProcess *vib;
+    s32 masu;
+    s32 ret;
+    s32 blocked = 1;
+    GW_SYSTEM *system = &GwSystem;
+
+    player = MBPlayerGet(-1);
+    masu = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+
+    if ((((masu == 0x74) | (masu == 0x8C)) == 0 || !(player->rev & 1)) &&
+        (((masu == 0x75) | (masu == 0x8D)) == 0 || (player->rev & 1))) {
+        MBPlayerMotionSet(-1, -1, 2);
+
+        if (MBItemFind(system->current_player_index, 1) != -1) {
+            func_800DBEC0_shared_board(system->current_player_index);
+            switch (masu) {
+                case 0x74:
+                case 0x75:
+                    func_800ED20C_shared_board(-1, 8, 0x7D);
+                    break;
+                default:
+                    func_800ED20C_shared_board(-1, 8, 0x7E);
+            }
+
+            proc = HuPrcCurrentGet();
+            HuPrcChildLink(proc, MBCameraZoomMotStart(1.6f));
+            HuPrcChildWait();
+            MBPlayerVibrate(-1, 1);
+
+            while (1) {
+                MBDlgWinCreate(0x38, 0x4103);
+                ret = func_801098C8_w03(0);
+                MBDlgWinClose();
+                MBDlgWinKill();
+                switch (ret) {
+                    case 0:
+                        MBDlgWinExec(0x38, 0x4104);
+                        GwPlayer[system->current_player_index].itemNo[MBItemFind(system->current_player_index, 1)] = -1;
+                        MBItemRemoveEmpty(GwSystem.current_player_index);
+                        MBStatusItemIconSprReinit(-1);
+                        switch (masu) {
+                            case 0x74:
+                                func_8010866C_w03(0, 0);
+                                break;
+                            case 0x75:
+                                func_8010866C_w03(0, 1);
+                                break;
+                            case 0x8C:
+                                func_8010866C_w03(1, 0);
+                                break;
+                            default:
+                                func_8010866C_w03(1, 1);
+                                break;
+                        }
+                        blocked = 0;
+                        vib = MBPlayerVibrateObjCreate(-1, 2, 5);
+                        HuPrcSleep(0x14);
+                        MBPlayerVibrateObjKill(vib);
+                        break;
+                    case 1:
+                        MBDlgWinExec(0x38, 0x4105);
+                        break;
+                    case 2:
+                        func_80106CA0_w03();
+                        continue;
+                }
+                break;
+            }
+            func_800DB884_shared_board(system->current_player_index);
+            proc = HuPrcCurrentGet();
+            HuPrcChildLink(proc, MBCameraZoomMotStart(1.3f));
+            HuPrcChildWait();
+        } else {
+            MBDlgWinExec(-1, 0x4106);
+        }
+
+        if (blocked != 0) {
+            switch (masu) {
+                case 0x74:
+                    MBMoveNextMasuSet(-1, 0xA, 1);
+                    player->rev |= 1;
+                    break;
+                case 0x75:
+                    MBMoveNextMasuSet(-1, 0xA, 5);
+                    player->rev &= ~1;
+                    break;
+                case 0x8C:
+                    MBMoveNextMasuSet(-1, 0xB, 2);
+                    player->rev |= 1;
+                    break;
+                default:
+                    MBMoveNextMasuSet(-1, 0xB, 6);
+                    player->rev &= ~1;
+                    break;
+            }
+        }
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_80109E90_w03(void) {
 }
