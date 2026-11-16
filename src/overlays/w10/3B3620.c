@@ -10,6 +10,7 @@
 #include "../ovl_80_shared_board/106A50.h"
 #include "../ovl_80_shared_board/10C230.h"
 #include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5070.h"
 #include "../ovl_80_shared_board/F5E80.h"
 #include "../ovl_80_shared_board/EA790.h"
 #include "../ovl_80_shared_board/EAB00.h"
@@ -48,6 +49,7 @@ void func_800461B4_main(s16 model);
 void func_80105DC4_w10(void);
 void func_80105E08_w10(void);
 void func_800DCD64_shared_board(s32 arg0, s32 arg1);
+void func_800EE614_shared_board(s32 arg0);
 void func_8001FA68_main(s16 model);
 
 void func_801059D0_w10(void) {
@@ -395,19 +397,81 @@ void func_8010687C_w10(s16 arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106908_w10);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106DEC_w10);
+/* Blue/red space: colour the player and give or take three coins. */
+void func_80106DEC_w10(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    GW_PLAYER *player;
+    SpaceData *space;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106ED8_w10);
+    player = MBPlayerGet(CUR_PLAYER);
+    space = MBMasuGet(MBMasuLinkMasuIdGet(player->clink, player->cidx));
+    MBPlayerMasuColorSet(CUR_PLAYER, space->space_type);
+    MBStatusColorSet(sys->current_player_index, player->color);
+    switch (space->space_type) {
+    case 1:
+        MBCoinChangeCreate(sys->current_player_index, 3);
+        MBCoinTakeCreate(sys->current_player_index, 3);
+        HuPrcSleep(30);
+        break;
+    case 2:
+        MBCoinChangeCreate(sys->current_player_index, -3);
+        MBCoinTakeCreate(sys->current_player_index, -3);
+        HuPrcSleep(30);
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106F40_w10);
+void func_80106ED8_w10(UnkMBGuideData *guide, s32 mess) {
+    func_8005B43C_main(guide->amount, mess, -1, -1);
+    func_80060C14_main(guide->amount, 1);
+    func_800EE614_shared_board(guide->amount);
+    func_80060EA8_main(guide->amount, 1);
+    func_8005D294_main(guide->amount);
+    HuPrcVSleep();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106F7C_w10);
+void func_80106F40_w10(UnkMBGuideData *guide, s32 mess) {
+    func_8005B43C_main(guide->amount, mess, -1, -1);
+    func_80060C14_main(guide->amount, 1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106FE0_w10);
+void func_80106F7C_w10(UnkMBGuideData *guide, s32 mess) {
+    func_8005B43C_main(guide->amount, mess, -1, -1);
+    func_80060C14_main(guide->amount, 1);
+    while (func_8005E0C0_main(guide->amount) != 0) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107028_w10);
+void func_80106FE0_w10(UnkMBGuideData *guide) {
+    func_800EE614_shared_board(guide->amount);
+    func_80060EA8_main(guide->amount, 1);
+    func_8005D294_main(guide->amount);
+    HuPrcVSleep();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801070B8_w10);
+void func_80107028_w10(UnkMBGuideData *guide, s32 mess) {
+    func_8005FE54_main(guide->amount, 15);
+    func_8005F744_main(-1, -1, -1, -1);
+    func_8005B43C_main(guide->amount, mess, -1, -1);
+    while (func_8005E0C0_main(guide->amount) != 0) {
+        HuPrcVSleep();
+    }
+    func_8005F904_main();
+}
+
+void func_801070B8_w10(UnkMBGuideData *guide) {
+    Object *obj = guide->obj;
+
+    obj->velocity.y = 4.0f;
+    obj->velocity.z = -0.6f;
+    MBMotionSet(guide->obj, 0, 0);
+    HuPrcSleep(3);
+    while (MBMotionCheck(guide->obj) == 0) {
+        HuPrcVSleep();
+    }
+    MBMotionSet(guide->obj, -1, 2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010714C_w10);
 
