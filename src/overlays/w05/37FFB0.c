@@ -2334,9 +2334,241 @@ void func_8011720C_w05(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801178B4_w05);
+// board r3: copies a start/next/previous space record (six s16, low byte kept) into the player's chain/space fields
+void func_801178B4_w05(GW_PLAYER *player, s32 idx, s16 (*tbl)[6]) {
+    s16 *p = tbl[idx];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80117908_w05);
+    player->clink = *p++;
+    player->cidx = *p++;
+    player->nlink = *p++;
+    player->nidx = *p++;
+    player->blink = p[0];
+    player->bidx = p[1];
+}
+
+extern s32 D_801207B0_w05[4];
+
+// board r3: w10 func_801084CC_w10's twin. The "who gets the item" panel: a flipping banner, then one card per
+// player whose mark follows D_801207B0_w05[player] (0 hidden, 1..4 mark n-1) until a state above 4 closes it.
+void func_80117908_w05(void) {
+    s32 markSpr[4];
+    s32 chrSpr[4];
+    s32 cardGrp[4];
+    s32 bannerSpr;
+    s32 frameSpr;
+    s32 bannerGrp;
+    Process *curProc;
+    Unk3 *helpWin;
+    void *data;
+    s32 i;
+    s32 j;
+    s32 flips;
+    s32 flipped;
+    s32 fading;
+    s32 alpha;
+    f32 angle;
+    f32 t;
+    f32 step;
+    s32 grp;
+
+    i = 0;
+    curProc = HuPrcCurrentGet();
+    data = DataRead(0x1300F7);
+    bannerSpr = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F8);
+    markSpr[0] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FB);
+    markSpr[1] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300F9);
+    markSpr[2] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FA);
+    markSpr[3] = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x1300FC);
+    frameSpr = func_80055810_main(data);
+    DataClose(data);
+    for (; i < 4; i++) {
+        data = DataRead((GwPlayer[i].chr + 8) | 0x210000);
+        chrSpr[i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    bannerGrp = HuSprGrpCreate(1, 5);
+    func_80055024_main(bannerGrp, 0, bannerSpr, 0);
+    HuSprAttrReset(bannerGrp, 0, 0xFFFF);
+    HuSprAttrSet(bannerGrp, 0, 0x1008);
+    HuSprPriSet(bannerGrp, 0, 0x1000);
+    func_80054904_main(bannerGrp, 0, 160, 90);
+    angle = 0.0f;
+    step = 30.0f;
+    flips = 0;
+    flipped = 0;
+    while (1) {
+        if ((angle >= 90.0f) & (flipped == 0)) {
+            flipped = 1;
+            flips++;
+        }
+        if (angle >= 360.0f) {
+            flipped = 0;
+            angle -= 360.0f;
+        }
+        if ((angle >= 180.0f) & (angle <= 360.0f)) {
+            HuSprAttrSet(bannerGrp, 0, 2);
+        } else {
+            HuSprAttrReset(bannerGrp, 0, 2);
+        }
+        t = angle;
+        if (angle >= 180.0f) {
+            t = angle - 180.0f;
+        }
+        HuSprScaleSet(bannerGrp, 0, 1.0f, sindf(t));
+        if (flips >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprAttrReset(bannerGrp, 0, 2);
+    HuSprScaleSet(bannerGrp, 0, 1.0f, 1.0f);
+    helpWin = func_800E210C_shared_board(20, 160, 1);
+    for (i = 0; i < 4; i++) {
+        grp = cardGrp[i] = HuSprGrpCreate(6, 5);
+        func_80055024_main(grp, 0, frameSpr, 0);
+        func_800550F4_main(grp, 0, 0);
+        HuSprAttrReset(grp, 0, 0xFFFF);
+        if (D_801207B0_w05[i] != 0) {
+            HuSprAttrSet(grp, 0, 8);
+        } else {
+            HuSprAttrSet(grp, 0, 0x8000);
+        }
+        HuSprPriSet(grp, 0, 0x1000);
+        func_800554C4_main(grp, 0, -1);
+        func_80055024_main(grp, 1, chrSpr[i], 0);
+        func_800550F4_main(grp, 1, 0);
+        HuSprAttrReset(grp, 1, 0xFFFF);
+        if (D_801207B0_w05[i] != 0) {
+            HuSprAttrSet(grp, 1, 8);
+        } else {
+            HuSprAttrSet(grp, 1, 0x8000);
+        }
+        HuSprPriSet(grp, 1, 0x1000);
+        func_80054904_main(grp, 1, 0, -9);
+        func_800554C4_main(grp, 1, 0);
+        for (j = 0; j < 4; j++) {
+            func_80055024_main(grp, j + 2, markSpr[j], 0);
+            func_800550F4_main(grp, j + 2, 1);
+            HuSprAttrReset(grp, j + 2, 0xFFFF);
+            if (D_801207B0_w05[i] == j + 1) {
+                HuSprAttrSet(grp, j + 2, 8);
+            } else {
+                HuSprAttrSet(grp, j + 2, 0x8000);
+            }
+            HuSprPriSet(grp, j + 2, 0x1000);
+            func_80054904_main(grp, j + 2, 0, 9);
+            func_800554C4_main(grp, j + 2, 0);
+        }
+        func_80054904_main(grp, 0, i * 70 + 55, 200);
+    }
+    HuPrcSleep(20);
+    angle = 90.0f;
+    flips = 0;
+    fading = 0;
+    flipped = 0;
+    alpha = 0xFF;
+    while (1) {
+        if ((angle >= 360.0f) & (flipped == 0)) {
+            flipped = 1;
+            flips++;
+        }
+        if (angle >= 360.0f) {
+            flipped = 0;
+            angle -= 360.0f;
+        }
+        if ((fading == 0) & (flips != 0)) {
+            if ((angle >= 90.0f) & (angle < 180.0f)) {
+                fading = 1;
+            }
+        }
+        if (fading != 0) {
+            alpha -= 0x15;
+            if (alpha <= 0) {
+                alpha = 0;
+            }
+        }
+        func_80055458_main(bannerGrp, 0, alpha);
+        if (flips >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprScaleSet(bannerGrp, 0, 1.0f, 0.0f);
+    HuSprGrpKill(bannerGrp);
+    HuSprKill(bannerSpr);
+    curProc->user_data = (void *)1;
+    while (1) {
+        for (i = 0; i < 4; i++) {
+            switch (D_801207B0_w05[i]) {
+                case 0:
+                    for (j = 0; j < 6; j++) {
+                        HuSprAttrSet(cardGrp[i], j, 0x8000);
+                    }
+                    break;
+                case 1:
+                    for (j = 0; j < 6; j++) {
+                        HuSprAttrReset(cardGrp[i], j, 0x8000);
+                    }
+                    for (j = 0; j < 4; j++) {
+                        HuSprAttrSet(cardGrp[i], j + 2, 0x8000);
+                    }
+                    HuSprAttrReset(cardGrp[i], 2, 0x8000);
+                    break;
+                case 2:
+                    for (j = 0; j < 6; j++) {
+                        HuSprAttrReset(cardGrp[i], j, 0x8000);
+                    }
+                    for (j = 0; j < 4; j++) {
+                        HuSprAttrSet(cardGrp[i], j + 2, 0x8000);
+                    }
+                    HuSprAttrReset(cardGrp[i], 3, 0x8000);
+                    break;
+                case 3:
+                    for (j = 0; j < 6; j++) {
+                        HuSprAttrReset(cardGrp[i], j, 0x8000);
+                    }
+                    for (j = 0; j < 4; j++) {
+                        HuSprAttrSet(cardGrp[i], j + 2, 0x8000);
+                    }
+                    HuSprAttrReset(cardGrp[i], 4, 0x8000);
+                    break;
+                case 4:
+                    for (j = 0; j < 6; j++) {
+                        HuSprAttrReset(cardGrp[i], j, 0x8000);
+                    }
+                    for (j = 0; j < 4; j++) {
+                        HuSprAttrSet(cardGrp[i], j + 2, 0x8000);
+                    }
+                    HuSprAttrReset(cardGrp[i], 5, 0x8000);
+                    break;
+                default:
+                    goto end;
+            }
+        }
+        HuPrcVSleep();
+    }
+end:
+    MBHelpWinKill(helpWin);
+    HuSprKill(frameSpr);
+    for (i = 0; i < 4; i++) {
+        HuSprKill(markSpr[i]);
+        HuSprKill(chrSpr[i]);
+        HuSprGrpKill(cardGrp[i]);
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118364_w05);
 
