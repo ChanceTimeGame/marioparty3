@@ -74,6 +74,10 @@ void func_8005B43C_main(s16, s32, s32, s32);
 void func_80105B98_boardresult2(s16 model, s16 frame);
 void func_801074B4_boardresult2(void);
 int sprintf(char* s, const char* fmt, ...);
+s16 func_80105A8C_boardresult2(s16 model, s32 file, char* name);
+s16 func_80105C68_boardresult2(s32 file);
+void func_800E4EAC_name_81(UnkMBGuideData* arg0, s16 arg1, s16 arg2);
+UnkMBGuideData* func_800E4B64_name_81(s32 arg0, s32 arg1);
 s32 func_80106B94_boardresult2(s32 row);
 
 void func_801059A0_boardresult2(void) {
@@ -617,19 +621,141 @@ INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_801074B4_board
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_80109880_boardresult2);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_801098B4_boardresult2);
+/* Builds the board-record page: board name, game-length badge, the four places' badge, portrait
+   and name, the scroll arrows, the 13 row labels, the 64 digit sprites, the row cursor, and the
+   guide (character model and text window) with its texture-animation frames D_80109A38. */
+void func_80107964_boardresult2(void) {
+    s32 placeFiles[4] = { 0x130047, 0x130048, 0x130049, 0x13004A };
+    s32 boardFiles[6] = { 0x130069, 0x13006A, 0x13006B, 0x13006C, 0x13006D, 0x13006E };
+    s32 portraitFiles[8] = { 0x210008, 0x210009, 0x21000A, 0x21000B, 0x21000C, 0x21000D, 0x21000E, 0x21000F };
+    s32 nameFiles[8] = { 0x1301D5, 0x1301D6, 0x1301D7, 0x1301D8, 0x1301D9, 0x1301DA, 0x1301DB, 0x1301DC };
+    s32 lengthFiles[4] = { 0x130072, 0x130073, 0x130074, 0x130075 };
+    s32 rowFiles[13] = { 0x13004D, 0x13004E, 0x13004F, 0x130050, 0x130051, 0x130052, 0x130053,
+                         0x130054, 0x130055, 0x130056, 0x130057, 0x130058, 0x130059 };
+    void* data;
+    s32 file;
+    s32 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_801098C4_boardresult2);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_801098DC_boardresult2);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_801098FC_boardresult2);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_8010991C_boardresult2);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_8010992C_boardresult2);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80107964_boardresult2);
+    D_801099CC_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(boardFiles[GwSystem.current_board_index]);
+    *D_801099CC_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099CC_boardresult2->unk_0A, 0, *D_801099CC_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099CC_boardresult2->unk_0A, 0, 0x6E);
+    HuSprAttrSet(D_801099CC_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099CC_boardresult2->unk_0A, 0, 0x4A, 0x27);
+    D_801099D0_boardresult2 = func_800F4528_name_81(2, 0);
+    data = DataRead(0x13004B);
+    *D_801099D0_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099D0_boardresult2->unk_0A, 0, *D_801099D0_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099D0_boardresult2->unk_0A, 0, 0x64);
+    HuSprAttrSet(D_801099D0_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099D0_boardresult2->unk_0A, 0, 0xD2, 0x1C);
+    if (GwSystem.playMode & 4) {
+        file = 0x13007C;
+    } else {
+        file = lengthFiles[GwSystem.current_game_length];
+    }
+    data = DataRead(file);
+    D_801099D0_boardresult2->unk_0C[1] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099D0_boardresult2->unk_0A, 1, D_801099D0_boardresult2->unk_0C[1], 0);
+    HuSprPriSet(D_801099D0_boardresult2->unk_0A, 1, 0x63);
+    HuSprAttrSet(D_801099D0_boardresult2->unk_0A, 1, 0x4000);
+    func_80054904_main(D_801099D0_boardresult2->unk_0A, 1, 0xD2, 0x1C);
+    D_801099D4_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(0x13004C);
+    *D_801099D4_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099D4_boardresult2->unk_0A, 0, *D_801099D4_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099D4_boardresult2->unk_0A, 0, 0x63);
+    HuSprAttrSet(D_801099D4_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099D4_boardresult2->unk_0A, 0, 0xDA, 0x33);
+    for (i = 0; i < 4; i++) {
+        D_801099D8_boardresult2[i] = func_800F4528_name_81(10, 2);
+        data = DataRead(placeFiles[i]);
+        D_801099D8_boardresult2[i]->unk_0C[1] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099D8_boardresult2[i]->unk_0A, 1, D_801099D8_boardresult2[i]->unk_0C[1], 0);
+        HuSprPriSet(D_801099D8_boardresult2[i]->unk_0A, 1, 0x62);
+        HuSprAttrSet(D_801099D8_boardresult2[i]->unk_0A, 1, 0x4000);
+        func_80054904_main(D_801099D8_boardresult2[i]->unk_0A, 1, 0xAC, 0);
+        data = DataRead(portraitFiles[GwPlayer[kakusiMasuItemHis[i]].chr]);
+        D_801099D8_boardresult2[i]->unk_0C[2] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099D8_boardresult2[i]->unk_0A, 2, D_801099D8_boardresult2[i]->unk_0C[2], 0);
+        HuSprPriSet(D_801099D8_boardresult2[i]->unk_0A, 2, 0x61);
+        HuSprAttrSet(D_801099D8_boardresult2[i]->unk_0A, 2, 0x4000);
+        func_80054904_main(D_801099D8_boardresult2[i]->unk_0A, 2, 0x24, 1);
+        data = DataRead(nameFiles[GwPlayer[kakusiMasuItemHis[i]].chr]);
+        D_801099D8_boardresult2[i]->unk_0C[3] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099D8_boardresult2[i]->unk_0A, 3, D_801099D8_boardresult2[i]->unk_0C[3], 0);
+        HuSprPriSet(D_801099D8_boardresult2[i]->unk_0A, 3, 0x60);
+        HuSprAttrSet(D_801099D8_boardresult2[i]->unk_0A, 3, 0x4000);
+        func_80054904_main(D_801099D8_boardresult2[i]->unk_0A, 3, 0x4D, 1);
+    }
+    for (i = 0; i < 4; i++) {
+        func_80054904_main(D_801099D8_boardresult2[i]->unk_0A, 0, 0, i * 22 + 0x49);
+    }
+    D_801099E8_boardresult2 = func_800F4528_name_81(2, 0);
+    for (i = 0; i < 2; i++) {
+        data = DataRead(0x13002E);
+        D_801099E8_boardresult2->unk_0C[i] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099E8_boardresult2->unk_0A, i, D_801099E8_boardresult2->unk_0C[i], 0);
+        HuSprPriSet(D_801099E8_boardresult2->unk_0A, i, 0x5A);
+        HuSprAttrSet(D_801099E8_boardresult2->unk_0A, i, 0x4000);
+        func_80054904_main(D_801099E8_boardresult2->unk_0A, i, i * 154 + 0x85, 0xA1);
+    }
+    HuSprAttrSet(D_801099E8_boardresult2->unk_0A, 0, 1);
+    D_801099EC_boardresult2 = func_800F4528_name_81(13, 0);
+    for (i = 0; i < 13; i++) {
+        data = DataRead(rowFiles[i]);
+        D_801099EC_boardresult2->unk_0C[i] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099EC_boardresult2->unk_0A, i, D_801099EC_boardresult2->unk_0C[i], 0);
+        HuSprPriSet(D_801099EC_boardresult2->unk_0A, i, 0x50);
+        HuSprAttrSet(D_801099EC_boardresult2->unk_0A, i, 0xC000);
+    }
+    D_801099F0_boardresult2 = func_800F4528_name_81(64, 0);
+    data = DataRead(0x130077);
+    *D_801099F0_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x130078);
+    D_801099F0_boardresult2->unk_0C[1] = func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i < 64; i++) {
+        func_80055024_main(D_801099F0_boardresult2->unk_0A, i, *D_801099F0_boardresult2->unk_0C, 0);
+        HuSprPriSet(D_801099F0_boardresult2->unk_0A, i, 0x46);
+        HuSprAttrSet(D_801099F0_boardresult2->unk_0A, i, 0xC000);
+    }
+    D_801099F4_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(0x130076);
+    *D_801099F4_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099F4_boardresult2->unk_0A, 0, *D_801099F4_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099F4_boardresult2->unk_0A, 0, 0x3C);
+    HuSprAttrSet(D_801099F4_boardresult2->unk_0A, 0, 0x4000);
+    D_801099C8_boardresult2 = func_800E4B64_name_81(0, 8);
+    func_800E4EAC_name_81(D_801099C8_boardresult2, 0x69, 8);
+    HuVecCopyXYZ(&D_801099C8_boardresult2->obj->scale, 0.1f, 0.1f, 0.1f);
+    func_8005BB18_main(D_801099C8_boardresult2->amount, 1.0f, 1.0f);
+    func_8005B63C_main(D_801099C8_boardresult2->amount, 0x4000, 0x4000);
+    func_8005C060_main(D_801099C8_boardresult2->amount, 2, 0xFF, 0x60, 0x60);
+    func_8005C060_main(D_801099C8_boardresult2->amount, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(D_801099C8_boardresult2->amount, 6, 0x40, 0xFF, 0xFF);
+    func_800E4EAC_name_81(D_801099C8_boardresult2, 0x71, 8);
+    D_80109A38_boardresult2[0] = func_80105A8C_boardresult2(D_801099C8_boardresult2->obj->omObj1->model[0], 0xA007E, "c204n_0_DEF");
+    D_80109A38_boardresult2[1] = func_80105C68_boardresult2(0xA007F);
+    D_80109A38_boardresult2[2] = func_80105C68_boardresult2(0xA0080);
+    D_80109A38_boardresult2[3] = func_80105C68_boardresult2(0xA0081);
+    D_80109A38_boardresult2[4] = func_80105C68_boardresult2(0xA0082);
+    D_80109A38_boardresult2[5] = func_80105C68_boardresult2(0xA0083);
+    D_80109A38_boardresult2[6] = func_80105C68_boardresult2(0xA0084);
+    func_80105B98_boardresult2(D_801099C8_boardresult2->obj->omObj1->model[0], D_80109A38_boardresult2[0]);
+}
 
 void func_80108548_boardresult2(void) {
     s32 i;
