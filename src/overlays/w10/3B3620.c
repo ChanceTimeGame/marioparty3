@@ -7,6 +7,8 @@
 #include "../ovl_80_shared_board/1006F0.h"
 #include "game/wipe.h"
 #include "math.h"
+#include "game/audio.h"
+#include "game/hmfman.h"
 #include "../ovl_80_shared_board/1063F0.h"
 #include "../ovl_80_shared_board/106A50.h"
 #include "../ovl_80_shared_board/10C230.h"
@@ -56,6 +58,8 @@ void func_80105DC4_w10(void);
 void func_80105E08_w10(void);
 void func_800DCD64_shared_board(s32 arg0, s32 arg1);
 void func_800EE614_shared_board(s32 arg0);
+void func_80107350_w10(omObjData *obj);
+void func_801073C8_w10(omObjData *obj);
 void func_8001FA68_main(s16 model);
 
 void func_801059D0_w10(void) {
@@ -552,9 +556,112 @@ void func_801073C8_w10(omObjData *obj) {
     obj->rot.x += 10.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107444_w10);
+/* Lower two models onto the current player with an effect, bob them until told to stop
+ * (*status != 1), then raise and delete them; *status = 3 when done. */
+void func_80107444_w10(void) {
+    s32 effect;
+    omObjData *bob;
+    GW_PLAYER *player;
+    s32 *status;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107780_w10);
+    status = HuPrcCurrentGet()->user_data;
+    player = MBPlayerGet(CUR_PLAYER);
+
+    D_8010BA68_w10 = MBModelCreate(9, NULL);
+    D_8010BA6C_w10 = MBModelFileCreate(0x1301C8, -1, 1.0f, 0.0f, NULL);
+    effect = func_8000CED8_main(0xB0004, 0xAA9);
+    HuAudFXPlay(0x119);
+    func_8001C8A8_main(effect, 1);
+    func_8000CD00_main(effect, 1.0f, 20.0f, 1.0f);
+    func_8000D018_main(effect, 15.0f);
+    MBModelTempAllocFree(D_8010BA68_w10);
+    D_8010BA68_w10->flags |= 1;
+    MBModelTempAllocFree(D_8010BA6C_w10);
+    HuVecCopy3F(&D_8010BA68_w10->coords, &player->player_obj->coords);
+    HuVecCopy3F(&D_8010BA6C_w10->coords, &player->player_obj->coords);
+    D_8010BA68_w10->velocity.x = 120.0f;
+    D_8010BA6C_w10->velocity.x = 120.0f;
+    while (D_8010BA68_w10->velocity.x > 50.0f) {
+        func_8000CFA4_main(effect, D_8010BA68_w10->coords.x, D_8010BA68_w10->velocity.x - 10.0f,
+                           D_8010BA68_w10->coords.z);
+        HuPrcVSleep();
+        D_8010BA68_w10->velocity.x -= 4.0f;
+        D_8010BA6C_w10->velocity.x -= 4.0f;
+    }
+    bob = omAddObj(500, 0, 0, -1, func_80107350_w10);
+    bob->rot.x = 180.0f;
+    *status = 1;
+    HuPrcVSleep();
+    while (*status == 1) {
+        HuPrcVSleep();
+    }
+    while (D_8010BA68_w10->velocity.x < 120.0f) {
+        func_8000CFA4_main(effect, D_8010BA68_w10->coords.x, D_8010BA68_w10->velocity.x - 10.0f,
+                           D_8010BA68_w10->coords.z);
+        HuPrcVSleep();
+        D_8010BA68_w10->velocity.x += 4.0f;
+        D_8010BA6C_w10->velocity.x += 4.0f;
+    }
+    *status = 3;
+    func_8000D044_main(effect);
+    MBModelKill(D_8010BA68_w10);
+    MBModelKill(D_8010BA6C_w10);
+    omDelObj(bob);
+    omDelPrcObj(NULL);
+}
+
+/* As func_80107444_w10 with the other model pair, effect and sound. */
+void func_80107780_w10(void) {
+    s32 effect;
+    omObjData *bob;
+    GW_PLAYER *player;
+    s32 *status;
+
+    status = HuPrcCurrentGet()->user_data;
+    player = MBPlayerGet(CUR_PLAYER);
+
+    D_8010BA68_w10 = MBModelCreate(0x39, NULL);
+    D_8010BA6C_w10 = MBModelFileCreate(0x130203, -1, 1.0f, 0.0f, NULL);
+    effect = func_8000CED8_main(0xB0005, 0xAA9);
+    HuAudFXPlay(0x11A);
+    func_8001C8A8_main(effect, 1);
+    func_8000CD00_main(effect, 1.0f, 20.0f, 1.0f);
+    func_8000D018_main(effect, 15.0f);
+    MBModelTempAllocFree(D_8010BA68_w10);
+    D_8010BA68_w10->flags |= 1;
+    MBModelTempAllocFree(D_8010BA6C_w10);
+    HuVecCopy3F(&D_8010BA68_w10->coords, &player->player_obj->coords);
+    HuVecCopy3F(&D_8010BA6C_w10->coords, &player->player_obj->coords);
+    D_8010BA68_w10->velocity.x = 120.0f;
+    D_8010BA6C_w10->velocity.x = 120.0f;
+    while (D_8010BA68_w10->velocity.x > 50.0f) {
+        func_8000CFA4_main(effect, D_8010BA68_w10->coords.x, D_8010BA68_w10->velocity.x - 10.0f,
+                           D_8010BA68_w10->coords.z);
+        HuPrcVSleep();
+        D_8010BA68_w10->velocity.x -= 4.0f;
+        D_8010BA6C_w10->velocity.x -= 4.0f;
+    }
+    bob = omAddObj(500, 0, 0, -1, func_80107350_w10);
+    bob->rot.x = 180.0f;
+    *status = 1;
+    HuPrcVSleep();
+    while (*status == 1) {
+        HuPrcVSleep();
+    }
+    while (D_8010BA68_w10->velocity.x < 120.0f) {
+        func_8000CFA4_main(effect, D_8010BA68_w10->coords.x, D_8010BA68_w10->velocity.x - 10.0f,
+                           D_8010BA68_w10->coords.z);
+        HuPrcVSleep();
+        D_8010BA68_w10->velocity.x += 4.0f;
+        D_8010BA6C_w10->velocity.x += 4.0f;
+    }
+    *status = 3;
+    func_8000D044_main(effect);
+    MBModelKill(D_8010BA68_w10);
+    MBModelKill(D_8010BA6C_w10);
+    omDelObj(bob);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107ABC_w10);
 
