@@ -132,13 +132,58 @@ extern s32 D_8011CCE4_w03[]; /* D_8011C404_w06 */
 extern s32 D_8011CD2C_w03[]; /* D_8011C404_w06 */
 extern s32 D_8011CD74_w03[]; /* D_8011C404_w06 */
 extern s32 D_8011CDBC_w03[]; /* D_8011C404_w06 */
+extern s16 D_8011C110_w03[]; /* star-space order */
+extern s16 D_8011C120_w03[]; /* order constraints */
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
     return D_8011C150_w03[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
 }
 
+#ifdef NON_MATCHING
+// board p1: li s0,7 scheduled into the MBRand delay slot (retail: before the lui)
+void func_801059F8_w03(void) {
+    s32 var;
+    s32 i;
+    s32 idx1;
+    s32 idx2;
+    GW_SYSTEM *loc = &GwSystem;
+
+    for (i = 0; i < 0x3C; i++) {
+        idx1 = rand8() & 7;
+        idx2 = rand8() & 7;
+
+        if (idx1 != idx2) {
+            if (idx1 < D_8011C120_w03[idx2]) {
+                continue;
+            }
+            if (idx2 < D_8011C120_w03[idx1]) {
+                continue;
+            }
+            {
+                s32 temp = D_8011C110_w03[idx1];
+                D_8011C110_w03[idx1] = D_8011C110_w03[idx2];
+                D_8011C110_w03[idx2] = temp;
+                temp = D_8011C120_w03[idx1];
+                D_8011C120_w03[idx1] = D_8011C120_w03[idx2];
+                D_8011C120_w03[idx2] = temp;
+            }
+        }
+    }
+
+    for (i = 0; i < 8; i++) {
+        loc->star_spawn_indices[i] = D_8011C110_w03[i];
+    }
+
+    var = 7;
+    GwSystem.boardData.halfWordBytes[0] = loc->star_spawn_indices[MBRand(6.0f) + 1];
+    if (GwSystem.boardData.halfWordBytes[0] != var) {
+        GWBoardFlagClear(0x12);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_801059F8_w03);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80105B44_w03);
 
