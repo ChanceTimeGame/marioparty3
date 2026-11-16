@@ -1100,7 +1100,57 @@ void func_8010AF68_w10(UnkMBGuideData *guide) {
     HuPrcSleep(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010B12C_w10);
+// Tutorial pause menu: dims the screen, asks whether to quit; true when the player chose to quit.
+s16 func_8010B12C_w10(s32 padNo) {
+    s16 size[2];
+    UnkBoard8 *dim;
+    UnkBoard8 *frame;
+    void *data;
+    s16 winId;
+    s16 choice;
+
+    func_8004A9DC_main(0x60);
+    dim = func_800F2C48_shared_board(1, 0);
+    data = DataRead(0x13025D);
+    dim->model[0] = func_80055810_main(data);
+    func_80055024_main(dim->spriteGroup, 0, dim->model[0], 0);
+    HuSprPriSet(dim->spriteGroup, 0, 9);
+    HuSprAttrSet(dim->spriteGroup, 0, 0x1000);
+    func_80054904_main(dim->spriteGroup, 0, 160, 120);
+    HuSprScaleSet(dim->spriteGroup, 0, 40.0f, 30.0f);
+    func_80055484_main(dim->spriteGroup, 0, 0, 0, 0, 0xC0);
+    DataClose(data);
+    frame = func_800F2C48_shared_board(2, 0);
+    data = DataRead(0x130009);
+    frame->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(frame->spriteGroup, 0, frame->model[0], 0);
+    HuSprPriSet(frame->spriteGroup, 0, 8);
+    HuSprAttrSet(frame->spriteGroup, 0, 0x1000);
+    func_80054904_main(frame->spriteGroup, 0, 158, 120);
+    func_80055420_main(frame->spriteGroup, 0, 0x89, 0xCA, 0xB2);
+    func_80060394_main(1, size, 0x1633);
+    winId = func_8005A968_main(0x49, 0x4B, size[0], size[1], 0, 2);
+    func_8005BE30_main(winId, 5);
+    func_8005BEE0_main(winId, 0);
+    func_80060144_main(winId);
+    func_8005C060_main(winId, 7, 0, 0, 0xE0);
+    func_8005C060_main(winId, 0, 0x89, 0xCA, 0xB2);
+    func_8005C060_main(winId, 4, 0, 0x80, 0);
+    func_8005FBF8_main(winId, 0x89, 0xCA, 0xB2);
+    func_8005B43C_main(winId, 0x1633, -1, -1);
+    func_8005BDFC_main(winId, 0);
+    while (func_8005E0C0_main(winId) != 0) {
+        HuPrcVSleep();
+    }
+    func_8005FE54_main(winId, 1 << padNo);
+    choice = func_8005E1D8_main(winId, 0, 0);
+    func_8005F364_main(winId);
+    func_8004A9DC_main(0x7F);
+    func_800F2CA4_shared_board(dim);
+    func_800F2CA4_shared_board(frame);
+    return choice == 1;
+}
 
 // Pause watcher: Start opens the tutorial pause menu; quitting leaves the board.
 void func_8010B434_w10(void) {
