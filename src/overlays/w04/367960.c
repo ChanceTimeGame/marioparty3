@@ -31,17 +31,96 @@ extern void *D_8011BE88_w04[];
 extern s16 D_8011C360_w04[];
 extern s16 D_8011C374_w04[];
 extern void *D_8011BF0C_w04[];
+extern s16 D_8011B740_w04[];
+extern s16 D_8011B750_w04[];
+extern s16 D_8011B760_w04[];
+extern s16 D_8011B770_w04[];
+extern s16 D_8011B780_w04[];
 // end board q1
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801059D0_w04);
+s16 func_801059D0_w04(void) {
+    return D_8011B780_w04[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801059F8_w04);
+void func_801059F8_w04(void) {
+    s32 i;
+    s32 idx1;
+    s32 idx2;
+    GW_SYSTEM *loc = &GwSystem;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80105B00_w04);
+    for (i = 0; i < 0x3C; i++) {
+        idx1 = rand8() & 7;
+        idx2 = rand8() & 7;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80105B8C_w04);
+        if (idx1 != idx2) {
+            if (idx1 < D_8011B750_w04[idx2]) {
+                continue;
+            }
+            if (idx2 < D_8011B750_w04[idx1]) {
+                continue;
+            }
+            {
+                s32 temp = D_8011B740_w04[idx1];
+                D_8011B740_w04[idx1] = D_8011B740_w04[idx2];
+                D_8011B740_w04[idx2] = temp;
+                temp = D_8011B750_w04[idx1];
+                D_8011B750_w04[idx1] = D_8011B750_w04[idx2];
+                D_8011B750_w04[idx2] = temp;
+            }
+        }
+    }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80105C30_w04);
+    for (i = 0; i < 8; i++) {
+        loc->star_spawn_indices[i] = D_8011B740_w04[i];
+    }
+}
+
+void func_80105B00_w04(void) {
+    GW_SYSTEM *loc;
+    s32 last;
+    s32 first;
+
+    loc = &GwSystem;
+    loc->current_star_spawn++;
+    if (loc->current_star_spawn >= 8) {
+        last = loc->star_spawn_indices[7];
+        loc->current_star_spawn = 0;
+        GWBoardFlagSet(4);
+        func_801059F8_w04();
+        first = loc->star_spawn_indices[0];
+        if ((last ^ first) == 0) {
+            loc->star_spawn_indices[0] = loc->star_spawn_indices[7];
+            loc->star_spawn_indices[7] = first;
+        }
+    }
+}
+
+void func_80105B8C_w04(void) {
+    s32 i;
+    GW_SYSTEM *loc = &GwSystem;
+
+    for (i = 0; i < 8; i++) {
+        GWBoardFlagSet(D_8011B760_w04[i]);
+    }
+    MBMasuTypeSet(D_8011B770_w04[loc->star_spawn_indices[loc->current_star_spawn]], 0xE);
+    GWBoardFlagClear(D_8011B760_w04[loc->star_spawn_indices[loc->current_star_spawn]]);
+}
+
+s32 func_80105C30_w04(s16 arg0) {
+    s32 i;
+    GW_SYSTEM *loc = &GwSystem;
+
+    for (i = 0; i < 8; i++) {
+        if (arg0 == D_8011B770_w04[i]) {
+            if (i == loc->star_spawn_indices[loc->current_star_spawn]) {
+                loc->unk_0E = D_8011B760_w04[i];
+                return 1;
+            }
+            break;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80105CA4_w04);
 
