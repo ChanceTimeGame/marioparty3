@@ -187,16 +187,14 @@ Process *func_801060A4_last5(s32 rank) {
 }
 
 #ifdef NON_MATCHING
-/* event e5: masked 0; raw: the winner sits in s6 (s4), the slide-out counters s0/s1 swap */
+/* event e5: masked 0; raw: the winner sits in s6 (retail s4) and the D_80107568 base in s4 (s6) */
 void func_80106100_last5(void) {
+    s32 sel;
     Object *host;
     Object *obj;
     s32 i;
-    s32 sel;
-    s32 r;
     s32 x;
     s32 dx;
-    s32 y;
     Vec dir;
 
     host = MBModelFileCreate(0xA002F, 9, 0.7f, 1.4f, D_801074D4_last5);
@@ -214,13 +212,13 @@ void func_80106100_last5(void) {
     func_80105DEC_last5();
     HuAudFXPlay(0x2A0);
     func_800EC5B4_shared_board(-1, 0x430A);
-    for (r = 0; r < 4; r++) {
-        HuPrcChildLink(HuPrcCurrentGet(), func_801060A4_last5(r));
+    for (x = 0; x < 4; x++) {
+        HuPrcChildLink(HuPrcCurrentGet(), func_801060A4_last5(x));
         {
             s32 mes[4] = { 0x430B, 0x430C, 0x430D, 0x430E };
 
-            func_80105C9C_last5(func_80105B04_last5(mes[BoardPlayerRankCalc(D_80107568_last5[r])],
-                                                    mbCharNameMesTbl[GwPlayer[D_80107568_last5[r]].chr], 0, 0, 0, 0, 140, 110));
+            func_80105C9C_last5(func_80105B04_last5(mes[BoardPlayerRankCalc(D_80107568_last5[x])],
+                                                    mbCharNameMesTbl[GwPlayer[D_80107568_last5[x]].chr], 0, 0, 0, 0, 140, 110));
         }
         HuPrcChildWait();
     }
@@ -228,16 +226,16 @@ void func_80106100_last5(void) {
     MBMotionSet(host, 0, 2);
     sel = 0;
     HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&host->coords, &D_8010748C_last5, &host->coords, 60));
-    i = 0;
+    dx = 0;
     HuPrcChildWait();
     MBVecForwardSet(&dir);
     HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&host->rot, &dir, &host->rot, 10));
     HuPrcChildWait();
     MBMotionShiftSet(host, -1, 0, 5, 2);
-    r = MBRand(100.0f);
-    for (; i < 4; i++) {
-        if (r < D_801074EC_last5[i]) {
-            sel = i;
+    x = MBRand(100.0f);
+    for (; dx < 4; dx++) {
+        if (x < D_801074EC_last5[dx]) {
+            sel = dx;
             break;
         }
     }
@@ -260,8 +258,8 @@ void func_80106100_last5(void) {
         dx += 2;
         HuPrcVSleep();
     } while (x >= -160);
-    for (y = D_801074F0_last5[sel]; D_801074F0_last5[0] < y; y -= 10) {
-        MBStatusPosSet(D_80107568_last5[sel], 30, y);
+    for (x = D_801074F0_last5[sel]; D_801074F0_last5[0] < x; x -= 10) {
+        MBStatusPosSet(D_80107568_last5[sel], 30, x);
         HuPrcVSleep();
     }
     MBStatusPosSet(D_80107568_last5[sel], 30, D_801074F0_last5[0]);
