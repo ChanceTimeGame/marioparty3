@@ -35,6 +35,7 @@ void func_80108704_chancetime(void);
 s32 func_8010872C_chancetime(void);
 void func_80108A88_chancetime(void);
 void func_80108B50_chancetime(void);
+void func_8010BF48_chancetime(void);
 void func_80106F10_chancetime(void);
 void func_8010705C_chancetime(void);
 void func_801071A8_chancetime(void);
@@ -59,6 +60,7 @@ void func_8010E280_chancetime(omObjData *obj);
 void func_8010E4D0_chancetime(omObjData *obj);
 void func_8010F1F8_chancetime(omObjData *obj);
 void func_8010F984_chancetime(omObjData *obj);
+void func_8010F42C_chancetime(omObjData *obj);
 void func_8010F44C_chancetime(s8 prize, s16 total, s16 amount);
 
 extern s8 D_8010FB80_chancetime;
@@ -679,13 +681,45 @@ void func_8010F1DC_chancetime(void) {
     D_80110084_chancetime = func_8010F1F8_chancetime;
 }
 
+// NON_MATCHING: matches with the header fix in e3A.header.patch (func_80060EA8_main takes an s32 window id); logic
+// checked
+#ifdef NON_MATCHING
+void func_8010F1F8_chancetime(omObjData *obj) {
+    func_8005D294_main(((s16 *)&D_80110004_chancetime)[1]);
+    if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
+        func_8005B63C_main(((s16 *)&D_80110004_chancetime)[1], 2, 2);
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, func_800EDC40_shared_board());
+    }
+    func_80108B50_chancetime();
+    func_8010BF48_chancetime();
+    HuAudFXPlay(0x298);
+    func_8005B43C_main(((s16 *)&D_80110004_chancetime)[1], 0x1B00, -1, -1);
+    func_80060C14_main(D_80110004_chancetime, 1);
+    while (func_8005E0C0_main(((s16 *)&D_80110004_chancetime)[1]) != 0) {
+        HuPrcVSleep();
+    }
+    func_80060EA8_main(D_80110004_chancetime, 1);
+    func_80108A88_chancetime();
+    if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
+        func_8005F904_main();
+    }
+    D_80110084_chancetime = func_8010F42C_chancetime;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F1F8_chancetime);
+#endif
 
 s32 func_8010F420_chancetime(void) {
     return D_8010FC10_chancetime;
 }
 
-void func_8010F42C_chancetime(void) {
+void func_8010F42C_chancetime(omObjData *obj) {
     D_8010FC10_chancetime = 1;
     D_80110084_chancetime = func_8010DF70_chancetime;
 }
