@@ -568,7 +568,93 @@ s32 func_80107A9C_koopa(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107A9C_koopa);
 #endif
 
+// NON_MATCHING: an assembler nop after each sindf loop's first call (masked 2, as in func_80107A9C); logic checked
+#ifdef NON_MATCHING
+s32 func_80107DDC_koopa(void) {
+    UnkBoard8 *spr;
+    void *data;
+    s32 i;
+    f32 t;
+    f32 scale;
+
+    MBWinOpen(0x4214);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    if (MBItemFindEmpty(D_801094F4_koopa) == -1) {
+        func_80107724_koopa();
+        MBWinOpen(0x4215);
+        func_800EC3C0_shared_board(D_801094F4_koopa);
+        func_800EC3E4_shared_board();
+        HuAudFXPlay(0x29E);
+        MBMotionShiftSet(D_801094F8_koopa, 4, 0, 20, 0);
+        MBModelMotionWait(D_801094F8_koopa);
+        MBMotionShiftSet(D_801094F8_koopa, 7, 0, 5, 2);
+        HuPrcSleep(10);
+        return 1;
+    }
+    spr = func_800F2C48_shared_board(1, 0);
+    data = DataRead(0x210034);
+    spr->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(spr->spriteGroup, 0, spr->model[0], 0);
+    HuSprAttrReset(spr->spriteGroup, 0, 0xFFFF);
+    HuSprAttrSet(spr->spriteGroup, 0, 0x1000);
+    HuSprPriSet(spr->spriteGroup, 0, 0x1000);
+    func_80054904_main(spr->spriteGroup, 0, 160, -32);
+    func_8010775C_koopa();
+    for (i = 0; i <= 120; i += 4) {
+        func_80054904_main(spr->spriteGroup, 0, 160, i - 32);
+        HuPrcVSleep();
+    }
+    HuPrcSleep(15);
+    for (i = 0; i < 70; i += 5) {
+        t = i;
+        func_80054904_main(spr->spriteGroup, 0, sindf(t) * 90.0f + 160.0f, sindf(i + 90) * 50.0f + 38.0f);
+        func_80055458_main(spr->spriteGroup, 0, 256 - i * 2);
+        t /= 140.0f;
+        scale = 1.0f - t;
+        HuSprScaleSet(spr->spriteGroup, 0, scale, scale);
+        HuPrcVSleep();
+    }
+    HuSprAttrSet(spr->spriteGroup, 0, 0x8000);
+    HuAudFXPlay(0x10);
+    GwPlayer[D_801094F4_koopa].itemNo[MBItemFindEmpty(D_801094F4_koopa)] = 7;
+    MBStatusItemIconSprReinit(D_801094F4_koopa);
+    if (MBItemFindEmpty(D_801094F4_koopa) != -1 && MBRand(10.0f) == 0) {
+        MBWinOpen(0x4216);
+        func_800EC3C0_shared_board(D_801094F4_koopa);
+        func_800EC3E4_shared_board();
+        HuSprAttrReset(spr->spriteGroup, 0, 0x8000);
+        func_80055458_main(spr->spriteGroup, 0, 256);
+        for (i = 0; i <= 10; i++) {
+            func_80054904_main(spr->spriteGroup, 0, 160, 88);
+            scale = i / 10.0f;
+            HuSprScaleSet(spr->spriteGroup, 0, scale, scale);
+            HuPrcVSleep();
+        }
+        HuPrcSleep(15);
+        for (i = 0; i < 70; i += 5) {
+            t = i;
+            func_80054904_main(spr->spriteGroup, 0, sindf(t) * 90.0f + 160.0f, sindf(i + 90) * 50.0f + 38.0f);
+            func_80055458_main(spr->spriteGroup, 0, 256 - i * 2);
+            scale = 1.0f - t / 140.0f;
+            HuSprScaleSet(spr->spriteGroup, 0, scale, scale);
+            HuPrcVSleep();
+        }
+        HuSprAttrSet(spr->spriteGroup, 0, 0x8000);
+        HuAudFXPlay(0x10);
+        GwPlayer[D_801094F4_koopa].itemNo[MBItemFindEmpty(D_801094F4_koopa)] = 7;
+        MBStatusItemIconSprReinit(D_801094F4_koopa);
+    }
+    func_800F2CA4_shared_board(spr);
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107DDC_koopa);
+#endif
 
 // event e4
 void func_80108360_koopa(s32 file) {
