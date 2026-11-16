@@ -189,6 +189,10 @@ extern s16 D_8011C3C8_w03[8];
 extern DecisionTreeNonLeafNode *D_8011CABC_w03[];
 extern s16 D_8011CAD8_w03[];
 extern s32 D_8011CAEC_w03[];
+extern s16 D_8011CDF0_w03[];
+extern s16 D_8011CDF8_w03[];
+extern s16 D_8011CE00_w03[];
+extern s16 D_8011CE08_w03[];
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -1383,7 +1387,120 @@ void func_80108EE0_w03(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80108F38_w03);
+void func_80108F38_w03(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    UnkEA790Struct *win;
+    s32 sel;
+    s32 choice;
+    s32 sel2;
+    s32 i;
+
+    if ((player->rev & 0x80) && mbWalkNum != 0) {
+        MBPlayerMotionSet(-1, -1, 2);
+        HuPrcVSleep();
+        func_80106D84_w03();
+
+        switch (MBMasuLinkMasuIdGet(player->blink, player->bidx)) {
+            case 0x62:
+                win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011CDF0_w03);
+                choice = MBRand(3.0f);
+                break;
+            case 0x46:
+                choice = 2;
+                win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011CDF8_w03);
+                break;
+            case 0x45:
+                win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011CE00_w03);
+                choice = MBRand(3.0f);
+                break;
+            default:
+                win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011CE08_w03);
+                choice = MBRand(3.0f);
+                break;
+        }
+
+        func_800D742C_shared_board(win, GwSystem.current_player_index, 0);
+
+        if (MBPlayerComCheck(-1) != 0) {
+            sel = choice;
+            for (i = 0; i < sel; i++) {
+                func_800D7250_shared_board(win, -2);
+            }
+            func_800D7250_shared_board(win, -4);
+        }
+
+        sel2 = func_800D7518_shared_board(win);
+        func_800D6CA0_shared_board(win);
+        func_80106E54_w03();
+
+        switch (MBMasuLinkMasuIdGet(player->blink, player->bidx)) {
+            case 0x62:
+                switch (sel2) {
+                    case 0:
+                        MBMoveNextMasuSet(-1, 9, 7);
+                        player->rev &= ~1;
+                        break;
+                    case 1:
+                        MBMoveNextMasuSet(-1, 0xA, 6);
+                        player->rev |= 1;
+                        break;
+                    default:
+                        MBMoveNextMasuSet(-1, 0xC, 1);
+                        player->rev |= 1;
+                        break;
+                }
+                break;
+            case 0x46:
+                switch (sel2) {
+                    case 0:
+                        MBMoveNextMasuSet(-1, 9, 5);
+                        player->rev |= 1;
+                        break;
+                    case 1:
+                        MBMoveNextMasuSet(-1, 0xA, 6);
+                        player->rev |= 1;
+                        break;
+                    default:
+                        MBMoveNextMasuSet(-1, 0xC, 1);
+                        player->rev |= 1;
+                        break;
+                }
+                break;
+            case 0x45:
+                switch (sel2) {
+                    case 0:
+                        MBMoveNextMasuSet(-1, 9, 5);
+                        player->rev |= 1;
+                        break;
+                    case 1:
+                        MBMoveNextMasuSet(-1, 9, 7);
+                        player->rev &= ~1;
+                        break;
+                    default:
+                        MBMoveNextMasuSet(-1, 0xC, 1);
+                        player->rev |= 1;
+                        break;
+                }
+                break;
+            default:
+                switch (sel2) {
+                    case 0:
+                        MBMoveNextMasuSet(-1, 9, 5);
+                        player->rev |= 1;
+                        break;
+                    case 1:
+                        MBMoveNextMasuSet(-1, 9, 7);
+                        player->rev &= ~1;
+                        break;
+                    default:
+                        MBMoveNextMasuSet(-1, 0xA, 6);
+                        player->rev |= 1;
+                        break;
+                }
+                break;
+        }
+    }
+}
 
 void func_80109268_w03(void) {
     GW_PLAYER *player = MBPlayerGet(-1);
