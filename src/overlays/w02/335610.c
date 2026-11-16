@@ -412,6 +412,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801156E8_w02);
 #include "../ovl_80_shared_board/F5B90.h"
 #include "../ovl_80_shared_board/F9DE0.h"
 #include "../ovl_80_shared_board/FFB10.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "input.h"
 
 #ifndef BRANCHLINK_DEFINED
 #define BRANCHLINK_DEFINED
@@ -1106,7 +1108,128 @@ void func_801177C8_w02(void) {
     func_8010FB8C_w02();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80117E70_w02);
+/* board g5: D_8011EB20_w02 (five sprite files) and D_8011EB34_w02 (base position, then four
+   offsets), copied whole onto the stack by func_80117E70_w02. */
+typedef struct G5GateFiles {
+    s32 file[5];
+} G5GateFiles;
+typedef struct G5GatePos {
+    Vec2f pos[5];
+} G5GatePos;
+extern G5GateFiles D_8011EB20_w02;
+extern G5GatePos D_8011EB34_w02;
+void func_80108870_w02(void *arg0);
+
+/* The current player picks one of four gates not yet opened (bits of boardData.halfWordBytes[0])
+   with left/right and A (a COM player: random moves, then the tenth frame); marks it open and
+   returns its index. */
+s32 func_80117E70_w02(void) {
+    G5GateFiles files;
+    G5GatePos pos;
+    s32 turn;
+    UnkBoard8 *gates;
+    UnkBoard8 *cursor;
+    Unk3 *help0;
+    Unk3 *help1;
+    void *data;
+    s32 i;
+    s32 sel;
+    s32 prev;
+    s32 timer;
+
+    turn = MBPlayerTurnGet();
+    files = D_8011EB20_w02;
+    pos = D_8011EB34_w02;
+    gates = func_800F2C48_shared_board(5, 2);
+    for (i = 0; i < 5; i++) {
+        data = DataRead(files.file[i]);
+        gates->model[i] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(gates->spriteGroup, i, gates->model[i], 0);
+        HuSprAttrReset(gates->spriteGroup, i, 0xFFFF);
+        HuSprAttrSet(gates->spriteGroup, i, 0);
+        HuSprPriSet(gates->spriteGroup, i, 0x1000);
+        func_80054904_main(gates->spriteGroup, i, pos.pos[i].x, pos.pos[i].y);
+    }
+    for (i = 1; i < 5; i++) {
+        if ((GwSystem.boardData.halfWordBytes[0] >> (i - 1)) & 1) {
+            HuSprAttrSet(gates->spriteGroup, i, 0x8000);
+        }
+    }
+    cursor = func_800F2C48_shared_board(1, 2);
+    data = DataRead(0x1301E6);
+    cursor->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(cursor->spriteGroup, 0, cursor->model[0], 0);
+    HuSprAttrReset(cursor->spriteGroup, 0, 0xFFFF);
+    HuSprAttrSet(cursor->spriteGroup, 0, 0);
+    HuSprPriSet(cursor->spriteGroup, 0, 0xFFF);
+    for (i = 0; i < 4; i++) {
+        if (!((GwSystem.boardData.halfWordBytes[0] >> i) & 1)) {
+            break;
+        }
+    }
+    sel = i;
+    func_80054904_main(cursor->spriteGroup, 0, pos.pos[0].x + pos.pos[sel + 1].x,
+                       pos.pos[0].y + pos.pos[sel + 1].y - 36.0f);
+    help0 = func_800E210C_shared_board(0, 0xB4, 1);
+    help1 = func_800E210C_shared_board(1, 0xC2, 1);
+    timer = 10;
+    while (TRUE) {
+        prev = sel;
+        HuPrcVSleep();
+        if (MBPlayerComCheck(-1)) {
+            if (--timer == 0) {
+                HuAudFXPlay(0x18E);
+                break;
+            }
+            if (timer % 3 != 0) {
+                continue;
+            }
+            if (MBRand(5.0f) == 0) {
+                goto left;
+            }
+            if (MBRand(5.0f) == 0) {
+                goto right;
+            }
+            continue;
+        }
+        if (D_800C9520_main[GwPlayer[turn].pad] & 0x8000) {
+            HuAudFXPlay(0x18E);
+            break;
+        }
+        if (D_800C9520_main[GwPlayer[turn].pad] & 0x200) {
+        left:
+            do {
+                if (--sel < 0) {
+                    sel = 3;
+                }
+            } while ((GwSystem.boardData.halfWordBytes[0] >> sel) & 1);
+        }
+        if (D_800C9520_main[GwPlayer[turn].pad] & 0x100) {
+        right:
+            do {
+                sel++;
+                sel = (sel < 4) ? sel : 0;
+            } while ((GwSystem.boardData.halfWordBytes[0] >> sel) & 1);
+        }
+        if (prev != sel) {
+            func_80054904_main(cursor->spriteGroup, 0, pos.pos[0].x + pos.pos[sel + 1].x,
+                               pos.pos[0].y + pos.pos[sel + 1].y - 36.0f);
+        }
+    }
+    GwSystem.boardData.halfWordBytes[0] |= 1 << sel;
+    func_80108870_w02(&GwSystem.boardData);
+    func_80054904_main(cursor->spriteGroup, 0, pos.pos[0].x + pos.pos[sel + 1].x,
+                       pos.pos[0].y + pos.pos[sel + 1].y - 16.0f);
+    HuSprAttrSet(gates->spriteGroup, sel + 1, 0x8000);
+    HuPrcSleep(20);
+    MBHelpWinKill(help0);
+    MBHelpWinKill(help1);
+    func_800F2CA4_shared_board(gates);
+    func_800F2CA4_shared_board(cursor);
+    return sel;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80118480_w02);
 
@@ -1321,7 +1444,99 @@ void func_80119680_w02(s16 model) {
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119680_w02);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801199EC_w02);
+/* Process: a sprite (file 0x1300F7) at (160, 90) flips over twice (its y scale follows sin, the
+   back half mirrored), holds, flips twice more while fading out from the second turn, then is
+   freed. */
+void func_801199EC_w02(void) {
+    void *data;
+    s32 sprite;
+    s32 group;
+    s32 turns;
+    s32 counted;
+    s32 fading;
+    s32 alpha;
+    f32 angle;
+    f32 a;
+    f32 step;
+
+    data = DataRead(0x1300F7);
+    sprite = func_80055810_main(data);
+    DataClose(data);
+    group = HuSprGrpCreate(1, 5);
+    func_80055024_main(group, 0, sprite, 0);
+    HuSprAttrReset(group, 0, 0xFFFF);
+    HuSprAttrSet(group, 0, 0x1008);
+    HuSprPriSet(group, 0, 0x1000);
+    func_80054904_main(group, 0, 0xA0, 0x5A);
+    angle = 0.0f;
+    step = 30.0f;
+    turns = 0;
+    counted = 0;
+    while (TRUE) {
+        if ((angle >= 90.0f) & (counted == 0)) {
+            counted = 1;
+            turns++;
+        }
+        if (angle >= 360.0f) {
+            counted = 0;
+            angle -= 360.0f;
+        }
+        if ((angle >= 180.0f) & (angle <= 360.0f)) {
+            HuSprAttrSet(group, 0, 2);
+        } else {
+            HuSprAttrReset(group, 0, 2);
+        }
+        a = angle;
+        if (angle >= 180.0f) {
+            a = angle - 180.0f;
+        }
+        HuSprScaleSet(group, 0, 1.0f, sindf(a));
+        if (turns >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprAttrReset(group, 0, 2);
+    HuSprScaleSet(group, 0, 1.0f, 1.0f);
+    HuPrcSleep(20);
+    angle = 90.0f;
+    turns = 0;
+    fading = 0;
+    counted = 0;
+    alpha = 0xFF;
+    while (TRUE) {
+        if ((angle >= 360.0f) & (counted == 0)) {
+            counted = 1;
+            turns++;
+        }
+        if (angle >= 360.0f) {
+            counted = 0;
+            angle -= 360.0f;
+        }
+        if ((fading == 0) & (turns != 0)) {
+            if ((angle >= 90.0f) & (angle < 180.0f)) {
+                fading = 1;
+            }
+        }
+        if (fading != 0) {
+            alpha -= 21;
+            if (alpha <= 0) {
+                alpha = 0;
+            }
+        }
+        func_80055458_main(group, 0, alpha);
+        if (turns >= 2) {
+            break;
+        }
+        HuPrcVSleep();
+        angle += step;
+    }
+    HuSprScaleSet(group, 0, 1.0f, 0.0f);
+    HuSprGrpKill(group);
+    HuSprKill(sprite);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119D84_w02);
 
