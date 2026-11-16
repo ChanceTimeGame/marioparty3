@@ -708,8 +708,290 @@ extern s32 D_8010E910_boardresult[6];
 extern s32 D_8010E928_boardresult[];
 extern Object *D_8010EB48_boardresult[6];
 extern f32 D_8010EBB8_boardresult[6];
+void func_80106968_boardresult(s16 model, s16 motion);
+void func_80107F84_boardresult(u8 *tied);
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_800EB164_name_81(s16 arg0, s32 arg1);
+void func_800EB4DC_name_81(s16 arg0, s32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5, u32 arg6);
+Process *func_800EBF2C_name_81(Vec *from, Vec *to, Vec *out, s32 frames);
+extern u32 D_80101200_shared_board[]; /* per-character name, indexed by chr */
+extern Vec D_8010E408_boardresult;
+extern Vec D_8010E414_boardresult;
+extern Vec D_8010E534_boardresult[4];
+extern Vec *D_8010E8F8_boardresult[];
+extern GW_PLAYER *D_8010EB38_boardresult[4];
+extern Object *D_8010EB60_boardresult[4];
+extern Object *D_8010EB70_boardresult;
+extern s16 D_8010EB78_boardresult;
+extern s16 D_8010EB7C_boardresult;
+extern s16 D_8010EB7E_boardresult;
+extern Object *D_8010EBA0_boardresult[4];
+extern s16 D_8010EBB0_boardresult[4];
 
+/* The bonus stars: for each award (minigame, coin, happening) the tied leaders' names fill the message,
+   the host plays its animation and the winners walk up with their partner figure. */
+// NON_MATCHING: masked 0; raw: the tie count and the walk-target table pointer take each other's
+// saved registers (s4/s5).
+#ifdef NON_MATCHING
+void func_80108378_boardresult(void) {
+    u8 tied[4];
+    u32 names[4];
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 max;
+    Vec *dst;
+    s32 n;
+
+    for (i = 0; i < 4; i++) {
+        Object *obj;
+
+        obj = func_800D8010_name_81(0x1D, NULL);
+        D_8010EBA0_boardresult[i] = obj;
+        func_800D8F0C_name_81(obj);
+        HuPrcVSleep();
+        D_8010EBB0_boardresult[i] = func_8000CED8_main(0xB0004, 0x6A9);
+        func_8000CD00_main(D_8010EBB0_boardresult[i], 10.0f, 20.0f, 8.0f);
+        func_800138EC_main(D_8010EBB0_boardresult[i], 1, 0);
+        HuPrcVSleep();
+    }
+
+    func_800EB164_name_81(-1, 0x1402);
+    func_800EB164_name_81(-1, 0x1403);
+    for (i = 0, max = -100000; i < 4; i++) {
+        if (max < GwPlayer[i].gamePrize) {
+            max = GwPlayer[i].gamePrize;
+        }
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (GwPlayer[i].gamePrize == max) {
+            tied[i] = 1;
+            n++;
+        } else {
+            tied[i] = 0;
+        }
+    }
+    for (i = 0, k = 0; i < 4; i++) {
+        if (tied[i]) {
+            names[k++] = D_80101200_shared_board[GwPlayer[i].chr];
+        }
+    }
+    for (; k < 4; k++) {
+        names[k] = 0;
+    }
+    {
+        s32 msgs[4] = { 0x1404, 0x1405, 0x1406, 0x1407 };
+
+        if (n == 4) {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7C_boardresult);
+        } else {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7E_boardresult);
+        }
+        func_800EB4DC_name_81(-1, msgs[n - 1], names[0], names[1], names[2], names[3], 0);
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB78_boardresult);
+        if (n == 3) {
+            func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E414_boardresult,
+                                  &D_8010EB70_boardresult->coords, 10);
+        }
+        if (n != 4) {
+            dst = D_8010E8F8_boardresult[n];
+            for (j = 0, i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords, &dst[j],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 20));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords, &dst[j++],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 20));
+                }
+            }
+            HuPrcChildWait();
+            func_80107F84_boardresult(tied);
+            dst = D_8010E534_boardresult;
+            for (i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords,
+                                                         &dst[i],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 10));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords,
+                                                         &dst[i],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 10));
+                }
+            }
+            HuPrcChildWait();
+        }
+        if (n == 3) {
+            HuPrcChildLink(HuPrcCurrentGet(),
+                           func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E408_boardresult,
+                                                 &D_8010EB70_boardresult->coords, 10));
+        }
+    }
+
+    func_800EB164_name_81(-1, 0x1408);
+    for (i = 0, max = -100000; i < 4; i++) {
+        if (max < GwPlayer[i].coinPrize) {
+            max = GwPlayer[i].coinPrize;
+        }
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (GwPlayer[i].coinPrize == max) {
+            tied[i] = 1;
+            n++;
+        } else {
+            tied[i] = 0;
+        }
+    }
+    for (i = 0, k = 0; i < 4; i++) {
+        if (tied[i]) {
+            names[k++] = D_80101200_shared_board[GwPlayer[i].chr];
+        }
+    }
+    for (; k < 4; k++) {
+        names[k] = 0;
+    }
+    {
+        s32 msgs[4] = { 0x1409, 0x140A, 0x140B, 0x140C };
+
+        if (n == 4) {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7C_boardresult);
+        } else {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7E_boardresult);
+        }
+        func_800EB4DC_name_81(-1, msgs[n - 1], names[0], names[1], names[2], names[3], 0);
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB78_boardresult);
+        if (n == 3) {
+            func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E414_boardresult,
+                                  &D_8010EB70_boardresult->coords, 10);
+        }
+        if (n != 4) {
+            dst = D_8010E8F8_boardresult[n];
+            for (j = 0, i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords, &dst[j],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 20));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords, &dst[j++],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 20));
+                }
+            }
+            HuPrcChildWait();
+            func_80107F84_boardresult(tied);
+            dst = D_8010E534_boardresult;
+            for (i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords,
+                                                         &dst[i],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 10));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords,
+                                                         &dst[i],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 10));
+                }
+            }
+            HuPrcChildWait();
+        }
+        if (n == 3) {
+            HuPrcChildLink(HuPrcCurrentGet(),
+                           func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E408_boardresult,
+                                                 &D_8010EB70_boardresult->coords, 10));
+        }
+    }
+
+    func_800EB164_name_81(-1, 0x140D);
+    for (i = 0, max = -100000; i < 4; i++) {
+        if (max < GwPlayer[i].stats.prize.hatenaPrize) {
+            max = GwPlayer[i].stats.prize.hatenaPrize;
+        }
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (GwPlayer[i].stats.prize.hatenaPrize == max) {
+            tied[i] = 1;
+            n++;
+        } else {
+            tied[i] = 0;
+        }
+    }
+    for (i = 0, k = 0; i < 4; i++) {
+        if (tied[i]) {
+            names[k++] = D_80101200_shared_board[GwPlayer[i].chr];
+        }
+    }
+    for (; k < 4; k++) {
+        names[k] = 0;
+    }
+    {
+        s32 msgs[4] = { 0x140E, 0x140F, 0x1410, 0x1411 };
+
+        if (n == 4) {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7C_boardresult);
+        } else {
+            func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB7E_boardresult);
+        }
+        func_800EB4DC_name_81(-1, msgs[n - 1], names[0], names[1], names[2], names[3], 0);
+        func_800EB278_name_81();
+        func_800EB29C_name_81();
+        func_80106968_boardresult(D_8010EB70_boardresult->omObj1->model[0], D_8010EB78_boardresult);
+        if (n == 3) {
+            func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E414_boardresult,
+                                  &D_8010EB70_boardresult->coords, 10);
+        }
+        if (n != 4) {
+            dst = D_8010E8F8_boardresult[n];
+            for (j = 0, i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords, &dst[j],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 20));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords, &dst[j++],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 20));
+                }
+            }
+            HuPrcChildWait();
+            func_80107F84_boardresult(tied);
+            dst = D_8010E534_boardresult;
+            for (i = 0; i < 4; i++) {
+                if (tied[i]) {
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB38_boardresult[i]->player_obj->coords,
+                                                         &dst[i],
+                                                         &D_8010EB38_boardresult[i]->player_obj->coords, 10));
+                    HuPrcChildLink(HuPrcCurrentGet(),
+                                   func_800EBF2C_name_81(&D_8010EB60_boardresult[3 - i]->coords,
+                                                         &dst[i],
+                                                         &D_8010EB60_boardresult[3 - i]->coords, 10));
+                }
+            }
+            HuPrcChildWait();
+        }
+        if (n == 3) {
+            HuPrcChildLink(HuPrcCurrentGet(),
+                           func_800EBF2C_name_81(&D_8010EB70_boardresult->coords, &D_8010E408_boardresult,
+                                                 &D_8010EB70_boardresult->coords, 10));
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        func_800D8F3C_name_81(D_8010EBA0_boardresult[i]);
+        func_8000D044_main(D_8010EBB0_boardresult[i]);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80108378_boardresult);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA60_boardresult);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA70_boardresult);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA80_boardresult);
+#endif
 
 void func_80109128_boardresult(void) {
     s32 i;
@@ -812,12 +1094,6 @@ void func_801094A8_boardresult(void) {
         HuPrcVSleep();
     }
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA60_boardresult);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA70_boardresult);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA80_boardresult);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA90_boardresult);
 
