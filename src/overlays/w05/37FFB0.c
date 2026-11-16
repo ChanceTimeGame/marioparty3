@@ -372,6 +372,14 @@ s32 func_8011C50C_w05(void);
 s32 func_8011C39C_w05(void);
 s32 func_8011C448_w05(void);
 s32 func_8011C560_w05(s32, s32);
+void func_80118BBC_w05(void);
+void func_8011AEA4_w05(void);
+void func_8011BC40_w05(s32, SpaceData *);
+void func_8011C2A8_w05(void);
+void func_8011C2F8_w05(void);
+extern s32 D_8011D0CC_w05;
+extern Object *D_801207C4_w05;
+extern Object *D_801207C8_w05;
 extern RectF D_8011F128_w05;
 extern s32 D_8011EB38_w05;
 extern s32 D_801204B8_w05;
@@ -395,19 +403,121 @@ extern s32 D_8012084C_w05;
 extern s32 D_80120890_w05;
 extern s32 D_80120894_w05;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118364_w05);
+void func_80118364_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118464_w05);
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x2:
+        case 0x4C:
+            func_80118BBC_w05();
+            break;
+        case 0x1A:
+        case 0x1E:
+        case 0x35:
+        case 0x4D:
+        case 0x51:
+        case 0x57:
+            func_8011C2A8_w05();
+            break;
+        default:
+            func_8011C2F8_w05();
+            break;
+    }
+    omDelPrcObj(NULL);
+}
+
+void func_80118464_w05(void) {
+    s32 r = MBRand(10.0f);
+    s16 v;
+
+    if (r < 6) {
+        v = 0;
+    } else if (r < 8) {
+        v = 1;
+    } else {
+        v = 2;
+    }
+    GwSystem.boardData.halfWordBytes[1] = v;
+    GwSystem.boardData.halfWordBytes[2] = -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801184C0_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118BBC_w05);
+void func_80118BBC_w05(void) {
+    Vec pos;
+    GW_PLAYER *player;
+    SpaceData *space;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118CF8_w05);
+    player = MBPlayerGet(-1);
+    HuPrcSleep(20);
+    func_800E6FCC_shared_board();
+    space = MBMasuGet(0x62);
+    HuVecCopy3F(&pos, &player->player_obj->coords);
+    MBCameraFocusModeSet(4);
+    MBCameraFocusVecSet(&pos);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&pos, &space->coords, &pos, 10));
+    HuPrcChildWait();
+    MBCameraFocusModeSet(2);
+    MBCameraFocusStaticPosSet(&pos);
+    D_8011D0CC_w05 = 1;
+    do {
+        HuPrcVSleep();
+    } while (D_8011D0CC_w05 != 0);
+    MBDlgResultWinExec(0xC00);
+    MBCameraFocusModeSet(4);
+    MBCameraFocusVecSet(&pos);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&pos, &player->player_obj->coords, &pos, 10));
+    HuPrcChildWait();
+    MBCameraFocusModeSet(1);
+    func_800E6FBC_shared_board();
+}
+
+void func_80118CF8_w05(void) {
+    s32 idx = (s32)HuPrcCurrentGet()->user_data;
+    Object *obj;
+
+    obj = MBModelCreate(0x4D, NULL);
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(0x62)->coords);
+    obj->velocity.x = 150.0f;
+    switch (idx) {
+        case 0:
+            obj->coords.z -= 30.0f;
+            HuPrcSleep(2);
+            break;
+        case 1:
+            obj->coords.x += 20.0f;
+            obj->coords.z += 30.0f;
+            break;
+        default:
+            obj->coords.x -= 15.0f;
+            obj->coords.z += 40.0f;
+            HuPrcSleep(5);
+            break;
+    }
+    func_800EE688_shared_board(obj, 0.0f, -1.0f);
+    func_800EE6C0_shared_board(obj);
+    MBModelKill(obj);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80118E2C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801191C0_w05);
+void func_801191C0_w05(void) {
+    Object *obj;
+
+    D_801207C4_w05 = obj = MBModelCreate(0xD, NULL);
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(GwSystem.boardData.halfWordBytes[3] != 0 ? 0x7F : 0x97)->coords);
+    HuVecCopyXYZ(&obj->scale, 1.3f, 1.3f, 1.3f);
+    D_801207C8_w05 = obj = MBModelCreate(0xD, NULL);
+    MBModelTempAllocFree(obj);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(GwSystem.boardData.halfWordBytes[4] != 0 ? 0x85 : 0x71)->coords);
+    HuVecCopyXYZ(&obj->scale, 1.3f, 1.3f, 1.3f);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801192AC_w05);
 
@@ -417,7 +527,28 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119A4C_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119BC4_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119F04_w05);
+void func_80119F04_w05(void) {
+    s32 idx = (s32)HuPrcCurrentGet()->user_data;
+    s16 mes;
+
+    HuPrcSleep(10);
+    switch (idx) {
+        case 0:
+            mes = 0x91;
+            break;
+        case 1:
+            mes = 0x92;
+            break;
+        case 2:
+            mes = 0x8F;
+            break;
+        default:
+            mes = 0x90;
+            break;
+    }
+    func_800ED20C_shared_board(-1, 8, mes);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119F7C_w05);
 
@@ -431,13 +562,62 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011AD34_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011AEA4_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011BB74_w05);
+void func_8011BB74_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x96:
+            if (GwSystem.boardData.halfWordBytes[3] == 0) {
+                func_8011AEA4_w05();
+            }
+            break;
+        case 0x7E:
+            if (GwSystem.boardData.halfWordBytes[3] != 0) {
+                func_8011AEA4_w05();
+            }
+            break;
+        case 0x70:
+            if (GwSystem.boardData.halfWordBytes[4] == 0) {
+                func_8011AEA4_w05();
+            }
+            break;
+        default:
+            if (GwSystem.boardData.halfWordBytes[4] != 0) {
+                func_8011AEA4_w05();
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011BC40_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C2A8_w05);
+void func_8011C2A8_w05(void) {
+    s32 gate;
+    s16 space;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011C2F8_w05);
+    if (GwSystem.boardData.halfWordBytes[3] == 0) {
+        gate = 0;
+        space = 0x1A;
+    } else {
+        gate = 1;
+        space = 0x35;
+    }
+    func_8011BC40_w05(gate, MBMasuGet(space));
+}
+
+void func_8011C2F8_w05(void) {
+    s32 gate;
+    s16 space;
+
+    if (GwSystem.boardData.halfWordBytes[4] == 0) {
+        gate = 2;
+        space = 0x10;
+    } else {
+        gate = 3;
+        space = 0x40;
+    }
+    func_8011BC40_w05(gate, MBMasuGet(space));
+}
 
 void func_8011C348_w05(void) {
     Hu3DCamInit(2);
