@@ -1695,7 +1695,7 @@ segments:
       - [0x3355E0, c]
       - [0x335610, c]
       - [0x34C270, .data, 3355E0] #8011C630
-      - [0x34C2A0, data, 335610] #335610
+      - [0x34C2A0, .data, 335610] #8011C660
       - [0x34E7A0, .rodata, 335610] #8011EB60
       - {0x34E810, type: bss, vram: 0x8011EBD0, name: w02_bss}
 
