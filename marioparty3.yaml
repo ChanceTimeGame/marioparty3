@@ -1731,7 +1731,7 @@ segments:
       - [0x367930, c]
       - [0x367960, c]
       - [0x37D6A0, .data, 367930] #8011B710
-      - [0x37D6D0, data, 367960] #8011B710
+      - [0x37D6D0, .data, 367960] #8011B710
       - [0x37FDD0, .rodata, 367960] #8011DE40
       - {0x37FF80, type: bss, vram: 0x8011DFF0, name: w04_bss}
 
