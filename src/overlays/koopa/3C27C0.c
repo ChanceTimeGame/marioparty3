@@ -34,6 +34,9 @@ void func_80109220_koopa(omObjData *);
 void func_8010926C_koopa(void);
 // event e4
 #include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "../ovl_80_shared_board/F5E80.h"
+void func_801087F0_koopa(void);
 void func_80108360_koopa(s32 file);
 void func_801091C4_koopa(omObjData *obj);
 void func_801092A0_koopa(void);
@@ -42,6 +45,8 @@ void func_800E4A94_shared_board(void);
 void func_800E4B18_shared_board(void);
 void func_800EE700_shared_board(void);
 void func_800EE740_shared_board(void);
+void func_800F2A20_shared_board(void);
+void func_800F2A34_shared_board(void);
 void func_800F5828_shared_board(s32 arg0);
 void func_800F591C_shared_board(s32 arg0);
 void func_801092D4_koopa(void);
@@ -503,7 +508,65 @@ s32 func_801078CC_koopa(void) {
     return 0;
 }
 
+// NON_MATCHING: one assembler nop after the first sindf call (masked 2); logic checked
+#ifdef NON_MATCHING
+s32 func_80107A9C_koopa(void) {
+    UnkBoard8 *spr;
+    void *data;
+    s32 i;
+    f32 t;
+    f32 scale;
+
+    MBWinOpen(0x4212);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    if (MBItemFindEmpty(D_801094F4_koopa) == -1) {
+        func_80107724_koopa();
+        MBWinOpen(0x4213);
+        func_800EC3C0_shared_board(D_801094F4_koopa);
+        func_800EC3E4_shared_board();
+        HuAudFXPlay(0x29E);
+        MBMotionShiftSet(D_801094F8_koopa, 4, 0, 20, 0);
+        MBModelMotionWait(D_801094F8_koopa);
+        MBMotionShiftSet(D_801094F8_koopa, 7, 0, 5, 2);
+        HuPrcSleep(10);
+        return 1;
+    }
+    spr = func_800F2C48_shared_board(1, 0);
+    data = DataRead(0x21003A);
+    spr->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(spr->spriteGroup, 0, spr->model[0], 0);
+    HuSprAttrReset(spr->spriteGroup, 0, 0xFFFF);
+    HuSprAttrSet(spr->spriteGroup, 0, 0x1000);
+    HuSprPriSet(spr->spriteGroup, 0, 0x1000);
+    func_80054904_main(spr->spriteGroup, 0, 160, -32);
+    func_8010775C_koopa();
+    for (i = 0; i <= 120; i += 4) {
+        func_80054904_main(spr->spriteGroup, 0, 160, i - 32);
+        HuPrcVSleep();
+    }
+    HuPrcSleep(15);
+    for (i = 0; i < 70; i += 5) {
+        t = i;
+        func_80054904_main(spr->spriteGroup, 0, sindf(t) * 90.0f + 160.0f, sindf(i + 90) * 50.0f + 38.0f);
+        func_80055458_main(spr->spriteGroup, 0, 256 - i * 2);
+        scale = 1.0f - t / 140.0f;
+        HuSprScaleSet(spr->spriteGroup, 0, scale, scale);
+        HuPrcVSleep();
+    }
+    func_800F2CA4_shared_board(spr);
+    HuAudFXPlay(0x10);
+    GwPlayer[D_801094F4_koopa].itemNo[MBItemFindEmpty(D_801094F4_koopa)] = 13;
+    MBStatusItemIconSprReinit(D_801094F4_koopa);
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107A9C_koopa);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107DDC_koopa);
 
@@ -656,9 +719,62 @@ void func_801087F0_koopa(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108A2C_koopa);
+s32 func_80108A2C_koopa(void) {
+    s32 total;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108BB0_koopa);
+    for (total = 0, i = 0; i < MB_MAX_PLAYERS; i++) {
+        total += GwPlayer[i].coin;
+    }
+    if (total < 4) {
+        MBWinOpen(0x4220);
+        func_800EC3C0_shared_board(D_801094F4_koopa);
+        func_800EC3E4_shared_board();
+        HuAudFXPlay(0x29E);
+        MBMotionShiftSet(D_801094F8_koopa, 4, 0, 20, 0);
+        MBModelMotionWait(D_801094F8_koopa);
+        MBMotionShiftSet(D_801094F8_koopa, 7, 0, 5, 2);
+        HuPrcSleep(10);
+        return 1;
+    }
+    MBWinOpen(0x421F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    MBStatusDispMoveSet(0);
+    HuPrcSleep(20);
+    HuPrcChildLink(HuPrcCurrentGet(), omAddPrcObj(func_801087F0_koopa, 0x300, 0x2000, 0));
+    func_80108360_koopa(0xB0039);
+    HuPrcChildWait();
+    MBWinOpen(0x4221);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    MBWinOpen(0x420F);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    return 0;
+}
+
+s32 func_80108BB0_koopa(void) {
+    Vec dir;
+    s32 i;
+
+    HuPrcSleep(15);
+    MBMotionSet(D_801094F8_koopa, 6, 2);
+    func_8001C92C_main(D_801094F8_koopa->omObj1->model[0], 2.0f);
+    MBVecDirGet(&D_801094F8_koopa->coords, &D_801093BC_koopa, &dir);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&D_801094F8_koopa->rot, &dir, &D_801094F8_koopa->rot, 10));
+    HuPrcChildWait();
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&D_801094F8_koopa->coords, &D_801093BC_koopa, &D_801094F8_koopa->coords, 30));
+    for (i = 0; i < 30; i++) {
+        HuVecCopyXYZ(&D_801094F8_koopa->scale, 2.0f - i / 15.0f, 2.0f - i / 15.0f, 2.0f - i / 15.0f);
+        HuPrcVSleep();
+    }
+    MBModelDispOff(D_801094F8_koopa);
+    MBWinOpen(0x4222);
+    func_800EC3C0_shared_board(D_801094F4_koopa);
+    func_800EC3E4_shared_board();
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80108D2C_koopa);
 
