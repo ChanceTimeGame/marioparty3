@@ -172,6 +172,10 @@ void func_801083DC_w03(void);
 void func_801085B0_w03(void);
 void func_80108820_w03(void);
 void func_801088A0_w03(void);
+extern s16 D_8011C180_w03[][2]; /* star guide offsets (asm also labels +2 as D_8011C182_w03) */
+extern s16 D_8011C1C8_w03[]; /* star guide spaces */
+extern Object *D_8011EAC0_w03;
+void func_80107D54_w03(s16 arg0);
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -964,7 +968,29 @@ void func_80107D28_w03(void) {
     MBStart(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80107D54_w03);
+void func_80107D54_w03(s16 arg0) {
+    Object *obj;
+
+    if (D_8011EAC8_w03[arg0] != NULL) {
+        return;
+    }
+    obj = MBModelCreate(0x3A, NULL);
+    func_8001FA68_main(obj->omObj1->model[0]);
+    func_8001F9E4_main(obj->omObj1->model[0], 0xFF);
+    func_8001FA68_main(obj->omObj2->model[0]);
+    func_8001F9E4_main(obj->omObj2->model[0], 0xFF);
+    func_800461B4_main(obj->omObj1->model[0]);
+    if (D_8011EAC0_w03 == NULL) {
+        D_8011EAC0_w03 = obj;
+    }
+    D_8011EAC8_w03[arg0] = obj;
+    obj->flags |= 2;
+    HuVecCopyXYZ(&obj->scale, 0.6f, 0.6f, 0.6f);
+    obj->velocity.x = 10.0f;
+    D_8011EAE8_w03[arg0] = func_800EDB98_shared_board(obj, 6.0f, 2.0f);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011C1C8_w03[arg0])->coords);
+    GwSystem.boardData.halfWordBytes[1] = func_800D771C_shared_board(0xB, obj, D_8011C180_w03[arg0][0], D_8011C180_w03[arg0][1]);
+}
 
 void func_80107ECC_w03(void) {
     s32 i;
