@@ -1697,9 +1697,26 @@ s32 func_80109CD4_w04(DecisionTreeNonLeafNode *tree, s32 count) {
     return func_8005E1D8_main(mbDlgWinId, 0, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80109F58_w04);
+void func_80109F58_w04(s16 arg0, s32 arg1, s16 arg2, s32 arg3) {
+    s16 sp10[2];
+    s16 winId;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A014_w04);
+    func_80060394_main(1, sp10, arg1);
+    winId = MBWinCreate(arg0, sp10, arg2);
+    mbDlgWinId = winId;
+    func_8005B43C_main(winId, arg1, -1, -1);
+    func_80061388_main(winId);
+    func_800EBF98_shared_board(winId, arg3);
+    func_80061A5C_main(winId, 0);
+    func_8005F364_main(winId);
+}
+
+void func_8010A014_w04(void) {
+    while (1) {
+        MBStatusItemAttrSet(GwSystem.current_player_index, MBItemSelNoGet(), 0x8000);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A054_w04);
 
