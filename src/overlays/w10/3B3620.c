@@ -58,6 +58,7 @@ void func_80105DC4_w10(void);
 void func_80105E08_w10(void);
 void func_800DCD64_shared_board(s32 arg0, s32 arg1);
 void func_800EE614_shared_board(s32 arg0);
+void func_800F591C_shared_board(s32 arg0);
 void func_80107350_w10(omObjData *obj);
 void func_801073C8_w10(omObjData *obj);
 void func_8001FA68_main(s16 model);
@@ -405,7 +406,153 @@ void func_8010687C_w10(s16 arg0) {
     HuPrcChildWait();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106908_w10);
+/* Walk the current player along the rolled number of spaces (the board's own copy of the
+ * party walk loop: no reverse, no junction or pass events). */
+void func_80106908_w10(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    GW_PLAYER *player;
+    s16 masu;
+    s16 walkNum;
+    s32 i;
+    SpaceData *space;
+    Vec dir;
+
+    player = MBPlayerGet(CUR_PLAYER);
+    masu = 0;
+    walkNum = func_800DCD9C_shared_board(sys->current_player_index);
+    MBPlayerMotionSet(-1, 0, 2);
+    while (walkNum != 0) {
+        s16 clink;
+        s16 cidx;
+
+        clink = player->clink;
+        cidx = player->cidx;
+        player->clink = player->nlink;
+        player->cidx = player->nidx;
+        for (i = 0; i < 4; i++) {
+            MBPlayerPosFixSet(i, 10);
+        }
+        player->clink = clink;
+        player->cidx = cidx;
+        if ((MBMasuGet(MBMasuLinkMasuIdGet(player->nlink, player->nidx))->unk_02 & 0x8000)
+            || func_800F9A68_shared_board(sys->current_player_index) != 0) {
+            func_8004ACE0_main(0x3A, sys->current_player_index);
+            MBPlayerMotionSet(-1, 2, 0);
+            player->player_obj->velocity.y = 4.0f;
+            player->player_obj->velocity.z = -0.5f;
+            switch (sys->walk_speed) {
+            case 0:
+                player->player_obj->velocity.y = 8.0f;
+                player->player_obj->velocity.z = -2.0f;
+                MBPlayerPosMoveSet(sys->current_player_index, 7);
+                break;
+            case 1:
+                player->player_obj->velocity.y = 4.0f;
+                player->player_obj->velocity.z = -0.5f;
+                MBPlayerPosMoveSet(sys->current_player_index, 15);
+                break;
+            case 2:
+                player->player_obj->velocity.y = 2.0f;
+                player->player_obj->velocity.z = -0.125f;
+                MBPlayerPosMoveSet(sys->current_player_index, 30);
+                break;
+            }
+        } else {
+            if (player->player_obj->unk46 != 0) {
+                MBPlayerMotionSet(-1, 0, 2);
+            }
+            switch (sys->walk_speed) {
+            case 0:
+                func_8001C92C_main(player->player_obj->omObj1->model[0], 2.0f);
+                MBPlayerPosMoveSet(sys->current_player_index, 5);
+                break;
+            case 1:
+                func_8001C92C_main(player->player_obj->omObj1->model[0], 1.0f);
+                MBPlayerPosMoveSet(sys->current_player_index, 10);
+                break;
+            case 2:
+                func_8001C92C_main(player->player_obj->omObj1->model[0], 0.75f);
+                MBPlayerPosMoveSet(sys->current_player_index, 15);
+                break;
+            }
+            func_8001C92C_main(player->player_obj->omObj1->model[0], 1.0f);
+        }
+        player->clink = player->nlink;
+        player->cidx = player->nidx;
+        player->nidx++;
+        masu = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+        space = MBMasuGet(masu);
+        MBMasuCurSet(masu);
+        switch (space->space_type) {
+        case 1:
+        case 2:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 9:
+        case 12:
+        case 15:
+            walkNum--;
+            func_800DBFBC_shared_board(sys->current_player_index);
+            func_800EB97C_shared_board(masu);
+            break;
+        }
+        if (walkNum != 0) {
+            switch (space->space_type) {
+            case 1:
+            case 2:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 9:
+            case 12:
+            case 15:
+                HuAudFXPlay(0x101);
+                break;
+            case 14:
+                HuAudFXPlay(0x123);
+                break;
+            }
+        } else {
+            switch (space->space_type) {
+            case 4:
+            case 6:
+                HuAudFXPlay(0x108);
+                break;
+            case 1:
+                HuAudFXPlay(0x121);
+                break;
+            case 2:
+                HuAudFXPlay(0x122);
+                break;
+            case 12:
+                HuAudFXPlay(0x124);
+                break;
+            case 5:
+                HuAudFXPlay(0x12F);
+                break;
+            case 9:
+            case 15:
+                HuAudFXPlay(0x12E);
+                break;
+            case 7:
+                HuAudFXPlay(0x130);
+                break;
+            case 14:
+                HuAudFXPlay(0x123);
+                break;
+            }
+        }
+        MBMasuEventCall(masu, 1);
+    }
+    MBPlayerMotionSet(-1, -1, 2);
+    MBMasuEventCall(masu, 3);
+    MBVecForwardSet(&dir);
+    func_800ED1E4_shared_board(&player->player_obj->rot, &dir, &player->player_obj->rot, 8);
+    func_800F591C_shared_board(sys->current_player_index);
+}
 
 /* Blue/red space: colour the player and give or take three coins. */
 void func_80106DEC_w10(void) {
