@@ -88,10 +88,9 @@ extern s16 D_80109564_koopa;
 extern s32 D_80109568_koopa;
 extern s32 D_80109500_koopa;
 extern s32 D_80109504_koopa;
-extern s16 D_8010951A_koopa[];
 
 //.data
-void *D_80109350_koopa = 0;
+Unk3 *D_80109350_koopa = NULL;
 
 s32 D_80109354_koopa[] = {
     0x00004200,
@@ -187,7 +186,262 @@ void func_80105A8C_koopa(void) {
     }
 }
 
+// event e4
+extern u8 D_8010954A_koopa[];
+void func_80106A54_koopa(void);
+void func_80106AB8_koopa(void);
+void func_80106FC8_koopa(void);
+
+// NON_MATCHING: masked 30 of 1083: block placement around the CPU/A-button check and the
+// second wrap of the stop slot, and the hoisted D_801093A8 base in the last loop; logic checked
+#ifdef NON_MATCHING
+void func_80105AD8_koopa(omObjData *obj) {
+    s32 i;
+    s32 idx = 0;
+    s16 *win;
+    s32 r;
+    f32 ofs;
+
+    switch (obj->work[0]) {
+    case 3:
+        break;
+    case 0:
+        obj->trans.y += 16.0f;
+        for (i = 0; i < 5; i++) {
+            win = D_80109518_koopa[i];
+            func_8005BA90_main(win[0], win[1] + win[3] / 2, win[2] + win[4] / 2 + (s32)obj->trans.y);
+        }
+        if (D_8010955E_koopa != -1) {
+            func_80054904_main(D_8010955E_koopa, 0, D_80109518_koopa[0][1] + 100, (s32)obj->trans.y + D_80109518_koopa[0][2] + 50);
+        }
+        if (D_8010955A_koopa != -1) {
+            func_80054904_main(D_8010955A_koopa, 0, D_80109518_koopa[0][1] + 100, (s32)obj->trans.y + D_80109518_koopa[0][2] - 30);
+        }
+        for (i = 0; i < 2; i++) {
+            if (D_80109554_koopa[i] != -1) {
+                func_80054904_main(D_80109554_koopa[i], 0, D_80109518_koopa[0][1] + i * 200, (s32)obj->trans.y + D_80109518_koopa[0][2] - 40);
+            }
+        }
+        if (obj->trans.y >= 288.0f) {
+            func_80105A8C_koopa();
+            D_80109350_koopa = func_800E210C_shared_board(0x17, 200, 1);
+            obj->work[0] = 1;
+            obj->scale.x = 0.5f;
+            obj->scale.z = -1.0f;
+            obj->scale.y = 0.0f;
+            obj->work[1] = 0;
+            obj->work[3] = 0;
+            obj->trans.z = 0.0f;
+            obj->rot.y = D_80109500_koopa;
+            if (D_80109504_koopa != 0) {
+                for (i = 0; i < 5; i++) {
+                    if (D_8010954A_koopa[i] >= 8) {
+                        idx = i - (s32)obj->rot.y;
+                        break;
+                    }
+                }
+                if (idx < 0) {
+                    idx += 5;
+                } else {
+                    idx %= 5;
+                }
+                obj->work[2] = idx;
+            } else {
+                obj->work[2] = 0;
+            }
+            r = MBRand(100.0f);
+            if (r < 60) {
+                obj->mdlcnt = 20;
+            } else if (r < 90) {
+                obj->mdlcnt = 14;
+            } else {
+                obj->mdlcnt = 8;
+            }
+            obj->mtncnt = 0;
+            func_80106FC8_koopa();
+        }
+        break;
+    case 1:
+        if (obj->trans.z == 0.0f) {
+            if (GwPlayer[D_801094F4_koopa].stat & 1) {
+                obj->trans.z = 1.0f;
+            } else if (D_800C9520_main[GwPlayer[D_801094F4_koopa].pad] & 0x8000) {
+                obj->trans.z = 1.0f;
+            }
+            if (obj->trans.z == 1.0f && D_80109350_koopa != NULL) {
+                MBHelpWinKill(D_80109350_koopa);
+                D_80109350_koopa = NULL;
+            }
+            if (D_80109504_koopa == 0) {
+                for (i = 0; ; i++) {
+                    idx = i + obj->work[1];
+                    if (idx < 0) {
+                        idx += 5;
+                    } else {
+                        idx %= 5;
+                    }
+                    if (D_8010954A_koopa[idx] < 8) {
+                        break;
+                    }
+                }
+                idx -= (s32)obj->rot.y;
+                if (idx >= 0) {
+                    idx %= 5;
+                } else {
+                    idx += 5;
+                }
+                obj->work[2] = idx;
+            }
+        }
+        if (obj->mtncnt != 0) {
+            obj->scale.x = obj->mdlcnt / 100.0f;
+        }
+        obj->scale.z += obj->scale.x;
+        if (obj->scale.z >= 1.0f) {
+            if (obj->work[3] != 0 && obj->scale.x <= 0.08f) {
+                obj->work[3]--;
+            }
+            obj->scale.z -= 1.0f;
+            if (obj->scale.y == 0.0f) {
+                obj->work[1] = (obj->work[1] + 1) % 5;
+            } else if (--obj->work[1] >= 128) {
+                obj->work[1] = 4;
+            }
+            func_80105A8C_koopa();
+        }
+        for (i = 0; i < 5; i++) {
+            win = D_80109518_koopa[i];
+            if (i == obj->work[1]) {
+                func_8005FBF8_main(win[0], 0, 200, 0);
+                func_8005BEE0_main(win[0], 0x100);
+                func_8005BE30_main(win[0], 9000);
+            } else {
+                func_8005FBF8_main(win[0], 64, 64, 128);
+                func_8005BEE0_main(win[0], 0);
+                func_8005BE30_main(win[0], 10000);
+            }
+        }
+        if (obj->trans.z != 0.0f) {
+            if (obj->work[1] == obj->work[2] || obj->scale.x < 1.0f) {
+                if (obj->mtncnt == 0) {
+                    obj->scale.x -= 0.01f;
+                }
+            }
+        }
+        if (obj->scale.x <= 0.08f || obj->mtncnt != 0) {
+            if (obj->mtncnt == 0) {
+                obj->scale.x = 0.08f;
+            }
+            if (obj->work[1] == obj->work[2] && obj->work[3] == 0 && obj->scale.z + obj->scale.x >= 1.0f) {
+                ofs = obj->rot.y;
+                if (((ofs > 0.0f) ? ofs : 0.0f - ofs) <= 0.5f) {
+                    HuAudFXPlay(0x105);
+                    switch (D_8010954A_koopa[obj->work[2]]) {
+                    case 0:
+                    case 2:
+                    case 3:
+                    case 8:
+                    case 9:
+                        MBPlayerVibrate(D_801094F6_koopa, 2);
+                        break;
+                    case 1:
+                        MBPlayerVibrate(0, 2);
+                        MBPlayerVibrate(1, 2);
+                        MBPlayerVibrate(2, 2);
+                        MBPlayerVibrate(3, 2);
+                        break;
+                    case 4:
+                    case 5:
+                        MBPlayerVibrate(0, 3);
+                        MBPlayerVibrate(1, 3);
+                        MBPlayerVibrate(2, 3);
+                        MBPlayerVibrate(3, 3);
+                        break;
+                    case 6:
+                        MBPlayerVibrate(0, 4);
+                        MBPlayerVibrate(1, 4);
+                        MBPlayerVibrate(2, 4);
+                        MBPlayerVibrate(3, 4);
+                        break;
+                    case 7:
+                        MBPlayerVibrate(0, 5);
+                        MBPlayerVibrate(1, 5);
+                        MBPlayerVibrate(2, 5);
+                        MBPlayerVibrate(3, 5);
+                        break;
+                    }
+                    obj->work[0] = 2;
+                    obj->work[3] = 60;
+                    func_8005D294_main(D_80109518_koopa[obj->work[1]][0]);
+                    if (D_8010954A_koopa[obj->work[1]] == 0) {
+                        func_8005B6BC_main(D_80109518_koopa[obj->work[1]][0], (u32)D_80109508_koopa, 0);
+                        func_8006022C_main((u32)D_80109508_koopa, 0);
+                    }
+                    func_8005B43C_main(D_80109518_koopa[obj->work[1]][0], D_80109354_koopa[D_8010954A_koopa[obj->work[1]]], -2, 4);
+                    func_8005C02C_main(D_80109518_koopa[obj->work[1]][0], 1);
+                    func_8005C154_main(D_80109518_koopa[obj->work[1]][0], 160, 160, 160);
+                    func_8005FBF8_main(D_80109518_koopa[obj->work[1]][0], 254, 255, 208);
+                    func_8005BDFC_main(D_80109518_koopa[obj->work[1]][0], 0);
+                } else {
+                    obj->mtncnt = 1;
+                    if (obj->rot.y >= 0.5f) {
+                        obj->rot.y -= 1.0f;
+                        obj->work[2] = (obj->work[2] + 1) % 5;
+                    } else {
+                        obj->rot.y += 1.0f;
+                        obj->scale.y = 1.0f;
+                        if (--obj->work[2] >= 128) {
+                            obj->work[2] = 4;
+                        }
+                    }
+                }
+            }
+        }
+        break;
+    case 2:
+        if (obj->work[3] == 0) {
+            obj->work[0] = 4;
+            func_80106A54_koopa();
+        } else {
+            obj->work[3]--;
+            obj->rot.z += 1.0f;
+            if (obj->rot.z >= 13.0f) {
+                obj->rot.z -= 13.0f;
+            }
+        }
+        break;
+    case 4:
+        obj->trans.y -= 32.0f;
+        for (i = 0; i < 5; i++) {
+            win = D_80109518_koopa[i];
+            func_8005BA90_main(win[0], win[1] + win[3] / 2, win[2] + win[4] / 2 + (s32)obj->trans.y);
+        }
+        if (D_8010955E_koopa != -1) {
+            func_80054904_main(D_8010955E_koopa, 0, D_80109518_koopa[0][1] + 100, (s32)obj->trans.y + D_80109518_koopa[0][2] + 50);
+        }
+        if (D_8010955A_koopa != -1) {
+            func_80054904_main(D_8010955A_koopa, 0, D_80109518_koopa[0][1] + 100, (s32)obj->trans.y + D_80109518_koopa[0][2] - 30);
+        }
+        for (i = 0; i < 2; i++) {
+            if (D_80109554_koopa[i] != -1) {
+                func_80054904_main(D_80109554_koopa[i], 0, D_80109518_koopa[0][1] + i * 200, (s32)obj->trans.y + D_80109518_koopa[0][2] - 40);
+            }
+        }
+        if (obj->trans.y <= 0.0f) {
+            D_80109568_koopa = D_8010954A_koopa[obj->work[2]];
+            func_80106AB8_koopa();
+        }
+        break;
+    }
+    if (D_80109562_koopa != -1) {
+        for (i = 0; !(obj->rot.z < (s8)D_801093A8_koopa[i][0]); i++) {
+        }
+        func_80054904_main(D_80109562_koopa, 0, (s8)D_801093A8_koopa[i][1] + 50, D_801093A4_koopa + obj->work[1] * 20);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80105AD8_koopa);
+#endif
 
 s32 func_80106968_koopa(void) {
     return D_80109568_koopa;
@@ -309,7 +563,7 @@ void func_80106C78_koopa(void) {
         func_80055024_main(D_8010955E_koopa, 0, D_80109560_koopa, 0);
         HuSprPriSet(D_8010955E_koopa, 0, 0x4770);
         HuSprAttrSet(D_8010955E_koopa, 0, 0x1000);
-        func_80054904_main(D_8010955E_koopa, 0, D_8010951A_koopa[0] + 0x64, D_8010951A_koopa[1] + 0x32);
+        func_80054904_main(D_8010955E_koopa, 0, D_80109518_koopa[0][1] + 0x64, D_80109518_koopa[0][2] + 0x32);
         func_80055420_main(D_8010955E_koopa, 0, 0, 0, 0);
         D_8010955A_koopa = HuSprGrpCreate(1, 5);
         temp_v0 = DataRead(0x1301E9);
@@ -318,7 +572,7 @@ void func_80106C78_koopa(void) {
         func_80055024_main(D_8010955A_koopa, 0, D_8010955C_koopa, 0);
         HuSprPriSet(D_8010955A_koopa, 0, 0x4770);
         HuSprAttrSet(D_8010955A_koopa, 0, 0x1000);
-        func_80054904_main(D_8010955A_koopa, 0, D_8010951A_koopa[0] + 0x64, D_8010951A_koopa[1] - 0x1E);
+        func_80054904_main(D_8010955A_koopa, 0, D_80109518_koopa[0][1] + 0x64, D_80109518_koopa[0][2] - 0x1E);
         temp_v0 = DataRead(0x130260);
         D_80109558_koopa = func_80055810_main(temp_v0);
         DataClose(temp_v0);
@@ -328,7 +582,7 @@ void func_80106C78_koopa(void) {
             func_80055024_main(D_80109554_koopa[i], 0, D_80109558_koopa, 1);
             HuSprPriSet(D_80109554_koopa[i], 0, 0x4770);
             HuSprAttrSet(D_80109554_koopa[i], 0, 0x1000);
-            func_80054904_main(D_80109554_koopa[i], 0, D_8010951A_koopa[0] + (i * 0xC8), (D_8010951A_koopa[1] - 0x28));
+            func_80054904_main(D_80109554_koopa[i], 0, D_80109518_koopa[0][1] + (i * 0xC8), (D_80109518_koopa[0][2] - 0x28));
             if ((randVal == 0) && (D_80109504_koopa == 0)) {
                 var_v0_2 = D_80109500_koopa;
                 if (var_v0_2 == 0) {
@@ -392,7 +646,6 @@ s32 func_80107090_koopa(void) {
 const char D_801094C0_koopa[] = "%d";
 const char D_801094C4_koopa[] = "";
 
-extern u8 D_8010954A_koopa[];
 
 void func_80107190_koopa(void) {
     u8 order[8];
