@@ -144,24 +144,18 @@ void *D_801093EC_koopa[] = {
 
 u32 D_80109414_koopa = 0;
 s16 D_80109418_koopa[] = { 90, 89, 87, 71, 70, 84, 85, 86, 62, 61, 58, 59, 60, -1 };
-u16 D_80109434_koopa[2][3][4] = {
+// Coin amounts by kind (0: the visitor pays, 1: everyone pays, 2: Bowser gives a visitor with no coins), turn tier, rank.
+// The third table was split off by splat as D_80109464 (func_801076CC reads index 2).
+u16 D_80109434_koopa[3][3][4] = {
     { { 20, 20, 10, 10 },
       { 20, 20, 15, 15 },
       { 30, 30, 20, 20 } },
     { { 10, 10, 10, 10 },
       { 20, 20, 20, 20 },
-      { 30, 30, 30, 30 } }
-};
-
-// unused
-s16 D_80109464_koopa[][2] = {
-    { 20, 20 },
-    { 30, 30 },
-    { 30, 30 },
-    { 40, 40 },
-    { 30, 40 },
-    { 50, 50 },
-    { 0, 0 }
+      { 30, 30, 30, 30 } },
+    { { 20, 20, 30, 30 },
+      { 30, 30, 40, 40 },
+      { 30, 40, 50, 50 } }
 };
 
 //.text
