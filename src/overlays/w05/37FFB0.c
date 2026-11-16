@@ -201,29 +201,145 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010AA34_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010AC0C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010BEC0_w05);
+// board x2: declarations for func_8010BEC0_w05..func_80111B68_w05
+#include "game/board.h"
+#include "game/object.h"
+#include "mallocblock.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/EC3B0.h"
+#include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "../ovl_80_shared_board/FFB10.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010BF60_w05);
+typedef struct {
+    /* 0x00 */ Vec vel;
+    /* 0x0C */ f32 alpha;
+    /* 0x10 */ f32 scaleStep;
+    /* 0x14 */ f32 alphaStep;
+    /* 0x18 */ Object *model;
+    /* 0x1C */ u16 killOnFade;
+} X2ModelFadeWork;
+
+typedef struct {
+    /* 0x00 */ s16 startX;
+    /* 0x02 */ s16 startY;
+    /* 0x04 */ s16 endX;
+    /* 0x06 */ s16 endY;
+    /* 0x08 */ s16 duration;
+    /* 0x0A */ s16 spriteGroup;
+} X2SpriteMoveWork;
+
+void func_80108664_w05(s32 arg0);
+void func_8010D298_w05(void);
+void func_8010E790_w05(omObjData *arg0);
+void func_8010EE9C_w05(void);
+
+void func_8010BEC0_w05(Object *obj) {
+    s32 i;
+
+    MBModelDispOn(obj);
+    i = 0;
+    do {
+        func_8001F9E4_main(obj->omObj1->model[0], i);
+        func_8001F9E4_main(obj->omObj2->model[0], i);
+        i += 0xC;
+        HuPrcVSleep();
+    } while (i < 0x100);
+    func_8001F9E4_main(obj->omObj1->model[0], 0xFF);
+    func_8001F9E4_main(obj->omObj2->model[0], 0xFF);
+}
+
+void func_8010BF60_w05(Object *obj) {
+    s32 i;
+
+    i = 0xFF;
+    do {
+        func_8001F9E4_main(obj->omObj1->model[0], i);
+        func_8001F9E4_main(obj->omObj2->model[0], i);
+        i -= 0xC;
+        HuPrcVSleep();
+    } while (i >= 0);
+    func_8001F9E4_main(obj->omObj1->model[0], 0);
+    func_8001F9E4_main(obj->omObj2->model[0], 0);
+    MBModelDispOff(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010C000_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010C448_w05);
+void func_8010C448_w05(void) {
+    func_800EC3E4_shared_board();
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010C46C_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010D298_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010D3EC_w05);
+void func_8010D3EC_w05(Object *obj) {
+    omAddPrcObj(func_8010D298_w05, 0x1000, 0, 0)->user_data = obj;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010D428_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010E5FC_w05);
+void func_8010E5FC_w05(void) {
+    func_80108664_w05(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010E618_w05);
+void func_8010E618_w05(void) {
+    func_80108664_w05(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010E634_w05);
+omObjData *func_8010E634_w05(Vec *pos, f32 scaleStep, f32 alphaStep, s16 killOnFade, Vec *vel, s32 large) {
+    omObjData *obj;
+    X2ModelFadeWork *data;
+    Object *model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010E790_w05);
+    obj = omAddObj(0x1F4, 0, 0, -1, func_8010E790_w05);
+    data = obj->data = HuMemAllocTag(sizeof(X2ModelFadeWork), 0x7918);
+    data->alpha = 255.0f;
+    data->scaleStep = scaleStep;
+    data->alphaStep = alphaStep;
+    HuVecCopy3F(&data->vel, vel);
+    if (large != 0) {
+        model = MBModelFileCreate(0x1301F8, 0, 1.0f, 0, 0);
+    } else {
+        model = MBModelFileCreate(0x1301F7, 0, 1.0f, 0, 0);
+    }
+    Hu3DModelScaleSet(model->omObj1->model[0], 0.0f, 0.0f, 0.0f);
+    model->coords.x = pos->x;
+    model->coords.y = pos->y;
+    model->coords.z = pos->z;
+    func_8001FA68_main(model->omObj1->model[0]);
+    func_8001F9E4_main(model->omObj1->model[0], 0xFF);
+    data->model = model;
+    data->killOnFade = killOnFade;
+    return obj;
+}
+
+void func_8010E790_w05(omObjData *obj) {
+    X2ModelFadeWork *data = obj->data;
+    Object *model = data->model;
+    f32 scale;
+    f32 alpha;
+
+    HuVecAdd(&model->coords, &model->coords, &data->vel);
+    scale = model->scale.z + data->scaleStep;
+    model->scale.z = scale;
+    model->scale.y = scale;
+    model->scale.x = scale;
+    alpha = data->alpha - data->alphaStep;
+    data->alpha = alpha;
+    if (alpha < 0.0f) {
+        data->alpha = 0.0f;
+        if (data->killOnFade != 0) {
+            MBModelKill(data->model);
+            omDelObj(obj);
+            return;
+        }
+        omSetStatBit(obj, 8);
+    }
+    func_8001F9E4_main(model->omObj1->model[0], (u8)data->alpha);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010E8A8_w05);
 
@@ -233,7 +349,24 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010ECDC_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010EE9C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010F100_w05);
+Process *func_8010F100_w05(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration) {
+    Process *process;
+    X2SpriteMoveWork *work;
+
+    process = omAddPrcObj(func_8010EE9C_w05, 0x4002, 0, 0x40);
+    work = HuMemMemoryAlloc(process->heap, 0x10);
+    process->user_data = work;
+    work->startX = startX;
+    work->startY = startY;
+    work->endX = endX;
+    work->endY = endY;
+    if (duration == -1) {
+        duration = 25;
+    }
+    work->duration = duration;
+    work->spriteGroup = spriteGroup;
+    return process;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010F1D0_w05);
 
