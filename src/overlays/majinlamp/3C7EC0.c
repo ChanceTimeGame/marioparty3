@@ -637,3 +637,18 @@ void func_80107F54_majinlamp(void) {
 void func_801080C4_majinlamp(void) {
 }
 
+
+/* event e5: .data */
+f32 D_801080D0_majinlamp = 20.0f; /* camera 0 (the sky): fov, near, far */
+f32 D_801080D4_majinlamp = 200.0f;
+f32 D_801080D8_majinlamp = 10000.0f;
+f32 D_801080DC_majinlamp = 20.0f; /* camera 1 (the models): fov, near, far */
+f32 D_801080E0_majinlamp = 200.0f;
+f32 D_801080E4_majinlamp = 10000.0f;
+s16 D_801080E8_majinlamp = 0;
+s16 D_801080EA_majinlamp = 0;
+s16 D_801080EC_majinlamp = 1;
+f32 D_801080F0_majinlamp = 0.0f;
+Vec D_801080F4_majinlamp[3] = { { 0.0f, 0.0f, -2000.0f }, { -100.0f, -100.0f, 2000.0f }, { 0.0f, -50.0f, 4500.0f } }; /* the flight: start, -, end */
+Vec D_80108118_majinlamp = { -500.0f, 500.0f, 5500.0f }; /* where the genie flies off to */
+s32 D_80108124_majinlamp = 1; /* the second sky layer scrolls */

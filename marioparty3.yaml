@@ -1839,7 +1839,7 @@ segments:
     bss_size: 0xF0
     subsegments:
       - [0x3C7EC0, c]
-      - [0x3CA5F0, data, 3C7EC0] #801080D0
+      - [0x3CA5F0, .data, 3C7EC0] #801080D0
       - [0x3CA650, .rodata, 3C7EC0] #80108130
       - {0x3CA800, type: bss, vram: 0x801082E0, name: majinlamp_bss}
 
