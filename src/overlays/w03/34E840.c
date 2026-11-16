@@ -476,6 +476,20 @@ void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 ar
 extern Object *D_8011EB30_w03;
 extern Object *D_8011EB34_w03;
 extern Object *D_8011EB38_w03;
+typedef struct {
+    s32 player;
+    s32 slot;
+} W03PipeArg;
+extern SpaceData *D_8011EB3C_w03;
+extern s32 D_8011EB50_w03;
+extern Vec2f D_8011D438_w03[]; /* splat labels D_8011D438 (x) / D_8011D43C (y) */
+void func_80106D84_w03(void);
+void func_80106E54_w03(void);
+void func_80119290_w03(void);
+extern DecisionTreeNonLeafNode D_8011C948_w03[];
+extern DecisionTreeNonLeafNode D_8011C99C_w03[];
+extern s16 D_8011D458_w03[];
+extern s16 D_8011D460_w03[];
 extern DecisionTreeNonLeafNode D_8011E0DC_w03[];
 extern DecisionTreeNonLeafNode D_8011E64C_w03[];
 extern DecisionTreeNonLeafNode D_8011E3A0_w03[];
@@ -535,11 +549,6 @@ void func_801169DC_w03(s32 arg0, s32 arg1) {
 }
 
 
-
-
-
-
-
 void func_80116ADC_w03(s32 arg) {
     D_8011EBF0_w03[arg] = omAddObj(0x3FFF, 0, 0, -1, func_80116830_w03);
     D_8011EBF0_w03[arg]->work[0] = arg;
@@ -548,11 +557,6 @@ void func_80116ADC_w03(s32 arg) {
     D_8011EBF0_w03[arg]->rot.x = (f32)MBRand(360.0f);
     D_8011EBF0_w03[arg]->trans.x = 0;
 }
-
-
-
-
-
 
 
 void func_80116B78_w03(void) {
@@ -579,11 +583,6 @@ void func_80116B78_w03(void) {
     }
     func_800F8D54_shared_board(func_801167CC_w03);
 }
-
-
-
-
-
 
 
 void func_80116C78_w03(void) {
@@ -624,11 +623,6 @@ void func_80116C78_w03(void) {
 }
 
 
-
-
-
-
-
 void func_80116E84_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     s16 *slowDiceFlags = &loc->slow_dice_flags;
@@ -655,11 +649,6 @@ void func_80116E84_w03(void) {
 }
 
 
-
-
-
-
-
 void func_80116FE4_w03(void) {
     void *data;
     s32 i;
@@ -675,11 +664,6 @@ void func_80116FE4_w03(void) {
     MBPlayerVibrateObjKill(data);
     omDelPrcObj(NULL);
 }
-
-
-
-
-
 
 
 void func_80117034_w03(void) {
@@ -796,11 +780,6 @@ void func_80117034_w03(void) {
 }
 
 
-
-
-
-
-
 void func_801175AC_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     GW_PLAYER *player = MBPlayerGet(-1);
@@ -835,11 +814,6 @@ void func_801175AC_w03(void) {
 }
 
 
-
-
-
-
-
 void func_8011777C_w03(void) {
     GW_SYSTEM *loc = &GwSystem;
     GW_PLAYER *player = MBPlayerGet(-1);
@@ -861,11 +835,6 @@ void func_8011777C_w03(void) {
         HuPrcSleep(0xF);
     }
 }
-
-
-
-
-
 
 
 void func_801178B4_w03(void) {
@@ -965,11 +934,6 @@ void func_801178B4_w03(void) {
         func_801175AC_w03();
     }
 }
-
-
-
-
-
 
 
 void func_80117D38_w03(void) {
@@ -1091,11 +1055,6 @@ void func_80117D38_w03(void) {
     MBDlgWinKill();
     func_801100FC_w03();
 }
-
-
-
-
-
 
 
 void func_801183E0_w03(void) {
@@ -1314,11 +1273,6 @@ end:
 }
 
 
-
-
-
-
-
 void func_80118E3C_w03(omObjData *obj) {
     func_8001E888_main(D_8011EB30_w03->omObj1->model[0], 0, obj->trans.x, 0x40, 0x40, "R3-cyl4", 0);
     obj->trans.x += 1.0f;
@@ -1419,13 +1373,154 @@ void func_8011A2BC_w03(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A338_w03);
+#ifdef NON_MATCHING
+void func_8011A338_w03(void) {
+    GW_PLAYER *player;
+    W03PipeArg *arg;
+    SpaceData *dest;
+    s32 playerNo;
+    Object *obj;
+    GW_SYSTEM *sys;
 
+    arg = HuPrcCurrentGet()->user_data;
+    sys = &GwSystem;
+    playerNo = arg->player;
+    player = MBPlayerGet(playerNo);
+
+    dest = MBMasuGet(D_8011EB3C_w03 == MBMasuGet(0x7F) ? 0x24 : 0x4E);
+    func_8004AC98_main(0x199, sys->current_player_index);
+    player->player_obj->velocity.x = 0.0f;
+    HuVecCopy3F(&player->player_obj->coords, &D_8011EB3C_w03->coords);
+    obj = MBModelCreate(0x36, NULL);
+    HuVecCopy3F(&obj->coords, &D_8011EB3C_w03->coords);
+    MBMotionSet(obj, -1, 0);
+    func_800EE688_shared_board(player->player_obj, 15.0f, -0.1f);
+    HuPrcSleep(10);
+    player->player_obj->velocity.x = 100.0f;
+    HuVecCopy3F(&player->player_obj->coords, &dest->coords);
+    player->player_obj->coords.x += D_8011D438_w03[D_8011EB50_w03 + arg->slot].x;
+    player->player_obj->coords.z += D_8011D438_w03[D_8011EB50_w03 + arg->slot].y;
+    func_800EE688_shared_board(player->player_obj, 0.0f, -1.0f);
+    func_800EE6C0_shared_board(player->player_obj);
+    MBPlayerVibrate(playerNo, 1);
+    MBModelKill(obj);
+    if (D_8011EB3C_w03 == MBMasuGet(0x7F)) {
+        player->clink = 5;
+        player->cidx = 0x14;
+        player->nlink = 5;
+        player->nidx = 0x15;
+        player->blink = 5;
+        player->bidx = 0x13;
+    } else {
+        player->clink = 2;
+        player->cidx = 2;
+        player->nlink = 2;
+        player->nidx = 3;
+        player->blink = 2;
+        player->bidx = 1;
+    }
+    omDelPrcObj(NULL);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A338_w03);
+#endif
+
+#ifdef NON_MATCHING
+void func_8011A550_w03(void) {
+    Vec dir;
+    GW_PLAYER *player;
+    s32 playerNo;
+    s32 second;
+    SpaceData *space;
+    GW_SYSTEM *sys;
+    f32 speed;
+
+    second = 0;
+    playerNo = (s32)HuPrcCurrentGet()->user_data;
+    sys = &GwSystem;
+    if (playerNo >= 4) {
+        second = 1;
+        playerNo -= 4;
+    }
+    player = MBPlayerGet(playerNo);
+    space = MBMasuGet(second == 0 ? 0x80 : 0x7F);
+    MBPlayerMotionSet(-1, 2, 0);
+    func_800EE688_shared_board(player->player_obj, 15.0f, -2.5f);
+    func_800EE6C0_shared_board(player->player_obj);
+    HuVecSubtract(&dir, &player->player_obj->coords, &space->coords);
+    MBVecNormalize(&dir);
+    HuVecCopy3F(&player->player_obj->rot, &dir);
+    func_8004ACE0_main(0x286, playerNo);
+    if (playerNo == sys->current_player_index) {
+        MBPlayerMotionSet(-1, 1, 2);
+        MBPlayerSpeedSet(sys->current_player_index, 1.5f);
+    } else {
+        MBMotionSet(player->player_obj, 1, 2);
+        func_8001C92C_main(player->player_obj->omObj1->model[0], 1.5f);
+    }
+    speed = 1.0f;
+    do {
+        player->player_obj->coords.x += speed * dir.x;
+        player->player_obj->coords.z += speed * dir.z;
+        HuPrcVSleep();
+        speed -= 0.1f;
+    } while (speed > 0.0f);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A550_w03);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A704_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011B1FC_w03);
+void func_8011B1FC_w03(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *win;
+    DecisionTreeNonLeafNode *tree;
+    s32 count;
+    s32 sel;
+    s32 i;
+    Process *process;
+    GW_SYSTEM *sys = &GwSystem;
+
+    player = MBPlayerGet(-1);
+    MBPlayerMotionSet(-1, -1, 2);
+    HuPrcVSleep();
+    func_80106D84_w03();
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x4A) {
+        win = func_800D76A0_shared_board(sys->current_player_index, D_8011D458_w03);
+    } else {
+        win = func_800D76A0_shared_board(sys->current_player_index, D_8011D460_w03);
+    }
+    func_800D742C_shared_board(win, sys->current_player_index, 0);
+    if (MBPlayerComCheck(-1)) {
+        if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x4A) {
+            tree = D_8011C948_w03;
+        } else {
+            tree = D_8011C99C_w03;
+        }
+        count = MBComTreeExec(tree);
+        for (i = 0; i < count; i++) {
+            func_800D7250_shared_board(win, -2);
+        }
+        func_800D7250_shared_board(win, -4);
+    }
+    sel = func_800D7518_shared_board(win);
+    func_800D6CA0_shared_board(win);
+    func_80106E54_w03();
+    if (sel == 0) {
+        process = omAddPrcObj(func_80119290_w03, 0x4800, 0, 0);
+        HuPrcChildLink(HuPrcCurrentGet(), process);
+        HuPrcChildWait();
+    } else {
+        if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x4A) {
+            MBMoveNextMasuSet(-1, 9, 0xE);
+        } else {
+            MBMoveNextMasuSet(-1, 9, 0xC);
+        }
+    }
+    omDelPrcObj(NULL);
+}
 
 // entrypoint 4
 void func_8011B41C_w03() {
@@ -1455,11 +1550,6 @@ s32 func_8011B470_w03(void) {
 }
 
 
-
-
-
-
-
 s32 func_8011B51C_w03(void) {
     s32 best;
     s32 bestRank;
@@ -1482,11 +1572,6 @@ s32 func_8011B51C_w03(void) {
 }
 
 
-
-
-
-
-
 s32 func_8011B5E0_w03(void) {
     s32 turnsLeft;
     s32 slot;
@@ -1499,11 +1584,6 @@ s32 func_8011B5E0_w03(void) {
     }
     return (slot < turnsLeft) ? 0 : 1;
 }
-
-
-
-
-
 
 
 s32 func_8011B634_w03(s32 base, s32 perLevel) {
@@ -1530,11 +1610,6 @@ s32 func_8011B634_w03(s32 base, s32 perLevel) {
     }
     return ret;
 }
-
-
-
-
-
 
 
 s32 func_8011B71C_w03(void) {
@@ -1769,11 +1844,6 @@ s32 func_8011B71C_w03(void) {
 }
 
 
-
-
-
-
-
 s32 func_8011BD24_w03(void) {
     s32 sp14;
     GW_PLAYER* temp_s3;
@@ -1848,11 +1918,6 @@ s32 func_8011BD24_w03(void) {
 }
 
 
-
-
-
-
-
 s32 func_8011C088_w03(void) {
     if (D_8011E7A8_w03 != 0) {
         D_8011E7A8_w03 = 0;
@@ -1860,9 +1925,4 @@ s32 func_8011C088_w03(void) {
     }
     return MBComTreeExec(D_8011E8FC_w03[D_8011D0D0_w03]) + 1;
 }
-
-
-
-
-
 
