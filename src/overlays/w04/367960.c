@@ -1722,7 +1722,99 @@ void func_8010A014_w04(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A054_w04);
+void func_8010A054_w04(void) {
+    GW_SYSTEM *loc;
+    s16 spaceIdx;
+    s16 choice;
+
+    spaceIdx = MBMasuCurGet();
+    loc = &GwSystem;
+    spaceIdx = func_80105C30_w04(spaceIdx);
+    if (spaceIdx == 1) {
+        func_800DBEC0_shared_board(loc->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 8, func_801059D0_w04());
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+        HuPrcChildWait();
+        HuAudFXPlay(0x159);
+
+        if (GwPlayer[loc->current_player_index].itemTurn != 0) {
+            MBDlgWinInsertCreate(0x16, 0x4805, GwPlayer[loc->current_player_index].chr + 0x1C00, 0, 0, 0, 0);
+            func_800EC9DC_shared_board();
+            MBDlgWinClose();
+            MBDlgWinKill();
+        }
+
+        if (GwPlayer[loc->current_player_index].star >= 99) {
+            MBDlgWinExec(0x16, 0x4804);
+        } else {
+            if (GwPlayer[loc->current_player_index].coin >= 20) {
+            purchaseMenu:
+                MBDlgWinInsertCreate(0x16, 0x4800, GwPlayer[loc->current_player_index].chr + 0x1C00, 0, 0, 0, 0);
+                choice = func_80109CD4_w04((DecisionTreeNonLeafNode *)2, 0);
+                MBDlgWinClose();
+                MBDlgWinKill();
+
+                switch (choice) {
+                    case 0:
+                        MBCoinChangeCreate(loc->current_player_index, -20);
+                        MBCoinTakeCreate(loc->current_player_index, -20);
+                        HuPrcSleep(30);
+                        MBDlgWinExec(0x16, 0x4802);
+                        if (D_800A12D0_main != 0) {
+                            func_8004A950_main();
+                            func_800039A4_main(D_800C9930_main, 60);
+                            D_800C9930_main = -1;
+                        } else {
+                            HuAudSeqFadeOut(0x5A);
+                        }
+                        func_80106A3C_w04(D_8011DFF0_w04);
+                        HuPrcSleep(30);
+                        func_800EDA58_shared_board();
+                        func_800FF7F0_shared_board(2);
+                        func_80109CC4_w04();
+                        return;
+                    case 1:
+                        if (D_800A12D0_main != 0) {
+                            func_800039A4_main(D_800C9930_main, 60);
+                            func_80003310_main(D_800CE198_main);
+                            func_8004A670_main(0);
+                            func_8004A72C_main(0x5A);
+                            D_800C9930_main = -1;
+                        }
+                        MBDlgWinExec(0x16, 0x4803);
+                        func_800DB884_shared_board(loc->current_player_index);
+                        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+                        HuPrcChildWait();
+                        func_80109CC4_w04();
+                        return;
+                    case 2:
+                        func_80106AB0_w04();
+                        goto purchaseMenu;
+                    default:
+                        func_80109CC4_w04();
+                        return;
+                }
+            } else {
+                MBDlgWinExec(0x16, 0x4801);
+            }
+        }
+
+        if (D_800A12D0_main != 0) {
+            func_800039A4_main(D_800C9930_main, 60);
+            func_80003310_main(D_800CE198_main);
+            func_8004A670_main(0);
+            func_8004A72C_main(0x5A);
+            D_800C9930_main = -1;
+        }
+
+        func_800DB884_shared_board(loc->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+    }
+
+    func_80109CC4_w04();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A400_w04);
 
