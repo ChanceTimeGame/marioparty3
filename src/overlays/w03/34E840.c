@@ -176,6 +176,8 @@ extern s16 D_8011C180_w03[][2]; /* star guide offsets (asm also labels +2 as D_8
 extern s16 D_8011C1C8_w03[]; /* star guide spaces */
 extern Object *D_8011EAC0_w03;
 void func_80107D54_w03(s16 arg0);
+extern s16 D_8011C1D8_w03[]; /* star guide board flags */
+void func_80107ECC_w03(void);
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -1005,7 +1007,22 @@ void func_80107ECC_w03(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80107F30_w03);
+void func_80107F30_w03(void) {
+    s32 i;
+
+    D_8011EAC0_w03 = NULL;
+    for (i = 0; i < 8; i++) {
+        D_8011EAC8_w03[i] = NULL;
+        D_8011EAE8_w03[i] = NULL;
+        MBKinokoEffKillHookSet(func_80107ECC_w03);
+        if (!GWBoardFlagCheck(D_8011C1D8_w03[i])) {
+            func_80107D54_w03(i);
+        }
+    }
+    if (GwSystem.boardData.halfWordBytes[0] != -1) {
+        func_80107D54_w03(GwSystem.boardData.halfWordBytes[0]);
+    }
+}
 
 void func_80107FF8_w03(s16 arg0) {
     Object *obj;
