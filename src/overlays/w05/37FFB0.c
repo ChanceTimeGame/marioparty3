@@ -382,6 +382,24 @@ extern s32 D_8011D0CC_w05;
 extern Object *D_801207C4_w05;
 extern Object *D_801207C8_w05;
 extern RectF D_8011F128_w05;
+
+#define R4_ABSF(x) (((x) < 0.0f) ? -(x) : (x))
+
+typedef struct W05PlayerWork {
+    /* 0x00 */ s32 playerNo;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 slot;
+    /* 0x0C */ s32 dir;
+} W05PlayerWork;
+
+Process *func_800ED75C_shared_board(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
+void func_801178B4_w05(GW_PLAYER *player, s32 idx, s16 (*links)[6]);
+void func_80119A4C_w05(void);
+extern s16 D_8011EE48_w05[][6];
+extern f32 D_8011EF38_w05[][2];
+extern f32 D_8011EF50_w05[];
+extern f32 D_8011EF70_w05[];
+extern Object *D_801207CC_w05;
 void func_80106AB0_w05(void);
 s32 func_801096DC_w05(s32 arg0, s32 arg1);
 void func_80115A30_w05(s16 (*masu)[3], BranchLink (*links)[2], DecisionTreeNonLeafNode **trees);
@@ -789,13 +807,363 @@ void func_801191C0_w05(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_801192AC_w05(void) {
+    Vec pos;
+    UnkVibrateProcess *vib;
+    W05PlayerWork *work;
+    Object *gate;
+    GW_PLAYER *player;
+    Object *obj;
+    s32 row;
+    s32 slot;
+    s32 dir;
+    Process *curProc;
+    SpaceData *first;
+    SpaceData *second;
+    s16 mes;
+    s16 secondNo;
+    f32 *ofs;
+    Vec *vec;
+    Vec *coords;
+
+    work = HuPrcCurrentGet()->user_data;
+    gate = D_801207CC_w05;
+    player = MBPlayerGet(work->playerNo);
+    obj = player->player_obj;
+    row = work->unk4;
+    slot = work->slot;
+    dir = work->dir;
+    curProc = HuPrcCurrentGet();
+    switch (dir) {
+        case 0:
+            mes = 0x92;
+            break;
+        case 1:
+            mes = 0x91;
+            break;
+        case 2:
+            mes = 0x90;
+            break;
+        default:
+            mes = 0x8F;
+            break;
+    }
+    func_800ED20C_shared_board(work->playerNo, 8, mes);
+    while (HuVecDistance(&obj->coords, &gate->coords) > slot * 20.0f + 30.0f) {
+        HuPrcVSleep();
+    }
+    vib = MBPlayerVibrateObjCreate(work->playerNo, 0, 5);
+    func_8004ACE0_main(0x286, work->playerNo);
+    if (work->playerNo == GwSystem.current_player_index) {
+        MBPlayerMotionSet(-1, 1, 2);
+    } else {
+        MBMotionSet(obj, 1, 2);
+    }
+    switch (dir) {
+        case 0:
+            first = MBMasuGet(0x35);
+            secondNo = 0x36;
+            break;
+        case 1:
+            first = MBMasuGet(0x1A);
+            secondNo = 0x1B;
+            break;
+        case 2:
+            first = MBMasuGet(0x82);
+            secondNo = 0x43;
+            break;
+        default:
+            first = MBMasuGet(0x6F);
+            secondNo = 0x11;
+            break;
+    }
+    second = MBMasuGet(secondNo);
+    HuVecCopy3F(&pos, &first->coords);
+    coords = &obj->coords;
+    MBVecDirGet(coords, &pos, &obj->rot);
+    HuPrcChildLink(curProc, func_800ED75C_shared_board(coords, &pos, coords, 2.0f));
+    coords = &obj->coords;
+    HuPrcChildWait();
+    HuVecCopy3F(&pos, &second->coords);
+    vec = &pos;
+    ofs = D_8011EF38_w05[row + slot];
+    vec->x += ofs[0];
+    vec->z += ofs[1];
+    MBVecDirGet(coords, &pos, &obj->rot);
+    HuPrcChildLink(curProc, func_800ED5E0_shared_board(coords, &pos, coords, 2.0f));
+    HuPrcChildWait();
+    MBPlayerVibrateObjKill(vib);
+    if (work->playerNo == GwSystem.current_player_index) {
+        MBPlayerMotionSet(-1, -1, 2);
+    } else {
+        MBMotionSet(obj, -1, 2);
+    }
+    HuVecCopyXYZ(&pos, 0.0f, 0.0f, 1.0f);
+    func_800ED128_shared_board(&player->player_obj->rot, &pos, &player->player_obj->rot, 5);
+    func_801178B4_w05(player, dir, D_8011EE48_w05);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801192AC_w05);
+#endif
 
+#ifdef NON_MATCHING
+void func_80119610_w05(void) {
+    Vec pos;
+    SpaceData *second;
+    SpaceData *first;
+    Process *curProc;
+    s32 dir;
+    s32 slot;
+    Object *obj;
+    GW_PLAYER *player;
+    Object *gate;
+    W05PlayerWork *work;
+    s16 mes;
+    s16 secondNo;
+
+    work = HuPrcCurrentGet()->user_data;
+    gate = D_801207CC_w05;
+    player = MBPlayerGet(work->playerNo);
+    obj = player->player_obj;
+    slot = work->slot;
+    dir = work->dir;
+    curProc = HuPrcCurrentGet();
+    switch (dir) {
+        case 0:
+            mes = 0x92;
+            break;
+        case 1:
+            mes = 0x91;
+            break;
+        case 2:
+            mes = 0x90;
+            break;
+        default:
+            mes = 0x8F;
+            break;
+    }
+    func_800ED20C_shared_board(work->playerNo, 8, mes);
+    while (HuVecDistance(&obj->coords, &gate->coords) > slot * 20.0f + 30.0f) {
+        HuPrcVSleep();
+    }
+    func_8004ACE0_main(0x286, work->playerNo);
+    if (work->playerNo == GwSystem.current_player_index) {
+        MBPlayerMotionSet(-1, 1, 2);
+    } else {
+        MBMotionSet(obj, 1, 2);
+    }
+    switch (dir) {
+        case 0:
+            first = MBMasuGet(0x35);
+            secondNo = 0x36;
+            break;
+        case 1:
+            first = MBMasuGet(0x1A);
+            secondNo = 0x1B;
+            break;
+        case 2:
+            first = MBMasuGet(0x40);
+            secondNo = 0x43;
+            break;
+        default:
+            first = MBMasuGet(0x10);
+            secondNo = 0x11;
+            break;
+    }
+    second = MBMasuGet(secondNo);
+    HuVecCopy3F(&pos, &first->coords);
+    MBVecDirGet(&obj->coords, &pos, &obj->rot);
+    HuPrcChildLink(curProc, func_800ED75C_shared_board(&obj->coords, &pos, &obj->coords, 2.0f));
+    HuPrcChildWait();
+    HuVecCopy3F(&pos, &first->coords);
+    if (dir == 2) {
+        pos.z += -30.0f;
+    } else {
+        pos.z += 30.0f;
+    }
+    MBVecDirGet(&obj->coords, &pos, &obj->rot);
+    HuPrcChildLink(curProc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, 2.0f));
+    HuPrcChildWait();
+    MBPlayerMotionSet(-1, -1, 2);
+    if (dir == 2) {
+        HuVecCopyXYZ(&pos, -1.0f, 0.0f, 0.5f);
+    } else {
+        HuVecCopyXYZ(&pos, 1.0f, 0.0f, -0.5f);
+    }
+    func_800ED128_shared_board(&player->player_obj->rot, &pos, &player->player_obj->rot, 5);
+    HuPrcSleep(30);
+    MBPlayerMotionSet(-1, 0, 2);
+    HuVecCopy3F(&pos, &second->coords);
+    if (dir == 2) {
+        pos.x += D_8011EF50_w05[0];
+        pos.z += D_8011EF50_w05[1];
+    } else {
+        pos.x += D_8011EF70_w05[0];
+        pos.z += D_8011EF70_w05[1];
+    }
+    MBVecDirGet(&obj->coords, &pos, &obj->rot);
+    HuPrcChildLink(curProc, func_800ED5E0_shared_board(&obj->coords, &pos, &obj->coords, 1.5f));
+    HuPrcChildWait();
+    if (work->playerNo == GwSystem.current_player_index) {
+        MBPlayerMotionSet(-1, -1, 2);
+    } else {
+        MBMotionSet(obj, -1, 2);
+    }
+    HuVecCopyXYZ(&pos, 0.0f, 0.0f, 1.0f);
+    func_800ED128_shared_board(&player->player_obj->rot, &pos, &player->player_obj->rot, 5);
+    func_801178B4_w05(player, dir, D_8011EE48_w05);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119610_w05);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119A4C_w05);
+void func_80119A4C_w05(void) {
+    s32 idx = (s32)HuPrcCurrentGet()->user_data;
+    Object *obj;
+    SpaceData *space;
+    f32 angle;
 
+    switch (idx) {
+        case 0:
+            space = MBMasuGet(0x80);
+            obj = D_801207C4_w05;
+            break;
+        case 1:
+            space = MBMasuGet(0x6E);
+            obj = D_801207C4_w05;
+            break;
+        case 2:
+            space = MBMasuGet(0x86);
+            obj = D_801207C8_w05;
+            break;
+        default:
+            space = MBMasuGet(0x72);
+            obj = D_801207C8_w05;
+            break;
+    }
+    angle = 0.0f;
+    while (TRUE) {
+        obj->omObj1->rot.x = sindf(angle) * 5.0f;
+        angle += 45.0f;
+        if (angle < 360.0f) {
+            angle -= 360.0f;
+        }
+        if (R4_ABSF(space->coords.x - obj->coords.x) <= 2.0f) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    obj->omObj1->rot.x = 0.0f;
+    omDelPrcObj(NULL);
+}
+
+#ifdef NON_MATCHING
+void func_80119BC4_w05(void) {
+    f32 d;
+    Vec pos;
+    s32 idx;
+    Object *gate;
+    Object *obj;
+    SpaceData *space;
+    s32 bounced;
+    f32 speed;
+
+    idx = (s32)HuPrcCurrentGet()->user_data;
+    gate = D_801207CC_w05;
+    switch (idx) {
+        case 0:
+        case 1:
+            obj = D_801207C4_w05;
+            break;
+        default:
+            obj = D_801207C8_w05;
+            break;
+    }
+    HuVecCopy3F(&pos, &obj->coords);
+    pos.z = gate->coords.z;
+    while (TRUE) {
+        switch (idx) {
+            case 0:
+            case 2:
+                d = gate->coords.x - obj->coords.x;
+                break;
+            default:
+                d = obj->coords.x - gate->coords.x;
+                break;
+        }
+        if (d < -5.0f) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&obj->coords, &pos, &obj->coords, 10));
+    for (bounced = 0, speed = 10.0f; TRUE; speed -= 2.0f) {
+        obj->velocity.x += speed;
+        if (bounced != 0 && obj->velocity.x <= 7.5f) {
+            break;
+        }
+        if (obj->velocity.x > 7.5f) {
+            bounced = 1;
+        }
+        HuPrcVSleep();
+    }
+    obj->velocity.x = 7.5f;
+    HuAudFXPlay(0x1AE);
+    HuAudFXPlay(0x1AF);
+    switch (idx) {
+        case 0:
+            space = MBMasuGet(0x80);
+            break;
+        case 1:
+            space = MBMasuGet(0x6E);
+            break;
+        case 2:
+            space = MBMasuGet(0x86);
+            break;
+        default:
+            space = MBMasuGet(0x72);
+            break;
+    }
+    HuVecCopy3F(&pos, &space->coords);
+    omAddPrcObj(func_80119A4C_w05, 0x4800, 0, 0)->user_data = (void *)idx;
+    while (TRUE) {
+        switch (idx) {
+            case 0:
+            case 2:
+                obj->coords.x -= 2.0f;
+                break;
+            default:
+                obj->coords.x += 2.0f;
+                break;
+        }
+        if (R4_ABSF(space->coords.x - obj->coords.x) <= 2.0f) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&obj->coords, &pos, &obj->coords, 10));
+    for (bounced = 0, speed = 8.0f; TRUE; speed -= 2.0f) {
+        obj->velocity.x += speed;
+        if (bounced != 0 && obj->velocity.x <= 0.0f) {
+            break;
+        }
+        if (obj->velocity.x > 0.0f) {
+            bounced = 1;
+        }
+        HuPrcVSleep();
+    }
+    obj->velocity.x = 0.0f;
+    HuAudFXPlay(0x1AE);
+    HuAudFXPlay(0x1AF);
+    HuPrcChildWait();
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119BC4_w05);
+#endif
 
 void func_80119F04_w05(void) {
     s32 idx = (s32)HuPrcCurrentGet()->user_data;
