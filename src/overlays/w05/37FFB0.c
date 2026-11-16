@@ -204,17 +204,28 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010AC0C_w05);
 // board x2: declarations for func_8010BEC0_w05..func_80111B68_w05
 #include "game/board.h"
 #include "game/object.h"
+#include "gcc/memory.h"
 #include "mallocblock.h"
-#include "../ovl_80_shared_board/ECA50.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/FA250.h"
-#include "../ovl_80_shared_board/10C230.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/101840.h"
 #include "../ovl_80_shared_board/105D50.h"
 #include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/113750.h"
+#include "../ovl_80_shared_board/EA790.h"
+#include "../ovl_80_shared_board/EAB00.h"
+#include "../ovl_80_shared_board/EB2F0.h"
+#include "../ovl_80_shared_board/EC3B0.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/EDDB0.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5070.h"
+#include "../ovl_80_shared_board/F5B90.h"
 #include "../ovl_80_shared_board/F5E80.h"
 #include "../ovl_80_shared_board/F9DE0.h"
+#include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/FFB10.h"
 
 typedef struct {
     /* 0x00 */ Vec dir[8];
@@ -223,6 +234,8 @@ typedef struct {
 extern s16 D_8011D070_w05[]; /* star-space id per star spawn */
 extern X2DirTable D_80120630_w05; /* lamp particle directions */
 extern const f64 D_80120690_w05; /* 0.3 */
+extern const f64 D_80120628_w05; /* 1.5 */
+extern Object *D_80120830_w05; /* bss: model linked by func_8010D298_w05 */
 extern Vec2f D_8011EB4C_w05[]; /* per-player star sprite position */
 extern Vec2f D_8011EB6C_w05[]; /* per-player star sprite step */
 
@@ -358,7 +371,28 @@ void func_8010C448_w05(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010C46C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010D298_w05);
+void func_8010D298_w05(void) {
+    Object *src = HuPrcCurrentGet()->user_data;
+    Object *obj = MBModelLinkCreate(D_80120830_w05);
+    f32 angle;
+
+    HuVecCopy3F(&obj->coords, &src->coords);
+    HuVecCopyXYZ(&obj->scale, 2.0f, 2.0f, 2.0f);
+    obj->velocity.x = src->velocity.x + 10.0f;
+    MBModelDispOn(obj);
+    angle = MBRand(360.0f);
+    while (1) {
+        HuPrcVSleep();
+        obj->velocity.x += D_80120628_w05;
+        if (src->velocity.x + 35.0f <= obj->velocity.x) {
+            break;
+        }
+        angle += 40.0f;
+        func_8008A2A0_main(HmfModelData[obj->omObj1->model[0]].mtx, angle);
+    }
+    MBModelKill(obj);
+    omDelPrcObj(NULL);
+}
 
 void func_8010D3EC_w05(Object *obj) {
     omAddPrcObj(func_8010D298_w05, 0x1000, 0, 0)->user_data = obj;
