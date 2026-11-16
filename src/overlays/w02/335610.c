@@ -5,17 +5,7 @@
 #include "../ovl_80_shared_board/ECA50.h"
 #include "../ovl_80_shared_board/FA250.h"
 #include "../ovl_80_shared_board/10C230.h"
-
-void func_80105CA4_w02(void);
-void func_80106094_w02(void*);
-extern s32 D_8011C6B0_w02[];
-extern s32 D_8011C6CC_w02[];
-extern Object* D_8011EBD8_w02[];
-extern Process* D_8011EC18_w02;
-extern Object* D_8011EC1C_w02;
-extern s16 D_8011C6A0_w02[]; //mb2ev_StarGuideMasu
-
-// board g1: declarations for func_801059D0_w02..func_8010985C_w02
+#include "WaluigisIsland.h" /* BranchLink */
 #include "game/board.h"
 #include "../ovl_80_shared_board/1006F0.h"
 #include "../ovl_80_shared_board/F5B90.h"
@@ -31,6 +21,23 @@ extern s16 D_8011C6A0_w02[]; //mb2ev_StarGuideMasu
 #include "../ovl_80_shared_board/F5070.h"
 #include "../ovl_80_shared_board/F9DE0.h"
 #include "../ovl_80_shared_board/FFB10.h"
+#include "gcc/memory.h"
+#include "mallocblock.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "input.h"
+#include "game/window.h"
+#include "game/hmfman.h"
+
+void func_80105CA4_w02(void);
+void func_80106094_w02(void*);
+extern s32 D_8011C6B0_w02[];
+extern s32 D_8011C6CC_w02[];
+extern Object* D_8011EBD8_w02[];
+extern Process* D_8011EC18_w02;
+extern Object* D_8011EC1C_w02;
+extern s16 D_8011C6A0_w02[]; //mb2ev_StarGuideMasu
+
+// board g1: declarations for func_801059D0_w02..func_8010985C_w02
 
 typedef struct {
     u8 unk[4];
@@ -42,6 +49,7 @@ extern s16 D_8011C680_w02[]; /* star board flags */
 extern s16 D_8011C690_w02[]; /* star spaces */
 extern s32 D_8011C6E8_w02;
 extern u8 D_8011EA70_w02[];
+extern char D_8011EA74_w02[];
 extern Unk3 *D_8011EC20_w02;
 extern Unk3 *D_8011EC24_w02;
 extern Unk3 *D_8011EC28_w02;
@@ -85,11 +93,7 @@ extern Object *D_8011EC48_w02[10];
 extern Object *D_8011EC70_w02;
 extern Object *D_8011EC74_w02[2];
 
-typedef struct {
-    /* 0x00 */ s16 link;
-    /* 0x02 */ s16 idx;
-    /* 0x04 */ s16 rev;
-} g1BranchLink; // size 0x6
+typedef BranchLink g1BranchLink;
 
 extern Object *D_8011C8DC_w02;
 extern Object *D_8011C8E0_w02;
@@ -1672,16 +1676,6 @@ void func_80109C88_w02(void) {
 void func_80109C90_w02(void) {
 }
 
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/FFB10.h"
 // board g2: func_80109C98_w02..func_8010D854_w02 (twins of w06 func_8010B4C4_w06..func_8010F07C_w06)
 typedef struct {
     u8 unk[4];
@@ -1694,7 +1688,6 @@ void func_80106AB0_w02(void);
 void func_80106B38_w02(void);
 s32 func_80106CC4_w02(u8 *arg0);
 s32 func_80106F58_w02(void);
-void func_80107FB0_w02(void);
 void func_80112340_w02(void);
 void func_80112B10_w02(void);
 void func_80109C80_w02(void);
@@ -1721,10 +1714,7 @@ extern Vec2f D_8011D5A8_w02[4];
 extern Vec2f D_8011D5C8_w02[4];
 extern u8 D_8011D5E8_w02[6][3];
 extern u8 D_8011D5FC_w02[14][3];
-extern const u8 D_8011EA70_w02[];
-extern const char D_8011EA74_w02[];
 extern const f64 D_8011EA78_w02;
-extern Object *D_8011EBD0_w02;
 extern s32 D_8011EC90_w02;
 extern s32 D_8011EC94_w02;
 extern u8 *D_8011EC98_w02;
@@ -3028,22 +3018,6 @@ void func_8010D854_w02(void) {
 }
 
 // board g3: types, data and prototypes for func_8010D9A8_w02..func_801111E0_w02
-#include "gcc/memory.h"
-#include "mallocblock.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EAB00.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/FFB10.h"
 
 typedef struct G3ModelFadeWork {
     /* 0x00 */ Vec vel;
@@ -3071,12 +3045,8 @@ typedef struct G3SparkDirs {
 
 void func_8010D854_w02(void);
 void func_80108620_w02(s32 arg);
-void func_80106A3C_w02(Object *arg);
-void func_80106AB0_w02(void);
-void func_80106B38_w02(void);
 s32 func_80107704_w02(u8 *choices);
 s32 func_80107724_w02(u8 *choices);
-void func_80109C90_w02(void);
 s32 func_80109C98_w02(s32 arg0, s32 arg1);
 void func_80109FD8_w02(void);
 void func_8010B1C8_w02(void);
@@ -3089,14 +3059,10 @@ omObjData *func_8010EBF0_w02(Vec *pos, f32 scaleRate, f32 fadeRate, s16 killOnFa
 void func_8010ED4C_w02(omObjData *obj);
 Process *func_8010F6BC_w02(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
 void func_8010F9BC_w02(void);
-void func_80110048_w02(void);
 void func_80110970_w02(void);
 void func_800D9F5C_shared_board(Object *arg0, Vec *arg1, s32 arg2);
 void func_8001ED54_main(s16 arg0);
 
-extern s32 D_8011C6E8_w02;
-extern s16 D_8011C690_w02[];
-extern u8 D_8011D5E8_w02[][3];
 extern u8 D_8011D628_w02[];
 extern s32 D_8011D630_w02[];
 extern s32 D_8011D63C_w02[];
@@ -3104,18 +3070,13 @@ extern Vec2f D_8011D710_w02[];
 extern Vec2f D_8011D730_w02[];
 extern DecisionTreeNonLeafNode D_8011D790_w02[];
 extern s32 D_8011D7FC_w02[];
-extern const char D_8011EA74_w02[];
 extern const G3SparkDirs D_8011EA80_w02;
 extern const f64 D_8011EAE0_w02;
 extern const f64 D_8011EAE8_w02;
 extern const f64 D_8011EAF0_w02;
 extern const f64 D_8011EAF8_w02;
 extern const f64 D_8011EB00_w02;
-extern Object *D_8011EC3C_w02;
-extern Object *D_8011EC40_w02[];
-extern Object *D_8011EC9C_w02;
 extern s32 D_8011ECA0_w02;
-extern Process *D_8011EBF8_w02[];
 
 void func_8010D9A8_w02(s32 arg) {
     Process *temp = omAddPrcObj(func_8010D854_w02, 0x1000, 0, 0);
@@ -4573,27 +4534,6 @@ void func_801111E0_w02(void) {
 }
 
 // board g4: item effects (same code as ovl_48_ChillyWaters MB1Ev_ItemKeyManUse..MB1Ev_ItemAfter5)
-#include "game/board.h"
-#include "../ovl_80_shared_board/FA250.h"
-#include "../ovl_80_shared_board/ECA50.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/F5E80.h"
-#include "../ovl_80_shared_board/113750.h"
-#include "../ovl_80_shared_board/101840.h"
-#include "../ovl_80_shared_board/10C230.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EAB00.h"
 typedef struct W02ItemExchangeWork {
     Object* unk_00;
     Object* unk_04;
@@ -4604,8 +4544,6 @@ typedef struct W02ItemExchangeWork {
 typedef struct W02Bytes4 {
     u8 b[4];
 } W02Bytes4; // board g4
-extern f32 D_8011D5A8_w02[4][2];
-extern f32 D_8011D5C8_w02[4][2];
 extern DecisionTreeNonLeafNode D_8011D810_w02[];
 extern f32 D_8011D81C_w02[6][2];
 extern s32 D_8011D84C_w02;
@@ -4613,8 +4551,6 @@ extern u8 D_8011D850_w02[4];
 extern u8 D_8011D854_w02[4];
 extern u16 D_8011D858_w02[7][2];
 extern RGB D_8011D874_w02[2];
-extern W02Bytes4 D_8011EA70_w02;
-extern const char D_8011EA74_w02[];
 extern const f64 D_8011EB08_w02; // 1.5
 extern const f64 D_8011EB10_w02; // 0.8
 extern const f64 D_8011EB18_w02; // 0.8
@@ -4627,11 +4563,7 @@ extern s32 D_8011ECB8_w02;
 extern Object* D_8011ECBC_w02;
 extern s32 D_8011ECC0_w02[4];
 extern void* D_8011ECD0_w02;
-void func_80106B38_w02(void);
-void func_80107FB0_w02(void);
 void func_80109F1C_w02(s16 arg0, s32 arg1, s16 arg2, s32 arg3);
-Process* func_8010F6BC_w02(s32 sprGrp, s16 startX, s16 startY, s16 endX, s16 endY, s16 frames);
-void func_8010F9BC_w02(void);
 void func_8011020C_w02(s32 arg0, s32 arg1, s32 arg2, f32* arg3, s32 arg4);
 
 // ItemFunctions[IFUNC_KEYMAN] - throwing away a skeleton key
@@ -4747,10 +4679,10 @@ void func_80112124_w02(void) {
     HuSprAttrSet(grpId, 0, 0x1000);
 
     MBStatusItemPosGet(D_8011ECA4_w02, 0, &x, &y);
-    x = (D_8011D5C8_w02[D_8011ECA4_w02][0] * 16.0f) +
-         D_8011D5A8_w02[D_8011ECA4_w02][0];
-    y = (D_8011D5C8_w02[D_8011ECA4_w02][1] * 16.0f) +
-         D_8011D5A8_w02[D_8011ECA4_w02][1];
+    x = (D_8011D5C8_w02[D_8011ECA4_w02].x * 16.0f) +
+         D_8011D5A8_w02[D_8011ECA4_w02].x;
+    y = (D_8011D5C8_w02[D_8011ECA4_w02].y * 16.0f) +
+         D_8011D5A8_w02[D_8011ECA4_w02].y;
 
     func_80054904_main(grpId, 0,
                         x + D_8011D81C_w02[idx][0],
@@ -4970,8 +4902,6 @@ void func_80112980_w02(void) {
     omDelPrcObj(NULL);
 }
 
-extern Object *D_8011ECAC_w02;
-extern Object *D_8011ECB0_w02;
 void func_80112944_w02(Object *);
 
 void func_80112B10_w02(void) {
@@ -5063,7 +4993,7 @@ void func_80112B10_w02(void) {
 s32 func_80112ECC_w02(u8 *arg0, s32 arg1) {
     s32 count = 0;
     s16 sp18[MB_MAX_PLAYERS];
-    W02Bytes4 sp20 = D_8011EA70_w02;
+    W02Bytes4 sp20 = *(W02Bytes4 *)D_8011EA70_w02;
     s32 i;
     s32 j;
 
@@ -6093,39 +6023,12 @@ void func_801156E8_w02(void) {
 
 
 // board g5: functions func_80115FEC_w02..func_801199EC_w02 (Waluigi's Island w06 has the same code at +0x1828)
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EAB00.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "../ovl_80_shared_board/106640.h"
-#include "input.h"
 
-#ifndef BRANCHLINK_DEFINED
-#define BRANCHLINK_DEFINED
-typedef struct BranchLink {
-    /* 0x00 */ s16 link;
-    /* 0x02 */ s16 idx;
-    /* 0x04 */ s16 rev;
-} BranchLink; // size 0x6
-#endif
 typedef s16 G5SpaceTriple[3];
 typedef BranchLink G5BranchPair[2];
 
 void func_80106B94_w02(void);
 void func_80106C64_w02(void);
-s32 func_80109C98_w02(s32 arg0, s32 arg1);
-Process *func_8010F6BC_w02(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
-void func_8010F9BC_w02(void);
 void func_8010FB8C_w02(void);
 s32 func_80112ECC_w02(u8 *arg0, s32 arg1);
 void func_801161E4_w02(s32 arg0);
@@ -6813,7 +6716,6 @@ typedef struct G5GatePos {
 } G5GatePos;
 extern G5GateFiles D_8011EB20_w02;
 extern G5GatePos D_8011EB34_w02;
-void func_80108870_w02(void);
 
 /* The current player picks one of four gates not yet opened (bits of boardData.halfWordBytes[0])
    with left/right and A (a COM player: random moves, then the tenth frame); marks it open and
@@ -6934,7 +6836,6 @@ typedef struct G5MotList {
     /* 0x00 */ u32 count;
     /* 0x04 */ s32 ids[1]; /* [count] */
 } G5MotList;
-extern Object *D_8011C8E0_w02;
 extern DecisionTreeNonLeafNode *D_8011CFE8_w02[];
 extern DecisionTreeNonLeafNode D_8011CFF4_w02[];
 extern DecisionTreeNonLeafNode D_8011D00C_w02[];
@@ -7537,29 +7438,14 @@ void func_801199EC_w02(void) {
 }
 
 // board g6
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "game/window.h"
-#include "game/hmfman.h"
-#include "input.h"
 
 void func_801199EC_w02(void);
-void func_80107830_w02(void);
 void func_80119DB0_w02(void);
 void func_80119244_w02(void);
 void func_801193C0_w02(void);
 void func_801193D0_w02(void);
 void func_801193DC_w02(void);
-void func_80119408_w02(s16 model, f32 arg1, f32 arg2);
 void func_80007EC0_main(s32);
-extern s16 D_8011ED00_w02;
-extern Object *D_8011C8DC_w02;
-extern s32 D_8011D95C_w02;
 extern s32 D_8011D960_w02[3];
 extern s32 D_8011D96C_w02[3];
 extern s32 D_8011D978_w02[3];
@@ -7568,7 +7454,6 @@ void func_8011B038_w02(s16 masu);
 s32 func_8011B988_w02(void);
 s32 func_8011BA58_w02(void);
 extern RectF D_8011DADC_w02;
-extern s32 D_8011D594_w02;
 extern s32 D_8011E914_w02;
 extern DecisionTreeNonLeafNode D_8011E254_w02[];
 extern DecisionTreeNonLeafNode *D_8011E338_w02[];
@@ -7582,10 +7467,6 @@ extern DecisionTreeNonLeafNode D_8011E0A4_w02[];
 extern DecisionTreeNonLeafNode D_8011E1C4_w02[];
 extern DecisionTreeNonLeafNode D_8011E4E4_w02[];
 extern DecisionTreeNonLeafNode D_8011E77C_w02[];
-extern s32 D_8011ECB4_w02;
-extern s32 D_8011ECB8_w02;
-extern s32 D_8011ECF8_w02;
-extern s32 D_8011ECFC_w02;
 extern s16 D_8011D9A4_w02[20];
 
 /* Sets a model's matrix to a rotation of `angle` degrees about z. */
@@ -8528,7 +8409,6 @@ s32 func_8011C5D8_w02(void) {
     return MBComTreeExec(D_8011EA68_w02[D_8011D594_w02]) + 1;
 }
 /* .data (0x8011C660, 0x2500 bytes): the overlay's initialised data, in address order. */
-#include "WaluigisIsland.h" /* BranchLink */
 s32 func_80108A20_w02();
 void func_80108A58_w02(void);
 void func_80108A8C_w02(void);
@@ -8561,12 +8441,9 @@ void func_801095EC_w02(void);
 void func_8010985C_w02(void);
 void func_8010A018_w02(void);
 void func_8010A3C4_w02(void);
-void func_8010B1C8_w02(void);
-void func_8010D9E4_w02(void);
 void func_8010EBB8_w02(void);
 void func_8010EBD4_w02(void);
 void func_80116708_w02(void);
-void func_8011703C_w02(void);
 void func_80118480_w02(void);
 s16 D_8011C660_w02[8] = { 0, 1, 2, 3, 5, 4, 6, 7 };
 s16 D_8011C670_w02[8] = { 0, 0, 0, 0, 0, 1, 1, 1 };
@@ -8576,7 +8453,7 @@ s16 D_8011C6A0_w02[8] = { 94, 95, 96, 97, 98, 99, 100, 101 };
 s32 D_8011C6B0_w02[7] = { 0xA007E, 0xA007F, 0xA0080, 0xA0081, 0xA0082, 0xA0083, 0xA0084 };
 s32 D_8011C6CC_w02[7] = { 24066, 24067, 24068, 24069, 24070, 24071, 24072 };
 s32 D_8011C6E8_w02 = 0;
-s16 D_8011C6EC_w02 = -1;
+s16 D_8011C6EC_w02[1] = { -1 };
 s16 D_8011C6F0_w02[10] = {
     30, 40, 21, 7, 65, 92, 76, 86,
     -1, 0,
@@ -8630,14 +8507,7 @@ Vec D_8011C7B0_w02[5] = {
     { 45.0f, 0.0f, 45.0f },
 };
 s16 D_8011C7EC_w02[2] = { 106, 107 };
-u8 D_8011C7F0_w02[6][2] = {
-    { 0, 38 },
-    { 0, 39 },
-    { 0, 40 },
-    { 0, 41 },
-    { 0, 42 },
-    { 0, 43 },
-};
+s16 D_8011C7F0_w02[6] = { 38, 39, 40, 41, 42, 43 };
 u32 D_8011C7FC_w02[2] = { 1, 0x130163 };
 u32 D_8011C804_w02[2] = { 1, 0x130168 };
 u32 D_8011C80C_w02[2] = { 1, 0x13016F };
@@ -9050,10 +8920,9 @@ event_list_entry D_8011D2A0_w02[2] = {
     { 1, 1, func_80108DD8_w02 },
     { 0, 0, NULL },
 };
-s16 D_8011D2B0_w02[3] = { 11, 32, -1 };
-BranchLink D_8011D2B8_w02[2] = {
-    { 0, 16, 0 },
-    { 0, 14, 1 },
+s16 D_8011D2B0_w02[1][3] = { { 11, 32, -1 } };
+BranchLink D_8011D2B8_w02[1][2] = {
+    { { 0, 16, 0 }, { 0, 14, 1 } },
 };
 event_list_entry D_8011D2C4_w02[2] = {
     { 1, 1, func_80108E4C_w02 },
@@ -9187,13 +9056,13 @@ event_list_entry D_8011D598_w02[2] = {
     { 1, 1, func_8010B1C8_w02 },
     { 0, 0, NULL },
 };
-f32 D_8011D5A8_w02[4][2] = {
+Vec2f D_8011D5A8_w02[4] = {
     { 76.0f, 52.0f },
     { 244.0f, 52.0f },
     { 76.0f, 192.0f },
     { 244.0f, 192.0f },
 };
-f32 D_8011D5C8_w02[4][2] = {
+Vec2f D_8011D5C8_w02[4] = {
     { -1.0f, -1.0f },
     { 1.0f, -1.0f },
     { -1.0f, 1.0f },
@@ -9331,22 +9200,21 @@ event_table_entry D_8011D894_w02[2] = {
     { -5, D_8011D87C_w02 },
     { -1, NULL },
 };
-s16 D_8011D8A4_w02[3] = { 42, 12, -1 };
-BranchLink D_8011D8AC_w02[2] = {
-    { 6, 0, 0 },
-    { 4, 0, 0 },
+s16 D_8011D8A4_w02[1][3] = { { 42, 12, -1 } };
+BranchLink D_8011D8AC_w02[1][2] = {
+    { { 6, 0, 0 }, { 4, 0, 0 } },
 };
-u32 D_8011D8B8_w02[2] = { 1, 0x2001A };
-u32 D_8011D8C0_w02[2] = { 1, 0 };
-u32 D_8011D8C8_w02[2] = { 1, 0 };
-u32 D_8011D8D0_w02[2] = { 1, 0 };
-u32 D_8011D8D8_w02[2] = { 1, 0 };
-u32 D_8011D8E0_w02[2] = { 1, 0 };
-u32 D_8011D8E8_w02[2] = { 1, 0 };
-u32 D_8011D8F0_w02[2] = { 1, 0 };
-u32 *D_8011D8F8_w02[8] = {
-    D_8011D8B8_w02, D_8011D8C0_w02, D_8011D8C8_w02, D_8011D8D0_w02,
-    D_8011D8D8_w02, D_8011D8E0_w02, D_8011D8E8_w02, D_8011D8F0_w02,
+G5MotList D_8011D8B8_w02 = { 1, { 0x2001A } };
+G5MotList D_8011D8C0_w02 = { 1, { 0 } };
+G5MotList D_8011D8C8_w02 = { 1, { 0 } };
+G5MotList D_8011D8D0_w02 = { 1, { 0 } };
+G5MotList D_8011D8D8_w02 = { 1, { 0 } };
+G5MotList D_8011D8E0_w02 = { 1, { 0 } };
+G5MotList D_8011D8E8_w02 = { 1, { 0 } };
+G5MotList D_8011D8F0_w02 = { 1, { 0 } };
+G5MotList *D_8011D8F8_w02[8] = {
+    &D_8011D8B8_w02, &D_8011D8C0_w02, &D_8011D8C8_w02, &D_8011D8D0_w02,
+    &D_8011D8D8_w02, &D_8011D8E0_w02, &D_8011D8E8_w02, &D_8011D8F0_w02,
 };
 s32 D_8011D918_w02[8] = { 14, 15, 16, 17, 18, 19, 20, 21 };
 s16 D_8011D938_w02[4] = { 10, 87, 42, -1 };
@@ -9961,11 +9829,10 @@ DecisionTreeNonLeafNode *D_8011EA68_w02[2] = { D_8011E854_w02, D_8011E8E4_w02 };
 u8 D_8011EA70_w02[4] = { 1, 2, 4, 8 };
 char D_8011EA74_w02[4] = "%d";
 const f64 D_8011EA78_w02 __attribute__((section(".data"))) = 1.5;
-f32 D_8011EA80_w02[24] = {
-    1.0f, 1.0f, 1.0f, 1.0f, 2.0f, 1.0f, 0.0f, 2.0f,
-    1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-    -1.0f, 1.0f, -1.0f, 2.0f, 1.0f, 1.0f, -1.0f, 1.0f,
-};
+const G3SparkDirs D_8011EA80_w02 __attribute__((section(".data"))) = { {
+    { 1.0f, 1.0f, 1.0f }, { 1.0f, 2.0f, 1.0f }, { 0.0f, 2.0f, 1.0f }, { -1.0f, 1.0f, 1.0f },
+    { -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f, 1.0f }, { -1.0f, 2.0f, 1.0f }, { 1.0f, -1.0f, 1.0f },
+} };
 const f64 D_8011EAE0_w02 __attribute__((section(".data"))) = 0.3;
 const f64 D_8011EAE8_w02 __attribute__((section(".data"))) = 0.5;
 const f64 D_8011EAF0_w02 __attribute__((section(".data"))) = 0.5;
@@ -9974,11 +9841,11 @@ const f64 D_8011EB00_w02 __attribute__((section(".data"))) = 0.5;
 const f64 D_8011EB08_w02 __attribute__((section(".data"))) = 1.5;
 const f64 D_8011EB10_w02 __attribute__((section(".data"))) = 0.8;
 const f64 D_8011EB18_w02 __attribute__((section(".data"))) = 0.8;
-s32 D_8011EB20_w02[5] = { 0x1301E1, 0x1301E2, 0x1301E3, 0x1301E4, 0x1301E5 };
-f32 D_8011EB34_w02[5][2] = {
+G5GateFiles D_8011EB20_w02 = { { 0x1301E1, 0x1301E2, 0x1301E3, 0x1301E4, 0x1301E5 } };
+G5GatePos D_8011EB34_w02 = { {
     { 160.0f, 120.0f },
     { -68.0f, -8.0f },
     { -23.0f, -8.0f },
     { 23.0f, -8.0f },
     { 68.0f, -8.0f },
-};
+} };
