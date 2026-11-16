@@ -164,9 +164,57 @@ void func_8010C98C_chancetime(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010C994_chancetime);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010CF78_chancetime);
+void func_8010CF78_chancetime(s8 set) {
+    static const s8 D_8010FC98_chancetime[3][13] = {
+        { 4, 2, 8, 3, 7, 4, 8, 2, 3, 0, 3, 5, 8 },
+        { 0, 3, 6, 1, 8, 7, 2, 8, 4, 5, 0, 7, 2 },
+        { 1, 7, 5, 4, 7, 1, 0, 6, 2, 0, 7, 8, 6 },
+    };
+    s8 i;
+    s8 j;
+    s8 k;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FC98_chancetime);
+    D_8010FBF0_chancetime = 0;
+    for (i = 0; i < 3; i++) {
+        D_8010FBF4_chancetime[i] = 0;
+        D_801100DD_chancetime[i] = -1;
+        D_8010FED0_chancetime[i].state = 0;
+        D_8010FED0_chancetime[i].top = 2;
+        D_8010FED0_chancetime[i].next = 4;
+        D_8010FED0_chancetime[i].speed = 0.0f;
+        D_8010FED0_chancetime[i].target = -1.0f;
+    }
+    for (i = 0; i < 2; i++) {
+        k = rand8() & 3;
+        for (j = 0; j < 4; j++) {
+            D_8010FED0_chancetime[i].items[k] = GwPlayer[D_801100D0_chancetime[j]].chr;
+            k++;
+            if (k >= 4) {
+                k = 0;
+            }
+        }
+        D_8010FED0_chancetime[i].count = 4;
+    }
+    k = rand8() % 13;
+    for (j = 0; j < 13; j++) {
+        D_8010FED0_chancetime[2].items[k] = D_8010FC98_chancetime[set][j];
+        k++;
+        if (k >= 13) {
+            k = 0;
+        }
+    }
+    D_8010FED0_chancetime[2].count = 13;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            D_8010FED0_chancetime[i].anim[j] = D_8010FEB0_chancetime[i][j];
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            func_8003302C_main(D_8010FED0_chancetime[i].anim[j], D_8010FED0_chancetime[i].items[2 - j]);
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FCC0_chancetime);
 
