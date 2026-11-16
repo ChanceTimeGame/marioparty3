@@ -221,6 +221,7 @@ typedef struct {
 
 extern s16 D_8011D070_w05[]; /* star-space id per star spawn */
 extern X2DirTable D_80120630_w05; /* lamp particle directions */
+extern const f64 D_80120690_w05; /* 0.3 */
 
 typedef struct {
     /* 0x00 */ Vec vel;
@@ -491,7 +492,47 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010F740_w05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010FA8C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010FC50_w05);
+void func_8010FC50_w05(s32 playerNo, s32 itemNo, s32 duration, f32 *target, s32 mode) {
+    f32 position[2];
+    f32 stepX;
+    f32 stepY;
+    f32 scale;
+    s32 i;
+
+    if (mode == 2) {
+        HuAudFXPlay(0x145);
+    }
+
+    func_800F6848_shared_board(playerNo, itemNo, &position[0], &position[1]);
+    stepX = (target[0] - position[0]) / duration;
+    stepY = (target[1] - position[1]) / duration;
+
+    for (i = 2; duration != 0; duration--, i++) {
+        position[0] += stepX;
+        position[1] += stepY;
+        MBStatusItemPosSet(playerNo, itemNo, position[0], position[1]);
+
+        if ((mode == 1) && (i < 11)) {
+            MBStatusItemTPLvlSet(playerNo, itemNo, i * 25);
+            scale = i * 0.07f;
+            MBStatusItemScaleSet(playerNo, itemNo, scale + 0.3f, scale + D_80120690_w05);
+        }
+        HuPrcVSleep();
+    }
+
+    MBStatusItemPosSet(playerNo, itemNo, target[0], target[1]);
+
+    if (mode == 0) {
+        i = 1;
+        do {
+            MBStatusItemTPLvlSet(playerNo, itemNo, 255 - (i * 25));
+            MBStatusItemScaleSet(playerNo, itemNo, 1.0f - (i * 0.1f), 1.0f - (i * 0.1f));
+            i++;
+            HuPrcVSleep();
+        } while (i < 10);
+        MBStatusItemTPLvlSet(playerNo, itemNo, 0);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/w05/37FFB0", D_80120690_w05);
 
