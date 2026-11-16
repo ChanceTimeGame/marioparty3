@@ -1,23 +1,190 @@
 #include "common.h"
+#include "game/board.h"
 #include "../ovl_80_shared_board/FA250.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/101840.h"
+#include "../ovl_80_shared_board/105D50.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/1006F0.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_801059A0_last5);
+// event e5: the last-5-turns event (a host picks a player for a +10 / -10 coin change)
+void func_800EC5B4_shared_board(s16 arg0, s32 arg1);
+void func_800EE700_shared_board(void);
+void func_800EE740_shared_board(void);
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_801073B0_last5(void);
+void func_80107450_last5(void);
+void func_80105CD4_last5(omObjData *obj);
+void func_80105F9C_last5(void);
+void func_801066E0_last5(omObjData *obj);
+void func_80106100_last5(void);
+void func_80106768_last5(void);
+void func_80107178_last5(void);
+void func_801072B0_last5(omObjData *obj);
+void func_801072FC_last5(omObjData *obj);
+void func_80107358_last5(void);
+void func_80107384_last5(void);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105A68_last5);
+extern Vec D_80107480_last5;
+extern Vec D_8010748C_last5;
+extern Vec D_80107498_last5[2];
+extern Vec D_801074B0_last5;
+extern u32 D_801074BC_last5[2];
+extern u32 D_801074C4_last5[2];
+extern u32 D_801074CC_last5[2];
+extern u32 D_801074D4_last5[3];
+extern u32 D_801074E0_last5[2];
+extern u8 D_801074E8_last5[4];
+extern u8 D_801074EC_last5[4];
+extern s32 D_801074F0_last5[4];
+extern s32 D_80107500_last5;
+extern s32 D_80107504_last5;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105AAC_last5);
+extern u8 D_80107550_last5;
+extern s32 D_80107558_last5[4]; /* rank of each player */
+extern s32 D_80107568_last5[4]; /* player of each rank */
+extern UnkBoard8 *D_80107578_last5;
+extern Object *D_8010757C_last5;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105B04_last5);
+void func_801059A0_last5(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105C9C_last5);
+    D_80107550_last5 = GwSystem.current_board_index;
+    omInitObjMan(50, 50);
+    func_801073B0_last5();
+    func_80107358_last5();
+    func_800D95C4_shared_board(1000.0f);
+    func_8005A6B0_main();
+    func_800F453C_shared_board();
+    func_800F7108_shared_board();
+    for (i = 0; i < 4; i++) {
+        MBStatusPosSet(i, 30, -50);
+    }
+    omAddPrcObj(func_80107178_last5, 0x300, 0x2000, 0);
+    omAddObj(0x1000, 0, 0, -1, func_801072FC_last5);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105CD4_last5);
+s16 func_80105A68_last5(s16 *size, s16 x, s16 y) {
+    return func_80061188_main(-1, x, y, size[0], size[1], 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105DEC_last5);
+void func_80105AAC_last5(s16 win) {
+    D_800CC69C_main[win].unk20 = 1;
+    HuPrcVSleep();
+    func_800EE2C0_shared_board(win);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80105F9C_last5);
+s16 func_80105B04_last5(s32 mess, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5, s16 x, s16 y) {
+    s16 size[2];
+    s16 win;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_801060A4_last5);
+    if (arg1 != 0) {
+        func_8006022C_main(arg1, 0);
+    }
+    if (arg2 != 0) {
+        func_8006022C_main(arg2, 1);
+    }
+    if (arg3 != 0) {
+        func_8006022C_main(arg3, 2);
+    }
+    if (arg4 != 0) {
+        func_8006022C_main(arg4, 3);
+    }
+    if (arg5 != 0) {
+        func_8006022C_main(arg5, 4);
+    }
+    func_80060394_main(1, size, mess);
+    win = func_80105A68_last5(size, x, y);
+    if (arg1 != 0) {
+        func_8005B6BC_main(win, arg1, 0);
+    }
+    if (arg2 != 0) {
+        func_8005B6BC_main(win, arg2, 1);
+    }
+    if (arg3 != 0) {
+        func_8005B6BC_main(win, arg3, 2);
+    }
+    if (arg4 != 0) {
+        func_8005B6BC_main(win, arg4, 3);
+    }
+    if (arg5 != 0) {
+        func_8005B6BC_main(win, arg5, 4);
+    }
+    func_8005B43C_main(win, mess, -1, -1);
+    func_80061388_main(win);
+    func_800EE2C0_shared_board(win);
+    return win;
+}
+
+void func_80105C9C_last5(s16 win) {
+    func_80061A5C_main(win, 0);
+    func_8005F364_main(win);
+}
+
+void func_80105CD4_last5(omObjData *obj) {
+    f32 scale;
+
+    obj->work[0]++;
+    obj->rot.x += 30.0f;
+    scale = obj->scale.x = sindf(obj->rot.x) + 1.0f;
+    HuSprScaleSet(D_80107578_last5->spriteGroup, 1, scale, scale);
+    if (obj->rot.x >= 360.0f) {
+        obj->rot.x -= 360.0f;
+    }
+    if (obj->work[0] > 20) {
+        func_80055458_main(D_80107578_last5->spriteGroup, 0, (31 - obj->work[0]) * 25);
+        func_80055458_main(D_80107578_last5->spriteGroup, 1, (31 - obj->work[0]) * 25);
+    }
+}
+
+void func_80105DEC_last5(void) {
+    omObjData *obj;
+    void *data;
+
+    D_80107578_last5 = func_800F2C48_shared_board(2, 0);
+    data = DataRead(0x1301DE);
+    D_80107578_last5->model[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80107578_last5->spriteGroup, 0, D_80107578_last5->model[0], 0);
+    HuSprPriSet(D_80107578_last5->spriteGroup, 0, 0x11);
+    HuSprAttrSet(D_80107578_last5->spriteGroup, 0, 0x1000);
+    func_80054904_main(D_80107578_last5->spriteGroup, 0, 160, 100);
+    data = DataRead(0x1301DF);
+    D_80107578_last5->model[1] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80107578_last5->spriteGroup, 1, D_80107578_last5->model[1], 3);
+    HuSprPriSet(D_80107578_last5->spriteGroup, 1, 0x10);
+    HuSprAttrSet(D_80107578_last5->spriteGroup, 1, 0x1000);
+    func_80054904_main(D_80107578_last5->spriteGroup, 1, 160, 100);
+    obj = omAddObj(0x1000, 0, 0, -1, func_80105CD4_last5);
+    HuPrcSleep(30);
+    omDelObj(obj);
+    func_800F2CA4_shared_board(D_80107578_last5);
+    HuPrcSleep(10);
+}
+
+void func_80105F9C_last5(void) {
+    s32 rank = *(s32 *)HuPrcCurrentGet()->user_data;
+    s32 i;
+
+    for (i = 0; i < 110; i += 5) {
+        MBStatusPosSet(D_80107568_last5[rank], 30, sindf(i) * 250.0f - (0xF1 - D_801074F0_last5[rank]));
+        HuPrcVSleep();
+    }
+    MBStatusPosSet(D_80107568_last5[rank], 30, D_801074F0_last5[rank]);
+    omDelPrcObj(NULL);
+}
+
+Process *func_801060A4_last5(s32 rank) {
+    Process *prc = omAddPrcObj(func_80105F9C_last5, 10, 0, 0x40);
+    s32 *data = HuMemMemoryAlloc(prc->heap, 0x10);
+
+    prc->user_data = data;
+    *data = rank;
+    return prc;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80106100_last5);
 
