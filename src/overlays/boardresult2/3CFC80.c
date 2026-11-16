@@ -322,7 +322,177 @@ void func_80106A9C_boardresult2(void) {
     HuSprAttrReset(D_801099C4_boardresult2->unk_0A, 0, 0x8000);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80106B94_boardresult2);
+/* Record row arg0 (0 star, 1 coin, 2 gamePrize, 3 coinPrize, 4-12 the PrizeStats counts): bit n
+   set for each place n holding the highest value, or 0 when all four tie. */
+s32 func_80106B94_boardresult2(s32 row) {
+    s32 i;
+    s32 max;
+    s32 mask;
+
+    mask = 0;
+    switch (row) {
+    case 0:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].star) {
+                max = GwPlayer[kakusiMasuItemHis[i]].star;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].star == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 1:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].coin) {
+                max = GwPlayer[kakusiMasuItemHis[i]].coin;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].coin == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 2:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].gamePrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].gamePrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].gamePrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 3:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].coinPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].coinPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].coinPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 4:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.bluePrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.bluePrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.bluePrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 5:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.redPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.redPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.redPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 6:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.hatenaPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.hatenaPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.hatenaPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 7:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.eventPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.eventPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.eventPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 8:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.kupaPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.kupaPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.kupaPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 9:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.battlePrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.battlePrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.battlePrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 10:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.itemPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.itemPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.itemPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 11:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.bankPrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.bankPrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.bankPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 12:
+        for (i = 0, max = -100000; i < 4; i++) {
+            if (max < GwPlayer[kakusiMasuItemHis[i]].stats.prize.gamblePrize) {
+                max = GwPlayer[kakusiMasuItemHis[i]].stats.prize.gamblePrize;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[kakusiMasuItemHis[i]].stats.prize.gamblePrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    }
+    if (mask == 0xF) {
+        return 0;
+    }
+    return mask;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_80109864_boardresult2);
 
