@@ -287,6 +287,7 @@ void func_80106100_last5(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80106100_last5);
+INCLUDE_RODATA("asm/nonmatchings/overlays/last5/3C6310", D_80107510_last5);
 #endif
 
 void func_801066E0_last5(omObjData *obj) {
@@ -297,7 +298,172 @@ void func_801066E0_last5(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/last5/3C6310", func_80106768_last5);
+void func_80106768_last5(void) {
+    Object *host;
+    Object *guide;
+    s16 effect;
+    s32 i;
+    s32 r;
+    s32 x;
+    s32 dx;
+    s32 sel;
+    s32 hostWins;
+    omObjData *bob;
+    Vec dir;
+
+    hostWins = 0;
+    bob = NULL;
+    host = MBModelCreate(0xB, D_801074CC_last5);
+    HuVecCopy3F(&host->coords, &D_80107480_last5);
+    MBVecDirGet(&host->coords, &D_8010748C_last5, &host->rot);
+    HuVecCopyXYZ(&host->scale, 1.5f, 1.5f, 1.5f);
+    D_8010757C_last5 = MBModelCreate(0x3A, D_801074E0_last5);
+    func_800461B4_main(D_8010757C_last5->omObj1->model[0]);
+    HuVecCopy3F(&D_8010757C_last5->coords, &D_80107498_last5[0]);
+    D_8010757C_last5->velocity.x = 1000.0f;
+    effect = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8000CD00_main(effect, 10.0f, 20.0f, 10.0f);
+    func_800138EC_main(effect, 1, 0);
+    func_8000D018_main(effect, 300.0f);
+    guide = MBModelCreate(9, D_801074BC_last5);
+    HuVecCopy3F(&guide->coords, &D_801074B0_last5);
+    MBGuideFaceCreate(guide, 2, 10, D_80107500_last5);
+    HuAudSeqPlay(0x13);
+    WipeColorSet(255, 255, 255);
+    WipeCreateIn(2, 16);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    func_80105DEC_last5();
+    HuAudFXPlay(0x298);
+    func_800EC5B4_shared_board(-1, 0x4300);
+    for (r = 0; r < 4; r++) {
+        HuPrcChildLink(HuPrcCurrentGet(), func_801060A4_last5(r));
+        {
+            s32 mes[4] = { 0x4301, 0x4302, 0x4303, 0x4304 };
+
+            func_80105C9C_last5(func_80105B04_last5(mes[BoardPlayerRankCalc(D_80107568_last5[r])],
+                                                    mbCharNameMesTbl[GwPlayer[D_80107568_last5[r]].chr], 0, 0, 0, 0, 140, 110));
+        }
+        HuPrcChildWait();
+    }
+    func_800EC5B4_shared_board(-1, 0x4305);
+    sel = 3;
+    for (r = 0; r < 4; r++) {
+        if (GwPlayer[r].chr == 0) {
+            sel = D_80107558_last5[r];
+            break;
+        }
+    }
+    if (r != 4 && MBRand(6.0f) == 0) {
+        hostWins = 1;
+    }
+    if (hostWins == 1) {
+        MBMotionSet(host, 0, 2);
+        x = 30;
+        HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&host->coords, &D_8010748C_last5, &host->coords, 30));
+        dx = 10;
+        HuPrcChildWait();
+        MBVecForwardSet(&dir);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&host->rot, &dir, &host->rot, 10));
+        HuPrcChildWait();
+        MBMotionSet(host, -1, 2);
+        HuAudFXPlay(0x25D);
+        {
+            s16 win = func_80105B04_last5(0x4307, 0, 0, 0, 0, 0, 160, 80);
+
+            func_80105AAC_last5(win);
+            func_80105C9C_last5(win);
+        }
+    } else {
+        func_800138EC_main(effect, 0, 1);
+        HuAudFXPlay(0x157);
+        while (D_8010757C_last5->velocity.x >= 400.0f) {
+            D_8010757C_last5->velocity.x -= 20.0f;
+            func_8000CFA4_main(effect, D_8010757C_last5->coords.x, D_8010757C_last5->velocity.x - 100.0f, D_8010757C_last5->coords.z);
+            HuPrcVSleep();
+        }
+        bob = omAddObj(0x1000, 0, 0, -1, func_801066E0_last5);
+        bob->rot.y = D_8010757C_last5->velocity.x;
+        bob->rot.x = 180.0f;
+        sel = 3;
+        r = MBRand(100.0f);
+        for (dx = 0; dx < 4; dx++) {
+            if (r < D_801074E8_last5[dx]) {
+                sel = dx;
+                break;
+            }
+        }
+        HuAudFXPlay(0x159);
+        MBMotionShiftSet(D_8010757C_last5, 0, 0, 5, 2);
+        {
+            s16 win = func_80105B04_last5(0x4306, mbCharNameMesTbl[GwPlayer[D_80107568_last5[sel]].chr], 0, 0, 0, 0, 160, 80);
+
+            func_80105AAC_last5(win);
+            func_80105AAC_last5(win);
+            func_80105C9C_last5(win);
+        }
+        MBMotionShiftSet(D_8010757C_last5, -1, 0, 5, 2);
+        x = 30;
+        dx = 10;
+    }
+    do {
+        for (i = 0; i < 4; i++) {
+            if (sel != i) {
+                MBStatusPosSet(D_80107568_last5[i], x, D_801074F0_last5[i]);
+            }
+        }
+        x -= dx;
+        dx += 2;
+        HuPrcVSleep();
+    } while (x >= -160);
+    for (r = D_801074F0_last5[sel]; D_801074F0_last5[0] < r; r -= 10) {
+        MBStatusPosSet(D_80107568_last5[sel], 30, r);
+        HuPrcVSleep();
+    }
+    MBStatusPosSet(D_80107568_last5[sel], 30, D_801074F0_last5[0]);
+    MBPlayerVibrate(D_80107568_last5[sel], 2);
+    func_80105C9C_last5(func_80105B04_last5(0x4308, mbCharNameMesTbl[GwPlayer[D_80107568_last5[sel]].chr], 0, 0, 0, 0, 80, 100));
+    MBCoinTakeCreate(D_80107568_last5[sel], 10);
+    HuPrcSleep(30);
+    if (hostWins != 0) {
+        MBMotionSet(host, 0, 2);
+        MBVecDirGet(&host->coords, &D_80107480_last5, &host->rot);
+        dx = 10;
+        HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&host->coords, &D_80107480_last5, &host->coords, 30));
+        x = 30;
+        do {
+            MBStatusPosSet(D_80107568_last5[sel], x, D_801074F0_last5[0]);
+            x -= dx;
+            dx += 2;
+            HuPrcVSleep();
+        } while (x >= -160);
+        HuPrcChildWait();
+    } else {
+        x = 30;
+        omDelObj(bob);
+        dx = 10;
+        do {
+            MBStatusPosSet(D_80107568_last5[sel], x, D_801074F0_last5[0]);
+            x -= dx;
+            dx += 2;
+            D_8010757C_last5->velocity.x += 20.0f;
+            func_8000CFA4_main(effect, D_8010757C_last5->coords.x, D_8010757C_last5->velocity.x - 100.0f, D_8010757C_last5->coords.z);
+            HuPrcVSleep();
+        } while (x >= -160);
+        while (D_8010757C_last5->velocity.x <= 1000.0f) {
+            D_8010757C_last5->velocity.x += 20.0f;
+            func_8000CFA4_main(effect, D_8010757C_last5->coords.x, D_8010757C_last5->velocity.x - 100.0f, D_8010757C_last5->coords.z);
+            HuPrcVSleep();
+        }
+        func_800138EC_main(effect, 1, 0);
+    }
+    func_8000D044_main(effect);
+    func_800EC5B4_shared_board(-1, 0x4309);
+    MBGuideFaceSet(guide, D_80107504_last5);
+    MBMotionShiftSet(guide, 0, 0, 5, 2);
+    HuPrcSleep(20);
+}
 
 void func_80107178_last5(void) {
     s32 i;
@@ -362,10 +528,6 @@ void func_80107384_last5(void) {
     func_800F27C4_shared_board();
     MBModelClose();
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/last5/3C6310", D_80107510_last5);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/last5/3C6310", D_80107520_last5);
 
 void func_801073B0_last5(void) {
     s32 sp10[] = { 4, 7, 0xA, 0xD, 0x10, 0x13 };
