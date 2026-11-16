@@ -79,6 +79,11 @@ void func_80108644_w04(void);
 void func_801086C4_w04(void);
 void func_8010886C_w04(void);
 void func_80107828_w04(void);
+extern Object *D_8011DFF0_w04;
+extern Process *D_8011E018_w04[];
+extern s16 D_8011B7E4_w04[][2];
+extern s16 D_8011B82C_w04[];
+extern s16 D_8011B83C_w04[];
 extern s16 D_8011B7CC_w04[];
 extern s16 D_8011B7D0_w04[];
 extern event_table_entry D_8011C77C_w04[];
@@ -855,11 +860,52 @@ void func_80107BB8_w04(void) {
     MBStart(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107BE4_w04);
+void func_80107BE4_w04(s16 arg0) {
+    Object *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107D0C_w04);
+    if (D_8011DFF8_w04[arg0] != NULL) {
+        return;
+    }
+    obj = MBModelCreate(0x3A, NULL);
+    func_800461B4_main(obj->omObj1->model[0]);
+    if (D_8011DFF0_w04 == NULL) {
+        D_8011DFF0_w04 = obj;
+    }
+    D_8011DFF8_w04[arg0] = obj;
+    obj->flags |= 2;
+    HuVecCopyXYZ(&obj->scale, 0.6f, 0.6f, 0.6f);
+    obj->velocity.x = 10.0f;
+    D_8011E018_w04[arg0] = func_800EDB98_shared_board(obj, 6.0f, 2.0f);
+    HuVecCopy3F(&obj->coords, &MBMasuGet(D_8011B82C_w04[arg0])->coords);
+    func_800D771C_shared_board(0xB, obj, D_8011B7E4_w04[arg0][0], D_8011B7E4_w04[arg0][1]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107D70_w04);
+void func_80107D0C_w04(void) {
+    s32 i;
+
+    for (i = 0; i < 8; i++) {
+        Process *prc = D_8011E018_w04[i];
+
+        if (prc != NULL) {
+            omDelPrcObj(prc);
+            D_8011E018_w04[i] = NULL;
+        }
+    }
+}
+
+void func_80107D70_w04(void) {
+    s32 i;
+
+    D_8011DFF0_w04 = 0;
+    for (i = 0; i < 8; i++) {
+        D_8011DFF8_w04[i] = 0;
+        D_8011E018_w04[i] = NULL;
+        MBKinokoEffKillHookSet(func_80107D0C_w04);
+        if (!GWBoardFlagCheck(D_8011B83C_w04[i])) {
+            func_80107BE4_w04(i);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107E1C_w04);
 
