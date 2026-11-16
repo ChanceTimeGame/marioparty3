@@ -44,6 +44,8 @@ typedef struct {
 } W04Bytes4_q1;
 extern W04Bytes4_q1 D_8011DDD0_w04;
 s32 func_8011B350_w04(void);
+s32 func_8011B6B4_w04(void);
+extern s32 D_8011E054_w04;
 extern Object *D_8011E03C_w04;
 
 void func_80116024_w04(s16 *links, s16 *spaces, void **arrows);
@@ -521,9 +523,74 @@ s32 func_80106CC4_w04(u8 *enabled) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106F58_w04);
+void func_80106F58_w04(void) {
+    s32 comCount = 0;
+    s16 sp18[MB_MAX_PLAYERS];
+    W04Bytes4_q1 sp20;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80107170_w04);
+    sp20 = D_8011DDD0_w04;
+
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i == GwSystem.current_player_index) {
+            if (GwPlayer[i].stat & 1) {
+                comCount = func_8011B6B4_w04();
+                sp18[GwPlayer[i].pad] = 0x400;
+            } else {
+                func_8005FE54_main(mbDlgWinId, sp20.b[GwPlayer[i].pad]);
+                sp18[GwPlayer[i].pad] = -1;
+            }
+        } else {
+            sp18[GwPlayer[i].pad] = 0;
+        }
+    }
+
+    if (comCount != 0) {
+        func_8005B63C_main(mbDlgWinId, 2, 2);
+        for (j = 0; comCount != 0; j++) {
+            if (--comCount == 0) {
+                sp18[GwPlayer[GwSystem.current_player_index].pad] = -0x8000;
+            }
+            if (j == 0) {
+                func_8005F698_main(sp18[0], sp18[1], sp18[2], sp18[3], func_800EDC40_shared_board());
+            } else {
+                func_8005F698_main(sp18[0], sp18[1], sp18[2], sp18[3], 5);
+            }
+        }
+    } else {
+        func_8005F744_main(sp18[0], sp18[1], sp18[2], sp18[3]);
+    }
+
+    func_8005E1D8_main(mbDlgWinId, 0, 1);
+}
+
+void func_80107170_w04(void) {
+    s32 cur = GwSystem.current_player_index;
+    s32 i;
+
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i != cur && GwPlayer[i].star != 0) {
+            break;
+        }
+    }
+    if (i != MB_MAX_PLAYERS && GwPlayer[cur].coin >= 50 && MBRand(100.0f) < GwPlayer[cur].coin + 10) {
+        D_8011E054_w04 = 1;
+        if (GwPlayer[cur].star < 99) {
+            return;
+        }
+    }
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i != cur && GwPlayer[i].coin >= 5) {
+            break;
+        }
+    }
+    if (i != MB_MAX_PLAYERS) {
+        D_8011E054_w04 = 0;
+    } else {
+        D_8011E054_w04 = 2;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_801072A0_w04);
 
