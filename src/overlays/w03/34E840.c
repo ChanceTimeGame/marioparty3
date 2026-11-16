@@ -186,6 +186,9 @@ extern s16 D_8011C398_w03[8];
 extern s16 D_8011C3A8_w03[8];
 extern s16 D_8011C3B8_w03[8];
 extern s16 D_8011C3C8_w03[8];
+extern DecisionTreeNonLeafNode *D_8011CABC_w03[];
+extern s16 D_8011CAD8_w03[];
+extern s32 D_8011CAEC_w03[];
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -1286,7 +1289,21 @@ void func_80108AB8_w03(void) {
     MBMoveNextMasuSet(-1, 1, 7);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80108ADC_w03);
+void func_80108ADC_w03(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x6D) {
+        if (player->rev & 0x80) {
+            if (mbWalkNum != 0) {
+                func_8011655C_w03((SpaceTriple *)D_8011CAD8_w03, (BranchPair *)D_8011CAEC_w03, D_8011CABC_w03);
+                return;
+            }
+            MBMoveBackMasuSet(-1, 1, 8);
+        } else {
+            MBMoveBackMasuSet(-1, 1, 6);
+        }
+    }
+}
 
 void func_80108B98_w03(void) {
     GW_PLAYER *player = MBPlayerGet(-1);
@@ -1568,7 +1585,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80109AD8_w03);
 void func_80109E90_w03(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80109E98_w03);
+void func_80109E98_w03(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+
+    if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == 2 && MBMasuLinkMasuIdGet(player->blink, player->bidx) == 0x63) {
+        MBMoveNextMasuSet(-1, 9, 6);
+    }
+}
 
 void func_80109F3C_w03(void) {
 }
