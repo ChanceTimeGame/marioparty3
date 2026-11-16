@@ -1783,7 +1783,7 @@ segments:
     subsegments:
       - [0x3B35F0, c]
       - [0x3B3620, c]
-      - [0x3B9420, data, 3B35F0] #8010B7D0
+      - [0x3B9420, .data, 3B35F0] #8010B7D0
       - [0x3B9590, .rodata, 3B3620] #8010B940
       - {0x3B9670, type: bss, vram: 0x8010BA20, name: w10_bss}
 
