@@ -189,6 +189,37 @@ void func_80108DE8_w05(void);
 void func_80108E18_w05(void);
 void func_80109A5C_w05(void);
 void func_80115A30_w05(s16 (*masu)[3], BranchLink (*links)[2], DecisionTreeNonLeafNode **trees);
+extern DecisionTreeNonLeafNode *D_8011D524_w05[];
+extern DecisionTreeNonLeafNode *D_8011DA28_w05[];
+extern event_table_entry D_8011EC2C_w05[];
+extern event_table_entry D_8011ECA4_w05[];
+extern event_table_entry D_8011EE38_w05[];
+extern event_table_entry D_8011EFA8_w05[];
+extern s16 D_8011E3A8_w05[];
+extern s16 D_8011E558_w05[];
+extern s16 D_8011E810_w05[][3];
+extern BranchLink D_8011E824_w05[][2];
+extern DecisionTreeNonLeafNode *D_8011DEC0_w05[];
+extern s16 D_8011E438_w05[][3];
+extern BranchLink D_8011E44C_w05[][2];
+extern DecisionTreeNonLeafNode *D_8011D74C_w05[];
+extern s16 D_8011E5A0_w05[][3];
+extern BranchLink D_8011E5B4_w05[][2];
+extern DecisionTreeNonLeafNode *D_8011DA88_w05[];
+void func_80118464_w05(void);
+void func_8011BB74_w05(void);
+extern s32 D_8011E3BC_w05[];
+extern s32 D_8011E56C_w05[];
+void func_80107780_w05(void);
+void func_80107B90_w05(void);
+void func_801089A8_w05(void);
+void func_80108A90_w05(void);
+void func_80108BC0_w05(void);
+void func_80108C70_w05(void);
+void func_80108EB4_w05(void);
+void func_80109078_w05(void);
+void func_80118364_w05(void);
+void func_801184C0_w05(void);
 // board x1 end
 
 s16 func_801059D0_w05(void) {
@@ -726,13 +757,46 @@ s32 func_80107724_w05(u8 *arg0) {
     return func_80107438_w05(arg0, 1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80107744_w05);
+void func_80107744_w05(void) {
+    GwSystem.current_board_index = 4;
+    omInitObjMan(10, 0);
+    omOvlGotoEx(0x47, 0, 0x192);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80107780_w05);
+void func_80107780_w05(void) {
+    omInitObjMan(0xA, 0);
+    MBMoveMasuSet(0, 0, 0);
+    MBMoveMasuSet(1, 0, 0);
+    MBMoveMasuSet(2, 0, 0);
+    MBMoveMasuSet(3, 0, 0);
+    GWBoardFlagSet(3);
+    func_801059F8_w05();
+    GwSystem.bank_coins = 0;
+    GwSystem.slow_dice_flags = 0;
+    GwSystem.forceShopHost = 0;
+    GwSystem.wackyWatchUsedState = 0;
+    GwSystem.boardData.halfWordBytes[0] = 0;
+    func_80118464_w05();
+    GwSystem.boardData.halfWordBytes[3] = 0;
+    GwSystem.boardData.halfWordBytes[4] = 1;
+    omOvlReturnEx(1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010782C_w05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80107B90_w05);
+void func_80107B90_w05(void) {
+    HuAudSeqPlay(0x1C);
+    D_800CE198_main = 0x1C;
+    func_800F8D6C_shared_board(0x1C);
+    Hu3DCamInit(2);
+    func_8010782C_w05();
+    MBMasuEventTblAdd(D_8011EC2C_w05);
+    MBMasuEventTblAdd(D_8011EFA8_w05);
+    MBHatenaFuncSet(&func_80118364_w05);
+    MBMasuEventTblAdd(D_8011ECA4_w05);
+    MBMasuEventTblAdd(D_8011EE38_w05);
+    MBStart(0);
+}
 
 void func_80107C14_w05(void) {
     Hu3DCamInit(1);
@@ -981,7 +1045,27 @@ void func_80108720_w05(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108798_w05);
+s32 func_80108798_w05(void) {
+    s32 result = 1;
+    s32 i;
+    s32 item;
+
+    for (i = 0; i < 3; i++) {
+        item = GwPlayer[GwSystem.current_player_index].itemNo[i];
+        switch (GwSystem.boardData.halfWordBytes[2]) {
+            case 0:
+                result &= -((item ^ 1) != 0);
+                break;
+            case 1:
+                result &= -(item != 0);
+                break;
+            case 2:
+                result &= -((item ^ 2) != 0);
+                break;
+        }
+    }
+    return result;
+}
 
 void func_80108830_w05(s32 masuAbsIndex, s16 arg1, s16 arg2) {
     GW_PLAYER* player = MBPlayerGet(CUR_PLAYER);
@@ -991,20 +1075,53 @@ void func_80108830_w05(s32 masuAbsIndex, s16 arg1, s16 arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801088B8_w05);
+void func_801088B8_w05(s16 (*masu)[3], g1BranchLink (*links)[2], DecisionTreeNonLeafNode **trees) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && mbWalkNum != 0) {
+        func_80115A30_w05(masu, links, trees);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108924_w05);
+void func_80108924_w05(void) {
+    MBMoveNextMasuSet(-1, 1, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108948_w05);
+void func_80108948_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    s16 masu = MBMasuLinkMasuIdGet(player->blink, player->bidx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801089A8_w05);
+    if (masu == 0x6C) {
+        MBMoveBackMasuSet(-1, 1, 2);
+    }
+}
+
+void func_801089A8_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    s16 masu = MBMasuLinkMasuIdGet(player->blink, player->bidx);
+
+    if (masu == 0x2A && !(player->rev & 0x80)) {
+        MBMoveNextMasuSet(-1, 3, 0);
+        player->rev &= ~1;
+    } else {
+        func_80115A30_w05((SpaceTriple *)D_8011E3A8_w05, (BranchPair *)D_8011E3BC_w05, D_8011D524_w05);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_80108A58_w05(void) {
     func_80115A30_w05((SpaceTriple *)D_8011E3F0_w05, (BranchPair *)D_8011E404_w05, D_8011D6BC_w05);
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108A90_w05);
+void func_80108A90_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x8D) {
+        func_801184C0_w05();
+    } else {
+        func_80115A30_w05(D_8011E438_w05, D_8011E44C_w05, D_8011D74C_w05);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_80108B18_w05(void) {
     func_80115A30_w05((SpaceTriple *)D_8011E480_w05, (BranchPair *)D_8011E494_w05, D_8011D7A0_w05);
@@ -1021,9 +1138,29 @@ void func_80108B88_w05(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108BC0_w05);
+void func_80108BC0_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    s16 masu = MBMasuLinkMasuIdGet(player->blink, player->bidx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108C70_w05);
+    if (masu == 0x61 && !(player->rev & 0x80)) {
+        MBMoveNextMasuSet(-1, 15, 0);
+        player->rev &= ~1;
+    } else {
+        func_80115A30_w05((SpaceTriple *)D_8011E558_w05, (BranchPair *)D_8011E56C_w05, D_8011DA28_w05);
+    }
+    omDelPrcObj(NULL);
+}
+
+void func_80108C70_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x8A) {
+        func_801184C0_w05();
+    } else {
+        func_80115A30_w05(D_8011E5A0_w05, D_8011E5B4_w05, D_8011DA88_w05);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_80108CF8_w05(void) {
     func_801088B8_w05(D_8011E5E8_w05, D_8011E5FC_w05, D_8011DB0C_w05);
@@ -1053,53 +1190,115 @@ void func_80108E18_w05(void) {
     func_801088B8_w05(D_8011E798_w05, D_8011E7AC_w05, D_8011DE90_w05);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108E48_w05);
+void func_80108E48_w05(void) {
+    func_80108830_w05(0x1C, 4, 9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108E6C_w05);
+void func_80108E6C_w05(void) {
+    func_80108830_w05(0x96, 4, 9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108E90_w05);
+void func_80108E90_w05(void) {
+    func_80108830_w05(0x1F, 3, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108EB4_w05);
+void func_80108EB4_w05(void) {
+    if ((MBPlayerGet(CUR_PLAYER)->rev & 0x80) && mbWalkNum != 0) {
+        func_80115A30_w05(D_8011E810_w05, D_8011E824_w05, D_8011DEC0_w05);
+    } else {
+        func_80108830_w05(0x58, 1, 9);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108F20_w05);
+void func_80108F20_w05(void) {
+    func_80108830_w05(0x23, 3, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108F44_w05);
+void func_80108F44_w05(void) {
+    func_80108830_w05(0x8C, 3, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108F68_w05);
+void func_80108F68_w05(void) {
+    func_80108830_w05(0x70, 14, 16);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108F8C_w05);
+void func_80108F8C_w05(void) {
+    func_80108830_w05(0x28, 14, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108FB0_w05);
+void func_80108FB0_w05(void) {
+    func_80108830_w05(0x12, 14, 16);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108FD4_w05);
+void func_80108FD4_w05(void) {
+    func_80108830_w05(0x13, 4, 3);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80108FF8_w05);
+void func_80108FF8_w05(void) {
+    func_80108830_w05(0x73, 1, 9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010901C_w05);
+void func_8010901C_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109078_w05);
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x8B) {
+        func_801184C0_w05();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801090A4_w05);
+void func_80109078_w05(void) {
+    func_80108830_w05(0x54, 16, 17);
+    func_8011BB74_w05();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801090C8_w05);
+void func_801090A4_w05(void) {
+    func_80108830_w05(0x56, 16, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801090EC_w05);
+void func_801090C8_w05(void) {
+    func_80108830_w05(0x38, 16, 17);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109118_w05);
+void func_801090EC_w05(void) {
+    func_80108830_w05(0x5E, 9, 12);
+    func_8011BB74_w05();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8010913C_w05);
+void func_80109118_w05(void) {
+    func_80108830_w05(0x5F, 15, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109160_w05);
+void func_8010913C_w05(void) {
+    func_80108830_w05(0x44, 9, 12);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109184_w05);
+void func_80109160_w05(void) {
+    func_80108830_w05(0x4A, 11, 6);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801091A8_w05);
+void func_80109184_w05(void) {
+    func_80108830_w05(0x8A, 16, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801091CC_w05);
+void func_801091A8_w05(void) {
+    func_80108830_w05(0x5A, 15, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_801091F0_w05);
+void func_801091CC_w05(void) {
+    func_80108830_w05(0x5C, 9, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109214_w05);
+void func_801091F0_w05(void) {
+    func_80108830_w05(0x87, 11, 6);
+}
+
+void func_80109214_w05(void) {
+    GW_PLAYER *player = MBPlayerGet(CUR_PLAYER);
+
+    if (MBMasuLinkMasuIdGet(player->blink, player->bidx) != 0x8C) {
+        func_801184C0_w05();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109270_w05);
 
