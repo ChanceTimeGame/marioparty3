@@ -681,15 +681,137 @@ void func_80107F84_boardresult(u8 *get) {
     }
 }
 
+// event e7: functions 80108378..8010BD04
+struct BoardResultWork; /* 3BFA00.c: the 0x4C-byte work of a func_8010BD30 process */
+struct BoardResultWork *func_8010BD30_boardresult(s32 arg0);
+void func_8010BDBC_boardresult(struct BoardResultWork *arg0, s32 arg1);
+void func_8010BDC4_boardresult(struct BoardResultWork *arg0, f32 x, f32 y, f32 z);
+void func_8010BDD4_boardresult(struct BoardResultWork *arg0, f32 x, f32 y, f32 z);
+void func_8010BDE4_boardresult(struct BoardResultWork *arg0, s16 arg1);
+void func_8010BDEC_boardresult(struct BoardResultWork *arg0, s32 mask, s32 bits);
+s16 func_8010BE04_boardresult(struct BoardResultWork *arg0);
+void func_8010BE0C_boardresult(struct BoardResultWork *arg0, s16 arg1);
+void func_80105BD8_boardresult(void);
+void func_80109754_boardresult(void);
+void func_8010BAD8_boardresult(omObjData *obj);
+void func_8010BD04_boardresult(void);
+void func_8010BC70_boardresult(void);
+void func_80007EC0_main(s32);
+s32 func_80050064_main(s32 write);
+void GWPlayNumInc(s16 board);
+void GWCharPlayNumInc(s16 board, s16 chr);
+extern s16 kakusiMasuItemHis[];
+extern s32 D_8010E3E0_boardresult;
+extern s32 D_8010E908_boardresult;
+extern f32 D_8010E90C_boardresult;
+extern s32 D_8010E910_boardresult[6];
+extern s32 D_8010E928_boardresult[];
+extern Object *D_8010EB48_boardresult[6];
+extern f32 D_8010EBB8_boardresult[6];
+
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80108378_boardresult);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80109128_boardresult);
+void func_80109128_boardresult(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80109320_boardresult);
+    while (1) {
+        for (i = 0; i < 6; i++) {
+            Object *obj = D_8010EB48_boardresult[i];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010935C_boardresult);
+            HuVecCopyXYZ(&obj->coords, obj->coords.x,
+                         obj->coords.y - (D_8010E90C_boardresult + D_8010EBB8_boardresult[i]), obj->coords.z);
+            if (D_8010EB48_boardresult[i]->coords.y <= -1000.0f) {
+                HuVecCopyXYZ(&D_8010EB48_boardresult[i]->coords, (func_800EFE20_name_81(300.0f) - 150) * 5.0f,
+                             (func_800EFE20_name_81(200.0f) + 250) * 5.0f, (300 - i * 50) * 5.0f);
+                D_8010EBB8_boardresult[i] =
+                    func_800EFE20_name_81(D_8010E90C_boardresult / 2.0f) - D_8010E90C_boardresult / 4.0f;
+                if (D_8010E908_boardresult != 0) {
+                    func_800D8F0C_name_81(D_8010EB48_boardresult[i]);
+                    D_8010E910_boardresult[i] = 1;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_801094A8_boardresult);
+s32 func_80109320_boardresult(void) {
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        if (D_8010E910_boardresult[i] == 0) {
+            break;
+        }
+    }
+    return i == 6;
+}
+
+void func_8010935C_boardresult(struct BoardResultWork *work, s32 slot) {
+    s32 x;
+    s32 y;
+    s32 z;
+
+    x = func_800EFE20_name_81(256.0f) - 128;
+    y = -func_800EFE20_name_81(256.0f) - 500;
+    func_8010BDD4_boardresult(work, x, y, 0.0f);
+    x = func_800EFE20_name_81(100.0f) + slot * 500 - 550;
+    y = func_800EFE20_name_81(64.0f) + 218;
+    z = func_800EFE20_name_81(500.0f) - 500;
+    func_8010BDC4_boardresult(work, x, y, z);
+    func_8010BDE4_boardresult(work, func_800EFE20_name_81(60.0f) + 30);
+}
+
+void func_801094A8_boardresult(void) {
+    struct BoardResultWork *work[3];
+    s32 i;
+    s32 n;
+
+    for (i = 0; i < 3; i++) {
+        work[i] = func_8010BD30_boardresult(D_8010E928_boardresult[GwPlayer[kakusiMasuItemHis[0]].chr]);
+        func_8010935C_boardresult(work[i], i);
+        func_8010BDEC_boardresult(work[i], 2, 2);
+    }
+    while (1) {
+        for (i = 0; i < 3; i++) {
+            if ((func_8010BE04_boardresult(work[i]) & 1) && rand8() < 0x20) {
+                while (1) {
+                    for (i = 0, n = 0; i < 3; i++) {
+                        func_8010BDEC_boardresult(work[i], 2, 0);
+                        n += func_8010BE04_boardresult(work[i]) & 1;
+                    }
+                    if (n >= 3) {
+                        break;
+                    }
+                    HuPrcVSleep();
+                }
+                func_8010935C_boardresult(work[0], 0);
+                func_8010BDC4_boardresult(work[0], 0.0f, 250.0f, 1500.0f);
+                func_8010BDEC_boardresult(work[0], 1, 0);
+                func_8010BDBC_boardresult(work[0], 0xB0046);
+                func_8010BE0C_boardresult(work[0], 120);
+                while (1) {
+                    for (i = 0, n = 0; i < 3; i++) {
+                        func_8010BDEC_boardresult(work[i], 2, 0);
+                        n += func_8010BE04_boardresult(work[i]) & 1;
+                    }
+                    if (n >= 3) {
+                        break;
+                    }
+                    HuPrcVSleep();
+                }
+                for (i = 0; i < 3; i++) {
+                    func_8010BDEC_boardresult(work[i], 3, 2);
+                    func_8010BDBC_boardresult(work[i], D_8010E928_boardresult[GwPlayer[kakusiMasuItemHis[0]].chr]);
+                }
+                func_8010BE0C_boardresult(work[0], 60);
+                func_8010935C_boardresult(work[0], 0);
+                break;
+            }
+            func_8010935C_boardresult(work[i], i);
+        }
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EA60_boardresult);
 
@@ -703,15 +825,64 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EAB0_boardr
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80109754_boardresult);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BA98_boardresult);
+void func_8010BA98_boardresult(void) {
+    func_80105BD8_boardresult();
+    func_80109754_boardresult();
+    D_800D530C_main = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BAD8_boardresult);
+void func_8010BAD8_boardresult(omObjData *obj) {
+    if (WipeStatGet() != 0) {
+        return;
+    }
+    func_8010BD04_boardresult();
+    func_8010BC70_boardresult();
+    if (D_8010E3E0_boardresult == 0) {
+        func_8005F524_main();
+    }
+    if (!(GwSystem.playMode & 4)) {
+        GWPlayNumInc(-1);
+        GWCharPlayNumInc(-1, GwPlayer[kakusiMasuItemHis[0]].chr);
+    }
+    if (GwSystem.playMode & 4) {
+        if (_CheckFlag(0)) {
+            _ClearFlag(0);
+            _ClearFlag(0x28);
+        }
+    } else if (_CheckFlag(0)) {
+        _ClearFlag(0);
+        _ClearFlag(0x16);
+        func_800500E0_main(1);
+    } else {
+        func_80050064_main(1);
+    }
+    omOvlGotoEx(0x55, 0, 0x4190);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BBF0_boardresult);
+void func_8010BBF0_boardresult(omObjData *obj) {
+    if (D_800D530C_main != 0) {
+        WipeCreateOut(2, 20);
+        func_80007EC0_main(40);
+        obj->func = func_8010BAD8_boardresult;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BC3C_boardresult);
+void func_8010BC3C_boardresult(void) {
+    func_800D7EB8_name_81();
+    func_800F3F4C_name_81();
+    func_800EF840_name_81();
+    func_800F4300_name_81();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BC70_boardresult);
+void func_8010BC70_boardresult(void) {
+    func_800F4314_name_81();
+    func_800EF880_name_81();
+    func_800F4030_name_81();
+    func_800D7F0C_name_81();
+}
 
 void func_8010BCA4_boardresult(void) {
     Hu3DCamInit(1);
@@ -721,6 +892,9 @@ void func_8010BCA4_boardresult(void) {
     func_800E8180_name_81(1000.0f, 10000.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_8010BD04_boardresult);
+void func_8010BD04_boardresult(void) {
+    MBDBackKill();
+    MBDBackClose();
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult/3B9670", D_8010EADC_boardresult);
