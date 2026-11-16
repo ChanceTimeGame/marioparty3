@@ -1878,7 +1878,7 @@ segments:
     bss_size: 0xB0
     subsegments:
       - [0x3CFC80, c]
-      - [0x3D3A90, data, 3CFC80] #801097B0
+      - [0x3D3A90, .data, 3CFC80] #801097B0
       - [0x3D3B10, .rodata, 3CFC80] #80109830
       - {0x3D3C80, type: bss, vram: 0x801099A0, name: boardresult2_bss}
 

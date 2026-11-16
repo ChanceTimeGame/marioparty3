@@ -1138,3 +1138,16 @@ void func_8010976C_boardresult2(void) {
 void func_8010979C_boardresult2(void) {
 }
 
+/* .data */
+s32 D_801097B0_boardresult2 = 0; /* record scroll: first row shown (0-9) */
+s32 D_801097B4_boardresult2 = 0; /* record scroll: cursor row on screen (0-3) */
+s32 D_801097B8_boardresult2[2] = { 0, 0 }; /* unreferenced */
+BR2Words4 D_801097C0_boardresult2 = { { 0x37, 0x6F, 0xAB, 0xFC } };
+BR2Files4x3 D_801097D0_boardresult2 = { {
+    { 0x130032, 0x13003E, 0x130042 },
+    { 0x130033, 0x13003F, 0x130043 },
+    { 0x130034, 0x130040, 0x130044 },
+    { 0x130035, 0x130041, 0x130045 },
+} };
+BR2Words8 D_80109800_boardresult2 = { { 0x130036, 0x130037, 0x130038, 0x130039, 0x13003A, 0x13003B, 0x13003C, 0x13003D } };
+BR2Words4 D_80109820_boardresult2 = { { 0, 0x3C, 0x8E, 0 } };
