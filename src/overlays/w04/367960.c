@@ -381,6 +381,12 @@ extern Object *D_8011E09C_w04[3];
 extern s16 D_8011B9C4_w04[3];
 void func_8010873C_w04(void);
 void func_800EC5B4_shared_board(s16 arg0, s32 arg1);
+extern s16 D_8011B9BC_w04[4];
+extern DecisionTreeNonLeafNode D_8011BF6C_w04[];
+extern DecisionTreeNonLeafNode D_8011BF9C_w04[];
+void func_80106AB0_w04(s32 arg0);
+void func_80119FCC_w04(s32 index, s32 arg1);
+#include "../ovl_80_shared_board/1063F0.h"
 // end board q4 declarations
 
 void func_8011621C_w04(s32 arg0) {
@@ -1688,9 +1694,98 @@ void func_80119FCC_w04(s32 index, s32 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011A4E0_w04);
+void func_8011A4E0_w04(s32 index) {
+    Vec camPos;
+    SpaceData *space;
+    GW_PLAYER *player;
 
+    space = MBMasuGet(D_8011B9BC_w04[index]);
+    player = MBPlayerGet(-1);
+    HuVecCopy3F(&camPos, &player->player_obj->coords);
+    MBCameraFocusModeSet(4);
+    MBCameraFocusVecSet(&camPos);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&camPos, &space->coords, &camPos, 15));
+    HuPrcChildWait();
+    func_80119FCC_w04(index, 0);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&camPos, &player->player_obj->coords, &camPos, 10));
+    HuPrcChildWait();
+    MBCameraFocusModeSet(1);
+}
+
+#ifdef NON_MATCHING
+// board q4: masked 1; retail reuses the a0 = 0x3D set in the case-1 branch delay slot for func_80106AB0_w04
+void func_8011A5DC_w04(void) {
+    SpaceData *space;
+    GW_SYSTEM *sys;
+    DecisionTreeNonLeafNode *tree;
+    s32 masu;
+    s32 choice;
+
+    space = MBMasuGet(D_8011B9BC_w04[0]);
+    masu = MBMasuCurGet();
+    sys = &GwSystem;
+    if (masu == 0x73) {
+        tree = D_8011BF6C_w04;
+        masu = 0x7F;
+    } else {
+        tree = D_8011BF9C_w04;
+        masu = 0x80;
+    }
+    func_800DBEC0_shared_board(sys->current_player_index);
+    MBPlayerMotionSet(-1, -1, 2);
+    func_800ED20C_shared_board(-1, 8, masu);
+    HuPrcSleep(8);
+    if (GwPlayer[sys->current_player_index].coin < 5) {
+        MBDlgWinExec(0x3D, 0xB01);
+    } else {
+    loop:
+        MBDlgWinInsertCreate(0x3D, 0xB00, 0, 0, 0, 0, 0);
+        choice = func_80109CD4_w04((s32)tree, 0);
+        MBDlgWinClose();
+        MBDlgWinKill();
+        switch (choice) {
+            case 0:
+                MBCoinChangeCreate(sys->current_player_index, -5);
+                MBCoinTakeCreate(sys->current_player_index, -5);
+                HuPrcSleep(30);
+                MBDlgWinExec(0x3D, 0xB02);
+                WipeCreateOut(0xB, 0x10);
+                while (WipeStatGet()) {
+                    HuPrcVSleep();
+                }
+                MBCameraFocusModeSet(0);
+                func_800E9AF0_shared_board(&space->coords, 0);
+                HuPrcSleep(5);
+                WipeCreateIn(0xB, 0x10);
+                while (WipeStatGet()) {
+                    HuPrcVSleep();
+                }
+                func_80119FCC_w04(-1, 0);
+                WipeCreateOut(0xB, 0x10);
+                while (WipeStatGet()) {
+                    HuPrcVSleep();
+                }
+                MBCameraFocusModeSet(1);
+                HuPrcSleep(5);
+                WipeCreateIn(0xB, 0x10);
+                while (WipeStatGet()) {
+                    HuPrcVSleep();
+                }
+                break;
+            case 1:
+                MBDlgWinExec(0x3D, 0xB04);
+                break;
+            default:
+                func_80106AB0_w04(0x3D);
+                goto loop;
+        }
+    }
+    func_800DB884_shared_board(sys->current_player_index);
+    HuPrcSleep(10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011A5DC_w04);
+#endif
 
 // main func for reroll event in woody woods
 void func_8011A858_w04(void) {
@@ -1725,7 +1820,29 @@ void func_8011A858_w04(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8011A91C_w04);
+void func_8011A91C_w04(void) {
+    Vec camPos;
+    SpaceData *space;
+
+    space = MBMasuGet(D_8011B9BC_w04[0]);
+    if (GwSystem.current_turn >= 2) {
+        HuVecCopy3F(&camPos, &space->coords);
+        MBCameraFocusModeSet(4);
+        MBCameraFocusVecSet(&camPos);
+        HuPrcSleep(2);
+        MBPlayerPosFixSet(0, 1);
+        MBPlayerPosFixSet(1, 1);
+        MBPlayerPosFixSet(2, 1);
+        MBPlayerPosFixSet(3, 1);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800F29EC_shared_board());
+        HuPrcChildWait();
+        func_80119FCC_w04(-1, 1);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800F292C_shared_board());
+        HuPrcChildWait();
+        MBCameraFocusModeSet(1);
+        HuPrcSleep(5);
+    }
+}
 
 void func_8011AA10_w04(void) {
     Hu3DCamInit(2);
