@@ -459,15 +459,227 @@ void func_80107598_boardresult(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_801076A0_boardresult);
+extern omObjData *D_8010E8EC_boardresult[4]; /* the pulse objects over the leaders */
+extern Object *D_8010EBA0_boardresult[4];   /* the stars that fall onto the players */
+extern s16 D_8010EBB0_boardresult[4];        /* their sparkle effects */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80107AB4_boardresult);
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_800EFA8C_name_81(Object *arg0, s16 arg1, u16 arg2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80107B50_boardresult);
+/* Coin count sprites over the players; the richest ones pulse. */
+void func_801076A0_boardresult(void) {
+    s32 digits[3];
+    Vec pos;
+    Vec2f pos2d;
+    void *data;
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 coin;
+    s32 max;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80107EE8_boardresult);
+    data = DataRead(0x1301C5);
+    D_8010EB98_boardresult = func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i < 4; i++) {
+        D_8010EB88_boardresult[i] = HuSprGrpCreate(3, 5);
+        coin = GwPlayer[i].coin;
+        if (coin >= 100) {
+            n = 3;
+            digits[0] = coin / 100;
+            coin -= digits[0] * 100;
+            digits[1] = coin / 10;
+            coin -= digits[1] * 10;
+            digits[2] = coin;
+        } else if (coin >= 10) {
+            n = 2;
+            coin %= 100;
+            digits[0] = coin / 10;
+            coin -= digits[0] * 10;
+            digits[1] = coin;
+        } else {
+            n = 1;
+            digits[0] = coin;
+        }
+        for (j = 0; j < n; j++) {
+            func_80055024_main(D_8010EB88_boardresult[i], j, D_8010EB98_boardresult, 0);
+            func_800550F4_main(D_8010EB88_boardresult[i], j, 1);
+            func_80055140_main(D_8010EB88_boardresult[i], j, digits[j], 0);
+            HuSprPriSet(D_8010EB88_boardresult[i], j, 0x4790);
+            HuSprAttrSet(D_8010EB88_boardresult[i], j, 0x1000);
+            func_80055420_main(D_8010EB88_boardresult[i], j, 0xFF, 0xFF, 0);
+            if (j == 0) {
+                pos.x = GwPlayer[i].player_obj->coords.x;
+                pos.y = GwPlayer[i].player_obj->coords.y + 280.0f;
+                pos.z = GwPlayer[i].player_obj->coords.z;
+                MBDCamera3Dto2D(&pos, &pos2d);
+                func_80054904_main(D_8010EB88_boardresult[i], 0, pos2d.x - (n - 1) * 7, pos2d.y);
+            } else {
+                func_80054904_main(D_8010EB88_boardresult[i], j, j * 14, 0);
+            }
+        }
+        max = GwPlayer[i].coin;
+        for (j = 0; j < 4; j++) {
+            if (j != i && max < GwPlayer[j].coin) {
+                max = GwPlayer[j].coin;
+            }
+        }
+        if (max == GwPlayer[i].coin) {
+            D_8010E8EC_boardresult[i] = omAddObj(0x1000, 0, 0, -1, func_80107598_boardresult);
+            D_8010E8EC_boardresult[i]->work[0] = i;
+            D_8010E8EC_boardresult[i]->work[1] = n;
+            D_8010E8EC_boardresult[i]->rot.x = 0.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80107F84_boardresult);
+void func_80107AB4_boardresult(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (D_8010E8EC_boardresult[i] != NULL) {
+            omDelObj(D_8010E8EC_boardresult[i]);
+            D_8010E8EC_boardresult[i] = NULL;
+        }
+        HuSprGrpKill(D_8010EB88_boardresult[i]);
+    }
+    HuSprKill(D_8010EB98_boardresult);
+    HuPrcVSleep();
+}
+
+/* Star count sprites over the players; the ones with the most stars pulse. */
+void func_80107B50_boardresult(void) {
+    s32 digits[2];
+    Vec pos;
+    Vec2f pos2d;
+    void *data;
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 star;
+    s32 max;
+
+    data = DataRead(0x1301C5);
+    D_8010EB98_boardresult = func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i < 4; i++) {
+        D_8010EB88_boardresult[i] = HuSprGrpCreate(2, 5);
+        star = GwPlayer[i].star;
+        if (star >= 10) {
+            n = 2;
+            star %= 100;
+            digits[0] = star / 10;
+            star -= digits[0] * 10;
+            digits[1] = star;
+        } else {
+            n = 1;
+            digits[0] = star;
+        }
+        for (j = 0; j < n; j++) {
+            func_80055024_main(D_8010EB88_boardresult[i], j, D_8010EB98_boardresult, 0);
+            func_800550F4_main(D_8010EB88_boardresult[i], j, 1);
+            func_80055140_main(D_8010EB88_boardresult[i], j, digits[j], 0);
+            HuSprPriSet(D_8010EB88_boardresult[i], j, 0x4790);
+            HuSprAttrSet(D_8010EB88_boardresult[i], j, 0x1000);
+            func_80055420_main(D_8010EB88_boardresult[i], j, 0xFF, 0xFF, 0);
+            if (j == 0) {
+                pos.x = GwPlayer[i].player_obj->coords.x;
+                pos.y = GwPlayer[i].player_obj->coords.y + 280.0f;
+                pos.z = GwPlayer[i].player_obj->coords.z;
+                MBDCamera3Dto2D(&pos, &pos2d);
+                func_80054904_main(D_8010EB88_boardresult[i], 0, pos2d.x - (n - 1) * 7, pos2d.y);
+            } else {
+                func_80054904_main(D_8010EB88_boardresult[i], j, j * 14, 0);
+            }
+        }
+        max = GwPlayer[i].star;
+        for (j = 0; j < 4; j++) {
+            if (j != i && max < GwPlayer[j].star) {
+                max = GwPlayer[j].star;
+            }
+        }
+        if (max == GwPlayer[i].star) {
+            D_8010E8EC_boardresult[i] = omAddObj(0x1000, 0, 0, -1, func_80107598_boardresult);
+            D_8010E8EC_boardresult[i]->work[0] = i;
+            D_8010E8EC_boardresult[i]->work[1] = n;
+            D_8010E8EC_boardresult[i]->rot.x = 0.0f;
+        }
+    }
+}
+
+void func_80107EE8_boardresult(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (D_8010E8EC_boardresult[i] != NULL) {
+            omDelObj(D_8010E8EC_boardresult[i]);
+            D_8010E8EC_boardresult[i] = NULL;
+        }
+        HuSprGrpKill(D_8010EB88_boardresult[i]);
+    }
+    HuSprKill(D_8010EB98_boardresult);
+    HuPrcVSleep();
+}
+
+/* A star falls onto each player with get[i] set (capped at 99 stars); then all the stars shrink away. */
+void func_80107F84_boardresult(u8 *get) {
+    s32 i;
+    s32 j; /* the star's height while it falls; a player index after */
+    f32 angle;
+
+    for (i = 0; i < 4; i++) {
+        if (get[i] != 0) {
+            GwPlayer[i].star++;
+            if (GwPlayer[i].star >= 100) {
+                GwPlayer[i].star = 99;
+            }
+            func_800EFA8C_name_81(GwPlayer[i].player_obj, 1, 0);
+            func_8004ACE0_main(0x274, i);
+            func_800138EC_main(D_8010EBB0_boardresult[i], 0, 1);
+            for (j = 800; j >= 250; j -= 15) {
+                func_800D8E88_name_81(D_8010EBA0_boardresult[i]);
+                HuVecCopyXYZ(&D_8010EBA0_boardresult[i]->scale, 0.75f, 0.75f, 0.75f);
+                HuVecCopyXYZ(&D_8010EBA0_boardresult[i]->coords, GwPlayer[i].player_obj->coords.x,
+                             j + GwPlayer[i].player_obj->coords.y, GwPlayer[i].player_obj->coords.z - 50.0f);
+                angle = j * 2 - 160;
+                D_8010EBA0_boardresult[i]->rot.x = sindf(angle);
+                D_8010EBA0_boardresult[i]->rot.z = cosdf(angle);
+                func_8000CFA4_main(D_8010EBB0_boardresult[i], D_8010EBA0_boardresult[i]->coords.x,
+                                   D_8010EBA0_boardresult[i]->coords.y - 20.0f, D_8010EBA0_boardresult[i]->coords.z);
+                if (j == 650) {
+                    HuAudFXPlay(0x176);
+                }
+                HuPrcVSleep();
+            }
+            func_800138EC_main(D_8010EBB0_boardresult[i], 1, 0);
+        }
+    }
+    for (j = 0; j < 4; j++) {
+        if (get[j] != 0) {
+            func_800EFABC_name_81(GwPlayer[j].player_obj);
+        }
+    }
+    HuPrcSleep(10);
+    HuAudFXPlay(0x171);
+    do {
+        for (i = 0; i < 4; i++) {
+            D_8010EBA0_boardresult[i]->scale.x -= 0.1f;
+            D_8010EBA0_boardresult[i]->scale.y -= 0.1f;
+            D_8010EBA0_boardresult[i]->scale.z -= 0.1f;
+            D_8010EBA0_boardresult[i]->coords.y -= 20.0f;
+        }
+        HuPrcVSleep();
+    } while (!(D_8010EBA0_boardresult[0]->scale.x <= 0.05f));
+    for (i = 0; i < 4; i++) {
+        func_800D8F0C_name_81(D_8010EBA0_boardresult[i]);
+        HuVecCopyXYZ(&D_8010EBA0_boardresult[i]->scale, 0.75f, 0.75f, 0.75f);
+    }
+    for (j = 0; j < 4; j++) {
+        if (get[j] != 0) {
+            func_800EFA8C_name_81(GwPlayer[j].player_obj, -1, 2);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult/3B9670", func_80108378_boardresult);
 
