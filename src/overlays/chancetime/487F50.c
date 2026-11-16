@@ -268,7 +268,65 @@ void func_8010C870_chancetime(omObjData *obj) {
 void func_8010C98C_chancetime(void) {
 }
 
+// NON_MATCHING: retail reads the position and size as u16 and keeps the clipped bounds in a stack array; the
+// display list and clipping were checked word by word against the asm
+#ifdef NON_MATCHING
+void func_8010C994_chancetime(Gfx **gfx, s32 arg1, s32 arg2) {
+    Gfx *g;
+    s16 s[4];
+    s16 t[2];
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 row;
+    s16 rows;
+    s16 k;
+
+    if ((((D_8010FB84_chancetime.x + D_8010FEA8_chancetime.x) < 0) | (D_8010FB84_chancetime.x >= 320)) != 0) {
+        return;
+    }
+    if ((((D_8010FB84_chancetime.y + D_8010FEA8_chancetime.y) < 0) | (D_8010FB84_chancetime.y >= 240)) != 0) {
+        return;
+    }
+    s[0] = (D_8010FB84_chancetime.x >= 0) ? 0 : -D_8010FB84_chancetime.x;
+    s[1] = (D_8010FB84_chancetime.x + D_8010FEA8_chancetime.x <= 320) ? D_8010FEA8_chancetime.x : 320 - D_8010FB84_chancetime.x;
+    x = (D_8010FB84_chancetime.x < 0) ? 0 : (D_8010FB84_chancetime.x >= 319) ? 319 : D_8010FB84_chancetime.x;
+    w = s[1] - s[0];
+    t[0] = (D_8010FB84_chancetime.y >= 0) ? 0 : -D_8010FB84_chancetime.y;
+    t[1] = (D_8010FB84_chancetime.y + D_8010FEA8_chancetime.y <= 240) ? D_8010FEA8_chancetime.y : 240 - D_8010FB84_chancetime.y;
+    y = (D_8010FB84_chancetime.y < 0) ? 0 : (D_8010FB84_chancetime.y >= 319) ? 319 : D_8010FB84_chancetime.y;
+    g = *gfx;
+    gDPPipeSync(g++);
+    gDPSetScissor(g++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD |
+                                  G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 255, 255, 255, 255);
+    gDPSetRenderMode(g++, G_RM_TEX_EDGE, G_RM_TEX_EDGE2);
+    gDPSetCombineMode(g++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    gDPLoadTLUT_pal256(g++, D_8010FEA4_chancetime);
+    rows = 4;
+    k = 0;
+    for (row = t[0]; row < t[1]; row += rows) {
+        if (row + rows > t[1]) {
+            rows = t[1] - row;
+        }
+        gDPLoadTextureTile(g++, D_8010FEA0_chancetime, G_IM_FMT_CI, G_IM_SIZ_8b, D_8010FEA8_chancetime.x, 0, s[0], row,
+                           s[1] - 1, row + rows - 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
+                           G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+        gSPTextureRectangle(g++, x << 2, (y + k) << 2, (x + w) << 2, (y + k + rows) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10,
+                            1 << 10);
+        k += rows;
+    }
+    gDPSetScissor(g++, G_SC_NON_INTERLACE, 104, 52, 215, 163);
+    *gfx = g;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010C994_chancetime);
+#endif
 
 void func_8010CF78_chancetime(s8 set) {
     static const s8 D_8010FC98_chancetime[3][13] = {
