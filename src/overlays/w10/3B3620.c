@@ -1017,6 +1017,9 @@ void func_80109444_w10(void);
 s16 func_8010B12C_w10(s32 padNo);
 void func_8010B434_w10(void);
 void func_80108F28_w10(void);
+void func_80106ED8_w10(UnkMBGuideData *guide, s32 mesNo);
+void func_80106F40_w10(UnkMBGuideData *guide, s32 mesNo);
+void func_80106FE0_w10(UnkMBGuideData *guide);
 extern event_table_entry D_8010B8B0_w10[];
 extern u8 D_800CC0BA_main;
 extern s32 D_8010BA20_w10;
@@ -1054,7 +1057,48 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109050_w10);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109444_w10);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010AF68_w10);
+// Tutorial: dice-roll explanation (zoom in, roll, hit the block, zoom out).
+void func_8010AF68_w10(UnkMBGuideData *guide) {
+    Process *curProc;
+    Process *proc;
+    GW_SYSTEM *system = &GwSystem;
+
+    curProc = HuPrcCurrentGet();
+    HuPrcChildLink(curProc, MBCameraZoomMotStart(1.6f));
+    proc = func_800DDDD4_shared_board(system->current_player_index);
+    func_800DE858_shared_board();
+    HuPrcChildWait();
+    func_80106F40_w10(guide, 0x1617);
+    func_800DE868_shared_board();
+    while (!func_800DE84C_shared_board()) {
+        HuPrcVSleep();
+    }
+    func_80106FE0_w10(guide);
+    func_800DE868_shared_board();
+    HuPrcChildLink(curProc, proc);
+    HuPrcChildWait();
+    proc = func_800DE7E4_shared_board(system->current_player_index);
+    func_800DE858_shared_board();
+    func_800DE868_shared_board();
+    while (!func_800DE84C_shared_board()) {
+        HuPrcVSleep();
+    }
+    HuPrcChildLink(curProc, proc);
+    HuPrcChildWait();
+    func_80106ED8_w10(guide, 0x1618);
+    proc = func_800DE414_shared_board(system->current_player_index, 0);
+    func_800DE858_shared_board();
+    func_800DE868_shared_board();
+    while (!func_800DE84C_shared_board()) {
+        HuPrcVSleep();
+    }
+    HuPrcChildLink(curProc, proc);
+    HuPrcChildWait();
+    func_80106ED8_w10(guide, 0x1619);
+    HuPrcChildLink(curProc, MBCameraZoomMotStart(1.3f));
+    HuPrcChildWait();
+    HuPrcSleep(1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010B12C_w10);
 
