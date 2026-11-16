@@ -8,6 +8,28 @@ void func_8011A4E0_w04(s32);
 
 // board q1
 #include "../ovl_80_shared_board/1006F0.h"
+#include "../ovl_80_shared_board/101840.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "../ovl_80_shared_board/113520.h"
+#include "../ovl_80_shared_board/113750.h"
+#include "../ovl_80_shared_board/EA790.h"
+#include "../ovl_80_shared_board/EAB00.h"
+#include "../ovl_80_shared_board/EB2F0.h"
+#include "../ovl_80_shared_board/EC3B0.h"
+#include "../ovl_80_shared_board/ECA50.h"
+#include "../ovl_80_shared_board/EDDB0.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5070.h"
+#include "../ovl_80_shared_board/F5B90.h"
+#include "../ovl_80_shared_board/F5E80.h"
+#include "../ovl_80_shared_board/F9DE0.h"
+#include "../ovl_80_shared_board/FFB10.h"
+#include "gcc/memory.h"
+#include "mallocblock.h"
+
+extern s32 D_8011E038_w04;
+extern Object *D_8011E03C_w04;
 
 void func_80116024_w04(s16 *links, s16 *spaces, void **arrows);
 extern s16 D_8011C1B0_w04[];
@@ -122,9 +144,87 @@ s32 func_80105C30_w04(s16 arg0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80105CA4_w04);
+void func_80105CA4_w04(void) {
+    SpaceData *space = HuPrcCurrentGet()->user_data;
+    Object *model;
+    s32 obj;
+    f32 scale;
+    f32 angle;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106094_w04);
+    HuAudFXPlay(0x11B);
+    D_8011E03C_w04 = MBModelCreate(0x3A, NULL);
+    model = D_8011E03C_w04;
+    func_800461B4_main(model->omObj1->model[0]);
+    model->flags |= 4;
+    func_800ECC54_shared_board(model);
+    HuVecCopy3F(&model->coords, &space->coords);
+    model->velocity.x = 50.0f;
+    obj = func_8000CED8_main(0xB0004, 0xAA9);
+    func_8000CD00_main(obj, 2.0f, 20.0f, 1.0f);
+    func_8000D018_main(obj, 30.0f);
+    func_8000CFA4_main(obj, model->coords.x, model->coords.y + model->velocity.x, model->coords.z);
+    func_8001C8A8_main(obj, 1);
+
+    scale = 0.0f;
+    for (i = 0; i < 6; i++) {
+        HuVecCopyXYZ(&model->scale, scale, scale, scale);
+        scale += 0.5f;
+        func_8000D018_main(obj, scale * 30.0f);
+        HuPrcVSleep();
+    }
+
+    for (i = 0; i < 3; i++) {
+        HuVecCopyXYZ(&model->scale, scale, scale, scale);
+        scale -= 0.4f;
+        func_8000D018_main(obj, scale * 30.0f);
+        HuPrcVSleep();
+    }
+
+    func_8000D018_main(obj, scale * 30.0f);
+    HuPrcSleep(30);
+    HuAudFXPlay(0x132);
+
+    angle = 0.0f;
+    while (1) {
+        func_8008A2A0_main(HmfModelData[model->omObj1->model[0]].mtx, angle);
+        angle += 20.0f;
+        if (angle >= 360.0f) {
+            angle -= 360.0f;
+        }
+        if (scale > 0.6f) {
+            scale -= 0.04f;
+        }
+        HuVecCopyXYZ(&model->scale, scale, scale, scale);
+        if (model->velocity.x > 10.0f) {
+            model->velocity.x -= 1.2f;
+        }
+        func_8000D018_main(obj, scale * 30.0f);
+        func_8000CFA4_main(obj, model->coords.x, model->coords.y + model->velocity.x, model->coords.z);
+        if ((model->velocity.x <= 10.0f) & (scale <= 0.6f)) {
+            if (angle == 0.0f) {
+                break;
+            }
+        }
+        HuPrcVSleep();
+    }
+
+    func_8008A2A0_main(HmfModelData[model->omObj1->model[0]].mtx, 0.0f);
+    func_8000D044_main(obj);
+    D_8011E038_w04 = 0;
+    omDelPrcObj(NULL);
+}
+
+void func_80106094_w04(omObjData **arg) {
+    omObjData *s0 = *arg;
+
+    s0->scale.y = 4.0f;
+    s0->scale.z = -0.6f;
+    HuPrcSleep(3);
+    while (s0->scale.z != 0.0f) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106120_w04);
 
