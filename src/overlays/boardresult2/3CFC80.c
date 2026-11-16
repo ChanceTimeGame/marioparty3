@@ -14,13 +14,6 @@ typedef struct BR2TexAnimSlot {
     /* 0x0B */ u8 unk_0B;
 } BR2TexAnimSlot; // sizeof 0xC
 
-/* The board-record scroll's model and window (built by func_80107964). */
-typedef struct BR2Record {
-    /* 0x00 */ Object* obj;
-    /* 0x04 */ char unk_04[4];
-    /* 0x08 */ s16 win;
-} BR2Record;
-
 extern BR2TexAnimSlot* D_800D1714_main;
 extern u16 D_800D530C_main;
 void func_80032FC0_main(s16, u8, u8);
@@ -48,7 +41,7 @@ extern UnkBoard4* D_801099A8_boardresult2;
 extern UnkBoard4* D_801099B0_boardresult2[4];
 extern UnkBoard4* D_801099C0_boardresult2;
 extern UnkBoard4* D_801099C4_boardresult2;
-extern BR2Record* D_801099C8_boardresult2;
+extern UnkMBGuideData* D_801099C8_boardresult2; /* the record guide: its model and window */
 extern UnkBoard4* D_801099CC_boardresult2;
 extern UnkBoard4* D_801099D0_boardresult2;
 extern UnkBoard4* D_801099D4_boardresult2;
@@ -61,6 +54,17 @@ extern s32 D_801099F8_boardresult2[16];
 extern s16 D_80109A38_boardresult2[10];
 extern s16 D_80109A4C_boardresult2;
 extern s16 D_80109A4E_boardresult2;
+extern s32 D_801097B0_boardresult2; /* record scroll: page */
+extern s32 D_801097B4_boardresult2; /* record scroll: row */
+void func_800D8F0C_name_81(Object*);
+void func_800D8E88_name_81(Object*);
+void func_800E4E64_name_81(UnkMBGuideData* arg0);
+void func_8005FE90_main(s16);
+void func_8005FFA8_main(s16);
+void func_8005D294_main(s16);
+void func_8005B43C_main(s16, s32, s32, s32);
+void func_80105B98_boardresult2(s16 model, s16 frame);
+void func_801074B4_boardresult2(void);
 
 void func_801059A0_boardresult2(void) {
     u32 i;
@@ -193,17 +197,144 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_8010992C_board
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80107964_boardresult2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108548_boardresult2);
+void func_80108548_boardresult2(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_801085F8_boardresult2);
+    func_800F4584_name_81(D_801099CC_boardresult2);
+    func_800F4584_name_81(D_801099D0_boardresult2);
+    func_800F4584_name_81(D_801099D4_boardresult2);
+    for (i = 0; i < 4; i++) {
+        func_800F4584_name_81(D_801099D8_boardresult2[i]);
+    }
+    func_800F4584_name_81(D_801099E8_boardresult2);
+    func_800F4584_name_81(D_801099EC_boardresult2);
+    func_800F4584_name_81(D_801099F0_boardresult2);
+    func_800F4584_name_81(D_801099F4_boardresult2);
+    func_800E4E64_name_81(D_801099C8_boardresult2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_8010879C_boardresult2);
+void func_801085F8_boardresult2(void) {
+    s32 j;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108958_boardresult2);
+    HuSprAttrSet(D_801099CC_boardresult2->unk_0A, 0, 0x8000);
+    HuSprAttrSet(D_801099D0_boardresult2->unk_0A, 0, 0x8000);
+    HuSprAttrSet(D_801099D0_boardresult2->unk_0A, 1, 0x8000);
+    HuSprAttrSet(D_801099D4_boardresult2->unk_0A, 0, 0x8000);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 10; j++) {
+            HuSprAttrSet(D_801099D8_boardresult2[i]->unk_0A, j, 0x8000);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        HuSprAttrSet(D_801099E8_boardresult2->unk_0A, j, 0x8000);
+    }
+    for (j = 0; j < 13; j++) {
+        HuSprAttrSet(D_801099EC_boardresult2->unk_0A, j, 0x8000);
+    }
+    for (j = 0; j < 64; j++) {
+        HuSprAttrSet(D_801099F0_boardresult2->unk_0A, j, 0x8000);
+    }
+    HuSprAttrSet(D_801099F4_boardresult2->unk_0A, 0, 0x8000);
+    func_800D8F0C_name_81(D_801099C8_boardresult2->obj);
+    func_8005FE90_main(D_801099C8_boardresult2->amount);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108A48_boardresult2);
+void func_8010879C_boardresult2(void) {
+    s32 j;
+    s32 i;
 
+    HuSprAttrReset(D_801099CC_boardresult2->unk_0A, 0, 0x8000);
+    HuSprAttrReset(D_801099D0_boardresult2->unk_0A, 0, 0x8000);
+    HuSprAttrReset(D_801099D0_boardresult2->unk_0A, 1, 0x8000);
+    HuSprAttrReset(D_801099D4_boardresult2->unk_0A, 0, 0x8000);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 10; j++) {
+            HuSprAttrReset(D_801099D8_boardresult2[i]->unk_0A, j, 0x8000);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        HuSprAttrReset(D_801099E8_boardresult2->unk_0A, j, 0x8000);
+    }
+    func_801074B4_boardresult2();
+    HuSprAttrReset(D_801099F4_boardresult2->unk_0A, 0, 0x8000);
+    func_800D8E88_name_81(D_801099C8_boardresult2->obj);
+    func_8005FFA8_main(D_801099C8_boardresult2->amount);
+    if (D_801097B0_boardresult2 == 0 && D_801097B4_boardresult2 == 0) {
+        HuSprAttrSet(D_801099E8_boardresult2->unk_0A, 0, 0x8000);
+    }
+    if (D_801097B0_boardresult2 == 9 && D_801097B4_boardresult2 == 3) {
+        HuSprAttrSet(D_801099E8_boardresult2->unk_0A, 1, 0x8000);
+    }
+}
+
+void func_80108958_boardresult2(void) {
+    s32 msgs[13] = { 0x1900, 0x1901, 0x1902, 0x1903, 0x1904, 0x1905, 0x1906,
+                     0x1907, 0x1908, 0x1909, 0x190A, 0x190B, 0x190C };
+
+    func_8005D294_main(D_801099C8_boardresult2->amount);
+    func_8005B43C_main(D_801099C8_boardresult2->amount, msgs[D_801097B0_boardresult2 + D_801097B4_boardresult2], -1, -1);
+    func_80105B98_boardresult2(D_801099C8_boardresult2->obj->omObj1->model[0],
+                               D_80109A38_boardresult2[D_801099F8_boardresult2[D_801097B0_boardresult2 + D_801097B4_boardresult2]]);
+}
+
+void func_80108A48_boardresult2(void) {
+    s32 idx;
+    f32 angle;
+    f32 amp;
+
+    idx = *(s32*)HuPrcCurrentGet()->user_data;
+    for (angle = 90.0f; angle < 180.0f; angle += 10.0f) {
+        func_80054904_main(D_801099B0_boardresult2[idx]->unk_0A, 0, 0x6F,
+                           (idx * 40 + 0x45) + sindf(angle) * -(idx * 40 + 0x6D));
+        HuPrcVSleep();
+    }
+    amp = -8.0f;
+    HuAudFXPlay(0x178);
+    for (angle = 0.0f; angle <= 1260.0f; angle += 50.0f) {
+        func_80054904_main(D_801099B0_boardresult2[idx]->unk_0A, 0, 0x6F, (idx * 40 + 0x45) + sindf(angle) * amp);
+        amp += 0.3174603f;
+        if (amp > 0.0f) {
+            amp = 0.0f;
+        }
+        HuPrcVSleep();
+    }
+    func_80054904_main(D_801099B0_boardresult2[idx]->unk_0A, 0, 0x6F, idx * 40 + 0x45);
+    omDelPrcObj(NULL);
+}
+
+/* The title banner bounces in. NON_MATCHING: the KMC assembler puts a nop between the delay-slot
+   mov.s of each sindf call and the mul.s after it (GCC fills that slot itself and emits a blank
+   line; retail looks gas-filled). Tried do-while and for loops, operand orders. */
+#ifdef NON_MATCHING
+void func_80108C70_boardresult2(void) {
+    f32 angle;
+    f32 amp;
+
+    angle = 90.0f;
+    do {
+        func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, sindf(angle) * -73.0f + 33.0f);
+        HuPrcVSleep();
+        angle += 10.0f;
+    } while (angle < 180.0f);
+    amp = -4.0f;
+    HuAudFXPlay(0x179);
+    angle = 0.0f;
+    do {
+        func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, sindf(angle) * amp + 33.0f);
+        amp += 0.2777778f;
+        if (amp > 0.0f) {
+            amp = 0.0f;
+        }
+        HuPrcVSleep();
+        angle += 50.0f;
+    } while (angle <= 720.0f);
+    func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, 0x21);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108C70_boardresult2);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108E1C_boardresult2);
 
@@ -242,4 +373,3 @@ void func_8010976C_boardresult2(void) {
 void func_8010979C_boardresult2(void) {
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/boardresult2/3CFC80", D_8010996C_boardresult2);
