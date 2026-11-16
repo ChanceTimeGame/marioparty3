@@ -1749,7 +1749,7 @@ segments:
       - [0x37FF80, c]
       - [0x37FFB0, c]
       - [0x3975F0, .data, 37FF80] #8011D010
-      - [0x397620, data, 37FFB0]
+      - [0x397620, .data, 37FFB0]
       - [0x39AC70, .rodata, 37FFB0] #80120690
       - {0x39AD20, type: bss, vram: 0x80120740, name: w05_bss}
 
