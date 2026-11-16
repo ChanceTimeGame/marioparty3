@@ -459,7 +459,8 @@ void func_80107598_boardresult(omObjData *obj) {
     }
 }
 
-extern omObjData *D_8010E8EC_boardresult[4]; /* the pulse objects over the leaders */
+extern omObjData *D_8010E8EC_boardresult[3]; /* the pulse objects over the leaders; retail indexes it by
+                                                player 0..3, so [3] is D_8010E8F8_boardresult[0] */
 extern Object *D_8010EBA0_boardresult[4];   /* the stars that fall onto the players */
 extern s16 D_8010EBB0_boardresult[4];        /* their sparkle effects */
 
@@ -723,12 +724,6 @@ extern Object *D_8010EB60_boardresult[4];
 extern Object *D_8010EB70_boardresult;
 extern s16 D_8010EB78_boardresult[4]; /* host motions: idle, no-bonus, tie, tie (4 ways) */
 extern Object *D_8010EBA0_boardresult[4];
-typedef struct BrCharF32 {
-    f32 v[8];
-} BrCharF32; /* one value per character */
-typedef struct BrFile4 {
-    s32 v[4];
-} BrFile4;
 typedef struct BrMot8 {
     s32 v[8];
 } BrMot8;
@@ -799,7 +794,6 @@ extern Vec D_8010E594_boardresult[16]; /* [order slot * 4 + player] */
 extern Vec D_8010E654_boardresult[4];
 extern Vec D_8010E684_boardresult[8];
 extern s32 D_8010E8E0_boardresult[];
-extern BrCharF32 D_8010E9B0_boardresult;
 extern Object *D_8010EAF4_boardresult;
 extern BrPlayerMotion D_8010EAF8_boardresult[4];
 extern s16 D_8010EBB0_boardresult[4];
@@ -1185,7 +1179,7 @@ void func_80109754_boardresult(void) {
     u8 st2[4];
     s32 work[4];
     s32 order[4];
-    BrCharF32 heights;
+    BrF8 heights;
     BrMot8 mot1;
     BrMot8 mot2;
     omObjData *crowd;
@@ -1974,13 +1968,13 @@ u8 D_8010E950_boardresult[4][4] = {
     { 0xFF, 0xFF, 0x00, 0x00 },
     { 0x00, 0xFF, 0x00, 0x00 },
 };
-BrFile4 D_8010E960_boardresult = { { 0x1301C1, 0x1301C2, 0x1301C3, 0x1301C4 } };
-BrCharF32 D_8010E970_boardresult = { {
-    200.0f, 60.0f, 80.0f, 0.0f, 0.0f, 120.0f, 80.0f, 120.0f,
+BrFiles4 D_8010E960_boardresult = { { 0x1301C1, 0x1301C2, 0x1301C3, 0x1301C4 } };
+BrPos4 D_8010E970_boardresult = { {
+    { 200.0f, 60.0f }, { 80.0f, 0.0f }, { 0.0f, 120.0f }, { 80.0f, 120.0f },
 } };
-BrCharF32 D_8010E990_boardresult = { {
-    120.0f, 60.0f, -80.0f, 0.0f, 0.0f, 120.0f, -80.0f, 120.0f,
+BrPos4 D_8010E990_boardresult = { {
+    { 120.0f, 60.0f }, { -80.0f, 0.0f }, { 0.0f, 120.0f }, { -80.0f, 120.0f },
 } };
-BrCharF32 D_8010E9B0_boardresult = { {
+BrF8 D_8010E9B0_boardresult = { {
     120.0f, 120.0f, 180.0f, 160.0f, 160.0f, 190.0f, 120.0f, 180.0f,
 } };
