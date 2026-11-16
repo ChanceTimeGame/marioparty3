@@ -1890,7 +1890,6 @@ typedef struct W02Bytes4 {
 } W02Bytes4; // board g4
 extern f32 D_8011D5A8_w02[4][2];
 extern f32 D_8011D5C8_w02[4][2];
-extern f32 D_8011D710_w02[4][2];
 extern DecisionTreeNonLeafNode D_8011D810_w02[];
 extern f32 D_8011D81C_w02[6][2];
 extern s32 D_8011D84C_w02;
@@ -1914,7 +1913,6 @@ extern s32 D_8011ECC0_w02[4];
 extern void* D_8011ECD0_w02;
 void func_80106B38_w02(void);
 void func_80107FB0_w02(void);
-s32 func_80109C98_w02(DecisionTreeNonLeafNode *arg0, s32 arg1);
 void func_80109F1C_w02(s16 arg0, s32 arg1, s16 arg2, s32 arg3);
 Process* func_8010F6BC_w02(s32 sprGrp, s16 startX, s16 startY, s16 endX, s16 endY, s16 frames);
 void func_8010F9BC_w02(void);
@@ -1950,8 +1948,8 @@ void func_80111BDC_w02(void) {
     proc = HuPrcCurrentGet();
     HuPrcChildLink(proc,
         func_8010F6BC_w02(mbItemCursorGrpId, sp20[0], sp20[1],
-                             D_8011D710_w02[system->current_player_index][0],
-                             D_8011D710_w02[system->current_player_index][1],
+                             D_8011D710_w02[system->current_player_index].x,
+                             D_8011D710_w02[system->current_player_index].y,
                              -1));
     HuPrcChildWait();
     HuPrcSleep(0xA);
@@ -1978,7 +1976,7 @@ void func_80111BDC_w02(void) {
 
 choiceLoop:
     MBDlgWinInsertCreate(0x38, 0x4100, 0, 0, 0, 0, 0);
-    ret = func_80109C98_w02(D_8011D810_w02, 0);
+    ret = func_80109C98_w02((s32)D_8011D810_w02, 0);
     MBDlgWinClose();
     MBDlgWinKill();
 
