@@ -1509,7 +1509,135 @@ void func_80109214_w05(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80109270_w05);
+void func_80109270_w05(void) {
+    GW_PLAYER *player;
+    GW_SYSTEM *loc;
+    s32 flag;
+    s32 choice;
+    void *prc;
+    s32 masuId;
+    s32 gateA;
+    s32 gateB;
+
+    flag = 1;
+    loc = &GwSystem;
+    player = MBPlayerGet(-1);
+    masuId = MBMasuLinkMasuIdGet(player->clink, player->cidx);
+    switch (masuId) {
+        case 0x74:
+        case 0x88:
+            switch (MBMasuLinkMasuIdGet(player->blink, player->bidx)) {
+                case 0x75:
+                    MBMoveNextMasuSet(-1, 0x10, 7);
+                    goto end;
+                case 0x89:
+                    MBMoveNextMasuSet(-1, 0xE, 5);
+                    goto end;
+            }
+            break;
+        case 0x73:
+        case 0x87:
+            switch (MBMasuLinkMasuIdGet(player->blink, player->bidx)) {
+                case 0x75:
+                case 0x89:
+                    goto end;
+            }
+            break;
+    }
+
+    MBPlayerMotionSet(-1, -1, 2);
+    if (MBItemFind(loc->current_player_index, 1) != -1) {
+        func_800DBEC0_shared_board(loc->current_player_index);
+        switch (masuId) {
+            case 0x73:
+            case 0x74:
+                func_800ED20C_shared_board(-1, 8, 0x75);
+                break;
+            default:
+                func_800ED20C_shared_board(-1, 8, 0x89);
+                break;
+        }
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.6f));
+        HuPrcChildWait();
+        MBPlayerVibrate(-1, 1);
+
+        while (1) {
+            MBDlgWinCreate(0x38, 0x4103);
+            choice = func_801096DC_w05(2, 0);
+            MBDlgWinClose();
+            MBDlgWinKill();
+
+            switch (choice) {
+                case 0:
+                    MBDlgWinExec(0x38, 0x4104);
+                    GwPlayer[loc->current_player_index].itemNo[MBItemFind(loc->current_player_index, 1)] = -1;
+                    MBItemRemoveEmpty(GwSystem.current_player_index);
+                    MBStatusItemIconSprReinit(-1);
+                    switch (masuId) {
+                        case 0x73:
+                            gateA = 0;
+                            gateB = 0;
+                            break;
+                        case 0x74:
+                            gateA = 0;
+                            gateB = 1;
+                            break;
+                        case 0x87:
+                            gateA = 1;
+                            gateB = 0;
+                            break;
+                        default:
+                            gateA = 1;
+                            gateB = 1;
+                            break;
+                    }
+                    func_801084EC_w05(gateA, gateB);
+                    flag = 0;
+                    prc = MBPlayerVibrateObjCreate(-1, 2, 5);
+                    HuPrcSleep(0x14);
+                    MBPlayerVibrateObjKill(prc);
+                    break;
+                case 1:
+                    MBDlgWinExec(0x38, 0x4105);
+                    break;
+                case 2:
+                    func_80106AB0_w05();
+                    continue;
+            }
+            break;
+        }
+
+        func_800DB884_shared_board(loc->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(), MBCameraZoomMotStart(1.3f));
+        HuPrcChildWait();
+    } else {
+        MBDlgWinExec(-1, 0x4106);
+    }
+
+    if (flag != 0) {
+        switch (masuId) {
+            case 0x73:
+                MBMoveNextMasuSet(-1, 7, 0);
+                player->rev |= 1;
+                break;
+            case 0x74:
+                MBMoveNextMasuSet(-1, 0x10, 7);
+                player->rev &= ~1;
+                break;
+            case 0x87:
+                MBMoveNextMasuSet(-1, 0xD, 0);
+                player->rev |= 1;
+                break;
+            default:
+                MBMoveNextMasuSet(-1, 0xE, 5);
+                player->rev &= ~1;
+                break;
+        }
+    }
+
+end:
+    omDelPrcObj(NULL);
+}
 
 void func_801096C4_w05(void) {
 }
