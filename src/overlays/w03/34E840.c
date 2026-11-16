@@ -483,6 +483,12 @@ typedef struct {
 extern SpaceData *D_8011EB3C_w03;
 extern s32 D_8011EB50_w03;
 extern Vec2f D_8011D438_w03[]; /* splat labels D_8011D438 (x) / D_8011D43C (y) */
+void func_8011A338_w03(void);
+void func_8011A550_w03(void);
+extern s16 D_8011D3F8_w03[];
+extern s16 D_8011D404_w03[];
+extern s16 D_8011D41C_w03[];
+void func_80032FC0_main(s16, u8, u8);
 void func_80106D84_w03(void);
 void func_80106E54_w03(void);
 void func_80119290_w03(void);
@@ -1471,7 +1477,214 @@ void func_8011A550_w03(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A550_w03);
 #endif
 
+#ifdef NON_MATCHING
+void func_8011A704_w03(void) {
+    Vec pos;
+    UnkVibrateProcess *vibrate[4];
+    s32 anim;
+    GW_PLAYER *player;
+    s16 *here;
+    s16 *list;
+    SpaceData *space;
+    Object *heli;
+    omObjData *scroll;
+    void *data;
+    Process *process;
+    W03PipeArg *arg;
+    f32 scale;
+    s32 i;
+    s32 n;
+    s16 dest;
+    SpaceData *destSpace;
+
+    mbItemBtnF = 0;
+    D_800A12D8_main = 1;
+    MBStatusHideAll();
+    here = D_8011D3F8_w03;
+    player = MBPlayerGet(-1);
+    while (*here != -1 && MBMasuLinkMasuIdGet(player->clink, player->cidx) != *here) {
+        here++;
+    }
+    if (*here != -1) {
+        D_8011EB30_w03 = MBModelCreate(0x47, NULL);
+        space = MBMasuGet(0x80);
+        list = D_8011D404_w03;
+    } else {
+        D_8011EB30_w03 = MBModelCreate(0x48, NULL);
+        space = MBMasuGet(0x7F);
+        list = D_8011D41C_w03;
+    }
+    func_8001C954_main(D_8011EB30_w03->omObj1->model[0]);
+    HuVecCopy3F(&D_8011EB30_w03->coords, &space->coords);
+    HuVecCopyXYZ(&D_8011EB30_w03->scale, 0.0f, 0.0f, 0.0f);
+    HuVecCopy3F(&pos, &player->player_obj->coords);
+    MBCameraFocusModeSet(4);
+    MBCameraFocusVecSet(&pos);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&pos, &space->coords, &pos, 10));
+    HuPrcChildWait();
+    MBCameraFocusModeSet(2);
+    MBCameraFocusStaticPosSet(&pos);
+    HuPrcSleep(10);
+    for (; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                vibrate[i] = MBPlayerVibrateObjCreate(i, 1, 5);
+            }
+        }
+    }
+    HuAudFXPlay(0x198);
+    if (*here != -1) {
+        scroll = omAddObj(0x1000, 0, 0, -1, func_80118E3C_w03);
+    } else {
+        scroll = omAddObj(0x1000, 0, 0, -1, func_80118F64_w03);
+    }
+    scroll->trans.x = 0.0f;
+    for (scale = scroll->trans.x; scale < 1.0f; scale += 0.1f) {
+        HuVecCopyXYZ(&D_8011EB30_w03->scale, scale, scale, scale);
+        HuPrcVSleep();
+    }
+    /* Retail bug: list was not reset after the loop above, so this loop never runs. */
+    for (; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                if (*here != -1) {
+                    func_800ED20C_shared_board(i, 10, 0x80);
+                } else {
+                    func_800ED20C_shared_board(i, 10, 0x7F);
+                }
+            }
+        }
+    }
+    list = *here != -1 ? D_8011D404_w03 : D_8011D41C_w03;
+    HuPrcSleep(10);
+    heli = MBModelCreate(0x49, NULL);
+    HuVecCopy3F(&heli->coords, &space->coords);
+    data = DataRead(0x130205);
+    anim = (s16)HmfAnimCreate(HmfModelData[heli->omObj1->model[0]].hmf, data, 0, "f_heleye_I8");
+    func_80032FC0_main(anim, 0, 0);
+    DataClose(data);
+    func_8001C258_main(heli->omObj1->model[0], 0x180, 0);
+    func_8001C8E4_main(heli->omObj1->model[0], 0x1800);
+    func_8001C448_main(heli->omObj1->model[0]);
+    HuPrcSleep(12);
+    for (; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                process = omAddPrcObj(func_8011A550_w03, 0x4800, 0, 0);
+                if (*here != -1) {
+                    process->user_data = (void *)i;
+                } else {
+                    process->user_data = (void *)(i + 4);
+                }
+                HuPrcChildLink(HuPrcCurrentGet(), process);
+            }
+        }
+    }
+    HuPrcChildWait();
+    for (list = *here != -1 ? D_8011D404_w03 : D_8011D41C_w03; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&player->player_obj->coords, &space->coords,
+                                                                        &player->player_obj->coords, 60));
+                omAddPrcObj(func_8011A2BC_w03, 0x4800, 0, 0)->user_data = (void *)i;
+            }
+        }
+    }
+    HuPrcChildWait();
+    for (list = *here != -1 ? D_8011D404_w03 : D_8011D41C_w03; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                MBPlayerVibrateObjKill(vibrate[i]);
+            }
+        }
+    }
+    WipeCreateOut(11, 16);
+    while (WipeStatGet()) {
+        HuPrcVSleep();
+    }
+    if (*here != -1) {
+        D_8011EB3C_w03 = space = MBMasuGet(0x7F);
+        list = D_8011D404_w03;
+    } else {
+        D_8011EB3C_w03 = space = MBMasuGet(0x80);
+        list = D_8011D41C_w03;
+    }
+    HuVecCopy3F(&pos, &space->coords);
+    MBCameraFocusModeSet(2);
+    MBCameraFocusStaticPosSet(&pos);
+    omDelObj(scroll);
+    func_80033354_main(anim);
+    MBModelKill(heli);
+    MBModelKill(D_8011EB30_w03);
+    if (*here != -1) {
+        dest = 0x24;
+        destSpace = MBMasuGet(0x24);
+    } else {
+        dest = 0x4E;
+        destSpace = MBMasuGet(0x4E);
+    }
+    D_8011EB50_w03 = 0;
+    for (i = 0; i < 4; i++) {
+        player = MBPlayerGet(i);
+        if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == dest) {
+            HuVecCopy3F(&player->player_obj->coords, &destSpace->coords);
+            player->player_obj->coords.x += D_8011D438_w03[D_8011EB50_w03].x;
+            player->player_obj->coords.z += D_8011D438_w03[D_8011EB50_w03].y;
+            D_8011EB50_w03++;
+        }
+    }
+    MBCameraZoomSet(1.1f);
+    HuPrcSleep(5);
+    WipeCreateIn(4, 16);
+    while (WipeStatGet()) {
+        HuPrcVSleep();
+    }
+    for (n = 0; *list != -1; list++) {
+        for (i = 0; i < 4; i++) {
+            player = MBPlayerGet(i);
+            if (MBMasuLinkMasuIdGet(player->clink, player->cidx) == *list) {
+                HuVecCopyXYZ(&player->player_obj->rot, 0.0f, 0.0f, 1.0f);
+                if (i == GwSystem.current_player_index) {
+                    MBPlayerMotionSet(-1, -1, 2);
+                } else {
+                    MBMotionSet(player->player_obj, -1, 2);
+                }
+                process = omAddPrcObj(func_8011A338_w03, 0x4800, 0, 0x40);
+                arg = HuMemMemoryAlloc(process->heap, 0x20);
+                process->user_data = arg;
+                arg->player = i;
+                arg->slot = n;
+                HuPrcChildLink(HuPrcCurrentGet(), process);
+                n++;
+                HuPrcSleep(10);
+            }
+        }
+    }
+    HuPrcChildWait();
+    MBStatusShowAll();
+    if (MBKettouPlayerBitGet(0)) {
+        func_800E6FCC_shared_board();
+        player = MBPlayerGet(-1);
+        MBCameraFocusModeSet(4);
+        MBCameraFocusVecSet(&pos);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800ED5E0_shared_board(&pos, &player->player_obj->coords, &pos, 2.0f));
+        HuPrcChildWait();
+        func_800E6FBC_shared_board();
+        MBCameraFocusModeSet(2);
+        MBCameraFocusStaticPosSet(&pos);
+    }
+    D_800A12D8_main = 0;
+    mbItemBtnF = 1;
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A704_w03);
+#endif
 
 void func_8011B1FC_w03(void) {
     GW_PLAYER *player;
