@@ -46,6 +46,9 @@ extern Object *D_8010BA68_w10;
 extern Object *D_8010BA6C_w10;
 extern Object *D_8010BA70_w10;
 extern Object *D_8010BA74_w10;
+extern u32 D_8010B900_w10[];
+extern u32 D_8010B908_w10[];
+extern s32 D_8010B918_w10;
 
 /* Three-sprite panel: frame, tinted backing, picture. */
 typedef struct W10SprWork {
@@ -881,7 +884,103 @@ void func_80107D64_w10(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80107F0C_w10);
+/* Pop up a model (and its motion partner) at space 0x2B, run its motion, wait until
+ * *status != 1, then play the closing motion and shrink both away; *status = 3. */
+void func_80107F0C_w10(void) {
+    s32 *status = HuPrcCurrentGet()->user_data;
+    u8 model = (D_8010B918_w10 != 0) ? 0x31 : 0x30;
+    Object *base;
+    Object *top;
+    f32 angle;
+    f32 scale;
+
+    HuAudFXPlay(0x114);
+    base = MBModelCreate(model, NULL);
+    MBModelTempAllocFree(base);
+    HuVecCopyXYZ(&base->rot, 0.0f, 0.0f, 1.0f);
+    base->scale.y = 0.0f;
+    MBMotionSet(base, -1, 1);
+    func_800D9A40_shared_board(base);
+    HuVecCopy3F(&base->coords, &MBMasuGet(0x2B)->coords);
+    if (D_8010B918_w10 != 0) {
+        top = MBModelCreate(0x39, D_8010B908_w10);
+    } else {
+        top = MBModelCreate(0x1B, D_8010B900_w10);
+    }
+    MBModelTempAllocFree(top);
+    HuVecCopy3F(&top->rot, &base->rot);
+    HuVecCopy3F(&top->coords, &base->coords);
+    top->scale.z = 1.2f;
+    top->scale.x = 1.2f;
+    top->scale.y = 1.2f;
+    MBModelDispOff(top);
+
+    scale = 1.0f / sindf(50.0f);
+    for (angle = 0.0f; angle < 90.0f; angle += 11.25f) {
+        base->scale.y = sindf(angle) * scale;
+        base->scale.x = (sindf(angle) * scale * 0.2f) + 0.8f;
+        base->scale.z = (sindf(angle) * scale * 0.2f) + 0.8f;
+        HuPrcVSleep();
+    }
+    for (; 50.0f < angle; angle -= 11.25f) {
+        base->scale.y = sindf(angle) * scale;
+        base->scale.x = (sindf(angle) * scale * 0.2f) + 0.8f;
+        base->scale.z = (sindf(angle) * scale * 0.2f) + 0.8f;
+        HuPrcVSleep();
+    }
+    base->scale.z = 1.0f;
+    base->scale.x = 1.0f;
+    base->scale.y = 1.0f;
+    func_800D9A40_shared_board(top);
+
+    MBMotionSet(base, -1, 0);
+    func_8001C92C_main(base->omObj1->model[0], 1.2f);
+    while (MBMotionCheck(base) == 0) {
+        HuPrcVSleep();
+    }
+    MBMotionSet(top, 0, 0);
+    HuAudFXPlay((D_8010B918_w10 != 0) ? 0x2A0 : 0x298);
+    while (MBMotionCheck(top) == 0) {
+        HuPrcVSleep();
+    }
+    MBMotionSet(top, -1, 2);
+    *status = 1;
+    HuPrcVSleep();
+    while (*status == 1) {
+        HuPrcVSleep();
+    }
+
+    HuAudFXPlay(0x115);
+    MBMotionSet(base, -1, 4);
+    func_8001C92C_main(base->omObj1->model[0], 1.2f);
+    func_8001C6A8_main(base->omObj1->model[0],
+                       (f32)D_800CCF58_main[HmfModelData[base->omObj1->model[0]].unk02].unk02);
+    while (func_800D9E80_shared_board(base) == 0) {
+        HuPrcVSleep();
+    }
+    MBModelDispOff(top);
+
+    scale = 1.0f / sindf(50.0f);
+    for (angle = 50.0f; angle < 90.0f; angle += 11.25f) {
+        base->scale.y = sindf(angle) * scale;
+        base->scale.x = (sindf(angle) * scale * 0.2f) + 0.8f;
+        base->scale.z = (sindf(angle) * scale * 0.2f) + 0.8f;
+        HuPrcVSleep();
+    }
+    for (angle = 90.0f; 0.0f < angle; angle -= 11.25f) {
+        base->scale.y = sindf(angle) * scale;
+        base->scale.x = (sindf(angle) * scale * 0.2f) + 0.8f;
+        base->scale.z = (sindf(angle) * scale * 0.2f) + 0.8f;
+        HuPrcVSleep();
+    }
+    base->scale.y = 0.0f;
+    base->scale.x = 0.0f;
+    base->scale.z = 0.0f;
+    MBModelKill(base);
+    MBModelKill(top);
+    *status = 3;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801084CC_w10);
 
