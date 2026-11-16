@@ -178,6 +178,14 @@ extern Object *D_8011EAC0_w03;
 void func_80107D54_w03(s16 arg0);
 extern s16 D_8011C1D8_w03[]; /* star guide board flags */
 void func_80107ECC_w03(void);
+extern s16 D_8011C358_w03[]; /* board flag per star space */
+extern s16 D_8011C368_w03[8];
+extern s16 D_8011C378_w03[8];
+extern s16 D_8011C388_w03[8];
+extern s16 D_8011C398_w03[8];
+extern s16 D_8011C3A8_w03[8];
+extern s16 D_8011C3B8_w03[8];
+extern s16 D_8011C3C8_w03[8];
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -1218,11 +1226,61 @@ void func_801088A0_w03(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80108918_w03);
+s32 func_80108918_w03(s16 *list) {
+    s32 i;
+    s32 found;
+
+    i = 0;
+    found = 0;
+    for (; i < 8; i++) {
+        if (*list == GwSystem.boardData.halfWordBytes[0]) {
+            found = 1;
+            break;
+        }
+        if (!GWBoardFlagCheck(D_8011C358_w03[*list])) {
+            break;
+        }
+        list++;
+    }
+    return found;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/w03/34E840", D_8011E910_w03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_801089AC_w03);
+s32 func_801089AC_w03(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    s16 *list;
+
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x79:
+            list = D_8011C368_w03;
+            break;
+        case 0x84:
+            list = D_8011C378_w03;
+            break;
+        case 0x89:
+            list = D_8011C388_w03;
+            break;
+        case 0x8A:
+            list = D_8011C398_w03;
+            break;
+        case 0x8B:
+            list = D_8011C3A8_w03;
+            break;
+        case 0x6F:
+            list = D_8011C3B8_w03;
+            break;
+        default:
+            list = D_8011C3C8_w03;
+            break;
+    }
+    if (func_80108918_w03(list) != 0) {
+        GwSystem.boardData.halfWordBytes[2] |= 1 << GwSystem.current_player_index;
+    } else {
+        GwSystem.boardData.halfWordBytes[2] &= ~(1 << GwSystem.current_player_index);
+    }
+    return 0;
+}
 
 void func_80108AB8_w03(void) {
     MBMoveNextMasuSet(-1, 1, 7);
