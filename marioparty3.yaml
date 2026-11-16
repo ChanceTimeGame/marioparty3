@@ -1713,7 +1713,7 @@ segments:
       - [0x34E810, c]
       - [0x34E840, c]
       - [0x364F50, .data, 34E810] #8011C0E0
-      - [0x364F80, data, 34E840]
+      - [0x364F80, .data, 34E840] #8011C110
       - [0x367780, .rodata, 34E840] #8011E910
       - {0x367930, type: bss, vram: 0x8011EAC0, name: w03_bss}
 
