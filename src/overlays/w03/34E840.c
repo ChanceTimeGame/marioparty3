@@ -134,6 +134,7 @@ extern s32 D_8011CD74_w03[]; /* D_8011C404_w06 */
 extern s32 D_8011CDBC_w03[]; /* D_8011C404_w06 */
 extern s16 D_8011C110_w03[]; /* star-space order */
 extern s16 D_8011C120_w03[]; /* order constraints */
+void func_801059F8_w03(void);
 // board p1: end of declarations
 
 s16 func_801059D0_w03(void) {
@@ -185,7 +186,29 @@ void func_801059F8_w03(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_801059F8_w03);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80105B44_w03);
+void func_80105B44_w03(void) {
+    s32 temp_s0;
+    s32 temp_v1;
+    GW_SYSTEM *system = &GwSystem;
+
+    if (++system->current_star_spawn >= 8) {
+        temp_s0 = system->star_spawn_indices[7];
+        system->current_star_spawn = 0;
+        GWBoardFlagSet(4);
+        func_801059F8_w03();
+        if (temp_s0 == system->star_spawn_indices[0]) {
+            temp_s0 = system->star_spawn_indices[0];
+            system->star_spawn_indices[0] = system->star_spawn_indices[7];
+            system->star_spawn_indices[7] = temp_s0;
+        }
+    }
+    if (system->current_star_spawn >= 7) {
+        GwSystem.boardData.halfWordBytes[0] = system->star_spawn_indices[MBRand(6.0f)];
+    } else {
+        GwSystem.boardData.halfWordBytes[0] = system->star_spawn_indices[MBRand(7 - system->current_star_spawn) + system->current_star_spawn + 1];
+    }
+    GWBoardFlagClear(0x12);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_80105C50_w03);
 
