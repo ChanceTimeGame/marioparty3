@@ -486,7 +486,87 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082C8_majinlam
 INCLUDE_RODATA("asm/nonmatchings/overlays/majinlamp/3C7EC0", D_801082D4_majinlamp);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/majinlamp/3C7EC0", func_8010771C_majinlamp);
+void func_8010771C_majinlamp(void) {
+    Vec v[4]; /* [0] the previous position, [2] the path step / turn target, [3] the sway / forward */
+    s16 se;
+    s32 i;
+
+    D_80108330_majinlamp = MBModelFileCreate(0x1301F6, -1, 1.0f, 0.0f, NULL);
+    HuVecCopyXYZ(&D_80108330_majinlamp->scale, 2.0f, 2.0f, 2.0f);
+    func_8001C954_main(D_80108330_majinlamp->omObj1->model[0]);
+    func_8001C92C_main(D_80108330_majinlamp->omObj1->model[0], 0.25f);
+    HuVecCopyXYZ(&D_80108330_majinlamp->scale, 4.0f, 4.0f, 4.0f);
+    func_8001C8A8_main(D_80108330_majinlamp->omObj1->model[0], 2);
+    omAddObj(0x1000, 0, 0, -1, func_80106BB0_majinlamp);
+    D_801080D0_majinlamp = 45.0f;
+    D_801080DC_majinlamp = 100.0f;
+    D_801080E0_majinlamp = 10.0f;
+    D_801080E4_majinlamp = 20000.0f;
+    func_8008A120_main((f32 (*)[4])HmfModelData[D_8010832C_majinlamp->omObj1->model[0]].mtx, 60.0f);
+    func_8008A120_main((f32 (*)[4])HmfModelData[D_80108334_majinlamp->player_obj->omObj1->model[0]].mtx, 0.0f);
+    HuVecCopy3F(&D_80108334_majinlamp->player_obj->coords, &D_801080F4_majinlamp[0]);
+    HuVecCopy3F(&D_8010832C_majinlamp->coords, &D_801080F4_majinlamp[0]);
+    MBMotionSet(D_80108334_majinlamp->player_obj, -1, 2);
+    MBVecForwardSet(&D_80108334_majinlamp->player_obj->rot);
+    MBVecForwardSet(&D_8010832C_majinlamp->rot);
+    D_801080F0_majinlamp = 0.0f;
+    D_801080E8_majinlamp = 1;
+    D_801080EA_majinlamp = 1;
+    WipeColorSet(255, 255, 255);
+    WipeCreateIn(11, 16);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    se = HuAudFXPlay(0x12A);
+    i = 0;
+    MBModelDispOn(D_80108334_majinlamp->player_obj);
+    MBModelDispOn(D_8010832C_majinlamp);
+    do {
+        HuVecCopy3F(&v[0], &D_80108334_majinlamp->player_obj->coords);
+        HuVecCopy3F(&D_80108334_majinlamp->player_obj->coords, &D_801080F4_majinlamp[0]);
+        HuVecSubtract(&v[2], &D_801080F4_majinlamp[2], &D_801080F4_majinlamp[0]);
+        HuVecMulScalar(&v[2], sindf(i / 2), &v[2]);
+        HuVecAdd(&D_80108334_majinlamp->player_obj->coords, &v[2], &D_80108334_majinlamp->player_obj->coords);
+        v[3].x = -sindf(i * 2) * (500 - i);
+        v[3].y = -sindf(i * 2) * (300 - i);
+        v[3].z = 0.0f;
+        HuVecAdd(&D_80108334_majinlamp->player_obj->coords, &v[3], &D_80108334_majinlamp->player_obj->coords);
+        MBVecDirGet(&v[0], &D_80108334_majinlamp->player_obj->coords, &D_80108334_majinlamp->player_obj->rot);
+        HuVecCopy3F(&D_8010832C_majinlamp->coords, &D_80108334_majinlamp->player_obj->coords);
+        HuVecCopy3F(&D_8010832C_majinlamp->rot, &D_80108334_majinlamp->player_obj->rot);
+        i += 2;
+        HuPrcVSleep();
+    } while (i < 181);
+    D_80108124_majinlamp = 1;
+    D_801080EA_majinlamp = 0;
+    {
+        Vec *dir = &v[2];
+        Vec *fwd = &v[3];
+
+        MBVecForwardSet(fwd);
+        HuVecCopy3F(dir, &D_80108334_majinlamp->player_obj->rot);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&D_80108334_majinlamp->player_obj->rot, fwd, &D_80108334_majinlamp->player_obj->rot, 10));
+    }
+    HuPrcChildWait();
+    func_80007DD8_main(se);
+    func_8004ACE0_main(0x2BD, D_8010833E_majinlamp);
+    func_80017954_main(D_80108334_majinlamp->player_obj->omObj1->model[0], 2, GwPlayer[D_8010833C_majinlamp].chr, D_80108340_majinlamp[1]);
+    MBPlayerMotionSet(D_8010833C_majinlamp, 5, 2);
+    HuPrcSleep(50);
+    MBVecDirGet(&D_80108334_majinlamp->player_obj->coords, &D_80108118_majinlamp, &v[2]);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&D_80108334_majinlamp->player_obj->rot, &v[2], &D_80108334_majinlamp->player_obj->rot, 10));
+    HuPrcChildLink(HuPrcCurrentGet(), func_800ED128_shared_board(&D_8010832C_majinlamp->rot, &v[2], &D_8010832C_majinlamp->rot, 10));
+    HuPrcChildWait();
+    D_801080EA_majinlamp = 1;
+    HuPrcSleep(10);
+    HuAudFXPlay(0x12B);
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&D_80108334_majinlamp->player_obj->coords, &D_80108118_majinlamp, &D_80108334_majinlamp->player_obj->coords, 20));
+    HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&D_8010832C_majinlamp->coords, &D_80108118_majinlamp, &D_8010832C_majinlamp->coords, 20));
+    HuPrcSleep(10);
+    WipeColorSet(255, 255, 255);
+    WipeCreateOut(11, 20);
+    HuPrcChildWait();
+}
 
 void func_80107D98_majinlamp(void) {
     func_80106E74_majinlamp();
