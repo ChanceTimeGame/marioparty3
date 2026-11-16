@@ -451,23 +451,152 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119680_w02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801199EC_w02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119D84_w02);
+// board g6
+#include "../ovl_80_shared_board/EDDB0.h"
+#include "../ovl_80_shared_board/1006F0.h"
+
+void func_801199EC_w02(void);
+void func_80107830_w02(void);
+void func_80119DB0_w02(void);
+void func_8011B038_w02(s16 masu);
+extern RectF D_8011DADC_w02;
+extern s32 D_8011D594_w02;
+extern s32 D_8011E914_w02;
+extern DecisionTreeNonLeafNode D_8011E254_w02[];
+extern DecisionTreeNonLeafNode *D_8011E338_w02[];
+extern DecisionTreeNonLeafNode *D_8011E73C_w02[];
+extern DecisionTreeNonLeafNode *D_8011E75C_w02[];
+extern DecisionTreeNonLeafNode *D_8011EA68_w02[];
+
+// board g6
+void func_80119D84_w02(void) {
+    omAddPrcObj(func_801199EC_w02, 0x1000, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119DB0_w02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B038_w02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B8A0_w02);
+// board g6
+void func_8011B8A0_w02(void) {
+    GW_PLAYER *player = MBPlayerGet(-1);
+    s16 masu = MBMasuLinkMasuIdGet(player->clink, player->cidx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B934_w02);
+    HuPrcSleep(8);
+    if (masu < 0x56) {
+        if (masu >= 0x50) {
+            func_80119DB0_w02();
+            goto end;
+        }
+    }
+    func_8011B038_w02(masu);
+end:
+    omDelPrcObj(NULL);
+}
 
+// board g6
+void func_8011B934_w02(void) {
+    Hu3DCamInit(2);
+    CameraScissorSet(1, &D_8011DADC_w02);
+    func_80107830_w02();
+    MBStart(2);
+    omAddPrcObj(func_80106120_w02, 0x1005, 0x1000, 0);
+}
+
+// board g6
+#ifdef NON_MATCHING
+// Differs only in how &GwSystem is shared: retail keeps the loop's copy in s1 and reloads the others.
+s32 func_8011B988_w02(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    DecisionTreeNonLeafNode *tree = D_8011E338_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
+    s32 i;
+    s32 unused[2];
+
+    func_800DA778_shared_board(GwSystem.current_player_index);
+    if (MBComTreeExec(D_8011E254_w02) == 0) {
+        return GwSystem.current_player_index;
+    }
+    for (i = 0; i < 4; i++) {
+        if (i != sys->current_player_index) {
+            func_800DA778_shared_board(i);
+            if (MBComTreeExec(tree) == 0) {
+                return i;
+            }
+        }
+    }
+    return MBRand(4.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B988_w02);
+#endif
 
+// board g6
+#ifdef NON_MATCHING
+// Same register-sharing difference as func_8011B988_w02.
+s32 func_8011BA58_w02(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    DecisionTreeNonLeafNode *tree1 = D_8011E73C_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
+    DecisionTreeNonLeafNode *tree2 = D_8011E75C_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
+    s32 i;
+    s32 unused[2];
+
+    func_800DA778_shared_board(GwSystem.current_player_index);
+    if (MBComTreeExec(tree1) == 0) {
+        return GwSystem.current_player_index;
+    }
+    for (i = 0; i < 4; i++) {
+        if (i != sys->current_player_index) {
+            func_800DA778_shared_board(i);
+            if (MBComTreeExec(tree2) == 0) {
+                return i;
+            }
+        }
+    }
+    return MBRand(4.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011BA58_w02);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011BB30_w02);
+// board g6
+s32 func_8011BB30_w02(void) {
+    s32 turnsLeft;
+    s32 slot;
+    GW_SYSTEM *sys = &GwSystem;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011BB84_w02);
+    turnsLeft = sys->total_turns - sys->current_turn + 1;
+    slot = MBItemFindEmpty(-1);
+    if (slot == -1) {
+        slot = 3;
+    }
+    return (slot < turnsLeft) ? 0 : 1;
+}
+
+// board g6
+s32 func_8011BB84_w02(s32 base, s32 perLevel) {
+    s32 ret;
+    s32 i;
+    s32 j;
+
+    ret = 1;
+    for (i = 0; i < MB_MAX_PLAYERS; i++) {
+        if (i != GwSystem.current_player_index) {
+            for (j = 0; j < ARRAY_COUNT(GwPlayer->itemNo); j++) {
+                if ((GwPlayer[i].itemNo[j] == ITEM_PLUNDER_CHEST) ||
+                    (GwPlayer[i].itemNo[j] == ITEM_BARTER_BOX)) {
+                    break;
+                }
+            }
+            if (j < 3) {
+                break;
+            }
+        }
+    }
+    if ((i < MB_MAX_PLAYERS) && MBRandCheck100(base + (perLevel * GwPlayer[i].cpu_difficulty)) != 0) {
+        ret = 0;
+    }
+    return ret;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/w02/335610", D_8011EB68_w02);
 
@@ -475,4 +604,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011BC6C_w02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011C274_w02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011C5D8_w02);
+// board g6
+s32 func_8011C5D8_w02(void) {
+    if (D_8011E914_w02 != 0) {
+        D_8011E914_w02 = 0;
+        return 2;
+    }
+    return MBComTreeExec(D_8011EA68_w02[D_8011D594_w02]) + 1;
+}
