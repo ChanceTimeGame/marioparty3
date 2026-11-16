@@ -1118,7 +1118,7 @@ typedef struct G5GatePos {
 } G5GatePos;
 extern G5GateFiles D_8011EB20_w02;
 extern G5GatePos D_8011EB34_w02;
-void func_80108870_w02(void *arg0);
+void func_80108870_w02(void);
 
 /* The current player picks one of four gates not yet opened (bits of boardData.halfWordBytes[0])
    with left/right and A (a COM player: random moves, then the tenth frame); marks it open and
@@ -1219,7 +1219,7 @@ s32 func_80117E70_w02(void) {
         }
     }
     GwSystem.boardData.halfWordBytes[0] |= 1 << sel;
-    func_80108870_w02(&GwSystem.boardData);
+    func_80108870_w02();
     func_80054904_main(cursor->spriteGroup, 0, pos.pos[0].x + pos.pos[sel + 1].x,
                        pos.pos[0].y + pos.pos[sel + 1].y - 16.0f);
     HuSprAttrSet(gates->spriteGroup, sel + 1, 0x8000);
@@ -1231,7 +1231,310 @@ s32 func_80117E70_w02(void) {
     return sel;
 }
 
+/* board g5: func_80118480_w02 data. D_8011D8B8_w02 is one motion list (count, then ids; splat
+   labels its ids word D_8011D8BC_w02); D_8011D8F8_w02 points at one per character; the model
+   number table after it (s32[8], low byte read) has no label of its own at 0x8011D918 (splat's
+   D_8011D91B_w02 is its last byte): D_8011D918_w02 is an undefined_syms.txt alias. */
+typedef struct G5MotList {
+    /* 0x00 */ u32 count;
+    /* 0x04 */ s32 ids[1]; /* [count] */
+} G5MotList;
+extern Object *D_8011C8E0_w02;
+extern DecisionTreeNonLeafNode *D_8011CFE8_w02[];
+extern DecisionTreeNonLeafNode D_8011CFF4_w02[];
+extern DecisionTreeNonLeafNode D_8011D00C_w02[];
+extern DecisionTreeNonLeafNode D_8011D030_w02[];
+extern DecisionTreeNonLeafNode D_8011D048_w02[];
+extern s16 D_8011D8A4_w02[][3];
+extern BranchLink D_8011D8AC_w02[][2];
+extern G5MotList D_8011D8B8_w02;
+extern G5MotList *D_8011D8F8_w02[8];
+extern s32 D_8011D918_w02[8];
+extern s16 D_8011D938_w02[];
+extern s16 D_8011D940_w02[];
+
+// Masked 0, raw 74 (1110 instructions): register allocation only (model/from in s6/s4 swapped,
+// the loop's float constants in other registers, win/i in s2/s0). Logic checked against the asm.
+#ifdef NON_MATCHING
+/* Junction event at the gates: from link 0x57/0xA the player picks a gate (func_80117E70_w02);
+   the right one launches the player across to the far space (0x82/0x83) and resets the gates,
+   a wrong one walks on. From 0x83/0xC or 0x2A/0x82: a two- or three-way path choice. */
+void func_80118480_w02(void) {
+    Vec target;
+    Vec diff;
+    s16 spaces[2];
+    GW_PLAYER *player;
+    Object *model;
+    Object *fx;
+    UnkEA790Struct *win;
+    SpaceData *from;
+    SpaceData *to;
+    s32 dir;
+    s16 link;
+    s32 i;
+    u32 j;
+    s32 count;
+    f32 scale;
+    u32 *motion;
+    GW_SYSTEM *system;
+
+    player = MBPlayerGet(-1);
+    link = MBMasuLinkMasuIdGet(player->blink, player->bidx);
+    system = &GwSystem;
+    spaces[0] = 0x82;
+    spaces[1] = 0x83;
+    switch (link) {
+    case 0x57:
+    case 0xA:
+        func_80115FEC_w02(D_8011D8A4_w02, D_8011D8AC_w02, D_8011CFE8_w02);
+        dir = MBMasuLinkMasuIdGet(player->nlink, player->nidx) != 0x2A;
+        func_800DBEC0_shared_board(system->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 5, 0x77);
+        MBDlgWinExec(0x3B, 0x600);
+        if (func_80117E70_w02() == GwSystem.boardData.halfWordBytes[1]) {
+            MBPlayerMotionLoad(system->current_player_index, 5, 0x1A);
+            MBPlayerMotionLoad(system->current_player_index, 6, 0xF);
+            if (GwPlayer[system->current_player_index].itemTurn == 0) {
+                HuPrcVSleep();
+                for (i = 1; i < 8; i++) {
+                    for (j = 0; j < D_8011D8B8_w02.count; j++) {
+                        D_8011D8F8_w02[i]->ids[j] = func_80017BB8_main(i, D_8011D8B8_w02.ids[j]);
+                    }
+                }
+                model = MBModelCreate(D_8011D918_w02[GwPlayer[system->current_player_index].chr],
+                                      (u32 *)D_8011D8F8_w02[GwPlayer[system->current_player_index].chr]);
+                MBModelTempAllocFree(model);
+                model->flags |= 1;
+                MBMotionSet(model, 0, 2);
+                func_8001C92C_main(model->omObj1->model[0], 0.5f);
+                MBModelDispOff(model);
+            } else {
+                model = player->player_obj;
+            }
+            from = MBMasuGet(spaces[dir]);
+            HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&player->player_obj->coords, &from->coords,
+                                                                    &player->player_obj->coords, 20));
+            MBPlayerMotionSet(-1, 0, 2);
+            func_8001C92C_main(player->player_obj->omObj1->model[0], 0.5f);
+            MBVecDirGet(&player->player_obj->coords, &from->coords, &player->player_obj->rot);
+            HuPrcChildWait();
+            HuAudFXPlay(0x18F);
+            HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&D_8011C8E0_w02->coords, &from->coords,
+                                                                    &D_8011C8E0_w02->coords, 10));
+            HuPrcSleep(2);
+            MBVecDirGet(&player->player_obj->coords, &D_8011C8E0_w02->coords, &diff);
+            func_800ED128_shared_board(&player->player_obj->rot, &diff, &player->player_obj->rot, 5);
+            HuPrcSleep(6);
+            MBModelDispOff(D_8011C8E0_w02);
+            HuAudFXPlay(0x190);
+            fx = MBModelFileCreate(0xB0013, -1, 10.0f, 0.0f, NULL);
+            func_8001C8E4_main(fx->omObj1->model[0], 0);
+            func_8001C258_main(fx->omObj1->model[0], 0x180, 0);
+            func_8001C448_main(fx->omObj1->model[0]);
+            func_8001C814_main(fx->omObj1->model[0], 2, 0);
+            func_8001C92C_main(fx->omObj1->model[0], 0.5f);
+            HuVecCopy3F(&fx->coords, &player->player_obj->coords);
+            from = MBMasuGet(spaces[dir]);
+            to = MBMasuGet(spaces[dir ^ 1]);
+            HuVecCopy3F(&target, &player->player_obj->coords);
+            MBCameraFocusModeSet(4);
+            MBCameraFocusVecSet(&target);
+            MBPlayerPosMoveCreate(&target, &to->coords, &target, 60);
+            MBPlayerVibrate(-1, 4);
+            MBVecForwardSet(&player->player_obj->rot);
+            MBPlayerMotionSet(GwSystem.current_player_index, 5, 2);
+            func_8001C92C_main(player->player_obj->omObj1->model[0], 0.5f);
+            player->player_obj->flags |= 1;
+            HuVecSubtract(&diff, &to->coords, &from->coords);
+            player->stat |= 4;
+            mbItemBtnF = 0;
+            func_8004ACE0_main(0x286, system->current_player_index);
+            if (GwPlayer[system->current_player_index].itemTurn == 0) {
+                MBModelDispOff(player->player_obj);
+                HuVecCopy3F(&model->coords, &player->player_obj->coords);
+                HuVecCopy3F(&model->rot, &player->player_obj->rot);
+                MBModelDispOn(model);
+            } else {
+                model = player->player_obj;
+            }
+            for (i = 0; i <= 180; i += 3) {
+                player->player_obj->velocity.x = sindf(i) * 100.0f;
+                model->velocity.x = sindf(i) * 100.0f;
+                if (i < 90) {
+                    player->player_obj->coords.z = sindf(i) * 100.0f + from->coords.z + i * diff.z / 90.0f;
+                    player->player_obj->coords.x = sindf(i) * 10.0f + from->coords.x + i * diff.x / 90.0f;
+                    model->coords.z = sindf(i) * 100.0f + from->coords.z + i * diff.z / 90.0f;
+                    model->coords.x = sindf(i) * 10.0f + from->coords.x + i * diff.x / 90.0f;
+                } else {
+                    player->player_obj->coords.z = sindf(i) * 100.0f + to->coords.z;
+                    player->player_obj->coords.x = sindf(i) * 10.0f + to->coords.x;
+                    model->coords.z = sindf(i) * 100.0f + to->coords.z;
+                    model->coords.x = sindf(i) * 10.0f + to->coords.x;
+                }
+                if (i < 90) {
+                    scale = i / 40.0f;
+                } else {
+                    scale = (180 - i) / 40.0f;
+                }
+                scale += 1.0f;
+                if (scale < 1.0f) {
+                    scale = 1.0f;
+                }
+                HuVecCopyXYZ(&player->player_obj->scale, scale, scale, scale);
+                HuVecCopyXYZ(&model->scale, scale, scale, scale);
+                HuPrcVSleep();
+            }
+            if (GwPlayer[system->current_player_index].itemTurn == 0) {
+                MBModelDispOn(player->player_obj);
+                MBModelKill(model);
+            }
+            mbItemBtnF = 1;
+            player->stat &= ~4;
+            player->player_obj->flags &= ~1;
+            HuVecCopy3F(&player->player_obj->coords, &to->coords);
+            player->player_obj->velocity.x = 0.0f;
+            MBCameraFocusModeSet(1);
+            MBPlayerMotionSet(GwSystem.current_player_index, 4, 2);
+            func_8001C92C_main(player->player_obj->omObj1->model[0], 1.0f);
+            HuPrcSleep(20);
+            HuVecCopy3F(&D_8011C8E0_w02->coords, &MBMasuGet(0x7B)->coords);
+            MBModelDispOn(D_8011C8E0_w02);
+            MBModelKill(fx);
+            MBDlgResultWinExec(0x601);
+            MBPlayerMotionSet(GwSystem.current_player_index, 6, 0);
+            MBPlayerMotionWait(GwSystem.current_player_index);
+            MBPlayerMotionSet(GwSystem.current_player_index, -1, 2);
+            motion = D_80101734_shared_board[0];
+            for (i = 6; i != 0; i--) {
+                motion++;
+            }
+            MBPlayerMotionLoad(system->current_player_index, 5, ((u16 *)motion)[1]);
+            motion = D_80101734_shared_board[0];
+            for (i = 7; i != 0; i--) {
+                motion++;
+            }
+            MBPlayerMotionLoad(system->current_player_index, 6, ((u16 *)motion)[1]);
+            GwSystem.boardData.halfWordBytes[0] = 0;
+            GwSystem.boardData.halfWordBytes[1] = MBRand(4.0f);
+            func_80108870_w02();
+            if (dir == 0) {
+                MBMoveMasuSet(system->current_player_index, 0xD, 0);
+                MBMoveNextMasuSet(system->current_player_index, 4, 0);
+            } else {
+                MBMoveMasuSet(system->current_player_index, 0xC, 0);
+                MBMoveNextMasuSet(system->current_player_index, 6, 0);
+            }
+        } else {
+            HuPrcSleep(2);
+            from = MBMasuGet(spaces[dir]);
+            HuPrcChildLink(HuPrcCurrentGet(), MBPlayerPosMoveCreate(&player->player_obj->coords, &from->coords,
+                                                                    &player->player_obj->coords, 20));
+            MBPlayerMotionSet(-1, 0, 2);
+            func_8001C92C_main(player->player_obj->omObj1->model[0], 0.5f);
+            MBVecDirGet(&player->player_obj->coords, &from->coords, &player->player_obj->rot);
+            HuPrcChildWait();
+            if (dir == 0) {
+                MBMoveMasuSet(system->current_player_index, 0xC, 0);
+                MBMoveNextMasuSet(system->current_player_index, 6, 0);
+            } else {
+                MBMoveMasuSet(system->current_player_index, 0xD, 0);
+                MBMoveNextMasuSet(system->current_player_index, 4, 0);
+            }
+            HuPrcSleep(5);
+        }
+        func_800DB884_shared_board(system->current_player_index);
+        HuPrcSleep(10);
+        break;
+    case 0x83:
+    case 0xC:
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 8, 0x77);
+        HuPrcSleep(8);
+        MBDlgResultWinExec(0x602);
+        MBPlayerMotionSet(-1, -1, 2);
+        HuPrcVSleep();
+        func_80106B94_w02();
+        win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011D938_w02);
+        func_800D742C_shared_board(win, GwSystem.current_player_index, 0);
+        if (MBPlayerComCheck(-1)) {
+            if (MBComTreeExec(D_8011CFF4_w02) == 0) {
+                count = 0;
+            } else if (MBComTreeExec(D_8011D00C_w02) != 0) {
+                count = 2;
+            } else {
+                count = 1;
+            }
+            for (i = 0; i < count; i++) {
+                func_800D7250_shared_board(win, -2);
+            }
+            func_800D7250_shared_board(win, -4);
+        }
+        count = func_800D7518_shared_board(win);
+        func_800D6CA0_shared_board(win);
+        func_80106C64_w02();
+        switch (count) {
+        case 0:
+            MBMoveNextMasuSet(-1, 2, 0xE);
+            player->rev |= 1;
+            break;
+        case 1:
+            MBMoveNextMasuSet(-1, 0xA, 8);
+            player->rev |= 1;
+            break;
+        default:
+            MBMoveNextMasuSet(-1, 6, 0);
+            player->rev &= ~1;
+            break;
+        }
+        break;
+    case 0x2A:
+    case 0x82:
+        MBPlayerMotionSet(-1, -1, 2);
+        func_800ED20C_shared_board(-1, 8, 0x77);
+        HuPrcSleep(8);
+        MBDlgResultWinExec(0x602);
+        MBPlayerMotionSet(-1, -1, 2);
+        HuPrcVSleep();
+        func_80106B94_w02();
+        win = func_800D76A0_shared_board(GwSystem.current_player_index, D_8011D940_w02);
+        func_800D742C_shared_board(win, GwSystem.current_player_index, 0);
+        if (MBPlayerComCheck(-1)) {
+            if (MBComTreeExec(D_8011D030_w02) == 0) {
+                count = 0;
+            } else if (MBComTreeExec(D_8011D048_w02) != 0) {
+                count = 2;
+            } else {
+                count = 1;
+            }
+            for (i = 0; i < count; i++) {
+                func_800D7250_shared_board(win, -2);
+            }
+            func_800D7250_shared_board(win, -4);
+        }
+        count = func_800D7518_shared_board(win);
+        func_800D6CA0_shared_board(win);
+        func_80106C64_w02();
+        switch (count) {
+        case 0:
+            MBMoveNextMasuSet(-1, 4, 0);
+            player->rev &= ~1;
+            break;
+        case 1:
+            MBMoveNextMasuSet(-1, 2, 0xE);
+            player->rev |= 1;
+            break;
+        default:
+            MBMoveNextMasuSet(-1, 0xA, 8);
+            player->rev |= 1;
+            break;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80118480_w02);
+#endif
 
 /* board g5: the model effect func_80119244_w02 sets up (hmfman's vertex-scatter work, HmfModel.unkBC,
    13F90.c's HmfFxWork) with func_80119680_w02 as its update: one G5FxPart per face group. */

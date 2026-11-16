@@ -150,3 +150,4 @@ D_8010E730_boardresult = D_8010E72C_boardresult + 0x4;
 D_8010E73C_boardresult = D_8010E738_boardresult + 0x4;
 D_8010E951_boardresult = D_8010E950_boardresult + 0x1;
 D_8010E952_boardresult = D_8010E950_boardresult + 0x2;
+D_8011D918_w02 = 0x8011D918; /* board g5: w02 model number table (s32[8]) inside the D_8011D8F8_w02 data label */
