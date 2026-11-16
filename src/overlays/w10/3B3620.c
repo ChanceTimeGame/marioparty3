@@ -1026,6 +1026,18 @@ extern s32 D_8010BA20_w10;
 extern Process *D_8010BA28_w10;
 extern Object *D_8010BA90_w10;
 extern s32 D_8010BA94_w10;
+extern s32 D_8010BA80_w10[4];
+extern f32 D_8010B91C_w10[][2];
+s16 func_8004ACE0_main(s16, s16);
+Process *func_800ED75C_shared_board(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
+
+// user_data of func_80109050_w10's processes (0x20 bytes allocated)
+typedef struct W10PlayerWork {
+    /* 0x00 */ s32 playerNo;
+    /* 0x04 */ s32 unk4;
+    /* 0x08 */ s32 slot;
+    /* 0x0C */ s32 unkC;
+} W10PlayerWork;
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801084CC_w10);
 
@@ -1053,7 +1065,81 @@ void func_80108F28_w10(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109050_w10);
+// Tutorial: one player walks up to the item model; player 1 jumps and gets coins, the others step aside.
+void func_80109050_w10(void) {
+    Vec sp18;
+    W10PlayerWork *work;
+    Object *target;
+    GW_PLAYER *player;
+    Object *obj;
+    s32 slot;
+    Process *curProc;
+    SpaceData *first;
+    SpaceData *second;
+
+    work = HuPrcCurrentGet()->user_data;
+    target = D_8010BA90_w10;
+    player = MBPlayerGet(work->playerNo);
+    obj = player->player_obj;
+    slot = work->slot;
+    curProc = HuPrcCurrentGet();
+    func_800ED20C_shared_board(work->playerNo, 8, 0x2E);
+    while (HuVecDistance(&obj->coords, &target->coords) > slot * 20.0f + 30.0f + 20.0f) {
+        HuPrcVSleep();
+    }
+    D_8010BA80_w10[work->playerNo] = 2;
+    while (HuVecDistance(&obj->coords, &target->coords) > slot * 20.0f + 30.0f) {
+        HuPrcVSleep();
+    }
+    if (work->playerNo == 1) {
+        D_8010BA80_w10[1] = 3;
+        func_8004ACE0_main(0x274, work->playerNo);
+        func_8004ACE0_main(0x3A, work->playerNo);
+        if (work->playerNo == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 2, 0);
+        } else {
+            MBMotionSet(obj, 2, 0);
+        }
+        func_800EE688_shared_board(obj, 7.0f, -0.45f);
+        func_800EE6C0_shared_board(obj);
+        func_8004ACE0_main(0x31, work->playerNo);
+        func_800F2388_shared_board(work->playerNo, -1, 0, 5, 2);
+        if (work->playerNo == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+    } else {
+        D_8010BA80_w10[work->playerNo] = 4;
+        func_8004ACE0_main(0x286, work->playerNo);
+        if (work->playerNo == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, 1, 2);
+        } else {
+            MBMotionSet(obj, 1, 2);
+        }
+        first = MBMasuGet(0x26);
+        second = MBMasuGet(0x10);
+        HuVecCopy3F(&sp18, &first->coords);
+        MBVecDirGet(&obj->coords, &sp18, &obj->rot);
+        HuPrcChildLink(curProc, func_800ED75C_shared_board(&obj->coords, &sp18, &obj->coords, 2.0f));
+        HuPrcChildWait();
+        HuVecCopy3F(&sp18, &second->coords);
+        sp18.x += D_8010B91C_w10[slot][0];
+        sp18.z += D_8010B91C_w10[slot][1];
+        MBVecDirGet(&obj->coords, &sp18, &obj->rot);
+        HuPrcChildLink(curProc, func_800ED5E0_shared_board(&obj->coords, &sp18, &obj->coords, 2.0f));
+        HuPrcChildWait();
+        if (work->playerNo == GwSystem.current_player_index) {
+            MBPlayerMotionSet(-1, -1, 2);
+        } else {
+            MBMotionSet(obj, -1, 2);
+        }
+        HuVecCopyXYZ(&sp18, 0.0f, 0.0f, 1.0f);
+        func_800ED128_shared_board(&player->player_obj->rot, &sp18, &player->player_obj->rot, 5);
+        HuPrcSleep(5);
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109444_w10);
 
