@@ -400,6 +400,10 @@ extern f32 D_8011EF38_w05[][2];
 extern f32 D_8011EF50_w05[];
 extern f32 D_8011EF70_w05[];
 extern Object *D_801207CC_w05;
+void func_80119F04_w05(void);
+extern DecisionTreeNonLeafNode D_8011E2A4_w05[];
+extern s32 D_801207B0_w05[4];
+extern s32 D_801207C0_w05;
 void func_80106AB0_w05(void);
 s32 func_801096DC_w05(s32 arg0, s32 arg1);
 void func_80115A30_w05(s16 (*masu)[3], BranchLink (*links)[2], DecisionTreeNonLeafNode **trees);
@@ -1188,7 +1192,175 @@ void func_80119F04_w05(void) {
     omDelPrcObj(NULL);
 }
 
+#ifdef NON_MATCHING
+void func_80119F7C_w05(void) {
+    GW_SYSTEM *sys;
+    Vec pos;
+    Vec dir;
+    GW_PLAYER *player;
+    Object *gate;
+    SpaceData *space;
+    s32 idx;
+    s32 state;
+    s32 pressed;
+    s32 turned;
+    s32 bounced;
+    f32 speed;
+    s16 masu;
+
+    pressed = 0;
+    idx = (s32)HuPrcCurrentGet()->user_data;
+    sys = &GwSystem;
+    player = MBPlayerGet(-1);
+    gate = D_801207CC_w05;
+    HuVecCopy3F(&pos, &player->player_obj->coords);
+    pos.z = gate->coords.z;
+    state = 0;
+    while (TRUE) {
+        switch (idx) {
+            case 0:
+            case 2:
+                if (gate->coords.x - player->player_obj->coords.x < 46.0f && state != 2) {
+                    D_801207B0_w05[sys->current_player_index] = 2;
+                }
+                if (gate->coords.x - player->player_obj->coords.x < 42.0f) {
+                    if ((D_800C9520_main[GwPlayer[sys->current_player_index].pad] & 0x8000) && state == 0) {
+                        state = 1;
+                        pressed = 1;
+                    }
+                }
+                if (gate->coords.x - player->player_obj->coords.x < 22.0f) {
+                    goto done;
+                }
+                if (pressed != 0) {
+                    pressed = 0;
+                } else if ((D_800C9520_main[GwPlayer[sys->current_player_index].pad] & 0x8000) && state != 2) {
+                    func_8004ACE0_main(0x286, sys->current_player_index);
+                    state = 2;
+                    D_801207B0_w05[sys->current_player_index] = 4;
+                    MBPlayerMotionSet(-1, 4, 2);
+                }
+                break;
+            default:
+                if (player->player_obj->coords.x - gate->coords.x < 46.0f && state != 2) {
+                    D_801207B0_w05[sys->current_player_index] = 2;
+                }
+                if (player->player_obj->coords.x - gate->coords.x < 42.0f) {
+                    if ((D_800C9520_main[GwPlayer[sys->current_player_index].pad] & 0x8000) && state == 0) {
+                        state = 1;
+                        pressed = 1;
+                    }
+                }
+                if (player->player_obj->coords.x - gate->coords.x < 22.0f) {
+                    goto done;
+                }
+                if (pressed != 0) {
+                    pressed = 0;
+                } else if ((D_800C9520_main[GwPlayer[sys->current_player_index].pad] & 0x8000) && state != 2) {
+                    func_8004ACE0_main(0x286, sys->current_player_index);
+                    state = 2;
+                    D_801207B0_w05[sys->current_player_index] = 4;
+                    MBPlayerMotionSet(-1, 4, 2);
+                }
+                break;
+        }
+        HuPrcVSleep();
+    }
+done:
+    if (MBPlayerComCheck(sys->current_player_index) != 0) {
+        if (MBComTreeExec(D_8011E2A4_w05) == 0) {
+            state = 1;
+        }
+    }
+    if (state == 1) {
+        func_8004ACE0_main(0x3A, sys->current_player_index);
+        D_801207B0_w05[sys->current_player_index] = 3;
+        HuPrcChildLink(HuPrcCurrentGet(),
+                       MBPlayerPosMoveCreate(&player->player_obj->coords, &pos, &player->player_obj->coords, 10));
+        MBPlayerMotionSet(-1, 2, 0);
+        for (bounced = 0, speed = 10.0f; TRUE; speed -= 2.0f) {
+            player->player_obj->velocity.x += speed;
+            if (bounced != 0 && player->player_obj->velocity.x <= 7.5f) {
+                break;
+            }
+            if (player->player_obj->velocity.x > 7.5f) {
+                bounced = 1;
+            }
+            HuPrcVSleep();
+        }
+        player->player_obj->velocity.x = 7.5f;
+        func_8004ACE0_main(0x31, sys->current_player_index);
+        func_8004ACE0_main(0x274, sys->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        omAddPrcObj(func_80119F04_w05, 0x4800, 0, 0)->user_data = (void *)idx;
+        D_801207C0_w05 = 1;
+        switch (idx) {
+            case 0:
+                masu = 0x7F;
+                break;
+            case 1:
+                masu = 0x97;
+                break;
+            case 2:
+                masu = 0x85;
+                break;
+            default:
+                masu = 0x71;
+                break;
+        }
+        turned = 0;
+        space = MBMasuGet(masu);
+        HuVecCopy3F(&pos, &space->coords);
+        while (TRUE) {
+            switch (idx) {
+                case 0:
+                case 2:
+                    player->player_obj->coords.x -= 2.0f;
+                    break;
+                default:
+                    player->player_obj->coords.x += 2.0f;
+                    break;
+            }
+            if (R4_ABSF(player->player_obj->coords.x - space->coords.x) <= 2.0f) {
+                break;
+            }
+            if (R4_ABSF(player->player_obj->coords.x - space->coords.x) <= 24.0f && turned == 0) {
+                turned = 1;
+                HuVecCopyXYZ(&dir, 0.0f, 0.0f, -1.0f);
+                func_800ED128_shared_board(&player->player_obj->rot, &dir, &player->player_obj->rot, 5);
+            }
+            HuPrcVSleep();
+        }
+        func_8004ACE0_main(0x3A, sys->current_player_index);
+        HuPrcChildLink(HuPrcCurrentGet(),
+                       MBPlayerPosMoveCreate(&player->player_obj->coords, &pos, &player->player_obj->coords, 10));
+        MBPlayerMotionSet(-1, 2, 0);
+        for (bounced = 0, speed = 8.0f; TRUE; speed -= 2.0f) {
+            player->player_obj->velocity.x += speed;
+            if (bounced != 0 && player->player_obj->velocity.x <= 0.0f) {
+                break;
+            }
+            if (player->player_obj->velocity.x > 0.0f) {
+                bounced = 1;
+            }
+            HuPrcVSleep();
+        }
+        player->player_obj->velocity.x = 0.0f;
+        func_8004ACE0_main(0x31, sys->current_player_index);
+        func_8004ACE0_main(0x274, sys->current_player_index);
+        MBPlayerMotionSet(-1, -1, 2);
+        HuVecCopyXYZ(&pos, 0.0f, 0.0f, 1.0f);
+        func_800ED128_shared_board(&player->player_obj->rot, &pos, &player->player_obj->rot, 10);
+    } else if (state == 0) {
+        func_8004ACE0_main(0x286, sys->current_player_index);
+        D_801207B0_w05[sys->current_player_index] = 4;
+        MBPlayerMotionSet(-1, 4, 2);
+    }
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119F7C_w05);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011A6E8_w05);
 
