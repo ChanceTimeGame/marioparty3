@@ -54,6 +54,14 @@ extern s32 D_801099F8_boardresult2[16];
 extern s16 D_80109A38_boardresult2[10];
 extern s16 D_80109A4C_boardresult2;
 extern s16 D_80109A4E_boardresult2;
+typedef struct BR2Words4 { s32 v[4]; } BR2Words4;
+typedef struct BR2Words8 { s32 v[8]; } BR2Words8;
+typedef struct BR2Files4x3 { s32 v[4][3]; } BR2Files4x3;
+extern s16 kakusiMasuItemHis[]; /* here: the ranking, player index per place */
+extern BR2Words4 D_801097C0_boardresult2;   /* place badges' x */
+extern BR2Files4x3 D_801097D0_boardresult2; /* per place: the three badge file ids */
+extern BR2Words8 D_80109800_boardresult2;   /* per character: portrait file id */
+extern BR2Words4 D_80109820_boardresult2;   /* badge parts' x */
 extern s32 D_801097B0_boardresult2; /* record scroll: page */
 extern s32 D_801097B4_boardresult2; /* record scroll: row */
 void func_800D8F0C_name_81(Object*);
@@ -127,7 +135,146 @@ s16 func_80105C68_boardresult2(s32 file) {
     DataClose(data);
     return sprite;
 }
+/* Builds the ranking: place badges, the results banner, and per place its badges, portrait and
+   star and coin digits (sprite group D_801099B0[place], members 1-9). */
+// NON_MATCHING: masked 0; register allocation only (the member index j and the &D_801099B0[i]
+// pointer take s5/s4 the other way round). Tried declaration orders.
+#ifdef NON_MATCHING
+void func_80105CB0_boardresult2(void) {
+    BR2Words4 badgeX;
+    BR2Files4x3 badgeFiles;
+    BR2Words8 portraits;
+    BR2Words4 partX;
+    s32 i;
+    s32 j;
+    void* data;
+
+    badgeX = D_801097C0_boardresult2;
+    badgeFiles = D_801097D0_boardresult2;
+    portraits = D_80109800_boardresult2;
+    partX = D_80109820_boardresult2;
+    D_801099A4_boardresult2 = func_800F4528_name_81(4, 0);
+    data = DataRead(0x130030);
+    *D_801099A4_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    for (j = 0; j < 4; j++) {
+        func_80055024_main(D_801099A4_boardresult2->unk_0A, j, *D_801099A4_boardresult2->unk_0C, 0);
+        HuSprPriSet(D_801099A4_boardresult2->unk_0A, j, 0x63);
+        HuSprAttrSet(D_801099A4_boardresult2->unk_0A, j, 0x4000);
+        func_80054904_main(D_801099A4_boardresult2->unk_0A, j, badgeX.v[j], 0x68);
+    }
+    D_801099A8_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(0x130031);
+    *D_801099A8_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099A8_boardresult2->unk_0A, 0, *D_801099A8_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099A8_boardresult2->unk_0A, 0, 0x63);
+    HuSprAttrSet(D_801099A8_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099A8_boardresult2->unk_0A, 0, 0x37, 0x81);
+    for (i = 0; i < 4; i++) {
+        D_801099B0_boardresult2[i] = func_800F4528_name_81(10, 2);
+        for (j = 0; j < 3; j++) {
+            data = DataRead(badgeFiles.v[i][j]);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+            DataClose(data);
+            func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1], 0);
+            HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+            HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+            func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, partX.v[j], 0);
+        }
+        data = DataRead(portraits.v[GwPlayer[kakusiMasuItemHis[i]].chr]);
+        j = 4;
+        D_801099B0_boardresult2[i]->unk_0C[4] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, 4, D_801099B0_boardresult2[i]->unk_0C[4], 0);
+        HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, 4, 0x5F);
+        HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, 4, 0x4000);
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, 4, partX.v[3], 1);
+        if (GwPlayer[kakusiMasuItemHis[i]].star >= 10) {
+            data = DataRead(0xC0086);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        } else {
+            data = DataRead(0xC003C);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        }
+        DataClose(data);
+        func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                           GwPlayer[kakusiMasuItemHis[i]].star / 10);
+        HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+        HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x44, 4);
+        j = 5;
+        data = DataRead(0xC0086);
+        D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        DataClose(data);
+        func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                           GwPlayer[kakusiMasuItemHis[i]].star % 10);
+        HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+        HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x54, 4);
+        j = 6;
+        if (GwPlayer[kakusiMasuItemHis[i]].coin >= 100) {
+            data = DataRead(0xC0086);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        } else {
+            data = DataRead(0xC003C);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        }
+        DataClose(data);
+        func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                           GwPlayer[kakusiMasuItemHis[i]].coin / 100);
+        HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+        HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x8E, 4);
+        j = 7;
+        data = DataRead(0xC0086);
+        D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+        DataClose(data);
+        if (GwPlayer[kakusiMasuItemHis[i]].coin >= 10) {
+            func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                               GwPlayer[kakusiMasuItemHis[i]].coin / 10 % 10);
+        } else {
+            func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                               GwPlayer[kakusiMasuItemHis[i]].coin);
+        }
+        HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+        HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x9E, 4);
+        if (GwPlayer[kakusiMasuItemHis[i]].coin >= 10) {
+            j = 8;
+            data = DataRead(0xC0086);
+            D_801099B0_boardresult2[i]->unk_0C[j + 1] = func_80055810_main(data);
+            DataClose(data);
+            func_80055024_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, D_801099B0_boardresult2[i]->unk_0C[j + 1],
+                               GwPlayer[kakusiMasuItemHis[i]].coin % 10);
+            HuSprPriSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x62 - j);
+            HuSprAttrSet(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0x4000);
+            func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, j + 1, 0xAE, 4);
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        func_80054904_main(D_801099B0_boardresult2[i]->unk_0A, 0, 0x6F, i * 40 + 0x45);
+    }
+    D_801099C0_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(0x130046);
+    *D_801099C0_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099C0_boardresult2->unk_0A, 0, *D_801099C0_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099C0_boardresult2->unk_0A, 0, 0x5A);
+    HuSprAttrSet(D_801099C0_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, 0x21);
+    D_801099C4_boardresult2 = func_800F4528_name_81(1, 0);
+    data = DataRead(0x130062);
+    *D_801099C4_boardresult2->unk_0C = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_801099C4_boardresult2->unk_0A, 0, *D_801099C4_boardresult2->unk_0C, 0);
+    HuSprPriSet(D_801099C4_boardresult2->unk_0A, 0, 0x59);
+    HuSprAttrSet(D_801099C4_boardresult2->unk_0A, 0, 0x4000);
+    func_80054904_main(D_801099C4_boardresult2->unk_0A, 0, 0x37, 0x29);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80105CB0_boardresult2);
+#endif
 
 void func_80106924_boardresult2(void) {
     s32 i;
