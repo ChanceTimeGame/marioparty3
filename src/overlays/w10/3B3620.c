@@ -5,7 +5,12 @@
 #include "game/sprite.h"
 #include "game/data.h"
 #include "../ovl_80_shared_board/1006F0.h"
+#include "game/wipe.h"
 #include "../ovl_80_shared_board/1063F0.h"
+#include "../ovl_80_shared_board/106A50.h"
+#include "../ovl_80_shared_board/10C230.h"
+#include "../ovl_80_shared_board/EE660.h"
+#include "../ovl_80_shared_board/F5E80.h"
 #include "../ovl_80_shared_board/EA790.h"
 #include "../ovl_80_shared_board/EAB00.h"
 #include "../ovl_80_shared_board/105D50.h"
@@ -28,6 +33,10 @@ extern s32 D_8010B8C0_w10[];
 extern s32 D_8010B8E8_w10[];
 extern s16 D_8010BA4C_w10;
 extern s16 D_8010BA4E_w10;
+extern s16 D_8010BA50_w10;
+extern s16 D_8010BA52_w10;
+extern s16 D_8010BA54_w10;
+extern Vec D_8010BA58_w10;
 
 /* Three-sprite panel: frame, tinted backing, picture. */
 typedef struct W10SprWork {
@@ -38,6 +47,7 @@ typedef struct W10SprWork {
 void func_800461B4_main(s16 model);
 void func_80105DC4_w10(void);
 void func_80105E08_w10(void);
+void func_800DCD64_shared_board(s32 arg0, s32 arg1);
 void func_8001FA68_main(s16 model);
 
 void func_801059D0_w10(void) {
@@ -240,29 +250,148 @@ void func_80106230_w10(s16 arg0, s16 x, s16 y) {
     DataClose(data);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106314_w10);
+void func_80106314_w10(s16 x, s16 y) {
+    void *data;
+    f32 scale;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010649C_w10);
+    D_8010BA50_w10 = HuSprGrpCreate(1, 0);
+    data = DataRead(0x130015);
+    D_8010BA52_w10 = func_80055810_main(data);
+    func_80055024_main(D_8010BA50_w10, 0, D_8010BA52_w10, 0);
+    HuSprPriSet(D_8010BA50_w10, 0, 12);
+    HuSprAttrSet(D_8010BA50_w10, 0, 0x1000);
+    func_80055420_main(D_8010BA50_w10, 0, 0, 0xFF, 0);
+    func_80054904_main(D_8010BA50_w10, 0, x, y);
+    HuSprScaleSet(D_8010BA50_w10, 0, 1.0f, 0.0f);
+    DataClose(data);
+    for (scale = 0.0f; scale < 1.0f; scale += 1.0f / 6) {
+        HuSprScaleSet(D_8010BA50_w10, 0, 1.0f, scale);
+        HuPrcVSleep();
+    }
+    HuSprScaleSet(D_8010BA50_w10, 0, 1.0f, 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801064C8_w10);
+void func_8010649C_w10(void) {
+    HuSprKill(D_8010BA4E_w10);
+    HuSprGrpKill(D_8010BA4C_w10);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106574_w10);
+void func_801064C8_w10(void) {
+    f32 scale;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106670_w10);
+    for (scale = 1.0f; scale > 0.0f; scale -= 1.0f / 6) {
+        HuSprScaleSet(D_8010BA50_w10, 0, 1.0f, scale);
+        HuPrcVSleep();
+    }
+    HuSprScaleSet(D_8010BA50_w10, 0, 1.0f, 0.0f);
+    HuSprKill(D_8010BA52_w10);
+    HuSprGrpKill(D_8010BA50_w10);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010669C_w10);
+/* Camera follower process: a space (>= 0), the current player (-1) or D_8010BA58_w10 (-2). */
+void func_80106574_w10(void) {
+    Vec *pos;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_801066E8_w10);
+    D_8010BA54_w10 = -1;
+    MBPlayerPosFixSet(0, 1);
+    MBPlayerPosFixSet(1, 1);
+    MBPlayerPosFixSet(2, 1);
+    MBPlayerPosFixSet(3, 1);
+    WipeCreateIn(2, 0x10);
+    WipeColorSet(0xFF, 0xFF, 0xFF);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    func_800E6FCC_shared_board();
+    while (1) {
+        if (D_8010BA54_w10 < 0) {
+            if (D_8010BA54_w10 == -2) {
+                pos = &D_8010BA58_w10;
+            } else {
+                /* one variable for the object and its coords, as retail's a0 shows */
+                pos = (Vec *)MBPlayerGet(-1)->player_obj;
+                pos = &((Object *)pos)->coords;
+            }
+        } else {
+            pos = &MBMasuGet(D_8010BA54_w10)->coords;
+        }
+        MBCameraPos3DSet(pos);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106730_w10);
+void func_80106670_w10(s16 target) {
+    D_8010BA54_w10 = target;
+    MBCameraSpeedSet(4.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106774_w10);
+void func_8010669C_w10(void) {
+    HuPrcSleep(3);
+    while (MBCameraStopCheck() != 0) {
+        HuPrcVSleep();
+    }
+    MBCameraSpeedSet(-1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010681C_w10);
+void func_801066E8_w10(void) {
+    s32 i;
+    GW_PLAYER *player;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106838_w10);
+    for (i = 0; i < 4; i++) {
+        player = MBPlayerGet(i);
+        player->color = 0;
+        player->stat &= ~2;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010687C_w10);
+void func_80106730_w10(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        MBStatusColorSet(i, MBPlayerGet(i)->color);
+    }
+}
+
+void func_80106774_w10(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    s32 i;
+    GW_PLAYER *player;
+
+    sys->current_player_index++;
+    if (sys->current_player_index >= 4) {
+        sys->current_player_index = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        player = MBPlayerGet(i);
+        MBPlayerForwardSet(i);
+        MBMotionSet(player->player_obj, -1, 2);
+        MBPlayerPosFixSet(i, 1);
+    }
+    MBCameraZoomSet(1.0f);
+}
+
+void func_8010681C_w10(Vec *arg0) {
+    func_800FF840_shared_board(arg0);
+}
+
+void func_80106838_w10(void) {
+    HuPrcChildLink(HuPrcCurrentGet(), MBTelopCreate(GwSystem.current_player_index));
+    HuPrcChildWait();
+}
+
+void func_8010687C_w10(s16 arg0) {
+    GW_SYSTEM *sys = &GwSystem;
+    Process *proc;
+    Process *cur;
+
+    func_800DCD64_shared_board(sys->current_player_index, arg0);
+    cur = HuPrcCurrentGet();
+    HuPrcChildLink(cur, MBCameraZoomMotStart(1.3f));
+    proc = func_800DD6C4_shared_board(sys->current_player_index);
+    HuPrcChildWait();
+    HuPrcChildLink(cur, proc);
+    HuPrcChildWait();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80106908_w10);
 
