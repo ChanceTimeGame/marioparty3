@@ -1799,7 +1799,7 @@ segments:
     subsegments:
       - [0x3B9670, c]
       - [0x3BFA00, c]
-      - [0x3C20B0, data, 3B9670] #8010E3E0
+      - [0x3C20B0, .data, 3B9670] #8010E3E0
       - [0x3C26A0, .rodata, 3B9670] #8010E9D0
       - {0x3C27C0, type: bss, vram: 0x8010EAF0, name: boardresult_bss}
 

@@ -726,6 +726,9 @@ extern Object *D_8010EBA0_boardresult[4];
 typedef struct BrCharF32 {
     f32 v[8];
 } BrCharF32; /* one value per character */
+typedef struct BrFile4 {
+    s32 v[4];
+} BrFile4;
 typedef struct BrMot8 {
     s32 v[8];
 } BrMot8;
@@ -1817,3 +1820,167 @@ void func_8010BD04_boardresult(void) {
     MBDBackClose();
 }
 
+// event e7: the unit's .data (0x8010E3E0..0x8010E9D0), every object in address order. Inner labels the
+// remaining asm uses are aliases in undefined_syms.txt.
+s32 D_8010E3E0_boardresult = 0;
+Vec D_8010E3E4_boardresult = { -750.0f, 400.0f, 2000.0f };
+Vec D_8010E3F0_boardresult = { 750.0f, 400.0f, 2000.0f };
+Vec D_8010E3FC_boardresult = { -750.0f, 500.0f, 4000.0f };
+Vec D_8010E408_boardresult = { -250.0f, 0.0f, 2500.0f };
+Vec D_8010E414_boardresult = { -250.0f, -400.0f, 2500.0f };
+Vec D_8010E420_boardresult = { -500.0f, 400.0f, 3500.0f };
+Vec D_8010E42C_boardresult[5] = {
+    { 750.0f, 250.0f, 4000.0f },
+    { -300.0f, 250.0f, 2000.0f },
+    { -100.0f, 250.0f, 2000.0f },
+    { 100.0f, 250.0f, 2000.0f },
+    { 300.0f, 250.0f, 2000.0f },
+};
+Vec D_8010E468_boardresult[3] = {
+    { 0.0f, -700.0f, 1500.0f },
+    { 0.0f, -500.0f, 1000.0f },
+    { 0.0f, -300.0f, 500.0f },
+};
+Vec D_8010E48C_boardresult = { -200.0f, 400.0f, -150.0f };
+Vec D_8010E498_boardresult = { 0.0f, 750.0f, 2500.0f };
+Vec D_8010E4A4_boardresult = { 0.0f, 250.0f, 2500.0f };
+Vec D_8010E4B0_boardresult = { 0.0f, 400.0f, 2500.0f };
+Vec D_8010E4BC_boardresult = { 0.0f, 1000.0f, 2500.0f };
+Vec D_8010E4C8_boardresult = { 500.0f, 50.0f, 500.0f };
+Vec D_8010E4D4_boardresult[8] = {
+    { -300.0f, 750.0f, 2000.0f },
+    { -100.0f, 750.0f, 2000.0f },
+    { 100.0f, 750.0f, 2000.0f },
+    { 300.0f, 750.0f, 2000.0f },
+    { -300.0f, 250.0f, 2000.0f },
+    { -100.0f, 250.0f, 2000.0f },
+    { 100.0f, 250.0f, 2000.0f },
+    { 300.0f, 250.0f, 2000.0f },
+};
+Vec D_8010E534_boardresult[4] = {
+    { -300.0f, 100.0f, 2000.0f },
+    { -100.0f, 100.0f, 2000.0f },
+    { 100.0f, 100.0f, 2000.0f },
+    { 300.0f, 100.0f, 2000.0f },
+};
+Vec D_8010E564_boardresult[4] = {
+    { -300.0f, 0.0f, 2000.0f },
+    { -100.0f, 0.0f, 2000.0f },
+    { 100.0f, 0.0f, 2000.0f },
+    { 300.0f, 0.0f, 2000.0f },
+};
+Vec D_8010E594_boardresult[16] = {
+    { -300.0f, 50.0f, 2000.0f },
+    { -100.0f, 50.0f, 2000.0f },
+    { 100.0f, 50.0f, 2000.0f },
+    { 300.0f, 50.0f, 2000.0f },
+    { -300.0f, 25.0f, 2000.0f },
+    { -100.0f, 25.0f, 2000.0f },
+    { 100.0f, 25.0f, 2000.0f },
+    { 300.0f, 25.0f, 2000.0f },
+    { -300.0f, -25.0f, 2000.0f },
+    { -100.0f, -25.0f, 2000.0f },
+    { 100.0f, -25.0f, 2000.0f },
+    { 300.0f, -25.0f, 2000.0f },
+    { -300.0f, -50.0f, 2000.0f },
+    { -100.0f, -50.0f, 2000.0f },
+    { 100.0f, -50.0f, 2000.0f },
+    { 300.0f, -50.0f, 2000.0f },
+};
+Vec D_8010E654_boardresult[4] = {
+    { -300.0f, -500.0f, 2000.0f },
+    { -100.0f, -500.0f, 2000.0f },
+    { 100.0f, -500.0f, 2000.0f },
+    { 300.0f, -500.0f, 2000.0f },
+};
+Vec D_8010E684_boardresult[8] = {
+    { 0.0f, 270.0f, 3000.0f },
+    { 0.0f, 250.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+    { 0.0f, 270.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+    { 0.0f, 240.0f, 3000.0f },
+    { 0.0f, 250.0f, 3000.0f },
+    { 0.0f, 260.0f, 3000.0f },
+};
+Vec D_8010E6E4_boardresult[1] = {
+    { 0.0f, 100.0f, 2500.0f },
+};
+Vec D_8010E6F0_boardresult[2] = {
+    { -100.0f, 100.0f, 2500.0f },
+    { 100.0f, 100.0f, 2500.0f },
+};
+Vec D_8010E708_boardresult[3] = {
+    { -200.0f, 100.0f, 2500.0f },
+    { 0.0f, 100.0f, 2500.0f },
+    { 200.0f, 100.0f, 2500.0f },
+};
+s32 D_8010E72C_boardresult[3] = { 0x2, 0x2001B, 0x20024 };
+u32 D_8010E738_boardresult[8] = { 0x7, 0x2001F, 0x20030, 0x20034, 0x2002B, 0x20029, 0x2008F, 0x20090 };
+s32 D_8010E758_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E764_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E784_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E790_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E7B0_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E7BC_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E7DC_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E7E8_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E808_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E814_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E834_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E840_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E860_boardresult[3] = { 0x2, 0x0, 0x0 };
+s32 D_8010E86C_boardresult[8] = { 0x7, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 *D_8010E88C_boardresult[8] = {
+    D_8010E72C_boardresult,
+    D_8010E758_boardresult,
+    D_8010E784_boardresult,
+    D_8010E7B0_boardresult,
+    D_8010E7DC_boardresult,
+    D_8010E808_boardresult,
+    D_8010E834_boardresult,
+    D_8010E860_boardresult,
+};
+s32 *D_8010E8AC_boardresult[8] = {
+    (s32 *)D_8010E738_boardresult, /* declared u32 above: its count is compared unsigned */
+    D_8010E764_boardresult,
+    D_8010E790_boardresult,
+    D_8010E7BC_boardresult,
+    D_8010E7E8_boardresult,
+    D_8010E814_boardresult,
+    D_8010E840_boardresult,
+    D_8010E86C_boardresult,
+};
+s32 D_8010E8CC_boardresult[5] = { 0x13015C, 0x13015D, 0x13015E, 0x13015F, 0x130160 };
+s32 D_8010E8E0_boardresult[3] = { 0x2, 0xA0077, 0xA0078 };
+omObjData *D_8010E8EC_boardresult[3] = {
+    NULL,
+    NULL,
+    NULL,
+};
+Vec *D_8010E8F8_boardresult[4] = {
+    NULL,
+    D_8010E6E4_boardresult,
+    D_8010E6F0_boardresult,
+    D_8010E708_boardresult,
+};
+s32 D_8010E908_boardresult = 0;
+f32 D_8010E90C_boardresult = 50.0f;
+s32 D_8010E910_boardresult[6] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+s32 D_8010E928_boardresult[10] = { 0xB003E, 0xB003F, 0xB0040, 0xB0041, 0xB0042, 0xB0043, 0xB0044, 0xB0045, 0x0, 0x0 };
+u8 D_8010E950_boardresult[4][4] = {
+    { 0x00, 0xFF, 0xFF, 0x00 },
+    { 0xFF, 0xA0, 0x28, 0x00 },
+    { 0xFF, 0xFF, 0x00, 0x00 },
+    { 0x00, 0xFF, 0x00, 0x00 },
+};
+BrFile4 D_8010E960_boardresult = { { 0x1301C1, 0x1301C2, 0x1301C3, 0x1301C4 } };
+BrCharF32 D_8010E970_boardresult = { {
+    200.0f, 60.0f, 80.0f, 0.0f, 0.0f, 120.0f, 80.0f, 120.0f,
+} };
+BrCharF32 D_8010E990_boardresult = { {
+    120.0f, 60.0f, -80.0f, 0.0f, 0.0f, 120.0f, -80.0f, 120.0f,
+} };
+BrCharF32 D_8010E9B0_boardresult = { {
+    120.0f, 120.0f, 180.0f, 160.0f, 160.0f, 190.0f, 120.0f, 180.0f,
+} };
