@@ -404,6 +404,17 @@ void func_80119F04_w05(void);
 extern DecisionTreeNonLeafNode D_8011E2A4_w05[];
 extern s32 D_801207B0_w05[4];
 extern s32 D_801207C0_w05;
+void func_8004AE00_main(s16 handle, s16 pan);
+void func_80106B94_w05(void);
+void func_80106C64_w05(void);
+extern s16 D_8011EF78_w05[];
+extern s16 D_8011EF80_w05[];
+extern s16 D_8011EF88_w05[];
+extern s16 D_8011EF90_w05[];
+extern DecisionTreeNonLeafNode D_8011E2B0_w05[];
+extern DecisionTreeNonLeafNode D_8011E31C_w05[];
+extern DecisionTreeNonLeafNode D_8011E34C_w05[];
+extern DecisionTreeNonLeafNode D_8011E370_w05[];
 void func_80106AB0_w05(void);
 s32 func_801096DC_w05(s32 arg0, s32 arg1);
 void func_80115A30_w05(s16 (*masu)[3], BranchLink (*links)[2], DecisionTreeNonLeafNode **trees);
@@ -1362,9 +1373,150 @@ done:
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119F7C_w05);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011A6E8_w05);
+#ifdef NON_MATCHING
+void func_8011A6E8_w05(void) {
+    s32 idx;
+    Object *gate;
+    s16 se;
+    SpaceData *from;
+    SpaceData *to;
+    SpaceData *stop;
+    s16 toNo;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011A8D8_w05);
+    idx = (s32)HuPrcCurrentGet()->user_data;
+    gate = D_801207CC_w05;
+    se = HuAudFXPlay(0x1B0);
+    switch (idx) {
+        case 0:
+        case 1:
+            from = MBMasuGet(0x91);
+            toNo = 0x92;
+            break;
+        default:
+            from = MBMasuGet(0x8F);
+            toNo = 0x90;
+            break;
+    }
+    to = MBMasuGet(toNo);
+    switch (idx) {
+        case 0:
+            stop = MBMasuGet(0x91);
+            break;
+        case 1:
+            stop = MBMasuGet(0x92);
+            break;
+        case 2:
+            stop = MBMasuGet(0x8F);
+            break;
+        default:
+            stop = MBMasuGet(0x90);
+            break;
+    }
+    if (gate->coords.x != stop->coords.x) {
+        do {
+            func_8004AE00_main(se, R4_ABSF(from->coords.x - gate->coords.x) * 64.0f / R4_ABSF(from->coords.x - to->coords.x) + 32.0f);
+            HuPrcVSleep();
+        } while (gate->coords.x != stop->coords.x);
+    }
+    HuAudFXStop(se);
+    omDelPrcObj(NULL);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011A6E8_w05);
+#endif
+
+void func_8011A8D8_w05(void) {
+    GW_SYSTEM *sys = &GwSystem;
+    GW_PLAYER *player;
+    UnkEA790Struct *win;
+    s16 *choices;
+    DecisionTreeNonLeafNode *tree;
+    s32 i;
+    s32 count;
+    s32 sel;
+
+    func_80106B94_w05();
+    player = MBPlayerGet(-1);
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x7E:
+            choices = D_8011EF78_w05;
+            break;
+        case 0x96:
+            choices = D_8011EF80_w05;
+            break;
+        case 0x84:
+            choices = D_8011EF88_w05;
+            break;
+        default:
+            choices = D_8011EF90_w05;
+            break;
+    }
+    win = func_800D76A0_shared_board(sys->current_player_index, choices);
+    func_800D742C_shared_board(win, sys->current_player_index, 0);
+    if (MBPlayerComCheck(-1) != 0) {
+        switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+            case 0x7E:
+                tree = D_8011E2B0_w05;
+                break;
+            case 0x96:
+                tree = D_8011E31C_w05;
+                break;
+            case 0x84:
+                tree = D_8011E34C_w05;
+                break;
+            default:
+                tree = D_8011E370_w05;
+                break;
+        }
+        count = MBComTreeExec(tree);
+        for (i = 0; i < count; i++) {
+            func_800D7250_shared_board(win, -2);
+        }
+        func_800D7250_shared_board(win, -4);
+    }
+    sel = func_800D7518_shared_board(win);
+    func_800D6CA0_shared_board(win);
+    func_80106C64_w05();
+    switch (MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+        case 0x7E:
+            if (sel == 0) {
+                MBMoveNextMasuSet(-1, 0x10, 0x11);
+                player->rev |= 1;
+            } else {
+                MBMoveNextMasuSet(-1, 8, 1);
+                player->rev &= ~1;
+            }
+            break;
+        case 0x96:
+            if (sel == 0) {
+                MBMoveNextMasuSet(-1, 2, 0);
+                player->rev |= 1;
+            } else {
+                MBMoveNextMasuSet(-1, 2, 2);
+                player->rev &= ~1;
+            }
+            break;
+        case 0x84:
+            if (sel == 0) {
+                MBMoveNextMasuSet(-1, 9, 0xC);
+                player->rev |= 1;
+            } else {
+                MBMoveNextMasuSet(-1, 0xA, 1);
+                player->rev &= ~1;
+            }
+            break;
+        default:
+            if (sel == 0) {
+                MBMoveNextMasuSet(-1, 5, 0);
+                player->rev |= 1;
+            } else {
+                MBMoveNextMasuSet(-1, 5, 2);
+                player->rev &= ~1;
+            }
+            break;
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011ABEC_w05);
 
