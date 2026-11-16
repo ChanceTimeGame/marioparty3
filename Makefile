@@ -351,6 +351,8 @@ NOP_OBJECTS += build/src/overlays/boardresult/3B9670.c.o
 NOP_OBJECTS += build/src/overlays/last5/3C6310.c.o
 # board h1: w10 3B3620 (no nop before the mul.s after the sindf calls in func_80107F0C)
 NOP_OBJECTS += build/src/overlays/w10/3B3620.c.o
+# board p2: w03 34E840 (w06 copy: no nop before the mul.s after the sindf/cosdf calls in func_80110EE0_w03)
+NOP_OBJECTS += build/src/overlays/w03/34E840.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
