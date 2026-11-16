@@ -1110,23 +1110,216 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80117E70_w02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80118480_w02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119244_w02);
+/* board g5: the model effect func_80119244_w02 sets up (hmfman's vertex-scatter work, HmfModel.unkBC,
+   13F90.c's HmfFxWork) with func_80119680_w02 as its update: one G5FxPart per face group. */
+typedef struct G5FxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 scale; /* > 0 while live */
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec vel;
+    /* 0x24 */ Vec unk24;
+} G5FxPart; /* size 0x30 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119360_w02);
+typedef struct G5FxWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 dist;
+    /* 0x0C */ f32 speed;
+    /* 0x10 */ char unk10[8];
+    /* 0x18 */ void (*hook)(s16);
+    /* 0x1C */ Vec center;
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ G5FxPart *parts;
+} G5FxWork; /* size 0x5C */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801193C0_w02);
+typedef struct G5FxHmf {
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 groupCount;
+} G5FxHmf;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801193D0_w02);
+void func_80013390_main(s16 model, s16 type, char *name, void (*hook)(s16));
+void func_80119360_w02(omObjData *obj);
+void func_80119408_w02(s16 model, f32 speed, f32 dist);
+void func_80119438_w02(s16 model, f32 x, f32 y, f32 z);
+void func_8011946C_w02(s16 model);
+void func_80119680_w02(s16 model);
+extern s32 D_8011D958_w02; /* emitting on/off */
+extern s32 D_8011D95C_w02; /* particles spawned per frame */
+extern s16 D_8011ED00_w02;
+extern omObjData *D_8011ED04_w02;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801193DC_w02);
+void func_80119244_w02(void) {
+    SpaceData *space;
+    s16 model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119408_w02);
+    space = MBMasuGet(0x78);
+    model = D_8011ED00_w02 = func_8000B108_main(0xB0033, 0xAA9);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    func_8001C8A8_main(model, 1);
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_80119680_w02);
+    func_80119438_w02(model, space->coords.x + 142.0f, space->coords.y, space->coords.z);
+    func_80119408_w02(model, 1.0f, 1000.0f);
+    D_8011D958_w02 = 0;
+    D_8011ED04_w02 = omAddObj(0x7D0, 0xA, 0xA, -1, func_80119360_w02);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119438_w02);
+void func_80119360_w02(omObjData *obj) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011946C_w02);
+    if (D_8011D958_w02 != 0) {
+        for (i = 0; i < D_8011D95C_w02; i++) {
+            func_8011946C_w02(D_8011ED00_w02);
+        }
+    }
+}
 
+void func_801193C0_w02(void) {
+    D_8011D958_w02 = 1;
+}
+
+void func_801193D0_w02(void) {
+    D_8011D958_w02 = 0;
+}
+
+void func_801193DC_w02(void) {
+    func_8001ACDC_main(D_8011ED00_w02);
+    omDelObj(D_8011ED04_w02);
+}
+
+void func_80119408_w02(s16 model, f32 speed, f32 dist) {
+    G5FxWork *work = (G5FxWork *)HmfModelData[model].unkBC;
+
+    work->dist = dist;
+    work->speed = speed;
+}
+
+void func_80119438_w02(s16 model, f32 x, f32 y, f32 z) {
+    G5FxWork *work = (G5FxWork *)HmfModelData[model].unkBC;
+
+    work->center.x = x;
+    work->center.y = y;
+    work->center.z = z;
+}
+
+/* Spawns one particle: on a ring of radius 300..325 around the centre, moving towards it. */
+void func_8011946C_w02(s16 model) {
+    G5FxHmf *hmf = (G5FxHmf *)HmfModelData[model].hmf;
+    G5FxWork *work = (G5FxWork *)HmfModelData[model].unkBC;
+    G5FxPart *part = work->parts;
+    s16 count = hmf->groupCount;
+    s16 i;
+    f32 radius;
+    f32 angle;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+
+    for (i = 0; i < count; i++, part++) {
+        if (part->scale <= 0.0f) {
+            radius = (u8)(rand8() / 10) + 300;
+            angle = (s32)((u32)(rand8() * 25) >> 7) + 15;
+            part->pos.x = sindf(angle) * radius + work->center.x;
+            part->pos.y = 0.0f;
+            part->pos.z = cosdf(angle) * radius + work->center.z;
+            if (work->speed > 0.0f) {
+                part->vel.x = part->vel.y = part->vel.z = 0.0f;
+            } else {
+                dx = work->center.x - part->pos.x;
+                dy = work->center.y - part->pos.y;
+                dz = work->center.z - part->pos.z;
+                radius = HuSqrtf(dx * dx + dy * dy + dz * dz);
+                part->vel.x = dx / radius * work->speed;
+                part->vel.y = dy / radius * work->speed;
+                part->vel.z = dz / radius * work->speed;
+                part->pos.x = work->center.x;
+                part->pos.y = work->center.y;
+                part->pos.z = work->center.z;
+            }
+            part->scale = 1.0f;
+            return;
+        }
+    }
+}
+
+// Masked 9 (216 vs 215): the two "scale = 0" stores (not live, too close to the centre) are a
+// shared `sw zero` in retail and len is kept in a second register; the else-if layout differs.
+// Logic checked against the asm.
+#ifdef NON_MATCHING
+/* Effect update: on the first frame clears every particle, then moves the live ones. */
+void func_80119680_w02(s16 model) {
+    G5FxHmf *hmf = (G5FxHmf *)HmfModelData[model].hmf;
+    G5FxWork *work = (G5FxWork *)HmfModelData[model].unkBC;
+    s16 count = hmf->groupCount;
+    G5FxPart *part;
+    s16 i;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+    f32 scale;
+    f32 f;
+
+    if (work->frame == 0) {
+        work->flags &= ~4;
+        part = work->parts;
+        for (i = 0; i < count; i++, part++) {
+            part->pos.x = part->pos.y = part->pos.z = 0.0f;
+            part->unk24.x = part->unk24.y = part->unk24.z = 0.0f;
+            part->scale = 0.0f;
+            part->unk04 = 1.0f;
+        }
+        work->frame++;
+    }
+    part = work->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (!(part->scale > 0.0f)) {
+            part->scale = 0.0f;
+        } else if (work->speed > 0.0f) {
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y;
+            part->pos.z += part->vel.z;
+            dx = work->center.x - part->pos.x;
+            dy = work->center.y - part->pos.y;
+            dz = work->center.z - part->pos.z;
+            len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+            scale = len / 1000.0f * 3.0f;
+            if ((len < 100.0f) | (scale < 0.1f)) {
+                part->scale = 0.0f;
+            } else {
+                part->scale = scale;
+                f = (work->dist - len) / len;
+                if (f < 0.05f) {
+                    f = 0.05f;
+                }
+                f *= work->speed;
+                part->vel.x = dx / len * f;
+                part->vel.y = dy / len * f;
+                part->vel.z = dz / len * f;
+            }
+        } else {
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y;
+            part->pos.z += part->vel.z;
+            part->vel.x *= 0.98;
+            part->vel.y *= 0.98f;
+            part->vel.z *= 0.98f;
+            part->scale -= 0.001f;
+            if (part->scale < 0.0f) {
+                part->scale = 0.0f;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_80119680_w02);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_801199EC_w02);
 

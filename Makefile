@@ -347,6 +347,8 @@ NOP_OBJECTS += build/src/overlays/duelresult/4554C0.c.o
 NOP_OBJECTS += build/src/overlays/boardresult/3B9670.c.o
 # event e5: last5 3C6310 and majinlamp 3C7EC0 (no nop before the mul.s after the sindf calls)
 NOP_OBJECTS += build/src/overlays/last5/3C6310.c.o
+# board g5: w02 335610 as w06 39AD50 (no nop before the mul.s after the sindf/cosdf calls in func_8011946C_w02)
+NOP_OBJECTS += build/src/overlays/w02/335610.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
