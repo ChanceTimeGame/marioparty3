@@ -171,6 +171,10 @@ extern s16 D_8011B750_w04[];
 extern s16 D_8011B760_w04[];
 extern s16 D_8011B770_w04[];
 extern s16 D_8011B780_w04[];
+extern s8 D_8011C550_w04[][5][7];
+extern s32 D_8011E0A8_w04;
+extern s32 D_8011E0AC_w04;
+extern u8 *D_8011E0B0_w04;
 // end board q1
 
 s16 func_801059D0_w04(void) {
@@ -1722,11 +1726,54 @@ INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A054_w04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010A400_w04);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010AF34_w04);
+s32 func_8010AF34_w04(s32 arg0) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010AFBC_w04);
+    for (i = 0; i < 7; i++) {
+        if (D_8011E0B0_w04[i] != 0) {
+            if (D_8011C550_w04[D_8011E0A8_w04][D_8011E0AC_w04][i] == arg0) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010B024_w04);
+s32 func_8010AFBC_w04(void) {
+    s32 i;
+
+    for (i = 0; i < 7; i++) {
+        if (D_8011C550_w04[D_8011E0A8_w04][D_8011E0AC_w04][i] == -1) {
+            break;
+        }
+    }
+    return i;
+}
+
+void func_8010B024_w04(void) {
+    s32 grp = (s32)HuPrcCurrentGet()->user_data;
+    f32 angle;
+    f32 scaleX;
+
+    MBPlayerGet(GwSystem.current_player_index);
+    MBPlayerVibrate(-1, 2);
+    HuAudFXPlay(0x15A);
+
+    for (angle = 0.0f; angle < 180.0f; angle += 20.0f) {
+        scaleX = sindf(angle) * 1.5f + 1.0f;
+        HuSprScaleSet(grp, 0, scaleX, 1.0f - sindf(angle) * 0.5f);
+        HuPrcVSleep();
+    }
+
+    for (; angle < 360.0f; angle += 20.0f) {
+        scaleX = sindf(angle) * 0.5f + 1.0f;
+        HuSprScaleSet(grp, 0, scaleX, 1.0f - sindf(angle) * 0.25f);
+        HuPrcVSleep();
+    }
+
+    HuSprScaleSet(grp, 0, 1.0f, 1.0f);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_8010B1FC_w04);
 
