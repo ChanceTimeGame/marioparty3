@@ -51,12 +51,12 @@ void func_8010D92C_chancetime(s8 wheel);
 void func_8010DAB0_chancetime(void);
 void func_8010DB1C_chancetime(s8 wheel);
 void func_8010DF68_chancetime(void);
-void func_8010DF70_chancetime(void);
-void func_8010DFA4_chancetime(void);
-void func_8010E210_chancetime(void);
-void func_8010E280_chancetime(void);
-void func_8010E4D0_chancetime(void);
-void func_8010F1F8_chancetime(void);
+void func_8010DF70_chancetime(omObjData *obj);
+void func_8010DFA4_chancetime(omObjData *obj);
+void func_8010E210_chancetime(omObjData *obj);
+void func_8010E280_chancetime(omObjData *obj);
+void func_8010E4D0_chancetime(omObjData *obj);
+void func_8010F1F8_chancetime(omObjData *obj);
 
 extern s8 D_8010FB80_chancetime;
 extern s8 D_8010FB81_chancetime;
@@ -98,12 +98,13 @@ extern s32 D_80110008_chancetime;
 extern s16 D_80110010_chancetime[10];
 extern s16 D_80110028_chancetime[20];
 extern omObjData *D_80110080_chancetime;
-extern void (*D_80110084_chancetime)(void);
+extern void (*D_80110084_chancetime)(omObjData *);
 extern omObjData *D_801100C8_chancetime;
 extern void (*D_801100CC_chancetime)(omObjData *);
 extern s8 D_801100D0_chancetime[4];
 extern s8 D_801100DC_chancetime;
 extern s8 D_801100DD_chancetime[3];
+extern s16 D_800D10F2_main;
 
 // NON_MATCHING: the sign extension of the sprite id is done in s1 instead of v0; logic checked
 #ifdef NON_MATCHING
@@ -494,12 +495,63 @@ void func_8010DB98_chancetime(void) {
     D_8010FEC9_chancetime = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010DBB0_chancetime);
+void func_8010DBB0_chancetime(void) {
+    omObjData *obj;
+    HmfModel *mdl;
+    s16 sprId;
+    s8 i;
+
+    obj = omAddObj(20, 21, 0, -1, NULL);
+    D_80110080_chancetime = obj;
+    mdl = &HmfModelData[D_800D10F2_main];
+    mdl->unk00 = (mdl->unk00 & 0xF9) | 3;
+    func_8001C8A8_main(D_800D10F2_main, 2);
+    sprId = func_8000B838_main(0x210026);
+    for (i = 0; i < 20; i++) {
+        D_80110028_chancetime[i] = InitEspriteSlot(sprId, 0, 1);
+        func_8000BCC8_main(D_80110028_chancetime[i], 0);
+        func_8000BB94_main(D_80110028_chancetime[i]);
+        func_8000BD94_main(D_80110028_chancetime[i], 0, 0);
+        func_8000BDDC_main(D_80110028_chancetime[i], 1);
+        func_8000BE5C_main(D_80110028_chancetime[i], 0.5f, 0.5f);
+    }
+    obj->model[1] = func_8000B0D4_main(0x1301CC, 0x2B9);
+    Hu3DModelScaleSet(obj->model[1], 0.5f, 0.5f, 0.5f);
+    func_8001C814_main(obj->model[1], 2, 2);
+    func_8001C8A8_main(obj->model[1], 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    for (i = 1; i < 10; i++) {
+        obj->model[i + 1] = Hu3DModelLink(obj->model[1]);
+        Hu3DModelScaleSet(obj->model[i + 1], 0.5f, 0.5f, 0.5f);
+        func_8001C8A8_main(obj->model[i + 1], 4);
+        func_8001C258_main(obj->model[i + 1], 4, 4);
+        func_8001C814_main(obj->model[i + 1], 2, 2);
+    }
+    for (i = 0; i < 10; i++) {
+        D_80110010_chancetime[i] = func_8000CED8_main(0xB0004, 0x6A9);
+        func_8000CD00_main(D_80110010_chancetime[i], 4.0f, 20.0f, 4.0f);
+        func_8000D018_main(D_80110010_chancetime[i], 60.0f);
+        func_8001C8A8_main(D_80110010_chancetime[i], 4);
+        func_800138EC_main(D_80110010_chancetime[i], 1, 0);
+        func_8001C258_main(D_80110010_chancetime[i], 4, 4);
+    }
+    D_80110004_chancetime = func_80060880_main(100, 160, 14);
+    func_80061100_main(((s16 *)&D_80110004_chancetime)[1], 5);
+    if (!(GwPlayer[D_801100D0_chancetime[0]].stat & 1)) {
+        func_8005FE54_main(((s16 *)&D_80110004_chancetime)[1], 1 << GwPlayer[D_801100D0_chancetime[0]].pad);
+    }
+    omPrcSetDestructor(0, func_8010DF68_chancetime);
+    D_80110084_chancetime = func_8010DF70_chancetime;
+    while (TRUE) {
+        D_80110084_chancetime(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010DF68_chancetime(void) {
 }
 
-void func_8010DF70_chancetime(void) {
+void func_8010DF70_chancetime(omObjData *obj) {
 }
 
 void func_8010DF78_chancetime(s8 arg0) {
@@ -510,12 +562,12 @@ void func_8010DF78_chancetime(s8 arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010DFA4_chancetime);
 
-void func_8010E1E0_chancetime(void) {
+void func_8010E1E0_chancetime(omObjData *obj) {
     func_8010D6A4_chancetime(D_80110000_chancetime);
     D_80110084_chancetime = func_8010E210_chancetime;
 }
 
-void func_8010E210_chancetime(void) {
+void func_8010E210_chancetime(omObjData *obj) {
     if (++D_8010FC1C_chancetime >= 10) {
         D_8010FC14_chancetime = 1;
         D_8010FC1C_chancetime = 0;
