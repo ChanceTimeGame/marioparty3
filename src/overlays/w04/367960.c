@@ -1,12 +1,6 @@
 #include "common.h"
 #include "../ovl_80_shared_board/105D50.h"
 #include "../ovl_80_shared_board/FA250.h"
-
-void func_801183D4_w04(void);
-void func_801191B8_w04(void);
-void func_8011A4E0_w04(s32);
-
-// board q1
 #include "WaluigisIsland.h" /* BranchLink */
 #include "../ovl_80_shared_board/1006F0.h"
 #include "../ovl_80_shared_board/101840.h"
@@ -28,10 +22,60 @@ void func_8011A4E0_w04(s32);
 #include "../ovl_80_shared_board/FFB10.h"
 #include "gcc/memory.h"
 #include "mallocblock.h"
+#include "game/board.h"
+#include "../ovl_80_shared_board/106640.h"
+#include "input.h"
+#include "game/window.h"
+#include "game/hmfman.h"
+#include "../ovl_80_shared_board/F2910.h"
+#include "../ovl_80_shared_board/1063F0.h"
 
+typedef struct {
+    u8 b[4];
+} W04Bytes4_q1;
+typedef s16 Q1SpaceTriple[3];
+typedef BranchLink Q1BranchPair[2];
+typedef struct G3ModelFadeWork {
+    /* 0x00 */ Vec vel;
+    /* 0x0C */ f32 alpha;
+    /* 0x10 */ f32 scaleRate;
+    /* 0x14 */ f32 fadeRate;
+    /* 0x18 */ Object *model;
+    /* 0x1C */ u16 killOnFade;
+} G3ModelFadeWork; // size 0x20
+typedef struct G3ItemMoveWork {
+    /* 0x00 */ s16 startX;
+    /* 0x02 */ s16 startY;
+    /* 0x04 */ s16 endX;
+    /* 0x06 */ s16 endY;
+    /* 0x08 */ s16 duration;
+    /* 0x0A */ s16 spriteGroup;
+} G3ItemMoveWork; // size 0xC (allocated as 0x10)
+/* Spark directions copied into a local array before each loop (an initialised local in the
+   original; the table is D_8011DDE0_w04 in this unit's .data). */
+typedef struct G3SparkDirs {
+    Vec dir[8];
+} G3SparkDirs;
+typedef G3ModelFadeWork Q3ModelFadeWork;
+typedef G3ItemMoveWork Q3ItemMoveWork;
+typedef G3SparkDirs Q3SparkDirs;
+typedef struct Q3ItemExchangeWork {
+    Object* unk_00;
+    Object* unk_04;
+    s32 unk_08;
+    s32 unk_0C;
+    char unk_10[0x10];
+} Q3ItemExchangeWork; // board g4
+typedef W04Bytes4_q1 Q3Bytes4;
+typedef Q1SpaceTriple Q3SpaceTriple;
+typedef Q1BranchPair Q3BranchPair;
+
+void func_801183D4_w04(void);
+void func_801191B8_w04(void);
+void func_8011A4E0_w04(s32 index);
 extern Process *D_8011E038_w04;
-extern s32 D_8011B790_w04[];
-extern s32 D_8011B7AC_w04[];
+extern s32 D_8011B790_w04[7];
+extern s32 D_8011B7AC_w04[7];
 extern Object *D_8011DFF8_w04[];
 extern s32 D_8011B7C8_w04;
 extern Unk3 *D_8011E040_w04;
@@ -39,11 +83,7 @@ extern Unk3 *D_8011E044_w04;
 extern Unk3 *D_8011E048_w04;
 extern Unk3 *D_8011E04C_w04;
 extern Unk3 *D_8011E050_w04;
-
-typedef struct {
-    u8 b[4];
-} W04Bytes4_q1;
-extern W04Bytes4_q1 D_8011DDD0_w04;
+extern u8 D_8011DDD0_w04[4];
 s32 func_8011B350_w04(void);
 s32 func_8011B6B4_w04(void);
 extern s32 D_8011E054_w04;
@@ -81,105 +121,272 @@ void func_801086C4_w04(void);
 void func_8010886C_w04(void);
 void func_80107828_w04(void);
 extern Object *D_8011DFF0_w04;
-extern Process *D_8011E018_w04[];
-extern s16 D_8011B7E4_w04[][2];
-extern s16 D_8011B82C_w04[];
-extern s16 D_8011B83C_w04[];
+extern Process *D_8011E018_w04[8];
+extern s16 D_8011B7E4_w04[8][2];
+extern s16 D_8011B82C_w04[8];
+extern s16 D_8011B83C_w04[8];
 extern Object *D_8011E05C_w04;
-extern Object *D_8011E060_w04[];
+extern Object *D_8011E060_w04[1];
 extern Object *D_8011E064_w04;
 extern Object *D_8011E068_w04[];
-extern s16 D_8011B804_w04[][2];
-extern s16 D_8011B84C_w04[];
-extern s16 D_8011B850_w04[];
-extern Vec D_8011B854_w04[];
-extern Vec D_8011B890_w04[];
+extern s16 D_8011B804_w04[2][2];
+extern s16 D_8011B84C_w04[2];
+extern s16 D_8011B850_w04[2];
+extern Vec D_8011B854_w04[5];
+extern Vec D_8011B890_w04[5];
 extern Object *D_8011E090_w04;
 extern Object *D_8011E094_w04[];
-extern s16 D_8011B8CC_w04[];
-extern s16 D_8011B8D0_w04[];
-extern u32 *D_8011B90C_w04[];
-extern s16 D_8011B824_w04[][2];
-extern s16 D_8011B81C_w04[][2];
-extern s32 D_8011B924_w04[];
-extern s32 D_8011B948_w04[];
-extern s32 D_8011B96C_w04[];
-extern s32 D_8011B990_w04[];
-extern s16 D_8011B9B4_w04[];
-extern s16 D_8011B80C_w04[][2];
-extern s16 D_8011B814_w04[][2];
-extern s16 D_8011B9B8_w04[];
-extern s16 D_8011B9BC_w04[];
-extern s16 D_8011B9C4_w04[];
-extern Object *D_8011E09C_w04[];
-extern s16 D_8011B7CC_w04[];
-extern s16 D_8011B7D0_w04[];
-extern event_table_entry D_8011C77C_w04[];
-extern event_table_entry D_8011C7F4_w04[];
-extern event_table_entry D_8011C988_w04[];
-extern event_table_entry D_8011C9C0_w04[];
+extern s16 D_8011B8CC_w04[2];
+extern s16 D_8011B8D0_w04[6];
+extern u32 *D_8011B90C_w04[6];
+extern s16 D_8011B824_w04[2][2];
+extern s16 D_8011B81C_w04[2][2];
+extern s32 D_8011B924_w04[9];
+extern s32 D_8011B948_w04[9];
+extern s32 D_8011B96C_w04[9];
+extern s32 D_8011B990_w04[9];
+extern s16 D_8011B9B4_w04[2];
+extern s16 D_8011B80C_w04[2][2];
+extern s16 D_8011B814_w04[2][2];
+extern s16 D_8011B9B8_w04[2];
+extern s16 D_8011B9BC_w04[4];
+extern s16 D_8011B9C4_w04[4];
+extern Object *D_8011E09C_w04[3];
+extern s16 D_8011B7CC_w04[1];
+extern s16 D_8011B7D0_w04[10];
+extern event_table_entry D_8011C77C_w04[15];
+extern event_table_entry D_8011C7F4_w04[2];
+extern event_table_entry D_8011C988_w04[2];
+extern event_table_entry D_8011C9C0_w04[43];
 void func_8011A858_w04(void);
 extern Object *D_8011E03C_w04;
-
-typedef s16 Q1SpaceTriple[3];
-typedef BranchLink Q1BranchPair[2];
-void func_80116024_w04(Q1SpaceTriple *masu, Q1BranchPair *links, DecisionTreeNonLeafNode **trees);
-extern Q1SpaceTriple D_8011BFB8_w04[];
-extern Q1BranchPair D_8011BFCC_w04[];
-extern DecisionTreeNonLeafNode *D_8011BA08_w04[];
-extern Q1SpaceTriple D_8011C000_w04[];
-extern Q1BranchPair D_8011C014_w04[];
-extern DecisionTreeNonLeafNode *D_8011BA68_w04[];
-extern Q1SpaceTriple D_8011C048_w04[];
-extern Q1BranchPair D_8011C05C_w04[];
-extern DecisionTreeNonLeafNode *D_8011BAEC_w04[];
-extern Q1SpaceTriple D_8011C090_w04[];
-extern Q1BranchPair D_8011C0A4_w04[];
-extern DecisionTreeNonLeafNode *D_8011BB40_w04[];
-extern Q1SpaceTriple D_8011C0D8_w04[];
-extern Q1BranchPair D_8011C0EC_w04[];
-extern DecisionTreeNonLeafNode *D_8011BBAC_w04[];
-extern Q1SpaceTriple D_8011C120_w04[];
-extern Q1BranchPair D_8011C134_w04[];
-extern DecisionTreeNonLeafNode *D_8011BC24_w04[];
-extern Q1SpaceTriple D_8011C168_w04[];
-extern Q1BranchPair D_8011C17C_w04[];
-extern DecisionTreeNonLeafNode *D_8011BC84_w04[];
-extern Q1SpaceTriple D_8011C1B0_w04[];
-extern Q1BranchPair D_8011C1C4_w04[];
-extern DecisionTreeNonLeafNode *D_8011BCF0_w04[];
-extern Q1SpaceTriple D_8011C1F8_w04[];
-extern Q1BranchPair D_8011C20C_w04[];
-extern DecisionTreeNonLeafNode *D_8011BD38_w04[];
-extern Q1SpaceTriple D_8011C240_w04[];
-extern Q1BranchPair D_8011C254_w04[];
-extern DecisionTreeNonLeafNode *D_8011BD68_w04[];
-extern Q1SpaceTriple D_8011C288_w04[];
-extern Q1BranchPair D_8011C29C_w04[];
-extern DecisionTreeNonLeafNode *D_8011BDE0_w04[];
-extern Q1SpaceTriple D_8011C2D0_w04[];
-extern Q1BranchPair D_8011C2E4_w04[];
-extern DecisionTreeNonLeafNode *D_8011BE28_w04[];
-extern Q1SpaceTriple D_8011C318_w04[];
-extern Q1BranchPair D_8011C32C_w04[];
-extern DecisionTreeNonLeafNode *D_8011BE88_w04[];
-extern Q1SpaceTriple D_8011C360_w04[];
-extern Q1BranchPair D_8011C374_w04[];
-extern DecisionTreeNonLeafNode *D_8011BF0C_w04[];
-extern s16 D_8011B740_w04[];
-extern s16 D_8011B750_w04[];
-extern s16 D_8011B760_w04[];
-extern s16 D_8011B770_w04[];
-extern s16 D_8011B780_w04[];
-extern s8 D_8011C550_w04[][5][7];
+void func_80116024_w04(Q3SpaceTriple *masu, Q3BranchPair *links, DecisionTreeNonLeafNode **trees);
+extern s16 D_8011BFB8_w04[3][3];
+extern BranchLink D_8011BFCC_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BA08_w04[3];
+extern s16 D_8011C000_w04[3][3];
+extern BranchLink D_8011C014_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BA68_w04[3];
+extern s16 D_8011C048_w04[3][3];
+extern BranchLink D_8011C05C_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BAEC_w04[3];
+extern s16 D_8011C090_w04[3][3];
+extern BranchLink D_8011C0A4_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BB40_w04[3];
+extern s16 D_8011C0D8_w04[3][3];
+extern BranchLink D_8011C0EC_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BBAC_w04[3];
+extern s16 D_8011C120_w04[3][3];
+extern BranchLink D_8011C134_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BC24_w04[3];
+extern s16 D_8011C168_w04[3][3];
+extern BranchLink D_8011C17C_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BC84_w04[3];
+extern s16 D_8011C1B0_w04[3][3];
+extern BranchLink D_8011C1C4_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BCF0_w04[3];
+extern s16 D_8011C1F8_w04[3][3];
+extern BranchLink D_8011C20C_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BD38_w04[3];
+extern s16 D_8011C240_w04[3][3];
+extern BranchLink D_8011C254_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BD68_w04[3];
+extern s16 D_8011C288_w04[3][3];
+extern BranchLink D_8011C29C_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BDE0_w04[3];
+extern s16 D_8011C2D0_w04[3][3];
+extern BranchLink D_8011C2E4_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BE28_w04[3];
+extern s16 D_8011C318_w04[3][3];
+extern BranchLink D_8011C32C_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BE88_w04[3];
+extern s16 D_8011C360_w04[3][3];
+extern BranchLink D_8011C374_w04[3][2];
+extern DecisionTreeNonLeafNode *D_8011BF0C_w04[3];
+extern s16 D_8011B740_w04[8];
+extern s16 D_8011B750_w04[8];
+extern s16 D_8011B760_w04[8];
+extern s16 D_8011B770_w04[8];
+extern s16 D_8011B780_w04[8];
+extern s8 D_8011C550_w04[2][5][7];
 extern s32 D_8011E0A8_w04;
 extern s32 D_8011E0AC_w04;
 extern u8 *D_8011E0B0_w04;
-extern DecisionTreeNonLeafNode D_8011C508_w04[];
-extern u32 D_8011C520_w04[];
-extern const char D_8011DDD4_w04[];
+extern DecisionTreeNonLeafNode D_8011C508_w04[2];
+extern u32 D_8011C520_w04[2];
+extern char D_8011DDD4_w04[4];
 void func_80112B48_w04(void);
-// end board q1
+void func_800D9F5C_shared_board(Object *arg0, Vec *arg1, s32 arg2);
+void func_8001ED54_main(s16 arg0);
+extern u8 D_8011C538_w04[2][3][4];
+extern u8 D_8011C598_w04[2][3][4];
+extern s8 D_8011C5B0_w04[2][5][10];
+extern u8 D_8011C614_w04[2][10];
+extern s32 D_8011C628_w04[5][2];
+extern s32 D_8011C650_w04[2];
+extern s32 D_8011C658_w04[2];
+extern s32 D_8011C660_w04[2];
+extern s32 D_8011C668_w04[2];
+extern s32 D_8011C670_w04[2];
+extern u32 D_8011C678_w04[2];
+extern u32 D_8011C680_w04[2];
+extern s32 D_8011C688_w04;
+extern Vec2f D_8011C69C_w04[4];
+extern Vec2f D_8011C6BC_w04[4];
+extern u8 D_8011C6DC_w04[6][3];
+extern u8 D_8011C6F0_w04[14][3];
+extern u8 D_8011C71C_w04[8];
+extern s32 D_8011C724_w04[3];
+extern s32 D_8011C730_w04[7];
+extern Vec2f D_8011C804_w04[4];
+extern Vec2f D_8011C824_w04[4];
+extern const f64 D_8011DDD8_w04;
+extern const G3SparkDirs D_8011DDE0_w04;
+extern const f64 D_8011DE40_w04;
+extern Object *D_8011E0B4_w04;
+void func_80106A3C_w04(Object *arg);
+void func_80106AB0_w04(void);
+void func_80106B38_w04(void);
+s32 func_80106CC4_w04(u8 *enabled);
+s32 func_80106F58_w04(void);
+s32 func_80107704_w04(u8 *enabled);
+s32 func_80107724_w04(u8 *enabled);
+void func_80108608_w04(s32 arg);
+void func_80109CCC_w04(void);
+void func_8010B024_w04(void);
+void func_8010B1FC_w04(void);
+void func_8010C4B4_w04(Object *obj);
+void func_8010C554_w04(Object *obj);
+s32 func_8010C5F4_w04(s32 playerIndex);
+void func_8010CA3C_w04(void);
+s32 func_8010CA60_w04(s32 playerIndex);
+void func_8010D88C_w04(void);
+void func_8010D9E0_w04(s32 arg);
+void func_8010EBF0_w04(void);
+void func_8010EC0C_w04(void);
+omObjData *func_8010EC28_w04(Vec *pos, f32 scaleRate, f32 fadeRate, s16 killOnFade, Vec *vel, s32 star);
+void func_8010ED84_w04(omObjData *arg0);
+void func_8010F490_w04(void);
+Process *func_8010F6F4_w04(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
+void func_8010F9F4_w04(void);
+void func_8010FBC4_w04(void);
+void func_80110244_w04(s32 arg0, s32 arg1, s32 duration, f32 *target, s32 mode);
+void func_80112378_w04(void);
+extern DecisionTreeNonLeafNode D_8011C884_w04[9];
+extern s32 D_8011C8F0_w04[5];
+extern DecisionTreeNonLeafNode D_8011C904_w04[1];
+extern Vec2f D_8011C910_w04[6];
+extern s32 D_8011C940_w04;
+extern u8 D_8011C944_w04[4];
+extern u8 D_8011C948_w04[4];
+extern u16 D_8011C94C_w04[7][2];
+extern RGB D_8011C968_w04[2];
+extern s32 D_8011E0B8_w04;
+extern s32 D_8011E0BC_w04;
+extern s32 D_8011E0C0_w04;
+extern Object* D_8011E0C4_w04;
+extern Object* D_8011E0C8_w04;
+extern s32 D_8011E0CC_w04;
+extern s32 D_8011E0D0_w04;
+extern Object* D_8011E0D4_w04;
+extern s32 D_8011E0D8_w04[4];
+extern void* D_8011E0E8_w04;
+void func_80106B94_w04(void);
+void func_80106C64_w04(void);
+void func_80107F98_w04(void);
+s32 func_80109CD4_w04(DecisionTreeNonLeafNode *tree, s32 count);
+void func_80109F58_w04(s16 arg0, s32 arg1, s16 arg2, s32 arg3);
+void func_8010A014_w04(void);
+void func_801109A8_w04(void);
+void func_8011297C_w04(Object* arg0);
+s32 func_80112F04_w04(u8 *arg0, s32 arg1);
+extern Vec2f D_8011C844_w04[4];
+extern Vec2f D_8011C864_w04[4];
+extern Object *D_8011E0F0_w04[4];
+extern omObjData *D_8011E100_w04[4];
+extern s32 D_8011E110_w04;
+extern s32 D_8011E114_w04;
+void func_8011621C_w04(s32 arg0);
+void func_80116294_w04(void);
+void func_801162F8_w04(omObjData *obj);
+void func_801164A4_w04(s32 arg0, s32 arg1);
+void func_801165A4_w04(s32 arg);
+void func_80116AAC_w04(void);
+void func_80117074_w04(void);
+extern RectF D_8011CB18_w04;
+extern DecisionTreeNonLeafNode D_8011CF48_w04[9];
+extern DecisionTreeNonLeafNode D_8011CFB4_w04[1];
+extern DecisionTreeNonLeafNode D_8011D1D0_w04[9];
+extern DecisionTreeNonLeafNode D_8011D314_w04[9];
+extern DecisionTreeNonLeafNode D_8011D494_w04[13];
+extern DecisionTreeNonLeafNode D_8011D530_w04[5];
+extern DecisionTreeNonLeafNode *D_8011D65C_w04[8];
+extern DecisionTreeNonLeafNode D_8011D838_w04[9];
+extern DecisionTreeNonLeafNode *D_8011DAC0_w04[8];
+extern DecisionTreeNonLeafNode *D_8011DAE0_w04[8];
+extern DecisionTreeNonLeafNode D_8011DB00_w04[1];
+extern s32 D_8011DC68_w04;
+extern u8 *D_8011DCEC_w04[8];
+extern s8 *D_8011DD8C_w04[8];
+extern DecisionTreeNonLeafNode *D_8011DDAC_w04[2];
+extern DecisionTreeNonLeafNode *D_8011DDB4_w04[2];
+extern DecisionTreeNonLeafNode *D_8011DDBC_w04[5];
+s32 func_8010AF34_w04(s32 arg0);
+s32 func_8010AFBC_w04(void);
+s32 func_8011AA64_w04(void);
+s32 func_8011AB34_w04(void);
+void func_80106120_w04(void);
+extern s16 D_8011C998_w04[2];
+extern s16 D_8011C99C_w04[2];
+extern Object *D_8011E118_w04[2];
+void func_800DC104_shared_board(s32 arg0, s8 arg1);
+void func_8010873C_w04(void);
+void func_800EC5B4_shared_board(s16 arg0, s32 arg1);
+extern DecisionTreeNonLeafNode D_8011BF6C_w04[4];
+extern DecisionTreeNonLeafNode D_8011BF9C_w04[1];
+void func_80119FCC_w04(s32 index, s32 arg1);
+void func_801088C8_w04(void);
+void func_801088FC_w04(void);
+void func_80108934_w04(void);
+void func_801089B0_w04(void);
+void func_80108A58_w04(void);
+void func_80108AD4_w04(void);
+void func_80108B4C_w04(void);
+void func_80108C00_w04(void);
+void func_80108CA8_w04(void);
+void func_80108D00_w04(void);
+void func_80108D58_w04(void);
+void func_80108DB0_w04(void);
+void func_80108E08_w04(void);
+void func_80108E60_w04(void);
+void func_80108EB8_w04(void);
+void func_80108F10_w04(void);
+void func_80108F70_w04(void);
+void func_80108FD0_w04(void);
+void func_80109030_w04(void);
+void func_80109090_w04(void);
+void func_801090F0_w04(void);
+void func_80109150_w04(void);
+void func_801091B0_w04(void);
+void func_80109210_w04(void);
+void func_80109270_w04(void);
+void func_801092D0_w04(void);
+void func_80109330_w04(void);
+void func_80109390_w04(void);
+void func_801093F0_w04(void);
+void func_80109450_w04(void);
+void func_801094B0_w04(void);
+void func_80109510_w04(void);
+void func_80109570_w04(void);
+void func_801095D0_w04(void);
+void func_80109630_w04(void);
+void func_801098A0_w04(void);
+void func_8010A054_w04(void);
+void func_8010A400_w04(void);
+void func_80116740_w04(void);
+void func_8011A5DC_w04(void);
+void func_8011A91C_w04(void);
+
 
 s16 func_801059D0_w04(void) {
     return D_8011B780_w04[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
@@ -577,7 +784,7 @@ s32 func_80106CC4_w04(u8 *enabled) {
     s32 i;
     s32 j;
 
-    sp20 = D_8011DDD0_w04;
+    sp20 = *(W04Bytes4_q1 *)D_8011DDD0_w04;
 
     for (i = 0; i < MB_MAX_PLAYERS; i++) {
         if (i == GwSystem.current_player_index) {
@@ -627,14 +834,14 @@ s32 func_80106CC4_w04(u8 *enabled) {
     }
 }
 
-void func_80106F58_w04(void) {
+s32 func_80106F58_w04(void) {
     s32 comCount = 0;
     s16 sp18[MB_MAX_PLAYERS];
     W04Bytes4_q1 sp20;
     s32 i;
     s32 j;
 
-    sp20 = D_8011DDD0_w04;
+    sp20 = *(W04Bytes4_q1 *)D_8011DDD0_w04;
 
     for (i = 0; i < MB_MAX_PLAYERS; i++) {
         if (i == GwSystem.current_player_index) {
@@ -666,7 +873,7 @@ void func_80106F58_w04(void) {
         func_8005F744_main(sp18[0], sp18[1], sp18[2], sp18[3]);
     }
 
-    func_8005E1D8_main(mbDlgWinId, 0, 1);
+    return func_8005E1D8_main(mbDlgWinId, 0, 1);
 }
 
 void func_80107170_w04(void) {
@@ -746,7 +953,7 @@ s32 func_80107438_w04(u8 *enabled, s32 targetSet, s32 canCancel) {
     s32 i;
     s32 j;
 
-    sp20 = D_8011DDD0_w04;
+    sp20 = *(W04Bytes4_q1 *)D_8011DDD0_w04;
 
     for (i = 0; i < MB_MAX_PLAYERS; i++) {
         if (i == GwSystem.current_player_index) {
@@ -1496,7 +1703,7 @@ s32 func_80109690_w04(s32 arg0) {
     s32 i;
     s32 j;
 
-    sp20 = D_8011DDD0_w04;
+    sp20 = *(W04Bytes4_q1 *)D_8011DDD0_w04;
 
     for (i = 0; i < MB_MAX_PLAYERS; i++) {
         if (i == GwSystem.current_player_index) {
@@ -1657,7 +1864,7 @@ s32 func_80109CD4_w04(DecisionTreeNonLeafNode *tree, s32 count) {
     s32 i;
     s32 j;
 
-    sp20 = D_8011DDD0_w04;
+    sp20 = *(W04Bytes4_q1 *)D_8011DDD0_w04;
 
     for (i = 0; i < MB_MAX_PLAYERS; i++) {
         if (i == GwSystem.current_player_index) {
@@ -2129,134 +2336,6 @@ void func_8010B024_w04(void) {
     HuSprScaleSet(grp, 0, 1.0f, 1.0f);
     omDelPrcObj(NULL);
 }
-
-// board q2: func_8010B1FC_w04..func_80110768_w04 (twins of w02 func_8010B1C8_w02..func_80110730_w02)
-#include "../ovl_80_shared_board/F5E80.h"
-#include "../ovl_80_shared_board/101840.h"
-#include "../ovl_80_shared_board/113750.h"
-#include "../ovl_80_shared_board/ECA50.h"
-#include "../ovl_80_shared_board/FA250.h"
-#include "../ovl_80_shared_board/10C230.h"
-#include "game/board.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/EAB00.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/105D50.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "gcc/memory.h"
-#include "mallocblock.h"
-#include "../ovl_80_shared_board/106640.h"
-#include "input.h"
-#include "game/window.h"
-#include "game/hmfman.h"
-
-typedef struct G3ModelFadeWork {
-    /* 0x00 */ Vec vel;
-    /* 0x0C */ f32 alpha;
-    /* 0x10 */ f32 scaleRate;
-    /* 0x14 */ f32 fadeRate;
-    /* 0x18 */ Object *model;
-    /* 0x1C */ u16 killOnFade;
-} G3ModelFadeWork; // size 0x20
-
-typedef struct G3ItemMoveWork {
-    /* 0x00 */ s16 startX;
-    /* 0x02 */ s16 startY;
-    /* 0x04 */ s16 endX;
-    /* 0x06 */ s16 endY;
-    /* 0x08 */ s16 duration;
-    /* 0x0A */ s16 spriteGroup;
-} G3ItemMoveWork; // size 0xC (allocated as 0x10)
-
-/* Spark directions copied into a local array before each loop (an initialised local in the
-   original; the table sits in this unit's data, which is still asm). */
-typedef struct G3SparkDirs {
-    Vec dir[8];
-} G3SparkDirs;
-
-void func_800D9F5C_shared_board(Object *arg0, Vec *arg1, s32 arg2);
-void func_8001ED54_main(s16 arg0);
-extern s16 D_8011B770_w04[]; /* star spaces */
-extern s32 D_8011B7C8_w04;
-extern u8 D_8011C538_w04[2][3][4];
-extern s8 D_8011C550_w04[][5][7];
-extern u8 D_8011C598_w04[2][3][4];
-extern s8 D_8011C5B0_w04[2][5][10];
-extern u8 D_8011C614_w04[2][10];
-extern s32 D_8011C628_w04[5][2];
-extern s32 D_8011C650_w04[2];
-extern s32 D_8011C658_w04[2];
-extern s32 D_8011C660_w04[2];
-extern s32 D_8011C668_w04[2];
-extern s32 D_8011C670_w04[2];
-extern u32 D_8011C678_w04[];
-extern u32 D_8011C680_w04[];
-extern s32 D_8011C688_w04;
-extern Vec2f D_8011C69C_w04[4];
-extern Vec2f D_8011C6BC_w04[4];
-extern u8 D_8011C6DC_w04[6][3];
-extern u8 D_8011C6F0_w04[14][3];
-extern u8 D_8011C71C_w04[];
-extern s32 D_8011C724_w04[];
-extern s32 D_8011C730_w04[];
-extern Vec2f D_8011C804_w04[];
-extern Vec2f D_8011C824_w04[];
-extern char D_8011DDD4_w04[];
-extern const f64 D_8011DDD8_w04;
-extern const G3SparkDirs D_8011DDE0_w04;
-extern const f64 D_8011DE40_w04;
-extern Object *D_8011E05C_w04;
-extern Object *D_8011E060_w04[1];
-extern s32 D_8011E0A8_w04;
-extern s32 D_8011E0AC_w04;
-extern u8 *D_8011E0B0_w04;
-extern Object *D_8011E0B4_w04;
-void func_80106A3C_w04(Object *arg);
-void func_80106AB0_w04(void);
-void func_80106B38_w04(void);
-s32 func_80106CC4_w04(u8 *arg0);
-s32 func_80106F58_w04(void);
-s32 func_80107704_w04(u8 *choices);
-s32 func_80107724_w04(u8 *choices);
-void func_80108608_w04(s32 arg);
-void func_80109CCC_w04(void);
-void func_8010B024_w04(void);
-void func_8010B1FC_w04(void);
-void func_8010C4B4_w04(Object *obj);
-void func_8010C554_w04(Object *obj);
-s32 func_8010C5F4_w04(s32 playerIndex);
-void func_8010CA3C_w04(void);
-s32 func_8010CA60_w04(s32 playerIndex);
-void func_8010D88C_w04(void);
-void func_8010D9E0_w04(s32 arg);
-void func_8010DA1C_w04(void);
-void func_8010EBF0_w04(void);
-void func_8010EC0C_w04(void);
-omObjData *func_8010EC28_w04(Vec *pos, f32 scaleRate, f32 fadeRate, s16 killOnFade, Vec *vel, s32 star);
-void func_8010ED84_w04(omObjData *obj);
-void func_8010EE9C_w04(void);
-void func_8010F264_w04(void);
-void func_8010F2D0_w04(void);
-void func_8010F490_w04(void);
-Process *func_8010F6F4_w04(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
-void func_8010F7C4_w04(void);
-void func_8010F9F4_w04(void);
-void func_8010FBC4_w04(void);
-void func_8010FD34_w04(void);
-void func_80110080_w04(void);
-void func_80110244_w04(s32 arg0, s32 arg1, s32 arg2, f32* arg3, s32 arg4);
-void func_801104DC_w04(void);
-void func_80110768_w04(void);
-void func_80112378_w04(void);
 
 void func_8010B1FC_w04(void) {
     GW_SYSTEM *system = &GwSystem;
@@ -3058,7 +3137,7 @@ void func_8010D88C_w04(void) {
     angle = MBRand(360.0f);
     while (1) {
         HuPrcVSleep();
-        obj->velocity.x += D_8011DDD8_w04; // 1.5 (the literal sits in the .data asm file)
+        obj->velocity.x += D_8011DDD8_w04; // 1.5 (a const double in .data)
         if (src->velocity.x + 35.0f <= obj->velocity.x) {
             break;
         }
@@ -4088,130 +4167,6 @@ void func_80110768_w04(void) {
     MBModelKill(model);
 }
 
-// board q3: types, data and prototypes for func_801109A8_w04..func_80116024_w04
-// (twins of w02 func_80110970_w02..func_80115FEC_w02 / ChillyWaters MB1Ev_*)
-
-#include "../ovl_80_shared_board/F5E80.h"
-#include "../ovl_80_shared_board/101840.h"
-#include "../ovl_80_shared_board/113750.h"
-#include "../ovl_80_shared_board/ECA50.h"
-#include "../ovl_80_shared_board/10C230.h"
-#include "WaluigisIsland.h" /* BranchLink */
-#include "game/board.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/EAB00.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "gcc/memory.h"
-#include "mallocblock.h"
-#include "../ovl_80_shared_board/106640.h"
-#include "input.h"
-#include "game/window.h"
-#include "game/hmfman.h"
-
-typedef struct Q3ModelFadeWork {
-    /* 0x00 */ Vec vel;
-    /* 0x0C */ f32 alpha;
-    /* 0x10 */ f32 scaleRate;
-    /* 0x14 */ f32 fadeRate;
-    /* 0x18 */ Object *model;
-    /* 0x1C */ u16 killOnFade;
-} Q3ModelFadeWork; // size 0x20
-
-typedef struct Q3ItemMoveWork {
-    /* 0x00 */ s16 startX;
-    /* 0x02 */ s16 startY;
-    /* 0x04 */ s16 endX;
-    /* 0x06 */ s16 endY;
-    /* 0x08 */ s16 duration;
-    /* 0x0A */ s16 spriteGroup;
-} Q3ItemMoveWork; // size 0xC (allocated as 0x10)
-
-/* Spark directions copied into a local array before each loop (an initialised local in the
-   original; the table sits in this unit's data, which is still asm). */
-typedef struct Q3SparkDirs {
-    Vec dir[8];
-} Q3SparkDirs;
-
-typedef struct Q3ItemExchangeWork {
-    Object* unk_00;
-    Object* unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    char unk_10[0x10];
-} Q3ItemExchangeWork; // board g4
-typedef struct Q3Bytes4 {
-    u8 b[4];
-} Q3Bytes4; // board g4
-typedef s16 Q3SpaceTriple[3];
-typedef BranchLink Q3BranchPair[2];
-
-extern s16 D_8011B770_w04[]; /* star spaces */
-extern s16 D_8011B780_w04[]; //mb2ev_StarGuideMasu
-extern Vec2f D_8011C69C_w04[4];
-extern Vec2f D_8011C6BC_w04[4];
-extern Vec2f D_8011C804_w04[];
-extern DecisionTreeNonLeafNode D_8011C884_w04[];
-extern s32 D_8011C8F0_w04[];
-extern DecisionTreeNonLeafNode D_8011C904_w04[];
-extern f32 D_8011C910_w04[6][2];
-extern s32 D_8011C940_w04;
-extern u8 D_8011C944_w04[4];
-extern u8 D_8011C948_w04[4];
-extern u16 D_8011C94C_w04[7][2];
-extern RGB D_8011C968_w04[2];
-extern u8 D_8011DDD0_w04[];
-extern char D_8011DDD4_w04[];
-extern const Q3SparkDirs D_8011DDE0_w04;
-extern Object* D_8011DFF8_w04[];
-extern Process *D_8011E018_w04[8];
-extern s32 D_8011E0B8_w04;
-extern s32 D_8011E0BC_w04;
-extern s32 D_8011E0C0_w04;
-extern Object* D_8011E0C4_w04;
-extern Object* D_8011E0C8_w04;
-extern s32 D_8011E0CC_w04;
-extern s32 D_8011E0D0_w04;
-extern Object* D_8011E0D4_w04;
-extern s32 D_8011E0D8_w04[4];
-extern void* D_8011E0E8_w04;
-void func_80106B38_w04(void);
-void func_80106B94_w04(void);
-void func_80106C64_w04(void);
-void func_80107F98_w04(void);
-s32 func_80109CD4_w04(s32 arg0, s32 arg1);
-void func_80109F58_w04(s16 arg0, s32 arg1, s16 arg2, s32 arg3);
-void func_8010A014_w04(void);
-void func_8010B1FC_w04(void);
-omObjData *func_8010EC28_w04(Vec *pos, f32 scaleRate, f32 fadeRate, s16 killOnFade, Vec *vel, s32 star);
-Process *func_8010F6F4_w04(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
-void func_8010F9F4_w04(void);
-void func_80110080_w04(void);
-void func_80110244_w04(s32 arg0, s32 arg1, s32 arg2, f32* arg3, s32 arg4);
-void func_801109A8_w04(void);
-void func_80110BB8_w04(void);
-void func_80110E78_w04(void);
-void func_80111218_w04(void);
-void func_80111C14_w04(void);
-void func_80112378_w04(void);
-void func_8011276C_w04(void);
-void func_8011297C_w04(Object *);
-void func_80112B48_w04(void);
-s32 func_80112F04_w04(u8 *arg0, s32 arg1);
-void func_80113484_w04(void);
-void func_80114720_w04(void);
-void func_80115720_w04(void);
-void func_80116024_w04(s16 (*masu)[3], BranchLink (*links)[2], DecisionTreeNonLeafNode **trees);
-
 void func_801109A8_w04(void) {
     s32 index;
     s32 group;
@@ -4264,7 +4219,7 @@ void func_80110BB8_w04(void) {
 
     while (1) {
         MBDlgWinInsertCreate(-1, 0x3A01, 0, 0, 0, 0, 0);
-        choice = func_80109CD4_w04((s32)D_8011C884_w04, 0);
+        choice = func_80109CD4_w04(D_8011C884_w04, 0);
         MBDlgWinClose();
         MBDlgWinKill();
 
@@ -4385,9 +4340,9 @@ retry:
                          mbCharNameMesTbl[GwPlayer[2].chr],
                          mbCharNameMesTbl[GwPlayer[3].chr], 0);
     if (GwPlayer[loc->current_player_index].coin != 0) {
-        choice = func_80109CD4_w04(1, 0);
+        choice = func_80109CD4_w04((DecisionTreeNonLeafNode *)1, 0);
     } else {
-        choice = func_80109CD4_w04(2, loc->current_player_index);
+        choice = func_80109CD4_w04((DecisionTreeNonLeafNode *)2, loc->current_player_index);
     }
     MBDlgWinClose();
     MBDlgWinKill();
@@ -4706,7 +4661,7 @@ void func_80111C14_w04(void) {
 
 choiceLoop:
     MBDlgWinInsertCreate(0x38, 0x4100, 0, 0, 0, 0, 0);
-    ret = func_80109CD4_w04((s32)D_8011C904_w04, 0);
+    ret = func_80109CD4_w04(D_8011C904_w04, 0);
     MBDlgWinClose();
     MBDlgWinKill();
 
@@ -4767,8 +4722,8 @@ void func_8011215C_w04(void) {
          D_8011C69C_w04[D_8011E0BC_w04].y;
 
     func_80054904_main(grpId, 0,
-                        x + D_8011C910_w04[idx][0],
-                        y + D_8011C910_w04[idx][1]);
+                        x + D_8011C910_w04[idx].x,
+                        y + D_8011C910_w04[idx].y);
     func_80055420_main(grpId, 0, 0xFF, 0xFF, 0xFF);
     func_80055458_main(grpId, 0, 0xFF);
 
@@ -6154,95 +6109,6 @@ void func_80116024_w04(Q3SpaceTriple *masu, Q3BranchPair *links, DecisionTreeNon
     }
 }
 
-// board q4: declarations for func_8011621C_w04..func_8011B6B4_w04 and the board .data
-#include "../ovl_80_shared_board/F2910.h"
-#include "WaluigisIsland.h" /* BranchLink */
-#include "game/board.h"
-#include "gcc/memory.h"
-#include "mallocblock.h"
-#include "input.h"
-#include "game/window.h"
-#include "game/hmfman.h"
-#include "../ovl_80_shared_board/F5E80.h"
-#include "../ovl_80_shared_board/101840.h"
-#include "../ovl_80_shared_board/113750.h"
-#include "../ovl_80_shared_board/ECA50.h"
-#include "../ovl_80_shared_board/10C230.h"
-#include "../ovl_80_shared_board/1006F0.h"
-#include "../ovl_80_shared_board/F5B90.h"
-#include "../ovl_80_shared_board/EAB00.h"
-#include "../ovl_80_shared_board/EC3B0.h"
-#include "../ovl_80_shared_board/EDDB0.h"
-#include "../ovl_80_shared_board/106A50.h"
-#include "../ovl_80_shared_board/113520.h"
-#include "../ovl_80_shared_board/EA790.h"
-#include "../ovl_80_shared_board/EB2F0.h"
-#include "../ovl_80_shared_board/EE660.h"
-#include "../ovl_80_shared_board/F5070.h"
-#include "../ovl_80_shared_board/F9DE0.h"
-#include "../ovl_80_shared_board/FFB10.h"
-#include "../ovl_80_shared_board/106640.h"
-
-extern Vec2f D_8011C844_w04[];
-extern Vec2f D_8011C864_w04[];
-extern Object *D_8011E0F0_w04[4];
-extern omObjData *D_8011E100_w04[4];
-extern s32 D_8011E110_w04;
-extern s32 D_8011E114_w04;
-void func_8011621C_w04(s32 arg0);
-void func_80116294_w04(void);
-void func_801162F8_w04(omObjData *obj);
-void func_801164A4_w04(s32 arg0, s32 arg1);
-void func_801165A4_w04(s32 arg);
-void func_80116AAC_w04(void);
-void func_80117074_w04(void);
-s32 func_80109CD4_w04(s32 arg0, s32 arg1);
-Process *func_8010F6F4_w04(s32 spriteGroup, s16 startX, s16 startY, s16 endX, s16 endY, s16 duration);
-void func_8010F9F4_w04(void);
-void func_8010FBC4_w04(void);
-s32 func_80112F04_w04(u8 *arg0, s32 arg1);
-extern s32 D_8011C688_w04;
-extern RectF D_8011CB18_w04;
-extern DecisionTreeNonLeafNode D_8011CF48_w04[];
-extern DecisionTreeNonLeafNode D_8011CFB4_w04[];
-extern DecisionTreeNonLeafNode D_8011D1D0_w04[];
-extern DecisionTreeNonLeafNode D_8011D314_w04[];
-extern DecisionTreeNonLeafNode D_8011D494_w04[];
-extern DecisionTreeNonLeafNode D_8011D530_w04[];
-extern DecisionTreeNonLeafNode *D_8011D65C_w04[];
-extern DecisionTreeNonLeafNode D_8011D838_w04[];
-extern DecisionTreeNonLeafNode *D_8011DAC0_w04[];
-extern DecisionTreeNonLeafNode *D_8011DAE0_w04[];
-extern DecisionTreeNonLeafNode D_8011DB00_w04[];
-extern s32 D_8011DC68_w04;
-extern u8 *D_8011DCEC_w04[8];
-extern s8 *D_8011DD8C_w04[8];
-extern DecisionTreeNonLeafNode *D_8011DDAC_w04[2];
-extern DecisionTreeNonLeafNode *D_8011DDB4_w04[2];
-extern DecisionTreeNonLeafNode *D_8011DDBC_w04[];
-extern s32 D_8011E0CC_w04;
-extern s32 D_8011E0D0_w04;
-void func_80107828_w04(void);
-s32 func_8010AF34_w04(s32 item);
-s32 func_8010AFBC_w04(void);
-s32 func_8011AA64_w04(void);
-s32 func_8011AB34_w04(void);
-void func_80106120_w04(void);
-extern s16 D_8011C998_w04[2];
-extern s16 D_8011C99C_w04[2];
-extern Object *D_8011E118_w04[2];
-void func_800DC104_shared_board(s32 arg0, s8 arg1);
-extern Object *D_8011E09C_w04[3];
-extern s16 D_8011B9C4_w04[4];
-void func_8010873C_w04(void);
-void func_800EC5B4_shared_board(s16 arg0, s32 arg1);
-extern s16 D_8011B9BC_w04[4];
-extern DecisionTreeNonLeafNode D_8011BF6C_w04[];
-extern DecisionTreeNonLeafNode D_8011BF9C_w04[];
-void func_80106AB0_w04(s32 arg0);
-void func_80119FCC_w04(s32 index, s32 arg1);
-#include "../ovl_80_shared_board/1063F0.h"
-// end board q4 declarations
 
 void func_8011621C_w04(s32 arg0) {
     if (D_8011E100_w04[arg0] != NULL) {
@@ -6467,7 +6333,7 @@ void func_80116AFC_w04(void) {
 
     MBDlgWinInsertCreate(-1, 0x5C01, GwPlayer[0].chr + 0x1C00, GwPlayer[1].chr + 0x1C00,
                          GwPlayer[2].chr + 0x1C00, GwPlayer[3].chr + 0x1C00, 0);
-    choice = func_80109CD4_w04(2, D_8011E114_w04);
+    choice = func_80109CD4_w04((DecisionTreeNonLeafNode *)2, D_8011E114_w04);
     MBDlgWinClose();
     MBDlgWinKill();
 
@@ -6635,7 +6501,7 @@ void func_8011737C_w04(void) {
 
     MBDlgWinInsertCreate(-1, 0x5C01, GwPlayer[0].chr + 0x1C00, GwPlayer[1].chr + 0x1C00,
                          GwPlayer[2].chr + 0x1C00, GwPlayer[3].chr + 0x1C00, 0);
-    choice = func_80109CD4_w04(2, D_8011E110_w04);
+    choice = func_80109CD4_w04((DecisionTreeNonLeafNode *)2, D_8011E110_w04);
     MBDlgWinClose();
     MBDlgWinKill();
 
@@ -7568,7 +7434,7 @@ void func_8011A4E0_w04(s32 index) {
 }
 
 #ifdef NON_MATCHING
-// board q4: masked 1; retail reuses the a0 = 0x3D set in the case-1 branch delay slot for func_80106AB0_w04
+// board q4: masked 1; retail reuses the a0 = 0x3D set in the case-1 branch delay slot before calling func_80106AB0_w04 (void)
 void func_8011A5DC_w04(void) {
     SpaceData *space;
     GW_SYSTEM *sys;
@@ -7595,7 +7461,7 @@ void func_8011A5DC_w04(void) {
     } else {
     loop:
         MBDlgWinInsertCreate(0x3D, 0xB00, 0, 0, 0, 0, 0);
-        choice = func_80109CD4_w04((s32)tree, 0);
+        choice = func_80109CD4_w04(tree, 0);
         MBDlgWinClose();
         MBDlgWinKill();
         switch (choice) {
@@ -7631,7 +7497,7 @@ void func_8011A5DC_w04(void) {
                 MBDlgWinExec(0x3D, 0xB04);
                 break;
             default:
-                func_80106AB0_w04(0x3D);
+                func_80106AB0_w04();
                 goto loop;
         }
     }
@@ -8103,52 +7969,6 @@ s32 func_8011B6B4_w04(void) {
 
 // board q4
 /* .data (0x8011B740, 0x2700 bytes): the overlay's initialised data, in address order. */
-void func_801088C8_w04(void);
-void func_801088FC_w04(void);
-void func_80108934_w04(void);
-void func_801089B0_w04(void);
-void func_80108A58_w04(void);
-void func_80108AD4_w04(void);
-void func_80108B4C_w04(void);
-void func_80108C00_w04(void);
-void func_80108CA8_w04(void);
-void func_80108D00_w04(void);
-void func_80108D58_w04(void);
-void func_80108DB0_w04(void);
-void func_80108E08_w04(void);
-void func_80108E60_w04(void);
-void func_80108EB8_w04(void);
-void func_80108F10_w04(void);
-void func_80108F70_w04(void);
-void func_80108FD0_w04(void);
-void func_80109030_w04(void);
-void func_80109090_w04(void);
-void func_801090F0_w04(void);
-void func_80109150_w04(void);
-void func_801091B0_w04(void);
-void func_80109210_w04(void);
-void func_80109270_w04(void);
-void func_801092D0_w04(void);
-void func_80109330_w04(void);
-void func_80109390_w04(void);
-void func_801093F0_w04(void);
-void func_80109450_w04(void);
-void func_801094B0_w04(void);
-void func_80109510_w04(void);
-void func_80109570_w04(void);
-void func_801095D0_w04(void);
-void func_80109630_w04(void);
-void func_801098A0_w04(void);
-void func_8010A054_w04(void);
-void func_8010A400_w04(void);
-void func_8010B1FC_w04(void);
-void func_8010DA1C_w04(void);
-void func_8010EBF0_w04(void);
-void func_8010EC0C_w04(void);
-void func_80116740_w04(void);
-void func_80117074_w04(void);
-void func_8011A5DC_w04(void);
-void func_8011A91C_w04(void);
 s16 D_8011B740_w04[8] = { 0, 1, 2, 4, 6, 3, 5, 7 };
 s16 D_8011B750_w04[8] = { 0, 0, 0, 0, 0, 1, 1, 1 };
 s16 D_8011B760_w04[8] = { 6, 7, 8, 9, 10, 11, 12, 13 };
@@ -9626,9 +9446,8 @@ DecisionTreeNonLeafNode *D_8011DDBC_w04[5] = {
 };
 u8 D_8011DDD0_w04[4] = { 1, 2, 4, 8 };
 char D_8011DDD4_w04[4] = "%d";
-f64 D_8011DDD8_w04 = 1.5;
-f32 D_8011DDE0_w04[24] = {
-    1.0f, 1.0f, 1.0f, 1.0f, 2.0f, 1.0f, 0.0f, 2.0f,
-    1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-    -1.0f, 1.0f, -1.0f, 2.0f, 1.0f, 1.0f, -1.0f, 1.0f,
-};
+const f64 D_8011DDD8_w04 __attribute__((section(".data"))) = 1.5;
+const G3SparkDirs D_8011DDE0_w04 __attribute__((section(".data"))) = { {
+    { 1.0f, 1.0f, 1.0f }, { 1.0f, 2.0f, 1.0f }, { 0.0f, 2.0f, 1.0f }, { -1.0f, 1.0f, 1.0f },
+    { -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f, 1.0f }, { -1.0f, 2.0f, 1.0f }, { 1.0f, -1.0f, 1.0f },
+} };
