@@ -30,6 +30,7 @@ void func_800F5F60_shared_board(void);
 void func_800F5F7C_shared_board(void);
 void func_800F7108_shared_board(void);
 s32 func_800EDC40_shared_board(void);
+void MBPlayerCoinAdd(s32 playerNo, s32 amount);
 
 void func_80108704_chancetime(void);
 s32 func_8010872C_chancetime(void);
@@ -92,7 +93,13 @@ extern s32 D_8010FEC4_chancetime;
 extern s8 D_8010FEC8_chancetime;
 extern s8 D_8010FEC9_chancetime;
 extern ChanceWheel D_8010FED0_chancetime[3];
+typedef struct {
+    s32 state;
+    s32 timer;
+} ChanceFx;
+
 extern s32 D_8010FF48_chancetime[3];
+extern ChanceFx D_8010FF60_chancetime[20];
 extern s16 D_8010FF4A_chancetime;
 extern s16 D_8010FF4E_chancetime;
 extern s16 D_8010FF52_chancetime;
@@ -673,8 +680,246 @@ s32 func_8010E4C4_chancetime(void) {
     return D_8010FC18_chancetime;
 }
 
+// NON_MATCHING: instruction-for-instruction except the order of the two prize-table loads, the amount test
+// (branch layout), one model-index computation and an 8-byte larger frame; logic checked
+#ifdef NON_MATCHING
+void func_8010E4D0_chancetime(omObjData *obj) {
+    static const ChancePos16 D_8010FD68_chancetime[9] = {
+        { 1000, 0 }, { 30, 0 }, { 20, 0 }, { 10, 0 }, { 1, 0 }, { 0, 1000 }, { 0, 3 }, { 0, 2 }, { 0, 1 },
+    };
+    struct {
+        f32 coin[2];
+        f32 star[2];
+        s32 player[2];
+    } p;
+    f32 yOfs;
+    u16 isStar;
+    f32 per;
+    f32 given;
+    f32 taken;
+    f32 v;
+    f32 s;
+    f32 sc;
+    f32 x;
+    f32 y;
+    f32 ft;
+    s32 coins;
+    s32 i;
+    s32 j;
+    s32 t;
+    s32 wait;
+    s32 launched;
+    s32 arrived;
+    s32 interval;
+    s32 count;
+    s16 amt;
+    u16 coinAmt;
+    u16 starAmt;
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            if (D_801100DD_chancetime[i] == GwPlayer[D_801100D0_chancetime[j]].chr) {
+                p.player[i] = D_801100D0_chancetime[j];
+                break;
+            }
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        p.coin[i] = GwPlayer[p.player[i]].coin;
+        p.star[i] = GwPlayer[p.player[i]].star;
+    }
+    coinAmt = D_8010FD68_chancetime[D_801100DD_chancetime[2]].x;
+    starAmt = D_8010FD68_chancetime[D_801100DD_chancetime[2]].y;
+    coins = D_8010FD68_chancetime[D_801100DD_chancetime[2]].x;
+    if (coins > 0) {
+        if (GwPlayer[p.player[0]].coin < coins) {
+            coinAmt = GwPlayer[p.player[0]].coin;
+        }
+        isStar = 0;
+    } else {
+        if (GwPlayer[p.player[0]].star < (s16)starAmt) {
+            starAmt = GwPlayer[p.player[0]].star;
+        }
+        isStar = 1;
+    }
+    amt = (isStar == 0) ? coinAmt : starAmt;
+    if (amt > 0) {
+        if (isStar == 0) {
+            yOfs = 0.0f;
+            count = (s16)coinAmt;
+            if (count > 20) {
+                count = 20;
+            }
+            amt = coinAmt;
+        } else {
+            yOfs = 16.0f;
+            count = (s16)starAmt;
+            if (count > 10) {
+                count = 10;
+            }
+            amt = starAmt;
+        }
+        per = (f32)amt / count;
+        given = 0.0f;
+        taken = 0.0f;
+        interval = 20 / count;
+        interval = (interval < 5) ? 5 : interval;
+        for (i = 0; i < 20; i++) {
+            D_8010FF60_chancetime[i].state = 0;
+            D_8010FF60_chancetime[i].timer = 0;
+        }
+        wait = 0;
+        launched = 0;
+        arrived = 0;
+        if (count > 0) {
+            do {
+                for (i = 0; i < 20; i++) {
+                    switch (D_8010FF60_chancetime[i].state) {
+                    case 0:
+                        if (interval < wait) {
+                            if (launched < count) {
+                            D_8010FF60_chancetime[i].state = 1;
+                            wait = 0;
+                            launched++;
+                            if (isStar == 0) {
+                                taken += per;
+                                v = p.coin[0] - taken;
+                                if (v >= 0.0f) {
+                                    GwPlayer[p.player[0]].coin = (u32)v;
+                                } else {
+                                    GwPlayer[p.player[0]].coin = 0;
+                                }
+                                HuAudFXPlay(0x109);
+                            } else {
+                                taken += per;
+                                v = p.star[0] - taken;
+                                if (v >= 0.0f) {
+                                    GwPlayer[p.player[0]].star = (u32)v;
+                                } else {
+                                    GwPlayer[p.player[0]].star = 0;
+                                }
+                            }
+                        }
+                            }
+                        break;
+                    case 1:
+                        if (isStar == 0) {
+                            func_8000BB54_main(D_80110028_chancetime[i]);
+                            func_8000BDDC_main(D_80110028_chancetime[i], 1);
+                            func_8000BD94_main(D_80110028_chancetime[i], 0, 0);
+                            func_8000BBD4_main(D_80110028_chancetime[i], 80, 74.0f - yOfs);
+                        } else {
+                            func_8001C258_main(obj->model[i + 1], 4, 0);
+                            func_8001C258_main(D_80110010_chancetime[i], 4, 0);
+                            func_800138EC_main(D_80110010_chancetime[i], 1, 1);
+                            Hu3DModelPosSet(obj->model[i + 1], -170.0f, 375.0f, 0.0f);
+                            func_8000CFA4_main(D_80110010_chancetime[i], -170.0f, 375.0f, 0.0f);
+                        }
+                        D_8010FF60_chancetime[i].timer = 0;
+                        D_8010FF60_chancetime[i].state = 3;
+                        break;
+                    case 2:
+                        D_8010FF60_chancetime[i].state = 0;
+                        if (isStar == 0) {
+                            func_8000BB94_main(D_80110028_chancetime[i]);
+                            given += per;
+                            v = given + p.coin[1];
+                            if (v <= 999.0f) {
+                                GwPlayer[p.player[1]].coin = v;
+                                HuAudFXPlay(0x106);
+                            } else {
+                                GwPlayer[p.player[1]].coin = 999;
+                                HuAudFXPlay(0x106);
+                            }
+                        } else {
+                            func_8001C258_main(obj->model[i + 1], 4, 4);
+                            func_800138EC_main(D_80110010_chancetime[i], 1, 0);
+                            given += per;
+                            v = given + p.star[1];
+                            if (v <= 99.0f) {
+                                GwPlayer[p.player[1]].star = v;
+                                HuAudFXPlay(0x11B);
+                            } else {
+                                GwPlayer[p.player[1]].star = 99;
+                                HuAudFXPlay(0x11B);
+                            }
+                        }
+                        arrived++;
+                        break;
+                    case 3:
+                        t = D_8010FF60_chancetime[i].timer;
+                        if (isStar == 0) {
+                            x = t * 8.5f;
+                            s = sindf(t * 9.0f);
+                            y = s * 32.0f;
+                            func_8000BBD4_main(D_80110028_chancetime[i], x + 80.0f, (74.0f - y) - yOfs);
+                            sc = s * 0.5f + 0.5f;
+                            func_8000BE5C_main(D_80110028_chancetime[i], sc, sc);
+                            D_8010FF60_chancetime[i].timer++;
+                            if (t >= 20) {
+                                D_8010FF60_chancetime[i].state = 2;
+                            }
+                        } else {
+                            x = t * 9.25f;
+                            ft = t;
+                            s = sindf(ft * 4.5f);
+                            y = s * 88.0f;
+                            x = x + -170.0f;
+                            y = y + 375.0f;
+                            Hu3DModelPosSet(obj->model[i + 1], x, y, 0.0f);
+                            func_8000CFA4_main(D_80110010_chancetime[i], x, y, 0.0f);
+                            sc = s * 0.5f + 0.5f;
+                            Hu3DModelScaleSet(obj->model[i + 1], sc, sc, sc);
+                            Hu3DModelRotSet(obj->model[i + 1], 0.0f, ft * 15.0f, 0.0f);
+                            sc = 2.0f * s + 4.0f;
+                            func_8000CD00_main(D_80110010_chancetime[i], sc, 20.0f, sc);
+                            D_8010FF60_chancetime[i].timer++;
+                            if (t >= 40) {
+                                D_8010FF60_chancetime[i].state = 2;
+                            }
+                        }
+                        break;
+                    }
+                }
+                wait++;
+                HuPrcVSleep();
+            } while (arrived < count);
+        }
+        if (isStar == 0) {
+            v = p.coin[0] - (s16)coinAmt;
+            if (v >= 0.0f) {
+                GwPlayer[p.player[0]].coin = v;
+            } else {
+                GwPlayer[p.player[0]].coin = 0;
+            }
+            v = (s16)coinAmt + p.coin[1];
+            if (v <= 999.0f) {
+                GwPlayer[p.player[1]].coin = v;
+            } else {
+                GwPlayer[p.player[1]].coin = 999;
+            }
+        } else {
+            v = p.star[0] - (s16)starAmt;
+            if (v >= 0.0f) {
+                GwPlayer[p.player[0]].star = v;
+            } else {
+                GwPlayer[p.player[0]].star = 0;
+            }
+            v = (s16)starAmt + p.star[1];
+            if (v <= 99.0f) {
+                GwPlayer[p.player[1]].star = v;
+            } else {
+                GwPlayer[p.player[1]].star = 99;
+            }
+        }
+        MBPlayerCoinAdd(p.player[1], 0);
+        HuPrcSleep(30);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010E4D0_chancetime);
 INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD68_chancetime);
+#endif
 
 void func_8010F1DC_chancetime(void) {
     D_8010FC10_chancetime = 0;
