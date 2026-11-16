@@ -1,4 +1,5 @@
 #include "common.h"
+#include "game/esprite.h"
 
 // event e2
 /* Chance Time unit 4832D0: the two Chance Time hosts, the spinning blocks and the swap. */
@@ -26,6 +27,8 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 void func_80032FC0_main(s16, u8, u8);
 s16 func_800329B4_main(void *);
 void func_80014714_main(s16 index, u16 arg1);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80016B00_main(s16 arg0, s16 arg1, char *arg2, ChanceMtx *arg3);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
@@ -65,8 +68,8 @@ void func_8010BD40_chancetime(void);
 
 extern ChanceSprModel *D_800CBB60_main;
 extern TexAnimSlot *D_800D1714_main;
-extern char D_8010FC80_chancetime[]; // "c160n_0_DEF"
-extern char D_8010FC8C_chancetime[]; // "item_hook"
+const char D_8010FC80_chancetime[] = "c160n_0_DEF";
+const char D_8010FC8C_chancetime[] = "item_hook";
 
 extern s32 D_8010FB00_chancetime;
 extern s32 D_8010FB04_chancetime;
@@ -115,13 +118,13 @@ void func_80107300_chancetime(void) {
     Hu3DModelPosSet(obj->model[2], -200.0f, -5.0f, -50.0f);
     func_8001C8A8_main(obj->model[2], 2);
     data = DataRead(0xA002A);
-    D_8010FE84_chancetime[0] = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_8010FC80_chancetime);
+    D_8010FE84_chancetime[0] = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_8010FC80_chancetime);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
     func_80032FC0_main(D_8010FE84_chancetime[0], 1, 0);
     func_80032FF8_main((s16)D_8010FE84_chancetime[0], 0);
-    D_8010FE8C_chancetime = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_8010FE84_chancetime[0], 0, D_8010FC80_chancetime);
+    D_8010FE8C_chancetime = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_8010FE84_chancetime[0], 0, (char *)D_8010FC80_chancetime);
     data = DataRead(0xA002B);
     D_8010FE84_chancetime[1] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
@@ -129,7 +132,7 @@ void func_80107300_chancetime(void) {
     Hu3DModelPosSet(obj->model[3], 200.0f, 0.0f, -50.0f);
     func_8001C8A8_main(obj->model[3], 2);
     data = DataRead(0xA002A);
-    anim = (s16)HmfAnimCreate(HmfModelData[obj->model[3]].hmf, data, 0, D_8010FC80_chancetime);
+    anim = (s16)HmfAnimCreate(HmfModelData[obj->model[3]].hmf, data, 0, (char *)D_8010FC80_chancetime);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[3]);
     func_8001C514_main(obj->model[3]);
@@ -234,10 +237,10 @@ void func_80107C84_chancetime(omObjData *obj) {
 
 void func_80107D60_chancetime(omObjData *obj) {
     if (func_8001C7D0_main(obj->model[1]) >= 5.0f) {
-        func_8001EF6C_main(obj->model[5], obj->model[1], D_8010FC8C_chancetime);
+        func_8001EF6C_main(obj->model[5], obj->model[1], (char *)D_8010FC8C_chancetime);
         func_8001C258_main(obj->model[5], 4, 0);
         func_8001C814_main(obj->model[5], 1, 0);
-        func_8001EF6C_main(obj->model[6], obj->model[3], D_8010FC8C_chancetime);
+        func_8001EF6C_main(obj->model[6], obj->model[3], (char *)D_8010FC8C_chancetime);
         func_8001C258_main(obj->model[6], 4, 0);
         func_8001C814_main(obj->model[6], 1, 0);
         func_80108738_chancetime(obj);
@@ -380,7 +383,7 @@ void func_80108738_chancetime(omObjData *obj) {
     s16 model;
 
     model = obj->model[1];
-    func_80016B00_main(model, HmfModelData[model].unk40, D_8010FC8C_chancetime, &mtx);
+    func_80016B00_main(model, HmfModelData[model].unk40, (char *)D_8010FC8C_chancetime, &mtx);
     angle = -HmfModelData[obj->model[1]].rot.y;
     pos.x = cosdf(angle) * mtx[3][0] - sindf(angle) * mtx[3][2];
     pos.y = mtx[3][1];
@@ -393,7 +396,7 @@ void func_80108738_chancetime(omObjData *obj) {
     func_8001C814_main(obj->model[7], 1, 0);
     func_80014714_main(D_8010FE80_chancetime[0], 0);
     model = obj->model[3];
-    func_80016B00_main(model, HmfModelData[model].unk40, D_8010FC8C_chancetime, &mtx);
+    func_80016B00_main(model, HmfModelData[model].unk40, (char *)D_8010FC8C_chancetime, &mtx);
     angle = -HmfModelData[obj->model[3]].rot.y;
     pos.x = cosdf(angle) * mtx[3][0] - sindf(angle) * mtx[3][2];
     pos.y = mtx[3][1];
@@ -460,7 +463,7 @@ void func_80108CDC_chancetime(void) {
     Hu3DModelPosSet(obj->model[1], D_8010FB0C_chancetime.x, D_8010FB0C_chancetime.y, D_8010FB0C_chancetime.z);
     func_8001C8A8_main(obj->model[1], 2);
     data = DataRead(0xA002A);
-    anim = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_8010FC80_chancetime);
+    anim = (s16)HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_8010FC80_chancetime);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
@@ -1160,7 +1163,43 @@ void func_8010BC88_chancetime(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     func_8010B818_chancetime(obj, &to, frames);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010BD40_chancetime);
+/* Process: the Chance Time title sprite pops in, holds, then grows and fades out. */
+void func_8010BD40_chancetime(void) {
+    f32 scale;
+    s16 graphic;
+    s16 spr;
+    s32 i;
+
+    scale = 0.0f;
+    graphic = func_8000B838_main(0x1C0006);
+    spr = InitEspriteSlot(graphic, 0, 0);
+    func_8000BBD4_main(spr, 160, 120);
+    func_8000BB94_main(spr);
+    func_8000BE5C_main(spr, scale, scale);
+    func_8000BB54_main(spr);
+    for (i = 0; i < 5; i++) {
+        scale = sindf(i * 18.0f) * 1.2f;
+        func_8000BE5C_main(spr, scale, scale);
+        HuPrcVSleep();
+    }
+    HuAudFXPlay(0x261);
+    scale = 1.0f;
+    func_8000BE5C_main(spr, 1.0f, 1.0f);
+    HuPrcSleep(30);
+    for (i = 0; i < 20; i++) {
+        func_8000BE5C_main(spr, scale, scale);
+        scale = sindf(i * 4.5f);
+        func_8000BBFC_main(spr, 256.0f - scale * 256.0f);
+        scale = scale + 1.0f;
+        HuPrcVSleep();
+    }
+    func_8000BB54_main(spr);
+    func_8000C184_main(spr);
+    HuSprKill(graphic);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 s32 func_8010BF3C_chancetime(void) {
     return D_8010FB60_chancetime;
@@ -1171,7 +1210,3 @@ void func_8010BF48_chancetime(void) {
 
     func_8010BC10_chancetime(obj, 0.0f, 45.0f, 0.0f, 10);
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/4832D0", D_8010FC80_chancetime);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/4832D0", D_8010FC8C_chancetime);
