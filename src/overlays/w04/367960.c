@@ -33,6 +33,11 @@ extern s32 D_8011B790_w04[];
 extern s32 D_8011B7AC_w04[];
 extern Object *D_8011DFF8_w04[];
 extern s32 D_8011B7C8_w04;
+extern Unk3 *D_8011E040_w04;
+extern Unk3 *D_8011E044_w04;
+extern Unk3 *D_8011E048_w04;
+extern Unk3 *D_8011E04C_w04;
+extern Unk3 *D_8011E050_w04;
 extern Object *D_8011E03C_w04;
 
 void func_80116024_w04(s16 *links, s16 *spaces, void **arrows);
@@ -400,15 +405,58 @@ void func_801064DC_w04(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106A3C_w04);
+void func_80106A3C_w04(Object *arg) {
+    Process *prc;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106AB0_w04);
+    mbItemBtnF = 0;
+    prc = omAddPrcObj(func_801064DC_w04, 0x4800, 0, 0);
+    prc->user_data = arg;
+    HuPrcChildLink(HuPrcCurrentGet(), prc);
+    HuPrcChildWait();
+    mbItemBtnF = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106B38_w04);
+void func_80106AB0_w04(void) {
+    mbCameraBtnF = 1;
+    mbItemBtnF = 0;
+    omPrcSetStatBit(HuPrcCurrentGet(), 0x80);
+    MBMapScrollExec(GwPlayer[GwSystem.current_player_index].pad);
+    omPrcResetStatBit(HuPrcCurrentGet(), 0x80);
+    mbCameraBtnF = 0;
+    mbItemBtnF = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106B94_w04);
+void func_80106B38_w04(void) {
+    mbItemBtnF = 0;
+    omPrcSetStatBit(HuPrcCurrentGet(), 0x80);
+    MBMapScrollExec(GwPlayer[GwSystem.current_player_index].pad);
+    mbItemBtnF = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106C64_w04);
+void func_80106B94_w04(void) {
+    while (MBCameraStopCheck() != 0) {
+        HuPrcVSleep();
+    }
+    HuPrcVSleep();
+    D_8011E040_w04 = func_800E210C_shared_board(0, 0x92, 1);
+    D_8011E044_w04 = func_800E210C_shared_board(1, 0xA0, 1);
+    D_8011E050_w04 = func_800E210C_shared_board(0xD, 0xAE, 1);
+    D_8011E048_w04 = func_800E210C_shared_board(3, 0xBC, 1);
+    D_8011E04C_w04 = func_800E210C_shared_board(0xB, 0xCA, 1);
+    HuPrcSleep(3);
+    mbCameraBtnF = 1;
+    D_800D51F8_main = 1;
+}
+
+void func_80106C64_w04(void) {
+    mbCameraBtnF = 0;
+    D_800D51F8_main = 0;
+    MBHelpWinKill(D_8011E040_w04);
+    MBHelpWinKill(D_8011E044_w04);
+    MBHelpWinKill(D_8011E050_w04);
+    MBHelpWinKill(D_8011E048_w04);
+    MBHelpWinKill(D_8011E04C_w04);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/w04/367960", func_80106CC4_w04);
 
