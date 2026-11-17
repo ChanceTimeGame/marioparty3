@@ -2151,7 +2151,8 @@ segments:
       - [0x468A90, c]
       - [0x468AC0, c]
       - [0x46BB50, c]
-      - [0x46CB70, data, 468A90] #80109A80
+      - [0x46CB70, .data, 468A90] #80109A80
+      - [0x46CB90, .data, 468AC0] #80109AA0
       - [0x46CBA0, .data, 46BB50] #80109AB0
       - [0x46CBB0, .rodata, 468AC0] #80109AC0
       - [0x46CBC8, .rodata, 46BB50] #80109AD8

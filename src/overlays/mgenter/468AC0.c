@@ -3,6 +3,11 @@
 void func_8000BBFC_main(u16 spriteId, s16 alpha);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 
+/* .data (0x46CB90) */
+f32 D_80109AA0_mgenter = 115.0f; /* setting card y */
+u16 D_80109AA4_mgenter = 0;
+s16 D_80109AA6_mgenter = 0;
+
 void func_801059D0_mgenter(void) {
     s16 n;
     void (*func)(void);
