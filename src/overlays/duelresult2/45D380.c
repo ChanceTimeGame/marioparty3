@@ -338,7 +338,145 @@ void func_80106974_duelresult2(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_80106A2C_duelresult2);
+/* Duel Mode keeps per-player s16[2] record counters in GwSystem (0x42-0x57, over boardData and the
+   fields after it). */
+#define DR2_DUELSTAT(off) ((s16 *)((u8 *)&GwSystem + (off)))
+
+/* Record row (0 star, 1 coin, 2 gamePrize, 3 coinPrize, 4-9 the duel counters): bit n set for each
+   player n holding the highest value, or 0 when both tie. */
+s32 func_80106A2C_duelresult2(s32 row) {
+    s32 i;
+    s32 max;
+    s32 mask;
+
+    mask = 0;
+    switch (row) {
+    case 0:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < GwPlayer[i].star) {
+                max = GwPlayer[i].star;
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (GwPlayer[i].star == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 1:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < GwPlayer[i].coin) {
+                max = GwPlayer[i].coin;
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (GwPlayer[i].coin == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 2:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < GwPlayer[i].gamePrize) {
+                max = GwPlayer[i].gamePrize;
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (GwPlayer[i].gamePrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 3:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < GwPlayer[i].coinPrize) {
+                max = GwPlayer[i].coinPrize;
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (GwPlayer[i].coinPrize == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 4:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x56)[i]) {
+                max = DR2_DUELSTAT(0x56)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x56)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 5:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x42)[i]) {
+                max = DR2_DUELSTAT(0x42)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x42)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 6:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x4E)[i]) {
+                max = DR2_DUELSTAT(0x4E)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x4E)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 7:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x52)[i]) {
+                max = DR2_DUELSTAT(0x52)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x52)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 8:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x46)[i]) {
+                max = DR2_DUELSTAT(0x46)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x46)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    case 9:
+        for (i = 0, max = -100000; i < 2; i++) {
+            if (max < DR2_DUELSTAT(0x4A)[i]) {
+                max = DR2_DUELSTAT(0x4A)[i];
+            }
+        }
+        for (i = 0; i < 2; i++) {
+            if (DR2_DUELSTAT(0x4A)[i] == max) {
+                mask |= 1 << i;
+            }
+        }
+        break;
+    }
+    if (mask == 3) {
+        return 0;
+    }
+    return mask;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duelresult2/45D380", D_80108CC8_duelresult2);
 
