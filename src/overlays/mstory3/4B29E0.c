@@ -123,6 +123,8 @@ extern s16 D_80115C9C_mstory3; /* the player's character */
 extern s16 D_80115C9A_mstory3; /* the shadow model every actor links */
 extern s16 D_80115C8A_mstory3[3]; /* actor 0's texture animations */
 extern s16 D_80115C90_mstory3;
+extern s16 D_80115C92_mstory3[3]; /* actor 1's texture animations */
+extern s16 D_80115C98_mstory3;
 extern char *D_80115380_mstory3[]; /* per character: the model's texture-animation node */
 extern MsMotTbl3 D_80115608_mstory3;
 extern char D_801156C8_mstory3[]; /* "item_hook" */
@@ -135,7 +137,7 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 void func_80106CF0_mstory3(s16 model, s16 anim, s16 slot);
 void func_80107244_mstory3(s16 model);
 void func_8010733C_mstory3(omObjData *obj, f32 arg1, s16 arg2);
-void func_80107674_mstory3(omObjData *obj);
+void func_80107674_mstory3(omObjData *obj, omObjData *other);
 void func_80108A94_mstory3(void);
 void func_8010A7C8_mstory3(void);
 void func_8010AB34_mstory3(omObjData *obj);
@@ -203,13 +205,65 @@ void func_8010A23C_mstory3(void) {
 void func_8010A7C8_mstory3(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010A7D0_mstory3);
+/* actor 0: takes out the item and plays motions 3 and 4 */
+void func_8010A7D0_mstory3(omObjData *obj) {
+    s16 model = obj->model[1];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010A8EC_mstory3);
+    HuPrcSleep(20);
+    func_8001C258_main(obj->model[3], 0x4000, 0x4000);
+    func_8001EF6C_main(obj->model[3], obj->model[1], D_801156C8_mstory3);
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_8001C624_main(model, HmfModelData[obj->motion[3]].unk02, 0, 10, 0);
+    func_80107244_mstory3(model);
+    func_8001C624_main(model, HmfModelData[obj->motion[4]].unk02, 0, 10, 0);
+    func_80107244_mstory3(model);
+    D_80115BC0_mstory3[0].func = (void (*)(omObjData *))func_80108A94_mstory3;
+    D_80115BC0_mstory3[0].flags = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010AB34_mstory3);
+/* actor 0: plays motion 4 then 3 at double speed and puts the item away */
+void func_8010A8EC_mstory3(omObjData *obj) {
+    f32 frame;
+    s16 model = obj->model[1];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010AB54_mstory3);
+    func_8001C5B4_main(model, obj->motion[4]);
+    func_8001C814_main(model, 4, 4);
+    func_8001C92C_main(model, 2.0f);
+    func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
+    do {
+        frame = HmfModelData[model].unk40;
+        HuPrcVSleep();
+    } while (frame > 0.0f);
+    func_8001C5B4_main(model, obj->motion[3]);
+    func_8001C814_main(model, 4, 4);
+    func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
+    do {
+        frame = HmfModelData[model].unk40;
+        HuPrcVSleep();
+    } while (frame > 0.0f);
+    func_8001C92C_main(model, 1.0f);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    func_8001C258_main(obj->model[3], 0x4000, 0);
+    func_8001C258_main(obj->model[3], 4, 4);
+    D_80115BC0_mstory3[0].func = func_8010AB34_mstory3;
+}
+
+void func_8010AB34_mstory3(omObjData *obj) {
+    func_80107674_mstory3(obj, D_80115BC0_mstory3[1].obj);
+}
+
+void func_8010AB54_mstory3(omObjData *obj) {
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[0].unk0C = 1;
+    D_80115BC0_mstory3[0].unk10 = 0x1F;
+    func_8010733C_mstory3(obj, 3.5f, 15);
+    func_80106CF0_mstory3(obj->model[1], D_80115C90_mstory3, D_80115C8A_mstory3[2]);
+    func_80106CF0_mstory3(D_80115BC0_mstory3[1].obj->model[1], D_80115C98_mstory3, D_80115C92_mstory3[2]);
+    D_80115BC0_mstory3[0].unk0C = 0;
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[5]].unk02, 0, 10, 2);
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1], HmfModelData[D_80115BC0_mstory3[1].obj->motion[4]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[0].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010ACBC_mstory3);
 
