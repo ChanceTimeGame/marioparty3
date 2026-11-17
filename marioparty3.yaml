@@ -2269,8 +2269,14 @@ segments:
     bss_size: 0x520
     subsegments:
       - [0x4CF350, c]
-      - [0x4DE0E0, .data, 4CF350] #80114730
+      - [0x4D1200, c] # 80107850: the path library starts a file, as in mstory1 (48D950)
+      - [0x4D8E80, c] # 8010F4D0, 16-byte aligned after a padding nop: the second scene and its own path library
+      - [0x4DE0E0, .data, 4CF350] #80114730 (.data split at the 16-byte file boundaries)
+      - [0x4DE120, .data, 4D1200] #80114770
+      - [0x4DE1D0, .data, 4D8E80] #80114820
       - [0x4DE250, .rodata, 4CF350] #801148A0
+      - [0x4DE2B0, .rodata, 4D1200] #80114900
+      - [0x4DE6D0, .rodata, 4D8E80] #80114D20 (4D1200's .rodata ends at 80114D14; retail pads it to 16)
       - {0x4DEB60, type: bss, vram: 0x801151B0, name: mstory5_bss}
 
   - type: code
