@@ -260,6 +260,10 @@ typedef struct StaffActorDef {
 } StaffActorDef; /* size 0x28 */
 
 extern StaffActorDef D_80111094_staff[8];
+extern s16 D_80111510_staff; /* controller to rumble */
+s32 func_8010601C_staff(void);
+void func_8010D450_staff(s16 model, Vec* pos);
+void RepeatVibrator(s16 contId, s16 onTime, s16 offTime, s16 duration);
 
 // story j3: NON_MATCHING, masked 0, raw 7: i and ring swap s4/s5 (register allocation). Logic checked.
 #ifdef NON_MATCHING
@@ -421,7 +425,92 @@ void func_8010D450_staff(s16 model, Vec* pos) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D450_staff);
 #endif
 
+// story j3: NON_MATCHING, masked 0, raw 23: the two int temporaries swap s0/s1. Logic checked.
+#ifdef NON_MATCHING
+/* Drops actor model from pos as a tumbling die: it rolls 10 degrees a frame (about x, or about y
+   tipped -90 on z, by the low bits of func_8010601C), bounces twice with a rumble, rolls on to the
+   next quarter turn, then wobbles to rest. shadow follows it (func_8010D450). */
+void func_8010D580_staff(s16 model, s16 shadow, Vec* start) {
+    Vec pos;
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    f32* roll;
+    f32 angle;
+    f32 vel;
+    f32 rem;
+    s32 face;
+    s32 n;
+    s32 i;
+
+    rz = 0.0f;
+    ry = 0.0f;
+    rx = 0.0f;
+    face = func_8010601C_staff();
+    n = face & 0xF;
+    if (n >= 10) {
+        rz = -90.0f;
+        roll = &ry;
+    } else {
+        roll = &rx;
+    }
+    n = (face >> 4) & 3;
+    n *= 90;
+    angle = n;
+    vel = 0.0f;
+    n = 0;
+    pos = *start;
+    do {
+        angle -= 10.0f;
+        if (angle < 0.0f) {
+            angle += 360.0f;
+        }
+        vel += 2.0f;
+        pos.y -= vel;
+        if (pos.y <= 0.0f) {
+            pos.y = 0.0f;
+            vel = vel * -0.5;
+            RepeatVibrator(D_80111510_staff, 5, 0, 5);
+            n++;
+        }
+        pos.z -= 8.0f;
+        Hu3DModelPosSet(model, pos.x, pos.y + 22.0f, pos.z);
+        *roll = angle;
+        Hu3DModelRotSet(model, rx, ry, rz);
+        func_8010D450_staff(shadow, &pos);
+        HuPrcVSleep();
+    } while (n < 2);
+    n = angle;
+    rem = n % 90;
+    if (rem >= 10.0f) {
+        i = (s32) rem / 10;
+        vel = pos.y / i;
+        for (; i != 0; i--) {
+            angle -= 10.0f;
+            pos.y -= vel;
+            pos.z -= 8.0f;
+            Hu3DModelPosSet(model, pos.x, pos.y + 22.0f, pos.z);
+            *roll = angle;
+            Hu3DModelRotSet(model, rx, ry, rz);
+            func_8010D450_staff(shadow, &pos);
+            HuPrcVSleep();
+        }
+    }
+    pos.y = 0.0f;
+    Hu3DModelPosSet(model, pos.x, 22.0f, pos.z);
+    *roll -= 8.0f;
+    Hu3DModelRotSet(model, rx, ry, rz);
+    HuPrcVSleep();
+    *roll += 12.0f;
+    Hu3DModelRotSet(model, rx, ry, rz);
+    HuPrcVSleep();
+    *roll -= 4.0f;
+    Hu3DModelRotSet(model, rx, ry, rz);
+    HuPrcVSleep();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D580_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D998_staff);
 
