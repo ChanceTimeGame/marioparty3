@@ -1,6 +1,7 @@
 #include "common.h"
 #include "mallocblock.h"
 #include "math.h"
+#include "gcc/memory.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801059A0_slot_synch);
 
@@ -156,6 +157,9 @@ typedef union SsPack {
     }
 
 extern Vec D_8010D820_slot_synch[];
+extern Gfx D_8010DB60_slot_synch[];
+extern s16 D_800CDD6A_main;
+extern u8 D_800D2008_main;
 extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
 extern s32 D_8010DA60_slot_synch;
@@ -178,7 +182,7 @@ void func_801094E0_slot_synch(u8 player, f32 y, f32 dy);
 void func_8010A7D0_slot_synch(omObjData *obj);
 void func_8010AA9C_slot_synch(s16 idx, s16 target);
 void func_8010AC14_slot_synch(omObjData *obj);
-s16 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
+s32 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
 s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
 void func_8010B754_slot_synch(omObjData *obj);
 void func_8010BB90_slot_synch(s32 idx);
@@ -190,6 +194,7 @@ f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
 f32 func_8010C39C_slot_synch(f32 t, f32 a, f32 b);
 f32 fabsf(f32);
 f64 fmod(f64, f64);
+s32 func_8010D3E0_slot_synch(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
 // <func_80109FA4_slot_synch>
@@ -902,10 +907,215 @@ s16 func_8010C47C_slot_synch(s32 dirAndFile) {
 }
 // </func_8010C47C_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C4C0_slot_synch);
+// <func_8010C4C0_slot_synch>
+s32 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
+    HmfData *temp_s4;
+    Gfx *temp_v0_0;
+    Gfx *temp_v0_2;
+    s32 temp_s0;
+    s32 temp_v0;
+    s32 var_a2;
+    s32 var_s1;
+
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    temp_v0 = func_8001A894_main(0x8C1, temp_v0_0, 4);
+    temp_s4 = HmfModelData[temp_v0].hmf;
+    temp_s4->unk60->unk50 |= 0x01010000;
+    HuMemFree(temp_s4->unk3C);
+    temp_s4->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    func_8010D3E0_slot_synch(arg0, temp_s4, 1.0f, 0, 0);
+    gSPDisplayList(temp_v0_2++, osVirtualToPhysical(D_8010DB60_slot_synch));
+    gDPPipeSync(temp_v0_2++);
+    gDPSetCycleType(temp_v0_2++, G_CYC_1CYCLE);
+    gDPPipeSync(temp_v0_2++);
+    gSPClearGeometryMode(temp_v0_2++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_CULL_FRONT | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(temp_v0_2++, G_CD_NOISE);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_NONE);
+    gDPSetTextureFilter(temp_v0_2++, G_TF_BILERP);
+    gDPSetTextureConvert(temp_v0_2++, G_TC_FILT);
+    gDPSetAlphaDither(temp_v0_2++, G_AD_PATTERN);
+    gDPSetAlphaCompare(temp_v0_2++, G_AC_NONE);
+    gDPSetBlendColor(temp_v0_2++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(temp_v0_2++);
+    gDPSetRenderMode(temp_v0_2++, G_RM_ZB_CLD_SURF, G_RM_NOOP2);
+    if (arg0->unk18 & 0x8000) {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk10 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk10, temp_s0);
+    HuMemFree(temp_v0_0);
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    gSPTexture(temp_v0_2++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_PERSP);
+    if (arg0->unk1A >= 2) {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_RGBA16);
+        if (arg0->unk18 == 4) {
+            gDPLoadTLUT_pal16(temp_v0_2++, 0, arg0->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(temp_v0_2++, arg0->unk0C);
+        }
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = 2;
+    } else {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_NONE);
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = (arg0->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (arg0->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(temp_v0_2++, 0x02000000, var_a2,
+                                   arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_8b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_16b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPSegment(temp_v0_2++, 0x01, osVirtualToPhysical(temp_s4->unk44[0]));
+    gSPVertex(temp_v0_2++, 0x01000000, 4, 0);
+    gSP2Triangles(temp_v0_2++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk14 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk14, temp_s0);
+    HuMemFree(temp_v0_0);
+    for (var_s1 = 0; var_s1 < D_800D1FF0_main; var_s1++) {
+        temp_v0_2 = temp_s4->unk3C->unk00[var_s1 + 1] = HuMemAllocTag(0x100, temp_s4->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg1->r, arg1->g, arg1->b, arg1->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s4->unk3C->unk00[0] = temp_s4->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
+// </func_8010C4C0_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010D0A8_slot_synch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010D2AC_slot_synch);
+// <func_8010D2AC_slot_synch>
+void func_8010D2AC_slot_synch(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3) {
+    HmfModel *model = &HmfModelData[modelId];
+    HmfData *temp_s3 = model->hmf;
+    HmfModelData_Unk64_Unk3C_Struct *temp_v1 = temp_s3->unk3C;
+    Gfx *temp_s0 = temp_v1->unk00[D_800D2008_main + 1];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010D3E0_slot_synch);
+    temp_v1->unk00[0] = temp_s0;
+    gDPPipeSync(&temp_s0[0]);
+    gSPSegment(&temp_s0[1], 0x02, osVirtualToPhysical(arg1->unk00[arg2].unk00));
+    gSPDisplayList(&temp_s0[2], osVirtualToPhysical(temp_s3->unk3C->unk10));
+    gDPSetPrimColor(&temp_s0[3], 0, 0, arg3->r, arg3->g, arg3->b, arg3->a);
+    gDPPipeSync(&temp_s0[4]);
+    gSPDisplayList(&temp_s0[5], osVirtualToPhysical(temp_s3->unk3C->unk14));
+    gDPPipeSync(&temp_s0[6]);
+    gSPEndDisplayList(&temp_s0[7]);
+}
+// </func_8010D2AC_slot_synch>
+
+// <func_8010D3E0_slot_synch>
+s32 func_8010D3E0_slot_synch(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
+    Vtx *temp_s7;
+    Vtx *var_s1;
+    Vtx_t *var_t0;
+    Vtx_t *var_a3;
+    s32 var_a2;
+    s32 temp_s4;
+    s32 temp_a1;
+    s32 sp24;
+    s32 temp_f2;
+    s32 var_s0;
+    s32 var_s2;
+    s32 sp2C;
+    s32 temp_lo;
+    s32 temp_s3;
+    s32 var_s0_2;
+    s32 var_a2_2;
+
+    if (arg0->unk1A >= 2) {
+        var_a2 = 0x800;
+    } else {
+        var_a2 = 0x1000;
+    }
+    temp_s4 = arg0->unk00->unk04;
+    temp_a1 = arg0->unk00->unk06;
+    sp24 = temp_s4 * 100.0 * arg2 / 32.0;
+    temp_f2 = temp_a1 * 100.0 * arg2 / 32.0;
+    if ((arg0->unk18 & 0xFFF) == 4) {
+        var_s0 = ((temp_s4 + 1) & 0xFFFE) * temp_a1 * 4;
+    } else {
+        var_s0 = temp_s4 * temp_a1 * arg0->unk18;
+    }
+    var_s0 = (var_s0 < 0) ? (var_s0 + 7) : var_s0;
+    var_s0 >>= 3;
+    var_s2 = var_s0 / var_a2;
+    if (var_s2 <= 0) {
+        var_s2 = 1;
+    }
+    sp2C = temp_a1 / var_s2;
+    temp_lo = temp_f2 / var_s2;
+    temp_s3 = var_s2 * 4;
+    temp_s7 = var_s1 = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+    memset(temp_s7, 0, temp_s3 * sizeof(Vtx));
+    for (var_s0_2 = 0; var_s0_2 < var_s2; var_s0_2++, var_s1 += 4) {
+        var_s1[0].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[0].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[0].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[0].v.tc[1] = 0;
+        var_s1[1].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[1].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[1].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[1].v.tc[1] = (sp2C - 1) * 64;
+        var_s1[2].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[2].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[2].v.tc[0] = 0;
+        var_s1[2].v.tc[1] = 0;
+        var_s1[3].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[3].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[3].v.tc[0] = 0;
+        var_s1[3].v.tc[1] = (sp2C - 1) * 64;
+        for (var_a2_2 = 0; var_a2_2 < 4; var_a2_2++) {
+            var_s1[var_a2_2].v.ob[0] += arg3;
+            var_s1[var_a2_2].v.ob[1] += arg4;
+            var_s1[var_a2_2].v.ob[2] = 0;
+            var_s1[var_a2_2].v.flag = 0;
+            var_s1[var_a2_2].v.cn[3] = 0xFF;
+            var_s1[var_a2_2].v.cn[0] = var_s1[var_a2_2].v.cn[1] = var_s1[var_a2_2].v.cn[2] = 0;
+        }
+    }
+    var_s1 = temp_s7;
+    for (var_s0_2 = 0; var_s0_2 < D_800D1FF0_main; var_s0_2++) {
+        arg1->unk44[var_s0_2] = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+        var_t0 = &arg1->unk44[var_s0_2]->v;
+        var_a3 = &var_s1->v;
+        for (var_a2_2 = 0; var_a2_2 < temp_s3; var_a2_2++) {
+            *(var_t0++) = *(var_a3++);
+        }
+    }
+    HuMemFree(temp_s7);
+    return var_s2;
+}
+// </func_8010D3E0_slot_synch>
