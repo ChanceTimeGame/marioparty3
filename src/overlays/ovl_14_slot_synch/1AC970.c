@@ -99,10 +99,11 @@ s16 func_8010A178_slot_synch(s16 id);
 void func_8010AA9C_slot_synch(s16 team, s16 score);
 f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
 void func_800DDD94_minigame(omObjData* obj);
+omObjData* func_80045F1C_main(u32, s16, s16);
 s32 func_80017BB8_main(s16, s16);
-extern s8 D_800CBB6E_main[];
+extern u8 D_800CBB6E_main[];
 extern s16 D_800CDA7C_main[];
-extern s8 D_800D20A1_main[];
+extern u8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
 
 void func_8000B5F0_main(u8);
@@ -406,17 +407,262 @@ void func_8010614C_slot_synch(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010614C_slot_synch);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106560_slot_synch);
+void func_80106560_slot_synch(omObjData* obj) {
+    SsPlayer* pl;
+    func_800E1BA8_minigame_ObjData* w;
+    s32* msg;
+    s16 chr;
+    s16 idx;
+    s32 dir;
+    s32 r;
+    s32 file;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106878_slot_synch);
+    pl = func_8010C428_slot_synch(obj);
+    idx = pl->unk1C;
+    pl->unk20 = chr = GwPlayer[idx].chr;
+    pl->unk1E = GwPlayer[idx].pad;
+    pl->unk22 = GwPlayer[idx].stat & 1;
+    pl->unk24 = GwPlayer[idx].cpu_difficulty;
+    pl->unk26 = 0;
+    pl->unk28 = 0;
+    pl->unk2A = 0;
+    pl->unk2C = -1;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, dir, file, idx, 0x2A9, 0x299);
+    w = obj->data;
+    w->unk50 &= ~1;
+    w->unkEC = NULL;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0x26, func_80017BB8_main(chr, 0x33), 1, 0x3C);
+    func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x3A), 1, 0x3C);
+    if (chr != 5) {
+        r = rand8() & 1;
+        msg = &D_8010D90C_slot_synch[r];
+        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, *msg), 1, 0x78);
+        pl->unk18 = D_8010D8EC_slot_synch[chr] | *msg;
+    } else {
+        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, D_8010D90C_slot_synch[1]), 1, 0x78);
+        pl->unk18 = D_8010D8EC_slot_synch[chr] | D_8010D90C_slot_synch[1];
+    }
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, D_8010D90C_slot_synch[2]), 1, 0x78);
+    func_800E5690_minigame(obj, 0);
+    func_800E149C_minigame(obj, 0, 2);
+    pl->unk04 = -1;
+    pl->unk0A = 0;
+    pl->unk08 = 0;
+    pl->unk0C = pl->unk10 = pl->unk14 = 0.0f;
+    obj->func = func_80106E8C_slot_synch;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CCC_slot_synch);
+void func_80106878_slot_synch(omObjData* obj) {
+    SsTeam* t;
+    SsReel* reel;
+    func_800E1BA8_minigame_ObjData* w0;
+    func_800E1BA8_minigame_ObjData* w1;
+    s16 a;
+    s16 b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CF0_slot_synch);
+    t = func_8010C428_slot_synch(obj);
+    switch (t->unk12) {
+    case 0:
+        if (func_800E6E8C_minigame() == 2) {
+            func_801089F8_slot_synch(t->unk08->unk00);
+            func_801089F8_slot_synch(t->unk0C->unk00);
+            reel = &D_8010DF7C_slot_synch[t->unk08->unk00];
+            if (reel->unk20 != -1) {
+                HuAudFXStop((s16)reel->unk20);
+                reel->unk20 = -1;
+            }
+            reel->unk20 = HuAudFXPlay(t->unk10 == 0 ? 0x38F : 0x395);
+            t->unk14 = 0;
+            t->unk12 = 1;
+        } else if (func_800E6E8C_minigame() == 3 || func_800E6E8C_minigame() == 4) {
+            func_80108CD0_slot_synch(t->unk08->unk00);
+            func_80108CD0_slot_synch(t->unk0C->unk00);
+        }
+        break;
+    case 1:
+        if (func_800E6E8C_minigame() != 2) {
+            t->unk1C = 0;
+            t->unk14 = 0;
+            t->unk12 = 0;
+        }
+        if (t->unk14 >= 30) {
+            t->unk1C = 1;
+            t->unk14 = 0;
+            t->unk12 = 2;
+        }
+        break;
+    case 2:
+        if (func_80108A7C_slot_synch(t->unk08->unk00) != 0 && func_80108A7C_slot_synch(t->unk0C->unk00) != 0) {
+            if (func_800E6E8C_minigame() == 2) {
+                reel = &D_8010DF7C_slot_synch[t->unk08->unk00];
+                if (reel->unk20 != -1) {
+                    HuAudFXStop((s16)reel->unk20);
+                    reel->unk20 = -1;
+                }
+            }
+            t->unk1C = 0;
+            a = func_80108AA8_slot_synch(t->unk08->unk00);
+            b = func_80108AA8_slot_synch(t->unk0C->unk00);
+            if (func_800E6E8C_minigame() == 3) {
+                func_80108CD0_slot_synch(t->unk08->unk00);
+                func_80108CD0_slot_synch(t->unk0C->unk00);
+            }
+            if (a == b) {
+                t->unk1A = a;
+            } else {
+                t->unk1A = 4;
+            }
+            t->unk18 = func_80109FA4_slot_synch(t->unk10, t->unk1A);
+            t->unk14 = 0;
+            t->unk12 = 3;
+        } else if (func_800E6E8C_minigame() != 2) {
+            t->unk1C = 0;
+            w0 = t->unk00->data;
+            w1 = t->unk04->data;
+            if (w0->unk38 == 1000.0f && w1->unk38 == 1000.0f) {
+                if (func_800E6E8C_minigame() == 3) {
+                    func_80108CD0_slot_synch(t->unk08->unk00);
+                    func_80108CD0_slot_synch(t->unk0C->unk00);
+                }
+                t->unk14 = 0;
+                t->unk12 = 0;
+            }
+        }
+        break;
+    case 3:
+        if (func_8010A178_slot_synch(t->unk18) != 0) {
+            if (t->unk1A != 4) {
+                func_8010800C_slot_synch(t->unk1A, t->unk10);
+            }
+            if (t->unk1A != 3 && t->unk1A != 4) {
+                func_800E5690_minigame(t->unk00, 0x26);
+                func_800E5690_minigame(t->unk04, 0x26);
+            } else {
+                func_800E5690_minigame(t->unk00, 0x27);
+                func_800E5690_minigame(t->unk04, 0x27);
+            }
+            t->unk14 = 0;
+            t->unk12 = 4;
+        }
+        break;
+    case 4:
+        if (t->unk14 >= 30.0f) {
+            func_800E5690_minigame(t->unk00, 0);
+            func_800E5690_minigame(t->unk04, 0);
+            t->unk14 = 0;
+            t->unk12 = 0;
+        }
+        break;
+    }
+    t->unk14++;
+    if (t->unk16 >= 100) {
+        t->unk16 = 99;
+    } else if (t->unk16 < 0) {
+        t->unk16 = 0;
+    }
+    func_8010AA9C_slot_synch(t->unk10, t->unk16);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106D0C_slot_synch);
+void func_80106CCC_slot_synch(s16 team, s16 add) {
+    D_8010DF5C_slot_synch[team].unk16 += add;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106E8C_slot_synch);
+s16 func_80106CF0_slot_synch(s16 team) {
+    return D_8010DF5C_slot_synch[team].unk12;
+}
+
+void func_80106D0C_slot_synch(s16 team, s16 kind) {
+    SsTeam* t = &D_8010DF5C_slot_synch[team];
+
+    switch (kind) {
+    case 1:
+        omVibrate(t->unk08->unk1C, 5, 0, 5);
+        omVibrate(t->unk0C->unk1C, 5, 0, 5);
+        break;
+    case 2:
+        omVibrate(t->unk08->unk1C, 2, 3, 10);
+        omVibrate(t->unk0C->unk1C, 2, 3, 10);
+        break;
+    case 3:
+        omVibrate(t->unk08->unk1C, 10, 0, 10);
+        omVibrate(t->unk0C->unk1C, 10, 0, 10);
+        break;
+    case 4:
+        omVibrate(t->unk08->unk1C, 2, 2, 20);
+        omVibrate(t->unk0C->unk1C, 2, 2, 20);
+        break;
+    case 5:
+        omVibrate(t->unk08->unk1C, 20, 0, 20);
+        omVibrate(t->unk0C->unk1C, 20, 0, 20);
+        break;
+    default:
+        omVibrate(t->unk08->unk1C, 30, 0, 30);
+        omVibrate(t->unk0C->unk1C, 30, 0, 30);
+        break;
+    }
+}
+
+void func_80106E8C_slot_synch(omObjData* obj) {
+    SsPlayer* pl;
+    SsTeam* t;
+    u16 btn;
+    u16 btn2;
+    s8 sx;
+    s8 sy;
+
+    pl = func_8010C428_slot_synch(obj);
+    t = &D_8010DF5C_slot_synch[pl->unk02];
+    if (pl->unk22 != 0) {
+        func_80107108_slot_synch(obj);
+    }
+    switch (pl->unk04) {
+    case -1:
+        break;
+    case 0:
+        func_800E5690_minigame(obj, 0xD);
+        func_80017790_main(obj->model[0], 2, pl->unk20, D_8010D870_slot_synch[pl->unk20]);
+        func_80045F1C_main(pl->unk18, -1, pl->unk1C);
+        pl->unk04 = -1;
+        break;
+    case 1:
+        func_800E5690_minigame(obj, 0xE);
+        func_80017790_main(obj->model[0], 2, pl->unk20, D_8010D890_slot_synch[pl->unk20]);
+    default:
+        pl->unk04 = -1;
+        break;
+    }
+    pl->unk0C = obj->trans.x;
+    pl->unk10 = obj->trans.y;
+    pl->unk14 = obj->trans.z;
+    btn2 = 0;
+    if (t->unk1C == 0 || func_80108A7C_slot_synch(pl->unk00) == 0) {
+        btn = D_800CDA7C_main[pl->unk1E];
+        btn2 = D_800D5558_main[pl->unk1E];
+        D_800CDA7C_main[pl->unk1E] = 0;
+        D_800D5558_main[pl->unk1E] = 0;
+    } else {
+        btn = 0;
+    }
+    sx = D_800CBB6E_main[pl->unk1E];
+    sy = D_800D20A1_main[pl->unk1E];
+    D_800CBB6E_main[pl->unk1E] = 0;
+    D_800D20A1_main[pl->unk1E] = 0;
+    func_800DDD94_minigame(obj);
+    D_800CBB6E_main[pl->unk1E] = sx;
+    D_800D20A1_main[pl->unk1E] = sy;
+    if (t->unk1C == 0) {
+        D_800CDA7C_main[pl->unk1E] = btn;
+        D_800D5558_main[pl->unk1E] = btn2;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    pl->unk0A++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107108_slot_synch);
 
