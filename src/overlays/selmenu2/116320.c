@@ -35,6 +35,10 @@ extern u16 D_80109CFC_selmenu2[4]; /* held direction per pad */
 extern u16 D_80109D04_selmenu2[4]; /* hold time */
 extern u16 D_80109D0C_selmenu2[4]; /* repeat delay */
 void func_80107DA4_selmenu2(omObjData *obj);
+extern s16 D_80109B00_selmenu2; /* page */
+extern s16 D_80109B02_selmenu2; /* row */
+extern s16 D_80109B08_selmenu2[8]; /* row remembered per page */
+void func_80108764_selmenu2(s32 dir);
 
 /* .data */
 SelMenuEntry D_80108BE0_selmenu2[80] = {
@@ -381,11 +385,59 @@ void func_80107D94_selmenu2(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80107DA4_selmenu2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80108718_selmenu2);
+/* selmenu func_801087C8_selmenu */
+void func_80108718_selmenu2(u16 no) {
+    func_8004AAD0_main(HuAudFXPlay(D_801092F0_selmenu2[no].seId), D_801092F0_selmenu2[no].vib);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80108764_selmenu2);
+/* selmenu func_80108814_selmenu: the next non-empty row of the page */
+void func_80108764_selmenu2(s32 dir) {
+    s16 row = D_80109B02_selmenu2;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_801087E0_selmenu2);
+    do {
+        row += dir;
+        if (row >= 10) {
+            row = 0;
+        } else if (row < 0) {
+            row = 9;
+        }
+    } while (D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + row].kind == 1);
+    D_80109B02_selmenu2 = row;
+}
+
+/* selmenu func_80108890_selmenu: the next page with an entry (8 pages) */
+void func_801087E0_selmenu2(s32 dir) {
+    u16 found = FALSE;
+    s16 prev;
+    s16 page;
+    s32 i;
+
+    prev = page = D_80109B00_selmenu2;
+
+    do {
+        page += dir;
+        if (page >= 8) {
+            page = 0;
+        } else if (page < 0) {
+            page = 7;
+        }
+        for (i = 0; i < 10; i++) {
+            if (D_80108BE0_selmenu2[page * 10 + i].kind == 0) {
+                found = TRUE;
+                break;
+            }
+        }
+    } while (!found);
+    D_80109B00_selmenu2 = page;
+    if (prev == -1) {
+        D_80109B02_selmenu2 = -1;
+        func_80108764_selmenu2(1);
+        D_80109B08_selmenu2[D_80109B00_selmenu2] = D_80109B02_selmenu2;
+    } else {
+        D_80109B08_selmenu2[prev] = D_80109B02_selmenu2;
+        D_80109B02_selmenu2 = D_80109B08_selmenu2[D_80109B00_selmenu2];
+    }
+}
 
 /* selmenu func_801089C0_selmenu */
 void func_80108910_selmenu2(u16 x, u16 y, char *str, u16 color, u16 shadow) {
@@ -395,7 +447,20 @@ void func_80108910_selmenu2(u16 x, u16 y, char *str, u16 color, u16 shadow) {
     print8(x, y, str);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80108990_selmenu2);
+/* selmenu func_80108A40_selmenu: the pick's group preset */
+void func_80108990_selmenu2(void) {
+    SelMenuCfg *cfg = &D_801090E0_selmenu2[D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + D_80109B02_selmenu2].mgNo - 1];
+
+    GW_PLAYER *player = D_80109B20_selmenu2;
+
+    player->group = cfg->group[0];
+    player++;
+    player->group = cfg->group[1];
+    player++;
+    player->group = cfg->group[2];
+    player++;
+    player->group = cfg->group[3];
+}
 
 /* selmenu func_80108AB4_selmenu */
 void func_80108A04_selmenu2(void) {
