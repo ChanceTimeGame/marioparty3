@@ -2856,15 +2856,119 @@ void func_8010DA60_duel10(void) {
     func_8010D9C8_duel10();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010DAE8_duel10);
+// board ec1: the tutorial helpers func_8010DAE8_duel10..func_8010DDA4_duel10 (as w10's func_80105F64..func_8010B12C)
+#include "game/sprite.h"
+#include "game/data.h"
+/* Three-sprite panel: frame, tinted backing, picture. */
+typedef struct Ec1SprWork {
+    /* 0x00 */ s16 group;
+    /* 0x02 */ s16 spr[3];
+} Ec1SprWork; // size 0x8
+extern s32 D_80114A10_duel10[]; /* picture file ids by arg0 */
+Process *func_800F41DC_name_81(void); /* DBE50.c */
+Process *func_800F429C_name_81(void); /* DBE50.c */
+// board ec1: end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010DB24_duel10);
+void func_8010DAE8_duel10(void) {
+    HuPrcChildLink(HuPrcCurrentGet(), func_800F41DC_name_81());
+    HuPrcChildWait();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010DB60_duel10);
+void func_8010DB24_duel10(void) {
+    HuPrcChildLink(HuPrcCurrentGet(), func_800F429C_name_81());
+    HuPrcChildWait();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010DD5C_duel10);
+Ec1SprWork *func_8010DB60_duel10(s16 arg0, s16 x, s16 y) {
+    Ec1SprWork *work;
+    void *data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010DDA4_duel10);
+    work = HuMemMemoryAllocPerm(sizeof(Ec1SprWork));
+    work->group = HuSprGrpCreate(3, 0);
+    data = DataRead(0x130000);
+    work->spr[0] = func_80055810_main(data);
+    func_80055024_main(work->group, 0, work->spr[0], 0);
+    HuSprPriSet(work->group, 0, 11);
+    HuSprAttrSet(work->group, 0, 0x1000);
+    func_80054904_main(work->group, 0, x + 5, y);
+    DataClose(data);
+    data = DataRead(0x130001);
+    work->spr[1] = func_80055810_main(data);
+    func_80055024_main(work->group, 1, work->spr[1], 0);
+    HuSprPriSet(work->group, 1, 12);
+    HuSprAttrSet(work->group, 1, 0x1000);
+    func_80054904_main(work->group, 1, x + 5, y);
+    func_80055420_main(work->group, 1, 0x1F, 0xB0, 0x3F);
+    DataClose(data);
+    data = DataRead(D_80114A10_duel10[arg0]);
+    work->spr[2] = func_80055810_main(data);
+    func_80055024_main(work->group, 2, work->spr[2], 0);
+    HuSprPriSet(work->group, 2, 10);
+    HuSprAttrSet(work->group, 2, 0x1000);
+    func_80054904_main(work->group, 2, x, y);
+    DataClose(data);
+    return work;
+}
+
+void func_8010DD5C_duel10(Ec1SprWork *work) {
+    HuSprKill(work->spr[0]);
+    HuSprKill(work->spr[1]);
+    HuSprKill(work->spr[2]);
+    HuSprGrpKill(work->group);
+    HuMemMemoryFreePerm(work);
+}
+
+// Tutorial pause menu: dims the screen, asks whether to quit; true when the player chose to quit.
+s16 func_8010DDA4_duel10(s32 padNo) {
+    s16 size[2];
+    B1UnkBoard4 *dim;
+    B1UnkBoard4 *frame;
+    void *data;
+    s16 winId;
+    s16 choice;
+
+    func_8004A9DC_main(0x60);
+    dim = func_800F4528_name_81(1, 0);
+    data = DataRead(0x13025D);
+    dim->unk_0C[0] = func_80055810_main(data);
+    func_80055024_main(dim->unk_0A, 0, dim->unk_0C[0], 0);
+    HuSprPriSet(dim->unk_0A, 0, 9);
+    HuSprAttrSet(dim->unk_0A, 0, 0x1000);
+    func_80054904_main(dim->unk_0A, 0, 160, 120);
+    HuSprScaleSet(dim->unk_0A, 0, 40.0f, 30.0f);
+    func_80055484_main(dim->unk_0A, 0, 0, 0, 0, 0xC0);
+    DataClose(data);
+    frame = func_800F4528_name_81(1, 0);
+    data = DataRead(0x130009);
+    frame->unk_0C[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(frame->unk_0A, 0, frame->unk_0C[0], 0);
+    HuSprPriSet(frame->unk_0A, 0, 8);
+    HuSprAttrSet(frame->unk_0A, 0, 0x1000);
+    func_80054904_main(frame->unk_0A, 0, 160, 120);
+    func_80055420_main(frame->unk_0A, 0, 0x89, 0xCA, 0xB2);
+    func_80060394_main(1, size, 0x253A);
+    winId = func_8005A968_main(160 - size[0] / 2, 120 - size[1] / 2, size[0], size[1], 0, 2);
+    func_8005BE30_main(winId, 5);
+    func_8005BEE0_main(winId, 0);
+    func_80060144_main(winId);
+    func_8005C060_main(winId, 7, 0, 0, 0xE0);
+    func_8005C060_main(winId, 0, 0x89, 0xCA, 0xB2);
+    func_8005C060_main(winId, 4, 0, 0x80, 0);
+    func_8005FBF8_main(winId, 0x89, 0xCA, 0xB2);
+    func_8005B43C_main(winId, 0x253A, -1, -1);
+    func_8005BDFC_main(winId, 0);
+    while (func_8005E0C0_main(winId) != 0) {
+        HuPrcVSleep();
+    }
+    func_8005FE54_main(winId, 1 << padNo);
+    choice = func_8005E1D8_main(winId, 0, 0);
+    func_8005F364_main(winId);
+    func_8004A9DC_main(0x7F);
+    func_800F4584_name_81(dim);
+    func_800F4584_name_81(frame);
+    return choice == 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010E0EC_duel10);
 
