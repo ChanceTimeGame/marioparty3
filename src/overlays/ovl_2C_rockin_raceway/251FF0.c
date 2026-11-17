@@ -247,6 +247,11 @@ typedef union RRPack {
 
 extern s16 D_800D418E_main; /* the viewport being drawn */
 extern s16 D_800CDD6A_main;
+extern Vec D_80111414_rockin_raceway[4];
+extern Vec D_80111444_rockin_raceway[12];
+extern RRColor D_80111730_rockin_raceway;
+extern RRColor D_80111734_rockin_raceway;
+extern s32 D_80111B00_rockin_raceway[12];
 extern u8 D_800D2008_main;
 extern s32 D_80111AE4_rockin_raceway;
 extern s32 D_80111AF0_rockin_raceway[4];
@@ -895,6 +900,43 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010F
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FFB8_rockin_raceway);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80110C38_rockin_raceway);
+/* Shows each player's character (frame = character, 8 = none) on the four podium models. */
+void func_80110C38_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr, s32* players) {
+    s32 i;
 
+    for (i = 0; i < 4; i++) {
+        if (players[i] < 0) {
+            func_8010FA78_rockin_raceway(models[i], spr, 8, &D_80111730_rockin_raceway);
+        } else {
+            if (players[i] >= 4) {
+                players[i] = 0;
+            }
+            func_8010FA78_rockin_raceway(models[i], spr, GwPlayer[players[i]].chr, &D_80111730_rockin_raceway);
+        }
+        Hu3DModelPosSet(models[i], D_80111414_rockin_raceway[i].x, D_80111414_rockin_raceway[i].y + 40.00000059604645,
+                        D_80111414_rockin_raceway[i].z);
+        Hu3DModelRotSet(models[i], 95.72f, 0.0f, 0.0f);
+    }
+}
+
+#ifdef NON_MATCHING
+/* retail hoists the 40.0 double into f22 before the loop (frame 8 bytes larger); otherwise identical */
+/* Shows the twelve digit models (frames 0-9, clamped). */
+void func_80110D90_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr) {
+    s32 i;
+
+    for (i = 0; i < 12; i++) {
+        if (D_80111B00_rockin_raceway[i] >= 9) {
+            D_80111B00_rockin_raceway[i] = 9;
+        } else if (D_80111B00_rockin_raceway[i] < 0) {
+            D_80111B00_rockin_raceway[i] = 0;
+        }
+        func_8010FA78_rockin_raceway(models[i], spr, D_80111B00_rockin_raceway[i], &D_80111734_rockin_raceway);
+        Hu3DModelPosSet(models[i], D_80111444_rockin_raceway[i].x, D_80111444_rockin_raceway[i].y + 40.00000059604645,
+                        D_80111444_rockin_raceway[i].z);
+        Hu3DModelRotSet(models[i], 95.72f, 0.0f, 0.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80110D90_rockin_raceway);
+#endif
