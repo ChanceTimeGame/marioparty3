@@ -189,6 +189,68 @@ s16 func_8010CE74_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
 s16 func_8010D5E4_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z); // guRotateRPYF
 void func_8010EDE8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2);
+
+// m1 pp2: Puddle Paddle game types (pp1's PpTeam/PpPlayer/PpCoin/PpState, with the fields pp2's functions use)
+#include "game/gamework_data.h"
+
+/* A team (D_80111650_puddle_paddle[2]) */
+typedef struct PpTeam {
+    /* 0x00 */ char unk00[0x18];
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ char unk1C[4];
+    /* 0x20 */ u8 count;
+    /* 0x22 */ s16 member[2]; /* player indices */
+    /* 0x26 */ s16 digit[2]; /* score digit sprites */
+    /* 0x2A */ char unk2A[2];
+    /* 0x2C */ s16 leader; /* the member who steers: a human, or the stronger CPU when both are CPUs */
+    /* 0x2E */ char unk2E[0x36];
+} PpTeam; /* size 0x64 */
+
+/* A player (D_80111654_puddle_paddle[4]) */
+typedef struct PpPlayer {
+    /* 0x00 */ s16 no;
+    /* 0x02 */ s16 chr;
+    /* 0x04 */ s32 unk04; /* 2 turn left, 4 turn right (CPU steering), 0x10 */
+    /* 0x08 */ char unk08[6];
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s8 slot; /* place in the team */
+    /* 0x11 */ char unk11[0x37];
+    /* 0x48 */ f32 unk48;
+    /* 0x4C */ char unk4C[4];
+    /* 0x50 */ s16 team;
+    /* 0x52 */ char unk52[4];
+    /* 0x56 */ s16 unk56;
+    /* 0x58 */ s16 unk58;
+    /* 0x5A */ char unk5A[2];
+} PpPlayer; /* size 0x5C */
+
+/* A coin (PpState::coins[16]) */
+typedef struct PpCoin {
+    /* 0x00 */ s16 kind;
+    /* 0x02 */ s16 model;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0x1B];
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ char unk24[0x10];
+} PpCoin; /* size 0x34 */
+
+/* The game state (D_80111658_puddle_paddle) */
+typedef struct PpState {
+    /* 0x00 */ s32 flags;
+    /* 0x04 */ char unk04[0x34];
+    /* 0x38 */ PpCoin *coins;
+    /* 0x3C */ s16 unk3C;
+    /* 0x3E */ char unk3E[6];
+} PpState; /* size 0x44 */
+
+extern PpTeam *D_80111650_puddle_paddle;
+extern PpPlayer *D_80111654_puddle_paddle;
+extern PpState *D_80111658_puddle_paddle;
+
+void func_801091F8_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx);
+void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx);
+s16 func_8010BA04_puddle_paddle(s8 groupId, s32 prio, void *data, void (*func)(PpFuncGroupContext *, PpFuncContext *), s8 tag);
+void func_80110BBC_puddle_paddle(f32 *a, f32 *b);
 s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109804_puddle_paddle);
@@ -207,7 +269,46 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010A3
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010ABCC_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010B574_puddle_paddle);
+void func_8010B574_puddle_paddle(void) {
+    PpTeam *team;
+    s16 cpu[2];
+    s16 diff[2];
+    s16 i;
+    s16 j;
+    u16 player;
+
+    team = D_80111650_puddle_paddle;
+    for (i = 0; i < 2; i++, team++) {
+        cpu[0] = GwPlayer[D_80111650_puddle_paddle[i].member[0]].stat & 1;
+        cpu[1] = GwPlayer[D_80111650_puddle_paddle[i].member[1]].stat & 1;
+        if (cpu[0] && cpu[1]) {
+            diff[0] = GwPlayer[team->member[0]].cpu_difficulty;
+            diff[1] = GwPlayer[team->member[1]].cpu_difficulty;
+            if (diff[0] > diff[1]) {
+                team->leader = team->member[0];
+            } else {
+                team->leader = team->member[1];
+            }
+            for (j = 0; j < 2; j++) {
+                player = team->member[j];
+                func_8010BA04_puddle_paddle(player + 3, 0, &D_80111654_puddle_paddle[(s16)player], func_801091F8_puddle_paddle, 0);
+            }
+            func_8010BA04_puddle_paddle(7, 0, &D_80111650_puddle_paddle[i], func_8010981C_puddle_paddle, i);
+        } else if (cpu[0] || cpu[1]) {
+            if (cpu[0]) {
+                team->leader = team->member[1];
+            } else {
+                team->leader = team->member[0];
+            }
+            for (j = 0; j < 2; j++) {
+                player = team->member[j];
+                if (team->member[j] != team->leader) {
+                    func_8010BA04_puddle_paddle(player + 3, 0, &D_80111654_puddle_paddle[team->member[j]], func_801091F8_puddle_paddle, 0);
+                }
+            }
+        }
+    }
+}
 
 void func_8010B820_puddle_paddle(void) {
     D_80111664_puddle_paddle = HuMemAllocTag(PP_SPRITES_MAX * sizeof(PpSpriteData), 31000);
