@@ -202,7 +202,7 @@ typedef struct Db3HmfPart {
 extern Object *D_801180E0_duel03; /* the bell's object */
 extern f32 D_8011744C_duel03;
 extern char D_80117BD8_duel03[]; /* "bell" (rodata) */
-extern void (*D_801175FC_duel03[])(void); /* space events by GwSystem.minigame_index */
+extern void (*D_80117600_duel03[])(void); /* space events by GwSystem.minigame_index, from 1 */
 void func_8010DC08_duel03(void);
 void func_8010FE9C_duel03(s32);
 /* retail passes the back link/index addresses to the empty func_8011725C_duel03, so no prototype here */
@@ -781,7 +781,7 @@ void func_80113740_duel03(void) {
     HuPrcChildWait();
     func_800F4584_name_81(grp);
     func_800F75EC_name_81(-1);
-    D_801175FC_duel03[GwSystem.minigame_index]();
+    D_80117600_duel03[GwSystem.minigame_index - 1]();
     mbItemBtnF = 1;
     omDelPrcObj(NULL);
 }
@@ -1894,7 +1894,7 @@ void func_80116000_duel03(s16 masu) {
     HuPrcChildWait();
 
     /* into the pipe: front partner, player, back partner */
-    if (player->stats.prize.gamblePrize != -1) {
+    if (player->stats.partners.frontID != -1) {
         partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
         func_800EB708_name_81(&partner->coords, &space->coords, &partner->rot);
         HuVecCopy3F(&pos, &space->coords);
@@ -1936,7 +1936,7 @@ void func_80116000_duel03(s16 masu) {
     func_800FFCCC_name_81(effect);
     func_800D8F0C_name_81(player->player_obj);
     HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
-    if (player->stats.prize.duelNo != -1) {
+    if (player->stats.partners.backID != -1) {
         partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
         func_800EB708_name_81(&partner->coords, &space->coords, &partner->rot);
         HuVecCopy3F(&pos, &space->coords);
@@ -1981,7 +1981,7 @@ void func_80116000_duel03(s16 masu) {
     HuVecAdd(&backPos, &backPos, &exitSpace->coords);
 
     /* out of it: front partner, player, back partner */
-    if (player->stats.prize.gamblePrize != -1) {
+    if (player->stats.partners.frontID != -1) {
         partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
         HuVecCopy3F(&partner->coords, &space->coords);
         func_800EB7BC_name_81(&partner->rot);
@@ -2023,7 +2023,7 @@ void func_80116000_duel03(s16 masu) {
     HuPrcSleep(15);
     func_800F3880_name_81(-1, -1, 2);
     player->stat &= ~4;
-    if (player->stats.prize.duelNo != -1) {
+    if (player->stats.partners.backID != -1) {
         partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
         HuVecCopy3F(&partner->coords, &space->coords);
         func_800EB7BC_name_81(&partner->rot);
@@ -2250,3 +2250,308 @@ void func_801172D4_duel03(void) {
 
 void func_801173F0_duel03(void) {
 }
+
+/* .data */
+// board db3: the unit's .data (0x40FC50, 0x6F0 bytes); inner labels the asm uses are undefined_syms.txt aliases
+/* A weighted choice: an entry is taken when a roll of 100 falls under its chance; value -1 ends a list (duel01's Duel01Weight). */
+typedef struct Db3Weight {
+    /* 0x00 */ s8 value;
+    /* 0x01 */ s8 chance;
+} Db3Weight;
+void func_801109B0_duel03(void);
+void func_80110A0C_duel03(void);
+void func_80110A70_duel03(void);
+void func_80111C30_duel03(void);
+void func_8011221C_duel03(void);
+void func_8011230C_duel03(void);
+void func_80112348_duel03(void);
+void func_801123C4_duel03(void);
+void func_80112400_duel03(void);
+void func_80112480_duel03(void);
+void func_801127FC_duel03(void);
+void func_801129E8_duel03(void);
+void func_80112BD4_duel03(void);
+void func_8011340C_duel03(void);
+void func_80113704_duel03(void);
+void func_80116C54_duel03(void);
+void func_80116D84_duel03(void);
+void func_80116EB4_duel03(void);
+void func_80116FE4_duel03(void);
+void func_80117124_duel03(void);
+void func_801171C4_duel03(void);
+void func_80117210_duel03(void);
+void func_801173F0_duel03(void);
+s32 func_80113AE0_duel03(void);
+s32 func_80114030_duel03(void);
+s32 func_8011454C_duel03(void);
+s32 func_8011485C_duel03(void);
+s32 func_80114D80_duel03(void);
+s32 func_801152E0_duel03(void);
+s32 func_8011580C_duel03(void);
+s32 func_80115B18_duel03(void);
+
+s32 D_80117430_duel03[2] = { 0x37, 0x39 };
+s32 D_80117438_duel03[5] = { 4, 0xA0035, 0xA003A, 0xA003B, 0xA003F }; /* count, then file ids */
+f32 D_8011744C_duel03 = 3.0f;
+s32 D_80117450_duel03[4] = { 3, 0xA011D, 0xA011E, 0xA0121 }; /* count, then file ids */
+s16 D_80117460_duel03 = 0x1D; /* bell object: from space id */
+s16 D_80117462_duel03 = 0x1C; /* to */
+Process *D_80117464_duel03 = NULL;
+s16 D_80117468_duel03 = 0x1F; /* second object: from space id */
+s16 D_8011746A_duel03 = 0x1E; /* to */
+Process *D_8011746C_duel03 = NULL;
+s16 D_80117470_duel03[4] = { 0x19, 0x1B, 0x20, 0x21 }; /* the pipe spaces */
+s8 D_80117478_duel03[13 * 2] = { /* value, chance pairs (D_80117479_duel03 = [1]) */
+    7, 30, 6, 30, 4, 30, 1, 30, 11, 30, 8, 20, 3, 20,
+    10, 20, 0, 20, 2, 20, 9, 20, 5, 20, -1, -1,
+};
+Db3Weight D_80117494_duel03[14] = {
+    { 0, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_801174B0_duel03[14] = {
+    { 1, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_801174CC_duel03[14] = {
+    { 2, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_801174E8_duel03[14] = {
+    { 4, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_80117504_duel03[14] = {
+    { 3, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_80117520_duel03[14] = {
+    { 5, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_8011753C_duel03[14] = {
+    { 7, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight D_80117558_duel03[14] = {
+    { 6, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Db3Weight *D_80117574_duel03[8] = {
+    D_80117494_duel03, D_801174B0_duel03, D_801174CC_duel03, D_801174E8_duel03,
+    D_80117504_duel03, D_80117520_duel03, D_8011753C_duel03, D_80117558_duel03,
+};
+/* the asm reads the low halves: D_80117596/9A/9E_duel03 = (s16 *)&[0..2] + 1 */
+s32 D_80117594_duel03[2][3] = { { 0x18, 0x1C, 0x1D }, { 0x17, 0x1E, 0x1F } };
+s32 D_801175AC_duel03 = -1;
+Object *D_801175B0_duel03 = NULL;
+s32 D_801175B4_duel03 = 0;
+event_list_entry D_801175B8_duel03[2] = {
+    { 1, 1, func_801109B0_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_801175C8_duel03[2] = {
+    { 1, 1, func_80110A0C_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_801175D8_duel03[2] = {
+    { 7, 1, func_80110A70_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_801175E8_duel03[3] = {
+    { 1, 1, func_80111C30_duel03 },
+    { 8, 1, func_801173F0_duel03 },
+    { 0, 0, NULL },
+};
+/* space events by GwSystem.minigame_index, indexed from 1: the asm addresses it as D_801175FC_duel03 (= this - 4) */
+void (*D_80117600_duel03[11])(void) = {
+    func_8011221C_duel03, func_8011230C_duel03, func_80112348_duel03, func_801123C4_duel03,
+    func_80112400_duel03, func_80112480_duel03, func_801127FC_duel03, func_801129E8_duel03,
+    func_80112BD4_duel03, func_8011340C_duel03, func_80113704_duel03,
+};
+/* D_8011764E_duel03 (the asm's base for D_80117654_duel03[roll - 6]) is inside the terminator */
+event_table_entry D_8011762C_duel03[5] = {
+    { 0x18, D_801175B8_duel03 },
+    { 0x17, D_801175C8_duel03 },
+    { -5, D_801175D8_duel03 },
+    { 0x26, D_801175E8_duel03 },
+    { -1, NULL },
+};
+/* COM: the space index (cidx) each roll reaches; the asm addresses them at D_80117657 (= D_8011765C - 5),
+   D_8011765D (= D_80117664 - 7) and D_80117667 (= D_8011766C - 5) */
+u8 D_80117654_duel03[8] = { 0xFF, 0x00, 0x01, 0x02, 0x04, 0x05, 0x00, 0x00 };
+u8 D_8011765C_duel03[8] = { 0xFF, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D };
+u8 D_80117664_duel03[8] = { 0xFF, 0x0F, 0x10, 0x11, 0x13, 0x14, 0x00, 0x00 };
+u8 D_8011766C_duel03[8] = { 0xFF, 0x16, 0x17, 0x18, 0x1A, 0x1B, 0x1C, 0x00 };
+DecisionTreeNonLeafNode D_80117674_duel03[2] = {
+    { 0x5, { .func = func_80113AE0_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_8011768C_duel03[3] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80117674_duel03 } },
+    { 0x5, { .func = func_80114030_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_801176B0_duel03[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x0000070D }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00000005 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x08D1A346 } },
+};
+DecisionTreeNonLeafNode D_801176E0_duel03[5] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_801176B0_duel03 } },
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x0000070D }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00000005 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x18D1A346 } },
+};
+DecisionTreeNonLeafNode D_8011771C_duel03[2] = {
+    { 0x15, { .data = 0x00000001 }, { .data = 0x0972E5CB } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1972E5CB } },
+};
+DecisionTreeNonLeafNode D_80117734_duel03[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_8011768C_duel03 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_801176E0_duel03 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_8011771C_duel03 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_80117764_duel03[2] = {
+    { 0x5, { .func = func_8011454C_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_8011777C_duel03[3] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80117764_duel03 } },
+    { 0x5, { .func = func_8011485C_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_801177A0_duel03[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00000F14 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0000070D }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0A142850 } },
+};
+DecisionTreeNonLeafNode D_801177D0_duel03[5] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_801177A0_duel03 } },
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1972E5CB } },
+    { 0xB, { .data = 0x00000F14 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x0000070D }, { .data = 0x1972E5CB } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_8011780C_duel03[2] = {
+    { 0x15, { .data = 0x00000001 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x164C9932 } },
+};
+DecisionTreeNonLeafNode D_80117824_duel03[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_8011777C_duel03 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_801177D0_duel03 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_8011780C_duel03 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_80117854_duel03[2] = {
+    { 0x5, { .func = func_80114D80_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_8011786C_duel03[3] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80117854_duel03 } },
+    { 0x5, { .func = func_801152E0_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_80117890_duel03[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x0000161C }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00000F14 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x08D1A346 } },
+};
+DecisionTreeNonLeafNode D_801178C0_duel03[5] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80117890_duel03 } },
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x0000161C }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00000F14 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x18D1A346 } },
+};
+DecisionTreeNonLeafNode D_801178FC_duel03[2] = {
+    { 0x15, { .data = 0x00000000 }, { .data = 0x0972E5CB } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1972E5CB } },
+};
+DecisionTreeNonLeafNode D_80117914_duel03[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_8011786C_duel03 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_801178C0_duel03 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_801178FC_duel03 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_80117944_duel03[2] = {
+    { 0x5, { .func = func_8011580C_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_8011795C_duel03[3] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80117944_duel03 } },
+    { 0x5, { .func = func_80115B18_duel03 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_80117980_duel03[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00000005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0000161C }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0A142850 } },
+};
+DecisionTreeNonLeafNode D_801179B0_duel03[5] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80117980_duel03 } },
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1972E5CB } },
+    { 0xB, { .data = 0x00000005 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x0000161C }, { .data = 0x1972E5CB } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_801179EC_duel03[2] = {
+    { 0x15, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x164C9932 } },
+};
+DecisionTreeNonLeafNode D_80117A04_duel03[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_8011795C_duel03 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_801179B0_duel03 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_801179EC_duel03 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+s16 D_80117A34_duel03[4] = { 0x19, 0x1B, 0x20, 0x21 }; /* pipe spaces */
+s16 D_80117A3C_duel03[4] = { 0x24, 0x25, 0x22, 0x23 }; /* the space each pipe lets out on */
+s16 D_80117A44_duel03[3] = { 6, 0x19, -1 };
+event_list_entry D_80117A4C_duel03[2] = {
+    { 1, 1, func_80116C54_duel03 },
+    { 0, 0, NULL },
+};
+s16 D_80117A5C_duel03[3] = { 2, 0x1B, -1 };
+event_list_entry D_80117A64_duel03[2] = {
+    { 1, 1, func_80116D84_duel03 },
+    { 0, 0, NULL },
+};
+s16 D_80117A74_duel03[3] = { 0xF, 0x20, -1 };
+event_list_entry D_80117A7C_duel03[2] = {
+    { 1, 1, func_80116EB4_duel03 },
+    { 0, 0, NULL },
+};
+s16 D_80117A8C_duel03[3] = { 0xB, 0x21, -1 };
+event_list_entry D_80117A94_duel03[2] = {
+    { 1, 1, func_80116FE4_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80117AA4_duel03[2] = {
+    { 1, 1, func_80117124_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80117AB4_duel03[2] = {
+    { 1, 1, func_801171C4_duel03 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80117AC4_duel03[2] = {
+    { 1, 1, func_80117210_duel03 },
+    { 0, 0, NULL },
+};
+event_table_entry D_80117AD4_duel03[8] = {
+    { 0x24, D_80117A4C_duel03 },
+    { 0x25, D_80117A64_duel03 },
+    { 0x22, D_80117A7C_duel03 },
+    { 0x23, D_80117A94_duel03 },
+    { 0xB, D_80117AA4_duel03 },
+    { 0x9, D_80117AB4_duel03 },
+    { 0xC, D_80117AC4_duel03 },
+    { -1, NULL },
+};
