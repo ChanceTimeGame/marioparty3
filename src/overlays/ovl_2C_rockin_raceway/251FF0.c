@@ -371,7 +371,65 @@ void func_80109DA8_rockin_raceway(void) {
 }
 /* rr2 end func_80109DA8_rockin_raceway */
 
+#ifdef NON_MATCHING
+/* rr2 func_8010A258_rockin_raceway */
+f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, s16 *seg, f32 *frac, Vec *pos, Vec *rot) {
+    RrPath *path = &D_80111B40_rockin_raceway[idx];
+    f32 start;
+    f32 d;
+    f32 rem;
+    f32 t;
+    s32 i;
+    s32 cur;
+    s32 next;
+
+    start = base + delta;
+    if (path->unk04 <= start) {
+        start = path->unk04;
+    } else if (start <= 0.0f) {
+        start = 0.0f;
+    }
+    d = start + dist;
+    if (path->unk04 <= d) {
+        d = path->unk04;
+    } else if (d <= 0.0f) {
+        d = 0.0f;
+    }
+    rem = d;
+    for (i = 0; i < path->unk02; i++) {
+        if (d <= path->unk18[i + 1]) {
+            break;
+        }
+        rem = d - path->unk18[i + 1];
+    }
+    if (path->unk02 - 1 < i) {
+        i = path->unk02 - 1;
+    }
+    if (seg != NULL) {
+        *seg = i;
+    }
+    if (rem != 0.0f && path->unk14[i] != 0.0f) {
+        t = rem / path->unk14[i];
+    } else {
+        t = 0.0f;
+    }
+    if (frac != NULL) {
+        *frac = t;
+    }
+    next = 0;
+    if (i < path->unk02 - 1) {
+        next = i + 1;
+    }
+    cur = i * 1;
+    func_8010E8A0_rockin_raceway(t, &path->unk0C[cur], &path->unk10[cur], &path->unk0C[next], pos);
+    rot->x = func_8010E7E0_rockin_raceway(t, path->unk1C[cur].x, path->unk1C[next].x);
+    rot->y = func_8010E7E0_rockin_raceway(t, path->unk1C[cur].y, path->unk1C[next].y);
+    return start;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A258_rockin_raceway);
+#endif
+/* rr2 end func_8010A258_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A48C_rockin_raceway);
 
