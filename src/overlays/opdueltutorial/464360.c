@@ -96,7 +96,7 @@ void func_8010610C_opdueltutorial(s16 model, s16 frame);
 s16 func_801061DC_opdueltutorial(s32 file);
 void func_80106224_opdueltutorial(omObjData *obj);
 void func_801062E0_opdueltutorial(void);
-void func_80106808_opdueltutorial(Object *host);
+void func_80106808_opdueltutorial(omObjData *obj);
 void func_8010686C_opdueltutorial(void);
 void func_80106BF0_opdueltutorial(void);
 void func_80108774_opdueltutorial(void);
@@ -111,7 +111,7 @@ extern s32 D_80108930_opdueltutorial; /* set once the tutorial ends: the exit st
 extern Process *D_80108934_opdueltutorial;
 extern Vec D_80108938_opdueltutorial; /* the host's position */
 extern Vec D_80108944_opdueltutorial[3];
-extern Vec D_80108968_opdueltutorial;
+extern Vec D_80108968_opdueltutorial; /* the coin host's position */
 extern Vec D_80108974_opdueltutorial[4];
 extern Vec D_801089A4_opdueltutorial[2];
 extern Vec D_801089BC_opdueltutorial[4];
@@ -123,6 +123,8 @@ extern OtMotList D_80108A64_opdueltutorial;
 extern OtMotList *D_80108B24_opdueltutorial[8];
 extern OtMotList1 *D_80108B74_opdueltutorial[8];
 extern OtMotList1 D_80108B94_opdueltutorial;
+
+extern u8 D_80101960_name_81[]; /* ovl_81 .data (still asm): each character's partner-display index */
 
 extern u8 D_80108C10_opdueltutorial;
 extern GW_PLAYER *D_80108C14_opdueltutorial[2];
@@ -419,9 +421,10 @@ void func_801062E0_opdueltutorial(void) {
     omDelObj(obj);
 }
 
-void func_80106808_opdueltutorial(Object *host) {
-    D_80108C1C_opdueltutorial->velocity.x = host->rot.y - sindf(host->scale.y) * 10.0f;
-    host->scale.y += 5.0f;
+/* the coin host's hover: bobs its height (velocity.x) around obj->trans.y */
+void func_80106808_opdueltutorial(omObjData *obj) {
+    D_80108C1C_opdueltutorial->velocity.x = obj->trans.y - sindf(obj->rot.y) * 10.0f;
+    obj->rot.y += 5.0f;
 }
 
 /* a process: a model plays a run of animation tracks (4..0) from one file, then fades out */
@@ -472,7 +475,415 @@ void func_8010686C_opdueltutorial(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opdueltutorial/464360", func_80106BF0_opdueltutorial);
+/* the tutorial proper: the coin host flies in, the tutorial host explains the coin toss, the
+   status displays, the partners (the choice is scripted: player 1 front, player 2 back) and the
+   starting coins */
+void func_80106BF0_opdueltutorial(void) {
+    Vec dir[2];
+    s16 fx[2];
+    omObjData *obj;
+    s32 i;
+    s32 j;
+    s32 side;
+    f32 angle;
+    f32 scale;
+    f32 radius;
+    f32 speed;
+    s16 effect;
+
+    MBDBackKill();
+    MBDBackLoad(0x17);
+    func_800E8180_name_81(1000.0f, 10000.0f);
+    D_80108C28_opdueltutorial = func_800D8010_name_81(0x3E, NULL);
+    HuVecCopy3F(&D_80108C28_opdueltutorial->coords, &D_80108938_opdueltutorial);
+    HuVecCopyXYZ(&D_80108C28_opdueltutorial->scale, 0.6f, 0.6f, 0.6f);
+    D_80108C28_opdueltutorial->rot.x = sindf(10.0f);
+    D_80108C28_opdueltutorial->rot.z = cosdf(10.0f);
+    D_80108C28_opdueltutorial->flags |= 1;
+    D_80108C2C_opdueltutorial = func_80060880_main(0x4B, 0xC5, 0x10);
+    func_8005C060_main(D_80108C2C_opdueltutorial, 4, 0, 0xE0, 0xE0);
+    func_8005BDFC_main(D_80108C2C_opdueltutorial, 0);
+    D_80108C30_opdueltutorial[0] = func_80106000_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], 0xA007E, "c204n_0_DEF");
+    D_80108C30_opdueltutorial[1] = func_801061DC_opdueltutorial(0xA007F);
+    D_80108C30_opdueltutorial[2] = func_801061DC_opdueltutorial(0xA0080);
+    D_80108C30_opdueltutorial[3] = func_801061DC_opdueltutorial(0xA0081);
+    D_80108C30_opdueltutorial[4] = func_801061DC_opdueltutorial(0xA0082);
+    D_80108C30_opdueltutorial[5] = func_801061DC_opdueltutorial(0xA0083);
+    D_80108C30_opdueltutorial[6] = func_801061DC_opdueltutorial(0xA0084);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[0]);
+    D_80108C1C_opdueltutorial = func_800D8010_name_81(0x3B, (s32 *)&D_80108B94_opdueltutorial);
+    func_800461B4_main(D_80108C1C_opdueltutorial->omObj1->model[0]);
+    HuVecCopy3F(&D_80108C1C_opdueltutorial->coords, &D_80108968_opdueltutorial);
+    D_80108C1C_opdueltutorial->velocity.x = 900.0f;
+    effect = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8000CD00_main(effect, 15.0f, 20.0f, 8.0f);
+    func_8000D018_main(effect, 200.0f);
+    func_800138EC_main(effect, 1, 0);
+    for (i = 0; i < 2; i++) {
+        HuVecCopy3F(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_801089EC_opdueltutorial[i]);
+        fx[i] = func_80105B54_opdueltutorial(0xB0004, 0x689);
+    }
+    WipeColorSet(0xFF, 0xFF, 0xFF);
+    WipeCreateIn(0xB, 0x10);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    HuAudFXPlay(0x2DB);
+    for (j = 0; j < 20; j++) {
+        for (i = 0; i < 2; i++) {
+            func_80105CD4_opdueltutorial(fx[i], D_80108C14_opdueltutorial[i]->player_obj->coords.x,
+                                         D_80108C14_opdueltutorial[i]->player_obj->coords.y + 50.0f,
+                                         D_80108C14_opdueltutorial[i]->player_obj->coords.z);
+        }
+        HuPrcVSleep();
+    }
+    for (scale = 0.0f; scale <= 1.0f; scale += 0.1f) {
+        for (i = 0; i < 2; i++) {
+            func_800D8E88_name_81(D_80108C14_opdueltutorial[i]->player_obj);
+            HuVecCopyXYZ(&D_80108C14_opdueltutorial[i]->player_obj->scale, scale, 1.0f, scale);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 2; i++) {
+        HuVecCopyXYZ(&D_80108C14_opdueltutorial[i]->player_obj->scale, 1.0f, 1.0f, 1.0f);
+    }
+    HuPrcSleep(20);
+    HuAudSeqPlay(0xB);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 0x2500, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    HuPrcChildLink(HuPrcCurrentGet(), omAddPrcObj(func_8010686C_opdueltutorial, 0x300, 0, 0));
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 0x2501, -1, -1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    HuPrcChildWait();
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9474, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[1]);
+    HuAudFXPlay(0x2DD);
+    func_800138EC_main(effect, 0, 1);
+    /* the coin host circles in */
+    for (angle = 0.0f, radius = 500.0f, j = 0; D_80108C1C_opdueltutorial->velocity.x >= 300.0f;) {
+        D_80108C1C_opdueltutorial->coords.x = sindf(angle) * radius;
+        D_80108C1C_opdueltutorial->coords.z = cosdf(angle) * radius + D_80108968_opdueltutorial.z;
+        D_80108C1C_opdueltutorial->velocity.x -= 5.0f;
+        angle += 6.0;
+        radius -= 4.1666665f;
+        if (radius < 0.0f) {
+            radius = 0.0f;
+        }
+        func_8000CFA4_main(effect, D_80108C1C_opdueltutorial->coords.x, D_80108C1C_opdueltutorial->velocity.x - 50.0f, D_80108C1C_opdueltutorial->coords.z);
+        j++;
+        if (j == 40) {
+            for (i = 0; i < 2; i++) {
+                func_800EB708_name_81(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_801089A4_opdueltutorial[i],
+                                      &D_80108C14_opdueltutorial[i]->player_obj->rot);
+                func_800EBF2C_name_81(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_801089A4_opdueltutorial[i],
+                                      &D_80108C14_opdueltutorial[i]->player_obj->coords, 20);
+                func_800D90D0_name_81(D_80108C14_opdueltutorial[i]->player_obj, 2, 2);
+            }
+        }
+        if (j == 60) {
+            for (i = 0; i < 2; i++) {
+                func_800EB708_name_81(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_80108968_opdueltutorial, &dir[i]);
+                func_800EBC60_name_81(&D_80108C14_opdueltutorial[i]->player_obj->rot, &dir[i],
+                                      &D_80108C14_opdueltutorial[i]->player_obj->rot, 10);
+                func_800D918C_name_81(D_80108C14_opdueltutorial[i]->player_obj, -1, 0, 5, 2);
+            }
+        }
+        HuPrcVSleep();
+    }
+    obj = omAddObj(0x1000, 0, 0, -1, func_80106808_opdueltutorial);
+    obj->trans.y = D_80108C1C_opdueltutorial->velocity.x;
+    func_800138EC_main(effect, 1, 0);
+    for (i = 0; i < 2; i++) {
+        HuPrcChildLink(HuPrcCurrentGet(),
+                       func_800EBF2C_name_81(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_801089BC_opdueltutorial[i],
+                                             &D_80108C14_opdueltutorial[i]->player_obj->coords, 20));
+        func_800D90D0_name_81(D_80108C14_opdueltutorial[i]->player_obj, 2, 2);
+    }
+    HuPrcChildWait();
+    for (i = 0; i < 2; i++) {
+        func_800D918C_name_81(D_80108C14_opdueltutorial[i]->player_obj, -1, 0, 5, 2);
+    }
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[0]);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9475, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800138EC_main(effect, 0, 1);
+    for (angle = 0.0f; angle <= 360.0f; angle += 20.0f) {
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    func_800138EC_main(effect, 1, 0);
+    /* player 1 */
+    func_800EB7BC_name_81(&dir[0]);
+    func_800EBC60_name_81(&D_80108C14_opdueltutorial[0]->player_obj->rot, &dir[0], &D_80108C14_opdueltutorial[0]->player_obj->rot, 10);
+    HuPrcSleep(10);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9476, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800EB708_name_81(&D_80108C14_opdueltutorial[0]->player_obj->coords, &D_80108C1C_opdueltutorial->coords, &dir[0]);
+    func_800EBC60_name_81(&D_80108C14_opdueltutorial[0]->player_obj->rot, &dir[0], &D_80108C14_opdueltutorial[0]->player_obj->rot, 10);
+    HuPrcSleep(10);
+    func_800138EC_main(effect, 0, 1);
+    for (angle = 0.0f; angle <= 180.0f; angle += 20.0f) {
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    func_800138EC_main(effect, 1, 0);
+    /* player 2 */
+    func_800EB7BC_name_81(&dir[1]);
+    func_800EBC60_name_81(&D_80108C14_opdueltutorial[1]->player_obj->rot, &dir[1], &D_80108C14_opdueltutorial[1]->player_obj->rot, 10);
+    HuPrcSleep(10);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9477, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800EB708_name_81(&D_80108C14_opdueltutorial[1]->player_obj->coords, &D_80108C1C_opdueltutorial->coords, &dir[1]);
+    func_800EBC60_name_81(&D_80108C14_opdueltutorial[1]->player_obj->rot, &dir[1], &D_80108C14_opdueltutorial[1]->player_obj->rot, 10);
+    HuPrcSleep(10);
+    func_800138EC_main(effect, 0, 1);
+    for (; angle <= 360.0f; angle += 30.0f) {
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    D_80108C1C_opdueltutorial->rot.x = sindf(0.0f);
+    D_80108C1C_opdueltutorial->rot.z = cosdf(0.0f);
+    func_800138EC_main(effect, 1, 0);
+    /* the coin toss (scripted: player 1 wins) */
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 0x2506, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    side = 0;
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[5]);
+    HuAudFXPlay(0x2DE);
+    func_800138EC_main(effect, 0, 1);
+    for (speed = 0.0f; speed <= 30.0f; speed += 1.0f) {
+        angle += speed;
+        if (angle > 360.0f) {
+            angle -= 360.0f;
+        }
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    speed = 30.0f;
+    for (i = 0; i < 30; i++) {
+        angle += speed;
+        if (angle > 360.0f) {
+            angle -= 360.0f;
+        }
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        angle += speed;
+        if (angle > 360.0f) {
+            angle -= 360.0f;
+        }
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+        if (side == 0) {
+            if (angle >= 250.0f && angle <= 290.0f) {
+                break;
+            }
+        } else if (angle >= 70.0f && angle <= 110.0f) {
+            break;
+        }
+    }
+    for (speed = 30.0f; speed > 3.0f; speed -= 1.04f) {
+        angle += speed;
+        if (angle > 360.0f) {
+            angle -= 360.0f;
+        }
+        D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+        D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+        HuPrcVSleep();
+    }
+    angle = 0.0f;
+    D_80108C1C_opdueltutorial->rot.x = sindf(angle);
+    D_80108C1C_opdueltutorial->rot.z = cosdf(angle);
+    func_800138EC_main(effect, 1, 0);
+    HuPrcSleep(20);
+    /* the status displays */
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 0x2507, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[6]);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[0]);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800EB7BC_name_81(&D_80108C14_opdueltutorial[0]->player_obj->rot);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[0]->player_obj, 3, 0);
+    func_8004ACE0_main(0x274, 0);
+    func_800F6390_name_81();
+    {
+        s16 pos[2][2] = { { 30, 40 }, { 194, 40 } };
+
+        func_800F6550_name_81(0, pos[0][0], pos[0][1]);
+        func_800F6550_name_81(1, pos[1][0], pos[1][1]);
+    }
+    func_800F7458_name_81(0, 0.0f, 0.0f);
+    func_800F7458_name_81(1, 0.0f, 0.0f);
+    D_80108930_opdueltutorial = 1;
+    func_800F79E8_name_81(0);
+    func_800EFABC_name_81(D_80108C14_opdueltutorial[0]->player_obj);
+    HuPrcSleep(10);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[0]->player_obj, 0, 2);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 0x2508, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[3]);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[0]);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800EB7BC_name_81(&D_80108C14_opdueltutorial[1]->player_obj->rot);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[1]->player_obj, 3, 0);
+    func_8004ACE0_main(0x274, 1);
+    func_800F79E8_name_81(1);
+    func_800EFABC_name_81(D_80108C14_opdueltutorial[1]->player_obj);
+    HuPrcSleep(10);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[1]->player_obj, 0, 2);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[6]);
+    HuAudFXPlay(0x2E3);
+    omDelObj(obj);
+    func_800138EC_main(effect, 0, 1);
+    /* the coin host flies off */
+    while (D_80108C1C_opdueltutorial->velocity.x < 800.0f) {
+        D_80108C1C_opdueltutorial->velocity.x += 10.0f;
+        func_8000CFA4_main(effect, D_80108C1C_opdueltutorial->coords.x, D_80108C1C_opdueltutorial->velocity.x - 50.0f, D_80108C1C_opdueltutorial->coords.z);
+        HuPrcVSleep();
+    }
+    func_800138EC_main(effect, 1, 0);
+    func_8010610C_opdueltutorial(D_80108C28_opdueltutorial->omObj1->model[0], D_80108C30_opdueltutorial[0]);
+    HuPrcSleep(10);
+    /* the partners */
+    {
+        s32 partner[8] = { 0x25, 0xC, 9, 0xA, 0x26, 0xB, 0x2C, 0x24 };
+        s32 sfx[8] = { 0x25A, 0x25B, 0x298, 0x257, 0x256, 0x25D, 0x2A4, 0x2A3 };
+        s32 choice[2];
+        s32 win0; /* DuelHelpWin pointers through ovl_81.h's s32 prototype */
+        s32 win1;
+
+        for (i = 0; i < 2; i++) {
+            D_80108C20_opdueltutorial[i] = func_800D8010_name_81(partner[GwPlayer[i].chr], (s32 *)D_80108B74_opdueltutorial[GwPlayer[i].chr]);
+            HuVecCopy3F(&D_80108C20_opdueltutorial[i]->coords, &D_80108A04_opdueltutorial[i]);
+            HuAudFXPlay(sfx[GwPlayer[i].chr]);
+        }
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[0], 0, 2);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[1], 0, 2);
+        while (TRUE) {
+            side = func_800EFE8C_name_81(D_80108C20_opdueltutorial[0], &D_80108A1C_opdueltutorial[0], 20.0f);
+            if (func_800EFE8C_name_81(D_80108C20_opdueltutorial[1], &D_80108A1C_opdueltutorial[1], 20.0f) != 0 && side != 0) {
+                break;
+            }
+            HuPrcVSleep();
+        }
+        func_800EB7BC_name_81(&dir[0]);
+        func_800EB7BC_name_81(&dir[1]);
+        func_800EBC60_name_81(&D_80108C20_opdueltutorial[0]->rot, &dir[0], &D_80108C20_opdueltutorial[0]->rot, 10);
+        func_800EBC60_name_81(&D_80108C20_opdueltutorial[1]->rot, &dir[1], &D_80108C20_opdueltutorial[1]->rot, 10);
+        HuPrcSleep(10);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[0], -1, 2);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[1], -1, 2);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9481, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+        func_800EB708_name_81(&D_80108C14_opdueltutorial[0]->player_obj->coords, &D_80108C14_opdueltutorial[1]->player_obj->coords, &dir[0]);
+        func_800EB708_name_81(&D_80108C14_opdueltutorial[1]->player_obj->coords, &D_80108C14_opdueltutorial[0]->player_obj->coords, &dir[1]);
+        func_800EBC60_name_81(&D_80108C14_opdueltutorial[0]->player_obj->rot, &dir[0], &D_80108C14_opdueltutorial[0]->player_obj->rot, 5);
+        func_800EBC60_name_81(&D_80108C14_opdueltutorial[1]->player_obj->rot, &dir[1], &D_80108C14_opdueltutorial[1]->player_obj->rot, 5);
+        HuPrcSleep(5);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9482, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+        choice[0] = 0;
+        choice[1] = 0;
+        win0 = func_800E1824_name_81(0x14, 0xAE, 1);
+        win1 = func_800E1824_name_81(0x15, 0xBC, 1);
+        HuPrcSleep(20);
+        choice[0] = 1;
+        choice[1] = 2;
+        func_800E1854_minigame(win0);
+        func_800E1854_minigame(win1);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[0], 0, 2);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[1], 0, 2);
+        func_800EB708_name_81(&D_80108C20_opdueltutorial[0]->coords, &D_80108A34_opdueltutorial[(choice[0] - 1) * 2 + 0], &D_80108C20_opdueltutorial[0]->rot);
+        func_800EB708_name_81(&D_80108C20_opdueltutorial[1]->coords, &D_80108A34_opdueltutorial[(choice[1] - 1) * 2 + 1], &D_80108C20_opdueltutorial[1]->rot);
+        func_800EBF2C_name_81(&D_80108C20_opdueltutorial[0]->coords, &D_80108A34_opdueltutorial[(choice[0] - 1) * 2 + 0], &D_80108C20_opdueltutorial[0]->coords, 20);
+        func_800EBF2C_name_81(&D_80108C20_opdueltutorial[1]->coords, &D_80108A34_opdueltutorial[(choice[1] - 1) * 2 + 1], &D_80108C20_opdueltutorial[1]->coords, 20);
+        HuPrcSleep(20);
+        func_800EB708_name_81(&D_80108C20_opdueltutorial[0]->coords, &D_80108C14_opdueltutorial[1]->player_obj->coords, &dir[0]);
+        func_800EB708_name_81(&D_80108C20_opdueltutorial[1]->coords, &D_80108C14_opdueltutorial[0]->player_obj->coords, &dir[1]);
+        func_800EBC60_name_81(&D_80108C20_opdueltutorial[0]->rot, &dir[0], &D_80108C20_opdueltutorial[0]->rot, 10);
+        func_800EBC60_name_81(&D_80108C20_opdueltutorial[1]->rot, &dir[1], &D_80108C20_opdueltutorial[1]->rot, 10);
+        HuPrcSleep(10);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[0], -1, 2);
+        func_800D90D0_name_81(D_80108C20_opdueltutorial[1], -1, 2);
+        /* the partners join the status displays, sliding in */
+        func_800F8418_name_81(0, D_80101960_name_81[GwPlayer[0].chr], choice[0] - 1);
+        func_800F79DC_name_81(0);
+        if (choice[0] == 1) {
+            func_800F5BB4_name_81(0);
+            func_800F76F8_name_81(0, 0, 28, 0);
+        } else {
+            func_800F5EB0_name_81(0);
+            func_800F76F8_name_81(0, 0, -28, 1);
+        }
+        func_800F8418_name_81(1, D_80101960_name_81[GwPlayer[1].chr], choice[1] - 1);
+        if (choice[1] == 1) {
+            func_800F5BB4_name_81(1);
+            func_800F76F8_name_81(1, 0, 28, 0);
+        } else {
+            func_800F5EB0_name_81(1);
+            func_800F76F8_name_81(1, 0, -28, 1);
+        }
+        for (i = 28; i >= 0; i--) {
+            if (choice[0] == 1) {
+                func_800F76F8_name_81(0, 0, (s16)i, 0);
+            } else {
+                func_800F76F8_name_81(0, 0, (s16)-i, 1);
+            }
+            if (choice[1] == 1) {
+                func_800F76F8_name_81(1, 0, (s16)i, 0);
+            } else {
+                func_800F76F8_name_81(1, 0, (s16)-i, 1);
+            }
+            HuPrcVSleep();
+        }
+    }
+    func_800F79DC_name_81(1);
+    /* the starting coins */
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9483, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800F7228_name_81(0, 10, 1);
+    func_800F7228_name_81(1, 10, 0);
+    func_800EB7BC_name_81(&D_80108C14_opdueltutorial[0]->player_obj->rot);
+    func_800EB7BC_name_81(&D_80108C14_opdueltutorial[1]->player_obj->rot);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[0]->player_obj, 4, 0);
+    func_800D90D0_name_81(D_80108C14_opdueltutorial[1]->player_obj, 4, 0);
+    HuPrcSleep(60);
+    func_800D918C_name_81(D_80108C14_opdueltutorial[0]->player_obj, 0, 0, 5, 2);
+    func_800D918C_name_81(D_80108C14_opdueltutorial[1]->player_obj, 0, 0, 5, 2);
+    func_8005B43C_main(D_80108C2C_opdueltutorial, 9484, -1, -1);
+    func_80060C14_main(D_80108C2C_opdueltutorial, 1);
+    func_800EF754_name_81(D_80108C2C_opdueltutorial);
+    func_80060EA8_main(D_80108C2C_opdueltutorial, 1);
+    func_800610E0_main(D_80108C2C_opdueltutorial);
+}
 
 void func_80108774_opdueltutorial(void) {
     func_801062E0_opdueltutorial();
@@ -529,10 +940,6 @@ void func_80108908_opdueltutorial() {
     MBDBackClose();
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opdueltutorial/464360", D_80108BBC_opdueltutorial);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opdueltutorial/464360", D_80108BC4_opdueltutorial);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opdueltutorial/464360", D_80108BE4_opdueltutorial);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/opdueltutorial/464360", D_80108C08_opdueltutorial);
