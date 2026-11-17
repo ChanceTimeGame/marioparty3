@@ -1931,7 +1931,7 @@ segments:
     bss_size: 0x30
     subsegments:
       - [0x3D76C0, c]
-      - [0x3D8680, data, 3D76C0] #80106960
+      - [0x3D8680, .data, 3D76C0] #80106960
       - [0x3D86B0, .rodata, 3D76C0] #80106990
       - {0x3D8930, type: bss, vram: 0x80106C10, name: sldebug_bss}
 

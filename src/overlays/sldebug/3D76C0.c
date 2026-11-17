@@ -214,7 +214,98 @@ s32 func_8010612C_sldebug(void) {
     return 0;
 }
 
+/* the debug camera: pad 1 C up/down zoom, the stick turns, D-pad moves the centre (Z: faster), L resets;
+   pad 1 START toggles the text */
+#ifdef NON_MATCHING
+/* float register allocation (rx and speed swap f22/f24); retail loads &Center into s0 inside the 0x800/0x400
+   branches before their shared tail (the same residue as mgmode's func_8010B574_mgmode) */
+void func_80106254_sldebug(omObjData *obj) {
+    char buf[256];
+    f32 rx;
+    f32 ry;
+    f32 speed;
+    f32 dx;
+    f32 dz;
+    f32 inv;
+
+    if (D_800D5558_main[0] & 0x10) {
+        D_8010698C_sldebug ^= 1;
+    }
+    if (D_800CDA7C_main[0] & 0x1000) {
+        func_80106850_sldebug();
+    }
+    if (D_800CDA7C_main[0] & 8) {
+        CZoom = (D_800CDA7C_main[0] & 0x2000) ? CZoom + 30.0f : CZoom + 10.0f;
+    }
+    if ((D_800CDA7C_main[0] & 4) && CZoom - 10.0f != 0.0f) {
+        CZoom = (D_800CDA7C_main[0] & 0x2000) ? CZoom - 30.0f : CZoom - 10.0f;
+    }
+    rx = D_80106C20_sldebug.x;
+    ry = D_80106C20_sldebug.y;
+    if (D_800CDA7C_main[0] & 0x2000) {
+        speed = 5.0f;
+    } else {
+        speed = 2.0f;
+    }
+    ry += (-D_800CBB6E_main[0] / 30) * speed;
+    if (ry >= 360.0f) {
+        ry -= 360.0f;
+    } else if (ry < 0.0f) {
+        ry += 360.0f;
+    }
+    D_80106C20_sldebug.y = ry;
+    rx += (s8)(D_800D20A1_main[0] / 30) * speed;
+    if (rx >= 360.0f) {
+        rx -= 360.0f;
+    } else if (rx < 0.0f) {
+        rx += 360.0f;
+    }
+    D_80106C20_sldebug.x = rx;
+    CRot.x = (s16)D_80106C20_sldebug.x;
+    CRot.y = (s16)D_80106C20_sldebug.y;
+    if (D_800CDA7C_main[0] & 0x2000) {
+        speed = 10.0f;
+    } else {
+        speed = 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 0x800) {
+        dx = sindf(ry) * sindf(rx);
+        speed = -speed;
+        Center.x += dx * speed;
+        Center.y += cosdf(rx) * speed;
+        Center.z += cosdf(ry) * sindf(rx) * speed;
+    } else if (D_800CDA7C_main[0] & 0x400) {
+        dx = sindf(ry) * sindf(rx);
+        Center.x += dx * speed;
+        Center.y += cosdf(rx) * speed;
+        Center.z += cosdf(ry) * sindf(rx) * speed;
+    } else if (D_800CDA7C_main[0] & 0x200) {
+        dx = gCameraList->pos.z - Center.z;
+        dz = -(gCameraList->pos.x - Center.x);
+        inv = 1.0f / HuSqrtf(dx * dx + dz * dz);
+        Center.x += dx * inv * speed;
+        Center.y += 0.0f;
+        Center.z += dz * inv * speed;
+    } else if (D_800CDA7C_main[0] & 0x100) {
+        dx = -(gCameraList->pos.z - Center.z);
+        dz = gCameraList->pos.x - Center.x;
+        inv = 1.0f / HuSqrtf(dx * dx + dz * dz);
+        Center.x += dx * inv * speed;
+        Center.y += 0.0f;
+        Center.z += dz * inv * speed;
+    }
+    if (D_8010698C_sldebug != 0) {
+        sprintf(buf, "CROT %4.1f,%4.1f,%4.1f", CRot.x, CRot.y, CRot.z);
+        print8(32, 180, buf);
+        sprintf(buf, "INT %4.1f,%4.1f,%4.1f", Center.x, Center.y, Center.z);
+        print8(32, 190, buf);
+        sprintf(buf, "CZOOM %4.1f", CZoom);
+        print8(32, 200, buf);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/sldebug/3D76C0", func_80106254_sldebug);
+#endif
 
 void func_80106850_sldebug(void) {
     CRot = D_80106C10_sldebug;
@@ -236,3 +327,14 @@ void func_80106930_sldebug(omObjData *obj) {
         omOvlGotoEx(0x58, 0, 0x81);
     }
 }
+
+/* .data (0x3D8680) */
+u16 D_80106960_sldebug = 0;
+s32 D_80106964_sldebug = 4;
+u8 D_80106968_sldebug[13] = { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 2 };
+s32 D_80106978_sldebug = 0;
+s32 D_8010697C_sldebug = 0;
+s32 D_80106980_sldebug = 0;
+s32 D_80106984_sldebug = 0;
+s32 D_80106988_sldebug = 0;
+s16 D_8010698C_sldebug = 0;
