@@ -149,6 +149,9 @@ extern u8 D_8010AB7C_storyresult[];    /* score per result */
 extern u8 D_8010AB84_storyresult[];    /* score per last result */
 extern u8 D_8010AB8C_storyresult[];    /* rank thresholds */
 extern u8 D_8010AB90_storyresult[];    /* rank per duel coin count */
+extern s32 D_8010AB50_storyresult[];   /* record page titles (messages) */
+void func_8000BC48_main(u16 arg0, u16 arg1);
+s16 func_80108D34_storyresult(s16 page, SrRecWork *w);
 
 s16 func_800E905C_minigame(s16 slot);
 void func_800E9170_minigame(void);
@@ -330,7 +333,76 @@ Process *func_8010832C_storyresult(s16 *res, s16 slot) {
 }
 /*</func_8010832C_storyresult>*/
 
+/*<func_801083A4_storyresult>*/
+#ifdef NON_MATCHING
+/* Residue (masked ~10): retail reloads D_800CDA7C_main for each button test and sets the first bit with andi/sltu (this: srl/andi on one load); loop counters swap registers. */
+/* Event 3 (a test): fills every story record with top results, then shows minigame's record viewer
+   for the slot picked by buttons C-down/C-right/C-up (D_800CDA7C_main[0] bits 2, 0, 3) and exits. */
+void func_801083A4_storyresult(void) {
+    s16 res;
+    u16 spr;
+    s16 slot;
+    s16 n;
+    s32 i;
+    s32 j;
+    s16 v;
+
+    D_800CD280_main = 0;
+    func_801060D0_storyresult(D_8010AB9C_storyresult);
+    spr = InitEspriteSlot(func_8000B838_main(0x140067), 0, 0);
+    func_8000BC48_main(spr, 0x4000);
+    func_8000BBD4_main(spr, 160, 120);
+    WipeCreateIn(D_8010AC2A_storyresult, 0x10);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    for (i = 0, n = 4; i < 12; i++) {
+        GwStory.unk3[i] = 4;
+        if (++n >= 5) {
+            n = 1;
+        }
+    }
+    GwStory.unkF = 4;
+    GwStory.unk2 = 3;
+    GwStory.unk_64[2] = 1;
+    GwStory.unk_64[15] = 0;
+    GwStory.unk_64[1] = 4;
+    GwStory.unk_64[0] = 4;
+    for (i = 0, n = 4; i < 12; i++) {
+        v = (i < (u8)GwStory.unk_64[0]) ? n : 0;
+        GwStory.unk_64[3 + i] = v;
+        n = v + 1;
+        if (n >= 5) {
+            n = 1;
+        }
+    }
+    for (i = 0; i < 6; i++) {
+        GwStory.unk5E[i] = i & 3;
+        GwStory.unk58[i] = 4;
+        for (j = 0; j < 12; j++) {
+            GwStory.unk10[i][j] = 4;
+        }
+    }
+    slot = (D_800CDA7C_main[0] & 4) != 0;
+    if (D_800CDA7C_main[0] & 1) {
+        slot |= 2;
+    }
+    if (D_800CDA7C_main[0] & 8) {
+        slot |= 4;
+    }
+    func_8010832C_storyresult(&res, slot);
+    while (res >= 0) {
+        HuPrcVSleep();
+    }
+    D_8010A910_storyresult = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_801083A4_storyresult);
+#endif
+/*</func_801083A4_storyresult>*/
 
 /*<func_801085E8_storyresult>*/
 void func_801085E8_storyresult(s16 grp, s16 idx, s16 gfx, u16 prio, s32 x, s32 y) {
@@ -514,7 +586,60 @@ s16 func_80108D04_storyresult(SrRecWork *w) {
 }
 /*</func_80108D04_storyresult>*/
 
+/*<func_80108D34_storyresult>*/
+#ifdef NON_MATCHING
+/* Residue (masked 2): in the page 2 call retail computes &w->part[22] before storing mark to the stack (scheduling). */
+/* Shows record page `page`: 0/1 the results, 2 the last one, 3/5 the rank marks of the record,
+   4 those of the current story slot, 6 those of the saved copy. */
+s16 func_80108D34_storyresult(s16 page, SrRecWork *w) {
+    u8 *rec;
+    s16 odd;
+    SrRecPart *mark;
+    SrRecPart *num;
+    s16 ret;
+
+    ret = -1;
+    func_8005D294_main(w->win[4]);
+    func_8005B43C_main(w->win[4], D_8010AB50_storyresult[page], -2, -1);
+    w->winFade[4] = 1;
+    if (page < 2) {
+        odd = 0;
+        mark = &w->part[2];
+        if (page == 1) {
+            odd = 1;
+            mark = &w->part[8];
+        }
+        if (w->slot < 0) {
+            rec = GwStory.unk3;
+            num = &w->part[16];
+        } else {
+            rec = GwStory.unk10[w->slot];
+            num = &w->part[16];
+        }
+        ret = func_801086E4_storyresult(rec, odd, 0, 6, mark, num, w);
+    } else if (page == 2) {
+        if (w->slot < 0) {
+            rec = &GwStory.unkF;
+        } else {
+            rec = &GwStory.unk58[w->slot];
+        }
+        mark = &w->part[14];
+        ret = func_801086E4_storyresult(rec, 0, 6, 7, mark, &w->part[22], w);
+    } else if (page == 3) {
+        ret = func_80108884_storyresult(w);
+    } else if (page == 4) {
+        ret = func_80108CB8_storyresult(w);
+    } else if (page == 5) {
+        ret = func_80108884_storyresult(w);
+    } else if (page == 6) {
+        ret = func_80108D04_storyresult(w);
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108D34_storyresult);
+#endif
+/*</func_80108D34_storyresult>*/
 
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108F0C_storyresult);
 
