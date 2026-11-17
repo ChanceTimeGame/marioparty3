@@ -120,7 +120,7 @@ typedef struct {
 typedef struct SsEffect {
     /* 0x00 */ u16 active;
     /* 0x02 */ s16 model;
-    /* 0x04 */ u32 color; // RGBA
+    /* 0x04 */ RGBA color;
     /* 0x08 */ f32 frame;
     /* 0x0C */ f32 speed;
     /* 0x10 */ Vec pos;
@@ -129,7 +129,7 @@ typedef struct SsEffect {
 } SsEffect; // Size 0x34
 
 extern Vec D_8010D820_slot_synch[];
-extern u32 D_8010D868_slot_synch; // RGBA
+extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
 extern SsEffect *D_8010DF98_slot_synch;
 extern s32 D_8010DA40_slot_synch[];
@@ -395,12 +395,12 @@ void func_8010AAB8_slot_synch(void) {
     D_8010DF98_slot_synch = effect = HuMemAllocTag(sizeof(SsEffect) * 8, 0x7918);
     for (i = 0; i < 8; i++, effect++) {
         if (i == 0) {
-            effect->model = func_8010C4C0_slot_synch(spr, (RGBA *)&D_8010D868_slot_synch);
+            effect->model = func_8010C4C0_slot_synch(spr, &D_8010D868_slot_synch);
         } else {
-            effect->model = func_8010D0A8_slot_synch(spr, D_8010DF98_slot_synch->model, (RGBA *)&D_8010D868_slot_synch);
+            effect->model = func_8010D0A8_slot_synch(spr, D_8010DF98_slot_synch->model, &D_8010D868_slot_synch);
         }
         effect->active = 0;
-        effect->color = D_8010D868_slot_synch;
+        *(u32 *)&effect->color = *(u32 *)&D_8010D868_slot_synch;
         effect->frame = effect->speed = 0.0f;
         effect->pos.x = effect->pos.y = effect->pos.z = 0.0f;
         effect->vel.x = effect->vel.y = effect->vel.z = 0.0f;
@@ -412,9 +412,95 @@ void func_8010AAB8_slot_synch(void) {
 }
 // </func_8010AAB8_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AC14_slot_synch);
+// <func_8010AC14_slot_synch>
+void func_8010AC14_slot_synch(omObjData *obj) {
+    HuSprite_Unk84_Struct *spr;
+    SsEffect *effect;
+    HmfModel *model;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AD68_slot_synch);
+    i = 0;
+    spr = func_80055194_main(D_8010DF8C_slot_synch[1]);
+    effect = D_8010DF98_slot_synch;
+    do {
+        if (effect->active != 0) {
+            model = &HmfModelData[effect->model];
+            if (!(model->unk18 & 4)) {
+                effect->pos.x += effect->vel.x;
+                effect->pos.y += effect->vel.y;
+                effect->pos.z += effect->vel.z;
+                model->pos.x = effect->pos.x;
+                model->pos.y = effect->pos.y;
+                model->pos.z = effect->pos.z;
+                model->scale.x = effect->scale.x;
+                model->scale.y = effect->scale.y;
+                model->scale.z = effect->scale.z;
+                func_8010D2AC_slot_synch(effect->model, spr, (s32)effect->frame, &effect->color);
+                effect->frame += effect->speed;
+                if ((s32)effect->frame >= (s32)spr->unk10) {
+                    effect->active = 0;
+                    effect->frame = 0.0f;
+                    model->unk18 |= 4;
+                }
+            }
+        }
+        i++;
+        effect++;
+    } while (i < 8);
+}
+// </func_8010AC14_slot_synch>
+
+// <func_8010AD68_slot_synch>
+s32 func_8010AD68_slot_synch(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *color) {
+    HuSprite_Unk84_Struct *spr;
+    SsEffect *effect;
+    HmfModel *model;
+    s32 i;
+
+    spr = func_80055194_main(D_8010DF8C_slot_synch[1]);
+    for (i = 0, effect = D_8010DF98_slot_synch; i < 8; i++, effect++) {
+        if (effect->active == 0) {
+            effect->active = 1;
+            model = &HmfModelData[effect->model];
+            if (pos != NULL) {
+                effect->pos.x = pos->x;
+                effect->pos.y = pos->y;
+                effect->pos.z = pos->z;
+            } else {
+                effect->pos.x = effect->pos.y = effect->pos.z = 0.0f;
+            }
+            if (vel != NULL) {
+                effect->vel.x = vel->x;
+                effect->vel.y = vel->y;
+                effect->vel.z = vel->z;
+            } else {
+                effect->vel.x = effect->vel.y = effect->vel.z = 0.0f;
+            }
+            if (scale != NULL) {
+                effect->scale.x = scale->x;
+                effect->scale.y = scale->y;
+                effect->scale.z = scale->z;
+            } else {
+                effect->scale.x = effect->scale.y = effect->scale.z = 1.0f;
+            }
+            effect->color = *color;
+            effect->speed = speed;
+            effect->frame = 0.0f;
+            func_8010D2AC_slot_synch(effect->model, spr, 0, &effect->color);
+            func_8001C258_main(effect->model, 4, 0);
+            model->unk40 = 0.0f;
+            model->pos.x = effect->pos.x;
+            model->pos.y = effect->pos.y;
+            model->pos.z = effect->pos.z;
+            model->scale.x = effect->scale.x;
+            model->scale.y = effect->scale.y;
+            model->scale.z = effect->scale.z;
+            return i;
+        }
+    }
+    return -1;
+}
+// </func_8010AD68_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AF38_slot_synch);
 
