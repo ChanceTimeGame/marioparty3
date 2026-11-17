@@ -444,9 +444,7 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory1/496990.c.o
 W2DC_BLANKSTRIP += build/src/overlays/mgenter/46BB50.c.o
 # wave 3t s4: storyresult 54DD10 likewise (func_80106190: no nop before the mul.s after cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/storyresult/54DD10.c.o build/src/overlays/storyresult/54F360.c.o
-# wave 3t s5: mstory1 48C120 likewise (func_80105FF4_mstory1: no nop before the mul.s after the cosdf/sindf calls)
-W2DC_BLANKSTRIP += build/src/overlays/mstory1/48C120.c.o
-# wave 3u f1: mstory2 49BD40 likewise (func_801064AC_mstory2: no nop before the mul.s after cosdf/sindf)
+# wave 3u f1/f5: mstory2 49BD40 likewise (func_801064AC_mstory2, func_8011A74C_mstory2: no nop before the mul.s after cosdf/sindf)
 W2DC_BLANKSTRIP += build/src/overlays/mstory2/49BD40.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
