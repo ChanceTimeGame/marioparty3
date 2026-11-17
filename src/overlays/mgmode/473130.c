@@ -145,6 +145,8 @@ extern MgSprSlot *D_8011B450_mgmode;
 extern MgSprSlot *D_8011B480_mgmode;
 extern s16 D_8011B484_mgmode;
 extern u16 D_8011B488_mgmode[28];
+extern s16 D_8011B4C0_mgmode;
+extern s16 D_80119490_mgmode[]; /* [D_800CC438_main][7] */
 extern s16 D_8011B454_mgmode;
 extern s16 D_8011B458_mgmode[];
 extern u8 D_80119EB0_mgmode[];
@@ -1087,7 +1089,115 @@ u8 func_80110420_mgmode(s16 mg) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80110554_mgmode);
 
+/* NON_MATCHING: masked 29: GCC forms the sound id with a store-flag sequence where retail branches,
+ * and case 4 shares the spr[n] address (retail computes it twice); register allocation. */
+#ifdef NON_MATCHING
+s32 func_80111380_mgmode(void) {
+    u16 spr[4];
+    f32 alpha;
+    f32 scale;
+    s16 i;
+    s16 n;
+    s32 y;
+    s16 t;
+    s32 se;
+    u16 *ptr;
+    s16 mask;
+    s16 p;
+
+    n = 0;
+    if (D_8011B434_mgmode == 0) {
+        return 0;
+    }
+    switch (D_800D4194_main) {
+        case 0:
+        case 3:
+            for (i = 0; i < D_8011B434_mgmode; i++) {
+                p = D_8011B430_mgmode[i];
+                spr[i] = D_8011B488_mgmode[D_8011B4C0_mgmode];
+                n++;
+                func_8000BB54_main(spr[i]);
+                func_8000BBD4_main(spr[i], D_80119490_mgmode[D_800CC438_main * 7 + D_800D03FE_main[p]] + 180, p * 24 + 80);
+                D_8011B4C0_mgmode++;
+            }
+            break;
+        case 1:
+            mask = 0;
+            for (i = 0; i < D_8011B434_mgmode; i++) {
+                p = D_8011B430_mgmode[i];
+                if (!((mask >> D_800D1F20_main[p]) & 1)) {
+                    mask |= 1 << D_800D1F20_main[p];
+                    spr[n] = D_8011B488_mgmode[D_8011B4C0_mgmode];
+                    func_8000BB54_main(spr[n]);
+                    func_8000BBD4_main(spr[n], D_80119490_mgmode[D_800CC438_main * 7 + D_800D03FE_main[p]] + 180,
+                                       D_800D1F20_main[p] * 48 + 93);
+                    n++;
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+        case 2:
+            mask = 0;
+            for (i = 0; i < D_8011B434_mgmode; i++) {
+                p = D_8011B430_mgmode[i];
+                if (!((mask >> D_800D1F20_main[p]) & 1)) {
+                    mask |= 1 << D_800D1F20_main[p];
+                    spr[n] = D_8011B488_mgmode[D_8011B4C0_mgmode];
+                    y = 128;
+                    if (D_800D1F20_main[p] == 0) {
+                        y = 80;
+                    }
+                    func_8000BB54_main(spr[n]);
+                    func_8000BBD4_main(spr[n], D_80119490_mgmode[D_800CC438_main * 7 + D_800D03FE_main[p]] + 180, y);
+                    n++;
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+        case 4:
+            for (i = 0; i < D_8011B434_mgmode; i++) {
+                p = D_8011B430_mgmode[i];
+                spr[n] = D_8011B488_mgmode[D_8011B4C0_mgmode];
+                ptr = &spr[n];
+                n++;
+                func_8000BB54_main(*ptr);
+                func_8000BBD4_main(*ptr, D_80119490_mgmode[D_800CC438_main * 7 + D_800D03FE_main[p]] + 180, p * 24 + 104);
+                D_8011B4C0_mgmode++;
+            }
+            break;
+    }
+    for (i = 0; i < D_8011B434_mgmode; i++) {
+        D_800D03FE_main[D_8011B430_mgmode[i]]++;
+    }
+    D_8011B434_mgmode = 0;
+    for (i = 0; i < 4; i++) {
+        if (D_800D03FE_main[i] >= D_80119430_mgmode[D_800CC438_main]) {
+            D_8011B430_mgmode[D_8011B434_mgmode] = i;
+            D_8011B434_mgmode++;
+            if (!(GwPlayer[i].stat & 1)) {
+                RepeatVibrator(GwPlayer[i].pad, 10, 0, 10);
+            }
+        }
+    }
+    se = 0x24A;
+    if (D_8011B434_mgmode != 0) {
+        se = 0x24B;
+    }
+    HuAudFXPlay(se);
+    for (t = 0; t < 31; t++) {
+        alpha = sindf(t * 3.0f) * 255.0f;
+        scale = 2.0f * sindf(t * 5.0f);
+        for (i = 0; i < n; i++) {
+            func_8000BBFC_main(spr[i], alpha);
+            func_8000BE5C_main(spr[i], scale, scale);
+        }
+        HuPrcVSleep();
+    }
+    return D_8011B434_mgmode != 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111380_mgmode);
+#endif
 
 s32 func_80111B08_mgmode(void) {
     s16 i;
