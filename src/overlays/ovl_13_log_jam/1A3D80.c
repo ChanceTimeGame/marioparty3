@@ -25,14 +25,14 @@ typedef struct LjPlayer {
     /* 0x1A */ s16 unk1A; /* controller port */
     /* 0x1C */ s16 unk1C; /* character */
     /* 0x1E */ s16 unk1E; /* CPU */
-    /* 0x20 */ u16 unk20; /* CPU difficulty */
+    /* 0x20 */ s16 unk20; /* CPU difficulty */
     /* 0x22 */ s16 unk22;
-    /* 0x24 */ s16 unk24;
+    /* 0x24 */ s16 unk24; /* CPU: target, -1 none */
     /* 0x26 */ s16 unk26;
-    /* 0x28 */ s16 unk28;
-    /* 0x2A */ s16 unk2A;
-    /* 0x2C */ s16 unk2C;
-    /* 0x2E */ s16 unk2E;
+    /* 0x28 */ s16 unk28; /* CPU: frames since the last press */
+    /* 0x2A */ s16 unk2A; /* CPU: frames to wait */
+    /* 0x2C */ u16 unk2C; /* CPU: buttons to press */
+    /* 0x2E */ s16 unk2E; /* CPU: misses in a row */
     /* 0x30 */ s16 unk30; /* CPU: 4 - difficulty */
     /* 0x32 */ s16 unk32; /* motion */
     /* 0x34 */ s16 unk34;
@@ -136,6 +136,8 @@ extern s16 D_8010DFCC_log_jam[4]; /* player object marks */
 extern s32 D_8010DFD4_log_jam[]; /* per character: voice directory */
 extern s32 D_8010DFF4_log_jam[]; /* voice files; (s16) = the low half (D_8010DFF6, D_8010DFFE) */
 extern s32 D_800A178C_main[][6];
+extern s32 D_8010E004_log_jam[3]; /* model slots of the carried log */
+extern u16 D_800D5558_main[];
 
 extern omObjData* D_8010E590_log_jam;
 extern s32 D_8010E594_log_jam;
@@ -617,15 +619,130 @@ void func_80106F48_log_jam(omObjData* obj) {
     func_8010C8B0_log_jam(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106FAC_log_jam);
+void func_80106FAC_log_jam(void) {
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            if (D_800EC598_minigame[i]->model[D_8010E004_log_jam[j]] != -1) {
+                func_8001ACDC_main(D_800EC598_minigame[i]->model[D_8010E004_log_jam[j]]);
+                D_800EC598_minigame[i]->model[D_8010E004_log_jam[j]] = -1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80107080_log_jam);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80107C84_log_jam);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108840_log_jam);
+/* CPU input of the hook player (role 1). */
+void func_80108840_log_jam(omObjData* obj, LjTeam* team) {
+    LjPlayer* pl = func_8010C588_log_jam(obj);
+    LjPlayer* partner = team->unk0C;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108A80_log_jam);
+    D_800D5558_main[pl->unk1A] = 0;
+    switch (pl->unk08) {
+    case 1:
+    case 3:
+    case 4:
+        pl->unk2C = 0;
+        break;
+    case 2:
+        if (pl->unk2C != 0) {
+            D_800D5558_main[pl->unk1A] |= pl->unk2C;
+        } else if (pl->unk28 > pl->unk2A) {
+            if ((u8)(rand8() % 100) < pl->unk20 * 13 + 50 || pl->unk2E >= pl->unk30 || partner->unk1E == 0) {
+                switch (pl->unk24) {
+                case 0:
+                    pl->unk2C |= 0x8000;
+                    break;
+                case 1:
+                    pl->unk2C |= 0x4000;
+                    break;
+                default:
+                    pl->unk2C |= 0x2000;
+                    break;
+                }
+                pl->unk2E = 0;
+            } else {
+                switch (pl->unk24) {
+                case 0:
+                    pl->unk2C |= 0x2000;
+                    break;
+                case 1:
+                    pl->unk2C |= 0x8000;
+                    break;
+                default:
+                    pl->unk2C |= 0x4000;
+                    break;
+                }
+                pl->unk2E++;
+            }
+            pl->unk28 = 0;
+            pl->unk2A = (u8)(rand8() % 3) + (6 - pl->unk20 * 2) * 2;
+        }
+        break;
+    }
+    pl->unk28++;
+}
+
+/* CPU input of the other player (role 0). */
+void func_80108A80_log_jam(omObjData* obj, LjTeam* team) {
+    LjPlayer* pl = func_8010C588_log_jam(obj);
+    LjPlayer* partner = team->unk08;
+    s16 target;
+
+    D_800D5558_main[pl->unk1A] = 0;
+    if (team->unk16 != -1) {
+        target = team->unk18;
+    } else {
+        target = pl->unk24;
+    }
+    switch (pl->unk08) {
+    case 7:
+        if (pl->unk2C & 0xE000) {
+            D_800D5558_main[pl->unk1A] |= pl->unk2C;
+        } else if (pl->unk28 > pl->unk2A && target != -1) {
+            if ((u8)(rand8() % 100) < pl->unk20 * 13 + 50 || pl->unk2E >= pl->unk30 || partner->unk1E == 0) {
+                switch (target) {
+                case 0:
+                    pl->unk2C |= 0x8000;
+                    break;
+                case 1:
+                    pl->unk2C |= 0x4000;
+                    break;
+                default:
+                    pl->unk2C |= 0x2000;
+                    break;
+                }
+                pl->unk2E = 0;
+            } else {
+                switch (target) {
+                case 0:
+                    pl->unk2C |= 0x2000;
+                    break;
+                case 1:
+                    pl->unk2C |= 0x8000;
+                    break;
+                default:
+                    pl->unk2C |= 0x4000;
+                    break;
+                }
+                pl->unk2E++;
+            }
+            pl->unk28 = 0;
+            pl->unk2A = (u8)(rand8() % 10) + 16 - pl->unk20 * 2;
+        }
+        break;
+    case 8:
+    case 9:
+        pl->unk2C = 0;
+        break;
+    }
+    pl->unk28++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108CE0_log_jam);
 
