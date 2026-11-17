@@ -23,6 +23,29 @@ typedef struct LjPlayer {
 } LjPlayer; // Size 0x38
 
 /* One team (D_8010E5AC_log_jam, 2 x 0x48). */
+typedef struct {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} LjRGBA;
+
+/* One log (D_8010E5C4_log_jam, 32 x 0x78). */
+typedef struct LjLog {
+    /* 0x00 */ s16 unk00; /* index */
+    /* 0x02 */ s16 unk02[3]; /* models */
+    /* 0x08 */ s16 unk08; /* active */
+    /* 0x0A */ s16 unk0A; /* kind */
+    /* 0x0C */ s16 unk0C; /* state */
+    /* 0x0E */ u16 unk0E; /* state timer */
+    /* 0x10 */ Vec unk10; /* position */
+    /* 0x1C */ Vec unk1C; /* rotation */
+    /* 0x28 */ Vec unk28;
+    /* 0x34 */ u8 unk34[0x20]; /* work for unk74 */
+    /* 0x54 */ u8 unk54[0x20];
+    /* 0x74 */ void (*unk74)(struct LjLog*);
+} LjLog; // Size 0x78
+
 typedef struct LjTeam {
     /* 0x00 */ omObjData* unk00; /* player objects */
     /* 0x04 */ omObjData* unk04;
@@ -68,6 +91,22 @@ void func_8010A724_log_jam(void);
 void func_8010ABA4_log_jam(void);
 void func_8010B04C_log_jam(void);
 void func_8010C55C_log_jam(omObjData* obj, void* data);
+void func_80107080_log_jam(omObjData* obj, LjTeam* team);
+void func_80107C84_log_jam(omObjData* obj, LjTeam* team);
+void func_8010A6FC_log_jam(s16 team, s16 score);
+LjLog* func_8010910C_log_jam(s16 idx);
+void func_8010925C_log_jam(s16 idx);
+s32 func_8010A9D4_log_jam(Vec* pos, Vec* vel, Vec* scale, f32 speed, LjRGBA* color);
+f32 func_8010C514_log_jam(f32 target, f32 cur, f32 step);
+void func_80106F48_log_jam(omObjData* obj);
+void func_8010C5DC_log_jam(omObjData* obj, s16 arg1, s16 arg2);
+void func_8010C714_log_jam(omObjData* obj, s16 arg1, s16 arg2);
+void func_8010C7F8_log_jam(omObjData* obj);
+void func_8010C8B0_log_jam(omObjData* obj);
+s16 func_80109A7C_log_jam(s16 kind, s16 part);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+void func_8008A070_main(f32 (*mf)[4]);
+void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
 
 extern Vec D_8010DE90_log_jam[]; /* player start positions (D_8010DE98 = [0].z) */
@@ -91,6 +130,11 @@ extern LjPlayer* D_8010E5B8_log_jam;
 extern s16 D_8010E5BC_log_jam;
 extern void* D_8010E5CC_log_jam;
 extern D_80111B50_vine_with_me_Struct D_8010E640_log_jam;
+extern Vec D_8010DF30_log_jam[2]; /* D_8010DF38 = [0].z */
+extern LjRGBA D_8010DF48_log_jam;
+extern LjRGBA D_8010DF4C_log_jam;
+extern LjLog* D_8010E5C4_log_jam;
+extern omObjData* D_8010E5C0_log_jam;
 // end m1 lj1
 
 void func_801059A0_log_jam(void) {
@@ -389,9 +433,64 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106190_log
 #endif
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E1F0_log_jam);
+const Vec D_8010E1F0_log_jam = { 0.7f, 0.7f, 0.7f }; /* effect scale */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_801065E8_log_jam);
+void func_801065E8_log_jam(omObjData* obj) {
+    Vec pos;
+    Vec scale = D_8010E1F0_log_jam;
+    LjTeam* team;
+    LjLog* log;
+    s16 done;
+
+    done = 0;
+    team = func_8010C588_log_jam(obj);
+    func_80107080_log_jam(team->unk00, team);
+    func_80107C84_log_jam(team->unk04, team);
+    if (team->unk12 >= 30) {
+        team->unk12 = 29;
+    }
+    func_8010A6FC_log_jam(team->unk10, team->unk12);
+    if (func_800E6E8C_minigame() == 3 && team->unk16 != -1) {
+        log = func_8010910C_log_jam(team->unk16);
+        pos.x = log->unk10.x;
+        pos.z = log->unk10.z;
+        pos.y = log->unk10.y + 40.00000059604645;
+        func_8010A9D4_log_jam(&pos, NULL, &scale, 1.0f, &D_8010DF4C_log_jam);
+        func_8010925C_log_jam(team->unk16);
+        team->unk16 = team->unk18 = -1;
+    }
+    if (team->unk1C != -1) {
+        team->unk30.x += team->unk40;
+        team->unk30.y += team->unk44;
+        team->unk24.y += team->unk3C;
+        team->unk3C -= 1.6333001f;
+        team->unk24.x = func_8010C514_log_jam(D_8010DF30_log_jam[(s16)(team->unk10 ^ 1)].x, team->unk24.x, 7.0f);
+        team->unk24.z = func_8010C514_log_jam(D_8010DF30_log_jam[(s16)(team->unk10 ^ 1)].z, team->unk24.z, 7.0f);
+        if (team->unk24.y < 184.0000033378601 && team->unk3C <= 0.0f) {
+            done = 1;
+            team->unk30.x = -225.0f;
+            team->unk24.y = 184.0f;
+        }
+        Hu3DModelPosSet(team->unk1C, team->unk24.x, team->unk24.y, team->unk24.z);
+        Hu3DModelRotSet(team->unk1C, 0.0f, team->unk30.y, 0.0f);
+        if (team->unk20 >= 0) {
+            pos.x = team->unk24.x;
+            pos.z = team->unk24.z;
+            pos.y = team->unk24.y - 50.0;
+            func_8010A9D4_log_jam(&pos, NULL, &scale, 1.0f, &D_8010DF4C_log_jam);
+            func_8001C258_main(team->unk1C, 4, 4);
+            done = 1;
+        }
+        func_8008A070_main((f32(*)[4])HmfModelData[team->unk1C].mtx);
+        func_80017C10_main((Mtx*)HmfModelData[team->unk1C].mtx, 0.0f, -50.0f, 0.0f);
+        func_80017D24_main((f32(*)[4])HmfModelData[team->unk1C].mtx, team->unk30.x, 0.0f, 0.0f);
+        team->unk20++;
+        if (done != 0) {
+            team->unk1C = -1;
+        }
+    }
+    team->unk1A++;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E218_log_jam);
 
