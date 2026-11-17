@@ -241,6 +241,28 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80116168_duel04);
 GW_PLAYER *MBDGetPlayerStruct(s32 playerIndex);
 void func_800E9F4C_name_81(s32, s8 *, s8 *);
 void func_80118850_duel04(void);
+s16 MBDGetCurrentPlayerIndex(void);
+s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
+SpaceData *MBDMasuGet(s16 spaceIdx);
+void func_800E27D4_name_81(s16 playerIndex, Vec *pos, Vec *frontPos, Vec *backPos);
+UnkEA790Struct *func_800D76A0_name_81(s16 arg0, s16 *arg1);
+s32 func_800D742C_name_81(UnkEA790Struct *arg0, s16 playerNo, s32 arg2);
+s32 func_800D7250_name_81(UnkEA790Struct *arg0, s32 arg1);
+s32 func_800D7518_name_81(UnkEA790Struct *arg0);
+void func_800D6CA0_name_81(void *arg0);
+s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
+void func_800ECDE8_name_81(void);
+Process *func_800ED70C_name_81(s32 playerNo, s32 hop);
+Process *func_800EDC6C_name_81(s32 playerNo, s32 hop);
+void func_800ED788_name_81(s32 playerNo);
+void func_800F38DC_name_81(s32, s32, s32);
+s32 func_800F37B8_name_81(s16 playerIndex);
+void func_80105A58_duel04(void);
+void func_80105B10_duel04(void);
+extern s16 D_8011ADDC_duel04[];
+extern DecisionTreeNonLeafNode D_8011AB30_duel04[];
+extern DecisionTreeNonLeafNode D_8011AB54_duel04[];
+extern DecisionTreeNonLeafNode D_8011AB78_duel04[];
 void func_80118D14_duel04(void);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
@@ -508,16 +530,127 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118850_duel04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118D14_duel04);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80119840_duel04);
+void func_80119840_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    switch (MBDMasuLinkMasuIdGet(player->blink, player->bidx)) {
+    case 7:
+        func_800E9F4C_name_81(0x13, &player->nlink, &player->nidx);
+        break;
+    case 0x13:
+        func_800E9F4C_name_81(7, &player->nlink, &player->nidx);
+        break;
+    case 0xD:
+        func_800E9F4C_name_81(0x19, &player->nlink, &player->nidx);
+        break;
+    case 0x19:
+        func_800E9F4C_name_81(0xD, &player->nlink, &player->nidx);
+        break;
+    }
+}
 
 void func_801198EC_duel04(void) {
     func_80118D14_duel04();
     func_80118850_duel04();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80119910_duel04);
+/* board ea3: retail moves the front point in z and the back point in x (duel01's twin moves both in x) */
+void func_80119910_duel04(void) {
+    Vec pos[3]; // center, front, back
+    GW_PLAYER *player;
+    SpaceData *space;
+    s8 playerNo;
 
+    playerNo = GwSystem.current_player_index ^ 1;
+    player = MBDGetPlayerStruct(playerNo);
+    func_800E9F4C_name_81(0x20, &player->clink, &player->cidx);
+    func_800E9F4C_name_81(0x13, &player->nlink, &player->nidx);
+    func_800E9F4C_name_81(0xD, &player->blink, &player->bidx);
+    player->rev = 0;
+    player->nnlink = -2;
+    player->nnidx = -2;
+    space = MBDMasuGet(0x20);
+    HuVecAdd(&pos[0], &space->coords, &MBDMasuGet(0x1F)->coords);
+    HuVecMulScalar(&pos[0], 0.5f, &pos[0]);
+    HuVecCopy3F(&pos[1], &pos[0]);
+    pos[1].z -= 12.0f;
+    HuVecCopy3F(&pos[2], &pos[0]);
+    pos[2].x += 12.0f;
+    func_800E27D4_name_81(playerNo, &pos[0], &pos[1], &pos[2]);
+}
+
+#ifdef NON_MATCHING
+// board ea3: masked 24 (185 vs 184): retail keeps the third tree's count as a branch (count = 2 in the
+// call's delay slot, bnezl count = 3, blez before the loop); this C gets store-flag arithmetic there.
+void func_80119A30_duel04(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    Process *process;
+    s32 result;
+    s32 i;
+    s32 count;
+    s32 playerNo;
+
+    player = MBDGetPlayerStruct(-1);
+    playerNo = MBDGetCurrentPlayerIndex();
+    if (player->nnlink == -2 && player->nnidx == player->nnlink) {
+        player->nnlink = -1;
+        player->nnidx = -1;
+        func_800F38DC_name_81(-1, -1, 2);
+        HuPrcVSleep();
+        func_80105A58_duel04();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ADDC_duel04);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            if (func_800D97B0_name_81(D_8011AB30_duel04) == 0) {
+                count = 0;
+            } else if (func_800D97B0_name_81(D_8011AB54_duel04) == 0) {
+                count = 1;
+            } else {
+                count = 2;
+                if (func_800D97B0_name_81(D_8011AB78_duel04) != 0) {
+                    count = 3;
+                }
+            }
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel04();
+        switch (result) {
+        case 0:
+            break;
+        case 1:
+            func_800E9F4C_name_81(0xD, &player->nlink, &player->nidx);
+            func_800E9F4C_name_81(0x13, &player->blink, &player->bidx);
+            process = func_800ED70C_name_81(playerNo, 1);
+            if (process != NULL) {
+                HuPrcChildLink(HuPrcCurrentGet(), process);
+            }
+            process = func_800EDC6C_name_81(playerNo, 0);
+            if (process != NULL) {
+                HuPrcChildLink(HuPrcCurrentGet(), process);
+            }
+            HuPrcChildWait();
+            break;
+        case 2:
+            func_800E9F4C_name_81(7, &player->nlink, &player->nidx);
+            func_800ED788_name_81(playerNo);
+            break;
+        case 3:
+            func_800E9F4C_name_81(0x19, &player->nlink, &player->nidx);
+            func_800ED788_name_81(playerNo);
+            break;
+        }
+        func_800ECDE8_name_81();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80119A30_duel04);
+#endif
 
 // board ea3: the board's .data (0x424BE0-0x426370; 4108E0.c holds the first 0x30 bytes)
 void func_8010682C_duel04();
