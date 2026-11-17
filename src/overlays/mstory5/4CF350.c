@@ -246,9 +246,52 @@ void func_80109B30_mstory5(omObjData *obj) {
     D_801151F0_mstory5[1].func = STORY5_IDLE;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80109E70_mstory5);
+// retail loads HmfModelData into a0 before the index is scaled (scheduling)
+#ifdef NON_MATCHING
+/* actor 1 turns and leaves */
+void func_80109E70_mstory5(omObjData *obj) {
+    Vec pos;
+    HmfModel *m;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80109F48_mstory5);
+    m = HmfModelData;
+    m += obj->model[1];
+    pos.x = m->pos.x;
+    pos.y = m->pos.y;
+    pos.z = m->pos.z;
+    func_80107228_mstory5(obj, 0.0f, 90.0f, 0.0f, 20);
+    func_80106FC8_mstory5(obj, pos.x + 1000.0f, pos.y, pos.z, 30);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_801151F0_mstory5[1].func = STORY5_IDLE;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80109E70_mstory5);
+#endif
+
+/* actor 1 hops */
+void func_80109F48_mstory5(omObjData *obj) {
+    Vec pos;
+    Vec start;
+    s16 model;
+    s32 i;
+
+    model = obj->model[1];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    pos.y = HmfModelData[model].pos.y;
+    i = 0;
+    do {
+        pos.x = HmfModelData[model].pos.x;
+        pos.z = HmfModelData[model].pos.z;
+        Hu3DModelPosSet(model, pos.x, sindf(i * 15.0f) * 80.0f + pos.y, pos.z);
+        i++;
+        HuPrcVSleep();
+    } while (i < 12);
+    Hu3DModelPosSet(model, start.x, start.y, start.z);
+    func_801068E4_mstory5(obj->model[1], D_80115380_mstory5, D_80115370_mstory5[2]);
+    D_801151F0_mstory5[1].func = STORY5_IDLE;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010A0A8_mstory5);
 
