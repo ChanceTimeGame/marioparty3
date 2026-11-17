@@ -81,6 +81,7 @@ extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
 f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
 void func_80032FC0_main(s16, s32, s32);
 s16 func_800329B4_main(void *);
+void func_8000CFA4_main(s16, f32, f32, f32);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 void *func_8001D33C_main(s16, const char *);
 void func_8002FD8C_main(s16, s16, const char *, s16, s16);
@@ -133,8 +134,11 @@ void func_80110774_mstory3(omObjData *obj);
 void func_80110978_mstory3(omObjData *obj);
 void func_80110998_mstory3(omObjData *obj);
 void func_80110A84_mstory3(omObjData *obj);
+void func_80110CAC_mstory3(void);
 void func_80110CB4_mstory3(void);
 void func_80110E30_mstory3(omObjData *obj);
+void func_80110F04_mstory3(omObjData *obj);
+void func_80110FE8_mstory3(omObjData *obj);
 void func_80111064_mstory3(omObjData *obj);
 void func_801110B4_mstory3(void);
 /* the other ranges of this unit */
@@ -1080,7 +1084,32 @@ void func_80110A84_mstory3(omObjData *obj) {
 void func_80110CAC_mstory3(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80110CB4_mstory3);
+/* actor 1 */
+void func_80110CB4_mstory3(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 0x14, 0x14, -1, NULL);
+    S3A[1].obj = obj;
+    S3A[1].unk08 = 0;
+    S3A[1].func = func_8010D774_mstory3;
+    S3A[1].unk0C = 0;
+    S3A[1].unk10 = 0x1F;
+    obj->model[1] = func_8000B108_main(0x90000, 0x2B9);
+    obj->model[2] = Hu3DModelLink(D_80115D8C_mstory3);
+    func_8000B460_main(obj, 0, 0x90004);
+    func_8000B460_main(obj, 1, 0x1D007A);
+    func_8000B460_main(obj, 2, 0x1D0051);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 30, 2);
+    Hu3DModelPosSet(obj->model[1], 150.0f, 0.0f, 384.0f);
+    Hu3DModelPosSet(obj->model[2], 150.0f, -5.0f, 384.0f);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 340.0f, 0.0f);
+    omPrcSetDestructor(0, func_80110CAC_mstory3);
+    while (TRUE) {
+        S3A[1].func(obj);
+        HuPrcVSleep();
+    }
+}
+
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory3/4B9A30", D_80115908_mstory3);
 
@@ -1098,13 +1127,52 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory3/4B9A30", D_80115950_mstory3);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory3/4B9A30", D_8011595C_mstory3);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80110E30_mstory3);
+const Vec D_80115974_mstory3 = { 200.0f, 0.0f, 1200.0f };
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80110F04_mstory3);
+void func_80110E30_mstory3(omObjData *obj) {
+    HuAudFXPlay(0x28E);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[2]].unk02, 0, 10, 2);
+    S3A[1].unk0C = 1;
+    S3A[1].unk10 = 0x28;
+    func_80106DC4_mstory3(obj, (Vec *)&D_80115974_mstory3, 40);
+    S3A[1].unk0C = 0;
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    S3A[1].func = func_8010D774_mstory3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80110FE8_mstory3);
+/* actor 8's model 2 drifts along x; its model 5 follows 40 below */
+void func_80110F04_mstory3(omObjData *obj) {
+    Vec pos;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80111064_mstory3);
+    pos.x = HmfModelData[S3A[8].obj->model[2]].pos.x;
+    pos.y = HmfModelData[S3A[8].obj->model[2]].pos.y;
+    pos.z = HmfModelData[S3A[8].obj->model[2]].pos.z;
+    pos.x += 0.5f;
+    Hu3DModelPosSet(S3A[8].obj->model[2], pos.x, pos.y, pos.z);
+    func_8000CFA4_main(S3A[8].obj->model[5], pos.x, pos.y - 40.0f, pos.z);
+}
+
+void func_80110FE8_mstory3(omObjData *obj) {
+    omObjData *a2 = S3A[2].obj;
+
+    func_8001C258_main(a2->model[1], 4, 0);
+    func_8001C258_main(a2->model[2], 4, 0);
+    func_801061C4_mstory3();
+    HuPrcSleep(3);
+    func_80106220_mstory3();
+    S3A[1].func = func_8010D774_mstory3;
+}
+
+const Vec D_80115980_mstory3 = { 138.0f, 100.0f, 214.0f };
+
+void func_80111064_mstory3(omObjData *obj) {
+    func_80106DE0_mstory3(S3A[3].obj, (Vec *)&D_80115980_mstory3, 180, 0);
+    S3A[1].func = func_8010D774_mstory3;
+}
+
+
+
 
 void func_801110AC_mstory3(void) {
 }
