@@ -18,6 +18,28 @@ extern s16 func_801182DC_mgmode(s16, s8);
 extern void func_80118D0C_mgmode(void);
 extern void func_80118CD8_mgmode(void);
 
+typedef f32 Matrix4f[4][4];
+
+/* model part looked up by name; only its matrix at 0x58 is used here */
+typedef struct MgModelPart {
+    /* 0x00 */ char unk_00[0x58];
+    /* 0x58 */ Matrix4f mtx;
+} MgModelPart;
+
+void* func_8001D33C_main(s16, const char*);
+void func_8002367C_main(Matrix4f, Matrix4f);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+
+/* sprite file list entry for func_80116794_mgmode */
+typedef struct MgSprFile {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ s32 attr;
+    /* 0x08 */ s32 unk8;
+} MgSprFile;
+
+extern s32 func_80116794_mgmode(MgSprFile*, MgSprFile*, s32);
+extern u8 D_800CB8B1_main[];
+
 /* overlay .data (shared by every mgmode unit, still asm) */
 extern u8 D_80118EB1_mgmode;
 extern u8 D_80118EB2_mgmode;
@@ -27,12 +49,21 @@ extern u8 D_80119170_mgmode[];
 extern s32 D_80119190_mgmode[];
 extern s32 D_801191E4_mgmode[];
 extern Gfx D_80119290_mgmode[];
+extern s8 D_801192FC_mgmode[];
+extern s8 D_80119310_mgmode[];
+extern u16 D_80119320_mgmode[];
+extern u16 D_8011932C_mgmode[];
+extern MgSprFile D_8011988C_mgmode[];
+extern MgSprFile D_801198BC_mgmode[];
+extern MgSprFile D_801198C8_mgmode[]; /* D_801198BC_mgmode[1] */
 
 /* overlay .bss */
 extern char D_8011A708_mgmode[];
 extern Vec D_8011AA80_mgmode[][25];
 extern char D_8011A400_mgmode[]; /* "00" */
 extern char D_8011A430_mgmode[]; /* "%d" */
+extern char D_8011A46C_mgmode[]; /* "moniter_R" */
+extern Matrix4f D_8011A808_mgmode;
 extern u16* D_8011B3E0_mgmode;
 extern s16 D_8011B3E4_mgmode;
 extern s8 D_8011B3E6_mgmode[];
@@ -42,6 +73,7 @@ extern s16 D_8011B6A8_mgmode;
 extern s16 D_8011B808_mgmode;
 extern s16 D_8011B884_mgmode;
 extern s16 D_8011B8B2_mgmode;
+extern s16 D_8011B8B4_mgmode;
 extern s16 D_8011B8B6_mgmode[];
 extern s16 D_8011B8C4_mgmode;
 extern s16 D_8011B928_mgmode[];
@@ -52,6 +84,7 @@ extern s16 D_8011B95A_mgmode;
 void func_80108DDC_mgmode(s16);
 void func_80108CF4_mgmode(s16);
 void func_801090C4_mgmode(s16);
+void func_80107D0C_mgmode(s32, s16, s16);
 void func_8010BD98_mgmode(omObjData*);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_801059A0_mgmode);
@@ -169,7 +202,78 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A49C_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_80107D0C_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_80108824_mgmode);
+void func_80108824_mgmode(s32 arg0) {
+    s16 total;
+    s16 choice;
+    s16 i;
+    MgModelPart* part;
+
+    total = D_8011B928_mgmode[0] + D_8011B928_mgmode[1] + D_8011B928_mgmode[2] + D_8011B928_mgmode[3] +
+            D_8011B928_mgmode[4] + D_8011B928_mgmode[5] + D_8011B928_mgmode[7];
+    if (total < 0) {
+        total = 0;
+    }
+    sprintf(D_8011A708_mgmode, D_8011A430_mgmode, total);
+    func_8005B6BC_main(D_8011B6A0_mgmode, (u32)D_8011A708_mgmode, 0);
+    if (arg0 == 0) {
+        func_8005B43C_main(D_8011B6A0_mgmode, 0x570B, -1, -1);
+        func_80061388_main(D_8011B6A0_mgmode);
+        while (func_8005E0C0_main(D_8011B6A0_mgmode)) {
+            HuPrcVSleep();
+        }
+        func_8005B43C_main(D_8011B6A0_mgmode, 0x5712, -1, -1);
+        while (func_8005E0C0_main(D_8011B6A0_mgmode)) {
+            HuPrcVSleep();
+        }
+    } else {
+        func_8005B43C_main(D_8011B6A0_mgmode, 0x5712, -1, -1);
+        func_80061388_main(D_8011B6A0_mgmode);
+        while (func_8005E0C0_main(D_8011B6A0_mgmode)) {
+            HuPrcVSleep();
+        }
+    }
+    choice = func_8005E1D8_main(D_8011B6A0_mgmode, 0, 0);
+    func_80061A5C_main(D_8011B6A0_mgmode, 0);
+    if (choice == -1) {
+        func_8005B43C_main(D_8011B6A8_mgmode, 0x5702, -1, -1);
+        func_80061388_main(D_8011B6A8_mgmode);
+        func_801182B4_mgmode(1);
+        return;
+    }
+    if (choice == 0) {
+        func_801182B4_mgmode(0);
+        func_80116ED4_mgmode(2, 10, 1, (void*)-1);
+        func_8005B43C_main(D_8011B6A0_mgmode, 0x5713, -1, -1);
+        func_80061388_main(D_8011B6A0_mgmode);
+        while (func_8005E0C0_main(D_8011B6A0_mgmode)) {
+            HuPrcVSleep();
+        }
+        func_80108DDC_mgmode(0);
+    } else if (choice == 1) {
+        func_801182B4_mgmode(0);
+        part = func_8001D33C_main(D_8011B8B4_mgmode, D_8011A46C_mgmode);
+        HuAudFXPlay(0x245);
+        for (i = 0; i < 11; i++) {
+            HuPrcVSleep();
+            func_8002367C_main(part->mtx, D_8011A808_mgmode);
+            func_80017D24_main(part->mtx, 0.0f, sindf(i * 9) * 117.0f, 0.0f);
+        }
+        func_80116ED4_mgmode(6, 10, 1, (void*)-1);
+        func_80107D0C_mgmode(0x12000F, 160, 120);
+        func_80116ED4_mgmode(1, 10, 1, (void*)-1);
+        HuAudFXPlay(0x245);
+        for (i = 0; i < 11; i++) {
+            HuPrcVSleep();
+            func_8002367C_main(part->mtx, D_8011A808_mgmode);
+            func_80017D24_main(part->mtx, 0.0f, (1.0f - sindf(i * 9)) * 117.0f, 0.0f);
+        }
+    }
+    func_8011822C_mgmode(D_80119158_mgmode);
+    func_801181F4_mgmode(0);
+    func_801182B4_mgmode(1);
+    func_8005B43C_main(D_8011B6A8_mgmode, 0x5702, -1, -1);
+    func_80061388_main(D_8011B6A8_mgmode);
+}
 
 void func_80108C88_mgmode(void) {
     func_8005FFA8_main(D_8011B6A0_mgmode);
@@ -319,7 +423,97 @@ void func_80109DBC_mgmode(s16 arg0, s16 arg1) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_80109DBC_mgmode);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010A148_mgmode);
+s16 func_8010A148_mgmode(s16 arg0) {
+    s8* table;
+    s16 i;
+    s16 sel;
+    s16 delay;
+    s16 ret;
+    MgSprFile* spr;
+    s32 base;
+
+    ret = 1;
+    if (arg0 == 2) {
+        D_8011B3E0_mgmode = D_80119320_mgmode;
+    } else {
+        D_8011B3E0_mgmode = D_8011932C_mgmode;
+    }
+    if (arg0 == 2) {
+        table = D_801192FC_mgmode;
+    } else {
+        table = D_80119310_mgmode;
+    }
+    for (i = 0; i < 4; i++) {
+        D_8011B3E6_mgmode[i] = i;
+    }
+    D_8011B3E4_mgmode = func_80061188_main(-1, 50, 100, 220, 80, 0);
+    func_8005FE54_main(D_8011B3E4_mgmode, 1 << D_8011B808_mgmode);
+    func_8005B43C_main(D_8011B3E4_mgmode, 0x5729, -2, -1);
+    func_80061388_main(D_8011B3E4_mgmode);
+    for (i = 0, base = 0x130000; i < 4; i++) {
+        D_8011988C_mgmode[i].file = (GwPlayer[i].chr + 0x36) | base;
+    }
+    spr = D_801198BC_mgmode;
+    spr->file = 0x120012;
+    if (arg0 == 1) {
+        D_801198BC_mgmode[1].file = 0x120012;
+    } else {
+        D_801198C8_mgmode[0].file = 0x120011;
+    }
+    sel = 0;
+    D_8011B3EC_mgmode = func_80116794_mgmode(D_8011988C_mgmode, spr, base);
+    func_8010A62C_mgmode(160, 134);
+    func_8010A824_mgmode(160, 134);
+    delay = 0;
+    while (TRUE) {
+        HuPrcVSleep();
+        if (delay != 0) {
+            delay--;
+        }
+        func_80118D0C_mgmode();
+        if ((D_800CBB6E_main[D_8011B808_mgmode] < 0 ? -D_800CBB6E_main[D_8011B808_mgmode] : D_800CBB6E_main[D_8011B808_mgmode]) >= 31 && delay == 0) {
+            HuAudFXPlay(1);
+            if (D_800CBB6E_main[D_8011B808_mgmode] >= 31) {
+                sel++;
+                if (table[sel * 4] == -1) {
+                    sel = 0;
+                }
+            } else {
+                sel--;
+                if (sel < 0) {
+                    for (i = 0; table[i * 4] != -1; i++) {
+                    }
+                    sel = i - 1;
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                D_8011B3E6_mgmode[i] = table[sel * 4 + i];
+            }
+            func_8010A62C_mgmode(160, 134);
+            delay = 10;
+            continue;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x8000) {
+            HuAudFXPlay(2);
+            if (arg0 == 2) {
+                for (i = 0; i < 4; i++) {
+                    GwPlayer[D_8011B3E6_mgmode[i]].group = D_800CB8B1_main[D_8011B3E6_mgmode[i]] = (i != 0);
+                }
+            } else {
+                for (i = 0; i < 4; i++) {
+                    GwPlayer[D_8011B3E6_mgmode[i]].group = D_800CB8B1_main[D_8011B3E6_mgmode[i]] = (i >= 2);
+                }
+            }
+            break;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x4000) {
+            HuAudFXPlay(4);
+            ret = 0;
+            break;
+        }
+    }
+    return ret;
+}
 
 void func_8010A5F0_mgmode(void) {
     func_801168E0_mgmode(D_8011B3EC_mgmode);
