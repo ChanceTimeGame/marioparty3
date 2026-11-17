@@ -71,6 +71,21 @@ typedef struct LjLog {
     /* 0x74 */ void (*unk74)(struct LjLog*);
 } LjLog; // Size 0x78
 
+/* A cloud sprite (D_8010E5D4_log_jam, 5 x 0x24). */
+typedef struct LjCloud {
+    /* 0x00 */ s16 unk00; /* index */
+    /* 0x02 */ s16 unk02; /* sprite group */
+    /* 0x04 */ s16 unk04; /* phase, degrees */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* speed */
+    /* 0x0C */ f32 unk0C; /* x */
+    /* 0x10 */ f32 unk10; /* y */
+    /* 0x14 */ f32 unk14; /* scale x */
+    /* 0x18 */ f32 unk18; /* scale y */
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ s32 unk20;
+} LjCloud; // Size 0x24
+
 typedef struct LjTeam {
     /* 0x00 */ omObjData* unk00; /* player objects */
     /* 0x04 */ omObjData* unk04;
@@ -135,6 +150,8 @@ void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
 void func_80108E54_log_jam(omObjData* obj);
 void func_80109B8C_log_jam(omObjData* obj);
+void func_8010A0B0_log_jam(omObjData* obj);
+u16 func_8010A300_log_jam(s32 dirAndFile);
 s16 func_80109044_log_jam(s16 kind, s16 part);
 void func_801094E4_log_jam(LjLog* log);
 
@@ -162,13 +179,16 @@ extern LjTeam* D_8010E5AC_log_jam;
 extern omObjData* D_8010E5B0_log_jam[2]; /* team objects */
 extern LjPlayer* D_8010E5B8_log_jam;
 extern s16 D_8010E5BC_log_jam;
-extern void* D_8010E5CC_log_jam;
+extern s16* D_8010E5CC_log_jam; /* sprite files */
 extern D_80111B50_vine_with_me_Struct D_8010E640_log_jam;
 extern Vec D_8010DF30_log_jam[2]; /* D_8010DF38 = [0].z */
 extern LjRGBA D_8010DF48_log_jam;
 extern LjRGBA D_8010DF4C_log_jam;
 extern LjLog* D_8010E5C4_log_jam;
 extern omObjData* D_8010E5C0_log_jam;
+extern LjCloud* D_8010E5D4_log_jam;
+extern f32 D_8010E054_log_jam[5][2]; /* cloud positions (D_8010E058 = [0][1]) */
+extern f32 D_8010E07C_log_jam[5]; /* cloud speeds */
 extern s16* D_8010E5C8_log_jam; /* log model templates, 3 kinds x 3 parts */
 extern s32 D_8010E030_log_jam[9]; /* log model files */
 extern u8 D_800D6A90_main;
@@ -1112,7 +1132,75 @@ void func_80109B34_log_jam(void) {
     D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(1, 0x10, 0, -1, func_80109B8C_log_jam);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109B8C_log_jam);
+/* Stage setup: log chutes, the background, the score sprites and the clouds. */
+void func_80109B8C_log_jam(omObjData* obj) {
+    LjCloud* cloud;
+    s16 mdl;
+    s16 grp;
+    s16 i;
+    s16 j;
+
+    obj->model[1] = mdl = func_8000B108_main(0x340001, 0xA9);
+    Hu3DModelPosSet(mdl, -100.0f, 0.0f, 115.0f);
+    obj->model[2] = mdl = Hu3DModelLink(mdl);
+    Hu3DModelPosSet(mdl, 100.0f, 0.0f, 115.0f);
+    obj->model[3] = mdl = func_8000B108_main(0x340002, 0x89);
+    Hu3DModelPosSet(mdl, -230.0f, 0.0f, 195.0f);
+    obj->model[4] = mdl = Hu3DModelLink(mdl);
+    Hu3DModelPosSet(mdl, 230.0f, 0.0f, 195.0f);
+    D_8010E5CC_log_jam[0] = func_8010A300_log_jam(0x34000C);
+    grp = HuSprGrpCreate(3, 0);
+    func_80055024_main(grp, 0, D_8010E5CC_log_jam[0], 0);
+    func_80054904_main(grp, 0, 160, 120);
+    func_800550F4_main(grp, 0, 0);
+    func_80054FF8_main(grp, 0, 0);
+    HuSprAttrSet(grp, 0, 0x4000580C);
+    HuSprPriSet(grp, 0, 0xFF00);
+    D_8010E5CC_log_jam[4] = func_8010A300_log_jam(0x340010);
+    func_80055024_main(grp, 1, D_8010E5CC_log_jam[4], 0);
+    func_80054904_main(grp, 1, 0, 40);
+    func_800550F4_main(grp, 1, 0);
+    func_80054FF8_main(grp, 1, 0);
+    HuSprAttrSet(grp, 1, 0x4000580C);
+    HuSprPriSet(grp, 1, 0xFF01);
+    func_80055458_main(grp, 1, 200);
+    D_8010E5CC_log_jam[1] = func_8010A300_log_jam(0x34000D);
+    func_80055024_main(grp, 2, D_8010E5CC_log_jam[1], 0);
+    func_80054904_main(grp, 2, 0, 0);
+    func_800550F4_main(grp, 2, 0);
+    func_80054FF8_main(grp, 2, 0);
+    HuSprAttrSet(grp, 2, 0x403C);
+    HuSprPriSet(grp, 2, 0xFFFF);
+    D_8010E5CC_log_jam[2] = func_8010A300_log_jam(0x34000E);
+    D_8010E5CC_log_jam[5] = func_8010A300_log_jam(0x340011);
+    cloud = D_8010E5D4_log_jam = HuMemAllocTag(sizeof(LjCloud) * 5, 31000);
+    for (i = 0; i < 5; i++, cloud++) {
+        cloud->unk00 = i;
+        cloud->unk02 = HuSprGrpCreate(2, 0);
+        cloud->unk04 = rand8() % 360;
+        cloud->unk08 = D_8010E07C_log_jam[i];
+        cloud->unk0C = D_8010E054_log_jam[i][0];
+        cloud->unk10 = D_8010E054_log_jam[i][1];
+        cloud->unk14 = cloud->unk18 = 1.0f;
+        cloud->unk1C = -0.5f;
+        cloud->unk20 = 0;
+        for (j = 0; j < 2; j++) {
+            if (j == 0) {
+                func_80055024_main(cloud->unk02, 0, D_8010E5CC_log_jam[2], 0);
+            } else {
+                func_80055024_main(cloud->unk02, j, D_8010E5CC_log_jam[5], 0);
+                func_80055458_main(cloud->unk02, j, 190);
+            }
+            func_800550F4_main(cloud->unk02, j, 0);
+            func_80054FF8_main(cloud->unk02, j, 0);
+            HuSprAttrSet(cloud->unk02, j, 0x2000583C);
+            func_80054904_main(cloud->unk02, j, cloud->unk0C, cloud->unk10);
+            HuSprScaleSet(cloud->unk02, j, cloud->unk14, cloud->unk18);
+            HuSprPriSet(cloud->unk02, j, j + i * 2 - 0xF1);
+        }
+    }
+    obj->func = func_8010A0B0_log_jam;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A0B0_log_jam);
 
