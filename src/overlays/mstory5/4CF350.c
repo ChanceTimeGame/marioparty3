@@ -382,6 +382,39 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_80114E30_mstory5);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80110620_mstory5);
 
+// story i4: .data (0x80114730-0x801148A0); retail pads two file ends to 16 bytes
+// (0x80114770 and 0x80114820 start new files).
+u32 D_80114730_mstory5 = 0; /* main object state */
+s32 D_80114734_mstory5 = 0;
+s8 D_80114738_mstory5 = 0;
+Vec D_8011473C_mstory5 = { 14.0f, 193.0f, 1400.0f }; /* camera position */
+Vec D_80114748_mstory5 = { -25.0f, 0.0f, -650.0f }; /* camera target */
+Vec D_80114754_mstory5 = { 0.0f, 1.0f, -0.0001f }; /* camera up */
+s32 D_80114760_mstory5 = 0;
+u8 D_80114764_mstory5[12] = { 0 }; /* file end padding */
+s16 D_80114770_mstory5 = 0;
+s32 D_80114774_mstory5 = 0;
+/* paths: Vec lists ended by { 9999, 9999, 9999 } */
+Vec D_80114778_mstory5[] = {
+    { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f },
+};
+Vec D_801147A8_mstory5[] = {
+    { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f },
+    { 400.0f, 400.0f, 200.0f },  { -50.0f, 120.0f, 450.0f },  { 9999.0f, 9999.0f, 9999.0f },
+};
+Vec D_801147F0_mstory5[] = {
+    { 100.0f, 200.0f, 100.0f }, { -100.0f, 100.0f, -100.0f }, { 0.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f },
+};
+s32 D_80114820_mstory5 = 3;
+s32 D_80114824_mstory5 = 0;
+Vec D_80114828_mstory5[] = {
+    { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f },
+};
+Vec D_80114858_mstory5[] = {
+    { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f },
+    { 400.0f, 400.0f, 200.0f },  { -50.0f, 120.0f, 450.0f },  { 9999.0f, 9999.0f, 9999.0f },
+};
+
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_801113BC_mstory5);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80111480_mstory5);
