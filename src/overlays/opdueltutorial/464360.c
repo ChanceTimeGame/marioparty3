@@ -341,7 +341,83 @@ void func_80106224_opdueltutorial(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opdueltutorial/464360", func_801062E0_opdueltutorial);
+/* the opening: the two players and the centre model sink into the stage, then the centre grows
+   into a white wipe */
+void func_801062E0_opdueltutorial(void) {
+    omObjData *obj;
+    Object *ring;
+    s16 effect;
+    s32 i;
+    f32 scale;
+    f32 rise;
+
+    for (i = 0; i < 2; i++) {
+        D_80108C14_opdueltutorial[i] = MBDGetPlayerStruct(i);
+        func_800F3C98_name_81(i, (s32 *)D_80108B24_opdueltutorial[GwPlayer[i].chr], 2);
+        HuVecCopy3F(&D_80108C14_opdueltutorial[i]->player_obj->coords, &D_80108974_opdueltutorial[i]);
+        func_800D8944_name_81(D_80108C14_opdueltutorial[i]->player_obj);
+        D_80108C14_opdueltutorial[i]->stat |= 4;
+    }
+    D_80108C1C_opdueltutorial = func_800D8314_name_81(0x1301FF, -1, 1.0f, 0.0f, NULL);
+    HuVecCopyXYZ(&D_80108C1C_opdueltutorial->scale, 0.625f, 0.625f, 0.625f);
+    ring = func_800D8314_name_81(0x1301FD, -1, 1.0f, 0.0f, NULL);
+    HuVecCopy3F(&D_80108C1C_opdueltutorial->coords, &D_80108944_opdueltutorial[0]);
+    HuVecCopy3F(&ring->coords, &D_80108944_opdueltutorial[0]);
+    ring->coords.y = 0.0f;
+    HuVecCopyXYZ(&ring->scale, ring->coords.y, ring->coords.y, ring->coords.y);
+    effect = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8000CD00_main(effect, 2.0f, 20.0f, 1.0f);
+    func_8000D018_main(effect, 40.0f);
+    func_800138EC_main(effect, 1, 0);
+    WipeCreateIn(2, 0x10);
+    HuPrcSleep(17);
+    HuAudFXPlay(0x2ED);
+    while (D_80108C1C_opdueltutorial->coords.y >= 10.0f) {
+        D_80108C1C_opdueltutorial->coords.y -= 3.0f;
+        for (i = 0; i < 2; i++) {
+            D_80108C14_opdueltutorial[i]->player_obj->coords.y -= 3.0f;
+        }
+        rise = 0.625f - D_80108C1C_opdueltutorial->coords.y * 0.625f / 250.0f;
+        HuVecCopyXYZ(&ring->scale, rise, rise, rise);
+        HuPrcVSleep();
+    }
+    obj = omAddObj(0x1000, 0, 0, -1, func_80106224_opdueltutorial);
+    obj->rot.x = 180.0f;
+    obj->rot.y = 5.0f;
+    obj->rot.z = D_80108C1C_opdueltutorial->coords.y;
+    HuPrcSleep(30);
+    func_8000CFA4_main(effect, D_80108C1C_opdueltutorial->coords.x, D_80108C1C_opdueltutorial->coords.y + 40.0f,
+                       D_80108C1C_opdueltutorial->coords.z);
+    func_800138EC_main(effect, 0, 1);
+    HuAudFXPlay(0x2E4);
+    HuPrcSleep(30);
+    for (scale = 1.0f; scale >= 0.0f; scale -= 0.1f) {
+        for (i = 0; i < 2; i++) {
+            HuVecCopyXYZ(&D_80108C14_opdueltutorial[i]->player_obj->scale, scale, 1.0f, scale);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 2; i++) {
+        func_800D8F0C_name_81(D_80108C14_opdueltutorial[i]->player_obj);
+    }
+    func_800138EC_main(effect, 1, 0);
+    HuPrcSleep(20);
+    for (i = 0, scale = 1.0f; scale < 10.0f; scale += 0.5f, i++) {
+        HuVecCopyXYZ(&D_80108C1C_opdueltutorial->scale, scale, scale, scale);
+        HuPrcVSleep();
+        if (i == 5) {
+            WipeColorSet(0xFF, 0xFF, 0xFF);
+            WipeCreateOut(0xB, 0x10);
+        }
+    }
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    func_8000D044_main(effect);
+    func_800D8F3C_name_81(D_80108C1C_opdueltutorial);
+    func_800D8F3C_name_81(ring);
+    omDelObj(obj);
+}
 
 void func_80106808_opdueltutorial(Object *host) {
     D_80108C1C_opdueltutorial->velocity.x = host->rot.y - sindf(host->scale.y) * 10.0f;
