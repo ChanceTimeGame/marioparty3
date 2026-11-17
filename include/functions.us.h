@@ -112,7 +112,7 @@ void func_80060EA8_main(s16, s32);
 void func_80061100_main(s16, s32);
 s32 func_8005B68C_main(s16);
 s16 func_8005E0C0_main(s16);
-u8 func_80017AD8_main(s32);
+s16 func_80017AD8_main(s32);
 void func_800333B0_main(s16);
 s16 func_8006014C_main(s32);
 void func_80046558_main(s16);

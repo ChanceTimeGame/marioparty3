@@ -7,13 +7,11 @@
 #define func_800142A0_main func_800142A0_main_header
 #define func_80014A3C_main func_80014A3C_main_header
 #define func_80017790_main func_80017790_main_header
-#define func_80017AD8_main func_80017AD8_main_header
 #include "common.h"
 #undef HmfSprModelCreate
 #undef func_800142A0_main
 #undef func_80014A3C_main
 #undef func_80017790_main
-#undef func_80017AD8_main
 #include "mallocblock.h"
 #include "malloc.h"
 #include "gcc/string.h"
