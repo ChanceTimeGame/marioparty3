@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gcc/string.h"
 
 extern u16 omdispinfo;
 extern s16 D_800A1786_main;
@@ -19,6 +20,15 @@ typedef struct unk1EA70StructC unk1EA70StructC; /* matrix bake record, src/14EA0
 unk1EA70StructC* func_80016784_main(s16 arg0, s16 arg1);
 void func_80016FB4_main(s16 arg0, unk1EA70StructC* arg1, s16 arg2);
 void func_80017320_main(unk1EA70StructC* arg0);
+void func_80060858_main(s32 winId, u16 btn);
+
+typedef struct MesChkEntry {
+    /* 0x00 */ u8* name; /* rewritten in place for the font: . ! _ - */
+    /* 0x04 */ u32 start; /* first message id */
+    /* 0x08 */ u32 end;   /* last message id; 0 = start only */
+} MesChkEntry; // Size 0xC
+
+extern MesChkEntry D_80106518_meschk[];
 
 void func_801059A0_meschk() {
     omObjData *temp_v0;
@@ -61,7 +71,154 @@ void func_80105B50_meschk() {
     }
 }
 
+#ifdef NON_MATCHING
+void func_80105B8C_meschk(void) {
+    s16 size[2];
+    s16 msgWin;
+    s16 titleWin;
+    s16 count;
+    s16 quit;
+    MesChkEntry* entry;
+    s16 sel;
+    s16 i;
+    s16 cur;
+    u8* msg;
+    u8* p;
+    s32 noWait;
+    s32 portrait;
+
+    count = 0;
+    while (D_80106518_meschk[count].start != 0xFFFF) {
+        count++;
+    }
+    titleWin = func_80061188_main(-1, 60, 20, 200, 20, 0);
+    func_80061388_main(titleWin);
+    sel = 0;
+    quit = 0;
+    do {
+        entry = &D_80106518_meschk[sel];
+        for (i = 0; i < strlen((char*)entry->name); i++) {
+            if (entry->name[i] == '.') {
+                entry->name[i] = 0x85;
+            }
+            if (entry->name[i] == '!') {
+                entry->name[i] = 0xC2;
+            }
+            if (entry->name[i] == '_' || entry->name[i] == '-') {
+                entry->name[i] = 0x3D;
+            }
+        }
+        func_8005D294_main(titleWin);
+        func_8005B43C_main(titleWin, (s32)entry->name, -1, -1);
+        if (entry->end == 0) {
+            entry->end = entry->start;
+        }
+        func_800604A8_main(size, entry->start, entry->end);
+        msg = func_800364DC_main((void*)entry->start);
+        for (i = 0, p = msg; i < 5; i++, p++) {
+            if ((p[0] == 0x10 || p[0] == 0x20 || p[0] == 0x1A) && (p[1] == 0x10 || p[1] == 0x20 || p[1] == 0x1A) &&
+                (p[2] == 0x10 || p[2] == 0x20 || p[2] == 0x1A)) {
+                break;
+            }
+        }
+        func_800365E8_main(msg);
+        if (i == 5) {
+            msgWin = func_80061188_main(0, 50, 44, size[0], size[1], 0);
+            portrait = 0;
+        } else {
+            msgWin = func_80061188_main(7, 50, 44, size[0], size[1], 0);
+            portrait = 1;
+        }
+        func_80060858_main(msgWin, 0x3F);
+        func_8005FBF8_main(msgWin, 0xC0, 0x20, 0xC0);
+        func_80061388_main(msgWin);
+        for (cur = entry->start; cur <= entry->end; cur++) {
+            func_8005D294_main(msgWin);
+            msg = func_800364DC_main((void*)(s32)cur);
+            noWait = 0;
+            for (p = msg; *p != 0; p++) {
+                if (*p == 0xFF) {
+                    noWait = 1;
+                    break;
+                }
+                p += (*p == 0x18);
+            }
+            for (i = 0, p = msg; i < 5; i++, p++) {
+                if ((p[0] == 0x10 || p[0] == 0x20 || p[0] == 0x1A) && (p[1] == 0x10 || p[1] == 0x20 || p[1] == 0x1A) &&
+                    (p[2] == 0x10 || p[2] == 0x20 || p[2] == 0x1A)) {
+                    break;
+                }
+            }
+            if ((i == 5) && portrait) {
+                func_80061934_main(msgWin, 0);
+                portrait = 0;
+            } else if ((i != 5) && (portrait ^ 1)) {
+                func_80061934_main(msgWin, 7);
+                portrait = 1;
+            }
+            func_800365E8_main(msg);
+            func_8005B43C_main(msgWin, cur, -1, -1);
+            while (func_8005E0C0_main(msgWin) != 0) {
+                HuPrcVSleep();
+            }
+            if (D_800CC69C_main[msgWin].unk_30 != 0) {
+                func_8005E1D8_main(msgWin, 0, 0);
+            } else if (noWait) {
+            } else {
+                while (!(D_800D5558_main[0] & 0xC03F)) {
+                    HuPrcVSleep();
+                }
+            }
+            if ((D_800CC69C_main[msgWin].unkA8 & 0x4000) || (D_800D5558_main[0] & 0x4000)) {
+                if (entry->start < cur) {
+                    cur -= 2;
+                } else {
+                    cur -= 1;
+                }
+            }
+            if ((D_800CC69C_main[msgWin].unkA8 & 8) || (D_800D5558_main[0] & 8)) {
+                if (sel != 0) {
+                    sel -= 2;
+                } else {
+                    sel -= 1;
+                }
+                break;
+            }
+            if ((D_800CC69C_main[msgWin].unkA8 & 4) || (D_800D5558_main[0] & 4)) {
+                break;
+            }
+            if ((D_800CC69C_main[msgWin].unkA8 & 2) || (D_800D5558_main[0] & 2)) {
+                if (sel - 5 >= 0) {
+                    sel -= 6;
+                } else {
+                    sel = -1;
+                }
+                break;
+            }
+            if ((D_800CC69C_main[msgWin].unkA8 & 1) || (D_800D5558_main[0] & 1)) {
+                if (sel + 5 < count) {
+                    sel += 4;
+                } else {
+                    sel = count - 1;
+                }
+                break;
+            }
+            if ((D_800CDA7C_main[0] & 0x30) == 0x30) {
+                quit = 1;
+                break;
+            }
+        }
+        func_8005F364_main(msgWin);
+        D_800CC69C_main[msgWin].unkA8 = 0;
+        sel++;
+        if (sel >= count) {
+            sel--;
+        }
+    } while (quit == 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/meschk/4F69F0", func_80105B8C_meschk);
+#endif
 
 void func_80106334_meschk(omObjData *arg0) {
     if ((D_80106500_meschk != 0) || (D_800D530C_main != 0)) {
