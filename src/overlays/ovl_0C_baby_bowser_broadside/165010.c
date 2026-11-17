@@ -391,7 +391,52 @@ void func_80105E88_baby_bowser_broadside(void) {
 }
 /* </func_80105E88_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80105F64_baby_bowser_broadside);
+/* <func_80105F64_baby_bowser_broadside> */
+void func_80105F64_baby_bowser_broadside(omObjData* obj) {
+    s16 count[2];
+    s16 i;
+    s16 j;
+    BbTeam* team;
+    s8 n;
+
+    func_800E18D8_minigame();
+    func_800E19F0_minigame(1);
+    func_80109F64_baby_bowser_broadside(NULL, 0, 0, 4);
+    func_8010A0B4_baby_bowser_broadside(0, 0, NULL, func_80107630_baby_bowser_broadside, 0);
+    BB_WORK(obj)->w.group = 1;
+    func_80109F64_baby_bowser_broadside(obj, BB_WORK(obj)->b.group, 0, 6);
+    D_800EC1C0_minigame[0] = omAddObj(10, 1, 0, -1, func_801062C4_baby_bowser_broadside);
+    D_800EC1C0_minigame[1] = omAddObj(10, 1, 0, -1, func_80106E70_baby_bowser_broadside);
+    omSetStatBit(D_800EC1C0_minigame[1], 0xA0);
+    count[1] = 0;
+    count[0] = 0;
+    /* the teams the board chose, unless they are not two against two: then the players' own groups */
+    for (i = 0; i < 4; i++) {
+        if (D_800CB8B1_main[i] >= 2 || count[0] >= 3 || count[1] >= 3) {
+            for (j = 0; j < 4; j++) {
+                D_800CB8B1_main[j] = GwPlayer[j].group;
+            }
+            break;
+        }
+        count[D_800CB8B1_main[i]]++;
+    }
+    for (i = 0; i < 4; i++) {
+        team = &D_80110000_baby_bowser_broadside[D_80110004_baby_bowser_broadside[i].team = D_800CB8B1_main[i]];
+        D_80110004_baby_bowser_broadside[i].held = team->count;
+        n = team->count++;
+        team->member[n] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        D_800EC598_minigame[i] = omAddObj(300, 9, 41, -1, func_80107140_baby_bowser_broadside);
+    }
+    D_80110008_baby_bowser_broadside->flags = 1;
+    D_80110008_baby_bowser_broadside->timer = 900.0f;
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xFFFF, NULL, func_801076AC_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xF, NULL, func_80107A80_baby_bowser_broadside, 0);
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_80106288_baby_bowser_broadside;
+}
+/* </func_80105F64_baby_bowser_broadside> */
 
 /* <func_80106288_baby_bowser_broadside> */
 void func_80106288_baby_bowser_broadside(omObjData* obj) {
