@@ -386,3 +386,15 @@ D_80119F64_mgmode = D_80119F28_mgmode + 0x3C;
 D_8011A0C0_mgmode = D_80119FA0_mgmode + 0x120;
 /* m1 lf1: meschk/4F69F0 table words still named by the remaining asm */
 D_8010651C_meschk = 0x8010651C;
+D_8010DE98_log_jam = D_8010DE90_log_jam + 0x8;
+D_8010DEC8_log_jam = D_8010DEC0_log_jam + 0x8;
+D_8010DEF8_log_jam = D_8010DEF0_log_jam + 0x8;
+D_8010DF34_log_jam = D_8010DF30_log_jam + 0x4;
+D_8010DF38_log_jam = D_8010DF30_log_jam + 0x8;
+D_8010DF92_log_jam = D_8010DF90_log_jam + 0x2;
+D_8010DFE8_log_jam = D_8010DFD4_log_jam + 0x14;
+D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
+D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
+D_8010E058_log_jam = D_8010E054_log_jam + 0x4;
+D_8010E09A_log_jam = D_8010E098_log_jam + 0x2;
+D_8010E09E_log_jam = D_8010E09C_log_jam + 0x2;

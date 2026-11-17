@@ -135,6 +135,11 @@ typedef struct LjCounter {
     /* 0x0A */ s16 shown;
 } LjCounter; // Size 0xC
 
+typedef struct LjVec2 {
+    f32 x;
+    f32 y;
+} LjVec2;
+
 #define LJ_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -149,7 +154,6 @@ extern s8 HmfPauseF;
 extern s16 *D_8010E5CC_log_jam; // s16[0x20] sprite/file ids
 extern LjCounter *D_8010E5D0_log_jam;
 extern LjCloud *D_8010E5D4_log_jam;
-extern s16 D_8010E090_log_jam[2]; /* counter x */
 extern omObjData *D_8010E5D8_log_jam;
 extern LjEffect *D_8010E5DC_log_jam;
 extern omObjData *D_8010E5E0_log_jam;
@@ -158,11 +162,94 @@ extern LjCamera D_8010E5E8_log_jam[2];
 extern s32 D_8010E630_log_jam;
 extern s32 D_8010E634_log_jam;
 extern s32 D_8010E638_log_jam;
-extern RGBA D_8010DF48_log_jam;
-extern s32 D_8010E094_log_jam;
-extern s32 D_8010E098_log_jam;
-extern s32 D_8010E09C_log_jam;
-extern Gfx D_8010E190_log_jam[];
+
+/* .data (0x8010DE90..0x8010E1D0). Inner labels the remaining asm uses are undefined_syms.txt aliases. */
+Vec D_8010DE90_log_jam[4] = { /* D_8010DE98 = [0].z */
+    { -233.0f, 0.0f, 70.0f }, { -131.0f, 0.0f, -5.0f }, { 131.0f, 0.0f, -5.0f }, { 233.0f, 0.0f, 70.0f },
+};
+Vec D_8010DEC0_log_jam[4] = { /* D_8010DEC8 = [0].z */
+    { -170.0f, 0.0f, 40.0f }, { -128.0f, 0.0f, 20.0f }, { 128.0f, 0.0f, 20.0f }, { 170.0f, 0.0f, 40.0f },
+};
+Vec D_8010DEF0_log_jam[4] = { /* D_8010DEF8 = [0].z */
+    { -70.0f, 0.0f, 200.0f }, { -190.0f, 0.0f, 250.0f }, { 190.0f, 0.0f, 250.0f }, { 70.0f, 0.0f, 200.0f },
+};
+f32 D_8010DF20_log_jam[4] = { 45.0f, 15.0f, -15.0f, -45.0f };
+Vec D_8010DF30_log_jam[2] = { /* D_8010DF34 = [0].y, D_8010DF38 = [0].z */
+    { -100.0f, 50.0f, 115.0f },
+    { 100.0f, 50.0f, 115.0f },
+};
+RGBA D_8010DF48_log_jam = { 0xE9, 0xDD, 0xA1, 0x80 };
+RGBA D_8010DF4C_log_jam = { 0xFF, 0xFF, 0xFF, 0xFF };
+s32 D_8010DF50_log_jam[8] = { 0x200A5, 0x300A5, 0x700A5, 0x400A5, 0x500A5, 0x600A5, 0x800A5, 0x9001C };
+s32 D_8010DF70_log_jam[8] = { 0x200A6, 0x300A6, 0x700A6, 0x400A6, 0x500A6, 0x600A6, 0x800A6, 0x9001D };
+s32 D_8010DF90_log_jam = 0; /* D_8010DF92 = its low half */
+s32 D_8010DF94_log_jam[4] = { 0, 1, 2, 3 };
+s16 D_8010DFA4_log_jam[4][4] = { { 0, 1, 2, 3 }, { 3, 0, 1, 2 }, { 2, 3, 0, 1 }, { 1, 2, 3, 0 } };
+s16 D_8010DFC4_log_jam[4] = { 0, 1, 1, 0 };
+s16 D_8010DFCC_log_jam[4] = { 0x12, 0x13, 0x15, 0x14 };
+s32 D_8010DFD4_log_jam[8] = { 0x20000, 0x30000, 0x70000, 0x40000, 0x50000, 0x60000, 0x80000, 0x90000 }; /* D_8010DFE8 = [5] */
+s32 D_8010DFF4_log_jam[4] = { 0x2F, 0x30, 0x36, 0x37 }; /* D_8010DFF6/D_8010DFFE = low halves of [0]/[2] */
+s32 D_8010E004_log_jam[3] = { 3, 4, 5 };
+f32 D_8010E010_log_jam[8] = { 200.0f, 200.0f, 200.0f, 200.0f, 200.0f, 250.0f, 200.0f, 200.0f };
+s32 D_8010E030_log_jam[9] = { 0x340003, 0x340004, 0x340005, 0x340006, 0x340007, 0x340008, 0x340009, 0x34000A, 0x34000B };
+LjVec2 D_8010E054_log_jam[5] = { /* cloud start positions; D_8010E058 = [0].y */
+    { 120.0f, 30.0f }, { 360.0f, 45.0f }, { 0.0f, 52.0f }, { 240.0f, 60.0f }, { 480.0f, 75.0f },
+};
+f32 D_8010E07C_log_jam[5] = { 0.7f, 0.6f, 0.55f, 0.47f, 0.4f }; /* cloud scales */
+s16 D_8010E090_log_jam[2] = { 38, 282 }; /* counter x */
+s32 D_8010E094_log_jam = 0; /* debug camera mode */
+s32 D_8010E098_log_jam = 0; /* debug text x; D_8010E09A = low half */
+s32 D_8010E09C_log_jam = 0; /* debug text y; D_8010E09E = low half */
+
+Gfx D_8010E0A0_log_jam[] = {
+    gsSPSegment(0x00, 0x00000000),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPPipelineMode(G_PM_1PRIMITIVE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureDetail(G_TD_CLAMP),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0, 0),
+    gsDPSetTileSize(1, 0, 0, 0, 0),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTextureFilter(G_TF_BILERP),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetCombineKey(G_CK_NONE),
+    gsDPSetAlphaCompare(G_AC_NONE),
+    gsDPSetDepthSource(G_ZS_PIXEL),
+    gsDPSetRenderMode(G_RM_OPA_SURF, G_RM_OPA_SURF2),
+    gsDPNoOp(),
+    gsDPSetColorDither(G_CD_DISABLE),
+    gsDPPipeSync(),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010E158_log_jam[] = {
+    gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA),
+    gsSPTexture(0, 0, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPSetGeometryMode(G_SHADE | G_SHADING_SMOOTH),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010E178_log_jam[] = {
+    gsSPDisplayList(D_8010E158_log_jam),
+    gsSPDisplayList(D_8010E0A0_log_jam),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010E190_log_jam[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(D_8010E178_log_jam),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsSPSetGeometryMode(G_ZBUFFER | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH),
+    gsDPSetBlendColor(0x00, 0x00, 0x00, 0x00),
+    gsDPSetPrimColor(0, 0, 0x00, 0x00, 0x00, 0xFF),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+    gsSPEndDisplayList(),
+};
 
 u16 func_8010A300_log_jam(s32 dirAndFile);
 void func_8010A4C0_log_jam(omObjData *obj);
