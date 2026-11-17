@@ -2038,7 +2038,8 @@ segments:
     subsegments:
       - [0x436E20, c]
       - [0x436E50, c]
-      - [0x445900, data, 436E20] #80114480
+      - [0x445900, .data, 436E20] #80114480
+      - [0x445930, .data, 436E50] #801144B0
       - [0x445C20, .rodata, 436E50] #801147A0
       - {0x4461B0, type: bss, vram: 0x80114D30, name: duel06_bss}
 

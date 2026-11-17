@@ -286,3 +286,9 @@ D_801149F3_duel10 = D_801149F4_duel10 - 0x1;
 D_80114A6E_duel10 = D_80114A6C_duel10 + 0x2;
 D_80114A72_duel10 = D_80114A6C_duel10 + 0x6;
 D_80114A76_duel10 = D_80114A6C_duel10 + 0xA;
+/* duel06 eb2: duel06 .data inner labels the remaining asm uses */
+D_801144AF_duel06 = D_801144B0_duel06 - 0x1;
+D_8011462E_duel06 = D_8011462C_duel06 + 0x2;
+D_80114632_duel06 = D_8011462C_duel06 + 0x6;
+D_80114636_duel06 = D_8011462C_duel06 + 0xA;
+D_80114694_duel06 = D_80114698_duel06 - 0x4;
