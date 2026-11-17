@@ -922,7 +922,7 @@ void func_80109838_mstory4(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111DDC_mstory4);
 
-const Vec D_80111DE8_mstory4 = { 10.0f, 379.9f, 0.0f };
+const Vec D_80111DE8_mstory4 = { 10.0f, 378.9f, 0.0f };
 
 /* actor 1's scene: actor 3 talks, then actor 4 runs its action */
 void func_80109840_mstory4(omObjData *obj) {
