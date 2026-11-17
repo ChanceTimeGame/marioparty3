@@ -1891,7 +1891,7 @@ segments:
     bss_size: 0x190
     subsegments:
       - [0x3D3C80, c]
-      - [0x3D5160, data, 3D3C80] #80106E80
+      - [0x3D5160, .data, 3D3C80] #80106E80
       - [0x3D5440, .rodata, 3D3C80] #80107160
       - {0x3D5C30, type: bss, vram: 0x80107950, name: mchar_bss}
 
