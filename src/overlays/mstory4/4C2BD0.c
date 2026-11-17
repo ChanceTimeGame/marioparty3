@@ -190,31 +190,326 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111E84_mstory4);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A064_mstory4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A1C4_mstory4);
+// story v2
+/* a story-scene actor: its object and the action its process runs every frame */
+typedef struct StoryActor {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 unk0C; /* 1 while its looping sound effect plays */
+    /* 0x10 */ s32 unk10; /* looping sound effect */
+    /* 0x14 */ s32 unk14; /* its handle */
+} StoryActor; /* size = 0x18 */
+
+/* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry): segment i runs
+   from points[i] to points[i + 1] and covers [segs[i].start, segs[i].end] of the path's
+   length (0..1). flags & 1: closed (the last segment returns to points[0]). Same as opboard's. */
+typedef struct ObPathSeg {
+    /* 0x00 */ f32 start;
+    /* 0x04 */ f32 end;
+} ObPathSeg; /* size = 0x8 */
+
+typedef struct ObPath {
+    /* 0x00 */ s16 count;
+    /* 0x02 */ s16 flags;
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ Vec *points;
+    /* 0x0C */ ObPathSeg *segs;
+} ObPath; /* size = 0x10 */
+
+#include "mallocblock.h"
+
+f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
+
+/* scene 1: five actors */
+extern StoryActor D_801121C0_mstory4[]; /* [5] */
+extern Vec D_80112250_mstory4[]; /* [5] actor positions */
+extern s16 D_8011228C_mstory4; /* shadow model, linked by every actor */
+extern s16 D_8011228E_mstory4; /* effect model */
+extern s32 D_80111B00_mstory4; /* 1 once actor 3 exists: actor 3 bobs */
+extern Vec D_80111B04_mstory4[]; /* paths: Vec lists ended by { 9999, 9999, 9999 } */
+extern Vec D_80111B34_mstory4[];
+extern const Vec D_80111C70_mstory4[]; /* actor start positions */
+extern const Vec D_80111ECC_mstory4;
+extern const Vec D_80111EE4_mstory4;
+extern const s32 D_80111F08_mstory4[];
+void func_801072D8_mstory4(omObjData *obj, Vec *to, s32 frames);
+void func_80106DA0_mstory4(omObjData *obj, Vec *to, s32 frames);
+ObPath *func_801075B0_mstory4(Vec *points, s16 flags);
+void func_801078B4_mstory4(ObPath *path, f32 t, Vec *out);
+void func_8010815C_mstory4(ObPath *path);
+void func_80108280_mstory4(); /* an actor's idle action (empty; takes its object) */
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_8010A3C8_mstory4(void);
+void func_8010A764_mstory4(void);
+
+/* scene 2: three actors */
+/* D_801122A0_mstory4 (StoryActor[3]) is still declared below as the older UnkModel by the C at
+   func_8010FC98, outside this range: read it through this cast until the blocks are unified */
+#define story2Actors ((StoryActor *)&D_801122A0_mstory4)
+extern Vec D_80112300_mstory4[]; /* [3] actor positions */
+extern s16 D_80112324_mstory4; /* shadow model */
+extern s16 D_80112326_mstory4; /* effect model */
+extern s32 D_80111B80_mstory4; /* 1 once actor 2 exists: actor 2 bobs */
+void func_80106C10_mstory4(void);
+void func_8010BAF0_mstory4(void);
+void func_8010BAF8_mstory4(void);
+void func_8010BF3C_mstory4(void);
+void func_8010C0BC_mstory4(void);
+void func_8010C54C_mstory4(void);
+void func_8010C8D0_mstory4(void);
+void func_8010CAE8_mstory4(void);
+void func_8010CD40_mstory4(void);
+void func_8010CE90_mstory4(void);
+void func_8010D128_mstory4(void);
+void func_801119C0_mstory4(void);
+
+/* actor 3 */
+void func_8010A1C4_mstory4(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 4, 8, -1, NULL);
+    D_801121C0_mstory4[3].obj = obj;
+    D_801121C0_mstory4[3].unk08 = 0;
+    D_801121C0_mstory4[3].unk0C = 0;
+    obj->model[1] = func_8000B108_main(0xA0122, 0x2A9);
+    Hu3DModelScaleSet(obj->model[1], 2.0f, 2.0f, 2.0f);
+    func_800461B4_main(obj->model[1]);
+    func_8000B460_main(obj, 0, 0xA0123);
+    func_8000B460_main(obj, 1, 0xA0125);
+    func_8000B460_main(obj, 2, 0xA0129);
+    func_8000B460_main(obj, 3, 0xA0127);
+    obj->model[2] = Hu3DModelLink(D_8011228C_mstory4);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 1.0f, 2.0f);
+    func_8001C814_main(obj->model[1], 2, 2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 30.0f, 0.0f);
+    D_80112250_mstory4[3] = D_80111C70_mstory4[3];
+    Hu3DModelPosSet(obj->model[1], D_80112250_mstory4[3].x, D_80112250_mstory4[3].y, D_80112250_mstory4[3].z);
+    Hu3DModelPosSet(obj->model[2], D_80112250_mstory4[3].x, -5.0f, D_80112250_mstory4[3].z);
+    omPrcSetDestructor(0, func_8010A3C8_mstory4);
+    D_801121C0_mstory4[3].func = (void (*)(omObjData *))func_80108280_mstory4;
+    D_80111B00_mstory4 = 1;
+    while (TRUE) {
+        D_801121C0_mstory4[3].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010A3C8_mstory4(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A3D0_mstory4);
+const Vec D_80111EB4_mstory4[2] = { { 700.0f, 0.0f, 150.0f }, { 216.66666f, 0.0f, 150.0f } };
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A44C_mstory4);
+void func_8010A3D0_mstory4(omObjData *obj) {
+    func_801072D8_mstory4(obj, (Vec *)&D_80111ECC_mstory4, 10);
+    func_80106DA0_mstory4(obj, (Vec *)&D_80111EB4_mstory4[0], 50);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_801121C0_mstory4[3].func = (void (*)(omObjData *))func_80108280_mstory4;
+}
 
+void func_8010A44C_mstory4(omObjData *obj) {
+    func_801072D8_mstory4(obj, (Vec *)&D_80111EE4_mstory4, 20);
+    D_801121C0_mstory4[3].func = (void (*)(omObjData *))func_80108280_mstory4;
+}
+
+#ifdef NON_MATCHING
+/* actor 3 bobs up and down */
+void func_8010A480_mstory4(void) {
+    Vec pos;
+    s16 model;
+    f32 t;
+    f32 y;
+
+    t = 0.0f;
+    if (D_80111B00_mstory4 != 0) {
+        model = D_801121C0_mstory4[3].obj->model[1];
+        pos.y = HmfModelData[model].pos.y;
+        while (TRUE) {
+            pos.x = HmfModelData[model].pos.x;
+            pos.z = HmfModelData[model].pos.z;
+            y = sindf(t) * 25.0f + 25.0f;
+            t += 2.0f;
+            t = (t >= 360.0f) ? t - 360.0f : t;
+            Hu3DModelPosSet(model, pos.x, y + pos.y, pos.z);
+            HuPrcVSleep();
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A480_mstory4);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A5AC_mstory4);
+/* actor 4 */
+void func_8010A5AC_mstory4(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 8, 0, -1, NULL);
+    D_801121C0_mstory4[4].obj = obj;
+    D_801121C0_mstory4[4].unk08 = 0;
+    D_801121C0_mstory4[4].unk0C = 0;
+    obj->model[1] = func_8000B108_main(D_80111F08_mstory4[0], 0x20299);
+    func_8001C814_main(obj->model[1], 2, 2);
+    func_8001C258_main(obj->model[1], 4, 4);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    D_80112250_mstory4[4] = D_80111C70_mstory4[4];
+    Hu3DModelPosSet(obj->model[1], D_80112250_mstory4[4].x, D_80112250_mstory4[4].y, D_80112250_mstory4[4].z);
+    D_8011228E_mstory4 = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8000CD00_main(D_8011228E_mstory4, 4.0f, 20.0f, 4.0f);
+    func_8000D018_main(D_8011228E_mstory4, 60.0f);
+    func_800138EC_main(D_8011228E_mstory4, 1, 0);
+    func_8001C258_main(D_8011228E_mstory4, 4, 4);
+    omPrcSetDestructor(0, func_8010A764_mstory4);
+    D_801121C0_mstory4[4].func = (void (*)(omObjData *))func_80108280_mstory4;
+    while (TRUE) {
+        D_801121C0_mstory4[4].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010A764_mstory4(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A76C_mstory4);
+/* actor 4 flies along two paths while actor 3 reacts */
+void func_8010A76C_mstory4(omObjData *obj) {
+    Vec pos;
+    ObPath *path[2];
+    omObjData *other;
+    s32 i;
+    f32 t;
+    f32 rot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010AA88_mstory4);
+    path[0] = func_801075B0_mstory4(D_80111B04_mstory4, 0);
+    path[1] = func_801075B0_mstory4(D_80111B34_mstory4, 0);
+    func_8001C258_main(obj->model[1], 4, 0);
+    func_8001C258_main(D_8011228E_mstory4, 4, 0);
+    func_800138EC_main(D_8011228E_mstory4, 1, 1);
+    HuAudFXPlay(0x215);
+    i = 0;
+    do {
+        t = i * 0.02f;
+        func_801078B4_mstory4(path[0], t * t, &pos);
+        i++;
+        Hu3DModelPosSet(obj->model[1], pos.x, pos.y, pos.z);
+        func_8000CFA4_main(D_8011228E_mstory4, pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    } while (i < 50);
+    HuPrcSleep(40);
+    other = D_801121C0_mstory4[3].obj;
+    func_8001C624_main(other->model[1], HmfModelData[other->motion[3]].unk02, 0, 10, 0);
+    HuPrcSleep(20);
+    D_801121C0_mstory4[4].unk08 |= 2;
+    HuAudFXPlay(0x218);
+    func_8001C624_main(other->model[1], HmfModelData[other->motion[0]].unk02, 0, 10, 2);
+    rot = 0.0f;
+    i = 0;
+    do {
+        t = i * (1.0f / 120.0f);
+        func_801078B4_mstory4(path[1], t * t, &pos);
+        rot -= 24.0f;
+        Hu3DModelPosSet(obj->model[1], pos.x, pos.y, pos.z);
+        i++;
+        Hu3DModelRotSet(obj->model[1], 0.0f, rot, 0.0f);
+        func_8000CFA4_main(D_8011228E_mstory4, pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    } while (i < 120);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(D_8011228E_mstory4, 4, 4);
+    HuAudFXPlay(0x21A);
+    func_8010815C_mstory4(path[0]);
+    func_8010815C_mstory4(path[1]);
+    D_801121C0_mstory4[4].unk08 = 1;
+    D_801121C0_mstory4[4].func = (void (*)(omObjData *))func_80108280_mstory4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010ABD0_mstory4);
+/* turns a's model to face b's */
+void func_8010AA88_mstory4(omObjData *a, omObjData *b) {
+    s16 models[2];
+    Vec pos[2];
+    Vec rot;
+    Vec d;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010AC84_mstory4);
+    models[0] = a->model[1];
+    models[1] = b->model[1];
+    for (i = 0; i < 2; i++) {
+        pos[i].x = HmfModelData[models[i]].pos.x;
+        pos[i].y = HmfModelData[models[i]].pos.y;
+        pos[i].z = HmfModelData[models[i]].pos.z;
+    }
+    rot.x = HmfModelData[models[0]].rot.x;
+    rot.y = HmfModelData[models[0]].rot.y;
+    rot.z = HmfModelData[models[0]].rot.z;
+    d.x = pos[1].x - pos[0].x;
+    d.y = pos[1].y - pos[0].y;
+    d.z = pos[1].z - pos[0].z;
+    rot.y = -(atan2df(d.z, d.x) - 90.0f);
+    Hu3DModelRotSet(models[0], rot.x, rot.y, rot.z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010ACF4_mstory4);
+/* starts actor's looping sound effect fx (actors 0 and 2 have one) */
+void func_8010ABD0_mstory4(s32 actor, s32 fx) {
+    if (D_801121C0_mstory4[actor].unk0C == 0) {
+        D_801121C0_mstory4[actor].unk0C = 1;
+        D_801121C0_mstory4[actor].unk10 = fx;
+        switch (actor) {
+        case 0:
+            D_801121C0_mstory4[actor].unk14 = CharFXPlay(fx, GwStory.unk1);
+            break;
+        case 2:
+            D_801121C0_mstory4[actor].unk14 = CharFXPlay(fx, 6);
+            break;
+        }
+    }
+}
+
+/* stops it */
+void func_8010AC84_mstory4(s32 actor) {
+    if (D_801121C0_mstory4[actor].unk0C == 1) {
+        D_801121C0_mstory4[actor].unk0C = 0;
+        switch (actor) {
+        case 0:
+        case 2:
+            HuAudFXStop((s16)D_801121C0_mstory4[actor].unk14);
+            break;
+        }
+    }
+}
+
+/* replays each actor's looping sound effect when its motion starts over */
+void func_8010ACF4_mstory4(void) {
+    s32 i;
+    s32 fx;
+
+    while (TRUE) {
+        for (i = 0; i < 5; i++) {
+            if (D_801121C0_mstory4[i].unk0C == 1 && HmfModelData[D_801121C0_mstory4[i].obj->model[1]].unk40 == 0.0f) {
+                fx = D_801121C0_mstory4[i].unk10;
+                switch (i) {
+                case 0:
+                    D_801121C0_mstory4[i].unk14 = CharFXPlay(fx, GwStory.unk1);
+                    break;
+                case 2:
+                    D_801121C0_mstory4[i].unk14 = CharFXPlay(fx, 6);
+                    break;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+
+/* retail pads .text to 16 bytes here: a file boundary at 0x8010AE20 (ROM 0x4C8050); the unit is not
+   split (story wave rule), so the padding is kept by hand */
+__asm__(".section .text\n    .align 4\n");
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010AE20_mstory4);
 
