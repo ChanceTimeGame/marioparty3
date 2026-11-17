@@ -182,6 +182,18 @@ typedef struct StaffMdl {
     /* 0x1E */ s16 model4; // < 0 when absent
 } StaffMdl; // size 0x20: the file head's UnkStaff
 
+typedef struct StaffFlyer {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 unk18; // angle
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ f32 unk24;
+    /* 0x28 */ s16 model;
+    /* 0x2A */ s16 unk2A;
+} StaffFlyer; // size 0x2C: the file head's UnkStaff_1 (its 0x18/0x1C are f32)
+
+extern Vec D_80110FA0_staff[3];
 // end story j2
 
 #ifdef NON_MATCHING
@@ -879,7 +891,49 @@ INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C680_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C8F4_staff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010CD74_staff);
+void func_8010CD74_staff(UnkStaff_1 *arg0) {
+    StaffFlyer *f;
+    s16 base;
+    s16 m;
+    s32 i;
+
+    base = -1;
+    f = (StaffFlyer *)arg0;
+    for (i = 0; i < 3; i++, f++) {
+        if (base < 0) {
+            base = m = Hu3DModelCreate(DataReadTemp(0xA015E), 0x2B9);
+        } else {
+            m = Hu3DModelLink(base);
+        }
+        f->model = m;
+        func_8001C814_main(m, -1, 2);
+        f->pos = D_80110FA0_staff[i];
+        Hu3DModelPosSet(m, f->pos.x, f->pos.y, f->pos.z);
+        f->rot.x = f->rot.y = f->rot.z = 0.0f;
+        f->unk24 = 30.0f;
+        switch (i) {
+        case 0:
+            Hu3DModelScaleSet(m, 0.8f, 0.8f, 0.8f);
+            f->rot.y = -90.0f;
+            Hu3DModelRotSet(m, 0.0f, -90.0f, 0.0f);
+            f->unk1C = f->unk18 = f->unk20 = 0.0f;
+            break;
+        case 1:
+            Hu3DModelScaleSet(m, 0.4f, 0.4f, 0.4f);
+            f->unk20 = 60.0f;
+            f->unk18 = 0.0f;
+            f->unk1C = 50.0f;
+            break;
+        case 2:
+            Hu3DModelScaleSet(m, 0.4f, 0.4f, 0.4f);
+            f->unk20 = 120.0f;
+            f->unk18 = 180.0f;
+            f->unk1C = 80.0f;
+            break;
+        }
+        f->unk2A = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010CFD4_staff);
 
