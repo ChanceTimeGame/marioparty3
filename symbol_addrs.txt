@@ -1788,3 +1788,8 @@ D_800AB7D8_main = 0x800AB7D8; // size:0x288
 D_800ABA70_main = 0x800ABA70; // size:0x8
 // wave 2d B
 __osGetActiveQueue = 0x80086C30;
+// story u4: rodata Vecs the string guesser misreads
+D_80115740_mstory3 = 0x80115740; //rom:0x4C2780 type:f32 size:0xC
+D_8011574C_mstory3 = 0x8011574C; //rom:0x4C278C type:f32 size:0xC
+D_80115794_mstory3 = 0x80115794; //rom:0x4C27D4 type:f32 size:0xC
+D_801157DC_mstory3 = 0x801157DC; //rom:0x4C281C type:f32 size:0xC
