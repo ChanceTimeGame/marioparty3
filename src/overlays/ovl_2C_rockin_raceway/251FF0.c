@@ -1076,13 +1076,109 @@ void func_80108D84_rockin_raceway(void) {
     D_80111B54_rockin_raceway = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108ED4_rockin_raceway);
+void func_80108ED4_rockin_raceway(omObjData* obj) {
+    HmfModel* mdl;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108F8C_rockin_raceway);
+    if (D_80111B54_rockin_raceway == 0) {
+        for (i = 1; i < 13; i++) {
+            if (obj->model[i] != -1) {
+                mdl = &HmfModelData[obj->model[i]];
+                if (!(mdl->unk18 & 4) && D_800CCF58_main[mdl->unk02].unk02 <= mdl->unk40) {
+                    mdl->unk18 |= 4;
+                    mdl->unk40 = 0.0f;
+                }
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109044_rockin_raceway);
+void func_80108F8C_rockin_raceway(f32 x, f32 y, f32 z) {
+    omObjData* obj;
+    HmfModel* mdl;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109134_rockin_raceway);
+    obj = D_80111B4C_rockin_raceway;
+    for (i = 1; i < 13; i++) {
+        if (obj->model[i] != -1) {
+            mdl = &HmfModelData[obj->model[i]];
+            if (mdl->unk18 & 4) {
+                mdl->pos.x = x;
+                mdl->pos.y = y;
+                mdl->pos.z = z;
+                mdl->rot.x = CRot.x;
+                mdl->rot.y = CRot.y;
+                mdl->rot.z = CRot.z;
+                mdl->unk18 &= ~4;
+                mdl->unk40 = 0.0f;
+                mdl->unk44 = 1.5f;
+                return;
+            }
+        }
+    }
+}
+
+void func_80109044_rockin_raceway(void) {
+    omObjData* obj;
+    RrSmokeSave* save;
+    HmfModel* mdl;
+    s32 i;
+
+    obj = D_80111B4C_rockin_raceway;
+    save = D_80111B50_rockin_raceway;
+    if (D_80111B54_rockin_raceway == 0) {
+        for (i = 1; i < 13; i++, save++) {
+            if (obj->model[i] != -1) {
+                mdl = &HmfModelData[obj->model[i]];
+                save->unk00 = mdl->unk18;
+                save->unk04 = mdl->unk40;
+                save->unk08 = mdl->unk44;
+                save->unk0C.x = mdl->pos.x;
+                save->unk0C.y = mdl->pos.y;
+                save->unk0C.z = mdl->pos.z;
+                save->unk18.x = mdl->rot.x;
+                save->unk18.y = mdl->rot.y;
+                save->unk18.z = mdl->rot.z;
+                save->unk24.x = mdl->scale.x;
+                save->unk24.y = mdl->scale.y;
+                save->unk24.z = mdl->scale.z;
+                mdl->unk18 |= 4;
+                mdl->unk40 = mdl->unk44 = 0.0f;
+            }
+        }
+        D_80111B54_rockin_raceway = 1;
+    }
+}
+
+void func_80109134_rockin_raceway(void) {
+    omObjData* obj;
+    RrSmokeSave* save;
+    HmfModel* mdl;
+    s32 i;
+
+    obj = D_80111B4C_rockin_raceway;
+    save = D_80111B50_rockin_raceway;
+    if (D_80111B54_rockin_raceway != 0) {
+        for (i = 1; i < 13; i++, save++) {
+            if (obj->model[i] != -1) {
+                mdl = &HmfModelData[obj->model[i]];
+                mdl->unk18 = save->unk00;
+                mdl->unk40 = save->unk04;
+                mdl->unk44 = save->unk08;
+                mdl->pos.x = save->unk0C.x;
+                mdl->pos.y = save->unk0C.y;
+                mdl->pos.z = save->unk0C.z;
+                mdl->rot.x = save->unk18.x;
+                mdl->rot.y = save->unk18.y;
+                mdl->rot.z = save->unk18.z;
+                mdl->scale.x = save->unk24.x;
+                mdl->scale.y = save->unk24.y;
+                mdl->scale.z = save->unk24.z;
+            }
+        }
+        D_80111B54_rockin_raceway = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109208_rockin_raceway);
 
