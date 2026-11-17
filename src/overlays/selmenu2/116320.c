@@ -38,6 +38,54 @@ void func_80107DA4_selmenu2(omObjData *obj);
 extern s16 D_80109B00_selmenu2; /* page */
 extern s16 D_80109B02_selmenu2; /* row */
 extern s16 D_80109B08_selmenu2[8]; /* row remembered per page */
+extern s16 D_80109B18_selmenu2;
+extern s16 D_80109B1A_selmenu2;
+extern s16 D_80109B1C_selmenu2;
+extern u8 D_80109C38_selmenu2[4];
+extern u8 D_80109C3C_selmenu2[8]; /* pad connected */
+extern s16 D_80109C48_selmenu2[8]; /* character models */
+extern s16 D_80109C58_selmenu2[8]; /* their motion 0 */
+extern s16 D_80109C68_selmenu2[8]; /* their motion 1 */
+extern s16 D_80109C78_selmenu2[4];
+extern u8 D_80109C88_selmenu2;
+extern s16 D_80109C8A_selmenu2;
+extern s16 D_80109C8C_selmenu2;
+extern s16 D_80109C8E_selmenu2;
+extern s16 D_80109C90_selmenu2;
+extern s16 D_80109C98_selmenu2[40];
+extern f32 D_80109CE8_selmenu2[4]; /* character turn */
+
+extern s16 D_800A12B0_main; /* the overlay returned from (selmenu reads omprevovl) */
+extern s16 gNumOfControllers;
+extern s16 D_800D1F28_main; /* set when L is held at the pick: the minigame starts through its instructions */
+s32 func_800341C0_main(s32 mgNo, s32 arg1);
+unsigned int strlen(const char *);
+void func_8000BD08_main(u16 spriteId, f32 arg1);
+u8 func_8000BE1C_main(u16 spriteId);
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
+/* The low half of the s32 scroll D_801093C0, read on its own (big-endian: (u16)D_801093C0). */
+#define SELMENU2_SCROLL_LO (((u16 *)&D_801093C0_selmenu2)[1])
+extern u8 D_800A175E_main; /* select-menu mode: 0 GAME, 1 BOARD, 2 DUEL */
+extern s32 D_800A178C_main[][6];
+void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_80047C0C_main(u16 group, u16 max_objs);
+void func_801067B4_selmenu2(omObjData *obj);
+void func_80106A54_selmenu2(omObjData *obj);
+void func_80106D94_selmenu2(omObjData *obj);
+void func_801078CC_selmenu2(omObjData *obj);
+void func_80107D94_selmenu2(omObjData *obj);
+void func_80108718_selmenu2(u16 no);
+void func_801087E0_selmenu2(s32 dir);
+void func_80108910_selmenu2(u16 x, u16 y, char *str, u16 color, u16 shadow);
+void func_80108990_selmenu2(void);
+void func_80108A04_selmenu2(void);
+void func_80108A6C_selmenu2(void);
+void func_80108B38_selmenu2(void);
+void func_80105F74_selmenu2(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
+void func_8010600C_selmenu2(omObjData *obj);
 void func_80108764_selmenu2(s32 dir);
 
 /* .data */
@@ -179,7 +227,94 @@ s32 D_801093C4_selmenu2 = 0;
 s32 D_801093C8_selmenu2 = 1;
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_801059A0_selmenu2);
+void func_801059A0_selmenu2(void) {
+    GW_PLAYER *player;
+    omObjData *obj;
+    u16 id;
+    s32 i;
+
+    D_80109C88_selmenu2 = 0;
+    _SetFlag(0x12);
+    _ClearFlag(0xD);
+    GwSystem.show_minigame_explanations = 0;
+    if (D_800A12B0_main < 0x47) {
+        for (i = 0; i < 4; i++) {
+            GwPlayer[i].coin += GwPlayer[i].gameCoin;
+            if (GwPlayer[i].coin >= 1000) {
+                GwPlayer[i].coin = 999;
+            }
+            if (GwPlayer[i].coin < 0) {
+                GwPlayer[i].coin = 0;
+            }
+            GwPlayer[i].gameCoin = 0;
+        }
+    }
+    omInitObjMan(0x32, 0);
+    func_80105F74_selmenu2(2300.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    HmfLightMaxSet(1);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0x60, 0x60, 0x10);
+    HmfLightDirSet(1, 100.0f, -100.0f, 100.0f);
+    omAddObj(0x7FDA, 0, 0, -1, omOutView);
+    omAddObj(0, 0, 0, -1, func_8010600C_selmenu2);
+    omAddObj(1, 0, 0, -1, func_801067B4_selmenu2);
+    func_80047C0C_main(0, 0x20);
+    obj = omAddObj(10, 1, 80, -1, NULL);
+    for (i = 0; i < 8; i++) {
+        D_80109C48_selmenu2[i] = func_8000B108_main(D_800A178C_main[i][0] | D_800A178C_main[i][1], 0x69D);
+        HmfModelData[D_80109C48_selmenu2[i]].unk03 |= 2;
+        func_8000B460_main(obj, 0, func_80017BB8_main(i, 0));
+        D_80109C58_selmenu2[i] = obj->motion[0];
+        func_8000B460_main(obj, 1, func_80017BB8_main(i, 0x2F));
+        D_80109C68_selmenu2[i] = obj->motion[1];
+    }
+    omDelObj(obj);
+    for (i = 0; i < 4; i++) {
+        D_80109C84_selmenu2[i] = 0;
+        D_80109C80_selmenu2[i] = 0;
+    }
+    D_80109C8A_selmenu2 = func_8000B838_main(0x10020);
+    func_8000B880_main(D_80109C8A_selmenu2, 0.3f, 0.3f, 0.3f);
+    for (i = 0; i < 35; i++) {
+        id = InitEspriteSlot(D_80109C8A_selmenu2, (s16)(i % 6), 1);
+        func_8000BB54_main(id);
+        func_8000BCC8_main(id, 0xFFFF);
+        func_8000BC48_main(id, 0x4000);
+        func_8000BBFC_main(id, 0xFF);
+        func_8000BBD4_main(id, (i % 7) * 48, (i / 7) * 48);
+    }
+    D_80109C8C_selmenu2 = func_8000B838_main(10);
+    D_80109C8E_selmenu2 = InitEspriteSlot(D_80109C8C_selmenu2, 0, 1);
+    func_8000BB54_main(D_80109C8E_selmenu2);
+    func_8000BBD4_main(D_80109C8E_selmenu2, 128, 128);
+    func_8000BE5C_main(D_80109C8E_selmenu2, 0.25f, 0.25f);
+    for (i = 0; i < 40; i++) {
+        D_80109C98_selmenu2[i] = -1;
+    }
+    D_80109C90_selmenu2 = func_8000B838_main(12);
+    for (i = 0; i < 4; i++) {
+        D_80109D04_selmenu2[i] = 0;
+        D_80109D0C_selmenu2[i] = 0;
+        D_80109CFC_selmenu2[i] = 0;
+    }
+    WipeCreateIn(0xFF, 0x10);
+    HuAudSeqPlay((u8)rand8() % 9);
+    for (i = 0; i < 4; i++) {
+        player = &GwPlayer[i];
+        player->gamePrize = -1;
+        player->coinPrize = -1;
+        player->stats.prize.hatenaPrize = 0;
+        player->stats.prize.redPrize = 0;
+        player->stats.prize.bluePrize = 0;
+        player->stats.prize.eventPrize = 0;
+        player->stats.prize.kupaPrize = 0;
+        player->stats.prize.battlePrize = 0;
+        player->stats.prize.itemPrize = 0;
+        player->stats.prize.bankPrize = 0;
+        player->star = 5;
+    }
+    GwSystem.bank_coins = 0;
+}
 
 /* selmenu func_80105F30_selmenu */
 void func_80105F74_selmenu2(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
