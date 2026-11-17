@@ -204,13 +204,21 @@ const s16 D_8010FEC0_baby_bowser_broadside[] = { 0x8272, 0x8273, 0x8260, 0x8271,
 const s16 D_8010FECC_baby_bowser_broadside[] = { 0x8265, 0x8268, 0x826D, 0x8268, 0x8272, 0x8267, 0 };
 const s16 D_8010FEDC_baby_bowser_broadside[] = { 0x8263, 0x8271, 0x8260, 0x8276, 0 };
 const Vec D_8010FEE8_baby_bowser_broadside = { 0.0f, 0.0f, 0.0f };
-const Vec D_8010FEF4_baby_bowser_broadside[4][4] = {
+/* func_801062C4_baby_bowser_broadside copies these into locals */
+typedef struct BbWallVerts {
+    Vec v[4][4];
+} BbWallVerts;
+typedef struct BbFileTable {
+    s32 file[8];
+} BbFileTable;
+
+const BbWallVerts D_8010FEF4_baby_bowser_broadside = { {
     { { -50.0f, 100.0f, 170.0f }, { 50.0f, 100.0f, 170.0f }, { 50.0f, 200.0f, 170.0f }, { -50.0f, 200.0f, 170.0f } },
     { { 170.0f, 100.0f, 50.0f }, { 170.0f, 100.0f, -50.0f }, { 170.0f, 200.0f, -50.0f }, { 170.0f, 200.0f, 50.0f } },
     { { 50.0f, 100.0f, -170.0f }, { -50.0f, 100.0f, -170.0f }, { -50.0f, 200.0f, -170.0f }, { 50.0f, 200.0f, -170.0f } },
     { { -170.0f, 100.0f, -50.0f }, { -170.0f, 100.0f, 50.0f }, { -170.0f, 200.0f, 50.0f }, { -170.0f, 200.0f, -50.0f } },
-};
-const s32 D_8010FFB4_baby_bowser_broadside[8] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+} };
+const BbFileTable D_8010FFB4_baby_bowser_broadside = { { 8, 9, 10, 11, 12, 13, 14, 15 } };
 
 // main
 s32 func_8000B638_main(void);
@@ -234,7 +242,14 @@ void func_8010A81C_baby_bowser_broadside(void);
 void func_8010ACF8_baby_bowser_broadside(void);
 void func_8010B3B4_baby_bowser_broadside(void);
 BbGroup* func_80109F64_baby_bowser_broadside(omObjData* obj, s8 group, s16 models, s16 tasks);
-s16 func_8010A0B4_baby_bowser_broadside(s8 group, s32 mask, void* data, BbTaskFunc func, u8 arg4);
+s16 func_8010A0B4_baby_bowser_broadside(s8 group, s32 mask, void* data, BbTaskFunc func, s8 tag);
+s16 func_8010A598_baby_bowser_broadside(u16 prio, s32 dir, s32 file, u16 arg3, s32 attr);
+void func_8010A738_baby_bowser_broadside(s16 sprite, s32 x, s32 y);
+s16 func_8010A8C4_baby_bowser_broadside(s32 dir, s32 file, f32 freq, s16 tag, s32 attr, s32 arg5);
+s16 func_8010AE60_baby_bowser_broadside(s32 dir, s32 file, s16 tag, s32 attr);
+void func_8010DAE8_baby_bowser_broadside(BbCtx* ctx, BbTask* task);
+s16 func_8010DB38_baby_bowser_broadside(s16 model, Vec* base, s16 count, f32 radius, f32 height, u32 attr);
+s16 func_8010DC88_baby_bowser_broadside(s16 parent, u32 attr);
 void func_8010A158_baby_bowser_broadside(s8 group, BbTask* task);
 void func_8010A2C4_baby_bowser_broadside(s8 group);
 void func_8010F250_baby_bowser_broadside(omObjData* obj);
@@ -457,7 +472,129 @@ void func_80106288_baby_bowser_broadside(omObjData* obj) {
 }
 /* </func_80106288_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_801062C4_baby_bowser_broadside);
+/* <func_801062C4_baby_bowser_broadside> */
+/* Setup: the deck, cannons, cannonballs, effects, score sprites and colliders, then the play tasks. */
+void func_801062C4_baby_bowser_broadside(omObjData* obj) {
+    s32 attr = 0x99;
+    s32 sprAttr = 0x1000;
+    Vec center = D_8010FEE8_baby_bowser_broadside;
+    Vec top = D_8010FEE8_baby_bowser_broadside;
+    BbWallVerts walls = D_8010FEF4_baby_bowser_broadside;
+    BbFileTable files = D_8010FFB4_baby_bowser_broadside;
+    BbCtx* ctx;
+    BbBall* ball;
+    BbTask* task;
+    s16 model;
+    s16 sprite;
+    s16 i;
+    s16 j;
+    s32 y = 32;
+    s16 digitY = 32;
+
+    BB_WORK(obj)->w.group = 2;
+    ctx = func_80109F64_baby_bowser_broadside(obj, BB_WORK(obj)->b.group, 6, 4)->ctx;
+    ctx->models[0] = func_8000B108_main(0x2D0002, attr);
+    ctx->models[1] = func_8000B108_main(0x2D0000, attr);
+    ctx->models[2] = func_8000B108_main(0x2D0001, attr);
+    ctx->models[3] = D_80110008_baby_bowser_broadside->model = func_8000B108_main(0x2D0008, attr);
+    ctx->models[4] = func_8000B108_main(0x2D0009, attr);
+    ctx->models[5] = func_8000B108_main(9, attr);
+    D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[0].member[0]].model = model = func_8000B108_main(0x2D0004, attr);
+    D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[0].member[1]].model = Hu3DModelLink(model);
+    D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[1].member[0]].model = model = func_8000B108_main(0x2D0005, attr);
+    D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[1].member[1]].model = Hu3DModelLink(model);
+
+    ball = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[0].member[0]].balls;
+    model = ball->model = func_8000B108_main(0x2D0006, attr);
+    for (i = 0; i < 2; i++) {
+        ball = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[0].member[i]].balls;
+        for (j = 0; j < 3; j++, ball++) {
+            if (i == 0 && j == 0) {
+                continue;
+            }
+            ball->model = Hu3DModelLink(model);
+        }
+    }
+    ball = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[1].member[0]].balls;
+    model = ball->model = func_8000B108_main(0x2D0007, attr);
+    for (i = 0; i < 2; i++) {
+        ball = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[1].member[i]].balls;
+        for (j = 0; j < 3; j++, ball++) {
+            if (i == 0 && j == 0) {
+                continue;
+            }
+            ball->model = Hu3DModelLink(model);
+        }
+    }
+
+    Hu3DModelScaleSet(ctx->models[5], 2.0f, 2.0f, 2.0f);
+    Hu3DModelPosSet(ctx->models[2], 0.0f, 350.0f, 0.0f);
+    Hu3DModelPosSet(ctx->models[3], 0.0f, 455.00003f, 0.0f);
+    Hu3DModelPosSet(ctx->models[4], 0.0f, 455.00003f, 0.0f);
+    Hu3DModelPosSet(ctx->models[5], 0.0f, 450.0f, 0.0f);
+    HmfModelData[ctx->models[3]].unk44 = 0.0f;
+    for (i = 0; i < 4; i++) {
+        HmfModelData[D_80110004_baby_bowser_broadside[i].model].unk44 = 0.0f;
+    }
+
+    attr |= 0x400;
+    for (i = 0; i < 4; i++) {
+        func_8010A8C4_baby_bowser_broadside(0x2D, 0xC, 2.0f, 0, 0, attr);
+    }
+    for (i = 0; i < 4; i++) {
+        func_8010A8C4_baby_bowser_broadside(0x2D, 0xD, 2.0f, 1, 0, attr);
+    }
+    for (i = 0; i < 4; i++) {
+        func_8010A8C4_baby_bowser_broadside(0x2D, 0xA, 1.0f, 2, 0, attr);
+    }
+    for (i = 0; i < 4; i++) {
+        func_8010A8C4_baby_bowser_broadside(0x2D, 0xB, 1.0f, 3, 0, attr);
+    }
+    for (i = 0; i < 8; i++) {
+        Hu3DModelScaleSet(D_80110010_baby_bowser_broadside[func_8010AE60_baby_bowser_broadside(0x2D, 0xF, 0, 0xB)].model, 2.0f, 2.0f, 1.0f);
+    }
+
+    sprite = func_8010A598_baby_bowser_broadside(0xFF, 0x2D, 0xE, 0, sprAttr);
+    func_80055458_main(D_80110018_baby_bowser_broadside[sprite].group, 0, 0xBE);
+    func_8010A738_baby_bowser_broadside(sprite, 70, 32);
+    sprite = func_8010A598_baby_bowser_broadside(0xFF, 0x2D, 0xE, 0, sprAttr);
+    func_80055458_main(D_80110018_baby_bowser_broadside[sprite].group, 0, 0xBE);
+    func_8010A738_baby_bowser_broadside(sprite, 250, 32);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            func_8010A738_baby_bowser_broadside(
+                func_8010A598_baby_bowser_broadside(0xEF, 0x21, files.file[GwPlayer[D_80110000_baby_bowser_broadside[i].member[j]].chr], 0, 0),
+                (s16)(i * 180 + 40 + j * 18), (s16)y);
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        D_80110000_baby_bowser_broadside[i].digit[0] = sprite = func_8010A598_baby_bowser_broadside(0xEF, 0, 0x2D, 0, 0);
+        func_8010A738_baby_bowser_broadside(sprite, (s16)(i * 180 + 84), digitY);
+        D_80110000_baby_bowser_broadside[i].digit[1] = sprite = func_8010A598_baby_bowser_broadside(0xEF, 0, 0x2D, 0, 0);
+        func_8010A738_baby_bowser_broadside(sprite, (s16)(i * 180 + 100), digitY);
+    }
+
+    task = &D_80110014_baby_bowser_broadside[BB_WORK(obj)->w.group].tasks[func_8010A0B4_baby_bowser_broadside(
+        BB_WORK(obj)->b.group, 0xFFFF, NULL, func_8010DAE8_baby_bowser_broadside, BB_WORK(obj)->b.group)];
+    task->func(NULL, task);
+    D_80110008_baby_bowser_broadside->unk3C = func_8010DB38_baby_bowser_broadside(-1, &center, 1, 400.0f, 1000.0f, 0x490);
+    D_80110008_baby_bowser_broadside->unk46 = func_8010DB38_baby_bowser_broadside(ctx->models[4], &top, 1, 10.0f, 150.0f, 0x40C);
+    for (i = 0; i < 4; i++) {
+        D_80110008_baby_bowser_broadside->unk3E[i] = func_8010DB38_baby_bowser_broadside(ctx->models[2], walls.v[i], 4, 0.0f, 0.0f, 0x13E);
+    }
+    for (i = 0; i < 4; i++) {
+        D_80110008_baby_bowser_broadside->unk48[i] = func_8010DC88_baby_bowser_broadside(D_80110008_baby_bowser_broadside->unk3E[i], 0x116);
+    }
+    D_80110008_baby_bowser_broadside->unk60 = 0;
+    D_80110008_baby_bowser_broadside->unk61 = rand16() % 4 + 1;
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0, NULL, func_80108210_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xE, NULL, func_80108350_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xF, NULL, func_80108614_baby_bowser_broadside, 0);
+    obj->model[0] = ctx->models[0];
+    func_8010F250_baby_bowser_broadside(obj);
+    obj->func = func_80106E40_baby_bowser_broadside;
+}
+/* </func_801062C4_baby_bowser_broadside> */
 
 /* <func_80106E40_baby_bowser_broadside> */
 void func_80106E40_baby_bowser_broadside(omObjData* obj) {
