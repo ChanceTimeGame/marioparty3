@@ -335,3 +335,5 @@ D_8010AAEE_storyresult = D_8010AAEC_storyresult + 0x2;
 D_8010AB06_storyresult = D_8010AB04_storyresult + 0x2;
 D_8010AB08_storyresult = D_8010AB04_storyresult + 0x4;
 D_8010AB0A_storyresult = D_8010AB04_storyresult + 0x6;
+/* wave 3u v2: mstory4 scene 2 actors (= D_801122A0_mstory4, StoryActor[3]) until 4C2BD0.c declares it once */
+D_801122A0_v2 = 0x801122A0;

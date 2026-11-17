@@ -245,8 +245,11 @@ void func_8010A764_mstory4(void);
 
 /* scene 2: three actors */
 /* D_801122A0_mstory4 (StoryActor[3]) is still declared below as the older UnkModel by the C at
-   func_8010FC98, outside this range: read it through this cast until the blocks are unified */
-#define story2Actors ((StoryActor *)&D_801122A0_mstory4)
+   func_8010FC98, outside this range; until the blocks are unified it is read here through
+   D_801122A0_v2, an undefined_syms alias at the same address (a cast of &D_801122A0_mstory4
+   does not compile to the same addressing) */
+extern StoryActor D_801122A0_v2[];
+#define story2Actors D_801122A0_v2
 extern Vec D_80112300_mstory4[]; /* [3] actor positions */
 extern s16 D_80112324_mstory4; /* shadow model */
 extern s16 D_80112326_mstory4; /* effect model */
