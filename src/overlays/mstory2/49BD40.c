@@ -569,6 +569,11 @@ void func_8011B198_mstory2(void);
 void func_8011B64C_mstory2(void);
 extern MsActor2 D_8011CA10_mstory2[3];
 extern s16 D_8011CA4C_mstory2; /* the shadow model */
+void func_80105EA4_mstory2(void);
+void func_80105EB4_mstory2(void);
+void func_8011B464_mstory2(omObjData *obj);
+extern s16 D_8011CA74_mstory2[3]; /* actor 0's texture animation slots */
+extern s16 D_8011CA7A_mstory2;
 // story f5 protos end
 
 /* actor 0: the player's character */
@@ -1237,9 +1242,67 @@ void func_8011AC10_mstory2(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AD8C_mstory2);
+/* choice 0: both fly off */
+/* NON_MATCHING: retail does not hoist the 500.0f of the rise loop's exit test out of the loop (one instruction more); the rest is the same */
+#ifdef NON_MATCHING
+void func_8011AD8C_mstory2(omObjData *obj) {
+    HmfModel *model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B080_mstory2);
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[3]].unk02, 0, 10, 2);
+    func_8001C624_main(D_8011CA10_mstory2[0].obj->model[1], HmfModelData[D_8011CA10_mstory2[0].obj->motion[0]].unk02, 0, 10, 0);
+    func_80106D58_mstory2(D_8011CA10_mstory2[0].obj->model[1], D_8011CA7A_mstory2, D_8011CA74_mstory2[1]);
+    D_8011CA10_mstory2[0].func = func_8011B464_mstory2;
+    D_8011CA10_mstory2[0].flags = 1;
+    func_801060A4_mstory2();
+    func_801060F8_mstory2(0x5A81);
+    func_801060D4_mstory2();
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[0]].unk02, 0, 10, 2);
+    D_8011CA10_mstory2[1].flags = 1;
+    D_8011CA10_mstory2[0].flags = 2;
+    HuPrcSleep(20);
+    while (1) {
+        if (D_8011CA10_mstory2[0].flags == 3) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    while (1) {
+        HmfModelData[D_8011CA10_mstory2[0].obj->model[1]].pos.y += 30.0f;
+        HmfModelData[D_8011CA10_mstory2[1].obj->model[1]].pos.y += 60.0f;
+        model = &HmfModelData[D_8011CA10_mstory2[0].obj->model[2]];
+        model->scale.x = model->scale.z = model->scale.z - 0.075f;
+        model = &HmfModelData[D_8011CA10_mstory2[1].obj->model[2]];
+        model->scale.x = model->scale.z = model->scale.z - 0.075f;
+        if (HmfModelData[D_8011CA10_mstory2[0].obj->model[1]].pos.y >= 500.0f) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcVSleep();
+    func_80105EB4_mstory2();
+    D_8011CA10_mstory2[1].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+    D_8011CA10_mstory2[0].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+    D_8011CA10_mstory2[2].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AD8C_mstory2);
+#endif
+
+/* choice 1 */
+void func_8011B080_mstory2(omObjData *obj) {
+    func_80106D58_mstory2(D_8011CA10_mstory2[0].obj->model[1], D_8011CA7A_mstory2, D_8011CA74_mstory2[2]);
+    HuPrcSleep(20);
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[2]].unk02, 0, 10, 2);
+    func_801060A4_mstory2();
+    func_801060F8_mstory2(0x5A82);
+    func_801060D4_mstory2();
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(30);
+    func_80105EA4_mstory2();
+    D_8011CA10_mstory2[1].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+    D_8011CA10_mstory2[0].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+    D_8011CA10_mstory2[2].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C5DC_mstory2);
 
