@@ -8,7 +8,7 @@
 #include "game/gamemes.h"
 #include "game/audio.h"
 
-// m1 rr1: Rockin' Raceway (four karts race laps of a track; boost by tapping the buttons in rhythm)
+// m1 rr: Rockin' Raceway (four karts race laps of a track; boost by tapping the buttons in rhythm)
 
 /* One kart (D_80111B30, 4 of them, 0x70 each; the object keeps a pointer to it in work[]) */
 typedef struct RrRacer {
@@ -49,16 +49,21 @@ typedef struct RrRacer {
     /* 0x64 */ Vec unk64; /* rotation */
 } RrRacer; /* size 0x70 */
 
-/* A lane of the track (D_80111B40, 0x24 each) */
-typedef struct RrLane {
-    /* 0x00 */ char unk00[8];
-    /* 0x08 */ f32 unk08;
-    /* 0x0C */ Vec* unk0C;
-    /* 0x10 */ char unk10[0x10];
-    /* 0x20 */ u16* unk20;
-} RrLane; /* size 0x24 */
+/* the four racing lines (D_80111B40), built by func_80109DA8 from D_801112A0 */
+typedef struct RrPath {
+    /* 0x00 */ s16 unk00; /* index */
+    /* 0x02 */ u16 unk02; /* point count */
+    /* 0x04 */ f32 unk04; /* lap length without the closing segment */
+    /* 0x08 */ f32 unk08; /* length up to point D_801112C0[i] */
+    /* 0x0C */ Vec *unk0C; /* points */
+    /* 0x10 */ Vec *unk10; /* segment midpoints */
+    /* 0x14 */ f32 *unk14; /* segment lengths */
+    /* 0x18 */ f32 *unk18; /* length at each point (count + 1) */
+    /* 0x1C */ Vec *unk1C; /* segment rotation */
+    /* 0x20 */ u16 *unk20; /* per point: 1 or 2 placed at random */
+} RrPath; /* size 0x24 */
 
-/* A kart pose snapshot (D_80111B3C, [2][4]) */
+/* A kart pose snapshot (D_80111B3C, [2][4]): a player's two trailing models */
 typedef struct RrPose {
     /* 0x00 */ s16 unk00;
     /* 0x02 */ s16 unk02;
@@ -104,11 +109,29 @@ typedef struct RrEffect {
     /* 0x24 */ Vec unk24; /* scale */
 } RrEffect; /* size 0x30 */
 
-/* Shared work (D_80111B68) */
-typedef struct RrWork {
-    /* 0x00 */ char unk00[4];
+/* 16 entries of D_80111B60 (and RRRecFrame.obj): an RrEffect and its model state, saved by func_801097A0 */
+typedef struct RrMdlSave {
+    /* 0x00 */ u16 unk00;
+    /* 0x02 */ u16 unk02; /* model unk40 */
+    /* 0x04 */ s32 unk04; /* model unk18 */
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec rot;
+    /* 0x28 */ Vec scale;
+} RrMdlSave; /* size 0x34 */
+
+/* the sprite files (D_80111B68) */
+typedef struct RrSprFiles {
+    /* 0x00 */ s16 unk00; /* 0x4D000E */
+    /* 0x02 */ s16 unk02; /* 0x4D000F */
     /* 0x04 */ s16 unk04;
-} RrWork;
+    /* 0x06 */ s16 unk06; /* 0x4D0010 */
+    /* 0x08 */ s16 unk08; /* 0x4D0011 */
+    /* 0x0A */ s16 unk0A; /* 0x4D0012 */
+    /* 0x0C */ s16 unk0C[2]; /* 0x31, 0x32: best time digits */
+    /* 0x10 */ s16 unk10; /* 0x4D0013 */
+} RrSprFiles;
 
 /* A racer's standing while ranking */
 typedef struct RrRank {
@@ -120,6 +143,119 @@ typedef struct RrRank {
     /* 0x14 */ f32 unk14;
 } RrRank; /* size 0x18 */
 
+/* D_801112D0 is {s16, s16} node pairs per lane; the label sits on the second half, so this view is shifted by 2 */
+typedef struct RrNodeView {
+    /* 0x00 */ u16 unk00; /* D_801112D0[i].second */
+    /* 0x02 */ u16 unk02; /* D_801112D0[i + 1].first */
+} RrNodeView;
+
+/* camera presets (D_80111350 to D_801113F8): center, rotation, zoom */
+typedef struct RrCamPreset {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+} RrCamPreset;
+
+/* Mirror of gamemes.c's GAMEMES (0x74), for the timer message position */
+typedef struct RrGameMes {
+    /* 0x00 */ char unk00[0x60];
+    /* 0x60 */ f32 unk60;
+    /* 0x64 */ f32 unk64;
+    /* 0x68 */ char unk68[0xC];
+} RrGameMes; /* size 0x74 */
+
+/* per player HUD (D_80111B80): position and the five digit offsets */
+typedef struct RrHud {
+    /* 0x00 */ s16 unk00; /* player */
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06; /* x */
+    /* 0x08 */ s16 unk08; /* y */
+    /* 0x0A */ s16 unk0A[5]; /* digit x relative to unk06 */
+} RrHud; /* size 0x14 */
+
+/* camera state (MP2 Looney Lumberjacks LLCamera) */
+typedef struct RrCamera {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} RrCamera; /* size 0x24 */
+
+/* a camera focus point (D_80111C4C, 16 of them) */
+typedef struct RrFocus {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ f32 weight;
+} RrFocus; /* size 0x10 */
+
+typedef struct RRRecPlayer {
+    /* 0x00 */ Vec trans;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ Vec scale;
+    /* 0x24 */ f32 unk24;
+    /* 0x28 */ f32 unk28;
+} RRRecPlayer; /* size 0x2C */
+
+typedef struct RRRecModel {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ f32 unk4;
+    /* 0x08 */ s32 unk8;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec rot;
+    /* 0x24 */ Vec scale;
+} RRRecModel; /* size 0x30 */
+
+/* One recorded frame of the race (30 kept in a ring). */
+typedef struct RRRecFrame {
+    /* 0x000 */ s32 unk0;
+    /* 0x004 */ s32 unk4[4];
+    /* 0x014 */ RRRecPlayer player[4];
+    /* 0x0C4 */ RRRecModel model[12];
+    /* 0x304 */ RrMdlSave obj[16];
+} RRRecFrame; /* size 0x644 */
+
+/* A delayed sound effect (16 queued in D_80111BD0_rockin_raceway). */
+typedef struct RRSe {
+    /* 0x00 */ s16 fx;
+    /* 0x02 */ s16 delay;
+    /* 0x04 */ s16 kind;
+    /* 0x06 */ s16 arg;
+} RRSe;
+
+/* Four vertices copied as one block (retail copies them byte-aligned). */
+typedef struct RRQuad {
+    u8 data[4 * sizeof(Vtx)];
+} RRQuad;
+
+typedef struct RRColor {
+    u8 r, g, b, a;
+} RRColor;
+
+/* Pointers retail packs byte by byte into an object's work[]. */
+typedef struct RRBytes {
+    u32 a : 8;
+    u32 b : 8;
+    u32 c : 8;
+    u32 d : 8;
+} RRBytes;
+
+typedef union RRPack {
+    void* p;
+    RRBytes b;
+} RRPack;
+
+/* func_8010C7CC with a camera preset */
+#define RR_CAM(c, n) \
+    func_8010C7CC_rockin_raceway((c).center.x, (c).center.y, (c).center.z, (c).rot.x, (c).rot.y, (c).rot.z, (c).zoom, n)
+
+#define RR_WRAP(v)          \
+    if ((v) >= 360.0) {     \
+        (v) -= 360.0;       \
+    } else if ((v) < 0.0) { \
+        (v) += 360.0;       \
+    }
+
 // main
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
@@ -128,44 +264,133 @@ void func_8004A950_main(void);
 s32 func_8000B638_main(void);
 u16 GWMgRecordGet(s16);
 void func_80017D24_main(HuMtx4F m, f32, f32, f32);
+void func_80088850_main(Mtx* m, f32 x, f32 y, f32 z);
 void func_8008A070_main(HuMtx4F m);
 s32 WipeStatGet(void);
 s32 WipeCreateOut(s32, s32);
 void* DataRead(s32 dirAndFile);
 void DataClose(void*);
+f64 fabs(f64); /* the GCC builtin (abs.d) */
+f32 fabsf(f32);
+f64 fmod(f64 x, f64 y);
 
+extern s16 D_800CDD6A_main;
+extern u8 D_800D2008_main;
+extern s16 D_800D418E_main; /* the viewport being drawn */
 extern u16 D_800D530C_main;
-extern u8 D_800D6A90_main;
 extern u16 D_800D5558_main[];
+extern u8 D_800D6A90_main;
+extern s32 D_800EBE24_minigame;
+extern s32 fontcolor;
 extern Vec CRot;
+extern RrGameMes gMesData[];
 
-// rockin_raceway (outside rr1's range)
-void func_801096A0_rockin_raceway(RrRacer* r);
-void func_801099AC_rockin_raceway(void);
-void func_80109DA8_rockin_raceway(void);
-f32 func_8010A258_rockin_raceway(s32 lane, f32 dist, f32 pos, f32 speed, u16* node, f32* arg5, Vec* outPos, Vec* outRot);
-s32 func_8010A48C_rockin_raceway(u16 lane, u16 node);
-s16 func_8010A4C0_rockin_raceway(s32 dirAndFile);
-void func_8010A504_rockin_raceway(void);
-void func_8010A5E4_rockin_raceway(s16 lane, s16 chr);
-void func_8010B124_rockin_raceway(void);
-void func_8010B774_rockin_raceway(void);
-void func_8010CB5C_rockin_raceway(RrRacer* r, f32 arg1);
-void func_8010D5B8_rockin_raceway(void);
-void func_8010E2E4_rockin_raceway(void);
-void func_8010E344_rockin_raceway(s32, s32, s32, s16);
-f32 func_8010E504_rockin_raceway(f32, f32);
-f32 func_8010E608_rockin_raceway(f32, f32, f32);
-f32 func_8010E7C8_rockin_raceway(f32, f32, f32);
-void func_8010EC0C_rockin_raceway(omObjData* obj, void* data);
-void* func_8010EC38_rockin_raceway(omObjData* obj);
-s16 func_8010EC8C_rockin_raceway(HuSprite_Unk84_Struct*, void*);
-s16 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct*, u16, void*);
-void func_8010FA78_rockin_raceway(u16, HuSprite_Unk84_Struct*, u16, void*);
+// rockin_raceway .data
+extern Vec* D_801112A0_rockin_raceway[4];
+extern s32 D_801112B0_rockin_raceway[4]; /* label D_801112B2 + 2: the u16 load reads its low half */
+extern s32 D_801112C0_rockin_raceway[4]; /* last node per lane */
+extern RrNodeView D_801112D2_rockin_raceway[];
+extern f32 D_801112E0_rockin_raceway[];
+extern f32 D_801112F0_rockin_raceway[];
+extern f32 D_80111300_rockin_raceway[];
+extern f32 D_80111304_rockin_raceway[];
+extern s32 D_80111320_rockin_raceway[];
+extern s16 D_80111330_rockin_raceway[4][2];
+extern s16 D_80111340_rockin_raceway[8];
+extern RrCamPreset D_80111350_rockin_raceway;
+extern RrCamPreset D_8011136C_rockin_raceway;
+extern RrCamPreset D_80111388_rockin_raceway;
+extern RrCamPreset D_801113A4_rockin_raceway;
+extern RrCamPreset D_801113C0_rockin_raceway;
+extern RrCamPreset D_801113DC_rockin_raceway;
+extern RrCamPreset D_801113F8_rockin_raceway;
+extern f32 D_80111410_rockin_raceway; /* D_801113F8.zoom */
+extern Vec D_80111414_rockin_raceway[4];
+extern Vec D_80111444_rockin_raceway[12];
+extern RRColor D_801114D4_rockin_raceway;
+extern Vtx D_801114D8_rockin_raceway[];
+extern Vtx D_80111518_rockin_raceway[];
+extern u32 D_80111558_rockin_raceway;
+extern s32 D_8011155C_rockin_raceway;
+extern s16 D_8011155E_rockin_raceway;
+extern u16 D_80111562_rockin_raceway[][2];
+extern s32 D_80111570_rockin_raceway[];
+extern u16 D_80111580_rockin_raceway[];
+extern u32 D_80111590_rockin_raceway[];
+extern s32 D_8011159C_rockin_raceway[];
+extern s32 D_801115AC_rockin_raceway[2]; /* inside D_8011159C's label: best times? */
+extern RRColor D_801115B4_rockin_raceway;
+extern s32 D_801115B8_rockin_raceway[];
+extern s32 D_801115D8_rockin_raceway[6]; /* digit sprite members */
+extern s32 D_801115F0_rockin_raceway; /* camera debug mode */
+extern s32 D_801115F4_rockin_raceway; /* debug text x */
+extern s32 D_801115F8_rockin_raceway; /* debug text y */
+extern s32 D_801115FC_rockin_raceway;
+extern Gfx D_801116F0_rockin_raceway[];
+extern RRColor D_80111730_rockin_raceway;
+extern RRColor D_80111734_rockin_raceway;
 
+// rockin_raceway .bss
+extern s32 D_80111AC0_rockin_raceway;
+extern omObjData* D_80111AC4_rockin_raceway;
+extern s32 D_80111AC8_rockin_raceway;
+extern s32 D_80111ACC_rockin_raceway;
+extern s32 D_80111AD0_rockin_raceway;
+extern s32 D_80111AD4_rockin_raceway;
+extern s32 D_80111AD8_rockin_raceway; /* race state */
+extern s32 D_80111ADC_rockin_raceway;
+extern s16 D_80111AE0_rockin_raceway;
+extern s32 D_80111AE4_rockin_raceway;
+extern s32 D_80111AE8_rockin_raceway;
+extern u16 D_80111AEA_rockin_raceway; /* low half of D_80111AE8 */
+extern s32 D_80111AEC_rockin_raceway;
+extern s32 D_80111AF0_rockin_raceway[4];
+extern s32 D_80111B00_rockin_raceway[2 * 6]; /* best time digits, six per time */
+extern RrRacer* D_80111B30_rockin_raceway;
+extern s16 D_80111B34_rockin_raceway;
+extern s16 D_80111B36_rockin_raceway;
+extern s16 D_80111B38_rockin_raceway;
+extern s16 D_80111B3A_rockin_raceway;
+extern RrPoseSet* D_80111B3C_rockin_raceway;
+extern RrPath* D_80111B40_rockin_raceway;
+extern f32 D_80111B44_rockin_raceway;
+extern RrItem* D_80111B48_rockin_raceway;
+extern omObjData* D_80111B4C_rockin_raceway;
+extern RrSmokeSave* D_80111B50_rockin_raceway;
+extern s16 D_80111B54_rockin_raceway;
+extern omObjData* D_80111B58_rockin_raceway;
+extern RrEffect* D_80111B5C_rockin_raceway;
+extern RrMdlSave* D_80111B60_rockin_raceway;
+extern s16 D_80111B64_rockin_raceway;
+extern RrSprFiles* D_80111B68_rockin_raceway;
+extern s16 D_80111B6C_rockin_raceway[4]; /* sprite groups */
+extern s16 D_80111B74_rockin_raceway;
+extern s16 D_80111B76_rockin_raceway[2]; /* best time sprite groups */
+extern s16 D_80111B7A_rockin_raceway; /* new record pulse timer */
+extern RrHud D_80111B80_rockin_raceway[4];
+extern RRSe* D_80111BD0_rockin_raceway;
+extern s16 D_80111BD4_rockin_raceway;
+extern s16 D_80111BD6_rockin_raceway;
+extern omObjData* D_80111BD8_rockin_raceway;
+extern RrCamera D_80111BE0_rockin_raceway[2]; /* [0] target, [1] start */
+extern s16 D_80111C28_rockin_raceway;
+extern s16 D_80111C2A_rockin_raceway;
+extern s16 D_80111C2C_rockin_raceway;
+extern s16 D_80111C2E_rockin_raceway;
+extern omObjData* D_80111C30_rockin_raceway;
+extern s16 D_80111C34_rockin_raceway; /* focus point count */
+extern f32 D_80111C38_rockin_raceway[5]; /* focus centre x, y, z; [3] (D_80111C44) summed weight; [4] (D_80111C48) target zoom */
+extern RrFocus* D_80111C4C_rockin_raceway;
+extern RRRecFrame* D_80111C50_rockin_raceway;
+extern s32 D_80111C54_rockin_raceway;
+extern s32 D_80111C58_rockin_raceway;
+
+// rockin_raceway functions
+void func_801059A0_rockin_raceway(void);
 void func_80105C24_rockin_raceway(omObjData* obj);
 void func_80105CB0_rockin_raceway(omObjData* obj);
 void func_80106A5C_rockin_raceway(omObjData* obj);
+void func_80106A80_rockin_raceway(omObjData* obj);
 void func_80106B28_rockin_raceway(void);
 void func_80106DC8_rockin_raceway(omObjData* obj);
 void func_801071D8_rockin_raceway(omObjData* obj);
@@ -190,108 +415,69 @@ void func_80109134_rockin_raceway(void);
 void func_80109208_rockin_raceway(void);
 void func_80109384_rockin_raceway(omObjData* obj);
 s32 func_801094EC_rockin_raceway(Vec* pos, Vec* vel, Vec* scale, f32 speed);
-
-extern s32 D_801112C0_rockin_raceway[]; /* last node per lane */
-/* D_801112D0 is {s16, s16} node pairs per lane; the label sits on the second half, so this view is shifted by 2 */
-typedef struct RrNodeView {
-    /* 0x00 */ u16 unk00; /* D_801112D0[i].second */
-    /* 0x02 */ u16 unk02; /* D_801112D0[i + 1].first */
-} RrNodeView;
-extern RrNodeView D_801112D2_rockin_raceway[];
-extern f32 D_801112E0_rockin_raceway[];
-extern f32 D_801112F0_rockin_raceway[];
-extern f32 D_80111300_rockin_raceway[];
-extern f32 D_80111304_rockin_raceway[];
-extern s32 D_80111320_rockin_raceway[];
-extern u8 D_801114D4_rockin_raceway[];
-extern u32 D_80111558_rockin_raceway;
-extern s32 D_8011155C_rockin_raceway;
-extern s16 D_8011155E_rockin_raceway;
-extern u16 D_80111562_rockin_raceway[][2];
-extern s32 D_80111570_rockin_raceway[];
-extern u16 D_80111580_rockin_raceway[];
-extern u32 D_80111590_rockin_raceway[];
-
-extern omObjData* D_80111AC4_rockin_raceway;
-extern s32 D_80111AC8_rockin_raceway;
-extern s32 D_80111ACC_rockin_raceway;
-extern s32 D_80111AD0_rockin_raceway;
-extern s32 D_80111AD4_rockin_raceway;
-extern s32 D_80111AD8_rockin_raceway; /* race state */
-extern s32 D_80111ADC_rockin_raceway;
-extern s16 D_80111AE0_rockin_raceway;
-extern s32 D_80111AE4_rockin_raceway;
-extern s32 D_80111AE8_rockin_raceway;
-extern s32 D_80111AEC_rockin_raceway;
-extern RrRacer* D_80111B30_rockin_raceway;
-extern s16 D_80111B34_rockin_raceway;
-extern s16 D_80111B36_rockin_raceway;
-extern s16 D_80111B38_rockin_raceway;
-extern s16 D_80111B3A_rockin_raceway;
-extern RrPoseSet* D_80111B3C_rockin_raceway;
-extern RrLane* D_80111B40_rockin_raceway;
-extern f32 D_80111B44_rockin_raceway;
-extern RrItem* D_80111B48_rockin_raceway;
-extern omObjData* D_80111B4C_rockin_raceway;
-extern RrSmokeSave* D_80111B50_rockin_raceway;
-extern s16 D_80111B54_rockin_raceway;
-extern omObjData* D_80111B58_rockin_raceway;
-extern RrEffect* D_80111B5C_rockin_raceway;
-extern void* D_80111B60_rockin_raceway;
-extern s16 D_80111B64_rockin_raceway;
-extern RrWork* D_80111B68_rockin_raceway;
-extern s16 D_80111BD4_rockin_raceway;
-extern s16 D_80111BD6_rockin_raceway;
-extern s32 D_80111BD8_rockin_raceway;
-extern s32 D_80111C30_rockin_raceway;
-
-/* A camera preset: seven floats handed to func_8010C7CC */
-typedef struct RrCam {
-    /* 0x00 */ f32 v[7];
-} RrCam; /* size 0x1C */
-
-#define RR_CAM(c, n) func_8010C7CC_rockin_raceway((c).v[0], (c).v[1], (c).v[2], (c).v[3], (c).v[4], (c).v[5], (c).v[6], n)
-
-/* Mirror of gamemes.c's GAMEMES (0x74), for the timer message position */
-typedef struct RrGameMes {
-    /* 0x00 */ char unk00[0x60];
-    /* 0x60 */ f32 unk60;
-    /* 0x64 */ f32 unk64;
-    /* 0x68 */ char unk68[0xC];
-} RrGameMes; /* size 0x74 */
-extern RrGameMes gMesData[];
-
-f64 fabs(f64);
-void func_80106A80_rockin_raceway(omObjData* obj);
-void func_80109D00_rockin_raceway(s32* order);
-void func_80109D54_rockin_raceway(s32* times);
+void func_80109CF8_rockin_raceway(void);
+void func_801096A0_rockin_raceway(RrRacer* kart);
+void func_801097A0_rockin_raceway(void);
+void func_801098D8_rockin_raceway(void);
+void func_801099AC_rockin_raceway(void);
+void func_80109A04_rockin_raceway(omObjData *obj);
+void func_80109D00_rockin_raceway(s32 *arg0);
+void func_80109D54_rockin_raceway(s32 *times);
+void func_80109DA8_rockin_raceway(void);
+f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, u16 *seg, f32 *frac, Vec *pos, Vec *rot);
+s32 func_8010A48C_rockin_raceway(u16 idx, u16 pt);
+u16 func_8010A4C0_rockin_raceway(s32 file);
+void func_8010A504_rockin_raceway(void);
+void func_8010A5E4_rockin_raceway(s16 player, s16 kind);
+void func_8010A990_rockin_raceway(omObjData *obj);
+void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 mode);
+void func_8010B124_rockin_raceway(void);
 void func_8010B2B8_rockin_raceway(void);
-void func_8010B5DC_rockin_raceway(s32* times);
-void func_8010C7CC_rockin_raceway(f32, f32, f32, f32, f32, f32, f32, s32 frames);
+void func_8010B5DC_rockin_raceway(s32 *times);
+void func_8010B774_rockin_raceway(void);
+void func_8010B89C_rockin_raceway(void);
+void func_8010C0D8_rockin_raceway(omObjData *obj);
+void func_8010C5E0_rockin_raceway(s32 idx);
+void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
 void func_8010C9BC_rockin_raceway(void);
 void func_8010C9CC_rockin_raceway(void);
 void func_8010CA1C_rockin_raceway(void);
+void func_8010CADC_rockin_raceway(Vec *pos, f32 weight);
+void func_8010CB5C_rockin_raceway(RrRacer* kart, f32 weight);
+void func_8010CC10_rockin_raceway(void);
+void func_8010CE90_rockin_raceway(omObjData *obj);
 void func_8010D104_rockin_raceway(void);
 void func_8010D114_rockin_raceway(void);
+void func_8010D134_rockin_raceway(s32 idx);
+void func_8010D288_rockin_raceway(s32 cam, Vec* pos, f32* screen, f32* rel);
+void func_8010D5B8_rockin_raceway(void);
 void func_8010D600_rockin_raceway(void);
-void func_8010D9C4_rockin_raceway(s32);
-void func_8010E08C_rockin_raceway(s16);
+RRRecFrame* func_8010D944_rockin_raceway(s32 idx);
+void func_8010D9C4_rockin_raceway(s32 frame);
+void func_8010E08C_rockin_raceway(s32 idx);
+void func_8010E2E4_rockin_raceway(void);
+s32 func_8010E344_rockin_raceway(s16 fx, s16 delay, s16 kind, s16 arg);
 void func_8010E39C_rockin_raceway(void);
-void func_801097A0_rockin_raceway(void);
-void func_801098D8_rockin_raceway(void);
+f32 func_8010E504_rockin_raceway(f32 a, f32 b);
+f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step);
+f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b);
+f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b);
+f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
+void func_8010E8A0_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out);
+f32 func_8010E93C_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
+void func_8010E994_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out);
+f32 func_8010EB04_rockin_raceway(f32 x, f32 z);
+void func_8010EB84_rockin_raceway(Vec* dir, f32* angles);
+void func_8010EC0C_rockin_raceway(omObjData* obj, void* p);
+RrRacer* func_8010EC38_rockin_raceway(omObjData* obj);
+s32 func_8010EC8C_rockin_raceway(HuSprite_Unk84_Struct* spr, RRColor* color);
+s32 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct* spr, u16 model, RRColor* color);
+void func_8010FA78_rockin_raceway(u16 model, HuSprite_Unk84_Struct* spr, u16 frame, RRColor* color);
+s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 scale, u16 x, u16 y);
+s32 func_8010FFB8_rockin_raceway(HuSprite_Unk84_Struct* spr, Vtx* vtx);
+void func_80110C38_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr, s32* players);
+void func_80110D90_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr, s32* times /* unused */);
 
-extern RrCam D_8011136C_rockin_raceway;
-extern RrCam D_80111388_rockin_raceway;
-extern RrCam D_801113A4_rockin_raceway;
-extern RrCam D_801113C0_rockin_raceway;
-extern RrCam D_801113DC_rockin_raceway;
-extern RrCam D_801113F8_rockin_raceway;
-extern f32 D_80111410_rockin_raceway; /* D_801113F8.v[6] */
-extern u16 D_80111AEA_rockin_raceway; /* low half of D_80111AE8 */
-extern s32 D_80111AF0_rockin_raceway[4];
-extern s16 D_80111B7A_rockin_raceway;
-extern s16 D_80111C2C_rockin_raceway;
-extern s16 D_80111C2E_rockin_raceway;
 
 /* "ＳＴＡＲＴ" */
 const s16 D_80111740_rockin_raceway[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -696,7 +882,7 @@ void func_80106A80_rockin_raceway(omObjData* obj) {
 }
 
 void func_80106B28_rockin_raceway(void) {
-    RrLane* track;
+    RrPath* track;
     omObjData* obj;
     RrRacer* r;
     s32 i;
@@ -1548,9 +1734,9 @@ void func_80109208_rockin_raceway(void) {
     D_80111B5C_rockin_raceway = fx = HuMemAllocTag(sizeof(RrEffect) * 16, 0x7918);
     for (i = 0; i < 16; i++, fx++) {
         if (i == 0) {
-            fx->unk02 = func_8010EC8C_rockin_raceway(spr, D_801114D4_rockin_raceway);
+            fx->unk02 = func_8010EC8C_rockin_raceway(spr, &D_801114D4_rockin_raceway);
         } else {
-            fx->unk02 = func_8010F874_rockin_raceway(spr, D_80111B5C_rockin_raceway->unk02, D_801114D4_rockin_raceway);
+            fx->unk02 = func_8010F874_rockin_raceway(spr, D_80111B5C_rockin_raceway->unk02, &D_801114D4_rockin_raceway);
         }
         fx->unk00 = 0;
         fx->unk04 = fx->unk08 = 0.0f;
@@ -1591,7 +1777,7 @@ void func_80109384_rockin_raceway(omObjData* obj) {
             mdl->scale.x = fx->unk24.x;
             mdl->scale.y = fx->unk24.y;
             mdl->scale.z = fx->unk24.z;
-            func_8010FA78_rockin_raceway(fx->unk02, spr, (s32)fx->unk04, D_801114D4_rockin_raceway);
+            func_8010FA78_rockin_raceway(fx->unk02, spr, (s32)fx->unk04, &D_801114D4_rockin_raceway);
             fx->unk04 += fx->unk08;
             if ((s32)fx->unk04 >= spr->unk10) {
                 fx->unk00 = 0;
@@ -1638,7 +1824,7 @@ s32 func_801094EC_rockin_raceway(Vec* pos, Vec* vel, Vec* scale, f32 speed) {
         }
         fx->unk08 = speed;
         fx->unk04 = 0.0f;
-        func_8010FA78_rockin_raceway(fx->unk02, spr, 0, D_801114D4_rockin_raceway);
+        func_8010FA78_rockin_raceway(fx->unk02, spr, 0, &D_801114D4_rockin_raceway);
         func_8001C258_main(fx->unk02, 4, 0);
         mdl->unk40 = 0.0f;
         mdl->pos.x = fx->unk0C.x;
@@ -1652,192 +1838,8 @@ s32 func_801094EC_rockin_raceway(Vec* pos, Vec* vel, Vec* scale, f32 speed) {
     return -1;
 }
 
-// m1 rr2
-#include "overlays/minigame.h"
-#include "mallocblock.h"
 
-/* a kart (rr1's functions own most of it) */
-typedef struct RrKart {
-    /* 0x00 */ char unk00[2];
-    /* 0x02 */ u16 unk02;
-    /* 0x04 */ char unk04[0x24];
-    /* 0x28 */ f32 unk28; /* lap time, seconds */
-    /* 0x2C */ char unk2C[2];
-    /* 0x2E */ s16 unk2E; /* player */
-    /* 0x30 */ char unk30[0x10];
-    /* 0x40 */ f32 unk40; /* wheel angle */
-    /* 0x44 */ char unk44[0x14];
-    /* 0x58 */ Vec unk58; /* position */
-    /* 0x64 */ char unk64[4];
-    /* 0x68 */ f32 unk68; /* heading */
-    /* 0x6C */ char unk6C[4];
-} RrKart; /* size 0x70 */
-
-/* 16 entries of D_80111B5C: a model and its animation state */
-typedef struct RrMdlAnim {
-    /* 0x00 */ u16 unk00;
-    /* 0x02 */ s16 unk02; /* model, -1 unused */
-    /* 0x04 */ f32 unk04;
-    /* 0x08 */ f32 unk08;
-    /* 0x0C */ char unk0C[0x24];
-} RrMdlAnim; /* size 0x30 */
-
-/* 16 entries of D_80111B60: the RrMdlAnim and model state saved by func_801097A0 */
-typedef struct RrMdlSave {
-    /* 0x00 */ u16 unk00;
-    /* 0x02 */ u16 unk02; /* model unk40 */
-    /* 0x04 */ s32 unk04; /* model unk18 */
-    /* 0x08 */ f32 unk08;
-    /* 0x0C */ f32 unk0C;
-    /* 0x10 */ Vec pos;
-    /* 0x1C */ Vec rot;
-    /* 0x28 */ Vec scale;
-} RrMdlSave; /* size 0x34 */
-
-extern RrMdlAnim *D_80111B5C_rockin_raceway;
-extern RrMdlSave *D_80111B60_rockin_raceway;
-extern s16 D_80111B64_rockin_raceway;
-
-void func_801094EC_rockin_raceway(Vec *pos, Vec *vel, Vec *scale, f32 arg3);
-void func_80109A04_rockin_raceway(omObjData *obj);
-void func_80109CF8_rockin_raceway(void);
-/* the sprite files (D_80111B68) */
-typedef struct RrSprFiles {
-    /* 0x00 */ s16 unk00; /* 0x4D000E */
-    /* 0x02 */ s16 unk02; /* 0x4D000F */
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ s16 unk06; /* 0x4D0010 */
-    /* 0x08 */ s16 unk08; /* 0x4D0011 */
-    /* 0x0A */ s16 unk0A; /* 0x4D0012 */
-    /* 0x0C */ s16 unk0C[2]; /* 0x31, 0x32: best time digits */
-    /* 0x10 */ s16 unk10; /* 0x4D0013 */
-} RrSprFiles;
-
-extern RrSprFiles *D_80111B68_rockin_raceway;
-extern s32 D_80111AE8_rockin_raceway;
-extern Vtx D_801114D8_rockin_raceway[];
-extern Vtx D_80111518_rockin_raceway[];
-extern s32 D_8011159C_rockin_raceway[];
-extern s32 D_801115AC_rockin_raceway[2]; /* inside D_8011159C's label: best times? */
-extern s32 D_801115B4_rockin_raceway;
-
-u16 func_8010A4C0_rockin_raceway(s32 file);
-void func_8010B5DC_rockin_raceway(s32 *times);
-s16 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct *spr, u16 model, s32 *arg2);
-s16 func_8010FFB8_rockin_raceway(HuSprite_Unk84_Struct *spr, Vtx *vtx);
-void func_80110C38_rockin_raceway(s16 *models, HuSprite_Unk84_Struct *spr, s32 *arg2);
-void func_80110D90_rockin_raceway(s16 *models, HuSprite_Unk84_Struct *spr, s32 *times);
-/* the four racing lines (D_80111B40), built by func_80109DA8 from D_801112A0 */
-typedef struct RrPath {
-    /* 0x00 */ s16 unk00; /* index */
-    /* 0x02 */ u16 unk02; /* point count */
-    /* 0x04 */ f32 unk04; /* lap length without the closing segment */
-    /* 0x08 */ f32 unk08; /* length up to point D_801112C0[i] */
-    /* 0x0C */ Vec *unk0C; /* points */
-    /* 0x10 */ Vec *unk10; /* segment midpoints */
-    /* 0x14 */ f32 *unk14; /* segment lengths */
-    /* 0x18 */ f32 *unk18; /* length at each point (count + 1) */
-    /* 0x1C */ Vec *unk1C; /* segment rotation */
-    /* 0x20 */ s16 *unk20; /* per point: 1 or 2 placed at random */
-} RrPath; /* size 0x24 */
-
-extern RrPath *D_80111B40_rockin_raceway;
-extern f32 D_80111B44_rockin_raceway;
-extern Vec *D_801112A0_rockin_raceway[4];
-extern s32 D_801112B0_rockin_raceway[4]; /* label D_801112B2 + 2: the u16 load reads its low half */
-extern s32 D_801112C0_rockin_raceway[4];
-
-void func_8010E8A0_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
-void func_8010E994_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
-void func_8010EB84_rockin_raceway(Vec *dir, Vec *rot);
-f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b);
-extern s16 D_80111B74_rockin_raceway;
-/* per player HUD (D_80111B80): position and the five digit offsets */
-typedef struct RrHud {
-    /* 0x00 */ s16 unk00; /* player */
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ s16 unk06; /* x */
-    /* 0x08 */ s16 unk08; /* y */
-    /* 0x0A */ s16 unk0A[5]; /* digit x relative to unk06 */
-} RrHud; /* size 0x14 */
-
-extern s16 D_80111B6C_rockin_raceway[4]; /* sprite groups */
-extern RrHud D_80111B80_rockin_raceway[4];
-extern s16 D_80111330_rockin_raceway[4][2];
-extern s32 D_801115B8_rockin_raceway[];
-void func_8010A990_rockin_raceway(omObjData *obj);
-extern RrKart *D_80111B30_rockin_raceway;
-extern s32 D_80111AD0_rockin_raceway;
-extern s32 D_80111AD8_rockin_raceway; /* game state */
-extern s32 D_80111ADC_rockin_raceway;
-void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 arg2);
-extern u8 D_800D6A90_main;
-f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
-extern s16 D_80111B76_rockin_raceway[2]; /* best time sprite groups */
-extern s16 D_80111B7A_rockin_raceway; /* new record pulse timer */
-extern s16 D_80111340_rockin_raceway[8];
-extern s32 D_80111B00_rockin_raceway[2 * 6]; /* best time digits, six per time */
-extern s32 D_801115D8_rockin_raceway[6]; /* digit sprite members */
-/* camera state (MP2 Looney Lumberjacks LLCamera) */
-typedef struct RrCamera {
-    /* 0x00 */ Vec center;
-    /* 0x0C */ Vec rot;
-    /* 0x18 */ f32 zoom;
-    /* 0x1C */ f32 unk1C;
-    /* 0x20 */ f32 unk20;
-} RrCamera; /* size 0x24 */
-
-extern s32 fontcolor;
-extern s32 D_800EBE24_minigame;
-extern s32 D_801115F0_rockin_raceway; /* camera debug mode */
-extern s32 D_801115F4_rockin_raceway; /* debug text x */
-extern s32 D_801115F8_rockin_raceway; /* debug text y */
-void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
-/* camera preset (D_80111350): center, rotation, zoom */
-typedef struct RrCamPreset {
-    /* 0x00 */ Vec center;
-    /* 0x0C */ Vec rot;
-    /* 0x18 */ f32 zoom;
-} RrCamPreset;
-
-extern RrCamPreset D_80111350_rockin_raceway;
-extern omObjData *D_80111BD8_rockin_raceway;
-extern s16 D_80111C28_rockin_raceway;
-extern s16 D_80111C2A_rockin_raceway;
-extern s16 D_80111C2C_rockin_raceway;
-extern s16 D_80111C2E_rockin_raceway;
-void func_8010C0D8_rockin_raceway(omObjData *obj);
-void func_8010C5E0_rockin_raceway(s32 idx);
-#define RR_WRAP(v)          \
-    if ((v) >= 360.0) {     \
-        (v) -= 360.0;       \
-    } else if ((v) < 0.0) { \
-        (v) += 360.0;       \
-    }
-
-extern RrCamera D_80111BE0_rockin_raceway[2]; /* [0] target, [1] start */
-f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b);
-void func_8010D134_rockin_raceway(s32 idx);
-/* a camera focus point (D_80111C4C, 16 of them) */
-typedef struct RrFocus {
-    /* 0x00 */ Vec pos;
-    /* 0x0C */ f32 weight;
-} RrFocus; /* size 0x10 */
-
-extern omObjData *D_80111C30_rockin_raceway;
-extern s16 D_80111C34_rockin_raceway; /* focus point count */
-extern f32 D_80111C38_rockin_raceway[5]; /* focus centre x, y, z; [3] (D_80111C44) summed weight; [4] (D_80111C48) target zoom */
-extern RrFocus *D_80111C4C_rockin_raceway;
-void func_8010CE90_rockin_raceway(omObjData *obj);
-void func_8010CADC_rockin_raceway(Vec *pos, f32 weight);
-double fabs(double); /* the GCC builtin (abs.d) */
-void func_8010D288_rockin_raceway(s32 cam, Vec *pos, Vec *out, f32 *screen);
-f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step);
-// m1 rr2 end
-
-/* rr2 func_801096A0_rockin_raceway */
-void func_801096A0_rockin_raceway(RrKart *kart) {
+void func_801096A0_rockin_raceway(RrRacer *kart) {
     Vec pos;
     Vec vel;
     Vec scale;
@@ -1845,18 +1847,16 @@ void func_801096A0_rockin_raceway(RrKart *kart) {
     pos.x = kart->unk58.x;
     pos.z = kart->unk58.z;
     pos.y = kart->unk58.y + 200.0 * 0.1f;
-    vel.x = -(sindf(kart->unk68 + kart->unk40) * 100.0 * 0.1f);
-    vel.z = -(cosdf(kart->unk68 + kart->unk40) * 100.0 * 0.1f);
+    vel.x = -(sindf(kart->unk64.y + kart->unk40) * 100.0 * 0.1f);
+    vel.z = -(cosdf(kart->unk64.y + kart->unk40) * 100.0 * 0.1f);
     vel.y = 1.0f;
     scale.x = scale.y = scale.z = 0.25f;
     func_801094EC_rockin_raceway(&pos, &vel, &scale, 1.0f);
 }
-/* rr2 end func_801096A0_rockin_raceway */
 
-/* rr2 func_801097A0_rockin_raceway */
 void func_801097A0_rockin_raceway(void) {
     RrMdlSave *save;
-    RrMdlAnim *anim;
+    RrEffect *anim;
     HmfModel *model;
     s32 i;
 
@@ -1888,12 +1888,10 @@ void func_801097A0_rockin_raceway(void) {
         D_80111B64_rockin_raceway = 1;
     }
 }
-/* rr2 end func_801097A0_rockin_raceway */
 
-/* rr2 func_801098D8_rockin_raceway */
 void func_801098D8_rockin_raceway(void) {
     RrMdlSave *save;
-    RrMdlAnim *anim;
+    RrEffect *anim;
     HmfModel *model;
     s32 i;
 
@@ -1921,15 +1919,11 @@ void func_801098D8_rockin_raceway(void) {
         D_80111B64_rockin_raceway = 0;
     }
 }
-/* rr2 end func_801098D8_rockin_raceway */
 
-/* rr2 func_801099AC_rockin_raceway */
 void func_801099AC_rockin_raceway(void) {
     D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(1, 24, 0, -1, func_80109A04_rockin_raceway);
 }
-/* rr2 end func_801099AC_rockin_raceway */
 
-/* rr2 func_80109A04_rockin_raceway */
 void func_80109A04_rockin_raceway(omObjData *obj) {
     s32 i;
     s16 grp;
@@ -1971,28 +1965,22 @@ void func_80109A04_rockin_raceway(omObjData *obj) {
     func_800550F4_main(grp, 0, 0);
     WipeCreateIn(0xFF, 16);
 }
-/* rr2 end func_80109A04_rockin_raceway */
 
 void func_80109CF8_rockin_raceway(void) {
 }
 
-/* rr2 func_80109D00_rockin_raceway */
 void func_80109D00_rockin_raceway(s32 *arg0) {
     omObjData *obj = D_800EC1C0_minigame[0];
 
     func_80110C38_rockin_raceway(&obj->model[3], func_80055194_main(D_80111B68_rockin_raceway->unk06), arg0);
 }
-/* rr2 end func_80109D00_rockin_raceway */
 
-/* rr2 func_80109D54_rockin_raceway */
 void func_80109D54_rockin_raceway(s32 *times) {
     omObjData *obj = D_800EC1C0_minigame[0];
 
     func_80110D90_rockin_raceway(&obj->model[7], func_80055194_main(D_80111B68_rockin_raceway->unk08), times);
 }
-/* rr2 end func_80109D54_rockin_raceway */
 
-/* rr2 func_80109DA8_rockin_raceway */
 void func_80109DA8_rockin_raceway(void) {
     Vec rot;
     RrPath *path;
@@ -2015,7 +2003,7 @@ void func_80109DA8_rockin_raceway(void) {
         path->unk14 = HuMemAllocTag(path->unk02 * sizeof(f32), 0x7918);
         path->unk18 = HuMemAllocTag((path->unk02 + 1) * sizeof(f32), 0x7918);
         path->unk1C = HuMemAllocTag(path->unk02 * sizeof(Vec), 0x7918);
-        path->unk20 = HuMemAllocTag(path->unk02 * sizeof(s16), 0x7918);
+        path->unk20 = HuMemAllocTag(path->unk02 * sizeof(u16), 0x7918);
         memset(path->unk20, 0, 4);
         for (j = 0; j < 5; j++) {
             next = (rand8() & 0xFF) % D_801112C0_rockin_raceway[i];
@@ -2041,7 +2029,7 @@ void func_80109DA8_rockin_raceway(void) {
             path->unk10[j].y = path->unk0C[j].y + dy * 0.5f;
             path->unk10[j].z = path->unk0C[j].z + dz * 0.5f;
             func_8010E994_rockin_raceway(0.0f, &path->unk0C[j], &path->unk10[j], &path->unk0C[next], &rot);
-            func_8010EB84_rockin_raceway(&rot, &path->unk1C[j]);
+            func_8010EB84_rockin_raceway(&rot, (f32*)&path->unk1C[j]);
         }
         path->unk18[j] = len;
         path->unk04 = len - path->unk14[j - 1];
@@ -2053,11 +2041,9 @@ void func_80109DA8_rockin_raceway(void) {
         }
     }
 }
-/* rr2 end func_80109DA8_rockin_raceway */
 
 #ifdef NON_MATCHING
-/* rr2 func_8010A258_rockin_raceway */
-f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, s16 *seg, f32 *frac, Vec *pos, Vec *rot) {
+f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, u16 *seg, f32 *frac, Vec *pos, Vec *rot) {
     RrPath *path = &D_80111B40_rockin_raceway[idx];
     f32 start;
     f32 d;
@@ -2115,17 +2101,13 @@ f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, s16 *se
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A258_rockin_raceway);
 #endif
-/* rr2 end func_8010A258_rockin_raceway */
 
-/* rr2 func_8010A48C_rockin_raceway */
-u16 func_8010A48C_rockin_raceway(u16 idx, u16 pt) {
+s32 func_8010A48C_rockin_raceway(u16 idx, u16 pt) {
     RrPath *path = &D_80111B40_rockin_raceway[idx];
 
     return path->unk20[pt];
 }
-/* rr2 end func_8010A48C_rockin_raceway */
 
-/* rr2 func_8010A4C0_rockin_raceway */
 u16 func_8010A4C0_rockin_raceway(s32 file) {
     void *data;
     s16 spr;
@@ -2135,9 +2117,7 @@ u16 func_8010A4C0_rockin_raceway(s32 file) {
     DataClose(data);
     return spr;
 }
-/* rr2 end func_8010A4C0_rockin_raceway */
 
-/* rr2 func_8010A504_rockin_raceway */
 void func_8010A504_rockin_raceway(void) {
     s32 grp;
 
@@ -2152,9 +2132,7 @@ void func_8010A504_rockin_raceway(void) {
     func_80054FF8_main(grp, 0, 0);
     HuSprAttrSet(grp, 0, 0x9000);
 }
-/* rr2 end func_8010A504_rockin_raceway */
 
-/* rr2 func_8010A5E4_rockin_raceway */
 void func_8010A5E4_rockin_raceway(s16 player, s16 kind) {
     s32 spr;
     s32 x;
@@ -2220,11 +2198,9 @@ void func_8010A5E4_rockin_raceway(s16 player, s16 kind) {
     }
     omSetStatBit(omAddObj(20, 0, 0, -1, func_8010A990_rockin_raceway), 0xA0);
 }
-/* rr2 end func_8010A5E4_rockin_raceway */
 
-/* rr2 func_8010A990_rockin_raceway */
 void func_8010A990_rockin_raceway(omObjData *obj) {
-    RrKart *kart;
+    RrRacer *kart;
     s32 i;
 
     if (D_80111AD8_rockin_raceway == 5 && (D_80111ADC_rockin_raceway > 0 || D_80111AD0_rockin_raceway >= 2)) {
@@ -2242,9 +2218,7 @@ void func_8010A990_rockin_raceway(omObjData *obj) {
         }
     }
 }
-/* rr2 end func_8010A990_rockin_raceway */
 
-/* rr2 func_8010AAAC_rockin_raceway */
 void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 mode) {
     u16 grp;
     f32 scale;
@@ -2328,9 +2302,7 @@ void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 mode) {
         }
     }
 }
-/* rr2 end func_8010AAAC_rockin_raceway */
 
-/* rr2 func_8010B124_rockin_raceway */
 void func_8010B124_rockin_raceway(void) {
     s32 grp;
     s32 i;
@@ -2352,9 +2324,7 @@ void func_8010B124_rockin_raceway(void) {
         func_80054FF8_main(grp, 5, 11);
     }
 }
-/* rr2 end func_8010B124_rockin_raceway */
 
-/* rr2 func_8010B2B8_rockin_raceway */
 void func_8010B2B8_rockin_raceway(void) {
     f32 scale;
     u16 grp;
@@ -2403,9 +2373,7 @@ void func_8010B2B8_rockin_raceway(void) {
         }
     }
 }
-/* rr2 end func_8010B2B8_rockin_raceway */
 
-/* rr2 func_8010B5DC_rockin_raceway */
 #ifdef NON_MATCHING
 void func_8010B5DC_rockin_raceway(s32 *times) {
     s32 parts[3];
@@ -2432,9 +2400,7 @@ void func_8010B5DC_rockin_raceway(s32 *times) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B5DC_rockin_raceway);
 #endif
-/* rr2 end func_8010B5DC_rockin_raceway */
 
-/* rr2 func_8010B774_rockin_raceway */
 void func_8010B774_rockin_raceway(void) {
     HuCamera *cam;
     s32 i;
@@ -2463,9 +2429,7 @@ void func_8010B774_rockin_raceway(void) {
         cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
     }
 }
-/* rr2 end func_8010B774_rockin_raceway */
 
-/* rr2 func_8010B89C_rockin_raceway */
 void func_8010B89C_rockin_raceway(void) {
     RrCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
     f32 speed = 1.0f;
@@ -2571,9 +2535,7 @@ void func_8010B89C_rockin_raceway(void) {
         }
     }
 }
-/* rr2 end func_8010B89C_rockin_raceway */
 
-/* rr2 func_8010C0D8_rockin_raceway */
 void func_8010C0D8_rockin_raceway(omObjData *obj) {
     f32 t;
 
@@ -2628,9 +2590,7 @@ void func_8010C0D8_rockin_raceway(omObjData *obj) {
     D_80111C2C_rockin_raceway = 1;
     func_8010D134_rockin_raceway(0);
 }
-/* rr2 end func_8010C0D8_rockin_raceway */
 
-/* rr2 func_8010C5E0_rockin_raceway */
 void func_8010C5E0_rockin_raceway(s32 idx) {
     RR_WRAP(CRot.x);
     RR_WRAP(CRot.y);
@@ -2644,9 +2604,7 @@ void func_8010C5E0_rockin_raceway(s32 idx) {
     D_80111BE0_rockin_raceway[idx].zoom = CZoom;
     D_80111BE0_rockin_raceway[idx].unk1C = D_80111BE0_rockin_raceway[idx].unk20 = 0.0f;
 }
-/* rr2 end func_8010C5E0_rockin_raceway */
 
-/* rr2 func_8010C7CC_rockin_raceway */
 void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
     if (frames > 0) {
         D_80111C28_rockin_raceway = frames - 1;
@@ -2689,15 +2647,11 @@ void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz
         func_8010C5E0_rockin_raceway(1);
     }
 }
-/* rr2 end func_8010C7CC_rockin_raceway */
 
-/* rr2 func_8010C9BC_rockin_raceway */
 void func_8010C9BC_rockin_raceway(void) {
     D_80111BD8_rockin_raceway->func = NULL;
 }
-/* rr2 end func_8010C9BC_rockin_raceway */
 
-/* rr2 func_8010C9CC_rockin_raceway */
 void func_8010C9CC_rockin_raceway(void) {
     func_8010C5E0_rockin_raceway(0);
     func_8010C5E0_rockin_raceway(1);
@@ -2706,9 +2660,7 @@ void func_8010C9CC_rockin_raceway(void) {
     D_80111C28_rockin_raceway = 0;
     D_80111BD8_rockin_raceway->func = func_8010C0D8_rockin_raceway;
 }
-/* rr2 end func_8010C9CC_rockin_raceway */
 
-/* rr2 func_8010CA1C_rockin_raceway */
 void func_8010CA1C_rockin_raceway(void) {
     HuCamera *cam;
     s32 i;
@@ -2726,9 +2678,7 @@ void func_8010CA1C_rockin_raceway(void) {
         cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
     }
 }
-/* rr2 end func_8010CA1C_rockin_raceway */
 
-/* rr2 func_8010CADC_rockin_raceway */
 #ifdef NON_MATCHING
 void func_8010CADC_rockin_raceway(Vec *pos, f32 weight) {
     RrFocus *focus;
@@ -2745,10 +2695,8 @@ void func_8010CADC_rockin_raceway(Vec *pos, f32 weight) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CADC_rockin_raceway);
 #endif
-/* rr2 end func_8010CADC_rockin_raceway */
 
-/* rr2 func_8010CB5C_rockin_raceway */
-void func_8010CB5C_rockin_raceway(RrKart *kart, f32 weight) {
+void func_8010CB5C_rockin_raceway(RrRacer *kart, f32 weight) {
     Vec pos;
 
     pos.x = kart->unk58.x + 100.0;
@@ -2760,9 +2708,7 @@ void func_8010CB5C_rockin_raceway(RrKart *kart, f32 weight) {
     pos.z = kart->unk58.z;
     func_8010CADC_rockin_raceway(&pos, weight);
 }
-/* rr2 end func_8010CB5C_rockin_raceway */
 
-/* rr2 func_8010CC10_rockin_raceway */
 void func_8010CC10_rockin_raceway(void) {
     f32 max[3];
     f32 min[3];
@@ -2812,9 +2758,7 @@ void func_8010CC10_rockin_raceway(void) {
         D_80111C38_rockin_raceway[3] = 0.0f;
     }
 }
-/* rr2 end func_8010CC10_rockin_raceway */
 
-/* rr2 func_8010CE90_rockin_raceway */
 void func_8010CE90_rockin_raceway(omObjData *obj) {
     f32 screen[2];
     f32 size;
@@ -2860,22 +2804,16 @@ void func_8010CE90_rockin_raceway(omObjData *obj) {
     CRot.y = func_8010E608_rockin_raceway(0.0f, CRot.y, 10.0f);
     D_80111C34_rockin_raceway = 0;
 }
-/* rr2 end func_8010CE90_rockin_raceway */
 
-/* rr2 func_8010D104_rockin_raceway */
 void func_8010D104_rockin_raceway(void) {
     D_80111C30_rockin_raceway->func = NULL;
 }
-/* rr2 end func_8010D104_rockin_raceway */
 
-/* rr2 func_8010D114_rockin_raceway */
 void func_8010D114_rockin_raceway(void) {
     D_80111C34_rockin_raceway = 0;
     D_80111C30_rockin_raceway->func = func_8010CE90_rockin_raceway;
 }
-/* rr2 end func_8010D114_rockin_raceway */
 
-/* rr2 func_8010D134_rockin_raceway */
 #ifdef NON_MATCHING
 void func_8010D134_rockin_raceway(s32 idx) {
     HuCamera *cam;
@@ -2898,60 +2836,940 @@ void func_8010D134_rockin_raceway(s32 idx) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D134_rockin_raceway);
 #endif
-/* rr2 end func_8010D134_rockin_raceway */
 
+
+/* Projects pos through camera cam: screen position and depth into screen, viewport-relative into rel. */
+#ifdef NON_MATCHING
+/* raw residue: sz and sn swap f22/f24 (one extra nop) */
+void func_8010D288_rockin_raceway(s32 cam, Vec* pos, f32* screen, f32* rel) {
+    Mtx look;
+    Mtx mtx;
+    HuCamera* c;
+    Mtx* m;
+    f32 sx, sy, sz;
+    f32 sn;
+    f32 dist;
+    f32 x, y;
+
+    c = &gCameraList[cam];
+    m = &mtx;
+    guLookAt(&look, c->pos.x, c->pos.y, c->pos.z, c->at.x, c->at.y, c->at.z, c->up.x, c->up.y, c->up.z);
+    func_80088850_main(m, pos->x, pos->y, pos->z);
+    guMtxCatL(m, &look, m);
+    sx = (s32)((((u16*)&mtx)[12] << 16) | ((u16*)&mtx)[28]) >> 16;
+    sy = (s32)((((u16*)&mtx)[13] << 16) | ((u16*)&mtx)[29]) >> 16;
+    sz = (s32)((((u16*)&mtx)[14] << 16) | ((u16*)&mtx)[30]) >> 16;
+    sn = sindf(gCameraList[cam].fov[0] / 2.0);
+    dist = fabsf(sz * sn / cosdf(gCameraList[cam].fov[0] / 2.0));
+    if (dist != 0.0) {
+        x = c->viewports[D_800D418E_main].vp.vscale[0] / 4.0 * sx / dist / 1.3333333730697632;
+        y = c->viewports[D_800D418E_main].vp.vscale[1] / 4.0 * -sy / dist;
+        if (screen != NULL) {
+            screen[0] = (s16)(x + c->viewports[D_800D418E_main].vp.vtrans[0] * 0.25f);
+            screen[1] = (s16)(y + c->viewports[D_800D418E_main].vp.vtrans[1] * 0.25f);
+            screen[2] = dist;
+        }
+        if (rel != NULL) {
+            rel[0] = x / 160.0f;
+            rel[1] = y / 120.0f;
+        }
+    } else {
+        screen[0] = screen[1] = screen[2] = 0.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D288_rockin_raceway);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D5B8_rockin_raceway);
+void func_8010D5B8_rockin_raceway(void) {
+    D_80111C50_rockin_raceway = HuMemAllocTag(sizeof(RRRecFrame) * 30, 0x7918);
+    memset(D_80111C50_rockin_raceway, 0, sizeof(RRRecFrame) * 30);
+    D_80111C54_rockin_raceway = 0;
+    D_80111C58_rockin_raceway = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D600_rockin_raceway);
+/* Records this frame of the race into the ring. */
+void func_8010D600_rockin_raceway(void) {
+    RRRecFrame* rec = &D_80111C50_rockin_raceway[D_80111C58_rockin_raceway];
+    RrRacer* work;
+    RRRecPlayer* p;
+    RRRecModel* m;
+    RrMdlSave* o;
+    RrEffect* src;
+    HmfModel* model;
+    s16 id;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D944_rockin_raceway);
+    rec->unk0 = D_80111AE4_rockin_raceway;
+    for (i = 0; i < 4; i++) {
+        rec->unk4[i] = D_80111AF0_rockin_raceway[i];
+    }
+    for (i = 0; i < 4; i++) {
+        work = func_8010EC38_rockin_raceway(D_800EC598_minigame[i]);
+        p = &rec->player[i];
+        p->trans.x = D_800EC598_minigame[i]->trans.x;
+        p->trans.y = D_800EC598_minigame[i]->trans.y;
+        p->trans.z = D_800EC598_minigame[i]->trans.z;
+        p->rot.x = D_800EC598_minigame[i]->rot.x;
+        p->rot.y = D_800EC598_minigame[i]->rot.y;
+        p->rot.z = D_800EC598_minigame[i]->rot.z;
+        p->scale.x = D_800EC598_minigame[i]->scale.x;
+        p->scale.y = D_800EC598_minigame[i]->scale.y;
+        p->scale.z = D_800EC598_minigame[i]->scale.z;
+        p->unk24 = work->unk38;
+        p->unk28 = work->unk24;
+    }
+    m = rec->model;
+    for (i = 1; i < 13; i++, m++) {
+        id = D_80111B4C_rockin_raceway->model[i];
+        if (id != -1) {
+            model = &HmfModelData[id];
+            m->unk0 = model->unk18;
+            m->unk4 = model->unk40;
+            m->unk8 = 0;
+            m->pos.x = model->pos.x;
+            m->pos.y = model->pos.y;
+            m->pos.z = model->pos.z;
+            m->rot.x = model->rot.x;
+            m->rot.y = model->rot.y;
+            m->rot.z = model->rot.z;
+            m->scale.x = model->scale.x;
+            m->scale.y = model->scale.y;
+            m->scale.z = model->scale.z;
+        }
+    }
+    o = rec->obj;
+    src = D_80111B5C_rockin_raceway;
+    for (i = 0; i < 16; i++, o++, src++) {
+        id = src->unk02;
+        if (id != -1) {
+            model = &HmfModelData[id];
+            o->unk00 = src->unk00;
+            o->unk02 = model->unk40;
+            o->unk04 = model->unk18;
+            o->unk08 = src->unk04;
+            o->unk0C = src->unk08;
+            o->pos.x = model->pos.x;
+            o->pos.y = model->pos.y;
+            o->pos.z = model->pos.z;
+            o->rot.x = model->rot.x;
+            o->rot.y = model->rot.y;
+            o->rot.z = model->rot.z;
+            o->scale.x = model->scale.x;
+            o->scale.y = model->scale.y;
+            o->scale.z = model->scale.z;
+        }
+    }
+    D_80111C54_rockin_raceway++;
+    D_80111C58_rockin_raceway++;
+    if (D_80111C58_rockin_raceway >= 30) {
+        D_80111C58_rockin_raceway -= 30;
+    }
+}
 
+/* The recorded frame idx frames back from the oldest, NULL if not recorded. */
+RRRecFrame* func_8010D944_rockin_raceway(s32 idx) {
+    if ((idx >= D_80111C54_rockin_raceway) | (idx >= 30)) {
+        return NULL;
+    }
+    if (D_80111C54_rockin_raceway >= 30) {
+        idx += D_80111C58_rockin_raceway;
+    }
+    if (idx >= 30) {
+        idx -= 30;
+    }
+    return &D_80111C50_rockin_raceway[idx];
+}
+
+#ifdef NON_MATCHING
+/* Plays recorded frame `frame` back, blending from the frame before over 4.5 ticks. */
+void func_8010D9C4_rockin_raceway(s32 frame) {
+    s32 key[2];
+    RRRecFrame* rec;
+    RRRecFrame* prevRec;
+    RRRecPlayer* cur;
+    RRRecPlayer* prev;
+    omObjData* obj;
+    HmfModel* model;
+    RrPose* trail;
+    RRRecModel* m;
+    RRRecModel* pm;
+    RrMdlSave* o;
+    RrMdlSave* po;
+    RrEffect* src;
+    f32 t;
+    s32 i;
+    s32 j;
+    s16 id;
+
+    if (D_801115FC_rockin_raceway != frame) {
+        D_801115FC_rockin_raceway = frame;
+        D_80111AC0_rockin_raceway = 0;
+    } else {
+        D_80111AC0_rockin_raceway++;
+    }
+    t = D_80111AC0_rockin_raceway / 4.5f;
+    if (t >= 1.0f) {
+        t = 1.0f;
+    } else if (t <= 0.0f) {
+        t = 0.0f;
+    }
+    rec = func_8010D944_rockin_raceway(frame);
+    key[0] = rec->unk0;
+    key[1] = D_80111AE8_rockin_raceway;
+    func_8010B5DC_rockin_raceway(key);
+    func_80109D00_rockin_raceway(rec->unk4);
+    func_80109D54_rockin_raceway(key);
+    for (i = 0; i < 4; i++) {
+        cur = &rec->player[i];
+        obj = D_800EC598_minigame[i];
+        prev = cur;
+        if (frame - 1 >= 0) {
+            prev = &func_8010D944_rockin_raceway(frame - 1)->player[i];
+        }
+        obj->trans.x = func_8010E7C8_rockin_raceway(t, prev->trans.x, cur->trans.x);
+        obj->trans.y = func_8010E7C8_rockin_raceway(t, prev->trans.y, cur->trans.y);
+        obj->trans.z = func_8010E7C8_rockin_raceway(t, prev->trans.z, cur->trans.z);
+        obj->rot.x = func_8010E7E0_rockin_raceway(t, prev->rot.x, cur->rot.x);
+        obj->rot.y = func_8010E7E0_rockin_raceway(t, prev->rot.y, cur->rot.y);
+        obj->rot.z = func_8010E7E0_rockin_raceway(t, prev->rot.z, cur->rot.z);
+        obj->scale.x = func_8010E7C8_rockin_raceway(t, prev->scale.x, cur->scale.x);
+        obj->scale.y = func_8010E7C8_rockin_raceway(t, prev->scale.y, cur->scale.y);
+        obj->scale.z = func_8010E7C8_rockin_raceway(t, prev->scale.z, cur->scale.z);
+    }
+    if (D_80111B3A_rockin_raceway != 0) {
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 2; j++) {
+                cur = &rec->player[i];
+                if (frame - 1 - j >= 0) {
+                    cur = &func_8010D944_rockin_raceway(frame - 2 - j)->player[i];
+                }
+                if (frame - 2 - j >= 0) {
+                    prev = &func_8010D944_rockin_raceway(frame - 3 - j)->player[i];
+                } else {
+                    prev = cur;
+                }
+                model = &HmfModelData[D_800EC598_minigame[i]->model[j + 3]];
+                trail = &D_80111B3C_rockin_raceway[j].p[i];
+                if (trail->unk02 != 0) {
+                    if (trail->unk00 != 0) {
+                        model->pos.x = trail->unk04.x;
+                        model->pos.y = trail->unk04.y;
+                        model->pos.z = trail->unk04.z;
+                        model->rot.x = trail->unk10.x;
+                        model->rot.y = trail->unk10.y;
+                        model->rot.z = trail->unk10.z;
+                        model->scale.x = trail->unk1C.x;
+                        model->scale.y = trail->unk1C.y;
+                        model->scale.z = trail->unk1C.z;
+                        trail->unk00--;
+                    } else {
+                        model->pos.x = func_8010E7C8_rockin_raceway(t, prev->trans.x, cur->trans.x);
+                        model->pos.y = func_8010E7C8_rockin_raceway(t, prev->trans.y, cur->trans.y);
+                        model->pos.z = func_8010E7C8_rockin_raceway(t, prev->trans.z, cur->trans.z);
+                        model->rot.x = func_8010E7E0_rockin_raceway(t, prev->rot.x, cur->rot.x);
+                        model->rot.y = func_8010E7E0_rockin_raceway(t, prev->rot.y, cur->rot.y);
+                        model->rot.z = func_8010E7E0_rockin_raceway(t, prev->rot.z, cur->rot.z);
+                        model->scale.x = func_8010E7C8_rockin_raceway(t, prev->scale.x, cur->scale.x);
+                        model->scale.y = func_8010E7C8_rockin_raceway(t, prev->scale.y, cur->scale.y);
+                        model->scale.z = func_8010E7C8_rockin_raceway(t, prev->scale.z, cur->scale.z);
+                    }
+                }
+            }
+        }
+    }
+    prevRec = rec;
+    if (frame - 1 >= 0) {
+        prevRec = func_8010D944_rockin_raceway(frame - 1);
+    }
+    m = rec->model;
+    pm = prevRec->model;
+    for (i = 1; i < 13; i++, m++, pm++) {
+        id = D_80111B4C_rockin_raceway->model[i];
+        if (id != -1) {
+            model = &HmfModelData[id];
+            model->unk18 = m->unk0;
+            model->unk40 = func_8010E7C8_rockin_raceway(t, pm->unk4, m->unk4);
+            model->unk44 = 0.0f;
+            model->pos.x = m->pos.x;
+            model->pos.y = m->pos.y;
+            model->pos.z = m->pos.z;
+            model->rot.x = m->rot.x;
+            model->rot.y = m->rot.y;
+            model->rot.z = m->rot.z;
+            model->scale.x = m->scale.x;
+            model->scale.y = m->scale.y;
+            model->scale.z = m->scale.z;
+        }
+    }
+    o = rec->obj;
+    po = prevRec->obj;
+    src = D_80111B5C_rockin_raceway;
+    for (i = 0; i < 16; i++, src++, o++, po++) {
+        id = src->unk02;
+        if (id != -1) {
+            model = &HmfModelData[id];
+            src->unk00 = o->unk00;
+            model->unk18 = o->unk04;
+            src->unk04 = o->unk08;
+            src->unk08 = o->unk0C;
+            func_8010FA78_rockin_raceway(src->unk02, func_80055194_main(D_80111B68_rockin_raceway->unk04), src->unk04,
+                                         &D_801114D4_rockin_raceway);
+            if (po->unk00 != 0) {
+                model->pos.x = func_8010E7C8_rockin_raceway(t, po->pos.x, o->pos.x);
+                model->pos.y = func_8010E7C8_rockin_raceway(t, po->pos.y, o->pos.y);
+                model->pos.z = func_8010E7C8_rockin_raceway(t, po->pos.z, o->pos.z);
+            } else {
+                model->pos.x = o->pos.x;
+                model->pos.y = o->pos.y;
+                model->pos.z = o->pos.z;
+            }
+            model->rot.x = o->rot.x;
+            model->rot.y = o->rot.y;
+            model->rot.z = o->rot.z;
+            model->scale.x = o->scale.x;
+            model->scale.y = o->scale.y;
+            model->scale.z = o->scale.z;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D9C4_rockin_raceway);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E08C_rockin_raceway);
+/* Shifts every recorded player sideways (player `idx` across the track) and swings the recorded heading. */
+void func_8010E08C_rockin_raceway(s32 idx) {
+    RRRecPlayer* p;
+    RrRacer* work;
+    s32 i;
+    s32 j;
+    s32 turn;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E2E4_rockin_raceway);
+    for (j = 0; j < 30; j++) {
+        for (i = 0; i < 4; i++) {
+            p = &func_8010D944_rockin_raceway(j)->player[i];
+            if (i == idx) {
+                p->trans.x = (f32)(p->trans.x - 20.000000298023224) + j / 30.0f * 40.00000059604645;
+            } else {
+                p->trans.x = p->trans.x - 20.000000298023224;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        work = func_8010EC38_rockin_raceway(D_800EC598_minigame[i]);
+        if (idx == i) {
+            work->unk44 = work->unk44 + 20.000000298023224;
+        } else {
+            work->unk44 = work->unk44 - 20.000000298023224;
+        }
+    }
+    p = &func_8010D944_rockin_raceway(29)->player[idx];
+    turn = 90.0f - p->unk28;
+    for (j = 0; j < 30; j++) {
+        p = &func_8010D944_rockin_raceway(j)->player[idx];
+        p->unk28 += turn;
+        if (p->unk28 > 360.0f) {
+            p->unk28 -= 360.0f;
+        } else if (p->unk28 < 0.0f) {
+            p->unk28 += 360.0f;
+        }
+        p->rot.x = sindf(p->unk28) * p->unk24 * 30.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E344_rockin_raceway);
+void func_8010E2E4_rockin_raceway(void) {
+    RRSe* se;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E39C_rockin_raceway);
+    se = D_80111BD0_rockin_raceway = HuMemAllocTag(sizeof(RRSe) * 16, 0x7918);
+    memset(se, 0, sizeof(RRSe) * 16);
+    for (i = 0; i < 16; i++, se++) {
+        se->fx = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E504_rockin_raceway);
+/* Queues sound fx to play after delay ticks; returns its slot, -1 if all 16 are busy. */
+s32 func_8010E344_rockin_raceway(s16 fx, s16 delay, s16 kind, s16 arg) {
+    RRSe* se = D_80111BD0_rockin_raceway;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E608_rockin_raceway);
+    for (i = 0; i < 16; i++, se++) {
+        if (se->fx == -1) {
+            break;
+        }
+    }
+    if (i >= 16) {
+        return -1;
+    }
+    se->fx = fx;
+    se->delay = delay;
+    se->kind = kind;
+    se->arg = arg;
+    return i;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E7C8_rockin_raceway);
+void func_8010E39C_rockin_raceway(void) {
+    RRSe* se = D_80111BD0_rockin_raceway;
+    s32 i;
 
+    for (i = 0; i < 16; i++, se++) {
+        if (se->fx != -1) {
+            if (se->delay <= 0) {
+                switch (se->kind) {
+                    case 0:
+                        HuAudFXPlay(se->fx);
+                        break;
+                    case 1:
+                        func_8004AC98_main(se->fx, se->arg);
+                        break;
+                    case 2:
+                        CharFXPlay(se->fx, GwPlayer[(s16)(se->arg % 4)].chr);
+                        break;
+                    default:
+                        func_8004AC98_main(GwPlayer[(s16)(se->arg % 4)].chr + se->fx + 1, se->arg);
+                        break;
+                }
+                se->fx = -1;
+            }
+            se->delay--;
+        }
+    }
+}
+
+/* Signed difference a - b of two angles, in (-180, 180]. */
+f32 func_8010E504_rockin_raceway(f32 a, f32 b) {
+    if (a >= 360.0f) {
+        a -= 360.0f;
+    } else if (a < 0.0f) {
+        a += 360.0f;
+    }
+    if (b >= 360.0f) {
+        b -= 360.0f;
+    } else if (b < 0.0f) {
+        b += 360.0f;
+    }
+    a -= b;
+    if (a <= -180.0f) {
+        a += 360.0f;
+    } else if (a >= 180.0f) {
+        a -= 360.0f;
+    }
+    return a;
+}
+
+/* Turns angle cur toward target by at most step degrees. */
+f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step) {
+    f32 d;
+    f32 v;
+    f64 e;
+
+    RR_WRAP(target);
+    RR_WRAP(cur);
+    d = fmod(target - cur + 360.0, 360.0);
+    if (d < 180.0) {
+        if (d <= step) {
+            v = d;
+        } else {
+            v = step;
+        }
+    } else {
+        e = 360.0 - d;
+        if (e <= step) {
+            v = -e;
+        } else {
+            v = -step;
+        }
+    }
+    v += cur;
+    RR_WRAP(v);
+    return v;
+}
+
+f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b) {
+    return a + t * (b - a);
+}
+
+#ifdef NON_MATCHING
+/* Angle lerp from a toward b. */
+f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b) {
+    return func_8010E608_rockin_raceway(b, a, fabsf(func_8010E504_rockin_raceway(b, a) * t));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E7E0_rockin_raceway);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E840_rockin_raceway);
+/* Quadratic Bezier. */
+f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c) {
+    f32 u = 1.0 - t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E8A0_rockin_raceway);
+    return u * u * a + 2.0 * (u * t * b) + t * t * c;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E93C_rockin_raceway);
+void func_8010E8A0_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
+    f32* pa = (f32*)a;
+    f32* pb = (f32*)b;
+    f32* pc = (f32*)c;
+    f32* po = (f32*)out;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E994_rockin_raceway);
+    for (i = 0; i < 3; i++) {
+        *po++ = func_8010E840_rockin_raceway(t, *pa++, *pb++, *pc++);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EB04_rockin_raceway);
+/* Quadratic Bezier derivative. */
+f32 func_8010E93C_rockin_raceway(f32 t, f32 a, f32 b, f32 c) {
+    return 2.0 * ((t - 1.0) * a + (1.0 - 2.0 * t) * b + t * c);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EB84_rockin_raceway);
+/* Unit tangent of the quadratic Bezier at t (0,0,1 if degenerate). */
+void func_8010E994_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
+    f32 d[3];
+    f32* pa = (f32*)a;
+    f32* pb = (f32*)b;
+    f32* pc = (f32*)c;
+    f32* po = (f32*)out;
+    f32 len;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EC0C_rockin_raceway);
+    for (i = 0; i < 3; i++) {
+        d[i] = func_8010E93C_rockin_raceway(t, *pa++, *pb++, *pc++);
+    }
+    len = sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+    if (len != 0.0f) {
+        for (i = 0; i < 3; i++) {
+            *po++ = (f32)(1.0 / len) * d[i];
+        }
+        return;
+    }
+    *po++ = 0.0f;
+    *po++ = 0.0f;
+    *po = 1.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EC38_rockin_raceway);
+/* atan2 in degrees, wrapped to [0, 360). */
+f32 func_8010EB04_rockin_raceway(f32 x, f32 z) {
+    f32 a = atan2df(z, x);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EC8C_rockin_raceway);
+    if (a < 0.0) {
+        a += 360.0;
+    } else if (a >= 360.0) {
+        a -= 360.0;
+    }
+    return a;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010F874_rockin_raceway);
+/* Pitch and yaw of direction dir. */
+void func_8010EB84_rockin_raceway(Vec* dir, f32* angles) {
+    f32 h = sqrtf(dir->x * dir->x + dir->z * dir->z);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FA78_rockin_raceway);
+    *angles++ = func_8010EB04_rockin_raceway(h, -dir->y);
+    *angles++ = func_8010EB04_rockin_raceway(dir->z, dir->x);
+    *angles = 0.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FBAC_rockin_raceway);
+void func_8010EC0C_rockin_raceway(omObjData* obj, void* p) {
+    obj->work[0] = (u32)p >> 24;
+    obj->work[1] = ((u32)p >> 16) & 0xFF;
+    obj->work[2] = ((u32)p >> 8) & 0xFF;
+    obj->work[3] = (u32)p & 0xFF;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FFB8_rockin_raceway);
+RrRacer* func_8010EC38_rockin_raceway(omObjData* obj) {
+    RRPack u;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80110C38_rockin_raceway);
+    u.b.a = obj->work[0];
+    u.b.b = obj->work[1];
+    u.b.c = obj->work[2];
+    u.b.d = obj->work[3];
+    return u.p;
+}
 
+/* Builds a camera-facing sprite model from spr (model 0x18C1), tinted color; returns the model. */
+s32 func_8010EC8C_rockin_raceway(HuSprite_Unk84_Struct* spr, RRColor* color) {
+    HmfData* hmf;
+    Gfx* buf;
+    Gfx* gfx;
+    s32 size;
+    s32 idx;
+    s32 fmt;
+    s32 i;
+
+    buf = gfx = HuMemAlloc(0x10000);
+    idx = func_8001A894_main(0x18C1, buf, 4);
+    hmf = HmfModelData[idx].hmf;
+    hmf->unk60->unk50 |= 0x71010000;
+    HuMemFree(hmf->unk3C);
+    hmf->unk3C = HuMemAllocTag(sizeof(HmfModelData_Unk64_Unk3C_Struct), D_800CDD6A_main);
+    func_8010FBAC_rockin_raceway(spr, hmf, 1.0f, 0, 0);
+    gSPDisplayList(gfx++, osVirtualToPhysical(D_801116F0_rockin_raceway));
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+    gDPPipeSync(gfx++);
+    gSPClearGeometryMode(gfx++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(gfx++, G_CD_NOISE);
+    gDPSetTexturePersp(gfx++, G_TP_NONE);
+    gDPSetTextureFilter(gfx++, G_TF_BILERP);
+    gDPSetTextureConvert(gfx++, G_TC_FILT);
+    gDPSetAlphaDither(gfx++, G_AD_PATTERN);
+    gDPSetAlphaCompare(gfx++, G_AC_NONE);
+    gDPSetBlendColor(gfx++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(gfx++);
+    gDPSetRenderMode(gfx++, G_RM_ZB_XLU_SURF, G_RM_NOOP2);
+    if (spr->unk18 & 0x8000) {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk10 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk10, size);
+    HuMemFree(buf);
+    buf = gfx = HuMemAlloc(0x10000);
+    gSPTexture(gfx++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(gfx++, G_TP_PERSP);
+    if (spr->unk1A >= 2) {
+        gDPSetTextureLUT(gfx++, G_TT_RGBA16);
+        if (spr->unk18 == 4) {
+            gDPLoadTLUT_pal16(gfx++, 0, spr->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(gfx++, spr->unk0C);
+        }
+        gDPPipeSync(gfx++);
+        fmt = 2;
+    } else {
+        gDPSetTextureLUT(gfx++, G_TT_NONE);
+        gDPPipeSync(gfx++);
+        fmt = (spr->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (spr->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(gfx++, 0x02000000, fmt, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                   G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_8b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_16b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(gfx++);
+    gSPSegment(gfx++, 0x01, osVirtualToPhysical(hmf->unk44[0]));
+    gSPVertex(gfx++, 0x01000000, 4, 0);
+    gSP2Triangles(gfx++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk14 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk14, size);
+    HuMemFree(buf);
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        gfx = hmf->unk3C->unk00[i + 1] = HuMemAllocTag(0x100, hmf->unk0E);
+        gDPPipeSync(gfx++);
+        gSPSegment(gfx++, 0x02, osVirtualToPhysical(spr->unk00->unk00));
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk10));
+        gDPSetPrimColor(gfx++, 0, 0, color->r, color->g, color->b, color->a);
+        gDPPipeSync(gfx++);
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk14));
+        gDPPipeSync(gfx++);
+        gSPEndDisplayList(gfx++);
+    }
+    hmf->unk3C->unk00[0] = hmf->unk3C->unk00[D_800D2008_main + 1];
+    return idx;
+}
+
+/* Clones model's hmf as a new model with its own per-buffer display lists (segment 2 = spr's first frame,
+   prim color = color); returns the new model. */
+s32 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct* spr, u16 model, RRColor* color) {
+    HmfModel* m;
+    HmfData* src;
+    HmfData* dst;
+    Gfx* gfx;
+    s32 id;
+    s32 i;
+
+    m = &HmfModelData[model];
+    src = m->hmf;
+    id = func_8001A894_main(m->unk18, NULL, 4);
+    dst = HmfModelData[id].hmf;
+    dst->unk60->unk50 = src->unk60->unk50;
+    HuMemFree(dst->unk3C);
+    dst->unk3C = HuMemAllocTag(sizeof(HmfModelData_Unk64_Unk3C_Struct), D_800CDD6A_main);
+    dst->unk3C->unk10 = src->unk3C->unk10;
+    dst->unk3C->unk14 = src->unk3C->unk14;
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        gfx = dst->unk3C->unk00[i + 1] = HuMemAllocTag(0x100, dst->unk0E);
+        gDPPipeSync(gfx++);
+        gSPSegment(gfx++, 0x02, osVirtualToPhysical(spr->unk00->unk00));
+        gSPDisplayList(gfx++, osVirtualToPhysical(dst->unk3C->unk10));
+        gDPSetPrimColor(gfx++, 0, 0, color->r, color->g, color->b, color->a);
+        gDPPipeSync(gfx++);
+        gSPDisplayList(gfx++, osVirtualToPhysical(dst->unk3C->unk14));
+        gDPPipeSync(gfx++);
+        gSPEndDisplayList(gfx++);
+    }
+    dst->unk3C->unk00[0] = dst->unk3C->unk00[D_800D2008_main + 1];
+    return id;
+}
+
+/* Points model's display list at frame `frame` of spr, tinted color. */
+void func_8010FA78_rockin_raceway(u16 model, HuSprite_Unk84_Struct* spr, u16 frame, RRColor* color) {
+    HmfModel* m;
+    HmfData* hmf;
+    Gfx* gfx;
+
+    m = &HmfModelData[model];
+    hmf = m->hmf;
+    gfx = hmf->unk3C->unk00[D_800D2008_main + 1];
+    hmf->unk3C->unk00[0] = gfx;
+    gDPPipeSync(&gfx[0]);
+    gSPSegment(&gfx[1], 0x02, osVirtualToPhysical(spr->unk00[frame].unk00));
+    gSPDisplayList(&gfx[2], osVirtualToPhysical(hmf->unk3C->unk10));
+    gDPSetPrimColor(&gfx[3], 0, 0, color->r, color->g, color->b, color->a);
+    gDPPipeSync(&gfx[4]);
+    gSPDisplayList(&gfx[5], osVirtualToPhysical(hmf->unk3C->unk14));
+    gDPPipeSync(&gfx[6]);
+    gSPEndDisplayList(&gfx[7]);
+}
+
+/* Builds the sprite's vertex quads (split into TMEM-sized bands), one copy per buffer in hmf->unk44; returns the band count. */
+s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 scale, u16 x, u16 y) {
+    Vtx* buf;
+    Vtx* v;
+    Vtx_t* to;
+    Vtx_t* from;
+    s32 tmem;
+    s32 w;
+    s32 h;
+    s32 sw;
+    s32 sh;
+    s32 size;
+    s32 count;
+    s32 qh;
+    s32 qsh;
+    s32 n;
+    s32 i;
+    s32 j;
+
+    if (spr->unk1A >= 2) {
+        tmem = 0x800;
+    } else {
+        tmem = 0x1000;
+    }
+    w = spr->unk00->unk04;
+    h = spr->unk00->unk06;
+    sw = w * 100.0 * scale / 32.0;
+    sh = h * 100.0 * scale / 32.0;
+    if ((spr->unk18 & 0xFFF) == 4) {
+        size = ((w + 1) & 0xFFFE) * h * 4;
+    } else {
+        size = w * h * spr->unk18;
+    }
+    size = (size < 0) ? (size + 7) : size;
+    size >>= 3;
+    count = size / tmem;
+    if (count <= 0) {
+        count = 1;
+    }
+    qh = h / count;
+    qsh = sh / count;
+    n = count * 4;
+    buf = v = HuMemAllocTag(n * sizeof(Vtx), hmf->unk0E);
+    memset(buf, 0, n * sizeof(Vtx));
+    for (i = 0; i < count; i++, v += 4) {
+        v[0].v.ob[0] = (s32)(sw * 0.5);
+        v[0].v.ob[1] = (s32)(sh * 0.5 - qsh * i);
+        v[0].v.tc[0] = (w - 1) * 64;
+        v[0].v.tc[1] = 0;
+        v[1].v.ob[0] = (s32)(sw * 0.5);
+        v[1].v.ob[1] = (s32)(sh * 0.5 - qsh * (i + 1));
+        v[1].v.tc[0] = (w - 1) * 64;
+        v[1].v.tc[1] = (qh - 1) * 64;
+        v[2].v.ob[0] = (s32) - (sw * 0.5);
+        v[2].v.ob[1] = (s32)(sh * 0.5 - qsh * i);
+        v[2].v.tc[0] = 0;
+        v[2].v.tc[1] = 0;
+        v[3].v.ob[0] = (s32) - (sw * 0.5);
+        v[3].v.ob[1] = (s32)(sh * 0.5 - qsh * (i + 1));
+        v[3].v.tc[0] = 0;
+        v[3].v.tc[1] = (qh - 1) * 64;
+        for (j = 0; j < 4; j++) {
+            v[j].v.ob[0] += x;
+            v[j].v.ob[1] += y;
+            v[j].v.ob[2] = 0;
+            v[j].v.flag = 0;
+            v[j].v.cn[3] = 0xFF;
+            v[j].v.cn[0] = v[j].v.cn[1] = v[j].v.cn[2] = 0;
+        }
+    }
+    v = buf;
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        hmf->unk44[i] = HuMemAllocTag(n * sizeof(Vtx), hmf->unk0E);
+        to = (Vtx_t*)hmf->unk44[i];
+        from = &v->v;
+        for (j = 0; j < n; j++) {
+            *(to++) = *(from++);
+        }
+    }
+    HuMemFree(buf);
+    return count;
+}
+
+/* Builds a sprite model from spr on the four vertices vtx (model 0x4C1); returns the model. */
+s32 func_8010FFB8_rockin_raceway(HuSprite_Unk84_Struct* spr, Vtx* vtx) {
+    HmfData* hmf;
+    Gfx* buf;
+    Gfx* gfx;
+    s32 size;
+    s32 idx;
+    s32 fmt;
+    s32 i;
+
+    buf = gfx = HuMemAlloc(0x10000);
+    idx = func_8001A894_main(0x4C1, buf, 4);
+    hmf = HmfModelData[idx].hmf;
+    hmf->unk60->unk50 |= 0x01000000;
+    HuMemFree(hmf->unk3C);
+    hmf->unk3C = HuMemAllocTag(sizeof(HmfModelData_Unk64_Unk3C_Struct), D_800CDD6A_main);
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        hmf->unk44[i] = HuMemAllocTag(sizeof(RRQuad), hmf->unk0E);
+        *(RRQuad*)hmf->unk44[i] = *(RRQuad*)vtx;
+    }
+    gSPDisplayList(gfx++, osVirtualToPhysical(D_801116F0_rockin_raceway));
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+    gDPPipeSync(gfx++);
+    gSPClearGeometryMode(gfx++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(gfx++, G_CD_NOISE);
+    gDPSetTexturePersp(gfx++, G_TP_NONE);
+    gDPSetTextureFilter(gfx++, G_TF_BILERP);
+    gDPSetTextureConvert(gfx++, G_TC_FILT);
+    gDPSetAlphaDither(gfx++, G_AD_PATTERN);
+    gDPSetAlphaCompare(gfx++, G_AC_NONE);
+    gDPSetBlendColor(gfx++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(gfx++);
+    gDPSetRenderMode(gfx++, G_RM_ZB_XLU_SURF, G_RM_NOOP2);
+    if (spr->unk18 & 0x8000) {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gSPSegment(gfx++, 0x01, osVirtualToPhysical(hmf->unk44[0]));
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk10 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk10, size);
+    HuMemFree(buf);
+    buf = gfx = HuMemAlloc(0x10000);
+    gSPTexture(gfx++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(gfx++, G_TP_PERSP);
+    if (spr->unk1A >= 2) {
+        gDPSetTextureLUT(gfx++, G_TT_RGBA16);
+        if (spr->unk18 == 4) {
+            gDPLoadTLUT_pal16(gfx++, 0, spr->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(gfx++, spr->unk0C);
+        }
+        gDPPipeSync(gfx++);
+        fmt = 2;
+    } else {
+        gDPSetTextureLUT(gfx++, G_TT_NONE);
+        gDPPipeSync(gfx++);
+        fmt = (spr->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (spr->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(gfx++, 0x02000000, fmt, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                   G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_8b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_16b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(gfx++);
+    gSPVertex(gfx++, 0x01000000, 4, 0);
+    gSP2Triangles(gfx++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk14 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk14, size);
+    HuMemFree(buf);
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        gfx = hmf->unk3C->unk00[i + 1] = HuMemAllocTag(0x200, hmf->unk0E);
+        gDPPipeSync(gfx++);
+        gSPSegment(gfx++, 0x02, osVirtualToPhysical(spr->unk00->unk00));
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk10));
+        gDPSetPrimColor(gfx++, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF);
+        gDPPipeSync(gfx++);
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk14));
+        gDPPipeSync(gfx++);
+        gSPEndDisplayList(gfx++);
+    }
+    hmf->unk3C->unk00[0] = hmf->unk3C->unk00[D_800D2008_main + 1];
+    return idx;
+}
+
+/* Shows each player's character (frame = character, 8 = none) on the four podium models. */
+void func_80110C38_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr, s32* players) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (players[i] < 0) {
+            func_8010FA78_rockin_raceway(models[i], spr, 8, &D_80111730_rockin_raceway);
+        } else {
+            if (players[i] >= 4) {
+                players[i] = 0;
+            }
+            func_8010FA78_rockin_raceway(models[i], spr, GwPlayer[players[i]].chr, &D_80111730_rockin_raceway);
+        }
+        Hu3DModelPosSet(models[i], D_80111414_rockin_raceway[i].x, D_80111414_rockin_raceway[i].y + 40.00000059604645,
+                        D_80111414_rockin_raceway[i].z);
+        Hu3DModelRotSet(models[i], 95.72f, 0.0f, 0.0f);
+    }
+}
+
+#ifdef NON_MATCHING
+/* retail hoists the 40.0 double into f22 before the loop (frame 8 bytes larger); otherwise identical */
+/* Shows the twelve digit models (frames 0-9, clamped). */
+void func_80110D90_rockin_raceway(s16* models, HuSprite_Unk84_Struct* spr, s32* times /* unused */) {
+    s32 i;
+
+    for (i = 0; i < 12; i++) {
+        if (D_80111B00_rockin_raceway[i] >= 9) {
+            D_80111B00_rockin_raceway[i] = 9;
+        } else if (D_80111B00_rockin_raceway[i] < 0) {
+            D_80111B00_rockin_raceway[i] = 0;
+        }
+        func_8010FA78_rockin_raceway(models[i], spr, D_80111B00_rockin_raceway[i], &D_80111734_rockin_raceway);
+        Hu3DModelPosSet(models[i], D_80111444_rockin_raceway[i].x, D_80111444_rockin_raceway[i].y + 40.00000059604645,
+                        D_80111444_rockin_raceway[i].z);
+        Hu3DModelRotSet(models[i], 95.72f, 0.0f, 0.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80110D90_rockin_raceway);
+#endif
