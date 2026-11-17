@@ -555,7 +555,63 @@ void func_801067B4_selmenu2(omObjData *obj) {
 }
 
 
+/* selmenu func_80106A10_selmenu: the page list and its input (no mode line).
+   NON_MATCHING: as in selmenu, retail keeps the x of 64 in a0 and masks it after the two print calls merge. */
+#ifdef NON_MATCHING
+void func_80106A54_selmenu2(omObjData *obj) {
+    SelMenuEntry *entry;
+    u16 *color;
+    s32 i;
+
+    rand8();
+    entry = &D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10];
+    for (i = 0; i < 10; i++, entry++) {
+        sprintf(D_800D5218_main, entry->name);
+        strlen(D_800D5218_main);
+        color = D_80109304_selmenu2[1];
+        if (D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + i].kind == 0) {
+            color = D_80109304_selmenu2[0];
+        }
+        if (D_80109B02_selmenu2 == i) {
+            func_80108910_selmenu2(64, (i + 10) * 9, D_800D5218_main, color[1], color[0]);
+        } else {
+            func_80108910_selmenu2(64, (i + 10) * 9, D_800D5218_main, color[0], 0);
+        }
+    }
+    sprintf(D_800D5218_main, "PAGE:%d/%d", D_80109B00_selmenu2 + 1, 8);
+    func_80108910_selmenu2(128, 64, D_800D5218_main, 15, 7);
+    func_8000BBD4_main(D_80109C8E_selmenu2, 60, (D_80109B02_selmenu2 + 11) * 9 - 1);
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) == 0) {
+            continue;
+        }
+        if ((D_80109CF8_selmenu2[i] & 0x90) && D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + D_80109B02_selmenu2].kind == 0) {
+            if (D_801093B0_selmenu2 == 0) {
+                omAddObj(2, 0, 0, -1, func_80107D94_selmenu2);
+                D_801093B0_selmenu2 = 1;
+                func_8000BB94_main(D_80109C8E_selmenu2);
+                obj->func = func_801078CC_selmenu2;
+                func_80108718_selmenu2(1);
+            }
+        } else if ((D_80109CF8_selmenu2[i] & 1) || (D_80109CF8_selmenu2[i] & 2)) {
+            func_80108764_selmenu2((D_80109CF8_selmenu2[i] & 1) ? -1 : 1);
+            func_80108990_selmenu2();
+            func_80108718_selmenu2(0);
+        } else if ((D_80109CF8_selmenu2[i] & 4) || (D_80109CF8_selmenu2[i] & 8)) {
+            func_801087E0_selmenu2((D_80109CF8_selmenu2[i] & 4) ? -1 : 1);
+            func_80108990_selmenu2();
+            func_80108718_selmenu2(4);
+        } else if (D_80109CF8_selmenu2[i] & 0x40) {
+            D_80109B18_selmenu2 = 0;
+            D_80109B1A_selmenu2 = 0;
+            D_80109B1C_selmenu2 = 0;
+            obj->func = func_80106D94_selmenu2;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80106A54_selmenu2);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80106D94_selmenu2);
 
