@@ -545,7 +545,119 @@ s32 func_8011678C_duel04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011678C_duel04);
 #endif
 
+#ifdef NON_MATCHING
+// board ea3: logic checked against the asm case by case; masked 38: as func_801163C0_duel04 (frame 0x20
+// larger, rev tested in v1 in the case 1/2 tails, shared returns placed differently).
+s32 func_801169EC_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+    case 6:
+        if (!(opp->rev & 1)) {
+            return cur != 0;
+        }
+        if (walk >= 8) {
+            return cur != 0;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return cur != 0;
+        }
+        return FALSE;
+    case 5:
+        if (walk < 3 && opp->cidx == D_80119F10_duel04[walk]) {
+            return TRUE;
+        }
+        if (walk >= 3 || opp->cidx > D_80119F10_duel04[walk]) {
+            if (opp->rev & 1) {
+                return me->stats.partners.frontPower != 0;
+            }
+            return TRUE;
+        }
+        break;
+    case 1:
+        if (walk >= 3 && walk < 8 && opp->cidx == D_80119EDC_duel04[walk - 2]) {
+            return TRUE;
+        }
+        if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EDC_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur == 0) {
+            return FALSE;
+        }
+        if (opp->rev & 1) {
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower == 0;
+    case 2:
+        if (walk >= 3 && walk < 7 && opp->cidx == D_80119EE4_duel04[walk - 2]) {
+            if (cur == 0) {
+                return me->stats.partners.frontPower != 0;
+            }
+            return TRUE;
+        }
+        if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EE4_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur == 0) {
+            return FALSE;
+        }
+        if (!(opp->rev & 1)) {
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower == 0;
+    }
+    switch (opp->clink) {
+    case 7:
+        if (walk < 3 && opp->cidx == D_80119F20_duel04[walk]) {
+            return FALSE;
+        }
+        if (walk >= 3 || opp->cidx > D_80119F20_duel04[walk]) {
+            if (opp->rev & 1) {
+                return me->stats.partners.frontPower == 0;
+            }
+            return FALSE;
+        }
+        break;
+    case 3:
+        if (walk >= 3 && walk < 8 && opp->cidx == D_80119EFC_duel04[walk - 2]) {
+            return FALSE;
+        }
+        if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EFC_duel04[walk - 2])) {
+            return me->stats.partners.frontPower == 0;
+        }
+        if (cur == 0) {
+            return opp->stats.partners.frontPower != 0;
+        }
+        return TRUE;
+    case 0:
+        if (walk >= 3 && walk < 7 && opp->cidx == D_80119EC4_duel04[walk - 2]) {
+            if (cur != 0) {
+                return me->stats.partners.frontPower == 0;
+            }
+            return FALSE;
+        }
+        if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EC4_duel04[walk - 2])) {
+            return me->stats.partners.frontPower == 0;
+        }
+        if (cur != 0) {
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower != 0;
+    }
+    return cur != 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801169EC_duel04);
+#endif
 
 #ifdef NON_MATCHING
 // board ea3: logic checked against the asm case by case; masked 26: the same store-flag (case 7) and
