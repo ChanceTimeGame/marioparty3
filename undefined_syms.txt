@@ -320,3 +320,5 @@ D_800D0418_main = 0x800D0418;
 D_800D1FE0_main = D_800D1FDC_main + 0x4;
 /* m4: mchar 3D3C80 .data inner labels the remaining asm uses */
 D_80107124_mchar = D_80107120_mchar + 0x4;
+/* m4: mchar2 3D5C30 .data inner labels the remaining asm uses */
+D_80106DFC_mchar2 = D_80106DF8_mchar2 + 0x4;
