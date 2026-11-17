@@ -1,6 +1,9 @@
 #include "common.h"
 #include "malloc.h"
 #include "mallocblock.h"
+#include "game/esprite.h"
+#include "game/hmfman.h"
+#include "game/process.h"
 
 typedef struct {
     /* 0x00 */ s16 unk00;
@@ -232,29 +235,99 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801178E0_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80117DD0_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801180A4_mgmode);
+typedef struct MgModePair {
+    /* 0x00 */ s16 unk0;
+    /* 0x02 */ s16 unk2;
+} MgModePair;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801181F4_mgmode);
+extern u16 D_8011B664_mgmode;
+extern u16 D_8011B666_mgmode;
+extern s16 D_8011B668_mgmode;
+extern s16 D_8011B66A_mgmode;
+extern u16 D_8011B66C_mgmode;
+extern s16 D_8011B66E_mgmode;
+extern MgModePair* D_8011B670_mgmode;
+extern s8 D_8011B630_mgmode[];
+extern s16 D_8011A3F8_mgmode[];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_8011822C_mgmode);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+s32 func_80050064_main(s32 write);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_8011829C_mgmode);
+/* Process: fades sprite D_8011B66C in or out whenever D_8011B66E changes. */
+void func_801180A4_mgmode(void) {
+    s16 shown = 0;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801182A8_mgmode);
+    while (TRUE) {
+        HuPrcVSleep();
+        if (shown == D_8011B66E_mgmode) {
+            continue;
+        }
+        if (D_8011B66E_mgmode != 0) {
+            func_8000BB54_main(D_8011B66C_mgmode);
+            for (i = 0; i < 5; i++) {
+                func_8000BBFC_main(D_8011B66C_mgmode, i * 63.75f);
+                HuPrcVSleep();
+            }
+        } else {
+            for (i = 0; i < 5; i++) {
+                func_8000BBFC_main(D_8011B66C_mgmode, 255.0f - i * 63.75f);
+                HuPrcVSleep();
+            }
+            func_8000BB94_main(D_8011B66C_mgmode);
+        }
+        shown = D_8011B66E_mgmode;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801182B4_mgmode);
+void func_801181F4_mgmode(s16 arg0) {
+    D_8011B664_mgmode = D_8011B670_mgmode[arg0].unk0;
+    D_8011B666_mgmode = D_8011B670_mgmode[arg0].unk2;
+    D_8011B66A_mgmode = arg0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801182C0_mgmode);
+void func_8011822C_mgmode(MgModePair* pairs) {
+    s16 i;
+
+    D_8011B670_mgmode = pairs;
+    for (i = 0; pairs[i].unk0 != -1 || pairs[i].unk2 != -1; i++) {
+        D_8011B630_mgmode[i] = 0;
+    }
+}
+
+void func_8011829C_mgmode(s16 arg0) {
+    D_8011B668_mgmode = arg0;
+}
+
+void func_801182A8_mgmode(s16 arg0) {
+    D_8011B66A_mgmode = arg0;
+}
+
+void func_801182B4_mgmode(s16 arg0) {
+    D_8011B66E_mgmode = arg0;
+}
+
+void func_801182C0_mgmode(s16 arg0) {
+    D_8011B630_mgmode[arg0] = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801182DC_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118624_mgmode);
+void func_80118624_mgmode(s16 dst, s16 src) {
+    HmfModelData[dst].pos.x = HmfModelData[src].pos.x;
+    HmfModelData[dst].pos.y = HmfModelData[src].pos.y;
+    HmfModelData[dst].pos.z = HmfModelData[src].pos.z;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118678_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118888_mgmode);
+void func_80118888_mgmode(s16 arg0) {
+    D_8011A3F8_mgmode[arg0] = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801188A4_mgmode);
+void func_801188A4_mgmode(s16 arg0) {
+    D_8011A3F8_mgmode[arg0] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801188BC_mgmode);
 
@@ -262,6 +335,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801189C4_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118B8C_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118CD8_mgmode);
+void func_80118CD8_mgmode(void) {
+    _ClearFlag(0x1C);
+    func_80050064_main(1);
+    _ClearFlag(0xD);
+    _SetFlag(0x1C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118D0C_mgmode);
