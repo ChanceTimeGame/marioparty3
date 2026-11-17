@@ -2269,7 +2269,7 @@ segments:
     bss_size: 0x520
     subsegments:
       - [0x4CF350, c]
-      - [0x4DE0E0, data, 4CF350] #80114730
+      - [0x4DE0E0, .data, 4CF350] #80114730
       - [0x4DE250, .rodata, 4CF350] #801148A0
       - {0x4DEB60, type: bss, vram: 0x801151B0, name: mstory5_bss}
 
