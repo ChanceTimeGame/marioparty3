@@ -93,6 +93,17 @@ void func_80106B3C_mstory4(s16 model, s16 anim, s16 frame);
 void func_8010818C_mstory4(void);
 void func_80108280_mstory4(omObjData *obj);
 void func_8010B9FC_mstory4(void);
+void func_80106C10_mstory4(void);
+void func_80107480_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_80108288_mstory4(void);
+void func_801094DC_mstory4(void);
+void func_80109B5C_mstory4(omObjData *obj);
+void func_80109EA4_mstory4(void);
+void func_8010A1C4_mstory4(void);
+void func_8010A480_mstory4(void);
+void func_8010A5AC_mstory4(void);
+void func_8010ACF4_mstory4(void);
+extern s16 D_8011228C_mstory4; /* shadow model, linked by every actor */
 
 void func_801059A0_mstory4(void) {
     s16 n = 0;
@@ -680,7 +691,20 @@ void func_8010815C_mstory4(ObPath *path) {
     HuMemFree(path);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010818C_mstory4);
+/* story step 0 of chapter 4: the scene's actor processes */
+void func_8010818C_mstory4(void) {
+    func_80106C10_mstory4();
+    D_8011228C_mstory4 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_80108288_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_801094DC_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80109EA4_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010A1C4_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010A480_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010A5AC_mstory4, 0x384, 0x800, 0);
+    omAddPrcObj(func_8010ACF4_mstory4, 0x1001, 0x800, 0);
+    HuPrcVSleep();
+    func_8001C258_main(D_8011228C_mstory4, 4, 4);
+}
 
 void func_80108280_mstory4(omObjData *obj) {
 }
@@ -823,9 +847,15 @@ void func_80109CCC_mstory4(omObjData *obj) {
     D_801121C0_mstory4[1].func = func_80108280_mstory4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80109E3C_mstory4);
+void func_80109E3C_mstory4(omObjData *obj) {
+    HuPrcSleep(5);
+    D_801121C0_mstory4[1].func = func_80109B5C_mstory4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80109E68_mstory4);
+void func_80109E68_mstory4(omObjData *obj) {
+    func_80107480_mstory4(obj, 0.0f, 0.0f, 0.0f, 10);
+    D_801121C0_mstory4[1].func = func_80108280_mstory4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80109EA4_mstory4);
 
