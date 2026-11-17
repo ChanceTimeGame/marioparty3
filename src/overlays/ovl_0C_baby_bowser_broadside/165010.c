@@ -573,7 +573,64 @@ void func_80107A80_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
 }
 /* </func_80107A80_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107C64_baby_bowser_broadside);
+/* <func_80107C64_baby_bowser_broadside> */
+void func_80107C64_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    s16 i;
+    s16 p;
+    s16 chr0;
+    s16 chr1;
+
+    if (task->state == 0) {
+        if (++task->unk1C >= 41) {
+            task->unk1C = 0;
+            if (D_80110000_baby_bowser_broadside[0].score > D_80110000_baby_bowser_broadside[1].score) {
+                task->unk0C = 0;
+            } else {
+                task->unk0C = 1;
+            }
+            task->unk0D = task->unk0C == 0;
+            for (i = 0; i < 2; i++) {
+                p = D_80110000_baby_bowser_broadside[task->unk0C].member[i];
+                func_8010A0B4_baby_bowser_broadside(p + 3, 0xDFFF, &D_80110004_baby_bowser_broadside[p],
+                                                    func_80109BD8_baby_bowser_broadside, 0);
+                p = D_80110000_baby_bowser_broadside[task->unk0D].member[i];
+                func_8010A0B4_baby_bowser_broadside(p + 3, 0xDFFF, &D_80110004_baby_bowser_broadside[p],
+                                                    func_80109D2C_baby_bowser_broadside, 0);
+            }
+            task->state = 1;
+        }
+    } else if (D_8010FD74_baby_bowser_broadside == 0) {
+        if (GMesStatGet() == 0) {
+            D_8010FD74_baby_bowser_broadside = 1;
+        }
+    } else if (D_8010FD74_baby_bowser_broadside >= 2) {
+        if (GMesStatGet() == 0) {
+            D_8010FD74_baby_bowser_broadside = 3;
+        }
+        if (D_8010FD74_baby_bowser_broadside == 3) {
+            if (++task->unk1C >= 15) {
+                func_8010A0B4_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, 0, NULL,
+                                                    func_801081A4_baby_bowser_broadside, 0);
+                func_8010A158_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, task);
+            }
+        }
+    } else {
+        if (++task->unk1C == 15) {
+            chr0 = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[task->unk0C].member[0]].chr;
+            chr1 = D_80110004_baby_bowser_broadside[D_80110000_baby_bowser_broadside[task->unk0C].member[1]].chr;
+            HuAudSeqPlay(0x66);
+            GMesCreate(0x1E, chr0, chr1);
+            GwPlayer[D_80110000_baby_bowser_broadside[task->unk0C].member[0]].bonusCoin += 10;
+            GwPlayer[D_80110000_baby_bowser_broadside[task->unk0C].member[1]].bonusCoin += 10;
+            D_8010FD60_baby_bowser_broadside = 1;
+        }
+        if (GMesStatGet() != 0) {
+            task->unk1C = 0;
+            D_8010FD74_baby_bowser_broadside = 2;
+        }
+    }
+}
+/* </func_80107C64_baby_bowser_broadside> */
 
 /* <func_80107FE0_baby_bowser_broadside> */
 void func_80107FE0_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
