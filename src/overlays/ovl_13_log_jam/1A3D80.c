@@ -54,7 +54,7 @@ typedef struct LjLog {
     /* 0x08 */ s16 unk08; /* active */
     /* 0x0A */ s16 unk0A; /* kind */
     /* 0x0C */ s16 unk0C; /* state */
-    /* 0x0E */ u16 unk0E; /* state timer */
+    /* 0x0E */ s16 unk0E; /* state timer */
     /* 0x10 */ Vec unk10; /* position */
     /* 0x1C */ Vec unk1C; /* rotation */
     /* 0x28 */ Vec unk28;
@@ -125,6 +125,10 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, const char* arg2);
 void func_8008A070_main(f32 (*mf)[4]);
 void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
+void func_80108E54_log_jam(omObjData* obj);
+void func_80109B8C_log_jam(omObjData* obj);
+s16 func_80109044_log_jam(s16 kind, s16 part);
+void func_801094E4_log_jam(LjLog* log);
 
 extern Vec D_8010DE90_log_jam[]; /* player start positions (D_8010DE98 = [0].z) */
 extern f32 D_8010DF20_log_jam[]; /* player start rotations */
@@ -157,6 +161,10 @@ extern LjRGBA D_8010DF48_log_jam;
 extern LjRGBA D_8010DF4C_log_jam;
 extern LjLog* D_8010E5C4_log_jam;
 extern omObjData* D_8010E5C0_log_jam;
+extern s16* D_8010E5C8_log_jam; /* log model templates, 3 kinds x 3 parts */
+extern s32 D_8010E030_log_jam[9]; /* log model files */
+extern u8 D_800D6A90_main;
+extern omObjData* D_800EC1C0_minigame[];
 // end m1 lj1
 
 void func_801059A0_log_jam(void) {
@@ -744,25 +752,214 @@ void func_80108A80_log_jam(omObjData* obj, LjTeam* team) {
     pl->unk28++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108CE0_log_jam);
+/* 1 when all four players are in this state. */
+s16 func_80108CE0_log_jam(s16 state) {
+    LjPlayer* pl;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108D1C_log_jam);
+    for (i = 0, pl = D_8010E5B8_log_jam; i < 4; i++, pl++) {
+        if (pl->unk08 != state) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108D50_log_jam);
+/* Frames a throw at speed v under gravity g stays above its start height. */
+s16 func_80108D1C_log_jam(f32 v, f32 g) {
+    f32 y = 0.0f;
+    s16 n = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80108E54_log_jam);
+    do {
+        y += v;
+        v -= g;
+        n++;
+    } while (y > 0.0f);
+    return n;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109044_log_jam);
+void func_80108D50_log_jam(void) {
+    LjLog* log;
+    s32 i;
 
+    log = D_8010E5C4_log_jam = HuMemAllocTag(sizeof(LjLog) * 32, 31000);
+    for (i = 0; i < 32; i++, log++) {
+        log->unk00 = i;
+        log->unk02[0] = -1;
+        log->unk02[1] = -1;
+        log->unk02[2] = -1;
+        log->unk08 = 0;
+        log->unk0A = 0;
+        log->unk0C = 0;
+        log->unk0E = 0;
+        log->unk10.x = log->unk10.y = log->unk10.z = 0.0f;
+        log->unk1C.x = log->unk1C.y = log->unk1C.z = 0.0f;
+        log->unk28.x = log->unk28.y = log->unk28.z = 0.0f;
+        memset(log->unk34, 0, sizeof(log->unk34));
+        memset(log->unk54, 0, sizeof(log->unk54));
+        log->unk74 = NULL;
+    }
+    D_8010E5C0_log_jam = omAddObj(0x18, 0, 0, -1, func_80108E54_log_jam);
+    omSetStatBit(D_8010E5C0_log_jam, 0xA0);
+}
+
+void func_80108E54_log_jam(omObjData* obj) {
+    LjLog* log;
+    s32 i;
+    s32 j;
+
+    for (i = 0, log = D_8010E5C4_log_jam; i < 32; i++, log++) {
+        if (log->unk08 == 0) {
+            continue;
+        }
+        switch (log->unk0C) {
+        case 0:
+            break;
+        case 1:
+            if ((log->unk0E & 1) || func_80049F98_main() + D_800D6A90_main != 0) {
+                for (j = 0; j < 3; j++) {
+                    if (log->unk02[j] != -1) {
+                        func_8001C258_main(log->unk02[j], 4, 0);
+                    }
+                }
+            } else {
+                for (j = 0; j < 3; j++) {
+                    if (log->unk02[j] != -1) {
+                        func_8001C258_main(log->unk02[j], 4, 4);
+                    }
+                }
+            }
+            if (log->unk0E >= 30.0f) {
+                log->unk0E = 0;
+                log->unk0C++;
+            }
+            break;
+        default:
+            func_8010925C_log_jam(log->unk00);
+            continue;
+        }
+        if (log->unk74 != NULL && func_80049F98_main() + D_800D6A90_main == 0) {
+            log->unk74(log);
+        }
+        if (log->unk08 == 0) {
+            continue;
+        }
+        if (log->unk02[0] != -1) {
+            Hu3DModelPosSet(log->unk02[0], log->unk10.x, log->unk10.y, log->unk10.z);
+            Hu3DModelRotSet(log->unk02[0], log->unk1C.x, log->unk1C.y, log->unk1C.z);
+        }
+        if (func_80049F98_main() + D_800D6A90_main == 0) {
+            log->unk0E++;
+        }
+    }
+}
+
+/* Spawn a log of a kind; returns its index or -1. */
+s16 func_80109044_log_jam(s16 kind, s16 part) {
+    LjLog* log;
+    s32 i;
+
+    if (D_8010E5C4_log_jam == NULL) {
+        return -1;
+    }
+    for (i = 0, log = D_8010E5C4_log_jam; i < 32; i++, log++) {
+        if (log->unk08 == 0) {
+            log->unk02[0] = func_80109A7C_log_jam(kind, part);
+            if (log->unk02[0] != -1) {
+                func_8001C258_main(log->unk02[0], 4, 0);
+            }
+            log->unk08 = 1;
+            log->unk0A = kind;
+            log->unk0C = 0;
+            log->unk0E = 0;
+            return i;
+        }
+    }
+    return -1;
+}
+
+#ifdef NON_MATCHING
+/* Differs: retail adds offset + base, this adds base + offset (operand order only). */
+LjLog* func_8010910C_log_jam(s16 idx) {
+    LjLog* logs = D_8010E5C4_log_jam;
+
+    if (logs != NULL) {
+        return &logs[idx];
+    }
+    return NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010910C_log_jam);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109140_log_jam);
+void func_80109140_log_jam(s16 idx, f32 x, f32 y, f32 z) {
+    LjLog* log;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109190_log_jam);
+    if (D_8010E5C4_log_jam != NULL) {
+        log = &D_8010E5C4_log_jam[idx];
+        if (log->unk08 != 0) {
+            log->unk10.x = x;
+            log->unk10.y = y;
+            log->unk10.z = z;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_801091DC_log_jam);
+void func_80109190_log_jam(s16 idx, f32 x, f32 y) {
+    LjLog* log;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010925C_log_jam);
+    if (D_8010E5C4_log_jam != NULL) {
+        log = &D_8010E5C4_log_jam[idx];
+        if (log->unk08 != 0) {
+            log->unk1C.x = x;
+            log->unk1C.y = y;
+            log->unk1C.z = x;
+        }
+    }
+}
+
+void func_801091DC_log_jam(void) {
+    s32 i;
+    LjLog* log;
+
+    if (D_8010E5C4_log_jam != NULL) {
+        for (i = 0, log = D_8010E5C4_log_jam; i < 32; i++, log++) {
+            if (log->unk08 != 0) {
+                func_8010925C_log_jam(i);
+            }
+        }
+        HuMemFree(D_8010E5C4_log_jam);
+        D_8010E5C4_log_jam = NULL;
+        D_8010E5C0_log_jam->func = NULL;
+    }
+}
+
+void func_8010925C_log_jam(s16 idx) {
+    LjLog* log;
+    s32 i;
+
+    if (D_8010E5C4_log_jam != NULL) {
+        log = &D_8010E5C4_log_jam[idx];
+        if (log->unk08 != 0) {
+            for (i = 0; i < 3; i++) {
+                if (log->unk02[i] != -1) {
+                    func_8001ACDC_main(log->unk02[i]);
+                    log->unk02[i] = -1;
+                }
+            }
+            log->unk08 = 0;
+            log->unk0E = 0;
+            log->unk0C = 0;
+            log->unk0A = 0;
+            log->unk10.x = log->unk10.y = log->unk10.z = 0.0f;
+            log->unk1C.x = log->unk1C.y = log->unk1C.z = 0.0f;
+            log->unk28.x = log->unk28.y = log->unk28.z = 0.0f;
+            memset(log->unk34, 0, sizeof(log->unk34));
+            memset(log->unk54, 0, sizeof(log->unk54));
+            log->unk74 = NULL;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109350_log_jam);
 
@@ -772,13 +969,34 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E2CC_log
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_801094E4_log_jam);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109A00_log_jam);
+void func_80109A00_log_jam(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109A7C_log_jam);
+    D_8010E5C8_log_jam = HuMemAllocTag(9 * sizeof(s16), 31000);
+    for (i = 0; i < 9; i++) {
+        D_8010E5C8_log_jam[i] = func_8000B108_main(D_8010E030_log_jam[i], 0xBD);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109AD8_log_jam);
+s16 func_80109A7C_log_jam(s16 kind, s16 part) {
+    s16* mdl = D_8010E5C8_log_jam;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109B34_log_jam);
+    return (mdl != NULL) ? Hu3DModelLink(mdl[kind * 3 + part]) : -1;
+}
+
+void func_80109AD8_log_jam(void) {
+    s32 i;
+
+    for (i = 0; i < 9; i++) {
+        func_8001ACDC_main(D_8010E5C8_log_jam[i]);
+    }
+    HuMemFree(D_8010E5C8_log_jam);
+    D_8010E5C8_log_jam = NULL;
+}
+
+void func_80109B34_log_jam(void) {
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(1, 0x10, 0, -1, func_80109B8C_log_jam);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109B8C_log_jam);
 
