@@ -359,6 +359,10 @@ NOP_OBJECTS += build/src/overlays/w04/367960.c.o
 NOP_OBJECTS += build/src/overlays/w05/37FFB0.c.o
 # wave 3r board da1: duel02 3EC590 (duel01 copy: no nop before the mul.s after the sindf/cosdf calls)
 NOP_OBJECTS += build/src/overlays/duel02/3EC590.c.o
+# boards db1-db3: duel03 3FE1F0 (duel01 copy: no nop before the mul.s after the sindf/cosdf calls)
+NOP_OBJECTS += build/src/overlays/duel03/3FE1F0.c.o
+# duel05 426450 (duel01 copy: no nop before the mul.s after the sindf/cosdf calls)
+NOP_OBJECTS += build/src/overlays/duel05/426450.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 

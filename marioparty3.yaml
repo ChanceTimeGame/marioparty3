@@ -1993,7 +1993,7 @@ segments:
       - [0x3FE1C0, c]
       - [0x3FE1F0, c]
       - [0x40FC20, .data, 3FE1C0] #80117400
-      - [0x40FC50, data, 3FE1F0]
+      - [0x40FC50, .data, 3FE1F0]
       - [0x410340, .rodata, 3FE1F0] #80117B20
       - {0x4108E0, type: bss, vram: 0x801180C0, name: duel03_bss}
 
@@ -2023,7 +2023,8 @@ segments:
     subsegments:
       - [0x426420, c]
       - [0x426450, c]
-      - [0x436100, data, 426420] #80115680
+      - [0x436100, .data, 426420] #80115680
+      - [0x436130, .data, 426450] #801156B0
       - [0x4368F0, .rodata, 426450] #80115E70
       - {0x436E20, type: bss, vram: 0x801163A0, name: duel05_bss}
 
