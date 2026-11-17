@@ -154,6 +154,11 @@ extern Vec D_8011556C_mstory3; /* actor 3's start position */
 extern Vec D_80115C5C_mstory3; /* actor 3's position */
 extern s16 D_80115C88_mstory3;
 void func_8010C654_mstory3(void);
+extern Vec D_80115728_mstory3;
+extern Vec D_80115578_mstory3; /* actor 4's start position */
+extern Vec D_80115C68_mstory3; /* actor 4's position */
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_8010C9E0_mstory3(void);
 extern Vec D_80115704_mstory3;
 extern Vec D_80115710_mstory3;
 extern Vec D_8011571C_mstory3;
@@ -695,13 +700,52 @@ void func_8010C65C_mstory3(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C65C_mstory3);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C7A0_mstory3);
+void func_8010C7A0_mstory3(omObjData *obj) {
+    func_80107674_mstory3(obj, D_80115BC0_mstory3[1].obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C7C0_mstory3);
+/* actor 3 turns */
+void func_8010C7C0_mstory3(omObjData *obj) {
+    Vec rot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C810_mstory3);
+    rot = D_801156E0_mstory3;
+    func_80107070_mstory3(obj, &rot, 10);
+    D_80115BC0_mstory3[3].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C870_mstory3);
+/* actor 2 turns; clears actor 3's step */
+void func_8010C810_mstory3(omObjData *obj) {
+    Vec rot;
+
+    rot = D_80115728_mstory3;
+    func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &rot, 10);
+    D_80115BC0_mstory3[3].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
+
+/* actor 4: model file 0x1D0007, with model[2] from func_8000CED8_main (chapter 1 calls it a shadow) */
+void func_8010C870_mstory3(void) {
+    omObjData *obj;
+
+    obj = omAddObj(10, 20, 20, -1, NULL);
+    D_80115BC0_mstory3[4].obj = obj;
+    D_80115BC0_mstory3[4].flags = 0;
+    D_80115BC0_mstory3[4].func = (void (*)(omObjData *))func_80108A94_mstory3;
+    obj->model[1] = func_8000B108_main(0x1D0007, 0x20299);
+    obj->model[2] = func_8000CED8_main(0xB0004, 0x6A9);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C814_main(obj->model[1], 2, 2);
+    D_80115C68_mstory3 = D_80115578_mstory3;
+    Hu3DModelPosSet(obj->model[1], D_80115C68_mstory3.x, D_80115C68_mstory3.y, D_80115C68_mstory3.z);
+    func_8000CD00_main(obj->model[2], 4.0f, 20.0f, 4.0f);
+    func_8000D018_main(obj->model[2], 60.0f);
+    func_800138EC_main(obj->model[2], 1, 0);
+    func_8001C258_main(obj->model[2], 4, 4);
+    omPrcSetDestructor(0, func_8010C9E0_mstory3);
+    while (1) {
+        D_80115BC0_mstory3[4].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010C9E0_mstory3(void) {
 }
