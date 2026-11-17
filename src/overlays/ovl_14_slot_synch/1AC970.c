@@ -102,7 +102,8 @@ typedef struct SsSpr {
     /* 0x09 */ u8 unk09;
     /* 0x0A */ u8 unk0A;
     /* 0x0B */ u8 unk0B;
-    /* 0x0C */ s32 unk0C;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ char unk0E[2];
     /* 0x10 */ s32 unk10;
     /* 0x14 */ Vec2f unk14; /* start position */
     /* 0x1C */ Vec2f unk1C; /* target position */
