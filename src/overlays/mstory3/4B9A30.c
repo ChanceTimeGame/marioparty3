@@ -25,6 +25,14 @@ typedef struct Story3Actor {
     /* 0x10 */ s32 unk10; /* step sound (read as an s16 at +0x12) */
 } Story3Actor; /* size = 0x14 */
 
+/* a model part looked up by name (func_8001D33C_main) */
+typedef struct Story3HmfPart {
+    /* 0x00 */ char unk00[0x1C];
+    /* 0x1C */ Vec scale;
+    /* 0x28 */ char unk28[0x18];
+    /* 0x40 */ Vec scale2;
+} Story3HmfPart;
+
 typedef struct Story3Motions {
     s32 v[8][4];
 } Story3Motions;
@@ -65,6 +73,10 @@ extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
 f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
 void func_80032FC0_main(s16, s32, s32);
 s16 func_800329B4_main(void *);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
+void *func_8001D33C_main(s16, const char *);
+void func_8002FD8C_main(s16, s16, const char *, s16, s16);
+void func_8002FDCC_main(s16, s16, const char *, s16, s16);
 
 void func_80105E8C_mstory3(void);
 void func_80105F54_mstory3(void);
@@ -861,7 +873,83 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory3/4B9A30", D_801158D4_mstory3);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory3/4B9A30", D_801158E0_mstory3);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010FDB0_mstory3);
+/* actor 0: hold up the item and grow it, then the cheer */
+void func_8010FDB0_mstory3(omObjData *obj) {
+    Story3HmfPart *part;
+    f32 scale;
+    f32 s;
+    s32 i;
+
+    HuPrcSleep(70);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[13]].unk02, 0, 10, 2);
+    func_80107218_mstory3(obj, 0.0f, 110.0f, 0.0f, 10);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[3]].unk02, 0, 10, 0);
+    HuPrcSleep(10);
+    func_8001C258_main(obj->model[3], 0x4000, 0x4000);
+    func_8001EF6C_main(obj->model[3], obj->model[1], "item_hook");
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_80107244_mstory3(obj->model[1]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[4]].unk02, 0, 10, 0);
+    func_80107244_mstory3(obj->model[1]);
+    while (TRUE) {
+        if (S3A[8].unk08 == 2) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[8].unk08 = 0;
+    func_8001C258_main(S3A[8].obj->model[1], 4, 4);
+    func_8001C258_main(S3A[8].obj->model[3], 4, 4);
+    func_8002FD8C_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x45);
+    func_8002FD8C_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x46);
+    func_8002FD8C_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x47);
+    part = func_8001D33C_main(obj->model[1], "item_hook");
+    for (i = 0; i < 10; i++) {
+        scale = sindf(i * 18.0f) * 0.8 + 1.0;
+        part->scale.x = scale;
+        part->scale.y = scale;
+        part->scale.z = scale;
+        part->scale2.x = scale;
+        part->scale2.y = scale;
+        part->scale2.z = scale;
+        HuPrcVSleep();
+    }
+    func_8002FDCC_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x47);
+    func_8002FDCC_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x46);
+    func_8002FDCC_main(obj->model[1], HmfModelData[obj->model[1]].unk02, "item_hook", 0x1B, 0x45);
+    func_80106400_mstory3(5);
+    while (TRUE) {
+        if (func_80106CDC_mstory3() == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5C);
+    func_8010606C_mstory3();
+    func_8001C5B4_main(obj->model[1], obj->motion[4]);
+    func_8001C814_main(obj->model[1], 4, 4);
+    func_8001C92C_main(obj->model[1], 2.0f);
+    func_8001C6A8_main(obj->model[1], D_800CCF58_main[HmfModelData[obj->model[1]].unk02].unk02);
+    do {
+        s = HmfModelData[obj->model[1]].unk40;
+        HuPrcVSleep();
+    } while (s > 0.0f);
+    func_8001C5B4_main(obj->model[1], obj->motion[3]);
+    func_8001C814_main(obj->model[1], 4, 4);
+    func_8001C6A8_main(obj->model[1], D_800CCF58_main[HmfModelData[obj->model[1]].unk02].unk02);
+    do {
+        s = HmfModelData[obj->model[1]].unk40;
+        HuPrcVSleep();
+    } while (s > 0.0f);
+    func_8001C92C_main(obj->model[1], 1.0f);
+    func_8001C258_main(obj->model[3], 0x4000, 0);
+    func_8001C258_main(obj->model[3], 4, 4);
+    HuAudSeqFadeOut(20);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    S3A[0].unk08 = 1;
+    S3A[0].func = func_8010D774_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_801103E8_mstory3);
 
