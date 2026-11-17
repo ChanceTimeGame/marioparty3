@@ -102,6 +102,11 @@ void func_80019828_main(s16, s32);
 u16 func_80014618_main(s16 index, u16 arg1);
 void func_80014714_main(s16 index, u16 arg1);
 void func_8000BC48_main(u16, s32);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BD08_main(u16 spriteId, f32 arg1);
+void func_8000BD94_main(u16 spriteId, s32 arg1, s32 arg2);
+void func_8000BDDC_main(u16 spriteId, s32 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 
 void func_80105C88_mgresultdealer(omObjData *);
 void func_801061C8_mgresultdealer(void);
@@ -141,11 +146,12 @@ void func_80108570_mgresultdealer(void);
 void func_80108AEC_mgresultdealer(omObjData *);
 void func_80108BD4_mgresultdealer(omObjData *);
 void func_80109044_mgresultdealer(omObjData *);
+void func_801090AC_mgresultdealer(void);
 void func_801090B4_mgresultdealer(void);
 s32 func_801090E8_mgresultdealer(void);
 s32 func_801090F4_mgresultdealer(void);
-void func_80109100_mgresultdealer(omObjData *);
-void func_801093A0_mgresultdealer(omObjData *);
+void func_80109100_mgresultdealer(void);
+void func_801093A0_mgresultdealer(void);
 s8 func_80109478_mgresultdealer(void);
 void func_80109484_mgresultdealer(omObjData *);
 void func_80109710_mgresultdealer(omObjData *);
@@ -176,6 +182,12 @@ extern s8 D_80109931_mgresultdealer;  /* fade done */
 extern s32 D_80109934_mgresultdealer; /* fade frame */
 extern s8 D_80109938_mgresultdealer;  /* draw the fade */
 extern s16 D_8010993A_mgresultdealer; /* fade alpha */
+extern s8 D_80109940_mgresultdealer;  /* score board running */
+extern s8 D_80109941_mgresultdealer;  /* score board done */
+extern s32 D_80109944_mgresultdealer; /* count-up frame */
+extern s32 D_80109948_mgresultdealer; /* wait before the count-up */
+extern s32 D_8010994C_mgresultdealer; /* last total shown (tick sound) */
+extern s32 D_80109950_mgresultdealer; /* wait after the count-up */
 
 /* .bss */
 extern s16 D_801099F8_mgresultdealer[4]; /* confetti models */
@@ -190,6 +202,24 @@ extern DealerCoin D_80109A78_mgresultdealer[40]; /* coins */
 extern DealerCoin D_80109E38_mgresultdealer[40]; /* sparkles */
 extern UnkOmData D_8010A274_mgresultdealer; /* coins */
 extern UnkOmData D_8010A26C_mgresultdealer; /* the fade */
+/* The score board: coins x bonus = total, three digits each (esprites). */
+typedef struct DealerBoard {
+    /* 0x00 */ u16 back;          /* 0x190009 */
+    /* 0x02 */ s16 coinDigit[3];
+    /* 0x08 */ u16 coinSpr[3];
+    /* 0x0E */ u16 times;
+    /* 0x10 */ s16 bonusDigit[3];
+    /* 0x16 */ u16 bonusSpr[3];
+    /* 0x1C */ u16 equals;
+    /* 0x1E */ s16 totalDigit[3];
+    /* 0x24 */ u16 totalSpr[3];
+    /* 0x2A */ u16 frame;         /* 0x190004 */
+    /* 0x2C */ u16 shade;         /* 0x190005 */
+} DealerBoard;
+extern DealerBoard D_8010A210_mgresultdealer;
+extern s32 D_8010A240_mgresultdealer;       /* board shown */
+extern s32 D_8010A244_mgresultdealer;       /* board hidden */
+extern UnkOmData D_8010A25C_mgresultdealer; /* the score board */
 extern s16 D_8010A200_mgresultdealer;       /* the fade's draw hook model */
 extern s32 D_8010A204_mgresultdealer;       /* its sprite */
 extern HuSprite *D_8010A208_mgresultdealer;

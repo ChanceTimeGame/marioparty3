@@ -296,29 +296,344 @@ void func_80108560_mgresultdealer(u8 alpha) {
     D_8010993A_mgresultdealer = alpha;
 }
 
+#ifdef NON_MATCHING
+/* masked 24: the digit file id and its sign-extended copy swap s4/s5 */
+/* the score board's process */
+void func_80108570_mgresultdealer(void) {
+    omObjData *obj;
+    s16 times;
+    s16 x;
+    s8 i;
+    s16 file;
+
+    obj = omAddObj(0x14, 0, 0, -1, NULL);
+    D_8010A25C_mgresultdealer.obj = obj;
+    D_8010A210_mgresultdealer.coinDigit[0] = (D_8010A264_mgresultdealer / 100) % 10;
+    D_8010A210_mgresultdealer.coinDigit[1] = (D_8010A264_mgresultdealer / 10) % 10;
+    D_8010A210_mgresultdealer.coinDigit[2] = D_8010A264_mgresultdealer % 10;
+    D_8010A210_mgresultdealer.bonusDigit[0] = (D_8010A258_mgresultdealer / 100) % 10;
+    D_8010A210_mgresultdealer.bonusDigit[1] = (D_8010A258_mgresultdealer / 10) % 10;
+    D_8010A210_mgresultdealer.bonusDigit[2] = D_8010A258_mgresultdealer % 10;
+    D_8010A210_mgresultdealer.totalDigit[0] = 0;
+    D_8010A210_mgresultdealer.totalDigit[1] = 0;
+    D_8010A210_mgresultdealer.totalDigit[2] = 0;
+    D_8010A210_mgresultdealer.shade = InitEspriteSlot(func_8000B838_main(0x190005), 0, 1);
+    func_8000BBFC_main(D_8010A210_mgresultdealer.shade, 0x7F);
+    func_8000BBD4_main(D_8010A210_mgresultdealer.shade, 0xA9, 0x60);
+    x = 0x5C;
+    func_8000BB94_main(D_8010A210_mgresultdealer.shade);
+    D_8010A210_mgresultdealer.frame = InitEspriteSlot(func_8000B838_main(0x190004), 0, 1);
+    func_8000BBD4_main(D_8010A210_mgresultdealer.frame, 0xA3, 0x5A);
+    func_8000BB94_main(D_8010A210_mgresultdealer.frame);
+    D_8010A210_mgresultdealer.back = InitEspriteSlot(func_8000B838_main(0x190009), 0, 1);
+    func_8000BBD4_main(D_8010A210_mgresultdealer.back, 0x4C, 0x5A);
+    func_8000BD94_main(D_8010A210_mgresultdealer.back, 0, 0);
+    func_8000BD08_main(D_8010A210_mgresultdealer.back, 2.0f);
+    func_8000BDDC_main(D_8010A210_mgresultdealer.back, 0);
+    func_8000BB94_main(D_8010A210_mgresultdealer.back);
+    file = func_8000B838_main(0xC0086);
+    for (i = 0; i < 3; i++) {
+        D_8010A210_mgresultdealer.coinSpr[i] = InitEspriteSlot(file, 0, 0);
+        func_8000BBD4_main(D_8010A210_mgresultdealer.coinSpr[i], x, 0x5A);
+        func_8000BD94_main(D_8010A210_mgresultdealer.coinSpr[i], (u16)D_8010A210_mgresultdealer.coinDigit[i], 0);
+        x += 0x10;
+        func_8000BB94_main(D_8010A210_mgresultdealer.coinSpr[i]);
+    }
+    times = func_8000B838_main(0xC008C);
+    D_8010A210_mgresultdealer.times = InitEspriteSlot(times, 0, 0);
+    func_8000BBD4_main(D_8010A210_mgresultdealer.times, x, 0x5A);
+    func_8000BD94_main(D_8010A210_mgresultdealer.times, 0, 0);
+    x += 0x10;
+    func_8000BB94_main(D_8010A210_mgresultdealer.times);
+    for (i = 0; i < 3; i++) {
+        D_8010A210_mgresultdealer.bonusSpr[i] = InitEspriteSlot(file, 0, 0);
+        func_8000BBD4_main(D_8010A210_mgresultdealer.bonusSpr[i], x, 0x5A);
+        func_8000BD94_main(D_8010A210_mgresultdealer.bonusSpr[i], (u16)D_8010A210_mgresultdealer.bonusDigit[i], 0);
+        x += 0x10;
+        func_8000BB94_main(D_8010A210_mgresultdealer.bonusSpr[i]);
+    }
+    D_8010A210_mgresultdealer.equals = InitEspriteSlot(times, 0, 0);
+    func_8000BBD4_main(D_8010A210_mgresultdealer.equals, x, 0x5A);
+    func_8000BD94_main(D_8010A210_mgresultdealer.equals, 3, 0);
+    x += 0x10;
+    func_8000BB94_main(D_8010A210_mgresultdealer.equals);
+    for (i = 0; i < 3; i++) {
+        D_8010A210_mgresultdealer.totalSpr[i] = InitEspriteSlot(file, 0, 0);
+        func_8000BBD4_main(D_8010A210_mgresultdealer.totalSpr[i], x, 0x5A);
+        func_8000BD94_main(D_8010A210_mgresultdealer.totalSpr[i], (u16)D_8010A210_mgresultdealer.totalDigit[i], 0);
+        x += 0x10;
+        func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[i]);
+    }
+    omPrcSetDestructor(0, func_801090AC_mgresultdealer);
+    D_8010A25C_mgresultdealer.func = func_80108AEC_mgresultdealer;
+    while (1) {
+        D_8010A25C_mgresultdealer.func(obj);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108570_mgresultdealer);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108AEC_mgresultdealer);
+/* wait 15 frames, then count the total up (or leave at once when it is 0) */
+void func_80108AEC_mgresultdealer(omObjData *obj) {
+    if (D_80109940_mgresultdealer != 0) {
+        if (++D_80109948_mgresultdealer >= 15) {
+            D_80109948_mgresultdealer = 0;
+            if (D_8010A264_mgresultdealer * D_8010A258_mgresultdealer == 0) {
+                D_80109940_mgresultdealer = 0;
+                D_80109941_mgresultdealer = 1;
+                D_80109948_mgresultdealer = 0;
+                D_8010A244_mgresultdealer = 0;
+                D_8010A25C_mgresultdealer.func = func_80109710_mgresultdealer;
+            } else {
+                func_8000BD94_main(D_8010A210_mgresultdealer.back, 0, 0);
+                func_8000BDDC_main(D_8010A210_mgresultdealer.back, 1);
+                func_8000BB54_main(D_8010A210_mgresultdealer.back);
+                D_8010A25C_mgresultdealer.func = func_80108BD4_mgresultdealer;
+            }
+        }
+    }
+}
 
+#ifdef NON_MATCHING
+/* masked 62, 5 short: retail keeps &totalSpr[0] in s0 for the show/hide calls and schedules the digit divisions differently */
+/* count the total up over 28 frames, ticking as it grows */
+void func_80108BD4_mgresultdealer(omObjData *obj) {
+    s32 total;
+    s32 n;
+    s16 cur;
+    f32 f;
+    s8 i;
+
+    if (D_80109940_mgresultdealer != 0) {
+        total = D_8010A264_mgresultdealer * D_8010A258_mgresultdealer;
+        n = 999;
+        if (total < 1000) {
+            n = total;
+        }
+        total = n;
+        f = (f32)total / 28.0f * D_80109944_mgresultdealer;
+        cur = f;
+        D_8010A210_mgresultdealer.totalDigit[0] = (s16)(cur / 100) % 10;
+        D_8010A210_mgresultdealer.totalDigit[1] = (s16)(cur / 10) % 10;
+        D_8010A210_mgresultdealer.totalDigit[2] = cur % 10;
+        for (i = 0; i < 3; i++) {
+            func_8000BDDC_main(D_8010A210_mgresultdealer.totalSpr[i], 1);
+            func_8000BD94_main(D_8010A210_mgresultdealer.totalSpr[i], (u16)D_8010A210_mgresultdealer.totalDigit[i], 0);
+        }
+        if (cur < 10) {
+            func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[0]);
+            func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[1]);
+        } else {
+            if (cur < 100) {
+                func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[0]);
+            } else {
+                func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[0]);
+            }
+            func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[1]);
+        }
+        func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[2]);
+        if (D_8010994C_mgresultdealer < cur) {
+            HuAudFXPlay(9);
+            D_8010994C_mgresultdealer = cur;
+        }
+        if (++D_80109944_mgresultdealer >= 28) {
+            HuAudFXPlay(9);
+            D_8010A210_mgresultdealer.totalDigit[0] = (s16)(total / 100) % 10;
+            D_8010A210_mgresultdealer.totalDigit[1] = (s16)(total / 10) % 10;
+            D_8010A210_mgresultdealer.totalDigit[2] = total % 10;
+            for (i = 0; i < 3; i++) {
+                func_8000BDDC_main(D_8010A210_mgresultdealer.totalSpr[i], 1);
+                func_8000BD94_main(D_8010A210_mgresultdealer.totalSpr[i], (u16)D_8010A210_mgresultdealer.totalDigit[i], 0);
+            }
+            if (total < 10) {
+                func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[0]);
+                func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[1]);
+            } else {
+                if (total < 100) {
+                    func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[0]);
+                } else {
+                    func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[0]);
+                }
+                func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[1]);
+            }
+            func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[2]);
+            func_8000BDDC_main(D_8010A210_mgresultdealer.back, 0);
+            D_8010994C_mgresultdealer = 0;
+            D_8010A25C_mgresultdealer.func = func_80109044_mgresultdealer;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108BD4_mgresultdealer);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80109044_mgresultdealer);
+void func_80109044_mgresultdealer(omObjData *obj) {
+    if (D_80109940_mgresultdealer != 0) {
+        if (++D_80109950_mgresultdealer >= 15) {
+            D_80109940_mgresultdealer = 0;
+            D_80109941_mgresultdealer = 1;
+            D_80109950_mgresultdealer = 0;
+            D_8010A244_mgresultdealer = 0;
+            D_8010A25C_mgresultdealer.func = func_80109710_mgresultdealer;
+        }
+    }
+}
 
 void func_801090AC_mgresultdealer(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_801090B4_mgresultdealer);
+void func_801090B4_mgresultdealer(void) {
+    D_80109940_mgresultdealer = 1;
+    D_80109941_mgresultdealer = 0;
+    D_80109944_mgresultdealer = 0;
+    func_80109100_mgresultdealer();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_801090E8_mgresultdealer);
+s32 func_801090E8_mgresultdealer(void) {
+    return D_8010A240_mgresultdealer;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_801090F4_mgresultdealer);
+s32 func_801090F4_mgresultdealer(void) {
+    return D_8010A244_mgresultdealer;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80109100_mgresultdealer);
+/* show the board (leading zeros hidden) at scale 0; func_80109484 pops it in */
+void func_80109100_mgresultdealer(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_801093A0_mgresultdealer);
+    D_8010A240_mgresultdealer = 0;
+    func_8000BB54_main(D_8010A210_mgresultdealer.frame);
+    func_8000BB54_main(D_8010A210_mgresultdealer.shade);
+    func_8000BB54_main(D_8010A210_mgresultdealer.back);
+    func_8000BB54_main(D_8010A210_mgresultdealer.times);
+    func_8000BB54_main(D_8010A210_mgresultdealer.equals);
+    if (D_8010A210_mgresultdealer.coinDigit[0] == 0) {
+        func_8000BB94_main(D_8010A210_mgresultdealer.coinSpr[0]);
+        if (D_8010A210_mgresultdealer.coinDigit[1] == 0) {
+            func_8000BB94_main(D_8010A210_mgresultdealer.coinSpr[1]);
+        } else {
+            func_8000BB54_main(D_8010A210_mgresultdealer.coinSpr[1]);
+        }
+    } else {
+        func_8000BB54_main(D_8010A210_mgresultdealer.coinSpr[0]);
+        func_8000BB54_main(D_8010A210_mgresultdealer.coinSpr[1]);
+    }
+    func_8000BB54_main(D_8010A210_mgresultdealer.coinSpr[2]);
+    if (D_8010A210_mgresultdealer.bonusDigit[0] == 0) {
+        func_8000BB94_main(D_8010A210_mgresultdealer.bonusSpr[0]);
+        if (D_8010A210_mgresultdealer.bonusDigit[1] == 0) {
+            func_8000BB94_main(D_8010A210_mgresultdealer.bonusSpr[1]);
+        } else {
+            func_8000BB54_main(D_8010A210_mgresultdealer.bonusSpr[1]);
+        }
+    } else {
+        func_8000BB54_main(D_8010A210_mgresultdealer.bonusSpr[0]);
+        func_8000BB54_main(D_8010A210_mgresultdealer.bonusSpr[1]);
+    }
+    func_8000BB54_main(D_8010A210_mgresultdealer.bonusSpr[2]);
+    if (D_8010A210_mgresultdealer.totalDigit[0] == 0) {
+        func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[0]);
+        if (D_8010A210_mgresultdealer.totalDigit[1] == 0) {
+            func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[1]);
+        } else {
+            func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[1]);
+        }
+    } else {
+        func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[0]);
+        func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[1]);
+    }
+    func_8000BB54_main(D_8010A210_mgresultdealer.totalSpr[2]);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.frame, 1.0f, 0.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.shade, 1.0f, 0.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.back, 1.0f, 0.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.times, 1.0f, 0.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.equals, 1.0f, 0.0f);
+    for (i = 0; i < 3; i++) {
+        func_8000BE5C_main(D_8010A210_mgresultdealer.coinSpr[i], 1.0f, 0.0f);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.bonusSpr[i], 1.0f, 0.0f);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.totalSpr[i], 1.0f, 0.0f);
+    }
+    D_8010A25C_mgresultdealer.func = func_80109484_mgresultdealer;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80109478_mgresultdealer);
+void func_801093A0_mgresultdealer(void) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80109484_mgresultdealer);
+    func_8000BB94_main(D_8010A210_mgresultdealer.frame);
+    func_8000BB94_main(D_8010A210_mgresultdealer.shade);
+    func_8000BB94_main(D_8010A210_mgresultdealer.back);
+    func_8000BB94_main(D_8010A210_mgresultdealer.times);
+    func_8000BB94_main(D_8010A210_mgresultdealer.equals);
+    for (i = 0; i < 3; i++) {
+        func_8000BB94_main(D_8010A210_mgresultdealer.coinSpr[i]);
+        func_8000BB94_main(D_8010A210_mgresultdealer.bonusSpr[i]);
+        func_8000BB94_main(D_8010A210_mgresultdealer.totalSpr[i]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80109710_mgresultdealer);
+s8 func_80109478_mgresultdealer(void) {
+    return D_80109941_mgresultdealer;
+}
+
+/* pop the board in: its height scale overshoots along a sine for 10 frames */
+void func_80109484_mgresultdealer(omObjData *obj) {
+    f32 scale;
+    s32 t;
+    s32 i;
+
+    scale = 0.0f;
+    for (t = 0; t < 10; t++) {
+        func_8000BE5C_main(D_8010A210_mgresultdealer.frame, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.shade, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.back, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.times, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.equals, 1.0f, scale);
+        for (i = 0; i < 3; i++) {
+            func_8000BE5C_main(D_8010A210_mgresultdealer.coinSpr[i], 1.0f, scale);
+            func_8000BE5C_main(D_8010A210_mgresultdealer.bonusSpr[i], 1.0f, scale);
+            func_8000BE5C_main(D_8010A210_mgresultdealer.totalSpr[i], 1.0f, scale);
+        }
+        scale = sindf(t * 9.0f) * 1.1f;
+        HuPrcVSleep();
+    }
+    func_8000BE5C_main(D_8010A210_mgresultdealer.frame, 1.0f, 1.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.shade, 1.0f, 1.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.back, 1.0f, 1.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.times, 1.0f, 1.0f);
+    func_8000BE5C_main(D_8010A210_mgresultdealer.equals, 1.0f, 1.0f);
+    for (i = 0; i < 3; i++) {
+        func_8000BE5C_main(D_8010A210_mgresultdealer.coinSpr[i], 1.0f, 1.0f);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.bonusSpr[i], 1.0f, 1.0f);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.totalSpr[i], 1.0f, 1.0f);
+    }
+    D_8010A240_mgresultdealer = 1;
+    D_8010A25C_mgresultdealer.func = func_80108AEC_mgresultdealer;
+}
+
+/* fold the board away over 5 frames, then hide it */
+void func_80109710_mgresultdealer(omObjData *obj) {
+    f32 scale;
+    s32 t;
+    s32 i;
+
+    scale = 1.0f;
+    for (t = 0; t < 5; t++) {
+        func_8000BE5C_main(D_8010A210_mgresultdealer.frame, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.shade, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.back, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.times, 1.0f, scale);
+        func_8000BE5C_main(D_8010A210_mgresultdealer.equals, 1.0f, scale);
+        for (i = 0; i < 3; i++) {
+            func_8000BE5C_main(D_8010A210_mgresultdealer.coinSpr[i], 1.0f, scale);
+            func_8000BE5C_main(D_8010A210_mgresultdealer.bonusSpr[i], 1.0f, scale);
+            func_8000BE5C_main(D_8010A210_mgresultdealer.totalSpr[i], 1.0f, scale);
+        }
+        scale = cosdf(t * 18.0f);
+        HuPrcVSleep();
+    }
+    func_801093A0_mgresultdealer();
+    D_8010A244_mgresultdealer = 1;
+    D_8010A25C_mgresultdealer.func = func_80108AEC_mgresultdealer;
+}
