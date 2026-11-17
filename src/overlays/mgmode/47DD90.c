@@ -253,8 +253,50 @@ void func_8000BBFC_main(u16 spriteId, s16 arg1);
 s32 func_80050064_main(s32 write);
 void func_801180A4_mgmode(void);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801178E0_mgmode);
+/* Look-at vectors for a camera orbiting center at rot, zoom away: eye, target and the up vector
+   turned rot->z degrees about the view direction (Rodrigues). */
+#ifdef NON_MATCHING
+/* Masked 1 (341 vs 342): retail copies the HuSqrtf result to $f2 before the three divides;
+   register allocation otherwise. Logic checked against the asm. */
+void func_801178E0_mgmode(Vec* center, Vec* rot, f32 zoom, Vec* eye, Vec* at, Vec* up) {
+    f32 rx = rot->x;
+    f32 ry = rot->y;
+    f32 rz = rot->z;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
 
+    eye->x = sindf(ry) * cosdf(rx) * zoom + center->x;
+    eye->y = -sindf(rx) * zoom + center->y;
+    eye->z = cosdf(ry) * cosdf(rx) * zoom + center->z;
+    *at = *center;
+    ux = sindf(ry) * sindf(rx);
+    uy = cosdf(rx);
+    uz = cosdf(ry) * sindf(rx);
+    dx = at->x - eye->x;
+    dy = at->y - eye->y;
+    dz = at->z - eye->z;
+    len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    up->x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz)) +
+            uy * (dx * dy * (1.0f - cosdf(rz)) - dz * sindf(rz)) +
+            uz * (dx * dz * (1.0f - cosdf(rz)) + dy * sindf(rz));
+    up->y = ux * (dx * dy * (1.0f - cosdf(rz)) + dz * sindf(rz)) +
+            uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz)) +
+            uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+    up->z = ux * (dx * dz * (1.0f - cosdf(rz)) - dy * sindf(rz)) +
+            uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz)) +
+            uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801178E0_mgmode);
+#endif
 
 /* Process: the cursor sprite; while shown it glides to slot D_8011B66A of D_8011B670 over
    D_8011B668 frames whenever the slot changes. */
