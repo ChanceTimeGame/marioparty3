@@ -339,3 +339,8 @@ D_8010AB0A_storyresult = D_8010AB04_storyresult + 0x6;
 /* wave 3t m3: mgmode 479470 (the GAMEMES at 0x8011B810; the coin count at D_800D1FDC+4) */
 D_8011B810_mgmode = 0x8011B810;
 D_800D1FE0_main = 0x800D1FE0;
+/* wave 3t m3A: mgmode 479470 (round minigames, picked minigame, model table inside D_80119F64) */
+D_800D0418_main = 0x800D0418;
+D_800CE29C_main = 0x800CE29C;
+D_80119FA0_mgmode = 0x80119FA0;
+D_800D1F2C_main = 0x800D1F2C;
