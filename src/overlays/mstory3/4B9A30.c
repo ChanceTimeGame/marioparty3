@@ -1,6 +1,7 @@
 #include "common.h"
 
 // story u3
+#include "mallocblock.h"
 /* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry), as mstory1's. */
 typedef struct ObPathSeg {
     /* 0x00 */ f32 start;
@@ -348,7 +349,106 @@ void func_8010D97C_mstory3(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010DA00_mstory3);
+#define S3A D_80115CB0_mstory3
+#define S3MODEL(i) S3A[i].obj->model[1]
+#define S3MOT(i, m) HmfModelData[S3A[i].obj->motion[m]].unk02
+
+/* the director, part 1 */
+void func_8010DA00_mstory3(omObjData *obj) {
+    s16 se;
+
+    HuPrcSleep(30);
+    CharFXPlay(0x26B, 7);
+    S3A[3].func = func_80111A58_mstory3;
+    HuPrcSleep(70);
+    S3A[1].func = func_80110E30_mstory3;
+    while (TRUE) {
+        if (S3A[3].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[3].unk08 = 0;
+    func_80106CF0_mstory3(S3MODEL(3), D_80115D8E_mstory3, D_80115D90_mstory3[1]);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5A);
+    func_8010606C_mstory3();
+    func_80106CF0_mstory3(S3MODEL(3), D_80115D8E_mstory3, D_80115D90_mstory3[0]);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_80115758_mstory3, 10);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 0);
+    func_80107070_mstory3(S3A[4].obj, &D_80115764_mstory3, 10);
+    func_80107070_mstory3(S3A[3].obj, &D_80115770_mstory3, 10);
+    HuAudFXPlay(0x159);
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 1), 0, 10, 2);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5B);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 0), 0, 10, 2);
+    func_80107070_mstory3(S3A[4].obj, &D_8011577C_mstory3, 10);
+    S3A[8].func = func_80113E68_mstory3;
+    func_80107070_mstory3(S3A[3].obj, &D_80115788_mstory3, 10);
+    while (TRUE) {
+        if (S3A[8].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[0].func = func_8010FDB0_mstory3;
+    HuPrcSleep(40);
+    func_80107070_mstory3(S3A[3].obj, &D_80115794_mstory3, 50);
+    func_80107070_mstory3(S3A[3].obj, &D_801157A0_mstory3, 40);
+    while (TRUE) {
+        if (S3A[0].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[0].unk08 = 0;
+    S3A[0].func = func_8010D774_mstory3;
+    func_80107070_mstory3(S3A[0].obj, &D_801157AC_mstory3, 10);
+    HuAudSeqPlay(0x72);
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[3]);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 7), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(0));
+    se = CharFXPlay(0x262, (u8)D_80115DB0_mstory3);
+    HuPrcSleep(30);
+    func_80107070_mstory3(S3A[4].obj, &D_801157B8_mstory3, 3);
+    func_80106DC4_mstory3(S3A[4].obj, &D_80115740_mstory3, 5);
+    HuAudFXPlay(0x219);
+    HuAudFXStop(se);
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[1]);
+    func_8001C258_main(S3A[0].obj->model[4], 4, 0);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 8), 0, 10, 0);
+    func_80107070_mstory3(S3A[4].obj, &D_801157C4_mstory3, 3);
+    S3A[4].unk08 = 0;
+    S3A[3].func = func_80111B34_mstory3;
+    func_80106DE0_mstory3(S3A[4].obj, &D_8011574C_mstory3, 10, 0);
+    func_80107244_mstory3(S3MODEL(0));
+    HuAudSeqPlay(0x26);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_801157D0_mstory3, 10);
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[0]);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 2);
+    S3A[8].func = func_801142C0_mstory3;
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 1), 0, 10, 2);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5D);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 0), 0, 10, 2);
+    while (TRUE) {
+        if (S3A[8].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[8].unk08 = 0;
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_8011577C_mstory3, 10);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 7), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(0));
+    S3A[10].func = func_8010E170_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010E170_mstory3);
 
