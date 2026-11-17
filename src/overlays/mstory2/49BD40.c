@@ -237,7 +237,10 @@ extern const Vec D_8011C00C_mstory2;
 extern const Vec D_8011C024_mstory2;
 extern const Vec D_8011C030_mstory2;
 extern const Vec D_8011C03C_mstory2[2];
-extern const Vec D_8011C090_mstory2[4];
+typedef struct Ms2Rot4 {
+    Vec v[4];
+} Ms2Rot4;
+extern const Ms2Rot4 D_8011C090_mstory2; /* actors 3 and 2's turns in func_8010D430_mstory2 */
 
 extern Ms2Actor D_8011C680_mstory2[6]; /* scene A's actors */
 extern Vec D_8011C704_mstory2; /* actor 1's start position */
@@ -257,10 +260,8 @@ extern s16 D_8011C75E_mstory2; /* actor 1's character */
 
 extern Ms2Actor D_8011C760_mstory2[6]; /* scene B's actors */
 extern s16 D_8011C83A_mstory2; /* scene B's shadow model */
-extern u8 D_8011C83C_mstory2; /* the player's character */
-extern u8 D_8011C83D_mstory2;
-extern u8 D_8011C83E_mstory2;
-extern u8 D_8011C83F_mstory2;
+extern s16 D_8011C83C_mstory2; /* actor 0's character (the player's) */
+extern s16 D_8011C83E_mstory2; /* actor 1's character */
 
 /* actor 0 hops down: turns to face away, moves to z 500, then back to idle */
 void func_8010A784_mstory2(omObjData *obj) {
@@ -829,16 +830,88 @@ void func_8010D0BC_mstory2(Ms2Path *path) {
     HuMemFree(path);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010D0EC_mstory2);
+/* chapter 2, scene B: the actors' processes */
+void func_8010D0EC_mstory2(void) {
+    s16 chr;
+
+    chr = GwStory.unk1;
+    D_8011C83C_mstory2 = chr;
+    D_8011C83E_mstory2 = (chr == 3) ? 1 : 3;
+    func_80105FBC_mstory2();
+    D_8011C83A_mstory2 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_8010E9E0_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010F8F8_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_801103E4_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_80110C64_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_80111024_mstory2, 0x1001, 0x1000, 0);
+    HuPrcVSleep();
+    omAddPrcObj(func_8010D3BC_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_80110E10_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010D224_mstory2, 0x1001, 0x1000, 0);
+    func_8001C258_main(D_8011C83A_mstory2, 4, 4);
+}
 
 void func_8010D21C_mstory2(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010D224_mstory2);
+/* scene B's footsteps: actors 0 and 1 play their sfxId at frame 0 of the walk while sfxOn is 1
+   (actor 1's panned by its depth) */
+void func_8010D224_mstory2(void) {
+    s16 fx;
+    s32 pan;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010D3BC_mstory2);
+    while (TRUE) {
+        if (D_8011C760_mstory2[0].sfxOn == 1 && HmfModelData[D_8011C760_mstory2[0].obj->model[1]].unk40 == 0.0f) {
+            CharFXPlay(D_8011C760_mstory2[0].sfxId, D_8011C83C_mstory2);
+        }
+        if (D_8011C760_mstory2[1].sfxOn == 1 && HmfModelData[D_8011C760_mstory2[1].obj->model[1]].unk40 == 0.0f) {
+            fx = CharFXPlay(D_8011C760_mstory2[1].sfxId, D_8011C83E_mstory2);
+            if (HmfModelData[D_8011C760_mstory2[1].obj->model[1]].pos.z <= 0.0f) {
+                pan = HmfModelData[D_8011C760_mstory2[1].obj->model[1]].pos.z / 15.0f + 127.0f;
+            } else {
+                pan = 127;
+            }
+            func_8004AAD0_main(fx, pan);
+        }
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010D430_mstory2);
+/* actor 5: no model, only runs scene steps */
+void func_8010D3BC_mstory2(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 0, 0, -1, NULL);
+    D_8011C760_mstory2[5].obj = obj;
+    D_8011C760_mstory2[5].flags = 0;
+    D_8011C760_mstory2[5].func = func_8010D430_mstory2;
+    while (TRUE) {
+        D_8011C760_mstory2[5].func(obj);
+        HuPrcVSleep();
+    }
+}
+
+/* actors 3 and 2 turn and talk (message 0x5A1F, or 0x5B0F for character 3), then turn back */
+void func_8010D430_mstory2(omObjData *obj) {
+    Ms2Rot4 rot = D_8011C090_mstory2;
+
+    HuPrcSleep(40);
+    func_801070D8_mstory2(D_8011C760_mstory2[3].obj, &rot.v[0], 10);
+    func_801070D8_mstory2(D_8011C760_mstory2[2].obj, &rot.v[1], 10);
+    HuAudFXPlay(0x159);
+    func_8001C624_main(D_8011C760_mstory2[3].obj->model[1], HmfModelData[D_8011C760_mstory2[3].obj->motion[1]].unk02, 0, 10, 2);
+    func_801060A4_mstory2();
+    if (D_8011C83C_mstory2 != 3) {
+        func_8010614C_mstory2(0x5A1F);
+    } else {
+        func_801060F8_mstory2(0x5B0F);
+    }
+    func_801060D4_mstory2();
+    func_8001C624_main(D_8011C760_mstory2[3].obj->model[1], HmfModelData[D_8011C760_mstory2[3].obj->motion[0]].unk02, 0, 10, 2);
+    func_801070D8_mstory2(D_8011C760_mstory2[3].obj, &rot.v[2], 10);
+    func_801070D8_mstory2(D_8011C760_mstory2[2].obj, &rot.v[3], 10);
+    D_8011C760_mstory2[5].func = func_8010D5C0_mstory2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010D5C0_mstory2);
 
@@ -847,11 +920,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8010E9E0_mstory2);
 void func_8010EF6C_mstory2(void) {
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C024_mstory2);
+const Vec D_8011C024_mstory2 = { 0.0f, 167.0f, 0.0f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C030_mstory2);
+const Vec D_8011C030_mstory2 = { 0.0f, -135.0f, 0.0f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C03C_mstory2);
+const Vec D_8011C03C_mstory2[2] = { { 0.0f, -53.39f, 0.0f }, { -120.0f, 0.0f, 480.0f } };
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C054_mstory2);
 
@@ -861,6 +934,8 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C06C_mstory2);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C078_mstory2);
 
+/* { { 20, -20, 0 }, { 0, 225, 0 }, { 0, 0, 0 }, { 0, 300, 0 } }: kept as asm, since a C definition right
+   after an INCLUDE_RODATA lands in .text (GCC still believes it is in .rodata) */
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C090_mstory2);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C0C0_mstory2);
