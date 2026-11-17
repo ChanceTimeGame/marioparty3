@@ -12,14 +12,31 @@
 /* One player (D_8010E5B8_log_jam, 4 x 0x38). */
 typedef struct LjPlayer {
     /* 0x00 */ s16 unk00; /* slot 0..3 */
-    /* 0x02 */ s16 unk02; /* position in the team: 0 or 1 */
+    /* 0x02 */ s16 unk02; /* role in the team: 0 or 1 (1 carries the hook) */
     /* 0x04 */ s16 unk04; /* team */
-    /* 0x06 */ s16 unk06; /* pending result motion: 0 win, 1 lose */
-    /* 0x08 */ char unk08[0x10];
+    /* 0x06 */ s16 unk06; /* pending result motion: 0 win, 1 lose, -1 none */
+    /* 0x08 */ s16 unk08; /* state */
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C; /* frame counter */
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s32 unk14; /* win voice file */
     /* 0x18 */ s16 unk18; /* GwPlayer index */
-    /* 0x1A */ s16 unk1A;
+    /* 0x1A */ s16 unk1A; /* controller port */
     /* 0x1C */ s16 unk1C; /* character */
-    /* 0x1E */ char unk1E[0x1A];
+    /* 0x1E */ s16 unk1E; /* CPU */
+    /* 0x20 */ u16 unk20; /* CPU difficulty */
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ s16 unk26;
+    /* 0x28 */ s16 unk28;
+    /* 0x2A */ s16 unk2A;
+    /* 0x2C */ s16 unk2C;
+    /* 0x2E */ s16 unk2E;
+    /* 0x30 */ s16 unk30; /* CPU: 4 - difficulty */
+    /* 0x32 */ s16 unk32; /* motion */
+    /* 0x34 */ s16 unk34;
+    /* 0x36 */ char unk36[2];
 } LjPlayer; // Size 0x38
 
 /* One team (D_8010E5AC_log_jam, 2 x 0x48). */
@@ -104,7 +121,7 @@ void func_8010C714_log_jam(omObjData* obj, s16 arg1, s16 arg2);
 void func_8010C7F8_log_jam(omObjData* obj);
 void func_8010C8B0_log_jam(omObjData* obj);
 s16 func_80109A7C_log_jam(s16 kind, s16 part);
-void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+void func_8001EF6C_main(s16 arg0, s16 arg1, const char* arg2);
 void func_8008A070_main(f32 (*mf)[4]);
 void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
@@ -116,6 +133,9 @@ extern s32 D_8010DF94_log_jam[4]; /* player order */
 extern s16 D_8010DFA4_log_jam[4][2][2]; /* fallback teams */
 extern s16 D_8010DFC4_log_jam[4]; /* position in the team per slot */
 extern s16 D_8010DFCC_log_jam[4]; /* player object marks */
+extern s32 D_8010DFD4_log_jam[]; /* per character: voice directory */
+extern s32 D_8010DFF4_log_jam[]; /* voice files; (s16) = the low half (D_8010DFF6, D_8010DFFE) */
+extern s32 D_800A178C_main[][6];
 
 extern omObjData* D_8010E590_log_jam;
 extern s32 D_8010E594_log_jam;
@@ -492,11 +512,110 @@ void func_801065E8_log_jam(omObjData* obj) {
     team->unk1A++;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E218_log_jam);
+const char D_8010E218_log_jam[] = "item_hook"; /* hook attach point */
 
+#ifdef NON_MATCHING
+/* Differs: the character-table loads for func_800E1BA8_minigame and the voice pointer take other registers/slots. */
+void func_80106968_log_jam(omObjData* obj) {
+    LjPlayer* pl;
+    s32* voice;
+    s16 chr;
+    s16 i;
+    s16 gw;
+    func_800E1BA8_minigame_ObjData* w;
+
+    pl = func_8010C588_log_jam(obj);
+    gw = pl->unk18;
+    chr = GwPlayer[gw].chr;
+    pl->unk1C = chr;
+    pl->unk1A = GwPlayer[gw].pad;
+    pl->unk1E = GwPlayer[gw].stat & 1;
+    pl->unk20 = GwPlayer[gw].cpu_difficulty;
+    func_800E1BA8_minigame(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][2], gw, 0x6A9, 0x299);
+    w = obj->data;
+    w->unk50 &= ~1;
+    w->unkEC = NULL;
+    if (pl->unk02 == 1) {
+        obj->model[2] = func_8000B108_main(0x340000, 0xB9);
+        func_8001C258_main(obj->model[2], 0x4000, 0x4000);
+        func_8001EF6C_main(obj->model[2], obj->model[0], D_8010E218_log_jam);
+        for (i = 0; i < 3; i++) {
+            obj->model[3 + i] = func_80109A7C_log_jam(i, 0);
+            func_8001C258_main(obj->model[3 + i], 4, 4);
+            func_8001C258_main(obj->model[3 + i], 0x4000, 0x4000);
+            func_8001EF6C_main(obj->model[3 + i], obj->model[2], "m219-item-f");
+        }
+    } else {
+        for (i = 0; i < 3; i++) {
+            obj->model[3 + i] = func_80109A7C_log_jam(i, 0);
+            func_8001C258_main(obj->model[3 + i], 4, 4);
+            func_8001C258_main(obj->model[3 + i], 0x4000, 0x4000);
+            func_8001EF6C_main(obj->model[3 + i], obj->model[0], D_8010E218_log_jam);
+        }
+    }
+    obj->model[6] = func_8000B108_main(8, 0x68D);
+    Hu3DModelScaleSet(obj->model[6], 0.5f, 0.5f, 0.5f);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 6), 1, 0x1B);
+    if (pl->unk02 == 1) {
+        func_800E5A00_minigame(obj, 3, func_80017BB8_main(chr, 0x74), 0, 0x14);
+        func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x75), 0, 0xA);
+        func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 0x81), 0, 8);
+        func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 0x76), 1, 0);
+    } else {
+        func_800E5A00_minigame(obj, 7, func_80017BB8_main(chr, 0x77), 0, 0x1E);
+        func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, 0x78), 0, 0x28);
+    }
+    if (chr == 5) {
+        func_800E5A00_minigame(obj, 9, func_80017BB8_main(5, 0x31), 1, 0x78);
+        pl->unk14 = D_8010DFD4_log_jam[5] | 0x31;
+    } else if (chr == 1 || chr == 6) {
+        func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, (s16)D_8010DFF4_log_jam[0]), 1, 0x78);
+        pl->unk14 = D_8010DFD4_log_jam[chr] | D_8010DFF4_log_jam[0];
+    } else {
+        voice = &D_8010DFF4_log_jam[rand8() & 1];
+        func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
+        pl->unk14 = D_8010DFD4_log_jam[chr] | *voice;
+    }
+    func_800E5A00_minigame(obj, 10, func_80017BB8_main(chr, (s16)D_8010DFF4_log_jam[2]), 1, 0x78);
+    pl->unk06 = -1;
+    pl->unk0C = 0;
+    pl->unk0A = 0;
+    pl->unk22 = -1;
+    pl->unk24 = -1;
+    pl->unk26 = -1;
+    pl->unk10 = 0;
+    pl->unk0E = 0;
+    pl->unk28 = 0;
+    pl->unk2A = 10;
+    pl->unk2C = 0;
+    pl->unk2E = 0;
+    pl->unk30 = 4 - pl->unk20;
+    if (pl->unk02 == 0) {
+        pl->unk08 = 0;
+        func_8010C5DC_log_jam(obj, 0, 5);
+        pl->unk32 = 0;
+    } else {
+        pl->unk08 = 5;
+        func_8010C714_log_jam(obj, 4, 7);
+        pl->unk32 = 4;
+    }
+    pl->unk34 = 0;
+    obj->func = func_80106F48_log_jam;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106968_log_jam);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106F48_log_jam);
+void func_80106F48_log_jam(omObjData* obj) {
+    LjPlayer* pl = func_8010C588_log_jam(obj);
+
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    pl->unk0C++;
+    func_8010C7F8_log_jam(obj);
+    func_8010C8B0_log_jam(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106FAC_log_jam);
 
