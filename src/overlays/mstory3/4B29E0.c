@@ -70,7 +70,12 @@ extern s16 D_80115B90_mstory3; /* the controller that drives the story messages 
 extern s16 D_80115B92_mstory3; /* message window */
 extern s16 D_80115B94_mstory3; /* background sprite */
 extern s16 D_80115B96_mstory3; /* background model */
-extern s32 D_80115BBC_mstory3;
+extern s16 D_80115B98_mstory3[8]; /* [0] the map, [1 + i] stamp i */
+extern s16 D_80115BA8_mstory3[8]; /* the sparkles around the new stamp */
+extern s16 D_80115BB8_mstory3; /* the white flash */
+extern s32 D_80115BBC_mstory3; /* the stamp this scene wins */
+extern s32 D_80115510_mstory3[7]; /* stamp sprite files */
+extern s16 D_8011552C_mstory3[7][2]; /* stamp positions (x, y), less 0x30 */
 extern VecQuad D_80115590_mstory3; /* the two turns of func_80108CA8_mstory3 */
 extern StoryActor3 D_80115BC0_mstory3[6];
 extern s16 D_80115C9A_mstory3; /* shadow model */
@@ -91,6 +96,14 @@ void func_80105E9C_mstory3(omObjData *obj);
 void func_80105EE4_mstory3(omObjData *obj);
 void func_80105F2C_mstory3(omObjData *obj);
 void func_80106340_mstory3(void);
+void func_80106184_mstory3(void);
+void func_801061A4_mstory3(void);
+void func_80106CE8_mstory3(void);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BD94_main(u16 spriteId, s32 arg1, s32 arg2);
+void func_8000BDDC_main(u16 spriteId, s32 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
 void func_8010643C_mstory3(void);
 void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
 void func_80106DC4_mstory3(omObjData *obj, Vec *to, s32 frames);
@@ -395,7 +408,135 @@ void func_80106400_mstory3(s32 arg0) {
 }
 //@@end
 
+//@@func_8010643C_mstory3
+// masked 0 but for a nop KMC puts after each of the cosdf/sindf calls that retail does not have (2 instructions)
+#ifdef NON_MATCHING
+/* the stamp screen: the map with the stamps won so far, a flash, then stamp D_80115BBC_mstory3
+   fades in inside a ring of sparkles (a second flash for the last one); sets D_80115288_mstory3 */
+void func_8010643C_mstory3(void) {
+    void *file;
+    f32 x;
+    f32 y;
+    f32 alpha;
+    s32 i;
+    s32 j;
+
+    D_80115B98_mstory3[0] = InitEspriteSlot(func_8000B838_main(0x1D0001), 0, 0);
+    func_8000BBD4_main(D_80115B98_mstory3[0], 0xA0, 0x78);
+    func_8000BB94_main(D_80115B98_mstory3[0]);
+    for (i = 0; i < 7; i++) {
+        D_80115B98_mstory3[i + 1] = InitEspriteSlot(func_8000B838_main(D_80115510_mstory3[i]), 0, 0);
+        func_8000BBD4_main(D_80115B98_mstory3[i + 1], D_8011552C_mstory3[i][0] + 0x30,
+                           D_8011552C_mstory3[i][1] + 0x30);
+        func_8000BC48_main(D_80115B98_mstory3[i + 1], 8);
+        func_8000BB94_main(D_80115B98_mstory3[i + 1]);
+    }
+    file = DataRead(0x1D0002);
+    for (i = 0; i < 8; i++) {
+        D_80115BA8_mstory3[i] = InitEspriteSlot(func_80055810_main(file), 0, 1);
+        x = D_8011552C_mstory3[D_80115BBC_mstory3][0] + 0x30;
+        y = D_8011552C_mstory3[D_80115BBC_mstory3][1] + 0x30;
+        x += cosdf(i * 45.0f) * 32.0f;
+        y -= sindf(i * 45.0f) * 32.0f;
+        func_8000BBD4_main(D_80115BA8_mstory3[i], x, y);
+        func_8000BC48_main(D_80115BA8_mstory3[i], 0x1000);
+        func_8000BEAC_main(D_80115BA8_mstory3[i], 0xFF, 0xFF, 0xC0);
+        func_8000BC48_main(D_80115BA8_mstory3[i], 8);
+        func_8000BE5C_main(D_80115BA8_mstory3[i], 1.5f, 1.5f);
+        func_8000BBFC_main(D_80115BA8_mstory3[i], 0xFF);
+        func_8000BB94_main(D_80115BA8_mstory3[i]);
+    }
+    HuMemMemoryFreePerm(file);
+    D_80115BB8_mstory3 = InitEspriteSlot(func_8000B838_main(0x1D0000), 0, 0);
+    func_8000BBD4_main(D_80115BB8_mstory3, 0xA0, 0x78);
+    func_8000BE5C_main(D_80115BB8_mstory3, 40.0f, 30.0f);
+    func_8000BC48_main(D_80115BB8_mstory3, 0);
+    func_8000BB94_main(D_80115BB8_mstory3);
+    omPrcSetDestructor(0, func_80106CE8_mstory3);
+    func_8000BB54_main(D_80115BB8_mstory3);
+    func_8000BBFC_main(D_80115BB8_mstory3, 0);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_80115BB8_mstory3, i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_80115BB8_mstory3, 0x100);
+    for (i = 0; i < D_80115BBC_mstory3; i++) {
+        func_8000BB54_main(D_80115B98_mstory3[i + 1]);
+    }
+    func_801061A4_mstory3();
+    func_8000BB54_main(D_80115B98_mstory3[0]);
+    HuPrcSleep(0x1E);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_80115BB8_mstory3, 255.0f - i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BB94_main(D_80115BB8_mstory3);
+    func_8000BBFC_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1], 0);
+    func_8000BB54_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1]);
+    for (j = 0, alpha = 0.0f; j < 20; j++) {
+        alpha += 12.75f;
+        func_8000BBFC_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1], alpha);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1], 0xFF);
+    func_8000BE5C_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1], 1.0f, 1.0f);
+    HuAudFXPlay(0x131);
+    for (i = 0; i < 8; i++) {
+        func_8000BD94_main(D_80115BA8_mstory3[i], 0, 0);
+        func_8000BDDC_main(D_80115BA8_mstory3[i], 1);
+        func_8000BB54_main(D_80115BA8_mstory3[i]);
+    }
+    HuPrcSleep(0x14);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(D_80115BA8_mstory3[i]);
+    }
+    if (D_80115BBC_mstory3 == 6) {
+        HuPrcSleep(0x28);
+        func_8000BB54_main(D_80115BB8_mstory3);
+        func_8000BBFC_main(D_80115BB8_mstory3, 0);
+        for (i = 0; i < 5; i++) {
+            func_8000BBFC_main(D_80115BB8_mstory3, i * 0.125f * 255.0f);
+            HuPrcVSleep();
+        }
+        func_8000BBFC_main(D_80115BB8_mstory3, 0x100);
+        HuPrcSleep(3);
+        for (i = 0; i < 5; i++) {
+            func_8000BBFC_main(D_80115BB8_mstory3, 255.0f - i * 0.125f * 255.0f);
+            HuPrcVSleep();
+        }
+        func_8000BB94_main(D_80115BB8_mstory3);
+        HuPrcSleep(0x50);
+    } else {
+        HuPrcSleep(0x3C);
+    }
+    func_8000BB54_main(D_80115BB8_mstory3);
+    func_8000BBFC_main(D_80115BB8_mstory3, 0);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_80115BB8_mstory3, i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_80115BB8_mstory3, 0x100);
+    func_8000BB94_main(D_80115B98_mstory3[D_80115BBC_mstory3 + 1]);
+    func_8000BB94_main(D_80115B98_mstory3[0]);
+    func_80106184_mstory3();
+    HuPrcSleep(0x1E);
+    for (i = 0; i < D_80115BBC_mstory3; i++) {
+        func_8000BB94_main(D_80115B98_mstory3[i + 1]);
+    }
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_80115BB8_mstory3, 255.0f - i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BB94_main(D_80115BB8_mstory3);
+    D_80115288_mstory3 = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010643C_mstory3);
+#endif
+//@@end
 
 //@@func_80106CDC_mstory3
 s32 func_80106CDC_mstory3(void) {
