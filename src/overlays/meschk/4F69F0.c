@@ -135,21 +135,22 @@ void func_80105B8C_meschk(void) {
         for (cur = entry->start; cur <= entry->end; cur++) {
             func_8005D294_main(msgWin);
             msg = func_800364DC_main((void*)(s32)cur);
+            p = msg;
             noWait = 0;
-            for (p = msg; *p != 0; p++) {
+            for (; *p != 0; p++) {
                 if (*p == 0xFF) {
                     noWait = 1;
                     break;
                 }
                 p += (*p == 0x18);
             }
-            for (i = 0, p = msg; i < 5; i++, p++) {
+            for (p = msg, i = 0; i < 5; i++, p++) {
                 if ((p[0] == 0x10 || p[0] == 0x20 || p[0] == 0x1A) && (p[1] == 0x10 || p[1] == 0x20 || p[1] == 0x1A) &&
                     (p[2] == 0x10 || p[2] == 0x20 || p[2] == 0x1A)) {
                     break;
                 }
             }
-            if ((i == 5) && portrait) {
+            if ((i == 5) & (portrait & 1)) {
                 func_80061934_main(msgWin, 0);
                 portrait = 0;
             } else if ((i != 5) && (portrait ^ 1)) {
@@ -163,8 +164,7 @@ void func_80105B8C_meschk(void) {
             }
             if (D_800CC69C_main[msgWin].unk_30 != 0) {
                 func_8005E1D8_main(msgWin, 0, 0);
-            } else if (noWait) {
-            } else {
+            } else if (noWait == 0) {
                 while (!(D_800D5558_main[0] & 0xC03F)) {
                     HuPrcVSleep();
                 }
