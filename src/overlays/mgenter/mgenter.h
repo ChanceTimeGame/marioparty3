@@ -58,6 +58,7 @@ extern s16 D_800D1FE0_main;
 s16 func_800341C0_main(s8 mgIndex);
 void func_800365E8_main(void *mes);
 s32 func_80089750_main(f32 x);
+s16 func_8002C834_main(HmfData *hmf, char *name);
 
 /* .data */
 extern f32 D_80109AA0_mgenter;
@@ -72,7 +73,7 @@ extern s16 D_80109B24_mgenter;
 extern s16 D_80109B26_mgenter;
 extern s16 D_80109B28_mgenter;
 extern s16 D_80109B2A_mgenter; /* minigame index (0-based) */
-extern u16 D_80109B2C_mgenter; /* chosen setting (D_80109B2D_mgenter: its low byte, as the compiler reads it) */
+extern s16 D_80109B2C_mgenter; /* chosen setting (D_80109B2D_mgenter: its low byte, as the compiler reads it) */
 extern s16 D_80109B2E_mgenter;
 extern s16 D_80109B30_mgenter; /* cursor step: -1, 0, 1 */
 extern s16 D_80109B32_mgenter;
@@ -109,7 +110,7 @@ void func_801089A0_mgenter(omObjData *obj);
 void func_80108A60_mgenter(void);
 void func_80109020_mgenter(void);
 s32 func_801095F4_mgenter(void);
-void func_801096EC_mgenter(s32 mes);
+void func_801096EC_mgenter(s16 mes);
 void func_80109820_mgenter(void);
 void func_801098D8_mgenter(void);
 
