@@ -10,6 +10,7 @@
 #include "game/pause.h"
 #include "game/board.h"
 #include "input.h"
+#include "variables.h"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -103,6 +104,8 @@ void func_801182A8_mgmode(s16 arg0);
 void func_801182B4_mgmode(s16 arg0);
 s16 func_80118678_mgmode(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
 void func_80118D0C_mgmode(void);
+void func_80118888_mgmode(s16 idx);
+void func_801188A4_mgmode(s16 idx);
 void func_80118624_mgmode(s16 shadow, s16 model);
 s16 func_801182DC_mgmode(s16 x, s16 y);
 
@@ -144,6 +147,9 @@ extern s16 D_80119340_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B950_mgmode;
 extern s16 D_8011B95A_mgmode;
+extern u8 D_8011B430_mgmode[];
+extern u8 D_8011B434_mgmode;
+extern u8 D_80119430_mgmode[];
 extern MgCursorPos D_8011943C_mgmode[];
 extern MgCursorPos D_80119454_mgmode[];
 extern MgCursorPos D_8011B468_mgmode[];
@@ -179,6 +185,7 @@ void func_8010E40C_mgmode(void);
 void func_8010E6F0_mgmode(s16 event);
 void func_8010EE84_mgmode(s16 event);
 s16 func_8010F348_mgmode(s16 event);
+u8 func_80110420_mgmode(s16 mg);
 
 void func_8010BEC0_mgmode(void) {
     s16 size[2];
@@ -1051,18 +1058,93 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010F348_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010F648_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80110420_mgmode);
+u8 func_80110420_mgmode(s16 mg) {
+    s16 i;
+
+    D_8011B434_mgmode = 0;
+    if (D_800A6D44_main[mg].minigameType != 3) {
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[i].bonusCoin + GwPlayer[i].gameCoin >= 10) {
+                D_8011B430_mgmode[D_8011B434_mgmode] = i;
+                D_8011B434_mgmode++;
+            }
+        }
+    } else {
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[i].bonusCoin == 0) {
+                D_8011B430_mgmode[D_8011B434_mgmode] = i;
+                D_8011B434_mgmode++;
+            }
+        }
+    }
+    return D_8011B434_mgmode;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80110554_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111380_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111B08_mgmode);
+s32 func_80111B08_mgmode(void) {
+    s16 i;
+
+    func_80110420_mgmode(D_800CE29C_main);
+    for (i = 0; i < D_8011B434_mgmode; i++) {
+        if (D_800D03FE_main[D_8011B430_mgmode[i]] + 1 >= D_80119430_mgmode[D_800CC438_main]) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111BB0_mgmode);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111ED8_mgmode);
+void func_80111ED8_mgmode(void) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111F9C_mgmode);
+    for (i = 0; i < 6; i++) {
+        func_80116A48_mgmode(D_8011B450_mgmode, D_800D4194_main + 4, 0.7f, (1.0f - i / 5.0f) * 0.7f);
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80112060_mgmode);
+void func_80111F9C_mgmode(void) {
+    s16 i;
+
+    for (i = 0; i < 6; i++) {
+        func_80116A48_mgmode(D_8011B450_mgmode, D_800CC438_main + 1, 0.7f, (1.0f - i / 5.0f) * 0.7f);
+        HuPrcVSleep();
+    }
+}
+
+void func_80112060_mgmode(s32 on) {
+    s16 grp[4];
+    s16 i;
+    s16 j;
+    s16 g;
+    s16 k;
+
+    for (i = 0; i < 4; i++) {
+        grp[i] = D_800D1F20_main[i];
+    }
+    k = 0;
+    for (g = 0; g < 4; g++) {
+        for (i = 0; i < 4; i++) {
+            if (g == grp[i]) {
+                for (j = 0; j < D_8011B434_mgmode; j++) {
+                    if (D_8011B430_mgmode[j] == i) {
+                        break;
+                    }
+                }
+                if (j != D_8011B434_mgmode) {
+                    if (on) {
+                        func_80118888_mgmode(k);
+                    } else {
+                        func_801188A4_mgmode(k);
+                    }
+                    grp[i] = -1;
+                }
+                k++;
+            }
+        }
+    }
+}
