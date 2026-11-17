@@ -273,6 +273,7 @@ typedef struct DuelB7VecTbl {
 } DuelB7VecTbl;
 extern const DuelB7VecTbl D_80114C80_duel10; /* smoke puff offsets around a partner leaving */
 extern B1UnkBoard4 *D_80114CEC_duel10;
+void func_800F74E4_name_81(s32);
 /* part of a model looked up by name (func_8001D33C_main) */
 typedef struct Ec3HmfPart {
     /* 0x00 */ char unk_00[0x14];
@@ -789,7 +790,52 @@ void func_80114140_duel10(void) {
     D_80114A44_duel10 = 3.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8011450C_duel10);
+void func_8011450C_duel10(void) {
+    void *data;
+    s32 i;
+    s32 y;
+
+    D_80114A30_duel10 = 0;
+    mbItemBtnF = 0;
+    func_800F74E4_name_81(-1);
+    HuAudFXPlay(0x204);
+    D_80114CEC_duel10 = func_800F4528_name_81(2, 2);
+    data = DataRead(0x130103);
+    D_80114CEC_duel10->unk_0C[0] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80114CEC_duel10->unk_0A, 0, D_80114CEC_duel10->unk_0C[0], 0);
+    HuSprPriSet(D_80114CEC_duel10->unk_0A, 0, 11);
+    HuSprAttrSet(D_80114CEC_duel10->unk_0A, 0, 0x1000);
+    func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, -32);
+    func_800555E8_main(D_80114CEC_duel10->unk_0A, 0, 16, 12, 304, 228);
+    data = DataRead(0x130104);
+    D_80114CEC_duel10->unk_0C[1] = func_80055810_main(data);
+    DataClose(data);
+    func_80055024_main(D_80114CEC_duel10->unk_0A, 1, D_80114CEC_duel10->unk_0C[1], 0);
+    HuSprPriSet(D_80114CEC_duel10->unk_0A, 1, 12);
+    HuSprAttrSet(D_80114CEC_duel10->unk_0A, 1, 0x1000);
+    func_80054904_main(D_80114CEC_duel10->unk_0A, 1, 0, 0);
+    func_800555E8_main(D_80114CEC_duel10->unk_0A, 0, 16, 12, 304, 228);
+    func_80055420_main(D_80114CEC_duel10->unk_0A, 1, 251, 203, 0);
+    for (i = 90; i < 180; i += 10) {
+        func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, sindf(i) * -152.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 180; i += 15) {
+        func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, sindf(i) * -60.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 180; i += 20) {
+        func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, sindf(i) * -30.0f + 120.0f);
+        HuPrcVSleep();
+    }
+    func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, 120);
+    for (y = 0, i = 0; i < 9; i++) {
+        y += i * 2;
+        func_80054904_main(D_80114CEC_duel10->unk_0A, 0, 160, 120 - y);
+        HuPrcVSleep();
+    }
+}
 
 void func_801148D8_duel10(void) {
     HuPrcChildLink(HuPrcCurrentGet(), func_800E0924_name_81());
