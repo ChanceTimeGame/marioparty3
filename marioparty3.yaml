@@ -2107,7 +2107,7 @@ segments:
     bss_size: 0x40
     subsegments:
       - [0x464360, c]
-      - [0x4672F0, data, 464360] #80108930
+      - [0x4672F0, .data, 464360] #80108930
       - [0x467560, .rodata, 464360] #80108BA0
       - {0x4675D0, type: bss, vram: 0x80108C10, name: opdueltutorial_bss}
 

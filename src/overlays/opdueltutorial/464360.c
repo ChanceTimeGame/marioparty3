@@ -942,3 +942,48 @@ void func_80108908_opdueltutorial() {
 
 
 
+
+/* .data */
+s32 D_80108930_opdueltutorial = 0;
+Process *D_80108934_opdueltutorial = NULL;
+Vec D_80108938_opdueltutorial = { -170.0f, 125.0f, 3000.0f };
+Vec D_80108944_opdueltutorial[3] = { { 0.0f, 250.0f, 0.0f }, { 0.0f, 100.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; /* only [0] read */
+Vec D_80108968_opdueltutorial = { 0.0f, 0.0f, 1500.0f };
+Vec D_80108974_opdueltutorial[4] = {
+    { -10.0f, 250.0f, 0.0f }, { 10.0f, 250.0f, 0.0f }, { -500.0f, 0.0f, 2360.0f }, { 500.0f, 0.0f, 2360.0f },
+}; /* only [0..1] read */
+Vec D_801089A4_opdueltutorial[2] = { { -200.0f, 0.0f, 2360.0f }, { 200.0f, 0.0f, 2360.0f } };
+Vec D_801089BC_opdueltutorial[4] = {
+    { -175.0f, 0.0f, 2250.0f }, { 175.0f, 0.0f, 2250.0f }, { 0.0f, 0.0f, 2150.0f }, { 0.0f, 0.0f, 2350.0f },
+}; /* only [0..1] read */
+Vec D_801089EC_opdueltutorial[2] = { { -125.0f, 0.0f, 2000.0f }, { 125.0f, 0.0f, 2000.0f } };
+Vec D_80108A04_opdueltutorial[2] = { { -750.0f, 0.0f, 1750.0f }, { 750.0f, 0.0f, 1750.0f } };
+Vec D_80108A1C_opdueltutorial[2] = { { -100.0f, 0.0f, 1750.0f }, { 100.0f, 0.0f, 1750.0f } };
+/* the partners' end points: [(choice - 1) * 2 + player], choice 1 front, 2 back */
+Vec D_80108A34_opdueltutorial[4] = {
+    { -100.0f, 0.0f, 2000.0f }, { 100.0f, 0.0f, 2000.0f }, { -300.0f, 0.0f, 2000.0f }, { 300.0f, 0.0f, 2000.0f },
+};
+OtMotList D_80108A64_opdueltutorial = { 5, { 0x20000, 0x20001, 0x20002, 0x20033, 0x20031 } };
+OtMotList D_80108A7C_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108A94_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108AAC_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108AC4_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108ADC_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108AF4_opdueltutorial = { 5, { 0 } };
+OtMotList D_80108B0C_opdueltutorial = { 5, { 0 } };
+OtMotList *D_80108B24_opdueltutorial[8] = {
+    &D_80108A64_opdueltutorial, &D_80108A7C_opdueltutorial, &D_80108A94_opdueltutorial, &D_80108AAC_opdueltutorial,
+    &D_80108AC4_opdueltutorial, &D_80108ADC_opdueltutorial, &D_80108AF4_opdueltutorial, &D_80108B0C_opdueltutorial,
+};
+/* each character's partner model motions (none for 3 and 7) */
+OtMotList1 D_80108B44_opdueltutorial = { 1, { 0xA0090 } };
+OtMotList1 D_80108B4C_opdueltutorial = { 1, { 0xA00A7 } };
+OtMotList1 D_80108B54_opdueltutorial = { 1, { 0xA0002 } };
+OtMotList1 D_80108B5C_opdueltutorial = { 1, { 0xA00BD } };
+OtMotList1 D_80108B64_opdueltutorial = { 1, { 0xA00D0 } };
+OtMotList1 D_80108B6C_opdueltutorial = { 1, { 0xA010F } };
+OtMotList1 *D_80108B74_opdueltutorial[8] = {
+    &D_80108B44_opdueltutorial, &D_80108B4C_opdueltutorial, &D_80108B54_opdueltutorial, NULL,
+    &D_80108B5C_opdueltutorial, &D_80108B64_opdueltutorial, &D_80108B6C_opdueltutorial, NULL,
+};
+OtMotList1 D_80108B94_opdueltutorial = { 1, { 0xA0125 } }; /* the coin host's motions */
