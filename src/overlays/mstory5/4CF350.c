@@ -84,6 +84,21 @@ void func_80105F5C_mstory5(omObjData *obj);
 void func_8010842C_mstory5(void);
 void func_801100AC_mstory5(void);
 extern s16 D_801151B6_mstory5; /* low half of D_801151B4_mstory5 */
+extern s16 D_80115368_mstory5;
+void func_801069B8_mstory5(void);
+void func_801085E0_mstory5(void);
+void func_801097B8_mstory5(void);
+void func_8010ABE4_mstory5(void);
+void func_8010AF44_mstory5(void);
+void func_8010B77C_mstory5(void);
+void func_8010C4B8_mstory5(void);
+void func_8010C85C_mstory5(void);
+void func_8010CBE8_mstory5(void);
+void func_8010DB30_mstory5(void);
+void func_8010DC78_mstory5(void);
+void func_8010E558_mstory5(void);
+void func_8010E5D0_mstory5(void);
+void func_8010F2BC_mstory5(void);
 // end story i1
 
 /* the scene for each story step (GwPlayer[0].coin), and the flag set once it has been seen */
@@ -649,7 +664,28 @@ void func_801083FC_mstory5(ObPath *path) {
     HuMemFree(path);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010842C_mstory5);
+/* story step 1's scene: shadow models, then every actor's and the script's processes */
+void func_8010842C_mstory5(void) {
+    func_801069B8_mstory5();
+    D_80115364_mstory5 = func_8000B108_main(9, 0x2B9);
+    D_80115368_mstory5 = func_8000B108_main(0x83, 0x2B9);
+    omAddPrcObj(func_801085E0_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_801097B8_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010ABE4_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010AF44_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010B77C_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010C4B8_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010C85C_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010CBE8_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010E558_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010E5D0_mstory5, 0x1002, 0x800, 0);
+    omAddPrcObj(func_8010DC78_mstory5, 0x384, 0x800, 0);
+    omAddPrcObj(func_8010DB30_mstory5, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010F2BC_mstory5, 0x1001, 0x800, 0);
+    HuPrcVSleep();
+    func_8001C258_main(D_80115364_mstory5, 4, 4);
+    func_8001C258_main(D_80115368_mstory5, 4, 4);
+}
 
 void func_801085D8_mstory5(omObjData *obj) {
 }
