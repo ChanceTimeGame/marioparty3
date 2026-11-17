@@ -307,6 +307,7 @@ void func_8001C92C_main(s16, f32);
 void func_8001C814_main(s16, s16, s16);
 void func_8010DC08_duel02(void);
 void func_801100A8_duel02(s32);
+void func_8010EB40_duel02(s32);
 /* retail passes the back link/index addresses to the empty func_8011639C_duel02, so no prototype here */
 void func_8011639C_duel02();
 void func_80116414_duel02(void);
@@ -811,7 +812,16 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116064_duel02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_8011611C_duel02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_801161D4_duel02);
+void func_801161D4_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1) || mbWalkNum == 0) {
+        func_800E9F4C_name_81(0x19, &player->nnlink, &player->nnidx);
+    }
+    if (player->rev & 1) {
+        func_8010EB40_duel02(1);
+    }
+}
 
 void func_80116240_duel02(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
@@ -821,7 +831,16 @@ void func_80116240_duel02(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_8011628C_duel02);
+void func_8011628C_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1) || mbWalkNum == 0) {
+        func_800E9F4C_name_81(7, &player->nnlink, &player->nnidx);
+    }
+    if (player->rev & 1) {
+        func_8010EB40_duel02(0);
+    }
+}
 
 void func_801162F8_duel02(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
@@ -831,15 +850,35 @@ void func_801162F8_duel02(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116344_duel02);
+void func_80116344_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116370_duel02);
+    func_800E9F4C_name_81(0x13, &player->nnlink, &player->nnidx);
+}
+
+void func_80116370_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    func_800E9F4C_name_81(0xE, &player->nnlink, &player->nnidx);
+}
 
 void func_8011639C_duel02(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_801163A4_duel02);
+// board da3: the current player's reverse flag when the opponent stands on the current player's next space, else -1
+s32 func_801163A4_duel02(void) {
+    s32 idx = GwSystem.current_player_index;
+    s32 other = (idx + 1) & 1;
+    GW_PLAYER *cur = MBDGetPlayerStruct(idx);
+    GW_PLAYER *opp = MBDGetPlayerStruct(other);
+
+    if (cur->nlink == opp->clink && cur->nidx == opp->cidx) {
+        return cur->rev & 1;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116414_duel02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116564_duel02);
+void func_80116564_duel02(void) {
+}
