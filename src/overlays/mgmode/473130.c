@@ -45,6 +45,7 @@ void func_8000BBFC_main(u16, s16);
 void func_8000BC48_main(u16, u16);
 void func_8000BCC8_main(u16, s32);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000C184_main(u16);
 s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
 s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
 s32 func_80017BB8_main(s16, s16);
@@ -87,6 +88,7 @@ void func_801169A0_mgmode(MgSprSlot *grp, s16 idx);
 void func_801169C8_mgmode(MgSprSlot *grp, s16 idx);
 void func_801169F0_mgmode(MgSprSlot *grp, s16 idx, u16 arg2);
 void func_80116A48_mgmode(MgSprSlot *grp, s16 idx, f32 sx, f32 sy);
+void func_80116A78_mgmode(MgSprSlot *grp, s16 idx, s16 alpha);
 MgSprSlot *func_80116794_mgmode(void *def);
 void func_801168E0_mgmode(MgSprSlot *grp);
 void func_80116D4C_mgmode(void);
@@ -140,6 +142,9 @@ extern s16 D_8011B940_mgmode[];
 extern void *D_8011B954_mgmode;
 extern u8 D_8011B958_mgmode;
 extern MgSprSlot *D_8011B450_mgmode;
+extern MgSprSlot *D_8011B480_mgmode;
+extern s16 D_8011B484_mgmode;
+extern u16 D_8011B488_mgmode[28];
 extern s16 D_8011B454_mgmode;
 extern s16 D_8011B458_mgmode[];
 extern u8 D_80119EB0_mgmode[];
@@ -1096,7 +1101,40 @@ s32 func_80111B08_mgmode(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80111BB0_mgmode);
+void func_80111BB0_mgmode(void) {
+    f32 scale;
+    s16 i;
+    s16 j;
+    s16 alpha;
+
+    for (j = 0; j < 28; j++) {
+        func_8000BE5C_main(D_8011B488_mgmode[j], 0.0f, 0.0f);
+    }
+    for (j = 0; j < 4; j++) {
+        func_80116A78_mgmode(D_8011B480_mgmode, j + 5, 0);
+    }
+    for (i = 0; i < 6; i++) {
+        for (j = 0; j < 4; j++) {
+            func_80116A78_mgmode(D_8011B480_mgmode, j + 5, (1.0 - i / 5.0) * 255.0);
+        }
+        for (j = 0, scale = 1.0 - i / 5.0; j < 28; j++) {
+            func_8000BE5C_main(D_8011B488_mgmode[j], scale, scale);
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 6; i++) {
+        for (j = 0; j < 4; j++) {
+            func_80116A78_mgmode(D_8011B480_mgmode, j + 1, (1.0 - i / 5.0) * 255.0);
+        }
+        func_80116A78_mgmode(D_8011B480_mgmode, 0, (1.0 - i / 5.0) * 192.0);
+        HuPrcVSleep();
+    }
+    func_801168E0_mgmode(D_8011B480_mgmode);
+    for (j = 0; j < 28; j++) {
+        func_8000C184_main(D_8011B488_mgmode[j]);
+    }
+    HuSprKill(D_8011B484_mgmode);
+}
 
 void func_80111ED8_mgmode(void) {
     s16 i;
