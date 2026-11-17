@@ -241,6 +241,24 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80116168_duel04);
 GW_PLAYER *MBDGetPlayerStruct(s32 playerIndex);
 void func_800E9F4C_name_81(s32, s8 *, s8 *);
 void func_80118850_duel04(void);
+s32 func_800EFE20_name_81(f32);
+/* the opponent's space index by roll (8-byte tables read as [walk - 2]; 4-byte ones as [walk]) */
+extern u8 D_80119EC4_duel04[];
+extern u8 D_80119ECC_duel04[];
+extern u8 D_80119ED4_duel04[];
+extern u8 D_80119EDC_duel04[];
+extern u8 D_80119EE4_duel04[];
+extern u8 D_80119EEC_duel04[];
+extern u8 D_80119EF4_duel04[];
+extern u8 D_80119EFC_duel04[];
+extern u8 D_80119F04_duel04[];
+extern u8 D_80119F08_duel04[];
+extern u8 D_80119F0C_duel04[];
+extern u8 D_80119F10_duel04[];
+extern u8 D_80119F14_duel04[];
+extern u8 D_80119F18_duel04[];
+extern u8 D_80119F1C_duel04[];
+extern u8 D_80119F20_duel04[];
 s16 MBDGetCurrentPlayerIndex(void);
 s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
 SpaceData *MBDMasuGet(s16 spaceIdx);
@@ -327,9 +345,205 @@ extern DecisionTreeNonLeafNode D_8011AB54_duel04[];
 extern DecisionTreeNonLeafNode D_8011AB78_duel04[];
 void func_80118D14_duel04(void);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
+/* COM decision at a junction (a decision tree's leaf): from where the opponent stands (clink, cidx)
+   against the roll (mbWalkNum), weigh the partners' front power. */
+#ifdef NON_MATCHING
+// board ea3: logic checked against the asm case by case; masked 77: retail's frame is 0x20 bytes larger,
+// and it tests cur with bnezl and rev in v1 where this C gets the reverse, so the shared returns differ.
+s32 func_801163C0_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
 
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+    case 5:
+        if (!(opp->rev & 1)) {
+            return cur == 0;
+        }
+        if (walk >= 8) {
+            return cur == 0;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return cur == 0;
+        }
+        return FALSE;
+    case 4:
+        if (walk < 3 && opp->cidx == D_80119F08_duel04[walk]) {
+            return TRUE;
+        }
+        if (walk >= 3 || opp->cidx > D_80119F08_duel04[walk]) {
+            if (opp->rev & 1) {
+                return me->stats.partners.frontPower != 0;
+            }
+            return TRUE;
+        }
+        break;
+    case 0:
+        if (walk >= 3 && walk < 7 && opp->cidx == D_80119ECC_duel04[walk - 2]) {
+            if (cur == 0) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower != 0;
+        }
+        if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119ECC_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur == 0) {
+            if (opp->rev & 1) {
+                return TRUE;
+            }
+            return opp->stats.partners.frontPower == 0;
+        }
+        return FALSE;
+    case 1:
+        if (walk >= 3 && walk < 8 && opp->cidx == D_80119ED4_duel04[walk - 2]) {
+            return TRUE;
+        }
+        if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119ED4_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur == 0) {
+            if (!(opp->rev & 1)) {
+                return TRUE;
+            }
+            return opp->stats.partners.frontPower == 0;
+        }
+        return FALSE;
+    }
+    switch (opp->clink) {
+    case 6:
+        if (walk < 3 && opp->cidx == D_80119F18_duel04[walk]) {
+            return FALSE;
+        }
+        if (walk >= 3 || opp->cidx > D_80119F18_duel04[walk]) {
+            if (opp->rev & 1) {
+                return me->stats.partners.frontPower == 0;
+            }
+            return FALSE;
+        }
+        break;
+    case 2:
+        if (walk >= 3 && walk < 7 && opp->cidx == D_80119EEC_duel04[walk - 2]) {
+            if (cur == 0) {
+                return me->stats.partners.frontPower == 0;
+            }
+            return FALSE;
+        }
+        if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EEC_duel04[walk - 2])) {
+            return me->stats.partners.frontPower == 0;
+        }
+        if (cur != 0) {
+            return opp->stats.partners.frontPower != 0;
+        }
+        return TRUE;
+    case 3:
+        if (walk >= 3 && walk < 8 && opp->cidx == D_80119EF4_duel04[walk - 2]) {
+            return FALSE;
+        }
+        if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EF4_duel04[walk - 2])) {
+            return me->stats.partners.frontPower == 0;
+        }
+        if (cur != 0) {
+            return opp->stats.partners.frontPower != 0;
+        }
+        return TRUE;
+    }
+    return cur == 0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
+#endif
+
+#ifdef NON_MATCHING
+// board ea3: logic checked against the asm case by case; masked 46: retail keeps branches where this C
+// gets store-flag (case 6's front-power test) and tests rev in v1 (case 0/1 tails), so shared returns differ.
+s32 func_8011678C_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+    case 6:
+        if (!(opp->rev & 1)) {
+            if (cur == 0) {
+                return func_800EFE20_name_81(100.0f) < 50;
+            }
+            return FALSE;
+        }
+        if (walk >= 8) {
+            return FALSE;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return FALSE;
+        }
+        return TRUE;
+    case 4:
+        if (walk < 3 && opp->cidx == D_80119F08_duel04[walk]) {
+            return TRUE;
+        }
+        if (walk >= 3 || opp->cidx > D_80119F08_duel04[walk]) {
+            if (opp->rev & 1) {
+                return me->stats.partners.frontPower != 0;
+            }
+            return TRUE;
+        }
+        break;
+    case 0:
+        if (walk >= 3 && walk < 7 && opp->cidx == D_80119ECC_duel04[walk - 2]) {
+            if (cur == 0) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower != 0;
+        }
+        if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119ECC_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur != 0) {
+            return FALSE;
+        }
+        return (opp->rev & 1) ? TRUE : opp->stats.partners.frontPower == 0;
+    case 1:
+        if (walk >= 3 && walk < 8 && opp->cidx == D_80119ED4_duel04[walk - 2]) {
+            return TRUE;
+        }
+        if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119ED4_duel04[walk - 2])) {
+            return me->stats.partners.frontPower != 0;
+        }
+        if (cur != 0) {
+            return FALSE;
+        }
+        if (!(opp->rev & 1)) {
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower == 0;
+    default:
+        break;
+    case 5:
+    case 7:
+        return FALSE;
+    }
+    if (cur != 0) {
+        return FALSE;
+    }
+    return func_800EFE20_name_81(100.0f) < 50;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011678C_duel04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801169EC_duel04);
 
