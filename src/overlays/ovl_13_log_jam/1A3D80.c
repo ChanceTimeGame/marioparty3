@@ -113,6 +113,28 @@ typedef union LjPack {
     LjBytes b;
 } LjPack;
 
+typedef struct LjCloud {
+    /* 0x00 */ s16 id;
+    /* 0x02 */ s16 grp;
+    /* 0x04 */ s16 angle;
+    /* 0x08 */ f32 scale;
+    /* 0x0C */ f32 x;
+    /* 0x10 */ f32 y;
+    /* 0x14 */ f32 sx;
+    /* 0x18 */ f32 sy;
+    /* 0x1C */ f32 speed;
+    /* 0x20 */ s32 unk20;
+} LjCloud; // Size 0x24
+
+typedef struct LjCounter {
+    /* 0x00 */ s16 id;
+    /* 0x02 */ s16 grp;
+    /* 0x04 */ s16 timer;
+    /* 0x06 */ s16 digit; /* member popping in */
+    /* 0x08 */ s16 value;
+    /* 0x0A */ s16 shown;
+} LjCounter; // Size 0xC
+
 #define LJ_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -125,6 +147,9 @@ extern u8 D_800D2008_main;
 extern s32 fontcolor;
 extern s8 HmfPauseF;
 extern s16 *D_8010E5CC_log_jam; // s16[0x20] sprite/file ids
+extern LjCounter *D_8010E5D0_log_jam;
+extern LjCloud *D_8010E5D4_log_jam;
+extern s16 D_8010E090_log_jam[2]; /* counter x */
 extern omObjData *D_8010E5D8_log_jam;
 extern LjEffect *D_8010E5DC_log_jam;
 extern omObjData *D_8010E5E0_log_jam;
@@ -140,6 +165,7 @@ extern s32 D_8010E09C_log_jam;
 extern Gfx D_8010E190_log_jam[];
 
 u16 func_8010A300_log_jam(s32 dirAndFile);
+void func_8010A4C0_log_jam(omObjData *obj);
 void func_8010A880_log_jam(omObjData *obj);
 void func_8010AD04_log_jam(omObjData *obj);
 s32 func_8010CB64_log_jam(HuSprite_Unk84_Struct *spr, RGBA *color);
@@ -175,7 +201,36 @@ void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
 void func_80016C2C_main(HmfData *arg0, s16 arg1, s16 arg2);
 void func_8010C8E0_log_jam(s16 mdl, char *part, Matrix4f *out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A0B0_log_jam);
+void func_8010A0B0_log_jam(omObjData *obj) {
+    LjCloud *cloud;
+    HuSprite *spr;
+    f32 wave;
+    s16 i;
+
+    for (i = 0, cloud = D_8010E5D4_log_jam; i < 5; i++, cloud++) {
+        wave = sindf(cloud->angle);
+        cloud->x += cloud->speed * ((f32)(u8)(rand8() % 100) * 0.01 * 0.4f + 0.6f);
+        cloud->sx = cloud->scale + 0.075f + wave * 0.075f;
+        cloud->sy = cloud->scale + 0.075f - wave * 0.075f;
+        if (cloud->x <= -64.0f) {
+            cloud->x += 416.0f;
+        } else if (cloud->x > 384.0f) {
+            cloud->x -= 320.0f;
+        }
+        HuSprScaleSet(cloud->grp, 0, cloud->sx, cloud->sy);
+        HuSprScaleSet(cloud->grp, 1, cloud->sx, cloud->sy);
+        spr = HuSprGet(cloud->grp, 0);
+        spr->unk_48 = cloud->x;
+        spr->unk_4C = cloud->y;
+        spr = HuSprGet(cloud->grp, 1);
+        spr->unk_48 = cloud->x;
+        spr->unk_4C = cloud->y;
+        cloud->angle += (u8)(rand8() % 7) + 2;
+        if (cloud->angle >= 360) {
+            cloud->angle -= 360;
+        }
+    }
+}
 
 u16 func_8010A300_log_jam(s32 dirAndFile) {
     void *data = DataRead(dirAndFile);
@@ -185,11 +240,88 @@ u16 func_8010A300_log_jam(s32 dirAndFile) {
     return id;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A344_log_jam);
+void func_8010A344_log_jam(void) {
+    LjCounter *counter;
+    s32 x;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A4C0_log_jam);
+    D_8010E5CC_log_jam[3] = func_8010A300_log_jam(0x34000F);
+    counter = D_8010E5D0_log_jam = HuMemAllocTag(sizeof(LjCounter) * 2, 0x7918);
+    for (i = 0; i < 2; i++, counter++) {
+        x = D_8010E090_log_jam[i];
+        memset(counter, 0, sizeof(LjCounter));
+        counter->id = i;
+        counter->grp = HuSprGrpCreate(10, 0);
+        for (j = 0; j < 10; j++) {
+            func_80055024_main(counter->grp, j, D_8010E5CC_log_jam[3], 0);
+            func_800550F4_main(counter->grp, j, 0);
+            func_80054FF8_main(counter->grp, j, 0);
+            func_80055458_main(counter->grp, j, 0x100);
+            HuSprAttrSet(counter->grp, j, 0x9000);
+            func_80054904_main(counter->grp, j, x, 0x1C);
+            if (i == 0) {
+                x += 16;
+            } else {
+                x -= 16;
+            }
+        }
+    }
+    omAddObj(0x1E, 0, 0, -1, func_8010A4C0_log_jam);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A6FC_log_jam);
+void func_8010A4C0_log_jam(omObjData *obj) {
+    LjCounter *counter;
+    f32 t;
+    s32 fives;
+    s32 count;
+    s32 i;
+    s32 j;
+
+    for (i = 0, counter = D_8010E5D0_log_jam; i < 2; i++, counter++) {
+        fives = (s16)(counter->value / 5);
+        count = fives + (s16)(counter->value % 5);
+        if (counter->shown != counter->value) {
+            for (j = 0; j < 10; j++) {
+                func_80055458_main(counter->grp, j, 0x100);
+                HuSprScaleSet(counter->grp, j, 1.0f, 1.0f);
+            }
+            counter->timer = 15;
+            if (count != 0) {
+                counter->digit = count - 1;
+            }
+        }
+        if (counter->timer > 0) {
+            if (counter->timer == 1) {
+                t = 0.0f;
+            } else {
+                t = counter->timer / 15.0f;
+            }
+            func_80055458_main(counter->grp, counter->digit, (s32)((1.0f - t) * 256.0f));
+            HuSprScaleSet(counter->grp, counter->digit, t + 1.0f, t + 1.0f);
+            counter->timer--;
+        }
+        for (j = 0; j < 10; j++) {
+            if (j < fives) {
+                func_80054FF8_main(counter->grp, j, 1);
+            } else {
+                func_80054FF8_main(counter->grp, j, 0);
+            }
+            if (j < count) {
+                HuSprAttrReset(counter->grp, j, 0x8000);
+            } else {
+                HuSprAttrSet(counter->grp, j, 0x8000);
+            }
+        }
+        counter->shown = counter->value;
+    }
+}
+
+void func_8010A6FC_log_jam(s16 idx, s16 value) {
+    LjCounter *counter = &D_8010E5D0_log_jam[idx];
+
+    counter->value = value;
+}
 
 void func_8010A724_log_jam(void) {
     HuSprite_Unk84_Struct *spr;
