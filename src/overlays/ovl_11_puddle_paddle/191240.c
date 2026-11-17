@@ -197,15 +197,25 @@ void func_8010EDE8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 a
 
 /* A team (D_80111650_puddle_paddle[2]) */
 typedef struct PpTeam {
-    /* 0x00 */ char unk00[0x18];
-    /* 0x18 */ f32 unk18;
-    /* 0x1C */ char unk1C[4];
+    /* 0x00 */ f32 velX; /* drift, decays by dragX each frame */
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ f32 velZ;
+    /* 0x0C */ f32 dragX;
+    /* 0x10 */ char unk10[4];
+    /* 0x14 */ f32 dragZ;
+    /* 0x18 */ f32 unk18; /* raft heading, degrees */
+    /* 0x1C */ f32 speed; /* sum of the members' paddle power */
     /* 0x20 */ u8 count;
     /* 0x22 */ s16 member[2]; /* player indices */
     /* 0x26 */ s16 digit[2]; /* score digit sprites */
     /* 0x2A */ char unk2A[2];
     /* 0x2C */ s16 leader; /* the member who steers: a human, or the stronger CPU when both are CPUs */
-    /* 0x2E */ char unk2E[0x36];
+    /* 0x2E */ char unk2E[0x22];
+    /* 0x50 */ f32 baseX; /* raft position the stun shake is around */
+    /* 0x54 */ f32 baseZ;
+    /* 0x58 */ char unk58[8];
+    /* 0x60 */ s16 reactTimer; /* CPU partner: frames since it last copied the leader */
+    /* 0x62 */ s16 reactDelay;
 } PpTeam; /* size 0x64 */
 
 /* A player (D_80111654_puddle_paddle[4]) */
@@ -220,10 +230,11 @@ typedef struct PpPlayer {
     /* 0x10 */ s8 slot; /* place in the team; also the blink phase while stunned (func_8010A224) */
     /* 0x11 */ s8 stunTimer;
     /* 0x12 */ char unk12[0x36];
-    /* 0x48 */ f32 unk48;
-    /* 0x4C */ char unk4C[4];
+    /* 0x48 */ f32 unk48; /* seat angle on the raft */
+    /* 0x4C */ f32 power; /* paddle power this frame */
     /* 0x50 */ s16 team;
-    /* 0x52 */ char unk52[4];
+    /* 0x52 */ s16 cpuReactChance; /* CPU: 1 in (n + 1) frames re-rolls the reaction delay */
+    /* 0x54 */ s16 cpuReactMax; /* CPU: reaction delay 5..n */
     /* 0x56 */ s16 unk56;
     /* 0x58 */ s16 unk58;
     /* 0x5A */ char unk5A[2];
@@ -482,7 +493,114 @@ void func_8010A224_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
     }
 }
 
+// NON_MATCHING: masked 24 (542 vs 543): the drift-decay blocks keep the drag in another register (a copy for the compare) and the stun shake allocates differently; logic checked against the asm
+#ifdef NON_MATCHING
+void func_8010A398_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
+    PpTeam *team;
+    PpPlayer *player;
+    HmfModel *raft;
+    f32 dx;
+    f32 dz;
+    f32 bob;
+    s16 i;
+    s16 j;
+
+    team = D_80111650_puddle_paddle;
+    for (i = 0; i < 2; i++, team++) {
+        raft = &HmfModelData[groupCtx->modelIds[i]];
+        team->speed = 0.0f;
+        for (j = 0; j < 2; j++) {
+            player = &D_80111654_puddle_paddle[team->member[j]];
+            if ((GwPlayer[team->member[j]].stat & 1) && team->member[j] != team->leader) {
+                if (rand16() % (player->cpuReactChance + 1) == 0 && (GwPlayer[team->leader].stat & 1)) {
+                    team->reactTimer = 0;
+                    team->reactDelay = rand16() % (player->cpuReactMax - 4) + 5;
+                }
+                player->unk04 &= ~(2 | 4);
+                if (++team->reactTimer > team->reactDelay) {
+                    team->reactTimer = team->reactDelay;
+                    if (D_80111654_puddle_paddle[team->leader].unk04 & 4) {
+                        player->unk04 |= 4;
+                    }
+                    if (D_80111654_puddle_paddle[team->leader].unk04 & 2) {
+                        player->unk04 |= 2;
+                    }
+                } else {
+                    if (D_80111654_puddle_paddle[team->leader].unk04 & 4) {
+                        player->unk04 |= 2;
+                    }
+                    if (D_80111654_puddle_paddle[team->leader].unk04 & 2) {
+                        player->unk04 |= 4;
+                    }
+                }
+            }
+            if (player->unk04 & 2) {
+                team->unk18 -= 2.0f;
+            } else if (player->unk04 & 4) {
+                team->unk18 += 2.0f;
+            }
+            if (!(player->power < 0.1f)) {
+                team->speed += player->power;
+            }
+        }
+        if (team->unk18 < 0.0f) {
+            team->unk18 += 360.0f;
+        }
+        if (team->unk18 >= 360.0f) {
+            team->unk18 -= 360.0f;
+        }
+        raft->rot.y = team->unk18;
+        dx = team->dragX;
+        if ((team->velX > 0.0f ? team->velX : -team->velX) > dx) {
+            if (team->velX > 0.0f) {
+                team->velX -= dx;
+            } else {
+                team->velX += dx;
+            }
+        } else {
+            team->velX = 0.0f;
+        }
+        dz = team->dragZ;
+        if ((team->velZ > 0.0f ? team->velZ : -team->velZ) > dz) {
+            if (team->velZ > 0.0f) {
+                team->velZ -= dz;
+            } else {
+                team->velZ += dz;
+            }
+        } else {
+            team->velZ = 0.0f;
+        }
+        bob = ctx->work.s16[0] / 120.0f;
+        if (bob > 1.0f) {
+            bob = 1.0f;
+        }
+        if (++ctx->work.s16[0] >= 121) {
+            ctx->work.s16[0] = 0;
+        }
+        /* retail reads the stun flag of the team's last member (the inner loop's pointer) */
+        if (player->unk04 & 0x10) {
+            dx = (rand16() % 7 - 3) * 0.2f * 100.0f * 0.2f;
+            dz = (rand16() % 7 - 3) * 0.2f * 100.0f * 0.2f;
+            raft->pos.x = dx + team->baseX;
+            raft->pos.z = dz + team->baseZ;
+        } else {
+            dx = sindf(team->unk18) * 20.0f * 5.0f * team->speed * 0.08f;
+            dz = cosdf(team->unk18) * 20.0f * 5.0f * team->speed * 0.08f;
+            raft->pos.x += dx;
+            raft->pos.z += dz;
+        }
+        raft->pos.y = sindf(bob * 180.0f) * 20.0f * 5.0f * 0.1f + 170.0f;
+        if ((dx != 0.0f) & (dz != 0.0f)) {
+            team->velX += dx * 0.005f;
+            team->velZ += dz * 0.005f;
+            team->dragX = dx * 0.001f;
+            team->dragZ = dz * 0.001f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010A398_puddle_paddle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010ABCC_puddle_paddle);
 
