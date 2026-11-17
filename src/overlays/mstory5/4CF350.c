@@ -214,9 +214,6 @@ void func_80105FEC_mstory5(s32 arg0) {
     omAddPrcObj(func_80106028_mstory5, 0x1000, 0x800, 0);
 }
 
-// masked 2: the assembler adds a nop after each cosdf/sindf delay slot (retail has none; gcc filled the
-// slot itself here, retail apparently did not)
-#ifdef NON_MATCHING
 /* the chapter map: the map and its 7 nodes, a ring of 8 sparkles around the current node, and a
    fading overlay; it fades in, lights the nodes cleared so far, flashes the current one, then
    fades out and sets D_80114760_mstory5 */
@@ -341,9 +338,6 @@ void func_80106028_mstory5(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80106028_mstory5);
-#endif
 
 s32 func_801068C8_mstory5(void) {
     return D_80114760_mstory5;
