@@ -150,6 +150,10 @@ extern Vec D_801156EC_mstory3;
 extern s16 D_80115C9E_mstory3; /* the partner's character */
 extern Vec D_80115560_mstory3; /* actor 2's start position */
 extern Vec D_80115C50_mstory3; /* actor 2's position */
+extern Vec D_8011556C_mstory3; /* actor 3's start position */
+extern Vec D_80115C5C_mstory3; /* actor 3's position */
+extern s16 D_80115C88_mstory3;
+void func_8010C654_mstory3(void);
 extern Vec D_80115704_mstory3;
 extern Vec D_80115710_mstory3;
 extern Vec D_8011571C_mstory3;
@@ -626,14 +630,70 @@ void func_8010C3F4_mstory3(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C490_mstory3);
+void func_8010C490_mstory3(omObjData *obj) {
+    func_80107674_mstory3(obj, D_80115BC0_mstory3[0].obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C4B0_mstory3);
+/* actor 3: model file 0xA0122, at double size */
+void func_8010C4B0_mstory3(void) {
+    omObjData *obj;
+
+    obj = omAddObj(10, 20, 20, -1, NULL);
+    D_80115BC0_mstory3[3].obj = obj;
+    D_80115BC0_mstory3[3].flags = 0;
+    obj->model[1] = func_8000B108_main(0xA0122, 0x2A9);
+    obj->model[2] = Hu3DModelLink(D_80115C9A_mstory3);
+    func_800461B4_main(obj->model[1]);
+    func_8000B460_main(obj, 0, 0xA0123);
+    func_8000B460_main(obj, 1, 0xA0125);
+    func_8001C5B4_main(obj->model[1], obj->motion[0]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    D_80115C5C_mstory3 = D_8011556C_mstory3;
+    Hu3DModelPosSet(obj->model[1], D_80115C5C_mstory3.x, D_80115C5C_mstory3.y, D_80115C5C_mstory3.z);
+    Hu3DModelPosSet(obj->model[2], D_80115C5C_mstory3.x, -5.0f, D_80115C5C_mstory3.z);
+    Hu3DModelScaleSet(obj->model[1], 2.0f, 2.0f, 2.0f);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 1.0f, 2.0f);
+    omPrcSetDestructor(0, func_8010C654_mstory3);
+    D_80115BC0_mstory3[3].func = (void (*)(omObjData *))func_80108A94_mstory3;
+    while (1) {
+        D_80115BC0_mstory3[3].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010C654_mstory3(void) {
 }
 
+/* NON_MATCHING: masked 0 except one nop the assembler puts after sindf's jal (delay slot
+   mov.s $f12) where retail has none; mstory1's func_8010FAF8 has the same residue. */
+#ifdef NON_MATCHING
+/* process: actor 3 floats up and down (paused while D_80115C88_mstory3 is 1) */
+void func_8010C65C_mstory3(void) {
+    Vec pos;
+    omObjData *obj;
+    f32 angle;
+    f32 y;
+
+    angle = 0.0f;
+    obj = D_80115BC0_mstory3[3].obj;
+    pos.y = HmfModelData[obj->model[1]].pos.y;
+    while (1) {
+        pos.x = HmfModelData[obj->model[1]].pos.x;
+        pos.z = HmfModelData[obj->model[1]].pos.z;
+        y = sindf(angle) * 25.0f + 25.0f;
+        angle += 2.0f;
+        if (angle >= 360.0f) {
+            angle -= 360.0f;
+        }
+        if (D_80115C88_mstory3 != 1) {
+            Hu3DModelPosSet(obj->model[1], pos.x, y + pos.y, pos.z);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C65C_mstory3);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C7A0_mstory3);
 
