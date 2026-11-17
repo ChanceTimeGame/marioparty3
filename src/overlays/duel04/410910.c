@@ -534,6 +534,17 @@ extern const Ea1Pos3 D_8011AFDC_duel04;
 extern const Ea1S32x6 D_8011AFE8_duel04;
 extern const Ea1S32x12 D_8011B000_duel04;
 extern const Ea1Vec4 D_8011B030_duel04;
+/* board ea1: duel04's own (no duel05 twin) */
+void func_801139D4_duel04(void);
+s32 func_801187B8_duel04(void);
+void func_801198EC_duel04(void);
+void func_800FC590_name_81(s32 arg0);
+void func_8010EA94_duel04(void);
+void func_8010E964_duel04(void);
+extern Object *D_8011B518_duel04; /* the bell */
+extern void *D_80119CE0_duel04; /* its motion file (DataRead) */
+extern s16 D_80119CE4_duel04; /* its motion id, -1 when none */
+extern char D_8011AFA0_duel04[]; // "tura_DEF"
 // board ea1: end
 
 void func_801059D0_duel04(void) {
@@ -1196,6 +1207,7 @@ void func_8010718C_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Obj
 }
 
 #ifdef NON_MATCHING // duel b1: masked 0; $s7/$s8 swapped between the stand-in and effect models
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 0, raw 12 here; logic as duel05
 void func_801079BC_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
     Vec dest;
     Vec start;
@@ -1437,6 +1449,7 @@ void func_801084A8_duel04(s32 playerIndex, s32 arg1, Object *partner, Object *ta
 }
 
 #ifdef NON_MATCHING // duel b1: masked 0; float registers of the final squash loop ($f20/$f22/$f24) rotated
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 0, raw 8 here; logic as duel05
 void func_80108554_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
     Vec dest;
     Vec start;
@@ -2222,6 +2235,7 @@ void func_8010B540_duel04(void) {
 }
 
 #ifdef NON_MATCHING
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 60 (633 vs 649 instructions) here; logic as duel05
 // duel b2: masked 78 of 649: func_800EB708 is called through a correctly typed local pointer (duel01.h has it wrong) and GCC keeps it in $s8 (jalr), which shifts the allocation; logic checked block by block.
 void func_8010B550_duel04(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
@@ -2628,6 +2642,7 @@ void func_8010BCD8_duel04(s32 arg0, s32 playerNo, Object *partner, Object *targe
 }
 
 #ifdef NON_MATCHING
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 84 (472 vs 463) here; logic as duel05
 // duel b2: masked 84 of 463: register/stack allocation (retail frame 8 bytes larger, 5.0f kept in $f20, extra1/extra2 slots swapped); logic checked block by block.
 void func_8010CE6C_duel04(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
@@ -2761,6 +2776,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010CE6C_duel04);
 #endif
 
 #ifdef NON_MATCHING
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 0, raw 28 here; logic as duel05
 // duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D428_duel04(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Object *obj;
@@ -2901,7 +2917,21 @@ void func_8010D9F8_duel04(void) {
     func_8010D960_duel04();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010DA88_duel04);
+void func_8010DA88_duel04(void) {
+    if (GwSystem.playMode & 4) {
+        HuAudSeqPlay(0x1F);
+    } else {
+        HuAudSeqPlay(0x1E);
+    }
+    Hu3DCamInit(2);
+    func_8010D9F8_duel04();
+    func_800EA46C_name_81(D_80119E9C_duel04);
+    func_800EA46C_name_81(D_8011ADE8_duel04);
+    func_800FC5A8_name_81(func_801139D4_duel04);
+    func_800FC59C_name_81((s32)func_801187B8_duel04);
+    func_800FC590_name_81((s32)func_801198EC_duel04);
+    func_800FF640_name_81(0);
+}
 
 void func_8010DB10_duel04(void) {
     Hu3DCamInit(1);
@@ -3173,15 +3203,77 @@ void func_8010E914_duel04(void) {
     func_8001C92C_main(D_8011B510_duel04->omObj1->model[0], 1.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010E964_duel04);
+/* the bell object: created on first use, then its idle motion loaded */
+void func_8010E964_duel04(void) {
+    Object *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010EA74_duel04);
+    if (D_8011B518_duel04 == NULL) {
+        obj = func_800D8010_name_81(0x2F, 0);
+        D_8011B518_duel04 = obj;
+        obj->flags |= 2;
+        func_8001C814_main(obj->omObj1->model[0], 2, 1);
+        HuVecCopy3F(&obj->coords, &MBDMasuGet(0x20)->coords);
+    }
+    D_80119CE0_duel04 = DataRead(0x13013A);
+    D_80119CE4_duel04 = HmfAnimCreate(HmfModelData[D_8011B518_duel04->omObj1->model[0]].hmf, D_80119CE0_duel04, 0,
+                                      D_8011AFA0_duel04);
+    func_80032FF8_main(D_80119CE4_duel04, 0);
+    func_8001C448_main(D_8011B518_duel04->omObj1->model[0]);
+    func_800FC5B4_name_81(func_8010EA94_duel04);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010EA94_duel04);
+void func_8010EA74_duel04(void) {
+    D_8011B518_duel04 = NULL;
+    func_8010E964_duel04();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010EAF0_duel04);
+void func_8010EA94_duel04(void) {
+    if (D_80119CE0_duel04 != NULL) {
+        DataClose(D_80119CE0_duel04);
+        D_80119CE0_duel04 = NULL;
+    }
+    if (D_80119CE4_duel04 != -1) {
+        func_80033430_main(D_80119CE4_duel04);
+        D_80119CE4_duel04 = -1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010EC0C_duel04);
+/* the bell grows in (0 to 1 by 0.05 a frame) */
+void func_8010EAF0_duel04(void) {
+    s32 i;
+    f32 scale;
+
+    func_8001C814_main(D_8011B518_duel04->omObj1->model[0], 1, 2);
+    func_80032FF8_main(D_80119CE4_duel04, 1);
+    func_8001C448_main(D_8011B518_duel04->omObj1->model[0]);
+    i = 0;
+    func_800DD41C_name_81(&D_8011B518_duel04->coords);
+    for (scale = 0.0f; scale <= 1.0f; i++) {
+        func_8001C92C_main(D_8011B518_duel04->omObj1->model[0], scale);
+        HuPrcVSleep();
+        if (i == 10) {
+            func_800DD554_name_81();
+        }
+        scale += 0.05f;
+    }
+    func_8001C92C_main(D_8011B518_duel04->omObj1->model[0], 1.0f);
+}
+
+/* the bell shrinks away (1 to 0 by 0.05 a frame) */
+void func_8010EC0C_duel04(void) {
+    f32 scale;
+
+    func_800DD564_name_81();
+    for (scale = 1.0f; scale >= 0.0f; scale -= 0.05f) {
+        func_8001C92C_main(D_8011B518_duel04->omObj1->model[0], scale);
+        HuPrcVSleep();
+    }
+    func_8001C92C_main(D_8011B518_duel04->omObj1->model[0], 0.0f);
+    func_8001C814_main(D_8011B518_duel04->omObj1->model[0], 2, 1);
+    func_80032FF8_main(D_80119CE4_duel04, 0);
+    func_8001C448_main(D_8011B518_duel04->omObj1->model[0]);
+    func_800DD570_name_81();
+}
 
 s32 func_8010ECFC_duel04(void) {
     return (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
@@ -3258,6 +3350,7 @@ s32 func_8010EE5C_duel04(void) {
 }
 
 #ifdef NON_MATCHING
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 24 here; logic as duel05
 void func_8010F078_duel04(void) {
     s32 *data;
     f32 angle1;
@@ -3448,6 +3541,7 @@ void func_8010F1E8_duel04(void) {
 }
 
 #ifdef NON_MATCHING
+// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 14 (552 vs 553) here; logic as duel05
 s32 func_8010FA58_duel04(s32 no) {
     Vec dir;
     Vec cam;
