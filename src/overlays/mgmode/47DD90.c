@@ -110,7 +110,18 @@ void func_80116E24_mgmode(s16 arg0) {
     D_8011B958_mgmode = arg0;
 }
 
-#ifdef NON_MATCHING
+/* out = b..a turn difference d (degrees, as a double) folded into -180..180. */
+#define MG_WRAP180(out, d, a, b)              \
+    if (((d) < 0.0 ? -(d) : (d)) > 180.0) {    \
+        if ((a) < (b)) {                       \
+            (out) = (d) + 360.0;               \
+        } else {                               \
+            (out) = (d) - 360.0;               \
+        }                                      \
+    } else {                                   \
+        (out) = (d);                           \
+    }
+
 void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*callback)(s16*)) {
     Vec rotDelta;                       /* sp10 */
     Vec centerDelta;                    /* sp20 */
@@ -126,11 +137,8 @@ void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*call
     f32 zoomStart;                      /* f22_2 */
     f32 unkDelta;                       /* f28 */
     f32 unkStart;                       /* f26 */
-    f64 mag;
     f64 diff;
-    f64 rate;
     s16 i;
-    f32 hundred;
 
     cb = callback;
     rot = D_8011B954_mgmode[presetIdx].rot;
@@ -140,47 +148,47 @@ void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*call
     eye.x = sindf(rot.y) * cosdf(rot.x) * zoom + center.x;
     eye.y = -sindf(rot.x) * zoom + center.y;
     eye.z = cosdf(rot.y) * cosdf(rot.x) * zoom + center.z;
-    hundred = 100.0f;
-    mag = hundred / zoom;
-    center.x = eye.x + (center.x - eye.x) * mag;
-    center.y = eye.y + (center.y - eye.y) * mag;
-    center.z = eye.z + (center.z - eye.z) * mag;
+    diff = 100.0f / zoom;
+    center.x = eye.x + (center.x - eye.x) * diff;
+    center.y = eye.y + (center.y - eye.y) * diff;
+    center.z = eye.z + (center.z - eye.z) * diff;
+    zoom = 100.0f;
 
     diff = rot.x - CRot.x;
-    WRAP180(rotDelta.x, diff, rot.x, CRot.x);
+    MG_WRAP180(rotDelta.x, diff, rot.x, CRot.x);
     diff = rot.y - CRot.y;
-    WRAP180(rotDelta.y, diff, rot.y, CRot.y);
+    MG_WRAP180(rotDelta.y, diff, rot.y, CRot.y);
     diff = rot.z - CRot.z;
-    WRAP180(rotDelta.z, diff, rot.z, CRot.z);
+    MG_WRAP180(rotDelta.z, diff, rot.z, CRot.z);
 
     centerDelta.x = center.x - Center.x;
     centerDelta.y = center.y - Center.y;
     centerDelta.z = center.z - Center.z;
-    zoomDelta = hundred - CZoom;
+    zoomDelta = zoom - CZoom;
     unkDelta = D_8011B954_mgmode[presetIdx].unk_1C - D_8011B6A4_mgmode;
     cbArg[1] = duration;
+    unkStart = D_8011B6A4_mgmode;
     centerStart = Center;
     rotStart = CRot;
     zoomStart = CZoom;
-    unkStart = D_8011B6A4_mgmode;
 
     if (easeType == 1 || easeType == 2) {
         for (i = 0; i < duration; i++) {
             if (easeType != 2) {
-                rate = sindf(i * 90.0f / duration);
+                diff = sindf(i * 90.0f / duration);
             } else if (i <= duration / 2) {
-                rate = (1.0f - cosdf(i * 180.0f / duration)) * 0.5f;
+                diff = (1.0f - cosdf(i * 180.0f / duration)) * 0.5f;
             } else {
-                rate = -cosdf(i * 180.0f / duration) * 0.5f + 0.5f;
+                diff = -cosdf(i * 180.0f / duration) * 0.5f + 0.5f;
             }
-            D_8011B898_mgmode.x = CRot.x = rate * rotDelta.x + rotStart.x;
-            D_8011B898_mgmode.y = CRot.y = rate * rotDelta.y + rotStart.y;
-            D_8011B898_mgmode.z = CRot.z = rate * rotDelta.z + rotStart.z;
-            Center.x = rate * centerDelta.x + centerStart.x;
-            Center.y = rate * centerDelta.y + centerStart.y;
-            Center.z = rate * centerDelta.z + centerStart.z;
-            CZoom = rate * zoomDelta + zoomStart;
-            D_8011B6A4_mgmode = rate * unkDelta + unkStart;
+            D_8011B898_mgmode.x = CRot.x = diff * rotDelta.x + rotStart.x;
+            D_8011B898_mgmode.y = CRot.y = diff * rotDelta.y + rotStart.y;
+            D_8011B898_mgmode.z = CRot.z = diff * rotDelta.z + rotStart.z;
+            Center.x = diff * centerDelta.x + centerStart.x;
+            Center.y = diff * centerDelta.y + centerStart.y;
+            Center.z = diff * centerDelta.z + centerStart.z;
+            CZoom = diff * zoomDelta + zoomStart;
+            D_8011B6A4_mgmode = diff * unkDelta + unkStart;
             if (callback != (void (*)(s16*))-1) {
                 cbArg[0] = i;
                 cb(cbArg);
@@ -189,14 +197,14 @@ void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*call
         }
     } else {
         for (i = 0; i <= duration; i++) {
-            rate = (1.0f / duration) * i;
-            D_8011B898_mgmode.x = CRot.x = rate * rotDelta.x + rotStart.x;
-            D_8011B898_mgmode.y = CRot.y = rate * rotDelta.y + rotStart.y;
-            D_8011B898_mgmode.z = CRot.z = rate * rotDelta.z + rotStart.z;
-            Center.x = rate * centerDelta.x + centerStart.x;
-            Center.y = rate * centerDelta.y + centerStart.y;
-            Center.z = rate * centerDelta.z + centerStart.z;
-            CZoom = rate * zoomDelta + zoomStart;
+            diff = (1.0f / duration) * i;
+            D_8011B898_mgmode.x = CRot.x = diff * rotDelta.x + rotStart.x;
+            D_8011B898_mgmode.y = CRot.y = diff * rotDelta.y + rotStart.y;
+            D_8011B898_mgmode.z = CRot.z = diff * rotDelta.z + rotStart.z;
+            Center.x = diff * centerDelta.x + centerStart.x;
+            Center.y = diff * centerDelta.y + centerStart.y;
+            Center.z = diff * centerDelta.z + centerStart.z;
+            CZoom = diff * zoomDelta + zoomStart;
             if (callback != (void (*)(s16*))-1) {
                 cbArg[0] = i;
                 cb(cbArg);
@@ -206,29 +214,27 @@ void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*call
     }
     func_80116E24_mgmode(presetIdx);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80116ED4_mgmode);
-#endif
 
+/* Camera angles and distance looking from eye at target. */
 #ifdef NON_MATCHING
-f32 atan2df(f32, f32);
-void func_801177BC_mgmode(Vec* arg0, Vec* arg1) {
-    f32 temp_f0;
-    f32 temp_f22;
-    f32 temp_f24;
-    f32 temp_f26;
-    f32 temp_f28;
+/* Register allocation only (dx/dz swap $f22/$f24). */
+void func_801177BC_mgmode(Vec* eye, Vec* target) {
+    f32 dz;
+    f32 dx;
+    f32 dy;
+    f32 yaw;
+    f32 c;
 
-    temp_f22 = arg0->x - arg1->x;
-    temp_f28 = arg0->y - arg1->y;
-    temp_f24 = arg0->z - arg1->z;
-    CZoom = HuSqrtf((temp_f22 * temp_f22) + (temp_f28 * temp_f28) + (temp_f24 * temp_f24));
-    temp_f0 = atan2df(temp_f24, temp_f22);
-    CRot.y = -(temp_f0 - 90.0f);
-    temp_f26 = cosdf(-temp_f0);
-    CRot.x = -atan2df(temp_f28, (temp_f22 * temp_f26) + (temp_f24 * -sindf(-temp_f0)));
+    dx = eye->x - target->x;
+    dy = eye->y - target->y;
+    dz = eye->z - target->z;
+    CZoom = HuSqrtf(dx * dx + dy * dy + dz * dz);
+    yaw = atan2df(dz, dx);
+    CRot.y = -(yaw - 90.0f);
+    c = cosdf(-yaw);
+    CRot.x = -atan2df(dy, dx * c + dz * -sindf(-yaw));
     CRot.z = 0.0f;
-    Center = *arg1;
+    Center = *target;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801177BC_mgmode);
