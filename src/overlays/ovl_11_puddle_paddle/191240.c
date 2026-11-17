@@ -185,7 +185,7 @@ void func_80106064_puddle_paddle(omObjData* obj);
 void func_80106958_puddle_paddle(omObjData* obj);
 void func_80106988_puddle_paddle(omObjData* obj);
 void func_801069FC_puddle_paddle(omObjData* obj);
-void func_80106B6C_puddle_paddle(s16 dst, s16 src, s32 arg2);
+void func_80106B6C_puddle_paddle(s16 dst, s16 src, u16 part);
 void func_80106CE4_puddle_paddle(omObjData* obj);
 void func_801073AC_puddle_paddle(omObjData* obj);
 void func_801073E4_puddle_paddle(omObjData* obj);
@@ -352,7 +352,63 @@ void func_801069FC_puddle_paddle(omObjData* obj) {
     func_80110714_puddle_paddle(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106B6C_puddle_paddle);
+/* Hands a part of model src over to model dst: the part (by number) is removed from src's object list and its
+   draw points at dst's HmfData. Reads HmfData fields the shared header does not name yet (N64 offsets). */
+typedef struct PpHmfObj {
+    /* 0x00 */ s16 part;
+    /* 0x02 */ char unk02[0x46];
+    /* 0x48 */ HmfData* hmf;
+    /* 0x4C */ char unk4C[0x40];
+} PpHmfObj; /* size 0x8C */
+
+typedef struct PpHmfGroup {
+    /* 0x00 */ s16 count;
+    /* 0x02 */ char unk02[0x4E];
+    /* 0x50 */ s16* parts;
+    /* 0x54 */ HmfData* hmf;
+    /* 0x58 */ char unk58[0x40];
+} PpHmfGroup; /* size 0x98 */
+
+typedef struct PpHmfView {
+    /* 0x00 */ char unk00[0x16];
+    /* 0x16 */ s16 groupCount;
+    /* 0x18 */ char unk18[0x4C];
+    /* 0x64 */ s16 objCount;
+    /* 0x68 */ PpHmfObj* objs;
+    /* 0x6C */ char unk6C[0x14];
+    /* 0x80 */ PpHmfGroup* groups;
+} PpHmfView;
+
+void func_80106B6C_puddle_paddle(s16 dst, s16 src, u16 part) {
+    PpHmfView* from = (PpHmfView*)HmfModelData[src].hmf;
+    HmfData* to = HmfModelData[dst].hmf;
+    PpHmfGroup* group;
+    PpHmfObj* obj;
+    s16 i;
+    s16 j;
+    s16 none = 0;
+
+    if (from->groups == (PpHmfGroup*)-1) {
+        for (i = 0; i < from->objCount; i++) {
+            obj = &from->objs[i];
+            if (obj->part == part) {
+                obj->hmf = to;
+                obj->part = none;
+            }
+        }
+    } else {
+        for (i = 0; i < from->groupCount; i++) {
+            group = &from->groups[i];
+            for (j = 0; j < group->count; j++) {
+                if (group->parts[j] == part) {
+                    group->hmf = to;
+                    group->parts[j] = none;
+                    break;
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106CE4_puddle_paddle);
 
