@@ -1201,3 +1201,114 @@ void func_801110F0_puddle_paddle(Vec *in, s16 n, f32 *mtx, Vec *out) {
         out[i].z = (PP3_M_ID(mtx, 3, 0) + in[i].x) * PP3_M_ID(mtx, 0, 2) + (PP3_M_ID(mtx, 3, 1) + in[i].y) * PP3_M_ID(mtx, 1, 2) + (PP3_M_ID(mtx, 3, 2) + in[i].z) * PP3_M_ID(mtx, 2, 2);
     }
 }
+
+// m1 pp3: the unit's .data (0x80111220..0x80111638; the linker's ALIGN(0x10) pads to 0x80111640)
+typedef struct {
+    /* 0x00 */ s32 file[8];
+} PpFileTable; // Size 0x20
+
+typedef struct {
+    /* 0x00 */ s16 v[6];
+} PpS16x6; // Size 0xC
+
+typedef struct {
+    /* 0x00 */ s16 v[3];
+} PpS16x3; // Size 6
+
+typedef struct {
+    /* 0x00 */ char name[16][32];
+} PpNameTable; // Size 0x200
+
+typedef struct {
+    /* 0x00 */ Vec pos[2];
+} PpVecPair; // Size 0x18
+
+f32 D_80111220_puddle_paddle = 0.0f;
+f32 D_80111224_puddle_paddle = 0.0f;
+f32 D_80111228_puddle_paddle = 180.0f;
+s16 D_8011122C_puddle_paddle = -1;
+s16 D_8011122E_puddle_paddle = 0;
+s16 D_80111230_puddle_paddle = 0;
+s16 D_80111232_puddle_paddle = 0;
+s16 D_80111234_puddle_paddle[6] = { 0 }; // only [0] is referenced
+
+Gfx D_80111240_puddle_paddle[] = {
+    gsSPSegment(0x00, 0x00000000),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPPipelineMode(G_PM_1PRIMITIVE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureDetail(G_TD_CLAMP),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0, 0),
+    gsDPSetTileSize(1, 0, 0, 0, 0),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTextureFilter(G_TF_BILERP),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetCombineKey(G_CK_NONE),
+    gsDPSetAlphaCompare(G_AC_NONE),
+    gsDPSetDepthSource(G_ZS_PIXEL),
+    gsDPSetRenderMode(G_RM_OPA_SURF, G_RM_OPA_SURF2),
+    gsDPNoOp(),
+    gsDPSetColorDither(G_CD_DISABLE),
+    gsDPPipeSync(),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_801112F8_puddle_paddle[] = {
+    gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA),
+    gsSPTexture(0, 0, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPSetGeometryMode(G_SHADE | G_SHADING_SMOOTH),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_80111318_puddle_paddle[] = {
+    gsSPDisplayList(D_801112F8_puddle_paddle),
+    gsSPDisplayList(D_80111240_puddle_paddle),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_80111330_puddle_paddle[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(D_80111318_puddle_paddle),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsSPSetGeometryMode(G_ZBUFFER | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH),
+    gsDPSetBlendColor(0x00, 0x00, 0x00, 0x00),
+    gsDPSetPrimColor(0, 0, 0x00, 0x00, 0x00, 0xFF),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+    gsSPEndDisplayList(),
+};
+
+s16 D_80111370_puddle_paddle[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0 }; // "ＳＴＡＲＴ"
+s16 D_8011137C_puddle_paddle[] = { 0x8265, 0x8268, 0x826D, 0x8268, 0x8272, 0x8267, 0 }; // "ＦＩＮＩＳＨ"
+s16 D_8011138C_puddle_paddle[] = { 0x8263, 0x8271, 0x8260, 0x8276, 0 }; // "ＤＲＡＷ"
+PpFileTable D_80111398_puddle_paddle = { { 8, 9, 10, 11, 12, 13, 14, 15 } };
+PpS16x6 D_801113B8_puddle_paddle = { { 0x21, 0x26, 0x21, 0x27, 0x32, 0x14 } };
+PpS16x3 D_801113C4_puddle_paddle = { { 8, 4, 4 } };
+PpS16x3 D_801113CC_puddle_paddle = { { 0, 1, 2 } };
+PpFileTable D_801113D4_puddle_paddle = { { 12, 13, 14, 15, 16, 17, 18, 19 } };
+PpFileTable D_801113F4_puddle_paddle = { { 4, 5, 6, 7, 8, 9, 10, 11 } };
+PpNameTable D_80111414_puddle_paddle = { {
+    "migi-te2_4",
+    "migi-te3_2_1",
+    "c001_000-migi-te2_2",
+    "c001_000-migi-te2_3",
+    "C002_000b-bmerge14",
+    "C002_000b-bmerge16",
+    "c003_000-bmerge1_13_1",
+    "c003_000-bmerge1_8",
+    "Luigi1-migi-te1_2",
+    "Luigi1-migi-te1_1",
+    "c005_000-bmerge4",
+    "c005_000-bmerge6",
+    "c001_000-migi-te2_2",
+    "c001_000-migi-te2_3",
+    "C002_000b-bmerge14",
+    "C002_000b-bmerge16",
+} };
+PpVecPair D_80111614_puddle_paddle = { { { -300.0f, 200.0f, 0.0f }, { 300.0f, 200.0f, 0.0f } } };
+f64 D_80111630_puddle_paddle = 30.0; // passed to GMesCreate's varargs (the asm reads it as two words)
+// end m1 pp3 .data
