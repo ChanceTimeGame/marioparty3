@@ -309,6 +309,8 @@ void func_8010DC08_duel02(void);
 void func_801100A8_duel02(s32);
 void func_8010EB40_duel02(s32);
 void func_8010EB98_duel02(s32);
+void func_800ECD0C_name_81(s32, s8, s8);
+void func_800E27D4_name_81(s16 playerIndex, Vec *pos, Vec *frontPos, Vec *backPos);
 s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
 /* retail passes the back link/index addresses to the empty func_8011639C_duel02, so no prototype here */
 void func_8011639C_duel02();
@@ -900,7 +902,31 @@ s32 func_801163A4_duel02(void) {
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116414_duel02);
+// board da3: place the opponent between spaces 0x2A and 0x20 (front partner 12 to the right, back partner 12 along 60 degrees)
+void func_80116414_duel02(void) {
+    s8 linkIdx[2]; // link, index
+    Vec pos[3]; // center, front, back
+    GW_PLAYER *player;
+    SpaceData *space;
+    s8 playerNo;
+
+    playerNo = GwSystem.current_player_index ^ 1;
+    player = MBDGetPlayerStruct(playerNo);
+    func_800E9F4C_name_81(0x2A, &linkIdx[0], &linkIdx[1]);
+    func_800ECD0C_name_81(playerNo, linkIdx[0], linkIdx[1]);
+    player->rev = 0;
+    player->nnlink = -1;
+    player->nnidx = -1;
+    space = MBDMasuGet(0x2A);
+    HuVecAdd(&pos[0], &space->coords, &MBDMasuGet(0x20)->coords);
+    HuVecMulScalar(&pos[0], 0.5f, &pos[0]);
+    HuVecCopy3F(&pos[1], &pos[0]);
+    pos[1].x += 12.0f;
+    HuVecCopy3F(&pos[2], &pos[0]);
+    pos[2].x -= sindf(60.0f) * 12.0f;
+    pos[2].z -= cosdf(60.0f) * 12.0f;
+    func_800E27D4_name_81(playerNo, &pos[0], &pos[1], &pos[2]);
+}
 
 void func_80116564_duel02(void) {
 }
