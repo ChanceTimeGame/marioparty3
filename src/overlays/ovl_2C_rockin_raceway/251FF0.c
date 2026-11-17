@@ -775,7 +775,66 @@ void func_80107E78_rockin_raceway(s32 slot, s16 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010803C_rockin_raceway);
+void func_8010803C_rockin_raceway(s32* order) {
+    RrRank rank[4];
+    RrRank tmp;
+    RrRacer* r;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 swap;
+
+    for (i = 0; i < 4; i++) {
+        r = func_8010EC38_rockin_raceway(D_800EC598_minigame[i]);
+        rank[i].unk00 = i;
+        rank[i].unk04 = r->unk4C;
+        rank[i].unk08 = r->unk2E;
+        rank[i].unk0C = D_800EC598_minigame[i]->trans.x + r->unk54;
+        rank[i].unk10 = r->unk50;
+        rank[i].unk14 = r->unk48;
+    }
+    for (i = 0; i < 64; i++) {
+        j = rand8() & 3;
+        k = rand8() & 3;
+        tmp = rank[j];
+        rank[j] = rank[k];
+        rank[k] = tmp;
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = i + 1; j < 4; j++) {
+            swap = 0;
+            if (rank[i].unk04 >= D_801112C0_rockin_raceway[rank[i].unk08] - 1
+                && rank[j].unk04 >= D_801112C0_rockin_raceway[rank[j].unk08] - 1
+                && rank[i].unk0C < rank[j].unk0C) {
+                swap = 1;
+            } else if (rank[i].unk04 < rank[j].unk04) {
+                swap = 1;
+            } else if (rank[i].unk04 == rank[j].unk04 && rank[i].unk10 < rank[j].unk10) {
+                swap = 1;
+            }
+            if (swap) {
+                tmp = rank[i];
+                rank[i] = rank[j];
+                rank[j] = tmp;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        r = func_8010EC38_rockin_raceway(D_800EC598_minigame[i]);
+        for (j = 0; j < 4; j++) {
+            if (rank[j].unk00 == i) {
+                break;
+            }
+        }
+        if (j >= 4) {
+            j = 3;
+        }
+        r->unk1C = j;
+    }
+    for (i = 0; i < 4; i++) {
+        order[i] = ((RrRacer*)func_8010EC38_rockin_raceway(D_800EC598_minigame[rank[i].unk00]))->unk0A;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108464_rockin_raceway);
 
