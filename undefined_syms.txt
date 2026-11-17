@@ -326,3 +326,7 @@ D_800CE2A0_main = D_800CE298_main + 0x8;
 D_800D1FE0_main = D_800D1FDC_main + 0x4;
 D_800CB894_main = D_800CB890_main + 0x4;
 D_800D2124_main = D_800D2120_main + 0x4;
+/* m1A: mgmode/46CC10 string literals still named by the remaining asm */
+D_8011A404_mgmode = 0x8011A404;
+D_8011A40C_mgmode = 0x8011A40C;
+D_8011A430_mgmode = 0x8011A430;
