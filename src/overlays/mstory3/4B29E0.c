@@ -1368,7 +1368,7 @@ extern MsMotTbl3 D_80115608_mstory3;
 extern char D_801156C8_mstory3[]; /* "item_hook" */
 extern s32 D_800A178C_main[][6];
 
-void func_80032FC0_main(s16, s32, s32);
+void func_80032FC0_main(s16, u8, u8);
 s16 func_800329B4_main(void *);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 
