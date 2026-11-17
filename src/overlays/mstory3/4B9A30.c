@@ -55,11 +55,16 @@ extern Vec D_801157DC_mstory3;
 extern Vec D_801157E8_mstory3;
 extern Vec D_801157F4_mstory3;
 extern Story3Motions D_80115800_mstory3;
+extern Vec D_801153B0_mstory3;
+extern Vec D_801153BC_mstory3;
+extern Vec D_801153C8_mstory3;
+extern Vec D_801153D4_mstory3;
 extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
 f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
 void func_80032FC0_main(s16, s32, s32);
 s16 func_800329B4_main(void *);
 
+void func_80105E8C_mstory3(void);
 void func_80105F54_mstory3(void);
 void func_8010603C_mstory3(void);
 void func_8010606C_mstory3(void);
@@ -130,6 +135,23 @@ void func_80114474_mstory3(omObjData *obj);
 void func_8011475C_mstory3(omObjData *obj);
 void func_801149D0_mstory3(void);
 void func_80114B00_mstory3(void);
+void func_80110774_mstory3(omObjData *obj);
+void func_80110998_mstory3(omObjData *obj);
+void func_80110A84_mstory3(omObjData *obj);
+void func_801115D8_mstory3(omObjData *obj);
+void func_80111E4C_mstory3(omObjData *obj);
+void func_80111F5C_mstory3(omObjData *obj);
+void func_8011272C_mstory3(omObjData *obj);
+void func_80112854_mstory3(omObjData *obj);
+void func_801130A4_mstory3(omObjData *obj);
+void func_8011315C_mstory3(omObjData *obj);
+void func_80113668_mstory3(omObjData *obj);
+void func_801136E8_mstory3(omObjData *obj);
+void func_80113800_mstory3(omObjData *obj);
+void func_80113AA8_mstory3(omObjData *obj);
+void func_80113B3C_mstory3(omObjData *obj);
+void func_80114CD8_mstory3(omObjData *obj);
+void func_8011517C_mstory3(omObjData *obj);
 // end story u3
 
 ObPath *func_8010C9F0_mstory3(Vec *points, s16 flags) {
@@ -590,7 +612,139 @@ void func_8010E170_mstory3(omObjData *obj) {
     S3A[10].func = func_8010EBE4_mstory3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010EBE4_mstory3);
+/* the director, part 3 */
+void func_8010EBE4_mstory3(omObjData *obj) {
+    S3A[4].func = func_8011289C_mstory3;
+    S3A[3].func = func_80111FA4_mstory3;
+    S3A[0].func = func_80110A84_mstory3;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 7), 0, 10, 0);
+    func_80106CF0_mstory3(S3MODEL(2), D_80115DAE_mstory3, D_80115DA4_mstory3[3]);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A69);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    S3A[4].func = func_8011289C_mstory3;
+    S3A[3].func = func_80111FA4_mstory3;
+    S3A[0].func = func_80110A84_mstory3;
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 7), 0, 10, 0);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A6A);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 7), 0, 10, 0);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 7), 0, 10, 0);
+    HuPrcSleep(10);
+    S3A[5].func = func_8011315C_mstory3;
+    S3A[9].func = func_80114CD8_mstory3;
+    S3A[2].func = func_8011517C_mstory3;
+    HuPrcSleep(120);
+    S3A[2].unk08 = 1;
+    HuPrcSleep(10);
+    while (TRUE) {
+        if (S3A[9].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[9].unk08 = 0;
+    HuPrcSleep(20);
+    S3A[2].func = func_8010D774_mstory3;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[2].obj, &D_801153BC_mstory3, 5);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    HmfModelData[S3MODEL(2)].rot.y = 0.0f;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 6), 0, 10, 2);
+    S3A[0].unk08 = 1;
+    S3A[4].unk08 = 1;
+    S3A[3].unk08 = 1;
+    HuAudFXPlay(0x2C4);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A6C);
+    func_8010606C_mstory3();
+    HuPrcSleep(5);
+    S3A[0].func = func_80110774_mstory3;
+    S3A[4].func = func_8011272C_mstory3;
+    S3A[3].func = func_80111E4C_mstory3;
+    HuAudFXPlay(0x29E);
+    S3A[5].func = func_801130A4_mstory3;
+    func_8010603C_mstory3();
+    func_801060E4_mstory3(0x5A6D);
+    func_8010606C_mstory3();
+    HuPrcSleep(5);
+    S3A[0].func = func_80110774_mstory3;
+    S3A[4].func = func_8011272C_mstory3;
+    S3A[3].func = func_80111E4C_mstory3;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[2].obj, &D_801153D4_mstory3, 10);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    func_8010603C_mstory3();
+    func_801060E4_mstory3(0x5A6F);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[2].obj, &D_801153BC_mstory3, 10);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 7), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(2));
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[2].obj, &D_801153B0_mstory3, 10);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    S3A[2].func = func_801115D8_mstory3;
+    while (TRUE) {
+        if (S3A[2].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[2].unk08 = 0;
+    S3A[0].func = func_80110998_mstory3;
+    S3A[4].func = func_80111F5C_mstory3;
+    S3A[3].func = func_80112854_mstory3;
+    HuPrcSleep(30);
+    D_801153B0_mstory3.y = HmfModelData[S3MODEL(0)].rot.y;
+    D_801153C8_mstory3.y = -62.78f;
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[0]);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_801153C8_mstory3, 10);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 2);
+    HuPrcSleep(40);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_801153BC_mstory3, 10);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 2);
+    HuPrcSleep(15);
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[2]);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 11), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(0));
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 2), 0, 10, 2);
+    func_80107070_mstory3(S3A[0].obj, &D_801153B0_mstory3, 3);
+    S3A[0].func = func_80110998_mstory3;
+    HuPrcSleep(60);
+    S3A[6].func = func_80113668_mstory3;
+    S3A[7].func = func_80113AA8_mstory3;
+    HuPrcSleep(15);
+    HuAudFXPlay(0x2A0);
+    func_8010603C_mstory3();
+    func_801060E4_mstory3(0x5A6E);
+    func_8010606C_mstory3();
+    while (TRUE) {
+        if (S3A[7].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[7].unk08 = 0;
+    S3A[6].func = func_801136E8_mstory3;
+    S3A[7].func = func_80113B3C_mstory3;
+    while (TRUE) {
+        if (S3A[6].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[6].unk08 = 0;
+    S3A[6].func = func_80113800_mstory3;
+    HuPrcSleep(60);
+    func_80105E8C_mstory3();
+    S3A[10].func = func_8010D774_mstory3;
+}
 
 void func_8010F658_mstory3(void) {
 }

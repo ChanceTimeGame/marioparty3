@@ -335,3 +335,5 @@ D_8010AAEE_storyresult = D_8010AAEC_storyresult + 0x2;
 D_8010AB06_storyresult = D_8010AB04_storyresult + 0x2;
 D_8010AB08_storyresult = D_8010AB04_storyresult + 0x4;
 D_8010AB0A_storyresult = D_8010AB04_storyresult + 0x6;
+/* mstory3 (story u3): the Vec at 0x801153C8 inside the D_801153BC block */
+D_801153C8_mstory3 = D_801153BC_mstory3 + 0xC;
