@@ -555,3 +555,14 @@ s16 func_80106E48_storyresult(void) {
     return ret;
 }
 
+
+/* .data 0x8010A910..0x8010A940 */
+u16 D_8010A910_storyresult = 0; /* exit delay */
+s16 D_8010A912_storyresult = 0;
+s16 D_8010A914_storyresult = 1;
+f32 D_8010A918_storyresult = 58.0f; /* current fov */
+s8 D_8010A91C_storyresult = 0;      /* fixed camera */
+u32 D_8010A920_storyresult = 0;     /* random seed */
+/* per GwStory.unk0 (chapter): 0 party board, 1 duel board, 2 two-player game */
+u8 D_8010A924_storyresult[16] = { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 2, 2, 0, 0 };
+u8 D_8010A934_storyresult[12] = { 0 }; /* file end padding (the unit's data ends on a 16-byte boundary) */
