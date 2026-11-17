@@ -1362,35 +1362,558 @@ s32 func_80114724_duel04(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114884_duel04);
+s32 func_80114884_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114950_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 1:
+            if (walk >= 6 || opp->cidx == D_80119EDC_duel04[walk]) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EDC_duel04[walk]) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            return 0;
+        case 2:
+            return 0;
+        case 5:
+        default:
+            return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114AE4_duel04);
+s32 func_80114950_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114C60_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 2:
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 1:
+            if (walk < 6 && opp->cidx == D_80119EDC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EDC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return opp->rev & 1;
+        case 5:
+            if (walk < 3 && opp->cidx == D_80119F0C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F0C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        default:
+            return func_800EFE20_name_81(2.0f) != 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114DF4_duel04);
+s32 func_80114AE4_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80114F70_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 2:
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 1:
+            if (walk < 6 && opp->cidx == D_80119EDC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EDC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return opp->rev & 1;
+        case 5:
+            if (walk < 3 && opp->cidx == D_80119F0C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F0C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        default:
+            return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801150D0_duel04);
+s32 func_80114C60_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115188_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 3:
+            if (walk < 6 && opp->cidx == D_80119EF4_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx < D_80119EF4_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 6:
+            if (walk < 3 && opp->cidx == D_80119F14_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F14_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        case 2:
+            return opp->rev & 1;
+        default:
+            return func_800EFE20_name_81(2.0f) != 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801152F0_duel04);
+s32 func_80114DF4_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801153D8_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 3:
+            if (walk < 6 && opp->cidx == D_80119EF4_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx < D_80119EF4_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 6:
+            if (walk < 3 && opp->cidx == D_80119F14_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F14_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        case 2:
+            return opp->rev & 1;
+        default:
+            return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011553C_duel04);
+s32 func_80114F70_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115624_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 2:
+            if (walk < 5 && opp->cidx == D_80119EEC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 5 || opp->cidx > D_80119EEC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return 0;
+        case 3:
+            /* retail reads the opponent's itemPrize on this route */
+            if (walk < 6 && opp->cidx == D_80119EF4_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 6 || opp->cidx < D_80119EF4_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return opp->stats.prize.itemPrize != 0;
+                }
+                return 0;
+            }
+            if (!(opp->rev & 1)) {
+                return 0;
+            }
+            return opp->stats.prize.itemPrize != 0;
+        case 4:
+        default:
+            return 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115780_duel04);
+s32 func_801150D0_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115834_duel04);
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->clink == 3) {
+        if (walk >= 6 || opp->cidx == D_80119EF4_duel04[walk]) {
+            return me->stats.prize.itemPrize == 0;
+        }
+        if (walk >= 6 || opp->cidx < D_80119EF4_duel04[walk]) {
+            return me->stats.prize.itemPrize == 0;
+        }
+        return 1;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801159C4_duel04);
+s32 func_80115188_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 2:
+            if (walk < 5 && opp->cidx == D_80119EEC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 5 || opp->cidx > D_80119EEC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return 0;
+        case 6:
+            if (walk < 3 && opp->cidx == D_80119F14_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F14_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        case 3:
+        default:
+            return 0;
+    }
+}
+
+s32 func_801152F0_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 6:
+            if (walk < 3 && opp->cidx == D_80119F14_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F14_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 1;
+            }
+            return 1;
+        case 3:
+            return 1;
+        case 2:
+        default:
+            return 1;
+    }
+}
+
+s32 func_801153D8_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 0:
+            if (walk < 5 && opp->cidx == D_80119EC4_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 5 || opp->cidx < D_80119EC4_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return 0;
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F1C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F1C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        case 3:
+        default:
+            return 0;
+    }
+}
+
+s32 func_8011553C_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F1C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F1C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 1;
+            }
+            return 1;
+        case 3:
+            return 1;
+        case 0:
+        default:
+            return 1;
+    }
+}
+
+s32 func_80115624_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 0:
+            if (walk < 5 && opp->cidx == D_80119EC4_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 5 || opp->cidx < D_80119EC4_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return 1;
+        case 3:
+            /* retail reads the opponent's itemPrize on this route */
+            if (walk < 6 && opp->cidx == D_80119EFC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EFC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return opp->stats.prize.itemPrize == 0;
+                }
+                return 1;
+            }
+            if (opp->rev & 1) {
+                return 1;
+            }
+            return opp->stats.prize.itemPrize == 0;
+        case 7:
+        default:
+            return 1;
+    }
+}
+
+s32 func_80115780_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->clink == 3) {
+        if (walk >= 6 || opp->cidx == D_80119EFC_duel04[walk]) {
+            return me->stats.prize.itemPrize != 0;
+        }
+        if (walk >= 6 || opp->cidx > D_80119EFC_duel04[walk]) {
+            return me->stats.prize.itemPrize != 0;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+s32 func_80115834_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 0:
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 3:
+            if (walk < 6 && opp->cidx == D_80119EFC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EFC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return opp->rev & 1;
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F1C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F1C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        default:
+            return func_800EFE20_name_81(2.0f) != 0;
+    }
+}
+
+s32 func_801159C4_duel04(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 0:
+            if (opp->rev & 1) {
+                return 0;
+            }
+            return 1;
+        case 3:
+            if (walk < 6 && opp->cidx == D_80119EFC_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 6 || opp->cidx > D_80119EFC_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            return opp->rev & 1;
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F1C_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx < D_80119F1C_duel04[walk]) {
+                if (!(opp->rev & 1)) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            return opp->rev & 1;
+        default:
+            return 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115B3C_duel04);
 
