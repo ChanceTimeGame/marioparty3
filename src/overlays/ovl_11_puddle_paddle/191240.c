@@ -120,9 +120,16 @@ typedef struct PpPlayer {
 typedef struct PpCoin {
     /* 0x00 */ s16 kind;
     /* 0x02 */ s16 model;
-    /* 0x04 */ char unk04[0x1C];
+    /* 0x04 */ u8 state; /* 0 off, 1 falling, 2 splash, 3 floating, 4 sinking */
+    /* 0x08 */ Vec vel;
+    /* 0x14 */ f32 vy0;
+    /* 0x18 */ s16 time;
+    /* 0x1A */ s16 life; /* frames afloat */
+    /* 0x1C */ s16 count;
     /* 0x20 */ f32 unk20;
-    /* 0x24 */ char unk24[0x10];
+    /* 0x24 */ f32 spin;
+    /* 0x28 */ f32 spinSpeed;
+    /* 0x2C */ char unk2C[8];
 } PpCoin; /* size 0x34 */
 
 /* The game state (D_80111658_puddle_paddle) */
@@ -942,7 +949,115 @@ void func_80108368_puddle_paddle(PpCtx* ctx, PpTask* task) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108368_puddle_paddle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801087DC_puddle_paddle);
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
+s16 func_8010C42C_puddle_paddle(s16 tag);
+void func_8010C4D0_puddle_paddle(s16 id, f32 x, f32 y, f32 z, f32 rx, f32 ry, f32 rz, f32 scale, s32 arg8);
+void func_80108D10_puddle_paddle(PpCtx* ctx, PpTask* task);
+
+/* The coins: fall, splash, bob on the water, then sink blinking */
+void func_801087DC_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    PpCoin* coin = D_80111658_puddle_paddle->coins;
+    HmfModel* model;
+    f32 t;
+    s16 i;
+    s16 id;
+
+    for (i = 0; i < 16; i++, coin++) {
+        if (coin->state == 0) {
+            continue;
+        }
+        model = &HmfModelData[coin->model];
+        model->rot.x = CRot.x;
+        model->rot.y = CRot.y;
+        if (coin->kind == 2) {
+            coin->spin += coin->spinSpeed;
+            if (coin->spin > 360.0f) {
+                coin->spin -= 360.0f;
+            }
+            if (coin->spin < 0.0f) {
+                coin->spin += 360.0f;
+            }
+            func_80088910_main((f32(*)[4])HmfModelData[coin->model].mtx, 0.0f, 0.0f, coin->spin);
+        }
+        if (D_80111658_puddle_paddle->flags & 4) {
+            func_8010BA04_puddle_paddle(PP_WORK(ctx->obj)->b.group, 0xFFF, NULL, func_80108D10_puddle_paddle, 0);
+            func_8010BAA8_puddle_paddle(PP_WORK(ctx->obj)->b.group, task);
+            return;
+        }
+        switch (coin->state) {
+            case 1:
+                model->pos.x += coin->vel.x;
+                model->pos.y += coin->vel.y;
+                model->pos.z += coin->vel.z;
+                coin->vel.y = coin->vy0 - ++coin->time * 2.45f;
+                if (model->pos.y < 170.0f) {
+                    id = func_8010C42C_puddle_paddle(0);
+                    if (id != -1) {
+                        func_8010C4D0_puddle_paddle(id, model->pos.x, 170.0f, model->pos.z, 0.0f, 0.0f, 0.0f, 1.0f, 0);
+                    }
+                    if (coin->kind != 2) {
+                        coin->state = 2;
+                        coin->time = 0;
+                        coin->vel.y *= 0.25f;
+                    } else {
+                        coin->time = 0;
+                        coin->count = 3;
+                        coin->state = 4;
+                        coin->vel.y = 2.45f;
+                    }
+                    switch (coin->kind) {
+                        case 0:
+                            HuAudFXPlay(0x376);
+                            break;
+                        case 1:
+                            HuAudFXPlay(0x377);
+                            break;
+                        case 2:
+                            HuAudFXPlay(0x37A);
+                            break;
+                    }
+                }
+                break;
+            case 2:
+                model->pos.y += coin->vel.y;
+                coin->vel.y += 2.45f;
+                if (model->pos.y >= 170.0f) {
+                    coin->state = 3;
+                    coin->vel.y = model->pos.y;
+                }
+                break;
+            case 3:
+                t = coin->time / 50.0f;
+                if (t > 1.0f) {
+                    t = 1.0f;
+                }
+                model->pos.y = sindf(t * 180.0f) * 20.0f * 5.0f * 0.4f + coin->vel.y;
+                if (++coin->time >= 51) {
+                    coin->time = 0;
+                }
+                if (++coin->count > coin->life) {
+                    coin->time = 0;
+                    coin->count = 3;
+                    coin->state = 4;
+                    coin->vel.y = 3.6750002f;
+                }
+                break;
+            case 4:
+                if (++coin->time < coin->count) {
+                    func_8001C258_main(coin->model, 4, 4);
+                } else {
+                    coin->time = 0;
+                    func_8001C258_main(coin->model, 4, 0);
+                }
+                model->pos.y -= coin->vel.y;
+                if (model->pos.y < 0.0f) {
+                    coin->state = 0;
+                    func_8001C258_main(coin->model, 4, 4);
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108D10_puddle_paddle);
 
