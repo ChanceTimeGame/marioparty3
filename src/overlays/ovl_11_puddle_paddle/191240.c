@@ -211,7 +211,9 @@ typedef struct PpPlayer {
     /* 0x00 */ s16 no;
     /* 0x02 */ s16 chr;
     /* 0x04 */ s32 unk04; /* 2 turn left, 4 turn right (CPU steering), 0x10 */
-    /* 0x08 */ char unk08[6];
+    /* 0x08 */ s8 pending; /* motion change requested */
+    /* 0x0A */ s16 motion;
+    /* 0x0C */ s16 nextMotion;
     /* 0x0E */ s16 unk0E;
     /* 0x10 */ s8 slot; /* place in the team */
     /* 0x11 */ char unk11[0x37];
@@ -251,9 +253,14 @@ void func_801091F8_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx);
 s16 func_8010BA04_puddle_paddle(s8 groupId, s32 prio, void *data, void (*func)(PpFuncGroupContext *, PpFuncContext *), s8 tag);
 void func_80110BBC_puddle_paddle(f32 *a, f32 *b);
+
+void func_80109804_puddle_paddle(PpPlayer *player, s16 motion, s8 pending) {
+    player->pending = pending;
+    player->nextMotion = motion;
+    player->motion = motion;
+}
 s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109804_puddle_paddle);
 
 void func_80109814_puddle_paddle(UnkPuddlePaddle *arg0, s16 arg1) {
     arg0->unk_0E = arg1;
