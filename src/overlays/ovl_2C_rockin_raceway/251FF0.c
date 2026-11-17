@@ -144,7 +144,7 @@ f32 func_8010A258_rockin_raceway(s32 lane, f32 dist, f32 pos, f32 speed, u16* no
 s32 func_8010A48C_rockin_raceway(u16 lane, u16 node);
 s16 func_8010A4C0_rockin_raceway(s32 dirAndFile);
 void func_8010A504_rockin_raceway(void);
-void func_8010A5E4_rockin_raceway(s16 lane, s32 chr);
+void func_8010A5E4_rockin_raceway(s16 lane, s16 chr);
 void func_8010B124_rockin_raceway(void);
 void func_8010B774_rockin_raceway(void);
 void func_8010CB5C_rockin_raceway(RrRacer* r, f32 arg1);
@@ -337,8 +337,8 @@ void func_80106A80_rockin_raceway(omObjData* obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_80106B28_rockin_raceway(void) {
+    RrLane* track;
     omObjData* obj;
     RrRacer* r;
     s32 i;
@@ -376,7 +376,8 @@ void func_80106B28_rockin_raceway(void) {
                 r->unk2E = lane - 3;
             }
         }
-        r->unk30 = D_80111B40_rockin_raceway[r->unk2E].unk08 - D_80111B44_rockin_raceway;
+        track = &D_80111B40_rockin_raceway[r->unk2E];
+        r->unk30 = track->unk08 - D_80111B44_rockin_raceway;
         if (r->unk30 < 0.0f) {
             r->unk30 = 0.0f;
         }
@@ -388,9 +389,6 @@ void func_80106B28_rockin_raceway(void) {
         D_800EC280_minigame++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80106B28_rockin_raceway);
-#endif
 
 void func_80106DC8_rockin_raceway(omObjData* obj) {
     RrRacer* r;
