@@ -18,15 +18,15 @@ typedef struct LjPlayer {
     /* 0x08 */ s16 unk08; /* state */
     /* 0x0A */ s16 unk0A;
     /* 0x0C */ s16 unk0C; /* frame counter */
-    /* 0x0E */ s16 unk0E;
-    /* 0x10 */ s32 unk10;
+    /* 0x0E */ s16 unk0E; /* jump length */
+    /* 0x10 */ f32 unk10; /* vertical speed */
     /* 0x14 */ s32 unk14; /* win voice file */
     /* 0x18 */ s16 unk18; /* GwPlayer index */
     /* 0x1A */ s16 unk1A; /* controller port */
     /* 0x1C */ s16 unk1C; /* character */
     /* 0x1E */ s16 unk1E; /* CPU */
     /* 0x20 */ s16 unk20; /* CPU difficulty */
-    /* 0x22 */ s16 unk22;
+    /* 0x22 */ s16 unk22; /* log held, -1 none */
     /* 0x24 */ s16 unk24; /* CPU: target, -1 none */
     /* 0x26 */ s16 unk26;
     /* 0x28 */ s16 unk28; /* CPU: frames since the last press */
@@ -145,6 +145,18 @@ void func_8010C7F8_log_jam(omObjData* obj);
 void func_8010C8B0_log_jam(omObjData* obj);
 s16 func_80109A7C_log_jam(s16 kind, s16 part);
 void func_8001EF6C_main(s16 arg0, s16 arg1, const char* arg2);
+void func_80108840_log_jam(omObjData* obj, LjTeam* team);
+void func_80108A80_log_jam(omObjData* obj, LjTeam* team);
+s16 func_80108D1C_log_jam(f32 v, f32 g);
+void func_80109140_log_jam(s16 idx, f32 x, f32 y, f32 z);
+void func_80109190_log_jam(s16 idx, f32 x, f32 y, f32 z);
+f32 func_8010C2DC_log_jam(f32 target, f32 cur, f32 step);
+f32 func_8010C49C_log_jam(f32 t, f32 a, f32 b);
+f32 func_8010C4B4_log_jam(f32 a, f32 b, f32 t);
+void func_8010C7D0_log_jam(omObjData* obj);
+void func_8010CAC0_log_jam(omObjData* obj, const char* name, f32 (*mf)[4]);
+s32 func_8010AE58_log_jam(Vec* pos, Vec* vel, Vec* scale, f32 speed, LjRGBA* color);
+omObjData* func_80045F1C_main(u32, s16, s16);
 void func_8008A070_main(f32 (*mf)[4]);
 void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
@@ -165,6 +177,11 @@ extern s16 D_8010DFCC_log_jam[4]; /* player object marks */
 extern s32 D_8010DFD4_log_jam[]; /* per character: voice directory */
 extern s32 D_8010DFF4_log_jam[]; /* voice files; (s16) = the low half (D_8010DFF6, D_8010DFFE) */
 extern s32 D_800A178C_main[][6];
+extern Vec D_8010DEC0_log_jam[4]; /* positions at the log (D_8010DEC8 = [0].z) */
+extern Vec D_8010DEF0_log_jam[4]; /* jump landing positions (D_8010DEF8 = [0].z) */
+extern s32 D_8010DF50_log_jam[8]; /* win motion per character */
+extern s32 D_8010DF70_log_jam[8]; /* lose motion per character */
+extern f32 D_8010E010_log_jam[8]; /* effect height per character */
 extern s32 D_8010E004_log_jam[3]; /* model slots of the carried log */
 extern u16 D_800D5558_main[];
 
@@ -623,7 +640,7 @@ void func_80106968_log_jam(omObjData* obj) {
     pl->unk22 = -1;
     pl->unk24 = -1;
     pl->unk26 = -1;
-    pl->unk10 = 0;
+    pl->unk10 = 0.0f;
     pl->unk0E = 0;
     pl->unk28 = 0;
     pl->unk2A = 10;
@@ -669,7 +686,235 @@ void func_80106FAC_log_jam(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80107080_log_jam);
+/* The player without the hook (role 0): take a log from the chute and pass it to the partner. */
+void func_80107080_log_jam(omObjData* obj, LjTeam* team) {
+    f32 mtx[4][4];
+    Vec scale = D_8010E1F0_log_jam;
+    Vec pos;
+    LjPlayer* pl;
+    HmfModel* hmf;
+    LjPlayer* partner;
+    f32 t;
+    s32 sym;
+
+    t = 0.0f;
+    pl = func_8010C588_log_jam(obj);
+    hmf = &HmfModelData[obj->model[0]];
+    partner = team->unk0C;
+    if (pl->unk1E != 0) {
+        func_80108840_log_jam(obj, team);
+    }
+    if (func_800E6E8C_minigame() == 3 && pl->unk08 < 13) {
+        pl->unk08 = 13;
+        pl->unk0C = 0;
+    }
+    if (*(s32*)&pl->unk08 != 0x10000 && pl->unk08 < 13) {
+        obj->rot.y = func_8010C2DC_log_jam(D_8010DF20_log_jam[pl->unk00], obj->rot.y, 10.0f);
+    }
+    switch (pl->unk08) {
+    case 0:
+        if (pl->unk0C >= 3.0f && func_800E6E8C_minigame() == 2) {
+            func_8010C5DC_log_jam(obj, 7, 5);
+            func_8004AC98_main(0x38A, pl->unk18);
+            pl->unk08 = 1;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 1:
+        if (pl->unk0A == 0) {
+            t = pl->unk0C / 14.0f;
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            obj->rot.y = func_8010C4B4_log_jam(D_8010DF20_log_jam[pl->unk00], 0.0f, t);
+            if (hmf->unk04 == 0xFF && hmf->unk40 >= 14.0f && hmf->unk02 == obj->motion[7]) {
+                pl->unk24 = (u8)(rand8() % 3);
+                func_8001C258_main(obj->model[3 + pl->unk24], 4, 0);
+                pl->unk0A++;
+                pl->unk0C = 0;
+            }
+        } else if (hmf->unk04 == 0xFF && hmf->unk40 >= 29.0f && hmf->unk02 == obj->motion[7]) {
+            pl->unk08 = 2;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 2:
+        if ((D_800D5558_main[pl->unk1A] & 0xE000) && team->unk16 == -1 && partner->unk22 == -1 &&
+            (u16)(partner->unk08 - 6) < 2) {
+            switch (D_800D5558_main[pl->unk1A]) {
+            case 0x8000:
+                sym = 0;
+                break;
+            case 0x4000:
+                sym = 1;
+                break;
+            case 0x2000:
+                sym = 2;
+                break;
+            default:
+                sym = 3;
+                break;
+            }
+            if (sym == pl->unk24) {
+                func_8010C5DC_log_jam(obj, 8, 5);
+                pl->unk08 = 3;
+            } else {
+                func_8010C714_log_jam(obj, 8, 0);
+                hmf->unk40 = 0.0f;
+                hmf->unk44 = 0.0f;
+                omVibrate(pl->unk18, 2, 3, 10);
+                pl->unk08 = 4;
+            }
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 4:
+        if (pl->unk0A == 0) {
+            if ((hmf->unk40 += 2.0f) >= 10.0f) {
+                pos.x = obj->trans.x;
+                pos.y = obj->trans.y + D_8010E010_log_jam[pl->unk1C];
+                pos.z = obj->trans.z;
+                func_8010AE58_log_jam(&pos, NULL, NULL, 1.0f, NULL);
+                pl->unk0A++;
+            }
+        } else if (!(pl->unk0A & 1)) {
+            if ((hmf->unk40 += 2.0f) >= 6.0f) {
+                pl->unk0A++;
+            }
+        } else if ((hmf->unk40 -= 2.0f) <= 0.0f) {
+            if (pl->unk0A == 1 || pl->unk0A == 5 || pl->unk0A == 9) {
+                pos.x = obj->trans.x;
+                pos.y = obj->trans.y + D_8010E010_log_jam[pl->unk1C];
+                pos.z = obj->trans.z;
+                func_8010AE58_log_jam(&pos, NULL, NULL, 1.0f, NULL);
+            }
+            pl->unk0A++;
+        }
+        if (pl->unk0A >= 9) {
+            func_8010C7D0_log_jam(obj);
+            hmf->unk40 = 0.0f;
+            pl->unk08 = 2;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 3:
+        if (pl->unk0A == 0) {
+            if (hmf->unk04 == 0xFF && hmf->unk02 == obj->motion[8]) {
+                t = hmf->unk40 / 20.0f;
+            }
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            obj->trans.x = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].x, D_8010DEC0_log_jam[pl->unk00].x);
+            obj->trans.z = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].z, D_8010DEC0_log_jam[pl->unk00].z);
+            if (hmf->unk04 == 0xFF && hmf->unk40 >= 19.0f && hmf->unk02 == obj->motion[8]) {
+                func_8001C258_main(obj->model[3 + pl->unk24], 4, 4);
+                pl->unk22 = func_80109044_log_jam(pl->unk24, 0);
+                func_80109140_log_jam(pl->unk22, D_8010DF30_log_jam[team->unk10].x, D_8010DF30_log_jam[team->unk10].y,
+                                      D_8010DF30_log_jam[team->unk10].z);
+                func_80109190_log_jam(pl->unk22, 0.0f, 0.0f, 0.0f);
+                team->unk16 = pl->unk22;
+                team->unk18 = pl->unk24;
+                team->unk1A = 0;
+                pl->unk22 = pl->unk24 = -1;
+                omVibrate(pl->unk18, 10, 0, 10);
+                pl->unk0A++;
+                pl->unk0C = 0;
+            }
+        } else {
+            if (hmf->unk04 == 0xFF && hmf->unk02 == obj->motion[8]) {
+                t = (hmf->unk40 - 19.0f) / 20.0f;
+            }
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            obj->trans.x = func_8010C49C_log_jam(t, D_8010DEC0_log_jam[pl->unk00].x, D_8010DE90_log_jam[pl->unk00].x);
+            obj->trans.z = func_8010C49C_log_jam(t, D_8010DEC0_log_jam[pl->unk00].z, D_8010DE90_log_jam[pl->unk00].z);
+            if (hmf->unk04 == 0xFF && hmf->unk40 >= 39.0f && hmf->unk02 == obj->motion[8]) {
+                func_8010C5DC_log_jam(obj, 0, 5);
+                pl->unk08 = 0;
+                pl->unk0A = 0;
+                pl->unk0C = 0;
+            }
+        }
+        break;
+    case 13:
+        if (pl->unk24 != -1) {
+            func_8001C258_main(obj->model[3 + pl->unk24], 4, 4);
+            func_8010CAC0_log_jam(obj, D_8010E218_log_jam, mtx);
+            func_8010A9D4_log_jam((Vec*)mtx[3], NULL, &scale, 1.0f, &D_8010DF4C_log_jam);
+            pl->unk22 = pl->unk24 = -1;
+        }
+        func_8010C5DC_log_jam(obj, 0, 5);
+        pl->unk08 = 14;
+        /* fallthrough */
+    case 14:
+        obj->rot.y = func_8010C2DC_log_jam(0.0f, obj->rot.y, 10.0f);
+        obj->trans.x = func_8010C514_log_jam(D_8010DE90_log_jam[pl->unk00].x, obj->trans.x, 10.0f);
+        obj->trans.z = func_8010C514_log_jam(D_8010DE90_log_jam[pl->unk00].z, obj->trans.z, 10.0f);
+        if (func_800E6E8C_minigame() == 4) {
+            func_8010C5DC_log_jam(obj, 1, 5);
+            pl->unk10 = 32.0f;
+            pl->unk0E = func_80108D1C_log_jam(32.0f, 1.6333001f);
+            pl->unk08 = 15;
+            pl->unk0C = 0;
+        }
+        break;
+    case 15:
+        t = (f32)pl->unk0C / pl->unk0E;
+        if (t > 1.0f) {
+            t = 1.0f;
+        } else if (t < 0.0f) {
+            t = 0.0f;
+        }
+        if (pl->unk0C == 6) {
+            func_8010C5DC_log_jam(obj, 2, 6);
+        } else if (pl->unk0C == pl->unk0E - 10) {
+            func_8010C5DC_log_jam(obj, 1, 7);
+        }
+        obj->trans.x = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].x, D_8010DEF0_log_jam[pl->unk00].x);
+        obj->trans.z = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].z, D_8010DEF0_log_jam[pl->unk00].z);
+        obj->trans.y += pl->unk10;
+        pl->unk10 -= 1.6333001f;
+        if (obj->trans.y <= 0.0f) {
+            func_8010C5DC_log_jam(obj, 0, 5);
+            obj->trans.y = 0.0f;
+            pl->unk08 = 16;
+            pl->unk0C = 0;
+        }
+        break;
+    case 16:
+        pl->unk08 = 17;
+        pl->unk0C = 0;
+        break;
+    case 17:
+        if (pl->unk06 != -1) {
+            switch (pl->unk06) {
+            case 0:
+                func_8010C5DC_log_jam(obj, 9, 5);
+                func_80017790_main(obj->model[0], 2, pl->unk1C, D_8010DF50_log_jam[pl->unk1C]);
+                func_80045F1C_main(pl->unk14, -1, pl->unk18);
+                break;
+            case 1:
+                func_8010C5DC_log_jam(obj, 10, 5);
+                func_80017790_main(obj->model[0], 2, pl->unk1C, D_8010DF70_log_jam[pl->unk1C]);
+                break;
+            }
+            pl->unk06 = -1;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80107C84_log_jam);
 
@@ -933,7 +1178,7 @@ void func_80109140_log_jam(s16 idx, f32 x, f32 y, f32 z) {
     }
 }
 
-void func_80109190_log_jam(s16 idx, f32 x, f32 y) {
+void func_80109190_log_jam(s16 idx, f32 x, f32 y, f32 z) {
     LjLog* log;
 
     if (D_8010E5C4_log_jam != NULL) {
@@ -941,7 +1186,7 @@ void func_80109190_log_jam(s16 idx, f32 x, f32 y) {
         if (log->unk08 != 0) {
             log->unk1C.x = x;
             log->unk1C.y = y;
-            log->unk1C.z = x;
+            log->unk1C.z = x; /* retail: z is ignored */
         }
     }
 }
