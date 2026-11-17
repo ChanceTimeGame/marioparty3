@@ -842,9 +842,105 @@ void func_80107E1C_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108178_puddle_paddle);
+/* The thrower's motion: every 40 to 100 frames of play it throws (motion 1), then idles (motion 0).
+   NON_MATCHING: masked 2, the last test loads HmfModel::unk40 before the D_800CCF58_main index in retail. */
+#ifdef NON_MATCHING
+void func_80108178_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    omObjData* obj = ctx->obj;
 
+    if (!(D_80111658_puddle_paddle->flags & 2)) {
+        task->s16[0] = 0;
+    }
+    if (task->state == 0) {
+        task->s16[0] = 0;
+        task->s16[1] = 10;
+        D_80111658_puddle_paddle->unk40 = 0;
+        task->state = 1;
+    }
+    if (D_80111658_puddle_paddle->unk40 == 0) {
+        if (++task->s16[0] > task->s16[1]) {
+            func_8001C5B4_main(ctx->models[0], obj->motion[1]);
+            func_8001C92C_main(ctx->models[0], 2.0f);
+            func_8001C6A8_main(obj->model[0], 0.0f);
+            D_80111658_puddle_paddle->unk40 = 1;
+            task->s16[0] = 0;
+            task->s16[1] = (f32)(rand16() % 61 + 40);
+        }
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+            func_8001C5B4_main(ctx->models[0], obj->motion[0]);
+            func_8001C92C_main(ctx->models[0], 1.0f);
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108178_puddle_paddle);
+#endif
+
+extern s16 D_80111234_puddle_paddle; /* coins since the last kind-1 coin */
+s16 func_8010910C_puddle_paddle(s16 kind);
+void func_80108E2C_puddle_paddle(s16 coin, s16 kind, f32 angle, f32 speed, s16 model);
+
+/* Throws 2 to 4 coins at angles at least 45 degrees apart when the throw motion reaches frame 30.
+   NON_MATCHING: masked 0, chance and the angles pointer swap s3/s4. */
+#ifdef NON_MATCHING
+void func_80108368_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    omObjData* obj = ctx->obj;
+    s16 chance;
+    f32 angles[6];
+    f32 time;
+    f32 speed;
+    f32 angle;
+    f32 d;
+    s16 count;
+    s16 kind;
+    s16 retry;
+    s16 i;
+    s16 j;
+
+    if (D_80111658_puddle_paddle->unk40 != 0) {
+        time = HmfModelData[obj->model[0]].unk40;
+        if ((time >= 30.0f) & (time <= 35.0f)) {
+            D_80111658_puddle_paddle->unk40 = 0;
+            count = rand16() % 3 + 2;
+            for (i = 0; i < count; i++) {
+                chance = 65;
+                if (D_80111234_puddle_paddle < 11) {
+                    chance = rand16() % 101;
+                }
+                speed = rand16() % 41 + 30;
+                do {
+                    if (i == 0) {
+                        angle = angles[0] = HmfModelData[ctx->models[0]].rot.y;
+                    } else {
+                        angle = angles[i] = rand16() % 360;
+                    }
+                    retry = 0;
+                    for (j = 0; j < i; j++) {
+                        if (i != j) {
+                            d = angles[i] - angles[j];
+                            if ((d > 0.0f ? d : -(angles[i] - angles[j])) < 45.0f) {
+                                retry = 1;
+                            }
+                        }
+                    }
+                } while (retry != 0);
+                kind = 0;
+                if (chance < 61) {
+                    D_80111234_puddle_paddle++;
+                } else if (chance < 71) {
+                    D_80111234_puddle_paddle = 0;
+                    kind = 1;
+                } else if (chance < 101) {
+                    kind = 2;
+                }
+                func_80108E2C_puddle_paddle(func_8010910C_puddle_paddle(kind), kind, angle, speed, ctx->models[0]);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108368_puddle_paddle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801087DC_puddle_paddle);
 
