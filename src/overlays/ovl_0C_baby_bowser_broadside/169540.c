@@ -1,6 +1,11 @@
 #include "common.h"
 #include "gcc/memory.h"
 #include "mallocblock.h"
+#include "math.h"
+#include "game/hmfman.h"
+#include "game/object.h"
+#include "game/sprite.h"
+#include "game/util.h"
 
 // m1 bb2: object system shared with ovl_39 tick_tock_hop system.c (m257_*) and ovl_36 motor_rooter (m254_*),
 // with larger pools, a tag per animated model and billboard, and a billboard colour.
@@ -883,14 +888,6 @@ s16 func_8010C8D4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, BbRGBA *arg
 }
 
 // m1 bb3: collider system shared with tick_tock_hop/motor_rooter (system.c); copies of their helpers below
-#include "ultra64.h"
-#include "math.h"
-#include "gcc/memory.h"
-#include "game/hmfman.h"
-#include "game/object.h"
-#include "game/sprite.h"
-#include "game/util.h"
-#include "mallocblock.h"
 
 #define BB3_ABS(x) ((x) > 0 ? (x) : -(x))
 #define BB3_M_ID(m, i, j) ((m)[(i) * 4 + (j)])
@@ -899,13 +896,6 @@ s16 func_8010C8D4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, BbRGBA *arg
 
 f32 atan2df(f32, f32);
 f32 sqrtf(f32);
-
-typedef struct {
-    u8 r;
-    u8 g;
-    u8 b;
-    u8 a;
-} BbRGBA;
 
 typedef struct {
     /* 0x00 */ Vec normal;
@@ -949,25 +939,11 @@ typedef struct {
     /* 0x30 */ s16 hitCylinder;
 } BbMover;
 
-typedef struct {
-    /* 0x00 */ s8 set;
-    /* 0x02 */ s16 id;
-    /* 0x04 */ s8 state;
-    /* 0x05 */ s8 tag;
-    /* 0x08 */ s32 prio;
-    /* 0x0C */ s8 workS8[16];
-    /* 0x1C */ s16 workS16[8];
-    /* 0x2C */ f32 workF32[4];
-    /* 0x3C */ void *data;
-    /* 0x40 */ void (*func)(void *, void *);
-} BbFuncContext; // Size 0x44, the system's FuncContext (ovl_39.h layout)
-
-extern u8 D_800D2008_main;
 extern const f64 D_8010FFE8_baby_bowser_broadside; // 32.0
 extern const f64 D_8010FFF0_baby_bowser_broadside; // 0.5
 extern BbCollider *D_80110020_baby_bowser_broadside;
 
-void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx);
+void func_8010DE70_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx);
 s16 func_8010E348_baby_bowser_broadside(BbCollider *c, BbMover *m);
 s16 func_8010E538_baby_bowser_broadside(BbCollider *c, BbMover *m);
 s16 func_8010E710_baby_bowser_broadside(BbCollider *c, BbMover *m);
@@ -976,7 +952,6 @@ f32 func_8010ED1C_baby_bowser_broadside(BbCollider *c, Vec *p);
 s16 func_8010EDC0_baby_bowser_broadside(BbCollider *c, BbMover *m);
 f32 func_8010F004_baby_bowser_broadside(BbMover *m, Vec *a, Vec *b);
 void func_8010F3C4_baby_bowser_broadside(Vec *v, BbPlane *out);
-void func_8010F878_baby_bowser_broadside(f32 *out);
 void func_8010F900_baby_bowser_broadside(f32 *out, f32 x, f32 y, f32 z);
 void func_8010F958_baby_bowser_broadside(f32 *out, f32 angle);
 void func_8010F9C0_baby_bowser_broadside(f32 *out, f32 angle);
@@ -1098,7 +1073,7 @@ s16 func_8010D6C4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, HmfData *ar
     return var_s2;
 }
 
-void func_8010DAE8_baby_bowser_broadside(void *groupCtx, BbFuncContext *ctx) {
+void func_8010DAE8_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx) {
     D_80110020_baby_bowser_broadside = HuMemAllocTag(BB3_COLLIDERS_MAX * sizeof(BbCollider), 31000);
     memset(D_80110020_baby_bowser_broadside, 0, BB3_COLLIDERS_MAX * sizeof(BbCollider));
     ctx->func = func_8010DE70_baby_bowser_broadside;
@@ -1179,7 +1154,7 @@ void func_8010DDDC_baby_bowser_broadside(s16 colliderId, Vec *base, f32 height) 
 }
 
 #ifdef NON_MATCHING
-void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx) {
+void func_8010DE70_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx) {
     f32 *mtx;
     BbCollider *collider = D_80110020_baby_bowser_broadside;
     s16 i;
