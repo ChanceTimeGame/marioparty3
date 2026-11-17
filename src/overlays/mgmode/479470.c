@@ -57,11 +57,6 @@ typedef struct MgCB890 {
     /* 0x04 */ s16 unk04; /* coin rate */
 } MgCB890;
 
-typedef struct MgD1FDC {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ s16 coins;
-} MgD1FDC;
-
 typedef struct MgD1F2A {
     /* 0x00 */ s16 unk00;
     /* 0x02 */ s16 unk02;
@@ -90,7 +85,7 @@ void func_80088800_main(f32* mtx, f32 x, f32 y, f32 z);
 
 extern MgInfo D_800A6D40_main[];
 extern MgCB890 D_800CB890_main;
-extern MgD1FDC D_800D1FDC_main;
+extern s16 D_800D1FE0_main; /* coins to spend */
 extern MgD1F2A D_800D1F2A_main;
 extern u16 D_800D0418_main[];
 extern u8 D_800D2008_main;
@@ -156,7 +151,7 @@ s32 func_80114048_mgmode(void) {
         HuPrcVSleep();
     }
     if ((s16)func_8005E1D8_main(D_8011B6A8_mgmode, 0, 0) == 0) {
-        if (D_800D1FDC_main.coins < 11) {
+        if (D_800D1FE0_main < 11) {
             ret = 1;
         } else {
             func_80061A5C_main(D_8011B6A8_mgmode, 0);
@@ -223,7 +218,7 @@ void func_80114344_mgmode(void) {
 
 /* Counts the bonus coins into the total, then plays the win or lose motion and voice. */
 #ifdef NON_MATCHING
-/* WIP */
+/* Masked 12: scheduling of the rate*i products and operand order of the coin sums; logic checked against the asm. */
 void func_80114404_mgmode(void) {
     s16 rate = D_800CB890_main.unk04;
     s16 count = GwPlayer[0].bonusCoin;
@@ -235,20 +230,20 @@ void func_80114404_mgmode(void) {
     func_80116968_mgmode(D_801194C0_mgmode, 1, 184, 46);
     func_801169A0_mgmode(D_801194C0_mgmode, 2);
     func_80116968_mgmode(D_801194C0_mgmode, 2, 184, 98);
-    func_80115A9C_mgmode(184, 122, D_800D1FDC_main.coins);
+    func_80115A9C_mgmode(184, 122, D_800D1FE0_main);
     func_80114804_mgmode(rate, 0, 0);
-    func_80115BB8_mgmode(D_800D1FDC_main.coins);
-    func_80115CAC_mgmode(D_800D1FDC_main.coins);
+    func_80115BB8_mgmode(D_800D1FE0_main);
+    func_80115CAC_mgmode(D_800D1FE0_main);
     HuPrcSleep(10);
     for (i = 0; i <= count; i++) {
         total = rate * i;
         func_80114804_mgmode(rate, i, total);
-        func_80115BB8_mgmode(D_800D1FDC_main.coins + total);
-        func_80115CAC_mgmode(D_800D1FDC_main.coins + total);
+        func_80115BB8_mgmode(total + D_800D1FE0_main);
+        func_80115CAC_mgmode(total + D_800D1FE0_main);
         HuAudFXPlay(9);
         HuPrcSleep(2);
     }
-    D_800D1FDC_main.coins += count * rate;
+    D_800D1FE0_main += count * rate;
     if (count == 0) {
         func_8001C624_main(D_8011B8B8_mgmode[0], D_8011B796_mgmode, 0, 8, 0);
         voice = GwPlayer[0].chr + 0x287;
@@ -321,7 +316,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801149F4_mgmode);
 /* Lets the player pick how many coins to spend (D-pad: +-10, +-1); A confirms a non-zero amount,
    B returns -1. */
 #ifdef NON_MATCHING
-/* WIP */
+/* 175 vs 179: retail keeps the A test as a bitwise and and recomputes n + step for the last bound check (and has an 8-byte larger frame); logic checked against the asm. */
 s16 func_80114C80_mgmode(void) {
     s16 n = 0;
     s16 step;
@@ -350,10 +345,10 @@ s16 func_80114C80_mgmode(void) {
         if (step != 0) {
             HuAudFXPlay(0x246);
         }
-        if (((n == D_800D1FDC_main.coins) | (n == 100)) && step > 0) {
+        if (((n == D_800D1FE0_main) | (n == 100)) && step > 0) {
             n = 0;
-        } else if (n + step >= 100 || n + step > D_800D1FDC_main.coins || n + step < 0) {
-            n = D_800D1FDC_main.coins;
+        } else if (n + step >= 100 || n + step > D_800D1FE0_main || n + step < 0) {
+            n = D_800D1FE0_main;
             if (n > 100) {
                 n = 100;
             }
@@ -361,7 +356,7 @@ s16 func_80114C80_mgmode(void) {
             n += step;
         }
         func_80115BB8_mgmode(n);
-        func_80115CAC_mgmode(D_800D1FDC_main.coins - n);
+        func_80115CAC_mgmode(D_800D1FE0_main - n);
     }
     return n;
 }
@@ -464,7 +459,7 @@ void func_801152C0_mgmode(void) {
 
 /* The player walks from the door to the block spot and turns to face the camera. */
 #ifdef NON_MATCHING
-/* WIP */
+/* 194 vs 197: float register allocation (retail keeps 15.0f/8.0f in their own callee-saved registers); logic checked against the asm. */
 void func_80115590_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
     s16 player = D_8011B8B8_mgmode[0];
@@ -504,7 +499,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_80115590_mgmode);
 
 /* The player turns round and walks back to the door. */
 #ifdef NON_MATCHING
-/* WIP */
+/* 162 vs 166: float register allocation as func_80115590; logic checked against the asm. */
 void func_80115848_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
     s16 player = D_8011B8B8_mgmode[0];
@@ -540,7 +535,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_80115848_mgmode);
 
 /* Places the coin counter (label, icon, four digits) at (x, y) showing coins. */
 #ifdef NON_MATCHING
-/* WIP */
+/* Register allocation only (retail copies y to a second register). */
 void func_80115A9C_mgmode(s32 x, s32 y, s32 coins) {
     s16 i;
     s32 left = x - 40;
@@ -698,7 +693,7 @@ void func_80116260_mgmode(void) {
 /* Draws the iris mask into this frame's buffer: a wedge centred on cx, open by angle, with a
    two-pixel rim. */
 #ifdef NON_MATCHING
-/* WIP */
+/* 215 vs 235: the nibble ternaries compile to more branches than retail; logic checked against the asm. */
 void func_801162B4_mgmode(f32 cx, f32 angle) {
     u8* p = D_8011B610_mgmode[D_800D2008_main];
     u8* q;

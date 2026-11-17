@@ -338,3 +338,4 @@ D_8010AB0A_storyresult = D_8010AB04_storyresult + 0x6;
 /* wave 3t m3: mgmode 479470 (the GAMEMES at 0x8011B810; the table read at empstrline+8) */
 D_8011B810_mgmode = 0x8011B810;
 D_800D0418_main = 0x800D0418;
+D_800D1FE0_main = 0x800D1FE0;
