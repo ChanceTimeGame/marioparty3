@@ -104,7 +104,18 @@ void func_801059BC_mstory3(void) {
 }
 //@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801059E4_mstory3);
+//@@func_801059E4_mstory3
+void func_801059E4_mstory3(omObjData *obj) {
+    D_800CE17C_main[0] = D_80115260_mstory3.x;
+    D_800CE17C_main[1] = D_80115260_mstory3.z;
+    D_800CE17C_main[-1] = 0.0f;
+    D_800CE17C_main[2] = 35.0f;
+    D_800CE17C_main[3] = D_800D5210_main;
+    D_800CE17C_main[4] = D_800CB890_main;
+    Hu3DCamSetPositionOrientation(0, &D_80115260_mstory3, &D_8011526C_mstory3, &D_80115278_mstory3);
+    Hu3DCamUpdateMtx(0);
+}
+//@@end
 
 //@@func_80105A64_mstory3
 void func_80105A64_mstory3(void) {
@@ -264,29 +275,105 @@ void func_80105F54_mstory3(void) {
 }
 //@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010603C_mstory3);
+//@@func_8010603C_mstory3
+void func_8010603C_mstory3(void) {
+    func_8005D294_main(D_80115B92_mstory3);
+    func_80060C14_main(D_80115B92_mstory3, 1);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010606C_mstory3);
+//@@func_8010606C_mstory3
+void func_8010606C_mstory3(void) {
+    func_80060EA8_main(D_80115B92_mstory3, 1);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106090_mstory3);
+//@@func_80106090_mstory3
+void func_80106090_mstory3(s32 mess) {
+    func_8005B43C_main(D_80115B92_mstory3, mess, -1, -1);
+    while (func_8005E0C0_main(D_80115B92_mstory3) != 0) {
+        HuPrcVSleep();
+    }
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801060E4_mstory3);
+//@@func_801060E4_mstory3
+void func_801060E4_mstory3(s32 mess) {
+    func_8005B43C_main(D_80115B92_mstory3, mess, -1, -1);
+    func_8005B6BC_main(D_80115B92_mstory3, GwStory.unk1 + 0x1C00, 0);
+    while (func_8005E0C0_main(D_80115B92_mstory3) != 0) {
+        HuPrcVSleep();
+    }
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106154_mstory3);
+//@@func_80106154_mstory3
+s16 func_80106154_mstory3(void) {
+    return func_8005E1D8_main(D_80115B92_mstory3, 0, 1);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106184_mstory3);
+//@@func_80106184_mstory3
+void func_80106184_mstory3(void) {
+    func_8000BB54_main(D_80115B94_mstory3);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801061A4_mstory3);
+//@@func_801061A4_mstory3
+void func_801061A4_mstory3(void) {
+    func_8000BB94_main(D_80115B94_mstory3);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801061C4_mstory3);
+//@@func_801061C4_mstory3
+void func_801061C4_mstory3(void) {
+    func_8001C814_main(D_80115B96_mstory3, 4, 0);
+    func_8001C814_main(D_80115B96_mstory3, 1, 0);
+    func_8001C6A8_main(D_80115B96_mstory3, 0.0f);
+    func_8001C92C_main(D_80115B96_mstory3, 2.0f);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106220_mstory3);
+//@@func_80106220_mstory3
+void func_80106220_mstory3(void) {
+    func_8001C814_main(D_80115B96_mstory3, 4, 4);
+    func_8001C814_main(D_80115B96_mstory3, 1, 0);
+    func_8001C6A8_main(D_80115B96_mstory3, HmfModelData[D_80115B96_mstory3].unk40);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106284_mstory3);
+//@@func_80106284_mstory3
+void func_80106284_mstory3(void) {
+    s16 i = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106340_mstory3);
+    HmfModelData[D_80115B96_mstory3].rot.y += -10.6f;
+    do {
+        HmfModelData[D_80115B96_mstory3].rot.x += 17.84f;
+        HuPrcVSleep();
+        i++;
+    } while (i < 5);
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106400_mstory3);
+//@@func_80106340_mstory3
+void func_80106340_mstory3(void) {
+    D_80115B94_mstory3 = InitEspriteSlot(func_8000B838_main(0x1D0012), 0, 0);
+    func_8000BBD4_main(D_80115B94_mstory3, 0xA0, 0x78);
+    func_8000BC48_main(D_80115B94_mstory3, 0x4000);
+    D_80115B96_mstory3 = func_8000B108_main(0x1D0014, 0x2B9);
+    Hu3DModelPosSet(D_80115B96_mstory3, 591.7f, -81.0f, -1305.7f);
+    func_8001C814_main(D_80115B96_mstory3, 2, 0);
+    func_8001C814_main(D_80115B96_mstory3, 1, 1);
+}
+//@@end
+
+//@@func_80106400_mstory3
+void func_80106400_mstory3(s32 arg0) {
+    D_80115BBC_mstory3 = arg0;
+    D_80115288_mstory3 = 0;
+    omAddPrcObj(func_8010643C_mstory3, 0x1000, 0x800, 0);
+}
+//@@end
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010643C_mstory3);
 
