@@ -2259,8 +2259,10 @@ segments:
     subsegments:
       - [0x4B29E0, c]
       - [0x4B9A30, c]
-      - [0x4C22A0, data, 4B29E0] #80115260
-      - [0x4C28C0, .rodata, 4B9A30] #80115880
+      - [0x4C22A0, .data, 4B29E0] #80115260
+      - [0x4C23F0, .data, 4B9A30] #801153B0 (u4: data and rodata padded to 16; 4B29E0 writes its own .data, its local initializers are .rodata)
+      - [0x4C2530, .rodata, 4B29E0] #801154F0 (4B29E0 constant tables, local initializers and strings, in C)
+      - [0x4C2780, .rodata, 4B9A30] #80115740
       - {0x4C2BD0, type: bss, vram: 0x80115B90, name: mstory3_bss}
 
   - type: code
@@ -2500,7 +2502,7 @@ segments:
     bss_size: 0xE0
     subsegments:
       - [0x542220, c]
-      - [0x54CDB0, data, 542220] #80110530
+      - [0x54CDB0, .data, 542220] #80110530
       - [0x54DA70, .rodata, 542220] #801111F0
       - {0x54DD10, type: bss, vram: 0x80111490, name: staff_bss}
 
