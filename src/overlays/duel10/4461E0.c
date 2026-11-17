@@ -293,6 +293,12 @@ void func_800EB29C_name_81(void);
 void func_800F8358_name_81(s32);
 s32 func_80111DC4_duel10(void);
 s32 func_801127A8_duel10(s32 no);
+Process *MBDCameraZoomMotStart(f32);
+void func_8008A120_main(f32 *mtx, f32 angle); // defined with Matrix4f (f32[4][4])
+void func_800F7378_name_81(s32, s32);
+void func_800FAD04_name_81(s32 arg0);
+void func_800FADB4_name_81(void);
+void func_800FAE98_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
 /* part of a model looked up by name (func_8001D33C_main) */
 typedef struct Ec3HmfPart {
     /* 0x00 */ char unk_00[0x14];
@@ -886,7 +892,118 @@ void func_80113970_duel10(s32 no) {
     func_800F5E2C_name_81(no);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80113AF4_duel10);
+void func_80113AF4_duel10(void) {
+    Vec dir;
+    Vec rot;
+    Vec camPos;
+    Vec puffPos;
+    s32 cur;
+    GW_PLAYER *player;
+    Object *partner;
+    Object *coin;
+    s32 count;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 l;
+    f32 scale;
+
+    cur = GwSystem.current_player_index;
+    player = MBDGetPlayerStruct(cur);
+    if (player->stats.partners.frontID == 6 || player->stats.partners.backID == 6) {
+        count = 4;
+        func_800FAD04_name_81(6);
+        if (player->stats.partners.backID == 6) {
+            partner = MBDGetPlayerPartnerRef(cur, 1);
+        } else {
+            partner = MBDGetPlayerPartnerRef(cur, 0);
+        }
+        HuPrcChildLink(HuPrcCurrentGet(), MBDCameraZoomMotStart(2.0f));
+        HuPrcChildWait();
+        HuVecCopy3F(&camPos, &player->player_obj->coords);
+        func_800FC888_name_81(4);
+        func_800FC8C4_name_81(&camPos);
+        HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&camPos, &partner->coords, &camPos, 2.0f));
+        HuPrcChildWait();
+        func_800EB708_name_81(&partner->coords, &player->player_obj->coords, &dir);
+        HuVecCopy3F(&rot, &partner->rot);
+        func_800EBC60_name_81(&partner->rot, &dir, &partner->rot, 8);
+        HuPrcSleep(8);
+        for (i = 0; i < 31; i += 5) {
+            func_8008A120_main(HmfModelData[partner->omObj1->model[0]].mtx, -i);
+            partner->velocity.x += 1.0f;
+            HuPrcVSleep();
+        }
+        func_800FAE98_name_81(partner, 2, 0, 5, 2);
+        coin = NULL;
+        for (i = 0; i < count; i++) {
+            if (coin != NULL) {
+                for (j = 6; j < 12; j++) {
+                    scale = j / 6.0f + 0.5f;
+                    if (scale > 1.0f) {
+                        scale = 1.0f;
+                    }
+                    HuVecCopyXYZ(&coin->scale, scale, scale, scale);
+                    func_8008A2A0_main(HmfModelData[coin->omObj1->model[0]].mtx, j * 40);
+                    HuPrcVSleep();
+                }
+            } else {
+                HuPrcSleep(3);
+                HuVecCopy3F(&puffPos, &partner->coords);
+                puffPos.y += 12.0f;
+                func_800DCE40_name_81(0x4E, &puffPos, NULL, 1.0f);
+                HuPrcSleep(1);
+            }
+            if (coin != NULL) {
+                func_800F7378_name_81(cur, 1);
+                func_800D8F3C_name_81(coin);
+                HuVecCopy3F(&puffPos, &partner->coords);
+                puffPos.y += 12.0f;
+                func_800DCE40_name_81(0x4E, &puffPos, NULL, 1.0f);
+            }
+            coin = func_800D8010_name_81(0x1C, NULL);
+            coin->velocity.x = 13.0f;
+            HuVecCopy3F(&coin->coords, &partner->coords);
+            HuVecCopyXYZ(&coin->scale, 0.0f, 0.0f, 0.0f);
+            func_800EF7C8_name_81(coin, 2.0f, -0.2f);
+            func_800EBF2C_name_81(&coin->coords, &player->player_obj->coords, &coin->coords, 10);
+            HuAudFXPlay(0x200);
+            for (k = 0; k < 6; k++) {
+                scale = k / 6.0f;
+                if (scale > 1.0f) {
+                    scale = 1.0f;
+                }
+                HuVecCopyXYZ(&coin->scale, scale, scale, scale);
+                func_8008A2A0_main(HmfModelData[coin->omObj1->model[0]].mtx, k * 40);
+                HuPrcVSleep();
+            }
+        }
+        for (l = 6; l < 12; l++) {
+            scale = l / 6.0f;
+            if (scale > 1.0f) {
+                scale = 1.0f;
+            }
+            HuVecCopyXYZ(&coin->scale, scale, scale, scale);
+            func_8008A2A0_main(HmfModelData[coin->omObj1->model[0]].mtx, l * 40);
+            HuPrcVSleep();
+        }
+        func_800F7378_name_81(cur, 1);
+        func_800D8F3C_name_81(coin);
+        func_800D90D0_name_81(partner, -1, 2);
+        for (i = 30; i >= 0; i -= 10) {
+            func_8008A120_main(HmfModelData[partner->omObj1->model[0]].mtx, -i);
+            partner->velocity.x -= 2.0f;
+            HuPrcVSleep();
+        }
+        partner->velocity.x = 0.0f;
+        func_800EBC60_name_81(&partner->rot, &rot, &partner->rot, 4);
+        HuPrcSleep(4);
+        func_800FADB4_name_81();
+        HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&camPos, &player->player_obj->coords, &camPos, 2.0f));
+        HuPrcChildWait();
+        func_800FC888_name_81(1);
+    }
+}
 
 void func_80114140_duel10(void) {
     Ec3HmfPart *part;
