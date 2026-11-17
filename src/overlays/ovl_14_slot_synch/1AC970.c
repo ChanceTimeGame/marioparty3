@@ -91,6 +91,48 @@ typedef struct SsBody {
     /* 0x1C */ SsRow* unk1C; /* rows, shared by both bodies */
 } SsBody; // Size 0x20
 
+/* One score sprite (D_8010DF70_slot_synch.unk08, up to 24 x 0x2C). */
+typedef struct SsSpr {
+    /* 0x00 */ s16 unk00; /* group member */
+    /* 0x02 */ u16 unk02; /* priority */
+    /* 0x04 */ char unk04[2];
+    /* 0x06 */ s8 unk06; /* graphic */
+    /* 0x07 */ s8 unk07; /* team */
+    /* 0x08 */ u8 unk08;
+    /* 0x09 */ u8 unk09;
+    /* 0x0A */ u8 unk0A;
+    /* 0x0B */ u8 unk0B;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ Vec2f unk14; /* start position */
+    /* 0x1C */ Vec2f unk1C; /* target position */
+    /* 0x24 */ Vec2f unk24; /* position */
+} SsSpr; // Size 0x2C
+
+/* The score sprites' manager (D_8010DF70_slot_synch, 0xC). */
+typedef struct SsSprMan {
+    /* 0x00 */ omObjData* unk00;
+    /* 0x04 */ s16 unk04; /* sprite group */
+    /* 0x06 */ u16 unk06; /* sprite count */
+    /* 0x08 */ SsSpr* unk08;
+} SsSprMan;
+
+/* A sprite position table entry (D_8010D938_slot_synch, D_8010D980_slot_synch). */
+typedef struct SsSprPos {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05; /* graphic */
+} SsSprPos;
+
+/* The camera/ground object's data (func_80107794_slot_synch); Boulder Ball's BbGround. */
+typedef struct SsGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} SsGround; // Size 0xB4
+
 /* HmfData's vertex count (0x18 lies inside the header's unk16 padding). */
 #define SS_HMF_VTXNUM(hmf) (*(s16*)&(hmf)->unk16[2])
 
@@ -130,6 +172,21 @@ f64 fabs(f64);
 f32 fabsf(f32);
 void func_801091D8_slot_synch(omObjData* obj);
 void func_801092B8_slot_synch(SsBody* b);
+void func_80107794_slot_synch(omObjData* obj);
+void func_80107A80_slot_synch(omObjData* obj);
+void func_80107A88_slot_synch(void);
+s16 func_80107B00_slot_synch(f32 x, f32 y, s8 gfx, s8 team, u16 prio);
+void func_80107BAC_slot_synch(void);
+void func_80107D54_slot_synch(omObjData* obj);
+void func_80108238_slot_synch(void);
+void func_80108D3C_slot_synch(void);
+s16 func_8010A2C4_slot_synch(s32 file);
+void func_8010A308_slot_synch(s16 grp, s16 member, f32 x, f32 y);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+void func_800E1490_minigame(s32);
 extern u8 D_800D2008_main;
 extern u8 D_800D6A90_main;
 void func_800DDD94_minigame(omObjData* obj);
@@ -155,6 +212,8 @@ extern s16 D_8010D8C4_slot_synch[4][2][2];
 extern s16 D_8010D8E4_slot_synch[4];
 extern s32 D_8010D8EC_slot_synch[8];
 extern Vec D_8010D820_slot_synch[2];
+extern SsSprPos D_8010D938_slot_synch[12];
+extern SsSprPos D_8010D980_slot_synch[12];
 extern f32 D_8010D840_slot_synch[5];
 extern u8 D_8010D854_slot_synch[2][4];
 extern s32 D_8010D86C_slot_synch;
@@ -173,9 +232,11 @@ extern s32 D_8010DF58_slot_synch;
 extern SsTeam* D_8010DF5C_slot_synch;
 extern SsPlayer* D_8010DF60_slot_synch;
 extern s16 D_8010DF64_slot_synch;
+extern u16 D_8010DF66_slot_synch[4]; /* sprite priorities */
+extern SsSprMan D_8010DF70_slot_synch;
 extern SsReel* D_8010DF7C_slot_synch;
 extern SsBody* D_8010DF80_slot_synch;
-extern void* D_8010DF8C_slot_synch;
+extern s16* D_8010DF8C_slot_synch; /* sprite files, 0x20 */
 extern D_80111B50_vine_with_me_Struct D_8010DFF8_slot_synch;
 // end m1 sy1
 
@@ -716,7 +777,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801075D4_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107794_slot_synch);
 
-void func_80107A80_slot_synch(void) {
+void func_80107A80_slot_synch(omObjData* obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107A88_slot_synch);
