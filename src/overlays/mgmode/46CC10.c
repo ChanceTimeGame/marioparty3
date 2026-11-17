@@ -160,6 +160,8 @@ void func_80108DDC_mgmode(s16);
 void func_80108CF4_mgmode(s16);
 void func_801090C4_mgmode(s16);
 void func_80107D0C_mgmode(s32, s16, s16);
+void func_8000BE5C_main(u16, f32, f32);
+u16 GWMgRecordGet(s16);
 void func_8010BD98_mgmode(omObjData*);
 
 void func_801059A0_mgmode(void) {
@@ -464,6 +466,144 @@ void func_801076B0_mgmode(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_801076B0_mgmode);
 #endif
 
+#ifdef NON_MATCHING
+/* GCC hoists y - 0x47 out of the window loop where retail adds it per pass, and s0/s1/s2 swap in the unlock check; otherwise identical */
+void func_80107D0C_mgmode(s32 file, s16 x, s16 y) {
+    s16 win[10];
+    u8 buf0[32];
+    u8 buf1[32];
+    u8 buf2[32];
+    u8 ids[10] = { 0, 1, 2, 4, 3, 5, 6, 7, 9, 8 };
+    s8 mgs[10] = { 0x0D, 0x10, 0x23, 0x34, 0x2C, 0x47, 0x47, 0x47, 0x00, -1 };
+    s32 mes[10] = { 0x4501, 0x4502, 0x4503, 0x4504, 0x4505, 0x4506, 0x4507, 0x4508, 0x4509, 0x450A };
+    s16 sprGrp;
+    s16 spr;
+    s16 cursor;
+    s16 i;
+    s16 j;
+    s16 rec;
+    s16 mg;
+    f32 scale;
+
+    HuPrcSleep(3);
+    sprGrp = func_8000B838_main(file);
+    spr = InitEspriteSlot(sprGrp, 0, 1);
+    func_8000BBD4_main(spr, x, y);
+    func_8000BCC8_main(spr, 0x8000);
+    func_8000BE5C_main(spr, 0.0f, 0.0f);
+    for (i = 0; i < 10; i++) {
+        win[i] = func_80061188_main(-1, x - 0x68, y + (i * 14 - 0x47), 0xD5, 0x14, 0);
+        func_8005BEE0_main(win[i], 0);
+    }
+    cursor = func_80061188_main(-1, 0, 0, 0xD2, 0xE, 1);
+    func_8005FBF8_main(cursor, 0xFF, 0xFF, 0xFF);
+    HuAudFXPlay(0x2E7);
+    for (i = 1; i < 11; i++) {
+        scale = cosdf(i * 36.0f) * 0.5f + 0.5f;
+        func_8000BE5C_main(spr, scale, sindf(i * 9.0f));
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 10; i++) {
+        rec = GWMgRecordGet(ids[i]);
+        if (rec < 0) {
+            rec = 0;
+        }
+        switch (ids[i]) {
+        case 0:
+            sprintf((char*)buf0, "%3d", rec);
+            func_8005B6BC_main(win[i], (u32)buf0, 0);
+            break;
+        case 1:
+        case 2:
+        case 5:
+        case 6:
+        case 7:
+            sprintf((char*)buf0, D_8011A430_mgmode, (s16)(rec / 3600));
+            func_8005B6BC_main(win[i], (u32)buf0, 0);
+            rec %= 3600;
+            sprintf((char*)buf1, "%2d", (s16)(rec / 60));
+            if (buf1[0] == ' ') {
+                buf1[0] = '0';
+            }
+            func_8005B6BC_main(win[i], (u32)buf1, 1);
+            sprintf((char*)buf2, "%2d", (s16)((s16)(rec % 60) / 60.0f * 100.0f));
+            if (buf2[0] == ' ') {
+                buf2[0] = '0';
+            }
+            func_8005B6BC_main(win[i], (u32)buf2, 2);
+            break;
+        case 4:
+            sprintf((char*)buf0, "%3d", (s16)(rec / 100));
+            rec %= 100;
+            func_8005B6BC_main(win[i], (u32)buf0, 0);
+            sprintf((char*)buf1, "%2d", rec);
+            if (buf1[0] == ' ') {
+                buf1[0] = '0';
+            }
+            func_8005B6BC_main(win[i], (u32)buf1, 1);
+            break;
+        case 3:
+        case 9:
+            sprintf((char*)buf0, D_8011A430_mgmode, (s16)(rec / 1800));
+            func_8005B6BC_main(win[i], (u32)buf0, 0);
+            rec %= 1800;
+            sprintf((char*)buf1, "%2d", (s16)(rec / 30));
+            if (buf1[0] == ' ') {
+                buf1[0] = '0';
+            }
+            func_8005B6BC_main(win[i], (u32)buf1, 1);
+            sprintf((char*)buf2, "%2d", (s16)((s16)(rec % 30) * (1.0f / 30.0f) * 99.0f));
+            if (buf2[0] == ' ') {
+                buf2[0] = '0';
+            }
+            func_8005B6BC_main(win[i], (u32)buf2, 2);
+            break;
+        case 8:
+            sprintf((char*)buf0, "%4d", rec);
+            func_8005B6BC_main(win[i], (u32)buf0, 0);
+            break;
+        }
+        func_8005FFA8_main(win[i]);
+        mg = mgs[i] - 1;
+        if (mg == 0x46 && _CheckFlag(0x2B)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (mg >= 0 && GWMgUnlockCheck(mg)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (mg == -1 && _CheckFlag(0x1E)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else if (mg == -2 && _CheckFlag(0x1F)) {
+            func_8005B43C_main(win[i], mes[i], -1, -1);
+        } else {
+            func_8005B43C_main(win[i], 0x4500, -1, -1);
+        }
+        func_8005BA90_main(cursor, x, y + i * 14 - 0x3E);
+        func_8005FFA8_main(cursor);
+        HuAudFXPlay(0x2E8);
+        for (j = 1; j < 4; j++) {
+            func_8005BEE0_main(cursor, (1.0f - j / 3.0f) * 256.0f);
+            HuPrcVSleep();
+        }
+    }
+    func_8005F364_main(cursor);
+    do {
+        HuPrcVSleep();
+    } while (!(D_800D5558_main[0] & 0xC000));
+    for (i = 0; i < 10; i++) {
+        func_8005FE90_main(win[i]);
+    }
+    HuAudFXPlay(0x2E9);
+    for (i = 1; i < 11; i++) {
+        scale = 1.0f - sindf(i * 9.0f);
+        func_8000BE5C_main(spr, scale, scale);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 10; i++) {
+        func_8005F364_main(win[i]);
+    }
+    func_8000C184_main(spr);
+    HuSprKill(sprGrp);
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A484_mgmode);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A490_mgmode);
@@ -471,6 +611,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A490_mgmode);
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A49C_mgmode);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_80107D0C_mgmode);
+#endif
 
 void func_80108824_mgmode(s32 arg0) {
     s16 total;
