@@ -939,7 +939,156 @@ s32 func_80113AE0_duel03(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80113AE0_duel03);
 #endif
 
+#ifdef NON_MATCHING
+// board db3: logic checked against the asm (func_80113AE0_duel03's tests with the outcomes this one reverses); same residue as func_80113AE0_duel03
+// board db3: the companion COM decision (the same tests as func_80113AE0_duel03 with some outcomes reversed)
+s32 func_80114030_duel03(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+    s32 hp;
+    s32 n;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(CUR_PLAYER);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->cidx >= 0 && opp->cidx < 6) {
+        return FALSE;
+    }
+    if (opp->cidx >= 7 && opp->cidx < 14) {
+        if (walk < 8) {
+            if (opp->cidx == D_8011765C_duel03[walk]) {
+                goto same;
+            }
+        }
+        if (walk >= 8 || opp->cidx < D_8011765C_duel03[walk]) {
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4 && !(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                return FALSE;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower != 0 || me->stats.partners.backID == 4) {
+                return TRUE;
+            }
+            return FALSE;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return FALSE;
+        }
+        if (walk == 1) {
+            return func_800EFE20_name_81(100.0f) < 50;
+        }
+        return TRUE;
+    }
+    if (opp->cidx >= 15 && opp->cidx < 21) {
+        if (walk < 8) {
+            return TRUE;
+        }
+        if (opp->cidx == D_80117664_duel03[walk - 7]) {
+        same:
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
+        }
+        if (opp->cidx < D_80117664_duel03[walk - 7]) {
+            hp = me->star;
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4) {
+                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                    return FALSE;
+                }
+                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
+                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
+                }
+            }
+            if (walk == 10) {
+                if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
+                    return TRUE;
+                }
+                if (opp->stats.partners.frontID != 4) {
+                    return TRUE;
+                }
+                return me->stats.partners.backPower < hp + me->stats.partners.backHp;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower != 0 || me->stats.partners.backID == 4) {
+                return TRUE;
+            }
+            return FALSE;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return FALSE;
+        }
+        if (walk == 1) {
+            return func_800EFE20_name_81(100.0f) < 50;
+        }
+        return TRUE;
+    }
+    if (me->stats.partners.frontPower == 0) {
+        return FALSE;
+    }
+    if (walk == 1) {
+        return func_800EFE20_name_81(100.0f) < 50;
+    }
+    if (func_800F8980_name_81(cur) == 0) {
+        n = 0;
+    } else {
+        n = GwPlayer[cur].coin / func_800F8980_name_81(cur);
+    }
+    return n >= 2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80114030_duel03);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011454C_duel03);
 
