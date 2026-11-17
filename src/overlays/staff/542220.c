@@ -195,6 +195,33 @@ typedef struct StaffFlyer {
 
 extern Vec D_80110FA0_staff[3];
 u32 func_8010601C_staff(void);
+typedef struct StaffLine {
+    /* 0x00 */ Vec pos; // portrait model position
+    /* 0x0C */ s16 x;
+    /* 0x0E */ s16 y; // scrolls up one per frame
+    /* 0x10 */ s16 line0; // set-0 text line (name)
+    /* 0x12 */ s16 line1; // set-1 text line (title)
+    /* 0x14 */ s16 esprite;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ s16 unk18;
+    /* 0x1A */ s16 model;
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 type; // 0 free, 1 title, 2 sprite, 3 name, 4 name with portrait
+} StaffLine; // size 0x20
+
+typedef struct StaffCredit {
+    /* 0x00 */ s8 type; // -1 ends this list
+    /* 0x01 */ s8 delay;
+    /* 0x02 */ u16 mes;
+} StaffCredit;
+
+extern s32 D_80110B80_staff[];
+extern StaffCredit *D_80110F04_staff[]; // NULL-terminated
+void func_8010992C_staff(Process *proc, s16 arg1);
+void func_8010998C_staff(Process *proc, s16 *arg1, s16 *arg2, void *line);
+void func_80109D08_staff(Process *proc, s16 arg1, void *line);
+StaffScript *func_80109F34_staff(StaffActor *e, StaffScript *script);
+void func_8010BA30_staff(s16 set, s16 idx, u32 mes, s16 x, s16 y);
 // end story j2
 
 #ifdef NON_MATCHING
@@ -835,7 +862,213 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_801113E4_staff);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_801113F0_staff);
 
+#ifdef NON_MATCHING
+// Branch layout of the scroll switch and register choice differ; logic checked block by block.
+void func_8010BF84_staff(void) {
+    StaffLine lines[12];
+    s16 models[16]; // only 3 used
+    s16 spr[1];
+    s16 slot[1];
+    Process *proc;
+    StaffWork *work;
+    s16 *state;
+    s16 mdlIdx;
+    s16 nameIdx;
+    StaffLine *l;
+    s32 i;
+    s16 base;
+    s16 m;
+    s16 cur;
+    s16 titleIdx;
+    s16 wait;
+    StaffCredit *cred;
+    s16 credIdx;
+    s16 active;
+    s16 done;
+    s16 n;
+
+    state = HuPrcCurrentGet()->user_data;
+    proc = omAddPrcObj(func_8010B1E0_staff, 0x4000, 0x1000, 0);
+    HuPrcVSleep();
+    work = proc->user_data;
+    for (l = lines, i = 0; i < 12; i++, l++) {
+        l->type = 0;
+        l->unk1C = l->model = l->esprite = l->line1 = l->line0 = l->unk18 = l->unk16 = -1;
+    }
+    base = -1;
+    for (i = 0; i < 3; i++) {
+        if (base < 0) {
+            base = m = func_8000B108_main(0x160025, 0x2B9);
+        } else {
+            m = Hu3DModelLink(base);
+        }
+        models[i] = m;
+        func_8001C258_main(m, 4, 4);
+    }
+    for (i = 0; i <= 0; i++) {
+        spr[i] = func_8000B838_main(D_80110B80_staff[i]);
+        slot[i] = InitEspriteSlot(spr[i], 0, 0);
+        func_8000BB94_main(slot[i]);
+    }
+    mdlIdx = 0;
+    nameIdx = 0;
+    titleIdx = 0;
+    cur = 0;
+    do {
+        if (cur != *state) {
+            switch (*state) {
+            case 0:
+                break;
+            case 1:
+                wait = 1;
+                cred = D_80110F04_staff[0];
+                credIdx = 1;
+                break;
+            }
+            cur = *state;
+        }
+        if (cur == 1) {
+            if (credIdx >= 0 && --wait == 0) {
+                if (cred->type == -1) {
+                    cred = D_80110F04_staff[credIdx];
+                    credIdx++;
+                    if (cred == NULL) {
+                        credIdx = -1;
+                    }
+                    wait += 127;
+                } else {
+                    for (l = lines, i = 0; i < 12; i++, l++) {
+                        if (l->type == 0) {
+                            break;
+                        }
+                    }
+                    if (i < 12) {
+                        l->x = 160;
+                        l->y = 320;
+                        l->pos.x = 0.0f;
+                        l->pos.y = -480.0f;
+                        l->pos.z = 380.0f;
+                        l->type = cred->type;
+                        switch (l->type) {
+                        case 1:
+                            func_8010BA30_staff(1, titleIdx, cred->mes, l->x, l->y);
+                            l->line1 = titleIdx;
+                            n = titleIdx + 1;
+                            titleIdx = (n < 12) ? n : 0;
+                            break;
+                        case 4:
+                            l->model = models[mdlIdx];
+                            func_8001C258_main(l->model, 4, 0);
+                            Hu3DModelPosSet(l->model, l->pos.x, l->pos.y, l->pos.z);
+                            func_8010998C_staff(proc, &l->unk16, &l->unk18, l);
+                            n = mdlIdx + 1;
+                            mdlIdx = (n < 3) ? n : 0;
+                            /* fallthrough */
+                        case 3:
+                            func_8010BA30_staff(0, nameIdx, cred->mes, l->x, l->y);
+                            l->line0 = nameIdx;
+                            n = nameIdx + 1;
+                            nameIdx = (n < 6) ? n : 0;
+                            wait += 22;
+                            break;
+                        case 2:
+                            l->esprite = slot[cred->mes];
+                            func_8000BB54_main(l->esprite);
+                            break;
+                        }
+                        wait += cred->delay;
+                        cred++;
+                        if (l->type == 1 && cred->type >= 3) {
+                            wait += 22;
+                        }
+                        wait += 30;
+                    } else {
+                        wait = 1;
+                    }
+                }
+            }
+            for (active = 0, l = lines, i = 0; i < 12; i++, l++) {
+                if (l->type == 0) {
+                    continue;
+                }
+                active++;
+                l->y--;
+                done = 0;
+                if (l->type == 4) {
+                    done = l->y < -63;
+                } else if (l->y < -15) {
+                    done++;
+                }
+                if (done) {
+                    l->type = 0;
+                    if (l->unk16 >= 0) {
+                        func_8001C258_main(l->unk16, 4, 4);
+                        func_8010992C_staff(proc, l->unk16);
+                    }
+                    l->unk18 = l->unk16 = -1;
+                    if (l->line1 >= 0) {
+                        func_8010B8C0_staff(1, l->line1, 0);
+                        l->line1 = -1;
+                    }
+                    if (l->esprite >= 0) {
+                        func_8000BB94_main(l->esprite);
+                        l->esprite = -1;
+                    }
+                    if (l->line0 >= 0) {
+                        func_8010B8C0_staff(0, l->line0, 0);
+                        l->line0 = -1;
+                    }
+                    if (l->model >= 0) {
+                        func_8001C258_main(l->model, 4, 4);
+                        l->model = -1;
+                    }
+                    continue;
+                }
+                switch (l->type) {
+                case 2:
+                    func_8000BBD4_main(l->esprite, l->x, l->y);
+                    break;
+                case 1:
+                    if (l->line1 >= 0) {
+                        func_8010B9BC_staff(1, l->line1, l->x, l->y);
+                    }
+                    break;
+                case 4:
+                    l->pos.y = 288.0 - l->y * 2.4;
+                    Hu3DModelPosSet(l->model, l->pos.x, l->pos.y, l->pos.z);
+                    if (l->unk16 >= 0) {
+                        func_80109D08_staff(proc, l->unk16, l);
+                    }
+                    /* fallthrough */
+                case 3:
+                    func_8010B9BC_staff(0, l->line0, l->x, l->y);
+                    break;
+                }
+            }
+            if ((active == 0) & (credIdx < 0)) {
+                *state = -1;
+            }
+        }
+        HuPrcVSleep();
+    } while (cur >= 0);
+    work->state = 1;
+    for (i = 0; i < 3; i++) {
+        func_8001ACDC_main(models[i]);
+    }
+    for (i = 0; i <= 0; i++) {
+        func_8000C184_main(slot[i]);
+        HuSprKill(spr[i]);
+    }
+    HuPrcVSleep();
+    *state = 0;
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BF84_staff);
+#endif
 
 #ifdef NON_MATCHING
 // masked 0; raw 2: retail copies the second parameter before the third.
