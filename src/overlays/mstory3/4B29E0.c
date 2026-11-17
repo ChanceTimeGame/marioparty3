@@ -38,6 +38,10 @@ typedef struct TexAnimSlot {
     /* 0x0B */ u8 unk_0B;
 } TexAnimSlot; /* size = 0xC */
 
+typedef struct VecQuad {
+    Vec v[4];
+} VecQuad;
+
 typedef struct S16Quad {
     s16 v[4];
 } S16Quad;
@@ -67,7 +71,13 @@ extern s16 D_80115B92_mstory3; /* message window */
 extern s16 D_80115B94_mstory3; /* background sprite */
 extern s16 D_80115B96_mstory3; /* background model */
 extern s32 D_80115BBC_mstory3;
+extern VecQuad D_80115590_mstory3; /* the two turns of func_80108CA8_mstory3 */
 extern StoryActor3 D_80115BC0_mstory3[6];
+extern s16 D_80115C9A_mstory3; /* shadow model */
+extern s16 D_80115C9C_mstory3; /* the story character (GwStory.unk1) */
+extern u8 D_80115C9D_mstory3; /* its low byte */
+extern s16 D_80115C9E_mstory3; /* the other one */
+extern u8 D_80115C9F_mstory3; /* its low byte */
 extern s16 D_80115DC0_mstory3[4]; /* play order: player per slot */
 
 void func_801059BC_mstory3(void);
@@ -91,6 +101,14 @@ void func_80108CA8_mstory3(omObjData *obj);
 void func_80108E28_mstory3(omObjData *obj);
 void func_8010D5CC_mstory3(void);
 void func_8010895C_mstory3(void);
+void func_80108A9C_mstory3(void);
+void func_80108C34_mstory3(void);
+void func_8010A23C_mstory3(void);
+void func_8010B154_mstory3(void);
+void func_8010BC34_mstory3(void);
+void func_8010C4B0_mstory3(void);
+void func_8010C65C_mstory3(void);
+void func_8010C870_mstory3(void);
 // story u1 end
 //@@end
 
@@ -763,16 +781,101 @@ void func_8010892C_mstory3(ObPath *path) {
 }
 //@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010895C_mstory3);
+//@@func_8010895C_mstory3
+/* story step 2: the cast, its processes and the sound process */
+void func_8010895C_mstory3(void) {
+    if ((D_80115C9C_mstory3 = GwStory.unk1) == 0) {
+        D_80115C9E_mstory3 = 1;
+    } else {
+        D_80115C9E_mstory3 = 0;
+    }
+    func_80105F54_mstory3();
+    D_80115C9A_mstory3 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_8010A23C_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010B154_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010BC34_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010C4B0_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010C870_mstory3, 0x1001, 0x1000, 0);
+    HuPrcVSleep();
+    omAddPrcObj(func_80108C34_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8010C65C_mstory3, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_80108A9C_mstory3, 0x1001, 0x1000, 0);
+    func_8001C258_main(D_80115C9A_mstory3, 4, 4);
+}
+//@@end
 
 void func_80108A94_mstory3(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108A9C_mstory3);
+//@@func_80108A9C_mstory3
+/* plays the footstep sounds of actors 0 and 1 when their motion loops (actor 1 panned by its depth) */
+void func_80108A9C_mstory3(void) {
+    s16 fx;
+    s8 pan;
+    f32 z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108C34_mstory3);
+    while (1) {
+        if (D_80115BC0_mstory3[0].unk0C == 1
+            && HmfModelData[D_80115BC0_mstory3[0].obj->model[1]].unk40 == 0.0f) {
+            CharFXPlay(D_80115BC0_mstory3[0].unk12, D_80115C9D_mstory3);
+        }
+        if (D_80115BC0_mstory3[1].unk0C == 1
+            && HmfModelData[D_80115BC0_mstory3[1].obj->model[1]].unk40 == 0.0f) {
+            fx = CharFXPlay(D_80115BC0_mstory3[1].unk12, D_80115C9F_mstory3);
+            z = HmfModelData[D_80115BC0_mstory3[1].obj->model[1]].pos.z;
+            if (z <= 0.0f) {
+                pan = z / 15.0f + 127.0f;
+            } else {
+                pan = 0x7F;
+            }
+            func_8004AAD0_main(fx, pan);
+        }
+        HuPrcVSleep();
+    }
+}
+//@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108CA8_mstory3);
+//@@func_80108C34_mstory3
+/* actor 5's process: runs its action every frame */
+void func_80108C34_mstory3(void) {
+    omObjData *obj = omAddObj(0x14, 0, 0, -1, NULL);
+
+    D_80115BC0_mstory3[5].obj = obj;
+    D_80115BC0_mstory3[5].unk08 = 0;
+    D_80115BC0_mstory3[5].func = func_80108CA8_mstory3;
+    while (1) {
+        D_80115BC0_mstory3[5].func(obj);
+        HuPrcVSleep();
+    }
+}
+//@@end
+
+//@@func_80108CA8_mstory3
+/* actors 3 and 2 turn, talk, and turn back; then actor 5 moves on to func_80108E28_mstory3 */
+void func_80108CA8_mstory3(omObjData *obj) {
+    VecQuad rot = D_80115590_mstory3;
+    s32 mess;
+
+    HuPrcSleep(0x28);
+    func_80107070_mstory3(D_80115BC0_mstory3[3].obj, &rot.v[0], 10);
+    func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &rot.v[1], 10);
+    HuAudFXPlay(0x159);
+    func_8001C624_main(D_80115BC0_mstory3[3].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[3].obj->motion[1]].unk02, 0, 10, 2);
+    func_8010603C_mstory3();
+    mess = 0x5B38;
+    if (D_80115C9C_mstory3 != 0) {
+        mess = 0x5A45;
+    }
+    func_80106090_mstory3(mess);
+    func_8010606C_mstory3();
+    func_8001C624_main(D_80115BC0_mstory3[3].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[3].obj->motion[0]].unk02, 0, 10, 2);
+    func_80107070_mstory3(D_80115BC0_mstory3[3].obj, &rot.v[2], 10);
+    func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &rot.v[3], 10);
+    D_80115BC0_mstory3[5].func = func_80108E28_mstory3;
+}
+//@@end
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108E28_mstory3);
 
