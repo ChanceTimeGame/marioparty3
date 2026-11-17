@@ -1616,45 +1616,15 @@ typedef struct DuelB2HmfPart {
     /* 0x14 */ f32 rotY;
 } DuelB2HmfPart;
 
-void func_8002FD8C_main(s16 arg0, s16 arg1, char *arg2, s16 arg3, s16 arg4);
-void *func_8001D33C_main(s16 model, char *name);
 
-extern s32 D_801165A0_duel02[];
-extern s32 D_80105550_name_81;
-extern s32 D_80105558_name_81;
-extern s32 D_80105718_name_81;
-extern s32 D_8010571C_name_81;
-extern char D_80117070_duel02[];
 
-void func_800D90D0_name_81(Object *, s16, u16);
-Process *func_800DCE40_name_81(s32 type, Vec *pos, Vec *vel, f32 scale);
-s32 func_800DD1E0_name_81(s32 data, char *name);
-void func_800DD2BC_name_81(s32 model); // defined with s16 model
-void func_800DD2DC_name_81(s32 model, Vec *pos); // defined with s16 model
-s32 func_800DD3B4_name_81(s32 model);
-void func_800EB804_name_81(Object *obj);
-void func_800ED214_name_81(s32 playerIndex);
-void func_800EFABC_name_81(Object *);
-Process *func_800FAB68_name_81(Object *obj, s32 amount, s32 motion, s32 flags, s32 seNo);
-void func_800FAC1C_name_81(Vec *arg0);
-void func_800FAD04_name_81(s32 arg0);
-void func_800FADB4_name_81(void);
 Process *func_800EC36C_name_81(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
-void func_800FAE98_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_800FC888_name_81(s32 arg0);
-void MBDBackTPLvlSet(u8 arg0);
 Object *func_800D8B18_name_81(Object *obj);
-void func_800EF7C8_name_81(Object *obj, f32 arg1, f32 arg2);
 s32 func_800EF7D4_name_81(Object *obj);
-s32 func_800EFE20_name_81(f32 arg0);
 Process *func_800DCC8C_name_81(s32 type, Vec *pos, Vec *vel, f32 scale, s32 delay, f32 speed);
-void func_800D918C_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, u16 arg4);
 void func_8010AAB4_duel02(Object *obj, s32 create);
 void func_8010AD4C_duel02(Object *obj);
 void func_8010AFB8_duel02(void);
-void func_800FAE18_name_81(Object *arg0, s16 arg1, s16 arg2);
-Process *func_801060D4_duel02(GW_PLAYER *player, Object *target, s32 arg2, s32 arg3);
-void func_80106160_duel02(Object *partner, Object *target, GW_PLAYER *player, Vec *arg3, Vec *arg4, f32 arg5);
 
 u16 func_80014618_main(s16 index, u16 arg1);
 void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
@@ -1664,22 +1634,14 @@ void func_80014850_main(s16 index);
 void func_80016638_main(s32 index);
 void func_800166D0_main(void);
 void func_800D7828_name_81(Vec *vec);
-void func_800D8F3C_name_81(Object *arg0);
 void func_800FAC94_name_81(DuelB2PartnerFunc *arg0, DuelB2PartnerFunc *arg1);
-void func_800EA7D4_name_81(void);
-void func_800EA97C_name_81(void);
 void func_800FC260_name_81(s32 arg0, s16 arg1, s32 arg2); // defined with two parameters in E3CD0.c
 void func_800EA46C_name_81(event_table_entry *arg0);
 void func_800FC5A8_name_81(process_func arg0);
 void func_800FC59C_name_81(s32 arg0);
 void func_800FF640_name_81(u32 arg0);
 
-void func_8010682C_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_8010718C_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_801079BC_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_80107EC0_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_8010988C_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_801084A8_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_80108554_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010A214_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010B134_duel02(omObjData *obj);
@@ -2019,198 +1981,18 @@ void func_8010B134_duel02(omObjData *obj) {
 
 
 // board da2: declarations for func_8010B484_duel02..func_80110C7C_duel02 (from duel01)
-#include "process.h"
-#include "common_structs.h"
-#include "malloc.h"
-#include "game/board.h"
-typedef struct unkStruct01 {
-/* 0x00 */ f32 unk_00;
-/* 0x04 */ char unk_04[4];
-/* 0x08 */ f32 unk_08;
-} unkStruct01;
-typedef struct unkStruct04 {
-/* 0x00 */ char unk_00[0x0C];
-/* 0x0C */ Vec unk_0C;
-} unkStruct04;
-f32 func_800D76D0_name_81(void*);
-s32 func_800E1824_name_81(s32, s32, s32);
-void func_800E1854_name_81(s32);
-void func_800EB708_name_81(Vec*, Vec*, Vec*); // duel b1: was (s32, s32, unkStruct01*)
-void func_800FC8C4_name_81(void*);
-extern Vec D_80105540_name_81; // duel b1: was s32
-Process* func_800EC1E4_name_81(Vec*, Vec*, Vec*, f32); // duel b1: was (void*, s32, void*, f32)
-Process* func_800EBF2C_name_81(Vec* from, Vec* to, Vec* out, s32 frames); // duel b1/b7: ovl_81 DFD60.c
-void func_8001C258_main(s16, s32, s32);
-void func_8001C448_main(s16);
-void func_8001C8E4_main(s16, u32);
-Object* func_800D8010_name_81(u8, s32*); // b7: ovl_81 BFB40.c (was void*(s32, s32))
-void func_800D8944_name_81(Object*);
-void func_800D8F0C_name_81(Object*);
-void func_800D8E88_name_81(Object*); // duel b1: was (void)
-s16 MBDGetCurrentPlayerIndex(void);
-GW_PLAYER* MBDGetPlayerStruct(s32);
-void func_800F38DC_name_81(s32, s32, s32);
 void func_801100A8_duel02(s32);
-#include "game/object.h"
-typedef struct B1UnkBoard4 {
-    /* 0x00 */ struct B1UnkBoard4* unk_00;
-    /* 0x04 */ struct B1UnkBoard4* unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0A */ s16 unk_0A;
-    /* 0x0C */ s16* unk_0C;
-    /* 0x10 */ f32* unk_10;
-    /* 0x14 */ f32* unk_14;
-    /* 0x18 */ s16* unk_18;
-    /* 0x1C */ s16* unk_1C;
-} B1UnkBoard4; // ovl_81's UnkBoard4
-B1UnkBoard4* func_800F4528_name_81(s16, s16);
-void func_800F4584_name_81(B1UnkBoard4*);
-void func_800D90D0_name_81(Object*, s16, u16);
-void func_800EFABC_name_81(Object*);
-s32 func_800EFE20_name_81(f32);
-void func_800FC888_name_81(s32);
-Object* MBDGetPlayerPartnerRef(s32, s32);
-void func_800D8F3C_name_81(Object*);
-void func_800FAD04_name_81(s32);
-void func_800FAE18_name_81(Object*, s16, s16);
-void func_800FADB4_name_81(void);
-void func_800ED214_name_81(s32);
-#define B1_MODEL_ROTY(obj, angle, mdl)                                                                        \
-    sincosdf(angle, &HmfModelData[(obj)->omObj1->model[0]].mtx[8], &HmfModelData[(obj)->omObj1->model[0]].mtx[10]); \
-    HmfModelData[(obj)->omObj1->model[0]].mtx[2] = -HmfModelData[(obj)->omObj1->model[0]].mtx[8];               \
-    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
-    mdl->mtx[0] = mdl->mtx[10];                                                                                  \
-    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
-    mdl->mtx[1] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[6] = mdl->mtx[7] = mdl->mtx[9] = mdl->mtx[11] =           \
-        mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                                                       \
-    mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                               \
-    mdl->mtx[5] = mdl->mtx[15] = 1.0f
-extern s32 D_801165A0_duel02[]; // partner attack effect model ids, by level - 1 (read as u8)
-extern char D_80117070_duel02[]; // "obj1"
-extern s32 D_80105550_name_81;
-extern s32 D_80105558_name_81;
-extern s32 D_80105718_name_81;
-extern s32 D_8010571C_name_81;
-Process* func_800D9668_name_81(Object*, f32, f32, s32);
-Process* func_800DCE40_name_81(s32, Vec*, Vec*, f32);
-s32 func_800DD1E0_name_81(s32, char*);
-void func_800DD2DC_name_81(s32, Vec*); // s16 in ovl_81
-s32 func_800DD3B4_name_81(s32);
-void func_800DD2BC_name_81(s32); // s16 in ovl_81
-Process* func_800FAB68_name_81(Object*, s32, s32, s32, s32);
-void func_800FAC1C_name_81(Vec*);
-void func_8001C6A8_main(s32, f32);
-void func_800EF7C8_name_81(Object*, f32, f32);
-void func_800EF800_name_81(Object*);
-void func_80106160_duel02(Object*, Object*, GW_PLAYER*, Vec*, Vec*, f32);
-void func_800EB804_name_81(Object*);
-void func_800FAE98_name_81(Object*, s16, s16, s16, s16);
-void func_8001C92C_main(s16, f32);
-void MBDBackTPLvlSet(u8);
 extern Object *D_80117620_duel02;
 extern f32 D_801165BC_duel02;
 extern char D_80117128_duel02[];
-SpaceData *MBDMasuGet(s16);
-Process *MBDCameraZoomMotStart(f32);
-void *func_8001D33C_main(s16, char *);
-void func_8002FD8C_main(s16, s16, char *, s16, s16);
-void func_800D918C_name_81(Object *, s16, s16, s16, u16);
-void func_800DADA0_name_81(s32);
-s32 func_800DB3E0_name_81(s32);
-void func_800EB278_name_81(void);
-void func_800EB29C_name_81(void);
-void func_800EB49C_name_81(s16, s32, s32, s32, s32, s32, s32);
-void func_800EB58C_name_81(void);
 void func_8010DC08_duel02(void);
-Object *func_800EDD50_name_81(Vec *);
-void func_800EDDBC_name_81(void);
-void func_800EDF48_name_81(void);
-void func_800EDF78_name_81(void);
-void func_800EE468_name_81(s32);
-void func_800F3880_name_81(s32, s16, u16);
-void func_800E14D8_name_81(s32, s32);
-void func_800F7378_name_81(s32, s32);
-void func_800EA7D4_name_81(void);
-void func_800EA97C_name_81(void);
-void Duel_PowerUpPartners(s32);
-void Duel_PowerDownPartners(s32);
-void func_8001C814_main(s16, s16, s16);
-void func_800EB140_name_81(s32, s32);
-s32 func_800F8980_name_81(s32);
-#include "mallocblock.h"
-typedef void (*DuelB2PartnerFunc)(s32, s32, Object *, Object *, s32, s32);
-typedef struct DuelB2Puffs {
-    /* 0x000 */ Vec pos[16];
-    /* 0x0C0 */ Vec vel[16];
-    /* 0x180 */ s16 active[16];
-    /* 0x1A0 */ s16 spr[16];
-    /* 0x1C0 */ s16 model[16];
-    /* 0x1E0 */ s16 delay;
-    /* 0x1E4 */ f32 life[16];
-    /* 0x224 */ f32 scale[16];
-} DuelB2Puffs; // sizeof 0x264
-extern Object *D_80117618_duel02;
-extern omObjData *D_8011761C_duel02;
-typedef struct DuelB2HmfPart {
-    /* 0x00 */ char unk_00[0x14];
-    /* 0x14 */ f32 rotY;
-} DuelB2HmfPart;
-void func_8002FD8C_main(s16 arg0, s16 arg1, char *arg2, s16 arg3, s16 arg4);
-void *func_8001D33C_main(s16 model, char *name);
-extern s32 D_801165A0_duel02[];
-extern char D_80117070_duel02[];
-void func_800D90D0_name_81(Object *, s16, u16);
-Process *func_800DCE40_name_81(s32 type, Vec *pos, Vec *vel, f32 scale);
-s32 func_800DD1E0_name_81(s32 data, char *name);
-void func_800DD2BC_name_81(s32 model); // defined with s16 model
-void func_800DD2DC_name_81(s32 model, Vec *pos); // defined with s16 model
-s32 func_800DD3B4_name_81(s32 model);
-void func_800EB804_name_81(Object *obj);
-void func_800ED214_name_81(s32 playerIndex);
-void func_800EFABC_name_81(Object *);
-Process *func_800FAB68_name_81(Object *obj, s32 amount, s32 motion, s32 flags, s32 seNo);
-void func_800FAC1C_name_81(Vec *arg0);
-void func_800FAD04_name_81(s32 arg0);
-Process *func_800EC36C_name_81(Vec *arg0, Vec *arg1, Vec *arg2, f32 arg3);
-void func_800FAE98_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
-void func_800FC888_name_81(s32 arg0);
-void MBDBackTPLvlSet(u8 arg0);
-Object *func_800D8B18_name_81(Object *obj);
-void func_800EF7C8_name_81(Object *obj, f32 arg1, f32 arg2);
-s32 func_800EF7D4_name_81(Object *obj);
-s32 func_800EFE20_name_81(f32 arg0);
-void func_800D918C_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, u16 arg4);
-void func_8010AAB4_duel02(Object *obj, s32 create);
-void func_8010AD4C_duel02(Object *obj);
-void func_8010AFB8_duel02(void);
 s16 func_8010B484_duel02(void);
 void func_8010B4C4_duel02(void);
 void func_8010B52C_duel02(void);
 void func_8010B540_duel02(void);
-void func_800FAE18_name_81(Object *arg0, s16 arg1, s16 arg2);
-Process *func_801060D4_duel02(GW_PLAYER *player, Object *target, s32 arg2, s32 arg3);
-void func_80106160_duel02(Object *partner, Object *target, GW_PLAYER *player, Vec *arg3, Vec *arg4, f32 arg5);
-void func_80016638_main(s32 index);
-void func_800166D0_main(void);
-void func_800D7828_name_81(Vec *vec);
-void func_800D8F3C_name_81(Object *arg0);
-void func_800FAC94_name_81(DuelB2PartnerFunc *arg0, DuelB2PartnerFunc *arg1);
-void func_800FC260_name_81(s32 arg0, s16 arg1, s32 arg2); // defined with two parameters in E3CD0.c
-void func_800EA46C_name_81(event_table_entry *arg0);
-void func_800FC5A8_name_81(process_func arg0);
-void func_800FC59C_name_81(s32 arg0);
-void func_800FF640_name_81(u32 arg0);
-void func_8010682C_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_8010718C_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_801079BC_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_80107EC0_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_8010988C_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_801084A8_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010CE6C_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010D428_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010BCD8_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_80108554_duel02(s32, s32, Object *, Object *, s32, s32);
-void func_8010A214_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010B550_duel02(s32, s32, Object *, Object *, s32, s32);
 void func_8010DCAC_duel02(void);
 void func_8010DD40_duel02(void);
@@ -2221,13 +2003,11 @@ s32 func_801163A4_duel02(void);
 extern event_table_entry D_801167B8_duel02[];
 extern event_table_entry D_80117008_duel02[];
 Process *func_800DCE10_name_81(s32 type, Vec *pos, Vec *vel, f32 scale, s32 delay);
-SpaceData *MBDMasuGet(s16 spaceIdx);
 void func_8010DB30_duel02(void);
 typedef struct Duel01Part {
     /* 0x00 */ char unk_00[0x14];
     /* 0x14 */ f32 unk_14;
 } Duel01Part;
-extern char D_80117128_duel02[]; /* "bell" (rodata; func_80111DFC_duel01 uses it too) */
 extern s32 D_801165C0_duel02[];
 extern s16 D_801165D0_duel02;
 extern s16 D_801165D8_duel02;
@@ -2263,10 +2043,8 @@ void func_8010E578_duel02(Vec *pos);
 void func_8010E618_duel02(void);
 void func_8010E8DC_duel02(void);
 void func_8010E908_duel02(void);
-void func_800EB140_name_81(s32 arg0, s32 arg1);
 void func_800EB7BC_name_81(Vec *out);
 Process *func_800EBC60_name_81(Vec *arg0, Vec *arg1, Vec *arg2, s32 arg3);
-void func_800EF800_name_81(Object *obj);
 Object *func_800F8050_name_81(s32 partnerID);
 void func_800FC8DC_name_81(Object *arg0);
 extern s32 D_80116720_duel02[2][3]; /* per player: three space ids (splat labels 7E/82/86 are low halves) */
@@ -2342,20 +2120,8 @@ void func_800EAF94_name_81(void);
     func_80061A5C_main(win, 0);                                                                                  \
     func_8005F364_main(win)
 extern s16 mbItemBtnF;
-void func_800E14D8_name_81(s32 player, s32 coins);
-void func_800F7378_name_81(s32 playerIndex, s32 coinAmount);
-void func_800FB524_name_81(s32 playerNo);
-s32 func_800F8980_name_81(s32 playerIndex); // ovl_81 defines it with a void * (stored as process user_data)
 void func_80110C7C_duel02(void);
 // board da2: functions the other duel02 forks own
-void func_801059D0_duel02(void);
-void *func_80105EB4_duel02(unkStruct04 *arg0);
-void *func_80106744_duel02(s32 arg0);
-void func_801067D8_duel02(Object *arg0, Vec *arg1);
-void func_80106244_duel02(void);
-Process *func_80106264_duel02(Object *arg0, GW_PLAYER *arg1, s32 arg2, f32 arg3);
-Process *func_80106460_duel02(s32 arg0, s32 arg1);
-void func_801064CC_duel02(s32 playerIndex, s32 mode);
 // board da2: from w10
 extern Object *D_80117638_duel02[2];
 void func_8010E958_duel02(s16 arg0);
@@ -4289,25 +4055,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80110C7C_duel02);
 #endif
 
 // board da3: declarations for func_80111E3C_duel02..func_80116564_duel02
-#include "game/object.h"
-#include "game/board.h"
 
-typedef struct Da3HmfPart {
-/* 0x00 */ char unk_00[0x14];
-/* 0x14 */ f32 unk_14;
-} Da3HmfPart;
+typedef Duel01Part Da3HmfPart;
 
-typedef struct Da3SprGrp {
-    /* 0x00 */ struct Da3SprGrp* unk_00;
-    /* 0x04 */ struct Da3SprGrp* unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0A */ s16 unk_0A;
-    /* 0x0C */ s16* unk_0C;
-    /* 0x10 */ f32* unk_10;
-    /* 0x14 */ f32* unk_14;
-    /* 0x18 */ s16* unk_18;
-    /* 0x1C */ s16* unk_1C;
-} Da3SprGrp; // ovl_81's UnkBoard4
+typedef B1UnkBoard4 Da3SprGrp; /* ovl_81's UnkBoard4 */
 
 // board da3: spin the partner's model about Y by ang * 10 degrees (the model matrix is rebuilt as a pure Y rotation)
 #define DA3_PARTNER_SPIN(obj, vel, ang)                                                                        \
@@ -4326,98 +4077,18 @@ typedef struct Da3SprGrp {
         mdl->mtx[5] = mdl->mtx[15] = 1.0f;                                                                     \
     }
 
-extern Object *D_80100F44_name_81;
-extern s32 D_80101200_name_81[]; /* character name messages, 0x1C00 + chr (inner label of ovl_81's D_801011FC data) */
-extern f32 D_801165BC_duel02;
 extern void (*D_80116788_duel02[])(void); /* space events by GwSystem.minigame_index */
-extern char D_80117128_duel02[]; /* "bell" (rodata) */
-extern Object *D_80117620_duel02;
-void Duel_PowerDownPartners(s32);
-void Duel_PowerUpPartners(s32);
-void Duel_SwapPartnerPositions(s32);
-Process *MBDCameraZoomMotStart(f32);
-s16 MBDGetCurrentPlayerIndex(void);
-Object *MBDGetPlayerPartnerRef(s32 playerIndex, s32 frontOrBackIndex);
-GW_PLAYER *MBDGetPlayerStruct(s32 playerIndex);
-SpaceData *MBDMasuGet(s16);
-void *func_8001D33C_main(s16, char *);
-void func_8002FD8C_main(s16, s16, char *, s16, s16);
-Object *func_800D8010_name_81(u8, s32 *);
-void func_800D8944_name_81(Object *);
-void func_800D8F3C_name_81(Object *);
-void func_800D90D0_name_81(Object *, s16, u16);
-void func_800D918C_name_81(Object *, s16, s16, s16, u16);
-s32 func_800D9234_name_81(Object *);
-void func_800DADA0_name_81(s32);
-s32 func_800DB3E0_name_81(s32);
-void func_800DD41C_name_81(Vec *);
-void func_800DD554_name_81(void);
-void func_800DD564_name_81(void);
-void func_800DD570_name_81(void);
 /* defined void in ovl_81 C5770.c, but it returns omAddPrcObj's Process* (retail reads v0) */
-Process *func_800E0924_name_81(void);
-void func_800E14D8_name_81(s32, s32);
-void func_800E18C0_name_81(void);
-s32 func_800E1960_name_81(void);
-void func_800E1F38_name_81(void);
-void func_800E24AC_name_81(s16, s16, s16, s16);
-Process *func_800E4A74_name_81(s32);
-void func_800E9F4C_name_81(s32, s8 *, s8 *);
-void func_800EA7D4_name_81(void);
-void func_800EA898_name_81(s32, s32);
-void func_800EA8DC_name_81(void);
-void func_800EA97C_name_81(void);
-void func_800EB140_name_81(s32, s32);
-void func_800EB278_name_81(void);
-void func_800EB29C_name_81(void);
-void func_800EB49C_name_81(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6);
-void func_800EB58C_name_81(void);
-Process *func_800EC1E4_name_81(Vec *, Vec *, Vec *, f32);
-void func_800ED214_name_81(s32 playerIndex);
-Object *func_800EDD50_name_81(Vec *);
-void func_800EDDBC_name_81(void);
-void func_800EDF48_name_81(void);
-void func_800EDF78_name_81(void);
-void func_800EE0F4_name_81(s32);
-Process *func_800EE40C_name_81(s32);
-void func_800EE468_name_81(s32);
-void func_800EE74C_name_81(u32);
-Object *func_800EEC40_name_81(Vec *);
-void func_800EFABC_name_81(Object *);
-void func_800F3880_name_81(s32, s16, u16);
-void func_800F38DC_name_81(s32, s32, s32);
-Da3SprGrp *func_800F4528_name_81(s16 arg0, s16 arg1);
-void func_800F4584_name_81(Da3SprGrp *);
-void func_800F7378_name_81(s32, s32);
-void func_800F74E4_name_81(s32);
-void func_800F75EC_name_81(s32);
-void func_800FC888_name_81(s32);
-void func_800FC8C4_name_81(Vec *);
-void func_800FD620_name_81(void);
-void *func_800FFC2C_name_81(s16, s16, s32);
-void func_800FFCCC_name_81(void *);
-s16 func_8004ACE0_main(s16, s16);
-void func_8001C92C_main(s16, f32);
-void func_8001C814_main(s16, s16, s16);
-void func_8010DC08_duel02(void);
-void func_801100A8_duel02(s32);
-void func_8010EB40_duel02(s32);
-void func_8010EB98_duel02(s32);
-s32 func_800EFE20_name_81(f32);
-s32 func_800F8980_name_81(s32);
 extern u8 D_801167EC_duel02[];
 extern u8 D_801167F8_duel02[];
 extern u8 D_801167E0_duel02[];
 extern u8 D_80116800_duel02[];
-void func_80105A58_duel02(void);
-void func_80105B10_duel02(void);
 UnkEA790Struct *func_800D76A0_name_81(s16 arg0, s16 *arg1);
 s32 func_800D742C_name_81(UnkEA790Struct *arg0, s16 playerNo, s32 arg2);
 s32 func_800D7250_name_81(UnkEA790Struct *arg0, s32 arg1);
 s32 func_800D7518_name_81(UnkEA790Struct *arg0);
 void func_800D6CA0_name_81(void *arg0);
 s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
-s32 func_800F37B8_name_81(s16 playerNo);
 void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
 void func_800ED788_name_81(s32 playerNo);
 extern DecisionTreeNonLeafNode D_801169A0_duel02[];
@@ -4428,7 +4099,6 @@ extern s16 D_80116F28_duel02[];
 extern s16 D_80116F40_duel02[];
 extern s16 D_80116F58_duel02[];
 extern s16 D_80116F70_duel02[];
-void func_800ECD0C_name_81(s32, s8, s8);
 void func_800E27D4_name_81(s16 playerIndex, Vec *pos, Vec *frontPos, Vec *backPos);
 s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
 /* retail passes the back link/index addresses to the empty func_8011639C_duel02, so no prototype here */
@@ -5496,42 +5166,11 @@ void func_80116564_duel02(void) {
 
 /* .data */
 // board da3: the unit's .data (0x3FD160, 0xAD0 bytes)
-void func_80110BBC_duel02(void);
-void func_80110C18_duel02(void);
-void func_80110C7C_duel02(void);
-void func_80111E3C_duel02(void);
-void func_80112428_duel02(void);
-void func_80112518_duel02(void);
-void func_80112554_duel02(void);
-void func_801125D0_duel02(void);
-void func_8011260C_duel02(void);
-void func_8011268C_duel02(void);
-void func_80112A08_duel02(void);
-void func_80112BF4_duel02(void);
-void func_80112DE0_duel02(void);
-void func_80113618_duel02(void);
-void func_80113910_duel02(void);
 s32 func_80113CEC_duel02(void);
 s32 func_80114630_duel02(void);
 s32 func_80114B94_duel02(void);
 s32 func_801154DC_duel02(void);
-void func_80115A54_duel02(void);
-void func_80115BDC_duel02(void);
-void func_80115D64_duel02(void);
-void func_80115EE4_duel02(void);
-void func_80116064_duel02(void);
-void func_8011611C_duel02(void);
-void func_801161D4_duel02(void);
-void func_80116240_duel02(void);
-void func_8011628C_duel02(void);
-void func_801162F8_duel02(void);
-void func_80116344_duel02(void);
-void func_80116370_duel02(void);
-void func_80116564_duel02(void);
-typedef struct Da3Weight {
-    /* 0x00 */ s8 value;
-    /* 0x01 */ s8 chance;
-} Da3Weight; /* a weighted choice: taken when a roll of 100 falls under chance; value -1 ends a list */
+typedef Duel01Weight Da3Weight; /* a weighted choice: taken when a roll of 100 falls under chance; value -1 ends a list */
 
 s32 D_801165A0_duel02[2] = { 0x37, 0x39 };
 s32 D_801165A8_duel02[5] = { 4, 0xA0035, 0xA003A, 0xA003B, 0xA003F }; /* count, then file ids */
