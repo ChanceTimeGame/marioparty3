@@ -95,16 +95,16 @@ typedef struct SsBody {
 typedef struct SsSpr {
     /* 0x00 */ s16 unk00; /* group member */
     /* 0x02 */ u16 unk02; /* priority */
-    /* 0x04 */ char unk04[2];
+    /* 0x04 */ u16 unk04; /* timer */
     /* 0x06 */ u8 unk06; /* graphic */
     /* 0x07 */ u8 unk07; /* team */
-    /* 0x08 */ u8 unk08;
-    /* 0x09 */ u8 unk09;
-    /* 0x0A */ u8 unk0A;
-    /* 0x0B */ u8 unk0B;
-    /* 0x0C */ s16 unk0C;
+    /* 0x08 */ u8 unk08; /* state: 0 idle, 1 bouncing, 2 settling */
+    /* 0x09 */ u8 unk09; /* position changed */
+    /* 0x0A */ u8 unk0A; /* blink counter, 0x80 = rising */
+    /* 0x0B */ u8 unk0B; /* start delay */
+    /* 0x0C */ u16 unk0C; /* bounce duration */
     /* 0x0E */ char unk0E[2];
-    /* 0x10 */ s32 unk10;
+    /* 0x10 */ f32 unk10; /* bounce height */
     /* 0x14 */ Vec2f unk14; /* start position */
     /* 0x1C */ Vec2f unk1C; /* target position */
     /* 0x24 */ Vec2f unk24; /* position */
