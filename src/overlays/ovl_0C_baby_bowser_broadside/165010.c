@@ -464,7 +464,47 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", fun
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107C64_baby_bowser_broadside);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107FE0_baby_bowser_broadside);
+/* <func_80107FE0_baby_bowser_broadside> */
+void func_80107FE0_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    s16 i;
+
+    if (task->state == 0) {
+        if (++task->unk1C >= 41) {
+            task->unk1C = 0;
+            for (i = 0; i < 4; i++) {
+                func_8010A0B4_baby_bowser_broadside(i + 3, 0xDFFF, &D_80110004_baby_bowser_broadside[i],
+                                                    func_80109D2C_baby_bowser_broadside, 0);
+            }
+            task->state = 1;
+        }
+    } else if (D_8010FD76_baby_bowser_broadside == 0) {
+        if (GMesStatGet() == 0) {
+            D_8010FD76_baby_bowser_broadside = 1;
+        }
+    } else if (D_8010FD76_baby_bowser_broadside >= 2) {
+        if (GMesStatGet() == 0) {
+            D_8010FD76_baby_bowser_broadside = 3;
+        }
+        if (D_8010FD76_baby_bowser_broadside == 3) {
+            if (++task->unk1C >= 15) {
+                func_8010A0B4_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, 0, NULL,
+                                                    func_801081A4_baby_bowser_broadside, 0);
+                func_8010A158_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, task);
+            }
+        }
+    } else {
+        if (++task->unk1C == 15) {
+            GMesCreate(0x20);
+            HuAudSeqPlay(0x6C);
+            D_8010FD60_baby_bowser_broadside = 1;
+        }
+        if (GMesStatGet() != 0) {
+            task->unk1C = 0;
+            D_8010FD76_baby_bowser_broadside = 2;
+        }
+    }
+}
+/* </func_80107FE0_baby_bowser_broadside> */
 
 /* <func_801081A4_baby_bowser_broadside> */
 void func_801081A4_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
@@ -482,7 +522,28 @@ void func_801081A4_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
 }
 /* </func_801081A4_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108210_baby_bowser_broadside);
+/* <func_80108210_baby_bowser_broadside> */
+void func_80108210_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    HmfModel* model;
+
+    model = &HmfModelData[ctx->models[0]];
+    if (D_80110008_baby_bowser_broadside->timer < 600.0f) {
+        model->rot.y -= D_80110008_baby_bowser_broadside->speed;
+        if (model->rot.y < 0.0f) {
+            model->rot.y += 360.0f;
+        } else if (model->rot.y >= 360.0f) {
+            model->rot.y -= 360.0f;
+        }
+    }
+    model = &HmfModelData[ctx->models[2]];
+    model->rot.y += D_80110008_baby_bowser_broadside->speed;
+    if (model->rot.y < 0.0f) {
+        model->rot.y += 360.0f;
+    } else if (model->rot.y >= 360.0f) {
+        model->rot.y -= 360.0f;
+    }
+}
+/* </func_80108210_baby_bowser_broadside> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108350_baby_bowser_broadside);
 
