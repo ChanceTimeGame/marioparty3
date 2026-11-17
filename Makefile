@@ -357,6 +357,8 @@ NOP_OBJECTS += build/src/overlays/w03/34E840.c.o
 NOP_OBJECTS += build/src/overlays/w04/367960.c.o
 # boards x1-x4: w05 37FFB0 (no nop before the mul.s after the sindf calls)
 NOP_OBJECTS += build/src/overlays/w05/37FFB0.c.o
+# board dc2: duel05 426450 (duel01 copy: no nop before the mul.s after the sindf/cosdf calls in func_8010E1C4/func_8010E7D0)
+NOP_OBJECTS += build/src/overlays/duel05/426450.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
