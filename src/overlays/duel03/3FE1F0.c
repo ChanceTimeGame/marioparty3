@@ -262,6 +262,8 @@ s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
 void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
 void func_800E890C_name_81(Vec *pos, s32 arg1);
 void func_800EB7BC_name_81(Vec *out);
+void func_800EB708_name_81(Vec *arg0, Vec *arg1, Vec *arg2);
+Process *func_800EBF2C_name_81(Vec *from, Vec *to, Vec *out, s32 frames);
 void func_80105A58_duel03(void);
 void func_80105B10_duel03(void);
 void func_80116000_duel03(s16 masu);
@@ -795,7 +797,211 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011580C_duel03);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80115B18_duel03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116000_duel03);
+// board db3: take the pipe at space `masu`: the player (and partners) drop into it and come out of another pipe chosen at random
+void func_80116000_duel03(s16 masu) {
+    Vec pos;
+    Vec frontPos;
+    Vec backPos;
+    Vec camPos;
+    Vec mid;
+    s8 link;
+    s8 idx;
+    Process *process;
+    GW_PLAYER *player;
+    SpaceData *space;
+    SpaceData *exitSpace;
+    Object *pipe;
+    Object *partner;
+    void *effect;
+    f32 t;
+    s32 r;
+    GW_SYSTEM *system = &GwSystem;
+
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    space = MBDMasuGet(masu);
+    process = HuPrcCurrentGet();
+    pipe = NULL;
+    switch (masu) {
+    case 0x19:
+        pipe = D_801180F8_duel03[0];
+        break;
+    case 0x1B:
+        pipe = D_801180F8_duel03[1];
+        break;
+    case 0x20:
+        pipe = D_801180F8_duel03[2];
+        break;
+    case 0x21:
+        pipe = D_801180F8_duel03[3];
+        break;
+    }
+    func_800F74E4_name_81(-1);
+    func_800DB3E0_name_81(system->current_player_index);
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&camPos);
+    HuVecCopy3F(&camPos, &player->player_obj->coords);
+    HuVecAdd(&mid, &player->player_obj->coords, &space->coords);
+    HuVecMulScalar(&mid, 0.5f, &mid);
+    HuPrcChildLink(process, func_800EC1E4_name_81(&camPos, &mid, &camPos, 3.0f));
+    HuPrcChildWait();
+
+    /* into the pipe: front partner, player, back partner */
+    if (player->stats.prize.gamblePrize != -1) {
+        partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
+        func_800EB708_name_81(&partner->coords, &space->coords, &partner->rot);
+        HuVecCopy3F(&pos, &space->coords);
+        pos.y += 20.0f;
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 15);
+        partner->velocity.y = 5.5f;
+        partner->velocity.z = -0.7f;
+        HuPrcSleep(14);
+        partner->flags |= 1;
+        HuVecCopy3F(&pos, &space->coords);
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 10);
+        HuAudFXPlay(0x1BC);
+        for (t = 0.0f; t < 180.0f; t += 18.0f) {
+            HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+            HuPrcVSleep();
+        }
+        func_800D8F0C_name_81(partner);
+        HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+    }
+    player->stat |= 4;
+    func_800EB708_name_81(&player->player_obj->coords, &space->coords, &player->player_obj->rot);
+    HuVecCopy3F(&pos, &space->coords);
+    pos.y += 20.0f;
+    func_800EBF2C_name_81(&player->player_obj->coords, &pos, &player->player_obj->coords, 15);
+    player->player_obj->velocity.y = 5.5f;
+    player->player_obj->velocity.z = -0.7f;
+    func_800F3880_name_81(-1, 1, 0);
+    HuPrcSleep(14);
+    func_800F3880_name_81(-1, -1, 2);
+    player->player_obj->flags |= 1;
+    HuVecCopy3F(&pos, &space->coords);
+    func_800EBF2C_name_81(&player->player_obj->coords, &pos, &player->player_obj->coords, 10);
+    effect = func_800FFC2C_name_81(-1, 2, 5);
+    HuAudFXPlay(0x1BC);
+    for (t = 0.0f; t < 180.0f; t += 18.0f) {
+        HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+        HuPrcVSleep();
+    }
+    func_800FFCCC_name_81(effect);
+    func_800D8F0C_name_81(player->player_obj);
+    HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+    if (player->stats.prize.duelNo != -1) {
+        partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
+        func_800EB708_name_81(&partner->coords, &space->coords, &partner->rot);
+        HuVecCopy3F(&pos, &space->coords);
+        pos.y += 20.0f;
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 15);
+        partner->velocity.y = 5.5f;
+        partner->velocity.z = -0.7f;
+        HuPrcSleep(14);
+        partner->flags |= 1;
+        HuVecCopy3F(&pos, &space->coords);
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 10);
+        HuAudFXPlay(0x1BC);
+        for (t = 0.0f; t < 180.0f; t += 18.0f) {
+            HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+            HuPrcVSleep();
+        }
+        func_800D8F0C_name_81(partner);
+        HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+    }
+
+    /* another pipe, at random */
+    do {
+        r = func_800EFE20_name_81(4.0f);
+    } while (D_80117A34_duel03[r] == masu);
+    WipeCreateOut(0, 16);
+    HuPrcSleep(16);
+    space = MBDMasuGet(D_80117A34_duel03[r]);
+    exitSpace = MBDMasuGet(D_80117A3C_duel03[r]);
+    HuVecAdd(&camPos, &exitSpace->coords, &space->coords);
+    HuVecMulScalar(&camPos, 0.5f, &camPos);
+    func_800E890C_name_81(&camPos, 0);
+    pipe = D_801180F8_duel03[r];
+    WipeCreateIn(0, 16);
+    HuPrcSleep(16);
+    func_800E9F4C_name_81(D_80117A3C_duel03[r], &link, &idx);
+    func_800ECD0C_name_81(system->current_player_index, link, idx);
+    if (D_80117A3C_duel03[r] == 0x23) {
+        func_800E9F4C_name_81(0xB, &player->nlink, &player->nidx);
+    }
+    func_800ECF1C_name_81(system->current_player_index, &frontPos, &backPos);
+    HuVecAdd(&frontPos, &frontPos, &exitSpace->coords);
+    HuVecAdd(&backPos, &backPos, &exitSpace->coords);
+
+    /* out of it: front partner, player, back partner */
+    if (player->stats.prize.gamblePrize != -1) {
+        partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
+        HuVecCopy3F(&partner->coords, &space->coords);
+        func_800EB7BC_name_81(&partner->rot);
+        HuVecCopy3F(&pos, &space->coords);
+        pos.y += 20.0f;
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 10);
+        HuAudFXPlay(0x1BC);
+        func_800D8E88_name_81(partner);
+        for (t = 0.0f; t < 180.0f; t += 18.0f) {
+            HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+        partner->flags &= ~1;
+        func_800EB708_name_81(&partner->coords, &frontPos, &partner->rot);
+        func_800EBF2C_name_81(&partner->coords, &frontPos, &partner->coords, 15);
+        partner->velocity.y = 5.5f;
+        partner->velocity.z = -0.75f;
+        HuPrcSleep(15);
+    }
+    HuVecCopy3F(&player->player_obj->coords, &space->coords);
+    func_800EB7BC_name_81(&player->player_obj->rot);
+    HuVecCopy3F(&pos, &space->coords);
+    pos.y += 20.0f;
+    func_800EBF2C_name_81(&player->player_obj->coords, &pos, &player->player_obj->coords, 10);
+    HuAudFXPlay(0x1BC);
+    func_800D8E88_name_81(player->player_obj);
+    for (t = 0.0f; t < 180.0f; t += 18.0f) {
+        HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+        HuPrcVSleep();
+    }
+    HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+    player->player_obj->flags &= ~1;
+    func_800EB708_name_81(&player->player_obj->coords, &frontPos, &player->player_obj->rot);
+    func_800EBF2C_name_81(&player->player_obj->coords, &exitSpace->coords, &player->player_obj->coords, 15);
+    player->player_obj->velocity.y = 5.5f;
+    player->player_obj->velocity.z = -0.75f;
+    func_800F3880_name_81(-1, 1, 0);
+    HuPrcSleep(15);
+    func_800F3880_name_81(-1, -1, 2);
+    player->stat &= ~4;
+    if (player->stats.prize.duelNo != -1) {
+        partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
+        HuVecCopy3F(&partner->coords, &space->coords);
+        func_800EB7BC_name_81(&partner->rot);
+        HuVecCopy3F(&pos, &space->coords);
+        pos.y += 20.0f;
+        func_800EBF2C_name_81(&partner->coords, &pos, &partner->coords, 10);
+        HuAudFXPlay(0x1BC);
+        func_800D8E88_name_81(partner);
+        for (t = 0.0f; t < 180.0f; t += 18.0f) {
+            HuVecCopyXYZ(&pipe->scale, 1.0f - sindf(t) * 0.3f, 1.0f, 1.0f - sindf(t) * 0.3f);
+            HuPrcVSleep();
+        }
+        HuVecCopyXYZ(&pipe->scale, 1.0f, 1.0f, 1.0f);
+        partner->flags &= ~1;
+        func_800EB708_name_81(&partner->coords, &backPos, &partner->rot);
+        func_800EBF2C_name_81(&partner->coords, &backPos, &partner->coords, 15);
+        partner->velocity.y = 5.5f;
+        partner->velocity.z = -0.75f;
+        HuPrcSleep(15);
+    }
+    HuPrcChildLink(process, func_800EC1E4_name_81(&camPos, &exitSpace->coords, &camPos, 3.0f));
+    HuPrcChildWait();
+    func_800FC888_name_81(1);
+    func_800DADA0_name_81(system->current_player_index);
+    func_800F75EC_name_81(-1);
+}
 
 // board db3: a pipe space: the CPU decision tree (or the player) chooses whether to take the pipe
 void func_80116C54_duel03(void) {
