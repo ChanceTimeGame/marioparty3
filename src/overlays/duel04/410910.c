@@ -1915,11 +1915,290 @@ s32 func_801159C4_duel04(void) {
     }
 }
 
+// board ea2: logic checked against the asm case by case; masked 20: the cur/rev tails (retail computes the
+// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+#ifdef NON_MATCHING
+s32 func_80115B3C_duel04(void) {
+    s32 cur;
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+    s32 ret;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 4:
+            if (!(opp->rev & 1)) {
+                if (cur == 0) {
+                    return 0;
+                }
+                return func_800EFE20_name_81(100.0f) < 50;
+            }
+            if (walk >= 8 || opp->stats.prize.itemPrize == 0) {
+                return 0;
+            }
+            return 1;
+        case 6:
+            if (walk < 3 && opp->cidx == D_80119F18_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 3 || opp->cidx > D_80119F18_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            break;
+        case 2:
+            if (walk >= 3 && walk < 7 && opp->cidx == D_80119EEC_duel04[walk - 2]) {
+                if (cur == 0) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EEC_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur == 0) {
+                return 0;
+            }
+            ret = 1;
+            if (!(opp->rev & 1)) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+        case 3:
+            if (walk >= 3 && walk < 8 && opp->cidx == D_80119EF4_duel04[walk - 2]) {
+                return 1;
+            }
+            if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EF4_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur == 0) {
+                return 0;
+            }
+            ret = 1;
+            if (opp->rev & 1) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+        case 5:
+        case 7:
+            return 0;
+    }
+    if (cur != 0) {
+        return func_800EFE20_name_81(100.0f) < 50;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115B3C_duel04);
+#endif
 
+// board ea2: logic checked against the asm case by case; masked 56: the cur/rev tails (retail computes the
+// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+#ifdef NON_MATCHING
+s32 func_80115DA8_duel04(void) {
+    s32 cur;
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+    s32 ret;
+    s32 unused[8]; /* retail's frame is 0x20 bytes larger than the code needs */
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 4:
+            if (!(opp->rev & 1)) {
+                return cur == 0;
+            }
+            if (walk >= 8 || opp->stats.prize.itemPrize == 0) {
+                return cur == 0;
+            }
+            return 0;
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F20_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 3 || opp->cidx > D_80119F20_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            break;
+        case 3:
+            if (walk >= 3 && walk < 8 && opp->cidx == D_80119EFC_duel04[walk - 2]) {
+                return 1;
+            }
+            if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EFC_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur != 0) {
+                return 0;
+            }
+            ret = 1;
+            if (!(opp->rev & 1)) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+        case 0:
+            if (walk >= 3 && walk < 7 && opp->cidx == D_80119EC4_duel04[walk - 2]) {
+                if (cur != 0) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EC4_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur != 0) {
+                return 0;
+            }
+            ret = 1;
+            if (opp->rev & 1) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+    }
+    switch (opp->clink) {
+        case 5:
+            if (walk < 3 && opp->cidx == D_80119F10_duel04[walk]) {
+                return 0;
+            }
+            if (walk >= 3 || opp->cidx > D_80119F10_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            break;
+        case 1:
+            if (walk >= 3 && walk < 8 && opp->cidx == D_80119EDC_duel04[walk - 2]) {
+                return 0;
+            }
+            if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EDC_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize == 0;
+            }
+            if (cur != 0) {
+                return opp->stats.prize.itemPrize != 0;
+            }
+            return 1;
+        case 2:
+            if (walk >= 3 && walk < 7 && opp->cidx == D_80119EE4_duel04[walk - 2]) {
+                if (cur == 0) {
+                    return me->stats.prize.itemPrize == 0;
+                }
+                return 0;
+            }
+            if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EE4_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize == 0;
+            }
+            if (cur != 0) {
+                return opp->stats.prize.itemPrize != 0;
+            }
+            return 1;
+    }
+    return cur == 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115DA8_duel04);
+#endif
 
+// board ea2: logic checked against the asm case by case; masked 19: the cur/rev tails (retail computes the
+// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+#ifdef NON_MATCHING
+s32 func_80116168_duel04(void) {
+    s32 cur;
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 other;
+    s32 walk;
+    s32 ret;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(-1);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    switch (opp->clink) {
+        case 5:
+            if (!(opp->rev & 1)) {
+                if (cur == 0) {
+                    return func_800EFE20_name_81(100.0f) < 50;
+                }
+                return 0;
+            }
+            if (walk >= 8 || opp->stats.prize.itemPrize == 0) {
+                return 0;
+            }
+            return 1;
+        case 7:
+            if (walk < 3 && opp->cidx == D_80119F20_duel04[walk]) {
+                return 1;
+            }
+            if (walk >= 3 || opp->cidx > D_80119F20_duel04[walk]) {
+                if (opp->rev & 1) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            break;
+        case 3:
+            if (walk >= 3 && walk < 8 && opp->cidx == D_80119EFC_duel04[walk - 2]) {
+                return 1;
+            }
+            if (walk >= 8 || (walk >= 3 && opp->cidx > D_80119EFC_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur != 0) {
+                return 0;
+            }
+            ret = 1;
+            if (!(opp->rev & 1)) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+        case 0:
+            if (walk >= 3 && walk < 7 && opp->cidx == D_80119EC4_duel04[walk - 2]) {
+                if (cur != 0) {
+                    return me->stats.prize.itemPrize != 0;
+                }
+                return 1;
+            }
+            if (walk >= 7 || (walk >= 3 && opp->cidx > D_80119EC4_duel04[walk - 2])) {
+                return me->stats.prize.itemPrize != 0;
+            }
+            if (cur != 0) {
+                return 0;
+            }
+            ret = 1;
+            if (opp->rev & 1) {
+                ret = opp->stats.prize.itemPrize == 0;
+            }
+            return ret;
+        case 4:
+        case 6:
+            return 0;
+    }
+    if (cur != 0) {
+        return 0;
+    }
+    return func_800EFE20_name_81(100.0f) < 50;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80116168_duel04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
 
