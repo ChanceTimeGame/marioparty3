@@ -183,7 +183,7 @@ void func_8010A7D0_slot_synch(omObjData *obj);
 void func_8010AA9C_slot_synch(s16 idx, s16 target);
 void func_8010AC14_slot_synch(omObjData *obj);
 s32 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
-s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
+s32 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
 void func_8010B754_slot_synch(omObjData *obj);
 void func_8010BB90_slot_synch(s32 idx);
 void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
@@ -197,7 +197,6 @@ f64 fmod(f64, f64);
 s32 func_8010D3E0_slot_synch(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
-// <func_80109FA4_slot_synch>
 s16 func_80109FA4_slot_synch(u8 player, s16 arg1) {
     SsReel *reel;
     s32 i;
@@ -238,9 +237,7 @@ s16 func_80109FA4_slot_synch(u8 player, s16 arg1) {
     }
     return -1;
 }
-// </func_80109FA4_slot_synch>
 
-// <func_8010A178_slot_synch>
 s32 func_8010A178_slot_synch(s16 idx) {
     SsReel *reel;
 
@@ -253,9 +250,7 @@ s32 func_8010A178_slot_synch(s16 idx) {
     }
     return 0;
 }
-// </func_8010A178_slot_synch>
 
-// <func_8010A1D0_slot_synch>
 void func_8010A1D0_slot_synch(void) {
     SsReel *reel = D_8010DF88_slot_synch;
     s32 i;
@@ -277,9 +272,7 @@ void func_8010A1D0_slot_synch(void) {
         D_8010DF84_slot_synch->func = NULL;
     }
 }
-// </func_8010A1D0_slot_synch>
 
-// <func_8010A2C4_slot_synch>
 u16 func_8010A2C4_slot_synch(s32 dirAndFile) {
     void *data = DataRead(dirAndFile);
     s16 id = func_80055810_main(data);
@@ -287,9 +280,7 @@ u16 func_8010A2C4_slot_synch(s32 dirAndFile) {
     DataClose(data);
     return id;
 }
-// </func_8010A2C4_slot_synch>
 
-// <func_8010A308_slot_synch>
 void func_8010A308_slot_synch(s16 grp, s16 member, f32 x, f32 y) {
     HuSprGrp *group = HuSprGrpData[grp];
     HuSprite *spr = HuSprGet(grp, member);
@@ -300,9 +291,7 @@ void func_8010A308_slot_synch(s16 grp, s16 member, f32 x, f32 y) {
         spr->unk_4C = y;
     }
 }
-// </func_8010A308_slot_synch>
 
-// <func_8010A39C_slot_synch>
 void func_8010A39C_slot_synch(void) {
     SsCounter *counter;
     s32 i;
@@ -323,9 +312,7 @@ void func_8010A39C_slot_synch(void) {
     }
     omAddObj(0x1E, 0, 0, -1, func_8010A7D0_slot_synch);
 }
-// </func_8010A39C_slot_synch>
 
-// <func_8010A480_slot_synch>
 void func_8010A480_slot_synch(s16 idx, s16 file0, s16 file1, s16 target) {
     SsCounter *counter = &D_8010DF90_slot_synch[idx];
     s32 grp;
@@ -373,9 +360,7 @@ void func_8010A480_slot_synch(s16 idx, s16 file0, s16 file1, s16 target) {
         HuSprPriSet(grp, i, i - 0x10);
     }
 }
-// </func_8010A480_slot_synch>
 
-// <func_8010A7D0_slot_synch>
 void func_8010A7D0_slot_synch(omObjData *obj) {
     SsCounter *counter = D_8010DF90_slot_synch;
     u16 digit[2];
@@ -421,9 +406,7 @@ void func_8010A7D0_slot_synch(omObjData *obj) {
         }
     }
 }
-// </func_8010A7D0_slot_synch>
 
-// <func_8010AA9C_slot_synch>
 void func_8010AA9C_slot_synch(s16 idx, s16 target) {
     SsCounter *counter;
     s32 offset = idx * sizeof(SsCounter);
@@ -431,9 +414,7 @@ void func_8010AA9C_slot_synch(s16 idx, s16 target) {
     counter = (SsCounter *)((u8 *)D_8010DF90_slot_synch + offset);
     counter->target = target;
 }
-// </func_8010AA9C_slot_synch>
 
-// <func_8010AAB8_slot_synch>
 void func_8010AAB8_slot_synch(void) {
     HuSprite_Unk84_Struct *spr;
     SsEffect *effect;
@@ -460,9 +441,7 @@ void func_8010AAB8_slot_synch(void) {
         model->unk40 = 0.0f;
     }
 }
-// </func_8010AAB8_slot_synch>
 
-// <func_8010AC14_slot_synch>
 void func_8010AC14_slot_synch(omObjData *obj) {
     HuSprite_Unk84_Struct *spr;
     SsEffect *effect;
@@ -498,9 +477,7 @@ void func_8010AC14_slot_synch(omObjData *obj) {
         effect++;
     } while (i < 8);
 }
-// </func_8010AC14_slot_synch>
 
-// <func_8010AD68_slot_synch>
 s32 func_8010AD68_slot_synch(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *color) {
     HuSprite_Unk84_Struct *spr;
     SsEffect *effect;
@@ -550,9 +527,7 @@ s32 func_8010AD68_slot_synch(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *co
     }
     return -1;
 }
-// </func_8010AD68_slot_synch>
 
-// <func_8010AF38_slot_synch>
 void func_8010AF38_slot_synch(void) {
     HuCamera *cam;
     s32 i;
@@ -578,9 +553,7 @@ void func_8010AF38_slot_synch(void) {
         cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
     }
 }
-// </func_8010AF38_slot_synch>
 
-// <func_8010B064_slot_synch>
 void func_8010B064_slot_synch(void) {
     SsCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
     f32 speed = 1.0f;
@@ -685,9 +658,7 @@ void func_8010B064_slot_synch(void) {
         }
     }
 }
-// </func_8010B064_slot_synch>
 
-// <func_8010B754_slot_synch>
 void func_8010B754_slot_synch(omObjData *obj) {
     f32 t;
 
@@ -729,9 +700,7 @@ void func_8010B754_slot_synch(omObjData *obj) {
     D_8010DFF0_slot_synch = 1;
     func_8010BF6C_slot_synch(0);
 }
-// </func_8010B754_slot_synch>
 
-// <func_8010BB90_slot_synch>
 void func_8010BB90_slot_synch(s32 idx) {
     SS_WRAP(CRot.x);
     SS_WRAP(CRot.y);
@@ -745,9 +714,7 @@ void func_8010BB90_slot_synch(s32 idx) {
     D_8010DFA0_slot_synch[idx].zoom = CZoom;
     D_8010DFA0_slot_synch[idx].unk1C = D_8010DFA0_slot_synch[idx].unk20 = 0.0f;
 }
-// </func_8010BB90_slot_synch>
 
-// <func_8010BD7C_slot_synch>
 void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
     if (frames > 0) {
         D_8010DFE8_slot_synch = frames - 1;
@@ -790,9 +757,7 @@ void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f3
         func_8010BB90_slot_synch(1);
     }
 }
-// </func_8010BD7C_slot_synch>
 
-// <func_8010BF6C_slot_synch>
 void func_8010BF6C_slot_synch(s32 idx) {
     HuCamera *cam = &gCameraList[idx];
     f32 rx = CRot.x;
@@ -808,9 +773,7 @@ void func_8010BF6C_slot_synch(s32 idx) {
     cam->up.y = cosdf(rx);
     cam->up.z = cosdf(ry) * sindf(rx);
 }
-// </func_8010BF6C_slot_synch>
 
-// <func_8010C0C0_slot_synch>
 f32 func_8010C0C0_slot_synch(f32 a, f32 b) {
     f32 d;
 
@@ -832,9 +795,7 @@ f32 func_8010C0C0_slot_synch(f32 a, f32 b) {
     }
     return d;
 }
-// </func_8010C0C0_slot_synch>
 
-// <func_8010C1C4_slot_synch>
 f32 func_8010C1C4_slot_synch(f32 target, f32 cur, f32 step) {
     f32 d;
     f32 v;
@@ -861,30 +822,22 @@ f32 func_8010C1C4_slot_synch(f32 target, f32 cur, f32 step) {
     SS_WRAP(v);
     return v;
 }
-// </func_8010C1C4_slot_synch>
 
-// <func_8010C384_slot_synch>
 f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b) {
     return a + t * (b - a);
 }
-// </func_8010C384_slot_synch>
 
-// <func_8010C39C_slot_synch>
 f32 func_8010C39C_slot_synch(f32 t, f32 a, f32 b) {
     return func_8010C1C4_slot_synch(b, a, fabsf(func_8010C0C0_slot_synch(b, a) * t));
 }
-// </func_8010C39C_slot_synch>
 
-// <func_8010C3FC_slot_synch>
 void func_8010C3FC_slot_synch(omObjData *obj, u32 value) {
     obj->work[0] = value >> 24;
     obj->work[1] = (value >> 16) & 0xFF;
     obj->work[2] = (value >> 8) & 0xFF;
     obj->work[3] = value & 0xFF;
 }
-// </func_8010C3FC_slot_synch>
 
-// <func_8010C428_slot_synch>
 void *func_8010C428_slot_synch(omObjData *obj) {
     SsPack u;
 
@@ -894,9 +847,7 @@ void *func_8010C428_slot_synch(omObjData *obj) {
     u.b.d = obj->work[3];
     return u.p;
 }
-// </func_8010C428_slot_synch>
 
-// <func_8010C47C_slot_synch>
 s16 func_8010C47C_slot_synch(s32 dirAndFile) {
     s16 id = func_8001F1FC_main(DataRead(dirAndFile), 0x18);
 
@@ -905,9 +856,7 @@ s16 func_8010C47C_slot_synch(s32 dirAndFile) {
     }
     return -1;
 }
-// </func_8010C47C_slot_synch>
 
-// <func_8010C4C0_slot_synch>
 s32 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
     HmfData *temp_s4;
     Gfx *temp_v0_0;
@@ -1013,11 +962,37 @@ s32 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
     temp_s4->unk3C->unk00[0] = temp_s4->unk3C->unk00[D_800D2008_main + 1];
     return temp_v0;
 }
-// </func_8010C4C0_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010D0A8_slot_synch);
+s32 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2) {
+    HmfModel *model = &HmfModelData[arg1];
+    HmfData *src = model->hmf;
+    HmfData *temp_s1;
+    Gfx *temp_v0_2;
+    s32 temp_v0;
+    s32 var_s2;
 
-// <func_8010D2AC_slot_synch>
+    temp_v0 = func_8001A894_main(model->unk18, NULL, 4);
+    temp_s1 = HmfModelData[temp_v0].hmf;
+    temp_s1->unk60->unk50 = src->unk60->unk50;
+    HuMemFree(temp_s1->unk3C);
+    temp_s1->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    temp_s1->unk3C->unk10 = src->unk3C->unk10;
+    temp_s1->unk3C->unk14 = src->unk3C->unk14;
+    for (var_s2 = 0; var_s2 < D_800D1FF0_main; var_s2++) {
+        temp_v0_2 = temp_s1->unk3C->unk00[var_s2 + 1] = HuMemAllocTag(0x100, temp_s1->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg2->r, arg2->g, arg2->b, arg2->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s1->unk3C->unk00[0] = temp_s1->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
+
 void func_8010D2AC_slot_synch(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3) {
     HmfModel *model = &HmfModelData[modelId];
     HmfData *temp_s3 = model->hmf;
@@ -1034,9 +1009,7 @@ void func_8010D2AC_slot_synch(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2
     gDPPipeSync(&temp_s0[6]);
     gSPEndDisplayList(&temp_s0[7]);
 }
-// </func_8010D2AC_slot_synch>
 
-// <func_8010D3E0_slot_synch>
 s32 func_8010D3E0_slot_synch(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
     Vtx *temp_s7;
     Vtx *var_s1;
@@ -1118,4 +1091,3 @@ s32 func_8010D3E0_slot_synch(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg
     HuMemFree(temp_s7);
     return var_s2;
 }
-// </func_8010D3E0_slot_synch>
