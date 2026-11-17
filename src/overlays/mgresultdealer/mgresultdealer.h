@@ -41,7 +41,7 @@ typedef struct DealerSprBank {
 
 /* One flying coin (or the sparkle where it lands). */
 typedef struct DealerCoin {
-    /* 0x00 */ s16 active;
+    /* 0x00 */ u8 active;
     /* 0x02 */ u16 spr;
     /* 0x04 */ s32 time;
     /* 0x08 */ f32 x;
@@ -162,6 +162,15 @@ extern Vec D_801098F0_mgresultdealer; /* hand rotation */
 extern s32 D_801098FC_mgresultdealer[4]; /* confetti model files */
 extern s16 D_8010990C_mgresultdealer; /* confetti frame counter */
 extern const s32 D_801099A8_mgresultdealer[8];
+extern s8 D_80109910_mgresultdealer;  /* coins falling */
+extern s8 D_80109911_mgresultdealer;  /* all coins landed */
+extern s32 D_80109914_mgresultdealer; /* frame */
+extern s32 D_80109918_mgresultdealer; /* coins to drop (at most 999) */
+extern s32 D_8010991C_mgresultdealer; /* coins dropped */
+extern s32 D_80109920_mgresultdealer; /* coins shown (at most 50) */
+extern s32 D_80109924_mgresultdealer; /* frames between drops */
+extern s32 D_80109928_mgresultdealer; /* landing sound played */
+extern s32 D_8010992C_mgresultdealer; /* rumble done */
 
 /* .bss */
 extern s16 D_801099F8_mgresultdealer[4]; /* confetti models */
@@ -171,5 +180,9 @@ extern UnkOmData D_8010A250_mgresultdealer; /* Game Guy, the hand and the slot *
 extern s16 D_8010A258_mgresultdealer;     /* bonus coins (multiplier) */
 extern s16 D_8010A264_mgresultdealer;     /* coins */
 extern s8 D_8010A266_mgresultdealer[4];   /* players by group */
+extern u16 D_80109A70_mgresultdealer[2]; /* sprite models of the coins [0] and their sparkles [1] */
+extern DealerCoin D_80109A78_mgresultdealer[40]; /* coins */
+extern DealerCoin D_80109E38_mgresultdealer[40]; /* sparkles */
+extern UnkOmData D_8010A274_mgresultdealer; /* coins */
 
 #endif
