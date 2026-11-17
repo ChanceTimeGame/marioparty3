@@ -319,7 +319,8 @@ void func_80111218_mstory1(omObjData *obj) {
 
 /* NON_MATCHING: masked 0 at the right count once functions.us.h declares func_80017AD8_main as
    returning s16, as 14EA0.c defines it (the header's u8 adds an andi before each store to
-   D_80115C94_mstory1; ~/repos/mp3-wt/s3A.header.patch). */
+   D_80115C94_mstory1). The header cannot simply change: 101840.c declares it u8 too, and its
+   MBGuideFaceSet then grows an instruction. */
 #ifdef NON_MATCHING
 /* actor 0: the player's character */
 void func_80111220_mstory1(void) {
