@@ -1931,7 +1931,7 @@ segments:
     bss_size: 0x30
     subsegments:
       - [0x3D76C0, c]
-      - [0x3D8680, data, 3D76C0] #80106960
+      - [0x3D8680, .data, 3D76C0] #80106960
       - [0x3D86B0, .rodata, 3D76C0] #80106990
       - {0x3D8930, type: bss, vram: 0x80106C10, name: sldebug_bss}
 
@@ -2227,10 +2227,26 @@ segments:
     name: mstory2
     exclusive_ram_id: minigame # ovl_6C
     bss_size: 0x450
+    subalign: 4 # the .rodata of 4A7540 (8011C234) and 4AC200 (8011C420) starts 4-aligned
     subsegments:
-      - [0x49BD40, c] # TODO: split at 49DF30, 4A7540, 4AC200 and 4B0E80? Having issues with rodata.
-      - [0x4B1CC0, data, 49BD40] #8011B920
+      - [0x49BD40, c]
+      - [0x49DF30, c] # 80107B90: retail padding after func_80107824; the path library starts a file (as mstory1's 48D950)
+      - [0x4A28B0, c] # 8010C510: scene B's path library (its "item_hook" literal is not pooled with scene A's)
+      - [0x4A7540, c] # 801111A0: padding after func_80111194
+      - [0x4AC200, c] # 80115E60: padding after func_80115E4C
+      - [0x4B0E80, c] # 8011AAE0: padding after func_8011AAD0
+      - [0x4B1CC0, .data, 49BD40] #8011B920 (story f5: .data in C)
+      - [0x4B1CF0, .data, 49DF30] #8011B950
+      - [0x4B1E10, .data, 4A28B0] #8011BA70
+      - [0x4B1F30, .data, 4A7540] #8011BB90
+      - [0x4B2050, .data, 4AC200] #8011BCB0
+      - [0x4B2170, .data, 4B0E80] #8011BDD0
       - [0x4B2180, .rodata, 49BD40] #8011BDE0
+      - [0x4B2208, .rodata, 49DF30] #8011BE68 (each scene file's .rodata starts with { -120, 0, 480 })
+      - [0x4B23E8, .rodata, 4A28B0] #8011C048
+      - [0x4B25D4, .rodata, 4A7540] #8011C234
+      - [0x4B27C0, .rodata, 4AC200] #8011C420
+      - [0x4B29AC, .rodata, 4B0E80] #8011C60C
       - {0x4B29E0, type: bss, vram: 0x8011C640, name: mstory2_bss}
 
   - type: code
@@ -2271,8 +2287,14 @@ segments:
     bss_size: 0x520
     subsegments:
       - [0x4CF350, c]
-      - [0x4DE0E0, data, 4CF350] #80114730
+      - [0x4D1200, c] # 80107850: the path library starts a file, as in mstory1 (48D950)
+      - [0x4D8E80, c] # 8010F4D0, 16-byte aligned after a padding nop: the second scene and its own path library
+      - [0x4DE0E0, .data, 4CF350] #80114730 (.data split at the 16-byte file boundaries)
+      - [0x4DE120, .data, 4D1200] #80114770
+      - [0x4DE1D0, .data, 4D8E80] #80114820
       - [0x4DE250, .rodata, 4CF350] #801148A0
+      - [0x4DE2B0, .rodata, 4D1200] #80114900
+      - [0x4DE6D0, .rodata, 4D8E80] #80114D20 (4D1200's .rodata ends at 80114D14; retail pads it to 16)
       - {0x4DEB60, type: bss, vram: 0x801151B0, name: mstory5_bss}
 
   - type: code
@@ -2333,8 +2355,13 @@ segments:
     bss_size: 0x8A0
     subsegments:
       - [0x4EC1B0, c]
-      - [0x4F00D0, data, 4EC1B0] #801098C0
+      - [0x4ECDE0, c]
+      - [0x4EDCB0, c]
+      - [0x4F00D0, .data, 4EC1B0] #801098C0
+      - [0x4F00F0, .data, 4ECDE0] #801098E0
+      - [0x4F0120, .data, 4EDCB0] #80109910
       - [0x4F0170, .rodata, 4EC1B0] #80109960
+      - [0x4F01B8, .rodata, 4ECDE0] #801099A8
       - {0x4F01F0, type: bss, vram: 0x801099E0, name: mgresultdealer_bss}
 
   - type: code
