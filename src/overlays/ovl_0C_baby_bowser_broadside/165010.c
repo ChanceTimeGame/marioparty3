@@ -22,6 +22,9 @@ typedef union BbObjWork {
     } b;
 } BbObjWork;
 #define BB_WORK(obj) ((BbObjWork*)(obj)->work)
+#ifndef ABS
+#define ABS(x) ((x) > 0 ? (x) : -(x))
+#endif
 
 /* A task group's context (169540 func_80109F64_baby_bowser_broadside) */
 typedef struct BbCtx {
@@ -417,7 +420,29 @@ void func_80106E70_baby_bowser_broadside(omObjData* obj) {
 }
 /* </func_80106E70_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80106EC4_baby_bowser_broadside);
+/* <func_80106EC4_baby_bowser_broadside> */
+void func_80106EC4_baby_bowser_broadside(omObjData* obj) {
+    func_8001E65C_main(obj->model[0], sindf(D_8010FD64_baby_bowser_broadside) * 15.0f, -D_8010FD68_baby_bowser_broadside,
+                       64, 64);
+    func_8001F6BC_main(obj->model[0], (u8)(cosdf(D_8010FD6C_baby_bowser_broadside) * 32.0f + 32.0f), 0, 0,
+                       (u8)(cosdf(D_8010FD6C_baby_bowser_broadside) * 32.0f + 32.0f));
+    func_8001F6F8_main(obj->model[0], 64, 32, 32, 0);
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010FD64_baby_bowser_broadside += 0.5f;
+        if (D_8010FD64_baby_bowser_broadside >= 360.0f) {
+            D_8010FD64_baby_bowser_broadside -= 360.0f;
+        }
+        D_8010FD68_baby_bowser_broadside += 0.2f;
+        if (D_8010FD68_baby_bowser_broadside >= 64.0f) {
+            D_8010FD68_baby_bowser_broadside -= 64.0f;
+        }
+        D_8010FD6C_baby_bowser_broadside += 2.4f;
+        if (D_8010FD6C_baby_bowser_broadside >= 360.0f) {
+            D_8010FD6C_baby_bowser_broadside -= 360.0f;
+        }
+    }
+}
+/* </func_80106EC4_baby_bowser_broadside> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107140_baby_bowser_broadside);
 
@@ -631,7 +656,51 @@ void func_80108210_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
 }
 /* </func_80108210_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108350_baby_bowser_broadside);
+/* <func_80108350_baby_bowser_broadside> */
+void func_80108350_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    HmfModel* target = &HmfModelData[D_80110008_baby_bowser_broadside->model];
+    f32 x0;
+    f32 z0;
+    f32 x1;
+    f32 z1;
+    f32 t;
+    s32 d;
+
+    if (D_80110008_baby_bowser_broadside->flags & 2) {
+        x0 = D_8010FD78_baby_bowser_broadside[D_80110008_baby_bowser_broadside->unk60];
+        z0 = D_8010FD84_baby_bowser_broadside[D_80110008_baby_bowser_broadside->unk60];
+        x1 = D_8010FD78_baby_bowser_broadside[D_80110008_baby_bowser_broadside->unk61];
+        z1 = D_8010FD84_baby_bowser_broadside[D_80110008_baby_bowser_broadside->unk61];
+        t = task->unk1C / 50.0f;
+        t = sindf(t * 90.0f);
+        if (t > 1.0f) {
+            t = 1.0f;
+        }
+        target->pos.x = x0 + (x1 - x0) * t;
+        target->pos.z = z0 + (z1 - z0) * t;
+        if (++task->unk1C >= 51) {
+            target->pos.x = x1;
+            target->pos.z = z1;
+            D_80110008_baby_bowser_broadside->unk60 = D_80110008_baby_bowser_broadside->unk61;
+            task->unk1C = 0;
+            /* a new position, never the same one and never across (a step of 2) unless from 0 */
+            while (TRUE) {
+                D_80110008_baby_bowser_broadside->unk61 = rand16() % 5;
+                if (D_80110008_baby_bowser_broadside->unk60 == D_80110008_baby_bowser_broadside->unk61) {
+                    continue;
+                }
+                if (D_80110008_baby_bowser_broadside->unk60 == 0 ||
+                    ABS(D_80110008_baby_bowser_broadside->unk60 - D_80110008_baby_bowser_broadside->unk61) != 2) {
+                    break;
+                }
+            }
+        }
+        HmfModelData[ctx->models[4]].pos.x = target->pos.x;
+        HmfModelData[ctx->models[4]].pos.z = target->pos.z;
+        Hu3DModelPosSet(ctx->models[5], target->pos.x, 450.0f, target->pos.z);
+    }
+}
+/* </func_80108350_baby_bowser_broadside> */
 
 /* <func_80108614_baby_bowser_broadside> */
 void func_80108614_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
