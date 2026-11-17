@@ -234,17 +234,13 @@ void func_801177BC_mgmode(Vec* arg0, Vec* arg1) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801177BC_mgmode);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801178E0_mgmode);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80117DD0_mgmode);
-
 typedef struct MgModePair {
     /* 0x00 */ s16 unk0;
     /* 0x02 */ s16 unk2;
 } MgModePair;
 
-extern u16 D_8011B664_mgmode;
-extern u16 D_8011B666_mgmode;
+extern s16 D_8011B664_mgmode;
+extern s16 D_8011B666_mgmode;
 extern s16 D_8011B668_mgmode;
 extern s16 D_8011B66A_mgmode;
 extern u16 D_8011B66C_mgmode;
@@ -255,6 +251,57 @@ extern s16 D_8011A3F8_mgmode[];
 
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
 s32 func_80050064_main(s32 write);
+void func_801180A4_mgmode(void);
+
+INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801178E0_mgmode);
+
+
+/* Process: the cursor sprite; while shown it glides to slot D_8011B66A of D_8011B670 over
+   D_8011B668 frames whenever the slot changes. */
+void func_80117DD0_mgmode(void) {
+    s16 last = -1;
+    s16 x0;
+    s16 dx;
+    s16 y0;
+    s16 dy;
+    s16 i;
+    f32 t;
+
+    D_8011B66E_mgmode = 0;
+    D_8011B66C_mgmode = InitEspriteSlot(func_8000B838_main(0x11000E), 0, 1);
+    func_8000BCC8_main(D_8011B66C_mgmode, 1);
+    func_8000BBD4_main(D_8011B66C_mgmode, 160, 120);
+    func_8000BB94_main(D_8011B66C_mgmode);
+    D_8011B664_mgmode = 160;
+    D_8011B666_mgmode = 120;
+    D_8011B668_mgmode = 10;
+    omAddPrcObj(func_801180A4_mgmode, 0x3F00, 0x800, 0);
+    while (TRUE) {
+        HuPrcVSleep();
+        if (D_8011B66E_mgmode != 0) {
+            if (last != D_8011B66A_mgmode && D_8011B66A_mgmode != -1) {
+                if (D_8011B670_mgmode[D_8011B66A_mgmode].unk0 != D_8011B664_mgmode ||
+                    D_8011B670_mgmode[D_8011B66A_mgmode].unk2 != D_8011B666_mgmode) {
+                    x0 = D_8011B664_mgmode;
+                    y0 = D_8011B666_mgmode;
+                    dx = D_8011B670_mgmode[D_8011B66A_mgmode].unk0 - D_8011B664_mgmode;
+                    dy = D_8011B670_mgmode[D_8011B66A_mgmode].unk2 - D_8011B666_mgmode;
+                    for (i = 1; i <= D_8011B668_mgmode; i++) {
+                        t = sindf(90.0f / D_8011B668_mgmode * i);
+                        D_8011B664_mgmode = x0 + dx * t;
+                        D_8011B666_mgmode = y0 + dy * t;
+                        func_8000BBD4_main(D_8011B66C_mgmode, D_8011B664_mgmode, D_8011B666_mgmode);
+                        HuPrcVSleep();
+                    }
+                }
+                last = D_8011B66A_mgmode;
+            }
+        } else {
+            last = D_8011B66A_mgmode;
+        }
+        func_8000BBD4_main(D_8011B66C_mgmode, D_8011B664_mgmode, D_8011B666_mgmode);
+    }
+}
 
 /* Process: fades sprite D_8011B66C in or out whenever D_8011B66E changes. */
 void func_801180A4_mgmode(void) {
