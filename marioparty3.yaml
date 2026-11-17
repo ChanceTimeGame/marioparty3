@@ -2009,7 +2009,7 @@ segments:
       - [0x4108E0, c]
       - [0x410910, c]
       - [0x424BB0, .data, 4108E0] #80119C70
-      - [0x424BE0, data, 410910]
+      - [0x424BE0, .data, 410910]
       - [0x426370, .rodata, 410910] #8011B430
       - {0x426420, type: bss, vram: 0x8011B4E0, name: duel04_bss}
 
