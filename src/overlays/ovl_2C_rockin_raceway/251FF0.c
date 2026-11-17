@@ -836,8 +836,6 @@ RRPlayerWork* func_8010EC38_rockin_raceway(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EC8C_rockin_raceway);
 
-#ifdef NON_MATCHING
-/* raw residue: the loop hoists the gSPSegment word 0xDB060008 into s8 (retail rebuilds it each pass) */
 /* Clones model's hmf as a new model with its own per-buffer display lists (segment 2 = spr's first frame,
    prim color = color); returns the new model. */
 s32 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct* spr, u16 model, RRColor* color) {
@@ -858,23 +856,19 @@ s32 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct* spr, u16 model, RRColor*
     dst->unk3C->unk10 = src->unk3C->unk10;
     dst->unk3C->unk14 = src->unk3C->unk14;
     for (i = 0; i < D_800D1FF0_main; i++) {
-        gfx = HuMemAllocTag(0x100, dst->unk0E);
-        dst->unk3C->unk00[i + 1] = gfx;
-        gDPPipeSync(&gfx[0]);
-        gSPSegment(&gfx[1], 0x02, osVirtualToPhysical(spr->unk00->unk00));
-        gSPDisplayList(&gfx[2], osVirtualToPhysical(dst->unk3C->unk10));
-        gDPSetPrimColor(&gfx[3], 0, 0, color->r, color->g, color->b, color->a);
-        gDPPipeSync(&gfx[4]);
-        gSPDisplayList(&gfx[5], osVirtualToPhysical(dst->unk3C->unk14));
-        gDPPipeSync(&gfx[6]);
-        gSPEndDisplayList(&gfx[7]);
+        gfx = dst->unk3C->unk00[i + 1] = HuMemAllocTag(0x100, dst->unk0E);
+        gDPPipeSync(gfx++);
+        gSPSegment(gfx++, 0x02, osVirtualToPhysical(spr->unk00->unk00));
+        gSPDisplayList(gfx++, osVirtualToPhysical(dst->unk3C->unk10));
+        gDPSetPrimColor(gfx++, 0, 0, color->r, color->g, color->b, color->a);
+        gDPPipeSync(gfx++);
+        gSPDisplayList(gfx++, osVirtualToPhysical(dst->unk3C->unk14));
+        gDPPipeSync(gfx++);
+        gSPEndDisplayList(gfx++);
     }
     dst->unk3C->unk00[0] = dst->unk3C->unk00[D_800D2008_main + 1];
     return id;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010F874_rockin_raceway);
-#endif
 
 /* Points model's display list at frame `frame` of spr, tinted color. */
 void func_8010FA78_rockin_raceway(u16 model, HuSprite_Unk84_Struct* spr, u16 frame, RRColor* color) {
