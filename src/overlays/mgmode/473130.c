@@ -69,6 +69,12 @@ typedef struct MgSprSlot {
     /* 0x02 */ u16 espId;
 } MgSprSlot;
 
+/* A cursor position of a menu (func_8011822C_mgmode); x == -1 and y == -1 end the table. */
+typedef struct MgCursorPos {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+} MgCursorPos;
+
 /* other mgmode units */
 void func_80116968_mgmode(MgSprSlot *grp, s16 idx, s16 x, s16 y);
 void func_801169A0_mgmode(MgSprSlot *grp, s16 idx);
@@ -84,7 +90,7 @@ void func_8011667C_mgmode(MgModelDesc *desc);
 void func_80116E24_mgmode(s16 arg0);
 void func_80116ED4_mgmode(s16 arg0, s16 arg1, s16 arg2, void (*arg3)(s16 *));
 void func_801181F4_mgmode(s16 arg0);
-void func_8011822C_mgmode(void *arg0);
+void func_8011822C_mgmode(MgCursorPos *table);
 void func_8011829C_mgmode(s16 arg0);
 void func_801182A8_mgmode(s16 arg0);
 void func_801182B4_mgmode(s16 arg0);
@@ -97,7 +103,7 @@ s16 func_801182DC_mgmode(s16 x, s16 y);
 extern u8 D_80118EB1_mgmode;
 extern s16 D_80118EB4_mgmode;
 extern u8 D_80119344_mgmode[];
-extern u8 D_80119424_mgmode[];
+extern MgCursorPos D_80119424_mgmode[];
 extern u8 D_80119434_mgmode[];
 extern MgModelDesc D_8011997C_mgmode[];
 extern MgModelDesc D_80119A78_mgmode[]; /* D_8011997C_mgmode[7] */
@@ -124,7 +130,9 @@ extern s16 D_80119340_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B950_mgmode;
 extern s16 D_8011B95A_mgmode;
-extern u8 D_8011943C_mgmode[];
+extern MgCursorPos D_8011943C_mgmode[];
+extern MgCursorPos D_80119454_mgmode[];
+extern MgCursorPos D_8011B468_mgmode[];
 extern s16 D_8011944C_mgmode[];
 
 /* main-code variables with no name in the tree yet (undefined_syms.txt, wave 3t m2) */
@@ -142,7 +150,7 @@ void func_8010CBFC_mgmode(void);
 void func_8010D308_mgmode(void);
 s16 func_8010D3B0_mgmode(s32 back);
 void func_8010D98C_mgmode(void);
-s16 func_8010DAB8_mgmode(s16 back);
+s16 func_8010DAB8_mgmode(s32 back);
 void func_8010E1F0_mgmode(void);
 void func_8010E40C_mgmode(void);
 void func_8010E6F0_mgmode(s16 event);
@@ -646,7 +654,95 @@ void func_8010D98C_mgmode(void) {
     }
 }
 
+/* NON_MATCHING: masked 0 except register allocation and a frame 8 bytes smaller than retail's. */
+#ifdef NON_MATCHING
+s16 func_8010DAB8_mgmode(s32 back) {
+    f32 dist;
+    s16 cur;
+    s16 t;
+    s16 j;
+    s16 i;
+
+    if (back != 0) {
+        for (i = 1; i < 6; i++) {
+            func_80116A48_mgmode(D_8011B450_mgmode, D_800D4194_main + 4, 1.0f, cosdf(i / 5.0f * 90.0f));
+            HuPrcVSleep();
+        }
+        func_801169C8_mgmode(D_8011B450_mgmode, D_800D4194_main + 4);
+    }
+    func_8005B43C_main(D_8011B6A8_mgmode, 0x5609, -1, -1);
+    while (func_8005E0C0_main(D_8011B6A8_mgmode)) {
+        HuPrcVSleep();
+    }
+    for (i = 1; i <= D_8011B454_mgmode * 3 + 8; i++) {
+        for (j = 0; j < D_8011B454_mgmode; j++) {
+            func_80116968_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4, 180, j * 22 + 79);
+            t = i - j * 3;
+            if (t < 0) {
+                func_801169C8_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4);
+            } else if (t < 9) {
+                func_801169A0_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4);
+                func_80116A48_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4, 1.0f, sindf(t / 8.0f * 90.0f));
+            }
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < D_8011B454_mgmode; i++) {
+        D_8011B468_mgmode[i] = D_80119454_mgmode[i];
+    }
+    D_8011B468_mgmode[i].x = -1;
+    D_8011B468_mgmode[i].y = -1;
+    cur = 0;
+    func_8011822C_mgmode(D_8011B468_mgmode);
+    func_801181F4_mgmode(0);
+    func_8011829C_mgmode(5);
+    func_801182B4_mgmode(1);
+    while (TRUE) {
+        HuPrcVSleep();
+        func_80118D0C_mgmode();
+        if (ABS(D_800CBB6E_main[D_8011B808_mgmode]) >= 31 || ABS(D_800D20A1_main[D_8011B808_mgmode]) >= 31) {
+            t = func_801182DC_mgmode(-D_800CBB6E_main[D_8011B808_mgmode], D_800D20A1_main[D_8011B808_mgmode]);
+            if (t != -1) {
+                HuAudFXPlay(1);
+                func_801182A8_mgmode(t);
+                HuPrcSleep(5);
+                cur = t;
+            }
+            continue;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x8000) {
+            HuAudFXPlay(2);
+            dist = -9 - cur * 22;
+            for (i = 1; i < 6; i++) {
+                for (j = 0; j < D_8011B454_mgmode; j++) {
+                    if (j == cur) {
+                        func_80116968_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4, 180,
+                                             (j * 22 + 79) + dist * sindf(i / 5.0f * 90.0f));
+                    } else {
+                        func_80116A48_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[j] + 4, 1.0f, cosdf(i / 5.0f * 90.0f));
+                    }
+                }
+                HuPrcVSleep();
+            }
+            for (i = 0; i < 5; i++) {
+                func_801169C8_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[i] + 4);
+            }
+            func_801169A0_mgmode(D_8011B450_mgmode, D_8011B458_mgmode[cur] + 4);
+            break;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x4000) {
+            HuAudFXPlay(4);
+            cur = -1;
+            break;
+        }
+    }
+    func_801182B4_mgmode(0);
+    HuPrcSleep(5);
+    return cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010DAB8_mgmode);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E1F0_mgmode);
 
