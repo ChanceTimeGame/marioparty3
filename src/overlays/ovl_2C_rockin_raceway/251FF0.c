@@ -247,6 +247,7 @@ typedef union RRPack {
 
 extern s16 D_800D418E_main; /* the viewport being drawn */
 extern s16 D_800CDD6A_main;
+extern Gfx D_801116F0_rockin_raceway[];
 extern Vec D_80111414_rockin_raceway[4];
 extern Vec D_80111444_rockin_raceway[12];
 extern RRColor D_80111730_rockin_raceway;
@@ -286,6 +287,7 @@ f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step);
 f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
 f32 func_8010E93C_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
 f32 func_8010EB04_rockin_raceway(f32 x, f32 z);
+s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 scale, u16 x, u16 y);
 
 /* Projects pos through camera cam: screen position and depth into screen, viewport-relative into rel. */
 #ifdef NON_MATCHING
@@ -834,7 +836,109 @@ RRPlayerWork* func_8010EC38_rockin_raceway(omObjData* obj) {
     return u.p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EC8C_rockin_raceway);
+/* Builds a camera-facing sprite model from spr (model 0x18C1), tinted color; returns the model. */
+s32 func_8010EC8C_rockin_raceway(HuSprite_Unk84_Struct* spr, RRColor* color) {
+    HmfData* hmf;
+    Gfx* buf;
+    Gfx* gfx;
+    s32 size;
+    s32 idx;
+    s32 fmt;
+    s32 i;
+
+    buf = gfx = HuMemAlloc(0x10000);
+    idx = func_8001A894_main(0x18C1, buf, 4);
+    hmf = HmfModelData[idx].hmf;
+    hmf->unk60->unk50 |= 0x71010000;
+    HuMemFree(hmf->unk3C);
+    hmf->unk3C = HuMemAllocTag(sizeof(HmfModelData_Unk64_Unk3C_Struct), D_800CDD6A_main);
+    func_8010FBAC_rockin_raceway(spr, hmf, 1.0f, 0, 0);
+    gSPDisplayList(gfx++, osVirtualToPhysical(D_801116F0_rockin_raceway));
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+    gDPPipeSync(gfx++);
+    gSPClearGeometryMode(gfx++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(gfx++, G_CD_NOISE);
+    gDPSetTexturePersp(gfx++, G_TP_NONE);
+    gDPSetTextureFilter(gfx++, G_TF_BILERP);
+    gDPSetTextureConvert(gfx++, G_TC_FILT);
+    gDPSetAlphaDither(gfx++, G_AD_PATTERN);
+    gDPSetAlphaCompare(gfx++, G_AC_NONE);
+    gDPSetBlendColor(gfx++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(gfx++);
+    gDPSetRenderMode(gfx++, G_RM_ZB_XLU_SURF, G_RM_NOOP2);
+    if (spr->unk18 & 0x8000) {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(gfx++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk10 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk10, size);
+    HuMemFree(buf);
+    buf = gfx = HuMemAlloc(0x10000);
+    gSPTexture(gfx++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(gfx++, G_TP_PERSP);
+    if (spr->unk1A >= 2) {
+        gDPSetTextureLUT(gfx++, G_TT_RGBA16);
+        if (spr->unk18 == 4) {
+            gDPLoadTLUT_pal16(gfx++, 0, spr->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(gfx++, spr->unk0C);
+        }
+        gDPPipeSync(gfx++);
+        fmt = 2;
+    } else {
+        gDPSetTextureLUT(gfx++, G_TT_NONE);
+        gDPPipeSync(gfx++);
+        fmt = (spr->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (spr->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(gfx++, 0x02000000, fmt, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                   G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_8b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(gfx++, 0x02000000, fmt, G_IM_SIZ_16b, spr->unk00->unk04, spr->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                                G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(gfx++);
+    gSPSegment(gfx++, 0x01, osVirtualToPhysical(hmf->unk44[0]));
+    gSPVertex(gfx++, 0x01000000, 4, 0);
+    gSP2Triangles(gfx++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u32)gfx - (u32)buf;
+    hmf->unk3C->unk14 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, hmf->unk3C->unk14, size);
+    HuMemFree(buf);
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        gfx = hmf->unk3C->unk00[i + 1] = HuMemAllocTag(0x100, hmf->unk0E);
+        gDPPipeSync(gfx++);
+        gSPSegment(gfx++, 0x02, osVirtualToPhysical(spr->unk00->unk00));
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk10));
+        gDPSetPrimColor(gfx++, 0, 0, color->r, color->g, color->b, color->a);
+        gDPPipeSync(gfx++);
+        gSPDisplayList(gfx++, osVirtualToPhysical(hmf->unk3C->unk14));
+        gDPPipeSync(gfx++);
+        gSPEndDisplayList(gfx++);
+    }
+    hmf->unk3C->unk00[0] = hmf->unk3C->unk00[D_800D2008_main + 1];
+    return idx;
+}
 
 /* Clones model's hmf as a new model with its own per-buffer display lists (segment 2 = spr's first frame,
    prim color = color); returns the new model. */
