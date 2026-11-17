@@ -72,7 +72,6 @@ void func_80032FC0_main(s16, u8, u8);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
 s16 func_800329B4_main(void *);
-s32 func_800E1854_minigame(s32 id);
 void func_800EF754_name_81(s32 winId);
 void func_800F3C98_name_81(s16 playerNo, s32 *arg1, s32 arg2);
 void func_800EB708_name_81(Vec *arg0, Vec *arg1, Vec *arg2);
@@ -815,8 +814,8 @@ void func_80106BF0_opdueltutorial(void) {
         HuPrcSleep(20);
         choice[0] = 1;
         choice[1] = 2;
-        func_800E1854_minigame(win0);
-        func_800E1854_minigame(win1);
+        func_800E1854_name_81(win0);
+        func_800E1854_name_81(win1);
         func_800D90D0_name_81(D_80108C20_opdueltutorial[0], 0, 2);
         func_800D90D0_name_81(D_80108C20_opdueltutorial[1], 0, 2);
         func_800EB708_name_81(&D_80108C20_opdueltutorial[0]->coords, &D_80108A34_opdueltutorial[(choice[0] - 1) * 2 + 0], &D_80108C20_opdueltutorial[0]->rot);
