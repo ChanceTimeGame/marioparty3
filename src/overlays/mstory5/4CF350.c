@@ -112,6 +112,21 @@ void func_80108A20_mstory5(void);
 extern s32 D_80115370_mstory5[4]; /* texture animations */
 extern s16 D_80115380_mstory5;
 void func_80109B28_mstory5(void);
+typedef struct StoryMapPos {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+} StoryMapPos; /* size = 0x4 */
+extern const s32 D_801148C4_mstory5[7]; /* chapter map node sprites */
+extern const StoryMapPos D_801148E0_mstory5[8]; /* chapter map node positions */
+extern s16 D_801151C0_mstory5[8]; /* [0] the chapter map, [1..7] its nodes */
+extern s16 D_801151D0_mstory5[8]; /* sparkles around the current node */
+extern s16 D_801151E0_mstory5; /* fade overlay */
+void func_801068D4_mstory5(void);
+void func_8000BBFC_main(u16 spriteId, s16 alpha);
+void func_8000BD94_main(u16 spriteId, s32 arg1, s32 arg2);
+void func_8000BDDC_main(u16 spriteId, s32 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 // end story i1
 
 /* the scene for each story step (GwPlayer[0].coin), and the flag set once it has been seen */
@@ -264,7 +279,136 @@ void func_80105FEC_mstory5(s32 arg0) {
     omAddPrcObj(func_80106028_mstory5, 0x1000, 0x800, 0);
 }
 
+// masked 2: the assembler adds a nop after each cosdf/sindf delay slot (retail has none; gcc filled the
+// slot itself here, retail apparently did not)
+#ifdef NON_MATCHING
+/* the chapter map: the map and its 7 nodes, a ring of 8 sparkles around the current node, and a
+   fading overlay; it fades in, lights the nodes cleared so far, flashes the current one, then
+   fades out and sets D_80114760_mstory5 */
+void func_80106028_mstory5(void) {
+    void *data;
+    f32 x;
+    f32 y;
+    f32 angle;
+    f32 alpha;
+    s32 i;
+    s32 j;
+
+    D_801151C0_mstory5[0] = InitEspriteSlot(func_8000B838_main(0x1D0001), 0, 0);
+    func_8000BBD4_main(D_801151C0_mstory5[0], 0xA0, 0x78);
+    func_8000BB94_main(D_801151C0_mstory5[0]);
+    for (i = 0; i < 7; i++) {
+        D_801151C0_mstory5[i + 1] = InitEspriteSlot(func_8000B838_main(D_801148C4_mstory5[i]), 0, 0);
+        func_8000BBD4_main(D_801151C0_mstory5[i + 1], D_801148E0_mstory5[i].x + 0x30, D_801148E0_mstory5[i].y + 0x30);
+        func_8000BC48_main(D_801151C0_mstory5[i + 1], 8);
+        func_8000BB94_main(D_801151C0_mstory5[i + 1]);
+    }
+    data = DataRead(0x1D0002);
+    for (i = 0; i < 8; i++) {
+        D_801151D0_mstory5[i] = InitEspriteSlot(func_80055810_main(data), 0, 1);
+        x = D_801148E0_mstory5[D_801151E4_mstory5].x + 0x30;
+        y = D_801148E0_mstory5[D_801151E4_mstory5].y + 0x30;
+        angle = i * 45.0f;
+        x += cosdf(angle) * 32.0f;
+        y -= sindf(angle) * 32.0f;
+        func_8000BBD4_main(D_801151D0_mstory5[i], x, y);
+        func_8000BC48_main(D_801151D0_mstory5[i], 0x1000);
+        func_8000BEAC_main(D_801151D0_mstory5[i], 0xFF, 0xFF, 0xC0);
+        func_8000BC48_main(D_801151D0_mstory5[i], 8);
+        func_8000BE5C_main(D_801151D0_mstory5[i], 1.5f, 1.5f);
+        func_8000BBFC_main(D_801151D0_mstory5[i], 0xFF);
+        func_8000BB94_main(D_801151D0_mstory5[i]);
+    }
+    HuMemMemoryFreePerm(data);
+    D_801151E0_mstory5 = InitEspriteSlot(func_8000B838_main(0x1D0000), 0, 0);
+    func_8000BBD4_main(D_801151E0_mstory5, 0xA0, 0x78);
+    func_8000BE5C_main(D_801151E0_mstory5, 40.0f, 30.0f);
+    func_8000BC48_main(D_801151E0_mstory5, 0);
+    func_8000BB94_main(D_801151E0_mstory5);
+    omPrcSetDestructor(0, func_801068D4_mstory5);
+    func_8000BB54_main(D_801151E0_mstory5);
+    func_8000BBFC_main(D_801151E0_mstory5, 0);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_801151E0_mstory5, i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_801151E0_mstory5, 0x100);
+    for (i = 0; i < D_801151E4_mstory5; i++) {
+        func_8000BB54_main(D_801151C0_mstory5[i + 1]);
+    }
+    func_80105EF4_mstory5();
+    func_8000BB54_main(D_801151C0_mstory5[0]);
+    HuPrcSleep(30);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_801151E0_mstory5, 255.0f - i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BB94_main(D_801151E0_mstory5);
+    func_8000BBFC_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1], 0);
+    func_8000BB54_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1]);
+    for (alpha = 0.0f, j = 0; j < 20; j++) {
+        alpha += 12.75f;
+        func_8000BBFC_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1], alpha);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1], 0xFF);
+    func_8000BE5C_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1], 1.0f, 1.0f);
+    HuAudFXPlay(0x131);
+    for (i = 0; i < 8; i++) {
+        func_8000BD94_main(D_801151D0_mstory5[i], 0, 0);
+        func_8000BDDC_main(D_801151D0_mstory5[i], 1);
+        func_8000BB54_main(D_801151D0_mstory5[i]);
+    }
+    HuPrcSleep(20);
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(D_801151D0_mstory5[i]);
+    }
+    if (D_801151E4_mstory5 == 6) {
+        HuPrcSleep(40);
+        func_8000BB54_main(D_801151E0_mstory5);
+        func_8000BBFC_main(D_801151E0_mstory5, 0);
+        for (i = 0; i < 5; i++) {
+            func_8000BBFC_main(D_801151E0_mstory5, i * 0.125f * 255.0f);
+            HuPrcVSleep();
+        }
+        func_8000BBFC_main(D_801151E0_mstory5, 0x100);
+        HuPrcSleep(3);
+        for (i = 0; i < 5; i++) {
+            func_8000BBFC_main(D_801151E0_mstory5, 255.0f - i * 0.125f * 255.0f);
+            HuPrcVSleep();
+        }
+        func_8000BB94_main(D_801151E0_mstory5);
+        HuPrcSleep(80);
+    } else {
+        HuPrcSleep(60);
+    }
+    func_8000BB54_main(D_801151E0_mstory5);
+    func_8000BBFC_main(D_801151E0_mstory5, 0);
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_801151E0_mstory5, i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BBFC_main(D_801151E0_mstory5, 0x100);
+    func_8000BB94_main(D_801151C0_mstory5[D_801151E4_mstory5 + 1]);
+    func_8000BB94_main(D_801151C0_mstory5[0]);
+    func_80105F28_mstory5();
+    HuPrcSleep(30);
+    for (i = 0; i < D_801151E4_mstory5; i++) {
+        func_8000BB94_main(D_801151C0_mstory5[i + 1]);
+    }
+    for (i = 0; i < 20; i++) {
+        func_8000BBFC_main(D_801151E0_mstory5, 255.0f - i * 0.05f * 255.0f);
+        HuPrcVSleep();
+    }
+    func_8000BB94_main(D_801151E0_mstory5);
+    D_80114760_mstory5 = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80106028_mstory5);
+#endif
 
 s32 func_801068C8_mstory5(void) {
     return D_80114760_mstory5;
