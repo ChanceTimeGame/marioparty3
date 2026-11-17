@@ -389,8 +389,6 @@ void func_8010842C_mstory5(void) {
 void func_801085D8_mstory5(omObjData *obj) {
 }
 
-// masked 0 when func_80017AD8_main returns s16 (functions.us.h says u8: an andi 0xFF per call; s1A.header.patch)
-#ifdef NON_MATCHING
 /* actor 0: the player's character */
 void func_801085E0_mstory5(void) {
     omObjData *obj;
@@ -447,9 +445,6 @@ void func_801085E0_mstory5(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4D1200", func_801085E0_mstory5);
-#endif
 
 void func_80108A20_mstory5(void) {
 }
@@ -1065,9 +1060,6 @@ void func_8010AE14_mstory5(omObjData *obj) {
     D_801151F0_mstory5[2].func = func_801085D8_mstory5;
 }
 
-// masked 0 except an andi 0xFF per func_80017AD8_main call: it returns s16, functions.us.h says u8
-// (~/repos/mp3-wt/s1A.header.patch)
-#ifdef NON_MATCHING
 /* actor 3: character 7's model */
 void func_8010AF44_mstory5(void) {
     omObjData *obj;
@@ -1120,9 +1112,6 @@ void func_8010AF44_mstory5(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4D1200", func_8010AF44_mstory5);
-#endif
 
 void func_8010B318_mstory5(void) {
 }

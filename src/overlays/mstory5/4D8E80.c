@@ -373,8 +373,6 @@ void func_801100AC_mstory5(void) {
 void func_80110200_mstory5(omObjData *obj) {
 }
 
-// masked 0 when func_80017AD8_main returns s16 (functions.us.h says u8), as mstory1's func_801081E0
-#ifdef NON_MATCHING
 /* actor 0: the player's character */
 void func_80110208_mstory5(void) {
     omObjData *obj;
@@ -429,9 +427,6 @@ void func_80110208_mstory5(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4D8E80", func_80110208_mstory5);
-#endif
 
 void func_80110618_mstory5(void) {
 }
