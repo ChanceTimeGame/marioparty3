@@ -976,13 +976,150 @@ void func_80108D14_slot_synch(s16 idx, s16 sym) {
     reel->unk08 = sym;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108D3C_slot_synch);
+void func_80108D3C_slot_synch(void) {
+    s16 ys[256];
+    SsBody* b;
+    HmfData* hmf;
+    Vtx* v;
+    SsRow* row;
+    s16 n;
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 tmp;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801091D8_slot_synch);
+    b = D_8010DF80_slot_synch = HuMemAllocTag(sizeof(SsBody) * 2, 31000);
+    memset(b, 0, sizeof(SsBody) * 2);
+    for (k = 0; k < 2; k++, b++) {
+        b->unk00 = func_8000B108_main(0x350002, 0xB9);
+        Hu3DModelPosSet(b->unk00, D_8010D820_slot_synch[k].x, D_8010D820_slot_synch[k].y, D_8010D820_slot_synch[k].z);
+        Hu3DModelScaleSet(b->unk00, 1.0f, 0.85f, 1.0f);
+        func_8001C954_main(b->unk00);
+        hmf = HmfModelData[b->unk00].hmf;
+        b->unk02 = k;
+        b->unk04 = 0;
+        b->unk08 = -75.0f;
+        b->unk0C = 75.0f;
+        b->unk10 = 0.75f;
+        b->unk14 = 0.0f;
+        if (k == 0) {
+            v = hmf->unk40;
+            n = 0;
+            for (i = 0; i < SS_HMF_VTXNUM(hmf); i++, v++) {
+                for (j = 0; j < n; j++) {
+                    if (ys[j] == v->v.ob[1]) {
+                        break;
+                    }
+                }
+                if (j >= n) {
+                    ys[j] = v->v.ob[1];
+                    n++;
+                }
+                if (n >= 256) {
+                    osSyncPrintf("VTX OVER!! \n");
+                }
+            }
+            for (i = 0; i < n - 1; i++) {
+                for (j = i + 1; j < n; j++) {
+                    if (ys[i] < ys[j]) {
+                        tmp = ys[i];
+                        ys[i] = ys[j];
+                        ys[j] = tmp;
+                    }
+                }
+            }
+            b->unk18 = n;
+            row = b->unk1C = HuMemAllocTag(n * sizeof(SsRow), 31000);
+            for (i = 0; i < b->unk18; i++, row++) {
+                row->unk90 = ys[i];
+                row->unk92 = 0;
+            }
+            v = hmf->unk40;
+            for (i = 0; i < SS_HMF_VTXNUM(hmf); i++, v++) {
+                for (j = 0; j < b->unk18; j++) {
+                    row = &b->unk1C[j];
+                    if (v->v.ob[1] == row->unk90) {
+                        row->unk00[row->unk92] = i;
+                        row->unk92++;
+                        break;
+                    }
+                    if (row->unk92 >= 72) {
+                        osSyncPrintf("VTX H OVER!! \n");
+                    }
+                }
+            }
+        } else {
+            b->unk18 = D_8010DF80_slot_synch->unk18;
+            b->unk1C = D_8010DF80_slot_synch->unk1C;
+        }
+    }
+    omSetStatBit(omAddObj(0x1B, 0, 0, -1, func_801091D8_slot_synch), 0xA0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801092B8_slot_synch);
+void func_801091D8_slot_synch(omObjData* obj) {
+    SsBody* b;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801094E0_slot_synch);
+    b = D_8010DF80_slot_synch;
+    for (i = 0; i < 2; i++, b++) {
+        if (func_80049F98_main() + D_800D6A90_main == 0 && b->unk04 == 1) {
+            b->unk08 += b->unk14;
+            if (b->unk08 >= 359.999990463256836 || b->unk08 <= -120.000004768371582) {
+                b->unk14 = 0.0f;
+                b->unk04 = 0;
+            }
+        }
+        func_801092B8_slot_synch(b);
+    }
+}
+
+void func_801092B8_slot_synch(SsBody* b) {
+    SsRow* row;
+    HmfData* hmf;
+    Vtx* base;
+    Vtx* cur;
+    f32 d;
+    f32 s;
+    s32 i;
+    s32 j;
+
+    row = b->unk1C;
+    hmf = HmfModelData[b->unk00].hmf;
+    base = hmf->unk40;
+    cur = hmf->unk44[D_800D2008_main];
+    for (i = 0; i < b->unk18; i++, row++) {
+        d = fabsf(b->unk08 - row->unk90 * 0.85f);
+        if (b->unk0C < d) {
+            s = 0.0f;
+        } else {
+            s = 1.0f - d / b->unk0C;
+        }
+        if (s >= 1.0f) {
+            s = 1.0f;
+        } else if (s <= 0.0f) {
+            s = 0.0f;
+        }
+        if (s != 0.0f) {
+            s = s * b->unk10 + 1.0f;
+            for (j = 0; j < row->unk92; j++) {
+                cur[row->unk00[j]].v.ob[0] = base[row->unk00[j]].v.ob[0] * s;
+                cur[row->unk00[j]].v.ob[2] = base[row->unk00[j]].v.ob[2] * s;
+            }
+        } else {
+            for (j = 0; j < row->unk92; j++) {
+                cur[row->unk00[j]].v = base[row->unk00[j]].v;
+            }
+        }
+    }
+}
+
+void func_801094E0_slot_synch(s16 idx, f32 height, f32 speed) {
+    SsBody* b = &D_8010DF80_slot_synch[idx];
+
+    b->unk04 = 1;
+    b->unk08 = height;
+    b->unk14 = speed;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80109508_slot_synch);
 
