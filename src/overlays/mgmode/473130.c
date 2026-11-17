@@ -29,7 +29,11 @@ typedef struct MgModelDesc {
 
 /* A model part looked up by name (func_8001D33C_main). */
 typedef struct MgHmfPart {
-    /* 0x00 */ char unk_00[0x58];
+    /* 0x00 */ char unk_00[0x14];
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ char unk_18[0x20];
+    /* 0x38 */ f32 unk38;
+    /* 0x3C */ char unk_3C[0x1C];
     /* 0x58 */ MgMtx mtx;
 } MgHmfPart;
 
@@ -52,6 +56,7 @@ void func_8001C814_main(s16, s16, s16);
 void func_8001C8A8_main(s16, s16);
 void *func_8001D33C_main(s16, const char *);
 void func_8001F304_main(s16, s16);
+void func_8002FD8C_main(s16, s16, const char *, s16, s16);
 void func_8002367C_main(MgMtx, MgMtx);
 void func_8005B43C_main(s16, s32, s32, s32);
 void func_8005BE30_main(s16, s32);
@@ -96,6 +101,7 @@ void func_801182A8_mgmode(s16 arg0);
 void func_801182B4_mgmode(s16 arg0);
 s16 func_80118678_mgmode(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
 void func_80118D0C_mgmode(void);
+void func_80118624_mgmode(s16 shadow, s16 model);
 s16 func_801182DC_mgmode(s16 x, s16 y);
 
 #define MG_NOFUNC ((void (*)(s16 *))-1)
@@ -113,6 +119,8 @@ extern s16 D_8011B43E_mgmode[4];
 extern s16 D_8011B446_mgmode[4];
 extern s16 D_8011B6A8_mgmode;
 extern s16 D_8011B788_mgmode;
+extern s16 D_8011B78E_mgmode[];
+extern s16 D_8011B796_mgmode[];
 extern s16 D_8011B78A_mgmode;
 extern s16 D_8011B808_mgmode;
 extern s16 D_8011B884_mgmode;
@@ -825,7 +833,100 @@ void func_8010E494_mgmode(s16 mode) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E494_mgmode);
 #endif
 
+/* NON_MATCHING: register allocation (retail spills n and keeps the model-array bases in s7/s8), 5 instructions over. */
+#ifdef NON_MATCHING
+void func_8010E6F0_mgmode(s16 mode) {
+    Vec pos[4];
+    Vec dir[4];
+    s16 grp[4];
+    f32 rotY[4];
+    s16 n;
+    MgHmfPart *head;
+    f32 tilt;
+    f32 s;
+    s16 i;
+    s16 k;
+    s16 g;
+    s16 t;
+    s16 m;
+
+    tilt = 0.0f;
+    n = 2;
+    if (mode != 4) {
+        n = 4;
+    }
+    for (i = 0; i < n; i++) {
+        grp[i] = D_800D1F20_main[i];
+    }
+    g = k = 0;
+    for (; g < n || k < n; g++) {
+        for (i = 0; i < n; i++) {
+            if (g == grp[i]) {
+                pos[i].x = k * 80 - 122;
+                pos[i].y = 26.0f;
+                pos[i].z = -312.0f;
+                grp[i] = -1;
+                k++;
+            }
+        }
+    }
+    for (i = 0; i < n; i++) {
+        dir[i].x = 400.0f - pos[i].x;
+        dir[i].z = 900.0f - pos[i].z;
+        func_8001C258_main(D_8011B8B6_mgmode[i], 4, 0);
+        func_8001F304_main(D_8011B8B6_mgmode[i], D_8011B796_mgmode[i]);
+        func_8001C814_main(D_8011B8B6_mgmode[i], 2, 2);
+        func_8001C258_main(D_8011B8E8_mgmode[i], 4, 0);
+        rotY[i] = atan2df(dir[i].x, dir[i].z) + 180.0f;
+        Hu3DModelRotSet(D_8011B8B6_mgmode[i], 0.0f, rotY[i], 0.0f);
+    }
+    m = D_8011B8A8_mgmode[4];
+    func_8002FD8C_main(m, HmfModelData[m].unk02, "c100_1-atama", 0x4C, 0x46);
+    head = func_8001D33C_main(m, "c100_1-atama");
+    for (t = 0; t < 31; t++) {
+        s = 1.0f - sindf(t * 3.0f);
+        for (i = 0; i < n; i++) {
+            /* retail moves both x and z by the x distance */
+            Hu3DModelPosSet(D_8011B8B6_mgmode[i], s * dir[i].x + pos[i].x, pos[i].y, s * dir[i].x + pos[i].z);
+            func_80118624_mgmode(D_8011B8E8_mgmode[i], D_8011B8B6_mgmode[i]);
+            if (t < 25 && t % 5 == 0) {
+                func_8004AC5C_main(GwPlayer[i].chr + 0x29, i);
+            }
+        }
+        if (t < 10) {
+            tilt = (atan2df(HmfModelData[D_8011B8A8_mgmode[7]].pos.x - HmfModelData[D_8011B8A8_mgmode[4]].pos.x,
+                            HmfModelData[D_8011B8A8_mgmode[7]].pos.z - HmfModelData[D_8011B8A8_mgmode[4]].pos.z) -
+                    HmfModelData[D_8011B8A8_mgmode[4]].rot.y) * (t / 10.0f);
+        } else if (t < 20) {
+            tilt = atan2df(HmfModelData[D_8011B8A8_mgmode[7]].pos.x - HmfModelData[D_8011B8A8_mgmode[4]].pos.x,
+                           HmfModelData[D_8011B8A8_mgmode[7]].pos.z - HmfModelData[D_8011B8A8_mgmode[4]].pos.z) -
+                   HmfModelData[D_8011B8A8_mgmode[4]].rot.y;
+        } else {
+            tilt -= 5.0f;
+        }
+        head->unk38 = tilt;
+        head->unk14 = tilt;
+        HuPrcVSleep();
+    }
+    for (i = 0; i < n; i++) {
+        func_8001C624_main(D_8011B8B6_mgmode[i], D_8011B78E_mgmode[i], 0, 8, 2);
+    }
+    for (t = 0; t < 9; t++) {
+        for (i = 0; i < n; i++) {
+            Hu3DModelRotSet(D_8011B8B6_mgmode[i], 0.0f, (1.0f - t / 8.0f) * rotY[i], 0.0f);
+        }
+        tilt -= 5.0f;
+        if (tilt < 0.0f) {
+            tilt = 0.0f;
+        }
+        head->unk38 = tilt;
+        head->unk14 = tilt;
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E6F0_mgmode);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010EE84_mgmode);
 
