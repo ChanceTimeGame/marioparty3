@@ -341,6 +341,8 @@ NOP_OBJECTS += build/src/overlays/ovl_81_name/D5B20.c.o
 NOP_OBJECTS += build/src/overlays/duel01/3D8AC0.c.o
 # duel c1: opduel (opboard copy: no nop between a call returning a float and its mul.s)
 NOP_OBJECTS += build/src/overlays/opduel/460790.c.o
+# wave 3t m5: selmenu (no nop between a call and the mult after it)
+NOP_OBJECTS += build/src/overlays/selmenu/552F50.c.o
 # duel r1: duelresult 4554C0 (no nop after the sindf calls in func_8010709C)
 NOP_OBJECTS += build/src/overlays/duelresult/4554C0.c.o
 # wave 3p board g2-g5: w02 335610 (no nop between the sindf/cosdf calls and their mul.s: func_8010AFF0_w02, func_80110970_w02, func_8011946C_w02)

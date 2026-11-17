@@ -30,6 +30,32 @@ extern s16 D_8010A070_selmenu; /* page */
 extern s16 D_8010A072_selmenu; /* row */
 extern s16 D_8010A078_selmenu[10]; /* row remembered per page */
 extern GW_PLAYER D_8010A098_selmenu[4];
+extern s16 D_8010A1C0_selmenu[8]; /* character models */
+extern s16 D_8010A1D0_selmenu[8]; /* their motion 0 */
+extern s16 D_8010A1E0_selmenu[8]; /* their motion 1 */
+extern s8 D_8010A1F8_selmenu[4]; /* last stick x per pad */
+extern s8 D_8010A1FC_selmenu[4]; /* last stick y per pad */
+extern u8 D_8010A200_selmenu;
+extern s16 D_8010A202_selmenu;
+extern s16 D_8010A204_selmenu;
+extern s16 D_8010A206_selmenu;
+extern s16 D_8010A208_selmenu;
+extern s16 D_8010A210_selmenu[40];
+extern u8 D_8010A270_selmenu[4]; /* menu input bits per pad */
+extern u16 D_8010A274_selmenu[4]; /* held direction per pad */
+extern u16 D_8010A27C_selmenu[4]; /* hold time */
+extern u16 D_8010A284_selmenu[4]; /* repeat delay */
+
+extern s32 omprevovl;
+extern s32 D_800A178C_main[][6];
+void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_80047C0C_main(u16 group, u16 max_objs);
+void func_80105FC8_selmenu(omObjData *obj);
+void func_80106770_selmenu(omObjData *obj);
+void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
 
 void func_80107DFC_selmenu(omObjData *obj);
 void func_80108814_selmenu(s32 dir);
@@ -233,7 +259,84 @@ s32 D_80109810_selmenu = 0; /* the asm reads its low half as D_80109812 */
 s32 D_80109814_selmenu = 0;
 s32 D_80109818_selmenu = 1;
 
+/* Matches with ~/repos/mp3-wt/m5.header.patch (InitEspriteSlot takes an s16 frame: retail sign-extends i % 6). */
+#ifdef NON_MATCHING
+void func_801059A0_selmenu(void) {
+    omObjData *obj;
+    u16 id;
+    s32 i;
+
+    D_8010A200_selmenu = 0;
+    _SetFlag(0x12);
+    GwSystem.show_minigame_explanations = 0;
+    if (omprevovl < 0x47U) {
+        for (i = 0; i < 4; i++) {
+            GwPlayer[i].coin += GwPlayer[i].gameCoin;
+            GwPlayer[i].coin += GwPlayer[i].bonusCoin;
+            if (GwPlayer[i].coin >= 1000) {
+                GwPlayer[i].coin = 999;
+            }
+            if (GwPlayer[i].coin < 0) {
+                GwPlayer[i].coin = 0;
+            }
+            GwPlayer[i].gameCoin = 0;
+            GwPlayer[i].bonusCoin = 0;
+        }
+    }
+    omInitObjMan(0x32, 0);
+    func_80105F30_selmenu(2300.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    HmfLightMaxSet(1);
+    HmfLightColorSet(0, 0x80, 0x80, 0x80);
+    HmfLightColorSet(1, 0x60, 0x60, 0x10);
+    HmfLightDirSet(1, 100.0f, -100.0f, 100.0f);
+    omAddObj(0x7FDA, 0, 0, -1, omOutView);
+    omAddObj(0, 0, 0, -1, func_80105FC8_selmenu);
+    omAddObj(1, 0, 0, -1, func_80106770_selmenu);
+    func_80047C0C_main(0, 0x20);
+    obj = omAddObj(10, 1, 80, -1, NULL);
+    for (i = 0; i < 8; i++) {
+        D_8010A1C0_selmenu[i] = func_8000B108_main(D_800A178C_main[i][0] | D_800A178C_main[i][1], 0x69D);
+        HmfModelData[D_8010A1C0_selmenu[i]].unk03 |= 2;
+        func_8000B460_main(obj, 0, func_80017BB8_main(i, 0));
+        D_8010A1D0_selmenu[i] = obj->motion[0];
+        func_8000B460_main(obj, 1, func_80017BB8_main(i, 0x2F));
+        D_8010A1E0_selmenu[i] = obj->motion[1];
+    }
+    omDelObj(obj);
+    for (i = 0; i < 4; i++) {
+        D_8010A1FC_selmenu[i] = 0;
+        D_8010A1F8_selmenu[i] = 0;
+    }
+    D_8010A202_selmenu = func_8000B838_main(0x10020);
+    func_8000B880_main(D_8010A202_selmenu, 0.3f, 0.3f, 0.3f);
+    for (i = 0; i < 35; i++) {
+        id = InitEspriteSlot(D_8010A202_selmenu, (s16)(i % 6), 1);
+        func_8000BB54_main(id);
+        func_8000BCC8_main(id, 0xFFFF);
+        func_8000BC48_main(id, 0x4000);
+        func_8000BBFC_main(id, 0xFF);
+        func_8000BBD4_main(id, (i % 7) * 48, (i / 7) * 48);
+    }
+    D_8010A204_selmenu = func_8000B838_main(10);
+    D_8010A206_selmenu = InitEspriteSlot(D_8010A204_selmenu, 0, 1);
+    func_8000BB54_main(D_8010A206_selmenu);
+    func_8000BBD4_main(D_8010A206_selmenu, 128, 128);
+    func_8000BE5C_main(D_8010A206_selmenu, 0.25f, 0.25f);
+    for (i = 0; i < 40; i++) {
+        D_8010A210_selmenu[i] = -1;
+    }
+    D_8010A208_selmenu = func_8000B838_main(12);
+    for (i = 0; i < 4; i++) {
+        D_8010A27C_selmenu[i] = 0;
+        D_8010A284_selmenu[i] = 0;
+        D_8010A274_selmenu[i] = 0;
+    }
+    WipeCreateIn(0xFF, 0x10);
+    HuAudSeqPlay((u8)rand8() % 9);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_801059A0_selmenu);
+#endif
 
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
     func_8000B5F0_main(1);
