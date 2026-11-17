@@ -168,8 +168,8 @@ typedef struct {
     /* 0x0C */ s16 modelId;
     /* 0x0E */ s16 duration;
     /* 0x10 */ s16 timer;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
+    /* 0x12 */ s16 frameTimer; // frames on the current animation frame
+    /* 0x14 */ s16 frameDelay; // frames per animation frame - 1
     /* 0x18 */ f32 *posX;
     /* 0x1C */ f32 *posY;
     /* 0x20 */ f32 *posZ;
@@ -188,6 +188,7 @@ void func_8010C11C_puddle_paddle(s16 spriteId);
 s16 func_8010CE74_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
 s16 func_8010D5E4_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z); // guRotateRPYF
+void func_8010EDE8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2);
 s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109804_puddle_paddle);
@@ -566,7 +567,7 @@ void func_8010C664_puddle_paddle(void) {
     }
 }
 
-s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 arg2, s16 tag, s32 attr) {
+s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 frameDelay, s16 tag, s32 attr) {
     PpBillboardData *bill;
     s16 spriteId;
     s16 i;
@@ -590,8 +591,8 @@ s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 arg2, s16 tag, s32 attr) 
             bill->attr = attr;
             bill->duration = func_80055194_main(spriteId)->unk10;
             bill->timer = 0;
-            bill->unk12 = 0;
-            bill->unk14 = arg2;
+            bill->frameTimer = 0;
+            bill->frameDelay = frameDelay;
             bill->set = TRUE;
             break;
         }
@@ -615,7 +616,17 @@ s16 func_8010C98C_puddle_paddle(s16 tag) {
     return i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010CA30_puddle_paddle);
+void func_8010CA30_puddle_paddle(s16 billId, f32 posX, f32 posY, f32 posZ) {
+    if (billId < PP_BILLS_MAX) {
+        HmfModel *model = &HmfModelData[D_80111668_puddle_paddle[billId].modelId];
+
+        model->pos.x = posX;
+        model->pos.y = posY;
+        model->pos.z = posZ;
+        func_8001C258_main(D_80111668_puddle_paddle[billId].modelId, 4, 0);
+        D_80111668_puddle_paddle[billId].attr &= ~(8 | 0x10);
+    }
+}
 
 void func_8010CAD4_puddle_paddle(s16 billId, f32 *posX, f32 *posY, f32 *posZ) {
     if (billId < PP_BILLS_MAX) {
@@ -656,7 +667,43 @@ HmfModel *func_8010CC9C_puddle_paddle(s16 billId) {
     return &HmfModelData[D_80111668_puddle_paddle[billId].modelId];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010CCF0_puddle_paddle);
+void func_8010CCF0_puddle_paddle(void) {
+    PpBillboardData *bill;
+    HmfModel *model;
+    s16 i;
+
+    bill = D_80111668_puddle_paddle;
+    for (i = 0; i < PP_BILLS_MAX; i++, bill++) {
+        if (!bill->set || (bill->attr & 8)) {
+            continue;
+        }
+        model = &HmfModelData[bill->modelId];
+        if (bill->attr & 0x10) {
+            model->pos.x = *bill->posX;
+            model->pos.y = *bill->posY;
+            model->pos.z = *bill->posZ;
+        }
+        model->rot.x = CRot.x;
+        model->rot.y = CRot.y;
+        if (bill->attr & 1) {
+            if (bill->attr & 2) {
+                if (++bill->frameTimer > bill->frameDelay) {
+                    bill->frameTimer = 0;
+                    func_8010EDE8_puddle_paddle(bill->modelId, func_80055194_main(bill->spriteId), bill->timer);
+                    if (++bill->timer >= bill->duration) {
+                        if (bill->attr & 4) {
+                            bill->timer = 0;
+                        } else {
+                            bill->timer = 0;
+                            bill->attr |= 8;
+                            func_8001C258_main(bill->modelId, 4, 4);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 s16 func_8010CE74_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1) {
     HmfData *temp_s6;
