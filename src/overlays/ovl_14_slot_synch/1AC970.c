@@ -778,7 +778,100 @@ void func_80106E8C_slot_synch(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106E8C_slot_synch);
 #endif
 
+#ifdef NON_MATCHING
+void func_80107108_slot_synch(omObjData* obj) {
+    SsPlayer* pl;
+    SsTeam* t;
+    SsPlayer* mate;
+    u16 steps;
+    u16 sym;
+    s16 a;
+    s32 d;
+
+    pl = func_8010C428_slot_synch(obj);
+    t = &D_8010DF5C_slot_synch[pl->unk02];
+    if (t->unk08 == pl) {
+        mate = t->unk0C;
+    } else {
+        mate = t->unk08;
+    }
+    D_800CDA7C_main[pl->unk1E] = 0;
+    D_800D5558_main[pl->unk1E] = 0;
+    steps = D_8010D928_slot_synch[pl->unk20];
+    switch (t->unk12) {
+    case 0:
+        if (pl->unk2C != -1) {
+            return;
+        }
+        if (mate->unk22 == 0) {
+            pl->unk2A = 150;
+            pl->unk2C = D_8010D91C_slot_synch[(u8)(rand8() % 3)];
+            return;
+        }
+        if ((u8)(rand8() % 100) < pl->unk24 * 15 + 60) {
+            pl->unk28 = 0;
+        } else {
+            pl->unk28 = 1;
+        }
+        pl->unk2A = (u8)(rand8() % 30) + 75 - pl->unk24 * 12;
+        if (t->unk1E == -1) {
+            sym = D_8010D91C_slot_synch[(s16)((s16)((f32)(u8)(rand8() % 100) * (1.0f - pl->unk24 * 0.075f)) / 25)];
+            pl->unk2C = sym;
+            t->unk1E = sym;
+        } else {
+            pl->unk2C = t->unk1E;
+            d = pl->unk2A - mate->unk2A;
+            if (d < 0) {
+                d = -d;
+            }
+            if (d < 9.0f) {
+                if (mate->unk2A < pl->unk2A) {
+                    pl->unk2A = pl->unk2A + 9.0f;
+                } else {
+                    pl->unk2A = pl->unk2A - 9.0f;
+                }
+            }
+        }
+        break;
+    case 1:
+        pl->unk0A = 0;
+        break;
+    case 2:
+        if (func_80108A7C_slot_synch(pl->unk00) == 0) {
+            func_80108AA8_slot_synch(pl->unk00);
+            if (pl->unk2A < pl->unk0A) {
+                if (pl->unk28 == 0) {
+                    a = func_80108B74_slot_synch(pl->unk00, steps);
+                    if (a == pl->unk2C) {
+                        func_80108D14_slot_synch(pl->unk00, a);
+                        D_800D5558_main[pl->unk1E] |= 0x8000;
+                    }
+                } else if (func_80108B74_slot_synch(pl->unk00, steps) != pl->unk2C) {
+                    D_800D5558_main[pl->unk1E] |= 0x8000;
+                }
+            } else if (mate->unk22 == 0 && func_80108A7C_slot_synch(mate->unk00) != 0) {
+                pl->unk0A = 0;
+                if (func_80108B74_slot_synch(pl->unk00, steps) == func_80108AA8_slot_synch(mate->unk00)) {
+                    func_80108D14_slot_synch(pl->unk00, func_80108AA8_slot_synch(mate->unk00));
+                    D_800D5558_main[pl->unk1E] |= 0x8000;
+                }
+            }
+        }
+        pl->unk26 = func_80108AA8_slot_synch(pl->unk00);
+        break;
+    case 3:
+        if (pl->unk2C != -1) {
+            pl->unk28 = 0;
+            pl->unk2A = 0;
+            pl->unk2C = -1;
+            t->unk1E = -1;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107108_slot_synch);
+#endif
 
 #ifdef NON_MATCHING
 void func_801075D4_slot_synch(void) {
