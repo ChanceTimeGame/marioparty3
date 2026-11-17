@@ -69,6 +69,31 @@ typedef struct SsReel {
     /* 0x30 */ Vec unk30; /* rotation */
 } SsReel; // Size 0x3C
 
+/* One row of machine-body vertices sharing a height (func_80108D3C_slot_synch). */
+typedef struct SsRow {
+    /* 0x00 */ u16 unk00[72]; /* vertex indices */
+    /* 0x90 */ s16 unk90; /* height (Vtx ob[1]) */
+    /* 0x92 */ s16 unk92; /* vertex count */
+} SsRow; // Size 0x94
+
+/* One machine body (D_8010DF80_slot_synch, 2 x 0x20): a bulge that runs up the cabinet. */
+typedef struct SsBody {
+    /* 0x00 */ s16 unk00; /* model */
+    /* 0x02 */ s16 unk02; /* machine index */
+    /* 0x04 */ s16 unk04; /* 1 = bulge moving */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* bulge height */
+    /* 0x0C */ f32 unk0C; /* bulge half-width */
+    /* 0x10 */ f32 unk10; /* bulge strength */
+    /* 0x14 */ f32 unk14; /* bulge speed */
+    /* 0x18 */ s16 unk18; /* row count */
+    /* 0x1A */ char unk1A[2];
+    /* 0x1C */ SsRow* unk1C; /* rows, shared by both bodies */
+} SsBody; // Size 0x20
+
+/* HmfData's vertex count (0x18 lies inside the header's unk16 padding). */
+#define SS_HMF_VTXNUM(hmf) (*(s16*)&(hmf)->unk16[2])
+
 void func_80105B98_slot_synch(omObjData* obj);
 void func_80105C08_slot_synch(omObjData* obj);
 void func_80106080_slot_synch(omObjData* obj);
@@ -102,6 +127,11 @@ void func_80108428_slot_synch(omObjData* obj);
 s16 func_80108848_slot_synch(s16 idx);
 void func_8010AD68_slot_synch(Vec* pos, s32 arg1, s32 arg2, f32 scale, void* arg4);
 f64 fabs(f64);
+f32 fabsf(f32);
+void func_801091D8_slot_synch(omObjData* obj);
+void func_801092B8_slot_synch(SsBody* b);
+extern u8 D_800D2008_main;
+extern u8 D_800D6A90_main;
 void func_800DDD94_minigame(omObjData* obj);
 omObjData* func_80045F1C_main(u32, s16, s16);
 s32 func_80017BB8_main(s16, s16);
@@ -124,6 +154,7 @@ extern s32 D_8010D8B4_slot_synch[4];
 extern s16 D_8010D8C4_slot_synch[4][2][2];
 extern s16 D_8010D8E4_slot_synch[4];
 extern s32 D_8010D8EC_slot_synch[8];
+extern Vec D_8010D820_slot_synch[2];
 extern f32 D_8010D840_slot_synch[5];
 extern u8 D_8010D854_slot_synch[2][4];
 extern s32 D_8010D86C_slot_synch;
@@ -143,6 +174,7 @@ extern SsTeam* D_8010DF5C_slot_synch;
 extern SsPlayer* D_8010DF60_slot_synch;
 extern s16 D_8010DF64_slot_synch;
 extern SsReel* D_8010DF7C_slot_synch;
+extern SsBody* D_8010DF80_slot_synch;
 extern void* D_8010DF8C_slot_synch;
 extern D_80111B50_vine_with_me_Struct D_8010DFF8_slot_synch;
 // end m1 sy1
