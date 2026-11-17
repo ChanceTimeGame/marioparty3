@@ -107,9 +107,15 @@ void func_801147D0_mstory1(s32 idx, s32 seId);
 void func_801148B4_mstory1(s32 idx);
 void func_80114930_mstory1(void);
 
-extern s32 D_80114BC0_mstory1; /* .data (48BE30): the board-sway process runs */
-extern Vec D_80114BC4_mstory1[]; /* .data: two paths */
-extern Vec D_80114BF4_mstory1[];
+s32 D_80114BC0_mstory1 = 0; /* the board-sway process runs */
+/* two paths: Vec lists ended by { 9999, 9999, 9999 } */
+Vec D_80114BC4_mstory1[4] = {
+    { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
+Vec D_80114BF4_mstory1[6] = {
+    { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f },
+    { 400.0f, 400.0f, 200.0f }, { -50.0f, 120.0f, 450.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
 extern MsActor D_80115B70_mstory1[8];
 extern Vec D_80115C30_mstory1[8]; /* the actors' start positions */
 extern s16 D_80115C90_mstory1; /* the shadow model every actor links */

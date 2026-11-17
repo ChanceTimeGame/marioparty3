@@ -36,8 +36,15 @@ void func_801085F8_mstory1(omObjData *obj);
 void func_8010B6A4_mstory1(omObjData *obj);
 void func_8010B384_mstory1(omObjData *obj);
 
-extern Vec D_80114AC4_mstory1[]; /* paths: Vec lists ended by { 9999, 9999, 9999 } */
-extern Vec D_80114AF4_mstory1[];
+s32 D_80114AC0_mstory1 = 0; /* 1 once actor 6 exists: actor 6 bobs */
+/* paths: Vec lists ended by { 9999, 9999, 9999 } */
+Vec D_80114AC4_mstory1[4] = {
+    { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
+Vec D_80114AF4_mstory1[6] = {
+    { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f },
+    { 400.0f, 400.0f, 200.0f }, { -50.0f, 120.0f, 450.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
 
 void func_800138EC_main(s16 model, u16 mask, u16 flags);
 void func_80109478_mstory1(omObjData *obj);
@@ -48,7 +55,6 @@ void func_8010B300_mstory1(void);
 void func_8010B69C_mstory1(void);
 void func_8010BB08_mstory1(u32 actor, s32 fx);
 void func_8010BBEC_mstory1(u32 actor);
-extern s32 D_80114AC0_mstory1; /* 1 once actor 6 exists: actor 6 bobs */
 extern s16 D_80115A12_mstory1; /* effect model */
 extern const s32 D_8011505C_mstory1[7];
 extern const Vec D_80115038_mstory1;

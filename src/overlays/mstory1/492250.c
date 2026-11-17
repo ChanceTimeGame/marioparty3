@@ -107,9 +107,15 @@ void func_8010704C_mstory1(omObjData *obj, Vec *rot, s32 time);
 void func_801071F4_mstory1(omObjData *obj, f32 x, f32 y, f32 z, s32 time);
 void func_80107220_mstory1(s16 model);
 
-extern s32 D_80114B40_mstory1;
-extern Vec D_80114B44_mstory1[];
-extern Vec D_80114B74_mstory1[];
+s32 D_80114B40_mstory1 = 0;
+/* paths: Vec lists ended by { 9999, 9999, 9999 } */
+Vec D_80114B44_mstory1[4] = {
+    { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
+Vec D_80114B74_mstory1[6] = {
+    { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f },
+    { 400.0f, 400.0f, 200.0f }, { -50.0f, 120.0f, 450.0f }, { 9999.0f, 9999.0f, 9999.0f }
+};
 
 extern StoryActor D_80115A30_mstory1[8];
 extern Vec D_80115AF0_mstory1[8];

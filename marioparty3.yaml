@@ -2209,7 +2209,10 @@ segments:
       - [0x48D950, c] # 801074C0, 16-byte aligned after padding: the path library starts a file (s1)
       - [0x492250, c]
       - [0x496990, c]
-      - [0x49AF10, data, 48BE30] #80114A80
+      - [0x49AF10, .data, 48C120] #80114A80 (s5: 48BE30 has none; .data split at the 16-byte file boundaries)
+      - [0x49AF50, .data, 48D950] #80114AC0
+      - [0x49AFD0, .data, 492250] #80114B40
+      - [0x49B050, .data, 496990] #80114BC0
       - [0x49B0D0, .rodata, 48BE30] #80114C40
       - [0x49B0E8, .rodata, 48C120] #80114C58 (s1: the 48BE30 flag table runs to 80114C58)
       - [0x49B140, .rodata, 48D950] #80114CB0 (s1)

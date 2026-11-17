@@ -92,13 +92,13 @@ void func_80106D64_mstory1(omObjData *obj, Vec *to, s32 frames);
 void func_8010704C_mstory1(omObjData *obj, Vec *to, s32 frames);
 s32 func_8010726C_mstory1(s16 model);
 
-extern u32 D_80114A80_mstory1; /* main object state */
-extern s32 D_80114A84_mstory1; /* 1: the scene was seen before, A skips it */
-extern s8 D_80114A88_mstory1;
-extern Vec D_80114A8C_mstory1; /* camera position */
-extern Vec D_80114A98_mstory1; /* camera target */
-extern Vec D_80114AA4_mstory1; /* camera up */
-extern s32 D_80114AB0_mstory1;
+u32 D_80114A80_mstory1 = 0; /* main object state */
+s32 D_80114A84_mstory1 = 0; /* 1: the scene was seen before, A skips it */
+s8 D_80114A88_mstory1 = 0;
+Vec D_80114A8C_mstory1 = { 14.0f, 193.0f, 1400.0f }; /* camera position */
+Vec D_80114A98_mstory1 = { -25.0f, 0.0f, -650.0f }; /* camera target */
+Vec D_80114AA4_mstory1 = { 0.0f, 1.0f, -0.0001f }; /* camera up */
+s32 D_80114AB0_mstory1 = 0; /* 1 once the chapter-map scene is over */
 extern s16 D_801158B0_mstory1; /* message window */
 extern s16 D_801158B2_mstory1; /* background model */
 extern s32 D_801158B4_mstory1; /* the controller that drives the story messages */
