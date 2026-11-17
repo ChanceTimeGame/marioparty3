@@ -578,6 +578,13 @@ extern const Vec D_8011C60C_mstory2;
 extern Vec D_8011CA50_mstory2; /* the actors' start positions: actor 0 */
 extern f32 D_8011BDD0_mstory2;
 void func_8011B45C_mstory2(void);
+void func_8011B818_mstory2(void);
+void func_8011B820_mstory2(omObjData *obj);
+extern const Vec D_8011C618_mstory2[2];
+extern Vec D_8011CA5C_mstory2; /* the actors' start positions: actor 1 */
+extern f32 D_8011CA04_mstory2;
+extern f32 D_8011BDD4_mstory2;
+extern f32 D_8011BDD8_mstory2;
 // story f5 protos end
 
 /* actor 0: the player's character */
@@ -1388,12 +1395,50 @@ void func_8011B464_mstory2(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B64C_mstory2);
+/* actor 1 */
+void func_8011B64C_mstory2(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 0x14, 0x14, -1, NULL);
+    D_8011CA10_mstory2[1].obj = obj;
+    D_8011CA10_mstory2[1].flags = 0;
+    obj->model[1] = func_8000B108_main(0xA0122, 0x2A9);
+    obj->model[2] = Hu3DModelLink(D_8011CA4C_mstory2);
+    func_800461B4_main(obj->model[1]);
+    func_8000B460_main(obj, 0, 0xA0123);
+    func_8000B460_main(obj, 1, 0xA0129);
+    func_8000B460_main(obj, 2, 0xA0125);
+    func_8000B460_main(obj, 3, 0xA0128);
+    func_8001C5B4_main(obj->model[1], obj->motion[1]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    D_8011CA5C_mstory2 = D_8011C618_mstory2[0];
+    Hu3DModelPosSet(obj->model[1], D_8011CA5C_mstory2.x, D_8011CA5C_mstory2.y, D_8011CA5C_mstory2.z);
+    Hu3DModelPosSet(obj->model[2], D_8011CA5C_mstory2.x, -5.0f, D_8011CA5C_mstory2.z);
+    Hu3DModelScaleSet(obj->model[1], 2.0f, 2.0f, 2.0f);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 1.0f, 2.0f);
+    omPrcSetDestructor(0, func_8011B818_mstory2);
+    D_8011CA10_mstory2[1].func = func_8011B820_mstory2;
+    while (1) {
+        D_8011CA10_mstory2[1].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8011B818_mstory2(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B820_mstory2);
+/* actor 1 bobs at (0, 225, 400) until its flags are 1 */
+void func_8011B820_mstory2(omObjData *obj) {
+    D_8011CA04_mstory2 = HmfModelData[obj->model[1]].pos.y;
+    D_8011BDD8_mstory2 = sindf(D_8011BDD4_mstory2) * 15.0f + 15.0f;
+    D_8011BDD4_mstory2 += 2.0f;
+    if (D_8011BDD4_mstory2 >= 360.0f) {
+        D_8011BDD4_mstory2 -= 360.0f;
+    }
+    if (D_8011CA10_mstory2[1].flags != 1) {
+        Hu3DModelPosSet(obj->model[1], 0.0f, D_8011BDD8_mstory2 + 225.0f, 400.0f);
+    }
+}
 
 /* .data 0x8011B920..0x8011BDE0 (story f5): four scenes, each with paths (Vec lists ended by 9999), rotations and model name tables */
 extern char D_8011BF88_mstory2[];
