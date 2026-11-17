@@ -234,6 +234,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115DA8_duel04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80116168_duel04);
 
+// board ea3: declarations for func_801163C0_duel04..func_80119A30_duel04
+#include "game/board.h"
+#include "game/object.h"
+
+GW_PLAYER *MBDGetPlayerStruct(s32 playerIndex);
+void func_800E9F4C_name_81(s32, s8 *, s8 *);
+
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011678C_duel04);
@@ -252,53 +259,229 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80117A14_duel04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80117D38_duel04);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118060_duel04);
+void func_80118060_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801180B4_duel04);
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x21, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x3, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118108_duel04);
+void func_801180B4_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011815C_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x1E, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x12, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801181B0_duel04);
+void func_80118108_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118204_duel04);
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x1E, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x14, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118258_duel04);
+void func_8011815C_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801182AC_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x25, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0xB, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118300_duel04);
+void func_801181B0_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011835C_duel04);
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x25, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0xE, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801183B4_duel04);
+void func_80118204_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118410_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x22, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x5, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118468_duel04);
+void func_80118258_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801184C4_duel04);
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x22, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x8, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011851C_duel04);
+void func_801182AC_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118578_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x21, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x1, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801185D0_duel04);
+void func_80118300_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8011860C_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x1E, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x14, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118648_duel04);
+void func_8011835C_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118684_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x7, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x1E, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801186C0_duel04);
+void func_801183B4_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801186FC_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x25, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0xE, &player->nnlink, &player->nnidx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118738_duel04);
+void func_80118410_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118774_duel04);
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x19, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x25, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118468_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x22, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x8, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_801184C4_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x13, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x22, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_8011851C_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x21, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0x3, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118578_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x20, &player->nlink, &player->nidx);
+        func_800E9F4C_name_81(0xD, &player->nnlink, &player->nnidx);
+    } else {
+        func_800E9F4C_name_81(0x21, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_801185D0_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x1E, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_8011860C_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x21, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118648_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x21, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118684_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x22, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_801186C0_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x22, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_801186FC_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x25, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118738_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (!(player->rev & 1)) {
+        func_800E9F4C_name_81(0x25, &player->nnlink, &player->nnidx);
+    }
+}
+
+void func_80118774_duel04(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (player->rev & 1) {
+        func_800E9F4C_name_81(0x1E, &player->nnlink, &player->nnidx);
+    }
+}
 
 void func_801187B0_duel04(void) {
 }
