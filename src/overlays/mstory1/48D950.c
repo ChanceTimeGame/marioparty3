@@ -1,5 +1,12 @@
 #include "common.h"
 
+extern const Vec D_80114F84_mstory1;
+extern const Vec D_80114F90_mstory1;
+extern const Vec D_80114F9C_mstory1;
+extern const Vec D_80114FA8_mstory1;
+extern const Vec D_80114FB4_mstory1;
+extern const Vec D_80114FC0_mstory1;
+
 extern const Vec D_80114F30_mstory1;
 extern const Vec D_80114F48_mstory1;
 extern const Vec D_80114F54_mstory1;
@@ -842,7 +849,58 @@ void func_8010A424_mstory1(void) {
 void func_8010A608_mstory1(void) {
 }
 
+// retail loads model[1] twice (lhu and lh); KMC merges the loads here
+#ifdef NON_MATCHING
+/* actor 4's part of actor 3's conversation */
+void func_8010A610_mstory1(omObjData *obj) {
+    u16 m;
+    s16 model;
+
+    m = obj->model[1];
+    model = obj->model[1];
+    func_8001C258_main(model, 4, 0);
+    func_8001C258_main(obj->model[2], 4, 0);
+    func_80106B14_mstory1(obj, (Vec *)&D_80114F84_mstory1, 30);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114F9C_mstory1, 10);
+    func_8001C624_main(model, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    while (!(D_801158F0_mstory1[3].unk08 & 1)) {
+        HuPrcVSleep();
+    }
+    func_8001C624_main(m, HmfModelData[obj->motion[2]].unk02, 0, 10, 0);
+    func_80107220_mstory1(m);
+    func_8001C624_main(m, HmfModelData[obj->motion[2]].unk02, 0, 10, 0);
+    func_80107220_mstory1(m);
+    func_8001C624_main(m, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(10);
+    func_8001C624_main(m, HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114FB4_mstory1, 5);
+    func_8001C624_main(m, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(10);
+    func_8001C624_main(m, HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114FA8_mstory1, 5);
+    func_8001C624_main(m, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(10);
+    func_8001C624_main(m, HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114F9C_mstory1, 5);
+    func_8001C624_main(m, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114FC0_mstory1, 10);
+    HuAudFXPlay(0x2A0);
+    func_801069EC_mstory1();
+    func_80106A40_mstory1((func_80106AFC_mstory1(4) == 0) ? 0x5A1B : 0x5B0B);
+    func_80106A1C_mstory1();
+    D_801158F0_mstory1[4].unk08 |= 1;
+    while (!(D_801158F0_mstory1[3].unk08 & 4)) {
+        HuPrcVSleep();
+    }
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010704C_mstory1(obj, (Vec *)&D_80114FA8_mstory1, 10);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_80106B14_mstory1(obj, (Vec *)&D_80114F90_mstory1, 20);
+    D_801158F0_mstory1[4].func = func_801081D8_mstory1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48D950", func_8010A610_mstory1);
+#endif
 
 /* actor 5: a copy of actor 4's model */
 void func_8010AA98_mstory1(void) {
