@@ -658,3 +658,9 @@ void func_80118D0C_mgmode(void) {
         D_800D20A1_main[D_8011B808_mgmode] = y / len * 50.0f;
     }
 }
+
+/* .data (0x8011A3E0) */
+s16 D_8011A3E0_mgmode = -1;
+s32 D_8011A3E4_mgmode[4] = { 0xB002B, 0xB002C, 0xB002D, 0xB002E };
+s16 D_8011A3F4_mgmode = 0;
+s16 D_8011A3F8_mgmode[4] = { 0, 0, 0, 0 };

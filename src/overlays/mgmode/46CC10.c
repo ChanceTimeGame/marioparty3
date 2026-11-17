@@ -110,13 +110,13 @@ extern s32 func_80111B08_mgmode(void);
 extern void func_80112200_mgmode(void);
 extern void func_80117DD0_mgmode(void);
 
-/* overlay .data (shared by every mgmode unit, still asm) */
+/* this unit's .data is defined at the end of the file; D_8011988C.. are 47D880's */
 extern u8 D_80118EB0_mgmode;
 extern u8 D_80118EB1_mgmode;
 extern u8 D_80118EB2_mgmode;
 extern s16 D_80118EB4_mgmode;
-extern u8 D_80119158_mgmode[];
-extern u8 D_80119170_mgmode[];
+extern MgScreenPos D_80119158_mgmode[];
+extern MgScreenPos D_80119170_mgmode[];
 extern s32 D_80119190_mgmode[];
 extern s32 D_801191E4_mgmode[];
 extern Gfx D_80119290_mgmode[];
@@ -1760,3 +1760,83 @@ void func_8010BD98_mgmode(omObjData* obj) {
         }
     }
 }
+
+/* .data (0x80118EB0) */
+/* "book_1" .. "book_7" (rodata above, laid out in reverse) */
+extern char D_8011A434_mgmode[];
+extern char D_8011A43C_mgmode[];
+extern char D_8011A444_mgmode[];
+extern char D_8011A44C_mgmode[];
+extern char D_8011A454_mgmode[];
+extern char D_8011A45C_mgmode[];
+extern char D_8011A464_mgmode[];
+
+u8 D_80118EB0_mgmode = 0;
+u8 D_80118EB1_mgmode = 0;
+u8 D_80118EB2_mgmode = 0;
+s16 D_80118EB4_mgmode = 0;
+MgCamData D_80118EB8_mgmode[21] = {
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 127.0f, -395.0f }, 1400.0f, 40.0f },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 127.0f, -395.0f }, 330.0f, 40.0f },
+    { { 358.0f, 0.0f, 0.0f }, { 0.0f, 217.0f, -384.7f }, 580.0f, 44.0f },
+    { { 0.0f, 144.0f, 0.0f }, { -442.7f, 106.2f, 848.7f }, 590.0f, 40.0f },
+    { { 4.0f, 218.0f, 0.0f }, { 364.0f, 104.9f, 741.4f }, 450.0f, 40.0f },
+    { { 6.0f, 180.0f, 0.0f }, { 0.0f, 151.5f, 888.0f }, 580.0f, 40.0f },
+    { { 0.0f, 0.0f, 0.0f }, { 91.0f, 115.0f, -395.0f }, 60.0f, 29.0f },
+    { { 0.0f, 38.0f, 0.0f }, { -221.4f, 397.1f, -540.6f }, 280.0f, 24.0f },
+    { { 0.0f, 2.0f, 0.0f }, { 8.7f, 425.1f, -506.1f }, 730.0f, 20.0f },
+    { { 0.0f, 322.0f, 0.0f }, { 107.8f, 397.1f, -397.5f }, 20.0f, 29.0f },
+    { { 0.0f, 38.0f, 0.0f }, { -221.4f, 239.1f, -540.6f }, 280.0f, 24.0f },
+    { { 0.0f, 0.0f, 0.0f }, { -111.7f, 237.1f, -430.4f }, 50.0f, 29.0f },
+    { { 0.0f, 0.0f, 0.0f }, { 110.3f, 237.1f, -430.4f }, 50.0f, 29.0f },
+    { { 0.0f, 322.0f, 0.0f }, { 107.8f, 237.1f, -397.5f }, 20.0f, 29.0f },
+    { { 4.0f, 218.0f, 0.0f }, { 364.0f, 104.9f, 741.4f }, 80.0f, 40.0f },
+    { { 0.0f, 144.0f, 0.0f }, { -442.7f, 94.2f, 848.7f }, 200.0f, 40.0f },
+    { { 10.0f, 180.0f, 0.0f }, { 0.0f, 45.2f, 907.5f }, 20.0f, 40.0f },
+    { { 4.0f, 38.0f, 0.0f }, { 363.5f, 92.9f, 740.7f }, 170.0f, 40.0f },
+    { { 2.0f, 40.0f, 0.0f }, { 243.7f, 64.7f, 572.9f }, 50.0f, 40.0f },
+    { { 4.0f, 322.0f, 0.0f }, { -194.9f, 88.0f, 522.6f }, 490.0f, 40.0f },
+    { { 0.0f, 322.0f, 0.0f }, { -194.9f, 88.0f, 522.6f }, 40.0f, 40.0f },
+};
+/* cursor positions for func_8011822C_mgmode, ended by { -1, -1 } */
+MgScreenPos D_80119158_mgmode[6] = {
+    { 160, 97 }, { 234, 133 }, { 157, 109 }, { 157, 118 }, { 157, 106 }, { -1, -1 },
+};
+MgScreenPos D_80119170_mgmode[8] = {
+    { 45, 64 }, { 158, 68 }, { 271, 64 }, { 45, 121 }, { 123, 120 }, { 194, 120 }, { 271, 121 }, { -1, -1 },
+};
+s32 D_80119190_mgmode[21] = {
+    22296, 22292, 22297, 22293, 22294, 22295, 22298, 22303, 22299, 22304, 22300,
+    22301, 22302, 22305, 22310, 22306, 22311, 22307, 22308, 22309, 22312,
+};
+/* func_801090C4_mgmode (asm) reads [0] as an s16 at +2 (D_801191E6_mgmode) */
+s32 D_801191E4_mgmode[7] = { 4, 0, 5, 2, 1, 3, 7 };
+u16 D_80119200_mgmode[72] = {
+    0x4401, 0x4402, 0x4403, 0x4404, 0x4405, 0x4406, 0x4407, 0x4408, 0x4409, 0x440A, 0x440B, 0x440C,
+    0x440D, 0x440E, 0x440F, 0x4410, 0x4411, 0x4412, 0x4413, 0x4414, 0x4415, 0x4416, 0x4417, 0x4418,
+    0x4419, 0x4429, 0x441A, 0x441B, 0x441C, 0x441D, 0x441E, 0x441F, 0x4420, 0x4421, 0x4422, 0x4423,
+    0x4424, 0x4425, 0x4426, 0x4427, 0x442A, 0x442B, 0x442C, 0x4428, 0x442D, 0x442E, 0x442F, 0x4430,
+    0x4431, 0x4432, 0x4433, 0x4434, 0x4435, 0x4436, 0x4437, 0x4438, 0x4439, 0x443A, 0x443B, 0x443C,
+    0x443D, 0x443E, 0x443F, 0x4440, 0x0000, 0x4441, 0x0000, 0x0000, 0x0000, 0x0000, 0x4442, 0x4443,
+};
+Gfx D_80119290_mgmode[] = {
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_FILL),
+    gsDPSetRenderMode(G_RM_NOOP, G_RM_NOOP2),
+    gsDPSetFillColor(0xFFFCFFFC),
+    gsDPFillRectangle(0, 0, 319, 239),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPSetColorImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 320, 0x02000000),
+    gsSPEndDisplayList(),
+};
+/* the book model's part names */
+char* D_801192D8_mgmode[7] = {
+    D_8011A464_mgmode, D_8011A45C_mgmode, D_8011A454_mgmode, D_8011A44C_mgmode,
+    D_8011A444_mgmode, D_8011A43C_mgmode, D_8011A434_mgmode,
+};
+u8 D_801192F4_mgmode[8] = { 2, 0, 5, 1, 3, 4, 6, 0 };
+s8 D_801192FC_mgmode[20] = { 0, 1, 2, 3, 1, 0, 2, 3, 2, 0, 1, 3, 3, 0, 1, 2, -1, -1, -1, -1 };
+s8 D_80119310_mgmode[16] = { 0, 1, 2, 3, 0, 2, 1, 3, 0, 3, 1, 2, -1, -1, -1, -1 };
+u16 D_80119320_mgmode[6] = { 0x10, 0x48, 0x70, 0x98, 0x2C, 0 };
+u16 D_8011932C_mgmode[6] = { 0x10, 0x38, 0x70, 0x98, 0x54, 0 };

@@ -193,7 +193,14 @@ extern s16 D_8011B950_mgmode;
 extern void* D_8011B954_mgmode;
 extern u8 D_8011B958_mgmode;
 extern s16 D_8011B95A_mgmode;
-extern char D_801194D0_mgmode[];
+/* A camera preset (read through D_8011B954_mgmode by 47DD90). */
+typedef struct MgCamData {
+    /* 0x00 */ Vec rot;
+    /* 0x0C */ Vec center;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk_1C;
+} MgCamData; /* size 0x20 */
+extern MgCamData D_801194D0_mgmode[];
 
 void func_80112CF4_mgmode(void);
 void func_80112F98_mgmode(void);
@@ -1380,3 +1387,23 @@ void func_801162B4_mgmode(f32 cx, f32 angle) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801162B4_mgmode);
 #endif
+
+/* .data (0x801194C0) */
+MgModeSpr* D_801194C0_mgmode = (MgModeSpr*)-1;
+s16 D_801194C4_mgmode = -1;
+s32 D_801194C8_mgmode = 0;
+s32 D_801194CC_mgmode = 0;
+MgCamData D_801194D0_mgmode[7] = {
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 87.0f, -395.0f }, 1490.0f, 40.0f },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 87.0f, -395.0f }, 960.0f, 40.0f },
+    { { 10.0f, 88.0f, 0.0f }, { -395.6f, 126.8f, 0.9f }, 440.0f, 40.0f },
+    { { 6.0f, 180.0f, 0.0f }, { 1.6f, 98.0f, 717.7f }, 360.0f, 40.0f },
+    { { 0.0f, 184.0f, 0.0f }, { 11.7f, 90.9f, 978.7f }, 120.0f, 40.0f },
+    { { 8.0f, 356.0f, 0.0f }, { 38.7f, 126.8f, -118.8f }, 610.0f, 40.0f },
+    { { 0.0f, 0.0f, 0.0f }, { -41.0f, 202.8f, -80.4f }, 320.0f, 40.0f },
+};
+MgPair D_801195B0_mgmode[3] = { { 97, 142 }, { 160, 120 }, { -1, -1 } };
+s16 D_801195BC_mgmode[4] = { 66, 67, 68, 69 };
+u8 D_801195C4_mgmode[4] = { 2, 1, 3, 2 };
+u8 D_801195C8_mgmode[8] = { 2, 0, 3, 2, 3, 1, 2, 0 };
+MgModeSpr* D_801195D0_mgmode = (MgModeSpr*)-1;

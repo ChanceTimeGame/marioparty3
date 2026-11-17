@@ -342,7 +342,6 @@ D_800D1FE0_main = 0x800D1FE0;
 /* wave 3t m3A: mgmode 479470 (round minigames, picked minigame, model table inside D_80119F64) */
 D_800D0418_main = 0x800D0418;
 D_800CE29C_main = 0x800CE29C;
-D_80119FA0_mgmode = 0x80119FA0;
 D_800D1F2C_main = 0x800D1F2C;
 /* m5: selmenu/552F50 .data inner labels the remaining asm uses */
 D_80108C91_selmenu = D_80108C90_selmenu + 0x1;
@@ -377,3 +376,11 @@ D_801111E1_staff = D_801111E0_staff + 0x1;
 D_801111E2_staff = D_801111E0_staff + 0x2;
 D_801153B4_mstory3 = D_801153B0_mstory3 + 0x4;
 D_801153CC_mstory3 = D_801153C8_mstory3 + 0x4;
+/* m7A: mgmode .data in C; labels inside one object */
+D_801191E6_mgmode = D_801191E4_mgmode + 0x2;
+D_801198BC_mgmode = D_8011988C_mgmode + 0x30;
+D_801198C8_mgmode = D_8011988C_mgmode + 0x3C;
+D_80119A78_mgmode = D_8011997C_mgmode + 0xFC;
+D_80119F34_mgmode = D_80119F28_mgmode + 0xC;
+D_80119F64_mgmode = D_80119F28_mgmode + 0x3C;
+D_8011A0C0_mgmode = D_80119FA0_mgmode + 0x120;

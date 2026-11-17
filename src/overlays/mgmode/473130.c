@@ -125,7 +125,14 @@ s16 func_801182DC_mgmode(s16 x, s16 y);
 
 extern u8 D_80118EB1_mgmode;
 extern s16 D_80118EB4_mgmode;
-extern u8 D_80119344_mgmode[];
+/* A camera preset (read through D_8011B954_mgmode by 47DD90). */
+typedef struct MgCamData {
+    /* 0x00 */ Vec rot;
+    /* 0x0C */ Vec center;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk_1C;
+} MgCamData; /* size 0x20 */
+extern MgCamData D_80119344_mgmode[];
 extern MgCursorPos D_80119424_mgmode[];
 extern u8 D_80119434_mgmode[];
 extern MgModelDesc D_8011997C_mgmode[];
@@ -1735,3 +1742,32 @@ void func_80112060_mgmode(s32 on) {
         }
     }
 }
+
+/* .data (0x80119340) */
+s16 D_80119340_mgmode = -1;
+MgCamData D_80119344_mgmode[7] = {
+    { { 4.0f, 0.0f, 0.0f }, { 0.0f, 178.9f, -391.4f }, 1480.0f, 40.0f },
+    { { 4.0f, 0.0f, 0.0f }, { 0.0f, 178.9f, -391.4f }, 1060.0f, 40.0f },
+    { { 0.0f, 0.0f, 0.0f }, { -36.0f, 206.8f, -390.0f }, 1190.0f, 21.0f },
+    { { 0.0f, 184.0f, 0.0f }, { 11.7f, 110.9f, 979.4f }, 630.0f, 40.0f },
+    { { 0.0f, 184.0f, 0.0f }, { 11.7f, 90.9f, 978.7f }, 120.0f, 40.0f },
+    { { 356.0f, 12.0f, 0.0f }, { -224.5f, 103.7f, -342.3f }, 400.0f, 40.0f },
+    { { 4.0f, 302.0f, 0.0f }, { 53.2f, 134.8f, 80.5f }, 290.0f, 40.0f },
+};
+MgCursorPos D_80119424_mgmode[3] = { { 160, 121 }, { 160, 120 }, { -1, -1 } };
+u8 D_80119430_mgmode[4] = { 3, 5, 7, 0 };
+u8 D_80119434_mgmode[8] = { 55, 54, 55, 55, 55, 55, 55, 55 };
+MgCursorPos D_8011943C_mgmode[4] = { { 180, 91 }, { 180, 121 }, { 180, 151 }, { -1, -1 } };
+s16 D_8011944C_mgmode[4] = { 91, 121, 151, 0 };
+MgCursorPos D_80119454_mgmode[6] = {
+    { 180, 79 }, { 180, 101 }, { 180, 123 }, { 180, 145 }, { 180, 167 }, { -1, -1 },
+};
+s32 D_8011946C_mgmode[3] = { 0x120023, 0x120024, 0x120025 };
+s32 D_80119478_mgmode[3] = { 0x120026, 0x120027, 0x120028 };
+s32 D_80119484_mgmode[3] = { 0x120029, 0x12002A, 0x12002B };
+/* [D_800CC438_main][7]: sprite x offsets for 3, 5 and 7 entries */
+s16 D_80119490_mgmode[21] = {
+    -10, 11, 32, 0, 0, 0, 0,
+    -31, -10, 11, 32, 53, 0, 0,
+    -52, -31, -10, 11, 32, 53, 74,
+};
