@@ -296,10 +296,9 @@ typedef struct StoryActor {
     /* 0x00 */ omObjData *obj;
     /* 0x04 */ void (*func)(omObjData *);
     /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ s32 unk10;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s16 unk16;
+    /* 0x0C */ s32 voiceOn;
+    /* 0x10 */ s32 voice; /* its voice sound */
+    /* 0x14 */ s32 voiceNo; /* the playing voice (actor 0); HuAudFXStop takes its low half */
 } StoryActor; /* size = 0x18 */
 
 extern StoryActor D_801122A0_mstory4[];
@@ -388,7 +387,8 @@ extern const s32 D_801120D4_mstory4[8]; /* name plate file per character */
 extern const s16 D_801120F4_mstory4[8][2];
 extern const s16 D_80112114_mstory4[2];
 extern u8 D_80111BFC_mstory4[4];
-extern s16 D_80111C00_mstory4[2];
+extern u8 D_80111C04_mstory4[4][3]; /* burst colours */
+extern s16 D_80111C00_mstory4;
 extern s16 D_80112326_mstory4; /* the smoke effect model */
 extern s16 D_80112378_mstory4[22]; /* sparkle sprites */
 extern s16 D_801123A4_mstory4;
@@ -417,6 +417,40 @@ s16 func_801108FC_mstory4(s32 file, s32 prio);
 void func_801109EC_mstory4(s16 model);
 s16 func_80110B4C_mstory4(s32 file, s32 prio);
 void func_80110E3C_mstory4(void);
+void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode);
+void func_80111740_mstory4(s16 model);
+void func_80013954_main(s16 model, s32 arg1);
+
+/* the firework burst's particles (the same hmfman work as StFxWork) */
+typedef struct StBurstPart {
+    /* 0x00 */ u8 rgb[3];
+    /* 0x04 */ f32 speed;
+    /* 0x08 */ f32 scale; /* > 0 while live */
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec dir;
+    /* 0x24 */ f32 color; /* D_80111C04_mstory4 index */
+    /* 0x28 */ f32 time;
+    /* 0x2C */ char unk2C[4];
+} StBurstPart; /* size 0x30 */
+
+typedef struct StBurstWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[0x52];
+    /* 0x58 */ StBurstPart *parts;
+} StBurstWork; /* size 0x5C */
+
+/* HmfData.unk60's objects as the burst reads them */
+typedef struct StBurstObj {
+    /* 0x00 */ char unk00[0x22];
+    /* 0x22 */ s16 faceCount;
+    /* 0x24 */ char unk24[0xA];
+    /* 0x2E */ s16 unk2E;
+    /* 0x30 */ char unk30[0x24];
+    /* 0x54 */ HmfModelData_Unk64_Unk60_Unk54_Struct *faces;
+    /* 0x58 */ char unk58[0x10];
+} StBurstObj; /* size 0x68 */
 
 /* walks obj's model 6 to (x, y, z) in `frames` frames, turning it to face the way first when
    `turn` is set */
@@ -1212,17 +1246,255 @@ void func_80110DB0_mstory4(f32 x, f32 y, f32 z, s16 delay) {
     work->time = 0;
 }
 
+// scheduling: retail reads the sindf results without a nop and keeps the face-table load earlier (raw 18, masked 13)
+#ifdef NON_MATCHING
+/* a firework process: after work->delay frames, launches a shell from work->pos on an arc to
+   alternate sides every 25 frames and bursts it (3 in 4 times with a flash model), forever */
+void func_80110E3C_mstory4(void) {
+    StSparkWork *work;
+    s16 models[3];
+    s16 model;
+    s16 n;
+    HmfModelData_Unk64_Unk60_Unk54_Struct *face;
+    HmfData *hmf;
+    StBurstObj *obj;
+    StBurstPart *part;
+    s16 i;
+    s16 j;
+    s16 count;
+    f32 dist;
+    f32 height;
+    f32 depth;
+    f32 t;
+    f32 a;
+    f32 x;
+    f32 y;
+    f32 z;
+
+    work = HuPrcCurrentGet()->user_data;
+    models[0] = model = func_8000B108_main(0xB0034, 0x28C);
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    hmf = HmfModelData[model].hmf;
+    for (j = 0; j < hmf->unk10; j++) {
+        obj = &((StBurstObj *)hmf->unk60)[j];
+        n = obj->faceCount;
+        face = obj->faces;
+        for (i = 0; i < n; i++, face++) {
+            face->unk00 |= 0x80;
+        }
+    }
+    HuPrcVSleep();
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    func_80013390_main(model, -1, NULL, func_80111740_mstory4);
+    func_800138EC_main(model, 8, 8);
+    func_80013954_main(model, 0);
+    part = ((StBurstWork *)HmfModelData[model].unkBC)->parts;
+    count = ((StFxHmf *)hmf)->groupCount;
+    for (i = 0; i < count; i++, part++) {
+        part->scale = part->pos.x = part->pos.y = part->pos.z = 0.0f;
+    }
+    HuPrcVSleep();
+    models[1] = func_8000B108_main(0xB004B, 0x29D);
+    func_8001C814_main(models[1], 2, 2);
+    Hu3DModelScaleSet(models[1], 0.2f, 0.2f, 0.2f);
+    models[2] = func_8000B108_main(0xB004C, 0x29D);
+    Hu3DModelScaleSet(models[2], 0.4f, 0.4f, 0.4f);
+    HuPrcSleep(work->delay);
+    func_8001C258_main(model, 4, 0);
+    while (TRUE) {
+        HuPrcVSleep();
+        dist = ((s32)((u32)(rand8() * 25) >> 7) + 100.0f) * D_80111C00_mstory4;
+        height = ((rand8() * 75) >> 7) + 50;
+        depth = (rand8() * 75) >> 7;
+        dist = 2.0f * dist;
+        height = 2.0f * height;
+        depth = 2.0f * depth;
+        D_80111C00_mstory4 = -D_80111C00_mstory4;
+        func_8001C258_main(models[1], 4, 0);
+        for (i = 0; i < 21; i++) {
+            t = i / 20.0f;
+            a = t * 90.0f;
+            x = dist * sindf(a) + work->pos.x;
+            y = height * sindf(t * 135.0f + 45.0f) - height * sindf(45.0f) + work->pos.y;
+            z = depth * sindf(a) + work->pos.z;
+            Hu3DModelPosSet(models[1], x, y, z);
+            HuPrcVSleep();
+        }
+        func_8001C258_main(models[1], 4, 4);
+        HuPrcSleep(5);
+        if (rand8() & 3) {
+            func_8001C258_main(models[2], 4, 0);
+            func_8001C6A8_main(models[2], 0.0f);
+            func_8001C92C_main(models[2], 3.0f);
+            Hu3DModelPosSet(models[2], x, y, z);
+            for (i = 0; i < 8; i++) {
+                func_80111430_mstory4(model, x, y, z, count / 8, i & 3);
+                HuPrcVSleep();
+            }
+            func_8001C258_main(models[2], 4, 4);
+        } else {
+            for (i = 0; i < 8; i++) {
+                func_80111430_mstory4(model, x, y, z, count / 8, i & 3);
+                HuPrcVSleep();
+            }
+        }
+        HuPrcSleep(25);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80110E3C_mstory4);
+#endif
 
+// retail zero-extends the colour once more and schedules the cosdf results without a nop (raw 10, masked 9)
+#ifdef NON_MATCHING
+/* bursts `count` free particles from (x, y, z): their directions are (0, 1, 0) turned in even
+   steps about a random axis (the z axis when `mode` is 0), all one random colour */
+void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode) {
+    f32 step = 360.0f / count;
+    StFxHmf *hmf = (StFxHmf *)HmfModelData[model].hmf;
+    StBurstPart *part = ((StBurstWork *)HmfModelData[model].unkBC)->parts;
+    s16 total = hmf->groupCount;
+    f32 ax;
+    f32 ay;
+    f32 az;
+    f32 len;
+    f32 a;
+    s32 color;
+    s16 n;
+    s16 i;
+
+    if (mode != 0) {
+        while (TRUE) {
+            ax = rand8() - 128;
+            ay = rand8() - 128;
+            az = rand8() - 128;
+            len = ax * ax + ay * ay + az * az;
+            if (len != 0.0f) {
+                break;
+            }
+        }
+    } else {
+        ax = 0.0f;
+        ay = 0.0f;
+        az = 1.0f;
+        len = 1.0f;
+    }
+    len = HuSqrtf(len);
+    ax /= len;
+    ay /= len;
+    az /= len;
+    color = (u8)(rand8() & 3);
+    for (n = 0, i = 0; i < total; i++, part++) {
+        if (part->scale <= 0.0f) {
+            part->pos.x = x;
+            part->pos.y = y;
+            part->pos.z = z;
+            a = step * n;
+            part->dir.x = ax * ay * (1.0f - cosdf(a)) - az * sindf(a);
+            part->dir.y = ay * ay + (1.0f - ay * ay) * cosdf(a);
+            part->dir.z = ay * az * (1.0f - cosdf(a)) + ax * sindf(a);
+            part->color = color;
+            part->time = 0.0f;
+            part->scale = 1.0f;
+            part->speed = 20.0f;
+            n++;
+            if (n >= count) {
+                break;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80111430_mstory4);
+#endif
 
+// retail keeps the three colour-table bytes' addresses in registers across the loop (masked 16)
+#ifdef NON_MATCHING
+/* the burst's per-frame particle update (hmfman hook): colour, move, slow down, shrink */
+void func_80111740_mstory4(s16 model) {
+    HmfData *hmf = HmfModelData[model].hmf;
+    StBurstWork *work = (StBurstWork *)HmfModelData[model].unkBC;
+    StBurstPart *part;
+    s16 count;
+    s16 i;
+    s16 color;
+    f32 sx;
+    f32 sy;
+    f32 sz;
+
+    if (work->motion == -1) {
+        count = ((StFxHmf *)hmf)->groupCount;
+    } else {
+        count = ((StBurstObj *)hmf->unk60)[work->motion].unk2E;
+    }
+    part = work->parts;
+    if (work->frame >= 50) {
+        if (!(work->flags & 1)) {
+            return;
+        }
+        work->frame = 0;
+    }
+    for (i = 0; i < count; i++, part++) {
+        if (part->scale > 0.0f) {
+            color = part->color;
+            part->time += 1.0f;
+            part->rgb[0] = D_80111C04_mstory4[color][0];
+            part->rgb[1] = D_80111C04_mstory4[color][1];
+            part->rgb[2] = D_80111C04_mstory4[color][2];
+            sx = part->dir.x * part->speed;
+            sy = part->dir.y * part->speed;
+            sz = part->dir.z * part->speed;
+            part->pos.x = sx + part->pos.x;
+            part->pos.y = sy + part->pos.y;
+            part->pos.z = sz + part->pos.z;
+            part->speed *= 0.9f;
+            part->scale -= 0.05f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80111740_mstory4);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_801118F8_mstory4);
+/* starts actor i's voice `se` once (actor 0 plays it as the story character's) */
+void func_801118F8_mstory4(s32 i, s32 se) {
+    if (D_801122A0_mstory4[i].voiceOn == 0) {
+        D_801122A0_mstory4[i].voiceOn = 1;
+        D_801122A0_mstory4[i].voice = se;
+        if (i == 0) {
+            D_801122A0_mstory4[0].voiceNo = CharFXPlay(se, GwStory.unk1);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8011196C_mstory4);
+void func_8011196C_mstory4(s32 i) {
+    if (D_801122A0_mstory4[i].voiceOn == 1) {
+        D_801122A0_mstory4[i].voiceOn = 0;
+        if (i == 0) {
+            HuAudFXStop((s16)D_801122A0_mstory4[0].voiceNo);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_801119C0_mstory4);
+/* replays actor 0's voice each time its motion restarts, while it is on */
+void func_801119C0_mstory4(void) {
+    s32 i;
+    s32 se;
+
+    while (TRUE) {
+        for (i = 0; i < 3; i++) {
+            if (D_801122A0_mstory4[i].voiceOn == 1 && HmfModelData[D_801122A0_mstory4[i].obj->model[1]].unk40 == 0.0f) {
+                se = D_801122A0_mstory4[i].voice;
+                if (i == 0) {
+                    D_801122A0_mstory4[0].voiceNo = CharFXPlay(se, GwStory.unk1);
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
 
 const StSparkGroup D_80112088_mstory4[6] = {
     { 4, D_80111BA4_mstory4 }, { 5, D_80111BB4_mstory4 }, { 4, D_80111BC8_mstory4 },
@@ -1265,5 +1537,6 @@ s16 D_80111BD8_mstory4[3][2] = { { 215, 112 }, { 206, 130 }, { 188, 141 } };
 s16 D_80111BE4_mstory4[3][2] = { { 229, 122 }, { 221, 146 }, { 202, 169 } };
 s16 D_80111BF0_mstory4[3][2] = { { 246, 119 }, { 236, 156 }, { 225, 174 } };
 u8 D_80111BFC_mstory4[4] = { 0, 1, 2, 1 }; /* particle size wobble */
-s16 D_80111C00_mstory4[2] = { 1, 0 }; /* [0]: the firework's side, flipped each launch */
+s16 D_80111C00_mstory4 = 1; /* the firework's side, flipped each launch */
+s16 D_80111C02_mstory4 = 0; /* unreferenced */
 u8 D_80111C04_mstory4[4][3] = { { 0xFF, 0x20, 0x40 }, { 0xFF, 0xFF, 0x40 }, { 0x40, 0xC0, 0xC0 }, { 0xFF, 0xFF, 0xFF } };
