@@ -251,8 +251,13 @@ extern Vec D_80112300_mstory4[]; /* [3] actor positions */
 extern s16 D_80112324_mstory4; /* shadow model */
 extern s16 D_80112326_mstory4; /* effect model */
 extern s32 D_80111B80_mstory4; /* 1 once actor 2 exists: actor 2 bobs */
+extern s16 D_80112328_mstory4[5]; /* actor 0's texture animations */
+extern const Vec D_80111F10_mstory4[]; /* [3] actor start positions */
+extern const s32 D_80111F34_mstory4[8]; /* per character: actor 0 motions */
+extern const s32 D_80111F54_mstory4[8];
+extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
 void func_80106C10_mstory4(void);
-void func_8010BAF0_mstory4(void);
+void func_8010BAF0_mstory4(omObjData *obj);
 void func_8010BAF8_mstory4(void);
 void func_8010BF3C_mstory4(void);
 void func_8010C0BC_mstory4(void);
@@ -317,7 +322,7 @@ void func_8010A44C_mstory4(omObjData *obj) {
     D_801121C0_mstory4[3].func = (void (*)(omObjData *))func_80108280_mstory4;
 }
 
-#ifdef NON_MATCHING
+/* matches only built blank-stripped (W2DC_BLANKSTRIP, wave 3u v2): otherwise a nop follows the sindf call */
 /* actor 3 bobs up and down */
 void func_8010A480_mstory4(void) {
     Vec pos;
@@ -340,9 +345,6 @@ void func_8010A480_mstory4(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A480_mstory4);
-#endif
 
 /* actor 4 */
 void func_8010A5AC_mstory4(void) {
@@ -511,18 +513,230 @@ void func_8010ACF4_mstory4(void) {
    split (story wave rule), so the padding is kept by hand */
 __asm__(".section .text\n    .align 4\n");
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010AE20_mstory4);
+ObPath *func_8010AE20_mstory4(Vec *points, s16 flags) {
+    ObPath *path;
+    Vec *prev;
+    Vec *cur;
+    ObPathSeg *seg;
+    f32 total;
+    f32 pos;
+    f32 len;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    s16 n;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010B124_mstory4);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010B9CC_mstory4);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010B9FC_mstory4);
-
-void func_8010BAF0_mstory4(void) {
+    path = HuMemAllocTag(sizeof(ObPath), 0x7918);
+    path->flags = flags;
+    path->points = points;
+    prev = points;
+    cur = prev + 1;
+    total = 0.0f;
+    n = 0;
+    while (cur->x != 9999.0f || cur->y != 9999.0f || cur->z != 9999.0f) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+        n++;
+        cur++;
+        prev++;
+    }
+    if (flags & 1) {
+        dx = points->x - prev->x;
+        dy = points->y - prev->y;
+        dz = points->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+    }
+    n++;
+    path->count = n;
+    seg = HuMemAllocTag(n * sizeof(ObPathSeg), 0x7918);
+    path->segs = seg;
+    prev = points;
+    cur = prev + 1;
+    pos = 0.0f;
+    for (i = 0; i < n; i++, prev++, cur++, seg++) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        if ((flags & 1) && i == n - 1) {
+            dx = points->x - prev->x;
+            dy = points->y - prev->y;
+            dz = points->z - prev->z;
+        }
+        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+        seg->start = pos / total;
+        seg->end = (pos + len) / total;
+        if (seg->end > 1.0f) {
+            seg->end = 1.0001f;
+        }
+        pos += len;
+    }
+    return path;
 }
 
+#ifdef NON_MATCHING
+/* the point at t (0..1) along a path: a spline through the four points around the segment t
+   falls in */
+void func_8010B124_mstory4(ObPath *path, f32 t, Vec *out) {
+    f32 p[4];
+    f32 times[4];
+    ObPathSeg *segs;
+    Vec *pts;
+    s16 i;
+
+    if (t >= 1.0f) {
+        out->x = path->points[path->count - 1].x;
+        out->y = path->points[path->count - 1].y;
+        out->z = path->points[path->count - 1].z;
+        return;
+    }
+    for (i = 0, segs = path->segs; i < path->count; i++, segs++) {
+        if (t <= segs->start) {
+            break;
+        }
+    }
+    i--;
+    i = (i < 0) ? 0 : i;
+    if (i >= path->count - 1) {
+        i--;
+    }
+    segs = path->segs;
+    if (path->flags & 1) {
+        times[0] = (i == 0) ? -(1.0f - segs[path->count - 1].start) : segs[i - 1].start;
+        times[1] = segs[i].start;
+        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
+        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
+        pts = path->points;
+        p[0] = (i == 0) ? pts[path->count - 1].x : pts[i - 1].x;
+        p[1] = pts[i].x;
+        p[2] = (i >= path->count - 1) ? pts[0].x : pts[i + 1].x;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].x : pts[i + 2].x;
+        out->x = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[path->count - 1].y : pts[i - 1].y;
+        p[1] = pts[i].y;
+        p[2] = (i >= path->count - 1) ? pts[0].y : pts[i + 1].y;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].y : pts[i + 2].y;
+        out->y = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[path->count - 1].z : pts[i - 1].z;
+        p[1] = pts[i].z;
+        p[2] = (i >= path->count - 1) ? pts[0].z : pts[i + 1].z;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].z : pts[i + 2].z;
+    } else {
+        if (i == 0) {
+            times[0] = -1.0f;
+        } else {
+            times[0] = segs[i - 1].start;
+        }
+        times[1] = segs[i].start;
+        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
+        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
+        pts = path->points;
+        p[0] = (i == 0) ? pts[0].x : pts[i - 1].x;
+        p[1] = pts[i].x;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].x : pts[i + 1].x;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].x : pts[i + 2].x;
+        out->x = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[0].y : pts[i - 1].y;
+        p[1] = pts[i].y;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].y : pts[i + 1].y;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].y : pts[i + 2].y;
+        out->y = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[0].z : pts[i - 1].z;
+        p[1] = pts[i].z;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].z : pts[i + 1].z;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].z : pts[i + 2].z;
+    }
+    out->z = func_80018ACC_main(p, times, t);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010B124_mstory4);
+#endif
+
+void func_8010B9CC_mstory4(ObPath *path) {
+    HuMemFree(path->segs);
+    HuMemFree(path);
+}
+
+/* scene 2: starts its actors and processes */
+void func_8010B9FC_mstory4(void) {
+    func_80106C10_mstory4();
+    D_80112324_mstory4 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_8010BAF8_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010C0BC_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010C8D0_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010CE90_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010CD40_mstory4, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010D128_mstory4, 0x1002, 0x800, 0);
+    omAddPrcObj(func_801119C0_mstory4, 0x1002, 0x800, 0);
+    HuPrcVSleep();
+    func_8001C258_main(D_80112324_mstory4, 4, 4);
+}
+
+void func_8010BAF0_mstory4(omObjData *obj) {
+}
+
+// masked 0 when func_80017AD8_main returns s16 (functions.us.h says u8: an andi 0xFF per call; as mstory1's twin, s1A.header.patch)
+#ifdef NON_MATCHING
+/* scene 2 actor 0: the player's character */
+void func_8010BAF8_mstory4(void) {
+    omObjData *obj;
+    s16 chr;
+
+    obj = omAddObj(0x14, 6, 0x10, -1, NULL);
+    story2Actors[0].obj = obj;
+    story2Actors[0].unk08 = 0;
+    story2Actors[0].unk0C = 0;
+    chr = GwStory.unk1;
+    obj->model[1] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][2], 0x2A9);
+    obj->model[2] = Hu3DModelLink(D_80112324_mstory4);
+    if (GwStory.unk1 == 5) {
+        Hu3DModelScaleSet(obj->model[2], 1.5f, 1.0f, 1.5f);
+    }
+    obj->model[3] = func_8000B108_main(0x1D000A, 0x2B9);
+    func_8001C258_main(obj->model[3], 4, 4);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x34));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x8F));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x32));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 7, D_80111F34_mstory4[chr]);
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x9B));
+    func_8000B460_main(obj, 9, func_80017BB8_main(chr, 0x7A));
+    func_8000B460_main(obj, 10, D_80111F54_mstory4[chr]);
+    func_8000B460_main(obj, 11, func_80017BB8_main(chr, 2));
+    func_8000B460_main(obj, 12, func_80017BB8_main(chr, 0x72));
+    func_8000B460_main(obj, 13, func_80017BB8_main(chr, 0x6C));
+    D_80112328_mstory4[0] = func_80017790_main(obj->model[1], 2, chr, func_80017BB8_main(chr, 0xA4));
+    D_80112328_mstory4[1] = func_80017AD8_main(func_80017BB8_main(chr, 0xAA));
+    D_80112328_mstory4[2] = func_80017AD8_main(func_80017BB8_main(chr, 0xA5));
+    D_80112328_mstory4[3] = func_80017AD8_main(func_80017BB8_main(chr, 0xA9));
+    D_80112328_mstory4[4] = func_80017AD8_main(func_80017BB8_main(chr, 0xAB));
+    func_8001C514_main(obj->model[1]);
+    func_80017954_main(obj->model[1], 2, GwStory.unk1, D_80112328_mstory4[0]);
+    func_8001C5B4_main(obj->model[1], obj->motion[0]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    D_80112300_mstory4[0] = D_80111F10_mstory4[0];
+    Hu3DModelPosSet(obj->model[1], D_80112300_mstory4[0].x, D_80112300_mstory4[0].y, D_80112300_mstory4[0].z);
+    Hu3DModelPosSet(obj->model[2], D_80112300_mstory4[0].x, -5.0f, D_80112300_mstory4[0].z);
+    omPrcSetDestructor(0, func_8010BF3C_mstory4);
+    story2Actors[0].func = func_8010BAF0_mstory4;
+    while (TRUE) {
+        story2Actors[0].func(obj);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010BAF8_mstory4);
+#endif
 
 void func_8010BF3C_mstory4(void) {
 }
