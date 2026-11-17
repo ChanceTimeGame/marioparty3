@@ -943,13 +943,13 @@ void func_8010E6F0_mgmode(s16 mode) {
             }
         }
         if (t < 10) {
-            tilt = (atan2df(HmfModelData[D_8011B8A8_mgmode[7]].pos.x - HmfModelData[D_8011B8A8_mgmode[4]].pos.x,
-                            HmfModelData[D_8011B8A8_mgmode[7]].pos.z - HmfModelData[D_8011B8A8_mgmode[4]].pos.z) -
-                    HmfModelData[D_8011B8A8_mgmode[4]].rot.y) * (t / 10.0f);
+            tilt = (atan2df(HmfModelData[(s16)D_8011B8A8_mgmode[7]].pos.x - HmfModelData[(s16)D_8011B8A8_mgmode[4]].pos.x,
+                            HmfModelData[(s16)D_8011B8A8_mgmode[7]].pos.z - HmfModelData[(s16)D_8011B8A8_mgmode[4]].pos.z) -
+                    HmfModelData[(s16)D_8011B8A8_mgmode[4]].rot.y) * (t / 10.0f);
         } else if (t < 20) {
-            tilt = atan2df(HmfModelData[D_8011B8A8_mgmode[7]].pos.x - HmfModelData[D_8011B8A8_mgmode[4]].pos.x,
-                           HmfModelData[D_8011B8A8_mgmode[7]].pos.z - HmfModelData[D_8011B8A8_mgmode[4]].pos.z) -
-                   HmfModelData[D_8011B8A8_mgmode[4]].rot.y;
+            tilt = atan2df(HmfModelData[(s16)D_8011B8A8_mgmode[7]].pos.x - HmfModelData[(s16)D_8011B8A8_mgmode[4]].pos.x,
+                           HmfModelData[(s16)D_8011B8A8_mgmode[7]].pos.z - HmfModelData[(s16)D_8011B8A8_mgmode[4]].pos.z) -
+                   HmfModelData[(s16)D_8011B8A8_mgmode[4]].rot.y;
         } else {
             tilt -= 5.0f;
         }
