@@ -133,6 +133,11 @@ extern const Vec D_80111E3C_mstory4;
 extern const Vec D_80111E48_mstory4;
 extern const Vec D_80111E54_mstory4;
 extern const Vec D_80111E60_mstory4;
+void func_8010A05C_mstory4(void);
+void func_8010A064_mstory4(omObjData *obj);
+void func_80109840_mstory4(omObjData *obj);
+void func_8010ABD0_mstory4(s32 actor, s32 fx);
+void func_8010AC84_mstory4(s32 actor);
 
 void func_801059A0_mstory4(void) {
     s16 n = 0;
@@ -1027,7 +1032,36 @@ void func_80109E68_mstory4(omObjData *obj) {
     D_801121C0_mstory4[1].func = func_80108280_mstory4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80109EA4_mstory4);
+/* actor 2 */
+void func_80109EA4_mstory4(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 4, 8, -1, NULL);
+    D_801121C0_mstory4[2].obj = obj;
+    D_801121C0_mstory4[2].unk08 = 0;
+    D_801121C0_mstory4[2].unk0C = 0;
+    obj->model[1] = func_8000B108_main(0x800A0, 0x2B9);
+    obj->model[2] = Hu3DModelLink(D_8011228C_mstory4);
+    func_8000B460_main(obj, 0, 0x80000);
+    func_8000B460_main(obj, 1, 0x1D0076);
+    func_8000B460_main(obj, 2, 0x1D0077);
+    func_8001C5B4_main(obj->model[1], obj->motion[1]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 340.0f, 0.0f);
+    D_80112250_mstory4[2] = D_80111C70_mstory4[2];
+    Hu3DModelPosSet(obj->model[1], D_80112250_mstory4[2].x, D_80112250_mstory4[2].y, D_80112250_mstory4[2].z);
+    Hu3DModelPosSet(obj->model[2], D_80112250_mstory4[2].x, -5.0f, D_80112250_mstory4[2].z);
+    omPrcSetDestructor(0, func_8010A05C_mstory4);
+    D_801121C0_mstory4[2].func = func_8010A064_mstory4;
+    while (TRUE) {
+        D_801121C0_mstory4[2].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8010A05C_mstory4(void) {
 }
@@ -1054,7 +1088,29 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111E78_mstory4);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111E84_mstory4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A064_mstory4);
+const Vec D_80111E9C_mstory4 = { 200.0f, 0.0f, 1200.0f };
+const Vec D_80111EA8_mstory4 = { 166.66666f, 0.0f, 150.0f }; /* unused */
+
+/* actor 2: actor 1 talks, then actor 2 walks off */
+void func_8010A064_mstory4(omObjData *obj) {
+    HuPrcSleep(10);
+    CharFXPlay(0x26B, 6);
+    HuPrcSleep(30);
+    func_80106B3C_mstory4(D_801121C0_mstory4[1].obj->model[1], D_80112248_mstory4, (s16)D_80112238_mstory4[1]);
+    func_80106C78_mstory4();
+    func_80106CCC_mstory4(0x5A70);
+    func_80106CA8_mstory4();
+    func_80106B3C_mstory4(D_801121C0_mstory4[1].obj->model[1], D_80112248_mstory4, (s16)D_80112238_mstory4[0]);
+    D_801121C0_mstory4[1].func = func_80109840_mstory4;
+    CharFXPlay(0x286, 6);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[2]].unk02, 0, 10, 2);
+    func_8010ABD0_mstory4(2, 0x28);
+    func_80106DA0_mstory4(obj, (Vec *)&D_80111E9C_mstory4, 0x28);
+    func_8010AC84_mstory4(2);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_801121C0_mstory4[2].func = func_80108280_mstory4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010A1C4_mstory4);
 
