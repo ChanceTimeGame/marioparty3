@@ -252,6 +252,9 @@ void func_80110038_duel05(s32 no);
 void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
 void func_800F8C68_name_81(s32);
 void func_8010E96C_duel05(void);
+extern s16 D_800CE1D0_main;
+extern s16 D_800D124C_main;
+extern s16 D_80101A50_name_81;
 void func_80105A58_duel05(void);
 void func_80105B10_duel05(void);
 s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
@@ -1304,7 +1307,33 @@ void func_8011544C_duel05(void) {
     func_8010E96C_duel05();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_80115468_duel05);
+/* Before moving: with walk left, take the turn's branch; with partner 7 and no other event pending, a 50%
+   chance to take it anyway (D_80101A50_name_81 records the roll). */
+void func_80115468_duel05(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(-1);
+
+    if (mbWalkNum != 0) {
+        if (GwSystem.current_turn & 1) {
+            func_800E9F4C_name_81(0x25, &player->nnlink, &player->nnidx);
+        } else {
+            func_800E9F4C_name_81(0x24, &player->nnlink, &player->nnidx);
+        }
+        return;
+    }
+    if ((player->stats.partners.frontID == 7 || player->stats.partners.backID == 7) && D_800D124C_main == 0 &&
+        D_800CE1D0_main == 0) {
+        if (func_800EFE20_name_81(100.0f) < 50) {
+            D_80101A50_name_81 = 1;
+            if (GwSystem.current_turn & 1) {
+                func_800E9F4C_name_81(0x25, &player->nnlink, &player->nnidx);
+            } else {
+                func_800E9F4C_name_81(0x24, &player->nnlink, &player->nnidx);
+            }
+            return;
+        }
+        D_80101A50_name_81 = -1;
+    }
+}
 
 void func_80115550_duel05(void) {
     s8 linkIdx[2]; // link, index
