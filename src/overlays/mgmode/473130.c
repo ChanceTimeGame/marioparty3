@@ -119,7 +119,10 @@ extern s16 D_8011B884_mgmode;
 extern f32 D_8011B888_mgmode;
 extern u16 D_8011B8A8_mgmode[];
 extern u16 D_8011B8B0_mgmode;
-extern u16 D_8011B8B6_mgmode[];
+extern u16 D_8011B8B6_mgmode[]; /* D_8011B8A8_mgmode[7] */
+extern u16 D_8011B8E8_mgmode[]; /* D_8011B8A8_mgmode[32] */
+extern u8 D_8011B6B0_mgmode[][25];
+extern s16 D_8011B940_mgmode[];
 extern void *D_8011B954_mgmode;
 extern u8 D_8011B958_mgmode;
 extern MgSprSlot *D_8011B450_mgmode;
@@ -142,7 +145,8 @@ extern s16 D_800CE29C_main; /* the chosen minigame; its low byte is also read as
 extern s16 D_800D03FE_main[4]; /* read back as its low byte (lbu +1) */
 extern u8 D_800D1F20_main[4];
 extern s16 D_800D1F2C_main;
-extern s16 D_800D4194_main;
+extern s16 D_800D4194_main; /* D_800D4190_main.event */
+extern s16 D_800D0418_main[]; /* empstrline + 8: the minigame list of a round */
 
 s32 func_8010F648_mgmode(void);
 void func_8010CB20_mgmode(void);
@@ -152,6 +156,7 @@ s16 func_8010D3B0_mgmode(s32 back);
 void func_8010D98C_mgmode(void);
 s16 func_8010DAB8_mgmode(s32 back);
 void func_8010E1F0_mgmode(void);
+void func_8010E494_mgmode(s16 mode);
 void func_8010E40C_mgmode(void);
 void func_8010E6F0_mgmode(s16 event);
 void func_8010EE84_mgmode(s16 event);
@@ -744,7 +749,33 @@ s16 func_8010DAB8_mgmode(s32 back) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010DAB8_mgmode);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E1F0_mgmode);
+void func_8010E1F0_mgmode(void) {
+    s16 list[20];
+    s16 n;
+    s16 i;
+    s16 tmp;
+    s16 j;
+    s16 k;
+    s16 ev;
+
+    ev = D_800D4194_main;
+    n = 0;
+    for (i = 0; i < D_8011B940_mgmode[ev]; i++) {
+        if (D_8011B6B0_mgmode[ev][i] != 0xFF) {
+            list[n++] = D_8011B6B0_mgmode[ev][i];
+        }
+    }
+    for (i = 0; i < n * 2; i++) {
+        j = i % n;
+        k = (rand8() * n) >> 8;
+        tmp = list[j];
+        list[j] = list[k];
+        list[k] = tmp;
+    }
+    for (i = 0; i < D_8011B928_mgmode[ev]; i++) {
+        D_800D0418_main[i] = list[i];
+    }
+}
 
 void func_8010E40C_mgmode(void) {
     s16 i;
@@ -754,7 +785,40 @@ void func_8010E40C_mgmode(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E494_mgmode);
+void func_8010E494_mgmode(s16 mode) {
+    Vec pos[4];
+    s16 grp[4];
+    s16 n;
+    s16 i;
+    s16 k;
+    s16 g;
+
+    n = 2;
+    if (mode != 4) {
+        n = 4;
+    }
+    for (i = 0; i < n; i++) {
+        grp[i] = D_800D1F20_main[i];
+    }
+    k = 0;
+    for (g = 0; g < n || k < n; g++) {
+        for (i = 0; i < n; i++) {
+            if (g == grp[i]) {
+                pos[i].x = k * 80 - 122;
+                pos[i].y = 26.0f;
+                pos[i].z = -312.0f;
+                grp[i] = -1;
+                k++;
+            }
+        }
+    }
+    for (i = 0; i < n; i++) {
+        func_8001C258_main(D_8011B8B6_mgmode[i], 4, 0);
+        Hu3DModelPosSet(D_8011B8B6_mgmode[i], pos[i].x, pos[i].y, pos[i].z);
+        func_8001C258_main(D_8011B8E8_mgmode[i], 4, 0);
+        Hu3DModelPosSet(D_8011B8E8_mgmode[i], pos[i].x, pos[i].y, pos[i].z);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E6F0_mgmode);
 
