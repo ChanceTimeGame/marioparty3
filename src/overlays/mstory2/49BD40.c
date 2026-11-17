@@ -574,6 +574,10 @@ void func_80105EB4_mstory2(void);
 void func_8011B464_mstory2(omObjData *obj);
 extern s16 D_8011CA74_mstory2[3]; /* actor 0's texture animation slots */
 extern s16 D_8011CA7A_mstory2;
+extern const Vec D_8011C60C_mstory2;
+extern Vec D_8011CA50_mstory2; /* the actors' start positions: actor 0 */
+extern f32 D_8011BDD0_mstory2;
+void func_8011B45C_mstory2(void);
 // story f5 protos end
 
 /* actor 0: the player's character */
@@ -1316,7 +1320,48 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C60C_mstory2);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011C618_mstory2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B198_mstory2);
+/* this file's copy of "c204n_0_DEF" (a string literal here would reuse func_80119D20_mstory2's) */
+const char D_8011C630_mstory2[] = "c204n_0_DEF";
+
+/* actor 0 */
+void func_8011B198_mstory2(void) {
+    omObjData *obj;
+    void *data;
+
+    obj = omAddObj(0x14, 0x14, 0x14, -1, NULL);
+    D_8011CA10_mstory2[0].obj = obj;
+    D_8011CA10_mstory2[0].flags = 0;
+    D_8011CA10_mstory2[0].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+    obj->model[1] = func_8000B108_main(0xA0075, 0x2A9);
+    obj->model[2] = Hu3DModelLink(D_8011CA4C_mstory2);
+    func_8000B460_main(obj, 0, 0xA0076);
+    func_8001C5B4_main(obj->model[1], obj->motion[0]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    D_8011CA50_mstory2 = D_8011C60C_mstory2;
+    Hu3DModelPosSet(obj->model[1], D_8011CA50_mstory2.x, D_8011CA50_mstory2.y, D_8011CA50_mstory2.z);
+    Hu3DModelPosSet(obj->model[2], D_8011CA50_mstory2.x, -5.0f, D_8011CA50_mstory2.z);
+    data = DataRead(0xA0082);
+    D_8011CA74_mstory2[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_8011C630_mstory2);
+    HuMemMemoryFreePerm(data);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80032FC0_main(D_8011CA74_mstory2[0], 1, 0);
+    func_80032FF8_main(D_8011CA74_mstory2[0], 0);
+    D_8011CA7A_mstory2 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_8011CA74_mstory2[0], 0, (char *)D_8011C630_mstory2);
+    data = DataRead(0xA0084);
+    D_8011CA74_mstory2[1] = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    D_8011CA7A_mstory2 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_8011CA74_mstory2[0], 0, (char *)D_8011C630_mstory2);
+    data = DataRead(0xA0080);
+    D_8011CA74_mstory2[2] = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    func_80106D58_mstory2(obj->model[1], D_8011CA7A_mstory2, D_8011CA74_mstory2[0]);
+    omPrcSetDestructor(0, func_8011B45C_mstory2);
+    while (1) {
+        D_8011CA10_mstory2[0].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8011B45C_mstory2(void) {
 }
