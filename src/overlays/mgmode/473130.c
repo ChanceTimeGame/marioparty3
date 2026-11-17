@@ -9,6 +9,9 @@
 #include "game/gamemes.h"
 #include "game/pause.h"
 #include "game/board.h"
+#include "input.h"
+
+#define ABS(x) ((x) < 0 ? -(x) : (x))
 
 /* wave 3t m2: Minigame mode menus (Game Room / Mini-Game House doors). */
 
@@ -86,6 +89,8 @@ void func_8011829C_mgmode(s16 arg0);
 void func_801182A8_mgmode(s16 arg0);
 void func_801182B4_mgmode(s16 arg0);
 s16 func_80118678_mgmode(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
+void func_80118D0C_mgmode(void);
+s16 func_801182DC_mgmode(s16 x, s16 y);
 
 #define MG_NOFUNC ((void (*)(s16 *))-1)
 
@@ -119,6 +124,8 @@ extern s16 D_80119340_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B950_mgmode;
 extern s16 D_8011B95A_mgmode;
+extern u8 D_8011943C_mgmode[];
+extern s16 D_8011944C_mgmode[];
 
 /* main-code variables with no name in the tree yet (undefined_syms.txt, wave 3t m2) */
 extern s16 D_800CC438_main;
@@ -133,7 +140,7 @@ s32 func_8010F648_mgmode(void);
 void func_8010CB20_mgmode(void);
 void func_8010CBFC_mgmode(void);
 void func_8010D308_mgmode(void);
-s16 func_8010D3B0_mgmode(s16 back);
+s16 func_8010D3B0_mgmode(s32 back);
 void func_8010D98C_mgmode(void);
 s16 func_8010DAB8_mgmode(s16 back);
 void func_8010E1F0_mgmode(void);
@@ -537,7 +544,87 @@ void func_8010D308_mgmode(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010D3B0_mgmode);
+s16 func_8010D3B0_mgmode(s32 back) {
+    f32 dist;
+    s16 i;
+    s16 j;
+    s16 t;
+    s16 cur;
+    s16 sel;
+
+    if (back != 0) {
+        for (i = 1; i < 6; i++) {
+            func_80116A48_mgmode(D_8011B450_mgmode, D_800CC438_main + 1, 1.0f, cosdf(i / 5.0f * 90.0f));
+            HuPrcVSleep();
+        }
+        func_801169C8_mgmode(D_8011B450_mgmode, D_800CC438_main + 1);
+    }
+    func_8005B43C_main(D_8011B6A8_mgmode, 0x5608, -1, -1);
+    while (func_8005E0C0_main(D_8011B6A8_mgmode)) {
+        HuPrcVSleep();
+    }
+    func_80116968_mgmode(D_8011B450_mgmode, 1, 180, 91);
+    func_80116968_mgmode(D_8011B450_mgmode, 2, 180, 121);
+    func_80116968_mgmode(D_8011B450_mgmode, 3, 180, 151);
+    for (i = 1; i < 15; i++) {
+        for (j = 0; j < 3; j++) {
+            t = i - j * 3;
+            if (t < 0) {
+                func_801169C8_mgmode(D_8011B450_mgmode, j + 1);
+            } else if (t < 9) {
+                func_801169A0_mgmode(D_8011B450_mgmode, j + 1);
+                func_80116A48_mgmode(D_8011B450_mgmode, j + 1, 1.0f, sindf(t / 8.0f * 90.0f));
+            }
+        }
+        HuPrcVSleep();
+    }
+    cur = 0;
+    func_8011822C_mgmode(D_8011943C_mgmode);
+    func_801181F4_mgmode(0);
+    func_8011829C_mgmode(5);
+    func_801182B4_mgmode(1);
+    while (TRUE) {
+        HuPrcVSleep();
+        func_80118D0C_mgmode();
+        if (ABS(D_800CBB6E_main[D_8011B808_mgmode]) >= 31 || ABS(D_800D20A1_main[D_8011B808_mgmode]) >= 31) {
+            sel = func_801182DC_mgmode(-D_800CBB6E_main[D_8011B808_mgmode], D_800D20A1_main[D_8011B808_mgmode]);
+            if (sel != -1) {
+                HuAudFXPlay(1);
+                func_801182A8_mgmode(sel);
+                HuPrcSleep(5);
+                cur = sel;
+            }
+            continue;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x8000) {
+            HuAudFXPlay(2);
+            dist = 47 - D_8011944C_mgmode[cur];
+            for (i = 1; i < 6; i++) {
+                for (j = 0; j < 3; j++) {
+                    if (j == cur) {
+                        func_80116968_mgmode(D_8011B450_mgmode, cur + 1, 180, D_8011944C_mgmode[j] + dist * sindf(i / 5.0f * 90.0f));
+                    } else {
+                        func_80116A48_mgmode(D_8011B450_mgmode, j + 1, 1.0f, cosdf(i / 5.0f * 90.0f));
+                    }
+                }
+                HuPrcVSleep();
+            }
+            func_801169C8_mgmode(D_8011B450_mgmode, 1);
+            func_801169C8_mgmode(D_8011B450_mgmode, 2);
+            func_801169C8_mgmode(D_8011B450_mgmode, 3);
+            func_801169A0_mgmode(D_8011B450_mgmode, cur + 1);
+            break;
+        }
+        if (D_800D5558_main[D_8011B808_mgmode] & 0x4000) {
+            HuAudFXPlay(4);
+            cur = -1;
+            break;
+        }
+    }
+    func_801182B4_mgmode(0);
+    HuPrcSleep(5);
+    return cur;
+}
 
 void func_8010D98C_mgmode(void) {
     s16 t;
