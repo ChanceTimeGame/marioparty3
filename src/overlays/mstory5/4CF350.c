@@ -248,13 +248,97 @@ void func_8010CBE0_mstory5(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010CBE8_mstory5);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010CFE4_mstory5);
+// story i3
+/* a story-scene actor: its object and the action its process runs every frame */
+typedef struct StoryActor {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ s32 unk10; /* looping sound effect */
+    /* 0x14 */ s32 unk14; /* its handle */
+} StoryActor; /* size = 0x18 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D214_mstory5);
+/* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry), as mstory1's */
+typedef struct ObPathSeg {
+    /* 0x00 */ f32 start;
+    /* 0x04 */ f32 end;
+} ObPathSeg; /* size = 0x8 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D230_mstory5);
+typedef struct ObPath {
+    /* 0x00 */ s16 count;
+    /* 0x02 */ s16 flags;
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ Vec *points;
+    /* 0x0C */ ObPathSeg *segs;
+} ObPath; /* size = 0x10 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D460_mstory5);
+extern StoryActor D_801151F0_mstory5[8];
+extern const Vec D_80114C44_mstory5;
+s32 func_80106B30_mstory5(s32 chr);
+void func_80106FC8_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_80106FF4_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn);
+void func_80107024_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_80107050_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn);
+void func_80107080_mstory5(omObjData *obj, const Vec *to, s32 frames);
+void func_80107228_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_80107254_mstory5(s16 model);
+s32 func_801072A0_mstory5(s16 model);
+void func_8010734C_mstory5(omObjData *obj, f32 speed, s16 frames);
+void func_8010CFE4_mstory5(void);
+void func_8010D230_mstory5(void);
+
+/* actor 7 swaps its model 1 for model 5, which takes model 1's place */
+void func_8010CFE4_mstory5(void) {
+    omObjData *obj = D_801151F0_mstory5[7].obj;
+    s16 m[2];
+
+    m[0] = obj->model[1];
+    m[1] = obj->model[5];
+    func_8001C258_main(m[0], 4, 4);
+    func_8001C258_main(m[1], 4, 0);
+    HmfModelData[m[1]].pos.x = HmfModelData[m[0]].pos.x;
+    HmfModelData[m[1]].pos.y = HmfModelData[m[0]].pos.y;
+    HmfModelData[m[1]].pos.z = HmfModelData[m[0]].pos.z;
+    HmfModelData[m[1]].rot.x = HmfModelData[m[0]].rot.x;
+    HmfModelData[m[1]].rot.y = HmfModelData[m[0]].rot.y;
+    HmfModelData[m[1]].rot.z = HmfModelData[m[0]].rot.z;
+    HmfModelData[m[1]].scale.x = HmfModelData[m[0]].scale.x;
+    HmfModelData[m[1]].scale.y = HmfModelData[m[0]].scale.y;
+    HmfModelData[m[1]].scale.z = HmfModelData[m[0]].scale.z;
+    obj->model[1] = m[1];
+    obj->model[5] = m[0];
+}
+
+void func_8010D214_mstory5(omObjData *obj) {
+    func_8010CFE4_mstory5();
+}
+
+/* the same with model 8 */
+void func_8010D230_mstory5(void) {
+    omObjData *obj = D_801151F0_mstory5[7].obj;
+    s16 m[2];
+
+    m[0] = obj->model[1];
+    m[1] = obj->model[8];
+    func_8001C258_main(m[0], 4, 4);
+    func_8001C258_main(m[1], 4, 0);
+    HmfModelData[m[1]].pos.x = HmfModelData[m[0]].pos.x;
+    HmfModelData[m[1]].pos.y = HmfModelData[m[0]].pos.y;
+    HmfModelData[m[1]].pos.z = HmfModelData[m[0]].pos.z;
+    HmfModelData[m[1]].rot.x = HmfModelData[m[0]].rot.x;
+    HmfModelData[m[1]].rot.y = HmfModelData[m[0]].rot.y;
+    HmfModelData[m[1]].rot.z = HmfModelData[m[0]].rot.z;
+    HmfModelData[m[1]].scale.x = HmfModelData[m[0]].scale.x;
+    HmfModelData[m[1]].scale.y = HmfModelData[m[0]].scale.y;
+    HmfModelData[m[1]].scale.z = HmfModelData[m[0]].scale.z;
+    obj->model[1] = m[1];
+    obj->model[8] = m[0];
+}
+
+void func_8010D460_mstory5(omObjData *obj) {
+    func_8010D230_mstory5();
+}
 
 void func_8010D47C_mstory5(void) {
 }
