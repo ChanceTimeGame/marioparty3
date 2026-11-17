@@ -14,6 +14,12 @@ extern void func_80106334_meschk(omObjData *data);
 extern void func_80106390_meschk(omObjData *data);
 extern void func_801063BC_meschk(void);
 
+// m1 lf1
+typedef struct unk1EA70StructC unk1EA70StructC; /* matrix bake record, src/14EA0.c */
+unk1EA70StructC* func_80016784_main(s16 arg0, s16 arg1);
+void func_80016FB4_main(s16 arg0, unk1EA70StructC* arg1, s16 arg2);
+void func_80017320_main(unk1EA70StructC* arg0);
+
 void func_801059A0_meschk() {
     omObjData *temp_v0;
 
@@ -71,7 +77,34 @@ void func_80106390_meschk(omObjData *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/meschk/4F69F0", func_801063BC_meschk);
+void func_801063BC_meschk(void) {
+    s16 model;
+    s16 data;
+    unk1EA70StructC* bake;
+    s16 frame;
+
+    model = func_8000B108_main(0x700A0, 0x2A9);
+    data = func_8000B108_main(0x70001, 8);
+    func_8001C5B4_main(model, data);
+    Hu3DModelPosSet(model, 0.0f, 0.0f, 100.0f);
+    bake = func_80016784_main(model, 2);
+    frame = 0;
+    while (1) {
+        HuPrcVSleep();
+        if (D_80106500_meschk != 0) {
+            break;
+        }
+        func_80016FB4_main(model, bake, frame);
+        if (frame >= D_800CCF58_main[HmfModelData[data].unk02].unk02) {
+            frame = 0;
+        }
+        frame += 2;
+    }
+    func_80017320_main(bake);
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/meschk/4F69F0", D_801069E0_meschk);
 
