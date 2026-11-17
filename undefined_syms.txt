@@ -280,3 +280,4 @@ D_80115880_duel05 = D_80115884_duel05 - 0x4;
 D_801158D5_duel05 = D_801158D8_duel05 - 0x3;
 D_801158ED_duel05 = D_801158F0_duel05 - 0x3;
 D_80115904_duel05 = D_80115908_duel05 - 0x4;
+D_801149F4_duel10 = D_801149F3_duel10 + 0x1; /* board ec1: duel10 .data partner attack model ids (s32[2], read as u8) */
