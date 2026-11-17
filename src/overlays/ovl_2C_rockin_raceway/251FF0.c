@@ -1006,7 +1006,6 @@ s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 s
     Vtx_t* to;
     Vtx_t* from;
     s32 tmem;
-    s32 bpp;
     s32 w;
     s32 h;
     s32 sw;
@@ -1028,7 +1027,6 @@ s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 s
     h = spr->unk00->unk06;
     sw = w * 100.0 * scale / 32.0;
     sh = h * 100.0 * scale / 32.0;
-    bpp = spr->unk18 & 0x7FFF;
     if ((spr->unk18 & 0xFFF) == 4) {
         size = ((w + 1) & 0xFFFE) * h * 4;
     } else {
