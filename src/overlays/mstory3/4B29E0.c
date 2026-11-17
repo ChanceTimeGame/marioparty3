@@ -41,6 +41,10 @@ typedef struct VecQuad {
     Vec v[4];
 } VecQuad;
 
+typedef struct VecSix {
+    Vec v[6];
+} VecSix;
+
 typedef struct S16Quad {
     s16 v[4];
 } S16Quad;
@@ -73,10 +77,23 @@ extern s16 D_80115B98_mstory3[8]; /* [0] the map, [1 + i] stamp i */
 extern s16 D_80115BA8_mstory3[8]; /* the sparkles around the new stamp */
 extern s16 D_80115BB8_mstory3; /* the white flash */
 extern s32 D_80115BBC_mstory3; /* the stamp this scene wins */
+extern Vec D_80115290_mstory3[]; /* the path actor 4 flies in on */
+extern Vec D_801152C0_mstory3[]; /* and leaves on; [0] is where it stopped */
+extern Vec D_80115308_mstory3;
+extern Vec D_80115314_mstory3;
+extern Vec D_80115320_mstory3;
+extern Vec D_8011532C_mstory3;
+extern Vec D_8011535C_mstory3;
+extern Vec D_80115368_mstory3;
+extern Vec D_80115374_mstory3;
 extern s32 D_80115510_mstory3[7]; /* stamp sprite files */
 extern s16 D_8011552C_mstory3[7][2]; /* stamp positions (x, y), less 0x30 */
-extern VecQuad D_80115590_mstory3; /* the two turns of func_80108CA8_mstory3 */
+extern VecQuad D_80115590_mstory3;
+extern VecSix D_801155C0_mstory3; /* func_80108E28_mstory3's walk targets */ /* the two turns of func_80108CA8_mstory3 */
 extern StoryActor3 D_80115BC0_mstory3[6];
+extern s16 D_80115C80_mstory3[3]; /* texture animation frames */
+extern s16 D_80115C86_mstory3;
+extern s16 D_80115C88_mstory3;
 extern s16 D_80115C9A_mstory3; /* shadow model */
 extern s16 D_80115C9C_mstory3; /* the story character (GwStory.unk1) */
 extern u8 D_80115C9D_mstory3; /* its low byte */
@@ -107,6 +124,10 @@ void func_8010643C_mstory3(void);
 void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
 void func_80106DC4_mstory3(omObjData *obj, Vec *to, s32 frames);
 void func_80107070_mstory3(omObjData *obj, Vec *to, s32 frames);
+void func_80107A18_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
+ObPath *func_80107D80_mstory3(Vec *points, s16 flags);
+void func_80108084_mstory3(ObPath *path, f32 t, Vec *out);
+void func_8010892C_mstory3(ObPath *path);
 s32 func_80107290_mstory3(s16 model);
 void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
 void func_80108CA8_mstory3(omObjData *obj);
@@ -115,6 +136,25 @@ void func_8010D5CC_mstory3(void);
 void func_8010895C_mstory3(void);
 void func_80108A9C_mstory3(void);
 void func_80108C34_mstory3(void);
+void func_80108A94_mstory3(omObjData *obj);
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_8000CFA4_main(s16, f32, f32, f32);
+s16 func_8004AC98_main(s16, s16);
+void func_8010A7D0_mstory3(omObjData *obj);
+void func_8010A8EC_mstory3(omObjData *obj);
+void func_8010ACBC_mstory3(omObjData *obj);
+void func_8010AF28_mstory3(omObjData *obj);
+void func_8010B63C_mstory3(omObjData *obj);
+void func_8010B72C_mstory3(omObjData *obj);
+void func_8010B998_mstory3(omObjData *obj);
+void func_8010BBB4_mstory3(omObjData *obj);
+void func_8010BF48_mstory3(omObjData *obj);
+void func_8010C17C_mstory3(omObjData *obj);
+void func_8010C23C_mstory3(omObjData *obj);
+void func_8010C490_mstory3(omObjData *obj);
+void func_8010C7A0_mstory3(omObjData *obj);
+void func_8010C7C0_mstory3(omObjData *obj);
+void func_8010C810_mstory3(omObjData *obj);
 void func_8010A23C_mstory3(void);
 void func_8010B154_mstory3(void);
 void func_8010BC34_mstory3(void);
@@ -1062,7 +1102,7 @@ void func_8010895C_mstory3(void) {
 }
 //@@end
 
-void func_80108A94_mstory3(void) {
+void func_80108A94_mstory3(omObjData *obj) {
 }
 
 //@@func_80108A9C_mstory3
@@ -1135,7 +1175,267 @@ void func_80108CA8_mstory3(omObjData *obj) {
 }
 //@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108E28_mstory3);
+//@@func_80108E28_mstory3
+/* actor 5's main scene: actor 4 flies in along a path, the cast reacts and talks (two rounds of it
+   for the second story character), actor 4 flies off, the stars are handed over, then the scene ends */
+void func_80108E28_mstory3(omObjData *obj) {
+    Vec pos;
+    ObPath *path[2];
+    s16 n = 0;
+    VecSix to = D_801155C0_mstory3;
+    s16 i;
+    f32 t;
+    s32 mess;
+
+    func_8001C258_main(D_80115BC0_mstory3[4].obj->model[1], 4, 0);
+    func_8001C258_main(D_80115BC0_mstory3[4].obj->model[2], 4, 0);
+    func_800138EC_main(D_80115BC0_mstory3[4].obj->model[2], 1, 1);
+    HuAudFXPlay(0x215);
+    path[0] = func_80107D80_mstory3(D_80115290_mstory3, 0);
+    for (i = 0; i < 40.0f; i++) {
+        if (i == 30) {
+            func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[0].obj->motion[9]].unk02, 0, 10, 2);
+        }
+        t = i * 0.025f;
+        func_80108084_mstory3(path[0], t * t, &pos);
+        Hu3DModelPosSet(D_80115BC0_mstory3[4].obj->model[1], pos.x, pos.y, pos.z);
+        func_8000CFA4_main(D_80115BC0_mstory3[4].obj->model[2], pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    }
+    func_8010892C_mstory3(path[0]);
+    D_80115BC0_mstory3[0].func = func_8010A7D0_mstory3;
+    while (1) {
+        if (D_80115BC0_mstory3[0].unk08 == 1) {
+            pos.x -= 0.19999999f;
+            pos.y -= 2.0f;
+            pos.z += 1.0f;
+            Hu3DModelPosSet(D_80115BC0_mstory3[4].obj->model[1], pos.x, pos.y, pos.z);
+            func_8000CFA4_main(D_80115BC0_mstory3[4].obj->model[2], pos.x, pos.y - 40.0f, pos.z);
+            if (n++ == 30.0f) {
+                n = 0;
+                break;
+            }
+        }
+        HuPrcVSleep();
+    }
+    func_8004AAD0_main(CharFXPlay(0x2BD, D_80115C9F_mstory3), 0x50);
+    HuPrcSleep(0x1E);
+    func_8001C258_main(D_80115BC0_mstory3[1].obj->model[1], 4, 0);
+    func_8001C258_main(D_80115BC0_mstory3[1].obj->model[2], 4, 0);
+    func_801061C4_mstory3();
+    HuPrcSleep(10);
+    D_80115BC0_mstory3[0].func = func_8010A8EC_mstory3;
+    D_80115BC0_mstory3[2].func = func_8010BF48_mstory3;
+    while (1) {
+        pos.x += 1.0f;
+        pos.y += 10.0f;
+        pos.z -= 5.0f;
+        Hu3DModelPosSet(D_80115BC0_mstory3[4].obj->model[1], pos.x, pos.y, pos.z);
+        func_8000CFA4_main(D_80115BC0_mstory3[4].obj->model[2], pos.x, pos.y - 40.0f, pos.z);
+        if (n++ == 6.0f) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    D_801152C0_mstory3[0].x = pos.x;
+    D_801152C0_mstory3[0].y = pos.y;
+    D_801152C0_mstory3[0].z = pos.z;
+    func_80107070_mstory3(D_80115BC0_mstory3[3].obj, &D_80115308_mstory3, 5);
+    D_80115BC0_mstory3[3].func = func_8010C7A0_mstory3;
+    while (1) {
+        if (D_80115BC0_mstory3[2].unk08 == 5) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+    HuPrcSleep(0x1E);
+    D_80115BC0_mstory3[1].unk0C = 1;
+    D_80115BC0_mstory3[1].unk10 = 0x28;
+    func_8001C92C_main(D_80115BC0_mstory3[0].obj->model[1], 0.25f);
+    func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[0].obj->motion[10]].unk02, 0, 10, 2);
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[1].obj->motion[2]].unk02, 0, 10, 2);
+    func_80107A18_mstory3(D_80115BC0_mstory3[1].obj, &to.v[0], 0xB4, 1);
+    D_80115BC0_mstory3[1].unk0C = 0;
+    func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[0].obj->motion[0]].unk02, 0, 10, 2);
+    func_8001C92C_main(D_80115BC0_mstory3[0].obj->model[1], 1.0f);
+    func_80106CF0_mstory3(D_80115BC0_mstory3[2].obj->model[1], D_80115C86_mstory3, D_80115C80_mstory3[0]);
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[1].obj->motion[3]].unk02, 0, 10, 2);
+    HuPrcSleep(0x3C);
+    func_80106CF0_mstory3(D_80115BC0_mstory3[2].obj->model[1], D_80115C86_mstory3, D_80115C80_mstory3[0]);
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[1].obj->motion[0]].unk02, 0, 10, 2);
+    func_80107070_mstory3(D_80115BC0_mstory3[1].obj, &D_80115314_mstory3, 10);
+    if (D_80115C9C_mstory3 != 0) {
+        func_80106DE0_mstory3(D_80115BC0_mstory3[2].obj, &to.v[3], 15, 0);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[1]].unk02, 0, 10, 2);
+        func_80107070_mstory3(D_80115BC0_mstory3[1].obj, &D_8011535C_mstory3, 10);
+        func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[0].obj->motion[0]].unk02, 0, 10, 2);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[5]].unk02, 0, 10, 0);
+        HuPrcSleep(10);
+        func_8001C624_main(D_80115BC0_mstory3[2].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[2].obj->motion[2]].unk02, 0, 10, 2);
+        func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[5]].unk02, 0, 10, 0);
+        func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[0]].unk02, 0, 10, 2);
+        func_8001C624_main(D_80115BC0_mstory3[2].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[2].obj->motion[0]].unk02, 0, 10, 2);
+        D_80115BC0_mstory3[2].func = func_80108A94_mstory3;
+        func_80106DC4_mstory3(D_80115BC0_mstory3[2].obj, &to.v[4], 8);
+        func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &D_80115320_mstory3, 10);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[1]].unk02, 0, 10, 2);
+        func_80107070_mstory3(D_80115BC0_mstory3[1].obj, &D_80115314_mstory3, 5);
+        func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                           HmfModelData[D_80115BC0_mstory3[1].obj->motion[0]].unk02, 0, 10, 2);
+        D_80115BC0_mstory3[3].func = func_80108A94_mstory3;
+        D_80115BC0_mstory3[0].func = func_80108A94_mstory3;
+        func_80107070_mstory3(D_80115BC0_mstory3[3].obj, &D_80115368_mstory3, 5);
+        func_80107070_mstory3(D_80115BC0_mstory3[0].obj, &D_80115374_mstory3, 5);
+        func_8010603C_mstory3();
+        func_80106090_mstory3(0x5A46);
+        func_8010606C_mstory3();
+    } else {
+        for (i = 0; i < 2; i++) {
+            func_80106DE0_mstory3(D_80115BC0_mstory3[2].obj, &to.v[3], 15, 0);
+            func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[1].obj->motion[1]].unk02, 0, 10, 2);
+            func_80107070_mstory3(D_80115BC0_mstory3[1].obj, &D_8011535C_mstory3, 10);
+            func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[0].obj->motion[0]].unk02, 0, 10, 2);
+            func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[1].obj->motion[5]].unk02, 0, 10, 0);
+            HuPrcSleep(10);
+            func_8001C624_main(D_80115BC0_mstory3[2].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[2].obj->motion[2]].unk02, 0, 10, 2);
+            func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+            if (i == 0) {
+                func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                                   HmfModelData[D_80115BC0_mstory3[1].obj->motion[5]].unk02, 0, 10, 0);
+                func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+            }
+            func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[1].obj->motion[0]].unk02, 0, 10, 2);
+            func_8001C624_main(D_80115BC0_mstory3[2].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[2].obj->motion[0]].unk02, 0, 10, 2);
+            D_80115BC0_mstory3[2].func = func_80108A94_mstory3;
+            func_80106DC4_mstory3(D_80115BC0_mstory3[2].obj, &to.v[4], 8);
+            func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &D_80115320_mstory3, 10);
+            func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[1].obj->motion[1]].unk02, 0, 10, 2);
+            func_80107070_mstory3(D_80115BC0_mstory3[1].obj, &D_80115314_mstory3, 5);
+            func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[1].obj->motion[0]].unk02, 0, 10, 2);
+            D_80115BC0_mstory3[3].func = func_80108A94_mstory3;
+            D_80115BC0_mstory3[0].func = func_80108A94_mstory3;
+            func_80107070_mstory3(D_80115BC0_mstory3[3].obj, &D_80115368_mstory3, 5);
+            func_80107070_mstory3(D_80115BC0_mstory3[0].obj, &D_80115374_mstory3, 5);
+            func_8010603C_mstory3();
+            D_80115BC0_mstory3[1].func = func_8010BBB4_mstory3;
+            func_80106090_mstory3(i + 0x5B39);
+            func_8010606C_mstory3();
+            func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                               HmfModelData[D_80115BC0_mstory3[0].obj->motion[8]].unk02, 0, 10, 0);
+            func_80107244_mstory3(D_80115BC0_mstory3[0].obj->model[1]);
+        }
+        func_80107244_mstory3(D_80115BC0_mstory3[1].obj->model[1]);
+    }
+    func_8001C624_main(D_80115BC0_mstory3[0].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[0].obj->motion[0]].unk02, 0, 10, 2);
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[1].obj->motion[1]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[1].func = func_8010B63C_mstory3;
+    D_80115BC0_mstory3[2].func = func_8010C17C_mstory3;
+    D_80115BC0_mstory3[3].func = func_8010C7C0_mstory3;
+    path[1] = func_80107D80_mstory3(D_801152C0_mstory3, 0);
+    for (i = 0; i < 50.0f; i++) {
+        t = i * 0.02f;
+        func_80108084_mstory3(path[1], t * t, &pos);
+        Hu3DModelPosSet(D_80115BC0_mstory3[4].obj->model[1], pos.x, pos.y, pos.z);
+        func_8000CFA4_main(D_80115BC0_mstory3[4].obj->model[2], pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    }
+    func_8010892C_mstory3(path[1]);
+    func_8001C258_main(D_80115BC0_mstory3[4].obj->model[1], 4, 4);
+    func_8001C258_main(D_80115BC0_mstory3[4].obj->model[2], 4, 4);
+    func_800138EC_main(D_80115BC0_mstory3[4].obj->model[2], 1, 0);
+    HuPrcSleep(5);
+    func_80106CF0_mstory3(D_80115BC0_mstory3[2].obj->model[1], D_80115C86_mstory3, D_80115C80_mstory3[2]);
+    func_8001C624_main(D_80115BC0_mstory3[2].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[2].obj->motion[1]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[2].func = func_8010C490_mstory3;
+    HuPrcSleep(10);
+    func_80106DC4_mstory3(D_80115BC0_mstory3[2].obj, &to.v[5], 0x3C);
+    HuPrcSleep(0x1E);
+    D_80115BC0_mstory3[2].func = func_80108A94_mstory3;
+    func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &D_8011532C_mstory3, 10);
+    func_8010603C_mstory3();
+    mess = 0x5B3B;
+    if (D_80115C9C_mstory3 == 0) {
+        mess = 0x5A47;
+    }
+    func_80106090_mstory3(mess);
+    func_8010606C_mstory3();
+    HuPrcSleep(0x1E);
+    D_80115C88_mstory3 = 1;
+    to.v[2].y = to.v[1].y = HmfModelData[D_80115BC0_mstory3[3].obj->model[1]].pos.y;
+    func_80106DC4_mstory3(D_80115BC0_mstory3[3].obj, &to.v[1], 3);
+    HuAudFXPlay(0x217);
+    D_80115BC0_mstory3[2].func = func_8010C23C_mstory3;
+    D_80115BC0_mstory3[3].func = func_8010C810_mstory3;
+    D_80115BC0_mstory3[0].func = func_8010ACBC_mstory3;
+    D_80115BC0_mstory3[1].func = func_8010B72C_mstory3;
+    func_8004AC98_main(D_80115C9C_mstory3 + 0x2AC, 0);
+    func_8004AC98_main(D_80115C9E_mstory3 + 0x2AC, 1);
+    D_80115C88_mstory3 = 0;
+    func_80106DE0_mstory3(D_80115BC0_mstory3[3].obj, &to.v[2], 5, 0);
+    while (1) {
+        if (D_80115BC0_mstory3[2].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcSleep(10);
+    func_8001C624_main(D_80115BC0_mstory3[3].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[3].obj->motion[1]].unk02, 0, 10, 2);
+    func_8010603C_mstory3();
+    mess = 0x5B3C;
+    if (D_80115C9C_mstory3 != 0) {
+        mess = 0x5A48;
+    }
+    func_80106090_mstory3(mess);
+    func_8010606C_mstory3();
+    func_8001C624_main(D_80115BC0_mstory3[3].obj->model[1],
+                       HmfModelData[D_80115BC0_mstory3[3].obj->motion[0]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[0].func = func_8010AF28_mstory3;
+    D_80115BC0_mstory3[1].func = func_8010B998_mstory3;
+    while (1) {
+        if (D_80115BC0_mstory3[0].unk08 == 10 && D_80115BC0_mstory3[1].unk08 == D_80115BC0_mstory3[0].unk08) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    HuPrcSleep(0x1E);
+    func_80105E8C_mstory3();
+    D_80115BC0_mstory3[0].func = func_80108A94_mstory3;
+    D_80115BC0_mstory3[3].func = func_80108A94_mstory3;
+    D_80115BC0_mstory3[2].func = func_80108A94_mstory3;
+    D_80115BC0_mstory3[4].func = func_80108A94_mstory3;
+    D_80115BC0_mstory3[1].func = func_80108A94_mstory3;
+    D_80115BC0_mstory3[5].func = func_80108A94_mstory3;
+}
+//@@end
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010A23C_mstory3);
 
