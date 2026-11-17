@@ -194,24 +194,107 @@ s8 func_80108034_mgresultdealer(void) {
     return D_80109911_mgresultdealer;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108040_mgresultdealer);
+/* the fade process: a full-screen IA4 picture drawn with a fading alpha */
+void func_80108040_mgresultdealer(void) {
+    omObjData *obj;
+    s16 spr;
+    s16 grp;
+    HuSprite *sprite;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108194_mgresultdealer);
+    obj = omAddObj(0x14, 1, 0, -1, NULL);
+    D_8010A26C_mgresultdealer.obj = obj;
+    spr = func_8000B838_main(0x190001);
+    D_8010A204_mgresultdealer = spr;
+    grp = HuSprGrpCreate(1, 0);
+    HuSprAttrSet(grp, 0, 0x8000);
+    func_80055024_main(grp, 0, spr, 0);
+    sprite = HuSprGet(grp, 0);
+    D_8010A208_mgresultdealer = sprite;
+    D_8010A20C_mgresultdealer = sprite->unk_84->unk00->unk00;
+    D_8010A200_mgresultdealer = func_8001AC8C_main(0, func_801082A8_mgresultdealer, 2);
+    func_8001C8A8_main(D_8010A200_mgresultdealer, 1);
+    D_80109930_mgresultdealer = 0;
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    omPrcSetDestructor(0, func_80108258_mgresultdealer);
+    D_8010A26C_mgresultdealer.func = func_80108194_mgresultdealer;
+    while (1) {
+        D_8010A26C_mgresultdealer.func(obj);
+        HuPrcVSleep();
+    }
+}
+
+void func_80108194_mgresultdealer(omObjData *obj) {
+    f32 step;
+
+    if (D_80109930_mgresultdealer != 0) {
+        step = 8.5f;
+        func_80108560_mgresultdealer(D_80109934_mgresultdealer * step);
+        if (++D_80109934_mgresultdealer >= 30) {
+            func_80108560_mgresultdealer(0xFF);
+            D_80109931_mgresultdealer = 1;
+            D_80109930_mgresultdealer = 0;
+        }
+    }
+}
 
 void func_80108258_mgresultdealer(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108260_mgresultdealer);
+void func_80108260_mgresultdealer(void) {
+    D_80109930_mgresultdealer = 1;
+    D_80109931_mgresultdealer = 0;
+    D_80109934_mgresultdealer = 0;
+    func_80108544_mgresultdealer();
+    func_80108560_mgresultdealer(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_8010829C_mgresultdealer);
+s8 func_8010829C_mgresultdealer(void) {
+    return D_80109931_mgresultdealer;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_801082A8_mgresultdealer);
+/* draw hook: the picture in 24 bands of 10 lines */
+void func_801082A8_mgresultdealer(Gfx **gfx, s32 arg1, s32 arg2) {
+    Gfx *g;
+    s32 y;
+    s32 alpha;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108544_mgresultdealer);
+    if (D_80109938_mgresultdealer != 0) {
+        alpha = D_8010993A_mgresultdealer;
+        g = *gfx;
+        gDPPipeSync(g++);
+        gDPSetCycleType(g++, G_CYC_1CYCLE);
+        gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR |
+                                      G_LOD | G_SHADING_SMOOTH);
+        gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+        gDPSetTexturePersp(g++, G_TP_NONE);
+        gDPSetPrimColor(g++, 0, 0, 0, 0, 0, alpha);
+        gDPSetRenderMode(g++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+        gDPSetCombineMode(g++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
+        gDPSetTextureLUT(g++, G_TT_NONE);
+        for (y = 0; y < 240; y += 10) {
+            gDPLoadTextureTile_4b(g++, D_8010A20C_mgresultdealer, G_IM_FMT_I, 320, 0, 0, y, 319, y + 9, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                                  G_TX_NOLOD, G_TX_NOLOD);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 320 << G_TEXTURE_IMAGE_FRAC, 10 << G_TEXTURE_IMAGE_FRAC);
+            gSPTextureRectangle(g++, 0 << 2, y << 2, 320 << 2, (y + 10) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+        }
+        *gfx = g;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108554_mgresultdealer);
+void func_80108544_mgresultdealer(void) {
+    D_80109938_mgresultdealer = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108560_mgresultdealer);
+void func_80108554_mgresultdealer(void) {
+    D_80109938_mgresultdealer = 0;
+}
+
+void func_80108560_mgresultdealer(u8 alpha) {
+    D_8010993A_mgresultdealer = alpha;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4EDCB0", func_80108570_mgresultdealer);
 

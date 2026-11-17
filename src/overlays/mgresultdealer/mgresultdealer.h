@@ -133,10 +133,10 @@ void func_80108194_mgresultdealer(omObjData *);
 void func_80108258_mgresultdealer(void);
 void func_80108260_mgresultdealer(void);
 s8 func_8010829C_mgresultdealer(void);
-void func_801082A8_mgresultdealer(omObjData *);
-void func_80108544_mgresultdealer(omObjData *);
+void func_801082A8_mgresultdealer(Gfx **gfx, s32 arg1, s32 arg2);
+void func_80108544_mgresultdealer(void);
 void func_80108554_mgresultdealer(void);
-void func_80108560_mgresultdealer(void);
+void func_80108560_mgresultdealer(u8 alpha);
 void func_80108570_mgresultdealer(void);
 void func_80108AEC_mgresultdealer(omObjData *);
 void func_80108BD4_mgresultdealer(omObjData *);
@@ -171,6 +171,11 @@ extern s32 D_80109920_mgresultdealer; /* coins shown (at most 50) */
 extern s32 D_80109924_mgresultdealer; /* frames between drops */
 extern s32 D_80109928_mgresultdealer; /* landing sound played */
 extern s32 D_8010992C_mgresultdealer; /* rumble done */
+extern s8 D_80109930_mgresultdealer;  /* fade running */
+extern s8 D_80109931_mgresultdealer;  /* fade done */
+extern s32 D_80109934_mgresultdealer; /* fade frame */
+extern s8 D_80109938_mgresultdealer;  /* draw the fade */
+extern s16 D_8010993A_mgresultdealer; /* fade alpha */
 
 /* .bss */
 extern s16 D_801099F8_mgresultdealer[4]; /* confetti models */
@@ -184,5 +189,10 @@ extern u16 D_80109A70_mgresultdealer[2]; /* sprite models of the coins [0] and t
 extern DealerCoin D_80109A78_mgresultdealer[40]; /* coins */
 extern DealerCoin D_80109E38_mgresultdealer[40]; /* sparkles */
 extern UnkOmData D_8010A274_mgresultdealer; /* coins */
+extern UnkOmData D_8010A26C_mgresultdealer; /* the fade */
+extern s16 D_8010A200_mgresultdealer;       /* the fade's draw hook model */
+extern s32 D_8010A204_mgresultdealer;       /* its sprite */
+extern HuSprite *D_8010A208_mgresultdealer;
+extern void *D_8010A20C_mgresultdealer;     /* its pixels (I4, 320 wide) */
 
 #endif
