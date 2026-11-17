@@ -99,20 +99,6 @@ typedef struct SsReel {
     /* 0x4C */ Vec unk4C;
 } SsReel; // Size 0x58
 
-typedef struct SsSprIds {
-    /* 0x00 */ s16 unk0;
-    /* 0x02 */ s16 unk2;
-    /* 0x04 */ s16 unk4[8];
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s16 unk16;
-    /* 0x18 */ s16 unk18;
-    /* 0x1A */ struct {
-        s16 unk0;
-        s16 unk2;
-    } unk1A[2];
-    /* 0x22 */ s16 unk22[15];
-} SsSprIds; // Size 0x40
-
 typedef struct SsCounter {
     /* 0x00 */ s16 grp;
     /* 0x02 */ s16 x;
@@ -124,14 +110,16 @@ typedef struct SsCounter {
 } SsCounter; // Size 0x10
 
 extern Vec D_8010D820_slot_synch[];
+extern s32 D_8010DA40_slot_synch[];
 extern s16 D_8010D838_slot_synch[][2];
 extern omObjData *D_8010DF84_slot_synch;
 extern SsReel *D_8010DF88_slot_synch;
-extern SsSprIds *D_8010DF8C_slot_synch;
+extern s16 *D_8010DF8C_slot_synch; // s16[0x20] sprite/file ids
 extern SsCounter *D_8010DF90_slot_synch;
 
 void func_801094E0_slot_synch(u8 player, f32 y, f32 dy);
 void func_8010A7D0_slot_synch(omObjData *obj);
+void func_8010AA9C_slot_synch(s16 idx, s16 target);
 
 // <func_80109FA4_slot_synch>
 s16 func_80109FA4_slot_synch(u8 player, s16 arg1) {
@@ -243,9 +231,9 @@ void func_8010A39C_slot_synch(void) {
     SsCounter *counter;
     s32 i;
 
-    D_8010DF8C_slot_synch->unk14 = func_8010A2C4_slot_synch(0x35000C);
-    D_8010DF8C_slot_synch->unk16 = func_8010A2C4_slot_synch(0x35000B);
-    D_8010DF8C_slot_synch->unk18 = func_8010A2C4_slot_synch(0x2D);
+    D_8010DF8C_slot_synch[10] = func_8010A2C4_slot_synch(0x35000C);
+    D_8010DF8C_slot_synch[11] = func_8010A2C4_slot_synch(0x35000B);
+    D_8010DF8C_slot_synch[12] = func_8010A2C4_slot_synch(0x2D);
     counter = D_8010DF90_slot_synch = HuMemAllocTag(sizeof(SsCounter) * 2, 0x7918);
     for (i = 0; i < 2; i++, counter++) {
         counter->grp = -1;
@@ -261,11 +249,67 @@ void func_8010A39C_slot_synch(void) {
 }
 // </func_8010A39C_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010A480_slot_synch);
+// <func_8010A480_slot_synch>
+void func_8010A480_slot_synch(s16 idx, s16 file0, s16 file1, s16 target) {
+    SsCounter *counter = &D_8010DF90_slot_synch[idx];
+    s32 grp;
+    s32 i;
+
+    D_8010DF8C_slot_synch[idx * 2 + 13] = func_8010A2C4_slot_synch(D_8010DA40_slot_synch[file0]);
+    D_8010DF8C_slot_synch[idx * 2 + 14] = func_8010A2C4_slot_synch(D_8010DA40_slot_synch[file1]);
+    counter->grp = grp = HuSprGrpCreate(6, 0);
+    counter->unk6[0] = -8;
+    counter->unk6[1] = 8;
+    counter->timer = 0;
+    counter->target = 0;
+    counter->value = 0;
+    func_8010AA9C_slot_synch(idx, target);
+    for (i = 0; i < 6; i++) {
+        switch (i) {
+            case 0:
+                HuSprAttrSet(grp, i, 0x8000);
+            case 1:
+                func_80055024_main(grp, i, D_8010DF8C_slot_synch[12], 0);
+                func_80054904_main(grp, i, counter->x + counter->unk6[i], counter->y);
+                break;
+            case 2:
+                func_80054904_main(grp, i, counter->x - 26, counter->y - 9);
+                func_80055024_main(grp, i, D_8010DF8C_slot_synch[idx * 2 + 13], 0);
+                break;
+            case 3:
+                func_80054904_main(grp, i, counter->x - 26, counter->y + 8);
+                func_80055024_main(grp, i, D_8010DF8C_slot_synch[idx * 2 + 14], 0);
+                break;
+            case 4:
+                func_80054904_main(grp, i, counter->x + 27, counter->y);
+                func_80055024_main(grp, i, D_8010DF8C_slot_synch[11], 0);
+                break;
+            case 5:
+                func_80054904_main(grp, i, counter->x, counter->y);
+                HuSprScaleSet(grp, i, 1.0f, 1.0f);
+                func_80055484_main(grp, i, 0, 0, 0xFF, 0xA0);
+                func_80055024_main(grp, i, D_8010DF8C_slot_synch[10], 0);
+                break;
+        }
+        func_800550F4_main(grp, i, 0);
+        func_80054FF8_main(grp, i, 0);
+        HuSprAttrSet(grp, i, 0x1000);
+        HuSprPriSet(grp, i, i - 0x10);
+    }
+}
+// </func_8010A480_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010A7D0_slot_synch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AA9C_slot_synch);
+// <func_8010AA9C_slot_synch>
+void func_8010AA9C_slot_synch(s16 idx, s16 target) {
+    SsCounter *counter;
+    s32 offset = idx * sizeof(SsCounter);
+
+    counter = (SsCounter *)((u8 *)D_8010DF90_slot_synch + offset);
+    counter->target = target;
+}
+// </func_8010AA9C_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AAB8_slot_synch);
 
