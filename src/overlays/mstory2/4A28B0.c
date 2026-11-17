@@ -1028,7 +1028,8 @@ void func_80111024_mstory2(void) {
 }
 
 /* empty destructor (the nop after it is the file's padding) */
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/4A28B0", func_80111194_mstory2);
+void func_80111194_mstory2(void) {
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/4A28B0", D_8011C204_mstory2);
 
