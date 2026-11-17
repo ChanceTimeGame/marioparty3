@@ -173,6 +173,15 @@ typedef struct StaffWork {
 extern StaffScript D_80110704_staff[];
 StaffScript *func_80109D74_staff(StaffActor *actors, StaffScript *script);
 void func_8010A848_staff(void);
+typedef struct StaffMdl {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ s16 model;
+    /* 0x1A */ s16 model2;
+    /* 0x1C */ s16 anim;
+    /* 0x1E */ s16 model4; // < 0 when absent
+} StaffMdl; // size 0x20: the file head's UnkStaff
+
 // end story j2
 
 #ifdef NON_MATCHING
@@ -815,7 +824,58 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_801113F0_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BF84_staff);
 
+#ifdef NON_MATCHING
+// masked 0; register allocation only (float temporaries, parameter copy order).
+void func_8010C680_staff(s16 *state, s32 *arg1, f32 *rotY, void *arg3) {
+    f32 *t = (f32 *)arg1;
+    StaffMdl *mdl = arg3;
+    Vec pos;
+    Vec *p;
+
+    pos = mdl->pos;
+    p = &pos;
+    switch (*state) {
+    case 0:
+        p->x += 6.266667f;
+        if (p->x >= 260.0f) {
+            (*state)++;
+            *t = 0.0f;
+        }
+        break;
+    case 1:
+        *t += 12.0f;
+        if (*t >= 180.0f) {
+            *t = 180.0f;
+            (*state)++;
+        }
+        p->x = cosdf(*t) * 6.266667f + p->x;
+        *rotY = 90.0f - *t;
+        break;
+    case 2:
+        p->x -= 6.266667f;
+        if (p->x <= -680.0f) {
+            (*state)++;
+            *t = 0.0f;
+        }
+        break;
+    case 3:
+        *t += 12.0f;
+        if (*t >= 180.0f) {
+            *t = 180.0f;
+            *state = 0;
+        }
+        p->x = cosdf(*t) * -6.266667f + p->x;
+        *rotY = *t + -90.0f;
+        break;
+    }
+    mdl->pos.x = p->x;
+    Hu3DModelPosSet(mdl->model, p->x, p->y, p->z);
+    Hu3DModelPosSet(mdl->model4, p->x, 0.0f, p->z);
+    Hu3DModelRotSet(mdl->model, mdl->rot.x, *rotY - 8.0f, mdl->rot.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C680_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C8F4_staff);
 
