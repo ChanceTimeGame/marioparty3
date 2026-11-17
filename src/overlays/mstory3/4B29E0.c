@@ -1,6 +1,5 @@
 #include "common.h"
 
-//@@hdr
 // story u1
 #include "mallocblock.h"
 
@@ -162,21 +161,15 @@ void func_8010C4B0_mstory3(void);
 void func_8010C65C_mstory3(void);
 void func_8010C870_mstory3(void);
 // story u1 end
-//@@end
 
-//@@func_801059A0_mstory3
 void func_801059A0_mstory3(void) {
     func_80105C1C_mstory3();
 }
-//@@end
 
-//@@func_801059BC_mstory3
 void func_801059BC_mstory3(void) {
     HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
 }
-//@@end
 
-//@@func_801059E4_mstory3
 void func_801059E4_mstory3(omObjData *obj) {
     D_800CE17C_main[0] = D_80115260_mstory3.x;
     D_800CE17C_main[1] = D_80115260_mstory3.z;
@@ -187,9 +180,7 @@ void func_801059E4_mstory3(omObjData *obj) {
     Hu3DCamSetPositionOrientation(0, &D_80115260_mstory3, &D_8011526C_mstory3, &D_80115278_mstory3);
     Hu3DCamUpdateMtx(0);
 }
-//@@end
 
-//@@func_80105A64_mstory3
 void func_80105A64_mstory3(void) {
     omObjData *obj;
 
@@ -201,15 +192,11 @@ void func_80105A64_mstory3(void) {
     omSetStatBit(obj, 0xA0);
     func_801059E4_mstory3(obj);
 }
-//@@end
 
-//@@func_80105B44_mstory3
 void func_80105B44_mstory3(void) {
     func_8005A6B0_main();
 }
-//@@end
 
-//@@func_80105B60_mstory3
 void func_80105B60_mstory3(void) {
     s16 n = 0;
     s16 i;
@@ -229,9 +216,7 @@ void func_80105B60_mstory3(void) {
         }
     }
 }
-//@@end
 
-//@@func_80105C1C_mstory3
 void func_80105C1C_mstory3(void) {
     s16 step;
 
@@ -264,9 +249,7 @@ void func_80105C1C_mstory3(void) {
     D_801154F0_mstory3[step]();
     WipeCreateIn(2, 0x10);
 }
-//@@end
 
-//@@func_80105D98_mstory3
 void func_80105D98_mstory3(omObjData *obj) {
     s16 state = D_80115286_mstory3;
 
@@ -297,15 +280,11 @@ void func_80105D98_mstory3(omObjData *obj) {
     }
     D_80115286_mstory3 = state;
 }
-//@@end
 
-//@@func_80105E8C_mstory3
 void func_80105E8C_mstory3(void) {
     D_80115286_mstory3 = 3;
 }
-//@@end
 
-//@@func_80105E9C_mstory3
 void func_80105E9C_mstory3(omObjData *obj) {
     if (WipeStatGet() != 1) {
         osViBlack(0);
@@ -314,26 +293,20 @@ void func_80105E9C_mstory3(omObjData *obj) {
         omOvlReturnEx(1);
     }
 }
-//@@end
 
-//@@func_80105EE4_mstory3
 void func_80105EE4_mstory3(omObjData *obj) {
     WipeCreateOut(2, 0x14);
     HuAudSeqFadeOut(0x1E);
     func_8004AB0C_main(0x1E);
     obj->func = func_80105E9C_mstory3;
 }
-//@@end
 
-//@@func_80105F2C_mstory3
 void func_80105F2C_mstory3(omObjData *obj) {
     if (D_800D530C_main == 1) {
         obj->func = func_80105EE4_mstory3;
     }
 }
-//@@end
 
-//@@func_80105F54_mstory3
 /* opens the story message window, driven by controller D_80115B90_mstory3 */
 void func_80105F54_mstory3(void) {
     S16Quad a = D_80115500_mstory3;
@@ -345,31 +318,23 @@ void func_80105F54_mstory3(void) {
     func_8005FE54_main(D_80115B92_mstory3, b.v[D_80115B90_mstory3]);
     func_8005F744_main(a.v[0], a.v[1], a.v[2], a.v[3]);
 }
-//@@end
 
-//@@func_8010603C_mstory3
 void func_8010603C_mstory3(void) {
     func_8005D294_main(D_80115B92_mstory3);
     func_80060C14_main(D_80115B92_mstory3, 1);
 }
-//@@end
 
-//@@func_8010606C_mstory3
 void func_8010606C_mstory3(void) {
     func_80060EA8_main(D_80115B92_mstory3, 1);
 }
-//@@end
 
-//@@func_80106090_mstory3
 void func_80106090_mstory3(s32 mess) {
     func_8005B43C_main(D_80115B92_mstory3, mess, -1, -1);
     while (func_8005E0C0_main(D_80115B92_mstory3) != 0) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_801060E4_mstory3
 void func_801060E4_mstory3(s32 mess) {
     func_8005B43C_main(D_80115B92_mstory3, mess, -1, -1);
     func_8005B6BC_main(D_80115B92_mstory3, GwStory.unk1 + 0x1C00, 0);
@@ -377,44 +342,32 @@ void func_801060E4_mstory3(s32 mess) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_80106154_mstory3
 s16 func_80106154_mstory3(void) {
     return func_8005E1D8_main(D_80115B92_mstory3, 0, 1);
 }
-//@@end
 
-//@@func_80106184_mstory3
 void func_80106184_mstory3(void) {
     func_8000BB54_main(D_80115B94_mstory3);
 }
-//@@end
 
-//@@func_801061A4_mstory3
 void func_801061A4_mstory3(void) {
     func_8000BB94_main(D_80115B94_mstory3);
 }
-//@@end
 
-//@@func_801061C4_mstory3
 void func_801061C4_mstory3(void) {
     func_8001C814_main(D_80115B96_mstory3, 4, 0);
     func_8001C814_main(D_80115B96_mstory3, 1, 0);
     func_8001C6A8_main(D_80115B96_mstory3, 0.0f);
     func_8001C92C_main(D_80115B96_mstory3, 2.0f);
 }
-//@@end
 
-//@@func_80106220_mstory3
 void func_80106220_mstory3(void) {
     func_8001C814_main(D_80115B96_mstory3, 4, 4);
     func_8001C814_main(D_80115B96_mstory3, 1, 0);
     func_8001C6A8_main(D_80115B96_mstory3, HmfModelData[D_80115B96_mstory3].unk40);
 }
-//@@end
 
-//@@func_80106284_mstory3
 void func_80106284_mstory3(void) {
     s16 i = 0;
 
@@ -425,9 +378,7 @@ void func_80106284_mstory3(void) {
         i++;
     } while (i < 5);
 }
-//@@end
 
-//@@func_80106340_mstory3
 void func_80106340_mstory3(void) {
     D_80115B94_mstory3 = InitEspriteSlot(func_8000B838_main(0x1D0012), 0, 0);
     func_8000BBD4_main(D_80115B94_mstory3, 0xA0, 0x78);
@@ -437,17 +388,13 @@ void func_80106340_mstory3(void) {
     func_8001C814_main(D_80115B96_mstory3, 2, 0);
     func_8001C814_main(D_80115B96_mstory3, 1, 1);
 }
-//@@end
 
-//@@func_80106400_mstory3
 void func_80106400_mstory3(s32 arg0) {
     D_80115BBC_mstory3 = arg0;
     D_80115288_mstory3 = 0;
     omAddPrcObj(func_8010643C_mstory3, 0x1000, 0x800, 0);
 }
-//@@end
 
-//@@func_8010643C_mstory3
 // masked 0 but for a nop KMC puts after each of the cosdf/sindf calls that retail does not have (2 instructions)
 #ifdef NON_MATCHING
 /* the stamp screen: the map with the stamps won so far, a flash, then stamp D_80115BBC_mstory3
@@ -575,18 +522,14 @@ void func_8010643C_mstory3(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010643C_mstory3);
 #endif
-//@@end
 
-//@@func_80106CDC_mstory3
 s32 func_80106CDC_mstory3(void) {
     return D_80115288_mstory3;
 }
-//@@end
 
 void func_80106CE8_mstory3(void) {
 }
 
-//@@func_80106CF0_mstory3
 void func_80106CF0_mstory3(s16 model, s16 anim, s16 frame) {
     TexAnimSlot *slot;
 
@@ -604,15 +547,12 @@ void func_80106CF0_mstory3(s16 model, s16 anim, s16 frame) {
         }
     }
 }
-//@@end
 
-//@@func_80106DC4_mstory3
 void func_80106DC4_mstory3(omObjData *obj, Vec *to, s32 frames) {
     func_80106DE0_mstory3(obj, to, frames, 1);
 }
-//@@end
 
-//@@func_80106DE0_mstory3
+// register allocation; retail converts frames separately for the divide (masked 8, as mstory1's func_80106B30)
 #ifdef NON_MATCHING
 /* walks obj's model (and its shadow, kept on the ground) to `to` in `frames` frames, turning
    it to face the way first when `turn` is set */
@@ -656,9 +596,7 @@ void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106DE0_mstory3);
 #endif
-//@@end
 
-//@@func_80107014_mstory3
 void func_80107014_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     Vec to;
 
@@ -667,9 +605,7 @@ void func_80107014_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     to.z = z;
     func_80106DC4_mstory3(obj, &to, frames);
 }
-//@@end
 
-//@@func_80107040_mstory3
 void func_80107040_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn) {
     Vec to;
 
@@ -678,9 +614,7 @@ void func_80107040_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 
     to.z = z;
     func_80106DE0_mstory3(obj, &to, frames, turn);
 }
-//@@end
 
-//@@func_80107070_mstory3
 void func_80107070_mstory3(omObjData *obj, Vec *to, s32 frames) {
     Vec start;
     Vec delta;
@@ -707,9 +641,7 @@ void func_80107070_mstory3(omObjData *obj, Vec *to, s32 frames) {
     Hu3DModelRotSet(model, to->x, to->y, to->z);
     HuPrcVSleep();
 }
-//@@end
 
-//@@func_80107218_mstory3
 void func_80107218_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     Vec to;
 
@@ -718,18 +650,14 @@ void func_80107218_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     to.z = z;
     func_80107070_mstory3(obj, &to, frames);
 }
-//@@end
 
-//@@func_80107244_mstory3
 void func_80107244_mstory3(s16 model) {
     HuPrcSleep(10);
     while (func_80107290_mstory3(model) == 0) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_80107290_mstory3
 s32 func_80107290_mstory3(s16 model) {
     s32 done;
     f32 frame;
@@ -743,9 +671,7 @@ s32 func_80107290_mstory3(s16 model) {
     }
     return done;
 }
-//@@end
 
-//@@func_8010733C_mstory3
 /* walks obj (and its shadow) forwards along its facing, speed per frame for frames frames */
 void func_8010733C_mstory3(omObjData *obj, f32 speed, s16 frames) {
     f32 dx;
@@ -760,9 +686,7 @@ void func_8010733C_mstory3(omObjData *obj, f32 speed, s16 frames) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_801074D8_mstory3
 /* walks obj (and its shadow) backwards: as func_8010733C_mstory3 */
 void func_801074D8_mstory3(omObjData *obj, f32 speed, s16 frames) {
     f32 dx;
@@ -777,9 +701,7 @@ void func_801074D8_mstory3(omObjData *obj, f32 speed, s16 frames) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_80107674_mstory3
 void func_80107674_mstory3(omObjData *a, omObjData *b) {
     s16 models[2];
     Vec pos[2];
@@ -803,9 +725,7 @@ void func_80107674_mstory3(omObjData *a, omObjData *b) {
     rot.y = -(atan2df(d.z, d.x) - 90.0f);
     Hu3DModelRotSet(models[0], rot.x, rot.y, rot.z);
 }
-//@@end
 
-//@@func_801077BC_mstory3
 // register allocation; retail converts frames separately for the divide and the loop (masked 10, as mstory1's func_80106D80)
 #ifdef NON_MATCHING
 /* as func_80106DE0_mstory3, but the second model follows 5 below the first */
@@ -849,9 +769,7 @@ void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801077BC_mstory3);
 #endif
-//@@end
 
-//@@func_80107A18_mstory3
 // retail converts frames again for the loop test instead of reusing the divide's (masked 15: that, then shifted branches)
 #ifdef NON_MATCHING
 /* walks obj's model (and its shadow, 5 below) towards `to` in `frames` frames, speeding up after
@@ -925,9 +843,7 @@ void func_80107A18_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80107A18_mstory3);
 #endif
-//@@end
 
-//@@func_80107D80_mstory3
 ObPath *func_80107D80_mstory3(Vec *points, s16 flags) {
     ObPath *path;
     Vec *prev;
@@ -990,9 +906,8 @@ ObPath *func_80107D80_mstory3(Vec *points, s16 flags) {
     }
     return path;
 }
-//@@end
 
-//@@func_80108084_mstory3
+// register allocation only (masked 0), as mstory1's func_801077C4
 #ifdef NON_MATCHING
 /* the point at t (0..1) along a path: a spline through the four points around the segment t
    falls in */
@@ -1070,16 +985,12 @@ void func_80108084_mstory3(ObPath *path, f32 t, Vec *out) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80108084_mstory3);
 #endif
-//@@end
 
-//@@func_8010892C_mstory3
 void func_8010892C_mstory3(ObPath *path) {
     HuMemFree(path->segs);
     HuMemFree(path);
 }
-//@@end
 
-//@@func_8010895C_mstory3
 /* story step 2: the cast, its processes and the sound process */
 void func_8010895C_mstory3(void) {
     if ((D_80115C9C_mstory3 = GwStory.unk1) == 0) {
@@ -1100,12 +1011,10 @@ void func_8010895C_mstory3(void) {
     omAddPrcObj(func_80108A9C_mstory3, 0x1001, 0x1000, 0);
     func_8001C258_main(D_80115C9A_mstory3, 4, 4);
 }
-//@@end
 
 void func_80108A94_mstory3(omObjData *obj) {
 }
 
-//@@func_80108A9C_mstory3
 /* plays the footstep sounds of actors 0 and 1 when their motion loops (actor 1 panned by its depth) */
 void func_80108A9C_mstory3(void) {
     s16 fx;
@@ -1131,9 +1040,7 @@ void func_80108A9C_mstory3(void) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_80108C34_mstory3
 /* actor 5's process: runs its action every frame */
 void func_80108C34_mstory3(void) {
     omObjData *obj = omAddObj(0x14, 0, 0, -1, NULL);
@@ -1146,9 +1053,7 @@ void func_80108C34_mstory3(void) {
         HuPrcVSleep();
     }
 }
-//@@end
 
-//@@func_80108CA8_mstory3
 /* actors 3 and 2 turn, talk, and turn back; then actor 5 moves on to func_80108E28_mstory3 */
 void func_80108CA8_mstory3(omObjData *obj) {
     VecQuad rot = D_80115590_mstory3;
@@ -1173,9 +1078,7 @@ void func_80108CA8_mstory3(omObjData *obj) {
     func_80107070_mstory3(D_80115BC0_mstory3[2].obj, &rot.v[3], 10);
     D_80115BC0_mstory3[5].func = func_80108E28_mstory3;
 }
-//@@end
 
-//@@func_80108E28_mstory3
 /* actor 5's main scene: actor 4 flies in along a path, the cast reacts and talks (two rounds of it
    for the second story character), actor 4 flies off, the stars are handed over, then the scene ends */
 void func_80108E28_mstory3(omObjData *obj) {
@@ -1435,7 +1338,6 @@ void func_80108E28_mstory3(omObjData *obj) {
     D_80115BC0_mstory3[1].func = func_80108A94_mstory3;
     D_80115BC0_mstory3[5].func = func_80108A94_mstory3;
 }
-//@@end
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010A23C_mstory3);
 
