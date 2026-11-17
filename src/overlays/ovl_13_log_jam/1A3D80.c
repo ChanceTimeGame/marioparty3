@@ -57,9 +57,17 @@ typedef struct LjLog {
     /* 0x0E */ s16 unk0E; /* state timer */
     /* 0x10 */ Vec unk10; /* position */
     /* 0x1C */ Vec unk1C; /* rotation */
-    /* 0x28 */ Vec unk28;
-    /* 0x34 */ u8 unk34[0x20]; /* work for unk74 */
-    /* 0x54 */ u8 unk54[0x20];
+    /* 0x28 */ Vec unk28; /* velocity */
+    /* 0x34 */ s16 unk34; /* piece: 0 left half, 1 right half */
+    /* 0x36 */ char unk36[0x1C];
+    /* 0x52 */ s16 unk52; /* piece state */
+    /* 0x54 */ f32 unk54; /* spin speed */
+    /* 0x58 */ f32 unk58; /* wobble amplitude */
+    /* 0x5C */ f32 unk5C; /* wobble decay */
+    /* 0x60 */ f32 unk60; /* wobble phase */
+    /* 0x64 */ f32 unk64; /* wobble speed */
+    /* 0x68 */ f32 unk68; /* resting roll */
+    /* 0x6C */ char unk6C[8];
     /* 0x74 */ void (*unk74)(struct LjLog*);
 } LjLog; // Size 0x78
 
@@ -795,8 +803,8 @@ void func_80108D50_log_jam(void) {
         log->unk10.x = log->unk10.y = log->unk10.z = 0.0f;
         log->unk1C.x = log->unk1C.y = log->unk1C.z = 0.0f;
         log->unk28.x = log->unk28.y = log->unk28.z = 0.0f;
-        memset(log->unk34, 0, sizeof(log->unk34));
-        memset(log->unk54, 0, sizeof(log->unk54));
+        memset(&log->unk34, 0, 0x20);
+        memset(&log->unk54, 0, 0x20);
         log->unk74 = NULL;
     }
     D_8010E5C0_log_jam = omAddObj(0x18, 0, 0, -1, func_80108E54_log_jam);
@@ -954,20 +962,126 @@ void func_8010925C_log_jam(s16 idx) {
             log->unk10.x = log->unk10.y = log->unk10.z = 0.0f;
             log->unk1C.x = log->unk1C.y = log->unk1C.z = 0.0f;
             log->unk28.x = log->unk28.y = log->unk28.z = 0.0f;
-            memset(log->unk34, 0, sizeof(log->unk34));
-            memset(log->unk54, 0, sizeof(log->unk54));
+            memset(&log->unk34, 0, 0x20);
+            memset(&log->unk54, 0, 0x20);
             log->unk74 = NULL;
         }
     }
 }
 
+const Vec D_8010E2C0_log_jam = { 0.0f, 0.0f, 0.0f };
+const Vec D_8010E2CC_log_jam = { 0.5f, 0.5f, 0.5f }; /* split effect scale */
+
+#ifdef NON_MATCHING
+/* Differs: register allocation of the log pointer and one delay slot. */
+/* Split a log in two halves that fly apart. */
+void func_80109350_log_jam(s16 idx) {
+    Vec pos = D_8010E2C0_log_jam;
+    Vec scale = D_8010E2CC_log_jam;
+    LjLog* log;
+    LjLog* half;
+    f32 x;
+    f32 y;
+    f32 z;
+    s32 kind;
+    s16 n;
+    s32 i;
+
+    if (D_8010E5C4_log_jam == NULL) {
+        return;
+    }
+    log = &D_8010E5C4_log_jam[idx];
+    if (log->unk08 == 0) {
+        return;
+    }
+    kind = log->unk0A;
+    x = log->unk10.x;
+    y = log->unk10.y;
+    z = log->unk10.z;
+    pos.x = x;
+    pos.y = log->unk10.y;
+    pos.z = log->unk10.z;
+    func_8010A9D4_log_jam(&pos, NULL, &scale, 1.0f, &D_8010DF48_log_jam);
+    func_8010925C_log_jam(idx);
+    for (i = 0; i < 2; i++) {
+        n = func_80109044_log_jam(kind, i + 1);
+        if (n != -1) {
+            half = &D_8010E5C4_log_jam[n];
+            half->unk10.x = x;
+            half->unk10.y = y;
+            half->unk10.z = z;
+            half->unk34 = i;
+            half->unk52 = 0;
+            half->unk74 = func_801094E4_log_jam;
+            half->unk74(half);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109350_log_jam);
+#endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E2C0_log_jam);
+#define LJ_RANDF() ((f32)(u8)(rand8() % 100) * 0.01)
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", D_8010E2CC_log_jam);
+/* Motion of a split half: fly out, land, then wobble to rest. */
+void func_801094E4_log_jam(LjLog* log) {
+    Vec pos = D_8010E2C0_log_jam;
+    Vec scale = D_8010E2CC_log_jam;
+    f32 f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_801094E4_log_jam);
+    switch (log->unk52) {
+    case 0:
+        if (log->unk34 == 0) {
+            log->unk28.x = (LJ_RANDF() * 0.02 + 0.03f) * 100.0;
+            log->unk54 = -(LJ_RANDF() * 0.75 + 4.0);
+            log->unk68 = -90.0f;
+        } else {
+            log->unk28.x = -((LJ_RANDF() * 0.02 + 0.03f) * 100.0);
+            log->unk54 = LJ_RANDF() * 0.75 + 4.0;
+            log->unk68 = 90.0f;
+        }
+        log->unk28.y = LJ_RANDF() * 2.0 + 10.999999940395355;
+        log->unk28.z = LJ_RANDF() * 1.2500000186264515 + 0.6250000093132257;
+        log->unk52++;
+        break;
+    case 1:
+        log->unk1C.z += log->unk54;
+        log->unk28.y -= 1.6333001f;
+        if (log->unk10.y <= 0.0f) {
+            log->unk10.y = 0.0f;
+            log->unk28.x = log->unk28.y = log->unk28.z = 0.0f;
+            log->unk58 = 20.0f;
+            log->unk5C = 1.0f;
+            log->unk60 = 0.0f;
+            log->unk64 = 55.0f;
+            log->unk52++;
+            pos.x = log->unk10.x;
+            pos.y = log->unk10.y;
+            pos.z = log->unk10.z;
+            func_8010A9D4_log_jam(&pos, NULL, &scale, 1.0f, &D_8010DF48_log_jam);
+        }
+        break;
+    case 2:
+        log->unk60 += log->unk64;
+        if (log->unk60 >= 360.0f) {
+            log->unk60 -= 360.0f;
+        }
+        f = log->unk58 - log->unk5C;
+        if (f > 0.0f) {
+            log->unk58 = f;
+        } else {
+            log->unk58 = 0.0f;
+        }
+        log->unk1C.z = sindf(log->unk60) * log->unk58 + log->unk68;
+        if (log->unk0C == 0) {
+            log->unk0C = 1;
+        }
+        break;
+    }
+    log->unk10.x += log->unk28.x;
+    log->unk10.y += log->unk28.y;
+    log->unk10.z += log->unk28.z;
+}
 
 void func_80109A00_log_jam(void) {
     s32 i;
