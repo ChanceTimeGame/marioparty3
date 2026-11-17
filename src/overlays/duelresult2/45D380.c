@@ -21,7 +21,6 @@ void func_80032FC0_main(s16, u8, u8);
 void func_80033910_main(HmfData *);
 void func_80033970_main(HmfData *);
 s16 func_800329B4_main(void *);
-s32 func_800E1854_minigame(s32 id);
 
 typedef struct DR2Words4 { s32 v[4]; } DR2Words4;
 typedef struct DR2Words8 { s32 v[8]; } DR2Words8;
@@ -36,6 +35,7 @@ void func_800E4E64_name_81(UnkMBGuideData *arg0);
 void func_800E4EAC_name_81(UnkMBGuideData *arg0, s16 arg1, s16 arg2);
 UnkMBGuideData *func_800E4B64_name_81(s32 arg0, s32 arg1);
 void *func_800E172C_name_81(s16 msgIdx, s16 x, s16 y, u16 hideOnFlag); /* DuelHelpWin* */
+void func_800E1854_minigame(void *win);                                  /* ovl_81 func_800E1854 */
 void func_8005FE90_main(s16);
 void func_8005FFA8_main(s16);
 void func_8005D294_main(s16);
@@ -837,7 +837,154 @@ void func_801083FC_duelresult2(void) {
                               D_80108E28_duelresult2[D_80108DE8_duelresult2[D_80108C34_duelresult2 + D_80108C38_duelresult2]]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_801084F4_duelresult2);
+/* The results page's main process: builds both pages, then lets either human player open the
+   duel record (A), scroll it (D-pad), close it (A) or leave (Start); with only COM players it
+   leaves after 60 frames. */
+void func_801084F4_duelresult2(void) {
+    void *winA;
+    void *winB;
+    s32 open;
+    s32 allCom;
+    s32 timer;
+    s32 oldRow;
+    s32 oldPage;
+    s32 i;
+
+    winA = NULL;
+    winB = NULL;
+    D_80108DB0_duelresult2 = func_800F4528_name_81(6, 0);
+    {
+        void *data = DataRead(0x13002F);
+        *D_80108DB0_duelresult2->unk_0C = func_80055810_main(data);
+        DataClose(data);
+    }
+    for (i = 0; i < 6; i++) {
+        func_80055024_main(D_80108DB0_duelresult2->unk_0A, i, *D_80108DB0_duelresult2->unk_0C, 0);
+        HuSprPriSet(D_80108DB0_duelresult2->unk_0A, i, 0xC8);
+        HuSprAttrSet(D_80108DB0_duelresult2->unk_0A, i, 0x4000);
+        func_80054904_main(D_80108DB0_duelresult2->unk_0A, i, i / 2 * 128 + 64, (i & 1) * 128 + 64);
+    }
+    open = 0;
+    func_80105CB0_duelresult2();
+    func_80107454_duelresult2();
+    func_801083FC_duelresult2();
+    func_8010809C_duelresult2();
+    func_80106974_duelresult2();
+    WipeCreateIn(2, 16);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    allCom = 0;
+    for (i = 0; i < 2; i++) {
+        if (func_800F37B8_name_81(i) == 0) {
+            break;
+        }
+    }
+    if (i == 2) {
+        allCom = 1;
+    }
+    timer = 60;
+    while (1) {
+        if (allCom) {
+            if (--timer == 0) {
+                break;
+            }
+            if (winA == NULL) {
+                winA = func_800E172C_name_81(0x16, 0x3C, 0xCF, 1);
+            }
+            if (winB == NULL) {
+                winB = func_800E172C_name_81(0x17, 0xC8, 0xCF, 1);
+            }
+        } else {
+            for (i = 0; i < 2; i++) {
+                if (func_800F37B8_name_81(i) != 0) {
+                    continue;
+                }
+                if (!open) {
+                    if (winA == NULL) {
+                        winA = func_800E172C_name_81(0x16, 0x3C, 0xCF, 1);
+                    }
+                    if (winB == NULL) {
+                        winB = func_800E172C_name_81(0x17, 0xC8, 0xCF, 1);
+                    }
+                    if (D_800C9520_main[GwPlayer[i].pad] & 0x1000) {
+                        open = 1;
+                        func_801068BC_duelresult2();
+                        func_80108240_duelresult2();
+                        if (winA != NULL) {
+                            func_800E1854_minigame(winA);
+                            winA = NULL;
+                        }
+                        if (winB != NULL) {
+                            func_800E1854_minigame(winB);
+                            winB = NULL;
+                        }
+                    } else if (D_800C9520_main[GwPlayer[i].pad] & 0x8000) {
+                        goto exit;
+                    }
+                } else {
+                    oldRow = D_80108C38_duelresult2;
+                    oldPage = D_80108C34_duelresult2;
+                    if (D_800C9520_main[GwPlayer[i].pad] & 0x1000) {
+                        open = 0;
+                        func_8010809C_duelresult2();
+                        func_80106974_duelresult2();
+                    } else if (D_800D0590_main[GwPlayer[i].pad] & 0x100) {
+                        if (++D_80108C38_duelresult2 >= 4) {
+                            D_80108C38_duelresult2 = 3;
+                            if (++D_80108C34_duelresult2 >= 7) {
+                                D_80108C34_duelresult2 = 6;
+                            }
+                        }
+                    } else if (D_800D0590_main[GwPlayer[i].pad] & 0x200) {
+                        if (--D_80108C38_duelresult2 < 0) {
+                            D_80108C38_duelresult2 = 0;
+                            if (--D_80108C34_duelresult2 < 0) {
+                                D_80108C34_duelresult2 = 0;
+                            }
+                        }
+                    }
+                    if (D_80108C38_duelresult2 != oldRow || D_80108C34_duelresult2 != oldPage) {
+                        func_801083FC_duelresult2();
+                        func_80106F7C_duelresult2();
+                    }
+                }
+            }
+            if (open == 1) {
+                if (D_80108C34_duelresult2 == 0 && D_80108C38_duelresult2 == 0) {
+                    HuSprAttrSet(D_80108DD8_duelresult2->unk_0A, 0, 0x8000);
+                } else {
+                    HuSprAttrReset(D_80108DD8_duelresult2->unk_0A, 0, 0x8000);
+                }
+                if (D_80108C34_duelresult2 == 6 && D_80108C38_duelresult2 == 3) {
+                    HuSprAttrSet(D_80108DD8_duelresult2->unk_0A, 1, 0x8000);
+                } else {
+                    HuSprAttrReset(D_80108DD8_duelresult2->unk_0A, 1, 0x8000);
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+exit:
+    if (winA != NULL) {
+        func_800E1854_minigame(winA);
+    }
+    if (winB != NULL) {
+        func_800E1854_minigame(winB);
+    }
+    if (!(GwSystem.playMode & 4) || kakusiMasuItemHis[2] == -1 || (GwPlayer[kakusiMasuItemHis[0]].stat & 1)) {
+        HuAudSeqFadeOut(60);
+    }
+    WipeCreateOut(0, 20);
+    HuPrcSleep(20);
+    func_80106848_duelresult2();
+    func_80107FEC_duelresult2();
+    func_800F4584_name_81(D_80108DB0_duelresult2);
+    D_800D530C_main = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
 
 void func_80108B38_duelresult2(omObjData *obj) {
     if (WipeStatGet() == 0) {
