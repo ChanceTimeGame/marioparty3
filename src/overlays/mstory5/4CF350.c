@@ -197,6 +197,7 @@ void func_80106B48_mstory5(omObjData *obj, Vec *pos, s32 time);
 void func_80106FC8_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 time);
 void func_80107080_mstory5(omObjData *obj, Vec *rot, s32 time);
 void func_80107228_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 time);
+void func_80107254_mstory5(s16 model);
 void func_80108A28_mstory5(omObjData *obj);
 void func_80109698_mstory5(omObjData *obj);
 void func_8010975C_mstory5(omObjData *obj);
@@ -423,9 +424,33 @@ void func_8010B318_mstory5(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010B320_mstory5);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010B5DC_mstory5);
+/* actor 3 turns and leaves */
+void func_8010B5DC_mstory5(omObjData *obj) {
+    Vec pos;
+    s16 model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010B6F8_mstory5);
+    model = obj->model[1];
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
+    func_8001C624_main(model, HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010F14C_mstory5(3, 0x1F);
+    func_80107228_mstory5(obj, 0.0f, 90.0f, 0.0f, 20);
+    func_80106FC8_mstory5(obj, pos.x + 1000.0f, pos.y, pos.z, 30);
+    func_8010F240_mstory5(3);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_801151F0_mstory5[3].func = STORY5_IDLE;
+}
+
+void func_8010B6F8_mstory5(omObjData *obj) {
+    s16 model;
+
+    model = obj->model[1];
+    func_80107254_mstory5(model);
+    func_8001C624_main(model, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    D_801151F0_mstory5[3].func = STORY5_IDLE;
+}
 
 /* actor 4 */
 void func_8010B77C_mstory5(void) {
@@ -506,7 +531,29 @@ void func_8010C4B8_mstory5(void) {
 void func_8010C69C_mstory5(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010C6A4_mstory5);
+/* actor 5 walks in, then plays its motion 2 over and over once actor 0 gives cue 1 */
+void func_8010C6A4_mstory5(omObjData *obj) {
+    Vec pos;
+    s16 model;
+
+    model = obj->model[1];
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
+    func_8001C258_main(model, 4, 0);
+    func_8001C258_main(obj->model[2], 4, 0);
+    func_8001C624_main(model, HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_80106FC8_mstory5(obj, 100.0f, pos.y, pos.z, 30);
+    func_8001C624_main(model, HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    func_80107228_mstory5(obj, 0.0f, 210.0f, 0.0f, 10);
+    while (!(D_801151F0_mstory5[0].flags & 1)) {
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        func_8001C624_main(model, HmfModelData[obj->motion[2]].unk02, 0, 10, 2);
+        func_80107254_mstory5(model);
+    }
+}
 
 /* actor 6: a copy of actor 5's model */
 void func_8010C85C_mstory5(void) {
@@ -540,7 +587,31 @@ void func_8010C85C_mstory5(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010CA04_mstory5);
+/* actor 6 (actor 5's motions) does the same from the other side */
+void func_8010CA04_mstory5(omObjData *obj) {
+    Vec pos;
+    omObjData *src;
+    s16 model;
+
+    model = obj->model[1];
+    src = D_801151F0_mstory5[5].obj;
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
+    func_8001C258_main(model, 4, 0);
+    func_8001C258_main(obj->model[2], 4, 0);
+    func_8001C624_main(model, HmfModelData[src->motion[1]].unk02, 0, 10, 2);
+    func_80106FC8_mstory5(obj, -100.0f, pos.y, pos.z, 30);
+    func_8001C624_main(model, HmfModelData[src->motion[0]].unk02, 0, 10, 2);
+    func_80107228_mstory5(obj, 0.0f, 200.0f, 0.0f, 10);
+    while (!(D_801151F0_mstory5[0].flags & 1)) {
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        func_8001C624_main(model, HmfModelData[src->motion[2]].unk02, 0, 10, 2);
+        func_80107254_mstory5(model);
+    }
+}
 
 void func_8010CBE0_mstory5(void) {
 }
