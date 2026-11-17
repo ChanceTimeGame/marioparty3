@@ -7,6 +7,8 @@
 #include "game/esprite.h"
 #include "math.h"
 #include "gcc/string.h"
+#include "malloc.h"
+#include "mallocblock.h"
 
 /* Minigame entry screen (ovl_68): the title, the rules and the player/team setup before a minigame. */
 
