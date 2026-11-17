@@ -387,12 +387,14 @@ void func_8010DF2C_staff(UnkStaff_2 *arg0, s16 arg1) {
     arg0->unk_06 = arg1;
 }
 
-// story j3 (from duelresult): NON_MATCHING, masked 341 (1227 vs 1172): retail computes the spark arguments in a
-// different order and keeps work in s4 (spilled here). Call sequence and flow match; logic checked.
+// story j3: NON_MATCHING, masked 380 (1245 vs 1191), duelresult's func_8010ACC4 with a different
+// wait and an exit: retail computes the spark arguments in a different order and keeps work in s4
+// (spilled here). Call sequence and flow match staff's asm; logic checked.
 #ifdef NON_MATCHING
 /* The firework: a rocket flies from work->unk_18 to work->unk_0C along a wobbling arc, trailing
-   sparks, then bursts into the shape of sprite data work->unk_00; repeats while work->unk_04
-   bit 1 is clear (bit 0 is set while it waits). Never returns. */
+   sparks, then bursts into the shape of sprite data work->unk_00. After each burst it sets
+   work->unk_04 bit 0 (unless bit 1 is set) and waits until the bit is cleared; bit 2 kills both
+   models, frees work and ends the process. */
 void func_8010DF34_staff(void) {
     Vec pos;
     Vec prev;
@@ -446,7 +448,11 @@ void func_8010DF34_staff(void) {
     func_8001C258_main(head, 4, 4);
     Hu3DModelScaleSet(head, 2.0f, 2.0f, 2.0f);
     func_8001C92C_main(head, 2.0f);
-    while (TRUE) {
+    while (!(work->unk_04 & 4)) {
+        if (work->unk_04 & 1) {
+            HuPrcVSleep();
+            continue;
+        }
         work->unk_04 &= ~1;
         work->unk_30 = work->unk_18;
         work->unk_24 = work->unk_0C;
@@ -533,14 +539,17 @@ void func_8010DF34_staff(void) {
         func_8001C258_main(head, 4, 4);
         func_8001C258_main(model, 4, 4);
         Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
-        work->unk_04 |= 1;
-        if (work->unk_04 & 2) {
-            HuPrcVSleep();
-        } else {
-            while (work->unk_04 & 1) {
-                HuPrcVSleep();
-            }
+        if (!(work->unk_04 & 2)) {
+            work->unk_04 |= 1;
         }
+        HuPrcVSleep();
+    }
+    func_8001ACDC_main(model);
+    func_8001ACDC_main(head);
+    HuMemFree(work);
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
     }
 }
 #else
