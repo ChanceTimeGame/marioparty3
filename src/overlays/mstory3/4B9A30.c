@@ -450,7 +450,145 @@ void func_8010DA00_mstory3(omObjData *obj) {
     S3A[10].func = func_8010E170_mstory3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010E170_mstory3);
+/* the director, part 2 */
+void func_8010E170_mstory3(omObjData *obj) {
+    S3A[0].func = func_801103E8_mstory3;
+    S3A[3].func = func_80111C50_mstory3;
+    S3A[4].func = func_801125F8_mstory3;
+    HuAudFXPlay(0x29C);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5E);
+    func_8010606C_mstory3();
+    S3A[8].func = func_80114260_mstory3;
+    S3A[5].func = func_80112DA0_mstory3;
+    while (TRUE) {
+        if (S3A[5].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[5].unk08 = 0;
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 3), 0, 10, 2);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A5F);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 0), 0, 10, 2);
+    HuAudFXPlay(0x29D);
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 2), 0, 10, 2);
+    HuPrcSleep(5);
+    S3A[8].func = func_80114474_mstory3;
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A60);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 9), 0, 10, 2);
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 3), 0, 10, 2);
+    HuPrcSleep(30);
+    S3A[3].unk08 = 0;
+    S3A[3].func = func_8011204C_mstory3;
+    while (TRUE) {
+        if (S3A[3].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[3].unk08 = 0;
+    HuAudFXPlay(0x2AA);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A61);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 3), 0, 10, 2);
+    func_8010603C_mstory3();
+    HuAudSeqFadeOut(30);
+    func_80106090_mstory3(0x5A62);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 0), 0, 10, 2);
+    S3A[3].unk08 = 1;
+    S3A[3].func = func_8011204C_mstory3;
+    S3A[4].func = func_80112944_mstory3;
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 10), 0, 10, 0);
+    func_80107070_mstory3(S3A[5].obj, &D_801157F4_mstory3, 10);
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 6), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(5));
+    func_8004AAD0_main(CharFXPlay(0x2BD, 6), 0x50);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A63);
+    HuAudSeqPlay(0x28);
+    func_8010606C_mstory3();
+    HuPrcSleep(10);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 2);
+    func_8001C624_main(S3MODEL(5), S3MOT(5, 0), 0, 10, 2);
+    func_8001C258_main(S3A[2].obj->model[1], 4, 0);
+    func_8001C258_main(S3A[2].obj->model[2], 4, 0);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 3), 0, 10, 0);
+    HuPrcSleep(5);
+    HuAudFXPlay(0x228);
+    func_80106284_mstory3();
+    S3A[0].func = func_80110628_mstory3;
+    S3A[3].func = func_80111DF8_mstory3;
+    S3A[4].func = func_801126D8_mstory3;
+    S3A[5].func = func_80112F7C_mstory3;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 0), 0, 10, 2);
+    HuPrcSleep(10);
+    S3A[8].func = func_8011475C_mstory3;
+    HuPrcSleep(50);
+    S3A[3].func = func_80111B34_mstory3;
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A64);
+    func_8010606C_mstory3();
+    HuPrcSleep(10);
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 1), 0, 10, 2);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A65);
+    func_8010606C_mstory3();
+    func_8001C624_main(S3MODEL(4), S3MOT(4, 0), 0, 10, 2);
+    S3A[3].func = func_80111E2C_mstory3;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 2), 0, 10, 2);
+    S3A[1].func = func_80111064_mstory3;
+    func_8001C92C_main(S3MODEL(0), 0.25f);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 13), 0, 10, 2);
+    S3A[2].unk0C = 1;
+    S3A[2].unk10 = 0x28;
+    func_80107A18_mstory3(S3A[2].obj, &D_801157DC_mstory3, 180, 1);
+    S3A[2].unk0C = 0;
+    func_8001C92C_main(S3MODEL(0), 1.0f);
+    func_8001C624_main(S3MODEL(0), S3MOT(0, 0), 0, 10, 2);
+    func_80106CF0_mstory3(S3MODEL(2), D_80115DAE_mstory3, D_80115DA4_mstory3[3]);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 4), 0, 10, 0);
+    func_80107244_mstory3(S3MODEL(2));
+    func_80106CF0_mstory3(S3MODEL(2), D_80115DAE_mstory3, D_80115DA4_mstory3[0]);
+    HuPrcSleep(30);
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 1), 0, 10, 2);
+    func_80107070_mstory3(S3A[2].obj, &D_801157E8_mstory3, 10);
+    S3A[2].unk0C = 1;
+    S3A[2].unk10 = 0x1F;
+    func_8010733C_mstory3(S3A[2].obj, 17.0f, 10);
+    S3A[2].unk0C = 0;
+    func_8001C624_main(S3MODEL(2), S3MOT(2, 7), 0, 10, 0);
+    func_80106CF0_mstory3(S3MODEL(0), D_80115DA2_mstory3, D_80115D98_mstory3[2]);
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A66);
+    func_8010606C_mstory3();
+    S3A[0].func = func_8010D774_mstory3;
+    S3A[3].func = func_8010D774_mstory3;
+    S3A[4].func = func_8010D774_mstory3;
+    S3A[5].func = func_80112FD0_mstory3;
+    S3A[4].func = func_8011289C_mstory3;
+    S3A[3].unk08 = 0;
+    S3A[3].func = func_80111FA4_mstory3;
+    S3A[0].func = func_8011067C_mstory3;
+    S3A[2].func = func_80111500_mstory3;
+    func_8010603C_mstory3();
+    func_80106090_mstory3(0x5A67);
+    func_8010606C_mstory3();
+    while (TRUE) {
+        if (S3A[5].unk08 == 1) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    S3A[5].unk08 = 0;
+    S3A[10].func = func_8010EBE4_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010EBE4_mstory3);
 
