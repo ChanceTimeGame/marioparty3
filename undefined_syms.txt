@@ -252,3 +252,5 @@ D_8011EDFE_w05 = D_8011EDFC_w05 + 0x2;
 D_8011EE19_w05 = D_8011EE18_w05 + 0x1;
 D_8011EE1A_w05 = D_8011EE18_w05 + 0x2;
 D_8011EF3C_w05 = D_8011EF38_w05 + 0x4;
+/* board da2: duel02/3EC590 .data labels the C names inside splat objects */
+D_80116720_duel02 = D_80116700_duel02 + 0x20;
