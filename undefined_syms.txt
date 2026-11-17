@@ -406,3 +406,5 @@ D_8010D985_slot_synch = D_8010D980_slot_synch + 0x5;
 D_8010DA32_slot_synch = D_8010DA30_slot_synch + 0x2;
 D_8010DA66_slot_synch = D_8010DA64_slot_synch + 0x2;
 D_8010DA6A_slot_synch = D_8010DA68_slot_synch + 0x2;
+/* m1 pp3: puddle_paddle/191240 .data word still named by the remaining asm */
+D_80111634_puddle_paddle = D_80111630_puddle_paddle + 0x4;
