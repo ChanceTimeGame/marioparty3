@@ -404,12 +404,30 @@ typedef struct StoryTexAnimSlot {
 } StoryTexAnimSlot; /* size = 0xC */
 
 extern StoryTexAnimSlot *D_800D1714_main;
-extern StoryActor D_801153A0_mstory5[8];
+extern StoryActor D_801153A0_mstory5[9]; /* [8]: the effect object */
 extern Vec D_80115478_mstory5[8]; /* actor positions */
 extern s16 D_801154D8_mstory5; /* shadow model, linked by every actor */
 extern s16 D_801154DA_mstory5; /* effect model */
 extern s32 D_801154E4_mstory5[3]; /* texture animations */
 extern s16 D_801154F0_mstory5;
+/* a puff of the effect object (func_80112104_mstory5): time < 0 is idle; it grows and drifts for 40 frames */
+typedef struct StoryPuff {
+    /* 0x00 */ f32 time;
+    /* 0x04 */ Vec pos;
+    /* 0x10 */ Vec vel;
+} StoryPuff; /* size = 0x1C */
+extern StoryPuff D_801154F8_mstory5[16];
+extern s32 D_80114820_mstory5;
+
+/* a sprite-model slot (D_800CBB60_main entry; src/14EA0.c unk_800ECDE0) */
+typedef struct StorySprModel {
+    /* 0x00 */ s16 model;
+    /* 0x02 */ char unk_02[0x22];
+} StorySprModel; /* size = 0x24 */
+extern StorySprModel *D_800CBB60_main;
+u16 func_80014618_main(s16 index, u16 arg1);
+void func_80014794_main(s16 index, u8 arg1);
+void func_800147FC_main(s16 index, u8 arg1, u8 arg2, u8 arg3);
 extern const Vec D_80114D20_mstory5[8]; /* actor start positions */
 
 void func_80032FC0_main(s16, u8, u8);
@@ -757,9 +775,116 @@ void func_80111FE8_mstory5(omObjData *obj) {
     D_801153A0_mstory5[2].func = (void (*)(omObjData *))func_80110200_mstory5;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80112104_mstory5);
+/* the effect object: 16 puffs (NON_MATCHING: registers s1/s2 swapped, and retail reloads
+   time after the += before comparing it with 40) */
+#ifdef NON_MATCHING
+void func_80112104_mstory5(void) {
+    omObjData *obj;
+    void *data;
+    s32 i;
+    s32 base;
+    s16 model;
+    f32 scale;
 
+    obj = omAddObj(0x14, 0x14, 1, -1, NULL);
+    D_801153A0_mstory5[8].obj = obj;
+    for (i = 0; i < 16; i++) {
+        if (i == 0) {
+            data = DataRead(0x1D0036);
+            model = base = HmfSprModelCreate(data, 0xA89, 8);
+            DataClose(data);
+        } else {
+            model = func_80014618_main(base, 8);
+        }
+        func_800147FC_main(model, 0xF0, 0x40, 8);
+        func_80014794_main(model, 0x80);
+        model = D_800CBB60_main[model].model;
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+        Hu3DModelScaleSet(model, 0.0f, 0.0f, 0.0f);
+        func_8001C2FC_main(model, 0x70000000, 0x70000000);
+        func_8001C814_main(model, 2, 2);
+        func_8001C258_main(model, 4, 4);
+        obj->model[i + 1] = model;
+        D_801154F8_mstory5[i].time = -10.0f;
+        D_801154F8_mstory5[i].pos.x = 0.0f;
+        D_801154F8_mstory5[i].pos.y = 0.0f;
+        D_801154F8_mstory5[i].pos.z = 0.0f;
+        D_801154F8_mstory5[i].vel.x = 0.0f;
+        D_801154F8_mstory5[i].vel.y = 0.0f;
+        D_801154F8_mstory5[i].vel.z = 0.0f;
+    }
+    D_801153A0_mstory5[8].func = (void (*)(omObjData *))func_80110200_mstory5;
+    while (TRUE) {
+        D_801153A0_mstory5[8].func(obj);
+        for (i = 0; i < 16; i++) {
+            if (!(D_801154F8_mstory5[i].time < 0.0f)) {
+                func_8001C258_main(obj->model[i + 1], 4, 0);
+                scale = D_801154F8_mstory5[i].time / 40.0f * 3.0f + 1.0f;
+                Hu3DModelScaleSet(obj->model[i + 1], scale, scale, scale);
+                Hu3DModelPosSet(obj->model[i + 1], D_801154F8_mstory5[i].pos.x, D_801154F8_mstory5[i].pos.y, D_801154F8_mstory5[i].pos.z);
+                D_801154F8_mstory5[i].pos.x += D_801154F8_mstory5[i].vel.x;
+                D_801154F8_mstory5[i].pos.y += D_801154F8_mstory5[i].vel.y;
+                D_801154F8_mstory5[i].pos.z += D_801154F8_mstory5[i].vel.z;
+                D_801154F8_mstory5[i].time = D_801154F8_mstory5[i].time + 1.0f;
+                if (D_801154F8_mstory5[i].time >= 40.0f) {
+                    func_8001C258_main(obj->model[i + 1], 4, 4);
+                    D_801154F8_mstory5[i].time = -10.0f;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80112104_mstory5);
+#endif
+
+/* NON_MATCHING: only the HmfModelData load is scheduled differently */
+#ifdef NON_MATCHING
+/* the effect object's action: every third frame an idle puff starts 300 in front of actor 3
+   and drifts away. Retail shows the puff's model from actor 3's object (obj is unused), not the
+   effect object that owns the puffs; func_80112104_mstory5 shows the right one every frame anyway. */
+void func_80112514_mstory5(omObjData *obj) {
+    Vec pos;
+    Vec rot;
+    Vec off;
+    omObjData *actor;
+    HmfModel *model;
+    s32 i;
+
+    if (D_80114820_mstory5 >= 3) {
+        D_80114820_mstory5 = 0;
+        actor = D_801153A0_mstory5[3].obj;
+        model = &HmfModelData[actor->model[1]];
+        pos.x = model->pos.x;
+        pos.y = model->pos.y;
+        pos.z = model->pos.z;
+        rot.x = model->rot.x;
+        rot.y = model->rot.y;
+        rot.z = model->rot.z;
+        for (i = 0; i < 16; i++) {
+            if (D_801154F8_mstory5[i].time < 0.0f) {
+                off.x = 0.0f;
+                off.y = 150.0f;
+                off.z = 300.0f;
+                D_801154F8_mstory5[i].pos.x = cosdf(rot.y) * off.x + pos.x - sindf(rot.y) * off.z;
+                D_801154F8_mstory5[i].pos.y = pos.y + off.y;
+                D_801154F8_mstory5[i].pos.z = sindf(rot.y) * off.x + pos.z + cosdf(rot.y) * off.z;
+                D_801154F8_mstory5[i].vel.x = sindf(rot.y) * 5.0f;
+                D_801154F8_mstory5[i].vel.y = cosdf(120.0f) * 5.0f;
+                D_801154F8_mstory5[i].vel.z = cosdf(rot.y) * 5.0f;
+                D_801154F8_mstory5[i].time = 0.0f;
+                func_8001C258_main(actor->model[i + 1], 4, 0);
+                break;
+            }
+        }
+    }
+    D_80114820_mstory5++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80112514_mstory5);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8011275C_mstory5);
 
