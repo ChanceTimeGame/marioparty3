@@ -290,35 +290,257 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111FC8_mstory4);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010D1A0_mstory4);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010E5C4_mstory4);
+// story h3
+/* a story-scene actor: its object and the action its process runs every frame (as mstory1's) */
+typedef struct StoryActor {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+} StoryActor; /* size = 0x18 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010E7C0_mstory4);
+extern StoryActor D_801122A0_mstory4[];
+extern Vec D_80111AD0_mstory4; /* camera position */
+extern Vec D_80111ADC_mstory4; /* camera target */
+extern s32 D_80111B90_mstory4;
+extern s16 D_8011234A_mstory4[2][2];
+extern s16 D_80112352_mstory4;
+extern s16 D_80112358_mstory4[8]; /* sprite files */
+extern s16 D_80112368_mstory4[8]; /* sprites */
+extern const s32 D_80112008_mstory4[8];
+void func_8000BC48_main(u16, s32);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8010EF00_mstory4(s32 i);
+void func_8010E7C0_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EA34_mstory4);
+/* walks obj's model 6 to (x, y, z) in `frames` frames, turning it to face the way first when
+   `turn` is set */
+void func_8010E5C4_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    s16 model;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EC38_mstory4);
+    model = obj->model[6];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = x - start.x;
+    delta.y = y - start.y;
+    delta.z = z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        pos.x = t * step.x + start.x;
+        pos.y = t * step.y + start.y;
+        pos.z = t * step.z + start.z;
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, x, y, z);
+    HuPrcVSleep();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EDA0_mstory4);
+/* as func_8010E5C4_mstory4, but the height eases out on a sine and the model grows from 1 to 5
+   (the scale set each frame is the previous frame's) */
+void func_8010E7C0_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    s16 model;
+    f32 t;
+    f32 scale;
+    f32 a;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EE3C_mstory4);
+    model = obj->model[6];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = x - start.x;
+    delta.y = y - start.y;
+    delta.z = z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
+    scale = 1.0f;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        pos.x = t * step.x + start.x;
+        a = t / frames * 90.0f;
+        pos.y = sindf(a) * delta.y + start.y;
+        pos.z = t * step.z + start.z;
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        Hu3DModelScaleSet(model, scale, scale, scale);
+        scale = sindf(a) * 5.0f;
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, x, y, z);
+    HuPrcVSleep();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EF00_mstory4);
+/* as func_8010E5C4_mstory4, clearing D_80111B90_mstory4 first and without the last frame's
+   sleep */
+f32 func_8010EA34_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    s16 model;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EF28_mstory4);
+    model = obj->model[6];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = x - start.x;
+    delta.y = y - start.y;
+    delta.z = z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
+    D_80111B90_mstory4 = 0;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        pos.x = t * step.x + start.x;
+        pos.y = t * step.y + start.y;
+        pos.z = t * step.z + start.z;
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, x, y, z);
+    return 20.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EF50_mstory4);
+/* the four screen-quarter sprites */
+void func_8010EC38_mstory4(void) {
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010EF80_mstory4);
+    D_80112352_mstory4 = func_8000B838_main(0x1D0028);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            D_8011234A_mstory4[i][j] = InitEspriteSlot(D_80112352_mstory4, 0, 0);
+            func_8000BBD4_main(D_8011234A_mstory4[i][j], j * 160 + 80, i * 120 + 60);
+            func_8000BC48_main(D_8011234A_mstory4[i][j], 0x4000);
+        }
+    }
+    func_8000BC48_main(D_8011234A_mstory4[0][1], 1);
+    func_8000BC48_main(D_8011234A_mstory4[1][0], 2);
+    func_8000BC48_main(D_8011234A_mstory4[1][1], 3);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            func_8000BB54_main(D_8011234A_mstory4[i][j]);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010F010_mstory4);
+void func_8010EDA0_mstory4(void) {
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010F0A0_mstory4);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            func_8000BB94_main(D_8011234A_mstory4[i][j]);
+            func_8000C184_main(D_8011234A_mstory4[i][j]);
+        }
+    }
+    HuSprKill(D_80112352_mstory4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010F0E0_mstory4);
+/* the eight full-screen picture sprites, hidden */
+void func_8010EE3C_mstory4(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010F12C_mstory4);
+    for (i = 0; i < 8; i++) {
+        D_80112358_mstory4[i] = func_8000B838_main(D_80112008_mstory4[i]);
+        D_80112368_mstory4[i] = InitEspriteSlot(D_80112358_mstory4[i], 0, 0);
+        func_8000BBD4_main(D_80112368_mstory4[i], 160, 120);
+        func_8000BC48_main(D_80112368_mstory4[i], 0x4000);
+        func_8000BB94_main(D_80112368_mstory4[i]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010F178_mstory4);
+void func_8010EF00_mstory4(s32 i) {
+    func_8000BB54_main(D_80112368_mstory4[i]);
+}
+
+void func_8010EF28_mstory4(s32 i) {
+    func_8000BB94_main(D_80112368_mstory4[i]);
+}
+
+void func_8010EF50_mstory4(s32 i, s16 arg1) {
+    func_8000BBFC_main(D_80112368_mstory4[i], arg1);
+}
+
+void func_8010EF80_mstory4(void) {
+    s32 i;
+
+    for (i = 0; i < 8; i++) {
+        func_8000BB94_main(D_80112368_mstory4[i]);
+        func_8000C184_main(D_80112368_mstory4[i]);
+        HuSprKill(D_80112358_mstory4[i]);
+    }
+    HuPrcSleep(3);
+}
+
+void func_8010F010_mstory4(void) {
+    s32 i;
+
+    for (i = 0; i < 7; i++) {
+        func_8000BB94_main(D_80112368_mstory4[i]);
+        func_8000C184_main(D_80112368_mstory4[i]);
+        HuSprKill(D_80112358_mstory4[i]);
+        HuPrcSleep(3);
+    }
+}
+
+void func_8010F0A0_mstory4(void) {
+    func_8000BB94_main(D_80112368_mstory4[7]);
+    func_8000C184_main(D_80112368_mstory4[7]);
+    HuSprKill(D_80112358_mstory4[7]);
+}
+
+void func_8010F0E0_mstory4(void) {
+    omObjData *obj = D_801122A0_mstory4[0].obj;
+
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+}
+
+void func_8010F12C_mstory4(void) {
+    omObjData *obj = D_801122A0_mstory4[0].obj;
+
+    func_8001C258_main(obj->model[1], 4, 0);
+    func_8001C258_main(obj->model[2], 4, 0);
+}
+
+void func_8010F178_mstory4(void) {
+    omObjData *obj = D_801122A0_mstory4[1].obj;
+
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_8001ACDC_main(obj->model[1]);
+    func_8001ACDC_main(obj->model[3]);
+    func_8001ACDC_main(obj->model[4]);
+    func_8001ACDC_main(obj->model[5]);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory4/4C2BD0", D_80111FF8_mstory4);
 
@@ -346,7 +568,7 @@ void func_80106CCC_mstory4(s32);                             /* extern */
 void func_8010724C_mstory4(void *, f32, f32, f32, s32, s32); /* extern */
 void func_80107480_mstory4(void *, f32, f32, f32, s32);      /* extern */
 void func_801074AC_mstory4(s16);                             /* extern */
-void func_8010E5C4_mstory4(void *, f32, f32, f32, s32, s32); /* extern */
+void func_8010E5C4_mstory4(omObjData *, f32, f32, f32, s32, s32); /* extern */
 void func_8010EF28_mstory4(s32);                             /* extern */
 void func_8010F0A0_mstory4(void);                            /* extern */
 void func_8010F12C_mstory4(void);                            /* extern */
@@ -373,7 +595,6 @@ typedef struct Unk {
 } Unk; // sizeof 0x8
 
 extern Unk D_80112088_mstory4[6];
-extern UnkModel D_801122A0_mstory4;
 
 extern s16 D_80112330_mstory4;
 extern s16 D_80112378_mstory4[];
@@ -395,8 +616,8 @@ void func_8010FC98_mstory4(void) {
     u16 *temp_s0;
     s32 i, j;
 
-    temp_s5 = D_801122A0_mstory4.obj;
-    temp_s7 = D_801122A0_mstory4.obj2;
+    temp_s5 = D_801122A0_mstory4[0].obj;
+    temp_s7 = D_801122A0_mstory4[1].obj;
     temp_fp = temp_s5->model[1];
     Hu3DCamSetPerspective(0, 40.0f, 80.0f, 8000.0f);
 
