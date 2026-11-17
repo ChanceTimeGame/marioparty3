@@ -40,7 +40,7 @@ typedef struct MgHmfPart {
 void func_8000BB54_main(u16 arg0);
 void func_8000BB94_main(u16 arg0);
 void func_8000BBD4_main(u16 spriteId, s16 x, s16 y);
-void func_8000BBFC_main(u16, u8);
+void func_8000BBFC_main(u16, s16);
 void func_8000BC48_main(u16, u16);
 void func_8000BCC8_main(u16, s32);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -89,6 +89,8 @@ void func_80116A48_mgmode(MgSprSlot *grp, s16 idx, f32 sx, f32 sy);
 MgSprSlot *func_80116794_mgmode(void *def);
 void func_801168E0_mgmode(MgSprSlot *grp);
 void func_80116D4C_mgmode(void);
+s16 func_80116B20_mgmode(void);
+void func_80116C18_mgmode(s16 arg0);
 s16 func_8010A148_mgmode(s16 event);
 void func_8010A5F0_mgmode(void);
 void func_8011667C_mgmode(MgModelDesc *desc);
@@ -119,6 +121,7 @@ extern s16 D_8011B43E_mgmode[4];
 extern s16 D_8011B446_mgmode[4];
 extern s16 D_8011B6A8_mgmode;
 extern s16 D_8011B788_mgmode;
+extern s16 D_8011B78C_mgmode;
 extern s16 D_8011B78E_mgmode[];
 extern s16 D_8011B796_mgmode[];
 extern s16 D_8011B78A_mgmode;
@@ -127,8 +130,8 @@ extern s16 D_8011B884_mgmode;
 extern f32 D_8011B888_mgmode;
 extern u16 D_8011B8A8_mgmode[];
 extern u16 D_8011B8B0_mgmode;
-extern u16 D_8011B8B6_mgmode[]; /* D_8011B8A8_mgmode[7] */
-extern u16 D_8011B8E8_mgmode[]; /* D_8011B8A8_mgmode[32] */
+extern s16 D_8011B8B6_mgmode[]; /* D_8011B8A8_mgmode[7] */
+extern s16 D_8011B8E8_mgmode[]; /* D_8011B8A8_mgmode[32] */
 extern u8 D_8011B6B0_mgmode[][25];
 extern s16 D_8011B940_mgmode[];
 extern void *D_8011B954_mgmode;
@@ -145,6 +148,13 @@ extern MgCursorPos D_8011943C_mgmode[];
 extern MgCursorPos D_80119454_mgmode[];
 extern MgCursorPos D_8011B468_mgmode[];
 extern s16 D_8011944C_mgmode[];
+
+/* The minigame table D_800A6D44_main seen from +2 (a second label inside each 0x14-byte entry). */
+typedef struct MgMinigameEntry2 {
+    /* 0x00 */ u16 unk00; /* MinigameTable +2 */
+    /* 0x02 */ char unk02[0x12];
+} MgMinigameEntry2;
+extern MgMinigameEntry2 D_800A6D46_main[];
 
 /* main-code variables with no name in the tree yet (undefined_syms.txt, wave 3t m2) */
 extern s16 D_800CC438_main;
@@ -928,9 +938,116 @@ void func_8010E6F0_mgmode(s16 mode) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E6F0_mgmode);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010EE84_mgmode);
+/* NON_MATCHING: masked 7; register allocation and the shadow-model address formed differently. */
+#ifdef NON_MATCHING
+void func_8010EE84_mgmode(s16 mode) {
+    Vec pos[4];
+    Vec dir[4];
+    f32 rotY[4];
+    f32 s;
+    Vec *p;
+    Vec *d;
+    s16 *m;
+    s16 *m2;
+    s16 n;
+    s16 i;
+    s16 t;
 
+    n = 2;
+    if (mode != 4) {
+        n = 4;
+    }
+    for (i = 0; i < n; i++) {
+        pos[i].x = HmfModelData[D_8011B8B6_mgmode[i]].pos.x;
+        pos[i].y = HmfModelData[D_8011B8B6_mgmode[i]].pos.y;
+        pos[i].z = HmfModelData[D_8011B8B6_mgmode[i]].pos.z;
+        dir[i].x = 400.0f - pos[i].x;
+        dir[i].z = 900.0f - pos[i].z;
+        func_8001C258_main(D_8011B8B6_mgmode[i], 4, 0);
+        func_8001C624_main(D_8011B8B6_mgmode[i], D_8011B796_mgmode[i], 0, 8, 2);
+        rotY[i] = atan2df(dir[i].x, dir[i].z);
+    }
+    for (t = 0; t < 9; t++) {
+        s = t / 8.0f;
+        for (i = 0; i < n; i++) {
+            Hu3DModelRotSet(D_8011B8B6_mgmode[i], 0.0f, s * rotY[i], 0.0f);
+        }
+        HuPrcVSleep();
+    }
+    for (t = 0; t < 31; t++) {
+        if (t == 10) {
+            func_8001C624_main(D_8011B8A8_mgmode[4], D_8011B78C_mgmode, 0, 8, 2);
+        }
+        s = 1.0f - sindf(t / 30.0f * 90.0f + 90.0f);
+        for (i = 0; i < n; i++) {
+            m = &D_8011B8B6_mgmode[i];
+            p = &pos[i];
+            d = &dir[i];
+            Hu3DModelPosSet(*m, s * d->x + p->x, p->y, s * d->z + p->z);
+            m2 = &D_8011B8E8_mgmode[i];
+            func_80118624_mgmode(*m2, *m);
+            if (t < 25 && t % 5 == 0) {
+                func_8004AC5C_main(GwPlayer[i].chr + 0x29, i);
+            }
+        }
+        HuPrcVSleep();
+    }
+    for (i = 0; i < n; i++) {
+        func_8001C258_main(D_8011B8B6_mgmode[i], 4, 4);
+        func_8001C258_main(D_8011B8E8_mgmode[i], 4, 4);
+    }
+    func_8001C624_main(D_8011B8A8_mgmode[4], D_8011B788_mgmode, 0, 8, 2);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010EE84_mgmode);
+#endif
+
+/* NON_MATCHING: one register (list[] indexed through prev's copy of sel). */
+#ifdef NON_MATCHING
+s16 func_8010F348_mgmode(s16 ev) {
+    s16 list[32];
+    s16 i;
+    s16 n;
+    s16 sel;
+    s16 prev;
+
+    if (D_80119340_mgmode == -1) {
+        D_80119340_mgmode = func_80116B20_mgmode();
+        func_8000BC48_main(D_80119340_mgmode, 0x4008);
+        func_8000BBD4_main(D_80119340_mgmode, 180, 134);
+        for (i = 0; i < 10; i++) {
+            func_8000BBFC_main(D_80119340_mgmode, i / 10.0f * 255.0f);
+            HuPrcVSleep();
+        }
+    }
+    n = 0;
+    for (i = 0; i < D_8011B940_mgmode[ev]; i++) {
+        if (D_8011B6B0_mgmode[ev][i] != 0xFF) {
+            list[n++] = D_8011B6B0_mgmode[ev][i];
+        }
+    }
+    prev = -1;
+    sel = (rand8() * n) >> 8;
+    func_80116C18_mgmode(D_800A6D46_main[list[sel]].unk00 & 0x7FF);
+    for (i = 0; i < 30; i++) {
+        HuPrcVSleep();
+        while (sel == prev) {
+            sel = (rand8() * n) >> 8;
+        }
+        prev = sel;
+        func_80116C18_mgmode(D_800A6D46_main[list[sel]].unk00 & 0x7FF);
+        HuAudFXPlay(0x104);
+    }
+    HuPrcVSleep();
+    prev = D_800D0418_main[D_800D1F2C_main];
+    func_80116C18_mgmode(D_800A6D46_main[prev].unk00 & 0x7FF);
+    HuPrcVSleep();
+    HuAudFXPlay(0x105);
+    return prev;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010F348_mgmode);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010F648_mgmode);
 
