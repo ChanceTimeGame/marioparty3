@@ -107,9 +107,14 @@ void func_80109CF8_rockin_raceway(void);
 /* the sprite files (D_80111B68) */
 typedef struct RrSprFiles {
     /* 0x00 */ s16 unk00; /* 0x4D000E */
-    /* 0x02 */ char unk02[4];
+    /* 0x02 */ s16 unk02; /* 0x4D000F */
+    /* 0x04 */ s16 unk04;
     /* 0x06 */ s16 unk06; /* 0x4D0010 */
     /* 0x08 */ s16 unk08; /* 0x4D0011 */
+    /* 0x0A */ s16 unk0A; /* 0x4D0012 */
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10; /* 0x4D0013 */
 } RrSprFiles;
 
 extern RrSprFiles *D_80111B68_rockin_raceway;
@@ -150,6 +155,22 @@ void func_8010E8A0_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
 void func_8010E994_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
 void func_8010EB84_rockin_raceway(Vec *dir, Vec *rot);
 f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b);
+extern s16 D_80111B74_rockin_raceway;
+/* per player HUD (D_80111B80): position and the five digit offsets */
+typedef struct RrHud {
+    /* 0x00 */ s16 unk00; /* player */
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06; /* x */
+    /* 0x08 */ s16 unk08; /* y */
+    /* 0x0A */ s16 unk0A[5]; /* digit x relative to unk06 */
+} RrHud; /* size 0x14 */
+
+extern s16 D_80111B6C_rockin_raceway[4]; /* sprite groups */
+extern RrHud D_80111B80_rockin_raceway[4];
+extern s16 D_80111330_rockin_raceway[4][2];
+extern s32 D_801115B8_rockin_raceway[];
+void func_8010A990_rockin_raceway(omObjData *obj);
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -433,13 +454,110 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A
 #endif
 /* rr2 end func_8010A258_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A48C_rockin_raceway);
+/* rr2 func_8010A48C_rockin_raceway */
+u16 func_8010A48C_rockin_raceway(u16 idx, u16 pt) {
+    RrPath *path = &D_80111B40_rockin_raceway[idx];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A4C0_rockin_raceway);
+    return path->unk20[pt];
+}
+/* rr2 end func_8010A48C_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A504_rockin_raceway);
+/* rr2 func_8010A4C0_rockin_raceway */
+u16 func_8010A4C0_rockin_raceway(s32 file) {
+    void *data;
+    s16 spr;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A5E4_rockin_raceway);
+    data = DataRead(file);
+    spr = func_80055810_main(data);
+    DataClose(data);
+    return spr;
+}
+/* rr2 end func_8010A4C0_rockin_raceway */
+
+/* rr2 func_8010A504_rockin_raceway */
+void func_8010A504_rockin_raceway(void) {
+    s32 grp;
+
+    D_80111B68_rockin_raceway->unk02 = func_8010A4C0_rockin_raceway(0x4D000F);
+    D_80111B68_rockin_raceway->unk0A = func_8010A4C0_rockin_raceway(0x4D0012);
+    D_80111B68_rockin_raceway->unk10 = func_8010A4C0_rockin_raceway(0x4D0013);
+    grp = HuSprGrpCreate(1, 0);
+    D_80111B74_rockin_raceway = grp;
+    func_80054904_main(grp, 0, 160, 60);
+    func_80055024_main(grp, 0, D_80111B68_rockin_raceway->unk0A, 0);
+    func_800550F4_main(grp, 0, 0);
+    func_80054FF8_main(grp, 0, 0);
+    HuSprAttrSet(grp, 0, 0x9000);
+}
+/* rr2 end func_8010A504_rockin_raceway */
+
+/* rr2 func_8010A5E4_rockin_raceway */
+void func_8010A5E4_rockin_raceway(s16 player, s16 kind) {
+    s32 spr;
+    s32 x;
+    s32 y;
+    s32 grp;
+    s32 i;
+    s32 off;
+
+
+    spr = func_8010A4C0_rockin_raceway(D_801115B8_rockin_raceway[kind]);
+    x = D_80111330_rockin_raceway[player][0];
+    y = D_80111330_rockin_raceway[player][1];
+    D_80111B6C_rockin_raceway[player] = grp = HuSprGrpCreate(7, 0);
+    D_80111B80_rockin_raceway[player].unk00 = player;
+    D_80111B80_rockin_raceway[player].unk08 = y;
+    D_80111B80_rockin_raceway[player].unk04 = 0;
+    D_80111B80_rockin_raceway[player].unk02 = 0;
+    if (player & 1) {
+        D_80111B80_rockin_raceway[player].unk06 = x - 4;
+    } else {
+        D_80111B80_rockin_raceway[player].unk06 = x + 46;
+    }
+    for (i = 0; i < 5; i++) {
+        if (player & 1) {
+            D_80111B80_rockin_raceway[player].unk0A[i] = x + (s16)(i * 8 - 20) - D_80111B80_rockin_raceway[player].unk06;
+        } else {
+            D_80111B80_rockin_raceway[player].unk0A[i] = x + (s16)(i * 8 + 30) - D_80111B80_rockin_raceway[player].unk06;
+        }
+    }
+    for (i = 0; i < 7; i++) {
+        if (i == 0) {
+            if (player & 1) {
+                func_80054904_main(grp, i, x - 42, y);
+            } else {
+                func_80054904_main(grp, i, x + 8, y);
+            }
+            func_80055024_main(grp, i, spr, 0);
+        } else if (i == 6) {
+            if (player & 1) {
+                func_80054904_main(grp, i, x - 55, y);
+            } else {
+                func_80054904_main(grp, i, x - 5, y);
+            }
+            func_80055024_main(grp, i, D_80111B68_rockin_raceway->unk10, 0);
+            func_80055484_main(grp, i, 0, 0, 0, 0xA0);
+        } else {
+            if (player & 1) {
+                func_80054904_main(grp, i, x - 20, y);
+            } else {
+                func_80054904_main(grp, i, x + 30, y);
+            }
+            func_80055024_main(grp, i, D_80111B68_rockin_raceway->unk02, 0);
+            x += 8;
+        }
+        func_800550F4_main(grp, i, 0);
+        func_80054FF8_main(grp, i, 0);
+        HuSprAttrSet(grp, i, 0x1000);
+        if (i != 6) {
+            HuSprPriSet(grp, i, -16 - i);
+        } else {
+            HuSprPriSet(grp, i, 0xFFFF);
+        }
+    }
+    omSetStatBit(omAddObj(20, 0, 0, -1, func_8010A990_rockin_raceway), 0xA0);
+}
+/* rr2 end func_8010A5E4_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A990_rockin_raceway);
 
