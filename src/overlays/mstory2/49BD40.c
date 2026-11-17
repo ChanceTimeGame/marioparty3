@@ -1366,7 +1366,27 @@ void func_8011B198_mstory2(void) {
 void func_8011B45C_mstory2(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B464_mstory2);
+/* actor 0 hovers: 1 bobs, 2 bobs until the bob ends, then stops and sets flags 3 */
+void func_8011B464_mstory2(omObjData *obj) {
+    if (D_8011CA10_mstory2[0].flags == 1) {
+        HmfModelData[obj->model[1]].pos.y += D_8011BDD0_mstory2 * D_8011BDD0_mstory2 * (D_8011BDD0_mstory2 >= 0.0f ? -8.75f : 8.75f);
+        if (D_8011BDD0_mstory2 > 1.5f) {
+            D_8011BDD0_mstory2 = -1.5f;
+        } else {
+            D_8011BDD0_mstory2 += 0.2f;
+        }
+    } else if (D_8011CA10_mstory2[0].flags == 2) {
+        HmfModelData[obj->model[1]].pos.y += D_8011BDD0_mstory2 * D_8011BDD0_mstory2 * (D_8011BDD0_mstory2 >= 0.0f ? -8.75f : 8.75f);
+        if (D_8011BDD0_mstory2 > 1.5f) {
+            D_8011BDD0_mstory2 = 0.0f;
+            func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+            D_8011CA10_mstory2[0].func = (void (*)(omObjData *))func_8011AB7C_mstory2;
+            D_8011CA10_mstory2[0].flags = 3;
+        } else {
+            D_8011BDD0_mstory2 += 0.2f;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011B64C_mstory2);
 
