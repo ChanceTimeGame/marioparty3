@@ -2037,7 +2037,215 @@ StaffCastEntry *func_80109F34_staff(StaffActor *e, StaffCastEntry *script) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109F34_staff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010A848_staff);
+/* The credits actors' motion process: each placed actor (flags 3) is posed every frame by its
+   type; spread (0x36) doubles as the motion state of the types 1, 2, 3 and 6. */
+void func_8010A848_staff(void) {
+    StaffActor *actors;
+    StaffActor *e;
+    s32 i;
+    s32 j;
+    s16 model;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 t;
+    f32 a;
+    f32 r;
+    f32 s;
+
+    actors = HuPrcCurrentGet()->user_data;
+    while (1) {
+        for (e = actors, i = 0; i < 3; i++, e++) {
+            if (e->flags != 3) {
+                continue;
+            }
+            x = e->ofs.x + e->pos.x;
+            y = e->ofs.y + e->pos.y;
+            z = e->ofs.z + e->pos.z;
+            model = e->model;
+            switch (e->type) {
+            case 1:
+                a = e->rot.y;
+                a += 2.0f;
+                if (a >= 360.0f) {
+                    a -= 360.0f;
+                    e->spread = 0;
+                }
+                e->rot.y = a;
+                s = sindf(a) * 120.0f;
+                r = e->unk18;
+                switch (e->spread) {
+                case 0:
+                    if (a > 60.0f) {
+                        e->spread++;
+                    }
+                    break;
+                case 1:
+                    r -= 6.0f;
+                    if (r <= -90.0f) {
+                        r = -90.0f;
+                        e->spread++;
+                    }
+                    break;
+                case 2:
+                    if (a > 240.0f) {
+                        e->spread++;
+                    }
+                    break;
+                case 3:
+                    r += 6.0f;
+                    if (r >= 90.0f) {
+                        r = 90.0f;
+                        e->spread++;
+                    }
+                    break;
+                case 4:
+                    break;
+                }
+                e->unk18 = r;
+                if (r >= 360.0f) {
+                    r -= 360.0f;
+                } else if (r < 0.0f) {
+                    r += 360.0f;
+                }
+                Hu3DModelPosSet(model, s + x, y, z);
+                Hu3DModelRotSet(model, 0.0f, r, 0.0f);
+                break;
+            case 2:
+                switch (e->spread) {
+                case 0:
+                    a = e->unk38 / 15.0f;
+                    e->rot.y = a + e->rot.y;
+                    if (e->unk38 <= e->rot.y) {
+                        e->unk18 = 8.0f;
+                        e->spread++;
+                    }
+                    break;
+                case 1:
+                    e->unk18 += 8.0f;
+                    e->rot.y -= e->unk18;
+                    if (e->rot.y <= 0.0f) {
+                        e->rot.y = 0.0f;
+                        e->unk18 = 0.0f;
+                        e->spread++;
+                    }
+                    break;
+                case 2:
+                    e->unk18 += 60.0f;
+                    if (e->unk18 >= 180.0f) {
+                        e->unk18 = 0.0f;
+                        e->spread++;
+                    }
+                    a = sindf(e->unk18) * 10.0f;
+                    e->rot.y = a;
+                    break;
+                case 3:
+                    e->unk18 += 1.0f;
+                    if (e->unk18 > 15.0f) {
+                        e->unk18 = 0.0f;
+                        e->spread = 0;
+                    }
+                    break;
+                }
+                Hu3DModelPosSet(model, x, y + e->rot.y, z);
+                break;
+            case 4:
+                Hu3DModelPosSet(model, x - e->spread, y, z);
+                Hu3DModelPosSet(e->models[0], x + e->spread, y, z);
+                break;
+            case 11:
+                s = e->unk18;
+                s += 4.0f;
+                if (s >= 360.0f) {
+                    s -= 360.0f;
+                }
+                e->unk18 = s;
+                a = sindf(s) * 15.0f;
+                Hu3DModelPosSet(model, x, a + y, z);
+                break;
+            case 5:
+                a = e->unk18;
+                a += 2.4f;
+                if (a >= 360.0f) {
+                    a -= 360.0f;
+                }
+                e->unk18 = a;
+                s = sindf(a) * 50.0f;
+                Hu3DModelPosSet(model, s + x, y, z);
+                break;
+            case 6:
+                switch (e->spread) {
+                case 0:
+                    if (e->unk38 == 0) {
+                        j = func_80106044_staff(0x17C) - 0xBE;
+                        e->rot.x = j;
+                        Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+                        t = 6.0f;
+                        e->spread++;
+                    } else {
+                        e->unk38--;
+                    }
+                    break;
+                case 1:
+                    e->rot.y += t;
+                    t -= 0.2f;
+                    if (e->rot.y <= 0.0f) {
+                        e->rot.y = 0.0f;
+                        Hu3DModelScaleSet(model, 1.0f, 0.75f, 1.0f);
+                        e->spread++;
+                    }
+                    break;
+                case 2:
+                    e->unk38 = (rand8() & 0xF) + 0xF;
+                    e->spread = 0;
+                    Hu3DModelScaleSet(model, 1.0f, 0.5f, 1.0f);
+                    break;
+                }
+                Hu3DModelPosSet(model, x + e->rot.x, y + e->rot.y, z);
+                break;
+            case 7:
+                Hu3DModelPosSet(model, x, y, z);
+                for (j = 0; j < 4; j++) {
+                    Hu3DModelPosSet(e->models[j], x + D_8011066C_staff[j], y, z);
+                }
+                break;
+            case 8:
+                Hu3DModelPosSet(model, x - e->spread, y, z);
+                Hu3DModelPosSet(e->models[0], x + e->spread, y, z);
+                break;
+            case 10:
+                Hu3DModelPosSet(model, x - e->spread, y, z);
+                Hu3DModelPosSet(e->models[0], x + e->spread, y, z);
+                break;
+            case 3:
+                if (e->spread == 0) {
+                    e->rot.x += 12.0f;
+                    if (e->rot.x >= 360.0f) {
+                        e->rot.x = 0.0f;
+                        e->spread = 30;
+                    }
+                    t = (cosdf(e->rot.x) + 1.0f) * 127.0f;
+                    func_8001F9E4_main(model, t);
+                } else {
+                    func_8001F9E4_main(model, 0xFF);
+                    e->spread--;
+                }
+                e->unk18 += 3.0f;
+                if (e->unk18 > 360.0f) {
+                    e->unk18 -= 360.0f;
+                }
+                t = cosdf(e->unk18) * 60.0f;
+                Hu3DModelRotSet(model, 0.0f, t, 0.0f);
+                /* fallthrough */
+            case 0:
+            default:
+                Hu3DModelPosSet(model, x, y, z);
+                break;
+            }
+        }
+        HuPrcVSleep();
+    }
+}
 
 void func_8010B1E0_staff(void) {
     StaffActor actors[3];
