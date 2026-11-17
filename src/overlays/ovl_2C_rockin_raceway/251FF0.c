@@ -119,8 +119,7 @@ typedef struct RrSprFiles {
     /* 0x06 */ s16 unk06; /* 0x4D0010 */
     /* 0x08 */ s16 unk08; /* 0x4D0011 */
     /* 0x0A */ s16 unk0A; /* 0x4D0012 */
-    /* 0x0C */ s16 unk0C;
-    /* 0x0E */ s16 unk0E;
+    /* 0x0C */ s16 unk0C[2]; /* 0x31, 0x32: best time digits */
     /* 0x10 */ s16 unk10; /* 0x4D0013 */
 } RrSprFiles;
 
@@ -185,6 +184,11 @@ extern s32 D_80111ADC_rockin_raceway;
 void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 arg2);
 extern u8 D_800D6A90_main;
 f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
+extern s16 D_80111B76_rockin_raceway[2]; /* best time sprite groups */
+extern s16 D_80111B7A_rockin_raceway; /* new record pulse timer */
+extern s16 D_80111340_rockin_raceway[8];
+extern s32 D_80111B00_rockin_raceway[2 * 6]; /* best time digits, six per time */
+extern s32 D_801115D8_rockin_raceway[6]; /* digit sprite members */
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -681,11 +685,109 @@ void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 mode) {
 }
 /* rr2 end func_8010AAAC_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B124_rockin_raceway);
+/* rr2 func_8010B124_rockin_raceway */
+void func_8010B124_rockin_raceway(void) {
+    s32 grp;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B2B8_rockin_raceway);
+    D_80111B68_rockin_raceway->unk0C[0] = func_8010A4C0_rockin_raceway(0x31);
+    D_80111B68_rockin_raceway->unk0C[1] = func_8010A4C0_rockin_raceway(0x32);
+    D_80111B7A_rockin_raceway = 0;
+    for (i = 0; i < 2; i++) {
+        D_80111B76_rockin_raceway[i] = grp = HuSprGrpCreate(8, 0);
+        for (j = 0; j < 8; j++) {
+            func_80054904_main(grp, j, D_80111340_rockin_raceway[j], i * 12 + 28);
+            func_80055024_main(grp, j, D_80111B68_rockin_raceway->unk0C[i], 0);
+            func_80054FF8_main(grp, j, 0);
+            HuSprAttrSet(grp, j, 0x1000);
+            func_800550F4_main(grp, j, 0);
+        }
+        func_80054FF8_main(grp, 2, 10);
+        func_80054FF8_main(grp, 5, 11);
+    }
+}
+/* rr2 end func_8010B124_rockin_raceway */
 
+/* rr2 func_8010B2B8_rockin_raceway */
+void func_8010B2B8_rockin_raceway(void) {
+    f32 scale;
+    u16 grp;
+    s32 *digits;
+    s32 i;
+    s32 j;
+
+    scale = 1.0f;
+    if (D_80111AD8_rockin_raceway == 5) {
+        for (i = 0; i < 2; i++) {
+            grp = D_80111B76_rockin_raceway[i];
+            for (j = 0; j < 8; j++) {
+                HuSprAttrSet(grp, j, 0x8000);
+            }
+        }
+        return;
+    }
+    digits = D_80111B00_rockin_raceway;
+    for (i = 0; i < 2; i++) {
+        grp = D_80111B76_rockin_raceway[i];
+        for (j = 0; j < 8; j++) {
+            HuSprAttrReset(grp, j, 0x8000);
+        }
+    }
+    if (D_80111B7A_rockin_raceway != 0) {
+        scale = sindf(D_80111B7A_rockin_raceway / 15.0f * 180.0f) + 1.0f;
+        if (--D_80111B7A_rockin_raceway == 1) {
+            scale = 1.0f;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        grp = D_80111B76_rockin_raceway[i];
+        for (j = 0; j < 6; j++) {
+            if (digits[i * 6 + j] >= 10) {
+                digits[i * 6 + j] = 9;
+            } else if (digits[i * 6 + j] < 0) {
+                digits[i * 6 + j] = 0;
+            }
+            func_80054FF8_main(grp, D_801115D8_rockin_raceway[j], (s16)digits[i * 6 + j]);
+        }
+        if ((D_80111B7A_rockin_raceway != 0) & (i == 1)) {
+            for (j = 0; j < 8; j++) {
+                func_80054904_main(grp, j, (D_80111340_rockin_raceway[j] - 156) * scale + 156.0f, i * 12 + 28);
+                HuSprScaleSet(grp, j, scale, scale);
+            }
+        }
+    }
+}
+/* rr2 end func_8010B2B8_rockin_raceway */
+
+/* rr2 func_8010B5DC_rockin_raceway */
+#ifdef NON_MATCHING
+void func_8010B5DC_rockin_raceway(s32 *times) {
+    s32 parts[3];
+    s32 *digit;
+    s32 *digits;
+    s32 i;
+
+    digits = D_80111B00_rockin_raceway;
+    for (i = 0; i < 2; i++) {
+        parts[0] = times[i] / 1800;
+        times[i] -= parts[0] * 1800;
+        parts[1] = times[i] / 30;
+        times[i] -= parts[1] * 30;
+        parts[2] = times[i] / 30.0f * 99.0f;
+        digit = &digits[i * 6];
+        digit[0] = parts[0] / 10;
+        digit[1] = parts[0] - digit[0] * 10;
+        digit[2] = parts[1] / 10;
+        digit[3] = parts[1] - digit[2] * 10;
+        digit[4] = parts[2] / 10;
+        digit[5] = parts[2] - digit[4] * 10;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B5DC_rockin_raceway);
+#endif
+/* rr2 end func_8010B5DC_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B774_rockin_raceway);
 
