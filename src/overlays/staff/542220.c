@@ -164,6 +164,15 @@ typedef struct StaffAnimDef {
 
 extern StaffAnimDef D_80110674_staff[];
 void func_80034048_main(s16, s16);
+typedef struct StaffWork {
+    /* 0x00 */ StaffActor *actors;
+    /* 0x04 */ s16 state; // 1 ends the credits actors
+    /* 0x06 */ char unk06[6];
+} StaffWork; // size 0xC
+
+extern StaffScript D_80110704_staff[];
+StaffScript *func_80109D74_staff(StaffActor *actors, StaffScript *script);
+void func_8010A848_staff(void);
 // end story j2
 
 #ifdef NON_MATCHING
@@ -383,7 +392,81 @@ INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109F34_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010A848_staff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B1E0_staff);
+void func_8010B1E0_staff(void) {
+    StaffActor actors[3];
+    StaffWork *w;
+    Process *proc;
+    StaffScript *script;
+    StaffActor *a;
+    s32 i;
+    s16 cur;
+
+    w = HuMemAllocTag(sizeof(StaffWork), 0x7918);
+    memset(w, 0, sizeof(StaffWork));
+    cur = 0;
+    HuPrcCurrentGet()->user_data = w;
+    proc = omAddPrcObj(func_8010A848_staff, 0x4000, 0x800, 0);
+    proc->user_data = actors;
+    w->actors = actors;
+    script = func_80109D74_staff(actors, D_80110704_staff);
+    while (cur >= 0) {
+        if (cur != w->state) {
+            switch (w->state) {
+            default:
+            case 0:
+                cur = w->state;
+                break;
+            case 1:
+                cur = -1;
+                continue;
+            }
+        }
+        for (a = actors, i = 0; i < 3; i++, a++) {
+            if (a->flags != 0 && (a->flags & 4)) {
+                script = func_80109F34_staff(a, script);
+            }
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(proc);
+    for (a = actors, i = 0; i < 3; i++, a++) {
+        if (a->flags != 0) {
+            a->flags = 0;
+            switch (a->type) {
+            case 7:
+                for (i = 0; i < 4; i++) {
+                    func_8001ACDC_main(a->models[i]);
+                }
+                func_80033354_main(a->anim);
+                func_80033354_main(a->anim2);
+                break;
+            case 4:
+            case 8:
+            case 10:
+                func_8001ACDC_main(a->models[0]);
+                break;
+            case 12:
+                func_80046558_main(a->model);
+                break;
+            }
+            if (a->anim3 >= 0) {
+                func_80033354_main(a->anim3);
+            }
+            if (a->model >= 0) {
+                func_8001ACDC_main(a->model);
+            }
+            if (a->model2 >= 0) {
+                func_8001ACDC_main(a->model2);
+            }
+            a->model2 = a->model = -1;
+        }
+    }
+    HuMemFree(w);
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 void func_8010B430_staff(s16 group, s16 member, s16 dx, s16 dy) {
     HuSprGrp *grp = HuSprGrpData[group];
