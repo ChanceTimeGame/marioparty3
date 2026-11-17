@@ -625,9 +625,127 @@ void func_80107674_mstory3(omObjData *a, omObjData *b) {
 }
 //@@end
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801077BC_mstory3);
+//@@func_801077BC_mstory3
+// register allocation; retail converts frames separately for the divide and the loop (masked 10, as mstory1's func_80106D80)
+#ifdef NON_MATCHING
+/* as func_80106DE0_mstory3, but the second model follows 5 below the first */
+void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    s16 model;
+    f32 t;
 
+    model = obj->model[1];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = to->x - start.x;
+    delta.y = to->y - start.y;
+    delta.z = to->z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    step.x = delta.x / frames;
+    step.y = delta.y / frames;
+    step.z = delta.z / frames;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        pos.x = t * step.x + start.x;
+        pos.y = t * step.y + start.y;
+        pos.z = t * step.z + start.z;
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        if (obj->model[2] >= 0) {
+            Hu3DModelPosSet(obj->model[2], pos.x, pos.y - 5.0f, pos.z);
+        }
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, to->x, to->y, to->z);
+    if (obj->model[2] >= 0) {
+        Hu3DModelPosSet(obj->model[2], to->x, to->y - 5.0f, to->z);
+    }
+    HuPrcVSleep();
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801077BC_mstory3);
+#endif
+//@@end
+
+//@@func_80107A18_mstory3
+// retail converts frames again for the loop test instead of reusing the divide's (masked 15: that, then shifted branches)
+#ifdef NON_MATCHING
+/* walks obj's model (and its shadow, 5 below) towards `to` in `frames` frames, speeding up after
+   frame 50; stops early once it passes to->x on the way down in x */
+void func_80107A18_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    Vec accel;
+    s16 model;
+    f32 t;
+    f32 sx;
+    f32 sy;
+    f32 sz;
+
+    model = obj->model[1];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = to->x - start.x;
+    delta.y = to->y - start.y;
+    delta.z = to->z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    sx = delta.x / frames;
+    accel.x = sx / 90.0f;
+    sy = delta.y / frames;
+    accel.y = sy / 90.0f;
+    sz = delta.z / frames;
+    accel.z = sz / 90.0f;
+    step.x = sx;
+    step.y = sy;
+    step.z = sz;
+    pos.x = start.x;
+    pos.y = start.y;
+    pos.z = start.z;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        if (t < 50.0f) {
+            pos.x += step.x;
+            pos.y += step.y;
+            pos.z += step.z;
+        } else {
+            pos.x += (step.x += accel.x);
+            pos.y += (step.y += accel.y);
+            pos.z += (step.z += accel.z);
+        }
+        if (pos.x <= to->x) {
+            pos.x = to->x;
+            pos.y = to->y;
+            pos.z = to->z;
+            Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+            if (obj->model[2] >= 0) {
+                Hu3DModelPosSet(obj->model[2], pos.x, pos.y - 5.0f, pos.z);
+            }
+            break;
+        }
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        if (obj->model[2] >= 0) {
+            Hu3DModelPosSet(obj->model[2], pos.x, pos.y - 5.0f, pos.z);
+        }
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, to->x, to->y, to->z);
+    if (obj->model[2] >= 0) {
+        Hu3DModelPosSet(obj->model[2], to->x, to->y - 5.0f, to->z);
+    }
+    HuPrcVSleep();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80107A18_mstory3);
+#endif
+//@@end
 
 //@@func_80107D80_mstory3
 ObPath *func_80107D80_mstory3(Vec *points, s16 flags) {
