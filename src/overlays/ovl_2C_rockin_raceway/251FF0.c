@@ -994,7 +994,90 @@ void func_8010FA78_rockin_raceway(u16 model, HuSprite_Unk84_Struct* spr, u16 fra
     gSPEndDisplayList(&gfx[7]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FBAC_rockin_raceway);
+/* Builds the sprite's vertex quads (split into TMEM-sized bands), one copy per buffer in hmf->unk44; returns the band count. */
+s32 func_8010FBAC_rockin_raceway(HuSprite_Unk84_Struct* spr, HmfData* hmf, f32 scale, u16 x, u16 y) {
+    Vtx* buf;
+    Vtx* v;
+    Vtx_t* to;
+    Vtx_t* from;
+    s32 tmem;
+    s32 bpp;
+    s32 w;
+    s32 h;
+    s32 sw;
+    s32 sh;
+    s32 size;
+    s32 count;
+    s32 qh;
+    s32 qsh;
+    s32 n;
+    s32 i;
+    s32 j;
+
+    if (spr->unk1A >= 2) {
+        tmem = 0x800;
+    } else {
+        tmem = 0x1000;
+    }
+    w = spr->unk00->unk04;
+    h = spr->unk00->unk06;
+    sw = w * 100.0 * scale / 32.0;
+    sh = h * 100.0 * scale / 32.0;
+    bpp = spr->unk18 & 0x7FFF;
+    if ((spr->unk18 & 0xFFF) == 4) {
+        size = ((w + 1) & 0xFFFE) * h * 4;
+    } else {
+        size = w * h * spr->unk18;
+    }
+    size = (size < 0) ? (size + 7) : size;
+    size >>= 3;
+    count = size / tmem;
+    if (count <= 0) {
+        count = 1;
+    }
+    qh = h / count;
+    qsh = sh / count;
+    n = count * 4;
+    buf = v = HuMemAllocTag(n * sizeof(Vtx), hmf->unk0E);
+    memset(buf, 0, n * sizeof(Vtx));
+    for (i = 0; i < count; i++, v += 4) {
+        v[0].v.ob[0] = (s32)(sw * 0.5);
+        v[0].v.ob[1] = (s32)(sh * 0.5 - qsh * i);
+        v[0].v.tc[0] = (w - 1) * 64;
+        v[0].v.tc[1] = 0;
+        v[1].v.ob[0] = (s32)(sw * 0.5);
+        v[1].v.ob[1] = (s32)(sh * 0.5 - qsh * (i + 1));
+        v[1].v.tc[0] = (w - 1) * 64;
+        v[1].v.tc[1] = (qh - 1) * 64;
+        v[2].v.ob[0] = (s32) - (sw * 0.5);
+        v[2].v.ob[1] = (s32)(sh * 0.5 - qsh * i);
+        v[2].v.tc[0] = 0;
+        v[2].v.tc[1] = 0;
+        v[3].v.ob[0] = (s32) - (sw * 0.5);
+        v[3].v.ob[1] = (s32)(sh * 0.5 - qsh * (i + 1));
+        v[3].v.tc[0] = 0;
+        v[3].v.tc[1] = (qh - 1) * 64;
+        for (j = 0; j < 4; j++) {
+            v[j].v.ob[0] += x;
+            v[j].v.ob[1] += y;
+            v[j].v.ob[2] = 0;
+            v[j].v.flag = 0;
+            v[j].v.cn[3] = 0xFF;
+            v[j].v.cn[0] = v[j].v.cn[1] = v[j].v.cn[2] = 0;
+        }
+    }
+    v = buf;
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        hmf->unk44[i] = HuMemAllocTag(n * sizeof(Vtx), hmf->unk0E);
+        to = (Vtx_t*)hmf->unk44[i];
+        from = &v->v;
+        for (j = 0; j < n; j++) {
+            *(to++) = *(from++);
+        }
+    }
+    HuMemFree(buf);
+    return count;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010FFB8_rockin_raceway);
 
