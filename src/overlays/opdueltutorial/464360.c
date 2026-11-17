@@ -424,7 +424,53 @@ void func_80106808_opdueltutorial(Object *host) {
     host->scale.y += 5.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/opdueltutorial/464360", func_8010686C_opdueltutorial);
+/* a process: a model plays a run of animation tracks (4..0) from one file, then fades out */
+void func_8010686C_opdueltutorial(void) {
+    void *data[2]; /* [0] the idle, [1] the data[1] */
+    s32 slot;
+    Object *model;
+    s32 alpha;
+
+    model = func_800D8314_name_81(0x14000A, -1, 1.0f, 0.0f, NULL);
+    func_8001FA68_main(model->omObj1->model[0]);
+    func_8001F9E4_main(model->omObj1->model[0], 0xFF);
+    data[0] = DataRead(0x130135);
+    HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[0], 0, "sitagocoro_DEF");
+    data[1] = DataRead(0x140034);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[1], 4, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuVecCopyXYZ(&model->coords, 0.0f, 150.0f, 500.0f);
+    HuPrcSleep(15);
+    func_80033430_main(slot);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[1], 3, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuPrcSleep(15);
+    func_80033430_main(slot);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[1], 2, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuPrcSleep(15);
+    func_80033430_main(slot);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[1], 1, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuPrcSleep(15);
+    func_80033430_main(slot);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[1], 0, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuPrcSleep(15);
+    func_80033430_main(slot);
+    slot = (s16)HmfAnimCreate(HmfModelData[model->omObj1->model[0]].hmf, data[0], 0, "sitagocoro_DEF");
+    func_8001C448_main(model->omObj1->model[0]);
+    HuPrcSleep(5);
+    for (alpha = 0xFF; alpha > 0; alpha -= 10) {
+        func_8001F9E4_main(model->omObj1->model[0], alpha);
+        HuPrcVSleep();
+    }
+    func_80033430_main(slot);
+    DataClose(data[0]);
+    DataClose(data[1]);
+    func_800D8F3C_name_81(model);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/opdueltutorial/464360", func_80106BF0_opdueltutorial);
 
