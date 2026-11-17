@@ -307,3 +307,11 @@ D_80119EEA_duel04 = D_80119EEC_duel04 - 0x2;
 D_80119EF2_duel04 = D_80119EF4_duel04 - 0x2;
 D_80119EFA_duel04 = D_80119EFC_duel04 - 0x2;
 D_8011B08C_duel04 = D_8011B06C_duel04 + 0x20;
+/* wave 3t m2: main-code variables used by mgmode/473130 (no tree name yet) */
+D_800CC438_main = 0x800CC438;
+D_800CB894_main = 0x800CB894;
+D_800CE29C_main = 0x800CE29C;
+D_800D03FE_main = 0x800D03FE;
+D_800D1F20_main = 0x800D1F20;
+D_800D1F2C_main = 0x800D1F2C;
+D_800D4194_main = 0x800D4194;
