@@ -325,3 +325,4 @@ D_80106DFC_mchar2 = D_80106DF8_mchar2 + 0x4;
 D_800CE2A0_main = D_800CE298_main + 0x8;
 D_800D1FE0_main = D_800D1FDC_main + 0x4;
 D_800CB894_main = D_800CB890_main + 0x4;
+D_800D2124_main = D_800D2120_main + 0x4;
