@@ -193,6 +193,7 @@ void func_8010EDE8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 a
 // m1 pp2: Puddle Paddle game types (pp1's PpTeam/PpPlayer/PpCoin/PpState, with the fields pp2's functions use)
 #include "game/gamework_data.h"
 #include "overlays/minigame.h"
+#include "game/audio.h"
 
 /* A team (D_80111650_puddle_paddle[2]) */
 typedef struct PpTeam {
@@ -255,6 +256,8 @@ void func_801091F8_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx);
 s16 func_8010BA04_puddle_paddle(s8 groupId, s32 prio, void *data, void (*func)(PpFuncGroupContext *, PpFuncContext *), s8 tag);
 void func_80110BBC_puddle_paddle(f32 *a, f32 *b);
+s16 func_8010C42C_puddle_paddle(s16 tag);
+s32 func_8010C4D0_puddle_paddle(s16 animModelId, f32 posX, f32 posY, f32 posZ, f32 rotX, f32 rotY, f32 rotZ, f32 scale, f32 animStart);
 
 void func_80109804_puddle_paddle(PpPlayer *player, s16 motion, s8 pending) {
     player->pending = pending;
@@ -346,7 +349,108 @@ void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010981C_puddle_paddle);
 #endif
 
+// NON_MATCHING: masked 36 (count 434 vs 431): splash flag tests and the 2x offset differ in register use and scheduling; logic checked against the asm
+#ifdef NON_MATCHING
+void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
+    PpTeam *team;
+    HmfModel *raft;
+    HmfModel *playerModel;
+    HmfModel *other;
+    PpPlayer *player;
+    func_800E1BA8_minigame_ObjData *objData;
+    Vec d;
+    f32 x;
+    f32 z;
+    s16 angle;
+    s16 animModelId;
+    s32 splashL;
+    s32 splashR;
+    s16 i;
+    s16 j;
+
+    team = D_80111650_puddle_paddle;
+    for (i = 0; i < 2; i++, team++) {
+        raft = &HmfModelData[groupCtx->modelIds[i]];
+        for (j = 0; j < 2; j++) {
+            player = &D_80111654_puddle_paddle[team->member[j]];
+            playerModel = &HmfModelData[*D_800EC598_minigame[team->member[j]]->model];
+            angle = player->unk48 + team->unk18;
+            if (angle > 360.0f) {
+                angle -= 360.0f;
+            }
+            x = sindf(angle) * 20.0f * 5.0f * 0.7f + raft->pos.x;
+            z = cosdf(angle) * 20.0f * 5.0f * 0.7f + raft->pos.z;
+            Hu3DModelPosSet(*D_800EC598_minigame[team->member[j]]->model, x, raft->pos.y + 37.0f, z);
+            Hu3DModelRotSet(*D_800EC598_minigame[team->member[j]]->model, 0.0f, raft->rot.y, 0.0f);
+            Hu3DModelPosSet(D_800EC598_minigame[team->member[j]]->model[1], x, raft->pos.y + 34.0f, z);
+            if (player->unk04 & 8) {
+                if (player->unk04 & 2) {
+                    func_80109804_puddle_paddle(player, 0x27, 0);
+                } else if (player->unk04 & 4) {
+                    func_80109804_puddle_paddle(player, 0x28, 0);
+                } else {
+                    func_80109804_puddle_paddle(player, 0x26, 0);
+                }
+            } else if (player->unk04 & 2) {
+                func_80109804_puddle_paddle(player, 0x27, 0);
+            } else if (player->unk04 & 4) {
+                func_80109804_puddle_paddle(player, 0x28, 0);
+            } else {
+                func_80109804_puddle_paddle(player, 0, 0);
+            }
+            objData = D_800EC598_minigame[team->member[j]]->data;
+            splashL = FALSE;
+            splashR = FALSE;
+            if (playerModel->unk40 == 20.0f) {
+                if (objData->unkD8.motion == 0x26) {
+                    splashL = TRUE;
+                    splashR = TRUE;
+                } else if (objData->unkD8.motion == 0x27) {
+                    splashL = TRUE;
+                } else if (objData->unkD8.motion == 0x28) {
+                    splashR = TRUE;
+                }
+            }
+            if (i == 0) {
+                other = &HmfModelData[groupCtx->modelIds[1]];
+            } else {
+                other = &HmfModelData[groupCtx->modelIds[0]];
+            }
+            if (splashL) {
+                animModelId = func_8010C42C_puddle_paddle(0);
+                if (animModelId != -1) {
+                    x = 2.0f * (sindf(team->unk18 + 70.0f) * 20.0f * 5.0f) + playerModel->pos.x;
+                    z = 2.0f * (cosdf(team->unk18 + 70.0f) * 20.0f * 5.0f) + playerModel->pos.z;
+                    d.x = x - other->pos.x;
+                    d.z = z - other->pos.z;
+                    d.y = HuSqrtf(d.x * d.x + d.z * d.z);
+                    if (d.y > 200.0f) {
+                        func_8010C4D0_puddle_paddle(animModelId, x, playerModel->pos.y, z, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+                    }
+                }
+            }
+            if (splashR) {
+                animModelId = func_8010C42C_puddle_paddle(0);
+                if (animModelId != -1) {
+                    x = 2.0f * (sindf(team->unk18 + 290.0f) * 20.0f * 5.0f) + playerModel->pos.x;
+                    z = 2.0f * (cosdf(team->unk18 + 290.0f) * 20.0f * 5.0f) + playerModel->pos.z;
+                    d.x = x - other->pos.x;
+                    d.z = z - other->pos.z;
+                    d.y = HuSqrtf(d.x * d.x + d.z * d.z);
+                    if (d.y > 200.0f) {
+                        func_8010C4D0_puddle_paddle(animModelId, x, playerModel->pos.y, z, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+                    }
+                }
+            }
+            if (splashL | splashR) {
+                func_8004AC5C_main(0x379, team->member[j]);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109BD4_puddle_paddle);
+#endif
 
 void func_8010A224_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
     PpTeam *team;
