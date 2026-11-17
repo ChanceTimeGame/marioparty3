@@ -380,8 +380,9 @@ f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, s16 *se
     f32 rem;
     f32 t;
     s32 i;
-    s32 cur;
+
     s32 next;
+    s32 cur;
 
     start = base + delta;
     if (path->unk04 <= start) {
@@ -416,11 +417,12 @@ f32 func_8010A258_rockin_raceway(u16 idx, f32 dist, f32 base, f32 delta, s16 *se
     if (frac != NULL) {
         *frac = t;
     }
+    cur = i;
     next = 0;
     if (i < path->unk02 - 1) {
         next = i + 1;
     }
-    cur = i * 1;
+
     func_8010E8A0_rockin_raceway(t, &path->unk0C[cur], &path->unk10[cur], &path->unk0C[next], pos);
     rot->x = func_8010E7E0_rockin_raceway(t, path->unk1C[cur].x, path->unk1C[next].x);
     rot->y = func_8010E7E0_rockin_raceway(t, path->unk1C[cur].y, path->unk1C[next].y);
