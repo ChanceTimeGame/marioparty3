@@ -349,3 +349,5 @@ D_80108C91_selmenu = D_80108C90_selmenu + 0x1;
 D_80108C94_selmenu = D_80108C90_selmenu + 0x4;
 D_80108C9C_selmenu = D_80108C90_selmenu + 0xC;
 D_80109812_selmenu = D_80109810_selmenu + 0x2;
+D_80109756_selmenu = D_80109754_selmenu + 0x2;
+D_80109758_selmenu = D_80109754_selmenu + 0x4;

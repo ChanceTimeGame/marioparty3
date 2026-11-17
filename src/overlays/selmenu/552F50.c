@@ -30,6 +30,9 @@ extern s16 D_8010A070_selmenu; /* page */
 extern s16 D_8010A072_selmenu; /* row */
 extern s16 D_8010A078_selmenu[10]; /* row remembered per page */
 extern GW_PLAYER D_8010A098_selmenu[4];
+extern s16 D_8010A08C_selmenu;
+extern s16 D_8010A08E_selmenu;
+extern s16 D_8010A090_selmenu;
 extern u8 D_8010A1B0_selmenu[4];
 extern u8 D_8010A1B4_selmenu[8]; /* pad connected */
 extern s16 D_8010A1C0_selmenu[8]; /* character models */
@@ -51,6 +54,7 @@ extern u16 D_8010A27C_selmenu[4]; /* hold time */
 extern u16 D_8010A284_selmenu[4]; /* repeat delay */
 
 extern s32 omprevovl;
+extern u8 D_800A175E_main; /* select-menu mode: 0 GAME, 1 BOARD, 2 DUEL */
 extern s32 D_800A178C_main[][6];
 void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -60,6 +64,11 @@ void func_80047C0C_main(u16 group, u16 max_objs);
 void func_80105FC8_selmenu(omObjData *obj);
 void func_80106770_selmenu(omObjData *obj);
 void func_80106A10_selmenu(omObjData *obj);
+void func_80106DEC_selmenu(omObjData *obj);
+void func_80107924_selmenu(omObjData *obj);
+void func_80107DEC_selmenu(omObjData *obj);
+void func_801087C8_selmenu(u16 no);
+void func_801089C0_selmenu(u16 x, u16 y, char *str, u16 color, u16 shadow);
 void func_80108890_selmenu(s32 dir);
 void func_80108A40_selmenu(void);
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
@@ -245,9 +254,7 @@ SelMenuCfg D_801092D0_selmenu[71] = { /* SelMenuEntry.cfg - 1 */
 };
 
 SelMenuSe D_80109740_selmenu[5] = { { 1, 0, 120 }, { 9, 0, 106 }, { 2, 0, 110 }, { 4, 0, 114 }, { 76, 0, 123 } };
-s16 D_80109754_selmenu = 5;
-s16 D_80109756_selmenu = 13;
-s16 D_80109758_selmenu[2] = { 4, 12 };
+u16 D_80109754_selmenu[2][2] = { { 5, 13 }, { 4, 12 } }; /* row colours {normal, cursor}: [0] entries, [1] empty slots */
 SelMenuEntry D_8010975C_selmenu[6] = {
     { 1, 3, 11, 0, 1000, 0, 0, ">PLAYER%d" },
     { 0, 4, 12, 0, 1000, 0, 0, "PAD%d:%s" },
@@ -346,6 +353,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_801059A0_selmenu);
 #endif
 
 void func_80106A10_selmenu(omObjData *obj);
+void func_80106DEC_selmenu(omObjData *obj);
+void func_80107924_selmenu(omObjData *obj);
+void func_80107DEC_selmenu(omObjData *obj);
+void func_801087C8_selmenu(u16 no);
+void func_801089C0_selmenu(u16 x, u16 y, char *str, u16 color, u16 shadow);
 void func_80108890_selmenu(s32 dir);
 void func_80108A40_selmenu(void);
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
@@ -585,7 +597,68 @@ void func_80106770_selmenu(omObjData *obj) {
     obj->func = func_80106A10_selmenu;
 }
 
+/* NON_MATCHING: retail keeps the x of 64 in a0 and masks it after the two print calls merge; the rest matches. */
+#ifdef NON_MATCHING
+void func_80106A10_selmenu(omObjData *obj) {
+    SelMenuEntry *entry;
+    u16 *color;
+    s32 i;
+
+    rand8();
+    entry = &D_80108C90_selmenu[D_8010A070_selmenu * 10];
+    for (i = 0; i < 10; i++, entry++) {
+        sprintf(D_800D5218_main, entry->name);
+        strlen(D_800D5218_main);
+        color = D_80109754_selmenu[1];
+        if (D_80108C90_selmenu[D_8010A070_selmenu * 10 + i].kind == 0) {
+            color = D_80109754_selmenu[0];
+        }
+        if (D_8010A072_selmenu == i) {
+            func_801089C0_selmenu(64, (i + 10) * 9, D_800D5218_main, color[1], color[0]);
+        } else {
+            func_801089C0_selmenu(64, (i + 10) * 9, D_800D5218_main, color[0], 0);
+        }
+    }
+    sprintf(D_800D5218_main, "PAGE:%d/%d", D_8010A070_selmenu + 1, 10);
+    func_801089C0_selmenu(128, 64, D_800D5218_main, 15, 7);
+    sprintf(D_800D5218_main, "MODE:%s", D_801097F4_selmenu[D_800A175E_main]);
+    func_801089C0_selmenu(128, 72, D_800D5218_main, 14, 6);
+    func_8000BBD4_main(D_8010A206_selmenu, 60, (D_8010A072_selmenu + 11) * 9 - 1);
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) == 0) {
+            continue;
+        }
+        if ((D_8010A270_selmenu[i] & 0x90) && D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].kind == 0) {
+            if (D_80109800_selmenu == 0) {
+                omAddObj(2, 0, 0, -1, func_80107DEC_selmenu);
+                D_80109800_selmenu = 1;
+                func_8000BB94_main(D_8010A206_selmenu);
+                obj->func = func_80107924_selmenu;
+                func_801087C8_selmenu(1);
+            }
+        } else if ((D_8010A270_selmenu[i] & 1) || (D_8010A270_selmenu[i] & 2)) {
+            func_80108814_selmenu((D_8010A270_selmenu[i] & 1) ? -1 : 1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(0);
+        } else if ((D_8010A270_selmenu[i] & 4) || (D_8010A270_selmenu[i] & 8)) {
+            func_80108890_selmenu((D_8010A270_selmenu[i] & 4) ? -1 : 1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(4);
+        } else if (D_8010A270_selmenu[i] & 0x40) {
+            D_8010A08C_selmenu = 0;
+            D_8010A08E_selmenu = 0;
+            D_8010A090_selmenu = 0;
+            obj->func = func_80106DEC_selmenu;
+        } else if (D_800D5558_main[i] & 0x10) {
+            if (++D_800A175E_main >= 3) {
+                D_800A175E_main = 0;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106A10_selmenu);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106DEC_selmenu);
 
