@@ -397,6 +397,9 @@ s32 func_800F8980_name_81(s32 playerIndex); // ovl_81 defines it with a void * (
 void func_80110C7C_duel02(void);
 // board da2: functions the other duel02 forks own
 void func_801059D0_duel02(void);
+void *func_80105EB4_duel02(unkStruct04 *arg0);
+void *func_80106744_duel02(s32 arg0);
+void func_801067D8_duel02(Object *arg0, Vec *arg1);
 void func_80106244_duel02(void);
 Process *func_80106264_duel02(Object *arg0, GW_PLAYER *arg1, s32 arg2, f32 arg3);
 Process *func_80106460_duel02(s32 arg0, s32 arg1);
