@@ -146,6 +146,11 @@ void func_80107070_mstory3(omObjData *obj, Vec *rot, s32 frames);
 void func_8010C3F4_mstory3(omObjData *obj);
 extern Vec D_801156D4_mstory3;
 extern Vec D_801156E0_mstory3;
+extern Vec D_80115554_mstory3; /* actor 1's start position */
+extern Vec D_80115C44_mstory3; /* actor 1's position */
+extern char *D_801153A0_mstory3[]; /* actor 1's texture-animation node, by partner */
+void func_8010B634_mstory3(void);
+void func_8010AB54_mstory3(omObjData *obj);
 
 /* actor 0: the player's character */
 void func_8010A23C_mstory3(void) {
@@ -328,12 +333,88 @@ void func_8010AF28_mstory3(omObjData *obj) {
     D_80115BC0_mstory3[0].func = (void (*)(omObjData *))func_80108A94_mstory3;
 }
 
+/* NON_MATCHING: retail branches on i for the model file (bnez with the 0x300A0 load in the delay
+   slot); KMC GCC turns every form tried into a negu/and/or select (masked 14, same count otherwise). */
+#ifdef NON_MATCHING
+/* actor 1: the partner, character 1 when the player is character 0, else character 0 */
+void func_8010B154_mstory3(void) {
+    s16 chrs[2] = { 0, 1 };
+    s32 mots[2] = { 0x3B, 0x44 };
+    omObjData *obj;
+    void *data;
+    s16 i;
+
+    i = D_80115C9C_mstory3 == 0;
+    obj = omAddObj(10, 20, 20, -1, NULL);
+    D_80115BC0_mstory3[1].obj = obj;
+    D_80115BC0_mstory3[1].flags = 0;
+    D_80115BC0_mstory3[1].func = (void (*)(omObjData *))func_80108A94_mstory3;
+    D_80115BC0_mstory3[1].unk0C = 0;
+    D_80115BC0_mstory3[1].unk10 = 0x1F;
+    obj->model[1] = func_8000B108_main(i != 0 ? 0x300A0 : 0x200A0, 0x2A9);
+    obj->model[2] = Hu3DModelLink(D_80115C9A_mstory3);
+    obj->model[3] = func_8000B108_main(0x83, 0x2B9);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_8001C258_main(obj->model[3], 4, 4);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chrs[i], 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chrs[i], 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chrs[i], 2));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chrs[i], 0x13));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chrs[i], 0x72));
+    func_8000B460_main(obj, 5, mots[i] | 0x1D0000);
+    func_8000B460_main(obj, 6, func_80017BB8_main(chrs[i], 0x21));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chrs[i], 0x33));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chrs[i], 0x2F));
+    if (D_80115C9C_mstory3 == 0) {
+        func_8000B460_main(obj, 9, 0x1D0045);
+    }
+    func_8001C5B4_main(obj->model[1], obj->motion[0]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    D_80115C44_mstory3 = D_80115554_mstory3;
+    Hu3DModelPosSet(obj->model[1], D_80115C44_mstory3.x, D_80115C44_mstory3.y, D_80115C44_mstory3.z);
+    Hu3DModelPosSet(obj->model[2], D_80115C44_mstory3.x, D_80115C44_mstory3.y - -5.0f, D_80115C44_mstory3.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, -14.48f, 0.0f);
+    data = DataRead(func_80017BB8_main(chrs[i], 0xA4));
+    D_80115C92_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_801153A0_mstory3[i]);
+    HuMemMemoryFreePerm(data);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80032FC0_main(D_80115C92_mstory3[0], 1, 0);
+    func_80032FF8_main(D_80115C92_mstory3[0], 0);
+    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, D_801153A0_mstory3[i]);
+    data = DataRead(func_80017BB8_main(chrs[i], 0xA9));
+    D_80115C92_mstory3[1] = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, D_801153A0_mstory3[i]);
+    data = DataRead(func_80017BB8_main(chrs[i], 0xAA));
+    D_80115C92_mstory3[2] = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    func_80106CF0_mstory3(obj->model[1], D_80115C98_mstory3, D_80115C92_mstory3[0]);
+    omPrcSetDestructor(0, func_8010B634_mstory3);
+    while (1) {
+        D_80115BC0_mstory3[1].func(obj);
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010B154_mstory3);
+#endif
 
 void func_8010B634_mstory3(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010B63C_mstory3);
+/* actor 1: a turn, then hands actor 0 its next step */
+void func_8010B63C_mstory3(omObjData *obj) {
+    D_80115BC0_mstory3[1].unk0C = 1;
+    D_80115BC0_mstory3[1].unk10 = 0x1F;
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_8010733C_mstory3(obj, 4.5f, 15);
+    D_80115BC0_mstory3[1].unk0C = 0;
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    D_80115BC0_mstory3[1].func = (void (*)(omObjData *))func_80108A94_mstory3;
+    D_80115BC0_mstory3[0].func = func_8010AB54_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010B72C_mstory3);
 
