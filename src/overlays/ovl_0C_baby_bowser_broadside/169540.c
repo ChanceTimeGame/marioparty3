@@ -122,9 +122,17 @@ typedef struct {
 } BbMover;
 
 typedef struct {
-    /* 0x00 */ char unk00[0x40];
+    /* 0x00 */ s8 set;
+    /* 0x02 */ s16 id;
+    /* 0x04 */ s8 state;
+    /* 0x05 */ s8 tag;
+    /* 0x08 */ s32 prio;
+    /* 0x0C */ s8 workS8[16];
+    /* 0x1C */ s16 workS16[8];
+    /* 0x2C */ f32 workF32[4];
+    /* 0x3C */ void *data;
     /* 0x40 */ void (*func)(void *, void *);
-} BbFuncContext;
+} BbFuncContext; // Size 0x44, the system's FuncContext (ovl_39.h layout)
 
 extern u8 D_800D2008_main;
 extern const f64 D_8010FFE8_baby_bowser_broadside; // 32.0
