@@ -682,7 +682,49 @@ void func_8010B064_slot_synch(void) {
 }
 // </func_8010B064_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010B754_slot_synch);
+// <func_8010B754_slot_synch>
+void func_8010B754_slot_synch(omObjData *obj) {
+    f32 t;
+
+    if (D_8010DFEC_slot_synch <= 0) {
+        func_8010BF6C_slot_synch(0);
+        D_8010DFF0_slot_synch = 0;
+        return;
+    }
+    if (D_8010DFE8_slot_synch == 0) {
+        Center.x = D_8010DFA0_slot_synch[0].center.x;
+        Center.y = D_8010DFA0_slot_synch[0].center.y;
+        Center.z = D_8010DFA0_slot_synch[0].center.z;
+        CRot.x = D_8010DFA0_slot_synch[0].rot.x;
+        CRot.y = D_8010DFA0_slot_synch[0].rot.y;
+        CRot.z = D_8010DFA0_slot_synch[0].rot.z;
+        CZoom = D_8010DFA0_slot_synch[0].zoom;
+        SS_WRAP(CRot.x);
+        SS_WRAP(CRot.y);
+        SS_WRAP(CRot.z);
+        D_8010DFEC_slot_synch = 0;
+    } else {
+        t = (f32)D_8010DFE8_slot_synch / (f32)D_8010DFEC_slot_synch;
+        Center.x = func_8010C384_slot_synch(t, D_8010DFA0_slot_synch[0].center.x, D_8010DFA0_slot_synch[1].center.x);
+        Center.y = func_8010C384_slot_synch(t, D_8010DFA0_slot_synch[0].center.y, D_8010DFA0_slot_synch[1].center.y);
+        Center.z = func_8010C384_slot_synch(t, D_8010DFA0_slot_synch[0].center.z, D_8010DFA0_slot_synch[1].center.z);
+        CRot.x = func_8010C39C_slot_synch(t, D_8010DFA0_slot_synch[0].rot.x, D_8010DFA0_slot_synch[1].rot.x);
+        CRot.y = func_8010C39C_slot_synch(t, D_8010DFA0_slot_synch[0].rot.y, D_8010DFA0_slot_synch[1].rot.y);
+        CRot.z = func_8010C39C_slot_synch(t, D_8010DFA0_slot_synch[0].rot.z, D_8010DFA0_slot_synch[1].rot.z);
+        CZoom = func_8010C384_slot_synch(t, D_8010DFA0_slot_synch[0].zoom, D_8010DFA0_slot_synch[1].zoom);
+        SS_WRAP(CRot.x);
+        SS_WRAP(CRot.y);
+        SS_WRAP(CRot.z);
+        if (D_8010DFE8_slot_synch > 0) {
+            D_8010DFE8_slot_synch--;
+        } else {
+            D_8010DFE8_slot_synch++;
+        }
+    }
+    D_8010DFF0_slot_synch = 1;
+    func_8010BF6C_slot_synch(0);
+}
+// </func_8010B754_slot_synch>
 
 // <func_8010BB90_slot_synch>
 void func_8010BB90_slot_synch(s32 idx) {
