@@ -47,6 +47,28 @@ typedef struct SsTeam {
     /* 0x1E */ s16 unk1E; /* CPU: symbol the team aims at */
 } SsTeam; // Size 0x20
 
+/* One reel (D_8010DF7C_slot_synch, 4 x 0x3C): reels 0-1 are team 0's machine, 2-3 team 1's. */
+typedef struct SsReel {
+    /* 0x00 */ s16 unk00; /* model */
+    /* 0x02 */ u8 unk02; /* reel index */
+    /* 0x03 */ u8 unk03; /* reel strip (D_8010D854_slot_synch row) */
+    /* 0x04 */ s8 unk04; /* 0 left, 1 right */
+    /* 0x05 */ u8 unk05; /* face in front, 0..3 */
+    /* 0x06 */ u8 unk06; /* symbol in front */
+    /* 0x07 */ char unk07;
+    /* 0x08 */ s16 unk08; /* symbol to stop on, -1 any */
+    /* 0x0A */ u16 unk0A; /* state timer */
+    /* 0x0C */ s16 unk0C; /* state: 0 idle, 1 speeding up, 2 spinning, 3 dropping, 4/5 broken */
+    /* 0x0E */ char unk0E[2];
+    /* 0x10 */ f32 unk10; /* drop speed */
+    /* 0x14 */ f32 unk14; /* spin speed */
+    /* 0x18 */ f32 unk18; /* spin acceleration */
+    /* 0x1C */ f32 unk1C; /* top spin speed */
+    /* 0x20 */ s32 unk20; /* spin sound, -1 none */
+    /* 0x24 */ Vec unk24; /* position */
+    /* 0x30 */ Vec unk30; /* rotation */
+} SsReel; // Size 0x3C
+
 void func_80105B98_slot_synch(omObjData* obj);
 void func_80105C08_slot_synch(omObjData* obj);
 void func_80106080_slot_synch(omObjData* obj);
@@ -66,6 +88,22 @@ void func_8010AAB8_slot_synch(void);
 void func_8010AF38_slot_synch(void);
 void func_8010C3FC_slot_synch(omObjData* obj, void* data);
 void* func_8010C428_slot_synch(omObjData* obj);
+s16 func_80108A7C_slot_synch(s16 reel);
+s16 func_80108AA8_slot_synch(s16 reel);
+u8 func_80108C88_slot_synch(s16 reel, s16 face);
+void func_801089F8_slot_synch(s16 reel);
+void func_80108CD0_slot_synch(s16 reel);
+void func_8010800C_slot_synch(u8 sym, u8 team);
+s16 func_80109FA4_slot_synch(s16 team, s16 sym);
+s16 func_8010A178_slot_synch(s16 id);
+void func_8010AA9C_slot_synch(s16 team, s16 score);
+f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
+void func_800DDD94_minigame(omObjData* obj);
+s32 func_80017BB8_main(s16, s16);
+extern s8 D_800CBB6E_main[];
+extern s16 D_800CDA7C_main[];
+extern s8 D_800D20A1_main[];
+extern u16 D_800D5558_main[];
 
 void func_8000B5F0_main(u8);
 u8 func_8000B638_main(void);
@@ -83,7 +121,10 @@ extern s32 D_8010D8B4_slot_synch[4];
 extern s16 D_8010D8C4_slot_synch[4][2][2];
 extern s16 D_8010D8E4_slot_synch[4];
 extern s32 D_8010D8EC_slot_synch[8];
-extern s32 D_8010D90C_slot_synch[4];
+extern u8 D_8010D854_slot_synch[2][4];
+extern s32 D_8010D870_slot_synch[8];
+extern s32 D_8010D890_slot_synch[8];
+extern s32 D_8010D90C_slot_synch[3];
 extern omObjData* D_8010DF40_slot_synch;
 extern s32 D_8010DF44_slot_synch;
 extern s32 D_8010DF48_slot_synch;
@@ -94,6 +135,7 @@ extern s32 D_8010DF58_slot_synch;
 extern SsTeam* D_8010DF5C_slot_synch;
 extern SsPlayer* D_8010DF60_slot_synch;
 extern s16 D_8010DF64_slot_synch;
+extern SsReel* D_8010DF7C_slot_synch;
 extern void* D_8010DF8C_slot_synch;
 extern D_80111B50_vine_with_me_Struct D_8010DFF8_slot_synch;
 // end m1 sy1
