@@ -314,6 +314,19 @@ void func_8010E3F0_mstory5(omObjData *a, omObjData *b);
 void func_8010E8C0_mstory5(omObjData *obj);
 void func_8010F14C_mstory5(u32 actor, s32 fx);
 void func_8010F240_mstory5(u32 actor);
+void func_8010E538_mstory5(omObjData *obj);
+extern const Vec D_80114C90_mstory5;
+extern const Vec D_80114C9C_mstory5;
+extern const Vec D_80114CA8_mstory5;
+extern s16 D_80115370_mstory5[]; /* texture animation numbers */
+extern s16 D_80115372_mstory5;
+extern s16 D_8011537A_mstory5;
+extern s16 D_80115380_mstory5;
+extern s16 D_80115384_mstory5;
+extern s16 D_8011538A_mstory5;
+void func_801068E4_mstory5(s16 model, s16 anim, s16 frame);
+void func_80106B48_mstory5(omObjData *obj, Vec *to, s32 frames);
+void func_80017954_main(s16, s16, s16, s16);
 
 /* actor 7 swaps its model 1 for model 5, which takes model 1's place */
 void func_8010CFE4_mstory5(void) {
@@ -749,17 +762,115 @@ void func_8010E870_mstory5(omObjData *obj) {
     D_801151F0_mstory5[7].func = (void (*)(omObjData *))func_801085D8_mstory5;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010E8C0_mstory5);
+/* actor 0 turns to actor 3 and walks to it; both play their reactions */
+void func_8010E8C0_mstory5(omObjData *arg0) {
+    omObjData *obj = D_801151F0_mstory5[0].obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010EA34_mstory5);
+    func_8010E3F0_mstory5(obj, D_801151F0_mstory5[3].obj);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[3]].unk02, 0, 30, 2);
+    func_8010F14C_mstory5(0, 0x1F);
+    func_8010734C_mstory5(obj, 3.5f, 15);
+    func_8010F240_mstory5(0);
+    func_80017954_main(obj->model[1], 2, GwStory.unk1, D_80115384_mstory5);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[11]].unk02, 0, 30, 2);
+    func_80017954_main(D_801151F0_mstory5[3].obj->model[1], 2, 7, D_8011538A_mstory5);
+    func_8001C624_main(D_801151F0_mstory5[3].obj->model[1], HmfModelData[D_801151F0_mstory5[3].obj->motion[11]].unk02, 0, 30, 2);
+    D_801152C8_mstory5[1].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010EBCC_mstory5);
+/* obj hops 13 frames, then turns */
+void func_8010EA34_mstory5(omObjData *obj) {
+    s16 model;
+    Vec pos;
+    Vec rot;
+    s16 i;
+    f32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010EDFC_mstory5);
+    i = 0;
+    model = obj->model[1];
+    rot = D_80114C90_mstory5;
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
+    func_801068E4_mstory5(model, D_80115380_mstory5, D_8011537A_mstory5);
+    i = 0;
+    do {
+        y = sindf(i * 12.000001f) * 80.0f;
+        HmfModelData[model].pos.y = y + pos.y;
+        HuPrcVSleep();
+        i++;
+    } while (i < 13);
+    HuPrcSleep(10);
+    func_80107080_mstory5(obj, &rot, 5);
+    func_801068E4_mstory5(model, D_80115380_mstory5, D_80115372_mstory5);
+    D_801151F0_mstory5[1].unk08 |= 2;
+    D_801151F0_mstory5[1].func = func_8010E538_mstory5;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F02C_mstory5);
+/* actor 0 brings out model 4 and steps toward the camera */
+void func_8010EBCC_mstory5(omObjData *arg0) {
+    Vec rot;
+    Vec to;
+    omObjData *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F0B8_mstory5);
+    rot = D_80114C9C_mstory5;
+    obj = D_801151F0_mstory5[0].obj;
+    to.x = HmfModelData[obj->model[1]].pos.x - 5.0f;
+    to.y = HmfModelData[obj->model[1]].pos.y;
+    to.z = 500.0f;
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[4], HmfModelData[obj->model[1]].pos.x, HmfModelData[obj->model[1]].pos.y, HmfModelData[obj->model[1]].pos.z);
+    func_8001C6A8_main(obj->model[4], 0.0f);
+    func_8001C258_main(obj->model[4], 4, 0);
+    func_80017954_main(obj->model[1], 2, GwStory.unk1, D_80115370_mstory5[12]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[4]].unk02, 0, 30, 0);
+    func_80106B48_mstory5(obj, &to, 10);
+    func_80107254_mstory5(obj->model[1]);
+    func_80017954_main(obj->model[1], 2, GwStory.unk1, D_80115370_mstory5[9]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+    func_80107080_mstory5(obj, &rot, 10);
+    D_801152C8_mstory5[1].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
+
+/* actor 3 brings out model 3 and steps toward the camera */
+void func_8010EDFC_mstory5(omObjData *obj) {
+    Vec rot;
+    Vec to;
+    Vec pos;
+
+    rot = D_80114CA8_mstory5;
+    pos.x = HmfModelData[obj->model[1]].pos.x + 5.0f;
+    pos.y = HmfModelData[obj->model[1]].pos.y;
+    pos.z = 500.0f;
+    to = pos;
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[3], HmfModelData[obj->model[1]].pos.x, HmfModelData[obj->model[1]].pos.y, HmfModelData[obj->model[1]].pos.z);
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_80017954_main(obj->model[1], 2, 7, D_80115370_mstory5[16]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[14]].unk02, 0, 30, 0);
+    func_80106B48_mstory5(obj, &to, 10);
+    func_80107254_mstory5(obj->model[1]);
+    func_80017954_main(obj->model[1], 2, 7, D_80115370_mstory5[13]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+    func_80107080_mstory5(obj, &rot, 10);
+    D_801151F0_mstory5[3].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
+
+void func_8010F02C_mstory5(omObjData *arg0) {
+    omObjData *obj = D_801151F0_mstory5[0].obj;
+
+    func_80107228_mstory5(obj, 0.0f, 0.0f, 0.0f, 10);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[8]].unk02, 0, 10, 0);
+    D_801152C8_mstory5[1].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
+
+void func_8010F0B8_mstory5(omObjData *arg0) {
+    omObjData *obj = D_801151F0_mstory5[3].obj;
+
+    func_80107228_mstory5(obj, 0.0f, 0.0f, 0.0f, 10);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[13]].unk02, 0, 10, 0);
+    D_801151F0_mstory5[3].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_80114C44_mstory5);
 
