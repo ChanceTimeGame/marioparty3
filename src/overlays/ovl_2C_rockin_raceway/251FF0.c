@@ -630,7 +630,6 @@ void func_8010E2E4_rockin_raceway(void) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Queues sound fx to play after delay ticks; returns its slot, -1 if all 16 are busy. */
 s32 func_8010E344_rockin_raceway(s16 fx, s16 delay, s16 kind, s16 arg) {
     RRSe* se = D_80111BD0_rockin_raceway;
@@ -641,18 +640,15 @@ s32 func_8010E344_rockin_raceway(s16 fx, s16 delay, s16 kind, s16 arg) {
             break;
         }
     }
-    if (i < 16) {
-        se->fx = fx;
-        se->delay = delay;
-        se->kind = kind;
-        se->arg = arg;
-        return i;
+    if (i >= 16) {
+        return -1;
     }
-    return -1;
+    se->fx = fx;
+    se->delay = delay;
+    se->kind = kind;
+    se->arg = arg;
+    return i;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E344_rockin_raceway);
-#endif
 
 void func_8010E39C_rockin_raceway(void) {
     RRSe* se = D_80111BD0_rockin_raceway;
