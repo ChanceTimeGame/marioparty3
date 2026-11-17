@@ -1,5 +1,6 @@
 #include "common.h"
 #include "mallocblock.h"
+#include "math.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801059A0_slot_synch);
 
@@ -299,7 +300,53 @@ void func_8010A480_slot_synch(s16 idx, s16 file0, s16 file1, s16 target) {
 }
 // </func_8010A480_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010A7D0_slot_synch);
+// <func_8010A7D0_slot_synch>
+void func_8010A7D0_slot_synch(omObjData *obj) {
+    SsCounter *counter = D_8010DF90_slot_synch;
+    u16 digit[2];
+    f32 scale;
+    s32 i;
+
+    for (i = 0; i < 2; i++, counter++) {
+        digit[0] = counter->value / 10;
+        digit[1] = counter->value - digit[0] * 10;
+        if (digit[0] >= 10) {
+            digit[0] = 9;
+        }
+        if (digit[1] >= 10) {
+            digit[1] = 9;
+        }
+        func_80054FF8_main(counter->grp, 0, (s16)digit[0]);
+        func_80054FF8_main(counter->grp, 1, (s16)digit[1]);
+        if (counter->value != counter->target && counter->timer == 0) {
+            counter->timer = 15;
+            if (counter->value < counter->target) {
+                counter->value++;
+            } else {
+                counter->value--;
+            }
+            HuSprAttrSet(counter->grp, 0, 0x838);
+            HuSprAttrSet(counter->grp, 1, 0x838);
+            if (counter->value >= 10) {
+                HuSprAttrReset(counter->grp, 0, 0x8000);
+            } else {
+                HuSprAttrSet(counter->grp, 0, 0x8000);
+            }
+        }
+        scale = sindf(counter->timer / 15.0f * 180.0f) * 0.5f + 1.0f;
+        func_80054904_main(counter->grp, 0, counter->x + counter->unk6[0] * scale, counter->y);
+        func_80054904_main(counter->grp, 1, counter->x + counter->unk6[1] * scale, counter->y);
+        HuSprScaleSet(counter->grp, 0, scale, scale);
+        HuSprScaleSet(counter->grp, 1, scale, scale);
+        if (counter->timer != 0) {
+            if (--counter->timer == 0) {
+                HuSprAttrReset(counter->grp, 0, 0x838);
+                HuSprAttrReset(counter->grp, 1, 0x838);
+            }
+        }
+    }
+}
+// </func_8010A7D0_slot_synch>
 
 // <func_8010AA9C_slot_synch>
 void func_8010AA9C_slot_synch(s16 idx, s16 target) {
