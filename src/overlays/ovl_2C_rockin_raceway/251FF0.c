@@ -219,6 +219,30 @@ extern s16 D_80111C2C_rockin_raceway;
 extern s16 D_80111C2E_rockin_raceway;
 void func_8010C0D8_rockin_raceway(omObjData *obj);
 void func_8010C5E0_rockin_raceway(s32 idx);
+#define RR_WRAP(v)          \
+    if ((v) >= 360.0) {     \
+        (v) -= 360.0;       \
+    } else if ((v) < 0.0) { \
+        (v) += 360.0;       \
+    }
+
+extern RrCamera D_80111BE0_rockin_raceway[2]; /* [0] target, [1] start */
+f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b);
+void func_8010D134_rockin_raceway(s32 idx);
+/* a camera focus point (D_80111C4C, 16 of them) */
+typedef struct RrFocus {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ f32 weight;
+} RrFocus; /* size 0x10 */
+
+extern omObjData *D_80111C30_rockin_raceway;
+extern s16 D_80111C34_rockin_raceway; /* focus point count */
+extern Vec D_80111C38_rockin_raceway; /* focus centre */
+extern f32 D_80111C44_rockin_raceway; /* summed weight */
+extern f32 D_80111C48_rockin_raceway; /* target zoom */
+extern RrFocus *D_80111C4C_rockin_raceway;
+void func_8010CE90_rockin_raceway(omObjData *obj);
+void func_8010CADC_rockin_raceway(Vec *pos, f32 weight);
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -958,31 +982,236 @@ void func_8010B89C_rockin_raceway(void) {
 }
 /* rr2 end func_8010B89C_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C0D8_rockin_raceway);
+/* rr2 func_8010C0D8_rockin_raceway */
+void func_8010C0D8_rockin_raceway(omObjData *obj) {
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C5E0_rockin_raceway);
+    if (D_80111C2A_rockin_raceway <= 0) {
+        func_8010D134_rockin_raceway(0);
+        D_80111C2C_rockin_raceway = 0;
+        return;
+    }
+    if (D_80111C28_rockin_raceway == 0) {
+        Center.x = D_80111BE0_rockin_raceway[0].center.x;
+        Center.y = D_80111BE0_rockin_raceway[0].center.y;
+        Center.z = D_80111BE0_rockin_raceway[0].center.z;
+        CRot.x = D_80111BE0_rockin_raceway[0].rot.x;
+        CRot.y = D_80111BE0_rockin_raceway[0].rot.y;
+        CRot.z = D_80111BE0_rockin_raceway[0].rot.z;
+        CZoom = D_80111BE0_rockin_raceway[0].zoom;
+        RR_WRAP(CRot.x);
+        RR_WRAP(CRot.y);
+        RR_WRAP(CRot.z);
+        D_80111C2A_rockin_raceway = 0;
+    } else {
+        switch (D_80111C2E_rockin_raceway) {
+        case 0:
+            t = (f32)D_80111C28_rockin_raceway / (f32)D_80111C2A_rockin_raceway;
+            break;
+        case 1:
+            t = (f32)D_80111C28_rockin_raceway / (f32)D_80111C2A_rockin_raceway;
+            t = sindf(t * 90.0f);
+            break;
+        default:
+            t = (f32)D_80111C28_rockin_raceway / (f32)D_80111C2A_rockin_raceway;
+            t = sindf(t * 90.0f);
+            t = t * t;
+            break;
+        }
+        Center.x = func_8010E7C8_rockin_raceway(t, D_80111BE0_rockin_raceway[0].center.x, D_80111BE0_rockin_raceway[1].center.x);
+        Center.y = func_8010E7C8_rockin_raceway(t, D_80111BE0_rockin_raceway[0].center.y, D_80111BE0_rockin_raceway[1].center.y);
+        Center.z = func_8010E7C8_rockin_raceway(t, D_80111BE0_rockin_raceway[0].center.z, D_80111BE0_rockin_raceway[1].center.z);
+        CRot.x = func_8010E7E0_rockin_raceway(t, D_80111BE0_rockin_raceway[0].rot.x, D_80111BE0_rockin_raceway[1].rot.x);
+        CRot.y = func_8010E7E0_rockin_raceway(t, D_80111BE0_rockin_raceway[0].rot.y, D_80111BE0_rockin_raceway[1].rot.y);
+        CRot.z = func_8010E7E0_rockin_raceway(t, D_80111BE0_rockin_raceway[0].rot.z, D_80111BE0_rockin_raceway[1].rot.z);
+        CZoom = func_8010E7C8_rockin_raceway(t, D_80111BE0_rockin_raceway[0].zoom, D_80111BE0_rockin_raceway[1].zoom);
+        RR_WRAP(CRot.x);
+        RR_WRAP(CRot.y);
+        RR_WRAP(CRot.z);
+        if (D_80111C28_rockin_raceway > 0) {
+            D_80111C28_rockin_raceway--;
+        } else {
+            D_80111C28_rockin_raceway++;
+        }
+    }
+    D_80111C2C_rockin_raceway = 1;
+    func_8010D134_rockin_raceway(0);
+}
+/* rr2 end func_8010C0D8_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C7CC_rockin_raceway);
+/* rr2 func_8010C5E0_rockin_raceway */
+void func_8010C5E0_rockin_raceway(s32 idx) {
+    RR_WRAP(CRot.x);
+    RR_WRAP(CRot.y);
+    RR_WRAP(CRot.z);
+    D_80111BE0_rockin_raceway[idx].center.x = Center.x;
+    D_80111BE0_rockin_raceway[idx].center.y = Center.y;
+    D_80111BE0_rockin_raceway[idx].center.z = Center.z;
+    D_80111BE0_rockin_raceway[idx].rot.x = CRot.x;
+    D_80111BE0_rockin_raceway[idx].rot.y = CRot.y;
+    D_80111BE0_rockin_raceway[idx].rot.z = CRot.z;
+    D_80111BE0_rockin_raceway[idx].zoom = CZoom;
+    D_80111BE0_rockin_raceway[idx].unk1C = D_80111BE0_rockin_raceway[idx].unk20 = 0.0f;
+}
+/* rr2 end func_8010C5E0_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C9BC_rockin_raceway);
+/* rr2 func_8010C7CC_rockin_raceway */
+void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
+    if (frames > 0) {
+        D_80111C28_rockin_raceway = frames - 1;
+        D_80111C2A_rockin_raceway = frames;
+        if (cx != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].center.x = cx;
+        } else {
+            D_80111BE0_rockin_raceway[0].center.x = Center.x;
+        }
+        if (cy != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].center.y = cy;
+        } else {
+            D_80111BE0_rockin_raceway[0].center.y = Center.y;
+        }
+        if (cz != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].center.z = cz;
+        } else {
+            D_80111BE0_rockin_raceway[0].center.z = Center.z;
+        }
+        if (rx != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].rot.x = rx;
+        } else {
+            D_80111BE0_rockin_raceway[0].rot.x = CRot.x;
+        }
+        if (ry != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].rot.y = ry;
+        } else {
+            D_80111BE0_rockin_raceway[0].rot.y = CRot.y;
+        }
+        if (rz != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].rot.z = rz;
+        } else {
+            D_80111BE0_rockin_raceway[0].rot.z = CRot.z;
+        }
+        if (zoom != 65535.0f) {
+            D_80111BE0_rockin_raceway[0].zoom = zoom;
+        } else {
+            D_80111BE0_rockin_raceway[0].zoom = CZoom;
+        }
+        func_8010C5E0_rockin_raceway(1);
+    }
+}
+/* rr2 end func_8010C7CC_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C9CC_rockin_raceway);
+/* rr2 func_8010C9BC_rockin_raceway */
+void func_8010C9BC_rockin_raceway(void) {
+    D_80111BD8_rockin_raceway->func = NULL;
+}
+/* rr2 end func_8010C9BC_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CA1C_rockin_raceway);
+/* rr2 func_8010C9CC_rockin_raceway */
+void func_8010C9CC_rockin_raceway(void) {
+    func_8010C5E0_rockin_raceway(0);
+    func_8010C5E0_rockin_raceway(1);
+    D_80111C2C_rockin_raceway = 0;
+    D_80111C2A_rockin_raceway = 0;
+    D_80111C28_rockin_raceway = 0;
+    D_80111BD8_rockin_raceway->func = func_8010C0D8_rockin_raceway;
+}
+/* rr2 end func_8010C9CC_rockin_raceway */
 
+/* rr2 func_8010CA1C_rockin_raceway */
+void func_8010CA1C_rockin_raceway(void) {
+    HuCamera *cam;
+    s32 i;
+
+    D_80111C34_rockin_raceway = 0;
+    D_80111C4C_rockin_raceway = HuMemAllocTag(16 * sizeof(RrFocus), 0x7918);
+    D_80111C30_rockin_raceway = omAddObj(31, 0, 0, -1, func_8010CE90_rockin_raceway);
+    cam = gCameraList;
+    for (i = 1; i < D_800D1FF0_main; i++) {
+        cam->viewports[i].vp.vscale[0] = cam->viewports[0].vp.vscale[0];
+        cam->viewports[i].vp.vscale[1] = cam->viewports[0].vp.vscale[1];
+        cam->viewports[i].vp.vscale[2] = cam->viewports[0].vp.vscale[2];
+        cam->viewports[i].vp.vtrans[0] = cam->viewports[0].vp.vtrans[0];
+        cam->viewports[i].vp.vtrans[1] = cam->viewports[0].vp.vtrans[1];
+        cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
+    }
+}
+/* rr2 end func_8010CA1C_rockin_raceway */
+
+/* rr2 func_8010CADC_rockin_raceway */
+#ifdef NON_MATCHING
+void func_8010CADC_rockin_raceway(Vec *pos, f32 weight) {
+    RrFocus *focus;
+
+    if (D_80111C30_rockin_raceway != NULL && D_80111C34_rockin_raceway < 16) {
+        D_80111C4C_rockin_raceway[D_80111C34_rockin_raceway].pos.x = pos->x;
+        focus = &D_80111C4C_rockin_raceway[D_80111C34_rockin_raceway];
+        focus->pos.y = pos->y;
+        focus->pos.z = pos->z;
+        focus->weight = weight;
+        D_80111C34_rockin_raceway++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CADC_rockin_raceway);
+#endif
+/* rr2 end func_8010CADC_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CB5C_rockin_raceway);
+/* rr2 func_8010CB5C_rockin_raceway */
+void func_8010CB5C_rockin_raceway(RrKart *kart, f32 weight) {
+    Vec pos;
+
+    pos.x = kart->unk58.x + 100.0;
+    pos.y = kart->unk58.y + 100.0;
+    pos.z = kart->unk58.z;
+    func_8010CADC_rockin_raceway(&pos, weight);
+    pos.x = kart->unk58.x - 100.0;
+    pos.y = kart->unk58.y - 100.0;
+    pos.z = kart->unk58.z;
+    func_8010CADC_rockin_raceway(&pos, weight);
+}
+/* rr2 end func_8010CB5C_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CC10_rockin_raceway);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010CE90_rockin_raceway);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D104_rockin_raceway);
+/* rr2 func_8010D104_rockin_raceway */
+void func_8010D104_rockin_raceway(void) {
+    D_80111C30_rockin_raceway->func = NULL;
+}
+/* rr2 end func_8010D104_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D114_rockin_raceway);
+/* rr2 func_8010D114_rockin_raceway */
+void func_8010D114_rockin_raceway(void) {
+    D_80111C34_rockin_raceway = 0;
+    D_80111C30_rockin_raceway->func = func_8010CE90_rockin_raceway;
+}
+/* rr2 end func_8010D114_rockin_raceway */
 
+/* rr2 func_8010D134_rockin_raceway */
+#ifdef NON_MATCHING
+void func_8010D134_rockin_raceway(s32 idx) {
+    HuCamera *cam;
+    f32 rx;
+    f32 ry;
+
+    cam = &gCameraList[idx];
+    rx = CRot.x;
+    ry = CRot.y;
+    cam->pos.x = Center.x + sindf(ry) * cosdf(rx) * CZoom;
+    cam->pos.y = -sindf(rx) * CZoom + Center.y;
+    cam->pos.z = cosdf(ry) * cosdf(rx) * CZoom + Center.z;
+    cam->at.x = Center.x;
+    cam->at.y = Center.y;
+    cam->at.z = Center.z;
+    cam->up.x = sindf(ry) * sindf(rx);
+    cam->up.y = cosdf(rx);
+    cam->up.z = cosdf(ry) * sindf(rx);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D134_rockin_raceway);
+#endif
+/* rr2 end func_8010D134_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D288_rockin_raceway);
 
