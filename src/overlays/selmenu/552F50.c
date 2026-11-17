@@ -349,7 +349,183 @@ void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y,
     Center.z = z;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80105FC8_selmenu);
+/* Per-pad menu input: D_8010A270 gets 1 up, 2 down, 4 left, 8 right (pressed, stick flicked, or held with repeat),
+   0x10 A, 0x20 B, 0x40 Z, 0x80 Start. L+R returns to the previous overlay. */
+void func_80105FC8_selmenu(omObjData *obj) {
+    s32 i;
+    s8 x;
+    s8 y;
+    s32 last;
+
+    for (i = 0; i < 4; i++) {
+        D_8010A270_selmenu[i] = 0;
+        if (CheckControllerRead(i) == 0) {
+            continue;
+        }
+        if (WipeStatGet() == 1) {
+            continue;
+        }
+        x = D_800CBB6E_main[i];
+        y = D_800D20A1_main[i];
+        if (D_800D5558_main[i] & 0x808) {
+            D_8010A270_selmenu[i] |= 1;
+        }
+        if (D_800D5558_main[i] & 0x404) {
+            D_8010A270_selmenu[i] |= 2;
+        }
+        if (D_800D5558_main[i] & 0x202) {
+            D_8010A270_selmenu[i] |= 4;
+        }
+        if (D_800D5558_main[i] & 0x101) {
+            D_8010A270_selmenu[i] |= 8;
+        }
+        if (y < -10) {
+            last = D_8010A1FC_selmenu[i];
+            if (last < 0) {
+                last = -last;
+            }
+            if (last < 10) {
+                D_8010A270_selmenu[i] |= 2;
+            }
+        }
+        if (y > 10) {
+            last = D_8010A1FC_selmenu[i];
+            if (last < 0) {
+                last = -last;
+            }
+            if (last < 10) {
+                D_8010A270_selmenu[i] |= 1;
+            }
+        }
+        if (x < -10) {
+            last = D_8010A1F8_selmenu[i];
+            if (last < 0) {
+                last = -last;
+            }
+            if (last < 10) {
+                D_8010A270_selmenu[i] |= 4;
+            }
+        }
+        if (x > 10) {
+            last = D_8010A1F8_selmenu[i];
+            if (last < 0) {
+                last = -last;
+            }
+            if (last < 10) {
+                D_8010A270_selmenu[i] |= 8;
+            }
+        }
+        D_8010A1F8_selmenu[i] = x;
+        D_8010A1FC_selmenu[i] = y;
+        if (D_800D5558_main[i] & 0x2000) {
+            D_8010A270_selmenu[i] |= 0x40;
+        }
+        if (((D_800CDA7C_main[i] & 0x808) != 0) | (y > 10)) {
+            if (D_8010A274_selmenu[i] & 1) {
+                D_8010A27C_selmenu[i]++;
+                if (D_8010A27C_selmenu[i] >= 16) {
+                    D_8010A27C_selmenu[i] = 15;
+                }
+            } else {
+                D_8010A27C_selmenu[i] = 0;
+            }
+            if (D_8010A274_selmenu[i] != 1) {
+                D_8010A284_selmenu[i] = 0;
+                D_8010A27C_selmenu[i] = 0;
+            }
+            D_8010A274_selmenu[i] = 1;
+            if (D_8010A27C_selmenu[i] == 15) {
+                if (D_8010A284_selmenu[i] == 0) {
+                    D_8010A270_selmenu[i] |= 1;
+                    D_8010A284_selmenu[i] = 2;
+                } else {
+                    D_8010A284_selmenu[i]--;
+                }
+            }
+        } else if (((D_800CDA7C_main[i] & 0x404) != 0) | (y < -10)) {
+            if (D_8010A274_selmenu[i] & 2) {
+                D_8010A27C_selmenu[i]++;
+                if (D_8010A27C_selmenu[i] >= 16) {
+                    D_8010A27C_selmenu[i] = 15;
+                }
+            } else {
+                D_8010A27C_selmenu[i] = 0;
+            }
+            if (D_8010A274_selmenu[i] != 2) {
+                D_8010A284_selmenu[i] = 0;
+                D_8010A27C_selmenu[i] = 0;
+            }
+            D_8010A274_selmenu[i] = 2;
+            if (D_8010A27C_selmenu[i] == 15) {
+                if (D_8010A284_selmenu[i] == 0) {
+                    D_8010A270_selmenu[i] |= 2;
+                    D_8010A284_selmenu[i] = 2;
+                } else {
+                    D_8010A284_selmenu[i]--;
+                }
+            }
+        } else if (((D_800CDA7C_main[i] & 0x202) != 0) | (x < -10)) {
+            if (D_8010A274_selmenu[i] & 4) {
+                D_8010A27C_selmenu[i]++;
+                if (D_8010A27C_selmenu[i] >= 16) {
+                    D_8010A27C_selmenu[i] = 15;
+                }
+            } else {
+                D_8010A27C_selmenu[i] = 0;
+            }
+            if (D_8010A274_selmenu[i] != 4) {
+                D_8010A284_selmenu[i] = 0;
+                D_8010A27C_selmenu[i] = 0;
+            }
+            D_8010A274_selmenu[i] = 4;
+            if (D_8010A27C_selmenu[i] == 15) {
+                if (D_8010A284_selmenu[i] == 0) {
+                    D_8010A270_selmenu[i] |= 4;
+                    D_8010A284_selmenu[i] = 2;
+                } else {
+                    D_8010A284_selmenu[i]--;
+                }
+            }
+        } else if (((D_800CDA7C_main[i] & 0x101) != 0) | (x > 10)) {
+            if (D_8010A274_selmenu[i] & 8) {
+                D_8010A27C_selmenu[i]++;
+                if (D_8010A27C_selmenu[i] >= 16) {
+                    D_8010A27C_selmenu[i] = 15;
+                }
+            } else {
+                D_8010A27C_selmenu[i] = 0;
+            }
+            if (D_8010A274_selmenu[i] != 8) {
+                D_8010A284_selmenu[i] = 0;
+                D_8010A27C_selmenu[i] = 0;
+            }
+            D_8010A274_selmenu[i] = 8;
+            if (D_8010A27C_selmenu[i] == 15) {
+                if (D_8010A284_selmenu[i] == 0) {
+                    D_8010A270_selmenu[i] |= 8;
+                    D_8010A284_selmenu[i] = 2;
+                } else {
+                    D_8010A284_selmenu[i]--;
+                }
+            }
+        } else {
+            D_8010A27C_selmenu[i] = 0;
+        }
+        if (D_800D5558_main[i] & 0x8000) {
+            D_8010A270_selmenu[i] |= 0x10;
+        }
+        if (D_800D5558_main[i] & 0x4000) {
+            D_8010A270_selmenu[i] |= 0x20;
+        }
+        if (D_800D5558_main[i] & 0x1000) {
+            D_8010A270_selmenu[i] |= 0x80;
+        }
+        if ((D_800CDA7C_main[i] & 0x30) == 0x30) {
+            omOvlReturnEx(0);
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106770_selmenu);
 
