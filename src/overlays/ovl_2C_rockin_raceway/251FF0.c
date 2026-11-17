@@ -285,50 +285,162 @@ extern s32 fontcolor;
 extern Vec CRot;
 extern RrGameMes gMesData[];
 
-// rockin_raceway .data
-extern Vec* D_801112A0_rockin_raceway[4];
-extern s32 D_801112B0_rockin_raceway[4]; /* label D_801112B2 + 2: the u16 load reads its low half */
-extern s32 D_801112C0_rockin_raceway[4]; /* last node per lane */
-extern RrNodeView D_801112D2_rockin_raceway[];
-extern f32 D_801112E0_rockin_raceway[];
-extern f32 D_801112F0_rockin_raceway[];
-extern f32 D_80111300_rockin_raceway[];
-extern f32 D_80111304_rockin_raceway[];
-extern s32 D_80111320_rockin_raceway[];
-extern s16 D_80111330_rockin_raceway[4][2];
-extern s16 D_80111340_rockin_raceway[8];
-extern RrCamPreset D_80111350_rockin_raceway;
-extern RrCamPreset D_8011136C_rockin_raceway;
-extern RrCamPreset D_80111388_rockin_raceway;
-extern RrCamPreset D_801113A4_rockin_raceway;
-extern RrCamPreset D_801113C0_rockin_raceway;
-extern RrCamPreset D_801113DC_rockin_raceway;
-extern RrCamPreset D_801113F8_rockin_raceway;
-extern f32 D_80111410_rockin_raceway; /* D_801113F8.zoom */
-extern Vec D_80111414_rockin_raceway[4];
-extern Vec D_80111444_rockin_raceway[12];
-extern RRColor D_801114D4_rockin_raceway;
-extern Vtx D_801114D8_rockin_raceway[];
-extern Vtx D_80111518_rockin_raceway[];
-extern u32 D_80111558_rockin_raceway;
-extern s32 D_8011155C_rockin_raceway;
-extern s16 D_8011155E_rockin_raceway;
-extern u16 D_80111562_rockin_raceway[][2];
-extern s32 D_80111570_rockin_raceway[];
-extern u16 D_80111580_rockin_raceway[];
-extern u32 D_80111590_rockin_raceway[];
-extern s32 D_8011159C_rockin_raceway[];
-extern s32 D_801115AC_rockin_raceway[2]; /* inside D_8011159C's label: best times? */
-extern RRColor D_801115B4_rockin_raceway;
-extern s32 D_801115B8_rockin_raceway[];
-extern s32 D_801115D8_rockin_raceway[6]; /* digit sprite members */
-extern s32 D_801115F0_rockin_raceway; /* camera debug mode */
-extern s32 D_801115F4_rockin_raceway; /* debug text x */
-extern s32 D_801115F8_rockin_raceway; /* debug text y */
-extern s32 D_801115FC_rockin_raceway;
-extern Gfx D_801116F0_rockin_raceway[];
-extern RRColor D_80111730_rockin_raceway;
-extern RRColor D_80111734_rockin_raceway;
+// rockin_raceway .data (0x80110EE0, 0x860 bytes)
+
+/* the four racing lines' points (D_801112A0) */
+Vec D_80110EE0_rockin_raceway[20] = {
+    { 704.785f, 0.0f, -699.55f }, { 201.485f, 0.0f, -705.05f }, { -294.435f, 0.0f, -705.05f },
+    { -801.855f, 0.0f, -710.0f }, { -986.52f, 0.0f, -629.3f }, { -1153.55f, 0.0f, -519.15f },
+    { -1278.255f, 0.0f, -365.4f }, { -1350.875f, 0.0f, -188.65f }, { -1376.325f, 0.0f, 1.4f },
+    { -1353.34f, 0.0f, 186.6f }, { -1275.89f, 0.0f, 363.35f }, { -1152.43f, 0.0f, 513.45f },
+    { -989.035f, 0.0f, 632.1f }, { -800.13f, 0.0f, 698.7f }, { -308.055f, 0.0f, 699.75f },
+    { 299.445f, 0.0f, 699.75f }, { 787.435f, 0.0f, 704.75f }, { 980.315f, 0.0f, 633.85f },
+    { 1143.355f, 0.0f, 515.55f }, { 1268.58f, 0.0f, 364.75f },
+};
+Vec D_80110FD0_rockin_raceway[20] = {
+    { 698.385f, 0.0f, -607.55f }, { 202.65f, 0.0f, -613.3f }, { -292.17f, 0.0f, -624.85f },
+    { -777.295f, 0.0f, -619.1f }, { -937.375f, 0.0f, -547.5f }, { -1076.53f, 0.0f, -442.5f },
+    { -1183.765f, 0.0f, -312.4f }, { -1254.48f, 0.0f, -161.75f }, { -1275.04f, 0.0f, -6.5f },
+    { -1249.91f, 0.0f, 162.4f }, { -1183.76f, 0.0f, 315.35f }, { -1081.105f, 0.0f, 445.45f },
+    { -937.39f, 0.0f, 548.2f }, { -773.115f, 0.0f, 609.8f }, { -305.52f, 0.0f, 611.15f },
+    { 301.515f, 0.0f, 616.5f }, { 765.37f, 0.0f, 610.85f }, { 932.645f, 0.0f, 550.75f },
+    { 1069.645f, 0.0f, 447.45f }, { 1180.59f, 0.0f, 316.0f },
+};
+Vec D_801110C0_rockin_raceway[20] = {
+    { 699.23f, 0.0f, -517.35f }, { 203.075f, 0.0f, -525.15f }, { -299.32f, 0.0f, -530.1f },
+    { -748.01f, 0.0f, -515.15f }, { -882.0f, 0.0f, -463.1f }, { -1005.37f, 0.0f, -380.85f },
+    { -1095.59f, 0.0f, -266.7f }, { -1148.435f, 0.0f, -138.95f }, { -1172.27f, 0.0f, 0.65f },
+    { -1155.245f, 0.0f, 135.25f }, { -1095.645f, 0.0f, 268.1f }, { -1003.655f, 0.0f, 377.15f },
+    { -886.2f, 0.0f, 465.7f }, { -748.21f, 0.0f, 520.25f }, { -297.04f, 0.0f, 523.75f },
+    { 295.995f, 0.0f, 519.85f }, { 740.775f, 0.0f, 523.75f }, { 877.835f, 0.0f, 464.55f },
+    { 992.225f, 0.0f, 376.9f }, { 1088.745f, 0.0f, 269.6f },
+};
+Vec D_801111B0_rockin_raceway[20] = {
+    { 701.125f, 0.0f, -421.1f }, { 202.54f, 0.0f, -419.7f }, { -303.185f, 0.0f, -424.85f },
+    { -716.595f, 0.0f, -419.3f }, { -833.05f, 0.0f, -380.45f }, { -931.415f, 0.0f, -309.8f },
+    { -1004.03f, 0.0f, -220.2f }, { -1050.36f, 0.0f, -113.6f }, { -1067.345f, 0.0f, -0.8f },
+    { -1051.89f, 0.0f, 113.5f }, { -1007.115f, 0.0f, 218.55f }, { -931.46f, 0.0f, 309.75f },
+    { -835.715f, 0.0f, 377.7f }, { -719.915f, 0.0f, 428.7f }, { -303.6f, 0.0f, 429.95f },
+    { 302.365f, 0.0f, 429.95f }, { 711.44f, 0.0f, 429.95f }, { 826.63f, 0.0f, 385.3f },
+    { 925.47f, 0.0f, 314.3f }, { 1000.045f, 0.0f, 220.2f },
+};
+Vec* D_801112A0_rockin_raceway[4] = {
+    D_80110EE0_rockin_raceway,
+    D_80110FD0_rockin_raceway,
+    D_801110C0_rockin_raceway,
+    D_801111B0_rockin_raceway,
+};
+s32 D_801112B0_rockin_raceway[4] = { 20, 20, 20, 20 }; /* point count per line; label D_801112B2 = low halves */
+s32 D_801112C0_rockin_raceway[4] = { 15, 15, 15, 15 }; /* last node per lane */
+u16 D_801112D0_rockin_raceway[4][2] = { { 8, 14 }, { 8, 14 }, { 8, 14 }, { 8, 14 } }; /* D_801112D2 = D_801112D0 + 2 */
+f32 D_801112E0_rockin_raceway[4] = { 1.0f, 1.1f, 1.2f, 1.4f };
+f32 D_801112F0_rockin_raceway[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+/* CPU speed thresholds, a pair per difficulty */
+f32 D_80111300_rockin_raceway[8] = { 0.6f, 0.7f, 0.7f, 0.8f, 0.8f, 0.9f, 0.9f, 0.99f };
+s32 D_80111320_rockin_raceway[4] = { 5, 4, 3, 2 };
+s16 D_80111330_rockin_raceway[4][2] = { { 30, 30 }, { 270, 30 }, { 30, 211 }, { 270, 211 } };
+s16 D_80111340_rockin_raceway[8] = { 118, 130, 138, 150, 162, 172, 184, 196 };
+RrCamPreset D_80111350_rockin_raceway = { { 0.0f, -288.8f, -65.0f }, { 326.0f, 0.0f, 0.0f }, 4278.0f };
+RrCamPreset D_8011136C_rockin_raceway = { { 0.0f, 200.8f, -65.0f }, { 326.0f, 0.0f, 0.0f }, 4278.0f };
+RrCamPreset D_80111388_rockin_raceway = { { 136.0f, -94.8f, -1001.8f }, { 341.0f, 305.5f, 0.0f }, 952.0f };
+RrCamPreset D_801113A4_rockin_raceway = { { 1126.0f, -94.8f, -721.8f }, { 341.0f, 305.5f, 0.0f }, 952.0f };
+RrCamPreset D_801113C0_rockin_raceway = { { 246.0f, 33.2f, -693.8f }, { 350.3f, 285.4f, 0.0f }, 1140.0f };
+RrCamPreset D_801113DC_rockin_raceway = { { 0.0f, 200.8f, -65.0f }, { 326.0f, 0.0f, 0.0f }, 3278.0f };
+RrCamPreset D_801113F8_rockin_raceway = { { 340.0f, -200.0f, 165.0f }, { 326.0f, 0.0f, 0.0f }, 1678.0f };
+Vec D_80111414_rockin_raceway[4] = {
+    { -384.5f, 56.6f, -88.4f }, { -387.95f, 39.8f, 85.75f }, { -129.3f, 56.6f, -88.4f },
+    { -129.3f, 39.8f, 85.75f },
+};
+Vec D_80111444_rockin_raceway[12] = {
+    { 58.4f, 58.75f, -92.85f }, { 126.8f, 58.75f, -92.85f }, { 222.3f, 58.75f, -92.85f },
+    { 290.7f, 58.75f, -92.85f }, { 397.8f, 58.75f, -92.85f }, { 466.15f, 58.75f, -92.85f },
+    { 58.4f, 43.75f, 82.0f }, { 126.8f, 43.75f, 82.0f }, { 222.3f, 43.75f, 82.0f },
+    { 290.7f, 43.75f, 82.0f }, { 397.8f, 43.75f, 82.0f }, { 466.15f, 43.75f, 82.0f },
+};
+RRColor D_801114D4_rockin_raceway = { 0xE9, 0xDD, 0xA1, 0xFF };
+Vtx D_801114D8_rockin_raceway[4] = {
+    { { { 67, -67, 0 }, 0, { 1984, 0 }, { 0, 0, 0, 255 } } },
+    { { { 67, 67, 0 }, 0, { 1984, 1984 }, { 0, 0, 0, 255 } } },
+    { { { -65, -67, 0 }, 0, { 0, 0 }, { 0, 0, 0, 255 } } },
+    { { { -67, 67, 0 }, 0, { 0, 1984 }, { 0, 0, 0, 255 } } },
+};
+Vtx D_80111518_rockin_raceway[4] = {
+    { { { 29, -62, 0 }, 0, { 960, 0 }, { 0, 0, 0, 255 } } },
+    { { { 29, 62, 0 }, 0, { 960, 1984 }, { 0, 0, 0, 255 } } },
+    { { { -29, -62, 0 }, 0, { 0, 0 }, { 0, 0, 0, 255 } } },
+    { { { -29, 62, 0 }, 0, { 0, 1984 }, { 0, 0, 0, 255 } } },
+};
+u32 D_80111558_rockin_raceway = 0xFFFFFFFF;
+s32 D_8011155C_rockin_raceway = 0; /* D_8011155E = low half */
+s32 D_80111560_rockin_raceway[4] = { 0, 1, 2, 3 }; /* D_80111562 = D_80111560 + 2: the low halves */
+s32 D_80111570_rockin_raceway[4] = { -1, -1, -1, -1 };
+u16 D_80111580_rockin_raceway[8] = { 1, 2, 3, 4, 5, 6, 12, 13 };
+u32 D_80111590_rockin_raceway[3] = { 0, 0x400, 0x800 };
+s32 D_8011159C_rockin_raceway[4] = { -1, -1, -1, -1 };
+s32 D_801115AC_rockin_raceway[2] = { 0, 0 };
+RRColor D_801115B4_rockin_raceway = { 0xFF, 0xFF, 0xFF, 0xFF };
+s32 D_801115B8_rockin_raceway[8] = { 0x210008, 0x210009, 0x21000A, 0x21000B, 0x21000C, 0x21000D, 0x21000E, 0x21000F };
+s32 D_801115D8_rockin_raceway[6] = { 0, 1, 3, 4, 6, 7 };
+s32 D_801115F0_rockin_raceway = 0;
+s32 D_801115F4_rockin_raceway = 0;
+s32 D_801115F8_rockin_raceway = 0;
+s32 D_801115FC_rockin_raceway = -1;
+
+Gfx D_80111600_rockin_raceway[] = {
+    gsSPSegment(0x00, 0x00000000),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPPipelineMode(G_PM_1PRIMITIVE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureDetail(G_TD_CLAMP),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0, 0),
+    gsDPSetTileSize(1, 0, 0, 0, 0),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
+                G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD,
+                G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTextureFilter(G_TF_BILERP),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetCombineKey(G_CK_NONE),
+    gsDPSetAlphaCompare(G_AC_NONE),
+    gsDPSetDepthSource(G_ZS_PIXEL),
+    gsDPSetRenderMode(G_RM_OPA_SURF, G_RM_OPA_SURF2),
+    gsDPNoOp(),
+    gsDPSetColorDither(G_CD_DISABLE),
+    gsDPPipeSync(),
+    gsSPEndDisplayList(),
+};
+Gfx D_801116B8_rockin_raceway[] = {
+    gsSPClearGeometryMode(0xFFFFFFFF),
+    gsSPTexture(0, 0, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPSetGeometryMode(G_SHADE | G_SHADING_SMOOTH),
+    gsSPEndDisplayList(),
+};
+Gfx D_801116D8_rockin_raceway[] = {
+    gsSPDisplayList(D_801116B8_rockin_raceway),
+    gsSPDisplayList(D_80111600_rockin_raceway),
+    gsSPEndDisplayList(),
+};
+Gfx D_801116F0_rockin_raceway[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(D_801116D8_rockin_raceway),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsSPSetGeometryMode(G_ZBUFFER | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH),
+    gsDPSetBlendColor(0x00, 0x00, 0x00, 0x00),
+    gsDPSetPrimColor(0, 0, 0x00, 0x00, 0x00, 0xFF),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+    gsSPEndDisplayList(),
+};
+RRColor D_80111730_rockin_raceway = { 0xFF, 0xFF, 0xFF, 0xFF };
+RRColor D_80111734_rockin_raceway = { 0xFF, 0xFF, 0xFF, 0xFF };
+
+/* labels inside the objects above (undefined_syms.txt aliases) */
+extern RrNodeView D_801112D2_rockin_raceway[]; /* D_801112D0 + 2 */
+extern s16 D_8011155E_rockin_raceway; /* low half of D_8011155C */
+extern u16 D_80111562_rockin_raceway[][2]; /* D_80111560 + 2 */
 
 // rockin_raceway .bss
 extern s32 D_80111AC0_rockin_raceway;
@@ -766,7 +878,7 @@ void func_80105CB0_rockin_raceway(omObjData* obj) {
                 }
                 func_8010D9C4_rockin_raceway(29);
                 func_8010C7CC_rockin_raceway(65535.0f, 65535.0f, 65535.0f, 65535.0f, 65535.0f, 65535.0f,
-                                             D_80111410_rockin_raceway - (D_80111ADC_rockin_raceway - 29) * 100, 1);
+                                             D_801113F8_rockin_raceway.zoom - (D_80111ADC_rockin_raceway - 29) * 100, 1);
             } else {
                 RR_CAM(D_801113DC_rockin_raceway, 1);
                 func_80109134_rockin_raceway();
@@ -1174,7 +1286,7 @@ void func_8010769C_rockin_raceway(omObjData* obj) {
             r->unk1A = 1;
         } else if (r->unk02 == 2) {
             r->unk1A = 1;
-        } else if (r->unk38 < D_80111304_rockin_raceway[level * 2] && !(rand8() & 0x3F)) {
+        } else if (r->unk38 < D_80111300_rockin_raceway[level * 2 + 1] && !(rand8() & 0x3F)) {
             r->unk1A = 1;
         }
         if (r->unk1A == 0) {
