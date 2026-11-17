@@ -64,10 +64,39 @@ extern Vec D_8010AC18_storyresult; /* fixed camera eye */
 extern f32 D_8010AC24_storyresult; /* near plane */
 extern f32 D_8010AC2C_storyresult; /* far plane */
 extern s16 D_8010AC30_storyresult; /* next overlay event */
+extern s16 D_8010ABE0_storyresult; /* first controller (D_8010ABE8_storyresult.pad[0]) */
+
+/* .bss 0x8010ABE8 (0x18): controller order; splat also labels D_8010ABEC/F0/F4/FA. */
+typedef struct SrPadWork {
+    /* 0x00 */ u8 pad[4];  /* connected controllers first, 0xFF-filled by the free ports */
+    /* 0x04 */ u8 unk4[4];
+    /* 0x08 */ u8 unk8[4];
+    /* 0x0C */ u8 unkC[4];
+    /* 0x10 */ u8 unk10;
+    /* 0x11 */ u8 unk11;
+    /* 0x12 */ u8 unk12;
+    /* 0x13 */ u8 unk13;
+    /* 0x14 */ u8 unk14;   /* connected controller count */
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ u8 unk16;
+    /* 0x17 */ u8 unk17;
+} SrPadWork; /* size = 0x18 */
+extern SrPadWork D_8010ABE8_storyresult;
+extern u8 D_8010A924_storyresult[]; /* per GwStory.unk0: 0/1 hidden-block chapter, 2 duel, other always */
+extern s16 kakusiMasuItemHis[];
+extern u8 D_800CE20A_main;
+extern s16 D_800EBAF0_minigame;
+s32 func_80050614_main(s32 write);
+s16 func_80106FF0_storyresult(void);
+void func_80107030_storyresult(void);
+s16 func_801070D8_storyresult(void);
+void func_80107140_storyresult(void);
+void func_80107920_storyresult(void);
+Process *func_8010818C_storyresult(s16 *res, s16 slot);
+s16 func_8010A370_storyresult(s16 slot);
 extern s16 D_8010AC32_storyresult; /* next overlay */
 
 void func_801060D0_storyresult(SrCamKey *key);
-void func_8010818C_storyresult(s16 *, s32);
 extern u16 D_8010A910_storyresult; /* exit delay */
 extern s16 D_8010A912_storyresult;
 extern s16 D_8010A914_storyresult;
@@ -462,82 +491,97 @@ INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106780_storyr
 #endif
 /*</func_80106780_storyresult>*/
 
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106C84_storyresult);
+/*<func_80106C84_storyresult>*/
+void func_80106C84_storyresult(void) {
+    s16 i;
+    s16 n;
+    s16 j;
+    s16 k;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106E48_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106FF0_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80107030_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_801070D8_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80107140_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80107204_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80107920_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010818C_storyresult);
-
-void func_8010822C_storyresult(void) {
-    s16 sp10;
-
-    D_800CD280_main = 0;
-    func_801060D0_storyresult(&D_8010AB9C_storyresult[0]);
-    D_8010A912_storyresult = 1;
-    func_800E4F50_name_81(hvq_data_ROM_START);
-    MBDBackLoad(0x20);
-    func_800E8180_name_81(1000.0f, 10000.0f);
-    D_8010AC2A_storyresult = 0xB;
-    WipeCreateIn(0xB, 0x10);
-    while (WipeStatGet() != 0) {
-        HuPrcVSleep();
+    for (i = 0; i < 4; i++) {
+        D_8010ABE8_storyresult.pad[i] = 0xFF;
+        D_8010ABE8_storyresult.unk4[i] = i;
+        D_8010ABE8_storyresult.unk8[i] = 0xFF;
+        D_8010ABE8_storyresult.unkC[i] = 0;
     }
-    func_8010818C_storyresult(&sp10, -1);
-    while (sp10 >= -1) {
-        HuPrcVSleep();
+    for (i = 0, n = 0; i < 4; i++) {
+        if (CheckControllerRead(i)) {
+            D_8010ABE8_storyresult.pad[n] = i;
+            n++;
+        }
     }
-    D_8010AC2A_storyresult = 0xB;
-    D_8010AC28_storyresult = 0x36;
-    D_8010A914_storyresult = 2;
-    D_8010A910_storyresult = 1;
-
-    while (1) {
-        HuPrcVSleep();
+    for (i = 0; i < 4; i++) {
+        if (D_8010ABE8_storyresult.pad[i] == 0xFF) {
+            for (j = 0; j < 4; j++) {
+                for (k = 0; k < 4; k++) {
+                    if (D_8010ABE8_storyresult.pad[k] == j) {
+                        break;
+                    }
+                }
+                if (k == 4) {
+                    break;
+                }
+            }
+            D_8010ABE8_storyresult.pad[i] = j;
+        }
     }
+    D_8010ABE8_storyresult.unk12 = 0;
+    D_8010ABE8_storyresult.unk16 = 0;
+    D_8010ABE8_storyresult.unk13 = 0;
+    D_8010ABE8_storyresult.unk14 = n;
+    D_8010ABE8_storyresult.unk10 = 0;
+    D_8010ABE8_storyresult.unk11 = 4;
+    D_8010ABE8_storyresult.unk15 = 0;
+    D_8010ABE0_storyresult = D_8010ABE8_storyresult.pad[0];
 }
+/*</func_80106C84_storyresult>*/
 
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010832C_storyresult);
+/*<func_80106E48_storyresult>*/
+/* Whether the story results run (0: go to overlay 0x75 instead). */
+s16 func_80106E48_storyresult(void) {
+    s16 ret;
+    u16 who;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_801083A4_storyresult);
+    ret = 0;
+    switch (D_8010A924_storyresult[GwStory.unk0]) {
+    case 0:
+        who = kakusiMasuItemHis[0];
+    check:
+        if (who < 6) {
+            if (GwStory.unk1 == GwPlayer[(s16)who].chr) {
+                ret++;
+            }
+        }
+        break;
+    case 1:
+        if (kakusiMasuItemHis[2] != 0) {
+            break;
+        }
+        who = kakusiMasuItemHis[0];
+        goto check;
+    case 2:
+        for (i = 0; i < 2; i++) {
+            if (GwPlayer[i].chr == GwStory.unk1) {
+                break;
+            }
+        }
+        if (i < 2 && GwPlayer[i].bonusCoin >= 0) {
+            ret++;
+        }
+        break;
+    default:
+        ret++;
+        break;
+    }
+    if (ret == 0) {
+        D_8010ABE2_storyresult = 1;
+        D_8010AC32_storyresult = 0x75;
+        D_8010AC30_storyresult = 0;
+        D_800CE20A_main = 0xF;
+        omOvlGotoEx(0x75, 0, 0x14);
+    }
+    return ret;
+}
+/*</func_80106E48_storyresult>*/
 
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_801085E8_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_801086E4_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108884_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108AC0_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108CB8_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108D04_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108D34_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80108F0C_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A370_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A4A4_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A558_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A5C4_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A738_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A7B0_storyresult);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_8010A7EC_storyresult);

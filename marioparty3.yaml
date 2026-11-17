@@ -2477,7 +2477,9 @@ segments:
     bss_size: 0x60
     subsegments:
       - [0x54DD10, c]
+      - [0x54F360, c] # wave 3t s4: file boundary at 80106FF0 (text and data padded to 16)
       - [0x552C80, data, 54DD10] #8010A910
+      - [0x552CB0, data, 54F360] #8010A940
       - [0x552F30, .rodata, 54DD10] #8010ABC0
       - {0x552F50, type: bss, vram: 0x8010ABE0, name: storyresult_bss}
 
