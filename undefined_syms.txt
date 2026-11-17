@@ -385,3 +385,4 @@ D_80119F34_mgmode = D_80119F28_mgmode + 0xC;
 D_80119F64_mgmode = D_80119F28_mgmode + 0x3C;
 D_8011A0C0_mgmode = D_80119FA0_mgmode + 0x120;
 D_801115AC_rockin_raceway = D_8011159C_rockin_raceway + 0x10;
+D_801112B0_rockin_raceway = D_801112A0_rockin_raceway + 0x10;

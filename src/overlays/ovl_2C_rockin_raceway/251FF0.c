@@ -64,6 +64,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109
 
 // m1 rr2
 #include "overlays/minigame.h"
+#include "mallocblock.h"
 
 /* a kart (rr1's functions own most of it) */
 typedef struct RrKart {
@@ -125,6 +126,30 @@ s16 func_8010F874_rockin_raceway(HuSprite_Unk84_Struct *spr, u16 model, s32 *arg
 s16 func_8010FFB8_rockin_raceway(HuSprite_Unk84_Struct *spr, Vtx *vtx);
 void func_80110C38_rockin_raceway(s16 *models, HuSprite_Unk84_Struct *spr, s32 *arg2);
 void func_80110D90_rockin_raceway(s16 *models, HuSprite_Unk84_Struct *spr, s32 *times);
+/* the four racing lines (D_80111B40), built by func_80109DA8 from D_801112A0 */
+typedef struct RrPath {
+    /* 0x00 */ s16 unk00; /* index */
+    /* 0x02 */ u16 unk02; /* point count */
+    /* 0x04 */ f32 unk04; /* lap length without the closing segment */
+    /* 0x08 */ f32 unk08; /* length up to point D_801112C0[i] */
+    /* 0x0C */ Vec *unk0C; /* points */
+    /* 0x10 */ Vec *unk10; /* segment midpoints */
+    /* 0x14 */ f32 *unk14; /* segment lengths */
+    /* 0x18 */ f32 *unk18; /* length at each point (count + 1) */
+    /* 0x1C */ Vec *unk1C; /* segment rotation */
+    /* 0x20 */ s16 *unk20; /* per point: 1 or 2 placed at random */
+} RrPath; /* size 0x24 */
+
+extern RrPath *D_80111B40_rockin_raceway;
+extern f32 D_80111B44_rockin_raceway;
+extern Vec *D_801112A0_rockin_raceway[4];
+extern s32 D_801112B0_rockin_raceway[4]; /* label D_801112B2 + 2: the u16 load reads its low half */
+extern s32 D_801112C0_rockin_raceway[4];
+
+void func_8010E8A0_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
+void func_8010E994_rockin_raceway(f32 t, Vec *a, Vec *b, Vec *c, Vec *out);
+void func_8010EB84_rockin_raceway(Vec *dir, Vec *rot);
+f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b);
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -267,11 +292,84 @@ void func_80109A04_rockin_raceway(omObjData *obj) {
 void func_80109CF8_rockin_raceway(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109D00_rockin_raceway);
+/* rr2 func_80109D00_rockin_raceway */
+void func_80109D00_rockin_raceway(s32 *arg0) {
+    omObjData *obj = D_800EC1C0_minigame[0];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109D54_rockin_raceway);
+    func_80110C38_rockin_raceway(&obj->model[3], func_80055194_main(D_80111B68_rockin_raceway->unk06), arg0);
+}
+/* rr2 end func_80109D00_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109DA8_rockin_raceway);
+/* rr2 func_80109D54_rockin_raceway */
+void func_80109D54_rockin_raceway(s32 *times) {
+    omObjData *obj = D_800EC1C0_minigame[0];
+
+    func_80110D90_rockin_raceway(&obj->model[7], func_80055194_main(D_80111B68_rockin_raceway->unk08), times);
+}
+/* rr2 end func_80109D54_rockin_raceway */
+
+/* rr2 func_80109DA8_rockin_raceway */
+void func_80109DA8_rockin_raceway(void) {
+    Vec rot;
+    RrPath *path;
+    s32 i;
+    s32 j;
+    s32 next;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+
+    D_80111B40_rockin_raceway = HuMemAllocTag(sizeof(RrPath) * 4, 0x7918);
+    for (i = 0, path = D_80111B40_rockin_raceway; i < 4; i++, path++) {
+        path->unk00 = i;
+        path->unk04 = path->unk08 = 0.0f;
+        path->unk0C = D_801112A0_rockin_raceway[i];
+        path->unk02 = D_801112B0_rockin_raceway[i];
+        path->unk0C[D_801112C0_rockin_raceway[i]].x = 340.0f;
+        path->unk10 = HuMemAllocTag(path->unk02 * sizeof(Vec), 0x7918);
+        path->unk14 = HuMemAllocTag(path->unk02 * sizeof(f32), 0x7918);
+        path->unk18 = HuMemAllocTag((path->unk02 + 1) * sizeof(f32), 0x7918);
+        path->unk1C = HuMemAllocTag(path->unk02 * sizeof(Vec), 0x7918);
+        path->unk20 = HuMemAllocTag(path->unk02 * sizeof(s16), 0x7918);
+        memset(path->unk20, 0, 4);
+        for (j = 0; j < 5; j++) {
+            next = (rand8() & 0xFF) % D_801112C0_rockin_raceway[i];
+            path->unk20[next] = 1;
+        }
+        for (j = 0; j < 3; j++) {
+            next = (rand8() & 0xFF) % D_801112C0_rockin_raceway[i];
+            path->unk20[next] = 2;
+        }
+        len = 0.0f;
+        for (j = 0; j < path->unk02; j++) {
+            next = (j + 1) % path->unk02;
+            dx = path->unk0C[next].x - path->unk0C[j].x;
+            dy = path->unk0C[next].y - path->unk0C[j].y;
+            dz = path->unk0C[next].z - path->unk0C[j].z;
+            path->unk14[j] = sqrtf(dx * dx + dy * dy + dz * dz);
+            path->unk18[j] = len;
+            len += path->unk14[j];
+            if (j < D_801112C0_rockin_raceway[i]) {
+                path->unk08 = len;
+            }
+            path->unk10[j].x = path->unk0C[j].x + dx * 0.5f;
+            path->unk10[j].y = path->unk0C[j].y + dy * 0.5f;
+            path->unk10[j].z = path->unk0C[j].z + dz * 0.5f;
+            func_8010E994_rockin_raceway(0.0f, &path->unk0C[j], &path->unk10[j], &path->unk0C[next], &rot);
+            func_8010EB84_rockin_raceway(&rot, &path->unk1C[j]);
+        }
+        path->unk18[j] = len;
+        path->unk04 = len - path->unk14[j - 1];
+    }
+    D_80111B44_rockin_raceway = D_80111B40_rockin_raceway[0].unk08;
+    for (i = 1, path = &D_80111B40_rockin_raceway[1]; i < 4; i++, path++) {
+        if (D_80111B44_rockin_raceway > path->unk08) {
+            D_80111B44_rockin_raceway = path->unk08;
+        }
+    }
+}
+/* rr2 end func_80109DA8_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A258_rockin_raceway);
 
