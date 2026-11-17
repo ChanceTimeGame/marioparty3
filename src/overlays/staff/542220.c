@@ -167,6 +167,14 @@ void func_8010B794_staff(s16 arg0);
 void func_8010BF84_staff(void);
 void func_8010D1E8_staff(void);
 void func_8010D998_staff(void);
+UnkStaff_2 *func_8010DE50_staff(s32 file);
+void func_8010DEE4_staff(UnkStaff_2 *obj, f32 x, f32 y, f32 z);
+void func_8010DEF4_staff(UnkStaff_2 *obj, f32 x, f32 y, f32 z);
+void func_8010DF04_staff(UnkStaff_2 *arg0, s16 arg1);
+void func_8010DF0C_staff(UnkStaff_2 *obj, s32 mask, s32 bits);
+s16 func_8010DF24_staff(UnkStaff_2 *arg0);
+extern s32 D_80110540_staff[]; /* per credits variant (D_80111514_staff) */
+void func_801073EC_staff(UnkStaff_2 *obj, s32 i);
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -712,9 +720,79 @@ void func_80106E20_staff(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801073EC_staff);
+void func_801073EC_staff(UnkStaff_2 *obj, s32 i) {
+    u32 r;
+    s32 x;
+    s32 y;
 
+    r = func_8010601C_staff();
+    x = (r & 0xFF) - 0x80;
+    y = -0x1F4 - ((r >> 8) & 0xFF);
+    func_8010DEF4_staff(obj, x, y, 0.0f);
+    x = func_80106044_staff(0x64) + i * 0x1F4 - 0x226;
+    y = (func_8010601C_staff() & 0x3F) + 0xDA;
+    func_8010DEE4_staff(obj, x, y, (s32)(func_80106044_staff(0x1F4) - 0x320));
+    func_8010DF04_staff(obj, func_80106044_staff(0x3C) + 0x1E);
+}
+
+#ifdef NON_MATCHING
+/* masked 0; raw: v0/v1 swap in the table index. Retail also has a file boundary at 0x80107740
+   (three nops after this function), which the unit cannot express without a split. */
+void func_80107508_staff(void) {
+    UnkStaff_2 *obj[3];
+    s16 wait[3];
+    s16 *stat;
+    s32 i;
+    u16 var;
+    s16 idx;
+
+    stat = HuPrcCurrentGet()->user_data;
+    var = D_80111514_staff;
+    idx = (var < 6) ? var : 0;
+    for (i = 0; i < 3; i++) {
+        obj[i] = func_8010DE50_staff(D_80110540_staff[idx]);
+        func_801073EC_staff(obj[i], i);
+        func_8010DF0C_staff(obj[i], 1, 1);
+        wait[i] = 0;
+    }
+    while (*stat >= 0) {
+        switch (*stat) {
+        case 1:
+            for (i = 0; i < 3; i++) {
+                wait[i] = 1;
+            }
+            wait[0] = 1;
+            break;
+        case 2:
+            for (i = 0; i < 3; i++) {
+                func_8010DF0C_staff(obj[i], 4, 4);
+            }
+            *stat = -1;
+            break;
+        case 0:
+            break;
+        }
+        if (*stat == 1) {
+            for (i = 0; i < 3; i++) {
+                if (wait[i] != 0) {
+                    if (--wait[i] == 0) {
+                        func_8010DF0C_staff(obj[i], 1, 0);
+                    }
+                } else if (func_8010DF24_staff(obj[i]) & 1) {
+                    wait[i] = (rand8() & 0xF) + 1;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107508_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107740_staff);
 
