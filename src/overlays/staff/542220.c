@@ -105,27 +105,345 @@ INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109D08_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109D74_staff);
 
+// story j2
+#include "mallocblock.h"
+
+typedef struct StaffTextGrp {
+    /* 0x00 */ s16 grp;
+    /* 0x02 */ s16 x;
+    /* 0x04 */ s16 y;
+    /* 0x06 */ s16 count;
+} StaffTextGrp; // size 0x8: one line of sprite-letter text
+
+extern s32 D_80110AA0_staff[]; // set 0 letter sprite files
+extern s32 D_80110B0C_staff[]; // set 1 letter sprite files
+extern s16 D_80111490_staff[27];
+extern StaffTextGrp *D_801114C8_staff;
+extern s16 D_801114D0_staff[28];
+extern StaffTextGrp *D_80111508_staff;
+extern u16 D_8011150C_staff;
+extern u16 D_8011150E_staff;
+void func_8005BF70_main(s16 winId, s32 alpha);
+// end story j2
+
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109F34_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010A848_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B1E0_staff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B430_staff);
+void func_8010B430_staff(s16 group, s16 member, s16 dx, s16 dy) {
+    HuSprGrp *grp = HuSprGrpData[group];
+    HuSprite *spr = grp->members[member];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B4B4_staff);
+    if ((dx != 0) | (dy != 0)) {
+        grp->unk_0C = 1;
+        spr->unk_48 = dx + spr->unk_48;
+        spr->unk_4C = dy + spr->unk_4C;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B514_staff);
+void func_8010B4B4_staff(s16 group, s16 member, s16 y) {
+    f32 fy = y;
+    HuSprGrp *grp = HuSprGrpData[group];
+    HuSprite *spr = grp->members[member];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B794_staff);
+    if (spr->unk_4C != fy) {
+        grp->unk_0C = 1;
+        spr->unk_4C = fy;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B8C0_staff);
+void func_8010B514_staff(s16 set, s16 count) {
+    s16 *sprIds;
+    s16 *id;
+    s32 *files;
+    s16 numSpr;
+    s16 numMembers;
+    s32 i;
+    s32 j;
+    StaffTextGrp *grps;
+    StaffTextGrp *g;
+    s16 grp;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010B9BC_staff);
+    switch (set) {
+    default:
+    case 0:
+        sprIds = D_80111490_staff;
+        numMembers = 24;
+        files = D_80110AA0_staff;
+        numSpr = 27;
+        break;
+    case 1:
+        numMembers = 28;
+        sprIds = D_801114D0_staff;
+        files = D_80110B0C_staff;
+        numSpr = 28;
+        break;
+    }
+    id = sprIds;
+    for (i = 0; i < numSpr; i++) {
+        *id++ = func_8000B838_main(*files++);
+    }
+    grps = HuMemAllocTag(count * sizeof(StaffTextGrp), 0x7918);
+    g = grps;
+    for (i = 0; i < count; i++, g++) {
+        g->x = 160;
+        g->y = 120;
+        g->count = 0;
+        g->grp = grp = HuSprGrpCreate(numMembers, 2);
+        for (j = 0; j < numMembers; j++) {
+            func_80055458_main(grp, j, 0x100);
+            HuSprAttrReset(grp, j, 0xFFFF);
+            HuSprAttrSet(grp, j, 0x9000);
+            HuSprScaleSet(grp, j, 1.0f, 1.0f);
+            func_800550F4_main(grp, j, 0);
+            HuSprPriSet(grp, j, 400);
+            func_80055420_main(grp, j, 0xFF, 0xFF, 0xFF);
+            if (j != 0) {
+                func_800554C4_main(grp, j, 0);
+            } else {
+                func_800554C4_main(grp, 0, -1);
+            }
+        }
+    }
+    switch (set) {
+    default:
+    case 0:
+        D_801114C8_staff = grps;
+        D_8011150C_staff = count;
+        break;
+    case 1:
+        D_80111508_staff = grps;
+        D_8011150E_staff = count;
+        break;
+    }
+}
 
+void func_8010B794_staff(s16 set) {
+    StaffTextGrp *grps;
+    s16 *sprIds;
+    s16 count;
+    s16 numSpr;
+    StaffTextGrp *g;
+    s32 i;
+
+    switch (set) {
+    default:
+    case 0:
+        grps = D_801114C8_staff;
+        sprIds = D_80111490_staff;
+        count = D_8011150C_staff;
+        numSpr = 27;
+        break;
+    case 1:
+        numSpr = 28;
+        grps = D_80111508_staff;
+        sprIds = D_801114D0_staff;
+        count = D_8011150E_staff;
+        break;
+    }
+    g = grps;
+    if (grps != NULL) {
+        for (i = 0; i < count; i++, g++) {
+            HuSprGrpKill(g->grp);
+        }
+        HuMemFree(grps);
+        for (i = 0; i < numSpr; i++, sprIds++) {
+            HuSprKill(*sprIds);
+        }
+        switch (set) {
+        default:
+        case 0:
+            D_801114C8_staff = NULL;
+            break;
+        case 1:
+            D_80111508_staff = NULL;
+            break;
+        }
+    }
+}
+
+void func_8010B8C0_staff(s16 set, s16 idx, s16 show) {
+    StaffTextGrp *g;
+    s16 n;
+    s16 grp;
+    s32 i;
+
+    switch (set) {
+    default:
+    case 0:
+        g = &D_801114C8_staff[idx];
+        break;
+    case 1:
+        g = &D_80111508_staff[idx];
+        break;
+    }
+    n = g->count;
+    if (n != 0) {
+        grp = g->grp;
+        if (show != 0) {
+            for (i = 0; i < n; i++) {
+                HuSprAttrReset(grp, i, 0x8000);
+            }
+        } else {
+            for (i = 0; i < n; i++) {
+                HuSprAttrSet(grp, i, 0x8000);
+            }
+        }
+    }
+}
+
+void func_8010B9BC_staff(s16 set, s16 idx, s16 x, s16 y) {
+    StaffTextGrp *g;
+
+    switch (set) {
+    default:
+    case 0:
+        g = &D_801114C8_staff[idx];
+        break;
+    case 1:
+        g = &D_80111508_staff[idx];
+        break;
+    }
+    if (g->count != 0) {
+        func_80054904_main(g->grp, 0, x, y);
+    }
+}
+
+#ifdef NON_MATCHING
+// Register allocation: retail keeps g in s8 and spills x, y and str; logic checked block by block.
+void func_8010BA30_staff(s16 set, s16 idx, u32 mes, s16 x, s16 y) {
+    s16 pos[24];
+    StaffTextGrp *g;
+    s16 *sprIds;
+    s16 numMembers;
+    s16 step;
+    s16 width;
+    s16 n;
+    u8 c;
+    s32 i;
+    s16 ofs;
+    u8 *str;
+    u8 *buf;
+    s16 grp;
+    s16 extraI;
+
+    switch (set) {
+    default:
+    case 0:
+        g = &D_801114C8_staff[idx];
+        sprIds = D_80111490_staff;
+        numMembers = 24;
+        extraI = -2;
+        step = 10;
+        break;
+    case 1:
+        g = &D_80111508_staff[idx];
+        sprIds = D_801114D0_staff;
+        numMembers = 28;
+        extraI = 0;
+        step = 10;
+        break;
+    }
+    grp = g->grp;
+    n = g->count;
+    if (n != 0) {
+        for (i = 0; i < n; i++) {
+            HuSprAttrSet(grp, i, 0x8000);
+        }
+    }
+    g->x = x;
+    g->y = y;
+    buf = NULL;
+    if (mes > 0x80000000U) {
+        str = (u8 *)mes;
+    } else {
+        str = buf = func_800364DC_main((void *)mes);
+    }
+    width = 0;
+    for (n = 1; n < numMembers; str++) {
+        c = *str;
+        if (c == 0) {
+            break;
+        }
+        if ((u32)(c - 'a') < 26) {
+            c -= 0x20;
+        }
+        if ((c == 0x10) | (c == ' ')) {
+            width += step;
+        } else if (c == 0x1A) {
+            width += step;
+        } else if ((u8)(c - 'A') < 26) {
+            c -= 'A';
+            func_80055024_main(grp, n, sprIds[c], 0);
+            if (n != 0) {
+                func_800554C4_main(grp, n, 0);
+            }
+            pos[n] = width;
+            width += step;
+            if (c == 'I' - 'A') {
+                width += extraI;
+            }
+            n++;
+        } else if (c == '3') {
+            func_80055024_main(grp, n, sprIds[26], 0);
+            if (n != 0) {
+                func_800554C4_main(grp, n, 0);
+            }
+            pos[n] = width;
+            width += step;
+            n++;
+        } else if ((u8)(c - '[') < 2) {
+            c -= 'A';
+            func_80055024_main(grp, n, sprIds[c], 0);
+            if (n != 0) {
+                func_800554C4_main(grp, n, 0);
+            }
+            pos[n] = width;
+            width += step;
+            n++;
+        }
+    }
+    if (width > step) {
+        width -= step;
+    }
+    ofs = -(width >> 1);
+    func_80054904_main(grp, 0, g->x, g->y);
+    for (i = 1; i < n; i++) {
+        func_80054904_main(grp, i, ofs + pos[i], 0);
+        HuSprAttrReset(grp, i, 0x8000);
+    }
+    g->count = n;
+    if (buf != NULL) {
+        func_800365E8_main(buf);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BA30_staff);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BE20_staff);
+void func_8010BE20_staff(s16 *wins, s16 count) {
+    s32 i;
+    s16 win;
+
+    for (i = 0; i < count; i++) {
+        *wins = win = func_8005A968_main(-120, -50, 240, 20, 0, 12);
+        func_8005BCA4_main(win, 120, 10);
+        func_8005BDFC_main(win, 0);
+        func_8005BEE0_main(win, 0);
+        func_8005C060_main(win, 2, 0xFF, 0, 0);
+        func_8005C060_main(win, 4, 0, 0x90, 0);
+        func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
+        func_8005C060_main(win, 6, 0xFF, 0xAD, 0);
+        func_8005C154_main(win, 0x40, 0x40, 0x40);
+        func_8005FBF8_main(win, 0, 0, 0);
+        func_8005C02C_main(win, 7);
+        func_8005BF70_main(win, 0x100);
+        func_8005FE90_main(win);
+        wins++;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_8011133C_staff);
 
