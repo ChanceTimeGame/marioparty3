@@ -121,12 +121,128 @@ typedef struct SrPadWork {
 extern SrPadWork D_80111518_staff;
 extern s16 D_80111510_staff; /* first controller (D_80111518_staff.pad[0]) */
 void func_80106C50_staff(void);
+void func_801059A0_staff(void);
+void func_80105BD4_staff(omObjData *obj);
+void func_80105CB4_staff(omObjData *obj);
+void func_80106E20_staff(void);
+extern u16 D_80110530_staff;  /* exit delay */
+extern s16 D_80111512_staff;  /* 1: entered from story mode (omovlevtno >= 6) */
+extern u16 D_80111514_staff;  /* credits variant (omovlevtno, or GwStory.unk1) */
+extern s16 D_80111516_staff;  /* next overlay */
+extern s16 D_80111530_staff;  /* wipe type */
+extern s16 D_80111532_staff;  /* next overlay event */
+extern s16 D_8011154C_staff;  /* wipe duration */
+extern s16 D_8011155C_staff;  /* exit mode */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801059A0_staff);
+void func_801059A0_staff(void) {
+    u16 evt;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80105BD4_staff);
+    Hu3DCamInit(1);
+    Hu3DAnimInit(1);
+    func_800142A0_main(0x19);
+    omInitObjMan(0x33, 0x19);
+    func_8005A6B0_main();
+    func_8004A208_main();
+    D_800CD280_main = 0;
+    D_80111564_staff = 80.0f;
+    D_80111560_staff = 6000.0f;
+    D_80110534_staff = 58.0f;
+    Hu3DCamSetPerspective(0, 58.0f, 80.0f, 6000.0f);
+    D_80111550_staff.x = 0.0f;
+    D_80111550_staff.y = 0.0f;
+    D_80111550_staff.z = 0.0f;
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    func_8010615C_staff();
+    omAddObj(0x2710, 0, 0, -1, func_80105BD4_staff);
+    HmfLightMaxSet(3);
+    HmfLightColorSet(2, 0, 0, 0);
+    HmfLightDirSet(2, 0.0f, 0.0f, 100.0f);
+    HmfLightColorSet(3, 0xF0, 0xF0, 0xF0);
+    HmfLightDirSet(3, 0.0f, 100.0f, 0.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    func_8001F38C_main(0, 0, 0);
+    omPrcSetStatBit(omAddPrcObj(func_80106720_staff, 0x1100, 0x400, 0), 0xA0);
+    D_8011155C_staff = 0;
+    func_80106C50_staff();
+    D_80111514_staff = 0;
+    D_80111512_staff = 0;
+    evt = omovlevtno;
+    if (evt < 6) {
+        D_80111514_staff = evt;
+    } else if (omovlevtno >= 6) {
+        D_80111514_staff = GwStory.unk1;
+        D_80111512_staff = 1;
+    }
+    omAddPrcObj(func_80106E20_staff, 0x3F00, 0x1000, 0);
+    WipeColorSet(0, 0, 0);
+    D_80111530_staff = 0xB;
+    D_8011154C_staff = 0x14;
+}
 
+void func_80105BD4_staff(omObjData *obj) {
+    if (D_80111512_staff == 0 && (D_800D5558_main[D_80111510_staff] & 0x1000)) {
+        D_8011155C_staff = 0;
+        D_80110530_staff = 1;
+    }
+    if (D_80110530_staff == 0) {
+        if (D_800D530C_main != 0) {
+            goto out;
+        }
+    } else {
+        if (D_80110530_staff != 1) {
+            D_80110530_staff--;
+            return;
+        }
+    out:
+        if (D_80111530_staff >= 0) {
+            WipeCreateOut(D_80111530_staff, D_8011154C_staff);
+        }
+        HuAudSeqFadeOut(0xF);
+        obj->func = func_80105CB4_staff;
+    }
+}
+
+#ifdef NON_MATCHING
+/* Instruction-identical to retail; only .rodata differs: retail pads this jump table with a zero word
+   because the next file (text 0x80106E20, rodata 0x80111208) starts 8-aligned. */
+void func_80105CB4_staff(omObjData *obj) {
+    s32 stat;
+
+    if (WipeStatGet() == 0) {
+        func_8005F524_main();
+        stat = 0x14;
+        switch (D_8011155C_staff) {
+        case 0:
+        default:
+            if (D_80111512_staff != 0) {
+                omovlhisidx = -1;
+                omOvlCallEx(0x58, 0, 0x84);
+                return;
+            }
+            omOvlReturnEx(1);
+            break;
+        case 2:
+            omOvlCallEx(D_80111516_staff, D_80111532_staff, stat);
+            break;
+        case 1:
+            omOvlGotoEx(D_80111516_staff, D_80111532_staff, stat);
+            break;
+        case 3:
+            stat = 0x4090;
+            omOvlGotoEx(D_80111516_staff, D_80111532_staff, stat);
+            break;
+        case 4:
+            stat = 0x92;
+            omOvlGotoEx(D_80111516_staff, D_80111532_staff, stat);
+            break;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80105CB4_staff);
+#endif
 
 void func_80105DB8_staff(SrModelDef *def, s16 model) {
     switch ((u32)def->unkC) {
