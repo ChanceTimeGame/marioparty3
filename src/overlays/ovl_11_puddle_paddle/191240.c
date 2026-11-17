@@ -155,9 +155,9 @@ typedef struct {
     /* 0x10 */ f32 freq;
     /* 0x14 */ f32 animTimer;
     /* 0x18 */ f32 animStart;
-    /* 0x1C */ f32 unk1C;
-    /* 0x20 */ f32 unk20;
-    /* 0x24 */ f32 unk24;
+    /* 0x1C */ f32 rotX; // applied by func_8010C664 each frame
+    /* 0x20 */ f32 rotY;
+    /* 0x24 */ f32 rotZ;
 } PpAnimModelData; // Size 0x28
 
 typedef struct {
@@ -186,6 +186,8 @@ extern PpFuncGroup *D_8011166C_puddle_paddle;
 void func_8010BD18_puddle_paddle(PpFuncGroup *group);
 void func_8010C11C_puddle_paddle(s16 spriteId);
 s16 func_8010CE74_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
+s16 func_8010D5E4_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1);
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z); // guRotateRPYF
 s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109804_puddle_paddle);
@@ -493,11 +495,109 @@ s16 func_8010C42C_puddle_paddle(s16 tag) {
     return i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010C4D0_puddle_paddle);
+s32 func_8010C4D0_puddle_paddle(s16 animModelId, f32 posX, f32 posY, f32 posZ, f32 rotX, f32 rotY, f32 rotZ, f32 scale, f32 animStart) {
+    PpAnimModelData *animModel;
+    HmfModel *hmfModel;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010C664_puddle_paddle);
+    if (animModelId >= PP_ANIMMDL_MAX) {
+        return FALSE;
+    }
+    if (!D_80111660_puddle_paddle[animModelId].set) {
+        return FALSE;
+    }
+    animModel = &D_80111660_puddle_paddle[animModelId];
+    hmfModel = &HmfModelData[animModel->modelId];
+    if ((hmfModel->unk18 & 4) && animModel->state == -1) {
+        Hu3DModelPosSet(animModel->modelId, posX, posY, posZ);
+        Hu3DModelScaleSet(animModel->modelId, scale, scale, scale);
+        animModel->rotX = rotX;
+        animModel->rotY = rotY;
+        animModel->rotZ = rotZ;
+        if (animStart == 0.0f) {
+            func_8001C258_main(animModel->modelId, 4, 0);
+            animModel->state = 1;
+            animModel->animStart = 0.0f;
+            animModel->animTimer = 0.0f;
+            hmfModel->unk44 = animModel->freq;
+        } else {
+            animModel->state = 0;
+            animModel->animStart = animStart;
+            animModel->animTimer = 0.0f;
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010C804_puddle_paddle);
+void func_8010C664_puddle_paddle(void) {
+    PpAnimModelData *animModel;
+    HmfModel *hmfModel;
+    s16 i;
+
+    animModel = D_80111660_puddle_paddle;
+    for (i = 0; i < PP_ANIMMDL_MAX; i++, animModel++) {
+        if (!animModel->set || animModel->state == -1) {
+            continue;
+        }
+        hmfModel = &HmfModelData[animModel->modelId];
+        func_80088910_main((f32 (*)[4])hmfModel->mtx, animModel->rotX, animModel->rotY, animModel->rotZ);
+        switch (animModel->state) {
+            default:
+                if (D_800CCF58_main[HmfModelData[animModel->modelId].unk02].unk02 <= hmfModel->unk40) {
+                    hmfModel->unk40 = 0.0f;
+                    if (hmfModel->hmf->unk98 != NULL) {
+                        hmfModel->hmf->unk98->unk08 = 0;
+                    }
+                    if (!(animModel->attr & 1)) {
+                        func_8001C258_main(animModel->modelId, 4, 4);
+                        animModel->state = -1;
+                        hmfModel->unk44 = 0.0f;
+                    }
+                }
+                break;
+            case 0:
+                if (animModel->animStart <= animModel->animTimer++) {
+                    func_8001C258_main(animModel->modelId, 4, 0);
+                    animModel->state = 1;
+                    hmfModel->unk44 = animModel->freq;
+                }
+                break;
+        }
+    }
+}
+
+s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 arg2, s16 tag, s32 attr) {
+    PpBillboardData *bill;
+    s16 spriteId;
+    s16 i;
+
+    bill = D_80111668_puddle_paddle;
+    for (i = 0; i < PP_BILLS_MAX; i++, bill++) {
+        if (!bill->set) {
+            bill->spriteId = spriteId = func_8000B838_main((dir << 16) | file);
+            if (attr & 1) {
+                bill->modelId = func_8010D5E4_puddle_paddle(func_80055194_main(spriteId), 1.0f);
+            } else {
+                bill->modelId = func_8010CE74_puddle_paddle(func_80055194_main(spriteId), 1.0f);
+            }
+            if (attr & 8) {
+                func_8001C258_main(bill->modelId, 4, 4);
+            }
+            bill->posX = &HmfModelData[bill->modelId].pos.x;
+            bill->posY = &HmfModelData[bill->modelId].pos.y;
+            bill->posZ = &HmfModelData[bill->modelId].pos.z;
+            bill->tag = tag;
+            bill->attr = attr;
+            bill->duration = func_80055194_main(spriteId)->unk10;
+            bill->timer = 0;
+            bill->unk12 = 0;
+            bill->unk14 = arg2;
+            bill->set = TRUE;
+            break;
+        }
+    }
+    return i;
+}
 
 s16 func_8010C98C_puddle_paddle(s16 tag) {
     PpBillboardData *bill;
