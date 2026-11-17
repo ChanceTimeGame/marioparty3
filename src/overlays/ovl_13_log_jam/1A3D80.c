@@ -157,6 +157,9 @@ void func_8010C7D0_log_jam(omObjData* obj);
 void func_8010CAC0_log_jam(omObjData* obj, const char* name, f32 (*mf)[4]);
 s32 func_8010AE58_log_jam(Vec* pos, Vec* vel, Vec* scale, f32 speed, LjRGBA* color);
 omObjData* func_80045F1C_main(u32, s16, s16);
+void func_800E4C88_minigame(omObjData* obj, s32 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+void func_8010C6A4_log_jam(omObjData* obj, s16 arg1, s16 arg2);
+void func_80109350_log_jam(s16 idx);
 void func_8008A070_main(f32 (*mf)[4]);
 void func_80017D24_main(f32 (*mf)[4], f32 rx, f32 ry, f32 rz);
 void* func_8010C588_log_jam(omObjData* obj);
@@ -916,7 +919,242 @@ void func_80107080_log_jam(omObjData* obj, LjTeam* team) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80107C84_log_jam);
+/* The hook player (role 1): hook the log the partner passes, split it, throw the hook at the end. */
+void func_80107C84_log_jam(omObjData* obj, LjTeam* team) {
+    f32 mtx[4][4];
+    Vec scale = D_8010E1F0_log_jam;
+    LjPlayer* pl;
+    HmfModel* hmf;
+    LjPlayer* partner;
+    f32 t;
+    f32 frame;
+    s32 target;
+
+    pl = func_8010C588_log_jam(obj);
+    hmf = &HmfModelData[obj->model[0]];
+    partner = team->unk08;
+    if (pl->unk1E != 0) {
+        func_80108A80_log_jam(obj, team);
+    }
+    if (func_800E6E8C_minigame() == 3 && pl->unk08 < 13) {
+        pl->unk08 = 13;
+        pl->unk0C = 0;
+    }
+    switch (pl->unk08) {
+    case 5:
+        if (func_800E6E8C_minigame() == 2) {
+            func_8010C5DC_log_jam(obj, 3, 7);
+            pl->unk08 = 6;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 6:
+        if (hmf->unk04 == 0xFF && hmf->unk40 >= 19.0f && hmf->unk02 == obj->motion[3]) {
+            pl->unk08 = 7;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 7:
+        if ((D_800D5558_main[pl->unk1A] & 0xE000) && *(s32*)&partner->unk08 != 0x30000) {
+            if (D_800D5558_main[pl->unk1A] == 0x8000) {
+                pl->unk26 = 0;
+            } else if (D_800D5558_main[pl->unk1A] == 0x4000) {
+                pl->unk26 = 1;
+            } else if (D_800D5558_main[pl->unk1A] == 0x2000) {
+                pl->unk26 = 2;
+            } else {
+                pl->unk26 = 3;
+            }
+            if (pl->unk22 == 32) {
+                target = pl->unk24;
+            } else {
+                target = team->unk18;
+            }
+            func_8004AC98_main(0x38D, pl->unk18);
+            if (target == -1 || target == pl->unk26) {
+                func_8010C5DC_log_jam(obj, 4, 2);
+                pl->unk08 = 8;
+            } else {
+                func_8010C5DC_log_jam(obj, 5, 2);
+                pl->unk08 = 9;
+            }
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 8:
+        if (pl->unk22 == 32) {
+            target = pl->unk24;
+        } else {
+            target = team->unk18;
+        }
+        frame = 9.0f;
+        if (hmf->unk04 == 0xFF && hmf->unk40 >= frame && hmf->unk02 == obj->motion[4]) {
+            if (target == -1) {
+                func_8004AC98_main(0x38C, pl->unk18);
+                pl->unk08 = 12;
+                pl->unk0A = 0;
+                pl->unk0C = 0;
+                func_8010C5DC_log_jam(obj, 6, 5);
+                func_800E4C88_minigame(obj, 6, D_8010DF30_log_jam[team->unk10].x, D_8010DF30_log_jam[team->unk10].y,
+                                       D_8010DF30_log_jam[team->unk10].z, 0.0f, 0.0f);
+            } else {
+                func_8004AC98_main(0x38B, pl->unk18);
+                omVibrate(pl->unk18, 10, 0, 10);
+                pl->unk08 = 10;
+                pl->unk0A = 0;
+                pl->unk0C = 0;
+                if (team->unk16 != -1) {
+                    pl->unk22 = team->unk16;
+                    team->unk16 = team->unk18 = -1;
+                    team->unk1A = 0;
+                } else {
+                    func_8001C258_main(obj->model[3 + pl->unk24], 4, 4);
+                    pl->unk24 = pl->unk22 = -1;
+                    pl->unk22 = func_80109044_log_jam(target, 0);
+                    func_80109140_log_jam(pl->unk22, D_8010DF30_log_jam[team->unk10].x, D_8010DF30_log_jam[team->unk10].y,
+                                          D_8010DF30_log_jam[team->unk10].z);
+                    func_80109190_log_jam(pl->unk22, 0.0f, 0.0f, 0.0f);
+                }
+                if (pl->unk22 != -1) {
+                    func_80109350_log_jam(pl->unk22);
+                    pl->unk22 = pl->unk24 = -1;
+                }
+                if (func_800E6E8C_minigame() == 2) {
+                    team->unk12++;
+                }
+            }
+        }
+        break;
+    case 9:
+        if (hmf->unk04 == 0xFF && hmf->unk40 >= 8.0f && hmf->unk02 == obj->motion[5]) {
+            func_8004AC98_main(0x38C, pl->unk18);
+            pl->unk08 = 11;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+            if (team->unk16 != -1) {
+                pl->unk22 = 32;
+                pl->unk24 = team->unk18;
+                func_8001C258_main(obj->model[3 + pl->unk24], 4, 0);
+                func_8010925C_log_jam(team->unk16);
+                team->unk16 = team->unk18 = -1;
+                team->unk1A = 0;
+                func_800E4C88_minigame(obj, 6, D_8010DF30_log_jam[team->unk10].x, D_8010DF30_log_jam[team->unk10].y + 50.0,
+                                       D_8010DF30_log_jam[team->unk10].z, 0.0f, 0.0f);
+            } else {
+                func_800E4C88_minigame(obj, 6, D_8010DF30_log_jam[team->unk10].x, D_8010DF30_log_jam[team->unk10].y,
+                                       D_8010DF30_log_jam[team->unk10].z, 0.0f, 0.0f);
+            }
+            omVibrate(pl->unk18, 2, 2, 20);
+            func_8010C7D0_log_jam(obj);
+        }
+        break;
+    case 10:
+        if (pl->unk0C >= 9.0f) {
+            pl->unk08 = 5;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+            func_8010C5DC_log_jam(obj, 3, 5);
+        }
+        break;
+    case 11:
+        if (pl->unk0C >= 15.0f) {
+            pl->unk08 = 6;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+            func_8010C6A4_log_jam(obj, 3, 12);
+        }
+        break;
+    case 12:
+        if (pl->unk0C >= 90.0f) {
+            func_8010C5DC_log_jam(obj, 3, 7);
+            pl->unk08 = 5;
+            pl->unk0A = 0;
+            pl->unk0C = 0;
+        }
+        break;
+    case 13:
+        func_8010CAC0_log_jam(obj, D_8010E218_log_jam, mtx);
+        team->unk1C = obj->model[2];
+        if (team->unk1C != -1) {
+            func_8008A070_main((f32(*)[4])HmfModelData[team->unk1C].mtx);
+            func_80017C10_main((Mtx*)HmfModelData[team->unk1C].mtx, 0.0f, -50.0f, 0.0f);
+            func_8001C258_main(team->unk1C, 0x4000, 0);
+            team->unk20 = 0;
+            team->unk24.x = mtx[3][0];
+            team->unk24.z = mtx[3][2];
+            team->unk24.y = mtx[3][1] + 50.0;
+            team->unk3C = 30.000001907348633f;
+            team->unk40 = (u8)(rand8() % 10) + 40;
+            team->unk44 = 3 - (u8)(rand8() % 6);
+        }
+        if (pl->unk24 != -1) {
+            func_8001C258_main(obj->model[3 + pl->unk24], 4, 4);
+            func_8010A9D4_log_jam((Vec*)mtx[3], NULL, &scale, 1.0f, &D_8010DF4C_log_jam);
+            pl->unk22 = pl->unk24 = -1;
+        }
+        func_8010C5DC_log_jam(obj, 0, 5);
+        pl->unk08 = 14;
+        /* fallthrough */
+    case 14:
+        obj->rot.y = func_8010C2DC_log_jam(0.0f, obj->rot.y, 10.0f);
+        obj->trans.x = func_8010C514_log_jam(D_8010DE90_log_jam[pl->unk00].x, obj->trans.x, 10.0f);
+        obj->trans.z = func_8010C514_log_jam(D_8010DE90_log_jam[pl->unk00].z, obj->trans.z, 10.0f);
+        if (func_800E6E8C_minigame() == 4) {
+            func_8010C5DC_log_jam(obj, 1, 5);
+            pl->unk10 = 25.0f;
+            pl->unk0E = func_80108D1C_log_jam(25.0f, 1.6333001f);
+            pl->unk08 = 15;
+            pl->unk0C = 0;
+        }
+        break;
+    case 15:
+        t = (f32)pl->unk0C / pl->unk0E;
+        if (t > 1.0f) {
+            t = 1.0f;
+        } else if (t < 0.0f) {
+            t = 0.0f;
+        }
+        if (pl->unk0C == 6) {
+            func_8010C5DC_log_jam(obj, 2, 6);
+        } else if (pl->unk0C == pl->unk0E - 6) {
+            func_8010C5DC_log_jam(obj, 1, 6);
+        }
+        obj->trans.x = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].x, D_8010DEF0_log_jam[pl->unk00].x);
+        obj->trans.z = func_8010C49C_log_jam(t, D_8010DE90_log_jam[pl->unk00].z, D_8010DEF0_log_jam[pl->unk00].z);
+        obj->trans.y += pl->unk10;
+        pl->unk10 -= 1.6333001f;
+        if (obj->trans.y <= 0.0f) {
+            func_8010C5DC_log_jam(obj, 0, 5);
+            obj->trans.y = 0.0f;
+            pl->unk08 = 16;
+            pl->unk0C = 0;
+        }
+        break;
+    case 16:
+        pl->unk08 = 17;
+        pl->unk0C = 0;
+        break;
+    case 17:
+        if (pl->unk06 != -1) {
+            switch (pl->unk06) {
+            case 0:
+                func_8010C5DC_log_jam(obj, 9, 5);
+                func_80017790_main(obj->model[0], 2, pl->unk1C, D_8010DF50_log_jam[pl->unk1C]);
+                func_80045F1C_main(pl->unk14, -1, pl->unk18);
+                break;
+            case 1:
+                func_8010C5DC_log_jam(obj, 10, 5);
+                func_80017790_main(obj->model[0], 2, pl->unk1C, D_8010DF70_log_jam[pl->unk1C]);
+                break;
+            }
+            pl->unk06 = -1;
+        }
+        break;
+    }
+}
 
 /* CPU input of the hook player (role 1). */
 void func_80108840_log_jam(omObjData* obj, LjTeam* team) {
