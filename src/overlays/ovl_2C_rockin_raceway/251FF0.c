@@ -274,6 +274,11 @@ RRRecFrame* func_8010D944_rockin_raceway(s32 idx);
 f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b);
 f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b);
 void func_8010FA78_rockin_raceway(u16 model, HuSprite_Unk84_Struct* spr, u16 frame, RRColor* color);
+f32 func_8010E504_rockin_raceway(f32 a, f32 b);
+f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step);
+f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
+f32 func_8010E93C_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
+f32 func_8010EB04_rockin_raceway(f32 x, f32 z);
 
 /* Projects pos through camera cam: screen position and depth into screen, viewport-relative into rel. */
 #ifdef NON_MATCHING
@@ -574,7 +579,6 @@ void func_8010D9C4_rockin_raceway(s32 frame) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D9C4_rockin_raceway);
 #endif
 
-#ifdef NON_MATCHING
 /* Shifts every recorded player sideways (player `idx` across the track) and swings the recorded heading. */
 void func_8010E08C_rockin_raceway(s32 idx) {
     RRRecPlayer* p;
@@ -601,7 +605,8 @@ void func_8010E08C_rockin_raceway(s32 idx) {
             work->unk44 = work->unk44 - 20.000000298023224;
         }
     }
-    turn = 90.0f - func_8010D944_rockin_raceway(29)->player[idx].unk28;
+    p = &func_8010D944_rockin_raceway(29)->player[idx];
+    turn = 90.0f - p->unk28;
     for (j = 0; j < 30; j++) {
         p = &func_8010D944_rockin_raceway(j)->player[idx];
         p->unk28 += turn;
@@ -613,11 +618,7 @@ void func_8010E08C_rockin_raceway(s32 idx) {
         p->rot.x = sindf(p->unk28) * p->unk24 * 30.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E08C_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010E2E4_rockin_raceway(void) {
     RRSe* se;
     s32 i;
@@ -628,9 +629,6 @@ void func_8010E2E4_rockin_raceway(void) {
         se->fx = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E2E4_rockin_raceway);
-#endif
 
 #ifdef NON_MATCHING
 /* Queues sound fx to play after delay ticks; returns its slot, -1 if all 16 are busy. */
@@ -656,7 +654,6 @@ s32 func_8010E344_rockin_raceway(s16 fx, s16 delay, s16 kind, s16 arg) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E344_rockin_raceway);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010E39C_rockin_raceway(void) {
     RRSe* se = D_80111BD0_rockin_raceway;
     s32 i;
@@ -667,29 +664,23 @@ void func_8010E39C_rockin_raceway(void) {
                 switch (se->kind) {
                     case 0:
                         HuAudFXPlay(se->fx);
-                        se->fx = -1;
                         break;
                     case 1:
                         func_8004AC98_main(se->fx, se->arg);
-                        se->fx = -1;
                         break;
                     case 2:
                         CharFXPlay(se->fx, GwPlayer[(s16)(se->arg % 4)].chr);
-                        se->fx = -1;
                         break;
                     default:
                         func_8004AC98_main(GwPlayer[(s16)(se->arg % 4)].chr + se->fx + 1, se->arg);
-                        se->fx = -1;
                         break;
                 }
+                se->fx = -1;
             }
             se->delay--;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E39C_rockin_raceway);
-#endif
 
 /* Signed difference a - b of two angles, in (-180, 180]. */
 f32 func_8010E504_rockin_raceway(f32 a, f32 b) {
@@ -712,7 +703,6 @@ f32 func_8010E504_rockin_raceway(f32 a, f32 b) {
     return a;
 }
 
-#ifdef NON_MATCHING
 /* Turns angle cur toward target by at most step degrees. */
 f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step) {
     f32 d;
@@ -740,9 +730,6 @@ f32 func_8010E608_rockin_raceway(f32 target, f32 cur, f32 step) {
     RR_WRAP(v);
     return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E608_rockin_raceway);
-#endif
 
 f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b) {
     return a + t * (b - a);
@@ -757,18 +744,13 @@ f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E7E0_rockin_raceway);
 #endif
 
-#ifdef NON_MATCHING
 /* Quadratic Bezier. */
 f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c) {
     f32 u = 1.0 - t;
 
     return u * u * a + 2.0 * (u * t * b) + t * t * c;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E840_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010E8A0_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
     f32* pa = (f32*)a;
     f32* pb = (f32*)b;
@@ -780,20 +762,12 @@ void func_8010E8A0_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
         *po++ = func_8010E840_rockin_raceway(t, *pa++, *pb++, *pc++);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E8A0_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 /* Quadratic Bezier derivative. */
 f32 func_8010E93C_rockin_raceway(f32 t, f32 a, f32 b, f32 c) {
     return 2.0 * ((t - 1.0) * a + (1.0 - 2.0 * t) * b + t * c);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E93C_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 /* Unit tangent of the quadratic Bezier at t (0,0,1 if degenerate). */
 void func_8010E994_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
     f32 d[3];
@@ -818,11 +792,7 @@ void func_8010E994_rockin_raceway(f32 t, Vec* a, Vec* b, Vec* c, Vec* out) {
     *po++ = 0.0f;
     *po = 1.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E994_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 /* atan2 in degrees, wrapped to [0, 360). */
 f32 func_8010EB04_rockin_raceway(f32 x, f32 z) {
     f32 a = atan2df(z, x);
@@ -834,11 +804,7 @@ f32 func_8010EB04_rockin_raceway(f32 x, f32 z) {
     }
     return a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EB04_rockin_raceway);
-#endif
 
-#ifdef NON_MATCHING
 /* Pitch and yaw of direction dir. */
 void func_8010EB84_rockin_raceway(Vec* dir, f32* angles) {
     f32 h = sqrtf(dir->x * dir->x + dir->z * dir->z);
@@ -847,9 +813,6 @@ void func_8010EB84_rockin_raceway(Vec* dir, f32* angles) {
     *angles++ = func_8010EB04_rockin_raceway(dir->z, dir->x);
     *angles = 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010EB84_rockin_raceway);
-#endif
 
 void func_8010EC0C_rockin_raceway(omObjData* obj, void* p) {
     obj->work[0] = (u32)p >> 24;
