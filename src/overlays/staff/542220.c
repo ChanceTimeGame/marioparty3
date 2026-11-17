@@ -175,6 +175,27 @@ void func_8010DF0C_staff(UnkStaff_2 *obj, s32 mask, s32 bits);
 s16 func_8010DF24_staff(UnkStaff_2 *arg0);
 extern s32 D_80110540_staff[]; /* per credits variant (D_80111514_staff) */
 void func_801073EC_staff(UnkStaff_2 *obj, s32 i);
+/* Background star sprites: four layers (the 0x14 records of func_80107740_staff). */
+typedef struct StaffStarPos {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+} StaffStarPos; /* size = 0x8 */
+
+typedef struct StaffStarLayer {
+    /* 0x00 */ StaffStarPos *pos;
+    /* 0x04 */ f32 *scale; /* per star; func_80107B1C_staff sets it to t * speed */
+    /* 0x08 */ f32 *speed;
+    /* 0x0C */ s16 grp;
+    /* 0x0E */ s16 sprite;
+    /* 0x10 */ s16 count;
+} StaffStarLayer; /* size = 0x14 */
+extern s32 D_8011058C_staff[4]; /* star sprite files */
+extern u8 D_8011059C_staff[4];  /* stars per layer */
+extern u16 D_801105A0_staff[4]; /* sprite priorities */
+extern f32 D_801105A8_staff[4]; /* base speeds */
+StaffStarLayer *func_80107740_staff(void);
+void func_80107A9C_staff(StaffStarLayer *layers);
+void func_80107B1C_staff(StaffStarLayer *layers, f32 t);
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -794,11 +815,111 @@ void func_80107508_staff(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107508_staff);
 #endif
 
+#ifdef NON_MATCHING
+/* Register allocation (masked 20): retail keeps count in s3 and spills the scale pointer to the stack;
+   this spills count instead. Logic checked against the asm. */
+StaffStarLayer *func_80107740_staff(void) {
+    StaffStarLayer *layers;
+    StaffStarLayer *layer;
+    StaffStarPos *pos;
+    f32 *scale;
+    f32 *speed;
+    s16 i;
+    s16 j;
+    u8 count;
+    s16 grp;
+    s16 sprite;
+    u16 pri;
+    f32 base;
+    u32 r;
+    u8 red;
+    u8 green;
+    s32 x;
+    s32 y;
+
+    layers = HuMemAllocTag(4 * sizeof(StaffStarLayer), 0x7918);
+    memset(layers, 0, 4 * sizeof(StaffStarLayer));
+    for (i = 0, layer = layers; i < 4; i++, layer++) {
+        count = D_8011059C_staff[i];
+        pos = HuMemAllocTag(count * sizeof(StaffStarPos), 0x7918);
+        scale = HuMemAllocTag(count * sizeof(f32), 0x7918);
+        speed = HuMemAllocTag(count * sizeof(f32), 0x7918);
+        grp = HuSprGrpCreate(count, 0);
+        sprite = func_8000B838_main(D_8011058C_staff[i]);
+        pri = D_801105A0_staff[i];
+        layer->pos = pos;
+        layer->grp = grp;
+        layer->sprite = sprite;
+        layer->scale = scale;
+        layer->speed = speed;
+        layer->count = count;
+        base = D_801105A8_staff[i];
+        for (j = 0; j < count; j++) {
+            func_80055458_main(grp, j, 0x100);
+            HuSprAttrReset(grp, j, 0xFFFF);
+            HuSprAttrSet(grp, j, 0x5000);
+            HuSprScaleSet(grp, j, 1.0f, 1.0f);
+            func_800550F4_main(grp, j, 0);
+            func_80055024_main(grp, j, sprite, 0);
+            HuSprPriSet(grp, j, pri);
+            r = func_8010601C_staff();
+            red = r | 0xC0;
+            r >>= 7;
+            green = r | 0xC0;
+            r >>= 7;
+            func_80055420_main(grp, j, red, green, r | 0xC0);
+            r = func_8010601C_staff() & 0x7FFFFFFF;
+            x = r % 320;
+            r >>= 6;
+            y = r % 304 - 0x40;
+            pos->x = x;
+            pos->y = y;
+            func_80054904_main(grp, j, x, y);
+            *scale = 0.0f;
+            r >>= 6;
+            *speed = base + (base / 16.0f) * (f32)((s32)(r & 3) - 1);
+            pos++;
+            scale++;
+            speed++;
+        }
+    }
+    return layers;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107740_staff);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107A9C_staff);
+void func_80107A9C_staff(StaffStarLayer *layers) {
+    StaffStarLayer *layer;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107B1C_staff);
+    for (i = 0, layer = layers; i < 4; i++, layer++) {
+        HuSprGrpKill(layer->grp);
+        HuSprKill(layer->sprite);
+        HuMemFree(layer->pos);
+        HuMemFree(layer->scale);
+        HuMemFree(layer->speed);
+    }
+    HuMemFree(layers);
+}
+
+void func_80107B1C_staff(StaffStarLayer *layers, f32 t) {
+    StaffStarLayer *layer;
+    f32 *scale;
+    f32 *speed;
+    s16 i;
+    s16 j;
+    s16 n;
+
+    for (i = 0, layer = layers; i < 4; i++, layer++) {
+        scale = layer->scale;
+        speed = layer->speed;
+        n = layer->count;
+        for (j = 0; j < n; j++, scale++, speed++) {
+            *scale = t * *speed;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107BA0_staff);
 
