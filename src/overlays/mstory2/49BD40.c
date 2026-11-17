@@ -394,6 +394,7 @@ MsPath2 *func_80115E60_mstory2(Vec *points, s16 flags);
 void func_80116164_mstory2(MsPath2 *path, f32 t, Vec *out);
 void func_80116A0C_mstory2(MsPath2 *path);
 
+#include "mallocblock.h"
 s32 HmfAnimCreate(HmfData *, void *, s32, char *);
 s16 func_80032694_main(HmfData *, u16, s32, char *);
 void func_80032FC0_main(s16, u8, u8);
