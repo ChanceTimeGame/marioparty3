@@ -189,6 +189,36 @@ extern s16 D_80111B7A_rockin_raceway; /* new record pulse timer */
 extern s16 D_80111340_rockin_raceway[8];
 extern s32 D_80111B00_rockin_raceway[2 * 6]; /* best time digits, six per time */
 extern s32 D_801115D8_rockin_raceway[6]; /* digit sprite members */
+/* camera state (MP2 Looney Lumberjacks LLCamera) */
+typedef struct RrCamera {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} RrCamera; /* size 0x24 */
+
+extern s32 fontcolor;
+extern s32 D_800EBE24_minigame;
+extern s32 D_801115F0_rockin_raceway; /* camera debug mode */
+extern s32 D_801115F4_rockin_raceway; /* debug text x */
+extern s32 D_801115F8_rockin_raceway; /* debug text y */
+void func_8010C7CC_rockin_raceway(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
+/* camera preset (D_80111350): center, rotation, zoom */
+typedef struct RrCamPreset {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+} RrCamPreset;
+
+extern RrCamPreset D_80111350_rockin_raceway;
+extern omObjData *D_80111BD8_rockin_raceway;
+extern s16 D_80111C28_rockin_raceway;
+extern s16 D_80111C2A_rockin_raceway;
+extern s16 D_80111C2C_rockin_raceway;
+extern s16 D_80111C2E_rockin_raceway;
+void func_8010C0D8_rockin_raceway(omObjData *obj);
+void func_8010C5E0_rockin_raceway(s32 idx);
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -789,11 +819,144 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B
 #endif
 /* rr2 end func_8010B5DC_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B774_rockin_raceway);
+/* rr2 func_8010B774_rockin_raceway */
+void func_8010B774_rockin_raceway(void) {
+    HuCamera *cam;
+    s32 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", D_80111838_rockin_raceway);
+    Center.x = D_80111350_rockin_raceway.center.x;
+    Center.y = D_80111350_rockin_raceway.center.y;
+    Center.z = D_80111350_rockin_raceway.center.z;
+    CRot.x = D_80111350_rockin_raceway.rot.x;
+    CRot.y = D_80111350_rockin_raceway.rot.y;
+    CRot.z = D_80111350_rockin_raceway.rot.z;
+    CZoom = D_80111350_rockin_raceway.zoom;
+    func_8010C5E0_rockin_raceway(0);
+    func_8010C5E0_rockin_raceway(1);
+    D_80111C2E_rockin_raceway = 0;
+    D_80111C2C_rockin_raceway = 0;
+    D_80111C2A_rockin_raceway = 0;
+    D_80111C28_rockin_raceway = 0;
+    D_80111BD8_rockin_raceway = omAddObj(31, 0, 0, -1, func_8010C0D8_rockin_raceway);
+    cam = gCameraList;
+    for (i = 1; i < D_800D1FF0_main; i++) {
+        cam->viewports[i].vp.vscale[0] = cam->viewports[0].vp.vscale[0];
+        cam->viewports[i].vp.vscale[1] = cam->viewports[0].vp.vscale[1];
+        cam->viewports[i].vp.vscale[2] = cam->viewports[0].vp.vscale[2];
+        cam->viewports[i].vp.vtrans[0] = cam->viewports[0].vp.vtrans[0];
+        cam->viewports[i].vp.vtrans[1] = cam->viewports[0].vp.vtrans[1];
+        cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
+    }
+}
+/* rr2 end func_8010B774_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B89C_rockin_raceway);
+/* rr2 func_8010B89C_rockin_raceway */
+void func_8010B89C_rockin_raceway(void) {
+    RrCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
+    f32 speed = 1.0f;
+
+    switch (D_801115F0_rockin_raceway) {
+    case 1:
+        if ((u16)D_800CDA7C_main[0] & 0x8000) {
+            speed = 8.0f;
+        }
+        if (D_800CDA7C_main[0] & 0x4000) {
+            speed = 0.5f;
+        }
+        if (D_800D5558_main[0] & 0x1000) {
+            Center.x = 0.0f;
+            Center.y = 191.2f;
+            Center.z = 0.2f;
+            CRot.x = -14.5f;
+            CRot.y = 0.0f;
+            CRot.z = 0.0f;
+            CZoom = 1069.0f;
+        } else {
+            c.rot.x = (f32)D_800D20A1_main[0] * 0.125 * speed;
+            c.rot.y = (f32)D_800CBB6E_main[0] * 0.125 * speed;
+            if (D_800CDA7C_main[0] & 0x200) {
+                c.center.x = 2.0 * speed;
+            }
+            if (D_800CDA7C_main[0] & 0x100) {
+                c.center.x = -(2.0 * speed);
+            }
+            if (D_800CDA7C_main[0] & 0x800) {
+                c.center.z = -(2.0 * speed);
+            }
+            if (D_800CDA7C_main[0] & 0x400) {
+                c.center.z = 2.0 * speed;
+            }
+            if (D_800CDA7C_main[0] & 8) {
+                c.center.y = 2.0 * speed;
+            }
+            if (D_800CDA7C_main[0] & 4) {
+                c.center.y = -(2.0 * speed);
+            }
+            if (D_800CDA7C_main[0] & 1) {
+                c.zoom = 2.0 * speed;
+            }
+            if (D_800CDA7C_main[0] & 2) {
+                c.zoom = -(2.0 * speed);
+            }
+            c.center.x += Center.x;
+            c.center.y += Center.y;
+            c.center.z += Center.z;
+            c.rot.x += CRot.x;
+            c.rot.y += CRot.y;
+            c.rot.z += CRot.z;
+            c.zoom += CZoom;
+            func_8010C7CC_rockin_raceway(c.center.x, c.center.y, c.center.z, c.rot.x, c.rot.y, c.rot.z, c.zoom, 1);
+        }
+        sprintf(D_800D5218_main, "CAMERA TEST_MODE");
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 80, D_800D5218_main);
+        sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 88, D_800D5218_main);
+        sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 96, D_800D5218_main);
+        sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 104, D_800D5218_main);
+        D_800EBE24_minigame = 0;
+        break;
+    case 2:
+        if ((D_800CDA7C_main[0] & 0x100) || (D_800CDA7C_main[0] & 1)) {
+            D_801115F4_rockin_raceway++;
+        }
+        if (D_800CDA7C_main[0] & 0x202) {
+            D_801115F4_rockin_raceway--;
+        }
+        if (D_800CDA7C_main[0] & 0x404) {
+            D_801115F8_rockin_raceway++;
+        }
+        if (D_800CDA7C_main[0] & 0x808) {
+            D_801115F8_rockin_raceway--;
+        }
+        fontcolor = 8;
+        sprintf(D_800D5218_main, "CAMERA TEST_MODE ");
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 80, D_800D5218_main);
+        sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 88, D_800D5218_main);
+        sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 96, D_800D5218_main);
+        sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+        print8((u16)D_801115F4_rockin_raceway + 20, (u16)D_801115F8_rockin_raceway + 104, D_800D5218_main);
+        break;
+    default:
+        D_800EBE24_minigame = 1;
+        break;
+    }
+    if (D_800D5558_main[0] & 0x10) {
+        if (D_801115F0_rockin_raceway & 1) {
+            osSyncPrintf("CAMERA TEST_MODE \n");
+            osSyncPrintf(" CENTER X>%3.3f Y>%3.3f Z>%3.3f \n", Center.x, Center.y, Center.z);
+            osSyncPrintf(" ROT    X>%3.3f Y>%3.3f Z>%3.3f \n", CRot.x, CRot.y, CRot.z);
+            osSyncPrintf(" ZOOM   %3.3f \n\n", CZoom);
+        }
+        if (++D_801115F0_rockin_raceway >= 3) {
+            D_801115F0_rockin_raceway = 0;
+        }
+    }
+}
+/* rr2 end func_8010B89C_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010C0D8_rockin_raceway);
 
