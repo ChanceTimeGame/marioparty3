@@ -96,8 +96,57 @@ void func_80017D24_main(f32 *, f32, f32, f32);
 extern s16 D_800CDD6A_main;
 extern u8 D_800D2008_main;
 
-extern Gfx D_8010FE80_baby_bowser_broadside[];
-extern BbRGBA D_8010FFE0_baby_bowser_broadside;
+Gfx D_8010FD90_baby_bowser_broadside[] = {
+    gsSPSegment(0x00, 0x00000000),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPPipelineMode(G_PM_1PRIMITIVE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureDetail(G_TD_CLAMP),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0, 0),
+    gsDPSetTileSize(1, 0, 0, 0, 0),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTextureFilter(G_TF_BILERP),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetCombineKey(G_CK_NONE),
+    gsDPSetAlphaCompare(G_AC_NONE),
+    gsDPSetDepthSource(G_ZS_PIXEL),
+    gsDPSetRenderMode(G_RM_OPA_SURF, G_RM_OPA_SURF2),
+    gsDPNoOp(),
+    gsDPSetColorDither(G_CD_DISABLE),
+    gsDPPipeSync(),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010FE48_baby_bowser_broadside[] = {
+    gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA),
+    gsSPTexture(0, 0, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPSetGeometryMode(G_SHADE | G_SHADING_SMOOTH),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010FE68_baby_bowser_broadside[] = {
+    gsSPDisplayList(D_8010FE48_baby_bowser_broadside),
+    gsSPDisplayList(D_8010FD90_baby_bowser_broadside),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010FE80_baby_bowser_broadside[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(D_8010FE68_baby_bowser_broadside),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsSPSetGeometryMode(G_ZBUFFER | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH),
+    gsDPSetBlendColor(0x00, 0x00, 0x00, 0x00),
+    gsDPSetPrimColor(0, 0, 0x00, 0x00, 0x00, 0xFF),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+    gsSPEndDisplayList(),
+};
+
+const BbRGBA D_8010FFE0_baby_bowser_broadside = { 0x7F, 0x7F, 0x7F, 0xFF };
 extern BbBillboardData *D_80110010_baby_bowser_broadside;
 extern BbFuncGroup *D_80110014_baby_bowser_broadside;
 extern BbSpriteData *D_80110018_baby_bowser_broadside;
@@ -939,8 +988,8 @@ typedef struct {
     /* 0x30 */ s16 hitCylinder;
 } BbMover;
 
-extern const f64 D_8010FFE8_baby_bowser_broadside; // 32.0
-extern const f64 D_8010FFF0_baby_bowser_broadside; // 0.5
+const f64 D_8010FFE8_baby_bowser_broadside = 32.0;
+const f64 D_8010FFF0_baby_bowser_broadside = 0.5;
 extern BbCollider *D_80110020_baby_bowser_broadside;
 
 void func_8010DE70_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx);

@@ -188,22 +188,29 @@ extern BbEffect* D_80110010_baby_bowser_broadside;
 extern BbGroup* D_80110014_baby_bowser_broadside;
 extern BbSprite* D_80110018_baby_bowser_broadside;
 
-extern s16 D_8010FD60_baby_bowser_broadside; /* the result is out */
-extern f32 D_8010FD64_baby_bowser_broadside;
-extern f32 D_8010FD68_baby_bowser_broadside;
-extern f32 D_8010FD6C_baby_bowser_broadside;
-extern s16 D_8010FD70_baby_bowser_broadside;
-extern s16 D_8010FD72_baby_bowser_broadside;
-extern s16 D_8010FD74_baby_bowser_broadside;
-extern s16 D_8010FD76_baby_bowser_broadside;
-extern s16 D_8010FD78_baby_bowser_broadside[6];
-extern s16 D_8010FD84_baby_bowser_broadside[6];
-extern s16 D_8010FEC0_baby_bowser_broadside[];
-extern s16 D_8010FECC_baby_bowser_broadside[];
-extern s16 D_8010FEDC_baby_bowser_broadside[];
-extern Vec D_8010FEE8_baby_bowser_broadside;
-extern Vec D_8010FEF4_baby_bowser_broadside[4][4];
-extern s32 D_8010FFB4_baby_bowser_broadside[8];
+s16 D_8010FD60_baby_bowser_broadside = 0; /* the result is out */
+f32 D_8010FD64_baby_bowser_broadside = 0.0f;
+f32 D_8010FD68_baby_bowser_broadside = 0.0f;
+f32 D_8010FD6C_baby_bowser_broadside = 180.0f;
+s16 D_8010FD70_baby_bowser_broadside = 0;
+s16 D_8010FD72_baby_bowser_broadside = 0;
+s16 D_8010FD74_baby_bowser_broadside = 0;
+s16 D_8010FD76_baby_bowser_broadside = 0;
+s16 D_8010FD78_baby_bowser_broadside[6] = { 0, 0, 60, 0, -60, 0 };
+s16 D_8010FD84_baby_bowser_broadside[6] = { 0, 60, 0, -60, 0, 0 };
+
+/* "ＳＴＡＲＴ", "ＦＩＮＩＳＨ", "ＤＲＡＷ" in Shift-JIS */
+const s16 D_8010FEC0_baby_bowser_broadside[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0 };
+const s16 D_8010FECC_baby_bowser_broadside[] = { 0x8265, 0x8268, 0x826D, 0x8268, 0x8272, 0x8267, 0 };
+const s16 D_8010FEDC_baby_bowser_broadside[] = { 0x8263, 0x8271, 0x8260, 0x8276, 0 };
+const Vec D_8010FEE8_baby_bowser_broadside = { 0.0f, 0.0f, 0.0f };
+const Vec D_8010FEF4_baby_bowser_broadside[4][4] = {
+    { { -50.0f, 100.0f, 170.0f }, { 50.0f, 100.0f, 170.0f }, { 50.0f, 200.0f, 170.0f }, { -50.0f, 200.0f, 170.0f } },
+    { { 170.0f, 100.0f, 50.0f }, { 170.0f, 100.0f, -50.0f }, { 170.0f, 200.0f, -50.0f }, { 170.0f, 200.0f, 50.0f } },
+    { { 50.0f, 100.0f, -170.0f }, { -50.0f, 100.0f, -170.0f }, { -50.0f, 200.0f, -170.0f }, { 50.0f, 200.0f, -170.0f } },
+    { { -170.0f, 100.0f, -50.0f }, { -170.0f, 100.0f, 50.0f }, { -170.0f, 200.0f, 50.0f }, { -170.0f, 200.0f, -50.0f } },
+};
+const s32 D_8010FFB4_baby_bowser_broadside[8] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 
 // main
 s32 func_8000B638_main(void);

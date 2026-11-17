@@ -862,12 +862,16 @@ segments:
     vram: 0x801059A0
     dir: overlays/ovl_0C_baby_bowser_broadside
     name: baby_bowser_broadside
+    subalign: 16
     exclusive_ram_id: minigame # ovl_0C
     bss_size: 0x30
     subsegments:
       - [0x165010, c]
       - [0x169540, c]
-      - [0x16F3D0, data, 165010] #8010FD60
+      - [0x16F3D0, .data, 165010] #8010FD60
+      - [0x16F400, .data, 169540] #8010FD90
+      - [0x16F530, .rodata, 165010] #8010FEC0
+      - [0x16F650, .rodata, 169540] #8010FFE0
       - {0x16F670, type: bss, vram: 0x80110000, name: ovl_0C_bss}
 
   - type: code
