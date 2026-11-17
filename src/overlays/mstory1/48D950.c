@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern Vec D_80114AC4_mstory1[]; /* paths: Vec lists ended by { 9999, 9999, 9999 } */
+extern Vec D_80114AF4_mstory1[];
+
 void func_800138EC_main(s16 model, u16 mask, u16 flags);
 void func_80109478_mstory1(omObjData *obj);
 void func_80109FD0_mstory1(void);
@@ -95,6 +98,10 @@ typedef struct ObPath {
     /* 0x08 */ Vec *points;
     /* 0x0C */ ObPathSeg *segs;
 } ObPath; /* size = 0x10 */
+
+ObPath *func_801074C0_mstory1(Vec *points, s16 flags);
+void func_801077C4_mstory1(ObPath *path, f32 t, Vec *out);
+void func_8010806C_mstory1(ObPath *path);
 
 typedef struct TexAnimSlot {
     /* 0x00 */ s16 unk_00; /* frame */
@@ -889,7 +896,57 @@ void func_8010B4E4_mstory1(void) {
 void func_8010B69C_mstory1(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48D950", func_8010B6A4_mstory1);
+/* actor 7's flight: along the first path, then (after actor 6 reacts) spinning along the second */
+void func_8010B6A4_mstory1(omObjData *obj) {
+    Vec pos;
+    ObPath *path[2];
+    omObjData *other;
+    s32 i;
+    f32 t;
+    f32 rot;
+
+    path[0] = func_801074C0_mstory1(D_80114AC4_mstory1, 0);
+    path[1] = func_801074C0_mstory1(D_80114AF4_mstory1, 0);
+    func_8001C258_main(obj->model[1], 4, 0);
+    func_8001C258_main(D_80115A12_mstory1, 4, 0);
+    func_800138EC_main(D_80115A12_mstory1, 1, 1);
+    HuAudFXPlay(0x215);
+    i = 0;
+    do {
+        t = i * 0.02f;
+        func_801077C4_mstory1(path[0], t * t, &pos);
+        i++;
+        Hu3DModelPosSet(obj->model[1], pos.x, pos.y, pos.z);
+        func_8000CFA4_main(D_80115A12_mstory1, pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    } while (i < 50);
+    HuPrcSleep(40);
+    other = D_801158F0_mstory1[6].obj;
+    func_8001C624_main(other->model[1], HmfModelData[other->motion[2]].unk02, 0, 10, 0);
+    HuPrcSleep(20);
+    D_801158F0_mstory1[7].unk08 |= 2;
+    HuAudFXPlay(0x218);
+    func_8001C624_main(other->model[1], HmfModelData[other->motion[0]].unk02, 0, 10, 2);
+    rot = 0.0f;
+    i = 0;
+    do {
+        t = i * (1.0f / 120.0f);
+        func_801077C4_mstory1(path[1], t * t, &pos);
+        rot -= 24.0f;
+        Hu3DModelPosSet(obj->model[1], pos.x, pos.y, pos.z);
+        i++;
+        Hu3DModelRotSet(obj->model[1], 0.0f, rot, 0.0f);
+        func_8000CFA4_main(D_80115A12_mstory1, pos.x, pos.y - 40.0f, pos.z);
+        HuPrcVSleep();
+    } while (i < 120);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(D_80115A12_mstory1, 4, 4);
+    HuAudFXPlay(0x21A);
+    func_8010806C_mstory1(path[0]);
+    func_8010806C_mstory1(path[1]);
+    D_801158F0_mstory1[7].unk08 = 1;
+    D_801158F0_mstory1[7].func = func_801081D8_mstory1;
+}
 
 /* turns a's model to face b's */
 void func_8010B9C0_mstory1(omObjData *a, omObjData *b) {
