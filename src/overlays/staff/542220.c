@@ -124,9 +124,262 @@ extern StaffTextGrp *D_80111508_staff;
 extern u16 D_8011150C_staff;
 extern u16 D_8011150E_staff;
 void func_8005BF70_main(s16 winId, s32 alpha);
+typedef struct StaffS16Vec {
+    s16 x;
+    s16 y;
+    s16 z;
+} StaffS16Vec;
+
+typedef struct StaffScript {
+    /* 0x00 */ f32 scale; // 0 ends the script
+    /* 0x04 */ s32 file;
+    /* 0x08 */ s32 file2; // optional attached model
+    /* 0x0C */ StaffS16Vec unkC;
+    /* 0x12 */ s16 type;
+    /* 0x14 */ s16 param;
+    /* 0x16 */ s16 anim; // 1-based index into D_80110674_staff
+} StaffScript; // size 0x18
+
+typedef struct StaffActor {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ s16 model;
+    /* 0x1E */ s16 model2;
+    /* 0x20 */ s16 anim;
+    /* 0x22 */ StaffS16Vec unk22;
+    /* 0x28 */ s16 models[4];
+    /* 0x30 */ s16 anim2;
+    /* 0x32 */ s16 anim3;
+    /* 0x34 */ s16 type;
+    /* 0x36 */ s16 unk36;
+    /* 0x38 */ s16 unk38;
+    /* 0x3A */ s16 flags;
+} StaffActor; // size 0x3C
+
+typedef struct StaffAnimDef {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ char *name;
+} StaffAnimDef;
+
+extern StaffAnimDef D_80110674_staff[];
+void func_80034048_main(s16, s16);
 // end story j2
 
+#ifdef NON_MATCHING
+// Register allocation: retail keeps attach in fp and spills sub; logic checked block by block.
+StaffScript *func_80109F34_staff(StaffActor *e, StaffScript *script) {
+    s32 attach;
+    void *data;
+    s32 i;
+    s16 mdl;
+    s16 m;
+    s16 sub;
+
+    e->flags = 0;
+    switch (e->type) {
+    case 7:
+        for (i = 0; i < 4; i++) {
+            func_8001ACDC_main(e->models[i]);
+        }
+        func_80033354_main(e->anim);
+        func_80033354_main(e->anim2);
+        break;
+    case 4:
+    case 8:
+    case 10:
+        func_8001ACDC_main(e->models[0]);
+        break;
+    case 12:
+        func_80046558_main(e->model);
+        break;
+    }
+    if (e->anim3 >= 0) {
+        func_80033354_main(e->anim3);
+    }
+    if (e->model >= 0) {
+        func_8001ACDC_main(e->model);
+    }
+    if (e->model2 >= 0) {
+        func_8001ACDC_main(e->model2);
+    }
+    e->model2 = e->model = -1;
+    HuPrcVSleep();
+    if (script->scale == 0.0f) {
+        return script;
+    }
+    e->type = script->type;
+    attach = 0;
+    data = DataRead(script->file);
+    HuPrcVSleep();
+    HuPrcVSleep();
+    e->model = mdl = Hu3DModelCreate(data, 0x2AD);
+    func_8001C814_main(mdl, -1, 2);
+    Hu3DModelScaleSet(mdl, script->scale, script->scale, script->scale);
+    e->unk22 = script->unkC;
+    HuPrcVSleep();
+    HuPrcVSleep();
+    e->anim3 = -1;
+    if (script->anim != 0) {
+        i = script->anim - 1;
+        attach = 1;
+        data = DataRead(D_80110674_staff[i].file);
+        HuPrcVSleep();
+        HuPrcVSleep();
+        e->anim3 = HmfAnimCreate(HmfModelData[mdl].hmf, data, 0, D_80110674_staff[i].name);
+        HuMemMemoryFreePerm(data);
+        HuPrcVSleep();
+    }
+    if (script->file2 != 0) {
+        data = DataRead(script->file2);
+        HuPrcVSleep();
+        HuPrcVSleep();
+        sub = Hu3DModelCreate(data, 0x1D);
+        HuPrcVSleep();
+        func_8001C5B4_main(mdl, sub);
+        func_8001C814_main(mdl, -1, 2);
+        e->model2 = sub;
+    }
+    switch (e->type) {
+    case 1:
+        e->unk36 = 0;
+        e->rot.x = e->rot.y = e->rot.z = 0.0f;
+        e->unk18 = 90.0f;
+        Hu3DModelRotSet(mdl, 0.0f, 90.0f, 0.0f);
+        break;
+    case 2:
+        e->unk36 = 0;
+        e->unk38 = script->param;
+        e->unk18 = 0.0f;
+        e->rot.x = e->rot.y = e->rot.z = e->unk18;
+        break;
+    case 3:
+        e->unk18 = 0.0f;
+        e->unk36 = 30;
+        e->rot.x = 0.0f;
+        func_8001FA68_main(mdl);
+        func_8001F9E4_main(mdl, 0xFF);
+        break;
+    case 4:
+        e->unk36 = script->param;
+        data = DataRead(0xA00C3);
+        HuPrcVSleep();
+        HuPrcVSleep();
+        e->models[0] = m = Hu3DModelCreate(data, 0x2AD);
+        Hu3DModelScaleSet(m, script->scale, script->scale, script->scale);
+        func_8001C5B4_main(m, sub);
+        func_8001C814_main(m, -1, 2);
+        HuPrcVSleep();
+        func_8001C514_main(m);
+        HuPrcVSleep();
+        break;
+    case 5:
+    case 11:
+        e->unk18 = 0.0f;
+        break;
+    case 6:
+        e->unk18 = e->rot.x = e->rot.y = e->rot.z = 0.0f;
+        e->unk36 = e->unk38 = 0;
+        break;
+    case 7:
+        data = DataRead(0xA008C);
+        HuPrcVSleep();
+        attach = 1;
+        HuPrcVSleep();
+        e->anim = HmfAnimCreate(HmfModelData[mdl].hmf, data, 0, "c201n_00_DEF");
+        func_80034048_main(e->anim, 5);
+        HuMemMemoryFreePerm(data);
+        HuPrcVSleep();
+        for (i = 0; i < 4; i++) {
+            switch (i) {
+            case 0:
+                data = DataRead(script->file);
+                HuPrcVSleep();
+                HuPrcVSleep();
+                m = Hu3DModelCreate(data, 0x2AD);
+                HuPrcVSleep();
+                data = DataRead(0xA008D);
+                HuPrcVSleep();
+                HuPrcVSleep();
+                e->anim2 = HmfAnimCreate(HmfModelData[m].hmf, data, 0, "c201n_00_DEF");
+                HuMemMemoryFreePerm(data);
+                HuPrcVSleep();
+                func_80034048_main(e->anim2, 8);
+                func_8001C448_main(m);
+                func_8001C514_main(m);
+                break;
+            case 1:
+                data = DataRead(script->file);
+                HuPrcVSleep();
+                HuPrcVSleep();
+                m = Hu3DModelCreate(data, 0x2AD);
+                HuPrcVSleep();
+                data = DataRead(0xA008D);
+                HuPrcVSleep();
+                HuPrcVSleep();
+                e->anim3 = HmfAnimCreate(HmfModelData[m].hmf, data, 0, "c201n_00_DEF");
+                HuMemMemoryFreePerm(data);
+                HuPrcVSleep();
+                func_8001C448_main(m);
+                func_8001C514_main(m);
+                break;
+            case 2:
+                m = Hu3DModelLink(e->models[1]);
+                break;
+            case 3:
+                m = Hu3DModelLink(e->models[0]);
+                break;
+            }
+            e->models[i] = m;
+            func_8001C814_main(m, -1, 2);
+            Hu3DModelScaleSet(m, script->scale, script->scale, script->scale);
+            HuPrcVSleep();
+        }
+        HuPrcVSleep();
+        HuPrcVSleep();
+        break;
+    case 8:
+        e->models[0] = m = Hu3DModelLink(mdl);
+        e->unk36 = script->param;
+        func_8001C814_main(m, -1, 2);
+        func_8001C6A8_main(m, D_800CCF58_main[HmfModelData[m].unk02].unk02 * 0.5f);
+        Hu3DModelScaleSet(m, script->scale, script->scale, script->scale);
+        Hu3DModelRotSet(mdl, -15.0f, 80.0f, 0.0f);
+        Hu3DModelRotSet(m, -15.0f, -80.0f, 0.0f);
+        break;
+    case 10:
+        e->models[0] = m = Hu3DModelLink(mdl);
+        e->unk36 = script->param;
+        func_8001C814_main(m, -1, 2);
+        func_8001C6A8_main(m, D_800CCF58_main[HmfModelData[m].unk02].unk02 * 0.5f);
+        Hu3DModelScaleSet(m, script->scale, script->scale, script->scale);
+        Hu3DModelRotSet(mdl, 0.0f, -30.0f, 0.0f);
+        Hu3DModelRotSet(m, 0.0f, 30.0f, 0.0f);
+        break;
+    case 12:
+        func_800461B4_main(mdl);
+        break;
+    case 9:
+        Hu3DModelRotSet(mdl, -30.0f, script->param, 0.0f);
+        break;
+    case 0:
+    default:
+        if (script->param != 0) {
+            Hu3DModelRotSet(mdl, 0.0f, script->param, 0.0f);
+        }
+        break;
+    }
+    if (attach) {
+        func_8001C448_main(mdl);
+    }
+    func_8001C514_main(mdl);
+    e->flags = 1;
+    HuPrcVSleep();
+    return script + 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109F34_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010A848_staff);
 
