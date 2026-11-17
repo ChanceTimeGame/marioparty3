@@ -271,6 +271,14 @@ extern Dc2HitTimes D_80115DF8_duel05; /* { -1, -1, -1 } */
 extern Dc2SpinPrcs D_80115E04_duel05; /* { NULL, NULL, NULL } */
 extern Dc2PartnerFuncs D_80115E10_duel05; /* partner attacks by partner id */
 extern Dc2PartnerFuncs D_80115E40_duel05; /* second table: only [4] set */
+extern Object *D_801156F0_duel05; /* the turn sign */
+extern s32 D_801156F4_duel05[2]; /* its model ids by turn parity (read as u8) */
+extern omObjData *D_801163D8_duel05;
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
+void func_800FC5B4_name_81(void (*arg0)(void));
+void func_8010E964_duel05(void);
+void func_8010E96C_duel05(void);
+void func_8010EA00_duel05(omObjData *obj);
 #ifndef B1_MODEL_ROTY
 // duel b1: a model's Y-rotation written straight into its HmfModel matrix (as ovl_81's func_800D9668 process does)
 #define B1_MODEL_ROTY(obj, angle, mdl)                                                                        \
@@ -1376,11 +1384,42 @@ void func_8010E914_duel05(void) {
 void func_8010E964_duel05(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_8010E96C_duel05);
+/* the board's turn sign: model 0x31 on odd turns, 0x30 on even ones, at space 0x27 */
+void func_8010E96C_duel05(void) {
+    Object *obj;
+    SpaceData *space;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_8010EA00_duel05);
+    if (D_801156F0_duel05 != NULL) {
+        func_800D8F3C_name_81(D_801156F0_duel05);
+    }
+    obj = D_801156F0_duel05 = func_800D8010_name_81(D_801156F4_duel05[GwSystem.current_turn & 1], NULL);
+    func_8001C954_main(obj->omObj1->model[0]);
+    space = MBDMasuGet(0x27);
+    HuVecCopyXYZ(&obj->coords, space->coords.x, space->coords.y, space->coords.z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_8010EAFC_duel05);
+/* scrolls the sign's texture: trans.x is the u offset, one way on odd turns and the other on even ones */
+void func_8010EA00_duel05(omObjData *obj) {
+    func_8001E888_main(D_801156F0_duel05->omObj1->model[0], obj->trans.x, 0, 0x20, 0x20, "d005_000-cube2", 0);
+    if (GwSystem.current_turn & 1) {
+        obj->trans.x += 2.0f;
+    } else {
+        obj->trans.x -= 2.0f;
+    }
+    if (obj->trans.x >= 32.0f) {
+        obj->trans.x -= 32.0f;
+    }
+    if (obj->trans.x <= -32.0f) {
+        obj->trans.x += 32.0f;
+    }
+}
+
+void func_8010EAFC_duel05(void) {
+    D_801163D8_duel05 = omAddObj(0x1000, 0, 0, -1, func_8010EA00_duel05);
+    omSetStatBit(D_801163D8_duel05, 0xA0);
+    func_8010E96C_duel05();
+    func_800FC5B4_name_81(func_8010E964_duel05);
+}
 
 #ifdef NON_MATCHING
 s32 func_8010EB58_duel05(void) {
