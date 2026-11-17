@@ -30,17 +30,21 @@ extern s16 D_8010A070_selmenu; /* page */
 extern s16 D_8010A072_selmenu; /* row */
 extern s16 D_8010A078_selmenu[10]; /* row remembered per page */
 extern GW_PLAYER D_8010A098_selmenu[4];
+extern u8 D_8010A1B0_selmenu[4];
+extern u8 D_8010A1B4_selmenu[8]; /* pad connected */
 extern s16 D_8010A1C0_selmenu[8]; /* character models */
 extern s16 D_8010A1D0_selmenu[8]; /* their motion 0 */
 extern s16 D_8010A1E0_selmenu[8]; /* their motion 1 */
 extern s8 D_8010A1F8_selmenu[4]; /* last stick x per pad */
 extern s8 D_8010A1FC_selmenu[4]; /* last stick y per pad */
+extern s16 D_8010A1F0_selmenu[4];
 extern u8 D_8010A200_selmenu;
 extern s16 D_8010A202_selmenu;
 extern s16 D_8010A204_selmenu;
 extern s16 D_8010A206_selmenu;
 extern s16 D_8010A208_selmenu;
 extern s16 D_8010A210_selmenu[40];
+extern s32 D_8010A260_selmenu[4];
 extern u8 D_8010A270_selmenu[4]; /* menu input bits per pad */
 extern u16 D_8010A274_selmenu[4]; /* held direction per pad */
 extern u16 D_8010A27C_selmenu[4]; /* hold time */
@@ -55,6 +59,9 @@ void func_8000BBFC_main(u16 spriteId, s16 arg1);
 void func_80047C0C_main(u16 group, u16 max_objs);
 void func_80105FC8_selmenu(omObjData *obj);
 void func_80106770_selmenu(omObjData *obj);
+void func_80106A10_selmenu(omObjData *obj);
+void func_80108890_selmenu(s32 dir);
+void func_80108A40_selmenu(void);
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
 
 void func_80107DFC_selmenu(omObjData *obj);
@@ -338,6 +345,9 @@ void func_801059A0_selmenu(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_801059A0_selmenu);
 #endif
 
+void func_80106A10_selmenu(omObjData *obj);
+void func_80108890_selmenu(s32 dir);
+void func_80108A40_selmenu(void);
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
     func_8000B5F0_main(1);
     CZoom = zoom;
@@ -527,7 +537,53 @@ void func_80105FC8_selmenu(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106770_selmenu);
+void func_80106770_selmenu(omObjData *obj) {
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 8; i++) {
+        D_8010A1B4_selmenu[i] = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        GwPlayer[i].chr = i;
+        D_8010A1F0_selmenu[i] = i;
+        D_8010A1B0_selmenu[i] = 0;
+        D_8010A260_selmenu[i] = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) != 0) {
+            D_8010A1B4_selmenu[i] = 1;
+        }
+    }
+    D_8010A070_selmenu = -1;
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 10; j++) {
+            if (D_80108C90_selmenu[i * 10 + j].kind != 1) {
+                break;
+            }
+        }
+        if (j == 10) {
+            D_8010A078_selmenu[i] = -1;
+        } else {
+            D_8010A078_selmenu[i] = j;
+        }
+    }
+    func_80108890_selmenu(1);
+    if (omprevovl != 999) {
+        for (i = 0; i < 100; i++) {
+            if (D_80108C90_selmenu[i].ovl == omprevovl) {
+                D_8010A070_selmenu = i / 10;
+                D_8010A072_selmenu = i % 10;
+                D_8010A078_selmenu[D_8010A070_selmenu] = D_8010A072_selmenu;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        D_8010A098_selmenu[i] = GwPlayer[i];
+    }
+    func_80108A40_selmenu();
+    obj->func = func_80106A10_selmenu;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106A10_selmenu);
 
