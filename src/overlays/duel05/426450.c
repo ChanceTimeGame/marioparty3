@@ -1429,10 +1429,10 @@ s32 func_8010EB58_duel05(void) {
 
     rival = MBDGetPlayerStruct((s8)(GwSystem.current_player_index ^ 1));
     chance = (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
-    if (mbWalkNum < 4) {
+    if (mbWalkNum < 5) {
         if (GwSystem.current_player_index == 0) {
             if (rival->clink == 0) {
-                dist = rival->cidx - 8;
+                dist = rival->cidx - 1;
                 if (dist == mbWalkNum) {
                     chance = 0;
                 }
@@ -1440,8 +1440,8 @@ s32 func_8010EB58_duel05(void) {
                     chance += 20;
                 }
             }
-        } else if (rival->clink == 1) {
-            dist = rival->cidx - 8;
+        } else if (rival->clink == 3) {
+            dist = rival->cidx - 1;
             if (dist == mbWalkNum) {
                 chance = 0;
             }
