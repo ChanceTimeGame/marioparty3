@@ -838,7 +838,71 @@ void func_80106D94_selmenu2(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_80106D94_selmenu2);
 #endif
 
+/* selmenu func_80107924_selmenu (the same code).
+   NON_MATCHING: as in selmenu, retail does not fold textY (6) into the sparkle y (+ 8); register allocation of the two
+   offsets. */
+#ifdef NON_MATCHING
+/* After a pick: the chosen name scrolls up out of its row, dropping a sparkle pair at its ends every 4 frames. */
+void func_801078CC_selmenu2(omObjData *obj) {
+    s32 shadowY = 12;
+    s32 textY = 6;
+    s32 y;
+    u32 x;
+    s32 i;
+
+    rand8();
+    sprintf(D_800D5218_main, D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + D_80109B02_selmenu2].name);
+    x = (320 - strlen(D_800D5218_main) * 8) / 2;
+    y = (D_80109B02_selmenu2 + 10) * 9;
+    if (y - D_801093C0_selmenu2 > 48) {
+        if (--D_801093C8_selmenu2 == 0) {
+            D_80109C98_selmenu2[D_801093C4_selmenu2] = InitEspriteSlot(D_80109C90_selmenu2, 0, 1);
+            func_8000BC48_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0x4000);
+            func_8000BCC8_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0x8000);
+            func_8000BE5C_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0.75f, 0.75f);
+            func_8000BD08_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 8.0f);
+            func_8000BBD4_main(D_80109C98_selmenu2[D_801093C4_selmenu2], x, y - SELMENU2_SCROLL_LO + textY + 8);
+            func_8000BEAC_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0xFF, 0xFF, 0xBE);
+            D_801093C4_selmenu2++;
+            D_80109C98_selmenu2[D_801093C4_selmenu2] = InitEspriteSlot(D_80109C90_selmenu2, 0, 1);
+            func_8000BC48_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0x4000);
+            func_8000BCC8_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0x8000);
+            func_8000BE5C_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0.75f, 0.75f);
+            func_8000BD08_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 8.0f);
+            func_8000BBD4_main(D_80109C98_selmenu2[D_801093C4_selmenu2],
+                               x + strlen(D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + D_80109B02_selmenu2].name) * 8,
+                               y - SELMENU2_SCROLL_LO + textY + 8);
+            func_8000BEAC_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0xFF, 0xFF, 0xBE);
+            D_801093C4_selmenu2++;
+            D_801093C8_selmenu2 = 4;
+        }
+        D_801093C0_selmenu2 += 4;
+        if (y < y - D_801093C0_selmenu2 + shadowY) {
+            shadowY = y - D_801093C0_selmenu2 + shadowY - y;
+        }
+        if (y < y - D_801093C0_selmenu2 + textY) {
+            textY = y - D_801093C0_selmenu2 + textY - y;
+        }
+        fontcolor = 9;
+        print8(x, y - SELMENU2_SCROLL_LO + shadowY, D_800D5218_main);
+        fontcolor = 13;
+        print8(x, y - SELMENU2_SCROLL_LO + textY, D_800D5218_main);
+    }
+    for (i = 0; i < D_801093C4_selmenu2; i++) {
+        if (D_80109C98_selmenu2[i] != -1 && (func_8000BE1C_main(D_80109C98_selmenu2[i]) & 6)) {
+            func_8000C184_main(D_80109C98_selmenu2[i]);
+            D_80109C98_selmenu2[i] = -1;
+        }
+    }
+    x = (320 - strlen(D_800D5218_main) * 8) / 2;
+    fontcolor = 7;
+    print8(x + 1, y + 1 - SELMENU2_SCROLL_LO, D_800D5218_main);
+    fontcolor = 15;
+    print8(x, y - SELMENU2_SCROLL_LO, D_800D5218_main);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_801078CC_selmenu2);
+#endif
 
 /* selmenu func_80107DEC_selmenu */
 void func_80107D94_selmenu2(omObjData *obj) {
