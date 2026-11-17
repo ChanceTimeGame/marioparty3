@@ -133,6 +133,41 @@ extern s16 D_80111530_staff;  /* wipe type */
 extern s16 D_80111532_staff;  /* next overlay event */
 extern s16 D_8011154C_staff;  /* wipe duration */
 extern s16 D_8011155C_staff;  /* exit mode */
+/* gamemes.c's GAMEMES (mgenter's MgEntMes): a string drawn as one sprite per character. */
+typedef struct StaffMes {
+    /* 0x00 */ u8 mesNo;
+    /* 0x01 */ u8 stat;
+    /* 0x02 */ s8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ s32 unk1C;
+    /* 0x20 */ s16 strGId[16];
+    /* 0x40 */ s16 strSprId[16];
+    /* 0x60 */ f32 unk60;
+    /* 0x64 */ f32 unk64;
+    /* 0x68 */ f32 unk68;
+    /* 0x6C */ f32 unk6C;
+    /* 0x70 */ f32 unk70;
+} StaffMes; /* size 0x74 */
+extern SrCamKey D_80110560_staff;
+void func_80107508_staff(void);
+void func_80107EB8_staff(void);
+void func_80109264_staff(void);
+void func_801095E4_staff(void);
+void func_8010B514_staff(s16 arg0, s16 arg1);
+void func_8010B794_staff(s16 arg0);
+void func_8010BF84_staff(void);
+void func_8010D1E8_staff(void);
+void func_8010D998_staff(void);
+/* j1 decl end */
 
 void func_801059A0_staff(void) {
     u16 evt;
@@ -537,7 +572,145 @@ void func_80106C50_staff(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80106C50_staff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80106E20_staff);
+void func_80106E20_staff(void) {
+    StaffMes mes;
+    s16 names;
+    s16 scene;
+    s16 stat3;
+    s16 stat4;
+    s16 title;
+    s16 stat6;
+    s16 stat7;
+    s16 group;
+    s32 i;
+    s16 n;
+    s16 alpha;
+
+    D_800CD280_main = 1;
+    func_8010609C_staff(&D_80110560_staff);
+    func_8010B514_staff(0, 6);
+    func_8010B514_staff(1, 0xC);
+    names = 0;
+    omAddPrcObj(func_80107EB8_staff, 0x4200, 0x800, 0)->user_data = &names;
+    scene = 0;
+    omAddPrcObj(func_801095E4_staff, 0x4000, 0, 0)->user_data = &scene;
+    stat3 = 0;
+    omAddPrcObj(func_8010BF84_staff, 0x4000, 0, 0)->user_data = &stat3;
+    stat4 = 0;
+    omAddPrcObj(func_80109264_staff, 0x4000, 0, 0)->user_data = &stat4;
+    title = 0;
+    omAddPrcObj(func_80107508_staff, 0x1000, 0, 0)->user_data = &title;
+    group = mes.strGId[func_8003A308_main((char *)&mes, "MARIO PARTY 3 STAFF", 0, -1, -1)];
+    func_80054904_main(group, 0, 0xA0, 0x78);
+    for (i = 1; i < 0x14; i++) {
+        func_80055458_main(group, i, 0);
+        HuSprAttrSet(group, i, 0x8000);
+    }
+    WipeCreateIn(D_80111530_staff, 0x10);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    HuAudSeqPlay(6);
+    title = 1;
+    for (n = 0x1E; n != 0; n--) {
+        HuPrcVSleep();
+    }
+    for (i = 1; i < 0x14; i++) {
+        HuSprAttrReset(group, i, 0x8000);
+    }
+    for (alpha = 0x40; alpha <= 0x100; alpha += 0x40) {
+        for (i = 1; i < 0x14; i++) {
+            func_80055458_main(group, i, alpha);
+        }
+        HuPrcVSleep();
+    }
+    title = 2;
+    for (n = 0xB4; n != 0; n--) {
+        HuPrcVSleep();
+    }
+    for (alpha = 0xF0; alpha >= 0; alpha -= 0x10) {
+        for (i = 1; i < 0x14; i++) {
+            func_80055458_main(group, i, alpha);
+        }
+        HuPrcVSleep();
+    }
+    func_8003B128_main((char *)&mes);
+    names = 2;
+    HuPrcVSleep();
+    stat4 = 1;
+    do {
+        HuPrcVSleep();
+    } while (stat4 >= 0);
+    scene = 1;
+    names = 1;
+    for (n = 0x78; n != 0; n--) {
+        HuPrcVSleep();
+    }
+    stat3 = 1;
+    do {
+        HuPrcVSleep();
+    } while (stat3 != 0);
+    scene = 2;
+    HuAudFXPlay(0x229);
+    HuAudSeqFadeOut(0xF0);
+    for (n = 0x4B; n != 0; n--) {
+        HuPrcVSleep();
+    }
+    WipeColorSet(0, 0, 0);
+    WipeCreateOut(0xB, 4);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    func_8010B794_staff(0);
+    func_8010B794_staff(1);
+    scene = -1;
+    names = -1;
+    HuPrcSleep(2);
+    stat6 = 1;
+    omAddPrcObj(func_8010D1E8_staff, 0x4000, 0x1800, 0)->user_data = &stat6;
+    while (stat6 != 0) {
+        HuPrcVSleep();
+    }
+    HuAudSeqPlay(0x4E);
+    WipeCreateIn(0xB, 4);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    for (n = 0xB4; n != 0; n--) {
+        HuPrcVSleep();
+    }
+    HuAudSeqFadeOut(0x4A);
+    WipeCreateOut(0xB, 0x18);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    stat6 = -1;
+    stat7 = 1;
+    omAddPrcObj(func_8010D998_staff, 0x4000, 0x1000, 0)->user_data = &stat7;
+    while (stat7 != 0) {
+        HuPrcVSleep();
+    }
+    WipeCreateIn(0xB, 0x18);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    stat7 = 1;
+    HuAudFXPlay(0x22A);
+    while (stat7 != 0) {
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        if ((D_800D5558_main[0] & 0xD000) || (D_800D5558_main[1] & 0xD000) || (D_800D5558_main[2] & 0xD000) ||
+            (D_800D5558_main[3] & 0xD000)) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    D_80110530_staff = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801073EC_staff);
 
