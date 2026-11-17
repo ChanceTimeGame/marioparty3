@@ -92,7 +92,8 @@ typedef struct PpTeam {
     /* 0x20 */ u8 count;
     /* 0x22 */ s16 member[2]; /* player indices */
     /* 0x26 */ s16 digit[2]; /* score digit sprites */
-    /* 0x2A */ char unk2A[0x3A];
+    /* 0x2A */ s16 score;
+    /* 0x2C */ char unk2C[0x38];
 } PpTeam; /* size 0x64 */
 
 /* A player (D_80111654_puddle_paddle[4]) */
@@ -166,6 +167,7 @@ void func_8010BAA8_puddle_paddle(s8 group, PpTask* task);
 void func_8010BC14_puddle_paddle(s8 group);
 s16 func_8010BEE8_puddle_paddle(u16 prio, s32 dir, s32 file, u16 arg3, s32 attr);
 void func_8010C088_puddle_paddle(s16 sprite, s32 x, s32 y);
+void func_8010C11C_puddle_paddle(s16 sprite);
 void func_8010C16C_puddle_paddle(void);
 s16 func_8010C214_puddle_paddle(s32 dir, s32 file, f32 freq, s16 tag, s32 attr, s32 arg5);
 void func_8010C664_puddle_paddle(void);
@@ -606,7 +608,32 @@ void func_801073AC_puddle_paddle(omObjData* obj) {
     func_80110714_puddle_paddle(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801073E4_puddle_paddle);
+void func_80109BD4_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_8010A224_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_8010A398_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_8010ABCC_puddle_paddle(PpCtx* ctx, PpTask* task);
+
+/* The two rafts */
+void func_801073E4_puddle_paddle(omObjData* obj) {
+    s32 attr = 0x99;
+    PpTeamPos rafts = D_80111614_puddle_paddle;
+    PpCtx* ctx;
+    s16 i;
+
+    PP_WORK(obj)->w.group = 7;
+    ctx = func_8010B8B4_puddle_paddle(obj, PP_WORK(obj)->b.group, 2, 6)->ctx;
+    for (i = 0; i < 2; i++) {
+        ctx->models[i] = func_8000B108_main(0x320002, attr);
+        Hu3DModelPosSet(ctx->models[i], rafts.pos[i].x, rafts.pos[i].y, rafts.pos[i].z);
+    }
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFF, NULL, func_8010A398_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFFF, NULL, func_80109BD4_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0x1FFF, NULL, func_8010A224_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFFFF, NULL, func_8010ABCC_puddle_paddle, 0);
+    obj->model[0] = ctx->models[0];
+    func_80110714_puddle_paddle(obj);
+    obj->func = func_80107588_puddle_paddle;
+}
 
 void func_80107588_puddle_paddle(omObjData* obj) {
     func_8010BC14_puddle_paddle(PP_WORK(obj)->b.group);
@@ -624,7 +651,29 @@ void func_801075B8_puddle_paddle(PpCtx* ctx, PpTask* task) {
     func_8010BAA8_puddle_paddle(0, task);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107638_puddle_paddle);
+/* The score digits */
+void func_80107638_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    s16 i;
+    s16 ones;
+    s16 tens;
+
+    for (i = 0; i < 2; i++) {
+        if (D_80111650_puddle_paddle[i].score < 100) {
+            ones = D_80111650_puddle_paddle[i].score % 10;
+            tens = D_80111650_puddle_paddle[i].score * 0.1f;
+            if (tens != 0) {
+                func_8010C088_puddle_paddle(D_80111650_puddle_paddle[i].digit[0], (s16)(i * 160 + 104), 32);
+            } else {
+                func_8010C11C_puddle_paddle(D_80111650_puddle_paddle[i].digit[0]);
+            }
+            func_80054FF8_main(D_80111664_puddle_paddle[D_80111650_puddle_paddle[i].digit[0]].group, 0, tens);
+            func_80054FF8_main(D_80111664_puddle_paddle[D_80111650_puddle_paddle[i].digit[1]].group, 0, ones);
+        } else {
+            func_80054FF8_main(D_80111664_puddle_paddle[D_80111650_puddle_paddle[i].digit[0]].group, 0, 9);
+            func_80054FF8_main(D_80111664_puddle_paddle[D_80111650_puddle_paddle[i].digit[1]].group, 0, 9);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010788C_puddle_paddle);
 
