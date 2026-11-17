@@ -103,6 +103,25 @@ extern SrModelDef D_80110FF4_staff[];
 extern u32 D_8011053C_staff; /* random seed */
 extern Vec D_80111550_staff; /* CRot copy */
 
+/* .bss 0x80111518 (0x18): controller order (storyresult's SrPadWork). */
+typedef struct SrPadWork {
+    /* 0x00 */ u8 pad[4];  /* connected controllers first, then the free ports */
+    /* 0x04 */ u8 unk4[4];
+    /* 0x08 */ u8 unk8[4];
+    /* 0x0C */ u8 unkC[4];
+    /* 0x10 */ u8 unk10;
+    /* 0x11 */ u8 unk11;
+    /* 0x12 */ u8 unk12;
+    /* 0x13 */ u8 unk13;
+    /* 0x14 */ u8 unk14;   /* connected controller count */
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ u8 unk16;
+    /* 0x17 */ u8 unk17;
+} SrPadWork; /* size = 0x18 */
+extern SrPadWork D_80111518_staff;
+extern s16 D_80111510_staff; /* first controller (D_80111518_staff.pad[0]) */
+void func_80106C50_staff(void);
+
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801059A0_staff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80105BD4_staff);
@@ -353,7 +372,54 @@ void func_8010674C_staff(SrCamKey *keys, f32 speed, SrCamFunc func) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010674C_staff);
 #endif
 
+#ifdef NON_MATCHING
+/* Instruction-identical to retail; only the file-end padding differs: retail has a file boundary at
+   0x80106E20 (three nops after this function), which the unit cannot express without a split. */
+void func_80106C50_staff(void) {
+    s16 i;
+    s16 n;
+    s16 j;
+    s16 k;
+
+    for (i = 0; i < 4; i++) {
+        D_80111518_staff.pad[i] = 0xFF;
+        D_80111518_staff.unk4[i] = i;
+        D_80111518_staff.unk8[i] = 0xFF;
+        D_80111518_staff.unkC[i] = 0;
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        if (CheckControllerRead(i)) {
+            D_80111518_staff.pad[n] = i;
+            n++;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (D_80111518_staff.pad[i] == 0xFF) {
+            for (j = 0; j < 4; j++) {
+                for (k = 0; k < 4; k++) {
+                    if (D_80111518_staff.pad[k] == j) {
+                        break;
+                    }
+                }
+                if (k == 4) {
+                    break;
+                }
+            }
+            D_80111518_staff.pad[i] = j;
+        }
+    }
+    D_80111518_staff.unk12 = 0;
+    D_80111518_staff.unk16 = 0;
+    D_80111518_staff.unk13 = 0;
+    D_80111518_staff.unk14 = n;
+    D_80111518_staff.unk10 = 0;
+    D_80111518_staff.unk11 = 4;
+    D_80111518_staff.unk15 = 0;
+    D_80111510_staff = D_80111518_staff.pad[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80106C50_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80106E20_staff);
 
