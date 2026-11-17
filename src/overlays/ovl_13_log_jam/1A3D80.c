@@ -2,6 +2,7 @@
 #include "mallocblock.h"
 #include "math.h"
 #include "gcc/memory.h"
+#include "overlays/minigame.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_801059A0_log_jam);
 
@@ -122,6 +123,7 @@ typedef union LjPack {
 extern s16 D_800CDD6A_main;
 extern u8 D_800D2008_main;
 extern s32 fontcolor;
+extern s8 HmfPauseF;
 extern s16 *D_8010E5CC_log_jam; // s16[0x20] sprite/file ids
 extern omObjData *D_8010E5D8_log_jam;
 extern LjEffect *D_8010E5DC_log_jam;
@@ -151,9 +153,12 @@ f32 func_8010C2DC_log_jam(f32 target, f32 cur, f32 step);
 f32 func_8010C49C_log_jam(f32 t, f32 a, f32 b);
 f32 func_8010C4B4_log_jam(f32 t, f32 a, f32 b);
 f32 fabsf(f32);
+f64 fabs(f64);
 f64 fmod(f64, f64);
 s32 func_8010DA84_log_jam(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8010D950_log_jam(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
+void func_8010C5DC_log_jam(omObjData *obj, s16 slot, s16 frames);
+void func_800E4BA4_minigame(u8 mdl);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A0B0_log_jam);
 
@@ -704,7 +709,15 @@ f32 func_8010C4B4_log_jam(f32 t, f32 a, f32 b) {
     return func_8010C2DC_log_jam(b, a, fabsf(func_8010C1D8_log_jam(b, a) * t));
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C514_log_jam);
+f32 func_8010C514_log_jam(f32 target, f32 cur, f32 step) {
+    if (fabs(target - cur) < step) {
+        return target;
+    }
+    if (target < cur) {
+        step = -step;
+    }
+    return cur + step;
+}
 
 void func_8010C55C_log_jam(omObjData *obj, u32 value) {
     obj->work[0] = value >> 24;
@@ -723,17 +736,74 @@ void *func_8010C588_log_jam(omObjData *obj) {
     return u.p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C5DC_log_jam);
+void func_8010C5DC_log_jam(omObjData *obj, s16 slot, s16 frames) {
+    HmfModel *model = &HmfModelData[obj->model[0]];
+    func_800E1BA8_minigame_UnkE8_ObjData *mtn;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C6A4_log_jam);
+    func_8001C624_main(obj->model[0], obj->motion[slot], 0, frames, 0);
+    mtn = &((func_800E1BA8_minigame_ObjData *)obj->data)->unkE8[slot];
+    if (mtn->unk00 & 1) {
+        model->unk05 = 2;
+    } else {
+        model->unk05 = 0;
+    }
+    model->unk54 = mtn->unk02;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C714_log_jam);
+void func_8010C6A4_log_jam(omObjData *obj, s16 slot, s16 frame) {
+    HmfModel *model = &HmfModelData[obj->model[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C7D0_log_jam);
+    func_8010C5DC_log_jam(obj, slot, 5);
+    model->unk4C = frame;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C7F8_log_jam);
+void func_8010C714_log_jam(omObjData *obj, s16 slot, s16 frame) {
+    HmfModel *model = &HmfModelData[obj->model[0]];
+    func_800E1BA8_minigame_UnkE8_ObjData *mtn;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C8B0_log_jam);
+    model->unk02 = obj->motion[slot];
+    model->unk48 = model->unk40 = model->unk44 = 1.0f;
+    model->unk04 = 0xFF;
+    model->unk40 = frame;
+    mtn = &((func_800E1BA8_minigame_ObjData *)obj->data)->unkE8[slot];
+    if (mtn->unk00 & 1) {
+        model->unk03 = 2;
+    } else {
+        model->unk03 = 0;
+    }
+    model->unk48 = mtn->unk02;
+}
+
+void func_8010C7D0_log_jam(omObjData *obj) {
+    HmfModel *model = &HmfModelData[obj->model[0]];
+
+    model->unk44 = 0.0f;
+}
+
+void func_8010C7F8_log_jam(omObjData *obj) {
+    f32 frame = 0.0f;
+    HmfModel *model = &HmfModelData[obj->model[0]];
+
+    if (model->unk04 != 0xFF) {
+        if (HmfPauseF == 0) {
+            frame = model->unk0E + 2;
+        }
+        if (model->unk0C <= frame) {
+            model->unk02 = model->unk04;
+            model->unk40 = model->unk4C;
+            model->unk03 = model->unk05;
+            model->unk48 = model->unk54;
+            model->unk04 = 0xFF;
+            model->unk44 = 1.0f;
+        }
+    }
+}
+
+void func_8010C8B0_log_jam(omObjData *obj) {
+    if (obj->model[6] != -1) {
+        func_800E4BA4_minigame(obj->model[6]);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C8E0_log_jam);
 
