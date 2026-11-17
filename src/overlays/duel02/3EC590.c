@@ -1399,3 +1399,444 @@ void func_80116414_duel02(void) {
 
 void func_80116564_duel02(void) {
 }
+
+/* .data */
+// board da3: the unit's .data (0x3FD160, 0xAD0 bytes)
+void func_80110BBC_duel02(void);
+void func_80110C18_duel02(void);
+void func_80110C7C_duel02(void);
+void func_80111E3C_duel02(void);
+void func_80112428_duel02(void);
+void func_80112518_duel02(void);
+void func_80112554_duel02(void);
+void func_801125D0_duel02(void);
+void func_8011260C_duel02(void);
+void func_8011268C_duel02(void);
+void func_80112A08_duel02(void);
+void func_80112BF4_duel02(void);
+void func_80112DE0_duel02(void);
+void func_80113618_duel02(void);
+void func_80113910_duel02(void);
+s32 func_80113CEC_duel02(void);
+s32 func_80114630_duel02(void);
+s32 func_80114B94_duel02(void);
+s32 func_801154DC_duel02(void);
+void func_80115A54_duel02(void);
+void func_80115BDC_duel02(void);
+void func_80115D64_duel02(void);
+void func_80115EE4_duel02(void);
+void func_80116064_duel02(void);
+void func_8011611C_duel02(void);
+void func_801161D4_duel02(void);
+void func_80116240_duel02(void);
+void func_8011628C_duel02(void);
+void func_801162F8_duel02(void);
+void func_80116344_duel02(void);
+void func_80116370_duel02(void);
+void func_80116564_duel02(void);
+typedef struct Da3Weight {
+    /* 0x00 */ s8 value;
+    /* 0x01 */ s8 chance;
+} Da3Weight; /* a weighted choice: taken when a roll of 100 falls under chance; value -1 ends a list */
+
+s32 D_801165A0_duel02[2] = { 0x37, 0x39 };
+s32 D_801165A8_duel02[5] = { 4, 0xA0035, 0xA003A, 0xA003B, 0xA003F }; /* count, then file ids */
+f32 D_801165BC_duel02 = 3.0f;
+s32 D_801165C0_duel02[4] = { 3, 0xA011D, 0xA011E, 0xA0121 }; /* count, then file ids */
+s16 D_801165D0_duel02 = 0x22; /* bell object: from space id */
+s16 D_801165D2_duel02 = 0x21; /* to */
+Process *D_801165D4_duel02 = NULL;
+s16 D_801165D8_duel02 = 0x24; /* second object: from space id */
+s16 D_801165DA_duel02 = 0x23; /* to */
+Process *D_801165DC_duel02 = NULL;
+s16 D_801165E0_duel02[2] = { 0x25, 0x27 };
+Vec D_801165E4_duel02[2] = { { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, -1.0f } };
+s32 D_801165FC_duel02[2] = { 1, 0x13014B }; /* count, then file ids */
+s8 D_80116604_duel02[13 * 2] = { /* value, chance pairs (D_80116605_duel02 = [1]) */
+    7, 30, 6, 30, 4, 30, 1, 30, 11, 30, 8, 20, 3, 20,
+    10, 20, 0, 20, 2, 20, 9, 20, 5, 20, -1, -1,
+};
+Da3Weight D_80116620_duel02[14] = {
+    { 0, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_8011663C_duel02[14] = {
+    { 1, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_80116658_duel02[14] = {
+    { 2, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_80116674_duel02[14] = {
+    { 4, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_80116690_duel02[14] = {
+    { 3, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_801166AC_duel02[14] = {
+    { 5, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_801166C8_duel02[14] = {
+    { 7, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+Da3Weight D_801166E4_duel02[14] = {
+    { 6, 50 }, { 7, 20 }, { 6, 20 }, { 4, 20 }, { 1, 20 }, { 11, 20 }, { 8, 10 },
+    { 3, 10 }, { 10, 10 }, { 0, 10 }, { 2, 10 }, { 9, 10 }, { 5, 10 }, { -1, -1 },
+};
+
+Da3Weight *D_80116700_duel02[8] = {
+    D_80116620_duel02, D_8011663C_duel02, D_80116658_duel02, D_80116674_duel02,
+    D_80116690_duel02, D_801166AC_duel02, D_801166C8_duel02, D_801166E4_duel02,
+};
+/* the asm reads the low halves: D_80116722/26/2A_duel02 = (s16 *)&[0..2] + 1 */
+s32 D_80116720_duel02[2][3] = { { 0x1E, 0x21, 0x22 }, { 0x1D, 0x23, 0x24 } };
+s32 D_80116738_duel02 = -1;
+Object *D_8011673C_duel02 = NULL;
+s32 D_80116740_duel02 = 0;
+event_list_entry D_80116744_duel02[2] = {
+    { 1, 1, func_80110BBC_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116754_duel02[2] = {
+    { 1, 1, func_80110C18_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116764_duel02[2] = {
+    { 7, 1, func_80110C7C_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116774_duel02[3] = {
+    { 1, 1, func_80111E3C_duel02 },
+    { 8, 1, func_80116564_duel02 },
+    { 0, 0, NULL },
+};
+/* indexed from 1: the asm addresses it as D_80116788_duel02 (= this - 4) */
+void (*D_8011678C_duel02[11])(void) = {
+    func_80112428_duel02, func_80112518_duel02, func_80112554_duel02, func_801125D0_duel02,
+    func_8011260C_duel02, func_8011268C_duel02, func_80112A08_duel02, func_80112BF4_duel02,
+    func_80112DE0_duel02, func_80113618_duel02, func_80113910_duel02,
+};
+event_table_entry D_801167B8_duel02[5] = {
+    { 30, D_80116744_duel02 },
+    { 29, D_80116754_duel02 },
+    { -5, D_80116764_duel02 },
+    { 42, D_80116774_duel02 },
+    { -1, NULL },
+};
+/* roll -> space index tables (the asm also reads them as D_801167DC/E7/F3/FC_duel02 = [-4], [-5], [-5], [-4]) */
+u8 D_801167E0_duel02[12] = { 0xFF, 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 0 };
+u8 D_801167EC_duel02[12] = { 0xFF, 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 0 };
+u8 D_801167F8_duel02[8] = { 0xFF, 0, 1, 2, 4, 0, 0, 0 };
+u8 D_80116800_duel02[8] = { 0xFF, 0, 1, 2, 3, 4, 0, 0 };
+DecisionTreeNonLeafNode D_80116808_duel02[2] = {
+    { 0x5, { .func = func_80113CEC_duel02 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_80116820_duel02[3] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116808_duel02 } },
+    { 0x5, { .func = func_80114630_duel02 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_80116844_duel02[3] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116868_duel02[2] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116880_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116844_duel02 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116868_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_801168B0_duel02[7] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116880_duel02 } },
+    { 0x2, { .data = 0x00000008 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x0001060B }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x0000000B }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x08D1A346 } },
+};
+DecisionTreeNonLeafNode D_80116904_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x7, { .data = 0x00000007 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x164C9932 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0A142850 } },
+};
+DecisionTreeNonLeafNode D_80116934_duel02[2] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_8011694C_duel02[3] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116970_duel02[4] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116904_duel02 } },
+    { 0x7, { .data = 0x00000004 }, { .node_data = D_8011694C_duel02 } },
+    { 0xB, { .data = 0x00020005 }, { .node_data = D_80116934_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_801169A0_duel02[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_80116820_duel02 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_801168B0_duel02 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_80116970_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_801169D0_duel02[2] = {
+    { 0x5, { .func = func_80114B94_duel02 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_801169E8_duel02[3] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_801169D0_duel02 } },
+    { 0x5, { .func = func_801154DC_duel02 }, { .data = 0x0C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1C993264 } },
+};
+DecisionTreeNonLeafNode D_80116A0C_duel02[3] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116A30_duel02[2] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116A48_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116A0C_duel02 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116A30_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116A78_duel02[7] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80116A48_duel02 } },
+    { 0x2, { .data = 0x00000008 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x0000060B }, { .data = 0x1B56AD5A } },
+    { 0xB, { .data = 0x0001000B }, { .data = 0x1B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x08D1A346 } },
+};
+DecisionTreeNonLeafNode D_80116ACC_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x7, { .data = 0x00000007 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x164C9932 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0A142850 } },
+};
+DecisionTreeNonLeafNode D_80116AFC_duel02[2] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116B14_duel02[3] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116B38_duel02[4] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80116ACC_duel02 } },
+    { 0x7, { .data = 0x00000004 }, { .node_data = D_80116B14_duel02 } },
+    { 0xB, { .data = 0x00030005 }, { .node_data = D_80116AFC_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x078F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116B68_duel02[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_801169E8_duel02 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_80116A78_duel02 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_80116B38_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x064C9932 } },
+};
+DecisionTreeNonLeafNode D_80116B98_duel02[2] = {
+    { 0x5, { .func = func_80114B94_duel02 }, { .data = 0x1C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0C993264 } },
+};
+DecisionTreeNonLeafNode D_80116BB0_duel02[3] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80116B98_duel02 } },
+    { 0x5, { .func = func_801154DC_duel02 }, { .data = 0x1C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0C993264 } },
+};
+DecisionTreeNonLeafNode D_80116BD4_duel02[3] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116BF8_duel02[2] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116C10_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116BD4_duel02 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116BF8_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116C40_duel02[7] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80116C10_duel02 } },
+    { 0x2, { .data = 0x00000008 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0000060B }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0001000B }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x18D1A346 } },
+};
+DecisionTreeNonLeafNode D_80116C94_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x7, { .data = 0x00000007 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x064C9932 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1A142850 } },
+};
+DecisionTreeNonLeafNode D_80116CC4_duel02[2] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116CDC_duel02[3] = {
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116D00_duel02[4] = {
+    { 0x15, { .data = 0x00000000 }, { .node_data = D_80116C94_duel02 } },
+    { 0x7, { .data = 0x00000004 }, { .node_data = D_80116CDC_duel02 } },
+    { 0xB, { .data = 0x00030005 }, { .node_data = D_80116CC4_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116D30_duel02[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_80116BB0_duel02 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_80116C40_duel02 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_80116D00_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x164C9932 } },
+};
+DecisionTreeNonLeafNode D_80116D60_duel02[2] = {
+    { 0x5, { .func = func_80113CEC_duel02 }, { .data = 0x1C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0C993264 } },
+};
+DecisionTreeNonLeafNode D_80116D78_duel02[3] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116D60_duel02 } },
+    { 0x5, { .func = func_80114630_duel02 }, { .data = 0x1C993264 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x0C993264 } },
+};
+DecisionTreeNonLeafNode D_80116D9C_duel02[3] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116DC0_duel02[2] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116DD8_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116D9C_duel02 } },
+    { 0x7, { .data = 0x00000009 }, { .node_data = D_80116DC0_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1B56AD5A } },
+};
+DecisionTreeNonLeafNode D_80116E08_duel02[7] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116DD8_duel02 } },
+    { 0x2, { .data = 0x00000008 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0001060B }, { .data = 0x0B56AD5A } },
+    { 0xB, { .data = 0x0000000B }, { .data = 0x0B56AD5A } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x18D1A346 } },
+};
+DecisionTreeNonLeafNode D_80116E5C_duel02[4] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x7, { .data = 0x00000007 }, { .data = 0x1A142850 } },
+    { 0xB, { .data = 0x00020005 }, { .data = 0x064C9932 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x1A142850 } },
+};
+DecisionTreeNonLeafNode D_80116E8C_duel02[2] = {
+    { 0x19, { .data = 0x00000001 }, { .data = 0x1A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116EA4_duel02[3] = {
+    { 0xB, { .data = 0x00020005 }, { .data = 0x0A142850 } },
+    { 0xB, { .data = 0x00030005 }, { .data = 0x0A142850 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116EC8_duel02[4] = {
+    { 0x15, { .data = 0x00000001 }, { .node_data = D_80116E5C_duel02 } },
+    { 0x7, { .data = 0x00000004 }, { .node_data = D_80116EA4_duel02 } },
+    { 0xB, { .data = 0x00020005 }, { .node_data = D_80116E8C_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x178F1E3C } },
+};
+DecisionTreeNonLeafNode D_80116EF8_duel02[4] = {
+    { 0x16, { .data = 0x00000003 }, { .node_data = D_80116D78_duel02 } },
+    { 0x16, { .data = 0x00000002 }, { .node_data = D_80116E08_duel02 } },
+    { 0x16, { .data = 0x00000001 }, { .node_data = D_80116EC8_duel02 } },
+    { 0x0, { .data = 0x00000000 }, { .data = 0x164C9932 } },
+};
+s16 D_80116F28_duel02[3] = { 0x7, 0x28, -1 };
+event_list_entry D_80116F30_duel02[2] = {
+    { 1, 1, func_80115A54_duel02 },
+    { 0, 0, NULL },
+};
+s16 D_80116F40_duel02[3] = { 0x19, 0x26, -1 };
+event_list_entry D_80116F48_duel02[2] = {
+    { 1, 1, func_80115BDC_duel02 },
+    { 0, 0, NULL },
+};
+s16 D_80116F58_duel02[3] = { 0xE, 0x1F, -1 };
+event_list_entry D_80116F60_duel02[2] = {
+    { 1, 1, func_80115D64_duel02 },
+    { 0, 0, NULL },
+};
+s16 D_80116F70_duel02[3] = { 0x13, 0x29, -1 };
+event_list_entry D_80116F78_duel02[2] = {
+    { 1, 1, func_80115EE4_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116F88_duel02[2] = {
+    { 1, 1, func_80116064_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116F98_duel02[2] = {
+    { 1, 1, func_8011611C_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FA8_duel02[2] = {
+    { 1, 1, func_801161D4_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FB8_duel02[2] = {
+    { 1, 1, func_80116240_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FC8_duel02[2] = {
+    { 1, 1, func_8011628C_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FD8_duel02[2] = {
+    { 1, 1, func_801162F8_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FE8_duel02[2] = {
+    { 1, 1, func_80116344_duel02 },
+    { 0, 0, NULL },
+};
+event_list_entry D_80116FF8_duel02[2] = {
+    { 1, 1, func_80116370_duel02 },
+    { 0, 0, NULL },
+};
+event_table_entry D_80117008_duel02[13] = {
+    { 41, D_80116F30_duel02 },
+    { 31, D_80116F48_duel02 },
+    { 38, D_80116F60_duel02 },
+    { 40, D_80116F78_duel02 },
+    { 25, D_80116F88_duel02 },
+    { 7, D_80116F98_duel02 },
+    { 24, D_80116FA8_duel02 },
+    { 26, D_80116FB8_duel02 },
+    { 6, D_80116FC8_duel02 },
+    { 8, D_80116FD8_duel02 },
+    { 18, D_80116FE8_duel02 },
+    { 23, D_80116FF8_duel02 },
+    { -1, NULL },
+};

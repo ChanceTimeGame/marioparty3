@@ -252,3 +252,13 @@ D_8011EDFE_w05 = D_8011EDFC_w05 + 0x2;
 D_8011EE19_w05 = D_8011EE18_w05 + 0x1;
 D_8011EE1A_w05 = D_8011EE18_w05 + 0x2;
 D_8011EF3C_w05 = D_8011EF38_w05 + 0x4;
+/* board da3: duel02/3EC590 .data inner labels the remaining asm uses */
+D_80116605_duel02 = D_80116604_duel02 + 0x1;
+D_80116722_duel02 = D_80116720_duel02 + 0x2;
+D_80116726_duel02 = D_80116720_duel02 + 0x6;
+D_8011672A_duel02 = D_80116720_duel02 + 0xA;
+D_80116788_duel02 = D_8011678C_duel02 - 0x4;
+D_801167DC_duel02 = D_801167E0_duel02 - 0x4;
+D_801167E7_duel02 = D_801167EC_duel02 - 0x5;
+D_801167F3_duel02 = D_801167F8_duel02 - 0x5;
+D_801167FC_duel02 = D_80116800_duel02 - 0x4;
