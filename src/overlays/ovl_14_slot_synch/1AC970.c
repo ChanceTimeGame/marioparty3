@@ -136,6 +136,25 @@ typedef struct SsCamera {
     /* 0x20 */ f32 unk20;
 } SsCamera; // Size 0x24
 
+typedef struct SsBytes {
+    u8 a;
+    u8 b;
+    u8 c;
+    u8 d;
+} SsBytes;
+
+typedef union SsPack {
+    void *p;
+    SsBytes b;
+} SsPack;
+
+#define SS_WRAP(v)             \
+    if ((v) >= 360.0) {        \
+        (v) -= 360.0;          \
+    } else if ((v) < 0.0) {    \
+        (v) += 360.0;          \
+    }
+
 extern Vec D_8010D820_slot_synch[];
 extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
@@ -143,6 +162,7 @@ extern s32 D_8010DA60_slot_synch;
 extern s32 D_8010DA64_slot_synch;
 extern s32 D_8010DA68_slot_synch;
 extern s32 fontcolor;
+extern SsCamera D_8010DFA0_slot_synch[2];
 extern s32 D_8010DFE8_slot_synch;
 extern s32 D_8010DFEC_slot_synch;
 extern s32 D_8010DFF0_slot_synch;
@@ -163,6 +183,13 @@ s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color)
 void func_8010B754_slot_synch(omObjData *obj);
 void func_8010BB90_slot_synch(s32 idx);
 void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
+void func_8010BF6C_slot_synch(s32 idx);
+f32 func_8010C0C0_slot_synch(f32 a, f32 b);
+f32 func_8010C1C4_slot_synch(f32 target, f32 cur, f32 step);
+f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
+f32 func_8010C39C_slot_synch(f32 t, f32 a, f32 b);
+f32 fabsf(f32);
+f64 fmod(f64, f64);
 void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
 // <func_80109FA4_slot_synch>
@@ -657,25 +684,181 @@ void func_8010B064_slot_synch(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010B754_slot_synch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010BB90_slot_synch);
+// <func_8010BB90_slot_synch>
+void func_8010BB90_slot_synch(s32 idx) {
+    SS_WRAP(CRot.x);
+    SS_WRAP(CRot.y);
+    SS_WRAP(CRot.z);
+    D_8010DFA0_slot_synch[idx].center.x = Center.x;
+    D_8010DFA0_slot_synch[idx].center.y = Center.y;
+    D_8010DFA0_slot_synch[idx].center.z = Center.z;
+    D_8010DFA0_slot_synch[idx].rot.x = CRot.x;
+    D_8010DFA0_slot_synch[idx].rot.y = CRot.y;
+    D_8010DFA0_slot_synch[idx].rot.z = CRot.z;
+    D_8010DFA0_slot_synch[idx].zoom = CZoom;
+    D_8010DFA0_slot_synch[idx].unk1C = D_8010DFA0_slot_synch[idx].unk20 = 0.0f;
+}
+// </func_8010BB90_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010BD7C_slot_synch);
+// <func_8010BD7C_slot_synch>
+void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
+    if (frames > 0) {
+        D_8010DFE8_slot_synch = frames - 1;
+        D_8010DFEC_slot_synch = frames;
+        if (cx != 65535.0f) {
+            D_8010DFA0_slot_synch[0].center.x = cx;
+        } else {
+            D_8010DFA0_slot_synch[0].center.x = Center.x;
+        }
+        if (cy != 65535.0f) {
+            D_8010DFA0_slot_synch[0].center.y = cy;
+        } else {
+            D_8010DFA0_slot_synch[0].center.y = Center.y;
+        }
+        if (cz != 65535.0f) {
+            D_8010DFA0_slot_synch[0].center.z = cz;
+        } else {
+            D_8010DFA0_slot_synch[0].center.z = Center.z;
+        }
+        if (rx != 65535.0f) {
+            D_8010DFA0_slot_synch[0].rot.x = rx;
+        } else {
+            D_8010DFA0_slot_synch[0].rot.x = CRot.x;
+        }
+        if (ry != 65535.0f) {
+            D_8010DFA0_slot_synch[0].rot.y = ry;
+        } else {
+            D_8010DFA0_slot_synch[0].rot.y = CRot.y;
+        }
+        if (rz != 65535.0f) {
+            D_8010DFA0_slot_synch[0].rot.z = rz;
+        } else {
+            D_8010DFA0_slot_synch[0].rot.z = CRot.z;
+        }
+        if (zoom != 65535.0f) {
+            D_8010DFA0_slot_synch[0].zoom = zoom;
+        } else {
+            D_8010DFA0_slot_synch[0].zoom = CZoom;
+        }
+        func_8010BB90_slot_synch(1);
+    }
+}
+// </func_8010BD7C_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010BF6C_slot_synch);
+// <func_8010BF6C_slot_synch>
+void func_8010BF6C_slot_synch(s32 idx) {
+    HuCamera *cam = &gCameraList[idx];
+    f32 rx = CRot.x;
+    f32 ry = CRot.y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C0C0_slot_synch);
+    cam->pos.x = Center.x + sindf(ry) * cosdf(rx) * CZoom;
+    cam->pos.y = -sindf(rx) * CZoom + Center.y;
+    cam->pos.z = cosdf(ry) * cosdf(rx) * CZoom + Center.z;
+    cam->at.x = Center.x;
+    cam->at.y = Center.y;
+    cam->at.z = Center.z;
+    cam->up.x = sindf(ry) * sindf(rx);
+    cam->up.y = cosdf(rx);
+    cam->up.z = cosdf(ry) * sindf(rx);
+}
+// </func_8010BF6C_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C1C4_slot_synch);
+// <func_8010C0C0_slot_synch>
+f32 func_8010C0C0_slot_synch(f32 a, f32 b) {
+    f32 d;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C384_slot_synch);
+    if (a >= 360.0f) {
+        a -= 360.0f;
+    } else if (a < 0.0f) {
+        a += 360.0f;
+    }
+    if (b >= 360.0f) {
+        b -= 360.0f;
+    } else if (b < 0.0f) {
+        b += 360.0f;
+    }
+    d = a - b;
+    if (d <= -180.0f) {
+        d += 360.0f;
+    } else if (d >= 180.0f) {
+        d -= 360.0f;
+    }
+    return d;
+}
+// </func_8010C0C0_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C39C_slot_synch);
+// <func_8010C1C4_slot_synch>
+f32 func_8010C1C4_slot_synch(f32 target, f32 cur, f32 step) {
+    f32 d;
+    f32 v;
+    f64 e;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C3FC_slot_synch);
+    SS_WRAP(target);
+    SS_WRAP(cur);
+    d = fmod(target - cur + 360.0, 360.0);
+    if (d < 180.0) {
+        if (d <= step) {
+            v = d;
+        } else {
+            v = step;
+        }
+    } else {
+        e = 360.0 - d;
+        if (e <= step) {
+            v = -e;
+        } else {
+            v = -step;
+        }
+    }
+    v += cur;
+    SS_WRAP(v);
+    return v;
+}
+// </func_8010C1C4_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C428_slot_synch);
+// <func_8010C384_slot_synch>
+f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b) {
+    return a + t * (b - a);
+}
+// </func_8010C384_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C47C_slot_synch);
+// <func_8010C39C_slot_synch>
+f32 func_8010C39C_slot_synch(f32 t, f32 a, f32 b) {
+    return func_8010C1C4_slot_synch(b, a, fabsf(func_8010C0C0_slot_synch(b, a) * t));
+}
+// </func_8010C39C_slot_synch>
+
+// <func_8010C3FC_slot_synch>
+void func_8010C3FC_slot_synch(omObjData *obj, u32 value) {
+    obj->work[0] = value >> 24;
+    obj->work[1] = (value >> 16) & 0xFF;
+    obj->work[2] = (value >> 8) & 0xFF;
+    obj->work[3] = value & 0xFF;
+}
+// </func_8010C3FC_slot_synch>
+
+// <func_8010C428_slot_synch>
+void *func_8010C428_slot_synch(omObjData *obj) {
+    SsPack u;
+
+    u.b.a = obj->work[0];
+    u.b.b = obj->work[1];
+    u.b.c = obj->work[2];
+    u.b.d = obj->work[3];
+    return u.p;
+}
+// </func_8010C428_slot_synch>
+
+// <func_8010C47C_slot_synch>
+s16 func_8010C47C_slot_synch(s32 dirAndFile) {
+    s16 id = func_8001F1FC_main(DataRead(dirAndFile), 0x18);
+
+    if (id >= 0) {
+        return id;
+    }
+    return -1;
+}
+// </func_8010C47C_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010C4C0_slot_synch);
 
