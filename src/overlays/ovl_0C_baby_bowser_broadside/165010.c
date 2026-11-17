@@ -154,7 +154,7 @@ typedef struct BbState {
     /* 0x46 */ s16 unk46;
     /* 0x48 */ s16 unk48[4];
     /* 0x50 */ s16 model; /* the target */
-    /* 0x52 */ u8 unk52; /* rocking */
+    /* 0x52 */ s8 unk52; /* rocking */
     /* 0x53 */ char unk53[5];
     /* 0x58 */ f32 unk58;
     /* 0x5C */ f32 unk5C;
@@ -507,7 +507,46 @@ void func_80107A00_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
 }
 /* </func_80107A00_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107A80_baby_bowser_broadside);
+/* <func_80107A80_baby_bowser_broadside> */
+void func_80107A80_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    s16 i;
+
+    if (task->state == 0) {
+        D_8011000C_baby_bowser_broadside = HuAudFXPlay(0x35C);
+        func_8004AAD0_main(D_8011000C_baby_bowser_broadside, 64);
+        task->unk1C = 0;
+        task->state = 1;
+    }
+    switch (++task->unk1C) {
+        case 20:
+            GMesCreate(5);
+            HuAudFXPlay(0xE);
+            break;
+        case 40:
+            D_8010FD70_baby_bowser_broadside = 1;
+            break;
+        default:
+            if (D_8010FD70_baby_bowser_broadside == 1 && GMesStatGet() == 2) {
+                for (i = 0; i < 4; i++) {
+                    if (GwPlayer[i].stat & 1) {
+                        func_8010A0B4_baby_bowser_broadside(i + 3, 0, &D_80110004_baby_bowser_broadside[i],
+                                                            func_80108860_baby_bowser_broadside, 0);
+                    }
+                }
+                func_8010A0B4_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, 0xF, NULL,
+                                                    func_80107854_baby_bowser_broadside, 0);
+                D_80110008_baby_bowser_broadside->speed = 0.5f;
+                D_80110008_baby_bowser_broadside->flags = 2;
+                func_8010A158_baby_bowser_broadside(BB_WORK(ctx->obj)->b.group, task);
+            }
+            break;
+    }
+    if (D_8010FD72_baby_bowser_broadside == 0 && GMesStatGet() != 0) {
+        HuAudSeqPlay(0x30);
+        D_8010FD72_baby_bowser_broadside = 1;
+    }
+}
+/* </func_80107A80_baby_bowser_broadside> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107C64_baby_bowser_broadside);
 
@@ -594,7 +633,36 @@ void func_80108210_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108350_baby_bowser_broadside);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108614_baby_bowser_broadside);
+/* <func_80108614_baby_bowser_broadside> */
+void func_80108614_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    f32 t;
+    f32 a;
+    f32 rx;
+    f32 rz;
+
+    if (D_80110008_baby_bowser_broadside->unk52 != 0) {
+        D_80110008_baby_bowser_broadside->unk28 += 15.0f;
+        rx = sindf(D_80110008_baby_bowser_broadside->unk28) * 30.0f * D_80110008_baby_bowser_broadside->unk58;
+        rz = -(sindf(D_80110008_baby_bowser_broadside->unk28) * 30.0f * D_80110008_baby_bowser_broadside->unk5C);
+        HmfModelData[D_80110008_baby_bowser_broadside->model].rot.x = rx;
+        HmfModelData[D_80110008_baby_bowser_broadside->model].rot.z = rz;
+        if (D_80110008_baby_bowser_broadside->unk28 >= 360.0f) {
+            D_80110008_baby_bowser_broadside->unk28 -= 360.0f;
+            t = D_80110008_baby_bowser_broadside->unk18 / 6.0f;
+            t = sindf(t * 90.0f);
+            if (t > 1.0f) {
+                t = 1.0f;
+            }
+            a = t * 90.0f;
+            D_80110008_baby_bowser_broadside->unk58 = cosdf(a) * D_80110008_baby_bowser_broadside->unk58;
+            D_80110008_baby_bowser_broadside->unk5C = cosdf(a) * D_80110008_baby_bowser_broadside->unk5C;
+            if (++D_80110008_baby_bowser_broadside->unk18 >= 7) {
+                D_80110008_baby_bowser_broadside->unk52 = 0;
+            }
+        }
+    }
+}
+/* </func_80108614_baby_bowser_broadside> */
 
 /* <func_801087CC_baby_bowser_broadside> */
 void func_801087CC_baby_bowser_broadside(s16 model) {
