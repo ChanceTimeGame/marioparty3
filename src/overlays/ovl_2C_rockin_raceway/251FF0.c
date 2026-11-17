@@ -68,13 +68,20 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80109
 
 /* a kart (rr1's functions own most of it) */
 typedef struct RrKart {
-    /* 0x00 */ char unk00[0x40];
+    /* 0x00 */ char unk00[2];
+    /* 0x02 */ u16 unk02;
+    /* 0x04 */ char unk04[0x24];
+    /* 0x28 */ f32 unk28; /* lap time, seconds */
+    /* 0x2C */ char unk2C[2];
+    /* 0x2E */ s16 unk2E; /* player */
+    /* 0x30 */ char unk30[0x10];
     /* 0x40 */ f32 unk40; /* wheel angle */
     /* 0x44 */ char unk44[0x14];
     /* 0x58 */ Vec unk58; /* position */
     /* 0x64 */ char unk64[4];
     /* 0x68 */ f32 unk68; /* heading */
-} RrKart;
+    /* 0x6C */ char unk6C[4];
+} RrKart; /* size 0x70 */
 
 /* 16 entries of D_80111B5C: a model and its animation state */
 typedef struct RrMdlAnim {
@@ -171,6 +178,13 @@ extern RrHud D_80111B80_rockin_raceway[4];
 extern s16 D_80111330_rockin_raceway[4][2];
 extern s32 D_801115B8_rockin_raceway[];
 void func_8010A990_rockin_raceway(omObjData *obj);
+extern RrKart *D_80111B30_rockin_raceway;
+extern s32 D_80111AD0_rockin_raceway;
+extern s32 D_80111AD8_rockin_raceway; /* game state */
+extern s32 D_80111ADC_rockin_raceway;
+void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 arg2);
+extern u8 D_800D6A90_main;
+f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c);
 // m1 rr2 end
 
 /* rr2 func_801096A0_rockin_raceway */
@@ -559,9 +573,113 @@ void func_8010A5E4_rockin_raceway(s16 player, s16 kind) {
 }
 /* rr2 end func_8010A5E4_rockin_raceway */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010A990_rockin_raceway);
+/* rr2 func_8010A990_rockin_raceway */
+void func_8010A990_rockin_raceway(omObjData *obj) {
+    RrKart *kart;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010AAAC_rockin_raceway);
+    if (D_80111AD8_rockin_raceway == 5 && (D_80111ADC_rockin_raceway > 0 || D_80111AD0_rockin_raceway >= 2)) {
+        HuSprAttrReset(D_80111B74_rockin_raceway, 0, 0x8000);
+    } else {
+        HuSprAttrSet(D_80111B74_rockin_raceway, 0, 0x8000);
+    }
+    if (D_80111AD8_rockin_raceway < 3) {
+        for (i = 0, kart = D_80111B30_rockin_raceway; i < 4; i++, kart++) {
+            func_8010AAAC_rockin_raceway(kart->unk2E, kart->unk28 * 100.0f, kart->unk02);
+        }
+    } else {
+        for (i = 0; i < 4; i++) {
+            func_8010AAAC_rockin_raceway(i, 0, 0xFFFF);
+        }
+    }
+}
+/* rr2 end func_8010A990_rockin_raceway */
+
+/* rr2 func_8010AAAC_rockin_raceway */
+void func_8010AAAC_rockin_raceway(s16 player, s16 value, u16 mode) {
+    u16 grp;
+    f32 scale;
+    f32 x;
+    s32 i;
+    s32 j;
+
+    grp = D_80111B6C_rockin_raceway[player];
+    if (mode == 2) {
+        if (D_80111B80_rockin_raceway[player].unk02++ > 30.0f) {
+            D_80111B80_rockin_raceway[player].unk02 = 30;
+        }
+        scale = D_80111B80_rockin_raceway[player].unk02 / 30.0f;
+        scale = func_8010E840_rockin_raceway(scale, 0.0f, 1.0f, 0.4f) + 1.0;
+    } else {
+        if (D_80111B80_rockin_raceway[player].unk02-- < 0) {
+            D_80111B80_rockin_raceway[player].unk02 = 0;
+        }
+        scale = D_80111B80_rockin_raceway[player].unk02 / 30.0f;
+        scale = scale * 0.4f + 1.0;
+    }
+    if (D_80111B80_rockin_raceway[player].unk02 != D_80111B80_rockin_raceway[player].unk04) {
+        for (i = 0; i < 5; i++) {
+            x = D_80111B80_rockin_raceway[player].unk06 + D_80111B80_rockin_raceway[player].unk0A[i] * scale;
+            HuSprScaleSet(grp, i + 1, scale, scale);
+            func_80054904_main(grp, i + 1, x, D_80111B80_rockin_raceway[player].unk08);
+            if (mode == 2) {
+                HuSprAttrSet(grp, i + 1, 0x838);
+            } else {
+                HuSprAttrReset(grp, i + 1, 0x838);
+            }
+        }
+        D_80111B80_rockin_raceway[player].unk04 = D_80111B80_rockin_raceway[player].unk02;
+    }
+    switch (mode) {
+    case 1:
+        if ((D_80111AD0_rockin_raceway & 1) && func_80049F98_main() + D_800D6A90_main == 0) {
+            HuSprAttrSet(grp, 0, 0x8000);
+        } else {
+            HuSprAttrReset(grp, 0, 0x8000);
+        }
+        break;
+    case 2:
+        HuSprAttrReset(grp, 0, 0x8000);
+        if (!(D_80111AD0_rockin_raceway & 3)) {
+            for (i = 0; i < 5; i++) {
+                HuSprAttrReset(grp, i + 1, 0x8000);
+                func_80054FF8_main(grp, i + 1, 1);
+                func_80055458_main(grp, i + 1, 0x100);
+            }
+        } else {
+            for (i = 0; i < 5; i++) {
+                HuSprAttrReset(grp, i + 1, 0x8000);
+                func_80054FF8_main(grp, i + 1, 0);
+                func_80055458_main(grp, i + 1, 0x100);
+            }
+        }
+        return;
+    case 0xFFFF:
+        for (i = 0; i < 7; i++) {
+            HuSprAttrSet(grp, i, 0x8000);
+        }
+        return;
+    default:
+        HuSprAttrReset(grp, 0, 0x8000);
+        break;
+    }
+    for (i = 0; i < 5; i++) {
+        if (i * 20 < value) {
+            j = i + 1;
+            HuSprAttrReset(grp, j, 0x8000);
+            if (value >= j * 20) {
+                func_80055458_main(grp, j, 0x100);
+                func_80054FF8_main(grp, j, 0);
+            } else {
+                func_80055458_main(grp, i + 1, (s16)(value % 20) * 0.05f * 256.0f);
+                func_80054FF8_main(grp, i + 1, 0);
+            }
+        } else {
+            HuSprAttrSet(grp, i + 1, 0x8000);
+        }
+    }
+}
+/* rr2 end func_8010AAAC_rockin_raceway */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B124_rockin_raceway);
 
