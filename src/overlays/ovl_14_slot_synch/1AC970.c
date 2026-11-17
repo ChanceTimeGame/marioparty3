@@ -134,6 +134,31 @@ typedef struct SsGround {
     /* 0x05 */ char unk05[0xAF];
 } SsGround; // Size 0xB4
 
+/* A symbol popping out of a machine (D_8010DF88_slot_synch, 5 x 0x58). */
+typedef struct SsMot {
+    /* 0x00 */ s16 unk00; /* idle motion (the model's own) */
+    /* 0x02 */ s16 unk02; /* land motion */
+    /* 0x04 */ s16 unk04; /* run motion */
+} SsMot;
+
+typedef struct SsPop {
+    /* 0x00 */ u8 unk00; /* active */
+    /* 0x01 */ u8 unk01; /* team */
+    /* 0x02 */ u8 unk02; /* scored */
+    /* 0x03 */ u8 unk03; /* no sparkle */
+    /* 0x04 */ s16 unk04[4]; /* model per symbol */
+    /* 0x0C */ SsMot unk0C[4];
+    /* 0x24 */ s16 unk24; /* shadow model */
+    /* 0x26 */ s16 unk26; /* symbol, 4 = none */
+    /* 0x28 */ s16 unk28; /* state */
+    /* 0x2A */ s16 unk2A; /* state timer */
+    /* 0x2C */ f32 unk2C; /* vertical speed */
+    /* 0x30 */ f32 unk30; /* run speed */
+    /* 0x34 */ Vec unk34; /* position */
+    /* 0x40 */ Vec unk40; /* rotation */
+    /* 0x4C */ Vec unk4C; /* scale */
+} SsPop; // Size 0x58
+
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 /* HmfData's vertex count (0x18 lies inside the header's unk16 padding). */
@@ -170,7 +195,7 @@ void func_8010AA9C_slot_synch(s16 team, s16 score);
 f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
 void func_80108428_slot_synch(omObjData* obj);
 s16 func_80108848_slot_synch(s16 idx);
-void func_8010AD68_slot_synch(Vec* pos, s32 arg1, s32 arg2, f32 scale, void* arg4);
+void func_8010AD68_slot_synch(Vec* pos, Vec* vel, Vec* scale, f32 arg3, void* arg4);
 f64 fabs(f64);
 f32 fabsf(f32);
 void func_801091D8_slot_synch(omObjData* obj);
@@ -183,6 +208,11 @@ void func_80107BAC_slot_synch(void);
 void func_80107D54_slot_synch(omObjData* obj);
 void func_80108238_slot_synch(void);
 void func_80108D3C_slot_synch(void);
+void func_80109754_slot_synch(omObjData* obj);
+s16 func_8010C47C_slot_synch(s32 file);
+f32 func_8010C1C4_slot_synch(f32 target, f32 cur, f32 speed);
+void func_80106CCC_slot_synch(s16 team, s16 add);
+void func_80106D0C_slot_synch(s16 team, s16 kind);
 s16 func_80108B74_slot_synch(s16 idx, s16 steps);
 void func_80108D14_slot_synch(s16 idx, s16 sym);
 s16 func_8010A2C4_slot_synch(s32 file);
@@ -221,9 +251,17 @@ extern SsSprPos D_8010D938_slot_synch[12];
 extern SsSprPos D_8010D980_slot_synch[12];
 extern f32 D_8010D840_slot_synch[5];
 extern u8 D_8010D854_slot_synch[2][4];
+extern s16 D_8010D85C_slot_synch[4];
+extern s32 D_8010D864_slot_synch;
+extern s32 D_8010D868_slot_synch;
 extern s32 D_8010D86C_slot_synch;
 extern s16 D_8010D9C8_slot_synch[4];
 extern f32 D_8010D9D0_slot_synch[8];
+extern s32 D_8010D9F0_slot_synch[4];
+extern s32 D_8010DA00_slot_synch[4];
+extern s32 D_8010DA10_slot_synch[4];
+extern f32 D_8010DA20_slot_synch[4];
+extern s32 D_8010DA30_slot_synch[4];
 extern s32 D_8010D870_slot_synch[8];
 extern s32 D_8010D890_slot_synch[8];
 extern s32 D_8010D90C_slot_synch[3];
@@ -243,6 +281,8 @@ extern u16 D_8010DF66_slot_synch[4]; /* sprite priorities */
 extern SsSprMan D_8010DF70_slot_synch;
 extern SsReel* D_8010DF7C_slot_synch;
 extern SsBody* D_8010DF80_slot_synch;
+extern omObjData* D_8010DF84_slot_synch;
+extern SsPop* D_8010DF88_slot_synch;
 extern s16* D_8010DF8C_slot_synch; /* sprite files, 0x20 */
 extern D_80111B50_vine_with_me_Struct D_8010DFF8_slot_synch;
 // end m1 sy1
@@ -1191,7 +1231,7 @@ void func_80108428_slot_synch(omObjData* obj) {
             pos.x = reel->unk24.x;
             pos.y = reel->unk24.y;
             pos.z = reel->unk24.z;
-            func_8010AD68_slot_synch(&pos, 0, 0, 1.0f, &D_8010D86C_slot_synch);
+            func_8010AD68_slot_synch(&pos, NULL, NULL, 1.0f, &D_8010D86C_slot_synch);
             reel->unk0C = 5;
             break;
         }
