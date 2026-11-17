@@ -194,6 +194,7 @@ typedef struct StaffFlyer {
 } StaffFlyer; // size 0x2C: the file head's UnkStaff_1 (its 0x18/0x1C are f32)
 
 extern Vec D_80110FA0_staff[3];
+u32 func_8010601C_staff(void);
 // end story j2
 
 #ifdef NON_MATCHING
@@ -889,7 +890,107 @@ void func_8010C680_staff(s16 *state, s32 *arg1, f32 *rotY, void *arg3) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C680_staff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C8F4_staff);
+void func_8010C8F4_staff(UnkStaff_1 *arg0) {
+    Vec pos[3];
+    StaffFlyer *flyers;
+    StaffFlyer *f;
+    Vec *p;
+    s32 i;
+    f32 a;
+    f32 rot;
+    f32 s;
+    f32 c;
+
+    f = (StaffFlyer *)arg0;
+    flyers = f;
+    for (p = pos, i = 0; i < 3; i++, f++, p++) {
+        *p = f->pos;
+        f->unk20 += 25.714285f;
+        if (f->unk20 >= 180.0f) {
+            f->unk20 -= 180.0f;
+            a = (f32)(func_8010601C_staff() & 0x1F) - 15.0f;
+            a += 20.0f;
+            f->unk24 = a;
+        }
+        a = sindf(f->unk20) * f->unk24;
+        p->y = a + p->y;
+    }
+    f = flyers;
+    p = pos;
+    switch (f->unk2A) {
+    case 0:
+        p->x += 6.266667f;
+        if (p->x >= 260.0f) {
+            f->unk2A++;
+            f->unk18 = 0.0f;
+        }
+        break;
+    case 1:
+        f->unk18 += 12.0f;
+        if (f->unk18 >= 180.0f) {
+            f->unk18 = 180.0f;
+            f->unk2A++;
+        }
+        s = cosdf(f->unk18) * 6.266667f;
+        p->x = s + p->x;
+        rot = f->unk18 + -90.0f;
+        f->rot.y = rot;
+        break;
+    case 2:
+        p->x -= 6.266667f;
+        if (p->x <= -680.0f) {
+            f->unk2A++;
+            f->unk18 = 0.0f;
+        }
+        break;
+    case 3:
+        f->unk18 += 12.0f;
+        if (f->unk18 >= 180.0f) {
+            f->unk18 = 180.0f;
+            f->unk2A = 0;
+        }
+        s = cosdf(f->unk18) * -6.266667f;
+        p->x = s + p->x;
+        rot = 90.0f - f->unk18;
+        f->rot.y = rot;
+        break;
+    }
+    f->pos.x = p->x;
+    for (f = &flyers[1], p = &pos[1], i = 1; i < 3; i++, f++, p++) {
+        a = f->unk18;
+        switch (i) {
+        case 1:
+            a += 6.0f;
+            rot = -90.0f;
+            break;
+        case 2:
+            a -= 5.0f;
+            rot = 90.0f;
+            break;
+        }
+        if (a < 0.0f) {
+            a += 360.0f;
+        } else if (a >= 360.0f) {
+            a -= 360.0f;
+        }
+        f->unk18 = a;
+        s = sindf(a) * f->unk1C;
+        c = cosdf(a) * f->unk1C;
+        p->x = s + p->x;
+        p->z = c + p->z;
+        rot += a;
+        if (rot < 0.0f) {
+            rot += 360.0f;
+        } else if (rot >= 360.0f) {
+            rot -= 360.0f;
+        }
+        f->rot.y = rot;
+    }
+    for (f = flyers, p = pos, i = 0; i < 3; i++, f++, p++) {
+        Hu3DModelPosSet(f->model, p->x, p->y, p->z);
+        Hu3DModelRotSet(f->model, f->rot.x, f->rot.y, f->rot.z);
+    }
+}
 
 void func_8010CD74_staff(UnkStaff_1 *arg0) {
     StaffFlyer *f;
