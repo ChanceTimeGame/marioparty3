@@ -40,6 +40,7 @@ void func_8005FE90_main(s16);
 void func_8005FFA8_main(s16);
 void func_8005D294_main(s16);
 void func_8005B43C_main(s16, s32, s32, s32);
+int sprintf(char *s, const char *fmt, ...);
 
 s16 func_80105A8C_duelresult2(s16 model, s32 file, char *name);
 void func_80105B98_duelresult2(s16 model, s16 frame);
@@ -478,9 +479,136 @@ s32 func_80106A2C_duelresult2(s32 row) {
     return mask;
 }
 
+
+// NON_MATCHING: masked 71; retail hoists k * 16, k * 11 and the lead bit into stack slots (a 0x78
+// frame) and differs in register allocation, as in boardresult2's twin func_801074B4. Logic checked
+// against the asm: same loads (star s8, coin/gamePrize/coinPrize s16, the duel counters s16), the
+// 999/99 clamps and the clamp of negatives to 0 before sprintf.
+#ifdef NON_MATCHING
+/* Draws the four visible record rows (D_80108C34 onwards): each player's value in four digit
+   sprites of D_80108DE0, the row leaders in the second digit set, then the row cursor. */
+void func_80106F7C_duelresult2(void) {
+    u8 buf[8];
+    s32 offs[5] = { 0, -30, -25, -20, -15 };
+    GW_PLAYER *player;
+    s32 lead;
+    s32 digits;
+    s32 value;
+    s32 row;
+    s32 k;
+    s32 p;
+    s32 c;
+    s32 member;
+
+    for (row = 0; row < 10; row++) {
+        HuSprAttrSet(D_80108DDC_duelresult2->unk_0A, row, 0x8000);
+    }
+    for (row = D_80108C34_duelresult2, k = 0; row < D_80108C34_duelresult2 + 4; row++, k++) {
+        HuSprAttrReset(D_80108DDC_duelresult2->unk_0A, row, 0x8000);
+        func_80054904_main(D_80108DDC_duelresult2->unk_0A, row, k * 44 + 0x91, 0x49);
+    }
+    for (row = 0; row < 64; row++) {
+        HuSprAttrSet(D_80108DE0_duelresult2->unk_0A, row, 0x8000);
+    }
+    for (row = D_80108C34_duelresult2, k = 0; row < D_80108C34_duelresult2 + 4; row++, k++) {
+        for (p = 0; p < 2; p++) {
+            player = MBDGetPlayerStruct(p);
+            lead = func_80106A2C_duelresult2(row);
+            digits = 1;
+            value = 1;
+            switch (row) {
+            case 0:
+                value = player->star;
+                digits = 2;
+                break;
+            case 1:
+                value = player->coin;
+                digits = 3;
+                break;
+            case 2:
+                value = player->gamePrize;
+                if (value >= 1000) {
+                    value = 999;
+                }
+                digits = 3;
+                break;
+            case 3:
+                value = player->coinPrize;
+                digits = 3;
+                break;
+            case 4:
+                value = DR2_DUELSTAT(0x56)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            case 5:
+                value = DR2_DUELSTAT(0x42)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            case 6:
+                value = DR2_DUELSTAT(0x4E)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            case 7:
+                value = DR2_DUELSTAT(0x52)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            case 8:
+                value = DR2_DUELSTAT(0x46)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            case 9:
+                value = DR2_DUELSTAT(0x4A)[p];
+                if (value >= 100) {
+                    value = 99;
+                }
+                digits = 2;
+                break;
+            }
+            if (value < 0) {
+                value = 0;
+            }
+            sprintf((char *)buf, "%4d", value);
+            member = k * 16 + p * 4;
+            for (c = 0; c < 4; c++) {
+                if (buf[c] == ' ') {
+                    HuSprAttrSet(D_80108DE0_duelresult2->unk_0A, member + c, 0x8000);
+                    continue;
+                }
+                if (lead & (1 << p)) {
+                    func_80055024_main(D_80108DE0_duelresult2->unk_0A, member + c, D_80108DE0_duelresult2->unk_0C[1], 0);
+                } else {
+                    func_80055024_main(D_80108DE0_duelresult2->unk_0A, member + c, D_80108DE0_duelresult2->unk_0C[0], 0);
+                }
+                HuSprAttrReset(D_80108DE0_duelresult2->unk_0A, member + c, 0x8000);
+                func_80054904_main(D_80108DE0_duelresult2->unk_0A, member + c, c * 10 + 0x91 + k * 44 + offs[digits],
+                                   p * 26 + 0x63);
+                func_80055140_main(D_80108DE0_duelresult2->unk_0A, member + c, buf[c] - '0', 0);
+                func_800550F4_main(D_80108DE0_duelresult2->unk_0A, member + c, 1);
+            }
+        }
+    }
+    func_80054904_main(D_80108DE4_duelresult2->unk_0A, 0, D_80108C38_duelresult2 * 44 + 0x92, 0x64);
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/duelresult2/45D380", D_80108CC8_duelresult2);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_80106F7C_duelresult2);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duelresult2/45D380", D_80108D08_duelresult2);
 
