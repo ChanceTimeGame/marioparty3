@@ -125,8 +125,9 @@ typedef struct PpCoin {
 
 /* The game state (D_80111658_puddle_paddle) */
 typedef struct PpState {
-    /* 0x00 */ s32 flags;
-    /* 0x04 */ char unk04[0x34];
+    /* 0x00 */ s32 flags; /* 1 start, 2 play, 4 end */
+    /* 0x04 */ f32 timer;
+    /* 0x08 */ char unk08[0x30];
     /* 0x38 */ PpCoin* coins;
     /* 0x3C */ s16 unk3C;
     /* 0x3E */ char unk3E[6];
@@ -675,9 +676,63 @@ void func_80107638_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
+/* The timer. NON_MATCHING only because of the data split: GCC folds timer / 30.0f to the double 30.0 and gas puts
+   that li.d literal in this unit's .rodata, which is D_80111630_puddle_paddle (the yaml has it at the end of .data).
+   The code is identical once the unit's .rodata starts at 0x19CED0 and D_80111630 is not also defined as data. */
+#ifdef NON_MATCHING
+void func_8010788C_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    if (task->state == 0) {
+        D_80111658_puddle_paddle->timer = 900.0f;
+        /* retail passes the seconds as a double where GMesCreate reads an int */
+        GMesCreate(0x1A, D_80111658_puddle_paddle->timer / 30.0f, 160, 28);
+        task->state = 1;
+    }
+    D_80111658_puddle_paddle->timer -= 1.0f;
+    func_8003F578_main((D_80111658_puddle_paddle->timer + 29.0f) * 0.033333335f);
+    if (D_80111658_puddle_paddle->timer < 0.0f) {
+        D_80111658_puddle_paddle->flags = 4;
+        HuAudSeqFadeOut(120);
+        GMesCreate(0x10);
+        func_8003F5C0_main();
+        func_8010BA04_puddle_paddle(PP_WORK(ctx->obj)->b.group, 0, NULL, func_80107B2C_puddle_paddle, 0);
+        func_8010BAA8_puddle_paddle(PP_WORK(ctx->obj)->b.group, task);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010788C_puddle_paddle);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801079D4_puddle_paddle);
+void func_8010B574_puddle_paddle(void);
+
+/* The start */
+void func_801079D4_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    s32 stat;
+
+    switch (++task->s16[0]) {
+        case 5:
+            HuAudFXPlay(0x374);
+            break;
+        case 30:
+            GMesCreate(5);
+            HuAudFXPlay(14);
+            break;
+        case 50:
+            D_8011122E_puddle_paddle = 1;
+            break;
+        default:
+            if (D_8011122E_puddle_paddle == 1 && (stat = GMesStatGet()) == 2) {
+                func_8010B574_puddle_paddle();
+                func_8010BA04_puddle_paddle(PP_WORK(ctx->obj)->b.group, 0xF, NULL, func_8010788C_puddle_paddle, 0);
+                D_80111658_puddle_paddle->flags = stat;
+                func_8010BAA8_puddle_paddle(PP_WORK(ctx->obj)->b.group, task);
+            }
+            break;
+    }
+    if (D_80111230_puddle_paddle == 0 && GMesStatGet() != 0) {
+        HuAudSeqPlay(0x30);
+        D_80111230_puddle_paddle = 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107B2C_puddle_paddle);
 
