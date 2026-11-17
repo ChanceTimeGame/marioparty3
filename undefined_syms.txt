@@ -252,5 +252,11 @@ D_8011EDFE_w05 = D_8011EDFC_w05 + 0x2;
 D_8011EE19_w05 = D_8011EE18_w05 + 0x1;
 D_8011EE1A_w05 = D_8011EE18_w05 + 0x2;
 D_8011EF3C_w05 = D_8011EF38_w05 + 0x4;
-/* board db2: duel03/3FE1F0 .data inner label the C uses (s32 [2][3] space ids; splat split it at the low halves) */
-D_80117594_duel03 = D_80117596_duel03 - 0x2;
+/* boards db1-db3: duel03/3FE1F0 .data inner labels the remaining asm uses */
+D_80117596_duel03 = D_80117594_duel03 + 0x2;
+D_8011759A_duel03 = D_80117594_duel03 + 0x6;
+D_8011759E_duel03 = D_80117594_duel03 + 0xA;
+D_8011764E_duel03 = D_80117654_duel03 - 0x6;
+D_80117657_duel03 = D_8011765C_duel03 - 0x5;
+D_8011765D_duel03 = D_80117664_duel03 - 0x7;
+D_80117667_duel03 = D_8011766C_duel03 - 0x5;
