@@ -774,18 +774,149 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106E8C_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107108_slot_synch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801075D4_slot_synch);
+#ifdef NON_MATCHING
+void func_801075D4_slot_synch(void) {
+    omObjData* o;
+    s16 i;
+    s32 prio;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107794_slot_synch);
+    prio = 0xFFFF;
+    func_80107A88_slot_synch();
+    func_80108238_slot_synch();
+    func_80108D3C_slot_synch();
+    D_8010DF66_slot_synch[0] = prio--;
+    D_8010DF66_slot_synch[1] = prio--;
+    for (i = 0; i < 12; i++, prio--) {
+        func_80107B00_slot_synch(D_8010D938_slot_synch[i].x, D_8010D938_slot_synch[i].y, D_8010D938_slot_synch[i].unk05, 0, prio);
+    }
+    for (i = 0; i < 12; i++, prio--) {
+        func_80107B00_slot_synch(D_8010D980_slot_synch[i].x, D_8010D980_slot_synch[i].y, D_8010D980_slot_synch[i].unk05, 1, prio);
+    }
+    D_8010DF66_slot_synch[2] = prio--;
+    D_8010DF66_slot_synch[3] = prio;
+    func_80107BAC_slot_synch();
+    o = omAddObj(0x1D, 0x10, 0, -1, func_80107794_slot_synch);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = o;
+    func_800E1490_minigame(0);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801075D4_slot_synch);
+#endif
+
+void func_80107794_slot_synch(omObjData* obj) {
+    SsGround* gw;
+    s16 grp;
+
+    obj->data = gw = HuMemAllocTag(sizeof(SsGround), 31000);
+    memset(gw, 0, sizeof(SsGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 1.0f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E139C_minigame(obj, 0.0f, -2000.0f, -2000.0f, 2000.0f, 2000.0f);
+    grp = HuSprGrpCreate(4, 0);
+    D_8010DF8C_slot_synch[3] = func_8010A2C4_slot_synch(0x350007);
+    func_80055024_main(grp, 0, D_8010DF8C_slot_synch[3], 0);
+    func_80054904_main(grp, 0, 0, 0);
+    func_800550F4_main(grp, 0, 0);
+    func_80054FF8_main(grp, 0, 0);
+    HuSprAttrSet(grp, 0, 0x580C);
+    HuSprPriSet(grp, 0, D_8010DF66_slot_synch[0]);
+    D_8010DF8C_slot_synch[8] = func_8010A2C4_slot_synch(0x350008);
+    func_80055024_main(grp, 1, D_8010DF8C_slot_synch[8], 0);
+    func_80054904_main(grp, 1, 0, 0x54);
+    func_800550F4_main(grp, 1, 0);
+    func_80054FF8_main(grp, 1, 0);
+    HuSprAttrSet(grp, 1, 0x580C);
+    HuSprPriSet(grp, 1, D_8010DF66_slot_synch[1]);
+    D_8010DF8C_slot_synch[9] = func_8010A2C4_slot_synch(0x350009);
+    func_80055024_main(grp, 2, D_8010DF8C_slot_synch[9], 0);
+    func_80054904_main(grp, 2, 0xA0, 0);
+    func_800550F4_main(grp, 2, 0);
+    func_80054FF8_main(grp, 2, 0);
+    HuSprAttrSet(grp, 2, 0x580C);
+    HuSprPriSet(grp, 2, D_8010DF66_slot_synch[2]);
+    D_8010DF8C_slot_synch[0] = func_8010A2C4_slot_synch(0x35000A);
+    func_80055024_main(grp, 3, D_8010DF8C_slot_synch[0], 0);
+    func_80054904_main(grp, 3, 0, 0x8A);
+    func_800550F4_main(grp, 3, 0);
+    func_80054FF8_main(grp, 3, 0);
+    HuSprAttrSet(grp, 3, 0x580C);
+    HuSprPriSet(grp, 3, D_8010DF66_slot_synch[3]);
+    obj->func = func_80107A80_slot_synch;
+}
 
 void func_80107A80_slot_synch(omObjData* obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107A88_slot_synch);
+void func_80107A88_slot_synch(void) {
+    memset(&D_8010DF70_slot_synch, 0, sizeof(SsSprMan));
+    D_8010DF70_slot_synch.unk06 = 0;
+    D_8010DF70_slot_synch.unk08 = HuMemAllocTag(sizeof(SsSpr) * 24, 31000);
+    memset(D_8010DF70_slot_synch.unk08, 0, sizeof(SsSpr) * 24);
+    D_8010DF70_slot_synch.unk00 = omAddObj(0x1C, 0, 0, -1, NULL);
+}
 
+#ifdef NON_MATCHING
+s16 func_80107B00_slot_synch(f32 x, f32 y, u8 gfx, u8 team, u16 prio) {
+    SsSpr* spr;
+    s16 idx;
+
+    idx = -1;
+    if (D_8010DF70_slot_synch.unk00->func == NULL) {
+        idx = -1;
+        if (D_8010DF70_slot_synch.unk06 < 24) {
+            idx = D_8010DF70_slot_synch.unk06;
+            spr = &D_8010DF70_slot_synch.unk08[idx];
+            spr->unk00 = idx;
+            spr->unk06 = gfx;
+            spr->unk07 = team;
+            spr->unk02 = prio;
+            spr->unk24.x = x;
+            spr->unk14.x = x;
+            spr->unk1C.x = x;
+            spr->unk24.y = y;
+            spr->unk14.y = y;
+            spr->unk1C.y = y;
+            spr->unk08 = 0;
+            spr->unk0A = 0;
+            spr->unk09 = 0;
+            spr->unk0B = 0;
+            spr->unk0C = 0;
+            spr->unk10 = 0;
+            D_8010DF70_slot_synch.unk06++;
+        }
+    }
+    return idx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107B00_slot_synch);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107BAC_slot_synch);
+void func_80107BAC_slot_synch(void) {
+    s16 files[4];
+    SsSpr* spr;
+    s16 grp;
+    s16 i;
+
+    files[0] = D_8010DF8C_slot_synch[4] = func_8010A2C4_slot_synch(0x350003);
+    files[1] = D_8010DF8C_slot_synch[5] = func_8010A2C4_slot_synch(0x350005);
+    files[2] = D_8010DF8C_slot_synch[6] = func_8010A2C4_slot_synch(0x350004);
+    files[3] = D_8010DF8C_slot_synch[7] = func_8010A2C4_slot_synch(0x350006);
+    grp = D_8010DF70_slot_synch.unk04 = HuSprGrpCreate(D_8010DF70_slot_synch.unk06, 0);
+    spr = D_8010DF70_slot_synch.unk08;
+    for (i = 0; i < D_8010DF70_slot_synch.unk06; i++, spr++) {
+        HuSprScaleSet(grp, spr->unk00, 0.75f, 0.75f);
+        func_80055024_main(grp, spr->unk00, files[spr->unk06], 0);
+        func_8010A308_slot_synch(grp, spr->unk00, spr->unk24.x, spr->unk24.y);
+        func_800550F4_main(grp, spr->unk00, 0);
+        func_80054FF8_main(grp, spr->unk00, 0);
+        HuSprAttrSet(grp, spr->unk00, 0x4000580C);
+        HuSprPriSet(grp, spr->unk00, spr->unk02);
+    }
+    D_8010DF70_slot_synch.unk00->func = func_80107D54_slot_synch;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107D54_slot_synch);
 
