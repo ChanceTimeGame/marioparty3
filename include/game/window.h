@@ -75,7 +75,8 @@ void func_8005FBF8_main(s16, s32, s32, s32);
 void func_8005FE90_main(s16);
 void func_8005FFA8_main(s16);
 void func_8006022C_main(u32 mesg, s16);
-void func_80060394_main(s32, s16*, s32);
+/* m4: the definition (window.c) takes a message per line */
+void func_80060394_main(s16 count, s16 *out, ...);
 void func_80061388_main(s16);
 void func_80060144_main(s16 obj);
 void *func_800364DC_main(void *arg0);

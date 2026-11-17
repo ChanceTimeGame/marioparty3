@@ -149,7 +149,7 @@ void func_8001F95C_main(s32, void* func);
 void func_8004D6E8_main(s16 sampleIdx);
 void func_8003B128_main(char*);
 void func_800610E0_main(s16);
-s16 func_8003A308_main(char* arg0, char* arg1, s32 arg2, s16 arg3, u16 arg4);
+s16 func_8003A308_main(char* arg0, char* arg1, s32 arg2, s16 arg3, s16 arg4); /* m4: arg4 is s16 in gamemes.c */
 s32 func_80060880_main(s32 arg0, s32 arg1, s32 arg2);
 void func_800555E8_main(s16 group, s16 member, u16 arg2, u16 arg3, u16 arg4, u16 arg5);
 void func_8004A950_main(void);
