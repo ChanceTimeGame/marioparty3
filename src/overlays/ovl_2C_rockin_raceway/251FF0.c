@@ -1002,9 +1002,79 @@ s32 func_80108A80_rockin_raceway(Vec* pos) {
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108BAC_rockin_raceway);
+void func_80108BAC_rockin_raceway(void) {
+    RrRacer* r;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108D84_rockin_raceway);
+    for (i = 0; i < 4; i++) {
+        r = func_8010EC38_rockin_raceway(D_800EC598_minigame[i]);
+        switch (func_80108A80_rockin_raceway(&r->unk58)) {
+            case 0:
+                r->unk02 = 2;
+                r->unk28 = 1.0f;
+                r->unk20 = 300;
+                r->unk34 |= 0xE;
+                if (D_80111AD8_rockin_raceway == 2) {
+                    omVibrate(r->unk0A, 10, 0, 10);
+                }
+                if (D_80111AD8_rockin_raceway == 2) {
+                    if (r->unk04 != -1) {
+                        HuAudFXStop(r->unk04);
+                        r->unk04 = -1;
+                    }
+                    if (r->unk06 != -1) {
+                        HuAudFXStop(r->unk06);
+                        r->unk06 = -1;
+                    }
+                }
+                r->unk04 = func_8004AC98_main(0x46D, r->unk0A);
+                r->unk06 = func_8004AC98_main(0x46E, r->unk0A);
+                break;
+            case 1:
+                r->unk02 = 1;
+                r->unk28 = 0.0f;
+                if (D_80111AD8_rockin_raceway == 2) {
+                    if (r->unk04 != -1) {
+                        HuAudFXStop(r->unk04);
+                        r->unk04 = -1;
+                    }
+                    if (r->unk06 != -1) {
+                        HuAudFXStop(r->unk06);
+                        r->unk06 = -1;
+                    }
+                }
+                func_8004AC98_main(0x458, r->unk0A);
+                func_8004AC98_main(0x459, r->unk0A);
+                func_8010E344_rockin_raceway(0x286, 3, 3, r->unk0A);
+                if (D_80111AD8_rockin_raceway == 2) {
+                    omVibrate(r->unk0A, 2, 2, 20);
+                }
+                break;
+        }
+    }
+}
+
+void func_80108D84_rockin_raceway(void) {
+    omObjData* obj;
+    HmfModel* mdl;
+    s32 i;
+
+    obj = omAddObj(0x1D, 13, 0, -1, func_80108ED4_rockin_raceway);
+    D_80111B4C_rockin_raceway = obj;
+    obj->model[0] = -1;
+    for (i = 1; i < 13; i++) {
+        obj->model[i] = func_8000B108_main(0x1001F, 0x899);
+        func_8001C2FC_main(obj->model[i], 0x600, 0x400);
+        Hu3DModelScaleSet(obj->model[i], 1.0f, 1.0f, 1.0f);
+        mdl = &HmfModelData[obj->model[i]];
+        mdl->unk40 = 0.0f;
+        mdl->unk44 = 1.0f;
+        func_8001C258_main(obj->model[i], 4, 4);
+    }
+    D_80111B50_rockin_raceway = HuMemAllocTag(sizeof(RrSmokeSave) * 12, 0x7918);
+    memset(D_80111B50_rockin_raceway, 0, sizeof(RrSmokeSave) * 12);
+    D_80111B54_rockin_raceway = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80108ED4_rockin_raceway);
 
