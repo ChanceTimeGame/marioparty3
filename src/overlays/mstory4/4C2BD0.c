@@ -157,13 +157,85 @@ void (*const D_80111C10_mstory4[2])(void) = { func_8010818C_mstory4, func_8010B9
 
 const s32 D_80111C18_mstory4[2] = { 0x3E, 0x3F };
 
+#ifdef NON_MATCHING
+// the A-press test: retail andi/sltu, KMC folds it to srl/andi (masked 2), as mstory1's twin
+void func_80105C90_mstory4(omObjData *obj) {
+    u32 state = D_80111AC0_mstory4;
+
+    switch (state) {
+    case 0:
+        HuAudSeqPlay(0x26);
+        state++;
+        break;
+    case 1:
+        state += WipeStatGet() == 0;
+        break;
+    case 2:
+        if (D_80111AC8_mstory4 == 1) {
+            state += (D_800D5558_main[D_80112124_mstory4] & 0x1000) != 0;
+        }
+        break;
+    case 3:
+        if (GwPlayer[0].coin == 0) {
+            WipeCreateOut(2, 0x14);
+        } else {
+            WipeCreateOut(0xB, 0x14);
+        }
+        state++;
+        break;
+    case 4:
+        if (WipeStatGet() == 0) {
+            if (D_80111AC4_mstory4 == 1) {
+                MBDBackKill();
+                MBDBackClose();
+            }
+            func_8005F524_main();
+            func_80050064_main(1);
+            omOvlReturnEx(1);
+        }
+        break;
+    }
+    D_80111AC0_mstory4 = state;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80105C90_mstory4);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80105DA8_mstory4);
+void func_80105DA8_mstory4(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        if (D_80111ACC_mstory4 == 0) {
+            if (GwPlayer[0].coin == 0) {
+                WipeCreateOut(2, 0x14);
+            } else {
+                WipeCreateOut(0xB, 0x14);
+            }
+            D_80111ACC_mstory4 = 1;
+            return;
+        }
+        if (WipeStatGet() == 0) {
+            func_8005F524_main();
+            if (D_80111AC4_mstory4 == 1) {
+                MBDBackKill();
+                MBDBackClose();
+            }
+            func_80050064_main(1);
+            omOvlReturnEx(1);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80105E58_mstory4);
+void func_80105E58_mstory4(void) {
+    func_8001C814_main(D_80112122_mstory4, 4, 0);
+    func_8001C814_main(D_80112122_mstory4, 1, 0);
+    func_8001C6A8_main(D_80112122_mstory4, 0.0f);
+    HuAudFXPlay(0x217);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80105EAC_mstory4);
+void func_80105EAC_mstory4(void) {
+    func_8001C814_main(D_80112122_mstory4, 4, 4);
+    func_8001C814_main(D_80112122_mstory4, 1, 0);
+    func_8001C6A8_main(D_80112122_mstory4, D_800CCF58_main[HmfModelData[D_80112122_mstory4].unk02].unk02);
+}
 
 void func_80105F40_mstory4(void) {
     D_80112128_mstory4 = InitEspriteSlot(func_8000B838_main(0x1D0012), 0, 0);
@@ -443,7 +515,24 @@ void func_801074AC_mstory4(s16 model) {
     }
 }
 
+#ifdef NON_MATCHING
+// matches; kept as asm only for the file-boundary padding after it (801075B0 starts a 16-byte aligned file, ROM 0x4C47E0)
+s32 func_801074F8_mstory4(s16 model) {
+    s32 done;
+    f32 frame;
+
+    frame = func_8001C7D0_main(model);
+    done = 0;
+    if (frame == -1.0f) {
+        if (D_800CCF58_main[HmfModelData[model].unk02].unk02 <= HmfModelData[model].unk40) {
+            done = -1;
+        }
+    }
+    return done;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_801074F8_mstory4);
+#endif
 
 ObPath *func_801075B0_mstory4(Vec *points, s16 flags) {
     ObPath *path;
