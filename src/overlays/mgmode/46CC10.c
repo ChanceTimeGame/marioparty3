@@ -30,6 +30,25 @@ void* func_8001D33C_main(s16, const char*);
 void func_8002367C_main(Matrix4f, Matrix4f);
 void func_80017D24_main(Matrix4f, f32, f32, f32);
 
+/* views of HmfData parts (unk60, 0x68 each) and faces (unkB0, 0x18 each) */
+typedef struct MgHmfPart {
+    /* 0x00 */ char unk00[0x2C];
+    /* 0x2C */ s16 face;
+    /* 0x2E */ s16 faceCount;
+    /* 0x30 */ char unk30[0x20];
+    /* 0x50 */ s32 unk50;
+    /* 0x54 */ void* unk54;
+    /* 0x58 */ char unk58[0x10];
+} MgHmfPart;
+
+typedef struct MgHmfFace {
+    /* 0x00 */ u8 count;
+    /* 0x01 */ char unk01[3];
+    /* 0x04 */ s16 vtx[10];
+} MgHmfFace;
+
+s16 func_8002C834_main(HmfData*, char*);
+
 /* sprite file list entry for func_80116794_mgmode */
 typedef struct MgSprFile {
     /* 0x00 */ s32 file;
@@ -49,6 +68,8 @@ extern u8 D_80119170_mgmode[];
 extern s32 D_80119190_mgmode[];
 extern s32 D_801191E4_mgmode[];
 extern Gfx D_80119290_mgmode[];
+extern char* D_801192D8_mgmode[];
+extern u8 D_801192F4_mgmode[];
 extern s8 D_801192FC_mgmode[];
 extern s8 D_80119310_mgmode[];
 extern u16 D_80119320_mgmode[];
@@ -61,21 +82,31 @@ extern MgSprFile D_801198C8_mgmode[]; /* D_801198BC_mgmode[1] */
 extern char D_8011A708_mgmode[];
 extern Vec D_8011AA80_mgmode[][25];
 extern char D_8011A400_mgmode[]; /* "00" */
+extern char D_8011A404_mgmode[]; /* "door_b" */
+extern char D_8011A40C_mgmode[]; /* "door_g" */
 extern char D_8011A430_mgmode[]; /* "%d" */
 extern char D_8011A46C_mgmode[]; /* "moniter_R" */
 extern Matrix4f D_8011A808_mgmode;
+extern Matrix4f D_8011A848_mgmode;
+extern Matrix4f D_8011A888_mgmode;
 extern u16* D_8011B3E0_mgmode;
 extern s16 D_8011B3E4_mgmode;
 extern s8 D_8011B3E6_mgmode[];
 extern s32 D_8011B3EC_mgmode;
 extern s16 D_8011B6A0_mgmode;
+extern f32 D_8011B6A4_mgmode;
+extern u8 D_8011B6B0_mgmode[][25];
 extern s16 D_8011B6A8_mgmode;
+extern f32 D_8011B804_mgmode;
 extern s16 D_8011B808_mgmode;
 extern s16 D_8011B884_mgmode;
+extern f32 D_8011B888_mgmode;
+extern s16 D_8011B8A8_mgmode[];
 extern s16 D_8011B8B2_mgmode;
 extern s16 D_8011B8B4_mgmode;
 extern s16 D_8011B8B6_mgmode[];
 extern s16 D_8011B8C4_mgmode;
+extern s16 D_8011B8C6_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B940_mgmode[];
 extern s16 D_8011B950_mgmode;
@@ -192,7 +223,95 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A464_mgmode);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A46C_mgmode);
 
+#ifdef NON_MATCHING
+/* register allocation in the face centroid loop (i/j/vtx/count swap registers); otherwise identical */
+void func_801076B0_mgmode(void) {
+    s16 order[20];
+    Vec tmp;
+    HmfData* hmf;
+    MgHmfFace* face;
+    s16 j;
+    s16 i;
+    Vtx* vtx;
+    Vtx* buf;
+    s16 book;
+    s16 part;
+    s16 count;
+    s16 k;
+    s16 t;
+    s16 model;
+    f32 x;
+    f32 y;
+    f32 z;
+    void* anim;
+
+    func_8002367C_main(D_8011A808_mgmode, ((MgModelPart*)func_8001D33C_main(D_8011B8A8_mgmode[6], D_8011A46C_mgmode))->mtx);
+    func_8002367C_main(D_8011A848_mgmode, ((MgModelPart*)func_8001D33C_main(D_8011B8A8_mgmode[3], D_8011A404_mgmode))->mtx);
+    func_8002367C_main(D_8011A888_mgmode, ((MgModelPart*)func_8001D33C_main(D_8011B8A8_mgmode[3], D_8011A40C_mgmode))->mtx);
+    model = D_8011B8A8_mgmode[2];
+    func_8001C2FC_main(model, 0x20000, 0x20000);
+    func_8001C448_main(model);
+    func_8001C954_main(model);
+    func_8001C514_main(model);
+    hmf = HmfModelData[model].hmf;
+    for (book = 0; book < 7; book++) {
+        part = func_8002C834_main(hmf, D_801192D8_mgmode[book]);
+        face = &(*(MgHmfFace**)hmf->unkB0)[((MgHmfPart*)hmf->unk60)[part].face];
+        vtx = hmf->unk40;
+        i = 0;
+        count = ((MgHmfPart*)hmf->unk60)[part].faceCount;
+        for (; i < count; i++, face++) {
+            x = y = z = 0.0f;
+            for (j = 0; j < face->count; j++) {
+                x += vtx[face->vtx[j]].v.ob[0];
+                y += vtx[face->vtx[j]].v.ob[1];
+                z += vtx[face->vtx[j]].v.ob[2];
+            }
+            D_8011AA80_mgmode[book][i].x = x / face->count;
+            D_8011AA80_mgmode[book][i].y = y / face->count;
+            D_8011AA80_mgmode[book][i].z = z / face->count;
+            order[i] = i;
+        }
+        for (j = count - 1; j >= 0; j--) {
+            for (k = 0; k < j; k++) {
+                if (D_8011AA80_mgmode[book][k + 1].x < D_8011AA80_mgmode[book][k].x) {
+                    tmp = D_8011AA80_mgmode[book][k];
+                    D_8011AA80_mgmode[book][k] = D_8011AA80_mgmode[book][k + 1];
+                    D_8011AA80_mgmode[book][k + 1] = tmp;
+                    t = order[k];
+                    order[k] = order[k + 1];
+                    order[k + 1] = t;
+                }
+            }
+        }
+        for (i = 0; i < count; i++) {
+            face = &(*(MgHmfFace**)hmf->unkB0)[((MgHmfPart*)hmf->unk60)[part].face + order[i]];
+            for (j = 0; j < D_800D1FF0_main; j++) {
+                buf = hmf->unk44[j];
+                for (k = 0; k < face->count; k++) {
+                    if (D_8011B6B0_mgmode[D_801191E4_mgmode[book]][i] != 0xFF) {
+                        if (book == 6 && i == 0) {
+                            buf[face->vtx[k]].v.tc[0] += 0x1000;
+                        } else {
+                            buf[face->vtx[k]].v.tc[0] += D_801192F4_mgmode[book] << 9;
+                        }
+                    } else {
+                        buf[face->vtx[k]].v.tc[0] += 0xE00;
+                    }
+                }
+            }
+        }
+    }
+    model = D_8011B8C6_mgmode;
+    anim = DataRead(0xA002A);
+    HmfAnimCreate(HmfModelData[model].hmf, anim, 0, "c160n_0_DEF");
+    DataClose(anim);
+    func_8001C448_main(model);
+    func_8001C514_main(model);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_801076B0_mgmode);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A484_mgmode);
 
@@ -560,7 +679,59 @@ void func_8010AF78_mgmode(Gfx** gfx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010AFEC_mgmode);
+void func_8010AFEC_mgmode(void) {
+    Vec eye;
+    Vec at;
+    Vec up;
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    f32 ux;
+    f32 uy;
+    f32 uz;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 len;
+
+    while (TRUE) {
+        rx = CRot.x;
+        ry = CRot.y;
+        rz = CRot.z;
+        eye.x = sindf(ry) * cosdf(rx) * CZoom + Center.x;
+        eye.y = -sindf(rx) * CZoom + Center.y;
+        eye.z = cosdf(ry) * cosdf(rx) * CZoom + Center.z;
+        at.x = Center.x;
+        at.y = Center.y;
+        at.z = Center.z;
+        ux = sindf(ry) * sindf(rx);
+        uy = cosdf(rx);
+        uz = cosdf(ry) * sindf(rx);
+        dx = at.x - eye.x;
+        dy = at.y - eye.y;
+        dz = at.z - eye.z;
+        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+        dx /= len;
+        dy /= len;
+        dz /= len;
+        up.x = ux * (dx * dx + (1.0f - dx * dx) * cosdf(rz))
+             + uy * (dx * dy * (1.0f - cosdf(rz)) - dz * sindf(rz))
+             + uz * (dx * dz * (1.0f - cosdf(rz)) + dy * sindf(rz));
+        up.y = ux * (dx * dy * (1.0f - cosdf(rz)) + dz * sindf(rz))
+             + uy * (dy * dy + (1.0f - dy * dy) * cosdf(rz))
+             + uz * (dy * dz * (1.0f - cosdf(rz)) - dx * sindf(rz));
+        up.z = ux * (dx * dz * (1.0f - cosdf(rz)) - dy * sindf(rz))
+             + uy * (dy * dz * (1.0f - cosdf(rz)) + dx * sindf(rz))
+             + uz * (dz * dz + (1.0f - dz * dz) * cosdf(rz));
+        Hu3DCamSetPerspective(0, D_8011B6A4_mgmode, D_8011B804_mgmode, D_8011B888_mgmode);
+        Hu3DCamSetPositionOrientation(0, &eye, &at, &up);
+        Hu3DCamUpdateMtx(0);
+        Hu3DCamSetPerspective(1, D_8011B6A4_mgmode, D_8011B804_mgmode, D_8011B888_mgmode);
+        Hu3DCamSetPositionOrientation(1, &eye, &at, &up);
+        Hu3DCamUpdateMtx(1);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010B574_mgmode);
 
