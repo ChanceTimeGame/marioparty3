@@ -335,3 +335,5 @@ D_8010AAEE_storyresult = D_8010AAEC_storyresult + 0x2;
 D_8010AB06_storyresult = D_8010AB04_storyresult + 0x2;
 D_8010AB08_storyresult = D_8010AB04_storyresult + 0x4;
 D_8010AB0A_storyresult = D_8010AB04_storyresult + 0x6;
+D_801153B4_mstory3 = D_801153B0_mstory3 + 0x4;
+D_801153CC_mstory3 = D_801153C8_mstory3 + 0x4;

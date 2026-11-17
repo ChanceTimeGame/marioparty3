@@ -1,5 +1,23 @@
 #include "common.h"
 
+// story u4: .data 0x801153B0..0x801154F0 (the rodata 80115740..80115880 is asm/data/overlays/mstory3/4C2780.rodata.s)
+extern char D_80115880_mstory3[], D_8011588C_mstory3[], D_80115898_mstory3[], D_801158A4_mstory3[];
+extern char D_801158B0_mstory3[], D_801158BC_mstory3[], D_801158C8_mstory3[], D_801158D4_mstory3[];
+Vec D_801153B0_mstory3 = { 0.0f, 90.0f, 0.0f };
+Vec D_801153BC_mstory3 = { 0.0f, 0.0f, 0.0f };
+Vec D_801153C8_mstory3 = { 0.0f, 0.0f, 0.0f };
+Vec D_801153D4_mstory3 = { 0.0f, -157.81f, 0.0f };
+/* model names, as D_80115380 in 4B29E0 */
+char *D_801153E0_mstory3[8] = {
+    D_801158D4_mstory3, D_801158C8_mstory3, D_801158BC_mstory3, D_801158B0_mstory3,
+    D_801158A4_mstory3, D_80115898_mstory3, D_8011588C_mstory3, D_80115880_mstory3,
+};
+Vec D_80115400_mstory3[4] = { { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f } };
+Vec D_80115430_mstory3[6] = { { -100.0f, 300.0f, 300.0f }, { -200.0f, 200.0f, 100.0f }, { 0.0f, 300.0f, -100.0f }, { 400.0f, 400.0f, 200.0f }, { -50.0f, 120.0f, 450.0f }, { 9999.0f, 9999.0f, 9999.0f } };
+Vec D_80115478_mstory3[4] = { { 0.0f, 200.0f, 100.0f }, { -200.0f, 100.0f, -100.0f }, { -100.0f, 300.0f, 300.0f }, { 9999.0f, 9999.0f, 9999.0f } };
+Vec D_801154A8_mstory3[6] = { { -70.0f, 300.0f, 300.0f }, { 122.0f, 450.0f, -122.0f }, { 314.0f, 500.0f, -544.0f }, { 506.0f, 450.0f, -966.0f }, { 700.0f, 150.0f, -1390.3f }, { 9999.0f, 9999.0f, 9999.0f } };
+// end story u4
+
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010C9F0_mstory3);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010CCF4_mstory3);
