@@ -525,7 +525,80 @@ void func_80106B6C_puddle_paddle(s16 dst, s16 src, u16 part) {
     }
 }
 
+typedef struct PpHandNames {
+    char name[8][2][32]; /* per character: the left and right hand parts */
+} PpHandNames;
+typedef struct PpTeamPos {
+    Vec pos[2];
+} PpTeamPos;
+extern PpFiles8 D_801113D4_puddle_paddle; /* paddle models per character */
+extern PpFiles8 D_801113F4_puddle_paddle; /* second paddle models per character */
+extern PpHandNames D_80111414_puddle_paddle;
+extern PpTeamPos D_80111614_puddle_paddle; /* each team's raft */
+s16 func_8002C834_main(HmfData* hmf, char* name);
+
+/* A player object. NON_MATCHING: the two D_800A178C/D_800A1790 loads for func_800E1BA8_minigame are scheduled
+   after the a3 and stack arguments instead of before (same as Broadside func_80107140). */
+#ifdef NON_MATCHING
+void func_80106CE4_puddle_paddle(omObjData* obj) {
+    s32 attr = 0x2B9;
+    PpFiles8 paddles = D_801113D4_puddle_paddle;
+    PpFiles8 paddles2 = D_801113F4_puddle_paddle;
+    PpHandNames hands = D_80111414_puddle_paddle;
+    f32 angles[2] = { 0.0f, 180.0f };
+    PpTeamPos rafts = D_80111614_puddle_paddle;
+    PpPlayer* player;
+    s16 model;
+    f32 angle;
+
+    obj->work[0] = D_800EC280_minigame;
+    obj->work[1] = D_800EC280_minigame + 3;
+    player = &D_80111654_puddle_paddle[obj->work[0]];
+    player->chr = GwPlayer[obj->work[0]].chr;
+    func_800E1BA8_minigame(obj, D_800A178C_main[player->chr][0], D_800A1790_main[player->chr][0],
+                           PP_WORK(obj)->b.player, attr, attr);
+    obj->model[9] = model = func_8000B108_main(paddles.v[player->chr] | 0x320000, attr);
+    D_8011122C_puddle_paddle = func_8002C834_main(HmfModelData[obj->model[0]].hmf, hands.name[player->chr][0]);
+    func_80106B6C_puddle_paddle(model, obj->model[0], D_8011122C_puddle_paddle);
+    obj->model[10] = model = func_8000B108_main(paddles2.v[player->chr] | 0x320000, attr);
+    D_8011122C_puddle_paddle = func_8002C834_main(HmfModelData[obj->model[0]].hmf, hands.name[player->chr][1]);
+    func_80106B6C_puddle_paddle(model, obj->model[0], D_8011122C_puddle_paddle);
+    obj->trans.z = 200.0f;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(player->chr, 0x98), 0, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(player->chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(player->chr, 0x9E), 1, 0);
+    func_800E5A00_minigame(obj, 14, func_80017BB8_main(player->chr, 0x37), 1, 999);
+    func_800E5A00_minigame(obj, 38, func_80017BB8_main(player->chr, 0x92), 0, 0);
+    func_800E5A00_minigame(obj, 40, func_80017BB8_main(player->chr, 0x93), 0, 0);
+    func_800E5A00_minigame(obj, 39, func_80017BB8_main(player->chr, 0x94), 0, 0);
+    func_800E5A00_minigame(obj, 41, func_80017BB8_main(player->chr, 0x95), 0, 0);
+    func_80109804_puddle_paddle(player, 0, 1);
+    func_800E5690_minigame(obj, 0);
+    player->unk0E = -1;
+    player->unk48 = angles[player->slot];
+    angle = player->unk48 + D_80111650_puddle_paddle[player->team].unk18;
+    if (angle > 360.0f) {
+        angle -= 360.0f;
+    }
+    Hu3DModelPosSet(obj->model[0], rafts.pos[player->team].x + sindf(angle) * 20.0f * 5.0f * 0.7f,
+                    rafts.pos[player->team].y + 37.0f, rafts.pos[player->team].z + cosdf(angle) * 20.0f * 5.0f * 0.7f);
+    player->no = ((func_800E1BA8_minigame_ObjData*)obj->data)->unk57;
+    player->unk04 = 1;
+    player->unk56 = 0;
+    player->unk58 = 0;
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    obj->scale.z = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.x = 1.0f;
+    D_800EC280_minigame++;
+    func_8010B8B4_puddle_paddle(obj, PP_WORK(obj)->b.group, 0, 4);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xF, player, func_801094C4_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFFFF, player, func_80109718_puddle_paddle, 0);
+    obj->func = func_801073AC_puddle_paddle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106CE4_puddle_paddle);
+#endif
 
 void func_801073AC_puddle_paddle(omObjData* obj) {
     func_8010BC14_puddle_paddle(PP_WORK(obj)->b.group);
