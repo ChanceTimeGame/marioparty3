@@ -96,8 +96,8 @@ typedef struct SsSpr {
     /* 0x00 */ s16 unk00; /* group member */
     /* 0x02 */ u16 unk02; /* priority */
     /* 0x04 */ char unk04[2];
-    /* 0x06 */ s8 unk06; /* graphic */
-    /* 0x07 */ s8 unk07; /* team */
+    /* 0x06 */ u8 unk06; /* graphic */
+    /* 0x07 */ u8 unk07; /* team */
     /* 0x08 */ u8 unk08;
     /* 0x09 */ u8 unk09;
     /* 0x0A */ u8 unk0A;
@@ -175,7 +175,7 @@ void func_801092B8_slot_synch(SsBody* b);
 void func_80107794_slot_synch(omObjData* obj);
 void func_80107A80_slot_synch(omObjData* obj);
 void func_80107A88_slot_synch(void);
-s16 func_80107B00_slot_synch(f32 x, f32 y, s8 gfx, s8 team, u16 prio);
+s16 func_80107B00_slot_synch(f32 x, f32 y, u8 gfx, u8 team, u16 prio);
 void func_80107BAC_slot_synch(void);
 void func_80107D54_slot_synch(omObjData* obj);
 void func_80108238_slot_synch(void);
