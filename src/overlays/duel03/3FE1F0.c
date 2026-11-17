@@ -1624,9 +1624,226 @@ s32 func_801152E0_duel03(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_801152E0_duel03);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011580C_duel03);
+#ifdef NON_MATCHING
+// board db3: logic checked against the asm (func_8011454C_duel03 with the regions moved: same residue, masked 55)
+// board db3: COM decision, the variant for cidx 22-28 (quick) and 0-5 (rolls below 6 against D_80117654_duel03)
+s32 func_8011580C_duel03(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+    s32 hp;
+    s32 unused[10]; /* retail's frame holds 0x28 unused bytes */
 
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(CUR_PLAYER);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->cidx >= 22 && opp->cidx < 29) {
+        if (opp->stats.partners.frontPower != 0 && me->star == 1 && walk < 3) {
+            return FALSE;
+        }
+        return TRUE;
+    }
+    if (opp->cidx >= 0 && opp->cidx < 6) {
+        if (walk < 6 && opp->cidx == D_80117654_duel03[walk]) {
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
+        }
+        if (walk >= 6 || opp->cidx < D_80117654_duel03[walk]) {
+            hp = me->star;
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4) {
+                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                    return FALSE;
+                }
+                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
+                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
+                }
+            }
+            if (walk == 5) {
+                if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
+                    return TRUE;
+                }
+                if (opp->stats.partners.frontID != 4) {
+                    return TRUE;
+                }
+                return me->stats.partners.backPower < hp + me->stats.partners.backHp;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4 && me->stats.partners.frontPower == 0) {
+                return opp->stats.partners.frontPower == 0;
+            }
+            return TRUE;
+        }
+        return TRUE;
+    }
+    return TRUE;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011580C_duel03);
+#endif
+
+#ifdef NON_MATCHING
+// board db3: logic checked against the asm (func_8011485C_duel03 with the regions moved; the 7-13 region has no HP or power test): same residue family, masked 117
+// board db3: COM decision, the variant for cidx 22-28 (quick), 0-5 (rolls below 6, D_80117654_duel03) and 7-13 (rolls 6 and over, D_8011765C_duel03)
+s32 func_80115B18_duel03(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+    s32 hp;
+    s32 n;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(CUR_PLAYER);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->cidx >= 22 && opp->cidx < 29) {
+        return FALSE;
+    }
+    if (opp->cidx >= 0 && opp->cidx < 6) {
+        if (walk < 6 && opp->cidx == D_80117654_duel03[walk]) {
+            goto same;
+        }
+        if (walk >= 6 || opp->cidx < D_80117654_duel03[walk]) {
+            hp = me->star;
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4) {
+                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                    return FALSE;
+                }
+                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
+                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
+                }
+            }
+            if (walk == 5) {
+                if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
+                    return TRUE;
+                }
+                if (opp->stats.partners.frontID != 4) {
+                    return TRUE;
+                }
+                return me->stats.partners.backPower < hp + me->stats.partners.backHp;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    goto front10;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4) {
+                return FALSE;
+            }
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower != 0;
+    }
+    if (opp->cidx >= 7 && opp->cidx < 14) {
+        if (walk < 6) {
+            return TRUE;
+        }
+        if (opp->cidx == D_8011765C_duel03[walk - 5]) {
+        same:
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
+        }
+        if (opp->cidx < D_8011765C_duel03[walk - 5]) {
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4 && !(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                return FALSE;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                front10:
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4) {
+                return FALSE;
+            }
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower != 0;
+    }
+    if (me->stats.partners.frontPower == 0) {
+        return FALSE;
+    }
+    if (func_800F8980_name_81(cur) == 0) {
+        n = 0;
+    } else {
+        n = GwPlayer[cur].coin / func_800F8980_name_81(cur);
+    }
+    return n >= 2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80115B18_duel03);
+#endif
 
 // board db3: take the pipe at space `masu`: the player (and partners) drop into it and come out of another pipe chosen at random
 void func_80116000_duel03(s16 masu) {
