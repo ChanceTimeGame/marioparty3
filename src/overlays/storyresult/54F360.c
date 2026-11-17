@@ -980,7 +980,575 @@ s16 func_80108D34_storyresult(s16 page, SrRecWork *w) {
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108D34_storyresult);
 #endif
 
+/* Record board entry (minigame's MgPartDef). */
+typedef struct SrPartDef {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ SrPos pos;
+} SrPartDef; /* size 8 */
+
+typedef struct SrRect {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 w;
+    /* 0x06 */ s16 h;
+} SrRect; /* size 8 */
+
+typedef struct SrRGB {
+    /* 0x00 */ u8 r;
+    /* 0x01 */ u8 g;
+    /* 0x02 */ u8 b;
+} SrRGB; /* size 3 */
+
+extern SrPartDef D_8010A9E4_storyresult[15]; /* board parts */
+extern s32 D_8010AA5C_storyresult[];         /* rank mark files */
+extern s32 D_8010AA78_storyresult[];         /* per character: portrait file */
+extern s32 D_8010AA90_storyresult[];         /* per character: name message */
+extern s32 D_8010AAA8_storyresult[];         /* per partner: message */
+extern s32 D_8010AAB8_storyresult[];         /* per rank: message */
+extern SrRGB D_8010AAD4_storyresult[];       /* rank 4 colour cycle (0,0,0 ends it) */
+extern SrRGB D_8010AAE0_storyresult[];       /* rank 3 colour cycle */
+extern SrRGB D_8010AAEC_storyresult[];       /* per rank: message colour */
+extern SrRect D_8010AB04_storyresult[];      /* windows */
+extern s16 D_800D6B62_main;
+
+// NON_MATCHING: register allocation (retail keeps `color` in s8 and spills `info` and `page`, reloading
+// them at every use; this C keeps `page` in s8), so the ROM differs in raw lines and reload counts (masked 331
+// at 1466/1482 instructions, every block aligned with the asm). The cmd switch lists 0 and 0xFF so it builds
+// a compare tree as retail does, not a jump table; the duplicated func_80055420_main call reproduces a mode-2
+// compare retail keeps there.
+#ifdef NON_MATCHING
+/* The record board process (minigame's func_800E7F60_minigame, with a second record source: pages 4 and 6
+   show the current story slot and the saved copy, part 23 the saved copy's portrait). */
+void func_80108F0C_storyresult(void) {
+    s16 cur[3];
+    s16 step[3];
+    s32 msg[4];
+    SrRecInfo *info;
+    s16 *rankWin;
+    SrRGB *colorStart;
+    s16 grp;
+    s16 lastCmd;
+    s16 shown;
+    s16 pending;
+    s16 alphaStep;
+    s16 winAlpha;
+    s16 winStep;
+    s16 hasRank;
+    s16 colorFrames;
+    s16 colorTimer;
+    s16 colorCycle;
+    s16 page;
+    s16 shownPage;
+    s16 changing;
+    s16 rank;
+    s16 rank2;
+    s16 hasCopy;
+    s16 swapPortrait;
+    s32 grpShift;
+    s32 rank32;
+    s32 grpShift2;
+    SrRecWork *w;
+    SrRecPart *part;
+    SrPartDef *def;
+    s16 *win;
+    s16 *fade;
+    s16 *gfx;
+    s16 alpha;
+    s16 done;
+    s16 n;
+    s16 newPage;
+    u16 x;
+    u16 y;
+    s32 prio;
+    s16 spr;
+    u16 grp2;
+    s32 m;
+    s32 i;
+    SrRGB *color;
+
+    info = HuPrcCurrentGet()->user_data;
+    w = HuMemAllocTag(sizeof(SrRecWork), 0x7918);
+    memset(w, 0, sizeof(SrRecWork));
+    w->info = info;
+    page = 0;
+    shownPage = 0;
+    hasCopy = 0;
+    for (part = w->part, i = 0; i < 24; i++, part++) {
+        part->spr = -1;
+        part->alpha = 0x100;
+        part->fade = 0;
+        part->shown = 0;
+    }
+    w->gfx2 = -1;
+    w->grp2 = -1;
+    rank = -1;
+    msg[3] = 0;
+    switch (info->mode) {
+    case 0:
+    default:
+        hasRank = 1;
+        rank = func_8010A370_storyresult(info->slot);
+        msg[0] = 0x6101;
+        msg[2] = D_8010AAA8_storyresult[GwStory.unk5E[info->slot]];
+        msg[3] = D_8010AAB8_storyresult[rank];
+        w->slot = info->slot;
+        break;
+    case 1:
+        info->slot = GwStory.unk1;
+        hasRank = 1;
+        rank = func_8010A370_storyresult(-1);
+        msg[0] = 0x6101;
+        msg[2] = D_8010AAA8_storyresult[GwStory.unk2];
+        msg[3] = D_8010AAB8_storyresult[rank];
+        w->slot = -1;
+        break;
+    case 2:
+        if (func_80106FF0_storyresult()) {
+            hasCopy = 1;
+        }
+        info->slot = GwStory.unk1;
+        msg[0] = 0x6100;
+        msg[2] = D_8010AAA8_storyresult[GwStory.unk2];
+        w->slot = -1;
+        hasRank = 1;
+        if (GwStory.unk0 == 12) {
+            rank = func_8010A370_storyresult(-1);
+            page = 2;
+            shownPage = 2;
+        } else {
+            page = D_8010A924_storyresult[GwStory.unk0];
+            shownPage = page;
+        }
+        break;
+    }
+    msg[1] = D_8010AA90_storyresult[info->slot];
+    grp = HuSprGrpCreate(24, 0);
+    n = 0;
+    def = D_8010A9E4_storyresult;
+    part = w->part;
+    grpShift = grp << 16;
+    for (i = 0; i < ARRAY_COUNTU(D_8010A9E4_storyresult); i++, n++, def++, part++) {
+        prio = 1200;
+        spr = func_8000B838_main(def->file);
+        part->spr = spr;
+        part->pos = def->pos;
+        x = part->pos.x + info->x;
+        y = part->pos.y + info->y;
+        if (i >= 2) {
+            prio = 1199;
+        }
+        func_801085E8_storyresult(grpShift >> 16, n, spr, prio, (s16)x, (s16)y);
+    }
+    HuSprScaleSet(grp, 1, 1.0f, 1.02f);
+    if (info->mode != 2) {
+        func_80055420_main(grp, 1, 0, 0, 0);
+    } else {
+        func_80055420_main(grp, 1, 0, 0, 0);
+    }
+    func_80055458_main(grp, 1, 0xFF);
+    w->part[1].alpha = 0xFF;
+    w->grp = grp;
+    w->part[15].spr = func_8000B838_main(D_8010AA78_storyresult[info->slot]);
+    w->part[15].pos.x = -96;
+    w->part[15].pos.y = -74;
+    func_801085E8_storyresult(grp, 15, w->part[15].spr, 1200, (s16)(w->part[15].pos.x + info->x),
+                              (s16)(info->y - 74));
+    if (hasCopy) {
+        w->part[23].spr = func_8000B838_main(D_8010AA78_storyresult[(u8)GwStory.unk_64[1]]);
+        w->part[23].pos.x = -96;
+        w->part[23].pos.y = -74;
+        func_801085E8_storyresult(grp, 23, w->part[23].spr, 1200, (s16)(w->part[23].pos.x + info->x),
+                                  (s16)(info->y - 74));
+    }
+    for (gfx = w->gfx, i = 0; i < 4; i++, gfx++) {
+        *gfx = func_8000B838_main(D_8010AA5C_storyresult[i]);
+    }
+    w->grp2 = HuSprGrpCreate(13, 0);
+    w->gfx2 = func_8000B838_main(0x15001D);
+    y = info->y - 28;
+    for (i = 0; i < 13; i++) {
+        func_801085E8_storyresult(w->grp2, i, w->gfx2, 1200, (s16)(info->x + (i * 12 - 24)), (s16)y);
+    }
+    D_800D6B62_main = 400;
+    win = w->win;
+    fade = w->winFade;
+    x = info->x;
+    y = info->y;
+    for (i = 0; i < ARRAY_COUNTU(w->win); i++, win++, fade++) {
+        *win = func_8005A968_main(x + D_8010AB04_storyresult[i].x, y + D_8010AB04_storyresult[i].y,
+                                  D_8010AB04_storyresult[i].w, D_8010AB04_storyresult[i].h, 0, 12);
+        func_8005BDFC_main(*win, 0);
+        func_8005BEE0_main(*win, 0);
+        func_8005C060_main(*win, 2, 0xFF, 0x40, 0x40);
+        func_8005C060_main(*win, 5, 0, 0xB0, 0xC0);
+        func_8005C060_main(*win, 4, 0x60, 0xFF, 0x40);
+        func_8005C060_main(*win, 6, 0xFF, 0xFF, 0x40);
+        func_8005C154_main(*win, 0x40, 0x40, 0x40);
+        func_8005FBF8_main(*win, 0, 0, 0);
+        func_8005C02C_main(*win, 7);
+        func_8005BF70_main(*win, 0);
+        *fade = 0;
+    }
+    win = w->win;
+    fade = w->winFade;
+    func_8005B43C_main(w->win[0], msg[0], -1, -1);
+    func_8005B43C_main(w->win[1], msg[1], -1, -1);
+    func_8005B43C_main(w->win[2], msg[2], -1, -1);
+    w->winFade[2] = 1;
+    w->winFade[1] = 1;
+    w->winFade[0] = 1;
+    if (hasRank) {
+        if (msg[3] != 0) {
+            func_8005B43C_main(w->win[3], msg[3], -1, -1);
+        }
+        fade[3] = 1;
+        /* Host: rank is -1 for a chapter other than 12 in mode 2 (reads the byte triple before the table). */
+        func_8005C060_main(win[3], 7, D_8010AAEC_storyresult[rank].r, D_8010AAEC_storyresult[rank].g,
+                           D_8010AAEC_storyresult[rank].b);
+    }
+    func_8005B43C_main(win[5], 0x6111, -1, -1);
+    func_80108D34_storyresult(page, w);
+    lastCmd = 0;
+    w->unk14C = 0;
+    shown = 0;
+    pending = 0;
+    changing = 0;
+    alphaStep = 0;
+    alpha = 0;
+    winStep = 0;
+    winAlpha = 0;
+    colorCycle = 0;
+    colorTimer = 0;
+    colorFrames = 0;
+    rankWin = &w->win[3];
+    swapPortrait = 0;
+    rank32 = rank;
+    grpShift2 = grp << 16;
+    do {
+        if ((lastCmd == 1 || lastCmd == 2) && w->winFade[0] == 0) {
+            info->cmd = 0;
+        }
+        if (pending && ((alphaStep == 0) & (winStep == 0))) {
+            pending = 0;
+            info->cmd = 0;
+        }
+        if (changing) {
+            if ((alphaStep == 0) & (winStep == 0)) {
+                changing = 0;
+                func_80108D34_storyresult(page, w);
+                alpha = 0;
+                alphaStep = 51;
+                winAlpha = 0;
+                winStep = 51;
+                pending = 1;
+                if (page >= 4) {
+                    if (swapPortrait) {
+                        swapPortrait = 0;
+                        if (page == 6) {
+                            part = &w->part[23];
+                        } else {
+                            part = &w->part[15];
+                        }
+                        part->fade = 1;
+                    }
+                    m = 0;
+                    if (page == 5) {
+                        func_8005B43C_main(w->win[0], msg[0], -1, -1);
+                        func_8005B43C_main(w->win[1], msg[1], -1, -1);
+                        func_8005B43C_main(w->win[2], msg[2], -1, -1);
+                        m = msg[3];
+                        rank2 = rank;
+                    } else if (page == 4) {
+                        rank2 = func_8010A370_storyresult(GwStory.unk1);
+                        func_8005B43C_main(w->win[2], D_8010AAA8_storyresult[GwStory.unk5E[GwStory.unk1]], -1, -1);
+                        m = 0;
+                        if (rank2 >= 0) {
+                            func_8005B43C_main(w->win[0], 0x6101, -1, -1);
+                            m = D_8010AAB8_storyresult[rank2];
+                        } else {
+                            func_8005B43C_main(w->win[0], 0x6100, -1, -1);
+                        }
+                    } else if (page == 6) {
+                        rank2 = func_8010A370_storyresult(-2);
+                        func_8005B43C_main(w->win[1], D_8010AA90_storyresult[(u8)GwStory.unk_64[1]], -1, -1);
+                        func_8005B43C_main(w->win[2], D_8010AAA8_storyresult[(u8)GwStory.unk_64[2]], -1, -1);
+                        m = 0;
+                        if (rank2 >= 0) {
+                            func_8005B43C_main(w->win[0], 0x6101, -1, -1);
+                            m = D_8010AAB8_storyresult[rank2];
+                        } else {
+                            func_8005B43C_main(w->win[0], 0x6100, -1, -1);
+                        }
+                    }
+                    if (m != 0) {
+                        func_8005B43C_main(w->win[3], m, -1, -1);
+                        func_8005C060_main(w->win[3], 7, D_8010AAEC_storyresult[rank2].r,
+                                           D_8010AAEC_storyresult[rank2].g, D_8010AAEC_storyresult[rank2].b);
+                        if (rank2 == 4) {
+                            colorCycle = 1;
+                            color = colorStart = D_8010AAD4_storyresult;
+                            colorFrames = 6;
+                        } else if (rank2 == 3) {
+                            colorCycle = 1;
+                            color = colorStart = D_8010AAE0_storyresult;
+                            colorFrames = 8;
+                        }
+                    } else {
+                        func_8005D294_main(w->win[3]);
+                    }
+                    for (i = 0; i < 4; i++) {
+                        w->winFade[i] = 1;
+                    }
+                }
+            }
+        } else if (shownPage != page) {
+            alpha = 0xFF;
+            alphaStep = -51;
+            winAlpha = 0xFF;
+            winStep = -51;
+            w->winFade[4] = 1;
+            if (shownPage >= 3) {
+                w->winFade[5] = 1;
+                w->unk14C = 1;
+            }
+            for (part = w->part, i = 0; i < 24; i++, part++) {
+                if (part->shown > 0) {
+                    part->shown = 0;
+                    part->fade = 1;
+                }
+            }
+            if (page >= 4) {
+                colorCycle = 0;
+                for (i = 0; i < 4; i++) {
+                    w->winFade[i] = 1;
+                }
+            }
+            if ((page == 6) | (shownPage == 6)) {
+                swapPortrait = 1;
+                if (page == 6) {
+                    part = &w->part[15];
+                } else {
+                    part = &w->part[23];
+                }
+                part->fade = 2;
+            }
+            shownPage = page;
+            changing = 1;
+        }
+        if (lastCmd != info->cmd) {
+            part = w->part;
+            switch (info->cmd) {
+            case 1:
+                if (shown == 0) {
+                    shown = 1;
+                    alpha = 0;
+                    alphaStep = 36;
+                    winAlpha = 0;
+                    winStep = 36;
+                    part[0].fade = 1;
+                    part[1].fade = 1;
+                    part[15].fade = 1;
+                    if (rank32 == 4) {
+                        colorCycle = 1;
+                        color = colorStart = D_8010AAD4_storyresult;
+                        colorFrames = 6;
+                    } else if (rank32 == 3) {
+                        colorCycle = 1;
+                        color = colorStart = D_8010AAE0_storyresult;
+                        colorFrames = 8;
+                    }
+                }
+                break;
+            case 2:
+                if (shown != 0) {
+                    shown = 0;
+                    alpha = 0xFF;
+                    alphaStep = -36;
+                    winAlpha = 0xFF;
+                    winStep = -36;
+                    part[0].fade = 1;
+                    part[1].fade = 1;
+                    part[15].fade = 1;
+                    for (fade = w->winFade, i = 0; i < 5; i++, fade++) {
+                        *fade = 1;
+                    }
+                    part = w->part;
+                    if (shownPage >= 3) {
+                        w->winFade[5] = 1;
+                        w->unk14C = 1;
+                    }
+                    for (i = 0; i < 24; i++, part++) {
+                        if (part->shown > 0) {
+                            part->shown = 0;
+                            part->fade = 1;
+                        }
+                    }
+                }
+                break;
+            case 3:
+                page++;
+                if (page >= 4) {
+                    page = 0;
+                }
+                break;
+            case 4:
+                page--;
+                if (page < 0) {
+                    page = 3;
+                }
+                break;
+            case 5:
+                newPage = 0;
+                goto setPage;
+            case 6:
+                newPage = 1;
+                goto setPage;
+            case 7:
+                newPage = 2;
+                goto setPage;
+            case 8:
+                newPage = 3;
+                goto setPage;
+            case 9:
+                newPage = 4;
+                goto setPage;
+            case 10:
+                newPage = 5;
+                if ((page != 4) & (page != 6)) {
+                    info->cmd = 8;
+                    newPage = 3;
+                }
+                goto setPage;
+            case 11:
+                newPage = 6;
+            setPage:
+                if (page == newPage) {
+                    info->cmd = 0;
+                }
+                page = newPage;
+                break;
+            case 0:
+            case 0xFF:
+                break;
+            }
+            lastCmd = info->cmd;
+        }
+        if (colorCycle) {
+            if (colorTimer != 0) {
+                colorTimer--;
+                cur[0] -= step[0];
+                cur[1] -= step[1];
+                cur[2] -= step[2];
+                func_8005C060_main(*rankWin, 7, (u8)cur[0], (u8)cur[1], (u8)cur[2]);
+            } else {
+                cur[0] = color->r;
+                cur[1] = color->g;
+                cur[2] = color->b;
+                func_8005C060_main(*rankWin, 7, (u8)cur[0], (u8)cur[1], (u8)cur[2]);
+                color++;
+                if (color->r == 0 && color->g == 0 && color->b == 0) {
+                    color = colorStart;
+                }
+                step[0] = (cur[0] - color->r) / colorFrames;
+                step[1] = (cur[1] - color->g) / colorFrames;
+                step[2] = (cur[2] - color->b) / colorFrames;
+                colorTimer = colorFrames - 1;
+            }
+        }
+        if (alphaStep != 0) {
+            done = 0;
+            alpha += alphaStep;
+            if (alpha >= 0xFF) {
+                alphaStep = 0;
+                alpha = 0xFF;
+                done = 1;
+            } else if (alpha <= 0) {
+                alphaStep = 0;
+                alpha = 0;
+                done = 1;
+            }
+            for (part = w->part, i = 0; i < 24; i++, part++) {
+                if (part->fade > 0) {
+                    if (part->fade == 1) {
+                        part->fade = 2;
+                        HuSprAttrReset(grpShift2 >> 16, i, 0x8000);
+                    }
+                    if (done) {
+                        part->fade = 0;
+                    }
+                    if (alpha == 0) {
+                        HuSprAttrSet(grpShift2 >> 16, i, 0x8000);
+                    }
+                    if (alpha >= part->alpha) {
+                        func_80055458_main(grpShift2 >> 16, i, part->alpha);
+                    } else {
+                        func_80055458_main(grpShift2 >> 16, i, alpha);
+                    }
+                }
+            }
+            if (w->unk14C != 0) {
+                if (done) {
+                    w->unk14C = 0;
+                }
+                grp2 = w->grp2;
+                for (i = 0; i < 13; i++) {
+                    if (alpha == 0) {
+                        HuSprAttrSet(grp2, i, 0x8000);
+                    }
+                    func_80055458_main(grp2, i, alpha);
+                }
+            }
+        }
+        if (winStep != 0) {
+            done = 0;
+            winAlpha += winStep;
+            if (winAlpha >= 0xFF) {
+                winStep = 0;
+                winAlpha = 0xFF;
+                done = 1;
+            } else if (winAlpha <= 0) {
+                winStep = 0;
+                winAlpha = 0;
+                done = 1;
+            }
+            win = w->win;
+            for (fade = w->winFade, i = 0; i < 6; i++, win++, fade++) {
+                if (*fade > 0) {
+                    if (done) {
+                        *fade = 0;
+                    }
+                    func_8005BF70_main(*win, winAlpha);
+                }
+            }
+        }
+        HuPrcVSleep();
+    } while (lastCmd != 0xFF);
+    HuSprGrpKill(grp);
+    /* Retail kills 23 of the 24 parts: part 23 (the saved copy's portrait) is never freed. */
+    for (part = w->part, i = 0; i < ARRAY_COUNTU(w->part) - 1; i++, part++) {
+        if (part->spr >= 0) {
+            HuSprKill(part->spr);
+        }
+    }
+    HuSprGrpKill(w->grp2);
+    HuSprKill(w->gfx2);
+    for (gfx = w->gfx, i = 0; i < 4; i++, gfx++) {
+        if (*gfx >= 0) {
+            HuSprKill(*gfx);
+        }
+    }
+    for (win = w->win, i = 0; i < ARRAY_COUNTU(w->win); i++, win++) {
+        func_8005F364_main(*win);
+    }
+    HuMemFree(w);
+    info->cmd = 0;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108F0C_storyresult);
+#endif
 
 #ifdef NON_MATCHING
 /* Residue (masked 8): retail keeps a raw copy of slot and does not thread the slot >= 6 jump (as minigame func_800E905C_minigame). */
