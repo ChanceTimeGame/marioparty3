@@ -192,6 +192,7 @@ void func_8010EDE8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 a
 
 // m1 pp2: Puddle Paddle game types (pp1's PpTeam/PpPlayer/PpCoin/PpState, with the fields pp2's functions use)
 #include "game/gamework_data.h"
+#include "overlays/minigame.h"
 
 /* A team (D_80111650_puddle_paddle[2]) */
 typedef struct PpTeam {
@@ -215,8 +216,9 @@ typedef struct PpPlayer {
     /* 0x0A */ s16 motion;
     /* 0x0C */ s16 nextMotion;
     /* 0x0E */ s16 unk0E;
-    /* 0x10 */ s8 slot; /* place in the team */
-    /* 0x11 */ char unk11[0x37];
+    /* 0x10 */ s8 slot; /* place in the team; also the blink phase while stunned (func_8010A224) */
+    /* 0x11 */ s8 stunTimer;
+    /* 0x12 */ char unk12[0x36];
     /* 0x48 */ f32 unk48;
     /* 0x4C */ char unk4C[4];
     /* 0x50 */ s16 team;
@@ -346,7 +348,35 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801098
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109BD4_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010A224_puddle_paddle);
+void func_8010A224_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
+    PpTeam *team;
+    PpPlayer *player;
+    omObjData *obj;
+    s16 i;
+    s16 j;
+
+    team = D_80111650_puddle_paddle;
+    for (i = 0; i < 2; i++, team++) {
+        for (j = 0; j < 2; j++) {
+            player = &D_80111654_puddle_paddle[team->member[j]];
+            obj = D_800EC598_minigame[team->member[j]];
+            if (player->unk04 & 0x10) {
+                if (++player->slot < 3) {
+                    func_8001C258_main(*obj->model, 4, 0);
+                } else {
+                    player->slot = 0;
+                    func_8001C258_main(*obj->model, 4, 4);
+                }
+                if (++player->stunTimer >= 21) {
+                    func_8001C258_main(*obj->model, 4, 0);
+                    player->unk04 &= ~0x10;
+                    player->stunTimer = 0;
+                    player->slot = 0;
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010A398_puddle_paddle);
 
