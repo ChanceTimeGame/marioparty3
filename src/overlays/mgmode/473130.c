@@ -84,6 +84,14 @@ typedef struct MgCursorPos {
     /* 0x02 */ s16 y;
 } MgCursorPos;
 
+/* A sprite of a group (func_80116794_mgmode); file == -1 ends the table. */
+typedef struct MgSprDef {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ u16 attr;
+    /* 0x06 */ s16 x;
+    /* 0x08 */ s16 y;
+} MgSprDef; /* size 0xC */
+
 /* other mgmode units */
 void func_80116968_mgmode(MgSprSlot *grp, s16 idx, s16 x, s16 y);
 void func_801169A0_mgmode(MgSprSlot *grp, s16 idx);
@@ -91,7 +99,7 @@ void func_801169C8_mgmode(MgSprSlot *grp, s16 idx);
 void func_801169F0_mgmode(MgSprSlot *grp, s16 idx, u16 arg2);
 void func_80116A48_mgmode(MgSprSlot *grp, s16 idx, f32 sx, f32 sy);
 void func_80116A78_mgmode(MgSprSlot *grp, s16 idx, s16 alpha);
-MgSprSlot *func_80116794_mgmode(void *def);
+MgSprSlot *func_80116794_mgmode(MgSprDef *def);
 void func_801168E0_mgmode(MgSprSlot *grp);
 void func_80116D4C_mgmode(void);
 s16 func_80116B20_mgmode(void);
@@ -156,7 +164,11 @@ extern s16 D_8011B4C0_mgmode;
 extern s16 D_80119490_mgmode[]; /* [D_800CC438_main][7] */
 extern s16 D_8011B454_mgmode;
 extern s16 D_8011B458_mgmode[];
-extern u8 D_80119EB0_mgmode[];
+extern MgSprDef D_80119EB0_mgmode[];
+extern MgSprDef D_80119F28_mgmode[];
+extern s32 D_8011946C_mgmode[];
+extern s32 D_80119478_mgmode[];
+extern s32 D_80119484_mgmode[];
 extern s16 D_80119340_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B950_mgmode;
@@ -1320,7 +1332,201 @@ s16 func_80110420_mgmode(s16 mg) {
     return D_8011B434_mgmode;
 }
 
+/* NON_MATCHING: register allocation only (the loop counters i and j take each other's
+ * registers) and a frame 8 bytes smaller than retail's. */
+#ifdef NON_MATCHING
+void func_80110554_mgmode(void) {
+    s16 chr[4];
+    s16 wins[2];
+    MgSprDef *def;
+    f32 sx;
+    f32 scale;
+    s16 i;
+    s16 j;
+    s16 n;
+    s16 y;
+    u16 spr;
+
+    D_8011B484_mgmode = func_8000B838_main(0x12002C);
+    for (i = 0; i < 28; i++) {
+        D_8011B488_mgmode[i] = spr = InitEspriteSlot(D_8011B484_mgmode, 0, 1);
+        func_8000BB94_main(spr);
+        func_8000BC48_main(spr, 0x4008);
+        func_8000BCC8_main(spr, 8);
+    }
+    D_8011B4C0_mgmode = 0;
+    def = &D_80119F28_mgmode[1];
+    D_80119F28_mgmode[0].x = 180;
+    D_80119F28_mgmode[0].y = 116;
+    switch (D_800D4194_main) {
+        case 0:
+        case 3:
+            for (i = 0; i < 4; i++, def++) {
+                def->file = D_8011946C_mgmode[D_800CC438_main];
+                def->x = 180;
+                def->y = i * 24 + 80;
+                def->attr &= 0x7FFF;
+            }
+            for (i = 0; i < 4; i++) {
+                chr[i] = GwPlayer[i].chr;
+            }
+            for (i = 0; i < 4; i++) {
+                for (j = 0; j < D_800D03FE_main[i]; j++) {
+                    func_8000BB54_main(D_8011B488_mgmode[D_8011B4C0_mgmode]);
+                    func_8000BBD4_main(D_8011B488_mgmode[D_8011B4C0_mgmode], D_80119490_mgmode[D_800CC438_main * 7 + j] + 180,
+                                       i * 24 + 80);
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+        case 1:
+            for (i = 0; i < 2; i++, def++) {
+                def->file = D_80119478_mgmode[D_800CC438_main];
+                def->x = 180;
+                def->y = i * 48 + 93;
+                def->attr &= 0x7FFF;
+            }
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                if (D_800D1F20_main[i] == 0) {
+                    chr[n++] = GwPlayer[i].chr;
+                    wins[0] = D_800D03FE_main[i];
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (D_800D1F20_main[i] == 1) {
+                    chr[n++] = GwPlayer[i].chr;
+                    wins[1] = D_800D03FE_main[i];
+                }
+            }
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j < wins[i]; j++) {
+                    func_8000BB54_main(D_8011B488_mgmode[D_8011B4C0_mgmode]);
+                    func_8000BBD4_main(D_8011B488_mgmode[D_8011B4C0_mgmode], D_80119490_mgmode[D_800CC438_main * 7 + j] + 180,
+                                       i * 48 + 93);
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+        case 2:
+            def->file = D_8011946C_mgmode[D_800CC438_main];
+            def->x = 180;
+            def->y = 80;
+            def->attr &= 0x7FFF;
+            def++;
+            def->file = D_80119484_mgmode[D_800CC438_main];
+            def->x = 180;
+            def->y = 128;
+            def->attr &= 0x7FFF;
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                if (D_800D1F20_main[i] == 0) {
+                    chr[n++] = GwPlayer[i].chr;
+                    wins[0] = D_800D03FE_main[i];
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (D_800D1F20_main[i] == 1) {
+                    chr[n++] = GwPlayer[i].chr;
+                    wins[1] = D_800D03FE_main[i];
+                }
+            }
+            for (i = 0; i < 2; i++) {
+                y = 128;
+                if (i == 0) {
+                    y = 80;
+                }
+                for (j = 0; j < wins[i]; j++) {
+                    func_8000BB54_main(D_8011B488_mgmode[D_8011B4C0_mgmode]);
+                    func_8000BBD4_main(D_8011B488_mgmode[D_8011B4C0_mgmode], D_80119490_mgmode[D_800CC438_main * 7 + j] + 180, y);
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+        case 4:
+            for (i = 0; i < 2; i++, def++) {
+                def->file = D_8011946C_mgmode[D_800CC438_main];
+                def->x = 180;
+                def->y = i * 24 + 104;
+                def->attr &= 0x7FFF;
+            }
+            for (i = 0; i < 2; i++) {
+                chr[i] = GwPlayer[i].chr;
+            }
+            for (i = 2; i < 4; i++) {
+                chr[i] = -1;
+            }
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j < D_800D03FE_main[i]; j++) {
+                    func_8000BB54_main(D_8011B488_mgmode[D_8011B4C0_mgmode]);
+                    func_8000BBD4_main(D_8011B488_mgmode[D_8011B4C0_mgmode], D_80119490_mgmode[D_800CC438_main * 7 + j] + 180,
+                                       i * 24 + 104);
+                    D_8011B4C0_mgmode++;
+                }
+            }
+            break;
+    }
+    def = &D_80119F28_mgmode[5];
+    for (i = 0; i < 4; i++, def++) {
+        if (chr[i] != -1) {
+            def->file = chr[i] + def->file;
+            if (D_800CC438_main == 0) {
+                def->x = 149;
+            } else if (D_800CC438_main == 1) {
+                def->x = 128;
+            } else {
+                def->x = 107;
+            }
+            if (D_800D4194_main != 4) {
+                def->y = i * 24 + 80;
+            } else {
+                def->y = i * 24 + 104;
+            }
+        } else {
+            def->attr |= 0x8000;
+        }
+    }
+    D_8011B480_mgmode = func_80116794_mgmode(D_80119F28_mgmode);
+    func_80116A78_mgmode(D_8011B480_mgmode, 0, 0);
+    if (D_800CC438_main == 0) {
+        sx = 8.6f;
+    } else {
+        sx = 17.0f;
+        if (D_800CC438_main == 1) {
+            sx = 12.8f;
+        }
+    }
+    if (D_800D4194_main == 4) {
+        func_80116A48_mgmode(D_8011B480_mgmode, 0, sx, 4.9f);
+    } else {
+        func_80116A48_mgmode(D_8011B480_mgmode, 0, sx, 9.8f);
+    }
+    for (j = 0; j < 28; j++) {
+        func_8000BE5C_main(D_8011B488_mgmode[j], 0.0f, 0.0f);
+    }
+    for (j = 0; j < 4; j++) {
+        func_80116A78_mgmode(D_8011B480_mgmode, j + 5, 0);
+    }
+    for (i = 0; i < 6; i++) {
+        for (j = 0; j < 4; j++) {
+            func_80116A78_mgmode(D_8011B480_mgmode, j + 1, i / 5.0 * 255.0);
+        }
+        func_80116A78_mgmode(D_8011B480_mgmode, 0, i / 5.0 * 192.0);
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 6; i++) {
+        for (j = 0; j < 4; j++) {
+            func_80116A78_mgmode(D_8011B480_mgmode, j + 5, i / 5.0 * 255.0);
+        }
+        for (j = 0, scale = i / 5.0; j < 28; j++) {
+            func_8000BE5C_main(D_8011B488_mgmode[j], scale, scale);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_80110554_mgmode);
+#endif
 
 /* NON_MATCHING: masked 29: GCC forms the sound id with a store-flag sequence where retail branches,
  * and case 4 shares the spr[n] address (retail computes it twice); register allocation. */
