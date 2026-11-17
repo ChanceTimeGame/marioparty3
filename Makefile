@@ -446,6 +446,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mgenter/46BB50.c.o
 W2DC_BLANKSTRIP += build/src/overlays/storyresult/54DD10.c.o build/src/overlays/storyresult/54F360.c.o
 # wave 3t s5: mstory1 48C120 likewise (func_80105FF4_mstory1: no nop before the mul.s after the cosdf/sindf calls)
 W2DC_BLANKSTRIP += build/src/overlays/mstory1/48C120.c.o
+# m1 sy2: Slot Synch 1AC970 likewise (func_8010BF6C/func_8010C39C: no nop before the mul.s after a float call; jump tables, so not NOP_OBJECTS)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_14_slot_synch/1AC970.c.o
 # wave 3u f1/f5: mstory2 49BD40 likewise (func_801064AC_mstory2 in 49BD40, func_8011A74C_mstory2 in 4AC200: no nop before the mul.s after cosdf/sindf)
 W2DC_BLANKSTRIP += build/src/overlays/mstory2/49BD40.c.o build/src/overlays/mstory2/4AC200.c.o
 # mstory5 4CF350 likewise (func_80106028_mstory5: no nop before the mul.s after the cosdf/sindf calls)
