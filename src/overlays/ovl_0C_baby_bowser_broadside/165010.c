@@ -109,7 +109,7 @@ typedef struct BbBall {
 
 /* A player (D_80110004_baby_bowser_broadside[4]) */
 typedef struct BbPlayer {
-    /* 0x00 */ s16 pad;
+    /* 0x00 */ s16 no; /* player index */
     /* 0x02 */ s16 chr;
     /* 0x04 */ union {
         s32 w;
@@ -122,7 +122,7 @@ typedef struct BbPlayer {
     /* 0x0A */ s16 unk0A; /* motion */
     /* 0x0C */ s16 unk_0C; /* next motion, -1 none */
     /* 0x0E */ char unk0E[2];
-    /* 0x10 */ u8 slot; /* index within the team */
+    /* 0x10 */ s8 held; /* fire button held */
     /* 0x11 */ char unk11[0xF];
     /* 0x20 */ s16 sePlaying;
     /* 0x22 */ s16 seNo;
@@ -520,9 +520,125 @@ s16 func_80109058_baby_bowser_broadside(omObjData* obj, BbPlayer* player) {
 }
 /* </func_80109058_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_8010913C_baby_bowser_broadside);
+/* <func_8010913C_baby_bowser_broadside> */
+void func_8010913C_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    f32 cur;
+    f32 target;
+    BbPlayer* player = task->data;
+    s16 ball;
+    s32 motion;
+    f32 sx;
+    f32 sy;
+    f32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80109434_baby_bowser_broadside);
+    if (D_80110008_baby_bowser_broadside->flags & 2) {
+        if (--player->cooldown < 0) {
+            player->cooldown = 0;
+        }
+        if ((u16)D_800CDA7C_main[player->no] & 0x8000) {
+            if (player->cooldown == 0 && player->held == 0) {
+                player->held = 1;
+                ball = func_80109970_baby_bowser_broadside(player);
+                if (ball != -1) {
+                    if (task->unk0C != 0) {
+                        task->unk0C = 0;
+                        func_80109EB0_baby_bowser_broadside(player, 40, 1);
+                    } else {
+                        task->unk0C = 1;
+                        func_80109EB0_baby_bowser_broadside(player, 39, 1);
+                    }
+                    func_801087CC_baby_bowser_broadside(player->model);
+                    func_80109EBC_baby_bowser_broadside(player, 38);
+                    player->cooldown = 10;
+                    player->fire.w |= ball + 1;
+                }
+            }
+        } else {
+            player->held = 0;
+        }
+        sx = D_800CBB6E_main[player->no];
+        sy = D_800D20A1_main[player->no];
+        if (sx == 0.0f && sy == 0.0f) {
+            if (player->sePlaying != 0) {
+                player->sePlaying = 0;
+                HuAudFXStop(player->seNo);
+            }
+        } else {
+            angle = atan2df(sy, sx) + 90.0f;
+            if (angle >= 360.0f) {
+                angle -= 360.0f;
+            }
+            cur = player->aim;
+            target = angle;
+            func_8010F6F8_baby_bowser_broadside(&cur, &target);
+            if (!((cur - target > 0.0f ? cur - target : -(cur - target)) < 5.0f)) {
+                if (cur - target > 0.0f) {
+                    player->aim -= 2.0f;
+                } else if (cur - target < 0.0f) {
+                    player->aim += 2.0f;
+                }
+            }
+        }
+    }
+}
+/* </func_8010913C_baby_bowser_broadside> */
+
+/* <func_80109434_baby_bowser_broadside> */
+void func_80109434_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    f32 facing;
+    f32 aim;
+    BbPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+    f32 x;
+    f32 z;
+
+    if (!(D_80110008_baby_bowser_broadside->flags & 4)) {
+        if (D_80110008_baby_bowser_broadside->timer < 600.0f) {
+            player->angle -= D_80110008_baby_bowser_broadside->speed;
+        }
+        if (player->angle >= 360.0f) {
+            player->angle -= 360.0f;
+        } else if (player->angle < 0.0f) {
+            player->angle += 360.0f;
+        }
+        x = sindf(player->angle);
+        z = cosdf(player->angle);
+        x *= 550.0f;
+        z *= 550.0f;
+        Hu3DModelPosSet(player->model, x, 400.0f, z);
+        obj->trans.x = x;
+        obj->trans.y = 455.0f;
+        obj->trans.z = z;
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y - 2.5f, z);
+        facing = player->angle + 180.0f;
+        if (facing > 360.0f) {
+            facing -= 360.0f;
+        }
+        if (player->aim >= 360.0f) {
+            player->aim -= 360.0f;
+        } else if (player->aim < 0.0f) {
+            player->aim += 360.0f;
+        }
+        aim = player->aim;
+        func_8010F6F8_baby_bowser_broadside(&facing, &aim);
+        if (facing - aim > 30.0f) {
+            player->aim = facing - 30.0f;
+            if (player->sePlaying != 0) {
+                player->sePlaying = 0;
+                HuAudFXStop(player->seNo);
+            }
+        } else if (facing - aim < -30.0f) {
+            player->aim = facing + 30.0f;
+            if (player->sePlaying != 0) {
+                player->sePlaying = 0;
+                HuAudFXStop(player->seNo);
+            }
+        }
+        Hu3DModelRotSet(player->model, 0.0f, player->aim, 0.0f);
+        obj->rot.y = player->aim;
+    }
+}
+/* </func_80109434_baby_bowser_broadside> */
 
 /* <func_801096E8_baby_bowser_broadside> */
 void func_801096E8_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
