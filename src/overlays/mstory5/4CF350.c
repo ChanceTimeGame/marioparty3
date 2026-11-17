@@ -222,6 +222,10 @@ void func_8010B318_mstory5(void);
 void func_8010B9CC_mstory5(void);
 void func_8010C69C_mstory5(void);
 void func_8010CBE0_mstory5(void);
+void func_8010D47C_mstory5(void);
+void func_80017358_main(s16 arg0, char *arg1, s16 arg2, char *arg3);
+extern const Vec D_80114954_mstory5; /* actor 7's start position */
+extern s32 D_80114774_mstory5; /* 1 once actor 7 exists */
 /* func_801085D8_mstory5 (the idle action) is defined above as void (void) */
 #define STORY5_IDLE ((void (*)(omObjData *))func_801085D8_mstory5)
 
@@ -708,7 +712,62 @@ void func_8010CA04_mstory5(omObjData *obj) {
 void func_8010CBE0_mstory5(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010CBE8_mstory5);
+/* actor 7: a big character with two pairs of eye parts hooked onto it */
+void func_8010CBE8_mstory5(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 10, 8, -1, NULL);
+    D_801151F0_mstory5[7].obj = obj;
+    D_801151F0_mstory5[7].flags = 0;
+    D_801151F0_mstory5[7].unk0C = 0;
+    obj->model[1] = func_8000B108_main(0xA0122, 0x2A9);
+    Hu3DModelScaleSet(obj->model[1], 2.0f, 2.0f, 2.0f);
+    func_800461B4_main(obj->model[1]);
+    func_8000B460_main(obj, 0, 0xA0123);
+    func_8000B460_main(obj, 1, 0xA0125);
+    func_8000B460_main(obj, 2, 0xA012E);
+    func_8000B460_main(obj, 3, 0xA0127);
+    func_8000B460_main(obj, 4, 0xA0126);
+    func_8000B460_main(obj, 5, 0xA012A);
+    obj->model[2] = Hu3DModelLink(D_80115364_mstory5);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 1.0f, 2.0f);
+    obj->model[3] = func_8000B108_main(0x1D002E, 0x6B9);
+    obj->model[4] = func_8000B108_main(0x1D002E, 0x6B9);
+    func_8001C258_main(obj->model[3], 4, 4);
+    func_8001C258_main(obj->model[4], 4, 4);
+    obj->model[5] = func_8000B108_main(0xA0122, 0x2A9);
+    func_8001C258_main(obj->model[5], 4, 4);
+    Hu3DModelScaleSet(obj->model[5], 2.0f, 2.0f, 2.0f);
+    func_800461B4_main(obj->model[5]);
+    func_80017358_main(obj->model[3], "c208nk0-r_eye", obj->model[5], "r_eye");
+    func_80017358_main(obj->model[4], "c208nk0-r_eye", obj->model[5], "l_eye");
+    obj->model[6] = func_8000B108_main(0x1D002F, 0x6B9);
+    obj->model[7] = func_8000B108_main(0x1D002F, 0x6B9);
+    func_8001C258_main(obj->model[6], 4, 4);
+    func_8001C258_main(obj->model[7], 4, 4);
+    obj->model[8] = func_8000B108_main(0xA0122, 0x2A9);
+    func_8001C258_main(obj->model[8], 4, 4);
+    Hu3DModelScaleSet(obj->model[8], 2.0f, 2.0f, 2.0f);
+    func_800461B4_main(obj->model[8]);
+    func_80017358_main(obj->model[6], "c208nk1-r_eye", obj->model[8], "r_eye");
+    func_80017358_main(obj->model[7], "c208nk1-r_eye", obj->model[8], "l_eye");
+    func_8001C814_main(obj->model[1], 2, 2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 30.0f, 0.0f);
+    D_801152F8_mstory5[7] = D_80114954_mstory5;
+    Hu3DModelPosSet(obj->model[1], D_801152F8_mstory5[7].x, D_801152F8_mstory5[7].y, D_801152F8_mstory5[7].z);
+    Hu3DModelPosSet(obj->model[2], D_801152F8_mstory5[7].x, -5.0f, D_801152F8_mstory5[7].z);
+    omPrcSetDestructor(0, func_8010D47C_mstory5);
+    D_801151F0_mstory5[7].func = STORY5_IDLE;
+    D_80114774_mstory5 = 1;
+    while (TRUE) {
+        D_801151F0_mstory5[7].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010CFE4_mstory5);
 
