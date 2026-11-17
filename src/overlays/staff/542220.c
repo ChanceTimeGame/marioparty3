@@ -2502,6 +2502,9 @@ void func_8010B9BC_staff(s16 set, s16 idx, s16 x, s16 y) {
     }
 }
 
+/* mes is either a message id or a string pointer (> 0x80000000, KSEG0): retail keeps both in one
+   32-bit word, as the matching form does. Host hazard: a 64-bit pointer does not fit in u32 and the
+   KSEG0 test does not hold for host addresses; every caller here passes a message id. */
 #ifdef NON_MATCHING
 // Register allocation: retail keeps g in s8 and spills x, y and str; logic checked block by block.
 void func_8010BA30_staff(s16 set, s16 idx, u32 mes, s16 x, s16 y) {
