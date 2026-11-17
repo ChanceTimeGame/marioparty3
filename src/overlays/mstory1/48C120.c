@@ -1,6 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114C50_mstory1);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80105C90_mstory1);
 
