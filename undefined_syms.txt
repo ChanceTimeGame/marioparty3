@@ -344,3 +344,8 @@ D_800D0418_main = 0x800D0418;
 D_800CE29C_main = 0x800CE29C;
 D_80119FA0_mgmode = 0x80119FA0;
 D_800D1F2C_main = 0x800D1F2C;
+/* m5: selmenu/552F50 .data inner labels the remaining asm uses */
+D_80108C91_selmenu = D_80108C90_selmenu + 0x1;
+D_80108C94_selmenu = D_80108C90_selmenu + 0x4;
+D_80108C9C_selmenu = D_80108C90_selmenu + 0xC;
+D_80109812_selmenu = D_80109810_selmenu + 0x2;

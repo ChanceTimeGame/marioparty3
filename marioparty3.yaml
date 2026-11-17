@@ -2508,7 +2508,8 @@ segments:
     bss_size: 0x220
     subsegments:
       - [0x552F50, c]
-      - [0x556240, data, 552F50] #80108C90
+      - [0x556240, .data, 552F50] #80108C90
+      - [0x556DD0, .rodata, 552F50] #80109820
       - {0x557620, type: bss, vram: 0x8010A070, name: selmenu_bss}
 
   - [0x557620, bin, unk_557620]
