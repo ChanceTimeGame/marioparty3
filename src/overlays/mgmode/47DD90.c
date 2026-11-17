@@ -246,7 +246,7 @@ extern s16 D_8011B66A_mgmode;
 extern u16 D_8011B66C_mgmode;
 extern s16 D_8011B66E_mgmode;
 extern MgModePair* D_8011B670_mgmode;
-extern s8 D_8011B630_mgmode[];
+extern u8 D_8011B630_mgmode[];
 extern s16 D_8011A3F8_mgmode[];
 
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -361,7 +361,53 @@ void func_801182C0_mgmode(s16 arg0) {
     D_8011B630_mgmode[arg0] = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801182DC_mgmode);
+/* Returns the nearest enabled slot of D_8011B670 lying in direction (dx, dy) from slot
+   D_8011B66A (within 0.5 of it as unit vectors), or -1. */
+s16 func_801182DC_mgmode(s16 dx, s16 dy) {
+    f32 dir[32][2];
+    f32 dist[32];
+    f32 x;
+    f32 y;
+    f32 len;
+    f32 ux;
+    f32 uy;
+    f32 best;
+    s16 found;
+    s16 i;
+
+    for (i = 0; D_8011B670_mgmode[i].unk0 != -1 || D_8011B670_mgmode[i].unk2 != -1; i++) {
+        if (i == D_8011B66A_mgmode || D_8011B630_mgmode[i] != 0) {
+            dist[i] = -1.0f;
+        } else {
+            x = D_8011B670_mgmode[D_8011B66A_mgmode].unk0 - D_8011B670_mgmode[i].unk0;
+            y = D_8011B670_mgmode[D_8011B66A_mgmode].unk2 - D_8011B670_mgmode[i].unk2;
+            len = dist[i] = HuSqrtf(x * x + y * y);
+            dir[i][0] = x / len;
+            dir[i][1] = y / len;
+        }
+    }
+    len = HuSqrtf(dx * dx + dy * dy);
+    ux = dx / len;
+    uy = dy / len;
+    for (i = 0; D_8011B670_mgmode[i].unk0 != -1 || D_8011B670_mgmode[i].unk2 != -1; i++) {
+        if (!(dist[i] < 0.0f)) {
+            x = ux - dir[i][0];
+            y = uy - dir[i][1];
+            if (HuSqrtf(x * x + y * y) > 0.5f) {
+                dist[i] = -1.0f;
+            }
+        }
+    }
+    best = 100000.0f;
+    found = -1;
+    for (i = 0; D_8011B670_mgmode[i].unk0 != -1 || D_8011B670_mgmode[i].unk2 != -1; i++) {
+        if (!(dist[i] < 0.0f) && dist[i] < best) {
+            best = dist[i];
+            found = i;
+        }
+    }
+    return found;
+}
 
 void func_80118624_mgmode(s16 dst, s16 src) {
     HmfModelData[dst].pos.x = HmfModelData[src].pos.x;
