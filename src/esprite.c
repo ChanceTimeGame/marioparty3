@@ -263,7 +263,7 @@ void func_8000BF8C_main(u16 spriteId, s16 arg1) {
     }
 }
 
-s16 InitEspriteSlot(s16 arg0, u16 arg1, u16 arg2) {
+s16 InitEspriteSlot(s16 arg0, s16 arg1, u16 arg2) {
     D_800CD1DC_main_Struct *temp_s0;
     s16 temp_s3;
     s16 temp_v0;

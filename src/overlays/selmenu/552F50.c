@@ -285,8 +285,6 @@ s32 D_80109810_selmenu = 0; /* the asm reads its low half as D_80109812 */
 s32 D_80109814_selmenu = 0;
 s32 D_80109818_selmenu = 1;
 
-/* Matches with ~/repos/mp3-wt/m5.header.patch (InitEspriteSlot takes an s16 frame: retail sign-extends i % 6). */
-#ifdef NON_MATCHING
 void func_801059A0_selmenu(void) {
     omObjData *obj;
     u16 id;
@@ -360,9 +358,6 @@ void func_801059A0_selmenu(void) {
     WipeCreateIn(0xFF, 0x10);
     HuAudSeqPlay((u8)rand8() % 9);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_801059A0_selmenu);
-#endif
 
 void func_80106A10_selmenu(omObjData *obj);
 void func_80106DEC_selmenu(omObjData *obj);
