@@ -60,6 +60,35 @@ typedef struct MgSprFile {
 extern s32 func_80116794_mgmode(MgSprFile*, MgSprFile*, s32);
 extern u8 D_800CB8B1_main[];
 
+/* minigame table seen from the word before D_800A6D44_main (0x14 per minigame) */
+typedef struct MgTable {
+    /* 0x00 */ s32 ovl;
+    /* 0x04 */ u8 type;
+    /* 0x05 */ u8 unk5;
+    /* 0x06 */ u16 flags;
+    /* 0x08 */ char unk8[0xC];
+} MgTable;
+extern MgTable D_800A6D40_main[];
+
+/* main-segment data (undefined_syms.txt aliases: the parts this unit reads) */
+extern u16 D_800CE2A0_main[10];
+extern s16 D_800D1FE0_main;
+extern s16 D_800CB894_main;
+extern u8 D_800CE20A_main;
+extern s16 D_800D0468_main;
+extern u16 D_800CC698_main;
+extern void HmfLightStatSet(s16, s16, s16);
+
+void func_8010606C_mgmode(void);
+void func_8010A8E4_mgmode(s32);
+void func_8010AF78_mgmode(Gfx**);
+void func_8010AFEC_mgmode(void);
+void func_8010BD28_mgmode(omObjData*);
+extern void func_8010BEC0_mgmode(void);
+extern s32 func_80111B08_mgmode(void);
+extern void func_80112200_mgmode(void);
+extern void func_80117DD0_mgmode(void);
+
 /* overlay .data (shared by every mgmode unit, still asm) */
 extern u8 D_80118EB0_mgmode;
 extern u8 D_80118EB1_mgmode;
@@ -82,6 +111,10 @@ extern MgSprFile D_801198C8_mgmode[]; /* D_801198BC_mgmode[1] */
 
 /* overlay .bss */
 extern char D_8011A708_mgmode[];
+extern u8 D_8011A8C8_mgmode[8][20];
+extern u8 D_8011A968_mgmode[8];
+extern u8 D_8011A970_mgmode[8][20];
+extern u8 D_8011AA10_mgmode[8];
 extern Vec D_8011AA80_mgmode[][25];
 extern char D_8011A400_mgmode[]; /* "00" */
 extern char D_8011A404_mgmode[]; /* "door_b" */
@@ -98,12 +131,18 @@ extern s32 D_8011B3EC_mgmode;
 extern s16 D_8011B6A0_mgmode;
 extern f32 D_8011B6A4_mgmode;
 extern u8 D_8011B6B0_mgmode[][25];
+extern s8 D_8011B778_mgmode;
+extern s16 D_8011B77A_mgmode;
 extern s16 D_8011B6A8_mgmode;
 extern f32 D_8011B804_mgmode;
+extern s16 D_8011B800_mgmode;
 extern s16 D_8011B808_mgmode;
+extern s16 D_8011B80A_mgmode;
 extern s16 D_8011B884_mgmode;
+extern Vec D_8011B88C_mgmode;
 extern f32 D_8011B888_mgmode;
 extern Vec D_8011B898_mgmode;
+extern s8 D_8011B8A4_mgmode;
 extern s16 D_8011B8A8_mgmode[];
 extern s16 D_8011B8B2_mgmode;
 extern s16 D_8011B8B4_mgmode;
@@ -111,6 +150,7 @@ extern s16 D_8011B8B6_mgmode[];
 extern s16 D_8011B8C4_mgmode;
 extern s16 D_8011B8C6_mgmode;
 extern s16 D_8011B928_mgmode[];
+extern f32 D_8011B938_mgmode;
 extern s16 D_8011B940_mgmode[];
 extern s16 D_8011B950_mgmode;
 extern u8 D_8011B958_mgmode;
@@ -122,7 +162,114 @@ void func_801090C4_mgmode(s16);
 void func_80107D0C_mgmode(s32, s16, s16);
 void func_8010BD98_mgmode(omObjData*);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_801059A0_mgmode);
+void func_801059A0_mgmode(void) {
+    s16 i;
+    HmfModel* model;
+
+    omInitObjMan(20, 10);
+    Hu3DCamInit(2);
+    func_8005A6B0_main();
+    func_800142A0_main(20);
+    func_8001F38C_main(0, 0, 0);
+    D_800CD280_main = 1;
+    D_800D6A58_main = 1;
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    ScissorSet(1, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(1, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    D_8011B898_mgmode.z = 90.0f;
+    CZoom = 660.0f;
+    Center.x = 0.0f;
+    Center.y = 181.0f;
+    Center.z = -395.0f;
+    D_8011B6A4_mgmode = 40.0f;
+    D_8011B898_mgmode = CRot;
+    D_8011B938_mgmode = CZoom;
+    D_8011B88C_mgmode = Center;
+    D_8011B804_mgmode = 80.0f;
+    D_8011B888_mgmode = 1800.0f;
+    Hu3DCamSetPerspective(0, D_8011B6A4_mgmode, 80.0f, 1800.0f);
+    Hu3DCamSetPerspective(1, D_8011B6A4_mgmode, D_8011B804_mgmode, D_8011B888_mgmode);
+    HmfLightMaxSet(4);
+    HmfLightColorSet(1, 0x40, 0x40, 0x40);
+    HmfLightDirSet(1, 0.0f, 119.0f, 0.0f);
+    HmfLightStatSet(0, 1, 1);
+    HmfLightColorSet(2, 0x96, 0x96, 0x6E);
+    HmfLightDirSet(2, 40.0f, 42.0f, 104.0f);
+    HmfLightColorSet(3, 0, 0, 0);
+    omAddObj(10000, 0, 0, -1, func_8010BD28_mgmode);
+    omPrcSetStatBit(omAddPrcObj(func_8010AFEC_mgmode, 0x1100, 0x1000, 0), 0xA0);
+    omAddPrcObj(func_80117DD0_mgmode, 0x3F00, 0x800, 0);
+    func_8010A8E4_mgmode(0);
+    if (omovlevtno == 0 || omovlevtno == 1 || omovlevtno == 6 || omovlevtno == 7) {
+        omAddPrcObj(func_8010606C_mgmode, 0x3FF6, 0x2000, 0);
+        HuAudSeqPlay(8);
+    } else if (omovlevtno == 2 || omovlevtno == 4) {
+        func_8010A8E4_mgmode(1);
+        HmfLightColorSet(3, 0x82, 0x82, 0x32);
+        HmfLightDirSet(3, -17.0f, -101.0f, -61.0f);
+        omAddPrcObj(func_8010BEC0_mgmode, 0x3FF6, 0x2000, 0);
+        if (omovlevtno == 4) {
+            if (func_80111B08_mgmode() == 0) {
+                HuAudSeqPlay(0x4C);
+            } else {
+                HuAudSeqPlay(0x16);
+            }
+        } else {
+            HuAudSeqPlay(0x4C);
+        }
+    } else if (omovlevtno == 3 || omovlevtno == 5) {
+        omAddPrcObj(func_80112200_mgmode, 0x3FF6, 0x2000, 0);
+        if (omovlevtno == 5 && D_800D1FE0_main + D_800CB894_main * GwPlayer[0].bonusCoin >= 1000) {
+            HuAudSeqPlay(0x46);
+        } else {
+            HuAudSeqPlay(0x4D);
+        }
+    }
+    if (omovlevtno != 0) {
+        for (i = 0; i < 10; i++) {
+            if (D_800CE2A0_main[i] != GwCommon.mgRecord[i]) {
+                break;
+            }
+        }
+        if (i != 10) {
+            func_80118CD8_mgmode();
+        }
+    }
+    for (i = 0; i < 10; i++) {
+        D_800CE2A0_main[i] = GwCommon.mgRecord[i];
+    }
+    D_8011B808_mgmode = 0;
+    D_8011B800_mgmode = 0;
+    _ClearFlag(0xD);
+    _SetFlag(0x1C);
+    D_800CE20A_main = 0;
+    model = &HmfModelData[D_800D0468_main];
+    model->unk00 = (model->unk00 & 0xF9) | 3;
+    func_8001C8A8_main(D_800D0468_main, 1);
+    D_8011B8A4_mgmode = 0;
+    D_8011B778_mgmode = 0;
+    for (i = 0; i < 6; i++) {
+        if (D_8011B928_mgmode[i] >= 3) {
+            D_8011B778_mgmode = 1;
+            break;
+        }
+    }
+    if (_CheckFlag(0x1D)) {
+        D_8011B8A4_mgmode = 1;
+    }
+    D_8011B884_mgmode = 0;
+    func_8001C8A8_main(func_8001AC8C_main(0, func_8010AF78_mgmode, 0), 2);
+    for (i = 0; i < 4; i++) {
+        D_800CB8B1_main[i] = 0;
+    }
+    D_800CC698_main = 0;
+    for (i = 0; i < 4; i++) {
+        GwPlayer[i].star = 0;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mgmode/46CC10", D_8011A400_mgmode);
 
@@ -673,7 +820,91 @@ void func_8010A824_mgmode(s32 arg0, s16 arg1) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010A824_mgmode);
 #endif
 
+#ifdef NON_MATCHING
+/* retail re-sign-extends the minigame type at every use and orders the counter loops differently; logic checked against the asm */
+void func_8010A8E4_mgmode(s32 arg0) {
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 type;
+
+    D_8011B77A_mgmode = 0;
+    D_8011B80A_mgmode = 0;
+    for (i = 0; i < 8; i++) {
+        D_8011AA10_mgmode[i] = 0;
+        D_8011A968_mgmode[i] = 0;
+        D_8011B928_mgmode[i] = 0;
+        D_8011B940_mgmode[i] = 0;
+    }
+    for (i = 0; i < 71; i++) {
+        type = D_800A6D40_main[i].type;
+        if (D_800A6D40_main[i].ovl == 0x70 || D_800A6D40_main[i].ovl == -1) {
+            continue;
+        }
+        if (arg0 != 0 && (i == 0x1B || i == 8 || i == 0x10)) {
+            continue;
+        }
+        if (GWMgUnlockCheck(i)) {
+            D_8011B928_mgmode[type]++;
+            D_8011B80A_mgmode++;
+            if (D_800A6D40_main[i].flags >> 15) {
+                D_8011A8C8_mgmode[type][D_8011A968_mgmode[type]] = i;
+                D_8011A968_mgmode[type]++;
+            } else {
+                D_8011A970_mgmode[type][D_8011AA10_mgmode[type]] = i;
+                D_8011AA10_mgmode[type]++;
+            }
+            D_8011B6B0_mgmode[type][D_8011B940_mgmode[type]] = i;
+        } else {
+            if (D_800A6D40_main[i].flags >> 15) {
+                D_8011A8C8_mgmode[type][D_8011A968_mgmode[type]] = 0xFF;
+                D_8011A968_mgmode[type]++;
+            } else {
+                D_8011A970_mgmode[type][D_8011AA10_mgmode[type]] = 0xFF;
+                D_8011AA10_mgmode[type]++;
+            }
+            D_8011B6B0_mgmode[type][D_8011B940_mgmode[type]] = 0xFF;
+        }
+        D_8011B940_mgmode[type]++;
+        D_8011B77A_mgmode++;
+    }
+    for (j = 0, k = 0; j < 7; j++) {
+        for (i = 0; i < D_8011A968_mgmode[j]; i++) {
+            D_8011B6B0_mgmode[j][k++] = D_8011A8C8_mgmode[j][i];
+        }
+        for (i = 0; i < D_8011AA10_mgmode[j]; i++) {
+            D_8011B6B0_mgmode[j][k++] = D_8011A970_mgmode[j][i];
+        }
+        k = 0;
+    }
+    D_8011B940_mgmode[7] = 3;
+    D_8011B928_mgmode[7] = 0;
+    if (_CheckFlag(0x1E)) {
+        D_8011B6B0_mgmode[7][0] = 0x41;
+        D_8011B928_mgmode[7]++;
+        D_8011B80A_mgmode++;
+    } else {
+        D_8011B6B0_mgmode[7][0] = 0xFF;
+    }
+    if (D_8011B928_mgmode[0] >= 20 && D_8011B928_mgmode[1] >= 10 && D_8011B928_mgmode[2] >= 10 &&
+        D_8011B928_mgmode[3] >= 8 && D_8011B928_mgmode[4] >= 10 && D_8011B928_mgmode[5] >= 6) {
+        D_8011B6B0_mgmode[7][1] = 0x46;
+        D_8011B928_mgmode[7]++;
+        D_8011B80A_mgmode++;
+    } else {
+        D_8011B6B0_mgmode[7][1] = 0xFF;
+    }
+    if (_CheckFlag(0x1F)) {
+        D_8011B6B0_mgmode[7][2] = 0x47;
+        D_8011B928_mgmode[7]++;
+        D_8011B80A_mgmode++;
+    } else {
+        D_8011B6B0_mgmode[7][2] = 0xFF;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010A8E4_mgmode);
+#endif
 
 void func_8010AF78_mgmode(Gfx** gfx) {
     if (D_8011B884_mgmode != 0) {
