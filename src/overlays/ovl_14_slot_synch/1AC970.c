@@ -1535,13 +1535,202 @@ void func_801094E0_slot_synch(s16 idx, f32 height, f32 speed) {
     b->unk14 = speed;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80109508_slot_synch);
+void func_80109508_slot_synch(void) {
+    SsPop* p;
+    s32 i;
+    s32 j;
+    s32 mdl;
+
+    p = D_8010DF88_slot_synch = HuMemAllocTag(sizeof(SsPop) * 5, 31000);
+    memset(p, 0, sizeof(SsPop) * 5);
+    for (i = 0; i < 5; i++, p++) {
+        p->unk00 = 0;
+        p->unk01 = 0;
+        p->unk02 = 0;
+        p->unk03 = 0;
+        p->unk26 = 0;
+        p->unk2A = 0;
+        p->unk28 = 0;
+        p->unk2C = 0.0f;
+        p->unk30 = 0.0f;
+        if (i == 0) {
+            for (j = 0; j < 4; j++) {
+                p->unk04[j] = func_8000B108_main(D_8010D9F0_slot_synch[j], 0x299);
+                func_8001C258_main(p->unk04[j], 4, 4);
+                p->unk0C[j].unk00 = HmfModelData[p->unk04[j]].unk02;
+                p->unk0C[j].unk02 = func_8010C47C_slot_synch(D_8010DA00_slot_synch[j]);
+                p->unk0C[j].unk04 = func_8010C47C_slot_synch(D_8010DA10_slot_synch[j]);
+            }
+            mdl = p->unk24 = func_8000B108_main(9, 0x99);
+        } else {
+            for (j = 0; j < 4; j++) {
+                p->unk04[j] = Hu3DModelLink(D_8010DF88_slot_synch->unk04[j]);
+                func_8001C258_main(p->unk04[j], 4, 4);
+                p->unk0C[j].unk00 = D_8010DF88_slot_synch->unk0C[j].unk00;
+                p->unk0C[j].unk02 = D_8010DF88_slot_synch->unk0C[j].unk02;
+                p->unk0C[j].unk04 = D_8010DF88_slot_synch->unk0C[j].unk04;
+            }
+            mdl = p->unk24 = Hu3DModelLink(D_8010DF88_slot_synch->unk24);
+        }
+        func_8001C258_main(mdl, 4, 4);
+    }
+    D_8010DF84_slot_synch = omAddObj(0x19, 0, 6, -1, func_80109754_slot_synch);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", D_8010DC78_slot_synch);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", D_8010DC7C_slot_synch);
 
+#ifdef NON_MATCHING
+void func_80109754_slot_synch(omObjData* obj) {
+    Vec pos;
+    Vec vel;
+    Vec scale;
+    SsPop* p;
+    HmfModel* m;
+    f32 a;
+    f32 s;
+    s32 mdl;
+    s32 i;
+    s32 j;
+
+    p = D_8010DF88_slot_synch;
+    if (p == NULL) {
+        return;
+    }
+    for (i = 0; i < 5; i++, p++) {
+        if (p->unk00 == 0) {
+            continue;
+        }
+        if (p->unk26 != 4) {
+            mdl = p->unk04[p->unk26];
+        } else {
+            mdl = p->unk04[0];
+        }
+        m = &HmfModelData[mdl];
+        switch (p->unk28) {
+        case 0:
+            p->unk34.y += 20.000000298023224;
+            p->unk4C.x = p->unk4C.y = p->unk4C.z = p->unk34.y / 255.00000715255737;
+            if (p->unk34.y >= 0.0f) {
+                func_8001C258_main(mdl, 4, 0);
+                func_8001C258_main(p->unk24, 4, 0);
+            }
+            if (p->unk03 == 0 && p->unk34.y > 204.00000876188287) {
+                a = (f32)(u8)(rand8() % 100) * 0.01 * 360.0;
+                for (j = 0; j < 4; j++) {
+                    pos.x = p->unk34.x;
+                    pos.y = p->unk34.y;
+                    pos.z = p->unk34.z;
+                    s = a + j * 90.0f;
+                    vel.x = sindf(s) * 100.0 * 0.10000000149011612;
+                    vel.z = cosdf(s) * 100.0 * 0.10000000149011612;
+                    vel.y = 10.0f;
+                    scale.x = scale.y = scale.z = 0.5f;
+                    func_8010AD68_slot_synch(&pos, &vel, &scale, 1.0f, &D_8010D868_slot_synch);
+                }
+                HuAudFXPlay(0x390);
+            }
+            if (p->unk34.y >= 255.00000715255737) {
+                func_8004AC98_main(D_8010DA30_slot_synch[p->unk26], p->unk01);
+                func_80106D0C_slot_synch(p->unk01, p->unk26 == 3 ? 4 : 3);
+                p->unk34.y = 255.0f;
+                p->unk2C = 20.0f;
+                p->unk2A = 0;
+                p->unk28++;
+            }
+            break;
+        case 1:
+            if (m->unk44 == 0.0f && p->unk2C < 0.0f) {
+                m->unk44 = 1.0f;
+            }
+            if (p->unk01 == 0) {
+                p->unk34.x += 1.4999999664723873;
+            } else {
+                p->unk34.x -= 1.4999999664723873;
+            }
+            p->unk34.z += 10.000000149011612;
+            p->unk34.y += p->unk2C;
+            p->unk2C -= 1.6333001f;
+            if (p->unk34.y <= 0.0f) {
+                pos.x = p->unk34.x;
+                pos.y = p->unk34.y;
+                pos.z = p->unk34.z;
+                func_8010AD68_slot_synch(&pos, NULL, NULL, 1.0f, &D_8010D864_slot_synch);
+                func_8001C624_main(mdl, p->unk0C[p->unk26].unk02, 0, 5, 2);
+                func_80106CCC_slot_synch(p->unk01, D_8010D85C_slot_synch[p->unk26]);
+                p->unk02 = 1;
+                p->unk34.y = 0.0f;
+                p->unk2A = 0;
+                p->unk28++;
+            }
+            break;
+        case 2:
+            if (p->unk2A >= 7.5f) {
+                func_8001C624_main(mdl, p->unk0C[p->unk26].unk04, 0, 5, 2);
+                m->unk44 = D_8010DA20_slot_synch[p->unk26];
+                p->unk30 = 0.0f;
+                p->unk2A = 0;
+                p->unk28++;
+            }
+            break;
+        case 3:
+            p->unk30 += 3.5000000000000004;
+            if (p->unk30 > 15.000000596046448) {
+                p->unk30 = 15.000001f;
+            }
+            if (!(p->unk01 & 1)) {
+                p->unk34.x -= p->unk30;
+                p->unk40.y = func_8010C1C4_slot_synch(-90.0f, p->unk40.y, 15.0f);
+            } else {
+                p->unk34.x += p->unk30;
+                p->unk40.y = func_8010C1C4_slot_synch(90.0f, p->unk40.y, 15.0f);
+            }
+            if (fabs(p->unk34.x) >= 600.0) {
+                p->unk2A = 0;
+                p->unk28 = 0x40;
+            }
+            break;
+        case 0x10:
+            p->unk34.y += 20.000000298023224;
+            if (p->unk34.y >= 205.00000715255737) {
+                pos.x = p->unk34.x;
+                pos.y = p->unk34.y;
+                pos.z = p->unk34.z;
+                vel.z = vel.x = 0.0f;
+                vel.y = 10.0f;
+                func_8010AD68_slot_synch(&pos, &vel, NULL, 1.0f, &D_8010D86C_slot_synch);
+                p->unk34.y = 255.0f;
+                p->unk2C = 20.0f;
+                func_80106D0C_slot_synch(p->unk01, 2);
+                func_80106CCC_slot_synch(p->unk01, 0);
+                p->unk02 = 1;
+                p->unk2A = 0;
+                p->unk28 = 0x40;
+            }
+            break;
+        case 0x40:
+            p->unk00 = 0;
+            p->unk28 = 0;
+            p->unk2A = 0;
+            func_8001C258_main(mdl, 4, 4);
+            break;
+        }
+        Hu3DModelPosSet(mdl, p->unk34.x, p->unk34.y, p->unk34.z);
+        Hu3DModelRotSet(mdl, p->unk40.x, p->unk40.y, p->unk40.z);
+        Hu3DModelScaleSet(mdl, p->unk4C.x, p->unk4C.y, p->unk4C.z);
+        s = 1.0 - p->unk34.y / 765.0000214576721;
+        if (s < 0.5f) {
+            s = 0.5f;
+        }
+        Hu3DModelPosSet(p->unk24, p->unk34.x, 0.0f, p->unk34.z);
+        Hu3DModelScaleSet(p->unk24, s, 1.0f, s);
+        p->unk2A++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80109754_slot_synch);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80109FA4_slot_synch);
 
