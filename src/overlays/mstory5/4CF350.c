@@ -529,7 +529,85 @@ void func_8010734C_mstory5(omObjData *obj, f32 speed, s16 frames) {
     }
 }
 
+// masked 15: retail converts frames again for the loop test (its f20 holds the divisor, then t)
+#ifdef NON_MATCHING
+/* moves obj's model (and its shadow, 5 below it) towards (x, y, z) over `frames` frames: steady
+   for 50 frames, then speeding up; it stops once x has reached the target's */
+void func_801074E8_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames, s32 turn) {
+    Vec start;
+    Vec delta;
+    Vec step;
+    Vec pos;
+    Vec accel;
+    Vec to;
+    s16 model;
+    f32 t;
+    f32 n;
+    f32 sx;
+    f32 sy;
+    f32 sz;
+
+    to.x = x;
+    to.y = y;
+    to.z = z;
+    model = obj->model[1];
+    start.x = HmfModelData[model].pos.x;
+    start.y = HmfModelData[model].pos.y;
+    start.z = HmfModelData[model].pos.z;
+    delta.x = to.x - start.x;
+    delta.y = to.y - start.y;
+    delta.z = to.z - start.z;
+    if (turn) {
+        Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
+    }
+    n = frames;
+    sx = delta.x / n;
+    accel.x = sx / 90.0f;
+    sy = delta.y / n;
+    accel.y = sy / 90.0f;
+    sz = delta.z / n;
+    accel.z = sz / 90.0f;
+    step.x = sx;
+    step.y = sy;
+    step.z = sz;
+    pos.x = start.x;
+    pos.y = start.y;
+    pos.z = start.z;
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        if (t < 50.0f) {
+            pos.x += step.x;
+            pos.y += step.y;
+            pos.z += step.z;
+        } else {
+            pos.x += step.x += accel.x;
+            pos.y += step.y += accel.y;
+            pos.z += step.z += accel.z;
+        }
+        if (pos.x <= to.x) {
+            pos.x = to.x;
+            pos.y = to.y;
+            pos.z = to.z;
+            Hu3DModelPosSet(model, to.x, to.y, to.z);
+            if (obj->model[2] >= 0) {
+                Hu3DModelPosSet(obj->model[2], pos.x, pos.y - 5.0f, pos.z);
+            }
+            break;
+        }
+        Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+        if (obj->model[2] >= 0) {
+            Hu3DModelPosSet(obj->model[2], pos.x, pos.y - 5.0f, pos.z);
+        }
+        HuPrcVSleep();
+    }
+    Hu3DModelPosSet(model, to.x, to.y, to.z);
+    if (obj->model[2] >= 0) {
+        Hu3DModelPosSet(obj->model[2], to.x, to.y - 5.0f, to.z);
+    }
+    HuPrcVSleep();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_801074E8_mstory5);
+#endif
 
 ObPath *func_80107850_mstory5(Vec *points, s16 flags) {
     ObPath *path;
