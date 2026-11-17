@@ -222,6 +222,10 @@ extern s32 D_801105E0_staff[2];  /* shooting star sprite files */
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
+extern s32 D_801105F0_staff[2]; /* func_80109264_staff model files */
+extern Vec D_801105F8_staff[2]; /* their orbit centres */
+extern f32 D_80110610_staff[2]; /* their end angles */
+void func_801091CC_staff(Vec *out, Vec *center, f32 angle);
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -1344,9 +1348,101 @@ void func_8010919C_staff(ObPath *path) {
     HuMemFree(path);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801091CC_staff);
+void func_801091CC_staff(Vec *out, Vec *center, f32 angle) {
+    f32 x;
+    f32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109264_staff);
+    x = cosdf(angle) * 1235.0f;
+    y = sindf(angle) * 880.0f;
+    x += center->x;
+    y += center->y;
+    out->x = x;
+    out->y = y;
+    out->z = center->z;
+}
+
+void func_80109264_staff(void) {
+    f32 angle[2];
+    f32 speed[2];
+    Vec pos;
+    s16 model[2];
+    s16 *stat;
+    s16 prev;
+    s32 i;
+    s16 m;
+    f32 rz;
+
+    rz = 0.0f;
+    stat = HuPrcCurrentGet()->user_data;
+    for (i = 0; i < 2; i++) {
+        m = func_8000B108_main(D_801105F0_staff[i], 0x2A9);
+        model[i] = m;
+        func_8001C814_main(m, -1, 2);
+        angle[i] = 270.0f;
+        func_801091CC_staff(&pos, &D_801105F8_staff[i], 270.0f);
+        Hu3DModelPosSet(m, pos.x, pos.y, pos.z);
+    }
+    func_800461B4_main(m);
+    prev = 0;
+    speed[0] = speed[1] = 0.0f;
+    do {
+        if (prev != *stat) {
+            switch (*stat) {
+            case 1:
+                speed[1] = -3.0f;
+                break;
+            case 2:
+                speed[0] = 3.0f;
+                break;
+            case 3:
+                prev = -1;
+                continue;
+            case 0:
+                break;
+            }
+            prev = *stat;
+        }
+        for (i = 0; i < 2; i++) {
+            if (speed[i] != 0.0f) {
+                angle[i] += speed[i];
+                m = 0;
+                if (speed[i] < 0.0f) {
+                    if (angle[i] <= D_80110610_staff[i]) {
+                        m = 1;
+                    }
+                } else if (angle[i] >= D_80110610_staff[i]) {
+                    m++;
+                }
+                if (m) {
+                    angle[i] = D_80110610_staff[i];
+                    speed[i] = 0.0f;
+                    (*stat)++;
+                }
+                func_801091CC_staff(&pos, &D_801105F8_staff[i], angle[i]);
+                Hu3DModelPosSet(model[i], pos.x, pos.y, pos.z);
+                switch (i) {
+                case 0:
+                    rz = angle[i];
+                    break;
+                case 1:
+                    rz = angle[i] - 180.0f;
+                    break;
+                }
+                Hu3DModelRotSet(model[i], 0.0f, 0.0f, rz);
+            }
+        }
+        HuPrcVSleep();
+    } while (prev >= 0);
+    func_80046558_main(model[1]);
+    func_8001ACDC_main(model[0]);
+    func_8001ACDC_main(model[1]);
+    HuPrcVSleep();
+    *stat = -1;
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801095E4_staff);
 
