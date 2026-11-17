@@ -14,7 +14,7 @@ typedef struct SsPlayer {
     /* 0x04 */ s16 unk04; /* pending result motion: 0 win, 1 lose, -1 none */
     /* 0x06 */ char unk06[2];
     /* 0x08 */ s16 unk08;
-    /* 0x0A */ u16 unk0A; /* frame counter */
+    /* 0x0A */ s16 unk0A; /* frame counter */
     /* 0x0C */ f32 unk0C; /* position */
     /* 0x10 */ f32 unk10;
     /* 0x14 */ f32 unk14;
