@@ -252,3 +252,5 @@ D_8011EDFE_w05 = D_8011EDFC_w05 + 0x2;
 D_8011EE19_w05 = D_8011EE18_w05 + 0x1;
 D_8011EE1A_w05 = D_8011EE18_w05 + 0x2;
 D_8011EF3C_w05 = D_8011EF38_w05 + 0x4;
+/* board dc1: duel05 .data inner label (partner attack effect model ids, s32[2]; asm reads byte +3 at D_801156AF) */
+D_801156B0_duel05 = D_801156AF_duel05 + 0x1;
