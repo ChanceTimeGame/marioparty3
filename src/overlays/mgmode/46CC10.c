@@ -97,7 +97,9 @@ extern void HmfLightStatSet(s16, s16, s16);
 
 void func_8010606C_mgmode(void);
 void func_8010A8E4_mgmode(s32);
-void func_8010AF78_mgmode(Gfx**);
+void func_8010AF78_mgmode(Gfx**, s32, s32);
+void func_8010A62C_mgmode(s32, s16);
+void func_8010A824_mgmode(s32, s16);
 void func_8010AFEC_mgmode(void);
 void func_8010BD28_mgmode(omObjData*);
 extern void func_8010BEC0_mgmode(void);
@@ -1232,7 +1234,7 @@ void func_8010A8E4_mgmode(s32 arg0) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010A8E4_mgmode);
 #endif
 
-void func_8010AF78_mgmode(Gfx** gfx) {
+void func_8010AF78_mgmode(Gfx** gfx, s32 arg1, s32 arg2) {
     if (D_8011B884_mgmode != 0) {
         gDPSetDepthImage((*gfx)++, 0x3D0800);
         gDPSetColorImage((*gfx)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 320, 0x3D0800);
