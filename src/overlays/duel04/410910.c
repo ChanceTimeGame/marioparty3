@@ -253,6 +253,30 @@ void func_800D6CA0_name_81(void *arg0);
 s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
 void func_800ECDE8_name_81(void);
 void func_800ECE10_name_81(void);
+Object *MBDGetPlayerPartnerRef(s32 playerIndex, s32 frontOrBackIndex);
+void func_800DADA0_name_81(s32);
+s32 func_800DB3E0_name_81(s32);
+void *func_800FFC2C_name_81(s16, s16, s32);
+void func_800FFCCC_name_81(void *);
+void Duel_SwapPartnerPositions(s32);
+void func_8010EAF0_duel04(void);
+void func_8010EC0C_duel04(void);
+// board ea3: spin an object's model about Y by ang * 10 degrees (duel05's B4_PARTNER_SPIN)
+#define EA3_SPIN(obj, vel, ang)                                                                                \
+    {                                                                                                          \
+        HmfModel *mdl;                                                                                         \
+        (obj)->velocity.x = (vel);                                                                             \
+        sincosdf((ang) * 10.0f, &HmfModelData[(obj)->omObj1->model[0]].mtx[8],                                 \
+                 &HmfModelData[(obj)->omObj1->model[0]].mtx[10]);                                              \
+        HmfModelData[(obj)->omObj1->model[0]].mtx[2] = -HmfModelData[(obj)->omObj1->model[0]].mtx[8];         \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[0] = mdl->mtx[10];                                                                            \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[1] = mdl->mtx[3] = mdl->mtx[4] = mdl->mtx[6] = mdl->mtx[7] = mdl->mtx[9] = mdl->mtx[11] =     \
+            mdl->mtx[12] = mdl->mtx[13] = mdl->mtx[14] = 0.0f;                                                 \
+        mdl = &HmfModelData[(obj)->omObj1->model[0]];                                                          \
+        mdl->mtx[5] = mdl->mtx[15] = 1.0f;                                                                     \
+    }
 extern s16 D_8011ADBC_duel04[];
 extern s16 D_8011ADC4_duel04[];
 extern s16 D_8011ADCC_duel04[];
@@ -698,7 +722,58 @@ void func_80118850_duel04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118850_duel04);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118D14_duel04);
+void func_80118D14_duel04(void) {
+    GW_PLAYER *player;
+    Object *obj;
+    void *win;
+    f32 angle;
+    s32 cur;
+
+    player = MBDGetPlayerStruct(-1);
+    cur = MBDGetCurrentPlayerIndex();
+    func_800DB3E0_name_81(cur);
+    HuAudFXPlay(0x1EB);
+    func_8010EAF0_duel04();
+    win = func_800FFC2C_name_81(-1, 1, 6);
+    for (angle = 0.0f; angle < 120.0f; angle += 5.0f) {
+        EA3_SPIN(player->player_obj, angle, angle);
+        if (player->stats.prize.gamblePrize != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 0);
+            EA3_SPIN(obj, angle, angle);
+        }
+        if (player->stats.prize.duelNo != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 1);
+            EA3_SPIN(obj, angle, angle);
+        }
+        HuPrcVSleep();
+    }
+    Duel_SwapPartnerPositions(cur);
+    for (angle = 120.0f; angle > 0.0f; angle -= 5.0f) {
+        EA3_SPIN(player->player_obj, angle, angle);
+        if (player->stats.prize.gamblePrize != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 0);
+            EA3_SPIN(obj, angle, angle);
+        }
+        if (player->stats.prize.duelNo != -1) {
+            obj = MBDGetPlayerPartnerRef(cur, 1);
+            EA3_SPIN(obj, angle, angle);
+        }
+        HuPrcVSleep();
+    }
+    func_800FFCCC_name_81(win);
+    /* angle is 0 here: the loop steps from 120 by 5 */
+    EA3_SPIN(player->player_obj, 0.0f, angle);
+    if (player->stats.prize.gamblePrize != -1) {
+        obj = MBDGetPlayerPartnerRef(cur, 0);
+        EA3_SPIN(obj, 0.0f, angle);
+    }
+    if (player->stats.prize.duelNo != -1) {
+        obj = MBDGetPlayerPartnerRef(cur, 1);
+        EA3_SPIN(obj, 0.0f, angle);
+    }
+    func_8010EC0C_duel04();
+    func_800DADA0_name_81(cur);
+}
 
 void func_80119840_duel04(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(-1);
