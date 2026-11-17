@@ -579,21 +579,9 @@ void func_80106878_slot_synch(omObjData* obj) {
     func_8010AA9C_slot_synch(t->unk10, t->unk16);
 }
 
-#ifdef NON_MATCHING
-void func_80106CCC_slot_synch(s16 team, s16 add) {
-    D_8010DF5C_slot_synch[team].unk16 += add;
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CCC_slot_synch);
-#endif
 
-#ifdef NON_MATCHING
-s16 func_80106CF0_slot_synch(s16 team) {
-    return D_8010DF5C_slot_synch[team].unk12;
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CF0_slot_synch);
-#endif
 
 void func_80106D0C_slot_synch(s16 team, s16 kind) {
     SsTeam* t = &D_8010DF5C_slot_synch[team];
@@ -703,25 +691,229 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107D54_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010800C_slot_synch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108238_slot_synch);
+void func_80108238_slot_synch(void) {
+    SsReel* reel;
+    s16 mdl1;
+    s16 mdl0;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108428_slot_synch);
+    mdl1 = -1;
+    mdl0 = -1;
+    reel = D_8010DF7C_slot_synch = HuMemAllocTag(sizeof(SsReel) * 4, 31000);
+    memset(reel, 0, sizeof(SsReel) * 4);
+    for (i = 0; i < 4; i++, reel++) {
+        reel->unk03 = D_8010D9C8_slot_synch[i];
+        if (reel->unk03 == 0) {
+            if (mdl0 == -1) {
+                mdl0 = reel->unk00 = func_8000B108_main(0x350000, 0xB9);
+            } else {
+                reel->unk00 = Hu3DModelLink(mdl0);
+            }
+        } else {
+            if (mdl1 == -1) {
+                mdl1 = reel->unk00 = func_8000B108_main(0x350001, 0xB9);
+            } else {
+                reel->unk00 = Hu3DModelLink(mdl1);
+            }
+        }
+        reel->unk02 = i;
+        reel->unk04 = i % 2;
+        reel->unk0A = 0;
+        reel->unk05 = 0;
+        reel->unk06 = 0;
+        reel->unk0C = 0;
+        reel->unk10 = 0.0f;
+        reel->unk08 = -1;
+        reel->unk14 = 0.0f;
+        reel->unk18 = 0.5f;
+        reel->unk1C = 14.0f;
+        reel->unk20 = -1;
+        reel->unk24.x = D_8010D7F0_slot_synch[i].x;
+        reel->unk24.z = D_8010D7F0_slot_synch[i].z;
+        reel->unk24.y = 280.0f;
+        reel->unk30.x = 0.0f;
+        reel->unk30.z = reel->unk30.y = 0.0f;
+    }
+    omAddObj(0x1A, 0, 0, -1, func_80108428_slot_synch);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108848_slot_synch);
+void func_80108428_slot_synch(omObjData* obj) {
+    SsReel* reel;
+    Vec pos;
+    f32 a;
+    s16 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801089F8_slot_synch);
+    reel = D_8010DF7C_slot_synch;
+    for (i = 0; i < 4; i++) {
+        switch (reel->unk0C) {
+        case 0:
+        case 2:
+        case 5:
+            break;
+        case 1:
+            reel->unk14 += reel->unk18;
+            if (reel->unk14 >= reel->unk1C) {
+                reel->unk14 = reel->unk1C;
+                reel->unk0C = 2;
+                reel->unk0A = 0;
+            }
+            break;
+        case 3:
+            reel->unk24.y += reel->unk10;
+            reel->unk10 -= 6.0;
+            if (reel->unk24.y <= 280.0) {
+                reel->unk24.y = 280.0f;
+                reel->unk0A = 0;
+                reel->unk0C = 0;
+            }
+            break;
+        case 4:
+            func_8001C258_main(reel->unk00, 4, 4);
+            pos.x = reel->unk24.x;
+            pos.y = reel->unk24.y;
+            pos.z = reel->unk24.z;
+            func_8010AD68_slot_synch(&pos, 0, 0, 1.0f, &D_8010D86C_slot_synch);
+            reel->unk0C = 5;
+            break;
+        }
+        a = reel->unk30.x + 45.0f;
+        if (a > 360.0f) {
+            a -= 360.0f;
+        } else if (a < 0.0f) {
+            a += 360.0f;
+        }
+        reel->unk05 = a / 90.0f;
+        if (reel->unk05 >= 4) {
+            reel->unk05 -= 4;
+        }
+        reel->unk06 = func_80108C88_slot_synch(reel->unk02, reel->unk05);
+        reel->unk30.x += reel->unk14;
+        if (reel->unk30.x >= 360.0f) {
+            reel->unk30.x -= 360.0f;
+        }
+        if (func_80108848_slot_synch(reel->unk02) != -1 && (reel->unk0C == 1 || reel->unk0C == 2)) {
+            func_8004AC98_main(0x38E, i);
+            reel->unk14 = 0.0f;
+            if (reel->unk08 == -1) {
+                reel->unk30.x = D_8010D840_slot_synch[reel->unk05];
+            } else {
+                for (j = 0; j < 4; j++) {
+                    reel->unk30.x = j * 90;
+                    a = reel->unk30.x + 45.0f;
+                    if (a > 360.0f) {
+                        a -= 360.0f;
+                    } else if (a < 0.0f) {
+                        a += 360.0f;
+                    }
+                    reel->unk05 = a / 90.0f;
+                    if (reel->unk05 >= 4) {
+                        reel->unk05 -= 4;
+                    }
+                    reel->unk06 = func_80108C88_slot_synch(reel->unk02, reel->unk05);
+                    if (reel->unk06 == reel->unk08) {
+                        break;
+                    }
+                }
+            }
+            reel->unk24.y = 340.0f;
+            reel->unk10 = 0.0f;
+            reel->unk08 = -1;
+            reel->unk0A = 0;
+            reel->unk0C = 3;
+        }
+        Hu3DModelPosSet(reel->unk00, reel->unk24.x, reel->unk24.y, reel->unk24.z);
+        Hu3DModelRotSet(reel->unk00, reel->unk30.x, reel->unk30.y, reel->unk30.z);
+        reel->unk0A++;
+        reel++;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108A7C_slot_synch);
+s16 func_80108848_slot_synch(s16 idx) {
+    SsReel* reel;
+    omObjData* o;
+    func_800E1BA8_minigame_ObjData* w;
+    SsPlayer* pl;
+    f32 h;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108AA8_slot_synch);
+    reel = &D_8010DF7C_slot_synch[idx];
+    for (i = 0; i < 4; i++) {
+        o = D_800EC598_minigame[i];
+        w = o->data;
+        pl = func_8010C428_slot_synch(o);
+        if (fabs(o->trans.x - reel->unk24.x) > 50.0 || fabs(o->trans.x - reel->unk24.x) > 50.0) {
+            continue;
+        }
+        if (reel->unk0C == 1 || reel->unk0C == 2) {
+            h = D_8010D9D0_slot_synch[pl->unk20];
+        } else {
+            h = D_8010D9D0_slot_synch[pl->unk20] + 50.0;
+        }
+        if (reel->unk24.y <= h + o->trans.y && h + pl->unk10 <= reel->unk24.y) {
+            o->trans.y = reel->unk24.y - D_8010D9D0_slot_synch[pl->unk20] * 1.1;
+            w->unk38 = 0.0f;
+            return i;
+        }
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108B74_slot_synch);
+void func_801089F8_slot_synch(s16 idx) {
+    SsReel* reel = &D_8010DF7C_slot_synch[idx];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108C88_slot_synch);
+    if (func_80108A7C_slot_synch(idx) != 0) {
+        reel->unk1C = func_8010C384_slot_synch(D_8010DF50_slot_synch / 900.0f, 30.0f, 14.0f);
+        reel->unk0C = 1;
+        reel->unk0A = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108CD0_slot_synch);
+s16 func_80108A7C_slot_synch(s16 idx) {
+    SsReel* reel = &D_8010DF7C_slot_synch[idx];
+    return reel->unk0C == 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108D14_slot_synch);
+s16 func_80108AA8_slot_synch(s16 idx) {
+    f32 a = D_8010DF7C_slot_synch[idx].unk30.x + 45.0f;
+
+    if (a > 360.0f) {
+        a -= 360.0f;
+    } else if (a < 0.0f) {
+        a += 360.0f;
+    }
+    return func_80108C88_slot_synch(idx, a / 90.0f);
+}
+
+s16 func_80108B74_slot_synch(s16 idx, s16 steps) {
+    SsReel* reel = &D_8010DF7C_slot_synch[idx];
+    f32 a = steps * reel->unk14 + reel->unk30.x + 45.0f;
+
+    while (a > 360.0f) {
+        a -= 360.0f;
+    }
+    while (a < 0.0f) {
+        a += 360.0f;
+    }
+    return func_80108C88_slot_synch(idx, a / 90.0f);
+}
+
+u8 func_80108C88_slot_synch(s16 idx, s16 face) {
+    return D_8010D854_slot_synch[D_8010DF7C_slot_synch[idx].unk03][face];
+}
+
+void func_80108CD0_slot_synch(s16 idx) {
+    SsReel* reel = &D_8010DF7C_slot_synch[idx];
+
+    if (reel->unk0C != 4 && reel->unk0C != 5) {
+        reel->unk0C = 4;
+        reel->unk0A = 0;
+    }
+}
+
+void func_80108D14_slot_synch(s16 idx, s16 sym) {
+    D_8010DF7C_slot_synch[idx].unk08 = sym;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80108D3C_slot_synch);
 
