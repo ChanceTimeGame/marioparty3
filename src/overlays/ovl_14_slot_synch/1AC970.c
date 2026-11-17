@@ -128,9 +128,21 @@ typedef struct SsEffect {
     /* 0x28 */ Vec scale;
 } SsEffect; // Size 0x34
 
+typedef struct SsCamera {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} SsCamera; // Size 0x24
+
 extern Vec D_8010D820_slot_synch[];
 extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
+extern s32 D_8010DA60_slot_synch;
+extern s32 D_8010DA64_slot_synch;
+extern s32 D_8010DA68_slot_synch;
+extern s32 fontcolor;
 extern s32 D_8010DFE8_slot_synch;
 extern s32 D_8010DFEC_slot_synch;
 extern s32 D_8010DFF0_slot_synch;
@@ -150,6 +162,7 @@ s16 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
 s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
 void func_8010B754_slot_synch(omObjData *obj);
 void func_8010BB90_slot_synch(s32 idx);
+void func_8010BD7C_slot_synch(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
 void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
 // <func_80109FA4_slot_synch>
@@ -535,9 +548,112 @@ void func_8010AF38_slot_synch(void) {
 }
 // </func_8010AF38_slot_synch>
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", D_8010DD28_slot_synch);
+// <func_8010B064_slot_synch>
+void func_8010B064_slot_synch(void) {
+    SsCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
+    f32 speed = 1.0f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010B064_slot_synch);
+    switch (D_8010DA60_slot_synch) {
+        case 1:
+            if ((u16)D_800CDA7C_main[0] & 0x8000) {
+                speed = 8.0f;
+            }
+            if (D_800CDA7C_main[0] & 0x4000) {
+                speed = 0.5f;
+            }
+            if (D_800D5558_main[0] & 0x1000) {
+                Center.x = 0.0f;
+                Center.y = 191.2f;
+                Center.z = 0.2f;
+                CRot.x = -14.5f;
+                CRot.y = 0.0f;
+                CRot.z = 0.0f;
+                CZoom = 1069.0f;
+            } else {
+                c.rot.x = (f32)D_800D20A1_main[0] * 0.125 * speed;
+                c.rot.y = (f32)D_800CBB6E_main[0] * 0.125 * speed;
+                if (D_800CDA7C_main[0] & 0x200) {
+                    c.center.x = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 0x100) {
+                    c.center.x = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x800) {
+                    c.center.z = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x400) {
+                    c.center.z = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 8) {
+                    c.center.y = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 4) {
+                    c.center.y = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 1) {
+                    c.zoom = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 2) {
+                    c.zoom = -(2.0 * speed);
+                }
+                c.center.x += Center.x;
+                c.center.y += Center.y;
+                c.center.z += Center.z;
+                c.rot.x += CRot.x;
+                c.rot.y += CRot.y;
+                c.rot.z += CRot.z;
+                c.zoom += CZoom;
+                func_8010BD7C_slot_synch(c.center.x, c.center.y, c.center.z, c.rot.x, c.rot.y, c.rot.z, c.zoom, 1);
+            }
+            sprintf(D_800D5218_main, "CAMERA TEST_MODE");
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 80, D_800D5218_main);
+            sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 88, D_800D5218_main);
+            sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 96, D_800D5218_main);
+            sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 104, D_800D5218_main);
+            break;
+        case 2:
+            if ((D_800CDA7C_main[0] & 0x100) || (D_800CDA7C_main[0] & 1)) {
+                D_8010DA64_slot_synch++;
+            }
+            if (D_800CDA7C_main[0] & 0x202) {
+                D_8010DA64_slot_synch--;
+            }
+            if (D_800CDA7C_main[0] & 0x404) {
+                D_8010DA68_slot_synch++;
+            }
+            if (D_800CDA7C_main[0] & 0x808) {
+                D_8010DA68_slot_synch--;
+            }
+            fontcolor = 8;
+            sprintf(D_800D5218_main, "CAMERA TEST_MODE ");
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 80, D_800D5218_main);
+            sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 88, D_800D5218_main);
+            sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 96, D_800D5218_main);
+            sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+            print8((u16)D_8010DA64_slot_synch + 20, (u16)D_8010DA68_slot_synch + 104, D_800D5218_main);
+            break;
+        case 3:
+            D_8010DA60_slot_synch = 0;
+            break;
+    }
+    if (D_800D5558_main[0] & 0x10) {
+        if (D_8010DA60_slot_synch == 1) {
+            osSyncPrintf("CAMERA TEST_MODE \n");
+            osSyncPrintf(" CENTER X>%3.3f Y>%3.3f Z>%3.3f \n", Center.x, Center.y, Center.z);
+            osSyncPrintf(" ROT    X>%3.3f Y>%3.3f Z>%3.3f \n", CRot.x, CRot.y, CRot.z);
+            osSyncPrintf(" ZOOM   %3.3f \n\n", CZoom);
+        }
+        if (D_8010DA60_slot_synch++ >= 4) {
+            D_8010DA60_slot_synch = 0;
+        }
+    }
+}
+// </func_8010B064_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010B754_slot_synch);
 
