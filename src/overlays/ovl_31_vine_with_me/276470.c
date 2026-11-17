@@ -819,7 +819,227 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_31_vine_with_me/276470", D_8011203
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_31_vine_with_me/276470", D_80112040_vine_with_me);
 
 // https://decomp.me/scratch/mEGSE
+// m1 lf1: draws the vine layers (tiled CI textures scrolled by D_801155D8) and the two
+// players' end tiles. Layer arrays are indexed by layer (4); the per-player ones by side (2).
+#ifdef NON_MATCHING
+void func_801087BC_vine_with_me(void) {
+    s32 width[4] = { 150, 150, 150, 80 };
+    s32 height[4] = { 100, 100, 119, 119 };
+    s32 stride[4] = { 150, 150, 150, 144 };
+    s32 scrollIdx[4] = { 0, 0, 1, 2 };
+    s32 yOfs[4] = { 19, 19, 0, 0 };
+    s32 rows[4] = { 12, 12, 12, 15 };
+    s32 loads[4] = { 9, 9, 10, 8 };
+    s32 endFlag[2] = { 0 };
+    f32 xOfs[2][4] = { { 0.0f, 0.0f, 0.0f, 12.0f }, { 0.0f, 0.0f, 0.0f, 12.0f } };
+    f32 speed[4] = { 0.05f, 0.05f, 0.1f, 0.16f };
+    s32 sprIdx[4] = { 2, 4, 1, 0 };
+    HuSprite_Unk84_Unk00_Struct *frame;
+    HuSprite *spr;
+    s16 pass;
+    s16 layer;
+    s16 load;
+    s16 side;
+    s16 col;
+    s32 lo;
+    s32 hi;
+    s32 x;
+    s32 s;
+    s32 dsdx;
+    s32 a;
+
+    for (layer = 0; layer < 4; layer++) {
+        for (side = 0; side < 2; side++) {
+            if (layer != 1) {
+                if (D_801155D8_vine_with_me[side][scrollIdx[layer]] > (f32)stride[layer] / speed[layer]) {
+                    D_801155D8_vine_with_me[side][scrollIdx[layer]] -= (f32)stride[layer] / speed[layer];
+                    D_801155A4_vine_with_me[side] += (layer == 3);
+                    D_8011554C_vine_with_me[side] += (layer == 0);
+                }
+                if (D_801155D8_vine_with_me[side][scrollIdx[layer]] < 0.0) {
+                    D_801155D8_vine_with_me[side][scrollIdx[layer]] += (f32)stride[layer] / speed[layer];
+                    D_801155A4_vine_with_me[side] -= (layer == 3);
+                    D_8011554C_vine_with_me[side] -= (layer == 0);
+                }
+            }
+            xOfs[side][layer] -= D_801155D8_vine_with_me[side][scrollIdx[layer]] * speed[layer];
+        }
+    }
+    gSPDisplayList(gMainGfxPos++, D_80111B98_vine_with_me);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+    for (layer = 0, pass = 0; layer < 4; layer++, pass++) {
+        /* layer 0 is drawn twice: alternate tiles, the second pass with sprite 3 */
+        if ((layer != 0) | (pass != 1)) {
+            spr = HuSprGet(D_800CD1DC_main[D_80115640_vine_with_me.unk00[sprIdx[layer]]].unk04, 0);
+        } else {
+            spr = HuSprGet(D_800CD1DC_main[D_80115640_vine_with_me.unk00[3]].unk04, 0);
+        }
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        if (layer != 20) {
+            gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        } else {
+            gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        }
+        for (load = 0; load < loads[layer]; load++) {
+            if (layer != 20) {
+                gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, width[layer], 0, 0,
+                                   load * rows[layer], width[layer], load * rows[layer] + rows[layer], 0,
+                                   G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                                   G_TX_NOLOD, G_TX_NOLOD);
+            } else {
+                gDPLoadTextureTile_4b(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, width[layer], 0, 0,
+                                      load * rows[layer], width[layer], load * rows[layer] + rows[layer], 0,
+                                      G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                                      G_TX_NOLOD, G_TX_NOLOD);
+            }
+            for (side = 0; side < 2; side++) {
+                lo = load * rows[layer];
+                if (height[layer] < lo) {
+                    continue;
+                }
+                hi = lo + rows[layer] + 1;
+                if (height[layer] < hi) {
+                    hi = height[layer];
+                }
+                for (col = 0; col < 4; col++) {
+                    if (layer == 0) {
+                        if (col + D_8011554C_vine_with_me[side] >= 3) {
+                            continue;
+                        }
+                        if (!((col + pass + D_8011554C_vine_with_me[side] + 16) & 1)) {
+                            continue;
+                        }
+                    } else if (layer == 1) {
+                        if (col + D_8011554C_vine_with_me[side] < 3) {
+                            continue;
+                        }
+                    }
+                    if (layer == 3) {
+                        a = col + D_801155A4_vine_with_me[side];
+                        if ((a == 0) | (a == 8)) {
+                            endFlag[side] = (a == 8) ? 2 : 1;
+                            continue;
+                        }
+                    }
+                    if ((s32)((col * stride[layer] * 4 + (s32)(xOfs[side][layer] * 4.0f)) * D_80115604_vine_with_me +
+                              D_80115608_vine_with_me) >= 0xA00) {
+                        continue;
+                    }
+                    if ((s32)((lo + yOfs[layer] + side * 0x79) * 4 * D_80115604_vine_with_me +
+                              D_80115638_vine_with_me) >= 0x780) {
+                        continue;
+                    }
+                    gSPScisTextureRectangle(
+                        gMainGfxPos++,
+                        (s32)((col * stride[layer] * 4 + (s32)(xOfs[side][layer] * 4.0f)) * D_80115604_vine_with_me +
+                              D_80115608_vine_with_me),
+                        (s32)((lo + yOfs[layer] + side * 0x79) * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me),
+                        (s32)(((col * stride[layer] + width[layer]) * 4 + (s32)(xOfs[side][layer] * 4.0f)) *
+                                  D_80115604_vine_with_me +
+                              D_80115608_vine_with_me),
+                        (s32)((hi + yOfs[layer] + side * 0x79) * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me),
+                        0, 0, (load * rows[layer]) << 5, (s32)(D_80115558_vine_with_me * 1024.0f),
+                        (s32)(D_80115558_vine_with_me * 1024.0f));
+                }
+            }
+        }
+        if ((layer == 0) & (pass == 0)) {
+            layer--;
+        } else if (layer == 1) {
+            gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+            gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0xE0);
+        }
+    }
+    /* the end tiles, mirrored on the right edge (endFlag 2) */
+    if ((endFlag[0] != 0) || (endFlag[1] != 0)) {
+        spr = HuSprGet(D_800CD1DC_main[D_80115640_vine_with_me.unk00[14]].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        for (load = 0; load < loads[3]; load++) {
+            gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 54, 0, 0, load * rows[3], 54,
+                               load * rows[3] + rows[3], 0, G_TX_MIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
+                               G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            for (side = 0; side < 2; side++) {
+                lo = load * rows[3];
+                if (height[3] < lo) {
+                    continue;
+                }
+                hi = lo + rows[3] + 1;
+                if (height[3] < hi) {
+                    hi = height[3];
+                }
+                for (col = 0; col < 4; col++) {
+                    a = col + D_801155A4_vine_with_me[side];
+                    if (!((a == 0) | (a == 8))) {
+                        continue;
+                    }
+                    s = 0x36;
+                    if (endFlag[side] == 1) {
+                        s = 0;
+                        dsdx = 0x400;
+                    } else {
+                        dsdx = -0x400;
+                    }
+#define END_X (col * stride[3] + 10 + ((endFlag[side] == 1) ? -12 : 0))
+#define END_XOFS ((s32)(xOfs[side][3] * 4.0f))
+#define END_Y(v) (((v) + yOfs[3] + side * 0x7D) - 2)
+                    if ((s32)((END_X * 4 + END_XOFS) * D_80115604_vine_with_me + D_80115608_vine_with_me) < 0xA00) {
+                        if ((s32)(END_Y(lo) * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me) < 0x780) {
+                            gSPScisTextureRectangle(
+                                gMainGfxPos++,
+                                (s32)(((END_X + ((endFlag[side] == 1) ? 0 : 1)) * 4 + END_XOFS) * D_80115604_vine_with_me +
+                                      D_80115608_vine_with_me),
+                                (s32)(END_Y(lo) * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me),
+                                (s32)(((END_X + ((endFlag[side] == 1) ? 0x36 : 0x37)) * 4 + END_XOFS) *
+                                          D_80115604_vine_with_me +
+                                      D_80115608_vine_with_me),
+                                (s32)(END_Y(hi) * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me), 0, s << 5,
+                                (load * rows[3]) << 5, (s32)(dsdx * D_80115558_vine_with_me),
+                                (s32)(D_80115558_vine_with_me * 1024.0f));
+                        }
+                    }
+#undef END_X
+#undef END_XOFS
+#undef END_Y
+                }
+            }
+        }
+    }
+    if ((D_8011563C_vine_with_me < 3) || (D_8011558C_vine_with_me >= 2)) {
+        spr = HuSprGet(D_800CD1DC_main[D_80115640_vine_with_me.unk00[15]].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        gDPSetTextureLUT(gMainGfxPos++, G_TT_NONE);
+        for (load = 0; load < 4; load++) {
+            gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 0, 0, load * 8, 64,
+                               load * 8 + 8 + (load != 3), 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
+                               G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            for (side = 0; side < 2; side++) {
+                if (D_801155A4_vine_with_me[side] < 5) {
+                    continue;
+                }
+                x = ((-D_801155A4_vine_with_me[side] + 7) * stride[3] + 0x79) * 4 + (s32)(xOfs[side][3] * 4.0);
+                if ((s32)(x * D_80115604_vine_with_me + D_80115608_vine_with_me) >= 0xA00) {
+                    continue;
+                }
+#define TOP_Y (side * 0x7D + 0x39 + (load * 8 - 2))
+                if ((s32)(TOP_Y * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me) >= 0x780) {
+                    continue;
+                }
+                gSPScisTextureRectangle(gMainGfxPos++, (s32)(x * D_80115604_vine_with_me + D_80115608_vine_with_me),
+                                        (s32)(TOP_Y * 4 * D_80115604_vine_with_me + D_80115638_vine_with_me),
+                                        (s32)((x + 0xFC) * D_80115604_vine_with_me + D_80115608_vine_with_me),
+                                        (s32)((TOP_Y + 7 + (load != 3)) * 4 * D_80115604_vine_with_me +
+                                              D_80115638_vine_with_me),
+                                        0, 0, load << 8, (s32)(D_80115558_vine_with_me * 1024.0f),
+                                        (s32)(D_80115558_vine_with_me * 1024.0f));
+#undef TOP_Y
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_31_vine_with_me/276470", func_801087BC_vine_with_me);
+#endif
 
 // TODO: only works with -Wa,--vr4300mul-off.
 #ifdef NON_MATCHING

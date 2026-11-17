@@ -2137,7 +2137,7 @@ segments:
     subsegments:
       - [0x4684F0, c]
       - [0x468520, c]
-      - [0x468A70, data, 4684F0] #80105F20
+      - [0x468A70, .data, 4684F0] #80105F20
       - {0x468A90, type: bss, vram: 0x80105F40, name: slerror_bss}
 
   - type: code
@@ -2426,7 +2426,7 @@ segments:
     bss_size: 0x1D0
     subsegments:
       - [0x4F69F0, c]
-      - [0x4F7550, data, 4F69F0] #80106500
+      - [0x4F7550, .data, 4F69F0] #80106500
       - [0x4F7A30, .rodata, 4F69F0] #801069E0
       - {0x4F7E90, type: bss, vram: 0x80106E40, name: meschk_bss}
 
