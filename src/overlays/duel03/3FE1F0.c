@@ -252,6 +252,31 @@ void func_800F7378_name_81(s32, s32);
 void func_800FD620_name_81(void);
 void *func_800FFC2C_name_81(s16, s16, s32);
 void func_800FFCCC_name_81(void *);
+// board db3: the board's pipes (func_80116000_duel03 and the four space events)
+UnkEA790Struct *func_800D76A0_name_81(s16 arg0, s16 *arg1);
+s32 func_800D742C_name_81(UnkEA790Struct *arg0, s16 playerNo, s32 arg2);
+s32 func_800D7250_name_81(UnkEA790Struct *arg0, s32 arg1);
+s32 func_800D7518_name_81(UnkEA790Struct *arg0);
+void func_800D6CA0_name_81(void *arg0);
+s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
+void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
+void func_800E890C_name_81(Vec *pos, s32 arg1);
+void func_800EB7BC_name_81(Vec *out);
+void func_80105A58_duel03(void);
+void func_80105B10_duel03(void);
+void func_80116000_duel03(s16 masu);
+extern s16 D_80117A44_duel03[];
+extern s16 D_80117A5C_duel03[];
+extern s16 D_80117A74_duel03[];
+extern s16 D_80117A8C_duel03[];
+extern DecisionTreeNonLeafNode D_80117734_duel03[];
+extern DecisionTreeNonLeafNode D_80117824_duel03[];
+extern DecisionTreeNonLeafNode D_80117914_duel03[];
+extern DecisionTreeNonLeafNode D_80117A04_duel03[];
+extern s16 D_80117A34_duel03[4]; /* pipe spaces */
+extern s16 D_80117A3C_duel03[4]; /* the space each pipe lets out on */
+extern Object *D_801180F8_duel03[4]; /* the pipes' objects (bss) */
+
 // board db3 (duel01 b4 copy): spin the partner's model about Y by ang * 10 degrees (the model matrix is rebuilt as a pure Y rotation)
 #define DB3_PARTNER_SPIN(obj, vel, ang)                                                                         \
     {                                                                                                          \
@@ -284,7 +309,7 @@ void func_80111C30_duel03(void) {
     GW_SYSTEM *system = &GwSystem;
 
     player = MBDGetPlayerStruct(-1);
-    space = MBDMasuGet(0x1D);
+    space = MBDMasuGet(0x1A);
     func_800DB3E0_name_81(system->current_player_index);
     func_800F38DC_name_81(-1, -1, 2);
     HuPrcChildLink(HuPrcCurrentGet(), MBDCameraZoomMotStart(2.0f));
@@ -772,13 +797,130 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80115B18_duel03);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116000_duel03);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116C54_duel03);
+// board db3: a pipe space: the CPU decision tree (or the player) chooses whether to take the pipe
+void func_80116C54_duel03(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116D84_duel03);
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 6) {
+        func_800F38DC_name_81(-1, -1, 2);
+        HuPrcVSleep();
+        func_80105A58_duel03();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80117A44_duel03);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80117734_duel03);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel03();
+        if (result != 0) {
+            func_80116000_duel03(0x19);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116EB4_duel03);
+// board db3: the pipe at space 0x1B
+void func_80116D84_duel03(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80116FE4_duel03);
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 2) {
+        func_800F38DC_name_81(-1, -1, 2);
+        HuPrcVSleep();
+        func_80105A58_duel03();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80117A5C_duel03);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80117824_duel03);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel03();
+        if (result != 0) {
+            func_80116000_duel03(0x1B);
+        }
+    }
+}
+
+// board db3: the pipe at space 0x20
+void func_80116EB4_duel03(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
+
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 0xF) {
+        func_800F38DC_name_81(-1, -1, 2);
+        HuPrcVSleep();
+        func_80105A58_duel03();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80117A74_duel03);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80117914_duel03);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel03();
+        if (result != 0) {
+            func_80116000_duel03(0x20);
+        }
+    }
+}
+
+// board db3: the pipe at space 0x21
+void func_80116FE4_duel03(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
+
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 0xB) {
+        func_800F38DC_name_81(-1, -1, 2);
+        func_800ECD88_name_81(-1, 0, 0);
+        HuPrcVSleep();
+        func_80105A58_duel03();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80117A8C_duel03);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80117A04_duel03);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel03();
+        if (result != 0) {
+            func_80116000_duel03(0x21);
+        }
+    }
+}
 
 void func_80117124_duel03(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
@@ -808,7 +950,25 @@ void func_80117210_duel03(void) {
 void func_8011725C_duel03(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80117264_duel03);
+// board db3: -1 unless the current player's next space is the other player's space; then the current player's direction bit
+s32 func_80117264_duel03(void) {
+    GW_PLAYER *player;
+    GW_PLAYER *other;
+    s32 otherNo;
+    s32 cur;
+
+    cur = GwSystem.current_player_index;
+    otherNo = (cur + 1) & 1;
+    player = MBDGetPlayerStruct(cur);
+    other = MBDGetPlayerStruct(otherNo);
+    if (player->nlink != other->clink) {
+        return -1;
+    }
+    if (player->nidx != other->cidx) {
+        return -1;
+    }
+    return player->rev & 1;
+}
 
 void func_801172D4_duel03(void) {
     s8 linkIdx[2]; // link, index
@@ -834,4 +994,5 @@ void func_801172D4_duel03(void) {
     func_800E27D4_name_81(playerNo, &pos[0], &pos[1], &pos[2]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_801173F0_duel03);
+void func_801173F0_duel03(void) {
+}
