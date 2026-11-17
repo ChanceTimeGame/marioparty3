@@ -888,13 +888,117 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_80114C9C_mstory5);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_80114CA8_mstory5);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F14C_mstory5);
+/* starts actor's looping sound effect (replayed by func_8010F2BC_mstory5 each motion loop) */
+void func_8010F14C_mstory5(u32 actor, s32 fx) {
+    if (D_801151F0_mstory5[actor].unk0C == 0) {
+        D_801151F0_mstory5[actor].unk0C = 1;
+        D_801151F0_mstory5[actor].unk10 = fx;
+        switch (actor) {
+        case 0:
+            D_801151F0_mstory5[actor].unk14 = CharFXPlay(fx, GwStory.unk1);
+            break;
+        case 2:
+            if (func_80106B30_mstory5(0) == 0) {
+                D_801151F0_mstory5[actor].unk14 = CharFXPlay(fx, 0);
+            } else {
+                D_801151F0_mstory5[actor].unk14 = CharFXPlay(fx, 1);
+            }
+            break;
+        case 3:
+            D_801151F0_mstory5[actor].unk14 = CharFXPlay(fx, 7);
+            break;
+        case 1:
+        case 4:
+        case 5:
+        case 6:
+            break;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F240_mstory5);
+void func_8010F240_mstory5(u32 actor) {
+    if (D_801151F0_mstory5[actor].unk0C == 1) {
+        D_801151F0_mstory5[actor].unk0C = 0;
+        switch (actor) {
+        case 0:
+        case 2:
+        case 3:
+            HuAudFXStop((s16)D_801151F0_mstory5[actor].unk14);
+            break;
+        case 1:
+        case 4:
+        case 5:
+        case 6:
+            break;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F2BC_mstory5);
+/* replays each actor's looping sound effect when its motion starts over */
+void func_8010F2BC_mstory5(void) {
+    s32 i;
+    s32 fx;
 
+    while (TRUE) {
+        for (i = 0; i < 9; i++) {
+            if (D_801151F0_mstory5[i].unk0C == 1 && HmfModelData[D_801151F0_mstory5[i].obj->model[1]].unk40 == 0.0f) {
+                fx = D_801151F0_mstory5[i].unk10;
+                switch ((u32)i) {
+                case 0:
+                    D_801151F0_mstory5[i].unk14 = CharFXPlay(fx, GwStory.unk1);
+                    break;
+                case 2:
+                    if (func_80106B30_mstory5(0) == 0) {
+                        D_801151F0_mstory5[i].unk14 = CharFXPlay(fx, 0);
+                    } else {
+                        D_801151F0_mstory5[i].unk14 = CharFXPlay(fx, 1);
+                    }
+                    break;
+                case 3:
+                    D_801151F0_mstory5[i].unk14 = CharFXPlay(fx, 7);
+                    break;
+                case 1:
+                case 4:
+                case 5:
+                case 6:
+                    break;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+
+/* while actor 3's sound plays, pans it across over 180 frames.
+   Matches (masked 0), but retail pads .text to 16 after it with a nop: a source file ends here.
+   The asm (which carries the nop) stays until the unit is split at func_8010F4D0_mstory5. */
+#ifdef NON_MATCHING
+void func_8010F41C_mstory5(omObjData *obj) {
+    f32 pan;
+    f32 step;
+    s32 i;
+
+    step = 0.35f;
+    pan = 0.0f;
+    if (D_801151F0_mstory5[3].unk0C == 1) {
+        i = 0;
+        do {
+            func_8004AAD0_main(D_801151F0_mstory5[3].unk14, (s32)pan + 64);
+            pan += step;
+            HuPrcVSleep();
+            i++;
+        } while (i < 180);
+        func_8004AAD0_main(D_801151F0_mstory5[3].unk14, 127);
+    }
+    D_801152C8_mstory5[1].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F41C_mstory5);
+#endif
+
+/* retail .rodata padding to 16 bytes after func_8010F2BC_mstory5's jump table: the source file ends here
+   (the next one starts at func_8010F4D0_mstory5); drop it when the unit is split */
+const s32 D_80114D14_mstory5[3] = { 0, 0, 0 };
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010F4D0_mstory5);
 
