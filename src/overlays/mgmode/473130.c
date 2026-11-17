@@ -785,6 +785,8 @@ void func_8010E40C_mgmode(void) {
     }
 }
 
+/* NON_MATCHING: masked 0; register allocation only (n in t1 for t0, g's zero not copied from k's). */
+#ifdef NON_MATCHING
 void func_8010E494_mgmode(s16 mode) {
     Vec pos[4];
     s16 grp[4];
@@ -800,8 +802,8 @@ void func_8010E494_mgmode(s16 mode) {
     for (i = 0; i < n; i++) {
         grp[i] = D_800D1F20_main[i];
     }
-    k = 0;
-    for (g = 0; g < n || k < n; g++) {
+    g = k = 0;
+    for (; g < n || k < n; g++) {
         for (i = 0; i < n; i++) {
             if (g == grp[i]) {
                 pos[i].x = k * 80 - 122;
@@ -819,6 +821,9 @@ void func_8010E494_mgmode(s16 mode) {
         Hu3DModelPosSet(D_8011B8E8_mgmode[i], pos[i].x, pos[i].y, pos[i].z);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E494_mgmode);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E6F0_mgmode);
 
