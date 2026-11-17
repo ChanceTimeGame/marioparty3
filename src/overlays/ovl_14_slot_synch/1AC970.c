@@ -918,9 +918,91 @@ void func_80107BAC_slot_synch(void) {
     D_8010DF70_slot_synch.unk00->func = func_80107D54_slot_synch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107D54_slot_synch);
+void func_80107D54_slot_synch(omObjData* obj) {
+    SsSpr* spr;
+    f32 s;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010800C_slot_synch);
+    spr = D_8010DF70_slot_synch.unk08;
+    for (i = 0; i < D_8010DF70_slot_synch.unk06; i++, spr++) {
+        spr->unk1C.x = spr->unk24.x;
+        spr->unk1C.y = spr->unk24.y;
+        switch (spr->unk08) {
+        case 1:
+            if (spr->unk0B != 0) {
+                spr->unk0B--;
+                spr->unk04 = 0;
+            } else {
+                if (spr->unk0A & 0x80) {
+                    spr->unk0A++;
+                    if ((spr->unk0A & 0x7F) >= 2) {
+                        spr->unk0A = 2;
+                    }
+                } else {
+                    spr->unk0A--;
+                    if (!(spr->unk0A & 0x7F)) {
+                        spr->unk0A = 0x80;
+                    }
+                }
+                func_80054FF8_main(D_8010DF70_slot_synch.unk04, spr->unk00, (s16)(spr->unk0A & 2));
+                s = sindf(spr->unk04 * 25);
+                spr->unk24.x = spr->unk14.x;
+                spr->unk24.y = spr->unk14.y - fabs(s) * spr->unk10;
+                spr->unk09 = 1;
+                if (spr->unk04 >= spr->unk0C) {
+                    spr->unk04 = 0;
+                    spr->unk08++;
+                }
+            }
+            break;
+        case 2:
+            if (spr->unk24.y < spr->unk14.y - 1.0f) {
+                if (spr->unk0A & 0x80) {
+                    spr->unk0A++;
+                    if ((spr->unk0A & 0x7F) >= 2) {
+                        spr->unk0A = 2;
+                    }
+                } else {
+                    spr->unk0A--;
+                    if (!(spr->unk0A & 0x7F)) {
+                        spr->unk0A = 0x80;
+                    }
+                }
+                func_80054FF8_main(D_8010DF70_slot_synch.unk04, spr->unk00, (s16)(spr->unk0A & 2));
+                spr->unk24.y += 1.0f;
+            } else {
+                func_80054FF8_main(D_8010DF70_slot_synch.unk04, spr->unk00, 0);
+                spr->unk24.y = spr->unk14.y;
+                spr->unk04 = 0;
+                spr->unk08 = 0;
+            }
+            spr->unk09 = 1;
+            break;
+        }
+        if (spr->unk09 != 0) {
+            func_8010A308_slot_synch(D_8010DF70_slot_synch.unk04, spr->unk00, spr->unk24.x, spr->unk24.y);
+            spr->unk09 = 0;
+        }
+        spr->unk04++;
+    }
+}
+
+void func_8010800C_slot_synch(u8 sym, u8 team) {
+    SsSpr* spr;
+    s16 i;
+
+    spr = D_8010DF70_slot_synch.unk08;
+    for (i = 0; i < D_8010DF70_slot_synch.unk06; i++, spr++) {
+        if (spr->unk06 == sym && spr->unk07 == team && spr->unk08 == 0) {
+            spr->unk08 = 1;
+            spr->unk04 = 0;
+            spr->unk0A = 0x80;
+            spr->unk0C = (f32)(u8)(rand8() % 100) * 0.01 * 30.0 + 30.0;
+            spr->unk0B = rand8() % 22;
+            spr->unk10 = (f32)(u8)(rand8() % 100) * 0.01 * 5.0 + 5.0;
+        }
+    }
+}
 
 void func_80108238_slot_synch(void) {
     SsReel* reel;
