@@ -838,12 +838,14 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_801113F0_staff);
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BF84_staff);
 
 #ifdef NON_MATCHING
-// masked 0; register allocation only (float temporaries, parameter copy order).
-void func_8010C680_staff(s16 *state, s32 *arg1, f32 *rotY, void *arg3) {
-    f32 *t = (f32 *)arg1;
+// masked 0; raw 2: retail copies the second parameter before the third.
+void func_8010C680_staff(s16 *state, s32 *arg1, f32 *arg2, void *arg3) {
     StaffMdl *mdl = arg3;
+    f32 *t = (f32 *)arg1;
+    f32 *rotY = arg2;
     Vec pos;
     Vec *p;
+    f32 d;
 
     pos = mdl->pos;
     p = &pos;
@@ -861,8 +863,10 @@ void func_8010C680_staff(s16 *state, s32 *arg1, f32 *rotY, void *arg3) {
             *t = 180.0f;
             (*state)++;
         }
-        p->x = cosdf(*t) * 6.266667f + p->x;
-        *rotY = 90.0f - *t;
+        d = cosdf(*t) * 6.266667f;
+        p->x = d + p->x;
+        d = 90.0f - *t;
+        *rotY = d;
         break;
     case 2:
         p->x -= 6.266667f;
@@ -877,8 +881,10 @@ void func_8010C680_staff(s16 *state, s32 *arg1, f32 *rotY, void *arg3) {
             *t = 180.0f;
             *state = 0;
         }
-        p->x = cosdf(*t) * -6.266667f + p->x;
-        *rotY = *t + -90.0f;
+        d = cosdf(*t) * -6.266667f;
+        p->x = d + p->x;
+        d = *t + -90.0f;
+        *rotY = d;
         break;
     }
     mdl->pos.x = p->x;
