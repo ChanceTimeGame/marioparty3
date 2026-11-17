@@ -344,6 +344,7 @@ void func_8010DDDC_baby_bowser_broadside(s16 colliderId, Vec *base, f32 height) 
 
 #ifdef NON_MATCHING
 void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx) {
+    f32 *mtx;
     BbCollider *collider = D_80110020_baby_bowser_broadside;
     s16 i;
 
@@ -351,20 +352,19 @@ void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx) {
         return;
     }
     for (i = 0; i < BB3_COLLIDERS_MAX; i++, collider++) {
-        if (!collider->set) {
-            continue;
-        }
-        if (collider->attr & 1) {
+        if (!collider->set || (collider->attr & 1)) {
             continue;
         }
         if (!(collider->attr & 0x40)) {
+            mtx = collider->transMtx;
             if (collider->attr & 8) {
                 func_8010FB74_baby_bowser_broadside(*collider->posX, *collider->posY, *collider->posZ, *collider->rotX,
-                                                    *collider->rotY, *collider->rotZ, collider->transMtx);
+                                                    *collider->rotY, *collider->rotZ, mtx);
+                func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, mtx, collider->cur);
             } else {
-                func_8010F878_baby_bowser_broadside(collider->transMtx);
+                func_8010F878_baby_bowser_broadside(mtx);
+                func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, mtx, collider->cur);
             }
-            func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, collider->transMtx, collider->cur);
             if (collider->attr & 4) {
                 func_8010F3C4_baby_bowser_broadside(collider->cur, &collider->plane);
             }
@@ -557,7 +557,6 @@ s16 func_8010E538_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     return 1;
 }
 
-#ifdef NON_MATCHING
 s16 func_8010E710_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     Vec n;
     Vec pos;
@@ -566,6 +565,7 @@ s16 func_8010E710_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     Vec proj;
     f32 d;
     f32 dist;
+    f32 side;
     s16 hit;
 
     n.x = c->plane.normal.x;
@@ -578,15 +578,19 @@ s16 func_8010E710_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     vel.x = m->vel.x;
     vel.y = m->vel.y;
     vel.z = m->vel.z;
-    if (!(c->attr & 0x20) && n.x * pos.x + n.y * pos.y + n.z * pos.z + d < 0.0f) {
-        return 0;
+    if (!(c->attr & 0x20)) {
+        side = n.x * pos.x + n.y * pos.y + n.z * pos.z + d;
+        if (side < 0.0f) {
+            return 0;
+        }
     }
     next.x = pos.x + vel.x;
     next.y = pos.y + vel.y;
     next.z = pos.z + vel.z;
     if (!(c->attr & 0x20)) {
+        side = n.x * next.x + n.y * next.y + n.z * next.z + d;
         dist = func_8010ED1C_baby_bowser_broadside(c, &next);
-        if (n.x * next.x + n.y * next.y + n.z * next.z + d > 0.0f) {
+        if (side > 0.0f) {
             if (m->radius <= BB3_ABS(dist)) {
                 return 0;
             }
@@ -602,42 +606,40 @@ s16 func_8010E710_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     proj.z = -n.z * dist + next.z;
     hit = func_8010E9FC_baby_bowser_broadside(c, &proj);
     if (hit) {
-        if (!(c->attr & 0x10)) {
-            next.x = n.x * m->radius * 1.01f + proj.x;
-            next.y = n.y * m->radius * 1.01f + proj.y;
-            next.z = n.z * m->radius * 1.01f + proj.z;
-            vel.x = next.x - pos.x;
-            vel.y = next.y - pos.y;
-            vel.z = next.z - pos.z;
-            m->vel.x = vel.x;
-            m->vel.y = vel.y;
-            m->vel.z = vel.z;
+        if (c->attr & 0x10) {
+            return 1;
         }
-        return 1;
+        next.x = n.x * m->radius * 1.01f + proj.x;
+        next.y = n.y * m->radius * 1.01f + proj.y;
+        next.z = n.z * m->radius * 1.01f + proj.z;
+        vel.x = next.x - pos.x;
+        vel.y = next.y - pos.y;
+        vel.z = next.z - pos.z;
+        m->vel.x = vel.x;
+        m->vel.y = vel.y;
+        m->vel.z = vel.z;
     }
-    return 0;
+    return hit;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010E710_baby_bowser_broadside);
-#endif
 
 #ifdef NON_MATCHING
 s16 func_8010E9FC_baby_bowser_broadside(BbCollider *c, Vec *p) {
     Vec e;
     Vec q;
-    Vec *a;
-    Vec *b;
     s16 i;
+    s16 j;
 
     switch (c->plane.axis) {
     case 0:
         for (i = 0; i < c->vertexCount; i++) {
-            a = &c->cur[i];
-            b = &c->cur[(i + 1 == c->vertexCount) ? 0 : i + 1];
-            e.y = b->y - a->y;
-            e.z = b->z - a->z;
-            q.y = p->y - a->y;
-            q.z = p->z - a->z;
+            j = i + 1;
+            if (j == c->vertexCount) {
+                j = 0;
+            }
+            e.y = c->cur[j].y - c->cur[i].y;
+            e.z = c->cur[j].z - c->cur[i].z;
+            q.y = p->y - c->cur[i].y;
+            q.z = p->z - c->cur[i].z;
             if ((e.y * q.z - e.z * q.y) * c->plane.normal.x < 0.0f) {
                 return 0;
             }
@@ -645,12 +647,14 @@ s16 func_8010E9FC_baby_bowser_broadside(BbCollider *c, Vec *p) {
         break;
     case 1:
         for (i = 0; i < c->vertexCount; i++) {
-            a = &c->cur[i];
-            b = &c->cur[(i + 1 == c->vertexCount) ? 0 : i + 1];
-            e.x = b->x - a->x;
-            e.z = b->z - a->z;
-            q.x = p->x - a->x;
-            q.z = p->z - a->z;
+            j = i + 1;
+            if (j == c->vertexCount) {
+                j = 0;
+            }
+            e.x = c->cur[j].x - c->cur[i].x;
+            e.z = c->cur[j].z - c->cur[i].z;
+            q.x = p->x - c->cur[i].x;
+            q.z = p->z - c->cur[i].z;
             if ((e.z * q.x - e.x * q.z) * c->plane.normal.y < 0.0f) {
                 return 0;
             }
@@ -658,12 +662,14 @@ s16 func_8010E9FC_baby_bowser_broadside(BbCollider *c, Vec *p) {
         // fallthrough (retail: missing break, the y-dominant case also runs the z test)
     case 2:
         for (i = 0; i < c->vertexCount; i++) {
-            a = &c->cur[i];
-            b = &c->cur[(i + 1 == c->vertexCount) ? 0 : i + 1];
-            e.x = b->x - a->x;
-            e.y = b->y - a->y;
-            q.x = p->x - a->x;
-            q.y = p->y - a->y;
+            j = i + 1;
+            if (j == c->vertexCount) {
+                j = 0;
+            }
+            e.x = c->cur[j].x - c->cur[i].x;
+            e.y = c->cur[j].y - c->cur[i].y;
+            q.x = p->x - c->cur[i].x;
+            q.y = p->y - c->cur[i].y;
             if ((e.x * q.y - e.y * q.x) * c->plane.normal.z < 0.0f) {
                 return 0;
             }
@@ -688,12 +694,13 @@ f32 func_8010ED1C_baby_bowser_broadside(BbCollider *c, Vec *p) {
     return (x * n.x + y * n.y + z * n.z - c->plane.dist) / HuSqrtf(n.x * n.x + n.y * n.y + n.z * n.z);
 }
 
-#ifdef NON_MATCHING
 s16 func_8010EDC0_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     f32 side;
+    f32 edge;
     s16 i;
+    s16 j;
 
-    if (!(c->attr & 2) && c->height < m->pos.y) {
+    if (!(c->attr & 2) && m->pos.y > c->height) {
         return 0;
     }
     side = func_8010F004_baby_bowser_broadside(m, &c->cur[0], &c->cur[1]);
@@ -702,30 +709,35 @@ s16 func_8010EDC0_baby_bowser_broadside(BbCollider *c, BbMover *m) {
     }
     if (side > 0.0f) {
         for (i = 1; i < c->vertexCount; i++) {
-            side = func_8010F004_baby_bowser_broadside(m, &c->cur[i], &c->cur[(i + 1 == c->vertexCount) ? 0 : i + 1]);
-            if (side == 0.0f) {
+            j = i + 1;
+            if (j == c->vertexCount) {
+                j = 0;
+            }
+            edge = func_8010F004_baby_bowser_broadside(m, &c->cur[i], &c->cur[j]);
+            if (edge == 0.0f) {
                 return 1;
             }
-            if (side < 0.0f) {
+            if (edge < 0.0f) {
                 return 0;
             }
         }
     } else {
         for (i = 1; i < c->vertexCount; i++) {
-            side = func_8010F004_baby_bowser_broadside(m, &c->cur[i], &c->cur[(i + 1 == c->vertexCount) ? 0 : i + 1]);
-            if (side == 0.0f) {
+            j = i + 1;
+            if (j == c->vertexCount) {
+                j = 0;
+            }
+            edge = func_8010F004_baby_bowser_broadside(m, &c->cur[i], &c->cur[j]);
+            if (edge == 0.0f) {
                 return 1;
             }
-            if (side > 0.0f) {
+            if (edge > 0.0f) {
                 return 0;
             }
         }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010EDC0_baby_bowser_broadside);
-#endif
 
 f32 func_8010F004_baby_bowser_broadside(BbMover *m, Vec *a, Vec *b) {
     Vec modelPos;
