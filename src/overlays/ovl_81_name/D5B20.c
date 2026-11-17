@@ -1021,7 +1021,7 @@ void func_800F05AC_name_81(void) {
 
 void func_800F05B4_name_81(Object* arg0, s32 arg1) {
     func_800333B0_main(arg0->omObj1->work[0]);
-    arg0->omObj1->work[0] = func_80017AD8_main(arg1);
+    arg0->omObj1->work[0] = (u8)func_80017AD8_main(arg1);
     func_80017954_main(arg0->omObj1->model[0], arg0->omObj1->work[1], arg0->omObj1->work[2], arg0->omObj1->work[0]);
 }
 
@@ -1032,7 +1032,7 @@ void func_800F061C_name_81(GW_PLAYER* player, s16 arg1) {
 
     if (file != -1) {
         func_800333B0_main((s16)obj->omObj1->work[0]);
-        obj->omObj1->work[0] = func_80017AD8_main(file);
+        obj->omObj1->work[0] = (u8)func_80017AD8_main(file);
         func_80017954_main(obj->omObj1->model[0], (s16)obj->omObj1->work[1], (s16)obj->omObj1->work[2],
                            (s16)obj->omObj1->work[0]);
     }

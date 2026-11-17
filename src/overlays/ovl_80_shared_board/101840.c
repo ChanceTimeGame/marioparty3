@@ -80,7 +80,7 @@ extern s16 D_80105554_shared_board;
 extern UnkBoard D_80105718_shared_board[16];
 extern u8 D_801014C0_shared_board[];
 
-u8 func_80017AD8_main(s32); //TODO: mismatches signature in 276470.c in vine with me
+s16 func_80017AD8_main(s32); //TODO: mismatches signature in 276470.c in vine with me
 static void func_800EDC4C_shared_board(s32 arg0);
 static void func_800EDC90_shared_board(s32, s32, s32);
 static void func_800EDFC8_shared_board(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -569,7 +569,7 @@ void func_800EF068_shared_board(void) {
 
 void MBGuideFaceSet(Object* arg0, s32 arg1) {
     func_800333B0_main(arg0->omObj1->work[0]);
-    arg0->omObj1->work[0] = func_80017AD8_main(arg1);
+    arg0->omObj1->work[0] = (u8)func_80017AD8_main(arg1);
     func_80017954_main(arg0->omObj1->model[0], arg0->omObj1->work[1], arg0->omObj1->work[2], arg0->omObj1->work[0]);
 }
 

@@ -448,6 +448,8 @@ W2DC_BLANKSTRIP += build/src/overlays/storyresult/54DD10.c.o build/src/overlays/
 W2DC_BLANKSTRIP += build/src/overlays/mstory1/48C120.c.o
 # wave 3u f1/f5: mstory2 49BD40 likewise (func_801064AC_mstory2 in 49BD40, func_8011A74C_mstory2 in 4AC200: no nop before the mul.s after cosdf/sindf)
 W2DC_BLANKSTRIP += build/src/overlays/mstory2/49BD40.c.o build/src/overlays/mstory2/4AC200.c.o
+# mstory5 4CF350 likewise (func_80106028_mstory5: no nop before the mul.s after the cosdf/sindf calls)
+W2DC_BLANKSTRIP += build/src/overlays/mstory5/4CF350.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
