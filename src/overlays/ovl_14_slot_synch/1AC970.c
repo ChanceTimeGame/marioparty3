@@ -134,6 +134,8 @@ typedef struct SsGround {
     /* 0x05 */ char unk05[0xAF];
 } SsGround; // Size 0xB4
 
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+
 /* HmfData's vertex count (0x18 lies inside the header's unk16 padding). */
 #define SS_HMF_VTXNUM(hmf) (*(s16*)&(hmf)->unk16[2])
 
