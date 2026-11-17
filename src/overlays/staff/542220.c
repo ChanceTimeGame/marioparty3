@@ -226,6 +226,8 @@ extern s32 D_801105F0_staff[2]; /* func_80109264_staff model files */
 extern Vec D_801105F8_staff[2]; /* their orbit centres */
 extern f32 D_80110610_staff[2]; /* their end angles */
 void func_801091CC_staff(Vec *out, Vec *center, f32 angle);
+extern Vec D_80110618_staff[]; /* path points (ended by 9999s) */
+extern Vec D_80110648_staff[];
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -1444,7 +1446,106 @@ void func_80109264_staff(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 0; raw: s1/s2 swap (prev and path) and f0/f2 in the cos term. */
+void func_801095E4_staff(void) {
+    Vec pos;
+    ObPath *path;
+    ObPath *next;
+    s16 *stat;
+    s16 model;
+    s16 prev;
+    s32 done;
+    f32 angle;
+    f32 angleSpd;
+    f32 rot;
+    f32 rotSpd;
+    f32 rotEnd;
+
+    prev = 0;
+    stat = HuPrcCurrentGet()->user_data;
+    model = func_8000B108_main(0xA015F, 0x2A9);
+    func_8001C814_main(model, -1, 2);
+    path = func_801085F0_staff(D_80110618_staff, 0);
+    next = func_801085F0_staff(D_80110648_staff, 0);
+    func_801088F4_staff(path, 0.0f, &pos);
+    Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+    rot = rotSpd = rotEnd = angleSpd = angle = 0.0f;
+    do {
+        if (prev != *stat) {
+            switch (*stat) {
+            case 1:
+                if (path != NULL) {
+                    angle = 180.0f;
+                    angleSpd = 0.75f;
+                    rotEnd = 8.0f;
+                    rot = 0.0f;
+                    rotSpd = 1.0f / 30.0f;
+                }
+                break;
+            case 2:
+                if (path == NULL && next != NULL) {
+                    path = next;
+                    angle = 180.0f;
+                    angleSpd = 2.0f;
+                    rotEnd = 0.0f;
+                    rot = 8.0f;
+                    rotSpd = -8.0f / 90.0f;
+                    next = NULL;
+                }
+                break;
+            case -1:
+                prev = -1;
+                continue;
+            case 0:
+                break;
+            }
+            prev = *stat;
+        }
+        if (angleSpd != 0.0f) {
+            angle += angleSpd;
+            done = 0;
+            if (angle >= 360.0f) {
+                angle = 0.0f;
+                angleSpd = 0.0f;
+                done = 1;
+            }
+            func_801088F4_staff(path, (cosdf(angle) + 1.0f) * 0.5f, &pos);
+            Hu3DModelPosSet(model, pos.x, pos.y, pos.z);
+            if (done) {
+                func_8010919C_staff(path);
+                path = NULL;
+                *stat = 0;
+            }
+        }
+        if (rotSpd != 0.0f) {
+            rot += rotSpd;
+            done = 0;
+            if (rotSpd < 0.0f) {
+                if (rot <= rotEnd) {
+                    done = 1;
+                }
+            } else if (rot >= rotEnd) {
+                done++;
+            }
+            if (done) {
+                rotSpd = 0.0f;
+                rot = rotEnd;
+            }
+            Hu3DModelRotSet(model, 0.0f, rot, 0.0f);
+        }
+        HuPrcVSleep();
+    } while (prev >= 0);
+    func_8001ACDC_main(model);
+    *stat = 0;
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801095E4_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010992C_staff);
 
