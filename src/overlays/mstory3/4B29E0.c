@@ -10,8 +10,7 @@ typedef struct StoryActor3 {
     /* 0x04 */ void (*func)(omObjData *);
     /* 0x08 */ s32 unk08;
     /* 0x0C */ s32 unk0C;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
+    /* 0x10 */ s32 unk10; /* while unk0C is 1: the footstep sound */
 } StoryActor3; /* size = 0x14 */
 
 /* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry); see mstory1's 48D950.c */
@@ -1076,11 +1075,11 @@ void func_80108A9C_mstory3(void) {
     while (1) {
         if (D_80115BC0_mstory3[0].unk0C == 1
             && HmfModelData[D_80115BC0_mstory3[0].obj->model[1]].unk40 == 0.0f) {
-            CharFXPlay(D_80115BC0_mstory3[0].unk12, D_80115C9D_mstory3);
+            CharFXPlay(D_80115BC0_mstory3[0].unk10, D_80115C9D_mstory3);
         }
         if (D_80115BC0_mstory3[1].unk0C == 1
             && HmfModelData[D_80115BC0_mstory3[1].obj->model[1]].unk40 == 0.0f) {
-            fx = CharFXPlay(D_80115BC0_mstory3[1].unk12, D_80115C9F_mstory3);
+            fx = CharFXPlay(D_80115BC0_mstory3[1].unk10, D_80115C9F_mstory3);
             z = HmfModelData[D_80115BC0_mstory3[1].obj->model[1]].pos.z;
             if (z <= 0.0f) {
                 pan = z / 15.0f + 127.0f;
