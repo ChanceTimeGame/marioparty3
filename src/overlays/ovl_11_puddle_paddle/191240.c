@@ -15,6 +15,8 @@ typedef struct UnkPuddlePaddle {
 #include "game/hmfman.h"
 #include "game/object.h"
 #include "game/sprite.h"
+#include "game/util.h"
+#include "game/audio.h"
 
 // m1 pp1
 /* Puddle Paddle: two teams of two paddle a raft to collect the coins falling on the pond. Shares its frame (and
@@ -130,7 +132,9 @@ typedef struct PpState {
     /* 0x08 */ char unk08[0x30];
     /* 0x38 */ PpCoin* coins;
     /* 0x3C */ s16 unk3C;
-    /* 0x3E */ char unk3E[6];
+    /* 0x3E */ char unk3E[2];
+    /* 0x40 */ s16 unk40;
+    /* 0x42 */ char unk42[2];
 } PpState; /* size 0x44 */
 
 extern PpTeam* D_80111650_puddle_paddle;
@@ -734,7 +738,47 @@ void func_801079D4_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107B2C_puddle_paddle);
+/* The result: the winners cheer, then the wipe out */
+void func_80107B2C_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    s16 won[2];
+    s16 i;
+    s16 j;
+
+    if (GMesStatGet() == 0) {
+        D_80111232_puddle_paddle = 1;
+    }
+    if (D_80111232_puddle_paddle != 0) {
+        switch (++task->s16[0]) {
+            case 15:
+                won[1] = 0;
+                won[0] = 0;
+                for (i = 0; i < 2; i++) {
+                    for (j = 0; j < 2; j++) {
+                        if (D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[j]].unk56 != 0) {
+                            func_80109804_puddle_paddle(&D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[j]], 13, 1);
+                            func_8004AC98_main(GwPlayer[D_80111650_puddle_paddle[i].member[j]].chr + 0x290,
+                                               D_80111650_puddle_paddle[i].member[j]);
+                            D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[j]].unk58 = -1;
+                            D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[j]].unk0E = -1;
+                            won[i] = 1;
+                        }
+                    }
+                }
+                if (won[0] != 0 && won[1] != 0) {
+                    HuAudSeqPlay(0x66);
+                } else if (won[0] != 0 || won[1] != 0) {
+                    HuAudSeqPlay(0x65);
+                } else {
+                    HuAudSeqPlay(0x6C);
+                }
+                break;
+            case 140:
+                func_8010BA04_puddle_paddle(PP_WORK(ctx->obj)->b.group, 0, NULL, func_80107DB0_puddle_paddle, 0);
+                func_8010BAA8_puddle_paddle(PP_WORK(ctx->obj)->b.group, task);
+                break;
+        }
+    }
+}
 
 void func_80107DB0_puddle_paddle(PpCtx* ctx, PpTask* task) {
     switch (task->state) {
@@ -750,7 +794,53 @@ void func_80107DB0_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107E1C_puddle_paddle);
+void func_80110BBC_puddle_paddle(f32* a, f32* b);
+
+/* The pond turns: at random while playing, back to 0 at the end */
+void func_80107E1C_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    HmfModel* model = &HmfModelData[ctx->models[0]];
+    f32 from;
+    f32 to;
+
+    if (!(D_80111658_puddle_paddle->flags & 1) && D_80111658_puddle_paddle->unk40 == 0) {
+        if (D_80111658_puddle_paddle->flags & 4) {
+            if (task->s16[0] == 0) {
+                from = model->rot.y;
+                to = 0.0f;
+                func_80110BBC_puddle_paddle(&from, &to);
+                if (model->rot.y >= 360.0f) {
+                    model->rot.y -= 360.0f;
+                } else if (model->rot.y < 0.0f) {
+                    model->rot.y += 360.0f;
+                }
+                if ((model->rot.y > 0.0f ? model->rot.y : -model->rot.y) <= 2.0f) {
+                    task->s16[0] = 1;
+                }
+                if (from - to > 0.0f) {
+                    model->rot.y -= 2.0f;
+                } else if (from - to < 0.0f) {
+                    model->rot.y += 2.0f;
+                }
+            }
+        } else {
+            if (task->s8[0] == 0) {
+                task->s8[0] = 1;
+                task->f32[0] = rand16() % 361;
+            }
+            from = model->rot.y;
+            to = task->f32[0];
+            func_80110BBC_puddle_paddle(&from, &to);
+            if ((model->rot.y - task->f32[0] > 0.0f ? model->rot.y - task->f32[0] : -(model->rot.y - task->f32[0])) < 5.0f) {
+                task->s8[0] = 0;
+            }
+            if (from - to > 0.0f) {
+                model->rot.y -= 1.0f;
+            } else if (from - to < 0.0f) {
+                model->rot.y += 1.0f;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108178_puddle_paddle);
 
