@@ -554,6 +554,21 @@ extern const Vec D_8011C450_mstory2;
 extern const Vec D_8011C600_mstory2;
 extern Vec D_8011C9C8_mstory2; /* the actors' start positions: actor 4 */
 extern s16 D_8011C9E8_mstory2; /* 1: actor 3 stops bobbing */
+/* 8011AAE0: a new file starts here (story f5): the scene after the chapter's board */
+void func_80105FBC_mstory2(void);
+void func_801060A4_mstory2(void);
+void func_801060D4_mstory2(void);
+void func_801060F8_mstory2(s32 mess);
+s16 func_801061BC_mstory2(void);
+void func_8011AB84_mstory2(void);
+void func_8011AC08_mstory2(void);
+void func_8011AC10_mstory2(omObjData *obj);
+void func_8011AD8C_mstory2(omObjData *obj);
+void func_8011B080_mstory2(omObjData *obj);
+void func_8011B198_mstory2(void);
+void func_8011B64C_mstory2(void);
+extern MsActor2 D_8011CA10_mstory2[3];
+extern s16 D_8011CA4C_mstory2; /* the shadow model */
 // story f5 protos end
 
 /* actor 0: the player's character */
@@ -1163,17 +1178,64 @@ void func_8011A960_mstory2(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AAD0_mstory2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AAE0_mstory2);
+void func_8011AAE0_mstory2(void) {
+    func_80105FBC_mstory2();
+    D_8011CA4C_mstory2 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_8011B198_mstory2, 0x1001, 0x1000, 0);
+    omAddPrcObj(func_8011B64C_mstory2, 0x1001, 0x1000, 0);
+    HuPrcVSleep();
+    omAddPrcObj(func_8011AB84_mstory2, 0x1001, 0x1000, 0);
+    HuPrcVSleep();
+    func_8001C258_main(D_8011CA4C_mstory2, 4, 4);
+}
 
 void func_8011AB7C_mstory2(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AB84_mstory2);
+/* actor 2: the scene's director (no model) */
+void func_8011AB84_mstory2(void) {
+    omObjData *obj;
+
+    obj = omAddObj(0x14, 0, 0, -1, NULL);
+    D_8011CA10_mstory2[2].obj = obj;
+    D_8011CA10_mstory2[2].flags = 0;
+    D_8011CA10_mstory2[2].func = func_8011AC10_mstory2;
+    omPrcSetDestructor(0, func_8011AC08_mstory2);
+    while (1) {
+        D_8011CA10_mstory2[2].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 void func_8011AC08_mstory2(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AC10_mstory2);
+/* actor 1 speaks, then the player chooses: 0 runs func_8011AD8C_mstory2, 1 func_8011B080_mstory2 */
+void func_8011AC10_mstory2(omObjData *obj) {
+    s16 choice;
+
+    HuPrcSleep(40);
+    HuAudFXPlay(0x159);
+    func_801060A4_mstory2();
+    func_801060F8_mstory2(0x5A7F);
+    func_801060D4_mstory2();
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[0]].unk02, 0, 10, 2);
+    HuPrcSleep(20);
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[1]].unk02, 0, 10, 2);
+    func_801060A4_mstory2();
+    func_801060F8_mstory2(0x5A80);
+    choice = func_801061BC_mstory2();
+    func_801060D4_mstory2();
+    func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[0]].unk02, 0, 10, 2);
+    switch (choice) {
+        case 0:
+            D_8011CA10_mstory2[2].func = func_8011AD8C_mstory2;
+            break;
+        case 1:
+            D_8011CA10_mstory2[2].func = func_8011B080_mstory2;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_8011AD8C_mstory2);
 
