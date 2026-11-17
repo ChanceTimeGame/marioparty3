@@ -220,7 +220,28 @@ void func_8010F9E0_duel10(Vec *pos);
 void func_8010FA80_duel10(void);
 void func_8010FD44_duel10(void);
 void func_8010FD70_duel10(void);
+void func_80111E6C_duel10(void);
 void func_80111FDC_duel10(void);
+typedef struct B1UnkBoard4 {
+    /* 0x00 */ struct B1UnkBoard4* unk_00;
+    /* 0x04 */ struct B1UnkBoard4* unk_04;
+    /* 0x08 */ s16 unk_08;
+    /* 0x0A */ s16 unk_0A;
+    /* 0x0C */ s16* unk_0C;
+    /* 0x10 */ f32* unk_10;
+    /* 0x14 */ f32* unk_14;
+    /* 0x18 */ s16* unk_18;
+    /* 0x1C */ s16* unk_1C;
+} B1UnkBoard4; // ovl_81's UnkBoard4
+typedef B1UnkBoard4 Duel01SprGrp; /* ovl_81's sprite group (UnkBoard4 there) */
+s32 func_800E1824_name_81(s32, s32, s32);
+void func_800E1854_name_81(s32);
+B1UnkBoard4* func_800F4528_name_81(s16, s16);
+void func_800F4584_name_81(B1UnkBoard4*);
+s32 func_800EFE20_name_81(f32 arg0);
+void func_800E0310_name_81(u8 *output, s32 count);
+s32 func_800F37B8_name_81(s16 playerIndex);
+extern s32 D_80114A30_duel10;
 extern s32 D_80114A6C_duel10[2][3]; /* per player: three space ids */
 extern s32 D_80114A84_duel10;
 extern Object *D_80114A88_duel10;
@@ -240,6 +261,7 @@ s32 func_80111DC4_duel10(void) {
     return tbl[prize];
 }
 
+// board ec3: duel01/duel05 twin; float constants: retail keeps 64.0f and 3.0f out of registers (loop hoisting), frame 8 bytes larger (masked 24)
 #ifdef NON_MATCHING
 void func_80111E6C_duel10(void) {
     s32 *data;
@@ -283,16 +305,141 @@ void func_80111E6C_duel10(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111E6C_duel10);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BF0_duel10);
+void func_80111FDC_duel10(void) {
+    s16 pos[3][2] = { { 160, -80 }, { 160, -160 }, { 160, -80 } };
+    s32 files[6] = { 0x13011C, 0x13011F, 0x13011E, 0x13011D, 0x130120, 0x13011E }; /* [player * 3 + i] */
+    u8 order[32];
+    s32 player;
+    s32 msg;
+    s16 win;
+    Process *proc;
+    s32 kind;
+    s32 cpuCount;
+    s32 wait;
+    s32 n;
+    s32 i;
+    s32 *data;
+    void *file;
+    Duel01SprGrp *grp;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BFC_duel10);
+    player = *(s32 *)HuPrcCurrentGet()->user_data;
+    n = 11;
+    proc = NULL;
+    D_80114A30_duel10 = 0;
+    mbItemBtnF = 0;
+    if (player == 0) {
+        kind = (u8)GwSystem.playerIndexVisitingBowser;
+    } else {
+        kind = (GwSystem.playerIndexVisitingBowser / 256) & 0xFF;
+    }
+    win = func_8005A968_main(60, -160, 200, 160, 0, 0);
+    func_8005FBF8_main(win, 0x43, 5, 1);
+    func_8005BEE0_main(win, 0xC0);
+    if (kind == 2) {
+        proc = omAddPrcObj(func_80111E6C_duel10, 0xA, 0, 0x40);
+        data = HuMemMemoryAlloc(proc->heap, 0x10);
+        proc->user_data = data;
+        *data = win;
+    }
+    grp = func_800F4528_name_81(3, 0);
+    for (i = 0; i < 3; i++) {
+        file = DataRead(files[player * 3 + i]);
+        grp->unk_0C[i] = func_80055810_main(file);
+        func_80055024_main(grp->unk_0A, i, grp->unk_0C[i], 0);
+        HuSprPriSet(grp->unk_0A, i, i + 1);
+        HuSprAttrSet(grp->unk_0A, i, 0);
+        func_80054904_main(grp->unk_0A, i, pos[i][0], pos[i][1]);
+        DataClose(file);
+        if (i == 2) {
+            func_80055140_main(grp->unk_0A, 2, func_800EFE20_name_81(12.0f), 0);
+        }
+    }
+    for (wait = 90; wait < 180; wait += 15) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -200.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -200.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    for (wait = 0; wait < 180; wait += 20) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -50.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -50.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    for (wait = 0; wait < 180; wait += 20) {
+        for (i = 0; i < 3; i++) {
+            func_80054904_main(grp->unk_0A, i, pos[i][0], (pos[i][1] + 215) + sindf(wait) * -30.0f);
+        }
+        func_8005BA90_main(win, 60, sindf(wait) * -30.0f + 55.0f);
+        HuPrcVSleep();
+    }
+    if (func_800F37B8_name_81(CUR_PLAYER) != 0) {
+        cpuCount = func_800EFE20_name_81(10.0f) + 100;
+    } else {
+        cpuCount = -1;
+    }
+    msg = func_800E1824_name_81(0x13, 0xB9, 0);
+    D_80114A8C_duel10 = 1;
+    do {
+        func_800E0310_name_81(order, n);
+        for (i = 0; i <= n; i++) {
+            HuAudFXPlay(0x1C8);
+            func_80055140_main(grp->unk_0A, 2, order[i], 0);
+            func_800550F4_main(grp->unk_0A, 2, 1);
+            wait = (kind == 2) ? 15 : 1;
+            while (TRUE) {
+                if (cpuCount > 0) {
+                    if (--cpuCount == 0) {
+                        break;
+                    }
+                } else if (D_800C9520_main[GwPlayer[player].pad] & 0x8000) {
+                    break;
+                }
+                HuPrcVSleep();
+                if (--wait == 0) {
+                    break;
+                }
+            }
+            if (wait != 0) {
+                break;
+            }
+        }
+    } while (i == n + 1);
+    {
+        s32 sfx[12] = { 0x25A, 0x25B, 0x298, 0x256, 0x257, 0x25D, 0x2A3, 0x2A4, 0x2A2, 0x1E7, 0x2A5, 0x2A0 };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C14_duel10);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111FDC_duel10);
+        HuAudFXPlay(sfx[order[i]]);
+    }
+    D_80114A8C_duel10 = 0;
+    if (player == 0) {
+        if (kind == 2) {
+            GwSystem.playerIndexVisitingBowser &= 0xFF00;
+        } else {
+            GwSystem.playerIndexVisitingBowser++;
+        }
+    } else if (kind == 2) {
+        GwSystem.playerIndexVisitingBowser &= 0xFF;
+    } else {
+        GwSystem.playerIndexVisitingBowser += 0x100;
+    }
+    HuPrcSleep(30);
+    D_80114A84_duel10 = order[i];
+    func_800E1854_name_81(msg);
+    if (proc != NULL) {
+        omDelPrcObj(proc);
+    }
+    func_800F4584_name_81(grp);
+    func_8005F364_main(win);
+    D_80114A30_duel10 = 1;
+    mbItemBtnF = 1;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C44_duel10);
 
+// board ec3: duel01/duel05 twin; register allocation (the -1, walk target and partner/bell registers) and one branch-likely (masked 15)
 #ifdef NON_MATCHING
 s32 func_801127A8_duel10(s32 no) {
     Vec dir;
