@@ -368,11 +368,72 @@ void func_80107FEC_duelresult2(void) {
     func_800E4E64_name_81(D_80108DC0_duelresult2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_8010809C_duelresult2);
+/* hides the record page */
+void func_8010809C_duelresult2(void) {
+    s32 j;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_80108240_duelresult2);
+    HuSprAttrSet(D_80108DC4_duelresult2->unk_0A, 0, 0x8000);
+    HuSprAttrSet(D_80108DC8_duelresult2->unk_0A, 0, 0x8000);
+    HuSprAttrSet(D_80108DC8_duelresult2->unk_0A, 1, 0x8000);
+    HuSprAttrSet(D_80108DCC_duelresult2->unk_0A, 0, 0x8000);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 10; j++) {
+            HuSprAttrSet(D_80108DD0_duelresult2[i]->unk_0A, j, 0x8000);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        HuSprAttrSet(D_80108DD8_duelresult2->unk_0A, j, 0x8000);
+    }
+    for (j = 0; j < 10; j++) {
+        HuSprAttrSet(D_80108DDC_duelresult2->unk_0A, j, 0x8000);
+    }
+    for (j = 0; j < 64; j++) {
+        HuSprAttrSet(D_80108DE0_duelresult2->unk_0A, j, 0x8000);
+    }
+    HuSprAttrSet(D_80108DE4_duelresult2->unk_0A, 0, 0x8000);
+    func_800D8F0C_name_81(D_80108DC0_duelresult2->obj);
+    func_8005FE90_main(D_80108DC0_duelresult2->amount);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_801083FC_duelresult2);
+/* shows the record page */
+void func_80108240_duelresult2(void) {
+    s32 j;
+    s32 i;
+
+    HuSprAttrReset(D_80108DC4_duelresult2->unk_0A, 0, 0x8000);
+    HuSprAttrReset(D_80108DC8_duelresult2->unk_0A, 0, 0x8000);
+    HuSprAttrReset(D_80108DC8_duelresult2->unk_0A, 1, 0x8000);
+    HuSprAttrReset(D_80108DCC_duelresult2->unk_0A, 0, 0x8000);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 10; j++) {
+            HuSprAttrReset(D_80108DD0_duelresult2[i]->unk_0A, j, 0x8000);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        HuSprAttrReset(D_80108DD8_duelresult2->unk_0A, j, 0x8000);
+    }
+    func_80106F7C_duelresult2();
+    HuSprAttrReset(D_80108DE4_duelresult2->unk_0A, 0, 0x8000);
+    func_800D8E88_name_81(D_80108DC0_duelresult2->obj);
+    func_8005FFA8_main(D_80108DC0_duelresult2->amount);
+    if (D_80108C34_duelresult2 == 0 && D_80108C38_duelresult2 == 0) {
+        HuSprAttrSet(D_80108DD8_duelresult2->unk_0A, 0, 0x8000);
+    }
+    if (D_80108C34_duelresult2 == 6 && D_80108C38_duelresult2 == 3) {
+        HuSprAttrSet(D_80108DD8_duelresult2->unk_0A, 1, 0x8000);
+    }
+}
+
+/* the guide explains the record row under the cursor */
+void func_801083FC_duelresult2(void) {
+    s32 msgs[10] = { 0x2800, 0x2801, 0x2802, 0x2803, 0x2804, 0x2805, 0x2806, 0x2807, 0x2808, 0x2809 };
+
+    func_8005D294_main(D_80108DC0_duelresult2->amount);
+    func_8005B43C_main(D_80108DC0_duelresult2->amount, msgs[D_80108C34_duelresult2 + D_80108C38_duelresult2], -1, -1);
+    func_80105B98_duelresult2(D_80108DC0_duelresult2->obj->omObj1->model[0],
+                              D_80108E28_duelresult2[D_80108DE8_duelresult2[D_80108C34_duelresult2 + D_80108C38_duelresult2]]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duelresult2/45D380", func_801084F4_duelresult2);
 
@@ -411,4 +472,3 @@ void func_80108BF8_duelresult2(void) {
 void func_80108C28_duelresult2(void) {
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duelresult2/45D380", D_80108D80_duelresult2);
