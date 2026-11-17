@@ -2467,7 +2467,7 @@ segments:
     bss_size: 0xE0
     subsegments:
       - [0x542220, c]
-      - [0x54CDB0, data, 542220] #80110530
+      - [0x54CDB0, .data, 542220] #80110530
       - [0x54DA70, .rodata, 542220] #801111F0
       - {0x54DD10, type: bss, vram: 0x80111490, name: staff_bss}
 

@@ -364,3 +364,7 @@ D_80109306_selmenu2 = D_80109304_selmenu2 + 0x2;
 D_80109308_selmenu2 = D_80109304_selmenu2 + 0x4;
 D_801093C2_selmenu2 = D_801093C0_selmenu2 + 0x2;
 D_80108A68_opdueltutorial = D_80108A64_opdueltutorial + 0x4;
+D_801105CA_staff = D_801105C8_staff + 0x2;
+D_80110678_staff = D_80110674_staff + 0x4;
+D_801111E1_staff = D_801111E0_staff + 0x1;
+D_801111E2_staff = D_801111E0_staff + 0x2;
