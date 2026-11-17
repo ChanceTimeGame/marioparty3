@@ -308,6 +308,8 @@ void func_8001C814_main(s16, s16, s16);
 void func_8010DC08_duel02(void);
 void func_801100A8_duel02(s32);
 void func_8010EB40_duel02(s32);
+void func_8010EB98_duel02(s32);
+s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
 /* retail passes the back link/index addresses to the empty func_8011639C_duel02, so no prototype here */
 void func_8011639C_duel02();
 void func_80116414_duel02(void);
@@ -808,9 +810,29 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80115D64_duel02);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80115EE4_duel02);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_80116064_duel02);
+void func_80116064_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
+    s32 space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_8011611C_duel02);
+    if (space == MBDMasuLinkMasuIdGet(player->clink, player->cidx + 1)) {
+        func_800E9F4C_name_81(0x1F, &player->nlink, &player->nidx);
+        if (mbWalkNum != 0) {
+            func_8010EB98_duel02(1);
+        }
+    }
+}
+
+void func_8011611C_duel02(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
+    s32 space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+
+    if (space == MBDMasuLinkMasuIdGet(player->clink, player->cidx + 1)) {
+        func_800E9F4C_name_81(0x29, &player->nlink, &player->nidx);
+        if (mbWalkNum != 0) {
+            func_8010EB98_duel02(0);
+        }
+    }
+}
 
 void func_801161D4_duel02(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(-1);
