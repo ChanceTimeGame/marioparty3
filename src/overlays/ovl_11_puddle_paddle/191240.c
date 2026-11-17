@@ -1059,11 +1059,110 @@ void func_801087DC_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108D10_puddle_paddle);
+s16 func_8010C98C_puddle_paddle(s16 tag);
+void func_8010CA30_puddle_paddle(s16 id, f32 x, f32 y, f32 z);
 
+/* At the end the coins left vanish in a puff */
+void func_80108D10_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    PpCoin* coin = D_80111658_puddle_paddle->coins;
+    HmfModel* model;
+    s16 i;
+    s16 id;
+
+    for (i = 0; i < 16; i++, coin++) {
+        if (coin->state == 0) {
+            continue;
+        }
+        model = &HmfModelData[coin->model];
+        if (coin->state == 5) {
+            if (++coin->time >= 6) {
+                func_8001C258_main(coin->model, 4, 4);
+                coin->state = 0;
+            }
+        } else {
+            coin->state = 5;
+            coin->time = 0;
+            id = func_8010C98C_puddle_paddle(0);
+            if (id != -1) {
+                func_8010CA30_puddle_paddle(id, model->pos.x, model->pos.y - 20.0f, model->pos.z);
+            }
+        }
+    }
+}
+
+/* Launches a coin from the thrower: angle is the direction, speed the launch elevation in degrees.
+   NON_MATCHING: the assembler puts a nop after the cosdf and the second sindf calls that retail lacks. */
+#ifdef NON_MATCHING
+void func_80108E2C_puddle_paddle(s16 index, s16 kind, f32 angle, f32 speed, s16 thrower) {
+    PpCoin* coin;
+    HmfModel* model;
+    f32 scale;
+    f32 x;
+    f32 z;
+
+    if (index != -1) {
+        coin = &D_80111658_puddle_paddle->coins[index];
+        scale = (rand16() % 6 + 20) * 0.01f;
+        coin->vel.x = sindf(angle) * 20.0f * 5.0f * scale;
+        coin->vel.z = cosdf(angle) * 20.0f * 5.0f * scale;
+        coin->vy0 = coin->vel.y = sindf(speed) * 20.0f * 5.0f * 0.3f;
+        coin->kind = kind;
+        coin->state = 1;
+        coin->time = 0;
+        coin->count = 0;
+        switch (kind) {
+            case 0:
+                coin->life = 250;
+                break;
+            case 1:
+                coin->life = 150;
+                break;
+            case 2:
+                if (angle < 180.0f) {
+                    coin->spinSpeed = -20.0f;
+                } else {
+                    coin->spinSpeed = 20.0f;
+                }
+                break;
+        }
+        x = sindf(HmfModelData[thrower].rot.y) * 75.0f;
+        z = cosdf(HmfModelData[thrower].rot.y) * 75.0f;
+        func_8001C258_main(coin->model, 4, 0);
+        model = &HmfModelData[thrower];
+        Hu3DModelPosSet(coin->model, x + model->pos.x, model->pos.y + 50.0f, z + model->pos.z);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108E2C_puddle_paddle);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010910C_puddle_paddle);
+/* A free coin slot of a kind (0: 0-7, 1: 8-11, 2: 12-15), -1 if none */
+s16 func_8010910C_puddle_paddle(s16 kind) {
+    s16 end = 0;
+    s16 start = 0;
+    s16 i;
+
+    switch (kind) {
+        case 2:
+            start += 4;
+            end += 4;
+        case 1:
+            start += 8;
+            end += 4;
+        case 0:
+            end += 8;
+            break;
+    }
+    for (i = start; i < end; i++) {
+        if (D_80111658_puddle_paddle->coins[i].state == 0) {
+            break;
+        }
+    }
+    if (i == end) {
+        return -1;
+    }
+    return i;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801091F8_puddle_paddle);
 
