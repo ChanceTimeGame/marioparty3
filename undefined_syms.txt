@@ -252,3 +252,6 @@ D_8011EDFE_w05 = D_8011EDFC_w05 + 0x2;
 D_8011EE19_w05 = D_8011EE18_w05 + 0x1;
 D_8011EE1A_w05 = D_8011EE18_w05 + 0x2;
 D_8011EF3C_w05 = D_8011EF38_w05 + 0x4;
+/* board dc2: duel05 tables the C reads from their start (splat labels sit at +3 / +2) */
+D_801156B0_duel05 = 0x801156B0;
+D_80115818_duel05 = 0x80115818;
