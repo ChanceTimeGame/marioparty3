@@ -167,7 +167,7 @@ void func_8010BC14_puddle_paddle(s8 group);
 s16 func_8010BEE8_puddle_paddle(u16 prio, s32 dir, s32 file, u16 arg3, s32 attr);
 void func_8010C088_puddle_paddle(s16 sprite, s32 x, s32 y);
 void func_8010C16C_puddle_paddle(void);
-s16 func_8010C214_puddle_paddle(s32 dir, s32 file, f32 freq, s16 tag, s32 attr);
+s16 func_8010C214_puddle_paddle(s32 dir, s32 file, f32 freq, s16 tag, s32 attr, s32 arg5);
 void func_8010C664_puddle_paddle(void);
 s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 tag, s32 attr, s32 arg4);
 void func_8010CCF0_puddle_paddle(void);
@@ -318,7 +318,122 @@ void func_80106028_puddle_paddle(omObjData* obj) {
     func_8010CCF0_puddle_paddle();
 }
 
+/* D_800CBB60_main's 0x24-byte sprite models (14EA0.c unk_800ECDE0): only the model number is read here */
+typedef struct PpSprModel {
+    /* 0x00 */ u16 model;
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20;
+} PpSprModel;
+extern PpSprModel* D_800CBB60_main;
+u16 func_80014618_main(s16 index, u16 arg1);
+
+typedef struct PpFiles8 {
+    s32 v[8];
+} PpFiles8;
+typedef struct PpFiles3 {
+    s32 v[3];
+} PpFiles3;
+typedef struct PpShort3 {
+    s16 v[3];
+} PpShort3;
+extern PpFiles8 D_80111398_puddle_paddle; /* character icon files */
+extern PpFiles3 D_801113B8_puddle_paddle; /* coin sprite files */
+extern PpShort3 D_801113C4_puddle_paddle; /* coins of each kind */
+extern PpShort3 D_801113CC_puddle_paddle; /* the kinds */
+
+/* The pond: the raft, coins, effects and score sprites. NON_MATCHING: masked 0, spr and first swap s5/s6. */
+#ifdef NON_MATCHING
+void func_80106064_puddle_paddle(omObjData* obj) {
+    PpFiles8 icons = D_80111398_puddle_paddle;
+    PpFiles3 files = D_801113B8_puddle_paddle;
+    PpShort3 counts = D_801113C4_puddle_paddle;
+    PpShort3 kinds = D_801113CC_puddle_paddle;
+    PpCtx* ctx;
+    s16 sprite;
+    s16 i;
+    s16 j;
+    s16 model;
+    s16 first;
+    s32 spr;
+    void* data;
+
+    PP_WORK(obj)->w.group = 2;
+    ctx = func_8010B8B4_puddle_paddle(obj, PP_WORK(obj)->b.group, 6, 6)->ctx;
+    ctx->models[0] = func_8000B108_main(0xA0117, 0x2D9);
+    ctx->models[1] = func_8000B108_main(0x320000, 0x2D9);
+    ctx->models[2] = func_8000B108_main(9, 0x2D9);
+    func_8000B460_main(obj, 0, 0xA0118);
+    func_8000B460_main(obj, 1, 0xA0119);
+    spr = 0;
+    func_8001C5B4_main(ctx->models[0], obj->motion[0]);
+    func_8001C814_main(ctx->models[0], 2, 2);
+    Hu3DModelScaleSet(ctx->models[1], 0.8f, 0.8f, 0.8f);
+    Hu3DModelScaleSet(ctx->models[0], 1.2f, 1.2f, 1.2f);
+    Hu3DModelPosSet(ctx->models[0], 0.0f, 325.0f, 0.0f);
+    Hu3DModelScaleSet(ctx->models[2], 1.2f, 1.2f, 1.2f);
+    Hu3DModelPosSet(ctx->models[2], 0.0f, 320.0f, 0.0f);
+    D_80111658_puddle_paddle->unk3C = func_8000D658_main(0x6A9, 4);
+    first = 0;
+    for (i = 0; i < 3; i++) {
+        for (j = first; j < first + counts.v[i]; j++) {
+            D_80111658_puddle_paddle->coins[j].kind = kinds.v[i];
+            D_80111658_puddle_paddle->coins[j].unk20 = 50.0f;
+            if (j == first) {
+                data = DataRead(files.v[i]);
+                spr = HmfSprModelCreate(data, 0x9D, 0);
+                model = spr;
+                DataClose(data);
+            } else {
+                model = func_80014618_main(spr, 0);
+            }
+            D_80111658_puddle_paddle->coins[j].model = D_800CBB60_main[model].model;
+            Hu3DModelScaleSet(D_800CBB60_main[model].model, 3.0f, 3.0f, 1.0f);
+        }
+        first += counts.v[i];
+    }
+    for (i = 0; i < 14; i++) {
+        func_8010C214_puddle_paddle(50, 3, 1.0f, 0, 0, 0x499);
+    }
+    for (i = 0; i < 2; i++) {
+        func_8010C214_puddle_paddle(0, 8, 1.0f, 1, 0, 0x499);
+    }
+    for (i = 0; i < 16; i++) {
+        Hu3DModelScaleSet(D_80111668_puddle_paddle[func_8010C804_puddle_paddle(50, 22, 0, 0, 11)].model, 1.5f, 1.5f, 1.5f);
+    }
+    sprite = func_8010BEE8_puddle_paddle(0xFFF, 50, 21, 0, 0x1000);
+    func_80055458_main(D_80111664_puddle_paddle[sprite].group, 0, 200);
+    func_8010C088_puddle_paddle(sprite, 76, 32);
+    sprite = func_8010BEE8_puddle_paddle(0xFFF, 50, 21, 0, 0x1000);
+    func_80055458_main(D_80111664_puddle_paddle[sprite].group, 0, 200);
+    func_8010C088_puddle_paddle(sprite, 236, 32);
+    func_8010C088_puddle_paddle(func_8010BEE8_puddle_paddle(0xFF, 33, 26, 0, 0), 76, 32);
+    func_8010C088_puddle_paddle(func_8010BEE8_puddle_paddle(0xFF, 33, 26, 0, 0), 236, 32);
+    func_8010C088_puddle_paddle(func_8010BEE8_puddle_paddle(0xFF, 33, 27, 0, 0), 92, 32);
+    func_8010C088_puddle_paddle(func_8010BEE8_puddle_paddle(0xFF, 33, 27, 0, 0), 252, 32);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            func_8010C088_puddle_paddle(
+                func_8010BEE8_puddle_paddle(0xEF, 33, icons.v[GwPlayer[D_80111650_puddle_paddle[i].member[j]].chr], 0, 0),
+                (s16)(i * 160 + 40 + j * 18), 32);
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        D_80111650_puddle_paddle[i].digit[0] = model = func_8010BEE8_puddle_paddle(0xEF, 0, 49, 0, 0);
+        func_8010C088_puddle_paddle(model, (s16)(i * 160 + 104), 32);
+        D_80111650_puddle_paddle[i].digit[1] = model = func_8010BEE8_puddle_paddle(0xEF, 0, 49, 0, 0);
+        func_8010C088_puddle_paddle(model, (s16)(i * 160 + 116), 32);
+    }
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xF, NULL, func_80107E1C_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFF, NULL, func_80108178_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0x1FF, NULL, func_80108368_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xFFF, NULL, func_801087DC_puddle_paddle, 0);
+    obj->model[0] = ctx->models[0];
+    func_80110714_puddle_paddle(obj);
+    obj->func = func_80106958_puddle_paddle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106064_puddle_paddle);
+#endif
 
 void func_80106958_puddle_paddle(omObjData* obj) {
     func_8010BC14_puddle_paddle(2);
