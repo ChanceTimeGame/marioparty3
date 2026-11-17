@@ -3,7 +3,8 @@
 #include "../ovl_81_name/ovl_81.h"
 
 typedef struct UnkStaff {
-    char unk_00[0x18];
+    /* 0x00 */ Vec pos; /* story j3 */
+    /* 0x0C */ Vec rot; /* story j3 */
     s16 unk_18;
     s16 unk_1A;
     s16 unk_1C;
@@ -248,7 +249,68 @@ void func_8010FB88_staff(void);
 /* Spark colours (r, g, b, pad); defined in this unit's .data. */
 extern u8 D_801111E0_staff[4][4];
 
+/* story j3: one cast member of the credits' stage (func_8010CFD4). */
+typedef struct StaffActorDef {
+    /* 0x00 */ s32 model;    /* data id */
+    /* 0x04 */ s32 link;     /* data id of the model linked to it */
+    /* 0x08 */ s32 anim;     /* data id of its animation */
+    /* 0x0C */ char* animName;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec rot;
+} StaffActorDef; /* size 0x28 */
+
+extern StaffActorDef D_80111094_staff[8];
+
+// story j3: NON_MATCHING, masked 0, raw 7: i and ring swap s4/s5 (register allocation). Logic checked.
+#ifdef NON_MATCHING
+/* Creates the eight cast members of D_80111094 into actor[8]: model, animation, linked model, and
+   for all but the first a shadow (one model, linked for the rest) at its feet. */
+void func_8010CFD4_staff(UnkStaff* actors) {
+    s32 i;
+    s16 ring;
+    StaffActorDef* def;
+    UnkStaff* actor;
+    s16 model;
+    s16 link;
+    s16 shadow;
+    void* anim;
+
+    def = D_80111094_staff;
+    actor = actors;
+    ring = -1;
+    for (i = 0; i < 8; i++, actor++, def++) {
+        model = Hu3DModelCreate(DataReadTemp(def->model), 0x2A9);
+        actor->unk_18 = model;
+        anim = DataReadTemp(def->anim);
+        actor->unk_1C = HmfAnimCreate(HmfModelData[model].hmf, anim, 0, def->animName);
+        HuMemMemoryFreePerm(anim);
+        func_8001C448_main(model);
+        func_8001C514_main(model);
+        link = Hu3DModelCreate(DataReadTemp(def->link), 0x1D);
+        actor->unk_1A = link;
+        func_8001C5B4_main(model, link);
+        func_8001C814_main(model, -1, 2);
+        Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+        actor->pos = def->pos;
+        Hu3DModelPosSet(model, actor->pos.x, actor->pos.y, actor->pos.z);
+        actor->rot = def->rot;
+        Hu3DModelRotSet(model, def->rot.x, def->rot.y, def->rot.z);
+        actor->unk_1E = -1;
+        if (i != 0) {
+            if (ring < 0) {
+                shadow = ring = Hu3DModelCreate(DataReadTemp(9), 0x299);
+            } else {
+                shadow = Hu3DModelLink(ring);
+            }
+            actor->unk_1E = shadow;
+            Hu3DModelPosSet(shadow, actor->pos.x, 0.0f, actor->pos.z);
+            Hu3DModelScaleSet(shadow, 1.2f, 1.2f, 1.2f);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010CFD4_staff);
+#endif
 
 void func_8010D1E8_staff(void) {
     s16 sp10[3][2];
