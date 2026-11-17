@@ -391,7 +391,35 @@ void func_8010D1E8_staff(void) {
     }
 }
 
+// story j3: NON_MATCHING, masked 0, raw 11: FPU registers of the two double products. Logic checked.
+#ifdef NON_MATCHING
+/* Places shadow model under an actor at pos: offset by its height pos->y, shrinking with it, and
+   hidden from 80 units up. */
+void func_8010D450_staff(s16 model, Vec* pos) {
+    f32 height;
+    f32 scale;
+    f32 dx;
+    f32 dz;
+
+    height = pos->y;
+    scale = 400.0f - height;
+    if (scale < 0.0f) {
+        scale = 0.0f;
+    }
+    scale *= 0.0015f;
+    Hu3DModelScaleSet(model, scale, scale, scale);
+    dx = height * (f64) 0.2f;
+    dz = height * (f64) 0.3464f;
+    Hu3DModelPosSet(model, dx + pos->x, 0.0f, dz + pos->z);
+    if (height >= 80.0f) {
+        func_8001C258_main(model, 4, 4);
+    } else {
+        func_8001C258_main(model, 4, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D450_staff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D580_staff);
 
