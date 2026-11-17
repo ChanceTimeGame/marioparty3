@@ -266,7 +266,83 @@ void func_80109814_puddle_paddle(UnkPuddlePaddle *arg0, s16 arg1) {
     arg0->unk_0E = arg1;
 }
 
+// NON_MATCHING: masked 28; retail keeps best in a stack slot (frame 0x78, s0-s4), ours gives it s5; logic checked against the asm
+#ifdef NON_MATCHING
+void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
+    HmfModel *model[2]; /* the raft, a coin */
+    Vec raftPos;
+    Vec coinPos;
+    Vec d;
+    s16 best;
+    PpCoin *coin;
+    PpPlayer *player;
+    f32 bestDist;
+    f32 dist;
+    f32 angle;
+    s16 i;
+    PpTeam *team = ctx->data;
+
+    coin = D_80111658_puddle_paddle->coins;
+    player = &D_80111654_puddle_paddle[team->leader];
+    player->unk04 &= ~(2 | 4);
+    if (!(player->unk04 & 0x10) && (D_80111658_puddle_paddle->flags & 2)) {
+        model[0] = &HmfModelData[groupCtx->modelIds[ctx->tag]];
+        raftPos.x = model[0]->pos.x;
+        raftPos.y = model[0]->pos.y;
+        raftPos.z = model[0]->pos.z;
+        bestDist = 9999.0f;
+        best = -1;
+        for (i = 0; i < 16; i++, coin++) {
+            if (coin->unk04 == 3 && coin->kind != 2) {
+                model[1] = &HmfModelData[coin->model];
+                coinPos.x = model[1]->pos.x;
+                coinPos.y = model[1]->pos.y;
+                coinPos.z = model[1]->pos.z;
+                d.x = coinPos.x - raftPos.x;
+                d.y = coinPos.y - raftPos.y;
+                d.z = coinPos.z - raftPos.z;
+                dist = d.x * d.x + d.z * d.z;
+                if (dist != 0.0f) {
+                    dist = HuSqrtf(dist);
+                } else {
+                    dist = 0.0f;
+                }
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = i;
+                }
+            }
+        }
+        if (best != -1) {
+            model[1] = &HmfModelData[D_80111658_puddle_paddle->coins[best].model];
+            coinPos.x = model[1]->pos.x;
+            coinPos.y = model[1]->pos.y;
+            coinPos.z = model[1]->pos.z;
+            d.x = coinPos.x - raftPos.x;
+            d.z = coinPos.z - raftPos.z;
+            angle = atan2df(-d.z, d.x) + 90.0f;
+            if (angle < 0.0f) {
+                angle += 360.0f;
+            }
+            if (angle > 360.0f) {
+                angle -= 360.0f;
+            }
+            d.x = model[0]->rot.y;
+            d.y = angle;
+            func_80110BBC_puddle_paddle(&d.x, &d.y);
+            if (!(((d.x - d.y) > 0.0f ? (d.x - d.y) : -(d.x - d.y)) < 6.0f)) {
+                if (d.x - d.y > 0.0f) {
+                    player->unk04 |= 2;
+                } else if (d.x - d.y < 0.0f) {
+                    player->unk04 |= 4;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010981C_puddle_paddle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109BD4_puddle_paddle);
 
