@@ -26,7 +26,7 @@ typedef struct DR2Words4 { s32 v[4]; } DR2Words4;
 typedef struct DR2Words8 { s32 v[8]; } DR2Words8;
 typedef struct DR2Files2x3 { s32 v[2][3]; } DR2Files2x3;
 
-extern s16 kakusiMasuItemHis[]; /* Duel Mode: [0] the winner, [2] -1 unless the duel was decided (boardresult2: the ranking) */
+extern s16 kakusiMasuItemHis[]; /* Duel Mode: [0] the winner; [2] == -1 shows the third result file and no result banner (no winner) */
 extern u16 D_800C9520_main[];
 extern s16 D_800D0590_main[];
 void func_800D8F0C_name_81(Object *);
@@ -1021,3 +1021,19 @@ void func_80108BF8_duelresult2(void) {
 void func_80108C28_duelresult2(void) {
 }
 
+
+/* .data */
+UnkBoard4 *D_80108C30_duelresult2 = NULL;
+s32 D_80108C34_duelresult2 = 0; /* record scroll: first row shown (0-6) */
+s32 D_80108C38_duelresult2 = 0; /* record scroll: cursor row on screen (0-3) */
+s32 D_80108C3C_duelresult2 = 0; /* unreferenced */
+DR2Files2x3 D_80108C40_duelresult2 = { {
+    { 0x130035, 0x130071, 0x130045 },
+    { 0x130032, 0x130070, 0x130042 },
+} };
+DR2Files2x3 D_80108C58_duelresult2 = { {
+    { 0x130066, 0x130067, 0x130068 },
+    { 0x130063, 0x130064, 0x130065 },
+} };
+DR2Words8 D_80108C70_duelresult2 = { { 0x130036, 0x130037, 0x130038, 0x130039, 0x13003A, 0x13003B, 0x13003C, 0x13003D } };
+DR2Words4 D_80108C90_duelresult2 = { { 0, 0x3C, 0x8E, 0 } };

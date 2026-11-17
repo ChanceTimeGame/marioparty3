@@ -2081,7 +2081,7 @@ segments:
     bss_size: 0x90
     subsegments:
       - [0x45D380, c]
-      - [0x460610, data, 45D380] #80108C30
+      - [0x460610, .data, 45D380] #80108C30
       - [0x460680, .rodata, 45D380] #80108CA0
       - {0x460790, type: bss, vram: 0x80108DB0, name: duelresult2_bss}
 
