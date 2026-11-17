@@ -146,7 +146,7 @@ void func_8010B774_rockin_raceway(void);
 void func_8010CB5C_rockin_raceway(RrRacer* r, f32 arg1);
 void func_8010D5B8_rockin_raceway(void);
 void func_8010E2E4_rockin_raceway(void);
-void func_8010E344_rockin_raceway(s32, s32, s32, s32);
+void func_8010E344_rockin_raceway(s32, s32, s32, s16);
 f32 func_8010E504_rockin_raceway(f32, f32);
 f32 func_8010E608_rockin_raceway(f32, f32, f32);
 f32 func_8010E7C8_rockin_raceway(f32, f32, f32);
@@ -650,9 +650,60 @@ end:
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80107958_rockin_raceway);
+void func_80107958_rockin_raceway(RrRacer* r) {
+    if (D_800D5558_main[r->unk0C] & r->unk1E) {
+        r->unk38 += D_801112E0_rockin_raceway[r->unk1C] * 0.1f;
+        if (r->unk38 >= 1.0f) {
+            r->unk38 = 1.0f;
+        }
+        if (D_800D5558_main[r->unk0C] == 0x8000) {
+            r->unk1E = 0x6000;
+        } else {
+            r->unk1E = 0x8000;
+        }
+        r->unk28 -= 0.05f;
+        if (r->unk28 < 0.0f) {
+            r->unk28 = 0.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80107A38_rockin_raceway);
+void func_80107A38_rockin_raceway(RrRacer* r) {
+    if (r->unk28 <= 0.0f && D_80111AD8_rockin_raceway == 2) {
+        r->unk02 = 1;
+        func_8004AC98_main(0x458, r->unk0A);
+        func_8004AC98_main(0x459, r->unk0A);
+        func_8010E344_rockin_raceway(0x286, 3, 3, r->unk0A);
+        if (D_80111AD8_rockin_raceway == 2) {
+            omVibrate(r->unk0A, 2, 2, 20);
+        }
+    } else {
+        r->unk28 += 0.008f;
+        if (r->unk28 > 1.0f) {
+            r->unk28 = 1.0f;
+        }
+    }
+    if (r->unk02 == 2) {
+        if (!(r->unk34 & 0x1F)) {
+            func_80108F8C_rockin_raceway(r->unk58.x + 20.000000298023224, r->unk58.y + 139.9999976158142, r->unk58.z);
+        }
+        r->unk28 = 1.0f;
+        if (--r->unk20 == 0) {
+            if (D_80111AD8_rockin_raceway == 2) {
+                if (r->unk04 != -1) {
+                    HuAudFXStop(r->unk04);
+                    r->unk04 = -1;
+                }
+                if (r->unk06 != -1) {
+                    HuAudFXStop(r->unk06);
+                    r->unk06 = -1;
+                }
+            }
+            r->unk20 = 0;
+            r->unk02 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_80107BFC_rockin_raceway);
 
