@@ -1,4 +1,50 @@
 #include "common.h"
+
+/* a story-scene actor: its object and the action its process runs every frame */
+typedef struct StoryActor {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+} StoryActor; /* size = 0x18 */
+
+extern StoryActor D_801158F0_mstory1[8];
+extern Vec D_801159B0_mstory1[8]; /* actor positions */
+extern s16 D_80115A10_mstory1; /* shadow model, linked by every actor */
+extern s16 D_80115A14_mstory1[4];
+extern s32 D_80115A1C_mstory1[3]; /* texture animations */
+extern s16 D_80115A28_mstory1;
+extern const Vec D_80114CB0_mstory1[8]; /* actor start positions */
+extern const s32 D_80114D10_mstory1[8];
+extern const s32 D_80114D30_mstory1[8];
+extern const s32 D_80114D50_mstory1[8];
+extern const s32 D_80114D70_mstory1[8];
+extern const Vec D_80114E40_mstory1;
+extern const Vec D_80114E4C_mstory1;
+extern const Vec D_80114F00_mstory1;
+extern const Vec D_80114F0C_mstory1;
+extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
+void func_80032FC0_main(s16, s32, s32);
+s16 func_800329B4_main(void *);
+void func_80106984_mstory1(void);
+void func_801081D8_mstory1(omObjData *obj);
+void func_801081E0_mstory1(void);
+void func_801085F0_mstory1(void);
+void func_80109140_mstory1(void);
+void func_80109470_mstory1(void);
+void func_801099F8_mstory1(void);
+void func_80109C20_mstory1(void);
+void func_80109C28_mstory1(omObjData *obj);
+void func_80109DC0_mstory1(void);
+void func_8010A424_mstory1(void);
+void func_8010AA98_mstory1(void);
+void func_8010B110_mstory1(void);
+void func_8010B3B8_mstory1(void);
+void func_8010B4E4_mstory1(void);
+void func_8010BC68_mstory1(void);
 #include "mallocblock.h"
 
 /* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry): segment i runs
@@ -408,349 +454,21 @@ s32 func_8010726C_mstory1(s16 model) {
     return done;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80107318_mstory1);
-
-ObPath *func_801074C0_mstory1(Vec *points, s16 flags) {
-    ObPath *path;
-    Vec *prev;
-    Vec *cur;
-    ObPathSeg *seg;
-    f32 total;
-    f32 pos;
-    f32 len;
+/* moves obj's model (and its shadow) `speed` units a frame the way it faces, for `frames` frames */
+void func_80107318_mstory1(omObjData *obj, f32 speed, s16 frames) {
     f32 dx;
-    f32 dy;
     f32 dz;
-    s16 n;
-    s16 i;
+    f32 t;
 
-    path = HuMemAllocTag(sizeof(ObPath), 0x7918);
-    path->flags = flags;
-    path->points = points;
-    prev = points;
-    cur = prev + 1;
-    total = 0.0f;
-    n = 0;
-    while (cur->x != 9999.0f || cur->y != 9999.0f || cur->z != 9999.0f) {
-        dx = cur->x - prev->x;
-        dy = cur->y - prev->y;
-        dz = cur->z - prev->z;
-        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
-        n++;
-        cur++;
-        prev++;
+    dx = speed * sindf(HmfModelData[obj->model[1]].rot.y);
+    dz = speed * cosdf(HmfModelData[obj->model[1]].rot.y);
+    for (t = 0.0f; t < frames; t += 1.0f) {
+        HmfModelData[obj->model[2]].pos.x = HmfModelData[obj->model[1]].pos.x += dx;
+        HmfModelData[obj->model[2]].pos.z = HmfModelData[obj->model[1]].pos.z += dz;
+        HuPrcVSleep();
     }
-    if (flags & 1) {
-        dx = points->x - prev->x;
-        dy = points->y - prev->y;
-        dz = points->z - prev->z;
-        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
-    }
-    n++;
-    path->count = n;
-    seg = HuMemAllocTag(n * sizeof(ObPathSeg), 0x7918);
-    path->segs = seg;
-    prev = points;
-    cur = prev + 1;
-    pos = 0.0f;
-    for (i = 0; i < n; i++, prev++, cur++, seg++) {
-        dx = cur->x - prev->x;
-        dy = cur->y - prev->y;
-        dz = cur->z - prev->z;
-        if ((flags & 1) && i == n - 1) {
-            dx = points->x - prev->x;
-            dy = points->y - prev->y;
-            dz = points->z - prev->z;
-        }
-        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
-        seg->start = pos / total;
-        seg->end = (pos + len) / total;
-        if (seg->end > 1.0f) {
-            seg->end = 1.0001f;
-        }
-        pos += len;
-    }
-    return path;
-}
-
-#ifdef NON_MATCHING
-/* the point at t (0..1) along a path: a spline through the four points around the segment t
-   falls in */
-void func_801077C4_mstory1(ObPath *path, f32 t, Vec *out) {
-    f32 p[4];
-    f32 times[4];
-    ObPathSeg *segs;
-    Vec *pts;
-    s16 i;
-
-    if (t >= 1.0f) {
-        out->x = path->points[path->count - 1].x;
-        out->y = path->points[path->count - 1].y;
-        out->z = path->points[path->count - 1].z;
-        return;
-    }
-    for (i = 0, segs = path->segs; i < path->count; i++, segs++) {
-        if (t <= segs->start) {
-            break;
-        }
-    }
-    i--;
-    i = (i < 0) ? 0 : i;
-    if (i >= path->count - 1) {
-        i--;
-    }
-    segs = path->segs;
-    if (path->flags & 1) {
-        times[0] = (i == 0) ? -(1.0f - segs[path->count - 1].start) : segs[i - 1].start;
-        times[1] = segs[i].start;
-        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
-        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
-        pts = path->points;
-        p[0] = (i == 0) ? pts[path->count - 1].x : pts[i - 1].x;
-        p[1] = pts[i].x;
-        p[2] = (i >= path->count - 1) ? pts[0].x : pts[i + 1].x;
-        p[3] = (i + 1 >= path->count - 1) ? pts[0].x : pts[i + 2].x;
-        out->x = func_80018ACC_main(p, times, t);
-        p[0] = (i == 0) ? pts[path->count - 1].y : pts[i - 1].y;
-        p[1] = pts[i].y;
-        p[2] = (i >= path->count - 1) ? pts[0].y : pts[i + 1].y;
-        p[3] = (i + 1 >= path->count - 1) ? pts[0].y : pts[i + 2].y;
-        out->y = func_80018ACC_main(p, times, t);
-        p[0] = (i == 0) ? pts[path->count - 1].z : pts[i - 1].z;
-        p[1] = pts[i].z;
-        p[2] = (i >= path->count - 1) ? pts[0].z : pts[i + 1].z;
-        p[3] = (i + 1 >= path->count - 1) ? pts[0].z : pts[i + 2].z;
-    } else {
-        if (i == 0) {
-            times[0] = -1.0f;
-        } else {
-            times[0] = segs[i - 1].start;
-        }
-        times[1] = segs[i].start;
-        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
-        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
-        pts = path->points;
-        p[0] = (i == 0) ? pts[0].x : pts[i - 1].x;
-        p[1] = pts[i].x;
-        p[2] = (i >= path->count - 1) ? pts[path->count - 1].x : pts[i + 1].x;
-        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].x : pts[i + 2].x;
-        out->x = func_80018ACC_main(p, times, t);
-        p[0] = (i == 0) ? pts[0].y : pts[i - 1].y;
-        p[1] = pts[i].y;
-        p[2] = (i >= path->count - 1) ? pts[path->count - 1].y : pts[i + 1].y;
-        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].y : pts[i + 2].y;
-        out->y = func_80018ACC_main(p, times, t);
-        p[0] = (i == 0) ? pts[0].z : pts[i - 1].z;
-        p[1] = pts[i].z;
-        p[2] = (i >= path->count - 1) ? pts[path->count - 1].z : pts[i + 1].z;
-        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].z : pts[i + 2].z;
-    }
-    out->z = func_80018ACC_main(p, times, t);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_801077C4_mstory1);
-#endif
-
-void func_8010806C_mstory1(ObPath *path) {
-    HuMemFree(path->segs);
-    HuMemFree(path);
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010809C_mstory1);
-
-void func_801081D8_mstory1(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_801081E0_mstory1);
-
-void func_801085F0_mstory1(void) {
 }
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114C6C_mstory1);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114C88_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CB0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CBC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CC8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CD4_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CE0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CEC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114CF8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D04_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D10_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D30_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D50_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D70_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D90_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114D9C_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114DA8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114DCC_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_801085F8_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109014_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_801090D8_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010910C_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114DFC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E08_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E14_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E20_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E30_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E38_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E40_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E4C_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109140_mstory1);
-
-void func_80109470_mstory1(void) {
-}
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E64_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109478_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010980C_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109888_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_801099F8_mstory1);
-
-void func_80109C20_mstory1(void) {
-}
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E7C_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114E94_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EA0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EAC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EB8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EC4_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114ED0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EDC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114EE8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F00_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F0C_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109C28_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109DC0_mstory1);
-
-void func_80109FD0_mstory1(void) {
-}
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F30_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80109FD8_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010A424_mstory1);
-
-void func_8010A608_mstory1(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010A610_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010AA98_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010AC40_mstory1);
-
-void func_8010B108_mstory1(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B110_mstory1);
-
-void func_8010B300_mstory1(void) {
-}
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F48_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F54_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F6C_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F78_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F84_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F90_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114F9C_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FA8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FB4_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FC0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FCC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FD8_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FE4_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FF0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80114FFC_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80115008_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B308_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B384_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B3B8_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B4E4_mstory1);
-
-void func_8010B69C_mstory1(void) {
-}
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B6A4_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010B9C0_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80115038_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_80115050_mstory1);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory1/48C120", D_8011505C_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010BB08_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010BBEC_mstory1);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_8010BC68_mstory1);
