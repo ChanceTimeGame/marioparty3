@@ -95,23 +95,27 @@ typedef struct PpTeam {
     /* 0x22 */ s16 member[2]; /* player indices */
     /* 0x26 */ s16 digit[2]; /* score digit sprites */
     /* 0x2A */ s16 score;
-    /* 0x2C */ char unk2C[0x38];
+    /* 0x2C */ s16 leader; /* the player who sets the pace */
+    /* 0x2E */ char unk2E[0x36];
 } PpTeam; /* size 0x64 */
 
 /* A player (D_80111654_puddle_paddle[4]) */
 typedef struct PpPlayer {
-    /* 0x00 */ s16 no;
+    /* 0x00 */ s16 no; /* controller port */
     /* 0x02 */ s16 chr;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ char unk08[6];
-    /* 0x0E */ s16 unk0E;
+    /* 0x04 */ s32 flags; /* 1, 2 steer right, 4 steer left, 8 paddled, 0x10 */
+    /* 0x08 */ s8 pending; /* motion pending */
+    /* 0x0A */ s16 motion;
+    /* 0x0C */ char unk0C[2];
+    /* 0x0E */ s16 unk0E; /* next motion, -1 none */
     /* 0x10 */ s8 slot; /* place in the team */
     /* 0x11 */ char unk11[0x37];
     /* 0x48 */ f32 unk48;
-    /* 0x4C */ char unk4C[4];
+    /* 0x4C */ f32 power;
     /* 0x50 */ s16 team;
-    /* 0x52 */ char unk52[4];
-    /* 0x56 */ s16 unk56;
+    /* 0x52 */ s16 unk52;
+    /* 0x54 */ s16 unk54;
+    /* 0x56 */ s16 unk56; /* won */
     /* 0x58 */ s16 unk58;
     /* 0x5A */ char unk5A[2];
 } PpPlayer; /* size 0x5C */
@@ -597,7 +601,7 @@ void func_80106CE4_puddle_paddle(omObjData* obj) {
     Hu3DModelPosSet(obj->model[0], rafts.pos[player->team].x + sindf(angle) * 20.0f * 5.0f * 0.7f,
                     rafts.pos[player->team].y + 37.0f, rafts.pos[player->team].z + cosdf(angle) * 20.0f * 5.0f * 0.7f);
     player->no = ((func_800E1BA8_minigame_ObjData*)obj->data)->unk57;
-    player->unk04 = 1;
+    player->flags = 1;
     player->unk56 = 0;
     player->unk58 = 0;
     obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
@@ -1164,11 +1168,144 @@ s16 func_8010910C_puddle_paddle(s16 kind) {
     return i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801091F8_puddle_paddle);
+/* A CPU player: paddles (button 0x8000) at a random interval set by its difficulty while its team's leader
+   paddles */
+void func_801091F8_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    omObjData* obj = ctx->obj;
+    PpPlayer* p[2]; /* the player and its team's leader */
 
+    if (D_80111658_puddle_paddle->flags & 2) {
+        p[0] = task->data;
+        p[1] = &D_80111654_puddle_paddle[D_80111650_puddle_paddle[p[0]->team].leader];
+        if (task->state == 0) {
+            switch (GwPlayer[obj->work[0]].cpu_difficulty) {
+                case 0:
+                    task->s8[0] = 4;
+                    task->s8[1] = 8;
+                    p[0]->unk52 = 20;
+                    p[0]->unk54 = 15;
+                    break;
+                case 1:
+                    task->s8[0] = 4;
+                    task->s8[1] = 7;
+                    p[0]->unk52 = 30;
+                    p[0]->unk54 = 13;
+                    break;
+                case 2:
+                    task->s8[0] = 3;
+                    task->s8[1] = 6;
+                    p[0]->unk52 = 40;
+                    p[0]->unk54 = 11;
+                    break;
+                case 3:
+                    task->s8[0] = 3;
+                    task->s8[1] = 5;
+                    p[0]->unk52 = 99;
+                    p[0]->unk54 = 9;
+                    break;
+            }
+            task->state = 1;
+        }
+        D_800CBB6E_main[p[0]->no] = 0;
+        D_800D20A1_main[p[0]->no] = 0;
+        D_800CDA7C_main[p[0]->no] = 0;
+        if (obj->work[0] == D_80111650_puddle_paddle[p[0]->team].leader || (p[1]->flags & 8)) {
+            if (++task->s16[0] > task->s16[1]) {
+                task->s16[0] = 0;
+                task->s16[1] = rand16() % (task->s8[1] - task->s8[0] + 1) + task->s8[0];
+                ((u16*)D_800CDA7C_main)[p[0]->no] = 0x8000; /* the button bits are u16 */
+            }
+        }
+    }
+}
+
+/* A player's paddling: each press adds power, which decays; the stick steers (flags 2 right, 4 left).
+   NON_MATCHING: retail reads the stick with lbu and sign-extends it twice; this C gets one lb. */
+#ifdef NON_MATCHING
+void func_801094C4_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    PpPlayer* player = task->data;
+    s32 flags = player->flags;
+    u8 stick;
+
+    player->flags = flags & ~6;
+    if (!(flags & 0x10)) {
+        if (D_80111658_puddle_paddle->flags & 2) {
+            if (++task->s8[2] >= 7) {
+                task->s8[2] = 6;
+                player->flags &= ~8;
+            }
+            if ((u16)D_800CDA7C_main[player->no] & 0x8000) {
+                if (task->s8[0] == 0) {
+                    task->s8[0] = 1;
+                    task->s8[2] = 0;
+                    player->power += 0.05f;
+                    player->flags |= 8;
+                    if (player->power > 1.0f) {
+                        player->power = 1.0f;
+                    }
+                }
+            } else {
+                task->s8[0] = 0;
+            }
+            if (task->s8[1] == 0) {
+                task->s8[1] = 1;
+                player->power -= sindf(player->power * 90.0f) * 0.025f;
+                if (player->power < 0.0f) {
+                    player->power = 0.0f;
+                }
+            } else {
+                task->s8[1] = 0;
+            }
+            stick = (u8)D_800CBB6E_main[player->no];
+            if (((s8)stick == 0) & (D_800D20A1_main[player->no] == 0)) {
+                return;
+            }
+            if ((s8)stick < -7) {
+                player->flags |= 4;
+            } else if ((s8)stick >= 8) {
+                player->flags |= 2;
+            }
+        } else {
+            player->flags &= ~8;
+            if (task->s8[1] == 0) {
+                task->s8[1] = 1;
+                player->power -= sindf(player->power * 90.0f) * 0.1f;
+                if (player->power < 0.0f) {
+                    player->power = 0.0f;
+                }
+            } else {
+                task->s8[1] = 0;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801094C4_puddle_paddle);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109718_puddle_paddle);
+/* Plays the pending motion once the current one ends */
+void func_80109718_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    PpPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+    HmfModel* model = &HmfModelData[obj->model[0]];
+
+    if (player->unk58 != 1) {
+        if (D_800CCF58_main[model->unk02].unk02 - 1 <= model->unk40) {
+            player->pending = 1;
+        }
+        if (player->pending != 0) {
+            func_800E5690_minigame(obj, player->motion);
+            player->pending = 0;
+            if (player->unk58 == -1) {
+                player->unk58 = 1;
+            }
+            if (player->unk0E != -1) {
+                player->motion = player->unk0E;
+                player->unk0E = -1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109804_puddle_paddle);
 
