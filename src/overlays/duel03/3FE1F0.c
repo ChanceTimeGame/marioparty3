@@ -656,6 +656,7 @@ void func_8010BCD8_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800FADB4_name_81();
 }
 
+// board db2: func_8010CE68_duel01's twin (same instructions), same residue.
 #ifdef NON_MATCHING
 // duel b2: masked 84 of 463: register/stack allocation (retail frame 8 bytes larger, 5.0f kept in $f20, extra1/extra2 slots swapped); logic checked block by block.
 void func_8010CE6C_duel03(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
@@ -789,6 +790,7 @@ void func_8010CE6C_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8010CE6C_duel03);
 #endif
 
+// board db2: func_8010D424_duel01's twin (same instructions), same residue.
 #ifdef NON_MATCHING
 // duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D428_duel03(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
@@ -1328,6 +1330,8 @@ s32 func_8010EBD4_duel03(void) {
     return result;
 }
 
+// board db2: func_8010EFBC_duel01's twin (same instructions), same residue: retail keeps 64.0f and 3.0f out of
+// registers (loop hoisting), frame 8 bytes larger (masked 24)
 #ifdef NON_MATCHING
 void func_8010EDF0_duel03(void) {
     s32 *data;
@@ -1518,6 +1522,8 @@ void func_8010EF60_duel03(void) {
     omDelPrcObj(NULL);
 }
 
+// board db2: func_8010F99C_duel01's twin (same instructions), same residue: register allocation (the -1, walk
+// target and partner/bell registers) and one branch-likely (masked 14)
 #ifdef NON_MATCHING
 s32 func_8010F7D0_duel03(s32 no) {
     Vec dir;
@@ -1905,6 +1911,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/duel03/3FE1F0", D_80117EB4_duel03);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/duel03/3FE1F0", D_80117F9C_duel03);
 
+// board db2: func_80110C3C_duel01's twin (same instructions), same residue.
 #ifdef NON_MATCHING // duel b7: masked 0 but for register allocation: one extra callee-saved register ($s8), so every $s register is one higher
 /* Turn start: on the first turn both players pick their starting partners; partner 6 may hand over 2-4
    coins; from the second turn the player pays the partners' upkeep, or loses them when short of coins. */
