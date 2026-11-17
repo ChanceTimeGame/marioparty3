@@ -156,27 +156,123 @@ typedef union SsPack {
         (v) += 360.0;          \
     }
 
-extern Vec D_8010D820_slot_synch[];
-extern Gfx D_8010DB60_slot_synch[];
 extern s16 D_800CDD6A_main;
 extern u8 D_800D2008_main;
-extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
-extern s32 D_8010DA60_slot_synch;
-extern s32 D_8010DA64_slot_synch;
-extern s32 D_8010DA68_slot_synch;
 extern s32 fontcolor;
 extern SsCamera D_8010DFA0_slot_synch[2];
 extern s32 D_8010DFE8_slot_synch;
 extern s32 D_8010DFEC_slot_synch;
 extern s32 D_8010DFF0_slot_synch;
 extern SsEffect *D_8010DF98_slot_synch;
-extern s32 D_8010DA40_slot_synch[];
-extern s16 D_8010D838_slot_synch[][2];
 extern omObjData *D_8010DF84_slot_synch;
 extern SsReel *D_8010DF88_slot_synch;
 extern s16 *D_8010DF8C_slot_synch; // s16[0x20] sprite/file ids
 extern SsCounter *D_8010DF90_slot_synch;
+
+typedef struct SsSlotPos {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 n;
+} SsSlotPos; // Size 6
+
+/* .data (0x8010D7F0..0x8010DBA0). Inner labels the remaining asm uses are undefined_syms.txt aliases. */
+Vec D_8010D7F0_slot_synch[4] = { /* D_8010D7F8 = [0].z */
+    { -300.0f, 0.0f, 0.0f }, { -125.0f, 0.0f, -0.0f }, { 125.0f, 0.0f, -0.0f }, { 300.0f, 0.0f, 0.0f },
+};
+Vec D_8010D820_slot_synch[2] = { /* D_8010D824 = [0].y, D_8010D828 = [0].z */
+    { -255.0f, 0.0f, -300.0f },
+    { 255.0f, 0.0f, -300.0f },
+};
+s16 D_8010D838_slot_synch[2][2] = { { 70, 40 }, { 250, 40 } }; /* counter positions; D_8010D83A = [0][1] */
+f32 D_8010D840_slot_synch[5] = { 0.0f, 90.0f, 180.0f, 270.0f, 0.0f };
+u8 D_8010D854_slot_synch[8] = { 0, 1, 2, 3, 2, 3, 1, 0 };
+s16 D_8010D85C_slot_synch[4] = { 3, 1, 2, -1 };
+RGBA D_8010D864_slot_synch = { 0xE9, 0xDD, 0xA1, 0x80 };
+RGBA D_8010D868_slot_synch = { 0xFF, 0xFF, 0xFF, 0x80 };
+RGBA D_8010D86C_slot_synch = { 0xFF, 0xFF, 0xFF, 0xFF };
+s32 D_8010D870_slot_synch[8] = { 0x200A5, 0x300A5, 0x700A5, 0x400A5, 0x500A5, 0x600A5, 0x800A5, 0x9001C };
+s32 D_8010D890_slot_synch[8] = { 0x200A6, 0x300A6, 0x700A6, 0x400A6, 0x500A6, 0x600A6, 0x800A6, 0x9001D };
+s32 D_8010D8B0_slot_synch = 0; /* D_8010D8B2 = its low half */
+s32 D_8010D8B4_slot_synch[4] = { 0, 1, 2, 3 };
+s16 D_8010D8C4_slot_synch[4][4] = { { 0, 1, 2, 3 }, { 3, 0, 1, 2 }, { 2, 3, 0, 1 }, { 1, 2, 3, 0 } };
+s16 D_8010D8E4_slot_synch[4] = { 0x12, 0x13, 0x15, 0x14 };
+s32 D_8010D8EC_slot_synch[8] = { 0x20000, 0x30000, 0x70000, 0x40000, 0x50000, 0x60000, 0x80000, 0x90000 };
+s32 D_8010D90C_slot_synch[4] = { 0x2F, 0x30, 0x36, 0x37 }; /* D_8010D910 = [1], D_8010D912/D_8010D916 = low halves of [1]/[2] */
+s16 D_8010D91C_slot_synch[6] = { 0, 2, 1, 3, 0, 0 };
+s16 D_8010D928_slot_synch[8] = { 3, 3, 3, 3, 2, 3, 3, 0 };
+SsSlotPos D_8010D938_slot_synch[12] = { /* D_8010D93A = [0].y, D_8010D93D = low byte of [0].n */
+    { 0x10, 0x5C, 0 }, { 0x28, 0x5C, 1 }, { 0x40, 0x5C, 2 }, { 0x58, 0x5C, 3 },
+    { 0x1E, 0x6C, 3 }, { 0x36, 0x6C, 2 }, { 0x4E, 0x6C, 1 }, { 0x66, 0x6C, 0 },
+    { 0x10, 0x7C, 3 }, { 0x28, 0x7C, 0 }, { 0x40, 0x7C, 1 }, { 0x58, 0x7C, 2 },
+};
+SsSlotPos D_8010D980_slot_synch[12] = { /* D_8010D982 = [0].y, D_8010D985 = low byte of [0].n */
+    { 0x130, 0x5C, 0 }, { 0x118, 0x5C, 1 }, { 0x100, 0x5C, 2 }, { 0xE8, 0x5C, 3 },
+    { 0x122, 0x6C, 3 }, { 0x10A, 0x6C, 2 }, { 0xF2, 0x6C, 1 }, { 0xDA, 0x6C, 0 },
+    { 0x130, 0x7C, 3 }, { 0x118, 0x7C, 0 }, { 0x100, 0x7C, 1 }, { 0xE8, 0x7C, 2 },
+};
+u8 D_8010D9C8_slot_synch[8] = { 0, 0, 0, 1, 0, 1, 0, 0 };
+f32 D_8010D9D0_slot_synch[8] = { 150.0f, 150.0f, 150.0f, 150.0f, 150.0f, 180.0f, 150.0f, 150.0f };
+s32 D_8010D9F0_slot_synch[4] = { 0xA0000, 0xA00A5, 0xA008E, 0xA00EE };
+s32 D_8010DA00_slot_synch[4] = { 0xA0018, 0xA00B3, 0xA00A0, 0xA00FA };
+s32 D_8010DA10_slot_synch[4] = { 0xA0002, 0xA00A9, 0xA0090, 0xA00F1 };
+f32 D_8010DA20_slot_synch[4] = { 1.5f, 1.75f, 1.0f, 1.2f };
+s32 D_8010DA30_slot_synch[4] = { 0x393, 0x391, 0x392, 0x394 }; /* D_8010DA32 = low half of [0] */
+s32 D_8010DA40_slot_synch[8] = { 0x210008, 0x210009, 0x21000A, 0x21000B, 0x21000C, 0x21000D, 0x21000E, 0x21000F };
+s32 D_8010DA60_slot_synch = 0; /* debug camera mode */
+s32 D_8010DA64_slot_synch = 0; /* debug text x; D_8010DA66 = low half */
+s32 D_8010DA68_slot_synch = 0; /* debug text y; D_8010DA6A = low half */
+s32 D_8010DA6C_slot_synch = 0;
+
+Gfx D_8010DA70_slot_synch[] = {
+    gsSPSegment(0x00, 0x00000000),
+    gsDPPipeSync(),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPPipelineMode(G_PM_1PRIMITIVE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureDetail(G_TD_CLAMP),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0, 0),
+    gsDPSetTileSize(1, 0, 0, 0, 0),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_4b, 0, 0x0000, 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPSetTextureFilter(G_TF_BILERP),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetCombineKey(G_CK_NONE),
+    gsDPSetAlphaCompare(G_AC_NONE),
+    gsDPSetDepthSource(G_ZS_PIXEL),
+    gsDPSetRenderMode(G_RM_OPA_SURF, G_RM_OPA_SURF2),
+    gsDPNoOp(),
+    gsDPSetColorDither(G_CD_DISABLE),
+    gsDPPipeSync(),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010DB28_slot_synch[] = {
+    gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA),
+    gsSPTexture(0, 0, 0, G_TX_RENDERTILE, G_OFF),
+    gsSPSetGeometryMode(G_SHADE | G_SHADING_SMOOTH),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010DB48_slot_synch[] = {
+    gsSPDisplayList(D_8010DB28_slot_synch),
+    gsSPDisplayList(D_8010DA70_slot_synch),
+    gsSPEndDisplayList(),
+};
+
+Gfx D_8010DB60_slot_synch[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(D_8010DB48_slot_synch),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsSPSetGeometryMode(G_ZBUFFER | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH),
+    gsDPSetBlendColor(0x00, 0x00, 0x00, 0x00),
+    gsDPSetPrimColor(0, 0, 0x00, 0x00, 0x00, 0xFF),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+    gsSPEndDisplayList(),
+};
 
 void func_801094E0_slot_synch(u8 player, f32 y, f32 dy);
 void func_8010A7D0_slot_synch(omObjData *obj);
