@@ -82,7 +82,7 @@ typedef struct SrPadWork {
     /* 0x17 */ u8 unk17;
 } SrPadWork; /* size = 0x18 */
 extern SrPadWork D_8010ABE8_storyresult;
-extern u8 D_8010A924_storyresult[]; /* per GwStory.unk0: 0/1 hidden-block chapter, 2 duel, other always */
+extern u8 D_8010A924_storyresult[]; /* per GwStory.unk0 (chapter): 0 party board, 1 duel board, 2 two-player game, other none */
 extern s16 kakusiMasuItemHis[];
 extern u8 D_800CE20A_main;
 extern s16 D_800EBAF0_minigame;
