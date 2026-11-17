@@ -228,6 +228,57 @@ extern f32 D_80110610_staff[2]; /* their end angles */
 void func_801091CC_staff(Vec *out, Vec *center, f32 angle);
 extern Vec D_80110618_staff[]; /* path points (ended by 9999s) */
 extern Vec D_80110648_staff[];
+/* Credit actors (func_80109D74_staff sets up three from a 0x18-byte definition table). */
+typedef struct StaffSVec {
+    s16 x;
+    s16 y;
+    s16 z;
+} StaffSVec; /* size = 0x6 */
+
+typedef struct StaffActor {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ char unk0C[0x10];
+    /* 0x1C */ s16 model;
+    /* 0x1E */ s16 mot;
+    /* 0x20 */ char unk20[2];
+    /* 0x22 */ StaffSVec ofs;
+    /* 0x28 */ s16 sub[4];   /* extra models of the types 4, 7, 8, 10 */
+    /* 0x30 */ char unk30[2];
+    /* 0x32 */ s16 anim;
+    /* 0x34 */ s16 type;
+    /* 0x36 */ s16 spread;   /* x offset of sub[0] (types 4, 8, 10) */
+    /* 0x38 */ char unk38[2];
+    /* 0x3A */ s16 flags;    /* 0: unused, 1: set up, 3: placed; |2 drawn this frame, |4 requested */
+} StaffActor; /* size = 0x3C */
+
+typedef struct StaffActorDef {
+    /* 0x00 */ f32 scale;
+    /* 0x04 */ s32 file;
+    /* 0x08 */ s32 motFile;
+    /* 0x0C */ StaffSVec ofs;
+    /* 0x12 */ s16 type;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 anim;     /* 1-based index into D_80110674_staff, 0: none */
+} StaffActorDef; /* size = 0x18 */
+
+typedef struct StaffActorWork {
+    /* 0x00 */ StaffActor *actors; /* three */
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ s16 cur;
+} StaffActorWork;
+
+typedef struct StaffAnimDef {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ char *name;
+} StaffAnimDef; /* size = 0x8 */
+
+extern s16 D_8011066C_staff[4];          /* type 7 sub-model x offsets */
+extern StaffAnimDef D_80110674_staff[];
+s16 func_8000B13C_main(s32 arg0);
+void func_8010992C_staff(Process *proc, s16 model);
+s16 func_8010998C_staff(Process *proc, s16 *model, s16 *mot, Vec *pos);
+void func_80109D08_staff(Process *proc, s16 model, Vec *pos);
+StaffActorDef *func_80109D74_staff(StaffActor *actor, StaffActorDef *def);
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -1547,13 +1598,141 @@ void func_801095E4_staff(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_801095E4_staff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010992C_staff);
+void func_8010992C_staff(Process *proc, s16 model) {
+    StaffActor *actor;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010998C_staff);
+    actor = ((StaffActorWork *)proc->user_data)->actors;
+    for (i = 0; i < 3; i++, actor++) {
+        if (actor->flags == 3 && actor->model == model) {
+            break;
+        }
+    }
+    if (i < 3) {
+        actor->flags |= 4;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109D08_staff);
+s16 func_8010998C_staff(Process *proc, s16 *model, s16 *mot, Vec *pos) {
+    StaffActorWork *work;
+    StaffActor *actor;
+    f32 x;
+    f32 y;
+    f32 z;
+    s16 cur;
+    s32 i;
+    s16 sub;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109D74_staff);
+    work = proc->user_data;
+    cur = work->cur;
+    actor = &work->actors[cur];
+    if (actor->flags == 0) {
+        *model = -1;
+        *mot = -1;
+        return -1;
+    }
+    actor->flags |= 2;
+    *model = actor->model;
+    *mot = actor->mot;
+    actor->pos = *pos;
+    x = pos->x + actor->ofs.x;
+    y = pos->y + actor->ofs.y;
+    z = pos->z + actor->ofs.z;
+    switch (actor->type) {
+    case 4:
+        Hu3DModelPosSet(actor->model, x - actor->spread, y, z);
+        func_8001C258_main(actor->model, 4, 0);
+        Hu3DModelPosSet(actor->sub[0], x + actor->spread, y, z);
+        func_8001C258_main(actor->sub[0], 4, 0);
+        break;
+    case 7:
+        Hu3DModelPosSet(actor->model, x, y, z);
+        func_8001C258_main(actor->model, 4, 0);
+        for (i = 0; i < 4; i++) {
+            sub = actor->sub[i];
+            Hu3DModelPosSet(sub, x + D_8011066C_staff[i], y, z);
+            func_8001C258_main(sub, 4, 0);
+        }
+        break;
+    case 8:
+        Hu3DModelPosSet(actor->model, x - actor->spread, y, z);
+        func_8001C258_main(actor->model, 4, 0);
+        Hu3DModelPosSet(actor->sub[0], x + actor->spread, y, z);
+        func_8001C258_main(actor->sub[0], 4, 0);
+        break;
+    case 10:
+        Hu3DModelPosSet(actor->model, x - actor->spread, y, z);
+        func_8001C258_main(actor->model, 4, 0);
+        Hu3DModelPosSet(actor->sub[0], x + actor->spread, y, z);
+        func_8001C258_main(actor->sub[0], 4, 0);
+        break;
+    case 0:
+    default:
+        Hu3DModelPosSet(actor->model, x, y, z);
+        func_8001C258_main(actor->model, 4, 0);
+        break;
+    }
+    if (++work->cur >= 3) {
+        work->cur = 0;
+    }
+    return cur;
+}
+
+void func_80109D08_staff(Process *proc, s16 model, Vec *pos) {
+    StaffActor *actor;
+    s32 i;
+
+    actor = ((StaffActorWork *)proc->user_data)->actors;
+    for (i = 0; i < 3; i++, actor++) {
+        if (actor->flags == 3 && actor->model == model) {
+            break;
+        }
+    }
+    if (i < 3) {
+        actor->pos = *pos;
+    }
+}
+
+StaffActorDef *func_80109D74_staff(StaffActor *actor, StaffActorDef *def) {
+    void *data;
+    s32 i;
+    s16 anim;
+    s16 model;
+    s16 mot;
+
+    for (i = 0; i < 3; i++, actor++, def++) {
+        anim = 0;
+        actor->flags = 1;
+        actor->type = def->type;
+        actor->ofs = def->ofs;
+        model = func_8000B108_main(def->file, 0x2AD);
+        func_8001C814_main(model, -1, 2);
+        Hu3DModelScaleSet(model, def->scale, def->scale, def->scale);
+        actor->anim = -1;
+        if (def->anim != 0) {
+            /* retail reuses the loop counter as the animation index */
+            i = def->anim - 1;
+            anim = 1;
+            data = DataRead(D_80110674_staff[i].file);
+            actor->anim = HmfAnimCreate(HmfModelData[model].hmf, data, 0, D_80110674_staff[i].name);
+            HuMemMemoryFreePerm(data);
+        }
+        if (def->motFile != 0) {
+            mot = func_8000B13C_main(def->motFile);
+            func_8001C5B4_main(model, mot);
+            func_8001C814_main(model, -1, 2);
+        } else {
+            mot = -1;
+        }
+        actor->model = model;
+        actor->mot = mot;
+        if (anim) {
+            func_8001C448_main(model);
+        }
+        func_8001C514_main(model);
+    }
+    return def;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80109F34_staff);
 
