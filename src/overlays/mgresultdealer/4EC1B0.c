@@ -247,3 +247,10 @@ void func_8010630C_mgresultdealer(s16 model) {
         Hu3DCamSetPerspective(i, cam->fov, 80.0f, 8000.0f);
     }
 }
+
+/* .data (0x4F00D0) */
+s8 D_801098C0_mgresultdealer = 0;
+s32 D_801098C4_mgresultdealer = 0; /* unused */
+s32 D_801098C8_mgresultdealer = 0; /* unused */
+s32 D_801098CC_mgresultdealer = 0;
+s8 D_801098D0_mgresultdealer = 0;

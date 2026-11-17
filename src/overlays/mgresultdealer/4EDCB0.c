@@ -637,3 +637,26 @@ void func_80109710_mgresultdealer(omObjData *obj) {
     D_8010A244_mgresultdealer = 1;
     D_8010A25C_mgresultdealer.func = func_80108AEC_mgresultdealer;
 }
+
+/* .data (0x4F0120) */
+s8 D_80109910_mgresultdealer = 0;
+s8 D_80109911_mgresultdealer = 0;
+s32 D_80109914_mgresultdealer = 0;
+s32 D_80109918_mgresultdealer = 0;
+s32 D_8010991C_mgresultdealer = 0;
+s32 D_80109920_mgresultdealer = 0;
+s32 D_80109924_mgresultdealer = 0;
+s32 D_80109928_mgresultdealer = 0;
+s32 D_8010992C_mgresultdealer = 0;
+s8 D_80109930_mgresultdealer = 0;
+s8 D_80109931_mgresultdealer = 0;
+s32 D_80109934_mgresultdealer = 0;
+s8 D_80109938_mgresultdealer = 0;
+s16 D_8010993A_mgresultdealer = 0;
+s32 D_8010993C_mgresultdealer = 0; /* unused */
+s8 D_80109940_mgresultdealer = 0;
+s8 D_80109941_mgresultdealer = 0;
+s32 D_80109944_mgresultdealer = 0;
+s32 D_80109948_mgresultdealer = 0;
+s32 D_8010994C_mgresultdealer = 0;
+s32 D_80109950_mgresultdealer = 0;

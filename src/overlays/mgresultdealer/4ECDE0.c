@@ -249,3 +249,12 @@ void func_80107448_mgresultdealer(void) {
     func_80017954_main(D_8010A250_mgresultdealer.obj->model[0], 2, GwPlayer[D_8010A266_mgresultdealer[0]].chr,
                        D_80109A64_mgresultdealer[3]);
 }
+
+/* .data (0x4F00F0) */
+s8 D_801098E0_mgresultdealer = 0;
+s8 D_801098E1_mgresultdealer = 0;
+s8 D_801098E2_mgresultdealer = 0;
+Vec D_801098E4_mgresultdealer = { 0.0f, 0.0f, 0.0f };
+Vec D_801098F0_mgresultdealer = { 0.0f, 0.0f, 0.0f };
+s32 D_801098FC_mgresultdealer[4] = { 0x000B002B, 0x000B002C, 0x000B002D, 0x000B002E };
+s16 D_8010990C_mgresultdealer = 0;
