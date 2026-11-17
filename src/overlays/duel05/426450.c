@@ -252,6 +252,20 @@ void func_80110038_duel05(s32 no);
 void func_800ECD88_name_81(s16 playerNo, s16 link, s16 idx);
 void func_800F8C68_name_81(s32);
 void func_8010E96C_duel05(void);
+void func_80105A58_duel05(void);
+void func_80105B10_duel05(void);
+s16 MBDMasuLinkMasuIdGet(u16 linkIdx, u16 spaceIdx);
+UnkEA790Struct *func_800D76A0_name_81(s16 arg0, s16 *arg1);
+s32 func_800D742C_name_81(UnkEA790Struct *arg0, s16 playerNo, s32 arg2);
+s32 func_800D7250_name_81(UnkEA790Struct *arg0, s32 arg1);
+s32 func_800D7518_name_81(UnkEA790Struct *arg0);
+void func_800D6CA0_name_81(void *arg0);
+s16 func_800D97B0_name_81(DecisionTreeNonLeafNode *arg0);
+void func_800ED788_name_81(s32 playerNo);
+extern DecisionTreeNonLeafNode D_80115A18_duel05[]; /* CPU decision trees: take the branch at the junction */
+extern DecisionTreeNonLeafNode D_80115B50_duel05[];
+extern s16 D_80115B80_duel05[]; /* junction choice tables */
+extern s16 D_80115B98_duel05[];
 /* retail passes the back link/index addresses to the empty func_80115370_duel05, so no prototype here */
 void func_80115370_duel05();
 void Duel_PowerDownPartners(s32);
@@ -1065,9 +1079,69 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_80113C7C_duel05);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_80114428_duel05);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_80114BD4_duel05);
+void func_80114BD4_duel05(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel05/426450", func_80114D24_duel05);
+    player = MBDGetPlayerStruct(-1);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 0x12) {
+        func_800F38DC_name_81(-1, -1, 2);
+        func_800ECD88_name_81(-1, 2, 0);
+        HuPrcVSleep();
+        func_80105A58_duel05();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80115B80_duel05);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80115A18_duel05);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel05();
+        if (result != 0) {
+            func_800ECD88_name_81(-1, 1, 0);
+            func_800ED788_name_81(GwSystem.current_player_index);
+        }
+    }
+}
+
+void func_80114D24_duel05(void) {
+    GW_PLAYER *player;
+    UnkEA790Struct *tree;
+    s32 result;
+    s32 i;
+    s32 count;
+
+    player = MBDGetPlayerStruct(-1);
+    if (MBDMasuLinkMasuIdGet(player->blink, player->bidx) != 0x1C) {
+        func_800F38DC_name_81(-1, -1, 2);
+        func_800ECD88_name_81(-1, 5, 0);
+        HuPrcVSleep();
+        func_80105A58_duel05();
+        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_80115B98_duel05);
+        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+        if (func_800F37B8_name_81(-1) != 0) {
+            count = func_800D97B0_name_81(D_80115B50_duel05);
+            for (i = 0; i < count; i++) {
+                func_800D7250_name_81(tree, -2);
+            }
+            func_800D7250_name_81(tree, -4);
+        }
+        result = func_800D7518_name_81(tree);
+        func_800D6CA0_name_81(tree);
+        func_80105B10_duel05();
+        if (result != 0) {
+            func_800ECD88_name_81(-1, 4, 0);
+            func_800ED788_name_81(GwSystem.current_player_index);
+        }
+    }
+}
 
 void func_80114E74_duel05(void) {
     func_800ECD88_name_81(-1, 0, 3);
