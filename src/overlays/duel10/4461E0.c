@@ -191,16 +191,262 @@ typedef struct Dc2SpinPrcs {
 typedef struct Dc2PartnerFuncs {
     DuelB2PartnerFunc f[12];
 } Dc2PartnerFuncs;
+GW_PLAYER* MBDGetPlayerStruct(s32 playerIndex);
+SpaceData *MBDMasuGet(s16);
+Object* func_800D8010_name_81(u8, s32*); // b7: ovl_81 BFB40.c (was void*(s32, s32))
+Object *func_800D8B18_name_81(Object *obj);
+void func_800D8E88_name_81(Object*); // duel b1: was (void)
+void func_800D8F0C_name_81(Object*);
+void func_800D8F3C_name_81(Object *arg0);
+void func_800EB140_name_81(s32, s32);
+void func_800EB708_name_81(Vec*, Vec*, Vec*); // duel b1: was (s32, s32, unkStruct01*)
+void func_800EB7BC_name_81(Vec *out);
+Process *func_800EBC60_name_81(Vec *arg0, Vec *arg1, Vec *arg2, s32 arg3);
+Process* func_800EBF2C_name_81(Vec* from, Vec* to, Vec* out, s32 frames); // duel b1/b7: ovl_81 DFD60.c
+Process* func_800EC1E4_name_81(Vec*, Vec*, Vec*, f32); // duel b1: was (void*, s32, void*, f32)
+void func_800EF7C8_name_81(Object *obj, f32 arg1, f32 arg2);
+void func_800EF800_name_81(Object*);
+void func_800EFABC_name_81(Object*);
+void func_800F3880_name_81(s32, s16, u16);
+Object* func_800F8050_name_81(s32);
+void func_800FC888_name_81(s32 arg0);
+void func_800FC8C4_name_81(Vec*);
+void func_800FC8DC_name_81(Object *arg0);
+void func_8010F3D4_duel10(Vec *pos);
+void func_8010F474_duel10(void);
+void func_8010F738_duel10(void);
+void func_8010F764_duel10(void);
+void func_8010F9E0_duel10(Vec *pos);
+void func_8010FA80_duel10(void);
+void func_8010FD44_duel10(void);
+void func_8010FD70_duel10(void);
+void func_80111FDC_duel10(void);
+extern s32 D_80114A6C_duel10[2][3]; /* per player: three space ids */
+extern s32 D_80114A84_duel10;
+extern Object *D_80114A88_duel10;
+extern s32 D_80114A8C_duel10;
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111D0C_duel10);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111DC4_duel10);
 
+s32 func_80111DC4_duel10(void) {
+    GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
+    s16 tbl[12] = { 40, 90, 30, 50, 90, 10, 80, 15, 60, 80, 70, 90 };
+    s32 prize = player->stats.prize.gamblePrize;
+
+    if (prize == -1) {
+        return 0;
+    }
+    return tbl[prize];
+}
+
+#ifdef NON_MATCHING
+void func_80111E6C_duel10(void) {
+    s32 *data;
+    f32 angle1;
+    f32 angle2;
+    s32 win;
+    s16 r;
+    s16 g;
+    s16 b;
+
+    r = 0x43;
+    data = HuPrcCurrentGet()->user_data;
+    angle2 = 0.0f;
+    angle1 = 90.0f;
+    win = *data;
+    func_8005FBF8_main(*data, 0x43, 0x80, 1);
+    while (TRUE) {
+        if (D_80114A8C_duel10 != 0) {
+            g = sindf(angle1) * 128.0f;
+            if (g < 0) {
+                g = -g;
+            }
+            angle1 += 6.0f;
+            if (angle1 > 360.0f) {
+                angle1 -= 360.0f;
+            }
+            b = sindf(angle2) * 64.0f;
+            if (b < 0) {
+                b = -b;
+            }
+            angle2 += 3.0f;
+            if (angle2 > 360.0f) {
+                angle2 -= 360.0f;
+            }
+            func_8005FBF8_main(win, (u8)r, (u8)g, (u8)b);
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111E6C_duel10);
+#endif
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BF0_duel10);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BFC_duel10);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C14_duel10);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80111FDC_duel10);
 
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C44_duel10);
+
+#ifdef NON_MATCHING
+s32 func_801127A8_duel10(s32 no) {
+    Vec dir;
+    Vec cam;
+    Vec target;
+    Object *fx[4];
+    Vec unused; /* retail's frame has 0x18 bytes here and 8 after offs */
+    s32 pad[2];
+    SpaceData *start;
+    SpaceData *goal;
+    GW_PLAYER *player;
+    Vec *pos;
+    Object *partner;
+    Object *bell;
+    Process *proc;
+    s32 *data;
+    s32 i;
+    s32 kind;
+
+    start = MBDMasuGet(D_80114A6C_duel10[no][1]);
+    goal = MBDMasuGet(D_80114A6C_duel10[no][2]);
+    player = MBDGetPlayerStruct(no);
+    if (no == 0) {
+        kind = (u8)GwSystem.playerIndexVisitingBowser;
+    } else {
+        kind = (GwSystem.playerIndexVisitingBowser / 256) & 0xFF;
+    }
+    if (kind == 2) {
+        func_800EB140_name_81(0x16, 0x1F07);
+    }
+    HuVecCopy3F(&cam, &player->player_obj->coords);
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&cam);
+    HuVecCopy3F(&target, &start->coords);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&cam, &target, &cam, 3.0f));
+    func_800F3880_name_81(-1, 0, 2);
+    func_800EB708_name_81(&player->player_obj->coords, &start->coords,
+                          &player->player_obj->rot);
+    HuPrcChildLink(HuPrcCurrentGet(),
+                   func_800EC1E4_name_81(&player->player_obj->coords, &start->coords, &player->player_obj->coords, 3.0f));
+    HuPrcChildWait();
+    func_800EB708_name_81(&player->player_obj->coords, &goal->coords,
+                          &player->player_obj->rot);
+    func_800F3880_name_81(-1, 7, 0);
+    HuPrcSleep(8);
+    HuAudFXPlay(0x1C9);
+    if (no == 0) {
+        func_8010F3D4_duel10(&player->player_obj->coords);
+    } else {
+        func_8010F9E0_duel10(&player->player_obj->coords);
+    }
+    func_800EFABC_name_81(player->player_obj);
+    func_800F3880_name_81(-1, -1, 2);
+    D_80114A84_duel10 = -1;
+    proc = omAddPrcObj(func_80111FDC_duel10, 0xA, 0, 0x40);
+    data = HuMemMemoryAlloc(proc->heap, 0x10);
+    proc->user_data = data;
+    *data = no;
+    pos = &MBDMasuGet(D_80114A6C_duel10[no][0])->coords;
+    func_800EB708_name_81(&player->player_obj->coords, pos, &player->player_obj->rot);
+    func_800F3880_name_81(-1, 0, 2);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&player->player_obj->coords, pos, &player->player_obj->coords, 2.0f));
+    HuPrcChildWait();
+    func_800F3880_name_81(-1, -1, 2);
+    func_800EB7BC_name_81(&dir);
+    func_800EBC60_name_81(&player->player_obj->rot, &dir, &player->player_obj->rot, 8);
+    HuPrcSleep(8);
+    if (D_80114A84_duel10 == -1) {
+        do {
+            HuPrcVSleep();
+        } while (D_80114A84_duel10 == -1);
+    }
+    HuVecCopy3F(&target, &goal->coords);
+    target.y += 26.0f;
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&cam, &target, &cam, 2.0f));
+    HuPrcChildWait();
+    if (no == 0) {
+        func_8010F474_duel10();
+    } else {
+        func_8010FA80_duel10();
+    }
+    bell = func_800D8010_name_81(0x35, 0);
+    func_800D8F0C_name_81(bell);
+    partner = func_800F8050_name_81(D_80114A84_duel10);
+    HuVecCopy3F(&partner->coords, &goal->coords);
+    partner->coords.y += 26.0f;
+    func_800D8F0C_name_81(partner);
+    HuAudFXPlay(0x1CA);
+    if (no == 0) {
+        func_8010F738_duel10();
+    } else {
+        func_8010FD44_duel10();
+    }
+    HuPrcSleep(20);
+    {
+        Vec offs[4] = { { 4.0f, 4.0f, -4.0f }, { -4.0f, -2.0f, -4.0f }, { 4.0f, 0.0f, 4.0f }, { -4.0f, 2.0f, 4.0f } };
+        s32 pad2[2];
+
+        for (i = 0; i < 4; i++) {
+            fx[i] = func_800D8B18_name_81(bell);
+            func_8001C8E4_main(fx[i]->omObj1->model[0], 0x800);
+            func_8001C258_main(fx[i]->omObj1->model[0], 0x180, 0);
+            func_8001C814_main(fx[i]->omObj1->model[0], 2, 0);
+            HuVecCopy3F(&fx[i]->coords, &goal->coords);
+            fx[i]->velocity.x = 26.0f;
+            fx[i]->coords.x += offs[i].x;
+            fx[i]->coords.y += offs[i].y;
+            fx[i]->coords.z += offs[i].z;
+            if (i == 3) {
+                func_800D8E88_name_81(partner);
+            }
+            HuPrcSleep(4);
+        }
+    }
+    HuPrcSleep(25);
+    for (i = 0; i < 4; i++) {
+        func_800D8F3C_name_81(fx[i]);
+    }
+    func_800D8F3C_name_81(bell);
+    func_800FC888_name_81(5);
+    func_800FC8DC_name_81(partner);
+    pos = &MBDMasuGet(D_80114A6C_duel10[no][1])->coords;
+    func_800EB708_name_81(&partner->coords, pos, &partner->rot);
+    partner->velocity.x = partner->coords.y;
+    partner->coords.y = 0.0f;
+    func_800EF7C8_name_81(partner, 2.0f, -0.255f);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EBF2C_name_81(&partner->coords, pos, &partner->coords, 20));
+    HuPrcChildWait();
+    func_800EF800_name_81(partner);
+    if (no == 0) {
+        func_8010F764_duel10();
+    } else {
+        func_8010FD70_duel10();
+    }
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&cam);
+    HuVecCopy3F(&cam, &partner->coords);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&cam, &player->player_obj->coords, &cam, 2.0f));
+    HuPrcChildWait();
+    func_800FC888_name_81(1);
+    D_80114A88_duel10 = partner;
+    return D_80114A84_duel10;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_801127A8_duel10);
+#endif
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C74_duel10);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C78_duel10);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C80_duel10);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114CA0_duel10);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80112E74_duel10);
 
@@ -223,24 +469,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8011450C_duel10);
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_801148D8_duel10);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_80114940_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BD8_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BF0_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114BFC_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C14_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C44_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C74_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C78_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114C80_duel10);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel10/4461E0", D_80114CA0_duel10);
 
 // board ec3: the board's .data (0x4551E0-0x455380; 4461B0.c holds the first 0x20 bytes)
 void func_80106894_duel10(s32, s32, Object *, Object *, s32, s32);
