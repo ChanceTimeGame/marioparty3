@@ -219,6 +219,7 @@ extern s16 D_800CDA7C_main[];
 extern s8 D_800D20A1_main[];
 extern u8 D_800D6A90_main;
 extern s32 D_800A178C_main[][6];
+extern s32 D_800A1790_main[][6];
 
 // 169540
 void func_80109ED0_baby_bowser_broadside(void);
@@ -232,6 +233,7 @@ void func_8010A2C4_baby_bowser_broadside(s8 group);
 void func_8010F250_baby_bowser_broadside(omObjData* obj);
 void func_8010F6F8_baby_bowser_broadside(f32* a, f32* b);
 void func_8010E0B0_baby_bowser_broadside(BbColl* coll);
+void func_8010E018_baby_bowser_broadside(BbColl* coll, s16 count, f32 radius, s16 model);
 s16 func_8010AADC_baby_bowser_broadside(s16 arg0);
 s16 func_8010AFF4_baby_bowser_broadside(s16 arg0);
 void func_8010B098_baby_bowser_broadside(s16 arg0, f32 x, f32 y, f32 z, u8* color);
@@ -489,7 +491,70 @@ void func_80106EC4_baby_bowser_broadside(omObjData* obj) {
 }
 /* </func_80106EC4_baby_bowser_broadside> */
 
+/* <func_80107140_baby_bowser_broadside> */
+#ifdef NON_MATCHING
+void func_80107140_baby_bowser_broadside(omObjData* obj) {
+    BbPlayer* player;
+    s16 i;
+    s32 mtx = 0x2B9;
+
+    obj->work[0] = D_800EC280_minigame;
+    obj->work[1] = D_800EC280_minigame + 3;
+    player = &D_80110004_baby_bowser_broadside[obj->work[0]];
+    player->chr = GwPlayer[obj->work[0]].chr;
+    func_800E1BA8_minigame(obj, D_800A178C_main[player->chr][0], D_800A1790_main[player->chr][0],
+                           BB_WORK(obj)->b.player, mtx, mtx);
+    obj->trans.z = 200.0f;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(player->chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(player->chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(player->chr, 0x2F), 1, 999);
+    if (player->chr == 5) {
+        func_800E5A00_minigame(obj, 14, func_80017BB8_main(5, 0x38), 1, 999);
+    } else {
+        func_800E5A00_minigame(obj, 14, func_80017BB8_main(player->chr, 0x37), 1, 999);
+    }
+    func_800E5A00_minigame(obj, 38, func_80017BB8_main(player->chr, 0x27), 1, 0);
+    func_800E5A00_minigame(obj, 39, func_80017BB8_main(player->chr, 0x28), 1, 999);
+    func_800E5A00_minigame(obj, 40, func_80017BB8_main(player->chr, 0x28), 1, 999);
+    func_80109EB0_baby_bowser_broadside(player, 38, 1);
+    player->unk_0C = -1;
+    player->no = ((func_800E1BA8_minigame_ObjData*)obj->data)->unk57;
+    player->fire.w = 0x10000;
+    player->angle = D_80110000_baby_bowser_broadside[player->team].angle[player->held];
+    player->aim = player->angle + 180.0f;
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    obj->scale.z = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.x = 1.0f;
+    D_800EC280_minigame++;
+    for (i = 0; i < 3; i++) {
+        player->balls[i].coll = HuMemAllocTag(sizeof(BbColl), 0x7918);
+        func_8010E018_baby_bowser_broadside(player->balls[i].coll, 6, 40.0f, player->balls[i].model);
+        player->balls[i].coll->hits[1] = D_80110008_baby_bowser_broadside->unk3C;
+        player->balls[i].coll->hits[2] = D_80110008_baby_bowser_broadside->unk46;
+        player->balls[i].coll->hits[3] = D_80110008_baby_bowser_broadside->unk3E[0];
+        player->balls[i].coll->hits[4] = D_80110008_baby_bowser_broadside->unk3E[1];
+        player->balls[i].coll->hits[5] = D_80110008_baby_bowser_broadside->unk3E[2];
+        player->balls[i].coll->hits[6] = D_80110008_baby_bowser_broadside->unk3E[3];
+        func_8001C258_main(player->balls[i].model, 4, 4);
+    }
+    player->aimColl = HuMemAllocTag(sizeof(BbColl), 0x7918);
+    func_8010E018_baby_bowser_broadside(player->aimColl, 4, 50.0f, -1);
+    player->aimColl->hits[1] = D_80110008_baby_bowser_broadside->unk48[0];
+    player->aimColl->hits[2] = D_80110008_baby_bowser_broadside->unk48[1];
+    player->aimColl->hits[3] = D_80110008_baby_bowser_broadside->unk48[2];
+    player->aimColl->hits[4] = D_80110008_baby_bowser_broadside->unk48[3];
+    func_80109F64_baby_bowser_broadside(obj, BB_WORK(obj)->b.group, 0, 8);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xF, player, func_8010913C_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xCFFF, player, func_80109434_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xEFFF, player, func_801096E8_baby_bowser_broadside, 0);
+    func_8010A0B4_baby_bowser_broadside(BB_WORK(obj)->b.group, 0xFFFF, player, func_80109D94_baby_bowser_broadside, 0);
+    obj->func = func_80107600_baby_bowser_broadside;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80107140_baby_bowser_broadside);
+#endif
+/* </func_80107140_baby_bowser_broadside> */
 
 /* <func_80107600_baby_bowser_broadside> */
 void func_80107600_baby_bowser_broadside(omObjData* obj) {
