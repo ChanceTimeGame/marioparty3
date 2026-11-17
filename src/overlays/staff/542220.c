@@ -198,6 +198,30 @@ void func_80107A9C_staff(StaffStarLayer *layers);
 void func_80107B1C_staff(StaffStarLayer *layers, f32 t);
 void func_80107BA0_staff(StaffStarLayer *layers);
 void func_80107DBC_staff(StaffStarLayer *layers);
+/* func_80107EB8_staff's work block (one stack object at sp+0x10): the three end-credit names
+   and the two shooting stars. */
+typedef struct StaffNameWork {
+    /* 0x00 */ s16 slot[4];      /* name esprite slots */
+    /* 0x08 */ s16 spr[4];       /* name sprites */
+    /* 0x10 */ s16 unk10[4];
+    /* 0x18 */ s16 x[4];
+    /* 0x20 */ f32 y[4];
+    /* 0x30 */ s16 shootSlot[4]; /* shooting star esprite slots */
+    /* 0x38 */ s16 shootSpr[4];
+    /* 0x40 */ s16 timer[4];     /* frames to the next shooting star; < 0 while one falls */
+} StaffNameWork; /* size = 0x48 */
+typedef struct StaffXY {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+} StaffXY;
+extern s16 D_801105B8_staff[3];  /* name fall speeds */
+extern u16 D_801105C0_staff[3];  /* func_8000BCC8_main arg */
+extern StaffXY D_801105C8_staff[3]; /* name start positions */
+extern s32 D_801105D4_staff[3];  /* name sprite files */
+extern s32 D_801105E0_staff[2];  /* shooting star sprite files */
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
 /* j1 decl end */
 
 void func_801059A0_staff(void) {
@@ -997,7 +1021,182 @@ void func_80107DBC_staff(StaffStarLayer *layers) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Register allocation only (same instructions otherwise): retail keeps nameT in s7 and spills the
+   layers pointer. Retail also has a file boundary at 0x801085F0 (one nop after this function). */
+void func_80107EB8_staff(void) {
+    StaffNameWork w;
+    s16 pos[2][2];
+    StaffStarLayer *layers;
+    s16 active;
+    s16 logoSpr;
+    s16 logoSlot;
+    s16 logoOn;
+    s16 *stat;
+    s16 prev;
+    s16 namesOn;
+    s16 left;
+    s32 i;
+    u16 slot;
+    s32 x;
+    f32 fade;
+    f32 fadeSpd;
+    f32 logoA;
+    f32 logoSpd;
+    f32 nameT;
+    f32 nameSpd;
+
+    stat = HuPrcCurrentGet()->user_data;
+    layers = func_80107740_staff();
+    for (i = 0; i < 2; i++) {
+        w.shootSpr[i] = func_8000B838_main(D_801105E0_staff[i]);
+        w.shootSlot[i] = InitEspriteSlot(w.shootSpr[i], 0, 0);
+        func_8000BEAC_main(w.shootSlot[i], 0xFF, 0xFF, 0xFF);
+        func_8000BC48_main(w.shootSlot[i], 0x4000);
+        func_8000BB94_main(w.shootSlot[i]);
+        w.timer[i] = (rand8() & 0x7F) + 0x78;
+    }
+    func_8000BEAC_main(w.shootSlot[1], 0xFF, 0xC8, 0xC8);
+    logoSpr = func_8000B838_main(0x16001A);
+    logoSlot = InitEspriteSlot(logoSpr, 0, 0);
+    func_8000BC48_main(logoSlot, 0x4000);
+    func_8000BBD4_main(logoSlot, 0xA0, 0x78);
+    func_8000BCC8_main(logoSlot, 0xFFF0);
+    logoOn = 1;
+    for (i = 0; i < 3; i++) {
+        w.spr[i] = func_8000B838_main(D_801105D4_staff[i]);
+        w.slot[i] = slot = InitEspriteSlot(w.spr[i], 0, 0);
+        func_8000BCC8_main(slot, D_801105C0_staff[i]);
+        w.x[i] = D_801105C8_staff[i].x;
+        w.y[i] = D_801105C8_staff[i].y;
+        func_8000BBD4_main(slot, w.x[i], w.y[i]);
+    }
+    namesOn = 1;
+    nameSpd = logoSpd = fadeSpd = 0.0f;
+    active = 0;
+    prev = *stat;
+    while (prev >= 0) {
+        if (prev != *stat) {
+            switch (*stat) {
+            case 1:
+                active = 1;
+                fadeSpd = 1.0f / 120.0f;
+                fade = 0.0f;
+                *stat = 0;
+                if (logoOn) {
+                    logoA = 256.0f;
+                    logoSpd = -64.0f / 120.0f;
+                }
+                if (namesOn) {
+                    nameSpd = 1.0f / 120.0f;
+                    nameT = 0.0f;
+                }
+                break;
+            case 2:
+                for (i = 0; i < 3; i++) {
+                    func_8000BC48_main(w.slot[i], 0x4000);
+                }
+                break;
+            case -1:
+                prev = -1;
+                continue;
+            case 0:
+                break;
+            }
+            prev = *stat;
+        }
+        if (fadeSpd != 0.0f) {
+            fade += fadeSpd;
+            if (fade >= 1.0f) {
+                fade = 1.0f;
+                fadeSpd = 0.0f;
+            } else if (fade <= 0.0f) {
+                fade = 0.0f;
+                fadeSpd = 0.0f;
+                active = 0;
+            }
+            func_80107B1C_staff(layers, fade);
+        }
+        if (active) {
+            func_80107BA0_staff(layers);
+            for (i = 0; i < 2; i++) {
+                if (--w.timer[i] == 0) {
+                    func_8000BB54_main(w.shootSlot[i]);
+                    x = func_80106044_staff(0xA0);
+                    x += func_80106044_staff(0xA0);
+                    pos[i][0] = x;
+                    pos[i][1] = -0x80;
+                    func_8000BBD4_main(w.shootSlot[i], pos[i][0], -0x80);
+                } else if (w.timer[i] < 0) {
+                    pos[i][1] += 8;
+                    func_8000BBD4_main(w.shootSlot[i], pos[i][0], pos[i][1]);
+                    if (pos[i][1] > 0xF0) {
+                        func_8000BB94_main(w.shootSlot[i]);
+                        w.timer[i] = (rand8() & 0x7F) + 1;
+                    }
+                }
+            }
+        }
+        func_80107DBC_staff(layers);
+        if (logoOn != 0) {
+            if (logoSpd != 0.0f) {
+                logoA += logoSpd;
+                if (logoA <= 0.0f) {
+                    logoA = 0.0f;
+                    logoSpd = 0.0f;
+                }
+                func_8000BBFC_main(logoSlot, logoA);
+                if (logoA == 0.0f) {
+                    func_8000C184_main(logoSlot);
+                    HuSprKill(logoSpr);
+                    logoSlot = -1;
+                    logoSpr = -1;
+                    logoOn = 0;
+                }
+            }
+        }
+        if (namesOn != 0) {
+            if (nameSpd != 0.0f) {
+                nameT += nameSpd;
+                left = 3;
+                if (nameT >= 1.0f) {
+                    nameT = 1.0f;
+                }
+                for (i = 0; i < 3; i++) {
+                    if (w.y[i] < 304.0f) {
+                        w.y[i] += nameT * D_801105B8_staff[i];
+                        func_8000BBD4_main(w.slot[i], w.x[i], w.y[i]);
+                    } else {
+                        left--;
+                        if (w.slot[i] >= 0) {
+                            func_8000C184_main(w.slot[i]);
+                            HuSprKill(w.spr[i]);
+                            w.spr[i] = -1;
+                            w.slot[i] = -1;
+                        }
+                    }
+                }
+                if (left == 0) {
+                    namesOn = 0;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+    func_80107A9C_staff(layers);
+    for (i = 0; i < 2; i++) {
+        func_8000C184_main(w.shootSlot[i]);
+        HuSprKill(w.shootSpr[i]);
+    }
+    *stat = 0;
+    omDelPrcObj(NULL);
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107EB8_staff);
+#endif
 
 ObPath *func_801085F0_staff(Vec *points, s16 flags) {
     ObPath *path;
