@@ -146,6 +146,8 @@ void func_80107070_mstory3(omObjData *obj, Vec *rot, s32 frames);
 void func_8010C3F4_mstory3(omObjData *obj);
 extern Vec D_801156D4_mstory3;
 extern Vec D_801156E0_mstory3;
+extern Vec D_801156EC_mstory3;
+extern s16 D_80115C9E_mstory3; /* the partner's character */
 extern Vec D_80115554_mstory3; /* actor 1's start position */
 extern Vec D_80115C44_mstory3; /* actor 1's position */
 extern char *D_801153A0_mstory3[]; /* actor 1's texture-animation node, by partner */
@@ -416,11 +418,69 @@ void func_8010B63C_mstory3(omObjData *obj) {
     D_80115BC0_mstory3[0].func = func_8010AB54_mstory3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010B72C_mstory3);
+/* actor 1: hops in place and turns to face the camera */
+void func_8010B72C_mstory3(omObjData *obj) {
+    Vec rot;
+    Vec pos;
+    Vec tmp;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010B998_mstory3);
+    rot = D_801156EC_mstory3;
+    tmp.x = HmfModelData[obj->model[1]].pos.x + 5.0f;
+    tmp.y = HmfModelData[obj->model[1]].pos.y;
+    tmp.z = 500.0f;
+    pos = tmp;
+    func_80106CF0_mstory3(obj->model[1], D_80115C98_mstory3, D_80115C92_mstory3[1]);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[3], HmfModelData[obj->model[1]].pos.x, HmfModelData[obj->model[1]].pos.y, HmfModelData[obj->model[1]].pos.z);
+    func_8001C258_main(obj->model[3], 4, 0);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[6]].unk02, 0, 10, 0);
+    func_80106DC4_mstory3(obj, &pos, 10);
+    func_80107244_mstory3(obj->model[1]);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_80107070_mstory3(obj, &rot, 10);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+    func_80106CF0_mstory3(obj->model[1], D_80115C98_mstory3, D_80115C92_mstory3[0]);
+    D_80115BC0_mstory3[1].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010BBB4_mstory3);
+/* actor 1: turns, waits for actor 0 and walks away; ends with actor 0's step cleared */
+void func_8010B998_mstory3(omObjData *obj) {
+    Vec rot;
+    Vec pos;
+    Vec tmp;
+
+    rot = D_801156E0_mstory3;
+    tmp.x = HmfModelData[obj->model[1]].pos.x;
+    tmp.y = HmfModelData[obj->model[1]].pos.y;
+    tmp.z = 1200.0f;
+    pos = tmp;
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+    func_80107070_mstory3(obj, &rot, 10);
+    func_8004AC98_main(D_80115C9E_mstory3 + 0x275, 1);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[7]].unk02, 0, 10, 0);
+    func_80107244_mstory3(obj->model[1]);
+    D_80115BC0_mstory3[1].flags = 10;
+    while (1) {
+        if (D_80115BC0_mstory3[0].flags == 10) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    D_80115BC0_mstory3[1].unk0C = 1;
+    D_80115BC0_mstory3[1].unk10 = 0x28;
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[2]].unk02, 0, 10, 2);
+    HuPrcSleep(10);
+    func_80106DC4_mstory3(obj, &pos, 60);
+    D_80115BC0_mstory3[1].unk0C = 0;
+    D_80115BC0_mstory3[0].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
+
+/* actor 1 plays motion 9 while the caller's model finishes its motion */
+void func_8010BBB4_mstory3(omObjData *obj) {
+    func_8001C624_main(D_80115BC0_mstory3[1].obj->model[1], HmfModelData[D_80115BC0_mstory3[1].obj->motion[9]].unk02, 0, 10, 0);
+    func_80107244_mstory3(obj->model[1]);
+    D_80115BC0_mstory3[1].func = (void (*)(omObjData *))func_80108A94_mstory3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010BC34_mstory3);
 
