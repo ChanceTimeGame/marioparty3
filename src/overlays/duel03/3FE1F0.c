@@ -278,6 +278,9 @@ extern DecisionTreeNonLeafNode D_80117A04_duel03[];
 extern s16 D_80117A34_duel03[4]; /* pipe spaces */
 extern s16 D_80117A3C_duel03[4]; /* the space each pipe lets out on */
 extern Object *D_801180F8_duel03[4]; /* the pipes' objects (bss) */
+extern u8 D_8011765C_duel03[8]; /* COM: the space index (cidx 7-13) each roll below 8 reaches */
+extern u8 D_80117664_duel03[8]; /* COM: the same for cidx 15-20, by roll - 7 */
+s32 func_800F8980_name_81(s32 playerIndex);
 
 // board db3 (duel01 b4 copy): spin the partner's model about Y by ang * 10 degrees (the model matrix is rebuilt as a pure Y rotation)
 #define DB3_PARTNER_SPIN(obj, vel, ang)                                                                         \
@@ -781,7 +784,160 @@ void func_80113740_duel03(void) {
     omDelPrcObj(NULL);
 }
 
+#ifdef NON_MATCHING
+// board db3: logic checked branch by branch against the asm; masked 68: region 7-13 keeps a second roll < 8 test and reloads cidx, and operand load order in the power-vs-HP tests
+// board db3: COM decision for the current player against the opponent, from the opponent's position (clink unused:
+// cidx 0-5, 7-13, 15-20) relative to the roll; compares partner power with HP (PartnerStats), as duel01's func_80113CAC_duel01
+s32 func_80113AE0_duel03(void) {
+    GW_PLAYER *me;
+    GW_PLAYER *opp;
+    s32 cur;
+    s32 other;
+    s32 walk;
+    s32 hp;
+    s32 n;
+
+    cur = MBDGetCurrentPlayerIndex();
+    other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
+    me = MBDGetPlayerStruct(CUR_PLAYER);
+    opp = MBDGetPlayerStruct(other);
+    walk = mbWalkNum;
+    if (opp->cidx >= 0 && opp->cidx < 6) {
+        if (opp->stats.partners.frontPower != 0 && me->star == 1 && walk < 3) {
+            return FALSE;
+        }
+        return TRUE;
+    }
+    if (opp->cidx >= 7 && opp->cidx < 14) {
+        if (walk < 8) {
+            if (opp->cidx == D_8011765C_duel03[walk]) {
+                goto same;
+            }
+        }
+        if (walk >= 8 || opp->cidx < D_8011765C_duel03[walk]) {
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4 && !(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                return FALSE;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4 && me->stats.partners.frontPower == 0) {
+                return opp->stats.partners.frontPower == 0;
+            }
+            return TRUE;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return TRUE;
+        }
+        if (walk == 1) {
+            return func_800EFE20_name_81(100.0f) < 50;
+        }
+        return TRUE;
+    }
+    if (opp->cidx >= 15 && opp->cidx < 21) {
+        if (walk < 8) {
+            return TRUE;
+        }
+        if (opp->cidx == D_80117664_duel03[walk - 7]) {
+        same:
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
+        }
+        if (opp->cidx < D_80117664_duel03[walk - 7]) {
+            hp = me->star;
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (!(me->stats.partners.frontPower <
+                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4) {
+                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                    return FALSE;
+                }
+                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
+                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
+                }
+            }
+            if (walk == 10) {
+                if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
+                    return TRUE;
+                }
+                if (opp->stats.partners.frontID != 4) {
+                    return TRUE;
+                }
+                return me->stats.partners.backPower < hp + me->stats.partners.backHp;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                }
+                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4 && me->stats.partners.frontPower == 0) {
+                return opp->stats.partners.frontPower == 0;
+            }
+            return TRUE;
+        }
+        if (opp->stats.partners.frontPower == 0) {
+            return TRUE;
+        }
+        if (walk == 1) {
+            return func_800EFE20_name_81(100.0f) < 50;
+        }
+        return TRUE;
+    }
+    if (me->stats.partners.frontPower == 0) {
+        return TRUE;
+    }
+    if (walk == 1) {
+        return func_800EFE20_name_81(100.0f) < 50;
+    }
+    if (func_800F8980_name_81(cur) == 0) {
+        n = 0;
+    } else {
+        n = GwPlayer[cur].coin / func_800F8980_name_81(cur);
+    }
+    return n < 2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80113AE0_duel03);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80114030_duel03);
 
