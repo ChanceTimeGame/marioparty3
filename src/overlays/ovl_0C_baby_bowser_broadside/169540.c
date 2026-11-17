@@ -127,8 +127,8 @@ typedef struct {
 } BbFuncContext;
 
 extern u8 D_800D2008_main;
-extern f64 D_8010FFE8_baby_bowser_broadside; // 32.0
-extern f64 D_8010FFF0_baby_bowser_broadside; // 0.5
+extern const f64 D_8010FFE8_baby_bowser_broadside; // 32.0
+extern const f64 D_8010FFF0_baby_bowser_broadside; // 0.5
 extern BbCollider *D_80110020_baby_bowser_broadside;
 
 void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx);
@@ -180,7 +180,6 @@ void func_8010D590_baby_bowser_broadside(u16 modelId, HuSprite_Unk84_Struct *arg
     gSPEndDisplayList(&temp_s0[7]);
 }
 
-#ifdef NON_MATCHING
 s16 func_8010D6C4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
     Vtx *temp_s7;
     Vtx *var_s1;
@@ -206,8 +205,8 @@ s16 func_8010D6C4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, HmfData *ar
     }
     temp_s4 = arg0->unk00->unk04;
     temp_a1 = arg0->unk00->unk06;
-    sp24 = temp_s4 * 100 * (f64)arg2 / D_8010FFE8_baby_bowser_broadside;
-    temp_f2 = temp_a1 * 100 * (f64)arg2 / D_8010FFE8_baby_bowser_broadside;
+    sp24 = (f64)(temp_s4 * 0x64) * arg2 / D_8010FFE8_baby_bowser_broadside;
+    temp_f2 = (f64)(temp_a1 * 0x64) * arg2 / D_8010FFE8_baby_bowser_broadside;
     if ((arg0->unk18 & 0xFFF) == 4) {
         var_s0 = ((temp_s4 + 1) & 0xFFFE) * temp_a1 * 4;
     } else {
@@ -262,19 +261,12 @@ s16 func_8010D6C4_baby_bowser_broadside(HuSprite_Unk84_Struct *arg0, HmfData *ar
     HuMemFree(temp_s7);
     return var_s2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010D6C4_baby_bowser_broadside);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010DAE8_baby_bowser_broadside(void *groupCtx, BbFuncContext *ctx) {
     D_80110020_baby_bowser_broadside = HuMemAllocTag(BB3_COLLIDERS_MAX * sizeof(BbCollider), 31000);
     memset(D_80110020_baby_bowser_broadside, 0, BB3_COLLIDERS_MAX * sizeof(BbCollider));
     ctx->func = func_8010DE70_baby_bowser_broadside;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010DAE8_baby_bowser_broadside);
-#endif
 
 #ifdef NON_MATCHING
 s16 func_8010DB38_baby_bowser_broadside(s16 modelId, Vec *base, s16 vertexCount, f32 radius, f32 height, s32 attr) {
@@ -348,7 +340,6 @@ s16 func_8010DC88_baby_bowser_broadside(s16 parentId, s32 attr) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010DC88_baby_bowser_broadside);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010DDDC_baby_bowser_broadside(s16 colliderId, Vec *base, f32 height) {
     if (colliderId < BB3_COLLIDERS_MAX && D_80110020_baby_bowser_broadside[colliderId].set) {
         BbCollider *collider = &D_80110020_baby_bowser_broadside[colliderId];
@@ -358,9 +349,6 @@ void func_8010DDDC_baby_bowser_broadside(s16 colliderId, Vec *base, f32 height) 
         func_8010F3C4_baby_bowser_broadside(collider->base, &collider->plane);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010DDDC_baby_bowser_broadside);
-#endif
 
 #ifdef NON_MATCHING
 void func_8010DE70_baby_bowser_broadside(void *groupCtx, void *ctx) {
@@ -412,7 +400,6 @@ void func_8010E018_baby_bowser_broadside(BbMover *mover, s16 maxColliders, f32 r
     }
 }
 
-#ifdef NON_MATCHING
 void func_8010E0B0_baby_bowser_broadside(BbMover *mover) {
     BbCollider *collider;
     s16 i;
@@ -477,9 +464,6 @@ void func_8010E0B0_baby_bowser_broadside(BbMover *mover) {
         HmfModelData[mover->model].pos.z = mover->pos.z;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010E0B0_baby_bowser_broadside);
-#endif
 
 #ifdef NON_MATCHING
 s16 func_8010E348_baby_bowser_broadside(BbCollider *c, BbMover *m) {
