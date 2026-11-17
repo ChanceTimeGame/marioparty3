@@ -4,6 +4,9 @@
 #include "game/esprite.h"
 #include "game/hmfman.h"
 #include "game/process.h"
+#include "game/object.h"
+#include "game/util.h"
+#include "math.h"
 
 typedef struct {
     /* 0x00 */ s16 unk00;
@@ -319,7 +322,88 @@ void func_80118624_mgmode(s16 dst, s16 src) {
     HmfModelData[dst].pos.z = HmfModelData[src].pos.z;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118678_mgmode);
+/* hmfman's vertex-scatter effect (HmfModel.unkBC; 13F90.c's HmfFxWork) as this unit's hooks
+   use it: one MgFxPart per face group. */
+typedef struct MgFxPart {
+    /* 0x00 */ char unk00[4];
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 life;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec vel;
+    /* 0x24 */ Vec unk24;
+} MgFxPart; /* size 0x30 */
+
+typedef struct MgFxWork {
+    /* 0x00 */ s16 motion;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ u16 flags;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 spread;
+    /* 0x0C */ char unk0C[0xC];
+    /* 0x18 */ void (*hook)(s16);
+    /* 0x1C */ Vec center;
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ MgFxPart* parts;
+} MgFxWork; /* size 0x5C */
+
+typedef struct MgFxHmf {
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 groupCount;
+} MgFxHmf;
+
+#define MG_FX_WORK(m) ((MgFxWork*)(m)->unkBC)
+#define MG_FX_GROUPS(m) (((MgFxHmf*)(m)->hmf)->groupCount)
+
+s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
+void func_8003302C_main(s32, u8);
+void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
+u8 rand8(void);
+extern s16 D_800CDA7C_main[];
+extern s8 D_800CBB6E_main[];
+extern s8 D_800D20A1_main[];
+
+extern s32 D_8011A3E4_mgmode[4];
+extern s16 D_8011A3F4_mgmode;
+extern s16 D_8011B678_mgmode[][4];
+extern s16 D_8011B698_mgmode[];
+extern s16 D_8011B808_mgmode;
+
+void func_801188BC_mgmode(omObjData* obj);
+void func_801189C4_mgmode(s16 model);
+void func_80118B8C_mgmode(s16 model);
+
+/* Creates the four smoke-puff models of effect set D_8011A3F4 around center (x, y, z) with the
+   given spread, and the object that keeps emitting them; returns the set index. */
+s16 func_80118678_mgmode(f32 x, f32 y, f32 z, f32 spread) {
+    omObjData* obj;
+    MgFxWork* work;
+    s16 model;
+    s16 anim;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        D_8011B678_mgmode[D_8011A3F4_mgmode][i] = model = func_8000B108_main(D_8011A3E4_mgmode[i], 0x2A9);
+        anim = HmfAnimRead(HmfModelData[model].hmf, 0xB0048, "e268p01_I8");
+        func_8001C8A8_main(model, 2);
+        func_8003302C_main(anim, i * 2);
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        func_8001C2FC_main(model, 0x20000, 0x20000);
+        func_8001C448_main(model);
+        func_8001C954_main(model);
+        func_8001C514_main(model);
+        func_80013390_main(model, -1, NULL, func_80118B8C_mgmode);
+        work = MG_FX_WORK(&HmfModelData[model]);
+        work->center.x = x;
+        work->center.y = y;
+        work->center.z = z;
+        work->spread = spread;
+        func_8001C258_main(model, 4, 4);
+    }
+    obj = omAddObj(10, 10, 10, -1, func_801188BC_mgmode);
+    obj->work[0] = D_8011A3F4_mgmode;
+    D_8011A3F4_mgmode++;
+    return (s16)obj->work[0];
+}
 
 void func_80118888_mgmode(s16 arg0) {
     D_8011A3F8_mgmode[arg0] = 1;
@@ -329,11 +413,75 @@ void func_801188A4_mgmode(s16 arg0) {
     D_8011A3F8_mgmode[arg0] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801188BC_mgmode);
+/* Object: while set work[0] is on, restarts its four puff models in turn. */
+void func_801188BC_mgmode(omObjData* obj) {
+    s16 set = (s16)obj->work[0];
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801189C4_mgmode);
+    if (D_8011A3F8_mgmode[set] != 0) {
+        for (i = 0; i < 4; i++) {
+            func_8001C258_main(D_8011B678_mgmode[set][i], 4, 0);
+            if (((D_8011B698_mgmode[set] + i) & 3) == 0) {
+                func_801189C4_mgmode(D_8011B678_mgmode[set][i]);
+            }
+        }
+        D_8011B698_mgmode[set]++;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118B8C_mgmode);
+/* Relaunches the first landed particle of model's effect from a random point around its center. */
+void func_801189C4_mgmode(s16 model) {
+    MgFxHmf* hmf = (MgFxHmf*)HmfModelData[model].hmf;
+    MgFxWork* work = MG_FX_WORK(&HmfModelData[model]);
+    MgFxPart* part = work->parts;
+    s16 spread = work->spread;
+    s16 count = hmf->groupCount;
+    s16 i;
+
+    for (i = 0; i < count; i++, part++) {
+        if (part->pos.y <= 0.0f) {
+            part->pos.x = ((((rand8() & 0xFF) << 1) * spread) >> 8) + work->center.x - spread;
+            part->pos.y = work->center.y;
+            part->pos.z = ((((rand8() & 0xFF) << 1) * spread) >> 8) + work->center.z - spread;
+            part->vel.x = ((s32)(((rand8() & 0xFF) * 5U) >> 7) - 5) / 2;
+            part->vel.y = 0.0f;
+            part->vel.z = ((s32)(((rand8() & 0xFF) * 5U) >> 7) - 5) / 2;
+            part->life = 2.0f;
+            return;
+        }
+    }
+}
+
+/* Effect hook: on the first frame parks every particle, then moves the airborne ones and lets them
+   fall; landed ones go dark. */
+void func_80118B8C_mgmode(s16 model) {
+    MgFxHmf* hmf = (MgFxHmf*)HmfModelData[model].hmf;
+    MgFxWork* work = MG_FX_WORK(&HmfModelData[model]);
+    MgFxPart* part;
+    s16 count = hmf->groupCount;
+    s16 i;
+
+    if (work->frame == 0) {
+        work->flags &= ~4;
+        part = work->parts;
+        for (i = 0; i < count; i++, part++) {
+            part->life = part->unk24.x = part->unk24.y = part->unk24.z = part->pos.x = part->pos.y =
+                part->pos.z = 0.0f;
+            part->unk04 = 1.0f;
+        }
+        work->frame++;
+    }
+    part = work->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (part->pos.y > 0.0f) {
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y - 8.0f;
+            part->pos.z += part->vel.z;
+        } else {
+            part->life = 0.0f;
+        }
+    }
+}
 
 void func_80118CD8_mgmode(void) {
     _ClearFlag(0x1C);
@@ -342,4 +490,30 @@ void func_80118CD8_mgmode(void) {
     _SetFlag(0x1C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_80118D0C_mgmode);
+/* Turns pad D_8011B808's D-pad into a stick deflection of 50. */
+void func_80118D0C_mgmode(void) {
+    f32 y = 0.0f;
+    f32 x = 0.0f;
+    f32 len;
+
+    if (D_800CDA7C_main[D_8011B808_mgmode] & 0x200) {
+        x = -1.0f;
+    }
+    if (D_800CDA7C_main[D_8011B808_mgmode] & 0x100) {
+        x += 1.0f;
+    }
+    if (D_800CDA7C_main[D_8011B808_mgmode] & 0x800) {
+        y += 1.0f;
+    }
+    if (D_800CDA7C_main[D_8011B808_mgmode] & 0x400) {
+        y += -1.0f;
+    }
+    if ((x == 0.0f) & (y == 0.0f)) {
+        return;
+    }
+    {
+        len = HuSqrtf(x * x + y * y);
+        D_800CBB6E_main[D_8011B808_mgmode] = x / len * 50.0f;
+        D_800D20A1_main[D_8011B808_mgmode] = y / len * 50.0f;
+    }
+}
