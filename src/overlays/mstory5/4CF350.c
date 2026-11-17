@@ -77,13 +77,58 @@ s32 func_801072A0_mstory5(s16 model);
 void func_80107254_mstory5(s16 model);
 void func_801068E4_mstory5(s16 model, s16 anim, s16 frame);
 void func_8010E3F0_mstory5(omObjData *a, omObjData *b);
+void func_80105BDC_mstory5(omObjData *obj);
+void func_80105CCC_mstory5(omObjData *obj);
+void func_80105E34_mstory5(void);
+void func_80105F5C_mstory5(omObjData *obj);
+void func_8010842C_mstory5(void);
+void func_801100AC_mstory5(void);
+extern s16 D_801151B6_mstory5; /* low half of D_801151B4_mstory5 */
 // end story i1
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_801059A0_mstory5);
+/* the scene for each story step (GwPlayer[0].coin), and the flag set once it has been seen */
+void (*const D_801148A0_mstory5[2])(void) = { func_801100AC_mstory5, func_8010842C_mstory5 };
+const s32 D_801148A8_mstory5[2] = { 0x3A, 0x3C };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_801148A0_mstory5);
+void func_801059A0_mstory5(void) {
+    s16 step;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_801148A8_mstory5);
+    func_800142A0_main(0x3C);
+    omInitObjMan(0x1E, 0x1E);
+    func_8005A6B0_main();
+    func_8000B5F0_main(1);
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 35.0f, 80.0f, 8000.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    {
+        omObjData *obj = omAddObj(0x7FDA, 0, 0, -1, func_80105F5C_mstory5);
+        omSetStatBit(obj, 0xA0);
+        func_80105F5C_mstory5(obj);
+    }
+    omAddObj(0, 0, 0, -1, func_80105BDC_mstory5);
+    omAddObj(0, 0, 0, -1, func_80105CCC_mstory5);
+    func_80105E34_mstory5();
+    for (D_801151B4_mstory5 = 0; D_801151B4_mstory5 < 4; D_801151B4_mstory5++) {
+        if (CheckControllerRead(D_801151B6_mstory5) != 0) {
+            break;
+        }
+    }
+    if (D_801151B4_mstory5 >= 4) {
+        D_801151B4_mstory5 = 0;
+    }
+    step = GwPlayer[0].coin;
+    if (GwPlayer[0].coin >= 2) {
+        step = 1;
+    }
+    D_801148A0_mstory5[step]();
+    if (_CheckFlag(D_801148A8_mstory5[step]) != 0) {
+        D_80114734_mstory5 = 1;
+    } else {
+        _SetFlag(D_801148A8_mstory5[step]);
+    }
+    WipeCreateIn(2, 0x10);
+}
 
 #ifdef NON_MATCHING
 void func_80105BDC_mstory5(omObjData *obj) {
