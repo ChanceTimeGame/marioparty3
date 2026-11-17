@@ -2,6 +2,7 @@
 #include "game/object.h"
 #include "game/hmfman.h"
 #include "math.h"
+#include "game/pause.h"
 
 /* Character motion viewer (ovl_56, a debug overlay): the eight characters' two models, a motion picked
    from 160 with the C buttons, the camera on the first controller. */
@@ -127,7 +128,106 @@ void func_80105B38_mchar(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mchar/3D3C80", func_80105B38_mchar);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mchar/3D3C80", func_80105C4C_mchar);
+/* per frame: C up/down pick the motion (and play the character's voice for it), R swaps the two models
+   (keeping the motion time), D-pad left/right the character, pad 2 L/R step the motion, both C left and
+   right quit; pad 2 START toggles the text */
+void func_80105C4C_mchar(omObjData *obj) {
+    HmfModel *src;
+    HmfModel *dst;
+
+    if (D_8010711D_mchar != 0) {
+        D_8010711D_mchar--;
+        if (D_8010711D_mchar == 0) {
+            func_8010654C_mchar(D_8010711A_mchar);
+            func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 0);
+            func_8001C814_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 2, 2);
+        }
+    }
+    if ((u16)D_800D0590_main[0] & 0x8000) {
+        if (++D_80107116_mchar >= 160) {
+            D_80107116_mchar = 0;
+        }
+        func_80106764_mchar(D_80107116_mchar);
+        func_80045ED0_main((D_80106E84_mchar[D_80107114_mchar] << 16) | D_80107116_mchar);
+    }
+    if ((u16)D_800D0590_main[0] & 0x4000) {
+        if (--D_80107116_mchar < 0) {
+            D_80107116_mchar = 159;
+        }
+        func_80106764_mchar(D_80107116_mchar);
+        func_80045ED0_main((D_80106E84_mchar[D_80107114_mchar] << 16) | D_80107116_mchar);
+    }
+    if (D_800D5558_main[0] & 0x1000) {
+        D_8010711C_mchar++;
+    }
+    if (D_800D5558_main[0] & 4) {
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 4);
+        src = &HmfModelData[D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar]];
+        if (++D_80107118_mchar >= 2) {
+            D_80107118_mchar = 0;
+        }
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 0);
+        dst = &HmfModelData[D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar]];
+        dst->unk02 = src->unk02;
+        dst->unk40 = src->unk40;
+        dst->unk03 = src->unk03;
+        dst->unk4C = src->unk4C;
+        dst->unk05 = src->unk05;
+        dst->unk04 = src->unk04;
+    }
+    if (D_800D5558_main[0] & 2) {
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 4);
+        if (++D_80107114_mchar >= 8) {
+            D_80107114_mchar = 0;
+        }
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 0);
+        func_8001F304_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], D_80107AA0_mchar[D_80107114_mchar].a);
+        func_8001C814_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 2, 2);
+        func_80045ED0_main((D_80106E84_mchar[D_80107114_mchar] << 16) | D_80107116_mchar);
+    }
+    if (D_800D5558_main[0] & 1) {
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 4);
+        if (--D_80107114_mchar < 0) {
+            D_80107114_mchar = 7;
+        }
+        func_8001C258_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 4, 0);
+        func_8001F304_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], D_80107AA0_mchar[D_80107114_mchar].a);
+        func_8001C814_main(D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar], 2, 2);
+        func_80045ED0_main((D_80106E84_mchar[D_80107114_mchar] << 16) | D_80107116_mchar);
+    }
+    if ((u16)D_800D0590_main[1] & 0xC000) {
+        src = &HmfModelData[D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar]];
+        if ((u16)D_800D0590_main[1] & 0x4000) {
+            src->unk03 |= 4;
+        }
+        src->unk03 &= ~1;
+        src->unk40 = func_8002FC7C_main(&D_800CCF58_main[src->unk02], src->unk03, src->unk40, src->unk48,
+                                          2.0f * src->unk44);
+        src->unk4C = func_8002FC7C_main(&D_800CCF58_main[src->unk04], src->unk05, src->unk4C, src->unk54,
+                                          2.0f * src->unk50);
+        src->unk03 = (src->unk03 & ~4) | 1;
+    }
+    if ((D_800CDA7C_main[0] & 0x30) == 0x30) {
+        D_80106E80_mchar = 1;
+    }
+    if (D_800D5558_main[1] & 0x1000) {
+        D_80106E82_mchar = D_80106E82_mchar == 0;
+    }
+    if (D_80106E82_mchar != 0) {
+        src = &HmfModelData[D_80107A60_mchar[D_80107114_mchar][D_80107118_mchar]];
+        fontcolor = 9;
+        sprintf(D_80107950_mchar, "MOTIONNO.%3d <%s>", D_80107116_mchar, D_80106E94_mchar[D_80107116_mchar]);
+        print8(0x18, 0xB6, D_80107950_mchar);
+        sprintf(D_80107950_mchar, "CENTER:%3.3f,%3.3f,%3.3f", Center.x, Center.y, Center.z);
+        print8(0x18, 0xBE, D_80107950_mchar);
+        sprintf(D_80107950_mchar, "ROTATE:%3.3f,%3.3f,%3.3f", CRot.x, CRot.y, CRot.z);
+        print8(0x18, 0xC6, D_80107950_mchar);
+        sprintf(D_80107950_mchar, "ZOOM:  %3.3f", CZoom);
+        print8(0x18, 0xCE, D_80107950_mchar);
+        sprintf(D_80107950_mchar, "M_TIME:%d", (u16)src->unk40);
+        print8(0x18, 0xD6, D_80107950_mchar);
+    }
+}
 
 /* loads the eight characters' two models from set `set` and their motion 0 */
 #ifdef NON_MATCHING
@@ -177,7 +277,93 @@ void func_80106764_mchar(s16 motion) {
                        0xA, 2);
 }
 
+// masked 37: as mgenter func_80108A60_mgenter, retail addresses Center through a base register (one more $f register here)
+/* debug camera on the first controller (as mgenter's func_80108A60_mgenter): L resets it, C up/down zoom,
+   the stick turns, the D-pad moves the target; Z with it goes faster */
+#ifdef NON_MATCHING
+void func_80106898_mchar(omObjData *obj) {
+    f32 rx;
+    f32 ry;
+    f32 spd;
+    f32 dx;
+    f32 dz;
+    f32 inv;
+
+    if (D_800CDA7C_main[0] & 0x1000) {
+        func_80106D7C_mchar();
+    }
+    if (D_800CDA7C_main[0] & 0x20) {
+        if (D_800CDA7C_main[0] & 0x2000) {
+            CZoom += 30.0f;
+        } else {
+            CZoom += 10.0f;
+        }
+    }
+    if ((D_800CDA7C_main[0] & 0x10) && CZoom - 10.0f != 0.0f) {
+        if (D_800CDA7C_main[0] & 0x2000) {
+            CZoom -= 30.0f;
+        } else {
+            CZoom -= 10.0f;
+        }
+    }
+    rx = D_80107A50_mchar.x;
+    ry = D_80107A50_mchar.y;
+    if (D_800CDA7C_main[0] & 0x2000) {
+        spd = 5.0f;
+    } else {
+        spd = 2.0f;
+    }
+    ry += (-D_800CBB6E_main[0] / 30) * spd;
+    if (ry >= 360.0f) {
+        ry -= 360.0f;
+    } else if (ry < 0.0f) {
+        ry += 360.0f;
+    }
+    D_80107A50_mchar.y = ry;
+    rx += (s8)(D_800D20A1_main[0] / 30) * spd;
+    if (rx >= 360.0f) {
+        rx -= 360.0f;
+    } else if (rx < 0.0f) {
+        rx += 360.0f;
+    }
+    D_80107A50_mchar.x = rx;
+    CRot.x = (s16)rx;
+    CRot.y = (s16)D_80107A50_mchar.y;
+    if (D_800CDA7C_main[0] & 0x2000) {
+        spd = 10.0f;
+    } else {
+        spd = 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 0x800) {
+        dx = sindf(ry) * sindf(rx);
+        spd = -spd;
+        Center.x += dx * spd;
+        Center.y += cosdf(rx) * spd;
+        Center.z += cosdf(ry) * sindf(rx) * spd;
+    } else if (D_800CDA7C_main[0] & 0x400) {
+        dx = sindf(ry) * sindf(rx);
+        Center.x += dx * spd;
+        Center.y += cosdf(rx) * spd;
+        Center.z += cosdf(ry) * sindf(rx) * spd;
+    } else if (D_800CDA7C_main[0] & 0x200) {
+        dz = gCameraList->pos.z - Center.z;
+        dx = -(gCameraList->pos.x - Center.x);
+        inv = 1.0f / HuSqrtf(dz * dz + dx * dx);
+        Center.x += dz * inv * spd;
+        Center.y += 0.0f;
+        Center.z += dx * inv * spd;
+    } else if (D_800CDA7C_main[0] & 0x100) {
+        dz = -(gCameraList->pos.z - Center.z);
+        dx = gCameraList->pos.x - Center.x;
+        inv = 1.0f / HuSqrtf(dz * dz + dx * dx);
+        Center.x += dz * inv * spd;
+        Center.y += 0.0f;
+        Center.z += dx * inv * spd;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mchar/3D3C80", func_80106898_mchar);
+#endif
 
 void func_80106D7C_mchar(void) {
     D_80107A50_mchar.x = D_80107A50_mchar.y = D_80107A50_mchar.z = 0.0f;
