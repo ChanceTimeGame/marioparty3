@@ -384,3 +384,4 @@ D_80119A78_mgmode = D_8011997C_mgmode + 0xFC;
 D_80119F34_mgmode = D_80119F28_mgmode + 0xC;
 D_80119F64_mgmode = D_80119F28_mgmode + 0x3C;
 D_8011A0C0_mgmode = D_80119FA0_mgmode + 0x120;
+D_8010DA30_slot_synch = D_8010DA20_slot_synch + 0x10; /* m1 sy1: FX ids, s32[4] */
