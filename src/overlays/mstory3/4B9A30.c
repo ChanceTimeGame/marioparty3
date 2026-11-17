@@ -1,22 +1,352 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010C9F0_mstory3);
+// story u3
+/* A path through points (Vec list ended by a { 9999, 9999, 9999 } entry), as mstory1's. */
+typedef struct ObPathSeg {
+    /* 0x00 */ f32 start;
+    /* 0x04 */ f32 end;
+} ObPathSeg; /* size = 0x8 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010CCF4_mstory3);
+typedef struct ObPath {
+    /* 0x00 */ s16 count;
+    /* 0x02 */ s16 flags;
+    /* 0x04 */ char unk04[4];
+    /* 0x08 */ Vec *points;
+    /* 0x0C */ ObPathSeg *segs;
+} ObPath; /* size = 0x10 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010D59C_mstory3);
+/* a story-scene actor: its object and the action its process runs every frame */
+typedef struct Story3Actor {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ void (*func)(omObjData *);
+    /* 0x08 */ s32 unk08; /* set to 1 by the actor when its action is done */
+    /* 0x0C */ s32 unk0C; /* 1: play the step sound unk10 on frame 0 of the walk */
+    /* 0x10 */ s32 unk10; /* step sound (read as an s16 at +0x12) */
+} Story3Actor; /* size = 0x14 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010D5CC_mstory3);
+typedef struct Story3Motions {
+    s32 v[8][4];
+} Story3Motions;
 
-void func_8010D774_mstory3(void) {
+extern Story3Actor D_80115CB0_mstory3[11];
+extern s16 D_80115D8C_mstory3; /* shadow model, linked by the actors */
+extern s16 D_80115D8E_mstory3; /* actor 3's texture-animation slot */
+extern s16 D_80115D90_mstory3[4]; /* actor 3's texture animations */
+extern s16 D_80115D98_mstory3[5]; /* actor 0's texture animations */
+extern s16 D_80115DA2_mstory3; /* actor 0's texture-animation slot */
+extern s16 D_80115DA4_mstory3[5]; /* actor 2's texture animations */
+extern s16 D_80115DAE_mstory3; /* actor 2's texture-animation slot */
+extern s16 D_80115DB0_mstory3; /* the player's character */
+extern Vec D_80115740_mstory3;
+extern Vec D_8011574C_mstory3;
+extern Vec D_80115758_mstory3;
+extern Vec D_80115764_mstory3;
+extern Vec D_80115770_mstory3;
+extern Vec D_8011577C_mstory3;
+extern Vec D_80115788_mstory3;
+extern Vec D_80115794_mstory3;
+extern Vec D_801157A0_mstory3;
+extern Vec D_801157AC_mstory3;
+extern Vec D_801157B8_mstory3;
+extern Vec D_801157C4_mstory3;
+extern Vec D_801157D0_mstory3;
+extern Vec D_801157DC_mstory3;
+extern Vec D_801157E8_mstory3;
+extern Vec D_801157F4_mstory3;
+extern Story3Motions D_80115800_mstory3;
+extern s32 D_800A178C_main[][6]; /* per character: [0] its file directory */
+f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
+void func_80032FC0_main(s16, s32, s32);
+s16 func_800329B4_main(void *);
+
+void func_80105F54_mstory3(void);
+void func_8010603C_mstory3(void);
+void func_8010606C_mstory3(void);
+void func_80106090_mstory3(s32 mess);
+void func_801060E4_mstory3(s32 mess);
+void func_801061C4_mstory3(void);
+void func_80106220_mstory3(void);
+void func_80106284_mstory3(void);
+void func_80106400_mstory3(s32 arg0);
+s32 func_80106CDC_mstory3(void);
+void func_80106CF0_mstory3(s16 model, s16 anim, s16 frame);
+void func_80106DC4_mstory3(omObjData *obj, Vec *to, s32 frames);
+void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
+void func_80107070_mstory3(omObjData *obj, Vec *to, s32 frames);
+void func_80107218_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
+void func_80107244_mstory3(s16 model);
+void func_8010733C_mstory3(omObjData *obj, f32 speed, s16 frames);
+void func_801074D8_mstory3(omObjData *obj, f32 speed, s16 frames);
+void func_80107A18_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn);
+
+ObPath *func_8010C9F0_mstory3(Vec *points, s16 flags);
+void func_8010CCF4_mstory3(ObPath *path, f32 t, Vec *out);
+void func_8010D59C_mstory3(ObPath *path);
+void func_8010D774_mstory3(omObjData *obj);
+void func_8010D77C_mstory3(void);
+void func_8010D974_mstory3(void);
+void func_8010D97C_mstory3(void);
+void func_8010DA00_mstory3(omObjData *obj);
+void func_8010E170_mstory3(omObjData *obj);
+void func_8010EBE4_mstory3(omObjData *obj);
+void func_8010F658_mstory3(void);
+void func_8010F660_mstory3(void);
+void func_8010FDB0_mstory3(omObjData *obj);
+void func_801103E8_mstory3(omObjData *obj);
+void func_80110628_mstory3(omObjData *obj);
+void func_8011067C_mstory3(omObjData *obj);
+void func_80110CB4_mstory3(void);
+void func_80110E30_mstory3(omObjData *obj);
+void func_80111064_mstory3(omObjData *obj);
+void func_801110B4_mstory3(void);
+/* the other ranges of this unit */
+void func_80111500_mstory3(omObjData *obj);
+void func_80111764_mstory3(void);
+void func_80111A58_mstory3(omObjData *obj);
+void func_80111B34_mstory3(omObjData *obj);
+void func_80111C50_mstory3(omObjData *obj);
+void func_80111DF8_mstory3(omObjData *obj);
+void func_80111E2C_mstory3(omObjData *obj);
+void func_80111FA4_mstory3(omObjData *obj);
+void func_8011204C_mstory3(omObjData *obj);
+void func_801122C4_mstory3(void);
+void func_8011249C_mstory3(void);
+void func_801125F8_mstory3(omObjData *obj);
+void func_801126D8_mstory3(omObjData *obj);
+void func_8011289C_mstory3(omObjData *obj);
+void func_80112944_mstory3(omObjData *obj);
+void func_80112B88_mstory3(void);
+void func_80112DA0_mstory3(omObjData *obj);
+void func_80112F7C_mstory3(omObjData *obj);
+void func_80112FD0_mstory3(omObjData *obj);
+void func_801134E0_mstory3(void);
+void func_80113968_mstory3(void);
+void func_80113BB0_mstory3(void);
+void func_80113E68_mstory3(omObjData *obj);
+void func_80114260_mstory3(omObjData *obj);
+void func_801142C0_mstory3(omObjData *obj);
+void func_80114474_mstory3(omObjData *obj);
+void func_8011475C_mstory3(omObjData *obj);
+void func_801149D0_mstory3(void);
+void func_80114B00_mstory3(void);
+// end story u3
+
+ObPath *func_8010C9F0_mstory3(Vec *points, s16 flags) {
+    ObPath *path;
+    Vec *prev;
+    Vec *cur;
+    ObPathSeg *seg;
+    f32 total;
+    f32 pos;
+    f32 len;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    s16 n;
+    s16 i;
+
+    path = HuMemAllocTag(sizeof(ObPath), 0x7918);
+    path->flags = flags;
+    path->points = points;
+    prev = points;
+    cur = prev + 1;
+    total = 0.0f;
+    n = 0;
+    while (cur->x != 9999.0f || cur->y != 9999.0f || cur->z != 9999.0f) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+        n++;
+        cur++;
+        prev++;
+    }
+    if (flags & 1) {
+        dx = points->x - prev->x;
+        dy = points->y - prev->y;
+        dz = points->z - prev->z;
+        total += HuSqrtf(dx * dx + dy * dy + dz * dz);
+    }
+    n++;
+    path->count = n;
+    seg = HuMemAllocTag(n * sizeof(ObPathSeg), 0x7918);
+    path->segs = seg;
+    prev = points;
+    cur = prev + 1;
+    pos = 0.0f;
+    for (i = 0; i < n; i++, prev++, cur++, seg++) {
+        dx = cur->x - prev->x;
+        dy = cur->y - prev->y;
+        dz = cur->z - prev->z;
+        if ((flags & 1) && i == n - 1) {
+            dx = points->x - prev->x;
+            dy = points->y - prev->y;
+            dz = points->z - prev->z;
+        }
+        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+        seg->start = pos / total;
+        seg->end = (pos + len) / total;
+        if (seg->end > 1.0f) {
+            seg->end = 1.0001f;
+        }
+        pos += len;
+    }
+    return path;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010D77C_mstory3);
+#ifdef NON_MATCHING
+/* the point at t (0..1) along a path: a spline through the four points around the segment t
+   falls in */
+void func_8010CCF4_mstory3(ObPath *path, f32 t, Vec *out) {
+    f32 p[4];
+    f32 times[4];
+    ObPathSeg *segs;
+    Vec *pts;
+    s16 i;
+
+    if (t >= 1.0f) {
+        out->x = path->points[path->count - 1].x;
+        out->y = path->points[path->count - 1].y;
+        out->z = path->points[path->count - 1].z;
+        return;
+    }
+    for (i = 0, segs = path->segs; i < path->count; i++, segs++) {
+        if (t <= segs->start) {
+            break;
+        }
+    }
+    i--;
+    i = (i < 0) ? 0 : i;
+    if (i >= path->count - 1) {
+        i--;
+    }
+    segs = path->segs;
+    if (path->flags & 1) {
+        times[0] = (i == 0) ? -(1.0f - segs[path->count - 1].start) : segs[i - 1].start;
+        times[1] = segs[i].start;
+        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
+        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
+        pts = path->points;
+        p[0] = (i == 0) ? pts[path->count - 1].x : pts[i - 1].x;
+        p[1] = pts[i].x;
+        p[2] = (i >= path->count - 1) ? pts[0].x : pts[i + 1].x;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].x : pts[i + 2].x;
+        out->x = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[path->count - 1].y : pts[i - 1].y;
+        p[1] = pts[i].y;
+        p[2] = (i >= path->count - 1) ? pts[0].y : pts[i + 1].y;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].y : pts[i + 2].y;
+        out->y = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[path->count - 1].z : pts[i - 1].z;
+        p[1] = pts[i].z;
+        p[2] = (i >= path->count - 1) ? pts[0].z : pts[i + 1].z;
+        p[3] = (i + 1 >= path->count - 1) ? pts[0].z : pts[i + 2].z;
+    } else {
+        if (i == 0) {
+            times[0] = -1.0f;
+        } else {
+            times[0] = segs[i - 1].start;
+        }
+        times[1] = segs[i].start;
+        times[2] = (i >= path->count - 1) ? segs[path->count - 1].end : segs[i + 1].start;
+        times[3] = (i + 1 >= path->count - 1) ? segs[path->count - 1].end : segs[i + 2].start;
+        pts = path->points;
+        p[0] = (i == 0) ? pts[0].x : pts[i - 1].x;
+        p[1] = pts[i].x;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].x : pts[i + 1].x;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].x : pts[i + 2].x;
+        out->x = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[0].y : pts[i - 1].y;
+        p[1] = pts[i].y;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].y : pts[i + 1].y;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].y : pts[i + 2].y;
+        out->y = func_80018ACC_main(p, times, t);
+        p[0] = (i == 0) ? pts[0].z : pts[i - 1].z;
+        p[1] = pts[i].z;
+        p[2] = (i >= path->count - 1) ? pts[path->count - 1].z : pts[i + 1].z;
+        p[3] = (i + 1 >= path->count - 1) ? pts[path->count - 1].z : pts[i + 2].z;
+    }
+    out->z = func_80018ACC_main(p, times, t);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010CCF4_mstory3);
+#endif
+
+void func_8010D59C_mstory3(ObPath *path) {
+    HuMemFree(path->segs);
+    HuMemFree(path);
+}
+
+/* chapter 3, second scene: set up the actors and their processes */
+void func_8010D5CC_mstory3(void) {
+    D_80115DB0_mstory3 = GwStory.unk1;
+    func_80105F54_mstory3();
+    D_80115D8C_mstory3 = func_8000B108_main(9, 0x2B9);
+    omAddPrcObj(func_8010F660_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80110CB4_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_801110B4_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80111764_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_801122C4_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80112B88_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_801134E0_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80113968_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80113BB0_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_80114B00_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010D97C_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8011249C_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_801149D0_mstory3, 0x1001, 0x800, 0);
+    omAddPrcObj(func_8010D77C_mstory3, 0x1001, 0x800, 0);
+    HuPrcVSleep();
+    func_8001C258_main(D_80115D8C_mstory3, 4, 4);
+}
+
+void func_8010D774_mstory3(omObjData *obj) {
+}
+
+/* step sounds: actors 0, 2 and 1 play theirs on frame 0 of their walk */
+void func_8010D77C_mstory3(void) {
+    s16 se;
+    s32 vol;
+    f32 z;
+
+    while (TRUE) {
+        if (D_80115CB0_mstory3[0].unk0C == 1 && HmfModelData[D_80115CB0_mstory3[0].obj->model[1]].unk40 == 0.0f) {
+            CharFXPlay(D_80115CB0_mstory3[0].unk10, (u8)D_80115DB0_mstory3);
+        }
+        if (D_80115CB0_mstory3[2].unk0C == 1 && HmfModelData[D_80115CB0_mstory3[2].obj->model[1]].unk40 == 0.0f) {
+            se = CharFXPlay(D_80115CB0_mstory3[2].unk10, 6);
+            z = HmfModelData[D_80115CB0_mstory3[2].obj->model[1]].pos.z;
+            if (z <= 0.0f) {
+                vol = z / 15.0f + 127.0f;
+            } else {
+                vol = 127;
+            }
+            func_8004AAD0_main(se, vol);
+        }
+        if (D_80115CB0_mstory3[1].unk0C == 1 && HmfModelData[D_80115CB0_mstory3[1].obj->model[1]].unk40 == 0.0f) {
+            CharFXPlay(D_80115CB0_mstory3[1].unk10, 7);
+        }
+        HuPrcVSleep();
+    }
+}
 
 void func_8010D974_mstory3(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010D97C_mstory3);
+/* actor 10: the scene director */
+void func_8010D97C_mstory3(void) {
+    omObjData *obj;
+
+    obj = omAddObj(10, 0, 0, -1, NULL);
+    D_80115CB0_mstory3[10].obj = obj;
+    D_80115CB0_mstory3[10].unk08 = 0;
+    D_80115CB0_mstory3[10].func = func_8010DA00_mstory3;
+    omPrcSetDestructor(0, func_8010D974_mstory3);
+    while (TRUE) {
+        D_80115CB0_mstory3[10].func(obj);
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_8010DA00_mstory3);
 
