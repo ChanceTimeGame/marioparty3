@@ -240,6 +240,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80116168_duel04);
 
 GW_PLAYER *MBDGetPlayerStruct(s32 playerIndex);
 void func_800E9F4C_name_81(s32, s8 *, s8 *);
+void func_80118850_duel04(void);
+void func_80118D14_duel04(void);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
 
@@ -486,7 +488,21 @@ void func_80118774_duel04(void) {
 void func_801187B0_duel04(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801187B8_duel04);
+s32 func_801187B8_duel04(void) {
+    s32 cur = GwSystem.current_player_index;
+    s32 opp = (cur + 1) & 1;
+    GW_PLAYER *player = MBDGetPlayerStruct(cur);
+    GW_PLAYER *other = MBDGetPlayerStruct(opp);
+
+    if (player->nlink != other->clink || player->nidx != other->cidx) {
+        return -1;
+    }
+    if (player->rev & 1) {
+        return !(other->rev & 1) ? 3 : 0;
+    } else {
+        return (other->rev & 1) ? 3 : 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118850_duel04);
 
@@ -494,7 +510,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80118D14_duel04);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80119840_duel04);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801198EC_duel04);
+void func_801198EC_duel04(void) {
+    func_80118D14_duel04();
+    func_80118850_duel04();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80119910_duel04);
 
