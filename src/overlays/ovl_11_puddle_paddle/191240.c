@@ -9,43 +9,376 @@ typedef struct UnkPuddlePaddle {
     /* 0x0E */ s16 unk_0E;
 } UnkPuddlePaddle; // size >= 0x10
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801059A0_puddle_paddle);
+#include "overlays/minigame.h"
+#include "gcc/memory.h"
+#include "mallocblock.h"
+#include "game/hmfman.h"
+#include "game/object.h"
+#include "game/sprite.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801059BC_puddle_paddle);
+// m1 pp1
+/* Puddle Paddle: two teams of two paddle a raft to collect the coins falling on the pond. Shares its frame (and
+   the object system at func_8010B820_puddle_paddle) with Baby Bowser Broadside (ovl_0C). */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105B94_puddle_paddle);
+/* omObjData::work of a player object and of the setup object: work[0] the player index (its low half read
+   as a s16), work[1] the task group (its low byte read as a s8). Big-endian views of two words. */
+typedef union PpObjWork {
+    struct {
+        /* 0x00 */ s32 player;
+        /* 0x04 */ s32 group;
+    } w;
+    struct {
+        /* 0x00 */ s16 hi;
+        /* 0x02 */ s16 player;
+        /* 0x04 */ s8 pad[3];
+        /* 0x07 */ s8 group;
+    } b;
+} PpObjWork;
+#define PP_WORK(obj) ((PpObjWork*)(obj)->work)
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105C3C_puddle_paddle);
+/* The object system's types (Broadside 169540's Bb* layouts) */
+typedef struct PpCtx {
+    /* 0x00 */ omObjData* obj;
+    /* 0x04 */ s16* models;
+    /* 0x08 */ s16 count;
+} PpCtx; /* size 0xC */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105C84_puddle_paddle);
+struct PpTask;
+typedef void (*PpTaskFunc)(PpCtx*, struct PpTask*);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105CBC_puddle_paddle);
+typedef struct PpTask {
+    /* 0x00 */ s8 set;
+    /* 0x02 */ s16 id;
+    /* 0x04 */ s8 state;
+    /* 0x05 */ s8 tag;
+    /* 0x08 */ s32 prio;
+    /* 0x0C */ s8 s8[16];
+    /* 0x1C */ s16 s16[8];
+    /* 0x2C */ f32 f32[4];
+    /* 0x3C */ void* data;
+    /* 0x40 */ PpTaskFunc func;
+} PpTask; /* size 0x44 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105CE0_puddle_paddle);
+typedef struct PpGroup {
+    /* 0x00 */ PpCtx* ctx;
+    /* 0x04 */ PpTask* tasks;
+    /* 0x08 */ s16 count;
+    /* 0x0C */ void* order;
+    /* 0x10 */ s8 sort;
+} PpGroup; /* size 0x14 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80105DBC_puddle_paddle);
+typedef struct PpSprite {
+    /* 0x00 */ s8 state;
+    /* 0x01 */ u8 group;
+    /* 0x02 */ u8 unk02;
+    /* 0x04 */ u16 unk04;
+    /* 0x06 */ s16 unk06;
+} PpSprite; /* size 8 */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106028_puddle_paddle);
+typedef struct PpBill {
+    /* 0x00 */ s8 set;
+    /* 0x04 */ s32 attr;
+    /* 0x08 */ s16 tag;
+    /* 0x0A */ u8 spriteId;
+    /* 0x0C */ s16 model;
+    /* 0x0E */ char unk0E[0x16];
+} PpBill; /* size 0x24 */
+
+/* A team (D_80111650_puddle_paddle[2]) */
+typedef struct PpTeam {
+    /* 0x00 */ char unk00[0x18];
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ char unk1C[4];
+    /* 0x20 */ u8 count;
+    /* 0x22 */ s16 member[2]; /* player indices */
+    /* 0x26 */ s16 digit[2]; /* score digit sprites */
+    /* 0x2A */ char unk2A[0x3A];
+} PpTeam; /* size 0x64 */
+
+/* A player (D_80111654_puddle_paddle[4]) */
+typedef struct PpPlayer {
+    /* 0x00 */ s16 no;
+    /* 0x02 */ s16 chr;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ char unk08[6];
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s8 slot; /* place in the team */
+    /* 0x11 */ char unk11[0x37];
+    /* 0x48 */ f32 unk48;
+    /* 0x4C */ char unk4C[4];
+    /* 0x50 */ s16 team;
+    /* 0x52 */ char unk52[4];
+    /* 0x56 */ s16 unk56;
+    /* 0x58 */ s16 unk58;
+    /* 0x5A */ char unk5A[2];
+} PpPlayer; /* size 0x5C */
+
+/* A coin (PpState::coins[16]) */
+typedef struct PpCoin {
+    /* 0x00 */ s16 kind;
+    /* 0x02 */ s16 model;
+    /* 0x04 */ char unk04[0x1C];
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ char unk24[0x10];
+} PpCoin; /* size 0x34 */
+
+/* The game state (D_80111658_puddle_paddle) */
+typedef struct PpState {
+    /* 0x00 */ s32 flags;
+    /* 0x04 */ char unk04[0x34];
+    /* 0x38 */ PpCoin* coins;
+    /* 0x3C */ s16 unk3C;
+    /* 0x3E */ char unk3E[6];
+} PpState; /* size 0x44 */
+
+extern PpTeam* D_80111650_puddle_paddle;
+extern PpPlayer* D_80111654_puddle_paddle;
+extern PpState* D_80111658_puddle_paddle;
+extern PpSprite* D_80111664_puddle_paddle;
+extern PpBill* D_80111668_puddle_paddle;
+
+extern f32 D_80111220_puddle_paddle;
+extern f32 D_80111224_puddle_paddle;
+extern f32 D_80111228_puddle_paddle;
+extern s16 D_8011122C_puddle_paddle;
+extern s16 D_8011122E_puddle_paddle;
+extern s16 D_80111230_puddle_paddle;
+extern s16 D_80111232_puddle_paddle;
+extern const s16 D_80111370_puddle_paddle[];
+extern const s16 D_8011137C_puddle_paddle[];
+extern const s16 D_8011138C_puddle_paddle[];
+
+// main
+s32 func_8000B638_main(void);
+void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
+u8 rand8(void);
+extern s8 D_800CBB6E_main[];
+extern s16 D_800CDA7C_main[];
+extern s8 D_800D20A1_main[];
+extern u8 D_800D6A90_main;
+extern s32 D_800A178C_main[][6];
+extern s32 D_800A1790_main[][6];
+// the object system (this unit)
+void func_8010B820_puddle_paddle(void);
+PpGroup* func_8010B8B4_puddle_paddle(omObjData* obj, s8 group, s16 models, s16 tasks);
+s16 func_8010BA04_puddle_paddle(s8 group, s32 mask, void* data, PpTaskFunc func, s8 tag);
+void func_8010BAA8_puddle_paddle(s8 group, PpTask* task);
+void func_8010BC14_puddle_paddle(s8 group);
+s16 func_8010BEE8_puddle_paddle(u16 prio, s32 dir, s32 file, u16 arg3, s32 attr);
+void func_8010C088_puddle_paddle(s16 sprite, s32 x, s32 y);
+void func_8010C16C_puddle_paddle(void);
+s16 func_8010C214_puddle_paddle(s32 dir, s32 file, f32 freq, s16 tag, s32 attr);
+void func_8010C664_puddle_paddle(void);
+s16 func_8010C804_puddle_paddle(s32 dir, s32 file, s16 tag, s32 attr, s32 arg4);
+void func_8010CCF0_puddle_paddle(void);
+void func_80110714_puddle_paddle(omObjData* obj);
+// this range
+void func_801059BC_puddle_paddle(void);
+void func_80105B94_puddle_paddle(void);
+void func_80105C3C_puddle_paddle(omObjData* obj);
+void func_80105C84_puddle_paddle(omObjData* obj);
+void func_80105CBC_puddle_paddle(omObjData* obj);
+void func_80105CE0_puddle_paddle(void);
+void func_80105DBC_puddle_paddle(omObjData* obj);
+void func_80106028_puddle_paddle(omObjData* obj);
+void func_80106064_puddle_paddle(omObjData* obj);
+void func_80106958_puddle_paddle(omObjData* obj);
+void func_80106988_puddle_paddle(omObjData* obj);
+void func_801069FC_puddle_paddle(omObjData* obj);
+void func_80106B6C_puddle_paddle(s16 dst, s16 src, s32 arg2);
+void func_80106CE4_puddle_paddle(omObjData* obj);
+void func_801073AC_puddle_paddle(omObjData* obj);
+void func_801073E4_puddle_paddle(omObjData* obj);
+void func_80107588_puddle_paddle(omObjData* obj);
+void func_801075B8_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80107638_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_8010788C_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_801079D4_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80107B2C_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80107DB0_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80107E1C_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80108178_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80108368_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_801087DC_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_801094C4_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80109718_puddle_paddle(PpCtx* ctx, PpTask* task);
+void func_80109804_puddle_paddle(PpPlayer* player, s16 motion, s8 pending);
+
+void func_801059A0_puddle_paddle(void) {
+    func_801059BC_puddle_paddle();
+}
+
+void func_801059BC_puddle_paddle(void) {
+    u8 cam;
+
+    Hu3DAnimInit(50);
+    func_800142A0_main(48);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -56.0f, 50.0f, 56.0f);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 30.0f, 80.0f, 5000.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_8010B820_puddle_paddle();
+    func_80105B94_puddle_paddle();
+    omAddObj(1000, 0, 0, -1, func_80105DBC_puddle_paddle);
+    omAddObj(2000, 0, 0, -1, func_80105C3C_puddle_paddle);
+    func_80045010_main(D_80111370_puddle_paddle, 1);
+    func_80045010_main(D_8011137C_puddle_paddle, 1);
+    func_80045010_main(D_8011138C_puddle_paddle, 1);
+}
+
+void func_80105B94_puddle_paddle(void) {
+    D_80111658_puddle_paddle = HuMemAllocTag(sizeof(PpState), 31000);
+    memset(D_80111658_puddle_paddle, 0, sizeof(PpState));
+    D_80111658_puddle_paddle->coins = HuMemAllocTag(sizeof(PpCoin) * 16, 31000);
+    memset(D_80111658_puddle_paddle->coins, 0, sizeof(PpCoin) * 16);
+    D_80111654_puddle_paddle = HuMemAllocTag(sizeof(PpPlayer) * 4, 31000);
+    memset(D_80111654_puddle_paddle, 0, sizeof(PpPlayer) * 4);
+    D_80111650_puddle_paddle = HuMemAllocTag(sizeof(PpTeam) * 2, 31000);
+    memset(D_80111650_puddle_paddle, 0, sizeof(PpTeam) * 2);
+}
+
+void func_80105C3C_puddle_paddle(omObjData* obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_80105C84_puddle_paddle;
+    }
+}
+
+void func_80105C84_puddle_paddle(omObjData* obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_80105CBC_puddle_paddle;
+    }
+}
+
+void func_80105CBC_puddle_paddle(omObjData* obj) {
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
+
+void func_80105CE0_puddle_paddle(void) {
+    if (CRot.x > 360.0f) {
+        CRot.x -= 360.0f;
+    } else if (CRot.x < 0.0f) {
+        CRot.x += 360.0f;
+    }
+    if (CRot.y > 360.0f) {
+        CRot.y -= 360.0f;
+    } else if (CRot.y < 0.0f) {
+        CRot.y += 360.0f;
+    }
+    func_8010BC14_puddle_paddle(0);
+}
+
+void func_80105DBC_puddle_paddle(omObjData* obj) {
+    s16 i;
+    PpTeam* team;
+    s8 n;
+
+    func_800E18D8_minigame();
+    func_800E19F0_minigame(1);
+    func_8010B8B4_puddle_paddle(NULL, 0, 0, 4);
+    func_8010BA04_puddle_paddle(0, 0, NULL, func_801075B8_puddle_paddle, 0);
+    PP_WORK(obj)->w.group = 1;
+    func_8010B8B4_puddle_paddle(obj, PP_WORK(obj)->b.group, 0, 4);
+    D_800EC1C0_minigame[0] = omAddObj(10, 1, 2, -1, func_80106064_puddle_paddle);
+    D_800EC1C0_minigame[1] = omAddObj(10, 1, 0, -1, func_80106988_puddle_paddle);
+    omSetStatBit(D_800EC1C0_minigame[1], 0xA0);
+    for (i = 0; i < 4; i++) {
+        team = &D_80111650_puddle_paddle[D_80111654_puddle_paddle[i].team = GwPlayer[i].group];
+        D_80111654_puddle_paddle[i].slot = team->count;
+        n = team->count++;
+        team->member[n] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        D_800EC598_minigame[i] = omAddObj(300, 11, 42, -1, func_80106CE4_puddle_paddle);
+    }
+    omAddObj(500, 2, 0, -1, func_801073E4_puddle_paddle);
+    D_80111658_puddle_paddle->flags = 1;
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0xF, NULL, func_801079D4_puddle_paddle, 0);
+    func_8010BA04_puddle_paddle(PP_WORK(obj)->b.group, 0x1F, NULL, func_80107638_puddle_paddle, 0);
+    WipeCreateIn(0xFF, 20);
+    obj->func = func_80106028_puddle_paddle;
+}
+
+void func_80106028_puddle_paddle(omObjData* obj) {
+    func_8010BC14_puddle_paddle(PP_WORK(obj)->b.group);
+    func_80105CE0_puddle_paddle();
+    func_8010C16C_puddle_paddle();
+    func_8010C664_puddle_paddle();
+    func_8010CCF0_puddle_paddle();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106064_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106958_puddle_paddle);
+void func_80106958_puddle_paddle(omObjData* obj) {
+    func_8010BC14_puddle_paddle(2);
+    func_80110714_puddle_paddle(obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106988_puddle_paddle);
+void func_80106988_puddle_paddle(omObjData* obj) {
+    obj->model[0] = func_8000B108_main(0x320001, 0x20099);
+    Hu3DModelPosSet(obj->model[0], 0.0f, 200.0f, 0.0f);
+    func_8001C954_main(obj->model[0]);
+    func_80110714_puddle_paddle(obj);
+    obj->func = func_801069FC_puddle_paddle;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801069FC_puddle_paddle);
+void func_801069FC_puddle_paddle(omObjData* obj) {
+    func_8001E65C_main(obj->model[0], sindf(D_80111220_puddle_paddle) * 15.0f, -D_80111224_puddle_paddle, 64, 64);
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_80111220_puddle_paddle += 0.5f;
+        if (D_80111220_puddle_paddle >= 360.0f) {
+            D_80111220_puddle_paddle -= 360.0f;
+        }
+        D_80111224_puddle_paddle += 0.2f;
+        if (D_80111224_puddle_paddle >= 64.0f) {
+            D_80111224_puddle_paddle -= 64.0f;
+        }
+        D_80111228_puddle_paddle += 2.4f;
+        if (D_80111228_puddle_paddle >= 360.0f) {
+            D_80111228_puddle_paddle -= 360.0f;
+        }
+    }
+    func_80110714_puddle_paddle(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106B6C_puddle_paddle);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80106CE4_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801073AC_puddle_paddle);
+void func_801073AC_puddle_paddle(omObjData* obj) {
+    func_8010BC14_puddle_paddle(PP_WORK(obj)->b.group);
+    func_800E4E30_minigame(obj);
+    func_80110714_puddle_paddle(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801073E4_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107588_puddle_paddle);
+void func_80107588_puddle_paddle(omObjData* obj) {
+    func_8010BC14_puddle_paddle(PP_WORK(obj)->b.group);
+    func_80110714_puddle_paddle(obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801075B8_puddle_paddle);
+void func_801075B8_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    Center.x = 0.0f;
+    Center.y = 280.0f;
+    Center.z = 102.0f;
+    CRot.x = 321.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    CZoom = 2970.0f;
+    func_8010BAA8_puddle_paddle(0, task);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107638_puddle_paddle);
 
@@ -55,7 +388,19 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_801079
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107B2C_puddle_paddle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107DB0_puddle_paddle);
+void func_80107DB0_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    switch (task->state) {
+        case 0:
+            WipeCreateOut(0, 20);
+            task->state = 1;
+            break;
+        case 1:
+            if (WipeStatGet() == 0) {
+                omOvlReturnEx(1);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80107E1C_puddle_paddle);
 
