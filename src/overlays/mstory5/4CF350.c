@@ -76,6 +76,7 @@ void func_80107080_mstory5(omObjData *obj, Vec *to, s32 frames);
 s32 func_801072A0_mstory5(s16 model);
 void func_80107254_mstory5(s16 model);
 void func_801068E4_mstory5(s16 model, s16 anim, s16 frame);
+void func_8010E3F0_mstory5(omObjData *a, omObjData *b);
 // end story i1
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_801059A0_mstory5);
@@ -136,9 +137,18 @@ void func_80105CCC_mstory5(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80105D4C_mstory5);
+void func_80105D4C_mstory5(void) {
+    func_8001C814_main(D_801151B2_mstory5, 4, 0);
+    func_8001C814_main(D_801151B2_mstory5, 1, 0);
+    func_8001C6A8_main(D_801151B2_mstory5, 0.0f);
+    HuAudFXPlay(0x216);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80105DA0_mstory5);
+void func_80105DA0_mstory5(void) {
+    func_8001C814_main(D_801151B2_mstory5, 4, 4);
+    func_8001C814_main(D_801151B2_mstory5, 1, 0);
+    func_8001C6A8_main(D_801151B2_mstory5, D_800CCF58_main[HmfModelData[D_801151B2_mstory5].unk02].unk02);
+}
 
 void func_80105E34_mstory5(void) {
     D_801151B8_mstory5 = InitEspriteSlot(func_8000B838_main(0x1D0012), 0, 0);
@@ -657,7 +667,9 @@ void func_8010975C_mstory5(omObjData *obj) {
     D_801151F0_mstory5[0].func = func_801085D8_mstory5;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80109790_mstory5);
+void func_80109790_mstory5(void) {
+    func_8010E3F0_mstory5(D_801151F0_mstory5[0].obj, D_801151F0_mstory5[3].obj);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory5/4CF350", D_80114A3C_mstory5);
 
