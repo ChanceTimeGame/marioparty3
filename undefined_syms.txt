@@ -351,3 +351,4 @@ D_80108C9C_selmenu = D_80108C90_selmenu + 0xC;
 D_80109812_selmenu = D_80109810_selmenu + 0x2;
 D_80109756_selmenu = D_80109754_selmenu + 0x2;
 D_80109758_selmenu = D_80109754_selmenu + 0x4;
+D_800D1F28_main = 0x800D1F28; /* unnamed main s16 after __osThprofLastTimer */

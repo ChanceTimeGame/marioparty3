@@ -4,7 +4,7 @@
 
 typedef struct SelMenuEntry {
     /* 0x00 */ u8 kind; /* 1: empty slot, skipped by the cursor */
-    /* 0x01 */ u8 cfg;  /* index into the player-group presets (1-based) */
+    /* 0x01 */ u8 mgNo; /* GwSystem.minigame_index for the pick; also its group preset (1-based) */
     /* 0x02 */ u8 unk2;
     /* 0x03 */ u8 unk3;
     /* 0x04 */ s32 ovl;
@@ -47,13 +47,17 @@ extern s16 D_8010A204_selmenu;
 extern s16 D_8010A206_selmenu;
 extern s16 D_8010A208_selmenu;
 extern s16 D_8010A210_selmenu[40];
-extern s32 D_8010A260_selmenu[4];
+extern f32 D_8010A260_selmenu[4]; /* character turn */
 extern u8 D_8010A270_selmenu[4]; /* menu input bits per pad */
 extern u16 D_8010A274_selmenu[4]; /* held direction per pad */
 extern u16 D_8010A27C_selmenu[4]; /* hold time */
 extern u16 D_8010A284_selmenu[4]; /* repeat delay */
 
 extern s32 omprevovl;
+extern s16 gNumOfControllers;
+extern s16 D_800D1F28_main; /* set when L is held at the pick: the minigame starts through its instructions */
+s32 func_800341C0_main(s32 mgNo, s32 arg1);
+unsigned int strlen(const char *);
 void func_8000BD08_main(u16 spriteId, f32 arg1);
 u8 func_8000BE1C_main(u16 spriteId);
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
@@ -78,6 +82,7 @@ void func_801087C8_selmenu(u16 no);
 void func_801089C0_selmenu(u16 x, u16 y, char *str, u16 color, u16 shadow);
 void func_80108890_selmenu(s32 dir);
 void func_80108A40_selmenu(void);
+void func_80108AB4_selmenu(void);
 void func_80105F30_selmenu(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
 
 void func_80107DFC_selmenu(omObjData *obj);
@@ -186,7 +191,7 @@ SelMenuEntry D_80108C90_selmenu[100] = { /* [page * 10 + row] */
     { 0, 1, 11, 0, 126, 100, 0, "299:SAMPLE" },
     { 0, 1, 11, 0, 86, 100, 0, "300*MCHAR" },
 };
-SelMenuCfg D_801092D0_selmenu[71] = { /* SelMenuEntry.cfg - 1 */
+SelMenuCfg D_801092D0_selmenu[71] = { /* group presets per minigame: [SelMenuEntry.mgNo - 1] */
     { { 0, 1, 2, 3 }, { 1, 1, 1, 1 }, { 5, 5, 5, 5 } },
     { { 0, 1, 2, 3 }, { 1, 1, 1, 1 }, { 5, 5, 5, 5 } },
     { { 0, 1, 2, 3 }, { 1, 1, 1, 1 }, { 5, 5, 5, 5 } },
@@ -961,7 +966,174 @@ void func_80107DEC_selmenu(omObjData *obj) {
     obj->func = func_80107DFC_selmenu;
 }
 
+/* NON_MATCHING: scheduling only (the instruction-skip call's a1, the CPU loop's first k, the random pick's address). */
+#ifdef NON_MATCHING
+/* Character select under the picked name (A ready, B unready, left/right change); when every pad is ready the CPU
+   players get random free characters, the wipe runs, and the pick boots. */
+void func_80107DFC_selmenu(omObjData *obj) {
+    u8 freeChr[8];
+    u16 cpuPad[4];
+    s32 ready = 0;
+    u8 ncpu;
+    u8 nfree;
+    u8 k;
+    s32 i;
+    s32 j;
+    s32 chr;
+    u16 color;
+    u8 *pick;
+    u32 r;
+
+    if (D_8010A200_selmenu == 1) {
+        if (WipeStatGet() == 0) {
+            HuAudSeqFadeOut(30);
+            func_80108AB4_selmenu();
+            GwSystem.minigame_index = D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].mgNo;
+            GwSystem.current_player_index = 0;
+            if (D_800A175E_main == 0) {
+                if (D_800D1F28_main == 0) {
+                    omOvlCallEx(D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].ovl, 0, 0x94);
+                } else {
+                    omOvlCallEx(func_800341C0_main(GwSystem.minigame_index, 0), 0, 0x82);
+                }
+            } else if (D_800A175E_main == 1) {
+                GwSystem.playMode = 1;
+                omOvlCallEx(D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].ovl, 0, 0x92);
+            } else {
+                GwSystem.playMode = 2;
+                omOvlCallEx(D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].ovl, 0, 0x4090);
+            }
+        }
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        ready += D_8010A1B0_selmenu[i] == 1;
+    }
+    ncpu = 0;
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) == 0) {
+            cpuPad[ncpu++] = i;
+        }
+    }
+    if (ready == gNumOfControllers) {
+        if (ready < 4) {
+            if (ncpu != 0) {
+            k = 0;
+            do {
+                nfree = 0;
+                for (i = 0; i < 8; i++) {
+                    freeChr[i] = 0;
+                }
+                for (i = 0; i < 8; i++) {
+                    if (D_8010A1B4_selmenu[i] == 0) {
+                        freeChr[nfree++] = i;
+                    }
+                }
+                if (nfree == 1) {
+                    GwPlayer[cpuPad[k]].chr = freeChr[0];
+                    D_8010A1B4_selmenu[freeChr[0]] = 1;
+                } else {
+                    r = rand8();
+                    pick = &freeChr[r % nfree];
+                    GwPlayer[cpuPad[k]].chr = *pick;
+                    D_8010A1B4_selmenu[*pick] = 1;
+                }
+                k++;
+            } while (k < ncpu);
+            }
+        }
+        WipeColorSet(0, 0, 0);
+        WipeCreateOut(0, 20);
+        D_8010A200_selmenu = 1;
+        D_800D1F28_main = 0;
+        for (i = 0; i < 4; i++) {
+            if (CheckControllerRead(i) != 0 && (D_800CDA7C_main[i] & 0x20)) {
+                D_800D1F28_main = 1;
+                return;
+            }
+        }
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) != 0 && (D_800D5558_main[i] & 0x1000)) {
+            for (j = 0; j < 4; j++) {
+                if (CheckControllerRead(j) != 0) {
+                    D_8010A270_selmenu[j] |= 0x10;
+                }
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (CheckControllerRead(i) == 0) {
+            sprintf(D_800D5218_main, "------");
+            func_801089C0_selmenu(i * 56 + 56, 144, D_800D5218_main, 15, 7);
+            continue;
+        }
+        func_8001C258_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 4, 0);
+        Hu3DModelPosSet(D_8010A1C0_selmenu[GwPlayer[i].chr], (f32)(i * 420) - 650.0f - 60.0f + (f32)(i * 40), -120.0f, 0.0f);
+        Hu3DModelScaleSet(D_8010A1C0_selmenu[GwPlayer[i].chr], 2.0f, 2.0f, 2.0f);
+        if (D_8010A1B0_selmenu[i] == 1) {
+            D_8010A260_selmenu[i] = 0.0f;
+        }
+        Hu3DModelRotSet(D_8010A1C0_selmenu[GwPlayer[i].chr], 0.0f, D_8010A260_selmenu[i], 0.0f);
+        D_8010A260_selmenu[i] += 1.0f;
+        if (D_8010A260_selmenu[i] >= 360.0f) {
+            D_8010A260_selmenu[i] -= 360.0f;
+        }
+        color = D_8010A1B0_selmenu[i] ? 15 : 12;
+        sprintf(D_800D5218_main, D_801097D4_selmenu[GwPlayer[i].chr]);
+        func_801089C0_selmenu(i * 56 + 50 + i * 4, 144, D_800D5218_main, color, color - 8);
+        if ((D_8010A270_selmenu[i] & 0x10) && D_8010A1B0_selmenu[i] == 0) {
+            D_8010A1B0_selmenu[i] = 1;
+            func_8001C5B4_main(D_8010A1C0_selmenu[GwPlayer[i].chr], D_8010A1E0_selmenu[GwPlayer[i].chr]);
+            func_8001C814_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 1, 0);
+            func_8001C814_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 2, 2);
+            func_801087C8_selmenu(2);
+        } else if ((D_8010A270_selmenu[i] & 0x20) && D_8010A1B0_selmenu[i] == 1) {
+            D_8010A1B0_selmenu[i] = 0;
+            func_8001C5B4_main(D_8010A1C0_selmenu[GwPlayer[i].chr], D_8010A1D0_selmenu[GwPlayer[i].chr]);
+            func_8001C814_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 1, 0);
+            func_8001C814_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 2, 2);
+            func_801087C8_selmenu(3);
+        }
+        if (D_8010A1B0_selmenu[i] != 0) {
+            continue;
+        }
+        if (D_8010A270_selmenu[i] & 4) {
+            chr = GwPlayer[i].chr - 1;
+            func_801087C8_selmenu(0);
+            while (TRUE) {
+                if (chr < 0) {
+                    chr = 7;
+                }
+                if (D_8010A1B4_selmenu[chr] == 0) {
+                    break;
+                }
+                chr--;
+            }
+        } else if (D_8010A270_selmenu[i] & 8) {
+            chr = GwPlayer[i].chr + 1;
+            func_801087C8_selmenu(0);
+            while (TRUE) {
+                chr = (chr < 8) ? chr : 0;
+                if (D_8010A1B4_selmenu[chr] == 0) {
+                    break;
+                }
+                chr++;
+            }
+        } else {
+            continue;
+        }
+        D_8010A1B4_selmenu[GwPlayer[i].chr] = 0;
+        func_8001C258_main(D_8010A1C0_selmenu[GwPlayer[i].chr], 4, 4);
+        GwPlayer[i].chr = chr;
+        D_8010A1B4_selmenu[GwPlayer[i].chr] = 1;
+        D_8010A260_selmenu[i] = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80107DFC_selmenu);
+#endif
 
 void func_801087C8_selmenu(u16 no) {
     func_8004AAD0_main(HuAudFXPlay(D_80109740_selmenu[no].seId), D_80109740_selmenu[no].vib);
@@ -1022,7 +1194,7 @@ void func_801089C0_selmenu(u16 x, u16 y, char *str, u16 color, u16 shadow) {
 }
 
 void func_80108A40_selmenu(void) {
-    SelMenuCfg *cfg = &D_801092D0_selmenu[D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].cfg - 1];
+    SelMenuCfg *cfg = &D_801092D0_selmenu[D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].mgNo - 1];
 
     GW_PLAYER *player = D_8010A098_selmenu;
 
