@@ -8,6 +8,7 @@ extern void func_80116968_mgmode(s32, s16, s16, s16);
 extern void func_801169A0_mgmode(s32, s16);
 extern void func_801169C8_mgmode(s32, s16);
 extern void func_80116D4C_mgmode(void);
+extern void func_80116E24_mgmode(s16);
 extern void func_80116ED4_mgmode(s16, s16, s16, void (*)(s16*));
 extern void func_801181F4_mgmode(s32);
 extern void func_8011822C_mgmode(void*);
@@ -60,6 +61,7 @@ extern s32 func_80116794_mgmode(MgSprFile*, MgSprFile*, s32);
 extern u8 D_800CB8B1_main[];
 
 /* overlay .data (shared by every mgmode unit, still asm) */
+extern u8 D_80118EB0_mgmode;
 extern u8 D_80118EB1_mgmode;
 extern u8 D_80118EB2_mgmode;
 extern s16 D_80118EB4_mgmode;
@@ -101,6 +103,7 @@ extern f32 D_8011B804_mgmode;
 extern s16 D_8011B808_mgmode;
 extern s16 D_8011B884_mgmode;
 extern f32 D_8011B888_mgmode;
+extern Vec D_8011B898_mgmode;
 extern s16 D_8011B8A8_mgmode[];
 extern s16 D_8011B8B2_mgmode;
 extern s16 D_8011B8B4_mgmode;
@@ -110,6 +113,7 @@ extern s16 D_8011B8C6_mgmode;
 extern s16 D_8011B928_mgmode[];
 extern s16 D_8011B940_mgmode[];
 extern s16 D_8011B950_mgmode;
+extern u8 D_8011B958_mgmode;
 extern s16 D_8011B95A_mgmode;
 
 void func_80108DDC_mgmode(s16);
@@ -733,7 +737,110 @@ void func_8010AFEC_mgmode(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* float regalloc (rx and speed swap f22/f24); retail also keeps &Center in s0 in the 0x800/0x400 branches */
+void func_8010B574_mgmode(void) {
+    char buf[256];
+    HmfModel* model;
+    f32 speed;
+    f32 rx;
+    f32 ry;
+    f32 dx;
+    f32 dz;
+    f32 inv;
+
+    model = &HmfModelData[D_8011B8C6_mgmode];
+    if (D_800D5558_main[1] & 0x10) {
+        D_80118EB0_mgmode ^= 1;
+        if (D_80118EB0_mgmode != 0) {
+            osSyncPrintf("\t{\n\t{%4.1f,%4.1f,%4.1f},\n", CRot.x, CRot.y, CRot.z);
+            osSyncPrintf("\t{%4.1f,%4.1f,%4.1f},\n", Center.x, Center.y, Center.z);
+            osSyncPrintf("\t%4.1f,%4.1f\n\t},\n", CZoom, D_8011B6A4_mgmode);
+            osSyncPrintf("HMF>%4.1f,%4.1f,%4.1f\n", model->rot.x, model->rot.y, model->rot.z);
+        }
+    }
+    if (D_800CDA7C_main[1] & 0x1000) {
+        func_80116E24_mgmode(D_8011B958_mgmode);
+    }
+    if (D_800CDA7C_main[1] & 8) {
+        CZoom = (D_800CDA7C_main[1] & 0x2000) ? CZoom + 30.0f : CZoom + 10.0f;
+    }
+    if ((D_800CDA7C_main[1] & 4) && CZoom - 10.0f != 0.0f) {
+        CZoom = (D_800CDA7C_main[1] & 0x2000) ? CZoom - 30.0f : CZoom - 10.0f;
+    }
+    if (D_800CDA7C_main[1] & 2) {
+        D_8011B6A4_mgmode += 1.0f;
+    }
+    if (D_800CDA7C_main[1] & 1) {
+        D_8011B6A4_mgmode -= 1.0f;
+    }
+    Hu3DCamSetPerspective(0, D_8011B6A4_mgmode, D_8011B804_mgmode, D_8011B888_mgmode);
+    rx = D_8011B898_mgmode.x;
+    ry = D_8011B898_mgmode.y;
+    if (D_800CDA7C_main[1] & 0x2000) {
+        speed = 5.0f;
+    } else {
+        speed = 2.0f;
+    }
+    ry += (-D_800CBB6E_main[1] / 30) * speed;
+    if (ry >= 360.0f) {
+        ry -= 360.0f;
+    } else if (ry < 0.0f) {
+        ry += 360.0f;
+    }
+    D_8011B898_mgmode.y = ry;
+    rx += (s8)(D_800D20A1_main[1] / 30) * speed;
+    if (rx >= 360.0f) {
+        rx -= 360.0f;
+    } else if (rx < 0.0f) {
+        rx += 360.0f;
+    }
+    D_8011B898_mgmode.x = rx;
+    CRot.x = (s16)D_8011B898_mgmode.x;
+    CRot.y = (s16)D_8011B898_mgmode.y;
+    if (D_800CDA7C_main[1] & 0x2000) {
+        speed = 10.0f;
+    } else {
+        speed = 2.0f;
+    }
+    if (D_800CDA7C_main[1] & 0x800) {
+        dx = sindf(ry) * sindf(rx);
+        speed = -speed;
+        Center.x += dx * speed;
+        Center.y += cosdf(rx) * speed;
+        Center.z += cosdf(ry) * sindf(rx) * speed;
+    } else if (D_800CDA7C_main[1] & 0x400) {
+        dx = sindf(ry) * sindf(rx);
+        Center.x += dx * speed;
+        Center.y += cosdf(rx) * speed;
+        Center.z += cosdf(ry) * sindf(rx) * speed;
+    } else if (D_800CDA7C_main[1] & 0x200) {
+        dx = gCameraList->pos.z - Center.z;
+        dz = -(gCameraList->pos.x - Center.x);
+        inv = 1.0f / HuSqrtf(dx * dx + dz * dz);
+        Center.x += dx * inv * speed;
+        Center.y += 0.0f;
+        Center.z += dz * inv * speed;
+    } else if (D_800CDA7C_main[1] & 0x100) {
+        dx = -(gCameraList->pos.z - Center.z);
+        dz = gCameraList->pos.x - Center.x;
+        inv = 1.0f / HuSqrtf(dx * dx + dz * dz);
+        Center.x += dx * inv * speed;
+        Center.y += 0.0f;
+        Center.z += dz * inv * speed;
+    }
+    if (D_80118EB0_mgmode != 0) {
+        sprintf(buf, "CROT %4.1f,%4.1f,%4.1f", CRot.x, CRot.y, CRot.z);
+        print8(32, 180, buf);
+        sprintf(buf, "INT %4.1f,%4.1f,%4.1f", Center.x, Center.y, Center.z);
+        print8(32, 190, buf);
+        sprintf(buf, "CZOOM %4.1f  FOVY %4.1f", CZoom, D_8011B6A4_mgmode);
+        print8(32, 200, buf);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010B574_mgmode);
+#endif
 
 void func_8010BD28_mgmode(omObjData* obj) {
     if (D_80118EB1_mgmode != 0 || D_800D530C_main != 0) {
