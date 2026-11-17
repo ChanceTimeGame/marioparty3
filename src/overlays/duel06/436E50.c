@@ -475,8 +475,6 @@ typedef struct Dc2SpinPrcs {
 typedef struct Dc2PartnerFuncs {
     DuelB2PartnerFunc f[12];
 } Dc2PartnerFuncs;
-extern Dc2PartnerFuncs D_801147F0_duel06; /* partner attacks by partner id (.rodata: INCLUDE_RODATA) */
-extern Dc2PartnerFuncs D_80114820_duel06; /* second table: only [4] set */
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_800FC5B4_name_81(void (*arg0)(void));
 
@@ -561,11 +559,45 @@ void func_800E27D4_name_81(s16 playerIndex, Vec *pos, Vec *frontPos, Vec *backPo
     func_80061A5C_main(win, 0);                                                                                  \
     func_8005F364_main(win)
 
+/* board eb2: the warp pipes (bss) and the rest of this range */
+extern s16 D_80114D68_duel06[5]; /* warp pipe model ids */
+extern s16 D_80114D72_duel06; /* their animation */
+extern s16 D_801144F0_duel06[5];
+extern f32 D_801144FC_duel06[5];
+extern s16 D_8011471C_duel06[5];
+s16 func_8000B5BC_main(s32);
+void func_8001F974_main(s16, s16);
+s16 func_800EA6A4_name_81(void);
+void func_8010E95C_duel06(s16 no);
+void func_8010EBAC_duel06(void);
+void func_801140A0_duel06(s32 playerNo);
 // board eb2: end of declarations
 
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_801147D8_duel06);
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_801147E4_duel06);
+
+/* board eb2: the partner attacks (other ranges' functions) */
+void func_80106830_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_80107190_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_801079C0_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_80107EC4_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_80109890_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_801084AC_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_8010CE70_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_8010D42C_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_8010BCDC_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_80108558_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_8010A218_duel06(s32, s32, Object *, Object *, s32, s32);
+void func_8010B554_duel06(s32, s32, Object *, Object *, s32, s32);
+
 void func_8010D964_duel06(void) {
-    Dc2PartnerFuncs funcs1 = D_801147F0_duel06;
-    Dc2PartnerFuncs funcs2 = D_80114820_duel06;
+    Dc2PartnerFuncs funcs1 = { { /* partner attacks by partner id */
+        func_80106830_duel06, func_80107190_duel06, func_801079C0_duel06, func_80107EC4_duel06,
+        func_80109890_duel06, func_801084AC_duel06, func_8010CE70_duel06, func_8010D42C_duel06,
+        func_8010BCDC_duel06, func_80108558_duel06, func_8010A218_duel06, func_8010B554_duel06,
+    } };
+    Dc2PartnerFuncs funcs2 = { { NULL, NULL, NULL, NULL, func_80109890_duel06 } }; /* second table: only [4] set */
 
     func_800FAC94_name_81(funcs1.f, funcs2.f);
 }
@@ -604,14 +636,6 @@ void func_8010DB08_duel06(void) {
     func_8010D9FC_duel06();
     func_800FF640_name_81(1);
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_801147D8_duel06);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_801147E4_duel06);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_801147F0_duel06);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel06/436E50", D_80114820_duel06);
 
 void func_8010DB34_duel06(void) {
     DuelB2HmfPart *part;
@@ -879,13 +903,99 @@ void func_8010E90C_duel06(void) {
     func_8001C92C_main(D_80114D60_duel06->omObj1->model[0], 1.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010E95C_duel06);
+// board eb2: the five warp pipe models: the first is loaded, the others link to it
+void func_8010E95C_duel06(s16 no) {
+    SpaceData *space;
+    u16 model;
+    s16 *anim;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010EAD0_duel06);
+    if (D_80114D68_duel06[no] == -1) {
+        if (no == 0) {
+            model = D_80114D68_duel06[0] = func_8000B108_main(0x130153, 0x4026A9);
+            *(anim = &D_80114D72_duel06) = func_8000B5BC_main(0x130154);
+            func_8001C954_main(model);
+            func_8001F974_main(model, *anim);
+            func_8001C814_main(model, 2, 1);
+            func_8001C8A8_main(model, 1);
+            func_8001C514_main(model);
+        } else {
+            model = D_80114D68_duel06[no] = Hu3DModelLink(D_80114D68_duel06[0]);
+        }
+        Hu3DModelScaleSet(model, 0.1f, 0.1f, 0.1f);
+        space = MBDMasuGet(D_801144F0_duel06[no]);
+        Hu3DModelPosSet(model, space->coords.x, space->coords.y, space->coords.z);
+        Hu3DModelRotSet(model, 0.0f, D_801144FC_duel06[no], 0.0f);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010EBAC_duel06);
+void func_8010EAD0_duel06(void) {
+    s32 i;
 
+    for (i = 0; i < 5; i++) {
+        D_80114D68_duel06[i] = -1;
+        func_8010E95C_duel06(i);
+    }
+    if (GwSystem.boardData.halfWordBytes[0] == 0) {
+        func_8001C6A8_main(D_80114D68_duel06[0], D_800CCF58_main[HmfModelData[D_80114D68_duel06[0]].unk02].unk02);
+    } else {
+        func_8001C6A8_main(D_80114D68_duel06[0], 0.0f);
+    }
+}
+
+// board eb2: play the pipe animation forwards to its last frame, or back to frame 0
+void func_8010EBAC_duel06(void) {
+    HuAudFXPlay(0x1ED);
+    if (GwSystem.boardData.halfWordBytes[0] != 0) {
+        func_8001C814_main(D_80114D68_duel06[0], 5, 0);
+        while (HmfModelData[D_80114D68_duel06[0]].unk40 !=
+               D_800CCF58_main[HmfModelData[D_80114D68_duel06[0]].unk02].unk02) {
+            HuPrcVSleep();
+        }
+    } else {
+        func_8001C814_main(D_80114D68_duel06[0], 1, 4);
+        while (HmfModelData[D_80114D68_duel06[0]].unk40 != 0.0f) {
+            HuPrcVSleep();
+        }
+    }
+    HuPrcSleep(5);
+}
+
+// board eb2: NON_MATCHING (masked ~40): retail keeps &GwSystem in $s0 for the first pipe-state test only
+// and reloads the other GwSystem fields absolutely; the logic is checked against the asm branch by branch
+#ifdef NON_MATCHING
+s32 func_8010ED04_duel06(void) {
+    GW_PLAYER *rival;
+    s32 chance;
+    s32 dist;
+
+    rival = MBDGetPlayerStruct((s8)(GwSystem.current_player_index ^ 1));
+    chance = (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
+    if (mbWalkNum < 6) {
+        if (GwSystem.current_player_index == 0) {
+            if (GwSystem.boardData.halfWordBytes[0] == 0) {
+                dist = rival->cidx - 18;
+            } else {
+                dist = 18 - rival->cidx;
+            }
+        } else {
+            if (GwSystem.boardData.halfWordBytes[0] == 0) {
+                dist = rival->cidx - 6;
+            } else {
+                dist = 6 - rival->cidx;
+            }
+        }
+        if (dist == mbWalkNum) {
+            chance = 0;
+        }
+        if (dist < mbWalkNum) {
+            chance += 20;
+        }
+    }
+    return chance;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010ED04_duel06);
+#endif
 
 s32 func_8010EE40_duel06(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
@@ -2245,13 +2355,130 @@ void func_80113FF0_duel06(void) {
 void func_8011402C_duel06(void) {
 }
 
+// board eb2: NON_MATCHING (masked 1): ret lands in $a0, not $v0; logic checked against the asm
+#ifdef NON_MATCHING
+s32 func_80114034_duel06(void) {
+    GW_PLAYER *player;
+    GW_PLAYER *otherPlayer;
+    s32 cur = GwSystem.current_player_index;
+    s32 other = (cur + 1) & 1;
+    s32 ret;
+
+    player = MBDGetPlayerStruct(cur);
+    otherPlayer = MBDGetPlayerStruct(other);
+    ret = -1;
+    if (player->nlink == otherPlayer->clink) {
+        ret = -(player->nidx != otherPlayer->cidx); /* 0 when the rival is on that space */
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_80114034_duel06);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_801140A0_duel06);
+// board eb2: the pipes flipped: swap the player's next and back links and route it the new way
+void func_801140A0_duel06(s32 playerNo) {
+    GW_PLAYER *player;
+    s8 link;
+    s8 idx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_80114174_duel06);
+    player = MBDGetPlayerStruct(playerNo);
+    link = player->nlink;
+    idx = player->nidx;
+    player->nlink = player->blink;
+    player->nidx = player->bidx;
+    player->blink = link;
+    player->bidx = idx;
+    if (GwSystem.boardData.halfWordBytes[0] != 0) {
+        player->rev = 1;
+        func_800E9F4C_name_81(1, &link, &idx);
+        if (player->cidx == idx) {
+            func_800E9F4C_name_81(0x13, &player->nnlink, &player->nnidx);
+            return;
+        }
+    } else {
+        player->rev = 0;
+        func_800E9F4C_name_81(0x12, &link, &idx);
+        if (player->cidx == idx) {
+            func_800E9F4C_name_81(0x14, &player->nnlink, &player->nnidx);
+            return;
+        }
+    }
+    player->nnlink = -1;
+    player->nnidx = -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_80114324_duel06);
+// board eb2: a warp pipe space: ride the pipe, flip the board's pipe state and both players' directions
+void func_80114174_duel06(void) {
+    Vec pos;
+    Vec rot;
+    GW_PLAYER *player;
+    SpaceData *dest;
+    s16 space;
+    s32 i;
+
+    space = func_800EA6A4_name_81();
+    player = MBDGetPlayerStruct(CUR_PLAYER);
+    func_800F3880_name_81(-1, -1, 2);
+    func_800EB7BC_name_81(&rot);
+    func_800EBC60_name_81(&player->player_obj->rot, &rot, &player->player_obj->rot, 8);
+    HuPrcSleep(8);
+    func_800F74E4_name_81(-1);
+    for (i = 0; i < 5; i++) {
+        if (D_8011471C_duel06[i] == space) {
+            break;
+        }
+    }
+    dest = MBDMasuGet(D_801144F0_duel06[i]);
+    HuVecCopy3F(&pos, &player->player_obj->coords);
+    func_800FC888_name_81(4);
+    func_800FC8C4_name_81(&pos);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&pos, &dest->coords, &pos, 4.0f));
+    HuPrcChildWait();
+    func_8010EBAC_duel06();
+    GwSystem.boardData.halfWordBytes[0] ^= 1;
+    func_801140A0_duel06(0);
+    func_801140A0_duel06(1);
+    Duel_SwapPartnerPositions(0);
+    Duel_SwapPartnerPositions(1);
+    HuPrcChildLink(HuPrcCurrentGet(), func_800EC1E4_name_81(&pos, &player->player_obj->coords, &pos, 4.0f));
+    HuPrcChildWait();
+    func_800FC888_name_81(1);
+    func_800F75EC_name_81(-1);
+    func_800EAFC4_name_81(0x2300);
+}
+
+void func_80114324_duel06(void) {
+    s8 linkIdx[2]; // link, index
+    Vec pos[3]; // center, front, back
+    GW_PLAYER *player;
+    SpaceData *space;
+    s32 playerNo;
+
+    playerNo = (s8)(GwSystem.current_player_index ^ 1);
+    player = MBDGetPlayerStruct(playerNo);
+    func_800E9F4C_name_81(0x17, &linkIdx[0], &linkIdx[1]);
+    func_800ECD0C_name_81(playerNo, linkIdx[0], linkIdx[1]);
+    player->rev = 0;
+    player->nnlink = -1;
+    player->nnidx = -1;
+    if (GwSystem.boardData.halfWordBytes[0] != 0) {
+        func_801140A0_duel06(playerNo);
+    }
+    space = MBDMasuGet(0x17);
+    HuVecAdd(&pos[0], &space->coords, &MBDMasuGet(0x1C)->coords);
+    HuVecMulScalar(&pos[0], 0.5f, &pos[0]);
+    HuVecCopy3F(&pos[1], &pos[0]);
+    HuVecCopy3F(&pos[2], &pos[0]);
+    if (GwSystem.boardData.halfWordBytes[0] != 0) {
+        pos[1].x += 12.0f;
+        pos[2].x -= 12.0f;
+    } else {
+        pos[1].x -= 12.0f;
+        pos[2].x += 12.0f;
+    }
+    func_800E27D4_name_81(playerNo, &pos[0], &pos[1], &pos[2]);
+}
 
 void func_80114474_duel06(void) {
 }
