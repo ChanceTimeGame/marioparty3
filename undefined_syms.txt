@@ -352,3 +352,14 @@ D_80109812_selmenu = D_80109810_selmenu + 0x2;
 D_80109756_selmenu = D_80109754_selmenu + 0x2;
 D_80109758_selmenu = D_80109754_selmenu + 0x4;
 D_800D1F28_main = 0x800D1F28; /* unnamed main s16 after __osThprofLastTimer */
+/* m6: selmenu2/116320 .data inner labels the remaining asm uses */
+D_80108BE1_selmenu2 = D_80108BE0_selmenu2 + 0x1;
+D_80108BE2_selmenu2 = D_80108BE0_selmenu2 + 0x2;
+D_80108BE4_selmenu2 = D_80108BE0_selmenu2 + 0x4;
+D_80108BE6_selmenu2 = D_80108BE0_selmenu2 + 0x6;
+D_80108BEC_selmenu2 = D_80108BE0_selmenu2 + 0xC;
+D_801090D0_selmenu2 = D_801090E0_selmenu2 - 0x10;
+D_801092F3_selmenu2 = D_801092F0_selmenu2 + 0x3;
+D_80109306_selmenu2 = D_80109304_selmenu2 + 0x2;
+D_80109308_selmenu2 = D_80109304_selmenu2 + 0x4;
+D_801093C2_selmenu2 = D_801093C0_selmenu2 + 0x2;

@@ -708,8 +708,8 @@ segments:
     bss_size: 0x220
     subsegments:
       - [0x116320, c]
-      - [0x119560, data, 116320] #80108BE0
-      - [0x11A430, .rodata, 116320]
+      - [0x119560, .data, 116320] #80108BE0
+      - [0x119D50, .rodata, 116320] #801093D0
       - {0x11A480, type: bss, vram: 0x80109B00, name: selmenu2_bss}
 
   - type: code
