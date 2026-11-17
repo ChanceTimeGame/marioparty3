@@ -101,9 +101,7 @@ f32 func_8010C384_slot_synch(f32 t, f32 a, f32 b);
 void func_800DDD94_minigame(omObjData* obj);
 omObjData* func_80045F1C_main(u32, s16, s16);
 s32 func_80017BB8_main(s16, s16);
-extern u8 D_800CBB6E_main[];
 extern s16 D_800CDA7C_main[];
-extern u8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
 
 void func_8000B5F0_main(u8);
