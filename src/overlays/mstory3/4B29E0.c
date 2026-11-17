@@ -1,8 +1,8 @@
 #include "common.h"
 
 // story u4: .data 0x80115260..0x801153B0 (the rodata after it, 801154F0..80115740, is asm/data/overlays/mstory3/4C2530.rodata.s)
-extern char D_80115668_mstory3[], D_80115674_mstory3[], D_80115680_mstory3[], D_8011568C_mstory3[];
-extern char D_80115698_mstory3[], D_801156A4_mstory3[], D_801156B0_mstory3[], D_801156BC_mstory3[];
+extern const char D_80115668_mstory3[], D_80115674_mstory3[], D_80115680_mstory3[], D_8011568C_mstory3[];
+extern const char D_80115698_mstory3[], D_801156A4_mstory3[], D_801156B0_mstory3[], D_801156BC_mstory3[];
 Vec D_80115260_mstory3 = { 14.0f, 193.0f, 1400.0f };
 Vec D_8011526C_mstory3 = { -25.0f, 0.0f, -650.0f };
 Vec D_80115278_mstory3 = { 0.0f, 1.0f, -0.0001f };
@@ -20,11 +20,11 @@ Vec D_8011535C_mstory3 = { 0.0f, 90.0f, 0.0f };
 Vec D_80115368_mstory3 = { 0.0f, 50.19f, 0.0f };
 Vec D_80115374_mstory3 = { 0.0f, 100.78f, 0.0f };
 /* model names "c000l_0_DEF" .. "c005l_0_DEF", "c300l_0_DEF", "c301l_0_DEF" */
-char *D_80115380_mstory3[8] = {
+const char *D_80115380_mstory3[8] = {
     D_801156BC_mstory3, D_801156B0_mstory3, D_801156A4_mstory3, D_80115698_mstory3,
     D_8011568C_mstory3, D_80115680_mstory3, D_80115674_mstory3, D_80115668_mstory3,
 };
-char *D_801153A0_mstory3[2] = { D_801156BC_mstory3, D_801156B0_mstory3 };
+const char *D_801153A0_mstory3[2] = { D_801156BC_mstory3, D_801156B0_mstory3 };
 u32 D_801153A8_mstory3[2] = { 0 }; /* file end padding (the unit's data ends on a 16-byte boundary) */
 // end story u4
 
@@ -76,6 +76,10 @@ typedef struct S16Quad {
     s16 v[4];
 } S16Quad;
 
+typedef struct MsMotTbl3 { /* actor 0's motions 3, 4 and 8 by character */
+    s32 mot[8][3];
+} MsMotTbl3; /* size = 0x60 */
+
 extern TexAnimSlot *D_800D1714_main;
 extern f32 D_800CE17C_main[];
 extern f32 D_800CB890_main;
@@ -86,10 +90,6 @@ void func_8000BC48_main(u16, s32);
 s32 func_80050064_main(s32 write);
 f32 func_80018ACC_main(f32 *p, f32 *times, f32 t);
 
-extern void (*D_801154F0_mstory3[2])(void); /* the scene for each story step (GwPlayer[0].coin) */
-extern s32 D_801154F8_mstory3[2]; /* and the flag set once it has been seen */
-extern S16Quad D_80115500_mstory3;
-extern S16Quad D_80115508_mstory3; /* message window controller masks */
 extern s16 D_80115B90_mstory3; /* the controller that drives the story messages */
 extern s16 D_80115B92_mstory3; /* message window */
 extern s16 D_80115B94_mstory3; /* background sprite */
@@ -98,10 +98,6 @@ extern s16 D_80115B98_mstory3[8]; /* [0] the map, [1 + i] stamp i */
 extern s16 D_80115BA8_mstory3[8]; /* the sparkles around the new stamp */
 extern s16 D_80115BB8_mstory3; /* the white flash */
 extern s32 D_80115BBC_mstory3; /* the stamp this scene wins */
-extern s32 D_80115510_mstory3[7]; /* stamp sprite files */
-extern s16 D_8011552C_mstory3[7][2]; /* stamp positions (x, y), less 0x30 */
-extern VecQuad D_80115590_mstory3;
-extern VecSix D_801155C0_mstory3; /* func_80108E28_mstory3's walk targets */ /* the two turns of func_80108CA8_mstory3 */
 extern StoryActor3 D_80115BC0_mstory3[6];
 extern s16 D_80115C80_mstory3[3]; /* texture animation frames */
 extern s16 D_80115C86_mstory3;
@@ -174,6 +170,44 @@ void func_8010C4B0_mstory3(void);
 void func_8010C65C_mstory3(void);
 void func_8010C870_mstory3(void);
 // story u1 end
+
+/* .rodata 0x801154F0..0x80115740: the unit's constant tables and local initializers, in order */
+void (*const D_801154F0_mstory3[2])(void) = { func_8010D5CC_mstory3, func_8010895C_mstory3 }; /* the scene for each story step (GwPlayer[0].coin) */
+const s32 D_801154F8_mstory3[2] = { 0x3D, 0x3B }; /* and the flag set once it has been seen */
+const S16Quad D_80115500_mstory3 = { { 0, 0, 0, 0 } };
+const S16Quad D_80115508_mstory3 = { { 1, 2, 4, 8 } }; /* message window controller masks */
+const s32 D_80115510_mstory3[7] = { 0x1D000B, 0x1D000C, 0x1D000D, 0x1D000E, 0x1D000F, 0x1D0010, 0x1D0011 }; /* stamp sprite files */
+const s16 D_8011552C_mstory3[7][2] = { { 57, 20 }, { 129, 36 }, { 200, 22 }, { 215, 91 }, { 150, 124 }, { 81, 105 }, { 12, 122 } }; /* stamp positions (x, y), less 0x30 */
+const Vec D_80115548_mstory3 = { -120.0f, 0.0f, 480.0f };
+const Vec D_80115554_mstory3 = { 608.1f, -85.8f, -1390.3f }; /* actor 1's start position */
+const Vec D_80115560_mstory3 = { 238.0f, 100.0f, 214.0f }; /* actor 2's start position */
+const Vec D_8011556C_mstory3 = { 0.0f, 200.0f, 150.0f }; /* actor 3's start position */
+const Vec D_80115578_mstory3 = { 0.0f, 200.0f, 100.0f }; /* actor 4's start position */
+const Vec D_80115584_mstory3 = { 0.0f, 0.0f, 0.0f };
+const VecQuad D_80115590_mstory3 = { { { 20.0f, -20.0f, 0.0f }, { 0.0f, 225.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 300.0f, 0.0f } } }; /* the two turns of func_80108CA8_mstory3 */
+const VecSix D_801155C0_mstory3 = { { { 150.0f, 0.0f, 384.0f }, { 0.0f, 200.0f, 300.0f }, { 0.0f, 200.0f, 150.0f }, { 300.0f, 25.0f, 400.0f }, { 300.0f, 125.0f, 400.0f }, { 238.0f, 100.0f, 214.0f } } }; /* func_80108E28_mstory3's walk targets */
+const MsMotTbl3 D_80115608_mstory3 = { {
+    { 0x40, 0x3E, 0x42 }, { 0x4B, 0x48, 0x4D }, { 0x54, 0x52, 0x56 }, { 0x5D, 0x5B, 0x5F },
+    { 0x67, 0x65, 0x69 }, { 0x70, 0x6E, 0x72 }, { 0x4B, 0x48, 0x4D }, { 0x54, 0x52, 0x56 },
+} };
+const char D_80115668_mstory3[] = "c301l_0_DEF";
+const char D_80115674_mstory3[] = "c300l_0_DEF";
+const char D_80115680_mstory3[] = "c005l_0_DEF";
+const char D_8011568C_mstory3[] = "c004l_0_DEF";
+const char D_80115698_mstory3[] = "c003l_0_DEF";
+const char D_801156A4_mstory3[] = "c002l_0_DEF";
+const char D_801156B0_mstory3[] = "c001l_0_DEF";
+const char D_801156BC_mstory3[] = "c000l_0_DEF";
+const char D_801156C8_mstory3[] = "item_hook";
+const Vec D_801156D4_mstory3 = { 0.0f, 180.0f, 0.0f };
+const Vec D_801156E0_mstory3 = { 0.0f, 0.0f, 0.0f };
+const Vec D_801156EC_mstory3 = { 0.0f, -180.0f, 0.0f };
+const char D_801156F8_mstory3[] = "c204n_0_DEF";
+const Vec D_80115704_mstory3 = { 0.0f, 167.0f, 0.0f };
+const Vec D_80115710_mstory3 = { 0.0f, -135.0f, 0.0f };
+const Vec D_8011571C_mstory3 = { 0.0f, -53.39f, 0.0f };
+const Vec D_80115728_mstory3 = { 0.0f, -53.390015f, 0.0f };
+const Vec D_80115734_mstory3 = { 0.0f, 0.0f, 0.0f };
 
 void func_801059A0_mstory3(void) {
     func_80105C1C_mstory3();
@@ -1356,16 +1390,10 @@ void func_80108E28_mstory3(omObjData *obj) {
 /* a chapter-3 scene actor (stride 0x14): its object and the step its process calls every frame */
 typedef StoryActor3 MsActor3;
 
-typedef struct MsMotTbl3 { /* actor 0's motions 3, 4 and 8 by character */
-    s32 mot[8][3];
-} MsMotTbl3; /* size = 0x60 */
-
 extern s16 D_80115C8A_mstory3[3]; /* actor 0's texture animations */
 extern s16 D_80115C90_mstory3;
 extern s16 D_80115C92_mstory3[3]; /* actor 1's texture animations */
 extern s16 D_80115C98_mstory3;
-extern MsMotTbl3 D_80115608_mstory3;
-extern char D_801156C8_mstory3[]; /* "item_hook" */
 extern s32 D_800A178C_main[][6];
 
 void func_80032FC0_main(s16, u8, u8);
@@ -1375,25 +1403,13 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 void func_8010A7C8_mstory3(void);
 void func_8010AB34_mstory3(omObjData *obj);
 void func_8010C3F4_mstory3(omObjData *obj);
-extern Vec D_801156D4_mstory3;
-extern Vec D_801156E0_mstory3;
-extern Vec D_801156EC_mstory3;
-extern Vec D_80115560_mstory3; /* actor 2's start position */
 extern Vec D_80115C50_mstory3; /* actor 2's position */
-extern Vec D_8011556C_mstory3; /* actor 3's start position */
 extern Vec D_80115C5C_mstory3; /* actor 3's position */
 void func_8010C654_mstory3(void);
-extern Vec D_80115728_mstory3;
-extern Vec D_80115578_mstory3; /* actor 4's start position */
 extern Vec D_80115C68_mstory3; /* actor 4's position */
 void func_8010C9E0_mstory3(void);
-extern Vec D_80115704_mstory3;
-extern Vec D_80115710_mstory3;
-extern Vec D_8011571C_mstory3;
-extern char D_801156F8_mstory3[];
 void func_8010BF40_mstory3(void);
 void func_8010C15C_mstory3(omObjData *obj);
-extern Vec D_80115554_mstory3; /* actor 1's start position */
 extern Vec D_80115C44_mstory3; /* actor 1's position */
 void func_8010B634_mstory3(void);
 void func_8010AB54_mstory3(omObjData *obj);
@@ -1436,17 +1452,17 @@ void func_8010A23C_mstory3(void) {
         Hu3DModelScaleSet(obj->model[2], 1.5f, 1.0f, 1.5f);
     }
     data = DataRead(func_80017BB8_main(D_80115C9C_mstory3, 0xA4));
-    D_80115C8A_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_80115380_mstory3[D_80115C9C_mstory3]);
+    D_80115C8A_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_80115380_mstory3[D_80115C9C_mstory3]);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
     func_80032FC0_main(D_80115C8A_mstory3[0], 1, 0);
     func_80032FF8_main(D_80115C8A_mstory3[0], 0);
-    D_80115C90_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C8A_mstory3[0], 0, D_80115380_mstory3[D_80115C9C_mstory3]);
+    D_80115C90_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C8A_mstory3[0], 0, (char *)D_80115380_mstory3[D_80115C9C_mstory3]);
     data = DataRead(func_80017BB8_main(D_80115C9C_mstory3, 0xA9));
     D_80115C8A_mstory3[1] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
-    D_80115C90_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C8A_mstory3[0], 0, D_80115380_mstory3[D_80115C9C_mstory3]);
+    D_80115C90_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C8A_mstory3[0], 0, (char *)D_80115380_mstory3[D_80115C9C_mstory3]);
     data = DataRead(func_80017BB8_main(D_80115C9C_mstory3, 0xAA));
     D_80115C8A_mstory3[2] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
@@ -1467,7 +1483,7 @@ void func_8010A7D0_mstory3(omObjData *obj) {
 
     HuPrcSleep(20);
     func_8001C258_main(obj->model[3], 0x4000, 0x4000);
-    func_8001EF6C_main(obj->model[3], obj->model[1], D_801156C8_mstory3);
+    func_8001EF6C_main(obj->model[3], obj->model[1], (char *)D_801156C8_mstory3);
     func_8001C258_main(obj->model[3], 4, 0);
     func_8001C624_main(model, HmfModelData[obj->motion[3]].unk02, 0, 10, 0);
     func_80107244_mstory3(model);
@@ -1622,17 +1638,17 @@ void func_8010B154_mstory3(void) {
     Hu3DModelPosSet(obj->model[2], D_80115C44_mstory3.x, D_80115C44_mstory3.y - -5.0f, D_80115C44_mstory3.z);
     Hu3DModelRotSet(obj->model[1], 0.0f, -14.48f, 0.0f);
     data = DataRead(func_80017BB8_main(chrs[i], 0xA4));
-    D_80115C92_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_801153A0_mstory3[i]);
+    D_80115C92_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_801153A0_mstory3[i]);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
     func_80032FC0_main(D_80115C92_mstory3[0], 1, 0);
     func_80032FF8_main(D_80115C92_mstory3[0], 0);
-    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, D_801153A0_mstory3[i]);
+    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, (char *)D_801153A0_mstory3[i]);
     data = DataRead(func_80017BB8_main(chrs[i], 0xA9));
     D_80115C92_mstory3[1] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
-    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, D_801153A0_mstory3[i]);
+    D_80115C98_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C92_mstory3[0], 0, (char *)D_801153A0_mstory3[i]);
     data = DataRead(func_80017BB8_main(chrs[i], 0xAA));
     D_80115C92_mstory3[2] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
@@ -1746,17 +1762,17 @@ void func_8010BC34_mstory3(void) {
     Hu3DModelPosSet(obj->model[2], D_80115C50_mstory3.x, -5.0f, D_80115C50_mstory3.z);
     Hu3DModelRotSet(obj->model[1], 20.0f, 320.0f, 0.0f);
     data = DataRead(0xA007E);
-    D_80115C80_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_801156F8_mstory3);
+    D_80115C80_mstory3[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, (char *)D_801156F8_mstory3);
     HuMemMemoryFreePerm(data);
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
     func_80032FC0_main(D_80115C80_mstory3[0], 1, 0);
     func_80032FF8_main(D_80115C80_mstory3[0], 0);
-    D_80115C86_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C80_mstory3[0], 0, D_801156F8_mstory3);
+    D_80115C86_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C80_mstory3[0], 0, (char *)D_801156F8_mstory3);
     data = DataRead(0xA0083);
     D_80115C80_mstory3[1] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
-    D_80115C86_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C80_mstory3[0], 0, D_801156F8_mstory3);
+    D_80115C86_mstory3 = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_80115C80_mstory3[0], 0, (char *)D_801156F8_mstory3);
     data = DataRead(0xA0080);
     D_80115C80_mstory3[2] = func_800329B4_main(data);
     HuMemMemoryFreePerm(data);
