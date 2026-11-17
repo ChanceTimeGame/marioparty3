@@ -384,3 +384,5 @@ D_80119A78_mgmode = D_8011997C_mgmode + 0xFC;
 D_80119F34_mgmode = D_80119F28_mgmode + 0xC;
 D_80119F64_mgmode = D_80119F28_mgmode + 0x3C;
 D_8011A0C0_mgmode = D_80119FA0_mgmode + 0x120;
+/* m1 lf1: meschk/4F69F0 table words still named by the remaining asm */
+D_8010651C_meschk = 0x8010651C;
