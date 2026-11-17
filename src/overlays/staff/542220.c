@@ -264,6 +264,18 @@ extern s16 D_80111510_staff; /* controller to rumble */
 s32 func_8010601C_staff(void);
 void func_8010D450_staff(s16 model, Vec* pos);
 void RepeatVibrator(s16 contId, s16 onTime, s16 offTime, s16 duration);
+void func_8010D580_staff(s16 model, s16 shadow, Vec* start);
+s16 func_8000B13C_main(s32 file);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+/* story j3: func_8010D998's locals, one frame object (retail indexes the sprite ids from it). */
+typedef struct StaffDieScene {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ char unk0C[0x14]; /* unused */
+    /* 0x20 */ s16 sprIds[3];
+} StaffDieScene;
+
+extern Vec D_80110FDC_staff;       /* die drop start */
+extern s32 D_80110FE8_staff[3];    /* sprite data ids */
 
 // story j3: NON_MATCHING, masked 0, raw 7: i and ring swap s4/s5 (register allocation). Logic checked.
 #ifdef NON_MATCHING
@@ -512,7 +524,105 @@ void func_8010D580_staff(s16 model, s16 shadow, Vec* start) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D580_staff);
 #endif
 
+// story j3: NON_MATCHING, masked 12 (356 vs 357): retail keeps sp+0x10 in a register to index the sprite
+// ids (one addiu more); the rest is register allocation. Logic checked.
+#ifdef NON_MATCHING
+/* Process of the credits' closing die scene: a backdrop sprite, the die model with its link and
+   shadow, and three sprites below. Each time *user_data becomes 1 the die drops in
+   (func_8010D580), the sprites fade in, and *user_data returns to 0. Never returns. */
+void func_8010D998_staff(void) {
+    StaffDieScene scene;
+    s16* state;
+    u16 backdrop;
+    s16 link;
+    s16 model;
+    s16 shadow;
+    s16 grp;
+    s16 cur;
+    s16 x;
+    s16 alpha;
+    s32 step;
+    s32 i;
+
+    state = HuPrcCurrentGet()->user_data;
+    HmfLightDirSet(1, -21.0f, 235.0f, 181.0f);
+    backdrop = InitEspriteSlot(func_8000B838_main(0x160024), 0, 0);
+    func_8000BC48_main(backdrop, 0x4000);
+    func_8000BBD4_main(backdrop, 160, 120);
+    func_8000BCC8_main(backdrop, 0xFFF0);
+    D_80110538_staff = 1;
+    D_80111540_staff.x = -300.578f;
+    D_80111540_staff.y = 542.5f;
+    D_80111540_staff.z = 595.0f;
+    D_80111534_staff.x = 10.3905f;
+    D_80111534_staff.y = 0.0f;
+    D_80111534_staff.z = 48.0235f;
+    D_80110534_staff = 32.0f;
+    Hu3DCamSetPerspective(0, 32.0f, D_80111564_staff, D_80111560_staff);
+    link = func_8000B13C_main(0xA007D);
+    model = func_8000B108_main(0xA0075, 0x2A9);
+    func_8001C514_main(model);
+    Hu3DModelScaleSet(model, 0.6f, 0.6f, 0.6f);
+    HuPrcVSleep();
+    func_8001C5B4_main(model, link);
+    func_8001C814_main(model, 2, 2);
+    shadow = func_8000B108_main(9, 0x299);
+    func_8001C258_main(model, 4, 0);
+    func_8001C258_main(shadow, 4, 0);
+    scene.pos = D_80110FDC_staff;
+    Hu3DModelPosSet(model, scene.pos.x, scene.pos.y + 22.0f, scene.pos.z);
+    func_8010D450_staff(shadow, &scene.pos);
+    for (i = 0; i < 3; i++) {
+        scene.sprIds[i] = func_8000B838_main(D_80110FE8_staff[i]);
+    }
+    grp = HuSprGrpCreate(3, 0);
+    for (x = 268, i = 0; i < 3; i++, x += 12) {
+        func_80055458_main(grp, i, 0);
+        HuSprAttrReset(grp, i, 0xFFFF);
+        HuSprAttrSet(grp, i, 0x9000);
+        HuSprScaleSet(grp, i, 1.0f, 1.0f);
+        func_80055024_main(grp, i, scene.sprIds[i], 0);
+        func_800550F4_main(grp, i, 0);
+        HuSprPriSet(grp, i, 400);
+        func_80054904_main(grp, i, x, 214);
+    }
+    *state = 0;
+    cur = 0;
+    while (TRUE) {
+        if (cur != *state) {
+            if (*state == 1) {
+                func_8001C258_main(model, 4, 0);
+                func_8001C258_main(shadow, 4, 0);
+            }
+            cur = *state;
+        }
+        if (cur == 1) {
+            func_8010D580_staff(model, shadow, &scene.pos);
+            for (i = 0; i < 3; i++) {
+                HuSprAttrReset(grp, i, 0x8000);
+                func_80055458_main(grp, i, 0);
+            }
+            alpha = 0;
+            step = 2;
+            do {
+                alpha += step;
+                if (alpha >= 256) {
+                    alpha = 256;
+                    step = 0;
+                }
+                for (i = 0; i < 3; i++) {
+                    func_80055458_main(grp, i, alpha);
+                }
+                HuPrcVSleep();
+            } while (step != 0);
+            *state = 0;
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010D998_staff);
+#endif
 
 StFwWork* func_8010DE50_staff(s32 arg0) {
     Process* process;
