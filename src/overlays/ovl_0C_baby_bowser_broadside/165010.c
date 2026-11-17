@@ -917,7 +917,139 @@ void func_80108804_baby_bowser_broadside(f32 angle) {
 }
 /* </func_80108804_baby_bowser_broadside> */
 
+/* <func_80108860_baby_bowser_broadside> */
+#ifdef NON_MATCHING
+void func_80108860_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    f32 cur;
+    f32 tgt;
+    BbPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+    HmfModel* target = &HmfModelData[D_80110008_baby_bowser_broadside->model];
+    f32 angle;
+
+    /* a computer player: unk0C mode (0 aim, 1 sweep and fire, 2 wait and fire, 3 unused), unk0D..unk14 the
+       difficulty's timings and odds */
+    if (task->state == 0) {
+        switch (GwPlayer[obj->work[0]].cpu_difficulty) {
+            case 0:
+                task->unk0D = 3;
+                task->unk0E = 10;
+                task->unk0F = 4;
+                task->unk10 = 15;
+                task->unk11 = 5;
+                task->unk12 = 3;
+                task->unk13 = 3;
+                task->unk14 = 5;
+                break;
+            case 1:
+                task->unk0D = 5;
+                task->unk0E = 15;
+                task->unk0F = 6;
+                task->unk10 = 10;
+                task->unk11 = 3;
+                task->unk12 = 6;
+                task->unk13 = 6;
+                task->unk14 = 8;
+                break;
+            case 2:
+                task->unk0D = 10;
+                task->unk0E = 20;
+                task->unk0F = 8;
+                task->unk10 = 5;
+                task->unk11 = 1;
+                task->unk12 = 9;
+                task->unk13 = 9;
+                task->unk14 = 13;
+                break;
+            case 3:
+                task->unk0D = 15;
+                task->unk0E = 25;
+                task->unk0F = 10;
+                task->unk10 = 3;
+                task->unk11 = 0;
+                task->unk12 = 99;
+                task->unk13 = 99;
+                task->unk14 = 99;
+                break;
+        }
+        task->unk1C = 0;
+        task->unk1E = 30;
+        task->state = 1;
+    }
+    D_800CBB6E_main[player->no] = 0;
+    D_800D20A1_main[player->no] = 0;
+    D_800CDA7C_main[player->no] = 0;
+    player->held = 0;
+    angle = atan2df(-(target->pos.z - obj->trans.z), target->pos.x - obj->trans.x) + 90.0f;
+    if (angle >= 360.0f) {
+        angle -= 360.0f;
+    }
+    cur = player->aim;
+    tgt = angle;
+    func_8010F6F8_baby_bowser_broadside(&cur, &tgt);
+    switch (task->unk0C) {
+        case 0:
+            if (ABS(cur - tgt) < (f32)(rand16() % 4 + 2)) {
+                if (func_80109058_baby_bowser_broadside(obj, player) != 0) {
+                    task->unk1C = rand16() % 6 + task->unk0F;
+                    task->unk0C = 1;
+                    task->unk2C = D_80110008_baby_bowser_broadside->speed > 0.0f ? 2.0f : -2.0f;
+                    if (rand16() % (task->unk12 + 1) == 0) {
+                        task->unk2C = -task->unk2C;
+                    }
+                } else {
+                    task->unk1C = rand16() % (task->unk0E - task->unk0D + 1) + task->unk0D;
+                    task->unk0C = 2;
+                }
+            } else if (rand16() % (task->unk13 + 1) != 0) {
+                if (cur - tgt > 0.0f) {
+                    player->aim -= 2.0f;
+                } else if (cur - tgt < 0.0f) {
+                    player->aim += 2.0f;
+                }
+            }
+            break;
+        case 1:
+            if (--task->unk1C > 0) {
+                player->aim -= task->unk2C;
+            } else {
+                task->unk0C = 0;
+            }
+            if (rand16() % (task->unk11 + 1) == 0 && func_80109058_baby_bowser_broadside(obj, player) == 0) {
+                D_800CDA7C_main[player->no] = 0x8000;
+            }
+            break;
+        case 2:
+            if (--task->unk1E < 0) {
+                task->unk1E = rand16() % (task->unk10 + 1);
+                if (cur - tgt > 0.0f) {
+                    player->aim -= 2.0f;
+                } else if (cur - tgt < 0.0f) {
+                    player->aim += 2.0f;
+                }
+            }
+            if (func_80109058_baby_bowser_broadside(obj, player) == 0) {
+                if (--task->unk1C <= 0) {
+                    task->unk0C = 0;
+                } else if (rand16() % (task->unk11 + 1) == 0) {
+                    D_800CDA7C_main[player->no] = 0x8000;
+                }
+            }
+            break;
+        case 3:
+            /* never entered; retail stops when the count is still positive */
+            if (--task->unk1C >= 0) {
+                task->unk0C = 0;
+            } else {
+                player->aim += task->unk2C;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80108860_baby_bowser_broadside);
+#endif
+/* </func_80108860_baby_bowser_broadside> */
 
 /* <func_80109058_baby_bowser_broadside> */
 s16 func_80109058_baby_bowser_broadside(omObjData* obj, BbPlayer* player) {
