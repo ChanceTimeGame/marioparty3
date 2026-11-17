@@ -131,6 +131,9 @@ typedef struct SsEffect {
 extern Vec D_8010D820_slot_synch[];
 extern RGBA D_8010D868_slot_synch;
 extern omObjData *D_8010DF94_slot_synch;
+extern s32 D_8010DFE8_slot_synch;
+extern s32 D_8010DFEC_slot_synch;
+extern s32 D_8010DFF0_slot_synch;
 extern SsEffect *D_8010DF98_slot_synch;
 extern s32 D_8010DA40_slot_synch[];
 extern s16 D_8010D838_slot_synch[][2];
@@ -145,6 +148,8 @@ void func_8010AA9C_slot_synch(s16 idx, s16 target);
 void func_8010AC14_slot_synch(omObjData *obj);
 s16 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
 s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
+void func_8010B754_slot_synch(omObjData *obj);
+void func_8010BB90_slot_synch(s32 idx);
 void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
 // <func_80109FA4_slot_synch>
@@ -502,7 +507,33 @@ s32 func_8010AD68_slot_synch(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *co
 }
 // </func_8010AD68_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AF38_slot_synch);
+// <func_8010AF38_slot_synch>
+void func_8010AF38_slot_synch(void) {
+    HuCamera *cam;
+    s32 i;
+
+    Center.x = 0.0f;
+    Center.y = 184.8f;
+    Center.z = -708.8f;
+    CRot.x = 354.505f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    CZoom = 2000.0f;
+    func_8010BB90_slot_synch(0);
+    func_8010BB90_slot_synch(1);
+    D_8010DFE8_slot_synch = D_8010DFEC_slot_synch = D_8010DFF0_slot_synch = 0;
+    omAddObj(0x1F, 0, 0, -1, func_8010B754_slot_synch);
+    cam = gCameraList;
+    for (i = 1; i < D_800D1FF0_main; i++) {
+        cam->viewports[i].vp.vscale[0] = cam->viewports[0].vp.vscale[0];
+        cam->viewports[i].vp.vscale[1] = cam->viewports[0].vp.vscale[1];
+        cam->viewports[i].vp.vscale[2] = cam->viewports[0].vp.vscale[2];
+        cam->viewports[i].vp.vtrans[0] = cam->viewports[0].vp.vtrans[0];
+        cam->viewports[i].vp.vtrans[1] = cam->viewports[0].vp.vtrans[1];
+        cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
+    }
+}
+// </func_8010AF38_slot_synch>
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", D_8010DD28_slot_synch);
 
