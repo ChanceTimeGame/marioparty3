@@ -153,7 +153,13 @@ extern s32 D_8010AB50_storyresult[];   /* record page titles (messages) */
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
 void func_8005BF70_main(s16 winId, s32 alpha);
-extern u16 D_8010A9D8_storyresult[]; /* per character: the flag set when its record is saved */
+extern u16 D_8010A9D8_storyresult[];
+extern s32 D_8010A940_storyresult[]; /* per chapter: background */
+extern s32 D_8010A974_storyresult[]; /* per chapter: name message */
+extern s32 D_8010A9A8_storyresult[]; /* per rank: message */
+extern u8 D_8010A9C8_storyresult[];  /* per chapter: D_800CE20A_main for overlay 0x75 */
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3); /* per character: the flag set when its record is saved */
 s16 func_80108D34_storyresult(s16 page, SrRecWork *w);
 
 s16 func_800E905C_minigame(s16 slot);
@@ -259,7 +265,162 @@ INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107140_storyr
 #endif
 /*</func_80107140_storyresult>*/
 
+/*<func_80107204_storyresult>*/
+#ifdef NON_MATCHING
+/* Residue (masked ~10): retail keeps the 160/120 screen centre in saved registers and derives 204/48/187 from them (GCC constant CSE); otherwise identical. */
+/* Event 0 process (after a story board or game): records the rank for the chapter, shows it on the
+   record board and moves the story on to the next chapter (overlay 0x75), offering a save. */
+void func_80107204_storyresult(void) {
+    s16 rank;
+    SrRecInfo *info;
+    u16 spr;
+    u16 back;
+    u16 frame;
+    s16 win;
+    s16 a;
+    s32 ok;
+
+    rank = func_8010A7EC_storyresult();
+    if (GwStory.unk0 < 12) {
+        GwStory.unk3[GwStory.unk0] = rank;
+    } else {
+        GwStory.unkF = rank;
+    }
+    info = func_8010A4A4_storyresult(2, GwStory.unk1)->user_data;
+    HuPrcVSleep();
+    D_8010A912_storyresult = 1;
+    func_800E4F50_name_81(hvq_data_ROM_START);
+    MBDBackLoad(D_8010A940_storyresult[GwStory.unk0]);
+    func_800E8180_name_81(1000.0f, 10000.0f);
+    if (GwStory.unk0 == 12) {
+        spr = InitEspriteSlot(func_8000B838_main(0x1D0012), 0, 0);
+        func_8000BC48_main(spr, 0x4000);
+        func_8000BCC8_main(spr, 0xF001);
+        func_8000BBD4_main(spr, 160, 120);
+    }
+    back = InitEspriteSlot(func_8000B838_main(0x140064), 0, 1);
+    func_8000BC48_main(back, 0x4000);
+    func_8000BCC8_main(back, 0xF000);
+    func_8000BE5C_main(back, 10.0f, 8.0f);
+    func_8000BBD4_main(back, 160, 120);
+    func_8000BEAC_main(back, 0, 0, 0);
+    func_8000BBFC_main(back, 0x40);
+    D_800CD280_main = 1;
+    frame = InitEspriteSlot(func_8000B838_main(0x150001), 0, 1);
+    func_8000BCC8_main(frame, 600);
+    func_8000BBD4_main(frame, 160, 204);
+    func_8000BBFC_main(frame, 0);
+    func_8000BB94_main(frame);
+    win = func_8005A968_main(48, 187, 224, 42, 0, 12);
+    func_8005BDFC_main(win, 0);
+    func_8005BEE0_main(win, 0);
+    func_8005BE30_main(win, 1);
+    func_8005C060_main(win, 2, 0xFF, 0x40, 0x40);
+    func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
+    func_8005C060_main(win, 4, 0x60, 0xFF, 0x40);
+    func_8005C060_main(win, 6, 0xFF, 0xFF, 0x40);
+    func_8005C154_main(win, 0x40, 0x40, 0x40);
+    func_8005FBF8_main(win, 0, 0, 0);
+    func_8005C02C_main(win, 7);
+    func_8005BF70_main(win, 0xFF);
+    if (GwStory.unk0 >= 12) {
+        HuAudSeqPlay(0x26);
+        D_8010A914_storyresult = 0;
+    }
+    WipeCreateIn(D_8010AC2A_storyresult, 0x10);
+    while (WipeStatGet() != 0) {
+        HuPrcVSleep();
+    }
+    info->cmd = 1;
+    func_8000BB54_main(frame);
+    for (a = 0; a < 0x101; a += 36) {
+        func_8000BBFC_main(frame, a);
+        HuPrcVSleep();
+    }
+    while (info->cmd != 0) {
+        HuPrcVSleep();
+    }
+    func_8005B6BC_main(win, D_8010A974_storyresult[GwStory.unk0], 0);
+    func_8005B6BC_main(win, D_8010A9A8_storyresult[rank], 1);
+    func_8005B43C_main(win, 0x6126, -1, -1);
+    while (func_8005E0C0_main(win)) {
+        HuPrcVSleep();
+    }
+    if (GwStory.unk0 >= 12) {
+        omOvlHisChg(0, 0x7D, 1, 0x4090);
+        omovlhisidx++;
+        D_8010ABE2_storyresult = 1;
+        D_8010AC32_storyresult = 0x75;
+        D_8010AC30_storyresult = 0;
+        D_800CE20A_main = 0xE;
+    } else {
+        if (GwStory.unk0 == 11) {
+            _SetFlag(0x2F);
+            _SetFlag(0x31);
+        } else if (GwStory.unk0 == 10) {
+            _SetFlag(0x2E);
+            _SetFlag(0x30);
+        }
+        GwStory.unk0++;
+        if (GwStory.unk0 >= 13) {
+            GwStory.unk0 = 12;
+        }
+        GwSystem.playMode = (D_8010A924_storyresult[GwStory.unk0] == 1) ? 6 : 5;
+        D_8010ABE2_storyresult = 1;
+        D_8010AC32_storyresult = 0x75;
+        D_8010AC30_storyresult = 0;
+        D_800CE20A_main = D_8010A9C8_storyresult[GwStory.unk0];
+        while (TRUE) {
+            info->cmd = 10;
+            do {
+                HuPrcVSleep();
+            } while (info->cmd != 0);
+            func_8005B43C_main(win, 0x6127, -1, -1);
+            while (func_8005E0C0_main(win)) {
+                HuPrcVSleep();
+            }
+            if (func_8005E1D8_main(win, 0, 0) == 0) {
+                ok = 1;
+                if (func_80106FF0_storyresult() != 0) {
+                    info->cmd = 11;
+                    do {
+                        HuPrcVSleep();
+                    } while (info->cmd != 0);
+                    func_8005B43C_main(win, 0x6129, -1, -1);
+                    while (func_8005E0C0_main(win)) {
+                        HuPrcVSleep();
+                    }
+                    if (func_8005E1D8_main(win, 0, 0) != 0) {
+                        ok = 0;
+                    }
+                }
+                func_8005D294_main(win);
+                if (ok) {
+                    func_8005B43C_main(win, 0x612C, -1, -1);
+                    HuPrcVSleep();
+                    func_80107030_storyresult();
+                    info->cmd = 10;
+                    func_8005B43C_main(win, 0x612A, -1, -1);
+                    while (func_8005E0C0_main(win)) {
+                        HuPrcVSleep();
+                    }
+                    break;
+                }
+            } else {
+                func_8005D294_main(win);
+                break;
+            }
+        }
+    }
+    D_8010A910_storyresult = 1;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107204_storyresult);
+#endif
+/*</func_80107204_storyresult>*/
 
 /*<func_80107920_storyresult>*/
 #ifdef NON_MATCHING
