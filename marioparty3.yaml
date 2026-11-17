@@ -2243,7 +2243,10 @@ segments:
     subsegments:
       - [0x4B29E0, c]
       - [0x4B9A30, c]
-      - [0x4C22A0, data, 4B29E0] #80115260
+      - [0x4C22A0, .data, 4B29E0] #80115260
+      - [0x4C23F0, .data, 4B9A30] #801153B0 (u4: data and rodata padded to 16; 4B29E0 writes its own .data, its local initializers are .rodata)
+      - [0x4C2530, rodata] #801154F0 (u4: 4B29E0's local initializers and strings; asm until its functions are C)
+      - [0x4C2780, rodata] #80115740 (u4: 4B9A30's local initializers, up to the strings)
       - [0x4C28C0, .rodata, 4B9A30] #80115880
       - {0x4C2BD0, type: bss, vram: 0x80115B90, name: mstory3_bss}
 

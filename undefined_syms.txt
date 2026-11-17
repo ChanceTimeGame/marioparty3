@@ -364,3 +364,5 @@ D_80109306_selmenu2 = D_80109304_selmenu2 + 0x2;
 D_80109308_selmenu2 = D_80109304_selmenu2 + 0x4;
 D_801093C2_selmenu2 = D_801093C0_selmenu2 + 0x2;
 D_80108A68_opdueltutorial = D_80108A64_opdueltutorial + 0x4;
+D_801153B4_mstory3 = D_801153B0_mstory3 + 0x4;
+D_801153CC_mstory3 = D_801153C8_mstory3 + 0x4;
