@@ -98,10 +98,8 @@ typedef struct BbColl {
 typedef struct BbBall {
     /* 0x00 */ s16 active;
     /* 0x02 */ s16 model;
-    /* 0x04 */ f32 unk04;
-    /* 0x08 */ char unk08[4];
-    /* 0x0C */ f32 unk0C;
-    /* 0x10 */ Vec pos;
+    /* 0x04 */ Vec vel0; /* launch velocity */
+    /* 0x10 */ Vec vel;
     /* 0x1C */ f32 unk1C; /* start height */
     /* 0x20 */ f32 time;
     /* 0x24 */ f32 angle;
@@ -117,7 +115,7 @@ typedef struct BbPlayer {
         s32 w;
         struct {
             s16 hi;
-            s16 lo; /* 1 + the ball to fire */
+            u16 lo; /* 1 + the ball to fire */
         } h;
     } fire;
     /* 0x08 */ s8 unk08; /* motion pending */
@@ -210,6 +208,7 @@ void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 u8 rand8(void);
+omObjData* func_80045ED0_main(u32 arg0);
 f32 atan2df(f32 y, f32 x);
 extern u8 D_800CB8B1_main[];
 extern s8 D_800CBB6E_main[];
@@ -231,6 +230,8 @@ void func_8010F250_baby_bowser_broadside(omObjData* obj);
 void func_8010F6F8_baby_bowser_broadside(f32* a, f32* b);
 void func_8010E0B0_baby_bowser_broadside(BbColl* coll);
 s16 func_8010AADC_baby_bowser_broadside(s16 arg0);
+s16 func_8010AFF4_baby_bowser_broadside(s16 arg0);
+void func_8010B098_baby_bowser_broadside(s16 arg0, f32 x, f32 y, f32 z, u8* color);
 void func_8010AB80_baby_bowser_broadside(s16 arg0, f32 x, f32 y, f32 z, f32 rx, f32 ry, f32 rz, f32 scale, s32 arg8);
 
 // this unit
@@ -523,7 +524,53 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", fun
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80109434_baby_bowser_broadside);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_801096E8_baby_bowser_broadside);
+/* <func_801096E8_baby_bowser_broadside> */
+void func_801096E8_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    BbPlayer* player = task->data;
+    BbBall* ball;
+    omObjData* obj;
+    s16 i;
+    s16 fx;
+
+    obj = ctx->obj;
+    ball = player->balls;
+    i = 0;
+    if (player->fire.h.lo != 0) {
+        i = player->fire.h.lo;
+        func_801099D4_baby_bowser_broadside(obj, &player->balls[(s16)(i - 1)], player->aim, player->team);
+        player->fire.w &= 0xFFFF0000;
+        HuAudFXPlay(0x35A);
+    }
+    for (i = 0; i < 3; i++, ball++) {
+        if (ball->active != 0) {
+            ball->coll->vel.x = ball->vel.x;
+            ball->coll->vel.y = ball->vel.y;
+            ball->coll->vel.z = ball->vel.z;
+            func_8010E0B0_baby_bowser_broadside(ball->coll);
+            ball->time += 1.0f;
+            ball->vel.y = ball->unk1C - ball->time * 2.45f;
+            if (ball->coll->unk2A != 0) {
+                func_801098F8_baby_bowser_broadside(ball);
+            } else if (ball->coll->unk30 != 0) {
+                HuAudFXPlay(0x35B);
+                func_801098F8_baby_bowser_broadside(ball);
+                fx = func_8010AADC_baby_bowser_broadside(ball->team + 2);
+                if (fx != -1) {
+                    func_8010AB80_baby_bowser_broadside(fx, ball->coll->pos.x, ball->coll->pos.y, ball->coll->pos.z,
+                                                        0.0f, 0.0f, 0.0f, 1.0f, 0);
+                }
+                if (D_80110008_baby_bowser_broadside->flags & 2) {
+                    D_80110000_baby_bowser_broadside[player->team].score++;
+                }
+                func_80108804_baby_bowser_broadside(ball->angle);
+            }
+            if (!(ball->coll->flags & 1)) {
+                func_801098F8_baby_bowser_broadside(ball);
+            }
+        }
+    }
+}
+/* </func_801096E8_baby_bowser_broadside> */
 
 /* <func_801098F8_baby_bowser_broadside> */
 void func_801098F8_baby_bowser_broadside(BbBall* ball) {
@@ -550,13 +597,117 @@ s16 func_80109970_baby_bowser_broadside(BbPlayer* player) {
 }
 /* </func_80109970_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_801099D4_baby_bowser_broadside);
+/* <func_801099D4_baby_bowser_broadside> */
+void func_801099D4_baby_bowser_broadside(omObjData* obj, BbBall* ball, f32 angle, s16 team) {
+    u8 color[4];
+    f32 s;
+    f32 c;
+    f32 dx;
+    f32 dz;
+    s16 fx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80109BD8_baby_bowser_broadside);
+    s = sindf(angle);
+    c = cosdf(angle);
+    dx = s * 100.0f;
+    dz = c * 100.0f;
+    Hu3DModelPosSet(ball->model, dx + obj->trans.x, 500.0f, dz + obj->trans.z);
+    ball->vel.x = ball->vel0.x = s * 50.0f;
+    ball->vel.y = sindf(22.5f) * 30.000002f;
+    ball->vel.z = ball->vel0.z = c * 50.0f;
+    ball->unk1C = ball->vel.y;
+    ball->time = 0;
+    ball->angle = angle;
+    ball->active = 1;
+    func_8001C258_main(ball->model, 4, 0);
+    dx = s * 180.0f;
+    dz = c * 180.0f;
+    ball->team = team;
+    fx = func_8010AFF4_baby_bowser_broadside(0);
+    if (fx != -1) {
+        if (team == 0) {
+            color[0] = 0xFF;
+            color[1] = 0xBF;
+            color[2] = 0xBF;
+            color[3] = 0xFF;
+        } else {
+            color[0] = 0xA5;
+            color[1] = 0xCC;
+            color[2] = 0xE5;
+            color[3] = 0xFF;
+        }
+        func_8010B098_baby_bowser_broadside(fx, dx + obj->trans.x, 469.99997f, dz + obj->trans.z, color);
+    }
+    omVibrate(BB_WORK(obj)->b.player, 10, 0, 10);
+}
+/* </func_801099D4_baby_bowser_broadside> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80109D2C_baby_bowser_broadside);
+/* <func_80109BD8_baby_bowser_broadside> */
+void func_80109BD8_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    BbPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/165010", func_80109D94_baby_bowser_broadside);
+    if (task->state == 0) {
+        task->unk1C = 0;
+        task->unk2C = obj->rot.y;
+        task->unk30 = 0.0f;
+        func_8010F6F8_baby_bowser_broadside(&task->unk2C, &task->unk30);
+        func_80109EB0_baby_bowser_broadside(player, 2, 1);
+        player->unk_0C = -1;
+        task->state = 1;
+    }
+    t = task->unk1C / 20.0f;
+    if (t > 1.0f) {
+        t = 1.0f;
+    }
+    obj->rot.y = (task->unk30 - task->unk2C) * t + task->unk2C;
+    if (++task->unk1C > 20.0f) {
+        func_80109EB0_baby_bowser_broadside(player, 0, 1);
+        obj->rot.y = 0.0f;
+        task->unk1C = 20;
+        if (D_8010FD60_baby_bowser_broadside != 0) {
+            func_80109EB0_baby_bowser_broadside(player, 13, 1);
+            func_8010A158_baby_bowser_broadside(BB_WORK(obj)->b.group, task);
+        }
+    }
+}
+/* </func_80109BD8_baby_bowser_broadside> */
+
+/* <func_80109D2C_baby_bowser_broadside> */
+void func_80109D2C_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    BbPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+
+    if (D_8010FD60_baby_bowser_broadside != 0) {
+        func_80109EB0_baby_bowser_broadside(player, 14, 1);
+        player->unk_0C = -1;
+        func_8010A158_baby_bowser_broadside(BB_WORK(obj)->b.group, task);
+    }
+}
+/* </func_80109D2C_baby_bowser_broadside> */
+
+/* <func_80109D94_baby_bowser_broadside> */
+void func_80109D94_baby_bowser_broadside(BbCtx* ctx, BbTask* task) {
+    BbPlayer* player = task->data;
+    omObjData* obj = ctx->obj;
+    HmfModel* model = &HmfModelData[obj->model[0]];
+
+    if (D_800CCF58_main[model->unk02].unk02 - 1 <= model->unk40) {
+        player->unk08 = 1;
+    }
+    if (player->unk08 != 0) {
+        func_800E5690_minigame(obj, player->unk0A);
+        if (player->unk0A == 13) {
+            func_80045ED0_main(D_800A178C_main[GwPlayer[obj->work[0]].chr][0] | 0x2F);
+        }
+        player->unk08 = 0;
+        if (player->unk_0C != -1) {
+            player->unk0A = player->unk_0C;
+            player->unk_0C = -1;
+        }
+    }
+}
+/* </func_80109D94_baby_bowser_broadside> */
 
 /* <func_80109EB0_baby_bowser_broadside> */
 void func_80109EB0_baby_bowser_broadside(BbPlayer* player, s16 motion, s8 pending) {
