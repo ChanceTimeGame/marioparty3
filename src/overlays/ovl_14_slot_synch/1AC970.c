@@ -110,7 +110,28 @@ typedef struct SsCounter {
     /* 0x0E */ s16 timer;
 } SsCounter; // Size 0x10
 
+typedef struct {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} RGBA;
+
+typedef struct SsEffect {
+    /* 0x00 */ u16 active;
+    /* 0x02 */ s16 model;
+    /* 0x04 */ u32 color; // RGBA
+    /* 0x08 */ f32 frame;
+    /* 0x0C */ f32 speed;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec vel;
+    /* 0x28 */ Vec scale;
+} SsEffect; // Size 0x34
+
 extern Vec D_8010D820_slot_synch[];
+extern u32 D_8010D868_slot_synch; // RGBA
+extern omObjData *D_8010DF94_slot_synch;
+extern SsEffect *D_8010DF98_slot_synch;
 extern s32 D_8010DA40_slot_synch[];
 extern s16 D_8010D838_slot_synch[][2];
 extern omObjData *D_8010DF84_slot_synch;
@@ -121,6 +142,10 @@ extern SsCounter *D_8010DF90_slot_synch;
 void func_801094E0_slot_synch(u8 player, f32 y, f32 dy);
 void func_8010A7D0_slot_synch(omObjData *obj);
 void func_8010AA9C_slot_synch(s16 idx, s16 target);
+void func_8010AC14_slot_synch(omObjData *obj);
+s16 func_8010C4C0_slot_synch(HuSprite_Unk84_Struct *spr, RGBA *color);
+s16 func_8010D0A8_slot_synch(HuSprite_Unk84_Struct *spr, u16 model, RGBA *color);
+void func_8010D2AC_slot_synch(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 
 // <func_80109FA4_slot_synch>
 s16 func_80109FA4_slot_synch(u8 player, s16 arg1) {
@@ -358,7 +383,34 @@ void func_8010AA9C_slot_synch(s16 idx, s16 target) {
 }
 // </func_8010AA9C_slot_synch>
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AAB8_slot_synch);
+// <func_8010AAB8_slot_synch>
+void func_8010AAB8_slot_synch(void) {
+    HuSprite_Unk84_Struct *spr;
+    SsEffect *effect;
+    HmfModel *model;
+    s32 i;
+
+    spr = func_80055194_main(D_8010DF8C_slot_synch[1] = func_8010A2C4_slot_synch(0xB));
+    D_8010DF94_slot_synch = omAddObj(0x1E, 0, 0, -1, func_8010AC14_slot_synch);
+    D_8010DF98_slot_synch = effect = HuMemAllocTag(sizeof(SsEffect) * 8, 0x7918);
+    for (i = 0; i < 8; i++, effect++) {
+        if (i == 0) {
+            effect->model = func_8010C4C0_slot_synch(spr, (RGBA *)&D_8010D868_slot_synch);
+        } else {
+            effect->model = func_8010D0A8_slot_synch(spr, D_8010DF98_slot_synch->model, (RGBA *)&D_8010D868_slot_synch);
+        }
+        effect->active = 0;
+        effect->color = D_8010D868_slot_synch;
+        effect->frame = effect->speed = 0.0f;
+        effect->pos.x = effect->pos.y = effect->pos.z = 0.0f;
+        effect->vel.x = effect->vel.y = effect->vel.z = 0.0f;
+        effect->scale.x = effect->scale.y = effect->scale.z = 0.0f;
+        func_8001C258_main(effect->model, 4, 4);
+        model = &HmfModelData[effect->model];
+        model->unk40 = 0.0f;
+    }
+}
+// </func_8010AAB8_slot_synch>
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010AC14_slot_synch);
 
