@@ -2226,7 +2226,7 @@ segments:
     bss_size: 0x450
     subsegments:
       - [0x49BD40, c] # TODO: split at 49DF30, 4A7540, 4AC200 and 4B0E80? Having issues with rodata.
-      - [0x4B1CC0, data, 49BD40] #8011B920
+      - [0x4B1CC0, .data, 49BD40] #8011B920 (story f5: .data in C)
       - [0x4B2180, .rodata, 49BD40] #8011BDE0
       - {0x4B29E0, type: bss, vram: 0x8011C640, name: mstory2_bss}
 
