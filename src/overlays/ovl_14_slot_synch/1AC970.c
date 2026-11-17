@@ -571,9 +571,21 @@ void func_80106878_slot_synch(omObjData* obj) {
     func_8010AA9C_slot_synch(t->unk10, t->unk16);
 }
 
+#ifdef NON_MATCHING
+void func_80106CCC_slot_synch(s16 team, s16 add) {
+    D_8010DF5C_slot_synch[team].unk16 += add;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CCC_slot_synch);
+#endif
 
+#ifdef NON_MATCHING
+s16 func_80106CF0_slot_synch(s16 team) {
+    return D_8010DF5C_slot_synch[team].unk12;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106CF0_slot_synch);
+#endif
 
 void func_80106D0C_slot_synch(s16 team, s16 kind) {
     SsTeam* t = &D_8010DF5C_slot_synch[team];
