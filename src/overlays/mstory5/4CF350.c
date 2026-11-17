@@ -274,6 +274,7 @@ typedef struct ObPath {
 } ObPath; /* size = 0x10 */
 
 extern StoryActor D_801151F0_mstory5[8];
+extern StoryActor D_801152B0_mstory5[3]; /* actors 8-10 */
 extern const Vec D_80114C44_mstory5;
 s32 func_80106B30_mstory5(s32 chr);
 void func_80106FC8_mstory5(omObjData *obj, f32 x, f32 y, f32 z, s32 frames);
@@ -343,11 +344,67 @@ void func_8010D460_mstory5(omObjData *obj) {
 void func_8010D47C_mstory5(void) {
 }
 
+/* actor 7 turns, walks 1000 units off along x and hides its models */
+#ifdef NON_MATCHING
+void func_8010D484_mstory5(omObjData *arg0) {
+    omObjData *obj = D_801151F0_mstory5[7].obj;
+    Vec pos;
+    HmfModel *m;
+
+    m = &HmfModelData[obj->model[1]];
+    pos.x = m->pos.x;
+    pos.y = m->pos.y;
+    pos.z = m->pos.z;
+    func_80107228_mstory5(obj, 0.0f, 90.0f, 0.0f, 20);
+    func_80106FC8_mstory5(obj, pos.x + 1000.0f, pos.y, pos.z, 30);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    D_801152B0_mstory5[2].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D484_mstory5);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D560_mstory5);
+void func_8010D560_mstory5(omObjData *obj) {
+    func_80107080_mstory5(obj, &D_80114C44_mstory5, 20);
+    D_801151F0_mstory5[7].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D594_mstory5);
+/* actors 0, 1 and 7 turn and slide left together for 20 frames */
+void func_8010D594_mstory5(omObjData *arg0) {
+    omObjData *objs[4];
+    f32 dist[4];
+    f32 speed[3];
+    s32 frames = 20;
+    s32 i;
+    s32 j;
+
+    dist[0] = 150.0f;
+    dist[1] = 350.0f;
+    dist[2] = 400.0f;
+    speed[0] = dist[0] / frames;
+    speed[1] = dist[1] / frames;
+    speed[2] = dist[2] / frames;
+
+    objs[0] = D_801151F0_mstory5[0].obj;
+    objs[1] = D_801151F0_mstory5[1].obj;
+    objs[2] = D_801151F0_mstory5[7].obj;
+    objs[3] = D_801151F0_mstory5[3].obj;
+    func_80107228_mstory5(objs[0], 0.0f, 90.0f, 0.0f, 10);
+    func_80107228_mstory5(objs[1], 0.0f, 90.0f, 0.0f, 10);
+    func_80107228_mstory5(objs[2], 0.0f, 90.0f, 0.0f, 10);
+    func_8001C624_main(objs[0]->model[1], HmfModelData[objs[0]->motion[3]].unk02, 0, 10, 2);
+    for (j = 0; j < frames; j++) {
+        for (i = 0; i < 3; i++) {
+            HmfModelData[objs[i]->model[1]].pos.x -= speed[i];
+            HmfModelData[objs[i]->model[2]].pos.x -= speed[i];
+        }
+        HuPrcVSleep();
+    }
+    func_8001C624_main(objs[0]->model[1], HmfModelData[objs[0]->motion[0]].unk02, 0, 10, 2);
+    D_801151F0_mstory5[7].unk08 |= 1;
+    D_801151F0_mstory5[7].func = (void (*)(omObjData *))func_801085D8_mstory5;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_8010D7D8_mstory5);
 
