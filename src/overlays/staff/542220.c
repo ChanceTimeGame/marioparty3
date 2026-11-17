@@ -37,7 +37,6 @@ void func_8010CD74_staff(UnkStaff_1 *);
 void func_8010CFD4_staff(UnkStaff *);
 extern f32 D_80110534_staff;
 extern s8 D_80110538_staff;
-extern char D_80110FF4_staff[]; // unk type
 extern Vec D_80111534_staff;
 extern Vec D_80111540_staff;
 extern f32 D_80111560_staff;
@@ -260,6 +259,58 @@ typedef struct StaffActorDef {
 } StaffActorDef; /* size 0x28 */
 
 extern StaffActorDef D_80111094_staff[8];
+
+/* story j3: the unit's .data types (definitions at the end of the file). */
+typedef struct StaffCamKey {
+    /* 0x00 */ Vec rot;    /* CRot */
+    /* 0x0C */ Vec center; /* Center */
+    /* 0x18 */ f32 zoom;   /* CZoom */
+    /* 0x1C */ f32 fov;
+    /* 0x20 */ s32 unk20[3]; /* not read by func_8010609C */
+} StaffCamKey;
+
+typedef struct StaffAnimDef {
+    /* 0x00 */ s32 anim; /* data id */
+    /* 0x04 */ char* name;
+} StaffAnimDef;
+
+/* One cast member of a credits scene (func_80109D74 reads three per scene). */
+typedef struct StaffCastEntry {
+    /* 0x00 */ f32 scale;
+    /* 0x04 */ s32 model; /* data id */
+    /* 0x08 */ s32 link;  /* data id, 0 for none */
+    /* 0x0C */ s16 unk0C[3];
+    /* 0x12 */ s16 unk12; /* -1 ends the table */
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 anim; /* 1-based index into D_80110674, 0 for none */
+} StaffCastEntry; /* size 0x18 */
+
+/* One command of a credits page (func_8010BF84): type -1 ends the page. */
+typedef struct StaffCreditLine {
+    /* 0x00 */ s8 type;
+    /* 0x01 */ u8 arg;
+    /* 0x02 */ u16 mes; /* message id */
+} StaffCreditLine;
+
+/* A stage model (func_80105E6C/func_80105DB8). */
+typedef struct StaffModelDef {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ s32 attr;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec rot;
+} StaffModelDef; /* size 0x28 */
+
+extern StaffModelDef D_80110FF4_staff[4];
+
+/* Animation names in .rodata (INCLUDE_RODATA). */
+extern char D_8011133C_staff[], D_80111348_staff[], D_80111354_staff[], D_80111360_staff[], D_8011136C_staff[];
+extern char D_80111378_staff[], D_80111384_staff[], D_80111390_staff[], D_8011139C_staff[], D_801113A8_staff[];
+extern char D_801113B4_staff[], D_801113C0_staff[], D_801113CC_staff[], D_801113D8_staff[], D_801113E4_staff[];
+extern char D_801113F0_staff[], D_80111430_staff[], D_8011143C_staff[], D_80111448_staff[], D_80111454_staff[];
+extern char D_80111460_staff[], D_8011146C_staff[], D_80111478_staff[], D_80111484_staff[];
 extern s16 D_80111510_staff; /* controller to rumble */
 s32 func_8010601C_staff(void);
 void func_8010D450_staff(s16 model, Vec* pos);
@@ -1229,3 +1280,265 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_8011146C_staff);
 INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_80111478_staff);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/staff/542220", D_80111484_staff);
+
+/* .data (story j3) */
+s16 D_80110530_staff[2] = { 0, 0 };
+f32 D_80110534_staff = 58.0f; /* camera field of view */
+s8 D_80110538_staff = 0;
+s32 D_8011053C_staff = 0;
+s32 D_80110540_staff[8] = {
+    0xB003E, 0xB003F, 0xB0040, 0xB0041,
+    0xB0042, 0xB0043, 0xB0044, 0xB0045,
+};
+StaffCamKey D_80110560_staff = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 1390.0f, 32.0f, { -56, -1, -923766519 } };
+s32 D_8011058C_staff[4] = { 0x16001E, 0x16001F, 0x160020, 0x160021 };
+u8 D_8011059C_staff[4] = { 0x06, 0x08, 0x10, 0x20 };
+u16 D_801105A0_staff[4] = { 0xF000, 0xF001, 0xF002, 0xF003 };
+f32 D_801105A8_staff[4] = { 6.0f, 4.0f, 2.0f, 1.0f };
+s16 D_801105B8_staff[4] = { 2, 6, 6, 0 };
+s16 D_801105C0_staff[4] = { 402, 400, 400, 0 };
+s16 D_801105C8_staff[3][2] = { { 160, 175 }, { 38, 185 }, { 286, 194 } }; /* D_801105CA_staff is [0][1] (undefined_syms.txt) */
+s32 D_801105D4_staff[3] = { 0x16001B, 0x16001C, 0x16001D };
+s32 D_801105E0_staff[4] = { 0x160022, 0x160023, 0, 0 };
+s32 D_801105F0_staff[2] = { 0xA0075, 0xA0122 };
+Vec D_801105F8_staff[2] = { { -755.0f, 580.0f, 0.0f }, { 755.0f, 580.0f, 0.0f } };
+f32 D_80110610_staff[2] = { 360.0f, 180.0f };
+Vec D_80110618_staff[4] = {
+    { 0.0f, 70.0f, 546.0f },
+    { 0.0f, 200.0f, 315.0f },
+    { -402.0f, 296.0f, -37.0f },
+    { 9999.0f, 9999.0f, 9999.0f },
+};
+Vec D_80110648_staff[3] = { { -402.0f, 296.0f, -37.0f }, { 48.0f, 4.0f, 1298.0f }, { 9999.0f, 9999.0f, 9999.0f } };
+s16 D_8011066C_staff[4] = { -160, -80, 80, 160 };
+/* D_80110678_staff is [0].name (undefined_syms.txt) */
+StaffAnimDef D_80110674_staff[18] = {
+    { 0x200A4, D_801113F0_staff }, { 0x300A4, D_801113E4_staff }, { 0x700AB, D_801113D8_staff },
+    { 0x400A4, D_801113CC_staff }, { 0x500A9, D_801113C0_staff }, { 0x600A4, D_801113B4_staff },
+    { 0x90027, D_801113A8_staff }, { 0x800A4, D_8011139C_staff }, { 0xA0046, D_80111390_staff },
+    { 0xA0100, D_80111384_staff }, { 0xA00A3, D_80111378_staff }, { 0xA00B7, D_8011136C_staff },
+    { 0xA002B, D_80111360_staff }, { 0xA00E5, D_80111354_staff }, { 0xA00A3, D_80111378_staff },
+    { 0xA00B7, D_8011136C_staff }, { 0xA002B, D_80111348_staff }, { 0xA007E, D_8011133C_staff },
+};
+StaffCastEntry D_80110704_staff[38] = {
+    { 0.8f, 0x200A0, 0x2009D, { 0, 0, 0 }, 0, 0, 1 }, { 0.8f, 0x300A0, 0x3009D, { 0, 0, 0 }, 0, 0, 2 },
+    { 0.8f, 0x700A0, 0x7009D, { 0, 0, 0 }, 0, 0, 3 }, { 0.8f, 0x400A0, 0x4009D, { 0, 0, 0 }, 0, 0, 4 },
+    { 0.8f, 0x500A0, 0x5009D, { -26, 2, 0 }, 0, 0, 5 }, { 0.8f, 0x600A0, 0x6009D, { 30, 0, 0 }, 0, 0, 6 },
+    { 0.8f, 0x90001, 0x90019, { 28, 0, 0 }, 0, 0, 7 }, { 0.8f, 0x16004B, 0x8009D, { 0, 0, 0 }, 0, 0, 8 },
+    { 0.6f, 0xA002E, 0xA0040, { 0, 30, 0 }, 0, 0, 9 }, { 0.8f, 0xA00EE, 0xA00F4, { 0, -2, 0 }, 0, 0, 10 },
+    { 0.8f, 0xA008E, 0xA00A1, { 0, 0, 0 }, 0, 0, 11 }, { 0.8f, 0xA00A5, 0, { 0, 32, 0 }, 1, 0, 12 },
+    { 0.8f, 0xA0000, 0xA000A, { 0, -45, -80 }, 0, 0, 13 }, { 0.55f, 0xA00C4, 0xA00CB, { 0, 100, 0 }, 3, 0, 0 },
+    { 0.9f, 0xA00BA, 0xA00C3, { 0, 30, 0 }, 4, 160, 0 }, { 0.8f, 0xA00CE, 0xA00D8, { 0, 0, 0 }, 0, 0, 0 },
+    { 0.8f, 0xA0136, 0xA0138, { 0, 30, 0 }, 1, 0, 0 }, { 0.5f, 0xA010D, 0xA0116, { 0, 30, 0 }, 0, -15, 0 },
+    { 0.5f, 0xA00D9, 0xA00DD, { 0, 30, 0 }, 1, 0, 0 }, { 0.8f, 0xA00E7, 0, { 0, 35, 0 }, 2, 140, 0 },
+    { 1.2f, 0xA013F, 0xA0141, { 0, 30, 0 }, 0, 0, 0 }, { 0.6f, 0xA011B, 0xA011D, { 0, 30, 0 }, 0, 0, 0 },
+    { 0.8f, 0xA0089, 0, { 0, 110, 0 }, 5, 0, 0 }, { 0.8f, 0xA00A2, 0xA0090, { 0, 30, 0 }, 1, 0, 15 },
+    { 0.8f, 0xA00B0, 0xA00B1, { 0, 30, 0 }, 0, 0, 16 }, { 0.8f, 0xA0028, 0xA0019, { 0, 30, 0 }, 0, 0, 17 },
+    { 0.8f, 0xA0063, 0xA006C, { 0, 30, 0 }, 0, 0, 0 }, { 0.6f, 0xA0086, 0xA0088, { 0, 10, -80 }, 1, 0, 0 },
+    { 0.4f, 0xA0154, 0, { 0, 30, -40 }, 8, 140, 0 }, { 0.8f, 0xA014D, 0xA0153, { 0, 0, 0 }, 0, 0, 0 },
+    { 0.8f, 0xA0156, 0, { 0, -25, -50 }, 6, 0, 0 }, { 0.8f, 0xA008B, 0, { 0, 30, 0 }, 7, 0, 0 },
+    { 0.75f, 0xA0117, 0, { 0, 30, -20 }, 10, 165, 0 }, { 0.38f, 0x1301F4, 0, { 0, 116, 0 }, 11, 0, 0 },
+    { 0.5f, 0x1301F5, 0, { 0, 45, 0 }, 0, 0, 0 }, { 0.95f, 0xA0122, 0xA0128, { 0, 138, 0 }, 12, 0, 0 },
+    { 0.8f, 0xA0075, 0x1D0084, { 0, 30, 0 }, 0, 0, 18 }, { 0.0f, 0, 0, { 0, 0, 0 }, -1, 0, 0 },
+};
+s32 D_80110A94_staff[3] = { 0, 0, 0 }; /* zero padding to 0x80110AA0 (16-byte aligned: likely a file boundary in .data) */
+s32 D_80110AA0_staff[27] = {
+    0x160000, 0x160001, 0x160002, 0x160003, 0x160004, 0x160005,
+    0x160006, 0x160007, 0x160008, 0x160009, 0x16000A, 0x16000B,
+    0x16000C, 0x16000D, 0x16000E, 0x16000F, 0x160010, 0x160011,
+    0x160012, 0x160013, 0x160014, 0x160015, 0x160016, 0x160017,
+    0x160018, 0x160019, 0x16004A,
+};
+s32 D_80110B0C_staff[29] = {
+    0x160026, 0x160027, 0x160028, 0x160029, 0x16002A, 0x16002B,
+    0x16002C, 0x16002D, 0x16002E, 0x16002F, 0x160030, 0x160031,
+    0x160032, 0x160033, 0x160034, 0x160035, 0x160036, 0x160037,
+    0x160038, 0x160039, 0x16003A, 0x16003B, 0x16003C, 0x16003D,
+    0x16003E, 0x16003F, 0x160041, 0x160040, 0,
+};
+s32 D_80110B80_staff = 0x160042;
+StaffCreditLine D_80110B84_staff[3] = {
+    { 4, 0x00, 0x6400 }, { 1, 0x00, 0x4B00 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110B90_staff[3] = {
+    { 4, 0x00, 0x6401 }, { 1, 0x00, 0x4B01 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110B9C_staff[3] = {
+    { 4, 0x00, 0x6402 }, { 1, 0x00, 0x4B02 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110BA8_staff[13] = {
+    { 4, 0x00, 0x6403 }, { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B02 }, { 3, 0x00, 0x6426 },
+    { 1, 0x00, 0x4B03 }, { 1, 0x0F, 0x4B04 }, { 1, 0x00, 0x4B05 }, { 1, 0x0F, 0x4B06 },
+    { 1, 0x00, 0x4B07 }, { 1, 0x00, 0x4B08 }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B01 },
+    { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110BDC_staff[4] = {
+    { 4, 0x00, 0x6404 }, { 1, 0x00, 0x4B09 }, { 1, 0x00, 0x4B0A }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110BEC_staff[3] = {
+    { 4, 0x00, 0x6405 }, { 1, 0x00, 0x4B0B }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110BF8_staff[8] = {
+    { 4, 0x00, 0x6406 }, { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B0C }, { 3, 0x00, 0x6426 },
+    { 1, 0x00, 0x4B0D }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B0E }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110C18_staff[21] = {
+    { 4, 0x00, 0x6407 }, { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B0F }, { 3, 0x00, 0x6426 },
+    { 1, 0x00, 0x4B10 }, { 1, 0x00, 0x4B11 }, { 1, 0x00, 0x4B12 }, { 1, 0x00, 0x4B13 },
+    { 1, 0x0F, 0x4B14 }, { 1, 0x00, 0x4B15 }, { 1, 0x00, 0x4B16 }, { 1, 0x00, 0x4B17 },
+    { 1, 0x00, 0x4B18 }, { 1, 0x0F, 0x4B19 }, { 1, 0x00, 0x4B1A }, { 1, 0x00, 0x4B1B },
+    { 1, 0x00, 0x4B1C }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B1D }, { 1, 0x00, 0x4B1E },
+    { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110C6C_staff[3] = {
+    { 4, 0x00, 0x6408 }, { 1, 0x00, 0x4B1F }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110C78_staff[3] = {
+    { 4, 0x00, 0x6409 }, { 1, 0x00, 0x4B20 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110C84_staff[8] = {
+    { 4, 0x00, 0x640A }, { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B21 }, { 3, 0x00, 0x6426 },
+    { 1, 0x00, 0x4B22 }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B23 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110CA4_staff[9] = {
+    { 4, 0x00, 0x640B }, { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B24 }, { 3, 0x00, 0x6426 },
+    { 1, 0x00, 0x4B25 }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B26 }, { 1, 0x00, 0x4B27 },
+    { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110CC8_staff[3] = {
+    { 4, 0x00, 0x640C }, { 1, 0x00, 0x4B28 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110CD4_staff[10] = {
+    { 4, 0x00, 0x640D }, { 3, 0x00, 0x6428 }, { 1, 0x00, 0x4B29 }, { 3, 0x00, 0x6425 },
+    { 1, 0x00, 0x4B2A }, { 3, 0x00, 0x6426 }, { 1, 0x00, 0x4B2B }, { 3, 0x00, 0x6427 },
+    { 1, 0x00, 0x4B2C }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110CFC_staff[22] = {
+    { 4, 0x00, 0x640E }, { 3, 0x00, 0x6428 }, { 1, 0x00, 0x4B2D }, { 1, 0x00, 0x4B2E },
+    { 3, 0x00, 0x6425 }, { 1, 0x00, 0x4B2F }, { 3, 0x00, 0x6426 }, { 1, 0x00, 0x4B30 },
+    { 1, 0x00, 0x4B31 }, { 1, 0x0F, 0x4B32 }, { 1, 0x00, 0x4B33 }, { 1, 0x00, 0x4B34 },
+    { 1, 0x00, 0x4B35 }, { 1, 0x00, 0x4B36 }, { 1, 0x0F, 0x4B37 }, { 1, 0x00, 0x4B38 },
+    { 1, 0x00, 0x4B39 }, { 1, 0x00, 0x4B3A }, { 3, 0x00, 0x6427 }, { 1, 0x00, 0x4B3B },
+    { 1, 0x00, 0x4B3C }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110D54_staff[6] = {
+    { 4, 0x00, 0x640F }, { 1, 0x00, 0x4B3D }, { 1, 0x00, 0x4B3E }, { 1, 0x00, 0x4B3F },
+    { 1, 0x00, 0x4B40 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110D6C_staff[4] = {
+    { 4, 0x00, 0x6410 }, { 1, 0x00, 0x4B41 }, { 1, 0x00, 0x4B42 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110D7C_staff[3] = {
+    { 4, 0x00, 0x6411 }, { 1, 0x00, 0x4B43 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110D88_staff[3] = {
+    { 4, 0x00, 0x6412 }, { 1, 0x00, 0x4B44 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110D94_staff[3] = {
+    { 4, 0x00, 0x6413 }, { 1, 0x00, 0x4B45 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DA0_staff[4] = {
+    { 4, 0x00, 0x6414 }, { 1, 0x00, 0x4B46 }, { 1, 0x00, 0x4B4A }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DB0_staff[3] = {
+    { 4, 0x00, 0x6415 }, { 1, 0x00, 0x4B47 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DBC_staff[4] = {
+    { 4, 0x00, 0x6416 }, { 1, 0x00, 0x4B48 }, { 1, 0x00, 0x4B4B }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DCC_staff[3] = {
+    { 4, 0x00, 0x6417 }, { 1, 0x00, 0x4B49 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DD8_staff[3] = {
+    { 4, 0x00, 0x6418 }, { 1, 0x00, 0x4B4C }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DE4_staff[6] = {
+    { 4, 0x00, 0x6419 }, { 1, 0x16, 0x4B4D }, { 2, 0x0F, 0x0 }, { 1, 0x00, 0x4B4E },
+    { 1, 0x00, 0x4B4F }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110DFC_staff[4] = {
+    { 4, 0x00, 0x641A }, { 1, 0x00, 0x4B50 }, { 1, 0x00, 0x4B51 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110E0C_staff[3] = {
+    { 4, 0x00, 0x641B }, { 1, 0x00, 0x4B52 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110E18_staff[3] = {
+    { 4, 0x00, 0x641C }, { 1, 0x00, 0x4B53 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110E24_staff[3] = {
+    { 4, 0x00, 0x641D }, { 1, 0x00, 0x4B54 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110E30_staff[15] = {
+    { 4, 0x00, 0x641E }, { 3, 0x00, 0x642B }, { 1, 0x00, 0x4B6C }, { 1, 0x00, 0x4B6D },
+    { 3, 0x00, 0x642C }, { 1, 0x00, 0x4B6E }, { 1, 0x00, 0x4B6F }, { 3, 0x00, 0x642D },
+    { 1, 0x00, 0x4B70 }, { 1, 0x00, 0x4B71 }, { 3, 0x00, 0x642E }, { 1, 0x00, 0x4B72 },
+    { 1, 0x00, 0x4B73 }, { 1, 0x00, 0x4B74 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110E6C_staff[18] = {
+    { 4, 0x00, 0x641F }, { 1, 0x00, 0x4B56 }, { 1, 0x00, 0x4B57 }, { 1, 0x0F, 0x4B58 },
+    { 1, 0x0F, 0x4B59 }, { 1, 0x0F, 0x4B5A }, { 1, 0x00, 0x4B6A }, { 1, 0x0F, 0x4B6B },
+    { 1, 0x00, 0x4B5B }, { 1, 0x0F, 0x4B5C }, { 1, 0x0F, 0x4B5D }, { 1, 0x0F, 0x4B5E },
+    { 1, 0x0F, 0x4B75 }, { 1, 0x00, 0x4B76 }, { 1, 0x0F, 0x4B5F }, { 1, 0x0F, 0x4B60 },
+    { 1, 0x00, 0x4B61 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110EB4_staff[4] = {
+    { 4, 0x00, 0x6420 }, { 1, 0x00, 0x4B62 }, { 1, 0x00, 0x4B0A }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110EC4_staff[4] = {
+    { 4, 0x00, 0x6421 }, { 1, 0x00, 0x4B63 }, { 1, 0x00, 0x4B64 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110ED4_staff[4] = {
+    { 4, 0x00, 0x6422 }, { 1, 0x00, 0x4B41 }, { 1, 0x00, 0x4B65 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110EE4_staff[4] = {
+    { 4, 0x00, 0x6423 }, { 1, 0x00, 0x4B66 }, { 1, 0x00, 0x4B67 }, { -1, 0x00, 0x0 },
+};
+StaffCreditLine D_80110EF4_staff[4] = {
+    { 4, 0x00, 0x6424 }, { 1, 0x00, 0x4B68 }, { 1, 0x1E, 0x4B69 }, { -1, 0x00, 0x0 },
+};
+/* the credits pages, NULL-terminated */
+StaffCreditLine* D_80110F04_staff[39] = {
+    D_80110B84_staff, D_80110B90_staff, D_80110B9C_staff, D_80110BA8_staff,
+    D_80110BDC_staff, D_80110BEC_staff, D_80110BF8_staff, D_80110C18_staff,
+    D_80110C6C_staff, D_80110C78_staff, D_80110C84_staff, D_80110CA4_staff,
+    D_80110CC8_staff, D_80110CD4_staff, D_80110CFC_staff, D_80110D54_staff,
+    D_80110D6C_staff, D_80110D7C_staff, D_80110D88_staff, D_80110D94_staff,
+    D_80110DA0_staff, D_80110DB0_staff, D_80110DBC_staff, D_80110DCC_staff,
+    D_80110DD8_staff, D_80110DE4_staff, D_80110DFC_staff, D_80110E0C_staff,
+    D_80110E18_staff, D_80110E24_staff, D_80110E30_staff, D_80110E6C_staff,
+    D_80110EB4_staff, D_80110EC4_staff, D_80110ED4_staff, D_80110EE4_staff,
+    D_80110EF4_staff, NULL, NULL,
+};
+Vec D_80110FA0_staff[5] = {
+    { -77.0f, 202.0f, 1762.0f },
+    { -135.0f, 170.0f, 2500.0f },
+    { -135.0f, 140.0f, 2500.0f },
+    { 115.0f, 400.0f, -115.0f },
+    { 52.0f, 0.0f, 135.0f },
+};
+Vec D_80110FDC_staff = { 52.0f, 340.0f, 400.0f };
+s32 D_80110FE8_staff[3] = { 0x160004, 0x16000D, 0x160003 };
+StaffModelDef D_80110FF4_staff[4] = {
+    { 0xF0004, 697, 0, 0, 1, { -41.0f, 0.0f, 2893.0f }, { 0.0f, 0.0f, 0.0f } },
+    { 0xF0003, 697, 0, 0, 1, { 96.0f, 0.0f, 3072.0f }, { 0.0f, -30.0f, 0.0f } },
+    { 0xF0005, 697, 0, 0, 1, { -59.0f, 45.0f, 2907.0f }, { 0.0f, 0.0f, 0.0f } },
+    { 0xA015E, 697, 0, 2, 1, { -77.0f, 202.0f, 1216.0f }, { 0.0f, 0.0f, 0.0f } },
+};
+StaffActorDef D_80111094_staff[8] = {
+    { 0x200A1, 0xF000B, 0x200A4, D_80111484_staff, { 100.0f, -14.0f, 3072.0f }, { 0.0f, -30.0f, 0.0f } },
+    { 0x300A1, 0x160043, 0x300AB, D_80111478_staff, { 205.0f, 0.0f, 2869.0f }, { 0.0f, 46.0f, 0.0f } },
+    { 0x700A1, 0x160044, 0x700AB, D_8011146C_staff, { 299.0f, 0.0f, 2950.0f }, { 0.0f, -122.0f, 0.0f } },
+    { 0x400A1, 0x160045, 0x400A3, D_80111460_staff, { -150.0f, 0.0f, 1762.0f }, { 0.0f, 83.0f, 0.0f } },
+    { 0x500A1, 0x160046, 0x500AA, D_80111454_staff, { -626.0f, 0.0f, 2245.0f }, { 0.0f, 79.0f, 0.0f } },
+    { 0x600A1, 0x160047, 0x600A4, D_80111448_staff, { -203.0f, 0.0f, 3066.0f }, { 0.0f, 39.0f, 0.0f } },
+    { 0x800A1, 0x160048, 0x800AA, D_8011143C_staff, { -346.0f, 0.0f, 2356.0f }, { 0.0f, -103.0f, -8.0f } },
+    { 0x90001, 0x160049, 0x9001A, D_80111430_staff, { -133.0f, 0.0f, 2460.0f }, { 0.0f, 0.0f, 0.0f } },
+};
+s32 D_801111D4_staff[3] = { 0, 0, 0 }; /* zero padding to 0x801111E0 (16-byte aligned: likely a file boundary in .data) */
+/* firework spark colours (r, g, b, pad); D_801111E1/E2 alias [0][1]/[0][2] */
+u8 D_801111E0_staff[4][4] = {
+    { 0x00, 0xFF, 0xFF, 0x00 },
+    { 0xFF, 0xA0, 0x28, 0x00 },
+    { 0xFF, 0xFF, 0x00, 0x00 },
+    { 0x00, 0xFF, 0x00, 0x00 },
+};
