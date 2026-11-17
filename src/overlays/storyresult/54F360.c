@@ -58,9 +58,7 @@ extern s8 D_8010A91C_storyresult;  /* fixed camera */
 extern u32 D_8010A920_storyresult; /* random seed */
 extern s16 D_8010ABE2_storyresult; /* exit mode */
 extern Vec D_8010AC00_storyresult; /* fixed camera target */
-extern Vec D_8010AC0C_storyresult; /* CRot copy; splat also labels .y/.z */
-extern f32 D_8010AC10_storyresult;
-extern f32 D_8010AC14_storyresult;
+extern Vec D_8010AC0C_storyresult; /* CRot copy (splat also labels .y/.z as D_8010AC10/D_8010AC14) */
 extern Vec D_8010AC18_storyresult; /* fixed camera eye */
 extern f32 D_8010AC24_storyresult; /* near plane */
 extern f32 D_8010AC2C_storyresult; /* far plane */
@@ -179,7 +177,6 @@ s16 func_8010A738_storyresult(s16 player);
 s16 func_8010A7B0_storyresult(s16 player);
 s16 func_8010A7EC_storyresult(void);
 
-/*<func_80106FF0_storyresult>*/
 /* Number of results in the saved copy (GwStory.unk_64). */
 s16 func_80106FF0_storyresult(void) {
     s16 n;
@@ -193,9 +190,7 @@ s16 func_80106FF0_storyresult(void) {
     }
     return n;
 }
-/*</func_80106FF0_storyresult>*/
 
-/*<func_80107030_storyresult>*/
 void func_80107030_storyresult(void) {
     s32 i;
 
@@ -215,9 +210,7 @@ void func_80107030_storyresult(void) {
     }
     func_80050614_main(1);
 }
-/*</func_80107030_storyresult>*/
 
-/*<func_801070D8_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 3): retail loads GwStory.unk1 once into a0 and copies it (move) for the unk58 index; this loads it into v1. */
 s16 func_801070D8_storyresult(void) {
@@ -237,9 +230,7 @@ s16 func_801070D8_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_801070D8_storyresult);
 #endif
-/*</func_801070D8_storyresult>*/
 
-/*<func_80107140_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 5): retail keeps GwStory.unk1 in a2 for all three indexes with register copies. */
 void func_80107140_storyresult(void) {
@@ -263,9 +254,7 @@ void func_80107140_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107140_storyresult);
 #endif
-/*</func_80107140_storyresult>*/
 
-/*<func_80107204_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked ~10): retail keeps the 160/120 screen centre in saved registers and derives 204/48/187 from them (GCC constant CSE); otherwise identical. */
 /* Event 0 process (after a story board or game): records the rank for the chapter, shows it on the
@@ -420,9 +409,7 @@ void func_80107204_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107204_storyresult);
 #endif
-/*</func_80107204_storyresult>*/
 
-/*<func_80107920_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked ~20): scheduling only (the arrow sindf product, message ids loaded before the sign extension, delay slots). */
 /* Event 1 process: shows the story record board (func_8010A4A4_storyresult mode 1) with page arrows;
@@ -631,9 +618,7 @@ void func_80107920_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107920_storyresult);
 #endif
-/*</func_80107920_storyresult>*/
 
-/*<func_8010818C_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 7): retail sign-extends the rank in v0 and puts the >= 4 slti in the bgezl delay slot; this copies it to v1 first. */
 /* Starts the record board process (func_80107920_storyresult) for slot; *res = -1 when the slot has no result. */
@@ -659,7 +644,6 @@ Process *func_8010818C_storyresult(s16 *res, s16 slot) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010818C_storyresult);
 #endif
-/*</func_8010818C_storyresult>*/
 
 void func_8010822C_storyresult(void) {
     s16 sp10;
@@ -689,7 +673,6 @@ void func_8010822C_storyresult(void) {
     }
 }
 
-/*<func_8010832C_storyresult>*/
 /* Starts minigame's record viewer (func_800E9170_minigame) for slot; *res = -1 when the slot has no result. */
 Process *func_8010832C_storyresult(s16 *res, s16 slot) {
     Process *prc;
@@ -704,9 +687,7 @@ Process *func_8010832C_storyresult(s16 *res, s16 slot) {
     prc->user_data = res;
     return prc;
 }
-/*</func_8010832C_storyresult>*/
 
-/*<func_801083A4_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked ~10): retail reloads D_800CDA7C_main for each button test and sets the first bit with andi/sltu (this: srl/andi on one load); loop counters swap registers. */
 /* Event 3 (a test): fills every story record with top results, then shows minigame's record viewer
@@ -775,9 +756,7 @@ void func_801083A4_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_801083A4_storyresult);
 #endif
-/*</func_801083A4_storyresult>*/
 
-/*<func_801085E8_storyresult>*/
 void func_801085E8_storyresult(s16 grp, s16 idx, s16 gfx, u16 prio, s32 x, s32 y) {
     func_80055458_main(grp, idx, 0x100);
     HuSprAttrReset(grp, idx, 0xFFFF);
@@ -788,9 +767,7 @@ void func_801085E8_storyresult(s16 grp, s16 idx, s16 gfx, u16 prio, s32 x, s32 y
     HuSprPriSet(grp, idx, prio);
     func_80054904_main(grp, idx, x, y);
 }
-/*</func_801085E8_storyresult>*/
 
-/*<func_801086E4_storyresult>*/
 s16 func_801086E4_storyresult(u8 *rec, s16 odd, s16 start, s16 end, SrRecPart *mark, SrRecPart *num, SrRecWork *w) {
     u8 *idx;
     u16 grp;
@@ -828,9 +805,7 @@ s16 func_801086E4_storyresult(u8 *rec, s16 odd, s16 start, s16 end, SrRecPart *m
     }
     return ret;
 }
-/*</func_801086E4_storyresult>*/
 
-/*<func_80108884_storyresult>*/
 #ifdef NON_MATCHING
 s16 func_80108884_storyresult(SrRecWork *w) {
     u8 count[4];
@@ -884,15 +859,13 @@ s16 func_80108884_storyresult(SrRecWork *w) {
         HuSprAttrSet(grp, k, 0x8000);
     }
     w->winFade[5] = 1;
-    w->unk140 = 1;
+    w->unk14C = 1;
     return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108884_storyresult);
 #endif
-/*</func_80108884_storyresult>*/
 
-/*<func_80108AC0_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 2): the per-rank count local gets an andi and the saved registers rotate (as minigame func_800E7BCC_minigame). */
 /* func_80108884_storyresult with the record passed in: per-rank marks for last and rec[12]. */
@@ -945,21 +918,15 @@ s16 func_80108AC0_storyresult(SrRecWork *w, u8 last, u8 *rec) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108AC0_storyresult);
 #endif
-/*</func_80108AC0_storyresult>*/
 
-/*<func_80108CB8_storyresult>*/
 s16 func_80108CB8_storyresult(SrRecWork *w) {
     return func_80108AC0_storyresult(w, GwStory.unk58[GwStory.unk1], GwStory.unk10[GwStory.unk1]);
 }
-/*</func_80108CB8_storyresult>*/
 
-/*<func_80108D04_storyresult>*/
 s16 func_80108D04_storyresult(SrRecWork *w) {
     return func_80108AC0_storyresult(w, GwStory.unk_64[15], (u8 *)&GwStory.unk_64[3]);
 }
-/*</func_80108D04_storyresult>*/
 
-/*<func_80108D34_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 2): in the page 2 call retail computes &w->part[22] before storing mark to the stack (scheduling). */
 /* Shows record page `page`: 0/1 the results, 2 the last one, 3/5 the rank marks of the record,
@@ -1012,11 +979,9 @@ s16 func_80108D34_storyresult(s16 page, SrRecWork *w) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108D34_storyresult);
 #endif
-/*</func_80108D34_storyresult>*/
 
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108F0C_storyresult);
 
-/*<func_8010A370_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 8): retail keeps a raw copy of slot and does not thread the slot >= 6 jump (as minigame func_800E905C_minigame). */
 /* Rank (0-4) of a story record: slot 0-5 saved, -1 the current story, -2 the saved copy; -1 if incomplete. */
@@ -1070,9 +1035,7 @@ ok:
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A370_storyresult);
 #endif
-/*</func_8010A370_storyresult>*/
 
-/*<func_8010A4A4_storyresult>*/
 Process *func_8010A4A4_storyresult(s16 mode, s16 slot) {
     SrRecInfo *info;
     Process *prc;
@@ -1090,9 +1053,7 @@ Process *func_8010A4A4_storyresult(s16 mode, s16 slot) {
     prc->user_data = info;
     return prc;
 }
-/*</func_8010A4A4_storyresult>*/
 
-/*<func_8010A558_storyresult>*/
 s32 func_8010A558_storyresult(Process *prc) {
     SrRecInfo *info;
     s32 ret;
@@ -1109,9 +1070,7 @@ s32 func_8010A558_storyresult(Process *prc) {
     HuMemFree(info);
     return ret;
 }
-/*</func_8010A558_storyresult>*/
 
-/*<func_8010A5C4_storyresult>*/
 #ifdef NON_MATCHING
 /* Register allocation only (masked 0): retail computes the star difference in a0 and the result in v1. */
 /* Party rank of player: 4 two or more stars ahead, 3 one ahead, else 2 most coins among the star leaders, 1. */
@@ -1157,9 +1116,7 @@ s16 func_8010A5C4_storyresult(s16 player) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A5C4_storyresult);
 #endif
-/*</func_8010A5C4_storyresult>*/
 
-/*<func_8010A738_storyresult>*/
 #ifdef NON_MATCHING
 /* Register allocation only (masked 0): retail computes the player's offset first. */
 /* Duel rank of player from the star difference with the other player. */
@@ -1185,9 +1142,7 @@ s16 func_8010A738_storyresult(s16 player) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A738_storyresult);
 #endif
-/*</func_8010A738_storyresult>*/
 
-/*<func_8010A7B0_storyresult>*/
 s16 func_8010A7B0_storyresult(s16 player) {
     s16 n;
     s16 rank;
@@ -1199,9 +1154,7 @@ s16 func_8010A7B0_storyresult(s16 player) {
     }
     return rank;
 }
-/*</func_8010A7B0_storyresult>*/
 
-/*<func_8010A7EC_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue (masked 15): register allocation around the player search (retail copies GwStory.unk1 and keeps the chapter kind in t0). */
 /* The story player's rank in the board just played (0 if not found). */
@@ -1243,4 +1196,3 @@ s16 func_8010A7EC_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A7EC_storyresult);
 #endif
-/*</func_8010A7EC_storyresult>*/

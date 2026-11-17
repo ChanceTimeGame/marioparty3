@@ -57,9 +57,7 @@ extern s8 D_8010A91C_storyresult;  /* fixed camera */
 extern u32 D_8010A920_storyresult; /* random seed */
 extern s16 D_8010ABE2_storyresult; /* exit mode */
 extern Vec D_8010AC00_storyresult; /* fixed camera target */
-extern Vec D_8010AC0C_storyresult; /* CRot copy; splat also labels .y/.z */
-extern f32 D_8010AC10_storyresult;
-extern f32 D_8010AC14_storyresult;
+extern Vec D_8010AC0C_storyresult; /* CRot copy (splat also labels .y/.z as D_8010AC10/D_8010AC14) */
 extern Vec D_8010AC18_storyresult; /* fixed camera eye */
 extern f32 D_8010AC24_storyresult; /* near plane */
 extern f32 D_8010AC2C_storyresult; /* far plane */
@@ -104,7 +102,6 @@ extern SrCamKey D_8010AB9C_storyresult[];
 extern s16 D_8010AC28_storyresult;
 extern s16 D_8010AC2A_storyresult;
 
-/*<func_801059A0_storyresult>*/
 void func_801059A0_storyresult(void) {
     omInitObjMan(0x33, 0x19);
     switch (omovlevtno) {
@@ -163,9 +160,7 @@ void func_801059A0_storyresult(void) {
     D_8010AC2A_storyresult = 2;
     D_8010AC28_storyresult = 0x14;
 }
-/*</func_801059A0_storyresult>*/
 
-/*<func_80105C30_storyresult>*/
 void func_80105C30_storyresult(omObjData *obj) {
     if (D_8010A910_storyresult == 0) {
         if (D_800D530C_main != 0) {
@@ -191,9 +186,7 @@ void func_80105C30_storyresult(omObjData *obj) {
         obj->func = func_80105CF8_storyresult;
     }
 }
-/*</func_80105C30_storyresult>*/
 
-/*<func_80105CF8_storyresult>*/
 void func_80105CF8_storyresult(omObjData *obj) {
     s32 stat;
 
@@ -226,9 +219,7 @@ void func_80105CF8_storyresult(omObjData *obj) {
         }
     }
 }
-/*</func_80105CF8_storyresult>*/
 
-/*<func_80105DEC_storyresult>*/
 void func_80105DEC_storyresult(SrModelDef *def, s16 model) {
     switch ((u32)def->unkC) {
     case 1:
@@ -243,9 +234,7 @@ void func_80105DEC_storyresult(SrModelDef *def, s16 model) {
         break;
     }
 }
-/*</func_80105DEC_storyresult>*/
 
-/*<func_80105EA0_storyresult>*/
 void func_80105EA0_storyresult(SrModelDef *defs, SrModelSlot *slots, s32 count) {
     s16 i;
     u16 model;
@@ -263,9 +252,7 @@ void func_80105EA0_storyresult(SrModelDef *defs, SrModelSlot *slots, s32 count) 
         }
     }
 }
-/*</func_80105EA0_storyresult>*/
 
-/*<func_80105F7C_storyresult>*/
 u32 func_80105F7C_storyresult(u32 seed) {
     s32 hi, lo;
 
@@ -280,21 +267,15 @@ u32 func_80105F7C_storyresult(u32 seed) {
     seed = seed - lo * 0x41A7;
     return seed;
 }
-/*</func_80105F7C_storyresult>*/
 
-/*<func_80106050_storyresult>*/
 u32 func_80106050_storyresult(void) {
     return D_8010A920_storyresult = func_80105F7C_storyresult(D_8010A920_storyresult);
 }
-/*</func_80106050_storyresult>*/
 
-/*<func_80106078_storyresult>*/
 u32 func_80106078_storyresult(u32 max) {
     return ((D_8010A920_storyresult = func_80105F7C_storyresult(D_8010A920_storyresult)) & 0x7FFFFFFF) % max;
 }
-/*</func_80106078_storyresult>*/
 
-/*<func_801060D0_storyresult>*/
 void func_801060D0_storyresult(SrCamKey *key) {
     f32 fov;
 
@@ -308,9 +289,7 @@ void func_801060D0_storyresult(SrCamKey *key) {
         Hu3DCamSetPerspective(0, fov, D_8010AC24_storyresult, D_8010AC2C_storyresult);
     }
 }
-/*</func_801060D0_storyresult>*/
 
-/*<func_80106190_storyresult>*/
 /* msetup func_80106320_msetup without its loop; the camera process func_80106754_storyresult calls it. */
 #ifdef NON_MATCHING
 /* Residue (masked 11): retail schedules the &Center load before the first mul.s, and f2/f12 swap in the distance sum (as msetup func_801068F4_msetup). */
@@ -377,18 +356,14 @@ void func_80106190_storyresult(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106190_storyresult);
 #endif
-/*</func_80106190_storyresult>*/
 
-/*<func_80106754_storyresult>*/
 void func_80106754_storyresult(void) {
     while (1) {
         func_80106190_storyresult();
         HuPrcVSleep();
     }
 }
-/*</func_80106754_storyresult>*/
 
-/*<func_80106780_storyresult>*/
 #ifdef NON_MATCHING
 /* Residue: two hazard nops after cosdf() (W2DC_BLANKSTRIP) and f2/f12 swapped in the distance sum. */
 void func_80106780_storyresult(SrCamKey *keys, f32 speed, SrCamFunc func) {
@@ -466,8 +441,8 @@ void func_80106780_storyresult(SrCamKey *keys, f32 speed, SrCamFunc func) {
         Center.y = out[4];
         Center.z = out[5];
         D_8010AC0C_storyresult.x = CRot.x = out[0];
-        D_8010AC10_storyresult = CRot.y = out[1];
-        D_8010AC14_storyresult = CRot.z = out[2];
+        D_8010AC0C_storyresult.y = CRot.y = out[1];
+        D_8010AC0C_storyresult.z = CRot.z = out[2];
         CZoom = out[6];
         gCameraList->fov[0] = D_8010A918_storyresult = out[7];
         if (func != NULL) {
@@ -489,9 +464,7 @@ void func_80106780_storyresult(SrCamKey *keys, f32 speed, SrCamFunc func) {
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54DD10", func_80106780_storyresult);
 #endif
-/*</func_80106780_storyresult>*/
 
-/*<func_80106C84_storyresult>*/
 void func_80106C84_storyresult(void) {
     s16 i;
     s16 n;
@@ -534,9 +507,7 @@ void func_80106C84_storyresult(void) {
     D_8010ABE8_storyresult.unk15 = 0;
     D_8010ABE0_storyresult = D_8010ABE8_storyresult.pad[0];
 }
-/*</func_80106C84_storyresult>*/
 
-/*<func_80106E48_storyresult>*/
 /* Whether the story results run (0: go to overlay 0x75 instead). */
 s16 func_80106E48_storyresult(void) {
     s16 ret;
@@ -583,5 +554,4 @@ s16 func_80106E48_storyresult(void) {
     }
     return ret;
 }
-/*</func_80106E48_storyresult>*/
 
