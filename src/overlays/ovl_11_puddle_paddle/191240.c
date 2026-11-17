@@ -1212,47 +1212,10 @@ s16 func_8010CE74_puddle_paddle(HuSprite_Unk84_Struct *arg0, f32 arg1) {
 }
 
 // m1 pp3: sprite models and collider system, twins of Baby Bowser Broadside (169540.c, bb3 block)
-#include "gcc/memory.h"
-#include "mallocblock.h"
-#include "math.h"
-#include "game/hmfman.h"
-#include "game/object.h"
-#include "game/sprite.h"
-#include "game/util.h"
 
 #define PP3_ABS(x) ((x) > 0 ? (x) : -(x))
 #define PP3_M_ID(m, i, j) ((m)[(i) * 4 + (j)])
 #define PP3_VECMagXZ(a) sqrtf(((a)->x * (a)->x) + ((a)->z * (a)->z))
-
-typedef struct {
-    /* 0x00 */ u8 r;
-    /* 0x01 */ u8 g;
-    /* 0x02 */ u8 b;
-    /* 0x03 */ u8 a;
-} PpRGBA;
-
-typedef struct {
-    /* 0x00 */ s8 s8[16];
-    /* 0x10 */ s16 s16[8];
-    /* 0x20 */ f32 f32[4];
-} PpWork; // Size 0x30
-
-typedef struct {
-    /* 0x00 */ omObjData *object;
-    /* 0x04 */ s16 *modelIds;
-    /* 0x08 */ s16 maxModels;
-} PpFuncGroupContext; // Size 0xC
-
-typedef struct pp_func_context {
-    /* 0x00 */ s8 set;
-    /* 0x02 */ s16 id;
-    /* 0x04 */ s8 state;
-    /* 0x05 */ s8 tag;
-    /* 0x08 */ s32 prio;
-    /* 0x0C */ PpWork work;
-    /* 0x3C */ void *data;
-    /* 0x40 */ void (*func)(PpFuncGroupContext *, struct pp_func_context *);
-} PpFuncContext; // Size 0x44
 
 typedef struct {
     /* 0x00 */ Vec normal;
@@ -1297,11 +1260,9 @@ typedef struct {
 
 extern s16 D_800CDD6A_main;
 extern u8 D_800D2008_main;
-extern Gfx D_80111330_puddle_paddle[];
 extern PpCollider *D_80111670_puddle_paddle;
 
 void func_8010BAA8_puddle_paddle(s8 groupId, PpFuncContext *ctx);
-s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 s16 func_8010F80C_puddle_paddle(PpCollider *c, PpMover *m);
 s16 func_8010F9FC_puddle_paddle(PpCollider *c, PpMover *m);
 s16 func_8010FBD4_puddle_paddle(PpCollider *c, PpMover *m);
