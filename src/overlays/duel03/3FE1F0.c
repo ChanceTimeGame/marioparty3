@@ -1227,13 +1227,36 @@ void func_8010E908_duel03(void) {
     func_8001C92C_main(D_801180F0_duel03->omObj1->model[0], 1.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8010E958_duel03);
+// board db2: duel03's own space objects (duel01 has two at other spaces; no twin)
+extern Object *D_801180F8_duel03[4]; /* one object per space below */
+extern s16 D_80117470_duel03[4]; /* their space ids */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8010EA1C_duel03);
+void func_8010E958_duel03(s16 no) {
+    s32 models[4] = { 0x40, 0x41, 0x42, 0x43 };
+    Object *obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8010EA74_duel03);
+    if (D_801180F8_duel03[no] == NULL) {
+        obj = func_800D8010_name_81(models[no], NULL);
+        func_800D8944_name_81(obj);
+        D_801180F8_duel03[no] = obj;
+        obj->flags |= 2;
+        HuVecCopy3F(&obj->coords, &MBDMasuGet(D_80117470_duel03[no])->coords);
+    }
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/duel03/3FE1F0", D_80117BF0_duel03);
+void func_8010EA1C_duel03(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        D_801180F8_duel03[i] = NULL;
+        func_8010E958_duel03(i);
+    }
+}
+
+/* Chance in percent: 10 per star below 5 (the current player's). */
+s32 func_8010EA74_duel03(void) {
+    return (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
+}
 
 s32 func_8010EAAC_duel03(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(CUR_PLAYER);
