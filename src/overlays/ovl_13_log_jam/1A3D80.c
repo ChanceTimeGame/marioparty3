@@ -159,6 +159,21 @@ s32 func_8010DA84_log_jam(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, 
 void func_8010D950_log_jam(u16 model, HuSprite_Unk84_Struct *spr, u16 frame, RGBA *color);
 void func_8010C5DC_log_jam(omObjData *obj, s16 slot, s16 frames);
 void func_800E4BA4_minigame(u8 mdl);
+typedef f32 Matrix4f[4][4];
+extern Matrix4f *D_800D1358_main; /* matrix table being filled */
+extern s16 *D_800D04B4_main;      /* per matrix: its motion object */
+extern s16 D_800CD1B0_main;       /* matrices written */
+extern s16 D_800D138A_main;       /* matrix stack depth */
+extern Matrix4f D_800D5A00_main[]; /* matrix stack */
+void func_8002DFF8_main(HmfData *, f32, D_800CCF58_main_Struct *, s32);
+void func_8002EAC0_main(HmfData *, f32, f32);
+s16 func_8002C834_main(HmfData *, char *);
+void func_8008A070_main(Matrix4f);
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+void func_80016C2C_main(HmfData *arg0, s16 arg1, s16 arg2);
+void func_8010C8E0_log_jam(s16 mdl, char *part, Matrix4f *out);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010A0B0_log_jam);
 
@@ -805,9 +820,55 @@ void func_8010C8B0_log_jam(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010C8E0_log_jam);
+void func_8010C8E0_log_jam(s16 mdl, char *part, Matrix4f *out) {
+    HmfModel *model = &HmfModelData[mdl];
+    HmfData *hmf = model->hmf;
+    s16 idx = func_8002C834_main(hmf, part);
+    D_800CCF58_main_Struct *anim = &D_800CCF58_main[HmfModelData[mdl].unk02];
+    s16 parts[4]; /* retail's frame leaves 8 bytes here, as in func_80016B00_main */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010CAC0_log_jam);
+    D_800D1358_main = out;
+    D_800D04B4_main = parts;
+    D_800CD1B0_main = 0;
+    if (model->unk06 != 0xFF) {
+        hmf->unk94 = (HmfModelData_Unk64_Unk8C_Struct *)&D_800CCF58_main[model->unk06];
+        hmf->unkAC = model->unk58;
+    } else {
+        hmf->unk94 = NULL;
+    }
+    if (model->unk04 != 0xFF && model->unk0C != 0) {
+        hmf->unk90 = (HmfModelData_Unk64_Unk8C_Struct *)&D_800CCF58_main[model->unk04];
+        hmf->unkA4 = model->unk4C;
+        hmf->unkA8 = (f32)model->unk0E / (f32)model->unk0C;
+    } else {
+        hmf->unk90 = NULL;
+    }
+    guMtxIdentF(D_800D5A00_main[0]);
+    func_8002DFF8_main(hmf, model->unk40, anim, 1);
+    if (hmf->unk90 != NULL) {
+        func_8002EAC0_main(hmf, hmf->unkA4, hmf->unkA8);
+    }
+    if (hmf->unk94 != NULL) {
+        func_8002DFF8_main(hmf, hmf->unkAC, (D_800CCF58_main_Struct *)hmf->unk94, 0);
+    }
+    D_800D138A_main = 0;
+    func_80016C2C_main(hmf, 0, idx);
+    if (D_800CD1B0_main >= 2) {
+        osSyncPrintf("Mtx Made Over\n");
+    }
+}
+
+void func_8010CAC0_log_jam(omObjData *obj, char *part, Matrix4f out) {
+    Matrix4f m;
+    Matrix4f partMtx;
+
+    func_8008A070_main(m);
+    func_80017C10_main((Mtx *)m, obj->trans.x, obj->trans.y, obj->trans.z);
+    func_80017D24_main(m, obj->rot.x, obj->rot.y, obj->rot.z);
+    func_80017CD0_main(m, obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8010C8E0_log_jam(obj->model[0], part, &partMtx);
+    func_80018044_main(partMtx, m, out);
+}
 
 s32 func_8010CB64_log_jam(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
     HmfData *temp_s4;
