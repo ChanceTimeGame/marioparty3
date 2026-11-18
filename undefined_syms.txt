@@ -430,3 +430,6 @@ D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
 /* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
 D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
 D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
+/* m3 sw: inner .data labels (temporary until the .data moves into C) */
+D_8010B42A_swinging_with_sharks = 0x8010B42A;
+D_8010B76A_swinging_with_sharks = 0x8010B76A;
