@@ -49,7 +49,13 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
 
 extern s32 D_800A178C_main[][6];
 
+extern s8 D_800CBB6E_main[];
+extern s16 D_800CDA7C_main[];
+extern s8 D_800D20A1_main[];
+extern u16 D_800D5558_main[];
+
 // minigame
+void func_800DDD94_minigame(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, s32 arg1, s32 arg2);
 void func_800E6F0C_minigame(s8 arg0);
 u16 func_800E6E9C_minigame(void);
@@ -71,6 +77,7 @@ void func_80106E14_dorrie_dip(omObjData* obj, s32 player);
 void func_80107360_dorrie_dip(omObjData* obj);
 void func_80106DB8_dorrie_dip(omObjData* obj);
 void func_801074CC_dorrie_dip(void);
+void func_801074F8_dorrie_dip(void);
 void func_80107690_dorrie_dip(void);
 void func_80107D58_dorrie_dip(void);
 void func_80108148_dorrie_dip(void);
@@ -90,6 +97,7 @@ void func_8010971C_dorrie_dip(void);
 void func_80109978_dorrie_dip(void);
 void func_80109B28_dorrie_dip(void);
 void func_80109E1C_dorrie_dip(s32 idx);
+void func_80109F00_dorrie_dip(void);
 
 /* .data */
 extern D_80111B50_vine_with_me_Struct D_8010A040_dorrie_dip;
@@ -541,11 +549,60 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A174_
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106E14_dorrie_dip);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107360_dorrie_dip);
+/* The player's object function: the framework moves it, its position stays put. */
+void func_80107360_dorrie_dip(omObjData* obj) {
+    func_800E1BA8_minigame_ObjData* work = obj->data;
+    f32 x = obj->trans.x;
+    f32 z = obj->trans.z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801074CC_dorrie_dip);
+    D_800CBB6E_main[work->unk57] = 0;
+    D_800D20A1_main[work->unk57] = 0;
+    if (GwPlayer[work->unk59].stat & 1) {
+        D_800CDA7C_main[work->unk57] = 0;
+        D_800D5558_main[work->unk57] = 0;
+    }
+    if (func_800E6E8C_minigame() == 2 && (GwPlayer[work->unk59].stat & 1)) {
+        func_80109F00_dorrie_dip();
+    }
+    func_800DDD94_minigame(obj);
+    if (work->unk5C == 0x200) {
+        D_8010A1F8_dorrie_dip = 3;
+        if (work->unk5C == 0x200 && work->unk50 == 0x80 && !(D_8010A240_dorrie_dip & 1)) {
+            D_8010A240_dorrie_dip |= 1;
+            func_80106BC0_dorrie_dip();
+        }
+    }
+    work->unk60 = 0.0f;
+    obj->trans.x = x;
+    obj->trans.z = z;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801074F8_dorrie_dip);
+void func_801074CC_dorrie_dip(void) {
+    omAddPrcObj(func_801074F8_dorrie_dip, 0x50, 0, 0);
+}
+
+/* Process: move the camera over 30 frames to its playing view. */
+void func_801074F8_dorrie_dip(void) {
+    s32 i;
+
+    for (i = 0; i < 30; i++) {
+        CZoom += 34.7f;
+        CRot.x += -1.44666648f;
+        if (CRot.x < 301.6f) {
+            CRot.x = 301.6f;
+        }
+        Center.x += -0.0966666713f;
+        Center.y += -3.04666662f;
+        Center.z += 2.75333333f;
+        HuPrcVSleep();
+    }
+    CZoom = 1541.0f;
+    CRot.x = 301.6f;
+    Center.x = -2.9f;
+    Center.y = 98.6f;
+    Center.z = 82.6f;
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107690_dorrie_dip);
 
