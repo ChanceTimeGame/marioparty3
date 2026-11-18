@@ -66,7 +66,17 @@ typedef struct WwPegs {
     /* 0xA0 */ s32 unkA0;     /* 2: the empty slot was picked */
 } WwPegs; /* size 0xA4 */
 
+/* omObjData::data of the wheel's six rim lights (D_8010A4A4) */
+typedef struct WwRim {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ f32 unk04[6];
+    /* 0x1C */ f32 unk1C[6];
+    /* 0x34 */ f32 unk34[6];
+    /* 0x4C */ f32 unk4C[6]; /* angle */
+} WwRim; /* size 0x64 */
+
 // main
+void GMesPosSet(s16 mesId, f32 x, f32 y);
 void func_8001473C_main(s16 index, u16 arg1); /* src/14EA0.c: (s16, s16) */
 omObjData* func_80045ED0_main(u32 arg0);
 extern WwSprModel* D_800CBB60_main;
@@ -165,6 +175,7 @@ extern s32 D_8010A490_winners_wheel;    /* CPU timer */
 extern omObjData* D_8010A498_winners_wheel;
 extern omObjData* D_8010A49C_winners_wheel;
 extern omObjData* D_8010A4A0_winners_wheel;
+extern omObjData* D_8010A4A4_winners_wheel;
 extern s16 D_8010A48A_winners_wheel;    /* the spin-up sound */
 extern s16 D_8010A48E_winners_wheel;    /* the player's port */
 extern s16 D_8010A494_winners_wheel;    /* the wheel's sound */
@@ -726,14 +737,13 @@ void func_80107820_winners_wheel(void) {
     omDelPrcObj(NULL);
 }
 
-/* NON_MATCHING: retail keeps the 0x699 model attribute in a saved register across the loop (masked 3) */
-#ifdef NON_MATCHING
 /* The two hosts beside the wheel. */
 void func_801078D8_winners_wheel(void) {
     f32 pos[4][2];
     omObjData* obj;
     WwHostPair* work;
     s32 i;
+    s32 attr;
 
     pos[0][0] = -300.0f;
     pos[0][1] = 300.0f;
@@ -743,13 +753,14 @@ void func_801078D8_winners_wheel(void) {
     pos[2][1] = -275.0f;
     pos[3][0] = 30.0f;
     pos[3][1] = -30.0f;
+    attr = 0x699;
     for (i = 0; i < 2; i++) {
         obj = omAddObj(0xFF, 1, 5, -1, func_80107B04_winners_wheel);
         D_8010A4B8_winners_wheel[i] = obj;
         obj->data = HuMemAllocTag(sizeof(WwHostPair), 31000);
         work = obj->data;
         if (i == 0) {
-            obj->model[0] = func_8000B108_main(0xA0147, 0x699);
+            obj->model[0] = func_8000B108_main(0xA0147, attr);
         } else {
             obj->model[0] = Hu3DModelLink(D_8010A4B8_winners_wheel[0]->model[0]);
         }
@@ -765,9 +776,6 @@ void func_801078D8_winners_wheel(void) {
         func_8000B460_main(obj, 4, 0xA014C);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801078D8_winners_wheel);
-#endif
 
 void func_80107B04_winners_wheel(omObjData* obj) {
 }
@@ -791,14 +799,15 @@ void func_80107CB4_winners_wheel(void) {
     func_8001C624_main(D_8010A4B8_winners_wheel[1]->model[0], HmfModelData[D_8010A4B8_winners_wheel[1]->motion[3]].unk02, 0, 10, 0);
 }
 
-/* NON_MATCHING: retail keeps the 0x6BD attribute in a saved register and passes the else branch's
-   0.0f arguments as integer zeros (loop hoisting differs; masked 22) */
+/* NON_MATCHING: retail passes the else branch's 0.0f arguments as integer zeros and keeps only the
+   first branch's in a hoisted register (loop invariants differ; masked 10). Logic checked. */
 #ifdef NON_MATCHING
 /* The 18 pegs round the wheel. */
 void func_80107D50_winners_wheel(void) {
     omObjData* obj;
     WwPegs* work;
     s32 i;
+    s32 attr;
 
     obj = omAddObj(0xFF, 18, 0, -1, func_80107F4C_winners_wheel);
     obj->data = work = HuMemAllocTag(sizeof(WwPegs), 31000);
@@ -807,10 +816,11 @@ void func_80107D50_winners_wheel(void) {
     work->unk00 = 0x20;
     work->unk9C = 0;
     work->unkA0 = 0;
+    attr = 0x6BD;
     for (i = 0; i < 18; i++) {
         work->unk4C[i] = work->unk04[i] = i * 20.0f;
         if (i == 0) {
-            obj->model[0] = func_8000B108_main(0x5C0005, 0x6BD);
+            obj->model[0] = func_8000B108_main(0x5C0005, attr);
             omSetTra(obj, sindf(work->unk04[0]) * -10.5f, cosdf(work->unk04[0]) * -10.5f, 0.0f);
             omSetRot(obj, 0.0f, 0.0f, -work->unk04[0]);
         } else {
@@ -1086,17 +1096,120 @@ void func_80108F04_winners_wheel(s32 arg0) {
     D_8010A494_winners_wheel = HuAudFXPlay(0x4CB);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109050_winners_wheel);
+void func_80109050_winners_wheel(void) {
+    omAddPrcObj(func_8010907C_winners_wheel, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010907C_winners_wheel);
+/* The pointer peg blinks three times, then the result. */
+void func_8010907C_winners_wheel(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109104_winners_wheel);
+    for (i = 0; i < 3; i++) {
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 0);
+        HuPrcSleep(10);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 4);
+        HuPrcSleep(10);
+    }
+    D_8010A464_winners_wheel = 4;
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109130_winners_wheel);
+void func_80109104_winners_wheel(void) {
+    omAddPrcObj(func_80109130_winners_wheel, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109388_winners_wheel);
+/* The camera pulls back while the wheel, its prizes and the player grow to full size. */
+void func_80109130_winners_wheel(void) {
+    WwWheel* wheel = D_8010A49C_winners_wheel->data;
+    WwPrize* prize = D_8010A4A0_winners_wheel->data;
+    WwPlayer* player = D_8010A4B4_winners_wheel->data;
+    s32 i;
+    s32 j;
+    f32 t;
+    f32 step = (1.0f - 0.93f) / 30.0f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109454_winners_wheel);
+    for (i = 0; i < 30; i++) {
+        CZoom += 36.2f;
+        for (j = 0; j < 4; j++) {
+            CZoomM[j] = CZoom;
+        }
+        wheel->unk08 = step + wheel->unk08;
+        player->unk0C = step + player->unk0C;
+        t = 30 - i;
+        player->unk10 = t * 5.0f / 30.0f + -175.0f;
+        player->unk14 = t * 0.0f / 30.0f + -125.0f;
+        player->unk18 = t * -95.0f / 30.0f + 325.0f;
+        for (j = 0; j < 6; j++) {
+            prize->unk78[j] = wheel->unk08 * 1.5f;
+        }
+        HuPrcVSleep();
+    }
+    wheel->unk08 = 1.0f;
+    player->unk0C = 1.0f;
+    for (j = 0; j < 6; j++) {
+        prize->unk78[j] = 1.5f;
+    }
+    CZoom = 2887.1f;
+    player->unk10 = -175.0f;
+    player->unk14 = -125.0f;
+    player->unk18 = 325.0f;
+    omDelPrcObj(NULL);
+}
+
+/* The 10-second timer: on time up the player stops the wheel. */
+void func_80109388_winners_wheel(void) {
+    s32 sec = 10;
+    s32 t = 30;
+
+    GMesPosSet(GMesCreate(0x1A, 10, 160, 28), 160.0f, 28.0f);
+    do {
+        if (--t == 0) {
+            t = 30;
+            sec--;
+        }
+        func_8003F578_main(sec);
+        HuPrcVSleep();
+        if (D_8010A464_winners_wheel == 3) {
+            break;
+        }
+    } while (sec > 0);
+    func_8003F5C0_main();
+    if (D_8010A464_winners_wheel != 3) {
+        D_8010A464_winners_wheel = 2;
+    }
+    omDelPrcObj(NULL);
+}
+
+/* The wheel's six rim lights. */
+void func_80109454_winners_wheel(void) {
+    omObjData* obj;
+    WwRim* work;
+    WwWheel* wheel;
+    s32 i;
+    s32 attr = 0x63D;
+
+    obj = omAddObj(0xFF, 6, 0, -1, func_801095E4_winners_wheel);
+    D_8010A4A4_winners_wheel = obj;
+    obj->data = HuMemAllocTag(sizeof(WwRim), 31000);
+    work = obj->data;
+    wheel = D_8010A49C_winners_wheel->data;
+    work->unk00 = 0;
+    for (i = 0; i < 6; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x5C0003, attr);
+            omSetTra(obj, 0.0f, 0.0f, 6.0f);
+            omSetSca(obj, wheel->unk08, wheel->unk08, 1.0f);
+        } else {
+            obj->model[i] = Hu3DModelLink(obj->model[0]);
+            Hu3DModelPosSet(obj->model[i], 0.0f, 0.0f, 6.0f);
+            Hu3DModelScaleSet(obj->model[i], wheel->unk08, wheel->unk08, 1.0f);
+        }
+        work->unk04[i] = 0.0f;
+        work->unk1C[i] = 0.0f;
+        work->unk34[i] = 0.0f;
+        work->unk4C[i] = i * 60.0f;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801095E4_winners_wheel);
 
