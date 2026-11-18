@@ -219,6 +219,11 @@ extern u8 D_8010CDAC_spotlight_swim[][2];
 extern s8 D_8010CDA8_spotlight_swim[];
 extern s8 D_8010CDB4_spotlight_swim;
 
+extern s8 D_8010D3AC_spotlight_swim;
+extern s8 D_8010CCC0_spotlight_swim[][3];
+extern s8 D_8010D320_spotlight_swim[3];
+extern s8 D_8010D340_spotlight_swim[3];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -232,6 +237,8 @@ void func_80107C10_spotlight_swim(omObjData *obj);
 void func_8010846C_spotlight_swim(omObjData *obj);
 void func_8010881C_spotlight_swim(omObjData *obj);
 void func_80108AD8_spotlight_swim(omObjData *obj);
+void func_80109A94_spotlight_swim(omObjData *obj);
+void func_80109C1C_spotlight_swim(omObjData *obj);
 void func_80109690_spotlight_swim(omObjData *obj);
 u8 func_80109194_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
@@ -1486,9 +1493,85 @@ void func_80109A94_spotlight_swim(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109C1C_spotlight_swim);
+/* Chaser setup. */
+void func_80109C1C_spotlight_swim(omObjData *obj) {
+    SsEnt *ent = &D_8010D60C_spotlight_swim[obj->work[1]];
+    s8 i = obj->work[1];
 
+    if (GwPlayer[obj->work[0]].stat & 1) {
+        ent->unk16 = 1;
+    } else {
+        ent->unk16 = 0;
+        D_8010D366_spotlight_swim = i + 1;
+    }
+    switch (D_8010CCC0_spotlight_swim[D_8010D3AC_spotlight_swim][i]) {
+    case 0:
+        obj->trans.x = 70.0f;
+        break;
+    case 1:
+        obj->trans.x = 160.0f;
+        break;
+    case 2:
+        obj->trans.x = 250.0f;
+        break;
+    }
+    obj->trans.y = 140.0f;
+    obj->trans.z = 0.0f;
+    D_8010D308_spotlight_swim[i].xTimer = 0;
+    D_8010D308_spotlight_swim[i].xTime = 0;
+    D_8010D308_spotlight_swim[i].x = 0;
+    D_8010D308_spotlight_swim[i].yTimer = 0;
+    D_8010D308_spotlight_swim[i].yTime = 0;
+    D_8010D308_spotlight_swim[i].y = 0;
+    D_8010D308_spotlight_swim[i].unk1 = func_80105C8C_spotlight_swim(60);
+    D_8010D308_spotlight_swim[i].level = GwPlayer[obj->work[0]].cpu_difficulty;
+    obj->work[3] = GwPlayer[obj->work[0]].pad;
+    obj->func = func_80109A94_spotlight_swim;
+}
+
+#ifdef NON_MATCHING
+/* the switch's constant 1 is hoisted into a saved register (one extra s-reg); ops otherwise equal */
+void func_80109E08_spotlight_swim(void) {
+    omObjData *obj;
+    SsEnt *ent;
+    s16 i;
+    s32 n;
+    u32 player;
+    s32 unused[2];
+
+    player = 0;
+    n = 0;
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            }
+            ent = &D_8010D60C_spotlight_swim[n];
+            obj = omAddObj(800, 4, 1, -1, func_80109C1C_spotlight_swim);
+            obj->work[0] = player;
+            ent->obj = obj;
+            ent->unk04 = n;
+            obj->work[1] = (s16)n;
+            D_8010D320_spotlight_swim[n] = obj->work[0];
+            D_8010D340_spotlight_swim[n] = GwPlayer[obj->work[0]].chr;
+            n++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109E08_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109F60_spotlight_swim);
 
