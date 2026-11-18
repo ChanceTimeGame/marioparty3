@@ -106,6 +106,12 @@ extern Vec Center;
 extern Vec CRot;
 extern f32 CZoom;
 
+s16 func_8000CED8_main(s32, s32);
+void func_8000CFA4_main(s16, f32, f32, f32);
+void func_8000CFD8_main(s16, s16);
+void func_80017954_main(s16, s16, s16, s16);
+omObjData *func_80045ED0_main(u32 arg0);
+
 // minigame
 void func_800E6F0C_minigame(s8 arg0);
 extern s16 D_800EB930_minigame;
@@ -163,6 +169,8 @@ extern u16 D_8010BF9C_hand_line_sinker; /* fish placed */
 const s16 D_8010BFB0_hand_line_sinker[] = { 0x8260, 0x8261, 0x8262, 0 };
 
 /* .bss */
+extern f32 D_8010C0E4_hand_line_sinker;
+extern u16 D_8010C0E8_hand_line_sinker; /* fish that reached the middle */
 extern u16 D_8010C0EA_hand_line_sinker; /* the angler's player number */
 extern s16 D_8010C0EC_hand_line_sinker;
 extern u16 D_8010C0EE_hand_line_sinker; /* intro step */
@@ -650,7 +658,7 @@ void func_8010689C_hand_line_sinker(omObjData *obj) {
             }
             break;
         case 5:
-            mdl = &HmfModelData[obj->model[0]];
+            mdl = HmfModelData + obj->model[0];
             if (D_800CCF58_main[mdl->unk02].unk02 <= mdl->unk40) {
                 obj->work[0] = 0;
                 func_8001C258_main(obj->model[1], 0x4000, 0x4000);
@@ -1357,9 +1365,293 @@ void func_801093A4_hand_line_sinker(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80109584_hand_line_sinker);
+/* Finish, all three fish caught: confetti, the angler turns to the camera and wins. */
+void func_80109584_hand_line_sinker(omObjData *obj) {
+    Vec pos;
+    HlPlayer *pl;
+    s16 *mdl;
+    s32 i;
+    f32 f;
+    s16 eff;
 
+    switch (obj->work[1]) {
+        case 0:
+            if (D_8010C0FC_hand_line_sinker->work[0] == 0) {
+                obj->work[1] = 1;
+            }
+            break;
+        case 1:
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[1], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[3], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[2], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[1], 4, 4);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[3], 4, 4);
+            i = 0;
+            do {
+                f = i * 17.0f;
+                pos.y = 240.0f - f;
+                pos.x = sindf(D_8010C0FC_hand_line_sinker->rot.y - 6.0f + (u8)(rand8() % 13) - 6.0f) * (140.0f - f) +
+                        D_8010C0FC_hand_line_sinker->trans.x;
+                pos.z = cosdf(D_8010C0FC_hand_line_sinker->rot.y - 6.0f + (u8)(rand8() % 13) - 6.0f) * (140.0f - f) +
+                        D_8010C0FC_hand_line_sinker->trans.z;
+                eff = func_8000CED8_main(0x85, 0x2A9);
+                func_8000CFA4_main(eff, pos.x, pos.y, pos.z);
+                func_8000CFD8_main(eff, 0x10);
+                i++;
+            } while (i < 6);
+            obj->work[1] = 2;
+            func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                               HmfModelData[D_8010C0FC_hand_line_sinker->motion[10]].unk02, 0, 6, 2);
+            break;
+        case 2:
+            D_8010C0E4_hand_line_sinker = -D_8010C0FC_hand_line_sinker->rot.y;
+            if (D_8010C0E4_hand_line_sinker < 0.0f) {
+                D_8010C0E4_hand_line_sinker += 360.0f;
+            }
+            if (D_8010C0E4_hand_line_sinker < 180.0f) {
+                if (D_8010C0E4_hand_line_sinker > 5.0f) {
+                    D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y + 5.0f;
+                } else {
+                    D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y + D_8010C0E4_hand_line_sinker;
+                }
+            } else if (360.0f - D_8010C0E4_hand_line_sinker > 5.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y - 5.0f;
+            } else {
+                D_8010C0FC_hand_line_sinker->rot.y =
+                    D_8010C0FC_hand_line_sinker->rot.y - (360.0f - D_8010C0E4_hand_line_sinker);
+            }
+            if (D_8010C0FC_hand_line_sinker->rot.y >= 360.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y -= 360.0f;
+            }
+            if (D_8010C0FC_hand_line_sinker->rot.y < 0.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y += 360.0f;
+            }
+            if (fabs(D_8010C0FC_hand_line_sinker->rot.y) < 0.0001f) {
+                D_8010C0FC_hand_line_sinker->rot.y = 0.0f;
+                func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                                   HmfModelData[D_8010C0FC_hand_line_sinker->motion[11]].unk02, 0, 6, 2);
+                obj->work[1] = 3;
+            }
+            break;
+        case 3:
+            func_8010B5EC_hand_line_sinker(&D_8010BF28_hand_line_sinker, &D_8010BF44_hand_line_sinker, 0x10);
+            D_8010C190_hand_line_sinker->work[1] = 1;
+            D_8010C190_hand_line_sinker->work[2] = 0;
+            obj->work[1] = 4;
+            break;
+        case 4:
+            if (D_8010C190_hand_line_sinker->work[0] == 0) {
+                pl = D_8010C0FC_hand_line_sinker->data;
+                mdl = D_8010C0FC_hand_line_sinker->model;
+                func_80017954_main(mdl[0], 2, GwPlayer[pl->player].chr, mdl[5]);
+                func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                                   HmfModelData[D_8010C0FC_hand_line_sinker->motion[12]].unk02, 0, 8, 0);
+                func_80045ED0_main(D_800A178C_main[GwPlayer[pl->player].chr][0] | 0x2F);
+                omDelObj(D_8010C190_hand_line_sinker);
+                D_8010BF00_hand_line_sinker.unk18 = pl->player;
+                obj->work[0] = 1;
+                GwPlayer[pl->player].bonusCoin = 10;
+            }
+            break;
+    }
+}
+
+/* Finish otherwise: the line goes slack, the fish still free jump out of the water and win. */
+#ifdef NON_MATCHING
+/* regalloc only: a few temporaries in other registers (model table base, fish data pointer, bounding-box loads) */
+void func_80109B9C_hand_line_sinker(omObjData *obj) {
+    Vec pos;
+    f32 box[4]; /* min x, min z, max x, max z */
+    HlPlayer *apl = D_8010C0FC_hand_line_sinker->data;
+    omObjData *lure = apl->lure;
+    HlLure *ld = NULL;
+    HlPlayer *fpl;
+    omObjData *fish;
+    omObjData *o;
+    HmfModel *mdl;
+    u32 st;
+    s32 i;
+    s32 n;
+    f32 f;
+    f32 d;
+    f32 cz;
+    s16 eff;
+
+    if (lure != NULL) {
+        ld = lure->data;
+    }
+    switch (obj->work[1]) {
+        case 0:
+            if (lure != NULL) {
+                if (ld != NULL) {
+                    ld->reel = -0.5f;
+                }
+                obj->work[1] = 1;
+            } else {
+                obj->work[1] = 2;
+            }
+            break;
+        case 1:
+            n = 0;
+            if (D_8010C0FC_hand_line_sinker->work[0] == 0) {
+                for (i = 0; i < 3; i++) {
+                    fish = D_8010C100_hand_line_sinker[i];
+                    st = fish->work[0];
+                    if (((st == 0) | (st == 4)) || st == 2) {
+                        n++;
+                    }
+                }
+                if (n == 3) {
+                    if (D_8010C10C_hand_line_sinker == n) {
+                        omDelObj(obj);
+                        D_8010C0F8_hand_line_sinker = o = omAddObj(4, 0, 0, -1, func_80109584_hand_line_sinker);
+                        o->work[1] = 0;
+                    } else {
+                        obj->work[1] = 2;
+                    }
+                }
+            }
+            break;
+        case 2:
+            D_8010C0E8_hand_line_sinker = 3;
+            for (i = 0; i < 3; i++) {
+                fish = D_8010C100_hand_line_sinker[i];
+                fish->work[3] = 1;
+                if ((fish->work[0] == 2) | (fish->work[0] == 4)) {
+                    continue;
+                }
+                if (!(HuSqrtf(fish->trans.x * fish->trans.x + fish->trans.z * fish->trans.z) < 300.0f)) {
+                    fish->work[3] = 0;
+                    D_8010C0E8_hand_line_sinker--;
+                }
+            }
+            if (D_8010C0E8_hand_line_sinker < 3) {
+                obj->work[1] = 3;
+                for (i = 0; i < 3; i++) {
+                    fish = D_8010C100_hand_line_sinker[i];
+                    if (((fish->work[0] == 2) | (fish->work[0] == 4)) == 0) {
+                        fish->func = func_80108F44_hand_line_sinker;
+                    }
+                }
+            } else {
+                obj->work[1] = 4;
+            }
+            break;
+        case 3:
+            n = 3;
+            for (i = 0; i < 3; i++) {
+                fish = D_8010C100_hand_line_sinker[i];
+                fish->work[3] = 1;
+            }
+            if (n == 3) {
+                obj->work[1] = 4;
+            }
+            break;
+        case 4:
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[1], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[3], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[2], 0x4000, 0);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[1], 4, 4);
+            func_8001C258_main(D_8010C0FC_hand_line_sinker->model[3], 4, 4);
+            i = 0;
+            do {
+                f = i * 17.0f;
+                pos.y = 240.0f - f;
+                pos.x = sindf(D_8010C0FC_hand_line_sinker->rot.y - 6.0f + (u8)(rand8() % 13) - 6.0f) * (140.0f - f) +
+                        D_8010C0FC_hand_line_sinker->trans.x;
+                pos.z = cosdf(D_8010C0FC_hand_line_sinker->rot.y - 6.0f + (u8)(rand8() % 13) - 6.0f) * (140.0f - f) +
+                        D_8010C0FC_hand_line_sinker->trans.z;
+                eff = func_8000CED8_main(0x85, 0x2A9);
+                func_8000CFA4_main(eff, pos.x, pos.y, pos.z);
+                func_8000CFD8_main(eff, 0x10);
+                i++;
+            } while (i < 6);
+            obj->work[1] = 5;
+            func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                               HmfModelData[D_8010C0FC_hand_line_sinker->motion[10]].unk02, 0, 6, 2);
+            break;
+        case 5:
+            d = -D_8010C0FC_hand_line_sinker->rot.y;
+            if (d < 0.0f) {
+                d += 360.0f;
+            }
+            if (d < 180.0f) {
+                if (d > 5.0f) {
+                    D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y + 5.0f;
+                } else {
+                    D_8010C0FC_hand_line_sinker->rot.y = d + D_8010C0FC_hand_line_sinker->rot.y;
+                }
+            } else if (360.0f - d > 5.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y - 5.0f;
+            } else {
+                D_8010C0FC_hand_line_sinker->rot.y = D_8010C0FC_hand_line_sinker->rot.y - (360.0f - d);
+            }
+            if (D_8010C0FC_hand_line_sinker->rot.y >= 360.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y -= 360.0f;
+            }
+            if (D_8010C0FC_hand_line_sinker->rot.y < 0.0f) {
+                D_8010C0FC_hand_line_sinker->rot.y += 360.0f;
+            }
+            if (fabs(D_8010C0FC_hand_line_sinker->rot.y) < 0.0001f) {
+                HuAudFXPlay(GwPlayer[apl->player].chr + 0x287);
+                func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                                   HmfModelData[D_8010C0FC_hand_line_sinker->motion[13]].unk02, 0, 6, 0);
+                obj->work[1] = 6;
+            }
+            break;
+        case 6:
+            mdl = HmfModelData + D_8010C0FC_hand_line_sinker->model[0];
+            i = 0;
+            if (D_800CCF58_main[mdl->unk02].unk02 <= mdl->unk40) {
+                box[0] = 10000.0f;
+                box[1] = 10000.0f;
+                box[2] = -10000.0f;
+                box[3] = -10000.0f;
+                do {
+                    fish = D_8010C100_hand_line_sinker[i];
+                    fpl = fish->data;
+                    (&D_8010BF00_hand_line_sinker.unk18)[i] = fpl->player;
+                    GwPlayer[fpl->player].bonusCoin = 10;
+                    if (((fish->work[0] == 2) | (fish->work[0] == 4)) == 0) {
+                        fpl->vy = 60.0f;
+                        fpl->splashed = 0;
+                        func_8004ACE0_main(0x28F, fpl->player);
+                        fish->func = func_80108C5C_hand_line_sinker;
+                        fish->work[0] = 5;
+                        if (fish->trans.x < box[0]) {
+                            box[0] = fish->trans.x;
+                        }
+                        if (fish->trans.z < box[1]) {
+                            box[1] = fish->trans.z;
+                        }
+                        if (box[2] < fish->trans.x) {
+                            box[2] = fish->trans.x;
+                        }
+                        if (box[3] < fish->trans.z) {
+                            box[3] = fish->trans.z;
+                        }
+                    }
+                    i++;
+                } while (i < 3);
+                D_8010C110_hand_line_sinker.center.x = (box[0] + box[2]) / 2.0f;
+                D_8010C110_hand_line_sinker.center.z = cz = (box[1] + box[3]) / 2.0f;
+                D_8010C110_hand_line_sinker.rot.x = 318.0f;
+                if (cz > 0.0f) {
+                    D_8010C110_hand_line_sinker.rot.x = 318.0f - (cz / 730.0f) * 20.0f;
+                }
+                D_8010C110_hand_line_sinker.zoom = 1700.0f;
+                func_8010B5EC_hand_line_sinker(&D_8010BF28_hand_line_sinker, &D_8010C110_hand_line_sinker, 0x10);
+                D_8010C190_hand_line_sinker->work[1] = 1;
+                D_8010C190_hand_line_sinker->work[2] = 1;
+                D_8010BF00_hand_line_sinker.unk06 = 2;
+                obj->work[0] = 1;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80109B9C_hand_line_sinker);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A554_hand_line_sinker);
 
