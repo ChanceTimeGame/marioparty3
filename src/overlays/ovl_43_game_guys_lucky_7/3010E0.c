@@ -1992,13 +1992,55 @@ void func_8010ADF8_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu) {
     func_8005F904_main();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010AF44_game_guys_lucky_7);
+s16 func_8010AF44_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 count) {
+    s16 keys[4] = { 0, 0, 0, 0 };
+    s16 ports[4] = { 1, 2, 4, 8 };
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B13C_game_guys_lucky_7);
+    switch (cpu) {
+    case 0:
+        keys[pad] = -1;
+        func_8005B63C_main(winId, 2, 0);
+        func_8005FE54_main(winId, ports[pad]);
+        func_8005F744_main(keys[0], keys[1], keys[2], keys[3]);
+        break;
+    case 1:
+        for (i = 0; i < count; i++) {
+            keys[pad] = 0x400;
+            func_8005F698_main(keys[0], keys[1], keys[2], keys[3],
+                               (&D_8010D188_game_guys_lucky_7[D_8010D802_game_guys_lucky_7])->delay);
+        }
+        keys[pad] = -0x8000;
+        func_8005F698_main(keys[0], keys[1], keys[2], keys[3], D_8010D188_game_guys_lucky_7[D_8010D802_game_guys_lucky_7].delay);
+        break;
+    }
+    return func_8005E1D8_main(winId, 0, 1);
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D598_game_guys_lucky_7);
+s16 func_8010B13C_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 count) {
+    s16 keys[4] = { 0, 0, 0, 0 };
+    s16 ports[4] = { 1, 2, 4, 8 };
+    s16 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D5A0_game_guys_lucky_7);
+    switch (cpu) {
+    case 0:
+        keys[pad] = -1;
+        func_8005B63C_main(winId, 2, 0);
+        func_8005FE54_main(winId, ports[pad]);
+        func_8005F744_main(keys[0], keys[1], keys[2], keys[3]);
+        break;
+    case 1:
+        for (i = 0; i < count; i++) {
+            keys[pad] = 0x400;
+            func_8005F698_main(keys[0], keys[1], keys[2], keys[3],
+                               (&D_8010D188_game_guys_lucky_7[D_8010D802_game_guys_lucky_7])->delay);
+        }
+        keys[pad] = -0x8000;
+        func_8005F698_main(keys[0], keys[1], keys[2], keys[3], D_8010D188_game_guys_lucky_7[D_8010D802_game_guys_lucky_7].delay);
+        break;
+    }
+    return func_8005E1D8_main(winId, 1, 1);
+}
 
 void func_8010B334_game_guys_lucky_7(void) {
     s16 model;
