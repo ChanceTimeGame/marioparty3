@@ -111,6 +111,11 @@ extern s32 D_8010C398_hide_and_sneak[8];
 extern f32 D_8010C3E4_hide_and_sneak[4];
 extern f32 D_8010C3F4_hide_and_sneak[4];
 extern f32 D_8010C410_hide_and_sneak[3][3];
+/* Per target box: the walking route from each box (func_80107D98_hide_and_sneak and on). */
+extern s32 (*D_8010C434_hide_and_sneak[4])(omObjData *obj);
+extern s32 (*D_8010C444_hide_and_sneak[4])(omObjData *obj);
+extern s32 (*D_8010C454_hide_and_sneak[4])(omObjData *obj);
+extern s32 (*D_8010C464_hide_and_sneak[4])(omObjData *obj);
 extern s16 D_8010C474_hide_and_sneak[4];
 extern char *D_8010C47C_hide_and_sneak[4];
 extern char *D_8010C48C_hide_and_sneak[4];
@@ -171,6 +176,8 @@ Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
 void func_80107B30_hide_and_sneak(omObjData *obj);
+void func_801079E8_hide_and_sneak(omObjData *obj);
+s8 func_80107CF4_hide_and_sneak(omObjData *obj);
 void func_80107BD8_hide_and_sneak(omObjData *obj, s8 motion);
 void func_80109D88_hide_and_sneak(omObjData *obj);
 extern u8 D_800D6A90_main;
@@ -1305,7 +1312,260 @@ s32 func_80108BD8_hide_and_sneak(void) {
     return 0;
 }
 
+#ifdef NON_MATCHING
+void func_80108BE0_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_SEEKER, (s8)obj->work[1]);
+    HsSeeker *s = &D_8010C788_hide_and_sneak[(s8)obj->work[1]];
+
+    func_80107B30_hide_and_sneak(obj);
+    switch (s->unk00) {
+        case 0:
+            if (D_8010E174_hide_and_sneak != 0) {
+                s->unk00 = 5;
+                break;
+            }
+            switch (func_80107CF4_hide_and_sneak(obj)) {
+                case 0:
+                    s->unk00 = 1;
+                    s->unk04 = 0;
+                    break;
+                case 1:
+                    s->unk00 = 2;
+                    s->unk04 = 1;
+                    break;
+                case 2:
+                    s->unk00 = 3;
+                    s->unk04 = 2;
+                    break;
+                case 3:
+                    s->unk00 = 4;
+                    s->unk04 = 3;
+                    break;
+            }
+            break;
+        case 1:
+            if (-575.0f < obj->trans.z) {
+                if (-220.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -220.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (-850.0f < obj->trans.x) {
+                if (obj->trans.x < -30.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -575.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = -30.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (obj->trans.z <= -850.0f) {
+                if (-400.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->trans.z = -850.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -400.0f;
+                    s->unk00 = (func_801064F4_hide_and_sneak(2) == 0) ? 7 : 5;
+                }
+            }
+            break;
+        case 2:
+            if (-575.0f < obj->trans.z) {
+                if (-220.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -220.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (-1150.0f < obj->trans.x) {
+                if (obj->trans.x < -30.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -575.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = -30.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (-1600.0f < obj->trans.z) {
+                if (obj->trans.x < 90.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -1150.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = 90.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (obj->trans.z <= -1600.0f) {
+                if (-250.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->trans.z = -1600.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -250.0f;
+                    s->unk00 = (func_801064F4_hide_and_sneak(2) == 0) ? 7 : 5;
+                }
+            }
+            break;
+        case 3:
+            if (-575.0f < obj->trans.z) {
+                if (-220.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -220.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (obj->trans.z <= -575.0f) {
+                if (obj->trans.x < 150.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -575.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = 150.0f;
+                    s->unk00 = (func_801064F4_hide_and_sneak(2) == 0) ? 7 : 5;
+                }
+            }
+            break;
+        case 4:
+            if (-575.0f < obj->trans.z) {
+                if (-220.0f < obj->trans.x) {
+                    obj->trans.x -= 24.0f;
+                    obj->rot.y = 270.0f;
+                } else {
+                    obj->trans.x = -220.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (-1150.0f < obj->trans.x) {
+                if (obj->trans.x < -30.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -575.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = -30.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (-1350.0f < obj->trans.z) {
+                if (obj->trans.x < 90.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -1150.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = 90.0f;
+                    obj->trans.z -= 24.0f;
+                    obj->rot.y = 180.0f;
+                }
+            } else if (obj->trans.z <= -1350.0f) {
+                if (obj->trans.x < 475.0f) {
+                    obj->trans.x += 24.0f;
+                    obj->trans.z = -1350.0f;
+                    obj->rot.y = 90.0f;
+                } else {
+                    obj->trans.x = 475.0f;
+                    s->unk00 = (func_801064F4_hide_and_sneak(2) == 0) ? 7 : 5;
+                }
+            }
+            break;
+        case 5:
+            s->unk05 = func_80107CF4_hide_and_sneak(obj);
+            s->unk02 = func_801064F4_hide_and_sneak(2);
+            s->unk03 = 0;
+            s->unk00 = 6;
+            s->step = 0;
+            ent->unk12 = 0;
+            break;
+        case 6:
+            switch (s->unk04) {
+                case 0:
+                    if ((s8)D_8010C434_hide_and_sneak[s->unk05](obj) != 0) {
+                        s->unk04 = s->unk05;
+                        s->unk00 = 7;
+                    }
+                    break;
+                case 1:
+                    if ((s8)D_8010C444_hide_and_sneak[s->unk05](obj) != 0) {
+                        s->unk04 = s->unk05;
+                        s->unk00 = 7;
+                    }
+                    break;
+                case 2:
+                    if ((s8)D_8010C454_hide_and_sneak[s->unk05](obj) != 0) {
+                        s->unk04 = s->unk05;
+                        s->unk00 = 7;
+                    }
+                    break;
+                case 3:
+                    if ((s8)D_8010C464_hide_and_sneak[s->unk05](obj) != 0) {
+                        s->unk04 = s->unk05;
+                        s->unk00 = 7;
+                    }
+                    break;
+            }
+            break;
+        case 7:
+            if (s->unk02 != 0) {
+                switch (s->unk03) {
+                    case 0:
+                        obj->trans.x += 24.0f;
+                        obj->rot.y = 90.0f;
+                        if (++ent->unk12 >= 17) {
+                            s->unk03 = 1;
+                        }
+                        break;
+                    case 1:
+                        obj->trans.x -= 24.0f;
+                        obj->rot.y = 270.0f;
+                        if (--ent->unk12 <= 0) {
+                            if (func_801064F4_hide_and_sneak(4) > 0) {
+                                s->unk00 = 5;
+                            } else {
+                                s->unk03 = 0;
+                                s->unk02 = 0;
+                            }
+                        }
+                        break;
+                }
+            } else {
+                switch (s->unk03) {
+                    case 0:
+                        obj->trans.x -= 24.0f;
+                        obj->rot.y = 270.0f;
+                        if (++ent->unk12 >= 17) {
+                            s->unk03 = 1;
+                        }
+                        break;
+                    case 1:
+                        obj->trans.x += 24.0f;
+                        obj->rot.y = 90.0f;
+                        if (--ent->unk12 <= 0) {
+                            if (func_801064F4_hide_and_sneak(4) > 0) {
+                                s->unk00 = 5;
+                            } else {
+                                s->unk03 = 0;
+                                s->unk02 = 1;
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
+    }
+    func_801079E8_hide_and_sneak(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80108BE0_hide_and_sneak);
+#endif
 
 void func_80109578_hide_and_sneak(void) {
     s8 i;
