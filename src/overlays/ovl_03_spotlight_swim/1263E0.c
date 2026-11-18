@@ -280,6 +280,8 @@ void func_8010C25C_spotlight_swim(omObjData *obj);
 void func_8010C900_spotlight_swim(omObjData *obj);
 void func_8010BDE0_spotlight_swim(s32 x, s32 y, u32 r, u32 g, u32 b);
 void func_8010BFD0_spotlight_swim(u32 *img, s32 x, s32 y);
+void func_8010BA6C_spotlight_swim(Gfx **dl, s32 arg1, s32 arg2);
+void func_8010C094_spotlight_swim(omObjData *obj);
 
 void func_801059A0_spotlight_swim(void) {
     func_8010CB78_spotlight_swim();
@@ -2088,7 +2090,7 @@ extern u8 D_8010CDC8_spotlight_swim[32][32];
  * 0x27C000 | 4; mine hoists 0xE4500000 instead. Same DL words in the same order. */
 /* Draws image D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim] (160 x 120, 32-bit) full screen at
  * 2x, two texel rows per 4-pixel strip. */
-void func_8010BA6C_spotlight_swim(Gfx **dl) {
+void func_8010BA6C_spotlight_swim(Gfx **dl, s32 arg1, s32 arg2) {
     Gfx *g = *dl;
     s32 y;
     s32 yn;
@@ -2248,12 +2250,12 @@ typedef struct SsTint {
     /* 0x10 */ u32 b;
 } SsTint; // Size 0x14
 
-extern SsTint D_8010D3D0_spotlight_swim[3];
+extern SsTint D_8010D3D0_spotlight_swim[6];
 extern s32 D_8010D1C8_spotlight_swim[3];
 
 /* Per-frame spotlight image: flip to the next of the three buffers, then either draw the three lamp
  * spots at the chasers, or (end sequence) fade the image out and stamp the three result spots. */
-void func_8010C094_spotlight_swim(void) {
+void func_8010C094_spotlight_swim(omObjData *obj) {
     SsEnt *ent;
     SsTint *t;
     s32 i;
@@ -2280,7 +2282,41 @@ void func_8010C094_spotlight_swim(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C25C_spotlight_swim);
+/* Spotlight image object: a draw-callback model, three 160 x 120 image buffers filled with the
+ * base colour (alpha 0x98) and stamped with the result spots, and the tints: chasers 0/1/2 red, green,
+ * blue; entries 3..5 white. */
+void func_8010C25C_spotlight_swim(omObjData *obj) {
+    s32 i;
+    s32 j;
+
+    D_8010D2F0_spotlight_swim = 0;
+    obj->model[0] = func_8001AC8C_main(0, func_8010BA6C_spotlight_swim, 2);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C258_main(obj->model[0], 4, 0);
+    for (i = 0; i < 3; i++) {
+        D_8010D2F8_spotlight_swim[i] = HuMemAllocTag(160 * 120 * sizeof(u32), 0x7918);
+        for (j = 0; j < 160 * 120; j++) {
+            D_8010D2F8_spotlight_swim[i][j] = D_8010D448_spotlight_swim | 0x98;
+        }
+        for (j = 0; j < 3; j++) {
+            func_8010BFD0_spotlight_swim(D_8010D2F8_spotlight_swim[i], D_8010D1C8_spotlight_swim[j], 170);
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        D_8010D3D0_spotlight_swim[i].r = 0;
+        D_8010D3D0_spotlight_swim[i].g = 0;
+        D_8010D3D0_spotlight_swim[i].b = 0;
+    }
+    for (i = 3; i < 6; i++) {
+        D_8010D3D0_spotlight_swim[i].r = 0xFF;
+        D_8010D3D0_spotlight_swim[i].g = 0xFF;
+        D_8010D3D0_spotlight_swim[i].b = 0xFF;
+    }
+    D_8010D3D0_spotlight_swim[0].r = 0xFF;
+    D_8010D3D0_spotlight_swim[1].g = 0xFF;
+    D_8010D3D0_spotlight_swim[2].b = 0xFF;
+    obj->func = func_8010C094_spotlight_swim;
+}
 
 void func_8010C444_spotlight_swim(void) {
     omObjData *obj = omAddObj(1100, 1, 0, -1, func_8010C25C_spotlight_swim);
