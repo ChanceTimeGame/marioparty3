@@ -1364,7 +1364,167 @@ void func_8010949C_crowd_cover(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 f
     *gfx = g;
 }
 
+#ifdef NON_MATCHING
+/* Builds a billboard's display list: palette, then one texture load and two triangles per strip. */
+s16 func_8010980C_crowd_cover(PgBoard* b) {
+    HuSprite_Unk84_Unk00_Struct* cel;
+    HuSprite_Unk84_Unk00_Struct tex;
+    Gfx* g;
+    Gfx* buf;
+    Gfx* start;
+    s32 fmt;
+    s32 siz;
+    s32 mode;
+    s32 w;
+    u16 rowH;
+    u32 strips;
+    s32 rem;
+    s32 idx;
+    s32 cms;
+    s32 cmt;
+    s32 masks;
+    s32 maskt;
+    s32 i;
+
+    cel = b->spr->unk00;
+    buf = HuMemAlloc(0x1000);
+    g = buf;
+    gSPSegment(g++, 0x0C, cel->unk00);
+    gSPSegment(g++, 0x0E, b->vtx);
+    start = g;
+    gDPPipeSync(g++);
+    switch (b->spr->unk18) {
+        case 4:
+            siz = 0;
+            if (b->spr->unk1A == 1) {
+                fmt = 3;
+                gDPSetTextureLUT(g++, G_TT_NONE);
+            } else {
+                fmt = 2;
+                gDPLoadTLUT_pal16(g++, 0, b->spr->unk0C);
+                gDPSetTextureLUT(g++, G_TT_RGBA16);
+            }
+            mode = 0;
+            break;
+        case 8:
+            siz = 1;
+            if (b->spr->unk1A == 1) {
+                fmt = 3;
+                gDPSetTextureLUT(g++, G_TT_NONE);
+            } else {
+                fmt = 2;
+                gDPLoadTLUT_pal256(g++, b->spr->unk0C);
+                gDPSetTextureLUT(g++, G_TT_RGBA16);
+            }
+            mode = 2;
+            break;
+        case 0x10:
+            siz = 2;
+            fmt = (b->spr->unk1A == 1) ? 3 : 0;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+        case 0x20:
+            siz = 3;
+            fmt = 0;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+        case 0x8004:
+            siz = 0;
+            fmt = 4;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 0;
+            break;
+        case 0x8008:
+            siz = 1;
+            fmt = 4;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+    }
+    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    if (w < cel->unk04) {
+        w += 16 >> siz;
+    }
+    switch (fmt) {
+        case 2:
+            if ((0x1000 >> siz) < cel->unk06 * w) {
+                rowH = (0x1000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+        case 4:
+            rowH = cel->unk06;
+            if (rowH * w > 0x1000) {
+                rowH = 0x1000 / w;
+            }
+            break;
+        default:
+            if ((0x2000 >> siz) < cel->unk06 * w) {
+                rowH = (0x2000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+    }
+    strips = cel->unk06 / rowH;
+    rem = cel->unk06 % rowH;
+    /* a whole strip fits one LoadBlock: use the block loaders */
+    if (cel->unk04 % (16 >> siz) == 0 && (u32)((rowH * cel->unk04) << siz) <= 0x1000) {
+        idx = cel->unk04 >> D_8010C804_crowd_cover[siz];
+        if ((u32)D_8010C814_crowd_cover[idx] >= rowH || rowH == D_8010C94C_crowd_cover[idx]) {
+            mode++;
+        }
+    }
+    if (b->flags & 0xC0000) {
+        masks = b->unk1B;
+        cms = ((s32)b->flags >> 18) - 1;
+    } else {
+        masks = 0;
+        cms = 0;
+    }
+    if (b->flags & 0x300000) {
+        maskt = b->unk1C;
+        cmt = ((s32)b->flags >> 20) - 1;
+    } else {
+        maskt = 0;
+        cmt = 0;
+    }
+    gDPPipeSync(g++);
+    tex = *cel;
+    tex.unk00 = (void*)0x0C000000;
+    if (((s32)b->flags < 0) & (strips == 1) && rem == 0) {
+        func_8010949C_crowd_cover(&g, &tex, fmt, siz, rowH, 0, 0, cel->unk04 - 1, cel->unk06 - 1, cms, cmt, masks,
+                                     maskt, mode);
+        gSPVertex(g++, 0x0E000000, 5, 0);
+        gSP2Triangles(g++, 0, 2, 4, 0, 2, 3, 4, 0);
+        gSP2Triangles(g++, 0, 4, 1, 0, 4, 3, 1, 0);
+    } else {
+        for (i = 0; i < strips; i++) {
+            func_8010949C_crowd_cover(&g, &tex, fmt, siz, rowH, 0, i * rowH, cel->unk04 - 1, (i + 1) * rowH - 1,
+                                         cms, cmt, masks, maskt, mode);
+            gSPVertex(g++, 0x0E000000 + i * 2 * sizeof(Vtx), 4, 0);
+            gSP2Triangles(g++, 0, 2, 3, 0, 0, 3, 1, 0);
+        }
+        if (rem != 0) {
+            func_8010949C_crowd_cover(&g, &tex, fmt, siz, rem, 0, i * rowH, cel->unk04 - 1, cel->unk06 - 1, cms,
+                                         cmt, masks, maskt, mode);
+            gSPVertex(g++, 0x0E000000 + i * 2 * sizeof(Vtx), 4, 0);
+            gSP2Triangles(g++, 0, 2, 3, 0, 0, 3, 1, 0);
+        }
+    }
+    gSPEndDisplayList(g++);
+    b->cmds = g - start;
+    b->gfx = HuMemAlloc(b->cmds * sizeof(Gfx));
+    memcpy(b->gfx, start, b->cmds * sizeof(Gfx));
+    HuMemFree(buf);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010980C_crowd_cover);
+#endif
 
 #ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
