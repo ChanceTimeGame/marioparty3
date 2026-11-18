@@ -93,6 +93,7 @@ u16 func_800E6E9C_minigame(void);
 extern f32 D_800EB748_minigame;
 void func_800E1490_minigame(u16 arg0);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_800E1804_minigame(void);
 void func_800E1840_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
@@ -101,7 +102,18 @@ extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[];
 
+/* omObjData::data of the framework's ground object */
+typedef struct PiGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[3];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ char unk0C[0xA8];
+} PiGround; /* size 0xB4 */
+
 // LOCAL
+void func_80109AC4_picture_imperfect(omObjData* obj);
 void func_801081E4_picture_imperfect(omObjData* obj);
 void func_801083C0_picture_imperfect(s8 player);
 void func_80108688_picture_imperfect(omObjData* obj);
@@ -136,10 +148,16 @@ extern s8 D_8010A111_picture_imperfect;    /* pieces whose score flash finished 
 extern s8 D_8010A112_picture_imperfect[4]; /* score flash timer per player */
 extern s8 D_8010A116_picture_imperfect[4]; /* score flash blink per player */
 extern s16 D_8010A11A_picture_imperfect[4]; /* score display timer */
+extern s16 D_8010A122_picture_imperfect; /* sprite file being loaded */
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A140_picture_imperfect[4]; /* winners */
 extern u8 D_8010A150_picture_imperfect; /* picture set: 2 - D_800CE20A_main */
 extern u8 D_8010A151_picture_imperfect; /* column order layout, random */
+extern s16 D_8010A152_picture_imperfect; /* frame sprite group (one variable for the four quarters) */
+extern s16 D_8010A154_picture_imperfect; /* divider sprite group */
+extern s16 D_8010A156_picture_imperfect;
+extern s16 D_8010A158_picture_imperfect;
+extern s16 D_8010A15A_picture_imperfect;
 extern s16 D_8010A15C_picture_imperfect[4];
 /* picture piece sprite slots, one table per row: [player][column] */
 extern s16 D_8010A168_picture_imperfect[4][5];
@@ -166,6 +184,9 @@ extern s16 D_8010A286_picture_imperfect[4];
 extern s16 D_8010A28E_picture_imperfect[4];
 extern s16 D_8010A296_picture_imperfect[4];
 extern s16 D_8010A29E_picture_imperfect[4];
+extern s16 D_8010A2A6_picture_imperfect;
+extern s16 D_8010A2A8_picture_imperfect;
+extern s16 D_8010A2AA_picture_imperfect;
 extern s8 D_8010A2AC_picture_imperfect[5]; /* column shown in each row; the rows scroll at different speeds */
 
 void func_801059A0_picture_imperfect(void) {
@@ -1168,6 +1189,96 @@ void func_80109284_picture_imperfect(PiPlayer* ex, s8 player) {
     D_8010A11A_picture_imperfect[player]++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80109608_picture_imperfect);
+/* The framework's ground object: frames of the four quarters, divider, title sprites, the piece counter. */
+void func_80109608_picture_imperfect(omObjData* obj) {
+    PiGround* gd;
+    s32 i;
+    s32 x;
+    s32 y;
+
+    obj->func = func_80109AC4_picture_imperfect;
+    for (i = 0; i < 4; i++) {
+        if (i == 0) {
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F0002);
+        }
+        D_8010A152_picture_imperfect = HuSprGrpCreate(1, 0);
+        func_80055024_main(D_8010A152_picture_imperfect, 0, D_8010A122_picture_imperfect, 0);
+        HuSprAttrReset(D_8010A152_picture_imperfect, 0, 0xFFFF);
+        HuSprAttrSet(D_8010A152_picture_imperfect, 0, 0x5000);
+        func_80054904_main(D_8010A152_picture_imperfect, 0, D_80109FE8_picture_imperfect[i][0],
+                           D_80109FE8_picture_imperfect[i][1]);
+        HuSprPriSet(D_8010A152_picture_imperfect, 0, 0xFF);
+    }
+    D_8010A122_picture_imperfect = func_8000B838_main(0x3F0003);
+    D_8010A154_picture_imperfect = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010A154_picture_imperfect, 0, D_8010A122_picture_imperfect, 0);
+    HuSprAttrReset(D_8010A154_picture_imperfect, 0, 0xFFFF);
+    HuSprAttrSet(D_8010A154_picture_imperfect, 0, 0x1000);
+    func_80054904_main(D_8010A154_picture_imperfect, 0, 160, 120);
+    HuSprPriSet(D_8010A154_picture_imperfect, 0, 0xF0);
+    D_8010A122_picture_imperfect = func_8000B838_main(0x3F0001);
+    D_8010A156_picture_imperfect = InitEspriteSlot(D_8010A122_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A156_picture_imperfect, 160, 120);
+    func_8000BC48_main(D_8010A156_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A156_picture_imperfect, 0xF);
+    func_8000BB54_main(D_8010A156_picture_imperfect);
+    x = 128;
+    y = 108;
+    switch (D_8010A150_picture_imperfect) {
+        case 0:
+        default:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F0008);
+            break;
+        case 1:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F000A);
+            break;
+        case 2:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F000C);
+            break;
+    }
+    D_8010A158_picture_imperfect = InitEspriteSlot(D_8010A122_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A158_picture_imperfect, x, y);
+    func_8000BC48_main(D_8010A158_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A158_picture_imperfect, 0xF);
+    func_8000BB54_main(D_8010A158_picture_imperfect);
+    switch (D_8010A150_picture_imperfect) {
+        case 0:
+        default:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F0009);
+            break;
+        case 1:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F000B);
+            break;
+        case 2:
+            D_8010A122_picture_imperfect = func_8000B838_main(0x3F000D);
+            break;
+    }
+    D_8010A15A_picture_imperfect = InitEspriteSlot(D_8010A122_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A15A_picture_imperfect, x, y);
+    func_8000BC48_main(D_8010A15A_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A15A_picture_imperfect, 0xF);
+    func_8000BB54_main(D_8010A15A_picture_imperfect);
+    D_8010A2A6_picture_imperfect = InitEspriteSlot(D_8010A26A_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A2A6_picture_imperfect, 225, 100);
+    func_8000BC48_main(D_8010A2A6_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A2A6_picture_imperfect, 0xF);
+    func_8000BB94_main(D_8010A2A6_picture_imperfect);
+    D_8010A2A8_picture_imperfect = InitEspriteSlot(D_8010A26A_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A2A8_picture_imperfect, 245, 100);
+    func_8000BC48_main(D_8010A2A8_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A2A8_picture_imperfect, 0xF);
+    func_8000BB94_main(D_8010A2A8_picture_imperfect);
+    D_8010A2AA_picture_imperfect = InitEspriteSlot(D_8010A26C_picture_imperfect, 0, 1);
+    func_8000BBD4_main(D_8010A2AA_picture_imperfect, 277, 104);
+    func_8000BC48_main(D_8010A2AA_picture_imperfect, 0x1000);
+    func_8000BCC8_main(D_8010A2AA_picture_imperfect, 0xF);
+    func_8000BB94_main(D_8010A2AA_picture_imperfect);
+    obj->data = gd = HuMemAllocTag(sizeof(PiGround), 0x7918);
+    memset(gd, 0, sizeof(PiGround));
+    gd->unk03 = 1;
+    gd->unk04 = 0;
+    gd->unk08 = 0.5f;
+    func_800E1370_minigame(obj, 2, -8.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80109AC4_picture_imperfect);
