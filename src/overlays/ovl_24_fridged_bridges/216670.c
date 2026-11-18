@@ -39,7 +39,7 @@ typedef struct FbPlayer {
     /* 0x38 */ f32 unk38; /* fall velocity y */
     /* 0x3C */ f32 unk3C; /* fall velocity z */
     /* 0x40 */ f32 unk40; /* float angle */
-    /* 0x44 */ char unk44[4];
+    /* 0x44 */ f32 unk44; /* hook scale */
     /* 0x48 */ u16 unk48; /* footstep sound timer */
     /* 0x4A */ u16 unk4A; /* slide sound timer */
     /* 0x4C */ char unk4C[4];
@@ -98,6 +98,12 @@ typedef struct FbGround {
     /* 0x36 */ char unk36[2];
     /* 0x38 */ Vec pos;
 } FbGround; // Size 0x44
+
+/* view of the part func_8001D33C_main returns (hmfman.c's unk68 entry: scale at 0x40) */
+typedef struct FbHmfPart {
+    /* 0x00 */ char unk00[0x40];
+    /* 0x40 */ Vec scale;
+} FbHmfPart;
 
 double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
@@ -167,6 +173,9 @@ void func_80107164_fridged_bridges(omObjData *obj);
 void func_8010733C_fridged_bridges(omObjData *obj);
 void func_80107510_fridged_bridges(omObjData *obj);
 void func_80107870_fridged_bridges(void);
+void func_80108648_fridged_bridges(omObjData *obj);
+void *func_8001D33C_main(s16 model, char *name);
+extern char D_8010D2D8_fridged_bridges[];
 void func_80109F84_fridged_bridges(omObjData *obj);
 void func_8010A1A4_fridged_bridges(omObjData *obj);
 void func_8010B8CC_fridged_bridges(omObjData *obj);
@@ -700,9 +709,62 @@ void func_80107510_fridged_bridges(omObjData *obj) {
 void func_801075A4_fridged_bridges(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801075AC_fridged_bridges);
+#ifdef NON_MATCHING
+void func_801075AC_fridged_bridges(omObjData *obj) {
+    f32 rot;
+    f32 step;
+    f32 diff;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010775C_fridged_bridges);
+    diff = -obj->rot.y;
+    if (diff < 0.0f) {
+        diff += 360.0f;
+    }
+    if (diff < 180.0f) {
+        if (diff > 5.0f) {
+            rot = obj->rot.y + 5.0f;
+        } else {
+            rot = diff + obj->rot.y;
+        }
+    } else {
+        step = (360.0f - diff) > 5.0f ? 5.0f : (360.0f - diff);
+        rot = obj->rot.y - step;
+    }
+    obj->rot.y = rot;
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    if (obj->rot.y < 0.0f) {
+        obj->rot.y += 360.0f;
+    }
+    if (obj->rot.y < 0.0001f) {
+        obj->work[0] = 1;
+        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 6, 2);
+        obj->func = NULL;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801075AC_fridged_bridges);
+#endif
+
+void func_8010775C_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    FbHmfPart *part;
+
+    if (work->unk28 == 1) {
+        part = func_8001D33C_main(obj->model[0], D_8010D2D8_fridged_bridges);
+        part->scale.x = work->unk44 -= 0.1f;
+        part->scale.y = work->unk44;
+        part->scale.z = work->unk44;
+        if (work->unk44 <= 0.0f) {
+            func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 0x4004, 4);
+            func_80108648_fridged_bridges(obj);
+        } else {
+            return;
+        }
+    }
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[6]].unk02, 0, 6, 0);
+    obj->func = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80107870_fridged_bridges);
 
