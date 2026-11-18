@@ -1,4 +1,18 @@
-#include "common.h"
+#include "ultra64.h"
+#include "overlays/minigame.h"
+#include "game/audio.h"
+#include "game/camera.h"
+#include "game/esprite.h"
+#include "game/gamemes.h"
+#include "game/gamework_data.h"
+#include "game/hmflight.h"
+#include "game/hmfman.h"
+#include "game/object.h"
+#include "game/pause.h"
+#include "game/sprite.h"
+#include "game/util.h"
+#include "game/wipe.h"
+#include "include_asm.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010BDF0_fridged_bridges);
 
