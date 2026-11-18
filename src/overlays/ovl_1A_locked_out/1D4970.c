@@ -21,10 +21,22 @@ typedef struct LoPlayer {
     /* 0x00 */ f32 x;
     /* 0x04 */ f32 y;
     /* 0x08 */ f32 z;
-    /* 0x0C */ u8 unk0C[0x19];
+    /* 0x0C */ char unk0C[0x10];
+    /* 0x1C */ s32 model; /* model file */
+    /* 0x20 */ u8 player;
+    /* 0x21 */ s8 chr;
+    /* 0x22 */ u8 difficulty;
+    /* 0x23 */ u8 unk23;
+    /* 0x24 */ u8 unk24;
     /* 0x25 */ u8 key; /* key carried, index + 1; 0 none */
-    /* 0x26 */ u8 unk26[0x12];
-} LoPlayer; /* size 0x38 */
+    /* 0x26 */ u8 unk26;
+    /* 0x27 */ u8 cpu;
+    /* 0x28 */ u8 unk28;
+    /* 0x29 */ u8 unk29; /* motion */
+    /* 0x2A */ u8 unk2A; /* motion */
+    /* 0x2B */ u8 unk2B;
+    /* 0x2C */ char unk2C[0x20];
+} LoPlayer; /* size 0x4C */
 
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -106,6 +118,8 @@ void func_80017D24_main(Matrix4f, f32, f32, f32);
 void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
 void func_80106FBC_locked_out(omObjData* obj);
 void func_801071D8_locked_out(omObjData* obj);
+void func_80107ABC_locked_out(omObjData* obj);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4);
 void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z);
 void func_80109CDC_locked_out(void);
@@ -113,7 +127,11 @@ f32 func_80109DBC_locked_out(f32 x, f32 z);
 f32 func_80109E34_locked_out(Vec* a, Vec* b);
 void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 
-extern Vec D_8010A110_locked_out[7]; /* positions; the doors use [0], [3], [6] */
+extern Vec D_8010A110_locked_out[7];
+extern u8 D_8010A178_locked_out[4][2]; /* [n][1]: the n-th player to spawn */
+extern u8 D_8010A180_locked_out; /* players spawned */
+extern Vec D_8010A184_locked_out[4]; /* start positions */
+extern f32 D_8010A1B4_locked_out[4]; /* start headings */ /* positions; the doors use [0], [3], [6] */
 extern u32 D_8010A1E8_locked_out; /* random seed */
 extern D_80111B50_vine_with_me_Struct D_8010A588_locked_out;
 extern omObjData* D_8010A610_locked_out[10];
@@ -350,9 +368,116 @@ void func_8010713C_locked_out(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A298_locked_out);
 
+typedef struct LoU8x8 {
+    u8 v[8];
+} LoU8x8;
+extern const LoU8x8 D_8010A298_locked_out;
+
+// scheduling: the file table loads before the func_800E1BA8_minigame call come out in another order (masked 6)
+#ifdef NON_MATCHING
+void func_801071D8_locked_out(omObjData* obj) {
+    LoU8x8 motTbl = D_8010A298_locked_out;
+    s32 files[3][8] = {
+        { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
+        { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D },
+        { 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0x1B },
+    };
+    u8 player;
+    s8 chr;
+    u32 file0;
+    s32 file1;
+    MgWork* work;
+    LoPlayer* lp;
+
+    player = D_8010A178_locked_out[D_8010A180_locked_out][1];
+    chr = GwPlayer[player].chr;
+    file0 = D_800A178C_main[chr][0];
+    file1 = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, file0, D_800A178C_main[chr][1], player, 0x2D9, 0x2D9);
+    obj->model[9] = func_8000B108_main(file0 | file1, 0x2ED);
+    work = obj->data;
+    work->unk50 &= ~1;
+    work->unkEC = NULL;
+    obj->trans.x = D_8010A184_locked_out[D_8010A180_locked_out].x;
+    obj->trans.y = D_8010A184_locked_out[D_8010A180_locked_out].y;
+    obj->trans.z = D_8010A184_locked_out[D_8010A180_locked_out].z;
+    work->unk3C = D_8010A1B4_locked_out[D_8010A180_locked_out];
+    switch (file0 >> 16) {
+        case 6:
+            work->unk48 *= 1.25f;
+            break;
+        case 4:
+            work->unk48 *= 1.1f;
+            break;
+        case 5:
+            work->unk48 *= 1.2f;
+            break;
+    }
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    obj->trans.x = D_8010A184_locked_out[D_8010A180_locked_out].x;
+    obj->trans.y = D_8010A184_locked_out[D_8010A180_locked_out].y;
+    obj->trans.z = D_8010A184_locked_out[D_8010A180_locked_out].z;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    work->unk158 = HuMemAllocTag(sizeof(LoPlayer), 31000);
+    memset(work->unk158, 0, sizeof(LoPlayer));
+    lp = work->unk158;
+    lp->player = player;
+    lp->chr = chr;
+    lp->cpu = GwPlayer[player].stat & 1;
+    lp->difficulty = GwPlayer[player].cpu_difficulty;
+    lp->model = file0 | 0x2F;
+    lp->unk23 = 0;
+    lp->unk24 = 0;
+    lp->x = obj->trans.x;
+    lp->y = obj->trans.y;
+    lp->z = obj->trans.z;
+    lp->key = 0;
+    lp->unk28 = 0;
+    lp->unk2B = func_80017790_main(obj->model[9], 2, motTbl.v[chr], file0 | files[2][chr]);
+    lp->unk29 = func_80017AD8_main(file0 | files[0][chr]);
+    lp->unk2A = func_80017AD8_main(file0 | files[1][chr]);
+    func_8001C514_main(obj->model[9]);
+    func_800E149C_minigame(obj, 0, 2);
+    work->unk50 |= 0x8000;
+    obj->func = func_80107ABC_locked_out;
+    obj->model[3] = func_8000B108_main(3, 0x2DD);
+    obj->model[6] = func_8000B108_main(5, 0x2DD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 3), 0, 0);
+    func_800E5A00_minigame(obj, 17, func_80017BB8_main(chr, 0xE), 0, 0);
+    func_800E5A00_minigame(obj, 32, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5A00_minigame(obj, 30, func_80017BB8_main(chr, 0x20), 2, 0);
+    func_800E5A00_minigame(obj, 31, func_80017BB8_main(chr, 0x21), 2, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(chr, 0x2F), 1, 120);
+    func_800E5A00_minigame(obj, 15, func_80017BB8_main(chr, 0x38), 1, 100);
+    switch (file0 >> 16) {
+        case 2:
+        case 5:
+        case 7:
+            func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x39), 1, 60);
+            break;
+        case 3:
+        case 4:
+        case 6:
+        case 8:
+        case 9:
+            func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x3A), 1, 60);
+            break;
+    }
+    func_800E5A00_minigame(obj, 38, func_80017BB8_main(chr, 0x8D), 1, 0);
+    func_800E5A00_minigame(obj, 39, func_80017BB8_main(chr, 0x8E), 0, 0);
+    func_800E5690_minigame(obj, 0);
+    D_8010A180_locked_out++;
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A2A0_locked_out);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801071D8_locked_out);
+#endif
 
 /* A player's actor work: the framework's func_800E1BA8_minigame cut down. */
 void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {

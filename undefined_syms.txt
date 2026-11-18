@@ -411,3 +411,4 @@ D_8010DE98_log_jam = D_8010DE90_log_jam + 0x8;
 D_8010DFE8_log_jam = D_8010DFD4_log_jam + 0x14;
 D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
 D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
+D_8010A178_locked_out = D_8010A174_locked_out + 0x4;
