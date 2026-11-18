@@ -80,6 +80,13 @@ extern s32 D_8010BC50_baby_bowser_bonkers;
 extern s32 D_8010BC54_baby_bowser_bonkers;
 extern s16 D_8010BC5C_baby_bowser_bonkers;
 extern D_80111B50_vine_with_me_Struct D_8010BD08_baby_bowser_bonkers;
+void func_80105C0C_baby_bowser_bonkers(omObjData* obj);
+void func_801063B4_baby_bowser_bonkers(void);
+void func_80107CD8_baby_bowser_bonkers(void);
+void func_80108160_baby_bowser_bonkers(void);
+void func_80109890_baby_bowser_bonkers(void);
+void func_80109EB8_baby_bowser_bonkers(void);
+extern s32 D_8010BC3C_baby_bowser_bonkers;
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -119,7 +126,17 @@ void func_801059A0_baby_bowser_bonkers(void) {
     func_80045010_main(D_8010B95C_baby_bowser_bonkers, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80105BB0_baby_bowser_bonkers);
+void func_80105BB0_baby_bowser_bonkers(omObjData* obj) {
+    obj->func = func_80105C0C_baby_bowser_bonkers;
+    func_80107CD8_baby_bowser_bonkers();
+    func_80108160_baby_bowser_bonkers();
+    func_801063B4_baby_bowser_bonkers();
+    func_80109890_baby_bowser_bonkers();
+    func_80109EB8_baby_bowser_bonkers();
+    if (_CheckFlag(0xA) != 0) {
+        D_8010BC3C_baby_bowser_bonkers = 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80105C0C_baby_bowser_bonkers);
 
