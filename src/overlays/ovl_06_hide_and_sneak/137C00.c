@@ -116,6 +116,7 @@ extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
 extern f32 D_8010C3E4_hide_and_sneak[4];
 extern f32 D_8010C3F4_hide_and_sneak[4];
+extern f32 D_8010C410_hide_and_sneak[3][3];
 extern s16 D_8010C474_hide_and_sneak[4];
 extern char *D_8010C47C_hide_and_sneak[4];
 extern char *D_8010C48C_hide_and_sneak[4];
@@ -146,6 +147,8 @@ extern s16 D_8010E17A_hide_and_sneak;
 extern s8 D_8010E175_hide_and_sneak[4];
 extern s8 D_8010E17C_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
+extern u8 D_8010E181_hide_and_sneak;
+extern u8 D_8010E1B1_hide_and_sneak;
 extern HsBoxLog D_8010E188_hide_and_sneak[4];
 extern HuSprite_Unk84_Struct *D_8010E198_hide_and_sneak[4];
 extern s8 D_8010E17D_hide_and_sneak[3];
@@ -173,6 +176,7 @@ Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
 void func_80107B30_hide_and_sneak(omObjData *obj);
+void func_80107BD8_hide_and_sneak(omObjData *obj, s8 motion);
 void func_80109D88_hide_and_sneak(omObjData *obj);
 extern u8 D_800D6A90_main;
 void func_8010ACC4_hide_and_sneak(Gfx **gfx, s32 arg1, s32 arg2);
@@ -1199,7 +1203,78 @@ void func_80109688_hide_and_sneak(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109688_hide_and_sneak);
 #endif
 
+#ifdef NON_MATCHING
+void func_80109870_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_SEEKER, obj->work[1]);
+
+    if (ent->unk08 == -1) {
+        return;
+    }
+    func_80107B30_hide_and_sneak(obj);
+    if (obj->trans.z < -1350.0f) {
+        if (obj->trans.x < 90.0f) {
+            obj->trans.x += 24.0f;
+            obj->rot.y = 90.0f;
+            return;
+        }
+        obj->trans.x = 90.0f;
+        goto forward;
+    }
+    if (obj->trans.z < -1150.0f) {
+        if (90.0f < obj->trans.x) {
+            goto left;
+        }
+        obj->trans.x = 90.0f;
+        goto forward;
+    }
+    if (obj->trans.z < -850.0f) {
+        if (-30.0f < obj->trans.x) {
+            goto left;
+        }
+        obj->trans.x = -30.0f;
+        goto forward;
+    }
+    if (obj->trans.z < -575.0f) {
+        if (obj->trans.x < -30.0f) {
+            goto right;
+        }
+        obj->trans.x = -30.0f;
+        goto forward;
+    }
+    if (obj->trans.z < -300.0f) {
+        if (-220.0f < obj->trans.x) {
+        left:
+            obj->trans.x -= 24.0f;
+            obj->rot.y = 270.0f;
+            return;
+        }
+        obj->trans.x = -220.0f;
+    forward:
+        obj->trans.z += 24.0f;
+        obj->rot.y = 0.0f;
+        return;
+    }
+    if (ent->unk0E < 0 && obj->trans.z >= -300.0f) {
+        ent->unk0E = (s8)D_8010E1B1_hide_and_sneak++;
+        obj->trans.z = -300.0f;
+    }
+    if (obj->trans.z == -300.0f) {
+        if (obj->trans.x < D_8010C410_hide_and_sneak[2 - D_8010E1AD_hide_and_sneak][ent->unk0E]) {
+        right:
+            obj->trans.x += 24.0f;
+            obj->rot.y = 90.0f;
+            return;
+        }
+        obj->trans.x = D_8010C410_hide_and_sneak[2 - D_8010E1AD_hide_and_sneak][ent->unk0E];
+        obj->rot.y = 0.0f;
+        func_80107BD8_hide_and_sneak(obj, 0);
+        ent->unk08 = -1;
+        D_8010E181_hide_and_sneak++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109870_hide_and_sneak);
+#endif
 
 #ifdef NON_MATCHING
 s32 func_80109BF4_hide_and_sneak(omObjData *obj) {
