@@ -121,19 +121,72 @@ typedef struct CcCamera {
     /* 0x28 */ f32 fov;
 } CcCamera; // Size 0x2C
 
+/* The minigame control block (minigame B8A20.c MgCtrl; the header's D_80111B50_vine_with_me_Struct). */
+typedef struct CcCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ s16 unk26;
+} CcCtrl; // Size 0x28
+
 /* .data */
-extern s16 D_8010AF60_coconut_conk;
-extern s16 D_8010AF62_coconut_conk;
-extern s16 D_8010AF64_coconut_conk;
-extern s16 D_8010AF66_coconut_conk;
-extern u16 D_8010AF68_coconut_conk[8][3];
-extern char *D_8010AF98_coconut_conk[8];
-extern f32 D_8010AFB8_coconut_conk[6];
-extern s32 D_8010AFD0_coconut_conk[8];
-extern D_80111B50_vine_with_me_Struct D_8010AFF0_coconut_conk;
-extern CcCamera D_8010B018_coconut_conk[2];
-extern char D_8010B0D0_coconut_conk[];
-extern char D_8010B0E4_coconut_conk[];
+extern char D_8010B070_coconut_conk[];
+extern char D_8010B07C_coconut_conk[];
+extern char D_8010B088_coconut_conk[];
+extern char D_8010B094_coconut_conk[];
+extern char D_8010B0A0_coconut_conk[];
+extern char D_8010B0AC_coconut_conk[];
+extern char D_8010B0B8_coconut_conk[];
+extern char D_8010B0C4_coconut_conk[];
+
+/* sound effects: the solo player's barrel, a coconut landing, a coconut caught, the barrel rolling */
+s16 D_8010AF60_coconut_conk = 0xC1;
+s16 D_8010AF62_coconut_conk = 0x310;
+s16 D_8010AF64_coconut_conk = 0x312;
+s16 D_8010AF66_coconut_conk = 0x311;
+/* Per character: the solo player's three animation files (0 start, 1 jump out, 2 catch). */
+u16 D_8010AF68_coconut_conk[8][3] = {
+    { 0xA4, 0xA5, 0xA8 }, { 0xA4, 0xA5, 0xA9 }, { 0xA4, 0xA5, 0xA9 }, { 0xA4, 0xA5, 0xA8 },
+    { 0xA4, 0xA5, 0xA8 }, { 0xA4, 0xA5, 0xA8 }, { 0xA4, 0xA5, 0xA9 }, { 0x1A, 0x1C, 0x25 },
+};
+/* Per character: the model's animation target name. */
+char *D_8010AF98_coconut_conk[8] = {
+    D_8010B0C4_coconut_conk, D_8010B0B8_coconut_conk, D_8010B0AC_coconut_conk, D_8010B0A0_coconut_conk,
+    D_8010B094_coconut_conk, D_8010B088_coconut_conk, D_8010B07C_coconut_conk, D_8010B070_coconut_conk,
+};
+/* palm tree x positions */
+f32 D_8010AFB8_coconut_conk[6] = { -425.0f, -255.0f, -85.0f, 85.0f, 255.0f, 425.0f };
+/* voice sound bank per character (func_80045ED0_main) */
+s32 D_8010AFD0_coconut_conk[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+CcCtrl D_8010AFF0_coconut_conk = {
+    0, 0, 1, 2, 0, 0, 0, 0, { 90.0f, 900.0f, 0.0f, 30.0f }, { 0x96, 0, 0, 0 }, 0, 0, 0, 0, 0, 0,
+};
+CcCamera D_8010B018_coconut_conk[2] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 43.0f },
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 43.0f },
+};
+char D_8010B070_coconut_conk[] = "c301l_0_DEF";
+char D_8010B07C_coconut_conk[] = "c300l_0_DEF";
+char D_8010B088_coconut_conk[] = "c005l_0_DEF";
+char D_8010B094_coconut_conk[] = "c004l_0_DEF";
+char D_8010B0A0_coconut_conk[] = "c003l_0_DEF";
+char D_8010B0AC_coconut_conk[] = "c002l_0_DEF";
+char D_8010B0B8_coconut_conk[] = "c001l_0_DEF";
+char D_8010B0C4_coconut_conk[] = "c000l_0_DEF";
+char D_8010B0D0_coconut_conk[] = "mp_202_edt-umi_1";
+char D_8010B0E4_coconut_conk[] = "suimen_DEF";
 /* .bss */
 extern s16 D_8010B1C0_coconut_conk;
 extern s16 D_8010B1C2_coconut_conk;
@@ -1928,7 +1981,8 @@ void func_8010AE04_coconut_conk(void) {
     omAddObj(1500, 0, 0, -1, func_8010AB4C_coconut_conk);
     omAddObj(1500, 0, 0, -1, func_8010A610_coconut_conk);
     func_80105A3C_coconut_conk();
-    func_800E5EA0_minigame(&D_8010AFF0_coconut_conk);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct *)&D_8010AFF0_coconut_conk);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", D_8010B1B8_coconut_conk);
+/* "ABC" in SJIS: the minigame's on-screen title */
+const s16 D_8010B1B8_coconut_conk[] = { 0x8260, 0x8261, 0x8262, 0x0000 };
