@@ -18,6 +18,7 @@
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
 #define CG_ABS(x) ((x) < 0.0f ? -(x) : (x))
+#define CG_IABS(x) ((x) < 0 ? -(x) : (x))
 
 /* One slot of the overlay's object table (D_8010B9F0_crazy_cogs, 70 x 0x84). */
 typedef struct CgEnt {
@@ -78,6 +79,12 @@ typedef struct CgCamera {
 } CgCamera; // Size 0x2C
 
 void osSyncPrintf(const char *fmt, ...);
+s16 func_8004AD8C_main(s16 defNo);
+void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
+void func_801060A0_crazy_cogs(omObjData *obj, u16 motion, s16 arg2, s16 arg3, s16 arg4);
+void func_80106B24_crazy_cogs(omObjData *obj);
+void func_80106D54_crazy_cogs(omObjData *obj);
+void func_80106F54_crazy_cogs(omObjData *obj);
 f32 sqrtf(f32);
 void func_8000BC48_main(u16, s32);
 s32 func_8000B710_main(s32 arg0);
@@ -102,11 +109,14 @@ extern s8 D_8010B990_crazy_cogs;
 extern s8 D_8010B9A2_crazy_cogs;
 extern s8 D_8010B9A6_crazy_cogs;
 extern s8 D_8010B9B0_crazy_cogs[0x32];
+extern s8 D_8010B99C_crazy_cogs;
+extern s8 D_8010B9A0_crazy_cogs;
 extern CgEnt D_8010B9F0_crazy_cogs[70];
 extern s16 D_8010BA30_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].grp */
 extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr */
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
+extern s16 D_8010DE0E_crazy_cogs;
 extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
 extern s8 D_8010DE68_crazy_cogs;
@@ -500,7 +510,7 @@ void func_80106AEC_crazy_cogs(s8 dir) {
 
 /* CPU: the plan (D_8010B9B0_crazy_cogs) step D_8010B990_crazy_cogs names a cog; turn until it faces entity
  * D_8010B9A2_crazy_cogs. */
-void func_80106B24_crazy_cogs(void) {
+void func_80106B24_crazy_cogs(omObjData *obj) {
     CgEnt *cog = &D_8010B9F0_crazy_cogs[CG_ENT_8 + D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]];
     CgEnt *ent;
     f32 a;
@@ -550,7 +560,7 @@ void func_80106B24_crazy_cogs(void) {
 /* CPU: turn the plan step's cog until one of entities 5..7 lines up with it. */
 #ifdef NON_MATCHING
 /* register/branch residue at the |a - b| (retail keeps b in $f2, no branch-likely) */
-void func_80106D54_crazy_cogs(void) {
+void func_80106D54_crazy_cogs(omObjData *obj) {
     CgEnt *cog = &D_8010B9F0_crazy_cogs[CG_ENT_8 + D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]];
     CgEnt *ctl = &D_8010B9F0_crazy_cogs[4];
     CgEnt *ent;
@@ -608,7 +618,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80106D54_
 #endif
 
 /* CPU: wander, turning one way or the other for a random time. */
-void func_80106F54_crazy_cogs(void) {
+void func_80106F54_crazy_cogs(omObjData *obj) {
     CgEnt *ctl = &D_8010B9F0_crazy_cogs[4];
 
     switch (D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]) {
@@ -639,9 +649,94 @@ void func_80106F54_crazy_cogs(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107078_crazy_cogs);
+/* A player's crank: leans with the turn direction, plays the crank sound. */
+void func_80107078_crazy_cogs(omObjData *obj) {
+    CgEnt *ctl = &D_8010B9F0_crazy_cogs[4];
+    s16 frame;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010728C_crazy_cogs);
+    switch (D_8010DE60_crazy_cogs) {
+    case 0:
+        if (D_8010DE0E_crazy_cogs < 0) {
+            D_8010DE0E_crazy_cogs += 5;
+        }
+        if (D_8010DE0E_crazy_cogs > 0) {
+            D_8010DE0E_crazy_cogs -= 5;
+        }
+        if (ctl->unk0E != 0 || ctl->unk10 != 0) {
+            func_8004AD8C_main(0x323);
+            ctl->unk10 = 0;
+            ctl->unk0E = 0;
+        }
+        break;
+    case 1:
+        if (D_8010DE0E_crazy_cogs < 30) {
+            D_8010DE0E_crazy_cogs += 5;
+        }
+        if (ctl->unk0E == 0) {
+            HuAudFXPlay(0x322);
+            func_8004AC98_main(0x323, obj->work[0]);
+            ctl->unk0E = 1;
+            ctl->unk10 = 0;
+        }
+        break;
+    case 2:
+        if (D_8010DE0E_crazy_cogs > -30) {
+            D_8010DE0E_crazy_cogs -= 5;
+        }
+        if (ctl->unk10 == 0) {
+            HuAudFXPlay(0x322);
+            func_8004AC98_main(0x323, obj->work[0]);
+            ctl->unk0E = 0;
+            ctl->unk10 = 1;
+        }
+        break;
+    }
+    frame = D_8010DE0E_crazy_cogs + 30;
+    func_801060A0_crazy_cogs(obj, 0, frame, 1, 1);
+    func_8001C6A8_main(obj->model[1], frame);
+    Hu3DModelPosSet(obj->model[2], D_8010DE0E_crazy_cogs * 2.5f + obj->trans.x, obj->trans.y, obj->trans.z + 40.0f);
+}
+
+/* A player's object: the crank, the CPU or the stick turns the cogs. */
+void func_8010728C_crazy_cogs(omObjData *obj) {
+    s8 chr = GwPlayer[obj->work[0]].chr;
+
+    if (D_8010B99C_crazy_cogs != 2) {
+        if (D_8010B99C_crazy_cogs == 6) {
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+            if (D_8010B9A0_crazy_cogs < 0) {
+                func_80106034_crazy_cogs(obj, 3, 0);
+                func_80045ED0_main((D_8010B810_crazy_cogs[chr] << 16) | 0x30);
+            }
+            if (D_8010B9A0_crazy_cogs > 0) {
+                func_80106034_crazy_cogs(obj, 4, 0);
+            }
+        } else {
+            func_80107078_crazy_cogs(obj);
+        }
+    } else {
+        func_80107078_crazy_cogs(obj);
+        if (GwPlayer[obj->work[0]].stat & 1) {
+            switch (D_8010DE68_crazy_cogs) {
+            case 0:
+                func_80106F54_crazy_cogs(obj);
+                break;
+            case 1:
+                func_80106D54_crazy_cogs(obj);
+                break;
+            case 2:
+                func_80106B24_crazy_cogs(obj);
+                break;
+            }
+        } else if (CG_IABS(D_800CBB6E_main[obj->work[3]]) < 15) {
+            D_8010DE60_crazy_cogs = 0;
+        } else if (D_800CBB6E_main[obj->work[3]] > 30) {
+            D_8010DE60_crazy_cogs = 1;
+        } else if (D_800CBB6E_main[obj->work[3]] < -30) {
+            D_8010DE60_crazy_cogs = 2;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801074A0_crazy_cogs);
 
