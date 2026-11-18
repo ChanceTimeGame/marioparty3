@@ -104,12 +104,23 @@ extern s16 D_8010D3B0_spotlight_swim[];
 /* Views of D_8010D480_spotlight_swim[1].unk04 / .unk06 (retail addresses them as their own symbols). */
 extern s16 D_8010D508_spotlight_swim;
 extern s16 D_8010D50A_spotlight_swim;
+/* Views of D_8010D480_spotlight_swim[2].pos.x / .pos.z. */
+extern f32 D_8010D5CC_spotlight_swim;
+extern f32 D_8010D5D4_spotlight_swim;
 extern f32 D_8010D338_spotlight_swim[2];
 extern s8 D_8010D343_spotlight_swim;
 extern omObjData *D_8010D348_spotlight_swim;
 
 extern s16 D_800D418E_main; /* the viewport being drawn */
 void func_80088850_main(Mtx *m, f32 x, f32 y, f32 z);
+
+extern f32 D_8010D380_spotlight_swim[3];
+extern f32 D_8010D38C_spotlight_swim[3];
+extern s8 D_8010D398_spotlight_swim[3];
+extern s8 D_8010D39B_spotlight_swim[3];
+extern s8 D_8010D32C_spotlight_swim;
+extern s8 D_8010EE48_spotlight_swim;
+extern s8 D_8010CD50_spotlight_swim[][9];
 
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
@@ -323,17 +334,95 @@ void func_801063E4_spotlight_swim(void) {
     D_8010D480_spotlight_swim[1].obj = omAddObj(600, 1, 0, -1, func_80106350_spotlight_swim);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80106420_spotlight_swim);
+void func_80106420_spotlight_swim(omObjData *obj) {
+    f32 *z;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801065C4_spotlight_swim);
+    for (i = 0; i < 3; i++) {
+        switch (D_8010D39B_spotlight_swim[i]) {
+        case 1:
+            if (++D_8010D398_spotlight_swim[i] >= i * 7) {
+                D_8010D39B_spotlight_swim[i] = 2;
+                D_8010D398_spotlight_swim[i] = 0;
+            }
+            break;
+        case 2:
+            if (++D_8010D398_spotlight_swim[i] >= 10) {
+                D_8010D398_spotlight_swim[i] = 0;
+                D_8010D39B_spotlight_swim[i] = 0;
+                D_8010D380_spotlight_swim[i] = 1000.0f;
+            }
+            z = D_8010D38C_spotlight_swim;
+            Hu3DModelPosSet(obj->model[i + 1], D_8010D380_spotlight_swim[i], -200.0f, z[i]);
+            break;
+        case 0:
+            break;
+        }
+    }
+}
+
+void func_801065C4_spotlight_swim(omObjData *obj) {
+    void *data;
+    f32 *px;
+    f32 *pz;
+    s8 i;
+
+    data = DataRead(0x24000F);
+    for (i = 0; i < 3; i++) {
+        obj->model[i + 1] = func_8000B108_main(0x24000E, 0x289);
+        HmfAnimCreate(HmfModelData[obj->model[i + 1]].hmf, data, 0, "s203_004_DEF");
+        func_8001C448_main(obj->model[i + 1]);
+        func_8001C514_main(obj->model[i + 1]);
+        func_8001C8A8_main(obj->model[i + 1], 1);
+        px = D_8010D380_spotlight_swim;
+        pz = D_8010D38C_spotlight_swim;
+        px[i] = 1000.0f;
+        pz[i] = 0.0f;
+        Hu3DModelPosSet(obj->model[i + 1], px[i], -200.0f, pz[i]);
+        D_8010D398_spotlight_swim[i] = 0;
+        D_8010D39B_spotlight_swim[i] = 0;
+    }
+    DataClose(data);
+    obj->func = func_80106420_spotlight_swim;
+}
 
 void func_80106754_spotlight_swim(void) {
     D_8010D480_spotlight_swim[16].obj = omAddObj(1200, 5, 3, -1, func_801065C4_spotlight_swim);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80106790_spotlight_swim);
+void func_80106790_spotlight_swim(omObjData *obj) {
+    if (obj->work[2] == 0 && D_8010D343_spotlight_swim == 1) {
+        func_80105C04_spotlight_swim(3, (s16)obj->work[0]);
+    }
+    obj->work[2] = (obj->work[2] + 1) % 10;
+}
 
+#ifdef NON_MATCHING
+/* one extra nop after the sindf call (scheduling only) */
+void func_80106808_spotlight_swim(omObjData *obj) {
+    SsEnt *ent = &D_8010D480_spotlight_swim[2];
+    f32 angle;
+
+    func_8001C6A8_main(obj->model[5], 0.0f);
+    if (obj->work[1] != 5) {
+        D_8010D5CC_spotlight_swim = obj->trans.x;
+        D_8010D5D4_spotlight_swim = obj->trans.z + 35.0f;
+    } else {
+        angle = func_801059BC_spotlight_swim(obj->rot.y, -90.0f);
+        ent->pos.x = obj->trans.x - cosdf(angle) * 50.0f;
+        ent->pos.z = sindf(angle) * 50.0f + obj->trans.z + 60.0f;
+    }
+    ent->pos.y = obj->trans.y - D_8010CD50_spotlight_swim[obj->work[1]][D_8010D343_spotlight_swim] - 25.0f;
+    if (D_8010D32C_spotlight_swim == 2 || D_8010EE48_spotlight_swim == 5) {
+        Hu3DModelScaleSet(obj->model[5], 0.6f, 0.5f, 1.0f);
+    } else {
+        Hu3DModelScaleSet(obj->model[5], 0.8f, 0.6f, 1.0f);
+    }
+    Hu3DModelPosSet(obj->model[5], ent->pos.x, -200.0f, ent->pos.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80106808_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801069BC_spotlight_swim);
 
