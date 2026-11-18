@@ -499,11 +499,6 @@ void func_80106B7C_motor_rooter(omObjData *object) {
 
 /* <func_80106BAC_motor_rooter> */
 #ifdef NON_MATCHING
-void func_801070CC_motor_rooter(omObjData *object);
-void func_8010ABC4_motor_rooter(FuncContext *ctx);
-void func_8010BB78_motor_rooter(FuncContext *ctx);
-void func_8010BCD0_motor_rooter(FuncContext *ctx);
-void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, s8 arg2);
 
 void func_80106BAC_motor_rooter(omObjData *object) {
     s32 files[2] = { 0, 1 };
@@ -885,10 +880,7 @@ void func_801082E0_motor_rooter(FuncContext *ctx) {
 
 /* <func_80108514_motor_rooter> */
 #ifdef NON_MATCHING
-extern f64 D_80113658_motor_rooter; /* 90.0 */
-extern f64 D_80113660_motor_rooter; /* 30.0 */
 extern s32 D_80113474_motor_rooter[];
-void func_80108E6C_motor_rooter(FuncContext *ctx);
 
 void func_80108514_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work = ctx->data;
@@ -896,13 +888,12 @@ void func_80108514_motor_rooter(FuncContext *ctx) {
     s16 idx = object->work[0];
     f32 buf[7];
     f32 t;
-    f64 off;
+    f32 u;
 
     if (ctx->state == 0) {
-        off = D_80113658_motor_rooter;
-        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + off), work->unk0C + off);
+        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + 90.0), work->unk0C + 90.0);
         ctx->work.f32[0] = buf[1];
-        ctx->work.f32[1] = buf[2] - D_80113660_motor_rooter;
+        ctx->work.f32[1] = buf[2] - 30.0;
         ctx->work.f32[2] = buf[3];
         work->unk58 = CenterM[idx].x;
         work->unk5C = CenterM[idx].y;
@@ -910,13 +901,15 @@ void func_80108514_motor_rooter(FuncContext *ctx) {
         ctx->work.s8[0] = ctx->work.s8[1] = ctx->work.s8[2] = 0;
         ctx->state = 1;
     }
-    t = sindf(ctx->work.s8[0] / 30.0f * 90.0f);
-    if (t > 1.0f) {
+    u = sindf(ctx->work.s8[0] / 30.0f * 90.0f);
+    t = u;
+    if (u > 1.0f) {
         t = 1.0f;
     }
-    CenterM[idx].x = (ctx->work.f32[0] - work->unk58) * t + work->unk58;
-    CenterM[idx].y = (ctx->work.f32[1] - work->unk5C) * t + work->unk5C;
-    CenterM[idx].z = (ctx->work.f32[2] - work->unk60) * t + work->unk60;
+    u = t;
+    CenterM[idx].x = (ctx->work.f32[0] - work->unk58) * u + work->unk58;
+    CenterM[idx].y = (ctx->work.f32[1] - work->unk5C) * u + work->unk5C;
+    CenterM[idx].z = (ctx->work.f32[2] - work->unk60) * u + work->unk60;
     if (++ctx->work.s8[0] > 30) {
         func_80017790_main(object->model[0], 2, GwPlayer[m254_playerId[object->work[0]]].chr,
                            D_80113474_motor_rooter[GwPlayer[m254_playerId[object->work[0]]].chr]);
@@ -977,10 +970,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801087C0_
 
 /* <func_801089B8_motor_rooter> */
 #ifdef NON_MATCHING
-extern f64 D_80113668_motor_rooter; /* 60.0 */
-void func_80108FDC_motor_rooter(FuncContext *ctx);
-void func_8010C824_motor_rooter(FuncContext *ctx);
-
 void func_801089B8_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work;
     s16 i;
@@ -988,7 +977,7 @@ void func_801089B8_motor_rooter(FuncContext *ctx) {
     switch (ctx->state) {
     case 0:
         m254_minigame->unk10 = 1800.0f;
-        GMesCreate(0x1A, D_80113668_motor_rooter, 160, 28);
+        GMesCreate(0x1A, 60.0, 160, 28);
         func_8003F578_main((m254_minigame->unk10 + 29.0f) / 30.0f);
         ctx->state = 1;
         break;
@@ -2083,7 +2072,73 @@ void func_8010C084_motor_rooter(FuncContext *ctx) {
 }
 /* </func_8010C084_motor_rooter> */
 
+/* <func_8010C44C_motor_rooter> */
+#ifdef NON_MATCHING
+void func_8010C44C_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    f32 buf[7];
+    f32 t;
+    f32 u;
+
+    if (ctx->state == 0) {
+        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + 60.0), work->unk0C + 60.0);
+        ctx->work.f32[0] = buf[1];
+        ctx->work.f32[1] = buf[2];
+        ctx->work.f32[2] = buf[3];
+        ctx->work.f32[3] = CRotM[object->work[0]].y;
+        if (ctx->work.f32[3] <= -360.0f) {
+            ctx->work.f32[3] += 360.0f;
+        }
+        work->unk58 = object->trans.x;
+        work->unk5C = object->trans.y;
+        work->unk60 = object->trans.z;
+        work->unk64 = object->rot.y;
+        ctx->work.s8[0] = ctx->work.s8[1] = ctx->work.s8[2] = 0;
+        func_8010BDE4_motor_rooter(work, 6, 1);
+        CharFXPlay(0x3A, GwPlayer[m254_playerId[object->work[0]]].chr);
+        func_8001C258_main(object->model[1], 4, 0);
+        ctx->state = 1;
+    }
+    u = sindf(ctx->work.s8[0] / 30.0f) * 90.0f;
+    t = u;
+    if (u > 1.0f) {
+        t = 1.0f;
+    }
+    u = t;
+    object->trans.x = (ctx->work.f32[0] - work->unk58) * u + work->unk58;
+    object->trans.z = (ctx->work.f32[2] - work->unk60) * u + work->unk60;
+    object->trans.y = m254_CalcQuadraticBezier(u, work->unk5C, work->unk5C + 60.0, work->unk5C);
+    Hu3DModelPosSet(object->model[1], object->trans.x, work->unk5C, object->trans.z);
+    u = sindf(ctx->work.s8[1] / 10.0f) * 90.0f;
+    t = u;
+    if (u > 1.0f) {
+        t = 1.0f;
+    }
+    u = t;
+    object->rot.y = (ctx->work.f32[3] - work->unk64) * u + work->unk64;
+    if (++ctx->work.s8[0] > 30) {
+        m254_SetFunc(0, 0, -1, work, func_80108514_motor_rooter, 0, FALSE);
+        m254_ResetFunc(object->work[0] + 4, ctx);
+    }
+    if (++ctx->work.s8[1] > 10) {
+        ctx->work.s8[1] = 10;
+    }
+    if (ctx->work.s8[0] > 20) {
+        if (ctx->work.s8[2] == 0) {
+            ctx->work.s8[2] = 1;
+            func_8010BDE4_motor_rooter(work, 21, 1);
+            CharFXPlay(0x31, GwPlayer[m254_playerId[object->work[0]]].chr);
+        } else if (ctx->work.s8[2] == 1) {
+            ctx->work.s8[2] = 2;
+            func_8010BDE4_motor_rooter(work, 0, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C44C_motor_rooter);
+#endif
+/* </func_8010C44C_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C824_motor_rooter);
 
