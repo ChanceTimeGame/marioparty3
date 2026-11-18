@@ -115,6 +115,7 @@ void func_8004B760_main(s32 prio, s32 sprId, void* draw, f32 fov, Vec* eye, Vec*
 void func_8004BCE4_main(void* work);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
 f64 fabs(f64);
+void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 void func_800138EC_main(s16 model, u16 mask, u16 flags);
 
@@ -973,7 +974,86 @@ void func_80107114_bounce_n_trounce(omObjData* obj, s8 stickX, s8 stickY, u16 bt
     player->unk4C.z = obj->trans.z;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80107EDC_bounce_n_trounce);
+/* A player out of play: finishes the fall, then hides; screams once on leaving the screen. */
+void func_80107EDC_bounce_n_trounce(omObjData* obj) {
+    Vec pos;
+    Vec2f screen;
+    BtPlayer* player;
+    f32 rotY;
+    f32 top;
+
+    player = obj->data;
+    rotY = obj->rot.y;
+    top = func_80106434_bounce_n_trounce(obj);
+    if (player->unk08 == 1) {
+        if (player->unk44 != 0.0f) {
+            rotY += player->unk44;
+        }
+        player->unk3C += 1.0f;
+        obj->trans.y = player->unk2C * player->unk3C + player->unk40 - player->unk3C * 2.4f * player->unk3C;
+        if (player->unk16 == 1) {
+            obj->trans.x += player->unk64;
+            obj->trans.z += player->unk68;
+        }
+        obj->trans.x += player->unk34;
+        obj->trans.z += player->unk38;
+    }
+    player->unk64 *= player->unk6C;
+    player->unk68 *= player->unk6C;
+    if (fabs(player->unk64) < 0.01f) {
+        player->unk64 = 0.0f;
+    }
+    if (fabs(player->unk68) < 0.01f) {
+        player->unk68 = 0.0f;
+    }
+    if (player->unk64 == 0.0f && player->unk68 == 0.0f) {
+        player->unk16 = 0;
+    } else {
+        obj->trans.x += player->unk64;
+        obj->trans.z += player->unk68;
+    }
+    omSetRot(obj, obj->rot.x, rotY, obj->rot.z);
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    if (top == -100000.0f) {
+        func_8001C258_main(obj->model[2], 4, 4);
+    } else {
+        player->unk28 = 1.5f - fabs(obj->trans.y - top) / 900.0f * 1.2f;
+        if (player->unk28 < 0.3f) {
+            player->unk28 = 0.3f;
+        }
+        func_8001C258_main(obj->model[2], 4, 0);
+        Hu3DModelPosSet(obj->model[2], obj->trans.x, top + 1.0f, obj->trans.z);
+        Hu3DModelScaleSet(obj->model[2], player->unk28, 1.0f, player->unk28);
+    }
+    if (player->unk06 == 1) {
+        Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y + 60.0f, obj->trans.z);
+    }
+    func_8010846C_bounce_n_trounce(obj);
+    if (obj->trans.y < -5000.0f) {
+        player->unk02 = 3;
+        func_8001C258_main(obj->model[0], 4, 4);
+        func_8001C258_main(obj->model[2], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+        player->unk06 = 0;
+        func_8001C258_main(obj->model[3], 4, 4);
+        obj->func = NULL;
+    }
+    pos.x = obj->trans.x;
+    pos.y = obj->trans.y;
+    pos.z = obj->trans.z;
+    func_80012B14_main(0, &pos, &screen);
+    if (screen.y > 240.0f && player->unk18 == 0) {
+        player->unk18 = 1;
+        func_8004ACE0_main(0x286, player->unk00);
+    }
+    player->unk4C.x = obj->trans.x;
+    player->unk4C.y = obj->trans.y;
+    player->unk4C.z = obj->trans.z;
+}
 
 void func_80108350_bounce_n_trounce(omObjData* obj) {
     BtPlayer* player = obj->data;
@@ -1038,9 +1118,70 @@ void func_8010846C_bounce_n_trounce(omObjData* obj) {
     func_8001C6A8_main(obj->model[1], frame);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_801085EC_bounce_n_trounce);
+/* Sets BtPlayer::unk0E for every pair of players that touch and pushes this one out of the other. */
+void func_801085EC_bounce_n_trounce(omObjData* obj) {
+    BtPlayer* player;
+    BtPlayer* od;
+    omObjData* other;
+    f32 dist;
+    f32 reach;
+    f32 angle;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108940_bounce_n_trounce);
+    player = obj->data;
+    for (i = 0; i < 4; i++) {
+        other = D_8010AEDC_bounce_n_trounce[i];
+        if (obj == other) {
+            continue;
+        }
+        od = other->data;
+        dist = func_8010AAE0_bounce_n_trounce(other->trans.x, other->trans.z, obj->trans.x, obj->trans.z);
+        reach = HuSqrtf((player->unk74 + od->unk74) * (player->unk74 + od->unk74));
+        if (dist < reach) {
+            if (!(other->trans.y + 180.0f < obj->trans.y) && !(obj->trans.y + 180.0f < other->trans.y)) {
+                if (other->trans.x == obj->trans.x && other->trans.z == obj->trans.z) {
+                    rand8();
+                    rand8();
+                }
+                angle = -atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                if (obj->trans.y < other->trans.y + 180.0f && other->trans.y + 180.0f - 40.0f < obj->trans.y) {
+                    player->unk0E[od->unk00] |= 4;
+                    od->unk0E[player->unk00] |= 1;
+                    reach -= dist;
+                    obj->trans.x = sindf(angle) * reach + obj->trans.x;
+                    obj->trans.z = cosdf(angle) * reach + obj->trans.z;
+                    obj->trans.y = other->trans.y + 180.0f + 1.0f;
+                } else if (other->trans.y < obj->trans.y + 180.0f && obj->trans.y + 180.0f < other->trans.y + 40.0f) {
+                    player->unk0E[od->unk00] |= 1;
+                    od->unk0E[player->unk00] |= 4;
+                    reach -= dist;
+                    obj->trans.x = sindf(angle) * reach + obj->trans.x;
+                    obj->trans.z = cosdf(angle) * reach + obj->trans.z;
+                    obj->trans.y = other->trans.y - 180.0f - 1.0f;
+                } else {
+                    player->unk0E[od->unk00] |= 2;
+                    od->unk0E[player->unk00] |= 2;
+                    reach -= dist;
+                    obj->trans.x = sindf(angle) * reach + obj->trans.x;
+                    obj->trans.z = cosdf(angle) * reach + obj->trans.z;
+                }
+            }
+        }
+    }
+}
+
+void func_80108940_bounce_n_trounce(void) {
+    BtPlayer* player;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        player = D_8010AEDC_bounce_n_trounce[i]->data;
+        for (j = 0; j < 4; j++) {
+            player->unk0E[j] = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108994_bounce_n_trounce);
 
