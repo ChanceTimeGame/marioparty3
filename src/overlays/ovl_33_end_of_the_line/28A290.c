@@ -97,6 +97,14 @@ typedef struct {
     /* 0x18 */ f32 unk18[2][2];
 } EotlHud; // Size 0x28
 
+typedef struct {
+    /* 0x00 */ Vec pos[3];
+    /* 0x24 */ f32 vel[3];
+    /* 0x30 */ s16 timer[3];
+    /* 0x36 */ s16 wait;
+    /* 0x38 */ omObjData *player;
+} EotlSplash; // Size 0x3C
+
 void func_80105E0C_end_of_the_line(omObjData *obj);
 void func_80105E88_end_of_the_line(omObjData *obj);
 void func_80106444_end_of_the_line(omObjData *obj);
@@ -112,6 +120,7 @@ void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
 void func_801069D8_end_of_the_line(omObjData *obj);
 void func_80107F0C_end_of_the_line(void);
+void func_801080C8_end_of_the_line(omObjData *obj);
 void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
 void func_8010C3F4_end_of_the_line(void);
@@ -132,6 +141,7 @@ extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
 extern omObjData *D_8010C738_end_of_the_line;
 extern omObjData *D_8010C73C_end_of_the_line[2];
+extern omObjData *D_8010C744_end_of_the_line[2];
 extern u16 D_8010C754_end_of_the_line;
 extern u16 D_8010C756_end_of_the_line;
 extern u16 D_8010C758_end_of_the_line;
@@ -748,11 +758,75 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106CDC_end_of_the_line);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80107F0C_end_of_the_line);
+void func_80107F0C_end_of_the_line(void) {
+    omObjData *obj;
+    EotlSplash *work;
+    s32 j;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80107FF0_end_of_the_line);
+    for (i = 0; i < 2; i++) {
+        D_8010C744_end_of_the_line[i] = obj = omAddObj(0x28, 3, 0, -1, NULL);
+        omSetStatBit(obj, 0x100);
+        work = (EotlSplash *)(obj->data = HuMemAllocTag(sizeof(EotlSplash), 0x7918));
+        for (j = 0; j < 3; j++) {
+            work->timer[j] = 0;
+            obj->model[j] = func_8000B108_main(0x540010, 0xA8D);
+        }
+        work->wait = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801080C8_end_of_the_line);
+void func_80107FF0_end_of_the_line(u16 p) {
+    EotlSplash *work;
+    s32 j;
+
+    work = D_8010C744_end_of_the_line[p]->data;
+    for (j = 0; j < 3; j++) {
+        func_8001C8A8_main(D_8010C744_end_of_the_line[p]->model[j], D_8010C5C8_end_of_the_line[p]);
+    }
+    work->player = D_8010C73C_end_of_the_line[p];
+    D_8010C744_end_of_the_line[p]->func = func_801080C8_end_of_the_line;
+}
+
+void func_801080C8_end_of_the_line(omObjData *obj) {
+    EotlSplash *work;
+    s32 i;
+
+    work = obj->data;
+    i = 0;
+    if (work->wait == 0) {
+        for (i = 0; i < 3; i++) {
+            if (work->timer[i] == 0) {
+                break;
+            }
+        }
+        if (i != 3) {
+            func_8001C258_main(obj->model[i], 4, 0);
+            func_8001C6A8_main(obj->model[i], 0.0f);
+            Hu3DModelScaleSet(obj->model[i], 2.0f, 2.0f, 2.0f);
+            work->pos[i].x = work->player->trans.x;
+            work->pos[i].y = work->player->trans.y + 340.0f;
+            work->pos[i].z = work->player->trans.z - 70.0f;
+            work->timer[i] = 15;
+            work->wait = 8;
+            work->vel[i] = 13.0f;
+        }
+    } else {
+        work->wait--;
+    }
+    for (i = 0; i < 3; i++) {
+        if (work->timer[i] != 0) {
+            Hu3DModelPosSet(obj->model[i], work->pos[i].x, work->pos[i].y, work->pos[i].z);
+            work->pos[i].y += work->vel[i];
+            work->vel[i] *= 0.97f;
+            if (--work->timer[i] == 0) {
+                func_8001C258_main(obj->model[i], 4, 4);
+            }
+        }
+    }
+}
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801082D8_end_of_the_line);
 
