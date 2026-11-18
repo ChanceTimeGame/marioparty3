@@ -116,6 +116,7 @@ void func_80106008_treadmill_grill(omObjData* obj);
 void func_801062DC_treadmill_grill(omObjData* obj);
 void func_80109FA8_treadmill_grill(omObjData* obj);
 void func_80107238_treadmill_grill(omObjData* obj);
+void func_80106DA0_treadmill_grill(omObjData* obj, u32 arg1, s32 arg2, u16 arg3, f32 x, f32 y, f32 z);
 void func_80107454_treadmill_grill(omObjData* obj, f32* x, f32* y, f32* z);
 void func_80108C64_treadmill_grill(omObjData* obj, f32 x, f32 y, f32 z);
 void func_80107798_treadmill_grill(omObjData* obj);
@@ -125,6 +126,7 @@ void func_8010AE6C_treadmill_grill(omObjData* obj);
 extern s32 D_8010AF80_treadmill_grill; /* next free model in D_8010B310 */
 extern u16 D_8010B310_treadmill_grill[16]; /* player models */
 extern f32 D_8010AF8C_treadmill_grill[4];
+extern Vec D_8010AFB0_treadmill_grill[4]; /* start positions; a taken one is zeroed */
 extern Vec D_8010B000_treadmill_grill[4]; /* hazard positions */
 extern s32 D_8010B030_treadmill_grill[3]; /* hazard inactive */
 extern f32 D_8010B0E8_treadmill_grill[4]; /* CPU stick scale per difficulty */
@@ -817,13 +819,93 @@ void func_80107798_treadmill_grill(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80107798_treadmill_grill);
 #endif
 
+/* Player objects 0..3. Masked 12 each: retail loads the two D_800A178C_main arguments before it stores the
+   stack arguments; this C loads them after (no other difference). */
+#ifdef NON_MATCHING
+void func_801084B4_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    s32 i;
+    s32 chr;
+
+    chr = GwPlayer[0].chr;
+    func_80106DA0_treadmill_grill(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][1], 0, 0.0f, 250.0f, -500.0f);
+    work = obj->data;
+    i = rand8() & 3;
+    obj->trans.x = D_8010AFB0_treadmill_grill[i].x;
+    obj->trans.y = D_8010AFB0_treadmill_grill[i].y;
+    obj->trans.z = D_8010AFB0_treadmill_grill[i].z;
+    D_8010AFB0_treadmill_grill[i].x = D_8010AFB0_treadmill_grill[i].y = D_8010AFB0_treadmill_grill[i].z = 0.0f;
+    work->unk3C = i * 90.0f + 135.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801084B4_treadmill_grill);
+#endif
 
+#ifdef NON_MATCHING
+void func_801085D8_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    s32 i;
+    s32 chr;
+
+    chr = GwPlayer[1].chr;
+    func_80106DA0_treadmill_grill(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][1], 1, 0.0f, 250.0f, -300.0f);
+    work = obj->data;
+    do {
+        i = rand8() & 3;
+    } while (D_8010AFB0_treadmill_grill[i].x == 0.0f);
+    obj->trans.x = D_8010AFB0_treadmill_grill[i].x;
+    obj->trans.y = D_8010AFB0_treadmill_grill[i].y;
+    obj->trans.z = D_8010AFB0_treadmill_grill[i].z;
+    D_8010AFB0_treadmill_grill[i].x = D_8010AFB0_treadmill_grill[i].y = D_8010AFB0_treadmill_grill[i].z = 0.0f;
+    work->unk3C = i * 90.0f + 135.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801085D8_treadmill_grill);
+#endif
 
+#ifdef NON_MATCHING
+void func_80108730_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    s32 i;
+    s32 chr;
+
+    chr = GwPlayer[2].chr;
+    func_80106DA0_treadmill_grill(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][1], 2, 0.0f, 250.0f, -300.0f);
+    work = obj->data;
+    do {
+        i = rand8() & 3;
+    } while (D_8010AFB0_treadmill_grill[i].x == 0.0f);
+    obj->trans.x = D_8010AFB0_treadmill_grill[i].x;
+    obj->trans.y = D_8010AFB0_treadmill_grill[i].y;
+    obj->trans.z = D_8010AFB0_treadmill_grill[i].z;
+    D_8010AFB0_treadmill_grill[i].x = D_8010AFB0_treadmill_grill[i].y = D_8010AFB0_treadmill_grill[i].z = 0.0f;
+    work->unk3C = i * 90.0f + 135.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108730_treadmill_grill);
+#endif
 
+#ifdef NON_MATCHING
+void func_80108888_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    s32 i;
+    s32 chr;
+
+    chr = GwPlayer[3].chr;
+    func_80106DA0_treadmill_grill(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][1], 3, 0.0f, 250.0f, -300.0f);
+    work = obj->data;
+    do {
+        i = rand8() & 3;
+    } while (D_8010AFB0_treadmill_grill[i].x == 0.0f);
+    obj->trans.x = D_8010AFB0_treadmill_grill[i].x;
+    obj->trans.y = D_8010AFB0_treadmill_grill[i].y;
+    obj->trans.z = D_8010AFB0_treadmill_grill[i].z;
+    D_8010AFB0_treadmill_grill[i].x = D_8010AFB0_treadmill_grill[i].y = D_8010AFB0_treadmill_grill[i].z = 0.0f;
+    work->unk3C = i * 90.0f + 135.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108888_treadmill_grill);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801089E0_treadmill_grill);
 
