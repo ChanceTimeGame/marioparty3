@@ -470,6 +470,8 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_3E_dorrie_dip/2DC4D0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_23_water_whirled/211AB0.c.o
 # m3 co: Cosmic Coaster (func_8010ABE0: no nop before the mul.s after cosdf/sindf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_10_cosmic_coaster/18ABD0.c.o
+# m3 bk: Baby Bowser Bonkers (float-call nops)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_35_baby_bowser_bonkers/29B1D0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
