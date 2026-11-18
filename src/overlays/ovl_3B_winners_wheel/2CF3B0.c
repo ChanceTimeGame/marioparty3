@@ -85,7 +85,18 @@ typedef struct WwShow {
     /* 0x14 */ f32 unk14; /* x rotation */
 } WwShow; /* size 0x18 */
 
+/* omObjData::data of Kamek, who flies in when the wheel stops on the empty slot (D_8010A4C4) */
+typedef struct WwKamek {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ f32 unk04; /* x */
+    /* 0x08 */ f32 unk08; /* y */
+    /* 0x0C */ f32 unk0C; /* z */
+    /* 0x10 */ f32 unk10; /* shadow scale */
+    /* 0x14 */ f32 unk14;
+} WwKamek; /* size 0x18 */
+
 // main
+s32 func_8000B638_main(void);
 void GMesPosSet(s16 mesId, f32 x, f32 y);
 void func_8001473C_main(s16 index, u16 arg1); /* src/14EA0.c: (s16, s16) */
 omObjData* func_80045ED0_main(u32 arg0);
@@ -175,6 +186,7 @@ void func_80109FAC_winners_wheel(void);
 void func_8010A190_winners_wheel(void);
 
 /* .bss (ovl_3B_bss) */
+extern s32 D_8010A460_winners_wheel; /* camera (read as an s16 at +2, D_8010A462) */
 extern u8 D_8010A464_winners_wheel; /* state */
 extern s16 D_8010A466_winners_wheel;
 extern s32 D_8010A468_winners_wheel[6]; /* prize on each wheel slot (0x11: none) */
@@ -195,6 +207,7 @@ extern s16 D_8010A4AC_winners_wheel[3]; /* player motions */
 extern omObjData* D_8010A4B4_winners_wheel;
 extern omObjData* D_8010A4B8_winners_wheel[2];
 extern omObjData* D_8010A4C0_winners_wheel;
+extern omObjData* D_8010A4C4_winners_wheel;
 
 /* .data (0x8010A260-0x8010A2D0) */
 /* The minigame control block (bowloons' BlCtrl; the header's D_80111B50_vine_with_me_Struct) */
@@ -1362,19 +1375,113 @@ void func_80109BAC_winners_wheel(void) {
     work->unk00 |= 2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109BF0_winners_wheel);
+void func_80109BF0_winners_wheel(void) {
+    omAddPrcObj(func_80109C1C_winners_wheel, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109C1C_winners_wheel);
+/* The won prize flies from the wheel to the player. */
+void func_80109C1C_winners_wheel(void) {
+    WwShow* work = D_8010A4A8_winners_wheel->data;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109D44_winners_wheel);
+    func_8001C258_main(D_8010A4A8_winners_wheel->model[0], 4, 0);
+    HuPrcSleep(30);
+    HuAudFXPlay(0x19);
+    for (i = 0; i <= 30; i++) {
+        work->unk04 = D_8010A4B4_winners_wheel->trans.x * i / 30.0f;
+        work->unk08 = i * 90.0f / 30.0f + sindf(i * 6.0f) * 100.0f;
+        work->unk0C = i * D_8010A4B4_winners_wheel->trans.z / 30.0f;
+        HuPrcVSleep();
+    }
+    func_80109B90_winners_wheel();
+    HuAudFXPlay(0x4CE);
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109E90_winners_wheel);
+/* Kamek and his shadow. */
+void func_80109D44_winners_wheel(void) {
+    omObjData* obj;
+    WwKamek* work;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109F80_winners_wheel);
+    obj = omAddObj(0xFF, 2, 2, -1, func_80109E90_winners_wheel);
+    obj->data = HuMemAllocTag(sizeof(WwKamek), 31000);
+    D_8010A4C4_winners_wheel = obj;
+    work = obj->data;
+    obj->model[0] = func_8000B108_main(0xA00EE, 0x69D);
+    obj->model[1] = func_8000B108_main(9, 0x4AD);
+    work->unk04 = 0.0f;
+    work->unk08 = -182.0f;
+    work->unk0C = -190.0f;
+    work->unk00 = 0;
+    work->unk14 = 0.0f;
+    omSetTra(obj, work->unk04, work->unk08, work->unk0C);
+    omSetSca(obj, 0.8f, 0.8f, 0.8f);
+    func_8000B460_main(obj, 0, 0xA00EF);
+    func_8000B460_main(obj, 1, 0xA00F0);
+    func_8000B460_main(obj, 2, 0xA00F6);
+    func_8001C5B4_main(obj->model[0], obj->motion[4]);
+    func_8001C814_main(obj->model[0], 2, 2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109FAC_winners_wheel);
+void func_80109E90_winners_wheel(omObjData* obj) {
+    WwKamek* work = obj->data;
+    f32 h;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010A190_winners_wheel);
+    h = work->unk08 - -182.0f;
+    omSetTra(obj, work->unk04, work->unk08, work->unk0C);
+    Hu3DModelPosSet(obj->model[1], work->unk04, -182.0f, work->unk0C);
+    if (h >= 0.0f) {
+        work->unk10 = (400.0f - h) / 400.0f * 0.8f;
+    } else {
+        work->unk10 = 0.0f;
+    }
+    Hu3DModelScaleSet(obj->model[1], work->unk10 * 1.2f, 1.0f, work->unk10 * 1.2f);
+}
+
+void func_80109F80_winners_wheel(void) {
+    omAddPrcObj(func_80109FAC_winners_wheel, 0x50, 0, 0);
+}
+
+/* The wheel stopped on the empty slot: Kamek hops up and down. */
+void func_80109FAC_winners_wheel(void) {
+    WwKamek* work = D_8010A4C4_winners_wheel->data;
+    s32 i;
+    f32 t;
+
+    func_8001C5B4_main(D_8010A4C4_winners_wheel->model[0], D_8010A4C4_winners_wheel->motion[1]);
+    work->unk14 = 50.0f;
+    for (i = 0; i <= 30; i++) {
+        if (i == 5) {
+            func_8001C258_main(D_8010A4C4_winners_wheel->model[0], 4, 0);
+            func_8001C258_main(D_8010A4C4_winners_wheel->model[1], 4, 0);
+            HuAudFXPlay(0x4CC);
+            omVibrate(D_8010A48E_winners_wheel, 20, 0, 20);
+        }
+        work->unk04 = 0.0f;
+        t = i;
+        work->unk08 = sindf(t * 6.0f) * 282.0f + -182.0f;
+        work->unk0C = t * 380.0f / 30.0f - 190.0f;
+        HuPrcVSleep();
+    }
+    HuAudFXPlay(0x4CF);
+    func_800E6F1C_minigame();
+    func_8001C624_main(D_8010A4C4_winners_wheel->model[0], HmfModelData[D_8010A4C4_winners_wheel->motion[2]].unk02, 0, 10, 0);
+    func_8001C814_main(D_8010A4C4_winners_wheel->model[0], 2, 2);
+    omDelPrcObj(NULL);
+}
+
+void func_8010A190_winners_wheel(void) {
+    func_8000B5F0_main(1);
+    D_8010A460_winners_wheel = func_8000B638_main();
+    Hu3DCamSetPerspective(D_8010A460_winners_wheel, 11.1f, 80.0f, 8000.0f);
+    CZoom = 2887.1f;
+    CRot.x = -4.4f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = -0.9f;
+    Center.y = -21.9f;
+    Center.z = -253.6f;
+}
 
 
 
