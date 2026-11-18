@@ -67,6 +67,18 @@ typedef struct LoDoor {
     /* 0x11 */ char unk11[3];
 } LoDoor; // Size 0x14
 
+/* A key's object data (func_80109264_locked_out). */
+typedef struct LoKey {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 kind; /* D_8010A678 % 3: model 7 + kind */
+    /* 0x03 */ char unk03[1];
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ char unk08[0xC];
+    /* 0x14 */ s32 unk14;
+} LoKey; // Size 0x18
+
+s16 func_8000B0D4_main(s32, s32);
 void func_800E1304_minigame(omObjData* obj, f32 arg1);
 void func_800E1310_minigame(omObjData* obj, f32 arg1);
 void func_800E131C_minigame(omObjData* obj, f32 arg1);
@@ -430,9 +442,31 @@ void func_80109110_locked_out(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109264_locked_out);
+void func_80109264_locked_out(omObjData* obj) {
+    Vec pos[9] = {
+        { 50.0f, 50.0f, 60.0f },   { -50.0f, 50.0f, -60.0f }, { 150.0f, 50.0f, -60.0f },
+        { -150.0f, 50.0f, 60.0f }, { 250.0f, 50.0f, 60.0f },  { -250.0f, 50.0f, -60.0f },
+        { 350.0f, 50.0f, -60.0f }, { -350.0f, 50.0f, 60.0f }, { 450.0f, 50.0f, 60.0f },
+    };
+    LoKey* key;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A468_locked_out);
+    obj->data = key = HuMemAllocTag(sizeof(LoKey), 31000);
+    memset(key, 0, sizeof(LoKey));
+    key->unk00 = 0;
+    key->kind = D_8010A678_locked_out % 3;
+    key->unk04 = 20.0f;
+    key->unk14 = 0;
+    key->unk01 = 0;
+    obj->model[0] = func_8000B108_main((key->kind + 7) | 0x3B0000, 0x2D9);
+    obj->model[1] = func_8000B0D4_main(9, 0x2D9);
+    Hu3DModelScaleSet(obj->model[1], 0.75f, 0.75f, 0.75f);
+    obj->trans.x = pos[D_8010A704_locked_out[D_8010A678_locked_out]].x;
+    obj->trans.y = pos[D_8010A704_locked_out[D_8010A678_locked_out]].y;
+    obj->trans.z = pos[D_8010A704_locked_out[D_8010A678_locked_out]].z;
+    obj->rot.x = -90.0f;
+    obj->func = func_80109444_locked_out;
+    D_8010A678_locked_out++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109444_locked_out);
 
