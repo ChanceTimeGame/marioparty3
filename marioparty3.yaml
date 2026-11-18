@@ -1625,7 +1625,7 @@ segments:
       - [0x30DC30, c]
       - [0x30F550, .data, 308D10] #8010C1E0
       - [0x30F5D0, .data, 30DC30] #8010C260
-      - [0x30F5E0, data, 30F5E0] #8010C270 (a table 308D10 uses, after 30DC30's .data: a third object)
+      - [0x30F5E0, .data, 30F5E0] #8010C270 (a data-only object after 30DC30: the face table 308D10 uses)
       - [0x30F600, .rodata, 308D10] #8010C290
       - [0x30F930, .rodata, 30DC30] #8010C5C0
       - {0x30F940, type: bss, vram: 0x8010C5D0, name: ovl_44_bss}
