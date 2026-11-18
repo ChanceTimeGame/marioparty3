@@ -42,6 +42,7 @@ void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
+f32 HuSqrtf(f32 x);
 
 extern s32 D_800A178C_main[][6];
 extern u16 D_800A1906_main; /* music state flags */
@@ -146,6 +147,12 @@ typedef struct BgPlayer {
     /* 0x04 */ f32 unk04; /* heading */
 } BgPlayer; /* size 8 */
 
+/* A texture's size (func_800335BC_main) */
+typedef struct BgTexSize {
+    /* 0x00 */ s16 w;
+    /* 0x02 */ s16 h;
+} BgTexSize;
+
 /* A note of the demonstrated rhythm */
 typedef struct BgNote {
     /* 0x00 */ u16 unk00; /* button: 0x8000 A, 0x4000 B, 0x2000 Z */
@@ -153,6 +160,8 @@ typedef struct BgNote {
 } BgNote; /* size 4 */
 
 extern BgSprModel* D_800CBB60_main;
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char* name, u8 arg6);
+void func_800335BC_main(char* name, void* size);
 u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
 u16 func_80014618_main(s16 index, u16 arg1);
 void func_80014714_main(s16 index, u16 arg1);
@@ -176,6 +185,7 @@ void func_8010775C_the_beat_goes_on(omObjData* obj);
 void func_801080DC_the_beat_goes_on(void);
 void func_8010C14C_the_beat_goes_on(void);
 u16 func_80108198_the_beat_goes_on(s8 idx);
+void func_8010B0E0_the_beat_goes_on(omObjData* obj);
 void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
 Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
@@ -202,12 +212,16 @@ extern u16 D_8010C4F8_the_beat_goes_on;
 extern u16 D_8010C4FA_the_beat_goes_on;
 extern s8 D_8010C46A_the_beat_goes_on;
 extern u16 D_8010C46C_the_beat_goes_on;
+extern s32 D_8010C328_the_beat_goes_on[4][4];
+extern f32 D_8010C368_the_beat_goes_on[4];
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
 extern u8 D_8010C4EA_the_beat_goes_on;
 extern s16 D_8010C4EC_the_beat_goes_on[4];
 extern s16 D_8010C4F4_the_beat_goes_on;
+extern BgTexSize D_8010C500_the_beat_goes_on;
+extern f32 D_8010C504_the_beat_goes_on;
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
@@ -978,24 +992,130 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A5FC_the_beat_goes_on);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A88C_the_beat_goes_on);
+/* Marks the button the player pressed for the current note. */
+void func_8010A88C_the_beat_goes_on(u16 btn) {
+    BgSeq* seq = D_8010C4E4_the_beat_goes_on->data;
+
+    if (btn == 0x8000) {
+        seq->unk2A[D_8010C4E9_the_beat_goes_on] = 1;
+    } else if (btn == 0x4000) {
+        seq->unk3A[D_8010C4E9_the_beat_goes_on] = 1;
+    } else if (btn == 0x2000) {
+        seq->unk4A[D_8010C4E9_the_beat_goes_on] = 1;
+    }
+    if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on) {
+        seq->unk18 = 0;
+        D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 = btn;
+    } else {
+        seq->unk1A[D_8010C4E9_the_beat_goes_on] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A94C_the_beat_goes_on);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010AD60_the_beat_goes_on);
 
+#ifdef NON_MATCHING
+/* All Fired Up's func_80108958 (exact twin): matches there with its table defined in the unit; here (extern table) the move s1,zero schedules two slots earlier */
+/* Hit puffs (one model per player). */
+void func_8010AF10_the_beat_goes_on(omObjData* obj) {
+    s32 i;
+    s32* timer;
+    f32 sc;
+
+    for (i = 0, timer = D_8010C328_the_beat_goes_on[((MgWork*)obj->data)->unk59]; i < 4; i++) {
+        if (timer[i] >= 0) {
+            if (timer[i] == 0) {
+                Hu3DModelPosSet(D_8010C4EC_the_beat_goes_on[i], obj->trans.x, obj->trans.y, obj->trans.z);
+                func_8001C258_main(D_8010C4EC_the_beat_goes_on[i], 4, 0);
+            }
+            if (timer[i] < 8) {
+                sc = D_8010C368_the_beat_goes_on[timer[i] / 2];
+                Hu3DModelScaleSet(D_8010C4EC_the_beat_goes_on[i], sc, sc, 1.0f);
+            }
+            if (timer[i] >= 8) {
+                timer[i] = -1;
+            }
+        }
+        timer[i]++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010AF10_the_beat_goes_on);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B058_the_beat_goes_on);
+/* The water (scrolling texture). */
+void func_8010B058_the_beat_goes_on(omObjData* obj) {
+    f32 zero;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B0E0_the_beat_goes_on);
+    obj->func = func_8010B0E0_the_beat_goes_on;
+    obj->trans.z = zero = 0.0f;
+    obj->trans.y = zero;
+    obj->trans.x = zero;
+    obj->model[0] = func_8000B108_main(0x410005, 0x699);
+    func_8001C954_main(obj->model[0]);
+    func_800335BC_main("mizu_DEF", &D_8010C500_the_beat_goes_on);
+    D_8010C504_the_beat_goes_on = zero;
+}
+
+void func_8010B0E0_the_beat_goes_on(omObjData* obj) {
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010C504_the_beat_goes_on += 0.2f;
+    }
+    func_8001E888_main(obj->model[0], 0, D_8010C504_the_beat_goes_on, D_8010C500_the_beat_goes_on.w,
+                       D_8010C500_the_beat_goes_on.h, "m232_001c-cube7", 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B17C_the_beat_goes_on);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B6DC_the_beat_goes_on);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010C0F4_the_beat_goes_on);
+/* Screen position of note slot D_8010C4E9 (two rows of eight). */
+void func_8010C0F4_the_beat_goes_on(s16* pos) {
+    if (D_8010C4E9_the_beat_goes_on < 8) {
+        pos[0] = D_8010C4E9_the_beat_goes_on * 30 + 55;
+        pos[1] = 30;
+    } else {
+        pos[0] = (D_8010C4E9_the_beat_goes_on - 8) * 30 + 55;
+        pos[1] = 50;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010C14C_the_beat_goes_on);
+/* Clears the note display. */
+void func_8010C14C_the_beat_goes_on(void) {
+    BgSeq* seq = D_8010C4E4_the_beat_goes_on->data;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010C1A4_the_beat_goes_on);
+    seq->unk19 = 0;
+    seq->unk18 = 0;
+    seq->unk17 = 0;
+    seq->unk16 = 0;
+    for (i = 0; i < 16; i++) {
+        if (i < 15) {
+            seq->unk1A[i] = 0;
+        }
+        seq->unk2A[i] = 0;
+        seq->unk3A[i] = 0;
+        seq->unk4A[i] = 0;
+    }
+}
+
+/* out = the unit vector from `from` to `to` (zero when they coincide). */
+Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to) {
+    Vec d;
+    f32 len;
+
+    d.x = to->x - from->x;
+    d.y = to->y - from->y;
+    d.z = to->z - from->z;
+    len = HuSqrtf(d.x * d.x + d.y * d.y + d.z * d.z);
+    if (len == 0.0f) {
+        d.x = d.y = d.z = 0.0f;
+    } else {
+        d.x /= len;
+        d.y /= len;
+        d.z /= len;
+    }
+    *out = d;
+    return out;
+}
