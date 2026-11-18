@@ -72,7 +72,7 @@ typedef struct EsPlayer {
     /* 0x11 */ s8 unk11;
     /* 0x12 */ s8 unk12;
     /* 0x13 */ s8 rank;
-    /* 0x14 */ f32 unk14[4];
+    /* 0x14 */ s8 lap[16];
     /* 0x24 */ f32 dist;
     /* 0x28 */ f32 unk28;
     /* 0x2C */ f32 unk2C;
@@ -172,18 +172,18 @@ s32 func_80105CE4_eye_sore(s32 max);
 void func_80105D38_eye_sore(omObjData *obj, u16 motion, s16 attr);
 void func_80105DA0_eye_sore(omObjData *obj, u16 motion, s16 start, s16 end, s16 attr);
 void func_80105E0C_eye_sore(f32 x0, f32 z0, f32 x1, f32 z1, f32 *dx, f32 *dz, f32 *rot, f32 max);
-s32 func_80105F40_eye_sore(omObjData *obj, f32 rot);
+s8 func_80105F40_eye_sore(omObjData *obj, f32 rot);
 void func_80106054_eye_sore(omObjData *obj);
 void func_8010605C_eye_sore(omObjData *obj);
 void func_80106210_eye_sore(void);
 void func_80106250_eye_sore(omObjData *obj, u8 anim);
 void func_80106328_eye_sore(omObjData *obj, s8 sfx);
 void func_801063E8_eye_sore(omObjData *obj, s8 motion);
-void func_80106510_eye_sore(omObjData *obj, s8 player);
+void func_80106510_eye_sore(omObjData *obj);
 void func_80106718_eye_sore(omObjData *obj);
-void func_8010683C_eye_sore(omObjData *obj, s8 player);
-void func_801070CC_eye_sore(omObjData *obj, s8 player);
-void func_8010725C_eye_sore(omObjData *obj, s8 player);
+void func_8010683C_eye_sore(omObjData *obj);
+void func_801070CC_eye_sore(omObjData *obj);
+void func_8010725C_eye_sore(omObjData *obj);
 void func_80107804_eye_sore(omObjData *obj);
 void func_80107CBC_eye_sore(omObjData *obj);
 void func_80108330_eye_sore(omObjData *obj);
@@ -336,7 +336,7 @@ void func_80105E0C_eye_sore(f32 x0, f32 z0, f32 x1, f32 z1, f32 *dx, f32 *dz, f3
     *rot = atan2df(x, z);
 }
 
-s32 func_80105F40_eye_sore(omObjData *obj, f32 rot) {
+s8 func_80105F40_eye_sore(omObjData *obj, f32 rot) {
     f32 cur = obj->rot.y;
     f32 diff = rot - cur;
 
@@ -466,7 +466,7 @@ void func_801063E8_eye_sore(omObjData *obj, s8 motion) {
     }
 }
 
-void func_80106510_eye_sore(omObjData *obj, s8 player) {
+void func_80106510_eye_sore(omObjData *obj) {
     u8 pad = obj->work[3];
     s16 x = D_800CBB6E_main[pad];
     s16 y = -D_800D20A1_main[pad];
@@ -529,7 +529,7 @@ void func_80106718_eye_sore(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_8010683C_eye_sore);
 
-void func_801070CC_eye_sore(omObjData *obj, s8 player) {
+void func_801070CC_eye_sore(omObjData *obj) {
     f32 dx;
     f32 dz;
     f32 rot;
@@ -556,7 +556,7 @@ void func_801070CC_eye_sore(omObjData *obj, s8 player) {
     }
 }
 
-void func_8010725C_eye_sore(omObjData *obj, s8 player) {
+void func_8010725C_eye_sore(omObjData *obj) {
     s8 pad = obj->work[3];
     EsEnt *ent = ES_ENT(ES_ENT_PLAYER, (s8)obj->work[0]);
     EsPlayer *p = &D_8010CA60_eye_sore[obj->work[0]];
@@ -713,7 +713,112 @@ void func_80107804_eye_sore(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80107CBC_eye_sore);
+void func_80107CBC_eye_sore(omObjData *obj) {
+    s8 player = obj->work[0];
+    EsEnt *ent = ES_ENT(ES_ENT_PLAYER, player);
+    EsPlayer *p = &D_8010CA60_eye_sore[player];
+    EsRing *ring = &D_8010CBC0_eye_sore[player];
+    f32 rot;
+
+    if (D_8010AF20_eye_sore != 2) {
+        if (D_8010AF20_eye_sore >= 3) {
+            switch (p->unk11) {
+            case 0:
+                if (func_80105F40_eye_sore(obj, 0.0f)) {
+                    func_801063E8_eye_sore(obj, 1);
+                } else if (ent->unk06 != 7 && ent->unk06 != 8) {
+                    func_801063E8_eye_sore(obj, 0);
+                }
+                if (p->rank == 0) {
+                    ent->unk20 = 18.0f;
+                    ent->unk24 = 0.6f;
+                    ent->unk28 = 2.6f;
+                    ent->unk2C = (obj->trans.z + 85.0f) / 50.0f;
+                    p->unk11 = 99;
+                }
+                break;
+            case 1:
+                func_801070CC_eye_sore(obj);
+                break;
+            case 2:
+                func_8010725C_eye_sore(obj);
+                break;
+            case 99:
+                if (func_80105F40_eye_sore(obj, 0.0f)) {
+                    func_801063E8_eye_sore(obj, 1);
+                } else if (ent->unk06 != 7 && ent->unk06 != 8) {
+                    func_801063E8_eye_sore(obj, 0);
+                }
+                if (ent->unk0E < 50) {
+                    ent->unk0E++;
+                    CZoomM[player] -= ent->unk20;
+                    CRotM[player].x = func_801059BC_eye_sore(CRotM[player].x, ent->unk24);
+                    CRotM[player].y = 0.0f;
+                    CRotM[player].z = 0.0f;
+                    CenterM[player].x = 0.0f;
+                    CenterM[player].y += ent->unk28;
+                    CenterM[player].z += ent->unk2C;
+                }
+                break;
+            }
+        }
+    } else {
+        if (p->unk0D < 0) {
+            if (p->timer < 60) {
+                func_801063E8_eye_sore(obj, 3);
+                p->timer++;
+            } else if (func_80105F40_eye_sore(obj, 0.0f)) {
+                func_801063E8_eye_sore(obj, 1);
+            } else {
+                func_801063E8_eye_sore(obj, 0);
+            }
+            return;
+        }
+        switch (p->unk11) {
+        case 0:
+            if (p->cpu == 0) {
+                func_80106510_eye_sore(obj);
+            } else {
+                func_8010683C_eye_sore(obj);
+            }
+            break;
+        case 1:
+            func_801070CC_eye_sore(obj);
+            break;
+        case 2:
+            func_8010725C_eye_sore(obj);
+            break;
+        }
+        rot = func_801059BC_eye_sore(atan2df(obj->trans.x, obj->trans.z), 0.0f);
+        if ((p->unk10 == 0) & (rot > 300.0f) && rot < 330.0f) {
+            p->unk10 = 1;
+        }
+        if (p->unk10 != 0 && p->unk0C == 0) {
+            if (rot > 330.0f && p->rot < 30.0f && p->lap[p->unk0D] == 0) {
+                p->lap[p->unk0D] = 1;
+                p->unk0D--;
+                if (p->unk0D < 0) {
+                    p->rank = D_8010AF6C_eye_sore;
+                    D_8010CA5A_eye_sore++;
+                    func_8004AC98_main(0x490, (s16)obj->work[0]);
+                    return;
+                }
+                func_8004AC98_main(0x48F, (s16)obj->work[0]);
+                ring->unk04 = D_8010AF30_eye_sore[p->unk0D] * 75.0f;
+            }
+        }
+        if ((p->rot < rot && rot - p->rot < 300.0f) || (rot < 30.0f && p->rot > 330.0f)) {
+            p->unk0C = 1;
+        } else if ((rot <= ring->unk08 && ring->unk08 <= p->rot)
+                   || (rot > 330.0f && ring->unk08 < 30.0f && p->rot < 30.0f)
+                   || (rot > 330.0f && ring->unk08 > 330.0f && rot <= ring->unk08)) {
+            p->unk0C = 0;
+        }
+        p->rot = rot;
+        func_80106718_eye_sore(obj);
+        func_80107804_eye_sore(obj);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80108330_eye_sore);
 
