@@ -91,6 +91,8 @@ void func_80108190_crazy_cogs(omObjData *obj);
 void func_80107E00_crazy_cogs(omObjData *obj);
 void func_801087B8_crazy_cogs(omObjData *obj);
 void func_80108B0C_crazy_cogs(omObjData *obj);
+void func_80109084_crazy_cogs(omObjData *obj);
+f32 func_80105BD0_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
 void func_800DDD94_minigame(omObjData *obj);
@@ -166,6 +168,7 @@ extern s8 D_8010B9A2_crazy_cogs;
 extern s8 D_8010B9A6_crazy_cogs;
 extern s8 D_8010B9B0_crazy_cogs[0x32];
 extern s8 D_8010B99C_crazy_cogs;
+extern s8 D_8010B996_crazy_cogs;
 extern s8 D_8010B9A0_crazy_cogs;
 extern u8 D_8010B9A1_crazy_cogs;
 extern CgEnt D_8010B9F0_crazy_cogs[70];
@@ -174,6 +177,7 @@ extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr 
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
+extern CgEnt D_8010C338_crazy_cogs[5]; /* = D_8010B9F0_crazy_cogs[CG_ENT_18] */
 extern u8 D_8010B991_crazy_cogs[3];
 extern u8 D_8010DE10_crazy_cogs[3];
 extern CgStick D_8010DE70_crazy_cogs[3];
@@ -1339,14 +1343,53 @@ void func_80108EE8_crazy_cogs(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108EE8_crazy_cogs);
 #endif
 
-void func_80109084_crazy_cogs(void) {
+void func_80109084_crazy_cogs(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010908C_crazy_cogs);
+/* The bump effect models (entities 18..22): parked far away until used. */
+void func_8010908C_crazy_cogs(omObjData *obj) {
+    obj->model[0] = func_8000B0A0_main(0x260008, 0x89);
+    func_8001C2FC_main(obj->model[0], 0x80000000, 0);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_80088800_main(HmfModelData[obj->model[0]].mtx, 0.0f, 0.0f, 0.0f);
+    obj->trans.x = obj->trans.z = obj->trans.y = 1000.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->scale.x = obj->scale.y = obj->scale.z = 2.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    obj->rot.x = 290.0f;
+    obj->rot.y = obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    func_8001C92C_main(obj->model[0], 2.0f);
+    func_8001C8A8_main(obj->model[0], 1);
+    obj->func = func_80109084_crazy_cogs;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801091F4_crazy_cogs);
+void func_801091F4_crazy_cogs(void) {
+    omObjData *obj;
+    CgEnt *ent;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109298_crazy_cogs);
+    for (i = 0; i < 5; i++) {
+        ent = &D_8010B9F0_crazy_cogs[CG_ENT_18 + i];
+        obj = omAddObj(1500, 1, 1, -1, func_8010908C_crazy_cogs);
+        ent->obj = obj;
+        obj->work[0] = i;
+    }
+}
+
+/* Plays the next bump effect (round robin) at an object. */
+void func_80109298_crazy_cogs(omObjData *obj) {
+    omObjData *fx = D_8010C338_crazy_cogs[D_8010B996_crazy_cogs].obj;
+
+    HuAudFXPlay(0x321);
+    fx->trans.x = obj->trans.x;
+    fx->trans.y = func_80105BD0_crazy_cogs(obj) + obj->trans.y + 70.0f;
+    fx->trans.z = obj->trans.z + 70.0f;
+    Hu3DModelPosSet(fx->model[0], fx->trans.x, fx->trans.y, fx->trans.z);
+    func_8001C6A8_main(fx->model[0], 0.0f);
+    D_8010B996_crazy_cogs = (D_8010B996_crazy_cogs + 1) % 5;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109388_crazy_cogs);
 
