@@ -207,7 +207,8 @@ extern s8 D_8010BF40_hyper_hydrants;
 extern s16 D_8010BF42_hyper_hydrants[2];
 extern s8 D_8010BF46_hyper_hydrants;
 extern s32 D_8010BF48_hyper_hydrants; /* drop-ins made; its low byte is D_8010BF4B */
-extern s32 D_8010BF4C_hyper_hydrants; /* frames since the last pump, per team */
+extern s32 D_8010BF4C_hyper_hydrants;
+extern s8 D_8010BF50_hyper_hydrants; /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
@@ -217,10 +218,12 @@ extern s8 D_8010BFAA_hyper_hydrants;
 extern s8 D_8010BFAB_hyper_hydrants;
 extern s8 D_8010BFAC_hyper_hydrants[2];
 extern s8 D_8010BFAE_hyper_hydrants[2]; /* jet pressure per team */
+extern Vec* D_8010BFB0_hyper_hydrants[2][6]; /* hose segment positions per team */
 extern omObjData* D_8010BFE0_hyper_hydrants[2];
 extern omObjData* D_8010BFE8_hyper_hydrants[2][5];
 extern s8 D_8010C010_hyper_hydrants;
 extern s16 D_8010C022_hyper_hydrants[2];
+extern Vec D_8010C028_hyper_hydrants[2]; /* hydrant end of the hose per team */
 
 
 void func_801059A0_hyper_hydrants(void) {
@@ -1800,9 +1803,136 @@ void func_8010A458_hyper_hydrants(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A68C_hyper_hydrants);
+// masked residue: retail selects the pumper/hose objects into one register before the loads and keeps the segment base differently (registers/scheduling; logic checked)
+#ifdef NON_MATCHING
+/* A team's hose (work[0] the team): 6 segments from the hydrant (by the pumper) to the hose player's nozzle. */
+void func_8010A68C_hyper_hydrants(omObjData* obj) {
+    s32 team;
+    omObjData* p;
+    omObjData* hose;
+    HhPlayer* ex;
+    f32 nx;
+    f32 nz;
+    Vec step;
+    s32 i;
+    Vec** seg;
 
+    obj->func = func_8010AB34_hyper_hydrants;
+    team = 1;
+    if (D_8010BF50_hyper_hydrants == 0) {
+        obj->work[0] = 0;
+        p = D_800EC598_minigame[D_8010BFA8_hyper_hydrants];
+        team = 0;
+    } else {
+        obj->work[0] = 1;
+        p = D_800EC598_minigame[D_8010BFA9_hyper_hydrants];
+    }
+    D_8010C028_hyper_hydrants[team].x = (p->trans.x - 25.0f) - 18.75f;
+    D_8010C028_hyper_hydrants[team].y = 37.5f;
+    if (((u32)D_800A178C_main[GwPlayer[((MgWork*)p->data)->unk59].chr][0] >> 16) == 6) {
+        D_8010C028_hyper_hydrants[team].z = p->trans.z + 50.0f + 18.75f + 48.7f;
+    } else {
+        D_8010C028_hyper_hydrants[team].z = p->trans.z + 50.0f + 18.75f;
+    }
+    obj->scale.z = 1.6f;
+    obj->scale.y = 1.6f;
+    obj->scale.x = 1.6f;
+    if (obj->work[0] == 0) {
+        hose = D_800EC598_minigame[D_8010BFAA_hyper_hydrants];
+    } else {
+        hose = D_800EC598_minigame[D_8010BFAB_hyper_hydrants];
+    }
+    ex = ((MgWork*)hose->data)->unk158;
+    nx = ex->unk08 * 60.0f + hose->trans.x;
+    nz = ex->unk0C * 60.0f + hose->trans.z;
+    step.x = HH_ABS(D_8010C028_hyper_hydrants[team].x - nx) / 5.0f;
+    step.y = -8.5f;
+    step.z = HH_ABS(D_8010C028_hyper_hydrants[team].z - nz) / 5.0f;
+    seg = D_8010BFB0_hyper_hydrants[team];
+    for (i = 0; i < 6; i++) {
+        obj->model[i] = func_8000B108_main(0x2F0008, 0x899);
+        Hu3DModelScaleSet(obj->model[i], obj->scale.x, obj->scale.y, obj->scale.z);
+        seg[i] = HuMemAllocTag(0x1C, 0x7918);
+        if (team == 0) {
+            func_8001C8A8_main(obj->model[i], 1);
+        } else {
+            func_8001C8A8_main(obj->model[i], 2);
+        }
+        seg[i]->x = nx + i * step.x;
+        seg[i]->y = i * step.y + 80.0f;
+        seg[i]->z = nz + i * step.z;
+        if (i == 0) {
+            obj->trans.x = seg[0]->x;
+            obj->trans.y = seg[0]->y;
+            obj->trans.z = seg[0]->z;
+        }
+        Hu3DModelPosSet(obj->model[i], seg[i]->x, seg[i]->y,
+                        seg[i]->z);
+    }
+    D_8010BF50_hyper_hydrants++;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A68C_hyper_hydrants);
+#endif
+
+// masked residue: as func_8010A68C, plus 80.0f kept in a saved register here (registers/scheduling; logic checked)
+#ifdef NON_MATCHING
+/* The hose follows its nozzle while playing and fades out at the end. */
+void func_8010AB34_hyper_hydrants(omObjData* obj) {
+    s32 team;
+    omObjData* hose;
+    HhPlayer* ex;
+    f32 nx;
+    f32 nz;
+    Vec step;
+    s32 i;
+    Vec** seg;
+
+    switch (func_800E6E8C_minigame()) {
+        case 2:
+            team = 1;
+            if (obj->work[0] == 0) {
+                hose = D_800EC598_minigame[D_8010BFAA_hyper_hydrants];
+                team = 0;
+            } else {
+                hose = D_800EC598_minigame[D_8010BFAB_hyper_hydrants];
+            }
+            ex = ((MgWork*)hose->data)->unk158;
+            nx = ex->unk08 * 60.0f + hose->trans.x;
+            nz = ex->unk0C * 60.0f + hose->trans.z;
+            step.x = HH_ABS(D_8010C028_hyper_hydrants[team].x - nx) / 5.0f;
+            step.y = -8.5f;
+            step.z = HH_ABS(D_8010C028_hyper_hydrants[team].z - nz) / 5.0f;
+            seg = D_8010BFB0_hyper_hydrants[team];
+            for (i = 0; i < 6; i++) {
+                seg[i]->x = nx + i * step.x;
+                seg[i]->y = i * step.y + 80.0f;
+                seg[i]->z = nz + i * step.z;
+                if (i == 0) {
+                    obj->trans.x = seg[0]->x;
+                    obj->trans.y = seg[0]->y;
+                    obj->trans.z = seg[0]->z;
+                }
+                Hu3DModelPosSet(obj->model[i], seg[i]->x,
+                                seg[i]->y, seg[i]->z);
+            }
+            break;
+        case 0:
+            break;
+        case 1:
+            break;
+        case 3:
+        case 4:
+        case 5:
+            for (i = 0; i < 6; i++) {
+                func_8001C258_main(obj->model[i], 4, 4);
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AB34_hyper_hydrants);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AE08_hyper_hydrants);
 
