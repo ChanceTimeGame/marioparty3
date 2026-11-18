@@ -462,3 +462,5 @@ D_8010D1C2_game_guys_lucky_7 = D_8010D1C0_game_guys_lucky_7 + 0x2;
 D_8010D1C6_game_guys_lucky_7 = D_8010D1C4_game_guys_lucky_7 + 0x2;
 /* m5 l7: 3010E0 .data u16 after D_8010D1CC (reel stop step; a separate variable in C) */
 D_8010D1CE_game_guys_lucky_7 = D_8010D1CC_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1D0 (result step; a separate variable in C) */
+D_8010D1D2_game_guys_lucky_7 = D_8010D1D0_game_guys_lucky_7 + 0x2;
