@@ -94,6 +94,14 @@ typedef struct HsBoxLog {
     /* 0x01 */ s8 seeker[3];
 } HsBoxLog;
 
+/* A box number sprite (D_8010C760_hide_and_sneak, 4 x 8). */
+typedef struct HsNumSpr {
+    /* 0x00 */ s16 grp;
+    /* 0x02 */ s16 x;
+    /* 0x04 */ s16 y;
+    /* 0x06 */ s16 unk06;
+} HsNumSpr;
+
 /* .data */
 extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
@@ -102,11 +110,16 @@ extern f32 D_8010C3F4_hide_and_sneak[4];
 extern s16 D_8010C474_hide_and_sneak[4];
 extern char *D_8010C47C_hide_and_sneak[4];
 extern char *D_8010C48C_hide_and_sneak[4];
+extern s16 D_8010C49C_hide_and_sneak[4];
+extern s16 D_8010C4A4_hide_and_sneak[4][2];
+extern s16 D_8010C4B4_hide_and_sneak[4];
 extern s32 D_8010C4BC_hide_and_sneak;
 extern HsCamera D_8010C4C0_hide_and_sneak[2];
 /* .rodata */
 extern const s16 D_8010C754_hide_and_sneak[];
 /* .bss */
+extern HsNumSpr D_8010C760_hide_and_sneak[4];
+extern s8 D_8010C780_hide_and_sneak;
 extern s8 D_8010C782_hide_and_sneak;
 extern HsSeeker D_8010C788_hide_and_sneak[4];
 extern HsAuto D_8010E168_hide_and_sneak;
@@ -120,6 +133,9 @@ extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
 extern HsBoxLog D_8010E188_hide_and_sneak[4];
+extern HuSprite_Unk84_Struct *D_8010E198_hide_and_sneak[4];
+extern u8 D_8010E17D_hide_and_sneak[3];
+extern u8 D_8010E1AE_hide_and_sneak[3];
 extern s8 D_8010E1AC_hide_and_sneak;
 extern s8 D_8010E1AD_hide_and_sneak;
 extern s8 D_8010E1B2_hide_and_sneak;
@@ -137,6 +153,10 @@ void func_80106960_hide_and_sneak(void);
 void func_801078E4_hide_and_sneak(void);
 void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
+void func_8010A1CC_hide_and_sneak(omObjData *obj);
+void func_8010ACC4_hide_and_sneak(Gfx **gfx, s32 arg1, s32 arg2);
+void func_8010AF98_hide_and_sneak(omObjData *obj);
+void func_8010B33C_hide_and_sneak(omObjData *obj);
 void func_8010A88C_hide_and_sneak(omObjData *obj);
 void func_8010AAC8_hide_and_sneak(omObjData *obj);
 void func_8010ABC8_hide_and_sneak(void);
@@ -1119,7 +1139,60 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A1CC_hide_and_sneak);
 
+#ifdef NON_MATCHING
+void func_8010A48C_hide_and_sneak(void) {
+    omObjData *obj;
+    HsEnt *ent;
+    s8 *slot;
+    s8 order[3];
+    s8 player;
+    s8 n;
+    s8 i;
+    s8 j;
+
+    player = 0;
+    n = 0;
+    for (i = 0; i < 3; i++) {
+        order[i] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+                case 0:
+                    player = 0;
+                    break;
+                case 1:
+                    player = 1;
+                    break;
+                case 2:
+                    player = 2;
+                    break;
+                case 3:
+                    player = 3;
+                    break;
+            }
+            ent = HS_ENT(HS_ENT_SEEKER, n);
+            obj = omAddObj(600, 3, 6, -1, func_8010A1CC_hide_and_sneak);
+            obj->work[0] = player;
+            ent->obj = obj;
+            D_8010E17D_hide_and_sneak[n] = obj->work[0];
+            D_8010E1AE_hide_and_sneak[n] = GwPlayer[obj->work[0]].chr;
+            slot = &order[func_801064F4_hide_and_sneak(3 - n)];
+            obj->work[1] = *slot;
+            *slot = -1;
+            for (j = 1; j < 3 - n; j++) {
+                if (order[j - 1] == -1) {
+                    order[j - 1] = order[j];
+                    order[j] = -1;
+                }
+            }
+            n++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A48C_hide_and_sneak);
+#endif
 
 void func_8010A6BC_hide_and_sneak(omObjData *obj) {
     HsEnt *ent = HS_ENT(HS_ENT_BOX, obj->work[0]);
@@ -1206,10 +1279,22 @@ void func_8010ACB8_hide_and_sneak(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010ACC4_hide_and_sneak);
 
-void func_8010AF98_hide_and_sneak(void) {
+void func_8010AF98_hide_and_sneak(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010AFA0_hide_and_sneak);
+void func_8010AFA0_hide_and_sneak(omObjData *obj) {
+    s8 i;
+
+    for (i = 0; i < 4; i++) {
+        D_8010C760_hide_and_sneak[i].grp = func_8000B838_main(D_8010C49C_hide_and_sneak[i] | 0x270000);
+        D_8010C760_hide_and_sneak[i].x = D_8010C4A4_hide_and_sneak[i][0];
+        D_8010C760_hide_and_sneak[i].y = D_8010C4A4_hide_and_sneak[i][1];
+        D_8010C760_hide_and_sneak[i].unk06 = 0;
+        D_8010E198_hide_and_sneak[i] = func_80055194_main(D_8010C760_hide_and_sneak[i].grp);
+    }
+    func_8001C8A8_main(func_8001AC8C_main(0, func_8010ACC4_hide_and_sneak, 2), 1);
+    obj->func = func_8010AF98_hide_and_sneak;
+}
 
 void func_8010B0D0_hide_and_sneak(void) {
     omObjData *obj = omAddObj(1000, 2, 1, -1, func_8010AFA0_hide_and_sneak);
@@ -1220,7 +1305,26 @@ void func_8010B0D0_hide_and_sneak(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B118_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B33C_hide_and_sneak);
+void func_8010B33C_hide_and_sneak(omObjData *obj) {
+    if (D_8010E180_hide_and_sneak >= 3) {
+        if (obj->trans.y > -160.0f) {
+            obj->trans.y -= 4.0f;
+        }
+    } else {
+        switch (D_8010C780_hide_and_sneak) {
+            case 1:
+                if (obj->trans.y > -160.0f) {
+                    obj->trans.y -= 4.0f;
+                }
+                break;
+            case 2:
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y += 4.0f;
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", D_8010C670_hide_and_sneak);
 
@@ -1238,7 +1342,24 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", D_8010C
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", D_8010C6EC_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B410_hide_and_sneak);
+void func_8010B410_hide_and_sneak(omObjData *obj) {
+    s32 i = (s8)obj->work[0];
+    void *data;
+
+    obj->model[0] = func_8000B108_main(0x27000D, 0x2A9);
+    data = DataRead(D_8010C4B4_hide_and_sneak[i] | 0x270000);
+    HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "s206_004_DEF");
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    DataClose(data);
+    obj->trans.x = i * 130 - 195;
+    obj->trans.y = -160.0f;
+    obj->trans.z = 100.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C92C_main(obj->model[0], 0.0f);
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010B33C_hide_and_sneak;
+}
 
 void func_8010B55C_hide_and_sneak(void) {
     omObjData *obj;
