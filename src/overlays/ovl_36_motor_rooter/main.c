@@ -1,3 +1,4 @@
+#include "common.h"
 #include "overlays/ovl_36.h"
 #include "overlays/minigame.h"
 #include "gcc/memory.h"
@@ -163,11 +164,13 @@ void func_8010D2E4_motor_rooter(s32);
 s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
 s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 
-extern s8 D_800CBB6E_main[];  /* CPU stick x */
-extern u16 D_800CDA7C_main[]; /* CPU buttons */
-extern s8 D_800D20A1_main[];  /* CPU stick y */
-extern s16 D_80113458_motor_rooter;
+extern s16 D_80113458_motor_rooter; /* control scheme */
+#define CPU_BTN ((u16 *)D_800CDA7C_main) /* input.h has s16; retail reads it as u16 */
 void func_8010B970_motor_rooter(FuncContext *ctx);
+
+extern s32 D_800A178C_main[][6];
+extern D_800CCF58_main_Struct *D_800CCF58_main;
+omObjData *func_80045F1C_main(u32, s16, s16);
 
 // BSS
 extern f32 *D_801137C0_motor_rooter;
@@ -493,7 +496,6 @@ void func_80106B7C_motor_rooter(omObjData *object) {
 
 /* <func_80106BAC_motor_rooter> */
 #ifdef NON_MATCHING
-extern s32 D_800A178C_main[][6];
 void func_801070CC_motor_rooter(omObjData *object);
 void func_8010ABC4_motor_rooter(FuncContext *ctx);
 void func_8010BB78_motor_rooter(FuncContext *ctx);
@@ -1516,7 +1518,7 @@ void func_8010A440_motor_rooter(FuncContext *ctx) {
     }
     D_800CBB6E_main[work->unk04] = 0;
     D_800D20A1_main[work->unk04] = 0;
-    D_800CDA7C_main[work->unk04] = 0;
+    CPU_BTN[work->unk04] = 0;
     min = 999;
     for (i = 0; i < 3; i++) {
         if (view->unk2E[i] != -1 && work->unk1C <= view->unk4C[view->unk2E[i]]) {
@@ -1548,12 +1550,12 @@ void func_8010A440_motor_rooter(FuncContext *ctx) {
                     break;
                 case 2:
                     if (d < 3) {
-                        D_800CDA7C_main[work->unk04] = 0x8000;
+                        CPU_BTN[work->unk04] = 0x8000;
                     } else {
                         if (d < 4) {
                             (void)rand16();
                         }
-                        D_800CDA7C_main[work->unk04] = 0x4000;
+                        CPU_BTN[work->unk04] = 0x4000;
                     }
                     break;
                 }
@@ -1600,16 +1602,16 @@ void func_8010A440_motor_rooter(FuncContext *ctx) {
                         break;
                     case 2:
                         if (d < 3) {
-                            D_800CDA7C_main[work->unk04] = 0x8000;
+                            CPU_BTN[work->unk04] = 0x8000;
                         } else {
                             if (d < 4) {
                                 (void)rand16();
                             }
-                            D_800CDA7C_main[work->unk04] = 0x4000;
+                            CPU_BTN[work->unk04] = 0x4000;
                         }
                         if (rand16() % (ctx->work.s8[6] + 1) == 0) {
-                            D_800CDA7C_main[work->unk04] = ~D_800CDA7C_main[work->unk04];
-                            D_800CDA7C_main[work->unk04] &= 0xC000;
+                            CPU_BTN[work->unk04] = ~CPU_BTN[work->unk04];
+                            CPU_BTN[work->unk04] &= 0xC000;
                         }
                         break;
                     }
@@ -1665,7 +1667,7 @@ void func_8010ABC4_motor_rooter(FuncContext *ctx) {
         }
         break;
     case 2:
-        if (D_800CDA7C_main[work->unk04] & 0x8000) {
+        if (CPU_BTN[work->unk04] & 0x8000) {
             if (ctx->work.s8[0] == 0) {
                 ctx->work.s8[0] = 1;
                 ctx->work.s8[1] = 0;
@@ -1676,7 +1678,7 @@ void func_8010ABC4_motor_rooter(FuncContext *ctx) {
                     ctx->work.s8[2] = 4;
                 }
             }
-        } else if (D_800CDA7C_main[work->unk04] & 0x4000) {
+        } else if (CPU_BTN[work->unk04] & 0x4000) {
             if (ctx->work.s8[1] == 0) {
                 ctx->work.s8[0] = 0;
                 ctx->work.s8[1] = 1;
@@ -1897,11 +1899,63 @@ void func_8010B970_motor_rooter(FuncContext *ctx) {
 }
 /* </func_8010B970_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BB78_motor_rooter);
+/* <func_8010BB78_motor_rooter> */
+extern s16 D_8011349E_motor_rooter[];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BCD0_motor_rooter);
+void func_8010BB78_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BDE4_motor_rooter);
+    if (work->unk08 & 0x11) {
+        return;
+    }
+    if (work->unk08 & 0x100) {
+        if (work->unk10 < 20.0f) {
+            work->unk10 = 2.0f * work->unk10;
+            if (work->unk10 > 20.0f) {
+                work->unk10 = 20.0f;
+            }
+        } else {
+            HuAudFXPitchSet(D_801137D8_motor_rooter, D_8011345A_motor_rooter[work->unk14]);
+            work->unk08 &= ~0x100;
+        }
+    } else if (++work->unk4C > D_8011349E_motor_rooter[work->unk14]) {
+        work->unk4C = 0;
+        if (work->unk14 - 1 > 0) {
+            work->unk14--;
+            work->unk28[work->unk14] = 2;
+            work->unk10 -= 4.0f;
+        }
+        func_8004AAD0_main(D_801137D8_motor_rooter, 64);
+        HuAudFXPitchSet(D_801137D8_motor_rooter, D_8011345A_motor_rooter[work->unk14]);
+    }
+}
+/* </func_8010BB78_motor_rooter> */
+
+/* <func_8010BCD0_motor_rooter> */
+void func_8010BCD0_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    HmfModel *model = &HmfModelData[object->model[0]];
+
+    if (D_800CCF58_main[model->unk02].unk02 - 1 <= model->unk40) {
+        work->unk32 = 1;
+    }
+    if (work->unk32 != 0) {
+        func_800E5690_minigame(object, work->unk34);
+        work->unk32 = 0;
+        if (work->unk34 == 13) {
+            func_80045F1C_main(D_800A178C_main[GwPlayer[m254_playerId[object->work[0]]].chr][0] | 0x2F, -1, 0);
+        }
+    }
+}
+/* </func_8010BCD0_motor_rooter> */
+
+/* <func_8010BDE4_motor_rooter> */
+void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, s8 arg2) {
+    arg0->unk32 = arg2;
+    arg0->unk34 = arg1;
+}
+/* </func_8010BDE4_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BDF0_motor_rooter);
 
