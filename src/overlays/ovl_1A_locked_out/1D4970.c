@@ -144,20 +144,28 @@ f32 func_80109DBC_locked_out(f32 x, f32 z);
 f32 func_80109E34_locked_out(Vec* a, Vec* b);
 void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 
-extern Vec D_8010A110_locked_out[7];
-extern s32 D_8010A164_locked_out; /* result timer */
-extern u16 D_8010A168_locked_out; /* game timer, frames */
-extern s32 D_8010A16C_locked_out; /* last player through a door, -1 none */
-extern s16 D_8010A170_locked_out; /* winner camera angle */
-extern s8 D_8010A172_locked_out; /* players through a door */
-extern s8 D_8010A173_locked_out; /* doors */
-extern u8 D_8010A174_locked_out; /* first round */
-extern u8 D_8010A178_locked_out[4][2]; /* [n][1]: the n-th player to spawn */
-extern u8 D_8010A180_locked_out; /* players spawned */
-extern Vec D_8010A184_locked_out[4]; /* start positions */
-extern f32 D_8010A1B4_locked_out[4]; /* start headings */
-extern Vec D_8010A1C4_locked_out[]; /* positions past the doors */ /* positions; the doors use [0], [3], [6] */
-extern u32 D_8010A1E8_locked_out; /* random seed */
+Vec D_8010A110_locked_out[7] = { /* door positions: round 1 uses [0], [3], [6]; round 2 [1], [4] */
+    { 0.0f, 0.0f, -615.0f },   { 227.5f, 0.0f, -615.0f }, { 0.0f, 0.0f, -615.0f },  { 345.0f, 0.0f, -615.0f },
+    { -227.5f, 0.0f, -615.0f }, { 0.0f, 0.0f, -615.0f },  { -345.0f, 0.0f, -615.0f },
+};
+s32 D_8010A164_locked_out = 0; /* result timer */
+u16 D_8010A168_locked_out = 0; /* game timer, frames */
+s32 D_8010A16C_locked_out = -1; /* last player through a door, -1 none */
+s16 D_8010A170_locked_out = 180; /* winner camera angle */
+s8 D_8010A172_locked_out = 4; /* players in the round; then players through a door */
+s8 D_8010A173_locked_out = 3; /* doors */
+u8 D_8010A174_locked_out[4] = { 1, 0, 0, 0 }; /* [0]: first round (all players get 3 if nobody escapes) */
+u8 D_8010A178_locked_out[4][2] = { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 } }; /* [n][1]: the n-th player to spawn */
+u8 D_8010A180_locked_out = 0; /* players spawned */
+Vec D_8010A184_locked_out[4] = { /* start positions */
+    { -300.0f, 0.0f, 400.0f }, { -100.0f, 0.0f, 400.0f }, { 100.0f, 0.0f, 400.0f }, { 300.0f, 0.0f, 400.0f },
+};
+f32 D_8010A1B4_locked_out[4] = { 180.0f, 180.0f, 180.0f, 180.0f }; /* start headings */
+Vec D_8010A1C4_locked_out[3] = { /* round 2 start positions */
+    { -200.0f, 0.0f, 400.0f }, { 200.0f, 0.0f, 400.0f }, { 0.0f, 0.0f, 400.0f },
+};
+u32 D_8010A1E8_locked_out = 0x41C64E6D; /* random seed */
+
 extern s32 D_8010A580_locked_out; /* result jingle timer */
 extern s16 D_8010A584_locked_out; /* music start timer */
 extern D_80111B50_vine_with_me_Struct D_8010A588_locked_out;
@@ -420,7 +428,7 @@ void func_801064E0_locked_out(omObjData* obj) {
             if (D_8010A172_locked_out >= 2) {
                 WipeCreateOut(12, 30);
                 D_8010A674_locked_out = 4;
-                D_8010A174_locked_out = 0;
+                D_8010A174_locked_out[0] = 0;
             } else {
                 func_8003F5C0_main();
                 GMesCreate(0x12);
@@ -495,7 +503,7 @@ void func_801064E0_locked_out(omObjData* obj) {
                 Center.z = c * D_8010A638_locked_out[((LoPlayer*)((MgWork*)D_800EC598_minigame[D_8010A16C_locked_out]->data)->unk158)->doorIdx].pos.z;
                 D_8010A170_locked_out -= 6;
             }
-            if (D_8010A16C_locked_out == -1 && D_8010A174_locked_out != 0) {
+            if (D_8010A16C_locked_out == -1 && D_8010A174_locked_out[0] != 0) {
                 for (i = 0; i < 4; i++) {
                     ((LoPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)->unk24 = 3;
                 }
