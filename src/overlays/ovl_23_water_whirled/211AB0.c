@@ -153,6 +153,15 @@ extern s32 D_8010AC40_water_whirled; /* the pad's buttons, taken from the game t
 extern s32 D_8010AC44_water_whirled; /* the pad's stick x, taken likewise */
 void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
 extern s32 D_8010A29C_water_whirled[4]; /* rumble cooldown per player */
+typedef struct Vec4f {
+    /* 0x0 */ f32 x;
+    /* 0x4 */ f32 y;
+    /* 0x8 */ f32 z;
+    /* 0xC */ f32 w; /* radius */
+} Vec4f;
+s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
+void func_80108898_water_whirled(omObjData* obj, Vec* pos);
+void func_801089C0_water_whirled(omObjData* obj, f32 x, f32 z);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1034,7 +1043,46 @@ void func_801089C0_water_whirled(omObjData* obj, f32 x, f32 z) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80108B98_water_whirled);
+/* Move a rider against the others and the course; slow it on a hit, push it off; the sea height there. */
+f32 func_80108B98_water_whirled(omObjData* obj, f32 x, f32 y, f32 z) {
+    Vec4f p;
+    MgWork* work;
+    f32 speed;
+    f32 d;
+    s32 player;
+
+    work = obj->data;
+    speed = work->unk40;
+    player = work->unk59;
+    p.x = x + sindf(work->unk3C) * speed + D_800EBE2C_minigame;
+    p.y = y;
+    p.z = z + cosdf(work->unk3C) * speed + D_800EC5D8_minigame;
+    p.w = work->unk48;
+    work->unk54 = -1;
+    work->unk53 = -1;
+    func_80108898_water_whirled(obj, (Vec*)&p);
+    func_801089C0_water_whirled(obj, x, z);
+    p.x += D_800EBE2C_minigame;
+    p.z += D_800EC5D8_minigame;
+    func_800DD530_minigame(obj, &p, 0.0f);
+    d = HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame);
+    if (d != 0.0f) {
+        if (d > D_8010A190_water_whirled[player] * 0.5f) {
+            work->unk40 *= 0.8f;
+        } else {
+            work->unk40 *= 0.98f;
+        }
+        if (d > D_8010A230_water_whirled[player]) {
+            D_8010A200_water_whirled[player].x = D_800EBE2C_minigame;
+            D_8010A200_water_whirled[player].y = 0.0f;
+            D_8010A200_water_whirled[player].z = D_800EC5D8_minigame;
+            func_800202FC_main(&D_8010A200_water_whirled[player]);
+            D_8010A230_water_whirled[player] = 16.0f;
+        }
+    }
+    func_801089C0_water_whirled(obj, x, z);
+    return func_801061E4_water_whirled(p.x, p.z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80108DF8_water_whirled);
 
