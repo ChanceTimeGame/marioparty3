@@ -2045,29 +2045,27 @@ void func_8010C31C_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C31C_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010C3A8_storm_chasers(void) {
+    ScPlayer *pl;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        D_8010CD80_storm_chasers[i].state = -1;
+    i = 0;
+    pl = D_8010CD80_storm_chasers;
+    for (; i < 4; i++) {
+        pl[i].state = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C3A8_storm_chasers);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010C3EC_storm_chasers(void) {
+    ScBucket *p;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        D_8010CCE0_storm_chasers[i].state = -1;
+    i = 0;
+    p = D_8010CCE0_storm_chasers;
+    for (; i < 4; i++) {
+        p[i].state = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C3EC_storm_chasers);
-#endif
 
 void func_8010C428_storm_chasers(void) {
     D_8010CCC0_storm_chasers.state = -1;
@@ -2077,29 +2075,27 @@ void func_8010C438_storm_chasers(void) {
     D_8010CF20_storm_chasers.state = -1;
 }
 
-#ifdef NON_MATCHING
 void func_8010C448_storm_chasers(void) {
+    ScFlash *p;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        D_8010CF38_storm_chasers[i].state = -1;
+    i = 0;
+    p = D_8010CF38_storm_chasers;
+    for (; i < 4; i++) {
+        p[i].state = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C448_storm_chasers);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010C484_storm_chasers(void) {
+    ScWind *p;
     s32 i;
 
-    for (i = 0; i < 2; i++) {
-        D_8010CEE0_storm_chasers[i].state = -1;
+    i = 0;
+    p = D_8010CEE0_storm_chasers;
+    for (; i < 2; i++) {
+        p[i].state = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C484_storm_chasers);
-#endif
 
 void func_8010C4C0_storm_chasers(void) {
     D_8010CCA0_storm_chasers = 0;
