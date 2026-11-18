@@ -88,6 +88,8 @@ typedef struct PgPlayer {
     /* 0x33 */ u8 unk33;
 } PgPlayer;
 
+#define PG_PLAYER(i) ((PgPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
+
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
 void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]); /* matrix copy */
@@ -118,6 +120,9 @@ void func_80109260_popgun_pickoff(s32 arg0);
 s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
 void func_80106A44_popgun_pickoff(omObjData* obj);
+void func_8010704C_popgun_pickoff(omObjData* obj);
+void func_8010BA44_popgun_pickoff(Gfx** gfx, s32 arg1, s32 arg2);
+void func_8010C4EC_popgun_pickoff(void);
 void func_8010ACB4_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
 void func_8010AD54_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
 void func_8010AE0C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
@@ -146,6 +151,12 @@ extern f32 D_8010DDD0_popgun_pickoff; /* tan(fov / 2) */
 extern PgBoard* D_8010DDD8_popgun_pickoff;
 extern s32 D_8010DDF0_popgun_pickoff; /* billboard count */
 extern u32 D_8010C5F4_popgun_pickoff; /* random seed */
+extern s32 D_8010C590_popgun_pickoff; /* timer */
+extern u16 D_8010C594_popgun_pickoff; /* game timer, frames */
+extern s32 D_8010C598_popgun_pickoff; /* winner slot, -1 draw */
+extern s32 D_8010C59C_popgun_pickoff; /* end camera timer */
+extern s16 D_8010C5A0_popgun_pickoff;
+extern u8 D_8010DDD4_popgun_pickoff;
 
 void func_801059A0_popgun_pickoff(void) {
     omObjData* obj;
@@ -389,9 +400,140 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010C
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_801060E8_popgun_pickoff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_801068D0_popgun_pickoff);
+u8 func_801068D0_popgun_pickoff(s16 x, s16 y) {
+    u8 grp = HuSprGrpCreate(3, 2);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80106A44_popgun_pickoff);
+    func_80055024_main(grp, 0, D_8010CBD0_popgun_pickoff[8], 0);
+    func_80055024_main(grp, 1, D_8010CBD0_popgun_pickoff[8], 0);
+    func_80055024_main(grp, 2, D_8010CBD0_popgun_pickoff[9], 0);
+    HuSprAttrSet(grp, 0, 0x1000);
+    HuSprAttrSet(grp, 1, 0x1000);
+    HuSprAttrSet(grp, 2, 0x1000);
+    func_800550F4_main(grp, 0, 0);
+    func_800550F4_main(grp, 1, 0);
+    func_800550F4_main(grp, 2, 0);
+    func_80054904_main(grp, 0, x, y);
+    func_80054904_main(grp, 1, 12, 0);
+    func_80054904_main(grp, 2, -12, 0);
+    func_80054FF8_main(grp, 0, 1);
+    func_80054FF8_main(grp, 1, 0);
+    func_80054FF8_main(grp, 2, 4);
+    return grp;
+}
+
+
+
+
+
+void func_80106A44_popgun_pickoff(omObjData* obj) {
+    s32 i;
+    s16 m;
+
+    switch (D_8010CC20_popgun_pickoff) {
+    case 0:
+        func_8001AC8C_main(0xC0, func_8010BA44_popgun_pickoff, 2);
+        GMesCreate(6);
+        D_8010C594_popgun_pickoff = 900;
+        D_8010CC20_popgun_pickoff++;
+    case 1:
+        if (WipeStatGet() == 0) {
+            if (++D_8010C5A0_popgun_pickoff == 1) {
+                HuAudSeqPlay(0x36);
+            }
+        }
+        if (GMesStatGet() == 0) {
+            D_8010CC20_popgun_pickoff++;
+            GMesCreate(0x1A, (D_8010C594_popgun_pickoff + 29) / 30, 160, 32);
+            HuAudFXPlay(0xE);
+        }
+        break;
+    case 2:
+        D_8010C594_popgun_pickoff--;
+        func_8003F578_main((D_8010C594_popgun_pickoff + 29) / 30);
+        if (D_8010C594_popgun_pickoff == 0) {
+            D_8010CC20_popgun_pickoff = 3;
+            func_8003F5C0_main();
+            GMesCreate(0x11);
+            HuAudSeqFadeOut(120);
+        }
+        break;
+    case 3:
+        if (D_8010C59C_popgun_pickoff != 0) {
+            D_8010C59C_popgun_pickoff--;
+            Center.y -= 2.9;
+            /* retail reads the low half of the s32 D_8010C59C (big-endian) */
+            func_80054904_main(D_8010CBF0_popgun_pickoff[0], 0, 160, ((s16*)&D_8010C59C_popgun_pickoff)[1] + 95);
+        } else if (D_8010DDD4_popgun_pickoff == 0) {
+            if (D_8010CC22_popgun_pickoff.unk0 > D_8010CC22_popgun_pickoff.unk2) {
+                D_8010C598_popgun_pickoff = 0;
+                PG_PLAYER(0)->unk2C = 1;
+                PG_PLAYER(1)->unk2C = 0;
+            } else if (D_8010CC22_popgun_pickoff.unk0 < D_8010CC22_popgun_pickoff.unk2) {
+                D_8010C598_popgun_pickoff = 1;
+                PG_PLAYER(0)->unk2C = 0;
+                PG_PLAYER(1)->unk2C = 1;
+            } else {
+                D_8010C598_popgun_pickoff = -1;
+                PG_PLAYER(0)->unk2C = PG_PLAYER(1)->unk2C = 0;
+            }
+            D_8010C590_popgun_pickoff = 15;
+            D_8010CC20_popgun_pickoff++;
+        }
+        break;
+    case 4:
+        if (GMesStatGet() == 0) {
+            if (--D_8010C590_popgun_pickoff == 0) {
+                if (D_8010C598_popgun_pickoff == -1) {
+                    GMesCreate(0x20);
+                    m = 0x6C;
+                } else {
+                    GMesCreate(0x16, PG_PLAYER(D_8010C598_popgun_pickoff)->chr);
+                    m = 0x67;
+                }
+                HuAudSeqPlay(m);
+                D_8010C590_popgun_pickoff = 15;
+                D_8010CC20_popgun_pickoff++;
+            }
+        }
+        break;
+    case 5:
+        if (GMesStatGet() == 0) {
+            if (--D_8010C590_popgun_pickoff == 0) {
+                D_8010CC20_popgun_pickoff++;
+            }
+        }
+        break;
+    case 6:
+        if (D_8010C590_popgun_pickoff != 0) {
+            if (--D_8010C590_popgun_pickoff == 0) {
+                D_8010CC20_popgun_pickoff++;
+            }
+        } else {
+            D_8010C590_popgun_pickoff = 16;
+            /* retail reads the low half of the s32 D_8010C590 (big-endian) as the fade length */
+            WipeCreateOut(0, ((s16*)&D_8010C590_popgun_pickoff)[1]);
+            HuAudSeqFadeOut(((s16*)&D_8010C590_popgun_pickoff)[1]);
+            func_8004AB0C_main(((s16*)&D_8010C590_popgun_pickoff)[1]);
+        }
+        break;
+    case 7:
+        func_8004A950_main();
+        omOvlReturnEx(1);
+        func_8010C4EC_popgun_pickoff();
+        break;
+    }
+    func_8010704C_popgun_pickoff(obj);
+    for (i = 0; i < 2; i++) {
+        HuSprAttrReset(D_8010CBF0_popgun_pickoff[4], i * 3 + 1, 0x8000);
+        HuSprAttrReset(D_8010CBF0_popgun_pickoff[4], i * 3 + 2, 0x8000);
+        func_80054FF8_main(D_8010CBF0_popgun_pickoff[4], i * 3, (&D_8010CC22_popgun_pickoff.unk0)[i] % 10);
+        func_80054FF8_main(D_8010CBF0_popgun_pickoff[4], i * 3 + 1, (&D_8010CC22_popgun_pickoff.unk0)[i] / 10 % 10);
+        func_80054FF8_main(D_8010CBF0_popgun_pickoff[4], i * 3 + 2, (&D_8010CC22_popgun_pickoff.unk0)[i] / 100);
+    }
+    if (D_800D530C_main == 1 && WipeStatGet() == 0) {
+        D_8010CC20_popgun_pickoff = 6;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010704C_popgun_pickoff);
 
