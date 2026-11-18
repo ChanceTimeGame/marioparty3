@@ -179,7 +179,7 @@ void func_8010B138_three_door_monty(omObjData *obj);
 void func_8010B5A8_three_door_monty(void);
 void func_8010B7B8_three_door_monty(omObjData *obj);
 void func_8010BC08_three_door_monty(omObjData *obj);
-void func_8010BD88_three_door_monty(omObjData *obj);
+void func_8010BD88_three_door_monty(void);
 void func_8010BE64_three_door_monty(omObjData *obj);
 void func_8010C1B4_three_door_monty(omObjData *obj);
 void func_8010C2DC_three_door_monty(omObjData *obj);
@@ -206,6 +206,8 @@ typedef struct CcXY {
     s16 y;
 } CcXY;
 extern CcXY D_8010CDC4_three_door_monty[2];
+extern CcXY D_8010CD64_three_door_monty[4][4]; /* digit sprite positions per player slot */
+void func_8000BD50_main(u16 id, s16 frame);
 extern s32 D_8010CD28_three_door_monty[3][2]; /* rival motions */
 extern CcCamera D_8010CDD0_three_door_monty[3];
 /* .rodata */
@@ -1962,13 +1964,205 @@ void func_8010B5A8_three_door_monty(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010B7B8_three_door_monty(omObjData *obj) {
+    CcEnt *ent;
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    s16 cnt;
+    u8 i;
+
+    ent = &D_8010D260_three_door_monty[obj->work[0] * 4 + (s32)(obj->work[1] + 13)];
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010D2E4_three_door_monty[i];
+        objs[i] = ents[i]->obj;
+    }
+    (void)objs; /* filled but unused, as in retail */
+    switch (D_8010EC30_three_door_monty) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            func_8000BB94_main(ent->spr);
+            break;
+        case 7:
+            func_8000BB94_main(ent->spr);
+            if (obj->work[1] != 1) {
+                ent->unk04 = (u8)(rand8() % 10);
+            }
+            D_8010EC40_three_door_monty = 0;
+            break;
+        case 8:
+        case 10:
+        case 11:
+        case 13:
+            cnt = 0;
+            for (i = 0; i < 4; i++) {
+                if (ents[i]->unk08 == 0 || ents[i]->unk08 == 3) {
+                    cnt++;
+                }
+            }
+            if (cnt >= 2) {
+                if ((ents[obj->work[0]]->unk08 == 0 || ents[obj->work[0]]->unk08 == 3)
+                    && D_8010EC3C_three_door_monty > 0) {
+                    func_8000BB54_main(ent->spr);
+                    if (D_8010EC40_three_door_monty == 0) {
+                        D_8010D256_three_door_monty = HuAudFXPlay(0x454);
+                        D_8010EC40_three_door_monty = 1;
+                    }
+                    if (obj->work[1] == 1) {
+                        ent->unk04 = 11;
+                        func_8000BD50_main(ent->spr, 11);
+                        break;
+                    }
+                    if (++ent->unk04 >= 10) {
+                        ent->unk04 = 0;
+                    }
+                    switch (obj->work[1]) {
+                        case 0:
+                            if (D_8010EC32_three_door_monty < 50) {
+                                ent->unk04 = ents[obj->work[0]]->unk12 / 1000;
+                            }
+                            break;
+                        case 2:
+                            if (D_8010EC32_three_door_monty < 40) {
+                                ent->unk04 = (s16)(ents[obj->work[0]]->unk12 / 100) % 10;
+                            }
+                            break;
+                        case 3:
+                            if (D_8010EC32_three_door_monty < 30) {
+                                ent->unk04 = (s16)(ents[obj->work[0]]->unk12 / 10) % 10;
+                                if (D_8010EC40_three_door_monty == 1) {
+                                    HuAudFXStop(D_8010D256_three_door_monty);
+                                    D_8010EC40_three_door_monty = 2;
+                                }
+                                if (D_8010EC3C_three_door_monty == 1) {
+                                    D_8010EC3C_three_door_monty = 2;
+                                }
+                            }
+                            break;
+                    }
+                    func_8000BD50_main(ent->spr, ent->unk04);
+                }
+            } else if (D_8010EC3C_three_door_monty == 1) {
+                D_8010EC3C_three_door_monty = 2;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010B7B8_three_door_monty);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010BC08_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D260_three_door_monty[obj->work[0] * 4 + (obj->work[1] + 13)];
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    u8 i;
+    s16 digit;
+
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010D2E4_three_door_monty[i];
+        objs[i] = ents[i]->obj;
+    }
+    ent->grp = func_8000B838_main(0x31);
+    ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+    if (obj->work[1] == 1) {
+        ent->unk04 = 11;
+        func_8000BD50_main(ent->spr, 11);
+    } else {
+        digit = (u8)(rand8() % 10);
+        ent->unk04 = digit;
+        func_8000BD50_main(ent->spr, digit);
+    }
+    func_8000BBD4_main(ent->spr, (D_8010CD64_three_door_monty[(s16)objs[obj->work[0]]->work[1]] + obj->work[1])->y, 140);
+    func_8000BB94_main(ent->spr);
+    obj->func = func_8010B7B8_three_door_monty;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BC08_three_door_monty);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010BD88_three_door_monty(void) {
+    omObjData *obj;
+    CcEnt *ent;
+    u8 i;
+    u8 j;
+
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            ent = &D_8010D260_three_door_monty[i * 4 + (j + 13)];
+            obj = omAddObj(300, 1, 10, -1, func_8010BC08_three_door_monty);
+            obj->work[0] = i;
+            obj->work[1] = j;
+            ent->obj = obj;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BD88_three_door_monty);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BE64_three_door_monty);
+void func_8010BE64_three_door_monty(omObjData *obj) {
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    s16 val[4];
+    s16 rank[4];
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        val[i] = 4;
+        rank[i] = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010D2E4_three_door_monty[i];
+        objs[i] = ents[i]->obj;
+        if (val[0] > ents[i]->unk16) {
+            val[0] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (val[0] < ents[i]->unk16 && ents[i]->unk16 < val[1]) {
+            val[1] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (val[1] < ents[i]->unk16 && ents[i]->unk16 < val[2]) {
+            val[2] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (val[2] < ents[i]->unk16 && ents[i]->unk16 < val[3]) {
+            val[3] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (val[0] == ents[i]->unk16) {
+            rank[i] = 0;
+        }
+        if (val[1] == ents[i]->unk16) {
+            rank[i] = 1;
+        }
+        if (val[2] == ents[i]->unk16) {
+            rank[i] = 2;
+        }
+        if (val[3] == ents[i]->unk16) {
+            rank[i] = 3;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (ents[i]->unk16 == 99) {
+            rank[i] = 3;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        GwPlayer[objs[i]->work[0]].bonusCoin = rank[i];
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010C1B4_three_door_monty);
 
