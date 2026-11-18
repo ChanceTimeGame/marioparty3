@@ -1048,7 +1048,63 @@ end:
     func_801079FC_spotlight_swim(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010881C_spotlight_swim);
+/* Player control of the spotlight swimmer. */
+void func_8010881C_spotlight_swim(omObjData *obj) {
+    s32 pad;
+
+    if (D_8010EE48_spotlight_swim != 2) {
+        func_80106BC8_spotlight_swim(obj);
+        return;
+    }
+    switch (D_8010D328_spotlight_swim.mode) {
+    case 0:
+        if (D_800D5558_main[obj->work[3]] & 0x8000) {
+            func_80106808_spotlight_swim(obj);
+            D_8010D328_spotlight_swim.mode = 1;
+            func_80105C04_spotlight_swim(0, (s16)obj->work[0]);
+        }
+        break;
+    case 1:
+        if (++D_8010D379_spotlight_swim < 11) {
+            func_80105B04_spotlight_swim(obj->work[0]);
+        }
+        if (D_8010D379_spotlight_swim == 40) {
+            func_8010755C_spotlight_swim(obj);
+        }
+        if (D_8010D379_spotlight_swim == 60) {
+            func_8010755C_spotlight_swim(obj);
+        }
+        if (!((u16)D_800CDA7C_main[obj->work[3]] & 0x8000) && D_8010D379_spotlight_swim >= 15) {
+            D_8010D328_spotlight_swim.mode = 2;
+            func_80106808_spotlight_swim(obj);
+            D_8010D478_spotlight_swim = 1;
+            func_80105C04_spotlight_swim(2, (s16)obj->work[0]);
+        }
+        if (D_8010D379_spotlight_swim >= 90) {
+            D_8010D328_spotlight_swim.mode = 2;
+            func_80106808_spotlight_swim(obj);
+            D_8010D478_spotlight_swim = 1;
+            func_80105C04_spotlight_swim(2, (s16)obj->work[0]);
+        }
+        break;
+    case 2:
+        D_800CBB6E_main[obj->work[3]] = 0;
+        D_800D20A1_main[obj->work[3]] = 0;
+        if (++D_8010D304_spotlight_swim >= 40) {
+            D_8010D328_spotlight_swim.mode = 0;
+            D_8010D379_spotlight_swim = 0;
+            D_8010D304_spotlight_swim = 0;
+        }
+        break;
+    }
+    pad = obj->work[3];
+    if (abs(D_800CBB6E_main[pad]) >= 6 || abs(D_800D20A1_main[pad]) >= 6) {
+        func_80106790_spotlight_swim(obj);
+    } else if (abs(D_800CBB6E_main[pad]) < 6 && abs(D_800D20A1_main[pad]) < 6) {
+        obj->work[2] = 0;
+    }
+    func_801079FC_spotlight_swim(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80108AD8_spotlight_swim);
 
