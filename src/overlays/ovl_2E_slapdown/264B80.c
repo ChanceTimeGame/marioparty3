@@ -675,7 +675,176 @@ void func_80108420_slapdown(void) {
     }
 }
 
+/* One card: obj->rot.z is its flip angle, card->unk04 1 = face up, unk06 its face, unk08 the flip step. */
+#ifdef NON_MATCHING
+void func_801084BC_slapdown(omObjData *obj) {
+    SdEnt *card = &D_8010ABB8_slapdown[obj->work[0]];
+    SdEnt *ents[9];
+    omObjData *objs[9];
+    s16 i;
+    s16 k;
+
+    for (i = 0; i < 9; i++) {
+        ents[i] = &D_8010ABB8_slapdown[i];
+        objs[i] = ents[i]->obj;
+    }
+    (void)objs;
+    if (obj->work[0] == 0) {
+        D_8010AA4C_slapdown = func_801059BC_slapdown(D_8010AA4C_slapdown, 25.0f);
+    }
+    switch (D_8010AA6E_slapdown) {
+        case 2:
+            if (obj->work[0] == 8 && D_8010AA9A_slapdown == 0) {
+                D_8010AA9A_slapdown = 1;
+                k = rand8() % 9;
+                if (ents[k]->unk06 == D_8010AA72_slapdown) {
+                    k = rand8() % 9;
+                    if (ents[k]->unk06 == D_8010AA72_slapdown) {
+                        D_8010AA30_slapdown = 1;
+                    } else {
+                        D_8010AA30_slapdown = 0;
+                    }
+                } else {
+                    D_8010AA30_slapdown = 0;
+                }
+                ents[k]->unk04 = 1;
+            }
+            break;
+        case 3:
+            obj->rot.z = D_8010AA4C_slapdown;
+            D_8010AA76_slapdown = 1;
+            if (D_8010AA74_slapdown < 61 && obj->work[0] == 8) {
+                for (i = 0; i < 9; i++) {
+                    if (ents[i]->unk04 == 1) {
+                        D_8010AA50_slapdown = 3;
+                    }
+                }
+            }
+            break;
+        case 4:
+            if (card->unk04 == 1) {
+                switch (card->unk08) {
+                    case 0:
+                        obj->rot.z = D_8010AA4C_slapdown;
+                        if (D_8010AA4C_slapdown >= 150.0f && D_8010AA4C_slapdown <= 180.0f) {
+                            card->unk08 = 1;
+                        }
+                        break;
+                    case 1:
+                        obj->rot.z = D_8010AA4C_slapdown;
+                        if (D_8010AA4C_slapdown >= 0.0f && D_8010AA4C_slapdown <= 30.0f) {
+                            HuAudFXPlay(0x480);
+                            func_80108380_slapdown(obj, card->unk06);
+                            obj->rot.z = 0.0f;
+                            D_8010AA50_slapdown = 4;
+                            card->unk08 = 0;
+                        }
+                        break;
+                }
+            } else {
+                if (D_8010AA76_slapdown == 3) {
+                    D_8010AA76_slapdown = 1;
+                }
+                obj->rot.z = D_8010AA4C_slapdown;
+            }
+            break;
+        case 5:
+            if (card->unk04 == 1) {
+                if (D_8010AA74_slapdown <= 0) {
+                    obj->rot.z = 0.0f;
+                    if (D_8010AA10_slapdown == 0) {
+                        if (D_8010AA30_slapdown != 1) {
+                            card->unk04 = 99;
+                            if (D_8010AAA0_slapdown < 3) {
+                                func_80108380_slapdown(obj, 5);
+                            } else {
+                                card->unk04 = 100;
+                            }
+                        } else {
+                            card->unk04 = 100;
+                        }
+                        D_8010AA50_slapdown = 5;
+                    }
+                }
+            } else if (D_8010AA74_slapdown <= 0) {
+                switch (card->unk08) {
+                    case 0:
+                        obj->rot.z = D_8010AA4C_slapdown;
+                        if (D_8010AA4C_slapdown >= 0.0f && D_8010AA4C_slapdown <= 30.0f) {
+                            card->unk08 = 1;
+                        }
+                        break;
+                    case 1:
+                        if (D_8010AA76_slapdown == 1) {
+                            D_8010AA76_slapdown = 0;
+                        }
+                        obj->rot.z = 0.0f;
+                        break;
+                }
+            } else {
+                obj->rot.z = D_8010AA4C_slapdown;
+            }
+            if (obj->work[0] == 8 && D_8010AA50_slapdown == 5 && D_8010AA30_slapdown != 1) {
+                k = rand8() % 9;
+                while (ents[k]->unk04 != 0) {
+                    k++;
+                    if (k >= 9) {
+                        k = 0;
+                    }
+                }
+                ents[k]->unk04 = 1;
+                for (i = 0; i < 9; i++) {
+                    ents[i]->unk08 = 0;
+                }
+            }
+            break;
+        case 6:
+        case 7:
+            if (card->unk04 != 100) {
+                switch (card->unk08) {
+                    case 0:
+                        if (obj->rot.z >= 0.0f && obj->rot.z <= 30.0f) {
+                            card->unk08 = 1;
+                        } else {
+                            obj->rot.z = D_8010AA4C_slapdown;
+                        }
+                        break;
+                    case 1:
+                        if (D_8010AA76_slapdown == 1) {
+                            D_8010AA76_slapdown = 0;
+                        }
+                        obj->rot.z = 0.0f;
+                        break;
+                }
+            } else {
+                obj->rot.z = 0.0f;
+            }
+            break;
+    }
+    if (obj->work[0] == 8) {
+        switch (D_8010AA76_slapdown) {
+            case 0:
+                if (D_8010AA14_slapdown != -1) {
+                    HuAudFXStop(D_8010AA14_slapdown);
+                    D_8010AA14_slapdown = -1;
+                    D_8010AA76_slapdown = 2;
+                }
+                break;
+            case 1:
+                if (D_8010AA14_slapdown == -1) {
+                    D_8010AA14_slapdown = HuAudFXPlay(0x47A);
+                }
+                break;
+            case 2:
+                HuAudFXPlay(0x480);
+                D_8010AA76_slapdown = 3;
+                break;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801084BC_slapdown);
+#endif
 
 void func_80108BAC_slapdown(omObjData *obj) {
     SdEnt *ents[9];
