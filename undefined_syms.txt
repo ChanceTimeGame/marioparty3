@@ -448,4 +448,3 @@ D_8010B24A_curtain_call = D_8010B248_curtain_call + 0x2;
 /* m4 pg: popgun_pickoff/283060 .data label inside a pair */
 D_8010C5A2_popgun_pickoff = D_8010C5A0_popgun_pickoff + 0x2;
 D_8010CAA8_popgun_pickoff = 0x8010CAA8; /* TEMP until func_80108398 is C */
-D_8010CB10_popgun_pickoff = 0x8010CB10; /* TEMP until func_80108A78 is C */

@@ -152,7 +152,8 @@ void func_80107B20_popgun_pickoff(omObjData* obj);
 void func_801080DC_popgun_pickoff(omObjData* obj, u32 file0, s32 file1, s32 player, u16 attr);
 void func_80108398_popgun_pickoff(omObjData* obj);
 u16 func_8010880C_popgun_pickoff(omObjData* obj);
-u8 func_80108A78_popgun_pickoff(omObjData* obj, s16 dir);
+u8 func_80108A78_popgun_pickoff(omObjData* obj, s32 dir);
+void func_80108FE4_popgun_pickoff(s16 model, char* name, s16 frame, Vec* out);
 void func_80109260_popgun_pickoff(s32 arg0);
 s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
@@ -1022,11 +1023,98 @@ void func_80108398_popgun_pickoff(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80108398_popgun_pickoff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010880C_popgun_pickoff);
+u16 func_8010880C_popgun_pickoff(omObjData* obj) {
+    s16 open[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    u8 n;
+    s32 i;
+    PgPlayer* p;
+    PgTarget* t;
+    s32 btn;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010CB78_popgun_pickoff);
+    n = 0;
+    p = ((MgWork*)obj->data)->unk158;
+    btn = 0;
+    switch (p->unk2E) {
+    case 0:
+        for (i = 0; i < 9; i++) {
+            t = &D_8010CC28_popgun_pickoff[i];
+            if (t->state != 0) {
+                open[n] = i;
+                n++;
+            }
+        }
+        if (n != 0) {
+            p->cpuDir = open[func_80108E1C_popgun_pickoff() % n];
+            p->unk2E++;
+        }
+        break;
+    case 1:
+        t = &D_8010CC28_popgun_pickoff[p->cpuDir];
+        if (t->kind == 0 || func_80108E1C_popgun_pickoff() % (p->difficulty + 2) == 0) {
+            if (func_80108E1C_popgun_pickoff() % (8 - p->difficulty) == 0) {
+                btn = 0x8000;
+            }
+            if (t->state == 2 || func_80108E1C_popgun_pickoff() % (p->difficulty + 2) == 0) {
+                break;
+            }
+        }
+        p->unk2E = 0;
+        break;
+    }
+    return btn;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80108A78_popgun_pickoff);
+
+
+
+
+u8 func_80108A78_popgun_pickoff(omObjData* obj, s32 dir) {
+    Vec pos;
+    f32 unused[4][4];
+    f64 d[3];
+    f64 g;
+    PgPlayer* p;
+    PgTarget* t;
+    PgShot* s;
+    s16 m;
+    s32 i;
+    s32 n;
+
+    g = 0.0;
+    p = ((MgWork*)obj->data)->unk158;
+    t = &D_8010CC28_popgun_pickoff[dir];
+    for (i = 0; i < 0x80; i++) {
+        if (D_8010CD50_popgun_pickoff[i].state == 0) {
+            break;
+        }
+    }
+    if (i == 0x80) {
+        return 0;
+    }
+    s = &D_8010CD50_popgun_pickoff[i];
+    m = obj->model[0];
+    func_80108FE4_popgun_pickoff(m, "item_hook", HmfModelData[m].unk40, &pos);
+    s->x = pos.x;
+    s->y = pos.y;
+    s->z = pos.z - 20.0f;
+    d[0] = t->x - s->x;
+    d[1] = t->y - s->y;
+    d[2] = t->z - s->z;
+    n = sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]) / 60.0;
+    for (i = 1; i <= n; i++) {
+        g += i * -2.0f;
+    }
+    s->vx = d[0] / n;
+    s->vy = (d[1] - g) / n;
+    s->vz = d[2] / n;
+    s->target = dir;
+    s->slot = p->slot;
+    s->state = 1;
+    s->board = func_8010A024_popgun_pickoff(D_8010CBD0_popgun_pickoff[3], 0x10001808);
+    func_8010AC34_popgun_pickoff(s->board, p->chr);
+    func_8010AE0C_popgun_pickoff(s->board, 1.8f, 1.8f, 1.0f);
+    return 1;
+}
 
 /* Retail reads the sprite group from an uninitialised register (s1): the caller's leftover. */
 s16 func_80108CF0_popgun_pickoff(s16 tex, s16 x, s16 y, f32 rot) {
