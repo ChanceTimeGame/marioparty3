@@ -28,6 +28,14 @@ typedef struct WwCtrl {
     /* 0x28 */ Vec unk28;
 } WwCtrl; /* size 0x34 */
 
+/* omObjData::data of the sea (the framework's ground object, minigame mgcol.h GroundWork) */
+typedef struct WwGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} WwGround; /* size 0xB4 */
+
 // main
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -93,6 +101,12 @@ void func_80106680_water_whirled(void);
 void func_8010616C_water_whirled(omObjData* obj);
 void func_8010698C_water_whirled(void);
 void func_80106A58_water_whirled(void);
+void func_800E147C_minigame(omObjData* obj);
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_80106DB8_water_whirled(omObjData* obj);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -518,7 +532,56 @@ void func_80106DB8_water_whirled(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801071BC_water_whirled);
+/* The sea (ground object): sea and scenery models, camera start. */
+void func_801071BC_water_whirled(omObjData* obj) {
+    WwGround* gw;
+
+    obj->model[0] = func_8000B0A0_main(0x440000, 0x4C9);
+    obj->model[1] = func_8000B0A0_main(0x440001, 0x4C9);
+    obj->model[2] = func_8000B0A0_main(0x440003, 0x8C9);
+    obj->model[3] = Hu3DModelLink(obj->model[2]);
+    obj->model[4] = func_8000B0A0_main(0x440004, 0x8C9);
+    obj->model[5] = Hu3DModelLink(obj->model[4]);
+    obj->model[6] = func_8000B0A0_main(0x440005, 0x8C9);
+    obj->model[7] = Hu3DModelLink(obj->model[6]);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(WwGround), 31000);
+    memset(gw, 0, sizeof(WwGround));
+    obj->func = func_80106DB8_water_whirled;
+    gw->unk03 = 1;
+    CZoom = 12000.0f;
+    CRot.x = 319.0f;
+    CRot.y = 0.0f;
+    Center.x = -224.0f;
+    Center.y = 300.0f;
+    Center.z = 300.0f;
+    func_800E147C_minigame(obj);
+    func_800E1370_minigame(obj, 1, 0.0f);
+    func_800E1304_minigame(obj, 0.2f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E131C_minigame(obj, 25.0f);
+    gw->unk04 = 0;
+    func_8001C2FC_main(obj->model[1], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[1]);
+    func_8001C954_main(obj->model[1]);
+    Hu3DModelPosSet(obj->model[2], -2400.0f, 0.0f, -1400.0f);
+    Hu3DModelPosSet(obj->model[3], 2700.0f, 0.0f, -900.0f);
+    Hu3DModelPosSet(obj->model[4], 1000.0f, 300.0f, -1950.0f);
+    Hu3DModelPosSet(obj->model[5], -2400.0f, 500.0f, -2000.0f);
+    Hu3DModelPosSet(obj->model[6], -1300.0f, 500.0f, -2050.0f);
+    Hu3DModelPosSet(obj->model[7], 2000.0f, 100.0f, -2500.0f);
+    func_8001C814_main(obj->model[2], 2, 2);
+    func_8001C814_main(obj->model[3], 2, 2);
+    func_8001C814_main(obj->model[4], 2, 2);
+    func_8001C814_main(obj->model[5], 2, 2);
+    func_8001C814_main(obj->model[6], 2, 2);
+    func_8001C814_main(obj->model[7], 2, 2);
+    omSetStatBit(obj, 0xA0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_8010750C_water_whirled);
 
