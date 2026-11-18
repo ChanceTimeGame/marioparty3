@@ -10,6 +10,7 @@
 #include "game/hmflight.h"
 #include "game/hmfman.h"
 #include "game/object.h"
+#include "game/pause.h"
 #include "game/util.h"
 #include "game/wipe.h"
 #include "math.h"
@@ -134,7 +135,10 @@ extern f32 D_8010A710_slapdown[4];
 extern f32 D_8010A720_slapdown[4];
 extern f32 D_8010A730_slapdown[5];
 extern SdFile D_8010A744_slapdown[4];
+extern s32 D_8010A6A0_slapdown[8];
 extern SdCpuRate D_8010A760_slapdown[];
+extern SdVec2 D_8010A7B0_slapdown[4];
+extern SdVec2 D_8010A7D0_slapdown[4];
 extern f32 D_8010A7F0_slapdown[9];
 extern f32 D_8010A814_slapdown[9];
 extern SdVec2 D_8010A838_slapdown[4];
@@ -166,6 +170,7 @@ void func_801096E4_slapdown(void);
 void func_801099C0_slapdown(void);
 extern const s16 D_8010AA08_slapdown[];
 void func_80106608_slapdown(omObjData *obj);
+void func_80106780_slapdown(omObjData *obj);
 
 void func_801059A0_slapdown(void) {
     func_8010A550_slapdown();
@@ -453,7 +458,268 @@ void func_80106780_slapdown(omObjData *obj) {
     D_800D5558_main[obj->work[3]] |= 0x8000;
 }
 
+/* Turns the player around (rot.y += 20) and walks it back from the table. */
+#define SD_TURN_AND_WALK(obj)                                                       \
+    {                                                                               \
+        (obj)->rot.y = func_801059BC_slapdown((obj)->rot.y, 20.0f);                 \
+        if (GwPlayer[(obj)->work[0]].chr != 5) {                                    \
+            (obj)->trans.x = (obj)->trans.x + D_8010A7B0_slapdown[(obj)->work[1]].x; \
+            (obj)->trans.z = (obj)->trans.z + D_8010A7B0_slapdown[(obj)->work[1]].y; \
+        } else {                                                                    \
+            (obj)->trans.x = (obj)->trans.x + D_8010A7D0_slapdown[(obj)->work[1]].x; \
+            (obj)->trans.z = (obj)->trans.z + D_8010A7D0_slapdown[(obj)->work[1]].y; \
+        }                                                                           \
+    }
+
+/* The arm swing toward the table: stops at lim degrees. */
+#define SD_SWING_STOP(lim)                                          \
+    if ((lim) <= ent->unk18) {                                      \
+        ent->unk18 = (lim);                                         \
+        ent->unk0E = 50;                                            \
+        func_8001C6A8_main(obj->model[2], 8.0f);                    \
+        func_8001C92C_main(obj->model[2], 1.0f);                    \
+        func_8004AC98_main(0x47C, obj->work[0]);                    \
+    }
+
+/* One player. ent->unk04 its current motion, unk06 slap order (0 none, 1.. waiting, 99 slapped,
+ * 100 done), unk08 arrival order, unk0A slap time (-1 slapped too soon/wrongly, -2 never slapped),
+ * unk0C walk-off step, unk0E arm state, unk16 rank, unk18 arm angle. */
+#ifdef NON_MATCHING
+void func_80106900_slapdown(omObjData *obj) {
+    SdEnt *ent = &D_8010B05C_slapdown[obj->work[0]];
+    SdEnt *ents[4];
+    omObjData *objs[4];
+    s16 i;
+    s16 j;
+    s16 max;
+    s32 flag;
+
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010B05C_slapdown[i];
+        objs[i] = ents[i]->obj;
+    }
+    switch (D_8010AA6E_slapdown) {
+        case 3:
+        case 4:
+        case 5:
+            if (GwPlayer[obj->work[0]].stat & 1) {
+                func_80105B3C_slapdown(obj->work[0]);
+                if (D_8010AA6E_slapdown == 5) {
+                    func_80106780_slapdown(obj);
+                }
+            }
+            if (obj->work[0] == 3) {
+                if (D_8010AA74_slapdown > 0) {
+                    for (i = 0; i < 4; i++) {
+                        if (ents[i]->unk04 == 0 && ents[i]->unk06 == 0 && (D_800D5558_main[objs[i]->work[3]] & 0x8000)) {
+                            ents[i]->unk06 = 1;
+                        }
+                    }
+                }
+                flag = 0;
+                for (i = 0; i < 4; i++) {
+                    if (ents[i]->unk06 != 0 && ents[i]->unk06 < 99) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 1) {
+                    max = 1;
+                    for (i = 0; i < 4; i++) {
+                        if (max < ents[i]->unk06 && ents[i]->unk06 < 99) {
+                            max = ents[i]->unk06;
+                        }
+                    }
+                    if ((s16)(D_8010AA74_slapdown % 3) == 0) {
+                        j = rand8() & 3;
+                        while (TRUE) {
+                            if (ents[j]->unk06 == max) {
+                                func_8004AC98_main(0x47B, objs[j]->work[0]);
+                                func_80106338_slapdown(objs[j], 2, 2, 0, &ents[j]->unk04);
+                                func_8001C92C_main(objs[j]->model[4], 1.0f);
+                                ents[j]->unk06 = 99;
+                                ents[j]->unk08 = D_8010AA98_slapdown++;
+                                if (D_8010AA30_slapdown != 1) {
+                                    ents[j]->unk0A = -1;
+                                    D_8010AAA0_slapdown++;
+                                } else {
+                                    ents[j]->unk0A = D_8010AA74_slapdown;
+                                }
+                                for (i = 0; i < 4; i++) {
+                                    if (j != i && ents[i]->unk06 != 0 && ents[i]->unk06 < 99) {
+                                        ents[i]->unk06++;
+                                    }
+                                }
+                                break;
+                            }
+                            j++;
+                            if (j >= 4) {
+                                j = 0;
+                            }
+                        }
+                    }
+                }
+                for (i = 0; i < 4; i++) {
+                    if (ents[i]->unk04 == 2 && HmfModelData[objs[i]->model[0]].unk40 >= 10.0f) {
+                        func_8001C6A8_main(objs[i]->model[0], 9.0f);
+                        func_8001C92C_main(objs[i]->model[0], 0.0f);
+                        if (ents[i]->unk0E == 0) {
+                            ents[i]->unk0E = 1;
+                        }
+                    }
+                }
+                D_8010AA10_slapdown = 0;
+                for (i = 0; i < 4; i++) {
+                    if (ents[i]->unk06 != 0 && ents[i]->unk06 != 100) {
+                        D_8010AA10_slapdown = 1;
+                    }
+                }
+            }
+            switch (ent->unk0E) {
+                case 0:
+                    ent->unk18 = 0.0f;
+                    break;
+                case 1:
+                    ent->unk18 = func_801059BC_slapdown(ent->unk18, 20.0f);
+                    switch (ent->unk08) {
+                        case 0:
+                            SD_SWING_STOP(93.0f);
+                            break;
+                        case 1:
+                            SD_SWING_STOP(91.0f);
+                            break;
+                        case 2:
+                            SD_SWING_STOP(89.0f);
+                            break;
+                        case 3:
+                            SD_SWING_STOP(87.0f);
+                            break;
+                    }
+                    break;
+                case 50:
+                    if (D_8010AA74_slapdown < -29) {
+                        if (D_8010AA30_slapdown != 1) {
+                            ent->unk0E = 99;
+                        } else {
+                            ent->unk0E = 100;
+                        }
+                    }
+                    break;
+                case 99:
+                    if (ent->unk18 <= 15.0f || ent->unk18 >= 345.0f) {
+                        ent->unk18 = 0.0f;
+                        ent->unk0E = 100;
+                    } else {
+                        ent->unk18 = func_801059BC_slapdown(ent->unk18, -15.0f);
+                    }
+                    break;
+                case 100:
+                    ent->unk06 = 100;
+                    if (ent->unk0A == -1) {
+                        if (ent->unk0C == 0) {
+                            if (D_8010AA16_slapdown[obj->work[0]] == -1) {
+                                D_8010AA16_slapdown[obj->work[0]] = func_8004AC98_main(0x47E, obj->work[0]);
+                                func_8004ACE0_main(0x286, obj->work[0]);
+                            }
+                            SD_TURN_AND_WALK(obj);
+                            func_8010629C_slapdown(obj, 3, 0, 5, 2, &ent->unk04);
+                            func_8001C92C_main(obj->model[0], 1.0f);
+                            if ((s16)obj->rot.y == D_8010A720_slapdown[obj->work[1]]) {
+                                ent->unk0C = 1;
+                                obj->rot.y = D_8010A720_slapdown[obj->work[1]];
+                            }
+                        } else if (ent->unk0C == 1) {
+                            func_8010629C_slapdown(obj, 3, 0, 5, 1, &ent->unk04);
+                        }
+                    }
+                    break;
+            }
+            break;
+        case 6:
+            if (ent->unk0A == -1) {
+                if (ent->unk0C == 0) {
+                    if (D_8010AA16_slapdown[obj->work[0]] == -1) {
+                        D_8010AA16_slapdown[obj->work[0]] = func_8004AC98_main(0x47E, obj->work[0]);
+                        func_8004ACE0_main(0x286, obj->work[0]);
+                    }
+                    SD_TURN_AND_WALK(obj);
+                    func_8010629C_slapdown(obj, 3, 0, 5, 2, &ent->unk04);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    if ((s16)obj->rot.y == D_8010A720_slapdown[obj->work[1]]) {
+                        ent->unk0C = 1;
+                        obj->rot.y = D_8010A720_slapdown[obj->work[1]];
+                    }
+                } else if (ent->unk0C == 1) {
+                    func_8010629C_slapdown(obj, 3, 0, 5, 1, &ent->unk04);
+                }
+            }
+            break;
+        case 7:
+        case 8:
+            if (ent->unk16 == 0) {
+                switch (ent->unk0C) {
+                    case 0:
+                        SD_TURN_AND_WALK(obj);
+                        func_8010629C_slapdown(obj, 1, 0, 3, 2, &ent->unk04);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        if ((s16)obj->rot.y == D_8010A720_slapdown[obj->work[1]]) {
+                            ent->unk0C = 1;
+                            obj->rot.y = D_8010A720_slapdown[obj->work[1]];
+                        }
+                        break;
+                    case 1:
+                        if (D_8010AA6E_slapdown == 8 && D_8010AA74_slapdown >= 0) {
+                            func_8010629C_slapdown(obj, 4, 0, 5, 0, &ent->unk04);
+                            func_80045ED0_main((D_8010A6A0_slapdown[GwPlayer[obj->work[0]].chr] << 16) | 0x30);
+                            ent->unk0C = 2;
+                        } else {
+                            func_8010629C_slapdown(obj, 0, 0, 5, 1, &ent->unk04);
+                        }
+                        break;
+                }
+            } else {
+                switch (ent->unk0C) {
+                    case 0:
+                        SD_TURN_AND_WALK(obj);
+                        func_8010629C_slapdown(obj, 3, 0, 3, 2, &ent->unk04);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        if ((s16)obj->rot.y == D_8010A720_slapdown[obj->work[1]]) {
+                            ent->unk0C = 1;
+                            obj->rot.y = D_8010A720_slapdown[obj->work[1]];
+                        }
+                        break;
+                    case 1:
+                        if (D_8010AA6E_slapdown == 8 && D_8010AA32_slapdown != 0 && D_8010AA74_slapdown >= 0) {
+                            func_8010629C_slapdown(obj, 5, 0, 5, 0, &ent->unk04);
+                            if (D_8010AA16_slapdown[obj->work[0]] != -1) {
+                                HuAudFXStop(D_8010AA16_slapdown[obj->work[0]]);
+                            }
+                            ent->unk0C = 2;
+                        } else {
+                            func_8010629C_slapdown(obj, 3, 0, 5, 1, &ent->unk04);
+                        }
+                        break;
+                }
+            }
+            if (obj->work[0] == 3 && D_8010AA32_slapdown == 0) {
+                flag = 0;
+                for (i = 0; i < 4; i++) {
+                    if (ents[i]->unk16 != 0 &&
+                        (ents[i]->unk04 != 3 || (s16)objs[i]->rot.y != D_8010A720_slapdown[objs[i]->work[1]])) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 0) {
+                    D_8010AA32_slapdown = 1;
+                }
+            }
+            break;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[2], ent->unk18, D_8010A730_slapdown[obj->work[1]], 0.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106900_slapdown);
+#endif
 
 void func_80107858_slapdown(omObjData *obj) {
     SdEnt *ent = &D_8010B05C_slapdown[obj->work[0]];
