@@ -5,6 +5,25 @@
 
 // dr A: Dorrie Dip
 
+/* The minigame control block (as ovl_3D's BlCtrl; the header's D_80111B50_vine_with_me_Struct) */
+typedef struct DrCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06; /* result message */
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ u16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+} DrCtrl;
+
 /* omObjData::data of the splashes (D_8010A248), one under each Dorrie */
 typedef struct DrSplash {
     /* 0x00 */ f32 unk00[6]; /* x */
@@ -175,11 +194,12 @@ void func_80109C14_dorrie_dip(omObjData* obj);
 void func_80109E1C_dorrie_dip(s32 idx);
 void func_80109F00_dorrie_dip(void);
 
-/* .data */
-extern D_80111B50_vine_with_me_Struct D_8010A040_dorrie_dip;
-extern s8 D_8010A046_dorrie_dip; /* result message (D_8010A040.unk06) */
-extern s32 D_8010A068_dorrie_dip; /* frame of the next ambient sound 1 */
-extern s32 D_8010A06C_dorrie_dip; /* frame of the next ambient sound 2 */
+/* .data (0x8010A040-0x8010A070) */
+DrCtrl D_8010A040_dorrie_dip = {
+    0, 3, 2, 0, 0, 0, 5, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 210, 300, -1, 90, 135,
+};
+s32 D_8010A068_dorrie_dip = 1;  /* frame of the next ambient sound 1 */
+s32 D_8010A06C_dorrie_dip = 30; /* frame of the next ambient sound 2 */
 
 /* .bss (ovl_3E_bss) */
 extern f32 D_8010A1F0_dorrie_dip;
@@ -217,7 +237,7 @@ void func_801059A0_dorrie_dip(void) {
     func_80105B44_dorrie_dip(500.0f, 345.0f, 0.0f, 0.0f, 0.0f, 190.0f, 0.0f);
     omOutView(obj);
     func_8001F38C_main(0, 0, 0);
-    func_800E5EA0_minigame(&D_8010A040_dorrie_dip);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)&D_8010A040_dorrie_dip);
     D_800EBE28_minigame = 0;
     D_800EC280_minigame = 0;
     func_800E18D8_minigame();
@@ -308,9 +328,9 @@ void func_80105C7C_dorrie_dip(omObjData* obj) {
                     }
                 }
                 if (D_8010A220_dorrie_dip == -1 || D_8010A208_dorrie_dip[D_8010A220_dorrie_dip] == 0x11) {
-                    D_8010A046_dorrie_dip = 7;
+                    D_8010A040_dorrie_dip.unk06 = 7;
                 } else {
-                    D_8010A046_dorrie_dip = 5;
+                    D_8010A040_dorrie_dip.unk06 = 5;
                 }
             }
             if (func_800E6E9C_minigame() == 15 && D_8010A220_dorrie_dip != -1 &&
