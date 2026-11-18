@@ -90,12 +90,38 @@ extern s16 D_8010AA9A_slapdown;
 extern void *D_8010AA9C_slapdown;
 extern s16 D_8010AAA0_slapdown;
 extern SdEnt D_8010AAB0_slapdown[50];
+extern SdEnt D_8010AB34_slapdown;     /* = D_8010AAB0_slapdown[SD_ENT_DECK] */
+extern SdEnt D_8010ABB8_slapdown[9];  /* = D_8010AAB0_slapdown[SD_ENT_CARD] */
+extern SdEnt D_8010B05C_slapdown[4];  /* = D_8010AAB0_slapdown[SD_ENT_PLAYER] */
+extern SdEnt D_8010B26C_slapdown[4];  /* = D_8010AAB0_slapdown[SD_ENT_PANEL] */
 
 // data
+typedef struct {
+    s32 file;
+    s32 pad;
+} SdFile;
+
+extern f32 D_8010A6C0_slapdown[4];
+extern f32 D_8010A6D0_slapdown[4];
+extern f32 D_8010A6E0_slapdown[4];
+extern f32 D_8010A6F0_slapdown[4];
+extern f32 D_8010A700_slapdown[4];
+extern f32 D_8010A710_slapdown[4];
+extern f32 D_8010A720_slapdown[4];
+extern f32 D_8010A730_slapdown[5];
+extern SdFile D_8010A744_slapdown[4];
 extern SdCpuRate D_8010A760_slapdown[];
+extern char D_8010A984_slapdown[];
+
+// unknown
+extern s32 D_800A178C_main[][6];
 
 f32 fabsf(f32);
 void func_80106600_slapdown(omObjData *obj);
+void func_80106900_slapdown(omObjData *obj);
+void func_80107858_slapdown(omObjData *obj);
+void func_801080FC_slapdown(omObjData *obj);
+void func_8010820C_slapdown(omObjData *obj);
 void func_80106608_slapdown(omObjData *obj);
 
 void func_801059A0_slapdown(void) {
@@ -386,27 +412,226 @@ void func_80106780_slapdown(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106900_slapdown);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80107858_slapdown);
+void func_80107858_slapdown(omObjData *obj) {
+    SdEnt *ent = &D_8010B05C_slapdown[obj->work[0]];
+    s8 chr = GwPlayer[obj->work[0]].chr;
+    s32 mot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80107DCC_slapdown);
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][3], 0x2A9);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x14));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 8));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x30));
+    if (chr != 3) {
+        mot = func_80017BB8_main(chr, 0x38);
+    } else {
+        mot = func_80017BB8_main(chr, 0x3A);
+    }
+    func_8000B460_main(obj, 5, mot);
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    ent->unk04 = 0;
+    if (chr != 5) {
+        obj->trans.x = D_8010A6C0_slapdown[obj->work[1]];
+        obj->trans.y = 75.0f;
+        obj->trans.z = D_8010A6D0_slapdown[obj->work[1]];
+    } else {
+        obj->trans.x = D_8010A6E0_slapdown[obj->work[1]];
+        obj->trans.y = 75.0f;
+        obj->trans.z = D_8010A6F0_slapdown[obj->work[1]];
+    }
+    obj->rot.x = 0.0f;
+    obj->rot.y = D_8010A720_slapdown[obj->work[1]];
+    obj->rot.z = 0.0f;
+    obj->model[1] = func_8000B0A0_main(0, 0x14C9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    obj->model[2] = func_8000B108_main(0x4F0018, 0x2A9);
+    D_8010AA20_slapdown[obj->work[1]] = DataRead(D_8010A744_slapdown[obj->work[1]].file);
+    D_8010AA90_slapdown[obj->work[1]] =
+        HmfAnimCreate(HmfModelData[obj->model[2]].hmf, D_8010AA20_slapdown[obj->work[1]], 0, "s246_07_DEF");
+    func_8001C448_main(obj->model[2]);
+    func_8001C514_main(obj->model[2]);
+    func_8001C6A8_main(obj->model[2], 0.0f);
+    func_8001C92C_main(obj->model[2], 0.0f);
+    switch (obj->work[1]) {
+        case 0:
+            Hu3DModelPosSet(obj->model[2], -285.0f, 100.0f, -285.0f);
+            break;
+        case 1:
+            Hu3DModelPosSet(obj->model[2], 285.0f, 100.0f, -285.0f);
+            break;
+        case 2:
+            Hu3DModelPosSet(obj->model[2], 285.0f, 100.0f, 285.0f);
+            break;
+        case 3:
+            Hu3DModelPosSet(obj->model[2], -285.0f, 100.0f, 285.0f);
+            break;
+    }
+    Hu3DModelRotSet(obj->model[2], 0.0f, D_8010A730_slapdown[obj->work[1]], 0.0f);
+    obj->model[3] = func_8000B108_main(0x4F0017, 0x2A9);
+    Hu3DModelPosSet(obj->model[3], D_8010A700_slapdown[obj->work[1]], 0.0f, D_8010A710_slapdown[obj->work[1]]);
+    Hu3DModelRotSet(obj->model[3], 0.0f, D_8010A720_slapdown[obj->work[1]], 0.0f);
+    obj->model[4] = func_8000B108_main(0x4F001A, 0x2A9);
+    Hu3DModelPosSet(obj->model[4], D_8010A700_slapdown[obj->work[1]], 0.0f, D_8010A710_slapdown[obj->work[1]]);
+    Hu3DModelRotSet(obj->model[4], 0.0f, D_8010A720_slapdown[obj->work[1]], 0.0f);
+    func_8001C6A8_main(obj->model[4], 0.0f);
+    func_8001C92C_main(obj->model[4], 0.0f);
+    ent->unk0A = -2;
+    obj->func = func_80106900_slapdown;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80107FDC_slapdown);
+void func_80107DCC_slapdown(void) {
+    s16 slots[4];
+    omObjData *obj;
+    SdEnt *ent;
+    s16 i;
+    s16 j;
+    u16 player;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108064_slapdown);
+    for (i = 0; i < 4; i++) {
+        slots[i] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            default:
+                player = 0;
+                break;
+        }
+        ent = &D_8010B05C_slapdown[i];
+        obj = omAddObj(250, 10, 60, -1, func_80107858_slapdown);
+        obj->work[0] = player;
+        obj->work[3] = GwPlayer[player].pad;
+        ent->obj = obj;
+        j = rand8() % (4 - i);
+        obj->work[1] = slots[j];
+        slots[j] = -1;
+        for (j = 1; j < 4 - i; j++) {
+            if (slots[j - 1] == -1) {
+                slots[j - 1] = slots[j];
+                slots[j] = -1;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801080D0_slapdown);
+void func_80107FDC_slapdown(omObjData *obj, s16 frame) {
+    func_80033354_main(D_8010AA12_slapdown);
+    D_8010AA12_slapdown = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA58_slapdown[frame], 0, D_8010A984_slapdown);
+}
+
+void func_80108064_slapdown(void) {
+    s16 i;
+
+    for (i = 0; i < 5; i++) {
+        DataClose(D_8010AA58_slapdown[i]);
+    }
+    func_80033354_main(D_8010AA12_slapdown);
+}
+
+void func_801080D0_slapdown(void) {
+    DataClose(D_8010AA9C_slapdown);
+    func_80033354_main(D_8010AA52_slapdown);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", D_8010A984_slapdown);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801080FC_slapdown);
+void func_801080FC_slapdown(omObjData *obj) {
+    SdEnt *deck = &D_8010AB34_slapdown;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010820C_slapdown);
+    switch (D_8010AA6E_slapdown) {
+        case 0:
+            break;
+        case 1:
+            if (deck->unk04 < 60) {
+                if (deck->unk06 == 0) {
+                    HuAudFXPlay(0x479);
+                    deck->unk06 = 1;
+                }
+                deck->unk04++;
+                func_80107FDC_slapdown(obj, deck->unk04 % 5);
+            } else {
+                if (deck->unk06 == 1) {
+                    HuAudFXPlay(0x47F);
+                    deck->unk06 = 2;
+                }
+                func_80107FDC_slapdown(obj, D_8010AA72_slapdown);
+                D_8010AA50_slapdown = 1;
+            }
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+        case 8:
+            break;
+        case 9:
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108340_slapdown);
+void func_8010820C_slapdown(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x4F0019, 0x2A9);
+    D_8010AA58_slapdown[0] = DataRead(0x4F0011);
+    D_8010AA58_slapdown[1] = DataRead(0x4F0012);
+    D_8010AA58_slapdown[2] = DataRead(0x4F0013);
+    D_8010AA58_slapdown[3] = DataRead(0x4F0014);
+    D_8010AA58_slapdown[4] = DataRead(0x4F0015);
+    D_8010AA12_slapdown = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA58_slapdown[0], 0, "s246_19_DEF");
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    D_8010AA72_slapdown = rand8() % 5;
+    obj->func = func_801080FC_slapdown;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108380_slapdown);
+void func_80108340_slapdown(void) {
+    omObjData *obj = omAddObj(150, 1, 0, -1, func_8010820C_slapdown);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108420_slapdown);
+    obj->work[0] = 0;
+    D_8010AB34_slapdown.obj = obj;
+}
+
+void func_80108380_slapdown(omObjData *obj, s16 face) {
+    func_80033354_main(D_8010AA38_slapdown[obj->work[0]]);
+    D_8010AA38_slapdown[obj->work[0]] =
+        HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA78_slapdown[face], 0, D_8010A984_slapdown);
+}
+
+void func_80108420_slapdown(void) {
+    s16 i;
+
+    for (i = 0; i < 6; i++) {
+        DataClose(D_8010AA78_slapdown[i]);
+    }
+    for (i = 0; i < 9; i++) {
+        func_80033354_main(D_8010AA38_slapdown[i]);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801084BC_slapdown);
 
