@@ -2325,7 +2325,19 @@ void func_8010C444_spotlight_swim(void) {
     D_8010D480_spotlight_swim[12].obj = obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C484_spotlight_swim);
+void func_8010C484_spotlight_swim(void) {
+    u32 i;
+
+    for (i = 0; i < 1; i++) {
+        CZoomM[i] = 2241.8f;
+        CRotM[i].x = 314.3f;
+        CRotM[i].y = 0.0f;
+        CRotM[i].z = 0.0f;
+        CenterM[i].x = 0.0f;
+        CenterM[i].y = -195.0f;
+        CenterM[i].z = 40.0f;
+    }
+}
 
 void func_8010C52C_spotlight_swim(omObjData *obj) {
     osViBlack(0);
