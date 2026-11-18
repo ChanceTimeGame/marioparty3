@@ -24,12 +24,12 @@ typedef struct DrPrize {
     /* 0x00 */ f32 unk00[5]; /* x */
     /* 0x14 */ f32 unk14[5]; /* y */
     /* 0x28 */ f32 unk28[5]; /* z */
-    /* 0x3C */ f32 unk3C[5];
-    /* 0x50 */ f32 unk50[5];
-    /* 0x64 */ f32 unk64[5];
-    /* 0x78 */ f32 unk78[5];
-    /* 0x8C */ f32 unk8C[5];
-    /* 0xA0 */ s32 unkA0[5]; /* flags; 4: hooked */
+    /* 0x3C */ f32 unk3C[5]; /* falling speed */
+    /* 0x50 */ f32 unk50[5]; /* shadow scale */
+    /* 0x64 */ f32 unk64[5]; /* shadow y */
+    /* 0x78 */ f32 unk78[5]; /* bob angle */
+    /* 0x8C */ f32 unk8C[5]; /* bob base y */
+    /* 0xA0 */ s32 unkA0[5]; /* flags; 1: riding its Dorrie, 2: falling on it, 4: hooked, 8: bobbing (won) */
     /* 0xB4 */ s32 unkB4[5]; /* the Dorrie carrying it */
 } DrPrize; /* size 0xC8 */
 
@@ -118,6 +118,7 @@ extern s32 D_8010A06C_dorrie_dip; /* frame of the next ambient sound 2 */
 /* .bss (ovl_3E_bss) */
 extern s32 D_8010A1F4_dorrie_dip; /* camera */
 extern u8 D_8010A1F8_dorrie_dip;
+extern s16 D_8010A1FA_dorrie_dip; /* prize sparkle effect */
 extern s32 D_8010A1FC_dorrie_dip; /* the player (D_8010A1FE: its low half, read by narrowing loads) */
 extern s32 D_8010A200_dorrie_dip; /* the Dorrie with no prize */
 extern s32 D_8010A208_dorrie_dip[6]; /* prize under each Dorrie, 0x11 none */
@@ -670,7 +671,54 @@ void func_80107690_dorrie_dip(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801079D4_dorrie_dip);
+void func_801079D4_dorrie_dip(omObjData* obj) {
+    DrPrize* work = obj->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    DrHook* hook = D_8010A238_dorrie_dip->data;
+    s32 i;
+
+    for (i = 0; i < 5; i++) {
+        if (i == 0) {
+            omSetTra(obj, work->unk00[0], work->unk14[0], work->unk28[0]);
+        } else {
+            Hu3DModelPosSet(obj->model[i], work->unk00[i], work->unk14[i], work->unk28[i]);
+        }
+        Hu3DModelPosSet(obj->model[i + 5], work->unk00[i], work->unk64[i], work->unk28[i]);
+        if (work->unkA0[i] & 4) {
+            work->unk50[i] = 1.0f;
+        } else {
+            work->unk50[i] = (1440.0f - work->unk14[i]) / 1440.0f;
+        }
+        Hu3DModelScaleSet(obj->model[i + 5], work->unk50[i], 1.0f, work->unk50[i]);
+        if (work->unkA0[i] & 1) {
+            work->unk00[i] = sindf(ring->unk18[work->unkB4[i]]) * 450.0f;
+            work->unk14[i] = D_8010A22C_dorrie_dip + 60.0f;
+            work->unk28[i] = cosdf(ring->unk18[work->unkB4[i]]) * 450.0f;
+        }
+        if (work->unkA0[i] & 2) {
+            work->unk14[i] += work->unk3C[i];
+            work->unk3C[i] -= 3.0f;
+            if (work->unk14[i] <= 60.0f) {
+                work->unk14[i] = 60.0f;
+                work->unkA0[i] = (work->unkA0[i] & ~2) | 1;
+            }
+        }
+        if (work->unkA0[i] & 4) {
+            work->unk00[i] = hook->unk04.x;
+            work->unk14[i] = hook->unk04.y + 80.0f;
+            work->unk28[i] = hook->unk04.z;
+            work->unk64[i] = hook->unk04.y + 30.0f;
+        }
+        if (work->unkA0[i] & 8) {
+            work->unk14[i] = sindf(work->unk78[i]) * 50.0f + work->unk8C[i];
+            work->unk78[i] += 5.0f;
+            if (work->unk78[i] >= 360.0f) {
+                work->unk78[i] -= 360.0f;
+            }
+            func_8000CFA4_main(D_8010A1FA_dorrie_dip, work->unk00[i], work->unk14[i], work->unk28[i]);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107D08_dorrie_dip);
 
