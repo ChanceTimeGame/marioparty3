@@ -983,7 +983,66 @@ void func_801089C8_winners_wheel(void) {
     omAddPrcObj(func_801089F4_winners_wheel, 0x50, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801089F4_winners_wheel);
+/* The peg ring's endless show after the win: eight pegs chase round, then all blink. */
+void func_801089F4_winners_wheel(void) {
+    WwPegs* work = D_8010A4C0_winners_wheel->data;
+    s32 i;
+    s32 j;
+    f32 angle;
+
+    for (i = 0; i < 18; i++) {
+        if (i == 0) {
+            omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]), cosdf(work->unk04[0]), 0.0f);
+        } else {
+            Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[i], sindf(work->unk04[i]), cosdf(work->unk04[i]), 0.0f);
+        }
+    }
+    while (TRUE) {
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[1], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[2], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[3], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[4], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[5], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[6], 4, 0);
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[7], 4, 0);
+        for (i = 0; i < 36; i++) {
+            angle = i * 20.0f;
+            work->unk04[0] = angle;
+            work->unk04[1] = 340.0f - angle;
+            work->unk04[2] = angle + 180.0f;
+            work->unk04[3] = 160.0f - angle;
+            work->unk04[4] = angle + 100.0f;
+            work->unk04[5] = 80.0f - angle;
+            work->unk04[6] = angle + 280.0f;
+            work->unk04[7] = 260.0f - angle;
+            omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]), cosdf(work->unk04[0]), -1.0f);
+            for (j = 1; j < 8; j++) {
+                Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[j], sindf(work->unk04[j]), cosdf(work->unk04[j]), -1.0f);
+            }
+            HuPrcSleep(1);
+        }
+        for (i = 0; i < 18; i++) {
+            work->unk04[i] = i * 20.0f;
+            if (i == 0) {
+                omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]), cosdf(work->unk04[0]), 0.0f);
+            } else {
+                Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[i], sindf(work->unk04[i]), cosdf(work->unk04[i]), 0.0f);
+            }
+            func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 0);
+        }
+        for (j = 0; j < 8; j++) {
+            for (i = 0; i < 18; i++) {
+                func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 0);
+            }
+            HuPrcSleep(1);
+            for (i = 0; i < 18; i++) {
+                func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 4);
+            }
+            HuPrcSleep(1);
+        }
+    }
+}
 
 /* The peg ring starts turning. */
 void func_80108E80_winners_wheel(void) {
