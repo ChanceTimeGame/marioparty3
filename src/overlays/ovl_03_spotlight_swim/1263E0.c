@@ -154,10 +154,19 @@ extern SsFlags D_8010D329_spotlight_swim;
 extern s8 D_8010CD98_spotlight_swim[][2];
 extern f32 D_8010D450_spotlight_swim[5][2];
 
+extern f32 D_8010D334_spotlight_swim[1];
+extern f32 D_8010D344_spotlight_swim;
+extern f32 D_8010D370_spotlight_swim[2];
+extern s8 D_8010D3CC_spotlight_swim;
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
 void func_80106808_spotlight_swim(omObjData *obj);
+void func_801069BC_spotlight_swim(omObjData *obj);
+void func_801072C4_spotlight_swim(omObjData *obj);
+s8 func_80107674_spotlight_swim(omObjData *obj);
+s8 func_80107710_spotlight_swim(omObjData *obj);
 void func_801061DC_spotlight_swim(omObjData *obj);
 void func_8010CB78_spotlight_swim(void);
 void func_80106150_spotlight_swim(omObjData *obj);
@@ -691,7 +700,7 @@ void func_8010755C_spotlight_swim(omObjData *obj) {
     }
 }
 
-s32 func_80107674_spotlight_swim(omObjData *obj) {
+s8 func_80107674_spotlight_swim(omObjData *obj) {
     if ((D_800CBB6E_main[obj->work[3]] < 3 && obj->trans.x <= -450.0f) ||
         (D_800CBB6E_main[obj->work[3]] >= 4 && obj->trans.x >= 450.0f)) {
         D_8010D329_spotlight_swim.edge |= 1;
@@ -700,7 +709,7 @@ s32 func_80107674_spotlight_swim(omObjData *obj) {
     return 1;
 }
 
-s32 func_80107710_spotlight_swim(omObjData *obj) {
+s8 func_80107710_spotlight_swim(omObjData *obj) {
     if ((D_800D20A1_main[obj->work[3]] >= 4 && obj->trans.z <= -450.0f) ||
         (D_800D20A1_main[obj->work[3]] < 3 && obj->trans.z >= 260.0f)) {
         D_8010D329_spotlight_swim.edge |= 2;
@@ -709,9 +718,76 @@ s32 func_80107710_spotlight_swim(omObjData *obj) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801077AC_spotlight_swim);
+/* Converts the heading (rot.y) into stick values for the player's pad. */
+void func_801077AC_spotlight_swim(omObjData *obj) {
+    s16 pad = obj->work[3];
+    f32 angle = obj->rot.y;
+    s16 quad = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801079FC_spotlight_swim);
+    if (angle >= 90.0f) {
+        quad = 1;
+    }
+    if (angle >= 180.0f) {
+        quad++;
+    }
+    if (angle >= 270.0f) {
+        quad++;
+    }
+    switch (quad) {
+    case 0:
+        D_800CBB6E_main[pad] = angle * D_8010D334_spotlight_swim[0];
+        D_800D20A1_main[pad] = 0.0f - (90.0f - angle) * D_8010D334_spotlight_swim[0];
+        break;
+    case 1:
+        angle -= 90.0f;
+        D_800CBB6E_main[pad] = (90.0f - angle) * D_8010D334_spotlight_swim[0];
+        D_800D20A1_main[pad] = angle * D_8010D334_spotlight_swim[0];
+        break;
+    case 2:
+        angle -= 180.0f;
+        D_800CBB6E_main[pad] = 0.0f - angle * D_8010D334_spotlight_swim[0];
+        D_800D20A1_main[pad] = (90.0f - angle) * D_8010D334_spotlight_swim[0];
+        break;
+    case 3:
+        angle -= 270.0f;
+        D_800CBB6E_main[pad] = 0.0f - (90.0f - angle) * D_8010D334_spotlight_swim[0];
+        D_800D20A1_main[pad] = 0.0f - angle * D_8010D334_spotlight_swim[0];
+        break;
+    }
+}
+
+void func_801079FC_spotlight_swim(omObjData *obj) {
+    s8 x;
+    s8 y;
+
+    x = D_800CBB6E_main[obj->work[3]];
+    if (x >= 64) {
+        x = 63;
+    } else if (x < -63) {
+        x = -63;
+    }
+    y = -D_800D20A1_main[obj->work[3]];
+    if (y >= 64) {
+        y = 63;
+    } else if (y < -63) {
+        y = -63;
+    }
+    D_8010D329_spotlight_swim.edge = 0;
+    if (func_80107674_spotlight_swim(obj)) {
+        obj->trans.x = x / D_8010D344_spotlight_swim + obj->trans.x;
+    }
+    if (func_80107710_spotlight_swim(obj)) {
+        obj->trans.z = y / D_8010D344_spotlight_swim + obj->trans.z;
+    }
+    if (D_8010D3CC_spotlight_swim != 0) {
+        if (((x < 0) ? -x : x) >= 5 || ((y < 0) ? -y : y) >= 5) {
+            obj->rot.y = func_801059BC_spotlight_swim(atan2df(x, y), 0.0f);
+        }
+    }
+    func_80105E9C_spotlight_swim(0, obj->trans.x, obj->trans.y + 50.0f, obj->trans.z, D_8010D370_spotlight_swim);
+    func_801072C4_spotlight_swim(obj);
+    func_801069BC_spotlight_swim(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80107C10_spotlight_swim);
 
