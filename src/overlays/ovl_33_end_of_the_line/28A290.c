@@ -18,6 +18,7 @@
 // EXTERN
 
 // C1F0
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
 void func_8000BBFC_main(u16, u8);
 void func_8000BC48_main(u16, u16);
@@ -38,6 +39,7 @@ void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 void HmfLightStatSet(s16, u8, u8);
 
 // minigame
+extern s8 D_800CBB6E_main[];
 u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s32);
 
@@ -49,15 +51,15 @@ typedef struct {
     /* 0x04 */ omObjData *unk04;
     /* 0x08 */ omObjFunc unk08;
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ char unk12[2];
-    /* 0x14 */ s16 unk14;
+    /* 0x10 */ u16 unk10;
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
     /* 0x16 */ u16 unk16;
     /* 0x18 */ u16 unk18;
     /* 0x1A */ u16 unk1A;
-    /* 0x1C */ s16 unk1C;
+    /* 0x1C */ u16 unk1C;
     /* 0x1E */ u16 unk1E;
-    /* 0x20 */ s32 unk20;
+    /* 0x20 */ omObjData *unk20;
     /* 0x24 */ Vec unk24;
     /* 0x30 */ Vec unk30;
     /* 0x3C */ Vec unk3C;
@@ -65,10 +67,8 @@ typedef struct {
     /* 0x54 */ f32 unk54;
     /* 0x58 */ char unk58[4];
     /* 0x5C */ u16 unk5C;
-    /* 0x5E */ u16 unk5E;
-    /* 0x60 */ u16 unk60;
-    /* 0x62 */ u16 unk62;
-    /* 0x64 */ u16 unk64;
+    /* 0x5E */ u16 unk5E[2];
+    /* 0x62 */ u16 unk62[2];
     /* 0x66 */ char unk66[2];
     /* 0x68 */ f32 unk68;
     /* 0x6C */ f32 unk6C;
@@ -121,13 +121,17 @@ void func_80106444_end_of_the_line(omObjData *obj);
 void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2);
 void func_80107FF0_end_of_the_line(u16 arg0);
 void func_80108F0C_end_of_the_line(omObjData *obj);
+void func_80109E70_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
+void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1);
+s8 func_8010AC80_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
 void func_8010AC34_end_of_the_line(EotlPlayer *pw);
 void func_8010AF28_end_of_the_line(omObjData *obj);
 void func_8010B064_end_of_the_line(omObjData *obj);
 void func_8010B234_end_of_the_line(omObjData *obj);
 void func_8010B300_end_of_the_line(omObjData *obj);
+void func_8010B4EC_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
@@ -151,6 +155,7 @@ extern s16 D_8010C610_end_of_the_line[2][4];
 
 extern u16 D_8010C650_end_of_the_line;
 extern s32 D_8010C658_end_of_the_line[3];
+extern u16 D_8010C664_end_of_the_line[2];
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
@@ -543,10 +548,10 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
     func_8001C258_main(arg1->model[4], 4, 4);
     func_8001C258_main(arg1->model[5], 4, 4);
     func_8000BB94_main(hud->unk00[p]);
-    func_8000BB94_main(pw->unk5E);
-    func_8000BB94_main(pw->unk60);
-    func_8000BB94_main(pw->unk62);
-    func_8000BB94_main(pw->unk64);
+    func_8000BB94_main(pw->unk5E[0]);
+    func_8000BB94_main(pw->unk5E[1]);
+    func_8000BB94_main(pw->unk62[0]);
+    func_8000BB94_main(pw->unk62[1]);
     HmfLightDirSet(1, 3.0f, 89.0f, 80.0f);
     pw->unk18 = arg2;
     pw->unk88 = 0x48;
@@ -1029,7 +1034,182 @@ void func_80108F0C_end_of_the_line(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010937C_end_of_the_line);
+void func_8010937C_end_of_the_line(omObjData *obj) {
+    f32 lim[2];
+    EotlPlayer *pw;
+    s8 stick;
+    f32 dz;
+    f32 dx;
+    f32 spd;
+    f32 mix;
+    f32 pitch;
+
+    lim[0] = 157.0f;
+    lim[1] = 203.0f;
+    pw = obj->data;
+    if (D_8010C75A_end_of_the_line == 1 && pw->unk1A != 2) {
+        pw->unk0C *= 0.7f;
+        if (pw->unk0C < 2.0f) {
+            pw->unk0C = 0.0f;
+            if (pw->unk86 != -1) {
+                HuAudFXStop(pw->unk86);
+                pw->unk86 = -1;
+            }
+            obj->func = NULL;
+        }
+        if (pw->unk86 != -1) {
+            spd = pw->unk0C;
+            if (spd < 8.0f) {
+                mix = (spd - 1.0f) * 5.142857f + 36.0f;
+                pitch = (spd - 1.0f) * 42.857143f + 300.0f;
+                func_8004AAD0_main(pw->unk86, mix);
+                HuAudFXPitchSet(pw->unk86, (s16)pitch);
+            }
+        }
+    } else if (D_8010C758_end_of_the_line == 1) {
+        pw->unk0C = 0.0f;
+        if (pw->unk86 != -1) {
+            HuAudFXStop(pw->unk86);
+            pw->unk86 = -1;
+        }
+    }
+    if (GwPlayer[pw->unk02].stat & 1) {
+        stick = func_8010AC80_end_of_the_line(obj);
+    } else {
+        stick = D_800CBB6E_main[GwPlayer[pw->unk02].pad];
+    }
+    dz = cosdf(obj->rot.y) * (pw->unk0C / 1.08f);
+    dx = sindf(obj->rot.y) * (pw->unk0C / 1.08f);
+    obj->trans.x += dx;
+    obj->trans.z += dz;
+    if (obj->trans.z < -3300.0f) {
+        if (pw->unk10 == 0) {
+            if (obj->rot.y > lim[0]) {
+                obj->rot.y -= 8.0f;
+                if (obj->rot.y < lim[0]) {
+                    obj->rot.y = lim[0];
+                }
+            }
+        } else if (obj->rot.y < lim[1]) {
+            obj->rot.y += 8.0f;
+            if (obj->rot.y > lim[1]) {
+                obj->rot.y = lim[1];
+            }
+        }
+        pw->unk12 = pw->unk10;
+        func_8000BB94_main(pw->unk5E[0]);
+        func_8000BB94_main(pw->unk5E[1]);
+        func_8000BB94_main(pw->unk62[0]);
+        func_8000BB94_main(pw->unk62[1]);
+        if (pw->unk1A == 0) {
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[10]].unk02, 0, 6, 0);
+            pw->unk1A = 1;
+            pw->unk1C = 20;
+        }
+    } else {
+        if (stick < 0) {
+            pw->unk10 = 1;
+        } else if (stick > 0) {
+            pw->unk10 = 0;
+        }
+        if (D_8010C75A_end_of_the_line == 0 && D_8010C758_end_of_the_line == 0 && func_800E6E8C_minigame() == 2) {
+            if (pw->unk14 != pw->unk10) {
+                HuAudFXPlay(D_8010C620_end_of_the_line[pw->unk00][0]);
+            }
+            func_8000BB54_main(pw->unk5E[pw->unk10]);
+            func_8000BE5C_main(pw->unk5E[pw->unk10], sindf(pw->unk68) * 0.15f + 0.85f, sindf(pw->unk68) * 0.15f + 0.85f);
+            func_8000BBD4_main(pw->unk5E[pw->unk10], D_8010C664_end_of_the_line[pw->unk10] + pw->unk00 * 160, 80);
+            func_8000BB94_main(pw->unk62[pw->unk10]);
+            func_8000BB94_main(pw->unk5E[pw->unk10 ^ 1]);
+            func_8000BB54_main(pw->unk62[pw->unk10 ^ 1]);
+            func_8000BBD4_main(pw->unk62[pw->unk10 ^ 1], D_8010C664_end_of_the_line[pw->unk10 ^ 1] + pw->unk00 * 160, 80);
+            func_8000BE5C_main(pw->unk62[pw->unk10 ^ 1], 0.7f, 0.7f);
+            pw->unk68 += 30.0f;
+            if (pw->unk68 >= 360.0f) {
+                pw->unk68 -= 360.0f;
+            }
+        } else {
+            func_8000BB94_main(pw->unk5E[pw->unk10]);
+            func_8000BB94_main(pw->unk5E[pw->unk10 ^ 1]);
+            func_8000BB94_main(pw->unk62[pw->unk10]);
+            func_8000BB94_main(pw->unk62[pw->unk10 ^ 1]);
+        }
+    }
+    pw->unk14 = pw->unk10;
+    if (obj->trans.z < -4100.0f && pw->unk04->work[1] == 1) {
+        if (D_8010C758_end_of_the_line == 0 && D_8010C75A_end_of_the_line == 0) {
+            HuAudFXPlay(D_8010C620_end_of_the_line[pw->unk00][3]);
+        }
+        pw->unk04->work[1] = 0;
+    }
+    if (obj->trans.z < -4600.0f) {
+        func_8010A91C_end_of_the_line(obj, 10);
+        if (pw->unk86 != -1) {
+            func_80007D2C_main(pw->unk86, 60);
+        }
+    }
+    dz = cosdf(pw->unk30.y) * (pw->unk0C / 1.08f);
+    dx = sindf(pw->unk30.y) * (pw->unk0C / 1.08f);
+    pw->unk24.x += dx;
+    pw->unk24.z += dz;
+    if (pw->unk24.z < -3300.0f) {
+        if (pw->unk10 == 0) {
+            if (pw->unk30.y > lim[0]) {
+                pw->unk30.y -= 8.0f;
+                if (pw->unk30.y < lim[0]) {
+                    pw->unk30.y = lim[0];
+                }
+            }
+        } else if (pw->unk30.y < lim[1]) {
+            pw->unk30.y += 8.0f;
+            if (pw->unk30.y > lim[1]) {
+                pw->unk30.y = lim[1];
+            }
+        }
+    }
+    Hu3DModelPosSet(obj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+    Hu3DModelRotSet(obj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+    pw->unk3C.x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
+    pw->unk3C.z = pw->unk24.z - cosdf(pw->unk30.y) * 20.0f;
+    if (pw->unk3C.y > 0.0f) {
+        pw->unk3C.y += pw->unk74;
+        pw->unk74 *= 1.15f;
+        if (pw->unk3C.y < 0.0f) {
+            pw->unk3C.y = 0.0f;
+            pw->unk1C = 7;
+            func_8001C814_main(obj->model[2], 1, 0);
+            func_8001C258_main(obj->model[3], 4, 0);
+            func_8001C6A8_main(obj->model[3], 0.0f);
+        }
+    } else if (pw->unk1A == 2) {
+        if (pw->unk1C == 0) {
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[9]].unk02, 0, 12, 2);
+            pw->unk1A = 0;
+        } else {
+            pw->unk1C--;
+        }
+    }
+    Hu3DModelPosSet(obj->model[3], pw->unk3C.x, pw->unk3C.y + 100.0f, pw->unk3C.z);
+    Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y + 100.0f, pw->unk3C.z);
+    Hu3DModelRotSet(obj->model[2], 0.0f, pw->unk30.y, 0.0f);
+    Hu3DModelPosSet(obj->model[4], pw->unk3C.x, pw->unk24.y + 100.0f + 0.0f, pw->unk3C.z);
+    if (pw->unk20 != NULL && pw->unk20->work[1] == 0 && D_8010C7D0_end_of_the_line == -1) {
+        pw->unk82 = 0;
+        pw->unk80 = 0;
+        D_8010C782_end_of_the_line[pw->unk00] = 0x12;
+        pw->unk04->work[1] = 1;
+        obj->func = func_80109E70_end_of_the_line;
+        pw->unk04->func = func_8010B4EC_end_of_the_line;
+    }
+    if (pw->unk1A == 1) {
+        if (pw->unk1C == 0) {
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[0]].unk02, 0, 15, 2);
+            pw->unk1A = 4;
+        } else {
+            pw->unk1C--;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80109E70_end_of_the_line);
 
