@@ -103,11 +103,12 @@ typedef struct HhFire {
     /* 0x0A */ s16 unk0A;
     /* 0x0C */ f32 unk0C; /* shadow scale */
     /* 0x10 */ f32 unk10; /* radius; 0 when gone */
-    /* 0x14 */ s32 unk14;
+    /* 0x14 */ f32 unk14; /* bounce phase (drop-in) */
     /* 0x18 */ s8 unk18; /* frames hit in a row */
     /* 0x19 */ s8 unk19; /* hit this frame */
     /* 0x1A */ s8 unk1A;
-    /* 0x1B */ char unk1B[3];
+    /* 0x1B */ char unk1B;
+    /* 0x1C */ s16 unk1C; /* sound handle */
     /* 0x1E */ s16 unk1E;
 } HhFire; /* size 0x20 */
 
@@ -118,6 +119,7 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
+void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
@@ -202,10 +204,13 @@ extern s32 D_8010BE30_hyper_hydrants;
 extern s8 D_8010BF40_hyper_hydrants;
 extern s16 D_8010BF42_hyper_hydrants[2];
 extern s8 D_8010BF46_hyper_hydrants;
+extern s32 D_8010BF48_hyper_hydrants; /* drop-ins made; its low byte is D_8010BF4B */
 extern s32 D_8010BF4C_hyper_hydrants; /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
+extern s32 D_8010BFA0_hyper_hydrants; /* screen x of the drop-in */
+extern s32 D_8010BFA4_hyper_hydrants;
 extern s8 D_8010BFAA_hyper_hydrants;
 extern s8 D_8010BFAB_hyper_hydrants;
 extern s8 D_8010BFAC_hyper_hydrants[2];
@@ -1261,13 +1266,148 @@ void func_80108788_hyper_hydrants(s16 model) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80108788_hyper_hydrants);
 #endif
 
+// masked residue: retail selects the camera with a branch (li 1/0) where this C gets sltu, and schedules the model move later (logic checked)
+#ifdef NON_MATCHING
+/* A team's burning building drop-in (work as HhFire): falls from 800 at the start, then bounces. */
+void func_80108F34_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    s16 mdl;
+    s16 cam;
+    Vec pos;
+    Vec2f scr;
+
+    obj->func = func_801091B0_hyper_hydrants;
+    fd = obj->data = HuMemAllocTag(sizeof(HhFire), 0x7918);
+    memset(fd, 0, sizeof(HhFire));
+    fd->unk00 = D_8010BF48_hyper_hydrants;
+    fd->unk03 = 0;
+    fd->unk14 = 0;
+    if (fd->unk00 == 0) {
+        obj->trans.x = -800.0f;
+    } else {
+        obj->trans.x = 800.0f;
+    }
+    obj->trans.y = 800.0f;
+    obj->trans.z = -700.0f;
+    obj->scale.z = 3.0f;
+    obj->scale.y = 3.0f;
+    obj->scale.x = 3.0f;
+    pos.x = obj->trans.x;
+    pos.y = obj->trans.y + 200.0f;
+    pos.z = obj->trans.z;
+    cam = 1;
+    if (fd->unk00 == 0) {
+        cam = 0;
+    }
+    func_80012B14_main(cam, &pos, &scr);
+    D_8010BFA0_hyper_hydrants = scr.x;
+    D_8010BFA4_hyper_hydrants = scr.y;
+    mdl = func_8000B108_main(0xA008A, 0x289);
+    obj->model[0] = mdl;
+    if (fd->unk00 == 0) {
+        HmfAnimRead(HmfModelData[mdl].hmf, 0xA008C, D_8010BEF0_hyper_hydrants);
+        func_8001C8A8_main(obj->model[0], 1);
+    } else {
+        func_80032694_main(HmfModelData[mdl].hmf, 0, 0, D_8010BEF0_hyper_hydrants);
+        func_8001C8A8_main(obj->model[0], 2);
+    }
+    func_8001C448_main(mdl);
+    func_8001C514_main(mdl);
+    obj->model[1] = func_8000B108_main(0x2F0003, 0x99);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    fd->unk0C = 0.1f;
+    Hu3DModelScaleSet(obj->model[1], 0.1f, 0.1f, 0.1f);
+    D_8010BF48_hyper_hydrants++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80108F34_hyper_hydrants);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", D_8010BEF0_hyper_hydrants);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801091B0_hyper_hydrants);
+void func_801091B0_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    HhFire* other;
+    Vec pos;
+    Vec2f scr;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109484_hyper_hydrants);
+    fd = obj->data;
+    switch (func_800E6E8C_minigame()) {
+        case 0:
+            if (fd->unk00 == 0) {
+                pos.x = obj->trans.x + 50.0f;
+                pos.y = obj->trans.y + 120.0f;
+                pos.z = obj->trans.z;
+                func_80012B14_main(0, &pos, &scr);
+                D_8010BFA0_hyper_hydrants = scr.x;
+                D_8010BFA4_hyper_hydrants = scr.y;
+                if (fd->unk03 == 0) {
+                    obj->trans.y -= 40.0f;
+                    if (obj->trans.y < 0.0f) {
+                        func_8010BC80_hyper_hydrants(0x366, 0, 1, 0);
+                        fd->unk03 = 1;
+                        omVibrate(0, 10, 0, 10);
+                        omVibrate(1, 10, 0, 10);
+                        omVibrate(2, 10, 0, 10);
+                        omVibrate(3, 10, 0, 10);
+                    }
+                } else if (fd->unk03 == 1) {
+                    func_80109484_hyper_hydrants(obj);
+                }
+                fd->unk0C += 0.5f;
+                if (fd->unk0C > obj->scale.x / 2.0f) {
+                    fd->unk0C = obj->scale.x / 2.0f;
+                }
+            } else {
+                other = D_8010BFE0_hyper_hydrants[0]->data;
+                obj->trans.y = D_8010BFE0_hyper_hydrants[0]->trans.y;
+                fd->unk0C = other->unk0C;
+                fd->unk03 = other->unk03;
+                if (fd->unk03 == 0 && obj->trans.y < 0.0f) {
+                    func_8010BC80_hyper_hydrants(0x366, 1, 1, 1);
+                }
+            }
+            Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
+            break;
+        case 1:
+            obj->trans.y = 0.0f;
+            fd->unk03 = 0;
+            break;
+        case 2:
+            func_80109484_hyper_hydrants(obj);
+            break;
+        case 3:
+        case 4:
+        case 5:
+            obj->scale.x -= 0.4f;
+            if (obj->scale.x < 0.0f) {
+                obj->scale.x = 0.0f;
+            }
+            obj->scale.y = obj->scale.z = obj->scale.x;
+            fd->unk0C = obj->scale.x / 2.0f;
+            Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
+            break;
+    }
+}
+
+/* The drop-in's landing bounce: three half-sine hops of 50, then it rests. */
+void func_80109484_hyper_hydrants(omObjData* obj) {
+    HhFire* fd = obj->data;
+
+    if (fd->unk03 == 1) {
+        if (fd->unk14 < 1080.0f) {
+            obj->trans.y = sindf(fd->unk14) * 50.0f + 0.0f;
+            fd->unk14 += 45.0f;
+            if ((s32)fd->unk14 % 180 == 0) {
+                fd->unk14 += 180.0f;
+            }
+        } else {
+            obj->trans.y = 0.0f;
+            fd->unk14 = 0.0f;
+            fd->unk03 = 2;
+        }
+    }
+}
 
 // masked residue: the move of the new model index is scheduled one slot later in retail (logic checked)
 #ifdef NON_MATCHING
@@ -1350,7 +1490,46 @@ void func_80109588_hyper_hydrants(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109588_hyper_hydrants);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801099A0_hyper_hydrants);
+/* A fire: grows in, burns and moves while playing (func_80109E44), goes out when hit long enough. */
+void func_801099A0_hyper_hydrants(omObjData* obj) {
+    HhFire* fd = obj->data;
+
+    switch (func_800E6E8C_minigame()) {
+        case 0:
+            func_80109B30_hyper_hydrants(obj);
+            break;
+        case 1:
+            obj->trans.y = 0.0f;
+            break;
+        case 2:
+            func_80109E44_hyper_hydrants(obj);
+            if (fd->unk04 == 1) {
+                func_8010A458_hyper_hydrants(obj);
+            }
+            if (fd->unk1A == 1) {
+                if (fd->unk1E >= 2) {
+                    fd->unk1E = 0;
+                    fd->unk1A = 0;
+                } else {
+                    if (fd->unk1E == 0) {
+                        fd->unk1C = func_8010BC80_hyper_hydrants(0x365, fd->unk02, 0, 0);
+                    }
+                    fd->unk1E++;
+                }
+            }
+            break;
+        case 3:
+            obj->scale.x -= 0.1f;
+            if (obj->scale.x < 0.0f) {
+                obj->scale.x = 0.0f;
+            }
+            obj->scale.y = obj->scale.z = obj->scale.x;
+            fd->unk0C = obj->scale.x / 2.0f;
+            break;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109B30_hyper_hydrants);
 
