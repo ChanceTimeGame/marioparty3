@@ -85,6 +85,8 @@ extern s32 D_800A178C_main[][6];
 void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_8010728C_crazy_cogs(omObjData *obj);
 void func_8010787C_crazy_cogs(omObjData *obj);
+void func_80107D58_crazy_cogs(omObjData *obj);
+void func_800DDD94_minigame(omObjData *obj);
 s16 func_8004AD8C_main(s16 defNo);
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
 void func_801060A0_crazy_cogs(omObjData *obj, u16 motion, s16 arg2, s16 arg3, s16 arg4);
@@ -154,10 +156,12 @@ extern s16 D_8010BA30_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].grp 
 extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr */
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
+extern s16 D_8010DE08_crazy_cogs[3];
 extern s16 D_8010DE0E_crazy_cogs;
 extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
 extern s8 D_8010DE68_crazy_cogs;
+extern s16 D_8010DE62_crazy_cogs;
 extern u8 D_8010DE64_crazy_cogs;
 extern u8 D_8010DE69_crazy_cogs;
 extern s8 D_8010DE6A_crazy_cogs[4];
@@ -964,9 +968,138 @@ void func_80107D58_crazy_cogs(omObjData *obj) {
     obj->work[2] = (obj->work[2] + 1) % 11;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107E00_crazy_cogs);
+/* The cogs' intro: a team player walks to its slot, turns, steps back, then the CPU pad pushes its stick. */
+void func_80107E00_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[5 + obj->work[1]];
+    CgEnt *team = &D_8010B9F0_crazy_cogs[CG_ENT_TEAM + obj->work[1]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108190_crazy_cogs);
+    switch (ent->unk12) {
+    case 0:
+        if (++ent->unk16 == 20) {
+            ent->unk12 = 1;
+            ent->unk16 = 0;
+            D_8010DE60_crazy_cogs = 1;
+            func_80106034_crazy_cogs(team->obj, 2, 2);
+        }
+        break;
+    case 1:
+        team->obj->rot.y = D_8010B88C_crazy_cogs[team->unk04];
+        func_80107D58_crazy_cogs(obj);
+        if (++ent->unk16 == 40) {
+            ent->unk12 = 4;
+            ent->unk16 = 0;
+            D_8010DE60_crazy_cogs = 2;
+        }
+        break;
+    case 2:
+        team->obj->rot.y = func_801059BC_crazy_cogs(D_8010B88C_crazy_cogs[team->unk04], -180.0f);
+        func_80107D58_crazy_cogs(obj);
+        if (++ent->unk16 == 40) {
+            ent->unk12++;
+            ent->unk16 = 0;
+            D_8010DE60_crazy_cogs = 1;
+        }
+        break;
+    case 3:
+        team->obj->rot.y = D_8010B88C_crazy_cogs[team->unk04];
+        func_80107D58_crazy_cogs(obj);
+        if (++ent->unk16 == 30) {
+            ent->unk12++;
+            ent->unk16 = 0;
+            D_8010DE60_crazy_cogs = 2;
+        }
+        break;
+    case 4:
+        team->obj->rot.y = func_801059BC_crazy_cogs(D_8010B88C_crazy_cogs[team->unk04], -180.0f);
+        func_80107D58_crazy_cogs(obj);
+        if (++ent->unk16 == 30) {
+            ent->unk12++;
+            ent->unk16 = 0;
+            D_8010DE60_crazy_cogs = 0;
+            obj->trans.x = team->obj->trans.x;
+            obj->trans.y = team->obj->trans.y;
+            obj->trans.z = team->obj->trans.z;
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 0);
+            func_8001C258_main(team->obj->model[0], 4, 4);
+            func_8001C258_main(team->obj->model[1], 4, 4);
+        }
+        break;
+    case 5:
+        switch (team->unk04) {
+        case 0:
+            D_800D20A1_main[obj->work[3]] = -67;
+            break;
+        case 1:
+            D_800CBB6E_main[obj->work[3]] = 60;
+            D_800D20A1_main[obj->work[3]] = 30;
+            break;
+        case 2:
+            D_800CBB6E_main[obj->work[3]] = -60;
+            D_800D20A1_main[obj->work[3]] = 30;
+            break;
+        }
+        if (++ent->unk16 == 18) {
+            ent->unk12 = 0;
+            D_8010DE62_crazy_cogs = 1;
+        }
+        break;
+    case 6:
+        if (++ent->unk16 == 30) {
+            ent->unk12 = 0;
+            D_8010DE62_crazy_cogs = 1;
+        }
+        break;
+    }
+}
+
+/* A team player knocked off: flies off in an arc, spinning. */
+void func_80108190_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[5 + obj->work[1]];
+
+    switch (ent->unk12) {
+    case 2:
+        break;
+    case 0:
+        if (ent->unk10 != 0) {
+            ent->pos.x = obj->trans.x + 650.0f;
+            ent->unk1C = -5.0f;
+            ent->unk20 = 180.0f;
+        } else {
+            ent->pos.x = obj->trans.x - 650.0f;
+            ent->unk1C = 5.0f;
+            ent->unk20 = 0.0f;
+        }
+        ent->pos.y = obj->trans.y;
+        ent->unk12++;
+        func_800E5690_minigame(obj, 0x12);
+        HmfModelData[obj->model[0]].unk40 = 0.0f;
+        HmfModelData[obj->model[0]].unk44 = 0.0f;
+        func_80105B04_crazy_cogs(obj->work[1]);
+        func_800DDD94_minigame(obj);
+        HuAudFXStop((s16)(obj->work[3] * 2 + 2));
+        func_8004AC98_main(0x325, obj->work[0]);
+        func_8004ACE0_main(0x286, obj->work[0]);
+        D_8010DE08_crazy_cogs[obj->work[1]] = 0;
+        /* fallthrough */
+    case 1:
+        ent->unk20 = func_801059BC_crazy_cogs(ent->unk20, ent->unk1C);
+        obj->trans.x = cosdf(ent->unk20) * 650.0f + ent->pos.x;
+        obj->trans.y = sindf(ent->unk20) * 590.0f + ent->pos.y;
+        obj->rot.y = func_801059BC_crazy_cogs(obj->rot.y, 33.0f);
+        obj->rot.x = func_801059BC_crazy_cogs(obj->rot.x, 33.0f);
+        D_8010DE08_crazy_cogs[obj->work[1]]++;
+        if (obj->trans.y < 0.0f) {
+            ent->unk12++;
+        }
+        /* fallthrough */
+    default:
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, func_80105BD0_crazy_cogs(obj), obj->trans.z);
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108464_crazy_cogs);
 
