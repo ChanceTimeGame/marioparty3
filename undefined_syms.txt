@@ -411,3 +411,12 @@ D_8010DE98_log_jam = D_8010DE90_log_jam + 0x8;
 D_8010DFE8_log_jam = D_8010DFD4_log_jam + 0x14;
 D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
 D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
+/* m2 ww: inner labels of Water Whirled's .data the asm functions still use */
+D_8010A1A4_water_whirled = D_8010A1A0_water_whirled + 0x4;
+D_8010A1A8_water_whirled = D_8010A1A0_water_whirled + 0x8;
+D_8010A1D4_water_whirled = D_8010A1D0_water_whirled + 0x4;
+D_8010A1D8_water_whirled = D_8010A1D0_water_whirled + 0x8;
+D_8010A208_water_whirled = D_8010A200_water_whirled + 0x8;
+D_8010A2B4_water_whirled = D_8010A2AC_water_whirled + 0x8;
+D_8010A450_water_whirled = D_8010A44C_water_whirled + 0x4;
+D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;

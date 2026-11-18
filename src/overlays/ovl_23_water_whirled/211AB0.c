@@ -68,35 +68,16 @@ void func_801078D4_water_whirled(omObjData* obj);
 void func_8010860C_water_whirled(Vec* a, Vec* b, Vec* c, Vec* n);
 void func_80108DF8_water_whirled(omObjData* obj);
 
-extern f32 D_8010A190_water_whirled[4];
-extern f32 D_8010A250_water_whirled; /* wave 1 phase */
-extern f32 D_8010A254_water_whirled; /* wave 1 period */
-extern f32 D_8010A258_water_whirled; /* wave 1 wavelength */
-extern f32 D_8010A25C_water_whirled; /* wave 1 amplitude */
-extern f32 D_8010A260_water_whirled; /* wave 2 phase */
-extern f32 D_8010A264_water_whirled;
-extern f32 D_8010A268_water_whirled;
-extern f32 D_8010A26C_water_whirled;
-extern s32 D_8010A280_water_whirled; /* player the camera closes in on, -1 none */
-extern s32 D_8010A284_water_whirled; /* looping sound handle */
-extern s32 D_8010A288_water_whirled; /* its volume */
-extern Vec D_8010A2D4_water_whirled; /* light direction */
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 f32 fabsf(f32);
 f64 fabs(f64);
 void func_80105D64_water_whirled(void);
-extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
 extern u8 D_800D2008_main;
 extern u8 D_800D6A90_main;
 u16 func_800E6E9C_minigame(void);
 f32 func_800202A8_main(f32 angle);
-extern s32 D_8010A240_water_whirled[4]; /* laps per player */
-extern f32 D_8010A2E0_water_whirled[4]; /* value per place, best first */
-extern WwCtrl D_8010A2AC_water_whirled;
 void func_800E6F0C_minigame(s8 arg0);
 extern s16 D_800EB934_minigame;
-extern s32 D_8010A270_water_whirled[4]; /* per player state; 5: reached the goal */
-extern s32 D_8010A28C_water_whirled[4]; /* sound handles, -1 none */
 void func_80106308_water_whirled(omObjData* obj);
 void func_80106680_water_whirled(void);
 void func_8010616C_water_whirled(omObjData* obj);
@@ -116,21 +97,11 @@ void func_800E134C_minigame(omObjData* obj, f32 arg1);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 u8 rand8(void);
 void func_80107F08_water_whirled(omObjData* obj);
-extern Vec D_8010A160_water_whirled[4]; /* start positions */
-extern s8 D_8010A2F0_water_whirled[4]; /* player on each start position, -1 free */
-extern s16 D_8010A2F4_water_whirled; /* shared models, -1 until loaded */
-extern s16 D_8010A2F6_water_whirled;
-extern s16 D_8010A2F8_water_whirled;
 void func_8001C258_main(s16, s32, s32);
-extern s32 D_8010A2FC_water_whirled[4]; /* last splash slot per player */
 extern Vec D_8010A560_water_whirled[4][6]; /* splash positions */
 extern f32 D_8010A680_water_whirled[4][6]; /* splash speeds */
 extern Vec D_8010A6E0_water_whirled[4][6]; /* splash directions (x, z) */
 extern f32 D_8010A800_water_whirled[4][6]; /* splash scales */
-extern Vec D_8010A1A0_water_whirled[4]; /* last move per player */
-extern s16 D_8010A30C_water_whirled[4][20]; /* history for the running mean func_80107D18 */
-extern s32 D_8010A3AC_water_whirled[4]; /* next slot of D_8010A880 */
-extern s32 D_8010A3BC_water_whirled[4]; /* next slot of D_8010A30C */
 extern Vec D_8010A880_water_whirled[4][20]; /* history for the running mean func_80107DD4 */
 void func_800E17D4_minigame(omObjData* obj, f32 x, f32 y, f32 z);
 void func_800E2308_minigame(s16* x, s16* y);
@@ -145,14 +116,9 @@ f32 func_80108B98_water_whirled(omObjData* obj, f32 x, f32 y, f32 z);
 void func_801096BC_water_whirled(omObjData* obj);
 void func_801098AC_water_whirled(omObjData* obj);
 void func_80109E2C_water_whirled(omObjData* obj);
-extern Vec D_8010A200_water_whirled[4]; /* push direction per player */
-extern f32 D_8010A230_water_whirled[4]; /* push strength per player */
-extern f32 D_8010A3CC_water_whirled[4]; /* throttle per player, 0.05..1 */
-extern s32 D_8010A3DC_water_whirled[4]; /* frame counter per player */
 extern s32 D_8010AC40_water_whirled; /* the pad's buttons, taken from the game this frame */
 extern s32 D_8010AC44_water_whirled; /* the pad's stick x, taken likewise */
 void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
-extern s32 D_8010A29C_water_whirled[4]; /* rumble cooldown per player */
 typedef struct Vec4f {
     /* 0x0 */ f32 x;
     /* 0x4 */ f32 y;
@@ -170,20 +136,71 @@ extern s32 D_8010AC48_water_whirled[4]; /* per player sprite group (number) */
 extern s32 D_8010AC58_water_whirled[4]; /* per player sprites */
 extern s32 D_8010AC68_water_whirled[4];
 extern s32 D_8010AC78_water_whirled[4];
-extern s32 D_8010A3EC_water_whirled[4]; /* blink timer per player */
 f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
 s32 func_8010960C_water_whirled(omObjData* obj);
-extern f32 D_8010A3FC_water_whirled[4]; /* CPU: random offset across the straights */
-extern f32 D_8010A40C_water_whirled[4]; /* CPU: random offset of the turn radius */
-extern f32 D_8010A41C_water_whirled[4]; /* CPU: offset scale per difficulty */
 extern Vec2f D_8010A860_water_whirled; /* CPU: target point (x, z) */
-extern s32 D_8010A42C_water_whirled[4]; /* quarter of the course last frame */
-extern s32 D_8010A43C_water_whirled[4]; /* side of that quarter's line last frame */
-extern Vec D_8010A44C_water_whirled[4][3]; /* three points of the line plane per quarter */
 void func_80109340_water_whirled(s16 player, u16 n);
 void func_80109458_water_whirled(s16 player);
 void func_8010956C_water_whirled(s16 player);
 // LOCAL END
+
+Vec D_8010A160_water_whirled[4] = { /* start positions */
+    { -300.0f, 0.0f, 325.0f },
+    { -250.0f, 0.0f, 575.0f },
+    { -200.0f, 0.0f, 825.0f },
+    { -150.0f, 0.0f, 1075.0f },
+};
+f32 D_8010A190_water_whirled[4] = { 40.0f, 40.0f, 40.0f, 40.0f }; /* top speed per player, by place (D_8010A2E0) */
+Vec D_8010A1A0_water_whirled[4] = { 0 }; /* last move per player */
+Vec D_8010A1D0_water_whirled[4] = { 0 }; /* rider positions before the move */
+Vec D_8010A200_water_whirled[4] = { 0 }; /* push direction per player */
+f32 D_8010A230_water_whirled[4] = { 0 }; /* push strength per player */
+s32 D_8010A240_water_whirled[4] = { -1, -1, -1, -1 }; /* course quarters passed per player */
+f32 D_8010A250_water_whirled = 0.0f; /* wave 1 phase */
+f32 D_8010A254_water_whirled = 0.15f; /* wave 1 period */
+f32 D_8010A258_water_whirled = 30.0f; /* wave 1 wavelength */
+f32 D_8010A25C_water_whirled = 80.0f; /* wave 1 amplitude */
+f32 D_8010A260_water_whirled = 0.0f; /* wave 2 phase */
+f32 D_8010A264_water_whirled = 0.13f;
+f32 D_8010A268_water_whirled = 40.0f;
+f32 D_8010A26C_water_whirled = 40.0f;
+s32 D_8010A270_water_whirled[4] = { 0 }; /* laps per player; 5: finished */
+s32 D_8010A280_water_whirled = -1; /* the winner, -1 none */
+s32 D_8010A284_water_whirled = 0; /* final lap sound handle */
+s32 D_8010A288_water_whirled = 0; /* its volume */
+s32 D_8010A28C_water_whirled[4] = { -1, -1, -1, -1 }; /* engine sound handles, -1 none */
+s32 D_8010A29C_water_whirled[4] = { 0 }; /* rumble cooldown per player */
+WwCtrl D_8010A2AC_water_whirled = {
+    0, 0, 1, 1, 0, 0x84, 0, 0,
+    { 0.0f, 0.0f, 0.0f, 0.0f },
+    { 0, 0, 0, 0 },
+    0x78, 0xFFFF, 0x1518, 0x4B, 0x87, 0,
+    { 101.0f, -51.0f, 38.0f }, /* light direction */
+};
+f32 D_8010A2E0_water_whirled[4] = { 45.0f, 42.5f, 41.0f, 40.0f }; /* top speed per place, first to last */
+s8 D_8010A2F0_water_whirled[4] = { -1, -1, -1, -1 }; /* player on each start position, -1 free */
+s16 D_8010A2F4_water_whirled = -1; /* shared splash models, -1 until loaded */
+s16 D_8010A2F6_water_whirled = -1;
+s16 D_8010A2F8_water_whirled = -1;
+s32 D_8010A2FC_water_whirled[4] = { 0 }; /* last splash slot per player */
+s16 D_8010A30C_water_whirled[4][20] = { 0 }; /* history for the running mean func_80107D18 */
+s32 D_8010A3AC_water_whirled[4] = { 0 }; /* next slot of D_8010A880 */
+s32 D_8010A3BC_water_whirled[4] = { 0 }; /* next slot of D_8010A30C */
+f32 D_8010A3CC_water_whirled[4] = { 0.1f, 0.1f, 0.1f, 0.1f }; /* throttle per player, 0.05..1 */
+s32 D_8010A3DC_water_whirled[4] = { 0 }; /* frame counter per player */
+s32 D_8010A3EC_water_whirled[4] = { 0 }; /* blink timer per player */
+f32 D_8010A3FC_water_whirled[4] = { 0 }; /* CPU: random offset across the straights */
+f32 D_8010A40C_water_whirled[4] = { 0 }; /* CPU: random offset of the turn radius */
+f32 D_8010A41C_water_whirled[4] = { 2.5f, 0.9f, 0.5f, 0.2f }; /* CPU: offset scale per difficulty */
+s32 D_8010A42C_water_whirled[4] = { 0 }; /* course quarter last frame */
+s32 D_8010A43C_water_whirled[4] = { 0 }; /* side of that quarter's line last frame */
+Vec D_8010A44C_water_whirled[4][3] = { /* three points of the line plane per quarter */
+    { { 0.0f, 100.0f, 0.0f }, { 0.0f, 100.0f, 800.0f }, { 0.0f, -500.0f, 800.0f } },
+    { { 1000.0f, 100.0f, 0.0f }, { 1800.0f, 100.0f, 0.0f }, { 1800.0f, -500.0f, 0.0f } },
+    { { 0.0f, 100.0f, 0.0f }, { 0.0f, 100.0f, -800.0f }, { 0.0f, -500.0f, -800.0f } },
+    { { -1000.0f, 100.0f, 0.0f }, { -1800.0f, 100.0f, 0.0f }, { -1800.0f, -500.0f, 0.0f } },
+};
+s32 D_8010A4DC_water_whirled = 0; /* end padding */
 
 void func_801059A0_water_whirled(void) {
     u8 cam;
@@ -224,7 +241,7 @@ void func_801059A0_water_whirled(void) {
     func_800EA0FC_minigame(1, 0.0f, D_8010A190_water_whirled[1]);
     func_800EA0FC_minigame(2, 0.0f, D_8010A190_water_whirled[2]);
     func_800EA0FC_minigame(3, 0.0f, D_8010A190_water_whirled[3]);
-    HmfLightDirSet(1, D_8010A2D4_water_whirled.x, D_8010A2D4_water_whirled.y, D_8010A2D4_water_whirled.z);
+    HmfLightDirSet(1, D_8010A2AC_water_whirled.unk28.x, D_8010A2AC_water_whirled.unk28.y, D_8010A2AC_water_whirled.unk28.z);
 }
 
 /* Camera: place it from CRot/CZoom around Center. */
@@ -393,15 +410,15 @@ void func_80106680_water_whirled(void) {
         }
     } else {
     swing:
-        D_8010A2D4_water_whirled.x -= 8.0f;
-        D_8010A2D4_water_whirled.z += 3.0f;
-        if (D_8010A2D4_water_whirled.x < -85.0f) {
-            D_8010A2D4_water_whirled.x = -85.0f;
+        D_8010A2AC_water_whirled.unk28.x -= 8.0f;
+        D_8010A2AC_water_whirled.unk28.z += 3.0f;
+        if (D_8010A2AC_water_whirled.unk28.x < -85.0f) {
+            D_8010A2AC_water_whirled.unk28.x = -85.0f;
         }
-        if (D_8010A2D4_water_whirled.z > 64.0f) {
-            D_8010A2D4_water_whirled.z = 64.0f;
+        if (D_8010A2AC_water_whirled.unk28.z > 64.0f) {
+            D_8010A2AC_water_whirled.unk28.z = 64.0f;
         }
-        HmfLightDirSet(1, D_8010A2D4_water_whirled.x, D_8010A2D4_water_whirled.y, D_8010A2D4_water_whirled.z);
+        HmfLightDirSet(1, D_8010A2AC_water_whirled.unk28.x, D_8010A2AC_water_whirled.unk28.y, D_8010A2AC_water_whirled.unk28.z);
         CRot.x *= 0.995f;
         CRot.y -= 2.0f;
         CZoom *= 1.025f;
