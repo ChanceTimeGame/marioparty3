@@ -21,7 +21,9 @@ typedef struct LoPlayer {
     /* 0x00 */ f32 x;
     /* 0x04 */ f32 y;
     /* 0x08 */ f32 z;
-    /* 0x0C */ u8 unk0C[0x2C];
+    /* 0x0C */ u8 unk0C[0x19];
+    /* 0x25 */ u8 key; /* key carried, index + 1; 0 none */
+    /* 0x26 */ u8 unk26[0x12];
 } LoPlayer; /* size 0x38 */
 
 s32 func_8000B638_main(void);
@@ -72,10 +74,10 @@ typedef struct LoKey {
     /* 0x00 */ u8 unk00;
     /* 0x01 */ u8 unk01;
     /* 0x02 */ u8 kind; /* D_8010A678 % 3: model 7 + kind */
-    /* 0x03 */ char unk03[1];
-    /* 0x04 */ f32 unk04;
-    /* 0x08 */ char unk08[0xC];
-    /* 0x14 */ s32 unk14;
+    /* 0x03 */ u8 unk03; /* state 2 countdown */
+    /* 0x04 */ f32 unk04; /* radius */
+    /* 0x08 */ Vec vel;
+    /* 0x14 */ omObjData* holder; /* the player carrying it */
 } LoKey; // Size 0x18
 
 s16 func_8000B0D4_main(s32, s32);
@@ -94,6 +96,8 @@ void func_80109110_locked_out(void);
 s32 func_80109D70_locked_out(void);
 void func_80109264_locked_out(omObjData* obj);
 void func_80109444_locked_out(omObjData* obj);
+void func_80109858_locked_out(omObjData* obj, u8 isPlayer, u8 drop);
+void func_8001EF6C_main(s16, s16, char*);
 void func_80109E88_locked_out(s16 mdl, char* part, s16 frame, Vec* out);
 void func_80016B00_main(s16 model, s16 frame, char* name, Matrix4f* mtx);
 void func_80088800_main(Matrix4f mf, f32 x, f32 y, f32 z); /* guTranslateF */
@@ -455,7 +459,7 @@ void func_80109264_locked_out(omObjData* obj) {
     key->unk00 = 0;
     key->kind = D_8010A678_locked_out % 3;
     key->unk04 = 20.0f;
-    key->unk14 = 0;
+    key->holder = NULL;
     key->unk01 = 0;
     obj->model[0] = func_8000B108_main((key->kind + 7) | 0x3B0000, 0x2D9);
     obj->model[1] = func_8000B0D4_main(9, 0x2D9);
@@ -468,9 +472,162 @@ void func_80109264_locked_out(omObjData* obj) {
     D_8010A678_locked_out++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109444_locked_out);
+/* A key's per-frame function: state, bounce, the door hinges' push-out, the room bounds. */
+void func_80109444_locked_out(omObjData* obj) {
+    Vec hinge;
+    LoKey* key;
+    f32 a;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109858_locked_out);
+    key = obj->data;
+    func_8001C258_main(obj->model[1], 4, 0);
+    switch (key->unk00) {
+        case 0:
+            key->unk01 = 1;
+            break;
+        case 2:
+            key->unk01 = 0;
+            key->unk03--;
+            if (key->unk03 == 0) {
+                key->unk00 = 3;
+            }
+            /* fallthrough */
+        case 3:
+            key->unk01 = 1;
+            key->vel.y += -2.0f;
+            obj->trans.x += key->vel.x;
+            obj->trans.y += key->vel.y;
+            obj->trans.z += key->vel.z;
+            if (obj->trans.y < 50.0) {
+                key->unk00 = 0;
+                obj->trans.y = 50.0f;
+                key->vel.y = 6.0f;
+            }
+            break;
+        case 1:
+        case 4:
+            func_8001C258_main(obj->model[1], 4, 4);
+            key->unk01 = 0;
+            break;
+    }
+    hinge.x = -610.5f;
+    hinge.y = 0.0f;
+    hinge.z = -607.0f;
+    if (func_80109E34_locked_out(&hinge, &obj->trans) <= key->unk04 + 90.0) {
+        a = func_80109DBC_locked_out(hinge.x - obj->trans.x, hinge.z - obj->trans.z);
+        obj->trans.x = hinge.x - (key->unk04 + 90.0) * sindf(a);
+        obj->trans.z = hinge.z - (key->unk04 + 90.0) * cosdf(a);
+    }
+    hinge.x = 610.5f;
+    hinge.y = 0.0f;
+    hinge.z = -607.0f;
+    /* retail tests +80 but pushes out to +90 */
+    if (func_80109E34_locked_out(&hinge, &obj->trans) <= key->unk04 + 80.0) {
+        a = func_80109DBC_locked_out(hinge.x - obj->trans.x, hinge.z - obj->trans.z);
+        obj->trans.x = hinge.x - (key->unk04 + 90.0) * sindf(a);
+        obj->trans.z = hinge.z - (key->unk04 + 90.0) * cosdf(a);
+    }
+    if (obj->trans.x < -600.0) {
+        obj->trans.x = -600.0f;
+    }
+    if (obj->trans.x > 600.0) {
+        obj->trans.x = 600.0f;
+    }
+    if (obj->trans.z < -575.0) {
+        obj->trans.z = -575.0f;
+    }
+    if (obj->trans.z > 575.0) {
+        obj->trans.z = 575.0f;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.0f, obj->trans.z);
+    func_80109858_locked_out(obj, 0, 0);
+    func_80106FBC_locked_out(obj);
+}
+
+/* Keys against an object: a player (isPlayer) drops its key when drop is set and grabs one it faces;
+ * a key (isPlayer 0) pushes the other keys out of its radius. */
+void func_80109858_locked_out(omObjData* obj, u8 isPlayer, u8 drop) {
+    Vec hook;
+    MgWork* work;
+    LoPlayer* lp;
+    omObjData* ko;
+    LoKey* key;
+    LoKey* self;
+    f32 radius;
+    f32 dist;
+    f32 a;
+    f32 d;
+    s32 i;
+    s16 mdl;
+
+    self = NULL;
+    if (D_8010A678_locked_out == 0) {
+        return;
+    }
+    if (isPlayer) {
+        func_801090FC_locked_out(obj, &work, &lp);
+        radius = work->unk48;
+    } else {
+        self = obj->data;
+        radius = self->unk04;
+        drop = 0;
+    }
+    if (drop && lp->key != 0) {
+        ko = D_8010A610_locked_out[lp->key - 1];
+        key = ko->data;
+        func_8001C258_main(ko->model[0], 0x4000, 0);
+        key->vel.x = sindf(work->unk3C) * 4.0;
+        key->vel.y = 15.0f;
+        key->vel.z = cosdf(work->unk3C) * 4.0;
+        mdl = obj->model[0];
+        func_80109E88_locked_out(mdl, "item_hook", HmfModelData[mdl].unk40, &hook);
+        ko->trans.x = key->vel.x * 20.0f + hook.x;
+        ko->trans.y = hook.y + 50.0;
+        ko->trans.z = key->vel.z * 20.0f + hook.z;
+        lp->key = 0;
+        if (key->unk00 != 4) {
+            key->unk00 = 2;
+        }
+        key->unk01 = 0;
+        key->unk03 = 5;
+        drop = 0;
+    }
+    for (i = 0; i < D_8010A676_locked_out; i++) {
+        ko = D_8010A610_locked_out[i];
+        key = ko->data;
+        if (key == self) {
+            continue;
+        }
+        dist = func_80109E34_locked_out(&obj->trans, &ko->trans);
+        if (!(dist < radius + key->unk04 + 24.0)) {
+            continue;
+        }
+        a = func_80109DBC_locked_out(ko->trans.x - obj->trans.x, ko->trans.z - obj->trans.z);
+        /* retail: always true */
+        if (dist < radius + key->unk04 && ((key->unk00 != 1) | (key->unk00 != 4))) {
+            d = func_80109DBC_locked_out(obj->trans.x - ko->trans.x, obj->trans.z - ko->trans.z);
+            ko->trans.x = obj->trans.x - (radius + key->unk04) * sindf(d);
+            ko->trans.z = obj->trans.z - (radius + key->unk04) * cosdf(d);
+        }
+        if (drop && lp->key == 0 && key->unk01 != 0) {
+            a = a - work->unk3C;
+            while (a < -180.0) {
+                a += 360.0;
+            }
+            while (a > 180.0) {
+                a -= 360.0;
+            }
+            if (fabs(a) < 45.0) {
+                func_8001EF6C_main(ko->model[0], obj->model[0], "item_hook");
+                func_8001C258_main(ko->model[0], 0x4000, 0x4000);
+                func_8004AC5C_main(0x3D6, work->unk59);
+                lp->key = i + 1;
+                key->unk00 = 1;
+                key->unk01 = 0;
+                key->holder = obj;
+            }
+        }
+    }
+}
 
 void func_80109CDC_locked_out(void) {
     omObjData* o;
