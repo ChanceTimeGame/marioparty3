@@ -38,10 +38,13 @@ typedef struct FbPlayer {
     /* 0x34 */ f32 unk34; /* fall velocity x */
     /* 0x38 */ f32 unk38; /* fall velocity y */
     /* 0x3C */ f32 unk3C; /* fall velocity z */
-    /* 0x40 */ char unk40[8];
+    /* 0x40 */ f32 unk40; /* float angle */
+    /* 0x44 */ char unk44[4];
     /* 0x48 */ u16 unk48; /* footstep sound timer */
     /* 0x4A */ u16 unk4A; /* slide sound timer */
-    /* 0x4C */ char unk4C[0xA];
+    /* 0x4C */ char unk4C[4];
+    /* 0x50 */ f32 unk50; /* splash scale */
+    /* 0x54 */ u16 unk54; /* splash timer */
     /* 0x56 */ s16 unk56;
     /* 0x58 */ u16 unk58;
     /* 0x5A */ char unk5A[2];
@@ -161,7 +164,13 @@ void func_80106470_fridged_bridges(omObjData *obj);
 void func_8010648C_fridged_bridges(omObjData *obj, s16 player);
 void func_801068F4_fridged_bridges(omObjData *obj);
 void func_80107164_fridged_bridges(omObjData *obj);
+void func_8010733C_fridged_bridges(omObjData *obj);
+void func_80107510_fridged_bridges(omObjData *obj);
 void func_80107870_fridged_bridges(void);
+void func_80109F84_fridged_bridges(omObjData *obj);
+void func_8010A1A4_fridged_bridges(omObjData *obj);
+void func_8010B8CC_fridged_bridges(omObjData *obj);
+void func_8010BFD0_fridged_bridges(s32 type, u16 player, f32 x, f32 y, f32 z);
 void func_801079CC_fridged_bridges(omObjData *obj, s8 *stickX, s8 *stickY);
 s16 func_80108050_fridged_bridges(omObjData *obj);
 void func_801082D0_fridged_bridges(omObjData *obj);
@@ -610,11 +619,83 @@ void func_801068F4_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80107164_fridged_bridges);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010733C_fridged_bridges);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80107510_fridged_bridges);
+void func_80107164_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    f32 scale;
+
+    obj->trans.x += work->unk08;
+    obj->trans.y += work->unk38;
+    obj->trans.z += work->unk0C;
+    func_8010B7CC_fridged_bridges(obj);
+    func_80109F84_fridged_bridges(obj);
+    work->unk08 *= 0.91f;
+    work->unk0C *= 0.91f;
+    work->unk38 *= 1.3f;
+    if (obj->trans.y <= -150.0f) {
+        obj->trans.y = -150.0f;
+        omVibrate(work->unk02, 2, 2, 0x14);
+        func_8004ACE0_main(0x70, work->unk02);
+        func_8010BFD0_fridged_bridges(0, work->unk02, obj->trans.x, -150.0f, obj->trans.z);
+        func_8001C258_main(obj->model[1], 4, 4);
+        work->unk54 = 0x1D;
+        work->unk50 = 0.1f;
+        work->unk00 = 3;
+        Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelScaleSet(obj->model[3], work->unk50, work->unk50, work->unk50);
+        func_8004AC98_main(0x42F, work->unk02);
+        obj->func = func_8010733C_fridged_bridges;
+        work->unk56 = 0;
+        work->unk58 = 0;
+        if (D_8010DA68_fridged_bridges == 0) {
+            func_8010A1A4_fridged_bridges(obj);
+            func_8010B8CC_fridged_bridges(obj);
+        }
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, -100.0f, obj->trans.z);
+}
+
+void func_8010733C_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    f32 scale;
+
+    if (--work->unk54 != 0) {
+        if (work->unk54 & 1) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[3], 4, 4);
+            if (work->unk28 == 1) {
+                func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 0);
+            }
+        } else {
+            func_8001C258_main(obj->model[3], 4, 0);
+            func_8001C258_main(obj->model[0], 4, 4);
+            if (work->unk28 == 1) {
+                func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 4);
+            }
+        }
+        scale = work->unk50 += 0.03f;
+        Hu3DModelScaleSet(obj->model[3], scale, scale, scale);
+        return;
+    }
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 4);
+    func_8001C258_main(obj->model[3], 4, 0);
+    work->unk40 = 0.0f;
+    Hu3DModelScaleSet(obj->model[3], 1.0f, 1.0f, 1.0f);
+    obj->func = func_80107510_fridged_bridges;
+}
+
+void func_80107510_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+
+    obj->trans.y += sindf(work->unk40);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+    work->unk40 += 5.0f;
+    if (work->unk40 >= 360.0f) {
+        work->unk40 -= 360.0f;
+    }
+}
 
 void func_801075A4_fridged_bridges(void) {
 }
