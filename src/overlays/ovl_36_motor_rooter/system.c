@@ -52,18 +52,6 @@ typedef struct {
     /* 0x06 */ s8 order[FUNC_PRIO_MAX];
 } FuncGroup; // Size 0x10
 
-#define SPRITE_STATE_NOTSET 0
-#define SPRITE_STATE_INVISIBLE 1
-#define SPRITE_STATE_VISIBLE 2
-
-typedef struct {
-    /* 0x00 */ s8 state;
-    /* 0x01 */ u8 groupId;
-    /* 0x02 */ u8 unk02;
-    /* 0x04 */ u16 unk04;
-    /* 0x06 */ s16 unk06;
-} SpriteData; // Size 8
-
 #define ANIMMDL_ATTR_DISPON 1
 
 #define ANIMMDL_STATE_INVISIBLE -1
@@ -84,7 +72,6 @@ void m254_InitFuncGroup(FuncGroup *group, s16 maxFuncs);
 void m254_SortFuncGroup(FuncGroup *group);
 s16 func_80110A00_motor_rooter(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 
-extern SpriteData *m254_sprites;
 extern AnimModelData *m254_animModels;
 extern FuncGroup *m254_funcGroups;
 

@@ -36,7 +36,7 @@ typedef struct {
     /* 0x2E */ s16 unk2E[3];
     /* 0x34 */ char unk34[0x12];
     /* 0x46 */ s16 unk46[3];
-    /* 0x4C */ char unk4C[0x3C];
+    /* 0x4C */ s16 unk4C[30];
     /* 0x88 */ s16 unk88;
     /* 0x8A */ s16 unk8A;
     /* 0x8C */ omObjData *unk8C;
@@ -47,7 +47,9 @@ typedef struct {
 
 typedef struct {
     /* 0x000 */ PlayerView *views;
-    /* 0x004 */ char unk04[0x1A0];
+    /* 0x004 */ char unk04[4];
+    /* 0x008 */ f32 unk08;
+    /* 0x00C */ char unk0C[0x198];
     /* 0x1A4 */ s8 unk1A4[0x30]; // mtx?
 } MinigameData;                  // Size 0x1D4
 
@@ -63,11 +65,14 @@ typedef struct {
     /* 0x16 */ s16 unk16;
     /* 0x18 */ char unk18[4];
     /* 0x1C */ s16 unk1C;
-    /* 0x1E */ char unk1E[0x14];
+    /* 0x1E */ s16 unk1E[5];
+    /* 0x28 */ s16 unk28[5];
     /* 0x32 */ s8 unk32;
     /* 0x33 */ char unk33;
     /* 0x34 */ s16 unk34;
-    /* 0x36 */ char unk36[0x56];
+    /* 0x36 */ char unk36[0x14];
+    /* 0x4A */ s16 unk4A;
+    /* 0x4C */ char unk4C[0x40];
 } D_801137C8_motor_rooter_Struct; // Size 0x8C
 
 void m254_InitEnvironment(void);
@@ -478,9 +483,90 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106BAC_
 #endif
 /* </func_80106BAC_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801070CC_motor_rooter);
+/* <func_801070CC_motor_rooter> */
+void func_801070CC_motor_rooter(omObjData *object) {
+    m254_UpdateFuncGroup(object->work[0] + 4);
+    func_800E4E30_minigame(object);
+    if (object->rot.x >= 360.0f) {
+        object->rot.x -= 360.0f;
+    }
+    if (object->rot.x < 0.0f) {
+        object->rot.x += 360.0f;
+    }
+    if (object->rot.y >= 360.0f) {
+        object->rot.y -= 360.0f;
+    }
+    if (object->rot.y < 0.0f) {
+        object->rot.y += 360.0f;
+    }
+    if (object->rot.z >= 360.0f) {
+        object->rot.z -= 360.0f;
+    }
+    if (object->rot.z < 0.0f) {
+        object->rot.z += 360.0f;
+    }
+}
+/* </func_801070CC_motor_rooter> */
 
+/* <func_80107210_motor_rooter> */
+#ifdef NON_MATCHING
+typedef struct {
+    s32 f[8];
+} MrFileTbl8;
+extern MrFileTbl8 D_80113634_motor_rooter;
+void func_801076AC_motor_rooter(omObjData *object);
+
+void func_80107210_motor_rooter(omObjData *object) {
+    MrFileTbl8 files = D_80113634_motor_rooter;
+    f32 y;
+    s16 sprId;
+    s16 x;
+    s16 i;
+
+    object->work[0] = m254_minigame->unk1A4[2];
+    object->work[1] = m254_playerId[object->work[0]];
+    m254_SetSpriteDispOn(m254_SetSprite(0xFFFF, 0x57, 7, 0, 0), 160, 120);
+    for (i = 0; i < 5; i++) {
+        sprId = m254_SetSprite(0xFFFF, 0x21, 0x18, 0, 0);
+        if (object->work[0] == 0) {
+            x = i * 10 + 35;
+        } else {
+            x = 285 - i * 10;
+        }
+        m254_SetSpriteDispOn(sprId, x, 25);
+    }
+    for (i = 0; i < 5; i++) {
+        sprId = m254_SetSprite(0xFFF, 0x21, 0x19, 0, 0x1000);
+        D_801137C8_motor_rooter[object->work[0]].unk1E[i] = sprId;
+        if (object->work[0] == 0) {
+            x = i * 10 + 35;
+        } else {
+            x = 285 - (4 - i) * 10;
+        }
+        m254_SetSpriteDispOn(sprId, x, 25);
+        if (i == 0) {
+            m254_sprites[sprId].unk06 = 0xFF;
+        } else {
+            m254_sprites[sprId].unk06 = 0;
+        }
+        func_80055458_main(m254_sprites[sprId].groupId, 0, (u8)m254_sprites[sprId].unk06);
+        D_801137C8_motor_rooter[object->work[0]].unk28[i] = 0;
+    }
+    sprId = m254_SetSprite(0xFFF, 0x21, files.f[GwPlayer[m254_playerId[object->work[0]]].chr], 0, 0);
+    D_801137C8_motor_rooter[object->work[0]].unk4A = sprId;
+    m254_SetSpriteDispOn(sprId, (s16)(object->work[0] * 16 + 152), 220);
+    for (i = 0; i < D_801137D2_motor_rooter; i++) {
+        y = 220 - (s16)(D_801137C0_motor_rooter[m254_minigame->views[object->work[0]].unk4C[i] * 9 + 8] /
+                         m254_minigame->unk08 * 180.0f);
+        m254_SetSpriteDispOn(m254_SetSprite(0xEFFF, 0x57, 0x11, 0, 0), (s16)(object->work[0] * 16 + 152), (s16)y);
+    }
+    m254_minigame->unk1A4[2]++;
+    object->func = func_801076AC_motor_rooter;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80107210_motor_rooter);
+#endif
+/* </func_80107210_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801076AC_motor_rooter);
 

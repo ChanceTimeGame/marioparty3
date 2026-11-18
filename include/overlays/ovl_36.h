@@ -25,6 +25,20 @@ typedef struct func_context {
     /* 0x40 */ void (*func)(struct func_context*);
 } FuncContext; // Size 0x44
 
+#define SPRITE_STATE_NOTSET 0
+#define SPRITE_STATE_INVISIBLE 1
+#define SPRITE_STATE_VISIBLE 2
+
+typedef struct {
+    /* 0x00 */ s8 state;
+    /* 0x01 */ u8 groupId;
+    /* 0x02 */ u8 unk02;
+    /* 0x04 */ u16 unk04;
+    /* 0x06 */ s16 unk06;
+} SpriteData; // Size 8
+
+extern SpriteData *m254_sprites;
+
 void m254_CreateSystem(void);
 
 FuncContext* m254_SetFunc(s8 groupId, s8 prio, s16 param, void* data, void (*func)(FuncContext*), s8 tag, s8 execFunc);
