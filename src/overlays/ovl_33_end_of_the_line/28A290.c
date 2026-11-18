@@ -174,6 +174,7 @@ extern s16 D_8010C610_end_of_the_line[2][4];
 extern u16 D_8010C650_end_of_the_line;
 extern s32 D_8010C658_end_of_the_line[3];
 extern u16 D_8010C664_end_of_the_line[2];
+extern f32 D_8010C668_end_of_the_line;
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
@@ -1768,7 +1769,76 @@ void func_8010B588_end_of_the_line(omObjData *obj) {
 
 
 
+#ifdef NON_MATCHING
+/* Register allocation: p/hud/pw2/scissor land in s2/s1/s3/s0 instead of s3/s2/s0/s1, and the camera byte is masked at its first use instead of once. */
+void func_8010B640_end_of_the_line(omObjData *obj) {
+    s32 p;
+    EotlHud *hud;
+    EotlPlayer *pw2;
+    s16 *vp;
+    s16 *scis;
+    s16 w;
+    s32 c;
+
+    p = ((EotlPlayer *)((omObjData *)obj->work[0])->data)->unk00;
+    hud = D_8010C738_end_of_the_line->data;
+    pw2 = D_8010C73C_end_of_the_line[p ^ 1]->data;
+    if (obj->work[2] == 0) {
+        D_8010C766_end_of_the_line = 1;
+        vp = D_8010C610_end_of_the_line[p];
+        scis = D_8010C600_end_of_the_line[p];
+        if (p == 0) {
+            D_8010C5CC_end_of_the_line += 4.0f;
+            if (D_8010C5CC_end_of_the_line >= 320.0f) {
+                D_8010C5CC_end_of_the_line = 320.0f;
+                obj->work[2] = 1;
+            }
+            func_8000BBD4_main(hud->unk0C[p], D_8010C5CC_end_of_the_line - 160.0f, 120);
+            func_8000BBD4_main(hud->unk0C[1], D_8010C5CC_end_of_the_line + 160.0f, 120);
+            func_8000BBD4_main(hud->unk14, D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk08[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk04[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk00[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            scis[2] += 4.0f;
+            c = p & 0xFF;
+            ScissorSet(c, scis[0], scis[1], scis[2], scis[3]);
+            ScissorSet(1, scis[2] + 1, D_8010C600_end_of_the_line[1][1], D_8010C600_end_of_the_line[1][2],
+                       D_8010C600_end_of_the_line[1][3]);
+            w = vp[2] + (D_8010C5CC_end_of_the_line - 160.0f) * 320.0f / 159.0f;
+        } else {
+            D_8010C5CC_end_of_the_line -= 4.0f;
+            if (D_8010C5CC_end_of_the_line <= 0.0f) {
+                D_8010C5CC_end_of_the_line = 0.0f;
+                obj->work[2] = 1;
+            }
+            func_8000BBD4_main(hud->unk0C[p], D_8010C5CC_end_of_the_line + 160.0f, 120);
+            func_8000BBD4_main(hud->unk0C[0], D_8010C5CC_end_of_the_line - 160.0f, 120);
+            func_8000BBD4_main(hud->unk14, D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk08[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk04[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            func_8000BBD4_main(hud->unk00[pw2->unk00], D_8010C5D0_end_of_the_line[pw2->unk00] + D_8010C5CC_end_of_the_line, 120);
+            scis[0] -= 4.0f;
+            c = p & 0xFF;
+            ScissorSet(c, scis[0], scis[1], scis[2], scis[3]);
+            ScissorSet(0, D_8010C600_end_of_the_line[0][0], D_8010C600_end_of_the_line[0][1],
+                       D_8010C600_end_of_the_line[1][0] - 1, D_8010C600_end_of_the_line[0][3]);
+            w = vp[2] - (160.0f - D_8010C5CC_end_of_the_line) * 320.0f / 159.0f;
+        }
+        ViewportSet(c, vp[0], vp[1], 511.0f, w, vp[3], 511.0f);
+    }
+    D_8010C668_end_of_the_line = 1.0f;
+    D_8010C7A0_end_of_the_line[p].x = 400.0f;
+    D_8010C7A0_end_of_the_line[p].y = 400.0f;
+    D_8010C7A0_end_of_the_line[p].z = 0.0f;
+    D_8010C788_end_of_the_line[p].x = 1660.0f;
+    D_8010C788_end_of_the_line[p].y = 1030.0f;
+    D_8010C788_end_of_the_line[p].z = 810.0f;
+    func_8000BE5C_main(hud->unk0C[p], 1.0f, 1.0f);
+    Hu3DCamSetPerspective(p, 33.0f, 80.0f, 20000.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B640_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010BE24_end_of_the_line);
 
