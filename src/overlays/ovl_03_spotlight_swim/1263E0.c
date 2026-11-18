@@ -2076,7 +2076,10 @@ void func_8010BA30_spotlight_swim(void) {
 }
 
 extern s32 D_8010D2F0_spotlight_swim;
-extern void *D_8010D2F8_spotlight_swim[3];
+extern u32 *D_8010D2F8_spotlight_swim[3];
+extern s32 D_8010D448_spotlight_swim;
+extern u32 D_8010D47C_spotlight_swim;
+extern u8 D_8010CDC8_spotlight_swim[32][32];
 
 #ifdef NON_MATCHING
 /* regalloc/constant hoisting: retail keeps the constant 4 in t1 (y + 4 as addu) and builds 0x27C004 as
@@ -2116,13 +2119,65 @@ void func_8010BA6C_spotlight_swim(Gfx **dl) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BA6C_spotlight_swim);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BD10_spotlight_swim);
+/* Fills the top 86 rows of the current image with one colour. */
+void func_8010BD10_spotlight_swim(void) {
+    u32 *p = D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim];
+    u32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BD5C_spotlight_swim);
+    for (i = 0; i < 160 * 86; i++) {
+        *p++ = D_8010D47C_spotlight_swim | D_8010D448_spotlight_swim;
+    }
+}
+
+/* Fills the current image with one colour and fades its alpha by 8; returns 1 once it reaches 0. */
+s32 func_8010BD5C_spotlight_swim(void) {
+    u32 *p = D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim];
+    u32 i;
+    s32 ret;
+
+    for (i = 0; i < 160 * 120; i++) {
+        *p++ = D_8010D47C_spotlight_swim | D_8010D448_spotlight_swim;
+    }
+    if (D_8010D47C_spotlight_swim < 8) {
+        D_8010D47C_spotlight_swim = 0;
+        ret = 1;
+    } else {
+        D_8010D47C_spotlight_swim -= 8;
+        ret = 0;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BDE0_spotlight_swim);
 
+#ifdef NON_MATCHING
+/* regalloc only (masked 0): retail x0/y0/i in t3/t6/t5, mine t6/t7/t4. */
+/* Stamps the 32 x 32 spotlight mask (alpha = mask * 16, capped at D_8010D47C_spotlight_swim) into a
+ * 160-wide image, centred at half-resolution (x / 2, y / 2). */
+void func_8010BFD0_spotlight_swim(u32 *img, s32 x, s32 y) {
+    s32 x0 = x / 2;
+    s32 y0 = y / 2;
+    s32 i;
+    s32 j;
+    s32 row;
+    s32 col;
+    s32 off;
+    u32 a;
+
+    for (row = y0, i = 0; row < y0 + 32; row++, i++) {
+        off = row * 160;
+        for (col = x0, j = 0; col < x0 + 32; col++, j++) {
+            a = D_8010CDC8_spotlight_swim[i][j] * 16;
+            if (D_8010D47C_spotlight_swim < a) {
+                a = D_8010D47C_spotlight_swim;
+            }
+            *(img + col + off) = a + D_8010D448_spotlight_swim;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BFD0_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C094_spotlight_swim);
 
