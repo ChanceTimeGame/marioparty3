@@ -84,7 +84,15 @@ typedef struct EtNode {
     /* 0x0C */ char unk0C[0xC];
     /* 0x18 */ s16 unk18; /* cell x */
     /* 0x1A */ s16 unk1A; /* cell y */
-    /* 0x1C */ char unk1C[0x1C];
+    /* 0x1C */ u8 unk1C; /* player */
+    /* 0x1D */ char unk1D;
+    /* 0x1E */ s16 unk1E; /* puff model, -1 none */
+    /* 0x20 */ Vec unk20; /* puff position */
+    /* 0x2C */ s8 unk2C; /* puff frame */
+    /* 0x2D */ char unk2D[3];
+    /* 0x30 */ f32 unk30; /* puff scale */
+    /* 0x34 */ u8 unk34; /* puff model slot */
+    /* 0x35 */ char unk35[3];
 } EtNode; /* size 0x38 */
 
 // Heap-allocated (0x20 bytes) per-player work (D_8010C868[player]); unk0C is the head of a linked list
@@ -197,6 +205,8 @@ extern s8 D_8010C6D8_etch_n_catch;
 extern s16 D_8010C6A4_etch_n_catch[2][2]; /* score digit positions */
 extern Vec D_8010C6B0_etch_n_catch[3]; /* catcher/cage start positions (x negated for index 1) */
 extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
+extern u8 D_8010C6E8_etch_n_catch[4][3]; /* puff model slots in use */
+extern u8 D_8010C6F4_etch_n_catch[4]; /* puff spacing counters */
 // bss
 extern s16 D_8010C83C_etch_n_catch; /* first catcher's model (linked by the second) */
 extern s16 D_8010C83E_etch_n_catch; /* first catcher's shadow model */
@@ -812,7 +822,53 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010914
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_801097B4_etch_n_catch);
+/* A trail node's puff: takes one of the player's three puff models (every 9th node), then grows, rises and fades. */
+void func_801097B4_etch_n_catch(EtNode* node) {
+    if (node->unk2C == 0) {
+        if (D_8010C6F4_etch_n_catch[node->unk1C] == 0) {
+            if (D_8010C6E8_etch_n_catch[node->unk1C][0] == 0) {
+                node->unk1E = D_80111390_etch_n_catch[node->unk1C][0];
+                node->unk34 = 0;
+                D_8010C6E8_etch_n_catch[node->unk1C][0] = 1;
+            } else if (D_8010C6E8_etch_n_catch[node->unk1C][1] == 0) {
+                node->unk1E = D_80111390_etch_n_catch[node->unk1C][1];
+                node->unk34 = 1;
+                D_8010C6E8_etch_n_catch[node->unk1C][1] = 1;
+            } else if (D_8010C6E8_etch_n_catch[node->unk1C][2] == 0) {
+                node->unk1E = D_80111390_etch_n_catch[node->unk1C][2];
+                node->unk34 = 2;
+                D_8010C6E8_etch_n_catch[node->unk1C][2] = 1;
+            } else {
+                goto none;
+            }
+        } else {
+        none:
+            node->unk1E = -1;
+            node->unk34 = 0xFF;
+        }
+        D_8010C6F4_etch_n_catch[node->unk1C]++;
+        if (D_8010C6F4_etch_n_catch[node->unk1C] >= 9) {
+            D_8010C6F4_etch_n_catch[node->unk1C] = 0;
+        }
+    }
+    if (node->unk1E != -1) {
+        node->unk2C++;
+        node->unk30 += 0.05f;
+        if (node->unk30 > 1.5f) {
+            node->unk30 = 1.5f;
+        }
+        Hu3DModelScaleSet(node->unk1E, node->unk30, node->unk30, node->unk30);
+        Hu3DModelPosSet(node->unk1E, node->unk20.x, node->unk20.y, node->unk20.z);
+        node->unk20.y += 5.0f;
+        if (node->unk2C >= 15) {
+            func_8001C258_main(node->unk1E, 4, 4);
+            D_8010C6E8_etch_n_catch[node->unk1C][node->unk34] = 0;
+            return;
+        }
+        func_8001F9E4_main(node->unk1E, ~(node->unk2C * 16));
+        func_8001C258_main(node->unk1E, 4, 0);
+    }
+}
 
 /* A catcher object (two): its model, the five spark models of its catch burst and its pointer sprite. */
 void func_80109A54_etch_n_catch(omObjData* obj) {
