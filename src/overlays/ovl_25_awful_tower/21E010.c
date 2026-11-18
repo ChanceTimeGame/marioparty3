@@ -1102,7 +1102,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CFDC
    the camera height and the finish. */
 void func_80108E8C_awful_tower(omObjData* obj) {
     MgWork* w = obj->data;
-    s32 team = D_8010D3CC_awful_tower[w->unk59];
+    s16 team = D_8010D3CC_awful_tower[w->unk59];
     u8 ctrlSave = 0xFF;
     u8 lane[16] = { 0, 2, 1, 1, 0, 0, 2, 1, 2, 2, 1, 0, 1, 2, 2, 0 };
     f32 floorY[16] = { 45.0f,   250.0f,  615.0f,  950.0f,  1100.0f, 1350.0f, 1600.0f, 1800.0f,
@@ -1117,6 +1117,7 @@ void func_80108E8C_awful_tower(omObjData* obj) {
     MgWork* w2;
     AtPlayer* p;
     HmfModel* m;
+    s32 padNo;
     s16 padBtn;
     u16 padTrg;
     s16 pad1244;
@@ -1135,7 +1136,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
     f32 vx;
     f32 vy;
     f32 wob;
-    u8 floor;
+    s32 floor;
+    u8 n;
     u8 cpuRate;
     s32 frame;
     s32 best;
@@ -1170,25 +1172,23 @@ void func_80108E8C_awful_tower(omObjData* obj) {
                              : period[i] - D_8010CBE8_awful_tower % period[i]) * 2.0) / period[i] * amp[i];
         }
         for (i = 0; i < 15; i++) {
-            if (!(i & 1)) {
-                D_8010D0D0_awful_tower[i] = floorY[i] + phase[lane[i]];
-            } else {
-                D_8010D0D0_awful_tower[i] = floorY[i] + (amp[lane[i]] - phase[lane[i]]);
-            }
+            D_8010D0D0_awful_tower[i] =
+                floorY[i] + (!(i & 1) ? phase[lane[i]] : amp[lane[i]] - phase[lane[i]]);
             D_8010D110_awful_tower[i] += D_8010D0D0_awful_tower[i];
         }
     }
 
     /* The pad is saved here and restored at the end: the CPU writes fake input into it. */
-    padBtn = D_800CDA7C_main[p->unk03];
-    padTrg = D_800D5558_main[p->unk03];
-    pad1244 = D_800D1244_main[p->unk03];
-    padX = D_800CBB6E_main[p->unk03];
-    padY = D_800D20A1_main[p->unk03];
-    pad056A = D_800D056A_main[p->unk03];
-    pad1382 = D_800D1382_main[p->unk03];
-    D_800D1382_main[p->unk03] = 0;
-    D_800D20A1_main[p->unk03] = 0;
+    padNo = p->unk03;
+    padBtn = D_800CDA7C_main[padNo];
+    padTrg = D_800D5558_main[padNo];
+    pad1244 = D_800D1244_main[padNo];
+    padX = D_800CBB6E_main[padNo];
+    padY = D_800D20A1_main[padNo];
+    pad056A = D_800D056A_main[padNo];
+    pad1382 = D_800D1382_main[padNo];
+    D_800D1382_main[padNo] = 0;
+    D_800D20A1_main[padNo] = 0;
 
     /* Ride the floor the player stands on. */
     if (D_8010CC04_awful_tower[team] != 0 && D_8010D110_awful_tower[D_8010CC04_awful_tower[team]] < 0.0f) {
@@ -1199,7 +1199,7 @@ void func_80108E8C_awful_tower(omObjData* obj) {
         }
     }
     if (D_8010CC28_awful_tower[team] != 0 && D_8010CC70_awful_tower[team] == 0 &&
-        D_8010D0D0_awful_tower[D_8010CC28_awful_tower[team]] - 50.0f <= obj->trans.y + 155.0f) {
+        obj->trans.y + 155.0f >= D_8010D0D0_awful_tower[D_8010CC28_awful_tower[team]] - 50.0f) {
         obj->trans.y = D_8010D0D0_awful_tower[D_8010CC28_awful_tower[team]] + -155.0f - 50.0f;
     }
 
@@ -1333,23 +1333,17 @@ void func_80108E8C_awful_tower(omObjData* obj) {
             D_8010CC40_awful_tower[team] = 0;
         }
         if (D_8010D3E4_awful_tower == 2) {
-            if ((D_8010CBFC_awful_tower[team] & 1)
-                    ? D_8010CBE8_awful_tower % 60 ==
-                          D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] + (D_8010CC78_awful_tower[team] + 20)
-                    : D_8010CBE8_awful_tower % 60 ==
-                          D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] + (D_8010CC78_awful_tower[team] + 50)) {
+            if (D_8010CBE8_awful_tower % 60 == D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] +
+                                                   (D_8010CC78_awful_tower[team] + ((D_8010CBFC_awful_tower[team] & 1) ? 20 : 50))) {
                 if ((D_8010CC40_awful_tower[team] == 0 || D_8010CBFC_awful_tower[team] == D_8010CC3C_awful_tower[team]) &&
                     D_8010CBFC_awful_tower[team] != -1) {
-                    D_8010CCA4_awful_tower[team] = (D_8010CCA4_awful_tower[team] < 5) ? D_8010CCA4_awful_tower[team] + 1
-                                                                                      : D_8010CCA4_awful_tower[team];
+                    n = D_8010CCA4_awful_tower[team];
+                    D_8010CCA4_awful_tower[team] = (n >= 5) ? n : n + 1;
                 }
             }
             if (D_8010D3E4_awful_tower == 2 && ((rand8() & 0xF) < cpuRate || D_8010CCA4_awful_tower[team] >= 5)) {
-                if ((D_8010CBFC_awful_tower[team] & 1)
-                        ? D_8010CBE8_awful_tower % 60 ==
-                              D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] + (D_8010CC78_awful_tower[team] + 20)
-                        : D_8010CBE8_awful_tower % 60 ==
-                              D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] + (D_8010CC78_awful_tower[team] + 50)) {
+                if (D_8010CBE8_awful_tower % 60 == D_8010CC7C_awful_tower[D_8010CBFC_awful_tower[team]] +
+                                                   (D_8010CC78_awful_tower[team] + ((D_8010CBFC_awful_tower[team] & 1) ? 20 : 50))) {
                     if ((D_8010CC40_awful_tower[team] == 0 ||
                          D_8010CBFC_awful_tower[team] == D_8010CC3C_awful_tower[team]) &&
                         D_8010CBFC_awful_tower[team] != -1) {
@@ -1379,16 +1373,17 @@ void func_80108E8C_awful_tower(omObjData* obj) {
         /* Steer toward the target floor's column. */
         if (D_8010CC40_awful_tower[team] != 0) {
             dx = (column[D_8010CC3C_awful_tower[team] - 1] * 150 - 150) * 1.125 - obj->trans.x;
+            padNo = p->unk03;
             if (dx > 30.0f) {
-                D_800CBB6E_main[p->unk03] = 60;
+                D_800CBB6E_main[padNo] = 60;
             } else if (dx > 15.0f) {
-                D_800CBB6E_main[p->unk03] = dx / 7.5 - 1.0;
+                D_800CBB6E_main[padNo] = dx / 7.5 - 1.0;
             } else if (dx < -30.0f) {
-                D_800CBB6E_main[p->unk03] = -60;
+                D_800CBB6E_main[padNo] = -60;
             } else if (dx < -15.0f) {
-                D_800CBB6E_main[p->unk03] = dx / 7.5 + 1.0;
+                D_800CBB6E_main[padNo] = dx / 7.5 + 1.0;
             } else {
-                D_800CBB6E_main[p->unk03] = 0;
+                D_800CBB6E_main[padNo] = 0;
             }
             D_800D056A_main[p->unk03] = D_800CBB6E_main[p->unk03] * 2;
             D_8010CC40_awful_tower[team]++;
@@ -1432,9 +1427,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
     }
     /* Pushed off a ground's side: hold the stick toward it until the player lets go. */
     if (D_8010CC74_awful_tower[team] != 0) {
-        if (D_800CBB6E_main[p->unk03] < 0   ? D_8010CC74_awful_tower[team] == -1
-            : D_800CBB6E_main[p->unk03] > 0 ? D_8010CC74_awful_tower[team] == 1
-                                            : D_8010CC74_awful_tower[team] == 0) {
+        if (D_8010CC74_awful_tower[team] ==
+            (D_800CBB6E_main[p->unk03] < 0 ? -1 : D_800CBB6E_main[p->unk03] > 0 ? 1 : 0)) {
             D_8010CC74_awful_tower[team] = 0;
             D_800CBB6E_main[p->unk03] = 0;
             D_800D056A_main[p->unk03] = 0;
@@ -1535,11 +1529,11 @@ void func_80108E8C_awful_tower(omObjData* obj) {
 
     /* Landing: which floor the player stands on (unk53/unk56 are ground slots, 1-based). */
     w2 = obj->data;
-    if (w2->unk38 != 1000.0f && w2->unk56 != 0xFF && w2->unk56 != 0 && D_8010CC08_awful_tower[team] == -1) {
+    if (w2->unk38 != 1000.0f && (u8)(w2->unk56 + 1) >= 2 && D_8010CC08_awful_tower[team] == -1) {
         func_8004AC98_main(p->unk00 + 0xCB, w2->unk59);
     }
     D_8010CC08_awful_tower[team] = ((s8)w2->unk56 != 0) ? (s8)w2->unk56 - 1 : -1;
-    D_8010CC04_awful_tower[team] = (w2->unk56 != 0xFF && w2->unk56 != 0) ? near3[((s8)w2->unk56 - 1) % 3] : 0;
+    D_8010CC04_awful_tower[team] = ((u8)(w2->unk56 + 1) >= 2) ? near3[((s8)w2->unk56 - 1) % 3] : 0;
     if ((s8)w2->unk56 >= 0 && w2->unk53 >= 0 && D_8010CC04_awful_tower[team] == near3[(w2->unk53 - 1) % 3] &&
         D_8010CC04_awful_tower[team] < 15) {
         D_8010CC04_awful_tower[team]++;
@@ -1555,7 +1549,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
     if (w2->unk53 >= 0) {
         D_8010CBFC_awful_tower[team] = (w2->unk53 != 0) ? near3[(w2->unk53 - 1) % 3] + 1 : 0;
         if (D_8010CBFC_awful_tower[team] == 16) {
-            D_8010D3FE_awful_tower = (D_8010D3FE_awful_tower < 255) ? D_8010D3FE_awful_tower + 1 : D_8010D3FE_awful_tower;
+            n = D_8010D3FE_awful_tower;
+            D_8010D3FE_awful_tower = (n >= 255) ? n : n + 1;
         }
         floor = (w2->unk53 != 0) ? near3[(w2->unk53 - 1) % 3] : 0;
         if (D_8010D3E4_awful_tower == 2 && (D_8010CC0C_awful_tower[team] == 0 || D_8010CC0C_awful_tower[team] == 3) &&
@@ -1620,7 +1615,7 @@ void func_80108E8C_awful_tower(omObjData* obj) {
                 if (D_8010CBE8_awful_tower % 60 == frame && D_8010CC14_awful_tower[team] == 0) {
                     D_8010CC14_awful_tower[team] = 1;
                     D_8010CC4C_awful_tower[team] =
-                        (D_8010CC4C_awful_tower[team] < 30) ? D_8010CC4C_awful_tower[team] + 5 : D_8010CC4C_awful_tower[team];
+                        (D_8010CC4C_awful_tower[team] >= 30) ? D_8010CC4C_awful_tower[team] : D_8010CC4C_awful_tower[team] + 5;
                     func_80014850_main(D_8010D348_awful_tower[team][1]);
                     func_8001C258_main(D_8010D3E8_awful_tower->model[8 + team], 4, 4);
                 }
