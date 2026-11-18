@@ -139,7 +139,7 @@ extern s32 D_8010AC10_eye_sore[8];
 extern s16 D_8010AC30_eye_sore[4];
 extern s8 D_8010AC38_eye_sore[24];
 extern u8 D_8010AC50_eye_sore[4];
-extern u8 D_8010AC54_eye_sore[4];
+extern s8 D_8010AC54_eye_sore[4];
 extern u16 D_8010AC58_eye_sore[8][2];
 extern u8 D_8010AC98_eye_sore[8];
 extern f32 D_8010ACA0_eye_sore[20];
@@ -533,7 +533,205 @@ void func_80106718_eye_sore(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010683C_eye_sore(omObjData *obj) {
+    s16 player = obj->work[0];
+    s16 base = player * 2;
+    f32 turn = -20.0f;
+    EsPlayer *p = &D_8010CA60_eye_sore[player];
+    EsRing *ring = &D_8010CBC0_eye_sore[player];
+    EsEye *eye;
+    s32 hit = 0;
+    s16 i;
+    f32 speed;
+    f32 add;
+    f32 d1;
+    f32 d2;
+    f32 lim;
+    f32 diff;
+    f32 adiff;
+    f32 target;
+    s32 n;
+    f32 rot;
+    f32 x;
+    f32 z;
+
+    switch (p->dif) {
+    case 0:
+        speed = func_80105CE4_eye_sore(7);
+        add = 15.0f;
+        break;
+    case 2:
+        speed = func_80105CE4_eye_sore(7);
+        add = 18.0f;
+        break;
+    case 3:
+        speed = func_80105CE4_eye_sore(5);
+        add = 20.0f;
+        break;
+    case 1:
+    default:
+        speed = func_80105CE4_eye_sore(8);
+        add = 17.0f;
+        break;
+    }
+    speed += add;
+    if (p->state < 5) {
+        for (i = 0; i < 2; i++) {
+            eye = &D_8010C938_eye_sore[base + i];
+            if (eye->unk10 != 0 && eye->unk05 == 0) {
+                d1 = func_801059BC_eye_sore(p->rot, -eye->unk00);
+                d2 = func_801059BC_eye_sore(eye->unk00, -p->rot);
+                if (d1 < 90.0f || d2 < 45.0f) {
+                    if (eye->unk08 < ring->unk04 + (280.0f - ring->unk04) * 0.5) {
+                        p->state = 4;
+                    } else {
+                        p->state = 3;
+                    }
+                    hit = 1;
+                }
+                if (p->dist < 120.0f) {
+                    lim = 50.0f;
+                } else {
+                    lim = 25.0f;
+                }
+                if (d1 < lim) {
+                    diff = p->dist - eye->unk08;
+                    adiff = (diff < 0.0f) ? 0.0f - diff : diff;
+                    if (adiff < eye->unk0C + 60.0f) {
+                        if (eye->unk08 < ring->unk04 + eye->unk0C + (280.0f - ring->unk04) * 0.5) {
+                            p->state = 6;
+                        } else {
+                            p->state = 7;
+                        }
+                        p->eye = base + i;
+                        break;
+                    }
+                    hit = 1;
+                }
+            }
+        }
+        if (!hit && (p->state == 3 || p->state == 4)) {
+            p->state = 0;
+        }
+    }
+    if (func_80105CE4_eye_sore(30) == 0 && func_80105CE4_eye_sore(24) < D_8010AC54_eye_sore[p->dif]) {
+        p->state = 5;
+    }
+    switch (p->state) {
+    case 0:
+        target = D_8010AC50_eye_sore[p->dif];
+        if (p->unk04 < target) {
+            p->unk04 += 15.0f;
+        }
+        if (target < p->unk04) {
+            p->unk04 -= 15.0f;
+        }
+        n = (f32)(s16)(p->unk04 - target);
+        if (n < 0) {
+            n = -n;
+        }
+        if (n < 15) {
+            p->unk04 = target;
+        }
+        if (func_80105CE4_eye_sore(16) < 4 - p->dif) {
+            if (func_80105CE4_eye_sore(2) != 0) {
+                p->state = 1;
+                p->unk08 = func_80105CE4_eye_sore(30) + 30;
+            } else {
+                p->state = 2;
+                p->unk08 = func_80105CE4_eye_sore(50) + 40;
+            }
+        }
+        break;
+    case 1:
+        target = D_8010AC50_eye_sore[p->dif] - p->unk08;
+        if (target < p->unk04) {
+            p->unk04 -= 15.0f;
+        } else {
+            p->unk04 = target;
+            if (func_80105CE4_eye_sore(10) == 0) {
+                p->state = 0;
+            }
+        }
+        break;
+    case 2:
+        target = D_8010AC50_eye_sore[p->dif] + p->unk08;
+        if (p->unk04 < target) {
+            p->unk04 += 15.0f;
+        } else {
+            p->unk04 = target;
+            if (func_80105CE4_eye_sore(10) == 0) {
+                p->state = 0;
+            }
+        }
+        break;
+    case 3:
+        target = ring->unk04 + 60.0f;
+        if (target < p->unk04) {
+            p->unk04 -= 20.0f;
+        } else {
+            p->unk04 = target;
+        }
+        break;
+    case 4:
+        target = 270.0f;
+        if (p->unk04 < target) {
+            p->unk04 += 20.0f;
+        } else {
+            p->unk04 = target;
+        }
+        break;
+    case 5:
+        if (55.0f < p->unk04) {
+            p->unk04 -= 10.0f;
+        } else {
+            p->unk04 = 55.0f;
+        }
+        break;
+    case 6:
+        p->unk04 = 270.0f;
+        if (++p->timer >= 5) {
+            p->state = 8;
+            p->timer = 0;
+        }
+        turn = 15.0f;
+        break;
+    case 7:
+        p->unk04 = ring->unk04 + 60.0f;
+        if (++p->timer >= 5) {
+            p->state = 8;
+            p->timer = 0;
+        }
+        turn = 15.0f;
+        break;
+    case 8:
+        speed = 0.0f;
+        eye = &D_8010C938_eye_sore[p->eye];
+        if (280.0f - eye->unk08 >= 120.0f || eye->unk08 - ring->unk04 >= 220.0f || eye->unk10 == 0) {
+            p->state = 0;
+        }
+        break;
+    }
+    target = ring->unk04 + p->unk04;
+    rot = func_801059BC_eye_sore(atan2df(obj->trans.x, obj->trans.z), turn);
+    x = sindf(rot) * target;
+    z = cosdf(rot) * target;
+    rot = func_801059BC_eye_sore(atan2df(x - obj->trans.x, z - obj->trans.z), 0.0f);
+    obj->rot.y = rot;
+    obj->trans.x += sindf(rot) * speed;
+    obj->trans.z += cosdf(obj->rot.y) * speed;
+    if (speed != 0.0f) {
+        func_801063E8_eye_sore(obj, 2);
+        func_80106328_eye_sore(obj, 2);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    } else {
+        func_801063E8_eye_sore(obj, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_8010683C_eye_sore);
+#endif
 
 void func_801070CC_eye_sore(omObjData *obj) {
     f32 dx;
