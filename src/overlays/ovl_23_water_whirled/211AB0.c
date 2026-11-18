@@ -7,6 +7,27 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+/* The minigame control block (minigame B8A20.c MgCtrl; the header's D_80111B50_vine_with_me_Struct) */
+typedef struct WwCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06; /* 4: nobody won */
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4]; /* winners */
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ u16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ s16 unk26;
+    /* 0x28 */ Vec unk28;
+} WwCtrl; /* size 0x34 */
+
 // main
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -51,7 +72,6 @@ extern f32 D_8010A26C_water_whirled;
 extern s32 D_8010A280_water_whirled; /* player the camera closes in on, -1 none */
 extern s32 D_8010A284_water_whirled; /* looping sound handle */
 extern s32 D_8010A288_water_whirled; /* its volume */
-extern u8 D_8010A2AC_water_whirled[]; /* minigame control block */
 extern Vec D_8010A2D4_water_whirled; /* light direction */
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 f32 fabsf(f32);
@@ -63,6 +83,16 @@ u16 func_800E6E9C_minigame(void);
 f32 func_800202A8_main(f32 angle);
 extern s32 D_8010A240_water_whirled[4]; /* laps per player */
 extern f32 D_8010A2E0_water_whirled[4]; /* value per place, best first */
+extern WwCtrl D_8010A2AC_water_whirled;
+void func_800E6F0C_minigame(s8 arg0);
+extern s16 D_800EB934_minigame;
+extern s32 D_8010A270_water_whirled[4]; /* per player state; 5: reached the goal */
+extern s32 D_8010A28C_water_whirled[4]; /* sound handles, -1 none */
+void func_80106308_water_whirled(omObjData* obj);
+void func_80106680_water_whirled(void);
+void func_8010616C_water_whirled(omObjData* obj);
+void func_8010698C_water_whirled(void);
+void func_80106A58_water_whirled(void);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -97,7 +127,7 @@ void func_801059A0_water_whirled(void) {
     omSetStatBit(omAddObj(100, 0, 0, -1, func_80108DF8_water_whirled), 0xA0);
     D_800EB73C_minigame = 10.0f;
     WipeCreateIn(0xFF, 16);
-    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)D_8010A2AC_water_whirled);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)&D_8010A2AC_water_whirled);
     D_800EB930_minigame = 0x32;
     D_800EB932_minigame = 0x3C;
     func_800EA0FC_minigame(0, 0.0f, D_8010A190_water_whirled[0]);
@@ -250,7 +280,7 @@ void func_80106308_water_whirled(omObjData* obj) {
 }
 
 /* Intro camera: hold, then pan along z; at the start (or from tick 90) swing up and out to the play view. */
-void func_80106680_water_whirled(omObjData* obj) {
+void func_80106680_water_whirled(void) {
     s32 t = func_800E6E9C_minigame();
 
     if (func_800E6E8C_minigame() == 0) {
@@ -303,7 +333,7 @@ void func_80106680_water_whirled(omObjData* obj) {
 }
 
 /* Camera: close in on player D_8010A280 once it is set. */
-void func_8010698C_water_whirled(omObjData* obj) {
+void func_8010698C_water_whirled(void) {
     omObjData* player;
 
     if (D_8010A280_water_whirled != -1) {
@@ -394,7 +424,99 @@ void func_80106A58_water_whirled(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106DB8_water_whirled);
+/* Sea and game flow by minigame state: start sounds, intro, play (first rider to state 5 wins 10 bonus
+   coins), finish, results, leave. */
+void func_80106DB8_water_whirled(omObjData* obj) {
+    s32 t;
+    s32 i;
+
+    func_80106308_water_whirled(obj);
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    t = func_800E6E9C_minigame();
+    switch (func_800E6F40_minigame()) {
+        case 0:
+            if (t == 1) {
+                D_8010A28C_water_whirled[0] = func_8004ACE0_main(0x41A, 0);
+                D_8010A28C_water_whirled[1] = func_8004ACE0_main(0x41A, 1);
+                D_8010A28C_water_whirled[2] = func_8004ACE0_main(0x41A, 2);
+                D_8010A28C_water_whirled[3] = func_8004ACE0_main(0x41A, 3);
+                HuAudFXPlay(0x424);
+            }
+        case 1:
+            func_80106680_water_whirled();
+            break;
+        case 2:
+            for (i = 0; i < 4; i++) {
+                if (D_8010A270_water_whirled[i] == 5) {
+                    D_8010A280_water_whirled = i;
+                    func_800E6F0C_minigame(3);
+                    D_8010A2AC_water_whirled.unk18[0] = D_8010A280_water_whirled;
+                    D_8010A2AC_water_whirled.unk06 = 0;
+                    GwPlayer[((MgWork*)D_800EC598_minigame[D_8010A280_water_whirled]->data)->unk59].bonusCoin += 10;
+                    break;
+                }
+            }
+            if (D_8010A284_water_whirled != 0) {
+                D_8010A288_water_whirled += 7;
+                if (D_8010A288_water_whirled > 110) {
+                    D_8010A288_water_whirled = 110;
+                }
+            }
+            func_80106A58_water_whirled();
+            break;
+        case 3:
+            if (t == 15.0) {
+                func_8004AEF0_main(D_8010A28C_water_whirled[0], 30);
+                func_8004AEF0_main(D_8010A28C_water_whirled[1], 30);
+                func_8004AEF0_main(D_8010A28C_water_whirled[2], 30);
+                func_8004AEF0_main(D_8010A28C_water_whirled[3], 30);
+                D_8010A28C_water_whirled[0] = -1;
+                D_8010A28C_water_whirled[1] = -1;
+                D_8010A28C_water_whirled[2] = -1;
+                D_8010A28C_water_whirled[3] = -1;
+            }
+            if (D_8010A280_water_whirled == -1) {
+                D_8010A2AC_water_whirled.unk06 = 4;
+            } else {
+                D_8010A288_water_whirled += 3;
+                if (D_8010A288_water_whirled > 127) {
+                    D_8010A288_water_whirled = 127;
+                }
+            }
+            func_8010698C_water_whirled();
+            break;
+        case 4:
+            if (D_8010A280_water_whirled != -1 && D_800EB934_minigame == 1) {
+                func_8004AC98_main(GwPlayer[D_8010A280_water_whirled].chr + 0x290, D_8010A280_water_whirled);
+            }
+            if (t >= 150) {
+                D_8010A288_water_whirled -= 4;
+                if (D_8010A288_water_whirled < 0) {
+                    D_8010A288_water_whirled = 0;
+                }
+            }
+            func_8010698C_water_whirled();
+            break;
+        case 5:
+            WipeCreateOut(0, 20);
+            obj->func = func_8010616C_water_whirled;
+            break;
+    }
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        ((MgWork*)D_800EC598_minigame[i]->data)->unk60 = CRot.y;
+    }
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+        obj->func = func_8010616C_water_whirled;
+    }
+    if (D_8010A284_water_whirled != 0) {
+        func_8004AAD0_main(D_8010A284_water_whirled, D_8010A288_water_whirled);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801071BC_water_whirled);
 
