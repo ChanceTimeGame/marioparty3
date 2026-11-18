@@ -61,7 +61,8 @@ typedef struct PgBoard {
     /* 0x00 */ Gfx* gfx;
     /* 0x04 */ Vtx* vtx; /* 2 per strip row */
     /* 0x08 */ HuSprite_Unk84_Struct* spr; /* NULL = free */
-    /* 0x0C */ char unk0C[8];
+    /* 0x0C */ struct PgBoard* prev; /* depth-sorted draw list */
+    /* 0x10 */ struct PgBoard* next;
     /* 0x14 */ void (*func)(struct PgBoard*); /* per-frame hook */
     /* 0x18 */ u8 rows; /* vertex pairs */
     /* 0x19 */ u8 rowH; /* texels per row */
@@ -82,7 +83,7 @@ typedef struct PgBoard {
     /* 0x40 */ Vec pos;
     /* 0x4C */ Vec scale;
     /* 0x58 */ Vec rot;
-    /* 0x64 */ char unk64[4];
+    /* 0x64 */ f32 depth; /* view z */
 } PgBoard; /* size 0x68 */
 
 /* MgWork::unk158 of a player. */
@@ -195,6 +196,16 @@ extern void* D_8010DDDC_popgun_pickoff[3]; /* per-frame buffers */
 extern void* D_8010DDE8_popgun_pickoff; /* this frame's buffer */
 extern s32 D_8010DDEC_popgun_pickoff; /* its size */
 extern s32 D_8010C890_popgun_pickoff; /* buffer index */
+extern PgBoard D_8010DE00_popgun_pickoff; /* opaque draw list head */
+extern PgBoard D_8010DE68_popgun_pickoff; /* translucent draw list head */
+extern s8 HmfPauseF;
+void func_80079480_main(f32 mf[4][4], f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp,
+                        f32 zUp); /* guLookAtF */
+void func_80108F5C_popgun_pickoff(Vec* dir, f32* angles);
+void func_8010B64C_popgun_pickoff(void);
+void func_8010C32C_popgun_pickoff(void);
+Gfx* func_8010BC6C_popgun_pickoff(Gfx* g, PgBoard* b, f32 (*view)[4], Vec* rot);
+void func_8010B7A0_popgun_pickoff(HuCamera* cam, f32 (*view)[4]);
 void func_800341D0_main(Gfx** gfx, s32 timg, s32 fmt, s32 siz, s32 width, s32 height, s32 uls, s32 ult,
                         s32 lrs, s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts,
                         s32 shiftt);
@@ -1960,9 +1971,118 @@ void func_8010B64C_popgun_pickoff(void) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B7A0_popgun_pickoff);
+#ifdef NON_MATCHING
+/* Sorts the visible billboards by view depth into the opaque (D_8010DE00) and translucent (D_8010DE68) lists. */
+void func_8010B7A0_popgun_pickoff(HuCamera* cam, f32 (*view)[4]) {
+    PgBoard tail0;
+    PgBoard tail1;
+    PgBoard* unused[256];
+    f32 m[4][4];
+    f32 x0;
+    f32 x1;
+    f32 z0;
+    f32 z1;
+    PgBoard* b;
+    PgBoard* list;
+    PgBoard* n;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010BA44_popgun_pickoff);
+    x0 = cam->at.x - 640.0;
+    x1 = cam->at.x + 640.0;
+    z0 = cam->at.z - 640.0;
+    z1 = cam->at.z + 640.0;
+    D_8010DE00_popgun_pickoff.depth = 0.0f;
+    D_8010DE68_popgun_pickoff.depth = 99999.9f;
+    tail0.depth = -99999.9f;
+    tail1.depth = 0.0f;
+    D_8010DE68_popgun_pickoff.prev = NULL;
+    D_8010DE00_popgun_pickoff.prev = NULL;
+    D_8010DE00_popgun_pickoff.next = &tail0;
+    D_8010DE68_popgun_pickoff.next = &tail1;
+    tail0.prev = &D_8010DE00_popgun_pickoff;
+    tail1.prev = &D_8010DE68_popgun_pickoff;
+    tail1.next = NULL;
+    tail0.next = NULL;
+    for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
+        b = &D_8010DDD8_popgun_pickoff[i];
+        if (b->spr == NULL) {
+            continue;
+        }
+        if (b->pos.x < x0 || x1 < b->pos.x) {
+            continue;
+        }
+        if (b->pos.z < z0 || z1 < b->pos.z) {
+            continue;
+        }
+        func_8007DFE0_main(m, b->pos.x, b->pos.y, b->pos.z);
+        guMtxCatF(m, view, m);
+        b->depth = m[3][2];
+        if (b->depth > 0.0) {
+            continue;
+        }
+        if ((b->flags & 0x1000) && b->a < 0x100) {
+            list = &D_8010DE68_popgun_pickoff;
+            b->depth = -(f64)b->depth;
+        } else {
+            list = &D_8010DE00_popgun_pickoff;
+        }
+        n = list->next;
+        while (b->depth < n->depth) {
+            n = n->next;
+        }
+        n->prev->next = b;
+        b->prev = n->prev;
+        b->next = n;
+        n->prev = b;
+    }
+    tail1.prev->next = NULL;
+    tail0.prev->next = NULL;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B7A0_popgun_pickoff);
+#endif
+
+
+
+void func_8010BA44_popgun_pickoff(Gfx** gfx, s32 arg1, s32 arg2) {
+    HuCamera* cam = (HuCamera*)arg2;
+    f32 unused0[2][4][4];
+    f32 view[4][4];
+    u8 unused1[0x100];
+    Vec rot;
+    Vec dir;
+    u8 unused2[0x800];
+    Gfx* g;
+    PgBoard* b;
+
+    g = *gfx;
+    func_80079480_main(view, cam->pos.x, cam->pos.y, cam->pos.z, cam->at.x, cam->at.y, cam->at.z, cam->up.x,
+                       cam->up.y, cam->up.z);
+    dir.x = cam->pos.x - cam->at.x;
+    dir.y = cam->pos.y - cam->at.y;
+    dir.z = cam->pos.z - cam->at.z;
+    func_80108F5C_popgun_pickoff(&dir, (f32*)&rot);
+    func_8010B64C_popgun_pickoff();
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_2CYCLE);
+    gDPSetTexturePersp(g++, G_TP_PERSP);
+    gSPTexture(g++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gSPClearGeometryMode(g++, 0x060600);
+    gSPSetGeometryMode(g++, 0x280004);
+    gDPSetAlphaDither(g++, G_AD_PATTERN);
+    func_8010B7A0_popgun_pickoff(cam, view);
+    for (b = D_8010DE00_popgun_pickoff.next; b != NULL; b = b->next) {
+        g = func_8010BC6C_popgun_pickoff(g, b, view, &rot);
+    }
+    for (b = D_8010DE68_popgun_pickoff.next; b != NULL; b = b->next) {
+        g = func_8010BC6C_popgun_pickoff(g, b, view, &rot);
+    }
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    *gfx = g;
+    if (HmfPauseF == 0) {
+        func_8010C32C_popgun_pickoff();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010BC6C_popgun_pickoff);
 
