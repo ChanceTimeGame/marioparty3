@@ -812,23 +812,215 @@ s16 func_801074CC_parasol_plummet(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801074CC_parasol_plummet);
 #endif
 
+/* NON_MATCHING: register allocation in the sort (f0/f2 swapped; masked 0). CPU parasol button: open or close to
+   meet the nearest item's height, then wait a difficulty-dependent time. Retail reads idx[0] even when no item is
+   live (n == 0): an uninitialised index into D_8010AB70_parasol_plummet. */
+#ifdef NON_MATCHING
+u16 func_801076D4_parasol_plummet(omObjData* obj) {
+    f32 dist[18];
+    s32 idx[18];
+    PaPlayer* p;
+    PaItem* item;
+    s32 btn;
+    s32 n;
+    s32 i;
+    s32 j;
+    f32 d;
+    f32 a;
+    f32 b;
+
+    p = obj->data;
+    btn = 0;
+    if (p->unk38 > 0) {
+        p->unk38--;
+    }
+    if (p->unk38 == 0) {
+        n = 0;
+        for (i = 0; i < 18; i++) {
+            d = func_801079D8_parasol_plummet(obj, i);
+            if (d != -1.0f) {
+                dist[n] = d;
+                idx[n] = i;
+                n++;
+            }
+        }
+        for (i = 0; i < n - 1; i++) {
+            for (j = 0; j < n; j++) {
+                if (dist[i] < dist[j]) {
+                    f32 tf = dist[i];
+                    s32 ti;
+
+                    dist[i] = dist[j];
+                    dist[j] = tf;
+                    ti = idx[i];
+                    idx[i] = idx[j];
+                    idx[j] = ti;
+                }
+            }
+        }
+        p = obj->data;
+        switch (GwPlayer[p->unk24].cpu_difficulty) {
+        case 0:
+            break;
+        case 1:
+            item = D_8010AB70_parasol_plummet[idx[0]]->data;
+            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            p->unk38 = (rand8() & 0x1F) + 0x20;
+            break;
+        case 2:
+            item = D_8010AB70_parasol_plummet[idx[0]]->data;
+            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            p->unk38 = (rand8() & 0xF) + 0x10;
+            break;
+        case 3:
+            item = D_8010AB70_parasol_plummet[idx[0]]->data;
+            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
+                btn = 0x8000;
+            }
+            p->unk38 = (rand8() & 7) + 8;
+            break;
+        }
+        return btn;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801076D4_parasol_plummet);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801079D8_parasol_plummet);
+f32 func_801079D8_parasol_plummet(omObjData* obj, s32 arg1) {
+    PaPlayer* p;
+    PaItem* item;
+    f32 dist = -1.0f;
+    f32 x;
+    f32 y;
+    f32 dx;
+    f32 dy;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107A44_parasol_plummet);
+    p = obj->data;
+    x = p->unk00;
+    y = p->unk04;
+    if (D_8010ABB8_parasol_plummet[arg1] != 0) {
+        item = D_8010AB70_parasol_plummet[arg1]->data;
+        dx = item->unk08;
+        dy = item->unk0C;
+        dx -= x;
+        dx *= dx;
+        dy -= y;
+        dy *= dy;
+        dist = HuSqrtf(dx + dy);
+    }
+    return dist;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107B5C_parasol_plummet);
+void func_80107A44_parasol_plummet(omObjData* obj) {
+    Vec2f screen;
+    Vec pos;
+    PaPlayer* p;
+    s32 x;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107B78_parasol_plummet);
+    p = obj->data;
+    if (p->unk14 & 0x80) {
+        p->unk00 += p->unk34;
+        pos.x = p->unk00;
+        pos.y = p->unk04;
+        pos.z = p->unk08;
+        Hu3DCam3DToScreen(0, &pos, &screen);
+        x = screen.x;
+        if (x >= 0x100) {
+            p->unk00 -= p->unk34;
+        }
+        if (x < 0x41) {
+            p->unk00 -= p->unk34;
+        }
+        p->unk18--;
+        if (p->unk34 >= 0.0f) {
+            p->unk34 -= 8.0f;
+        } else {
+            p->unk34 += 8.0f;
+        }
+        if (p->unk18 == 0) {
+            p->unk14 = (p->unk14 & ~0x80) | 1;
+            p->unk34 = 0.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107C30_parasol_plummet);
+void func_80107B5C_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107C94_parasol_plummet);
+    p->unk14 |= 0x100;
+    p->unk3C = 0x2D;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107CD4_parasol_plummet);
+void func_80107B78_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107D14_parasol_plummet);
+    if (p->unk14 & 0x100) {
+        if (!(p->unk14 & 0x40)) {
+            if (--p->unk3C == 0) {
+                func_80107C30_parasol_plummet(obj);
+            }
+            if (p->unk3C & 1) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[1], 4, 4);
+            } else {
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+            }
+        }
+    }
+}
+
+void func_80107C30_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
+
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C258_main(obj->model[1], 4, 0);
+    p->unk14 &= ~0x100;
+}
+
+void func_80107C94_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
+
+    if (!(p->unk14 & 2)) {
+        if (!(p->unk14 & 0x200)) {
+            if (p->unk14 & 1) {
+                p->unk14 = (p->unk14 | 0x200) & ~1;
+                p->unk44 = 0xA;
+            }
+        }
+    }
+}
+
+void func_80107CD4_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
+
+    if (p->unk14 & 0x200) {
+        if (--p->unk44 <= 0) {
+            func_80107D14_parasol_plummet(obj);
+        }
+    }
+}
+
+void func_80107D14_parasol_plummet(omObjData* obj) {
+    PaPlayer* p = obj->data;
+
+    p->unk14 = (p->unk14 & ~0x200) | 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107D30_parasol_plummet);
 
