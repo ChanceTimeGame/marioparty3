@@ -478,6 +478,10 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_40_swing_n_swipe/2E6BE0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_10_cosmic_coaster/18ABD0.c.o
 # m3 bk: Baby Bowser Bonkers (float-call nops)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_35_baby_bowser_bonkers/29B1D0.c.o
+# m4 hl: Hand, Line and Sinker 11A480 likewise (func_80107420/func_80107B24: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_01_hand_line_sinker/11A480.c.o
+# m4 el: End of the Line 28A290 likewise (func_80106CDC: no nop before the mul.s after the sindf/cosdf calls)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_33_end_of_the_line/28A290.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

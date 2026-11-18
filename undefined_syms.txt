@@ -445,5 +445,12 @@ D_8010BF80_cosmic_coaster = 0x8010BF80;
 /* m3 cu: curtain_call/20BFA0 .data bytes inside D_8010B248 (func_80109AD0 asm) */
 D_8010B249_curtain_call = D_8010B248_curtain_call + 0x1;
 D_8010B24A_curtain_call = D_8010B248_curtain_call + 0x2;
+/* m4 pg: popgun_pickoff/283060 .data label inside a pair */
+D_8010C5A2_popgun_pickoff = D_8010C5A0_popgun_pickoff + 0x2;
+D_8010CAA8_popgun_pickoff = 0x8010CAA8; /* TEMP until func_80108398 is C */
+/* m4 el: end_of_the_line .data label inside D_8010C600 (func_8010B640 asm) */
+D_8010C60A_end_of_the_line = D_8010C600_end_of_the_line + 0xA;
+/* m4 hs: the s16 at D_8010E170_hide_and_sneak + 2 */
+D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 /* m4 bg: the_beat_goes_on/1FE4D0 .data byte inside D_8010C310 (players made; a separate variable in C) */
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
