@@ -60,9 +60,9 @@ typedef struct {
 
 typedef struct {
     /* 0x000 */ PlayerView *views;
-    /* 0x004 */ char unk04[4];
+    /* 0x004 */ f32 unk04; /* path length */
     /* 0x008 */ f32 unk08;
-    /* 0x00C */ char unk0C[2];
+    /* 0x00C */ s16 unk0C; /* path point count */
     /* 0x00E */ s16 unk0E;
     /* 0x010 */ f32 unk10; /* time left, frames */
     /* 0x014 */ s16 unk14[100]; /* item path position */
@@ -160,7 +160,15 @@ void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, 
 void func_801107FC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2);
 void func_801108CC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
 extern RGBA D_80113470_motor_rooter[];
-void func_8010CD84_motor_rooter(void *, s32);
+typedef struct {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 len;    /* to the next point; -1 at the end */
+    /* 0x1C */ f32 invLen; /* 1 / len, 0 for a zero-length segment */
+    /* 0x20 */ f32 dist;   /* from the start */
+} PathPoint; // Size 0x24
+
+void func_8010CD84_motor_rooter(Vec *points, s16 count);
 s16 func_8010D03C_motor_rooter(f32);
 void func_8010D0AC_motor_rooter(f32 *, s16, f32);
 void func_8010D2E4_motor_rooter(s32);
@@ -176,7 +184,7 @@ extern D_800CCF58_main_Struct *D_800CCF58_main;
 omObjData *func_80045F1C_main(u32, s16, s16);
 
 // BSS
-extern f32 *D_801137C0_motor_rooter;
+extern PathPoint *D_801137C0_motor_rooter;
 extern MinigameData *m254_minigame; // D_801137C4_motor_rooter
 extern D_801137C8_motor_rooter_Struct *D_801137C8_motor_rooter;
 extern s16 D_801137CC_motor_rooter;
@@ -186,8 +194,8 @@ extern s16 D_801137D2_motor_rooter;
 extern s16 D_801137D8_motor_rooter;
 extern s16 m254_playerId[]; // D_801137D4_motor_rooter
 
-extern s32 D_80111550_motor_rooter;
-extern s32 D_8011245C_motor_rooter;
+extern Vec D_80111550_motor_rooter[];
+extern Vec D_8011245C_motor_rooter[];
 
 extern s16 D_801135E0_motor_rooter[];
 extern s16 D_801135EC_motor_rooter[];
@@ -257,15 +265,15 @@ void m254_CreateMinigame(void) {
     switch (D_801137CE_motor_rooter) {
         case 0:
             D_801137CC_motor_rooter = 280;
-            func_8010CD84_motor_rooter(&D_80111550_motor_rooter, 321);
+            func_8010CD84_motor_rooter(D_80111550_motor_rooter, 321);
             break;
         case 1:
             D_801137CC_motor_rooter = 300;
-            func_8010CD84_motor_rooter(&D_8011245C_motor_rooter, 341);
+            func_8010CD84_motor_rooter(D_8011245C_motor_rooter, 341);
             break;
         default:
             D_801137CC_motor_rooter = 280;
-            func_8010CD84_motor_rooter(&D_80111550_motor_rooter, 321);
+            func_8010CD84_motor_rooter(D_80111550_motor_rooter, 321);
             D_801137CE_motor_rooter = 0;
             break;
     }
@@ -628,7 +636,7 @@ void func_80107210_motor_rooter(omObjData *object) {
     D_801137C8_motor_rooter[object->work[0]].unk4A = sprId;
     m254_SetSpriteDispOn(sprId, (s16)(object->work[0] * 16 + 152), 220);
     for (i = 0; i < D_801137D2_motor_rooter; i++) {
-        y = 220 - (s16)(D_801137C0_motor_rooter[m254_minigame->views[object->work[0]].unk4C[i] * 9 + 8] /
+        y = 220 - (s16)(D_801137C0_motor_rooter[m254_minigame->views[object->work[0]].unk4C[i]].dist /
                          m254_minigame->unk08 * 180.0f);
         m254_SetSpriteDispOn(m254_SetSprite(0xEFFF, 0x57, 0x11, 0, 0), (s16)(object->work[0] * 16 + 152), (s16)y);
     }
@@ -831,12 +839,12 @@ void m254_InitCamera(FuncContext *ctx) {
 
     for (i = 0; i < 2; i++) {
         CZoomM[i] = 100.0f;
-        CenterM[i].x = D_801137C0_motor_rooter[0];
-        CenterM[i].y = D_801137C0_motor_rooter[1];
-        CenterM[i].z = D_801137C0_motor_rooter[2];
-        CRotM[i].x = D_801137C0_motor_rooter[3] - 180.0f;
-        CRotM[i].y = D_801137C0_motor_rooter[4];
-        CRotM[i].z = D_801137C0_motor_rooter[5];
+        CenterM[i].x = D_801137C0_motor_rooter[0].pos.x;
+        CenterM[i].y = D_801137C0_motor_rooter[0].pos.y;
+        CenterM[i].z = D_801137C0_motor_rooter[0].pos.z;
+        CRotM[i].x = D_801137C0_motor_rooter[0].rot.x - 180.0f;
+        CRotM[i].y = D_801137C0_motor_rooter[0].rot.y;
+        CRotM[i].z = D_801137C0_motor_rooter[0].rot.z;
     }
     m254_ResetFunc(FGRP_CAMERA, ctx);
     m254_SetFunc(FGRP_CAMERA, 0, -1, NULL, func_801082E0_motor_rooter, 0, FALSE);
@@ -1169,7 +1177,7 @@ void func_801091A0_motor_rooter(FuncContext *ctx) {
     PlayerView *view;
     omObjData *object;
     HmfModel *model;
-    f32 *path;
+    PathPoint *path;
     f32 angle;
     f32 pitch;
     s16 k;
@@ -1215,17 +1223,17 @@ void func_801091A0_motor_rooter(FuncContext *ctx) {
         ofs.x = sindf(angle) * 55.9999990463256836;
         ofs.y = -cosdf(angle) * 55.9999990463256836;
         ofs.z = 0;
-        path = &D_801137C0_motor_rooter[view->unk4C[k] * 9];
-        pitch = path[3] - 180.0f;
+        path = &D_801137C0_motor_rooter[view->unk4C[k]];
+        pitch = path->rot.x - 180.0f;
         m254_MakeRotXMtx(rotX, pitch);
-        m254_MakeRotYMtx(rotY, path[4]);
+        m254_MakeRotYMtx(rotY, path->rot.y);
         m254_MultiplyMtx(rotX, rotY, mtx);
         func_801114B0_motor_rooter(mtx, &ofs, &out.x);
-        model->pos.x = path[0] + out.x;
-        model->pos.y = path[1] + out.y;
-        model->pos.z = path[2] + out.z;
+        model->pos.x = path->pos.x + out.x;
+        model->pos.y = path->pos.y + out.y;
+        model->pos.z = path->pos.z + out.z;
         model->rot.x = pitch;
-        model->rot.y = path[4];
+        model->rot.y = path->rot.y;
         m254_MakeIdentityMtx(model->mtx);
         func_80017D24_main(model->mtx, 0.0f, 0.0f, angle);
     }
@@ -1375,7 +1383,7 @@ void func_80109EFC_motor_rooter(FuncContext *ctx) {
     HmfModel *model;
     PlayerView *view;
     s16 i;
-    f32 *path;
+    PathPoint *path;
     f32 angle;
     f32 pitch;
 
@@ -1387,17 +1395,17 @@ void func_80109EFC_motor_rooter(FuncContext *ctx) {
     ofs.x = sindf(angle) * 64.00000095367431640625;
     ofs.y = -cosdf(angle) * 64.00000095367431640625;
     ofs.z = -30.0f;
-    path = &D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9];
-    pitch = path[3] - 180.0f;
+    path = &D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]]];
+    pitch = path->rot.x - 180.0f;
     m254_MakeRotXMtx(rotX, pitch);
-    m254_MakeRotYMtx(rotY, path[4]);
+    m254_MakeRotYMtx(rotY, path->rot.y);
     m254_MultiplyMtx(rotX, rotY, mtx);
     func_801114B0_motor_rooter(mtx, &ofs, &out.x);
-    model->pos.x = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 0] + out.x;
-    model->pos.y = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 1] + out.y;
-    model->pos.z = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 2] + out.z;
+    model->pos.x = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]]].pos.x + out.x;
+    model->pos.y = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]]].pos.y + out.y;
+    model->pos.z = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]]].pos.z + out.z;
     model->rot.x = pitch;
-    model->rot.y = path[4];
+    model->rot.y = path->rot.y;
     m254_MakeIdentityMtx(model->mtx);
     func_80017D24_main(model->mtx, 0.0f, 0.0f, angle);
 }
@@ -2202,9 +2210,95 @@ void func_8010C824_motor_rooter(FuncContext *ctx) {
 }
 /* </func_8010C824_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010CB2C_motor_rooter);
+/* <func_8010CB2C_motor_rooter> */
+void func_8010CB2C_motor_rooter(omObjData *object, s16 arg1, s16 arg2) {
+    D_801137C8_motor_rooter_Struct *work = &D_801137C8_motor_rooter[object->work[0]];
+    f32 jitter = 0.0f;
+    s16 idx = object->work[0];
+    s16 modelId = object->model[arg2];
+    HmfModel *model;
+    f32 angle;
+    f32 mtxX[16];
+    f32 mtxY[16];
+    f32 mtx[16];
+    Vec in;
+    Vec out;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010CD84_motor_rooter);
+    if (arg1 == 4) {
+        jitter = rand16() % 31 - 15;
+    }
+    model = &HmfModelData[modelId];
+    angle = jitter + work->unk18;
+    in.x = sindf(angle) * 55.999999046325684;
+    in.y = -cosdf(angle) * 55.999999046325684;
+    in.z = -100.0f;
+    m254_MakeRotXMtx(mtxX, CRotM[idx].x);
+    m254_MakeRotYMtx(mtxY, CRotM[idx].y);
+    m254_MultiplyMtx(mtxX, mtxY, mtx);
+    func_801114B0_motor_rooter(mtx, &in, (f32 *)&out);
+    model->pos.x = CenterM[idx].x + out.x;
+    model->pos.y = CenterM[idx].y + out.y;
+    model->pos.z = CenterM[idx].z + out.z;
+    model->rot.x = CRotM[idx].x;
+    model->rot.y = CRotM[idx].y;
+    m254_MakeIdentityMtx(model->mtx);
+    func_80017D24_main(model->mtx, 0.0f, 0.0f, angle);
+}
+/* </func_8010CB2C_motor_rooter> */
+
+/* <func_8010CD84_motor_rooter> */
+void func_8010CD84_motor_rooter(Vec *points, s16 count) {
+    PathPoint *p;
+    f32 len;
+    f32 total;
+    f32 start;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 out[4];
+    s16 i;
+
+    p = D_801137C0_motor_rooter = HuMemAllocTag(count * sizeof(PathPoint), 0x7918);
+    start = 0.0f;
+    total = 0.0f;
+    for (i = 0; i < count - 1; i++) {
+        dx = points[i + 1].x - points[i].x;
+        dy = points[i + 1].y - points[i].y;
+        dz = points[i + 1].z - points[i].z;
+        p->len = p->invLen = sqrtf(dx * dx + dy * dy + dz * dz);
+        p->dist = total;
+        total += p->len;
+        if (i <= D_801137CC_motor_rooter) {
+            start += p->len;
+        }
+        if (p->invLen != 0.0f) {
+            p->invLen = 1.0f / p->invLen;
+        } else {
+            p->invLen = 0.0f;
+        }
+        p->pos.x = points[i].x;
+        p->pos.y = points[i].y;
+        p->pos.z = points[i].z;
+        m254_CalcPitchAndYaw(points[i], points[i + 1], out);
+        p->rot.x = out[0] + 180.0f;
+        p->rot.y = out[1] - 180.0f;
+        p->rot.z = 0;
+        while (p->rot.x >= 360.0f) {
+            p->rot.x -= 360.0f;
+        }
+        p++;
+    }
+    p->len = -1.0f;
+    p->dist = total;
+    p->pos.x = points[i].x;
+    p->pos.y = points[i].y;
+    p->pos.z = points[i].z;
+    m254_minigame->unk04 = total;
+    m254_minigame->unk08 = start;
+    m254_minigame->unk0C = count;
+    m254_minigame->unk0E = 60;
+}
+/* </func_8010CD84_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D03C_motor_rooter);
 
