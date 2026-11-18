@@ -165,24 +165,26 @@ extern HuSprite_Unk84_Struct *D_8010C414_merry_go_chomp;
 extern s8 D_8010C418_merry_go_chomp;
 extern s8 D_8010C4B0_merry_go_chomp;
 extern s16 D_8010C4B2_merry_go_chomp;
+/* The chomp's stop window on the lift's rotation: [0] from, [1] to. */
+extern f32 D_8010C4B4_merry_go_chomp[2];
 extern s8 D_8010C4BC_merry_go_chomp;
 extern s8 D_8010C4BD_merry_go_chomp;
 extern s8 D_8010C4BE_merry_go_chomp[5];
 extern s16 D_8010C4C4_merry_go_chomp;
 extern omObjData *D_8010C4C8_merry_go_chomp;
+extern s16 D_8010C4CC_merry_go_chomp;
 extern s8 D_8010C4CE_merry_go_chomp;
 /* The chomp's chain: [0] at the chomp, [5] the stake. */
 extern McLink D_8010C4D0_merry_go_chomp[6];
 /* The object table: [0] the background, [5..8] the players, [10], [15], [25], [30] the stage objects. */
 extern McEnt D_8010C500_merry_go_chomp[50];
-extern f32 D_8010CD04_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.y */
-extern f32 D_8010CD08_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.z */
 extern s8 D_8010DEC8_merry_go_chomp;
 extern s16 D_8010DECA_merry_go_chomp;
 extern u8 D_8010DECC_merry_go_chomp[5];
 extern f32 D_8010DED4_merry_go_chomp;
 extern s8 D_8010DED8_merry_go_chomp;
-extern u8 D_8010DEDC_merry_go_chomp;
+extern s16 D_8010DEDA_merry_go_chomp;
+extern s8 D_8010DEDC_merry_go_chomp;
 extern s8 D_8010DEDD_merry_go_chomp;
 
 /* .data */
@@ -465,11 +467,11 @@ void func_801064E8_merry_go_chomp(omObjData *obj) {
     obj->model[2] = func_8000B108_main(0x4E0002, 0x2B9);
     obj->trans.x = -500.0f;
     obj->trans.y = 0.0f;
-    D_8010CD04_merry_go_chomp = 0.0f;
+    D_8010C500_merry_go_chomp[15].pos.y = 0.0f;
     obj->trans.z = -400.0f;
-    D_8010CD08_merry_go_chomp = -225.0f;
+    D_8010C500_merry_go_chomp[15].pos.z = -225.0f;
     Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
-    Hu3DModelPosSet(obj->model[1], obj->trans.x, D_8010CD04_merry_go_chomp, D_8010CD08_merry_go_chomp);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, D_8010C500_merry_go_chomp[15].pos.y, D_8010C500_merry_go_chomp[15].pos.z);
     Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
     func_8001C8A8_main(obj->model[0], 2);
     func_8001C8A8_main(obj->model[1], 2);
@@ -1488,7 +1490,233 @@ void func_8010AECC_merry_go_chomp(void) {
     D_8010C500_merry_go_chomp[30].obj = omAddObj(1000, 1, 1, -1, func_8010AE2C_merry_go_chomp);
 }
 
+#ifdef NON_MATCHING
+void func_8010AF08_merry_go_chomp(void) {
+    omObjData *lift = D_8010C500_merry_go_chomp[25].obj;
+    s8 found;
+
+    switch (D_8010C4B0_merry_go_chomp) {
+    case 0:
+        GMesCreate(0x1A, 10, 160, 28);
+        D_8010C4B2_merry_go_chomp = 151;
+        if (D_8010C418_merry_go_chomp == D_8010C4CE_merry_go_chomp) {
+            D_8010C4C4_merry_go_chomp = HuAudFXPlay(0x471);
+            D_8010C410_merry_go_chomp = -1;
+            D_8010C418_merry_go_chomp++;
+        }
+        D_8010DED4_merry_go_chomp = 3.0f;
+        D_8010C4B0_merry_go_chomp = 1;
+        break;
+    case 1:
+        if (D_8010C4B2_merry_go_chomp > 0) {
+            D_8010C4B2_merry_go_chomp--;
+            func_8003F578_main((D_8010C4B2_merry_go_chomp + 29) / 30);
+        } else {
+            func_8003F5C0_main();
+        }
+        if (D_8010DEDC_merry_go_chomp != 0) {
+            D_8010DEDC_merry_go_chomp = 0;
+            func_8003F5C0_main();
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010C4B0_merry_go_chomp = 2;
+        }
+        break;
+    case 2:
+        if (D_8010C4B2_merry_go_chomp < 15) {
+            D_8010C4B2_merry_go_chomp++;
+        } else if ((s8)++D_8010DEDD_merry_go_chomp == 4 - D_8010C4CE_merry_go_chomp) {
+            D_8010C4B0_merry_go_chomp = 3;
+            D_8010C4B2_merry_go_chomp = 0;
+            switch (D_8010C4CE_merry_go_chomp) {
+            case 0:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(5);
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(270.0f, D_8010DED8_merry_go_chomp * -72);
+                break;
+            case 1:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(4);
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(270.0f, D_8010DED8_merry_go_chomp * -90);
+                break;
+            case 2:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(3);
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(270.0f, D_8010DED8_merry_go_chomp * -120);
+                break;
+            }
+            D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(D_8010C4B4_merry_go_chomp[0], -3.0f);
+            D_8010C4B4_merry_go_chomp[1] = func_801059BC_merry_go_chomp(D_8010C4B4_merry_go_chomp[0], 6.0f);
+            D_8010C410_merry_go_chomp = HuAudFXPlay(0x472);
+        } else {
+            D_8010C4B0_merry_go_chomp = 0;
+        }
+        break;
+    case 3:
+        D_8010DEDA_merry_go_chomp = D_8010DED4_merry_go_chomp * 40.0f;
+        if (D_8010DEDA_merry_go_chomp > 1200) {
+            D_8010DEDA_merry_go_chomp = 1200;
+        }
+        HuAudFXPitchSet(D_8010C4C4_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        if (D_8010C410_merry_go_chomp > 0) {
+            D_8010C4CC_merry_go_chomp = D_8010DED4_merry_go_chomp * 26.0f;
+            HuAudFXPitchSet(D_8010C410_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        }
+        if (D_8010C4B2_merry_go_chomp < 54) {
+            D_8010C4B2_merry_go_chomp++;
+            D_8010DED4_merry_go_chomp += 0.5;
+            if (D_8010C4B2_merry_go_chomp == 53) {
+                lift->rot.y -= 0.5;
+            }
+        } else {
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010DED4_merry_go_chomp = 30.0f;
+            D_8010C4B0_merry_go_chomp = 4;
+        }
+        break;
+    case 7:
+        D_8010DEDA_merry_go_chomp = D_8010DED4_merry_go_chomp * 40.0f;
+        if (D_8010DEDA_merry_go_chomp > 1200) {
+            D_8010DEDA_merry_go_chomp = 1200;
+        }
+        HuAudFXPitchSet(D_8010C4C4_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        if (D_8010C410_merry_go_chomp > 0) {
+            D_8010C4CC_merry_go_chomp = D_8010DED4_merry_go_chomp * 26.0f;
+            HuAudFXPitchSet(D_8010C410_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        }
+        if (D_8010C4B2_merry_go_chomp < 54) {
+            D_8010C4B2_merry_go_chomp++;
+            D_8010DED4_merry_go_chomp += 0.5;
+            if (D_8010C4B2_merry_go_chomp == 53) {
+                lift->rot.y -= 0.5;
+            }
+        } else {
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010DED4_merry_go_chomp = 30.0f;
+            D_8010C4B0_merry_go_chomp = 4;
+        }
+        break;
+    case 4:
+        D_8010DEDA_merry_go_chomp = D_8010DED4_merry_go_chomp * 40.0f;
+        if (D_8010DEDA_merry_go_chomp > 1200) {
+            D_8010DEDA_merry_go_chomp = 1200;
+        }
+        HuAudFXPitchSet(D_8010C4C4_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        HuAudFXPitchSet(D_8010C410_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        D_8010C4B2_merry_go_chomp++;
+        if (D_8010DED4_merry_go_chomp > 3.0f) {
+            D_8010DED4_merry_go_chomp -= 0.2f;
+        } else {
+            D_8010DED4_merry_go_chomp = 3.0f;
+            if ((D_8010C4B4_merry_go_chomp[0] <= lift->rot.y && lift->rot.y <= D_8010C4B4_merry_go_chomp[1]) ||
+                (D_8010C4B4_merry_go_chomp[0] <= lift->rot.y && lift->rot.y > 355.0f &&
+                 D_8010C4B4_merry_go_chomp[1] < 5.0f) ||
+                (lift->rot.y < 5.0f && lift->rot.y <= D_8010C4B4_merry_go_chomp[1] &&
+                 D_8010C4B4_merry_go_chomp[0] > 355.0f)) {
+                D_8010DED4_merry_go_chomp = 0.0f;
+                D_8010C4B2_merry_go_chomp = 0;
+                HuAudFXStop(D_8010C4C4_merry_go_chomp);
+                HuAudFXStop(D_8010C410_merry_go_chomp);
+                HuAudFXPlay(0x477);
+                found = func_80107980_merry_go_chomp();
+                if (found != -1) {
+                    D_8010DEC8_merry_go_chomp = found;
+                    D_8010C4B0_merry_go_chomp = 5;
+                } else {
+                    D_8010C4B2_merry_go_chomp = 0;
+                    D_8010C4B0_merry_go_chomp = 6;
+                }
+            }
+        }
+        break;
+    case 8:
+        D_8010DEDA_merry_go_chomp = D_8010DED4_merry_go_chomp * 40.0f;
+        if (D_8010DEDA_merry_go_chomp > 1200) {
+            D_8010DEDA_merry_go_chomp = 1200;
+        }
+        HuAudFXPitchSet(D_8010C4C4_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        HuAudFXPitchSet(D_8010C410_merry_go_chomp, D_8010DEDA_merry_go_chomp);
+        D_8010C4B2_merry_go_chomp++;
+        if (D_8010DED4_merry_go_chomp > 3.0f) {
+            D_8010DED4_merry_go_chomp -= 0.2f;
+        } else {
+            D_8010DED4_merry_go_chomp = 3.0f;
+            if ((D_8010C4B4_merry_go_chomp[0] <= lift->rot.y && lift->rot.y <= D_8010C4B4_merry_go_chomp[1]) ||
+                (D_8010C4B4_merry_go_chomp[0] <= lift->rot.y && lift->rot.y > 355.0f &&
+                 D_8010C4B4_merry_go_chomp[1] < 5.0f) ||
+                (lift->rot.y < 5.0f && lift->rot.y <= D_8010C4B4_merry_go_chomp[1] &&
+                 D_8010C4B4_merry_go_chomp[0] > 355.0f)) {
+                D_8010DED4_merry_go_chomp = 0.0f;
+                D_8010C4B2_merry_go_chomp = 0;
+                HuAudFXStop(D_8010C4C4_merry_go_chomp);
+                HuAudFXStop(D_8010C410_merry_go_chomp);
+                HuAudFXPlay(0x477);
+                found = func_80107980_merry_go_chomp();
+                if (found != -1) {
+                    D_8010DEC8_merry_go_chomp = found;
+                    D_8010C4B0_merry_go_chomp = 5;
+                } else {
+                    D_8010C4B2_merry_go_chomp = 0;
+                    D_8010C4B0_merry_go_chomp = 6;
+                }
+            }
+        }
+        break;
+    case 6:
+        if (++D_8010C4B2_merry_go_chomp > 60) {
+            switch (D_8010C4CE_merry_go_chomp) {
+            case 0:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(4) + 1;
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(lift->rot.y, D_8010DED8_merry_go_chomp * -72);
+                break;
+            case 1:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(3) + 1;
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(lift->rot.y, D_8010DED8_merry_go_chomp * -90);
+                break;
+            case 2:
+                D_8010DED8_merry_go_chomp = func_80105CE4_merry_go_chomp(2) + 1;
+                D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(lift->rot.y, D_8010DED8_merry_go_chomp * -120);
+                break;
+            }
+            D_8010C4B4_merry_go_chomp[0] = func_801059BC_merry_go_chomp(D_8010C4B4_merry_go_chomp[0], -3.0f);
+            D_8010C4B4_merry_go_chomp[1] = func_801059BC_merry_go_chomp(D_8010C4B4_merry_go_chomp[0], 6.0f);
+            D_8010C4B0_merry_go_chomp = 7;
+            D_8010DED4_merry_go_chomp = 3.0f;
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010C4C4_merry_go_chomp = HuAudFXPlay(0x471);
+            D_8010C410_merry_go_chomp = HuAudFXPlay(0x472);
+        }
+        break;
+    case 5:
+        if (D_8010C4B2_merry_go_chomp < 80) {
+            D_8010C4B2_merry_go_chomp++;
+        } else {
+            D_8010C4B2_merry_go_chomp = 0;
+            if (D_8010C4CE_merry_go_chomp == 2) {
+                D_8010C4B0_merry_go_chomp = 10;
+            } else {
+                D_8010C4B0_merry_go_chomp = 9;
+            }
+        }
+        break;
+    case 9:
+        if (D_8010C4B2_merry_go_chomp < 50) {
+            D_8010C4B2_merry_go_chomp++;
+        }
+        if ((D_8010C4CE_merry_go_chomp == 0 && D_8010DEDC_merry_go_chomp == 15) ||
+            (D_8010C4CE_merry_go_chomp == 1 && D_8010DEDC_merry_go_chomp == 11)) {
+            D_8010DEDC_merry_go_chomp = 0;
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010DEDD_merry_go_chomp = 0;
+            D_8010C4BE_merry_go_chomp[0] = 1;
+            D_8010C4BE_merry_go_chomp[1] = 1;
+            D_8010C4BE_merry_go_chomp[2] = 1;
+            D_8010C4BE_merry_go_chomp[3] = 1;
+            D_8010C4CE_merry_go_chomp++;
+            D_8010C4B0_merry_go_chomp = 0;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010AF08_merry_go_chomp);
+#endif
 
 void func_8010BAB8_merry_go_chomp(void) {
     u32 i;
