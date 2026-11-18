@@ -1649,3 +1649,47 @@ void func_8010A454_chip_shot_challenge(omObjData* obj, s32* stickX, s32* stickY,
         }
     }
 }
+
+/* .data (0x1DE3D0) */
+s32 D_8010A820_chip_shot_challenge = 0;
+s32 D_8010A824_chip_shot_challenge = 0;
+f32 D_8010A828_chip_shot_challenge = 0.0f;
+f32 D_8010A82C_chip_shot_challenge = 0.0f;
+f32 D_8010A830_chip_shot_challenge = 0.0f;
+f32 D_8010A834_chip_shot_challenge = 5.0f;
+f32 D_8010A838_chip_shot_challenge = 0.0f;
+s32 D_8010A83C_chip_shot_challenge = 0;
+s32 D_8010A840_chip_shot_challenge = 0;
+s32 D_8010A844_chip_shot_challenge = -1; /* the remaining asm reads its low half as D_8010A846 */
+s32 D_8010A848_chip_shot_challenge = 1;
+s32 D_8010A84C_chip_shot_challenge[4][3] = { { -200, 0, 100 }, { -80, 0, 100 }, { 80, 0, 100 }, { 200, 0, 100 } };
+f32 D_8010A87C_chip_shot_challenge[5] = { 125.0f, 155.0f, 180.0f, 215.0f, 245.0f };
+f32 D_8010A890_chip_shot_challenge[5] = { 600.0f, 800.0f, 400.0f, 900.0f, 200.0f };
+f32 D_8010A8A4_chip_shot_challenge[5] = { 2500.0f, 3000.0f, 3500.0f, 4000.0f, 4500.0f };
+f32 D_8010A8B8_chip_shot_challenge[5] = { 0.075f, 0.1f, 0.15f, 0.2f, 0.15f };
+f32 D_8010A8CC_chip_shot_challenge[5] = { 0.0f, 270.0f, 180.0f, 30.0f, 190.0f };
+s32 D_8010A8E0_chip_shot_challenge[4] = { 1, 1, 1, 1 };
+f32 D_8010A8F0_chip_shot_challenge[4] = { 10000.0f, 10000.0f, 10000.0f, 10000.0f };
+CsCtrl D_8010A900_chip_shot_challenge = {
+    0, 0, 1, 0, 0, 0, 0, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 96, 0xFFFF, -1, 75, 135,
+};
+s32 D_8010A928_chip_shot_challenge[4] = { -1, -1, -1, -1 };
+f32 D_8010A938_chip_shot_challenge = -1000.0f;
+f32 D_8010A93C_chip_shot_challenge = -30.0f;
+f32 D_8010A940_chip_shot_challenge = 0.0f;
+f32 D_8010A944_chip_shot_challenge = -0.8f;
+s32 D_8010A948_chip_shot_challenge = -1;
+s32 D_8010A94C_chip_shot_challenge = 0;
+s32 D_8010A950_chip_shot_challenge = -1;
+f32 D_8010A954_chip_shot_challenge = 0.0f;
+s32 D_8010A958_chip_shot_challenge = -1;
+f32 D_8010A95C_chip_shot_challenge[4] = { -300.0f, -600.0f, -900.0f, -1200.0f }; /* unused: the players' x */
+u8 D_8010A96C_chip_shot_challenge = 0xF0;
+f32 D_8010A970_chip_shot_challenge = 0.0f;
+f32 D_8010A974_chip_shot_challenge = 0.0f;
+f32 D_8010A978_chip_shot_challenge = 0.0f;
+f32 D_8010A97C_chip_shot_challenge = 0.0f;
+s32 D_8010A980_chip_shot_challenge = -1;
+f32 D_8010A984_chip_shot_challenge[4] = { 1000.0f, 1000.0f, 1000.0f, 1000.0f };
+f32 D_8010A994_chip_shot_challenge[4] = { 1000.0f, 1000.0f, 1000.0f, 1000.0f };
+f32 D_8010A9A4_chip_shot_challenge[4] = { 1.0f, 0.7f, 0.5f, 0.3f };

@@ -411,3 +411,5 @@ D_8010DE98_log_jam = D_8010DE90_log_jam + 0x8;
 D_8010DFE8_log_jam = D_8010DFD4_log_jam + 0x14;
 D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
 D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
+/* m2 cs: chip_shot_challenge/1D9550 .data halfword still named by the remaining asm */
+D_8010A846_chip_shot_challenge = D_8010A844_chip_shot_challenge + 0x2;
