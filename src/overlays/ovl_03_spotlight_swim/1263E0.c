@@ -159,6 +159,29 @@ extern f32 D_8010D344_spotlight_swim;
 extern f32 D_8010D370_spotlight_swim[2];
 extern s8 D_8010D3CC_spotlight_swim;
 
+/* The spotlight's steering state at 0x8010D328 (other functions use the per-field labels D_8010D329..D_8010D330). */
+typedef struct SsSteer {
+    /* 0x00 */ s8 level;
+    /* 0x01 */ s8 edge;
+    /* 0x02 */ s8 unk2;
+    /* 0x03 */ s8 dir;
+    /* 0x04 */ s8 mode;
+    /* 0x05 */ s8 ai;
+    /* 0x06 */ s8 pad6[2];
+    /* 0x08 */ f32 heading;
+} SsSteer;
+
+extern SsSteer D_8010D328_spotlight_swim;
+extern f32 D_8010D3C0_spotlight_swim[3];
+extern s16 D_8010D368_spotlight_swim[3];
+extern s8 D_8010D378_spotlight_swim;
+extern s8 D_8010D34E_spotlight_swim;
+extern s16 D_8010D364_spotlight_swim;
+extern u8 D_8010CCFC_spotlight_swim[][2];
+extern u8 D_8010CD4C_spotlight_swim[];
+extern s16 D_8010CD0C_spotlight_swim[];
+extern s16 D_8010CD2C_spotlight_swim[];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -789,7 +812,160 @@ void func_801079FC_spotlight_swim(omObjData *obj) {
     func_801069BC_spotlight_swim(obj);
 }
 
+/* The spotlight's steering: picks a target and heading (D_8010D328_spotlight_swim.heading). */
+#ifdef NON_MATCHING
+/* regalloc only: idx and the switch value swap a0/v1 in the corner switch */
+void func_80107C10_spotlight_swim(omObjData *obj) {
+    f32 angle;
+    s16 min;
+    s16 max;
+    s16 i;
+    s16 r;
+    s16 idx;
+    s8 edge;
+    s8 near;
+    s8 mid;
+    s8 far;
+
+    edge = 0;
+    far = 0;
+    near = 0;
+    mid = 0;
+    max = 0;
+    min = 540;
+    for (i = 0; i < 3; i++) {
+        angle = D_8010D3C0_spotlight_swim[i];
+        if (angle < 180.0f) {
+            angle += 360.0f;
+        }
+        if (angle < min) {
+            min = angle;
+        }
+        if (max < angle) {
+            max = angle;
+        }
+        if (D_8010D368_spotlight_swim[i] < 24) {
+            near++;
+        }
+        if (D_8010D368_spotlight_swim[i] < 39) {
+            mid++;
+        }
+        if (D_8010D368_spotlight_swim[i] >= 107) {
+            far++;
+        }
+    }
+    if (obj->trans.x <= -350.0f) {
+        edge |= 1;
+    } else if (obj->trans.x >= 350.0f) {
+        edge |= 2;
+    }
+    if (obj->trans.z <= -350.0f) {
+        edge |= 4;
+    } else if (obj->trans.z >= 160.0f) {
+        edge |= 8;
+    }
+    if (D_8010D378_spotlight_swim == 0 && (edge == 5 || edge == 6 || edge == 9 || edge == 10)) {
+        D_8010D378_spotlight_swim = 1;
+        idx = func_80105C8C_spotlight_swim(2);
+        switch (edge) {
+        case 5:
+            break;
+        case 6:
+            idx += 4;
+            break;
+        case 9:
+            idx += 6;
+            break;
+        case 10:
+            idx += 2;
+            break;
+        }
+        D_8010D34E_spotlight_swim = D_8010CCFC_spotlight_swim[idx][0];
+        D_8010D328_spotlight_swim.dir = D_8010CCFC_spotlight_swim[idx][1];
+    }
+    if (obj->trans.x >= -150.0f && obj->trans.x <= 150.0f) {
+        if (obj->trans.z >= -200.0f && obj->trans.z <= 10.0f) {
+            if (mid >= 2 && D_8010D328_spotlight_swim.ai != 0) {
+                D_8010D378_spotlight_swim = 0;
+                D_8010D328_spotlight_swim.ai = 2;
+            }
+        }
+    }
+    if (D_8010D328_spotlight_swim.mode == 0) {
+        if ((mid == 3 && near == 2) || (mid == 3 && D_8010D328_spotlight_swim.edge == mid)) {
+            r = func_80105C8C_spotlight_swim(250);
+            r += func_80105C8C_spotlight_swim(250);
+            if (D_8010D364_spotlight_swim >= 451) {
+                r >>= 1;
+            }
+            if (r < D_8010CD4C_spotlight_swim[D_8010D328_spotlight_swim.level]) {
+                D_8010D328_spotlight_swim.mode = 1;
+                func_80106808_spotlight_swim(obj);
+                func_80105C04_spotlight_swim(0, (s16)obj->work[0]);
+            }
+        }
+    } else if (D_8010D328_spotlight_swim.mode == 1) {
+        if (far > 0 && D_8010D328_spotlight_swim.level >= 2) {
+            D_8010D328_spotlight_swim.mode = 2;
+            func_80106808_spotlight_swim(obj);
+            D_8010D478_spotlight_swim = 1;
+            func_80105C04_spotlight_swim(2, (s16)obj->work[0]);
+        }
+    }
+    switch (D_8010D328_spotlight_swim.ai) {
+    case 0:
+        r = func_80105C8C_spotlight_swim(100);
+        if (r < 10 || D_8010D328_spotlight_swim.edge != 0) {
+            D_8010D328_spotlight_swim.ai = 1;
+        }
+        break;
+    case 1:
+        if (D_8010D378_spotlight_swim != 0) {
+            if (edge == 0) {
+                D_8010D378_spotlight_swim = 0;
+            }
+        } else {
+            r = func_80105C8C_spotlight_swim(100);
+            if (r < 5 || D_8010D328_spotlight_swim.edge == 1 || D_8010D328_spotlight_swim.edge == 2) {
+                D_8010D34E_spotlight_swim = func_80105C8C_spotlight_swim(15);
+                D_8010D328_spotlight_swim.dir = func_80105C8C_spotlight_swim(2);
+            } else if (r >= 85) {
+                D_8010D328_spotlight_swim.ai = 0;
+            }
+            if (obj->trans.x <= -420.0f || obj->trans.x >= 420.0f) {
+                D_8010D328_spotlight_swim.heading = (func_80105C8C_spotlight_swim(2) == 0) ? 180.0f : 0.0f;
+                D_8010D328_spotlight_swim.ai = 0;
+            }
+            if (obj->trans.z <= -420.0f || obj->trans.z >= 230.0f) {
+                D_8010D328_spotlight_swim.heading = (func_80105C8C_spotlight_swim(2) != 0) ? 90.0f : 270.0f;
+                D_8010D328_spotlight_swim.ai = 0;
+            }
+        }
+        angle = func_801059BC_spotlight_swim(atan2df(D_8010CD0C_spotlight_swim[D_8010D34E_spotlight_swim] - obj->trans.x,
+                                                     D_8010CD2C_spotlight_swim[D_8010D34E_spotlight_swim] - obj->trans.z),
+                                             0.0f);
+        if (D_8010D328_spotlight_swim.dir != 0) {
+            D_8010D328_spotlight_swim.heading = func_801059BC_spotlight_swim(angle, 90.0f);
+        } else {
+            D_8010D328_spotlight_swim.heading = func_801059BC_spotlight_swim(angle, 270.0f);
+        }
+        break;
+    case 2:
+        D_8010D328_spotlight_swim.heading = ((min + max + 360) >> 1) % 360;
+        if (obj->trans.x <= -420.0f || obj->trans.x >= 420.0f) {
+            D_8010D328_spotlight_swim.heading = (func_80105C8C_spotlight_swim(2) == 0) ? 180.0f : 0.0f;
+            D_8010D328_spotlight_swim.ai = 0;
+        }
+        if (obj->trans.z <= -420.0f || obj->trans.z >= 230.0f) {
+            D_8010D328_spotlight_swim.heading = (func_80105C8C_spotlight_swim(2) != 0) ? 90.0f : 270.0f;
+            D_8010D328_spotlight_swim.ai = 0;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80107C10_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010846C_spotlight_swim);
 
