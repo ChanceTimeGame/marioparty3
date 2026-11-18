@@ -2009,4 +2009,17 @@ void func_8010A484_parasol_plummet(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010A484_parasol_plummet);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010A75C_parasol_plummet);
+void func_8010A75C_parasol_plummet(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
+    func_8000B5F0_main(1);
+    D_8010AB50_parasol_plummet = func_8000B638_main();
+    ScissorSet(D_8010AB50_parasol_plummet, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(D_8010AB50_parasol_plummet, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    CZoom = zoom;
+    CRot.x = rotX;
+    CRot.y = rotY;
+    CRot.z = rotZ;
+    Center.x = x;
+    Center.y = y;
+    Center.z = z;
+    Hu3DCamSetPerspective(D_8010AB50_parasol_plummet, 30.0f, 80.0f, 8000.0f);
+}
