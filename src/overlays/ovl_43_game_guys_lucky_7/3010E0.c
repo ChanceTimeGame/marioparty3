@@ -139,6 +139,30 @@ typedef struct L7Step {
     /* 0x02 */ u16 frame;
 } L7Step;
 
+/* A model's vertex-scatter effect: a copy of src/13F90.c's HmfFxPart/HmfFxWork (main's real layout) */
+typedef struct L7FxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 speed;
+    /* 0x08 */ f32 scale;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec dir;
+    /* 0x24 */ Vec vel;
+} L7FxPart; /* size 0x30 */
+
+typedef struct L7FxWork {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02; /* frame */
+    /* 0x04 */ u16 unk04; /* flags: 1 loop, 4 finished, 8 recolour */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ char unk10[8];
+    /* 0x18 */ void (*unk18)(s16);
+    /* 0x1C */ char unk1C[0xC];
+    /* 0x28 */ Vec verts[4];
+    /* 0x58 */ L7FxPart* parts;
+} L7FxWork; /* size 0x5C */
+
 // LOCAL
 void func_801059A0_game_guys_lucky_7(void);
 s32 func_801059BC_game_guys_lucky_7(f32 range);
@@ -171,6 +195,11 @@ void func_8010ADB8_game_guys_lucky_7(s16 winId);
 void func_8010ADF8_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu);
 s16 func_8010AF44_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 arg3);
 
+void func_801083A0_game_guys_lucky_7(void);
+void func_80108498_game_guys_lucky_7(void);
+void func_801085D4_game_guys_lucky_7(void);
+void func_8010B528_game_guys_lucky_7(s16 model);
+
 /* 306F70 */
 void func_8010B830_game_guys_lucky_7(s16 x, s16 y);
 s16 func_8010BB88_game_guys_lucky_7(void);
@@ -180,6 +209,7 @@ s16 func_8010C670_game_guys_lucky_7(s32 x);
 extern s16 D_8010D150_game_guys_lucky_7[10][3]; /* windows: x, y, ? */
 extern u16 D_8010D18E_game_guys_lucky_7; /* main step */
 extern u16 D_8010D190_game_guys_lucky_7; /* main step frames */
+extern GgmCpuKey D_8010D188_game_guys_lucky_7[3]; /* CPU key delay by CPU level */
 extern char* D_8010D194_game_guys_lucky_7[8]; /* character names */
 extern s16 D_8010D1B4_game_guys_lucky_7; /* title step */
 extern u16 D_8010D1B6_game_guys_lucky_7; /* title frame */
@@ -195,6 +225,8 @@ extern u16 D_8010D776_game_guys_lucky_7;
 extern u16 D_8010D77A_game_guys_lucky_7; /* won */
 extern u16 D_8010D77C_game_guys_lucky_7; /* rules window done */
 extern s16 D_8010D802_game_guys_lucky_7; /* CPU level */
+extern s16 D_8010D798_game_guys_lucky_7[4]; /* result effect models */
+extern s16 D_8010D804_game_guys_lucky_7; /* result effect frame */
 
 
 void func_801059A0_game_guys_lucky_7(void) {
@@ -489,7 +521,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107EEC_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107F44_game_guys_lucky_7);
+void func_80107F44_game_guys_lucky_7(omObjData* obj) {
+    if (D_800D530C_main == 1) {
+        obj->func = func_80107DE4_game_guys_lucky_7;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107F6C_game_guys_lucky_7);
 
@@ -501,7 +537,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010826C_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80108374_game_guys_lucky_7);
+void func_80108374_game_guys_lucky_7(void) {
+    func_801083A0_game_guys_lucky_7();
+    func_80108498_game_guys_lucky_7();
+    func_801085D4_game_guys_lucky_7();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801083A0_game_guys_lucky_7);
 
@@ -547,11 +587,47 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010AA8C_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010AD44_game_guys_lucky_7);
+s16 func_8010AD44_game_guys_lucky_7(s16 x, s16 y, s16 mes) {
+    s16 winId = func_80060880_main(x, y, mes);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010ADB8_game_guys_lucky_7);
+    func_8005B63C_main(winId, 2, 2);
+    func_80061100_main(winId, 1);
+    func_8005BDFC_main(winId, 0);
+    func_8005D294_main(winId);
+    return winId;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010ADF8_game_guys_lucky_7);
+void func_8010ADB8_game_guys_lucky_7(s16 winId) {
+    func_8005D294_main(winId);
+    func_80060EA8_main(winId, 1);
+    func_800610E0_main(winId);
+}
+
+void func_8010ADF8_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu) {
+    s16 i;
+
+    func_8005F904_main();
+    while (func_8005E0C0_main(winId) != 0) {
+        switch (cpu) {
+        case 0:
+            if (D_800D5558_main[pad] & 0x8000) {
+                func_8005F744_main(-0x8000, -0x8000, -0x8000, -0x8000);
+            }
+            break;
+        case 1:
+            for (i = 0; i < 10; i++) {
+                func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000,
+                                   (&D_8010D188_game_guys_lucky_7[D_8010D802_game_guys_lucky_7])->delay);
+            }
+            while (func_8005E0C0_main(winId) != 0) {
+                HuPrcVSleep();
+            }
+            break;
+        }
+        HuPrcVSleep();
+    }
+    func_8005F904_main();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010AF44_game_guys_lucky_7);
 
@@ -565,8 +641,46 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B334_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B498_game_guys_lucky_7);
+void func_8010B498_game_guys_lucky_7(omObjData *obj) {
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (!((D_8010D804_game_guys_lucky_7 + i) & 7)) {
+            func_8010B528_game_guys_lucky_7(D_8010D798_game_guys_lucky_7[i]);
+        }
+    }
+    D_8010D804_game_guys_lucky_7++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B528_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B6E0_game_guys_lucky_7);
+void func_8010B6E0_game_guys_lucky_7(s16 model) {
+    HmfData *hmf;
+    L7FxWork *work;
+    L7FxPart *part;
+    u16 count;
+    s16 i;
+
+    hmf = HmfModelData[model].hmf;
+    work = (L7FxWork *)HmfModelData[model].unkBC;
+    count = ((s16 *)hmf->unk16)[2]; /* HmfData +0x1A: face group count */
+    if (work->unk02 == 0) {
+        work->unk04 &= ~4;
+        part = work->parts;
+        for (i = 0; i < (s16)count; i++, part++) {
+            part->scale = part->vel.x = part->vel.y = part->vel.z = part->pos.x = part->pos.y = part->pos.z = 0.0f;
+            part->speed = 1.0f;
+        }
+        work->unk02++;
+    }
+    part = work->parts;
+    for (i = 0; i < (s16)count; i++, part++) {
+        if (part->pos.y > 0.0f) {
+            part->pos.x += part->dir.x;
+            part->pos.y += part->dir.y - 10.0f;
+            part->pos.z += part->dir.z;
+        } else {
+            part->scale = 0.0f;
+        }
+    }
+}
