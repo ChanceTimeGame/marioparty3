@@ -24,27 +24,31 @@ typedef struct BtPlayer {
     /* 0x00 */ u16 unk00; /* player */
     /* 0x02 */ u16 unk02; /* state: 2/3 out */
     /* 0x04 */ u16 unk04; /* motion state */
-    /* 0x06 */ s16 unk06;
-    /* 0x08 */ s16 unk08;
-    /* 0x0A */ s16 unk0A;
-    /* 0x0C */ s16 unk0C;
-    /* 0x0E */ s16 unk0E[4];
-    /* 0x16 */ s16 unk16;
+    /* 0x06 */ u16 unk06; /* spin effect shown */
+    /* 0x08 */ u16 unk08; /* airborne */
+    /* 0x0A */ u16 unk0A; /* bounce combo */
+    /* 0x0C */ u16 unk0C; /* jump buffered */
+    /* 0x0E */ u16 unk0E[4]; /* contact with each player: 1 above, 2 side, 4 below */
+    /* 0x16 */ u16 unk16; /* knocked back */
     /* 0x18 */ s16 unk18;
     /* 0x1A */ char unk1A[2];
     /* 0x1C */ omObjData* unk1C; /* tile underfoot */
     /* 0x20 */ f32 unk20;
     /* 0x24 */ f32 unk24;
     /* 0x28 */ f32 unk28; /* shadow scale */
-    /* 0x2C */ s32 unk2C;
-    /* 0x30 */ Vec unk30;
-    /* 0x3C */ s32 unk3C;
-    /* 0x40 */ f32 unk40;
+    /* 0x2C */ f32 unk2C; /* jump speed */
+    /* 0x30 */ f32 unk30;
+    /* 0x34 */ f32 unk34; /* walk velocity x */
+    /* 0x38 */ f32 unk38; /* walk velocity z */
+    /* 0x3C */ f32 unk3C; /* jump time */
+    /* 0x40 */ f32 unk40; /* jump start height */
     /* 0x44 */ f32 unk44;
     /* 0x48 */ f32 unk48;
     /* 0x4C */ Vec unk4C;
     /* 0x58 */ char unk58[0xC];
-    /* 0x64 */ Vec unk64;
+    /* 0x64 */ f32 unk64; /* knockback x */
+    /* 0x68 */ f32 unk68; /* knockback z */
+    /* 0x6C */ f32 unk6C; /* knockback decay */
     /* 0x70 */ f32 unk70; /* radius */
     /* 0x74 */ f32 unk74;
     /* 0x78 */ omObjData* unk78;
@@ -55,9 +59,17 @@ typedef struct BtPlayer {
     /* 0xA0 */ s16 unkA0;
     /* 0xA2 */ s16 unkA2;
     /* 0xA4 */ char unkA4[4];
-    /* 0xA8 */ s16 unkA8;
+    /* 0xA8 */ u16 unkA8; /* rumble timer */
     /* 0xAA */ char unkAA[2];
 } BtPlayer; /* size 0xAC */
+
+/* omObjData::data of a player's spin effect (func_8010A8F0_bounce_n_trounce) */
+typedef struct BtSpin {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ f32 unk04; /* heading */
+    /* 0x08 */ f32 unk08; /* speed */
+} BtSpin; /* size 0xC */
 
 /* An entry of D_800CD1DC_main (src/esprite.c's D_800CD1DC_main_Struct) */
 typedef struct BtEsprite {
@@ -102,6 +114,7 @@ void HmfLightStatSet(s16 arg0, u8 arg1, u8 arg2);
 void func_8004B760_main(s32 prio, s32 sprId, void* draw, f32 fov, Vec* eye, Vec* at);
 void func_8004BCE4_main(void* work);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
+f64 fabs(f64);
 void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 void func_800138EC_main(s16 model, u16 mask, u16 flags);
 
@@ -132,7 +145,14 @@ void func_801069F0_bounce_n_trounce(omObjData* obj);
 void func_801070CC_bounce_n_trounce(omObjData* obj);
 void func_80107114_bounce_n_trounce(omObjData* obj, s8 stickX, s8 stickY, u16 btn);
 void func_80107EDC_bounce_n_trounce(omObjData* obj);
+void func_80108350_bounce_n_trounce(omObjData* obj);
+void func_80108398_bounce_n_trounce(omObjData* obj, omObjData* other);
+void func_80108454_bounce_n_trounce(omObjData* obj, f32 arg1);
+void func_8010846C_bounce_n_trounce(omObjData* obj);
+void func_801085EC_bounce_n_trounce(omObjData* obj);
 void func_80108940_bounce_n_trounce(void);
+void func_80108EFC_bounce_n_trounce(omObjData* obj, f32 x, f32 y, f32 z);
+void func_80108F98_bounce_n_trounce(omObjData* obj);
 void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn);
 void func_80109AF0_bounce_n_trounce(omObjData* obj);
 void func_80109F68_bounce_n_trounce(omObjData* obj);
@@ -525,7 +545,7 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     player->unk20 = 4.0f;
     player->unk24 = 1.0f;
     player->unk28 = 1.5f;
-    player->unk30.x = player->unk30.y = player->unk30.z = 0.0f;
+    player->unk30 = player->unk34 = player->unk38 = 0.0f;
     player->unk08 = 0;
     player->unk0A = 0;
     player->unk0C = 0;
@@ -542,7 +562,7 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     player->unkA0 = 0;
     player->unk9C = 0;
     player->unkA2 = 0;
-    player->unk64.x = player->unk64.y = player->unk64.z = 0.0f;
+    player->unk64 = player->unk68 = player->unk6C = 0.0f;
     for (i = 0; i < 4; i++) {
         player->unk0E[i] = 0;
     }
@@ -646,7 +666,312 @@ void func_801070CC_bounce_n_trounce(omObjData* obj) {
                                    D_8010ABDC_bounce_n_trounce[player->unk00], D_8010ABE0_bounce_n_trounce[player->unk00]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80107114_bounce_n_trounce);
+/* A player's frame: walking, jumping, the spin attack, bounces off the others, landing and falling off. */
+void func_80107114_bounce_n_trounce(omObjData* obj, s8 stickX, s8 stickY, u16 btn) {
+    BtPlayer* player;
+    BtPlayer* od;
+    BtSpin* spin;
+    omObjData* tile;
+    omObjData* other;
+    f32 angle;
+    f32 mag;
+    f32 rotY;
+    f32 top;
+    f32 jump;
+    f32 mine;
+    f32 theirs;
+    s16 se;
+    s32 i;
+
+    player = obj->data;
+    angle = atan2df(stickX, -stickY) + CRot.y;
+    mag = HuSqrtf(stickX * stickX + stickY * stickY) * 0.1f;
+    rotY = obj->rot.y;
+    top = func_80106434_bounce_n_trounce(obj);
+    tile = player->unk1C;
+    if (tile != NULL) {
+        if (((BtTile*)tile->data)->unk02 == 1) {
+            if (player->unkA8 == 0) {
+                omVibrate(player->unk00, 2, 3, 10);
+                player->unkA8 = 10;
+            } else {
+                player->unkA8--;
+            }
+        } else if (player->unkA8 >= 6) {
+            player->unkA8--;
+        } else {
+            player->unkA8 = 0;
+        }
+    } else if (player->unkA8 >= 6) {
+        player->unkA8--;
+    } else {
+        player->unkA8 = 0;
+    }
+    switch (player->unk04) {
+        case 4:
+            if (player->unk0C == 1) {
+                se = func_8004ACE0_main(0x3BE, player->unk00);
+                if (func_800E6E8C_minigame() != 2) {
+                    func_8004AAD0_main(se, 0x75);
+                }
+                player->unk0A++;
+                if (player->unk0A >= 4) {
+                    player->unk0A = 1;
+                }
+                jump = (player->unk0A - 1) * 50.0f * 0.24f + 70.0f;
+                player->unk0C = 0;
+            } else {
+                player->unk0A = 0;
+                jump = 37.5f;
+                se = func_8004ACE0_main(0x3B5, player->unk00);
+                if (func_800E6E8C_minigame() != 2) {
+                    func_8004AAD0_main(se, 0x75);
+                }
+            }
+            func_80108454_bounce_n_trounce(obj, jump);
+            player->unk08 = 1;
+            player->unk04 = 3;
+        case 2:
+            player->unk34 = sindf(angle) * mag;
+            player->unk38 = cosdf(angle) * mag;
+            if (stickX != 0 || stickY != 0) {
+                rotY = angle;
+            }
+            if (btn & 0x8000) {
+                player->unk0C = 1;
+            }
+            break;
+    }
+    if (player->unk08 == 1) {
+        if (player->unk44 == 0.0f && (btn & 0x2000) && player->unk0A != 0 && player->unk02 == 0) {
+            se = func_8004ACE0_main(0x3C7, player->unk00);
+            if (func_800E6E8C_minigame() != 2) {
+                func_8004AAD0_main(se, 0x75);
+            }
+            player->unk02 = 1;
+            player->unk44 = (obj->trans.y / 1500.0f) * 140.0f + 20.0f;
+            if (player->unk44 > 160.0f) {
+                player->unk44 = 160.0f;
+            }
+            player->unk2C = 0.0f;
+            player->unk3C = 0.0f;
+            player->unk40 = obj->trans.y;
+            player->unk74 = 85.0f;
+            func_8001C258_main(obj->model[3], 4, 0);
+            func_8001C814_main(obj->model[3], 3, 2);
+            func_8001C6A8_main(obj->model[3], 0.0f);
+            player->unk06 = 1;
+            spin = player->unk78->data;
+            spin->unk00 = 3;
+            spin->unk04 = obj->rot.y + 180.0f;
+            if (spin->unk04 >= 360.0f) {
+                spin->unk04 -= 360.0f;
+            }
+            spin->unk08 = player->unk44 / 0.6666667f;
+            if (spin->unk08 < 15.0f) {
+                spin->unk08 = 15.0f;
+            }
+            if (spin->unk08 > 100.0f) {
+                spin->unk08 = 100.0f;
+            }
+            player->unk78->work[2] = 0;
+            player->unk78->work[0] = 1;
+        }
+        if (player->unk44 != 0.0f) {
+            rotY += player->unk44;
+        }
+        player->unk3C += 1.0f;
+        obj->trans.y = player->unk2C * player->unk3C + player->unk40 - player->unk3C * 2.4f * player->unk3C;
+        if (player->unk16 == 0) {
+            player->unk34 = sindf(angle) * mag;
+            player->unk38 = cosdf(angle) * mag;
+            if ((stickX != 0 || stickY != 0) && player->unk44 == 0.0f) {
+                rotY = angle;
+            }
+        } else {
+            obj->trans.x += player->unk64;
+            obj->trans.z += player->unk68;
+        }
+        obj->trans.x += player->unk34;
+        obj->trans.z += player->unk38;
+        func_801085EC_bounce_n_trounce(obj);
+        for (i = 0; i < 4; i++) {
+            if (i == player->unk00) {
+                continue;
+            }
+            other = D_8010AEDC_bounce_n_trounce[i];
+            od = other->data;
+            if (player->unk02 != 1) {
+                if (player->unk0E[i] & 1) {
+                    if (od->unk02 == 1) {
+                        player->unk16 = 1;
+                        atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                        func_80108398_bounce_n_trounce(other, obj);
+                        func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y + 120.0f, obj->trans.z);
+                    } else {
+                        player->unk2C = 0.0f;
+                        player->unk3C = 0.0f;
+                        player->unk40 = obj->trans.y;
+                    }
+                } else if (player->unk0E[i] & 2) {
+                    if (od->unk02 == 1) {
+                        player->unk16 = 1;
+                        atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                        func_80108398_bounce_n_trounce(other, obj);
+                        func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y + 70.0f, obj->trans.z);
+                    } else {
+                        player->unk38 = -player->unk38;
+                        player->unk34 = -player->unk34;
+                        player->unk16 = 1;
+                    }
+                } else if (player->unk0E[i] & 4) {
+                    if (od->unk02 == 1) {
+                        player->unk16 = 1;
+                        atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                        func_80108398_bounce_n_trounce(other, obj);
+                        func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y, obj->trans.z);
+                    } else {
+                        player->unk2C = 50.0f;
+                        player->unk3C = 0.0f;
+                        player->unk40 = obj->trans.y;
+                    }
+                }
+            } else {
+                player->unkA2 = 1;
+                if (player->unk0E[i] & 1) {
+                    func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y + 120.0f, obj->trans.z);
+                    omVibrate(player->unk00, 2, 2, 20);
+                    if (od->unk02 == 1) {
+                        if ((theirs = od->unk44) == (mine = player->unk44)) {
+                            func_80108350_bounce_n_trounce(obj);
+                            func_80108350_bounce_n_trounce(other);
+                        } else if (mine < theirs) {
+                            player->unk16 = 1;
+                            atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                            func_80108398_bounce_n_trounce(other, obj);
+                            func_80108350_bounce_n_trounce(obj);
+                        } else {
+                            od->unk16 = 1;
+                            atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                            func_80108398_bounce_n_trounce(obj, other);
+                            func_80108350_bounce_n_trounce(other);
+                        }
+                    } else {
+                        od->unk16 = 1;
+                        atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                        func_80108398_bounce_n_trounce(obj, other);
+                    }
+                } else if (player->unk0E[i] & 2) {
+                    func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y + 70.0f, obj->trans.z);
+                    omVibrate(player->unk00, 2, 2, 20);
+                    if (od->unk02 == 1) {
+                        if ((theirs = od->unk44) == (mine = player->unk44)) {
+                            func_80108350_bounce_n_trounce(obj);
+                            func_80108350_bounce_n_trounce(other);
+                        } else if (mine < theirs) {
+                            player->unk16 = 1;
+                            atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                            func_80108398_bounce_n_trounce(other, obj);
+                            func_80108350_bounce_n_trounce(obj);
+                        } else {
+                            od->unk16 = 1;
+                            atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                            func_80108398_bounce_n_trounce(obj, other);
+                            func_80108350_bounce_n_trounce(other);
+                        }
+                    } else {
+                        od->unk16 = 1;
+                        atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                        func_80108398_bounce_n_trounce(obj, other);
+                    }
+                } else if (player->unk0E[i] & 4) {
+                    func_80108EFC_bounce_n_trounce(obj, obj->trans.x, obj->trans.y, obj->trans.z);
+                    omVibrate(player->unk00, 2, 2, 20);
+                    if (od->unk02 == 1) {
+                        if ((theirs = od->unk44) == (mine = player->unk44)) {
+                            func_80108350_bounce_n_trounce(obj);
+                            func_80108350_bounce_n_trounce(other);
+                        } else if (mine < theirs) {
+                            player->unk16 = 1;
+                            atan2df(obj->trans.x - other->trans.x, -(obj->trans.z - other->trans.z));
+                            func_80108398_bounce_n_trounce(other, obj);
+                            func_80108350_bounce_n_trounce(obj);
+                        } else {
+                            od->unk16 = 1;
+                            atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                            func_80108398_bounce_n_trounce(obj, other);
+                            func_80108350_bounce_n_trounce(other);
+                        }
+                    } else {
+                        od->unk16 = 1;
+                        atan2df(other->trans.x - obj->trans.x, -(other->trans.z - obj->trans.z));
+                        func_80108398_bounce_n_trounce(obj, other);
+                    }
+                }
+            }
+        }
+        if (obj->trans.y < top) {
+            obj->trans.y = top;
+            player->unk20 = 4.0f;
+            player->unk24 = 1.0f;
+            player->unk04 = 2;
+            player->unk34 = player->unk38 = 0.0f;
+            player->unk0C = 0;
+            func_80108350_bounce_n_trounce(obj);
+            player->unk78->work[0] = 0;
+            player->unk06 = 0;
+            player->unk08 = 0;
+            player->unk64 = player->unk68 = 0.0f;
+            player->unk74 = 55.0f;
+            func_80108F98_bounce_n_trounce(obj);
+        }
+    }
+    player->unk64 *= player->unk6C;
+    player->unk68 *= player->unk6C;
+    if (fabs(player->unk64) < 0.01f) {
+        player->unk64 = 0.0f;
+    }
+    if (fabs(player->unk68) < 0.01f) {
+        player->unk68 = 0.0f;
+    }
+    if (player->unk64 == 0.0f && player->unk68 == 0.0f) {
+        player->unk16 = 0;
+    } else {
+        obj->trans.x += player->unk64;
+        obj->trans.z += player->unk68;
+    }
+    omSetRot(obj, obj->rot.x, rotY, obj->rot.z);
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    if (top == -100000.0f) {
+        func_8001C258_main(obj->model[2], 4, 4);
+    } else {
+        player->unk28 = 1.5f - fabs(obj->trans.y - top) / 900.0f * 1.2f;
+        if (player->unk28 < 0.3f) {
+            player->unk28 = 0.3f;
+        }
+        func_8001C258_main(obj->model[2], 4, 0);
+        Hu3DModelPosSet(obj->model[2], obj->trans.x, top + 1.0f, obj->trans.z);
+        Hu3DModelScaleSet(obj->model[2], player->unk28, 1.0f, player->unk28);
+    }
+    if (player->unk06 == 1) {
+        Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y + 60.0f, obj->trans.z);
+    }
+    func_8010846C_bounce_n_trounce(obj);
+    if (obj->trans.y < -45.0f && player->unk08 == 1 && player->unk02 != 2) {
+        func_8004AC98_main(0x3D0, player->unk00);
+        player->unk02 = 2;
+        player->unk64 = player->unk68 = 0.0f;
+        player->unk34 = player->unk38 = 0.0f;
+        D_8010AEBC_bounce_n_trounce--;
+    }
+    player->unk4C.x = obj->trans.x;
+    player->unk4C.y = obj->trans.y;
+    player->unk4C.z = obj->trans.z;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80107EDC_bounce_n_trounce);
 
@@ -672,12 +997,12 @@ void func_80108398_bounce_n_trounce(omObjData* obj, omObjData* other) {
     player = other->data;
     speed = (me->unk44 / 160.0f) * 22.0f + 20.0f;
     angle = atan2df(other->trans.x - obj->trans.x, other->trans.z - obj->trans.z);
-    player->unk64.x = sindf(angle) * speed;
-    player->unk64.y = cosdf(angle) * speed;
-    player->unk64.z = 0.8f;
+    player->unk64 = sindf(angle) * speed;
+    player->unk68 = cosdf(angle) * speed;
+    player->unk6C = 0.8f;
 }
 
-void func_80108454_bounce_n_trounce(omObjData* obj, s32 arg1) {
+void func_80108454_bounce_n_trounce(omObjData* obj, f32 arg1) {
     BtPlayer* player = obj->data;
 
     player->unk2C = arg1;
