@@ -13,11 +13,13 @@
 #include "game/util.h"
 #include "game/wipe.h"
 #include "include_asm.h"
+#include "mallocblock.h"
 
 
 // EXTERN
 
 // C1F0
+void func_8000B690_main(s32);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
@@ -29,6 +31,12 @@ f32 fabsf(f32);
 
 // 7D2C
 void func_80007D2C_main(s32 slot, s32 fxMix);
+
+// 14EA0
+s32 func_80017BB8_main(s16, s16);
+
+// audio
+void func_8004AE00_main(s16 handle, s16 pan);
 
 // 44C2C
 void func_80045C2C_main(void);
