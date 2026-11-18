@@ -1,15 +1,45 @@
 #include "common.h"
 #include "overlays/minigame.h"
+#include "gcc/memory.h"
 #include "game/audio.h"
 #include "game/camera.h"
 #include "game/hmfman.h"
 #include "game/pause.h"
 #include "game/sprite.h"
 #include "game/wipe.h"
+#include "mallocblock.h"
 
 // tg A: Treadmill Grill
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
+
+/* omObjData::data of the stage (the framework's ground object) */
+typedef struct TgGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} TgGround; /* size 0xB4 */
+
+/* The minigame control block (as All Fired Up's AfCtrl) */
+typedef struct TgCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ s32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ char unk26[2];
+} TgCtrl; /* size 0x28 */
 
 // main
 void Hu3DAnimInit(s32);
@@ -17,8 +47,24 @@ void func_80021BE0_main(s32* arg0, s32 arg1);
 void func_800142A0_main(s32);
 u8 func_8000B638_main(void);
 
+extern s32 D_800A178C_main[][6];
+extern u16 D_800D530C_main;
+extern u8 D_800D6A90_main;
+extern Vec Center;
+extern Vec CRot;
+extern f32 CZoom;
+
 // minigame
 void func_800E1490_minigame(u16 arg0);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+void func_800E147C_minigame(omObjData* obj);
+void func_800E5798_minigame(omObjData* obj, s32 arg1);
+u16 func_800E6E9C_minigame(void);
+void func_800E6F0C_minigame(s8 arg0);
+extern s16 D_800EB934_minigame;
 
 extern f32 D_800EB73C_minigame;
 extern s32 D_800EB77C_minigame;
@@ -41,7 +87,11 @@ void func_80109108_treadmill_grill(omObjData* obj);
 
 extern f32 D_8010B064_treadmill_grill[13]; /* grill object growth */
 extern s32 D_8010B098_treadmill_grill[13]; /* grill object sound played */
-extern D_80111B50_vine_with_me_Struct D_8010B03C_treadmill_grill;
+void func_80106008_treadmill_grill(omObjData* obj);
+void func_801062DC_treadmill_grill(omObjData* obj);
+
+extern u8 D_8010AF84_treadmill_grill[4]; /* player out */
+extern TgCtrl D_8010B03C_treadmill_grill;
 extern Vec D_8010B378_treadmill_grill[13];
 
 void func_801059A0_treadmill_grill(void) {
@@ -87,7 +137,7 @@ void func_801059A0_treadmill_grill(void) {
     omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
     D_800EB73C_minigame = 10.0f;
     WipeCreateIn(0xFF, 16);
-    func_800E5EA0_minigame(&D_8010B03C_treadmill_grill);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)&D_8010B03C_treadmill_grill);
     D_800EB930_minigame = 0x35;
     D_800EB932_minigame = 0x14;
     HmfLightDirSet(1, 86.0f, 45.0f, 74.0f);
@@ -145,9 +195,108 @@ void func_801061E8_treadmill_grill(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801062DC_treadmill_grill);
+void func_801062DC_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    omObjData* o;
+    s32 last;
+    s32 left;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801065DC_treadmill_grill);
+    last = 0;
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        left = 0;
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            if (D_8010AF84_treadmill_grill[i] == 0) {
+                left++;
+                last = i;
+            }
+        }
+        switch (func_800E6F40_minigame()) {
+            case 0:
+                if (func_800E6E9C_minigame() == 10) {
+                    HuAudSeqPlay(0);
+                }
+                break;
+            case 2:
+                if (left < 2) {
+                    func_800E6F0C_minigame(3);
+                }
+                break;
+            case 3:
+                if (left != 1) {
+                    D_8010B03C_treadmill_grill.unk06 = 4;
+                } else {
+                    D_8010B03C_treadmill_grill.unk18[0] = last;
+                    D_8010B03C_treadmill_grill.unk06 = 0;
+                }
+                break;
+            case 4:
+                if (D_800EB934_minigame == 1) {
+                    if (D_8010B03C_treadmill_grill.unk06 == 4) {
+                        for (i = 0; i < 4; i++) {
+                            o = D_800EC598_minigame[i];
+                            if (D_8010AF84_treadmill_grill[i] == 0) {
+                                func_800E5798_minigame(o, 14);
+                            }
+                        }
+                    } else {
+                        o = D_800EC598_minigame[last];
+                        func_800E5798_minigame(o, 13);
+                        work = o->data;
+                        GwPlayer[work->unk59].bonusCoin += 10;
+                        func_80045ED0_main(D_800A178C_main[GwPlayer[work->unk59].chr][0] | 0x2F);
+                    }
+                }
+                break;
+            case 5:
+                WipeCreateOut(0, 20);
+                obj->func = func_80106008_treadmill_grill;
+                break;
+        }
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            ((MgWork*)D_800EC598_minigame[i]->data)->unk60 = CRot.y;
+        }
+        if (D_800D530C_main == 1) {
+            WipeCreateOut(0, 20);
+            HuAudSeqFadeOut(30);
+            func_8004AB0C_main(30);
+            obj->func = func_80106008_treadmill_grill;
+        }
+        Center.y = 150.0f;
+        Center.z = -350.0f;
+    }
+}
+
+void func_801065DC_treadmill_grill(omObjData* obj) {
+    TgGround* gw;
+
+    obj->model[0] = func_8000B0A0_main(0x360005, 0xA9);
+    obj->trans.x = 100.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = -1200.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(TgGround), 31000);
+    memset(gw, 0, sizeof(TgGround));
+    obj->func = func_801062DC_treadmill_grill;
+    gw->unk03 = 1;
+    CZoom = 3736.0f;
+    CRot.x = 319.0f;
+    CRot.y = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 50.0f;
+    Center.z = -350.0f;
+    func_800E147C_minigame(obj);
+    func_800E139C_minigame(obj, 0.0f, -1500.0f, -1500.0f, 1500.0f, 1500.0f);
+    func_800E1304_minigame(obj, 0.2f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E131C_minigame(obj, 25.0f);
+    gw->unk04 = 0;
+    func_8001C2FC_main(obj->model[0], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[0]);
+    func_8001C954_main(obj->model[0]);
+    omSetStatBit(obj, 0xA0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801067A8_treadmill_grill);
 
