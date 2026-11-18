@@ -39,12 +39,14 @@ typedef struct HhPlayer {
     /* 0x04 */ f32 unk04;
     /* 0x08 */ f32 unk08;
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ s16 unk10;
+    /* 0x10 */ u8 unk10;
+    /* 0x11 */ char unk11;
     /* 0x12 */ s16 unk12;
     /* 0x14 */ char unk14[4];
     /* 0x18 */ s16 unk18;
     /* 0x1A */ s16 unk1A;
-    /* 0x1C */ s16 unk1C;
+    /* 0x1C */ u8 unk1C;
+    /* 0x1D */ char unk1D;
     /* 0x1E */ s16 unk1E;
 } HhPlayer; /* size 0x20 */
 
@@ -55,6 +57,9 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
+void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
+void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
+void func_8004AE00_main(s16 handle, s16 pan);
 f32 HuSqrtf(f32 x);
 
 extern s32 D_800A178C_main[][6];
@@ -111,6 +116,8 @@ void func_8010B2FC_hyper_hydrants(omObjData* obj);
 void func_8010B38C_hyper_hydrants(void);
 void func_8010B658_hyper_hydrants(omObjData* obj);
 void func_8010B8B0_hyper_hydrants(omObjData* obj);
+s16 func_8010BC80_hyper_hydrants(s16 se, s16 side, s8 use3d, s16 player);
+void func_8010BD14_hyper_hydrants(Vec* out, Vec* from, Vec* to);
 
 extern Vec D_8010BDE0_hyper_hydrants;
 extern Vec D_8010BDEC_hyper_hydrants;
@@ -317,7 +324,128 @@ void func_801060F8_hyper_hydrants(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80106238_hyper_hydrants);
+/* A player: team 0 (groups 0 and 2 pump, 1 and 3 hold the hose); model 2 is the hydrant or the hose. */
+void func_80106238_hyper_hydrants(omObjData* obj) {
+    s8 chr;
+    u32 dir;
+    s32 file;
+    MgWork* pw;
+    HhPlayer* ex;
+
+    chr = GwPlayer[D_8010BE35_hyper_hydrants].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    func_800E19F0_minigame(1);
+    func_800E1BA8_minigame(obj, dir, file, D_8010BE35_hyper_hydrants, 0xAC9, 0xAD9);
+    pw = obj->data;
+    obj->rot.x = obj->rot.z = 0.0f;
+    obj->scale.z = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.x = 1.0f;
+    pw->unk158 = HuMemAllocTag(sizeof(HhPlayer), 0x7918);
+    memset(obj->data, 0, sizeof(HhPlayer)); /* retail clears the start of MgWork, not the new block */
+    ex = pw->unk158;
+    ex->unk18 = 0;
+    ex->unk1A = 0;
+    ex->unk10 = 0;
+    ex->unk12 = 0x4000;
+    ex->unk1E = 0;
+    ex->unk1C = 0;
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x14));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x7B));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x36));
+    if (D_8010BE35_hyper_hydrants == 0) {
+        D_8010BF40_hyper_hydrants = (u32)(rand8() * 5) >> 7;
+    }
+    switch (GwPlayer[pw->unk59].group) {
+        case 0:
+            obj->trans.x = D_8010BDE0_hyper_hydrants.x;
+            obj->trans.y = D_8010BDE0_hyper_hydrants.y;
+            obj->trans.z = D_8010BDE0_hyper_hydrants.z;
+            D_8010BFAA_hyper_hydrants = pw->unk59;
+            obj->rot.y = 180.0f;
+            obj->model[2] = func_8000B108_main(0x2F0004, 0xA99);
+            Hu3DModelRotSet(obj->model[2], obj->rot.x, obj->rot.y, obj->rot.z);
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            func_8001C8A8_main(obj->model[0], 1);
+            func_8001C8A8_main(obj->model[1], 1);
+            func_8001C8A8_main(obj->model[2], 1);
+            D_8010C022_hyper_hydrants[0] = func_8010BC80_hyper_hydrants(0x369, 0, 1, pw->unk59);
+            func_8004AAD0_main(D_8010C022_hyper_hydrants[0], 0);
+            break;
+        case 1:
+            obj->trans.x = D_8010BDEC_hyper_hydrants.x;
+            obj->trans.y = D_8010BDEC_hyper_hydrants.y;
+            obj->trans.z = D_8010BDEC_hyper_hydrants.z;
+            D_8010BFA8_hyper_hydrants = pw->unk59;
+            obj->rot.y = 0.0f;
+            obj->model[2] = func_8000B108_main(0x2F0005, 0xA89);
+            func_8001C258_main(obj->model[2], 0x10000, 0x10000);
+            func_8001F6BC_main(obj->model[2], 0, 0, 0, 0);
+            func_8001F6F8_main(obj->model[2], 0x10, 0x10, 0x10, 0);
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 1, 2);
+            if ((dir >> 16) == 6) {
+                obj->trans.z -= 48.7f;
+                Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z + 48.7f);
+            } else {
+                Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            }
+            func_8001C8A8_main(obj->model[0], 1);
+            func_8001C8A8_main(obj->model[1], 1);
+            func_8001C8A8_main(obj->model[2], 1);
+            break;
+        case 2:
+            obj->trans.x = D_8010BDF8_hyper_hydrants.x;
+            obj->trans.y = D_8010BDF8_hyper_hydrants.y;
+            obj->trans.z = D_8010BDF8_hyper_hydrants.z;
+            D_8010BFAB_hyper_hydrants = pw->unk59;
+            obj->rot.y = 180.0f;
+            obj->model[2] = func_8000B108_main(0x2F0006, 0xA99);
+            Hu3DModelRotSet(obj->model[2], obj->rot.x, obj->rot.y, obj->rot.z);
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            func_8001C8A8_main(obj->model[0], 2);
+            func_8001C8A8_main(obj->model[1], 2);
+            func_8001C8A8_main(obj->model[2], 2);
+            D_8010C022_hyper_hydrants[1] = func_8010BC80_hyper_hydrants(0x369, 1, 1, pw->unk59);
+            func_8004AAD0_main(D_8010C022_hyper_hydrants[1], 0);
+            break;
+        case 3:
+            obj->trans.x = D_8010BE04_hyper_hydrants.x;
+            obj->trans.y = D_8010BE04_hyper_hydrants.y;
+            obj->trans.z = D_8010BE04_hyper_hydrants.z;
+            D_8010BFA9_hyper_hydrants = pw->unk59;
+            obj->rot.y = 0.0f;
+            obj->model[2] = func_8000B108_main(0x2F0007, 0xA89);
+            func_8001C258_main(obj->model[2], 0x10000, 0x10000);
+            func_8001F6BC_main(obj->model[2], 0, 0, 0, 0);
+            func_8001F6F8_main(obj->model[2], 0x10, 0x10, 0x10, 0);
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 1, 2);
+            if ((dir >> 16) == 6) {
+                obj->trans.z -= 48.7f;
+                Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z + 48.7f);
+            } else {
+                Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            }
+            func_8001C8A8_main(obj->model[0], 2);
+            func_8001C8A8_main(obj->model[1], 2);
+            func_8001C8A8_main(obj->model[2], 2);
+            break;
+    }
+    ex->unk00 = sindf(obj->rot.y - 40.0f);
+    ex->unk04 = cosdf(obj->rot.y - 40.0f);
+    ex->unk08 = sindf(obj->rot.y - 140.0f);
+    ex->unk0C = cosdf(obj->rot.y - 140.0f);
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C6A8_main(obj->model[2], 0.0f);
+    obj->func = func_80106A50_hyper_hydrants;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    D_8010BE35_hyper_hydrants++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80106A50_hyper_hydrants);
 
@@ -365,8 +493,39 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B8B0_hyper_hydrants);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010BC80_hyper_hydrants);
+/* Play sound `se` (positioned on `player` when `use3d`), panned to the left or right half. */
+s16 func_8010BC80_hyper_hydrants(s16 se, s16 side, s8 use3d, s16 player) {
+    s16 handle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010BD14_hyper_hydrants);
+    if (use3d) {
+        handle = func_8004AC98_main(se, player);
+    } else {
+        handle = HuAudFXPlay(se);
+    }
+    if (side == 0) {
+        func_8004AE00_main(handle, 0x20);
+    } else {
+        func_8004AE00_main(handle, 0x60);
+    }
+    return handle;
+}
+
+/* out = the unit vector from `from` to `to` (zero when they coincide). */
+void func_8010BD14_hyper_hydrants(Vec* out, Vec* from, Vec* to) {
+    f32 len;
+
+    out->x = to->x - from->x;
+    out->y = to->y - from->y;
+    out->z = to->z - from->z;
+    len = out->x * out->x + out->y * out->y + out->z * out->z;
+    len = HuSqrtf(len);
+    if (len != 0.0f) {
+        out->x /= len;
+        out->y /= len;
+        out->z /= len;
+    } else {
+        out->x = out->y = out->z = 0.0f;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", D_8010BF30_hyper_hydrants);
