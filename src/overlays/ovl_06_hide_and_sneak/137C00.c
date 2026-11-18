@@ -78,16 +78,26 @@ typedef struct HsSeeker {
 /* .data */
 extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
+extern f32 D_8010C3E4_hide_and_sneak[4];
+extern f32 D_8010C3F4_hide_and_sneak[4];
 /* .bss */
 extern s8 D_8010C782_hide_and_sneak;
 extern HsSeeker D_8010C788_hide_and_sneak[4];
 extern HsAuto D_8010E168_hide_and_sneak;
+extern s8 D_8010E169_hide_and_sneak; /* view: D_8010E168_hide_and_sneak.state */
+extern s8 D_8010E182_hide_and_sneak[4];
+extern u8 D_8010E186_hide_and_sneak;
+extern u8 D_8010E1A8_hide_and_sneak;
 
 void func_80105B3C_hide_and_sneak(s32 player);
 s32 func_801064F4_hide_and_sneak(s32 max);
 void func_801065B0_hide_and_sneak(omObjData *obj, u16 motion, s16 start, s16 end, s16 attr);
 
 void func_8000BC48_main(u16, s32);
+extern s32 D_800A178C_main[][6];
+void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
+void func_80106D10_hide_and_sneak(omObjData *obj);
+void func_80107638_hide_and_sneak(omObjData *obj);
 omObjData *func_80045ED0_main(u32 arg0);
 s32 func_8000B710_main(s32 arg0);
 extern u16 D_800D530C_main;
@@ -475,17 +485,149 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106D10_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80107638_hide_and_sneak);
+void func_80107638_hide_and_sneak(omObjData *obj) {
+    u16 chr = GwPlayer[obj->work[0]].chr;
 
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][3], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x14));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x6C));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x33));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x3A));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x30));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x36));
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.y = 180.0f;
+    func_80106548_hide_and_sneak(obj, 0, 2);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    D_8010E168_hide_and_sneak.active = GwPlayer[obj->work[0]].stat & 1;
+    D_8010E169_hide_and_sneak = 0;
+    obj->work[3] = GwPlayer[obj->work[0]].pad;
+    obj->func = func_80106D10_hide_and_sneak;
+}
+
+#ifdef NON_MATCHING
+void func_801078E4_hide_and_sneak(void) {
+    omObjData *obj;
+    s16 i;
+    s32 player;
+    s32 unused[2];
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            break;
+        }
+    }
+    switch (i) {
+        case 0:
+            player = 0;
+            break;
+        case 1:
+            player = 1;
+            break;
+        case 2:
+            player = 2;
+            break;
+        case 3:
+            player = 3;
+            break;
+        default:
+            player = 0;
+            break;
+    }
+    obj = omAddObj(700, 3, 10, -1, func_80107638_hide_and_sneak);
+    obj->work[0] = player;
+    HS_ENT(1, 0)->obj = obj;
+    D_8010E1A8_hide_and_sneak = obj->work[0];
+    D_8010E186_hide_and_sneak = GwPlayer[obj->work[0]].chr;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_801078E4_hide_and_sneak);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_801079E8_hide_and_sneak);
+void func_801079E8_hide_and_sneak(omObjData *obj) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80107B30_hide_and_sneak);
+    for (i = 0; i < 4; i++) {
+        if (D_8010E182_hide_and_sneak[i] != 0) {
+            if (D_8010C3E4_hide_and_sneak[i] - 150.0f < obj->trans.x && obj->trans.x < D_8010C3E4_hide_and_sneak[i] + 150.0f
+                && D_8010C3F4_hide_and_sneak[i] - 20.0f < obj->trans.z && obj->trans.z < D_8010C3F4_hide_and_sneak[i] + 100.0f) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                return;
+            }
+            func_8001C258_main(obj->model[0], 4, 0);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80107BD8_hide_and_sneak);
+void func_80107B30_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(2, obj->work[1]);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80107CF4_hide_and_sneak);
+    if (obj->work[2] == 0) {
+        if (ent->unk14 != 0) {
+            HuAudFXStop(ent->unk14);
+        }
+        ent->unk14 = func_8004ACE0_main(0x28, (s16)obj->work[0]);
+    }
+    obj->work[2] = (obj->work[2] + 1) % 11;
+}
+
+void func_80107BD8_hide_and_sneak(omObjData *obj, s8 motion) {
+    HsEnt *ent = HS_ENT(2, obj->work[0]);
+    s8 attr = 0;
+
+    if (ent->unk06 != motion) {
+        switch (motion) {
+            case 0:
+                attr = 2;
+                break;
+            case 1:
+                attr = 2;
+                break;
+            case 2:
+                attr = 2;
+                break;
+            case 3:
+                attr = 0;
+                break;
+            case 4:
+                attr = 0;
+                break;
+        }
+        func_801065B0_hide_and_sneak(obj, motion, 0, 15, attr);
+        func_8001C92C_main(obj->model[0], 1.0f);
+        ent->unk06 = motion;
+        if (motion == 4) {
+            func_80045ED0_main((D_8010C398_hide_and_sneak[GwPlayer[obj->work[0]].chr] << 16) | 0x30);
+        }
+    }
+}
+
+s8 func_80107CF4_hide_and_sneak(omObjData *obj) {
+    HsSeeker *s = &D_8010C788_hide_and_sneak[obj->work[1]];
+    s8 list[4];
+    s8 i;
+    s8 n;
+
+    for (i = 0, n = 0; i < 4; i++) {
+        if (D_8010E182_hide_and_sneak[i] != 0 && s->unk04 != i) {
+            list[n] = i;
+            n++;
+        }
+    }
+    return list[func_801064F4_hide_and_sneak(n)];
+}
 
 s32 func_80107D98_hide_and_sneak(omObjData *obj) {
     HsSeeker *s = &D_8010C788_hide_and_sneak[obj->work[1]];
