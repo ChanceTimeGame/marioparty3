@@ -21,6 +21,32 @@ typedef struct TgGround {
     /* 0x05 */ char unk05[0xAF];
 } TgGround; /* size 0xB4 */
 
+/* omObjData::data of a grill hazard: the framework's item actor (minigame mgcol.h ColActorWork) */
+typedef struct TgGrill {
+    /* 0x00 */ u8 unk00[0x20];
+    /* 0x20 */ char unk20[0x14];
+    /* 0x34 */ f32 unk34; /* height */
+    /* 0x38 */ f32 unk38; /* vertical speed */
+    /* 0x3C */ f32 unk3C; /* heading */
+    /* 0x40 */ f32 unk40; /* speed */
+    /* 0x44 */ f32 unk44;
+    /* 0x48 */ f32 unk48; /* radius */
+    /* 0x4C */ char unk4C[4];
+    /* 0x50 */ u16 unk50;
+    /* 0x52 */ u8 unk52;
+    /* 0x53 */ s8 unk53;
+    /* 0x54 */ u8 unk54;
+    /* 0x55 */ char unk55;
+    /* 0x56 */ u16 unk56; /* grill index */
+    /* 0x58 */ char unk58[0x1C];
+    /* 0x74 */ f32 unk74;
+    /* 0x78 */ s32 unk78;
+    /* 0x7C */ s32 unk7C;
+    /* 0x80 */ s32 unk80;
+    /* 0x84 */ s32 (*unk84[9])();
+    /* 0xA8 */ void* unkA8;
+} TgGrill; /* size 0xAC */
+
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct TgCtrl {
     /* 0x00 */ u8 unk00;
@@ -109,6 +135,7 @@ void func_80108730_treadmill_grill(omObjData* obj);
 void func_80108888_treadmill_grill(omObjData* obj);
 void func_801089E0_treadmill_grill(void);
 void func_80108DE0_treadmill_grill(omObjData* obj);
+void func_80108FCC_treadmill_grill(omObjData* obj);
 
 void func_80109108_treadmill_grill(omObjData* obj);
 
@@ -147,7 +174,10 @@ extern s32 D_8010B0D8_treadmill_grill[4]; /* landings per player */ /* shared pl
 
 extern u8 D_8010AF84_treadmill_grill[4]; /* player out */
 extern TgCtrl D_8010B03C_treadmill_grill;
-extern Vec D_8010B378_treadmill_grill[13];
+extern Vec D_8010B378_treadmill_grill[13]; /* grill positions along the path */
+extern Vec D_8010B330_treadmill_grill[6];  /* grill path corners */
+extern f32 D_8010AFAC_treadmill_grill;     /* grill path phase */
+extern s32 D_8010B178_treadmill_grill;     /* grills created */
 
 void func_801059A0_treadmill_grill(void) {
     u8 cam;
@@ -984,11 +1014,108 @@ void func_80108C64_treadmill_grill(omObjData* obj, f32 x, f32 y, f32 z) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108C64_treadmill_grill);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108DE0_treadmill_grill);
+void func_80108DE0_treadmill_grill(omObjData* obj) {
+    TgGrill* g;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108FCC_treadmill_grill);
+    obj->data = HuMemAllocTag(sizeof(TgGrill), 31000);
+    memset(obj->data, 0, sizeof(TgGrill));
+    g = obj->data;
+    obj->model[1] = 0;
+    obj->model[0] = D_8010B310_treadmill_grill[D_8010AF80_treadmill_grill++];
+    obj->func = func_80108FCC_treadmill_grill;
+    g->unk44 = 0.3f;
+    g->unk48 = 60.0f;
+    g->unk34 = 150.0f;
+    g->unk3C = 0.0f;
+    g->unk78 = 0;
+    g->unk52 = 3;
+    g->unk7C = 0;
+    g->unk50 = 0x20;
+    g->unk40 = 0.0f;
+    g->unk74 = 0.8f;
+    g->unk54 = 1;
+    for (i = 0; i < 9; i++) {
+        g->unk84[i] = NULL;
+    }
+    g->unk56 = D_8010B178_treadmill_grill;
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E149C_minigame(obj, 1, 2);
+    obj->trans.x = sindf(D_8010B178_treadmill_grill * 36.0f) * 450.0f;
+    obj->trans.y = 500.0f;
+    obj->trans.z = cosdf(D_8010B178_treadmill_grill * 36.0f) * 450.0f + -512.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.0f;
+    D_8010B178_treadmill_grill++;
+}
 
+void func_80108FCC_treadmill_grill(omObjData* obj) {
+    omObjData* ground = D_800EC1C0_minigame[1];
+    TgGrill* g = obj->data;
+    f32 sc;
+
+    if (func_800E6E8C_minigame() == 2) {
+        obj->trans.x = D_8010B378_treadmill_grill[g->unk56].x;
+        obj->trans.y = D_8010B378_treadmill_grill[g->unk56].y;
+        obj->trans.z = D_8010B378_treadmill_grill[g->unk56].z;
+        obj->rot.y = atan2df(ground->trans.x - obj->trans.x, ground->trans.z - obj->trans.z);
+        sc = sindf(D_8010AFAC_treadmill_grill * 5.0f + g->unk56 * 30) * 0.3f + 2.2f;
+        obj->scale.x = obj->scale.y = obj->scale.z = sc;
+    }
+}
+
+/* Grill path: corners round the treadmill, then grill positions spaced along it. Masked 0 (raw 6): retail
+   divides into the spacing register from a temporary, this C ties the numerator to it. */
+#ifdef NON_MATCHING
+void func_80109108_treadmill_grill(omObjData* obj) {
+    Vec dir;
+    f32 step;
+    f32 len;
+    f32 t;
+    f32 x0;
+    f32 w;
+    s32 n = 0;
+    s32 i;
+
+    step = (2.0f * (D_8010AF8C_treadmill_grill[0] + 600.0f) + 2000.0f) / (f32)((u16)D_800EC1B8_minigame - 1);
+    D_8010B330_treadmill_grill[0].x = x0 = sindf(D_8010AFAC_treadmill_grill) * (step / 2.0f) + obj->trans.x + 0.0f;
+    D_8010B330_treadmill_grill[0].y = 50.0f;
+    D_8010B330_treadmill_grill[0].z = 350.0f;
+    w = D_8010AF8C_treadmill_grill[0] / 2.0f;
+    D_8010B330_treadmill_grill[1].x = w + obj->trans.x + 180.0f;
+    D_8010B330_treadmill_grill[1].y = 50.0f;
+    D_8010B330_treadmill_grill[1].z = 350.0f;
+    D_8010B330_treadmill_grill[2].x = w + obj->trans.x + 180.0f;
+    D_8010B330_treadmill_grill[2].y = 50.0f;
+    D_8010B330_treadmill_grill[2].z = -1150.0f;
+    D_8010B330_treadmill_grill[3].x = obj->trans.x - w - 180.0f;
+    D_8010B330_treadmill_grill[3].y = 50.0f;
+    D_8010B330_treadmill_grill[3].z = -1150.0f;
+    D_8010B330_treadmill_grill[4].x = obj->trans.x - w - 180.0f;
+    D_8010B330_treadmill_grill[4].y = 50.0f;
+    D_8010B330_treadmill_grill[4].z = 350.0f;
+    D_8010B330_treadmill_grill[5].x = x0;
+    D_8010B330_treadmill_grill[5].y = 50.0f;
+    D_8010B330_treadmill_grill[5].z = 350.0f;
+    t = 0.0f;
+    for (i = 0; i < 5; i++) {
+        dir.x = D_8010B330_treadmill_grill[i + 1].x - D_8010B330_treadmill_grill[i].x;
+        dir.y = D_8010B330_treadmill_grill[i + 1].y - D_8010B330_treadmill_grill[i].y;
+        dir.z = D_8010B330_treadmill_grill[i + 1].z - D_8010B330_treadmill_grill[i].z;
+        len = HuSqrtf(dir.x * dir.x + dir.z * dir.z);
+        func_800202FC_main(&dir);
+        do {
+            D_8010B378_treadmill_grill[n].x = t * dir.x + D_8010B330_treadmill_grill[i].x;
+            D_8010B378_treadmill_grill[n].y = t * dir.y + D_8010B330_treadmill_grill[i].y;
+            D_8010B378_treadmill_grill[n].z = t * dir.z + D_8010B330_treadmill_grill[i].z;
+            t += step;
+            n++;
+        } while (t < len);
+        t -= len;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80109108_treadmill_grill);
+#endif
 
 void func_801093E0_treadmill_grill(void) {
 }
