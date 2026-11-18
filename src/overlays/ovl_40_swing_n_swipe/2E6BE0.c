@@ -1007,8 +1007,7 @@ void func_80108158_swing_n_swipe(void) {
     }
 }
 
-// masked ~60: register allocation only (retail keeps 360.0f in $f30 and 270.0f in $s7, and does not hoist the
-// %180 magic constant into $s8)
+// masked 46: register allocation only (retail keeps 360.0f in $f30 and 270.0f in $s7; here they swap)
 #ifdef NON_MATCHING
 /* Play: the thieves wander, turning at random and bouncing off each other and the field's edges. */
 void func_8010897C_swing_n_swipe(void) {
@@ -1084,7 +1083,7 @@ void func_8010897C_swing_n_swipe(void) {
                 }
                 break;
             case 3:
-                st[i][0] = (u16)st[i][0] % 360;
+                st[i][0] = st[i][0] % 360;
                 st[i][1] = rand8() & 1;
                 D_8010BDE0_swing_n_swipe[i] = 1;
                 break;
