@@ -15,6 +15,8 @@
 #include "game/wipe.h"
 #include "mallocblock.h"
 
+typedef func_800E1BA8_minigame_ObjData MgWork;
+
 /* One slot of the overlay's object table (D_8010B1F0_coconut_conk, 50 x 0x84). */
 typedef struct CcEnt {
     /* 0x00 */ omObjData *obj;
@@ -83,6 +85,11 @@ void func_800335BC_main(char *arg0, void *arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
 s32 func_8000B710_main(s32 arg0);
 void func_800E6F0C_minigame(s8 arg0);
+void func_800DDD94_minigame(omObjData *obj);
+void func_800E149C_minigame(omObjData *obj, u8 idx, u8 val);
+void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
+void func_80105B04_coconut_conk(s32 player);
+extern s32 D_800EBE24_minigame;
 void osViBlack(u8 active);
 extern u16 D_800D530C_main;
 f32 fabsf(f32);
@@ -129,7 +136,7 @@ extern s16 D_8010B1C0_coconut_conk;
 extern s16 D_8010B1C2_coconut_conk;
 extern s8 D_8010B1C3_coconut_conk;     /* the low byte of D_8010B1C2_coconut_conk */
 extern u8 D_8010B1C8_coconut_conk;
-extern s8 D_8010B1C9_coconut_conk[3];
+extern u8 D_8010B1C9_coconut_conk[3];
 extern u8 D_8010B1CC_coconut_conk;
 extern HuSprite_Unk84_Struct *D_8010B1C4_coconut_conk;
 extern void *D_8010B1D0_coconut_conk[3];
@@ -155,7 +162,7 @@ extern s16 D_8010CBB8_coconut_conk;
 extern s8 D_8010CBBA_coconut_conk;
 extern u8 D_8010CBBB_coconut_conk;
 extern s16 D_8010CBBC_coconut_conk;
-extern s8 D_8010CBBE_coconut_conk;
+extern u8 D_8010CBBE_coconut_conk;
 extern s16 D_8010CBC0_coconut_conk;
 /* .rodata */
 extern const s16 D_8010B1B8_coconut_conk[];
@@ -1295,8 +1302,7 @@ void func_801090C4_coconut_conk(omObjData *obj) {
                 objs[i] = ents[i]->obj;
             }
             for (i = 0; i < 3; i++) {
-                d = fabs(objs[i]->trans.x - solo->trans.x);
-                if (d <= best) {
+                if (best >= (d = fabs(objs[i]->trans.x - solo->trans.x))) {
                     closest = i;
                     best = d;
                 }
@@ -1355,16 +1361,295 @@ void func_801095A4_coconut_conk(omObjData *obj) {
 void func_801095C0_coconut_conk(omObjData *obj) {
 }
 
+
+
+
+
+
+
+
+
+/* A team player hits a palm tree: the nearest tree shakes and drops one of its three coconuts. */
+#ifdef NON_MATCHING
+/* Differs from retail only in the scheduling of one instruction in the nearest-tree loop. */
+void func_801095C8_coconut_conk(omObjData *obj) {
+    CcEnt *ent = &D_8010BCC4_coconut_conk[obj->work[1] + 1];
+    MgWork *gw = obj->data;
+    CcEnt *tree;
+    CcEnt *nut;
+    omObjData *o;
+    f32 best;
+    f64 d;
+    s16 closest;
+    s16 i;
+
+    if (D_800D20A1_main[obj->work[3]] >= 5) {
+        D_800D20A1_main[obj->work[3]] = 0;
+    }
+    if (D_800D20A1_main[obj->work[3]] < -4) {
+        D_800D20A1_main[obj->work[3]] = 0;
+    }
+    func_800DDD94_minigame(obj);
+    if (HmfModelData[obj->model[7]].unk40 == 0.0f) {
+        func_8001C258_main(obj->model[7], 4, 4);
+    }
+    if (gw->unk5C == 0x200) {
+        if (gw->unk50 == 0x80 && ent->unk04 == 0) {
+            ent->unk04 = 1;
+            if (D_8010B1DE_coconut_conk < 3) {
+                D_8010B1DE_coconut_conk++;
+                func_800E4C88_minigame(obj, 7, obj->trans.x, obj->trans.y, obj->trans.z, 0.0f, 0.0f);
+                best = 3000.0f;
+                closest = 0;
+                for (i = 0; i < 6; i++) {
+                    if (best > (d = fabs(obj->trans.x - D_8010AFB8_coconut_conk[i]))) {
+                        best = d;
+                        closest = i;
+                    }
+                }
+                tree = &D_8010B508_coconut_conk[closest];
+                if (tree->unk04 == 0) {
+                    tree->unk04 = 1;
+                    ent->unk16 = 1;
+                }
+                switch (closest) {
+                    case 0:
+                    case 3:
+                        for (i = 0; i < 3; i++) {
+                            nut = &D_8010B820_coconut_conk[i];
+                            o = nut->obj;
+                            if (nut->unk04 == 0) {
+                                nut->unk04 = 1;
+                                o->trans.x = obj->trans.x;
+                                break;
+                            }
+                        }
+                        break;
+                    case 1:
+                    case 4:
+                        for (i = 3; i < 6; i++) {
+                            nut = &D_8010B820_coconut_conk[i];
+                            o = nut->obj;
+                            if (nut->unk04 == 0) {
+                                nut->unk04 = 1;
+                                o->trans.x = obj->trans.x;
+                                break;
+                            }
+                        }
+                        break;
+                    case 2:
+                    case 5:
+                        for (i = 6; i < 9; i++) {
+                            nut = &D_8010B820_coconut_conk[i];
+                            o = nut->obj;
+                            if (nut->unk04 == 0) {
+                                nut->unk04 = 1;
+                                o->trans.x = obj->trans.x;
+                                break;
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+    if (gw->unk5C != 0x200 && gw->unk50 != 0x80 && obj->trans.y <= 512.0f) {
+        ent->unk04 = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801095C8_coconut_conk);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_80109940_coconut_conk);
+/* A team player: per frame. */
+void func_80109940_coconut_conk(omObjData *obj) {
+    MgWork *works[4];
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    CcEnt *ent = &D_8010BCC4_coconut_conk[obj->work[1] + 1];
+    MgWork *gw = obj->data;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_80109DEC_coconut_conk);
+    if (D_8010B1C8_coconut_conk != 2) {
+        func_80105B04_coconut_conk(obj->work[0]);
+    }
+    ent->unk18 = obj->trans.x;
+    switch (D_8010B1C8_coconut_conk) {
+        case 0:
+        case 1:
+        case 5:
+            break;
+        case 2:
+            if (D_8010B1E0_coconut_conk > 0 && D_8010B1CC_coconut_conk == 0) {
+                if (!(GwPlayer[obj->work[0]].stat & 1)) {
+                    func_801095C0_coconut_conk(obj);
+                } else {
+                    func_801095A4_coconut_conk(obj);
+                }
+            }
+            func_801095C8_coconut_conk(obj);
+            break;
+        case 3:
+            if (obj->trans.y > 512.0f) {
+                if (++ent->unk0C >= 30001) {
+                    ent->unk0C = 0;
+                }
+                if (ent->unk0C < 70) {
+                    D_800CBB6E_main[obj->work[3]] = -40;
+                } else if (ent->unk0C < 140) {
+                    D_800CBB6E_main[obj->work[3]] = 40;
+                }
+                if (ent->unk0C >= 140) {
+                    func_801095A4_coconut_conk(obj);
+                }
+                func_801095C8_coconut_conk(obj);
+                break;
+            }
+            if (gw->unk3C != 0.0f) {
+                D_800CBB6E_main[obj->work[3]] = 0;
+                D_800D20A1_main[obj->work[3]] = -40;
+            }
+            for (i = 0; i < 3; i++) {
+                ents[i] = &D_8010BCC4_coconut_conk[i + 1];
+                objs[i] = ents[i]->obj;
+                works[i] = objs[i]->data;
+            }
+            if (objs[0]->trans.y <= 512.0f && works[0]->unk3C == 0.0f && ((works[0]->unk50 == 0) | (works[0]->unk50 == 0x80)) &&
+                works[0]->unk5C == 2 && objs[1]->trans.y <= 512.0f && works[1]->unk3C == 0.0f &&
+                ((works[1]->unk50 == 0) | (works[1]->unk50 == 0x80)) && works[1]->unk5C == works[0]->unk5C &&
+                objs[2]->trans.y <= 512.0f && works[2]->unk3C == 0.0f && ((works[2]->unk50 == 0) | (works[2]->unk50 == 0x80)) &&
+                works[2]->unk5C == works[1]->unk5C) {
+                D_8010CBBA_coconut_conk = 3;
+            }
+            func_800DDD94_minigame(obj);
+            break;
+        case 4:
+            if (ent->unk0E == 0) {
+                if (D_8010B1CC_coconut_conk == 0) {
+                    func_800E5690_minigame(obj, 14);
+                    ent->unk0E = 1;
+                } else {
+                    func_800E5690_minigame(obj, 13);
+                    ent->unk0E = 1;
+                    func_80045ED0_main((D_8010AFD0_coconut_conk[GwPlayer[obj->work[0]].chr] << 16) | 0x2F);
+                }
+            }
+            break;
+    }
+    if (D_8010B1C8_coconut_conk != 2 && D_8010B1C8_coconut_conk != 3) {
+        func_800DDD94_minigame(obj);
+    }
+    if (obj->trans.x < -450.0f) {
+        obj->trans.x = -450.0f;
+    }
+    if (obj->trans.x > 450.0f) {
+        obj->trans.x = 450.0f;
+    }
+    if (gw->unk54 != -1) {
+        obj->trans.x = ent->unk18;
+    }
+    func_8001C258_main(obj->model[1], 4, 4);
+    if (ent->unk16 > 0) {
+        ent->unk16++;
+    }
+    if (ent->unk16 >= 4) {
+        func_8004AC98_main(0x313, obj->work[0]);
+        ent->unk16 = 0;
+    }
+}
 
+/* A team player: character model, motions and start position (a random free spot under the trees). */
+void func_80109DEC_coconut_conk(omObjData *obj) {
+    u16 chr = GwPlayer[obj->work[0]].chr;
+    s32 dir;
+    s32 file;
+    u8 pos;
 
-
-
-
+    if (GwPlayer[obj->work[0]].stat & 1) {
+        D_8010CBBB_coconut_conk++;
+        switch (GwPlayer[obj->work[0]].cpu_difficulty) {
+            case 0:
+                if (D_8010CBBC_coconut_conk >= 61) {
+                    D_8010CBBC_coconut_conk = 60;
+                }
+                break;
+            case 1:
+                if (D_8010CBBC_coconut_conk >= 31) {
+                    D_8010CBBC_coconut_conk = 30;
+                }
+                break;
+            case 2:
+                if (D_8010CBBC_coconut_conk >= 16) {
+                    D_8010CBBC_coconut_conk = 15;
+                }
+                break;
+            case 3:
+                if (D_8010CBBC_coconut_conk >= 11) {
+                    D_8010CBBC_coconut_conk = 10;
+                }
+                break;
+        }
+    }
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    func_800E18D8_minigame();
+    func_800E1BA8_minigame(obj, dir, file, obj->work[0], 0x2B9, 0x2A9);
+    ((MgWork *)obj->data)->unkEC = NULL;
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C258_main(obj->model[1], 0x60, 0x20);
+    func_8001C258_main(obj->model[1], 0x180, 0x80);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    obj->model[7] = func_8000B108_main(8, 0x2BD);
+    obj->model[6] = func_8000B108_main(5, 0x2BD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, 6), 1, 0x1B);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5978_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, 0x2F), 1, 0x78);
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, 0x36), 1, 0x3E7);
+    func_800E5690_minigame(obj, 0);
+    D_800EBE24_minigame = 1;
+    pos = rand8() % 3;
+    for (;;) {
+        if (pos != D_8010B1C9_coconut_conk[0] && pos != D_8010B1C9_coconut_conk[1]) {
+            D_8010B1C9_coconut_conk[D_8010CBBE_coconut_conk] = pos;
+            D_8010CBBE_coconut_conk++;
+            switch (pos) {
+                case 0:
+                    obj->trans.x = -300.0f;
+                    break;
+                case 1:
+                    obj->trans.x = 0.0f;
+                    break;
+                case 2:
+                    obj->trans.x = 300.0f;
+                    break;
+            }
+            break;
+        }
+        pos++;
+        if (pos >= 3) {
+            pos = 0;
+        }
+    }
+    obj->trans.y = 512.0f;
+    obj->trans.z = -225.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[7], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[6], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    func_8001C8A8_main(obj->model[7], 2);
+    func_8001C8A8_main(obj->model[6], 2);
+    func_800E149C_minigame(obj, 0, 2);
+    func_80105B04_coconut_conk(obj->work[0]);
+    obj->func = func_80109940_coconut_conk;
+}
 
 /* Creates the three team players' objects. */
 void func_8010A344_coconut_conk(void) {
