@@ -66,7 +66,7 @@ typedef struct PgBoard {
     /* 0x14 */ void (*func)(struct PgBoard*); /* per-frame hook */
     /* 0x18 */ u8 rows; /* vertex pairs */
     /* 0x19 */ u8 rowH; /* texels per row */
-    /* 0x1A */ s8 unk1A;
+    /* 0x1A */ u8 unk1A; /* facing: 1 X, 2 Y, 7 camera, 4 none */
     /* 0x1B */ u8 unk1B; /* S mask */
     /* 0x1C */ u8 unk1C; /* T mask */
     /* 0x1D */ u8 r;
@@ -193,12 +193,17 @@ extern f32 D_8010DDD0_popgun_pickoff; /* tan(fov / 2) */
 extern PgBoard* D_8010DDD8_popgun_pickoff;
 extern s32 D_8010DDF0_popgun_pickoff; /* billboard count */
 extern void* D_8010DDDC_popgun_pickoff[3]; /* per-frame buffers */
-extern void* D_8010DDE8_popgun_pickoff; /* this frame's buffer */
+extern u8* D_8010DDE8_popgun_pickoff; /* this frame's buffer */
 extern s32 D_8010DDEC_popgun_pickoff; /* its size */
 extern s32 D_8010C890_popgun_pickoff; /* buffer index */
 extern s32 D_8010C5F8_popgun_pickoff[4]; /* texel shift by size */
 extern s16 D_8010C608_popgun_pickoff[]; /* LoadBlock row limits by line width */
 extern s16 D_8010C740_popgun_pickoff[];
+extern s16 D_8010C878_popgun_pickoff[4]; /* colour dither by flags >> 4 */
+extern s16 D_8010C880_popgun_pickoff[4]; /* texture filter by flags >> 2 */
+extern s16 D_8010C888_popgun_pickoff[4]; /* alpha compare by flags >> 22 */
+void func_8008A120_main(Matrix4f m, f32 a);
+void func_80018544_main(Matrix4f src, Matrix4f dst);
 void func_801093A8_popgun_pickoff(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 fmt, u8 siz, u16 rows, u16 uls,
                                   u16 ult, u16 lrs, u16 lrt, u16 cms, u16 cmt, u16 masks, u16 maskt, s32 mode);
 extern PgBoard D_8010DE00_popgun_pickoff; /* opaque draw list head */
@@ -2502,7 +2507,152 @@ void func_8010BA44_popgun_pickoff(Gfx** gfx, s32 arg1, s32 arg2) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Draws one billboard: render state, its matrix, then a copy of its vertices and display list. */
+Gfx* func_8010BC6C_popgun_pickoff(Gfx* g, PgBoard* b, f32 (*view)[4], Vec* rot) {
+    f32 sc[4][4];
+    f32 m[4][4];
+    f32 ofs[4][4];
+    f32 inv[4][4];
+    HuSprite_Unk84_Unk00_Struct* cel;
+    u8* vtx;
+    Mtx* mtx;
+    u8* dl;
+    u32 rm1;
+    u32 rm2;
+
+    cel = &b->spr->unk00[b->frame];
+    gDPPipeSync(g++);
+    gDPSetTextureFilter(g++, D_8010C880_popgun_pickoff[((s32)b->flags >> 2) & 3]);
+    gDPSetColorDither(g++, D_8010C878_popgun_pickoff[((s32)b->flags >> 4) & 3]);
+    gDPSetAlphaCompare(g++, D_8010C888_popgun_pickoff[((s32)b->flags >> 22) & 3]);
+    if (b->flags & 0x10000) {
+        gSPSetGeometryMode(g++, G_LIGHTING);
+    } else {
+        gSPClearGeometryMode(g++, G_LIGHTING);
+    }
+    rm2 = 0x110000;
+    if (b->flags & 0x08000000) {
+        rm2 = 0xC8004000;
+    }
+    if (b->flags & 0x1000) {
+        rm1 = 0x4850;
+        if (b->spr->unk18 & 0x8000) {
+            rm2 = 0x100000;
+            if (b->a == 0x100) {
+                gDPSetCombine(g++, 0xFFFE04, 0xFFFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0xFF9604, 0xFF11FFFF);
+            }
+        } else if (b->a != 0x100) {
+            rm1 = 0x4850;
+            rm2 = 0x100000;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x609604, 0x3F11FFFF);
+            } else {
+                gDPSetCombine(g++, 0x121604, 0xFF13FFFF);
+            }
+        } else {
+            rm1 = 0x3038;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x60FE04, 0x3FFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0x127E04, 0xFFFFF3F8);
+            }
+        }
+    } else {
+        rm1 = 0x2030;
+        if (b->flags & 0x02000000) {
+            gDPSetCombine(g++, 0x6097FF, 0x3FFDFE38);
+        } else {
+            gDPSetCombine(g++, 0x1217FF, 0xFFFFFE38);
+        }
+    }
+    switch (((s32)b->flags >> 10) & 3) {
+        case 0:
+            rm1 |= 0x200;
+            break;
+        case 2:
+            rm1 |= 0x40;
+            if ((b->flags & 0x1000) && b->a != 0x100) {
+                rm1 |= 0x180;
+            }
+        case 1:
+            rm1 |= 8;
+            break;
+    }
+    if (b->flags & 0x2000) {
+        rm1 |= 0xC00;
+    }
+    if (b->flags & 0x08000000) {
+        gSPSetGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0xC8000000);
+    } else {
+        gSPClearGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0x0C080000);
+    }
+    gDPSetPrimColor(g++, 0, 0, b->r, b->g, b->b, b->a);
+    vtx = D_8010DDE8_popgun_pickoff;
+    mtx = (Mtx*)(vtx + b->rows * 2 * sizeof(Vtx));
+    dl = (u8*)mtx + sizeof(Mtx);
+    D_8010DDE8_popgun_pickoff = dl + b->cmds * sizeof(Gfx);
+    guMtxIdentF(ofs);
+    if (b->flags & 0x04000000) {
+        ofs[3][0] = -b->ofs.x;
+        ofs[3][1] = b->ofs.y;
+    } else {
+        ofs[3][0] = -(s32)(u16)cel->unk08;
+        ofs[3][1] = (u16)cel->unk0A;
+    }
+    ofs[3][2] = b->ofs.z;
+    func_8002367C_main(m, view);
+    func_80017C10_main((Mtx*)m, b->pos.x, b->pos.y, b->pos.z);
+    func_80017D24_main(m, b->rot.x, b->rot.y, b->rot.z);
+    func_80017CD0_main(m, b->scale.x, b->scale.y, b->scale.z);
+    switch (b->unk1A) {
+        case 1:
+            func_8008A120_main(m, rot->x);
+            break;
+        case 2:
+            func_8008A2A0_main((f32*)m, rot->y);
+            break;
+        case 7:
+            sc[0][0] = b->scale.x;
+            sc[1][1] = b->scale.y;
+            sc[2][2] = b->scale.z;
+            sc[3][3] = 1.0f;
+            sc[3][2] = 0.0f;
+            sc[3][1] = 0.0f;
+            sc[3][0] = 0.0f;
+            sc[2][3] = 0.0f;
+            sc[2][1] = 0.0f;
+            sc[2][0] = 0.0f;
+            sc[1][3] = 0.0f;
+            sc[1][2] = 0.0f;
+            sc[1][0] = 0.0f;
+            sc[0][3] = 0.0f;
+            sc[0][2] = 0.0f;
+            sc[0][1] = 0.0f;
+            func_80018544_main(m, inv);
+            func_80018044_main(sc, inv, m);
+        case 4:
+            break;
+    }
+    guMtxCatF(ofs, m, m);
+    guMtxF2L(m, mtx);
+    gSPMatrix(g++, osVirtualToPhysical(mtx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    gSPSegment(g++, 0x0C, cel->unk00);
+    gSPSegment(g++, 0x0E, vtx);
+    memcpy(vtx, b->vtx, b->rows * 2 * sizeof(Vtx));
+    memcpy(dl, b->gfx, b->cmds * sizeof(Gfx));
+    if (!(b->flags & 0x8000)) {
+        gSPDisplayList(g++, dl);
+    }
+    return g;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010BC6C_popgun_pickoff);
+#endif
 
 void func_8010C32C_popgun_pickoff(void) {
     PgBoard* b;
