@@ -737,7 +737,7 @@ void func_80108F08_tidal_toss(omObjData* obj, u32 file0, s32 file1, s32 player, 
 }
 
 #ifdef NON_MATCHING
-/* masked 0, raw 1: retail tests flags & 0x20 on $v0 (the call result) instead of its copy in $s3 */
+/* masked 0, raw 1: retail tests flags & 0x20 on $v0 (the call result) instead of its copy in $s3. unk36 is u16 but retail converts with a signed trunc.w.d: the (s32) cast is needed */
 /* The solo player in the boat: it bobs on the water and rocks when a ball lands. */
 void func_80109180_tidal_toss(omObjData* obj) {
     MgWork* work;
@@ -752,7 +752,7 @@ void func_80109180_tidal_toss(omObjData* obj) {
     switch (D_8010AF40_tidal_toss) {
         case 0:
             tp->unk44 = 0.0f;
-            tp->unk36 = (f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 12.0;
+            tp->unk36 = (s32)((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 12.0);
             tp->unk38 = 0;
             break;
         case 2:
