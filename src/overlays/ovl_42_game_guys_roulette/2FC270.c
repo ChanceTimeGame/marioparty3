@@ -133,6 +133,17 @@ extern u8 D_8010A656_game_guys_roulette; /* bet timer frames */
 extern u8 D_8010A657_game_guys_roulette; /* bet timer seconds */
 extern f32 D_8010A658_game_guys_roulette; /* face scale */
 extern s16 D_8010A65C_game_guys_roulette;
+extern u8 D_8010A65E_game_guys_roulette; /* throw timer */
+extern u8 D_8010A65F_game_guys_roulette; /* throw step */
+extern u8 D_8010A660_game_guys_roulette; /* 1: the ball rolls */
+extern u8 D_8010A661_game_guys_roulette; /* roll step */
+extern f32 D_8010A664_game_guys_roulette; /* ball speed */
+extern f32 D_8010A668_game_guys_roulette; /* ball angle */
+extern f32 D_8010A66C_game_guys_roulette; /* ball spin */
+extern s16 D_8010A670_game_guys_roulette; /* rolling sound */
+extern u8 D_8010A672_game_guys_roulette; /* pocket under the ball */
+extern s16 D_8010A674_game_guys_roulette; /* rolling sound pitch */
+extern u8 D_8010A676_game_guys_roulette; /* the last pocket, for its tick */
 extern s16 D_8010A678_game_guys_roulette; /* result timer */
 extern u8 D_8010A67A_game_guys_roulette; /* result message wait */
 extern u8 D_8010A67B_game_guys_roulette; /* result step */
@@ -766,7 +777,125 @@ void func_80107AA8_game_guys_roulette(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80107B20_game_guys_roulette);
+/* Game Guy throws the ball; it runs round the rim, slows with the wheel's deceleration and stops in the winning
+   pocket; the pocket under the ball lights. */
+void func_80107B20_game_guys_roulette(void) {
+    f32 x;
+    f32 y;
+    f32 f;
+    u8 i;
+
+    if (D_8010A65E_game_guys_roulette < 31) {
+        D_8010A65E_game_guys_roulette++;
+        return;
+    }
+    if (D_8010A65F_game_guys_roulette == 0) {
+        func_8001C5B4_main(D_8010A918_game_guys_roulette->model[0], D_8010A918_game_guys_roulette->motion[1]);
+        D_8010A65F_game_guys_roulette = 1;
+    } else if (D_8010A65F_game_guys_roulette == 1) {
+        if (D_8010A660_game_guys_roulette == 0 && HmfModelData[D_8010A918_game_guys_roulette->model[0]].unk40 >= 30.0f) {
+            D_8010A660_game_guys_roulette = 1;
+        } else if (D_8010A660_game_guys_roulette == 1) {
+            if (HmfModelData[D_8010A918_game_guys_roulette->model[0]].unk40 >= 64.0f) {
+                func_8001C6A8_main(D_8010A918_game_guys_roulette->model[0], 64.0f);
+                D_8010A65E_game_guys_roulette++;
+                if (D_8010A65E_game_guys_roulette >= 40) {
+                    HuAudSeqPlay(0x48);
+                    func_8001C624_main(D_8010A918_game_guys_roulette->model[0],
+                                       HmfModelData[D_8010A918_game_guys_roulette->motion[2]].unk02, 0, 30, 2);
+                    D_8010A65F_game_guys_roulette = 2;
+                }
+            }
+        }
+    }
+    if (D_8010A660_game_guys_roulette == 1) {
+        if (D_8010A661_game_guys_roulette == 0) {
+            D_8010A670_game_guys_roulette = HuAudFXPlay(0x512);
+            D_8010A664_game_guys_roulette += 2.0f;
+            if (D_8010A664_game_guys_roulette >= 10.0f) {
+                D_8010A661_game_guys_roulette = 1;
+            }
+        } else if (D_8010A661_game_guys_roulette == 1) {
+            if (D_8010A668_game_guys_roulette == 0.0f) {
+                D_8010A661_game_guys_roulette = 2;
+                D_8010A664_game_guys_roulette = D_8010AAE4_game_guys_roulette;
+            }
+        } else if (D_8010A661_game_guys_roulette == 2) {
+            D_8010A664_game_guys_roulette -= D_8010AAE8_game_guys_roulette;
+            HuAudFXPitchSet(D_8010A670_game_guys_roulette, D_8010A674_game_guys_roulette -= 10);
+            if (D_8010A664_game_guys_roulette <= 0.0f) {
+                HuAudFXStop(D_8010A670_game_guys_roulette);
+                if (D_8010AB58_game_guys_roulette == 1) {
+                    HuAudFXPlay(0x514);
+                    if (D_8010AB51_game_guys_roulette == 5) {
+                        omVibrate(D_8010AAD6_game_guys_roulette.player, 30, 0, 30);
+                    } else {
+                        omVibrate(D_8010AAD6_game_guys_roulette.player, 2, 2, 20);
+                    }
+                } else {
+                    HuAudFXPlay(0x518);
+                }
+                D_8010A664_game_guys_roulette = 0.0f;
+                func_8001C624_main(D_8010A918_game_guys_roulette->model[0],
+                                   HmfModelData[D_8010A918_game_guys_roulette->motion[0]].unk02, 0, 30, 2);
+                D_8010AB50_game_guys_roulette = 10;
+            }
+        }
+        x = cosdf(D_8010A668_game_guys_roulette) * 85.0f;
+        y = cosdf(15.0f) * 100.0f - sindf(D_8010A668_game_guys_roulette) * 85.0f * sindf(15.0f);
+        omSetTra(D_8010A920_game_guys_roulette, x, y + 100.0f,
+                 sindf(15.0f) * 100.0f + sindf(D_8010A668_game_guys_roulette) * 85.0f * cosdf(15.0f));
+        omSetRot(D_8010A920_game_guys_roulette, 0.0f, D_8010A66C_game_guys_roulette, 0.0f);
+        Hu3DModelPosSet(D_8010A920_game_guys_roulette->model[1],
+                        HmfModelData[D_8010A920_game_guys_roulette->model[0]].pos.x,
+                        HmfModelData[D_8010A920_game_guys_roulette->model[0]].pos.y,
+                        HmfModelData[D_8010A920_game_guys_roulette->model[0]].pos.z);
+        HmfModelData[D_8010A920_game_guys_roulette->model[1]].rot.y =
+            HmfModelData[D_8010A920_game_guys_roulette->model[0]].rot.y;
+        f = D_8010A664_game_guys_roulette - 0.5f;
+        if (f > 0.0f) {
+            D_8010A66C_game_guys_roulette -= f * 3.0;
+        }
+        D_8010A668_game_guys_roulette += D_8010A664_game_guys_roulette;
+        if (D_8010A668_game_guys_roulette >= 360.0f) {
+            D_8010A668_game_guys_roulette -= 360.0f;
+        }
+        for (i = 1; i < 7; i++) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[i], 1);
+        }
+        if (D_8010AB20_game_guys_roulette[0] <= D_8010A668_game_guys_roulette &&
+            D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[1]) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[6], 0);
+            D_8010A672_game_guys_roulette = 1;
+        } else if (D_8010AB20_game_guys_roulette[1] <= D_8010A668_game_guys_roulette &&
+                   D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[2]) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[3], 0);
+            D_8010A672_game_guys_roulette = 2;
+        } else if ((D_8010AB20_game_guys_roulette[2] <= D_8010A668_game_guys_roulette &&
+                    D_8010A668_game_guys_roulette < 360.0f) ||
+                   (D_8010A668_game_guys_roulette >= 0.0f &&
+                    D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[3])) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[5], 0);
+            D_8010A672_game_guys_roulette = 3;
+        } else if (D_8010AB20_game_guys_roulette[3] <= D_8010A668_game_guys_roulette &&
+                   D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[4]) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[1], 0);
+            D_8010A672_game_guys_roulette = 4;
+        } else if (D_8010AB20_game_guys_roulette[4] <= D_8010A668_game_guys_roulette &&
+                   D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[5]) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[4], 0);
+            D_8010A672_game_guys_roulette = 5;
+        } else if (D_8010AB20_game_guys_roulette[5] <= D_8010A668_game_guys_roulette &&
+                   D_8010A668_game_guys_roulette < D_8010AB20_game_guys_roulette[0]) {
+            func_8001C8A8_main(D_8010A914_game_guys_roulette->model[2], 0);
+            D_8010A672_game_guys_roulette = 6;
+        }
+        if (D_8010A676_game_guys_roulette != D_8010A672_game_guys_roulette) {
+            HuAudFXPlay(0x513);
+            D_8010A676_game_guys_roulette = D_8010A672_game_guys_roulette;
+        }
+    }
+}
 
 void func_80108414_game_guys_roulette(void) {
     if (++D_8010A678_game_guys_roulette == 1) {
