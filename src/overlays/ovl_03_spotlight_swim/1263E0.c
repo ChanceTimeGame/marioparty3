@@ -232,6 +232,8 @@ extern SsEnt D_8010D798_spotlight_swim[3];
 extern s8 D_8010D323_spotlight_swim[3];
 extern f32 D_8010D3A0_spotlight_swim[3];
 
+void func_80088800_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -248,6 +250,7 @@ void func_8010881C_spotlight_swim(omObjData *obj);
 void func_80108AD8_spotlight_swim(omObjData *obj);
 void func_80109A94_spotlight_swim(omObjData *obj);
 void func_80109C1C_spotlight_swim(omObjData *obj);
+void func_80109F60_spotlight_swim(omObjData *obj);
 void func_80109690_spotlight_swim(omObjData *obj);
 u8 func_80109194_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
@@ -1639,7 +1642,56 @@ void func_80109F60_spotlight_swim(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+/* retail keeps work[1] (lb) and a copy in two saved registers (frame 0x30); mine loads lbu and extends at the use */
+/* Chaser setup for the end sequence. */
+void func_8010A328_spotlight_swim(omObjData *obj) {
+    s8 i = obj->work[1];
+    s8 j = i;
+    u16 chr = GwPlayer[obj->work[0]].chr;
+
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x5C));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x5B));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x5A));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x2F));
+    func_80105CE0_spotlight_swim(obj, 0, 2);
+    func_8001C92C_main(obj->model[0], 0.0f);
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main((f32(*)[4])HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    switch (D_8010CCC0_spotlight_swim[D_8010D3AC_spotlight_swim][i]) {
+    case 0:
+        obj->trans.x = -360.0f;
+        break;
+    case 1:
+        obj->trans.x = 0.0f;
+        break;
+    case 2:
+        obj->trans.x = 360.0f;
+        break;
+    }
+    D_8010D3A0_spotlight_swim[j] = obj->trans.x;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 580.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = obj->rot.z = 0.0f;
+    obj->rot.y = 180.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    D_8010D323_spotlight_swim[j] = 0;
+    obj->func = func_80109F60_spotlight_swim;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A328_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A670_spotlight_swim);
 
