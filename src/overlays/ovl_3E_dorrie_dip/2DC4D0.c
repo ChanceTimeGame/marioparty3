@@ -15,10 +15,19 @@ typedef struct DrSplash {
 
 /* The CPU's plan (D_8010A254) */
 typedef struct DrCpu {
-    /* 0x00 */ s32 unk00;
+    /* 0x00 */ s32 unk00; /* frames to hold B after pressing A */
     /* 0x04 */ s32 unk04; /* the Dorrie to hook */
-    /* 0x08 */ s32 unk08;
+    /* 0x08 */ s32 unk08; /* A pressed */
 } DrCpu; /* size 0xC */
+
+/* omObjData::data of the wakes behind the Dorries (D_8010A260) */
+typedef struct DrWake {
+    /* 0x00 */ f32 unk00[6]; /* x */
+    /* 0x18 */ f32 unk18[6]; /* y */
+    /* 0x30 */ f32 unk30[6]; /* z */
+    /* 0x48 */ f32 unk48[6]; /* x scale */
+    /* 0x60 */ s32 unk60[6]; /* 1: shown */
+} DrWake; /* size 0x78 */
 
 /* omObjData::data of the ground (D_8010A224; the framework's ground object, minigame mgcol.h GroundWork) */
 typedef struct DrGround {
@@ -162,6 +171,7 @@ void func_8010971C_dorrie_dip(void);
 void func_80109738_dorrie_dip(void);
 void func_80109978_dorrie_dip(void);
 void func_80109B28_dorrie_dip(void);
+void func_80109C14_dorrie_dip(omObjData* obj);
 void func_80109E1C_dorrie_dip(s32 idx);
 void func_80109F00_dorrie_dip(void);
 
@@ -192,6 +202,7 @@ extern omObjData* D_8010A248_dorrie_dip;
 extern omObjData* D_8010A24C_dorrie_dip;
 extern s32 D_8010A250_dorrie_dip; /* 2: ripples running */
 extern DrCpu D_8010A254_dorrie_dip;
+extern omObjData* D_8010A260_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -1373,10 +1384,89 @@ void func_80109978_dorrie_dip(void) {
     D_8010A254_dorrie_dip.unk08 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109B28_dorrie_dip);
+/* The wakes behind the Dorries. */
+void func_80109B28_dorrie_dip(void) {
+    s32 attr = 0x6BD;
+    omObjData* obj;
+    DrWake* work;
+    s32 i;
 
+    obj = omAddObj(0xFF, 6, 0, -1, func_80109C14_dorrie_dip);
+    D_8010A260_dorrie_dip = obj;
+    work = obj->data = HuMemAllocTag(sizeof(DrWake), 0x7918);
+    for (i = 0; i < 6; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x5F000D, attr);
+        } else {
+            obj->model[i] = Hu3DModelLink(obj->model[0]);
+        }
+        work->unk60[i] = 0;
+        work->unk48[i] = 1.0f;
+    }
+}
+
+/* NON_MATCHING: masked 2; the assembler puts a nop after the sindf/cosdf calls of the last three stores */
+#ifdef NON_MATCHING
+void func_80109C14_dorrie_dip(omObjData* obj) {
+    DrWake* work = obj->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        if (i == 0) {
+            omSetTra(obj, work->unk00[i], work->unk18[i], work->unk30[i]);
+            omSetRot(obj, 0.0f, ring->unk18[i], 0.0f);
+            omSetSca(obj, work->unk48[i], 1.0f, 1.0f);
+        } else {
+            Hu3DModelPosSet(obj->model[i], work->unk00[i], work->unk18[i], work->unk30[i]);
+            Hu3DModelRotSet(obj->model[i], 0.0f, ring->unk18[i], 0.0f);
+            Hu3DModelScaleSet(obj->model[i], work->unk48[i], 1.0f, 1.0f);
+        }
+        if (work->unk60[i] & 1) {
+            work->unk48[i] = (4.8f - ring->unk30[i]) / 4.8f;
+            if (work->unk48[i] == 0.0f) {
+                func_8001C258_main(obj->model[i], 4, 4);
+                work->unk60[i] &= ~1;
+            }
+        }
+        work->unk00[i] = sindf(ring->unk18[i]) * 450.0f;
+        work->unk18[i] = D_8010A22C_dorrie_dip;
+        work->unk30[i] = cosdf(ring->unk18[i]) * 450.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109C14_dorrie_dip);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109E1C_dorrie_dip);
+/* Show a Dorrie's wake. */
+void func_80109E1C_dorrie_dip(s32 idx) {
+    DrWake* work = D_8010A260_dorrie_dip->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109F00_dorrie_dip);
+    work->unk60[idx] |= 1;
+    work->unk00[idx] = sindf(ring->unk18[idx]) * 450.0f;
+    work->unk18[idx] = D_8010A22C_dorrie_dip;
+    work->unk30[idx] = cosdf(ring->unk18[idx]) * 450.0f;
+    func_8001C258_main(D_8010A260_dorrie_dip->model[idx], 4, 0);
+    func_8001C814_main(D_8010A260_dorrie_dip->model[idx], 2, 2);
+}
+
+/* The CPU player: press A when its Dorrie passes under the hook, then B a few frames later. */
+void func_80109F00_dorrie_dip(void) {
+    func_800E1BA8_minigame_ObjData* work = D_800EC598_minigame[0]->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+
+    if (D_8010A254_dorrie_dip.unk08 == 0) {
+        if (ring->unk18[D_8010A254_dorrie_dip.unk04] >= 175.0f && ring->unk18[D_8010A254_dorrie_dip.unk04] < 185.0f) {
+            D_800CDA7C_main[work->unk57] |= 0x8000;
+            D_800D5558_main[work->unk57] |= 0x8000;
+            D_8010A254_dorrie_dip.unk08++;
+        }
+    }
+    if (D_8010A254_dorrie_dip.unk08 != 0) {
+        if (--D_8010A254_dorrie_dip.unk00 == 0) {
+            D_800CDA7C_main[work->unk57] |= 0x2000;
+            D_800D5558_main[work->unk57] |= 0x2000;
+        }
+    }
+}
