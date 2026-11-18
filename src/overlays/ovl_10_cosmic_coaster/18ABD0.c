@@ -85,6 +85,19 @@ typedef struct CcSpawn {
     /* 0x0C */ f32 unk0C; /* distance / 100 */
 } CcSpawn; // Size 0x10
 
+/* omObjData::data of a spinning track object (func_8010AF04_cosmic_coaster, 0xC) */
+typedef struct CcSpin {
+    /* 0x00 */ f32 unk00[3]; /* rotation speed x, y, z */
+} CcSpin;
+
+/* omObjData::data of the goal gate (func_8010B1DC_cosmic_coaster, 0x10) */
+typedef struct CcGate {
+    /* 0x00 */ f32 unk00; /* sway phase, then flag tilt */
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08; /* flag height */
+    /* 0x0C */ f32 unk0C; /* flag speed */
+} CcGate;
+
 /* Track objects keep a light distance in the unused omObjData::motion word (N64 layout). */
 #define CC_LIGHT_DIST(obj) (*(f32 *)&(obj)->motion)
 
@@ -1621,16 +1634,176 @@ void func_8010ABE0_cosmic_coaster(void) {
     spawn->unk00 = 0xFFFF;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010AF04_cosmic_coaster);
+/* Init of track object type 5: random spin speeds. */
+void func_8010AF04_cosmic_coaster(omObjData *object) {
+    CcSpin *work;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B04C_cosmic_coaster);
+    work = object->data = HuMemAllocTag(0xC, 0x7918);
+    work->unk00[0] = ((u8)(rand8() % 35) + 5) / 10.0f;
+    work->unk00[1] = ((u8)(rand8() % 35) + 5) / 10.0f;
+    work->unk00[2] = ((u8)(rand8() % 35) + 5) / 10.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B1DC_cosmic_coaster);
+/* Track object type 5 (spinning star): follow the track and spin. */
+void func_8010B04C_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    CcSpin *work;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B234_cosmic_coaster);
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    work = object->data;
+    object->rot.x += work->unk00[0];
+    object->rot.y += work->unk00[1];
+    object->rot.z += work->unk00[2];
+    if (object->rot.x >= 360.0f) {
+        object->rot.x -= 360.0f;
+    }
+    if (object->rot.y >= 360.0f) {
+        object->rot.y -= 360.0f;
+    }
+    if (object->rot.z >= 360.0f) {
+        object->rot.z -= 360.0f;
+    }
+    /* Retail passes trans.z as the z rotation. */
+    Hu3DModelRotSet(object->model[0], object->rot.x, object->rot.y, object->trans.z);
+    if (car->unk08 - object->trans.z >= 3300.0f) {
+        func_8001ACDC_main(object->model[0]);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B5C4_cosmic_coaster);
+/* Init of track object type 6 (goal gate). */
+void func_8010B1DC_cosmic_coaster(omObjData *object) {
+    CcGate *work;
+
+    work = object->data = HuMemAllocTag(0x10, 0x7918);
+    work->unk00 = 0.0f;
+    work->unk04 = -5.0f;
+    work->unk08 = 400.0f;
+    work->unk0C = -5.0f;
+}
+
+/* Track object type 6 (goal gate): the winner's flag sways, the loser's flag drops. */
+void func_8010B234_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    CcGate *work;
+    omObjData *loser;
+
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    Hu3DModelPosSet(object->model[1], object->trans.x, object->trans.y + 400.0f, car->unk08 - object->trans.z - 1185.0f);
+    Hu3DModelPosSet(object->model[2], object->trans.x, object->trans.y + 400.0f, car->unk08 - object->trans.z - 1185.0f);
+    work = object->data;
+    if (D_8010C3BC_cosmic_coaster != -1 && D_8010C3BC_cosmic_coaster == object->work[2]) {
+        func_8001C258_main(object->model[1], 4, 4);
+        func_8001C258_main(object->model[2], 4, 0);
+        work->unk00 += 8.0f;
+        if (work->unk00 >= 360.0f) {
+            work->unk00 -= 360.0f;
+        }
+        Hu3DModelRotSet(object->model[2], 0.0f, 0.0f, sindf(work->unk00) * 45.0f);
+        func_8001FBBC_main(object->model[0], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[0], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[1], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[1], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[2], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[2], 69.0f, 69.0f, 69.0f);
+    }
+    loser = D_8010C3B0_cosmic_coaster[D_8010C3BC_cosmic_coaster ^ 1];
+    if (D_8010C3BC_cosmic_coaster != -1 && loser->work[0] != 0 && (D_8010C3BC_cosmic_coaster ^ 1) == object->work[2]) {
+        if (loser->work[1] != 0) {
+            loser->work[1]--;
+        } else {
+            work->unk08 += work->unk0C;
+            work->unk0C *= 1.45f;
+            work->unk00 += 8.0f;
+            if (work->unk08 <= 270.0f) {
+                work->unk08 = 270.0f;
+            }
+            if (work->unk00 > 40.0f) {
+                work->unk00 = 40.0f;
+            }
+            Hu3DModelPosSet(object->model[1], object->trans.x, object->trans.y + work->unk08, car->unk08 - object->trans.z - 1185.0f);
+            Hu3DModelRotSet(object->model[1], 0.0f, 0.0f, work->unk00);
+        }
+    }
+}
+
+/* A track object is gone: no CPU rider may keep dodging it (retail clears every target). */
+void func_8010B5C4_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 2; i++) {
+        car = D_8010C3B0_cosmic_coaster[i]->data;
+        for (j = 0; j < 2; j++) {
+            if (car->unk44[j] == object) {
+                car->unk44[j] = NULL;
+            }
+            car->unk3C[j] = 100000.0f;
+            car->unk4C[j] = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B644_cosmic_coaster);
 
+/* Lanes blocked at obj's distance: per lane (left, middle, right) 2 bits, 0x30/0xC/0x3. */
+#ifdef NON_MATCHING
+s32 func_8010B97C_cosmic_coaster(omObjData *object, s32 rider, omObjData *obj) {
+    omObjData **objs;
+    omObjData *o;
+    s32 bits;
+    s32 i;
+
+    bits = 0;
+    if (obj == NULL) {
+        return 0;
+    }
+    objs = func_80047DBC_main(((CcCar *)object->data)->unk00);
+    for (i = 0; i < 0x37; i++) {
+        o = objs[i];
+        if (o != NULL && (o->work[1] < 2 || o->work[1] == 4) && o->trans.z == obj->trans.z) {
+            switch (o->work[1]) {
+            case 0:
+                if (o->trans.x < 0.0f) {
+                    bits |= 0x20;
+                }
+                if (o->trans.x == 0.0f) {
+                    bits |= 8;
+                }
+                if (o->trans.x > 0.0f) {
+                    bits |= 2;
+                }
+                break;
+            case 1:
+                if (o->trans.x < 0.0f) {
+                    bits |= 0x28;
+                }
+                if (o->trans.x > 0.0f) {
+                    bits |= 0xA;
+                }
+                break;
+            case 4:
+                if (o->trans.x < 0.0f) {
+                    bits |= 0x10;
+                }
+                if (o->trans.x == 0.0f) {
+                    bits |= 4;
+                }
+                if (o->trans.x > 0.0f) {
+                    bits |= 1;
+                }
+                break;
+            }
+        }
+    }
+    return bits;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B97C_cosmic_coaster);
+#endif
