@@ -51,7 +51,7 @@ typedef struct CcTrack {
 
 /* Opening camera key (D_8010BB90_cosmic_coaster[2]) */
 typedef struct CcCamKey {
-    /* 0x00 */ s16 unk00; /* frames to reach this key */
+    /* 0x00 */ u16 unk00; /* frames to reach this key */
     /* 0x04 */ f32 unk04; /* zoom swing */
     /* 0x08 */ Vec unk08; /* camera rotation */
     /* 0x14 */ Vec unk14; /* camera centre */
