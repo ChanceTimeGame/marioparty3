@@ -46,6 +46,7 @@ f32 HuSqrtf(f32 x);
 
 extern s32 D_800A178C_main[][6];
 extern u16 D_800A1906_main; /* music state flags */
+extern u16 D_800D5558_main[]; /* CPU buttons */
 extern u16 D_800D530C_main;
 extern u8 D_800D6A90_main;
 
@@ -214,6 +215,7 @@ extern s8 D_8010C46A_the_beat_goes_on;
 extern u16 D_8010C46C_the_beat_goes_on;
 extern s32 D_8010C328_the_beat_goes_on[4][4];
 extern f32 D_8010C368_the_beat_goes_on[4];
+extern s8 D_8010C474_the_beat_goes_on;
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
@@ -990,7 +992,72 @@ void func_80108324_the_beat_goes_on(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108810_the_beat_goes_on);
 
+#ifdef NON_MATCHING
+/* masked 3: the difficulty switch puts case 3 and default in the other order; chance in a0 (retail v1) */
+/* A player's buttons: the pad, or for a CPU the current note, missed by chance per difficulty. */
+u16 func_8010A5FC_the_beat_goes_on(MgWork* pw) {
+    u8 r;
+    s32 chance;
+    u16 btn = 0;
+
+    if (!(GwPlayer[pw->unk59].stat & 1)) {
+        return D_800D5558_main[pw->unk57];
+    }
+    if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on && D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == 0) {
+        btn = func_80108198_the_beat_goes_on(D_8010C4E9_the_beat_goes_on);
+    } else {
+        r = (u32)(rand8() * 25) >> 6;
+        switch (GwPlayer[pw->unk59].cpu_difficulty) {
+            case 0:
+                chance = 50;
+                break;
+            case 1:
+                chance = 65;
+                break;
+            case 2:
+                chance = 85;
+                break;
+            case 3:
+                chance = 95;
+                break;
+            default:
+                chance = 65;
+                break;
+        }
+        if (D_8010C4E9_the_beat_goes_on < 5) {
+            chance = 99;
+        } else if (D_8010C4E9_the_beat_goes_on >= 13) {
+            chance = 50;
+            if (GwPlayer[pw->unk59].cpu_difficulty == 0) {
+                chance = 45;
+            }
+        } else if (D_8010C4E9_the_beat_goes_on >= 9) {
+            chance -= 5;
+        }
+        if (r < chance) {
+            btn = D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00;
+        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == 0x8000) {
+            btn = 0x2000;
+            if (rand8() >> 7) {
+                btn = 0x4000;
+            }
+        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == 0x4000) {
+            btn = 0x8000;
+            if (rand8() >> 7) {
+                btn = 0x2000;
+            }
+        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == 0x2000) {
+            btn = 0x4000;
+            if (rand8() >> 7) {
+                btn = 0x8000;
+            }
+        }
+    }
+    return btn;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A5FC_the_beat_goes_on);
+#endif
 
 /* Marks the button the player pressed for the current note. */
 void func_8010A88C_the_beat_goes_on(u16 btn) {
@@ -1013,7 +1080,31 @@ void func_8010A88C_the_beat_goes_on(u16 btn) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A94C_the_beat_goes_on);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010AD60_the_beat_goes_on);
+/* The camera pull-back between rounds. */
+void func_8010AD60_the_beat_goes_on(s8* step, f32 speed) {
+    switch (*step) {
+        case 0:
+            func_80105E0C_the_beat_goes_on(speed / 2.0f);
+            if (CZoom == 2200.0f && Center.z == 380.0f && CRot.x == -30.0f) {
+                *step = 1;
+            }
+            break;
+        case 1:
+            if (D_8010C474_the_beat_goes_on >= 41) {
+                D_8010C474_the_beat_goes_on = 0;
+                *step = 2;
+            } else {
+                D_8010C474_the_beat_goes_on++;
+            }
+            break;
+        case 2:
+            func_80105F60_the_beat_goes_on(speed / 2.0f);
+            if (CZoom == 700.0f && Center.z == 880.0f && CRot.x == -10.0f) {
+                *step = 3;
+            }
+            break;
+    }
+}
 
 #ifdef NON_MATCHING
 /* All Fired Up's func_80108958 (exact twin): matches there with its table defined in the unit; here (extern table) the move s1,zero schedules two slots earlier */
