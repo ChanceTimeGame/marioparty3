@@ -26,21 +26,87 @@ void func_80045C2C_main(void);
 // hmflight
 void HmfLightStatSet(s16, u8, u8);
 
+// minigame
+u16 func_800E6E9C_minigame(void);
+void func_800E6F0C_minigame(s32);
+
 // LOCAL
 
+typedef struct {
+    /* 0x00 */ u16 unk00;
+    /* 0x02 */ u16 unk02;
+    /* 0x04 */ omObjData *unk04;
+    /* 0x08 */ omObjFunc unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ char unk12[2];
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ u16 unk18;
+    /* 0x1A */ s16 unk1A;
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ char unk1E[2];
+    /* 0x20 */ s32 unk20;
+    /* 0x24 */ char unk24[0x1C];
+    /* 0x40 */ f32 unk40;
+    /* 0x44 */ char unk44[0x18];
+    /* 0x5C */ s16 unk5C;
+    /* 0x5E */ u16 unk5E;
+    /* 0x60 */ u16 unk60;
+    /* 0x62 */ u16 unk62;
+    /* 0x64 */ u16 unk64;
+    /* 0x66 */ char unk66[0xA];
+    /* 0x70 */ s16 unk70;
+    /* 0x72 */ char unk72[6];
+    /* 0x78 */ s16 unk78;
+    /* 0x7A */ s16 unk7A[3];
+    /* 0x80 */ s16 unk80;
+    /* 0x82 */ s16 unk82;
+    /* 0x84 */ char unk84[2];
+    /* 0x86 */ s16 unk86;
+    /* 0x88 */ char unk88[2];
+    /* 0x8A */ s16 unk8A;
+    /* 0x8C */ s16 unk8C;
+    /* 0x8E */ char unk8E[6];
+} EotlPlayer; // Size 0x94
+
 void func_80105E0C_end_of_the_line(omObjData *obj);
+void func_80105E88_end_of_the_line(omObjData *obj);
 void func_80106444_end_of_the_line(omObjData *obj);
+void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s32 arg2);
+void func_80107FF0_end_of_the_line(u16 arg0);
+void func_8010A434_end_of_the_line(omObjData *obj);
+void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
+void func_8010AC34_end_of_the_line(EotlPlayer *pw);
+void func_8010AF28_end_of_the_line(omObjData *obj);
+void func_8010B064_end_of_the_line(omObjData *obj);
+void func_8010B640_end_of_the_line(omObjData *obj);
+void func_8010BF64_end_of_the_line(omObjData *obj);
+void func_8010C580_end_of_the_line(void);
 void func_80107F0C_end_of_the_line(void);
 void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
 void func_8010C3F4_end_of_the_line(void);
 
-extern u8 D_8010C5A0_end_of_the_line[];
+extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
 extern s16 D_8010C600_end_of_the_line[2][4];
 extern s16 D_8010C610_end_of_the_line[2][4];
 
+extern u16 D_8010C650_end_of_the_line;
+
+extern omObjData *D_8010C730_end_of_the_line;
+extern omObjData *D_8010C734_end_of_the_line;
 extern omObjData *D_8010C738_end_of_the_line;
 extern omObjData *D_8010C73C_end_of_the_line[2];
+extern u16 D_8010C754_end_of_the_line;
+extern u16 D_8010C756_end_of_the_line;
+extern u16 D_8010C758_end_of_the_line;
+extern u16 D_8010C75A_end_of_the_line;
+extern u16 D_8010C75C_end_of_the_line;
+extern u16 D_8010C75E_end_of_the_line[2];
+extern s16 D_8010C762_end_of_the_line;
+extern s16 D_8010C764_end_of_the_line;
+extern u16 D_8010C766_end_of_the_line;
 extern s16 D_8010C76E_end_of_the_line;
 extern s16 D_8010C770_end_of_the_line;
 extern s16 D_8010C772_end_of_the_line;
@@ -49,9 +115,11 @@ extern s16 D_8010C776_end_of_the_line;
 extern s16 D_8010C778_end_of_the_line[2];
 extern s16 D_8010C77C_end_of_the_line[2];
 extern s16 D_8010C780_end_of_the_line;
+extern s16 D_8010C782_end_of_the_line[2];
 extern Vec D_8010C788_end_of_the_line[2];
 extern Vec D_8010C7A0_end_of_the_line[2];
 extern Vec D_8010C7B8_end_of_the_line[2];
+extern s16 D_8010C7D0_end_of_the_line;
 
 void func_801059A0_end_of_the_line(void) {
     omObjData *obj;
@@ -108,12 +176,153 @@ void func_801059A0_end_of_the_line(void) {
     D_8010C780_end_of_the_line = func_8000B838_main(0x38001F);
     func_80107F0C_end_of_the_line();
     func_8010C3F4_end_of_the_line();
-    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct *)D_8010C5A0_end_of_the_line);
+    func_800E5EA0_minigame(&D_8010C5A0_end_of_the_line);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80105E0C_end_of_the_line);
+void func_80105E0C_end_of_the_line(omObjData *obj) {
+    D_8010C734_end_of_the_line = NULL;
+    D_8010C730_end_of_the_line = NULL;
+    D_8010C7D0_end_of_the_line = -1;
+    D_8010C75A_end_of_the_line = 0;
+    D_8010C75C_end_of_the_line = 0;
+    D_8010C758_end_of_the_line = 0;
+    D_8010C766_end_of_the_line = 0;
+    D_8010C75E_end_of_the_line[0] = D_8010C75E_end_of_the_line[1] = 0;
+    D_8010C762_end_of_the_line = -1;
+    D_8010C764_end_of_the_line = -1;
+    D_8010C782_end_of_the_line[0] = D_8010C782_end_of_the_line[1] = -1;
+    obj->func = func_80105E88_end_of_the_line;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80105E88_end_of_the_line);
+void func_80105E88_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    EotlPlayer *pw2;
+    s32 n;
+    s32 i;
+
+    if (D_8010C650_end_of_the_line == 0) {
+        switch (func_800E6F40_minigame()) {
+        case 0:
+            if (D_8010C730_end_of_the_line == NULL) {
+                D_8010C754_end_of_the_line = 0;
+                D_8010C730_end_of_the_line = omAddObj(4, 0, 0, -1, func_8010AF28_end_of_the_line);
+                D_8010C730_end_of_the_line->work[0] = 0;
+                D_8010C730_end_of_the_line->work[1] = 0;
+            }
+            break;
+        case 2:
+            if (D_8010C758_end_of_the_line == 1) {
+                n = 0;
+                for (i = 0; i < 2; i++) {
+                    if (D_8010C75E_end_of_the_line[i] == 1) {
+                        D_8010C7D0_end_of_the_line = i;
+                        n++;
+                    }
+                }
+                if (n == 2) {
+                    D_8010C5A0_end_of_the_line.unk06 = 4;
+                    D_8010C75C_end_of_the_line = 1;
+                } else if (D_8010C75A_end_of_the_line == 0) {
+                    pw = D_8010C73C_end_of_the_line[(s16)(D_8010C7D0_end_of_the_line ^ 1)]->data;
+                    if (pw->unk18 == 2) {
+                        pw->unk0C = 0.0f;
+                    }
+                    if (pw->unk86 != -1) {
+                        HuAudFXStop(pw->unk86);
+                        pw->unk86 = -1;
+                    }
+                }
+                func_800E6F0C_minigame(3);
+            } else if (func_800E6E9C_minigame() == 9000 || D_8010C75A_end_of_the_line == 1) {
+                D_8010C75A_end_of_the_line = 1;
+                D_8010C75C_end_of_the_line = 1;
+                func_8003F578_main(0);
+                pw = D_8010C73C_end_of_the_line[0]->data;
+                pw2 = D_8010C73C_end_of_the_line[1]->data;
+                if (pw->unk18 == 1 && pw2->unk18 == 1) {
+                    D_8010C5A0_end_of_the_line.unk06 = 4;
+                    func_800E6F0C_minigame(3);
+                    D_8010C5A0_end_of_the_line.unk22 = 60;
+                    D_8010C734_end_of_the_line = omAddObj(4, 0, 0, -1, func_8010B064_end_of_the_line);
+                    D_8010C756_end_of_the_line = 3;
+                }
+            }
+            break;
+        case 1:
+        case 3:
+        case 4:
+            break;
+        case 5:
+            WipeCreateOut(0, 20);
+            D_8010C650_end_of_the_line = 1;
+            break;
+        }
+    } else if (WipeStatGet() == 0) {
+        func_8010C580_end_of_the_line();
+    }
+    for (i = 0; i < 2; i++) {
+        if (D_8010C782_end_of_the_line[i] >= 0) {
+            pw = D_8010C73C_end_of_the_line[i]->data;
+            if ((D_8010C782_end_of_the_line[i] & 0xF) == 4) {
+                if (D_8010C75C_end_of_the_line == 0) {
+                    if (D_8010C782_end_of_the_line[i] & 0x10) {
+                        func_8010AA7C_end_of_the_line(pw);
+                    }
+                    if (D_8010C782_end_of_the_line[i] & 0x20) {
+                        func_8010AC34_end_of_the_line(D_8010C73C_end_of_the_line[i]->data);
+                    }
+                    func_80106CDC_end_of_the_line(D_8010C738_end_of_the_line, D_8010C73C_end_of_the_line[i],
+                                                  D_8010C782_end_of_the_line[i] & 0xF);
+                    pw->unk5C = 7;
+                    D_8010C73C_end_of_the_line[i]->func = func_8010A434_end_of_the_line;
+                    func_80107FF0_end_of_the_line(pw->unk00);
+                    pw->unk04->work[2] = 0;
+                    pw->unk04->func = func_8010B640_end_of_the_line;
+                } else {
+                    if (D_8010C782_end_of_the_line[i] & 0x10) {
+                        func_8010AA7C_end_of_the_line(D_8010C73C_end_of_the_line[i]->data);
+                    }
+                    if (D_8010C782_end_of_the_line[i] & 0x20) {
+                        func_8010AC34_end_of_the_line(D_8010C73C_end_of_the_line[i]->data);
+                    }
+                    func_80106CDC_end_of_the_line(D_8010C738_end_of_the_line, D_8010C73C_end_of_the_line[i], 6);
+                    pw->unk5C = 7;
+                    D_8010C73C_end_of_the_line[i]->func = func_8010A434_end_of_the_line;
+                    func_80107FF0_end_of_the_line(pw->unk00);
+                    pw->unk04->work[2] = 0;
+                    pw->unk04->func = func_8010BF64_end_of_the_line;
+                }
+                if (D_8010C734_end_of_the_line == NULL) {
+                    if (D_8010C75C_end_of_the_line == 0) {
+                        D_8010C756_end_of_the_line = 0;
+                    } else {
+                        D_8010C756_end_of_the_line = 1;
+                    }
+                    D_8010C734_end_of_the_line = omAddObj(4, 0, 0, -1, func_8010B064_end_of_the_line);
+                }
+            } else {
+                if (D_8010C782_end_of_the_line[i] & 0x10) {
+                    func_8010AA7C_end_of_the_line(D_8010C73C_end_of_the_line[i]->data);
+                }
+                if (D_8010C782_end_of_the_line[i] & 0x20) {
+                    func_8010AC34_end_of_the_line(D_8010C73C_end_of_the_line[i]->data);
+                }
+                func_80106CDC_end_of_the_line(D_8010C738_end_of_the_line, D_8010C73C_end_of_the_line[i],
+                                              D_8010C782_end_of_the_line[i] & 0xF);
+                if (D_8010C782_end_of_the_line[i] & 0x40) {
+                    pw->unk40 = 200.0f;
+                }
+                if (D_8010C782_end_of_the_line[i] & 0x80) {
+                    pw->unk04->func = pw->unk08;
+                }
+                if ((D_8010C782_end_of_the_line[i] & 0xF) == 3) {
+                    omVibrate(pw->unk02, 20, 0, 20);
+                }
+            }
+            D_8010C782_end_of_the_line[i] = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106444_end_of_the_line);
 
