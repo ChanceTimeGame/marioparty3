@@ -604,17 +604,8 @@ void func_8010713C_locked_out(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A298_locked_out);
-
-typedef struct LoU8x8 {
-    u8 v[8];
-} LoU8x8;
-extern const LoU8x8 D_8010A298_locked_out;
-
-// scheduling: the file table loads before the func_800E1BA8_minigame call come out in another order (masked 6)
-#ifdef NON_MATCHING
 void func_801071D8_locked_out(omObjData* obj) {
-    LoU8x8 motTbl = D_8010A298_locked_out;
+    u8 motTbl[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     s32 files[3][8] = {
         { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
         { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D },
@@ -623,6 +614,7 @@ void func_801071D8_locked_out(omObjData* obj) {
     u8 player;
     s8 chr;
     u32 file0;
+    s32 mot;
     s32 file1;
     MgWork* work;
     LoPlayer* lp;
@@ -630,8 +622,9 @@ void func_801071D8_locked_out(omObjData* obj) {
     player = D_8010A178_locked_out[D_8010A180_locked_out][1];
     chr = GwPlayer[player].chr;
     file0 = D_800A178C_main[chr][0];
+    mot = D_800A178C_main[chr][1];
     file1 = D_800A178C_main[chr][2];
-    func_800E1BA8_minigame(obj, file0, D_800A178C_main[chr][1], player, 0x2D9, 0x2D9);
+    func_800E1BA8_minigame(obj, file0, mot, player, 0x2D9, 0x2D9);
     obj->model[9] = func_8000B108_main(file0 | file1, 0x2ED);
     work = obj->data;
     work->unk50 &= ~1;
@@ -673,7 +666,7 @@ void func_801071D8_locked_out(omObjData* obj) {
     lp->z = obj->trans.z;
     lp->key = 0;
     lp->ai = 0;
-    lp->unk2B = func_80017790_main(obj->model[9], 2, motTbl.v[chr], file0 | files[2][chr]);
+    lp->unk2B = func_80017790_main(obj->model[9], 2, motTbl[chr], file0 | files[2][chr]);
     lp->unk29 = func_80017AD8_main(file0 | files[0][chr]);
     lp->unk2A = func_80017AD8_main(file0 | files[1][chr]);
     func_8001C514_main(obj->model[9]);
@@ -711,11 +704,6 @@ void func_801071D8_locked_out(omObjData* obj) {
     func_800E5690_minigame(obj, 0);
     D_8010A180_locked_out++;
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A2A0_locked_out);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801071D8_locked_out);
-#endif
 
 /* A player's actor work: the framework's func_800E1BA8_minigame cut down. */
 void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {
@@ -768,7 +756,7 @@ void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, 
 
 /* A player's per-frame function. */
 void func_80107ABC_locked_out(omObjData* obj) {
-    LoU8x8 motTbl = D_8010A298_locked_out;
+    u8 motTbl[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     Vec hinge;
     s32 stick;
     MgWork* work;
@@ -883,7 +871,7 @@ void func_80107ABC_locked_out(omObjData* obj) {
                 GwPlayer[work->unk59].bonusCoin += 10;
                 GwPlayer[work->unk59].bonusCoin = lp->unk24;
                 func_800E5690_minigame(obj, 13);
-                func_80017954_main(obj->model[0], 2, motTbl.v[lp->chr], lp->unk29);
+                func_80017954_main(obj->model[0], 2, motTbl[lp->chr], lp->unk29);
                 lp->escaped++;
             } else if (lp->escaped == 0) {
                 GwPlayer[work->unk59].bonusCoin = lp->unk24;
