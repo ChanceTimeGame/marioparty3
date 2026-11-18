@@ -72,8 +72,8 @@ typedef struct EtCage {
     /* 0x01 */ u8 unk01;
     /* 0x02 */ u8 unk02;
     /* 0x03 */ char unk03;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
+    /* 0x04 */ f32 unk04; /* shadow scale */
+    /* 0x08 */ f32 unk08; /* drop speed */
 } EtCage; /* size 0xC */
 
 /* A trail node: 256 per player in D_801113D8[player] */
@@ -179,6 +179,9 @@ void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
 void func_80109EB8_etch_n_catch(omObjData* obj);
 // main (more)
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+void func_8004AE00_main(s16 handle, s16 pan);
+void func_8004AAD0_main(s16, s8);
 extern s8 D_800CBB6E_main[]; /* stick x per pad */
 extern s8 D_800D20A1_main[]; /* stick y per pad */
 f32 HuSqrtf(f32 x);
@@ -1341,7 +1344,133 @@ void func_8010B24C_etch_n_catch(omObjData* obj) {
     D_8010C840_etch_n_catch++;
 }
 
+/* A cage: state 0 picks a spot away from the team's players and drops onto it (landing burst at frame 45, sound at
+   50); 1 waits for its catcher (work[0] == 10) and rumbles the team; 2 rises again; 3 idle. */
+#ifdef NON_MATCHING
+void func_8010B3B4_etch_n_catch(omObjData* obj) {
+    omObjData* p0 = NULL;
+    EtCage* cg = obj->data;
+    omObjData* p1 = NULL;
+    s32 i;
+    u8 r;
+    s16 se;
+
+    switch (obj->work[0]) {
+        case 0:
+            if (cg->unk01 == 0) {
+                cg->unk01 = 1;
+            } else if (cg->unk08 == 0.0f) {
+                for (i = 0; i < 4; i++) {
+                    if ((cg->unk00 == 0 && D_8010C868_etch_n_catch[i]->unk01 == 3)
+                        || (cg->unk00 == 1 && D_8010C868_etch_n_catch[i]->unk01 == 12)) {
+                        if (p0 == NULL) {
+                            p0 = D_800EC598_minigame[i];
+                        } else {
+                            p1 = D_800EC598_minigame[i];
+                        }
+                    }
+                }
+                r = (rand8() * 3) >> 8;
+                switch (cg->unk00) {
+                    case 0:
+                        obj->trans.x = D_8010C6B0_etch_n_catch[r].x;
+                        break;
+                    case 1:
+                        obj->trans.x = -D_8010C6B0_etch_n_catch[r].x;
+                        break;
+                }
+                obj->trans.z = D_8010C6B0_etch_n_catch[r].z;
+                if (ET_ABS(p0->trans.x - obj->trans.x) < 75.0f && ET_ABS(p0->trans.z - obj->trans.z) < 75.0f) {
+                    return;
+                }
+                if (ET_ABS(p1->trans.x - obj->trans.x) < 75.0f && ET_ABS(p1->trans.z - obj->trans.z) < 75.0f) {
+                    return;
+                }
+            }
+            obj->trans.y -= cg->unk08 + 5.0f;
+            if (obj->trans.y < 0.0f) {
+                obj->trans.y = 0.0f;
+                cg->unk08 = 0.0f;
+                obj->work[0] = 1;
+            } else {
+                cg->unk08 += 5.0f;
+                cg->unk04 += 0.1f;
+                if (cg->unk04 > 1.5f) {
+                    cg->unk04 = 1.5f;
+                }
+                if (cg->unk08 == 45.0f) {
+                    Hu3DModelScaleSet(obj->model[1], 3.6f, 3.6f, 3.6f);
+                    func_800E4C88_minigame(obj, 1, obj->trans.x, 0.0f, obj->trans.z, 0.0f, 0.0f);
+                } else if (cg->unk08 == 50.0f) {
+                    if (cg->unk00 == 0) {
+                        se = HuAudFXPlay(0x37B);
+                        func_8004AE00_main(se, 0x20);
+                        if (D_8010C6AC_etch_n_catch == 0) {
+                            func_8004AAD0_main(se, 0x66);
+                        } else {
+                            func_8004AAD0_main(se, 0x7F);
+                        }
+                    } else {
+                        func_8004AE00_main(HuAudFXPlay(0x37C), 0x5F);
+                    }
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[2], cg->unk04, cg->unk04, cg->unk04);
+            func_8001C258_main(obj->model[2], 4, 0);
+            break;
+        case 1:
+            if (D_8010C858_etch_n_catch[cg->unk00]->work[0] == 10) {
+                if (cg->unk02 >= 5) {
+                    cg->unk02 = 0;
+                    D_8010C858_etch_n_catch[cg->unk00]->work[0] = 0;
+                    obj->work[0] = 2;
+                    return;
+                }
+                if (cg->unk02 == 0) {
+                    if (cg->unk00 == 0) {
+                        for (i = 0; i < 4; i++) {
+                            if (D_8010C868_etch_n_catch[i]->unk01 == 3) {
+                                omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 10, 0, 10);
+                            }
+                        }
+                    } else {
+                        for (i = 0; i < 4; i++) {
+                            if (D_8010C868_etch_n_catch[i]->unk01 == 12) {
+                                omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 10, 0, 10);
+                            }
+                        }
+                    }
+                }
+                cg->unk02++;
+            }
+            break;
+        case 2:
+            obj->trans.y += cg->unk08 + 5.0f;
+            if (obj->trans.y > 800.0f && cg->unk04 == 0.0f) {
+                obj->trans.y = 800.0f;
+                cg->unk08 = 0.0f;
+                obj->work[0] = 3;
+            } else {
+                cg->unk08 += 5.0f;
+                cg->unk04 -= 0.1f;
+                if (cg->unk04 < 0.0f) {
+                    cg->unk04 = 0.0f;
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[2], cg->unk04, cg->unk04, cg->unk04);
+            break;
+        case 3:
+            cg->unk04 = 1.0f;
+            func_8001C258_main(obj->model[2], 4, 4);
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B3B4_etch_n_catch);
+#endif
 
 /* The score display: two frames, two labels and a digit per team. */
 void func_8010BBE4_etch_n_catch(omObjData* obj) {
