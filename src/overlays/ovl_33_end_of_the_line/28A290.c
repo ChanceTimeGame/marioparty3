@@ -840,12 +840,11 @@ void func_801080C8_end_of_the_line(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801082D8_end_of_the_line);
 
-#ifdef NON_MATCHING
-/* Float register allocation only: sin * speed lands in $f0 instead of $f2 (twice). */
 void func_801088A4_end_of_the_line(omObjData *obj) {
     EotlPlayer *pw;
     s32 j;
     f32 dz;
+    f32 dx;
 
     pw = obj->data;
     j = 0;
@@ -902,10 +901,12 @@ void func_801088A4_end_of_the_line(omObjData *obj) {
     }
     if (obj->trans.z > -100.0f) {
         dz = cosdf(obj->rot.y) * (pw->unk0C / 1.08f);
-        obj->trans.x = obj->trans.x + sindf(obj->rot.y) * (pw->unk0C / 1.08f);
+        dx = sindf(obj->rot.y) * (pw->unk0C / 1.08f);
+        obj->trans.x += dx;
         obj->trans.z += dz;
         dz = cosdf(pw->unk30.y) * (pw->unk0C / 1.08f);
-        pw->unk24.x = pw->unk24.x + sindf(pw->unk30.y) * (pw->unk0C / 1.08f);
+        dx = sindf(pw->unk30.y) * (pw->unk0C / 1.08f);
+        pw->unk24.x += dx;
         pw->unk24.z += dz;
         Hu3DModelPosSet(obj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
         Hu3DModelRotSet(obj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
@@ -936,9 +937,6 @@ void func_801088A4_end_of_the_line(omObjData *obj) {
     Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
     Hu3DModelRotSet(obj->model[2], pw->unk48.x, pw->unk48.y, pw->unk48.z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801088A4_end_of_the_line);
-#endif
 
 void func_80108F0C_end_of_the_line(omObjData *obj) {
     EotlPlayer *pw;
