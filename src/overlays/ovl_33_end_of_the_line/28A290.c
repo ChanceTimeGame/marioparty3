@@ -1655,17 +1655,118 @@ void func_8010B064_end_of_the_line(omObjData *obj) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B190_end_of_the_line);
+/* Camera objects: work[0] holds the player's omObjData pointer (host: a pointer in a u32 slot). */
+void func_8010B190_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    u16 p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B234_end_of_the_line);
+    pw = ((omObjData *)obj->work[0])->data;
+    p = pw->unk00;
+    D_8010C7A0_end_of_the_line[p].x = pw->unk3C.x;
+    D_8010C7A0_end_of_the_line[p].y = pw->unk3C.y + 0.0f;
+    D_8010C7A0_end_of_the_line[p].z = pw->unk3C.z;
+    D_8010C788_end_of_the_line[p].x = pw->unk3C.x;
+    D_8010C788_end_of_the_line[p].y = 200.0f;
+    D_8010C788_end_of_the_line[p].z = D_8010C7A0_end_of_the_line[p].z - 1000.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B300_end_of_the_line);
+void func_8010B234_end_of_the_line(omObjData *obj) {
+    omObjData *pobj;
+    s32 p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B420_end_of_the_line);
+    pobj = (omObjData *)obj->work[0];
+    p = ((EotlPlayer *)pobj->data)->unk00;
+    if (obj->work[1] == 1) {
+        D_8010C7A0_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C7A0_end_of_the_line[p].y = pobj->trans.y + 200.0f;
+        D_8010C7A0_end_of_the_line[p].z = pobj->trans.z;
+        D_8010C788_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C788_end_of_the_line[p].y = D_8010C7A0_end_of_the_line[p].y + 700.0f;
+        D_8010C788_end_of_the_line[p].z = D_8010C7A0_end_of_the_line[p].z + 600.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B4EC_end_of_the_line);
+void func_8010B300_end_of_the_line(omObjData *obj) {
+    omObjData *pobj;
+    EotlPlayer *pw;
+    EotlCam *cam;
+    s32 p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B588_end_of_the_line);
+    pobj = (omObjData *)obj->work[0];
+    pw = pobj->data;
+    cam = pw->unk04->data;
+    p = pw->unk00;
+    if (obj->work[1] == 1) {
+        if (cam->unk10 != 0) {
+            D_8010C738_end_of_the_line->work[0] = obj->work[1];
+            pobj->func = func_8010937C_end_of_the_line;
+            D_8010C7A0_end_of_the_line[p].x = pobj->trans.x;
+            D_8010C7A0_end_of_the_line[p].y = pobj->trans.y + 200.0f;
+            D_8010C7A0_end_of_the_line[p].z = pobj->trans.z;
+            cam->unk00 += cam->unk08;
+            cam->unk04 += cam->unk0C;
+            D_8010C788_end_of_the_line[p].y = pobj->trans.y + 200.0f + cam->unk00;
+            D_8010C788_end_of_the_line[p].z = pobj->trans.z + cam->unk04;
+            cam->unk10--;
+        } else {
+            pw->unk04->func = func_8010B420_end_of_the_line;
+            func_8010B420_end_of_the_line(obj);
+        }
+    }
+}
+
+void func_8010B420_end_of_the_line(omObjData *obj) {
+    omObjData *pobj;
+    s32 p;
+
+    pobj = (omObjData *)obj->work[0];
+    p = ((EotlPlayer *)pobj->data)->unk00;
+    if (obj->work[1] == 1) {
+        D_8010C7A0_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C7A0_end_of_the_line[p].y = pobj->trans.y + 200.0f;
+        D_8010C7A0_end_of_the_line[p].z = pobj->trans.z;
+        D_8010C788_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C788_end_of_the_line[p].y = D_8010C7A0_end_of_the_line[p].y + 500.0f;
+        D_8010C788_end_of_the_line[p].z = D_8010C7A0_end_of_the_line[p].z + 1000.0f;
+    }
+}
+
+void func_8010B4EC_end_of_the_line(omObjData *obj) {
+    omObjData *pobj;
+    s32 p;
+
+    pobj = (omObjData *)obj->work[0];
+    p = ((EotlPlayer *)pobj->data)->unk00;
+    if (obj->work[1] == 1) {
+        D_8010C7A0_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C7A0_end_of_the_line[p].y = 0.0f;
+        D_8010C7A0_end_of_the_line[p].z = pobj->trans.z;
+        D_8010C788_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C788_end_of_the_line[p].y = 0.0f;
+        D_8010C788_end_of_the_line[p].z = D_8010C7A0_end_of_the_line[p].z + 10.0f;
+    }
+}
+
+void func_8010B588_end_of_the_line(omObjData *obj) {
+    omObjData *pobj;
+    s32 p;
+
+    pobj = (omObjData *)obj->work[0];
+    p = ((EotlPlayer *)pobj->data)->unk00;
+    if (obj->work[1] == 1) {
+        D_8010C7A0_end_of_the_line[p].x = pobj->trans.x;
+        D_8010C7A0_end_of_the_line[p].y = pobj->trans.y + 100.0f;
+        D_8010C7A0_end_of_the_line[p].z = pobj->trans.z;
+    }
+    D_8010C788_end_of_the_line[p].x = -2200.0f;
+    D_8010C788_end_of_the_line[p].y = -1100.0f;
+    D_8010C788_end_of_the_line[p].z = 700.0f;
+}
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B640_end_of_the_line);
 
