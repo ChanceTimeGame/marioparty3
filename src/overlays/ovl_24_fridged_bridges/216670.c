@@ -199,6 +199,9 @@ s16 func_80108050_fridged_bridges(omObjData *obj);
 void func_801082D0_fridged_bridges(omObjData *obj);
 void func_801084E0_fridged_bridges(omObjData *obj);
 void func_80108720_fridged_bridges(omObjData *obj);
+void func_80108C60_fridged_bridges(omObjData *obj);
+void func_80108FBC_fridged_bridges(omObjData *obj);
+extern s16 D_8010D19C_fridged_bridges;
 void func_801091F8_fridged_bridges(omObjData *obj);
 void func_80109390_fridged_bridges(omObjData *obj);
 u16 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);
@@ -1002,15 +1005,91 @@ void func_801082D0_fridged_bridges(omObjData *obj) {
     func_8001EED8_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801084E0_fridged_bridges);
+/* Let go of the hook: it flies off on its own object */
+void func_801084E0_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    omObjData *hook;
+    u16 player;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108648_fridged_bridges);
+    player = work->unk02;
+    work->unk28 = 0;
+    func_8001C258_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], 0x4000, 0);
+    func_80108648_fridged_bridges(obj);
+    work->unk00 = 0;
+    hook = omAddObj(0xA, 0, 0, -1, func_80108C60_fridged_bridges);
+    hook->work[0] = (u32)obj;
+    hook->work[1] = 0;
+    *(f32 *)&hook->work[2] = 3.0f;
+    hook->trans.x = sindf(obj->rot.y) * 80.0f + obj->trans.x;
+    hook->trans.z = cosdf(obj->rot.y) * 80.0f + obj->trans.z;
+    hook->trans.y = obj->trans.y + 80.0f;
+    hook->rot.y = obj->rot.y;
+    hook->rot.x = hook->rot.z = 0.0f;
+    Hu3DModelPosSet(D_8010DA70_fridged_bridges->model[(s16)player * 5], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(D_8010DA70_fridged_bridges->model[(s16)player * 5], obj->rot.x, obj->rot.y, obj->rot.z);
+}
+
+/* Restore the player's motion after the hook */
+void func_80108648_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    u16 motion;
+
+    if (GwPlayer[work->unk02].chr == 5) {
+        switch (work->unk04) {
+            case 0:
+                motion = obj->motion[0];
+                break;
+            case 1:
+                motion = obj->motion[1];
+                break;
+            case 2:
+                motion = obj->motion[2];
+                break;
+        }
+        func_8001C5B4_main(obj->model[0], motion);
+        return;
+    }
+    HmfModelData[obj->model[0]].unk06 = 0xFF;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108720_fridged_bridges);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108B08_fridged_bridges);
+/* Bridge piece falling into the water */
+void func_80108B08_fridged_bridges(omObjData *obj) {
+    if (obj->work[0] == 0) {
+        if (obj->work[1] == 0) {
+            func_8010BFD0_fridged_bridges(0, obj->work[2], obj->trans.x, -100.0f, obj->trans.z);
+            obj->work[1] = 1;
+            if (D_8010D19C_fridged_bridges == 0) {
+                HuAudFXPlay(0x42C);
+                D_8010D19C_fridged_bridges = 1;
+            }
+        }
+        if (obj->trans.y < -120.0f) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            omDelObj(obj);
+            return;
+        }
+        obj->trans.y -= 8.0f;
+        return;
+    }
+    obj->work[0]--;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108BEC_fridged_bridges);
+/* Wait until every group-1 object is gone */
+void func_80108BEC_fridged_bridges(omObjData *obj) {
+    omObjData **list = func_80047DBC_main(1);
+    s32 n = 0;
+    s32 i;
+
+    for (i = 0; i < 12; i++) {
+        n += list[i] == NULL;
+    }
+    if (n == 12) {
+        obj->work[0] = 1;
+        obj->func = func_80108FBC_fridged_bridges;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108C60_fridged_bridges);
 
