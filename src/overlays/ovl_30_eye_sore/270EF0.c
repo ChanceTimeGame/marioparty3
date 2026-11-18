@@ -28,7 +28,7 @@ typedef struct EsEnt {
     /* 0x10 */ s16 unk10;
     /* 0x12 */ s16 unk12;
     /* 0x14 */ s16 unk14;
-    /* 0x16 */ u16 unk16;
+    /* 0x16 */ s16 unk16;
     /* 0x18 */ f32 unk18;
     /* 0x1C */ f32 unk1C;
     /* 0x20 */ f32 unk20;
@@ -142,6 +142,7 @@ extern u8 D_8010AC50_eye_sore[4];
 extern u8 D_8010AC54_eye_sore[4];
 extern u16 D_8010AC58_eye_sore[8][2];
 extern u8 D_8010AC98_eye_sore[8];
+extern f32 D_8010ACA0_eye_sore[20];
 extern char *D_8010AC78_eye_sore[8];
 extern s32 D_8010ACF4_eye_sore;
 extern EsCamera D_8010ACF8_eye_sore[4];
@@ -610,7 +611,7 @@ void func_8010725C_eye_sore(omObjData *obj) {
     }
     if (p->timer >= 16 && p->timer < 51) {
         ent->unk16 -= 7;
-        if ((s16)ent->unk16 < 0) {
+        if (ent->unk16 < 0) {
             ent->unk16 = 0;
         }
         func_8001F9E4_main(obj->model[2], ent->unk16);
@@ -1027,7 +1028,111 @@ void func_80108D3C_eye_sore(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80108D3C_eye_sore);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80108E8C_eye_sore);
+void func_80108E8C_eye_sore(omObjData *obj) {
+    u8 player = obj->work[0];
+    EsEnt *ent = ES_ENT(ES_ENT_RING, player);
+    EsPlayer *p = &D_8010CA60_eye_sore[player];
+    EsRing *ring = &D_8010CBC0_eye_sore[player];
+    omObjData *pobj = p->obj;
+    f32 rot;
+    f32 scale;
+    f32 flash;
+
+    switch (ring->unk0C) {
+    case 1:
+        if (p->unk12 != 0 && ++ent->unk08 < p->unk12) {
+            break;
+        }
+        ent->unk24 -= 2.0f;
+        obj->rot.y = func_801059BC_eye_sore(obj->rot.y, ent->unk24);
+        ent->unk28 -= 0.008;
+        obj->scale.x = obj->scale.y = obj->scale.z = ent->unk28 * 0.7f;
+        scale = ent->unk28 * 2.4f;
+        Hu3DModelScaleSet(obj->model[1], scale, 1.0f, scale);
+        if (ent->unk28 < 0.06f) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 4);
+            func_8001C258_main(obj->model[2], 4, 4);
+            func_8001C258_main(obj->model[3], 4, 0);
+            Hu3DModelPosSet(obj->model[3], 0.0f, 90.0f, 70.0f);
+            ring->unk0C++;
+        }
+        break;
+    case 2:
+        flash = D_8010ACA0_eye_sore[ent->unk16];
+        Hu3DModelScaleSet(obj->model[3], flash, flash, flash);
+        if (ent->unk16 > 16) {
+            ent->unk04 = 0;
+            func_8001C258_main(obj->model[3], 4, 4);
+            ring->unk0C++;
+            break;
+        }
+        ent->unk04 -= 15;
+        ent->unk16++;
+        if (ring->unk0D == 0) {
+            func_8004AC98_main(0x48A, (s16)pobj->work[0]);
+            ring->unk0D = 1;
+        }
+        func_8001F9E4_main(obj->model[3], ent->unk04);
+        break;
+    case 3:
+        break;
+    case 0:
+    default:
+        if (p->unk0C == 0) {
+            obj->rot.y = func_801059BC_eye_sore(atan2df(pobj->trans.x, pobj->trans.z), 0.0f);
+        }
+        ring->unk08 = obj->rot.y;
+        switch (ring->unk00) {
+        case 0:
+            break;
+        case 1:
+            rot = func_801059BC_eye_sore(p->rot, 180.0f);
+            obj->trans.x = sindf(rot) * 30.0f;
+            obj->trans.z = cosdf(rot) * 30.0f;
+            func_8001C258_main(obj->model[2], 4, 0);
+            func_8001C92C_main(obj->model[2], 1.0f);
+            func_8001C6A8_main(obj->model[2], 5.0f);
+            Hu3DModelRotSet(obj->model[2], 0.0f, p->rot, 0.0f);
+            Hu3DModelPosSet(obj->model[2], sindf(p->rot) * ring->unk04, obj->scale.y * 50.0f,
+                            cosdf(p->rot) * ring->unk04);
+            scale = D_8010AF30_eye_sore[p->unk0D] * 1.4f;
+            Hu3DModelScaleSet(obj->model[2], scale, scale, scale);
+            ent->unk06 = 1;
+            ring->unk00++;
+            break;
+        case 2:
+            func_80105E0C_eye_sore(0.0f, 0.0f, obj->trans.x, obj->trans.z, &ent->unk18, &ent->unk1C, &rot, 30.0f);
+            obj->trans.x += ent->unk18;
+            obj->trans.z += ent->unk1C;
+            if (ent->unk18 + ent->unk1C == 0.0f) {
+                ring->unk00 = 0;
+            }
+            break;
+        }
+        if (p->unk0D < 0) {
+            ring->unk0C = 1;
+            ent->unk28 = D_8010AF30_eye_sore[0];
+        } else {
+            scale = D_8010AF30_eye_sore[p->unk0D] * 0.7f;
+            if (scale < obj->scale.z) {
+                obj->scale.z -= 0.03;
+            } else {
+                obj->scale.z = scale;
+            }
+            obj->scale.x = obj->scale.y = obj->scale.z;
+            scale = D_8010AF30_eye_sore[p->unk0D] * 2.4f;
+            Hu3DModelScaleSet(obj->model[1], scale, 1.0f, scale);
+        }
+        if (ent->unk06 != 0) {
+            if (++ent->unk06 >= 15) {
+                ent->unk06 = 0;
+                func_8001C258_main(obj->model[2], 4, 4);
+            }
+        }
+        break;
+    }
+}
 
 void func_80109478_eye_sore(omObjData *obj) {
     u16 idx = obj->work[0];
