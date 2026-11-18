@@ -51,7 +51,7 @@ typedef struct FbPlayer {
     /* 0x5C */ f32 unk5C; /* last safe x */
     /* 0x60 */ f32 unk60; /* last safe y */
     /* 0x64 */ f32 unk64; /* last safe z */
-    /* 0x68 */ u16 unk68; /* last safe tile */
+    /* 0x68 */ s16 unk68; /* last safe tile */
     /* 0x6A */ u16 unk6A; /* CPU: frames until it turns back */
 } FbPlayer; // Size 0x6C
 
@@ -69,9 +69,9 @@ typedef struct FbUV {
 /* omObjData::data of D_8010DA78_fridged_bridges[player] (the hazard on each player's bridge) */
 typedef struct FbHazard {
     /* 0x00 */ u16 unk00; /* state */
-    /* 0x02 */ s16 unk02; /* player */
-    /* 0x04 */ u16 unk04;
-    /* 0x06 */ u16 unk06;
+    /* 0x02 */ u16 unk02; /* player */
+    /* 0x04 */ s16 unk04; /* target end point */
+    /* 0x06 */ u16 unk06; /* wait timer */
     /* 0x08 */ f32 unk08; /* path length */
     /* 0x0C */ f32 unk0C; /* arc height factor */
     /* 0x10 */ f32 unk10;
@@ -81,8 +81,7 @@ typedef struct FbHazard {
 
 /* D_8010D1FC_fridged_bridges: per player, the hazard's two end points */
 typedef struct FbHazardPath {
-    /* 0x00 */ FbUV a;
-    /* 0x08 */ FbUV b;
+    /* 0x00 */ FbUV p[2];
 } FbHazardPath;
 
 /* omObjData::data of the fish that jumps after a fall (func_8010A1A4_fridged_bridges, 0xC) */
@@ -263,6 +262,7 @@ u16 func_8010A0F4_fridged_bridges(omObjData *obj, f32 x, f32 y, f32 z);
 u16 func_8010ADC0_fridged_bridges(void);
 void func_8010B164_fridged_bridges(void);
 void func_8010B3EC_fridged_bridges(omObjData *obj);
+void func_8010BB18_fridged_bridges(FbPlayer *work, f32 *a, f32 *b);
 void func_8010B7CC_fridged_bridges(omObjData *obj);
 void func_8010BDF0_fridged_bridges(void);
 void func_8010BE0C_fridged_bridges(omObjData *obj);
@@ -1931,19 +1931,19 @@ void func_8010B164_fridged_bridges(void) {
         hw->unk04 = 0;
         hw->unk06 = 0;
         hw->unk02 = i;
-        omSetTra(haz, D_8010D1FC_fridged_bridges[i].a.u, -150.0f, D_8010D1FC_fridged_bridges[i].a.v);
+        omSetTra(haz, D_8010D1FC_fridged_bridges[i].p[0].u, -150.0f, D_8010D1FC_fridged_bridges[i].p[0].v);
         omSetSca(haz, 0.5f, 0.5f, 0.5f);
         func_8001C8A8_main(haz->model[0], D_8010CF48_fridged_bridges[i]);
-        a = atan2df(-(haz->trans.x - D_8010D1FC_fridged_bridges[i].b.u), -(haz->trans.z - D_8010D1FC_fridged_bridges[i].b.v));
+        a = atan2df(-(haz->trans.x - D_8010D1FC_fridged_bridges[i].p[1].u), -(haz->trans.z - D_8010D1FC_fridged_bridges[i].p[1].v));
         if (a < 0.0f) {
             a += 360.0f;
         }
         omSetRot(haz, 0.0f, a, 0.0f);
         func_8001C814_main(haz->model[0], 2, 2);
-        hw->unk08 = HuSqrtf((D_8010D1FC_fridged_bridges[i].a.u - D_8010D1FC_fridged_bridges[i].b.u) *
-                                (D_8010D1FC_fridged_bridges[i].a.u - D_8010D1FC_fridged_bridges[i].b.u) +
-                            (D_8010D1FC_fridged_bridges[i].a.v - D_8010D1FC_fridged_bridges[i].b.v) *
-                                (D_8010D1FC_fridged_bridges[i].a.v - D_8010D1FC_fridged_bridges[i].b.v));
+        hw->unk08 = HuSqrtf((D_8010D1FC_fridged_bridges[i].p[0].u - D_8010D1FC_fridged_bridges[i].p[1].u) *
+                                (D_8010D1FC_fridged_bridges[i].p[0].u - D_8010D1FC_fridged_bridges[i].p[1].u) +
+                            (D_8010D1FC_fridged_bridges[i].p[0].v - D_8010D1FC_fridged_bridges[i].p[1].v) *
+                                (D_8010D1FC_fridged_bridges[i].p[0].v - D_8010D1FC_fridged_bridges[i].p[1].v));
         half = hw->unk08 / 2.0f;
         hw->unk0C = 200.0f / (half * half);
         hw->unk14 = 16.0f;
@@ -1958,7 +1958,91 @@ void func_8010B164_fridged_bridges(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
 #endif
 
+#ifdef NON_MATCHING
+/* Hazard: wait, jump along its path, turn round */
+void func_8010B3EC_fridged_bridges(omObjData *obj) {
+    FbHazard *hw = obj->data;
+    FbPlayer *work = D_8010DA64_fridged_bridges[hw->unk02]->data;
+    f32 speed;
+    f32 t;
+    f32 y;
+    f32 a;
+    f32 d;
+    f32 ry;
+
+    switch (hw->unk00) {
+        case 0:
+            if (work->unk00 != 2 && work->unk00 != 3 && func_800E6E8C_minigame() == 2) {
+                if (hw->unk06 == 0) {
+                    hw->unk00 = 1;
+                    hw->unk10 = 0.0f;
+                    return;
+                }
+                hw->unk06--;
+                return;
+            }
+            return;
+        case 1:
+            if (hw->unk10 > hw->unk08) {
+                speed = hw->unk10 - hw->unk08;
+                hw->unk00 = 2;
+            } else {
+                speed = hw->unk14;
+            }
+            hw->unk10 += speed;
+            t = hw->unk10 - hw->unk08 / 2.0f;
+            y = obj->trans.y;
+            obj->trans.y = -hw->unk0C * t * t + 60.0f;
+            obj->rot.x = atan2df(y - obj->trans.y, speed);
+            obj->trans.x += sindf(obj->rot.y) * speed;
+            obj->trans.z += cosdf(obj->rot.y) * speed;
+            if (hw->unk00 == 2) {
+                func_8010BFD0_fridged_bridges(0, hw->unk02, obj->trans.x, -100.0f, obj->trans.z);
+                return;
+            }
+            break;
+        case 2:
+            a = atan2df(-(obj->trans.x - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].u),
+                        -(obj->trans.z - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].v));
+            obj->rot.x = 0.0f;
+            if (a < obj->rot.x) {
+                a += 360.0f;
+            }
+            ry = obj->rot.y;
+            if (a != ry) {
+                d = a - ry;
+                if (d < 0.0f) {
+                    d += 360.0f;
+                }
+                if (d < 180.0f) {
+                    if (d > 13.5f) {
+                        obj->rot.y += 13.5f;
+                    } else {
+                        obj->rot.y = a;
+                    }
+                } else if ((360.0f - d) > 13.5f) {
+                    obj->rot.y -= 13.5f;
+                } else {
+                    obj->rot.y = a;
+                }
+                if (obj->rot.y < 0.0f) {
+                    obj->rot.y += 360.0f;
+                }
+                if (obj->rot.y >= 360.0f) {
+                    obj->rot.y -= 360.0f;
+                    return;
+                }
+            } else if (work->unk00 != 2 && work->unk00 != 3 && func_800E6E8C_minigame() == 2) {
+                hw->unk00 = 0;
+                hw->unk06 = (u8)(rand8() % 10) * 2 + 20;
+                hw->unk04 ^= 1;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B3EC_fridged_bridges);
+#endif
 
 /* Keep the player out of the hazard's radius */
 void func_8010B7CC_fridged_bridges(omObjData *obj) {
@@ -1982,6 +2066,48 @@ void func_8010B7CC_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B8CC_fridged_bridges);
+/* Respawn point after a fall: the start, a hooked bridge piece, or the nearest point on the bridge */
+void func_8010B8CC_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    f32 a[2]; /* nearest path point (x, z) */
+    f32 b[4]; /* its neighbour */
+    f32 k;
+    f32 c;
+    f32 x;
+    f32 t;
+
+    if (work->unk68 == 0x1200 || work->unk68 == 0x100) {
+        work->unk5C = D_8010CFA4_fridged_bridges[work->unk02].x;
+        work->unk60 = D_8010CFA4_fridged_bridges[work->unk02].y;
+        work->unk64 = D_8010CFA4_fridged_bridges[work->unk02].z;
+    } else {
+        if (work->unk68 == 0x300) {
+            work->unk5C = D_8010D9A0_fridged_bridges[work->unk02][0].u;
+            work->unk64 = D_8010D9A0_fridged_bridges[work->unk02][0].v;
+        } else if (work->unk68 == 0x400) {
+            work->unk5C = D_8010D9A0_fridged_bridges[work->unk02][1].u;
+            work->unk64 = D_8010D9A0_fridged_bridges[work->unk02][1].v;
+        } else if (work->unk68 == 0x500) {
+            work->unk5C = D_8010D9A0_fridged_bridges[work->unk02][2].u;
+            work->unk64 = D_8010D9A0_fridged_bridges[work->unk02][2].v;
+        }
+    }
+    func_8010BB18_fridged_bridges(work, a, b);
+    if (a[0] != b[0]) {
+        k = (a[1] - b[1]) / (a[0] - b[0]);
+        if (k != 0.0f) {
+            c = k * a[0] - a[1];
+            k = -k;
+            x = work->unk5C;
+            t = -((k * x + work->unk64 + c) / (k * k + 1.0f));
+            work->unk5C = k * t + x;
+            work->unk64 = t + work->unk64;
+            return;
+        }
+        work->unk64 = a[1];
+        return;
+    }
+    work->unk5C = a[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010BB18_fridged_bridges);
