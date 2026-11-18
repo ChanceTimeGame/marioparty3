@@ -177,6 +177,12 @@ extern f32 D_8010A3FC_water_whirled[4]; /* CPU: random offset across the straigh
 extern f32 D_8010A40C_water_whirled[4]; /* CPU: random offset of the turn radius */
 extern f32 D_8010A41C_water_whirled[4]; /* CPU: offset scale per difficulty */
 extern Vec2f D_8010A860_water_whirled; /* CPU: target point (x, z) */
+extern s32 D_8010A42C_water_whirled[4]; /* quarter of the course last frame */
+extern s32 D_8010A43C_water_whirled[4]; /* side of that quarter's line last frame */
+extern Vec D_8010A44C_water_whirled[4][3]; /* three points of the line plane per quarter */
+void func_80109340_water_whirled(s16 player, u16 n);
+void func_80109458_water_whirled(s16 player);
+void func_8010956C_water_whirled(s16 player);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1386,6 +1392,76 @@ void func_801098AC_water_whirled(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801098AC_water_whirled);
 #endif
 
+#ifdef NON_MATCHING
+/* Masked 37 (two instructions short): retail recomputes player * 4 before each of the two stores after
+   the crossing test; the rest differs only by that shift. */
+/* Laps: count crossings of each quarter's line (back across takes one off), four per lap; the fifth lap
+   finishes; HUD by lap and heading. */
+void func_80109E2C_water_whirled(omObjData* obj) {
+    Vec n;
+    MgWork* work;
+    s32 player;
+    s32 q;
+    s32 side;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+
+    work = obj->data;
+    player = work->unk59;
+    q = func_8010960C_water_whirled(obj);
+    func_8010860C_water_whirled(&D_8010A44C_water_whirled[q][0], &D_8010A44C_water_whirled[q][1], &D_8010A44C_water_whirled[q][2], &n);
+    dx = obj->trans.x - D_8010A44C_water_whirled[q][0].x;
+    dy = obj->trans.y - D_8010A44C_water_whirled[q][0].y;
+    dz = obj->trans.z - D_8010A44C_water_whirled[q][0].z;
+    side = 1;
+    if (!(dx * n.x + dy * n.y + dz * n.z >= 0.0f)) {
+        side = 0;
+    }
+    if (q == D_8010A42C_water_whirled[player]) {
+        if (D_8010A43C_water_whirled[player] == 0) {
+            if (side == 1) {
+                D_8010A240_water_whirled[player]++;
+            }
+        } else if (side == 0) {
+            D_8010A240_water_whirled[player]--;
+        }
+        if (D_8010A240_water_whirled[player] < 0) {
+            switch (q) {
+                case 0:
+                    D_8010A240_water_whirled[player] = -1;
+                    break;
+                case 1:
+                    D_8010A240_water_whirled[player] = -4;
+                    break;
+                case 2:
+                    D_8010A240_water_whirled[player] = -3;
+                    break;
+                case 3:
+                    D_8010A240_water_whirled[player] = -2;
+                    break;
+            }
+        }
+    }
+    D_8010A43C_water_whirled[player] = side;
+    D_8010A42C_water_whirled[player] = q;
+    D_8010A270_water_whirled[player] = D_8010A240_water_whirled[player] / 4;
+    if (D_8010A270_water_whirled[player] < 0) {
+        D_8010A270_water_whirled[player] = 0;
+    }
+    if (D_8010A284_water_whirled == 0 && D_8010A270_water_whirled[player] == 4) {
+        D_8010A284_water_whirled = HuAudFXPlay(0x425);
+    }
+    if (D_8010A270_water_whirled[player] >= 5) {
+        func_8010956C_water_whirled(player);
+    } else if (work->unk60 >= 0.0f) {
+        func_80109340_water_whirled(player, D_8010A270_water_whirled[player] < 5 ? D_8010A270_water_whirled[player] + 1 : 5);
+    } else {
+        func_80109458_water_whirled(player);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109E2C_water_whirled);
+#endif
 
 
