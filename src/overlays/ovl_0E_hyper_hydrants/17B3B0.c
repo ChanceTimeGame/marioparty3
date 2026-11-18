@@ -13,6 +13,9 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+#define HH_IABS(x) (((x) < 0) ? -(x) : (x))
+#define HH_ABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
+
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct HhCtrl {
     /* 0x00 */ u8 unk00;
@@ -133,10 +136,10 @@ extern s32 D_8010BE30_hyper_hydrants;
 
 extern s8 D_8010BF40_hyper_hydrants;
 extern HhCtrl D_8010BF60_hyper_hydrants;
-extern u8 D_8010BFA8_hyper_hydrants;
-extern u8 D_8010BFA9_hyper_hydrants;
-extern u8 D_8010BFAA_hyper_hydrants;
-extern u8 D_8010BFAB_hyper_hydrants;
+extern s8 D_8010BFA8_hyper_hydrants;
+extern s8 D_8010BFA9_hyper_hydrants;
+extern s8 D_8010BFAA_hyper_hydrants;
+extern s8 D_8010BFAB_hyper_hydrants;
 extern s8 D_8010BFAC_hyper_hydrants[2];
 extern omObjData* D_8010BFE0_hyper_hydrants[2];
 extern omObjData* D_8010BFE8_hyper_hydrants[2][5];
@@ -447,7 +450,163 @@ void func_80106238_hyper_hydrants(omObjData* obj) {
     D_8010BE35_hyper_hydrants++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80106A50_hyper_hydrants);
+/* A pumping player (groups 0 and 2): pump animation, hydrant sound pitch by the team's pump level, results. */
+void func_80106A50_hyper_hydrants(omObjData* obj) {
+    MgWork* pw;
+    HhPlayer* ex;
+    s16 team;
+    s32 voice;
+
+    switch (func_800E6E8C_minigame()) {
+        case 0:
+        case 1:
+            func_8001C6A8_main(obj->model[2], HmfModelData[obj->model[0]].unk40);
+            break;
+        case 2:
+            pw = obj->data;
+            ex = pw->unk158;
+            if (pw->unk59 == D_8010BFA8_hyper_hydrants || pw->unk59 == D_8010BFA9_hyper_hydrants) {
+                func_80107238_hyper_hydrants(obj);
+                break;
+            }
+            if (!(GwPlayer[pw->unk59].stat & 1)) {
+                if (HH_IABS(D_800CBB6E_main[pw->unk57]) > 0 && obj->rot.y > 120.0f &&
+                    obj->rot.y < 240.0f) {
+                    func_8001C814_main(obj->model[0], 1, 2);
+                } else {
+                    func_8001C814_main(obj->model[0], 1, 1);
+                }
+            }
+            ex->unk00 = sindf(obj->rot.y - 40.0f);
+            ex->unk04 = cosdf(obj->rot.y - 40.0f);
+            ex->unk08 = sindf(obj->rot.y - 140.0f);
+            ex->unk0C = cosdf(obj->rot.y - 140.0f);
+            switch (D_8010BFAC_hyper_hydrants[team = pw->unk59 != D_8010BFAA_hyper_hydrants]) {
+                case 0:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0);
+                    break;
+                case 1:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x54);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], -300);
+                    break;
+                case 2:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x5B);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], -200);
+                    break;
+                case 3:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x62);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], -100);
+                    break;
+                case 4:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x70);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], 100);
+                    break;
+                case 5:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x77);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], 200);
+                    break;
+                default:
+                    func_8004AAD0_main(D_8010C022_hyper_hydrants[team], 0x7F);
+                    HuAudFXPitchSet(D_8010C022_hyper_hydrants[team], 300);
+                    break;
+            }
+            break;
+        case 3:
+            pw = obj->data;
+            if (func_800E6E9C_minigame() == 0) {
+                HuAudFXStop(D_8010C022_hyper_hydrants[0]);
+                HuAudFXStop(D_8010C022_hyper_hydrants[1]);
+                HuAudFXPlay(0x36B);
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+                func_8001C258_main(obj->model[2], 4, 4);
+                switch (GwPlayer[pw->unk59].group) {
+                    case 0:
+                    case 1:
+                        if (D_8010BE24_hyper_hydrants > D_8010BE25_hyper_hydrants) {
+                            D_8010BF60_hyper_hydrants.unk06 = 1;
+                            if (D_8010BF60_hyper_hydrants.unk18[0] == 0xFF) {
+                                D_8010BF60_hyper_hydrants.unk18[0] = pw->unk59;
+                            } else {
+                                D_8010BF60_hyper_hydrants.unk18[1] = pw->unk59;
+                            }
+                        } else if (D_8010BE24_hyper_hydrants == D_8010BE25_hyper_hydrants) {
+                            D_8010BF60_hyper_hydrants.unk06 = 4;
+                        }
+                        break;
+                    case 2:
+                    case 3:
+                        if (D_8010BE24_hyper_hydrants < D_8010BE25_hyper_hydrants) {
+                            D_8010BF60_hyper_hydrants.unk06 = 1;
+                            if (D_8010BF60_hyper_hydrants.unk18[0] == 0xFF) {
+                                D_8010BF60_hyper_hydrants.unk18[0] = pw->unk59;
+                            } else {
+                                D_8010BF60_hyper_hydrants.unk18[1] = pw->unk59;
+                            }
+                        } else if (D_8010BE24_hyper_hydrants == D_8010BE25_hyper_hydrants) {
+                            D_8010BF60_hyper_hydrants.unk06 = 4;
+                        }
+                        break;
+                }
+            }
+            if (HH_ABS(obj->rot.y) > 20.0f) {
+                obj->rot.y -= 20.0f;
+            } else {
+                obj->rot.y = 0.0f;
+            }
+            if (((u32)D_800A178C_main[GwPlayer[pw->unk59].chr][0] >> 16) == 6 &&
+                (D_8010BFA8_hyper_hydrants == pw->unk59 || D_8010BFA9_hyper_hydrants == pw->unk59)) {
+                obj->trans.z += 5.0f;
+                if (obj->trans.z > 18.7f) {
+                    obj->trans.z = 18.7f;
+                }
+                Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+            }
+            break;
+        case 4:
+            if (D_800EB934_minigame != 0) {
+                pw = obj->data;
+                if (pw->unk59 == D_8010BF60_hyper_hydrants.unk18[0] || pw->unk59 == D_8010BF60_hyper_hydrants.unk18[1]) {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 0, 30, 2);
+                    switch (GwPlayer[pw->unk59].chr) {
+                        case 0:
+                        default:
+                            voice = 2;
+                            break;
+                        case 1:
+                            voice = 3;
+                            break;
+                        case 2:
+                            voice = 7;
+                            break;
+                        case 3:
+                            voice = 4;
+                            break;
+                        case 4:
+                            voice = 5;
+                            break;
+                        case 5:
+                            voice = 6;
+                            break;
+                        case 6:
+                            voice = 8;
+                            break;
+                        case 7:
+                            voice = 9;
+                            break;
+                    }
+                    func_80045ED0_main((voice << 16) | 0x2F);
+                    GwPlayer[pw->unk59].bonusCoin += 10;
+                } else {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[4]].unk02, 0, 30, 2);
+                }
+            } else if (HmfModelData[obj->model[0]].unk40 >= 118.0f) {
+                func_8001C814_main(obj->model[0], 1, 1);
+            }
+            break;
+        case 5:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80107238_hyper_hydrants);
 
