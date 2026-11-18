@@ -430,3 +430,8 @@ D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
 /* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
 D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
 D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
+/* m3 sn: swing_n_swipe/2E6BE0 .data labels inside arrays */
+D_8010BD6C_swing_n_swipe = D_8010BD68_swing_n_swipe + 0x4;
+D_8010BDF0_swing_n_swipe = D_8010BDEC_swing_n_swipe + 0x4;
+D_8010BE5C_swing_n_swipe = D_8010BE58_swing_n_swipe + 0x4;
+D_8010BE60_swing_n_swipe = D_8010BE58_swing_n_swipe + 0x8;
