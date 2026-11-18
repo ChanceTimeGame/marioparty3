@@ -80,6 +80,7 @@ extern f32 D_8010BB38_cosmic_coaster[2];
 extern u16 D_8010BB5C_cosmic_coaster[2]; /* 0: fade out started, 1: bonus coins given */
 extern s32 D_8010BB64_cosmic_coaster[8];
 extern f32 D_8010BB84_cosmic_coaster[2];
+extern s32 D_8010BB8C_cosmic_coaster;
 extern s16 D_8010BB58_cosmic_coaster[2];
 extern s8 D_800CBB6E_main[];
 extern s32 D_800A178C_main[][6];
@@ -750,9 +751,28 @@ void func_80107888_cosmic_coaster(omObjData *object) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010803C_cosmic_coaster);
+/* Camera follow: pan the winner's camera left with the riders. */
+void func_8010803C_cosmic_coaster(omObjData *object) {
+    CcCar *car;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801080C8_cosmic_coaster);
+    car = D_8010C3B0_cosmic_coaster[D_8010C3BC_cosmic_coaster]->data;
+    if (CenterM[D_8010C3BC_cosmic_coaster].x > car->unk10[0]) {
+        CenterM[D_8010C3BC_cosmic_coaster].x -= 20.0f;
+        if (CenterM[D_8010C3BC_cosmic_coaster].x < car->unk10[0]) {
+            CenterM[D_8010C3BC_cosmic_coaster].x = car->unk10[0];
+        }
+    }
+}
+
+/* Camera zoom in on the winners, then report done. */
+void func_801080C8_cosmic_coaster(omObjData *object) {
+    if (D_8010BB8C_cosmic_coaster != 0) {
+        CZoomM[D_8010C3BC_cosmic_coaster] -= 30.0f;
+        D_8010BB8C_cosmic_coaster--;
+    } else {
+        object->work[0] = 1;
+    }
+}
 
 void func_80108124_cosmic_coaster(omObjData *object) {
 }
