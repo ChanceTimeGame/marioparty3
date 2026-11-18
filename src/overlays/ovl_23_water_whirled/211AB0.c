@@ -162,6 +162,14 @@ typedef struct Vec4f {
 s32 func_800DD530_minigame(omObjData* obj, Vec4f* p, f32 arg2);
 void func_80108898_water_whirled(omObjData* obj, Vec* pos);
 void func_801089C0_water_whirled(omObjData* obj, f32 x, f32 z);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_800E9F40_minigame(s16 idx, s32 x, s32 y, s16 dir);
+extern s32 D_8010AC48_water_whirled[4]; /* per player sprite group (number) */
+extern s32 D_8010AC58_water_whirled[4]; /* per player sprites */
+extern s32 D_8010AC68_water_whirled[4];
+extern s32 D_8010AC78_water_whirled[4];
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1084,7 +1092,88 @@ f32 func_80108B98_water_whirled(omObjData* obj, f32 x, f32 y, f32 z) {
     return func_801061E4_water_whirled(p.x, p.z);
 }
 
+/* The HUD: centre sprite, then per player a panel, the character face, three marks and a 3-digit number. */
+#ifdef NON_MATCHING
+/* Masked 6, raw 10: register allocation of the four sprite files (retail keeps panelSpr and markSpr2 in
+   registers and markSpr0/markSpr1 on the stack). The rodata of the two tables is this function's. */
+void func_80108DF8_water_whirled(omObjData* obj) {
+    s32 panel[4][2] = { { 56, 31 }, { 265, 31 }, { 56, 209 }, { 265, 209 } };
+    s32 face[4][2] = { { 43, 32 }, { 253, 32 }, { 43, 210 }, { 253, 210 } };
+    u16 spr;
+    u16 markSpr0;
+    u16 markSpr1;
+    u16 markSpr2;
+    u16 panelSpr;
+    void* data;
+    s16 anim;
+    u16 grp;
+    s32 i;
+    s32 j;
+    s32 x;
+    s32 y;
+
+    spr = InitEspriteSlot(func_8000B838_main(0x440011), 0, 1);
+    func_8000BB54_main(spr);
+    func_8000BBD4_main(spr, 160, 120);
+    func_8000BC48_main(spr, 0x4000);
+    func_8000BE5C_main(spr, 2.0f, 2.0f);
+    panelSpr = func_8000B838_main(0x440012);
+    markSpr0 = func_8000B838_main(0x440014);
+    markSpr1 = func_8000B838_main(0x440015);
+    markSpr2 = func_8000B838_main(0x440016);
+    data = DataRead(0x440013);
+    anim = func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i < 4; i++) {
+        spr = InitEspriteSlot(panelSpr, 0, 1);
+        func_8000BB54_main(spr);
+        func_8000BBD4_main(spr, panel[i][0], panel[i][1]);
+        func_8000BCC8_main(spr, 0xFFFF);
+        func_8000BBFC_main(spr, 200);
+        spr = InitEspriteSlot(func_8000B838_main((GwPlayer[i].chr + 8) | 0x210000), 0, 1);
+        func_8000BB54_main(spr);
+        func_8000BBD4_main(spr, face[i][0] - 10, face[i][1] + 4);
+        func_8000BCC8_main(spr, 100);
+        D_8010AC68_water_whirled[i] = InitEspriteSlot(markSpr0, 0, 1);
+        func_8000BB54_main(D_8010AC68_water_whirled[i]);
+        func_8000BBD4_main(D_8010AC68_water_whirled[i], face[i][0] + 28, face[i][1] - 9);
+        func_8000BCC8_main(D_8010AC68_water_whirled[i], 100);
+        D_8010AC58_water_whirled[i] = InitEspriteSlot(markSpr1, 0, 1);
+        func_8000BB94_main(D_8010AC58_water_whirled[i]);
+        func_8000BBD4_main(D_8010AC58_water_whirled[i], face[i][0] + 13, face[i][1] - 9);
+        func_8000BCC8_main(D_8010AC58_water_whirled[i], 100);
+        D_8010AC78_water_whirled[i] = InitEspriteSlot(markSpr2, 0, 1);
+        func_8000BB94_main(D_8010AC78_water_whirled[i]);
+        func_8000BBD4_main(D_8010AC78_water_whirled[i], face[i][0] + 13, face[i][1] - 9);
+        func_8000BCC8_main(D_8010AC78_water_whirled[i], 100);
+        x = face[i][0] - 8;
+        y = face[i][1] - 9;
+        grp = D_8010AC48_water_whirled[i] = HuSprGrpCreate(3, 5);
+        func_80055024_main(grp, 0, anim, 0);
+        HuSprAttrReset(grp, 0, 0xFFFF);
+        HuSprAttrSet(grp, 0, 0x8000);
+        func_80054904_main(grp, 0, x, y);
+        HuSprPriSet(grp, 0, 100);
+        x = 8;
+        for (j = 1; j < 3; j++) {
+            HuSprPriSet(grp, j, 100);
+            func_80055024_main(grp, j, anim, 0);
+            func_80054904_main(grp, j, x, 0);
+            HuSprAttrReset(grp, j, 0xFFFF);
+            HuSprAttrSet(grp, j, 0x8000);
+            x += 8;
+            func_800554C4_main(grp, j, 0);
+        }
+        HuSprAttrReset(grp, 2, 0x8000);
+        func_800E9F40_minigame(i, (s16)face[i][0], (s16)face[i][1], 0);
+    }
+    obj->func = NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80108DF8_water_whirled);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A520_water_whirled);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A540_water_whirled);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109340_water_whirled);
 
@@ -1100,6 +1189,4 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801098
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109E2C_water_whirled);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A520_water_whirled);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A540_water_whirled);
