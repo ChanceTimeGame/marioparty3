@@ -165,6 +165,7 @@ extern s32 D_8010A490_winners_wheel;    /* CPU timer */
 extern omObjData* D_8010A498_winners_wheel;
 extern omObjData* D_8010A49C_winners_wheel;
 extern omObjData* D_8010A4A0_winners_wheel;
+extern s16 D_8010A48A_winners_wheel;    /* the spin-up sound */
 extern s16 D_8010A48E_winners_wheel;    /* the player's port */
 extern s16 D_8010A494_winners_wheel;    /* the wheel's sound */
 extern s16 D_8010A4AC_winners_wheel[3]; /* player motions */
@@ -984,9 +985,47 @@ void func_801089C8_winners_wheel(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801089F4_winners_wheel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80108E80_winners_wheel);
+/* The peg ring starts turning. */
+void func_80108E80_winners_wheel(void) {
+    WwPegs* work = D_8010A4C0_winners_wheel->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80108F04_winners_wheel);
+    work->unk00 |= 3;
+    work->unk04[0] = 340.0f;
+    work->unk4C[0] = 340.0f;
+    func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 0);
+    omSetRot(D_8010A4C0_winners_wheel, 0.0f, 0.0f, work->unk04[0]);
+    D_8010A48A_winners_wheel = HuAudFXPlay(0x4C7);
+}
+
+/* The peg ring slows down: it stops 0, 2 or 4 clicks past the current peg. */
+void func_80108F04_winners_wheel(s32 arg0) {
+    WwPegs* work = D_8010A4C0_winners_wheel->data;
+    s32 r;
+    f32 n;
+
+    work->unk00 |= 4;
+    work->unkA0 = arg0;
+    r = (u8)(rand8() % 20);
+    if (r < 3) {
+        n = 4.0f;
+    } else if (r < 6) {
+        n = 8.0f;
+    } else {
+        n = 6.0f;
+    }
+    n -= 4.0f;
+    work->unk98 = work->unk04[0] - n * 20.0f;
+    work->unk9C = 2;
+    if (n == 0.0f) {
+        work->unk9C = 1;
+    }
+    if (work->unk98 < 0.0f) {
+        work->unk98 += 360.0f;
+    }
+    work->unk94 = 4.0f;
+    HuAudFXStop(D_8010A48A_winners_wheel);
+    D_8010A494_winners_wheel = HuAudFXPlay(0x4CB);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109050_winners_wheel);
 
