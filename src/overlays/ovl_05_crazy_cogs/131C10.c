@@ -89,6 +89,10 @@ void func_80107D58_crazy_cogs(omObjData *obj);
 void func_80107CA8_crazy_cogs(f32 *x, f32 *z, f32 angle);
 void func_80108190_crazy_cogs(omObjData *obj);
 void func_80107E00_crazy_cogs(omObjData *obj);
+void func_801087B8_crazy_cogs(omObjData *obj);
+void func_80108B0C_crazy_cogs(omObjData *obj);
+void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
+extern s32 D_800EBE24_minigame;
 void func_800DDD94_minigame(omObjData *obj);
 s16 func_8004AD8C_main(s16 defNo);
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
@@ -170,6 +174,8 @@ extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr 
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
+extern u8 D_8010B991_crazy_cogs[3];
+extern u8 D_8010DE10_crazy_cogs[3];
 extern CgStick D_8010DE70_crazy_cogs[3];
 extern s8 D_8010B9E3_crazy_cogs[4];
 extern s16 D_8010DE0E_crazy_cogs;
@@ -1227,9 +1233,111 @@ void func_801087B8_crazy_cogs(omObjData *obj) {
     Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108B0C_crazy_cogs);
+/* A team player (minigame framework): models, motions, CPU dodge radius by difficulty. */
+void func_80108B0C_crazy_cogs(omObjData *obj) {
+    CgStick *st = &D_8010DE70_crazy_cogs[obj->work[1]];
+    CgEnt *ctl = &D_8010B9F0_crazy_cogs[5 + obj->work[1]];
+    u16 chr = GwPlayer[obj->work[0]].chr;
+    s32 dir = D_800A178C_main[chr][0];
+    s32 file = D_800A178C_main[chr][1];
 
+    func_800E18D8_minigame();
+    func_800E1BA8_minigame(obj, dir, file, obj->work[0], 0x299, 0x289);
+    ((MgWork *)obj->data)->unkEC = NULL;
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C258_main(obj->model[1], 0x60, 0x20);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    obj->model[3] = func_8000B108_main(3, 0x2BD);
+    obj->model[4] = func_8000B108_main(4, 0x2BD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5978_minigame(obj, 3, func_80017BB8_main(chr, 0x1D), 1, 0);
+    func_800E5978_minigame(obj, 4, func_80017BB8_main(chr, 0x1E), 1, 0);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, 0x30), 1, 0x78);
+    func_800E5690_minigame(obj, 0);
+    D_800EBE24_minigame = 1;
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_8001C8A8_main(obj->model[3], 1);
+    func_8001C8A8_main(obj->model[4], 1);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    obj->trans.x = 700.0f;
+    obj->trans.y = 28.0f;
+    obj->trans.z = 700.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    st->t0 = st->lim0 = st->x = 0;
+    st->t1 = st->lim1 = st->z = 0;
+    switch (GwPlayer[obj->work[0]].cpu_difficulty) {
+    case 0:
+        ctl->unk14 = 0;
+        break;
+    case 1:
+        ctl->unk14 = 33;
+        break;
+    case 2:
+        ctl->unk14 = 66;
+        break;
+    case 3:
+        ctl->unk14 = 100;
+        break;
+    }
+    obj->work[3] = GwPlayer[obj->work[0]].pad;
+    obj->work[2] = 0;
+    obj->func = func_801087B8_crazy_cogs;
+}
+
+/* Creates the three team players' framework objects. */
+#ifdef NON_MATCHING
+/* as func_80107778_crazy_cogs: retail's frame is 8 bytes larger and it copies the new object to $a1 */
+void func_80108EE8_crazy_cogs(void) {
+    omObjData *obj;
+    CgEnt *ent;
+    u32 player;
+    u32 n;
+    s16 k;
+    s16 i;
+
+    k = 0;
+    player = 0;
+    n = 0;
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            }
+            ent = &D_8010B9F0_crazy_cogs[5 + n];
+            obj = omAddObj(900, 9, 60, -1, func_80108B0C_crazy_cogs);
+            obj->work[0] = player;
+            ent->obj = obj;
+            obj->work[1] = n;
+            n++;
+            D_800EC598_minigame[D_800EC280_minigame] = obj;
+            D_800EC280_minigame++;
+            D_8010B991_crazy_cogs[k] = GwPlayer[obj->work[0]].chr;
+            D_8010DE10_crazy_cogs[k] = obj->work[0];
+            k++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108EE8_crazy_cogs);
+#endif
 
 void func_80109084_crazy_cogs(void) {
 }
