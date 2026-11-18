@@ -120,6 +120,7 @@ extern s8 D_8010A014_picture_imperfect;
 extern s16 D_8010A018_picture_imperfect[4][2]; /* sprite position of each screen quarter */
 extern s8 D_8010A028_picture_imperfect;        /* next player to set up */
 extern s32 D_8010A02C_picture_imperfect;       /* pieces placed */
+extern u32 D_8010A044_picture_imperfect;       /* frame counter of the row scroll */
 
 extern s8 D_8010A110_picture_imperfect; /* number of winners */
 extern PiCtrl D_8010A128_picture_imperfect;
@@ -152,6 +153,7 @@ extern s16 D_8010A286_picture_imperfect[4];
 extern s16 D_8010A28E_picture_imperfect[4];
 extern s16 D_8010A296_picture_imperfect[4];
 extern s16 D_8010A29E_picture_imperfect[4];
+extern s8 D_8010A2AC_picture_imperfect[5]; /* column shown in each row; the rows scroll at different speeds */
 
 void func_801059A0_picture_imperfect(void) {
     omObjData* obj;
@@ -745,7 +747,58 @@ void func_801081E4_picture_imperfect(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_801081E4_picture_imperfect);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_801083C0_picture_imperfect);
+/* Scroll the picture rows (player 0 drives it, player 3 advances the clock). */
+void func_801083C0_picture_imperfect(s8 player) {
+    if (player == 0) {
+        if (D_8010A044_picture_imperfect % 10 == 9) {
+            D_8010A2AC_picture_imperfect[0]++;
+            if (D_8010A2AC_picture_imperfect[0] >= 5) {
+                D_8010A2AC_picture_imperfect[0] = 0;
+            }
+            if (D_80109FE0_picture_imperfect == -1 && D_80109FE2_picture_imperfect == 1) {
+                D_80109FE0_picture_imperfect = HuAudFXPlay(0x3F4);
+            }
+        }
+        if ((D_8010A044_picture_imperfect & 7) == 7) {
+            D_8010A2AC_picture_imperfect[2]++;
+            if (D_8010A2AC_picture_imperfect[2] >= 5) {
+                D_8010A2AC_picture_imperfect[2] = 0;
+            }
+            if (D_80109FE0_picture_imperfect == -1 && D_80109FE2_picture_imperfect == 1) {
+                D_80109FE0_picture_imperfect = HuAudFXPlay(0x3F4);
+            }
+        }
+        if (D_8010A044_picture_imperfect % 6 == 5) {
+            D_8010A2AC_picture_imperfect[3]++;
+            if (D_8010A2AC_picture_imperfect[3] >= 5) {
+                D_8010A2AC_picture_imperfect[3] = 0;
+            }
+            if (D_80109FE0_picture_imperfect == -1 && D_80109FE2_picture_imperfect == 1) {
+                D_80109FE0_picture_imperfect = HuAudFXPlay(0x3F4);
+            }
+        }
+        if ((D_8010A044_picture_imperfect & 3) == 3) {
+            D_8010A2AC_picture_imperfect[4]++;
+            if (D_8010A2AC_picture_imperfect[4] >= 5) {
+                D_8010A2AC_picture_imperfect[4] = 0;
+            }
+            if (D_80109FE0_picture_imperfect == -1 && D_80109FE2_picture_imperfect == 1) {
+                D_80109FE0_picture_imperfect = HuAudFXPlay(0x3F4);
+            }
+        }
+        if (D_8010A044_picture_imperfect % 2 == 1) {
+            D_8010A2AC_picture_imperfect[1]++;
+            if (D_8010A2AC_picture_imperfect[1] >= 5) {
+                D_8010A2AC_picture_imperfect[1] = 0;
+            }
+            if (D_80109FE0_picture_imperfect == -1 && D_80109FE2_picture_imperfect == 1) {
+                D_80109FE0_picture_imperfect = HuAudFXPlay(0x3F4);
+            }
+        }
+    } else if (player == 3) {
+        D_8010A044_picture_imperfect++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108688_picture_imperfect);
 
