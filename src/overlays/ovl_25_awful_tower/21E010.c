@@ -115,11 +115,20 @@ typedef struct AtTbl8 {
     s32 v[8];
 } AtTbl8;
 
+typedef struct AtChrTbl {
+    u8 v[8];
+} AtChrTbl;
+
+typedef struct AtTbl16 {
+    s32 v[2][8];
+} AtTbl16;
+
 // main
 void func_80021BE0_main(s32* arg0, s32 n);
 void func_800142A0_main(s32);
 void func_8000B710_main(s32);
 void func_80045010_main(const s16*, s32);
+omObjData* func_80045ED0_main(u32 arg0);
 u16 func_80014618_main(s16 index, u16 arg1);
 s16 func_800329B4_main(void*);
 void func_8001FB34_main(s16 arg0, u8 arg1);
@@ -160,6 +169,10 @@ extern AtRect D_8010CCC0_awful_tower;
 extern AtRect D_8010CCD0_awful_tower;
 extern const s16 D_8010CCE0_awful_tower[];
 extern const AtTbl8 D_8010CD34_awful_tower;
+extern const AtChrTbl D_8010CD2C_awful_tower;
+extern const AtTbl16 D_8010CD54_awful_tower;
+extern s16 D_8010D3EC_awful_tower[2];
+extern u16 D_800D530C_main;
 
 extern s16 D_8010D2CC_awful_tower[4];
 extern AtPlayer D_8010D2D8_awful_tower[4];
@@ -171,13 +184,13 @@ extern omObjData* D_8010D360_awful_tower[4][3];
 extern omObjData* D_8010D390_awful_tower[5];
 extern omObjData* D_8010D3A8_awful_tower[4];
 extern u8 D_8010D3CC_awful_tower[4];
-extern s16 D_8010D3D8_awful_tower;
+extern u16 D_8010D3D8_awful_tower;
 extern u32 D_8010D3DC_awful_tower;
 extern s16 D_8010D3E4_awful_tower;
 extern omObjData* D_8010D3E8_awful_tower;
 extern s8 D_8010D3FC_awful_tower;
-extern s8 D_8010D3FD_awful_tower;
-extern s8 D_8010D3FE_awful_tower;
+extern u8 D_8010D3FD_awful_tower;
+extern u8 D_8010D3FE_awful_tower;
 
 void func_80106028_awful_tower(omObjData* obj);
 void func_801061FC_awful_tower(omObjData* obj);
@@ -322,7 +335,160 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CD34
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CD54_awful_tower);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_801061FC_awful_tower);
+/* The minigame's main control object: intro, play, winner, result and exit. */
+void func_801061FC_awful_tower(omObjData* obj) {
+    struct {
+        AtChrTbl chr;
+        AtTbl8 hi;
+        AtTbl16 lo;
+    } t;
+    s32 c;
+    s16 i;
+
+    t.chr = D_8010CD2C_awful_tower;
+    t.hi = D_8010CD34_awful_tower;
+    t.lo = D_8010CD54_awful_tower;
+    D_8010D3DC_awful_tower++;
+    switch (D_8010D3E4_awful_tower) {
+        case 0:
+            if (D_8010D3DC_awful_tower == 51 && D_8010D3D8_awful_tower == 0 && D_800D530C_main == 0) {
+                HuAudSeqPlay(51);
+            }
+            break;
+        case 3:
+            if (D_8010D3FE_awful_tower >= 20) {
+                func_800E6F1C_minigame();
+            }
+            break;
+    }
+    func_800E6F40_minigame();
+    switch (D_8010D3E4_awful_tower) {
+        case 0:
+            if (func_800E6E8C_minigame() == 1) {
+                D_8010D3E4_awful_tower = 1;
+                D_8010D3DC_awful_tower = 0;
+            }
+            break;
+        case 1:
+            if (func_800E6E8C_minigame() == 2) {
+                D_8010D3E4_awful_tower = 2;
+                D_8010D3DC_awful_tower = 0;
+            }
+            break;
+        case 2:
+            if (D_8010D3FC_awful_tower != 5 || func_800E6E8C_minigame() == 3) {
+                if (D_8010D3FC_awful_tower == 5) {
+                    D_8010D3E4_awful_tower = 6;
+                    D_8010D3FC_awful_tower = 4;
+                } else {
+                    D_8010D3E4_awful_tower = 3;
+                }
+                D_8010D3DC_awful_tower = 0;
+            }
+            if (D_8010D3E4_awful_tower != 3) {
+                break;
+            }
+        case 3:
+            if (D_8010D3DC_awful_tower == 0) {
+                D_8010CB70_awful_tower.unk22 = 210;
+                if (func_800E6E8C_minigame() != 3) {
+                    func_800E6F1C_minigame();
+                }
+                D_8010CB70_awful_tower.unk06 = 0;
+                D_8010CB70_awful_tower.unk18[0] = D_8010D308_awful_tower[D_8010D3FC_awful_tower]->unk01;
+                GwPlayer[D_8010D308_awful_tower[D_8010D3FC_awful_tower]->unk01].bonusCoin = 10;
+            }
+            if (D_8010D3DC_awful_tower == 2) {
+                func_800E6F34_minigame(30);
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_8010D3E4_awful_tower = 4;
+                D_8010D3DC_awful_tower = 0;
+            }
+            break;
+        case 6:
+            if (D_8010D3DC_awful_tower == 1) {
+                D_8010CB70_awful_tower.unk06 = 4;
+                D_8010CB70_awful_tower.unk24 = 0x90;
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_8010D3E4_awful_tower = 5;
+                D_8010D3DC_awful_tower = 0;
+            }
+            break;
+        case 4:
+            if (D_8010D3DC_awful_tower == 1) {
+                c = D_8010D308_awful_tower[D_8010D3FC_awful_tower]->unk00;
+                D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9] =
+                    func_8000B108_main(D_800A178C_main[c][0] | D_800A178C_main[c][2], 0x4AD);
+                D_8010D3EC_awful_tower[0] =
+                    func_80017790_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 1, t.chr.v[c],
+                                       (t.hi.v[c] << 16) | t.lo.v[0][c]);
+                D_8010D3EC_awful_tower[1] = func_80017AD8_main((t.hi.v[c] << 16) | t.lo.v[1][c]);
+                func_8001C514_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9]);
+                func_8001C8A8_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9],
+                                   D_8010CB60_awful_tower[D_8010D3FC_awful_tower].unk02);
+                func_8001C258_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[0], 4, 4);
+                func_8001C258_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 4, 0);
+                func_8001C6A8_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9],
+                                   HmfModelData[D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[0]].unk40);
+                func_8001C814_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 2, 2);
+                HmfModelData[D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9]].pos.x =
+                    D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->trans.x;
+                HmfModelData[D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9]].pos.y =
+                    D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->trans.y;
+                HmfModelData[D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9]].pos.z =
+                    D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->trans.z;
+            }
+            if (D_8010D3DC_awful_tower < 16) {
+                Hu3DModelRotSet(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 0.0f,
+                                D_8010D3DC_awful_tower / 15.0f * 90.0f + -90.0f, 0.0f);
+            }
+            if (D_8010D3DC_awful_tower == 30) {
+                func_8001C5B4_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9],
+                                   D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[10]);
+                func_8001C814_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 2, 0);
+                func_80017954_main(D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->model[9], 1,
+                                   t.chr.v[D_8010D308_awful_tower[D_8010D3FC_awful_tower]->unk00],
+                                   D_8010D3EC_awful_tower[1]);
+                func_80045ED0_main(D_8010D308_awful_tower[D_8010D3FC_awful_tower]->unk08);
+            }
+        case 5:
+            if (D_8010D3E4_awful_tower == 5 && D_8010D3DC_awful_tower == 1) {
+                for (i = 0; i < 4; i++) {
+                    func_800E5690_minigame(D_8010D3A8_awful_tower[i], 14);
+                }
+            }
+            if (func_800E6E8C_minigame() == 5) {
+                D_8010D3E4_awful_tower = 7;
+                D_8010D3DC_awful_tower = 0;
+            }
+            break;
+        case 7:
+            if (D_8010D3DC_awful_tower == 1) {
+                WipeCreateOut(0, 20);
+            } else if (D_8010D3DC_awful_tower >= 32) {
+                D_8010D3D8_awful_tower = 1;
+            }
+            break;
+    }
+    if (D_8010D3D8_awful_tower != 0 || D_800D530C_main != 0) {
+        if (D_800D530C_main != 0) {
+            if (D_8010D3FD_awful_tower == 0) {
+                WipeCreateOut(0, 20);
+                HuAudSeqFadeOut(20);
+                func_8004AB0C_main(20);
+            }
+            D_8010D3FD_awful_tower++;
+            if (D_8010D3FD_awful_tower < 25) {
+                return;
+            }
+        } else {
+            HuAudSeqFadeOut(30);
+        }
+        omOvlReturnEx(1);
+    }
+}
 
 void func_80106A9C_awful_tower(omObjData* obj) {
     AtGround* gw;
@@ -496,4 +662,9 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CFDC
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108E8C_awful_tower);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_8010CB1C_awful_tower);
+/* Sets a model's animation frame (unk98->unk08 holds an f32). */
+void func_8010CB1C_awful_tower(s16 model, s16 frame) {
+    HmfModel* m = &HmfModelData[model];
+
+    *(f32*)&m->hmf->unk98->unk08 = frame;
+}
