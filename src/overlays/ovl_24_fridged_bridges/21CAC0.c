@@ -21,6 +21,35 @@ typedef struct FbCam {
     /* 0x04 */ omObjData *unk04; /* player object */
 } FbCam; // Size 0x8
 
+/* as main 20A20.c: the model data's root transform, at HmfData 0x68 (an N64-offset view, as in main) */
+typedef struct HitXform {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ Vec unk08;
+    /* 0x14 */ Vec unk14;
+    /* 0x20 */ Vec unk20; /* scale */
+} HitXform;
+
+typedef struct HmfHitData {
+    /* 0x00 */ char unk00[0x68];
+    /* 0x68 */ HitXform *xform;
+} HmfHitData;
+
+typedef f32 Matrix4f[4][4];
+
+extern s32 D_800C9940_main;
+extern s32 D_800D10F4_main;
+extern s16 D_800D418E_main;
+extern void *MTXBuf;
+extern s16 MTXBufNum;
+void func_80017C10_main(Mtx *, f32, f32, f32);
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+void guMtxCatF(float m[4][4], float n[4][4], float r[4][4]);
+
 void *HuMemAllocTag(s32 size, s16 tag);
 void func_8010BE88_fridged_bridges(omObjData *obj);
 
@@ -144,7 +173,37 @@ void func_8010C1D8_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C46C_fridged_bridges);
+/* Model matrix for the culled draw (main func_8002087C_main) */
+void func_8010C46C_fridged_bridges(HmfModel *m, Matrix4f mtx) {
+    Matrix4f tmp;
+    HitXform *xf;
+
+    D_800C9940_main = m->unk18;
+    guMtxL2F(mtx, (Mtx *)((u8 *)D_800D10F4_main + D_800D418E_main * 0x80 + 0xF0));
+    if (m->pos.x != 0.0f || m->pos.y != 0.0f || m->pos.z != 0.0f) {
+        func_80017C10_main((Mtx *)mtx, m->pos.x, m->pos.y, m->pos.z);
+    }
+    if (m->rot.x != 0.0f || m->rot.y != 0.0f || m->rot.z != 0.0f) {
+        func_80017D24_main(mtx, m->rot.x, m->rot.y, m->rot.z);
+    }
+    if (m->scale.x != 1.0f || m->scale.y != 1.0f || m->scale.z != 1.0f) {
+        func_80017CD0_main(mtx, m->scale.x, m->scale.y, m->scale.z);
+    }
+    func_80018044_main((f32(*)[4])m->mtx, mtx, mtx);
+    xf = ((HmfHitData *)m->hmf)->xform;
+    guMtxIdentF(tmp);
+    if (xf->unk08.x == 0.0f || xf->unk08.y == 0.0f || xf->unk08.z == 0.0f) {
+        func_80017C10_main((Mtx *)tmp, xf->unk08.x, xf->unk08.y, xf->unk08.z);
+    }
+    if (xf->unk14.x == 0.0f || xf->unk14.y == 0.0f || xf->unk14.z == 0.0f) {
+        func_80017D24_main(tmp, xf->unk14.x, xf->unk14.y, xf->unk14.z);
+    }
+    if (xf->unk20.x != 1.0f || xf->unk20.y != 1.0f || xf->unk20.z != 1.0f) {
+        func_80017CD0_main(tmp, xf->unk20.x, xf->unk20.y, xf->unk20.z);
+    }
+    guMtxCatF(tmp, mtx, mtx);
+    guMtxF2L(mtx, (Mtx *)((u8 *)MTXBuf + MTXBufNum * 0x40));
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C738_fridged_bridges);
 
