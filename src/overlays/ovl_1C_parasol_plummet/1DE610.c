@@ -3,6 +3,7 @@
 #include "gcc/memory.h"
 #include "game/audio.h"
 #include "game/camera.h"
+#include "game/data.h"
 #include "game/hmfman.h"
 #include "game/pause.h"
 #include "game/sprite.h"
@@ -86,13 +87,46 @@ typedef struct PaFoe {
 
 /* omObjData::data of an item (D_8010AB70_parasol_plummet) */
 typedef struct PaItem {
-    /* 0x00 */ s32 unk00;
+    /* 0x00 */ f32 unk00; /* rotation speed */
     /* 0x04 */ s32 unk04; /* slot in D_8010ABB8_parasol_plummet */
     /* 0x08 */ f32 unk08; /* position */
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ char unk10[0x14];
+    /* 0x10 */ f32 unk10; /* drift speed */
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ u16 unk1C; /* 1 live */
+    /* 0x1E */ char unk1E[2];
+    /* 0x20 */ f32 unk20; /* scale */
     /* 0x24 */ u8 unk24; /* 1 coin, 2 five coins, 3 hazard */
-} PaItem;
+    /* 0x25 */ char unk25[3];
+} PaItem; // Size 0x28
+
+/* Main sprite-model slot (D_800CBB60_main; 14EA0.c's unk_800ECDE0, copied here as it is not in a header). */
+typedef struct PaSprModel {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ u16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ u8 unk12;
+    /* 0x13 */ u8 unk13;
+    /* 0x14 */ u8 unk14;
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ s8 unk16;
+    /* 0x17 */ s8 unk17;
+    /* 0x18 */ s8 unk18;
+    /* 0x19 */ u8 unk19;
+    /* 0x1A */ u8 unk1A;
+    /* 0x1B */ u8 unk1B;
+    /* 0x1C */ u8 unk1C;
+    /* 0x1D */ u8 unk1D;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ u8* unk20; /* key-frame list */
+} PaSprModel; /* size = 0x24 */
 
 typedef struct PaS32x3 {
     s32 v[3];
@@ -122,6 +156,8 @@ void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 
 extern s8 D_800CBB6E_main[]; /* stick x */
 extern u16 D_800D530C_main;
+extern PaSprModel* D_800CBB60_main;
+u16 func_80014618_main(s16 index, u16 arg1);
 extern Vec Center;
 extern Vec CRot;
 extern f32 CZoom;
@@ -174,6 +210,10 @@ void func_801092B0_parasol_plummet(s32 arg0);
 void func_801093D4_parasol_plummet(omObjData* obj);
 void func_80109604_parasol_plummet(void);
 s16 func_80109F7C_parasol_plummet(omObjData* obj, s32 arg1);
+void func_801096BC_parasol_plummet(void);
+void func_8010995C_parasol_plummet(s32 arg0);
+void func_80109B38_parasol_plummet(s32 arg0);
+void func_80109D74_parasol_plummet(omObjData* obj);
 void func_8010A160_parasol_plummet(void);
 void func_8010A75C_parasol_plummet(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
 
@@ -185,6 +225,7 @@ extern omObjData* D_8010AB70_parasol_plummet[18]; /* items */
 extern u8 D_8010ABB8_parasol_plummet[20]; /* item slots in use */
 extern omObjData* D_8010ABCC_parasol_plummet;
 extern u16 D_8010ABD0_parasol_plummet;
+extern s16 D_8010ABD8_parasol_plummet[58]; /* item bag: 1 coin, 2 five coins, 3 hazard, -1 drawn */
 extern f32 D_8010AC50_parasol_plummet[4]; /* lanes taken */
 extern s16 D_8010AC64_parasol_plummet;
 extern s32 D_8010AC60_parasol_plummet; /* thrower that threw */
@@ -197,6 +238,7 @@ extern omObjData* D_8010AC80_parasol_plummet[5]; /* throwers */
 extern f32 D_8010AC94_parasol_plummet; /* next thrower height */
 extern f32 D_8010AC98_parasol_plummet;
 extern s32 D_8010AC9C_parasol_plummet; /* next thrower side */
+extern s16 D_8010ACA0_parasol_plummet[3]; /* item sprite models by kind */
 extern s16 D_8010ACF0_parasol_plummet[5]; /* bubble sprites */
 extern s16 D_8010ACFA_parasol_plummet; /* bubble sprite file */
 extern u8 D_8010ACFC_parasol_plummet[5]; /* bubble slots in use */
@@ -1571,18 +1613,171 @@ void func_801093D4_parasol_plummet(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109604_parasol_plummet);
+void func_80109604_parasol_plummet(void) {
+    s32 i;
 
+    for (i = 0; i < 18; i++) {
+        D_8010ABB8_parasol_plummet[i] = 0;
+        func_80109B38_parasol_plummet(i);
+    }
+    omAddPrcObj(func_801096BC_parasol_plummet, 0x50, 0x2000, 0);
+    for (i = 0; i < 58; i++) {
+        if (i < 8) {
+            D_8010ABD8_parasol_plummet[i] = 3;
+        } else if (i < 53) {
+            D_8010ABD8_parasol_plummet[i] = 1;
+        } else {
+            D_8010ABD8_parasol_plummet[i] = 2;
+        }
+    }
+}
+
+/* NON_MATCHING: register allocation and block order (masked 40, one instruction short). After a thrower throws,
+   draw two items from the bag (at most one five-coin bag and one hazard per throw) into free item slots
+   (0-5 coins, 6-11 five coins, 12-17 hazards); give up after 1000 tries. */
+#ifdef NON_MATCHING
+void func_801096BC_parasol_plummet(void) {
+    s32 got[2];
+    s32 n;
+    s32 done;
+    s32 tries;
+    s32 r;
+    s32 j;
+
+    while (D_8010AC66_parasol_plummet != 4) {
+        if (D_8010AB54_parasol_plummet & 1) {
+            for (n = 0; n < 2; n++) {
+                done = 0;
+                tries = 0;
+                do {
+                    r = (u8)(rand8() % 58);
+                    switch (D_8010ABD8_parasol_plummet[r]) {
+                    case 1:
+                        for (j = 0; j < 6; j++) {
+                            if (D_8010ABB8_parasol_plummet[j] == 0) {
+                                goto spawn;
+                            }
+                        }
+                        break;
+                    case 2:
+                        for (j = 0; j < n; j++) {
+                            if (got[j] == 2) {
+                                break;
+                            }
+                        }
+                        if (j == n) {
+                            for (j = 6; j < 12; j++) {
+                                if (D_8010ABB8_parasol_plummet[j] == 0) {
+                                    goto spawn;
+                                }
+                            }
+                        }
+                        break;
+                    spawn:
+                        done++;
+                        func_8010995C_parasol_plummet(j);
+                        got[n] = D_8010ABD8_parasol_plummet[r];
+                        D_8010ABD8_parasol_plummet[r] = -1;
+                        break;
+                    case 3:
+                        for (j = 0; j < n; j++) {
+                            if (got[j] == 3) {
+                                break;
+                            }
+                        }
+                        if (j == n) {
+                            for (j = 12; j < 18; j++) {
+                                if (D_8010ABB8_parasol_plummet[j] == 0) {
+                                    goto spawn;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    tries++;
+                    done += (tries == 1000);
+                } while (done == 0);
+                HuPrcSleep(3);
+            }
+            D_8010AB54_parasol_plummet &= ~1;
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801096BC_parasol_plummet);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010995C_parasol_plummet);
+void func_8010995C_parasol_plummet(s32 arg0) {
+    Vec2f screen;
+    Vec pos;
+    omObjData* obj;
+    PaItem* item;
+    PaFoe* f;
+    f32 x;
+    f32 y;
 
-__asm__(".section .rodata"); // TEMP: rodata of asm functions
-const f32 D_8010AAF8_parasol_plummet[] = { 3.0f, 3.0f, 3.0f };
-const u8 D_8010AB04_parasol_plummet[] = { 1, 2, 3 };
-const s16 D_8010AB08_parasol_plummet[] = { 0x21, 0x26, 0x21, 0x27, 0x3D, 4 };
+    obj = D_8010AB70_parasol_plummet[arg0];
+    item = obj->data;
+    item->unk1C |= 1;
+    func_8001C258_main(obj->model[0], 4, 0);
+    D_8010ABB8_parasol_plummet[arg0] = 1;
+    item->unk04 = arg0;
+    f = D_8010AC80_parasol_plummet[D_8010AC60_parasol_plummet]->data;
+    screen.x = f->unk00;
+    screen.y = f->unk04;
+    func_80012D0C_main(0, CZoom, &screen, (Vec2f*)&pos);
+    x = pos.x;
+    y = pos.y;
+    if (x >= 0.0f) {
+        item->unk08 = x - 100.0f;
+    } else {
+        item->unk08 = x + 100.0f;
+    }
+    item->unk0C = y + 70.0f;
+    item->unk18 = 0;
+    item->unk10 = (u8)(rand8() % 5) + 5;
+    item->unk00 = -20.0f;
+    if (item->unk08 > 0.0f) {
+        item->unk10 = -item->unk10;
+        item->unk00 = -item->unk00;
+    }
+    item->unk14 = (u8)(rand8() % 3) + 0x2D;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109B38_parasol_plummet);
+void func_80109B38_parasol_plummet(s32 arg0) {
+    f32 scale[3] = { 3.0f, 3.0f, 3.0f };
+    u8 type[3] = { 1, 2, 3 };
+    s32 file[3] = { 0x210026, 0x210027, 0x3D0004 };
+    omObjData* obj;
+    PaItem* item;
+    void* data;
+    s32 kind;
+    s16 m;
+    f32 s;
+
+    obj = omAddObj(0xB, 1, 0, -1, func_80109D74_parasol_plummet);
+    obj->data = HuMemAllocTag(sizeof(PaItem), 0x7918);
+    item = obj->data;
+    kind = arg0 / 6;
+    item->unk24 = type[kind];
+    if (arg0 == kind * 6) {
+        data = DataRead(file[kind]);
+        m = HmfSprModelCreate(data, 0x6DD, 8);
+        DataClose(data);
+        D_8010ACA0_parasol_plummet[kind] = m;
+    } else {
+        m = func_80014618_main(D_8010ACA0_parasol_plummet[arg0 / 6], 8);
+    }
+    obj->model[0] = D_800CBB60_main[m].unk00;
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    item->unk20 = s = scale[arg0 / 6];
+    omSetSca(obj, s, s, s);
+    D_8010AB70_parasol_plummet[arg0] = obj;
+    item->unk1C = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109D74_parasol_plummet);
 
