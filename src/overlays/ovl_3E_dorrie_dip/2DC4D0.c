@@ -13,6 +13,13 @@ typedef struct DrSplash {
     /* 0x48 */ s32 unk48[6]; /* 1: playing */
 } DrSplash; /* size 0x60 */
 
+/* The CPU's plan (D_8010A254) */
+typedef struct DrCpu {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s32 unk04; /* the Dorrie to hook */
+    /* 0x08 */ s32 unk08;
+} DrCpu; /* size 0xC */
+
 /* omObjData::data of the ground (D_8010A224; the framework's ground object, minigame mgcol.h GroundWork) */
 typedef struct DrGround {
     /* 0x00 */ char unk00[3];
@@ -88,6 +95,7 @@ extern s32 D_800A178C_main[][6];
 extern s8 D_800CBB6E_main[];
 extern DrSprModel* D_800CBB60_main;
 extern u16 D_800A11D0_main[6]; /* the prize items */
+extern u16 D_800A11DC_main[5]; /* CPU target odds, percent */
 extern s16 D_800CDA7C_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
@@ -151,6 +159,7 @@ void func_801095FC_dorrie_dip(omObjData* obj);
 void func_80109520_dorrie_dip(void);
 void func_801096F0_dorrie_dip(void);
 void func_8010971C_dorrie_dip(void);
+void func_80109738_dorrie_dip(void);
 void func_80109978_dorrie_dip(void);
 void func_80109B28_dorrie_dip(void);
 void func_80109E1C_dorrie_dip(s32 idx);
@@ -181,7 +190,8 @@ extern s32 D_8010A240_dorrie_dip;
 extern f32 D_8010A244_dorrie_dip; /* Dorrie bob angle */
 extern omObjData* D_8010A248_dorrie_dip;
 extern omObjData* D_8010A24C_dorrie_dip;
-extern s32 D_8010A250_dorrie_dip;
+extern s32 D_8010A250_dorrie_dip; /* 2: ripples running */
+extern DrCpu D_8010A254_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -1262,13 +1272,106 @@ void func_801095FC_dorrie_dip(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801096F0_dorrie_dip);
+void func_801096F0_dorrie_dip(void) {
+    omAddPrcObj(func_80109738_dorrie_dip, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_8010971C_dorrie_dip);
+/* Stop the ripples. */
+void func_8010971C_dorrie_dip(void) {
+    D_8010A250_dorrie_dip &= ~2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109738_dorrie_dip);
+/* Process: start a ripple at a random spot now and then, while D_8010A250 has 2. */
+void func_80109738_dorrie_dip(void) {
+    s32* work = D_8010A24C_dorrie_dip->data;
+    s32 found;
+    s32 i;
+    s32 angle;
+    s32 dist;
+    f32 x;
+    f32 z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109978_dorrie_dip);
+    D_8010A250_dorrie_dip |= 2;
+    while (D_8010A250_dorrie_dip & 2) {
+        if ((rand8() & 0xF) == 0) {
+            found = -1;
+            for (i = 0; i < 9; i++) {
+                if (!(work[i] & 1)) {
+                    found = i;
+                    break;
+                }
+            }
+            if (found != -1) {
+                work[found] |= 1;
+                angle = (rand8() * 2) % 360;
+                dist = (rand8() * 2) % 500;
+                x = dist * sindf(angle);
+                z = dist * cosdf(angle);
+                if (found == 0) {
+                    omSetTra(D_8010A24C_dorrie_dip, x, 0.0f, z);
+                } else {
+                    Hu3DModelPosSet(D_8010A24C_dorrie_dip->model[found], x, 0.0f, z);
+                }
+                func_8001C258_main(D_8010A24C_dorrie_dip->model[found], 4, 0);
+                func_8001C6A8_main(D_8010A24C_dorrie_dip->model[found], 0.0f);
+            }
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
+
+/* The CPU picks the Dorrie to hook: a prize by the odds table, or by difficulty the dud. */
+void func_80109978_dorrie_dip(void) {
+    s32 target;
+    s32 sum;
+    s32 j;
+    s32 i;
+    s32 r;
+
+    r = (u8)(rand8() % 100);
+    for (j = 0, sum = 0; j < 5; j++) {
+        if (sum <= r && r < sum + D_800A11DC_main[j]) {
+            break;
+        }
+        sum += D_800A11DC_main[j];
+    }
+    if (j == 5) {
+        j = 4;
+    }
+    target = 0;
+    for (i = 0; i < 6; i++) {
+        if (D_8010A208_dorrie_dip[i] == j) {
+            target = i;
+        }
+    }
+    r = (u8)(rand8() % 100);
+    switch (GwPlayer[D_8010A1FC_dorrie_dip].cpu_difficulty) {
+        case 0:
+            if (r < 20) {
+                target = D_8010A200_dorrie_dip;
+            }
+            break;
+        case 1:
+            if (r < 15) {
+                target = D_8010A200_dorrie_dip;
+            }
+            break;
+        case 2:
+            if (r < 10) {
+                target = D_8010A200_dorrie_dip;
+            }
+            break;
+        case 3:
+            if (r < 5) {
+                target = D_8010A200_dorrie_dip;
+            }
+            break;
+    }
+    D_8010A254_dorrie_dip.unk00 = 8;
+    D_8010A254_dorrie_dip.unk04 = target;
+    D_8010A254_dorrie_dip.unk08 = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109B28_dorrie_dip);
 
