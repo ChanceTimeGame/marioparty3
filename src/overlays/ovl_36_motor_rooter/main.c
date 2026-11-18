@@ -56,7 +56,9 @@ typedef struct {
     /* 0x004 */ char unk04[4];
     /* 0x008 */ f32 unk08;
     /* 0x00C */ char unk0C[0x198];
-    /* 0x1A4 */ s8 unk1A4[0x30]; // mtx?
+    /* 0x1A4 */ s8 unk1A4[0x10]; /* setup counters; [8] per-view timers at [idx * 4 + i] */
+    /* 0x1B4 */ s16 unk1B4[2];
+    /* 0x1B8 */ char unk1B8[0x1C];
 } MinigameData;                  // Size 0x1D4
 
 typedef struct {
@@ -65,7 +67,7 @@ typedef struct {
     /* 0x06 */ char unk06[2];
     /* 0x08 */ s32 unk08;
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ char unk10[4];
+    /* 0x10 */ f32 unk10;
     /* 0x14 */ s8 unk14;
     /* 0x15 */ char unk15;
     /* 0x16 */ s16 unk16;
@@ -78,7 +80,9 @@ typedef struct {
     /* 0x34 */ s16 unk34;
     /* 0x36 */ char unk36[0x14];
     /* 0x4A */ s16 unk4A;
-    /* 0x4C */ char unk4C[0x40];
+    /* 0x4C */ char unk4C[0x2C];
+    /* 0x78 */ u16 unk78;
+    /* 0x7A */ char unk7A[0x12];
 } D_801137C8_motor_rooter_Struct; // Size 0x8C
 
 void m254_InitEnvironment(void);
@@ -98,6 +102,10 @@ void func_801079E8_motor_rooter(omObjData *object);
 void m254_InitCamera(FuncContext *ctx);
 void func_801082E0_motor_rooter(FuncContext *ctx);
 void func_80108BF0_motor_rooter(FuncContext *ctx);
+void func_8010CB2C_motor_rooter(omObjData *object, s16 arg1, s16 arg2);
+void func_801107FC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2);
+void func_801108CC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
+extern RGBA D_80113470_motor_rooter[];
 void func_8010CD84_motor_rooter(void *, s32);
 s16 func_8010D03C_motor_rooter(f32);
 void func_8010D0AC_motor_rooter(f32 *, s16, f32);
@@ -645,7 +653,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801076AC_
 
 /* <func_801079E8_motor_rooter> */
 #ifdef NON_MATCHING
-extern RGBA D_80113470_motor_rooter[];
 s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 void func_80107D50_motor_rooter(omObjData *object);
 
@@ -686,7 +693,83 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801079E8_
 #endif
 /* </func_801079E8_motor_rooter> */
 
+/* <func_80107D50_motor_rooter> */
+#ifdef NON_MATCHING
+void func_80107D50_motor_rooter(omObjData *object) {
+    PlayerView *view;
+    D_801137C8_motor_rooter_Struct *work;
+    s16 idx;
+    s16 i;
+    s16 j;
+
+    idx = object->work[0];
+    view = &m254_minigame->views[idx];
+    work = &D_801137C8_motor_rooter[idx];
+    i = 0;
+
+    if (work->unk10 == 0.0f) {
+        do {
+            func_8001C258_main(object->model[i], 4, 4);
+        } while (++i < 5);
+        return;
+    }
+    if (work->unk78 & 4) {
+        do {
+            if (view->unkC4[i] != 99 && view->unkC4[i] < ++m254_minigame->unk1A4[idx * 4 + i]) {
+                func_8001C258_main(object->model[i], 4, 0);
+                func_8010CB2C_motor_rooter(object, 4, i);
+                func_801108CC_motor_rooter(object->model[i], func_80055194_main(view->unkB0[i]), view->unkBA[i],
+                                           D_80113470_motor_rooter);
+                if (++view->unkBA[i] >= 15) {
+                    if (view->unkC8[i] == 0) {
+                        view->unkC8[i] = 1;
+                        view->unkBA[i] = 0;
+                    } else {
+                        func_8001C258_main(object->model[i], 4, 4);
+                        m254_minigame->unk1A4[idx * 4 + i] = 0;
+                        view->unkC4[i] = 99;
+                        view->unkBA[i] = 0;
+                        if (++view->unkD4 >= 4) {
+                            for (j = 0; j < 4; j++) {
+                                view->unkC8[j] = 0;
+                                view->unkC4[j] = rand16() % 11;
+                            }
+                            work->unk78 &= ~4;
+                        }
+                    }
+                }
+            }
+        } while (++i < 4);
+    } else if (work->unk78 & 1) {
+        func_8001C258_main(object->model[0], 4, 0);
+        func_8010CB2C_motor_rooter(object, 1, 0);
+        func_801108CC_motor_rooter(object->model[0], func_80055194_main(view->unkB0[0]), view->unkBA[0],
+                                   D_80113470_motor_rooter);
+        if (++view->unkBA[0] >= 15) {
+            func_8001C258_main(object->model[0], 4, 4);
+            work->unk78 &= ~1;
+            view->unkBA[0] = 0;
+        }
+    }
+    if (work->unk78 & 2) {
+        func_8001C258_main(object->model[4], 4, 0);
+        func_8010CB2C_motor_rooter(object, 2, 4);
+        func_801107FC_motor_rooter(object->model[4], func_80055194_main(view->unkB0[4]), view->unkBA[4]);
+        if (++m254_minigame->unk1B4[object->work[0]] >= 2) {
+            m254_minigame->unk1B4[object->work[0]] = 0;
+            if (++view->unkBA[4] >= 5) {
+                func_8001C258_main(object->model[4], 4, 4);
+                work->unk78 &= ~2;
+                view->unkBA[4] = 0;
+            }
+        }
+    }
+    m254_SyncWithModel(object);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80107D50_motor_rooter);
+#endif
+/* </func_80107D50_motor_rooter> */
 
 void m254_InitCamera(FuncContext *ctx) {
     s16 i;
