@@ -111,6 +111,26 @@ typedef struct PgPlayer {
     /* 0x38 */ char unk38[0x1C];
 } PgPlayer; /* size 0x54 */
 
+/* One member of the crowd (D_8010CFE0_crowd_cover). */
+typedef struct CcActor {
+    /* 0x00 */ s16 board; /* billboard */
+    /* 0x02 */ s16 mdl; /* shadow model */
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ u8 unk08;
+    /* 0x09 */ u8 unk09;
+    /* 0x0A */ char unk0A[2];
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec unk1C;
+    /* 0x28 */ Vec unk28;
+    /* 0x34 */ f32 unk34;
+    /* 0x38 */ f32 unk38;
+    /* 0x3C */ f32 unk3C;
+    /* 0x40 */ f32 unk40;
+} CcActor; /* size 0x44 */
+
 #define PG_PLAYER(i) ((PgPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
 
 s32 func_8000B638_main(void);
@@ -936,7 +956,72 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC84
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CDEC_crowd_cover);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107E40_crowd_cover);
+typedef struct CcSpots {
+    f32 v[30][3];
+} CcSpots;
+extern CcSpots D_8010CC84_crowd_cover;
+extern CcU16x3 D_8010CDEC_crowd_cover;
+extern s16 D_8010D864_crowd_cover; /* crowd sprite file */
+extern s16 D_8010D866_crowd_cover; /* crowd size */
+extern CcActor D_8010CFE0_crowd_cover[30];
+void func_8001FA68_main(s16);
+void func_8001F9E4_main(s16, u8);
+void func_8010AE5C_crowd_cover(s16 id, f32 x, f32 y, f32 z);
+void func_8010AF14_crowd_cover(s16 id, f32 x, f32 y, f32 z);
+void func_80108238_crowd_cover(omObjData* obj);
+
+/* Crowd setup: 30 members placed on the 30 spots in a random order. */
+void func_80107E40_crowd_cover(omObjData* obj) {
+    CcSpots spots = D_8010CC84_crowd_cover;
+    s16 order[32];
+    CcU16x3 files = D_8010CDEC_crowd_cover;
+    CcActor* a;
+    s32 i;
+    u16 tmp;
+    s16 j;
+
+    D_8010D864_crowd_cover = func_801091FC_crowd_cover(files.v[D_8010D860_crowd_cover] | 0x590000);
+    D_8010D866_crowd_cover = 30;
+    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.8f;
+    for (i = 0; i < D_8010D866_crowd_cover; i++) {
+        order[i] = i;
+    }
+    for (i = D_8010D866_crowd_cover; i > 0; i--) {
+        j = (f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * i;
+        tmp = order[i - 1];
+        order[i - 1] = order[j];
+        order[j] = tmp;
+    }
+    a = D_8010CFE0_crowd_cover;
+    for (i = 0; i < D_8010D866_crowd_cover; i++, a++) {
+        a->board = func_8010A12C_crowd_cover(D_8010D864_crowd_cover, 0x401808);
+        a->mdl = func_8000B0D4_main(9, 0x2C9);
+        func_8001FA68_main(a->mdl);
+        func_8001F9E4_main(a->mdl, 0xFF);
+        a->pos.x = spots.v[order[i]][0];
+        a->pos.y = spots.v[order[i]][1];
+        a->pos.z = spots.v[order[i]][2];
+        a->unk08 = 1;
+        a->unk04 = 0;
+        a->unk09 = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 30.0) + 1;
+        a->unk28.x = a->unk28.y = a->unk28.z = 0.0f;
+        a->unk06 = a->unk07 = 0;
+        a->unk0C = 0.0f;
+        a->unk34 = (f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 360.0;
+        a->unk38 = a->unk3C = a->unk40 = 0.0f;
+        if (D_8010D860_crowd_cover == 1) {
+            a->unk34 = func_8000B0A0_main(0x10013, 0x2DD); /* sic: a model id in a float */
+        } else if (D_8010D860_crowd_cover == 2) {
+            a->unk3C = a->unk04 * 4;
+        }
+        func_8010ADBC_crowd_cover(a->board, 16.0f, 32.0f, 0.0f);
+        func_8010AE5C_crowd_cover(a->board, a->pos.x, a->pos.y, a->pos.z);
+        func_8010AF14_crowd_cover(a->board, 2.5f, 2.5f, 1.0f);
+        Hu3DModelScaleSet(a->mdl, 0.45f, 0.45f, 0.45f);
+    }
+    obj->func = func_80108238_crowd_cover;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80108238_crowd_cover);
 
