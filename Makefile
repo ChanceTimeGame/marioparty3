@@ -468,6 +468,8 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_3B_winners_wheel/2CF3B0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_3E_dorrie_dip/2DC4D0.c.o
 # m2 ww: Water Whirled 211AB0 likewise (func_80105D64: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_23_water_whirled/211AB0.c.o
+# m3 bt: Bounce 'n' Trounce 1CC730 likewise (func_801068F4_bounce_n_trounce: no nop before the mul.s after sindf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_18_bounce_n_trounce/1CC730.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
