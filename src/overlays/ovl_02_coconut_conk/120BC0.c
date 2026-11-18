@@ -76,10 +76,14 @@ typedef struct CcTexSize {
 } CcTexSize;
 
 void func_8000BC48_main(u16, s32);
+omObjData *func_80045ED0_main(u32 arg0);
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_800335BC_main(char *arg0, void *arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
 f32 fabsf(f32);
+f64 fabs(f64);
+void func_8001C624_main(s16, s16, s16, s16, s16);
+s16 func_8004AC98_main(s16, s16);
 void func_800E1304_minigame(omObjData *obj, f32 arg1);
 void func_800E1310_minigame(omObjData *obj, f32 arg1);
 void func_800E131C_minigame(omObjData *obj, f32 arg1);
@@ -100,10 +104,13 @@ extern s16 D_8010AF64_coconut_conk;
 extern s16 D_8010AF66_coconut_conk;
 extern char *D_8010AF98_coconut_conk[8];
 extern f32 D_8010AFB8_coconut_conk[6];
+extern s32 D_8010AFD0_coconut_conk[8];
 extern char D_8010B0D0_coconut_conk[];
 extern char D_8010B0E4_coconut_conk[];
 /* .bss */
 extern s16 D_8010B1C0_coconut_conk;
+extern s16 D_8010B1C2_coconut_conk;
+extern s8 D_8010B1C3_coconut_conk;     /* the low byte of D_8010B1C2_coconut_conk */
 extern u8 D_8010B1C8_coconut_conk;
 extern u8 D_8010B1CC_coconut_conk;
 extern HuSprite_Unk84_Struct *D_8010B1C4_coconut_conk;
@@ -112,6 +119,7 @@ extern s16 D_8010B1DC_coconut_conk;
 extern u8 D_8010B1DE_coconut_conk;
 extern s16 D_8010B1E0_coconut_conk;
 extern CcTexSize D_8010B1E2_coconut_conk;
+extern s16 D_8010B1E6_coconut_conk;
 extern CcEnt D_8010B1F0_coconut_conk[50];
 extern CcEnt D_8010B274_coconut_conk;    /* = D_8010B274_coconut_conk */
 extern CcEnt D_8010B37C_coconut_conk;    /* = D_8010B37C_coconut_conk */
@@ -125,6 +133,9 @@ extern CcEnt D_8010B820_coconut_conk[9]; /* = D_8010B1F0_coconut_conk[CC_ENT_NUT
 extern CcEnt D_8010BCC4_coconut_conk;    /* = D_8010B1F0_coconut_conk[CC_ENT_SOLO] */
 extern s16 D_8010BCC8_coconut_conk;     /* = D_8010BCC4_coconut_conk.unk04 */
 extern CcEnt D_8010BD48_coconut_conk[3]; /* = D_8010B1F0_coconut_conk[CC_ENT_PLAYER] */
+extern s16 D_8010CBB8_coconut_conk;
+extern s8 D_8010CBBA_coconut_conk;
+extern s16 D_8010CBC0_coconut_conk;
 
 f32 func_801059BC_coconut_conk(f32 angle, f32 add);
 void func_80105C58_coconut_conk(omObjData *obj);
@@ -149,6 +160,7 @@ void func_80107690_coconut_conk(omObjData *obj);
 void func_801076EC_coconut_conk(omObjData *obj);
 void func_801078BC_coconut_conk(omObjData *obj);
 void func_80107B8C_coconut_conk(omObjData *obj);
+void func_8010815C_coconut_conk(omObjData *obj);
 void func_8010AE04_coconut_conk(void);
 
 void func_801059A0_coconut_conk(void) {
@@ -936,7 +948,165 @@ void func_80107B8C_coconut_conk(omObjData *obj) {
     Hu3DModelScaleSet(obj->model[3], solo->unk28, 1.0f, solo->unk24);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010815C_coconut_conk);
+/* The solo player: intro roll (D_8010B1C8_coconut_conk 0), play (2), and the end (4: jump out of the barrel). */
+void func_8010815C_coconut_conk(omObjData *obj) {
+    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    u16 player = obj->work[0];
+    s16 old;
+    s16 pan;
+
+    switch (D_8010B1C8_coconut_conk) {
+        case 1:
+        case 5:
+            break;
+        case 0:
+            switch (solo->unk08) {
+                case 0:
+                    solo->unk04 = 1;
+                    if (obj->trans.x < 30.0f) {
+                        solo->unk08 = 1;
+                    }
+                    break;
+                case 1:
+                    solo->unk04 = 2;
+                    if (solo->unk18 > 2.5f) {
+                        solo->unk08 = 2;
+                    }
+                    break;
+                case 2:
+                    solo->unk04 = 0;
+                    if ((s16)obj->rot.z >= 350.0f || (s16)obj->rot.z <= 5.0f) {
+                        if (obj->trans.x >= -5.0f && obj->trans.x <= 5.0f) {
+                            obj->rot.z = 0.0f;
+                            solo->unk04 = 0;
+                            solo->unk18 = 0.0f;
+                            solo->unk08 = 3;
+                        }
+                    }
+                    break;
+                case 3:
+                    D_8010CBBA_coconut_conk = 0;
+                    solo->unk08 = 0;
+                    break;
+            }
+            func_801076EC_coconut_conk(obj);
+            break;
+        case 2:
+            if (D_8010B1E0_coconut_conk > 0 && D_8010B1CC_coconut_conk == 0) {
+                if (GwPlayer[player].stat & 1) {
+                    func_80107674_coconut_conk(obj);
+                } else {
+                    func_80107690_coconut_conk(obj);
+                }
+                func_801078BC_coconut_conk(obj);
+            }
+            func_80107B8C_coconut_conk(obj);
+            break;
+        case 3:
+            func_80107B8C_coconut_conk(obj);
+            solo->unk18 = 0.0f;
+            break;
+        case 4:
+            func_80107B8C_coconut_conk(obj);
+            if (D_8010B1CC_coconut_conk == 0) {
+                switch (solo->unk08) {
+                    case 0:
+                        func_8001C258_main(obj->model[3], 4, 4);
+                        func_8001C258_main(obj->model[3], 0x4000, 0);
+                        func_8001C92C_main(obj->model[4], 1.0f);
+                        func_8001C258_main(obj->model[4], 4, 0);
+                        Hu3DModelPosSet(obj->model[4], obj->trans.x, obj->trans.y + 20.0f, obj->trans.z);
+                        func_8001C92C_main(obj->model[5], 1.0f);
+                        func_8001C258_main(obj->model[5], 4, 0);
+                        Hu3DModelPosSet(obj->model[5], obj->trans.x, obj->trans.y + 20.0f, obj->trans.z);
+                        func_80105BA4_coconut_conk(obj, 1);
+                        obj->rot.z = 0.0f;
+                        func_8001C5B4_main(obj->model[0], obj->motion[1]);
+                        solo->unk1C = 30.0f;
+                        solo->unk08 = 1;
+                        break;
+                    case 1:
+                        obj->trans.y = func_80105B88_coconut_conk(obj->trans.y, &solo->unk1C, 3.0f);
+                        if (obj->trans.y <= 0.0f) {
+                            obj->trans.y = 0.0f;
+                            solo->unk08 = 2;
+                            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 5, 0);
+                            func_80045ED0_main((D_8010AFD0_coconut_conk[GwPlayer[obj->work[0]].chr] << 16) | 0x2F);
+                        }
+                        solo->unk20 -= 9.0f;
+                        if (solo->unk20 < 0.0f) {
+                            solo->unk20 = 0.0f;
+                        }
+                        func_8001F9E4_main(obj->model[4], solo->unk20);
+                        if (D_800CCF58_main[HmfModelData[obj->model[4]].unk02].unk02 <= HmfModelData[obj->model[4]].unk40) {
+                            func_8001C258_main(obj->model[4], 4, 4);
+                        }
+                        if (D_800CCF58_main[HmfModelData[obj->model[5]].unk02].unk02 <= HmfModelData[obj->model[5]].unk40) {
+                            func_8001C258_main(obj->model[5], 4, 4);
+                        }
+                        break;
+                    case 2:
+                        solo->unk20 -= 9.0f;
+                        if (solo->unk20 < 0.0f) {
+                            solo->unk20 = 0.0f;
+                        }
+                        func_8001F9E4_main(obj->model[4], solo->unk20);
+                        if (D_800CCF58_main[HmfModelData[obj->model[4]].unk02].unk02 <= HmfModelData[obj->model[4]].unk40) {
+                            func_8001C258_main(obj->model[4], 4, 4);
+                        }
+                        if (D_800CCF58_main[HmfModelData[obj->model[5]].unk02].unk02 <= HmfModelData[obj->model[5]].unk40) {
+                            func_8001C258_main(obj->model[5], 4, 4);
+                        }
+                        break;
+                }
+            }
+            break;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    if (++D_8010CBB8_coconut_conk >= 100) {
+        D_8010CBB8_coconut_conk = 0;
+    }
+    old = D_8010CBC0_coconut_conk;
+    if (old == -1) {
+        D_8010CBC0_coconut_conk = func_8004AC98_main(D_8010AF66_coconut_conk, obj->work[0]);
+        if (D_8010CBC0_coconut_conk != old) {
+            D_8010B1E6_coconut_conk = -400;
+            HuAudFXPitchSet(D_8010CBC0_coconut_conk, -400);
+            D_8010B1C2_coconut_conk = 0;
+            func_8004AAD0_main(D_8010CBC0_coconut_conk, D_8010B1C3_coconut_conk);
+        }
+        if (D_8010CBC0_coconut_conk == old) {
+            return;
+        }
+    }
+    if (D_8010B1C8_coconut_conk < 3) {
+        if (!(D_8010CBB8_coconut_conk & 1)) {
+            D_8010B1E6_coconut_conk = fabs(solo->unk18 * 60.0f) + 0.0;
+            if (D_8010B1E6_coconut_conk >= 401) {
+                D_8010B1E6_coconut_conk = 400;
+            } else if (D_8010B1E6_coconut_conk < 0) {
+                D_8010B1E6_coconut_conk = 0;
+            }
+            HuAudFXPitchSet(D_8010CBC0_coconut_conk, D_8010B1E6_coconut_conk);
+        } else {
+            D_8010B1C2_coconut_conk = fabs(solo->unk18 * 20.0f) + 0.0;
+            if (D_8010B1C2_coconut_conk >= 126) {
+                D_8010B1C2_coconut_conk = 125;
+            } else if (D_8010B1C2_coconut_conk < 0) {
+                D_8010B1C2_coconut_conk = 0;
+            }
+            func_8004AAD0_main(D_8010CBC0_coconut_conk, D_8010B1C3_coconut_conk);
+        }
+        pan = (obj->trans.x + 450.0f) * 0.143f;
+        if (pan < 0) {
+            pan = 0;
+        } else if (pan >= 128) {
+            pan = 127;
+        }
+        func_8004AE00_main(D_8010CBC0_coconut_conk, pan);
+    }
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801089DC_coconut_conk);
 
