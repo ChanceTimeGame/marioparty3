@@ -272,7 +272,87 @@ void func_80106204_the_beat_goes_on(f32 div) {
     func_80054904_main(D_8010C4F4_the_beat_goes_on, 0, 160, scr.y + -50.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106358_the_beat_goes_on);
+void func_80106358_the_beat_goes_on(omObjData* obj) {
+    omObjData* pl;
+    s32 i;
+
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        if (D_8010C2EC_the_beat_goes_on == 0 && D_800D530C_main == 1) {
+            func_8004AD70_main();
+            if (!(D_800A1906_main & 4)) {
+                HuAudSeqFadeOut(30);
+            } else {
+                func_8004A950_main();
+            }
+            func_800E6F0C_minigame(5);
+            D_8010C2EC_the_beat_goes_on = 1;
+        }
+        func_800E1840_minigame();
+        switch (func_800E6F40_minigame()) {
+            case 0:
+                if (func_800E6E9C_minigame() == 16) {
+                    HuAudSeqPlay(0x3F);
+                    HuAudFXPlay(0x40B);
+                } else if (func_800E6E9C_minigame() >= 27) {
+                    func_801060B0_the_beat_goes_on(40.0f);
+                }
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                if (D_8010C2E8_the_beat_goes_on == 0) {
+                    func_8004AB0C_main(30);
+                    if (D_8010C478_the_beat_goes_on.unk06 == 0) {
+                        pl = D_800EC598_minigame[D_8010C478_the_beat_goes_on.unk18[0]];
+                        func_8001C258_main(pl->model[3], 4, 4);
+                        func_8001C258_main(pl->model[4], 4, 4);
+                        func_8001C258_main(pl->model[5], 4, 4);
+                    }
+                } else if (D_8010C2E8_the_beat_goes_on == 30) {
+                    if (D_8010C478_the_beat_goes_on.unk06 == 4) {
+                        for (i = 0; i < 4; i++) {
+                            pl = D_800EC598_minigame[i];
+                            if (pl->work[0] == 10) {
+                                func_8001C258_main(pl->model[6], 4, 4);
+                            } else {
+                                func_800E4C88_minigame(pl, 6, pl->trans.x, -50.0f, pl->trans.z + 50.0f, 45.0f, 0.0f);
+                                func_8001C258_main(pl->model[3], 4, 4);
+                                func_8001C258_main(pl->model[4], 4, 4);
+                                func_8001C258_main(pl->model[5], 4, 4);
+                            }
+                        }
+                    }
+                }
+                D_8010C2E8_the_beat_goes_on++;
+                break;
+            case 4:
+                if (func_800E6E9C_minigame() == 1) {
+                    switch (D_8010C478_the_beat_goes_on.unk06) {
+                        case 0:
+                            GMesCreate(0x16, GwPlayer[D_8010C478_the_beat_goes_on.unk18[0]].chr);
+                            HuAudSeqPlay(0x65);
+                            break;
+                        case 4:
+                            GMesCreate(0x20);
+                            HuAudSeqPlay(0x6C);
+                            break;
+                    }
+                    D_8010C478_the_beat_goes_on.unk06 = 9;
+                }
+                break;
+            case 5:
+                if (D_8010C2E4_the_beat_goes_on == 0) {
+                    WipeCreateOut(0, 20);
+                } else if (WipeStatGet() == 0 && !(D_800A1906_main & 4)) {
+                    omOvlReturnEx(1);
+                }
+                D_8010C2E4_the_beat_goes_on++;
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106708_the_beat_goes_on);
 
