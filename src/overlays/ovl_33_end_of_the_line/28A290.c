@@ -43,6 +43,7 @@ void HmfLightStatSet(s16, u8, u8);
 
 // minigame
 extern s32 D_800A178C_main[][6];
+extern s32 D_800A1790_main[][6];
 extern s8 D_800CBB6E_main[];
 u16 func_800E6E9C_minigame(void);
 extern s16 D_800EB934_minigame;
@@ -130,6 +131,7 @@ void func_80108F0C_end_of_the_line(omObjData *obj);
 void func_8010937C_end_of_the_line(omObjData *obj);
 void func_80109E70_end_of_the_line(omObjData *obj);
 void func_8010A17C_end_of_the_line(omObjData *obj);
+void func_801088A4_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010A708_end_of_the_line(omObjData *obj);
 void func_8010A7D0_end_of_the_line(void);
@@ -148,6 +150,7 @@ void func_8010B300_end_of_the_line(omObjData *obj);
 void func_8010B4EC_end_of_the_line(omObjData *obj);
 void func_8010B420_end_of_the_line(omObjData *obj);
 void func_8010B588_end_of_the_line(omObjData *obj);
+void func_8010B190_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BE24_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
@@ -858,7 +861,93 @@ void func_801080C8_end_of_the_line(omObjData *obj) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801082D8_end_of_the_line);
+void func_801082D8_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    s32 i;
+    s8 chr;
+
+    pw = (EotlPlayer *)(obj->data = HuMemAllocTag(sizeof(EotlPlayer), 0x7918));
+    pw->unk00 = obj->work[0];
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == pw->unk00) {
+            pw->unk02 = i;
+            if (GwPlayer[i].stat & 1) {
+                D_8010C762_end_of_the_line++;
+            }
+            break;
+        }
+    }
+    if (D_8010C762_end_of_the_line == 1) {
+        D_8010C764_end_of_the_line = rand8() & 1;
+    }
+    obj->model[0] = func_8000B108_main(0x540000, 0xAD9);
+    obj->model[1] = func_8000B108_main(0x540001, 0xAD9);
+    obj->model[5] = func_8000B108_main(0x540011, 0xADD);
+    obj->model[3] = func_8000B108_main(0x82, 0xA8D);
+    obj->model[4] = func_8000B0D4_main(9, 0xA8D);
+    func_8001C8A8_main(obj->model[0], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8001C8A8_main(obj->model[1], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8001C8A8_main(obj->model[3], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8001C8A8_main(obj->model[4], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8001C8A8_main(obj->model[5], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8001FB34_main(obj->model[5], 1);
+    func_8001FBBC_main(obj->model[5], 0xFF, 0xFF, 0xFF);
+    func_8001FBFC_main(obj->model[5], 102.0f, 40.0f, 48.0f);
+    chr = GwPlayer[pw->unk02].chr;
+    obj->model[2] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A1790_main[chr][0], 0x20AD9);
+    func_8001C8A8_main(obj->model[2], D_8010C5C8_end_of_the_line[pw->unk00]);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x10));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x11));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x1A));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x6C));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x7A));
+    func_8000B460_main(obj, 9, func_80017BB8_main(chr, 0x2C));
+    func_8000B460_main(obj, 10, func_80017BB8_main(chr, 0x2E));
+    func_8000B460_main(obj, 11, func_80017BB8_main(chr, 0x1F));
+    func_8001C5B4_main(obj->model[2], obj->motion[0]);
+    func_8001C814_main(obj->model[2], 2, 2);
+    func_8001C814_main(obj->model[0], 2, 2);
+    pw->unk04 = omAddObj(0x32, 0, 0, -1, func_8010B190_end_of_the_line);
+    pw->unk04->data = HuMemAllocTag(sizeof(EotlCam), 0x7918);
+    pw->unk04->work[0] = (u32)obj;
+    pw->unk04->work[1] = 1;
+    pw->unk16 = 0;
+    pw->unk10 = 0;
+    pw->unk14 = 0;
+    pw->unk20 = NULL;
+    pw->unk0C = 40.0f;
+    pw->unk1A = 4;
+    pw->unk1C = 0;
+    pw->unk78 = 15;
+    pw->unk8A = 20;
+    pw->unk8C = 0;
+    pw->unk86 = -1;
+    pw->unk5E[0] = InitEspriteSlot(D_8010C778_end_of_the_line[0], 0, 0);
+    pw->unk5E[1] = InitEspriteSlot(D_8010C778_end_of_the_line[1], 0, 0);
+    pw->unk62[0] = InitEspriteSlot(D_8010C77C_end_of_the_line[0], 0, 0);
+    pw->unk62[1] = InitEspriteSlot(D_8010C77C_end_of_the_line[1], 0, 0);
+    func_8000BBFC_main(pw->unk5E[0], 0xDC);
+    func_8000BBFC_main(pw->unk5E[1], 0xDC);
+    func_8000BBFC_main(pw->unk62[0], 0xDC);
+    func_8000BBFC_main(pw->unk62[1], 0xDC);
+    func_8000BB94_main(pw->unk5E[0]);
+    func_8000BB94_main(pw->unk5E[1]);
+    func_8000BB94_main(pw->unk62[0]);
+    func_8000BB94_main(pw->unk62[1]);
+    for (i = 0; i < 3; i++) {
+        pw->unk7A[i] = -1;
+    }
+    pw->unk80 = 0;
+    pw->unk82 = 0;
+    func_80106CDC_end_of_the_line(D_8010C738_end_of_the_line, obj, 0);
+    pw->unk70 = 0;
+    pw->unk8C = 3;
+    obj->func = func_801088A4_end_of_the_line;
+}
 
 void func_801088A4_end_of_the_line(omObjData *obj) {
     EotlPlayer *pw;
