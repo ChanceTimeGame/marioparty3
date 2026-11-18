@@ -81,9 +81,9 @@ typedef struct {
     /* 0x74 */ f32 unk74;
     /* 0x78 */ s16 unk78;
     /* 0x7A */ s16 unk7A[3];
-    /* 0x80 */ s16 unk80;
-    /* 0x82 */ s16 unk82;
-    /* 0x84 */ char unk84[2];
+    /* 0x80 */ u16 unk80;
+    /* 0x82 */ u16 unk82;
+    /* 0x84 */ u16 unk84;
     /* 0x86 */ s16 unk86;
     /* 0x88 */ s16 unk88; // low byte read as an s8 (fx mix)
     /* 0x8A */ u16 unk8A;
@@ -132,7 +132,7 @@ void func_8010A17C_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010A708_end_of_the_line(omObjData *obj);
 void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1);
-s8 func_8010AC80_end_of_the_line(omObjData *obj);
+s16 func_8010AC80_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
 void func_8010AC34_end_of_the_line(EotlPlayer *pw);
 void func_8010AA1C_end_of_the_line(omObjData *obj);
@@ -186,6 +186,7 @@ extern s16 D_8010C762_end_of_the_line;
 extern s16 D_8010C764_end_of_the_line;
 extern u16 D_8010C766_end_of_the_line;
 extern u16 D_8010C768_end_of_the_line[3];
+extern u16 D_8010C76C_end_of_the_line;
 extern s16 D_8010C76E_end_of_the_line;
 extern s16 D_8010C770_end_of_the_line;
 extern s16 D_8010C772_end_of_the_line;
@@ -1495,7 +1496,93 @@ void func_8010AC34_end_of_the_line(EotlPlayer *pw) {
 
 
 
+#ifdef NON_MATCHING
+/* Two "(rand8() >> 7) & 1": retail emits srl 7 + andi 1, this C andi 0xff + srl 7 (same value). */
+s16 func_8010AC80_end_of_the_line(omObjData *obj) {
+    s16 dir[2];
+    EotlPlayer *pw;
+    s32 choice;
+    s32 level;
+
+    dir[0] = 50;
+    dir[1] = -50;
+    pw = obj->data;
+    if (pw->unk16 == 3) {
+        return 50;
+    }
+    level = GwPlayer[pw->unk02].cpu_difficulty;
+    if (obj->trans.z < -3200.0f) {
+        if (pw->unk82 != 0) {
+            goto done;
+        }
+        pw->unk82 = 1;
+        switch (level) {
+        case 0:
+            if (rand8() < 190) {
+                choice = D_8010C768_end_of_the_line[pw->unk16] ^ 1;
+            } else {
+                choice = D_8010C768_end_of_the_line[pw->unk16];
+            }
+            break;
+        case 1:
+            if (rand8() < 128) {
+                choice = (rand8() >> 7) & 1;
+            } else {
+                choice = D_8010C768_end_of_the_line[pw->unk16];
+            }
+            break;
+        case 2:
+            if (pw->unk7A[pw->unk16] != -1) {
+                if (rand8() < 220) {
+                    choice = D_8010C768_end_of_the_line[pw->unk16];
+                } else {
+                    choice = D_8010C768_end_of_the_line[pw->unk16] ^ 1;
+                }
+            } else {
+                choice = (rand8() >> 7) & 1;
+            }
+            break;
+        case 3:
+            if (pw->unk7A[pw->unk16] != -1) {
+                if (rand8() < 220) {
+                    choice = D_8010C768_end_of_the_line[pw->unk16];
+                } else {
+                    choice = D_8010C768_end_of_the_line[pw->unk16] ^ 1;
+                }
+            } else {
+                choice = (rand8() >> 7) & 1;
+            }
+            break;
+        }
+        if (D_8010C762_end_of_the_line != 0) {
+            if (D_8010C764_end_of_the_line == pw->unk00) {
+                choice = D_8010C768_end_of_the_line[pw->unk16];
+                pw->unk84 = choice;
+            } else {
+                if (pw->unk16 == 2) {
+                    choice = D_8010C76C_end_of_the_line ^ 1;
+                }
+                pw->unk84 = choice;
+            }
+        } else {
+            pw->unk84 = choice;
+        }
+        pw->unk7A[pw->unk16] = choice;
+    }
+    if (pw->unk82 == 0) {
+        if (pw->unk80 != 0) {
+            pw->unk80--;
+        } else {
+            pw->unk84 = (rand8() >> 7) & 1;
+            pw->unk80 = (u8)(rand8() % 30) + 10;
+        }
+    }
+done:
+    return dir[pw->unk84];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AC80_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AF28_end_of_the_line);
 
