@@ -213,6 +213,11 @@ extern u8 D_800D6A90_main;
 extern s32 fontcolor;
 extern s32 D_8010D010_mpiq; /* the right number for a number question */
 void func_8010C558_mpiq(omObjData* obj);
+extern s16 D_8010CAFC_mpiq; /* question window */
+s32 func_8010AEDC_mpiq(s32 q);
+s32 func_8010AFAC_mpiq(s32 q, s32 range, s32 base, s32 step);
+void GMesPosSet(s16 mesId, f32 x, f32 y);
+extern s32 D_8010CAF8_mpiq; /* answer countdown (seconds); its low half is read as D_8010CAFA_mpiq */
 // LOCALEND
 
 void func_801059A0_mpiq(void) {
@@ -1695,7 +1700,113 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010A010_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010A184_mpiq);
 
+#ifdef NON_MATCHING
+/* Answer slot of question q: slot 0 the right answer, else a wrong one near it. */
+s16 func_8010AB44_mpiq(s32 q, s32 slot) {
+    s32 v;
+    s32 bad;
+    s32 i;
+    s32 range;
+    s32 base;
+    s32 step;
+
+    if (slot == 0) {
+        return D_8010D010_mpiq;
+    }
+    switch (D_8010CA50_mpiq[q]) {
+    case 0x5300:
+    case 0x540C:
+        range = 0xB;
+        base = -5;
+        step = 1;
+        break;
+    case 0x5302:
+        do {
+            v = (rand8() & 3) + 0x5337;
+            bad = 0;
+            if (D_8010C9F8_mpiq != 0) {
+                break;
+            }
+            for (i = 0; i < 3; i++) {
+                if (v == D_8010CB00_mpiq[q][i] || v == D_8010D010_mpiq || v < 0) {
+                    bad = 1;
+                    break;
+                }
+            }
+        } while (bad);
+        return v;
+    case 0x5304:
+        range = 0x10;
+        base = -5;
+        step = 0xA;
+        break;
+    case 0x5306:
+    case 0x530A:
+    case 0x530C:
+    case 0x530E:
+    case 0x5310:
+        range = 9;
+        base = -3;
+        step = 0x3C;
+        break;
+    case 0x5308:
+        range = 0x10;
+        base = -5;
+        step = 0x64;
+        break;
+    case 0x5312:
+        v = D_8010CBF8_mpiq[D_8010CBCC_mpiq + 1] + 0x532B;
+        D_8010CBCC_mpiq++;
+        return v;
+    case 0x5314:
+        v = D_8010CBF8_mpiq[D_8010CBCC_mpiq + 1] + 0x5331;
+        D_8010CBCC_mpiq++;
+        return v;
+    case 0x5316:
+    case 0x5318:
+    case 0x540E:
+    case 0x541C:
+        range = 4;
+        base = -1;
+        step = 1;
+        break;
+    case 0x5400:
+        range = 5;
+        base = -2;
+        step = 1;
+        break;
+    case 0x5402:
+    case 0x541A:
+        range = 0x15;
+        base = -0xA;
+        step = 1;
+        break;
+    case 0x5404:
+    case 0x5412:
+    case 0x5414:
+    case 0x5416:
+    case 0x5418:
+        return func_8010AEDC_mpiq(q);
+    case 0x5406:
+    case 0x5408:
+    case 0x540A:
+        range = 7;
+        base = -3;
+        step = 1;
+        break;
+    case 0x5410:
+        range = 9;
+        base = -3;
+        step = 1;
+        break;
+    default:
+        return 0;
+    }
+    return func_8010AFAC_mpiq(q, range, base, step);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AB44_mpiq);
+#endif
 
 /* A character name not playing and not already an answer of question q. */
 s32 func_8010AEDC_mpiq(s32 q) {
@@ -1758,17 +1869,138 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AFAC_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010B0CC_mpiq);
 
+#ifdef NON_MATCHING
+/* Buzz-in process: whoever presses A first (random among ties) answers. */
+void func_8010B900_mpiq(void) {
+    s32 list[4];
+    s32 n;
+    s32 i;
+
+    while (n = 0, !(D_8010C9C0_mpiq & 2)) {
+        for (i = 0; i < 4; i++) {
+            if (!(D_8010C9E8_mpiq[i] & 1) && (D_800D5558_main[GwPlayer[i].pad] & 0x8000)) {
+                list[n++] = i;
+                D_8010C9C0_mpiq = (D_8010C9C0_mpiq & ~0x10) | 4;
+            }
+        }
+        if (n != 0) {
+            D_8010C9BC_mpiq = list[rand8() % n];
+            break;
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010B900_mpiq);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010BA64_mpiq);
+void func_8010BA64_mpiq(omObjData* obj) {
+    s32 list[4];
+    s32 n;
+    s32 i;
 
+    if (!(D_8010C9C0_mpiq & 2)) {
+        n = 0;
+        for (i = 0; i < 4; i++) {
+            if (D_800D5558_main[GwPlayer[i].pad] & 0x8000) {
+                list[n++] = i;
+                D_8010C9C0_mpiq = (D_8010C9C0_mpiq & ~0x10) | 4;
+            }
+        }
+        if (n == 0) {
+            return;
+        }
+        D_8010C9BC_mpiq = list[rand8() % n];
+    }
+    omDelObj(obj);
+}
+
+#ifdef NON_MATCHING
+/* Open the question window: "Qn" header, the question text and its name insert. */
+s16 func_8010BB74_mpiq(void) {
+    char buf[0x100];
+    s16 size;
+    s32 mes;
+    s16 win;
+
+    mes = D_8010CA50_mpiq[D_8010CA4C_mpiq];
+    sprintf(buf, "%d", D_8010CA4C_mpiq + (D_8010C9FC_mpiq + 1));
+    func_8006022C_main((u32)buf, 1);
+    if (D_8010CBA0_mpiq[D_8010CA4C_mpiq] & 2) {
+        func_8006022C_main(D_8010CBB8_mpiq[D_8010CA4C_mpiq], 0);
+    }
+    func_80060394_main(1, &size, mes);
+    win = func_8005A968_main(0x4F, 0x2D, 0xA5, 0x50, 0, 0);
+    D_8010CAFC_mpiq = win;
+    func_8005B63C_main(win, 0x40, 0x40);
+    func_8005BDFC_main(win, 5);
+    func_80060144_main(win);
+    func_8005BEE0_main(win, 0);
+    func_8005FE54_main(win, 1 << GwPlayer[0].pad);
+    func_8005B6BC_main(win, (u32)buf, 1);
+    if (D_8010CBA0_mpiq[D_8010CA4C_mpiq] & 2) {
+        func_8005B6BC_main(win, D_8010CBB8_mpiq[D_8010CA4C_mpiq], 0);
+    }
+    func_8005D294_main(win);
+    func_8005B43C_main(win, mes, -1, -1);
+    return win;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010BB74_mpiq);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C964_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010BD1C_mpiq);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C2F0_mpiq);
+/* Answer countdown: 5 seconds once someone buzzes (or for the answer). */
+void func_8010C2F0_mpiq(void) {
+    s32 timer;
+    s32 mode;
+    s32 i;
+
+    D_8010CAF8_mpiq = 5;
+    timer = 0x1E;
+    while (TRUE) {
+        if (D_8010C9C0_mpiq & 0x10) {
+            mode = 1;
+            break;
+        }
+        if (D_8010C9C0_mpiq & 4) {
+            mode = 2;
+            break;
+        }
+        HuPrcVSleep();
+    }
+    GMesPosSet(GMesCreate(0x1A, D_8010CAF8_mpiq, 0xA0, 0x1C), 154.0f, 28.0f);
+    while (D_8010CAF8_mpiq > 0) {
+        if (--timer == 0) {
+            timer = 0x1E;
+            D_8010CAF8_mpiq--;
+        }
+        func_8003F578_main((s16)D_8010CAF8_mpiq);
+        if (mode == 1 && (D_8010C9C0_mpiq & 4)) {
+            D_8010CAF8_mpiq = 5;
+            timer = 0x1E;
+            mode = 3;
+        }
+        if (D_8010C6B8_mpiq != -1 || D_8010CAF8_mpiq == 0) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    D_8010C9C0_mpiq = (D_8010C9C0_mpiq | 2) & ~0x14;
+    D_8010C9C2_mpiq = 1;
+    if (D_8010CAF8_mpiq == 0) {
+        D_8010C9C0_mpiq &= ~0x34;
+        for (i = 0; i < 4; i++) {
+            func_800E12EC_minigame(D_800EC598_minigame[i], 1000.0f);
+        }
+    }
+    func_8003F5C0_main();
+    omDelPrcObj(NULL);
+}
 
 /* Is player standing at their podium's height? */
 s32 func_8010C4C0_mpiq(s32 player) {
