@@ -29,9 +29,9 @@ typedef struct CcCar {
     /* 0x2A */ char unk2A[2];
     /* 0x2C */ f32 unk2C[2]; /* per rider: rot y */
     /* 0x34 */ f32 unk34[2]; /* per rider: y */
-    /* 0x3C */ f32 unk3C[2];
-    /* 0x44 */ f32 unk44[2];
-    /* 0x4C */ s16 unk4C[2];
+    /* 0x3C */ f32 unk3C[2]; /* per rider (CPU): target x, 100000 = none */
+    /* 0x44 */ omObjData *unk44[2]; /* per rider (CPU): the track object being dodged */
+    /* 0x4C */ u16 unk4C[2]; /* per rider (CPU): dodging */
     /* 0x50 */ s16 unk50; /* a human rides this car */
     /* 0x52 */ s16 unk52;
 } CcCar; // Size 0x54
@@ -94,6 +94,7 @@ extern omObjData *D_8010C028_cosmic_coaster;
 extern s16 D_8010C058_cosmic_coaster;
 extern s16 D_8010C05A_cosmic_coaster;
 extern omObjData *D_8010C3B0_cosmic_coaster[2];
+extern omObjData *D_8010C3B8_cosmic_coaster;
 extern s16 D_8010C3BC_cosmic_coaster;
 extern omObjData *D_8010C3C0_cosmic_coaster;
 extern omObjData *D_8010C3C4_cosmic_coaster;
@@ -114,6 +115,7 @@ void func_801080C8_cosmic_coaster(omObjData *object);
 void func_8010812C_cosmic_coaster(omObjData *object);
 void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick);
 void func_80108C9C_cosmic_coaster(omObjData *object);
+s32 func_8010B97C_cosmic_coaster(omObjData *object, s32 rider, omObjData *obj);
 u32 func_8010B644_cosmic_coaster(omObjData **hit, CcCar *car, f32 pos, f32 prev, u16 take);
 void func_8010869C_cosmic_coaster(omObjData *object);
 void func_801090C0_cosmic_coaster(omObjData *object);
@@ -449,7 +451,7 @@ void func_80106758_cosmic_coaster(omObjData *object, s16 side) {
         work->unk20[i] = 0;
         work->unk24[i] = 1;
         work->unk3C[i] = 100000.0f;
-        work->unk44[i] = 0.0f;
+        work->unk44[i] = NULL;
         work->unk4C[i] = 0;
         func_8001FB34_main(object->model[1 + i], 1);
         func_8001FBBC_main(object->model[1 + i], 0, 0, 0);
@@ -777,7 +779,61 @@ void func_801080C8_cosmic_coaster(omObjData *object) {
 void func_80108124_cosmic_coaster(omObjData *object) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010812C_cosmic_coaster);
+/* CPU riders: look ahead for track objects and pick a free lane to steer to. */
+void func_8010812C_cosmic_coaster(omObjData *object) {
+    u8 lane[3];
+    u8 cand[3];
+    f32 laneX[3] = { -160.0f, 0.0f, 160.0f };
+    f32 z[2];
+    omObjData *hit[2];
+    CcCar *work;
+    s32 i;
+    s32 j;
+    u8 n;
+    u32 bits;
+    omObjData *obj;
+    f32 ahead;
+
+    z[0] = -100.0f;
+    z[1] = 100.0f;
+    work = object->data;
+    ahead = D_8010BB38_cosmic_coaster[work->unk00] / 1.08f * 15.0f;
+    hit[1] = NULL;
+    hit[0] = NULL;
+    func_8010B644_cosmic_coaster(hit, work, ahead + work->unk08, work->unk08, 0);
+    for (i = 0; i < 2; i++) {
+        if (work->unk4C[i] == 0) {
+            obj = hit[i];
+            if (obj != NULL) {
+                work->unk44[i] = obj;
+                bits = func_8010B97C_cosmic_coaster(object, i, obj);
+                work->unk4C[i] = 1;
+                lane[0] = (bits & 0x30) >> 4;
+                lane[1] = (bits & 0xC) >> 2;
+                lane[2] = bits & 3;
+                for (n = 0, j = 0; j < 3; j++) {
+                    if (lane[j] < 2) {
+                        cand[n++] = j;
+                    }
+                }
+                if (work->unk3C[i] == 100000.0f) {
+                    if (n == 1) {
+                        work->unk3C[i] = laneX[cand[0]];
+                    } else {
+                        work->unk3C[i] = laneX[cand[rand8() % n]];
+                    }
+                }
+            }
+        } else {
+            D_8010C3B8_cosmic_coaster = work->unk44[i];
+            if (work->unk08 - z[i] - 30.0f > work->unk44[i]->trans.z) {
+                work->unk44[i] = NULL;
+                work->unk3C[i] = 100000.0f;
+                work->unk4C[i] = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801083D0_cosmic_coaster);
 
@@ -798,8 +854,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010991C_cosmic_coaster);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109A38_cosmic_coaster);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", D_8010BFE4_cosmic_coaster);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109BFC_cosmic_coaster);
 
