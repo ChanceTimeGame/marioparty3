@@ -46,6 +46,10 @@ void Hu3DAnimInit(s32);
 void func_80021BE0_main(s32* arg0, s32 arg1);
 void func_800142A0_main(s32);
 u8 func_8000B638_main(void);
+void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
+
+extern f32 D_800D51FC_main;
+extern f32 D_800D5410_main;
 
 extern s32 D_800A178C_main[][6];
 extern u16 D_800D530C_main;
@@ -60,7 +64,9 @@ void func_800E1304_minigame(omObjData* obj, f32 arg1);
 void func_800E1310_minigame(omObjData* obj, f32 arg1);
 void func_800E131C_minigame(omObjData* obj, f32 arg1);
 void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+void func_800E13CC_minigame(omObjData* obj, f32 arg1, f32 arg2, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
 void func_800E147C_minigame(omObjData* obj);
+void func_800E17F4_minigame(omObjData* obj, f32 x, f32 y, f32 z);
 void func_800E5798_minigame(omObjData* obj, s32 arg1);
 u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
@@ -89,6 +95,11 @@ extern f32 D_8010B064_treadmill_grill[13]; /* grill object growth */
 extern s32 D_8010B098_treadmill_grill[13]; /* grill object sound played */
 void func_80106008_treadmill_grill(omObjData* obj);
 void func_801062DC_treadmill_grill(omObjData* obj);
+void func_80109FA8_treadmill_grill(omObjData* obj);
+void func_8010AE6C_treadmill_grill(omObjData* obj);
+
+extern s32 D_8010AF80_treadmill_grill; /* next free model in D_8010B310 */
+extern u16 D_8010B310_treadmill_grill[16]; /* player models */
 
 extern u8 D_8010AF84_treadmill_grill[4]; /* player out */
 extern TgCtrl D_8010B03C_treadmill_grill;
@@ -298,7 +309,83 @@ void func_801065DC_treadmill_grill(omObjData* obj) {
     omSetStatBit(obj, 0xA0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801067A8_treadmill_grill);
+const char D_8010B288_treadmill_grill[] = "c201_000-eyes";
+
+void func_801067A8_treadmill_grill(omObjData* obj) {
+    TgGround* gw;
+
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+    obj->model[0] = func_8000B0A0_main(0x360000, 0xAA9);
+    obj->model[1] = func_8000B0A0_main(0x360001, 0xAA9);
+    obj->model[2] = func_8000B0A0_main(0x360000, 0xAA9);
+    obj->model[3] = func_8000B0A0_main(0x360001, 0xAA9);
+    obj->model[4] = func_8000B0A0_main(0x360002, 0xA99);
+    obj->model[5] = func_8000B0A0_main(0x360003, 0xA99);
+    obj->model[6] = func_8000B0A0_main(0x360003, 0xA99);
+    obj->model[7] = func_8000B0A0_main(0x360004, 0xA99);
+    obj->model[8] = func_8000B0A0_main(0x360004, 0xA99);
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+    obj->model[9] = func_8000B0A0_main(0x360006, 0x299);
+    obj->model[10] = D_8010B310_treadmill_grill[D_8010AF80_treadmill_grill++];
+    obj->model[11] = D_8010B310_treadmill_grill[D_8010AF80_treadmill_grill++];
+    obj->model[12] = D_8010B310_treadmill_grill[D_8010AF80_treadmill_grill++];
+    func_8001C2FC_main(obj->model[10], 0x70000000, 0);
+    func_8001C2FC_main(obj->model[11], 0x70000000, 0);
+    func_8001C2FC_main(obj->model[12], 0x70000000, 0);
+    func_8002FD8C_main(obj->model[10], HmfModelData[obj->model[10]].unk02, D_8010B288_treadmill_grill, 0x4C, 0x46);
+    func_8002FD8C_main(obj->model[11], HmfModelData[obj->model[11]].unk02, D_8010B288_treadmill_grill, 0x4C, 0x46);
+    func_8002FD8C_main(obj->model[12], HmfModelData[obj->model[12]].unk02, D_8010B288_treadmill_grill, 0x4C, 0x46);
+    obj->model[13] = func_8000B0A0_main(0x360007, 0xAC9);
+    obj->model[14] = Hu3DModelLink(obj->model[13]);
+    obj->model[15] = Hu3DModelLink(obj->model[13]);
+    func_8001C2FC_main(obj->model[13], 0x80000000, 0x80000000);
+    func_8001C2FC_main(obj->model[14], 0x80000000, 0x80000000);
+    func_8001C2FC_main(obj->model[15], 0x80000000, 0x80000000);
+    func_8001C448_main(obj->model[13]);
+    func_8001C448_main(obj->model[14]);
+    func_8001C448_main(obj->model[15]);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->rot.y = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->data = gw = HuMemAllocTag(sizeof(TgGround), 31000);
+    memset(gw, 0, sizeof(TgGround));
+    obj->func = func_80109FA8_treadmill_grill;
+    gw->unk03 = 1;
+    func_800E13CC_minigame(obj, 250.0f, 250.0f, -550.0f, -1050.0f, 550.0f, 150.0f);
+    func_8001C2FC_main(obj->model[0], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[0]);
+    func_8001C954_main(obj->model[0]);
+    func_8001C2FC_main(obj->model[1], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[1]);
+    func_8001C954_main(obj->model[1]);
+    func_8001C2FC_main(obj->model[2], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[2]);
+    func_8001C954_main(obj->model[2]);
+    func_8001C2FC_main(obj->model[3], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[3]);
+    func_8001C954_main(obj->model[3]);
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, -300.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, -600.0f);
+    Hu3DModelPosSet(obj->model[3], 0.0f, 0.0f, -900.0f);
+    func_800E147C_minigame(obj);
+    func_800E1304_minigame(obj, 0.3f);
+    func_800E131C_minigame(obj, 15.0f);
+    func_800E17F4_minigame(obj, 1.0f, 1.0f, 1.0f);
+    gw->unk04 = 1;
+    Hu3DModelPosSet(obj->model[4], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[5], 480.0f, 150.0f, 165.0f);
+    Hu3DModelPosSet(obj->model[6], -480.0f, 150.0f, 165.0f);
+    Hu3DModelPosSet(obj->model[7], 430.0f, 220.0f, 155.0f);
+    Hu3DModelPosSet(obj->model[8], -430.0f, 220.0f, 155.0f);
+    Hu3DModelPosSet(obj->model[9], 0.0f, 0.0f, -450.0f);
+    Hu3DModelScaleSet(obj->model[9], 1.1f, 1.0f, 0.8f);
+    omSetStatBit(obj, 0xA0);
+    func_8010AE6C_treadmill_grill(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80106DA0_treadmill_grill);
 
@@ -307,8 +394,6 @@ s32 func_80107230_treadmill_grill(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80107238_treadmill_grill);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", D_8010B288_treadmill_grill);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80107454_treadmill_grill);
 
