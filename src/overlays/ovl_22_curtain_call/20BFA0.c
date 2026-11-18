@@ -65,6 +65,7 @@ extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[4];
 extern u16 D_800D530C_main;
 extern u8 D_800D6A58_main;
+extern u8 D_800D6A90_main;
 
 void func_8000B5F0_main(u8 arg0);
 s32 func_8000B710_main(s32 arg0);
@@ -80,6 +81,15 @@ extern s16 D_8010B0E0_curtain_call[2];
 extern s16 D_8010B0E4_curtain_call[6];
 extern u16 D_8010B0F0_curtain_call[8][3];
 extern char *D_8010B120_curtain_call[8];
+extern s8 D_8010B180_curtain_call[28];
+extern f32 D_8010B19C_curtain_call[25];
+extern s16 D_8010B200_curtain_call[4];
+extern s16 D_8010B208_curtain_call[4];
+extern s16 D_8010B210_curtain_call[6];
+extern s16 D_8010B21C_curtain_call[6];
+extern s8 D_8010B228_curtain_call[4];
+extern s8 D_8010B22C_curtain_call[8];
+extern s8 D_8010B234_curtain_call[8];
 extern CcCamera D_8010B280_curtain_call[1];
 extern u8 D_8010B140_curtain_call[3][5];
 extern u8 D_8010B150_curtain_call[3][5];
@@ -104,8 +114,13 @@ extern s8 D_8010CE8A_curtain_call[2];
 extern void *D_8010CE90_curtain_call[4][3];
 extern s8 D_8010CEC0_curtain_call;
 extern s8 D_8010CEC1_curtain_call;
-extern s8 D_8010CEC8_curtain_call;
-extern s8 D_8010CEC9_curtain_call;
+/* a curtain panel (D_8010CEC8_curtain_call, 6) */
+typedef struct CcPanel {
+    /* 0x00 */ s8 unk00;
+    /* 0x01 */ s8 slot;
+    /* 0x04 */ omObjData *obj;
+} CcPanel; // Size 0x8
+extern CcPanel D_8010CEC8_curtain_call[6];
 extern s8 D_8010CEF8_curtain_call[4];
 extern s8 D_8010CEFE_curtain_call;
 extern s8 D_8010CEFF_curtain_call;
@@ -1033,25 +1048,224 @@ void func_80107D20_curtain_call(omObjData *obj) {
     obj->func = func_80107680_curtain_call;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801084A0_curtain_call);
+#ifdef NON_MATCHING
+/* The four players, each on a random seat. */
+void func_801084A0_curtain_call(void) {
+    s8 seats[4];
+    s8 free[4];
+    s8 unused[4];
+    omObjData *obj;
+    CcEnt *ent;
+    s32 player = 0;
+    s8 i;
+    s8 j;
+    s8 n;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80108670_curtain_call);
+    for (i = 0; i < 4; i++) {
+        seats[i] = i;
+        free[i] = 1;
+    }
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            player = 0;
+            break;
+        case 1:
+            player = 1;
+            break;
+        case 2:
+            player = 2;
+            break;
+        case 3:
+            player = 3;
+            break;
+        }
+        ent = CC_PLAYER(i);
+        obj = omAddObj(700, 5, 10, -1, func_80107D20_curtain_call);
+        obj->work[0] = player;
+        ent->obj = obj;
+        j = func_80105B7C_curtain_call(4 - i);
+        obj->work[1] = seats[j];
+        free[seats[j]] = 0;
+        for (j = 0, n = 0; j < 4; j++) {
+            if (free[j]) {
+                seats[n] = j;
+                n++;
+            }
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801084A0_curtain_call);
+#endif
+
+/* One of the six curtain panels (entities [5..10]). */
+void func_80108670_curtain_call(omObjData *obj) {
+    s8 idx = obj->work[0];
+    CcEnt *ent = &D_8010B4B0_curtain_call[5 + idx];
+
+    if (D_8010CF32_curtain_call >= 2) {
+        switch (D_8010CEC1_curtain_call) {
+        case 0:
+            ent->unk04 = 0;
+            ent->unk16 = 0;
+            if (idx >= 4) {
+                obj->trans.y = 190.0f;
+            } else {
+                obj->trans.y = 125.0f;
+            }
+            ent->scale.z = 1.0f;
+            ent->scale.x = 1.0f;
+            break;
+        case 1:
+            if (func_80049F98_main() + D_800D6A90_main != 0) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[1], 4, 4);
+            } else {
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+            }
+            break;
+        case 2:
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 4);
+            break;
+        case 6:
+            if (D_8010CEC0_curtain_call == D_8010CEC8_curtain_call[idx].slot
+                && (D_8010CF32_curtain_call < 3 || (D_8010CF32_curtain_call == 3 && ent->unk04 != 0))) {
+                obj->trans.y += D_8010B180_curtain_call[ent->unk04];
+                ent->scale.x = ent->scale.z = D_8010B19C_curtain_call[ent->unk04];
+                ent->unk04 = (ent->unk04 + 1) % 25;
+                if (ent->unk16 == 0) {
+                    ent->unk16++;
+                    HuAudFXPlay(D_8010B200_curtain_call[D_8010CEFF_curtain_call]);
+                }
+            }
+        case 4:
+        case 5:
+            if (func_80049F98_main() + D_800D6A90_main != 0) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[1], 4, 4);
+            } else {
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+            }
+            break;
+        }
+        if (D_8010CF32_curtain_call >= 4) {
+            if (ent->unk06 > 0) {
+                ent->unk06--;
+            } else {
+                obj->trans.y += D_8010B180_curtain_call[ent->unk04];
+                ent->scale.x = ent->scale.z = D_8010B19C_curtain_call[ent->unk04];
+                ent->unk04 = (ent->unk04 + 1) % 25;
+            }
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, 125.0f, obj->trans.z);
+        Hu3DModelScaleSet(obj->model[1], ent->scale.x, ent->scale.y, ent->scale.z);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801089FC_curtain_call);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80108E64_curtain_call);
+void func_80108E64_curtain_call(void) {
+    omObjData *obj;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80108EF8_curtain_call);
+    for (i = 0; i < 6; i++) {
+        obj = omAddObj(800, 3, 4, -1, func_801089FC_curtain_call);
+        D_8010CEC8_curtain_call[i].obj = obj;
+        obj->work[0] = i;
+        /* retail stores every panel in entity [5] */
+        D_8010B4B0_curtain_call[5].obj = obj;
+        omSetStatBit(obj, 0xA0);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80108F28_curtain_call);
+void func_80108EF8_curtain_call(omObjData *obj) {
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 127.0f, obj->trans.z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801090FC_curtain_call);
+void func_80108F28_curtain_call(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0xA0000, 0x2B9);
+    func_8000B460_main(obj, 0, 0xA000C);
+    func_80105BD0_curtain_call(obj, 0, 2);
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    obj->trans.x = -450.0f;
+    obj->trans.y = 125.0f;
+    obj->trans.z = -350.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->scale.x = 0.8f;
+    obj->scale.y = 0.8f;
+    obj->scale.z = 0.8f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    obj->func = func_80108EF8_curtain_call;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80109138_curtain_call);
+void func_801090FC_curtain_call(void) {
+    D_8010B4B0_curtain_call[11].obj = omAddObj(600, 3, 2, -1, func_80108F28_curtain_call);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801092F0_curtain_call);
+void func_80109138_curtain_call(omObjData *obj) {
+    CcEnt *light = &D_8010B4B0_curtain_call[13];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801093C4_curtain_call);
+    switch (D_8010CEC1_curtain_call) {
+    case 0:
+        func_8001C258_main(obj->model[0], 4, 4);
+        break;
+    case 5:
+        switch (D_8010CEFE_curtain_call) {
+        case 0:
+            obj->trans.x = (f32)D_8010B208_curtain_call[D_8010CEC0_curtain_call] + D_8010B228_curtain_call[D_8010CEC0_curtain_call];
+            break;
+        case 1:
+            obj->trans.x = (f32)D_8010B210_curtain_call[D_8010CEC0_curtain_call] + D_8010B22C_curtain_call[D_8010CEC0_curtain_call];
+            break;
+        case 2:
+            obj->trans.x = (f32)D_8010B21C_curtain_call[D_8010CEC0_curtain_call] + D_8010B234_curtain_call[D_8010CEC0_curtain_call];
+            break;
+        }
+        func_8001C258_main(obj->model[0], 4, 0);
+        break;
+    }
+    if (D_8010CF32_curtain_call >= 3) {
+        if (light->unk04 <= 0) {
+            light->unk04 = 0;
+            func_8001C258_main(obj->model[0], 4, 4);
+            return;
+        }
+        light->unk04 -= 5;
+        func_8001F9E4_main(obj->model[0], light->unk04);
+    }
+}
+
+void func_801092F0_curtain_call(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x430006, 0x2A8);
+    func_8001FA68_main(obj->model[0]);
+    func_8001F9E4_main(obj->model[0], 0xD2);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 125.0f;
+    obj->trans.z = -725.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    D_8010B4B0_curtain_call[13].unk04 = 0xFF;
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C8A8_main(obj->model[0], 1);
+    obj->func = func_80109138_curtain_call;
+}
+
+void func_801093C4_curtain_call(void) {
+    D_8010B4B0_curtain_call[13].obj = omAddObj(900, 1, 1, -1, func_801092F0_curtain_call);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80109400_curtain_call);
 
