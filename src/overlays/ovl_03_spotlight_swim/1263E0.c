@@ -127,6 +127,18 @@ extern s8 D_8010D2F4_spotlight_swim;
 extern s8 D_8010D478_spotlight_swim;
 extern s32 D_8010CCD4_spotlight_swim[];
 
+/* The player's two splash rings (D_8010D350_spotlight_swim). */
+typedef struct SsSplash {
+    /* 0x00 */ s8 state;
+    /* 0x01 */ s8 cnt;
+    /* 0x02 */ u8 alpha[2];
+    /* 0x04 */ f32 x[2];
+    /* 0x0C */ f32 z[2];
+} SsSplash; // Size 0x14
+
+extern SsSplash D_8010D350_spotlight_swim;
+void func_8001F9E4_main(s16 model, u8 alpha);
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -532,7 +544,80 @@ void func_80106BC8_spotlight_swim(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80106EB0_spotlight_swim);
+/* The two splash rings (models 6 and 7) behind the player. */
+void func_80106EB0_spotlight_swim(omObjData *obj) {
+    f32 y;
+
+    switch (D_8010D350_spotlight_swim.state) {
+    case 0:
+        if (D_8010D478_spotlight_swim != 0) {
+            D_8010D350_spotlight_swim.cnt = 0;
+            D_8010D350_spotlight_swim.state = 1;
+            D_8010D478_spotlight_swim = 0;
+        }
+        break;
+    case 1:
+        if (D_8010D350_spotlight_swim.cnt == 0) {
+            func_8001C6A8_main(obj->model[6], 0.0f);
+            func_8001C258_main(obj->model[6], 4, 0);
+            if (obj->work[1] != 5) {
+                D_8010D350_spotlight_swim.x[0] = obj->trans.x;
+                D_8010D350_spotlight_swim.z[0] = obj->trans.z;
+            } else {
+                D_8010D350_spotlight_swim.x[0] = obj->trans.x - sindf(obj->rot.y) * 50.0f;
+                D_8010D350_spotlight_swim.z[0] = obj->trans.z - cosdf(obj->rot.y) * 50.0f;
+            }
+            D_8010D350_spotlight_swim.alpha[0] = 255;
+            func_8001F9E4_main(obj->model[6], 255);
+        } else if (D_8010D350_spotlight_swim.cnt >= 5) {
+            if (D_8010D350_spotlight_swim.alpha[0] >= 36) {
+                D_8010D350_spotlight_swim.alpha[0] -= 20;
+            } else {
+                func_8001C258_main(obj->model[6], 4, 4);
+                D_8010D350_spotlight_swim.alpha[0] = 0;
+            }
+            func_8001F9E4_main(obj->model[6], D_8010D350_spotlight_swim.alpha[0]);
+        }
+        if (D_8010D350_spotlight_swim.cnt == 8) {
+            func_8001C6A8_main(obj->model[7], 0.0f);
+            func_8001C258_main(obj->model[7], 4, 0);
+            if (obj->work[1] != 5) {
+                D_8010D350_spotlight_swim.x[1] = obj->trans.x;
+                D_8010D350_spotlight_swim.z[1] = obj->trans.z;
+            } else {
+                /* Retail writes the first ring's position here, not the second's. */
+                D_8010D350_spotlight_swim.x[0] = obj->trans.x - sindf(obj->rot.y) * 50.0f;
+                D_8010D350_spotlight_swim.z[0] = obj->trans.z - cosdf(obj->rot.y) * 50.0f;
+            }
+            D_8010D350_spotlight_swim.alpha[1] = 255;
+            func_8001F9E4_main(obj->model[7], 255);
+        } else if (D_8010D350_spotlight_swim.cnt >= 10) {
+            if (D_8010D350_spotlight_swim.alpha[1] >= 36) {
+                D_8010D350_spotlight_swim.alpha[1] -= 20;
+            } else {
+                func_8001C258_main(obj->model[7], 4, 4);
+                D_8010D350_spotlight_swim.alpha[1] = 0;
+                D_8010D350_spotlight_swim.state = 0;
+            }
+            func_8001F9E4_main(obj->model[7], D_8010D350_spotlight_swim.alpha[1]);
+        }
+        D_8010D350_spotlight_swim.cnt++;
+        break;
+    }
+    if (D_8010EE48_spotlight_swim == 3 && D_8010D32C_spotlight_swim != 1) {
+        Hu3DModelScaleSet(obj->model[6], 2.5f, 2.5f, 2.5f);
+        Hu3DModelScaleSet(obj->model[7], 2.5f, 2.5f, 2.5f);
+    } else if (obj->work[1] != 5) {
+        Hu3DModelScaleSet(obj->model[6], 1.5f, 1.5f, 1.5f);
+        Hu3DModelScaleSet(obj->model[7], 1.5f, 1.5f, 1.5f);
+    } else {
+        Hu3DModelScaleSet(obj->model[6], 1.7f, 1.7f, 1.78f);
+        Hu3DModelScaleSet(obj->model[7], 1.7f, 1.7f, 1.7f);
+    }
+    y = D_8010D338_spotlight_swim[0] + -200.0f + 3.0f;
+    Hu3DModelPosSet(obj->model[6], D_8010D350_spotlight_swim.x[0], y, D_8010D350_spotlight_swim.z[0]);
+    Hu3DModelPosSet(obj->model[7], D_8010D350_spotlight_swim.x[1], y, D_8010D350_spotlight_swim.z[1]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801072C4_spotlight_swim);
 
