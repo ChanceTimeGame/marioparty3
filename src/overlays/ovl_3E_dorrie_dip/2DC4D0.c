@@ -1405,8 +1405,6 @@ void func_80109B28_dorrie_dip(void) {
     }
 }
 
-/* NON_MATCHING: masked 2; the assembler puts a nop after the sindf/cosdf calls of the last three stores */
-#ifdef NON_MATCHING
 void func_80109C14_dorrie_dip(omObjData* obj) {
     DrWake* work = obj->data;
     DrRing* ring = D_8010A230_dorrie_dip->data;
@@ -1434,9 +1432,6 @@ void func_80109C14_dorrie_dip(omObjData* obj) {
         work->unk30[i] = cosdf(ring->unk18[i]) * 450.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109C14_dorrie_dip);
-#endif
 
 /* Show a Dorrie's wake. */
 void func_80109E1C_dorrie_dip(s32 idx) {
