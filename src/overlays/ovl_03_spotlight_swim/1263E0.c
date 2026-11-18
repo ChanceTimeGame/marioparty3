@@ -234,6 +234,17 @@ extern f32 D_8010D3A0_spotlight_swim[3];
 
 void func_80088800_main(f32 (*mf)[4], f32 x, f32 y, f32 z);
 
+/* D_8010D480_spotlight_swim[9..11], the chasers' lamps (a view of the same table). */
+extern SsEnt D_8010D924_spotlight_swim[3];
+
+/* Per-chaser lamp state (D_8010EE50_spotlight_swim). */
+typedef struct SsLamp {
+    /* 0x00 */ f32 rot;
+    /* 0x04 */ s8 motion;
+} SsLamp;
+
+extern SsLamp D_8010EE50_spotlight_swim[];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -251,6 +262,7 @@ void func_80108AD8_spotlight_swim(omObjData *obj);
 void func_80109A94_spotlight_swim(omObjData *obj);
 void func_80109C1C_spotlight_swim(omObjData *obj);
 void func_80109F60_spotlight_swim(omObjData *obj);
+void func_8010A328_spotlight_swim(omObjData *obj);
 void func_80109690_spotlight_swim(omObjData *obj);
 u8 func_80109194_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
@@ -1693,9 +1705,103 @@ void func_8010A328_spotlight_swim(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A328_spotlight_swim);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A670_spotlight_swim);
+#ifdef NON_MATCHING
+/* as func_80109E08_spotlight_swim: register allocation (retail hoists the case constants, mine the table base); ops otherwise equal */
+void func_8010A670_spotlight_swim(void) {
+    omObjData *obj;
+    SsEnt *ent;
+    s16 i;
+    s32 n;
+    u32 player;
+    s32 unused[2];
 
+    player = 0;
+    n = 0;
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            }
+            ent = &D_8010D798_spotlight_swim[n];
+            obj = omAddObj(900, 8, 7, -1, func_8010A328_spotlight_swim);
+            obj->work[0] = player;
+            ent->obj = obj;
+            ent->unk04 = n;
+            obj->work[1] = (s16)n;
+            n++;
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A670_spotlight_swim);
+#endif
+
+#ifdef NON_MATCHING
+/* regalloc only: body and mot swap s1/s2 */
+/* A chaser's lamp tracks its chaser; the chaser's end model turns to face it. */
+void func_8010A7AC_spotlight_swim(omObjData *obj) {
+    s8 k = obj->work[0];
+    SsEnt *lamp = &D_8010D480_spotlight_swim[9] + obj->work[0];
+    SsEnt *chaser = &D_8010D480_spotlight_swim[3] + obj->work[0];
+    omObjData *cobj = chaser->obj;
+    omObjData *body;
+    s16 dx;
+    s16 dz;
+    s16 dist;
+    s8 mot;
+    f32 angle;
+
+    body = (&D_8010D480_spotlight_swim[6] + obj->work[0])->obj;
+
+    if (D_8010EE48_spotlight_swim < 3) {
+        dx = lamp->pos.x - cobj->trans.x;
+        dz = 200.0f - cobj->trans.y;
+        dist = sqrtf(dx * dx + dz * dz);
+        if (dist < 100) {
+            mot = 0;
+        } else {
+            mot = 2;
+            if (dist < 150) {
+                mot = 1;
+            }
+        }
+        angle = func_801059BC_spotlight_swim(
+            atan2df(chaser->obj->trans.x - lamp->pos.x, chaser->obj->trans.y - 200.0f), 0.0f);
+        obj->rot.y = angle;
+        body->rot.y = angle;
+        lamp->unk50.x = func_801059BC_spotlight_swim(atan2df(dist, 60.0f), 0.0f);
+        lamp->unk50.x = func_801059BC_spotlight_swim(80.0f, -lamp->unk50.x);
+        if (D_8010EE50_spotlight_swim[k].motion != mot) {
+            D_8010EE50_spotlight_swim[k].motion = mot;
+            func_80105D4C_spotlight_swim(body, mot, 0, 5, 2);
+            func_8001C92C_main(body->model[0], 0.5f);
+        }
+        if (D_8010EE50_spotlight_swim[k].rot != obj->rot.y) {
+            D_8010EE50_spotlight_swim[k].rot = obj->rot.y;
+            func_8001C92C_main(body->model[0], 0.5f);
+        } else {
+            func_8001C92C_main(body->model[0], 0.0f);
+            func_80105D4C_spotlight_swim(body, D_8010EE50_spotlight_swim[k].motion, 0, 10, 2);
+        }
+        Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+        Hu3DModelRotSet(obj->model[1], lamp->unk50.x, obj->rot.y, obj->rot.z);
+        Hu3DModelRotSet(body->model[0], body->rot.x, body->rot.y, body->rot.z);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A7AC_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010AAB8_spotlight_swim);
 
