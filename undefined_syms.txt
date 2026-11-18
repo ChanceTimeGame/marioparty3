@@ -414,5 +414,3 @@ D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
 /* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
 D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
 D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
-D_8010A055_picture_imperfect = D_8010A054_picture_imperfect + 0x1;
-D_8010A056_picture_imperfect = D_8010A054_picture_imperfect + 0x2;

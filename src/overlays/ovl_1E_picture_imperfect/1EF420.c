@@ -1395,3 +1395,32 @@ void func_80109AC4_picture_imperfect(omObjData* obj) {
         }
     }
 }
+
+s16 D_80109FE0_picture_imperfect = -1;
+s16 D_80109FE2_picture_imperfect = 1;
+u8 D_80109FE4_picture_imperfect = 0;
+s16 D_80109FE8_picture_imperfect[4][2] = { { 80, 60 }, { 240, 60 }, { 80, 180 }, { 240, 180 } };
+s8 D_80109FF8_picture_imperfect[4] = { -1, -1, -1, -1 };
+s8 D_80109FFC_picture_imperfect[4][5] = {
+    { -1, -1, -1, -1, -1 },
+    { -1, -1, -1, -1, -1 },
+    { -1, -1, -1, -1, -1 },
+    { -1, -1, -1, -1, -1 },
+};
+s32 D_8010A010_picture_imperfect = 0;
+s8 D_8010A014_picture_imperfect = 0;
+s16 D_8010A018_picture_imperfect[4][2] = { { 59, 55 }, { 219, 55 }, { 59, 175 }, { 219, 175 } };
+s8 D_8010A028_picture_imperfect = 0;
+s32 D_8010A02C_picture_imperfect = 0;
+u8 D_8010A030_picture_imperfect[4][5] = {
+    { 0, 1, 2, 3, 4 },
+    { 4, 2, 0, 3, 1 },
+    { 2, 3, 1, 4, 0 },
+    { 1, 4, 2, 0, 3 },
+};
+u32 D_8010A044_picture_imperfect = 0;
+s8 D_8010A048_picture_imperfect[5] = { -20, -10, 0, 10, 20 };
+f32 D_8010A050_picture_imperfect = 1.0f;
+u8 D_8010A054_picture_imperfect = 0;
+u8 D_8010A055_picture_imperfect = 0xFF;
+u8 D_8010A056_picture_imperfect = 0;
