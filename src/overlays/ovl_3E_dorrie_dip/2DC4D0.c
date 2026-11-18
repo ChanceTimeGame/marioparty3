@@ -103,6 +103,7 @@ void func_80108174_dorrie_dip(void);
 void func_801081D4_dorrie_dip(void);
 void func_801081A8_dorrie_dip(void);
 void func_80108458_dorrie_dip(void);
+void func_80108484_dorrie_dip(void);
 void func_80108678_dorrie_dip(void);
 void func_80108700_dorrie_dip(void);
 void func_80108800_dorrie_dip(void);
@@ -829,11 +830,92 @@ void func_801081A8_dorrie_dip(void) {
     omAddPrcObj(func_801081D4_dorrie_dip, 0x50, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081D4_dorrie_dip);
+/* Process: the dud turns to face out; hooked, it plays motion 1; otherwise it jumps off its Dorrie. */
+void func_801081D4_dorrie_dip(void) {
+    DrDud* work = D_8010A234_dorrie_dip->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    f32 dist;
+    f32 vy;
+    s32 landed;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108458_dorrie_dip);
+    work->unk14 &= ~2;
+    if (D_8010A220_dorrie_dip == D_8010A200_dorrie_dip) {
+        while (work->unk10 != 0.0f) {
+            work->unk10 += 9.0f;
+            if (work->unk10 >= 360.0f) {
+                work->unk10 = 0.0f;
+            }
+            HuPrcVSleep();
+        }
+        func_8001C5B4_main(D_8010A234_dorrie_dip->model[0], D_8010A234_dorrie_dip->motion[1]);
+        func_8001C814_main(D_8010A234_dorrie_dip->model[0], 2, 2);
+        HuAudFXPlay(0x4E2);
+        omDelPrcObj(NULL);
+    }
+    dist = 450.0f;
+    vy = 90.0f;
+    work->unk10 = ring->unk18[D_8010A200_dorrie_dip];
+    landed = 0;
+    func_8001C5B4_main(D_8010A234_dorrie_dip->model[0], D_8010A234_dorrie_dip->motion[1]);
+    do {
+        work->unk00 = dist * sindf(ring->unk18[D_8010A200_dorrie_dip]);
+        work->unk04 += vy;
+        vy -= 10.0f;
+        dist += 30.0f;
+        if (work->unk04 < 80.0f) {
+            work->unk04 = 80.0f;
+            if (landed == 0) {
+                landed = 1;
+                func_8001C5B4_main(D_8010A234_dorrie_dip->model[0], D_8010A234_dorrie_dip->motion[2]);
+                func_8001C814_main(D_8010A234_dorrie_dip->model[0], 2, 2);
+            }
+        }
+        work->unk08 = dist * cosdf(ring->unk18[D_8010A200_dorrie_dip]);
+        HuPrcVSleep();
+    } while (dist < 1050.0f);
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108484_dorrie_dip);
+void func_80108458_dorrie_dip(void) {
+    omAddPrcObj(func_80108484_dorrie_dip, 0x50, 0, 0);
+}
+
+/* Process: time up. Stop the Dorries, sink the others, and turn the dud back to 0. */
+void func_80108484_dorrie_dip(void) {
+    DrDud* work = D_8010A234_dorrie_dip->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    s32 i;
+    f32 step;
+
+    for (i = 0; i < 6; i++) {
+        ring->unk00[i] &= ~1;
+        func_8001C258_main(D_8010A230_dorrie_dip->model[i + 6], 4, 4);
+        if (i != D_8010A200_dorrie_dip) {
+            func_80108EA0_dorrie_dip(i);
+        }
+    }
+    func_8001C814_main(D_8010A224_dorrie_dip->model[1], 1, 1);
+    func_801096F0_dorrie_dip();
+    work->unk14 &= ~2;
+    if (work->unk10 >= 180.0) {
+        step = 9.0f;
+    } else {
+        step = -9.0f;
+    }
+    while (work->unk10 != 0.0f) {
+        work->unk10 += step;
+        if (work->unk10 >= 360.0f) {
+            work->unk10 = 0.0f;
+        }
+        if (work->unk10 < 0.0f) {
+            work->unk10 = 0.0f;
+        }
+        HuPrcVSleep();
+    }
+    func_8001C5B4_main(D_8010A234_dorrie_dip->model[0], D_8010A234_dorrie_dip->motion[1]);
+    func_8001C814_main(D_8010A234_dorrie_dip->model[0], 2, 2);
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108678_dorrie_dip);
 
