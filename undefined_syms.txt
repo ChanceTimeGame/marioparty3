@@ -413,3 +413,19 @@ D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
 D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
 /* m2 cs: chip_shot_challenge/1D9550 .data halfword still named by the remaining asm */
 D_8010A846_chip_shot_challenge = D_8010A844_chip_shot_challenge + 0x2;
+
+/* m2 sd: slapdown/264B80 .data inner words still named by the remaining asm */
+D_8010A7B4_slapdown = D_8010A7B0_slapdown + 0x4;
+D_8010A7D4_slapdown = D_8010A7D0_slapdown + 0x4;
+/* m2 ww: inner labels of Water Whirled's .data the asm functions still use */
+D_8010A1A4_water_whirled = D_8010A1A0_water_whirled + 0x4;
+D_8010A1A8_water_whirled = D_8010A1A0_water_whirled + 0x8;
+D_8010A1D4_water_whirled = D_8010A1D0_water_whirled + 0x4;
+D_8010A1D8_water_whirled = D_8010A1D0_water_whirled + 0x8;
+D_8010A208_water_whirled = D_8010A200_water_whirled + 0x8;
+D_8010A2B4_water_whirled = D_8010A2AC_water_whirled + 0x8;
+D_8010A450_water_whirled = D_8010A44C_water_whirled + 0x4;
+D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
+/* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
+D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
+D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
