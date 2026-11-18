@@ -123,7 +123,134 @@ void func_80108FEC_game_guys_roulette(void) {
     D_8010AC38_game_guys_roulette.spr->unk_84->unk00->unk00 = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80109078_game_guys_roulette);
+/* One frame of the effect once the wipe is done: the rings grow in, circle, close in on the end point, merge into one
+   that swells while the layers fade; returns 1 when it is over */
+s16 func_80109078_game_guys_roulette(void) {
+    s16 i;
+
+    if (WipeStatGet() == 1) {
+        return 0;
+    }
+    if (D_8010A6B0_game_guys_roulette >= 5) {
+        if (D_8010A6B0_game_guys_roulette < 15) {
+            for (i = 0; i < 3; i++) {
+                D_8010AB60_game_guys_roulette[i].active = 1;
+                D_8010AB60_game_guys_roulette[i].r = sindf((D_8010A6B0_game_guys_roulette - 5) * 9.0f) * 45.0f;
+            }
+        } else if (D_8010A6B0_game_guys_roulette < 20) {
+            for (i = 0; i < 3; i++) {
+                D_8010AB60_game_guys_roulette[i].r = 45;
+            }
+        } else if (D_8010A6B0_game_guys_roulette < 47) {
+            for (i = 0; i < 3; i++) {
+                D_8010AB60_game_guys_roulette[i].angle += D_8010AB60_game_guys_roulette[i].speed;
+                if (D_8010AB60_game_guys_roulette[i].angle >= 360.0f) {
+                    D_8010AB60_game_guys_roulette[i].angle -= 360.0f;
+                }
+                if (D_8010AB60_game_guys_roulette[i].angle < 0.0f) {
+                    D_8010AB60_game_guys_roulette[i].angle += 360.0f;
+                }
+                D_8010AB60_game_guys_roulette[i].x =
+                    D_8010ABA8_game_guys_roulette +
+                    cosdf(D_8010AB60_game_guys_roulette[i].fx * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+                D_8010AB60_game_guys_roulette[i].y =
+                    D_8010ABAA_game_guys_roulette +
+                    sindf(D_8010AB60_game_guys_roulette[i].fy * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+            }
+        } else if (D_8010A6B0_game_guys_roulette < 80) {
+            if (D_8010ABAC_game_guys_roulette > 0) {
+                D_8010ABAC_game_guys_roulette -= 3;
+                if (D_8010ABAC_game_guys_roulette <= 0) {
+                    D_8010ABAC_game_guys_roulette = 0;
+                }
+            }
+            D_8010ABAA_game_guys_roulette =
+                D_8010A6B2_game_guys_roulette - sindf((D_8010A6B0_game_guys_roulette - 47) * (90.0f / 33)) *
+                                                   (D_8010A6B2_game_guys_roulette - D_8010ABB0_game_guys_roulette);
+            if (D_8010A6B0_game_guys_roulette == 79) {
+                D_8010ABAA_game_guys_roulette = D_8010ABB0_game_guys_roulette;
+            }
+            for (i = 0; i < 3; i++) {
+                D_8010AB60_game_guys_roulette[i].angle += D_8010AB60_game_guys_roulette[i].speed;
+                if (D_8010AB60_game_guys_roulette[i].angle >= 360.0f) {
+                    D_8010AB60_game_guys_roulette[i].angle -= 360.0f;
+                }
+                if (D_8010AB60_game_guys_roulette[i].angle < 0.0f) {
+                    D_8010AB60_game_guys_roulette[i].angle += 360.0f;
+                }
+                D_8010AB60_game_guys_roulette[i].x =
+                    D_8010ABA8_game_guys_roulette +
+                    cosdf(D_8010AB60_game_guys_roulette[i].fx * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+                D_8010AB60_game_guys_roulette[i].y =
+                    D_8010ABAA_game_guys_roulette +
+                    sindf(D_8010AB60_game_guys_roulette[i].fy * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+            }
+        } else if (D_8010A6B0_game_guys_roulette < 90) {
+            for (i = 1; i < 3; i++) {
+                D_8010AB60_game_guys_roulette[i].active = 0;
+            }
+            D_8010AB60_game_guys_roulette[0].color = 7;
+        } else if (D_8010A6B0_game_guys_roulette >= 120) {
+            func_80109D14_game_guys_roulette();
+            return 1;
+        } else {
+            D_8010AB60_game_guys_roulette[0].r = sindf((D_8010A6B0_game_guys_roulette - 90) * 3.0f) * 50.0f + 45.0f;
+            D_8010AC38_game_guys_roulette.alpha = 128.0f - sindf((D_8010A6B0_game_guys_roulette - 90) * 3.0f) * 128.0f;
+            D_8010AC20_game_guys_roulette.alpha = 256.0f - sindf((D_8010A6B0_game_guys_roulette - 90) * 3.0f) * 256.0f;
+        }
+    }
+    if (D_8010A6B0_game_guys_roulette == 15) {
+        HuAudFXPlay(0x514);
+    }
+    if (D_8010A6B0_game_guys_roulette == 90) {
+        func_8004AB0C_main(30);
+        HuAudSeqPlay(0x43);
+    }
+    if (D_8010A6B0_game_guys_roulette == 115) {
+        HuAudFXPlay(0x2A1);
+    }
+    if (D_8010AC38_game_guys_roulette.alpha <= 0) {
+        D_8010AC38_game_guys_roulette.alpha = 0;
+    }
+    func_80055458_main(D_8010AC38_game_guys_roulette.grp, 0, D_8010AC38_game_guys_roulette.alpha);
+    if (D_8010AC20_game_guys_roulette.alpha <= 0) {
+        D_8010AC20_game_guys_roulette.alpha = 0;
+    }
+    func_80055458_main(D_8010AC20_game_guys_roulette.grp, 0, D_8010AC20_game_guys_roulette.alpha);
+    if (D_8010A6B0_game_guys_roulette < 90) {
+        for (i = 0; i < 3; i++) {
+            func_8010A060_game_guys_roulette(D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].active[i],
+                                             D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].x[i],
+                                             D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].y[i],
+                                             D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].r[i]);
+            D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].active[i] = D_8010AB60_game_guys_roulette[i].active;
+            D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].x[i] = D_8010AB60_game_guys_roulette[i].x;
+            D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].y[i] = D_8010AB60_game_guys_roulette[i].y;
+            D_8010ABB8_game_guys_roulette[D_8010AC34_game_guys_roulette].r[i] = D_8010AB60_game_guys_roulette[i].r;
+        }
+    }
+    if (D_8010A6B0_game_guys_roulette < 20) {
+        for (i = 0; i < 3; i++) {
+            func_8010A1FC_game_guys_roulette(D_8010AB60_game_guys_roulette[i].active, D_8010AB60_game_guys_roulette[i].x,
+                                             D_8010AB60_game_guys_roulette[i].y, D_8010AB60_game_guys_roulette[i].r,
+                                             D_8010AB60_game_guys_roulette[i].color);
+        }
+    } else if (D_8010A6B0_game_guys_roulette < 81) {
+        for (i = 0; i < 3; i++) {
+            func_8010A1BC_game_guys_roulette(D_8010AB60_game_guys_roulette[i].active, D_8010AB60_game_guys_roulette[i].x,
+                                             D_8010AB60_game_guys_roulette[i].y, D_8010AB60_game_guys_roulette[i].color);
+        }
+    } else {
+        func_8010A1FC_game_guys_roulette(D_8010AB60_game_guys_roulette[0].active, D_8010AB60_game_guys_roulette[0].x,
+                                         D_8010AB60_game_guys_roulette[0].y, D_8010AB60_game_guys_roulette[0].r,
+                                         D_8010AB60_game_guys_roulette[0].color);
+    }
+    D_8010AC38_game_guys_roulette.spr->unk_84->unk00->unk00 = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette];
+    D_8010AC20_game_guys_roulette.spr->unk_84->unk00->unk00 = D_8010AC20_game_guys_roulette.buf[D_8010AC34_game_guys_roulette];
+    D_8010AC34_game_guys_roulette = (s16)(D_8010AC34_game_guys_roulette + 1) % 3;
+    D_8010A6B0_game_guys_roulette++;
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80109B60_game_guys_roulette);
 
