@@ -34,8 +34,10 @@ typedef struct TtPlayer {
     /* 0x2E */ u8 unk2E; /* CPU difficulty */
     /* 0x2F */ u8 unk2F; /* won */
     /* 0x30 */ u8 unk30; /* CPU */
-    /* 0x31 */ char unk31[5];
-    /* 0x36 */ s16 unk36;
+    /* 0x31 */ char unk31[1];
+    /* 0x32 */ u16 unk32; /* CPU state */
+    /* 0x34 */ u16 unk34; /* CPU: height to dive at */
+    /* 0x36 */ u16 unk36; /* CPU: jumps left */
     /* 0x38 */ s16 unk38;
     /* 0x3A */ char unk3A[0xA];
     /* 0x44 */ f32 unk44; /* boat: bob phase */
@@ -95,8 +97,9 @@ void func_801085A4_tidal_toss(void);
 void func_80108638_tidal_toss(omObjData* obj);
 void func_80109180_tidal_toss(omObjData* obj);
 void func_8010961C_tidal_toss(omObjData* obj);
-void func_8010A11C_tidal_toss(omObjData* obj);
+u16 func_8010A11C_tidal_toss(omObjData* obj);
 void func_8010A490_tidal_toss(omObjData* obj, f32 dist);
+void func_8010A7E4_tidal_toss(omObjData* obj, MgWork** work, TtPlayer** ep);
 s32 func_8010A7F8_tidal_toss(void);
 void func_80106104_tidal_toss(omObjData* obj);
 void func_80106480_tidal_toss(omObjData* obj);
@@ -1051,7 +1054,71 @@ void func_8010961C_tidal_toss(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A11C_tidal_toss);
+/* CPU of the solo player: jump (A) and dive (Z) on a timer. Returns an unset u16 (retail; the caller ignores it). */
+u16 func_8010A11C_tidal_toss(omObjData* obj) {
+    MgWork* work;
+    TtPlayer* tp;
+    s16 pad;
+    s32 flags;
+    u16 btn;
+
+    func_8010A7E4_tidal_toss(obj, &work, &tp);
+    pad = (s8)work->unk57;
+    flags = func_800E4A90_minigame(obj);
+    switch (tp->unk32) {
+        case 1:
+            if (tp->unk2E == 0) {
+                D_800CDA7C_main[pad] |= 0x8000;
+            }
+            if (!(flags & 0x20)) {
+                D_800D5558_main[pad] |= 0x8000;
+            } else {
+                tp->unk32++;
+            }
+            break;
+        case 2:
+            if (tp->unk2E == 0) {
+                D_800CDA7C_main[pad] |= 0x8000;
+            }
+            if (!(flags & 0x20)) {
+                tp->unk32 = 0;
+            }
+            break;
+        case 3:
+            if (flags & 2) {
+                D_800D5558_main[pad] |= 0x8000;
+                tp->unk32++;
+            }
+            break;
+        case 4:
+            D_800CDA7C_main[pad] |= 0x8000;
+            if ((f32)tp->unk34 <= obj->trans.y - 20.0) {
+                D_800D5558_main[pad] |= 0x2000;
+                tp->unk32++;
+            }
+            break;
+        case 5:
+            if (flags & 2) {
+                tp->unk32 = 0;
+            }
+            break;
+    }
+    if (tp->unk32 == 0) {
+        if (func_8010A7F8_tidal_toss() % (6 - tp->unk2E) == 0) {
+            tp->unk38 = 5;
+            if (func_8010A7F8_tidal_toss() % (tp->unk2E + 3) == 0 || tp->unk36 == 0) {
+                tp->unk32 = 3;
+                tp->unk34 = (s32)((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 10.0) * 10 + 170;
+                tp->unk36 = (s32)((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 8.0) + 8;
+            } else {
+                tp->unk32 = 1;
+                tp->unk34 = 400;
+                tp->unk36--;
+            }
+        }
+    }
+    return btn;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A490_tidal_toss);
 
