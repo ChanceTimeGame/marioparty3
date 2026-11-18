@@ -74,6 +74,7 @@ void func_800142A0_main(s32);
 u8 func_8000B638_main(void);
 s32 func_80017BB8_main(s16, s16);
 s32 func_800202FC_main(Vec* v);
+f32 func_800202A8_main(f32 angle);
 s16 func_80032694_main(HmfData* hmf, u16 anim, s32 arg2, char* name);
 s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
 void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
@@ -122,6 +123,12 @@ extern omObjData* D_800EBE70_minigame[];
 
 // LOCAL
 
+/* A wandering hazard's position (D_8010AFE0_treadmill_grill) */
+typedef struct TgPos2 {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 z;
+} TgPos2; /* size 8 */
+
 /* A CPU player's remembered stick (D_8010B2E0_treadmill_grill) */
 typedef struct TgStick {
     /* 0x00 */ s32 x;
@@ -163,6 +170,11 @@ extern s32 D_8010B0F8_treadmill_grill[4]; /* CPU state per player */
 extern s32 D_8010B108_treadmill_grill[4]; /* CPU aggression per difficulty */
 extern s32 D_8010B118_treadmill_grill[4]; /* CPU state timer per player */
 extern TgStick D_8010B2E0_treadmill_grill[4];
+extern TgPos2 D_8010AFE0_treadmill_grill[4]; /* hazard x/z */
+extern f32 D_8010B1E0_treadmill_grill[4];    /* hazard heading */
+extern f32 D_8010B1F0_treadmill_grill[4];    /* hazard turn speed */
+extern f32 D_8010B200_treadmill_grill[4];    /* hazard speed */
+extern s32 D_8010B210_treadmill_grill[4];    /* hazard wander timer */
 extern s32 D_8010B128_treadmill_grill[4][4]; /* landing puff timers per player */
 extern f32 D_8010B168_treadmill_grill[4];    /* landing puff scales */
 extern s32 D_8010B300_treadmill_grill; /* CPU input: buttons pressed */
@@ -1120,7 +1132,68 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010
 void func_801093E0_treadmill_grill(void) {
 }
 
+/* Moves wandering hazard i; returns its heading. One instruction long: the assembler puts a nop after the
+   cosdf call that retail lacks (everything else matches). */
+#ifdef NON_MATCHING
+f32 func_801093E8_treadmill_grill(s32 i, omObjData* obj) {
+    f32 a;
+    f32 sp;
+
+    if (D_8010AFE0_treadmill_grill[i].z < 0.0f && D_8010AFE0_treadmill_grill[i].z > -900.0f) {
+        if (D_8010B210_treadmill_grill[i] == 0) {
+            D_8010B1F0_treadmill_grill[i] = rand8() / 100.0f;
+            D_8010B200_treadmill_grill[i] = rand8() / 100.0f + 1.0f;
+            D_8010B210_treadmill_grill[i] = (rand8() >> 3) + 90;
+        }
+        if (D_8010B1F0_treadmill_grill[i] > 0.0f) {
+            D_8010B1F0_treadmill_grill[i] -= 0.05f;
+        }
+        D_8010B210_treadmill_grill[i]--;
+    } else if (D_8010AFE0_treadmill_grill[i].z >= 0.0f) {
+        if (D_8010B1E0_treadmill_grill[i] > 210.0f) {
+            D_8010B1F0_treadmill_grill[i] = -2.0f;
+            D_8010B200_treadmill_grill[i] -= 0.2f;
+            if (D_8010B200_treadmill_grill[i] < 0.0f) {
+                D_8010B200_treadmill_grill[i] = 0.0f;
+            }
+        } else if (D_8010B1E0_treadmill_grill[i] < 150.0f) {
+            D_8010B1F0_treadmill_grill[i] = 2.0f;
+            D_8010B200_treadmill_grill[i] -= 0.2f;
+            if (D_8010B200_treadmill_grill[i] < 0.0f) {
+                D_8010B200_treadmill_grill[i] = 0.0f;
+            }
+        } else {
+            D_8010B1F0_treadmill_grill[i] = 0.0f;
+            D_8010B200_treadmill_grill[i] = 2.0f;
+        }
+    } else if (D_8010AFE0_treadmill_grill[i].z <= -900.0f) {
+        if (D_8010B1E0_treadmill_grill[i] < 330.0f && D_8010B1E0_treadmill_grill[i] > 180.0f) {
+            D_8010B1F0_treadmill_grill[i] = 2.0f;
+            D_8010B200_treadmill_grill[i] -= 0.2f;
+            if (D_8010B200_treadmill_grill[i] < 0.0f) {
+                D_8010B200_treadmill_grill[i] = 0.0f;
+            }
+        } else if (D_8010B1E0_treadmill_grill[i] > 30.0f && D_8010B1E0_treadmill_grill[i] < 180.0f) {
+            D_8010B1F0_treadmill_grill[i] = -2.0f;
+            D_8010B200_treadmill_grill[i] -= 0.2f;
+            if (D_8010B200_treadmill_grill[i] < 0.0f) {
+                D_8010B200_treadmill_grill[i] = 0.0f;
+            }
+        } else {
+            D_8010B1F0_treadmill_grill[i] = 0.0f;
+            D_8010B200_treadmill_grill[i] = 2.0f;
+        }
+    }
+    D_8010B1E0_treadmill_grill[i] += D_8010B1F0_treadmill_grill[i];
+    a = D_8010B1E0_treadmill_grill[i] = func_800202A8_main(D_8010B1E0_treadmill_grill[i]);
+    sp = D_8010B200_treadmill_grill[i];
+    D_8010AFE0_treadmill_grill[i].x += sindf(a) * sp;
+    D_8010AFE0_treadmill_grill[i].z += cosdf(a) * sp;
+    return a;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801093E8_treadmill_grill);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010980C_treadmill_grill);
 
