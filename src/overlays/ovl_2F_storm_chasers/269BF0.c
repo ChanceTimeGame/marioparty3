@@ -332,15 +332,15 @@ void func_801059A0_storm_chasers(void) {
     func_8010C780_storm_chasers();
 }
 
-#ifdef NON_MATCHING
 Gfx **func_801059BC_storm_chasers(Gfx **gfx) {
+    u32 mode = G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH;
     Gfx *g = *gfx;
 
     gDPPipeSync(g++);
     gDPSetCycleType(g++, G_CYC_1CYCLE);
     gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                                   G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH);
-    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, mode);
     gDPSetCombineMode(g++, G_CC_DECALRGBA, G_CC_DECALRGBA);
     gDPSetTexturePersp(g++, G_TP_NONE);
     gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 255);
@@ -348,19 +348,16 @@ Gfx **func_801059BC_storm_chasers(Gfx **gfx) {
     *gfx = g;
     return gfx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801059BC_storm_chasers);
-#endif
 
-#ifdef NON_MATCHING
 Gfx **func_80105AA0_storm_chasers(Gfx **gfx) {
+    u32 mode = G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH;
     Gfx *g = *gfx;
 
     gDPPipeSync(g++);
     gDPSetCycleType(g++, G_CYC_1CYCLE);
     gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                                   G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH);
-    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, mode);
     gDPSetCombineMode(g++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
     gDPSetTexturePersp(g++, G_TP_NONE);
     gDPSetRenderMode(g++, IM_RD | CVG_DST_FULL | FORCE_BL | GBL_c1(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA),
@@ -368,9 +365,6 @@ Gfx **func_80105AA0_storm_chasers(Gfx **gfx) {
     *gfx = g;
     return gfx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80105AA0_storm_chasers);
-#endif
 
 Gfx **func_80105B6C_storm_chasers(Gfx **gfx, u8 alpha) {
     Gfx *g;
@@ -1488,18 +1482,14 @@ void func_8010AC7C_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010AC7C_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010AD68_storm_chasers(omObjData *obj) {
-    MgWork *mw = obj->data;
     ScPlayer *pl = &D_8010CD80_storm_chasers[obj->work[0]];
+    MgWork *mw = obj->data;
 
     if (mw->unk3C != 0.0f) {
         mw->unk3C = SC_WRAP(mw->unk3C + D_8010C8D8_storm_chasers[pl->pos].turn);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010AD68_storm_chasers);
-#endif
 
 /* The result pose: the winner's voice. */
 void func_8010AE4C_storm_chasers(omObjData *obj) {
