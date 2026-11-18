@@ -652,21 +652,14 @@ void func_80106B18_pipe_cleaners(omObjData *obj, PcPlayer *player) {
     player->hookState = 1;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A134_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A140_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A14C_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A158_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A164_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A170_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A17C_pipe_cleaners);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A188_pipe_cleaners);
+const char D_8010A134_pipe_cleaners[] = "c301l_0_DEF";
+const char D_8010A140_pipe_cleaners[] = "c300l_0_DEF";
+const char D_8010A14C_pipe_cleaners[] = "c005l_0_DEF";
+const char D_8010A158_pipe_cleaners[] = "c004l_0_DEF";
+const char D_8010A164_pipe_cleaners[] = "c003l_0_DEF";
+const char D_8010A170_pipe_cleaners[] = "c002l_0_DEF";
+const char D_8010A17C_pipe_cleaners[] = "c001l_0_DEF";
+const char D_8010A188_pipe_cleaners[] = "c000l_0_DEF";
 
 void func_80106BF8_pipe_cleaners(omObjData *obj, PcPlayer *player) {
     player->hookPos.y += 10.0;
@@ -1733,4 +1726,5 @@ void func_80109D70_pipe_cleaners(void) {
     func_80105A74_pipe_cleaners();
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", D_8010A2A8_pipe_cleaners);
+/* Shift-JIS fullwidth "ABC", passed to func_80045010_main. */
+const s16 D_8010A2A8_pipe_cleaners[] = { 0x8260, 0x8261, 0x8262, 0 };
