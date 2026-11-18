@@ -52,17 +52,32 @@ typedef struct BkPattern {
     /* 0x08 */ BkStep* steps;
 } BkPattern; // Size 0xC
 
-/* A player's work (func_8010B3AC from obj->work). */
+/* A player's work (0x50; func_8010B3AC from obj->work). */
 typedef struct BkPlayer {
-    /* 0x00 */ s16 unk00;
+    /* 0x00 */ s16 unk00; /* index */
     /* 0x02 */ s16 unk02; /* score */
     /* 0x04 */ s16 unk04; /* result motion: 0 win, 1 lose */
-    /* 0x06 */ char unk06[0x16];
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ s32 unk0C; /* win voice file */
+    /* 0x10 */ Vec unk10;
     /* 0x1C */ Vec unk1C; /* velocity */
     /* 0x28 */ s16 unk28; /* GwPlayer index */
-    /* 0x2A */ s16 unk2A;
+    /* 0x2A */ s16 unk2A; /* controller port */
     /* 0x2C */ s16 unk2C; /* character */
-    /* 0x2E */ char unk2E[0x22];
+    /* 0x2E */ s16 unk2E; /* CPU */
+    /* 0x30 */ s16 unk30; /* CPU difficulty */
+    /* 0x32 */ s16 unk32;
+    /* 0x34 */ s16 unk34;
+    /* 0x36 */ s16 unk36;
+    /* 0x38 */ f32 unk38;
+    /* 0x3C */ s16 unk3C;
+    /* 0x3E */ s16 unk3E;
+    /* 0x40 */ s16 unk40;
+    /* 0x42 */ s16 unk42;
+    /* 0x44 */ f32 unk44;
+    /* 0x48 */ f32 unk48;
+    /* 0x4C */ char unk4C[4];
 } BkPlayer; // Size 0x50
 
 extern u16 D_800D5558_main[];
@@ -131,6 +146,14 @@ extern f32 D_800EB774_minigame;
 extern s32 D_8010B894_baby_bowser_bonkers[4];
 extern Vec D_8010B8A4_baby_bowser_bonkers[2];
 extern BkPlayer* D_8010BC58_baby_bowser_bonkers;
+void func_80106AA4_baby_bowser_bonkers(omObjData* obj);
+void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+s32 func_80017BB8_main(s16, s16);
+extern s32 D_800A178C_main[][6];
+extern s32 D_8010B8BC_baby_bowser_bonkers[8]; /* voice directories by character */
+extern s32 D_8010B8DC_baby_bowser_bonkers[2]; /* win voices */
+extern s32 D_8010B8E4_baby_bowser_bonkers[2];
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -415,7 +438,76 @@ void func_801063B4_baby_bowser_bonkers(void) {
     }
 }
 
+/* NON_MATCHING: only the voice-table index shift is scheduled one instruction earlier than retail. */
+#ifdef NON_MATCHING
+void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
+    func_800E1BA8_minigame_ObjData* w;
+    BkPlayer* p;
+    s32* voice;
+    u32 file0;
+    s32 file1;
+    u32 file2;
+    s16 gw;
+    s16 chr;
+    s16 i;
+
+    p = func_8010B3AC_baby_bowser_bonkers(obj);
+    gw = p->unk28;
+    chr = GwPlayer[gw].chr;
+    p->unk2C = chr;
+    p->unk2A = GwPlayer[gw].pad;
+    p->unk2E = GwPlayer[gw].stat & 1;
+    p->unk30 = GwPlayer[gw].cpu_difficulty;
+    file0 = D_800A178C_main[chr][0];
+    file1 = D_800A178C_main[chr][1];
+    file2 = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, file0, file1, gw, 0x289, 0x299);
+    w = obj->data;
+    w->unk50 &= ~1;
+    w->unkEC = NULL;
+    obj->model[3] = func_8000B108_main(3, 0x68D);
+    obj->model[4] = func_8000B108_main(4, 0x68D);
+    for (i = 0; i < 3; i++) {
+        obj->model[7 + i] = func_8000B108_main(8, 0x68D);
+    }
+    obj->model[13] = func_8000B108_main(file0 | file2, 0x28D);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 0x11, func_80017BB8_main(chr, 0xE), 0, 0);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5A00_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0x14, func_80017BB8_main(chr, 0x1D), 0, 0);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x1E), 1, 0);
+    func_800E5A00_minigame(obj, 0x20, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5978_minigame(obj, 0x21, func_80017BB8_main(chr, 0x23), 2, 0);
+    func_800E5A00_minigame(obj, 0x22, func_80017BB8_main(chr, 0x24), 2, 0);
+    voice = &D_8010B8DC_baby_bowser_bonkers[rand8() & 1];
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
+    p->unk0C = D_8010B8BC_baby_bowser_bonkers[chr] | *voice;
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, (s16)D_8010B8E4_baby_bowser_bonkers[rand8() & 1]), 1,
+                           0x78);
+    func_800E5690_minigame(obj, 0);
+    func_800E149C_minigame(obj, 0, 2);
+    p->unk10.x = p->unk1C.x = 0.0f;
+    p->unk02 = 0;
+    p->unk04 = -1;
+    p->unk32 = -1;
+    p->unk34 = 0;
+    p->unk36 = 0;
+    p->unk38 = 1000.0 - p->unk30 * 225.0;
+    p->unk08 = 0.0f;
+    p->unk3C = p->unk30 * 6 + ((rand8() & 3) + 4);
+    p->unk3E = 0;
+    p->unk40 = 0;
+    p->unk42 = 0;
+    p->unk44 = p->unk48 = 0.0f;
+    obj->func = func_80106AA4_baby_bowser_bonkers;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010660C_baby_bowser_bonkers);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80106AA4_baby_bowser_bonkers);
 
