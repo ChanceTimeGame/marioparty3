@@ -418,42 +418,52 @@ void func_80106390_three_door_monty(omObjData *obj, s16 mot, s16 arg2, s16 arg3,
 
 #ifdef NON_MATCHING
 void func_8010642C_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed) {
-    f32 dx = x1 - x0;
-    f32 dz = z1 - z0;
-    f32 adx = fabsf(dx);
-    f32 adz = fabsf(dz);
-    f32 d;
+    f32 dx;
+    f32 dz;
+    f32 adx;
+    f32 adz;
+    f32 num;
+    f32 den;
+    f32 t;
 
+    dx = x1 - x0;
+    dz = z1 - z0;
+    adx = fabsf(dx);
+    adz = fabsf(dz);
     if (adz <= adx) {
         if (dx >= 0.0f) {
             *vx = -speed;
         } else {
             *vx = speed;
         }
-        d = speed;
-        if (d == 0.0f) {
-            d = 1.0f;
+        t = dz;
+        den = speed;
+        num = adx;
+        if (den == 0.0f) {
+            den = 1.0f;
         }
-        d = adx / d;
-        if (d == 0.0f) {
-            d = 1.0f;
+        den = num / den;
+        if (den == 0.0f) {
+            den = 1.0f;
         }
-        *vz = -(dz / d);
+        *vz = -(t / den);
     } else {
         if (dz >= 0.0f) {
             *vz = -speed;
         } else {
             *vz = speed;
         }
-        d = speed;
-        if (d == 0.0f) {
-            d = 1.0f;
+        t = dx;
+        den = speed;
+        num = adz;
+        if (den == 0.0f) {
+            den = 1.0f;
         }
-        d = adz / d;
-        if (d == 0.0f) {
-            d = 1.0f;
+        den = num / den;
+        if (den == 0.0f) {
+            den = 1.0f;
         }
-        *vx = -(dx / d);
+        *vx = -(t / den);
     }
 }
 #else
@@ -1351,9 +1361,69 @@ void func_801096FC_three_door_monty(void) {
     D_8010D680_three_door_monty.obj = obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010973C_three_door_monty);
+void func_8010973C_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D704_three_door_monty[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109890_three_door_monty);
+    switch (ent->unk04) {
+        case 0:
+            ent->unk04 = 1;
+            HuAudFXPlay(0x452);
+            break;
+        case 1:
+            if (obj->trans.y > 0.0f) {
+                obj->trans.y -= 15.0f;
+            }
+            if (obj->trans.y < 0.0f) {
+                obj->trans.y = 0.0f;
+                ent->unk06 = 0;
+            }
+            break;
+        case 5:
+            ent->unk04 = 6;
+            HuAudFXPlay(0x451);
+            break;
+        case 6:
+            if (obj->trans.y < 185.0f) {
+                obj->trans.y += 10.0f;
+            }
+            if (obj->trans.y > 185.0f) {
+                obj->trans.y = 185.0f;
+                ent->unk06 = 1;
+            }
+            break;
+    }
+}
+
+void func_80109890_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D704_three_door_monty[obj->work[0]];
+
+    switch (obj->work[0]) {
+        case 0:
+            obj->model[0] = func_8000B108_main(0x4C000C, 697);
+            break;
+        case 1:
+            obj->model[0] = func_8000B108_main(0x4C000B, 697);
+            break;
+        case 2:
+            obj->model[0] = func_8000B108_main(0x4C000A, 697);
+            break;
+    }
+    obj->trans.x = D_8010CD40_three_door_monty[obj->work[0]].x;
+    obj->trans.y = 0.0f;
+    obj->trans.z = D_8010CD40_three_door_monty[obj->work[0]].z;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 0.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->scale.x = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.z = 1.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    ent->unk04 = 1;
+    obj->func = func_8010973C_three_door_monty;
+}
 
 void func_801099EC_three_door_monty(void) {
     omObjData *obj;
