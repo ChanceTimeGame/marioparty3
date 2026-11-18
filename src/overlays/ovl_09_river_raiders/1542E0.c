@@ -100,6 +100,16 @@ extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: ri
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+/* A sprite-model slot (D_800CBB60_main entry; src/14EA0.c unk_800ECDE0). */
+typedef struct RrSprModel {
+    /* 0x00 */ s16 model;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ char unk04[0x20];
+} RrSprModel; // Size 0x24
+extern RrSprModel *D_800CBB60_main;
+u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
+void func_800332D4_main(s16 arg0, f32 arg1);
+void func_8010BE88_river_raiders(omObjData *obj);
 extern s8 D_80110D80_river_raiders;
 extern s8 D_80110D81_river_raiders;
 extern s16 D_80110D82_river_raiders;
@@ -1616,7 +1626,65 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010AC
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010BE88_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C494_river_raiders);
+/* A river object's setup (work[1]: 0 a rock sprite model, 1 a log, 2 a whirlpool), placed at a random x on
+ * alternating sides. */
+void func_8010C494_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DF18_river_raiders[obj->work[0]];
+    u16 r = rand8() * 5;
+    u16 id;
+
+    switch (obj->work[1]) {
+        case 0:
+            id = SprModelRead(0x210026, 0x289, 8);
+            obj->model[0] = D_800CBB60_main[id].model;
+            func_8001C2FC_main(obj->model[0], 0x70000000, 0x70000000);
+            func_800332D4_main(D_800CBB60_main[id].unk02, 10.0f);
+            if (!(obj->work[0] & 1)) {
+                obj->trans.x = -(r >> 1) + 120.0f;
+            } else {
+                obj->trans.x = (r >> 1) - 120.0f;
+            }
+            obj->trans.y = 20.0f;
+            obj->trans.z = -1200.0f;
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            obj->scale.x = obj->scale.y = obj->scale.z = 2.0f;
+            Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+            break;
+        case 1:
+            obj->model[0] = func_8000B108_main(0x2A0005, 0x299);
+            if ((obj->work[0] & 1) == D_80110D82_river_raiders) {
+                obj->trans.x = -(r >> 1) + 120.0f;
+            } else {
+                obj->trans.x = (r >> 1) - 120.0f;
+            }
+            obj->trans.y = -30.0f;
+            obj->trans.z = -1400.0f;
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+            Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+            break;
+        case 2:
+            obj->model[0] = func_8000B108_main(0x2A0006, 0x2A9);
+            func_8000B460_main(obj, 0, 0x2A0007);
+            func_8001C5B4_main(obj->model[0], obj->motion[0]);
+            func_8001C814_main(obj->model[0], 2, 1);
+            ent->unk10 = 0xFF;
+            if (!(obj->work[0] & 1)) {
+                obj->trans.x = -(r >> 1) + 220.0f;
+            } else {
+                obj->trans.x = (r >> 1) - 220.0f;
+            }
+            obj->trans.y = 0.0f;
+            obj->trans.z = -1600.0f;
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+            Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+            D_80110DB6_river_raiders = D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02;
+            break;
+    }
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->func = func_8010BE88_river_raiders;
+}
 
 /* Creates the 30 river objects (D_8010DF18_river_raiders): 0..19 rocks, 20..23 kind 1, 24..29 kind 2. */
 void func_8010C890_river_raiders(void) {
