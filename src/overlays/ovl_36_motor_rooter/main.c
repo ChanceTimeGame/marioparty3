@@ -170,7 +170,14 @@ typedef struct {
 
 void func_8010CD84_motor_rooter(Vec *points, s16 count);
 s16 func_8010D03C_motor_rooter(f32);
-void func_8010D0AC_motor_rooter(f32 *, s16, f32);
+typedef struct {
+    /* 0x00 */ f32 unk00; /* never written by func_8010D0AC */
+    /* 0x04 */ Vec pos;
+    /* 0x10 */ Vec rot;
+} PathSample; // Size 0x1C
+
+PathSample func_8010D0AC_motor_rooter(s16 seg, f32 dist);
+void func_8010D1A8_motor_rooter(s16 pos, s16 lane);
 void func_8010D2E4_motor_rooter(s32);
 s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
 s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
@@ -853,7 +860,7 @@ void m254_InitCamera(FuncContext *ctx) {
 void func_801082E0_motor_rooter(FuncContext *ctx) {
     PlayerView *view;
     D_801137C8_motor_rooter_Struct *var_s1;
-    f32 sp10[7];
+    PathSample sp10;
     s16 temp_v0;
     s16 i;
 
@@ -864,13 +871,13 @@ void func_801082E0_motor_rooter(FuncContext *ctx) {
             continue;
         }
         temp_v0 = func_8010D03C_motor_rooter(var_s1->unk0C);
-        func_8010D0AC_motor_rooter(sp10, temp_v0, var_s1->unk0C);
-        CenterM[i].x = sp10[1];
-        CenterM[i].y = sp10[2];
-        CenterM[i].z = sp10[3];
-        CRotM[i].x = sp10[4] - 180.0f;
-        CRotM[i].y = sp10[5];
-        CRotM[i].z = sp10[6];
+        sp10 = func_8010D0AC_motor_rooter(temp_v0, var_s1->unk0C);
+        CenterM[i].x = sp10.pos.x;
+        CenterM[i].y = sp10.pos.y;
+        CenterM[i].z = sp10.pos.z;
+        CRotM[i].x = sp10.rot.x - 180.0f;
+        CRotM[i].y = sp10.rot.y;
+        CRotM[i].z = sp10.rot.z;
         if (CRotM[i].x > 360.0f) {
             CRotM[i].x -= 360.0f;
         } else if (CRotM[i].x < 0.0f) {
@@ -894,15 +901,15 @@ void func_80108514_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work = ctx->data;
     omObjData *object = work->unk00;
     s16 idx = object->work[0];
-    f32 buf[7];
+    PathSample buf;
     f32 t;
     f32 u;
 
     if (ctx->state == 0) {
-        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + 90.0), work->unk0C + 90.0);
-        ctx->work.f32[0] = buf[1];
-        ctx->work.f32[1] = buf[2] - 30.0;
-        ctx->work.f32[2] = buf[3];
+        buf = func_8010D0AC_motor_rooter(func_8010D03C_motor_rooter(work->unk0C + 90.0), work->unk0C + 90.0);
+        ctx->work.f32[0] = buf.pos.x;
+        ctx->work.f32[1] = buf.pos.y - 30.0;
+        ctx->work.f32[2] = buf.pos.z;
         work->unk58 = CenterM[idx].x;
         work->unk5C = CenterM[idx].y;
         work->unk60 = CenterM[idx].z;
@@ -2082,15 +2089,15 @@ void func_8010C084_motor_rooter(FuncContext *ctx) {
 void func_8010C44C_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work = ctx->data;
     omObjData *object = work->unk00;
-    f32 buf[7];
+    PathSample buf;
     f32 t;
     f32 u;
 
     if (ctx->state == 0) {
-        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + 60.0), work->unk0C + 60.0);
-        ctx->work.f32[0] = buf[1];
-        ctx->work.f32[1] = buf[2];
-        ctx->work.f32[2] = buf[3];
+        buf = func_8010D0AC_motor_rooter(func_8010D03C_motor_rooter(work->unk0C + 60.0), work->unk0C + 60.0);
+        ctx->work.f32[0] = buf.pos.x;
+        ctx->work.f32[1] = buf.pos.y;
+        ctx->work.f32[2] = buf.pos.z;
         ctx->work.f32[3] = CRotM[object->work[0]].y;
         if (ctx->work.f32[3] <= -360.0f) {
             ctx->work.f32[3] += 360.0f;
@@ -2300,11 +2307,64 @@ void func_8010CD84_motor_rooter(Vec *points, s16 count) {
 }
 /* </func_8010CD84_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D03C_motor_rooter);
+/* <func_8010D03C_motor_rooter> */
+s16 func_8010D03C_motor_rooter(f32 dist) {
+    PathPoint *p = &D_801137C0_motor_rooter[m254_minigame->unk0C - 1];
+    s16 i = m254_minigame->unk0C;
 
+    while (i > 0) {
+        if (p->dist <= dist) {
+            break;
+        }
+        i--;
+        p--;
+    }
+    return i - 1;
+}
+/* </func_8010D03C_motor_rooter> */
+
+/* <func_8010D0AC_motor_rooter> */
+#ifdef NON_MATCHING
+PathSample func_8010D0AC_motor_rooter(s16 seg, f32 dist) {
+    PathSample s;
+    PathPoint *p = &D_801137C0_motor_rooter[seg];
+    f32 t = (dist - p->dist) * p->invLen;
+
+    s.pos.x = (p[1].pos.x - p->pos.x) * t + p->pos.x;
+    s.pos.y = (p[1].pos.y - p->pos.y) * t + p->pos.y;
+    s.pos.z = (p[1].pos.z - p->pos.z) * t + p->pos.z;
+    s.rot.x = (p[1].rot.x - p->rot.x) * t + p->rot.x;
+    s.rot.y = (p[1].rot.y - p->rot.y) * t + p->rot.y;
+    s.rot.z = 0;
+    return s; /* s.unk00 is returned uninitialised */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D0AC_motor_rooter);
+#endif
+/* </func_8010D0AC_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D1A8_motor_rooter);
+/* <func_8010D1A8_motor_rooter> */
+void func_8010D1A8_motor_rooter(s16 pos, s16 lane) {
+    s16 n = D_801137D2_motor_rooter;
+
+    if (pos >= D_801137CC_motor_rooter) {
+        return;
+    }
+    if (n < 10) {
+        m254_minigame->views[0].unk4C[n] = m254_minigame->views[1].unk4C[n] = pos;
+        lane += 4;
+        while (lane < 0) {
+            lane += 8;
+        }
+        while (lane >= 8) {
+            lane -= 8;
+        }
+        m254_minigame->views[0].unk60[n] = m254_minigame->views[1].unk60[n] = lane;
+        m254_minigame->views[0].unk74[n] = m254_minigame->views[1].unk74[n] = rand16() % 3 + 1;
+        D_801137D2_motor_rooter++;
+    }
+}
+/* </func_8010D1A8_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D2E4_motor_rooter);
 
