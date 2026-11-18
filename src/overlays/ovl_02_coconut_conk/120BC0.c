@@ -89,6 +89,9 @@ void func_800DDD94_minigame(omObjData *obj);
 void func_800E149C_minigame(omObjData *obj, u8 idx, u8 val);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 void func_80105B04_coconut_conk(s32 player);
+void func_80105B7C_coconut_conk(s8 arg0);
+void func_8003F578_main(s16);
+void func_8003F5C0_main(void);
 extern s32 D_800EBE24_minigame;
 void osViBlack(u8 active);
 extern u16 D_800D530C_main;
@@ -159,7 +162,7 @@ extern CcEnt D_8010B820_coconut_conk[9]; /* = D_8010B1F0_coconut_conk[CC_ENT_NUT
 extern CcEnt D_8010BCC4_coconut_conk[4];
 extern s16 D_8010BCC8_coconut_conk;     /* = D_8010BCC4_coconut_conk[0].unk04 */
 extern s16 D_8010CBB8_coconut_conk;
-extern s8 D_8010CBBA_coconut_conk;
+extern u8 D_8010CBBA_coconut_conk;
 extern u8 D_8010CBBB_coconut_conk;
 extern s16 D_8010CBBC_coconut_conk;
 extern u8 D_8010CBBE_coconut_conk;
@@ -1728,7 +1731,120 @@ void func_8010A610_coconut_conk(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A668_coconut_conk);
+/* The minigame's flow (D_8010B1C8_coconut_conk): 0 intro, 1 start message, 2 play (timer D_8010B1E0_coconut_conk),
+ * 3 finish, 4 result, 5 exit. */
+void func_8010A668_coconut_conk(omObjData *obj) {
+    u8 chrs[8];
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    omObjData *solo = D_8010BCC4_coconut_conk[0].obj;
+    s16 i;
+    s16 n;
+
+    for (i = 0; i < 3; i++) {
+        ents[i] = &D_8010BCC4_coconut_conk[i + 1];
+        objs[i] = ents[i]->obj;
+    }
+    switch (D_8010B1C8_coconut_conk) {
+        case 0:
+            if (D_8010B1E0_coconut_conk == 13) {
+                HuAudFXPlay(0x314);
+                D_8010B1E0_coconut_conk = 14;
+            } else if (D_8010B1E0_coconut_conk < 13) {
+                D_8010B1E0_coconut_conk++;
+            }
+            if (D_8010CBBA_coconut_conk == 0) {
+                func_80105B7C_coconut_conk(1);
+                D_8010B1E0_coconut_conk = 1;
+                HuAudSeqPlay(0x30);
+            }
+            break;
+        case 1:
+            if (--D_8010B1E0_coconut_conk == 0) {
+                GMesCreate(4);
+            }
+            if (GMesStatGet() == 0) {
+                func_80105B7C_coconut_conk(2);
+                GMesCreate(0x1A, 30, 160, 28);
+                D_8010B1E0_coconut_conk = 901;
+            }
+            break;
+        case 2:
+            if (D_8010B1E0_coconut_conk > 0) {
+                D_8010B1E0_coconut_conk--;
+                func_8003F578_main((D_8010B1E0_coconut_conk + 29) / 30);
+            } else if (D_8010B1CC_coconut_conk == 0) {
+                func_8003F5C0_main();
+                func_80105B7C_coconut_conk(3);
+                GMesCreate(0xF);
+                D_8010B1CC_coconut_conk = 0;
+                D_8010B1E0_coconut_conk = -15;
+                HuAudSeqFadeOut(120);
+                HuAudFXStop(D_8010CBC0_coconut_conk);
+            }
+            if (D_8010B1CC_coconut_conk == 1) {
+                func_8003F5C0_main();
+                func_80105B7C_coconut_conk(3);
+                GMesCreate(0xF);
+                D_8010B1CC_coconut_conk = 1;
+                D_8010B1E0_coconut_conk = -15;
+                HuAudSeqFadeOut(120);
+            }
+            break;
+        case 3:
+            if (GMesStatGet() == 0) {
+                if (D_8010B1E0_coconut_conk >= 0 && D_8010CBBA_coconut_conk == 3) {
+                    func_80105B7C_coconut_conk(4);
+                    D_8010B1E0_coconut_conk = -1;
+                } else if (D_8010B1E0_coconut_conk < 0) {
+                    D_8010B1E0_coconut_conk++;
+                }
+            }
+            break;
+        case 4:
+            if (D_8010B1E0_coconut_conk == -1) {
+                D_8010B1E0_coconut_conk = 0;
+                n = 0;
+                if (D_8010B1CC_coconut_conk == 0) {
+                    for (i = 0; i < 4; i++) {
+                        if (GwPlayer[i].group == 0) {
+                            chrs[0] = GwPlayer[i].chr;
+                        }
+                    }
+                    GMesCreate(0x16, chrs[0]);
+                    HuAudSeqPlay(0x65);
+                    GwPlayer[solo->work[0]].bonusCoin = 10;
+                } else {
+                    for (i = 0; i < 4; i++) {
+                        if (GwPlayer[i].group != 0) {
+                            chrs[n] = GwPlayer[i].chr;
+                            n++;
+                        }
+                    }
+                    GMesCreate(0x22, chrs[0], chrs[1], chrs[2]);
+                    HuAudSeqPlay(0x66);
+                    for (i = 0; i < 3; i++) {
+                        GwPlayer[objs[i]->work[0]].bonusCoin = 10;
+                    }
+                }
+            }
+            if (GMesStatGet() == 0) {
+                if (D_8010B1E0_coconut_conk >= 15) {
+                    func_80105B7C_coconut_conk(5);
+                    D_8010B1E0_coconut_conk = -1;
+                }
+                D_8010B1E0_coconut_conk++;
+            }
+            break;
+        case 5:
+            if (D_8010B1E0_coconut_conk == 0) {
+                WipeCreateOut(0, 20);
+                obj->func = func_8010A5D8_coconut_conk;
+                D_8010B1E0_coconut_conk++;
+            }
+            break;
+    }
+}
 
 
 
