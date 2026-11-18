@@ -177,6 +177,7 @@ extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr 
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
+extern f32 D_8010DE88_crazy_cogs[10];
 extern CgEnt D_8010C338_crazy_cogs[5]; /* = D_8010B9F0_crazy_cogs[CG_ENT_18] */
 extern u8 D_8010B991_crazy_cogs[3];
 extern u8 D_8010DE10_crazy_cogs[3];
@@ -1391,7 +1392,89 @@ void func_80109298_crazy_cogs(omObjData *obj) {
     D_8010B996_crazy_cogs = (D_8010B996_crazy_cogs + 1) % 5;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109388_crazy_cogs);
+/* A hazard (entity 8 + work[0]) respawns: flags the quadrant it left, then a random spot near its home. Retail's
+ * 4..6 and 7..8 branches test (n < 3) & (n < 7) and (n == 7) & (n == 8), so they never run. */
+void func_80109388_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + obj->work[0]];
+    s32 d;
+
+    if (obj->work[0] < 7) {
+        if (obj->trans.x > 0.0f) {
+            if (obj->trans.z > -50.0f) {
+                D_8010DE6A_crazy_cogs[3] = 1;
+            } else {
+                D_8010DE6A_crazy_cogs[1] = 1;
+            }
+        } else if (obj->trans.z > -50.0f) {
+            D_8010DE6A_crazy_cogs[2] = 1;
+        } else {
+            D_8010DE6A_crazy_cogs[0] = 1;
+        }
+    }
+    obj->trans.x = ent->pos.x;
+    obj->trans.y = ent->pos.y;
+    if (obj->work[0] == 9) {
+        ent->unk18 = func_80105B7C_crazy_cogs(5);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            ent->unk18 = 0.0f - ent->unk18;
+        }
+        obj->trans.z = -1300.0f;
+    } else {
+        obj->trans.x = ent->pos.x;
+        obj->trans.z = 0.0f;
+    }
+    D_8010DE88_crazy_cogs[obj->work[0]] = 0.1f;
+    ent->unk04 = 0;
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    if (obj->work[0] < 4) {
+        d = func_80105B7C_crazy_cogs(54) * 10 + func_80105B7C_crazy_cogs(100);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            obj->trans.x = d + obj->trans.x;
+        } else {
+            obj->trans.x = obj->trans.x - d;
+        }
+    } else if ((obj->work[0] < 3) & (obj->work[0] < 7)) {
+        d = func_80105B7C_crazy_cogs(20) * 10 + func_80105B7C_crazy_cogs(100);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            obj->trans.x = d + obj->trans.x;
+        } else {
+            obj->trans.x = obj->trans.x - d;
+        }
+        d = func_80105B7C_crazy_cogs(20) * 10 + func_80105B7C_crazy_cogs(100);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            obj->trans.z = d + obj->trans.z;
+        } else {
+            obj->trans.z = obj->trans.z - d;
+        }
+    } else if ((obj->work[0] == 7) & (obj->work[0] == 8)) {
+        d = func_80105B7C_crazy_cogs(20) * 10 + func_80105B7C_crazy_cogs(100);
+        if (obj->work[0] == 7) {
+            obj->trans.x = obj->trans.x - d;
+        } else {
+            obj->trans.x = d + obj->trans.x;
+        }
+        d = func_80105B7C_crazy_cogs(30) * 10;
+        if (func_80105B7C_crazy_cogs(3) != 0) {
+            obj->trans.z = (f32)d + func_80105B7C_crazy_cogs(200) + obj->trans.z;
+        } else {
+            obj->trans.z = obj->trans.z - d;
+        }
+    } else if (obj->work[0] == 9) {
+        d = func_80105B7C_crazy_cogs(150);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            obj->trans.x = obj->trans.x - d;
+        } else {
+            obj->trans.x = d + obj->trans.x;
+        }
+        d = func_80105B7C_crazy_cogs(150);
+        if (func_80105B7C_crazy_cogs(2) != 0) {
+            obj->trans.z = d + obj->trans.z;
+        } else {
+            obj->trans.z = obj->trans.z - d;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801097EC_crazy_cogs);
 
