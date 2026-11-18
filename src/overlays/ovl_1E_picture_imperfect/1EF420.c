@@ -18,7 +18,7 @@ typedef func_800E1BA8_minigame_ObjData MgWork;
 
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct PiCtrl {
-    /* 0x00 */ u8 unk00;
+    /* 0x00 */ s8 unk00; /* row being filled: 0, 2, 3.., then 1; 10 done */
     /* 0x01 */ s8 unk01; /* row the player is on */
     /* 0x02 */ u8 unk02;
     /* 0x03 */ s8 unk03;
@@ -38,7 +38,7 @@ typedef struct PiCtrl {
 
 /* MgWork::unk158 of a player */
 typedef struct PiPlayer {
-    /* 0x00 */ u8 unk00;
+    /* 0x00 */ s8 unk00; /* row being filled: 0, 2, 3.., then 1; 10 done */
     /* 0x01 */ s8 unk01; /* row the player is on */
     /* 0x02 */ u8 unk02;
     /* 0x03 */ s8 unk03;
@@ -63,6 +63,7 @@ void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
 void func_8000BC48_main(u16, s32);
+void func_8000BB54_main(u16 arg0);
 
 extern s32 D_800A178C_main[][6];
 
@@ -115,18 +116,20 @@ extern s16 D_80109FE0_picture_imperfect; /* looping sound handle, -1 none */
 extern s16 D_80109FE2_picture_imperfect;
 extern u8 D_80109FE4_picture_imperfect;  /* result state */
 extern s8 D_80109FF8_picture_imperfect[4]; /* players with the most pieces, -1 none */
+extern s8 D_80109FFC_picture_imperfect[4][5]; /* column each player stopped each row at */
 extern s32 D_8010A010_picture_imperfect;
 extern s8 D_8010A014_picture_imperfect;
 extern s16 D_8010A018_picture_imperfect[4][2]; /* sprite position of each screen quarter */
 extern s8 D_8010A028_picture_imperfect;        /* next player to set up */
 extern s32 D_8010A02C_picture_imperfect;       /* pieces placed */
+extern u8 D_8010A030_picture_imperfect[4][5]; /* column order, one row per layout */
 extern u32 D_8010A044_picture_imperfect;       /* frame counter of the row scroll */
 
 extern s8 D_8010A110_picture_imperfect; /* number of winners */
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A140_picture_imperfect[4]; /* winners */
 extern u8 D_8010A150_picture_imperfect; /* picture set: 2 - D_800CE20A_main */
-extern s8 D_8010A151_picture_imperfect;
+extern u8 D_8010A151_picture_imperfect; /* column order layout, random */
 extern s16 D_8010A15C_picture_imperfect[4];
 /* picture piece sprite slots, one table per row: [player][column] */
 extern s16 D_8010A168_picture_imperfect[4][5];
@@ -800,7 +803,130 @@ void func_801083C0_picture_imperfect(s8 player) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108688_picture_imperfect);
+/* A player's current row: show the scrolling column, stop it on A (score by column), go to the next row. */
+void func_80108688_picture_imperfect(omObjData* obj) {
+    MgWork* pw = obj->data;
+    PiPlayer* ex = pw->unk158;
+    s8 player = pw->unk59;
+    s16 (*tbl)[5];
+    s32 period;
+    s32 more;
+    s8 i;
+
+    switch (ex->unk00) {
+        case 0:
+            tbl = D_8010A168_picture_imperfect;
+            switch (D_8010A150_picture_imperfect) {
+                case 1:
+                    period = 8;
+                    break;
+                case 2:
+                    period = 6;
+                    break;
+                case 0:
+                default:
+                    period = 10;
+                    break;
+            }
+            break;
+        case 1:
+            tbl = D_8010A190_picture_imperfect;
+            period = 2;
+            break;
+        case 2:
+            tbl = D_8010A1B8_picture_imperfect;
+            switch (D_8010A150_picture_imperfect) {
+                case 0:
+                default:
+                    period = 8;
+                    break;
+                case 1:
+                    period = 6;
+                    break;
+                case 2:
+                    period = 4;
+                    break;
+            }
+            break;
+        case 3:
+            tbl = D_8010A1E0_picture_imperfect;
+            period = (D_8010A150_picture_imperfect == 0) ? 6 : 4;
+            break;
+        case 4:
+            tbl = D_8010A208_picture_imperfect;
+            period = 4;
+            break;
+        default:
+            if (pw->unk38 == 1000.0f) {
+                ex->unk06 = 1;
+            }
+            return;
+    }
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        for (i = 0; i < 5; i++) {
+            func_8000BB94_main(tbl[player][i]);
+        }
+        return;
+    }
+    ex->unk01 = D_8010A030_picture_imperfect[D_8010A151_picture_imperfect][D_8010A2AC_picture_imperfect[ex->unk00]];
+    if (ex->unk08 == 0) {
+        ex->unk08 = period;
+    } else {
+        ex->unk08--;
+    }
+    for (i = 0; i < 5; i++) {
+        if (ex->unk01 == i) {
+            func_8000BB54_main(tbl[player][ex->unk01]);
+        } else {
+            func_8000BB94_main(tbl[player][i]);
+        }
+    }
+    if (D_800D5558_main[pw->unk57] & 0x8000) {
+        ex->unk08 = period - 2;
+        switch (ex->unk01) {
+            case 0:
+                ex->unk03 = 10;
+                break;
+            case 1:
+                ex->unk03 = 7;
+                break;
+            case 2:
+                ex->unk03 = 5;
+                break;
+            case 3:
+                ex->unk03 = 3;
+                break;
+            case 4:
+                ex->unk03 = 1;
+                break;
+        }
+        ex->unk04 += ex->unk03;
+        D_80109FFC_picture_imperfect[player][ex->unk00] = ex->unk01;
+        ex->unk01 = rand8() * 5 >> 8;
+        if (ex->unk00 == 0) {
+            ex->unk00 = 2;
+        } else if (ex->unk00 == 1) {
+            ex->unk00 = 10;
+        } else {
+            ex->unk00++;
+            switch (D_8010A150_picture_imperfect) {
+                case 0:
+                    more = ex->unk00 < 5;
+                    break;
+                case 1:
+                    more = ex->unk00 < 4;
+                    break;
+                case 2:
+                default:
+                    more = ex->unk00 < 3;
+                    break;
+            }
+            if (!more) {
+                ex->unk00 = 1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108A64_picture_imperfect);
 
