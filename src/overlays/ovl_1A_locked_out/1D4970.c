@@ -34,17 +34,17 @@ typedef struct LoPlayer {
     /* 0x25 */ u8 key; /* key carried, index + 1; 0 none */
     /* 0x26 */ u8 unk26;
     /* 0x27 */ u8 cpu;
-    /* 0x28 */ u8 unk28;
+    /* 0x28 */ u8 ai; /* CPU state */
     /* 0x29 */ u8 unk29; /* motion */
     /* 0x2A */ u8 unk2A; /* motion */
     /* 0x2B */ u8 unk2B;
-    /* 0x2C */ s16 unk2C;
-    /* 0x2E */ s16 unk2E;
-    /* 0x30 */ s16 unk30;
+    /* 0x2C */ u16 target; /* CPU: key index */
+    /* 0x2E */ u16 unk2E; /* CPU: picked a wrong key, may give up on it */
+    /* 0x30 */ u16 door; /* CPU: door index */
     /* 0x32 */ s16 unk32;
     /* 0x34 */ char unk34[8];
     /* 0x3C */ s16 state;
-    /* 0x3E */ s16 door; /* door index */
+    /* 0x3E */ s16 doorIdx; /* door being opened */
     /* 0x40 */ s16 timer;
     /* 0x42 */ char unk42[0xA];
 } LoPlayer; /* size 0x4C */
@@ -131,7 +131,7 @@ void func_80106FBC_locked_out(omObjData* obj);
 void func_801071D8_locked_out(omObjData* obj);
 void func_80107ABC_locked_out(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
-void func_80108A90_locked_out(omObjData* obj);
+u16 func_80108A90_locked_out(omObjData* obj);
 void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
 void func_800DDD94_minigame(omObjData* obj);
 void func_800E5138_minigame(omObjData* obj);
@@ -451,7 +451,7 @@ void func_801071D8_locked_out(omObjData* obj) {
     lp->y = obj->trans.y;
     lp->z = obj->trans.z;
     lp->key = 0;
-    lp->unk28 = 0;
+    lp->ai = 0;
     lp->unk2B = func_80017790_main(obj->model[9], 2, motTbl.v[chr], file0 | files[2][chr]);
     lp->unk29 = func_80017AD8_main(file0 | files[0][chr]);
     lp->unk2A = func_80017AD8_main(file0 | files[1][chr]);
@@ -576,14 +576,14 @@ void func_80107ABC_locked_out(omObjData* obj) {
     }
     switch (D_8010A674_locked_out) {
         case 0:
-            lp->door = 0;
+            lp->doorIdx = 0;
             lp->state = 0;
             lp->timer = 0;
             lp->unk32 = 0;
-            lp->unk30 = 0;
+            lp->door = 0;
             lp->unk2E = 0;
-            lp->unk2C = 0;
-            lp->unk28 = 0;
+            lp->target = 0;
+            lp->ai = 0;
             break;
         case 2:
             if (lp->cpu != 0 && lp->state == 0) {
@@ -623,13 +623,13 @@ void func_80107ABC_locked_out(omObjData* obj) {
                 work->unk40 = 0;
                 work->unk50 &= ~0x200;
                 lp->escaped = 0;
-                lp->door = 0;
+                lp->doorIdx = 0;
                 lp->state = 0;
                 lp->unk32 = 0;
-                lp->unk30 = 0;
+                lp->door = 0;
                 lp->unk2E = 0;
-                lp->unk2C = 0;
-                lp->unk28 = 0;
+                lp->target = 0;
+                lp->ai = 0;
             }
             break;
         case 5:
@@ -641,8 +641,8 @@ void func_80107ABC_locked_out(omObjData* obj) {
                     lp->timer = 1;
                     func_8004AC5C_main(0x3D7, work->unk59);
                 }
-                func_8001C92C_main(D_8010A638_locked_out[lp->door].unk0E, 1.0f);
-                D_8010A638_locked_out[lp->door].unk0C = 1;
+                func_8001C92C_main(D_8010A638_locked_out[lp->doorIdx].unk0E, 1.0f);
+                D_8010A638_locked_out[lp->doorIdx].unk0C = 1;
                 work->unk3C = 0.0f;
                 func_8001C92C_main(obj->model[0], 1.0f);
             }
@@ -689,7 +689,7 @@ void func_80107ABC_locked_out(omObjData* obj) {
     } else {
         HmfModelData[obj->model[0]].unk06 = 0xFF;
     }
-    door = &D_8010A638_locked_out[lp->door];
+    door = &D_8010A638_locked_out[lp->doorIdx];
     switch (lp->state) {
         case 0:
             if (stick & 0x200000) {
@@ -744,7 +744,7 @@ void func_80107ABC_locked_out(omObjData* obj) {
                             D_8010A638_locked_out[i].unk10 = 0;
                             lp->escaped = 1;
                             lp->state = 1;
-                            lp->door = i;
+                            lp->doorIdx = i;
                             work->unk50 |= 0x200;
                             func_8001C258_main(ko->model[0], 4, 4);
                             key->unk00 = 4;
@@ -859,7 +859,115 @@ void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80108A90_locked_out);
+/* A CPU player's input: pick a key, fetch it (or chase its holder), carry it to a door. */
+/* Returns an uninitialised u16 (retail); the caller ignores it. */
+u16 func_80108A90_locked_out(omObjData* obj) {
+    Matrix4f unused; /* retail's frame leaves these 64 bytes */
+    u16 ret;
+    MgWork* work;
+    LoPlayer* lp;
+    omObjData* ko;
+    LoKey* key;
+    omObjData* holder;
+    LoDoor* door;
+    f32 a;
+    s32 i;
+    s16 pad;
+    u8 t;
+
+    func_801090FC_locked_out(obj, &work, &lp);
+    pad = (s8)work->unk57;
+    func_800E4A90_minigame(obj);
+    switch (lp->ai) {
+        case 4:
+            break;
+        case 0:
+            if (lp->key != 0) {
+                D_800D5558_main[pad] |= 0x8000;
+            }
+            lp->target = 0;
+            lp->unk2E = 0;
+            t = (s32)((f32)func_80109D70_locked_out() * (1.0 / 65536.0) * D_8010A676_locked_out);
+            ko = D_8010A610_locked_out[t];
+            key = ko->data;
+            if (key->kind != D_8010A67A_locked_out) {
+                if ((s32)((f32)func_80109D70_locked_out() * (1.0 / 65536.0) * 100.0) >= lp->difficulty * 5 + 5) {
+                    lp->unk2E = 1;
+                    goto pick;
+                }
+            } else {
+            pick:
+                lp->target = t;
+                lp->ai++;
+            }
+            break;
+        case 1:
+            ko = D_8010A610_locked_out[lp->target];
+            key = ko->data;
+            if (lp->key != 0) {
+                lp->ai = 2;
+                break;
+            }
+            if (key->unk00 == 1) {
+                holder = key->holder;
+                a = func_80109DBC_locked_out(holder->trans.x - obj->trans.x, holder->trans.z - obj->trans.z);
+                if (func_80109E34_locked_out(&obj->trans, &holder->trans) < work->unk48 * 2.2 + work->unk64) {
+                    D_800D5558_main[pad] |= 0x4000;
+                }
+                for (i = 0; i < D_8010A678_locked_out; i++) {
+                    key = D_8010A610_locked_out[i]->data;
+                    if (key->kind == D_8010A67A_locked_out && key->unk00 == 0) {
+                        break;
+                    }
+                }
+                if (i < D_8010A678_locked_out
+                    && (s32)((f32)func_80109D70_locked_out() * (1.0 / 65536.0) * 100.0) < lp->difficulty * 5 + 5) {
+                    lp->ai = 0;
+                }
+            } else if (key->unk00 == 4) {
+                lp->ai = 0;
+                break;
+            } else {
+                a = func_80109DBC_locked_out(ko->trans.x - obj->trans.x, ko->trans.z - obj->trans.z);
+                if (func_80109E34_locked_out(&obj->trans, &ko->trans) <= work->unk48 + key->unk04 + 2.0
+                    && fabs(a - work->unk3C) < 40.0) {
+                    D_800D5558_main[pad] |= 0x8000;
+                }
+            }
+            D_800CBB6E_main[pad] = (lp->difficulty * 6.0 + 46.0) * sindf(a);
+            D_800D20A1_main[pad] = (lp->difficulty * 6.0 + 46.0) * -cosdf(a);
+            break;
+        case 2:
+            if (lp->key != lp->target + 1) {
+                D_800D5558_main[pad] |= 0x8000;
+                lp->ai = 1;
+                break;
+            }
+            lp->door = (s32)((f32)func_80109D70_locked_out() * (1.0 / 65536.0) * (s16)(D_8010A676_locked_out / 3));
+            if (D_8010A638_locked_out[lp->door].unk10 == 0) {
+                break;
+            }
+            lp->ai++;
+            /* fallthrough */
+        case 3:
+            if (lp->key == 0) {
+                lp->ai = 1;
+            }
+            door = &D_8010A638_locked_out[lp->door];
+            if (door->unk10 == 0) {
+                lp->ai = 2;
+            }
+            a = func_80109DBC_locked_out(door->pos.x - obj->trans.x, door->pos.z - obj->trans.z);
+            D_800CBB6E_main[pad] = (lp->difficulty * 6.0 + 46.0) * sindf(a);
+            D_800D20A1_main[pad] = (lp->difficulty * 6.0 + 46.0) * -cosdf(a);
+            break;
+    }
+    if (lp->unk2E != 0
+        && (s32)((f32)func_80109D70_locked_out() * (1.0 / 65536.0) * 100.0) < lp->difficulty * 5 + 5) {
+        lp->ai = 0;
+    }
+    return ret;
+}
 
 void func_801090FC_locked_out(omObjData* obj, MgWork** work, LoPlayer** ep) {
     MgWork* w = obj->data;
