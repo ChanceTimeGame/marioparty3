@@ -52,6 +52,7 @@ typedef struct HsEnt {
 
 extern HsEnt D_8010C7A0_hide_and_sneak[50];
 #define ABS(x) ((x) < 0 ? -(x) : (x))
+int abs(int);
 
 #define HS_ENT_TITLE 0
 #define HS_ENT_SOLO 1
@@ -104,13 +105,6 @@ typedef struct HsNumSpr {
     /* 0x06 */ s16 unk06;
 } HsNumSpr;
 
-/* Round state (D_8010E170_hide_and_sneak). */
-typedef struct HsRound {
-    /* 0x00 */ s8 unk00;
-    /* 0x01 */ char unk01;
-    /* 0x02 */ s16 timer;
-} HsRound;
-
 /* .data */
 extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
@@ -140,8 +134,8 @@ extern s8 D_8010E1A8_hide_and_sneak;
 extern u8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
 extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_FADE].unk04 */
 extern u8 D_8010CE59_hide_and_sneak; /* view: the low byte of D_8010CE58_hide_and_sneak */
-extern HsRound D_8010E170_hide_and_sneak;
-extern s16 D_8010E172_hide_and_sneak; /* view: D_8010E170_hide_and_sneak.timer */
+extern s8 D_8010E170_hide_and_sneak;
+extern s16 D_8010E172_hide_and_sneak; /* view: an s16 inside the object at D_8010E170_hide_and_sneak */
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
 extern s8 D_8010E175_hide_and_sneak[4];
@@ -172,6 +166,7 @@ void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
 void func_8010A1CC_hide_and_sneak(omObjData *obj);
 void func_8010B600_hide_and_sneak(void);
+s32 func_80106ABC_hide_and_sneak(omObjData *obj);
 Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
@@ -581,7 +576,193 @@ s32 func_80106ABC_hide_and_sneak(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106ABC_hide_and_sneak);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106D10_hide_and_sneak);
+void func_80106D10_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_SOLO, 0);
+    s16 port = obj->work[3];
+    s16 xi;
+    s16 i;
+
+    if (D_8010E180_hide_and_sneak != 2) {
+        if (D_8010E180_hide_and_sneak >= 3) {
+            if (D_8010E180_hide_and_sneak >= 5) {
+                if (D_8010E1AD_hide_and_sneak == 3) {
+                    func_8010699C_hide_and_sneak(obj, 6);
+                } else {
+                    func_8010699C_hide_and_sneak(obj, 7);
+                }
+            } else {
+                func_8010699C_hide_and_sneak(obj, 0);
+            }
+        }
+    } else {
+        switch (D_8010C780_hide_and_sneak) {
+            case 0:
+                ent->unk0A = 0;
+                D_8010E169_hide_and_sneak = 0;
+                D_8010E17C_hide_and_sneak = -1;
+                func_8010699C_hide_and_sneak(obj, 3);
+                break;
+            case 2:
+                if ((s8)func_8010661C_hide_and_sneak(obj, 0.0f) != 0) {
+                    func_8010699C_hide_and_sneak(obj, 1);
+                } else {
+                    func_8010699C_hide_and_sneak(obj, 0);
+                }
+                break;
+            case 3:
+                if (D_8010E1AD_hide_and_sneak == 3) {
+                    D_8010C780_hide_and_sneak = 6;
+                    D_8010E174_hide_and_sneak = 2;
+                    D_8010E17A_hide_and_sneak = 0;
+                    break;
+                }
+                ent->unk0C = (s8)func_80106ABC_hide_and_sneak(obj);
+                if (ent->unk08 <= 0) {
+                    if (D_800CBB6E_main[port] < -10 && -((D_8010C782_hide_and_sneak - 1) * 65) < obj->trans.x) {
+                        ent->unk08 = 1;
+                        obj->rot.y = 270.0f;
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    }
+                }
+                if (ent->unk08 >= 0) {
+                    if (D_800CBB6E_main[port] >= 11 && obj->trans.x < (D_8010C782_hide_and_sneak - 1) * 65) {
+                        ent->unk08 = -1;
+                        obj->rot.y = 90.0f;
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    }
+                }
+                xi = obj->trans.x;
+                if (ent->unk08 == 0) {
+                    if ((D_8010C782_hide_and_sneak == 4 && abs(xi) == 195) || (D_8010C782_hide_and_sneak == 3 && abs(xi) == 130)
+                        || (D_8010C782_hide_and_sneak == 2 && abs(xi) == 65) || abs(D_800CBB6E_main[port]) < 11) {
+                        if ((s8)func_8010661C_hide_and_sneak(obj, 0.0f) != 0) {
+                            func_8010699C_hide_and_sneak(obj, 1);
+                        } else {
+                            func_8010699C_hide_and_sneak(obj, 0);
+                        }
+                    }
+                }
+                for (i = 0; i < 4; i++) {
+                    if (xi == D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][i]) {
+                        if ((D_800D5558_main[port] & 0x8000) || ent->unk0C != 0) {
+                            D_8010E17C_hide_and_sneak = D_8010E175_hide_and_sneak[i];
+                            D_8010E170_hide_and_sneak = 1;
+                            ent->unk08 = 0;
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 4:
+                if (D_8010E1B2_hide_and_sneak != 0) {
+                    D_8010C780_hide_and_sneak = 5;
+                    break;
+                }
+                ent->unk08 = 0;
+                if (D_8010E17C_hide_and_sneak != -1) {
+                    if (ent->unk0A < 15) {
+                        if (obj->rot.y == 0.0f) {
+                            ent->unk0A = 15;
+                            break;
+                        }
+                        func_8010661C_hide_and_sneak(obj, 0.0f);
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    } else if (ent->unk0A == 15) {
+                        func_80106548_hide_and_sneak(obj, 2, 0);
+                        ent->unk06 = 2;
+                        func_8001C92C_main(obj->model[0], 0.5f);
+                        func_8001C92C_main(HS_ENT(HS_ENT_MARK, D_8010E17C_hide_and_sneak)->obj->model[0], 1.0f);
+                    } else if (ent->unk0A == 20) {
+                        HuAudFXPlay(0x329);
+                    } else if (ent->unk0A == 24) {
+                        func_8001C92C_main(obj->model[0], -0.5f);
+                    } else if (ent->unk0A < 32) {
+                    } else if (ent->unk0A < 50) {
+                        if ((s8)func_8010661C_hide_and_sneak(obj, 180.0f) != 0) {
+                            func_8010699C_hide_and_sneak(obj, 1);
+                        }
+                    } else if (ent->unk0A == 50) {
+                        D_8010E1B3_hide_and_sneak = 1;
+                    } else if (ent->unk0A == 65) {
+                        if ((s8)D_8010E188_hide_and_sneak[D_8010E17C_hide_and_sneak].count != 0) {
+                            func_8010699C_hide_and_sneak(obj, 4);
+                        } else {
+                            func_8010699C_hide_and_sneak(obj, 5);
+                        }
+                    }
+                    if (ent->unk0A == 95) {
+                        D_8010E170_hide_and_sneak = 1;
+                    }
+                } else {
+                    if ((s8)func_8010661C_hide_and_sneak(obj, 180.0f) != 0) {
+                        D_8010E1B3_hide_and_sneak = 2;
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    } else {
+                        func_8010699C_hide_and_sneak(obj, 5);
+                    }
+                    if (ent->unk0A == 70) {
+                        D_8010E170_hide_and_sneak = 1;
+                    }
+                }
+                ent->unk0A++;
+                break;
+            case 1:
+            case 6:
+            case 7:
+                break;
+            case 5:
+                if (0.0f < obj->trans.x) {
+                    if ((s8)func_8010661C_hide_and_sneak(obj, 270.0f) != 0) {
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    } else {
+                        obj->trans.x -= 6.5;
+                    }
+                }
+                if (obj->trans.x < 0.0f) {
+                    if ((s8)func_8010661C_hide_and_sneak(obj, 90.0f) != 0) {
+                        func_8010699C_hide_and_sneak(obj, 1);
+                    } else {
+                        obj->trans.x += 6.5;
+                    }
+                }
+                if (obj->trans.x == 0.0f) {
+                    if (D_8010E1AD_hide_and_sneak == 3 || D_8010E1B2_hide_and_sneak != 0 || D_8010E174_hide_and_sneak == 2) {
+                        if ((s8)func_8010661C_hide_and_sneak(obj, 0.0f) != 0) {
+                            goto turn;
+                        }
+                    } else if ((s8)func_8010661C_hide_and_sneak(obj, 180.0f) != 0) {
+                    turn:
+                        func_8010699C_hide_and_sneak(obj, 1);
+                        break;
+                    }
+                    func_8010699C_hide_and_sneak(obj, 0);
+                    D_8010E170_hide_and_sneak |= 1;
+                }
+                break;
+        }
+        if (ent->unk08 > 0) {
+            obj->trans.x -= 6.5;
+            xi = obj->trans.x;
+            for (i = 0; i < D_8010C782_hide_and_sneak; i++) {
+                if (xi == D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][i]) {
+                    ent->unk08 = 0;
+                    break;
+                }
+            }
+        }
+        if (ent->unk08 < 0) {
+            obj->trans.x += 6.5;
+            xi = obj->trans.x;
+            for (i = 0; i < D_8010C782_hide_and_sneak; i++) {
+                if (xi == D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][i]) {
+                    ent->unk08 = 0;
+                    break;
+                }
+            }
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    }
+}
 
 void func_80107638_hide_and_sneak(omObjData *obj) {
     u16 chr = GwPlayer[obj->work[0]].chr;
@@ -1846,7 +2027,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B
 
 void func_8010BFE8_hide_and_sneak(omObjData *obj) {
     D_8010E180_hide_and_sneak = 0;
-    D_8010E170_hide_and_sneak.unk00 = 0;
+    D_8010E170_hide_and_sneak = 0;
     D_8010E17A_hide_and_sneak = 0;
     D_8010E174_hide_and_sneak = 0;
     D_8010E1B3_hide_and_sneak = 3;
