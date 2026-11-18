@@ -120,6 +120,12 @@ extern s8 D_8010A2F0_water_whirled[4]; /* player on each start position, -1 free
 extern s16 D_8010A2F4_water_whirled; /* shared models, -1 until loaded */
 extern s16 D_8010A2F6_water_whirled;
 extern s16 D_8010A2F8_water_whirled;
+void func_8001C258_main(s16, s32, s32);
+extern s32 D_8010A2FC_water_whirled[4]; /* last splash slot per player */
+extern Vec D_8010A560_water_whirled[4][6]; /* splash positions */
+extern f32 D_8010A680_water_whirled[4][6]; /* splash speeds */
+extern Vec D_8010A6E0_water_whirled[4][6]; /* splash directions (x, z) */
+extern f32 D_8010A800_water_whirled[4][6]; /* splash scales */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -679,7 +685,49 @@ void func_801078D4_water_whirled(omObjData* obj) {
     func_8010750C_water_whirled(obj, 3);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801078F0_water_whirled);
+/* Splashes behind a rider: start one in the next of its six slots, move and grow the live ones. */
+void func_801078F0_water_whirled(omObjData* obj, f32 scale) {
+    MgWork* work;
+    f32 heading;
+    f32 rnd;
+    f32 a;
+    f32 s;
+    s32 player;
+    s32 idx;
+    s32 i;
+
+    work = obj->data;
+    player = work->unk59;
+    heading = work->unk3C;
+    idx = D_8010A2FC_water_whirled[player] + 1;
+    if (idx == 6) {
+        idx = 0;
+    }
+    D_8010A2FC_water_whirled[player] = idx;
+    D_8010A800_water_whirled[player][idx] = 1.0f;
+    D_8010A680_water_whirled[player][idx] = scale * 10.0f;
+    rnd = (rand8() - 128) / 4;
+    D_8010A560_water_whirled[player][idx].x = sindf(heading + 180.0f) * 75.0f + obj->trans.x + sindf(heading + 90.0f) + rnd;
+    D_8010A560_water_whirled[player][idx].y = obj->trans.y;
+    D_8010A560_water_whirled[player][idx].z = cosdf(heading + 180.0f) * 75.0f + obj->trans.z + sindf(heading + 90.0f) + rnd;
+    rnd = (rand8() - 128) / 4;
+    a = heading + 180.0f + rnd;
+    D_8010A6E0_water_whirled[player][idx].x = sindf(a);
+    D_8010A6E0_water_whirled[player][idx].z = cosdf(a);
+    for (i = 0; i < 6; i++) {
+        if (D_8010A680_water_whirled[player][i] > 0.0f) {
+            D_8010A560_water_whirled[player][i].x += D_8010A6E0_water_whirled[player][i].x * D_8010A680_water_whirled[player][i] * scale;
+            D_8010A560_water_whirled[player][i].y -= 20.0f;
+            D_8010A560_water_whirled[player][i].z += D_8010A6E0_water_whirled[player][i].z * D_8010A680_water_whirled[player][i] * scale;
+            Hu3DModelPosSet(obj->model[i + 1], D_8010A560_water_whirled[player][i].x, D_8010A560_water_whirled[player][i].y, D_8010A560_water_whirled[player][i].z);
+            s = scale * (D_8010A800_water_whirled[player][i] *= 1.3f);
+            Hu3DModelScaleSet(obj->model[i + 1], s, s, s);
+            func_8001C258_main(obj->model[i + 1], 4, 0);
+        } else {
+            func_8001C258_main(obj->model[i + 1], 4, 4);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80107D18_water_whirled);
 
