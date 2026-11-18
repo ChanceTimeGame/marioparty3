@@ -64,6 +64,15 @@ typedef struct PaBubble {
     /* 0x18 */ s32 unk18; /* sprite slot */
 } PaBubble; // Size 0x1C
 
+/* omObjData::data of the scrolling cliff walls (func_801089E0_parasol_plummet, 0x40) */
+typedef struct PaWall {
+    /* 0x00 */ f32 unk00[6]; /* sprite x */
+    /* 0x18 */ f32 unk18[6]; /* sprite y */
+    /* 0x30 */ char unk30[2];
+    /* 0x32 */ s16 unk32[6]; /* sprites */
+    /* 0x3E */ char unk3E[2];
+} PaWall; // Size 0x40
+
 /* omObjData::data of an item (D_8010AB70_parasol_plummet) */
 typedef struct PaItem {
     /* 0x00 */ s32 unk00;
@@ -73,6 +82,10 @@ typedef struct PaItem {
     /* 0x10 */ char unk10[0x14];
     /* 0x24 */ u8 unk24; /* 1 coin, 2 five coins, 3 hazard */
 } PaItem;
+
+typedef struct PaS32x3 {
+    s32 v[3];
+} PaS32x3;
 
 typedef struct PaS32x8 {
     s32 v[8];
@@ -91,6 +104,7 @@ void func_8004AD70_main(void);
 void func_8001E500_main(s16, char*, char*);
 f64 fabs(f64);
 void func_8000BC48_main(u16, u16);
+void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 
 extern s8 D_800CBB6E_main[]; /* stick x */
@@ -135,6 +149,8 @@ void func_80108178_parasol_plummet(omObjData* obj);
 void func_801082CC_parasol_plummet(omObjData* obj);
 void func_801083F8_parasol_plummet(void);
 void func_8010856C_parasol_plummet(void);
+void func_80108C1C_parasol_plummet(omObjData* obj);
+void func_80108DD0_parasol_plummet(void);
 void func_801086F0_parasol_plummet(s32 arg0);
 void func_80108878_parasol_plummet(omObjData* obj);
 void func_801089E0_parasol_plummet(omObjData* obj);
@@ -155,6 +171,8 @@ extern f32 D_8010AC50_parasol_plummet[4]; /* lanes taken */
 extern s16 D_8010AC64_parasol_plummet;
 extern f32 D_8010AC68_parasol_plummet; /* time */
 extern omObjData* D_8010AC6C_parasol_plummet; /* timer */
+extern f32 D_8010AC70_parasol_plummet; /* wall scroll speed */
+extern u8 D_8010AC74_parasol_plummet;
 extern s16 D_8010ACF0_parasol_plummet[5]; /* bubble sprites */
 extern s16 D_8010ACFA_parasol_plummet; /* bubble sprite file */
 extern u8 D_8010ACFC_parasol_plummet[5]; /* bubble slots in use */
@@ -1284,15 +1302,109 @@ void func_80108878_parasol_plummet(omObjData* obj) {
     }
 }
 
-__asm__(".section .rodata"); // TEMP: rodata of asm functions
-const s32 D_8010AAE0_parasol_plummet[] = { 0, 1, 1 };
-const s32 D_8010AAEC_parasol_plummet[] = { 360, 600, 840 };
+const PaS32x3 D_8010AAE0_parasol_plummet = { { 0, 1, 1 } };
+const PaS32x3 D_8010AAEC_parasol_plummet = { { 360, 600, 840 } };
 
+/* NON_MATCHING: register allocation (s2/s3 swapped; masked 0). The scrolling cliff walls. */
+#ifdef NON_MATCHING
+void func_801089E0_parasol_plummet(omObjData* obj) {
+    PaS32x3 kind = D_8010AAE0_parasol_plummet;
+    s32 xs[2] = { 0x18, 0x128 };
+    PaS32x3 ys = D_8010AAEC_parasol_plummet;
+    s32 file[2];
+    s32 x;
+    s32 y;
+    s32 i;
+    PaWall* w;
+
+    obj->data = HuMemAllocTag(sizeof(PaWall), 0x7918);
+    w = obj->data;
+    file[0] = func_8000B838_main(0x3D0005);
+    file[1] = func_8000B838_main(0x3D0003);
+    for (i = 0; i < 6; i++) {
+        w->unk32[i] = InitEspriteSlot(file[kind.v[i % 3]], 0, 1);
+        w->unk00[i] = xs[i / 3];
+        w->unk18[i] = ys.v[i % 3];
+        x = w->unk00[i];
+        y = w->unk18[i];
+        func_8000BC48_main(w->unk32[i], 0x4008);
+        if (i >= 3) {
+            func_8000BC48_main(w->unk32[i], 1);
+        }
+        func_8000BBD4_main(w->unk32[i], x, y);
+        func_8000BB54_main(w->unk32[i]);
+        func_8000BE5C_main(w->unk32[i], 1.0f, 1.0f);
+        func_8000BCC8_main(w->unk32[i], 0x1E);
+    }
+    func_8000BC88_main(w->unk32[3], 0x4000);
+    D_8010AC74_parasol_plummet = 0;
+    D_8010AC70_parasol_plummet = 0.0f;
+    omAddPrcObj(func_80108DD0_parasol_plummet, 0x50, 0x2000, 0);
+    obj->func = func_80108C1C_parasol_plummet;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801089E0_parasol_plummet);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80108C1C_parasol_plummet);
+void func_80108C1C_parasol_plummet(omObjData* obj) {
+    PaWall* w = obj->data;
+    s32 i;
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80108DD0_parasol_plummet);
+    for (i = 0; i < 6; i++) {
+        x = w->unk00[i];
+        y = w->unk18[i];
+        func_8000BBD4_main(w->unk32[i], x, y);
+        w->unk18[i] += D_8010AC70_parasol_plummet;
+        if (D_8010AC70_parasol_plummet < 0.0f && w->unk18[i] <= -120.0f) {
+            if (i % 3 == 0) {
+                func_8000BB94_main(w->unk32[i]);
+            }
+            w->unk18[i] += 480.0f;
+        }
+        if (D_8010AC70_parasol_plummet > 0.0f && w->unk18[i] >= 360.0f) {
+            w->unk18[i] -= 480.0f;
+        }
+    }
+    if (((PaGoal*)D_8010ABCC_parasol_plummet->data)->unk08 >= 0.0f) {
+        func_8000BC48_main(w->unk32[3], 0x4000);
+    }
+}
+
+void func_80108DD0_parasol_plummet(void) {
+    s32 i;
+
+    D_8010AC70_parasol_plummet = 0.0f;
+    HuPrcSleep(0x1E);
+    D_8010AC70_parasol_plummet = -4.0f;
+    HuPrcSleep(0x1E);
+    D_8010AC70_parasol_plummet = 0.0f;
+    HuPrcSleep(0x1E);
+    for (i = 0; i < 0xA; i++) {
+        D_8010AC70_parasol_plummet = (i * -8.0f) / 10.0f;
+        HuPrcVSleep();
+    }
+    while (D_8010AC66_parasol_plummet != 3) {
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 0x1F; i++) {
+        D_8010AC70_parasol_plummet = ((30.0f - i) * -8.0f) / 30.0f;
+        HuPrcVSleep();
+    }
+    HuPrcSleep(0xF);
+    D_8010AC70_parasol_plummet = -4.0f;
+    HuPrcSleep(0x32);
+    D_8010AC70_parasol_plummet = 0.0f;
+    HuPrcSleep(0x1E);
+    for (i = 0; i < 0xB; i++) {
+        D_8010AC70_parasol_plummet = (i * 8.0f) / 10.0f;
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80108F6C_parasol_plummet);
 
