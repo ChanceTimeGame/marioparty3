@@ -195,6 +195,7 @@ void func_801077D0_merry_go_chomp(omObjData *obj);
 void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale);
 s8 func_80107980_merry_go_chomp(void);
 void func_80107E34_merry_go_chomp(omObjData *obj);
+void func_801084C8_merry_go_chomp(void);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -973,7 +974,107 @@ void func_80107E34_merry_go_chomp(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 63: retail does not hoist the D_8010C420 base out of the first loop, and hoists the float constants instead */
+void func_801084C8_merry_go_chomp(void) {
+    s32 mode = 0;
+    s32 hit;
+    s8 i;
+    s8 j;
+    McPl *pl;
+    McPl *pl2;
+    McEnt *ent;
+    McEnt *ent2;
+    omObjData *obj;
+    omObjData *obj2;
+    f32 dx;
+    f32 dz;
+    f32 rot;
+
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010C420_merry_go_chomp[i];
+        if (pl->state >= 2 && MC_ENT(MC_ENT_PLAYER, i)->unk04 == 0) {
+            if (sqrtf(pl->x * pl->x + pl->z * pl->z) < 350.0f) {
+                rot = func_801059BC_merry_go_chomp(atan2df(pl->x, pl->z), 0.0f);
+                pl->x = sindf(rot) * 350.0f;
+                pl->z = cosdf(rot) * 350.0f;
+            }
+        }
+    }
+    do {
+        hit = 0;
+        for (i = 0; i < 4; i++) {
+            pl = &D_8010C420_merry_go_chomp[i];
+            ent = MC_ENT(MC_ENT_PLAYER, i);
+            obj = ent->obj;
+            if (ent->unk04 == 0 && !(obj->trans.y > 5.0f)) {
+                for (j = 0; j < 4; j++) {
+                    if (i == j) {
+                        continue;
+                    }
+                    pl2 = &D_8010C420_merry_go_chomp[j];
+                    ent2 = MC_ENT(MC_ENT_PLAYER, j);
+                    obj2 = ent2->obj;
+                    if (ent2->unk04 != 0) {
+                        continue;
+                    }
+                    dx = pl->x - pl2->x;
+                    dz = pl->z - pl2->z;
+                    if (sqrtf(dx * dx + dz * dz) < 120.0f) {
+                        dx = pl->x - 490.0f;
+                        dz = pl->z + 20.0f;
+                        rot = sqrtf(dx * dx + dz * dz);
+                        dx = pl2->x - 490.0f;
+                        dz = pl2->z + 20.0f;
+                        if (rot < sqrtf(dx * dx + dz * dz)) {
+                            mode = 2;
+                        }
+                        if (obj->trans.y > 5.0f && obj->trans.y < 160.0f) {
+                            mode = 2;
+                        }
+                        if (obj2->trans.y > 5.0f && obj2->trans.y < 160.0f) {
+                            mode = 1;
+                        }
+                        if (obj->trans.y > 160.0f) {
+                            mode = 0;
+                        }
+                        if (obj2->trans.y > 160.0f) {
+                            mode = 0;
+                        }
+                        switch (mode) {
+                        case 1:
+                            rot = func_801059BC_merry_go_chomp(atan2df(pl->x - pl2->x, pl->z - pl2->z), 0.0f);
+                            pl->x = sindf(rot) * 121.0f + pl2->x;
+                            pl->z = cosdf(rot) * 121.0f + pl2->z;
+                            hit = 1;
+                            pl->wait = 1;
+                            break;
+                        case 2:
+                            rot = func_801059BC_merry_go_chomp(atan2df(pl2->x - pl->x, pl2->z - pl->z), 0.0f);
+                            pl2->x = sindf(rot) * 121.0f + pl->x;
+                            pl2->z = cosdf(rot) * 121.0f + pl->z;
+                            hit = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } while (hit);
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010C420_merry_go_chomp[i];
+        ent = MC_ENT(MC_ENT_PLAYER, i);
+        obj = ent->obj;
+        if (ent->unk04 == 0 && pl->state < 5) {
+            obj->trans.x = pl->x;
+            obj->trans.z = pl->z;
+            obj->rot.y = pl->angle;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801084C8_merry_go_chomp);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80108A88_merry_go_chomp);
 
