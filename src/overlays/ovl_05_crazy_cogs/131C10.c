@@ -99,6 +99,8 @@ void func_801097EC_crazy_cogs(omObjData *obj);
 void func_80109B88_crazy_cogs(omObjData *obj, s32 arg1);
 void func_80109D24_crazy_cogs(void);
 void func_80109D44_crazy_cogs(omObjData *obj);
+void func_80109F64_crazy_cogs(omObjData *obj);
+void func_8010A67C_crazy_cogs(omObjData *obj);
 s8 func_80109A44_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
@@ -189,7 +191,10 @@ extern s8 D_8010B9B0_crazy_cogs[0x32];
 extern s8 D_8010B99C_crazy_cogs;
 extern s8 D_8010B996_crazy_cogs;
 extern s8 D_8010B9A0_crazy_cogs;
-extern u8 D_8010B9A1_crazy_cogs;
+extern s8 D_8010B9A1_crazy_cogs;
+extern s16 D_8010B994_crazy_cogs;
+extern s16 D_8010B99E_crazy_cogs;
+extern s8 D_8010B9E2_crazy_cogs;
 extern CgEnt D_8010B9F0_crazy_cogs[70];
 extern s16 D_8010BA30_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].grp */
 extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr */
@@ -197,6 +202,7 @@ extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
 extern f32 D_8010DE88_crazy_cogs[10];
+extern s16 D_8010DE22_crazy_cogs;
 /* the hazard and shadow models the others link; retail reads their low halves (D_8010DE1A, D_8010DE1E) */
 extern s32 D_8010DE18_crazy_cogs[2];
 extern CgWander D_8010DE28_crazy_cogs[7];
@@ -1759,13 +1765,131 @@ void func_80109F64_crazy_cogs(omObjData *obj) {
     obj->func = func_80109D44_crazy_cogs;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010A4A4_crazy_cogs);
+void func_8010A4A4_crazy_cogs(void) {
+    omObjData *obj;
+    CgEnt *ent;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010A548_crazy_cogs);
+    for (i = 0; i < 10; i++) {
+        ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + i];
+        obj = omAddObj(1400, 20, 0, -1, func_80109F64_crazy_cogs);
+        obj->work[0] = i;
+        ent->obj = obj;
+    }
+}
 
+/* A falling hazard (4..9) joins the CPU's plan; easier CPUs skip some (every third, or all but every third). */
+void func_8010A548_crazy_cogs(CgEnt *ent) {
+    if (ent->obj->work[0] >= 4) {
+        D_8010DE22_crazy_cogs++;
+        switch (D_8010B9A1_crazy_cogs) {
+        case 0:
+            break;
+        case 1:
+            if ((s16)(D_8010DE22_crazy_cogs % 3) == 1) {
+                D_8010B9B0_crazy_cogs[D_8010B9E2_crazy_cogs] = ent->obj->work[0];
+                D_8010B9E2_crazy_cogs++;
+            }
+            break;
+        case 2:
+            if ((s16)(D_8010DE22_crazy_cogs % 3) != 1) {
+                D_8010B9B0_crazy_cogs[D_8010B9E2_crazy_cogs] = ent->obj->work[0];
+                D_8010B9E2_crazy_cogs++;
+            }
+            break;
+        default:
+            D_8010B9B0_crazy_cogs[D_8010B9E2_crazy_cogs] = ent->obj->work[0];
+            D_8010B9E2_crazy_cogs++;
+            break;
+        }
+    }
+}
+
+/* Spawns hazards while playing: one of 0..6 every 30..39 frames (the next free one), and 7, 8 and 9 at random
+ * on their own beats. */
+#ifdef NON_MATCHING
+/* register allocation: retail keeps the constant 7 in $a2 across the search loop */
+void func_8010A67C_crazy_cogs(omObjData *obj) {
+    CgEnt *ent;
+    s16 i;
+    s16 k;
+
+    if (D_8010B99C_crazy_cogs == 2) {
+        if (D_8010B99E_crazy_cogs >= D_8010B994_crazy_cogs) {
+            D_8010B99E_crazy_cogs = 0;
+            D_8010B994_crazy_cogs = (func_80105B7C_crazy_cogs(2) == 0) ? 30 : func_80105B7C_crazy_cogs(10) + 30;
+            i = func_80105B7C_crazy_cogs(7);
+            ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + i];
+            if (ent->unk04 == 0) {
+                goto spawn;
+            }
+            i++;
+            for (k = 0; k < 6; k++) {
+                if (i != 7) {
+                    ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + i];
+                    if (ent->unk04 == 0) {
+                    spawn:
+                        ent->unk04 = 1;
+                        func_8010A548_crazy_cogs(ent);
+                        func_8001C258_main(ent->obj->model[0], 4, 0);
+                        func_8001C258_main(ent->obj->model[1], 4, 0);
+                        break;
+                    }
+                } else {
+                    i--;
+                    k--;
+                }
+                i = (i + 1) % 7;
+            }
+        }
+        if (D_8010B99E_crazy_cogs % 27 == 0 && func_80105B7C_crazy_cogs(5) == 0) {
+            ent = &D_8010B9F0_crazy_cogs[15];
+            if (ent->unk04 == 0) {
+                ent->unk04 = 1;
+                func_8001C258_main(ent->obj->model[0], 4, 0);
+                func_8001C258_main(ent->obj->model[1], 4, 0);
+            }
+        }
+        if ((D_8010B99E_crazy_cogs + 15) % 27 == 0 && func_80105B7C_crazy_cogs(5) == 0) {
+            ent = &D_8010B9F0_crazy_cogs[16];
+            if (ent->unk04 == 0) {
+                ent->unk04 = 1;
+                func_8001C258_main(ent->obj->model[0], 4, 0);
+                func_8001C258_main(ent->obj->model[1], 4, 0);
+            }
+        }
+        if (D_8010B99E_crazy_cogs % 15 == 0 && func_80105B7C_crazy_cogs(5) == 0) {
+            ent = &D_8010B9F0_crazy_cogs[17];
+            if (ent->unk04 == 0) {
+                ent->unk04 = 1;
+                func_8001C258_main(ent->obj->model[0], 4, 0);
+                func_8001C258_main(ent->obj->model[1], 4, 0);
+            }
+        }
+        D_8010B99E_crazy_cogs++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010A67C_crazy_cogs);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AA10_crazy_cogs);
+/* The hazard spawner's setup; retail clears one byte past the plan (D_8010B9B0_crazy_cogs[50], the
+ * D_8010B9E2_crazy_cogs it zeroes next). */
+void func_8010AA10_crazy_cogs(omObjData *obj) {
+    s16 i;
+
+    D_8010B99E_crazy_cogs = 0;
+    D_8010B994_crazy_cogs = 5;
+    for (i = 0; i < 50; i++) {
+        D_8010B9B0_crazy_cogs[i] = -1;
+    }
+    D_8010B9B0_crazy_cogs[i] = -1;
+    D_8010B9E2_crazy_cogs = 0;
+    D_8010B990_crazy_cogs = 0;
+    D_8010DE22_crazy_cogs = 0;
+    obj->model[0] = -1;
+    obj->func = func_8010A67C_crazy_cogs;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AAA4_crazy_cogs);
 
