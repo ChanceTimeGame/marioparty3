@@ -23,6 +23,9 @@ void func_8000BBFC_main(u16, u8);
 void func_8000BC48_main(u16, u16);
 s32 func_8000B710_main(s32 arg0);
 
+// 7D2C
+void func_80007D2C_main(s32 slot, s32 fxMix);
+
 // 44C2C
 void func_80045C2C_main(void);
 
@@ -49,7 +52,7 @@ typedef struct {
     /* 0x10 */ s16 unk10;
     /* 0x12 */ char unk12[2];
     /* 0x14 */ s16 unk14;
-    /* 0x16 */ s16 unk16;
+    /* 0x16 */ u16 unk16;
     /* 0x18 */ u16 unk18;
     /* 0x1A */ s16 unk1A;
     /* 0x1C */ s16 unk1C;
@@ -57,15 +60,18 @@ typedef struct {
     /* 0x20 */ s32 unk20;
     /* 0x24 */ Vec unk24;
     /* 0x30 */ Vec unk30;
-    /* 0x3C */ char unk3C[4];
-    /* 0x40 */ f32 unk40;
-    /* 0x44 */ char unk44[0x18];
+    /* 0x3C */ Vec unk3C;
+    /* 0x48 */ Vec unk48;
+    /* 0x54 */ f32 unk54;
+    /* 0x58 */ char unk58[4];
     /* 0x5C */ s16 unk5C;
     /* 0x5E */ u16 unk5E;
     /* 0x60 */ u16 unk60;
     /* 0x62 */ u16 unk62;
     /* 0x64 */ u16 unk64;
-    /* 0x66 */ char unk66[0xA];
+    /* 0x66 */ char unk66[2];
+    /* 0x68 */ f32 unk68;
+    /* 0x6C */ f32 unk6C;
     /* 0x70 */ s16 unk70;
     /* 0x72 */ char unk72[6];
     /* 0x78 */ s16 unk78;
@@ -74,7 +80,7 @@ typedef struct {
     /* 0x82 */ s16 unk82;
     /* 0x84 */ char unk84[2];
     /* 0x86 */ s16 unk86;
-    /* 0x88 */ char unk88[2];
+    /* 0x88 */ s16 unk88; // low byte read as an s8 (fx mix)
     /* 0x8A */ s16 unk8A;
     /* 0x8C */ s16 unk8C;
     /* 0x8E */ char unk8E[6];
@@ -94,7 +100,7 @@ typedef struct {
 void func_80105E0C_end_of_the_line(omObjData *obj);
 void func_80105E88_end_of_the_line(omObjData *obj);
 void func_80106444_end_of_the_line(omObjData *obj);
-void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s32 arg2);
+void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2);
 void func_80107FF0_end_of_the_line(u16 arg0);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
@@ -104,6 +110,7 @@ void func_8010B064_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
+void func_801069D8_end_of_the_line(omObjData *obj);
 void func_80107F0C_end_of_the_line(void);
 void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
@@ -111,6 +118,8 @@ void func_8010C3F4_end_of_the_line(void);
 
 extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
 extern s16 D_8010C5C8_end_of_the_line[];
+extern f32 D_8010C5CC_end_of_the_line;
+extern f32 D_8010C5D0_end_of_the_line[2];
 extern s32 D_8010C5D8_end_of_the_line[5];
 extern s32 D_8010C5EC_end_of_the_line[5];
 extern s16 D_8010C600_end_of_the_line[2][4];
@@ -336,7 +345,7 @@ void func_80105E88_end_of_the_line(omObjData *obj) {
                 func_80106CDC_end_of_the_line(D_8010C738_end_of_the_line, D_8010C73C_end_of_the_line[i],
                                               D_8010C782_end_of_the_line[i] & 0xF);
                 if (D_8010C782_end_of_the_line[i] & 0x40) {
-                    pw->unk40 = 200.0f;
+                    pw->unk3C.y = 200.0f;
                 }
                 if (D_8010C782_end_of_the_line[i] & 0x80) {
                     pw->unk04->func = pw->unk08;
@@ -474,12 +483,10 @@ void func_801069D8_end_of_the_line(omObjData *obj) {
                 pw->unk24.z -= dz;
                 Hu3DModelPosSet(pobj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
                 Hu3DModelRotSet(pobj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
-                x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
-                Hu3DModelPosSet(pobj->model[2], x, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+                Hu3DModelPosSet(pobj->model[2], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
                 Hu3DModelRotSet(pobj->model[2], 0.0f, pw->unk30.y, 0.0f);
                 Hu3DModelScaleSet(pobj->model[4], 1.0f, 1.0f, 1.0f);
-                x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
-                Hu3DModelPosSet(pobj->model[4], x, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+                Hu3DModelPosSet(pobj->model[4], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
             }
             obj->func = NULL;
             return;
@@ -490,7 +497,261 @@ void func_801069D8_end_of_the_line(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801069D8_end_of_the_line);
 #endif
 
+#ifdef NON_MATCHING
+/* Masked residue: the three model[p + j * 2 + 20] loops strength-reduce j * 2 (retail reloads obj->model first); two lw scheduling differences. */
+void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
+    EotlPlayer *pw;
+    EotlHud *hud;
+    u16 p;
+    s32 j;
+    f32 x;
+    f32 y;
+
+    pw = arg1->data;
+    p = pw->unk00;
+    hud = arg0->data;
+    func_8001C258_main(arg0->model[p * 2], 4, 4);
+    func_8001C258_main(arg0->model[p * 2 + 1], 4, 4);
+    func_8001C258_main(arg0->model[p + 4], 4, 4);
+    func_8001C258_main(arg0->model[p + 12], 4, 4);
+    func_8001C258_main(arg0->model[p + 14], 4, 4);
+    func_8001C258_main(arg0->model[p + 16], 4, 4);
+    func_8001C258_main(arg0->model[p + 18], 4, 4);
+    for (j = 0; j < 5; j++) {
+        func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 4);
+    }
+    func_8001C258_main(arg0->model[p * 3 + 6], 4, 4);
+    func_8001C258_main(arg0->model[p * 3 + 7], 4, 4);
+    func_8001C258_main(arg0->model[p * 3 + 8], 4, 4);
+    func_8001C258_main(arg1->model[0], 4, 4);
+    func_8001C258_main(arg1->model[1], 4, 4);
+    func_8001C258_main(arg1->model[2], 4, 4);
+    func_8001C258_main(arg1->model[3], 4, 4);
+    func_8001C258_main(arg1->model[4], 4, 4);
+    func_8001C258_main(arg1->model[5], 4, 4);
+    func_8000BB94_main(hud->unk00[p]);
+    func_8000BB94_main(pw->unk5E);
+    func_8000BB94_main(pw->unk60);
+    func_8000BB94_main(pw->unk62);
+    func_8000BB94_main(pw->unk64);
+    HmfLightDirSet(1, 3.0f, 89.0f, 80.0f);
+    pw->unk18 = arg2;
+    pw->unk88 = 0x48;
+    switch (arg2) {
+    case 0:
+        HmfLightDirSet(1, 44.0f, 82.0f, -74.0f);
+        func_8001C258_main(arg0->model[p + 16], 4, 0);
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        omSetTra(arg1, 0.0f, 0.0f, 2000.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        pw->unk24.x = 0.0f;
+        pw->unk24.y = 0.0f;
+        pw->unk24.z = arg1->trans.z + 237.5f + 105.0f + 50.0f;
+        pw->unk30.x = 0.0f;
+        pw->unk30.y = 180.0f;
+        pw->unk30.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        pw->unk3C.x = 0.0f;
+        pw->unk3C.y = 0.0f;
+        pw->unk3C.z = 0.0f;
+        pw->unk48.x = 0.0f;
+        pw->unk48.y = 180.0f;
+        pw->unk48.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+        Hu3DModelRotSet(arg1->model[2], pw->unk48.x, pw->unk48.y, pw->unk48.z);
+        func_8000BB54_main(hud->unk00[p]);
+        for (j = 0; j < 5; j++) {
+            func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 0);
+        }
+        func_8001C258_main(arg0->model[p + 18], 4, 0);
+        Hu3DModelPosSet(arg0->model[p + 18], -1000.0f, 4000.0f, 0.0f);
+        Hu3DModelScaleSet(arg0->model[p + 18], 4.5f, 4.5f, 4.5f);
+        break;
+    case 1:
+        func_8001C258_main(arg0->model[p * 2], 4, 0);
+        func_8001C258_main(arg0->model[p + 4], 4, 0);
+        func_8001C258_main(arg0->model[p * 3 + pw->unk16 + 6], 4, 0);
+        Hu3DModelPosSet(arg0->model[p * 2], 0.0f, 0.0f, 0.0f);
+        Hu3DModelPosSet(arg0->model[p + 4], 0.0f, 0.0f, -3300.0f);
+        Hu3DModelPosSet(arg0->model[p * 3 + pw->unk16 + 6], 0.0f, 0.0f, -3150.0f);
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        omSetTra(arg1, 0.0f, 0.0f, 0.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        pw->unk24.x = 0.0f;
+        pw->unk24.y = 0.0f;
+        pw->unk24.z = 292.5f;
+        pw->unk30.x = 0.0f;
+        pw->unk30.y = 180.0f;
+        pw->unk30.z = 0.0f;
+        pw->unk3C.y = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        Hu3DModelPosSet(arg1->model[2], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk3C.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        Hu3DModelRotSet(arg1->model[2], 0.0f, 180.0f, 0.0f);
+        Hu3DModelPosSet(arg1->model[4], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk3C.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        func_8001C258_main(arg1->model[4], 4, 0);
+        func_8000BB54_main(hud->unk00[p]);
+        func_8000BBD4_main(hud->unk00[pw->unk00], D_8010C5D0_end_of_the_line[pw->unk00] + D_8010C5CC_end_of_the_line, 120);
+        if (D_8010C75A_end_of_the_line == 0 && D_8010C758_end_of_the_line == 0) {
+            pw->unk0C = 40.0f;
+            pw->unk88 = 0x48;
+        } else {
+            pw->unk0C = 0.0f;
+            pw->unk88 = 0;
+        }
+        pw->unk68 = 0.0f;
+        if (pw->unk86 != -1) {
+            func_80007D2C_main(pw->unk86, 22);
+        }
+        break;
+    case 2:
+        func_8001C258_main(arg0->model[p + 14], 4, 0);
+        Hu3DModelPosSet(arg0->model[p + 14], 0.0f, 0.0f, -1650.0f);
+        omSetTra(arg1, 0.0f, 0.0f, 0.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        Hu3DModelPosSet(arg1->model[2], arg1->trans.x, arg1->trans.y + 100.0f, arg1->trans.z + 20.0f);
+        Hu3DModelRotSet(arg1->model[2], 0.0f, 180.0f, 0.0f);
+        if (D_8010C758_end_of_the_line == 0) {
+            pw->unk0C = 40.0f;
+            pw->unk88 = 0x48;
+        } else {
+            pw->unk0C = 0.0f;
+            pw->unk88 = 0;
+        }
+        break;
+    case 3:
+        pw->unk88 = 0;
+        pw->unk54 = 345.0f;
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        for (j = 0; j < 5; j++) {
+            func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 0);
+        }
+        func_8001C258_main(arg0->model[p + 12], 4, 0);
+        Hu3DModelPosSet(arg0->model[p + 12], 0.0f, 0.0f, 0.0f);
+        func_8001C258_main(arg0->model[p + 18], 4, 0);
+        Hu3DModelPosSet(arg0->model[p + 18], 1000.0f, 2500.0f, 900.0f);
+        Hu3DModelScaleSet(arg0->model[p + 18], 5.0f, 5.0f, 5.0f);
+        omSetTra(arg1, -500.0f, -sindf(pw->unk54) * 447.5f, -500.0f);
+        omSetRot(arg1, pw->unk54, 0.0f, 0.0f);
+        pw->unk24.x = -500.0f;
+        pw->unk24.y = -sindf(pw->unk54) * 105.0f;
+        pw->unk24.z = -792.5f;
+        pw->unk30.x = pw->unk54;
+        pw->unk30.y = 0.0f;
+        pw->unk30.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
+        y = -sindf(pw->unk54) * 85.0f + 100.0f;
+        Hu3DModelPosSet(arg1->model[2], x, y, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        Hu3DModelRotSet(arg1->model[2], 0.0f, 180.0f, 0.0f);
+        func_8000BB54_main(hud->unk00[p]);
+        func_8000BBD4_main(hud->unk00[pw->unk00], D_8010C5D0_end_of_the_line[pw->unk00] + D_8010C5CC_end_of_the_line, 120);
+        pw->unk0C = 48.0f;
+        break;
+    case 4:
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        omSetTra(arg1, 0.0f, 0.0f, 950.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        pw->unk24.x = 0.0f;
+        pw->unk24.y = 0.0f;
+        pw->unk24.z = 1242.5f;
+        pw->unk30.x = 0.0f;
+        pw->unk30.y = 180.0f;
+        pw->unk30.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        Hu3DModelPosSet(arg1->model[2], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        Hu3DModelRotSet(arg1->model[2], 0.0f, 180.0f, 0.0f);
+        Hu3DModelPosSet(arg1->model[4], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        func_8001C258_main(arg1->model[4], 4, 0);
+        func_8000BB54_main(hud->unk0C[p]);
+        if (p == 0) {
+            func_8000BBD4_main(hud->unk0C[0], 0, 120);
+        } else {
+            func_8000BBD4_main(hud->unk0C[p], 320, 120);
+        }
+        pw->unk88 = 0x48;
+        if (pw->unk86 != -1) {
+            func_80007D2C_main(pw->unk86, 22);
+        }
+        break;
+    case 5:
+        func_8001C258_main(arg0->model[p * 2], 4, 0);
+        func_8001C258_main(arg0->model[p * 2 + 1], 4, 0);
+        hud->unk18[p][0] = 1650.0f;
+        hud->unk18[p][1] = -1650.0f;
+        Hu3DModelPosSet(arg0->model[p * 2], 0.0f, 0.0f, hud->unk18[p][0]);
+        Hu3DModelPosSet(arg0->model[p * 2 + 1], 0.0f, 0.0f, hud->unk18[p][1]);
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        omSetTra(arg1, 0.0f, 0.0f, 0.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        pw->unk24.x = 0.0f;
+        pw->unk24.y = 0.0f;
+        pw->unk24.z = 292.5f;
+        pw->unk30.x = 0.0f;
+        pw->unk30.y = 180.0f;
+        pw->unk30.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        pw->unk3C.x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
+        pw->unk3C.y = pw->unk24.y + 700.0f + 100.0f;
+        pw->unk3C.z = pw->unk24.z - cosdf(pw->unk30.y) * 20.0f;
+        pw->unk48.x = 0.0f;
+        pw->unk48.y = 180.0f;
+        pw->unk48.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+        Hu3DModelRotSet(arg1->model[2], pw->unk48.x, pw->unk48.y, pw->unk48.z);
+        func_8001C258_main(arg1->model[4], 4, 0);
+        Hu3DModelPosSet(arg1->model[4], pw->unk3C.x, 100.0f, pw->unk3C.z);
+        pw->unk6C = 0.1f;
+        func_8000BB54_main(hud->unk00[p]);
+        D_8010C738_end_of_the_line->func = func_801069D8_end_of_the_line;
+        break;
+    case 6:
+        func_8001C258_main(arg1->model[0], 4, 0);
+        func_8001C258_main(arg1->model[1], 4, 0);
+        func_8001C258_main(arg1->model[2], 4, 0);
+        omSetTra(arg1, 0.0f, 0.0f, 950.0f);
+        omSetRot(arg1, 0.0f, 180.0f, 0.0f);
+        pw->unk24.x = 0.0f;
+        pw->unk24.y = 0.0f;
+        pw->unk24.z = 1242.5f;
+        pw->unk30.x = 0.0f;
+        pw->unk30.y = 180.0f;
+        pw->unk30.z = 0.0f;
+        Hu3DModelPosSet(arg1->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(arg1->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+        Hu3DModelPosSet(arg1->model[2], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        Hu3DModelRotSet(arg1->model[2], 0.0f, 180.0f, 0.0f);
+        Hu3DModelPosSet(arg1->model[4], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+        func_8001C258_main(arg1->model[4], 4, 0);
+        func_8000BB54_main(hud->unk10[p]);
+        if (p == 0) {
+            func_8000BBD4_main(hud->unk0C[0], 0, 120);
+        } else {
+            func_8000BBD4_main(hud->unk0C[p], 320, 120);
+        }
+        break;
+    }
+    if (pw->unk86 != -1) {
+        func_8004AAD0_main(pw->unk86, ((s8 *)&pw->unk88)[1]);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106CDC_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80107F0C_end_of_the_line);
 
