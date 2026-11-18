@@ -456,6 +456,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory5/4CF350.c.o
 W2DC_BLANKSTRIP += build/src/overlays/mstory4/4C47E0.c.o build/src/overlays/mstory4/4C8050.c.o
 # m1 lj2: Log Jam 1A3D80 likewise (func_8010C084/func_8010C4B4, Slot Synch twins: no nop before the mul.s after a float call)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_13_log_jam/1A3D80.c.o
+# m2 cs: chip shot 1D9550 likewise (func_80106B84: no nop before the mul.s after cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_1B_chip_shot_challenge/1D9550.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
