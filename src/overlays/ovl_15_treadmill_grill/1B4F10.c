@@ -75,6 +75,7 @@ u8 func_8000B638_main(void);
 s32 func_80017BB8_main(s16, s16);
 s32 func_800202FC_main(Vec* v);
 f32 func_800202A8_main(f32 angle);
+void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 void* func_8001D33C_main(s16 model, char* name);
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z); /* guRotateRPYF */
 s16 func_80032694_main(HmfData* hmf, u16 anim, s32 arg2, char* name);
@@ -155,6 +156,12 @@ void func_80108DE0_treadmill_grill(omObjData* obj);
 void func_80108FCC_treadmill_grill(omObjData* obj);
 f32 func_801093E8_treadmill_grill(s32 i, omObjData* obj);
 s32 func_8010AB9C_treadmill_grill(f32 z);
+void func_8010980C_treadmill_grill(omObjData* obj);
+void func_8010A548_treadmill_grill(void);
+void func_8010A6A4_treadmill_grill(void);
+void func_8010A754_treadmill_grill(omObjData* obj);
+void func_8010A9AC_treadmill_grill(omObjData* obj);
+void func_8010ACBC_treadmill_grill(omObjData* obj);
 
 void func_80109108_treadmill_grill(omObjData* obj);
 
@@ -189,6 +196,13 @@ extern f32 D_8010B200_treadmill_grill[4];    /* hazard speed */
 extern s32 D_8010B210_treadmill_grill[4];    /* hazard wander timer */
 extern f32 D_8010B1B4_treadmill_grill[];     /* treadmill belt speeds */
 extern f32 D_8010B220_treadmill_grill;       /* shadow pulse angle */
+extern f32 D_8010AF88_treadmill_grill;       /* belt width scale */
+extern s32 D_8010B19C_treadmill_grill;       /* belt start: -1 not started */
+extern f32 D_8010B1A4_treadmill_grill[4];    /* belt texture scroll */
+extern s32 D_8010B1D4_treadmill_grill;
+extern s32 D_8010B1D8_treadmill_grill;
+extern s32 D_8010B1DC_treadmill_grill;
+extern s32 D_8010B224_treadmill_grill[4];    /* belt sounds, -1 none */
 extern s32 D_8010B128_treadmill_grill[4][4]; /* landing puff timers per player */
 extern f32 D_8010B168_treadmill_grill[4];    /* landing puff scales */
 extern s32 D_8010B300_treadmill_grill; /* CPU input: buttons pressed */
@@ -1309,7 +1323,106 @@ void func_8010980C_treadmill_grill(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010980C_treadmill_grill);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80109FA8_treadmill_grill);
+void func_80109FA8_treadmill_grill(omObjData* obj) {
+    MgWork* work;
+    omObjData* o;
+    s32 lane;
+    s32 i;
+
+    func_8001E65C_main(obj->model[0], D_8010B1A4_treadmill_grill[0], 0.0f, 0x20, 0x40);
+    func_8001E65C_main(obj->model[1], D_8010B1A4_treadmill_grill[1], 0.0f, 0x20, 0x40);
+    func_8001E65C_main(obj->model[2], D_8010B1A4_treadmill_grill[2], 0.0f, 0x20, 0x40);
+    func_8001E65C_main(obj->model[3], D_8010B1A4_treadmill_grill[3], 0.0f, 0x20, 0x40);
+    func_8010ACBC_treadmill_grill(obj);
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    if (func_800E6E8C_minigame() == 0) {
+        func_80106034_treadmill_grill(obj);
+    } else if (func_800E6E8C_minigame() == 2) {
+        Hu3DModelRotSet(obj->model[5], 0.0f, 0.0f, D_8010B1A4_treadmill_grill[0] * 1.2f);
+        Hu3DModelRotSet(obj->model[6], 0.0f, 0.0f, D_8010B1A4_treadmill_grill[0] * 1.2f);
+        D_8010B1A4_treadmill_grill[0] += D_8010B1B4_treadmill_grill[0];
+        D_8010B1A4_treadmill_grill[1] += D_8010B1B4_treadmill_grill[1];
+        D_8010B1A4_treadmill_grill[2] += D_8010B1B4_treadmill_grill[2];
+        D_8010B1A4_treadmill_grill[3] += D_8010B1B4_treadmill_grill[3];
+        func_8010980C_treadmill_grill(obj);
+        if (D_8010B19C_treadmill_grill == -1) {
+            func_8010A548_treadmill_grill();
+            D_8010B19C_treadmill_grill = 0;
+            D_8010B224_treadmill_grill[0] = HuAudFXPlay(0x397);
+            D_8010B224_treadmill_grill[1] = HuAudFXPlay(0x398);
+            D_8010B224_treadmill_grill[2] = HuAudFXPlay(0x399);
+            D_8010B224_treadmill_grill[3] = HuAudFXPlay(0x39A);
+        }
+        if (D_8010B19C_treadmill_grill == 0) {
+            if (D_8010B1D8_treadmill_grill != 0) {
+                func_8010A9AC_treadmill_grill(obj);
+                D_8010B1D8_treadmill_grill--;
+            }
+        } else {
+            D_8010B19C_treadmill_grill--;
+            if (D_8010B1D8_treadmill_grill != 0) {
+                func_8010A9AC_treadmill_grill(obj);
+                D_8010B1D8_treadmill_grill--;
+            } else {
+                func_8010A754_treadmill_grill(obj);
+            }
+        }
+        if (D_8010B19C_treadmill_grill == 0) {
+            if (++D_8010B1D4_treadmill_grill == 90) {
+                func_8010A548_treadmill_grill();
+            }
+            if (++D_8010B1DC_treadmill_grill == 300) {
+                func_8010A6A4_treadmill_grill();
+                for (i = 0; i < 4; i++) {
+                    work = D_800EC598_minigame[i]->data;
+                    if (D_8010AF84_treadmill_grill[i] == 0) {
+                        omVibrate(work->unk59, 20, 0, 20);
+                    }
+                }
+            }
+        }
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            o = D_800EC598_minigame[i];
+            work = o->data;
+            if (D_8010AF84_treadmill_grill[i] == 0 && work->unk53 == 1) {
+                lane = func_8010AA2C_treadmill_grill(o->trans.x, o->trans.z);
+                if (lane != -1) {
+                    if (lane >= -1) {
+                        if (lane < 4) {
+                            o->trans.x -= D_8010B1B4_treadmill_grill[lane] * 3.125f;
+                        }
+                    }
+                }
+            }
+        }
+        D_8010AFAC_treadmill_grill = func_800202A8_main(D_8010AFAC_treadmill_grill + 3.0f);
+        func_80109108_treadmill_grill(obj);
+    } else if (func_800E6E8C_minigame() == 3) {
+        if (D_8010B224_treadmill_grill[0] != -1) {
+            HuAudFXStop((s16)D_8010B224_treadmill_grill[0]);
+            D_8010B224_treadmill_grill[0] = -1;
+        }
+        if (D_8010B224_treadmill_grill[1] != -1) {
+            HuAudFXStop((s16)D_8010B224_treadmill_grill[1]);
+            D_8010B224_treadmill_grill[1] = -1;
+        }
+        if (D_8010B224_treadmill_grill[2] != -1) {
+            HuAudFXStop((s16)D_8010B224_treadmill_grill[2]);
+            D_8010B224_treadmill_grill[2] = -1;
+        }
+        if (D_8010B224_treadmill_grill[3] != -1) {
+            HuAudFXStop((s16)D_8010B224_treadmill_grill[3]);
+            D_8010B224_treadmill_grill[3] = -1;
+        }
+        func_801061E8_treadmill_grill(obj);
+    }
+    D_8010AF88_treadmill_grill = D_8010AF8C_treadmill_grill[0] / 1100.0f;
+    Hu3DModelScaleSet(obj->model[4], D_8010AF88_treadmill_grill, 1.0f, 1.0f);
+    Hu3DModelPosSet(obj->model[9], 0.0f, 0.0f, -450.0f);
+    Hu3DModelScaleSet(obj->model[9], D_8010AF88_treadmill_grill + 0.1f, 1.0f, 0.8f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010A548_treadmill_grill);
 
