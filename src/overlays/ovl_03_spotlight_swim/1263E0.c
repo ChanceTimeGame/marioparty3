@@ -139,6 +139,21 @@ typedef struct SsSplash {
 extern SsSplash D_8010D350_spotlight_swim;
 void func_8001F9E4_main(s16 model, u8 alpha);
 
+/* Views of D_8010D480_spotlight_swim[2] (.unk04, .unk06), and the entry itself. */
+extern SsEnt D_8010D588_spotlight_swim;
+extern s16 D_8010D58C_spotlight_swim;
+extern s16 D_8010D58E_spotlight_swim;
+/* D_8010D329_spotlight_swim: edge flags; .mode is D_8010D32C_spotlight_swim (two views of one block). */
+typedef struct SsFlags {
+    /* 0x00 */ s8 edge;
+    /* 0x01 */ u8 unk1;
+    /* 0x02 */ u8 unk2;
+    /* 0x03 */ s8 mode;
+} SsFlags;
+extern SsFlags D_8010D329_spotlight_swim;
+extern s8 D_8010CD98_spotlight_swim[][2];
+extern f32 D_8010D450_spotlight_swim[5][2];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -619,13 +634,80 @@ void func_80106EB0_spotlight_swim(omObjData *obj) {
     Hu3DModelPosSet(obj->model[7], D_8010D350_spotlight_swim.x[1], y, D_8010D350_spotlight_swim.z[1]);
 }
 
+#ifdef NON_MATCHING
+/* retail reloads D_8010D58E_spotlight_swim for the model index after the z store; mine reuses it (regalloc follows) */
+void func_801072C4_spotlight_swim(omObjData *obj) {
+    SsEnt *ent = &D_8010D588_spotlight_swim;
+    s32 edge;
+    f32 angle;
+    s8 kind;
+    s8 i;
+
+    if (D_8010D329_spotlight_swim.mode <= 0) {
+        kind = obj->work[1];
+        if (D_8010D343_spotlight_swim == 0) {
+            if (D_8010D58C_spotlight_swim == 0) {
+                D_8010D58E_spotlight_swim = (D_8010D58E_spotlight_swim + 1) & 3;
+                edge = D_8010D329_spotlight_swim.edge != 0;
+                angle = func_801059BC_spotlight_swim(obj->rot.y, -90.0f);
+                D_8010D450_spotlight_swim[D_8010D58E_spotlight_swim + 1][0] =
+                    obj->trans.x - D_8010CD98_spotlight_swim[kind][edge] * cosdf(angle);
+                D_8010D450_spotlight_swim[D_8010D58E_spotlight_swim + 1][1] =
+                    D_8010CD98_spotlight_swim[kind][edge] * sindf(angle) + obj->trans.z + 15.0f;
+                func_8001C6A8_main(obj->model[D_8010D58E_spotlight_swim + 1], 0.0f);
+                func_80105C04_spotlight_swim(1, (s16)obj->work[0]);
+            }
+            ent->unk04 = (ent->unk04 + 1) % 6;
+        }
+        for (i = 1; i < 5; i++) {
+            Hu3DModelPosSet(obj->model[i], D_8010D450_spotlight_swim[i][0],
+                            obj->trans.y - D_8010CD50_spotlight_swim[kind][D_8010D343_spotlight_swim] - 25.0f,
+                            D_8010D450_spotlight_swim[i][1]);
+            Hu3DModelScaleSet(obj->model[i], 0.3f, 0.5f, 0.5f);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801072C4_spotlight_swim);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010755C_spotlight_swim);
+void func_8010755C_spotlight_swim(omObjData *obj) {
+    f32 dx;
+    f32 dz;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80107674_spotlight_swim);
+    for (i = 0; i < 3; i++) {
+        dx = func_80105C8C_spotlight_swim(30) + 15;
+        if (func_80105C8C_spotlight_swim(2) != 0) {
+            dx = 0.0f - dx;
+        }
+        dz = func_80105C8C_spotlight_swim(30) + 15;
+        if (func_80105C8C_spotlight_swim(2) != 0) {
+            dz = 0.0f - dz;
+        }
+        D_8010D380_spotlight_swim[i] = dx + obj->trans.x;
+        D_8010D38C_spotlight_swim[i] = dz + obj->trans.z;
+        D_8010D39B_spotlight_swim[i] = 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80107710_spotlight_swim);
+s32 func_80107674_spotlight_swim(omObjData *obj) {
+    if ((D_800CBB6E_main[obj->work[3]] < 3 && obj->trans.x <= -450.0f) ||
+        (D_800CBB6E_main[obj->work[3]] >= 4 && obj->trans.x >= 450.0f)) {
+        D_8010D329_spotlight_swim.edge |= 1;
+        return 0;
+    }
+    return 1;
+}
+
+s32 func_80107710_spotlight_swim(omObjData *obj) {
+    if ((D_800D20A1_main[obj->work[3]] >= 4 && obj->trans.z <= -450.0f) ||
+        (D_800D20A1_main[obj->work[3]] < 3 && obj->trans.z >= 260.0f)) {
+        D_8010D329_spotlight_swim.edge |= 2;
+        return 0;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801077AC_spotlight_swim);
 
