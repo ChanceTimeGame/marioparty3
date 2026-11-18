@@ -136,7 +136,7 @@ extern s8 D_8010E169_hide_and_sneak; /* view: D_8010E168_hide_and_sneak.state */
 extern s8 D_8010E182_hide_and_sneak[4];
 extern s8 D_8010E186_hide_and_sneak;
 extern s8 D_8010E1A8_hide_and_sneak;
-extern u8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
+extern s8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
 extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_FADE].unk04 */
 extern u8 D_8010CE59_hide_and_sneak; /* view: the low byte of D_8010CE58_hide_and_sneak */
 extern s8 D_8010E170_hide_and_sneak;
@@ -177,6 +177,13 @@ Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
 void func_80107B30_hide_and_sneak(omObjData *obj);
 void func_801079E8_hide_and_sneak(omObjData *obj);
+s32 func_8010A7A4_hide_and_sneak(void);
+s32 func_8010A824_hide_and_sneak(void);
+void func_8010AC78_hide_and_sneak(void);
+void func_8010ACB8_hide_and_sneak(void);
+void func_80109578_hide_and_sneak(void);
+void func_801095DC_hide_and_sneak(void);
+void func_8010B118_hide_and_sneak(void);
 s8 func_80107CF4_hide_and_sneak(omObjData *obj);
 void func_80107BD8_hide_and_sneak(omObjData *obj, s8 motion);
 void func_80109D88_hide_and_sneak(omObjData *obj);
@@ -2175,7 +2182,133 @@ void func_8010B55C_hide_and_sneak(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B600_hide_and_sneak);
+void func_8010B600_hide_and_sneak(void) {
+    omObjData *obj = HS_ENT(HS_ENT_TITLE, 0)->obj;
+
+    switch (D_8010C780_hide_and_sneak) {
+        case 0:
+            if ((s8)func_8010A7A4_hide_and_sneak() != 0) {
+                GMesCreate(0x1A, 10, 160, 28);
+                D_8010E17A_hide_and_sneak = 151;
+                if (D_8010E174_hide_and_sneak != 0) {
+                    HuAudFXPlay(0x328);
+                }
+                D_8010E1AC_hide_and_sneak = 0;
+                D_8010C780_hide_and_sneak = 1;
+            }
+            break;
+        case 1:
+            if (D_8010E17A_hide_and_sneak > 0) {
+                D_8010E17A_hide_and_sneak--;
+                func_8003F578_main((D_8010E17A_hide_and_sneak + 29) / 30);
+                func_8010AC78_hide_and_sneak();
+            } else {
+                func_8003F5C0_main();
+                D_8010E17A_hide_and_sneak = 30;
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C92C_main(obj->model[0], 1.0f);
+                func_80109578_hide_and_sneak();
+                func_801095DC_hide_and_sneak();
+                func_8010B118_hide_and_sneak();
+                D_8010E1B3_hide_and_sneak = 0;
+                D_8010C780_hide_and_sneak = 2;
+                HuAudFXPlay(0x328);
+            }
+            break;
+        case 2:
+            if ((s32)HmfModelData[obj->model[0]].unk40 >= 60) {
+                func_8001C6A8_main(obj->model[0], 60.0f);
+                func_8001C92C_main(obj->model[0], 0.0f);
+                if (D_8010E17A_hide_and_sneak > 0) {
+                    D_8010E17A_hide_and_sneak--;
+                    break;
+                }
+                GMesCreate(0x1A, 10, 160, 28);
+                D_8010E17A_hide_and_sneak = 301;
+                func_8010ACB8_hide_and_sneak();
+                func_8001C92C_main(obj->model[0], -1.0f);
+                D_8010C780_hide_and_sneak = 3;
+            }
+            break;
+        case 3:
+            if ((s32)HmfModelData[obj->model[0]].unk40 <= 0) {
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                func_8001C92C_main(obj->model[0], 0.0f);
+                func_8001C258_main(obj->model[0], 4, 4);
+            }
+            if (D_8010E17A_hide_and_sneak > 0) {
+                D_8010E17A_hide_and_sneak--;
+                func_8003F578_main((D_8010E17A_hide_and_sneak + 29) / 30);
+            } else {
+                func_8003F5C0_main();
+                if (D_8010E174_hide_and_sneak == 2) {
+                    GMesCreate(0xF);
+                    HuAudSeqFadeOut(100);
+                    D_8010E1B2_hide_and_sneak = 1;
+                }
+                D_8010C780_hide_and_sneak = 4;
+            }
+            if (D_8010E170_hide_and_sneak != 0) {
+                D_8010E170_hide_and_sneak = 0;
+                func_8003F5C0_main();
+                D_8010C780_hide_and_sneak = 4;
+            }
+            break;
+        case 4:
+            if ((s32)HmfModelData[obj->model[0]].unk40 <= 0) {
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                func_8001C92C_main(obj->model[0], 0.0f);
+                func_8001C258_main(obj->model[0], 4, 4);
+            }
+            if (D_8010E170_hide_and_sneak != 0 && (s8)func_8010A824_hide_and_sneak() != 0 && D_8010E1B3_hide_and_sneak == 2) {
+                D_8010E1B3_hide_and_sneak = 0;
+                D_8010E170_hide_and_sneak = 0;
+                D_8010C780_hide_and_sneak = 5;
+            }
+            break;
+        case 5:
+            if (D_8010E1AD_hide_and_sneak == 3) {
+                D_8010E174_hide_and_sneak = 2;
+                D_8010E170_hide_and_sneak |= 2;
+            }
+            if (D_8010E170_hide_and_sneak == 3) {
+                D_8010E170_hide_and_sneak = 0;
+                if (D_8010E174_hide_and_sneak < 2) {
+                    D_8010E17A_hide_and_sneak = 20;
+                } else {
+                    D_8010E17A_hide_and_sneak = 0;
+                }
+                if (D_8010E17C_hide_and_sneak != -1) {
+                    D_8010C782_hide_and_sneak--;
+                }
+                D_8010C780_hide_and_sneak = 6;
+            }
+            break;
+        case 6:
+            if ((s32)HmfModelData[obj->model[0]].unk40 <= 0) {
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                func_8001C92C_main(obj->model[0], 0.0f);
+                func_8001C258_main(obj->model[0], 4, 4);
+            }
+            if (D_8010E17A_hide_and_sneak > 0) {
+                D_8010E17A_hide_and_sneak--;
+                break;
+            }
+            func_8003F5C0_main();
+            if (D_8010E1A9_hide_and_sneak[0] == 0 && D_8010E1A9_hide_and_sneak[1] == 0 && D_8010E1A9_hide_and_sneak[2] == 0) {
+                if (++D_8010E174_hide_and_sneak == 3) {
+                    D_8010C780_hide_and_sneak = 7;
+                    D_8010E1B3_hide_and_sneak = 2;
+                } else {
+                    D_8010C780_hide_and_sneak = 0;
+                    D_8010E1B3_hide_and_sneak = 3;
+                }
+            }
+            break;
+        case 7:
+            break;
+    }
+}
 
 void func_8010BBBC_hide_and_sneak(void) {
     u32 i;
