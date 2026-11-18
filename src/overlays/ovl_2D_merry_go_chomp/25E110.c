@@ -140,14 +140,14 @@ typedef struct McPl {
     /* 0x00 */ f32 dx;
     /* 0x04 */ f32 dz;
     /* 0x08 */ f32 rot;
-    /* 0x0C */ f32 unk0C;
-    /* 0x10 */ f32 unk10;
-    /* 0x14 */ f32 unk14;
-    /* 0x18 */ f32 unk18;
-    /* 0x1C */ u8 unk1C;
-    /* 0x1D */ u8 unk1D;
-    /* 0x1E */ u8 unk1E;
-    /* 0x1F */ u8 unk1F;
+    /* 0x0C */ f32 angle;
+    /* 0x10 */ f32 speed;
+    /* 0x14 */ f32 x;
+    /* 0x18 */ f32 z;
+    /* 0x1C */ s8 state;
+    /* 0x1D */ s8 timer;
+    /* 0x1E */ s8 wait;
+    /* 0x1F */ s8 jump;
     /* 0x20 */ s8 slot;
 } McPl; // Size 0x24
 
@@ -156,6 +156,7 @@ extern McPl D_8010C420_merry_go_chomp[4];
 extern HuSprite_Unk84_Struct *D_8010C414_merry_go_chomp;
 extern s8 D_8010C4B0_merry_go_chomp;
 extern s16 D_8010C4B2_merry_go_chomp;
+extern s8 D_8010C4BD_merry_go_chomp;
 extern s8 D_8010C4BE_merry_go_chomp[5];
 extern s8 D_8010C4CE_merry_go_chomp;
 /* The object table: [0] the background, [5..8] the players, [10], [15], [25], [30] the stage objects. */
@@ -168,6 +169,10 @@ extern u8 D_8010DEDC_merry_go_chomp;
 
 /* .data */
 extern s32 D_8010C140_merry_go_chomp[8];
+extern s8 D_8010C160_merry_go_chomp[17];
+extern f32 D_8010C174_merry_go_chomp[17];
+extern f32 D_8010C1B8_merry_go_chomp[4];
+extern f32 D_8010C1C8_merry_go_chomp[4];
 extern f32 D_8010C1D8_merry_go_chomp[3][5];
 extern s32 D_8010C254_merry_go_chomp;
 extern McCamera D_8010C258_merry_go_chomp[2];
@@ -189,6 +194,7 @@ void func_80107664_merry_go_chomp(omObjData *obj);
 void func_801077D0_merry_go_chomp(omObjData *obj);
 void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale);
 s8 func_80107980_merry_go_chomp(void);
+void func_80107E34_merry_go_chomp(omObjData *obj);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -848,7 +854,124 @@ s8 func_80107980_merry_go_chomp(void) {
     return found;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107E34_merry_go_chomp);
+void func_80107E34_merry_go_chomp(omObjData *obj) {
+    s8 player = obj->work[0];
+    McEnt *ent = MC_ENT(MC_ENT_PLAYER, player);
+    McPl *pl = &D_8010C420_merry_go_chomp[player];
+
+    if (ent->unk04 == 0) {
+        switch (pl->state) {
+        case 0:
+            pl->timer = 0;
+            pl->wait = 0;
+            pl->x = obj->trans.x;
+            pl->z = obj->trans.z;
+            pl->speed = 18.0f;
+            pl->angle = func_801059BC_merry_go_chomp(atan2df(obj->trans.x, obj->trans.z), 0.0f);
+            func_80106B9C_merry_go_chomp(obj, 1);
+            pl->state++;
+            D_8010C4BD_merry_go_chomp = 0;
+            break;
+        case 1:
+            pl->x += sindf(pl->angle) * pl->speed;
+            pl->z += cosdf(pl->angle) * pl->speed;
+            if (sqrtf(pl->x * pl->x + pl->z * pl->z) > 350.0f) {
+                pl->state++;
+            }
+            break;
+        case 2:
+            if (pl->wait != 0) {
+                func_80106B9C_merry_go_chomp(obj, 0);
+                if (++pl->wait < 16) {
+                    break;
+                }
+                func_80106B9C_merry_go_chomp(obj, 1);
+                pl->wait = 0;
+            }
+            pl->angle = func_801059BC_merry_go_chomp(atan2df(410.0f - pl->x, 100.0f - pl->z), 0.0f);
+            pl->x += sindf(pl->angle) * pl->speed;
+            pl->z += cosdf(pl->angle) * pl->speed;
+            if (pl->speed == 0.0f) {
+                func_80106B9C_merry_go_chomp(obj, 0);
+            } else {
+                func_80106B9C_merry_go_chomp(obj, 1);
+            }
+            if (pl->x > 390.0f && pl->x < 430.0f && pl->z > 80.0f && pl->z < 120.0f) {
+                pl->state++;
+            }
+            break;
+        case 3:
+            if (pl->wait != 0) {
+                func_80106B9C_merry_go_chomp(obj, 0);
+                if (++pl->wait < 16) {
+                    break;
+                }
+                func_80106B9C_merry_go_chomp(obj, 1);
+                pl->wait = 0;
+            }
+            pl->angle = func_801059BC_merry_go_chomp(atan2df(490.0f - pl->x, -20.0f - pl->z), 0.0f);
+            pl->x += sindf(pl->angle) * pl->speed;
+            pl->z += cosdf(pl->angle) * pl->speed;
+            if (pl->speed == 0.0f) {
+                func_80106B9C_merry_go_chomp(obj, 0);
+            } else {
+                func_80106B9C_merry_go_chomp(obj, 1);
+            }
+            if (pl->x > 470.0f && pl->x < 510.0f && pl->z > -40.0f && pl->z < 0.0f) {
+                pl->state++;
+                obj->work[1] = D_8010C4BD_merry_go_chomp;
+                D_8010C4BD_merry_go_chomp++;
+            }
+            break;
+        case 4:
+            func_80106B9C_merry_go_chomp(obj, 2);
+            func_8001C258_main(obj->model[1], 4, 4);
+            obj->rot.y = 210.0f;
+            if (obj->trans.y < 630.0f) {
+                obj->trans.y += 10.0f;
+            } else {
+                obj->trans.y = 630.0f;
+                func_80106B9C_merry_go_chomp(obj, 6);
+                pl->dx = (D_8010C1B8_merry_go_chomp[obj->work[1]] - pl->x) / 17.0f;
+                pl->dz = (D_8010C1C8_merry_go_chomp[obj->work[1]] - pl->z) / 17.0f;
+                pl->rot = atan2df(pl->dx, pl->dz);
+                pl->timer = 0;
+                pl->state++;
+            }
+            break;
+        case 5:
+            if (pl->timer == 0) {
+                func_8004ACE0_main(0x3A, (s16)obj->work[0]);
+            }
+            func_8001C258_main(obj->model[1], 4, 0);
+            func_801077D0_merry_go_chomp(obj);
+            pl->jump = 1;
+            obj->trans.y += D_8010C160_merry_go_chomp[pl->timer];
+            ent->unk24 = D_8010C174_merry_go_chomp[pl->timer];
+            if (++pl->timer >= 17) {
+                pl->jump = 0;
+                func_80106B9C_merry_go_chomp(obj, 0);
+                pl->state++;
+                func_8004ACE0_main(0x31, (s16)obj->work[0]);
+            }
+            break;
+        case 6:
+            if (func_80105F40_merry_go_chomp(obj, 330.0f)) {
+                func_80106B9C_merry_go_chomp(obj, 1);
+            } else {
+                func_80106B9C_merry_go_chomp(obj, 0);
+                D_8010DEDC_merry_go_chomp |= 1 << obj->work[1];
+                pl->state++;
+            }
+            break;
+        case 7:
+            break;
+        }
+        if (ent->unk06 == 1) {
+            func_80106AF4_merry_go_chomp(obj);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801084C8_merry_go_chomp);
 
