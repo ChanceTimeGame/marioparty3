@@ -106,8 +106,9 @@ typedef struct PgPlayer {
     /* 0x31 */ u8 unk31;
     /* 0x32 */ u8 unk32;
     /* 0x33 */ u8 unk33;
-    /* 0x34 */ s16 cpuDir; /* CPU: target hole */
-    /* 0x36 */ char unk36[0x1E];
+    /* 0x34 */ s16 cpuWait; /* CPU: frames until its next input */
+    /* 0x36 */ u16 cpuBtn; /* CPU: button pressed when cpuWait runs out */
+    /* 0x38 */ char unk38[0x1C];
 } PgPlayer; /* size 0x54 */
 
 #define PG_PLAYER(i) ((PgPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
@@ -209,6 +210,7 @@ void func_80106D4C_crowd_cover(omObjData* obj);
 void func_80107E40_crowd_cover(omObjData* obj);
 void func_80106CB8_crowd_cover(void);
 void func_80107E0C_crowd_cover(void);
+u16 func_80107C5C_crowd_cover(omObjData* obj);
 
 
 
@@ -431,7 +433,28 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC08
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107554_crowd_cover);
 
+typedef struct CcTbl9 {
+    s16 v[9];
+} CcTbl9;
+extern CcTbl9 D_8010CC70_crowd_cover;
+
+#ifdef NON_MATCHING
+/* CPU input: the button held in cpuBtn, released once cpuWait counts down to 0. */
+u16 func_80107C5C_crowd_cover(omObjData* obj) {
+    CcTbl9 tbl = D_8010CC70_crowd_cover; /* unused copy */
+    MgWork* work = obj->data;
+    PgPlayer* pl = work->unk158;
+    u16 btn;
+
+    btn = 0;
+    if (--pl->cpuWait == 0) {
+        btn = pl->cpuBtn;
+    }
+    return btn;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107C5C_crowd_cover);
+#endif
 
 s16 func_80107CE0_crowd_cover(s16 tex, s16 x, s16 y, f32 rot) {
     s16 grp;
@@ -501,9 +524,33 @@ void func_80109044_crowd_cover(Vec* dir, f32* angles) {
     *angles = 0.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_801090CC_crowd_cover);
+void func_801090CC_crowd_cover(s16 model, char* name, s16 frame, Vec* out) {
+    HuMtx4F mdl;
+    HuMtx4F res;
+    HuMtx4F obj;
+    HmfModel* m;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_801091FC_crowd_cover);
+    func_80016B00_main(model, frame, name, obj);
+    m = &HmfModelData[model];
+    func_8002367C_main(mdl, (f32 (*)[4])m->mtx);
+    func_80017C10_main((Mtx*)mdl, m->pos.x, m->pos.y, m->pos.z);
+    func_80017D24_main(mdl, m->rot.x, m->rot.y, m->rot.z);
+    func_80017CD0_main(mdl, m->scale.x, m->scale.y, m->scale.z);
+    func_80018044_main(obj, mdl, res);
+    out->x = res[0][0] + res[1][0] + res[2][0] + res[3][0];
+    out->y = res[0][1] + res[1][1] + res[2][1] + res[3][1];
+    out->z = res[0][2] + res[1][2] + res[2][2] + res[3][2];
+}
+
+s16 func_801091FC_crowd_cover(s32 id) {
+    void* file;
+    s16 sprite;
+
+    file = DataRead(id);
+    sprite = func_80055810_main(file);
+    DataClose(file);
+    return sprite;
+}
 
 s16 func_80109244_crowd_cover(s16 tex, s16 n) {
     s16 grp;
