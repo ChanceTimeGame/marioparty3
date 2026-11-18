@@ -178,6 +178,8 @@ typedef struct {
 
 PathSample func_8010D0AC_motor_rooter(s16 seg, f32 dist);
 void func_8010D1A8_motor_rooter(s16 pos, s16 lane);
+void func_8010DC3C_motor_rooter(s16 pos, s16 lane);
+void func_8010DD10_motor_rooter(FuncContext *ctx);
 void func_8010D2E4_motor_rooter(s32);
 s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
 s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
@@ -2368,6 +2370,32 @@ void func_8010D1A8_motor_rooter(s16 pos, s16 lane) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D2E4_motor_rooter);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010DC3C_motor_rooter);
+/* <func_8010DC3C_motor_rooter> */
+void func_8010DC3C_motor_rooter(s16 pos, s16 lane) {
+    if (pos < D_801137CC_motor_rooter && D_801137D0_motor_rooter < 100 &&
+        (D_801137D0_motor_rooter < 16 ||
+         pos - m254_minigame->unk14[D_801137D0_motor_rooter - 15] >= m254_minigame->unk0E)) {
+        while (lane < 0) {
+            lane += 8;
+        }
+        while (lane >= 8) {
+            lane -= 8;
+        }
+        m254_minigame->unk14[D_801137D0_motor_rooter] = pos;
+        m254_minigame->unkDC[D_801137D0_motor_rooter++] = lane;
+    }
+}
+/* </func_8010DC3C_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010DD10_motor_rooter);
+/* <func_8010DD10_motor_rooter> */
+void func_8010DD10_motor_rooter(FuncContext *ctx) {
+    if (++ctx->work.s8[0] > 5) {
+        ctx->work.s8[0] = 0;
+        if (CPU_BTN[0] & 0x2000) {
+            D_80113458_motor_rooter = (D_80113458_motor_rooter + 1 >= 3) ? 0 : D_80113458_motor_rooter + 1;
+        }
+    }
+    sprintf(D_800D5218_main, "CONT TYPE %d", D_80113458_motor_rooter);
+    print8(16, 80, D_800D5218_main);
+}
+/* </func_8010DD10_motor_rooter> */
