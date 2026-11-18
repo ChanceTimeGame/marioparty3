@@ -69,15 +69,57 @@ void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 f32 fabsf(f32);
 f64 fmod(f64, f64);
+u8 func_8000B638_main(void);
+void func_80105BB0_baby_bowser_bonkers(omObjData* obj);
+extern omObjData* D_8010BC38_baby_bowser_bonkers;
+extern s32 D_8010BC40_baby_bowser_bonkers;
+extern s32 D_8010BC44_baby_bowser_bonkers;
+extern s32 D_8010BC48_baby_bowser_bonkers;
+extern s32 D_8010BC4C_baby_bowser_bonkers;
+extern s32 D_8010BC50_baby_bowser_bonkers;
+extern s32 D_8010BC54_baby_bowser_bonkers;
+extern s16 D_8010BC5C_baby_bowser_bonkers;
+extern D_80111B50_vine_with_me_Struct D_8010BD08_baby_bowser_bonkers;
 // end m3 bk
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801059A0_baby_bowser_bonkers);
+const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
+const s16 D_8010B95C_baby_bowser_bonkers[] = { 0x8265, 0x8268, 0x826D, 0x8268, 0x8272, 0x8267, 0x0000, 0x0000 };
+
+void func_801059A0_baby_bowser_bonkers(void) {
+    u8 cam;
+
+    Hu3DAnimInit(50);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    func_800142A0_main(0x10);
+    omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -56.0f, 50.0f, 56.0f);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 30.0f, 80.0f, 4000.0f);
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    D_800EC1B8_minigame = 0;
+    D_8010BC48_baby_bowser_bonkers = 900;
+    D_8010BC44_baby_bowser_bonkers = 0;
+    D_8010BC40_baby_bowser_bonkers = 0;
+    D_8010BC4C_baby_bowser_bonkers = -1;
+    D_8010BC50_baby_bowser_bonkers = 0;
+    D_8010BC54_baby_bowser_bonkers = -1;
+    D_8010BC5C_baby_bowser_bonkers = -1;
+    D_8010BC38_baby_bowser_bonkers = omAddObj(0x20, 0, 0, -1, func_80105BB0_baby_bowser_bonkers);
+    memset(&D_8010BD08_baby_bowser_bonkers, 0, 0x28);
+    D_8010BD08_baby_bowser_bonkers.unk01 = 4;
+    func_800E5EA0_minigame(&D_8010BD08_baby_bowser_bonkers);
+    func_80045010_main(D_8010B950_baby_bowser_bonkers, 1);
+    func_80045010_main(D_8010B95C_baby_bowser_bonkers, 1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80105BB0_baby_bowser_bonkers);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", D_8010B950_baby_bowser_bonkers);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", D_8010B95C_baby_bowser_bonkers);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80105C0C_baby_bowser_bonkers);
 
