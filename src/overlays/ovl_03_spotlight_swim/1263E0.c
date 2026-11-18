@@ -224,10 +224,14 @@ extern s8 D_8010CCC0_spotlight_swim[][3];
 extern s8 D_8010D320_spotlight_swim[3];
 extern s8 D_8010D340_spotlight_swim[3];
 
+/* View of D_8010D480_spotlight_swim[13].unk04. */
+extern s16 D_8010DB38_spotlight_swim;
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
 void func_80106808_spotlight_swim(omObjData *obj);
+void func_80106EB0_spotlight_swim(omObjData *obj);
 void func_80106790_spotlight_swim(omObjData *obj);
 void func_80106BC8_spotlight_swim(omObjData *obj);
 void func_8010755C_spotlight_swim(omObjData *obj);
@@ -1585,7 +1589,164 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010ADF8_spotlight_swim);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010AE9C_spotlight_swim);
+/* The end sequences: the swimmer is hauled out (state 1) or the cage drops on the swimmer (state 2). */
+void func_8010AE9C_spotlight_swim(omObjData *obj) {
+    SsEnt *ent = &D_8010D480_spotlight_swim[13];
+
+    if (D_8010EE48_spotlight_swim == 5) {
+        D_8010DB38_spotlight_swim = 1;
+    } else if (D_8010D2F4_spotlight_swim == 7) {
+        ent->unk04 = 2;
+    }
+    if (ent->unk04 == 1) {
+        if (obj->trans.y == 920.0f) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 0);
+            obj->trans.x = D_8010D348_spotlight_swim->trans.x;
+            obj->trans.z = D_8010D348_spotlight_swim->trans.z;
+            ent->unk06 = (obj->trans.x > 0.0f) ? 0 : 1;
+            ent->unk18 = 20.0f;
+        }
+        switch (ent->unk08) {
+        case 0:
+            if (++ent->unk0A >= 30) {
+                ent->unk08 = 1;
+                ent->unk0A = 0;
+                HuAudFXPlay(0x319);
+            }
+            break;
+        case 1:
+            ent->unk0A++;
+            if (obj->trans.y >= 340.0f) {
+                obj->trans.y -= ent->unk18;
+            } else if (obj->trans.y >= 140.0f) {
+                ent->unk18 -= 1.0f;
+                obj->trans.y -= ent->unk18;
+            } else {
+                obj->trans.y = 140.0f;
+                ent->unk0A = 0;
+                ent->unk08 = 2;
+                ent->unk18 = 0.0f;
+                if (D_8010D348_spotlight_swim->work[1] == 4 || D_8010D348_spotlight_swim->work[1] == 5) {
+                    func_80105D4C_spotlight_swim(D_8010D348_spotlight_swim, 7, 15, 15, 1);
+                } else {
+                    func_80105D4C_spotlight_swim(D_8010D348_spotlight_swim, 7, 0, 15, 0);
+                }
+                D_8010D343_spotlight_swim = 7;
+            }
+            break;
+        case 2:
+            if (++ent->unk0A >= 10) {
+                ent->unk08 = 3;
+            }
+            break;
+        case 3:
+            obj->trans.y += ent->unk18;
+            D_8010D338_spotlight_swim[0] += ent->unk18;
+            if (ent->unk06 != 0) {
+                obj->rot.y = func_801059BC_spotlight_swim(obj->rot.y, 1.0f);
+                D_8010D348_spotlight_swim->rot.y = func_801059BC_spotlight_swim(D_8010D348_spotlight_swim->rot.y, 1.0f);
+            } else {
+                obj->rot.y = func_801059BC_spotlight_swim(obj->rot.y, -1.0f);
+                D_8010D348_spotlight_swim->rot.y = func_801059BC_spotlight_swim(D_8010D348_spotlight_swim->rot.y, -1.0f);
+            }
+            if (obj->trans.y <= 245.0f) {
+                ent->unk18 += 2.0f;
+            } else if (obj->trans.y >= 355.0f) {
+                ent->unk18 -= 2.0f;
+            }
+            if (obj->trans.y >= 460.0f) {
+                ent->unk08 = 4;
+                ent->unk18 = 0.0f;
+                ent->unk0A = 0;
+            }
+            break;
+        case 4:
+            if (ent->unk06 != 0) {
+                obj->trans.x += ent->unk1C;
+                D_8010D348_spotlight_swim->trans.x += ent->unk1C;
+            } else {
+                obj->trans.x -= ent->unk1C;
+                D_8010D348_spotlight_swim->trans.x -= ent->unk1C;
+            }
+            obj->trans.z += ent->unk20;
+            D_8010D348_spotlight_swim->trans.z += ent->unk20;
+            obj->trans.y += ent->unk18;
+            D_8010D338_spotlight_swim[0] += ent->unk18;
+            ent->unk18 += 0.2;
+            if (++ent->unk0A < 31) {
+                ent->unk1C += 0.5f;
+                ent->unk20 += 1.8f;
+            }
+            if (obj->trans.z > 1400.0f) {
+                ent->unk08 = 5;
+            }
+            break;
+        }
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    }
+    if (ent->unk04 == 2) {
+        switch (ent->unk08) {
+        case 0:
+            func_8001C258_main(obj->model[2], 4, 0);
+            ent->pos.x = D_8010D348_spotlight_swim->trans.x;
+            ent->pos.z = D_8010D348_spotlight_swim->trans.z;
+            D_8010D450_spotlight_swim[0][0] = ent->pos.x;
+            D_8010D450_spotlight_swim[0][1] = ent->pos.z + 95.0f;
+            D_8010D450_spotlight_swim[1][0] = ent->pos.x + 85.0f;
+            D_8010D450_spotlight_swim[1][1] = ent->pos.z + 55.0f;
+            D_8010D450_spotlight_swim[2][0] = ent->pos.x - 85.0f;
+            D_8010D450_spotlight_swim[2][1] = ent->pos.z + 55.0f;
+            ent->unk08 = 1;
+            break;
+        case 1:
+            CRotM[0].x += 0.6f;
+            if (++ent->unk0A >= 20) {
+                ent->unk08 = 2;
+                ent->unk0A = 0;
+            }
+            break;
+        case 2:
+            ent->pos.y -= ent->unk18;
+            ent->unk18 += 3.5f;
+            if (ent->pos.y < -260.0f) {
+                ent->pos.y = -260.0f;
+                ent->unk08 = 3;
+                func_8001C6A8_main(D_8010D348_spotlight_swim->model[1], 0.0f);
+                Hu3DModelScaleSet(D_8010D348_spotlight_swim->model[1], 0.8f, 1.2f, 1.0f);
+                Hu3DModelRotSet(D_8010D348_spotlight_swim->model[1], 0.0f, 0.0f, 0.0f);
+                func_8001C6A8_main(D_8010D348_spotlight_swim->model[2], 0.0f);
+                Hu3DModelScaleSet(D_8010D348_spotlight_swim->model[2], 0.8f, 1.2f, 1.0f);
+                Hu3DModelRotSet(D_8010D348_spotlight_swim->model[2], 0.0f, 50.0f, 0.0f);
+                func_8001C6A8_main(D_8010D348_spotlight_swim->model[3], 0.0f);
+                Hu3DModelScaleSet(D_8010D348_spotlight_swim->model[3], 0.8f, 1.2f, 1.0f);
+                Hu3DModelRotSet(D_8010D348_spotlight_swim->model[3], 0.0f, 310.0f, 0.0f);
+                HuAudFXPlay(0x315);
+                D_8010D478_spotlight_swim = 1;
+                if (!(GwPlayer[D_8010D348_spotlight_swim->work[0]].stat & 1)) {
+                    omVibrate((s16)D_8010D348_spotlight_swim->work[0], 2, 2, 20);
+                }
+            }
+            break;
+        case 3:
+            ent->pos.y += 1.0f;
+            if (ent->pos.y >= -220.0f) {
+                ent->pos.y = -220.0f;
+                ent->unk08 = 5;
+            }
+            break;
+        }
+        Hu3DModelPosSet(D_8010D348_spotlight_swim->model[1], D_8010D450_spotlight_swim[0][0], -230.0f, D_8010D450_spotlight_swim[0][1]);
+        Hu3DModelPosSet(D_8010D348_spotlight_swim->model[2], D_8010D450_spotlight_swim[1][0], -230.0f, D_8010D450_spotlight_swim[1][1]);
+        Hu3DModelPosSet(D_8010D348_spotlight_swim->model[3], D_8010D450_spotlight_swim[2][0], -230.0f, D_8010D450_spotlight_swim[2][1]);
+        Hu3DModelPosSet(obj->model[2], ent->pos.x, ent->pos.y, ent->pos.z);
+    }
+    D_8010D348_spotlight_swim->trans.y = D_8010D338_spotlight_swim[0] + -200.0f +
+        D_8010CD50_spotlight_swim[D_8010D348_spotlight_swim->work[1]][D_8010D343_spotlight_swim];
+    func_80106EB0_spotlight_swim(D_8010D348_spotlight_swim);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010B828_spotlight_swim);
 
