@@ -1,39 +1,388 @@
 #include "common.h"
+// m2 sd: Slap Down (four players)
+#include "overlays/minigame.h"
+#include "game/audio.h"
+#include "game/data.h"
+#include "game/esprite.h"
+#include "game/gamework_data.h"
+#include "game/hmfman.h"
+#include "game/object.h"
+#include "game/util.h"
+#include "math.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801059A0_slapdown);
+f64 fabs(f64);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801059BC_slapdown);
+// esprite
+void func_8000BC48_main(u16, s32);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105A3C_slapdown);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105A74_slapdown);
+void func_8010A550_slapdown(void);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105B3C_slapdown);
+/* One slot of the overlay's object table (D_8010AAB0_slapdown, 50 x 0x84):
+ * [0] background sprite, [1] the shuffling card object, [2..10] the nine cards,
+ * [11..14] the players, [15..18] the player panels. */
+typedef struct SdEnt {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ s32 unk1C;
+    /* 0x20 */ s32 unk20;
+    /* 0x24 */ s32 unk24;
+    /* 0x28 */ s32 unk28;
+    /* 0x2C */ s32 unk2C;
+    /* 0x30 */ s32 unk30;
+    /* 0x34 */ s32 unk34;
+    /* 0x38 */ s32 unk38;
+    /* 0x3C */ s32 unk3C;
+    /* 0x40 */ s16 unk40;
+    /* 0x42 */ s16 unk42;
+    /* 0x44 */ Vec unk44;
+    /* 0x50 */ Vec unk50;
+    /* 0x5C */ Vec unk5C;
+    /* 0x68 */ f32 unk68;
+    /* 0x6C */ f32 unk6C;
+    /* 0x70 */ f32 unk70;
+    /* 0x74 */ f32 unk74;
+    /* 0x78 */ Vec unk78;
+} SdEnt; // Size 0x84
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105BB4_slapdown);
+typedef struct {
+    s16 unk0;
+    s16 unk2;
+} SdCpuRate;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105CBC_slapdown);
+#define SD_ENT_BG 0
+#define SD_ENT_DECK 1
+#define SD_ENT_CARD 2
+#define SD_ENT_PLAYER 11
+#define SD_ENT_PANEL 15
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106290_slapdown);
+// bss
+extern s16 D_8010AA10_slapdown;
+extern s16 D_8010AA12_slapdown;
+extern s16 D_8010AA14_slapdown;
+extern s16 D_8010AA16_slapdown[4];
+extern void *D_8010AA20_slapdown[4];
+extern s16 D_8010AA30_slapdown;
+extern s16 D_8010AA32_slapdown;
+extern s16 D_8010AA38_slapdown[9];
+extern f32 D_8010AA4C_slapdown;
+extern u8 D_8010AA50_slapdown;
+extern s16 D_8010AA52_slapdown;
+extern void *D_8010AA58_slapdown[5];
+extern u8 D_8010AA6E_slapdown;
+extern s16 D_8010AA72_slapdown;
+extern s16 D_8010AA74_slapdown;
+extern s16 D_8010AA76_slapdown;
+extern void *D_8010AA78_slapdown[6];
+extern s16 D_8010AA90_slapdown[4];
+extern s16 D_8010AA98_slapdown;
+extern s16 D_8010AA9A_slapdown;
+extern void *D_8010AA9C_slapdown;
+extern s16 D_8010AAA0_slapdown;
+extern SdEnt D_8010AAB0_slapdown[50];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010629C_slapdown);
+// data
+extern SdCpuRate D_8010A760_slapdown[];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106338_slapdown);
+f32 fabsf(f32);
+void func_80106600_slapdown(omObjData *obj);
+void func_80106608_slapdown(omObjData *obj);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801063D4_slapdown);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106534_slapdown);
-
-void func_80106600_slapdown(void) {
+void func_801059A0_slapdown(void) {
+    func_8010A550_slapdown();
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106608_slapdown);
+f32 func_801059BC_slapdown(f32 angle, f32 add) {
+    angle += add;
+    while (angle >= 360.0f) {
+        angle -= 360.0f;
+    }
+    while (angle < 0.0f) {
+        angle += 360.0f;
+    }
+    return angle;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801066A4_slapdown);
+u8 func_80105A3C_slapdown(s32 max) {
+    return (u32)(rand8() * max) >> 8;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801066E4_slapdown);
+void func_80105A74_slapdown(void) {
+    u32 i;
+    SdEnt *ent;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106780_slapdown);
+    for (i = 0, ent = D_8010AAB0_slapdown; i < 50; i++, ent++) {
+        ent->obj = NULL;
+        ent->unk04 = 0;
+        ent->unk06 = 0;
+        ent->unk08 = 0;
+        ent->unk0A = 0;
+        ent->unk0C = 0;
+        ent->unk0E = 0;
+        ent->unk10 = 0;
+        ent->unk12 = 0;
+        ent->unk14 = 0;
+        ent->unk16 = 0;
+        ent->unk18 = 0;
+        ent->unk1C = 0;
+        ent->unk20 = 0;
+        ent->unk24 = 0;
+        ent->unk28 = 0;
+        ent->unk2C = 0;
+        ent->unk30 = 0;
+        ent->unk34 = 0;
+        ent->unk38 = 0;
+        ent->unk3C = 0;
+        ent->unk40 = -1;
+        ent->unk42 = -1;
+        ent->unk44.x = ent->unk44.y = ent->unk44.z = 0.0f;
+        ent->unk50.x = ent->unk50.y = ent->unk50.z = 0.0f;
+        ent->unk5C.x = ent->unk5C.y = ent->unk5C.z = 0.0f;
+        ent->unk68 = 0.0f;
+        ent->unk6C = 0.0f;
+        ent->unk70 = 0.0f;
+        ent->unk74 = 0.0f;
+        ent->unk78.x = ent->unk78.y = ent->unk78.z = 0.0f;
+    }
+}
+
+void func_80105B3C_slapdown(s32 player) {
+    D_800CDA7C_main[GwPlayer[player].pad] = 0;
+    D_800D5558_main[GwPlayer[player].pad] = 0;
+    D_800CBB6E_main[GwPlayer[player].pad] = 0;
+    D_800D20A1_main[GwPlayer[player].pad] = 0;
+}
+
+void func_80105BB4_slapdown(f32 x0, f32 z0, f32 x1, f32 z1) {
+    f32 dx = fabs(x0 - x1) * 5.0;
+    f32 dz = fabs(z0 - z1) * 5.0;
+    f32 zoom = sqrtf(dx * dx + dz * dz);
+    f32 rot = func_801059BC_slapdown(atan2df(dx, dz), 0.0f);
+
+    osSyncPrintf("Zoom = %f\n", zoom);
+    osSyncPrintf("Rot  = %f\n", 360.0f - rot);
+}
+
+#ifdef NON_MATCHING
+void func_80105CBC_slapdown(s16 conNo) {
+    s16 i;
+
+    if ((u16)conNo >= 4) {
+        osSyncPrintf("\n ConNo False! \n");
+        return;
+    }
+    if (D_800CDA7C_main[conNo] & 0x400) {
+        for (i = 0; i < 1; i++) {
+            CRotM[i].x = func_801059BC_slapdown(CRotM[i].x, 1.0f);
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 0x800) {
+        for (i = 0; i < 1; i++) {
+            CRotM[i].x = func_801059BC_slapdown(CRotM[i].x, -1.0f);
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 0x200) {
+        for (i = 0; i < 1; i++) {
+            CRotM[i].y = func_801059BC_slapdown(CRotM[i].y, 1.0f);
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 0x100) {
+        for (i = 0; i < 1; i++) {
+            CRotM[i].y = func_801059BC_slapdown(CRotM[i].y, -1.0f);
+        }
+    }
+    if ((u16)D_800CDA7C_main[conNo] & 0x8000) {
+        for (i = 0; i < 1; i++) {
+            CZoomM[i] += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 0x4000) {
+        for (i = 0; i < 1; i++) {
+            CZoomM[i] -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 2) {
+        for (i = 0; i < 1; i++) {
+            CenterM[i].x -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 1) {
+        for (i = 0; i < 1; i++) {
+            CenterM[i].x += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 8) {
+        for (i = 0; i < 1; i++) {
+            CenterM[i].y += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 4) {
+        for (i = 0; i < 1; i++) {
+            CenterM[i].y -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[conNo] & 0x2000) {
+        osSyncPrintf("\n");
+        for (i = 0; i < 1; i++) {
+            osSyncPrintf("CameraNo / %d   Zoom / %f\n", i, CZoomM[i]);
+            osSyncPrintf("Rot:   X / %f   Y / %f   Z / %f\n", CRotM[i].x, CRotM[i].y, CRotM[i].z);
+            osSyncPrintf("Center:   X / %f   Y / %f   Z / %f\n", CenterM[i].x, CenterM[i].y, CenterM[i].z);
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80105CBC_slapdown);
+#endif
+
+void func_80106290_slapdown(s8 phase) {
+    D_8010AA6E_slapdown = phase;
+}
+
+void func_8010629C_slapdown(omObjData *obj, s16 mot, s16 arg2, s16 arg3, s16 arg4, s16 *cur) {
+    if (*cur != mot) {
+        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[mot]].unk02, arg2, arg3, arg4);
+        *cur = mot;
+    }
+}
+
+void func_80106338_slapdown(omObjData *obj, s16 mot, s16 arg2, s16 arg3, s16 *cur) {
+    if (*cur != mot) {
+        func_8001C5B4_main(obj->model[0], obj->motion[mot]);
+        func_8001C814_main(obj->model[0], arg2, arg3);
+        *cur = mot;
+    }
+}
+
+/* Moves (x0, z0) toward (x1, z1): the longer axis at full speed, the other in proportion. */
+#ifdef NON_MATCHING
+void func_801063D4_slapdown(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed) {
+    f32 dx = x1 - x0;
+    f32 dz = z1 - z0;
+    f32 adx = fabsf(dx);
+    f32 adz = fabsf(dz);
+    f32 d;
+
+    if (adz <= adx) {
+        if (dx >= 0.0f) {
+            *vx = -speed;
+        } else {
+            *vx = speed;
+        }
+        d = speed;
+        if (d == 0.0f) {
+            d = 1.0f;
+        }
+        d = adx / d;
+        if (d == 0.0f) {
+            d = 1.0f;
+        }
+        *vz = -(dz / d);
+    } else {
+        if (dz >= 0.0f) {
+            *vz = -speed;
+        } else {
+            *vz = speed;
+        }
+        d = speed;
+        if (d == 0.0f) {
+            d = 1.0f;
+        }
+        d = adz / d;
+        if (d == 0.0f) {
+            d = 1.0f;
+        }
+        *vx = -(dx / d);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801063D4_slapdown);
+#endif
+
+#ifdef NON_MATCHING
+f32 func_80106534_slapdown(f32 cur, f32 target, f32 step) {
+    f32 diff = target - cur;
+    f32 add;
+
+    if (diff < 0.0f) {
+        diff = -diff;
+    }
+    if (diff < step) {
+        return target;
+    }
+    if (cur < target) {
+        add = step;
+        if (diff > 180.0f) {
+            add = -step;
+        }
+        cur = func_801059BC_slapdown(cur, add);
+    } else if (target < cur) {
+        if (diff > 180.0f) {
+            add = step;
+        } else {
+            add = -step;
+        }
+        cur = func_801059BC_slapdown(cur, add);
+    }
+    return cur;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106534_slapdown);
+#endif
+
+void func_80106600_slapdown(omObjData *obj) {
+}
+
+void func_80106608_slapdown(omObjData *obj) {
+    SdEnt *ent = &D_8010AAB0_slapdown[SD_ENT_BG];
+
+    ent->unk40 = func_8000B838_main(0x4F0000);
+    ent->unk42 = InitEspriteSlot(ent->unk40, 0, 0);
+    func_8000BC48_main(ent->unk42, 0x4000);
+    ent->unk44.x = 160.0f;
+    ent->unk44.y = 120.0f;
+    func_8000BBD4_main(ent->unk42, 160, 120);
+    obj->func = func_80106600_slapdown;
+}
+
+void func_801066A4_slapdown(void) {
+    omObjData *obj = omAddObj(50, 1, 0, -1, func_80106608_slapdown);
+
+    obj->work[0] = 0;
+    D_8010AAB0_slapdown[SD_ENT_BG].obj = obj;
+}
+
+void func_801066E4_slapdown(void) {
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        DataClose(D_8010AA20_slapdown[i]);
+    }
+    for (i = 0; i < 4; i++) {
+        func_80033354_main(D_8010AA90_slapdown[i]);
+    }
+}
+
+void func_80106780_slapdown(omObjData *obj) {
+    if (D_8010AA30_slapdown == 1 && D_8010AA74_slapdown < 50) {
+        if ((rand8() + rand8()) % D_8010A760_slapdown[GwPlayer[obj->work[0]].cpu_difficulty].unk0 != 0 &&
+            D_8010AA74_slapdown >= 2) {
+            return;
+        }
+    } else if ((rand8() + rand8()) % D_8010A760_slapdown[GwPlayer[obj->work[0]].cpu_difficulty].unk2 != 0) {
+        return;
+    }
+    D_800D5558_main[obj->work[3]] |= 0x8000;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80106900_slapdown);
 
