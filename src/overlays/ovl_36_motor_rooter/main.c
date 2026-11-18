@@ -40,7 +40,9 @@ typedef struct {
     /* 0x88 */ s16 unk88;
     /* 0x8A */ s16 unk8A;
     /* 0x8C */ omObjData *unk8C;
-    /* 0x90 */ char unk90[0x64];
+    /* 0x90 */ s16 unk90[15];
+    /* 0xAE */ s16 unkAE;
+    /* 0xB0 */ char unkB0[0x44];
 } PlayerView; // Size 0xF4
 
 typedef struct {
@@ -301,18 +303,21 @@ void func_80109C94_motor_rooter(PlayerView *view, s16 row);
 s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
 
 void func_80106508_motor_rooter(omObjData *object) {
-    MrFileTbl7 files = D_80113618_motor_rooter;
+    s32 files[7];
     PlayerView *view;
     FuncContext *ctx;
     s16 id;
     s16 var_a1;
     s16 i;
     s16 j;
+    s32 dir = 0x570000;
+
+    *(MrFileTbl7 *)files = D_80113618_motor_rooter;
 
     view = &m254_minigame->views[object->work[0] = m254_minigame->unk1A4[1]];
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 7; i++) {
-            id = func_8000B838_main(files.f[i] | 0x570000);
+            id = func_8000B838_main(files[i] | dir);
             m254_minigame->views[object->work[0]].unk04[j][i] = id;
             object->model[j * 7 + i] = func_8010EFF8_motor_rooter(func_80055194_main(id), 1.0f);
             Hu3DModelScaleSet(object->model[j * 7 + i], 2.0f, 2.0f, 2.0f);
@@ -359,9 +364,46 @@ void func_80106968_motor_rooter(omObjData *object) {
 }
 /* </func_80106968_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106998_motor_rooter);
+/* <func_80106998_motor_rooter> */
+void func_80106B7C_motor_rooter(omObjData *object);
+void func_8010A174_motor_rooter(FuncContext *ctx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106B7C_motor_rooter);
+void func_80106998_motor_rooter(omObjData *object) {
+    PlayerView *view;
+    s16 var_a1;
+    s16 i;
+    s32 attr = 0x99;
+
+    view = &m254_minigame->views[object->work[0] = m254_minigame->unk1A4[3]];
+    for (i = 0; i < 15; i++) {
+        if (object->work[0] == 0) {
+            object->model[i] = func_8000B108_main(0x570002, attr);
+        } else {
+            object->model[i] = Hu3DModelLink(m254_minigame->views[0].unk8C->model[i]);
+        }
+        view->unk90[i] = view->unkAE++;
+        Hu3DModelScaleSet(object->model[i], 0.7f, 0.7f, 0.7f);
+    }
+    m254_SyncWithModel(object);
+    var_a1 = 2;
+    if (object->work[0] == 0) {
+        var_a1 = 1;
+    }
+    for (i = 0; i < 15; i++) {
+        func_8001C8A8_main(object->model[i], var_a1);
+    }
+    m254_minigame->unk1A4[3]++;
+    m254_SetFunc(3, 5, -1, object, func_8010A174_motor_rooter, 0, FALSE);
+    object->func = func_80106B7C_motor_rooter;
+}
+/* </func_80106998_motor_rooter> */
+
+/* <func_80106B7C_motor_rooter> */
+void func_80106B7C_motor_rooter(omObjData *object) {
+    m254_UpdateFuncGroup(3);
+    m254_SyncWithModel(object);
+}
+/* </func_80106B7C_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106BAC_motor_rooter);
 
