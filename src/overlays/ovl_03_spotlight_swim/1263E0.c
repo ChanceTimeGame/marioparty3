@@ -163,13 +163,16 @@ extern s8 D_8010D3CC_spotlight_swim;
 typedef struct SsSteer {
     /* 0x00 */ s8 level;
     /* 0x01 */ s8 edge;
-    /* 0x02 */ s8 unk2;
+    /* 0x02 */ s8 arrived;
     /* 0x03 */ s8 dir;
     /* 0x04 */ s8 mode;
     /* 0x05 */ s8 ai;
     /* 0x06 */ s8 pad6[2];
     /* 0x08 */ f32 heading;
+    /* 0x0C */ f32 speed;
 } SsSteer;
+
+int abs(int);
 
 extern SsSteer D_8010D328_spotlight_swim;
 extern f32 D_8010D3C0_spotlight_swim[3];
@@ -182,10 +185,21 @@ extern u8 D_8010CD4C_spotlight_swim[];
 extern s16 D_8010CD0C_spotlight_swim[];
 extern s16 D_8010CD2C_spotlight_swim[];
 
+extern s8 D_8010D379_spotlight_swim;
+extern s8 D_8010D304_spotlight_swim;
+extern s16 D_8010CD28_spotlight_swim[1];
+extern s16 D_8010CD48_spotlight_swim[1];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
 void func_80106808_spotlight_swim(omObjData *obj);
+void func_80106790_spotlight_swim(omObjData *obj);
+void func_80106BC8_spotlight_swim(omObjData *obj);
+void func_8010755C_spotlight_swim(omObjData *obj);
+void func_801077AC_spotlight_swim(omObjData *obj);
+void func_801079FC_spotlight_swim(omObjData *obj);
+void func_80107C10_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
 void func_801072C4_spotlight_swim(omObjData *obj);
 s8 func_80107674_spotlight_swim(omObjData *obj);
@@ -967,7 +981,72 @@ void func_80107C10_spotlight_swim(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80107C10_spotlight_swim);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010846C_spotlight_swim);
+/* CPU control of the spotlight swimmer. */
+void func_8010846C_spotlight_swim(omObjData *obj) {
+    s32 pad;
+
+    if (D_8010EE48_spotlight_swim != 2) {
+        func_80106BC8_spotlight_swim(obj);
+        return;
+    }
+    D_8010D328_spotlight_swim.speed = 1.2f;
+    switch (D_8010D328_spotlight_swim.mode) {
+    case 0:
+        D_8010D328_spotlight_swim.arrived = 0;
+        func_80107C10_spotlight_swim(obj);
+        break;
+    case 1:
+        D_8010D379_spotlight_swim++;
+        if (D_8010D328_spotlight_swim.arrived != 0) {
+            func_80107C10_spotlight_swim(obj);
+        } else {
+            D_8010D328_spotlight_swim.heading = func_801059BC_spotlight_swim(
+                atan2df(D_8010CD28_spotlight_swim[0] - obj->trans.x, D_8010CD48_spotlight_swim[0] - obj->trans.z), 0.0f);
+            if (D_8010CD28_spotlight_swim[0] - 10 <= obj->trans.x && obj->trans.x <= D_8010CD28_spotlight_swim[0] + 10 &&
+                D_8010CD48_spotlight_swim[0] - 10 <= obj->trans.z && obj->trans.z <= D_8010CD48_spotlight_swim[0] + 10) {
+                D_8010D328_spotlight_swim.arrived = 1;
+            }
+            if (D_8010D379_spotlight_swim >= 30 || D_8010D328_spotlight_swim.level < 2) {
+                D_8010D328_spotlight_swim.arrived = 1;
+            }
+        }
+        if (D_8010D379_spotlight_swim < 11) {
+            func_80105B04_spotlight_swim(obj->work[0]);
+            goto end;
+        }
+        if (D_8010D379_spotlight_swim == 40) {
+            func_8010755C_spotlight_swim(obj);
+        }
+        if (D_8010D379_spotlight_swim == 60) {
+            func_8010755C_spotlight_swim(obj);
+        }
+        if (D_8010D379_spotlight_swim >= 90) {
+            D_8010D328_spotlight_swim.mode = 2;
+            func_80106808_spotlight_swim(obj);
+            D_8010D478_spotlight_swim = 1;
+            func_80105C04_spotlight_swim(2, (s16)obj->work[0]);
+        }
+        break;
+    case 2:
+        D_8010D328_spotlight_swim.speed = 0.0f;
+        if (++D_8010D304_spotlight_swim >= 40) {
+            D_8010D379_spotlight_swim = 0;
+            D_8010D304_spotlight_swim = 0;
+            D_8010D328_spotlight_swim.mode = 0;
+        }
+        break;
+    }
+    obj->rot.y = D_8010D328_spotlight_swim.heading;
+    func_801077AC_spotlight_swim(obj);
+    pad = obj->work[3];
+    if (abs(D_800CBB6E_main[pad]) >= 6 || abs(D_800D20A1_main[pad]) >= 6) {
+        func_80106790_spotlight_swim(obj);
+    } else if (abs(D_800CBB6E_main[pad]) < 6 && abs(D_800D20A1_main[pad]) < 6) {
+        obj->work[2] = 0;
+    }
+end:
+    func_801079FC_spotlight_swim(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010881C_spotlight_swim);
 
