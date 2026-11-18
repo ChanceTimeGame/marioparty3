@@ -104,6 +104,13 @@ typedef struct HsNumSpr {
     /* 0x06 */ s16 unk06;
 } HsNumSpr;
 
+/* Round state (D_8010E170_hide_and_sneak). */
+typedef struct HsRound {
+    /* 0x00 */ s8 unk00;
+    /* 0x01 */ char unk01;
+    /* 0x02 */ s16 timer;
+} HsRound;
+
 /* .data */
 extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
@@ -127,12 +134,13 @@ extern HsSeeker D_8010C788_hide_and_sneak[4];
 extern HsAuto D_8010E168_hide_and_sneak;
 extern s8 D_8010E169_hide_and_sneak; /* view: D_8010E168_hide_and_sneak.state */
 extern s8 D_8010E182_hide_and_sneak[4];
-extern u8 D_8010E186_hide_and_sneak;
-extern u8 D_8010E1A8_hide_and_sneak;
+extern s8 D_8010E186_hide_and_sneak;
+extern s8 D_8010E1A8_hide_and_sneak;
 extern u8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
 extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_FADE].unk04 */
 extern u8 D_8010CE59_hide_and_sneak; /* view: the low byte of D_8010CE58_hide_and_sneak */
-extern s8 D_8010E170_hide_and_sneak;
+extern HsRound D_8010E170_hide_and_sneak;
+extern s16 D_8010E172_hide_and_sneak; /* view: D_8010E170_hide_and_sneak.timer */
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
 extern s8 D_8010E175_hide_and_sneak[4];
@@ -140,8 +148,8 @@ extern s8 D_8010E17C_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
 extern HsBoxLog D_8010E188_hide_and_sneak[4];
 extern HuSprite_Unk84_Struct *D_8010E198_hide_and_sneak[4];
-extern u8 D_8010E17D_hide_and_sneak[3];
-extern u8 D_8010E1AE_hide_and_sneak[3];
+extern s8 D_8010E17D_hide_and_sneak[3];
+extern s8 D_8010E1AE_hide_and_sneak[3];
 extern s8 D_8010E1AC_hide_and_sneak;
 extern s8 D_8010E1AD_hide_and_sneak;
 extern s8 D_8010E1B2_hide_and_sneak;
@@ -160,6 +168,7 @@ void func_801078E4_hide_and_sneak(void);
 void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
 void func_8010A1CC_hide_and_sneak(omObjData *obj);
+void func_8010B600_hide_and_sneak(void);
 Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
@@ -1689,11 +1698,80 @@ void func_8010BCE8_hide_and_sneak(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010BD40_hide_and_sneak(omObjData *obj) {
+    s32 seq;
+
+    switch (D_8010E180_hide_and_sneak) {
+        case 0:
+            GMesCreate(4);
+            D_8010E180_hide_and_sneak = 1;
+            D_8010E172_hide_and_sneak = 0;
+            HuAudFXPlay(0x327);
+            break;
+        case 1:
+            if (GMesStatGet() == 0) {
+                D_8010E180_hide_and_sneak = 2;
+                D_8010C780_hide_and_sneak = 0;
+            }
+            if (++D_8010E172_hide_and_sneak == 64) {
+                HuAudSeqPlay(0x31);
+            }
+            break;
+        case 2:
+            func_8010B600_hide_and_sneak();
+            if (D_8010C780_hide_and_sneak == 7) {
+                if (D_8010E1B2_hide_and_sneak == 0) {
+                    GMesCreate(0xF);
+                    HuAudSeqFadeOut(120);
+                }
+                D_8010E180_hide_and_sneak = 3;
+            }
+            break;
+        case 3:
+            if (GMesStatGet() == 0) {
+                D_8010E180_hide_and_sneak = 4;
+                D_8010E17A_hide_and_sneak = 0;
+            }
+            break;
+        case 4:
+            if (++D_8010E17A_hide_and_sneak >= 16) {
+                D_8010E180_hide_and_sneak = 5;
+            }
+            break;
+        case 5:
+            if (D_8010E1AD_hide_and_sneak == 3) {
+                GMesCreate(0x16, D_8010E186_hide_and_sneak);
+                GwPlayer[D_8010E1A8_hide_and_sneak].bonusCoin = 10;
+                seq = 0x65;
+            } else {
+                GMesCreate(0x22, D_8010E1AE_hide_and_sneak[0], D_8010E1AE_hide_and_sneak[1], D_8010E1AE_hide_and_sneak[2]);
+                GwPlayer[D_8010E17D_hide_and_sneak[0]].bonusCoin = 10;
+                GwPlayer[D_8010E17D_hide_and_sneak[1]].bonusCoin = 10;
+                GwPlayer[D_8010E17D_hide_and_sneak[2]].bonusCoin = 10;
+                seq = 0x66;
+            }
+            HuAudSeqPlay(seq);
+            D_8010E17A_hide_and_sneak = 15;
+            D_8010E180_hide_and_sneak = 6;
+            break;
+        case 6:
+            if (GMesStatGet() == 0) {
+                if (--D_8010E17A_hide_and_sneak <= 0) {
+                    WipeCreateOut(0, 20);
+                    obj->func = func_8010BCB0_hide_and_sneak;
+                }
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010BD40_hide_and_sneak);
+#endif
 
 void func_8010BFE8_hide_and_sneak(omObjData *obj) {
     D_8010E180_hide_and_sneak = 0;
-    D_8010E170_hide_and_sneak = 0;
+    D_8010E170_hide_and_sneak.unk00 = 0;
     D_8010E17A_hide_and_sneak = 0;
     D_8010E174_hide_and_sneak = 0;
     D_8010E1B3_hide_and_sneak = 3;

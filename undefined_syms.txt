@@ -445,3 +445,5 @@ D_8010BF80_cosmic_coaster = 0x8010BF80;
 /* m3 cu: curtain_call/20BFA0 .data bytes inside D_8010B248 (func_80109AD0 asm) */
 D_8010B249_curtain_call = D_8010B248_curtain_call + 0x1;
 D_8010B24A_curtain_call = D_8010B248_curtain_call + 0x2;
+/* m4 hs: the s16 at D_8010E170_hide_and_sneak + 2 */
+D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
