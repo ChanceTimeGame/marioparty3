@@ -32,7 +32,7 @@ typedef struct CcCar {
     /* 0x3C */ f32 unk3C[2]; /* per rider (CPU): target x, 100000 = none */
     /* 0x44 */ omObjData *unk44[2]; /* per rider (CPU): the track object being dodged */
     /* 0x4C */ u16 unk4C[2]; /* per rider (CPU): dodging */
-    /* 0x50 */ s16 unk50; /* a human rides this car */
+    /* 0x50 */ u16 unk50; /* 0: a human rides this car (checks players 0 and 1, see func_80106758) */
     /* 0x52 */ s16 unk52;
 } CcCar; // Size 0x54
 
@@ -835,7 +835,71 @@ void func_8010812C_cosmic_coaster(omObjData *object) {
     }
 }
 
+/* CPU rider steering: stick value toward the chosen lane, speed by difficulty. */
+#ifdef NON_MATCHING
+void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick) {
+    CcCar *work;
+    s8 speed;
+    f32 tol;
+    f32 d;
+
+    work = object->data;
+    *stick = 0;
+    if (work->unk3C[rider] != 100000.0f) {
+        if (work->unk50 == 1) {
+            speed = 70;
+            tol = 4.0f;
+        } else {
+            switch (GwPlayer[work->unk02[rider]].cpu_difficulty) {
+            case 0:
+                speed = rand8() % 13 + 58;
+                tol = 2.0f;
+                break;
+            case 1:
+                speed = rand8() % 10 + 62;
+                tol = 2.0f;
+                break;
+            case 2:
+                speed = (rand8() & 7) + 66;
+                tol = 3.0f;
+                break;
+            case 3:
+                speed = 70;
+                tol = 4.0f;
+                break;
+            }
+        }
+        if (speed >= 71) {
+            speed = 70;
+        }
+        if (work->unk10[rider] > work->unk3C[rider]) {
+            d = work->unk10[rider] - work->unk3C[rider];
+            if (d > 10.0f) {
+                *stick = -speed;
+                return;
+            }
+            if (!(d < tol)) {
+                *stick = -speed / 2;
+                return;
+            }
+        } else if (work->unk10[rider] < work->unk3C[rider]) {
+            d = work->unk10[rider] - work->unk3C[rider];
+            if (d < -10.0f) {
+                *stick = speed;
+                return;
+            }
+            /* Retail: toward +x the "reached" test is d < -tol, not d > -tol. */
+            if (!(d < -tol)) {
+                *stick = speed / 2;
+                return;
+            }
+        }
+        work->unk3C[rider] = 100000.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801083D0_cosmic_coaster);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010869C_cosmic_coaster);
 
