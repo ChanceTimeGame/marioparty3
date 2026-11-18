@@ -152,6 +152,12 @@ typedef struct McPl {
     /* 0x20 */ s8 slot;
 } McPl; // Size 0x24
 
+/* A chain link's ground position. */
+typedef struct McLink {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 z;
+} McLink; // Size 8
+
 /* .bss */
 extern McPl D_8010C420_merry_go_chomp[4];
 extern HuSprite_Unk84_Struct *D_8010C414_merry_go_chomp;
@@ -161,6 +167,8 @@ extern s8 D_8010C4BD_merry_go_chomp;
 extern s8 D_8010C4BE_merry_go_chomp[5];
 extern omObjData *D_8010C4C8_merry_go_chomp;
 extern s8 D_8010C4CE_merry_go_chomp;
+/* The chomp's chain: [0] at the chomp, [5] the stake. */
+extern McLink D_8010C4D0_merry_go_chomp[6];
 /* The object table: [0] the background, [5..8] the players, [10], [15], [25], [30] the stage objects. */
 extern McEnt D_8010C500_merry_go_chomp[50];
 extern f32 D_8010CD04_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.y */
@@ -177,6 +185,7 @@ extern f32 D_8010C174_merry_go_chomp[17];
 extern f32 D_8010C1B8_merry_go_chomp[4];
 extern f32 D_8010C1C8_merry_go_chomp[4];
 extern f32 D_8010C1D8_merry_go_chomp[3][5];
+extern McLink D_8010C214_merry_go_chomp;
 extern s32 D_8010C254_merry_go_chomp;
 extern McCamera D_8010C258_merry_go_chomp[2];
 
@@ -203,6 +212,7 @@ void func_80108A88_merry_go_chomp(omObjData *obj);
 void func_801090B0_merry_go_chomp(omObjData *obj);
 void func_80109420_merry_go_chomp(void);
 void func_80109604_merry_go_chomp(void);
+void func_80109670_merry_go_chomp(omObjData *obj);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -1326,7 +1336,61 @@ void func_80109604_merry_go_chomp(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 43: retail stores link 0 by absolute address and loads 5.0f later; scheduling only */
+void func_80109670_merry_go_chomp(omObjData *obj) {
+    McEnt *chomp = &D_8010C500_merry_go_chomp[10];
+    s8 i;
+    f32 div;
+    f32 rot;
+    f32 dx;
+    f32 dz;
+    McLink *link;
+
+    if (chomp->unk18 != 0.0f || chomp->unk1C != 0.0f ||
+        chomp->unk30 != obj->rot.y) {
+        obj->trans.x += chomp->unk18;
+        obj->trans.z += chomp->unk1C;
+        rot = func_801059BC_merry_go_chomp(obj->rot.y, 180.0f);
+        D_8010C4D0_merry_go_chomp[0].x = sindf(rot) * 70.0f + obj->trans.x;
+        D_8010C4D0_merry_go_chomp[0].z = cosdf(rot) * 70.0f + obj->trans.z;
+        div = 5.0f;
+        if (chomp->unk2C > 15.0f) {
+            div = 2.0f;
+        }
+        for (i = 1; i < 6; i++) {
+            link = &D_8010C4D0_merry_go_chomp[i];
+            dx = D_8010C4D0_merry_go_chomp[i - 1].x - link->x;
+            dz = D_8010C4D0_merry_go_chomp[i - 1].z - link->z;
+            if (dx * dx + dz * dz > 5625.0f) {
+                link->x += dx / div;
+                link->z += dz / div;
+            }
+            Hu3DModelPosSet(obj->model[i], link->x, 30.0f, link->z);
+            Hu3DModelPosSet(obj->model[i + 6], link->x, 5.0f, link->z);
+        }
+        if (D_8010C4D0_merry_go_chomp[5].x != D_8010C214_merry_go_chomp.x ||
+            D_8010C4D0_merry_go_chomp[5].z != D_8010C214_merry_go_chomp.z) {
+            D_8010C4D0_merry_go_chomp[5].x = D_8010C214_merry_go_chomp.x;
+            D_8010C4D0_merry_go_chomp[5].z = D_8010C214_merry_go_chomp.z;
+            for (i = 4; i >= 0; i--) {
+                link = &D_8010C4D0_merry_go_chomp[i];
+                dx = D_8010C4D0_merry_go_chomp[i + 1].x - link->x;
+                dz = D_8010C4D0_merry_go_chomp[i + 1].z - link->z;
+                if (dx * dx + dz * dz > 5625.0f) {
+                    link->x += dx / div;
+                    link->z += dz / div;
+                }
+                Hu3DModelPosSet(obj->model[i], link->x, 30.0f, link->z);
+                Hu3DModelPosSet(obj->model[i + 6], link->x, 5.0f, link->z);
+            }
+        }
+    }
+    chomp->unk30 = obj->rot.y;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109670_merry_go_chomp);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109A04_merry_go_chomp);
 
