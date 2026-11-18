@@ -194,6 +194,23 @@ extern s16 D_8010CD48_spotlight_swim[1];
 
 extern s16 D_8010D306_spotlight_swim;
 
+extern s8 D_8010D3CD_spotlight_swim;
+extern s8 D_8010D44C_spotlight_swim;
+
+/* Per-player random stick wander (D_8010D308_spotlight_swim, 8 bytes each). */
+typedef struct SsWander {
+    /* 0x00 */ s8 level;
+    /* 0x01 */ s8 unk1;
+    /* 0x02 */ s8 xTimer;
+    /* 0x03 */ s8 xTime;
+    /* 0x04 */ s8 x;
+    /* 0x05 */ s8 yTimer;
+    /* 0x06 */ s8 yTime;
+    /* 0x07 */ s8 y;
+} SsWander;
+
+extern SsWander D_8010D308_spotlight_swim[];
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 s8 func_80105DC8_spotlight_swim(omObjData *obj);
@@ -206,6 +223,7 @@ void func_801079FC_spotlight_swim(omObjData *obj);
 void func_80107C10_spotlight_swim(omObjData *obj);
 void func_8010846C_spotlight_swim(omObjData *obj);
 void func_8010881C_spotlight_swim(omObjData *obj);
+void func_80108AD8_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
 void func_801072C4_spotlight_swim(omObjData *obj);
 s8 func_80107674_spotlight_swim(omObjData *obj);
@@ -1206,11 +1224,87 @@ void func_80108AD8_spotlight_swim(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109088_spotlight_swim);
+void func_80109088_spotlight_swim(void) {
+    omObjData *obj;
+    s16 i;
+    u16 player;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109194_spotlight_swim);
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            break;
+        }
+    }
+    switch (i) {
+    case 0:
+        player = 0;
+        break;
+    case 1:
+        player = 1;
+        break;
+    case 2:
+        player = 2;
+        break;
+    case 3:
+        player = 3;
+        break;
+    default:
+        player = 0;
+        break;
+    }
+    obj = omAddObj(700, 9, 10, -1, func_80108AD8_spotlight_swim);
+    D_8010D348_spotlight_swim = obj;
+    obj->work[0] = player;
+    D_8010D588_spotlight_swim.obj = obj;
+    D_8010D3CD_spotlight_swim = obj->work[0];
+    D_8010D44C_spotlight_swim = GwPlayer[obj->work[0]].chr;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010932C_spotlight_swim);
+/* Clamps the stick at the play-area edges; returns which directions are blocked. */
+u8 func_80109194_spotlight_swim(omObjData *obj) {
+    u8 ret = 0;
+
+    if (D_800CBB6E_main[obj->work[3]] < -5 && obj->trans.x < 65.0f) {
+        D_800CBB6E_main[obj->work[3]] = 0;
+    } else if (D_800CBB6E_main[obj->work[3]] < -4) {
+        ret |= 4;
+    }
+    if (D_800CBB6E_main[obj->work[3]] >= 6 && obj->trans.x > 255.0f) {
+        D_800CBB6E_main[obj->work[3]] = 0;
+    } else if (D_800CBB6E_main[obj->work[3]] >= 5) {
+        ret |= 8;
+    }
+    if (D_800D20A1_main[obj->work[3]] >= 6 && obj->trans.y < 60.0f) {
+        D_800D20A1_main[obj->work[3]] = 0;
+    } else if (D_800D20A1_main[obj->work[3]] >= 5) {
+        ret |= 1;
+    }
+    if (D_800D20A1_main[obj->work[3]] < -5 && obj->trans.y > 140.0f) {
+        D_800D20A1_main[obj->work[3]] = 0;
+    } else if (D_800D20A1_main[obj->work[3]] < -4) {
+        ret |= 2;
+    }
+    return ret;
+}
+
+/* Random stick wander for a CPU player (D_8010D308_spotlight_swim[obj->work[1]]). */
+void func_8010932C_spotlight_swim(omObjData *obj) {
+    SsWander *w = &D_8010D308_spotlight_swim[obj->work[1]];
+
+    if (++w->xTimer >= w->xTime) {
+        w->xTimer = 0;
+        w->xTime = func_80105C8C_spotlight_swim(20) + 20;
+        w->x = (func_80105C8C_spotlight_swim(2) == 0) ? -10 : 10;
+        w->x = (func_80105C8C_spotlight_swim(w->level + 4) != 0) ? w->x : 0;
+    }
+    if (++w->yTimer >= w->yTime) {
+        w->yTimer = 0;
+        w->yTime = func_80105C8C_spotlight_swim(20) + 20;
+        w->y = (func_80105C8C_spotlight_swim(2) == 0) ? -10 : 10;
+        w->y = (func_80105C8C_spotlight_swim(w->level + 4) != 0) ? w->y : 0;
+    }
+    D_800CBB6E_main[obj->work[3]] = w->x;
+    D_800D20A1_main[obj->work[3]] = w->y;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80109468_spotlight_swim);
 
