@@ -2075,7 +2075,46 @@ void func_8010BA30_spotlight_swim(void) {
     D_8010D480_spotlight_swim[13].obj = omAddObj(1300, 5, 5, -1, func_8010B828_spotlight_swim);
 }
 
+extern s32 D_8010D2F0_spotlight_swim;
+extern void *D_8010D2F8_spotlight_swim[3];
+
+#ifdef NON_MATCHING
+/* regalloc/constant hoisting: retail keeps the constant 4 in t1 (y + 4 as addu) and builds 0x27C004 as
+ * 0x27C000 | 4; mine hoists 0xE4500000 instead. Same DL words in the same order. */
+/* Draws image D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim] (160 x 120, 32-bit) full screen at
+ * 2x, two texel rows per 4-pixel strip. */
+void func_8010BA6C_spotlight_swim(Gfx **dl) {
+    Gfx *g = *dl;
+    s32 y;
+    s32 yn;
+    s32 unused[2];
+
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, 0x3F0604);
+    gSPSetGeometryMode(g++, 0x200404);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetTextureFilter(g++, G_TF_BILERP);
+    gDPSetRenderMode(g++, 0x5041C8, 0);
+    gDPSetCombineMode(g++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetTextureLUT(g++, G_TT_NONE);
+    for (y = 0; y < 240; y = yn) {
+        yn = y + 4;
+        gDPSetTextureImage(g++, G_IM_FMT_RGBA, G_IM_SIZ_32b, 160, D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim]);
+        gDPSetTile(g++, G_IM_FMT_RGBA, G_IM_SIZ_32b, 40, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPLoadSync(g++);
+        gDPLoadTile(g++, G_TX_LOADTILE, 0, (y / 2) * 4, 159 * 4, (yn / 2 - 1) * 4);
+        gDPPipeSync(g++);
+        gDPSetTile(g++, G_IM_FMT_RGBA, G_IM_SIZ_32b, 40, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, (y / 2) * 4, 159 * 4, (yn / 2 - 1) * 4);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 159 * 4, 1 * 4);
+        gSPTextureRectangle(g++, 0, y * 4, 320 * 4, yn * 4, G_TX_RENDERTILE, 0, 0, 0x200, 0x200);
+    }
+    *dl = g;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BA6C_spotlight_swim);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BD10_spotlight_swim);
 
