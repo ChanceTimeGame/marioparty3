@@ -165,24 +165,7 @@ void func_8010C3F4_end_of_the_line(void);
 void func_8010C574_end_of_the_line(omObjData *obj);
 void func_8010C47C_end_of_the_line(omObjData *obj);
 
-extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
-extern s16 D_8010C5C8_end_of_the_line[];
-extern f32 D_8010C5CC_end_of_the_line;
-extern f32 D_8010C5D0_end_of_the_line[2];
-extern s32 D_8010C5D8_end_of_the_line[5];
-extern s32 D_8010C5EC_end_of_the_line[5];
-extern s16 D_8010C600_end_of_the_line[2][4];
-extern s32 D_8010C620_end_of_the_line[2][6];
-extern s16 D_8010C610_end_of_the_line[2][4];
 
-extern u16 D_8010C650_end_of_the_line;
-extern s32 D_8010C658_end_of_the_line[3];
-extern u16 D_8010C664_end_of_the_line[2];
-extern f32 D_8010C668_end_of_the_line;
-extern f32 D_8010C66C_end_of_the_line;
-extern f32 D_8010C670_end_of_the_line[2][5];
-extern f32 D_8010C698_end_of_the_line[2][5];
-extern Vec D_8010C6C0_end_of_the_line[2];
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
@@ -214,6 +197,58 @@ extern Vec D_8010C788_end_of_the_line[2];
 extern Vec D_8010C7A0_end_of_the_line[2];
 extern Vec D_8010C7B8_end_of_the_line[2];
 extern s16 D_8010C7D0_end_of_the_line;
+
+// DATA
+
+D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line = {
+    0, 4, 1, 0, 0, 0, 0, { 0 }, 0, { 0 }, -1, -1, 9000, -1, 150,
+};
+
+s16 D_8010C5C8_end_of_the_line[] = { 1, 2 };
+
+f32 D_8010C5CC_end_of_the_line = 160.0f;
+
+f32 D_8010C5D0_end_of_the_line[2] = { -80.0f, 80.0f };
+
+/* Score board models, rings 0..4: file and attribute. */
+s32 D_8010C5D8_end_of_the_line[5] = { 0x54000B, 0x54000C, 0x54000D, 0x54000E, 0x54000F };
+s32 D_8010C5EC_end_of_the_line[5] = { 0x6DD, 0xADD, 0xADD, 0xADD, 0xADD };
+
+/* Scissor rectangles per camera (x0, y0, x1, y1). */
+s16 D_8010C600_end_of_the_line[2][4] = { { 0, 0, 159, 240 }, { 161, 0, 320, 240 } };
+
+/* Viewports per camera (scale x, scale y, translate x, translate y). */
+s16 D_8010C610_end_of_the_line[2][4] = { { 640, 480, 320, 480 }, { 640, 480, 960, 480 } };
+
+/* Sound effects per player. */
+s32 D_8010C620_end_of_the_line[2][6] = {
+    { 0x49A, 0x49B, 0x49C, 0x49D, 0x49E, 0x4A4 },
+    { 0x49F, 0x4A0, 0x4A1, 0x4A2, 0x4A3, 0x4A5 },
+};
+
+u16 D_8010C650_end_of_the_line = 0;
+
+s32 D_8010C654_end_of_the_line = 0;
+
+s32 D_8010C658_end_of_the_line[3] = { 0x540005, 0x540006, 0x540007 };
+
+u16 D_8010C664_end_of_the_line[2] = { 110, 50 };
+
+f32 D_8010C668_end_of_the_line = 1.0f;
+
+f32 D_8010C66C_end_of_the_line = 1.0f;
+
+/* Track markers: distance from the point and scale, per caller (run-up, ramp). */
+f32 D_8010C670_end_of_the_line[2][5] = {
+    { 100.0f, 3300.0f, 3650.0f, 3800.0f, 3850.0f },
+    { 200.0f, 4000.0f, 4100.0f, 4300.0f, 4500.0f },
+};
+f32 D_8010C698_end_of_the_line[2][5] = {
+    { 3.2f, 0.6f, 1.2f, 1.0f, 1.0f },
+    { 5.0f, 0.8f, 2.0f, 3.0f, 1.5f },
+};
+
+Vec D_8010C6C0_end_of_the_line[2] = { { 1.0f, 0.99f, 0.9f }, { 0.4f, 0.8f, 0.7f } };
 
 void func_801059A0_end_of_the_line(void) {
     omObjData *obj;

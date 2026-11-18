@@ -1384,7 +1384,7 @@ segments:
     subsegments:
       - [0x28A290, c]
       - [0x290E70, c]
-      - [0x290E90, data, 28A290] #8010C5A0
+      - [0x290E90, .data, 28A290] #8010C5A0
       - [0x290FD0, .rodata, 28A290] #8010C6E0
       - {0x291020, type: bss, vram: 0x8010C730, name: ovl_33_bss}
 
