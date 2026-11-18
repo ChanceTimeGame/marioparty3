@@ -375,6 +375,8 @@ NOP_OBJECTS += build/src/overlays/duel06/436E50.c.o
 NOP_OBJECTS += build/src/overlays/duel04/410910.c.o
 # wave 3t m3: mgmode 47DD90 (no nop before the mul.s after the sindf/cosdf calls: func_801178E0)
 NOP_OBJECTS += build/src/overlays/mgmode/47DD90.c.o
+# m4 bg: The Beat Goes On 1FE4D0 (no nop after the cosdf call: func_80106BE0)
+NOP_OBJECTS += build/src/overlays/ovl_20_the_beat_goes_on/1FE4D0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
@@ -480,6 +482,10 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_10_cosmic_coaster/18ABD0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_35_baby_bowser_bonkers/29B1D0.c.o
 # m4 cg: Crazy Cogs 131C10 likewise (func_80107884/func_80107CA8_crazy_cogs: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_05_crazy_cogs/131C10.c.o
+# m4 hl: Hand, Line and Sinker 11A480 likewise (func_80107420/func_80107B24: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_01_hand_line_sinker/11A480.c.o
+# m4 el: End of the Line 28A290 likewise (func_80106CDC: no nop before the mul.s after the sindf/cosdf calls)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_33_end_of_the_line/28A290.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
