@@ -141,13 +141,13 @@ u8 func_80105A3C_three_door_monty(s32 max);
 void func_80105A74_three_door_monty(void);
 void func_80105B3C_three_door_monty(s32 player);
 void func_80105BB4_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1);
-void func_80105CBC_three_door_monty(omObjData *obj);
+void func_80105CBC_three_door_monty(s32 conNo);
 void func_801062E8_three_door_monty(s8 arg0);
 void func_801062F4_three_door_monty(omObjData *obj, s16 mot, s16 arg2, s16 arg3, s16 arg4, s16 *cur);
 void func_80106390_three_door_monty(omObjData *obj, s16 mot, s16 arg2, s16 arg3, s16 *cur);
 void func_8010642C_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed);
 void func_8010658C_three_door_monty(omObjData *obj, f32 *x, f32 *z, f32 scale);
-void func_801066F4_three_door_monty(omObjData *obj);
+f32 func_801066F4_three_door_monty(f32 cur, f32 target, f32 step);
 f32 func_801067C4_three_door_monty(f32 pos, f32 *vel, f32 accel);
 void func_801067E0_three_door_monty(omObjData *obj, u8 frame);
 void func_80106868_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2);
@@ -217,7 +217,7 @@ extern f32 D_8010D8A8_three_door_monty;      /* = D_8010D260_three_door_monty[12
 extern s16 D_8010EC28_three_door_monty[4];
 extern u8 D_8010EC30_three_door_monty;
 extern s16 D_8010EC32_three_door_monty;
-extern s32 D_8010EC34_three_door_monty;
+extern HuSprite_Unk84_Struct *D_8010EC34_three_door_monty;
 extern u16 D_8010EC38_three_door_monty;
 extern s16 D_8010EC3A_three_door_monty;
 extern s16 D_8010EC3C_three_door_monty;
@@ -310,7 +310,76 @@ void func_80105BB4_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1) {
     osSyncPrintf("Rot  = %f\n", 360.0f - rot);
 }
 
+#ifdef NON_MATCHING
+void func_80105CBC_three_door_monty(s32 conNo) {
+    s16 i;
+
+    if ((u16)conNo >= 4) {
+        osSyncPrintf("\n ConNo False! \n");
+        return;
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x400) {
+        for (i = 0; i < 3; i++) {
+            CRotM[i].x = func_801059BC_three_door_monty(CRotM[i].x, 1.0f);
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x800) {
+        for (i = 0; i < 3; i++) {
+            CRotM[i].x = func_801059BC_three_door_monty(CRotM[i].x, -1.0f);
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x200) {
+        for (i = 0; i < 3; i++) {
+            CRotM[i].y = func_801059BC_three_door_monty(CRotM[i].y, 1.0f);
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x100) {
+        for (i = 0; i < 3; i++) {
+            CRotM[i].y = func_801059BC_three_door_monty(CRotM[i].y, -1.0f);
+        }
+    }
+    if ((u16)D_800CDA7C_main[(s16)conNo] & 0x8000) {
+        for (i = 0; i < 3; i++) {
+            CZoomM[i] += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x4000) {
+        for (i = 0; i < 3; i++) {
+            CZoomM[i] -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 2) {
+        for (i = 0; i < 3; i++) {
+            CenterM[i].x -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 1) {
+        for (i = 0; i < 3; i++) {
+            CenterM[i].x += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 8) {
+        for (i = 0; i < 3; i++) {
+            CenterM[i].y += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 4) {
+        for (i = 0; i < 3; i++) {
+            CenterM[i].y -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x2000) {
+        osSyncPrintf("\n");
+        for (i = 0; i < 3; i++) {
+            osSyncPrintf("CameraNo / %d   Zoom / %f\n", i, CZoomM[i]);
+            osSyncPrintf("Rot:   X / %f   Y / %f   Z / %f\n", CRotM[i].x, CRotM[i].y, CRotM[i].z);
+            osSyncPrintf("Center:   X / %f   Y / %f   Z / %f\n", CenterM[i].x, CenterM[i].y, CenterM[i].z);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80105CBC_three_door_monty);
+#endif
 
 void func_801062E8_three_door_monty(s8 arg0) {
     D_8010EC30_three_door_monty = arg0;
@@ -411,7 +480,27 @@ void func_8010658C_three_door_monty(omObjData *obj, f32 *x, f32 *z, f32 scale) {
     }
 }
 
+#ifdef NON_MATCHING
+f32 func_801066F4_three_door_monty(f32 cur, f32 target, f32 step) {
+    f32 diff = target - cur;
+
+    if (diff < 0.0f) {
+        diff = -diff;
+    }
+    if (diff < step) {
+        return target;
+    }
+    if (cur < target) {
+        return cur = func_801059BC_three_door_monty(cur, (diff > 180.0f) ? -step : step);
+    }
+    if (target < cur) {
+        return cur = func_801059BC_three_door_monty(cur, (diff > 180.0f) ? step : -step);
+    }
+    return 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801066F4_three_door_monty);
+#endif
 
 f32 func_801067C4_three_door_monty(f32 pos, f32 *vel, f32 accel) {
     f32 v = *vel;
@@ -479,7 +568,15 @@ void func_80107344_three_door_monty(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", D_8010CEFC_three_door_monty);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80107384_three_door_monty);
+void func_80107384_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D890_three_door_monty;
+
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010D8A8_three_door_monty += 0.05f;
+    }
+    func_8001E888_main(obj->model[0], ent->unk18, 0, D_8010D234_three_door_monty.w, D_8010D234_three_door_monty.h,
+                       "dammy-castle_ground1_2", 0);
+}
 
 void func_8010742C_three_door_monty(omObjData *obj) {
     obj->model[0] = func_8000B108_main(0x4C000D, 681);
@@ -616,7 +713,16 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010C1B4_three_door_monty);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010C2DC_three_door_monty);
+void func_8010C2DC_three_door_monty(omObjData *obj) {
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        DataClose(D_8010D238_three_door_monty[i]);
+    }
+    func_80033354_main(D_8010EC3E_three_door_monty);
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
 
 void func_8010C358_three_door_monty(omObjData *obj) {
     if (WipeStatGet() == 0) {
