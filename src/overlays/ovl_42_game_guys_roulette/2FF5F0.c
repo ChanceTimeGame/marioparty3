@@ -54,7 +54,7 @@ void func_80109E6C_game_guys_roulette(void);
 void func_80109FD0_game_guys_roulette(void);
 void func_8010A060_game_guys_roulette(s16 active, s16 x, s16 y, s16 r);
 void func_8010A1BC_game_guys_roulette(s16 active, s16 x, s16 y, s16 color);
-void func_8010A1FC_game_guys_roulette(s16 active, s16 x, s16 y, s16 r, s32 color);
+void func_8010A1FC_game_guys_roulette(s16 active, s16 x, s16 y, s16 r, s16 color);
 void func_8010A3F4_game_guys_roulette(s16 x0, s16 y0, s16 x1, s16 y1);
 
 extern s16 D_8010A6B0_game_guys_roulette; /* frame */
@@ -194,13 +194,134 @@ void func_80109FD0_game_guys_roulette(void) {
     }
 }
 
+/* Clear a ring's square from this frame's buffers */
+// masked 6: retail's strength-reduced row pointers come from C not found (this C writes them out; same bytes cleared)
+#ifdef NON_MATCHING
+void func_8010A060_game_guys_roulette(s16 active, s16 x, s16 y, s16 r) {
+    s32 xx;
+    s32 yy;
+    u8* pa;
+    u8* pb;
+
+    if (active == 0 || r < 1) {
+        return;
+    }
+    pa = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + (x + r) / 2 + (y - 1 - r) * 160 + 1;
+    pb = D_8010AC20_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + (x + r) / 2 + (y - 1 - r) * 160 + 1;
+    for (yy = y - r; yy < y + r; yy++) {
+        pa += 159 - r;
+        pb += 159 - r;
+        for (xx = x - r; xx < x + 1 + r; xx += 2) {
+            if (xx >= 0 && xx < 320 && yy >= 0 && yy < 240) {
+                *pa = 0;
+                *pb = 0;
+            }
+            pa++;
+            pb++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A060_game_guys_roulette);
+#endif
 
 void func_8010A1BC_game_guys_roulette(s16 active, s16 x, s16 y, s16 color) {
     func_8010A1FC_game_guys_roulette(active, x, y, 45, color);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A1FC_game_guys_roulette);
+/* Draw a filled ring of radius r in a colour (a 4-bit pixel pair per byte) into this frame's buffers, the mask
+   layer gets the colour and the colour layer a 1 */
+// masked 35: retail squares r before the early-out test and allocates differently; logic checked block by block
+#ifdef NON_MATCHING
+void func_8010A1FC_game_guys_roulette(s16 active, s16 x, s16 y, s16 r, s16 color) {
+    s32 xx;
+    s32 yy;
+    u8* pa;
+    u8* pb;
 
+    if (active == 0 || r < 1) {
+        return;
+    }
+    for (yy = y - r; yy < y + r; yy++) {
+        pa = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + (x - r) / 2 + yy * 160;
+        pb = D_8010AC20_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + (x - r) / 2 + yy * 160;
+        for (xx = x - r; xx < x + r; xx++) {
+            if (xx >= 0 && xx < 320 && yy >= 0 && yy < 240 &&
+                (xx - x) * (xx - x) + (yy - y) * (yy - y) < r * r) {
+                if (xx & 1) {
+                    *pa |= (u16)color;
+                    *pb |= 1;
+                } else {
+                    *pa |= (u16)color << 4;
+                    *pb |= 0x10;
+                }
+            }
+            if (xx & 1) {
+                pa++;
+                pb++;
+            }
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A1FC_game_guys_roulette);
+#endif
+
+/* Draw a line in colour 7 into this frame's mask buffer (Bresenham, stepping in y) */
+// masked 39: two y-stepping Bresenham loops, register allocation and loop layout differ; logic checked against the asm
+#ifdef NON_MATCHING
+void func_8010A3F4_game_guys_roulette(s16 x0, s16 y0, s16 x1, s16 y1) {
+    s32 dx;
+    s16 dy;
+    s32 err;
+    u8* p;
+
+    if (x1 < x0) {
+        dx = x0 - x1;
+    } else {
+        dx = x1 - x0;
+    }
+    if (y1 < y0) {
+        dy = y0 - y1;
+    } else {
+        dy = y1 - y0;
+    }
+    err = dy / 2;
+    if (x1 >= x0) {
+        for (; y0 <= y1; y0++) {
+            err -= dx;
+            if (err & 0x8000) {
+                err += dy;
+                x0++;
+            }
+            if ((u16)x0 < 320 && y0 >= 0 && y0 < 240) {
+                p = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + x0 / 2 + y0 * 160;
+                if (x0 & 1) {
+                    *p |= 7;
+                } else {
+                    *p |= 0x70;
+                }
+            }
+        }
+    } else {
+        for (; y0 <= y1; y0++) {
+            err -= dx;
+            if (err & 0x8000) {
+                err += dy;
+                x0--;
+            }
+            if ((u16)x0 < 320 && y0 >= 0 && y0 < 240) {
+                p = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette] + x0 / 2 + y0 * 160;
+                if (x0 & 1) {
+                    *p |= 7;
+                } else {
+                    *p |= 0x70;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A3F4_game_guys_roulette);
+#endif
 
