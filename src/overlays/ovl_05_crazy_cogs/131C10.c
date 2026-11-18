@@ -93,6 +93,9 @@ void func_801087B8_crazy_cogs(omObjData *obj);
 void func_80108B0C_crazy_cogs(omObjData *obj);
 void func_80109084_crazy_cogs(omObjData *obj);
 f32 func_80105BD0_crazy_cogs(omObjData *obj);
+void func_80109298_crazy_cogs(omObjData *obj);
+void func_80109388_crazy_cogs(omObjData *obj);
+s8 func_80109A44_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
 void func_800DDD94_minigame(omObjData *obj);
@@ -144,6 +147,18 @@ typedef struct CgStick {
     /* 0x05 */ s8 z;
 } CgStick; // Size 6
 
+/* A hazard's wander (D_8010DE28_crazy_cogs): per axis a timer, its limit, a speed and a direction. */
+typedef struct CgWander {
+    /* 0x00 */ s8 t0;
+    /* 0x01 */ s8 lim0;
+    /* 0x02 */ s8 spd0;
+    /* 0x03 */ s8 dir0;
+    /* 0x04 */ s8 t1;
+    /* 0x05 */ s8 lim1;
+    /* 0x06 */ s8 spd1;
+    /* 0x07 */ s8 dir1;
+} CgWander; // Size 8
+
 /* .data */
 /* voice sound bank per character (func_80045ED0_main) */
 s32 D_8010B810_crazy_cogs[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
@@ -178,6 +193,8 @@ extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
 extern f32 D_8010DE88_crazy_cogs[10];
+extern CgWander D_8010DE28_crazy_cogs[7];
+extern u8 D_8010B997_crazy_cogs;
 extern CgEnt D_8010C338_crazy_cogs[5]; /* = D_8010B9F0_crazy_cogs[CG_ENT_18] */
 extern u8 D_8010B991_crazy_cogs[3];
 extern u8 D_8010DE10_crazy_cogs[3];
@@ -1476,13 +1493,121 @@ void func_80109388_crazy_cogs(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801097EC_crazy_cogs);
+/* A hazard hits a team player (within its radius + 40, below its top): knock one of them off at random. */
+void func_801097EC_crazy_cogs(omObjData *obj) {
+    s16 hits[3];
+    CgEnt *ent;
+    omObjData *o;
+    MgWork *work;
+    f32 dx;
+    f32 dz;
+    u32 w;
+    s16 n;
+    s16 i;
 
+    if (D_8010B99C_crazy_cogs == 2) {
+        n = 0;
+        for (i = 0; i < 3; i++) {
+            ent = &D_8010B9F0_crazy_cogs[5 + i];
+            work = ent->obj->data;
+            if (ent->unk0E == 0 && obj->trans.y <= work->unk34) {
+                dx = obj->trans.x - ent->obj->trans.x;
+                dz = obj->trans.z - ent->obj->trans.z;
+                if (sqrtf(dx * dx + dz * dz) < work->unk48 + 40.0f) {
+                    hits[n] = ent->obj->work[1];
+                    n++;
+                }
+            }
+        }
+        if (n != 0) {
+            ent = &D_8010B9F0_crazy_cogs[5 + hits[(s16)func_80105B7C_crazy_cogs(n)]];
+            func_80109298_crazy_cogs(obj);
+            o = ent->obj;
+            if (!(GwPlayer[o->work[0]].stat & 1)) {
+                omVibrate(o->work[0], 20, 0, 20);
+            }
+            func_80109388_crazy_cogs(obj);
+            ent->unk0E = 1;
+            D_8010B997_crazy_cogs++;
+            w = obj->work[0];
+            if (w < 2) {
+                ent->unk10 = 1;
+            } else if (w < 4) {
+                ent->unk10 = 0;
+            } else if (obj->trans.x > ent->obj->trans.x) {
+                ent->unk10 = 0;
+            } else {
+                ent->unk10 = 1;
+            }
+        }
+    }
+}
+
+/* Whether a hazard has left its area (1) or is still inside it (0). */
+#ifdef NON_MATCHING
+/* branch layout: retail shares the last compare of the 4..6 test with the 0..3 one */
+s8 func_80109A44_crazy_cogs(omObjData *obj) {
+    if (obj->work[0] >= 4) {
+        if (obj->work[0] >= 7) {
+            return 1;
+        }
+        if ((obj->trans.x > -600.0f && obj->trans.x < 600.0f && obj->trans.z > -350.0f && obj->trans.z < 600.0f) ||
+            (obj->trans.x > -350.0f && obj->trans.x < 600.0f && obj->trans.z > -600.0f && obj->trans.z < -350.0f)) {
+            return 0;
+        }
+        return 1;
+    }
+    if (obj->trans.z > -350.0f && obj->trans.z < 500.0f) {
+        return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109A44_crazy_cogs);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109B88_crazy_cogs);
+/* A hazard wanders: random speed and direction on each axis for a random time; it turns back at its area's edge. */
+void func_80109B88_crazy_cogs(omObjData *obj) {
+    CgWander *m;
+    u32 w;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109D24_crazy_cogs);
+    if (obj->work[0] < 7) {
+        m = &D_8010DE28_crazy_cogs[obj->work[0]];
+        if (func_80109A44_crazy_cogs(obj)) {
+            m->t0 = 0;
+            m->dir0 *= -1;
+            m->t1 = 0;
+            m->dir1 *= -1;
+        } else {
+            if (++m->t0 >= m->lim0) {
+                m->t0 = 0;
+                m->lim0 = func_80105B7C_crazy_cogs(20) + 5;
+                m->spd0 = func_80105B7C_crazy_cogs(8);
+                m->dir0 = (func_80105B7C_crazy_cogs(2) == 1) ? 1 : -1;
+            }
+            if (++m->t1 >= m->lim1) {
+                m->t1 = 0;
+                m->lim1 = func_80105B7C_crazy_cogs(20) + 5;
+                m->spd1 = func_80105B7C_crazy_cogs(8);
+                m->dir1 = (func_80105B7C_crazy_cogs(2) == 1) ? 1 : -1;
+            }
+        }
+        w = obj->work[0];
+        if (w < 4) {
+            obj->trans.z = m->spd1 * m->dir1 + obj->trans.z;
+        } else if (w < 7) {
+            obj->trans.x = m->spd0 * m->dir0 + obj->trans.x;
+            obj->trans.z = m->spd1 * m->dir1 + obj->trans.z;
+        }
+    }
+}
+
+void func_80109D24_crazy_cogs(void) {
+    D_8010B9E3_crazy_cogs[0] = 1;
+    D_8010B9E3_crazy_cogs[1] = 1;
+    D_8010B9E3_crazy_cogs[2] = 1;
+    D_8010B9E3_crazy_cogs[3] = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109D44_crazy_cogs);
 
