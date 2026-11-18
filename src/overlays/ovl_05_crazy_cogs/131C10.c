@@ -60,8 +60,8 @@ typedef struct CgEnt {
 #define CG_ENT_COG0 1 /* 1..4: the cogs */
 #define CG_ENT_8 8
 #define CG_ENT_18 18
-#define CG_ENT_23 23
-#define CG_ENT_24 24
+#define CG_ENT_23 23 /* the hazard spawner */
+#define CG_ENT_24 24 /* the big hazard's intro */
 #define CG_ENT_TEAM 25 /* 25..27: the team players */
 #define CG_ENT_PLAYER 29 /* 29..32 */
 
@@ -101,6 +101,11 @@ void func_80109D24_crazy_cogs(void);
 void func_80109D44_crazy_cogs(omObjData *obj);
 void func_80109F64_crazy_cogs(omObjData *obj);
 void func_8010A67C_crazy_cogs(omObjData *obj);
+void func_8010AA10_crazy_cogs(omObjData *obj);
+void func_8010AAE0_crazy_cogs(omObjData *obj);
+void func_8010AAE8_crazy_cogs(omObjData *obj);
+void func_8010ABE0_crazy_cogs(omObjData *obj);
+void func_8010AE08_crazy_cogs(omObjData *obj);
 s8 func_80109A44_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
@@ -203,6 +208,9 @@ extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern s16 D_8010DE08_crazy_cogs[3];
 extern f32 D_8010DE88_crazy_cogs[10];
 extern s16 D_8010DE22_crazy_cogs;
+extern CgEnt *D_8010DEB0_crazy_cogs;
+extern s16 D_8010B9A4_crazy_cogs;
+extern f32 D_8010B998_crazy_cogs;
 /* the hazard and shadow models the others link; retail reads their low halves (D_8010DE1A, D_8010DE1E) */
 extern s32 D_8010DE18_crazy_cogs[2];
 extern CgWander D_8010DE28_crazy_cogs[7];
@@ -1891,29 +1899,130 @@ void func_8010AA10_crazy_cogs(omObjData *obj) {
     obj->func = func_8010A67C_crazy_cogs;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AAA4_crazy_cogs);
-
-void func_8010AAE0_crazy_cogs(void) {
+void func_8010AAA4_crazy_cogs(void) {
+    D_8010B9F0_crazy_cogs[CG_ENT_23].obj = omAddObj(1300, 1, 1, -1, func_8010AA10_crazy_cogs);
 }
 
-void func_8010AAE8_crazy_cogs(void) {
+void func_8010AAE0_crazy_cogs(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AAF0_crazy_cogs);
+void func_8010AAE8_crazy_cogs(omObjData *obj) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010ABE0_crazy_cogs);
+/* The big hazard (D_8010DEB0_crazy_cogs, entity 12) lifts away after landing. */
+void func_8010AAF0_crazy_cogs(omObjData *obj) {
+    if (D_8010DEB0_crazy_cogs->obj->trans.y >= 1500.0f) {
+        D_8010DEB0_crazy_cogs->obj->trans.x = 0.0f;
+        D_8010DEB0_crazy_cogs->obj->trans.y = 2400.0f;
+        D_8010DEB0_crazy_cogs->obj->trans.z = 560.0f;
+        D_8010DEB0_crazy_cogs->obj->rot.x = D_8010DEB0_crazy_cogs->unk50.x;
+        D_8010DEB0_crazy_cogs->obj->rot.y = D_8010DEB0_crazy_cogs->unk50.y;
+        D_8010DEB0_crazy_cogs->obj->rot.z = D_8010DEB0_crazy_cogs->unk50.z;
+        D_8010DE88_crazy_cogs[D_8010DEB0_crazy_cogs->obj->work[0]] = 0.2f;
+        obj->func = func_8010AAE8_crazy_cogs;
+    } else {
+        D_8010DEB0_crazy_cogs->obj->trans.y += 42.0f;
+        D_8010DEB0_crazy_cogs->obj->trans.z += 14.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AE08_crazy_cogs);
+/* The big hazard's intro: it flies in (frames 25..99), then drops onto the field and flags every quadrant. */
+void func_8010ABE0_crazy_cogs(omObjData *obj) {
+    omObjData *o = D_8010DEB0_crazy_cogs->obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AF58_crazy_cogs);
+    if (++D_8010B9A4_crazy_cogs == 15) {
+        HuAudFXPlay(0x326);
+    }
+    if (D_8010B9A4_crazy_cogs >= 25 && D_8010B9A4_crazy_cogs < 100) {
+        o->trans.x -= 30.0f;
+        o->trans.y -= 8.0f;
+        o->trans.z += 30.0f;
+        if (o->trans.z >= 900.0f) {
+            o->trans.x = 0.0f;
+            o->trans.y = D_8010DEB0_crazy_cogs->pos.y;
+            o->trans.z = 0.0f;
+            o->rot.x = 90.0f;
+            o->rot.y = 0.0f;
+            o->rot.z = 0.0f;
+            D_8010B9A4_crazy_cogs = 100;
+        }
+    }
+    if (D_8010B9A4_crazy_cogs >= 100) {
+        if (o->trans.y > 25.0f) {
+            o->trans.x -= D_8010DEB0_crazy_cogs->unk18;
+            o->trans.y -= D_8010DEB0_crazy_cogs->unk1C + 10.0f;
+            D_8010DE88_crazy_cogs[o->work[0]] += D_8010DEB0_crazy_cogs->unk20;
+        } else {
+            func_80109298_crazy_cogs(o);
+            func_80109388_crazy_cogs(o);
+            func_80109D24_crazy_cogs();
+            D_8010DE6A_crazy_cogs[0] = D_8010DE6A_crazy_cogs[1] = D_8010DE6A_crazy_cogs[2] = D_8010DE6A_crazy_cogs[3] = 1;
+            obj->func = func_8010AAE0_crazy_cogs;
+        }
+        Hu3DModelPosSet(o->model[1], o->trans.x, func_80105BD0_crazy_cogs(o), o->trans.z);
+        Hu3DModelScaleSet(o->model[1], D_8010DE88_crazy_cogs[o->work[0]], 1.0f, D_8010DE88_crazy_cogs[o->work[0]]);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010AF94_crazy_cogs);
+void func_8010AE08_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[12];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B040_crazy_cogs);
+    D_8010DEB0_crazy_cogs = ent;
+    D_8010B9A4_crazy_cogs = 0;
+    D_8010B998_crazy_cogs = 820.0f;
+    ent->obj->trans.x = 400.0f;
+    ent->obj->trans.y = 900.0f;
+    ent->obj->trans.z = 300.0f;
+    ent->obj->rot.x = 15.0f;
+    ent->obj->rot.y = 315.0f;
+    ent->obj->rot.z = 0.0f;
+    Hu3DModelPosSet(ent->obj->model[0], ent->obj->trans.x, ent->obj->trans.y,
+                    ent->obj->trans.z);
+    Hu3DModelRotSet(D_8010DEB0_crazy_cogs->obj->model[0], D_8010DEB0_crazy_cogs->obj->rot.x,
+                    D_8010DEB0_crazy_cogs->obj->rot.y, D_8010DEB0_crazy_cogs->obj->rot.z);
+    func_8001C258_main(D_8010DEB0_crazy_cogs->obj->model[0], 4, 0);
+    func_8001C258_main(D_8010DEB0_crazy_cogs->obj->model[1], 4, 0);
+    obj->model[0] = -1;
+    obj->func = func_8010ABE0_crazy_cogs;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B064_crazy_cogs);
+void func_8010AF58_crazy_cogs(void) {
+    D_8010B9F0_crazy_cogs[CG_ENT_24].obj = omAddObj(1600, 1, 1, -1, func_8010AE08_crazy_cogs);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B09C_crazy_cogs);
+void func_8010AF94_crazy_cogs(void) {
+    u32 i;
+
+    for (i = 0; i < 2; i++) {
+        CZoomM[i] = 1648.63f;
+        CRotM[i].x = 314.034f;
+        CRotM[i].y = 0.0f;
+        CRotM[i].z = 0.0f;
+        CenterM[i].x = 0.0f;
+        CenterM[i].y = -20.0f;
+        CenterM[i].z = -50.0f;
+    }
+}
+
+void func_8010B040_crazy_cogs(omObjData *obj) {
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
+
+void func_8010B064_crazy_cogs(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_8010B040_crazy_cogs;
+    }
+}
+
+void func_8010B09C_crazy_cogs(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_8010B064_crazy_cogs;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B0F4_crazy_cogs);
 
