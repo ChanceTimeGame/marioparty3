@@ -5,6 +5,14 @@
 
 // dr A: Dorrie Dip
 
+/* omObjData::data of the splashes (D_8010A248), one under each Dorrie */
+typedef struct DrSplash {
+    /* 0x00 */ f32 unk00[6]; /* x */
+    /* 0x18 */ f32 unk18[6]; /* y */
+    /* 0x30 */ f32 unk30[6]; /* z */
+    /* 0x48 */ s32 unk48[6]; /* 1: playing */
+} DrSplash; /* size 0x60 */
+
 /* omObjData::data of the ground (D_8010A224; the framework's ground object, minigame mgcol.h GroundWork) */
 typedef struct DrGround {
     /* 0x00 */ char unk00[3];
@@ -84,7 +92,10 @@ extern s16 D_800CDA7C_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
 
+omObjData* func_80045ED0_main(u32 arg0);
+
 // minigame
+void func_800E5798_minigame(omObjData* obj, s32 motion);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_800E1490_minigame(u16 arg0);
 void func_800DDD94_minigame(omObjData* obj);
@@ -133,6 +144,7 @@ void func_80108B98_dorrie_dip(void);
 void func_80108C6C_dorrie_dip(omObjData* obj);
 void func_80108EA0_dorrie_dip(s32 idx);
 void func_801090C4_dorrie_dip(void);
+void func_801090F0_dorrie_dip(void);
 void func_801092E0_dorrie_dip(void);
 void func_80109520_dorrie_dip(void);
 void func_801096F0_dorrie_dip(void);
@@ -1041,15 +1053,128 @@ void func_80108A74_dorrie_dip(s16 model, char* name, s16 frame, Vec* out) {
     out->z = res[0][2] + res[1][2] + res[2][2] + res[3][2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108B98_dorrie_dip);
+/* The splashes, one under each Dorrie. */
+void func_80108B98_dorrie_dip(void) {
+    s32 attr = 0xA3D;
+    omObjData* obj;
+    DrSplash* work;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108C6C_dorrie_dip);
+    obj = omAddObj(0xFF, 6, 0, -1, func_80108C6C_dorrie_dip);
+    D_8010A248_dorrie_dip = obj;
+    work = obj->data = HuMemAllocTag(sizeof(DrSplash), 0x7918);
+    for (i = 0; i < 6; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x5D0008, attr);
+        } else {
+            obj->model[i] = Hu3DModelLink(obj->model[0]);
+        }
+        work->unk48[i] = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108EA0_dorrie_dip);
+void func_80108C6C_dorrie_dip(omObjData* obj) {
+    DrSplash* work = obj->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    s32 i;
+    f32 x;
+    f32 z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801090C4_dorrie_dip);
+    for (i = 0; i < 6; i++) {
+        x = sindf(ring->unk18[i]) * 450.0f;
+        z = cosdf(ring->unk18[i]) * 450.0f;
+        work->unk00[i] = x;
+        work->unk18[i] = 50.0f;
+        work->unk30[i] = z;
+        if (i == 0) {
+            omSetTra(obj, work->unk00[0], work->unk18[0], work->unk30[0]);
+            omSetRot(obj, CRot.x, 0.0f, 0.0f);
+            omSetSca(obj, 1.5f, 1.5f, 1.5f);
+        } else {
+            Hu3DModelPosSet(obj->model[i], work->unk00[i], work->unk18[i], work->unk30[i]);
+            Hu3DModelRotSet(obj->model[i], CRot.x, 0.0f, 0.0f);
+            Hu3DModelScaleSet(obj->model[i], 1.5f, 1.5f, 1.5f);
+        }
+        if (work->unk48[i] & 1) {
+            if (D_800CCF58_main[HmfModelData[obj->model[i]].unk02].unk02 <= HmfModelData[obj->model[i]].unk40) {
+                func_8001C258_main(obj->model[i], 4, 4);
+                work->unk48[i] &= ~1;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801090F0_dorrie_dip);
+/* A Dorrie dives: hide it, its shadow and its prize, and splash. */
+void func_80108EA0_dorrie_dip(s32 idx) {
+    DrSplash* splash = D_8010A248_dorrie_dip->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    DrPrize* prize = D_8010A23C_dorrie_dip->data;
+    DrHook* hook = D_8010A238_dorrie_dip->data;
+    s32 found;
+    s32 i;
+    f32 x;
+    f32 z;
+
+    func_8001C258_main(D_8010A230_dorrie_dip->model[idx], 4, 4);
+    func_8001C258_main(D_8010A230_dorrie_dip->model[idx + 6], 4, 4);
+    found = -1;
+    for (i = 0; i < 5; i++) {
+        if (prize->unkB4[i] == idx) {
+            found = i;
+        }
+    }
+    if (found != -1) {
+        if (idx != D_8010A220_dorrie_dip) {
+            func_8001C258_main(D_8010A23C_dorrie_dip->model[found], 4, 4);
+        }
+        func_8001C258_main(D_8010A23C_dorrie_dip->model[found + 5], 4, 4);
+    }
+    x = sindf(ring->unk18[idx]) * 450.0f;
+    z = cosdf(ring->unk18[idx]) * 450.0f;
+    splash->unk00[idx] = x;
+    splash->unk18[idx] = 50.0f;
+    splash->unk30[idx] = z;
+    if (idx == D_8010A220_dorrie_dip) {
+        splash->unk00[idx] = hook->unk04.x;
+        splash->unk18[idx] = hook->unk04.y;
+        splash->unk30[idx] = hook->unk04.z;
+    }
+    ring->unk00[idx] &= ~1;
+    splash->unk48[idx] |= 1;
+    func_8001C258_main(D_8010A248_dorrie_dip->model[idx], 4, 0);
+    func_8001C814_main(D_8010A224_dorrie_dip->model[1], 1, 1);
+}
+
+void func_801090C4_dorrie_dip(void) {
+    omAddPrcObj(func_801090F0_dorrie_dip, 0x50, 0, 0);
+}
+
+/* Process: the player turns to the camera and cheers (motion 13) or is let down (motion 14). */
+void func_801090F0_dorrie_dip(void) {
+    func_800E1BA8_minigame_ObjData* work = D_800EC598_minigame[0]->data;
+    s32 i;
+
+    func_800E5798_minigame(D_800EC598_minigame[0], 0x26);
+    for (i = 0; i < 10; i++) {
+        work->unk3C = i * 90.0f / 10.0f + 270.0f;
+        HuPrcVSleep();
+    }
+    if (D_8010A220_dorrie_dip != -1 && D_8010A208_dorrie_dip[D_8010A220_dorrie_dip] != 0x11) {
+        func_800E5798_minigame(D_800EC598_minigame[0], 0xD);
+        func_8001C624_main(D_8010A238_dorrie_dip->model[0], HmfModelData[D_8010A238_dorrie_dip->motion[4]].unk02, 0, 10, 0);
+        func_80045ED0_main(D_800A178C_main[GwPlayer[work->unk59].chr][0] | 0x35);
+        for (i = 0; i < 60; i++) {
+            HuPrcVSleep();
+        }
+        HuAudFXPlay(0x4E4);
+    } else {
+        func_800E5798_minigame(D_800EC598_minigame[0], 0xE);
+        if (D_8010A220_dorrie_dip == -1) {
+            func_8001C624_main(D_8010A238_dorrie_dip->model[0], HmfModelData[D_8010A238_dorrie_dip->motion[3]].unk02, 0, 10, 0);
+        }
+    }
+    omDelPrcObj(NULL);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801092E0_dorrie_dip);
 
