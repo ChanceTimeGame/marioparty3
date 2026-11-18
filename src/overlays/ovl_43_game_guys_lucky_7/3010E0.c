@@ -202,6 +202,7 @@ s16 func_8010AD44_game_guys_lucky_7(s16 x, s16 y, s16 mes);
 void func_8010ADB8_game_guys_lucky_7(s16 winId);
 void func_8010ADF8_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu);
 s16 func_8010AF44_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 arg3);
+s16 func_8010B13C_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 arg3);
 
 void func_801083A0_game_guys_lucky_7(void);
 void func_80108498_game_guys_lucky_7(void);
@@ -785,11 +786,154 @@ void func_80106CF4_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107090_game_guys_lucky_7);
+#ifdef NON_MATCHING
+/* retail keeps the three identical 100% cases as separate calls (ours are merged into one) and reloads D_8010D774 for the switch; logic checked against the asm */
+void func_80107090_game_guys_lucky_7(void) {
+    s16 winId;
+    s32 won = 0;
 
+    if (D_8010D776_game_guys_lucky_7 < D_8010D774_game_guys_lucky_7) {
+        switch (D_8010D774_game_guys_lucky_7) {
+        case 1:
+            if (func_801059BC_game_guys_lucky_7(100.0f) < 100) {
+                won = 1;
+            }
+            break;
+        case 2:
+            if (func_801059BC_game_guys_lucky_7(100.0f) < 100) {
+                won = 1;
+            }
+            break;
+        case 3:
+            if (func_801059BC_game_guys_lucky_7(100.0f) < 100) {
+                won = 1;
+            }
+            break;
+        case 4:
+            if (func_801059BC_game_guys_lucky_7(100.0f) < 30) {
+                won = 1;
+            }
+            break;
+        case 5:
+            if (func_801059BC_game_guys_lucky_7(100.0f) < 10) {
+                won = 1;
+            }
+            break;
+        }
+    } else {
+        won = 1;
+    }
+    winId = func_8010AD44_game_guys_lucky_7(D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][0],
+                                            D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][1],
+                                            D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][2]);
+    HuAudFXPlay(0x11D);
+    func_80060C14_main(winId, 1);
+    func_8005B43C_main(winId, (won != 1) ? 0x2B05 : 0x2B04, -1, -1);
+    func_8010ADF8_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu);
+    func_8010ADB8_game_guys_lucky_7(winId);
+    if (won == 0) {
+        D_8010D77C_game_guys_lucky_7 = 1;
+    } else if (won == 1) {
+        D_8010D77C_game_guys_lucky_7 = 2;
+    }
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107090_game_guys_lucky_7);
+#endif
+
+#ifdef NON_MATCHING
+/* regalloc: retail keeps 'done' in s0 and copies it to s4 before the window loop (one move more); ops, branches, calls and fields equal */
+void func_80107270_game_guys_lucky_7(void) {
+    s16 stop = 1;
+    s16 adj[4] = { 30, 20, 10, 0 }; /* CPU chance to stop, by CPU level */
+    s16 winId;
+    s32 done = 0;
+
+    if (D_8010D6DC_game_guys_lucky_7.cpu == 1) {
+        if (D_8010D776_game_guys_lucky_7 < D_8010D774_game_guys_lucky_7 && D_8010D774_game_guys_lucky_7 < 8) {
+            stop = 0;
+        } else {
+            switch (D_8010D776_game_guys_lucky_7) {
+            case 1:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty] + 100) {
+                    stop = 0;
+                }
+                break;
+            case 2:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty] + 100) {
+                    stop = 0;
+                }
+                break;
+            case 3:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty] + 100) {
+                    stop = 0;
+                }
+                break;
+            case 4:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty] + 30) {
+                    stop = 0;
+                }
+                break;
+            case 5:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty] + 10) {
+                    stop = 0;
+                }
+                break;
+            case 6:
+                if (func_801059BC_game_guys_lucky_7(100.0f) < adj[D_8010D6DC_game_guys_lucky_7.difficulty]) {
+                    stop = 0;
+                }
+                break;
+            }
+        }
+    }
+    winId = func_8010AD44_game_guys_lucky_7(D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][0],
+                                            D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][1],
+                                            D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][2]);
+    HuAudFXPlay(0x11D);
+    func_80060C14_main(winId, 1);
+    if (D_8010D774_game_guys_lucky_7 <= D_8010D776_game_guys_lucky_7 || D_8010D774_game_guys_lucky_7 >= 8) {
+        if (D_8010D776_game_guys_lucky_7 == 1) {
+            func_8005B43C_main(winId, 0x2B09, -1, -1);
+            func_8010ADF8_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu);
+            func_8005B43C_main(winId, 0x2B0A, -1, -1);
+        } else {
+            func_8005B43C_main(winId, 0x2B07, -1, -1);
+            func_8005B6BC_main(winId, D_8010D776_game_guys_lucky_7 + 0x2B09, 0);
+            func_8010ADF8_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu);
+            func_8005B43C_main(winId, 0x2B08, -1, -1);
+        }
+        done = 1;
+        stop = stop != 1;
+    } else {
+        func_8005B43C_main(winId, 0x2B06, -1, -1);
+    }
+    while (D_8010D77C_game_guys_lucky_7 == 0) {
+        switch (done == 0 ? func_8010AF44_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu, stop)
+                          : func_8010B13C_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu, stop)) {
+        case 0:
+            D_8010D77C_game_guys_lucky_7 = 1;
+            func_8010ADB8_game_guys_lucky_7(winId);
+            break;
+        case 1:
+            D_8010D77C_game_guys_lucky_7 = 2;
+            func_8010ADB8_game_guys_lucky_7(winId);
+            break;
+        }
+        HuPrcVSleep();
+    }
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D3B4_game_guys_lucky_7);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107270_game_guys_lucky_7);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107668_game_guys_lucky_7);
 
