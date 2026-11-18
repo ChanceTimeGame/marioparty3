@@ -62,11 +62,54 @@ typedef struct HhJet {
     /* 0x08 */ f32 unk08;
 } HhJet; /* size 0xC */
 
-/* HmfModel::unkBC of a water jet's model, the work of its draw hook func_80108788 */
-typedef struct HhJetFx {
-    /* 0x00 */ char unk00[8];
-    /* 0x08 */ f32 unk08; /* team */
-} HhJetFx;
+/* HmfModel::hmf (only the face group count is read) */
+typedef struct HhHmfData {
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 unk1A; /* face group count */
+} HhHmfData;
+
+/* A water drop of a jet's vertex-scatter effect (src/13F90.c HmfFxPart) */
+typedef struct HhFxPart {
+    /* 0x00 */ u8 color[3];
+    /* 0x04 */ f32 speed;
+    /* 0x08 */ f32 scale; /* 0: hidden */
+    /* 0x0C */ Vec pos;   /* y <= 0: a free slot */
+    /* 0x18 */ Vec dir;
+    /* 0x24 */ Vec vel;
+} HhFxPart; /* size 0x30 */
+
+/* HmfModel::unkBC of a water jet's model (src/13F90.c HmfFxWork), the work of its hook func_80108788 */
+typedef struct HhFxWork {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02; /* frame */
+    /* 0x04 */ u16 unk04; /* flags: 4 finished */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ f32 unk08; /* team (set by func_801078B8) */
+    /* 0x0C */ char unk0C[0x4C];
+    /* 0x58 */ HhFxPart* parts;
+} HhFxWork;
+
+/* omObjData::data of a fire */
+typedef struct HhFire {
+    /* 0x00 */ s8 unk00; /* index in the team */
+    /* 0x01 */ s8 unk01; /* size class 1..3 */
+    /* 0x02 */ s8 unk02; /* team */
+    /* 0x03 */ s8 unk03;
+    /* 0x04 */ s8 unk04; /* put out */
+    /* 0x05 */ s8 unk05;
+    /* 0x06 */ s8 unk06;
+    /* 0x07 */ char unk07;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ f32 unk0C; /* shadow scale */
+    /* 0x10 */ f32 unk10; /* radius; 0 when gone */
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ s8 unk18; /* frames hit in a row */
+    /* 0x19 */ s8 unk19; /* hit this frame */
+    /* 0x1A */ s8 unk1A;
+    /* 0x1B */ char unk1B[3];
+    /* 0x1E */ s16 unk1E;
+} HhFire; /* size 0x20 */
 
 // main
 s32 func_8000B638_main(void);
@@ -80,6 +123,7 @@ void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8004AE00_main(s16 handle, s16 pan);
 f32 HuSqrtf(f32 x);
+s16 HmfAnimRead(HmfData* arg0, s32 arg1, char* arg2);
 
 extern s32 D_800A178C_main[][6];
 extern u16 D_800A1906_main; /* music state flags */
@@ -97,6 +141,7 @@ void func_800E1490_minigame(u16 arg0);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E1804_minigame(void);
 void func_800E1840_minigame(void);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
 
@@ -119,7 +164,7 @@ void func_80106A50_hyper_hydrants(omObjData* obj);
 void func_80107238_hyper_hydrants(omObjData* obj);
 void func_801078B8_hyper_hydrants(omObjData* obj);
 void func_80107A90_hyper_hydrants(omObjData* obj);
-void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s32 arg3);
+void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s8 n);
 void func_80108788_hyper_hydrants(s16 model);
 void func_80108F34_hyper_hydrants(omObjData* obj);
 void func_801091B0_hyper_hydrants(omObjData* obj);
@@ -149,12 +194,15 @@ extern f32 D_8010BE2C_hyper_hydrants;
 extern s8 D_8010BE24_hyper_hydrants;
 extern s8 D_8010BE25_hyper_hydrants;
 extern s8 D_8010BE34_hyper_hydrants;
+extern s8 D_8010BE38_hyper_hydrants[3][16]; /* fire size class per layout, team slot */
+extern char D_8010BEF0_hyper_hydrants[]; /* "c201n_00_DEF" */
 extern s8 D_8010BE35_hyper_hydrants;
 extern s32 D_8010BE30_hyper_hydrants;
 
 extern s8 D_8010BF40_hyper_hydrants;
 extern s16 D_8010BF42_hyper_hydrants[2];
-extern s8 D_8010BF46_hyper_hydrants; /* frames since the last pump, per team */
+extern s8 D_8010BF46_hyper_hydrants;
+extern s32 D_8010BF4C_hyper_hydrants; /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
@@ -807,7 +855,7 @@ void func_801078B8_hyper_hydrants(omObjData* obj) {
     jet->unk00 = 5;
     jet->unk04 = 180.0f;
     jet->unk08 = 50.0f;
-    ((HhJetFx*)HmfModelData[obj->model[0]].unkBC)->unk08 = D_8010BF46_hyper_hydrants;
+    ((HhFxWork*)HmfModelData[obj->model[0]].unkBC)->unk08 = D_8010BF46_hyper_hydrants;
     D_8010BF46_hyper_hydrants++;
 }
 
@@ -980,9 +1028,238 @@ void func_80107A90_hyper_hydrants(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80107A90_hyper_hydrants);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801083A8_hyper_hydrants);
+// masked residue: retail converts -half after the spread's rand8() call (evaluation order; logic checked)
+#ifdef NON_MATCHING
+/* Emit up to `n` drops of a water jet from `pos`: a free particle (pos.y <= 0) gets a velocity aimed around the
+   jet's heading, spread over its pressure in degrees. */
+void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s8 n) {
+    HhFxWork* work;
+    HhFxPart* part;
+    s16 count;
+    s16 half;
+    s16 i;
+    f32 heading;
+    f32 speed;
+    f32 t;
+    Vec vel;
 
+    work = (HhFxWork*)HmfModelData[model].unkBC;
+    count = ((HhHmfData*)HmfModelData[model].hmf)->unk1A;
+    half = jet->unk00 / 2;
+    heading = jet->unk04 - half;
+    speed = (s32)((u32)(rand8() * 5) >> 7) * 0.1f + jet->unk08;
+    vel.x = sindf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
+    vel.y = sindf((f32)-half + ((rand8() * jet->unk00) >> 8)) * speed;
+    vel.z = cosdf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
+    part = work->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (part->pos.y <= 0.0f) {
+            part->vel = vel;
+            t = (s32)((u32)(rand8() * 5) >> 7) * 0.1f;
+            part->pos.x = t * vel.x + pos->x;
+            part->pos.y = t * vel.y + pos->y;
+            part->pos.z = t * vel.z + pos->z;
+            if (jet->unk00 > 20) {
+                part->scale = (u8)(rand8() & 7) + 2;
+            } else {
+                part->scale = (u8)(rand8() % 3) + 2;
+            }
+            if (--n == 0) {
+                break;
+            }
+            speed = (s32)((u32)(rand8() * 5) >> 7) * 0.1f + jet->unk08;
+            vel.x = sindf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
+            vel.y = sindf((f32)-half + ((rand8() * jet->unk00) >> 8)) * speed;
+            vel.z = cosdf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801083A8_hyper_hydrants);
+#endif
+
+// masked residue: retail keeps 0.0f in $f12 for the drop resets and hoists the constant 1 (registers/scheduling; logic checked)
+#ifdef NON_MATCHING
+/* The water jet's update hook: drops fly and fall (damped by the pump level), and a drop crossing a fire marks
+   it hit (and is used up while A is held). A fire hit for 15 frames (30 while A is held) goes out. */
+void func_80108788_hyper_hydrants(s16 model) {
+    HhFxWork* work;
+    HhFxPart* part;
+    omObjData* fire;
+    HhFire* fd;
+    s16 count;
+    s16 i;
+    s16 j;
+    s32 team;
+    s32 port;
+    f32 minz;
+    f32 z;
+    f32 nz;
+    f32 dx;
+    f32 fz;
+    s32 lim;
+    s32 a;
+    s32 b;
+
+    work = (HhFxWork*)HmfModelData[model].unkBC;
+    count = ((HhHmfData*)HmfModelData[model].hmf)->unk1A;
+    team = work->unk08;
+    if (work->unk02 == 0) {
+        work->unk04 &= ~4;
+        part = work->parts;
+        for (i = 0; i < count; i++, part++) {
+            part->pos.z = part->pos.y = part->pos.x = 0.0f;
+            part->vel.z = part->vel.y = part->vel.x = 0.0f;
+            part->scale = 0.0f;
+            part->speed = 1.0f;
+        }
+        work->unk02++;
+    }
+    part = work->parts;
+    if (team == 0) {
+        port = ((MgWork*)D_800EC598_minigame[D_8010BFAA_hyper_hydrants]->data)->unk57;
+    } else {
+        port = ((MgWork*)D_800EC598_minigame[D_8010BFAB_hyper_hydrants]->data)->unk57;
+    }
+    minz = -500.0f;
+    if ((u16)D_800CDA7C_main[port] & 0x8000) {
+        minz = -250.0f;
+    }
+    for (i = 0; i < count; i++, part++) {
+        if (part->pos.y > 0.0f) {
+            if (part->pos.z < minz) {
+                part->pos.y = part->scale = 0.0f;
+            } else {
+                z = part->pos.z;
+                nz = z + part->vel.z;
+                for (j = 0; j < 5; j++) {
+                    fire = D_8010BFE8_hyper_hydrants[team][j];
+                    fd = fire->data;
+                    if (fd->unk10 == 0.0f) {
+                        continue;
+                    }
+                    fz = fire->trans.z;
+                    dx = HH_ABS(fire->trans.x - part->pos.x);
+                    if (nz < z) {
+                        a = nz < fz;
+                        b = fz < z;
+                    } else {
+                        a = z < fz;
+                        b = fz < nz;
+                    }
+                    if ((a & b) && dx < fd->unk10 * fire->scale.x) {
+                        if (!((u16)D_800CDA7C_main[port] & 0x8000)) {
+                            fd->unk19 = 1;
+                        } else {
+                            part->scale = 0.0f;
+                            part->pos.y = 0.0f;
+                            fd->unk19 = 1;
+                        }
+                        break;
+                    }
+                }
+            }
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y - 1.0f;
+            part->pos.z += part->vel.z;
+            switch (D_8010BFAC_hyper_hydrants[team]) {
+                case 0:
+                    part->pos.y = part->scale = 0.0f;
+                    part->vel.z = part->vel.y = part->vel.x = 0.0f;
+                    break;
+                case 1:
+                    part->vel.x *= 0.6f;
+                    part->vel.y *= 0.6f;
+                    part->vel.z *= 0.6f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 75.0f;
+                    } else {
+                        part->vel.y -= 2.5f;
+                    }
+                    break;
+                case 2:
+                    part->vel.x *= 0.7f;
+                    part->vel.y *= 0.7f;
+                    part->vel.z *= 0.7f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 52.5f;
+                    } else {
+                        part->vel.y -= 1.75f;
+                    }
+                    break;
+                case 3:
+                    part->vel.x *= 0.8f;
+                    part->vel.y *= 0.8f;
+                    part->vel.z *= 0.8f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 45.0f;
+                    } else {
+                        part->vel.y -= 1.5f;
+                    }
+                    break;
+                case 4:
+                    part->vel.x *= 0.8f;
+                    part->vel.y *= 0.8f;
+                    part->vel.z *= 0.8f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 30.0f;
+                    } else {
+                        part->vel.y -= 1.0f;
+                    }
+                    break;
+                case 5:
+                    part->vel.x *= 0.9f;
+                    part->vel.y *= 0.9f;
+                    part->vel.z *= 0.9f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 15.0f;
+                    } else {
+                        part->vel.y -= 0.5f;
+                    }
+                    break;
+                default:
+                    part->vel.x *= 0.99f;
+                    part->vel.y *= 0.99f;
+                    part->vel.z *= 0.99f;
+                    if (D_8010BFAE_hyper_hydrants[team] >= 6) {
+                        part->vel.y -= 15.0f;
+                    } else {
+                        part->vel.y -= 0.5f;
+                    }
+                    break;
+            }
+        } else {
+            part->scale = 0.0f;
+        }
+    }
+    for (i = 0; i < 5; i++) {
+        fire = D_8010BFE8_hyper_hydrants[team][i];
+        fd = fire->data;
+        if (fd->unk19 == 1) {
+            if (D_8010BFAC_hyper_hydrants[team] > 0) {
+                func_800E4C88_minigame(fire, 2, fire->trans.x, 100.0f, fire->trans.z + 50.0f, 0.0f, 0.0f);
+                if (fd->unk18 == 1) {
+                    fd->unk1A = 1;
+                }
+                fd->unk18++;
+            }
+            lim = 15;
+            if ((u16)D_800CDA7C_main[port] & 0x8000) {
+                lim = 30;
+            }
+            if (fd->unk04 == 0 && fd->unk18 >= lim) {
+                fd->unk04 = 1;
+                fd->unk18 = 0;
+            }
+            fd->unk19 = 0;
+        } else {
+            fd->unk18 = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80108788_hyper_hydrants);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80108F34_hyper_hydrants);
 
@@ -992,7 +1269,86 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109484_hyper_hydrants);
 
+// masked residue: the move of the new model index is scheduled one slot later in retail (logic checked)
+#ifdef NON_MATCHING
+/* A fire (5 per team): size 1, 1.25 or 1.5 from the layout table, model 0 the flame, 1 its shadow, 2 the steam. */
+void func_80109588_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    s16 mdl;
+
+    obj->func = func_801099A0_hyper_hydrants;
+    fd = obj->data = HuMemAllocTag(sizeof(HhFire), 0x7918);
+    memset(fd, 0, sizeof(HhFire));
+    if (D_8010BF4C_hyper_hydrants < 5) {
+        fd->unk02 = 0;
+    } else {
+        fd->unk02 = 1;
+    }
+    fd->unk00 = D_8010BF4C_hyper_hydrants % 5;
+    fd->unk10 = 50.0f;
+    fd->unk03 = rand8() >> 7;
+    fd->unk04 = 0;
+    fd->unk08 = (rand8() >> 5) * 15;
+    fd->unk18 = 0;
+    fd->unk19 = 0;
+    fd->unk14 = 0;
+    fd->unk05 = 0;
+    fd->unk06 = 2;
+    fd->unk0A = (rand8() >> 5) * 15;
+    fd->unk1A = 0;
+    fd->unk1E = 0;
+    obj->trans.x = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.x;
+    obj->trans.z = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.z;
+    obj->trans.y = 0.0f;
+    obj->rot.x = obj->rot.y = obj->rot.z = obj->trans.y;
+    switch (D_8010BE38_hyper_hydrants[D_8010C010_hyper_hydrants][fd->unk00]) {
+        case 0:
+            obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+            fd->unk0C = 0.5f;
+            fd->unk01 = 1;
+            break;
+        case 1:
+            obj->scale.x = obj->scale.y = obj->scale.z = 1.25f;
+            fd->unk0C = 0.625f;
+            fd->unk01 = 2;
+            break;
+        case 2:
+        default:
+            obj->scale.x = obj->scale.y = obj->scale.z = 1.5f;
+            fd->unk0C = 0.75f;
+            fd->unk01 = 3;
+            break;
+    }
+    mdl = func_8000B108_main(0x2F0002, 9);
+    obj->model[0] = mdl;
+    if (D_8010BF4C_hyper_hydrants == 0) {
+        HmfAnimRead(HmfModelData[mdl].hmf, 0xA008C, D_8010BEF0_hyper_hydrants);
+    } else {
+        func_80032694_main(HmfModelData[mdl].hmf, 0, 0, D_8010BEF0_hyper_hydrants);
+    }
+    func_8001C448_main(mdl);
+    func_8001C514_main(mdl);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->model[1] = func_8000B108_main(0x2F0003, 0x99);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
+    func_8001C258_main(obj->model[1], 4, 4);
+    obj->model[2] = func_8000B108_main(0x2F000C, 0xA59);
+    Hu3DModelScaleSet(obj->model[2], 2.0f, 2.0f, 2.0f);
+    if (fd->unk02 == 0) {
+        func_8001C8A8_main(obj->model[0], 1);
+        func_8001C8A8_main(obj->model[1], 1);
+        func_8001C8A8_main(obj->model[2], 1);
+    } else {
+        func_8001C8A8_main(obj->model[0], 2);
+        func_8001C8A8_main(obj->model[1], 2);
+        func_8001C8A8_main(obj->model[2], 2);
+    }
+    D_8010BF4C_hyper_hydrants++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109588_hyper_hydrants);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801099A0_hyper_hydrants);
 
