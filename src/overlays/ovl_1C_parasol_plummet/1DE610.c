@@ -242,7 +242,101 @@ const PaS32x56 D_8010A948_parasol_plummet = { {
 } };
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80105EC0_parasol_plummet);
+void func_80105EC0_parasol_plummet(s32 arg0) {
+    PaS32x8 unused = D_8010A908_parasol_plummet;
+    PaS32x8 file = D_8010A928_parasol_plummet;
+    PaS32x56 mot = D_8010A948_parasol_plummet;
+    omObjData* obj;
+    PaPlayer* p;
+    s16 chr;
+    s32 dir;
+    s32 id;
+    s32 lane;
+    f32* taken;
+    s32 i;
+
+    obj = omAddObj(0x50, 5, 0xA, -1, func_80106418_parasol_plummet);
+    obj->data = HuMemAllocTag(sizeof(PaPlayer), 0x7918);
+    D_8010AB60_parasol_plummet[arg0] = obj;
+    p = obj->data;
+    p->unk00 = 0.0f;
+    p->unk04 = 0.0f;
+    p->unk08 = 0.0f;
+    p->unk0C = 0;
+    p->unk28 = 0;
+    p->unk30 = 0;
+    p->unk2C = 0;
+    p->unk34 = 0;
+    p->unk24 = arg0;
+    p->unk10 = 1;
+    p->unk38 = 0;
+    p->unk3C = 0;
+    p->unk40 = 0;
+    p->unk18 = 0;
+    p->unk44 = 0;
+    p->unk48 = 0;
+    p->unk14 = 0x20;
+    chr = GwPlayer[arg0].chr;
+    dir = D_8010A8C8_parasol_plummet[chr] << 16;
+    id = file.v[chr];
+    while (TRUE) {
+        lane = rand8() & 3;
+        taken = &D_8010AC50_parasol_plummet[lane];
+        if (*taken == 0.0f) {
+            p->unk4C = lane;
+            *taken += 1.0f;
+            break;
+        }
+    }
+    obj->model[0] = func_8000B108_main(dir | id, 0x6D9);
+    omSetTra(obj, p->unk00, p->unk04, p->unk08);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    for (i = 0; i < 7; i++) {
+        func_8000B460_main(obj, i, func_80017BB8_main(chr, mot.v[chr][i]));
+    }
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    obj->model[1] = func_8000B108_main(0x3D0006, 0x6C9);
+    Hu3DModelPosSet(obj->model[1], p->unk00, p->unk04, p->unk08);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[1], 1.0f, 1.0f, 1.0f);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8000B460_main(obj, 8, 0x3D0000);
+    func_8001C5B4_main(obj->model[1], obj->motion[8]);
+    func_8001C814_main(obj->model[1], 2, 2);
+    func_8000B460_main(obj, 9, 0x3D0001);
+    obj->model[2] = func_8000B108_main(0x3D0007, 0x6D9);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    func_8001C258_main(obj->model[2], 4, 4);
+    switch (GwPlayer[arg0].chr) {
+    case 1:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "ru_DEF");
+        break;
+    case 2:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "pi_DEF");
+        break;
+    case 3:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "yo_DEF");
+        break;
+    case 4:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "wa_DEF");
+        break;
+    case 5:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "do_DEF");
+        break;
+    case 6:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "waru_DEF");
+        break;
+    case 7:
+        func_8001E500_main(obj->model[1], "ma01_DEF", "di_DEF");
+        break;
+    }
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+}
 
 __asm__(".section .rodata"); // TEMP: rodata of asm functions
 const f32 D_8010AA8C_parasol_plummet[] = { -450.0f, -150.0f, 150.0f, 450.0f };
