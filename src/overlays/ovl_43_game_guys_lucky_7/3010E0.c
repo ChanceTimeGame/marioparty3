@@ -185,6 +185,7 @@ void func_80106CF4_game_guys_lucky_7(omObjData* obj);
 void func_80107090_game_guys_lucky_7(void);
 void func_80107270_game_guys_lucky_7(void);
 void func_80107668_game_guys_lucky_7(omObjData* obj);
+void func_8010783C_game_guys_lucky_7(omObjData* obj);
 void func_80107AC4_game_guys_lucky_7(omObjData* obj);
 void func_80107DE4_game_guys_lucky_7(omObjData* obj);
 void func_80107F44_game_guys_lucky_7(omObjData* obj);
@@ -232,6 +233,8 @@ extern u16 D_8010D1C6_game_guys_lucky_7; /* spin step */
 extern u16 D_8010D1C8_game_guys_lucky_7; /* spin wait */
 extern u16 D_8010D1CA_game_guys_lucky_7; /* countdown frames */
 extern u16 D_8010D1CC_game_guys_lucky_7; /* countdown seconds */
+extern u16 D_8010D1CE_game_guys_lucky_7; /* reel stop step */
+extern u16 D_8010D1D0_game_guys_lucky_7; /* reel stop wait */
 
 /* .rodata */
 
@@ -241,7 +244,9 @@ extern s16 D_8010D6D0_game_guys_lucky_7; /* result message */
 extern Process* D_8010D6D4_game_guys_lucky_7; /* rules window process */
 extern Process* D_8010D6D8_game_guys_lucky_7; /* play process */
 extern L7Player D_8010D6DC_game_guys_lucky_7;
+extern u8 D_8010D6E1_game_guys_lucky_7; /* low byte of D_8010D6DC.chr (a view; see report) */
 extern s16 D_8010D726_game_guys_lucky_7;
+extern u16 D_8010D728_game_guys_lucky_7;
 extern f32 D_8010D72C_game_guys_lucky_7;
 extern f32 D_8010D730_game_guys_lucky_7;
 extern f32 D_8010D734_game_guys_lucky_7;
@@ -249,10 +254,11 @@ extern f32 D_8010D738_game_guys_lucky_7;
 extern s16 D_8010D73C_game_guys_lucky_7;
 extern u16 D_8010D73E_game_guys_lucky_7;
 extern s16 D_8010D740_game_guys_lucky_7;
+extern u16 D_8010D744_game_guys_lucky_7;
 extern s16 D_8010D746_game_guys_lucky_7;
 extern s16 D_8010D758_game_guys_lucky_7;
 extern s16 D_8010D768_game_guys_lucky_7;
-extern s16 D_8010D76A_game_guys_lucky_7;
+extern u16 D_8010D76A_game_guys_lucky_7; /* reels to stop */
 extern s16 D_8010D76C_game_guys_lucky_7;
 extern s16 D_8010D770_game_guys_lucky_7;
 extern f32 D_8010D74C_game_guys_lucky_7;
@@ -260,6 +266,7 @@ extern f32 D_8010D754_game_guys_lucky_7;
 extern u16 D_8010D772_game_guys_lucky_7; /* rules shown */
 extern u16 D_8010D774_game_guys_lucky_7;
 extern u16 D_8010D776_game_guys_lucky_7;
+extern u16 D_8010D778_game_guys_lucky_7;
 extern u16 D_8010D77A_game_guys_lucky_7; /* won */
 extern u16 D_8010D77C_game_guys_lucky_7; /* rules window done */
 extern s16 D_8010D800_game_guys_lucky_7;
@@ -712,7 +719,71 @@ void func_80106A0C_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80106CF4_game_guys_lucky_7);
+void func_80106CF4_game_guys_lucky_7(omObjData* obj) {
+    if (D_8010D772_game_guys_lucky_7 == 0) {
+        if (D_8010D1CE_game_guys_lucky_7 != D_8010D76A_game_guys_lucky_7 + 1 && D_8010D728_game_guys_lucky_7 == 0
+            && D_8010D774_game_guys_lucky_7 < 8) {
+            D_8010D728_game_guys_lucky_7 = 1;
+            D_8010D1CE_game_guys_lucky_7++;
+        } else if ((D_8010D1CE_game_guys_lucky_7 == D_8010D76A_game_guys_lucky_7 + 1 || D_8010D774_game_guys_lucky_7 == 8)
+                   && D_8010D728_game_guys_lucky_7 == 0) {
+            if (D_8010D774_game_guys_lucky_7 >= 8) {
+                D_8010D1CE_game_guys_lucky_7 = 0;
+                D_8010D772_game_guys_lucky_7 = 1;
+                D_8010D1D0_game_guys_lucky_7 = 0;
+                obj->func = func_8010783C_game_guys_lucky_7;
+            } else if (D_8010D1D0_game_guys_lucky_7++ >= 6) {
+                if (D_8010D738_game_guys_lucky_7 <= 360.0f) {
+                    D_8010D73C_game_guys_lucky_7 = 0;
+                    D_8010D738_game_guys_lucky_7 += 10.0f;
+                } else {
+                    D_8010D1CE_game_guys_lucky_7 = 0;
+                    D_8010D738_game_guys_lucky_7 = 360.0f;
+                    D_8010D772_game_guys_lucky_7 = 1;
+                    D_8010D1D0_game_guys_lucky_7 = 0;
+                    if (D_8010D778_game_guys_lucky_7 == 0) {
+                        obj->func = func_80106A0C_game_guys_lucky_7;
+                    } else if (D_8010D778_game_guys_lucky_7 == 1) {
+                        obj->func = func_80106854_game_guys_lucky_7;
+                    }
+                }
+            }
+        }
+    } else if (D_8010D772_game_guys_lucky_7 == 1) {
+        if (D_8010D1CE_game_guys_lucky_7 != D_8010D76A_game_guys_lucky_7 + 1 && D_8010D744_game_guys_lucky_7 == 0
+            && D_8010D776_game_guys_lucky_7 < 8) {
+            D_8010D744_game_guys_lucky_7 = 1;
+            D_8010D1CE_game_guys_lucky_7++;
+        } else if ((D_8010D1CE_game_guys_lucky_7 == D_8010D76A_game_guys_lucky_7 + 1 || D_8010D776_game_guys_lucky_7 == 8)
+                   && D_8010D744_game_guys_lucky_7 == 0) {
+            if (D_8010D776_game_guys_lucky_7 >= 8) {
+                CharFXPlay(0x286, D_8010D6E1_game_guys_lucky_7);
+                D_8010D746_game_guys_lucky_7 = 7;
+                obj->func = func_80105F70_game_guys_lucky_7;
+            } else if (D_8010D1D0_game_guys_lucky_7++ >= 6) {
+                if (D_8010D754_game_guys_lucky_7 <= 360.0f) {
+                    D_8010D746_game_guys_lucky_7 = 1;
+                    D_8010D754_game_guys_lucky_7 += 10.0f;
+                } else {
+                    if (D_8010D776_game_guys_lucky_7 == 7) {
+                        omVibrate(D_8010D6DC_game_guys_lucky_7.player, 30, 0, 30);
+                    }
+                    D_8010D746_game_guys_lucky_7 = 0;
+                    D_8010D1D0_game_guys_lucky_7 = 0;
+                    D_8010D1CE_game_guys_lucky_7 = 0;
+                    D_8010D754_game_guys_lucky_7 = 360.0f;
+                    D_8010D772_game_guys_lucky_7 = 0;
+                    if (D_8010D778_game_guys_lucky_7 == 0) {
+                        D_8010D778_game_guys_lucky_7 = 1;
+                        obj->func = func_80106854_game_guys_lucky_7;
+                    } else if (D_8010D778_game_guys_lucky_7 == 1) {
+                        obj->func = func_80105F70_game_guys_lucky_7;
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107090_game_guys_lucky_7);
 
