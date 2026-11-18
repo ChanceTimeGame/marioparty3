@@ -874,12 +874,15 @@ void func_80106CF4_game_guys_lucky_7(omObjData* obj) {
 }
 
 #ifdef NON_MATCHING
-/* retail keeps the three identical 100% cases as separate calls (ours are merged into one) and reloads D_8010D774 for the switch; logic checked against the asm */
+/* Lucky 7 result: rolls the win chance for the reached level (D_8010D774; reaching past D_8010D776 always wins),
+ * shows the win/lose message and sets D_8010D77C (1 lost, 2 won). Differs from retail only in won's register copies. */
 void func_80107090_game_guys_lucky_7(void) {
     s16 winId;
     s32 won = 0;
 
-    if (D_8010D776_game_guys_lucky_7 < D_8010D774_game_guys_lucky_7) {
+    if (D_8010D776_game_guys_lucky_7 >= D_8010D774_game_guys_lucky_7) {
+        won = 1;
+    } else {
         switch (D_8010D774_game_guys_lucky_7) {
         case 1:
             if (func_801059BC_game_guys_lucky_7(100.0f) < 100) {
@@ -907,15 +910,17 @@ void func_80107090_game_guys_lucky_7(void) {
             }
             break;
         }
-    } else {
-        won = 1;
     }
     winId = func_8010AD44_game_guys_lucky_7(D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][0],
                                             D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][1],
                                             D_8010D150_game_guys_lucky_7[D_8010D774_game_guys_lucky_7][2]);
     HuAudFXPlay(0x11D);
     func_80060C14_main(winId, 1);
-    func_8005B43C_main(winId, (won != 1) ? 0x2B05 : 0x2B04, -1, -1);
+    if (won == 1) {
+        func_8005B43C_main(winId, 0x2B04, -1, -1);
+    } else {
+        func_8005B43C_main(winId, 0x2B05, -1, -1);
+    }
     func_8010ADF8_game_guys_lucky_7(winId, D_8010D6DC_game_guys_lucky_7.pad, D_8010D6DC_game_guys_lucky_7.cpu);
     func_8010ADB8_game_guys_lucky_7(winId);
     if (won == 0) {
