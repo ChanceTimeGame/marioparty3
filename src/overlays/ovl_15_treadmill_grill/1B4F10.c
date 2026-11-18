@@ -46,6 +46,7 @@ void Hu3DAnimInit(s32);
 void func_80021BE0_main(s32* arg0, s32 arg1);
 void func_800142A0_main(s32);
 u8 func_8000B638_main(void);
+s32 func_80017BB8_main(s16, s16);
 void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
 
 extern f32 D_800D51FC_main;
@@ -60,6 +61,9 @@ extern f32 CZoom;
 
 // minigame
 void func_800E1490_minigame(u16 arg0);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+void func_800E3568_minigame(MgWork* work, s32 slot, void* hook);
+void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
 void func_800E1304_minigame(omObjData* obj, f32 arg1);
 void func_800E1310_minigame(omObjData* obj, f32 arg1);
 void func_800E131C_minigame(omObjData* obj, f32 arg1);
@@ -96,10 +100,14 @@ extern s32 D_8010B098_treadmill_grill[13]; /* grill object sound played */
 void func_80106008_treadmill_grill(omObjData* obj);
 void func_801062DC_treadmill_grill(omObjData* obj);
 void func_80109FA8_treadmill_grill(omObjData* obj);
+s32 func_80107238_treadmill_grill(omObjData* obj);
+s32 func_80107454_treadmill_grill(omObjData* obj);
+s32 func_80107798_treadmill_grill(omObjData* obj);
 void func_8010AE6C_treadmill_grill(omObjData* obj);
 
 extern s32 D_8010AF80_treadmill_grill; /* next free model in D_8010B310 */
 extern u16 D_8010B310_treadmill_grill[16]; /* player models */
+extern s16 D_8010B0D4_treadmill_grill; /* shared player part model, -1 until loaded */
 
 extern u8 D_8010AF84_treadmill_grill[4]; /* player out */
 extern TgCtrl D_8010B03C_treadmill_grill;
@@ -387,7 +395,60 @@ void func_801067A8_treadmill_grill(omObjData* obj) {
     func_8010AE6C_treadmill_grill(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80106DA0_treadmill_grill);
+void func_80106DA0_treadmill_grill(omObjData* obj, u32 arg1, s32 arg2, u16 arg3, f32 x, f32 y, f32 z) {
+    MgWork* work;
+    s32 chr;
+    s32 i;
+    s32 attr = 0xA99;
+
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+    func_800E1BA8_minigame(obj, arg1, arg2, arg3, attr, attr);
+    work = obj->data;
+    chr = GwPlayer[work->unk59].chr;
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+    obj->model[3] = func_8000B108_main(3, 0x89D);
+    obj->model[4] = func_8000B108_main(4, 0x89D);
+    obj->model[6] = func_8000B108_main(5, 0x89D);
+    obj->model[5] = func_8000B108_main(6, 0x89D);
+    obj->model[7] = func_8000B108_main(8, 0x89D);
+    obj->model[8] = func_8000B108_main(7, 0x89D);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 3), 0, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 19);
+    func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, 6), 1, 27);
+    func_800E5A00_minigame(obj, 17, func_80017BB8_main(chr, 0xE), 1, 15);
+    func_800E5A00_minigame(obj, 32, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5A00_minigame(obj, 18, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5A00_minigame(obj, 21, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 3, func_80017BB8_main(chr, 0x1D), 1, 0);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x1E), 1, 0);
+    func_800E5A00_minigame(obj, 30, func_80017BB8_main(chr, 0x20), 2, 0);
+    func_800E5A00_minigame(obj, 31, func_80017BB8_main(chr, 0x21), 2, 0);
+    func_800E5978_minigame(obj, 13, func_80017BB8_main(chr, 0x2F), 1, 120);
+    func_800E5978_minigame(obj, 14, func_80017BB8_main(chr, 0x36), 1, 120);
+    func_800E5978_minigame(obj, 38, func_80017BB8_main(chr, 0x1A), 1, 0);
+    for (i = 10; i < 14; i++) {
+        if (D_8010B0D4_treadmill_grill < 0) {
+            obj->model[i] = D_8010B0D4_treadmill_grill = func_8000B108_main(0x10014, 0x89D);
+        } else {
+            obj->model[i] = Hu3DModelLink(D_8010B0D4_treadmill_grill);
+        }
+    }
+    obj->trans.x = x;
+    obj->trans.y = y;
+    obj->trans.z = z;
+    work = obj->data;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E149C_minigame(obj, 1, 2);
+    func_800E3568_minigame(work, 0, func_80107798_treadmill_grill);
+    func_800E3568_minigame(work, 1, func_80107238_treadmill_grill);
+    func_800E3568_minigame(work, 20, func_80107454_treadmill_grill);
+}
 
 s32 func_80107230_treadmill_grill(void) {
     return 1;
