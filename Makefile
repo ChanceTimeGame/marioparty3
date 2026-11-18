@@ -458,6 +458,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory4/4C47E0.c.o build/src/overlays/msto
 W2DC_BLANKSTRIP += build/src/overlays/ovl_13_log_jam/1A3D80.c.o
 # m2 dr: Dorrie Dip 2DC4D0 likewise (func_80109C14_dorrie_dip: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_3E_dorrie_dip/2DC4D0.c.o
+# m2 ww: Water Whirled 211AB0 likewise (func_80105D64: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_23_water_whirled/211AB0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
