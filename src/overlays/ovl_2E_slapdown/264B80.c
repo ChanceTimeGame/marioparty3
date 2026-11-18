@@ -110,11 +110,6 @@ extern SdEnt D_8010B26C_slapdown[4];  /* = D_8010AAB0_slapdown[SD_ENT_PANEL] */
 
 // data
 typedef struct {
-    s32 file;
-    s32 pad;
-} SdFile;
-
-typedef struct {
     f32 x;
     f32 y;
 } SdVec2;
@@ -126,26 +121,42 @@ typedef struct {
     /* 0x28 */ f32 fov;
 } SdView; // Size 0x2C
 
-extern f32 D_8010A6C0_slapdown[4];
-extern f32 D_8010A6D0_slapdown[4];
-extern f32 D_8010A6E0_slapdown[4];
-extern f32 D_8010A6F0_slapdown[4];
-extern f32 D_8010A700_slapdown[4];
-extern f32 D_8010A710_slapdown[4];
-extern f32 D_8010A720_slapdown[4];
-extern f32 D_8010A730_slapdown[5];
-extern SdFile D_8010A744_slapdown[4];
-extern s32 D_8010A6A0_slapdown[8];
-extern SdCpuRate D_8010A760_slapdown[];
-extern SdVec2 D_8010A7B0_slapdown[4];
-extern SdVec2 D_8010A7D0_slapdown[4];
-extern f32 D_8010A7F0_slapdown[9];
-extern f32 D_8010A814_slapdown[9];
-extern SdVec2 D_8010A838_slapdown[4];
-extern SdVec2 D_8010A858_slapdown[4];
-extern s32 D_8010A878_slapdown[4];
-extern s32 D_8010A888_slapdown;
-extern SdView D_8010A88C_slapdown[1];
+/* sound per character (func_80045ED0_main) */
+s32 D_8010A6A0_slapdown[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+/* player start positions by seat; character 5 sits farther out */
+f32 D_8010A6C0_slapdown[4] = { -380.0f, 380.0f, 380.0f, -380.0f };
+f32 D_8010A6D0_slapdown[4] = { -380.0f, -380.0f, 380.0f, 380.0f };
+f32 D_8010A6E0_slapdown[4] = { -390.0f, 390.0f, 390.0f, -390.0f };
+f32 D_8010A6F0_slapdown[4] = { -390.0f, -390.0f, 390.0f, 390.0f };
+/* seat model positions */
+f32 D_8010A700_slapdown[4] = { -400.0f, 400.0f, 400.0f, -400.0f };
+f32 D_8010A710_slapdown[4] = { -400.0f, -400.0f, 400.0f, 400.0f };
+/* facing by seat */
+f32 D_8010A720_slapdown[4] = { 45.0f, 315.0f, 225.0f, 135.0f };
+f32 D_8010A730_slapdown[5] = { 45.0f, 315.0f, 225.0f, 135.0f, 0.0f };
+/* arm animation file by seat, every other word */
+s32 D_8010A744_slapdown[7] = { 0x4F0007, 0, 0x4F0008, 0, 0x4F0009, 0, 0x4F000A };
+/* CPU press chance by difficulty: 1 in unk0 when the face is right, 1 in unk2 otherwise */
+SdCpuRate D_8010A760_slapdown[4] = { { 60, 450 }, { 45, 470 }, { 30, 480 }, { 25, 500 } };
+/* unreferenced */
+f32 D_8010A770_slapdown[16] = {
+    -6.5f, -6.5f, 6.5f, -6.5f, 3.5f, 3.5f, -3.5f, 3.5f, -4.5f, -4.5f, 4.5f, -4.5f, 1.5f, 1.5f, -1.5f, 1.5f,
+};
+/* walk-off step by seat (x, z); character 5 walks slower */
+SdVec2 D_8010A7B0_slapdown[4] = { { -1.08f, -1.08f }, { 1.08f, -1.08f }, { 1.75f, 1.75f }, { -1.75f, 1.75f } };
+SdVec2 D_8010A7D0_slapdown[4] = { { -0.75f, -0.75f }, { 0.75f, -0.75f }, { 0.75f, 0.75f }, { -0.75f, 0.75f } };
+/* card positions (x, z) */
+f32 D_8010A7F0_slapdown[9] = { -65.0f, 65.0f, 190.0f, 190.0f, 130.0f, 0.0f, -130.0f, -190.0f, -190.0f };
+f32 D_8010A814_slapdown[9] = { -190.0f, -190.0f, 65.0f, -65.0f, 190.0f, 190.0f, 190.0f, 65.0f, -65.0f };
+/* player panel sprite positions */
+SdVec2 D_8010A838_slapdown[4] = { { 50.0f, 92.0f }, { 271.0f, 92.0f }, { 239.0f, 155.0f }, { 81.0f, 155.0f } };
+SdVec2 D_8010A858_slapdown[4] = { { 49.0f, 92.0f }, { 272.0f, 92.0f }, { 238.0f, 155.0f }, { 82.0f, 155.0f } };
+/* place sprites (1st..4th) */
+s32 D_8010A878_slapdown[4] = { 0x4F000D, 0x4F000E, 0x4F000F, 0x4F0010 };
+s32 D_8010A888_slapdown = 0;
+SdView D_8010A88C_slapdown[1] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 33.0f },
+};
 
 // unknown
 extern s32 D_800A178C_main[][6];
@@ -761,7 +772,7 @@ void func_80107858_slapdown(omObjData *obj) {
     func_8001C448_main(obj->model[1]);
     func_8001C514_main(obj->model[1]);
     obj->model[2] = func_8000B108_main(0x4F0018, 0x2A9);
-    D_8010AA20_slapdown[obj->work[1]] = DataRead(D_8010A744_slapdown[obj->work[1]].file);
+    D_8010AA20_slapdown[obj->work[1]] = DataRead(D_8010A744_slapdown[obj->work[1] * 2]);
     D_8010AA90_slapdown[obj->work[1]] =
         HmfAnimCreate(HmfModelData[obj->model[2]].hmf, D_8010AA20_slapdown[obj->work[1]], 0, "s246_07_DEF");
     func_8001C448_main(obj->model[2]);
