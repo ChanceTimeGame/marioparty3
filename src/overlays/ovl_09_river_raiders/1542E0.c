@@ -132,6 +132,9 @@ void func_80105A3C_river_raiders(void);
 void func_80106AF8_river_raiders(omObjData *obj);
 void func_80108188_river_raiders(omObjData *obj);
 void func_80108F40_river_raiders(omObjData *obj);
+void func_80108678_river_raiders(omObjData *obj);
+f32 fabsf(f32);
+double fabs(double);
 void func_8010CA20_river_raiders(omObjData *obj);
 void func_8010CA4C_river_raiders(omObjData *obj);
 void func_8010CA84_river_raiders(omObjData *obj);
@@ -1009,7 +1012,99 @@ void func_80108678_river_raiders(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108678_river_raiders);
 #endif
 
+#ifdef NON_MATCHING
+/* Resolves the team-1 rafts' collisions: pushes rafts apart, shares drift, clamps them to their lanes and the
+ * banks; repeats (at most 21 passes) until nothing changes, then applies each raft's drift. */
+void func_80108ACC_river_raiders(void) {
+    RrEnt *ent;
+    RrEnt *other;
+    omObjData *obj;
+    omObjData *otherObj;
+    s16 pass;
+    s16 i;
+    s16 j;
+    s16 n;
+    s32 changed;
+
+    pass = 0;
+    do {
+        changed = 0;
+        for (i = 0; i < 3; i++) {
+            ent = &D_8010DD08_river_raiders[i];
+            obj = ent->obj;
+            for (j = 0; j < 3; j++) {
+                if (j != i && D_80110D98_river_raiders[i][j] == 1) {
+                    other = &D_8010DD08_river_raiders[j];
+                    otherObj = other->obj;
+                    if (other->unk18 < 0.5f && other->unk18 > -0.5f && D_80110D98_river_raiders[j][3] == 0 &&
+                        D_80110D98_river_raiders[j][4] == 0) {
+                        other->unk18 = ent->unk18;
+                        changed = 1;
+                    }
+                    if (otherObj->trans.x < obj->trans.x) {
+                        if (ent->unk18 < 0.0f) {
+                            ent->unk18 = -ent->unk18;
+                            changed = 1;
+                        } else if (ent->unk18 < 0.5f && ent->unk18 > -0.5f) {
+                            ent->unk18 = fabsf(other->unk18);
+                            changed = 1;
+                        }
+                    } else {
+                        if (ent->unk18 > 0.0f) {
+                            ent->unk18 = -ent->unk18;
+                            changed = 1;
+                        } else if (ent->unk18 < 0.5f && ent->unk18 > -0.5f) {
+                            ent->unk18 = -fabs(other->unk18);
+                            changed = 1;
+                        }
+                    }
+                }
+            }
+            n = 0;
+            for (j = 0; j < 3; j++) {
+                if (j != i && D_80110D98_river_raiders[i][j] == 1) {
+                    n++;
+                }
+            }
+            if (n >= 2) {
+                changed = 1;
+            }
+            if (D_80110D98_river_raiders[obj->work[1]][3] == 1) {
+                obj->trans.x = D_80110DC8_river_raiders[obj->work[2] * 2] + 65.0f;
+                ent->unk18 = 0.0f;
+                changed = 1;
+            }
+            if (D_80110D98_river_raiders[obj->work[1]][3] == 2) {
+                obj->trans.x = D_80110DC8_river_raiders[obj->work[2] * 2 + 1] - 65.0f;
+                ent->unk18 = 0.0f;
+                changed = 1;
+            }
+            if (D_80110D98_river_raiders[obj->work[1]][4] == 1) {
+                obj->trans.x = 515.0f;
+                ent->unk18 = 0.0f;
+                changed = 1;
+            }
+            if (D_80110D98_river_raiders[obj->work[1]][4] == 2) {
+                obj->trans.x = -515.0f;
+                ent->unk18 = 0.0f;
+                changed = 1;
+            }
+            func_80108678_river_raiders(obj);
+        }
+        pass++;
+        if (pass >= 21) {
+            break;
+        }
+    } while (changed != 0);
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010DD08_river_raiders[i];
+        obj = ent->obj;
+        obj->trans.x += ent->unk18;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108ACC_river_raiders);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108F40_river_raiders);
 
