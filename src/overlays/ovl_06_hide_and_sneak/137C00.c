@@ -129,6 +129,7 @@ extern s8 D_8010E169_hide_and_sneak; /* view: D_8010E168_hide_and_sneak.state */
 extern s8 D_8010E182_hide_and_sneak[4];
 extern u8 D_8010E186_hide_and_sneak;
 extern u8 D_8010E1A8_hide_and_sneak;
+extern u8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
 extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_FADE].unk04 */
 extern s8 D_8010E170_hide_and_sneak;
 extern s8 D_8010E174_hide_and_sneak;
@@ -156,6 +157,7 @@ void func_801078E4_hide_and_sneak(void);
 void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
 void func_8010A1CC_hide_and_sneak(omObjData *obj);
+void func_80107B30_hide_and_sneak(omObjData *obj);
 void func_8010ACC4_hide_and_sneak(Gfx **gfx, s32 arg1, s32 arg2);
 void func_8010AF98_hide_and_sneak(omObjData *obj);
 void func_8010B33C_hide_and_sneak(omObjData *obj);
@@ -1183,7 +1185,46 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109870_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109BF4_hide_and_sneak);
+s32 func_80109BF4_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_SEEKER, obj->work[1]);
+    s32 dist;
+
+    if (ent->unk04 == 0) {
+        return 0;
+    }
+    if (ent->unk04 == 2) {
+        return 1;
+    }
+    func_80107B30_hide_and_sneak(obj);
+    if (ent->unk0C != 0) {
+        ent->unk0C--;
+    } else {
+        if (ent->unk16 == 0) {
+            ent->unk16++;
+            func_8004ACE0_main(0x286, (s16)obj->work[0]);
+        }
+        dist = obj->trans.x;
+        if (dist < 0) {
+            dist = -dist;
+        }
+        if (dist > 1000) {
+            ent->unk04 = 2;
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 4);
+            D_8010E1A9_hide_and_sneak[obj->work[1]] = 0;
+            return 1;
+        }
+        if (obj->trans.x < 0.0f) {
+            obj->rot.y = 270.0f;
+            obj->trans.x -= 24.0f;
+        } else {
+            obj->rot.y = 90.0f;
+            obj->trans.x += 24.0f;
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109D88_hide_and_sneak);
 
