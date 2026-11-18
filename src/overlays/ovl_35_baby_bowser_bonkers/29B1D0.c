@@ -173,7 +173,7 @@ void func_80109890_baby_bowser_bonkers(void);
 void func_80109EB8_baby_bowser_bonkers(void);
 extern s32 D_8010BC3C_baby_bowser_bonkers;
 void func_80107678_baby_bowser_bonkers(omObjData* obj, s16 a, s16 b);
-void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s32 arg4);
+void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s16 again);
 s32 func_80109080_baby_bowser_bonkers(s32 id, s16 rise, s16 stay);
 s32 func_801096D0_baby_bowser_bonkers(void);
 void func_8010630C_baby_bowser_bonkers(omObjData* obj);
@@ -676,7 +676,138 @@ void func_80107678_baby_bowser_bonkers(omObjData* obj, s16 a, s16 b) {
     mb->hmf = tmp;
 }
 
+/* Pushes two players apart (the moving or higher one moves) and keeps both in the arena; once more with
+   the roles swapped when the push hit the wall. */
+/* NON_MATCHING: masked 41, all from one extra instruction: retail tests (stayX & stayZ) and pushed with two branches and moves sqrt.s through f0; this C folds them. Logic checked against the asm, including retail's z overshoot read from trans.x. */
+#ifdef NON_MATCHING
+void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s16 again) {
+    omObjData* mover;
+    omObjData* other;
+    func_800E1BA8_minigame_ObjData* wm;
+    func_800E1BA8_minigame_ObjData* wo;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    f32 r;
+    f32 k;
+    f32 lim;
+    f32 ox;
+    f32 oz;
+    u16 pushed;
+    s32 stayX;
+    s32 stayZ;
+
+    pushed = 0;
+    if (again == 0) {
+        if ((va->x != 0.0f || va->z != 0.0f) && vb->x == 0.0f && vb->z == 0.0f) {
+            mover = a;
+            other = b;
+        } else if ((vb->x != 0.0f || vb->z != 0.0f) && va->x == 0.0f && va->z == 0.0f) {
+            mover = b;
+            other = a;
+        } else if (a->trans.y > b->trans.y) {
+            mover = a;
+            other = b;
+        } else if (b->trans.y > a->trans.y) {
+            mover = b;
+            other = a;
+        } else {
+            mover = a;
+            other = b;
+        }
+    } else {
+        mover = a;
+        other = b;
+    }
+    wm = mover->data;
+    wo = other->data;
+    dx = mover->trans.x - other->trans.x;
+    dz = mover->trans.z - other->trans.z;
+    dist = sqrtf(dx * dx + dz * dz);
+    r = (wm->unk48 + wo->unk48) * 0.75f;
+    if (dist < r) {
+        if (mover->trans.y >= other->trans.y && mover->trans.y <= other->trans.y + wo->unk34) {
+            if (dist != 0.0f) {
+                k = r / dist;
+            } else {
+                if (r == 0.0f) {
+                    dx = dz = 0.0f;
+                } else {
+                    if (other->trans.x >= 0.0f) {
+                        dx = r / 1.4142f;
+                    } else {
+                        dx = -r / 1.4142f;
+                    }
+                    if (other->trans.z >= 0.0f) {
+                        dz = r / 1.4142f;
+                    } else {
+                        dz = -r / 1.4142f;
+                    }
+                }
+                k = 1.0f;
+            }
+            mover->trans.x = dx * k + other->trans.x;
+            mover->trans.z = dz * k + other->trans.z;
+            pushed = 1;
+        }
+    }
+    oz = 0.0f;
+    lim = 469.9999809265137 - wm->unk48;
+    ox = 0.0f;
+    if (mover->trans.x > lim) {
+        ox = lim - mover->trans.x;
+        mover->trans.x = lim;
+    } else if (mover->trans.x < -lim) {
+        ox = -lim - mover->trans.x;
+        mover->trans.x = -lim;
+    }
+    /* Retail measures the z overshoot from trans.x. */
+    if (mover->trans.z > lim) {
+        oz = lim - mover->trans.x;
+        mover->trans.z = lim;
+    } else if (mover->trans.z < -lim) {
+        oz = -lim - mover->trans.x;
+        mover->trans.z = -lim;
+    }
+    lim = 469.9999809265137 - wo->unk48;
+    if (other->trans.x > lim) {
+        other->trans.x = lim;
+    } else if (other->trans.x < -lim) {
+        other->trans.x = -lim;
+    }
+    if (other->trans.z > lim) {
+        other->trans.z = lim;
+    } else if (other->trans.z < -lim) {
+        other->trans.z = -lim;
+    }
+    stayX = ox == 0.0f;
+    stayZ = oz == 0.0f;
+    if (!(stayX & stayZ) && pushed) {
+        dx = mover->trans.x - other->trans.x;
+        dz = mover->trans.z - other->trans.z;
+        if (sqrtf(dx * dx + dz * dz) < r && mover->trans.y >= other->trans.y &&
+            mover->trans.y <= wo->unk34 * 0.5f + other->trans.y) {
+            other->trans.x = ox + other->trans.x;
+            other->trans.z = oz + other->trans.z;
+            if (other->trans.x > lim) {
+                other->trans.x = lim;
+            } else if (other->trans.x < -lim) {
+                other->trans.x = -lim;
+            }
+            if (other->trans.z > lim) {
+                other->trans.z = lim;
+            } else if (other->trans.z < -lim) {
+                other->trans.z = -lim;
+            }
+        }
+        if (again == 0) {
+            func_801076D8_baby_bowser_bonkers(other, mover, NULL, NULL, 1);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801076D8_baby_bowser_bonkers);
+#endif
 
 void func_80107CD8_baby_bowser_bonkers(void) {
     D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(1, 0x10, 0, -1, func_80107D38_baby_bowser_bonkers);
