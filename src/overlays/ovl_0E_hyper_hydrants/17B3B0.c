@@ -112,6 +112,16 @@ typedef struct HhFire {
     /* 0x1E */ s16 unk1E;
 } HhFire; /* size 0x20 */
 
+/* omObjData::data of the iris object (the framework's ground block, as All Fired Up's AfGround) */
+typedef struct HhGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[3];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ char unk0C[0xA8];
+} HhGround; /* size 0xB4 */
+
 // main
 s32 func_8000B638_main(void);
 void func_8000B710_main(s32);
@@ -119,6 +129,7 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
+void func_8000BD50_main(u16 id, s8 digit);
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
@@ -143,6 +154,7 @@ void func_800E1490_minigame(u16 arg0);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E1804_minigame(void);
 void func_800E1840_minigame(void);
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
@@ -192,6 +204,7 @@ extern Vec D_8010BDEC_hyper_hydrants;
 extern Vec D_8010BDF8_hyper_hydrants;
 extern Vec D_8010BE04_hyper_hydrants;
 extern s8 D_8010BE10_hyper_hydrants[4]; /* fires lit per team (index into the layout row) */
+extern s16 D_8010BE14_hyper_hydrants[2][2][2]; /* score digit positions, per team and digit */
 extern f32 D_8010BE28_hyper_hydrants;
 extern f32 D_8010BE2C_hyper_hydrants;
 extern s8 D_8010BE24_hyper_hydrants;
@@ -199,6 +212,7 @@ extern s8 D_8010BE25_hyper_hydrants;
 extern s8 D_8010BE34_hyper_hydrants;
 extern s8 D_8010BE38_hyper_hydrants[3][16]; /* fire size class per layout, team slot */
 extern s8 D_8010BE68_hyper_hydrants[2]; /* a fire came back this second, per team */
+extern s8 D_8010BE6A_hyper_hydrants; /* iris: only clear, never redraw */
 extern char D_8010BEF0_hyper_hydrants[]; /* "c201n_00_DEF" */
 extern s8 D_8010BE35_hyper_hydrants;
 extern s32 D_8010BE30_hyper_hydrants;
@@ -208,7 +222,17 @@ extern s16 D_8010BF42_hyper_hydrants[2];
 extern s8 D_8010BF46_hyper_hydrants;
 extern s32 D_8010BF48_hyper_hydrants; /* drop-ins made; its low byte is D_8010BF4B */
 extern s32 D_8010BF4C_hyper_hydrants;
-extern s8 D_8010BF50_hyper_hydrants; /* frames since the last pump, per team */
+extern s8 D_8010BF50_hyper_hydrants;
+extern s16 D_8010BF52_hyper_hydrants;
+extern s16 D_8010BF54_hyper_hydrants;
+extern s16 D_8010BF56_hyper_hydrants;
+extern s16 D_8010BF58_hyper_hydrants;
+extern s16 D_8010BF88_hyper_hydrants;
+extern s16 D_8010BF8A_hyper_hydrants[2]; /* iris mask sprite groups */
+extern s16 D_8010BF8E_hyper_hydrants;    /* mask width */
+extern u16 D_8010BF90_hyper_hydrants;    /* mask height */
+extern u8* D_8010BF94_hyper_hydrants[2]; /* mask texels */
+extern s32 D_8010BF9C_hyper_hydrants;    /* iris radius */ /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
@@ -223,7 +247,10 @@ extern omObjData* D_8010BFE0_hyper_hydrants[2];
 extern omObjData* D_8010BFE8_hyper_hydrants[2][5];
 extern s8 D_8010C010_hyper_hydrants;
 extern s16 D_8010C022_hyper_hydrants[2];
-extern Vec D_8010C028_hyper_hydrants[2]; /* hydrant end of the hose per team */
+extern Vec D_8010C028_hyper_hydrants[2];
+extern s16 D_8010C012_hyper_hydrants[2];
+extern s16 D_8010C016_hyper_hydrants[2];
+extern s16 D_8010C01A_hyper_hydrants[2][2]; /* hydrant end of the hose per team */
 
 
 void func_801059A0_hyper_hydrants(void) {
@@ -1934,15 +1961,250 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AB34_hyper_hydrants);
 #endif
 
+// masked residue: retail loads the 0.13725491f divisor into $f28 a few instructions earlier (scheduling only; logic checked)
+#ifdef NON_MATCHING
+/* The intro iris: screen title/frames, and two mask sprites (one per half) whose 8-bit alpha texels are the
+   distance from the drop-in's screen position, scaled to 255 over a radius of 35 (opaque beyond it). */
+void func_8010AE08_hyper_hydrants(omObjData* obj) {
+    HhGround* gw;
+    HuSprite* spr[2];
+    s32 i;
+    u8* a;
+    u8* b;
+    f32 x;
+    f32 y;
+    f32 dx;
+    f32 dy;
+    f32 d;
+
+    obj->func = func_8010B2FC_hyper_hydrants;
+    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+    D_8010BF56_hyper_hydrants = func_8000B838_main(0x2F0009);
+    D_8010BF58_hyper_hydrants = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010BF58_hyper_hydrants, 0, D_8010BF56_hyper_hydrants, 0);
+    HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x10);
+    HuSprAttrReset(D_8010BF58_hyper_hydrants, 0, 0xFFFF);
+    HuSprAttrSet(D_8010BF58_hyper_hydrants, 0, 0x1000);
+    func_80054904_main(D_8010BF58_hyper_hydrants, 0, 160, 120);
+    for (i = 0; i < 2; i++) {
+        D_8010BF52_hyper_hydrants = func_8000B838_main(0x2F0000);
+        D_8010BF88_hyper_hydrants = HuSprGrpCreate(1, 0);
+        func_80055024_main(D_8010BF88_hyper_hydrants, 0, D_8010BF52_hyper_hydrants, 0);
+        HuSprAttrReset(D_8010BF88_hyper_hydrants, 0, 0xFFFF);
+        if (i == 0) {
+            HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5000);
+            func_80054904_main(D_8010BF88_hyper_hydrants, 0, 80, 120);
+        } else {
+            HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5001);
+            func_80054904_main(D_8010BF88_hyper_hydrants, 0, 240, 120);
+        }
+    }
+    gw = obj->data = HuMemAllocTag(sizeof(HhGround), 0x7918);
+    memset(gw, 0, sizeof(HhGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    gw->unk08 = 0.5f;
+    func_800E1370_minigame(obj, 2, 0.0f);
+    for (i = 0; i < 2; i++) {
+        D_8010BF54_hyper_hydrants = func_8000B838_main(0x2F0001);
+        D_8010BF8A_hyper_hydrants[i] = HuSprGrpCreate(1, 0);
+        func_80055024_main(D_8010BF8A_hyper_hydrants[i], 0, D_8010BF54_hyper_hydrants, 0);
+        HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x20); /* retail: the title's priority, not the mask's */
+        HuSprAttrReset(D_8010BF8A_hyper_hydrants[i], 0, 0xFFFF);
+        if (i == 0) {
+            HuSprAttrSet(D_8010BF8A_hyper_hydrants[0], 0, 0x1000);
+            func_80054904_main(D_8010BF8A_hyper_hydrants[0], 0, 80, 120);
+        } else {
+            HuSprAttrSet(D_8010BF8A_hyper_hydrants[i], 0, 0x1001);
+            func_80054904_main(D_8010BF8A_hyper_hydrants[i], 0, 240, 120);
+        }
+        spr[i] = HuSprGet(D_8010BF8A_hyper_hydrants[i], 0);
+        D_8010BF94_hyper_hydrants[i] = spr[i]->unk_84->unk00->unk00;
+    }
+    D_8010BF8E_hyper_hydrants = spr[0]->unk_84->unk14;
+    D_8010BF90_hyper_hydrants = spr[0]->unk_84->unk16;
+    D_8010BF9C_hyper_hydrants = 35;
+    a = D_8010BF94_hyper_hydrants[0];
+    b = D_8010BF94_hyper_hydrants[1];
+    for (y = 0.0f; y < (s16)D_8010BF90_hyper_hydrants; y += 1.0f) {
+        for (x = 0.0f; x < D_8010BF8E_hyper_hydrants; x += 1.0f, a++, b++) {
+            dx = x - D_8010BFA0_hyper_hydrants;
+            dy = y - D_8010BFA4_hyper_hydrants;
+            d = HuSqrtf(dx * dx + dy * dy);
+            if (D_8010BF9C_hyper_hydrants < d) {
+                *a = *b = 0xFF;
+            } else {
+                *a = *b = d / 0.13725491f;
+            }
+        }
+    }
+    func_80055458_main(D_8010BF8A_hyper_hydrants[0], 0, 240);
+    func_80055458_main(D_8010BF8A_hyper_hydrants[1], 0, 240);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AE08_hyper_hydrants);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B2FC_hyper_hydrants);
+/* The iris opens by 3 a frame (to 240) once the drop-in has landed. */
+void func_8010B2FC_hyper_hydrants(omObjData* obj) {
+    if (func_800E6E8C_minigame() == 0) {
+        if (D_8010BFE0_hyper_hydrants[0]->trans.y > 0.0f) {
+            func_8010B38C_hyper_hydrants();
+        } else if (D_8010BF9C_hyper_hydrants < 240) {
+            D_8010BF9C_hyper_hydrants += 3;
+            func_8010B38C_hyper_hydrants();
+        } else {
+            D_8010BF9C_hyper_hydrants = 240;
+        }
+    }
+}
 
+// masked residue: retail re-reads the mask height for the loop bound into another register and hoists the 255/2^31 constants differently (registers/scheduling; logic checked)
+#ifdef NON_MATCHING
+/* Redraw the iris masks: clear inside 0.8 of the radius, a ramp to the radius, opaque beyond. */
+void func_8010B38C_hyper_hydrants(void) {
+    HhFire* big;
+    f32 inner;
+    f32 k;
+    s32 ymax;
+    u8* a;
+    u8* b;
+    s32 x;
+    s32 y;
+    f32 dx;
+    f32 dy;
+    f32 d;
+    u8 v;
+    u16 h;
+
+    big = D_8010BFE0_hyper_hydrants[0]->data;
+    if (big->unk03 == 2) {
+        D_8010BE6A_hyper_hydrants = 1;
+    }
+    inner = D_8010BF9C_hyper_hydrants * 0.8f;
+    k = (D_8010BF9C_hyper_hydrants * 0.2f) / 255.0f;
+    ymax = D_8010BFA4_hyper_hydrants + D_8010BF9C_hyper_hydrants;
+    a = D_8010BF94_hyper_hydrants[0];
+    b = D_8010BF94_hyper_hydrants[1];
+    h = D_8010BF90_hyper_hydrants;
+    for (y = 0; y < (s16)D_8010BF90_hyper_hydrants; y++) {
+        if (big->unk03 != 1 ? ymax < y : (s16)h / 2 < y) {
+            break;
+        }
+        for (x = 0; x < D_8010BF8E_hyper_hydrants; x++, a++, b++) {
+            if (D_8010BE6A_hyper_hydrants == 0 || *a != 0) {
+                dx = x - D_8010BFA0_hyper_hydrants;
+                dy = y - D_8010BFA4_hyper_hydrants;
+                d = HuSqrtf(dx * dx + dy * dy);
+                if (d <= inner) {
+                    if (*a != 0) {
+                        *a = *b = 0;
+                    }
+                } else if (D_8010BF9C_hyper_hydrants < d) {
+                    if (~*a & 0xFF) {
+                        *a = *b = 0xFF;
+                    }
+                } else {
+                    v = (d - inner) / k;
+                    if (v != *a) {
+                        *a = *b = v;
+                    }
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B38C_hyper_hydrants);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B658_hyper_hydrants);
+/* The score display: a frame and a label per team, two digit sprites per team. */
+void func_8010B658_hyper_hydrants(omObjData* obj) {
+    s16 pos[2][2] = { { 35, 32 }, { 252, 32 } };
+    s16 spr;
+    s16 i;
+    s16 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010B8B0_hyper_hydrants);
+    spr = func_8000B838_main(0x2F000A);
+    for (i = 0; i < 2; i++) {
+        D_8010C012_hyper_hydrants[i] = InitEspriteSlot(spr, 0, 1);
+        func_8000BBD4_main(D_8010C012_hyper_hydrants[i], pos[i][0], pos[i][1]);
+        func_8000BB94_main(D_8010C012_hyper_hydrants[i]);
+    }
+    spr = func_8000B838_main(0x21001B);
+    for (i = 0; i < 2; i++) {
+        D_8010C016_hyper_hydrants[i] = InitEspriteSlot(spr, 0, 1);
+        func_8000BBD4_main(D_8010C016_hyper_hydrants[i], pos[i][0] + 12, pos[i][1]);
+        func_8000BB94_main(D_8010C016_hyper_hydrants[i]);
+    }
+    spr = func_8000B838_main(0x31);
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            D_8010C01A_hyper_hydrants[i][j] = InitEspriteSlot(spr, 0, 1);
+            func_8000BBD4_main(D_8010C01A_hyper_hydrants[i][j], D_8010BE14_hyper_hydrants[i][j][0],
+                               D_8010BE14_hyper_hydrants[i][j][1]);
+            func_8000BB94_main(D_8010C01A_hyper_hydrants[i][j]);
+        }
+    }
+    obj->func = func_8010B8B0_hyper_hydrants;
+}
+
+/* Show each team's fires put out (one or two digits) while playing; hidden otherwise. */
+void func_8010B8B0_hyper_hydrants(omObjData* obj) {
+    s32 i;
+    s32 j;
+
+    switch (func_800E6E8C_minigame()) {
+        case 2:
+        case 3:
+            if (D_8010BE24_hyper_hydrants < 10) {
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[0][0]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[0][0], D_8010BE24_hyper_hydrants % 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[0][0], D_8010BE14_hyper_hydrants[0][0][0],
+                                   D_8010BE14_hyper_hydrants[0][0][1]);
+                func_8000BB94_main(D_8010C01A_hyper_hydrants[0][1]);
+            } else {
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[0][0]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[0][0], D_8010BE24_hyper_hydrants / 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[0][0], D_8010BE14_hyper_hydrants[0][0][0],
+                                   D_8010BE14_hyper_hydrants[0][0][1]);
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[0][1]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[0][1], D_8010BE24_hyper_hydrants % 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[0][1], D_8010BE14_hyper_hydrants[0][1][0],
+                                   D_8010BE14_hyper_hydrants[0][1][1]);
+            }
+            if (D_8010BE25_hyper_hydrants < 10) {
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[1][0]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[1][0], D_8010BE25_hyper_hydrants % 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[1][0], D_8010BE14_hyper_hydrants[1][0][0],
+                                   D_8010BE14_hyper_hydrants[1][0][1]);
+                func_8000BB94_main(D_8010C01A_hyper_hydrants[1][1]);
+            } else {
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[1][0]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[1][0], D_8010BE25_hyper_hydrants / 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[1][0], D_8010BE14_hyper_hydrants[1][0][0],
+                                   D_8010BE14_hyper_hydrants[1][0][1]);
+                func_8000BB54_main(D_8010C01A_hyper_hydrants[1][1]);
+                func_8000BD50_main(D_8010C01A_hyper_hydrants[1][1], D_8010BE25_hyper_hydrants % 10);
+                func_8000BBD4_main(D_8010C01A_hyper_hydrants[1][1], D_8010BE14_hyper_hydrants[1][1][0],
+                                   D_8010BE14_hyper_hydrants[1][1][1]);
+            }
+            for (i = 0; i < 2; i++) {
+                func_8000BB54_main(D_8010C012_hyper_hydrants[i]);
+                func_8000BB54_main(D_8010C016_hyper_hydrants[i]);
+            }
+            break;
+        default:
+            for (i = 0; i < 2; i++) {
+                func_8000BB94_main(D_8010C012_hyper_hydrants[i]);
+                func_8000BB94_main(D_8010C016_hyper_hydrants[i]);
+                for (j = 0; j < 2; j++) {
+                    func_8000BB94_main(D_8010C01A_hyper_hydrants[i][j]);
+                }
+            }
+            break;
+    }
+}
 
 /* Play sound `se` (positioned on `player` when `use3d`), panned to the left or right half. */
 s16 func_8010BC80_hyper_hydrants(s16 se, s16 side, s8 use3d, s16 player) {
@@ -1979,4 +2241,3 @@ void func_8010BD14_hyper_hydrants(Vec* out, Vec* from, Vec* to) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", D_8010BF30_hyper_hydrants);
