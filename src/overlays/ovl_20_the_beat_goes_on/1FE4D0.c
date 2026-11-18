@@ -1078,7 +1078,68 @@ void func_8010A88C_the_beat_goes_on(u16 btn) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010A94C_the_beat_goes_on);
+/* A player's hit: rumble, the note sign over the head, and hiding it when it finishes. */
+void func_8010A94C_the_beat_goes_on(omObjData* obj, s8* sign) {
+    MgWork* pw = obj->data;
+    s16 mdl;
+
+    if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 / 2.0f <= HmfModelData[obj->model[0]].unk40 && obj->work[2] == 0) {
+        if (obj->work[0] == 3) {
+            omVibrate(pw->unk59, 5, 0, 5);
+        } else if (obj->work[0] == 4) {
+            omVibrate(pw->unk59, 10, 0, 10);
+        }
+        switch (*sign) {
+            case 1:
+                if (obj->work[1] == 5) {
+                    func_8001C624_main(obj->model[3], HmfModelData[obj->motion[8]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[3], 1.0f);
+                    obj->work[2] = 1;
+                    HuAudFXPlay(0x405);
+                }
+                break;
+            case 2:
+                if (obj->work[1] == 3) {
+                    func_8001C624_main(obj->model[4], HmfModelData[obj->motion[8]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[4], 1.0f);
+                    obj->work[2] = 1;
+                    HuAudFXPlay(0x406);
+                }
+                break;
+            case 3:
+                if (obj->work[1] == 4) {
+                    func_8001C624_main(obj->model[5], HmfModelData[obj->motion[8]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[5], 1.0f);
+                    obj->work[2] = 1;
+                    HuAudFXPlay(0x407);
+                }
+                break;
+        }
+    }
+    mdl = obj->model[3];
+    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+        func_8001C814_main(mdl, 2, 1);
+        func_8001C6A8_main(obj->model[3], 0.0f);
+        *sign = 0;
+        obj->work[2] = 0;
+        return;
+    }
+    mdl = obj->model[4];
+    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+        func_8001C814_main(mdl, 2, 1);
+        func_8001C6A8_main(obj->model[4], 0.0f);
+        *sign = 0;
+        obj->work[2] = 0;
+        return;
+    }
+    mdl = obj->model[5];
+    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+        func_8001C814_main(mdl, 2, 1);
+        func_8001C6A8_main(obj->model[5], 0.0f);
+        *sign = 0;
+        obj->work[2] = 0;
+    }
+}
 
 /* The camera pull-back between rounds. */
 void func_8010AD60_the_beat_goes_on(s8* step, f32 speed) {
