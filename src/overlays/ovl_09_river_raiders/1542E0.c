@@ -102,8 +102,27 @@ extern RrTexSize D_80110D88_river_raiders;
 extern s8 D_80110D90_river_raiders;
 extern u8 D_80110DBD_river_raiders;
 
+/* A camera (D_8010D8C8_river_raiders; Curtain Call's layout). */
+typedef struct RrCamera {
+    /* 0x00 */ f32 scissor[4];
+    /* 0x10 */ f32 viewport[6];
+    /* 0x28 */ f32 fov;
+} RrCamera; // Size 0x2C
+extern RrCamera D_8010D8C8_river_raiders[1];
+extern const s16 D_8010D9BC_river_raiders[];
+s32 func_8000B710_main(s32 arg0);
+
 
 void func_8010D268_river_raiders(void);
+void func_80105A3C_river_raiders(void);
+void func_80106AF8_river_raiders(omObjData *obj);
+void func_80108188_river_raiders(omObjData *obj);
+void func_80108F40_river_raiders(omObjData *obj);
+void func_8010CA20_river_raiders(omObjData *obj);
+void func_8010CA4C_river_raiders(omObjData *obj);
+void func_8010CA84_river_raiders(omObjData *obj);
+void func_8010CF00_river_raiders(omObjData *obj);
+void func_8010D0F8_river_raiders(void);
 void func_80105BA4_river_raiders(omObjData *obj);
 void func_80105D1C_river_raiders(omObjData *obj);
 void func_80105FA0_river_raiders(omObjData *obj);
@@ -540,7 +559,9 @@ void func_80106AF8_river_raiders(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106AF8_river_raiders);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010716C_river_raiders);
+void func_8010716C_river_raiders(omObjData *obj) {
+    func_80106AF8_river_raiders(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80107188_river_raiders);
 
@@ -550,7 +571,34 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80107B
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108188_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108574_river_raiders);
+/* Creates the CPU-or-player raft controller for the team-0 lead player (D_8010DE94_river_raiders). */
+void func_80108574_river_raiders(void) {
+    omObjData *obj;
+    u16 player = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            switch (i) {
+                case 0:
+                    player = 0;
+                    break;
+                case 1:
+                    player = 1;
+                    break;
+                case 2:
+                    player = 2;
+                    break;
+                case 3:
+                    player = 3;
+                    break;
+            }
+            obj = omAddObj(700, 9, 60, -1, func_80108188_river_raiders);
+            obj->work[0] = player;
+            D_8010DE94_river_raiders = obj;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108678_river_raiders);
 
@@ -558,7 +606,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108A
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108F40_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801093F0_river_raiders);
+void func_801093F0_river_raiders(omObjData *obj) {
+    func_80108F40_river_raiders(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010940C_river_raiders);
 
@@ -578,13 +628,40 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C4
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C890_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C980_river_raiders);
+void func_8010C980_river_raiders(void) {
+    u32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CA20_river_raiders);
+    for (i = 0; i < 1; i++) {
+        CZoomM[i] = 2275.0f;
+        CRotM[i].x = 319.3f;
+        CRotM[i].y = 0.0f;
+        CRotM[i].z = 0.0f;
+        CenterM[i].x = 0.0f;
+        CenterM[i].y = -195.0f;
+        CenterM[i].z = 0.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CA4C_river_raiders);
+void func_8010CA20_river_raiders(omObjData *obj) {
+    osViBlack(0);
+    HuAudFXStop(-1);
+    omOvlReturnEx(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CA84_river_raiders);
+void func_8010CA4C_river_raiders(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_8010CA20_river_raiders;
+    }
+}
+
+void func_8010CA84_river_raiders(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_8010CA4C_river_raiders;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CADC_river_raiders);
 
@@ -593,8 +670,46 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CF
 void func_8010D0F0_river_raiders(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010D0F8_river_raiders);
+void func_8010D0F8_river_raiders(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010D268_river_raiders);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 1;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    func_8000B710_main(1);
+    for (i = 0; i < 1; i++) {
+        ScissorSet(i, D_8010D8C8_river_raiders[i].scissor[0], D_8010D8C8_river_raiders[i].scissor[1],
+                   D_8010D8C8_river_raiders[i].scissor[2], D_8010D8C8_river_raiders[i].scissor[3]);
+        ViewportSet(i, D_8010D8C8_river_raiders[i].viewport[0], D_8010D8C8_river_raiders[i].viewport[1],
+                    D_8010D8C8_river_raiders[i].viewport[2], D_8010D8C8_river_raiders[i].viewport[3],
+                    D_8010D8C8_river_raiders[i].viewport[4], D_8010D8C8_river_raiders[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010D8C8_river_raiders[i].fov, 80.0f, 8000.0f);
+    }
+}
+
+void func_8010D268_river_raiders(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(100);
+    omInitObjMan(100, 0);
+    func_8004A208_main();
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x40, 0x40, 0x40);
+    HmfLightDirSet(0, 0.0f, 0.0f, 100.0f);
+    HmfLightColorSet(1, 0x40, 0x40, 0x40);
+    HmfLightDirSet(1, 0.0f, 0.0f, 100.0f);
+    HmfLightColorSet(2, 0x40, 0x40, 0x40);
+    HmfLightDirSet(2, 0.0f, 0.0f, 100.0f);
+    func_8010D0F8_river_raiders();
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010D9BC_river_raiders, 0);
+    func_80045010_main(D_8010D9BC_river_raiders, 1);
+    omAddObj(1000, 0, 0, -1, func_8010CF00_river_raiders);
+    omAddObj(1000, 0, 0, -1, func_8010CA84_river_raiders);
+    func_80105A3C_river_raiders();
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", D_8010D9BC_river_raiders);
