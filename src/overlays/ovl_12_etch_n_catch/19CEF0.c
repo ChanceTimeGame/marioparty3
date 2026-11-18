@@ -178,6 +178,7 @@ void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
 void func_80109EB8_etch_n_catch(omObjData* obj);
 // main (more)
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_8000B460_main(omObjData*, u16, s32);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BBFC_main(u16, u8);
@@ -210,6 +211,9 @@ extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
 extern u8 D_8010C6E8_etch_n_catch[4][3]; /* puff model slots in use */
 extern u8 D_8010C6F4_etch_n_catch[4]; /* puff spacing counters */
 // bss
+extern s16 D_8010C842_etch_n_catch; /* board sprite group */
+extern s16 D_8010C844_etch_n_catch; /* grid sprite group */
+extern s16 D_8010C848_etch_n_catch; /* grid height */
 extern s16 D_8010C83C_etch_n_catch; /* first catcher's model (linked by the second) */
 extern s16 D_8010C83E_etch_n_catch; /* first catcher's shadow model */
 extern u8 D_8010C840_etch_n_catch; /* next cage index */
@@ -1211,7 +1215,74 @@ void func_8010BD98_etch_n_catch(omObjData* obj) {
     func_8000BBD4_main(D_801113A8_etch_n_catch[1], D_8010C6A4_etch_n_catch[1][0], D_8010C6A4_etch_n_catch[1][1]);
 }
 
+/* The drawing board: two sprite layers, the 8-bit grid (the second layer's texels) and its palette, the walls,
+   the flood-fill lists, and the framework ground block. */
+#ifdef NON_MATCHING
+void func_8010BE84_etch_n_catch(omObjData* obj) {
+    s32 id;
+    HuSprite* spr;
+    u16* pal;
+    u8* p;
+    s32 i;
+    EtGround* gw;
+
+    id = func_8000B838_main(0x330003);
+    D_8010C842_etch_n_catch = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010C842_etch_n_catch, 0, id, 0);
+    HuSprAttrReset(D_8010C842_etch_n_catch, 0, 0xFFFF);
+    HuSprAttrSet(D_8010C842_etch_n_catch, 0, 0x5000);
+    func_80054904_main(D_8010C842_etch_n_catch, 0, 160, 120);
+    id = func_8000B838_main(0x330004);
+    D_8010C844_etch_n_catch = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010C844_etch_n_catch, 0, id, 0);
+    HuSprAttrReset(D_8010C844_etch_n_catch, 0, 0xFFFF);
+    HuSprAttrSet(D_8010C844_etch_n_catch, 0, 0x5000);
+    func_80054904_main(D_8010C844_etch_n_catch, 0, 160, 120);
+    D_8010C878_etch_n_catch = HuMemAlloc(14400 * sizeof(u8*));
+    D_8010C87C_etch_n_catch[0] = HuMemAlloc(1000 * sizeof(u8*));
+    D_8010C87C_etch_n_catch[1] = HuMemAlloc(1000 * sizeof(u8*));
+    spr = HuSprGet(D_8010C844_etch_n_catch, 0);
+    D_8010C84C_etch_n_catch = p = spr->unk_84->unk00->unk00;
+    pal = spr->unk_84->unk0C;
+    D_8010C846_etch_n_catch = spr->unk_84->unk14;
+    D_8010C848_etch_n_catch = spr->unk_84->unk16;
+    pal[0] = 0;
+    pal[1] = 0xF801;
+    pal[2] = 0xFC21;
+    pal[4] = 0xFE31;
+    pal[8] = 0x3F;
+    pal[16] = 0x843F;
+    pal[32] = 0xC63F;
+    pal[33] = 0x400;
+    pal[34] = 0xFFFE;
+    for (i = 0; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i++, p++) {
+        if ((D_8010C846_etch_n_catch * 50 < i && i < D_8010C846_etch_n_catch * 51)
+            || (D_8010C846_etch_n_catch * 200 < i && i < D_8010C846_etch_n_catch * 201)) {
+            *p = 0x22;
+        } else {
+            *p = 0;
+        }
+    }
+    for (i = 30; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
+        D_8010C84C_etch_n_catch[i] = 0x22;
+    }
+    for (i = 160; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
+        D_8010C84C_etch_n_catch[i] = 0x22;
+    }
+    for (i = 290; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
+        D_8010C84C_etch_n_catch[i] = 0x22;
+    }
+    obj->func = NULL;
+    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+    obj->data = gw = HuMemAllocTag(sizeof(EtGround), 0x7918);
+    memset(gw, 0, sizeof(EtGround));
+    gw->unk03 = 1;
+    gw->unk08 = 0.5f;
+    func_800E1370_minigame(obj, 2, 0.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BE84_etch_n_catch);
+#endif
 
 /* Frees the fill lists, the trail pools and the player work blocks. */
 void func_8010C2F4_etch_n_catch(void) {
