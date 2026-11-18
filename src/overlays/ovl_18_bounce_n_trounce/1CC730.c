@@ -163,7 +163,9 @@ void func_80108CA8_bounce_n_trounce(omObjData* obj);
 void func_80108D28_bounce_n_trounce(omObjData* obj);
 void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn);
 void func_80109478_bounce_n_trounce(omObjData* obj);
-u16 func_80109A00_bounce_n_trounce(void);
+s16 func_80109804_bounce_n_trounce(omObjData* obj, s16 next);
+s16 func_80109A00_bounce_n_trounce(omObjData* obj);
+s16 func_8010AB1C_bounce_n_trounce(f32 x, f32 z);
 void func_80109AF0_bounce_n_trounce(omObjData* obj);
 void func_80109F68_bounce_n_trounce(omObjData* obj);
 void func_8010A664_bounce_n_trounce(omObjData* obj);
@@ -1326,7 +1328,7 @@ void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16*
     if (player->unk1C != NULL) {
         if ((((BtTile*)player->unk1C->data)->unk02 == 1 || ((BtTile*)player->unk1C->data)->unk02 == 2)
             && player->unk7E == 0) {
-            idx = func_80109A00_bounce_n_trounce();
+            idx = func_80109A00_bounce_n_trounce(obj);
             player->unk7E = 1;
             player->unkA0 = 1;
             player->unk80.x = D_8010ABEC_bounce_n_trounce[idx].x;
@@ -1428,13 +1430,149 @@ void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16*
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109478_bounce_n_trounce);
+/* CPU: picks a new state from the difficulty's table */
+void func_80109478_bounce_n_trounce(omObjData* obj) {
+    omObjData* others[4];
+    u16 tiles[9];
+    s16 table[4][8] = {
+        { 2, 2, 2, 3, 2, 4, 4, 3 },
+        { 2, 3, 2, 3, 2, 3, 4, 3 },
+        { 2, 3, 2, 3, 2, 3, 4, 3 },
+        { 2, 3, 3, 3, 2, 3, 3, 3 },
+    };
+    BtPlayer* player;
+    s16 n;
+    s32 i;
+    s32 j;
+    s32 k;
+    u16 tile;
 
+    player = obj->data;
+    player->unkA0 = table[GwPlayer[player->unk00].cpu_difficulty][rand8() & 7];
+    while (TRUE) {
+        switch (player->unkA0) {
+            case 2:
+                player->unkA6 = rand8() % 30 + 20;
+                return;
+            case 3:
+                k = 0;
+                for (j = 0; j < 4; j++) {
+                    if (j != player->unk00) {
+                        if (((BtPlayer*)D_8010AEDC_bounce_n_trounce[j]->data)->unk02 < 2) {
+                            others[k++] = D_8010AEDC_bounce_n_trounce[j];
+                        }
+                    }
+                }
+                if (k == 0) {
+                    player->unkA0 = 2;
+                    break;
+                }
+                if (k == 1) {
+                    player->unk9C = others[0];
+                } else {
+                    player->unk9C = others[rand8() % k];
+                }
+                func_80109804_bounce_n_trounce(obj, 3);
+                return;
+            case 4:
+                n = 0;
+                for (i = 0; i < 9; i++) {
+                    if (((BtTile*)D_8010AED8_bounce_n_trounce[i]->data)->unk02 == 0) {
+                        tiles[n++] = i;
+                    }
+                }
+                if (n == 1) {
+                    tile = tiles[0];
+                } else {
+                    tile = tiles[rand8() % n];
+                }
+                player->unk9C = D_8010AED8_bounce_n_trounce[(s16)tile];
+                player->unk8C.x = D_8010ABEC_bounce_n_trounce[(s16)tile].x;
+                player->unk8C.y = D_8010ABEC_bounce_n_trounce[(s16)tile].y;
+                player->unk8C.z = D_8010ABEC_bounce_n_trounce[(s16)tile].z;
+                player->unk98 = tile;
+                return;
+        }
+    }
+}
+
+/* CPU: when the target stands two tiles away in a line, first walks to the tile between (if it is not shaking), then
+   goes to state next. */
+#ifdef NON_MATCHING
+/* register allocation and the compare/return-value scheduling differ; logic checked against the asm */
+s16 func_80109804_bounce_n_trounce(omObjData* obj, s16 next) {
+    BtPlayer* player;
+    s16 a;
+    s16 b;
+    s16 mid;
+    s32 d;
+
+    player = obj->data;
+    a = func_8010AB1C_bounce_n_trounce(obj->trans.x, obj->trans.z);
+    b = func_8010AB1C_bounce_n_trounce(player->unk9C->trans.x, player->unk9C->trans.z);
+    d = a - b;
+    if (d < 0) {
+        d = -d;
+    }
+    if (d == 1 || d == 3) {
+        return FALSE;
+    }
+    if (a == 0 || a == 2 || a == 6 || a == 8) {
+        d = a - b;
+        if (d < 0) {
+            d = -d;
+        }
+        if (d != 2 && d != 6) {
+            return FALSE;
+        }
+        if (b == a + 2) {
+            mid = a + 1;
+        } else if (b == a + 6) {
+            mid = a + 3;
+        } else if (b == a - 2) {
+            mid = a - 1;
+        } else if (b == a - 6) {
+            mid = a - 3;
+        } else {
+            return b; /* unreachable: |a - b| is 2 or 6 */
+        }
+        if (((BtTile*)D_8010AED8_bounce_n_trounce[mid]->data)->unk02 != 1) {
+            player->unkA0 = 5;
+            player->unkA4 = next;
+            player->unk80.x = D_8010ABEC_bounce_n_trounce[mid].x;
+            player->unk80.y = D_8010ABEC_bounce_n_trounce[mid].y;
+            player->unk80.z = D_8010ABEC_bounce_n_trounce[mid].z;
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109804_bounce_n_trounce);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109A00_bounce_n_trounce);
+/* CPU: a solid tile to flee to (the last solid one: every tile is within the 1000000 limit) */
+s16 func_80109A00_bounce_n_trounce(omObjData* obj) {
+    f32 dist[9]; /* unused */
+    f32 limit;
+    s16 best;
+    u16 i;
+    s32 idx;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", D_8010AE14_bounce_n_trounce);
+    limit = 1000000.0f;
+    best = 0;
+    for (i = 0; i < 9; i++) {
+        idx = i;
+        if (((BtTile*)D_8010AED8_bounce_n_trounce[idx]->data)->unk02 == 0) {
+            if (HuSqrtf((obj->trans.x - D_8010ABEC_bounce_n_trounce[idx].x) * (obj->trans.x - D_8010ABEC_bounce_n_trounce[idx].x)
+                        + (obj->trans.z - D_8010ABEC_bounce_n_trounce[idx].z) * (obj->trans.z - D_8010ABEC_bounce_n_trounce[idx].z))
+                < limit) {
+                best = idx;
+            }
+        }
+    }
+    return best;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109AF0_bounce_n_trounce);
 
