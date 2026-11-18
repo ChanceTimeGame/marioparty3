@@ -133,11 +133,13 @@ extern f32 D_8010B4A0_coconut_conk;     /* = D_8010B484_coconut_conk.unk1C */
 extern f32 D_8010B4A4_coconut_conk;     /* = D_8010B484_coconut_conk.unk20 */
 extern CcEnt D_8010B508_coconut_conk[6]; /* = D_8010B1F0_coconut_conk[CC_ENT_TREE] */
 extern CcEnt D_8010B820_coconut_conk[9]; /* = D_8010B1F0_coconut_conk[CC_ENT_NUT] */
-extern CcEnt D_8010BCC4_coconut_conk;    /* = D_8010B1F0_coconut_conk[CC_ENT_SOLO] */
-extern s16 D_8010BCC8_coconut_conk;     /* = D_8010BCC4_coconut_conk.unk04 */
-extern CcEnt D_8010BD48_coconut_conk[3]; /* = D_8010B1F0_coconut_conk[CC_ENT_PLAYER] */
+/* = D_8010B1F0_coconut_conk[CC_ENT_SOLO]: [0] the solo player, [1..3] the team (D_8010BD48_coconut_conk) */
+extern CcEnt D_8010BCC4_coconut_conk[4];
+extern s16 D_8010BCC8_coconut_conk;     /* = D_8010BCC4_coconut_conk[0].unk04 */
 extern s16 D_8010CBB8_coconut_conk;
 extern s8 D_8010CBBA_coconut_conk;
+extern u8 D_8010CBBB_coconut_conk;
+extern s16 D_8010CBBC_coconut_conk;
 extern s16 D_8010CBC0_coconut_conk;
 
 f32 func_801059BC_coconut_conk(f32 angle, f32 add);
@@ -164,6 +166,18 @@ void func_801076EC_coconut_conk(omObjData *obj);
 void func_801078BC_coconut_conk(omObjData *obj);
 void func_80107B8C_coconut_conk(omObjData *obj);
 void func_8010815C_coconut_conk(omObjData *obj);
+void func_801090C4_coconut_conk(omObjData *obj);
+void func_801095A4_coconut_conk(omObjData *obj);
+void func_801095C0_coconut_conk(omObjData *obj);
+void func_801095C8_coconut_conk(omObjData *obj);
+void func_80109940_coconut_conk(omObjData *obj);
+void func_80109DEC_coconut_conk(omObjData *obj);
+void func_8010A55C_coconut_conk(omObjData *obj);
+void func_8010A5D8_coconut_conk(omObjData *obj);
+void func_8010A610_coconut_conk(omObjData *obj);
+void func_8010A668_coconut_conk(omObjData *obj);
+void func_8010AB4C_coconut_conk(omObjData *obj);
+void func_8010AC88_coconut_conk(omObjData *obj);
 void func_8010AE04_coconut_conk(void);
 
 void func_801059A0_coconut_conk(void) {
@@ -606,11 +620,11 @@ void func_80106E80_coconut_conk(void) {
     }
 }
 
-/* The solo player's CPU: picks a direction (D_8010BCC4_coconut_conk.unk04: 1 left, 2 right). */
+/* The solo player's CPU: picks a direction (D_8010BCC4_coconut_conk[0].unk04: 1 left, 2 right). */
 #ifdef NON_MATCHING
 /* Differs from retail only in register allocation and the sort loops' index initialisation. */
 void func_80106F18_coconut_conk(omObjData *obj) {
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
     f32 gap[4];
     f32 pos[3];
     u16 player = obj->work[0];
@@ -629,7 +643,7 @@ void func_80106F18_coconut_conk(omObjData *obj) {
 
     if (((diff == 0) & (dir < 50)) || ((diff == 1) & (dir < 150)) || ((diff == 2) & (dir < 180)) || ((diff == 3) & (dir < 255))) {
         for (i = 0; i < 3; i++) {
-            ent = &D_8010BD48_coconut_conk[i];
+            ent = &D_8010BCC4_coconut_conk[i + 1];
             o = ent->obj;
             pos[i] = o->trans.x;
             if (o->trans.x + 39.0f > obj->trans.x - 40.0f && o->trans.x - 39.0f < obj->trans.x + 40.0f) {
@@ -763,7 +777,7 @@ void func_80107674_coconut_conk(omObjData *obj) {
 
 /* The solo player's stick. */
 void func_80107690_coconut_conk(omObjData *obj) {
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
 
     D_8010BCC8_coconut_conk = 0;
     if (D_800CBB6E_main[obj->work[3]] < -29) {
@@ -776,7 +790,7 @@ void func_80107690_coconut_conk(omObjData *obj) {
 
 /* Rolls the solo player's barrel during the intro. */
 void func_801076EC_coconut_conk(omObjData *obj) {
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
     switch (D_8010BCC8_coconut_conk) {
         case 0:
             if (solo->unk18 < 0.0f) {
@@ -814,7 +828,7 @@ void func_801076EC_coconut_conk(omObjData *obj) {
 /* Rolls the solo player's barrel; D_8010B1C0_coconut_conk counts frames spent nearly still. */
 void func_801078BC_coconut_conk(omObjData *obj) {
     f32 x;
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
 
     switch (D_8010BCC8_coconut_conk) {
         case 0:
@@ -861,13 +875,13 @@ void func_801078BC_coconut_conk(omObjData *obj) {
     obj->trans.x += solo->unk18;
 }
 
-/* The solo player catches a falling coconut; animates the barrel lid (D_8010BCC4_coconut_conk.unk0A). */
+/* The solo player catches a falling coconut; animates the barrel lid (D_8010BCC4_coconut_conk[0].unk0A). */
 void func_80107B8C_coconut_conk(omObjData *obj) {
     CcEnt *ent;
     omObjData *nut;
     s16 i;
     s16 se;
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
 
     for (i = 0; i < 9; i++) {
         ent = &D_8010B820_coconut_conk[i];
@@ -953,7 +967,7 @@ void func_80107B8C_coconut_conk(omObjData *obj) {
 
 /* The solo player: intro roll (D_8010B1C8_coconut_conk 0), play (2), and the end (4: jump out of the barrel). */
 void func_8010815C_coconut_conk(omObjData *obj) {
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
     u16 player = obj->work[0];
     s16 old;
     s16 pan;
@@ -1115,7 +1129,7 @@ void func_8010815C_coconut_conk(omObjData *obj) {
 
 /* The solo player: character model, barrel, shadow, lid, splash and hook models. */
 void func_801089DC_coconut_conk(omObjData *obj) {
-    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    CcEnt *solo = &D_8010BCC4_coconut_conk[0];
     s8 chr = GwPlayer[obj->work[0]].chr;
     s32 dir = D_800A178C_main[chr][0];
     s16 i;
@@ -1210,16 +1224,105 @@ void func_80108FA0_coconut_conk(void) {
             obj = omAddObj(700, 9, 60, -1, func_801089DC_coconut_conk);
             obj->work[0] = player;
             obj->work[3] = GwPlayer[player].pad;
-            D_8010BCC4_coconut_conk.obj = obj;
+            D_8010BCC4_coconut_conk[0].obj = obj;
         }
     }
 }
 
+
+
+/* A team player's CPU: chases the solo player near the end and presses A/B; steers the stick through unk08. */
+#ifdef NON_MATCHING
+/* Differs from retail only in where the closest-player loop converts best to double (register/scheduling). */
+void func_801090C4_coconut_conk(omObjData *obj) {
+    CcEnt *ents[4];
+    omObjData *objs[4];
+    CcEnt *ent = &D_8010BCC4_coconut_conk[obj->work[1] + 1];
+    u16 player = obj->work[0];
+    u8 dir = rand8();
+    omObjData *solo = D_8010BCC4_coconut_conk[0].obj;
+    u8 diff;
+    f64 d;
+    f32 best;
+    s16 i;
+    s16 closest;
+
+    if (D_8010B1C8_coconut_conk == 2) {
+        diff = GwPlayer[player].cpu_difficulty;
+        if (((diff == 0) & (dir < 50)) || ((diff == 1) & (dir < 80)) || ((diff == 2) & (dir < 100)) || ((diff == 3) & (dir < 130))) {
+            dir = 2;
+            if (solo->trans.x < obj->trans.x) {
+                dir = 1;
+            }
+        }
+    }
+    if (D_8010CBBB_coconut_conk == 3) {
+        closest = 0;
+        if (D_8010B1C0_coconut_conk >= D_8010CBBC_coconut_conk) {
+            best = 5000.0f;
+            for (i = 0; i < 3; i++) {
+                ents[i] = &D_8010BCC4_coconut_conk[i + 1];
+                objs[i] = ents[i]->obj;
+            }
+            for (i = 0; i < 3; i++) {
+                d = fabs(objs[i]->trans.x - solo->trans.x);
+                if (d <= best) {
+                    closest = i;
+                    best = d;
+                }
+            }
+            dir = 0;
+            if (obj->work[1] == closest) {
+                if (obj->trans.x > solo->trans.x) {
+                    dir = 1;
+                } else if (obj->trans.x < solo->trans.x) {
+                    dir = 2;
+                }
+                if (obj->trans.x + 29.0f > solo->trans.x - 40.0f &&
+                    obj->trans.x - 29.0f < solo->trans.x + 40.0f) {
+                    D_800D5558_main[obj->work[3]] |= 0x8000;
+                    D_800D5558_main[obj->work[3]] |= 0x2000;
+                }
+            } else {
+                D_800D5558_main[obj->work[3]] |= 0x8000;
+            }
+        }
+    }
+    if (--ent->unk06 <= 0) {
+        ent->unk06 = 0;
+    }
+    if (obj->trans.y > 512.0f) {
+        dir = 0;
+    }
+    if (dir == 0 && ent->unk06 == 0) {
+        ent->unk08 = 0;
+    }
+    if ((u8)(dir % 5) == 1 && ent->unk06 == 0) {
+        ent->unk08 = -(rand8() & 0x1F) - 30;
+        ent->unk06 = 15;
+    }
+    if ((u8)(dir % 5) == 2 && ent->unk06 == 0) {
+        ent->unk08 = (rand8() & 0x1F) + 30;
+        ent->unk06 = 15;
+    }
+    /* the low byte of the s16 unk08 (big-endian) */
+    D_800CBB6E_main[obj->work[3]] = ((s8 *)&ent->unk08)[1];
+    if ((u8)(rand8() % 70) == 0) {
+        D_800D5558_main[obj->work[3]] |= 0x8000;
+    }
+    if ((u8)(rand8() % 5) == 0) {
+        D_800D5558_main[obj->work[3]] |= 0x2000;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801090C4_coconut_conk);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801095A4_coconut_conk);
+void func_801095A4_coconut_conk(omObjData *obj) {
+    func_801090C4_coconut_conk(obj);
+}
 
-void func_801095C0_coconut_conk(void) {
+void func_801095C0_coconut_conk(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801095C8_coconut_conk);
@@ -1242,7 +1345,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A66
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010AB4C_coconut_conk);
 
-void func_8010AC88_coconut_conk(void) {
+void func_8010AC88_coconut_conk(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010AC90_coconut_conk);
