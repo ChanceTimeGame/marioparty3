@@ -1384,7 +1384,7 @@ segments:
     subsegments:
       - [0x28A290, c]
       - [0x290E70, c]
-      - [0x290E90, data, 28A290] #8010C5A0
+      - [0x290E90, .data, 28A290] #8010C5A0
       - [0x290FD0, .rodata, 28A290] #8010C6E0
       - {0x291020, type: bss, vram: 0x8010C730, name: ovl_33_bss}
 
@@ -1623,9 +1623,11 @@ segments:
     subsegments:
       - [0x308D10, c]
       - [0x30DC30, c]
-      - [0x30F550, data, 308D10] #8010C1E0
+      - [0x30F550, .data, 308D10] #8010C1E0
+      - [0x30F5D0, .data, 30DC30] #8010C260
+      - [0x30F5E0, .data, 30F5E0] #8010C270 (a data-only object after 30DC30: the face table 308D10 uses)
       - [0x30F600, .rodata, 308D10] #8010C290
-      - [0x30F910, .rodata, 30DC30] #8010C5A0
+      - [0x30F930, .rodata, 30DC30] #8010C5C0
       - {0x30F940, type: bss, vram: 0x8010C5D0, name: ovl_44_bss}
 
   - type: code

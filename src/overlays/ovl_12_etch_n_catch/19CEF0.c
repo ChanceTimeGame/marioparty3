@@ -49,6 +49,7 @@ typedef struct EtVec2 {
 } EtVec2;
 
 #define ET_FABS(x) (((x) < 0.0f) ? -(x) : (x))
+#define ET_IABS(x) (((x) >= 0) ? (x) : -(x))
 #define ET_ABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
 
 /* omObjData::data of a catcher (the two Chain Chomp-like hunters), MgWork plus its own fields */
@@ -72,8 +73,8 @@ typedef struct EtCage {
     /* 0x01 */ u8 unk01;
     /* 0x02 */ u8 unk02;
     /* 0x03 */ char unk03;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
+    /* 0x04 */ f32 unk04; /* shadow scale */
+    /* 0x08 */ f32 unk08; /* drop speed */
 } EtCage; /* size 0xC */
 
 /* A trail node: 256 per player in D_801113D8[player] */
@@ -84,7 +85,9 @@ typedef struct EtNode {
     /* 0x08 */ struct EtNode* next;
     /* 0x0C */ struct EtNode* unk0C; /* previous node of the trail */
     /* 0x10 */ struct EtNode* unk10; /* next node of the trail */
-    /* 0x14 */ char unk14[4];
+    /* 0x14 */ u8 unk14; /* team bits */
+    /* 0x15 */ u8 unk15; /* grid value */
+    /* 0x16 */ s16 unk16; /* life: 106 new, 17 expiring, 16 off the grid, 0 freed */
     /* 0x18 */ s16 unk18; /* cell x */
     /* 0x1A */ s16 unk1A; /* cell y */
     /* 0x1C */ u8 unk1C; /* player */
@@ -101,7 +104,7 @@ typedef struct EtNode {
 // Heap-allocated (0x20 bytes) per-player work (D_8010C868[player]); unk0C is the head of a linked list
 // of nodes (func_80108B64 inserts, func_80108BCC removes, func_80108C08 walks).
 typedef struct EtchNCatchWork {
-    /* 0x00 */ s8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
+    /* 0x00 */ u8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
     /* 0x01 */ u8 unk01; /* 3 team 0, 12 team 1 */
     /* 0x02 */ u8 unk02; /* 8 team 0, 1 team 1 */
     /* 0x03 */ char unk03;
@@ -110,8 +113,8 @@ typedef struct EtchNCatchWork {
     /* 0x08 */ s16 unk08;
     /* 0x0A */ s16 unk0A;
     /* 0x0C */ struct EtNode* unk_0C;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ s8 unk12;
+    /* 0x10 */ s16 unk10; /* drawing sound */
+    /* 0x12 */ u8 unk12; /* drawing sound playing */
     /* 0x13 */ char unk13;
     /* 0x14 */ s16 unk14;
     /* 0x16 */ char unk16;
@@ -178,7 +181,29 @@ void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
 void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
 void func_80109EB8_etch_n_catch(omObjData* obj);
+void func_8010AB7C_etch_n_catch(omObjData* obj);
+void func_8010AD6C_etch_n_catch(EtCatcher* cw);
+void func_8010AEE4_etch_n_catch(EtCatcher* cw);
+void func_8010AFB8_etch_n_catch(EtCatcher* cw);
+void func_80107EA4_etch_n_catch(omObjData* obj);
+void func_8010880C_etch_n_catch(MgWork* pw);
+void func_80109370_etch_n_catch(EtNode* node, u8 v);
+void func_801097B4_etch_n_catch(EtNode* node);
+s32 func_8010B154_etch_n_catch(s16 x, s16 y);
 // main (more)
+extern u16 D_800D5558_main[4];
+extern f32 D_800EB770_minigame;
+s32 func_800E4A90_minigame(omObjData* obj);
+void func_800DDD94_minigame(omObjData* obj);
+s16 func_8004ACE0_main(s16, s16);
+void HuAudFXStop(s32 seNo);
+void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
+void func_8000BB54_main(u16 arg0);
+void func_8001C6A8_main(s32 model, f32 arg1);
+extern D_800CCF58_main_Struct* D_800CCF58_main;
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+void func_8004AE00_main(s16 handle, s16 pan);
+void func_8004AAD0_main(s16, s8);
 extern s8 D_800CBB6E_main[]; /* stick x per pad */
 extern s8 D_800D20A1_main[]; /* stick y per pad */
 f32 HuSqrtf(f32 x);
@@ -215,7 +240,16 @@ extern Vec D_8010C6B0_etch_n_catch[3]; /* catcher/cage start positions (x negate
 extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
 extern u8 D_8010C6E8_etch_n_catch[4][3]; /* puff model slots in use */
 extern u8 D_8010C6F4_etch_n_catch[4]; /* puff spacing counters */
+extern u8 D_8010C6E4_etch_n_catch[4]; /* CPU state per player */
+extern u8 D_8010C6F8_etch_n_catch[2]; /* catcher jumped (5) */
+extern f32 D_8010C6DC_etch_n_catch; /* pen scale during the intro */
+extern u8 D_8010C6E0_etch_n_catch; /* team 0 may have closed an area */
+extern u8 D_8010C6E1_etch_n_catch; /* team 1 may have closed an area */
+extern u8 D_8010C6E2_etch_n_catch; /* team checked this frame */
 // bss
+extern f32 D_8010C834_etch_n_catch; /* intro drop speed */
+extern EtchNCatchWork* D_8010C838_etch_n_catch; /* work of the player being updated */
+extern s16 D_8010C850_etch_n_catch[2][2]; /* catcher screen positions / 2 */
 extern s16 D_8010C842_etch_n_catch; /* board sprite group */
 extern s16 D_8010C844_etch_n_catch; /* grid sprite group */
 extern s16 D_8010C848_etch_n_catch; /* grid height */
@@ -549,7 +583,343 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C78
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106334_etch_n_catch);
 #endif
 
+/* A player each frame: drop-in during the intro; then pen input (CPU or stick, turn-limited), collisions with the
+   pen tips pushed out, pen model, and in play the trail: every grid cell the pen crosses gets a node and its marks.
+   Player 3's object also runs the area checks for both teams (one per frame) and ages every player's trail. */
+#ifdef NON_MATCHING
+void func_80106A64_etch_n_catch(omObjData* obj) {
+    EtNode* near[32];
+    Vec pos;
+    Vec2f scr;
+    EtVec2 d;
+    f32 dx[4];
+    f32 dz[4];
+    f32 px[4];
+    f32 pz[4];
+    MgWork* pw;
+    MgWork* ow;
+    EtNode* n;
+    EtNode* m;
+    s32 side;
+    s32 i;
+    s32 j;
+    s32 found;
+    s32 cnt;
+    s32 cx;
+    s32 cy;
+    s32 btn;
+    f32 fx;
+    f32 fz;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0 || func_800E6E8C_minigame() == 5) {
+        return;
+    }
+    pw = obj->data;
+    D_8010C838_etch_n_catch = D_8010C868_etch_n_catch[pw->unk59];
+    if (func_800E6E8C_minigame() == 0) {
+        if (D_8010C860_etch_n_catch[0]->work[0] != 3) {
+            Hu3DModelScaleSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+        } else {
+            obj->trans.y -= D_8010C834_etch_n_catch + 5.0f;
+            if (obj->trans.y < 0.0f) {
+                obj->trans.y = 0.0f;
+            } else if (pw->unk59 == 0) {
+                D_8010C834_etch_n_catch += 5.0f;
+                D_8010C6DC_etch_n_catch += 0.05f;
+                if (D_8010C6DC_etch_n_catch > 0.75f) {
+                    D_8010C6DC_etch_n_catch = 0.75f;
+                }
+            }
+            func_800DDD94_minigame(obj);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+            func_8010C628_etch_n_catch(obj, 0.75f);
+            fx = sindf(pw->unk3C) * 65.0f * 0.75f;
+            Hu3DModelPosSet(obj->model[1], obj->trans.x - fx, 0.0f, obj->trans.z - cosdf(pw->unk3C) * 65.0f * 0.75f);
+            Hu3DModelScaleSet(obj->model[1], D_8010C6DC_etch_n_catch, obj->scale.y, D_8010C6DC_etch_n_catch);
+        }
+        return;
+    }
+    btn = D_800D5558_main[pw->unk57];
+    D_800D5558_main[pw->unk57] = 0;
+    side = (obj->trans.x < 0.0f) ? 0 : 1;
+    if ((u32)D_8010C858_etch_n_catch[side]->work[0] >= 6 || D_8010C860_etch_n_catch[side]->work[0] != 3) {
+        D_800CBB6E_main[pw->unk57] = 0;
+        D_800D20A1_main[pw->unk57] = 0;
+    }
+    if (GwPlayer[pw->unk59].stat & 1) {
+        func_80107EA4_etch_n_catch(obj);
+    }
+    pw->unk40 *= 0.9f;
+    func_8010880C_etch_n_catch(pw);
+    /* collide with the pen tips: move every player to its pen tip for the framework's collision pass */
+    for (i = 0; i < 4; i++) {
+        px[i] = D_800EC598_minigame[i]->trans.x;
+        pz[i] = D_800EC598_minigame[i]->trans.z;
+        ow = D_800EC598_minigame[i]->data;
+        dx[i] = sindf(ow->unk3C) * 46.875f;
+        dz[i] = cosdf(ow->unk3C) * 46.875f;
+        D_800EC598_minigame[i]->trans.x -= dx[i];
+        D_800EC598_minigame[i]->trans.z -= dz[i];
+    }
+    (void)px; /* retail saves the positions and never reads them */
+    (void)pz;
+    func_800DDD94_minigame(obj);
+    for (i = 0; i < 4; i++) {
+        D_800EC598_minigame[i]->trans.x += dx[i];
+        D_800EC598_minigame[i]->trans.z += dz[i];
+    }
+    fx = sindf(pw->unk3C) * 65.0f * 0.75f;
+    fz = cosdf(pw->unk3C) * 65.0f * 0.75f;
+    switch (func_800E6E8C_minigame()) {
+        case 3:
+            if (func_800E6E9C_minigame() == 0) {
+                func_800E1328_minigame(obj, 60.0f);
+                obj->trans.x -= fx;
+                obj->trans.z -= fz;
+            }
+            if (pw->unk3C == 0.0f) {
+                Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+            } else {
+                Hu3DModelPosSet(obj->model[1], obj->trans.x - fx, 0.0f, obj->trans.z - fz);
+            }
+            break;
+        case 4:
+        case 5:
+            Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+            break;
+        default:
+            Hu3DModelPosSet(obj->model[1], obj->trans.x - fx, 0.0f, obj->trans.z - fz);
+            break;
+    }
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[2], obj->rot.x, pw->unk3C, obj->rot.z);
+    if (func_800E4A90_minigame(obj) == 2) {
+        func_8001C814_main(obj->model[2], 2, 1);
+    } else {
+        func_8001C814_main(obj->model[2], 2, 2);
+    }
+    switch (func_800E6E8C_minigame()) {
+        case 0:
+        case 1:
+        case 5:
+            func_8010C628_etch_n_catch(obj, 0.75f);
+            return; /* retail: skips the button restore below */
+        case 3:
+            if (func_800E6E9C_minigame() == 0) {
+                func_8001C258_main(obj->model[2], 4, 4);
+                func_800E5690_minigame(obj, 38);
+            }
+            pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+            if (pw->unk3C < 0.0f) {
+                pw->unk3C += 360.0f;
+            } else if (pw->unk3C > 360.0f) {
+                pw->unk3C -= 360.0f;
+            }
+            if (pw->unk3C > 10.0f && pw->unk3C < 180.0f) {
+                pw->unk3C -= 10.0f;
+            } else if (pw->unk3C >= 180.0f && pw->unk3C < 350.0f) {
+                pw->unk3C += 10.0f;
+            } else {
+                pw->unk3C = 0.0f;
+            }
+            func_8010C628_etch_n_catch(obj, 0.75f);
+            break;
+    }
+    pos.x = obj->trans.x;
+    pos.y = obj->trans.y;
+    pos.z = obj->trans.z;
+    func_80012B14_main(0, &pos, &scr);
+    /* retail compares each (x, y) cell pair as one word */
+    if (D_8010C838_etch_n_catch->unk08 != D_8010C838_etch_n_catch->unk04 || D_8010C838_etch_n_catch->unk0A != D_8010C838_etch_n_catch->unk06) {
+        D_8010C838_etch_n_catch->unk08 = D_8010C838_etch_n_catch->unk04;
+        D_8010C838_etch_n_catch->unk0A = D_8010C838_etch_n_catch->unk06;
+    }
+    D_8010C838_etch_n_catch->unk04 = scr.x;
+    D_8010C838_etch_n_catch->unk06 = scr.y;
+    if (func_800E6E8C_minigame() == 2) {
+        if (D_8010C838_etch_n_catch->unk12 == 0 && (pw->unk5C & 4) && HmfModelData[obj->model[0]].unk40 == 0.0f) {
+            D_8010C838_etch_n_catch->unk10 = func_8004ACE0_main(0x37F, pw->unk59);
+            if (D_8010C838_etch_n_catch->unk02 == 8) {
+                func_8004AE00_main(D_8010C838_etch_n_catch->unk10, 0x20);
+            } else {
+                func_8004AE00_main(D_8010C838_etch_n_catch->unk10, 0x5F);
+            }
+            D_8010C838_etch_n_catch->unk12 = 1;
+        } else if (D_8010C838_etch_n_catch->unk12 == 1 && pw->unk40 == D_800EB770_minigame) {
+            HuAudFXStop(D_8010C838_etch_n_catch->unk10);
+            D_8010C838_etch_n_catch->unk12 = 0;
+        }
+    } else if (func_800E6E8C_minigame() == 3) {
+        HuAudFXStop(D_8010C838_etch_n_catch->unk10);
+        D_8010C838_etch_n_catch->unk12 = 0;
+    }
+    if (func_800E6E8C_minigame() == 2 && D_8010C838_etch_n_catch->unk08 != 0 && D_8010C838_etch_n_catch->unk0A != 0 && (D_8010C838_etch_n_catch->unk08 != D_8010C838_etch_n_catch->unk04 || D_8010C838_etch_n_catch->unk0A != D_8010C838_etch_n_catch->unk06)) {
+        do {
+            n = func_80108B28_etch_n_catch(pw->unk59);
+            memset(n, 0, sizeof(EtNode));
+            n->unk00 = 1;
+            n->unk16 = 106;
+            n->unk18 = D_8010C838_etch_n_catch->unk08;
+            n->unk1A = D_8010C838_etch_n_catch->unk0A;
+            n->unk1C = pw->unk59;
+            n->unk10 = NULL;
+            n->unk0C = NULL;
+            n->next = NULL;
+            n->prev = NULL;
+            func_80108B64_etch_n_catch(&D_8010C838_etch_n_catch->unk_0C, n);
+            n->unk2C = 0;
+            n->unk30 = 1.0f;
+            switch (rand8() >> 6) {
+                case 0:
+                    n->unk20.x = obj->trans.x + 10.0f;
+                    n->unk20.z = obj->trans.z + 10.0f;
+                    break;
+                case 1:
+                    n->unk20.x = obj->trans.x - 10.0f;
+                    n->unk20.z = obj->trans.z - 10.0f;
+                    break;
+                case 2:
+                    n->unk20.x = obj->trans.x + 10.0f;
+                    n->unk20.z = obj->trans.z - 10.0f;
+                    break;
+                default:
+                    n->unk20.x = obj->trans.x - 10.0f;
+                    n->unk20.z = obj->trans.z + 10.0f;
+                    break;
+            }
+            n->unk20.y = obj->trans.y;
+            found = 0;
+            if (func_80109114_etch_n_catch(D_8010C838_etch_n_catch->unk08, D_8010C838_etch_n_catch->unk0A) == D_8010C838_etch_n_catch->unk02) {
+                /* continue the trail of the node already on this cell */
+                for (i = 0; i < 4 && found != 1; i++) {
+                    for (m = D_8010C868_etch_n_catch[i]->unk_0C; m != NULL; m = m->next) {
+                        /* retail compares the cell (x, y) as one word */
+                        if (n != m && m->unk18 == n->unk18 && m->unk1A == n->unk1A) {
+                            while (m->unk0C != NULL) {
+                                m = m->unk0C;
+                            }
+                            found = 1;
+                            m->unk0C = n;
+                            n->unk10 = m;
+                            break;
+                        }
+                    }
+                }
+            }
+            n->unk14 |= D_8010C838_etch_n_catch->unk00;
+            func_8010914C_etch_n_catch(D_8010C838_etch_n_catch->unk08, D_8010C838_etch_n_catch->unk0A, D_8010C838_etch_n_catch->unk02);
+            n->unk15 = D_8010C838_etch_n_catch->unk02;
+            D_8010C890_etch_n_catch[D_8010C838_etch_n_catch->unk06 / 2][D_8010C838_etch_n_catch->unk04 / 2] |= D_8010C838_etch_n_catch->unk00;
+            if ((D_800CBB6E_main[pw->unk57] != 0 || D_800D20A1_main[pw->unk57] != 0) && func_80108C08_etch_n_catch(D_8010C838_etch_n_catch) != 0) {
+                if (obj->trans.x < 0.0f) {
+                    D_8010C6E0_etch_n_catch = 1;
+                } else {
+                    D_8010C6E1_etch_n_catch = 1;
+                }
+            }
+            d = func_8010C574_etch_n_catch(D_8010C838_etch_n_catch->unk08, D_8010C838_etch_n_catch->unk0A, D_8010C838_etch_n_catch->unk04, D_8010C838_etch_n_catch->unk06);
+            if (d.x <= -0.5f) {
+                D_8010C838_etch_n_catch->unk08--;
+            } else if (d.x >= 0.5f) {
+                D_8010C838_etch_n_catch->unk08++;
+            }
+            if (d.y <= -0.5f) {
+                D_8010C838_etch_n_catch->unk0A--;
+            } else if (d.y >= 0.5f) {
+                D_8010C838_etch_n_catch->unk0A++;
+            }
+        } while (D_8010C838_etch_n_catch->unk08 != D_8010C838_etch_n_catch->unk04 || D_8010C838_etch_n_catch->unk0A != D_8010C838_etch_n_catch->unk06);
+    }
+    if (pw->unk59 == 3) {
+        /* one team's area check per frame */
+        if (D_8010C6E2_etch_n_catch == 0) {
+            if (D_8010C6E0_etch_n_catch != 0 && D_8010C860_etch_n_catch[0]->work[0] == 3
+                && (u32)D_8010C858_etch_n_catch[0]->work[0] < 5) {
+                D_8010C858_etch_n_catch[0]->work[1] =
+                    func_80108DD0_etch_n_catch(D_8010C850_etch_n_catch[0][0], D_8010C850_etch_n_catch[0][1]);
+                if (D_8010C858_etch_n_catch[0]->work[1] != 0) {
+                    D_8010C858_etch_n_catch[0]->work[0] = 5;
+                    for (i = 0; i < 4; i++) {
+                        if (D_8010C868_etch_n_catch[i]->unk01 == 3) {
+                            omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 2, 3, 10);
+                        }
+                    }
+                }
+                D_8010C6E0_etch_n_catch = 0;
+            }
+        } else if (D_8010C6E1_etch_n_catch != 0 && D_8010C860_etch_n_catch[1]->work[0] == 3
+                   && (u32)D_8010C858_etch_n_catch[1]->work[0] < 5) {
+            D_8010C858_etch_n_catch[1]->work[1] =
+                func_80108DD0_etch_n_catch(D_8010C850_etch_n_catch[1][0], D_8010C850_etch_n_catch[1][1]);
+            if (D_8010C858_etch_n_catch[1]->work[1] != 0) {
+                D_8010C858_etch_n_catch[1]->work[0] = 5;
+                for (i = 0; i < 4; i++) {
+                    if (D_8010C868_etch_n_catch[i]->unk01 == 12) {
+                        omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 2, 3, 10);
+                    }
+                }
+            }
+            D_8010C6E1_etch_n_catch = 0;
+        }
+        D_8010C6E2_etch_n_catch ^= 1;
+    }
+    func_8010C628_etch_n_catch(obj, 0.75f);
+    /* the catcher of this side stands on the trail: make the nodes around it (and their older nodes) expire */
+    cx = D_8010C850_etch_n_catch[side][0] * 2;
+    cy = D_8010C850_etch_n_catch[side][1] * 2;
+    if (func_8010B154_etch_n_catch(cx, cy) != 0) {
+        for (i = 0; i < 32; i++) {
+            near[i] = NULL;
+        }
+        cnt = 0;
+        for (m = D_8010C838_etch_n_catch->unk_0C; m != NULL; m = m->next) {
+            if (ET_IABS(cx - m->unk18) < 2 && ET_IABS(cy - m->unk1A) < 2) {
+                near[cnt++] = m;
+            }
+        }
+        for (i = 0; i < cnt; i++) {
+            for (m = near[i]; m != NULL; m = m->prev) {
+                m->unk16 = 17;
+            }
+        }
+    }
+    if (pw->unk59 == 3) {
+        /* age every trail node: at 16 it is taken off the grid, then its puff plays, then it is freed */
+        for (j = 0; j < 4; j++) {
+            D_8010C838_etch_n_catch = D_8010C868_etch_n_catch[j];
+            if (D_8010C838_etch_n_catch != NULL) {
+                for (m = D_8010C838_etch_n_catch->unk_0C; m != NULL; m = m->next) {
+                    m->unk16--;
+                    if (m->unk16 < 17) {
+                        if (m->unk16 == 16) {
+                            for (i = 0; i < 4; i++) {
+                                if (m->unk0C != NULL) {
+                                    if (m->unk0C->unk15 != D_8010C868_etch_n_catch[i]->unk02) {
+                                        D_8010C890_etch_n_catch[m->unk1A / 2][m->unk18 / 2] &= ~D_8010C868_etch_n_catch[i]->unk00;
+                                    }
+                                } else {
+                                    D_8010C890_etch_n_catch[m->unk1A / 2][m->unk18 / 2] &= ~D_8010C868_etch_n_catch[i]->unk00;
+                                }
+                            }
+                            func_80109370_etch_n_catch(m, D_8010C838_etch_n_catch->unk02);
+                        } else if (m->unk16 > 0) {
+                            if (m->unk1E != -1) {
+                                func_801097B4_etch_n_catch(m);
+                            }
+                        } else {
+                            func_8001C258_main(m->unk1E, 4, 4);
+                            func_80108BCC_etch_n_catch(&D_8010C838_etch_n_catch->unk_0C, m);
+                        }
+                    }
+                }
+            }
+        }
+        D_800D5558_main[pw->unk57] = btn;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106A64_etch_n_catch);
+#endif
 
 /* Whether (x, z) is outside the drawing area of the player's team. */
 #ifdef NON_MATCHING
@@ -573,7 +943,127 @@ s32 func_80107D38_etch_n_catch(f32 x, f32 z, EtchNCatchWork* w) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107D38_etch_n_catch);
 #endif
 
+/* CPU player input: chases a point beside its team's catcher, then circles the catcher (D_8010C6E4 state 0 approach,
+   1 turn to face along the pen, 2 circle); radius and speed by difficulty. Steers away from the area's edge. */
+#ifdef NON_MATCHING
+void func_80107EA4_etch_n_catch(omObjData* obj) {
+    MgWork* pw = obj->data;
+    EtchNCatchWork* w = D_8010C868_etch_n_catch[pw->unk59];
+    omObjData* c;
+    EtVec2 v;
+    f32 radius;
+    s32 speed;
+    s32 side;
+    f32 x;
+    f32 z;
+
+    if (func_800E6E8C_minigame() == 2) {
+        switch (GwPlayer[pw->unk59].cpu_difficulty) {
+            case 3:
+                speed = 60;
+                radius = 200.0f;
+                break;
+            case 2:
+                radius = 250.0f;
+                speed = 60;
+                break;
+            case 1:
+            default:
+                radius = 300.0f;
+                speed = 57;
+                break;
+            case 0:
+                speed = 54;
+                radius = 350.0f;
+                break;
+        }
+        side = (obj->trans.x < 0.0f) ? 0 : 1;
+        if ((u32)D_8010C858_etch_n_catch[side]->work[0] >= 6 || D_8010C860_etch_n_catch[side]->work[0] != 3) {
+            D_800CBB6E_main[pw->unk57] = 0;
+            D_800D20A1_main[pw->unk57] = 0;
+            return;
+        }
+        if (obj->trans.x < 0.0f) {
+            c = D_8010C858_etch_n_catch[0];
+        } else {
+            c = D_8010C858_etch_n_catch[1];
+        }
+        x = ET_ABS(c->trans.x - obj->trans.x);
+        z = ET_ABS(c->trans.z - obj->trans.z);
+        if (HuSqrtf(x * x + z * z) > 375.0f) {
+            D_8010C6E4_etch_n_catch[pw->unk59] = 0;
+        }
+        switch (D_8010C6E4_etch_n_catch[pw->unk59]) {
+            case 0:
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    z = c->trans.z - 75.0f;
+                } else {
+                    z = c->trans.z + 75.0f;
+                }
+                v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, c->trans.x, z);
+                D_800CBB6E_main[pw->unk57] = speed * v.x;
+                D_800D20A1_main[pw->unk57] = -(speed * v.y);
+                x = ET_ABS(c->trans.x - obj->trans.x);
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    z = ET_ABS((c->trans.z - 75.0f) - obj->trans.z);
+                } else {
+                    z = ET_ABS((c->trans.z + 75.0f) - obj->trans.z);
+                }
+                if (HuSqrtf(x * x + z * z) < 50.0f) {
+                    D_8010C6E4_etch_n_catch[pw->unk59] = 1;
+                }
+                break;
+            case 1:
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+                    if (ET_ABS(pw->unk3C - 90.0f) < 5.0f) {
+                        pw->unk3C = 90.0f;
+                        D_8010C6E4_etch_n_catch[pw->unk59] = 2;
+                    } else {
+                        D_800CBB6E_main[pw->unk57] = speed >> 1;
+                        D_800D20A1_main[pw->unk57] = 0;
+                    }
+                }
+                if ((w->unk00 == 2) | (w->unk00 == 8)) {
+                    pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+                    if (ET_ABS(pw->unk3C - 270.0f) < 5.0f) {
+                        pw->unk3C = 270.0f;
+                        D_8010C6E4_etch_n_catch[pw->unk59] = 2;
+                    } else {
+                        D_800CBB6E_main[pw->unk57] = -speed / 2;
+                        D_800D20A1_main[pw->unk57] = 0;
+                    }
+                }
+                break;
+            case 2:
+                pw->unk3C += 5.0f;
+                if (pw->unk3C > 360.0f) {
+                    pw->unk3C -= 360.0f;
+                }
+                radius += 75.0f;
+                x = sindf(pw->unk3C) * radius + c->trans.x;
+                v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, x,
+                                               cosdf(pw->unk3C) * radius + c->trans.z);
+                D_800CBB6E_main[pw->unk57] = speed * v.x;
+                D_800D20A1_main[pw->unk57] = -(speed * v.y);
+                break;
+        }
+        x = sindf(pw->unk3C) * 65.0f * 0.75f + obj->trans.x;
+        if (func_80107D38_etch_n_catch(x, cosdf(pw->unk3C) * 65.0f * 0.75f + obj->trans.z, w) != 0) {
+            pw->unk3C += 20.0f;
+            if (pw->unk3C > 360.0f) {
+                pw->unk3C -= 360.0f;
+            }
+            x = sindf(pw->unk3C) * 10.0f + obj->trans.x;
+            v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, x, cosdf(pw->unk3C) * 10.0f + obj->trans.z);
+            D_800CBB6E_main[pw->unk57] = speed * v.x;
+            D_800D20A1_main[pw->unk57] = -(speed * v.y);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107EA4_etch_n_catch);
+#endif
 
 /* Limits how fast the player's stick direction may turn: rewrites the stick input so that its angle moves at
    most 30 degrees a frame from the facing pw->unk3C, keeping its magnitude. */
@@ -974,7 +1464,6 @@ void func_80109370_etch_n_catch(EtNode* node, u8 v) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 
 /* A trail node's puff: takes one of the player's three puff models (every 9th node), then grows, rises and fades. */
 void func_801097B4_etch_n_catch(EtNode* node) {
@@ -1102,7 +1591,232 @@ void func_80109A54_etch_n_catch(omObjData* obj) {
     D_8010C6A0_etch_n_catch++;
 }
 
+/* A catcher. work[0]: 0 start at its cage; 1 swing its pointer; 2 pulse; 3 pick a heading that stays in its
+   team's area and turn to it; 4 walk; 5 jump up (first time: sound and jump motion; on landing again: score a
+   point for the team and burst); 6 burst; 8 lift the cage; 9 rise; 10 done. */
+#ifdef NON_MATCHING
+void func_80109EB8_etch_n_catch(omObjData* obj) {
+    Vec2f scr;
+    Vec pos;
+    f32 headings[8] = { 1.0f, 46.0f, 91.0f, 136.0f, 181.0f, 226.0f, 271.0f, 316.0f };
+    EtCatcher* cw = obj->data;
+    s32 i;
+    f32 x;
+    f32 z;
+
+    pos.x = obj->trans.x;
+    pos.y = 0.0f;
+    pos.z = obj->trans.z;
+    func_80012B14_main(0, &pos, &scr);
+    D_8010C850_etch_n_catch[cw->unk160][0] = scr.x / 2.0f;
+    D_8010C850_etch_n_catch[cw->unk160][1] = scr.y / 2.0f;
+    switch (obj->work[0]) {
+        case 0:
+            obj->trans.x = D_8010C860_etch_n_catch[cw->unk160]->trans.x;
+            obj->trans.y = 0.0f;
+            obj->trans.z = D_8010C860_etch_n_catch[cw->unk160]->trans.z;
+            pos.x = obj->trans.x;
+            pos.y = 0.0f;
+            pos.z = obj->trans.z;
+            func_80012B14_main(0, &pos, &scr);
+            func_8000BBD4_main(D_801113E8_etch_n_catch[cw->unk160], scr.x, scr.y);
+            cw->unk164 = 0.5f;
+            func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk164, cw->unk164);
+            cw->unk170 = cw->unk174 = 0.0f;
+            func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], 0.0f);
+            func_8000BB54_main(D_801113E8_etch_n_catch[cw->unk160]);
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            cw->unk15C = 0;
+            obj->work[0] = 1;
+            break;
+        case 5:
+            cw->unk168 += 2.0f;
+            obj->trans.y += cw->unk168 + 5.0f;
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, 0.0f, obj->trans.z);
+            Hu3DModelPosSet(obj->model[6], obj->trans.x, 0.0f, obj->trans.z);
+            if (D_8010C6F8_etch_n_catch[cw->unk160] == 0) {
+                if (cw->unk160 == 0) {
+                    func_8004AE00_main(HuAudFXPlay(0x37D), 0x20);
+                } else {
+                    func_8004AE00_main(HuAudFXPlay(0x37E), 0x5F);
+                }
+                cw->unk164 = 1.0f;
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                cw->unk15C = 0;
+                cw->unk1B4 = 0.0f;
+                D_8010C6F8_etch_n_catch[cw->unk160] = 1;
+            } else {
+                func_8000BB94_main(D_801113E8_etch_n_catch[cw->unk160]);
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[6], 4, 0);
+                for (i = 0; i < 5; i++) {
+                    func_8001C6A8_main(obj->model[i + 1], 0.0f);
+                }
+                func_8010AB7C_etch_n_catch(obj);
+                if (cw->unk160 == 0) {
+                    D_8010C6AC_etch_n_catch++;
+                } else {
+                    D_8010C6AD_etch_n_catch++;
+                }
+                D_8010C6F8_etch_n_catch[cw->unk160] = 0;
+                cw->unk15C = 0;
+                obj->work[0] = 6;
+            }
+            break;
+        case 6:
+            if (cw->unk15C < 10) {
+                func_8010AB7C_etch_n_catch(obj);
+            } else {
+                for (i = 0; i < 5; i++) {
+                    func_8001C258_main(obj->model[i + 1], 4, 4);
+                }
+            }
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 / 2.0f - 2.0f <= cw->unk15C) {
+                func_8001C814_main(obj->model[0], 2, 1);
+                obj->work[0] = 8;
+                cw->unk15C = 0;
+            } else {
+                cw->unk168 += 2.0f;
+                obj->trans.y += cw->unk168 + 5.0f;
+                cw->unk15C++;
+            }
+            break;
+        case 8:
+            cw->unk168 += 2.0f;
+            obj->trans.y += cw->unk168 + 5.0f;
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            obj->work[0] = 9;
+            D_8010C860_etch_n_catch[cw->unk160]->work[0] = 0;
+            break;
+        case 9:
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            cw->unk15C++;
+            obj->trans.y += cw->unk168 + 5.0f;
+            if (obj->trans.y > 800.0f && cw->unk164 == 0.0f) {
+                cw->unk168 = 0.0f;
+                cw->unk15C = 0;
+                obj->work[0] = 10;
+            } else {
+                cw->unk168 += 2.0f;
+                cw->unk164 -= 0.05f;
+                if (cw->unk164 < 0.0f) {
+                    cw->unk164 = 0.0f;
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[6], cw->unk164, cw->unk164, cw->unk164);
+            break;
+        case 10:
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            cw->unk164 = 1.0f;
+            Hu3DModelScaleSet(obj->model[6], cw->unk164, cw->unk164, cw->unk164);
+            break;
+        default:
+            if (func_800E6E8C_minigame()) {
+                switch (obj->work[0]) {
+                    case 1:
+                        if (cw->unk15C > 120) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 2;
+                            break;
+                        }
+                        goto swing;
+                    case 2:
+                        if (cw->unk15C > 16) {
+                            cw->unk15C = 0;
+                            cw->unk164 = 0.5f;
+                            func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk164, cw->unk164);
+                            obj->work[0] = 3;
+                            break;
+                        }
+                        cw->unk15C++;
+                        func_8010AEE4_etch_n_catch(cw);
+                        break;
+                    case 3:
+                        if (cw->unk15C == 0) {
+                            do {
+                                cw->unk16C = headings[rand8() >> 5];
+                                x = obj->trans.x - sindf(cw->unk16C) * 100.0f;
+                                z = obj->trans.z - cosdf(cw->unk16C) * 100.0f;
+                                if (!((z > -300.0f) & (z < 200.0f))) {
+                                    continue;
+                                }
+                                if (cw->unk160 == 0) {
+                                    if ((x < -180.0f) & (x > -350.0f)) {
+                                        break;
+                                    }
+                                } else if ((x > 180.0f) & (x < 350.0f)) {
+                                    break;
+                                }
+                            } while (TRUE);
+                        }
+                        cw->unk15C++;
+                        if (cw->unk16C == cw->unk170) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 4;
+                            break;
+                        }
+                        func_8010AFB8_etch_n_catch(cw);
+                        break;
+                    case 4:
+                        obj->trans.x -= sindf(cw->unk170) * 3.0f;
+                        obj->trans.z -= cosdf(cw->unk170) * 3.0f;
+                        pos.x = obj->trans.x;
+                        pos.y = 0.0f;
+                        pos.z = obj->trans.z;
+                        func_80012B14_main(0, &pos, &scr);
+                        func_8000BBD4_main(D_801113E8_etch_n_catch[cw->unk160], scr.x, scr.y);
+                        D_8010C850_etch_n_catch[cw->unk160][0] = scr.x / 2.0f;
+                        D_8010C850_etch_n_catch[cw->unk160][1] = scr.y / 2.0f;
+                        if (cw->unk15C == cw->unk15C / 10 * 10) {
+                            /* retail: results unused */
+                            sindf(cw->unk170);
+                            cosdf(cw->unk170);
+                        }
+                        if (obj->trans.z < -300.0f || obj->trans.z > 200.0f) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                        } else if (cw->unk160 == 0) {
+                            if (obj->trans.x > -180.0f || obj->trans.x < -350.0f) {
+                                cw->unk15C = 0;
+                                obj->work[0] = 1;
+                            }
+                        } else if (obj->trans.x < 180.0f || obj->trans.x > 350.0f) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                        }
+                        if (cw->unk15C > 60) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                            break;
+                        }
+                    swing:
+                        if (cw->unk15C == 0) {
+                            cw->unk174 = cw->unk170;
+                        }
+                        func_8010AD6C_etch_n_catch(cw);
+                        cw->unk15C++;
+                        break;
+                }
+            }
+            break;
+    }
+}
+#else
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109EB8_etch_n_catch);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7F0_etch_n_catch);
+#endif
 
 /* The burst of a catch: five sparks fly out along unk178[] and fade. */
 void func_8010AB7C_etch_n_catch(omObjData* obj) {
@@ -1137,7 +1851,6 @@ void func_8010AD6C_etch_n_catch(EtCatcher* cw) {
     func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk170);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7F0_etch_n_catch);
 
 /* Pulses the catcher's sprite scale. Retail: the second and later tests are unreachable or never true
    as written (unk15C < 16 is checked first). */
@@ -1220,7 +1933,133 @@ void func_8010B24C_etch_n_catch(omObjData* obj) {
     D_8010C840_etch_n_catch++;
 }
 
+/* A cage: state 0 picks a spot away from the team's players and drops onto it (landing burst at frame 45, sound at
+   50); 1 waits for its catcher (work[0] == 10) and rumbles the team; 2 rises again; 3 idle. */
+#ifdef NON_MATCHING
+void func_8010B3B4_etch_n_catch(omObjData* obj) {
+    omObjData* p0 = NULL;
+    EtCage* cg = obj->data;
+    omObjData* p1 = NULL;
+    s32 i;
+    u8 r;
+    s16 se;
+
+    switch (obj->work[0]) {
+        case 0:
+            if (cg->unk01 == 0) {
+                cg->unk01 = 1;
+            } else if (cg->unk08 == 0.0f) {
+                for (i = 0; i < 4; i++) {
+                    if ((cg->unk00 == 0 && D_8010C868_etch_n_catch[i]->unk01 == 3)
+                        || (cg->unk00 == 1 && D_8010C868_etch_n_catch[i]->unk01 == 12)) {
+                        if (p0 == NULL) {
+                            p0 = D_800EC598_minigame[i];
+                        } else {
+                            p1 = D_800EC598_minigame[i];
+                        }
+                    }
+                }
+                r = (rand8() * 3) >> 8;
+                switch (cg->unk00) {
+                    case 0:
+                        obj->trans.x = D_8010C6B0_etch_n_catch[r].x;
+                        break;
+                    case 1:
+                        obj->trans.x = -D_8010C6B0_etch_n_catch[r].x;
+                        break;
+                }
+                obj->trans.z = D_8010C6B0_etch_n_catch[r].z;
+                if (ET_ABS(p0->trans.x - obj->trans.x) < 75.0f && ET_ABS(p0->trans.z - obj->trans.z) < 75.0f) {
+                    return;
+                }
+                if (ET_ABS(p1->trans.x - obj->trans.x) < 75.0f && ET_ABS(p1->trans.z - obj->trans.z) < 75.0f) {
+                    return;
+                }
+            }
+            obj->trans.y -= cg->unk08 + 5.0f;
+            if (obj->trans.y < 0.0f) {
+                obj->trans.y = 0.0f;
+                cg->unk08 = 0.0f;
+                obj->work[0] = 1;
+            } else {
+                cg->unk08 += 5.0f;
+                cg->unk04 += 0.1f;
+                if (cg->unk04 > 1.5f) {
+                    cg->unk04 = 1.5f;
+                }
+                if (cg->unk08 == 45.0f) {
+                    Hu3DModelScaleSet(obj->model[1], 3.6f, 3.6f, 3.6f);
+                    func_800E4C88_minigame(obj, 1, obj->trans.x, 0.0f, obj->trans.z, 0.0f, 0.0f);
+                } else if (cg->unk08 == 50.0f) {
+                    if (cg->unk00 == 0) {
+                        se = HuAudFXPlay(0x37B);
+                        func_8004AE00_main(se, 0x20);
+                        if (D_8010C6AC_etch_n_catch == 0) {
+                            func_8004AAD0_main(se, 0x66);
+                        } else {
+                            func_8004AAD0_main(se, 0x7F);
+                        }
+                    } else {
+                        func_8004AE00_main(HuAudFXPlay(0x37C), 0x5F);
+                    }
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[2], cg->unk04, cg->unk04, cg->unk04);
+            func_8001C258_main(obj->model[2], 4, 0);
+            break;
+        case 1:
+            if (D_8010C858_etch_n_catch[cg->unk00]->work[0] == 10) {
+                if (cg->unk02 >= 5) {
+                    cg->unk02 = 0;
+                    D_8010C858_etch_n_catch[cg->unk00]->work[0] = 0;
+                    obj->work[0] = 2;
+                    return;
+                }
+                if (cg->unk02 == 0) {
+                    if (cg->unk00 == 0) {
+                        for (i = 0; i < 4; i++) {
+                            if (D_8010C868_etch_n_catch[i]->unk01 == 3) {
+                                omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 10, 0, 10);
+                            }
+                        }
+                    } else {
+                        for (i = 0; i < 4; i++) {
+                            if (D_8010C868_etch_n_catch[i]->unk01 == 12) {
+                                omVibrate(((MgWork*)D_800EC598_minigame[i]->data)->unk59, 10, 0, 10);
+                            }
+                        }
+                    }
+                }
+                cg->unk02++;
+            }
+            break;
+        case 2:
+            obj->trans.y += cg->unk08 + 5.0f;
+            if (obj->trans.y > 800.0f && cg->unk04 == 0.0f) {
+                obj->trans.y = 800.0f;
+                cg->unk08 = 0.0f;
+                obj->work[0] = 3;
+            } else {
+                cg->unk08 += 5.0f;
+                cg->unk04 -= 0.1f;
+                if (cg->unk04 < 0.0f) {
+                    cg->unk04 = 0.0f;
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[2], cg->unk04, cg->unk04, cg->unk04);
+            break;
+        case 3:
+            cg->unk04 = 1.0f;
+            func_8001C258_main(obj->model[2], 4, 4);
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B3B4_etch_n_catch);
+#endif
 
 /* The score display: two frames, two labels and a digit per team. */
 void func_8010BBE4_etch_n_catch(omObjData* obj) {
