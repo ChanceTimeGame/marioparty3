@@ -300,6 +300,10 @@ extern f32 D_8010CF10_storm_chasers;
 extern s32 D_8010CF18_storm_chasers;
 extern ScTexSize D_8010CF1C_storm_chasers;
 extern ScRain D_8010CF20_storm_chasers;
+/* func_801077A0_storm_chasers stores D_8010CF20's fields as separate symbols (no shared base): views of it. */
+extern f32 D_8010CF24_storm_chasers; /* D_8010CF20.scroll */
+extern f32 D_8010CF28_storm_chasers; /* D_8010CF20.alpha */
+extern omObjData *D_8010CF2C_storm_chasers; /* D_8010CF20.obj */
 extern s32 D_8010CF30_storm_chasers; /* whirlwind motions: retail reads the low halves */
 extern s32 D_8010CF34_storm_chasers;
 extern ScFlash D_8010CF38_storm_chasers[4];
@@ -850,7 +854,6 @@ void func_801075F8_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801075F8_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_801077A0_storm_chasers(omObjData *obj) {
     if (D_8010CCC0_storm_chasers.state != -1) {
         obj->model[0] = func_8000B108_main(0x500007, 0x289);
@@ -865,14 +868,11 @@ void func_801077A0_storm_chasers(omObjData *obj) {
         func_8001C8A8_main(obj->model[0], 1);
         obj->func = func_801075F8_storm_chasers;
         D_8010CF20_storm_chasers.state = 0;
-        D_8010CF20_storm_chasers.scroll = 0;
-        D_8010CF20_storm_chasers.alpha = 255.0f;
-        D_8010CF20_storm_chasers.obj = obj;
+        D_8010CF24_storm_chasers = 0;
+        D_8010CF28_storm_chasers = 255.0f;
+        D_8010CF2C_storm_chasers = obj;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801077A0_storm_chasers);
-#endif
 
 void func_801078A0_storm_chasers(void) {
     omSetStatBit(omAddObj(180, 1, 0, -1, func_801077A0_storm_chasers), 0xA0);
@@ -965,7 +965,6 @@ void func_801078E0_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801078E0_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_80107EA4_storm_chasers(omObjData *obj) {
     ScWind *w = &D_8010CEE0_storm_chasers[obj->work[0]];
 
@@ -980,12 +979,17 @@ void func_80107EA4_storm_chasers(omObjData *obj) {
                 func_8001C258_main(obj->model[2], 4, 4);
                 w->state = 0;
                 break;
+            case 0:
+            case 1:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+                break;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80107EA4_storm_chasers);
-#endif
 
 #ifdef NON_MATCHING
 void func_80107F70_storm_chasers(omObjData *obj) {
@@ -1464,9 +1468,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010A2
 #endif
 
 /* Puts the bucket down: the player's flash, and it faces its corner. */
-#ifdef NON_MATCHING
 void func_8010AC7C_storm_chasers(omObjData *obj) {
     s32 player = obj->work[0];
+    ScPlayer *pl = &D_8010CD80_storm_chasers[player];
     MgWork *mw = obj->data;
     ScBucket *b = &D_8010CCE0_storm_chasers[player];
 
@@ -1476,11 +1480,8 @@ void func_8010AC7C_storm_chasers(omObjData *obj) {
         b->held = 0;
         func_801066F4_storm_chasers(obj);
     }
-    mw->unk3C = D_8010C8D8_storm_chasers[D_8010CD80_storm_chasers[player].pos].rot;
+    mw->unk3C = D_8010C8D8_storm_chasers[pl->pos].rot;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010AC7C_storm_chasers);
-#endif
 
 void func_8010AD68_storm_chasers(omObjData *obj) {
     ScPlayer *pl = &D_8010CD80_storm_chasers[obj->work[0]];
@@ -1852,18 +1853,23 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BA
 void func_8010BD04_storm_chasers(void) {
     s32 i;
     s32 zero;
+    ScPlayer *pl;
 
+    i = 0;
     zero = 0;
-    for (i = 0; i < 4; i++) {
-        if (D_8010CD80_storm_chasers[i].state != -1) {
-            zero += D_8010CD80_storm_chasers[i].score == 0;
+    pl = D_8010CD80_storm_chasers;
+    for (; i < 4; i++) {
+        if (pl[i].state != -1) {
+            zero += pl[i].score == 0;
         }
     }
     if (zero >= 4) {
-        for (i = 0; i < 4; i++) {
-            if (D_8010CD80_storm_chasers[i].state != -1) {
+        i = 0;
+        pl = D_8010CD80_storm_chasers;
+        for (; i < 4; i++) {
+            if (pl[i].state != -1) {
                 GwPlayer[i].bonusCoin = 3;
-                D_8010CD80_storm_chasers[i].rank = 3;
+                pl[i].rank = 3;
                 D_8010CAAC_storm_chasers = 0;
             }
         }
