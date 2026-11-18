@@ -928,6 +928,7 @@ void func_80108574_river_raiders(void) {
 void func_80108678_river_raiders(omObjData *obj) {
     RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
     omObjData *other;
+    RrEnt *e;
     f32 x;
     f32 hi;
     s16 i;
@@ -948,7 +949,8 @@ void func_80108678_river_raiders(omObjData *obj) {
     }
     for (i = 0; i < 3; i++) {
         if (i != obj->work[1]) {
-            other = D_8010DD08_river_raiders[i].obj;
+            e = &D_8010DD08_river_raiders[i];
+            other = e->obj;
             hi = x + 65.0f;
             switch (ent->unk08) {
                 case 1:
@@ -979,7 +981,8 @@ void func_80108678_river_raiders(omObjData *obj) {
     hit = 0;
     for (j = 0; j < 3; j++) {
         if (j != obj->work[1] && j != i) {
-            other = D_8010DD08_river_raiders[j].obj;
+            e = &D_8010DD08_river_raiders[j];
+            other = e->obj;
             hi = x + 65.0f;
             switch (ent->unk08) {
                 case 1:
