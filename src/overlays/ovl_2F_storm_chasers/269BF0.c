@@ -293,7 +293,7 @@ extern const s16 D_8010CC8C_storm_chasers[];
 /* .bss */
 extern s32 D_8010CCA0_storm_chasers; /* game phase */
 extern s32 D_8010CCA4_storm_chasers; /* phase advance */
-extern s16 D_8010CCA8_storm_chasers;
+extern u16 D_8010CCA8_storm_chasers;
 extern s32 D_8010CCAC_storm_chasers; /* phase timer */
 extern u8 D_8010CCB0_storm_chasers; /* bucket motion */
 extern ScStorm D_8010CCC0_storm_chasers;
@@ -1768,12 +1768,14 @@ void func_8010B944_storm_chasers(omObjData *obj) {
     obj->func = func_8010B87C_storm_chasers;
 }
 
-#ifdef NON_MATCHING
 void func_8010B980_storm_chasers(omObjData *obj) {
+    ScBucket *b;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        if (D_8010CCE0_storm_chasers[i].state != -1 && D_8010CCE0_storm_chasers[i].done != 2) {
+    i = 0;
+    b = D_8010CCE0_storm_chasers;
+    for (; i < 4; i++) {
+        if (b[i].state != -1 && b[i].done != 2) {
             break;
         }
     }
@@ -1783,9 +1785,6 @@ void func_8010B980_storm_chasers(omObjData *obj) {
         obj->func = func_8010B944_storm_chasers;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010B980_storm_chasers);
-#endif
 
 /* Ranks the players by score (ties broken at random) into their bonus and rank. */
 #ifdef NON_MATCHING
@@ -1970,7 +1969,6 @@ void func_8010C0E0_storm_chasers(omObjData *obj) {
     D_8010CCA4_storm_chasers = 1;
 }
 
-#ifdef NON_MATCHING
 void func_8010C120_storm_chasers(omObjData *obj) {
     Vec from;
     Vec to;
@@ -1997,9 +1995,6 @@ void func_8010C120_storm_chasers(omObjData *obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C120_storm_chasers);
-#endif
 
 void func_8010C240_storm_chasers(omObjData *obj) {
     osViBlack(0);
@@ -2026,7 +2021,6 @@ void func_8010C2F4_storm_chasers(void) {
     D_8010CCA4_storm_chasers = 0;
 }
 
-#ifdef NON_MATCHING
 void func_8010C31C_storm_chasers(omObjData *obj) {
     func_8010C2F4_storm_chasers();
     switch (D_8010CCA0_storm_chasers) {
@@ -2039,11 +2033,16 @@ void func_8010C31C_storm_chasers(omObjData *obj) {
             WipeCreateOut(0, 20);
             obj->func = func_8010C264_storm_chasers;
             break;
+        case 0:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C31C_storm_chasers);
-#endif
 
 void func_8010C3A8_storm_chasers(void) {
     ScPlayer *pl;
