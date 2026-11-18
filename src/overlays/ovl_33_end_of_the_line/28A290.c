@@ -45,6 +45,7 @@ void HmfLightStatSet(s16, u8, u8);
 extern s32 D_800A178C_main[][6];
 extern s8 D_800CBB6E_main[];
 u16 func_800E6E9C_minigame(void);
+extern s16 D_800EB934_minigame;
 void func_800E6F0C_minigame(s32);
 
 // LOCAL
@@ -131,6 +132,8 @@ void func_80109E70_end_of_the_line(omObjData *obj);
 void func_8010A17C_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010A708_end_of_the_line(omObjData *obj);
+void func_8010A7D0_end_of_the_line(void);
+void func_8010A8B4_end_of_the_line(omObjData *obj);
 void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1);
 s16 func_8010AC80_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
@@ -146,6 +149,7 @@ void func_8010B4EC_end_of_the_line(omObjData *obj);
 void func_8010B420_end_of_the_line(omObjData *obj);
 void func_8010B588_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
+void func_8010BE24_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
 void func_801069D8_end_of_the_line(omObjData *obj);
@@ -1584,9 +1588,72 @@ done:
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AC80_end_of_the_line);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AF28_end_of_the_line);
+void func_8010AF28_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B064_end_of_the_line);
+    switch (D_8010C754_end_of_the_line) {
+    case 0:
+        WipeCreateIn(0xFF, 16);
+        D_8010C754_end_of_the_line = 1;
+        break;
+    case 1:
+        if (WipeStatGet() == 0) {
+            obj->work[1] = 1;
+            if (obj->work[0] == 1) {
+                omDelObj(obj);
+                D_8010C730_end_of_the_line = NULL;
+                func_800E6F0C_minigame(1);
+            }
+            for (i = 0; i < 2; i++) {
+                pw = D_8010C73C_end_of_the_line[i]->data;
+                if (pw->unk86 == -1) {
+                    pw->unk86 = HuAudFXPlay(D_8010C620_end_of_the_line[i][1]);
+                    pw->unk88 = 0x48;
+                    func_8004AAD0_main(pw->unk86, 0x48);
+                    HuAudFXPitchSet(pw->unk86, 600);
+                    func_80007D2C_main(pw->unk86, 22);
+                }
+            }
+        }
+        break;
+    }
+}
+
+void func_8010B064_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+
+    pw = D_8010C73C_end_of_the_line[D_8010C7D0_end_of_the_line]->data;
+    switch (D_8010C756_end_of_the_line) {
+    case 0:
+        if (pw->unk5C == 8) {
+            D_8010C756_end_of_the_line = 1;
+            pw->unk04->func = func_8010BE24_end_of_the_line;
+        }
+        break;
+    case 1:
+        if (pw->unk5C == 9) {
+            if (D_8010C75C_end_of_the_line == 0) {
+                func_8010A7D0_end_of_the_line();
+            } else {
+                func_8010A8B4_end_of_the_line(D_8010C73C_end_of_the_line[0]);
+                func_8010A8B4_end_of_the_line(D_8010C73C_end_of_the_line[1]);
+            }
+            func_800E6F0C_minigame(4);
+            D_8010C756_end_of_the_line = 2;
+        }
+        break;
+    case 2:
+        break;
+    case 3:
+        if (D_800EB934_minigame == 1) {
+            func_8010A8B4_end_of_the_line(D_8010C73C_end_of_the_line[0]);
+            func_8010A8B4_end_of_the_line(D_8010C73C_end_of_the_line[1]);
+        }
+        break;
+    }
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B190_end_of_the_line);
 
