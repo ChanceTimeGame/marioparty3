@@ -101,9 +101,9 @@ typedef struct PgPlayer {
     /* 0x2C */ u8 win;
     /* 0x2D */ s8 cpu;
     /* 0x2E */ u8 unk2E;
-    /* 0x2F */ u8 grp; /* cursor sprite group */
-    /* 0x30 */ u8 unk30;
-    /* 0x31 */ u8 unk31;
+    /* 0x2F */ u8 mot0; /* motions */
+    /* 0x30 */ u8 mot1;
+    /* 0x31 */ u8 mot2;
     /* 0x32 */ s16 pick; /* chosen picture + 1, 0 none yet */
     /* 0x34 */ s16 cpuWait; /* CPU: frames until its next input */
     /* 0x36 */ u16 cpuBtn; /* CPU: button pressed when cpuWait runs out */
@@ -208,6 +208,7 @@ void func_80106144_crowd_cover(omObjData* obj);
 void func_80106D4C_crowd_cover(omObjData* obj);
 void func_80107E40_crowd_cover(omObjData* obj);
 void func_80106580_crowd_cover(omObjData* obj);
+void func_80107554_crowd_cover(omObjData* obj);
 s16 func_801091FC_crowd_cover(s32 id);
 void func_80106CB8_crowd_cover(void);
 void func_80107E0C_crowd_cover(void);
@@ -586,7 +587,97 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CBD8
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CBE0_crowd_cover);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80106D4C_crowd_cover);
+typedef struct CcU8x8 {
+    u8 v[8];
+} CcU8x8;
+typedef struct CcMots {
+    s32 v[3][8];
+} CcMots;
+extern CcU8x8 D_8010CB70_crowd_cover;
+extern CcMots D_8010CB78_crowd_cover;
+extern CcS16x3 D_8010CBD8_crowd_cover;
+extern char D_8010CBE0_crowd_cover[]; /* "item_hook" */
+extern u8 D_8010C6E4_crowd_cover; /* next slot */
+extern s16 D_8010C6EC_crowd_cover[][3]; /* start positions */
+extern f32 D_8010C704_crowd_cover[]; /* facing */
+
+/* Player object setup: model, motions, the three picture cards in hand. */
+void func_80106D4C_crowd_cover(omObjData* obj) {
+    CcU8x8 attrs = D_8010CB70_crowd_cover;
+    CcMots mots = D_8010CB78_crowd_cover;
+    CcS16x3 cards = D_8010CBD8_crowd_cover;
+    s32 unused[4];
+    u8 player;
+    s8 chr;
+    u32 file0;
+    s32 file1;
+    MgWork* work;
+    PgPlayer* p;
+    u16 attr;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (D_8010C6E4_crowd_cover == GwPlayer[i].group) {
+            break;
+        }
+    }
+    player = i;
+    chr = GwPlayer[player].chr;
+    file0 = D_800A178C_main[chr][0];
+    file1 = D_800A178C_main[chr][2];
+    func_800E19F0_minigame(1);
+    func_80107298_crowd_cover(obj, file0, file1, player, 0x2C9);
+    work = obj->data;
+    obj->trans.x = D_8010C6EC_crowd_cover[D_8010C6E4_crowd_cover][0];
+    obj->trans.y = D_8010C6EC_crowd_cover[D_8010C6E4_crowd_cover][1];
+    obj->trans.z = D_8010C6EC_crowd_cover[D_8010C6E4_crowd_cover][2];
+    work->unk3C = D_8010C704_crowd_cover[D_8010C6E4_crowd_cover];
+    obj->rot.y = obj->rot.x = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.65f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y - 4.0, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelRotSet(obj->model[1], -50.0f, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    p = work->unk158;
+    p->player = i;
+    p->chr = chr;
+    p->slot = D_8010C6E4_crowd_cover;
+    p->unk18 = p->unk14 = work->unk3C;
+    p->cpu = GwPlayer[player].stat & 1;
+    p->unk2E = 0;
+    p->difficulty = GwPlayer[player].cpu_difficulty;
+    p->file = file0 | 0x2F;
+    p->win = 0;
+    p->unk1C = 11.0f;
+    p->pos.x = obj->trans.x;
+    p->pos.y = obj->trans.y;
+    p->pos.z = obj->trans.z;
+    p->unk20 = 0;
+    p->mot2 = func_80017790_main(obj->model[0], 2, attrs.v[chr], file0 | mots.v[2][chr]);
+    p->mot0 = func_80017AD8_main(file0 | mots.v[0][chr]);
+    p->mot1 = func_80017AD8_main(file0 | mots.v[1][chr]);
+    func_8001C514_main(obj->model[0]);
+    attr = 0x2BD;
+    for (i = 0; i < 3; i++) {
+        s32 m = i + 2;
+
+        obj->model[m] = func_8000B108_main(cards.v[i] | 0x590000, attr);
+        func_8001EF6C_main(obj->model[m], obj->model[0], D_8010CBE0_crowd_cover);
+        func_8001C258_main(obj->model[m], 0x4000, 0x4000);
+    }
+    func_8001C258_main(obj->model[2], 4, 0);
+    obj->model[9] = func_8000B0A0_main(7, 0x2DD);
+    obj->func = func_80107554_crowd_cover;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 0x26, func_80017BB8_main(chr, 0x66), 1, 0);
+    func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x67), 1, 0x3C);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, 0x2F), 2, 0x78);
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, 0x36), 2, 0x78);
+    func_800E5690_minigame(obj, 0x26);
+    D_8010C6E4_crowd_cover++;
+}
 
 void func_80107298_crowd_cover(omObjData* obj, u32 file0, s32 file1, s32 player, u16 attr) {
     MgWork* work;
