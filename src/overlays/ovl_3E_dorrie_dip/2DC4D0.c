@@ -146,6 +146,8 @@ void func_80108EA0_dorrie_dip(s32 idx);
 void func_801090C4_dorrie_dip(void);
 void func_801090F0_dorrie_dip(void);
 void func_801092E0_dorrie_dip(void);
+void func_8010930C_dorrie_dip(void);
+void func_801095FC_dorrie_dip(omObjData* obj);
 void func_80109520_dorrie_dip(void);
 void func_801096F0_dorrie_dip(void);
 void func_8010971C_dorrie_dip(void);
@@ -178,6 +180,8 @@ extern omObjData* D_8010A23C_dorrie_dip;
 extern s32 D_8010A240_dorrie_dip;
 extern f32 D_8010A244_dorrie_dip; /* Dorrie bob angle */
 extern omObjData* D_8010A248_dorrie_dip;
+extern omObjData* D_8010A24C_dorrie_dip;
+extern s32 D_8010A250_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -1176,13 +1180,87 @@ void func_801090F0_dorrie_dip(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801092E0_dorrie_dip);
+void func_801092E0_dorrie_dip(void) {
+    omAddPrcObj(func_8010930C_dorrie_dip, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_8010930C_dorrie_dip);
+/* Process: the won prize flies in an arc from the hook to above the player. */
+void func_8010930C_dorrie_dip(void) {
+    DrPrize* prize;
+    DrHook* hook;
+    s32 found;
+    s32 i;
+    f32 dx;
+    f32 dz;
+    f32 y;
+    f32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80109520_dorrie_dip);
+    HuAudFXPlay(0x19);
+    prize = D_8010A23C_dorrie_dip->data;
+    hook = D_8010A238_dorrie_dip->data;
+    D_8010A1FA_dorrie_dip = func_8000CED8_main(0xB0004, 0x6A9);
+    found = -1;
+    for (i = 0; i < 5; i++) {
+        if (prize->unkB4[i] == D_8010A220_dorrie_dip) {
+            found = i;
+        }
+    }
+    if (found == -1) {
+        osSyncPrintf("!!\n");
+    }
+    prize->unkA0[found] &= ~4;
+    prize->unkA0[found] &= ~1;
+    prize->unkA0[found] |= 8;
+    dx = D_800EC598_minigame[0]->trans.x - hook->unk04.x;
+    dz = D_800EC598_minigame[0]->trans.z - hook->unk04.z;
+    y = prize->unk14[found];
+    for (i = 0; i < 30; i++) {
+        prize->unk00[found] += dx / 30.0f;
+        angle = i * 180.0f / 30.0f;
+        prize->unk8C[found] = sindf(angle) * 400.0f + y;
+        if (angle > 90.0f && prize->unk8C[found] < D_800EC598_minigame[0]->trans.y + 300.0f) {
+            prize->unk8C[found] = D_800EC598_minigame[0]->trans.y + 300.0f;
+        }
+        prize->unk28[found] += dz / 30.0f;
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801095FC_dorrie_dip);
+/* The ripples (nine models). */
+void func_80109520_dorrie_dip(void) {
+    s32 attr = 0x69D;
+    omObjData* obj;
+    s32* work;
+    s32 i;
+
+    obj = omAddObj(0xFF, 9, 0, -1, func_801095FC_dorrie_dip);
+    D_8010A24C_dorrie_dip = obj;
+    work = obj->data = HuMemAllocTag(9 * sizeof(s32), 0x7918);
+    for (i = 0; i < 9; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x5F000C, attr);
+        } else {
+            obj->model[i] = Hu3DModelLink(obj->model[0]);
+        }
+        work[i] = 0;
+    }
+    D_8010A250_dorrie_dip = 0;
+}
+
+void func_801095FC_dorrie_dip(omObjData* obj) {
+    s32* work = obj->data;
+    s32 i;
+
+    for (i = 0; i < 9; i++) {
+        if (work[i] & 1) {
+            if (D_800CCF58_main[HmfModelData[obj->model[i]].unk02].unk02 <= HmfModelData[obj->model[i]].unk40) {
+                func_8001C258_main(obj->model[i], 4, 4);
+                work[i] &= ~1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801096F0_dorrie_dip);
 
