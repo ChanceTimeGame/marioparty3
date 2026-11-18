@@ -162,7 +162,7 @@ void func_80109EB8_baby_bowser_bonkers(void);
 extern s32 D_8010BC3C_baby_bowser_bonkers;
 void func_80107678_baby_bowser_bonkers(omObjData* obj, s16 a, s16 b);
 void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s32 arg4);
-void func_80109080_baby_bowser_bonkers(s16 id, s32 arg1, s16 arg2);
+s32 func_80109080_baby_bowser_bonkers(s32 id, s16 rise, s16 stay);
 s32 func_801096D0_baby_bowser_bonkers(void);
 void func_8010630C_baby_bowser_bonkers(omObjData* obj);
 void func_800E6F0C_minigame(s32);
@@ -216,6 +216,9 @@ void func_801075F4_baby_bowser_bonkers(omObjData* obj, f32 x, f32 z);
 extern f32 D_800EB760_minigame;
 void func_80108B84_baby_bowser_bonkers(BkBlock* b);
 void func_80108D6C_baby_bowser_bonkers(BkBlock* b);
+void func_80108F9C_baby_bowser_bonkers(BkBlock* b);
+void func_80108A0C_baby_bowser_bonkers(BkBlock* b);
+BkBlock* func_8010919C_baby_bowser_bonkers(s32 id);
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -955,15 +958,120 @@ void func_80108B84_baby_bowser_bonkers(BkBlock* b) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80108D6C_baby_bowser_bonkers);
+/* Block state: sinking. */
+void func_80108D6C_baby_bowser_bonkers(BkBlock* b) {
+    HmfModel* m = &HmfModelData[b->model];
+    f32 t;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80108E90_baby_bowser_bonkers);
+    b->unk06 = 3;
+    if (b->unk0C != 0) {
+        t = (f32)b->unk0A / (f32)b->unk0C;
+    } else {
+        t = 1.0f;
+    }
+    b->unk18 = (1.0f - t) * 110.0f;
+    s = (1.0f - t) * 0.8f + 0.2f;
+    m->scale.x = s;
+    m->scale.y = s;
+    m->scale.z = s;
+    if (t < 0.3f) {
+        b->unk04 = 0;
+    } else {
+        b->unk04 = 1;
+    }
+    if (t >= 1.0f) {
+        m->unk18 |= 4;
+        b->unk0A = 0;
+        b->unk2C = func_801089CC_baby_bowser_bonkers;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80108F9C_baby_bowser_bonkers);
+/* Block state: stomped flat. */
+void func_80108E90_baby_bowser_bonkers(BkBlock* b) {
+    HmfModel* m = &HmfModelData[b->model];
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109080_baby_bowser_bonkers);
+    b->unk06 = 4;
+    b->unk04 = 0;
+    b->unk18 = 110.0f;
+    t = 1.0f - (f32)b->unk0A / 5.0f;
+    if (t <= 0.0f) {
+        t = 0.0f;
+    }
+    m->scale.x = 1.0f;
+    m->scale.z = 1.0f;
+    m->scale.y = 0.4f - t * 0.35f;
+    m->unk44 = 0.0f;
+    if ((f32)b->unk0A >= 15.0f) {
+        b->unk0A = 0;
+        b->unk2C = func_80108F9C_baby_bowser_bonkers;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010919C_baby_bowser_bonkers);
+/* Block state: stomped, shrinking away. */
+void func_80108F9C_baby_bowser_bonkers(BkBlock* b) {
+    HmfModel* m = &HmfModelData[b->model];
+    f32 s;
+
+    b->unk06 = 5;
+    b->unk04 = 0;
+    b->unk18 -= 9.166667f;
+    s = m->scale.z - 0.2f;
+    m->scale.z = s;
+    m->scale.x = s;
+    if (s <= 0.1f) {
+        m->scale.x = m->scale.z = 0.0f;
+    }
+    if (b->unk18 <= 0.0f) {
+        m->unk18 |= 4;
+        m->scale.y = 1.0f;
+        b->unk0A = 0;
+        b->unk2C = func_801089CC_baby_bowser_bonkers;
+    }
+}
+
+/* Raises block `id` over `rise` frames, up for `stay` frames; the id, or -1 if it is busy. */
+s32 func_80109080_baby_bowser_bonkers(s32 id, s16 rise, s16 stay) {
+    BkBlock* b;
+    HmfModel* m;
+
+    if (id >= 14) {
+        return -1;
+    }
+    if (id < 0) {
+        return -1;
+    }
+    b = &D_8010BC60_baby_bowser_bonkers[id];
+    m = &HmfModelData[b->model];
+    if (b->unk06 != 0) {
+        return -1;
+    }
+    b->unk0C = rise;
+    b->unk0E = stay;
+    b->unk0A = 0;
+    b->unk10 = 15;
+    b->unk14 = 0.0f;
+    if (!(rand8() & 3)) {
+        b->unk12 = (u8)(rand8() % 3) + 1;
+    } else {
+        b->unk12 = 0;
+    }
+    b->unk2C = func_80108A0C_baby_bowser_bonkers;
+    m->unk18 &= ~4;
+    m->rot.x = m->rot.y = m->rot.z = 0.0f;
+    m->unk40 = m->unk44 = 0.0f;
+    return id;
+}
+
+BkBlock* func_8010919C_baby_bowser_bonkers(s32 id) {
+    if (id < 14) {
+        if (id >= 0) {
+            return &D_8010BC60_baby_bowser_bonkers[id];
+        }
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801091D4_baby_bowser_bonkers);
 
