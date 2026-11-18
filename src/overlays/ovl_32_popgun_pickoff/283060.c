@@ -154,7 +154,7 @@ void func_80108398_popgun_pickoff(omObjData* obj);
 u16 func_8010880C_popgun_pickoff(omObjData* obj);
 u8 func_80108A78_popgun_pickoff(omObjData* obj, s32 dir);
 void func_80108FE4_popgun_pickoff(s16 model, char* name, s16 frame, Vec* out);
-void func_80109260_popgun_pickoff(s32 arg0);
+void func_80109260_popgun_pickoff(u16 n);
 s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
 void func_80106A44_popgun_pickoff(omObjData* obj);
@@ -191,6 +191,12 @@ extern f32 D_8010DD90_popgun_pickoff[4][4]; /* view to world */
 extern f32 D_8010DDD0_popgun_pickoff; /* tan(fov / 2) */
 extern PgBoard* D_8010DDD8_popgun_pickoff;
 extern s32 D_8010DDF0_popgun_pickoff; /* billboard count */
+extern s32 D_8010DDDC_popgun_pickoff[3];
+void func_800341D0_main(Gfx** gfx, s32 timg, s32 fmt, s32 siz, s32 width, s32 height, s32 uls, s32 ult,
+                        s32 lrs, s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts,
+                        s32 shiftt);
+void func_80034998_main(Gfx** gfx, s32 timg, s32 fmt, u32 width, s32 height, s32 uls, s32 ult, s32 lrs,
+                        s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts, s32 shiftt);
 extern u32 D_8010C5F4_popgun_pickoff; /* random seed */
 extern s32 D_8010C590_popgun_pickoff; /* timer */
 extern u16 D_8010C594_popgun_pickoff; /* game timer, frames */
@@ -1219,9 +1225,61 @@ HuSprite_Unk84_Unk00_Struct* func_80109218_popgun_pickoff(s16 tex, s16 frame) {
     return &func_80055194_main(tex)->unk00[frame];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80109260_popgun_pickoff);
+void func_80109260_popgun_pickoff(u16 n) {
+    PgBoard* b;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_801093A8_popgun_pickoff);
+    D_8010DDF0_popgun_pickoff = n;
+    D_8010DDD8_popgun_pickoff = HuMemAlloc(n * sizeof(PgBoard));
+    for (i = 0; i < 3; i++) {
+        D_8010DDDC_popgun_pickoff[i] = 0;
+    }
+    for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
+        b = &D_8010DDD8_popgun_pickoff[i];
+        b->spr = NULL;
+        b->unk14 = 0;
+        b->flags = 0;
+        b->a = 0x100;
+        b->b = 0xFF;
+        b->g = 0xFF;
+        b->r = 0xFF;
+        b->unk2C = 0;
+        b->unk24 = 0;
+        b->unk30 = 1.0f;
+        b->unk1C = 0;
+        b->unk1B = 0;
+        b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
+        b->pos.x = b->pos.y = b->pos.z = 0.0f;
+        b->scale.x = b->scale.y = b->scale.z = 1.0f;
+        b->rot.x = b->rot.y = b->rot.z = 0.0f;
+    }
+}
+
+
+void func_801093A8_popgun_pickoff(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 fmt, u8 siz, u16 rows, u16 uls,
+                                  u16 ult, u16 lrs, u16 lrt, u16 cms, u16 cmt, u16 masks, u16 maskt, s32 mode) {
+    Gfx* g = *gfx;
+
+    switch (mode) {
+        case 0:
+            gDPLoadTextureTile_4b(g++, 0x0C000000, fmt, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt, masks,
+                                  maskt, 0, 0);
+            break;
+        case 1:
+            func_80034998_main(&g, 0x0C000000, fmt, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt, masks, maskt,
+                                0, 0);
+            break;
+        case 2:
+            func_800341D0_main(&g, 0x0C000000, fmt, siz, cel->unk04, cel->unk06, uls, ult, lrs, lrt, 0, cms, cmt,
+                                masks, maskt, 0, 0);
+            break;
+        case 3:
+            func_8003465C_main(&g, (void*)0x0C000000, fmt, siz, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt,
+                                masks, maskt, 0, 0);
+            break;
+    }
+    *gfx = g;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80109718_popgun_pickoff);
 
