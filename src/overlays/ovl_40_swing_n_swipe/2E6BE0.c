@@ -23,7 +23,15 @@ extern u16 D_800D530C_main;
 void func_8001C92C_main(s16 model, f32 arg1);
 omObjData* func_80045ED0_main(u32 arg0);
 extern u16 D_800D5558_main[4];
+/* D_800CCF58_main records (common_structs.h D_800CCF58_main_Struct): motion length at 0x02 */
+typedef struct SnMotInfo {
+    /* 0x00 */ char unk00[2];
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ char unk04[0x14];
+} SnMotInfo; /* size 0x18 */
+extern SnMotInfo* D_800CCF58_main;
 void Hu3DAnimInit(s32);
+void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
 s16 func_8000B638_main(void);
@@ -496,7 +504,159 @@ void func_801069CC_swing_n_swipe(omObjData* obj) {
     func_800E4E30_minigame(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106AD0_swing_n_swipe);
+/* The player's scripted moves: the walk-on (D_8010C146_swing_n_swipe 1) and, after a loss, the hop back to the
+ * centre (3). */
+void func_80106AD0_swing_n_swipe(void) {
+    omObjData* obj = D_8010C140_swing_n_swipe;
+
+    if (D_8010C146_swing_n_swipe == 0) {
+        D_8010BD52_swing_n_swipe = 0;
+        D_8010BD50_swing_n_swipe = 0;
+        D_8010BD4E_swing_n_swipe = 0;
+    }
+    if (D_8010C146_swing_n_swipe == 1) {
+        switch (D_8010BD4E_swing_n_swipe) {
+        case 0:
+            obj->trans.z = 1500.0f;
+            obj->rot.y = 180.0f;
+            func_8001EED8_main(obj->model[0], obj->motion[4], 0);
+            func_800E5690_minigame(obj, 1);
+            D_8010BD4E_swing_n_swipe++;
+            break;
+        case 1:
+            D_8010C168_swing_n_swipe = 1;
+            if ((obj->trans.z -= 13.5f) <= 550.0f) {
+                obj->trans.z = 550.0f;
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 2:
+            if ((obj->rot.y -= 13.5f) <= 0.0f) {
+                obj->rot.y = 0.0f;
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 3:
+            D_8010C168_swing_n_swipe = 0;
+            func_8001EED8_main(obj->model[0], obj->motion[4], 0);
+            func_800E5690_minigame(obj, 0);
+            D_8010BD4E_swing_n_swipe++;
+            break;
+        case 4:
+            if (D_8010BD50_swing_n_swipe++ >= 10) {
+                D_8010BD50_swing_n_swipe = 0;
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 5:
+        case 8:
+            HuAudFXPlay(0x4F8);
+            func_8001EED8_main(obj->model[0], obj->motion[5], 0);
+            func_800E5690_minigame(obj, 5);
+            D_8010BD4E_swing_n_swipe++;
+            break;
+        case 6:
+        case 9:
+            if (D_8010BD50_swing_n_swipe++ >= 10) {
+                D_8010BD50_swing_n_swipe = 0;
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 7:
+        case 10:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 == HmfModelData[obj->model[0]].unk40) {
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 11:
+            func_8001EED8_main(obj->model[0], obj->motion[4], 0);
+            func_800E5690_minigame(obj, 0);
+            D_8010BD50_swing_n_swipe = 0;
+            D_8010BD4E_swing_n_swipe = 0;
+            D_8010C146_swing_n_swipe = 0;
+            break;
+        }
+    }
+    if (D_8010C146_swing_n_swipe == 3) {
+        switch (D_8010BD4E_swing_n_swipe) {
+        case 0:
+            D_8010C098_swing_n_swipe.x = obj->trans.x;
+            D_8010C098_swing_n_swipe.z = obj->trans.z;
+            D_8010BD52_swing_n_swipe = 1;
+            D_8010BD58_swing_n_swipe = -1.47f;
+            HmfModelData[obj->model[0]].unk06 = 0xFF;
+            func_800E5690_minigame(obj, 1);
+            D_8010BD4E_swing_n_swipe++;
+            break;
+        case 1:
+            if (D_8010BD54_swing_n_swipe == 0) {
+                D_8010C168_swing_n_swipe = 1;
+                if (func_8010B920_swing_n_swipe() == 1) {
+                    D_8010BD54_swing_n_swipe = 1;
+                    func_800E5690_minigame(obj, 3);
+                    CharFXPlay(0x3A, GwPlayer[D_8010C144_swing_n_swipe].chr);
+                    D_8010C168_swing_n_swipe = 0;
+                    return;
+                }
+            }
+            if (D_8010BD54_swing_n_swipe == 1) {
+                obj->trans.y += D_8010BD58_swing_n_swipe * D_8010BD58_swing_n_swipe
+                                * (D_8010BD58_swing_n_swipe >= 0.0f ? -17.0f : 17.0f);
+                if (D_8010BD58_swing_n_swipe >= 1.7f) {
+                    D_8010BD58_swing_n_swipe = 1.7f;
+                } else {
+                    D_8010BD58_swing_n_swipe += 0.11f;
+                }
+                if (D_8010BD58_swing_n_swipe >= 0.0f && obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                    D_8010BD58_swing_n_swipe = -1.47f;
+                    D_8010C168_swing_n_swipe = 1;
+                    D_8010BD54_swing_n_swipe = 0;
+                    CharFXPlay(0x31, GwPlayer[D_8010C144_swing_n_swipe].chr);
+                    func_800E5690_minigame(obj, 1);
+                }
+            }
+            D_8010C090_swing_n_swipe = obj->trans.x;
+            D_8010C094_swing_n_swipe = obj->trans.z;
+            obj->trans.x = D_8010C098_swing_n_swipe.x - sindf(D_8010BD52_swing_n_swipe * 1.5f) * D_8010C098_swing_n_swipe.x;
+            obj->trans.z = D_8010C098_swing_n_swipe.z
+                           - sindf(D_8010BD52_swing_n_swipe * 1.5f) * (D_8010C098_swing_n_swipe.z - 400.0f);
+            obj->rot.y = -atan2df(D_8010C094_swing_n_swipe - obj->trans.z, D_8010C090_swing_n_swipe - obj->trans.x)
+                         + 270.0f;
+            if (sindf(D_8010BD52_swing_n_swipe++ * 1.5f) == 1.0f
+                || (obj->trans.x == 0.0f && obj->trans.z == 350.0f)) {
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 2:
+            if (obj->rot.y >= 360.0f) {
+                obj->rot.y -= 360.0f;
+            }
+            if (obj->rot.y < 0.0f) {
+                obj->rot.y += 360.0f;
+            }
+            if (obj->rot.y >= 180.0f) {
+                if ((obj->rot.y += 15.0f) >= 360.0f) {
+                    obj->rot.y = 0.0f;
+                    D_8010BD4E_swing_n_swipe++;
+                }
+            } else if (obj->rot.y > 0.0f) {
+                if ((obj->rot.y -= 15.0f) <= 0.0f) {
+                    obj->rot.y = 0.0f;
+                    D_8010BD4E_swing_n_swipe++;
+                }
+            } else if (obj->rot.y == 0.0f) {
+                D_8010BD4E_swing_n_swipe++;
+            }
+            break;
+        case 3:
+            D_8010C168_swing_n_swipe = 0;
+            func_800E5690_minigame(obj, 0);
+            D_8010BD4E_swing_n_swipe++;
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801072D0_swing_n_swipe);
 
@@ -538,7 +698,29 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010B8
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010B8EC_swing_n_swipe);
 
+// retail keeps an unused 3 in s1 across the loop (a dead local?) and so allocates the floats differently
+#ifdef NON_MATCHING
+/* 1 if the point 50 in front of the player is within 100 of a thief. */
+s16 func_8010B920_swing_n_swipe(void) {
+    omObjData* obj = D_8010C140_swing_n_swipe;
+    f32 x = cosdf(obj->rot.y - 90.0f) * 50.0f + obj->trans.x;
+    f32 z = obj->trans.z - sindf(obj->rot.y - 90.0f) * 50.0f;
+    f32 dx;
+    f32 dz;
+    s16 i;
+
+    for (i = 0; i < 5; i++) {
+        dx = x - HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x;
+        dz = z - HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z;
+        if (HuSqrtf(dx * dx + dz * dz) < 100.0f) {
+            return 1;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010B920_swing_n_swipe);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010BA40_swing_n_swipe);
 
