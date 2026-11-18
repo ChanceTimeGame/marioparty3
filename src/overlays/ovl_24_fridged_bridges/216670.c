@@ -45,7 +45,7 @@ typedef struct FbPlayer {
     /* 0x4C */ f32 unk4C; /* CPU speed factor */
     /* 0x50 */ f32 unk50; /* splash scale */
     /* 0x54 */ u16 unk54; /* splash timer */
-    /* 0x56 */ s16 unk56;
+    /* 0x56 */ u16 unk56;
     /* 0x58 */ u16 unk58;
     /* 0x5A */ char unk5A[2];
     /* 0x5C */ f32 unk5C; /* last safe x */
@@ -69,9 +69,21 @@ typedef struct FbUV {
 /* omObjData::data of D_8010DA78_fridged_bridges[player] (the hazard on each player's bridge) */
 typedef struct FbHazard {
     /* 0x00 */ u16 unk00; /* state */
-    /* 0x02 */ char unk02[4];
+    /* 0x02 */ s16 unk02; /* player */
+    /* 0x04 */ u16 unk04;
     /* 0x06 */ u16 unk06;
-} FbHazard;
+    /* 0x08 */ f32 unk08; /* path length */
+    /* 0x0C */ f32 unk0C; /* arc height factor */
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18; /* facing */
+} FbHazard; // Size 0x1C
+
+/* D_8010D1FC_fridged_bridges: per player, the hazard's two end points */
+typedef struct FbHazardPath {
+    /* 0x00 */ FbUV a;
+    /* 0x08 */ FbUV b;
+} FbHazardPath;
 
 /* omObjData::data of the fish that jumps after a fall (func_8010A1A4_fridged_bridges, 0xC) */
 typedef struct FbFish {
@@ -232,6 +244,7 @@ void func_8010A360_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
 extern s32 D_8010D1A0_fridged_bridges;
+extern FbHazardPath D_8010D1FC_fridged_bridges[4];
 extern u16 D_8010D1F4_fridged_bridges[4]; /* per player: camera reached the start */
 extern u16 D_8010DA20_fridged_bridges; /* camera path point */
 extern FbUV D_8010D1D4_fridged_bridges[4]; /* per player: viewport origin */
@@ -249,6 +262,7 @@ s32 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);
 u16 func_8010A0F4_fridged_bridges(omObjData *obj, f32 x, f32 y, f32 z);
 u16 func_8010ADC0_fridged_bridges(void);
 void func_8010B164_fridged_bridges(void);
+void func_8010B3EC_fridged_bridges(omObjData *obj);
 void func_8010B7CC_fridged_bridges(omObjData *obj);
 void func_8010BDF0_fridged_bridges(void);
 void func_8010BE0C_fridged_bridges(omObjData *obj);
@@ -1894,11 +1908,79 @@ u16 func_8010AE98_fridged_bridges(f32 speed) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010AE98_fridged_bridges);
 #endif
 
+#ifdef NON_MATCHING
+/* The four hazards, one per bridge */
+void func_8010B164_fridged_bridges(void) {
+    omObjData *haz;
+    FbHazard *hw;
+    s32 i;
+    u16 model;
+    f32 a;
+    f32 half;
+
+    for (i = 0; i < 4; i++) {
+        D_8010DA78_fridged_bridges[i] = haz = omAddObj(0x1E, 1, 0, -1, func_8010B3EC_fridged_bridges);
+        if (i == 0) {
+            model = func_8000B108_main(0x450010, 0x20699);
+        } else {
+            model = Hu3DModelLink(D_8010DA78_fridged_bridges[0]->model[0]);
+        }
+        haz->model[0] = model;
+        hw = haz->data = HuMemAllocTag(sizeof(FbHazard), 0x7918);
+        hw->unk00 = 0;
+        hw->unk04 = 0;
+        hw->unk06 = 0;
+        hw->unk02 = i;
+        omSetTra(haz, D_8010D1FC_fridged_bridges[i].a.u, -150.0f, D_8010D1FC_fridged_bridges[i].a.v);
+        omSetSca(haz, 0.5f, 0.5f, 0.5f);
+        func_8001C8A8_main(haz->model[0], D_8010CF48_fridged_bridges[i]);
+        a = atan2df(-(haz->trans.x - D_8010D1FC_fridged_bridges[i].b.u), -(haz->trans.z - D_8010D1FC_fridged_bridges[i].b.v));
+        if (a < 0.0f) {
+            a += 360.0f;
+        }
+        omSetRot(haz, 0.0f, a, 0.0f);
+        func_8001C814_main(haz->model[0], 2, 2);
+        hw->unk08 = HuSqrtf((D_8010D1FC_fridged_bridges[i].a.u - D_8010D1FC_fridged_bridges[i].b.u) *
+                                (D_8010D1FC_fridged_bridges[i].a.u - D_8010D1FC_fridged_bridges[i].b.u) +
+                            (D_8010D1FC_fridged_bridges[i].a.v - D_8010D1FC_fridged_bridges[i].b.v) *
+                                (D_8010D1FC_fridged_bridges[i].a.v - D_8010D1FC_fridged_bridges[i].b.v));
+        half = hw->unk08 / 2.0f;
+        hw->unk0C = 200.0f / (half * half);
+        hw->unk14 = 16.0f;
+        hw->unk10 = 0.0f;
+        hw->unk18 = -haz->rot.y;
+        if (hw->unk18 < 0.0f) {
+            hw->unk18 += 360.0f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B3EC_fridged_bridges);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B7CC_fridged_bridges);
+/* Keep the player out of the hazard's radius */
+void func_8010B7CC_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    omObjData *haz = D_8010DA78_fridged_bridges[work->unk02];
+    f32 dist;
+    f32 r;
+
+    dist = HuSqrtf((obj->trans.x - haz->trans.x) * (obj->trans.x - haz->trans.x) +
+                   (obj->trans.z - haz->trans.z) * (obj->trans.z - haz->trans.z));
+    r = HuSqrtf(12100.0f);
+    if (!(r < dist)) {
+        dist = r - dist;
+        obj->trans.x += sindf(haz->rot.y) * dist;
+        obj->trans.z += cosdf(haz->rot.y) * dist;
+        if (work->unk56 == 0) {
+            work->unk56 = 1;
+            work->unk58 = 0x14;
+            omVibrate(work->unk02, 0x14, 0, 0x14);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B8CC_fridged_bridges);
 
