@@ -1797,7 +1797,75 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010AF0C_
 #endif
 /* </func_8010AF0C_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010B394_motor_rooter);
+/* <func_8010B394_motor_rooter> */
+void func_8010B394_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    HmfModel *model = &HmfModelData[object->model[9]];
+    s16 idx = object->work[0];
+    f32 yaw;
+    f32 rot;
+    f32 mtxX[16];
+    f32 mtxY[16];
+    f32 mtx[16];
+    Vec in;
+    Vec out;
+
+    if (work->unk08 & 0x80) {
+        m254_ResetFunc(object->work[0] + 4, ctx);
+        return;
+    }
+    if (!(work->unk08 & 0x200)) {
+        in.x = sindf(work->unk7C.y) * (work->unk7C.x + 55.999999046325684);
+        in.y = -cosdf(work->unk7C.y) * (work->unk7C.x + 55.999999046325684);
+        in.z = -120.0 - work->unk7C.z;
+        m254_MakeRotXMtx(mtxX, CRotM[idx].x);
+        m254_MakeRotYMtx(mtxY, CRotM[idx].y);
+        m254_MultiplyMtx(mtxX, mtxY, mtx);
+        func_801114B0_motor_rooter(mtx, &in, (f32 *)&out);
+        HmfModelData[object->model[9]].pos.x = CenterM[idx].x + out.x;
+        HmfModelData[object->model[9]].pos.y = CenterM[idx].y + out.y;
+        HmfModelData[object->model[9]].pos.z = CenterM[idx].z + out.z;
+    } else {
+        Hu3DModelPosSet(object->model[9], object->trans.x, object->trans.y + 0.0, object->trans.z);
+    }
+    Hu3DModelRotSet(object->model[9], object->rot.x, object->rot.y, object->rot.z);
+    if (work->unk08 & 0x400) {
+        m254_MakeIdentityMtx(model->mtx);
+        func_80017D24_main(model->mtx, 0.0f, work->unk74, 0.0f);
+        model->rot.y = model->rot.z = 0.0f;
+    } else {
+        m254_MakeIdentityMtx(model->mtx);
+        func_80017D24_main(model->mtx, 0.0f, 0.0f, 360.0f - work->unk18);
+    }
+    if (!(work->unk08 & 0x200)) {
+        yaw = work->unk68.y;
+        rot = work->unk68.z;
+        in.x = sindf(yaw) * (work->unk68.x + 65.99999904632568);
+        in.y = -cosdf(yaw) * (work->unk68.x + 65.99999904632568);
+        in.z = -120.0 - rot;
+        m254_MakeRotXMtx(mtxX, CRotM[idx].x);
+        m254_MakeRotYMtx(mtxY, CRotM[idx].y);
+        m254_MultiplyMtx(mtxX, mtxY, mtx);
+        func_801114B0_motor_rooter(mtx, &in, (f32 *)&out);
+        HmfModelData[object->model[10]].pos.x = CenterM[idx].x + out.x;
+        HmfModelData[object->model[10]].pos.y = CenterM[idx].y + out.y;
+        HmfModelData[object->model[10]].pos.z = CenterM[idx].z + out.z;
+    } else {
+        func_8001C258_main(object->model[10], 4, 0);
+        Hu3DModelPosSet(object->model[10], object->trans.x, object->trans.y - 10.0 + 0.0, object->trans.z);
+    }
+    if (work->unk08 & 0x400) {
+        Hu3DModelRotSet(object->model[10], object->rot.x, object->rot.y, 0.0f);
+        m254_MakeIdentityMtx(HmfModelData[object->model[10]].mtx);
+        func_80017D24_main(HmfModelData[object->model[10]].mtx, 0.0f, work->unk74, 0.0f);
+    } else {
+        Hu3DModelRotSet(object->model[10], object->rot.x, object->rot.y, object->rot.z);
+        m254_MakeIdentityMtx(HmfModelData[object->model[10]].mtx);
+        func_80017D24_main(HmfModelData[object->model[10]].mtx, 0.0f, 0.0f, 360.0f - work->unk18);
+    }
+}
+/* </func_8010B394_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010B970_motor_rooter);
 
