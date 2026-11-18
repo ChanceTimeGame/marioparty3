@@ -1784,7 +1784,147 @@ void func_8010A398_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010A398_puddle_paddle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010ABCC_puddle_paddle);
+/* The rafts: the slower raft is pushed out of the faster one (300 apart), both stay in the ring 400..700 from the
+   centre, and each picks up the coins within reach: kind 0 one coin, kind 1 five, kind 2 stuns the team. */
+void func_8010ABCC_puddle_paddle(PpCtx* ctx, PpTask* task) {
+    HmfModel* rafts[3]; /* the two rafts, then a coin */
+    Vec a;
+    Vec b;
+    Vec d;
+    f32 dist;
+    f32 outer; /* the ring's outer bound, then the pickup reach (retail sets both after the first use) */
+    f32 inner; /* the ring's inner bound, then a squared distance */
+    PpCoin* coin;
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 id;
+
+    rafts[0] = &HmfModelData[ctx->modelIds[0]];
+    rafts[1] = &HmfModelData[ctx->modelIds[1]];
+    if (D_80111650_puddle_paddle[0].speed > D_80111650_puddle_paddle[1].speed) {
+        a.x = rafts[1]->pos.x;
+        b.x = rafts[0]->pos.x;
+        a.z = rafts[1]->pos.z;
+        b.z = rafts[0]->pos.z;
+    } else {
+        a.x = rafts[0]->pos.x;
+        b.x = rafts[1]->pos.x;
+        a.z = rafts[0]->pos.z;
+        b.z = rafts[1]->pos.z;
+    }
+    d.x = b.x - a.x;
+    d.z = b.z - a.z;
+    dist = HuSqrtf(d.x * d.x + d.z * d.z);
+    if (dist <= 300.0f) {
+        d.x = d.x / dist * 300.0f;
+        a.x = b.x - d.x;
+        d.z = d.z / dist * 300.0f;
+        a.z = b.z - d.z;
+    }
+    if (D_80111650_puddle_paddle[0].speed > D_80111650_puddle_paddle[1].speed) {
+        rafts[1]->pos.x = a.x;
+        rafts[0]->pos.x = b.x;
+        rafts[1]->pos.z = a.z;
+        rafts[0]->pos.z = b.z;
+    } else {
+        rafts[0]->pos.x = a.x;
+        rafts[1]->pos.x = b.x;
+        rafts[0]->pos.z = a.z;
+        rafts[1]->pos.z = b.z;
+    }
+
+    for (i = 0; i < 2; i++) {
+        d.x = rafts[i]->pos.x;
+        d.z = rafts[i]->pos.z;
+        dist = HuSqrtf(d.x * d.x + d.z * d.z);
+        outer = 700.0f;
+        inner = 400.0f;
+        if (dist >= outer) {
+            d.x = d.x / dist * outer;
+            d.z = d.z / dist * outer;
+        } else if (dist < inner) {
+            d.x = inner * (d.x / dist);
+            d.z = inner * (d.z / dist);
+        }
+        rafts[i]->pos.x = d.x;
+        rafts[i]->pos.z = d.z;
+    }
+
+    for (i = 0; i < 2; i++) {
+        a.x = rafts[i]->pos.x;
+        outer = 120.00001f;
+        a.y = rafts[i]->pos.y + 50.0f;
+        a.z = rafts[i]->pos.z;
+        coin = D_80111658_puddle_paddle->coins;
+        for (j = 0; j < 16; j++, coin++) {
+            if (coin->state == 0) {
+                continue;
+            }
+            if (coin->state == 4 && HmfModelData[coin->model].pos.y < 100.0f) {
+                continue;
+            }
+            rafts[2] = &HmfModelData[coin->model];
+            b.x = rafts[2]->pos.x;
+            b.y = rafts[2]->pos.y;
+            b.z = rafts[2]->pos.z;
+            d.x = b.x - a.x;
+            d.y = b.y - a.y;
+            d.z = b.z - a.z;
+            if (coin->state < 3 && PP3_ABS(d.y) > coin->unk20) {
+                continue;
+            }
+            inner = d.x * d.x + d.z * d.z;
+            if (inner != 0.0f) {
+                dist = HuSqrtf(inner);
+            } else {
+                dist = 0.0f;
+            }
+            if (dist < outer + coin->unk20) {
+                coin->state = 0;
+                func_8001C258_main(coin->model, 4, 4);
+                switch (coin->kind) {
+                case 0:
+                    Hu3DModelScaleSet(func_8000D550_main(D_80111658_puddle_paddle->unk3C, b.x, b.y, b.z), 2.0f, 2.0f, 2.0f);
+                    D_80111650_puddle_paddle[i].score += 1;
+                    GwPlayer[D_80111650_puddle_paddle[i].member[0]].gameCoin += 1;
+                    GwPlayer[D_80111650_puddle_paddle[i].member[1]].gameCoin += 1;
+                    D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[0]].unk56 += 1;
+                    D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[1]].unk56 += 1;
+                    HuAudFXPlay(9);
+                    break;
+                case 1:
+                    Hu3DModelScaleSet(func_8000D550_main(D_80111658_puddle_paddle->unk3C, b.x, b.y, b.z), 2.0f, 2.0f, 2.0f);
+                    D_80111650_puddle_paddle[i].score += 5;
+                    GwPlayer[D_80111650_puddle_paddle[i].member[0]].gameCoin += 5;
+                    GwPlayer[D_80111650_puddle_paddle[i].member[1]].gameCoin += 5;
+                    D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[0]].unk56 += 5;
+                    D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[1]].unk56 += 5;
+                    HuAudFXPlay(0x15);
+                    break;
+                case 2:
+                    if (!(D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[0]].flags & 0x10)) {
+                        for (k = 0; k < 2; k++) {
+                            omVibrate(D_80111650_puddle_paddle[i].member[k], 20, 0, 20);
+                            D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[k]].flags |= 0x10;
+                            func_80109804_puddle_paddle(&D_80111654_puddle_paddle[D_80111650_puddle_paddle[i].member[k]], 0x29, 1);
+                            func_8004AC5C_main(GwPlayer[D_80111650_puddle_paddle[i].member[k]].chr + 0x95,
+                                               D_80111650_puddle_paddle[i].member[k]);
+                            D_80111650_puddle_paddle[i].baseX = rafts[i]->pos.x;
+                            D_80111650_puddle_paddle[i].baseZ = rafts[i]->pos.z;
+                        }
+                        id = func_8010C42C_puddle_paddle(1);
+                        if (id != -1) {
+                            func_8010C4D0_puddle_paddle(id, rafts[i]->pos.x, rafts[i]->pos.y + 20.0f, rafts[i]->pos.z, 0.0f,
+                                                        0.0f, 0.0f, 1.2f, 0.0f);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
 
 void func_8010B574_puddle_paddle(void) {
     PpTeam *team;
