@@ -191,6 +191,13 @@ void func_8010CA48_three_door_monty(void);
 void func_8010CBBC_three_door_monty(void);
 
 /* .data */
+typedef struct CcPos2 {
+    f32 x;
+    f32 z;
+} CcPos2;
+extern f32 D_8010CD10_three_door_monty[3];
+extern f32 D_8010CD1C_three_door_monty[3];
+extern CcPos2 D_8010CD40_three_door_monty[3]; /* the doors */
 extern CcCamera D_8010CDD0_three_door_monty[3];
 /* .rodata */
 extern char D_8010CEFC_three_door_monty[];
@@ -598,7 +605,244 @@ void func_801074B4_three_door_monty(void) {
     omSetStatBit(obj, 0xA0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80107500_three_door_monty);
+void func_80107500_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D4F4_three_door_monty[obj->work[0]];
+    f32 vx;
+    f32 vz;
+    CcEnt *a;
+    CcEnt *b;
+    omObjData *oa;
+    omObjData *ob;
+    s16 door;
+    s16 i;
+    s16 j;
+
+    vz = 0.0f;
+    vx = 0.0f;
+    switch (ent->unk06) {
+        case 0:
+            if (ent->unk08 == -1) {
+                door = (u8)(rand8() % 3);
+                while (TRUE) {
+                    if (D_8010EC32_three_door_monty < 60) {
+                        if (door != ent->unk0A) {
+                        found1:
+                            ent->unk08 = door;
+                            break;
+                        }
+                    } else if (D_8010EC4A_three_door_monty[door] == -1) {
+                        goto found1;
+                    }
+                    door++;
+                    if (door >= 3) {
+                        door = 0;
+                    }
+                }
+            } else {
+                ent->unk0A = ent->unk08;
+                if (D_8010CD40_three_door_monty[ent->unk08].z + 300.0f < obj->trans.z) {
+                    if (D_8010EC32_three_door_monty < 60) {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z + 300.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD10_three_door_monty[obj->work[0]]);
+                    } else {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z + 300.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD1C_three_door_monty[obj->work[0]]);
+                    }
+
+                    ent->unk1C = atan2df(D_8010CD40_three_door_monty[ent->unk08].x - obj->trans.x,
+                                         D_8010CD40_three_door_monty[ent->unk08].z + 300.0f - obj->trans.z);
+                    ent->unk1C = func_801059BC_three_door_monty(ent->unk1C, 0.0f);
+                    obj->rot.y = func_801066F4_three_door_monty(obj->rot.y, ent->unk1C, 15.0f);
+                    obj->trans.x += vx;
+                    obj->trans.z += vz;
+                } else if (D_8010CD40_three_door_monty[ent->unk08].z - 500.0f < obj->trans.z) {
+                    if (D_8010EC32_three_door_monty < 60) {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z - 500.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD10_three_door_monty[obj->work[0]]);
+                    } else {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z - 500.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD1C_three_door_monty[obj->work[0]]);
+                    }
+
+                    ent->unk1C = atan2df(D_8010CD40_three_door_monty[ent->unk08].x - obj->trans.x,
+                                         D_8010CD40_three_door_monty[ent->unk08].z - 500.0f - obj->trans.z);
+                    ent->unk1C = func_801059BC_three_door_monty(ent->unk1C, 0.0f);
+                    obj->rot.y = func_801066F4_three_door_monty(obj->rot.y, ent->unk1C, 15.0f);
+                    obj->trans.x += vx;
+                    obj->trans.z += vz;
+                } else if (D_8010EC32_three_door_monty < 60) {
+                    if ((u8)(rand8() % 30) == 0) {
+                        ent->unk06 = 2;
+                    }
+                } else {
+                    D_8010EC4A_three_door_monty[ent->unk08] = obj->work[0];
+                    ent->unk06 = 5;
+                }
+            }
+            break;
+        case 2:
+            if (obj->trans.z < D_8010CD40_three_door_monty[ent->unk08].z + 260.0f) {
+                if (D_8010EC32_three_door_monty < 60) {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z + 280.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD10_three_door_monty[obj->work[0]]);
+                } else {
+                        func_8010642C_three_door_monty(D_8010CD40_three_door_monty[ent->unk08].x,
+                                                   D_8010CD40_three_door_monty[ent->unk08].z + 280.0f, obj->trans.x,
+                                                   obj->trans.z, &vx, &vz, D_8010CD1C_three_door_monty[obj->work[0]]);
+                }
+
+                ent->unk1C = atan2df(D_8010CD40_three_door_monty[ent->unk08].x - obj->trans.x,
+                                     D_8010CD40_three_door_monty[ent->unk08].z + 280.0f - obj->trans.z);
+                ent->unk1C = func_801059BC_three_door_monty(ent->unk1C, 0.0f);
+                obj->rot.y = func_801066F4_three_door_monty(obj->rot.y, ent->unk1C, 15.0f);
+                obj->trans.x += vx;
+                obj->trans.z += vz;
+            } else {
+                door = (u8)(rand8() % 3);
+                while (TRUE) {
+                    if (D_8010EC32_three_door_monty < 60) {
+                        if (door != ent->unk0A) {
+                        found2:
+                            ent->unk08 = door;
+                            break;
+                        }
+                    } else if (D_8010EC4A_three_door_monty[door] == -1) {
+                        goto found2;
+                    }
+                    door++;
+                    if (door >= 3) {
+                        door = 0;
+                    }
+                }
+                switch (ent->unk0A) {
+                    case 0:
+                        if (ent->unk08 == 1) {
+                            ent->unk06 = 3;
+                            ent->unk3C = 4.0f;
+                        }
+                        if (ent->unk08 == 2) {
+                            ent->unk06 = 6;
+                            ent->unk3C = 4.0f;
+                        }
+                        break;
+                    case 1:
+                        if (ent->unk08 == 0) {
+                            ent->unk06 = 3;
+                            ent->unk3C = -4.0f;
+                        }
+                        if (ent->unk08 == 2) {
+                            ent->unk06 = 3;
+                            ent->unk3C = 4.0f;
+                        }
+                        break;
+                    case 2:
+                        if (ent->unk08 == 0) {
+                            ent->unk06 = 6;
+                            ent->unk3C = -4.0f;
+                        }
+                        if (ent->unk08 == 1) {
+                            ent->unk06 = 3;
+                            ent->unk3C = -4.0f;
+                        }
+                        break;
+                }
+                ent->unk16 = 0;
+            }
+            break;
+        case 3:
+            ent->unk0A = ent->unk08;
+            func_8010658C_three_door_monty(obj, &vx, &vz, 0.17f);
+            obj->trans.x += vx;
+            obj->trans.z += vz;
+            obj->rot.y = func_801059BC_three_door_monty(obj->rot.y, ent->unk3C);
+            if (++ent->unk16 >= 46) {
+                ent->unk06 = 0;
+            }
+            break;
+        case 4:
+            if (ent->unk04 != 0) {
+                obj->rot.y = func_801066F4_three_door_monty(obj->rot.y, 0.0f, 15.0f);
+            }
+            if (obj->trans.z < -225.0f) {
+                if (D_8010EC32_three_door_monty < 60) {
+                    vz = D_8010CD10_three_door_monty[obj->work[0]];
+                } else {
+                    vz = D_8010CD1C_three_door_monty[obj->work[0]];
+                }
+                obj->trans.z += vz;
+            } else {
+                func_801062F4_three_door_monty(obj, 0, 0, 3, 2, &ent->unk04);
+                if (ent->unk0E >= 5) {
+                    ent->unk06 = 0;
+                    ent->unk0E = 0;
+                    func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                } else {
+                    ent->unk0E++;
+                }
+            }
+            break;
+        case 6:
+            func_8010658C_three_door_monty(obj, &vx, &vz, 0.25f);
+            obj->trans.x += vx;
+            obj->trans.z += vz;
+            obj->rot.y = func_801059BC_three_door_monty(obj->rot.y, ent->unk3C);
+            if (++ent->unk16 >= 23) {
+                ent->unk06 = 0;
+            }
+            break;
+    }
+    if (obj->work[0] == 2) {
+        for (i = 0; i < 3; i++) {
+            a = &D_8010D4F4_three_door_monty[i];
+            oa = a->obj;
+            for (j = 0; j < 3; j++) {
+                b = &D_8010D4F4_three_door_monty[j];
+                ob = b->obj;
+                if (ob->work[0] != oa->work[0] && ob->trans.x + 50.0f > oa->trans.x - 50.0f &&
+                    ob->trans.x - 50.0f < oa->trans.x + 50.0f && ob->trans.z + 50.0f > oa->trans.z - 50.0f &&
+                    ob->trans.z - 50.0f < oa->trans.z + 50.0f) {
+                    if (oa->trans.z < D_8010CD40_three_door_monty[0].z - 350.0f &&
+                        ob->trans.z < D_8010CD40_three_door_monty[0].z - 350.0f) {
+                        if (rand8() & 1) {
+                            f32 z = ob->trans.z;
+
+                            ob->trans.z = oa->trans.z;
+                            oa->trans.z = z;
+                        }
+                        if (oa->trans.z < ob->trans.z) {
+                            a->unk06 = 0;
+                            b->unk06 = 2;
+                        } else {
+                            a->unk06 = 2;
+                            b->unk06 = 0;
+                        }
+                    } else if (ob->trans.z < oa->trans.z) {
+                        a->unk06 = 4;
+                        a->unk08 = -1;
+                    } else if (ob->trans.z == oa->trans.z) {
+                        if (ob->work[0] > oa->work[0]) {
+                            a->unk06 = 4;
+                            a->unk08 = -1;
+                        } else if (a->unk06 != 3) {
+                            a->unk06 = 0;
+                            a->unk08 = a->unk0A;
+                        }
+                    } else if (ob->trans.z > oa->trans.z) {
+                        if (a->unk06 != 3) {
+                            a->unk06 = 0;
+                            a->unk08 = a->unk0A;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80108034_three_door_monty);
 
