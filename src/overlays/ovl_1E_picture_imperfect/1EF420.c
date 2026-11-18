@@ -141,7 +141,11 @@ extern s8 D_8010A028_picture_imperfect;        /* next player to set up */
 extern s32 D_8010A02C_picture_imperfect;       /* pieces placed */
 extern u8 D_8010A030_picture_imperfect[4][5]; /* column order, one row per layout */
 extern u32 D_8010A044_picture_imperfect;
-extern s8 D_8010A048_picture_imperfect[5]; /* y offset of each row */       /* frame counter of the row scroll */
+extern s8 D_8010A048_picture_imperfect[5]; /* y offset of each row */
+extern f32 D_8010A050_picture_imperfect;   /* title scale */
+extern u8 D_8010A054_picture_imperfect; /* title: step */
+extern u8 D_8010A055_picture_imperfect; /* title: alpha */
+extern u8 D_8010A056_picture_imperfect; /* title: timer */       /* frame counter of the row scroll */
 
 extern s8 D_8010A110_picture_imperfect;    /* number of winners */
 extern s8 D_8010A111_picture_imperfect;    /* pieces whose score flash finished */
@@ -149,6 +153,7 @@ extern s8 D_8010A112_picture_imperfect[4]; /* score flash timer per player */
 extern s8 D_8010A116_picture_imperfect[4]; /* score flash blink per player */
 extern s16 D_8010A11A_picture_imperfect[4]; /* score display timer */
 extern s16 D_8010A122_picture_imperfect; /* sprite file being loaded */
+extern s16 D_8010A124_picture_imperfect; /* title sound handle */
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A140_picture_imperfect[4]; /* winners */
 extern u8 D_8010A150_picture_imperfect; /* picture set: 2 - D_800CE20A_main */
@@ -1281,4 +1286,112 @@ void func_80109608_picture_imperfect(omObjData* obj) {
     func_800E1370_minigame(obj, 2, -8.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80109AC4_picture_imperfect);
+/* The ground object: the title intro (counter, fade, shrink to the corner), and the results title. */
+void func_80109AC4_picture_imperfect(omObjData* obj) {
+    f32 t;
+    f32 u;
+    s32 x;
+    s32 y;
+
+    if (func_800E6E8C_minigame() == 0) {
+        switch (D_8010A150_picture_imperfect) {
+            case 0:
+            default:
+                func_8000BD50_main(D_8010A2A6_picture_imperfect, 5);
+                break;
+            case 1:
+                func_8000BD50_main(D_8010A2A6_picture_imperfect, 4);
+                break;
+            case 2:
+                func_8000BD50_main(D_8010A2A6_picture_imperfect, 3);
+                break;
+        }
+        func_8000BD50_main(D_8010A2A8_picture_imperfect, 0);
+        if (func_800E6E9C_minigame() == 1) {
+            func_8000BB54_main(D_8010A2A6_picture_imperfect);
+            func_8000BB54_main(D_8010A2A8_picture_imperfect);
+            func_8000BB54_main(D_8010A2AA_picture_imperfect);
+        } else if (func_800E6E9C_minigame() >= 27) {
+            switch (D_8010A054_picture_imperfect) {
+                case 0:
+                    if (D_8010A055_picture_imperfect == 0xFF) {
+                        HuAudFXPlay(0x3F6);
+                    }
+                    func_8000BBFC_main(D_8010A15A_picture_imperfect, D_8010A055_picture_imperfect);
+                    D_8010A055_picture_imperfect -= 5;
+                    if (D_8010A055_picture_imperfect == 0) {
+                        func_8000BB94_main(D_8010A2A6_picture_imperfect);
+                        func_8000BB94_main(D_8010A2A8_picture_imperfect);
+                        func_8000BB94_main(D_8010A2AA_picture_imperfect);
+                        D_8010A054_picture_imperfect++;
+                    }
+                    break;
+                case 1:
+                    D_8010A050_picture_imperfect -= 0.04f;
+                    t = D_8010A056_picture_imperfect / 50.0f;
+                    u = 1.0f - t;
+                    x = u * 128.0f + t * 160.0f;
+                    y = u * 108.0f + t * 120.0f;
+                    if (D_8010A056_picture_imperfect == 0) {
+                        D_8010A124_picture_imperfect = HuAudFXPlay(0x3F5);
+                    }
+                    D_8010A056_picture_imperfect++;
+                    if (D_8010A050_picture_imperfect > 0.02f) {
+                        func_8000BE5C_main(D_8010A156_picture_imperfect, D_8010A050_picture_imperfect,
+                                           D_8010A050_picture_imperfect);
+                        func_8000BE5C_main(D_8010A158_picture_imperfect, D_8010A050_picture_imperfect,
+                                           D_8010A050_picture_imperfect);
+                        func_8000BBD4_main(D_8010A158_picture_imperfect, x, y);
+                    } else {
+                        D_8010A050_picture_imperfect = 0.0f;
+                        D_8010A056_picture_imperfect = 0;
+                        D_8010A054_picture_imperfect++;
+                    }
+                    break;
+                case 2:
+                    func_8000BB94_main(D_8010A156_picture_imperfect);
+                    func_8000BB94_main(D_8010A158_picture_imperfect);
+                    func_8000BB94_main(D_8010A15A_picture_imperfect);
+                    if (D_8010A056_picture_imperfect >= 11) {
+                        D_8010A054_picture_imperfect++;
+                    } else {
+                        D_8010A056_picture_imperfect++;
+                    }
+                    break;
+                case 3:
+                    D_8010A056_picture_imperfect = 0;
+                    func_800E6F0C_minigame(1);
+                    HuAudFXStop(D_8010A124_picture_imperfect);
+                    break;
+            }
+        }
+    } else if (func_800E6E8C_minigame() == 3) {
+        if (GMesStatGet() == 0 && func_800E6E9C_minigame() >= 11) {
+            D_8010A050_picture_imperfect += 0.04f;
+            if (D_8010A050_picture_imperfect > 0.5f) {
+                D_8010A050_picture_imperfect = 0.5f;
+                if (D_80109FE4_picture_imperfect == 0) {
+                    D_80109FE4_picture_imperfect = 1;
+                }
+            }
+        }
+        switch (D_80109FE4_picture_imperfect) {
+            case 4:
+            case 8:
+            case 16:
+                HuSprAttrSet(D_8010A154_picture_imperfect, 0, 0x5000);
+                break;
+            default:
+                func_8000BE5C_main(D_8010A158_picture_imperfect, D_8010A050_picture_imperfect,
+                                   D_8010A050_picture_imperfect);
+                func_8000BBD4_main(D_8010A158_picture_imperfect, 160, 120);
+                func_8000BB54_main(D_8010A158_picture_imperfect);
+                func_8000BE5C_main(D_8010A15A_picture_imperfect, D_8010A050_picture_imperfect,
+                                   D_8010A050_picture_imperfect);
+                func_8000BBFC_main(D_8010A15A_picture_imperfect, 0xFF);
+                func_8000BBD4_main(D_8010A15A_picture_imperfect, 160, 120);
+                func_8000BB54_main(D_8010A15A_picture_imperfect);
+                break;
+        }
+    }
+}
