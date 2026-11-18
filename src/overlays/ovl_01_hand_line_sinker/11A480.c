@@ -73,6 +73,13 @@ typedef struct HlCamPose {
     /* 0x18 */ f32 zoom;
 } HlCamPose; // Size 0x1C
 
+/* A splash effect's object data (func_8010A6D0_hand_line_sinker). */
+typedef struct HlSplash {
+    /* 0x00 */ omObjData *follow;
+    /* 0x04 */ Vec ofs;
+    /* 0x10 */ Vec rot;
+} HlSplash; // Size 0x1C
+
 /* A texture's size (func_800335BC_main). */
 typedef struct HlTexSize {
     /* 0x00 */ s16 w;
@@ -150,7 +157,9 @@ void func_80109584_hand_line_sinker(omObjData *obj);
 void func_80109B9C_hand_line_sinker(omObjData *obj);
 omObjData *func_8010A554_hand_line_sinker(void);
 void func_8010A5F0_hand_line_sinker(void);
-void func_8010A6D0_hand_line_sinker(omObjData *obj, s32 type, Vec *pos, Vec *rot);
+void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot);
+f32 func_8010AAEC_hand_line_sinker(f32 a);
+f32 func_8010ABD4_hand_line_sinker(f32 a);
 void func_8010AD7C_hand_line_sinker(omObjData *obj, f32 len, f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1);
 void func_8010B0FC_hand_line_sinker(omObjData *obj, f32 y);
 void func_8010B1E4_hand_line_sinker(omObjData *obj);
@@ -163,6 +172,8 @@ extern u16 D_8010BF60_hand_line_sinker; /* wipe out started */
 extern s32 D_8010BF64_hand_line_sinker[]; /* fish model per character */
 extern char *D_8010BF88_hand_line_sinker[];
 extern u16 D_8010BF9C_hand_line_sinker; /* fish placed */
+extern s32 D_8010BFA0_hand_line_sinker[2]; /* splash model files */
+extern omObjFunc D_8010BFA8_hand_line_sinker[2]; /* splash updates */
 
 /* .rodata */
 /* the minigame title in Shift-JIS ("ＡＢＣ") */
@@ -185,6 +196,13 @@ extern f32 D_8010C108_hand_line_sinker;
 extern u16 D_8010C10C_hand_line_sinker; /* fish caught */
 extern HlCamPose D_8010C110_hand_line_sinker;
 extern s16 D_8010C12C_hand_line_sinker;
+extern f32 D_8010C130_hand_line_sinker; /* catenary: line length, then the two ends (/2400) */
+extern f32 D_8010C134_hand_line_sinker;
+extern f32 D_8010C138_hand_line_sinker;
+extern f32 D_8010C13C_hand_line_sinker;
+extern f32 D_8010C140_hand_line_sinker;
+extern s16 D_8010C148_hand_line_sinker[2][6]; /* splash models */
+extern omObjData *D_8010C160_hand_line_sinker[]; /* splash objects (6 used) */
 extern omObjData *D_8010C190_hand_line_sinker; /* the camera tween (120090) */
 
 void func_801059A0_hand_line_sinker(void) {
@@ -1653,22 +1671,357 @@ void func_80109B9C_hand_line_sinker(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80109B9C_hand_line_sinker);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A554_hand_line_sinker);
+/* The fish nearest the middle of the pond. */
+omObjData *func_8010A554_hand_line_sinker(void) {
+    f32 best = 100000.0f;
+    omObjData *nearest = NULL;
+    omObjData *fish;
+    f32 dist;
+    s32 i = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A5F0_hand_line_sinker);
+    do {
+        fish = D_8010C100_hand_line_sinker[i];
+        dist = HuSqrtf(fish->trans.x * fish->trans.x + fish->trans.z * fish->trans.z);
+        i++;
+        if (dist < best) {
+            best = dist;
+            nearest = fish;
+        }
+    } while (i < 3);
+    return nearest;
+}
 
+/* Loads the two splash models six times each. */
+void func_8010A5F0_hand_line_sinker(void) {
+    s32 type;
+    s32 i;
+
+    for (type = 0; type < 2; type++) {
+        for (i = 0; i < 6; i++) {
+            D_8010C148_hand_line_sinker[type][i] = func_8000B108_main(D_8010BFA0_hand_line_sinker[type], 0x1A9D);
+            if (type == 0) {
+                func_8001C2FC_main(D_8010C148_hand_line_sinker[0][i], 0x20000000, 0x20000000);
+            }
+            D_8010C160_hand_line_sinker[i] = NULL;
+        }
+    }
+}
+
+/* Starts a splash of a type at pos (relative to obj when it is not NULL). */
+#ifdef NON_MATCHING
+/* regalloc only: retail allocates the slot index and type in other saved registers */
+void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot) {
+    s32 i;
+    HlSplash *sp;
+    omObjData *o;
+    s16 *mdl;
+
+    for (i = 0; i < 6; i++) {
+        if (D_8010C160_hand_line_sinker[i] == NULL) {
+            break;
+        }
+    }
+    if (i != 6) {
+        D_8010C160_hand_line_sinker[i] = omAddObj(0x28, 1, 0, -1, D_8010BFA8_hand_line_sinker[type]);
+        D_8010C160_hand_line_sinker[i]->data = HuMemAllocTag(sizeof(HlSplash), 0x7918);
+        o = D_8010C160_hand_line_sinker[i];
+        sp = o->data;
+        o->work[0] = i;
+        mdl = &D_8010C148_hand_line_sinker[type][i];
+        func_8001C258_main(*mdl, 4, 0);
+        D_8010C160_hand_line_sinker[i]->model[0] = *mdl;
+        func_8001C6A8_main(D_8010C160_hand_line_sinker[i]->model[0], 0.0f);
+        sp->follow = obj;
+        sp->ofs.x = pos->x;
+        sp->ofs.y = pos->y;
+        sp->ofs.z = pos->z;
+        sp->rot.x = rot->x;
+        sp->rot.y = rot->y;
+        sp->rot.z = rot->z;
+        if (obj == NULL) {
+            omSetTra(D_8010C160_hand_line_sinker[i], pos->x, pos->y, pos->z);
+        } else {
+            omSetTra(D_8010C160_hand_line_sinker[i], obj->trans.x + pos->x, obj->trans.y + pos->y,
+                     obj->trans.z + pos->z);
+        }
+        omSetRot(D_8010C160_hand_line_sinker[i], rot->x, rot->y, rot->z);
+        Hu3DModelPosSet(D_8010C160_hand_line_sinker[i]->model[0], D_8010C160_hand_line_sinker[i]->trans.x,
+                        D_8010C160_hand_line_sinker[i]->trans.y, D_8010C160_hand_line_sinker[i]->trans.z);
+        Hu3DModelRotSet(D_8010C160_hand_line_sinker[i]->model[0], D_8010C160_hand_line_sinker[i]->rot.x,
+                        D_8010C160_hand_line_sinker[i]->rot.y, D_8010C160_hand_line_sinker[i]->rot.z);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A6D0_hand_line_sinker);
+#endif
 
+/* A splash: follows its object and ends with its animation. */
+#ifdef NON_MATCHING
+/* regalloc only: the motion table base and model pointer swap registers */
+void func_8010A904_hand_line_sinker(omObjData *obj) {
+    HlSplash *sp = obj->data;
+    s16 model;
+    HmfModel *mdl;
+
+    if (sp->follow != NULL) {
+        omSetTra(obj, sp->follow->trans.x + sp->ofs.x, sp->follow->trans.y + sp->ofs.y,
+                 sp->follow->trans.z + sp->ofs.z);
+    }
+    model = obj->model[0];
+    mdl = HmfModelData;
+    mdl += model;
+    if (D_800CCF58_main[mdl->unk02].unk02 <= mdl->unk40) {
+        func_8001C258_main(model, 4, 4);
+        D_8010C160_hand_line_sinker[obj->work[0]] = NULL;
+        omDelObj(obj);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A904_hand_line_sinker);
+#endif
 
+/* The same, for the second splash type. */
+#ifdef NON_MATCHING
+/* regalloc only: as func_8010A904 (identical code) */
+void func_8010A9F8_hand_line_sinker(omObjData *obj) {
+    HlSplash *sp = obj->data;
+    s16 model;
+    HmfModel *mdl;
+
+    if (sp->follow != NULL) {
+        omSetTra(obj, sp->follow->trans.x + sp->ofs.x, sp->follow->trans.y + sp->ofs.y,
+                 sp->follow->trans.z + sp->ofs.z);
+    }
+    model = obj->model[0];
+    mdl = HmfModelData;
+    mdl += model;
+    if (D_800CCF58_main[mdl->unk02].unk02 <= mdl->unk40) {
+        func_8001C258_main(model, 4, 4);
+        D_8010C160_hand_line_sinker[obj->work[0]] = NULL;
+        omDelObj(obj);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A9F8_hand_line_sinker);
+#endif
 
+/* Newton's method: the catenary parameter whose arc length matches the line (func_8010ABD4 = 0). */
+#ifdef NON_MATCHING
+/* regalloc only (masked 0): the derivative and previous value swap $f0/$f2 */
+f32 func_8010AAEC_hand_line_sinker(f32 a) {
+    s32 i = 0;
+    f32 f;
+    f32 prev;
+    f32 df;
+
+    while (TRUE) {
+        f = func_8010ABD4_hand_line_sinker(a);
+        if (f == 0.0f) {
+            break;
+        }
+        df = (func_8010ABD4_hand_line_sinker(a + f) - f) / f;
+        prev = a;
+        if (df < 1e-10f) {
+            break;
+        }
+        a -= f / df;
+        if (fabs((a - prev) / a) < 1e-6) {
+            break;
+        }
+        if (++i >= 64) {
+            break;
+        }
+    }
+    return a;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010AAEC_hand_line_sinker);
+#endif
 
+/* Arc length of the parabola-like curve through the two ends for parameter a, minus the line length. */
+#ifdef NON_MATCHING
+/* regalloc only: the 1.0 constant is kept in a saved register in this C; two instructions shorter */
+f32 func_8010ABD4_hand_line_sinker(f32 a) {
+    f32 b;
+    f32 t;
+    f32 s;
+    f32 u;
+    f32 v;
+    f32 r;
+
+    b = (D_8010C140_hand_line_sinker - D_8010C138_hand_line_sinker) /
+            (D_8010C13C_hand_line_sinker - D_8010C134_hand_line_sinker) -
+        a * (D_8010C134_hand_line_sinker + D_8010C13C_hand_line_sinker);
+    t = 2.0f * a * D_8010C134_hand_line_sinker + b;
+    s = HuSqrtf(t * t + 1.0f);
+    if (t + s > 0.0f) {
+        u = t * s + logf(t + s);
+    } else {
+        u = t * s - 1.0f;
+    }
+    t = 2.0f * a * D_8010C13C_hand_line_sinker + b;
+    s = HuSqrtf(t * t + 1.0f);
+    if (!(t + s > 0.0f)) {
+        v = t * s - 1.0f;
+    } else {
+        v = t * s + logf(t + s);
+    }
+    if (a != 0.0f) {
+        r = (v - u) / (a * 4.0f) - D_8010C130_hand_line_sinker;
+    } else {
+        r = -D_8010C130_hand_line_sinker;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010ABD4_hand_line_sinker);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010AD7C_hand_line_sinker);
+/* Builds the line's points from (x0, y0, z0) to (x1, y1, z1): straight when taut, else a sagging curve. */
+void func_8010AD7C_hand_line_sinker(omObjData *obj, f32 len, f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1) {
+    HlLure *ld = obj->data;
+    f32 tmp;
+    f32 dx;
+    f32 dz;
+    f32 angle;
+    f32 s;
+    f32 c;
+    f32 h1;
+    f32 slope;
+    f32 ofs;
+    f32 a;
+    f32 h;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010B0FC_hand_line_sinker);
+    if (len < HuSqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0)) * 1.0001f) {
+        ld->pts[0].x = x0;
+        ld->pts[0].y = y0;
+        ld->pts[0].z = z0;
+        ld->pts[1].x = x1;
+        ld->pts[1].y = y1;
+        ld->pts[1].z = z1;
+        ld->count = 2;
+    } else {
+        if (z1 < z0) {
+            tmp = x0;
+            x0 = x1;
+            x1 = tmp;
+            tmp = y0;
+            y0 = y1;
+            y1 = tmp;
+            tmp = z0;
+            z0 = z1;
+            z1 = tmp;
+        }
+        dx = x1 - x0;
+        dz = z1 - z0;
+        angle = atan2df(dx, dz);
+        s = sindf(angle);
+        c = cosdf(angle);
+        h1 = dx * s + dz * c + z0;
+        slope = (y0 - y1) / (z0 - h1);
+        ofs = (z0 * y1 - h1 * y0) / (z0 - h1);
+        D_8010C130_hand_line_sinker = len * (1.0f / 2400.0f);
+        D_8010C138_hand_line_sinker = y0 * (1.0f / 2400.0f);
+        D_8010C140_hand_line_sinker = y1 * (1.0f / 2400.0f);
+        D_8010C134_hand_line_sinker = z0 * (1.0f / 2400.0f);
+        D_8010C13C_hand_line_sinker = h1 * (1.0f / 2400.0f);
+        a = func_8010AAEC_hand_line_sinker(20000.0f);
+        if (a < 0.0f) {
+            a = -a;
+        }
+        a *= 1.0f / 2400.0f;
+        ld->pts[0].x = x0;
+        ld->pts[0].y = y0;
+        ld->pts[0].z = z0;
+        for (i = 1; i < 23; i++) {
+            ld->pts[i].x = (x1 - x0) / 24.0f + ld->pts[i - 1].x;
+            ld->pts[i].z = (z1 - z0) / 24.0f + ld->pts[i - 1].z;
+            h = (ld->pts[i].x - x0) * s + (ld->pts[i].z - z0) * c + z0;
+            ld->pts[i].y = a * (h - z0) * (h - h1) + slope * h + ofs;
+        }
+        ld->pts[i].x = x1;
+        ld->pts[i].y = y1;
+        ld->pts[i].z = z1;
+        ld->count = 24;
+    }
+}
 
+/* The reel sound's volume from the lure's distance to the rod. */
+void func_8010B0FC_hand_line_sinker(omObjData *obj, f32 vol) {
+    HlLure *ld = obj->data;
+    f32 t;
+    f32 v;
+
+    t = 1.0f - 2.0f * (HuSqrtf((obj->trans.x - ld->rod.x) * (obj->trans.x - ld->rod.x) +
+                               (obj->trans.z - ld->rod.z) * (obj->trans.z - ld->rod.z)) /
+                       730.0f);
+    if (t < 0.0f) {
+        t = 0.0f;
+    }
+    v = vol + (127.0f - vol) * t;
+    if (v > 127.0f) {
+        v = 127.0f;
+    }
+    if (ld->sfx2 >= 0) {
+        func_8004AAD0_main(ld->sfx2, v);
+    }
+}
+
+/* Moves a fish forward, keeping its two body circles apart from the other fish and inside the pond. */
+#ifdef NON_MATCHING
+/* regalloc only: retail keeps x and the 180.0/67.5 constants in integer saved registers */
+void func_8010B1E4_hand_line_sinker(omObjData *obj) {
+    HlPlayer *pl = obj->data;
+    s32 part;
+    s32 j;
+    s32 k;
+    f32 x;
+    f32 z;
+    f32 cx;
+    f32 cz;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    omObjData *other;
+
+    x = sindf(obj->rot.y) * pl->speed + obj->trans.x;
+    z = cosdf(obj->rot.y) * pl->speed + obj->trans.z;
+    for (part = 0; part < 2; part++) {
+        cx = x + sindf(part * 180.0f + obj->rot.y) * 67.5f;
+        cz = z + cosdf(part * 180.0f + obj->rot.y) * 67.5f;
+        for (j = 0; j < 3; j++) {
+            other = D_8010C100_hand_line_sinker[j];
+            if (obj == other) {
+                continue;
+            }
+            if (other->work[0] - 2 < 2 || other->work[0] == 4) {
+                continue;
+            }
+            for (k = 0; k < 2; k++) {
+                dx = sindf(k * 180.0f + D_8010C100_hand_line_sinker[j]->rot.y) * 67.5f + other->trans.x - cx;
+                dz = cosdf(k * 180.0f + other->rot.y) * 67.5f + D_8010C100_hand_line_sinker[j]->trans.z - cz;
+                dist = HuSqrtf(dx * dx + dz * dz);
+                if (dist < 135.0f) {
+                    x -= sindf(part * 180.0f + obj->rot.y) * (135.0f - dist);
+                    z -= cosdf(part * 180.0f + obj->rot.y) * (135.0f - dist);
+                    cx = x + sindf(part * 180.0f + obj->rot.y) * 67.5f;
+                    cz = z + cosdf(part * 180.0f + obj->rot.y) * 67.5f;
+                    pl->speed = 0.0f;
+                    break;
+                }
+            }
+        }
+        dist = HuSqrtf(cx * cx + cz * cz);
+        if (dist > 662.5f) {
+            x -= sindf(part * 180.0f + obj->rot.y) * (dist - 662.5f);
+            z -= cosdf(part * 180.0f + obj->rot.y) * (dist - 662.5f);
+            pl->speed = 0.0f;
+            break;
+        }
+    }
+    omSetTra(obj, x, obj->trans.y, z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010B1E4_hand_line_sinker);
+#endif
