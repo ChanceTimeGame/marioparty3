@@ -97,6 +97,8 @@ extern omObjData *D_8010DE94_river_raiders; /* = D_8010D9F0_river_raiders[9].obj
 extern s16 D_8010DED4_river_raiders; /* = D_8010D9F0_river_raiders[9].grp */
 extern s16 D_8010DED6_river_raiders; /* = D_8010D9F0_river_raiders[9].spr */
 extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: river objects (rocks, coins) */
+extern RrEnt D_8010E968_river_raiders[]; /* = D_8010DF18_river_raiders[20..23]: logs */
+extern RrEnt D_8010EB78_river_raiders[]; /* = D_8010DF18_river_raiders[24..29]: whirlpools */
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
@@ -110,13 +112,14 @@ extern RrSprModel *D_800CBB60_main;
 u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
 void func_800332D4_main(s16 arg0, f32 arg1);
 void func_8010BE88_river_raiders(omObjData *obj);
-extern s8 D_80110D80_river_raiders;
-extern s8 D_80110D81_river_raiders;
+void func_8010ACD8_river_raiders(omObjData *obj);
+extern u8 D_80110D80_river_raiders;
+extern u8 D_80110D81_river_raiders;
 extern s16 D_80110D82_river_raiders;
 extern s16 D_80110D86_river_raiders;
 extern s16 D_80110DB6_river_raiders;
 extern s16 D_80110DB8_river_raiders;
-extern s8 D_80110DC0_river_raiders;
+extern u8 D_80110DC0_river_raiders;
 void func_8010C494_river_raiders(omObjData *obj);
 void func_8010CADC_river_raiders(omObjData *obj);
 void func_8010C980_river_raiders(void);
@@ -1624,7 +1627,127 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010AB
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010ACD8_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010BE88_river_raiders);
+/* A river object each frame: object 0 releases rocks (every 29 frames), logs (every 181) and whirlpools (every
+ * 125) in turn; a released object drifts toward the rafts (func_8010ACD8_river_raiders) and bobs; whirlpools play
+ * their animation once and fade; when racing ends (state 4) and nothing is left, ends the race. */
+void func_8010BE88_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DF18_river_raiders[obj->work[0]];
+    RrEnt *next;
+    s16 i;
+    u8 busy;
+    s32 state;
+
+    state = (u8)D_80110D90_river_raiders;
+    if (state < 5) {
+    if (state >= 2) {
+        if (obj->work[0] == 0) {
+            if (D_80110DE2_river_raiders % 29 == 0 && D_80110D81_river_raiders < 20) {
+                next = &D_8010DF18_river_raiders[D_80110D81_river_raiders];
+                func_8001C258_main(next->obj->model[0], 4, 0);
+                D_80110D81_river_raiders++;
+                if (next->unk04 == 0) {
+                    next->unk04 = 1;
+                }
+            }
+            if (D_80110DE2_river_raiders % 181 == 0 && D_80110DC0_river_raiders < 3) {
+                next = &D_8010E968_river_raiders[D_80110DC0_river_raiders];
+                func_8001C258_main(next->obj->model[0], 4, 0);
+                D_80110DC0_river_raiders++;
+                if (next->unk04 == 0) {
+                    next->unk04 = 1;
+                }
+            }
+            if (D_80110DE2_river_raiders < 221 && D_80110DC0_river_raiders == 3) {
+                next = &D_8010E968_river_raiders[D_80110DC0_river_raiders];
+                func_8001C258_main(next->obj->model[0], 4, 0);
+                D_80110DC0_river_raiders++;
+                if (next->unk04 == 0) {
+                    next->unk04 = 1;
+                }
+            }
+            if (D_80110DE2_river_raiders % 125 == 0 && D_80110D80_river_raiders < 5) {
+                next = &D_8010EB78_river_raiders[D_80110D80_river_raiders];
+                func_8001C258_main(next->obj->model[0], 4, 0);
+                D_80110D80_river_raiders++;
+                if (next->unk04 == 0) {
+                    next->unk04 = 1;
+                }
+            }
+            if (D_80110DE2_river_raiders < 241 && D_80110D80_river_raiders == 5) {
+                next = &D_8010EB78_river_raiders[D_80110D80_river_raiders];
+                func_8001C258_main(next->obj->model[0], 4, 0);
+                D_80110D80_river_raiders++;
+                if (next->unk04 == 0) {
+                    next->unk04 = 1;
+                }
+            }
+        }
+        if (ent->unk04 == 1) {
+            func_8010ACD8_river_raiders(obj);
+            switch (ent->unk0C) {
+                case 0:
+                    obj->trans.y -= 1.0f;
+                    if (++ent->unk0E >= 30) {
+                        ent->unk0C = 1;
+                        ent->unk0E = 0;
+                    }
+                    break;
+                case 1:
+                    obj->trans.y += 1.0f;
+                    if (++ent->unk0E >= 30) {
+                        ent->unk0C = 0;
+                        ent->unk0E = 0;
+                    }
+                    break;
+            }
+            if (obj->trans.z > 1200.0) {
+                ent->unk04 = 0;
+                func_8001C258_main(obj->model[0], 4, 4);
+            }
+        }
+        if (obj->work[0] >= 24) {
+            switch (ent->unk04) {
+                case 3:
+                    ent->unk04 = 4;
+                    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                    func_8001C814_main(obj->model[0], 2, 0);
+                    break;
+                case 4:
+                    if (HmfModelData[obj->model[0]].unk40 >= 30.0f) {
+                        if (HmfModelData[obj->model[0]].unk40 == 30.0f) {
+                            func_8001FA68_main(obj->model[0]);
+                        }
+                        ent->unk10 -= 13;
+                        if (ent->unk10 <= 0) {
+                            ent->unk10 = 0;
+                        }
+                        func_8001F9E4_main(obj->model[0], ((u8 *)&ent->unk10)[1]);
+                    }
+                    if (HmfModelData[obj->model[0]].unk40 == D_80110DB6_river_raiders) {
+                        ent->unk04 = 0;
+                        func_8001C258_main(obj->model[0], 4, 4);
+                    }
+                    break;
+            }
+        }
+        if (obj->work[0] == 0) {
+            busy = 0;
+            if ((u8)D_80110D90_river_raiders == 4) {
+                for (i = 0; i < 30; i++) {
+                    next = &D_8010DF18_river_raiders[i];
+                    if (next->unk04 != 0) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    D_8010D9E6_river_raiders = 4;
+                }
+            }
+        }
+    }
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+}
 
 /* A river object's setup (work[1]: 0 a rock sprite model, 1 a log, 2 a whirlpool), placed at a random x on
  * alternating sides. */
