@@ -75,10 +75,10 @@ typedef struct FbHazard {
 
 /* omObjData::data of the fish that jumps after a fall (func_8010A1A4_fridged_bridges, 0xC) */
 typedef struct FbFish {
-    /* 0x00 */ s16 unk00; /* state */
-    /* 0x02 */ char unk02[2];
+    /* 0x00 */ u16 unk00; /* state */
+    /* 0x02 */ u16 unk02; /* timer */
     /* 0x04 */ omObjData *unk04; /* player */
-    /* 0x08 */ s16 unk08;
+    /* 0x08 */ u16 unk08;
     /* 0x0A */ s16 unk0A;
 } FbFish; // Size 0xC
 
@@ -232,6 +232,9 @@ void func_8010A360_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
 extern s32 D_8010D1A0_fridged_bridges;
+extern FbUV D_8010D1D4_fridged_bridges[4]; /* per player: viewport origin */
+void func_80012B14_main(s16 camIndex, Vec *worldPos, FbUV *outPos);
+void func_801075A4_fridged_bridges(omObjData *obj);
 extern Vec D_8010D1A4_fridged_bridges[4]; /* per player: goal position */
 extern f32 D_8010D340_fridged_bridges; /* winner camera: zoom step */
 extern Vec D_8010D344_fridged_bridges; /* winner camera: rotation step */
@@ -759,7 +762,7 @@ void func_80107510_fridged_bridges(omObjData *obj) {
     }
 }
 
-void func_801075A4_fridged_bridges(void) {
+void func_801075A4_fridged_bridges(omObjData *obj) {
 }
 
 #ifdef NON_MATCHING
@@ -1624,7 +1627,191 @@ void func_8010A1A4_fridged_bridges(omObjData *obj) {
     fish->func = func_8010A360_fridged_bridges;
 }
 
+#ifdef NON_MATCHING
+/* The bird that lifts a player out of the water and drops them back on their last safe spot */
+void func_8010A360_fridged_bridges(omObjData *obj) {
+    FbFish *fw = obj->data;
+    FbPlayer *work = fw->unk04->data;
+    u16 player = work->unk02;
+    Vec pos;
+    FbUV scr;
+    f32 dist;
+
+    switch (fw->unk00) {
+        case 0:
+            if (D_8010DA68_fridged_bridges == 1) {
+                fw->unk00 = 6;
+                return;
+            }
+            dist = HuSqrtf((obj->trans.x - fw->unk04->trans.x) * (obj->trans.x - fw->unk04->trans.x) +
+                           (obj->trans.z - (fw->unk04->trans.z - 30.0f)) * (obj->trans.z - (fw->unk04->trans.z - 30.0f)));
+            pos.x = obj->trans.x;
+            pos.y = obj->trans.y;
+            pos.z = obj->trans.z;
+            func_80012B14_main(work->unk02, &pos, &scr);
+            scr.u -= D_8010D1D4_fridged_bridges[work->unk02].u;
+            scr.v -= D_8010D1D4_fridged_bridges[work->unk02].v;
+            if (scr.u >= 0.0f && scr.u < 160.0 && scr.v >= 0.0f && scr.v < 120.0f && fw->unk0A == -1) {
+                fw->unk0A = func_8004AC98_main(0x431, work->unk02);
+            }
+            if (dist > 18.0f) {
+                obj->trans.x = (fw->unk04->trans.x - obj->trans.x) / dist * 18.0f + obj->trans.x;
+                obj->trans.z = ((fw->unk04->trans.z - 30.0f) - obj->trans.z) / dist * 18.0f + obj->trans.z;
+                return;
+            }
+            obj->trans.x = fw->unk04->trans.x;
+            obj->trans.z = fw->unk04->trans.z - 30.0f;
+            fw->unk00 = 1;
+            return;
+        case 1:
+            if (D_8010DA68_fridged_bridges == 1) {
+                fw->unk00 = 6;
+                return;
+            }
+            obj->trans.y -= 30.0f;
+            if (obj->trans.y <= 10.0f) {
+                obj->trans.y = 10.0f;
+                fw->unk04->func = func_801075A4_fridged_bridges;
+                fw->unk00 = 2;
+                func_8001C814_main(fw->unk04->model[0], 1, 1);
+            }
+            return;
+        case 2:
+            if (D_8010DA68_fridged_bridges == 1) {
+                fw->unk00 = 7;
+                return;
+            }
+            obj->trans.y += 34.0f;
+            omSetTra(fw->unk04, fw->unk04->trans.x, obj->trans.y - 160.0f, fw->unk04->trans.z);
+            Hu3DModelPosSet(fw->unk04->model[3], fw->unk04->trans.x, obj->trans.y - 160.0f, fw->unk04->trans.z);
+            if (obj->trans.y > 900.0f) {
+                fw->unk00 = 3;
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(fw->unk04->model[3], 4, 4);
+                return;
+            }
+            break;
+        case 3:
+            if (D_8010DA68_fridged_bridges == 1) {
+                fw->unk00 = 6;
+                return;
+            }
+            dist = HuSqrtf((CenterM[player].x - work->unk5C) * (CenterM[player].x - work->unk5C) +
+                           (CenterM[player].z - work->unk64) * (CenterM[player].z - work->unk64));
+            if (dist > 18.0f) {
+                CenterM[player].x = (work->unk5C - CenterM[player].x) / dist * 18.0f + CenterM[player].x;
+                CenterM[player].z = (work->unk64 - CenterM[player].z) / dist * 18.0f + CenterM[player].z;
+                return;
+            }
+            CenterM[player].x = work->unk5C;
+            CenterM[player].z = work->unk64;
+            fw->unk00 = 4;
+            omSetTra(obj, work->unk5C, 900.0f, work->unk64 - 30.0f);
+            omSetTra(fw->unk04, work->unk5C, 740.0f, work->unk64);
+            Hu3DModelPosSet(fw->unk04->model[0], fw->unk04->trans.x, fw->unk04->trans.y, fw->unk04->trans.z);
+            Hu3DModelPosSet(fw->unk04->model[3], fw->unk04->trans.x, fw->unk04->trans.y, fw->unk04->trans.z);
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(fw->unk04->model[3], 4, 0);
+            return;
+        case 4:
+            if (D_8010DA68_fridged_bridges == 1) {
+                fw->unk00 = 7;
+                return;
+            }
+            obj->trans.y -= 24.0f;
+            omSetTra(fw->unk04, work->unk5C, obj->trans.y - 160.0f, work->unk64);
+            Hu3DModelPosSet(fw->unk04->model[3], work->unk5C, obj->trans.y - 160.0f, work->unk64);
+            if (obj->trans.y < 160.0f) {
+                obj->trans.y = 160.0f;
+                fw->unk00 = 5;
+                func_8001C5B4_main(fw->unk04->model[0], fw->unk04->motion[0]);
+                func_8001C814_main(fw->unk04->model[0], 2, 2);
+                Hu3DModelPosSet(fw->unk04->model[1], fw->unk04->trans.x, 0.0f, fw->unk04->trans.z);
+                func_8001C258_main(fw->unk04->model[1], 4, 0);
+                fw->unk02 = 0;
+                work->unk50 = 1.0f;
+                func_8004AC98_main(0x430, work->unk02);
+                return;
+            }
+            break;
+        case 5:
+            if (D_8010DA68_fridged_bridges == 1 && fw->unk08 == D_8010DA68_fridged_bridges) {
+                fw->unk00 = 6;
+                func_8001C258_main(fw->unk04->model[0], 4, 0);
+                work->unk00 = 1;
+                return;
+            }
+            obj->trans.y += 40.0f;
+            if (obj->trans.y > 1500.0f) {
+                goto end;
+            }
+            fw->unk02++;
+            if (fw->unk02 >= 0x1E) {
+                if (fw->unk08 == 0) {
+                    fw->unk08 = 1;
+                    func_8001C258_main(fw->unk04->model[0], 4, 0);
+                    if (work->unk28 == 1) {
+                        func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 0);
+                    }
+                    func_8001C258_main(fw->unk04->model[3], 4, 4);
+                    work->unk00 = 1;
+                    work->unk08 = work->unk0C = 0.0f;
+                    work->unk2C->work[0] = 1;
+                    fw->unk04->func = func_801068F4_fridged_bridges;
+                    work->unk1E = 0;
+                    if (work->unk24 == 3) {
+                        work->unk22 = 1;
+                    } else if (work->unk28 == 0) {
+                        work->unk22 = -1;
+                    } else {
+                        work->unk22 = 1;
+                    }
+                    return;
+                }
+            } else {
+                if (fw->unk02 & 1) {
+                    func_8001C258_main(fw->unk04->model[0], 4, 4);
+                    if (work->unk28 == 1) {
+                        func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 4);
+                    }
+                    func_8001C258_main(fw->unk04->model[3], 4, 0);
+                } else {
+                    func_8001C258_main(fw->unk04->model[0], 4, 0);
+                    if (work->unk28 == 1) {
+                        func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5], 4, 0);
+                    }
+                    func_8001C258_main(fw->unk04->model[3], 4, 4);
+                }
+                work->unk50 -= 0.03f;
+                Hu3DModelScaleSet(fw->unk04->model[3], work->unk50, work->unk50, work->unk50);
+                return;
+            }
+            break;
+        case 6:
+            obj->trans.y += 40.0f;
+            if (obj->trans.y > 1500.0f) {
+                goto end;
+            }
+            break;
+        case 7:
+            obj->trans.y += 40.0f;
+            omSetTra(fw->unk04, obj->trans.x, obj->trans.y - 160.0f, obj->trans.z + 30.0f);
+            Hu3DModelPosSet(fw->unk04->model[3], fw->unk04->trans.x, obj->trans.y - 160.0f, fw->unk04->trans.z);
+            if (obj->trans.y > 1500.0f) {
+                func_8001C258_main(fw->unk04->model[0], 4, 4);
+            end:
+                func_8001C258_main(obj->model[0], 4, 4);
+                if (fw->unk0A != -1) {
+                    HuAudFXStop(fw->unk0A);
+                }
+                omDelObj(obj);
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010A360_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010ADC0_fridged_bridges);
 
