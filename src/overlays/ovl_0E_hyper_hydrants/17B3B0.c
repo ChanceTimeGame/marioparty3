@@ -42,13 +42,13 @@ typedef struct HhPlayer {
     /* 0x04 */ f32 unk04;
     /* 0x08 */ f32 unk08;
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ u8 unk10;
+    /* 0x10 */ s8 unk10; /* pump stroke: 0 idle, 1 down, 2 up */
     /* 0x11 */ char unk11;
-    /* 0x12 */ s16 unk12;
+    /* 0x12 */ u16 unk12; /* last pump button: 0x8000 A (down), 0x4000 B/Z (up) */
     /* 0x14 */ char unk14[4];
     /* 0x18 */ s16 unk18;
     /* 0x1A */ s16 unk1A;
-    /* 0x1C */ u8 unk1C;
+    /* 0x1C */ s8 unk1C;
     /* 0x1D */ char unk1D;
     /* 0x1E */ s16 unk1E;
 } HhPlayer; /* size 0x20 */
@@ -135,6 +135,7 @@ extern s8 D_8010BE35_hyper_hydrants;
 extern s32 D_8010BE30_hyper_hydrants;
 
 extern s8 D_8010BF40_hyper_hydrants;
+extern s16 D_8010BF42_hyper_hydrants[2]; /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
@@ -608,7 +609,153 @@ void func_80106A50_hyper_hydrants(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80107238_hyper_hydrants);
+/* A hydrant pumper's turn (groups 0 and 2): alternate A (handle down) and B/Z (handle up); CPUs pump by chance.
+   The pump count sets the team's level (D_8010BFAC) every 31 frames. */
+void func_80107238_hyper_hydrants(omObjData* obj) {
+    u16 down;
+    u16 up;
+    MgWork* pw;
+    HhPlayer* ex;
+    f32 frame;
+    f32 end;
+    s16 team;
+    s16 hit;
+    s8 r;
+
+    down = 0;
+    pw = obj->data;
+    ex = pw->unk158;
+    frame = HmfModelData[obj->model[0]].unk40;
+    end = D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02;
+    team = GwPlayer[pw->unk59].group >= 2;
+    up = 0;
+    if (GwPlayer[pw->unk59].stat & 1) {
+        if ((frame == end) | (frame == 0.0f)) {
+            r = (u32)(rand8() * 25) >> 6;
+            switch (GwPlayer[pw->unk59].cpu_difficulty) {
+                case 3:
+                    hit = 1;
+                    break;
+                case 2:
+                    hit = r < 90;
+                    break;
+                case 1:
+                default:
+                    hit = r < 40;
+                    break;
+                case 0:
+                    hit = r < 30;
+                    break;
+            }
+            if (D_8010BFAC_hyper_hydrants[team] == 0) {
+                D_8010BFAC_hyper_hydrants[team] = 1;
+                hit = 1;
+            }
+        } else {
+            hit = 0;
+        }
+        if (hit) {
+            if (frame == end) {
+                up = 1;
+            } else if (frame == 0.0f) {
+                down = 1;
+            }
+        }
+    } else {
+        down = D_800D5558_main[pw->unk57] >> 15;
+        up = (D_800D5558_main[pw->unk57] & 0x6000) != 0;
+    }
+    if ((down != 0) & (up != 0)) {
+        if (ex->unk12 == 0x8000) {
+            down = 0;
+        } else if (ex->unk12 == 0x4000) {
+            up = 0;
+        }
+    } else if (down) {
+        if (ex->unk12 == 0x8000) {
+            down = 0;
+        }
+    } else if (up) {
+        if (ex->unk12 == 0x4000) {
+            up = 0;
+        }
+    }
+    if (down) {
+        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, frame, 1, 2);
+        ex->unk10 = 1;
+        func_8010BC80_hyper_hydrants(0x368, team, 1, pw->unk59);
+        ex->unk12 = 0x8000;
+    } else if (up) {
+        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, frame, 1, 4);
+        ex->unk10 = 2;
+        func_8010BC80_hyper_hydrants(0x367, team, 1, pw->unk59);
+        ex->unk12 = 0x4000;
+    }
+    if (ex->unk10 == 1) {
+        if (ex->unk18 < 9) {
+            ex->unk18++;
+        }
+        if (frame >= end - 2.0f) {
+            func_8001C814_main(obj->model[0], 1, 1);
+            func_8001C814_main(obj->model[2], 1, 1);
+            frame = end;
+            ex->unk10 = 0;
+        }
+        D_8010BF42_hyper_hydrants[team] = 0;
+    } else if (ex->unk10 == 2) {
+        end = 0.0f;
+        if (frame == end) {
+            func_8001C814_main(obj->model[0], 1, 1);
+            func_8001C814_main(obj->model[2], 1, 1);
+            frame = end;
+            ex->unk10 = 0;
+        } else {
+            ex->unk1C = 0;
+        }
+        D_8010BF42_hyper_hydrants[team] = 0;
+    } else {
+        if (ex->unk18 == 0) {
+            D_8010BFAC_hyper_hydrants[team] = 0;
+        } else if (ex->unk18 < 2) {
+            D_8010BFAC_hyper_hydrants[team] = 1;
+        } else if (ex->unk18 < 3) {
+            D_8010BFAC_hyper_hydrants[team] = 2;
+        } else if (ex->unk18 < 4) {
+            D_8010BFAC_hyper_hydrants[team] = 3;
+        } else if (ex->unk18 < 6) {
+            D_8010BFAC_hyper_hydrants[team] = 4;
+        } else if (ex->unk18 < 8) {
+            D_8010BFAC_hyper_hydrants[team] = 5;
+        } else {
+            D_8010BFAC_hyper_hydrants[team] = 6;
+        }
+        if (D_8010BF42_hyper_hydrants[team] >= 2 && ex->unk18 > 0) {
+            ex->unk18--;
+        }
+        D_8010BF42_hyper_hydrants[team]++;
+    }
+    func_8001C6A8_main(obj->model[0], frame);
+    func_8001C6A8_main(obj->model[2], frame);
+    if (frame == 0.0f) {
+        ex->unk1C ^= 1;
+    } else {
+        ex->unk1C = 0;
+    }
+    if (ex->unk1C) {
+        func_8001F6BC_main(obj->model[2], 0x40, 0x40, 0x40, 0);
+        func_8001F6F8_main(obj->model[2], 0, 0, 0, 0);
+    } else {
+        func_8001F6BC_main(obj->model[2], 0, 0, 0, 0);
+        func_8001F6F8_main(obj->model[2], 0x10, 0x10, 0x10, 0);
+    }
+    if (ex->unk1A >= 31) {
+        D_8010BFAC_hyper_hydrants[team] = ex->unk18;
+        ex->unk1A = 0;
+        ex->unk18 = 0;
+    } else {
+        ex->unk1A++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801078B8_hyper_hydrants);
 
