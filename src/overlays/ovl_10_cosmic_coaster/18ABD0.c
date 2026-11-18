@@ -85,6 +85,9 @@ typedef struct CcSpawn {
     /* 0x0C */ f32 unk0C; /* distance / 100 */
 } CcSpawn; // Size 0x10
 
+/* Track objects keep a light distance in the unused omObjData::motion word (N64 layout). */
+#define CC_LIGHT_DIST(obj) (*(f32 *)&(obj)->motion)
+
 double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void *HuMemAllocTag(s32 size, s16 tag);
@@ -118,6 +121,7 @@ extern u16 D_8010BB5C_cosmic_coaster[2]; /* 0: fade out started, 1: bonus coins 
 extern s32 D_8010BB64_cosmic_coaster[8];
 extern f32 D_8010BB84_cosmic_coaster[2];
 extern s32 D_8010BB8C_cosmic_coaster;
+extern struct CcMotInfo { char unk00[2]; s16 unk02; char unk04[0x14]; } *D_800CCF58_main; /* = D_800CCF58_main_Struct: per motion, [1] its length */
 extern CcCamKey D_8010BB90_cosmic_coaster[2];
 extern s16 D_8010BB58_cosmic_coaster[2];
 extern s8 D_800CBB6E_main[];
@@ -183,6 +187,9 @@ void func_80109900_cosmic_coaster(void);
 void func_80109A38_cosmic_coaster(omObjData *object);
 void func_80109BFC_cosmic_coaster(omObjData *object, s16 side, CcSpawn *spawn);
 void func_8010ABE0_cosmic_coaster(void);
+void func_8010A434_cosmic_coaster(omObjData *object);
+void func_8010A744_cosmic_coaster(omObjData *object);
+void func_8010B5C4_cosmic_coaster(omObjData *object);
 void func_8010991C_cosmic_coaster(omObjData *object);
 
 
@@ -1429,17 +1436,190 @@ void func_80109BFC_cosmic_coaster(omObjData *object, s16 side, CcSpawn *spawn) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109BFC_cosmic_coaster);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A244_cosmic_coaster);
+/* Track object type 0 (hazard): follow the track; on a hit swap to its broken model. */
+void func_8010A244_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    s16 slot;
+    s16 mdl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A434_cosmic_coaster);
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    if (object->unk10 == 1) {
+        func_8010B5C4_cosmic_coaster(object);
+        func_8001ACDC_main(object->model[0]);
+        slot = object->work[0];
+        mdl = Hu3DModelLink(D_8010C398_cosmic_coaster[2]);
+        object->model[0] = D_8010C3C4_cosmic_coaster->model[slot] = mdl;
+        if (object->work[2] == 0) {
+            func_8001C8A8_main(object->model[0], 1);
+        } else {
+            func_8001C8A8_main(object->model[0], 2);
+        }
+        object->work[1] = 2;
+        object->func = func_8010A434_cosmic_coaster;
+        func_8001FB34_main(object->model[0], 1);
+        func_8001FBBC_main(object->model[0], 0, 0, 0);
+        func_8001FBFC_main(object->model[0], 0.0f, -127.0f, 0.0f);
+        func_8001C258_main(object->model[0], 4, 0);
+        Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    } else if (car->unk08 - object->trans.z >= 3300.0f) {
+        func_8001ACDC_main(object->model[0]);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A528_cosmic_coaster);
+/* Broken hazard: follow the track until its motion ends, then free the slot. */
+void func_8010A434_cosmic_coaster(omObjData *object) {
+    HmfModel *hmf;
+    CcCar *car;
+    s16 mdl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A744_cosmic_coaster);
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    mdl = object->model[0];
+    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 <= HmfModelData[mdl].unk40) {
+        func_8001ACDC_main(mdl);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
 
+/* Track object type 1 (side hazard): as type 0, broken model by side of the track. */
+void func_8010A528_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    s16 slot;
+    s32 src;
+
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    if (object->unk10 == 1) {
+        func_8010B5C4_cosmic_coaster(object);
+        func_8001ACDC_main(object->model[0]);
+        slot = object->work[0];
+        if (object->trans.x > 0.0f) {
+            src = D_8010C398_cosmic_coaster[3];
+        } else {
+            src = D_8010C398_cosmic_coaster[10];
+        }
+        object->model[0] = D_8010C3C4_cosmic_coaster->model[slot] = Hu3DModelLink(src);
+        if (object->work[2] == 0) {
+            func_8001C8A8_main(object->model[0], 1);
+        } else {
+            func_8001C8A8_main(object->model[0], 2);
+        }
+        object->work[1] = 2;
+        object->func = func_8010A744_cosmic_coaster;
+        func_8001FB34_main(object->model[0], 1);
+        func_8001FBBC_main(object->model[0], 0, 0, 0);
+        func_8001FBFC_main(object->model[0], 0.0f, -127.0f, 0.0f);
+        func_8001C258_main(object->model[0], 4, 0);
+        Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    } else if (car->unk08 - object->trans.z >= 3300.0f) {
+        func_8001ACDC_main(object->model[0]);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
+
+/* Broken side hazard (same as func_8010A434). */
+void func_8010A744_cosmic_coaster(omObjData *object) {
+    HmfModel *hmf;
+    CcCar *car;
+    s16 mdl;
+
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    CC_LIGHT_DIST(object) = 0.0f;
+    mdl = object->model[0];
+    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 <= HmfModelData[mdl].unk40) {
+        func_8001ACDC_main(mdl);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
+
+/* Track object type 4 (glowing star): light the nearby objects of its side, vanish when hit or passed. */
+#ifdef NON_MATCHING
+void func_8010A838_cosmic_coaster(omObjData *object) {
+    CcCar *car;
+    omObjData **objs;
+    omObjData *o;
+    f32 d;
+    f32 nx;
+    f32 ny;
+    f32 nz;
+    u8 r;
+    u8 g;
+    u8 b;
+    s32 i;
+
+    car = D_8010C3B0_cosmic_coaster[object->work[2]]->data;
+    Hu3DModelPosSet(object->model[0], object->trans.x, object->trans.y, car->unk08 - object->trans.z);
+    omSetSca(object, 2.5f, 2.5f, 2.5f);
+    Hu3DModelScaleSet(object->model[0], 2.5f, 2.5f, 2.5f);
+    func_8001FBFC_main(object->model[0], 69.0f, 69.0f, 69.0f);
+    func_8001FBBC_main(object->model[0], 0xFF, 0xFF, 0xFF);
+    objs = func_80047DBC_main((s16)object->work[2]);
+    for (i = 0; i < 0x37; i++) {
+        if ((o = objs[i]) != NULL && o->work[1] != 4) {
+            d = HuSqrtf((o->trans.x - object->trans.x) * (o->trans.x - object->trans.x) + (o->trans.y - object->trans.y) * (o->trans.y - object->trans.y) + (o->trans.z - object->trans.z) * (o->trans.z - object->trans.z));
+            if (!(d > 1600.0f) && !(CC_LIGHT_DIST(o) < d)) {
+                CC_LIGHT_DIST(o) = d;
+                nx = (object->trans.x - o->trans.x) / d * 127.0f;
+                ny = (object->trans.y - o->trans.y) / d * 127.0f;
+                nz = (object->trans.z - o->trans.z) / d * 127.0f;
+                r = (1600.0f - d) * 0.159375f;
+                g = (1600.0f - d) * 0.159375f;
+                b = (1600.0f - d) * 0.159375f;
+                HmfLightColorSet(o->model[0], r, g, b);
+                HmfLightDirSet(o->model[0], nx, ny, nz);
+            }
+        }
+    }
+    if (car->unk08 - object->trans.z >= 5900.0f || object->unk10 == 1) {
+        func_8010B5C4_cosmic_coaster(object);
+        func_8001ACDC_main(object->model[0]);
+        D_8010C3C4_cosmic_coaster->model[object->work[0]] = -1;
+        omDelObj(object);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A838_cosmic_coaster);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010ABE0_cosmic_coaster);
+/* Side 1's spawn list: fifty glowing stars at random spots along the track. */
+void func_8010ABE0_cosmic_coaster(void) {
+    CcSpawn *spawn;
+    s32 i;
+    f32 dist;
+    f32 angle;
+    f32 r;
+    f32 x;
+    f32 y;
+
+    spawn = D_8010C060_cosmic_coaster;
+    dist = (u8)(rand8() % 15) + 17;
+    for (i = 0; i != 50; i++) {
+        spawn->unk00 = 5;
+        spawn->unk0C = dist;
+        angle = (rand8() * rand8()) % 3600 / 10.0f;
+        r = (rand8() * rand8()) % 4500 / 10.0f + 500.0f;
+        x = cosdf(angle) * r;
+        y = sindf(angle) * r;
+        spawn->unk04 = x;
+        if (((y > 0.0f) & (y < 800.0f) && (x > -300.0f) & (x < 300.0f)) || (spawn->unk0C > 625.0f && spawn->unk0C < 685.0f)) {
+            y = 650.0f;
+        }
+        spawn->unk08 = y + 150.0f;
+        dist += (u8)(rand8() % 7) + 11.0f;
+        spawn++;
+    }
+    spawn->unk00 = 0xFFFF;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010AF04_cosmic_coaster);
 
