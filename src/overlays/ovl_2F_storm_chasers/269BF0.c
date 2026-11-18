@@ -678,40 +678,37 @@ void func_801069EC_storm_chasers(void) {
 }
 
 /* The storm wanders: a new heading, speed and turn when its timer runs out; turned back at the edge. */
-#ifdef NON_MATCHING
 void func_80106A48_storm_chasers(omObjData *obj) {
+    ScStorm *st = &D_8010CCC0_storm_chasers;
     f32 a;
 
-    if (D_8010CCC0_storm_chasers.timer > 0) {
-        D_8010CCC0_storm_chasers.timer--;
+    if (st->timer > 0) {
+        st->timer--;
     } else {
-        D_8010CCC0_storm_chasers.angle = rand16() % 360;
-        D_8010CCC0_storm_chasers.speed = SC_RAND(7) + 6;
-        D_8010CCC0_storm_chasers.timer = SC_RAND(30) + 45;
-        D_8010CCC0_storm_chasers.mode = SC_RAND(3);
-        if (D_8010CCC0_storm_chasers.mode == 0) {
-            D_8010CCC0_storm_chasers.turn = SC_RAND(9) + 1;
+        st->angle = rand16() % 360;
+        st->speed = SC_RAND(7) + 6;
+        st->timer = SC_RAND(30) + 45;
+        st->mode = SC_RAND(3);
+        if (st->mode == 0) {
+            st->turn = SC_RAND(9) + 1;
             if (rand8() & 1) {
-                D_8010CCC0_storm_chasers.turn = -D_8010CCC0_storm_chasers.turn;
+                st->turn = -st->turn;
             }
         } else {
-            D_8010CCC0_storm_chasers.turn = 0.0f;
+            st->turn = 0.0f;
         }
     }
     if (obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z > 160000.0f) {
-        a = func_8010610C_storm_chasers(obj->trans.x, obj->trans.z) + 135.0f;
-        D_8010CCC0_storm_chasers.angle = SC_WRAP(a + SC_RAND(90));
-        D_8010CCC0_storm_chasers.speed = SC_RAND(7) + 6;
-        D_8010CCC0_storm_chasers.timer = SC_RAND(30) + 20;
-        D_8010CCC0_storm_chasers.turn = 0.0f;
+        a = func_8010610C_storm_chasers(obj->trans.x, obj->trans.z);
+        st->angle = SC_WRAP(a + 135.0f + SC_RAND(90));
+        st->speed = SC_RAND(7) + 6;
+        st->timer = SC_RAND(30) + 20;
+        st->turn = 0.0f;
     }
-    D_8010CCC0_storm_chasers.angle = SC_WRAP(D_8010CCC0_storm_chasers.angle + D_8010CCC0_storm_chasers.turn);
-    obj->trans.x += sindf(D_8010CCC0_storm_chasers.angle) * D_8010CCC0_storm_chasers.speed;
-    obj->trans.z += cosdf(D_8010CCC0_storm_chasers.angle) * D_8010CCC0_storm_chasers.speed;
+    st->angle = SC_WRAP(st->angle + st->turn);
+    obj->trans.x += sindf(st->angle) * st->speed;
+    obj->trans.z += cosdf(st->angle) * st->speed;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80106A48_storm_chasers);
-#endif
 
 /* The storm rises away once the rain has faded. */
 void func_80106F98_storm_chasers(omObjData *obj) {
@@ -735,43 +732,46 @@ void func_80106F98_storm_chasers(omObjData *obj) {
 
 #ifdef NON_MATCHING
 void func_801070A8_storm_chasers(omObjData *obj) {
+    ScStorm *st = &D_8010CCC0_storm_chasers;
     f32 vol;
     s8 pan;
 
-    if (D_8010CCC0_storm_chasers.state != -1) {
+    if (st->state != -1) {
         if (D_8010CCA0_storm_chasers == 1
-            && (D_8010CCC0_storm_chasers.sfx[0] == -1 || D_8010CCC0_storm_chasers.sfx[1] == -1)) {
-            D_8010CCC0_storm_chasers.sfx[0] = HuAudFXPlay(0x481);
-            D_8010CCC0_storm_chasers.sfx[1] = HuAudFXPlay(0x482);
-            func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[0], 64);
-            func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[1], 64);
-            func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[0], 64);
-            func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[1], 64);
+            && (D_8010CCDC_storm_chasers == -1 || D_8010CCDE_storm_chasers == -1)) {
+            st->sfx[0] = HuAudFXPlay(0x481);
+            st->sfx[1] = HuAudFXPlay(0x482);
+            func_8004AAD0_main(st->sfx[0], 64);
+            func_8004AAD0_main(st->sfx[1], 64);
+            func_8004AE00_main(st->sfx[0], 64);
+            func_8004AE00_main(st->sfx[1], 64);
         }
         switch (D_8010CCA0_storm_chasers) {
             case 0:
             case 1:
-                D_8010CCC0_storm_chasers.angle = rand16() % 360;
-                D_8010CCC0_storm_chasers.speed = SC_RAND(7) + 6;
-                D_8010CCC0_storm_chasers.timer = SC_RAND(30) + 45;
-                D_8010CCC0_storm_chasers.turn = 0;
-                if (D_8010CCC0_storm_chasers.sfx[0] != -1 && D_8010CCC0_storm_chasers.sfx[1] != -1) {
+                st->angle = rand16() % 360;
+                st->speed = SC_RAND(7) + 6;
+                st->timer = SC_RAND(30) + 45;
+                st->turn = 0;
+                if (st->sfx[0] != -1 && st->sfx[1] != -1) {
                     vol = (obj->trans.z + 400.0f) / 800.0f;
-                    func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[0], (s32)((1.0f - vol) * 64.0f) + 32);
-                    func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[1], (s32)(vol * 64.0f) + 32);
-                    pan = (1.0f - (obj->trans.x + 400.0f) / 800.0f) * 64.0f;
-                    func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[0], pan + 32);
-                    func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[1], pan + 32);
+                    func_8004AAD0_main(st->sfx[0], (s32)((1.0f - vol) * 64.0f) + 32);
+                    func_8004AAD0_main(st->sfx[1], (s32)(vol * 64.0f) + 32);
+                    vol = (obj->trans.x + 400.0f) / 800.0f;
+                    pan = (1.0f - vol) * 64.0f;
+                    func_8004AE00_main(st->sfx[0], pan + 32);
+                    func_8004AE00_main(st->sfx[1], pan + 32);
                 }
                 break;
             case 2:
                 func_80106A48_storm_chasers(obj);
                 vol = (obj->trans.z + 400.0f) / 800.0f;
-                func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[0], (s32)((1.0f - vol) * 64.0f) + 32);
-                func_8004AAD0_main(D_8010CCC0_storm_chasers.sfx[1], (s32)(vol * 64.0f) + 32);
-                pan = (1.0f - (obj->trans.x + 400.0f) / 800.0f) * 64.0f;
-                func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[0], pan + 32);
-                func_8004AE00_main(D_8010CCC0_storm_chasers.sfx[1], pan + 32);
+                func_8004AAD0_main(st->sfx[0], (s32)((1.0f - vol) * 64.0f) + 32);
+                func_8004AAD0_main(st->sfx[1], (s32)(vol * 64.0f) + 32);
+                vol = (obj->trans.x + 400.0f) / 800.0f;
+                    pan = (1.0f - vol) * 64.0f;
+                func_8004AE00_main(st->sfx[0], pan + 32);
+                func_8004AE00_main(st->sfx[1], pan + 32);
                 break;
             case 3:
             case 4:
@@ -780,13 +780,13 @@ void func_801070A8_storm_chasers(omObjData *obj) {
             case 7:
             case 8:
                 func_80106F98_storm_chasers(obj);
-                if (D_8010CCC0_storm_chasers.sfx[0] != -1) {
-                    func_8004AEF0_main(D_8010CCC0_storm_chasers.sfx[0], 30);
-                    D_8010CCC0_storm_chasers.sfx[0] = -1;
+                if (st->sfx[0] != -1) {
+                    func_8004AEF0_main(st->sfx[0], 30);
+                    st->sfx[0] = -1;
                 }
-                if (D_8010CCC0_storm_chasers.sfx[1] != -1) {
-                    func_8004AEF0_main(D_8010CCC0_storm_chasers.sfx[1], 30);
-                    D_8010CCC0_storm_chasers.sfx[1] = -1;
+                if (st->sfx[1] != -1) {
+                    func_8004AEF0_main(st->sfx[1], 30);
+                    st->sfx[1] = -1;
                 }
                 break;
         }
