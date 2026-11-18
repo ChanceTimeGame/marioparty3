@@ -15,6 +15,8 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+#define BG_IABS(x) (((x) < 0) ? -(x) : (x))
+
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct BgCtrl {
     /* 0x00 */ u8 unk00;
@@ -122,23 +124,23 @@ typedef struct BgSeq {
     /* 0x00 */ f32 unk00;
     /* 0x04 */ s16 unk04;
     /* 0x06 */ s16 unk06;
-    /* 0x08 */ s8 unk08;
-    /* 0x09 */ s8 unk09;
+    /* 0x08 */ u8 unk08;
+    /* 0x09 */ u8 unk09;
     /* 0x0A */ u16 unk0A; /* last button shown */
-    /* 0x0C */ s8 unk0C;
+    /* 0x0C */ u8 unk0C;
     /* 0x0D */ char unk0D;
     /* 0x0E */ s16 unk0E;
     /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s8 unk16;
-    /* 0x17 */ s8 unk17;
-    /* 0x18 */ s8 unk18;
-    /* 0x19 */ s8 unk19;
-    /* 0x1A */ s8 unk1A[16];
-    /* 0x2A */ s8 unk2A[16]; /* A notes */
-    /* 0x3A */ s8 unk3A[16]; /* B notes */
-    /* 0x4A */ s8 unk4A[16]; /* Z notes */
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 unk16;
+    /* 0x17 */ u8 unk17;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 unk19;
+    /* 0x1A */ u8 unk1A[16];
+    /* 0x2A */ u8 unk2A[16]; /* A notes */
+    /* 0x3A */ u8 unk3A[16]; /* B notes */
+    /* 0x4A */ u8 unk4A[16]; /* Z notes */
     /* 0x5A */ char unk5A[2];
 } BgSeq; /* size 0x5C */
 
@@ -188,6 +190,8 @@ void func_8010C14C_the_beat_goes_on(void);
 u16 func_80108198_the_beat_goes_on(s8 idx);
 void func_8010B6DC_the_beat_goes_on(omObjData* obj);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8010C0F4_the_beat_goes_on(s16* pos);
 void func_8010B0E0_the_beat_goes_on(omObjData* obj);
 void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
@@ -216,8 +220,13 @@ extern u16 D_8010C4FA_the_beat_goes_on;
 extern s8 D_8010C46A_the_beat_goes_on;
 extern u16 D_8010C46C_the_beat_goes_on;
 extern s32 D_8010C328_the_beat_goes_on[4][4];
+extern f32 D_8010C378_the_beat_goes_on; /* cursor x */
+extern f32 D_8010C37C_the_beat_goes_on; /* note pulse angle */
+extern f32 D_8010C380_the_beat_goes_on; /* frame pulse angle */
+extern s8 D_8010C384_the_beat_goes_on;  /* frame pulse frames left */
 extern f32 D_8010C368_the_beat_goes_on[4];
 extern s8 D_8010C474_the_beat_goes_on;
+extern s8 D_8010C475_the_beat_goes_on; /* note slot pulsing */
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
@@ -228,14 +237,14 @@ extern s32 D_8010C4FC_the_beat_goes_on; /* HOST: D_8010C4FE is its low half */
 extern s16 D_8010C4FE_the_beat_goes_on;
 extern BgTexSize D_8010C500_the_beat_goes_on;
 extern f32 D_8010C504_the_beat_goes_on;
-extern s16 D_8010C508_the_beat_goes_on[2];
-extern s16 D_8010C50C_the_beat_goes_on;
-extern s16 D_8010C50E_the_beat_goes_on;
-extern s16 D_8010C510_the_beat_goes_on;
-extern s16 D_8010C518_the_beat_goes_on[15];
-extern s16 D_8010C538_the_beat_goes_on[16];
-extern s16 D_8010C558_the_beat_goes_on[16];
-extern s16 D_8010C578_the_beat_goes_on[16];
+extern u16 D_8010C508_the_beat_goes_on[2];
+extern u16 D_8010C50C_the_beat_goes_on;
+extern u16 D_8010C50E_the_beat_goes_on;
+extern u16 D_8010C510_the_beat_goes_on;
+extern u16 D_8010C518_the_beat_goes_on[15];
+extern u16 D_8010C538_the_beat_goes_on[16];
+extern u16 D_8010C558_the_beat_goes_on[16];
+extern u16 D_8010C578_the_beat_goes_on[16];
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
@@ -1329,7 +1338,190 @@ void func_8010B17C_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B17C_the_beat_goes_on);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B6DC_the_beat_goes_on);
+/* The note display: cursor, marks and pulses. */
+void func_8010B6DC_the_beat_goes_on(omObjData* obj) {
+    BgSeq* seq;
+    s16 pos[2];
+    s32 i;
+    s32 j;
+    f32 sc;
+    f32 sc2;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        func_8000BB94_main(D_8010C50C_the_beat_goes_on);
+        func_8000BB94_main(D_8010C50E_the_beat_goes_on);
+        func_8000BB94_main(D_8010C510_the_beat_goes_on);
+        for (i = 0; i < 2; i++) {
+            func_8000BB94_main(D_8010C508_the_beat_goes_on[i]);
+        }
+        for (i = 0; i < 15; i++) {
+            func_8000BB94_main(D_8010C518_the_beat_goes_on[i]);
+        }
+        for (j = 0; j < 2; j++) {
+            for (i = 0; i < 8; i++) {
+                func_8000BB94_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+                func_8000BB94_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+                func_8000BB94_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            }
+        }
+        return;
+    }
+    seq = obj->data;
+    func_8000BBD4_main(D_8010C50E_the_beat_goes_on, seq->unk0E, seq->unk10);
+    for (i = 0; i < 2; i++) {
+        if (seq->unk16 == 1) {
+            func_8000BCC8_main(D_8010C508_the_beat_goes_on[i], 0x30);
+            func_8000BB54_main(D_8010C508_the_beat_goes_on[i]);
+        } else {
+            func_8000BB94_main(D_8010C508_the_beat_goes_on[i]);
+        }
+    }
+    if (seq->unk17 == 1) {
+        func_8000BB54_main(D_8010C50C_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C50C_the_beat_goes_on);
+        D_8010C378_the_beat_goes_on = 20.0f;
+    }
+    if (seq->unk18 == 1) {
+        func_8000BB54_main(D_8010C50E_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C50E_the_beat_goes_on);
+    }
+    if (seq->unk19 == 1) {
+        func_8000BB54_main(D_8010C510_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C510_the_beat_goes_on);
+    }
+    for (i = 0; i < 15; i++) {
+        if (seq->unk1A[i] == 1) {
+            func_8000BB54_main(D_8010C518_the_beat_goes_on[i]);
+        } else {
+            func_8000BB94_main(D_8010C518_the_beat_goes_on[i]);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        for (i = 0; i < 8; i++) {
+            if (seq->unk2A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+            }
+            if (seq->unk3A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+            }
+            if (seq->unk4A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            }
+        }
+    }
+    if (seq->unk08 == 0) {
+        D_8010C384_the_beat_goes_on = 90;
+        func_8000BBD4_main(D_8010C50C_the_beat_goes_on, seq->unk04, seq->unk06);
+        D_8010C380_the_beat_goes_on = 0.0f;
+        func_8000BE5C_main(D_8010C50E_the_beat_goes_on, 1.0f, 1.0f);
+        D_8010C37C_the_beat_goes_on = 0.0f;
+        for (j = 0; j < 2; j++) {
+            for (i = 0; i < 8; i++) {
+                func_8000BE5C_main(D_8010C538_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+                func_8000BE5C_main(D_8010C558_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+                func_8000BE5C_main(D_8010C578_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+            }
+        }
+        for (i = 0; i < 15; i++) {
+            func_8000BE5C_main(D_8010C518_the_beat_goes_on[i], 1.0f, 1.0f);
+        }
+        return;
+    }
+    if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on && (func_8010C0F4_the_beat_goes_on(pos), seq->unk18 == 1)
+        && BG_IABS(seq->unk04 - pos[0]) <= 0 && pos[1] == seq->unk06 && D_8010C384_the_beat_goes_on != 0) {
+        D_8010C384_the_beat_goes_on--;
+        D_8010C380_the_beat_goes_on += 30.0f;
+        if (D_8010C380_the_beat_goes_on >= 180.0f) {
+            D_8010C380_the_beat_goes_on = 0.0f;
+        }
+        sc = sindf(D_8010C380_the_beat_goes_on) * 0.5f + 1.0f;
+        func_8000BE5C_main(D_8010C50E_the_beat_goes_on, sc, sc);
+    } else {
+        D_8010C378_the_beat_goes_on += 1.33333f;
+    }
+    seq->unk04 = D_8010C378_the_beat_goes_on;
+    if (seq->unk04 >= 280) {
+        if (seq->unk06 == 30) {
+            if (D_8010C4E8_the_beat_goes_on + 1 == 8) {
+                seq->unk04 = 280;
+                D_8010C378_the_beat_goes_on = 280.0f;
+            } else {
+                seq->unk04 = 40;
+                D_8010C378_the_beat_goes_on = 40.0f;
+                if (D_8010C4E8_the_beat_goes_on + 1 >= 9) {
+                    seq->unk06 += 20;
+                }
+            }
+        } else {
+            seq->unk04 = 280;
+        }
+    }
+    func_8000BBD4_main(D_8010C50C_the_beat_goes_on, seq->unk04, seq->unk06);
+    if (seq->unk0C != 0) {
+        if (D_8010C37C_the_beat_goes_on == 0.0f) {
+            D_8010C475_the_beat_goes_on = D_8010C4E9_the_beat_goes_on;
+        }
+        if (seq->unk19 != 0) {
+            D_8010C37C_the_beat_goes_on += 36.0f;
+            if (D_8010C37C_the_beat_goes_on >= 36.0f) {
+                D_8010C37C_the_beat_goes_on = 36.0f;
+                seq->unk0C = 0;
+            }
+        } else {
+            D_8010C37C_the_beat_goes_on += 36.0f;
+            if (D_8010C37C_the_beat_goes_on >= 180.0f) {
+                D_8010C37C_the_beat_goes_on = 0.0f;
+                seq->unk0C = 0;
+            }
+        }
+        sc2 = sindf(D_8010C37C_the_beat_goes_on) + 1.0f;
+        switch (seq->unk0A) {
+            case 0x8000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C538_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C538_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x4000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C558_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C558_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x2000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C578_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C578_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x800:
+                func_8000BE5C_main(D_8010C518_the_beat_goes_on[D_8010C475_the_beat_goes_on], sc2, sc2);
+                break;
+            case 0x400:
+                func_8000BE5C_main(D_8010C50E_the_beat_goes_on, sc2, sc2);
+                break;
+        }
+    }
+    if (D_8010C4E0_the_beat_goes_on->work[0] == 6) {
+        func_8010C0F4_the_beat_goes_on(pos);
+        if (BG_IABS(seq->unk04 - pos[0]) < 11 && pos[1] == seq->unk06) {
+            seq->unk09 = 1;
+        } else {
+            seq->unk09 = 0;
+        }
+        if (seq->unk09 == 1 && seq->unk19 == 0) {
+            seq->unk12 = pos[0];
+            seq->unk14 = pos[1];
+            func_8000BBD4_main(D_8010C510_the_beat_goes_on, seq->unk12, seq->unk14);
+        }
+    }
+}
 
 /* Screen position of note slot D_8010C4E9 (two rows of eight). */
 void func_8010C0F4_the_beat_goes_on(s16* pos) {
