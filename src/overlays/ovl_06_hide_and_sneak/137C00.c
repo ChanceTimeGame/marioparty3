@@ -1188,6 +1188,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109870_hide_and_sneak);
 
+#ifdef NON_MATCHING
 s32 func_80109BF4_hide_and_sneak(omObjData *obj) {
     HsEnt *ent = HS_ENT(HS_ENT_SEEKER, obj->work[1]);
     s32 dist;
@@ -1228,6 +1229,9 @@ s32 func_80109BF4_hide_and_sneak(omObjData *obj) {
     }
     return 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109BF4_hide_and_sneak);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109D88_hide_and_sneak);
 
