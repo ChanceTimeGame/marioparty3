@@ -30,7 +30,7 @@ typedef struct FbPlayer {
     /* 0x20 */ u16 unk20;
     /* 0x22 */ s16 unk22;
     /* 0x24 */ u16 unk24;
-    /* 0x26 */ s16 unk26;
+    /* 0x26 */ u16 unk26; /* hooks used */
     /* 0x28 */ u16 unk28;
     /* 0x2A */ char unk2A[2];
     /* 0x2C */ omObjData *unk2C;
@@ -209,6 +209,10 @@ void func_80108720_fridged_bridges(omObjData *obj);
 void func_80108B08_fridged_bridges(omObjData *obj);
 void func_80108BEC_fridged_bridges(omObjData *obj);
 void func_80108C60_fridged_bridges(omObjData *obj);
+void func_80109154_fridged_bridges(omObjData *obj);
+void func_8010AE0C_fridged_bridges(void);
+u16 func_8010AE98_fridged_bridges(f32 speed);
+extern s32 D_8010D1A0_fridged_bridges;
 void func_80108FBC_fridged_bridges(omObjData *obj);
 extern s16 D_8010D19C_fridged_bridges;
 void func_801091F8_fridged_bridges(omObjData *obj);
@@ -1217,11 +1221,90 @@ void func_80108EBC_fridged_bridges(omObjData *obj) {
     Hu3DModelScaleSet(model, *scale, *scale, *scale);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108FBC_fridged_bridges);
+/* Hooks reappear for every player who still has pieces to place */
+void func_80108FBC_fridged_bridges(omObjData *obj) {
+    omObjData *hook;
+    FbPlayer *work;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109154_fridged_bridges);
+    for (i = 0; i < 4; i++) {
+        work = D_8010DA64_fridged_bridges[i]->data;
+        if (!((1 << i) & obj->work[2]) && work->unk26 != 3) {
+            hook = omAddObj(0x1E, 1, 0, -1, func_80109154_fridged_bridges);
+            hook->model[0] = obj->model[i * 5 + 4];
+            omSetTra(hook, D_8010DA00_fridged_bridges[i].u, 25.0f, D_8010DA00_fridged_bridges[i].v);
+            omSetSca(hook, 1.0f, 0.0f, 1.0f);
+            omSetRot(hook, 0.0f, 0.0f, 0.0f);
+            Hu3DModelPosSet(hook->model[0], hook->trans.x, hook->trans.y, hook->trans.z);
+            Hu3DModelScaleSet(hook->model[0], 1.0f, 0.0f, 1.0f);
+            func_8001C258_main(hook->model[0], 4, 0);
+            obj->work[2] |= (1 << i);
+        }
+    }
+}
 
+/* Hook grows back to full height */
+void func_80109154_fridged_bridges(omObjData *obj) {
+    f32 *scale = &FB_WORKF(obj, 0);
+
+    *scale += 0.05f;
+    if (*scale >= 1.0f) {
+        *scale = 1.0f;
+    }
+    omSetSca(obj, 1.0f, *scale, 1.0f);
+    if (*scale == 1.0f) {
+        omDelObj(obj);
+    }
+}
+
+#ifdef NON_MATCHING
+/* Game end: every player lets go, wipe, then wait for the finish */
+void func_801091F8_fridged_bridges(omObjData *obj) {
+    s32 i;
+
+    switch ((u16)D_8010D364_fridged_bridges) {
+        case 0:
+            if (D_8010D1A0_fridged_bridges == 0) {
+                for (i = 0; i < 4; i++) {
+                    FbPlayer *work = D_8010DA64_fridged_bridges[i]->data;
+                    if (work->unk28 == 0) {
+                        func_801082D0_fridged_bridges(D_8010DA64_fridged_bridges[i]);
+                    }
+                }
+                D_8010D1A0_fridged_bridges = 1;
+                func_8010AE0C_fridged_bridges();
+            }
+            WipeCreateIn(0xFF, 0x10);
+            D_8010D364_fridged_bridges = 1;
+            return;
+        case 1:
+            if (WipeStatGet() == 0) {
+                D_8010D364_fridged_bridges = 2;
+                HuAudFXPlay(0x42E);
+                return;
+            }
+            return;
+        case 2:
+            if (D_8010DA70_fridged_bridges->work[0] == 1) {
+                D_8010D364_fridged_bridges = 3;
+                return;
+            }
+            break;
+        case 3:
+            if (func_8010AE98_fridged_bridges(40.0f) == 1) {
+                for (i = 0; i < 4; i++) {
+                    ((FbPlayer *)D_8010DA64_fridged_bridges[i]->data)->unk2C->work[0] = 1;
+                }
+                omDelObj(obj);
+                D_8010D35C_fridged_bridges = NULL;
+                func_800E6F0C_minigame(1);
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801091F8_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109390_fridged_bridges);
 
