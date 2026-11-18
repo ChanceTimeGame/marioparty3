@@ -14,6 +14,7 @@
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
 #define HH_IABS(x) (((x) < 0) ? -(x) : (x))
+#define HH_FABS(x) (((x) < 0.0f) ? -(x) : (x))
 #define HH_ABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
 
 /* The minigame control block (as All Fired Up's AfCtrl) */
@@ -53,6 +54,20 @@ typedef struct HhPlayer {
     /* 0x1E */ s16 unk1E;
 } HhPlayer; /* size 0x20 */
 
+/* omObjData::data of a water jet */
+typedef struct HhJet {
+    /* 0x00 */ s16 unk00; /* pressure, 5 .. 15 per pump level */
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ f32 unk04; /* heading, 120 .. 240 */
+    /* 0x08 */ f32 unk08;
+} HhJet; /* size 0xC */
+
+/* HmfModel::unkBC of a water jet's model, the work of its draw hook func_80108788 */
+typedef struct HhJetFx {
+    /* 0x00 */ char unk00[8];
+    /* 0x08 */ f32 unk08; /* team */
+} HhJetFx;
+
 // main
 s32 func_8000B638_main(void);
 void func_8000B710_main(s32);
@@ -60,6 +75,7 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
+void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 void func_8001F6BC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8001F6F8_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
 void func_8004AE00_main(s16 handle, s16 pan);
@@ -72,6 +88,7 @@ extern u8 D_800D6A90_main;
 extern s8 D_800CBB6E_main[];  /* CPU stick x */
 extern s8 D_800D20A1_main[];  /* CPU stick y */
 extern u16 D_800D5558_main[]; /* CPU buttons */
+extern s16 D_800CDA7C_main[];
 
 // minigame
 void func_800DDD94_minigame(omObjData* obj);
@@ -102,7 +119,8 @@ void func_80106A50_hyper_hydrants(omObjData* obj);
 void func_80107238_hyper_hydrants(omObjData* obj);
 void func_801078B8_hyper_hydrants(omObjData* obj);
 void func_80107A90_hyper_hydrants(omObjData* obj);
-void func_80108788_hyper_hydrants(omObjData* obj);
+void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s32 arg3);
+void func_80108788_hyper_hydrants(s16 model);
 void func_80108F34_hyper_hydrants(omObjData* obj);
 void func_801091B0_hyper_hydrants(omObjData* obj);
 void func_80109484_hyper_hydrants(omObjData* obj);
@@ -135,13 +153,15 @@ extern s8 D_8010BE35_hyper_hydrants;
 extern s32 D_8010BE30_hyper_hydrants;
 
 extern s8 D_8010BF40_hyper_hydrants;
-extern s16 D_8010BF42_hyper_hydrants[2]; /* frames since the last pump, per team */
+extern s16 D_8010BF42_hyper_hydrants[2];
+extern s8 D_8010BF46_hyper_hydrants; /* frames since the last pump, per team */
 extern HhCtrl D_8010BF60_hyper_hydrants;
 extern s8 D_8010BFA8_hyper_hydrants;
 extern s8 D_8010BFA9_hyper_hydrants;
 extern s8 D_8010BFAA_hyper_hydrants;
 extern s8 D_8010BFAB_hyper_hydrants;
 extern s8 D_8010BFAC_hyper_hydrants[2];
+extern s8 D_8010BFAE_hyper_hydrants[2]; /* jet pressure per team */
 extern omObjData* D_8010BFE0_hyper_hydrants[2];
 extern omObjData* D_8010BFE8_hyper_hydrants[2][5];
 extern s8 D_8010C010_hyper_hydrants;
@@ -328,7 +348,8 @@ void func_801060F8_hyper_hydrants(omObjData* obj) {
     }
 }
 
-/* A player: team 0 (groups 0 and 2 pump, 1 and 3 hold the hose); model 2 is the hydrant or the hose. */
+/* A player. Groups 0 and 2 aim the hose (D_8010BFAA/AB), 1 and 3 pump the hydrant (D_8010BFA8/A9); team = group >= 2.
+   Model 2 is the hose or the hydrant. */
 void func_80106238_hyper_hydrants(omObjData* obj) {
     s8 chr;
     u32 dir;
@@ -451,7 +472,7 @@ void func_80106238_hyper_hydrants(omObjData* obj) {
     D_8010BE35_hyper_hydrants++;
 }
 
-/* A pumping player (groups 0 and 2): pump animation, hydrant sound pitch by the team's pump level, results. */
+/* A player: pumpers run func_80107238; the hose player turns, its hydrant sound pitch follows the pump level. */
 void func_80106A50_hyper_hydrants(omObjData* obj) {
     MgWork* pw;
     HhPlayer* ex;
@@ -609,7 +630,7 @@ void func_80106A50_hyper_hydrants(omObjData* obj) {
     }
 }
 
-/* A hydrant pumper's turn (groups 0 and 2): alternate A (handle down) and B/Z (handle up); CPUs pump by chance.
+/* A hydrant pumper (groups 1 and 3): alternate A (handle down) and B/Z (handle up); CPUs pump by chance.
    The pump count sets the team's level (D_8010BFAC) every 31 frames. */
 void func_80107238_hyper_hydrants(omObjData* obj) {
     u16 down;
@@ -757,9 +778,207 @@ void func_80107238_hyper_hydrants(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801078B8_hyper_hydrants);
+/* A team's water jet (work[0] the team): its model follows the hose player; func_80108788 draws the stream. */
+void func_801078B8_hyper_hydrants(omObjData* obj) {
+    omObjData* player;
+    HhJet* jet;
 
+    obj->work[0] = D_8010BF46_hyper_hydrants;
+    obj->func = func_80107A90_hyper_hydrants;
+    obj->model[0] = func_8000B108_main(0x2F000B, 0x689);
+    if (D_8010BF46_hyper_hydrants == 0) {
+        player = D_800EC598_minigame[D_8010BFAA_hyper_hydrants];
+        func_8001C8A8_main(obj->model[0], 1);
+    } else {
+        player = D_800EC598_minigame[D_8010BFAB_hyper_hydrants];
+        func_8001C8A8_main(obj->model[0], 2);
+    }
+    obj->trans.x = player->trans.x;
+    obj->trans.z = player->trans.z;
+    obj->trans.y = 40.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, 40.0f, obj->trans.z);
+    func_8001C2FC_main(obj->model[0], 0x20000, 0x20000);
+    func_8001C448_main(obj->model[0]);
+    func_8001C954_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_80013390_main(obj->model[0], -1, NULL, func_80108788_hyper_hydrants);
+    jet = obj->data = HuMemAllocTag(sizeof(HhJet), 0x7918);
+    memset(jet, 0, sizeof(HhJet));
+    jet->unk00 = 5;
+    jet->unk04 = 180.0f;
+    jet->unk08 = 50.0f;
+    ((HhJetFx*)HmfModelData[obj->model[0]].unkBC)->unk08 = D_8010BF46_hyper_hydrants;
+    D_8010BF46_hyper_hydrants++;
+}
+
+// masked residue: $a0/$v1 for the pressure limit and the 110/55 jet distance multiply not duplicated into both arms (scheduling only); logic checked
+#ifdef NON_MATCHING
+/* A water jet while playing: the hose player (CPU: towards the nearest fire) turns it; A raises the pressure up
+   to 15 per pump level of the team. */
+void func_80107A90_hyper_hydrants(omObjData* obj) {
+    s16 team;
+    s8 p;
+    omObjData* player;
+    MgWork* pw;
+    HhPlayer* ex;
+    s8 port;
+    HhJet* jet;
+    s16 near;
+    f32 far;
+    s16 best;
+    s16 i;
+    f32 angle;
+    f32 dist;
+    s32 lim;
+    Vec pos;
+
+    if (func_800E6E8C_minigame() == 2) {
+        if (obj->work[0] == 0) {
+            team = 0;
+            if (D_8010BFAC_hyper_hydrants[0] == 0) {
+                return;
+            }
+            p = D_8010BFAA_hyper_hydrants;
+        } else {
+            team = 1;
+            if (D_8010BFAC_hyper_hydrants[1] == 0) {
+                return;
+            }
+            p = D_8010BFAB_hyper_hydrants;
+        }
+        player = D_800EC598_minigame[p];
+        pw = player->data;
+        ex = pw->unk158;
+        port = pw->unk57;
+        jet = obj->data;
+        near = 0;
+        if (GwPlayer[p].stat & 1) {
+            far = -1000.0f;
+            best = 4;
+            for (i = 0; i < 5; i++) {
+                if (far < D_8010BFE8_hyper_hydrants[team][i]->trans.z) {
+                    far = D_8010BFE8_hyper_hydrants[team][i]->trans.z;
+                    best = i;
+                }
+                if (D_8010BFE8_hyper_hydrants[team][i]->trans.z >= -250.0f) {
+                    near++;
+                }
+            }
+            angle = atan2df(D_8010BFE8_hyper_hydrants[team][best]->trans.x - D_800EC598_minigame[p]->trans.x,
+                            D_8010BFE8_hyper_hydrants[team][best]->trans.z - D_800EC598_minigame[p]->trans.z);
+            while (angle >= 360.0f) {
+                angle -= 360.0f;
+            }
+            while (angle < 0.0f) {
+                angle += 360.0f;
+            }
+            if (HH_FABS((s32)angle - jet->unk04) > 5.0f) {
+                func_8001C814_main(D_800EC598_minigame[p]->model[0], 1, 2);
+                switch (GwPlayer[p].cpu_difficulty) {
+                    case 3:
+                        if ((s32)angle < jet->unk04) {
+                            jet->unk04 -= 4.0f;
+                        } else {
+                            jet->unk04 += 4.0f;
+                        }
+                        break;
+                    case 2:
+                        if ((rand8() >> 7) == 0) {
+                            if ((s32)angle < jet->unk04) {
+                                jet->unk04 -= 4.0f;
+                            } else {
+                                jet->unk04 += 4.0f;
+                            }
+                        }
+                        break;
+                    case 1:
+                    default:
+                        if (((rand8() * 3) >> 8) == 0) {
+                            if ((s32)angle < jet->unk04) {
+                                jet->unk04 -= 2.0f;
+                            } else {
+                                jet->unk04 += 2.0f;
+                            }
+                        }
+                        break;
+                    case 0:
+                        if (((rand8() * 5) >> 8) == 0) {
+                            if ((s32)angle < jet->unk04) {
+                                jet->unk04 -= 1.0f;
+                            } else {
+                                jet->unk04 += 1.0f;
+                            }
+                        }
+                        break;
+                }
+            } else {
+                func_8001C814_main(D_800EC598_minigame[p]->model[0], 1, 1);
+            }
+            if (jet->unk04 > 240.0f) {
+                jet->unk04 = 240.0f;
+            }
+            if (jet->unk04 < 120.0f) {
+                jet->unk04 = 120.0f;
+            }
+            if (near >= 2) {
+                D_800CDA7C_main[port] |= 0x8000;
+            } else {
+                D_800CDA7C_main[port] &= 0x7FFF;
+            }
+        } else if (HH_IABS(D_800CBB6E_main[port]) > 40) {
+            if (D_800CBB6E_main[port] < 0) {
+                jet->unk04 += 5.0f;
+                if (jet->unk04 > 240.0f) {
+                    jet->unk04 = 240.0f;
+                }
+            } else if (D_800CBB6E_main[port] > 0) {
+                jet->unk04 -= 5.0f;
+                if (jet->unk04 < 120.0f) {
+                    jet->unk04 = 120.0f;
+                }
+            }
+        } else if (HH_IABS(D_800CBB6E_main[port]) > 20) {
+            if (D_800CBB6E_main[port] < 0) {
+                jet->unk04 += 2.0f;
+                if (jet->unk04 > 240.0f) {
+                    jet->unk04 = 240.0f;
+                }
+            } else if (D_800CBB6E_main[port] > 0) {
+                jet->unk04 -= 2.0f;
+                if (jet->unk04 < 120.0f) {
+                    jet->unk04 = 120.0f;
+                }
+            }
+        }
+        player->rot.y = jet->unk04;
+        Hu3DModelRotSet(player->model[2], player->rot.x, player->rot.y, player->rot.z);
+        if ((u16)D_800CDA7C_main[port] & 0x8000) {
+            jet->unk00 += 3;
+            lim = D_8010BFAC_hyper_hydrants[team] * 15;
+            if (jet->unk00 > lim) {
+                jet->unk00 = lim;
+            }
+        } else {
+            jet->unk00 -= 3;
+            if (jet->unk00 < 5) {
+                jet->unk00 = 5;
+            }
+        }
+        D_8010BFAE_hyper_hydrants[team] = jet->unk00;
+        if (jet->unk00 > 50) {
+            dist = 110.0f;
+        } else {
+            dist = 55.0f;
+        }
+        pos.x = ex->unk00 * dist + player->trans.x;
+        pos.z = ex->unk04 * dist + player->trans.z;
+        pos.y = 40.0f;
+        func_801083A8_hyper_hydrants(obj->model[0], &pos, jet, jet->unk00 > 20 ? 28 : 10);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80107A90_hyper_hydrants);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_801083A8_hyper_hydrants);
 
