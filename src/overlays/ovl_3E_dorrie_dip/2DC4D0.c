@@ -5,6 +5,16 @@
 
 // dr A: Dorrie Dip
 
+/* omObjData::data of the ground (D_8010A224; the framework's ground object, minigame mgcol.h GroundWork) */
+typedef struct DrGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[3];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ char unk0C[0xA8];
+} DrGround; /* size 0xB4 */
+
 /* omObjData::data of the ring of Dorries (D_8010A230): models 0-5 the Dorries, 6-11 their shadows */
 typedef struct DrRing {
     /* 0x00 */ s32 unk00[6]; /* 1: swimming */
@@ -58,6 +68,7 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void func_8004AD70_main(void);
 void func_800557A0_main(void);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
+void GMesPosSet(s16 mesId, f32 x, f32 y);
 
 extern s32 D_800A178C_main[][6];
 
@@ -69,6 +80,8 @@ extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
 
 // minigame
+void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
+void func_800E1490_minigame(u16 arg0);
 void func_800DDD94_minigame(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, s32 arg1, s32 arg2);
 void func_800E6F0C_minigame(s8 arg0);
@@ -108,6 +121,9 @@ void func_80108678_dorrie_dip(void);
 void func_80108700_dorrie_dip(void);
 void func_80108800_dorrie_dip(void);
 void func_80108A74_dorrie_dip(s16 model, char* name, s16 frame, Vec* out);
+void func_801086A4_dorrie_dip(void);
+void func_8010872C_dorrie_dip(void);
+void func_8010898C_dorrie_dip(omObjData* obj);
 void func_80108B98_dorrie_dip(void);
 void func_80108EA0_dorrie_dip(s32 idx);
 void func_801090C4_dorrie_dip(void);
@@ -127,6 +143,7 @@ extern s32 D_8010A068_dorrie_dip; /* frame of the next ambient sound 1 */
 extern s32 D_8010A06C_dorrie_dip; /* frame of the next ambient sound 2 */
 
 /* .bss (ovl_3E_bss) */
+extern f32 D_8010A1F0_dorrie_dip;
 extern s32 D_8010A1F4_dorrie_dip; /* camera */
 extern u8 D_8010A1F8_dorrie_dip;
 extern s16 D_8010A1FA_dorrie_dip; /* prize sparkle effect */
@@ -141,6 +158,7 @@ extern omObjData* D_8010A234_dorrie_dip;
 extern omObjData* D_8010A238_dorrie_dip;
 extern omObjData* D_8010A23C_dorrie_dip;
 extern s32 D_8010A240_dorrie_dip;
+extern f32 D_8010A244_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -917,15 +935,75 @@ void func_80108484_dorrie_dip(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108678_dorrie_dip);
+void func_80108678_dorrie_dip(void) {
+    omAddPrcObj(func_801086A4_dorrie_dip, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801086A4_dorrie_dip);
+/* Process: wait for the player's A press. */
+void func_801086A4_dorrie_dip(void) {
+    while (1) {
+        if (D_800D5558_main[D_8010A1FC_dorrie_dip] & 0x8000) {
+            break;
+        }
+        HuPrcVSleep();
+    }
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108700_dorrie_dip);
+void func_80108700_dorrie_dip(void) {
+    omAddPrcObj(func_8010872C_dorrie_dip, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_8010872C_dorrie_dip);
+/* The 10-second timer. */
+void func_8010872C_dorrie_dip(void) {
+    s32 sec = 10;
+    s32 t = 30;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108800_dorrie_dip);
+    GMesPosSet(GMesCreate(0x1A, 10, 160, 28), 160.0f, 28.0f);
+    do {
+        if (--t == 0) {
+            t = 30;
+            sec--;
+        }
+        func_8003F578_main(sec);
+        HuPrcVSleep();
+    } while (func_800E6E8C_minigame() != 3 && sec > 0);
+    if (D_8010A1F8_dorrie_dip == 0) {
+        D_8010A1F8_dorrie_dip = 2;
+        func_800E6F0C_minigame(3);
+    }
+    func_8003F5C0_main();
+    omDelPrcObj(NULL);
+}
+
+/* The ground: the island and the sea. */
+void func_80108800_dorrie_dip(void) {
+    omObjData* obj;
+    DrGround* work;
+
+    obj = omAddObj(0xFF, 4, 0, -1, func_8010898C_dorrie_dip);
+    D_8010A224_dorrie_dip = obj;
+    obj->data = work = HuMemAllocTag(sizeof(DrGround), 0x7918);
+    obj->model[0] = func_8000B0A0_main(0x5F0000, 0x699);
+    obj->model[1] = func_8000B0A0_main(0x5F0001, 0x699);
+    obj->model[2] = func_8000B0A0_main(0x5F0003, 0x699);
+    obj->model[3] = func_8000B0A0_main(0x5F0004, 0x699);
+    D_8010A1F0_dorrie_dip = 1.0f;
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    func_800E1490_minigame(D_800EBE28_minigame);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = obj;
+    memset(obj->data, 0, sizeof(DrGround));
+    work->unk03 = 1;
+    work->unk08 = 0.5f;
+    work->unk04 = 0;
+    func_800E1370_minigame(obj, 2, 133.0f);
+    func_8001C814_main(obj->model[1], 8, 8);
+    func_8001C814_main(obj->model[1], 2, 2);
+    omSetTra(obj, 0.0f, 13.0f, 0.0f);
+    D_8010A244_dorrie_dip = 0.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_8010898C_dorrie_dip);
 
