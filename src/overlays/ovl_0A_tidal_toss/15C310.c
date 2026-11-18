@@ -19,18 +19,27 @@ typedef struct TtPlayer {
     /* 0x00 */ f32 unk00; /* position */
     /* 0x04 */ f32 unk04;
     /* 0x08 */ f32 unk08;
-    /* 0x0C */ char unk0C[0x10];
+    /* 0x0C */ f32 unk0C; /* last position */
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ char unk18[4];
     /* 0x1C */ f32 unk1C; /* radius */
-    /* 0x20 */ char unk20[4];
+    /* 0x20 */ f32 unk20; /* boat: rock height */
     /* 0x24 */ s32 unk24; /* win motion file */
-    /* 0x28 */ char unk28[3];
+    /* 0x28 */ u16 unk28; /* last func_800E4A90_minigame flags */
+    /* 0x2A */ u8 unk2A; /* boat: splashed */
     /* 0x2B */ u8 unk2B; /* player */
     /* 0x2C */ u8 unk2C; /* character */
     /* 0x2D */ u8 unk2D; /* team: 0 the solo player, 1 the three */
     /* 0x2E */ u8 unk2E; /* CPU difficulty */
     /* 0x2F */ u8 unk2F; /* won */
     /* 0x30 */ u8 unk30; /* CPU */
-    /* 0x31 */ char unk31[0x33];
+    /* 0x31 */ char unk31[5];
+    /* 0x36 */ s16 unk36;
+    /* 0x38 */ s16 unk38;
+    /* 0x3A */ char unk3A[0xA];
+    /* 0x44 */ f32 unk44; /* boat: bob phase */
+    /* 0x48 */ char unk48[0x1C];
 } TtPlayer; /* size 0x64 */
 
 #define TT_PLAYER(i) ((TtPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
@@ -48,7 +57,13 @@ u8 rand8(void);
 extern s32 D_800A178C_main[][6];
 s32 func_80017BB8_main(s16, s16);
 
+extern s8 D_800CBB6E_main[];
+extern s16 D_800CDA7C_main[];
+extern s8 D_800D20A1_main[];
+extern u16 D_800D5558_main[];
+
 // minigame
+void func_800DDD94_minigame(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
 void func_800E1804_minigame(void);
@@ -75,6 +90,7 @@ void func_801085A4_tidal_toss(void);
 void func_80108638_tidal_toss(omObjData* obj);
 void func_80109180_tidal_toss(omObjData* obj);
 void func_8010961C_tidal_toss(omObjData* obj);
+void func_8010A11C_tidal_toss(omObjData* obj);
 s32 func_8010A7F8_tidal_toss(void);
 void func_80106104_tidal_toss(omObjData* obj);
 void func_80106480_tidal_toss(omObjData* obj);
@@ -711,7 +727,105 @@ void func_80108F08_tidal_toss(omObjData* obj, u32 file0, s32 file1, s32 player, 
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 0, raw 1: retail tests flags & 0x20 on $v0 (the call result) instead of its copy in $s3 */
+/* The solo player in the boat: it bobs on the water and rocks when a ball lands. */
+void func_80109180_tidal_toss(omObjData* obj) {
+    MgWork* work;
+    TtPlayer* tp;
+    s32 flags;
+    u8 pad;
+    f32 y;
+
+    work = obj->data;
+    tp = work->unk158;
+    pad = work->unk57;
+    switch (D_8010AF40_tidal_toss) {
+        case 0:
+            tp->unk44 = 0.0f;
+            tp->unk36 = (f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 12.0;
+            tp->unk38 = 0;
+            break;
+        case 2:
+            if (tp->unk30 != 0) {
+                D_800D20A1_main[pad] = 0;
+                D_800CBB6E_main[pad] = 0;
+                D_800D5558_main[pad] = 0;
+                D_800CDA7C_main[pad] = 0;
+                func_8010A11C_tidal_toss(obj);
+            }
+            break;
+        case 3:
+        case 4:
+            D_800CBB6E_main[pad] = 0;
+            D_800D20A1_main[pad] = -0x40;
+            D_800D5558_main[pad] = 0;
+            D_800CDA7C_main[pad] = 0;
+            break;
+        case 5:
+            if (tp->unk2F == 1) {
+                func_800E5690_minigame(obj, 0xD);
+                func_80045ED0_main(tp->unk24);
+                GwPlayer[work->unk59].bonusCoin += 10;
+                tp->unk2F++;
+            } else if (tp->unk2F == 0) {
+                func_800E5690_minigame(obj, 0xE);
+                tp->unk2F--;
+            }
+            break;
+        case 6:
+            if (work != NULL) {
+                HuMemFree(work->unk158);
+                obj->data = NULL;
+                obj->func = NULL;
+            }
+            return;
+        case 7:
+            return;
+    }
+    flags = func_800E4A90_minigame(obj);
+    tp->unk0C = obj->trans.x;
+    tp->unk10 = obj->trans.y;
+    tp->unk14 = obj->trans.z;
+    if (flags & 0x20) {
+        D_800D20A1_main[pad] = 0;
+        D_800CBB6E_main[pad] = 0;
+    }
+    func_800DDD94_minigame(obj);
+    func_8001C258_main(obj->model[1], 4, 4);
+    if (flags & 0x200) {
+        if ((work->unk50 & 0x80) && tp->unk2A == 0) {
+            func_80108460_tidal_toss(tp->unk20);
+            tp->unk2A++;
+        }
+        if (!(tp->unk28 & 0x200)) {
+            tp->unk20 = obj->trans.y - 20.0;
+            tp->unk2A = 0;
+        }
+    } else if ((tp->unk28 & 0x20) && !(flags & 0x20)) {
+        func_80108460_tidal_toss(100.0f);
+        tp->unk20 = 100.0f;
+    }
+    tp->unk44 += 4.0;
+    if (tp->unk44 >= 360.0) {
+        tp->unk44 -= 360.0;
+    }
+    if (tp->unk20 > 20.0 && tp->unk2A != 0) {
+        y = 20.0 - tp->unk20 * 0.075;
+        tp->unk20 *= 0.8;
+    } else {
+        y = 20.0 - sindf(tp->unk44) * 5.0;
+    }
+    Hu3DModelPosSet(obj->model[9], 0.0f, y, 0.0f);
+    if (!(flags & 0x220)) {
+        obj->trans.y = y;
+    }
+    obj->trans.x = obj->trans.z = 0.0f;
+    tp->unk28 = flags;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80109180_tidal_toss);
+#endif
 
 /* Effect at (x, y, z) on the first of the player's models 9..11 that is shown. */
 void func_80109584_tidal_toss(omObjData* obj, f32 x, f32 y, f32 z) {
