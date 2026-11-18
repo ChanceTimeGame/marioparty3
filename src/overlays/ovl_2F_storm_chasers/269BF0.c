@@ -290,6 +290,13 @@ extern u16 D_8010CCA8_storm_chasers;
 extern s32 D_8010CCAC_storm_chasers; /* phase timer */
 extern u8 D_8010CCB0_storm_chasers; /* bucket motion */
 extern ScStorm D_8010CCC0_storm_chasers;
+/* Several functions address D_8010CCC0's fields as separate symbols (no shared base): views of it. */
+extern f32 D_8010CCC4_storm_chasers; /* D_8010CCC0.speed */
+extern f32 D_8010CCC8_storm_chasers; /* D_8010CCC0.angle */
+extern s32 D_8010CCCC_storm_chasers; /* D_8010CCC0.timer */
+extern omObjData *D_8010CCD8_storm_chasers; /* D_8010CCC0.obj */
+extern s16 D_8010CCDC_storm_chasers; /* D_8010CCC0.sfx[0] */
+extern s16 D_8010CCDE_storm_chasers; /* D_8010CCC0.sfx[1] */
 extern ScBucket D_8010CCE0_storm_chasers[4];
 extern ScPlayer D_8010CD80_storm_chasers[4];
 extern ScWind D_8010CEE0_storm_chasers[2];
@@ -611,11 +618,15 @@ void func_801066F4_storm_chasers(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_80106794_storm_chasers(omObjData *obj) {
     ScFlash *fl = &D_8010CF38_storm_chasers[obj->work[0]];
 
+    if (fl->state == -1) {
+        return;
+    }
     switch (fl->state) {
+        case -1: /* unreachable; retail's case tree has it */
+            break;
         case 1:
             func_8001C258_main(obj->model[0], 4, 0);
             fl->state = 2;
@@ -631,16 +642,12 @@ void func_80106794_storm_chasers(omObjData *obj) {
                 func_8001C258_main(obj->model[0], 4, 4);
                 fl->alpha = 0xFF;
                 fl->state = 0;
-                obj->scale.z = obj->scale.y = obj->scale.x = 1.0f;
+                obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
             }
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80106794_storm_chasers);
-#endif
 
-#ifdef NON_MATCHING
 void func_801068C8_storm_chasers(omObjData *obj) {
     ScPlayer *pl;
     ScFlash *fl;
@@ -653,7 +660,7 @@ void func_801068C8_storm_chasers(omObjData *obj) {
     obj->trans.x = pl->obj->trans.x;
     obj->trans.y = 100.0f;
     obj->trans.z = pl->obj->trans.z + 80.0f;
-    obj->scale.z = obj->scale.y = obj->scale.x = 1.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
     func_8001C8A8_main(obj->model[0], 1);
     obj->func = func_80106794_storm_chasers;
     fl = &D_8010CF38_storm_chasers[obj->work[0]];
@@ -661,9 +668,6 @@ void func_801068C8_storm_chasers(omObjData *obj) {
     fl->alpha = 0xFF;
     fl->obj = obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801068C8_storm_chasers);
-#endif
 
 void func_801069EC_storm_chasers(void) {
     s32 i;
@@ -710,14 +714,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80106A
 #endif
 
 /* The storm rises away once the rain has faded. */
-#ifdef NON_MATCHING
 void func_80106F98_storm_chasers(omObjData *obj) {
     f32 s;
 
-    D_8010CCC0_storm_chasers.speed = 0;
-    D_8010CCC0_storm_chasers.angle = 0;
-    D_8010CCC0_storm_chasers.timer = 0;
-    if (!(D_8010CF20_storm_chasers.alpha > 0.0f)) {
+    D_8010CCC4_storm_chasers = 0;
+    D_8010CCC8_storm_chasers = 0;
+    D_8010CCCC_storm_chasers = 0;
+    if (!(D_8010CF28_storm_chasers > 0.0f)) {
         obj->trans.y += 20.0f;
         if (obj->trans.y > 1000.0f) {
             obj->trans.y = 1000.0f;
@@ -729,9 +732,6 @@ void func_80106F98_storm_chasers(omObjData *obj) {
         Hu3DModelScaleSet(obj->model[1], s, s, s);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80106F98_storm_chasers);
-#endif
 
 #ifdef NON_MATCHING
 void func_801070A8_storm_chasers(omObjData *obj) {
@@ -797,7 +797,6 @@ void func_801070A8_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801070A8_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010746C_storm_chasers(omObjData *obj) {
     obj->model[0] = func_8000B108_main(0x500006, 0x289);
     obj->model[1] = func_8000B0A0_main(0, 0xC9);
@@ -815,13 +814,10 @@ void func_8010746C_storm_chasers(omObjData *obj) {
     func_8001C8A8_main(obj->model[1], 1);
     obj->func = func_801070A8_storm_chasers;
     D_8010CCC0_storm_chasers.state = 0;
-    D_8010CCC0_storm_chasers.sfx[1] = -1;
-    D_8010CCC0_storm_chasers.sfx[0] = -1;
-    D_8010CCC0_storm_chasers.obj = obj;
+    D_8010CCDE_storm_chasers = -1;
+    D_8010CCDC_storm_chasers = -1;
+    D_8010CCD8_storm_chasers = obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010746C_storm_chasers);
-#endif
 
 void func_801075C4_storm_chasers(void) {
     omAddObj(170, 2, 1, -1, func_8010746C_storm_chasers);
