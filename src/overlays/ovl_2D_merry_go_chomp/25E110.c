@@ -160,11 +160,15 @@ typedef struct McLink {
 
 /* .bss */
 extern McPl D_8010C420_merry_go_chomp[4];
+extern s16 D_8010C410_merry_go_chomp;
 extern HuSprite_Unk84_Struct *D_8010C414_merry_go_chomp;
+extern s8 D_8010C418_merry_go_chomp;
 extern s8 D_8010C4B0_merry_go_chomp;
 extern s16 D_8010C4B2_merry_go_chomp;
+extern s8 D_8010C4BC_merry_go_chomp;
 extern s8 D_8010C4BD_merry_go_chomp;
 extern s8 D_8010C4BE_merry_go_chomp[5];
+extern s16 D_8010C4C4_merry_go_chomp;
 extern omObjData *D_8010C4C8_merry_go_chomp;
 extern s8 D_8010C4CE_merry_go_chomp;
 /* The chomp's chain: [0] at the chomp, [5] the stake. */
@@ -173,8 +177,11 @@ extern McLink D_8010C4D0_merry_go_chomp[6];
 extern McEnt D_8010C500_merry_go_chomp[50];
 extern f32 D_8010CD04_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.y */
 extern f32 D_8010CD08_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.z */
+extern s8 D_8010DEC8_merry_go_chomp;
+extern s16 D_8010DECA_merry_go_chomp;
 extern u8 D_8010DECC_merry_go_chomp[5];
 extern f32 D_8010DED4_merry_go_chomp;
+extern s8 D_8010DED8_merry_go_chomp;
 extern u8 D_8010DEDC_merry_go_chomp;
 extern s8 D_8010DEDD_merry_go_chomp;
 
@@ -213,7 +220,16 @@ void func_801090B0_merry_go_chomp(omObjData *obj);
 void func_80109420_merry_go_chomp(void);
 void func_80109604_merry_go_chomp(void);
 void func_80109670_merry_go_chomp(omObjData *obj);
+void func_80109A04_merry_go_chomp(omObjData *obj);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
+void func_8010AF08_merry_go_chomp(void);
+void func_8010BAB8_merry_go_chomp(void);
+void func_801064A0_merry_go_chomp(void);
+void func_8010ADE8_merry_go_chomp(void);
+void func_80106AB8_merry_go_chomp(void);
+void func_8010662C_merry_go_chomp(void);
+void func_8010AECC_merry_go_chomp(void);
+void func_8010BC30_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
 void func_8010BB7C_merry_go_chomp(omObjData *obj);
@@ -1403,7 +1419,17 @@ void func_8010ADE8_merry_go_chomp(void) {
 void func_8010AE24_merry_go_chomp(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010AE2C_merry_go_chomp);
+void func_8010AE2C_merry_go_chomp(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x4E0003, 0x2B9);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C92C_main(obj->model[0], 0.0f);
+    obj->scale.z = 2.5f;
+    obj->scale.y = 2.5f;
+    obj->scale.x = 2.5f;
+    obj->rot.y = 270.0f;
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010AE24_merry_go_chomp;
+}
 
 void func_8010AECC_merry_go_chomp(void) {
     D_8010C500_merry_go_chomp[30].obj = omAddObj(1000, 1, 1, -1, func_8010AE2C_merry_go_chomp);
@@ -1448,9 +1474,72 @@ void func_8010BBD8_merry_go_chomp(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010BC30_merry_go_chomp);
+void func_8010BC30_merry_go_chomp(omObjData *obj) {
+    switch (D_8010C4BC_merry_go_chomp) {
+    case 0:
+        GMesCreate(7);
+        D_8010C4BC_merry_go_chomp = 1;
+        D_8010DECA_merry_go_chomp = 0;
+        break;
+    case 1:
+        if (GMesStatGet() == 0) {
+            D_8010C4BC_merry_go_chomp = 2;
+            D_8010C4B0_merry_go_chomp = 0;
+        }
+        if (++D_8010DECA_merry_go_chomp == 4) {
+            HuAudSeqPlay(0x34);
+        }
+        break;
+    case 2:
+        if (D_8010C4B0_merry_go_chomp == 9) {
+            func_801084C8_merry_go_chomp();
+        }
+        func_8010AF08_merry_go_chomp();
+        if (D_8010C4B0_merry_go_chomp == 10) {
+            GMesCreate(0x12);
+            func_80109604_merry_go_chomp();
+            HuAudSeqFadeOut(120);
+            D_8010C4B2_merry_go_chomp = 0;
+            D_8010C4BC_merry_go_chomp = 3;
+        }
+        break;
+    case 3:
+        if (GMesStatGet() == 0) {
+            if (++D_8010C4B2_merry_go_chomp == 15) {
+                HuAudSeqPlay(0x65);
+                func_80106B9C_merry_go_chomp(D_8010C4C8_merry_go_chomp, 9);
+            }
+            if (D_8010C4B2_merry_go_chomp == 113) {
+                WipeCreateOut(0, 20);
+                obj->func = func_8010BBA0_merry_go_chomp;
+            }
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010BDE8_merry_go_chomp);
+void func_8010BDE8_merry_go_chomp(omObjData *obj) {
+    D_8010C4BC_merry_go_chomp = 0;
+    D_8010C4B0_merry_go_chomp = 20;
+    D_8010DEDC_merry_go_chomp = 0;
+    D_8010C4B2_merry_go_chomp = 0;
+    D_8010C4CE_merry_go_chomp = 0;
+    D_8010DED4_merry_go_chomp = 0.0f;
+    D_8010C410_merry_go_chomp = -1;
+    D_8010C4C4_merry_go_chomp = -1;
+    D_8010DED8_merry_go_chomp = 0;
+    D_8010DEC8_merry_go_chomp = 0;
+    D_8010C418_merry_go_chomp = 0;
+    func_8010BAB8_merry_go_chomp();
+    func_801064A0_merry_go_chomp();
+    func_80109420_merry_go_chomp();
+    func_8010ADE8_merry_go_chomp();
+    func_80106AB8_merry_go_chomp();
+    func_8010662C_merry_go_chomp();
+    func_8010AECC_merry_go_chomp();
+    WipeCreateIn(255, 16);
+    obj->func = func_8010BC30_merry_go_chomp;
+}
 
 void func_8010BEB4_merry_go_chomp(omObjData *obj) {
 }
