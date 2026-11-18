@@ -1294,7 +1294,10 @@ void func_801096A8_cosmic_coaster(omObjData *object) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801096A8_cosmic_coaster);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109900_cosmic_coaster);
+/* Leave the minigame. */
+void func_80109900_cosmic_coaster(void) {
+    omOvlReturnEx(1);
+}
 
 /* Track object manager setup: free model slots, spawn lists, the eleven object models. */
 void func_8010991C_cosmic_coaster(omObjData *object) {
@@ -1750,7 +1753,70 @@ void func_8010B5C4_cosmic_coaster(omObjData *object) {
     }
 }
 
+/* Riders' boxes against this side's track objects (types 0, 1, 4): result per rider in a half. */
+#ifdef NON_MATCHING
+u32 func_8010B644_cosmic_coaster(omObjData **hit, CcCar *car, f32 pos, f32 prev, u16 take) {
+    u16 res[2];
+    Vec bmin;
+    Vec bmax;
+    Vec rmin[2];
+    Vec rmax[2];
+    u16 mode;
+    omObjData **objs;
+    omObjData *o;
+    s32 i;
+    s32 j;
+
+    mode = take;
+    objs = func_80047DBC_main(car->unk00);
+    rmin[0].x = car->unk10[0] - 30.0f;
+    rmin[0].y = 225.0f;
+    rmin[0].z = pos + 130.0f;
+    rmax[0].x = car->unk10[0] + 30.0f;
+    rmax[0].y = 125.0f;
+    rmax[0].z = prev - -100.0f + 30.0f;
+    rmin[1].x = car->unk10[1] - 30.0f;
+    rmin[1].y = 225.0f;
+    rmin[1].z = pos + -130.0f;
+    rmax[1].x = car->unk10[1] + 30.0f;
+    rmax[1].y = 125.0f;
+    rmax[1].z = prev - 100.0f - 30.0f;
+    res[1] = 0xFFFF;
+    res[0] = 0xFFFF;
+    for (i = 0; i < 0x37; i++) {
+        o = objs[i];
+        if (o != NULL && (o->work[1] < 2 || o->work[1] == 4)) {
+            if (o->work[1] == 1) {
+                bmin.x = o->trans.x - 150.0f;
+                bmin.y = o->trans.y - 100.0f;
+                bmin.z = o->trans.z;
+                bmax.x = o->trans.x + 150.0f;
+            } else if (o->work[1] == 0 || o->work[1] == 4) {
+                bmin.x = o->trans.x - 70.0f;
+                bmin.y = o->trans.y - 100.0f;
+                bmin.z = o->trans.z;
+                bmax.x = o->trans.x + 70.0f;
+            }
+            bmax.y = o->trans.y + 100.0f;
+            bmax.z = o->trans.z;
+            for (j = 0; j < 2; j++) {
+                if (res[j] == 0xFFFF) {
+                    if (bmin.z <= rmin[j].z && rmax[j].z <= bmin.z && rmin[j].x < bmax.x && bmin.x < rmax[j].x) {
+                        hit[j] = o;
+                        res[j] = (u16)o->work[1];
+                        if (mode == 1) {
+                            func_80047E90_main(o, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return (res[1] << 16) | res[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B644_cosmic_coaster);
+#endif
 
 /* Lanes blocked at obj's distance: per lane (left, middle, right) 2 bits, 0x30/0xC/0x3. */
 #ifdef NON_MATCHING
