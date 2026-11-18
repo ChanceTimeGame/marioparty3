@@ -69,6 +69,11 @@ void func_8004AD70_main(void);
 void func_800557A0_main(void);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
 void GMesPosSet(s16 mesId, f32 x, f32 y);
+void func_80016B00_main(s16 model, s16 frame, char* name, HuMtx4F mtx);
+void func_80088800_main(HuMtx4F mtx, f32 x, f32 y, f32 z);
+void func_80017D24_main(HuMtx4F mtx, f32 x, f32 y, f32 z);
+void func_80017CD0_main(HuMtx4F mtx, f32 x, f32 y, f32 z);
+void func_80018044_main(HuMtx4F a, HuMtx4F b, HuMtx4F out);
 
 extern s32 D_800A178C_main[][6];
 
@@ -125,6 +130,7 @@ void func_801086A4_dorrie_dip(void);
 void func_8010872C_dorrie_dip(void);
 void func_8010898C_dorrie_dip(omObjData* obj);
 void func_80108B98_dorrie_dip(void);
+void func_80108C6C_dorrie_dip(omObjData* obj);
 void func_80108EA0_dorrie_dip(s32 idx);
 void func_801090C4_dorrie_dip(void);
 void func_801092E0_dorrie_dip(void);
@@ -158,7 +164,8 @@ extern omObjData* D_8010A234_dorrie_dip;
 extern omObjData* D_8010A238_dorrie_dip;
 extern omObjData* D_8010A23C_dorrie_dip;
 extern s32 D_8010A240_dorrie_dip;
-extern f32 D_8010A244_dorrie_dip;
+extern f32 D_8010A244_dorrie_dip; /* Dorrie bob angle */
+extern omObjData* D_8010A248_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -1005,9 +1012,34 @@ void func_80108800_dorrie_dip(void) {
     D_8010A244_dorrie_dip = 0.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_8010898C_dorrie_dip);
+/* The Dorries bob in the water. */
+void func_8010898C_dorrie_dip(omObjData* obj) {
+    D_8010A22C_dorrie_dip = sindf(D_8010A244_dorrie_dip) * 10.0f - 10.0f;
+    D_8010A244_dorrie_dip += 5.0f;
+    if (D_8010A244_dorrie_dip >= 360.0f) {
+        D_8010A244_dorrie_dip -= 360.0f;
+    }
+    HmfModelData[obj->model[1]].pos.y = D_8010A22C_dorrie_dip;
+    HmfModelData[obj->model[3]].pos.y = D_8010A22C_dorrie_dip + 5.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108A74_dorrie_dip);
+/* The world position of a model's named object at a frame. */
+void func_80108A74_dorrie_dip(s16 model, char* name, s16 frame, Vec* out) {
+    HuMtx4F mdl;
+    HuMtx4F res;
+    HuMtx4F obj;
+    HmfModel* m;
+
+    func_80016B00_main(model, frame, name, obj);
+    m = &HmfModelData[model];
+    func_80088800_main(mdl, m->pos.x, m->pos.y, m->pos.z);
+    func_80017D24_main(mdl, m->rot.x, m->rot.y, m->rot.z);
+    func_80017CD0_main(mdl, m->scale.x, m->scale.y, m->scale.z);
+    func_80018044_main(obj, mdl, res);
+    out->x = res[0][0] + res[1][0] + res[2][0] + res[3][0];
+    out->y = res[0][1] + res[1][1] + res[2][1] + res[3][1];
+    out->z = res[0][2] + res[1][2] + res[2][2] + res[3][2];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108B98_dorrie_dip);
 
