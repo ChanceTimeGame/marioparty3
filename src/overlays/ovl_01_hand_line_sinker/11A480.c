@@ -28,12 +28,13 @@ typedef struct HlPlayer {
     /* 0x1C */ struct HlLine *line; /* angler: the fishing line */
     /* 0x20 */ f32 flyAngle;   /* fish: thrown out of the water */
     /* 0x24 */ f32 flyVy;
-    /* 0x28 */ char unk28[6];
-    /* 0x2E */ s16 unk2E;
+    /* 0x28 */ f32 vy;         /* fish: jump speed */
+    /* 0x2C */ u16 splashed;
+    /* 0x2E */ u16 cpuState;   /* fish CPU */
     /* 0x30 */ f32 unk30;
     /* 0x34 */ f32 unk34;
-    /* 0x38 */ s16 unk38;
-    /* 0x3A */ s16 unk3A;
+    /* 0x38 */ u16 unk38;      /* fish CPU: frames to the next A press */
+    /* 0x3A */ u16 unk3A;      /* fish CPU: the next press */
     /* 0x3C */ u16 cpuTimer;   /* angler CPU: frames until it reels */
     /* 0x40 */ omObjData *target; /* angler CPU: the fish it aims at */
     /* 0x44 */ f32 aimOfs;
@@ -64,6 +65,13 @@ typedef struct HlLure {
     /* 0x1CE */ s16 hookSfx;
     /* 0x1D0 */ u16 reeling;
 } HlLure; // Size 0x1D4
+
+/* A camera pose: Center, CRot, CZoom (120090). */
+typedef struct HlCamPose {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+} HlCamPose; // Size 0x1C
 
 /* A texture's size (func_800335BC_main). */
 typedef struct HlTexSize {
@@ -104,7 +112,7 @@ extern s16 D_800EB930_minigame;
 
 // 120090
 void func_8010B5B0_hand_line_sinker(void);
-void func_8010B5EC_hand_line_sinker(void *from, void *to, s16 frames);
+void func_8010B5EC_hand_line_sinker(HlCamPose *from, HlCamPose *to, s16 frames);
 void func_8010BA50_hand_line_sinker(f32 t);
 void func_8010BA64_hand_line_sinker(void);
 HlLine *func_8010BA80_hand_line_sinker(u8 r, u8 g, u8 b);
@@ -127,11 +135,14 @@ omObjData *func_80107A3C_hand_line_sinker(void);
 void func_80107B24_hand_line_sinker(omObjData *obj);
 omObjData *func_801080F0_hand_line_sinker(omObjData *obj);
 void func_801081D0_hand_line_sinker(omObjData *obj);
+void func_80108C5C_hand_line_sinker(omObjData *obj);
+void func_80108F44_hand_line_sinker(omObjData *obj);
 void func_80108880_hand_line_sinker(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn);
 f32 func_801092B8_hand_line_sinker(s8 stickX, s8 stickY);
 void func_801093A4_hand_line_sinker(omObjData *obj);
 void func_80109584_hand_line_sinker(omObjData *obj);
 void func_80109B9C_hand_line_sinker(omObjData *obj);
+omObjData *func_8010A554_hand_line_sinker(void);
 void func_8010A5F0_hand_line_sinker(void);
 void func_8010A6D0_hand_line_sinker(omObjData *obj, s32 type, Vec *pos, Vec *rot);
 void func_8010AD7C_hand_line_sinker(omObjData *obj, f32 len, f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1);
@@ -140,6 +151,8 @@ void func_8010B1E4_hand_line_sinker(omObjData *obj);
 
 /* .data */
 extern D_80111B50_vine_with_me_Struct D_8010BF00_hand_line_sinker;
+extern HlCamPose D_8010BF28_hand_line_sinker; /* the angler's camera */
+extern HlCamPose D_8010BF44_hand_line_sinker;
 extern u16 D_8010BF60_hand_line_sinker; /* wipe out started */
 extern s32 D_8010BF64_hand_line_sinker[]; /* fish model per character */
 extern char *D_8010BF88_hand_line_sinker[];
@@ -152,8 +165,9 @@ const s16 D_8010BFB0_hand_line_sinker[] = { 0x8260, 0x8261, 0x8262, 0 };
 /* .bss */
 extern u16 D_8010C0EA_hand_line_sinker; /* the angler's player number */
 extern s16 D_8010C0EC_hand_line_sinker;
-extern s16 D_8010C0EE_hand_line_sinker;
+extern u16 D_8010C0EE_hand_line_sinker; /* intro step */
 extern s16 D_8010C0F0_hand_line_sinker;
+extern omObjData *D_8010C0E0_hand_line_sinker; /* the fish in the intro */
 extern omObjData *D_8010C0F4_hand_line_sinker;
 extern omObjData *D_8010C0F8_hand_line_sinker;
 extern omObjData *D_8010C0FC_hand_line_sinker; /* the angler */
@@ -161,7 +175,9 @@ extern omObjData **D_8010C100_hand_line_sinker; /* the fish */
 extern HlTexSize D_8010C104_hand_line_sinker;
 extern f32 D_8010C108_hand_line_sinker;
 extern u16 D_8010C10C_hand_line_sinker; /* fish caught */
+extern HlCamPose D_8010C110_hand_line_sinker;
 extern s16 D_8010C12C_hand_line_sinker;
+extern omObjData *D_8010C190_hand_line_sinker; /* the camera tween (120090) */
 
 void func_801059A0_hand_line_sinker(void) {
     omObjData *fish[4];
@@ -343,7 +359,7 @@ void func_80106100_hand_line_sinker(omObjData *obj, u16 player) {
     pl = obj->data = HuMemAllocTag(sizeof(HlPlayer), 0x7918);
     pl->player = player;
     pl->timer = 0;
-    pl->unk2E = 0;
+    pl->cpuState = 0;
     pl->unk10 = 0;
     pl->tap = 0;
     pl->speed = 0.0f;
@@ -1055,15 +1071,291 @@ void func_801081D0_hand_line_sinker(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80108880_hand_line_sinker);
+/* The fish CPU: swims in random directions, and mashes A while hooked. */
+void func_80108880_hand_line_sinker(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn) {
+    HlPlayer *pl;
+    u8 dif;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80108C5C_hand_line_sinker);
+    *stickX = 0;
+    *stickY = 0;
+    *btn = 0;
+    if (obj->work[0] == 1) {
+        return;
+    }
+    pl = obj->data;
+    if (obj->work[0] != 3) {
+        switch (pl->cpuState) {
+            case 0:
+                if (rand8() < 4) {
+                    pl->cpuState = 1;
+                    pl->timer = (u8)(rand8() % 25) + 5;
+                } else {
+                    pl->cpuState = 2;
+                    if ((u8)(rand8() % 10) < 7) {
+                        pl->unk34 = pl->unk30 = (rand8() * rand8()) % 360;
+                    }
+                }
+                break;
+            case 1:
+                if (pl->timer == 0) {
+                    pl->cpuState = 0;
+                } else {
+                    pl->timer--;
+                }
+                break;
+            case 2:
+                if (obj->rot.y == pl->unk30 || obj->rot.y == pl->unk34) {
+                    *btn |= A_BUTTON;
+                    pl->cpuState = 0;
+                } else {
+                    *stickX = sindf(pl->unk30) * 60.0f;
+                    *stickY = -cosdf(pl->unk30) * 60.0f;
+                    pl->unk34 = obj->rot.y;
+                }
+                break;
+        }
+    } else if (pl->unk38 == 0) {
+        *btn |= pl->unk3A;
+        dif = GwPlayer[pl->player].cpu_difficulty;
+        pl->unk3A = 0;
+        switch (dif) {
+            case 0:
+                pl->unk38 = 3;
+                if ((u8)(rand8() % 10) < 4) {
+                    pl->unk3A = A_BUTTON;
+                }
+                break;
+            case 1:
+                pl->unk38 = (rand8() & 1) + 2;
+                if ((u8)(rand8() % 10) < 8) {
+                    pl->unk3A = A_BUTTON;
+                }
+                break;
+            case 2:
+                pl->unk38 = rand8() & 3;
+                if ((u8)(rand8() % 10) < 5) {
+                    pl->unk3A = A_BUTTON;
+                }
+                break;
+            case 3:
+                pl->unk38 = rand8() & 1;
+                if ((u8)(rand8() % 10) < 8) {
+                    pl->unk3A = A_BUTTON;
+                }
+                break;
+        }
+    }
+}
 
+/* A fish jumping out of the water and diving back in. */
+void func_80108C5C_hand_line_sinker(omObjData *obj) {
+    Vec pos;
+    Vec rot;
+    HlPlayer *pl = obj->data;
+
+    switch (obj->work[0]) {
+        case 5:
+            obj->rot.x -= 15.0f;
+            if (obj->rot.x == -90.0f) {
+                obj->work[0] = 6;
+            }
+            break;
+        case 6:
+            obj->trans.y += pl->vy;
+            pl->vy -= 4.2f;
+            if (obj->trans.y >= -50.0f && pl->splashed == 0) {
+                pos.x = obj->trans.x;
+                pos.y = -50.0f;
+                pos.z = obj->trans.z;
+                rot.x = rot.y = rot.z = 0.0f;
+                func_8010A6D0_hand_line_sinker(NULL, 0, &pos, &rot);
+                HuAudFXPlay(0x30F);
+                pl->splashed = 1;
+            }
+            if (pl->vy < 0.0f) {
+                obj->work[0] = 7;
+            }
+            break;
+        case 7:
+            obj->trans.y += pl->vy;
+            pl->vy -= 4.2f;
+            obj->rot.x += 30.0f;
+            if (obj->rot.x > 90.0f) {
+                obj->rot.x = 90.0f;
+            }
+            if (obj->trans.y <= -50.0f) {
+                obj->work[0] = 8;
+                pos.x = obj->trans.x;
+                pos.y = -50.0f;
+                pos.z = obj->trans.z;
+                rot.x = rot.y = rot.z = 0.0f;
+                func_8010A6D0_hand_line_sinker(NULL, 0, &pos, &rot);
+                HuAudFXPlay(0x30F);
+            }
+            break;
+        case 8:
+            obj->trans.y += pl->vy;
+            pl->vy -= 4.2f;
+            obj->rot.x -= 20.0f;
+            if (obj->rot.x < 0.0f) {
+                obj->rot.x = 0.0f;
+            }
+            if (obj->trans.y <= -240.0f) {
+                obj->trans.y = -240.0f;
+                obj->work[0] = 0;
+                obj->rot.x = 0.0f;
+                obj->func = func_801081D0_hand_line_sinker;
+            }
+            break;
+    }
+}
+
+/* Intro: a fish turns toward the middle and swims in until it is near the centre or bumps a fish that has arrived. */
+#ifdef NON_MATCHING
+/* regalloc only: retail keeps the target angle in $f24 and x in $f22 (swapped here), one instruction longer */
+void func_80108F44_hand_line_sinker(omObjData *obj) {
+    f32 x;
+    f32 z;
+    f32 target;
+    f32 diff;
+    f32 dist;
+    s32 i;
+    s32 stop;
+    omObjData *other;
+
+    target = atan2df(-obj->trans.x, -obj->trans.z);
+    if (target < 0.0f) {
+        target += 360.0f;
+    }
+    if (target >= 360.0f) {
+        target -= 360.0f;
+    }
+    if (target != obj->rot.y) {
+        if (obj->rot.y != target) {
+            diff = target - obj->rot.y;
+            if (diff < 0.0f) {
+                diff += 360.0f;
+            }
+            if (diff < 180.0f) {
+                if (diff > 4.0f) {
+                    obj->rot.y = obj->rot.y + 4.0f;
+                } else {
+                    obj->rot.y = diff + obj->rot.y;
+                }
+            } else if (360.0f - diff > 4.0f) {
+                obj->rot.y = obj->rot.y - 4.0f;
+            } else {
+                obj->rot.y = obj->rot.y - (360.0f - diff);
+            }
+            if (obj->rot.y < 0.0f) {
+                obj->rot.y += 360.0f;
+            }
+            if (obj->rot.y >= 360.0f) {
+                obj->rot.y -= 360.0f;
+            }
+        }
+    } else {
+        x = sindf(target) * 20.0f;
+        z = cosdf(target) * 20.0f;
+        x += obj->trans.x;
+        z += obj->trans.z;
+        stop = 0;
+        for (i = 0; i < 3; i++) {
+            other = D_8010C100_hand_line_sinker[i];
+            if (obj == other) {
+                continue;
+            }
+            /* retail tests this fish's own state, not the other's */
+            if (obj->work[0] == 2) {
+                continue;
+            }
+            dist = HuSqrtf((other->trans.x - x) * (other->trans.x - x) + (other->trans.z - z) * (other->trans.z - z));
+            if (dist < 270.0f) {
+                x -= sindf(obj->rot.y) * (dist = 270.0f - dist);
+                z -= cosdf(obj->rot.y) * dist;
+                if (D_8010C100_hand_line_sinker[i]->work[3] == 1) {
+                    stop = 1;
+                }
+                break;
+            }
+        }
+        omSetTra(obj, x, obj->trans.y, z);
+        if ((HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) < 300.0f) | stop) {
+            obj->func = NULL;
+            obj->work[3] = 1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80108F44_hand_line_sinker);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_801092B8_hand_line_sinker);
+/* The cast power (0..70) for a stick position. */
+f32 func_801092B8_hand_line_sinker(s8 stickX, s8 stickY) {
+    f32 x;
+    f32 y;
+    f32 angle;
+    f32 c;
+    f32 power;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_801093A4_hand_line_sinker);
+    if ((stickX == 0) & (stickY == 0)) {
+        return 0.0f;
+    }
+    y = stickY;
+    x = stickX;
+    angle = atan2df(y, x);
+    c = cosdf(angle);
+    power = fabs(x * c) + fabs(y * sindf(angle));
+    if (power > 70.0f) {
+        power = 70.0f;
+    }
+    return power;
+}
+
+/* Intro: wipe in, a fish jumps, and the camera pulls back to the angler. */
+void func_801093A4_hand_line_sinker(omObjData *obj) {
+    HlPlayer *pl;
+
+    switch (D_8010C0EE_hand_line_sinker) {
+        case 0:
+            WipeCreateIn(0xFF, 0x10);
+            D_8010C0E0_hand_line_sinker = func_8010A554_hand_line_sinker();
+            D_8010C110_hand_line_sinker.center.x = D_8010C0E0_hand_line_sinker->trans.x;
+            D_8010C110_hand_line_sinker.center.y = D_8010C0E0_hand_line_sinker->trans.y;
+            D_8010C110_hand_line_sinker.center.z = D_8010C0E0_hand_line_sinker->trans.z;
+            D_8010C110_hand_line_sinker.rot = D_8010BF28_hand_line_sinker.rot;
+            D_8010C110_hand_line_sinker.rot.x = 328.0f;
+            D_8010C110_hand_line_sinker.zoom = 1250.0f;
+            func_8010B5EC_hand_line_sinker(&D_8010C110_hand_line_sinker, &D_8010BF28_hand_line_sinker, 0x25);
+            D_8010C0EE_hand_line_sinker = 1;
+            break;
+        case 1:
+            if (WipeStatGet() == 0) {
+                pl = D_8010C0E0_hand_line_sinker->data;
+                pl->vy = 60.0f;
+                pl->splashed = 0;
+                D_8010C0EE_hand_line_sinker = 3;
+                HuAudFXPlay(0x305);
+            }
+            break;
+        case 2:
+            if (D_8010C0E0_hand_line_sinker->work[0] == 0) {
+                D_8010C0EE_hand_line_sinker = 3;
+            }
+            break;
+        case 3:
+            D_8010C190_hand_line_sinker->work[1] = 1;
+            if (D_8010C190_hand_line_sinker->work[0] == 0) {
+                func_8001C624_main(D_8010C0FC_hand_line_sinker->model[0],
+                                   HmfModelData[D_8010C0FC_hand_line_sinker->motion[8]].unk02, 0, 30, 3);
+                omDelObj(D_8010C190_hand_line_sinker);
+                D_8010C190_hand_line_sinker = NULL;
+                omDelObj(D_8010C0F4_hand_line_sinker);
+                func_800E6F0C_minigame(1);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_80109584_hand_line_sinker);
 
