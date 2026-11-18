@@ -148,7 +148,7 @@ typedef struct McPl {
     /* 0x1D */ u8 unk1D;
     /* 0x1E */ u8 unk1E;
     /* 0x1F */ u8 unk1F;
-    /* 0x20 */ s32 unk20;
+    /* 0x20 */ s8 slot;
 } McPl; // Size 0x24
 
 /* .bss */
@@ -188,6 +188,7 @@ s32 func_80106CC4_merry_go_chomp(omObjData *obj);
 void func_80107664_merry_go_chomp(omObjData *obj);
 void func_801077D0_merry_go_chomp(omObjData *obj);
 void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale);
+s8 func_80107980_merry_go_chomp(void);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -781,7 +782,71 @@ void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107980_merry_go_chomp);
+s8 func_80107980_merry_go_chomp(void) {
+    s8 found = -1;
+    s8 i;
+    s8 slot;
+    McEnt *ent;
+    omObjData *obj;
+    McPl *pl;
+    f32 rot;
+
+    for (i = 0; i < 4; i++) {
+        ent = MC_ENT(MC_ENT_PLAYER, i);
+        obj = ent->obj;
+        if (ent->unk04 == 0) {
+            pl = &D_8010C420_merry_go_chomp[i];
+            slot = -1;
+            rot = func_801059BC_merry_go_chomp(atan2df(obj->trans.x, obj->trans.z), 0.0f);
+            switch (D_8010C4CE_merry_go_chomp) {
+            case 0:
+                if ((rot >= 306.0f) | (rot < 18.0f)) {
+                    slot = 0;
+                }
+                if ((rot >= 18.0f) & (rot < 90.0f)) {
+                    slot = 1;
+                }
+                if ((rot >= 90.0f) & (rot < 162.0f)) {
+                    slot = 2;
+                }
+                if ((rot >= 162.0f) & (rot < 234.0f)) {
+                    slot = 3;
+                }
+                if ((rot >= 234.0f) & (rot < 306.0f)) {
+                    found = i;
+                }
+                break;
+            case 1:
+                if ((rot >= 315.0f) | (rot < 45.0f)) {
+                    slot = 0;
+                }
+                if ((rot >= 45.0f) & (rot < 135.0f)) {
+                    slot = 1;
+                }
+                if ((rot >= 135.0f) & (rot < 225.0f)) {
+                    slot = 2;
+                }
+                if ((rot >= 225.0f) & (rot < 315.0f)) {
+                    found = i;
+                }
+                break;
+            case 2:
+                if ((rot >= 330.0f) | (rot < 90.0f)) {
+                    slot = 0;
+                }
+                if ((rot >= 90.0f) & (rot < 210.0f)) {
+                    slot = 1;
+                }
+                if ((rot >= 210.0f) & (rot < 330.0f)) {
+                    found = i;
+                }
+                break;
+            }
+            pl->slot = slot;
+        }
+    }
+    return found;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107E34_merry_go_chomp);
 
