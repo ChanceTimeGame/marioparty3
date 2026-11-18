@@ -1952,7 +1952,6 @@ void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, 
 /* </func_8010BDE4_motor_rooter> */
 
 /* <func_8010BDF0_motor_rooter> */
-#ifdef NON_MATCHING
 void func_8010BDF0_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work = ctx->data;
     omObjData *object = work->unk00;
@@ -1973,12 +1972,13 @@ void func_8010BDF0_motor_rooter(FuncContext *ctx) {
         m254_SetFunc(object->work[0] + 4, 8, -1, &D_801137C8_motor_rooter[object->work[0]], func_8010B394_motor_rooter, 0, FALSE);
     }
     /* retail takes the sine of s8[0] / 80 degrees, then scales it by 90 */
-    s = sindf(ctx->work.s8[0] / 80.0f) * 90.0f;
+    s = ctx->work.s8[0];
+    s = sindf(s / 80.0f) * 90.0f;
+    t = s;
     if (s > 1.0f) {
         t = 1.0f;
-    } else {
-        t = s;
     }
+    s = t;
     if (ctx->work.s16[0] + 2 < 361) {
         v = ctx->work.s16[0] + 2;
     } else {
@@ -1986,7 +1986,7 @@ void func_8010BDF0_motor_rooter(FuncContext *ctx) {
     }
     ctx->work.s16[0] = v;
     ctx->work.f32[2] = sindf(v) * 20.0 * 0.05;
-    object->trans.z = (ctx->work.f32[0] - ctx->work.f32[1]) * t + ctx->work.f32[1];
+    object->trans.z = (ctx->work.f32[0] - ctx->work.f32[1]) * s + ctx->work.f32[1];
     object->trans.y = ctx->work.f32[2] + -55.999999046325684;
     if (++ctx->work.s8[0] > 80) {
         m254_ResetFunc(object->work[0] + 4, ctx);
@@ -1994,9 +1994,6 @@ void func_8010BDF0_motor_rooter(FuncContext *ctx) {
         work->unk08 &= ~0x200;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BDF0_motor_rooter);
-#endif
 /* </func_8010BDF0_motor_rooter> */
 
 /* <func_8010C084_motor_rooter> */
