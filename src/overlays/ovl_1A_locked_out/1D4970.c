@@ -1485,11 +1485,7 @@ s16 func_80109FF4_locked_out(s16 tex, s16 n) {
     return grp;
 }
 
-#ifdef NON_MATCHING
-/* masked 2: retail scales the index before loading unk00 (scheduling only) */
-void* func_8010A0BC_locked_out(s16 tex, s16 frame) {
-    return func_80055194_main(tex)->unk00[frame].unk00;
+/* A sprite's frame entry (unused here). */
+HuSprite_Unk84_Unk00_Struct* func_8010A0BC_locked_out(s16 tex, s16 frame) {
+    return &func_80055194_main(tex)->unk00[frame];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_8010A0BC_locked_out);
-#endif
