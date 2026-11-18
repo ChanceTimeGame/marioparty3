@@ -897,15 +897,107 @@ void func_80107858_awful_tower(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80107858_awful_tower);
 #endif
 
+#ifdef NON_MATCHING
+/* Sets up one player's object: models, motions and the team's tower. */
+void func_80108880_awful_tower(omObjData* obj, u32 arg1, s32 arg2, u16 idx, f32 x, f32 y, f32 z) {
+    AtTbl8 tbl = D_8010CD34_awful_tower;
+    MgWork* w;
+    AtPlayer* p;
+    s32 chr;
+    AtPair* pair;
+    s32 i;
+
+    chr = (s8)D_8010D308_awful_tower[idx]->unk00;
+    func_800E18D8_minigame();
+    func_800E1BA8_minigame(obj, arg1, arg2, D_8010D308_awful_tower[idx]->unk01, 0x4B9, 0x49D);
+    pair = &D_8010CB60_awful_tower[idx];
+    func_8001C8A8_main(obj->model[0], pair->unk02);
+    w = obj->data;
+    w->unk59 = D_8010D308_awful_tower[idx]->unk01;
+    w->unk50 |= 0x400;
+    w->unk4C = 1.0f;
+    w->unkB4 = 1.0f;
+    obj->model[6] = func_8000B108_main(5, 0x80D);
+    func_8001C8A8_main(obj->model[6], pair->unk02);
+    func_8001C8A8_main(obj->model[9], pair->unk02);
+    p = D_8010D308_awful_tower[idx];
+    p->unk08 = (rand8() & 1) ? 0x2F : 0x30;
+    obj->model[10] = func_8000B108_main(func_80017BB8_main(chr, (s16)D_8010D308_awful_tower[idx]->unk08), 0x4B9 | 4);
+    D_8010D308_awful_tower[idx]->unk08 |= tbl.v[(u16)chr] << 16;
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 19);
+    func_800E5A00_minigame(obj, 17, func_80017BB8_main(chr, 14), 1, 15);
+    func_800E5978_minigame(obj, 21, func_80017BB8_main(chr, 31), 0, 0);
+    func_800E5978_minigame(obj, 30, func_80017BB8_main(chr, 32), 2, 0);
+    func_800E5978_minigame(obj, 31, func_80017BB8_main(chr, 33), 2, 0);
+    func_800E5978_minigame(obj, 32, func_80017BB8_main(chr, 34), 0, 0);
+    func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 58), 1, 120);
+    obj->trans.x = x;
+    obj->trans.y = y;
+    obj->trans.z = z;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, z);
+    i = 0;
+    while (i++ < 12) {
+        func_800E149C_minigame(obj, i, 1);
+    }
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E149C_minigame(obj, idx * 3 + 1, 2);
+    func_800E149C_minigame(obj, idx * 3 + 2, 2);
+    func_800E149C_minigame(obj, idx * 3 + 3, 2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108880_awful_tower);
+#endif
 
+#ifdef NON_MATCHING
+/* Player 0 object setup. */
+void func_80108CCC_awful_tower(omObjData* obj) {
+    s32 chr = D_8010D308_awful_tower[0]->unk00;
+
+    func_80108880_awful_tower(obj, D_800A178C_main[chr][0], D_800A1790_main[chr][0], 0, 0.0f, 0.0f, 0.0f);
+    obj->func = func_80108E8C_awful_tower;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108CCC_awful_tower);
+#endif
 
+#ifdef NON_MATCHING
+/* Player 1 object setup. */
+void func_80108D3C_awful_tower(omObjData* obj) {
+    s32 chr = D_8010D308_awful_tower[1]->unk00;
+
+    func_80108880_awful_tower(obj, D_800A178C_main[chr][0], D_800A1790_main[chr][0], 1, 0.0f, 0.0f, 0.0f);
+    obj->func = func_80108E8C_awful_tower;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108D3C_awful_tower);
+#endif
 
+#ifdef NON_MATCHING
+/* Player 2 object setup. */
+void func_80108DAC_awful_tower(omObjData* obj) {
+    s32 chr = D_8010D308_awful_tower[2]->unk00;
+
+    func_80108880_awful_tower(obj, D_800A178C_main[chr][0], D_800A1790_main[chr][0], 2, 0.0f, 0.0f, 0.0f);
+    obj->func = func_80108E8C_awful_tower;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108DAC_awful_tower);
+#endif
 
+#ifdef NON_MATCHING
+/* Player 3 object setup. */
+void func_80108E1C_awful_tower(omObjData* obj) {
+    s32 chr = D_8010D308_awful_tower[3]->unk00;
+
+    func_80108880_awful_tower(obj, D_800A178C_main[chr][0], D_800A1790_main[chr][0], 3, 0.0f, 0.0f, 0.0f);
+    obj->func = func_80108E8C_awful_tower;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108E1C_awful_tower);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CEE0_awful_tower);
 
