@@ -241,6 +241,12 @@ void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr);
 extern s32 D_8010B918_baby_bowser_bonkers[8]; /* face sprites by character */
 extern s16* D_8010BCA8_baby_bowser_bonkers; /* sprite files: [0] digits, [1] counter backing */
 extern BkCounter* D_8010BCAC_baby_bowser_bonkers;
+void func_801091D4_baby_bowser_bonkers(f32 x, f32 z, BkBlock** list);
+s32 func_801093D4_baby_bowser_bonkers(s32 id);
+s32 func_8010943C_baby_bowser_bonkers(BkBlock** list, s32 max, s32 player);
+s32 func_8010958C_baby_bowser_bonkers(BkBlock** list, s32 max, s32 player);
+s32 func_80107648_baby_bowser_bonkers(omObjData* obj);
+extern BkBlock* D_8010BC00_baby_bowser_bonkers[14]; /* blocks by distance (func_801091D4) */
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -646,7 +652,160 @@ void func_80106AA4_baby_bowser_bonkers(omObjData* obj) {
     func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, w->unk3C, 0.0f);
 }
 
+/* CPU player: picks a rising block away from the opponent, walks to it and jumps on it. */
+/* NON_MATCHING: masked 77, register allocation and scheduling (one more stack slot); the control flow and every store follow the asm. */
+#ifdef NON_MATCHING
+void func_80106CEC_baby_bowser_bonkers(omObjData* obj) {
+    BkPlayer* p;
+    func_800E1BA8_minigame_ObjData* w;
+    BkBlock* blk;
+    HmfModel* m;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    f32 s;
+    s32 need;
+    s32 lead;
+    s32 n;
+    s32 i;
+    f32 ex;
+    f32 ez;
+
+    p = func_8010B3AC_baby_bowser_bonkers(obj);
+    w = obj->data;
+    D_800D5558_main[p->unk2A] = 0;
+    D_800CDA7C_main[p->unk2A] = 0;
+    D_800CBB6E_main[p->unk2A] = 0;
+    D_800D20A1_main[p->unk2A] = 0;
+    if (D_8010BC48_baby_bowser_bonkers >= 450) {
+        need = p->unk3C / 2;
+    } else {
+        need = p->unk3C;
+    }
+    lead = p->unk02 >= need;
+    if (w->unk38 != 1000.0f) {
+        p->unk42 = p->unk02;
+    }
+    if (p->unk42 < p->unk02 && (lead || p->unk30 == 0)) {
+        /* Retail aims at (unk44, unk44): the z target reads the x field. */
+        dx = p->unk44 - obj->trans.x;
+        dz = p->unk44 - obj->trans.z;
+        dist = sqrtf(dx * dx + dz * dz);
+        if (dist != 0.0f) {
+            dx /= dist;
+            dz /= dist;
+        } else {
+            dx = dz = 0.0f;
+        }
+        s = dist / 100.0;
+        if (s >= 1.0f) {
+            s = 1.0f;
+        }
+        D_800CBB6E_main[p->unk2A] = dx * 64.0f * s;
+        D_800D20A1_main[p->unk2A] = -(dz * 64.0f * s);
+        D_800CDA7C_main[p->unk2A] |= 0x8000;
+        D_800D5558_main[p->unk2A] = 0;
+        return;
+    }
+    if (lead) {
+        if (p->unk3E != 0) {
+            D_800CBB6E_main[p->unk2A] = 0;
+            D_800D20A1_main[p->unk2A] = 0;
+            if (!(p->unk3E & 7) && p->unk32 != -1) {
+                D_800D5558_main[p->unk2A] |= 0x8000;
+                D_800CDA7C_main[p->unk2A] |= 0x8000;
+            }
+            if (--p->unk3E <= 0) {
+                p->unk40 = (u8)(rand8() % 15) + 15.0f + p->unk30 * 5;
+                p->unk3E = 0;
+            }
+            return;
+        }
+        if (--p->unk40 <= 0) {
+            p->unk3E = (u8)(rand8() % 15) + 15.0f - p->unk30 * 5;
+            p->unk40 = 0;
+        }
+    }
+    if (p->unk32 != -1) {
+        blk = func_8010919C_baby_bowser_bonkers(p->unk32);
+        if (blk == NULL) {
+            p->unk32 = -1;
+            return;
+        }
+        m = &HmfModelData[blk->model];
+        dx = m->pos.x - obj->trans.x;
+        dz = m->pos.z - obj->trans.z;
+        dist = sqrtf(dx * dx + dz * dz);
+        if (dist < 150.0 && dist > 50.0 && p->unk34 >= 12 - p->unk30 * 2 &&
+            func_80107648_baby_bowser_bonkers(obj) == 0 && blk->unk04 != 0) {
+            D_800D5558_main[p->unk2A] |= 0x8000;
+        }
+        if (w->unk38 != 1000.0f) {
+            D_800CDA7C_main[p->unk2A] |= 0x8000;
+        } else if ((func_801093D4_baby_bowser_bonkers(blk->id) < 15.0f && p->unk34 >= p->unk36 &&
+                    p->unk38 <= dist) ||
+                   (lead && !(rand8() & 0xF))) {
+            func_801091D4_baby_bowser_bonkers(obj->trans.x, obj->trans.z, D_8010BC00_baby_bowser_bonkers);
+            for (i = 0; i < 14; i++) {
+                if (func_801093D4_baby_bowser_bonkers(D_8010BC00_baby_bowser_bonkers[i]->id) >= 225) {
+                    m = &HmfModelData[D_8010BC00_baby_bowser_bonkers[i]->model];
+                    ex = m->pos.x - obj->trans.x;
+                    ez = m->pos.z - obj->trans.z;
+                    if (sqrtf(ex * ex + ez * ez) <= p->unk38) {
+                        /* Retail stores the index into the sorted list, not the block id. */
+                        p->unk32 = i;
+                        return;
+                    }
+                }
+            }
+        }
+        if (blk->unk06 != 4 && blk->unk06 != 5 && (blk->unk04 != 0 || func_80107648_baby_bowser_bonkers(obj) != 0)) {
+            if (dist != 0.0f) {
+                dx /= dist;
+                dz /= dist;
+            } else {
+                dx = dz = 0.0f;
+            }
+            s = dist / 100.0;
+            if (s >= 1.0f) {
+                s = 1.0f;
+            }
+            D_800CBB6E_main[p->unk2A] = dx * 64.0f * s;
+            D_800D20A1_main[p->unk2A] = -(dz * 64.0f * s);
+        } else if (p->unk34 >= p->unk36) {
+            p->unk32 = -1;
+        } else {
+            if (dist != 0.0f) {
+                dx /= dist;
+                dz /= dist;
+            } else {
+                dx = dz = 0.0f;
+            }
+            s = dist / 100.0;
+            if (s >= 1.0f) {
+                s = 1.0f;
+            }
+            D_800CBB6E_main[p->unk2A] = dx * 64.0f * s;
+            D_800D20A1_main[p->unk2A] = -(dz * 64.0f * s);
+        }
+    } else {
+        func_801091D4_baby_bowser_bonkers(obj->trans.x, obj->trans.z, D_8010BC00_baby_bowser_bonkers);
+        n = 7 - (s32)(p->unk30 * 1.5f);
+        if (n <= 0) {
+            n = 1;
+        }
+        p->unk32 = func_8010943C_baby_bowser_bonkers(D_8010BC00_baby_bowser_bonkers, n, (s16)(p->unk00 ^ 1));
+        if (p->unk32 == -1) {
+            p->unk32 = func_8010958C_baby_bowser_bonkers(D_8010BC00_baby_bowser_bonkers, n, (s16)(p->unk00 ^ 1));
+        }
+        p->unk36 = 39.0f - p->unk30 * 7.5f;
+        p->unk34 = 0;
+    }
+    p->unk34++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80106CEC_baby_bowser_bonkers);
+#endif
 
 void func_801075F4_baby_bowser_bonkers(omObjData* obj, f32 x, f32 z) {
     BkPlayer* p = func_8010B3AC_baby_bowser_bonkers(obj);
