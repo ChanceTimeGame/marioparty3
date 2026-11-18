@@ -467,3 +467,5 @@ D_8010D1D2_game_guys_lucky_7 = D_8010D1D0_game_guys_lucky_7 + 0x2;
 /* m5 l7: 3010E0 .data u16 after D_8010D1E8 / D_8010D1EC (separate variables in C) */
 D_8010D1EA_game_guys_lucky_7 = D_8010D1E8_game_guys_lucky_7 + 0x2;
 D_8010D1EE_game_guys_lucky_7 = D_8010D1EC_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D258 (a separate variable in C) */
+D_8010D25A_game_guys_lucky_7 = D_8010D258_game_guys_lucky_7 + 0x2;
