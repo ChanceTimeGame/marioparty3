@@ -136,6 +136,7 @@ extern s8 D_8010CF18_curtain_call[4];
 extern s8 D_8010CF20_curtain_call[2];
 extern s8 D_8010CF22_curtain_call;
 /* player 0's shared models (stage, curtain front and back) for the others to link */
+extern omObjData *D_8010CF24_curtain_call;
 extern s16 D_8010CF2C_curtain_call[3];
 extern s8 D_8010CF32_curtain_call;
 extern s8 D_8010CF33_curtain_call;
@@ -1166,7 +1167,95 @@ void func_80108670_curtain_call(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801089FC_curtain_call);
+/* A curtain panel object: panels 0, 2 and 4 load the model, 1, 3 and 5 link the one before. */
+void func_801089FC_curtain_call(omObjData *obj) {
+    s8 idx = obj->work[0];
+    CcEnt *ent = &D_8010B4B0_curtain_call[5 + idx];
+
+    switch (idx) {
+    case 0:
+        obj->model[0] = func_8000B108_main(0xA008E, 0x2B9);
+        func_8000B460_main(obj, 0, 0xA0097);
+        func_8000B460_main(obj, 1, 0xA0098);
+        func_8000B460_main(obj, 2, 0xA0099);
+        obj->work[1] = 0;
+        D_8010CF2C_curtain_call[0] = obj->model[0];
+        D_8010CF24_curtain_call = obj;
+        break;
+    case 1:
+        obj->model[0] = Hu3DModelLink(D_8010CF2C_curtain_call[0]);
+        obj->work[1] = 0;
+        obj->motion[0] = D_8010CF24_curtain_call->motion[0];
+        obj->motion[1] = D_8010CF24_curtain_call->motion[1];
+        obj->motion[2] = D_8010CF24_curtain_call->motion[2];
+        break;
+    case 2:
+        obj->model[0] = func_8000B108_main(0xA00A5, 0x2B9);
+        func_8000B460_main(obj, 0, 0xA00A8);
+        func_8000B460_main(obj, 1, 0xA00A9);
+        func_8000B460_main(obj, 2, 0xA00AA);
+        obj->work[1] = 1;
+        D_8010CF2C_curtain_call[0] = obj->model[0];
+        D_8010CF24_curtain_call = obj;
+        break;
+    case 3:
+        obj->model[0] = Hu3DModelLink(D_8010CF2C_curtain_call[0]);
+        obj->work[1] = 1;
+        obj->motion[0] = D_8010CF24_curtain_call->motion[0];
+        obj->motion[1] = D_8010CF24_curtain_call->motion[1];
+        obj->motion[2] = D_8010CF24_curtain_call->motion[2];
+        break;
+    case 4:
+        obj->model[0] = func_8000B108_main(0xA00C5, 0x2B9);
+        func_8000B460_main(obj, 0, 0xA00CB);
+        func_8000B460_main(obj, 1, 0xA00CC);
+        func_8000B460_main(obj, 2, 0xA00CD);
+        obj->work[1] = 2;
+        D_8010CF2C_curtain_call[0] = obj->model[0];
+        D_8010CF24_curtain_call = obj;
+        break;
+    case 5:
+        obj->model[0] = Hu3DModelLink(D_8010CF2C_curtain_call[0]);
+        obj->work[1] = 2;
+        obj->motion[0] = D_8010CF24_curtain_call->motion[0];
+        obj->motion[1] = D_8010CF24_curtain_call->motion[1];
+        obj->motion[2] = D_8010CF24_curtain_call->motion[2];
+        break;
+    }
+    func_80105BD0_curtain_call(obj, 0, 2);
+    if (obj->work[0] == 0) {
+        obj->model[1] = func_8000B0A0_main(0, 0xC9);
+        func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+        func_8001C448_main(obj->model[1]);
+        func_8001C514_main(obj->model[1]);
+        func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+        D_8010CF2C_curtain_call[1] = obj->model[1];
+    } else {
+        obj->model[1] = Hu3DModelLink(D_8010CF2C_curtain_call[1]);
+    }
+    obj->trans.x = -1500.0f;
+    obj->trans.y = 125.0f;
+    obj->trans.z = -725.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 125.0f, obj->trans.z);
+    if (idx == 0 || idx == 1) {
+        obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+        Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    }
+    if (idx == 2 || idx == 3) {
+        obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+        Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    }
+    if (idx == 4 || idx == 5) {
+        obj->scale.x = obj->scale.y = obj->scale.z = 0.52f;
+        Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    }
+    ent->scale.z = 1.0f;
+    ent->scale.x = 1.0f;
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    obj->func = func_80108670_curtain_call;
+}
 
 void func_80108E64_curtain_call(void) {
     omObjData *obj;
