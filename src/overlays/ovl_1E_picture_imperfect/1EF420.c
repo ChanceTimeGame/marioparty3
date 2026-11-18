@@ -14,6 +14,8 @@
 
 // pi A: Picture Imperfect (4 players, split screen: assemble a picture from its pieces)
 
+typedef func_800E1BA8_minigame_ObjData MgWork;
+
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct PiCtrl {
     /* 0x00 */ u8 unk00;
@@ -41,6 +43,9 @@ void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8004AD70_main(void);
+void func_8000BC48_main(u16, s32);
+
+extern s32 D_800A178C_main[][6];
 
 extern u8 D_800CE20A_main;
 extern u16 D_800A1906_main; /* music state flags */
@@ -49,6 +54,7 @@ extern u8 D_800D6A90_main;
 
 // minigame
 void func_800E1490_minigame(u16 arg0);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E1804_minigame(void);
 void func_800E1840_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
@@ -58,6 +64,7 @@ extern s16 D_800EB932_minigame;
 extern s32 D_800EBEB0_minigame[];
 
 // LOCAL
+void func_80107820_picture_imperfect(omObjData* obj);
 void func_80105BA8_picture_imperfect(void);
 void func_80105E68_picture_imperfect(PiCtrl* ctrl);
 void func_80105EF4_picture_imperfect(void);
@@ -65,19 +72,59 @@ void func_80106154_picture_imperfect(omObjData* obj);
 void func_8010629C_picture_imperfect(omObjData* obj);
 void func_80109608_picture_imperfect(omObjData* obj);
 
+/* MgWork::unk158 of a player */
+typedef struct PiPlayer {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ s16 unk18;
+    /* 0x1A */ char unk1A[2];
+} PiPlayer; /* size 0x1C */
+
 extern s32 D_8010A010_picture_imperfect;
 extern s8 D_8010A014_picture_imperfect;
+extern s16 D_8010A018_picture_imperfect[4][2]; /* sprite position of each screen quarter */
+extern s8 D_8010A028_picture_imperfect;        /* next player to set up */
 
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A150_picture_imperfect; /* picture set: 2 - D_800CE20A_main */
 extern s8 D_8010A151_picture_imperfect;
+extern s16 D_8010A15C_picture_imperfect[4];
+/* picture piece sprite slots, one table per row: [player][column] */
+extern s16 D_8010A168_picture_imperfect[4][5];
+extern s16 D_8010A190_picture_imperfect[4][5];
+extern s16 D_8010A1B8_picture_imperfect[4][5];
+extern s16 D_8010A1E0_picture_imperfect[4][5];
+extern s16 D_8010A208_picture_imperfect[4][5];
 extern s16 D_8010A230_picture_imperfect;
-extern s16 D_8010A232_picture_imperfect[5][5];
+/* picture piece sprites of the set, one table per row */
+extern s16 D_8010A232_picture_imperfect[5];
+extern s16 D_8010A23C_picture_imperfect[5];
+extern s16 D_8010A246_picture_imperfect[5];
+extern s16 D_8010A250_picture_imperfect[5];
+extern s16 D_8010A25A_picture_imperfect[5];
 extern s16 D_8010A264_picture_imperfect;
 extern s16 D_8010A266_picture_imperfect;
 extern s16 D_8010A268_picture_imperfect;
 extern s16 D_8010A26A_picture_imperfect;
 extern s16 D_8010A26C_picture_imperfect;
+extern s16 D_8010A26E_picture_imperfect[4];
+extern s16 D_8010A276_picture_imperfect[4];
+extern s16 D_8010A27E_picture_imperfect[4];
+extern s16 D_8010A286_picture_imperfect[4];
+extern s16 D_8010A28E_picture_imperfect[4];
+extern s16 D_8010A296_picture_imperfect[4];
+extern s16 D_8010A29E_picture_imperfect[4];
 
 void func_801059A0_picture_imperfect(void) {
     omObjData* obj;
@@ -121,29 +168,29 @@ void func_80105BA8_picture_imperfect(void) {
         case 0:
             D_8010A230_picture_imperfect = func_8000B838_main(0x3F0005);
             for (i = 0; i < 5; i++) {
-                D_8010A232_picture_imperfect[0][i] = func_8000B838_main((i + 0x0E) | 0x3F0000);
-                D_8010A232_picture_imperfect[1][i] = func_8000B838_main((i + 0x13) | 0x3F0000);
-                D_8010A232_picture_imperfect[2][i] = func_8000B838_main((i + 0x18) | 0x3F0000);
-                D_8010A232_picture_imperfect[3][i] = func_8000B838_main((i + 0x1D) | 0x3F0000);
-                D_8010A232_picture_imperfect[4][i] = func_8000B838_main((i + 0x22) | 0x3F0000);
+                D_8010A232_picture_imperfect[i] = func_8000B838_main((i + 0x0E) | 0x3F0000);
+                D_8010A23C_picture_imperfect[i] = func_8000B838_main((i + 0x13) | 0x3F0000);
+                D_8010A246_picture_imperfect[i] = func_8000B838_main((i + 0x18) | 0x3F0000);
+                D_8010A250_picture_imperfect[i] = func_8000B838_main((i + 0x1D) | 0x3F0000);
+                D_8010A25A_picture_imperfect[i] = func_8000B838_main((i + 0x22) | 0x3F0000);
             }
             break;
         case 1:
             D_8010A230_picture_imperfect = func_8000B838_main(0x3F0006);
             for (i = 0; i < 5; i++) {
-                D_8010A232_picture_imperfect[0][i] = func_8000B838_main((i + 0x27) | 0x3F0000);
-                D_8010A232_picture_imperfect[1][i] = func_8000B838_main((i + 0x2C) | 0x3F0000);
-                D_8010A232_picture_imperfect[2][i] = func_8000B838_main((i + 0x31) | 0x3F0000);
-                D_8010A232_picture_imperfect[3][i] = func_8000B838_main((i + 0x36) | 0x3F0000);
+                D_8010A232_picture_imperfect[i] = func_8000B838_main((i + 0x27) | 0x3F0000);
+                D_8010A23C_picture_imperfect[i] = func_8000B838_main((i + 0x2C) | 0x3F0000);
+                D_8010A246_picture_imperfect[i] = func_8000B838_main((i + 0x31) | 0x3F0000);
+                D_8010A250_picture_imperfect[i] = func_8000B838_main((i + 0x36) | 0x3F0000);
             }
             break;
         case 2:
         default:
             D_8010A230_picture_imperfect = func_8000B838_main(0x3F0007);
             for (i = 0; i < 5; i++) {
-                D_8010A232_picture_imperfect[0][i] = func_8000B838_main((i + 0x3B) | 0x3F0000);
-                D_8010A232_picture_imperfect[1][i] = func_8000B838_main((i + 0x40) | 0x3F0000);
-                D_8010A232_picture_imperfect[2][i] = func_8000B838_main((i + 0x45) | 0x3F0000);
+                D_8010A232_picture_imperfect[i] = func_8000B838_main((i + 0x3B) | 0x3F0000);
+                D_8010A23C_picture_imperfect[i] = func_8000B838_main((i + 0x40) | 0x3F0000);
+                D_8010A246_picture_imperfect[i] = func_8000B838_main((i + 0x45) | 0x3F0000);
             }
             break;
     }
@@ -238,7 +285,145 @@ void func_80106154_picture_imperfect(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_8010629C_picture_imperfect);
+void func_8010629C_picture_imperfect(omObjData* obj) {
+    MgWork* pw;
+    PiPlayer* ex;
+    s8 chr;
+    s32 dir;
+    s32 file;
+    s16 mask;
+    s32 i;
+
+    chr = GwPlayer[D_8010A028_picture_imperfect].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    func_800E19F0_minigame(1);
+    func_800E1BA8_minigame(obj, dir, file, D_8010A028_picture_imperfect, 0x2A9, 0x2B9);
+    pw = obj->data;
+    pw->unk158 = HuMemAllocTag(sizeof(PiPlayer), 0x7918);
+    memset(pw->unk158, 0, sizeof(PiPlayer));
+    ex = pw->unk158;
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    obj->trans.x = 0.0f;
+    obj->trans.y = -8.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    ex->unk10 = 272.0f;
+    obj->model[2] = func_8000B108_main(0x3F0000, 0x2B9);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, ex->unk10, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[2], 1.2f, 1.2f, 1.2f);
+    obj->model[3] = func_8000B108_main(8, 0x88D);
+    switch (D_8010A028_picture_imperfect) {
+        case 0:
+        default:
+            mask = 1;
+            break;
+        case 1:
+            mask = 2;
+            break;
+        case 2:
+            mask = 4;
+            break;
+        case 3:
+            mask = 8;
+            break;
+    }
+    func_8001C8A8_main(obj->model[0], mask);
+    func_8001C8A8_main(obj->model[1], mask);
+    func_8001C8A8_main(obj->model[2], mask);
+    func_8001C8A8_main(obj->model[3], mask);
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, 0x2F), 1, 0x78);
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, 0x36), 1, 0x78);
+    func_800E5690_minigame(obj, 0);
+    obj->func = func_80107820_picture_imperfect;
+    ex->unk00 = 0;
+    ex->unk01 = 0;
+    ex->unk02 = 0;
+    ex->unk08 = 0;
+    ex->unk03 = 0;
+    ex->unk04 = 0;
+    ex->unk0A = 0xFF;
+    ex->unk0C = 1.0f;
+    ex->unk14 = 0;
+    ex->unk05 = 0;
+    ex->unk06 = 0;
+    ex->unk07 = 0;
+    ex->unk18 = (rand8() * 15 >> 7) + 30;
+
+#define PI_PIECE(dst, src, col)                                                                            \
+    dst[D_8010A028_picture_imperfect][col] = InitEspriteSlot(src[col], 0, 1);                              \
+    func_8000BBD4_main(dst[D_8010A028_picture_imperfect][col],               \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][0],                      \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][1]);                     \
+    func_8000BC48_main(dst[D_8010A028_picture_imperfect][col], 0x5000);      \
+    func_8000BCC8_main(dst[D_8010A028_picture_imperfect][col], 0xFFF0);      \
+    func_8000BB94_main(dst[D_8010A028_picture_imperfect][col])
+
+#define PI_GROUP()                                                                                         \
+    D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect] = HuSprGrpCreate(1, 0);                     \
+    func_80055024_main(D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect], 0,                      \
+                       D_8010A230_picture_imperfect, 0);                                                   \
+    HuSprAttrReset(D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect], 0, 0xFFFF);                 \
+    HuSprAttrSet(D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect], 0, 0x5000);                   \
+    func_80054904_main(D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect], 0,                      \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][0],                      \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][1]);                     \
+    HuSprPriSet(D_8010A15C_picture_imperfect[D_8010A028_picture_imperfect], 0, 0xFFFF)
+
+#define PI_SPRITE(n, src)                                                                                  \
+    n[D_8010A028_picture_imperfect] = InitEspriteSlot(src, 0, 1);            \
+    func_8000BBD4_main(n[D_8010A028_picture_imperfect],                      \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][0],                      \
+                       D_8010A018_picture_imperfect[D_8010A028_picture_imperfect][1]);                     \
+    func_8000BC48_main(n[D_8010A028_picture_imperfect], 0x1000);             \
+    func_8000BCC8_main(n[D_8010A028_picture_imperfect], 0xF);                \
+    func_8000BB94_main(n[D_8010A028_picture_imperfect])
+
+    switch (D_8010A150_picture_imperfect) {
+        case 0:
+            PI_GROUP();
+            for (i = 0; i < 5; i++) {
+                PI_PIECE(D_8010A168_picture_imperfect, D_8010A232_picture_imperfect, i);
+                PI_PIECE(D_8010A190_picture_imperfect, D_8010A23C_picture_imperfect, i);
+                PI_PIECE(D_8010A1B8_picture_imperfect, D_8010A246_picture_imperfect, i);
+                PI_PIECE(D_8010A1E0_picture_imperfect, D_8010A250_picture_imperfect, i);
+                PI_PIECE(D_8010A208_picture_imperfect, D_8010A25A_picture_imperfect, i);
+            }
+            break;
+        case 1:
+            PI_GROUP();
+            for (i = 0; i < 5; i++) {
+                PI_PIECE(D_8010A168_picture_imperfect, D_8010A232_picture_imperfect, i);
+                PI_PIECE(D_8010A190_picture_imperfect, D_8010A23C_picture_imperfect, i);
+                PI_PIECE(D_8010A1B8_picture_imperfect, D_8010A246_picture_imperfect, i);
+                PI_PIECE(D_8010A1E0_picture_imperfect, D_8010A250_picture_imperfect, i);
+            }
+            break;
+        case 2:
+        default:
+            PI_GROUP();
+            for (i = 0; i < 5; i++) {
+                PI_PIECE(D_8010A168_picture_imperfect, D_8010A232_picture_imperfect, i);
+                PI_PIECE(D_8010A190_picture_imperfect, D_8010A23C_picture_imperfect, i);
+                PI_PIECE(D_8010A1B8_picture_imperfect, D_8010A246_picture_imperfect, i);
+            }
+            break;
+    }
+    PI_SPRITE(D_8010A26E_picture_imperfect, D_8010A264_picture_imperfect);
+    PI_SPRITE(D_8010A276_picture_imperfect, D_8010A266_picture_imperfect);
+    PI_SPRITE(D_8010A27E_picture_imperfect, D_8010A266_picture_imperfect);
+    PI_SPRITE(D_8010A286_picture_imperfect, D_8010A268_picture_imperfect);
+    PI_SPRITE(D_8010A28E_picture_imperfect, D_8010A26A_picture_imperfect);
+    PI_SPRITE(D_8010A296_picture_imperfect, D_8010A26A_picture_imperfect);
+    PI_SPRITE(D_8010A29E_picture_imperfect, D_8010A26C_picture_imperfect);
+    D_8010A028_picture_imperfect++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80107820_picture_imperfect);
 
