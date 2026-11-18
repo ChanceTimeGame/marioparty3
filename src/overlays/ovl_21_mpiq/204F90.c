@@ -177,6 +177,22 @@ typedef struct MqHost {
     /* 0x08 */ f32 unk08; /* rot y */
     /* 0x0C */ s32 unk0C; /* flags: 1 motion, 2 turn back, 4 turn */
 } MqHost; // Size 0x10
+void func_80108D10_mpiq(void);
+void func_80108E20_mpiq(omObjData* obj);
+void func_80109018_mpiq(void);
+
+/* The answer buttons popup (D_8010CAE8_mpiq) */
+typedef struct MqButtons {
+    /* 0x00 */ f32 unk00; /* screen position */
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ s32 unk08; /* flags: 1 grow, 2 shrink, 4/8/0x10 show A/B/C */
+    /* 0x0C */ f32 unk0C; /* scale */
+} MqButtons; // Size 0x10
+
+extern u16 D_8010C9C0_mpiq;
+extern omObjData* D_8010CAE8_mpiq;
+extern s16 D_8010CAEC_mpiq[3]; /* button sprites */
+extern s16 D_8010CAF2_mpiq[3]; /* button sprite files */
 // LOCALEND
 
 void func_801059A0_mpiq(void) {
@@ -1114,19 +1130,96 @@ void func_80108A3C_mpiq(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f3
     Hu3DCamSetPerspective(D_8010C9B4_mpiq, 30.0f, 80.0f, 8000.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108B74_mpiq);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C8E4_mpiq);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108D10_mpiq);
+void func_80108B74_mpiq(void) {
+    s32 files[3] = { 3, 4, 5 };
+    omObjData* obj;
+    MqButtons* btn;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108E20_mpiq);
+    obj = omAddObj(0xA, 0, 0, -1, func_80108E20_mpiq);
+    obj->data = btn = HuMemAllocTag(sizeof(MqButtons), 0x7918);
+    D_8010CAE8_mpiq = obj;
+    btn->unk08 = 0;
+    btn->unk0C = 0;
+    btn->unk00 = 0;
+    btn->unk04 = 0;
+    for (i = 0; i < 3; i++) {
+        D_8010CAF2_mpiq[i] = func_8000B838_main(files[i] | 0x420000);
+        D_8010CAEC_mpiq[i] = InitEspriteSlot(D_8010CAF2_mpiq[i], 0, 1);
+        func_8000BC48_main(D_8010CAEC_mpiq[i], 8);
+        func_8000BBD4_main(D_8010CAEC_mpiq[i], 0xA0, 0x78);
+        func_8000BB54_main(D_8010CAEC_mpiq[i]);
+        func_8000BE5C_main(D_8010CAEC_mpiq[i], 1.0f, 1.0f);
+        func_8000BCC8_main(D_8010CAEC_mpiq[i], 0xFF);
+    }
+    omAddPrcObj(func_80109018_mpiq, 0x4800, 0, 0);
+    omAddPrcObj(func_80108D10_mpiq, 0x5100, 0, 0);
+}
+
+/* Input process: mask the answer buttons of humans, drive the CPUs. */
+void func_80108D10_mpiq(void) {
+    s32 i;
+
+    while (TRUE) {
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[i].stat & 1) {
+                D_800CDA7C_main[GwPlayer[i].pad] &= 0x1FFF;
+                D_800D5558_main[GwPlayer[i].pad] &= 0x1FFF;
+            }
+            if (func_800E6E8C_minigame() == 2 && (GwPlayer[i].stat & 1)) {
+                func_801069F8_mpiq(i);
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+
+void func_80108E20_mpiq(omObjData* obj) {
+    MqButtons* btn;
+    s32 i;
+
+    btn = obj->data;
+    if (btn->unk08 & 4) {
+        func_8000BB54_main(D_8010CAEC_mpiq[0]);
+    } else {
+        func_8000BB94_main(D_8010CAEC_mpiq[0]);
+    }
+    if (btn->unk08 & 8) {
+        func_8000BB54_main(D_8010CAEC_mpiq[1]);
+    } else {
+        func_8000BB94_main(D_8010CAEC_mpiq[1]);
+    }
+    if (btn->unk08 & 0x10) {
+        func_8000BB54_main(D_8010CAEC_mpiq[2]);
+    } else {
+        func_8000BB94_main(D_8010CAEC_mpiq[2]);
+    }
+    for (i = 0; i < 3; i++) {
+        func_8000BBD4_main(D_8010CAEC_mpiq[i], btn->unk00, btn->unk04);
+        func_8000BE5C_main(D_8010CAEC_mpiq[i], btn->unk0C, btn->unk0C);
+    }
+    if (btn->unk08 & 1) {
+        btn->unk0C += 0.2f;
+        if (btn->unk0C >= 1.0f) {
+            btn->unk0C = 1.0f;
+            btn->unk08 &= ~1;
+        }
+    }
+    if (btn->unk08 & 2) {
+        btn->unk0C -= 0.2f;
+        if (btn->unk0C <= 0.2f) {
+            btn->unk0C = 0.2f;
+            btn->unk08 &= ~0x1E;
+            D_8010C9C0_mpiq &= ~0x20;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109018_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109414_mpiq);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C8E4_mpiq);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C904_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801096C0_mpiq);
 
