@@ -97,6 +97,8 @@ void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
 void func_8003302C_main(s32, u8);
+s32 func_80017BB8_main(s16, s16);
+extern s32 D_800A178C_main[][6];
 s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
 void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 s16 func_8000B638_main(void);
@@ -149,6 +151,12 @@ typedef struct L7SprInit3 {
     /* 0x04 */ s32 x;
     /* 0x08 */ s32 y;
 } L7SprInit3; /* size 0xC */
+
+/* The player's model files and motions (func_801087B4) */
+typedef struct L7ModelInit {
+    /* 0x00 */ s32 files[4];
+    /* 0x10 */ s32 motions[10];
+} L7ModelInit; /* size 0x38 */
 
 /* A step counter pair */
 typedef struct L7Step {
@@ -207,6 +215,7 @@ void func_80107F44_game_guys_lucky_7(omObjData* obj);
 void func_80107F6C_game_guys_lucky_7(void);
 void func_80107F98_game_guys_lucky_7(omObjData* obj);
 void func_801087B4_game_guys_lucky_7(omObjData* obj);
+void func_80108B64_game_guys_lucky_7(omObjData* obj);
 void func_801092B0_game_guys_lucky_7(omObjData* obj);
 void func_80109FA4_game_guys_lucky_7(omObjData* obj);
 void func_8010A0DC_game_guys_lucky_7(omObjData* obj);
@@ -1320,7 +1329,60 @@ void func_801085D4_game_guys_lucky_7(void) {
     func_8000BB54_main(D_8010D71C_game_guys_lucky_7[4]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801087B4_game_guys_lucky_7);
+void func_801087B4_game_guys_lucky_7(omObjData* obj) {
+    s32 files[4];
+    u16 i;
+    s32 attr = 0x2A9;
+    s32 chr = D_8010D6DC_game_guys_lucky_7.chr;
+
+    files[0] = D_800A178C_main[chr][0] | D_800A178C_main[chr][1];
+    files[1] = 9;
+    files[2] = 0x82;
+    files[3] = 0x83;
+    {
+    s32 motions[10] = {
+        func_80017BB8_main(chr, 0),
+        func_80017BB8_main(chr, 1),
+        func_80017BB8_main(chr, 4),
+        func_80017BB8_main(chr, 0x2B),
+        func_80017BB8_main(chr, 0x1F),
+        func_80017BB8_main(chr, 0x2F),
+        func_80017BB8_main(chr, 0x36),
+        func_80017BB8_main(chr, 0x29),
+        func_80017BB8_main(chr, 0xF),
+        func_80017BB8_main(chr, 0x15),
+    };
+
+
+    obj->model[0] = func_8000B108_main(files[0], attr);
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    for (i = 0; i < 10; i++) {
+        func_8000B460_main(obj, i, motions[i]);
+    }
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 4, 2);
+    for (i = 1; i < 4; i++) {
+        obj->model[i] = func_8000B108_main(files[i], attr);
+    }
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[1], 15.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], 15.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    D_8010D742_game_guys_lucky_7 = 0;
+    D_8010D744_game_guys_lucky_7 = 0;
+    D_8010D746_game_guys_lucky_7 = 0;
+    D_8010D74C_game_guys_lucky_7 = 1340.0f;
+    D_8010D750_game_guys_lucky_7 = 0.0f;
+    D_8010D754_game_guys_lucky_7 = 270.0f;
+    obj->func = func_80108B64_game_guys_lucky_7;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80108B64_game_guys_lucky_7);
 
