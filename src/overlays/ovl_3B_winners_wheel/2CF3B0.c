@@ -75,6 +75,16 @@ typedef struct WwRim {
     /* 0x4C */ f32 unk4C[6]; /* angle */
 } WwRim; /* size 0x64 */
 
+/* omObjData::data of the won prize shown over the wheel (D_8010A4A8) */
+typedef struct WwShow {
+    /* 0x00 */ s32 unk00; /* flags: 1 bobbing, 2 sparkles */
+    /* 0x04 */ f32 unk04; /* x */
+    /* 0x08 */ f32 unk08; /* y */
+    /* 0x0C */ f32 unk0C; /* z */
+    /* 0x10 */ f32 unk10; /* bob angle */
+    /* 0x14 */ f32 unk14; /* x rotation */
+} WwShow; /* size 0x18 */
+
 // main
 void GMesPosSet(s16 mesId, f32 x, f32 y);
 void func_8001473C_main(s16 index, u16 arg1); /* src/14EA0.c: (s16, s16) */
@@ -176,6 +186,8 @@ extern omObjData* D_8010A498_winners_wheel;
 extern omObjData* D_8010A49C_winners_wheel;
 extern omObjData* D_8010A4A0_winners_wheel;
 extern omObjData* D_8010A4A4_winners_wheel;
+extern omObjData* D_8010A4A8_winners_wheel;
+extern s16 D_8010A488_winners_wheel;    /* sparkle effect */
 extern s16 D_8010A48A_winners_wheel;    /* the spin-up sound */
 extern s16 D_8010A48E_winners_wheel;    /* the player's port */
 extern s16 D_8010A494_winners_wheel;    /* the wheel's sound */
@@ -515,7 +527,36 @@ void func_80106750_winners_wheel(void) {
     omAddPrcObj(func_8010677C_winners_wheel, 0x50, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010677C_winners_wheel);
+/* The wheel tips over (30 frames, 6 degrees a frame) with its prizes, rim lights and the won prize. */
+void func_8010677C_winners_wheel(void) {
+    WwWheel* wheel = D_8010A49C_winners_wheel->data;
+    WwPrize* prize = D_8010A4A0_winners_wheel->data;
+    WwRim* rim = D_8010A4A4_winners_wheel->data;
+    WwShow* show;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 30; i++) {
+        wheel->unk0C += 6.0f;
+        for (j = 0; j < 6; j++) {
+            prize->unk48[j] += 6.0f;
+            prize->unk90 = cosdf(i * 6.0f);
+            prize->unk94 = cosdf(i * 6.0f);
+        }
+        for (j = 0; j < 6; j++) {
+            rim->unk34[j] += 6.0f;
+        }
+        if (D_8010A468_winners_wheel[D_8010A480_winners_wheel] != 0x11) {
+            show = D_8010A4A8_winners_wheel->data;
+            show->unk14 += 6.0f;
+            show->unk08 = 2.0f * sindf(show->unk14 - 180.0f);
+            show->unk0C = 2.0f * cosdf(show->unk14);
+        }
+        HuPrcVSleep();
+    }
+    D_8010A464_winners_wheel = 5;
+    omDelPrcObj(NULL);
+}
 
 /* The player's character. */
 void func_80106910_winners_wheel(void) {
@@ -1211,15 +1252,115 @@ void func_80109454_winners_wheel(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801095E4_winners_wheel);
+/* The rim lights follow the wheel; the stopped slot's (and the slot opposite) or all stay lit. */
+void func_801095E4_winners_wheel(omObjData* obj) {
+    WwRim* work = obj->data;
+    WwWheel* wheel = D_8010A49C_winners_wheel->data;
+    WwPegs* pegs = D_8010A4C0_winners_wheel->data;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010985C_winners_wheel);
+    for (i = 0; i < 6; i++) {
+        func_80088910_main((f32(*)[4])HmfModelData[obj->model[i]].mtx, 0.0f, 0.0f, -work->unk4C[i]);
+        if (i == 0) {
+            omSetRot(obj, work->unk34[0], 0.0f, 0.0f);
+            omSetSca(obj, wheel->unk08, wheel->unk08, 1.0f);
+        } else {
+            Hu3DModelRotSet(obj->model[i], work->unk34[i], 0.0f, 0.0f);
+            Hu3DModelScaleSet(obj->model[i], wheel->unk08, wheel->unk08, 1.0f);
+        }
+        if (work->unk34[i] >= 90.0f) {
+            func_8001C258_main(obj->model[i], 4, 4);
+        }
+    }
+    for (i = 0; i < 6; i++) {
+        func_8001C258_main(obj->model[i], 4, 0);
+    }
+    if (pegs->unk00 & 0x20) {
+        D_8010A484_winners_wheel = -1;
+        D_8010A480_winners_wheel = -1;
+    }
+    for (i = 0; i < 6; i++) {
+        work->unk4C[i] = i * 60.0f + wheel->unk10;
+        if (i == D_8010A480_winners_wheel || i == D_8010A484_winners_wheel || (pegs->unk00 & 0x10)) {
+            func_8001C258_main(obj->model[i], 4, 4);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109A18_winners_wheel);
+/* The won prize, shown over the wheel. */
+void func_8010985C_winners_wheel(void) {
+    s32 files[16] = {
+        0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C,
+    };
+    omObjData* obj;
+    WwShow* work;
+    void* data;
+    s32 file;
+    s32 id;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109B90_winners_wheel);
+    obj = omAddObj(0xFE, 1, 0, -1, func_80109A18_winners_wheel);
+    obj->data = HuMemAllocTag(sizeof(WwShow), 31000);
+    D_8010A4A8_winners_wheel = obj;
+    work = obj->data;
+    /* retail compares the slot, not its prize, with 0x11: never equal (only called for a prize) */
+    if (D_8010A480_winners_wheel == 0x11) {
+        file = 0x5C0007;
+    } else {
+        file = 0x210000;
+        file |= files[D_8010A468_winners_wheel[D_8010A480_winners_wheel]];
+    }
+    data = DataRead(file);
+    id = HmfSprModelCreate(data, 0x69D, 8);
+    DataClose(data);
+    obj->model[0] = D_800CBB60_main[(s16)id].unk00;
+    work->unk04 = 0.0f;
+    work->unk08 = 0.0f;
+    work->unk0C = 2.0f;
+    work->unk10 = 0.0f;
+    work->unk14 = 180.0f;
+    work->unk00 = 0;
+    omSetTra(obj, work->unk04, work->unk08, work->unk0C);
+    omSetSca(obj, 2.2f, 2.2f, 1.0f);
+    func_8001C258_main(obj->model[0], 4, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109BAC_winners_wheel);
+void func_80109A18_winners_wheel(omObjData* obj) {
+    WwShow* work = obj->data;
+
+    omSetTra(obj, work->unk04, work->unk08, work->unk0C);
+    omSetRot(obj, work->unk14, 0.0f, 0.0f);
+    if (work->unk00 & 1) {
+        work->unk10 += 5.0f;
+        if (work->unk10 >= 360.0f) {
+            work->unk10 -= 360.0f;
+        }
+        work->unk08 = sindf(work->unk10) * 10.0f + 90.0f;
+    }
+    if (work->unk14 >= 270.0f) {
+        func_8001C258_main(obj->model[0], 4, 0);
+    }
+    if (work->unk14 == 270.0f) {
+        omVibrate(D_8010A48E_winners_wheel, 2, 2, 20);
+        HuAudFXPlay(0x10);
+    }
+    if (work->unk00 & 2) {
+        func_8000CFA4_main(D_8010A488_winners_wheel, work->unk04, work->unk08, work->unk0C - 2.0f);
+    }
+}
+
+void func_80109B90_winners_wheel(void) {
+    WwShow* work = D_8010A4A8_winners_wheel->data;
+
+    work->unk00 |= 1;
+}
+
+void func_80109BAC_winners_wheel(void) {
+    WwShow* work;
+
+    D_8010A488_winners_wheel = func_8000CED8_main(0xB0004, 0x6A9);
+    work = D_8010A4A8_winners_wheel->data;
+    work->unk00 |= 2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109BF0_winners_wheel);
 
@@ -1242,4 +1383,3 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010A1
 
 
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A420_winners_wheel);
