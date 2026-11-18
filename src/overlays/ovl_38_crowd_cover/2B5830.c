@@ -2054,7 +2054,45 @@ void func_8010B8A8_crowd_cover(HuCamera* cam, f32 (*view)[4]) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010B8A8_crowd_cover);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010BB4C_crowd_cover);
+void func_8010BB4C_crowd_cover(Gfx** gfx, s32 arg1, s32 arg2) {
+    HuCamera* cam = (HuCamera*)arg2;
+    f32 unused0[2][4][4];
+    f32 view[4][4];
+    u8 unused1[0x100];
+    Vec rot;
+    Vec dir;
+    u8 unused2[0x800];
+    Gfx* g;
+    PgBoard* b;
+
+    g = *gfx;
+    func_80079480_main(view, cam->pos.x, cam->pos.y, cam->pos.z, cam->at.x, cam->at.y, cam->at.z, cam->up.x,
+                       cam->up.y, cam->up.z);
+    dir.x = cam->pos.x - cam->at.x;
+    dir.y = cam->pos.y - cam->at.y;
+    dir.z = cam->pos.z - cam->at.z;
+    func_80109044_crowd_cover(&dir, (f32*)&rot);
+    func_8010B754_crowd_cover();
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_2CYCLE);
+    gDPSetTexturePersp(g++, G_TP_PERSP);
+    gSPTexture(g++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gSPClearGeometryMode(g++, 0x060600);
+    gSPSetGeometryMode(g++, 0x280004);
+    gDPSetAlphaDither(g++, G_AD_PATTERN);
+    func_8010B8A8_crowd_cover(cam, view);
+    for (b = D_8010D918_crowd_cover.next; b != NULL; b = b->next) {
+        g = func_8010BD74_crowd_cover(g, b, view, &rot);
+    }
+    for (b = D_8010D980_crowd_cover.next; b != NULL; b = b->next) {
+        g = func_8010BD74_crowd_cover(g, b, view, &rot);
+    }
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    *gfx = g;
+    if (HmfPauseF == 0) {
+        func_8010C45C_crowd_cover();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010BD74_crowd_cover);
 
