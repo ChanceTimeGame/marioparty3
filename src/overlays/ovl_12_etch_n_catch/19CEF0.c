@@ -48,6 +48,7 @@ typedef struct EtVec2 {
     f32 y;
 } EtVec2;
 
+#define ET_FABS(x) (((x) < 0.0f) ? -(x) : (x))
 #define ET_ABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
 
 /* omObjData::data of a catcher (the two Chain Chomp-like hunters), MgWork plus its own fields */
@@ -178,6 +179,10 @@ void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
 void func_80109EB8_etch_n_catch(omObjData* obj);
 // main (more)
+extern s8 D_800CBB6E_main[]; /* stick x per pad */
+extern s8 D_800D20A1_main[]; /* stick y per pad */
+f32 HuSqrtf(f32 x);
+f32 atan2df(f32 y, f32 x);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
 void func_8000B460_main(omObjData*, u16, s32);
 void func_8000BC48_main(u16 arg0, u16 arg1);
@@ -570,7 +575,39 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107D3
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107EA4_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010880C_etch_n_catch);
+/* Limits how fast the player's stick direction may turn: rewrites the stick input so that its angle moves at
+   most 30 degrees a frame from the facing pw->unk3C, keeping its magnitude. */
+void func_8010880C_etch_n_catch(MgWork* pw) {
+    f32 sx;
+    f32 sy;
+    f32 target;
+    f32 d;
+    f32 mag;
+
+    sx = D_800CBB6E_main[pw->unk57];
+    sy = -D_800D20A1_main[pw->unk57];
+    if (ET_FABS(sx) < 8.0f && ET_FABS(sy) < 8.0f) {
+        target = pw->unk3C;
+    } else {
+        target = atan2df(sx, sy);
+    }
+    target = func_8010C4F8_etch_n_catch(target);
+    pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+    d = target - pw->unk3C;
+    if (ET_ABS(d) > 30.0f) {
+        if (((d > 0.0f) & (d < 180.0f)) || ((d < -180.0f) & (d > -360.0f))) {
+            target = pw->unk3C + 30.0f;
+        } else {
+            target = pw->unk3C - 30.0f;
+        }
+    } else {
+        target = d + pw->unk3C;
+    }
+    target = func_8010C4F8_etch_n_catch(target);
+    mag = HuSqrtf(sx * sx + sy * sy);
+    D_800CBB6E_main[pw->unk57] = sindf(target) * mag;
+    D_800D20A1_main[pw->unk57] = -cosdf(target) * mag;
+}
 
 void func_80108B20_etch_n_catch(EtchNCatchWork *arg0) {
     arg0->unk_0C = NULL;
