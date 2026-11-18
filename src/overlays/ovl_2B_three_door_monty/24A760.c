@@ -844,7 +844,238 @@ void func_80107500_three_door_monty(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80108034_three_door_monty);
+void func_80108034_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D4F4_three_door_monty[obj->work[0]];
+    CcEnt *doors[3];
+    CcEnt *e;
+    omObjData *o;
+    s16 flag;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        doors[i] = &D_8010D704_three_door_monty[i];
+    }
+    switch (D_8010EC30_three_door_monty) {
+        case 1:
+            flag = 0;
+            if (D_8010EC32_three_door_monty >= 15) {
+                for (i = 0; i < 3; i++) {
+                    if (doors[i]->unk04 != 5 && doors[i]->unk04 != 6) {
+                        doors[i]->unk04 = 5;
+                    }
+                }
+            }
+            for (i = 0; i < 3; i++) {
+                if (doors[i]->unk06 != 1) {
+                    flag = 1;
+                }
+            }
+            if (flag == 0) {
+                if (obj->trans.z < -450.0f) {
+                    func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                    obj->trans.z += D_8010CD10_three_door_monty[obj->work[0]];
+                }
+                for (i = 0; i < 3; i++) {
+                    e = &D_8010D4F4_three_door_monty[i];
+                    o = e->obj;
+                    if (o->trans.z < -450.0f) {
+                        flag = 1;
+                    } else {
+                        func_801062F4_three_door_monty(o, 0, 0, 3, 2, &e->unk04);
+                    }
+                }
+                if (flag == 0) {
+                    D_8010EC42_three_door_monty = 1;
+                }
+            }
+            break;
+        case 3:
+            func_80107500_three_door_monty(obj);
+            func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+            flag = 0;
+            if (obj->work[0] == 2) {
+                if (obj->trans.z < -350.0f) {
+                    D_8010D252_three_door_monty = 2;
+                }
+                switch (D_8010D252_three_door_monty) {
+                    case 0:
+                        if ((u8)(rand8() % 10) == 0) {
+                            D_8010D252_three_door_monty = 1;
+                        }
+                        break;
+                    case 1:
+                        D_8010EC46_three_door_monty -= 10;
+                        if ((s16)D_8010EC46_three_door_monty <= 0) {
+                            D_8010EC46_three_door_monty = 0;
+                            if ((u8)(rand8() % 50) == 0) {
+                                D_8010D252_three_door_monty = 2;
+                            }
+                        }
+                        break;
+                    case 2:
+                        D_8010EC46_three_door_monty += 10;
+                        if ((s16)D_8010EC46_three_door_monty >= 255) {
+                            D_8010D252_three_door_monty = 0;
+                            D_8010EC46_three_door_monty = 255;
+                        }
+                        break;
+                }
+                flag = 0;
+                func_8001F9E4_main(obj->model[0], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+                func_8001F9E4_main(obj->model[1], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+            }
+            for (i = 0; i < 3; i++) {
+                e = &D_8010D4F4_three_door_monty[i];
+                if (e->unk06 != 5) {
+                    flag = 1;
+                }
+            }
+            if (flag == 0) {
+                D_8010EC46_three_door_monty = 255;
+                func_8001F9E4_main(obj->model[0], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+                func_8001F9E4_main(obj->model[1], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+                for (i = 0; i < 3; i++) {
+                    if (doors[i]->unk04 != 0 && doors[i]->unk04 != 1) {
+                        doors[i]->unk04 = 0;
+                    }
+                    D_8010EC42_three_door_monty = 3;
+                }
+            }
+            break;
+        case 4:
+            ent->unk06 = 0;
+            break;
+        case 7:
+            D_8010EC3A_three_door_monty = 0;
+            break;
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+            for (i = 0; i < 3; i++) {
+                D_8010EC4A_three_door_monty[i] = -1;
+            }
+            for (i = 0; i < 3; i++) {
+                if (doors[i]->unk04 != 5 && doors[i]->unk04 != 6) {
+                    doors[i]->unk04 = 5;
+                }
+            }
+            obj->rot.y = 0.0f;
+            if (obj->work[0] == D_8010D250_three_door_monty) {
+                switch (ent->unk06) {
+                    case 0:
+                        if (doors[ent->unk08]->unk06 == 1) {
+                            if (obj->trans.z > -600.0f && D_8010EC3C_three_door_monty == 0) {
+                                D_8010EC3C_three_door_monty = 1;
+                            }
+                            if (obj->trans.z < -450.0f) {
+                                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                                obj->trans.z += D_8010CD10_three_door_monty[obj->work[0]];
+                            } else {
+                                func_8001C92C_main(obj->model[0], 0.5f);
+                                ent->unk18 = 20.0f;
+                                ent->unk06 = 1;
+                            }
+                        }
+                        break;
+                    case 1:
+                        obj->trans.y = func_801067C4_three_door_monty(obj->trans.y, &ent->unk18, 2.0f);
+                        if (obj->trans.y < ent->unk24) {
+                            obj->trans.y = ent->unk24;
+                        }
+                        if (obj->trans.y <= ent->unk24) {
+                            func_8001C92C_main(obj->model[0], 1.0f);
+                            func_801062F4_three_door_monty(obj, 0, 0, 3, 2, &ent->unk04);
+                            ent->unk06 = 2;
+                        }
+                        break;
+                    case 2:
+                        D_8010EC3A_three_door_monty = 1;
+                        if ((D_8010EC30_three_door_monty == 10 || D_8010EC30_three_door_monty == 11 ||
+                             D_8010EC30_three_door_monty == 12 || D_8010EC30_three_door_monty == 13) &&
+                            D_8010EC48_three_door_monty == 1) {
+                            if (obj->trans.y <= ent->unk24) {
+                                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                                func_8001C92C_main(obj->model[0], 0.5f);
+                                ent->unk18 = 20.0f;
+                            }
+                            obj->trans.y = func_801067C4_three_door_monty(obj->trans.y, &ent->unk18, 2.0f);
+                            if (obj->trans.y < ent->unk24) {
+                                obj->trans.y = ent->unk24;
+                            }
+                        }
+                        break;
+                }
+            } else if (D_8010D4F4_three_door_monty[D_8010D250_three_door_monty].unk06 == 2) {
+                switch (ent->unk06) {
+                    case 0:
+                        if (doors[ent->unk08]->unk06 == 1) {
+                            if (obj->trans.z < -450.0f) {
+                                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                                obj->trans.z += D_8010CD10_three_door_monty[obj->work[0]];
+                            } else {
+                                func_801062F4_three_door_monty(obj, 0, 0, 3, 2, &ent->unk04);
+                                ent->unk06 = 1;
+                            }
+                        }
+                        break;
+                    case 1:
+                        ent->unk06 = 2;
+                        break;
+                    case 2:
+                        if (D_8010EC30_three_door_monty == 10 || D_8010EC30_three_door_monty == 11 ||
+                            D_8010EC30_three_door_monty == 12 || D_8010EC30_three_door_monty == 13) {
+                            if (obj->trans.y <= ent->unk24) {
+                                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+                                func_8001C92C_main(obj->model[0], 0.5f);
+                                ent->unk18 = 20.0f;
+                            }
+                            obj->trans.y = func_801067C4_three_door_monty(obj->trans.y, &ent->unk18, 2.0f);
+                            if (obj->trans.y < ent->unk24) {
+                                obj->trans.y = ent->unk24;
+                            }
+                            D_8010EC48_three_door_monty = 1;
+                        }
+                        break;
+                }
+            }
+            if (D_8010EC30_three_door_monty == 8 && obj->work[0] == 2) {
+                flag = 0;
+                for (i = 0; i < 3; i++) {
+                    e = &D_8010D4F4_three_door_monty[i];
+                    if (e->unk06 != 2) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 0) {
+                    for (i = 0; i < 3; i++) {
+                        e = &D_8010D4F4_three_door_monty[i];
+                        e->unk06 = 0;
+                        e->unk08 = -1;
+                    }
+                    D_8010EC42_three_door_monty = 8;
+                }
+            }
+            break;
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    if (ent->unk18 > 0.0f) {
+        ent->unk20 -= 0.02f;
+    } else if (ent->unk18 < 0.0f) {
+        ent->unk20 += 0.02f;
+    }
+    if (ent->unk20 < 0.1f) {
+        ent->unk20 = 0.1f;
+    } else if (ent->unk20 > 1.0f) {
+        ent->unk20 = 1.0f;
+    }
+    Hu3DModelScaleSet(obj->model[1], ent->unk20, obj->scale.y, ent->unk20);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80108C28_three_door_monty);
 
