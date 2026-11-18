@@ -31,6 +31,8 @@ extern u32 D_8010D248_fridged_bridges[1]; /* per effect type: lifetime */
 extern s16 D_8010DA30_fridged_bridges[1][12]; /* effect models */
 extern u16 D_8010DA48_fridged_bridges[1][12]; /* 1 = in use */
 extern omObjData *D_8010DA88_fridged_bridges;
+extern f32 D_800CCF98_main[];
+extern f32 D_800D4198_main[];
 
 void func_8010BDF0_fridged_bridges(void) {
     omOvlReturnEx(1);
@@ -110,7 +112,37 @@ void func_8010C178_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C1D8_fridged_bridges);
+/* Per-player camera: position from centre, rotation and zoom; culling view */
+void func_8010C1D8_fridged_bridges(omObjData *obj) {
+    Vec pos;
+    Vec at;
+    Vec up;
+    f32 rx;
+    f32 ry;
+    u8 i;
+
+    for (i = 0; i < obj->work[0]; i++) {
+        rx = CRotM[i].x;
+        ry = CRotM[i].y;
+        pos.x = sindf(ry) * cosdf(rx) * CZoomM[i] + CenterM[i].x;
+        pos.y = -sindf(rx) * CZoomM[i] + CenterM[i].y;
+        pos.z = cosdf(ry) * cosdf(rx) * CZoomM[i] + CenterM[i].z;
+        at.x = CenterM[i].x;
+        at.y = CenterM[i].y;
+        at.z = CenterM[i].z;
+        up.x = sindf(ry) * sindf(rx);
+        up.y = cosdf(rx);
+        up.z = cosdf(ry) * sindf(rx);
+        D_8010DA90_fridged_bridges[i].fan.x = pos.x;
+        D_8010DA90_fridged_bridges[i].fan.z = pos.z;
+        D_8010DA90_fridged_bridges[i].fan.angle = CRotM[i].y;
+        D_8010DA90_fridged_bridges[i].fan.fov = gCameraList[i].fov[0];
+        D_8010DA90_fridged_bridges[i].fan.len = D_800CCF98_main[i];
+        D_8010DA90_fridged_bridges[i].fan.back = D_800D4198_main[i];
+        Hu3DCamSetPositionOrientation(i, &pos, &at, &up);
+        Hu3DCamUpdateMtx(i);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C46C_fridged_bridges);
 

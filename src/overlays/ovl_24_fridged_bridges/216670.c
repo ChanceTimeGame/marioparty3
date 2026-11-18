@@ -159,7 +159,6 @@ extern s16 D_8010DA68_fridged_bridges;
 extern omObjData *D_8010DA6C_fridged_bridges;
 extern omObjData *D_8010DA70_fridged_bridges;
 extern omObjData *D_8010DA78_fridged_bridges[4];
-extern u8 D_8010DA90_fridged_bridges[4][0xC18];
 
 void func_80105F00_fridged_bridges(omObjData *obj);
 void func_80105F34_fridged_bridges(omObjData *obj);
@@ -248,7 +247,7 @@ void func_801059A0_fridged_bridges(void) {
         CenterM[i].z = -420.0f;
         D_800CCF98_main[i] = 5000.0f;
         D_800D4198_main[i] = 1000.0f;
-        func_80012888_main(i, func_80020E94_main, D_8010DA90_fridged_bridges[i]);
+        func_80012888_main(i, func_80020E94_main, &D_8010DA90_fridged_bridges[i]);
     }
     obj = omAddObj(0x7FDA, 0, 0, -1, func_8010C1D8_fridged_bridges);
     obj->work[0] = 4;

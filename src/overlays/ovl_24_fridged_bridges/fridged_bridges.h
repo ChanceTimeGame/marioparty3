@@ -49,4 +49,22 @@ typedef struct FbUV {
     /* 0x04 */ f32 v;
 } FbUV;
 
+/* main 20A20.c's draw-culling view (func_80020E94_main's first argument) */
+typedef struct HitViewFan {
+    /* 0x00 */ f32 angle;
+    /* 0x04 */ f32 x;
+    /* 0x08 */ f32 z;
+    /* 0x0C */ f32 fov;
+    /* 0x10 */ f32 len;
+    /* 0x14 */ f32 back;
+} HitViewFan;
+
+/* D_8010DA90_fridged_bridges: per player, the view func_80020E94_main culls with, and its work area */
+typedef struct FbView {
+    /* 0x000 */ HitViewFan fan;
+    /* 0x018 */ u8 unk18[0xC00];
+} FbView; // Size 0xC18
+
+extern FbView D_8010DA90_fridged_bridges[4];
+
 #endif
