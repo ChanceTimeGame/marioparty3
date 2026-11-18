@@ -94,10 +94,14 @@ extern u16 D_800D5558_main[4];
 extern s32 D_8010B810_crazy_cogs[8];
 extern D_80111B50_vine_with_me_Struct D_8010B830_crazy_cogs;
 extern s16 D_8010B858_crazy_cogs[4];
+extern s16 D_8010B860_crazy_cogs[5];
 extern CgCamera D_8010B898_crazy_cogs[2];
 /* .bss */
 extern f32 D_8010B9A8_crazy_cogs;
+extern s8 D_8010B990_crazy_cogs;
+extern s8 D_8010B9A2_crazy_cogs;
 extern s8 D_8010B9A6_crazy_cogs;
+extern s8 D_8010B9B0_crazy_cogs[0x32];
 extern CgEnt D_8010B9F0_crazy_cogs[70];
 extern s16 D_8010BA30_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].grp */
 extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr */
@@ -105,6 +109,7 @@ extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
+extern s8 D_8010DE68_crazy_cogs;
 extern s8 D_8010DE6A_crazy_cogs[4];
 extern s8 D_8010DEB4_crazy_cogs;
 /* .rodata */
@@ -113,6 +118,8 @@ extern const s16 D_8010B97C_crazy_cogs[];
 void func_8010B6E0_crazy_cogs(void);
 f32 func_801059BC_crazy_cogs(f32 angle, f32 add);
 s32 func_80105B7C_crazy_cogs(s32 max);
+f32 func_80105E4C_crazy_cogs(f32 x, f32 z);
+void func_80106AEC_crazy_cogs(s8 dir);
 void func_80106268_crazy_cogs(omObjData *obj);
 void func_80106270_crazy_cogs(omObjData *obj);
 void func_80106418_crazy_cogs(omObjData *obj);
@@ -491,11 +498,146 @@ void func_80106AEC_crazy_cogs(s8 dir) {
     D_8010DEB4_crazy_cogs = func_80105B7C_crazy_cogs(5) + 10;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80106B24_crazy_cogs);
+/* CPU: the plan (D_8010B9B0_crazy_cogs) step D_8010B990_crazy_cogs names a cog; turn until it faces entity
+ * D_8010B9A2_crazy_cogs. */
+void func_80106B24_crazy_cogs(void) {
+    CgEnt *cog = &D_8010B9F0_crazy_cogs[CG_ENT_8 + D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]];
+    CgEnt *ent;
+    f32 a;
+    f32 b;
+    s16 d;
 
+    if (cog->unk04 == 0) {
+        D_8010B9F0_crazy_cogs[4].unk06 = 0;
+        D_8010B9F0_crazy_cogs[4].unk08 = 0;
+        D_8010B9F0_crazy_cogs[4].unk0A = 0;
+        D_8010B9F0_crazy_cogs[4].unk0C = 0;
+        D_8010DE68_crazy_cogs = 0;
+        D_8010B990_crazy_cogs++;
+        return;
+    }
+    ent = &D_8010B9F0_crazy_cogs[D_8010B9A2_crazy_cogs];
+    if (ent->unk0E != 0) {
+        D_8010DE68_crazy_cogs = 1;
+        return;
+    }
+    a = func_80105E4C_crazy_cogs(cog->obj->trans.x, cog->obj->trans.z);
+    b = func_80105E4C_crazy_cogs(ent->obj->trans.x, ent->obj->trans.z);
+    d = CG_ABS(a - b);
+    if (d < 5 || d > 355) {
+        D_8010DE60_crazy_cogs = 0;
+        return;
+    }
+    if (D_8010B9A6_crazy_cogs > D_8010DEB4_crazy_cogs) {
+        if (a - b >= 0.0f) {
+            if (CG_ABS(a - b) >= 180.0f) {
+                func_80106AEC_crazy_cogs(2);
+            } else {
+                func_80106AEC_crazy_cogs(1);
+            }
+        } else {
+            if (CG_ABS(a - b) >= 180.0f) {
+                func_80106AEC_crazy_cogs(1);
+            } else {
+                func_80106AEC_crazy_cogs(2);
+            }
+        }
+    } else {
+        D_8010B9A6_crazy_cogs++;
+    }
+}
+
+/* CPU: turn the plan step's cog until one of entities 5..7 lines up with it. */
+#ifdef NON_MATCHING
+/* register/branch residue at the |a - b| (retail keeps b in $f2, no branch-likely) */
+void func_80106D54_crazy_cogs(void) {
+    CgEnt *cog = &D_8010B9F0_crazy_cogs[CG_ENT_8 + D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]];
+    CgEnt *ctl = &D_8010B9F0_crazy_cogs[4];
+    CgEnt *ent;
+    f32 a;
+    f32 b;
+    f32 d;
+    s16 di;
+    s16 i;
+
+    if (cog->unk04 == 0) {
+        D_8010B9F0_crazy_cogs[4].unk06 = 0;
+        D_8010B9F0_crazy_cogs[4].unk08 = 0;
+        D_8010B9F0_crazy_cogs[4].unk0A = 0;
+        D_8010B9F0_crazy_cogs[4].unk0C = 0;
+        D_8010DE68_crazy_cogs = 0;
+        D_8010B990_crazy_cogs++;
+        return;
+    }
+    a = func_80105E4C_crazy_cogs(cog->obj->trans.x, cog->obj->trans.z);
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010B9F0_crazy_cogs[5 + i];
+        if (ent->unk0E == 0) {
+            b = func_80105E4C_crazy_cogs(ent->obj->trans.x, ent->obj->trans.z);
+            d = a - b;
+            if (d < 0.0f) {
+                d = -d;
+            }
+            di = d;
+            if (di < 20 || di > 340) {
+                ctl->unk0C = 0;
+                D_8010B9A2_crazy_cogs = i + 5;
+                D_8010DE68_crazy_cogs = 2;
+                return;
+            }
+        }
+    }
+    if (D_8010B9A6_crazy_cogs > D_8010DEB4_crazy_cogs) {
+        switch (ctl->unk0C) {
+        case 0:
+            ctl->unk0C = func_80105B7C_crazy_cogs(2);
+            break;
+        case 1:
+            func_80106AEC_crazy_cogs(1);
+            break;
+        case 2:
+            func_80106AEC_crazy_cogs(2);
+            break;
+        }
+    } else {
+        D_8010B9A6_crazy_cogs++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80106D54_crazy_cogs);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80106F54_crazy_cogs);
+/* CPU: wander, turning one way or the other for a random time. */
+void func_80106F54_crazy_cogs(void) {
+    CgEnt *ctl = &D_8010B9F0_crazy_cogs[4];
+
+    switch (D_8010B9B0_crazy_cogs[D_8010B990_crazy_cogs]) {
+    case -1:
+        break;
+    case 4:
+    case 5:
+    case 6:
+        D_8010DE68_crazy_cogs = 1;
+        return;
+    }
+    if (++ctl->unk06 >= ctl->unk08) {
+        ctl->unk06 = 0;
+        ctl->unk08 = D_8010B860_crazy_cogs[func_80105B7C_crazy_cogs(5)];
+        ctl->unk0A = func_80105B7C_crazy_cogs(2);
+    }
+    if (D_8010B9A6_crazy_cogs > D_8010DEB4_crazy_cogs) {
+        switch (ctl->unk0A) {
+        case 0:
+            func_80106AEC_crazy_cogs(1);
+            break;
+        case 1:
+            func_80106AEC_crazy_cogs(2);
+            break;
+        }
+    } else {
+        D_8010B9A6_crazy_cogs++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107078_crazy_cogs);
 
