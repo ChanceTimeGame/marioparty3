@@ -158,6 +158,7 @@ s16 func_8010D03C_motor_rooter(f32);
 void func_8010D0AC_motor_rooter(f32 *, s16, f32);
 void func_8010D2E4_motor_rooter(s32);
 s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
+s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 
 // BSS
 extern f32 *D_801137C0_motor_rooter;
@@ -701,9 +702,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801076AC_
 
 /* <func_801079E8_motor_rooter> */
 #ifdef NON_MATCHING
-s16 func_8010FC10_motor_rooter(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
-void func_80107D50_motor_rooter(omObjData *object);
-
 void func_801079E8_motor_rooter(omObjData *object) {
     s16 var_a1;
     s16 i;
@@ -920,9 +918,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80108514_
 
 /* <func_801087C0_motor_rooter> */
 #ifdef NON_MATCHING
-void func_8010C084_motor_rooter(FuncContext *ctx);
-void func_8010C824_motor_rooter(FuncContext *ctx);
-
 void func_801087C0_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work;
     s16 hits[8];
@@ -1460,7 +1455,167 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010A174_
 #endif
 /* </func_8010A174_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010A440_motor_rooter);
+/* <func_8010A440_motor_rooter> */
+extern s8 D_800CBB6E_main[];  /* CPU stick x */
+extern u16 D_800CDA7C_main[]; /* CPU buttons */
+extern s8 D_800D20A1_main[];  /* CPU stick y */
+extern s16 D_80113458_motor_rooter;
+
+void func_8010A440_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    PlayerView *view = &m254_minigame->views[object->work[0]];
+    s16 best = 0;
+    s16 min;
+    s16 i;
+    s16 d;
+    s32 unused[24];
+
+    if (ctx->state == 0) {
+        switch (GwPlayer[m254_playerId[object->work[0]]].cpu_difficulty) {
+        case 0:
+            ctx->work.s8[2] = 8;
+            ctx->work.s8[3] = 7;
+            ctx->work.s8[4] = 5;
+            ctx->work.s8[5] = 3;
+            ctx->work.s8[6] = 1;
+            ctx->work.s8[7] = 1;
+            break;
+        case 1:
+            ctx->work.s8[2] = 6;
+            ctx->work.s8[3] = 5;
+            ctx->work.s8[4] = 4;
+            ctx->work.s8[5] = 4;
+            ctx->work.s8[6] = 3;
+            ctx->work.s8[7] = 3;
+            break;
+        case 2:
+            ctx->work.s8[2] = 4;
+            ctx->work.s8[3] = 3;
+            ctx->work.s8[4] = 3;
+            ctx->work.s8[5] = 5;
+            ctx->work.s8[6] = 6;
+            ctx->work.s8[7] = 6;
+            break;
+        case 3:
+            ctx->work.s8[2] = 2;
+            ctx->work.s8[3] = 1;
+            ctx->work.s8[4] = 2;
+            ctx->work.s8[5] = 6;
+            ctx->work.s8[6] = 8;
+            ctx->work.s8[7] = 10;
+            break;
+        }
+        ctx->work.s16[1] = 8;
+        ctx->state = 1;
+    }
+    D_800CBB6E_main[work->unk04] = 0;
+    D_800D20A1_main[work->unk04] = 0;
+    D_800CDA7C_main[work->unk04] = 0;
+    min = 999;
+    for (i = 0; i < 3; i++) {
+        if (view->unk2E[i] != -1 && work->unk1C <= view->unk4C[view->unk2E[i]]) {
+            if (view->unk4C[view->unk2E[i]] < min) {
+                min = view->unk4C[view->unk2E[i]];
+                best = i;
+            }
+        }
+    }
+    if (min != 999 && work->unk1C + ctx->work.s16[1] > view->unk4C[view->unk2E[best]]) {
+        if (work->unk16 != view->unk34[best][0]) {
+            d = view->unk34[best][0] - work->unk16;
+            if (d < 0) {
+                d += 7;
+            }
+            if (ctx->work.s8[0] > ctx->work.s8[2]) {
+                ctx->work.s8[0] = 0;
+                switch (D_80113458_motor_rooter) {
+                case 0:
+                case 1:
+                    if (d < 3) {
+                        D_800CBB6E_main[work->unk04] = 50;
+                    } else {
+                        if (d < 4) {
+                            (void)rand16();
+                        }
+                        D_800CBB6E_main[work->unk04] = -50;
+                    }
+                    break;
+                case 2:
+                    if (d < 3) {
+                        D_800CDA7C_main[work->unk04] = 0x8000;
+                    } else {
+                        if (d < 4) {
+                            (void)rand16();
+                        }
+                        D_800CDA7C_main[work->unk04] = 0x4000;
+                    }
+                    break;
+                }
+            } else {
+                ctx->work.s8[0]++;
+            }
+        } else {
+            ctx->work.s16[1] = 8 - rand16() % (ctx->work.s8[3] + 1);
+        }
+    } else {
+        ctx->work.s8[0] = 0;
+        if (rand16() % (ctx->work.s8[7] + 1) != 0) {
+            min = 999;
+            for (i = 0; i < 15; i++) {
+                if (work->unk1C < m254_minigame->unk14[view->unk90[i]]) {
+                    if (m254_minigame->unk14[view->unk90[i]] < min) {
+                        min = m254_minigame->unk14[view->unk90[i]];
+                        best = view->unk90[i];
+                    }
+                }
+            }
+            if (min != 999 && work->unk1C + ctx->work.s8[5] > m254_minigame->unk14[best] &&
+                work->unk16 != m254_minigame->unkDC[best]) {
+                d = m254_minigame->unkDC[best] - work->unk16;
+                if (d < 0) {
+                    d += 7;
+                }
+                if (ctx->work.s8[1] > ctx->work.s8[4]) {
+                    ctx->work.s8[1] = 0;
+                    switch (D_80113458_motor_rooter) {
+                    case 0:
+                    case 1:
+                        if (d < 3) {
+                            D_800CBB6E_main[work->unk04] = 50;
+                        } else {
+                            if (d < 4) {
+                                (void)rand16();
+                            }
+                            D_800CBB6E_main[work->unk04] = -50;
+                        }
+                        if (rand16() % (ctx->work.s8[6] + 1) == 0) {
+                            D_800CBB6E_main[work->unk04] *= -1;
+                        }
+                        break;
+                    case 2:
+                        if (d < 3) {
+                            D_800CDA7C_main[work->unk04] = 0x8000;
+                        } else {
+                            if (d < 4) {
+                                (void)rand16();
+                            }
+                            D_800CDA7C_main[work->unk04] = 0x4000;
+                        }
+                        if (rand16() % (ctx->work.s8[6] + 1) == 0) {
+                            D_800CDA7C_main[work->unk04] = ~D_800CDA7C_main[work->unk04];
+                            D_800CDA7C_main[work->unk04] &= 0xC000;
+                        }
+                        break;
+                    }
+                } else {
+                    ctx->work.s8[1]++;
+                }
+            }
+        }
+    }
+}
+/* </func_8010A440_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010ABC4_motor_rooter);
 
