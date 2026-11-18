@@ -205,6 +205,148 @@ void func_8010C46C_fridged_bridges(HmfModel *m, Matrix4f mtx) {
     guMtxF2L(mtx, (Mtx *)((u8 *)MTXBuf + MTXBufNum * 0x40));
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C738_fridged_bridges);
+typedef struct ColVtx {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+} ColVtx;
 
+/* main 20A20.c's collision grid (D_800D1104_main entries) */
+typedef struct HitGrid {
+    /* 0x00 */ s32 w;
+    /* 0x04 */ s32 h;
+    /* 0x08 */ f32 cw;
+    /* 0x0C */ f32 ch;
+    /* 0x10 */ u16 *polys;
+    /* 0x14 */ s16 *map0;
+    /* 0x18 */ s16 *map1;
+    /* 0x1C */ s16 *map2;
+    /* 0x20 */ void *cells;
+} HitGrid; /* size = 0x24 */
+
+#define CLAMP_S16(v) if ((v) > 0x7FFF) { (v) = 0x7FFF; } else if ((v) < -0x8000) { (v) = -0x8000; }
+
+extern HitGrid *D_800D1104_main;
+void func_80019668_main(HmfModel *arg0);
+void func_80024DF0_main(HmfData *, s16, void *, Matrix4f);
+s32 func_80021550_main(f32 x, f32 z, ColVtx *v);
+void func_8010CDE4_fridged_bridges(u16 list, FbView *view, HmfData *hmf, u16 id);
+
+/* NON_MATCHING: register allocation (masked 0, raw 68): view and model swap saved registers with
+   the grid and loop counters, as in main func_80020E94_main (retail view s2, m s3, grid s5). */
+#ifdef NON_MATCHING
+/* Draw callback (func_80020E94_main with the cells' display lists gathered per grid layer into one
+   list each, drawn once per layer) */
+void func_8010C738_fridged_bridges(FbView *view, HmfModel *m) {
+    ColVtx tri[3];
+    Matrix4f mtx;
+    Matrix4f ident;
+    f32 *fan;
+    s16 gi;
+    HitGrid *g;
+    s32 t;
+    s32 x;
+    s32 z;
+    s32 idx;
+    s32 id;
+    s32 i;
+    f32 x0;
+    f32 x1;
+    f32 z0;
+    f32 z1;
+    f32 cw;
+    f32 ch;
+
+    fan = &view->fan.fov;
+    m->hmf->unkD0 = (s32)m->unkB4;
+    if (m->unkB4 != NULL) {
+        func_80019668_main(m->unkB4);
+    }
+    gi = m->unk10;
+    func_8010C46C_fridged_bridges(m, mtx);
+    guMtxIdentF(ident);
+    sindf(view->fan.angle);
+    t = (D_800D1104_main[gi].w * D_800D1104_main[gi].cw) / 2.0f;
+    cosdf(view->fan.angle);
+    tri[0].y = tri[1].y = tri[2].y = 0;
+    t = (D_800D1104_main[gi].w * D_800D1104_main[gi].cw) / 2.0f + view->fan.x + sindf(view->fan.angle) * fan[2];
+    CLAMP_S16(t);
+    tri[0].x = t;
+    t = (D_800D1104_main[gi].h * D_800D1104_main[gi].ch) / 2.0f + view->fan.z + cosdf(view->fan.angle) * fan[2];
+    CLAMP_S16(t);
+    tri[0].z = t;
+    t = tri[0].x - sindf(fan[0] / 2.0f + view->fan.angle) * fan[1];
+    CLAMP_S16(t);
+    tri[1].x = t;
+    t = tri[0].z - cosdf(fan[0] / 2.0f + view->fan.angle) * fan[1];
+    CLAMP_S16(t);
+    tri[1].z = t;
+    t = tri[0].x - sindf(view->fan.angle - fan[0] / 2.0f) * fan[1];
+    CLAMP_S16(t);
+    tri[2].x = t;
+    t = tri[0].z - cosdf(view->fan.angle - fan[0] / 2.0f) * fan[1];
+    CLAMP_S16(t);
+    tri[2].z = t;
+    g = &D_800D1104_main[gi];
+    cw = g->cw;
+    ch = g->ch;
+    view->cnt[0] = view->cnt[1] = view->cnt[2] = 0;
+    for (z = 0; z < D_800D1104_main[gi].h; z++) {
+        z0 = z * ch + m->pos.z;
+        z1 = z0 + ch;
+        for (x = 0; x < g->w; x++) {
+            idx = z * g->w + x;
+            x0 = x * cw + m->pos.x;
+            x1 = x0 + cw;
+            id = g->map0[idx];
+            if (id != -1 && (func_80021550_main(x0, z0, tri) == 1 || func_80021550_main(x1, z0, tri) == 1 ||
+                             func_80021550_main(x0, z1, tri) == 1 || func_80021550_main(x1, z1, tri) == 1)) {
+                func_8010CDE4_fridged_bridges(0, view, m->hmf, id);
+            }
+            id = g->map1[idx];
+            if (id != -1 && (func_80021550_main(x0, z0, tri) == 1 || func_80021550_main(x1, z0, tri) == 1 ||
+                             func_80021550_main(x0, z1, tri) == 1 || func_80021550_main(x1, z1, tri) == 1)) {
+                func_8010CDE4_fridged_bridges(1, view, m->hmf, id);
+            }
+            id = g->map2[idx];
+            if (id != -1 && (func_80021550_main(x0, z0, tri) == 1 || func_80021550_main(x1, z0, tri) == 1 ||
+                             func_80021550_main(x0, z1, tri) == 1 || func_80021550_main(x1, z1, tri) == 1)) {
+                func_8010CDE4_fridged_bridges(2, view, m->hmf, id);
+            }
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        if (view->cnt[i] != 0) {
+            gSPEndDisplayList(&view->gfx[i][view->cnt[i]]);
+            func_80024DF0_main(&view->hmf[i], 0, (u8 *)MTXBuf + MTXBufNum * 0x40, ident);
+        }
+    }
+    MTXBufNum++;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010C738_fridged_bridges);
+#endif
+
+/* NON_MATCHING (masked 5, raw 6): retail indexes the count as (view + list * 2)->0x18 in the second
+   test; this C forms &view->cnt[list] first. Without the pointer GCC threads the first test's
+   branch past the second (retail does not). Same loads, stores and branches otherwise. */
+#ifdef NON_MATCHING
+/* Add the model data's display list id to grid layer list's display list. Retail adds a list only
+   while the layer's list is empty, so each layer draws the first visible cell's list per frame. */
+void func_8010CDE4_fridged_bridges(u16 list, FbView *view, HmfData *hmf, u16 id) {
+    u16 *cnt;
+
+    if (view->cnt[list] == 0) {
+        view->hmf[list] = *hmf;
+        ((Gfx **)view->hmf[list].unk3C)[0] = view->gfx[list];
+        view->hmf[list].unk10 = 1;
+    }
+    cnt = &view->cnt[list];
+    if (*cnt == 0) {
+        gSPDisplayList(&view->gfx[list][*cnt], ((Gfx **)hmf->unk3C)[id]);
+        (*cnt)++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010CDE4_fridged_bridges);
+#endif

@@ -2,6 +2,7 @@
 #define FRIDGED_BRIDGES_H
 
 #include "game/object.h"
+#include "game/hmfman.h"
 
 /* omObjData::data of a player (func_8010648C_fridged_bridges, 0x6C) */
 typedef struct FbPlayer {
@@ -62,7 +63,9 @@ typedef struct HitViewFan {
 /* D_8010DA90_fridged_bridges: per player, the view func_80020E94_main culls with, and its work area */
 typedef struct FbView {
     /* 0x000 */ HitViewFan fan;
-    /* 0x018 */ u8 unk18[0xC00];
+    /* 0x018 */ u16 cnt[3]; /* display lists in gfx[i] this frame */
+    /* 0x020 */ HmfData hmf[3]; /* copies of the model's data, drawing gfx[i] (func_8010CDE4_fridged_bridges) */
+    /* 0x2B8 */ Gfx gfx[3][100];
 } FbView; // Size 0xC18
 
 extern FbView D_8010DA90_fridged_bridges[4];
