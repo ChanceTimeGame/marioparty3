@@ -64,6 +64,30 @@ typedef struct PgBoard {
     /* 0x64 */ char unk64[4];
 } PgBoard; /* size 0x68 */
 
+/* MgWork::unk158 of a player. */
+typedef struct PgPlayer {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ char unk0C[8];
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ char unk22[2];
+    /* 0x24 */ s32 file; /* character model file | 0x2F */
+    /* 0x28 */ u8 player;
+    /* 0x29 */ u8 chr;
+    /* 0x2A */ u8 slot; /* 0 left, 1 right */
+    /* 0x2B */ u8 difficulty;
+    /* 0x2C */ u8 unk2C;
+    /* 0x2D */ s8 cpu;
+    /* 0x2E */ u8 unk2E;
+    /* 0x2F */ u8 grp; /* cursor sprite group */
+    /* 0x30 */ u8 unk30;
+    /* 0x31 */ u8 unk31;
+    /* 0x32 */ u8 unk32;
+    /* 0x33 */ u8 unk33;
+} PgPlayer;
+
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
 void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]); /* matrix copy */
@@ -93,6 +117,13 @@ void func_80107B20_popgun_pickoff(omObjData* obj);
 void func_80109260_popgun_pickoff(s32 arg0);
 s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
+void func_80106A44_popgun_pickoff(omObjData* obj);
+void func_8010ACB4_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
+void func_8010AD54_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
+void func_8010AE0C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
+void func_8010AE5C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
+void func_8010AF78_popgun_pickoff(s16 id, s8 arg1);
+void func_8010B0D4_popgun_pickoff(s16 id, u8 r, u8 g, u8 b, u16 a);
 s16 func_80109108_popgun_pickoff(s32 id);
 s16 func_80109150_popgun_pickoff(s16 tex, s16 n);
 HuSprite_Unk84_Unk00_Struct* func_80109218_popgun_pickoff(s16 tex, s16 frame);
@@ -249,11 +280,114 @@ void func_80106068_popgun_pickoff(void) {
 
 
 
+#ifdef NON_MATCHING
+void func_801060E8_popgun_pickoff(omObjData* obj) {
+    f32 pts[9][2] = {
+        { 115.0f, 93.0f }, { 160.0f, 93.0f }, { 204.0f, 93.0f }, { 115.0f, 128.0f }, { 160.0f, 128.0f },
+        { 204.5f, 128.0f }, { 114.0f, 163.0f }, { 159.5f, 163.0f }, { 205.0f, 163.0f },
+    };
+    u16 chrTex[8] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+    Vec pos;
+    Vec scr;
+    HuSprite_Unk84_Unk00_Struct* spr;
+    PgTarget* t;
+    s32 i;
+
+    D_8010CBD0_popgun_pickoff[0] = func_80109108_popgun_pickoff(0x530000);
+    D_8010CBF0_popgun_pickoff[0] = func_80109150_popgun_pickoff(D_8010CBD0_popgun_pickoff[0], 1);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[0], 0, 160, 120);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[0], 0, 0x4000);
+    D_8010CBD0_popgun_pickoff[1] = func_80109108_popgun_pickoff(0x530001);
+    spr = func_80109218_popgun_pickoff(D_8010CBD0_popgun_pickoff[1], 0);
+    D_8010CBF0_popgun_pickoff[1] = func_8010A024_popgun_pickoff(D_8010CBD0_popgun_pickoff[1], 0x1808);
+    func_8010AD54_popgun_pickoff(D_8010CBF0_popgun_pickoff[1], 0.0f, -70.0f, -400.0f);
+    func_8010AE0C_popgun_pickoff(D_8010CBF0_popgun_pickoff[1], 3.0f, 3.0f, 1.0f);
+    func_8010ACB4_popgun_pickoff(D_8010CBF0_popgun_pickoff[1], spr->unk04 * 0.5, spr->unk06, 0.0f);
+    func_8010AF78_popgun_pickoff(D_8010CBF0_popgun_pickoff[1], 0);
+    D_8010CBD0_popgun_pickoff[4] = func_80109108_popgun_pickoff(0x530004);
+    D_8010CBD0_popgun_pickoff[5] = func_80109108_popgun_pickoff(0x530005);
+    for (i = 0; i < 9; i++) {
+        t = &D_8010CC28_popgun_pickoff[i];
+        pos.x = t->x = (pts[i][0] - spr->unk04 * 0.5) * 3.0;
+        pos.y = t->y = (spr->unk06 - pts[i][1]) * 3.0 + -70.0;
+        pos.z = t->z = -400.0f;
+        func_80105E68_popgun_pickoff(&pos, &scr);
+        t->sx = scr.x;
+        t->sy = scr.y;
+        t->rot = -90.0f;
+        t->unk14 = -1;
+        t->unk16 = 0;
+        t->unk1B = 0;
+        t->board = func_8010A024_popgun_pickoff(D_8010CBD0_popgun_pickoff[4], 0x12009808);
+        func_8010ACB4_popgun_pickoff(t->board, 16.0f, 32.0f, 0.0f);
+        func_8010AD54_popgun_pickoff(t->board, t->x, t->y - 42.0, t->z - 10.0);
+        func_8010AE0C_popgun_pickoff(t->board, 3.0f, 3.0f, 1.0f);
+        func_8010AE5C_popgun_pickoff(t->board, 90.0f, 0.0f, 0.0f);
+        func_8010AF78_popgun_pickoff(t->board, 0);
+        func_8010B0D4_popgun_pickoff(t->board, 0, 0, 0, 0x100);
+    }
+    for (i = 0; i < 0x80; i++) {
+        D_8010CD50_popgun_pickoff[i].unk19 = 0;
+    }
+    for (i = 0; i < 9; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x530009, 0x2D9);
+            obj->trans.x = D_8010CC28_popgun_pickoff[i].x;
+            obj->trans.y = D_8010CC28_popgun_pickoff[i].y;
+            obj->trans.z = D_8010CC28_popgun_pickoff[i].z + 10.0;
+            obj->scale.z = 0.66f;
+            obj->scale.x = 0.66f;
+            obj->scale.y = 0.63f;
+        } else {
+            obj->model[i] = Hu3DModelLink(obj->model[0]);
+            Hu3DModelPosSet(obj->model[i], D_8010CC28_popgun_pickoff[i].x, D_8010CC28_popgun_pickoff[i].y,
+                            D_8010CC28_popgun_pickoff[i].z + 10.0);
+        }
+        Hu3DModelScaleSet(obj->model[i], obj->scale.x, obj->scale.y, obj->scale.z);
+        func_8001C92C_main(obj->model[i], 0.0f);
+    }
+    D_8010CBD0_popgun_pickoff[6] = func_80109108_popgun_pickoff(0x530007);
+    D_8010CBF0_popgun_pickoff[2] = func_80109150_popgun_pickoff(D_8010CBD0_popgun_pickoff[6], 2);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[2], 0, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[2], 1, 0x1000);
+    func_80055484_main(D_8010CBF0_popgun_pickoff[2], 0, 0, 0, 0, 0xC2);
+    func_80055484_main(D_8010CBF0_popgun_pickoff[2], 1, 0, 0, 0, 0xC2);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[2], 0, 60, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[2], 1, 260, 48);
+    D_8010CBD0_popgun_pickoff[11] = func_80109108_popgun_pickoff(
+        chrTex[((PgPlayer*)((MgWork*)D_800EC598_minigame[0]->data)->unk158)->chr] | 0x210000);
+    D_8010CBD0_popgun_pickoff[12] = func_80109108_popgun_pickoff(
+        chrTex[((PgPlayer*)((MgWork*)D_800EC598_minigame[1]->data)->unk158)->chr] | 0x210000);
+    D_8010CBF0_popgun_pickoff[6] = func_80109150_popgun_pickoff(D_8010CBD0_popgun_pickoff[11], 2);
+    func_80055024_main(D_8010CBF0_popgun_pickoff[6], 1, D_8010CBD0_popgun_pickoff[12], 0);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[6], 0, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[6], 1, 0x1000);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[6], 0, 36, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[6], 1, 236, 48);
+    D_8010CBD0_popgun_pickoff[8] = func_80109108_popgun_pickoff(0x2D);
+    D_8010CBD0_popgun_pickoff[9] = func_80109108_popgun_pickoff(0x2F);
+    D_8010CBF0_popgun_pickoff[4] = func_80109150_popgun_pickoff(D_8010CBD0_popgun_pickoff[8], 6);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 0, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 1, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 2, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 3, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 4, 0x1000);
+    HuSprAttrSet(D_8010CBF0_popgun_pickoff[4], 5, 0x1000);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 0, 80, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 1, 67, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 2, 53, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 3, 280, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 4, 267, 48);
+    func_80054904_main(D_8010CBF0_popgun_pickoff[4], 5, 253, 48);
+    obj->func = func_80106A44_popgun_pickoff;
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010C8E0_popgun_pickoff);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010C928_popgun_pickoff);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_801060E8_popgun_pickoff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_801068D0_popgun_pickoff);
 
