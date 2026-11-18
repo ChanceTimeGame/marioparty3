@@ -568,7 +568,74 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80107210_
 #endif
 /* </func_80107210_motor_rooter> */
 
+/* <func_801076AC_motor_rooter> */
+#ifdef NON_MATCHING
+extern s8 D_80113468_motor_rooter[];
+extern s8 D_8011346C_motor_rooter[];
+
+void func_801076AC_motor_rooter(omObjData *object) {
+    D_801137C8_motor_rooter_Struct *work = D_801137C8_motor_rooter;
+    SpriteData *sprite;
+    s16 busy;
+    s16 i;
+    s16 j;
+
+    for (j = 0; j < 2; j++, work++) {
+        busy = FALSE;
+        for (i = 0; i < 5; i++) {
+            if (work->unk28[i] != 0) {
+                busy = TRUE;
+            }
+        }
+        if (!busy && work->unk14 == 5) {
+            if (D_80113468_motor_rooter[j] == 0) {
+                for (i = 0; i < 5; i++) {
+                    func_80055458_main(m254_sprites[work->unk1E[i]].groupId, 0, 0);
+                }
+                if (++D_8011346C_motor_rooter[j] >= 3) {
+                    D_8011346C_motor_rooter[j] = 0;
+                    D_80113468_motor_rooter[j] = 1;
+                }
+            } else {
+                for (i = 0; i < 5; i++) {
+                    func_80055458_main(m254_sprites[work->unk1E[i]].groupId, 0, 0xFF);
+                }
+                if (++D_8011346C_motor_rooter[j] >= 3) {
+                    D_8011346C_motor_rooter[j] = 0;
+                    D_80113468_motor_rooter[j] = 0;
+                }
+            }
+        } else {
+            for (i = 0; i < 5; i++) {
+                sprite = &m254_sprites[work->unk1E[i]];
+                if (work->unk28[i] != 0) {
+                    if (work->unk28[i] == 1) {
+                        sprite->unk06 += 10;
+                        if (sprite->unk06 >= 0xFF) {
+                            sprite->unk06 = 0xFF;
+                            work->unk28[i] = 0;
+                        }
+                    } else {
+                        sprite->unk06 -= 10;
+                        if (sprite->unk06 <= 0) {
+                            sprite->unk06 = 0;
+                            work->unk28[i] = 0;
+                        }
+                    }
+                }
+                func_80055458_main(sprite->groupId, 0, (u8)sprite->unk06);
+            }
+        }
+        if (!(work->unk08 & 0x40)) {
+            m254_SetSpriteDispOn(work->unk4A, (s16)(j * 16 + 152),
+                                 (s16)(220 - (s32)(work->unk0C / m254_minigame->unk08 * 180.0f)));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801076AC_motor_rooter);
+#endif
+/* </func_801076AC_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801079E8_motor_rooter);
 
