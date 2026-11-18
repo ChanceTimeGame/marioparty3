@@ -901,11 +901,86 @@ void func_80107F4C_winners_wheel(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010842C_winners_wheel);
+void func_8010842C_winners_wheel(void) {
+    omAddPrcObj(func_80108458_winners_wheel, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80108458_winners_wheel);
+/* The intro: the peg ring gathers, the hosts react, the pegs blink three times. */
+void func_80108458_winners_wheel(void) {
+    WwPegs* work = D_8010A4C0_winners_wheel->data;
+    WwHost* host = D_8010A498_winners_wheel->data;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801089C8_winners_wheel);
+    work->unk00 = (work->unk00 | 8) & ~0x20;
+    func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 0);
+    func_8001C258_main(D_8010A4C0_winners_wheel->model[1], 4, 0);
+    for (i = 0; i < 18; i++) {
+        if (i == 0) {
+            omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]) * -10.5f, cosdf(work->unk04[0]) * -10.5f, 0.0f);
+        } else {
+            Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[i], sindf(work->unk04[i]) * -10.5f,
+                            cosdf(work->unk04[i]) * -10.5f, 0.0f);
+        }
+    }
+    for (i = 0; i < 18; i++) {
+        if (i != 9) {
+            work->unk04[0] = i * 20.0f;
+            work->unk04[1] = 340.0f - work->unk04[0];
+            omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]) * -10.5f, cosdf(work->unk04[0]) * -10.5f, -1.0f);
+            Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[1], sindf(work->unk04[1]) * -10.5f,
+                            cosdf(work->unk04[1]) * -10.5f, -1.0f);
+            HuAudFXPlay(0x4C8);
+            HuPrcSleep(4);
+        }
+    }
+    work->unk00 &= ~8;
+    D_8010A484_winners_wheel = -1;
+    func_8001C258_main(D_8010A4C0_winners_wheel->model[0], 4, 4);
+    func_8001C258_main(D_8010A4C0_winners_wheel->model[1], 4, 4);
+    work->unk00 |= 0x20;
+    func_80109104_winners_wheel();
+    while (CZoom < 2887.1f) {
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 2; i++) {
+        func_8001C624_main(D_8010A4B8_winners_wheel[i]->model[0], HmfModelData[D_8010A4B8_winners_wheel[i]->motion[4]].unk02, 0, 10, 0);
+        func_8001C814_main(D_8010A4B8_winners_wheel[i]->model[0], 2, 2);
+    }
+    func_80105F94_winners_wheel();
+    for (i = 0; i < 18; i++) {
+        work->unk04[i] = i * 20.0f;
+        if (i == 0) {
+            omSetTra(D_8010A4C0_winners_wheel, sindf(work->unk04[0]), cosdf(work->unk04[0]), 0.0f);
+        } else {
+            Hu3DModelPosSet(D_8010A4C0_winners_wheel->model[i], sindf(work->unk04[i]), cosdf(work->unk04[i]), 0.0f);
+        }
+        func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 0);
+    }
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 18; i++) {
+            func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 0);
+        }
+        work->unk00 = (work->unk00 | 0x10) & ~0x20;
+        HuPrcSleep(10);
+        for (i = 0; i < 18; i++) {
+            func_8001C258_main(D_8010A4C0_winners_wheel->model[i], 4, 4);
+        }
+        work->unk00 = (work->unk00 & ~0x10) | 0x20;
+        HuPrcSleep(10);
+    }
+    while (host->unk00 & 8) {
+        HuPrcVSleep();
+    }
+    func_80106EB0_winners_wheel(0);
+    func_80107B0C_winners_wheel();
+    work->unk00 &= ~0x20;
+    omDelPrcObj(NULL);
+}
+
+void func_801089C8_winners_wheel(void) {
+    omAddPrcObj(func_801089F4_winners_wheel, 0x50, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801089F4_winners_wheel);
 
