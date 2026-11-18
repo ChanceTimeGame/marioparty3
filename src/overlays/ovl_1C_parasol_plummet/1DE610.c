@@ -93,7 +93,7 @@ typedef struct PaItem {
     /* 0x0C */ f32 unk0C;
     /* 0x10 */ f32 unk10; /* drift speed */
     /* 0x14 */ f32 unk14;
-    /* 0x18 */ s32 unk18;
+    /* 0x18 */ f32 unk18; /* rotation */
     /* 0x1C */ u16 unk1C; /* 1 live */
     /* 0x1E */ char unk1E[2];
     /* 0x20 */ f32 unk20; /* scale */
@@ -1736,7 +1736,7 @@ void func_8010995C_parasol_plummet(s32 arg0) {
         item->unk08 = x + 100.0f;
     }
     item->unk0C = y + 70.0f;
-    item->unk18 = 0;
+    item->unk18 = 0.0f;
     item->unk10 = (u8)(rand8() % 5) + 5;
     item->unk00 = -20.0f;
     if (item->unk08 > 0.0f) {
@@ -1779,9 +1779,123 @@ void func_80109B38_parasol_plummet(s32 arg0) {
     item->unk1C = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109D74_parasol_plummet);
+void func_80109D74_parasol_plummet(omObjData* obj) {
+    Vec2f screen;
+    Vec pos;
+    PaItem* item;
 
+    item = obj->data;
+    if (item->unk1C & 1) {
+        if (D_8010AC66_parasol_plummet == 4) {
+            omDelObj(obj);
+            return;
+        }
+        omSetTra(obj, item->unk08, item->unk0C, 0.0f);
+        omSetRot(obj, 0.0f, 0.0f, item->unk18);
+        item->unk08 += item->unk10;
+        item->unk0C += item->unk14;
+        item->unk14 -= 1.0f;
+        if (item->unk14 < -20.0f) {
+            item->unk14 = -20.0f;
+        }
+        if (item->unk24 == 3) {
+            item->unk18 += item->unk00;
+            if (item->unk18 >= 360.0f) {
+                item->unk18 -= 360.0f;
+            }
+            if (item->unk18 < 0.0f) {
+                item->unk18 += 360.0f;
+            }
+        }
+        pos.x = item->unk08;
+        pos.y = item->unk0C;
+        pos.z = 0.0f;
+        Hu3DCam3DToScreen(0, &pos, &screen);
+        if ((s32)screen.y >= 0xF0) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            D_8010ABB8_parasol_plummet[item->unk04] = 0;
+            item->unk1C &= ~1;
+        }
+        if (D_8010AC66_parasol_plummet != 1 && D_8010AC66_parasol_plummet != 2) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            D_8010ABB8_parasol_plummet[item->unk04] = 0;
+            item->unk08 = -10000.0f;
+            item->unk0C = -10000.0f;
+        }
+    }
+}
+
+/* NON_MATCHING: retail rematerialises the 0.0f offsets at each use where this hoists them into f24 (masked 19,
+   one instruction long). Nearest player (0x10 | index) within 100, or (players only) nearest live item within 80;
+   -1 for none. */
+#ifdef NON_MATCHING
+s16 func_80109F7C_parasol_plummet(omObjData* obj, s32 arg1) {
+    PaPlayer* p;
+    PaItem* item;
+    omObjData* other;
+    f32 best;
+    s32 hit;
+    f32 x;
+    f32 y;
+    f32 dx;
+    f32 dy;
+    f32 d;
+    s32 i;
+
+    best = 100.0f;
+    hit = -1;
+    if (arg1 == 0) {
+        p = obj->data;
+        x = p->unk00 - 0.0f;
+        y = (p->unk04 - 0.0f) + 0.0f;
+    } else {
+        item = obj->data;
+        x = item->unk08;
+        y = item->unk0C;
+    }
+    for (i = 0; i < 4; i++) {
+        other = D_8010AB60_parasol_plummet[i];
+        if (other != obj) {
+            p = other->data;
+            dx = p->unk00 - 0.0f;
+            dy = p->unk04 - 0.0f;
+            dx -= x;
+            dx *= dx;
+            dy -= y;
+            dy *= dy;
+            d = HuSqrtf(dx + dy);
+            if (d < best) {
+                hit = i | 0x10;
+                best = d;
+            }
+        }
+    }
+    if (arg1 == 0) {
+        for (i = 0; i < 18; i++) {
+            if (D_8010ABB8_parasol_plummet[i] == 1) {
+                other = D_8010AB70_parasol_plummet[i];
+                if (other != obj) {
+                    item = other->data;
+                    dx = item->unk08;
+                    dy = item->unk0C;
+                    dx -= x;
+                    dx *= dx;
+                    dy -= y;
+                    dy *= dy;
+                    d = HuSqrtf(dx + dy);
+                    if ((d < best) & (d < 80.0f)) {
+                        hit = i;
+                        best = d;
+                    }
+                }
+            }
+        }
+    }
+    return hit;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109F7C_parasol_plummet);
+#endif
 
 __asm__(".section .rodata"); // TEMP: rodata of asm functions
 const s16 D_8010AB14_parasol_plummet[] = { 0x20, 0xE0, 0x20, 0xE0 };
