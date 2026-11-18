@@ -95,6 +95,10 @@ void func_80109084_crazy_cogs(omObjData *obj);
 f32 func_80105BD0_crazy_cogs(omObjData *obj);
 void func_80109298_crazy_cogs(omObjData *obj);
 void func_80109388_crazy_cogs(omObjData *obj);
+void func_801097EC_crazy_cogs(omObjData *obj);
+void func_80109B88_crazy_cogs(omObjData *obj, s32 arg1);
+void func_80109D24_crazy_cogs(void);
+void func_80109D44_crazy_cogs(omObjData *obj);
 s8 func_80109A44_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
@@ -193,6 +197,8 @@ extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
 extern f32 D_8010DE88_crazy_cogs[10];
+/* the hazard and shadow models the others link; retail reads their low halves (D_8010DE1A, D_8010DE1E) */
+extern s32 D_8010DE18_crazy_cogs[2];
 extern CgWander D_8010DE28_crazy_cogs[7];
 extern u8 D_8010B997_crazy_cogs;
 extern CgEnt D_8010C338_crazy_cogs[5]; /* = D_8010B9F0_crazy_cogs[CG_ENT_18] */
@@ -1567,7 +1573,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109A44_
 #endif
 
 /* A hazard wanders: random speed and direction on each axis for a random time; it turns back at its area's edge. */
-void func_80109B88_crazy_cogs(omObjData *obj) {
+void func_80109B88_crazy_cogs(omObjData *obj, s32 arg1) {
     CgWander *m;
     u32 w;
 
@@ -1609,9 +1615,149 @@ void func_80109D24_crazy_cogs(void) {
     D_8010B9E3_crazy_cogs[3] = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109D44_crazy_cogs);
+/* A hazard: while playing it moves by its velocity and grows its shadow; it respawns when it lands (or, the
+ * rolling one, leaves the field). */
+void func_80109D44_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80109F64_crazy_cogs);
+    func_801097EC_crazy_cogs(obj);
+    if (ent->unk04 != 0) {
+        switch (D_8010B99C_crazy_cogs) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            if (obj->trans.y > 25.0f) {
+                obj->trans.x = obj->trans.x - ent->unk18;
+                obj->trans.y = obj->trans.y - ent->unk1C;
+                D_8010DE88_crazy_cogs[obj->work[0]] += ent->unk20;
+            } else {
+                func_80109298_crazy_cogs(obj);
+                func_80109388_crazy_cogs(obj);
+                func_80109D24_crazy_cogs();
+            }
+            if (obj->work[0] == 9) {
+                if (obj->trans.z < 600.0f) {
+                    obj->trans.z = obj->trans.z + 35.0f;
+                } else {
+                    func_80109388_crazy_cogs(obj);
+                    func_80109D24_crazy_cogs();
+                }
+            }
+            func_80109B88_crazy_cogs(obj, 0);
+            break;
+        default:
+            if (ent->unk04 != 0) {
+                func_80109298_crazy_cogs(obj);
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[1], 4, 4);
+                ent->unk04 = 0;
+            }
+            break;
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, func_80105BD0_crazy_cogs(obj), obj->trans.z);
+        if (D_8010DE88_crazy_cogs[obj->work[0]] > 1.0f) {
+            D_8010DE88_crazy_cogs[obj->work[0]] = 1.0f;
+        }
+        Hu3DModelScaleSet(obj->model[1], D_8010DE88_crazy_cogs[obj->work[0]], 1.0f,
+                          D_8010DE88_crazy_cogs[obj->work[0]]);
+    }
+}
+
+/* A hazard's setup: model (the first loads it, the others link it), shadow, velocity, home and rotation by kind:
+ * 0..3 fall from the left or right, 4..6 from behind, 7 and 8 from the corners, 9 rolls in. */
+void func_80109F64_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + obj->work[0]];
+    f32 d;
+    f32 a;
+    u32 w;
+
+    if (obj->work[0] == 0) {
+        obj->model[0] = func_8000B0A0_main(0xA0062, 0x89);
+        func_8001C448_main(obj->model[0]);
+        func_8001C514_main(obj->model[0]);
+        obj->model[1] = func_8000B0A0_main(0, 0x14C9);
+        func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+        func_8001C448_main(obj->model[1]);
+        func_8001C514_main(obj->model[1]);
+        func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+        D_8010DE18_crazy_cogs[0] = obj->model[0];
+        D_8010DE18_crazy_cogs[1] = obj->model[1];
+    } else {
+        obj->model[0] = Hu3DModelLink(D_8010DE18_crazy_cogs[0]);
+        obj->model[1] = Hu3DModelLink(D_8010DE18_crazy_cogs[1]);
+    }
+    if (obj->work[0] < 4) {
+        a = 60.0f;
+        d = cosdf(0.0f) * cosdf(a) * 36.0f;
+        ent->unk1C = sindf(a) * 36.0f;
+        w = obj->work[0];
+        if (w < 2) {
+            ent->unk18 = 0.0f - d;
+            ent->pos.x = 0.0f - cosdf(0.0f) * cosdf(a) * 2900.0f;
+            ent->unk50.y = 90.0f;
+            ent->unk50.z = 300.0f;
+        } else if (w < 4) {
+            ent->unk18 = d;
+            ent->pos.x = cosdf(0.0f) * cosdf(a) * 2900.0f;
+            ent->unk50.y = 270.0f;
+            ent->unk50.z = a;
+        }
+        ent->pos.y = sindf(a) * 2900.0f;
+    } else if (obj->work[0] < 7) {
+        ent->unk18 = 0.0f;
+        ent->unk1C = 36.0f;
+        ent->pos.x = 0.0f;
+        ent->pos.y = 2900.0f;
+        ent->unk50.x = 90.0f;
+    }
+    if (obj->work[0] == 7) {
+        ent->unk18 = 45.0f;
+        ent->unk1C = 45.0f;
+        ent->pos.x = 1400.0f;
+        ent->pos.y = 2000.0f;
+        ent->pos.z = 0.0f;
+        ent->unk50.y = 270.0f;
+        ent->unk50.z = 45.0f;
+    }
+    if (obj->work[0] == 8) {
+        ent->unk18 = -45.0f;
+        ent->unk1C = 45.0f;
+        ent->pos.x = -1400.0f;
+        ent->pos.y = 2000.0f;
+        ent->pos.z = 0.0f;
+        ent->unk50.y = 90.0f;
+        ent->unk50.z = 315.0f;
+    }
+    if (obj->work[0] == 9) {
+        ent->unk18 = 5.0f;
+        ent->unk1C = 30.0f;
+        ent->pos.x = 0.0f;
+        ent->pos.y = 1800.0f;
+        ent->pos.z = 0.0f;
+        ent->unk50.y = 0.0f;
+        ent->unk50.x = 30.0f;
+    }
+    obj->trans.x = ent->pos.x;
+    obj->trans.y = ent->pos.y;
+    obj->trans.z = ent->pos.z;
+    obj->rot.x = ent->unk50.x;
+    obj->rot.y = ent->unk50.y;
+    obj->rot.z = ent->unk50.z;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    ent->unk20 = 0.0112499995f;
+    Hu3DModelScaleSet(obj->model[1], 0.1f, 1.0f, 0.1f);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_80109388_crazy_cogs(obj);
+    obj->func = func_80109D44_crazy_cogs;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010A4A4_crazy_cogs);
 
