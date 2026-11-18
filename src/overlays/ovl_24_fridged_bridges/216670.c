@@ -134,10 +134,10 @@ extern u8 D_800D6A90_main;
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 
-extern char D_8010D268_fridged_bridges[];
-extern char D_8010D27C_fridged_bridges[];
-extern char D_8010D290_fridged_bridges[];
-extern char D_8010D2A4_fridged_bridges[];
+extern const char D_8010D268_fridged_bridges[];
+extern const char D_8010D27C_fridged_bridges[];
+extern const char D_8010D290_fridged_bridges[];
+extern const char D_8010D2A4_fridged_bridges[];
 
 D_80111B50_vine_with_me_Struct D_8010CF20_fridged_bridges = {
     0, 0, 1, 0, 0, 0, 0, { 0 }, 0, { 0 }, -1, -1, 0x1518, 0x4B, 0x87,
@@ -148,7 +148,7 @@ s32 D_8010CF54_fridged_bridges[4] = { 0x450004, 0x450005, 0x450006, 0x450007 };
 s32 D_8010CF64_fridged_bridges[4] = { 0x450008, 0x450009, 0x45000A, 0x45000B };
 FbUV D_8010CF74_fridged_bridges[4] = { { -550.0f, -200.0f }, { 550.0f, -200.0f }, { -550.0f, 200.0f }, { 550.0f, 200.0f } }; /* unreferenced */
 char *D_8010CF94_fridged_bridges[4] = {
-    D_8010D2A4_fridged_bridges, D_8010D290_fridged_bridges, D_8010D27C_fridged_bridges, D_8010D268_fridged_bridges,
+    (char *)D_8010D2A4_fridged_bridges, (char *)D_8010D290_fridged_bridges, (char *)D_8010D27C_fridged_bridges, (char *)D_8010D268_fridged_bridges,
 };
 Vec D_8010CFA4_fridged_bridges[4] = { /* per player: start position */
     { -1300.0f, 0.0f, -780.0f }, { 1300.0f, 0.0f, -780.0f }, { -1300.0f, 0.0f, 780.0f }, { 1300.0f, 0.0f, 780.0f },
@@ -209,7 +209,7 @@ void func_80108648_fridged_bridges(omObjData *obj);
 void *func_8001D33C_main(s16 model, char *name);
 void func_8001EED8_main(s16 arg0, u8 arg1, s8 arg2);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
-extern char D_8010D2D8_fridged_bridges[];
+extern const char D_8010D2D8_fridged_bridges[];
 void func_80109F84_fridged_bridges(omObjData *obj);
 void func_8010A1A4_fridged_bridges(omObjData *obj);
 void func_8010B8CC_fridged_bridges(omObjData *obj);
@@ -386,13 +386,13 @@ void func_80105F34_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D268_fridged_bridges);
+const char D_8010D268_fridged_bridges[] = "m236_004b-cube51";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D27C_fridged_bridges);
+const char D_8010D27C_fridged_bridges[] = "m236_004b-cube42";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D290_fridged_bridges);
+const char D_8010D290_fridged_bridges[] = "m236_004b-cube52";
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D2A4_fridged_bridges);
+const char D_8010D2A4_fridged_bridges[] = "m236_004b-cube50";
 
 /* Water: two scrolling planes per player view. */
 void func_801061C4_fridged_bridges(omObjData *obj) {
@@ -804,7 +804,7 @@ void func_8010775C_fridged_bridges(omObjData *obj) {
     FbHmfPart *part;
 
     if (work->unk28 == 1) {
-        part = func_8001D33C_main(obj->model[0], D_8010D2D8_fridged_bridges);
+        part = func_8001D33C_main(obj->model[0], (char *)D_8010D2D8_fridged_bridges);
         part->scale.x = work->unk44 -= 0.1f;
         part->scale.y = work->unk44;
         part->scale.z = work->unk44;
@@ -847,7 +847,7 @@ void func_80107870_fridged_bridges(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D2D8_fridged_bridges);
+const char D_8010D2D8_fridged_bridges[] = "item_hook";
 
 /* CPU steering: follow the bridge path, avoiding the hazard */
 void func_801079CC_fridged_bridges(omObjData *obj, s8 *stickX, s8 *stickY) {
@@ -1020,7 +1020,7 @@ void func_801082D0_fridged_bridges(omObjData *obj) {
     D_8010DA70_fridged_bridges->work[2] &= ~(1 << work->unk02);
     func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5 + 4], 4, 4);
     Hu3DModelScaleSet(D_8010DA70_fridged_bridges->model[(s16)player * 5], 1.0f, 1.0f, 1.0f);
-    func_8001EF6C_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], obj->model[0], D_8010D2D8_fridged_bridges);
+    func_8001EF6C_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], obj->model[0], (char *)D_8010D2D8_fridged_bridges);
     func_8001C258_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], 0x4004, 0x4000);
     if (GwPlayer[work->unk02].chr == 5) {
         switch (work->unk04) {
