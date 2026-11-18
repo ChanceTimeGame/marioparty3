@@ -47,7 +47,7 @@ void func_8004AB0C_main(s32);
 void func_80108D20_game_guys_roulette(s16 x, s16 y);
 void func_80108FEC_game_guys_roulette(void);
 s16 func_80109078_game_guys_roulette(void);
-s16 func_80109B60_game_guys_roulette(s16 x);
+s16 func_80109B60_game_guys_roulette(s32 x);
 void func_80109D14_game_guys_roulette(void);
 s16 func_80109D98_game_guys_roulette(s32 file, s32 attr, s32 prio, s32 alpha);
 void func_80109E6C_game_guys_roulette(void);
@@ -252,7 +252,44 @@ s16 func_80109078_game_guys_roulette(void) {
     return 0;
 }
 
+/* Another ending of the effect (not called in this overlay): fade the mask layer in, then draw lines falling from
+   above x; returns 1 when done */
+// masked 4: retail computes x - 40 and x + 40 before the loop's s16 copy of x (scheduling only)
+#ifdef NON_MATCHING
+s16 func_80109B60_game_guys_roulette(s32 x) {
+    s16 i;
+    s32 left;
+    s32 right;
+
+    D_8010AC38_game_guys_roulette.spr->unk_84->unk00->unk00 = D_8010AC38_game_guys_roulette.buf[0];
+    if (D_8010A6B4_game_guys_roulette++ < 10) {
+        D_8010AC38_game_guys_roulette.alpha = 0;
+        return 0;
+    }
+    if (D_8010A6B4_game_guys_roulette < 30) {
+        D_8010AC38_game_guys_roulette.alpha = sindf((D_8010A6B4_game_guys_roulette - 10) * 4.5f) * 128.0f;
+        func_80055458_main(D_8010AC38_game_guys_roulette.grp, 0, D_8010AC38_game_guys_roulette.alpha);
+        return 0;
+    }
+    if (D_8010A6B4_game_guys_roulette >= 40) {
+        if (D_8010A6B4_game_guys_roulette < 90) {
+            i = 0;
+            left = x - 40;
+            right = x + 40;
+            for (; i < 5; i++) {
+                func_8010A3F4_game_guys_roulette(x, -100, i + (left + D_8010A6B4_game_guys_roulette), 240);
+                func_8010A3F4_game_guys_roulette(x, -100, (right - D_8010A6B4_game_guys_roulette) - i, 240);
+            }
+            D_8010A6B4_game_guys_roulette += 4;
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80109B60_game_guys_roulette);
+#endif
 
 void func_80109D14_game_guys_roulette(void) {
     HuSprAttrSet(D_8010AC38_game_guys_roulette.grp, 0, 0x8000);
