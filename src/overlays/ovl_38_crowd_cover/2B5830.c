@@ -1538,7 +1538,7 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
             break;
         case 4:
             rowH = cel->unk06;
-            if (rowH * w > 0x1000) {
+            if ((s32)(cel->unk06 * w) > 0x1000) {
                 rowH = 0x1000 / w;
             }
             break;
@@ -1596,6 +1596,7 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
             gSP2Triangles(g++, 0, 2, 3, 0, 0, 3, 1, 0);
         }
     }
+    gDPPipeSync(g++);
     gSPEndDisplayList(g++);
     b->cmds = g - start;
     b->gfx = HuMemAlloc(b->cmds * sizeof(Gfx));
@@ -1615,11 +1616,12 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
     s32 siz;
     s32 mode;
     s32 w;
-    u16 rowH;
+    u32 rowH;
     u32 strips;
     s32 rem;
     s32 i;
     s32 j;
+    s32 tc;
     s32 id;
 
     for (id = 0; id < D_8010D904_crowd_cover; id++) {
@@ -1675,7 +1677,7 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
             break;
         case 4:
             rowH = cel->unk06;
-            if (rowH * w > 0x1000) {
+            if ((s32)(cel->unk06 * w) > 0x1000) {
                 rowH = 0x1000 / w;
             }
             break;
@@ -1688,17 +1690,19 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
             break;
     }
     strips = cel->unk06 / rowH;
-    rem = cel->unk06 % rowH;
+    rem = cel->unk06 - strips * rowH;
     b->rows = strips + 2;
     b->rowH = rowH;
-    b->vtx = HuMemAlloc((s8)(strips + 2) * 2 * sizeof(Vtx));
+    b->vtx = HuMemAlloc((strips + 2) * 2 * sizeof(Vtx));
     for (i = 0; i < strips + 1; i++) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = (i * rowH) << 6;
+        tc = (i * rowH) << 6;
+        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
             b->vtx[i * 2 + j].v.cn[0] = 0xFF;
@@ -1734,7 +1738,7 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
     }
     if (func_8010980C_crowd_cover(b) == 0) {
         HuMemFree(b->vtx);
-        return -1;
+        id = -1;
     }
     return id;
 }
@@ -1750,11 +1754,12 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
     s32 siz;
     s32 mode;
     s32 w;
-    u16 rowH;
+    u32 rowH;
     u32 strips;
     s32 rem;
     s32 i;
     s32 j;
+    s32 tc;
 
     b = &D_8010D8EC_crowd_cover[id];
     b->spr = D_800C9530_main[tex];
@@ -1801,7 +1806,7 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
             break;
         case 4:
             rowH = cel->unk06;
-            if (rowH * w > 0x1000) {
+            if ((s32)(cel->unk06 * w) > 0x1000) {
                 rowH = 0x1000 / w;
             }
             break;
@@ -1814,17 +1819,19 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
             break;
     }
     strips = cel->unk06 / rowH;
-    rem = cel->unk06 % rowH;
+    rem = cel->unk06 - strips * rowH;
     b->rows = strips + 2;
     b->rowH = rowH;
-    b->vtx = HuMemAlloc((s8)(strips + 2) * 2 * sizeof(Vtx));
+    b->vtx = HuMemAlloc((strips + 2) * 2 * sizeof(Vtx));
     for (i = 0; i < strips + 1; i++) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = (i * rowH) << 6;
+        tc = (i * rowH) << 6;
+        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
             b->vtx[i * 2 + j].v.cn[0] = 0xFF;
