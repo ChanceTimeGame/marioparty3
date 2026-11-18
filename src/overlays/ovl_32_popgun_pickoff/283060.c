@@ -364,7 +364,7 @@ void func_801060E8_popgun_pickoff(omObjData* obj) {
         func_8010B0D4_popgun_pickoff(t->board, 0, 0, 0, 0x100);
     }
     for (i = 0; i < 0x80; i++) {
-        D_8010CD50_popgun_pickoff[i].unk19 = 0;
+        D_8010CD50_popgun_pickoff[i].state = 0;
     }
     for (i = 0; i < 9; i++) {
         if (i == 0) {
