@@ -47,7 +47,11 @@ void func_8004AD70_main(void);
 void func_800557A0_main(void);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
 
+extern s32 D_800A178C_main[][6];
+
 // minigame
+void func_800E149C_minigame(omObjData* obj, s32 arg1, s32 arg2);
+void func_800E6F0C_minigame(s8 arg0);
 u16 func_800E6E9C_minigame(void);
 extern s32 D_800EBEB0_minigame[];
 extern f32 D_800EB774_minigame;
@@ -61,7 +65,10 @@ void func_80106210_dorrie_dip(omObjData* obj);
 void func_801064FC_dorrie_dip(void);
 void func_80106538_dorrie_dip(void);
 void func_80106668_dorrie_dip(omObjData* obj);
+void func_80106BEC_dorrie_dip(void);
 void func_80106D50_dorrie_dip(void);
+void func_80106E14_dorrie_dip(omObjData* obj, s32 player);
+void func_80107360_dorrie_dip(omObjData* obj);
 void func_80106DB8_dorrie_dip(omObjData* obj);
 void func_801074CC_dorrie_dip(void);
 void func_80107690_dorrie_dip(void);
@@ -103,6 +110,7 @@ extern omObjData* D_8010A230_dorrie_dip;
 extern omObjData* D_8010A234_dorrie_dip;
 extern omObjData* D_8010A238_dorrie_dip;
 extern omObjData* D_8010A23C_dorrie_dip;
+extern s32 D_8010A240_dorrie_dip;
 
 void func_801059A0_dorrie_dip(void) {
     omObjData* obj;
@@ -434,15 +442,104 @@ void func_80106668_dorrie_dip(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106668_dorrie_dip);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106BC0_dorrie_dip);
+void func_80106BC0_dorrie_dip(void) {
+    omAddPrcObj(func_80106BEC_dorrie_dip, 0x50, 0, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106BEC_dorrie_dip);
+/* Process: drop the hook (motion 1), then back to idle (motion 0) and the game goes on. */
+void func_80106BEC_dorrie_dip(void) {
+    DrHook* work = D_8010A238_dorrie_dip->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106D50_dorrie_dip);
+    func_8001C624_main(D_8010A238_dorrie_dip->model[0], HmfModelData[D_8010A238_dorrie_dip->motion[1]].unk02, 0, 10, 0);
+    work->unk00 |= 2;
+    while (HmfModelData[D_8010A238_dorrie_dip->model[0]].unk40 <
+           D_800CCF58_main[HmfModelData[D_8010A238_dorrie_dip->model[0]].unk02].unk02) {
+        HuPrcVSleep();
+    }
+    func_8001C624_main(D_8010A238_dorrie_dip->model[0], HmfModelData[D_8010A238_dorrie_dip->motion[0]].unk02, 0, 10, 0);
+    func_8001C814_main(D_8010A238_dorrie_dip->model[0], 2, 2);
+    work->unk00 &= ~2;
+    func_800E6F0C_minigame(3);
+    omDelPrcObj(NULL);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106DB8_dorrie_dip);
+/* Raise the hook (motion 2). */
+void func_80106D50_dorrie_dip(void) {
+    DrHook* work = D_8010A238_dorrie_dip->data;
+
+    work->unk00 |= 4;
+    func_8001C624_main(D_8010A238_dorrie_dip->model[0], HmfModelData[D_8010A238_dorrie_dip->motion[2]].unk02, 0, 10, 0);
+}
+
+/* Find the playing player (group 0). */
+void func_80106DB8_dorrie_dip(omObjData* obj) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            D_8010A1FC_dorrie_dip = i;
+            break;
+        }
+    }
+    func_80106E14_dorrie_dip(obj, D_8010A1FC_dorrie_dip);
+}
+
+/* NON_MATCHING: masked 10; retail loads the two 0x20A99 stack arguments after the table loads (scheduling) */
+#ifdef NON_MATCHING
+/* The player: character model, the extra models and the motions. */
+void func_80106E14_dorrie_dip(omObjData* obj, s32 player) {
+    s32 mot0[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    s32 mot1[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
+    s32 mot2[8] = { 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F };
+    s32 mot3[8] = { 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36 };
+    s32 mot4[8] = { 0x35, 0x35, 0x35, 0x35, 0x35, 0x35, 0x35, 0x35 };
+    s32 mot5[8] = { 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F };
+    s32 mot6[8] = { 6, 6, 6, 6, 6, 6, 6, 6 };
+    s32 mot7[8] = { 0x9C, 0x9C, 0x9C, 0x9C, 0x9C, 0x9C, 0x9C, 0x9C };
+    func_800E1BA8_minigame_ObjData* work;
+    s32 chr;
+
+    D_800EC598_minigame[D_800EC280_minigame++] = obj;
+    chr = GwPlayer[player].chr;
+    func_800E1BA8_minigame(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][3], player, 0x20A99, 0x20A99);
+    work = obj->data;
+    obj->model[3] = func_8000B108_main(3, 0x6DD);
+    obj->model[4] = func_8000B108_main(4, 0x6DD);
+    obj->model[6] = func_8000B108_main(5, 0x6DD);
+    obj->model[5] = func_8000B108_main(6, 0x6DD);
+    obj->model[7] = func_8000B108_main(8, 0x6DD);
+    obj->model[8] = func_8000B108_main(7, 0x6DD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, mot0[chr]), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, mot1[chr]), 1, 0x13);
+    func_800E5A00_minigame(obj, 0x15, func_80017BB8_main(chr, mot2[chr]), 0, 0);
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, mot3[chr]), 1, 0x78);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, mot4[chr]), 1, 0x78);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, mot5[chr]), 2, 0);
+    func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, mot6[chr]), 1, 0x1D);
+    func_800E5A00_minigame(obj, 0x26, func_80017BB8_main(chr, mot7[chr]), 0, 0);
+    omSetTra(obj, 50.0f, 133.0f, 0.0f);
+    work->unk3C = 270.0f;
+    func_800E149C_minigame(obj, 0, 2);
+    func_800E149C_minigame(obj, 1, 2);
+    func_800E149C_minigame(obj, 2, 2);
+    func_800E149C_minigame(obj, 3, 2);
+    func_800E149C_minigame(obj, 4, 2);
+    func_800E5690_minigame(obj, 0);
+    D_8010A240_dorrie_dip = 0;
+    obj->func = func_80107360_dorrie_dip;
+}
+#else
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A094_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0B4_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0D4_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0F4_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A114_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A134_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A154_dorrie_dip);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A174_dorrie_dip);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80106E14_dorrie_dip);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107360_dorrie_dip);
 
@@ -471,22 +568,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081A8_
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081D4_dorrie_dip);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108458_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A094_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0B4_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0D4_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A0F4_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A114_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A134_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A154_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A174_dorrie_dip);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A194_dorrie_dip);
 
