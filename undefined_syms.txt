@@ -454,3 +454,12 @@ D_8010C60A_end_of_the_line = D_8010C600_end_of_the_line + 0xA;
 D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 /* m4 bg: the_beat_goes_on/1FE4D0 .data byte inside D_8010C310 (players made; a separate variable in C) */
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
+/* m5 ss: TEMP inner labels of 30F940 .data (until the data moves to C) */
+D_8010CB9E_game_guys_sweet_surprise = D_8010CB9C_game_guys_sweet_surprise + 0x2;
+D_8010CBA2_game_guys_sweet_surprise = D_8010CBA0_game_guys_sweet_surprise + 0x2;
+D_8010CBA6_game_guys_sweet_surprise = D_8010CBA4_game_guys_sweet_surprise + 0x2;
+D_8010CBAA_game_guys_sweet_surprise = D_8010CBA8_game_guys_sweet_surprise + 0x2;
+D_8010CBAE_game_guys_sweet_surprise = D_8010CBAC_game_guys_sweet_surprise + 0x2;
+D_8010CBCC_game_guys_sweet_surprise = D_8010CBC8_game_guys_sweet_surprise + 0x4;
+D_8010CC26_game_guys_sweet_surprise = D_8010CC24_game_guys_sweet_surprise + 0x2;
+D_8010CC4A_game_guys_sweet_surprise = D_8010CC48_game_guys_sweet_surprise + 0x2;
