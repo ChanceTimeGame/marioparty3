@@ -69,7 +69,7 @@ typedef struct BtPlayer {
 
 /* omObjData::data of a player's spin effect (func_8010A8F0_bounce_n_trounce) */
 typedef struct BtSpin {
-    /* 0x00 */ s16 unk00;
+    /* 0x00 */ u16 unk00; /* frames between particles */
     /* 0x02 */ char unk02[2];
     /* 0x04 */ f32 unk04; /* heading */
     /* 0x08 */ f32 unk08; /* speed */
@@ -89,13 +89,15 @@ typedef struct BtFxPart {
     /* 0x04 */ f32 speed;
     /* 0x08 */ f32 scale;
     /* 0x0C */ Vec pos;
-    /* 0x18 */ Vec dir;
-    /* 0x24 */ Vec vel;
+    /* 0x18 */ Vec vel;
+    /* 0x24 */ Vec damp;
 } BtFxPart; /* size 0x30 */
 
 /* HmfModel.unkBC for a vertex-scatter model (13F90.c's HmfFxWork). */
 typedef struct BtFxWork {
-    /* 0x00 */ char unk00[0x1C];
+    /* 0x00 */ char unk00[2];
+    /* 0x02 */ u16 unk02; /* frame */
+    /* 0x04 */ char unk04[0x18];
     /* 0x1C */ s32 unk1C;
     /* 0x20 */ s32 unk20;
     /* 0x24 */ s32 unk24;
@@ -634,7 +636,7 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     func_800138EC_main(obj->model[5], 1, 1);
     for (i = 0; i < hmf->count; i++, part++) {
         part->pos.x = part->pos.y = part->pos.z = 0.0f;
-        part->dir.x = part->dir.y = part->dir.z = 0.0f;
+        part->vel.x = part->vel.y = part->vel.z = 0.0f;
         part->speed = part->scale = 0.0f;
     }
     shadowObj = omAddObj(60, 0, 0, -1, func_8010A8F0_bounce_n_trounce);
@@ -1808,12 +1810,136 @@ void func_80109F68_bounce_n_trounce(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109F68_bounce_n_trounce);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010A664_bounce_n_trounce);
+/* The camera pulls back as the players jump higher */
+void func_8010A664_bounce_n_trounce(omObjData* obj) {
+    s32 i;
+    f32 top;
 
+    if (obj->work[0] != 0) {
+        top = 0.0f;
+        for (i = 0; i < 4; i++) {
+            if (top < D_8010AEDC_bounce_n_trounce[i]->trans.y) {
+                top = D_8010AEDC_bounce_n_trounce[i]->trans.y;
+            }
+        }
+        if (top > 300.0f) {
+            CZoom = top = (top - 300.0f) * 700.0f / 700.0f + 2100.0f;
+            if (top > 2800.0f) {
+                CZoom = 2800.0f;
+            }
+        } else {
+            CZoom = 2100.0f;
+        }
+    }
+}
+
+#ifdef NON_MATCHING
+/* the loop increment and the tile height load are scheduled differently, frame 8 bytes larger; logic checked */
+/* The spin effect's particles (the vertex-scatter model's hook) */
+void func_8010A740_bounce_n_trounce(s16 model) {
+    BtFxData* hmf;
+    BtFxWork* fx;
+    BtFxPart* part;
+    s32 tile;
+    s32 i;
+
+    hmf = (BtFxData*)HmfModelData[model].hmf;
+    fx = (BtFxWork*)HmfModelData[model].unkBC;
+    part = fx->parts;
+    for (i = 0; i < hmf->count; i++, part++) {
+        if (part->scale > 0.0f) {
+            part->pos.x += part->vel.x;
+            part->pos.y += part->vel.y;
+            part->pos.z += part->vel.z;
+            part->vel.x *= part->damp.x;
+            part->vel.z *= part->damp.z;
+            part->vel.y *= part->damp.y;
+            part->scale += part->speed;
+            if (part->scale < 0.0f) {
+                part->scale = 0.0f;
+            }
+            tile = func_8010AB1C_bounce_n_trounce(part->pos.x, part->pos.z);
+            if (tile >= 0 && tile < 9) {
+                if (part->pos.y < D_8010AED8_bounce_n_trounce[tile]->trans.y
+                    && D_8010AED8_bounce_n_trounce[tile]->trans.y - 300.0f < part->pos.y) {
+                    part->scale = 0.0f;
+                }
+            }
+        }
+    }
+    fx->unk02++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010A740_bounce_n_trounce);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010A8F0_bounce_n_trounce);
+/* Emits the spin effect's particles around the player in work[1] */
+void func_8010A8F0_bounce_n_trounce(omObjData* obj) {
+    omObjData* pobj;
+    BtPlayer* player;
+    BtSpin* spin;
+    BtFxWork* fx;
+    BtFxData* hmf;
+    BtFxPart* part;
+    f32 angle;
+    f32 speed;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010AAE0_bounce_n_trounce);
+    pobj = (omObjData*)obj->work[1];
+    player = pobj->data;
+    if (obj->work[0] != 0) {
+        if (obj->work[2] != 0) {
+            obj->work[2]--;
+            return;
+        }
+        spin = obj->data;
+        fx = (BtFxWork*)HmfModelData[pobj->model[5]].unkBC;
+        hmf = (BtFxData*)HmfModelData[pobj->model[5]].hmf;
+        part = fx->parts;
+        for (i = 0; i < hmf->count; i++, part++) {
+            if (part->scale <= 0.0f) {
+                break;
+            }
+        }
+        if (i != hmf->count) {
+            obj->work[2] = spin->unk00;
+            angle = spin->unk04;
+            spin->unk04 += spin->unk08;
+            if (spin->unk04 >= 360.0f) {
+                spin->unk04 -= 360.0f;
+            }
+            part->pos.x = pobj->trans.x;
+            part->pos.y = pobj->trans.y + 120.0f;
+            part->pos.z = pobj->trans.z;
+            speed = player->unk44 / 7.0f;
+            if (speed < 10.0f) {
+                speed = 10.0f;
+            }
+            part->vel.x = sindf(angle) * speed;
+            part->vel.z = cosdf(angle) * speed;
+            part->vel.y = -10.0f;
+            part->damp.x = 0.95f;
+            part->damp.z = 0.95f;
+            part->damp.y = 1.05f;
+            part->speed = -0.22f;
+            part->scale = 10.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010AB1C_bounce_n_trounce);
+f32 func_8010AAE0_bounce_n_trounce(f32 x0, f32 z0, f32 x1, f32 z1) {
+    return HuSqrtf((x0 - x1) * (x0 - x1) + (z0 - z1) * (z0 - z1));
+}
+
+/* The tile under (x, z), or -1 */
+s16 func_8010AB1C_bounce_n_trounce(f32 x, f32 z) {
+    u16 idx;
+
+    x += 450.0f;
+    z += 450.0f;
+    idx = (s32)(x / 300.0f) + (s32)(z / 300.0f) * 3;
+    if (idx >= 9) {
+        return -1;
+    }
+    return idx;
+}
