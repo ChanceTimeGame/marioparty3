@@ -188,6 +188,7 @@ void func_80107668_game_guys_lucky_7(omObjData* obj);
 void func_8010783C_game_guys_lucky_7(omObjData* obj);
 void func_80107AC4_game_guys_lucky_7(omObjData* obj);
 void func_80107DE4_game_guys_lucky_7(omObjData* obj);
+void func_80107EEC_game_guys_lucky_7(omObjData* obj);
 void func_80107F44_game_guys_lucky_7(omObjData* obj);
 void func_80107F6C_game_guys_lucky_7(void);
 void func_80107F98_game_guys_lucky_7(omObjData* obj);
@@ -204,6 +205,10 @@ void func_8010ADF8_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu);
 s16 func_8010AF44_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 arg3);
 s16 func_8010B13C_game_guys_lucky_7(s16 winId, s16 pad, s16 cpu, s16 arg3);
 
+void func_80107FD8_game_guys_lucky_7(void);
+void func_801080E8_game_guys_lucky_7(void);
+void func_8010826C_game_guys_lucky_7(void);
+void func_80108374_game_guys_lucky_7(omObjData* obj);
 void func_801083A0_game_guys_lucky_7(void);
 void func_80108498_game_guys_lucky_7(void);
 void func_801085D4_game_guys_lucky_7(void);
@@ -214,6 +219,7 @@ void func_8010B498_game_guys_lucky_7(omObjData* obj);
 
 /* 306F70 */
 void func_8010B830_game_guys_lucky_7(s16 x, s16 y);
+void func_8010C824_game_guys_lucky_7(void);
 void func_8010BAFC_game_guys_lucky_7(void);
 s16 func_8010BB88_game_guys_lucky_7(void);
 s16 func_8010C670_game_guys_lucky_7(s32 x);
@@ -1100,9 +1106,33 @@ void func_80107AC4_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107DE4_game_guys_lucky_7);
+void func_80107DE4_game_guys_lucky_7(omObjData* obj) {
+    GwPlayer[D_8010D6DC_game_guys_lucky_7.player].gameCoin = D_8010D6DC_game_guys_lucky_7.coinsStart;
+    if (D_8010D77A_game_guys_lucky_7 == 0) {
+        GwPlayer[D_8010D6DC_game_guys_lucky_7.player].bonusCoin = 0;
+    } else if (D_8010D77A_game_guys_lucky_7 == 1) {
+        if (D_8010D776_game_guys_lucky_7 == 7) {
+            GwPlayer[D_8010D6DC_game_guys_lucky_7.player].bonusCoin = 10;
+        } else {
+            GwPlayer[D_8010D6DC_game_guys_lucky_7.player].bonusCoin = 2;
+        }
+    }
+    WipeCreateOut(0, 20);
+    HuAudSeqFadeOut(30);
+    func_8004AB0C_main(30);
+    obj->func = func_80107EEC_game_guys_lucky_7;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107EEC_game_guys_lucky_7);
+void func_80107EEC_game_guys_lucky_7(omObjData* obj) {
+    if (WipeStatGet() != 1) {
+        osViBlack(0);
+        func_8010C824_game_guys_lucky_7();
+        GMesClose();
+        func_8005F524_main();
+        func_800557A0_main();
+        omOvlReturnEx(1);
+    }
+}
 
 void func_80107F44_game_guys_lucky_7(omObjData* obj) {
     if (D_800D530C_main == 1) {
@@ -1110,9 +1140,20 @@ void func_80107F44_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107F6C_game_guys_lucky_7);
+void func_80107F6C_game_guys_lucky_7(void) {
+    D_8010D772_game_guys_lucky_7 = 0;
+    D_8010D774_game_guys_lucky_7 = 0;
+    D_8010D776_game_guys_lucky_7 = 0;
+    D_8010D778_game_guys_lucky_7 = 0;
+    D_8010D77A_game_guys_lucky_7 = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107F98_game_guys_lucky_7);
+void func_80107F98_game_guys_lucky_7(omObjData* obj) {
+    func_80107FD8_game_guys_lucky_7();
+    func_801080E8_game_guys_lucky_7();
+    func_8010826C_game_guys_lucky_7();
+    obj->func = func_80108374_game_guys_lucky_7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107FD8_game_guys_lucky_7);
 
@@ -1120,7 +1161,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010826C_game_guys_lucky_7);
 
-void func_80108374_game_guys_lucky_7(void) {
+void func_80108374_game_guys_lucky_7(omObjData* obj) {
     func_801083A0_game_guys_lucky_7();
     func_80108498_game_guys_lucky_7();
     func_801085D4_game_guys_lucky_7();
