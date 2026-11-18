@@ -126,6 +126,11 @@ extern Vec D_8010A560_water_whirled[4][6]; /* splash positions */
 extern f32 D_8010A680_water_whirled[4][6]; /* splash speeds */
 extern Vec D_8010A6E0_water_whirled[4][6]; /* splash directions (x, z) */
 extern f32 D_8010A800_water_whirled[4][6]; /* splash scales */
+extern Vec D_8010A1A0_water_whirled[4]; /* last move per player */
+extern s16 D_8010A30C_water_whirled[4][20]; /* history for the running mean func_80107D18 */
+extern s32 D_8010A3AC_water_whirled[4]; /* next slot of D_8010A880 */
+extern s32 D_8010A3BC_water_whirled[4]; /* next slot of D_8010A30C */
+extern Vec D_8010A880_water_whirled[4][20]; /* history for the running mean func_80107DD4 */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -729,9 +734,41 @@ void func_801078F0_water_whirled(omObjData* obj, f32 scale) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80107D18_water_whirled);
+/* Running mean of the last 20 values of v for a player. */
+s32 func_80107D18_water_whirled(s32 player, s16 v) {
+    s32 sum;
+    u8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80107DD4_water_whirled);
+    D_8010A30C_water_whirled[player][D_8010A3BC_water_whirled[player]] = v;
+    D_8010A3BC_water_whirled[player]++;
+    if (D_8010A3BC_water_whirled[player] >= 20) {
+        D_8010A3BC_water_whirled[player] = 0;
+    }
+    sum = 0;
+    for (i = 0; i < 20; i++) {
+        sum += D_8010A30C_water_whirled[player][i];
+    }
+    return sum / 20;
+}
+
+/* Running mean of a player's last 20 moves (x, z) into out. */
+void func_80107DD4_water_whirled(s32 player, f32 speed, Vec* out) {
+    s32 i;
+
+    out->x = out->y = out->z = 0.0f;
+    D_8010A880_water_whirled[player][D_8010A3AC_water_whirled[player]].x = D_8010A1A0_water_whirled[player].x;
+    D_8010A880_water_whirled[player][D_8010A3AC_water_whirled[player]].z = D_8010A1A0_water_whirled[player].z;
+    D_8010A3AC_water_whirled[player]++;
+    if (D_8010A3AC_water_whirled[player] >= 20) {
+        D_8010A3AC_water_whirled[player] = 0;
+    }
+    for (i = 0; i < 20; i++) {
+        out->x += D_8010A880_water_whirled[player][i].x;
+        out->z += D_8010A880_water_whirled[player][i].z;
+    }
+    out->x /= 20.0f;
+    out->z /= 20.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80107F08_water_whirled);
 
