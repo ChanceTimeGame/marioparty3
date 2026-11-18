@@ -2094,7 +2094,143 @@ void func_8010BB4C_crowd_cover(Gfx** gfx, s32 arg1, s32 arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010BD74_crowd_cover);
+/* Draws one billboard: render state, its matrix, then a copy of its vertices and display list. */
+Gfx* func_8010BD74_crowd_cover(Gfx* g, PgBoard* b, f32 (*view)[4], Vec* rot) {
+    f32 sc[4][4];
+    f32 m[4][4];
+    f32 ofs[4][4];
+    f32 inv[4][4];
+    HuSprite_Unk84_Unk00_Struct* cel;
+    u8* vtx;
+    Mtx* mtx;
+    u8* dl;
+    u32 rm1;
+    u32 rm2;
+    u16 fmt;
+
+    cel = &b->spr->unk00[b->frame];
+    gDPPipeSync(g++);
+    gDPSetTextureFilter(g++, D_8010CA8C_crowd_cover[((s32)b->flags >> 2) & 3]);
+    gDPSetColorDither(g++, D_8010CA84_crowd_cover[((s32)b->flags >> 4) & 3]);
+    gDPSetAlphaCompare(g++, D_8010CA94_crowd_cover[((s32)b->flags >> 22) & 3]);
+    if (b->flags & 0x10000) {
+        gSPSetGeometryMode(g++, G_LIGHTING);
+    } else {
+        gSPClearGeometryMode(g++, G_LIGHTING);
+    }
+    fmt = b->spr->unk18;
+    rm2 = 0x110000;
+    if (b->flags & 0x08000000) {
+        rm2 = 0xC8004000;
+    }
+    if (b->flags & 0x1000) {
+        rm1 = 0x4850;
+        if (fmt & 0x8000) {
+            rm2 = 0x100000;
+            if (b->a == 0x100) {
+                gDPSetCombine(g++, 0xFFFE04, 0xFFFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0xFF9604, 0xFF11FFFF);
+            }
+        } else if (b->a == 0x100) {
+            rm1 = 0x3038;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x60FE04, 0x3FFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0x127E04, 0xFFFFF3F8);
+            }
+        } else {
+            rm1 = 0x4850;
+            rm2 = 0x100000;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x609604, 0x3F11FFFF);
+            } else {
+                gDPSetCombine(g++, 0x121604, 0xFF13FFFF);
+            }
+        }
+    } else {
+        rm1 = 0x2030;
+        if (b->flags & 0x02000000) {
+            gDPSetCombine(g++, 0x6097FF, 0x3FFDFE38);
+        } else {
+            gDPSetCombine(g++, 0x1217FF, 0xFFFFFE38);
+        }
+    }
+    switch (((s32)b->flags >> 10) & 3) {
+        case 0:
+            rm1 |= 0x200;
+            break;
+        case 2:
+            rm1 |= 0x40;
+            if (b->flags & 0x1000) {
+                rm1 |= 0x180;
+            }
+        case 1:
+            rm1 |= 8;
+            break;
+    }
+    if (b->flags & 0x2000) {
+        rm1 |= 0xC00;
+    }
+    if (b->flags & 0x08000000) {
+        gSPSetGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0xC8000000);
+    } else {
+        gSPClearGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0x0C080000);
+    }
+    gDPSetPrimColor(g++, 0, 0, b->r, b->g, b->b, b->a);
+    vtx = D_8010D8FC_crowd_cover;
+    mtx = (Mtx*)(vtx + b->rows * 2 * sizeof(Vtx));
+    dl = (u8*)mtx + sizeof(Mtx);
+    D_8010D8FC_crowd_cover = dl + b->cmds * sizeof(Gfx);
+    guMtxIdentF(ofs);
+    if (b->flags & 0x04000000) {
+        ofs[3][0] = -b->ofs.x;
+        ofs[3][1] = b->ofs.y;
+    } else {
+        ofs[3][0] = -(s32)(u16)cel->unk08;
+        ofs[3][1] = (u16)cel->unk0A;
+    }
+    ofs[3][2] = b->ofs.z;
+    func_8002367C_main(m, view);
+    func_80017C10_main((Mtx*)m, b->pos.x, b->pos.y, b->pos.z);
+    func_80017D24_main(m, b->rot.x, b->rot.y, b->rot.z);
+    func_80017CD0_main(m, b->scale.x, b->scale.y, b->scale.z);
+    switch (b->unk1A) {
+        case 1:
+            func_8008A120_main(m, rot->x);
+            break;
+        case 2:
+            func_8008A2A0_main((f32*)m, rot->y);
+            break;
+        case 7:
+            sc[0][0] = b->scale.x;
+            sc[1][1] = b->scale.y;
+            sc[2][2] = b->scale.z;
+            sc[3][3] = 1.0f;
+            sc[0][1] = sc[0][2] = sc[0][3] = sc[1][0] = sc[1][2] = sc[1][3] = sc[2][0] = sc[2][1] = sc[2][3] =
+                sc[3][0] = sc[3][1] = sc[3][2] = 0.0f;
+            func_80018544_main(m, inv);
+            func_80018044_main(sc, inv, m);
+        case 4:
+            break;
+    }
+    guMtxCatF(ofs, m, m);
+    guMtxF2L(m, mtx);
+    gDPPipeSync(g++);
+    gSPMatrix(g++, osVirtualToPhysical(mtx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    gDPPipeSync(g++);
+    gSPSegment(g++, 0x0C, cel->unk00);
+    gSPSegment(g++, 0x0E, vtx);
+    gDPPipeSync(g++);
+    memcpy(vtx, b->vtx, b->rows * 2 * sizeof(Vtx));
+    memcpy(dl, b->gfx, b->cmds * sizeof(Gfx));
+    if (!(b->flags & 0x8000)) {
+        gSPDisplayList(g++, dl);
+    }
+    return g;
+}
 
 void func_8010C45C_crowd_cover(void) {
     PgBoard* b;
