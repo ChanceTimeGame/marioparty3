@@ -170,7 +170,7 @@ void func_801096FC_three_door_monty(void);
 void func_8010973C_three_door_monty(omObjData *obj);
 void func_80109890_three_door_monty(omObjData *obj);
 void func_801099EC_three_door_monty(void);
-void func_80109A90_three_door_monty(omObjData *obj);
+f32 func_80109A90_three_door_monty(s16 mode, f32 arg);
 void func_80109C84_three_door_monty(omObjData *obj);
 void func_80109F0C_three_door_monty(omObjData *obj);
 void func_8010A27C_three_door_monty(void);
@@ -1438,9 +1438,93 @@ void func_801099EC_three_door_monty(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109A90_three_door_monty);
+f32 func_80109A90_three_door_monty(s16 mode, f32 arg) {
+    f32 ret = 0.0f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109C84_three_door_monty);
+    switch (mode) {
+        case 1:
+            ret = rand8() + arg;
+            break;
+        case 2:
+            ret = rand8() - arg;
+            break;
+        case 3:
+            ret = rand8() * arg;
+            break;
+        case 4:
+            ret = rand8() / (s16)arg;
+            break;
+        case 5:
+            ret = rand8() % (s16)arg;
+            break;
+        case 6:
+            if (rand8() % (s16)arg == 0) {
+                ret = 1.0f;
+            }
+            break;
+        case 0:
+        default:
+            ret = rand8();
+            break;
+    }
+    return ret;
+}
+
+void func_80109C84_three_door_monty(omObjData *obj) {
+    s16 kind = 0;
+    s16 act = 0;
+    s16 door = 0;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        if (D_8010EC4A_three_door_monty[i] == D_8010D250_three_door_monty) {
+            door = i;
+        }
+    }
+    switch (GwPlayer[obj->work[0]].cpu_difficulty) {
+        case 0:
+            act = func_80109A90_three_door_monty(6, 50.0f);
+            kind = func_80109A90_three_door_monty(5, 10.0f);
+            break;
+        case 1:
+            act = func_80109A90_three_door_monty(6, 30.0f);
+            kind = func_80109A90_three_door_monty(5, 15.0f);
+            break;
+        case 2:
+            act = func_80109A90_three_door_monty(6, 15.0f);
+            kind = func_80109A90_three_door_monty(5, 20.0f);
+            break;
+        case 3:
+            act = func_80109A90_three_door_monty(6, 10.0f);
+            kind = func_80109A90_three_door_monty(5, 25.0f);
+            break;
+    }
+    if (D_8010D254_three_door_monty >= 4957) {
+        act = 1;
+    }
+    if (act != 0) {
+        switch (kind) {
+            case 0:
+                D_800D5558_main[obj->work[3]] |= 0x2000;
+                break;
+            case 1:
+                D_800D5558_main[obj->work[3]] |= 0x4000;
+                break;
+            case 2:
+                D_800D5558_main[obj->work[3]] |= 0x8000;
+                break;
+            default:
+                if (door == 0) {
+                    D_800D5558_main[obj->work[3]] |= 0x2000;
+                } else if (door == 1) {
+                    D_800D5558_main[obj->work[3]] |= 0x4000;
+                } else if (door == 2) {
+                    D_800D5558_main[obj->work[3]] |= 0x8000;
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109F0C_three_door_monty);
 
