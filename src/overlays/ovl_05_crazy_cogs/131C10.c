@@ -106,6 +106,21 @@ void func_8010AAE0_crazy_cogs(omObjData *obj);
 void func_8010AAE8_crazy_cogs(omObjData *obj);
 void func_8010ABE0_crazy_cogs(omObjData *obj);
 void func_8010AE08_crazy_cogs(omObjData *obj);
+void func_8010B0F4_crazy_cogs(omObjData *obj);
+void func_800E6F0C_minigame(s8 arg0);
+void func_801063DC_crazy_cogs(void);
+void func_8010654C_crazy_cogs(void);
+void func_80106770_crazy_cogs(void);
+void func_80106910_crazy_cogs(void);
+void func_80106AB0_crazy_cogs(void);
+void func_80107778_crazy_cogs(void);
+void func_80107AB8_crazy_cogs(void);
+void func_80108EE8_crazy_cogs(void);
+void func_801091F4_crazy_cogs(void);
+void func_8010A4A4_crazy_cogs(void);
+void func_8010AAA4_crazy_cogs(void);
+void func_8010AF58_crazy_cogs(void);
+void func_8010AF94_crazy_cogs(void);
 s8 func_80109A44_crazy_cogs(omObjData *obj);
 void func_800E5978_minigame(omObjData *obj, u16 idx, s32 file, u16 flags, u16 speed);
 extern s32 D_800EBE24_minigame;
@@ -208,16 +223,18 @@ extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.
 extern s16 D_8010DE08_crazy_cogs[3];
 extern f32 D_8010DE88_crazy_cogs[10];
 extern s16 D_8010DE22_crazy_cogs;
+extern s16 D_8010DE20_crazy_cogs;
+extern s16 D_8010DE66_crazy_cogs;
 extern CgEnt *D_8010DEB0_crazy_cogs;
 extern s16 D_8010B9A4_crazy_cogs;
 extern f32 D_8010B998_crazy_cogs;
 /* the hazard and shadow models the others link; retail reads their low halves (D_8010DE1A, D_8010DE1E) */
 extern s32 D_8010DE18_crazy_cogs[2];
 extern CgWander D_8010DE28_crazy_cogs[7];
-extern u8 D_8010B997_crazy_cogs;
+extern s8 D_8010B997_crazy_cogs;
 extern CgEnt D_8010C338_crazy_cogs[5]; /* = D_8010B9F0_crazy_cogs[CG_ENT_18] */
-extern u8 D_8010B991_crazy_cogs[3];
-extern u8 D_8010DE10_crazy_cogs[3];
+extern s8 D_8010B991_crazy_cogs[3];
+extern s8 D_8010DE10_crazy_cogs[3];
 extern CgStick D_8010DE70_crazy_cogs[3];
 extern s8 D_8010B9E3_crazy_cogs[4];
 extern s16 D_8010DE0E_crazy_cogs;
@@ -225,8 +242,8 @@ extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
 extern s8 D_8010DE68_crazy_cogs;
 extern s16 D_8010DE62_crazy_cogs;
-extern u8 D_8010DE64_crazy_cogs;
-extern u8 D_8010DE69_crazy_cogs;
+extern s8 D_8010DE64_crazy_cogs;
+extern s8 D_8010DE69_crazy_cogs;
 extern s8 D_8010DE6A_crazy_cogs[4];
 extern s8 D_8010DEB4_crazy_cogs;
 /* .rodata */
@@ -2024,9 +2041,116 @@ void func_8010B09C_crazy_cogs(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B0F4_crazy_cogs);
+/* The minigame's flow (D_8010B99C_crazy_cogs): 0 intro, 1 start message, 2 play (timer D_8010DE66_crazy_cogs, ends
+ * early when all three team players are knocked off), 3 finish, 4 the solo player wins, 5 the team wins, 6 exit. */
+void func_8010B0F4_crazy_cogs(omObjData *obj) {
+    switch (D_8010B99C_crazy_cogs) {
+    case 0:
+        if (D_8010DE62_crazy_cogs == 1) {
+            GMesCreate(4);
+            D_8010B99C_crazy_cogs = 1;
+            D_8010DE20_crazy_cogs = 0;
+        }
+        break;
+    case 1:
+        if (GMesStatGet() == 0) {
+            D_8010B99C_crazy_cogs = 2;
+            GMesCreate(0x1A, 30, 160, 28);
+            D_8010DE66_crazy_cogs = 901;
+        }
+        if (++D_8010DE20_crazy_cogs == 57) {
+            HuAudSeqPlay(0x2F);
+        }
+        break;
+    case 2:
+        if (D_8010DE66_crazy_cogs <= 0) {
+            D_8010B99C_crazy_cogs = 3;
+            func_8003F5C0_main();
+            D_8010DE66_crazy_cogs = 0;
+            D_8010DE60_crazy_cogs = 0;
+            GMesCreate(0xF);
+            HuAudSeqFadeOut(120);
+        } else {
+            D_8010DE66_crazy_cogs--;
+            func_8003F578_main((D_8010DE66_crazy_cogs + 29) / 30);
+            if (D_8010B997_crazy_cogs == 3) {
+                func_8003F5C0_main();
+                D_8010B99C_crazy_cogs = 3;
+                D_8010DE60_crazy_cogs = 0;
+                GMesCreate(0xF);
+                HuAudSeqFadeOut(120);
+            }
+        }
+        break;
+    case 3:
+        if (GMesStatGet() == 0) {
+            D_8010DE66_crazy_cogs = 0;
+            if (D_8010B997_crazy_cogs == 3) {
+                D_8010B99C_crazy_cogs = 4;
+            } else {
+                D_8010B99C_crazy_cogs = 5;
+            }
+        }
+        break;
+    case 4:
+        if (++D_8010DE66_crazy_cogs >= 15) {
+            D_8010B9A0_crazy_cogs = -1;
+            HuAudSeqPlay(0x65);
+            GMesCreate(0x16, D_8010DE69_crazy_cogs);
+            GwPlayer[D_8010DE64_crazy_cogs].bonusCoin = 10;
+            D_8010DE66_crazy_cogs = 15;
+            D_8010B99C_crazy_cogs = 6;
+        }
+        break;
+    case 5:
+        if (++D_8010DE66_crazy_cogs >= 15) {
+            D_8010B9A0_crazy_cogs = 1;
+            HuAudSeqPlay(0x66);
+            GMesCreate(0x22, D_8010B991_crazy_cogs[0], D_8010B991_crazy_cogs[1], D_8010B991_crazy_cogs[2]);
+            GwPlayer[D_8010DE10_crazy_cogs[0]].bonusCoin = 10;
+            GwPlayer[D_8010DE10_crazy_cogs[1]].bonusCoin = 10;
+            GwPlayer[D_8010DE10_crazy_cogs[2]].bonusCoin = 10;
+            D_8010DE66_crazy_cogs = 15;
+            D_8010B99C_crazy_cogs = 6;
+        }
+        break;
+    case 6:
+        D_8010B9A0_crazy_cogs = 0;
+        if (GMesStatGet() == 0 && --D_8010DE66_crazy_cogs <= 0) {
+            WipeCreateOut(0, 20);
+            obj->func = func_8010B064_crazy_cogs;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B46C_crazy_cogs);
+void func_8010B46C_crazy_cogs(omObjData *obj) {
+    func_800E6F0C_minigame(2);
+    D_8010B99C_crazy_cogs = 0;
+    D_8010B997_crazy_cogs = 0;
+    D_8010DE66_crazy_cogs = 0;
+    D_8010DE62_crazy_cogs = 0;
+    D_8010DE0E_crazy_cogs = 0;
+    D_8010B9A0_crazy_cogs = 0;
+    D_8010DE60_crazy_cogs = 0;
+    D_8010B9E3_crazy_cogs[0] = D_8010B9E3_crazy_cogs[1] = D_8010B9E3_crazy_cogs[2] = D_8010B9E3_crazy_cogs[3] = 0;
+    D_8010B996_crazy_cogs = 0;
+    func_8010AF94_crazy_cogs();
+    func_801063DC_crazy_cogs();
+    func_80106770_crazy_cogs();
+    func_80106910_crazy_cogs();
+    func_80106AB0_crazy_cogs();
+    func_80107778_crazy_cogs();
+    func_80107AB8_crazy_cogs();
+    func_80108EE8_crazy_cogs();
+    func_8010AAA4_crazy_cogs();
+    func_8010A4A4_crazy_cogs();
+    func_801091F4_crazy_cogs();
+    func_8010AF58_crazy_cogs();
+    func_8010654C_crazy_cogs();
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_8010B0F4_crazy_cogs;
+}
 
 void func_8010B568_crazy_cogs(void) {
 }
@@ -2050,6 +2174,27 @@ void func_8010B570_crazy_cogs(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B6E0_crazy_cogs);
+void func_8010B6E0_crazy_cogs(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(32);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    func_8010B570_crazy_cogs();
+    HmfLightMaxSet(1);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(0, 0.0f, 90.0f, 560.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, 0.0f, 90.0f, 560.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010B97C_crazy_cogs, 0);
+    func_80045010_main(D_8010B97C_crazy_cogs, 1);
+    omAddObj(2000, 0, 0, -1, func_8010B46C_crazy_cogs);
+    omAddObj(2000, 0, 0, -1, func_8010B09C_crazy_cogs);
+    func_80105A3C_crazy_cogs();
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct *)&D_8010B830_crazy_cogs);
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", D_8010B97C_crazy_cogs);
+/* "ABC" in SJIS: the minigame's on-screen title */
+const s16 D_8010B97C_crazy_cogs[] = { 0x8260, 0x8261, 0x8262, 0x0000 };
