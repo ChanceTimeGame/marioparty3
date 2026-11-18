@@ -48,6 +48,7 @@ void func_800E131C_minigame(omObjData* obj, f32 arg1);
 void func_800E1404_minigame(omObjData* obj, f32 arg1, f32 arg2);
 extern s32 D_800EBEB0_minigame[];
 void func_800E6F0C_minigame(s32 arg0);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 
 // LOCAL
 void func_80105B04_tidal_toss(omObjData* obj);
@@ -62,6 +63,10 @@ void func_80106480_tidal_toss(omObjData* obj);
 void func_80106514_tidal_toss(omObjData* obj);
 void func_801065AC_tidal_toss(omObjData* obj);
 void func_80106D24_tidal_toss(Gfx** gfx, s32 arg1, s32 arg2);
+void func_80108460_tidal_toss(f32 d);
+void func_80109584_tidal_toss(omObjData* obj, f32 x, f32 y, f32 z);
+f32 func_8010A850_tidal_toss(Vec* a, Vec* b);
+f32 func_8010A8A4_tidal_toss(f32 x, f32 z);
 s16 func_8010A90C_tidal_toss(s32 id);
 s16 func_8010A954_tidal_toss(s16 tex, s16 n);
 HuSprite_Unk84_Unk00_Struct* func_8010AA1C_tidal_toss(s16 tex, s16 frame);
@@ -460,7 +465,37 @@ void func_801065AC_tidal_toss(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80106D24_tidal_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80108460_tidal_toss);
+/* Start a splash in the first free slot: its size by the distance d. */
+void func_80108460_tidal_toss(f32 d) {
+    TtSplash* sp;
+    s32 i;
+
+    for (sp = D_8010AF48_tidal_toss, i = 0; i < 8; i++, sp++) {
+        if (sp->unk10 == 0) {
+            sp->unk00 = 0.0f;
+            if (d <= 150.0) {
+                HuAudFXPlay(0x343);
+                sp->unk10 = 1;
+                sp->unk08 = 20.0f;
+                sp->unk04 = 60.0f;
+                sp->unk0C = 16.0f;
+            } else if (d <= 250.0) {
+                HuAudFXPlay(0x346);
+                sp->unk10 = 2;
+                sp->unk08 = 20.0f;
+                sp->unk04 = 120.0f;
+                sp->unk0C = 20.0f;
+            } else {
+                HuAudFXPlay(0x345);
+                sp->unk10 = 3;
+                sp->unk08 = 26.0f;
+                sp->unk04 = 240.0f;
+                sp->unk0C = 30.0f;
+            }
+            return;
+        }
+    }
+}
 
 void func_801085A4_tidal_toss(void) {
     s32 i;
@@ -524,7 +559,17 @@ void func_80108F08_tidal_toss(omObjData* obj, u32 file0, s32 file1, s32 player, 
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80109180_tidal_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80109584_tidal_toss);
+/* Effect at (x, y, z) on the first of the player's models 9..11 that is shown. */
+void func_80109584_tidal_toss(omObjData* obj, f32 x, f32 y, f32 z) {
+    s32 i;
+
+    for (i = 9; i < 12; i++) {
+        if (HmfModelData[obj->model[i]].unk18 & 4) {
+            func_800E4C88_minigame(obj, i, x, y, z, 0.0f, 0.0f);
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010961C_tidal_toss);
 
@@ -545,9 +590,23 @@ s32 func_8010A7F8_tidal_toss(void) {
     return D_8010AAFC_tidal_toss >> 16;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A850_tidal_toss);
+/* XZ distance */
+f32 func_8010A850_tidal_toss(Vec* a, Vec* b) {
+    return sqrtf((a->x - b->x) * (a->x - b->x) + (a->z - b->z) * (a->z - b->z));
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A8A4_tidal_toss);
+/* atan2df in 0..360 */
+f32 func_8010A8A4_tidal_toss(f32 x, f32 z) {
+    f32 full = 360.0f;
+    f32 a = atan2df(x, z);
+
+    if (a < 0.0f) {
+        a += full;
+    } else if (a >= full) {
+        a -= full;
+    }
+    return a;
+}
 
 s16 func_8010A90C_tidal_toss(s32 id) {
     void* file;
