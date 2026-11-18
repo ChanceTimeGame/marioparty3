@@ -48,6 +48,8 @@ void func_800142A0_main(s32);
 u8 func_8000B638_main(void);
 s32 func_80017BB8_main(s16, s16);
 s32 func_800202FC_main(Vec* v);
+s16 func_80032694_main(HmfData* hmf, u16 anim, s32 arg2, char* name);
+s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
 void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
 
 extern f32 D_800D51FC_main;
@@ -134,6 +136,8 @@ extern s32 D_8010B0F8_treadmill_grill[4]; /* CPU state per player */
 extern s32 D_8010B108_treadmill_grill[4]; /* CPU aggression per difficulty */
 extern s32 D_8010B118_treadmill_grill[4]; /* CPU state timer per player */
 extern TgStick D_8010B2E0_treadmill_grill[4];
+extern s32 D_8010B128_treadmill_grill[4][4]; /* landing puff timers per player */
+extern f32 D_8010B168_treadmill_grill[4];    /* landing puff scales */
 extern s32 D_8010B300_treadmill_grill; /* CPU input: buttons pressed */
 extern s32 D_8010B304_treadmill_grill; /* CPU input: buttons */
 extern s32 D_8010B308_treadmill_grill; /* CPU input: stick x */
@@ -907,9 +911,78 @@ void func_80108888_treadmill_grill(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108888_treadmill_grill);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801089E0_treadmill_grill);
+/* Loads the 16 player-skin models (D_8010B310). Masked 4: retail keeps the model number unextended in a
+   second register for the store; logic checked. */
+#ifdef NON_MATCHING
+void func_801089E0_treadmill_grill(void) {
+    void* data;
+    s16 anim;
+    u16 mdl;
+    s32 i;
 
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+    data = DataRead(0xA008A);
+    anim = HmfAnimRead(HmfModelData[(s16)(D_8010B310_treadmill_grill[0] = Hu3DModelCreate(data, 0xAC1))].hmf, 0xA008C,
+                       "c201n_00_DEF");
+    func_8001C448_main(D_8010B310_treadmill_grill[0]);
+    func_8001C514_main(D_8010B310_treadmill_grill[0]);
+    for (i = 1; i < 3; i++) {
+        mdl = Hu3DModelCreate(data, 0xAC1);
+        func_80032694_main(HmfModelData[(s16)mdl].hmf, anim, 0, "c201n_00_DEF");
+        func_8001C448_main(mdl);
+        func_8001C514_main(mdl);
+        D_8010B310_treadmill_grill[i] = mdl;
+    }
+    HuMemMemoryFreePerm(data);
+    data = DataRead(0xA008A);
+    anim = HmfAnimRead(HmfModelData[(s16)(D_8010B310_treadmill_grill[i] = Hu3DModelCreate(data, 0xAC1))].hmf, 0xA008D,
+                       "c201n_00_DEF");
+    func_8001C448_main(D_8010B310_treadmill_grill[i]);
+    func_8001C514_main(D_8010B310_treadmill_grill[i]);
+    for (i++; i < 16; i++) {
+        mdl = Hu3DModelCreate(data, 0xAC1);
+        func_80032694_main(HmfModelData[(s16)mdl].hmf, anim, 0, "c201n_00_DEF");
+        func_8001C448_main(mdl);
+        func_8001C514_main(mdl);
+        D_8010B310_treadmill_grill[i] = mdl;
+    }
+    HuMemMemoryFreePerm(data);
+    D_800D51FC_main = 1.0f;
+    D_800D5410_main = 1.0f;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801089E0_treadmill_grill);
+#endif
+
+/* Landing puffs (All Fired Up func_80108958 twin). Masked 3: retail sets i = 0 after the row load; logic checked. */
+#ifdef NON_MATCHING
+void func_80108C64_treadmill_grill(omObjData* obj, f32 x, f32 y, f32 z) {
+    s32* timer;
+    s32 i;
+    f32 sc;
+
+    timer = D_8010B128_treadmill_grill[((MgWork*)obj->data)->unk59];
+    for (i = 0; i < 4; i++) {
+        if (timer[i] >= 0) {
+            if (timer[i] == 0) {
+                Hu3DModelPosSet(obj->model[i + 10], x, y + 30.0f, z);
+                func_8001C258_main(obj->model[i + 10], 4, 0);
+            }
+            if (timer[i] < 8) {
+                sc = D_8010B168_treadmill_grill[timer[i] / 2];
+                Hu3DModelScaleSet(obj->model[i + 10], sc, sc, 1.0f);
+            }
+            if (timer[i] >= 8) {
+                timer[i] = -1;
+            }
+        }
+        timer[i]++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108C64_treadmill_grill);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80108DE0_treadmill_grill);
 
