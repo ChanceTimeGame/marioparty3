@@ -40,6 +40,13 @@ typedef struct DrUnk234 {
     /* 0x18 */ char unk18[8];
 } DrUnk234; /* size 0x20 */
 
+/* An entry of D_800CBB60_main (minigame BD210.c's MgSprModel) */
+typedef struct DrSprModel {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20;
+} DrSprModel; /* size 0x24 */
+
 // main
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -50,6 +57,8 @@ void func_8001EF6C_main(s16 arg0, s16 arg1, char* arg2);
 extern s32 D_800A178C_main[][6];
 
 extern s8 D_800CBB6E_main[];
+extern DrSprModel* D_800CBB60_main;
+extern u16 D_800A11D0_main[6]; /* the prize items */
 extern s16 D_800CDA7C_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[];
@@ -79,6 +88,7 @@ void func_80106DB8_dorrie_dip(omObjData* obj);
 void func_801074CC_dorrie_dip(void);
 void func_801074F8_dorrie_dip(void);
 void func_80107690_dorrie_dip(void);
+void func_801079D4_dorrie_dip(omObjData* obj);
 void func_80107D58_dorrie_dip(void);
 void func_80108148_dorrie_dip(void);
 void func_801081A8_dorrie_dip(void);
@@ -604,7 +614,61 @@ void func_801074F8_dorrie_dip(void) {
     omDelPrcObj(NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107690_dorrie_dip);
+/* The prizes: one on each Dorrie except a random one (D_8010A200). */
+void func_80107690_dorrie_dip(void) {
+    s32 unused[16]; /* cleared, never read */
+    s32 files[16] = { 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C };
+    omObjData* obj;
+    DrPrize* work;
+    DrRing* ring;
+    void* data;
+    s32 spr;
+    s32 i;
+    s32 n;
+
+    obj = omAddObj(0xFE, 10, 0, -1, func_801079D4_dorrie_dip);
+    obj->data = HuMemAllocTag(sizeof(DrPrize), 0x7918);
+    D_8010A23C_dorrie_dip = obj;
+    work = obj->data;
+    ring = D_8010A230_dorrie_dip->data;
+    for (i = 0; i < 16; i++) {
+        unused[i] = 0;
+    }
+    (void)unused;
+    D_8010A200_dorrie_dip = (u8)(rand8() % 6);
+    D_8010A208_dorrie_dip[D_8010A200_dorrie_dip] = 0x11;
+    for (n = 0, i = 0; i < 6; i++) {
+        if (i != D_8010A200_dorrie_dip) {
+            D_8010A208_dorrie_dip[i] = D_800A11D0_main[n];
+            data = DataRead(files[D_8010A208_dorrie_dip[i]] | 0x210000);
+            spr = HmfSprModelCreate(data, 0xA99, 8);
+            DataClose(data);
+            obj->model[n] = D_800CBB60_main[(s16)spr].unk00;
+            func_8001C2FC_main(obj->model[n], 0x70000000, 0x70000000);
+            work->unk00[n] = sindf(ring->unk18[i]) * 450.0f;
+            work->unk14[n] = 1500.0f;
+            work->unk28[n] = cosdf(ring->unk18[i]) * 450.0f;
+            work->unkB4[n] = i;
+            work->unk64[n] = 30.0f;
+            work->unk8C[n] = 0.0f;
+            work->unk78[n] = 0.0f;
+            if (n == 0) {
+                omSetTra(obj, work->unk00[0], work->unk14[0], work->unk28[0]);
+                omSetSca(obj, 3.0f, 3.0f, 3.0f);
+            } else {
+                Hu3DModelPosSet(obj->model[n], work->unk00[n], work->unk14[n], work->unk28[n]);
+                Hu3DModelScaleSet(obj->model[n], 3.0f, 3.0f, 3.0f);
+            }
+            work->unkA0[n] = 0;
+            if (n == 0) {
+                obj->model[5] = func_8000B108_main(9, 0x4A9);
+            } else {
+                obj->model[n + 5] = Hu3DModelLink(obj->model[5]);
+            }
+            n++;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801079D4_dorrie_dip);
 
@@ -625,8 +689,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081A8_
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081D4_dorrie_dip);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108458_dorrie_dip);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", D_8010A194_dorrie_dip);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108484_dorrie_dip);
 
