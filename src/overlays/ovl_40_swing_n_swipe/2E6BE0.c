@@ -714,7 +714,7 @@ void func_801072D0_swing_n_swipe(void) {
         if (D_8010BD5C_swing_n_swipe == 0) {
             D_8010C0A4_swing_n_swipe = cosdf(obj->rot.y - 90.0f) * 100.0f + obj->trans.x;
             D_8010C0A8_swing_n_swipe = obj->trans.z - sindf(obj->rot.y - 90.0f) * 100.0f;
-            m = HmfModelData + D_8010C170_swing_n_swipe[D_8010C160_swing_n_swipe][0];
+            m = &HmfModelData[D_8010C170_swing_n_swipe[D_8010C160_swing_n_swipe][0]];
             D_8010C0AC_swing_n_swipe = D_8010C0A4_swing_n_swipe - m->pos.x;
             D_8010C0B0_swing_n_swipe = D_8010C0A8_swing_n_swipe - m->pos.z;
             if (HuSqrtf(D_8010C0AC_swing_n_swipe * D_8010C0AC_swing_n_swipe
@@ -759,7 +759,7 @@ void func_801072D0_swing_n_swipe(void) {
             D_8010C0A4_swing_n_swipe = cosdf(obj->rot.y - 90.0f) * 100.0f + obj->trans.x;
             D_8010C0A8_swing_n_swipe = obj->trans.z - sindf(obj->rot.y - 90.0f) * 100.0f;
             for (i = 0; i < 5; i++) {
-                m = HmfModelData + D_8010C170_swing_n_swipe[i][0];
+                m = &HmfModelData[D_8010C170_swing_n_swipe[i][0]];
                 D_8010C0AC_swing_n_swipe = D_8010C0A4_swing_n_swipe - m->pos.x;
                 D_8010C0B0_swing_n_swipe = D_8010C0A8_swing_n_swipe - m->pos.z;
                 if (HuSqrtf(D_8010C0AC_swing_n_swipe * D_8010C0AC_swing_n_swipe
@@ -1388,11 +1388,110 @@ void func_8010A3FC_swing_n_swipe(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A780_swing_n_swipe);
+/* While carried (D_8010C154_swing_n_swipe 2): each bag rides on its thief's back. */
+void func_8010A780_swing_n_swipe(void) {
+    s16 i = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A994_swing_n_swipe);
+    if (D_8010C154_swing_n_swipe == 2) {
+        for (i = 0; i < 5; i++) {
+            HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x =
+                HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x
+                + cosdf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y + 270.0f) * 50.0f;
+            HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.y = HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.y + 140.0f;
+            HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z =
+                HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z
+                - sindf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y + 270.0f) * 50.0f;
+            HmfModelData[D_8010C190_swing_n_swipe[i][0]].rot.y = HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010AA3C_swing_n_swipe);
+/* After a catch (D_8010C154_swing_n_swipe 3): the netted thief's bag drops to the ground. */
+void func_8010A994_swing_n_swipe(void) {
+    s16 i = D_8010C15E_swing_n_swipe;
+
+    if (D_8010C154_swing_n_swipe == 3) {
+        HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.y -= 10.0f;
+        if (HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.y <= 0.0f) {
+            HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.y = 0.0f;
+            D_8010C154_swing_n_swipe = 0;
+        }
+    }
+}
+
+/* The prize (D_8010C154_swing_n_swipe 4): the netted bag opens, its coin count flies up to the player with a
+ * burst of dust and bobs over the field. */
+void func_8010AA3C_swing_n_swipe(void) {
+    s16 i;
+
+    if (D_8010C154_swing_n_swipe == 4) {
+        i = D_8010C15E_swing_n_swipe;
+        switch (D_8010BEE8_swing_n_swipe) {
+        case 0:
+            Hu3DModelPosSet(D_8010C190_swing_n_swipe[i][1], HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x, 40.0f,
+                            HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z);
+            func_8001C8A8_main(D_8010C190_swing_n_swipe[i][1], 1);
+            func_8001C92C_main(D_8010C190_swing_n_swipe[i][0], 1.0f);
+            HuAudFXPlay(0x4F7);
+            D_8010BEE8_swing_n_swipe++;
+            break;
+        case 1:
+            if (D_800CCF58_main[HmfModelData[D_8010C190_swing_n_swipe[i][0]].unk02].unk02
+                == HmfModelData[D_8010C190_swing_n_swipe[i][0]].unk40) {
+                HuAudFXPlay(0x4F3);
+                func_800138EC_main(D_8010C1B8_swing_n_swipe[0], 1, 1);
+                func_8000CD00_main(D_8010C1B8_swing_n_swipe[0], 5.0f, 20.0f, 10.0f);
+                func_8000D018_main(D_8010C1B8_swing_n_swipe[0], 100.0f);
+                func_8000CFA4_main(D_8010C1B8_swing_n_swipe[0], HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.x,
+                                   HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.y,
+                                   HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.z);
+                func_8001C8A8_main(D_8010C1B8_swing_n_swipe[1], 1);
+                Hu3DModelPosSet(D_8010C1B8_swing_n_swipe[1], HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.x, 0.0f,
+                                HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.z);
+                D_8010C158_swing_n_swipe = 1;
+                D_8010BEE8_swing_n_swipe++;
+            }
+            break;
+        case 2:
+            HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.y =
+                40.0f - sindf(D_8010BEEA_swing_n_swipe * 3.0f) * -310.0f;
+            if (D_8010BEEA_swing_n_swipe >= 10 && HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.x < 3.0f) {
+                HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.x =
+                    HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.y =
+                        HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.z =
+                            HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.z + 0.1f;
+            }
+            if (sindf(D_8010BEEA_swing_n_swipe++ * 3.0f) == 1.0f) {
+                D_8010BEEA_swing_n_swipe = 0;
+                D_8010BEE8_swing_n_swipe++;
+            }
+            break;
+        case 3:
+            HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.x =
+                HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x
+                - sindf(D_8010BEEA_swing_n_swipe * 3.0f) * HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x;
+            HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.z =
+                HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z
+                - sindf(D_8010BEEA_swing_n_swipe * 3.0f) * (HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z - 400.0f);
+            if (sindf(D_8010BEEA_swing_n_swipe++ * 3.0f) == 1.0f) {
+                D_8010BEEA_swing_n_swipe = 0;
+                D_8010BEE8_swing_n_swipe++;
+            }
+            break;
+        case 4:
+            HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.y = sindf(D_8010BEEA_swing_n_swipe * 6.0f) * 10.0f + 350.0f;
+            if (D_8010BEEA_swing_n_swipe++ >= 60) {
+                D_8010BEEA_swing_n_swipe = 0;
+            }
+            break;
+        }
+        func_8000CFA4_main(D_8010C1B8_swing_n_swipe[0], HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.x,
+                           HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.y,
+                           HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.z);
+        Hu3DModelPosSet(D_8010C1B8_swing_n_swipe[1], HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.x, 0.0f,
+                        HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.z);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010B01C_swing_n_swipe);
 
@@ -1423,15 +1522,17 @@ s16 func_8010B8EC_swing_n_swipe(s32 arg0) {
 /* 1 if the point 50 in front of the player is within 100 of a thief. */
 s16 func_8010B920_swing_n_swipe(void) {
     omObjData* obj = D_8010C140_swing_n_swipe;
-    f32 x = cosdf(obj->rot.y - 90.0f) * 50.0f + obj->trans.x;
+    f32 x = obj->trans.x + cosdf(obj->rot.y - 90.0f) * 50.0f;
     f32 z = obj->trans.z - sindf(obj->rot.y - 90.0f) * 50.0f;
     f32 dx;
     f32 dz;
     s16 i;
 
     for (i = 0; i < 5; i++) {
-        dx = x - HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x;
-        dz = z - HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z;
+        dx = x;
+        dz = z;
+        dx -= HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x;
+        dz -= HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z;
         if (HuSqrtf(dx * dx + dz * dz) < 100.0f) {
             return 1;
         }
@@ -1442,33 +1543,28 @@ s16 func_8010B920_swing_n_swipe(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010B920_swing_n_swipe);
 #endif
 
-// masked 10: retail schedules the model address before the mul by 50 and swaps $f22/$f24 (scheduling only)
-#ifdef NON_MATCHING
 /* 1 if the point 50 in front of thief i is within 150 of the player. */
 s16 func_8010BA40_swing_n_swipe(s16 i) {
     omObjData* obj = D_8010C140_swing_n_swipe;
-    f32 x = cosdf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f
-            + HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x;
+    f32 x = HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x
+            + cosdf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f;
     f32 z = HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z
             - sindf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f;
-    f32 dx = obj->trans.x - x;
-    f32 dz = obj->trans.z - z;
+    f32 dx = obj->trans.x;
+    f32 dz = obj->trans.z;
 
+    dx -= x;
+    dz -= z;
     if (HuSqrtf(dx * dx + dz * dz) < 150.0f) {
         return 1;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010BA40_swing_n_swipe);
-#endif
 
-// masked 10: as func_8010BA40_swing_n_swipe (scheduling of the mul by 50, $f22/$f24 swapped)
-#ifdef NON_MATCHING
 /* 1 if the point 50 in front of thief i is within 150 of another thief. */
 s16 func_8010BB88_swing_n_swipe(s16 i) {
-    f32 x = cosdf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f
-            + HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x;
+    f32 x = HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x
+            + cosdf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f;
     f32 z = HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z
             - sindf(HmfModelData[D_8010C170_swing_n_swipe[i][0]].rot.y - 90.0f) * 50.0f;
     f32 dx;
@@ -1477,8 +1573,10 @@ s16 func_8010BB88_swing_n_swipe(s16 i) {
 
     for (j = 0; j < 5; j++) {
         if (i != j) {
-            dx = HmfModelData[D_8010C170_swing_n_swipe[j][0]].pos.x - x;
-            dz = HmfModelData[D_8010C170_swing_n_swipe[j][0]].pos.z - z;
+            dx = HmfModelData[D_8010C170_swing_n_swipe[j][0]].pos.x;
+            dz = HmfModelData[D_8010C170_swing_n_swipe[j][0]].pos.z;
+            dx -= x;
+            dz -= z;
             if (HuSqrtf(dx * dx + dz * dz) < 150.0f) {
                 return 1;
             }
@@ -1486,9 +1584,6 @@ s16 func_8010BB88_swing_n_swipe(s16 i) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010BB88_swing_n_swipe);
-#endif
 
 /* .data */
 f32 D_8010BD30_swing_n_swipe = -400.0f; /* field min x */
