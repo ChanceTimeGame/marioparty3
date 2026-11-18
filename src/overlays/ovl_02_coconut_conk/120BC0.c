@@ -83,12 +83,14 @@ void func_8004AE00_main(s16 handle, s16 pan);
 f32 fabsf(f32);
 f64 fabs(f64);
 void func_8001C624_main(s16, s16, s16, s16, s16);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 s16 func_8004AC98_main(s16, s16);
 void func_800E1304_minigame(omObjData *obj, f32 arg1);
 void func_800E1310_minigame(omObjData *obj, f32 arg1);
 void func_800E131C_minigame(omObjData *obj, f32 arg1);
 void func_800E139C_minigame(omObjData *obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
 void func_800E4C88_minigame(omObjData *obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+extern s32 D_800A178C_main[][6];
 extern s16 D_800CDA7C_main[];
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
@@ -102,6 +104,7 @@ extern s16 D_8010AF60_coconut_conk;
 extern s16 D_8010AF62_coconut_conk;
 extern s16 D_8010AF64_coconut_conk;
 extern s16 D_8010AF66_coconut_conk;
+extern u16 D_8010AF68_coconut_conk[8][3];
 extern char *D_8010AF98_coconut_conk[8];
 extern f32 D_8010AFB8_coconut_conk[6];
 extern s32 D_8010AFD0_coconut_conk[8];
@@ -1108,9 +1111,109 @@ void func_8010815C_coconut_conk(omObjData *obj) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801089DC_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_80108FA0_coconut_conk);
+
+/* The solo player: character model, barrel, shadow, lid, splash and hook models. */
+void func_801089DC_coconut_conk(omObjData *obj) {
+    CcEnt *solo = &D_8010BCC4_coconut_conk;
+    s8 chr = GwPlayer[obj->work[0]].chr;
+    s32 dir = D_800A178C_main[chr][0];
+    s16 i;
+
+    obj->model[0] = func_8000B108_main(dir | D_800A178C_main[chr][2], 0x2A9);
+    for (i = 0; i < 3; i++) {
+        D_8010B1D0_coconut_conk[i] = DataRead(dir | D_8010AF68_coconut_conk[chr][i]);
+    }
+    D_8010B1DC_coconut_conk = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010B1D0_coconut_conk[0], 0, D_8010AF98_coconut_conk[chr]);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x62));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 4));
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C6A8_main(obj->model[0], 0.0f);
+    func_8001C814_main(obj->model[0], 2, 2);
+    obj->trans.x = 400.0f;
+    obj->trans.y = 40.0f;
+    obj->trans.z = -100.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    solo->unk18 = -10.0f;
+    obj->rot.x = 0.0f;
+    obj->rot.y = 0.0f;
+    obj->rot.z = 325.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->model[1] = func_8000B0A0_main(0, 0x4A9);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    obj->model[2] = func_8000B108_main(8, 0x2BD);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    obj->model[3] = func_8000B108_main(0x230000, 0x299);
+    Hu3DModelPosSet(obj->model[3], 0.0f, 0.0f, 0.0f);
+    func_8001C258_main(obj->model[3], 0x4000, 0x4000);
+    func_8001EF6C_main(obj->model[3], obj->model[0], "item_hook");
+    obj->model[4] = func_8000B108_main(0x230006, 0x28D);
+    Hu3DModelPosSet(obj->model[4], 0.0f, 0.0f, 0.0f);
+    func_8001C6A8_main(obj->model[4], 0.0f);
+    func_8001C92C_main(obj->model[4], 0.0f);
+    func_8001FA68_main(obj->model[4]);
+    solo->unk20 = 255.0f;
+    func_8001F9E4_main(obj->model[4], 255);
+    obj->model[5] = func_8000B108_main(0x230007, 0x29D);
+    Hu3DModelPosSet(obj->model[5], 0.0f, 0.0f, 0.0f);
+    func_8001C6A8_main(obj->model[5], 0.0f);
+    func_8001C92C_main(obj->model[5], 0.0f);
+    obj->model[6] = func_8000B108_main(0x230008, 0x29D);
+    Hu3DModelPosSet(obj->model[6], 0.0f, 0.0f, 0.0f);
+    func_8001C6A8_main(obj->model[6], 3.0f);
+    func_8001C92C_main(obj->model[6], 0.0f);
+    Hu3DModelScaleSet(obj->model[6], 1.5f, 1.5f, 1.5f);
+    obj->model[7] = func_8000B108_main(0x230009, 0x29D);
+    Hu3DModelPosSet(obj->model[7], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[7], 1.5f, 1.5f, 1.5f);
+    func_8001C814_main(obj->model[7], 2, 2);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    func_8001C8A8_main(obj->model[2], 2);
+    func_8001C8A8_main(obj->model[3], 2);
+    func_8001C8A8_main(obj->model[4], 2);
+    func_8001C8A8_main(obj->model[5], 2);
+    func_8001C8A8_main(obj->model[6], 2);
+    func_8001C8A8_main(obj->model[7], 2);
+    obj->func = func_8010815C_coconut_conk;
+}
+
+/* Creates the solo player's object (the player in group 0). */
+void func_80108FA0_coconut_conk(void) {
+    omObjData *obj;
+    u16 player = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            switch (i) {
+                case 0:
+                    player = 0;
+                    break;
+                case 1:
+                    player = 1;
+                    break;
+                case 2:
+                    player = 2;
+                    break;
+                case 3:
+                    player = 3;
+                    break;
+            }
+            obj = omAddObj(700, 9, 60, -1, func_801089DC_coconut_conk);
+            obj->work[0] = player;
+            obj->work[3] = GwPlayer[player].pad;
+            D_8010BCC4_coconut_conk.obj = obj;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_801090C4_coconut_conk);
 
