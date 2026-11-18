@@ -1000,8 +1000,8 @@ void func_80108034_three_door_monty(omObjData *obj) {
                         break;
                 }
                 flag = 0;
-                func_8001F9E4_main(obj->model[0], ((u8 *)&D_8010EC46_three_door_monty)[1]);
-                func_8001F9E4_main(obj->model[1], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+                func_8001F9E4_main(obj->model[0], D_8010EC46_three_door_monty);
+                func_8001F9E4_main(obj->model[1], D_8010EC46_three_door_monty);
             }
             for (i = 0; i < 3; i++) {
                 e = &D_8010D4F4_three_door_monty[i];
@@ -1011,8 +1011,8 @@ void func_80108034_three_door_monty(omObjData *obj) {
             }
             if (flag == 0) {
                 D_8010EC46_three_door_monty = 255;
-                func_8001F9E4_main(obj->model[0], ((u8 *)&D_8010EC46_three_door_monty)[1]);
-                func_8001F9E4_main(obj->model[1], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+                func_8001F9E4_main(obj->model[0], D_8010EC46_three_door_monty);
+                func_8001F9E4_main(obj->model[1], D_8010EC46_three_door_monty);
                 for (i = 0; i < 3; i++) {
                     if (doors[i]->unk04 != 0 && doors[i]->unk04 != 1) {
                         doors[i]->unk04 = 0;
@@ -1197,7 +1197,7 @@ void func_80108C28_three_door_monty(omObjData *obj) {
             obj->scale.z = 0.52f;
             D_8010EC46_three_door_monty = 255;
             func_8001FA68_main(obj->model[0]);
-            func_8001F9E4_main(obj->model[0], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+            func_8001F9E4_main(obj->model[0], D_8010EC46_three_door_monty);
             break;
     }
     obj->model[1] = func_8000B0A0_main(0, 201);
@@ -1205,7 +1205,7 @@ void func_80108C28_three_door_monty(omObjData *obj) {
     func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 15.0f, 0.0f);
     if (obj->work[0] == 2) {
         func_8001FA68_main(obj->model[1]);
-        func_8001F9E4_main(obj->model[1], ((u8 *)&D_8010EC46_three_door_monty)[1]);
+        func_8001F9E4_main(obj->model[1], D_8010EC46_three_door_monty);
     } else {
         func_8001C448_main(obj->model[1]);
         func_8001C514_main(obj->model[1]);
