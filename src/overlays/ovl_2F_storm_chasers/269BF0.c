@@ -101,13 +101,6 @@ typedef struct ScFlash {
     /* 0x08 */ omObjData *obj;
 } ScFlash; // Size 0xC
 
-/* The screen overlay (D_8010CF68_storm_chasers). */
-typedef struct ScScreen {
-    /* 0x00 */ s32 state;
-    /* 0x04 */ s32 grp; /* retail reads the low half */
-    /* 0x08 */ s32 draw; /* retail reads the low half */
-    /* 0x0C */ HuSprite_Unk84_Struct *spr;
-} ScScreen; // Size 0x10
 
 /* A start corner (D_8010C8D8_storm_chasers). */
 typedef struct ScStart {
@@ -310,7 +303,20 @@ extern ScRain D_8010CF20_storm_chasers;
 extern s32 D_8010CF30_storm_chasers; /* whirlwind motions: retail reads the low halves */
 extern s32 D_8010CF34_storm_chasers;
 extern ScFlash D_8010CF38_storm_chasers[4];
+typedef s32 (*ScDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
+
+typedef struct ScScreen {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 grp;
+    /* 0x08 */ s32 draw;
+    /* 0x0C */ HuSprite_Unk84_Struct *spr;
+} ScScreen;
+/* The screen overlay. func_8010662C_storm_chasers addresses its fields as separate symbols (no shared base):
+   D_8010CF6C/70/74 are views of D_8010CF68's grp/draw/spr. */
 extern ScScreen D_8010CF68_storm_chasers;
+extern s32 D_8010CF6C_storm_chasers; /* D_8010CF68.grp (retail reads the low half) */
+extern s32 D_8010CF70_storm_chasers; /* D_8010CF68.draw (retail reads the low half) */
+extern HuSprite_Unk84_Struct *D_8010CF74_storm_chasers; /* D_8010CF68.spr */
 
 void func_8010C780_storm_chasers(void);
 void func_80106624_storm_chasers(omObjData *obj);
@@ -553,18 +559,18 @@ void func_8010637C_storm_chasers(void) {
 }
 
 /* Draws the bottom band of the screen (rows 134..240) from a CI8 sprite, two rows at a time. */
-#ifdef NON_MATCHING
 void func_801063B0_storm_chasers(Gfx **gfx, s32 arg1, s32 arg2) {
+    ScScreen *scr = &D_8010CF68_storm_chasers;
     Gfx *g;
     s32 i;
 
-    if (D_8010CF68_storm_chasers.state != -1) {
+    if (scr->state != -1) {
         gfx = func_801059BC_storm_chasers(gfx);
         g = *gfx;
         gDPSetTextureLUT(g++, G_TT_RGBA16);
-        gDPLoadTLUT_pal256(g++, D_8010CF68_storm_chasers.spr->unk0C);
+        gDPLoadTLUT_pal256(g++, scr->spr->unk0C);
         for (i = 0; i < 106; i += 2) {
-            gDPLoadTextureTile(g++, D_8010CF68_storm_chasers.spr->unk08, G_IM_FMT_CI, G_IM_SIZ_8b, 320, 0, 0, i, 320,
+            gDPLoadTextureTile(g++, scr->spr->unk08, G_IM_FMT_CI, G_IM_SIZ_8b, 320, 0, 0, i, 320,
                                i + 2, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
                                G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
             gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 320 << 2, 2 << 2);
@@ -574,25 +580,21 @@ void func_801063B0_storm_chasers(Gfx **gfx, s32 arg1, s32 arg2) {
         *gfx = g;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801063B0_storm_chasers);
-#endif
 
 void func_80106624_storm_chasers(omObjData *obj) {
 }
 
-#ifdef NON_MATCHING
 void func_8010662C_storm_chasers(omObjData *obj) {
-    D_8010CF68_storm_chasers.grp = func_8000B838_main(0x500001);
-    D_8010CF68_storm_chasers.spr = func_80055194_main((s16)D_8010CF68_storm_chasers.grp);
-    D_8010CF68_storm_chasers.draw = func_8001AC8C_main(0, func_801063B0_storm_chasers, 2);
-    func_8001C8A8_main((s16)D_8010CF68_storm_chasers.draw, 1);
+    ScDrawHookAdd hookAdd = (ScDrawHookAdd)(void (*)(void))func_8001AC8C_main;
+
+    D_8010CF6C_storm_chasers = func_8000B838_main(0x500001);
+    D_8010CF74_storm_chasers = func_80055194_main((s16)D_8010CF6C_storm_chasers);
+    /* retail stores this s16 return unextended: it called func_8001AC8C_main as returning int */
+    D_8010CF70_storm_chasers = hookAdd(0, func_801063B0_storm_chasers, 2);
+    func_8001C8A8_main((s16)D_8010CF70_storm_chasers, 1);
     obj->func = func_80106624_storm_chasers;
     D_8010CF68_storm_chasers.state = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010662C_storm_chasers);
-#endif
 
 void func_801066BC_storm_chasers(void) {
     omAddObj(160, 1, 0, -1, func_8010662C_storm_chasers)->work[0] = 0;
@@ -1733,16 +1735,18 @@ void func_8010B840_storm_chasers(omObjData *obj) {
 }
 
 /* The result jingle: a winner's or the draw's. */
-#ifdef NON_MATCHING
 void func_8010B87C_storm_chasers(omObjData *obj) {
+    ScPlayer *pl;
     s32 i;
 
     if (D_8010CCAC_storm_chasers > 0) {
         D_8010CCAC_storm_chasers--;
         return;
     }
-    for (i = 0; i < 4; i++) {
-        if (D_8010CD80_storm_chasers[i].state != -1 && D_8010CD80_storm_chasers[i].rank == 0) {
+    i = 0;
+    pl = D_8010CD80_storm_chasers;
+    for (; i < 4; i++) {
+        if (pl[i].state != -1 && pl[i].rank == 0) {
             break;
         }
     }
@@ -1755,9 +1759,6 @@ void func_8010B87C_storm_chasers(omObjData *obj) {
     }
     obj->func = func_8010B840_storm_chasers;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010B87C_storm_chasers);
-#endif
 
 void func_8010B944_storm_chasers(omObjData *obj) {
     if (D_8010CCAC_storm_chasers > 0) {
@@ -1885,12 +1886,14 @@ void func_8010BD04_storm_chasers(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BD04_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010BDF4_storm_chasers(omObjData *obj) {
+    ScBucket *b;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        if (D_8010CCE0_storm_chasers[i].state != -1 && D_8010CCE0_storm_chasers[i].done != 1) {
+    i = 0;
+    b = D_8010CCE0_storm_chasers;
+    for (; i < 4; i++) {
+        if (b[i].state != -1 && b[i].done != 1) {
             break;
         }
     }
@@ -1900,19 +1903,18 @@ void func_8010BDF4_storm_chasers(omObjData *obj) {
         obj->func = func_8010B980_storm_chasers;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BDF4_storm_chasers);
-#endif
 
-#ifdef NON_MATCHING
 void func_8010BE8C_storm_chasers(omObjData *obj) {
+    ScPlayer *pl;
     s32 i;
 
     if (D_8010CCAC_storm_chasers > 0) {
         D_8010CCAC_storm_chasers--;
     } else {
-        for (i = 0; i < 4; i++) {
-            if (D_8010CD80_storm_chasers[i].state != -1 && D_8010CD80_storm_chasers[i].done != 1) {
+        i = 0;
+        pl = D_8010CD80_storm_chasers;
+        for (; i < 4; i++) {
+            if (pl[i].state != -1 && pl[i].done != 1) {
                 break;
             }
         }
@@ -1925,9 +1927,6 @@ void func_8010BE8C_storm_chasers(omObjData *obj) {
         D_8010C958_storm_chasers--;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BE8C_storm_chasers);
-#endif
 
 void func_8010BF3C_storm_chasers(omObjData *obj) {
     GMesCreate(0x12);
