@@ -563,7 +563,31 @@ void func_8010716C_river_raiders(omObjData *obj) {
     func_80106AF8_river_raiders(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80107188_river_raiders);
+/* Player steering for a raft: the stick picks the rope side (unk04: 0 none, 1 left, 2 right). */
+void func_80107188_river_raiders(omObjData *obj) {
+    RrEnt *raft = &D_8010D9F0_river_raiders[9];
+    u16 player = obj->work[0];
+
+    raft->unk04 = 0;
+    if (--raft->unk06 <= 0) {
+        raft->unk06 = 0;
+    }
+    if ((u16)(raft->unk06 % 3) < 2) {
+        func_8001C258_main(obj->model[5], 4, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+    } else {
+        func_8001C258_main(obj->model[5], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+    }
+    if (raft->unk06 < 31) {
+        if (D_800CBB6E_main[GwPlayer[player].pad] < -29) {
+            raft->unk04 = 1;
+        }
+        if (D_800CBB6E_main[GwPlayer[player].pad] >= 30) {
+            raft->unk04 = 2;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801072FC_river_raiders);
 
