@@ -201,10 +201,46 @@ void func_800341D0_main(Gfx** gfx, s32 timg, s32 fmt, s32 siz, s32 width, s32 he
 void func_80034998_main(Gfx** gfx, s32 timg, s32 fmt, u32 width, s32 height, s32 uls, s32 ult, s32 lrs,
                         s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts, s32 shiftt);
 extern u32 D_8010C800_crowd_cover; /* random seed */
+extern u8 D_800CE20A_main;
+extern s16 D_8010D860_crowd_cover;
+extern s16 D_8010CFD8_crowd_cover;
+void func_80106144_crowd_cover(omObjData* obj);
+void func_80106D4C_crowd_cover(omObjData* obj);
+void func_80107E40_crowd_cover(omObjData* obj);
+void func_80106CB8_crowd_cover(void);
+void func_80107E0C_crowd_cover(void);
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_801059A0_crowd_cover);
+void func_801059A0_crowd_cover(void) {
+    omObjData* obj;
+    u8 cam;
+    s32 i;
+
+    Hu3DAnimInit(1);
+    func_80021BE0_main(D_800EBEB0_minigame, 0x40);
+    omInitObjMan(0x10, 0);
+    func_8004A208_main();
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutView);
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 45.0f, 80.0f, 8000.0f);
+    func_800E1804_minigame();
+    func_80105B58_crowd_cover(obj);
+    func_801060C4_crowd_cover();
+    func_80109354_crowd_cover(0x80);
+    func_80106CB8_crowd_cover();
+    func_80107E0C_crowd_cover();
+    /* warm up the generator by 0..15 steps */
+    for (i = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 16.0) - 1; i != 0; i--) {
+        func_80108F1C_crowd_cover();
+    }
+    func_8001F38C_main(0xB4, 0xB4, 0xB4);
+    WipeCreateIn(0xFF, 0x10);
+}
 
 void func_80105B58_crowd_cover(omObjData* obj) {
     HuCamera* cam;
@@ -295,7 +331,13 @@ void func_80105FD0_crowd_cover(f32 x, f32 y, f32 z, Vec* out) {
     out->z = m[3][2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_801060C4_crowd_cover);
+void func_801060C4_crowd_cover(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_8010D860_crowd_cover = D_800CE20A_main;
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106144_crowd_cover);
+    D_8010CFD8_crowd_cover = 0;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CAF0_crowd_cover);
 
@@ -309,7 +351,15 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB48
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80106580_crowd_cover);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80106CB8_crowd_cover);
+void func_80106CB8_crowd_cover(void) {
+    s32 i;
+
+    func_800E18D8_minigame();
+    D_800EC280_minigame = 0;
+    for (i = 0; i < 2; i++) {
+        D_800EC598_minigame[D_800EC280_minigame++] = omAddObj(2, 11, 50, -1, func_80106D4C_crowd_cover);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB70_crowd_cover);
 
@@ -407,7 +457,9 @@ s16 func_80107CE0_crowd_cover(s16 tex, s16 x, s16 y, f32 rot) {
     return i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107E0C_crowd_cover);
+void func_80107E0C_crowd_cover(void) {
+    omAddObj(3, 11, 50, -1, func_80107E40_crowd_cover);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC70_crowd_cover);
 
