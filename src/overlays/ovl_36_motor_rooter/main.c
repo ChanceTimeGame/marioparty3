@@ -53,12 +53,21 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ omObjData *unk00;
-    /* 0x04 */ char unk04[4];
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ char unk06[2];
     /* 0x08 */ s32 unk08;
     /* 0x0C */ f32 unk0C;
-    /* 0x10 */ char unk10[0xC];
+    /* 0x10 */ char unk10[4];
+    /* 0x14 */ s8 unk14;
+    /* 0x15 */ char unk15;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ char unk18[4];
     /* 0x1C */ s16 unk1C;
-    /* 0x1E */ char unk1E[0x6E];
+    /* 0x1E */ char unk1E[0x14];
+    /* 0x32 */ s8 unk32;
+    /* 0x33 */ char unk33;
+    /* 0x34 */ s16 unk34;
+    /* 0x36 */ char unk36[0x56];
 } D_801137C8_motor_rooter_Struct; // Size 0x8C
 
 void m254_InitEnvironment(void);
@@ -405,7 +414,69 @@ void func_80106B7C_motor_rooter(omObjData *object) {
 }
 /* </func_80106B7C_motor_rooter> */
 
+/* <func_80106BAC_motor_rooter> */
+#ifdef NON_MATCHING
+extern s32 D_800A178C_main[][6];
+void func_801070CC_motor_rooter(omObjData *object);
+void func_8010ABC4_motor_rooter(FuncContext *ctx);
+void func_8010BB78_motor_rooter(FuncContext *ctx);
+void func_8010BCD0_motor_rooter(FuncContext *ctx);
+void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, s8 arg2);
+
+void func_80106BAC_motor_rooter(omObjData *object) {
+    s32 files[2] = { 0, 1 };
+    s16 var_a1;
+    s16 i;
+    u8 chr;
+    s16 player;
+
+    object->work[0] = D_800EC280_minigame;
+    player = object->work[1] = m254_playerId[D_800EC280_minigame];
+    chr = GwPlayer[player].chr;
+    func_800E1BA8_minigame(object, D_800A178C_main[GwPlayer[player].chr][0],
+                           D_800A178C_main[GwPlayer[player].chr][2], object->work[1], 0x289, 0x299);
+    func_8001C258_main(object->model[1], 4, 4);
+    Hu3DModelScaleSet(object->model[1], 0.2f, 0.2f, 0.2f);
+    object->model[9] = func_8000B108_main(files[object->work[0]] | 0x570000, 0x299);
+    func_8001C258_main(object->model[9], 4, 0);
+    object->model[10] = func_8000B108_main(9, 0x99);
+    Hu3DModelScaleSet(object->model[10], 0.4f, 0.4f, 0.4f);
+    func_800E5A00_minigame(object, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(object, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(object, 13, func_80017BB8_main(chr, 0x2F), 1, 999);
+    func_800E5A00_minigame(object, 21, func_80017BB8_main(chr, 0x1F), 1, 999);
+    func_800E5A00_minigame(object, 38, func_80017BB8_main(chr, 0x27), 1, 0);
+    func_800E5A00_minigame(object, 39, func_80017BB8_main(chr, 0x28), 1, 99);
+    object->trans.x = 0.0f;
+    object->trans.y = -56.0f;
+    object->trans.z = 100.0f;
+    object->rot.y = 180.0f;
+    object->scale.x = object->scale.y = object->scale.z = 0.2f;
+    Hu3DModelPosSet(object->model[9], 0.0f, 0.0f, 200.0f);
+    Hu3DModelRotSet(object->model[9], 0.0f, 180.0f, 0.0f);
+    func_8001C258_main(object->model[10], 4, 4);
+    func_8010BDE4_motor_rooter(&D_801137C8_motor_rooter[object->work[0]], 0x26, 1);
+    D_800EC280_minigame++;
+    D_801137C8_motor_rooter[object->work[0]].unk08 = 1;
+    D_801137C8_motor_rooter[object->work[0]].unk04 = ((func_800E1BA8_minigame_ObjData *)object->data)->unk57;
+    D_801137C8_motor_rooter[object->work[0]].unk16 = 0;
+    D_801137C8_motor_rooter[object->work[0]].unk14 = 1;
+    var_a1 = 2;
+    if (object->work[0] == 0) {
+        var_a1 = 1;
+    }
+    for (i = 0; i < 11; i++) {
+        func_8001C8A8_main(object->model[i], var_a1);
+    }
+    m254_SetFunc(object->work[0] + 4, 5, -1, &D_801137C8_motor_rooter[object->work[0]], func_8010ABC4_motor_rooter, 0, FALSE);
+    m254_SetFunc(object->work[0] + 4, 9, -1, &D_801137C8_motor_rooter[object->work[0]], func_8010BCD0_motor_rooter, 0, FALSE);
+    m254_SetFunc(object->work[0] + 4, 4, -1, &D_801137C8_motor_rooter[object->work[0]], func_8010BB78_motor_rooter, 0, FALSE);
+    object->func = func_801070CC_motor_rooter;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106BAC_motor_rooter);
+#endif
+/* </func_80106BAC_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801070CC_motor_rooter);
 
