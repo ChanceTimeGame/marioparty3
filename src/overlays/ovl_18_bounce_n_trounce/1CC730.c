@@ -53,12 +53,16 @@ typedef struct BtPlayer {
     /* 0x74 */ f32 unk74;
     /* 0x78 */ omObjData* unk78;
     /* 0x7C */ s16 unk7C;
-    /* 0x7E */ s16 unk7E;
-    /* 0x80 */ char unk80[0x1C];
-    /* 0x9C */ s32 unk9C;
-    /* 0xA0 */ s16 unkA0;
-    /* 0xA2 */ s16 unkA2;
-    /* 0xA4 */ char unkA4[4];
+    /* 0x7E */ u16 unk7E; /* CPU: fleeing a dropping tile */
+    /* 0x80 */ Vec unk80; /* CPU: tile to run to */
+    /* 0x8C */ Vec unk8C; /* CPU: tile to wait on */
+    /* 0x98 */ u16 unk98; /* CPU: that tile */
+    /* 0x9A */ char unk9A[2];
+    /* 0x9C */ omObjData* unk9C; /* CPU: player to chase */
+    /* 0xA0 */ u16 unkA0; /* CPU state: 0 choose, 1 flee a dropping tile, 2 wait, 3 chase, 4 hold a tile, 5 walk then unkA4 */
+    /* 0xA2 */ u16 unkA2; /* CPU: chase may give up */
+    /* 0xA4 */ u16 unkA4; /* CPU: next state */
+    /* 0xA6 */ u16 unkA6; /* CPU: wait timer */
     /* 0xA8 */ u16 unkA8; /* rumble timer */
     /* 0xAA */ char unkAA[2];
 } BtPlayer; /* size 0xAC */
@@ -158,6 +162,8 @@ void func_80108C18_bounce_n_trounce(omObjData* obj);
 void func_80108CA8_bounce_n_trounce(omObjData* obj);
 void func_80108D28_bounce_n_trounce(omObjData* obj);
 void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn);
+void func_80109478_bounce_n_trounce(omObjData* obj);
+u16 func_80109A00_bounce_n_trounce(void);
 void func_80109AF0_bounce_n_trounce(omObjData* obj);
 void func_80109F68_bounce_n_trounce(omObjData* obj);
 void func_8010A664_bounce_n_trounce(omObjData* obj);
@@ -566,7 +572,7 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     player->unk7C = 0;
     player->unk7E = 0;
     player->unkA0 = 0;
-    player->unk9C = 0;
+    player->unk9C = NULL;
     player->unkA2 = 0;
     player->unk64 = player->unk68 = player->unk6C = 0.0f;
     for (i = 0; i < 4; i++) {
@@ -1304,7 +1310,123 @@ void func_80108F98_bounce_n_trounce(omObjData* obj) {
     func_8001C6A8_main(obj->model[6], 0.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109018_bounce_n_trounce);
+/* CPU input */
+void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn) {
+    BtPlayer* player;
+    BtPlayer* target;
+    f32 dist;
+    f32 angle;
+    u16 idx;
+    u16 chance;
+
+    player = obj->data;
+    *stickY = 0;
+    *stickX = 0;
+    *btn = 0;
+    if (player->unk1C != NULL) {
+        if ((((BtTile*)player->unk1C->data)->unk02 == 1 || ((BtTile*)player->unk1C->data)->unk02 == 2)
+            && player->unk7E == 0) {
+            idx = func_80109A00_bounce_n_trounce();
+            player->unk7E = 1;
+            player->unkA0 = 1;
+            player->unk80.x = D_8010ABEC_bounce_n_trounce[idx].x;
+            player->unk80.y = D_8010ABEC_bounce_n_trounce[idx].y;
+            player->unk80.z = D_8010ABEC_bounce_n_trounce[idx].z;
+        }
+    }
+    if (player->unkA0 == 0) {
+        func_80109478_bounce_n_trounce(obj);
+    }
+    switch (player->unkA0) {
+        case 1:
+            if (func_8010AAE0_bounce_n_trounce(obj->trans.x, obj->trans.z, player->unk80.x, player->unk80.z) < 60.0f) {
+                player->unkA0 = 0;
+                player->unk7E = 0;
+                return;
+            }
+            if (player->unk04 == 2) {
+                *btn |= 0x8000;
+            }
+            angle = atan2df(player->unk80.z - obj->trans.z, player->unk80.x - obj->trans.x) + CRot.y;
+            *stickX = cosdf(angle) * 80.0f;
+            *stickY = -sindf(angle) * 80.0f;
+            break;
+        case 2:
+            /* retail: a running timer ends the wait at once, an expired one wraps */
+            if (player->unkA6 != 0) {
+                player->unkA0 = 0;
+            } else {
+                player->unkA6--;
+            }
+            return;
+        case 3:
+            target = player->unk9C->data;
+            if (player->unkA2 == 1) {
+                switch (GwPlayer[player->unk00].cpu_difficulty) {
+                    case 0:
+                        chance = 100;
+                        break;
+                    case 1:
+                        chance = 50;
+                        break;
+                    case 2:
+                        chance = 30;
+                        break;
+                    case 3:
+                        chance = 10;
+                        break;
+                }
+                if (rand8() < chance) {
+                    player->unkA0 = 0;
+                    player->unkA2 = 0;
+                }
+            }
+            if (target->unk1C == NULL) {
+                player->unkA0 = 0;
+                return;
+            }
+            if (target->unk02 == 2 || target->unk02 == 3) {
+                player->unkA0 = 0;
+                return;
+            }
+            dist = func_8010AAE0_bounce_n_trounce(player->unk9C->trans.x, player->unk9C->trans.z, obj->trans.x, obj->trans.z);
+            if (dist < 80.0f && player->unk02 != 1) {
+                player->unkA0 = 0;
+            }
+            if (dist < 150.0f && player->unk0A != 0) {
+                *btn |= 0x2000;
+            }
+            if (dist < 400.0f && player->unk04 == 2) {
+                *btn |= 0x8000;
+            }
+            angle = atan2df(player->unk9C->trans.z - obj->trans.z, player->unk9C->trans.x - obj->trans.x) + CRot.y;
+            *stickX = cosdf(angle) * 80.0f;
+            *stickY = -sindf(angle) * 80.0f;
+            break;
+        case 5:
+            if (func_8010AAE0_bounce_n_trounce(obj->trans.x, obj->trans.z, player->unk80.x, player->unk80.z) < 100.0f) {
+                player->unkA0 = player->unkA4;
+                return;
+            }
+            angle = atan2df(player->unk80.z - obj->trans.z, player->unk80.x - obj->trans.x) + CRot.y;
+            *stickX = cosdf(angle) * 80.0f;
+            *stickY = -sindf(angle) * 80.0f;
+            break;
+        case 4:
+            if (((BtTile*)D_8010AED8_bounce_n_trounce[player->unk98]->data)->unk02 != 0) {
+                player->unkA0 = 0;
+                return;
+            }
+            if (func_8010AAE0_bounce_n_trounce(obj->trans.x, obj->trans.z, player->unk8C.x, player->unk8C.z) < 100.0f) {
+                player->unkA0 = 0;
+                return;
+            }
+            angle = atan2df(player->unk8C.z - obj->trans.z, player->unk8C.x - obj->trans.x) + CRot.y;
+            *stickX = cosdf(angle) * 80.0f;
+            *stickY = -sindf(angle) * 80.0f;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109478_bounce_n_trounce);
 
