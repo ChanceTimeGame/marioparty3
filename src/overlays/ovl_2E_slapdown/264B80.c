@@ -2,9 +2,12 @@
 // m2 sd: Slap Down (four players)
 #include "overlays/minigame.h"
 #include "game/audio.h"
+#include "game/camera.h"
 #include "game/data.h"
 #include "game/esprite.h"
+#include "game/gamemes.h"
 #include "game/gamework_data.h"
+#include "game/hmflight.h"
 #include "game/hmfman.h"
 #include "game/object.h"
 #include "game/util.h"
@@ -13,6 +16,9 @@
 
 f64 fabs(f64);
 
+// C1F0
+s32 func_8000B710_main(s32 arg0);
+
 // esprite
 void func_8000BC48_main(u16, s32);
 void func_8000BE5C_main(u16, f32, f32);
@@ -20,6 +26,7 @@ void func_8000BF00_main(u16, f32);
 
 
 void func_8010A550_slapdown(void);
+
 
 /* One slot of the overlay's object table (D_8010AAB0_slapdown, 50 x 0x84):
  * [0] background sprite, [1] the shuffling card object, [2..10] the nine cards,
@@ -82,7 +89,9 @@ extern f32 D_8010AA4C_slapdown;
 extern u8 D_8010AA50_slapdown;
 extern s16 D_8010AA52_slapdown;
 extern void *D_8010AA58_slapdown[5];
+extern s16 D_8010AA6C_slapdown;
 extern u8 D_8010AA6E_slapdown;
+extern s16 D_8010AA70_slapdown;
 extern s16 D_8010AA72_slapdown;
 extern s16 D_8010AA74_slapdown;
 extern s16 D_8010AA76_slapdown;
@@ -109,6 +118,13 @@ typedef struct {
     f32 y;
 } SdVec2;
 
+/* One camera view (D_8010A88C_slapdown). */
+typedef struct {
+    /* 0x00 */ f32 scissor[4];
+    /* 0x10 */ f32 viewport[6];
+    /* 0x28 */ f32 fov;
+} SdView; // Size 0x2C
+
 extern f32 D_8010A6C0_slapdown[4];
 extern f32 D_8010A6D0_slapdown[4];
 extern f32 D_8010A6E0_slapdown[4];
@@ -125,6 +141,7 @@ extern SdVec2 D_8010A838_slapdown[4];
 extern SdVec2 D_8010A858_slapdown[4];
 extern s32 D_8010A878_slapdown[4];
 extern s32 D_8010A888_slapdown;
+extern SdView D_8010A88C_slapdown[1];
 
 // unknown
 extern s32 D_800A178C_main[][6];
@@ -141,6 +158,13 @@ void func_80108FE4_slapdown(omObjData *obj);
 void func_8010924C_slapdown(omObjData *obj);
 void func_80109E14_slapdown(omObjData *obj);
 void func_80109E58_slapdown(omObjData *obj);
+void func_80109E90_slapdown(omObjData *obj);
+void func_80109EE8_slapdown(omObjData *obj);
+void func_8010A2B8_slapdown(omObjData *obj);
+void func_8010A3E0_slapdown(void);
+void func_801096E4_slapdown(void);
+void func_801099C0_slapdown(void);
+extern const s16 D_8010AA08_slapdown[];
 void func_80106608_slapdown(omObjData *obj);
 
 void func_801059A0_slapdown(void) {
@@ -1037,15 +1061,211 @@ void func_80109E90_slapdown(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109EE8_slapdown);
+/* The round state machine (D_8010AA6E_slapdown: the phase, D_8010AA74_slapdown: its timer). */
+void func_80109EE8_slapdown(omObjData *obj) {
+    SdEnt *card;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010A2B8_slapdown);
+    switch (D_8010AA6E_slapdown) {
+        case 0:
+            func_80106290_slapdown(1);
+            D_8010AA74_slapdown = 0;
+            HuAudFXPlay(0x47D);
+            break;
+        case 1:
+            if (D_8010AA50_slapdown == 1) {
+                func_80106290_slapdown(2);
+                GMesCreate(7);
+                D_8010AA74_slapdown = 0;
+            }
+            break;
+        case 2:
+            if (D_8010AA74_slapdown >= 63) {
+                HuAudSeqPlay(0x38);
+            } else {
+                D_8010AA74_slapdown++;
+            }
+            if (GMesStatGet() == 0) {
+                func_80106290_slapdown(3);
+                D_8010AA74_slapdown = 90;
+            }
+            break;
+        case 3:
+            D_8010AA74_slapdown--;
+            if (D_8010AA50_slapdown == 3) {
+                func_80106290_slapdown(4);
+            }
+            break;
+        case 4:
+            if (D_8010AA74_slapdown >= -29) {
+                D_8010AA74_slapdown--;
+            }
+            if (D_8010AA50_slapdown == 4) {
+                func_80106290_slapdown(5);
+            }
+            break;
+        case 5:
+            if (D_8010AA74_slapdown >= -29) {
+                D_8010AA74_slapdown--;
+            }
+            if (D_8010AA50_slapdown == 5) {
+                if (D_8010AA30_slapdown != 1) {
+                    if (D_8010AAA0_slapdown < 3) {
+                        func_80106290_slapdown(4);
+                        D_8010AA74_slapdown = 60;
+                        for (i = 0; i < 9; i++) {
+                            card = &D_8010ABB8_slapdown[i];
+                            if (card->unk04 == 1) {
+                                if (card->unk06 == D_8010AA72_slapdown) {
+                                    D_8010AA30_slapdown = 1;
+                                } else {
+                                    D_8010AA30_slapdown = 0;
+                                }
+                                break;
+                            }
+                        }
+                    } else {
+                        func_80106290_slapdown(6);
+                        D_8010AA74_slapdown = 15;
+                    }
+                } else {
+                    func_80106290_slapdown(6);
+                    D_8010AA74_slapdown = 15;
+                }
+            }
+            break;
+        case 6:
+            if (D_8010AA76_slapdown == 3) {
+                if (D_8010AA74_slapdown < 0) {
+                    func_80106290_slapdown(7);
+                    GMesCreate(0x12);
+                    HuAudSeqFadeOut(120);
+                    func_801096E4_slapdown();
+                    func_801099C0_slapdown();
+                    D_8010AA74_slapdown = -15;
+                } else {
+                    D_8010AA74_slapdown--;
+                }
+            }
+            break;
+        case 7:
+            if (GMesStatGet() == 0) {
+                if (D_8010AA74_slapdown >= 0) {
+                    func_80106290_slapdown(8);
+                    if (D_8010AAA0_slapdown >= 4) {
+                        D_8010AA74_slapdown = 132;
+                    } else {
+                        D_8010AA74_slapdown = 98;
+                    }
+                } else {
+                    D_8010AA74_slapdown++;
+                }
+            }
+            break;
+        case 8:
+            if (D_8010AAA0_slapdown >= 4) {
+                if (D_8010AA74_slapdown == 132) {
+                    HuAudSeqPlay(0x6B);
+                }
+            } else {
+                if (D_8010AA74_slapdown == 98) {
+                    HuAudSeqPlay(0x65);
+                }
+            }
+            if (D_8010AA74_slapdown > 0) {
+                D_8010AA74_slapdown--;
+            } else {
+                D_8010AA74_slapdown = 0;
+                func_80106290_slapdown(9);
+            }
+            break;
+        case 9:
+            if (D_8010AA74_slapdown == 0) {
+                WipeCreateOut(0, 20);
+                obj->func = func_80109E58_slapdown;
+                D_8010AA74_slapdown++;
+            }
+            break;
+    }
+}
+
+void func_8010A2B8_slapdown(omObjData *obj) {
+    s16 i;
+
+    WipeCreateIn(0xFF, 16);
+    func_80109D54_slapdown();
+    func_801066A4_slapdown();
+    func_80108340_slapdown();
+    func_80108E44_slapdown();
+    func_80107DCC_slapdown();
+    func_80109640_slapdown();
+    D_8010AA74_slapdown = 0;
+    D_8010AA6E_slapdown = 0;
+    D_8010AA50_slapdown = 0;
+    D_8010AA70_slapdown = 0;
+    D_8010AA10_slapdown = 0;
+    D_8010AA30_slapdown = 0;
+    D_8010AA72_slapdown = 0;
+    D_8010AAA0_slapdown = 0;
+    D_8010AA9A_slapdown = 0;
+    D_8010AA32_slapdown = 0;
+    D_8010AA98_slapdown = 0;
+    D_8010AA4C_slapdown = 0.0f;
+    D_8010AA6C_slapdown = 0;
+    D_8010AA14_slapdown = -1;
+    for (i = 0; i < 4; i++) {
+        D_8010AA16_slapdown[i] = -1;
+    }
+    D_8010AA76_slapdown = 0;
+    obj->func = func_80109EE8_slapdown;
+}
 
 void func_8010A3D8_slapdown(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010A3E0_slapdown);
+void func_8010A3E0_slapdown(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010A550_slapdown);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 1;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    func_8000B710_main(1);
+    for (i = 0; i < 1; i++) {
+        ScissorSet(i, D_8010A88C_slapdown[i].scissor[0], D_8010A88C_slapdown[i].scissor[1],
+                   D_8010A88C_slapdown[i].scissor[2], D_8010A88C_slapdown[i].scissor[3]);
+        ViewportSet(i, D_8010A88C_slapdown[i].viewport[0], D_8010A88C_slapdown[i].viewport[1],
+                    D_8010A88C_slapdown[i].viewport[2], D_8010A88C_slapdown[i].viewport[3],
+                    D_8010A88C_slapdown[i].viewport[4], D_8010A88C_slapdown[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010A88C_slapdown[i].fov, 80.0f, 8000.0f);
+    }
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", D_8010AA08_slapdown);
+/* "ABC" in SJIS: the minigame's on-screen title */
+const s16 D_8010AA08_slapdown[] = { 0x8260, 0x8261, 0x8262, 0x0000 };
+
+void func_8010A550_slapdown(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(50);
+    omInitObjMan(60, 0);
+    func_8004A208_main();
+    func_8010A3E0_slapdown();
+    HmfLightMaxSet(1);
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(0, -41.0f, 70.0f, 87.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -41.0f, 70.0f, 87.0f);
+    HmfLightColorSet(2, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(2, -41.0f, 70.0f, 87.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010AA08_slapdown, 0);
+    func_80045010_main(D_8010AA08_slapdown, 1);
+    omAddObj(1000, 0, 0, -1, func_8010A2B8_slapdown);
+    omAddObj(1000, 0, 0, -1, func_80109E90_slapdown);
+    func_80105A74_slapdown();
+}
+
