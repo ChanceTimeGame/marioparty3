@@ -166,7 +166,12 @@ EtVec2 func_8010C574_etch_n_catch(s32 x0, s32 y0, s32 x1, s32 y1);
 void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
 void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
+void func_80109EB8_etch_n_catch(omObjData* obj);
 // main (more)
+void func_8000B460_main(omObjData*, u16, s32);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_8000BBFC_main(u16, u8);
+void func_8000BB94_main(u16 arg0);
 s16 func_8000B838_main(s32 arg0);
 void func_8000BBD4_main(u16 spriteId, s16 x, s16 y);
 s16 InitEspriteSlot(s16 arg0, s16 arg1, u16 arg2);
@@ -191,7 +196,10 @@ extern s8 D_8010C6D8_etch_n_catch;
 
 extern s16 D_8010C6A4_etch_n_catch[2][2]; /* score digit positions */
 extern Vec D_8010C6B0_etch_n_catch[3]; /* catcher/cage start positions (x negated for index 1) */
+extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
 // bss
+extern s16 D_8010C83C_etch_n_catch; /* first catcher's model (linked by the second) */
+extern s16 D_8010C83E_etch_n_catch; /* first catcher's shadow model */
 extern u8 D_8010C840_etch_n_catch; /* next cage index */
 extern u16 D_801113A8_etch_n_catch[2]; /* score digit sprites */
 extern u16 D_801113E8_etch_n_catch[2]; /* catcher sprites */
@@ -806,7 +814,83 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010937
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_801097B4_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109A54_etch_n_catch);
+/* A catcher object (two): its model, the five spark models of its catch burst and its pointer sprite. */
+void func_80109A54_etch_n_catch(omObjData* obj) {
+    s32 dir = 0xA0000;
+    EtCatcher* cw;
+    s32 i;
+
+    if (D_8010C6A0_etch_n_catch == 0) {
+        D_8010C83C_etch_n_catch = obj->model[0] = func_8000B108_main(0xA0000, 0x8BD);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_8010C83C_etch_n_catch);
+    }
+    func_8001C258_main(obj->model[0], 4, 0);
+    obj->data = HuMemAllocTag(sizeof(EtCatcher), 0x7918);
+    memset(obj->data, 0, sizeof(EtCatcher));
+    cw = obj->data;
+    cw->mg.unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    cw->mg.unk5A = obj->model[0];
+    cw->mg.unk5B = 0;
+    cw->unk160 = D_8010C6A0_etch_n_catch % 2;
+    cw->unk168 = 0.0f;
+    func_8000B460_main(obj, 2, dir | 8);
+    func_8000B460_main(obj, 3, dir);
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+    switch (cw->unk160) {
+        case 0:
+            obj->trans.x = D_8010C6B0_etch_n_catch[0].x;
+            break;
+        case 1:
+            obj->trans.x = -D_8010C6B0_etch_n_catch[0].x;
+            break;
+    }
+    obj->trans.y = D_8010C6B0_etch_n_catch[0].y;
+    obj->trans.z = D_8010C6B0_etch_n_catch[0].z;
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    obj->work[0] = 10;
+    obj->work[1] = 0;
+    cw->unk15C = 0;
+    cw->unk164 = 0.5f;
+    cw->unk170 = cw->unk174 = 0.0f;
+    cw->unk161 = 0;
+    if (D_8010C6A0_etch_n_catch == 0) {
+        D_8010C83E_etch_n_catch = obj->model[6] = func_8000B108_main(9, 0x8BD);
+    } else {
+        obj->model[6] = Hu3DModelLink(D_8010C83E_etch_n_catch);
+    }
+    Hu3DModelPosSet(obj->model[6], obj->trans.x, 0.0f, obj->trans.z);
+    for (i = 0; i < 5; i++) {
+        if (i == 0) {
+            obj->model[1] = func_8000B108_main(0x330006, 0x8AD);
+        } else {
+            obj->model[i + 1] = Hu3DModelLink(obj->model[1]);
+        }
+        func_8001C814_main(obj->model[i + 1], 2, 2);
+        func_8001FA68_main(obj->model[i + 1]);
+        cw->unk1B4 = 0.0f;
+        cw->unk178[i].y = 1.0f;
+    }
+    cw->unk178[0].x = 0.8660254f;
+    cw->unk178[0].z = -0.5f;
+    cw->unk178[1].x = 0.8660254f;
+    cw->unk178[1].z = 0.5f;
+    cw->unk178[2].x = 0.0f;
+    cw->unk178[2].z = 1.0f;
+    cw->unk178[3].x = -0.8660254f;
+    cw->unk178[3].z = 0.5f;
+    cw->unk178[4].x = -0.8660254f;
+    cw->unk178[4].z = -0.5f;
+    D_801113E8_etch_n_catch[cw->unk160] = InitEspriteSlot(func_8000B838_main(0x330005), 0, 1);
+    func_8000BC48_main(D_801113E8_etch_n_catch[cw->unk160], 0x5000);
+    func_8000BBD4_main(D_801113E8_etch_n_catch[cw->unk160], 0, 0);
+    func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], 0.5f, 0.5f);
+    func_8000BBFC_main(D_801113E8_etch_n_catch[cw->unk160], 0xCC);
+    func_8000BB94_main(D_801113E8_etch_n_catch[cw->unk160]);
+    obj->func = func_80109EB8_etch_n_catch;
+    D_8010C6A0_etch_n_catch++;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 
