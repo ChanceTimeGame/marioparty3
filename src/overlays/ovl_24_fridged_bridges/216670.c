@@ -183,7 +183,7 @@ extern char D_8010D2D8_fridged_bridges[];
 void func_80109F84_fridged_bridges(omObjData *obj);
 void func_8010A1A4_fridged_bridges(omObjData *obj);
 void func_8010B8CC_fridged_bridges(omObjData *obj);
-void func_8010BFD0_fridged_bridges(s32 type, u16 player, f32 x, f32 y, f32 z);
+omObjData *func_8010BFD0_fridged_bridges(u16 type, u16 player, f32 x, f32 y, f32 z);
 void func_801079CC_fridged_bridges(omObjData *obj, s8 *stickX, s8 *stickY);
 s16 func_80108050_fridged_bridges(omObjData *obj);
 void func_801082D0_fridged_bridges(omObjData *obj);
