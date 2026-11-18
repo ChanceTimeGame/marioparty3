@@ -108,6 +108,9 @@ extern f32 D_8010D338_spotlight_swim[2];
 extern s8 D_8010D343_spotlight_swim;
 extern omObjData *D_8010D348_spotlight_swim;
 
+extern s16 D_800D418E_main; /* the viewport being drawn */
+void func_80088850_main(Mtx *m, f32 x, f32 y, f32 z);
+
 /* This overlay's functions */
 void func_80106148_spotlight_swim(omObjData *obj);
 void func_801061DC_spotlight_swim(omObjData *obj);
@@ -232,7 +235,35 @@ s32 func_80105DC8_spotlight_swim(omObjData *obj) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_80105E9C_spotlight_swim);
+/* Projects (x, y, z) through camera cam into screen coordinates out[0], out[1]. */
+void func_80105E9C_spotlight_swim(s16 cam, f32 x, f32 y, f32 z, f32 *out) {
+    Mtx mtx;
+    HuCamera *c;
+    Mtx *look;
+    Mtx *m;
+    HuCamera *vp;
+    f32 sx, sy, sz;
+    f64 sn;
+    f32 t;
+    f32 dist;
+
+    c = &gCameraList[cam];
+    look = &c->mtxs[D_800D418E_main].lookAtMtx;
+    m = &mtx;
+    func_80088850_main(m, x, y, z);
+    guMtxCatL(m, look, m);
+    sx = (s32)((((u16 *)&mtx)[12] << 16) | ((u16 *)&mtx)[28]) >> 16;
+    sy = (s32)((((u16 *)&mtx)[13] << 16) | ((u16 *)&mtx)[29]) >> 16;
+    sz = (s32)((((u16 *)&mtx)[14] << 16) | ((u16 *)&mtx)[30]) >> 16;
+    sn = sind(gCameraList[cam].fov[0] / 2.0);
+    t = sz * sn / cosdf(gCameraList[cam].fov[0] / 2.0);
+    dist = (t >= 0.0f) ? t : 0.0f - t;
+    if (dist != 0.0) {
+        vp = (HuCamera *)((u8 *)c + D_800D418E_main * 16);
+        out[0] = (s16)(vp->viewports[0].vp.vscale[0] / 4.0 * sx / dist / 1.3333333730697632) + vp->viewports[0].vp.vtrans[0] / 4.0;
+        out[1] = (s16)(vp->viewports[0].vp.vscale[1] / 4.0 * -sy / dist) + vp->viewports[0].vp.vtrans[1] / 4.0;
+    }
+}
 
 void func_80106148_spotlight_swim(omObjData *obj) {
 }
