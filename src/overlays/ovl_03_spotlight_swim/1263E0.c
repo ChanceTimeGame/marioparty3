@@ -282,6 +282,7 @@ void func_8010BDE0_spotlight_swim(s32 x, s32 y, u32 r, u32 g, u32 b);
 void func_8010BFD0_spotlight_swim(u32 *img, s32 x, s32 y);
 void func_8010BA6C_spotlight_swim(Gfx **dl, s32 arg1, s32 arg2);
 void func_8010C094_spotlight_swim(omObjData *obj);
+void func_8010C550_spotlight_swim(omObjData *obj);
 
 void func_801059A0_spotlight_swim(void) {
     func_8010CB78_spotlight_swim();
@@ -2359,7 +2360,85 @@ void func_8010C588_spotlight_swim(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C5E0_spotlight_swim);
+extern s16 D_8010D34C_spotlight_swim;
+
+/* Minigame flow: start message, 30-second timer, finish, result message and coins, wipe out. */
+void func_8010C5E0_spotlight_swim(omObjData *obj) {
+    switch (D_8010EE48_spotlight_swim) {
+    case 0:
+        GMesCreate(4);
+        D_8010EE48_spotlight_swim = 1;
+        D_8010D34C_spotlight_swim = 0;
+        break;
+    case 1:
+        if (GMesStatGet() == 0) {
+            D_8010EE48_spotlight_swim = 2;
+            GMesCreate(0x1A, 30, 160, 28);
+            D_8010D364_spotlight_swim = 901;
+        }
+        if (++D_8010D34C_spotlight_swim == 33) {
+            HuAudSeqPlay(0x35);
+        }
+        break;
+    case 2:
+        if (D_8010D364_spotlight_swim > 0) {
+            D_8010D364_spotlight_swim--;
+            func_8003F578_main((D_8010D364_spotlight_swim + 29) / 30);
+            if (D_8010D2F4_spotlight_swim == 7) {
+                D_8010EE48_spotlight_swim = 3;
+                D_8010D364_spotlight_swim = 0;
+                func_8003F5C0_main();
+                GMesCreate(0xF);
+                HuAudSeqFadeOut(120);
+            }
+        } else {
+            D_8010EE48_spotlight_swim = 3;
+            func_8003F5C0_main();
+            GMesCreate(0xF);
+            HuAudSeqFadeOut(120);
+        }
+        break;
+    case 3:
+        if (GMesStatGet() == 0) {
+            D_8010EE48_spotlight_swim = 4;
+            D_8010D364_spotlight_swim = 0;
+        }
+        break;
+    case 4:
+        if (++D_8010D364_spotlight_swim >= 15) {
+            if (D_8010D2F4_spotlight_swim == 7) {
+                D_8010EE48_spotlight_swim = 6;
+            } else {
+                D_8010EE48_spotlight_swim = 5;
+            }
+        }
+        break;
+    case 6:
+        GMesCreate(0x22, D_8010D340_spotlight_swim[0], D_8010D340_spotlight_swim[1], D_8010D340_spotlight_swim[2]);
+        GwPlayer[D_8010D320_spotlight_swim[0]].bonusCoin = 10;
+        GwPlayer[D_8010D320_spotlight_swim[1]].bonusCoin = 10;
+        GwPlayer[D_8010D320_spotlight_swim[2]].bonusCoin = 10;
+        HuAudSeqPlay(0x66);
+        D_8010D364_spotlight_swim = 15;
+        D_8010EE48_spotlight_swim = 7;
+        break;
+    case 5:
+        GMesCreate(0x16, D_8010D44C_spotlight_swim);
+        GwPlayer[D_8010D3CD_spotlight_swim].bonusCoin = 10;
+        HuAudSeqPlay(0x65);
+        D_8010D364_spotlight_swim = 35;
+        D_8010EE48_spotlight_swim = 7;
+        break;
+    case 7:
+        if (GMesStatGet() == 0) {
+            if (--D_8010D364_spotlight_swim <= 0) {
+                WipeCreateOut(0, 20);
+                obj->func = func_8010C550_spotlight_swim;
+            }
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C900_spotlight_swim);
 
