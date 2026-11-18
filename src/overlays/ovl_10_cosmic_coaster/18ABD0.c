@@ -67,7 +67,7 @@ typedef struct CcStars {
 
 /* omObjData::data of one shooting star (func_801096A8_cosmic_coaster) */
 typedef struct CcShoot {
-    /* 0x00 */ s16 unk00; /* side */
+    /* 0x00 */ u16 unk00; /* side */
     /* 0x04 */ u16 *unk04; /* its CcStars slot flag */
     /* 0x08 */ s16 unk08; /* star sprite */
     /* 0x0A */ s16 unk0A; /* trail sprite */
@@ -1201,7 +1201,57 @@ void func_80109290_cosmic_coaster(omObjData *object) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109290_cosmic_coaster);
 #endif
 
+/* One shooting star: fly, point the trail along the motion, vanish off its half of the screen. */
+#ifdef NON_MATCHING
+void func_801096A8_cosmic_coaster(omObjData *object) {
+    CcShoot *star;
+
+    star = object->data;
+    star->unk0C += star->unk14;
+    star->unk10 += star->unk18;
+    star->unk18 = star->unk18;
+    func_8000BBD4_main(star->unk08, star->unk0C, star->unk10);
+    func_8000BBD4_main(star->unk0A, star->unk0C, star->unk10);
+    func_8000BF00_main(star->unk0A, atan2df(-star->unk18, star->unk14) - 180.0f);
+    switch (star->unk00) {
+    case 0:
+        if (star->unk10 >= 260.0f) {
+            goto end;
+        }
+        if (star->unk14 < 0.0f && star->unk0C < -20.0f) {
+            goto end;
+        }
+        if (!(star->unk18 >= 0.0f)) {
+            break;
+        }
+        if (star->unk0C > 164.0f) {
+            goto end;
+        }
+        break;
+    case 1:
+        if (star->unk10 >= 260.0f) {
+            goto end;
+        }
+        if (star->unk14 < 0.0f && star->unk0C < 156.0f) {
+            goto end;
+        }
+        if (!(star->unk18 >= 0.0f)) {
+            break;
+        }
+        if (!(star->unk0C > 324.0f)) {
+            break;
+        }
+    end:
+        func_8000BB94_main(star->unk08);
+        func_8000BB94_main(star->unk0A);
+        *star->unk04 = 0;
+        omDelObj(object);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801096A8_cosmic_coaster);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109900_cosmic_coaster);
 
