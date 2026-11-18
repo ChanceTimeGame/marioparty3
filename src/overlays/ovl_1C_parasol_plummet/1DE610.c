@@ -36,6 +36,23 @@ typedef struct PaPlayer {
     /* 0x4C */ s32 unk4C; /* lane 0..3, then rank */
 } PaPlayer; // Size 0x50
 
+/* omObjData::data of the goal (D_8010ABCC_parasol_plummet, 0x14) */
+typedef struct PaGoal {
+    /* 0x00 */ f32 unk00; /* position */
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C; /* angle */
+    /* 0x10 */ s32 unk10; /* motion: 1 circling, 2 rising, 4 bobbing */
+} PaGoal; // Size 0x14
+
+/* omObjData::data of the timer (D_8010AC6C_parasol_plummet, 0x14) */
+typedef struct PaTimer {
+    /* 0x00 */ f32 unk00[2]; /* sprite y */
+    /* 0x08 */ s16 unk08; /* sprite file */
+    /* 0x0A */ s16 unk0A[2]; /* sprites */
+    /* 0x0E */ char unk0E[6];
+} PaTimer; // Size 0x14
+
 /* omObjData::data of an item (D_8010AB70_parasol_plummet) */
 typedef struct PaItem {
     /* 0x00 */ s32 unk00;
@@ -62,6 +79,8 @@ void func_800142A0_main(s32);
 void func_8004AD70_main(void);
 void func_8001E500_main(s16, char*, char*);
 f64 fabs(f64);
+void func_8000BC48_main(u16, u16);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 
 extern s8 D_800CBB6E_main[]; /* stick x */
 extern u16 D_800D530C_main;
@@ -99,7 +118,11 @@ void func_80107CD4_parasol_plummet(omObjData* obj);
 void func_80107C30_parasol_plummet(omObjData* obj);
 void func_80107D14_parasol_plummet(omObjData* obj);
 void func_80107D30_parasol_plummet(void);
+void func_80107E6C_parasol_plummet(omObjData* obj);
+void func_8010803C_parasol_plummet(void);
 void func_80108178_parasol_plummet(omObjData* obj);
+void func_801082CC_parasol_plummet(omObjData* obj);
+void func_801083F8_parasol_plummet(void);
 void func_8010856C_parasol_plummet(void);
 void func_801089E0_parasol_plummet(omObjData* obj);
 void func_80108F6C_parasol_plummet(void);
@@ -117,6 +140,8 @@ extern omObjData* D_8010ABCC_parasol_plummet;
 extern u16 D_8010ABD0_parasol_plummet;
 extern f32 D_8010AC50_parasol_plummet[4]; /* lanes taken */
 extern s16 D_8010AC64_parasol_plummet;
+extern f32 D_8010AC68_parasol_plummet; /* time */
+extern omObjData* D_8010AC6C_parasol_plummet; /* timer */
 extern u8 D_8010AC66_parasol_plummet; /* minigame state */
 
 D_80111B50_vine_with_me_Struct D_8010A8A0_parasol_plummet = {
@@ -421,7 +446,7 @@ void func_80106418_parasol_plummet(omObjData* obj) {
     if (y >= 0xF0) {
         p->unk04 -= -24.0f;
         if (p->unk14 & 0x40) {
-            if (p->unk04 <= ((PaPlayer*)D_8010ABCC_parasol_plummet->data)->unk04) {
+            if (p->unk04 <= ((PaGoal*)D_8010ABCC_parasol_plummet->data)->unk04) {
                 p->unk14 |= 0x20;
                 p->unk14 &= ~4;
                 p->unk14 &= ~0x80;
@@ -701,7 +726,7 @@ void func_801071B4_parasol_plummet(omObjData* obj) {
     f32 offOut[4] = { -210.0f, -70.0f, 70.0f, 210.0f };
     PaS32x8 unused = D_8010A928_parasol_plummet;
     PaPlayer* p;
-    PaPlayer* goal;
+    PaGoal* goal;
     s32 dir;
 
     p = obj->data;
@@ -1022,13 +1047,104 @@ void func_80107D14_parasol_plummet(omObjData* obj) {
     p->unk14 = (p->unk14 & ~0x200) | 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107D30_parasol_plummet);
+void func_80107D30_parasol_plummet(void) {
+    omObjData* obj;
+    PaGoal* g;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80107E6C_parasol_plummet);
+    omAddPrcObj(func_8010803C_parasol_plummet, 0x50, 0x2000, 0);
+    obj = omAddObj(0x50, 1, 2, -1, func_80107E6C_parasol_plummet);
+    obj->data = HuMemAllocTag(sizeof(PaGoal), 0x7918);
+    D_8010ABCC_parasol_plummet = obj;
+    g = obj->data;
+    obj->model[0] = func_8000B108_main(0xA011A, 0x6D9);
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    g->unk0C = 90.0f;
+    g->unk00 = sindf(g->unk0C) * 3000.0f + 3000.0f;
+    g->unk04 = cosdf(g->unk0C) * 2000.0f;
+    g->unk08 = cosdf(g->unk0C) * 3000.0f;
+    g->unk10 = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010803C_parasol_plummet);
+void func_80107E6C_parasol_plummet(omObjData* obj) {
+    PaGoal* g = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80108178_parasol_plummet);
+    omSetTra(obj, g->unk00, g->unk04, g->unk08);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    if (g->unk10 & 1) {
+        g->unk00 = sindf(g->unk0C) * 3000.0f + 3000.0f;
+        g->unk04 = cosdf(g->unk0C) * 1000.0f - 500.0f;
+        g->unk08 = cosdf(g->unk0C) * 3000.0f;
+        g->unk0C += 2.5f;
+        if (g->unk0C >= 360.0f) {
+            g->unk0C -= 360.0f;
+        }
+    }
+    if (g->unk10 & 2) {
+        g->unk04 = sindf(g->unk0C) * 1000.0f + -300.0f;
+        g->unk08 += 8.0f;
+    }
+    if (g->unk10 & 4) {
+        g->unk04 = sindf(g->unk0C) * 100.0f + -300.0f;
+        g->unk0C += 3.0f;
+        if (g->unk0C >= 360.0f) {
+            g->unk0C -= 360.0f;
+        }
+    }
+}
+
+void func_8010803C_parasol_plummet(void) {
+    omObjData* obj = D_8010ABCC_parasol_plummet;
+    PaGoal* g = obj->data;
+    s32 i;
+
+    g->unk10 |= 1;
+    HuPrcSleep(0x78);
+    func_8001C814_main(obj->model[0], 4, 4);
+    g->unk10 &= ~1;
+    while (D_8010AC66_parasol_plummet != 3) {
+        HuPrcVSleep();
+    }
+    func_8001C814_main(obj->model[0], 4, 0);
+    g->unk00 = 0.0f;
+    g->unk04 = -2000.0f;
+    g->unk08 = 0.0f;
+    g->unk0C = 0.0f;
+    g->unk10 |= 2;
+    g->unk0C = 270.0f;
+    for (i = 0; i < 0x5A; i++) {
+        g->unk0C += 1.0f;
+        HuPrcVSleep();
+    }
+    g->unk10 = (g->unk10 & ~2) | 4;
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+
+void func_80108178_parasol_plummet(omObjData* obj) {
+    PaTimer* t;
+    s32 i;
+
+    obj->data = HuMemAllocTag(sizeof(PaTimer), 0x7918);
+    D_8010AC6C_parasol_plummet = obj;
+    t = obj->data;
+    t->unk00[0] = 120.0f;
+    t->unk00[1] = 359.0f;
+    t->unk08 = func_8000B838_main(0x3D0002);
+    for (i = 0; i < 2; i++) {
+        t->unk0A[i] = InitEspriteSlot(t->unk08, 0, 1);
+        func_8000BC48_main(t->unk0A[i], 0x4008);
+        func_8000BBD4_main(t->unk0A[i], 0xA0, t->unk00[i]);
+        func_8000BB54_main(t->unk0A[i]);
+        func_8000BE5C_main(t->unk0A[i], 1.0f, 1.0f);
+        func_8000BCC8_main(t->unk0A[i], 0xFF);
+    }
+    D_8010AC68_parasol_plummet = 0;
+    omAddPrcObj(func_801083F8_parasol_plummet, 0x50, 0x2000, 0);
+    obj->func = func_801082CC_parasol_plummet;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801082CC_parasol_plummet);
 
