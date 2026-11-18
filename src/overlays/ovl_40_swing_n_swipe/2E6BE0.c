@@ -169,6 +169,7 @@ extern s16 D_8010C166_swing_n_swipe; /* net model */
 extern s16 D_8010C168_swing_n_swipe; /* 1: footstep sounds */
 extern s16 D_8010C170_swing_n_swipe[5][2]; /* thief model, its shadow */
 extern s16 D_8010C184_swing_n_swipe[5]; /* thief motions */
+extern s16 D_8010C190_swing_n_swipe[5][4]; /* coin bag, its coin count, its shadow */
 
 void func_801059A0_swing_n_swipe(void) {
     func_801059BC_swing_n_swipe();
@@ -867,11 +868,124 @@ void func_80107F00_swing_n_swipe(omObjData* obj) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", D_8010BF9C_swing_n_swipe);
+/* Intro: the thieves run in from their doors to their places and turn to face the player. */
+void func_80108158_swing_n_swipe(void) {
+    Vec from[5] = {
+        { -575.0f, 0.0f, 600.0f }, { -625.0f, 0.0f, 800.0f }, { -675.0f, 0.0f, 1000.0f },
+        { 625.0f, 0.0f, 800.0f }, { 675.0f, 0.0f, 1000.0f },
+    };
+    Vec to[5] = {
+        { 0.0f, 0.0f, -250.0f }, { -190.0f, 0.0f, -50.0f }, { -370.0f, 0.0f, 200.0f },
+        { 190.0f, 0.0f, -50.0f }, { 370.0f, 0.0f, 200.0f },
+    };
+    s16 i = 0;
+    u16 mdl;
+    u16 shadow;
+    u16 bag;
+    f32 ox;
+    f32 oz;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", D_8010BFD8_swing_n_swipe);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80108158_swing_n_swipe);
+    if (D_8010C148_swing_n_swipe == 1) {
+        for (i = 0; i < 5; i++) {
+            mdl = D_8010C170_swing_n_swipe[i][0];
+            shadow = D_8010C170_swing_n_swipe[i][1];
+            bag = D_8010C190_swing_n_swipe[i][0];
+            switch (D_8010BDC8_swing_n_swipe[i]) {
+            case 0:
+                Hu3DModelPosSet(mdl, from[i].x, 0.0f, from[i].z);
+                Hu3DModelPosSet(shadow, HmfModelData[(s16)mdl].pos.x, 0.0f, HmfModelData[(s16)mdl].pos.z);
+                D_8010C14A_swing_n_swipe[i] = 1;
+                func_8001C8A8_main(mdl, 1);
+                func_8001C8A8_main(shadow, 1);
+                D_8010BDC8_swing_n_swipe[i]++;
+                break;
+            case 1:
+                ox = HmfModelData[(s16)mdl].pos.x;
+                oz = HmfModelData[(s16)mdl].pos.z;
+                if (i < 3) {
+                    HmfModelData[(s16)mdl].pos.x = ox + 2.5f;
+                } else {
+                    HmfModelData[(s16)mdl].pos.x -= 2.5f;
+                }
+                HmfModelData[(s16)mdl].pos.z -= 10.0f;
+                HmfModelData[(s16)mdl].rot.y =
+                    -atan2df(oz - HmfModelData[(s16)mdl].pos.z, ox - HmfModelData[(s16)mdl].pos.x) + 270.0f;
+                if (to[i].z >= HmfModelData[(s16)mdl].pos.z) {
+                    HmfModelData[(s16)mdl].pos.z = to[i].z;
+                    D_8010BDC8_swing_n_swipe[i]++;
+                }
+                break;
+            case 2:
+                if (i < 3) {
+                    if ((HmfModelData[(s16)mdl].rot.y -= 6.75f) <= 90.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 90.0f;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                } else {
+                    if ((HmfModelData[(s16)mdl].rot.y += 6.75f) >= 270.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 270.0f;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                }
+                break;
+            case 3:
+                ox = HmfModelData[(s16)mdl].pos.x;
+                oz = HmfModelData[(s16)mdl].pos.z;
+                if (i < 3) {
+                    HmfModelData[(s16)mdl].pos.x = ox + 10.0f;
+                } else {
+                    HmfModelData[(s16)mdl].pos.x -= 10.0f;
+                }
+                HmfModelData[(s16)mdl].rot.y =
+                    -atan2df(oz - HmfModelData[(s16)mdl].pos.z, ox - HmfModelData[(s16)mdl].pos.x) + 270.0f;
+                if (i < 3) {
+                    if (to[i].x <= HmfModelData[(s16)mdl].pos.x) {
+                        HmfModelData[(s16)mdl].pos.x = to[i].x;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                } else {
+                    if (to[i].x >= HmfModelData[(s16)mdl].pos.x) {
+                        HmfModelData[(s16)mdl].pos.x = to[i].x;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                }
+                break;
+            case 4:
+                if (i < 3) {
+                    if ((HmfModelData[(s16)mdl].rot.y -= 6.75f) <= 0.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 0.0f;
+                        D_8010C14A_swing_n_swipe[i] = 2;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                } else {
+                    if ((HmfModelData[(s16)mdl].rot.y += 6.75f) >= 360.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 0.0f;
+                        D_8010C14A_swing_n_swipe[i] = 2;
+                        D_8010BDC8_swing_n_swipe[i]++;
+                    }
+                }
+                break;
+            case 5:
+                HmfModelData[(s16)bag].pos.y = (1.0f - cosdf(D_8010BDD4_swing_n_swipe[i] * 4.5f)) * 140.0f;
+                if (D_8010BDD4_swing_n_swipe[i] > 10.0f) {
+                    HmfModelData[(s16)bag].pos.z =
+                        (to[i].z + 100.0f) - sindf((D_8010BDD4_swing_n_swipe[i] - 10.0f) * 9.0f) * 50.0f;
+                }
+                if (sindf(D_8010BDD4_swing_n_swipe[i]++ * 4.5f) == 1.0f) {
+                    D_8010BDD4_swing_n_swipe[i] = 0;
+                    D_8010BDC8_swing_n_swipe[i]++;
+                }
+                break;
+            case 6:
+                if (i == 0) {
+                    D_8010C148_swing_n_swipe = 0;
+                    D_8010C154_swing_n_swipe = 2;
+                }
+                break;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010897C_swing_n_swipe);
 
