@@ -154,7 +154,7 @@ extern s16 D_8010AF38_tidal_toss;
 extern s16 D_8010AF3A_tidal_toss;
 extern s16 D_8010AF40_tidal_toss; /* game state */
 extern u8 D_8010AA70_tidal_toss; /* the solo player */
-extern u8 D_8010AAB1_tidal_toss[4][2]; /* D_8010AAB0[n][1]: the n-th player to spawn */
+extern u8 D_8010AAB0_tidal_toss[4][2]; /* [n][1]: the n-th player to spawn */
 extern u8 D_8010AAB8_tidal_toss; /* players spawned */
 extern u8 D_8010AAB9_tidal_toss; /* team players spawned */
 extern Vec D_8010AABC_tidal_toss[4]; /* start positions: [0] the solo player, [1 + n] the team */
@@ -566,7 +566,7 @@ void func_80108638_tidal_toss(omObjData* obj) {
     MgWork* work;
     TtPlayer* tp;
 
-    player = D_8010AAB1_tidal_toss[D_8010AAB8_tidal_toss][0];
+    player = D_8010AAB0_tidal_toss[D_8010AAB8_tidal_toss][1];
     chr = GwPlayer[player].chr;
     file0 = D_800A178C_main[chr][0];
     file1 = D_800A178C_main[chr][1];
@@ -1243,3 +1243,26 @@ s16 func_8010A954_tidal_toss(s16 tex, s16 n) {
 HuSprite_Unk84_Unk00_Struct* func_8010AA1C_tidal_toss(s16 tex, s16 frame) {
     return &func_80055194_main(tex)->unk00[frame];
 }
+
+u8 D_8010AA70_tidal_toss = 0;
+s16 D_8010AA74_tidal_toss[3][2] = { { 55, 30 }, { 198, 38 }, { 294, 24 } }; /* cloud positions */
+f32 D_8010AA80_tidal_toss[3] = { 1.0f, 0.8f, 1.2f }; /* cloud scales */
+s32 D_8010AA8C_tidal_toss = 0; /* D_8010AA8E (undefined_syms.txt) is its low half */
+u16 D_8010AA90_tidal_toss = 0;
+s32 D_8010AA94_tidal_toss = -1;
+s16 D_8010AA98_tidal_toss[2] = { 180, 0 }; /* unused */
+u8 D_8010AA9C_tidal_toss[8] = { 0x1C, 0x1C, 0x3C, 0x3C, 0x1C, 0x1C, 0x1C, 0x3C }; /* func_80106D24 */
+s32 D_8010AAA4_tidal_toss = 0; /* func_80106D24: mesh built */
+s32 D_8010AAA8_tidal_toss = 0; /* func_80106D24: build step */
+f32 D_8010AAAC_tidal_toss = 0.0f; /* func_80106D24 */
+u8 D_8010AAB0_tidal_toss[4][2] = { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 } }; /* [n][1]: the n-th player to spawn */
+u8 D_8010AAB8_tidal_toss = 0;
+u8 D_8010AAB9_tidal_toss = 0;
+Vec D_8010AABC_tidal_toss[4] = {
+    { 0.0f, 20.0f, -20.0f },
+    { -240.0f, 0.0f, 0.0f },
+    { 240.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 240.0f },
+};
+f32 D_8010AAEC_tidal_toss[4] = { 0.0f, 90.0f, -90.0f, 180.0f };
+u32 D_8010AAFC_tidal_toss = 0x41C64E6D;
