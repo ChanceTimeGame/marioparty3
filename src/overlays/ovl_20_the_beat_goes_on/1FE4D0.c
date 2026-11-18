@@ -98,10 +98,10 @@ extern BgSprBank* D_800D408C_main;
 /* omObjData::data of a drum */
 typedef struct BgDrum {
     /* 0x00 */ Vec unk00; /* sprite position */
-    /* 0x0C */ char unk0C[4];
-    /* 0x10 */ s8 unk10;
+    /* 0x0C */ u32 unk0C; /* timer */
+    /* 0x10 */ u8 unk10;  /* start delay */
     /* 0x11 */ char unk11[3];
-    /* 0x14 */ s32 unk14;
+    /* 0x14 */ f32 unk14; /* arc angle */
     /* 0x18 */ BgSprModel* unk18;
     /* 0x1C */ s8 unk1C; /* drum index */
     /* 0x1D */ char unk1D[3];
@@ -127,7 +127,10 @@ void func_80108324_the_beat_goes_on(omObjData* obj);
 void func_8010B058_the_beat_goes_on(omObjData* obj);
 void func_8010B17C_the_beat_goes_on(omObjData* obj);
 void func_80106E40_the_beat_goes_on(omObjData* obj);
+void func_80106BE0_the_beat_goes_on(omObjData* obj);
+Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
 
+extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
 extern s32 D_8010C2E4_the_beat_goes_on;
 extern s32 D_8010C2E8_the_beat_goes_on;
 extern s8 D_8010C2EC_the_beat_goes_on;
@@ -522,7 +525,106 @@ void func_80106BE0_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106BE0_the_beat_goes_on);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106E40_the_beat_goes_on);
+void func_80106E40_the_beat_goes_on(omObjData* obj) {
+    BgDrum* w = obj->data;
+    s16 mdl;
+    Vec dir;
+    Vec from;
+    Vec to;
+
+    switch (D_8010C280_the_beat_goes_on) {
+        case 0:
+            Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+            Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+            func_8001C258_main(obj->model[1], 4, 0);
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[2], 4, 4);
+            func_8001C258_main(obj->model[3], 4, 0);
+            mdl = obj->model[3];
+            if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                func_8001C624_main(mdl, HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+            }
+            w->unk0C = 0;
+            func_80106BE0_the_beat_goes_on(obj);
+            break;
+        case 1:
+            Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 4);
+            func_8001C258_main(obj->model[2], 4, 4);
+            mdl = obj->model[3];
+            if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                func_8001C624_main(mdl, HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+            }
+            func_80106BE0_the_beat_goes_on(obj);
+            w->unk14 = 0.0f;
+            break;
+        case 2:
+            if (func_80049F98_main() + D_800D6A90_main != 0) {
+                break;
+            }
+            if (w->unk0C < w->unk10) {
+                w->unk0C++;
+            } else if (w->unk10 == w->unk0C) {
+                if (w->unk1C == 4) {
+                    HuAudFXPlay(0x408);
+                }
+                Hu3DModelScaleSet(obj->model[2], obj->scale.x, obj->scale.y, obj->scale.z);
+                Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+                func_8001C258_main(obj->model[2], 4, 0);
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[1], 4, 4);
+                func_8001C624_main(obj->model[3], HmfModelData[obj->motion[1]].unk02, 0, 1, 2);
+                w->unk0C++;
+            } else if (w->unk0C < w->unk10 + 28) {
+                if (w->unk00.y > -90.0f) {
+                    from.x = w->unk00.x;
+                    from.y = w->unk00.y;
+                    from.z = w->unk00.z;
+                    to.x = 75 - (u8)(rand8() % 150);
+                    to.y = -100.0f;
+                    to.z = 5 - (u8)(rand8() % 10) + 600.0f;
+                    func_8010C1A4_the_beat_goes_on(&dir, &from, &to);
+                    w->unk00.x += dir.x * 25.0f;
+                    w->unk00.y += dir.y * 25.0f;
+                    w->unk00.z += dir.z * 25.0f;
+                    Hu3DModelPosSet(obj->model[3], w->unk00.x, sindf(w->unk14) * 300.0f + w->unk00.y, w->unk00.z);
+                    w->unk14 += 8.0f;
+                    if (w->unk14 >= 180.0f) {
+                        w->unk14 = 180.0f;
+                    }
+                } else {
+                    func_8001C258_main(obj->model[3], 4, 4);
+                    Hu3DModelPosSet(obj->model[3], w->unk00.x, w->unk00.y, w->unk00.z);
+                }
+                w->unk0C++;
+            } else if (w->unk0C == 28) {
+                w->unk0C = 29;
+                if (w->unk1C == 4) {
+                    s32 i;
+
+                    for (i = 0; i < 4; i++) {
+                        if (D_800EC598_minigame[i]->work[0] == 5) {
+                            break;
+                        }
+                    }
+                    D_800EC598_minigame[i]->work[0] = 6;
+                }
+            } else if (w->unk10 + 28 < w->unk0C) {
+                w->unk00.y -= 2.0f;
+                Hu3DModelPosSet(obj->model[3], w->unk00.x, w->unk00.y, w->unk00.z);
+                if (w->unk00.y < -90.0f && w->unk1C == 0) {
+                    D_8010C280_the_beat_goes_on = 0;
+                    w->unk0C = 0;
+                    func_80106BE0_the_beat_goes_on(obj);
+                } else {
+                    w->unk0C++;
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80107504_the_beat_goes_on);
 
