@@ -131,6 +131,7 @@ extern u8 D_8010E186_hide_and_sneak;
 extern u8 D_8010E1A8_hide_and_sneak;
 extern u8 D_8010E1A9_hide_and_sneak[3]; /* D_8010E1A8_hide_and_sneak[1..3]? */
 extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_FADE].unk04 */
+extern u8 D_8010CE59_hide_and_sneak; /* view: the low byte of D_8010CE58_hide_and_sneak */
 extern s8 D_8010E170_hide_and_sneak;
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
@@ -158,6 +159,9 @@ void func_801078E4_hide_and_sneak(void);
 void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
 void func_8010A1CC_hide_and_sneak(omObjData *obj);
+Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx);
+Gfx **func_80105C98_hide_and_sneak(Gfx **gfx);
+Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha);
 void func_80107B30_hide_and_sneak(omObjData *obj);
 void func_80109D88_hide_and_sneak(omObjData *obj);
 extern u8 D_800D6A90_main;
@@ -265,7 +269,7 @@ void func_80105B3C_hide_and_sneak(s32 player) {
 }
 
 #ifdef NON_MATCHING
-void func_80105BB4_hide_and_sneak(Gfx **gfx) {
+Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx) {
     Gfx *g = *gfx;
 
     gDPPipeSync(g++);
@@ -278,13 +282,14 @@ void func_80105BB4_hide_and_sneak(Gfx **gfx) {
     gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 255);
     gDPSetRenderMode(g++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
     *gfx = g;
+    return gfx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105BB4_hide_and_sneak);
 #endif
 
 #ifdef NON_MATCHING
-void func_80105C98_hide_and_sneak(Gfx **gfx) {
+Gfx **func_80105C98_hide_and_sneak(Gfx **gfx) {
     Gfx *g = *gfx;
 
     gDPPipeSync(g++);
@@ -297,22 +302,20 @@ void func_80105C98_hide_and_sneak(Gfx **gfx) {
     gDPSetRenderMode(g++, IM_RD | CVG_DST_FULL | FORCE_BL | GBL_c1(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA),
                      GBL_c2(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA));
     *gfx = g;
+    return gfx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105C98_hide_and_sneak);
 #endif
 
-#ifdef NON_MATCHING
-void func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha) {
+Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha) {
     Gfx *g;
 
     g = *gfx;
     gDPSetPrimColor(g++, 0, 0, 255, 255, 255, alpha);
     *gfx = g;
+    return gfx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105D64_hide_and_sneak);
-#endif
 
 void func_80105D94_hide_and_sneak(f32 x0, f32 z0, f32 x1, f32 z1) {
     f32 dx = (x0 - x1) * 5.0f;
@@ -1482,7 +1485,43 @@ void func_8010ACB8_hide_and_sneak(void) {
     D_8010CE58_hide_and_sneak = 0;
 }
 
+#ifdef NON_MATCHING
+void func_8010ACC4_hide_and_sneak(Gfx **arg0, s32 arg1, s32 arg2) {
+    Gfx **gfx;
+    s8 i;
+    Gfx *g;
+
+    if (D_8010CE58_hide_and_sneak < 255) {
+        gfx = func_80105D64_hide_and_sneak(func_80105C98_hide_and_sneak(arg0), D_8010CE59_hide_and_sneak);
+        if (D_8010CE58_hide_and_sneak == 0) {
+            return;
+        }
+    } else {
+        gfx = func_80105BB4_hide_and_sneak(arg0);
+    }
+    g = *gfx;
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    for (i = 0; i < 4; i++) {
+        if (D_8010C760_hide_and_sneak[i].unk06 == 0) {
+            gDPLoadTLUT_pal16(g++, 0, D_8010E198_hide_and_sneak[i]->unk0C);
+            gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 16, D_8010E198_hide_and_sneak[i]->unk08);
+            gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 4, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+            gDPLoadSync(g++);
+            gDPLoadTile(g++, G_TX_LOADTILE, 0, 0, 0x40, 0x80);
+            gDPPipeSync(g++);
+            gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_4b, 4, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 0x80, 0x80);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 0x80, 0x80);
+            gSPTextureRectangle(g++, D_8010C760_hide_and_sneak[i].x * 4, D_8010C760_hide_and_sneak[i].y * 4,
+                                (D_8010C760_hide_and_sneak[i].x + 32) * 4, (D_8010C760_hide_and_sneak[i].y + 32) * 4,
+                                G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+        }
+    }
+    *gfx = g;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010ACC4_hide_and_sneak);
+#endif
 
 void func_8010AF98_hide_and_sneak(omObjData *obj) {
 }
