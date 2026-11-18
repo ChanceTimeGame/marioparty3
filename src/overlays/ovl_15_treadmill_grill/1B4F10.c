@@ -83,6 +83,7 @@ s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
 void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
 
 extern f32 D_800D51FC_main;
+extern u8 D_800D2008_main; /* frame buffer index */
 extern s8 D_800CBB6E_main[];  /* CPU stick x */
 extern s16 D_800CDA7C_main[]; /* CPU buttons pressed */
 extern s8 D_800D20A1_main[];  /* CPU stick y */
@@ -133,6 +134,27 @@ typedef struct TgHmfObj {
     /* 0x18 */ char unk18[0x20];
     /* 0x38 */ f32 unk38;
 } TgHmfObj;
+
+/* One face group of a model file (src/13F90.c HmfFxGroup) */
+typedef struct TgFaceGroup {
+    /* 0x00 */ u8 count;
+    /* 0x01 */ char unk01;
+    /* 0x02 */ s8 unk02; /* 0x7F: an end cap of the belt */
+    /* 0x03 */ char unk03;
+    /* 0x04 */ s16 vtx[4];
+    /* 0x0C */ Vec center;
+} TgFaceGroup; /* size 0x18 */
+
+/* HmfData as the belt code reads it (src/13F90.c HmfFxData; N64 offsets, pointer slots typed) */
+typedef struct TgHmfData {
+    /* 0x00 */ char unk00[0x1A];
+    /* 0x1A */ s16 unk1A; /* face group count */
+    /* 0x1C */ char unk1C[0x24];
+    /* 0x40 */ Vtx* unk40;    /* vertex positions */
+    /* 0x44 */ Vtx* unk44[3]; /* vertex buffers, one per frame */
+    /* 0x50 */ char unk50[0x60];
+    /* 0xB0 */ TgFaceGroup* unkB0;
+} TgHmfData;
 
 /* A wandering hazard's position (D_8010AFE0_treadmill_grill) */
 typedef struct TgPos2 {
@@ -1508,10 +1530,90 @@ void func_8010A9AC_treadmill_grill(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010AA2C_treadmill_grill);
+/* Belt lane under (x, z): 0..3, -1 off the belts. */
+s32 func_8010AA2C_treadmill_grill(f32 x, f32 z) {
+    s32 lane = -1;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010AB9C_treadmill_grill);
+    if (x <= 550.0f && x >= -550.0f) {
+        if (z <= 150.0f && z > -150.0f) {
+            lane = 0;
+        } else if (z <= -150.0f && z > -450.0f) {
+            lane = 1;
+        } else if (z <= -450.0f && z > -750.0f) {
+            lane = 2;
+        } else {
+            lane = 3;
+        }
+    }
+    return lane;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010ACBC_treadmill_grill);
+/* Belt lane at z: 0..3. */
+s32 func_8010AB9C_treadmill_grill(f32 z) {
+    if (z <= 150.0f && z > -150.0f) {
+        return 0;
+    }
+    if (z <= -150.0f && z > -450.0f) {
+        return 1;
+    }
+    if (z <= -450.0f && z > -750.0f) {
+        return 2;
+    }
+    return 3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010AE6C_treadmill_grill);
+/* Stretches the belt models' vertices to the current belt widths (end caps move to +-width / 2). */
+void func_8010ACBC_treadmill_grill(omObjData* obj) {
+    TgHmfData* hmf;
+    TgFaceGroup* g;
+    Vtx* dst;
+    Vtx* src;
+    f32 r;
+    s32 i, j, k;
+
+    for (i = 0; i < 4; i++) {
+        hmf = (TgHmfData*)HmfModelData[obj->model[i]].hmf;
+        r = D_8010AF8C_treadmill_grill[i] / 1000.0f;
+        for (j = 0; j < hmf->unk1A; j++) {
+            g = &hmf->unkB0[j];
+            if (g->unk02 == 0x7F) {
+                for (k = 0; k < g->count; k++) {
+                    dst = &hmf->unk44[D_800D2008_main][g->vtx[k]];
+                    src = &hmf->unk40[g->vtx[k]];
+                    if (src->v.ob[0] > 0) {
+                        dst->v.ob[0] = D_8010AF8C_treadmill_grill[i] * 0.5f;
+                    } else {
+                        dst->v.ob[0] = -D_8010AF8C_treadmill_grill[i] * 0.5f;
+                    }
+                }
+            } else {
+                for (k = 0; k < g->count; k++) {
+                    dst = &hmf->unk44[D_800D2008_main][g->vtx[k]];
+                    src = &hmf->unk40[g->vtx[k]];
+                    dst->v.ob[0] = src->v.ob[0] * r;
+                }
+            }
+        }
+    }
+}
+
+/* Rescales the belt texture coordinates after a width change. */
+void func_8010AE6C_treadmill_grill(omObjData* obj) {
+    TgHmfData* hmf;
+    TgFaceGroup* g;
+    Vtx* p;
+    f32 r;
+    s32 i, j, k;
+
+    for (i = 0; i < 4; i++) {
+        hmf = (TgHmfData*)HmfModelData[obj->model[i]].hmf;
+        r = D_8010AF8C_treadmill_grill[i] / D_8010AF9C_treadmill_grill[i];
+        for (j = 0; j < hmf->unk1A; j++) {
+            g = &hmf->unkB0[j];
+            for (k = 0; k < g->count; k++) {
+                p = &hmf->unk40[g->vtx[k]];
+                p->v.tc[0] = p->v.tc[0] * r;
+            }
+        }
+    }
+}
