@@ -246,23 +246,255 @@ void func_80105CDC_swing_n_swipe(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80105CDC_swing_n_swipe);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80105EE0_swing_n_swipe);
+/* The minigame's director: wipe in, the intro, the play, the result and the exit. */
+void func_80105EE0_swing_n_swipe(omObjData* obj) {
+    switch (D_8010BD40_swing_n_swipe) {
+    case 0:
+        WipeCreateIn(0xFF, 16);
+        D_8010BD40_swing_n_swipe++;
+        break;
+    case 1:
+        obj->func = func_80106154_swing_n_swipe;
+        D_8010BD40_swing_n_swipe++;
+        break;
+    case 2:
+        if (++D_8010BD42_swing_n_swipe == 1) {
+            GMesCreate(8);
+        } else if (GMesStatGet() == 0) {
+            D_8010BD42_swing_n_swipe = 0;
+            D_8010BD40_swing_n_swipe++;
+        }
+        break;
+    case 3:
+        obj->func = func_80106290_swing_n_swipe;
+        D_8010BD40_swing_n_swipe++;
+        break;
+    case 4:
+        if (++D_8010BD42_swing_n_swipe == 1) {
+            GMesCreate(0x13);
+            HuAudSeqFadeOut(120);
+        } else if (GMesStatGet() == 0) {
+            D_8010BD42_swing_n_swipe = 0;
+            D_8010BD40_swing_n_swipe++;
+        }
+        break;
+    case 5:
+        obj->func = func_801064A4_swing_n_swipe;
+        D_8010BD40_swing_n_swipe++;
+        break;
+    case 6:
+        if (++D_8010BD42_swing_n_swipe == 1) {
+            switch (D_8010C13C_swing_n_swipe) {
+            case 0:
+                HuAudSeqPlay(0x68);
+                GMesMaxTimeGet(GMesCreate(0x24), 120);
+                GwPlayer[D_8010C144_swing_n_swipe].bonusCoin = D_800A11D0_main[D_8010C15E_swing_n_swipe];
+                break;
+            case 1:
+                HuAudSeqPlay(0x6B);
+                GMesMaxTimeGet(GMesCreate(0x1D), 120);
+                GwPlayer[D_8010C144_swing_n_swipe].bonusCoin = -1;
+                break;
+            }
+        } else if (D_8010BD42_swing_n_swipe >= 135) {
+            D_8010BD42_swing_n_swipe = 0;
+            D_8010BD40_swing_n_swipe++;
+        }
+        break;
+    case 7:
+        obj->func = func_801066BC_swing_n_swipe;
+        break;
+    }
+    func_801092B4_swing_n_swipe();
+    func_801099E8_swing_n_swipe();
+    func_8010A994_swing_n_swipe();
+    func_8010AA3C_swing_n_swipe();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106154_swing_n_swipe);
+/* Intro: the player walks on, the thieves come out. */
+void func_80106154_swing_n_swipe(omObjData* obj) {
+    switch (D_8010BD44_swing_n_swipe) {
+    case 0:
+        if (WipeStatGet() == 1) {
+            return;
+        }
+        HuAudSeqPlay(0x44);
+        D_8010BD44_swing_n_swipe++;
+        break;
+    case 1:
+        D_8010C154_swing_n_swipe = 1;
+        if (D_8010BD46_swing_n_swipe++ >= 30) {
+            D_8010BD46_swing_n_swipe = 0;
+            D_8010BD44_swing_n_swipe++;
+        }
+        break;
+    case 2:
+        D_8010C148_swing_n_swipe = 1;
+        D_8010BD44_swing_n_swipe++;
+        break;
+    case 3:
+        if (D_8010BD46_swing_n_swipe++ >= 60) {
+            D_8010BD46_swing_n_swipe = 0;
+            D_8010BD44_swing_n_swipe++;
+        }
+        break;
+    case 4:
+        D_8010C146_swing_n_swipe = 1;
+        D_8010BD44_swing_n_swipe++;
+        break;
+    case 5:
+        if (D_8010C146_swing_n_swipe == 0) {
+            obj->func = func_80105EE0_swing_n_swipe;
+        }
+        break;
+    }
+    func_80106AD0_swing_n_swipe();
+    func_80108158_swing_n_swipe();
+    func_8010A3FC_swing_n_swipe();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106290_swing_n_swipe);
+/* Play: ten seconds to net a thief. */
+void func_80106290_swing_n_swipe(omObjData* obj) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801064A4_swing_n_swipe);
+    if (--D_8010BD48_swing_n_swipe == 300) {
+        D_8010C148_swing_n_swipe = 2;
+        GMesCreate(0x1A, 10, 160, 56);
+    } else if (D_8010BD48_swing_n_swipe >= 0) {
+        func_8003F578_main((D_8010BD48_swing_n_swipe + 29) / 30);
+        func_801072D0_swing_n_swipe();
+        func_8010897C_swing_n_swipe();
+    } else {
+        D_8010C13C_swing_n_swipe = 1;
+        func_8003F5C0_main();
+        D_8010C156_swing_n_swipe = 1;
+        D_8010C15A_swing_n_swipe = 1;
+        D_8010C146_swing_n_swipe = 0;
+        D_8010C148_swing_n_swipe = 0;
+        HmfModelData[D_8010C140_swing_n_swipe->model[0]].unk06 = 0xFF;
+        func_800E5690_minigame(D_8010C140_swing_n_swipe, 0);
+        for (i = 0; i < 5; i++) {
+            D_8010C14A_swing_n_swipe[i] = 0;
+        }
+        obj->func = func_80105EE0_swing_n_swipe;
+    }
+    if (D_8010C13C_swing_n_swipe == 0) {
+        D_8010C13C_swing_n_swipe = 0;
+        func_8003F5C0_main();
+        D_8010C156_swing_n_swipe = 1;
+        D_8010C146_swing_n_swipe = 0;
+        D_8010C148_swing_n_swipe = 4;
+        for (i = 0; i < 5; i++) {
+            D_8010C14A_swing_n_swipe[i] = 0;
+        }
+        obj->func = func_80105EE0_swing_n_swipe;
+    }
+    func_801092B4_swing_n_swipe();
+    func_801099E8_swing_n_swipe();
+    func_8010A780_swing_n_swipe();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801066BC_swing_n_swipe);
+/* Result: the win or loss pose. */
+void func_801064A4_swing_n_swipe(omObjData* obj) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106704_swing_n_swipe);
+    switch (D_8010BD4A_swing_n_swipe) {
+    case 0:
+        if (D_8010C13C_swing_n_swipe == 0) {
+            D_8010C154_swing_n_swipe = 4;
+        } else if (D_8010C13C_swing_n_swipe == 1) {
+            D_8010C146_swing_n_swipe = 3;
+            D_8010C148_swing_n_swipe = 3;
+        }
+        D_8010BD4A_swing_n_swipe++;
+        break;
+    case 1:
+        if (D_8010BD4C_swing_n_swipe++ >= 90) {
+            D_8010BD4A_swing_n_swipe++;
+        }
+        break;
+    case 2:
+        if (D_8010C13C_swing_n_swipe == 0) {
+            func_800E5690_minigame(D_8010C140_swing_n_swipe, 6);
+            func_80045ED0_main(D_800A178C_main[GwPlayer[D_8010C144_swing_n_swipe].chr][0] | 0x35);
+        } else if (D_8010C13C_swing_n_swipe == 1) {
+            HuAudFXPlay(0x4F6);
+            func_800E5690_minigame(D_8010C140_swing_n_swipe, 7);
+            func_80045ED0_main(D_800A178C_main[GwPlayer[D_8010C144_swing_n_swipe].chr][0] | 0x38);
+            for (i = 0; i < 5; i++) {
+                D_8010C14A_swing_n_swipe[i] = 4;
+            }
+        }
+        obj->func = func_80105EE0_swing_n_swipe;
+        break;
+    }
+    func_80106AD0_swing_n_swipe();
+    func_801092B4_swing_n_swipe();
+    func_801099E8_swing_n_swipe();
+    func_8010AA3C_swing_n_swipe();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010673C_swing_n_swipe);
+void func_801066BC_swing_n_swipe(omObjData* obj) {
+    WipeCreateOut(0, 16);
+    HuAudSeqFadeOut(30);
+    func_8004AB0C_main(30);
+    obj->func = func_80106704_swing_n_swipe;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106764_swing_n_swipe);
+void func_80106704_swing_n_swipe(omObjData* obj) {
+    if (WipeStatGet() != 1) {
+        osViBlack(0);
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801069CC_swing_n_swipe);
+void func_8010673C_swing_n_swipe(omObjData* obj) {
+    if (D_800D530C_main == 1) {
+        obj->func = func_801066BC_swing_n_swipe;
+    }
+}
+
+/* The player: motions, start position, shadow and the net on its hand. */
+void func_80106764_swing_n_swipe(omObjData* obj) {
+    s32 chr;
+    s32 dir;
+    s32 file;
+
+    func_800E18D8_minigame();
+    chr = GwPlayer[D_8010C144_swing_n_swipe].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    func_800E1BA8_minigame(obj, dir, file, D_8010C144_swing_n_swipe, 0x2B9, 0x2B9);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x18), 1, 0);
+    func_800E5A00_minigame(obj, 3, func_80017BB8_main(chr, 4), 0, 0);
+    func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 0x91), 0, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 0x35), 0, 0);
+    func_800E5A00_minigame(obj, 7, func_80017BB8_main(chr, 0x38), 0, 0);
+    func_800E5690_minigame(obj, 4);
+    omSetTra(obj, 0.0f, 0.0f, 1500.0f);
+    obj->model[1] = func_8000B108_main(9, 0x2B9);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], 1.5f, 1.0f, 1.5f);
+    D_8010C166_swing_n_swipe = func_8000B108_main(0x610002, 0x2B9);
+    func_8001C258_main(D_8010C166_swing_n_swipe, 0x4000, 0x4000);
+    func_8001EF6C_main(D_8010C166_swing_n_swipe, obj->model[0], "item_hook");
+    obj->func = func_801069CC_swing_n_swipe;
+}
+
+/* Per frame: the shadow shrinks as the player rises; footsteps. */
+void func_801069CC_swing_n_swipe(omObjData* obj) {
+    f32 scale = 1.5f - obj->trans.y * 0.003f;
+
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], scale, 1.0f, scale);
+    if (D_8010C168_swing_n_swipe == 1 && HmfModelData[obj->model[0]].unk40 == 0.0f) {
+        CharFXPlay(0x1F, GwPlayer[D_8010C144_swing_n_swipe].chr);
+    }
+    func_800E4E30_minigame(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80106AD0_swing_n_swipe);
 
