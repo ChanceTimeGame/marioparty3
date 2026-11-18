@@ -125,11 +125,6 @@ typedef struct ScPoint {
 } ScPoint; // Size 8
 
 /* One step of a whirlwind animation table (-1 ends it). */
-typedef struct ScStep {
-    /* 0x00 */ s16 end;
-    /* 0x02 */ s16 frame;
-} ScStep; // Size 4
-
 /* A camera (D_8010CAB8_storm_chasers). */
 typedef struct ScCamera {
     /* 0x00 */ f32 scissor[4];
@@ -273,9 +268,9 @@ extern ScStart D_8010C8D8_storm_chasers[4];
 extern ScGoal D_8010C928_storm_chasers[4];
 extern s32 D_8010C958_storm_chasers;
 extern s32 D_8010C95C_storm_chasers;
-extern ScStep D_8010C960_storm_chasers[];
-extern ScStep D_8010C9C4_storm_chasers[];
-extern ScStep D_8010CA28_storm_chasers[];
+extern s32 D_8010C960_storm_chasers[]; /* animation frames per step, -1 ends; read as s16 */
+extern s32 D_8010C9C4_storm_chasers[]; /* animation frames per step, -1 ends; read as s16 */
+extern s32 D_8010CA28_storm_chasers[]; /* animation frames per step, -1 ends; read as s16 */
 extern ScPoint D_8010CA8C_storm_chasers[4];
 extern s32 D_8010CAAC_storm_chasers;
 extern s32 D_8010CAB0_storm_chasers;
@@ -730,7 +725,6 @@ void func_80106F98_storm_chasers(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_801070A8_storm_chasers(omObjData *obj) {
     ScStorm *st = &D_8010CCC0_storm_chasers;
     f32 vol;
@@ -793,9 +787,6 @@ void func_801070A8_storm_chasers(omObjData *obj) {
         Hu3DModelPosSet(obj->model[1], obj->trans.x, -10.0f, obj->trans.z);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801070A8_storm_chasers);
-#endif
 
 void func_8010746C_storm_chasers(omObjData *obj) {
     obj->model[0] = func_8000B108_main(0x500006, 0x289);
@@ -878,7 +869,6 @@ void func_801078A0_storm_chasers(void) {
 }
 
 /* A whirlwind: waits, appears at a random spot, plays its rise and fade, then waits again. */
-#ifdef NON_MATCHING
 void func_801078E0_storm_chasers(omObjData *obj) {
     ScWind *w = &D_8010CEE0_storm_chasers[obj->work[0]];
     f32 ang;
@@ -909,12 +899,12 @@ void func_801078E0_storm_chasers(omObjData *obj) {
                     obj->trans.x = sindf(a) * (350 - SC_RAND(50));
                     obj->trans.z = cosdf(a) * (350 - SC_RAND(50));
                 }
-                func_80034048_main(obj->work[2], D_8010C9C4_storm_chasers[w->step].frame);
+                func_80034048_main(obj->work[2], D_8010C9C4_storm_chasers[w->step]);
                 w->step++;
             }
             break;
         case 1:
-            if (D_8010C9C4_storm_chasers[w->step].end == -1) {
+            if (D_8010C9C4_storm_chasers[w->step] == -1) {
                 HuAudFXPlay(0x483);
                 func_8001C258_main(obj->model[0], 4, 0);
                 func_8001C258_main(obj->model[1], 4, 0);
@@ -922,17 +912,17 @@ void func_801078E0_storm_chasers(omObjData *obj) {
                 w->step = 0;
                 w->state = 2;
                 func_8001C814_main(obj->model[2], 1, 0);
-                func_80034048_main(obj->work[1], D_8010C960_storm_chasers[w->step].frame);
-                func_80034048_main(obj->work[2], D_8010CA28_storm_chasers[w->step].frame);
+                func_80034048_main(obj->work[1], D_8010C960_storm_chasers[w->step]);
+                func_80034048_main(obj->work[2], D_8010CA28_storm_chasers[w->step]);
                 w->step++;
                 func_8001F9E4_main(obj->model[2], w->alpha);
             } else {
-                func_80034048_main(obj->work[2], D_8010C9C4_storm_chasers[w->step].frame);
+                func_80034048_main(obj->work[2], D_8010C9C4_storm_chasers[w->step]);
                 w->step++;
             }
             break;
         case 2:
-            if (D_8010C960_storm_chasers[w->step].end == -1) {
+            if (D_8010C960_storm_chasers[w->step] == -1) {
                 func_8001C258_main(obj->model[0], 4, 4);
                 func_8001C258_main(obj->model[1], 4, 4);
                 func_8001C258_main(obj->model[2], 4, 4);
@@ -951,8 +941,8 @@ void func_801078E0_storm_chasers(omObjData *obj) {
                     }
                 }
                 func_8001F9E4_main(obj->model[2], w->alpha);
-                func_80034048_main(obj->work[1], D_8010C960_storm_chasers[w->step].frame);
-                func_80034048_main(obj->work[2], D_8010CA28_storm_chasers[w->step].frame);
+                func_80034048_main(obj->work[1], D_8010C960_storm_chasers[w->step]);
+                func_80034048_main(obj->work[2], D_8010CA28_storm_chasers[w->step]);
                 w->step++;
             }
             break;
@@ -960,9 +950,6 @@ void func_801078E0_storm_chasers(omObjData *obj) {
     Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
     Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801078E0_storm_chasers);
-#endif
 
 void func_80107EA4_storm_chasers(omObjData *obj) {
     ScWind *w = &D_8010CEE0_storm_chasers[obj->work[0]];
