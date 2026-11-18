@@ -79,10 +79,19 @@ void func_801064E0_locked_out(omObjData* obj);
 void func_8010713C_locked_out(void);
 void func_80109110_locked_out(void);
 s32 func_80109D70_locked_out(void);
+void func_80106FBC_locked_out(omObjData* obj);
+void func_801071D8_locked_out(omObjData* obj);
+void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4);
+void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z);
+void func_80109CDC_locked_out(void);
+f32 func_80109DBC_locked_out(f32 x, f32 z);
+f32 func_80109E34_locked_out(Vec* a, Vec* b);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 
 extern Vec D_8010A110_locked_out[7]; /* positions; the doors use [0], [3], [6] */
 extern u32 D_8010A1E8_locked_out; /* random seed */
 extern D_80111B50_vine_with_me_Struct D_8010A588_locked_out;
+extern omObjData* D_8010A610_locked_out[10];
 extern LoDoor D_8010A638_locked_out[3];
 extern s16 D_8010A674_locked_out;
 extern s16 D_8010A676_locked_out;
@@ -269,9 +278,49 @@ void func_80106424_locked_out(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801064E0_locked_out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106FBC_locked_out);
+// register allocation and scheduling of the HmfModelData base load (masked 4)
+#ifdef NON_MATCHING
+/* Pushes the player out of the doors' swing circles. */
+void func_80106FBC_locked_out(omObjData* obj) {
+    HmfModel* m;
+    Vec pos;
+    f32 n;
+    f32 r;
+    f32 a;
+    s32 i;
+    LoDoor* d;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_8010713C_locked_out);
+    for (i = 0; i < 3; i++) {
+        d = &D_8010A638_locked_out[i];
+        if (d->unk0C != 0) {
+            m = &HmfModelData[d->unk0E];
+            n = D_800CCF58_main[m->unk02].unk02;
+            r = m->unk40 * 175.0 / n + 50.0;
+            pos.x = d->pos.x - 86.5;
+            pos.y = d->pos.y;
+            pos.z = d->pos.z;
+            if (!(r < func_80109E34_locked_out(&pos, &obj->trans))) {
+                a = func_80109DBC_locked_out(pos.x - obj->trans.x, pos.z - obj->trans.z);
+                obj->trans.x = pos.x - r * sindf(a);
+                obj->trans.z = pos.z - r * cosdf(a);
+            }
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106FBC_locked_out);
+#endif
+
+void func_8010713C_locked_out(void) {
+    s32 i;
+
+    func_800E18D8_minigame();
+    func_800E19F0_minigame(1);
+    D_800EC280_minigame = 0;
+    for (i = 0; i < 4; i++) {
+        D_800EC598_minigame[D_800EC280_minigame++] = omAddObj(2, 15, 50, -1, func_801071D8_locked_out);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A298_locked_out);
 
@@ -279,11 +328,68 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", D_8010A2A0_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801071D8_locked_out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80107844_locked_out);
+/* A player's actor work: the framework's func_800E1BA8_minigame cut down. */
+void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {
+    MgWork* work;
+    s32 i;
+
+    for (i = 0; i < obj->mdlcnt; i++) {
+        obj->model[i] = 0;
+    }
+    obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
+    memset(obj->data, 0, sizeof(MgWork));
+    work = obj->data;
+    work->unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    memset(work->unkE8, 0, obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData));
+    obj->model[0] = func_8000B108_main(file0 | file1, arg4);
+    for (i = 0; i < obj->mtncnt; i++) {
+        obj->motion[i] = -1;
+    }
+    for (i = 0; i < obj->mtncnt; i++) {
+        func_800E1BA8_minigame_UnkE8_ObjData* mtn = work->unkE8;
+        mtn[i].unk02 = 0;
+        mtn[i].unk00 = 0;
+    }
+    work->unk57 = GwPlayer[(u16)player].pad;
+    work->unk52 = 0;
+    work->unkB4 = 1.0f;
+    work->unkD0 = 0xFFFF;
+    work->unk4C = 0.5f;
+    work->unkCC = 1.0f;
+    work->unkA0 = work->unk9C = work->unkA4 = 0.0f;
+    work->unk59 = player;
+    work->unk3C = atan2df(-obj->trans.x, -obj->trans.z);
+    func_800E1328_minigame(obj, 60.0f);
+    func_800E1334_minigame(obj, 150.0f);
+    func_800E1340_minigame(obj, 20.0f);
+    func_800E12EC_minigame(obj, 1000.0f);
+    switch (file0 >> 16) {
+        case 6:
+            work->unkAC = 0.8f;
+            break;
+        case 5:
+            work->unkAC = 0.9f;
+            break;
+        case 4:
+        default:
+            work->unkAC = 1.0f;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80107ABC_locked_out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801089F8_locked_out);
+/* Spawns effect 9..11 (the first free one) at a point. */
+void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z) {
+    s32 i;
+
+    for (i = 9; i < 12; i++) {
+        if (HmfModelData[obj->model[i]].unk18 & 4) {
+            func_800E4C88_minigame(obj, i, x, y, z, 0.0f, 0.0f);
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80108A90_locked_out);
 
@@ -304,7 +410,19 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109444_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109858_locked_out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109CDC_locked_out);
+void func_80109CDC_locked_out(void) {
+    omObjData* o;
+    s32 i;
+
+    for (i = 0; i < D_8010A676_locked_out; i++) {
+        o = D_8010A610_locked_out[i];
+        func_8001ACDC_main(o->model[0]);
+        func_8001ACDC_main(o->model[1]);
+        HuMemFree(o->data);
+        o->data = NULL;
+        omDelObj(o);
+    }
+}
 
 s32 func_80109D70_locked_out(void) {
     u32 r;
@@ -314,9 +432,35 @@ s32 func_80109D70_locked_out(void) {
     return r >> 16;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109DBC_locked_out);
+/* atan2df(x, z) wrapped to -180..180. */
+f32 func_80109DBC_locked_out(f32 x, f32 z) {
+    f32 a;
+    f32 full = 360.0f;
 
+    a = atan2df(x, z);
+    if (a < -180.0f) {
+        a += full;
+    } else if (a >= 180.0) {
+        a -= full;
+    }
+    return a;
+}
+
+// register allocation (masked 0, raw 4)
+#ifdef NON_MATCHING
+/* Distance in XZ. */
+f32 func_80109E34_locked_out(Vec* a, Vec* b) {
+    f32 dx;
+    f32 dz;
+
+    dx = a->x - b->x;
+    dx = dx * dx;
+    dz = a->z - b->z;
+    return sqrtf(dx + dz * dz);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109E34_locked_out);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109E88_locked_out);
 
