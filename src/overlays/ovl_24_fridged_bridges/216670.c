@@ -187,6 +187,8 @@ void func_80107510_fridged_bridges(omObjData *obj);
 void func_80107870_fridged_bridges(void);
 void func_80108648_fridged_bridges(omObjData *obj);
 void *func_8001D33C_main(s16 model, char *name);
+void func_8001EED8_main(s16 arg0, u8 arg1, s8 arg2);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 extern char D_8010D2D8_fridged_bridges[];
 void func_80109F84_fridged_bridges(omObjData *obj);
 void func_8010A1A4_fridged_bridges(omObjData *obj);
@@ -925,9 +927,80 @@ void func_801079CC_fridged_bridges(omObjData *obj, s8 *stickX, s8 *stickY) {
     *stickY = cosdf(angle) * speed;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108050_fridged_bridges);
+/* CPU: pick the next lane and whether to slow down */
+s16 func_80108050_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    s16 lane;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801082D0_fridged_bridges);
+    work->unk4C = 1.0f;
+    switch (GwPlayer[work->unk02].cpu_difficulty) {
+        case 0:
+            if ((u8)(rand8() % 10) >= 6) {
+                lane = (u8)(rand8() % 3);
+            } else {
+                lane = 0;
+            }
+            if ((u8)(rand8() % 10) < 4) {
+                work->unk4C = 0.8f;
+            }
+            break;
+        case 1:
+            if ((u8)(rand8() % 10) >= 7) {
+                lane = (u8)(rand8() % 3);
+            } else {
+                lane = 0;
+            }
+            if ((u8)(rand8() % 10) < 4) {
+                work->unk4C = 0.8f;
+            }
+            break;
+        case 2:
+            lane = 0;
+            if ((u8)(rand8() % 10) < 5) {
+                work->unk4C = 0.8f;
+            }
+            break;
+        case 3:
+            lane = 0;
+            if ((u8)(rand8() % 10) < 6) {
+                work->unk4C = 0.8f;
+            }
+            break;
+    }
+    return lane;
+}
+
+/* Grab the hook: attach the player to it */
+void func_801082D0_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    u16 player = work->unk02;
+    u16 motion;
+
+    work->unk28 = 1;
+    work->unk26++;
+    D_8010DA70_fridged_bridges->work[2] &= ~(1 << work->unk02);
+    func_8001C258_main(D_8010DA70_fridged_bridges->model[work->unk02 * 5 + 4], 4, 4);
+    Hu3DModelScaleSet(D_8010DA70_fridged_bridges->model[(s16)player * 5], 1.0f, 1.0f, 1.0f);
+    func_8001EF6C_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], obj->model[0], D_8010D2D8_fridged_bridges);
+    func_8001C258_main(D_8010DA70_fridged_bridges->model[(s16)player * 5], 0x4004, 0x4000);
+    if (GwPlayer[work->unk02].chr == 5) {
+        switch (work->unk04) {
+            case 0:
+                motion = obj->motion[7];
+                break;
+            case 1:
+                motion = obj->motion[3];
+                break;
+            case 2:
+                motion = obj->motion[8];
+                break;
+        }
+        func_8001C5B4_main(obj->model[0], motion);
+        func_8001C814_main(obj->model[0], 2, 2);
+        return;
+    }
+    func_8001EED8_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801084E0_fridged_bridges);
 
