@@ -15,6 +15,9 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+#define BG_IABS(x) (((x) < 0) ? -(x) : (x))
+#define BG_FABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
+
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct BgCtrl {
     /* 0x00 */ u8 unk00;
@@ -59,6 +62,7 @@ u16 func_800E6E9C_minigame(void);
 void func_800E6F0C_minigame(s8 arg0);
 
 extern s16 D_800EB932_minigame;
+extern s16 D_800EB934_minigame;
 extern s32 D_800EBEB0_minigame[];
 
 /* An entry of D_800CBB60_main (src/14EA0.c unk_800ECDE0) */
@@ -122,23 +126,23 @@ typedef struct BgSeq {
     /* 0x00 */ f32 unk00;
     /* 0x04 */ s16 unk04;
     /* 0x06 */ s16 unk06;
-    /* 0x08 */ s8 unk08;
-    /* 0x09 */ s8 unk09;
+    /* 0x08 */ u8 unk08;
+    /* 0x09 */ u8 unk09;
     /* 0x0A */ u16 unk0A; /* last button shown */
-    /* 0x0C */ s8 unk0C;
+    /* 0x0C */ u8 unk0C;
     /* 0x0D */ char unk0D;
     /* 0x0E */ s16 unk0E;
     /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ s8 unk16;
-    /* 0x17 */ s8 unk17;
-    /* 0x18 */ s8 unk18;
-    /* 0x19 */ s8 unk19;
-    /* 0x1A */ s8 unk1A[16];
-    /* 0x2A */ s8 unk2A[16]; /* A notes */
-    /* 0x3A */ s8 unk3A[16]; /* B notes */
-    /* 0x4A */ s8 unk4A[16]; /* Z notes */
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 unk16;
+    /* 0x17 */ u8 unk17;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 unk19;
+    /* 0x1A */ u8 unk1A[16];
+    /* 0x2A */ u8 unk2A[16]; /* A notes */
+    /* 0x3A */ u8 unk3A[16]; /* B notes */
+    /* 0x4A */ u8 unk4A[16]; /* Z notes */
     /* 0x5A */ char unk5A[2];
 } BgSeq; /* size 0x5C */
 
@@ -188,25 +192,26 @@ void func_8010C14C_the_beat_goes_on(void);
 u16 func_80108198_the_beat_goes_on(s8 idx);
 void func_8010B6DC_the_beat_goes_on(omObjData* obj);
 void func_8000BBFC_main(u16 spriteId, s16 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8010C0F4_the_beat_goes_on(s16* pos);
+u16 func_8010A5FC_the_beat_goes_on(MgWork* pw);
+void func_8010A88C_the_beat_goes_on(u16 btn);
+void func_8010A94C_the_beat_goes_on(omObjData* obj, s8* sign);
+void func_8010AD60_the_beat_goes_on(s8* step, f32 speed);
+void func_8010AF10_the_beat_goes_on(omObjData* obj);
+s16 func_8004ACE0_main(s16, s16);
+s16 func_8004AC98_main(s16, s16);
 void func_8010B0E0_the_beat_goes_on(omObjData* obj);
 void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
 Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
 
-extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
-extern u8 D_8010C284_the_beat_goes_on[24][4]; /* start slot per player, one row per permutation */
-extern s32 D_8010C2E4_the_beat_goes_on;
-extern s32 D_8010C2E8_the_beat_goes_on;
-extern s8 D_8010C2EC_the_beat_goes_on;
 
 extern s16 D_8010C460_the_beat_goes_on;
 extern s16 D_8010C462_the_beat_goes_on;
 extern s16 D_8010C464_the_beat_goes_on;
 extern s16 D_8010C466_the_beat_goes_on; /* drums made; D_8010C467 is its low byte */
 extern u16 D_8010C468_the_beat_goes_on;
-extern s16 D_8010C2F0_the_beat_goes_on[8][2]; /* sprite frame origin */
-extern u8 D_8010C310_the_beat_goes_on; /* camera step */
-extern s8 D_8010C311_the_beat_goes_on; /* players made */
 extern BgNote D_8010C4A0_the_beat_goes_on[16];
 extern s8 D_8010C4E8_the_beat_goes_on;
 extern s8 D_8010C4E9_the_beat_goes_on; /* note index */
@@ -214,10 +219,10 @@ extern u16 D_8010C4F6_the_beat_goes_on;
 extern u16 D_8010C4F8_the_beat_goes_on;
 extern u16 D_8010C4FA_the_beat_goes_on;
 extern s8 D_8010C46A_the_beat_goes_on;
+extern f32 D_8010C470_the_beat_goes_on;
 extern u16 D_8010C46C_the_beat_goes_on;
-extern s32 D_8010C328_the_beat_goes_on[4][4];
-extern f32 D_8010C368_the_beat_goes_on[4];
 extern s8 D_8010C474_the_beat_goes_on;
+extern s8 D_8010C475_the_beat_goes_on; /* note slot pulsing */
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
@@ -228,14 +233,41 @@ extern s32 D_8010C4FC_the_beat_goes_on; /* HOST: D_8010C4FE is its low half */
 extern s16 D_8010C4FE_the_beat_goes_on;
 extern BgTexSize D_8010C500_the_beat_goes_on;
 extern f32 D_8010C504_the_beat_goes_on;
-extern s16 D_8010C508_the_beat_goes_on[2];
-extern s16 D_8010C50C_the_beat_goes_on;
-extern s16 D_8010C50E_the_beat_goes_on;
-extern s16 D_8010C510_the_beat_goes_on;
-extern s16 D_8010C518_the_beat_goes_on[15];
-extern s16 D_8010C538_the_beat_goes_on[16];
-extern s16 D_8010C558_the_beat_goes_on[16];
-extern s16 D_8010C578_the_beat_goes_on[16];
+extern u16 D_8010C508_the_beat_goes_on[2];
+extern u16 D_8010C50C_the_beat_goes_on;
+extern u16 D_8010C50E_the_beat_goes_on;
+extern u16 D_8010C510_the_beat_goes_on;
+extern u16 D_8010C518_the_beat_goes_on[15];
+extern u16 D_8010C538_the_beat_goes_on[16];
+extern u16 D_8010C558_the_beat_goes_on[16];
+extern u16 D_8010C578_the_beat_goes_on[16];
+
+
+
+// .data (defined at the end of the file)
+extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
+extern u8 D_8010C284_the_beat_goes_on[24][4];
+extern s32 D_8010C2E4_the_beat_goes_on;
+extern s32 D_8010C2E8_the_beat_goes_on;
+extern s8 D_8010C2EC_the_beat_goes_on;
+extern s16 D_8010C2F0_the_beat_goes_on[8][2];
+extern u8 D_8010C310_the_beat_goes_on; /* camera step */
+extern s8 D_8010C311_the_beat_goes_on; /* players made */
+extern f32 D_8010C314_the_beat_goes_on; /* sign height */
+extern f32 D_8010C318_the_beat_goes_on;
+extern s8 D_8010C31C_the_beat_goes_on; /* players left */
+extern s8 D_8010C31D_the_beat_goes_on; /* note sign shown */
+extern s8 D_8010C31E_the_beat_goes_on; /* camera step */
+extern s8 D_8010C31F_the_beat_goes_on; /* someone is out */
+extern s8 D_8010C320_the_beat_goes_on;
+extern s8 D_8010C321_the_beat_goes_on;
+extern s32 D_8010C324_the_beat_goes_on;
+extern s32 D_8010C328_the_beat_goes_on[4][4];
+extern f32 D_8010C368_the_beat_goes_on[4];
+extern f32 D_8010C378_the_beat_goes_on; /* cursor x */
+extern f32 D_8010C37C_the_beat_goes_on; /* note pulse angle */
+extern f32 D_8010C380_the_beat_goes_on; /* frame pulse angle */
+extern s8 D_8010C384_the_beat_goes_on; /* frame pulse frames left */
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
@@ -570,8 +602,6 @@ void func_80106708_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106708_the_beat_goes_on);
 #endif
 
-#ifdef NON_MATCHING
-/* masked 3: one hazard nop after the cosdf(CRot.x) delay slot */
 /* Keeps a drum's sprite facing the camera. */
 void func_80106BE0_the_beat_goes_on(omObjData* obj) {
     BgDrum* w = obj->data;
@@ -610,9 +640,6 @@ void func_80106BE0_the_beat_goes_on(omObjData* obj) {
     w->unk00.z = pz;
     Hu3DModelRotSet(obj->model[3], CRot.x, CRot.y, CRot.z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106BE0_the_beat_goes_on);
-#endif
 
 void func_80106E40_the_beat_goes_on(omObjData* obj) {
     BgDrum* w = obj->data;
@@ -1002,7 +1029,501 @@ void func_80108324_the_beat_goes_on(omObjData* obj) {
     D_8010C311_the_beat_goes_on++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108810_the_beat_goes_on);
+/* A player: watch, copy the rhythm, fall in the water, ring rotation, results. */
+void func_80108810_the_beat_goes_on(omObjData* obj) {
+    MgWork* pw = obj->data;
+    BgPlayer* ex = pw->unk158;
+    BgSeq* seq;
+    omObjData* pl;
+    s16 pos[2];
+    s16 mdl;
+    u16 btn;
+    s32 i;
+    s32 se;
+
+    if (D_8010C4E0_the_beat_goes_on->work[0] != 6) {
+        return;
+    }
+    if (D_800EC598_minigame[0]->work[0] != 7 && D_800EC598_minigame[1]->work[0] != 7 && D_800EC598_minigame[2]->work[0] != 7
+        && D_800EC598_minigame[3]->work[0] != 7) {
+        D_8010C31F_the_beat_goes_on = 0;
+    } else {
+        for (i = 0; i < 4; i++) {
+            if (D_800EC598_minigame[i]->work[0] == 7) {
+                D_8010C31F_the_beat_goes_on = 1;
+                break;
+            }
+        }
+    }
+    if (D_8010C31F_the_beat_goes_on != 0) {
+        if (D_8010C324_the_beat_goes_on >= 121) {
+            if (D_8010C31C_the_beat_goes_on < 5) {
+                if (D_8010C31C_the_beat_goes_on >= 2) {
+                    func_8010AD60_the_beat_goes_on(&D_8010C31E_the_beat_goes_on, 348.0f);
+                }
+            }
+        } else {
+            D_8010C324_the_beat_goes_on++;
+        }
+    } else {
+        D_8010C324_the_beat_goes_on = 0;
+    }
+    if (!(obj->trans.z < 600.0f) || obj->work[0] == 7 || obj->work[0] == 8 || obj->work[0] == 9) {
+        seq = D_8010C4E4_the_beat_goes_on->data;
+        switch (obj->work[0]) {
+            case 0:
+                if (ex->unk00 >= 10) {
+                    obj->work[0] = 1;
+                    ex->unk00 = 0;
+                } else {
+                    ex->unk00++;
+                }
+                break;
+            case 1:
+                if (ex->unk00 >= 20) {
+                    obj->work[0] = 2;
+                    D_8010C280_the_beat_goes_on = 1;
+                    ex->unk00 = 0;
+                    seq->unk08 = 1;
+                } else {
+                    if (ex->unk00 == 0) {
+                        seq->unk04 = 20;
+                        seq->unk06 = 30;
+                        seq->unk0E = (s8)(D_8010C4E8_the_beat_goes_on % 8) * 30 + 55;
+                        if (D_8010C4E8_the_beat_goes_on >= 8) {
+                            seq->unk10 = 50;
+                        } else {
+                            seq->unk10 = 30;
+                        }
+                        seq->unk18 = 1;
+                        seq->unk17 = 1;
+                        seq->unk16 = 1;
+                        for (i = 0; i < D_8010C4E8_the_beat_goes_on; i++) {
+                            seq->unk1A[i] = 1;
+                        }
+                    }
+                    ex->unk00++;
+                }
+                break;
+            case 2:
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                if (seq->unk09 == 1) {
+                    btn = func_8010A5FC_the_beat_goes_on(pw);
+                    if (obj->work[1] == 0 && (btn & 0xE000)) {
+                    if (btn == 0x8000) {
+                        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[5]].unk02, 0, 1, 2);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        func_8001C6A8_main(obj->model[0], 0.0f);
+                        obj->work[1] = 5;
+                        D_8010C31D_the_beat_goes_on = 1;
+                        if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on || D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == btn) {
+                            func_8010A88C_the_beat_goes_on(0x8000);
+                            obj->work[0] = 3;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x8000;
+                        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 != 0x8000) {
+                            func_8010A88C_the_beat_goes_on(0x8000);
+                            obj->work[0] = 4;
+                            seq->unk19 = 1;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x8000;
+                        }
+                    } else if (btn == 0x4000) {
+                        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 0, 1, 2);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        func_8001C6A8_main(obj->model[0], 0.0f);
+                        obj->work[1] = 3;
+                        D_8010C31D_the_beat_goes_on = 2;
+                        if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on || D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == btn) {
+                            func_8010A88C_the_beat_goes_on(0x4000);
+                            obj->work[0] = 3;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x4000;
+                        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 != 0x4000) {
+                            func_8010A88C_the_beat_goes_on(0x4000);
+                            obj->work[0] = 4;
+                            seq->unk19 = 1;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x4000;
+                        }
+                    } else if (btn == 0x2000) {
+                        func_8001C624_main(obj->model[0], HmfModelData[obj->motion[4]].unk02, 0, 1, 2);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        func_8001C6A8_main(obj->model[0], 0.0f);
+                        obj->work[1] = 4;
+                        D_8010C31D_the_beat_goes_on = 3;
+                        if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on || D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 == btn) {
+                            func_8010A88C_the_beat_goes_on(0x2000);
+                            obj->work[0] = 3;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x2000;
+                        } else if (D_8010C4A0_the_beat_goes_on[D_8010C4E9_the_beat_goes_on].unk00 != 0x2000) {
+                            func_8010A88C_the_beat_goes_on(0x2000);
+                            obj->work[0] = 4;
+                            seq->unk19 = 1;
+                            seq->unk0C = 1;
+                            seq->unk0A = 0x2000;
+                        }
+                    }
+                    }
+                }
+                if (obj->work[1] == 5 || obj->work[1] == 3 || obj->work[1] == 4) {
+                    mdl = obj->model[0];
+                    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                        func_8001C624_main(mdl, HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        obj->work[1] = 0;
+                    }
+                }
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                func_8010C0F4_the_beat_goes_on(pos);
+                if (pos[0] + 11 < seq->unk04 && pos[1] == seq->unk06) {
+                    obj->work[0] = 4;
+                    ex->unk00 = 0;
+                    seq->unk19 = 1;
+                    seq->unk0C = 1;
+                    if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on) {
+                        seq->unk0A = 0x400;
+                    } else {
+                        seq->unk0A = 0x800;
+                    }
+                }
+                break;
+            case 3:
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                mdl = obj->model[0];
+                if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                    func_8001C624_main(mdl, HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    obj->work[1] = 0;
+                }
+                func_8010C0F4_the_beat_goes_on(pos);
+                if (pos[1] == seq->unk06 && (pos[0] + 11 < seq->unk04 || seq->unk04 == 280)) {
+                    if (D_8010C4E8_the_beat_goes_on == D_8010C4E9_the_beat_goes_on) {
+                        if (D_8010C4E8_the_beat_goes_on + 1 == 16) {
+                            for (i = 0; i < 4; i++) {
+                                pl = D_800EC598_minigame[i];
+                                if (pl->work[0] != 10) {
+                                    pl->work[0] = 9;
+                                    ex->unk00 = 0;
+                                }
+                            }
+                        } else if (obj->work[1] == 0
+                                   || !(HmfModelData[obj->model[0]].unk40 < D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2.0f)) {
+                            for (i = 0; i < 4; i++) {
+                                pl = D_800EC598_minigame[i];
+                                if (pl->work[0] != 10) {
+                                    pl->work[0] = 7;
+                                    D_8010C320_the_beat_goes_on = 0;
+                                    D_8010C31E_the_beat_goes_on = 0;
+                                    func_8004A950_main();
+                                }
+                            }
+                            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[7]].unk02, 0, 1, 2);
+                            func_8001C92C_main(obj->model[0], 1.0f);
+                            ex->unk00 = 0;
+                            D_8010C4E9_the_beat_goes_on = 0;
+                            D_8010C4E8_the_beat_goes_on++;
+                        }
+                    } else {
+                        D_8010C4E9_the_beat_goes_on++;
+                        obj->work[0] = 2;
+                    }
+                }
+                break;
+            case 4:
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                func_800E4C88_minigame(obj, 6, obj->trans.x, -50.0f, obj->trans.z + 50.0f, 90.0f, 0.0f);
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+                func_8001C92C_main(obj->model[0], 1.0f);
+                obj->work[1] = 2;
+                ex->unk00 = 0;
+                D_8010C4E9_the_beat_goes_on = 0;
+                D_8010C31C_the_beat_goes_on--;
+                obj->work[0] = 5;
+                break;
+            case 5:
+                mdl = obj->model[0];
+                if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                    func_8001C814_main(mdl, 2, 1);
+                } else if (HmfModelData[obj->model[0]].unk40 == 10.0f) {
+                    func_8001C258_main(obj->model[3], 4, 4);
+                    func_8001C258_main(obj->model[4], 4, 4);
+                    func_8001C258_main(obj->model[5], 4, 4);
+                    func_8004AC98_main(0x40C, 0);
+                } else if (HmfModelData[obj->model[0]].unk40 == 20.0f) {
+                    seq->unk08 = 0;
+                    func_8010C14C_the_beat_goes_on();
+                } else if (HmfModelData[obj->model[0]].unk40 == 50.0f) {
+                    D_8010C280_the_beat_goes_on = 2;
+                }
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                break;
+            case 6:
+                if (obj->trans.x < -450.0f) {
+                    for (i = 0; i < 6; i++) {
+                        func_8001C258_main(obj->model[i], 4, 4);
+                    }
+                    for (i = 0; i < 4; i++) {
+                        func_8001C258_main(D_8010C4EC_the_beat_goes_on[i], 4, 4);
+                    }
+                    for (i = 0; i < 4; i++) {
+                        if (obj == D_800EC598_minigame[i]) {
+                            obj->work[0] = 10;
+                        } else if (D_800EC598_minigame[i]->work[0] != 10) {
+                            D_800EC598_minigame[i]->work[0] = 7;
+                            D_8010C320_the_beat_goes_on = 1;
+                            D_8010C31E_the_beat_goes_on = 0;
+                            func_8004A950_main();
+                        }
+                    }
+                    D_8010C314_the_beat_goes_on = -90.0f;
+                    D_8010C470_the_beat_goes_on = 0.0f;
+                    D_8010C318_the_beat_goes_on = 0.0f;
+                    break;
+                }
+                func_8010AF10_the_beat_goes_on(obj);
+                if (obj->trans.x == 0.0f) {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[6]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    func_8004ACE0_main(0x286, pw->unk59);
+                    func_8004AC98_main(0x409, 0);
+                    omVibrate(pw->unk59, 2, 2, 20);
+                } else if (obj->trans.x < -200.0f && D_8010C31C_the_beat_goes_on == 1) {
+                    for (i = 0; i < 4; i++) {
+                        if (D_800EC598_minigame[i]->work[0] == 0) {
+                            D_8010C478_the_beat_goes_on.unk06 = 0;
+                            D_8010C478_the_beat_goes_on.unk18[0] = i;
+                            D_8010C478_the_beat_goes_on.unk18[1] = 0xFF;
+                            func_800E6F0C_minigame(3);
+                            break;
+                        }
+                    }
+                }
+                obj->trans.x -= 15.0f;
+                obj->trans.y = sindf(D_8010C470_the_beat_goes_on) * 200.0f + -90.0f;
+                D_8010C470_the_beat_goes_on += 5.0f;
+                if (D_8010C470_the_beat_goes_on >= 180.0f) {
+                    D_8010C470_the_beat_goes_on = 0.0f;
+                }
+                func_8001C258_main(obj->model[1], 4, 4);
+                D_8010C314_the_beat_goes_on -= 2.0f;
+                D_8010C318_the_beat_goes_on += 15.0f;
+                Hu3DModelPosSet(obj->model[2], 0.0f, -90.0f, D_8010C318_the_beat_goes_on + 600.0f);
+                for (i = 3; i < 6; i++) {
+                    Hu3DModelPosSet(obj->model[i], 0.0f, D_8010C314_the_beat_goes_on, 600.0f);
+                }
+                obj->rot.y -= 15.0f;
+                if (obj->rot.y < -90.0f) {
+                    obj->rot.y = -90.0f;
+                }
+                break;
+            case 7:
+                D_8010C280_the_beat_goes_on = 0;
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                if (ex->unk00 < 30) {
+                    if (ex->unk00 == 20) {
+                        seq->unk08 = 0;
+                        func_8010C14C_the_beat_goes_on();
+                    }
+                    if (D_8010C31C_the_beat_goes_on == 1) {
+                        ex->unk00 = 30;
+                    } else {
+                        ex->unk00++;
+                    }
+                    break;
+                }
+                if (ex->unk00 == 30) {
+                    if (D_8010C31C_the_beat_goes_on >= 2 && !(D_800A1906_main & 2)) {
+                        HuAudSeqPlay(0x40);
+                    }
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    obj->work[1] = 0;
+                    ex->unk00++;
+                    break;
+                }
+                ex->unk00++;
+                switch (D_8010C31C_the_beat_goes_on) {
+                    case 4:
+                        ex->unk04 -= 0.92783505f;
+                        if (ex->unk04 < 0.0f) {
+                            ex->unk04 += 360.0f;
+                        }
+                        if (ex->unk00 >= 21 && BG_IABS((s32)ex->unk04 % 90) < 2) {
+                            obj->work[0] = 0;
+                            ex->unk00 = 0;
+                            if (obj->trans.z > 590.0f) {
+                                ex->unk04 = 0.0f;
+                            } else if (obj->trans.z < -590.0f) {
+                                ex->unk04 = 180.0f;
+                            } else if (obj->trans.x < 0.0f) {
+                                ex->unk04 = 270.0f;
+                            } else {
+                                ex->unk04 = 90.0f;
+                            }
+                        }
+                        break;
+                    case 3:
+                        if (D_8010C320_the_beat_goes_on == 0) {
+                            ex->unk04 -= 1.2371134f;
+                        } else {
+                            ex->unk04 -= 0.92783505f;
+                        }
+                        if (ex->unk04 < 0.0f) {
+                            ex->unk04 += 360.0f;
+                        }
+                        if (ex->unk00 >= 21 && BG_IABS((s32)ex->unk04 % 120) < 2) {
+                            obj->work[0] = 0;
+                            ex->unk00 = 0;
+                            if (obj->trans.z > 590.0f) {
+                                ex->unk04 = 0.0f;
+                            } else if (obj->trans.x < 0.0f) {
+                                ex->unk04 = 240.0f;
+                            } else {
+                                ex->unk04 = 120.0f;
+                            }
+                        }
+                        break;
+                    case 2:
+                        if (D_8010C320_the_beat_goes_on == 0) {
+                            ex->unk04 -= 1.8556701f;
+                        } else {
+                            ex->unk04 -= 1.2371134f;
+                        }
+                        if (ex->unk04 < 0.0f) {
+                            ex->unk04 += 360.0f;
+                        }
+                        if (ex->unk00 >= 21 && BG_IABS((s32)ex->unk04 % 180) < 2) {
+                            obj->work[0] = 0;
+                            ex->unk00 = 0;
+                            if (obj->trans.z > 590.0f) {
+                                ex->unk04 = 0.0f;
+                            } else {
+                                ex->unk04 = 180.0f;
+                            }
+                        }
+                        break;
+                    default:
+                        ex->unk04 -= 2.5f;
+                        if (ex->unk04 < 0.0f) {
+                            ex->unk04 = 0.0f;
+                        }
+                        if (BG_FABS(obj->trans.x) < 5.0f && BG_FABS(obj->trans.z - 600.0f) < 5.0f) {
+                            obj->trans.x = 0.0f;
+                            obj->trans.z = 600.0f;
+                            obj->work[0] = 8;
+                            ex->unk00 = 0;
+                            D_8010C31E_the_beat_goes_on = 0;
+                        }
+                        break;
+                }
+                obj->trans.x = sindf(ex->unk04) * 600.0f;
+                obj->trans.z = cosdf(ex->unk04) * 600.0f;
+                for (i = 1; i < 6; i++) {
+                    Hu3DModelPosSet(obj->model[i], obj->trans.x, obj->trans.y, obj->trans.z);
+                }
+                break;
+            case 8:
+                func_800E6F0C_minigame(4);
+                if (D_800EB934_minigame != 0) {
+                    func_80017790_main(obj->model[0], 1, GwPlayer[pw->unk59].chr, func_80017BB8_main(GwPlayer[pw->unk59].chr, 0xA5));
+                    switch (GwPlayer[pw->unk59].chr) {
+                        case 0:
+                        default:
+                            se = 2;
+                            break;
+                        case 1:
+                            se = 3;
+                            break;
+                        case 2:
+                            se = 7;
+                            break;
+                        case 3:
+                            se = 4;
+                            break;
+                        case 4:
+                            se = 5;
+                            break;
+                        case 5:
+                            se = 6;
+                            break;
+                        case 6:
+                            se = 8;
+                            break;
+                        case 7:
+                            se = 9;
+                            break;
+                    }
+                    func_80045ED0_main((se << 16) | 0x2F);
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 1, 2);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    obj->work[1] = 1;
+                    GwPlayer[pw->unk59].bonusCoin += 10;
+                    ex->unk00 = 0;
+                    obj->work[0] = 11;
+                }
+                break;
+            case 9:
+                func_8010A94C_the_beat_goes_on(obj, &D_8010C31D_the_beat_goes_on);
+                if (obj->work[1] == 3 || obj->work[1] == 4 || obj->work[1] == 5) {
+                    mdl = obj->model[0];
+                    if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                        func_8001C624_main(mdl, HmfModelData[obj->motion[0]].unk02, 0, 1, 2);
+                        func_8001C92C_main(obj->model[0], 1.0f);
+                        func_8001C6A8_main(obj->model[0], 0.0f);
+                        obj->work[1] = 0;
+                    }
+                }
+                if (obj->work[1] == 0) {
+                    D_8010C321_the_beat_goes_on = 1;
+                }
+                if (D_8010C321_the_beat_goes_on != 0 && ex->unk00 == 60) {
+                    for (i = 0; i < 4; i++) {
+                        if (D_800EC598_minigame[i]->work[1] == 0) {
+                            func_8001C624_main(D_800EC598_minigame[i]->model[0], HmfModelData[D_800EC598_minigame[i]->motion[9]].unk02, 0, 1, 2);
+                            func_8001C92C_main(D_800EC598_minigame[i]->model[0], 1.0f);
+                            D_800EC598_minigame[i]->work[1] = 2;
+                        }
+                    }
+                    D_8010C321_the_beat_goes_on = 0;
+                }
+                if (ex->unk00 == 0) {
+                    func_8010C14C_the_beat_goes_on();
+                    D_8010C478_the_beat_goes_on.unk06 = 4;
+                    func_800E6F0C_minigame(3);
+                } else {
+                    if (ex->unk00 >= 61) {
+                        mdl = obj->model[0];
+                        if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                            func_8001C814_main(mdl, 2, 1);
+                        }
+                    }
+                    if (ex->unk00 >= 91 && (GMesStatGet() == 0 || (GMesStatGet() & 2))) {
+                        func_800E6F0C_minigame(4);
+                    }
+                }
+                ex->unk00++;
+                ex->unk04 -= 1.0f;
+                if (ex->unk04 < 0.0f) {
+                    ex->unk04 += 360.0f;
+                }
+                obj->trans.x = sindf(ex->unk04) * 600.0f;
+                obj->trans.z = cosdf(ex->unk04) * 600.0f;
+                for (i = 1; i < 6; i++) {
+                    Hu3DModelPosSet(obj->model[i], obj->trans.x, obj->trans.y, obj->trans.z);
+                }
+                func_80105E0C_the_beat_goes_on(240.0f);
+                break;
+            case 11:
+                mdl = obj->model[0];
+                if (D_800CCF58_main[HmfModelData[mdl].unk02].unk02 - 2.0f <= HmfModelData[mdl].unk40) {
+                    func_8001C814_main(mdl, 2, 1);
+                }
+                break;
+        }
+    }
+}
 
 #ifdef NON_MATCHING
 /* masked 3: the difficulty switch puts case 3 and default in the other order; chance in a0 (retail v1) */
@@ -1180,11 +1701,11 @@ void func_8010AD60_the_beat_goes_on(s8* step, f32 speed) {
 }
 
 #ifdef NON_MATCHING
-/* All Fired Up's func_80108958 (exact twin): matches there with its table defined in the unit; here (extern table) the move s1,zero schedules two slots earlier */
+/* All Fired Up's func_80108958 (exact twin, same C and nop strip) matches there; here the move s1,zero schedules before the unk59 load */
 /* Hit puffs (one model per player). */
 void func_8010AF10_the_beat_goes_on(omObjData* obj) {
-    s32 i;
     s32* timer;
+    s32 i;
     f32 sc;
 
     for (i = 0, timer = D_8010C328_the_beat_goes_on[((MgWork*)obj->data)->unk59]; i < 4; i++) {
@@ -1329,7 +1850,190 @@ void func_8010B17C_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B17C_the_beat_goes_on);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B6DC_the_beat_goes_on);
+/* The note display: cursor, marks and pulses. */
+void func_8010B6DC_the_beat_goes_on(omObjData* obj) {
+    BgSeq* seq;
+    s16 pos[2];
+    s32 i;
+    s32 j;
+    f32 sc;
+    f32 sc2;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        func_8000BB94_main(D_8010C50C_the_beat_goes_on);
+        func_8000BB94_main(D_8010C50E_the_beat_goes_on);
+        func_8000BB94_main(D_8010C510_the_beat_goes_on);
+        for (i = 0; i < 2; i++) {
+            func_8000BB94_main(D_8010C508_the_beat_goes_on[i]);
+        }
+        for (i = 0; i < 15; i++) {
+            func_8000BB94_main(D_8010C518_the_beat_goes_on[i]);
+        }
+        for (j = 0; j < 2; j++) {
+            for (i = 0; i < 8; i++) {
+                func_8000BB94_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+                func_8000BB94_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+                func_8000BB94_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            }
+        }
+        return;
+    }
+    seq = obj->data;
+    func_8000BBD4_main(D_8010C50E_the_beat_goes_on, seq->unk0E, seq->unk10);
+    for (i = 0; i < 2; i++) {
+        if (seq->unk16 == 1) {
+            func_8000BCC8_main(D_8010C508_the_beat_goes_on[i], 0x30);
+            func_8000BB54_main(D_8010C508_the_beat_goes_on[i]);
+        } else {
+            func_8000BB94_main(D_8010C508_the_beat_goes_on[i]);
+        }
+    }
+    if (seq->unk17 == 1) {
+        func_8000BB54_main(D_8010C50C_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C50C_the_beat_goes_on);
+        D_8010C378_the_beat_goes_on = 20.0f;
+    }
+    if (seq->unk18 == 1) {
+        func_8000BB54_main(D_8010C50E_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C50E_the_beat_goes_on);
+    }
+    if (seq->unk19 == 1) {
+        func_8000BB54_main(D_8010C510_the_beat_goes_on);
+    } else {
+        func_8000BB94_main(D_8010C510_the_beat_goes_on);
+    }
+    for (i = 0; i < 15; i++) {
+        if (seq->unk1A[i] == 1) {
+            func_8000BB54_main(D_8010C518_the_beat_goes_on[i]);
+        } else {
+            func_8000BB94_main(D_8010C518_the_beat_goes_on[i]);
+        }
+    }
+    for (j = 0; j < 2; j++) {
+        for (i = 0; i < 8; i++) {
+            if (seq->unk2A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C538_the_beat_goes_on[j * 8 + i]);
+            }
+            if (seq->unk3A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C558_the_beat_goes_on[j * 8 + i]);
+            }
+            if (seq->unk4A[j * 8 + i] == 1) {
+                func_8000BB54_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            } else {
+                func_8000BB94_main(D_8010C578_the_beat_goes_on[j * 8 + i]);
+            }
+        }
+    }
+    if (seq->unk08 == 0) {
+        D_8010C384_the_beat_goes_on = 90;
+        func_8000BBD4_main(D_8010C50C_the_beat_goes_on, seq->unk04, seq->unk06);
+        D_8010C380_the_beat_goes_on = 0.0f;
+        func_8000BE5C_main(D_8010C50E_the_beat_goes_on, 1.0f, 1.0f);
+        D_8010C37C_the_beat_goes_on = 0.0f;
+        for (j = 0; j < 2; j++) {
+            for (i = 0; i < 8; i++) {
+                func_8000BE5C_main(D_8010C538_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+                func_8000BE5C_main(D_8010C558_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+                func_8000BE5C_main(D_8010C578_the_beat_goes_on[j * 8 + i], 1.0f, 1.0f);
+            }
+        }
+        for (i = 0; i < 15; i++) {
+            func_8000BE5C_main(D_8010C518_the_beat_goes_on[i], 1.0f, 1.0f);
+        }
+        return;
+    }
+    if (D_8010C4E9_the_beat_goes_on == D_8010C4E8_the_beat_goes_on && (func_8010C0F4_the_beat_goes_on(pos), seq->unk18 == 1)
+        && BG_IABS(seq->unk04 - pos[0]) <= 0 && pos[1] == seq->unk06 && D_8010C384_the_beat_goes_on != 0) {
+        D_8010C384_the_beat_goes_on--;
+        D_8010C380_the_beat_goes_on += 30.0f;
+        if (D_8010C380_the_beat_goes_on >= 180.0f) {
+            D_8010C380_the_beat_goes_on = 0.0f;
+        }
+        sc = sindf(D_8010C380_the_beat_goes_on) * 0.5f + 1.0f;
+        func_8000BE5C_main(D_8010C50E_the_beat_goes_on, sc, sc);
+    } else {
+        D_8010C378_the_beat_goes_on += 1.33333f;
+    }
+    seq->unk04 = D_8010C378_the_beat_goes_on;
+    if (seq->unk04 >= 280) {
+        if (seq->unk06 == 30) {
+            if (D_8010C4E8_the_beat_goes_on + 1 == 8) {
+                seq->unk04 = 280;
+                D_8010C378_the_beat_goes_on = 280.0f;
+            } else {
+                seq->unk04 = 40;
+                D_8010C378_the_beat_goes_on = 40.0f;
+                if (D_8010C4E8_the_beat_goes_on + 1 >= 9) {
+                    seq->unk06 += 20;
+                }
+            }
+        } else {
+            seq->unk04 = 280;
+        }
+    }
+    func_8000BBD4_main(D_8010C50C_the_beat_goes_on, seq->unk04, seq->unk06);
+    if (seq->unk0C != 0) {
+        if (D_8010C37C_the_beat_goes_on == 0.0f) {
+            D_8010C475_the_beat_goes_on = D_8010C4E9_the_beat_goes_on;
+        }
+        if (seq->unk19 != 0) {
+            D_8010C37C_the_beat_goes_on += 36.0f;
+            if (D_8010C37C_the_beat_goes_on >= 36.0f) {
+                D_8010C37C_the_beat_goes_on = 36.0f;
+                seq->unk0C = 0;
+            }
+        } else {
+            D_8010C37C_the_beat_goes_on += 36.0f;
+            if (D_8010C37C_the_beat_goes_on >= 180.0f) {
+                D_8010C37C_the_beat_goes_on = 0.0f;
+                seq->unk0C = 0;
+            }
+        }
+        sc2 = sindf(D_8010C37C_the_beat_goes_on) + 1.0f;
+        switch (seq->unk0A) {
+            case 0x8000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C538_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C538_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x4000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C558_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C558_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x2000:
+                func_8000BE5C_main((D_8010C4E0_the_beat_goes_on->work[0] != 6) ? D_8010C578_the_beat_goes_on[D_8010C475_the_beat_goes_on - 1]
+                                                                               : D_8010C578_the_beat_goes_on[D_8010C475_the_beat_goes_on],
+                                   sc2, sc2);
+                break;
+            case 0x800:
+                func_8000BE5C_main(D_8010C518_the_beat_goes_on[D_8010C475_the_beat_goes_on], sc2, sc2);
+                break;
+            case 0x400:
+                func_8000BE5C_main(D_8010C50E_the_beat_goes_on, sc2, sc2);
+                break;
+        }
+    }
+    if (D_8010C4E0_the_beat_goes_on->work[0] == 6) {
+        func_8010C0F4_the_beat_goes_on(pos);
+        if (BG_IABS(seq->unk04 - pos[0]) < 11 && pos[1] == seq->unk06) {
+            seq->unk09 = 1;
+        } else {
+            seq->unk09 = 0;
+        }
+        if (seq->unk09 == 1 && seq->unk19 == 0) {
+            seq->unk12 = pos[0];
+            seq->unk14 = pos[1];
+            func_8000BBD4_main(D_8010C510_the_beat_goes_on, seq->unk12, seq->unk14);
+        }
+    }
+}
 
 /* Screen position of note slot D_8010C4E9 (two rows of eight). */
 void func_8010C0F4_the_beat_goes_on(s16* pos) {
@@ -1380,3 +2084,37 @@ Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to) {
     *out = d;
     return out;
 }
+
+// .data
+u8 D_8010C280_the_beat_goes_on = 0; /* drum phase */
+u8 D_8010C284_the_beat_goes_on[24][4] = { /* start slot per player, one row per permutation */
+    { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 }, { 0, 3, 2, 1 },
+    { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 1, 2, 3, 0 }, { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 1, 3, 2, 0 },
+    { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 2, 1, 0, 3 }, { 2, 1, 3, 0 }, { 2, 3, 0, 1 }, { 2, 3, 1, 0 },
+    { 3, 0, 1, 2 }, { 3, 0, 2, 1 }, { 3, 1, 0, 2 }, { 3, 1, 2, 0 }, { 3, 2, 0, 1 }, { 3, 2, 1, 0 },
+};
+s32 D_8010C2E4_the_beat_goes_on = 0;
+s32 D_8010C2E8_the_beat_goes_on = 0;
+s8 D_8010C2EC_the_beat_goes_on = 0;
+s16 D_8010C2F0_the_beat_goes_on[8][2] __attribute__((aligned(4))) = { /* sprite frame origin */
+    { 26, 15 }, { 26, 14 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 27, 12 }, { 27, 12 },
+};
+u8 D_8010C310_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C311_the_beat_goes_on = 0; /* players made */
+f32 D_8010C314_the_beat_goes_on = -90.0f; /* sign height */
+f32 D_8010C318_the_beat_goes_on = 0.0f;
+s8 D_8010C31C_the_beat_goes_on = 4; /* players left */
+s8 D_8010C31D_the_beat_goes_on = 0; /* note sign shown */
+s8 D_8010C31E_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C31F_the_beat_goes_on = 0; /* someone is out */
+s8 D_8010C320_the_beat_goes_on = 0;
+s8 D_8010C321_the_beat_goes_on = 0;
+s32 D_8010C324_the_beat_goes_on = 0;
+s32 D_8010C328_the_beat_goes_on[4][4] = { /* hit puff frame per player */
+    { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 },
+};
+f32 D_8010C368_the_beat_goes_on[4] = { 0.5f, 1.0f, 1.5f, 2.0f };
+f32 D_8010C378_the_beat_goes_on = 20.0f; /* cursor x */
+f32 D_8010C37C_the_beat_goes_on = 0.0f;  /* note pulse angle */
+f32 D_8010C380_the_beat_goes_on = 0.0f;  /* frame pulse angle */
+s8 D_8010C384_the_beat_goes_on = 90;     /* frame pulse frames left */
