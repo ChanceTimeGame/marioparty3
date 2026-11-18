@@ -33,6 +33,21 @@ typedef struct EtCtrl {
     /* 0x26 */ char unk26[2];
 } EtCtrl; /* size 0x28 */
 
+/* omObjData::data of a ground object (the framework's ground block, as Hyper Hydrants' HhGround) */
+typedef struct EtGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[3];
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ char unk0C[0xA8];
+} EtGround; /* size 0xB4 */
+
+typedef struct EtVec2 {
+    f32 x;
+    f32 y;
+} EtVec2;
+
 /* A trail node: 256 per player in D_801113D8[player] */
 typedef struct EtNode {
     /* 0x00 */ u8 unk00; /* in use */
@@ -119,7 +134,12 @@ s32 func_80108DD0_etch_n_catch(s16 x, s16 y);
 u8* func_801090E0_etch_n_catch(s16 x, s16 y);
 u8 func_80109114_etch_n_catch(s16 x, s16 y);
 void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v);
+f32 func_8010C4F8_etch_n_catch(f32 angle);
+EtVec2 func_8010C574_etch_n_catch(s32 x0, s32 y0, s32 x1, s32 y1);
+void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
 // main (more)
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+void func_800E1468_minigame(omObjData* obj);
 extern s32 D_800A178C_main[][6];
 extern s16 D_800EB784_minigame[][14];
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
@@ -774,16 +794,85 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BD9
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BE84_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C2F4_etch_n_catch);
+/* Frees the fill lists, the trail pools and the player work blocks. */
+void func_8010C2F4_etch_n_catch(void) {
+    s32 i;
+    EtchNCatchWork* w;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C390_etch_n_catch);
+    HuMemFree(D_8010C878_etch_n_catch);
+    HuMemFree(D_8010C87C_etch_n_catch[0]);
+    HuMemFree(D_8010C87C_etch_n_catch[1]);
+    for (i = 0; i < 4; i++) {
+        w = D_8010C868_etch_n_catch[i];
+        HuMemFree(D_801113D8_etch_n_catch[i]);
+        HuMemFree(w);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C444_etch_n_catch);
+/* The ground object of team 0 (the left half of the floor). */
+void func_8010C390_etch_n_catch(omObjData* obj) {
+    EtGround* gw;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C4F8_etch_n_catch);
+    obj->model[0] = -1;
+    obj->func = NULL;
+    obj->data = gw = HuMemAllocTag(sizeof(EtGround), 0x7918);
+    memset(gw, 0, sizeof(EtGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    gw->unk08 = 0.5f;
+    func_800E139C_minigame(obj, 0.0f, -450.0f, -400.0f, -80.0f, 300.0f);
+    func_800E1468_minigame(obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C574_etch_n_catch);
+/* The ground object of team 1 (the right half of the floor). */
+void func_8010C444_etch_n_catch(omObjData* obj) {
+    EtGround* gw;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010C628_etch_n_catch);
+    obj->model[0] = -1;
+    obj->func = NULL;
+    obj->data = gw = HuMemAllocTag(sizeof(EtGround), 0x7918);
+    memset(gw, 0, sizeof(EtGround));
+    gw->unk03 = 1;
+    gw->unk04 = 1;
+    gw->unk08 = 0.5f;
+    func_800E139C_minigame(obj, 0.0f, 80.0f, -400.0f, 450.0f, 300.0f);
+    func_800E1468_minigame(obj);
+}
+
+/* `angle` wrapped into [0, 360). */
+f32 func_8010C4F8_etch_n_catch(f32 angle) {
+    while (angle >= 360.0f) {
+        angle -= 360.0f;
+    }
+    while (angle < 0.0f) {
+        angle += 360.0f;
+    }
+    return angle;
+}
+
+/* The unit vector from (x0, y0) to (x1, y1); zero when the points coincide. */
+EtVec2 func_8010C574_etch_n_catch(s32 x0, s32 y0, s32 x1, s32 y1) {
+    EtVec2 v;
+    f32 len;
+
+    v.x = x1 - x0;
+    v.y = y1 - y0;
+    len = HuSqrtf(v.x * v.x + v.y * v.y);
+    if (len == 0.0f) {
+        v.x = v.y = 0.0f;
+    } else {
+        v.x /= len;
+        v.y /= len;
+    }
+    return v;
+}
+
+/* Sets the scale of the player and its two pen models. */
+void func_8010C628_etch_n_catch(omObjData* obj, f32 scale) {
+    obj->scale.x = obj->scale.y = obj->scale.z = scale;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[2], obj->scale.x, obj->scale.y, obj->scale.z);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C820_etch_n_catch);
