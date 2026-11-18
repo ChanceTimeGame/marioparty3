@@ -219,6 +219,7 @@ void func_80107F98_game_guys_lucky_7(omObjData* obj);
 void func_801087B4_game_guys_lucky_7(omObjData* obj);
 void func_80108B64_game_guys_lucky_7(omObjData* obj);
 void func_801092B0_game_guys_lucky_7(omObjData* obj);
+void func_80109570_game_guys_lucky_7(omObjData* obj);
 void func_80109FA4_game_guys_lucky_7(omObjData* obj);
 void func_8010A0DC_game_guys_lucky_7(omObjData* obj);
 void func_8010A278_game_guys_lucky_7(omObjData* obj);
@@ -1511,11 +1512,41 @@ void func_80108B64_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801092B0_game_guys_lucky_7);
+void func_801092B0_game_guys_lucky_7(omObjData* obj) {
+    s32 attr = 0x2A9;
+    s32 files[4] = { 0xA0063, 9, 0x82, 0x83 };
+    s32 motions[10] = { 0xA0065, 0xA006A, 0xA0069, 0xA0067, 0xA006B, 0xA0073, 0xA0074, 0xA006E, 0xA006D, 0xA0070 };
+    u16 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D508_game_guys_lucky_7);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D518_game_guys_lucky_7);
+    obj->model[0] = func_8000B108_main(files[0], attr);
+    omSetTra(obj, 0.0f, 190.0f, 5100.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    for (i = 0; i < 10; i++) {
+        func_8000B460_main(obj, i, motions[i]);
+    }
+    for (i = 1; i < 4; i++) {
+        obj->model[i] = func_8000B108_main(files[i], attr);
+    }
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[1], 15.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], 15.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    D_8010D726_game_guys_lucky_7 = 0;
+    D_8010D728_game_guys_lucky_7 = 0;
+    D_8010D72C_game_guys_lucky_7 = 0.0f;
+    D_8010D730_game_guys_lucky_7 = 190.0f;
+    D_8010D734_game_guys_lucky_7 = 5100.0f;
+    D_8010D738_game_guys_lucky_7 = 0.0f;
+    D_8010D73C_game_guys_lucky_7 = 0;
+    D_8010D73E_game_guys_lucky_7 = 1;
+    obj->func = func_80109570_game_guys_lucky_7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80109570_game_guys_lucky_7);
 
