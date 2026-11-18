@@ -158,6 +158,7 @@ extern s8 D_8010C4B0_merry_go_chomp;
 extern s16 D_8010C4B2_merry_go_chomp;
 extern s8 D_8010C4BD_merry_go_chomp;
 extern s8 D_8010C4BE_merry_go_chomp[5];
+extern omObjData *D_8010C4C8_merry_go_chomp;
 extern s8 D_8010C4CE_merry_go_chomp;
 /* The object table: [0] the background, [5..8] the players, [10], [15], [25], [30] the stage objects. */
 extern McEnt D_8010C500_merry_go_chomp[50];
@@ -166,6 +167,7 @@ extern f32 D_8010CD08_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.z *
 extern u8 D_8010DECC_merry_go_chomp[5];
 extern f32 D_8010DED4_merry_go_chomp;
 extern u8 D_8010DEDC_merry_go_chomp;
+extern s8 D_8010DEDD_merry_go_chomp;
 
 /* .data */
 extern s32 D_8010C140_merry_go_chomp[8];
@@ -189,13 +191,14 @@ void func_801064E0_merry_go_chomp(omObjData *obj);
 void func_801064E8_merry_go_chomp(omObjData *obj);
 void func_80106668_merry_go_chomp(omObjData *obj);
 void func_80106920_merry_go_chomp(omObjData *obj);
-s32 func_80106CC4_merry_go_chomp(omObjData *obj);
+s8 func_80106CC4_merry_go_chomp(omObjData *obj);
 void func_80107664_merry_go_chomp(omObjData *obj);
 void func_801077D0_merry_go_chomp(omObjData *obj);
 void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale);
 s8 func_80107980_merry_go_chomp(void);
 void func_80107E34_merry_go_chomp(omObjData *obj);
 void func_801084C8_merry_go_chomp(void);
+void func_80108A88_merry_go_chomp(omObjData *obj);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -603,7 +606,7 @@ void func_80106B9C_merry_go_chomp(omObjData *obj, s8 motion) {
 
 #ifdef NON_MATCHING
 /* masked 0: regalloc only (slot in v1/a0 in the CPU branch) */
-s32 func_80106CC4_merry_go_chomp(omObjData *obj) {
+s8 func_80106CC4_merry_go_chomp(omObjData *obj) {
     McEnt *ent = MC_ENT(MC_ENT_PLAYER, obj->work[0]);
     s8 slot = 99;
     s16 target;
@@ -1076,7 +1079,146 @@ void func_801084C8_merry_go_chomp(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801084C8_merry_go_chomp);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80108A88_merry_go_chomp);
+void func_80108A88_merry_go_chomp(omObjData *obj) {
+    s8 player = obj->work[0];
+    McEnt *ent = MC_ENT(MC_ENT_PLAYER, player);
+    McPl *pl = &D_8010C420_merry_go_chomp[player];
+    s8 open[5];
+    s8 n;
+    s8 k;
+
+    switch (ent->unk04) {
+    case 2:
+        func_8001C92C_main(obj->model[0], 1.0f);
+        ent->unk04 = 3;
+        break;
+    case 0:
+        switch (D_8010C4B0_merry_go_chomp) {
+        case 0:
+            pl->state = 0;
+            pl->timer = 0;
+            ent->unk0C = -1;
+            func_80106B9C_merry_go_chomp(obj, 0);
+            break;
+        case 1:
+            if (D_8010C4B2_merry_go_chomp < 144 && obj->work[1] == D_8010DEDD_merry_go_chomp) {
+                if (D_8010C4B2_merry_go_chomp > 0) {
+                    if (GwPlayer[player].stat & 1) {
+                        if (ent->unk0C < 0) {
+                            for (k = 0, n = 0; k < 5 - D_8010C4CE_merry_go_chomp; k++) {
+                                if (D_8010C4BE_merry_go_chomp[k] != 0) {
+                                    open[n] = k;
+                                    n++;
+                                }
+                            }
+                            ent->unk0C = open[func_80105CE4_merry_go_chomp(n)];
+                        }
+                    } else if (!(D_800D5558_main[obj->work[3]] & 0x8000)) {
+                        break;
+                    }
+                }
+                if (func_80106CC4_merry_go_chomp(obj)) {
+                    D_8010DEDC_merry_go_chomp = 1;
+                    func_80107664_merry_go_chomp(obj);
+                }
+            }
+            break;
+        case 2:
+            if (obj->work[1] == D_8010DEDD_merry_go_chomp) {
+                if (D_8010C4B2_merry_go_chomp == 0) {
+                    func_8004ACE0_main(0x3A, (s16)obj->work[0]);
+                }
+                if (D_8010C4B2_merry_go_chomp < 15) {
+                    pl->jump = 1;
+                    obj->trans.x += pl->dx;
+                    obj->trans.z += pl->dz;
+                    obj->trans.y += D_8010C160_merry_go_chomp[D_8010C4B2_merry_go_chomp];
+                    obj->rot.y = pl->rot;
+                    ent->unk24 = D_8010C174_merry_go_chomp[D_8010C4B2_merry_go_chomp];
+                }
+                if (D_8010C4B2_merry_go_chomp == 10) {
+                    func_80106B9C_merry_go_chomp(obj, 0);
+                }
+                if (D_8010C4B2_merry_go_chomp == 15) {
+                    func_8004ACE0_main(0x31, (s16)obj->work[0]);
+                    pl->jump = 0;
+                    ent->unk18 = func_801059BC_merry_go_chomp(atan2df(obj->trans.x, obj->trans.z), 0.0f);
+                    ent->unk1C = sqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z);
+                    ent->unk08++;
+                }
+            } else if (ent->unk08 == 0) {
+                func_80106B9C_merry_go_chomp(obj, 1);
+                func_80106AF4_merry_go_chomp(obj);
+                obj->trans.x -= 7.0f;
+                obj->trans.z += 4.0f;
+            }
+            break;
+        case 3:
+            func_80106B9C_merry_go_chomp(obj, 0);
+            break;
+        case 4:
+            if (D_8010C4B2_merry_go_chomp < 50) {
+                func_80106B9C_merry_go_chomp(obj, 5);
+                if (obj->trans.y > 5.0f) {
+                    obj->trans.y -= 10.0f;
+                } else {
+                    obj->trans.y = 5.0f;
+                }
+            }
+            break;
+        case 5:
+            if (D_8010C4B2_merry_go_chomp < 30) {
+                ent->unk08 = 0;
+                if (pl->slot == -1) {
+                    ent->unk0E = 3 - D_8010C4CE_merry_go_chomp;
+                }
+            } else if (pl->slot == -1) {
+                if (!func_80105F40_merry_go_chomp(obj, 270.0f)) {
+                    func_80106B9C_merry_go_chomp(obj, 7);
+                    func_8004ACE0_main(0x286, (s16)obj->work[0]);
+                    ent->unk04 = 1;
+                }
+            } else if (!func_80105F40_merry_go_chomp(obj, 0.0f)) {
+                if (D_8010C4CE_merry_go_chomp == 2) {
+                    D_8010C4C8_merry_go_chomp = obj;
+                    func_80106B9C_merry_go_chomp(obj, 0);
+                } else {
+                    func_80106B9C_merry_go_chomp(obj, 8);
+                }
+            }
+            break;
+        case 9:
+            func_80107E34_merry_go_chomp(obj);
+            break;
+        case 6:
+            if (!func_80105F40_merry_go_chomp(obj, 0.0f)) {
+                func_80106B9C_merry_go_chomp(obj, 8);
+            }
+            break;
+        case 7:
+            func_80106B9C_merry_go_chomp(obj, 5);
+            break;
+        }
+        if (ent->unk08 != 0) {
+            ent->unk18 = func_801059BC_merry_go_chomp(ent->unk18, -D_8010DED4_merry_go_chomp);
+            obj->trans.x = sindf(ent->unk18) * ent->unk1C;
+            obj->trans.z = cosdf(ent->unk18) * ent->unk1C;
+            obj->rot.y = func_801059BC_merry_go_chomp(obj->rot.y, -D_8010DED4_merry_go_chomp);
+        }
+        if (pl->jump == 0) {
+            ent->unk20 = obj->trans.y;
+        }
+        if (obj->trans.y > 505.0f) {
+            ent->unk20 = 505.0f;
+        }
+        if (obj->trans.y <= 5.0f) {
+            ent->unk20 = 5.0f;
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, ent->unk20, obj->trans.z);
+        Hu3DModelScaleSet(obj->model[1], ent->unk24, 1.0f, ent->unk24);
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801090B0_merry_go_chomp);
 
