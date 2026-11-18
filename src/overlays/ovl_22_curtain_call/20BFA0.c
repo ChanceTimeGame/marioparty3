@@ -76,30 +76,66 @@ void func_80045010_main(const s16 *, s32);
 s32 func_80017BB8_main(s16, s16);
 void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
+/* .rodata: the players' animation names */
+extern const char D_8010B32C_curtain_call[];
+extern const char D_8010B338_curtain_call[];
+extern const char D_8010B344_curtain_call[];
+extern const char D_8010B350_curtain_call[];
+extern const char D_8010B35C_curtain_call[];
+extern const char D_8010B368_curtain_call[];
+extern const char D_8010B374_curtain_call[];
+extern const char D_8010B380_curtain_call[];
+
 /* .data */
-extern s32 D_8010B0C0_curtain_call[8];
-extern s16 D_8010B0E0_curtain_call[2];
-extern s16 D_8010B0E4_curtain_call[6];
-extern u16 D_8010B0F0_curtain_call[8][3];
-extern char *D_8010B120_curtain_call[8];
-extern s8 D_8010B180_curtain_call[28];
-extern f32 D_8010B19C_curtain_call[25];
-extern s16 D_8010B200_curtain_call[4];
-extern s16 D_8010B208_curtain_call[4];
-extern s16 D_8010B210_curtain_call[6];
-extern s16 D_8010B21C_curtain_call[6];
-extern s16 D_8010B23C_curtain_call[6];
-extern s8 D_8010B228_curtain_call[4];
-extern s8 D_8010B22C_curtain_call[8];
-extern s8 D_8010B234_curtain_call[8];
-extern s8 D_8010B248_curtain_call[6][3];
-extern s8 D_8010B25C_curtain_call[3][3];
-extern s8 D_8010B268_curtain_call[6][4];
-extern CcCamera D_8010B280_curtain_call[1];
-extern u8 D_8010B140_curtain_call[3][5];
-extern u8 D_8010B150_curtain_call[3][5];
-extern u8 D_8010B160_curtain_call[3][5];
-extern u8 D_8010B170_curtain_call[3][5];
+/* sound bank per character (func_80045ED0_main) */
+s32 D_8010B0C0_curtain_call[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+/* host's messages (func_801062EC_curtain_call) */
+s16 D_8010B0E0_curtain_call[2] = { 0x6300, 0x6301 };
+s16 D_8010B0E4_curtain_call[6] = { 0x6302, 0x6303, 0x6304, 0x6305, 0x6306, 0x6307 };
+/* per character: the three animation files (0 at the start, 1 win, 2 lose) */
+u16 D_8010B0F0_curtain_call[8][3] = {
+    { 0xA4, 0xA5, 0xA6 }, { 0xA4, 0xA5, 0xA6 }, { 0xA4, 0xA5, 0xA6 }, { 0xA4, 0xA5, 0xA6 },
+    { 0xA4, 0xA5, 0xA6 }, { 0xA4, 0xA5, 0xA6 }, { 0xA4, 0xA5, 0xA6 }, { 0x1A, 0x1C, 0x1D },
+};
+char *D_8010B120_curtain_call[8] = {
+    (char *)D_8010B380_curtain_call, (char *)D_8010B374_curtain_call,
+    (char *)D_8010B368_curtain_call, (char *)D_8010B35C_curtain_call,
+    (char *)D_8010B350_curtain_call, (char *)D_8010B344_curtain_call,
+    (char *)D_8010B338_curtain_call, (char *)D_8010B32C_curtain_call,
+};
+/* CPU plan thresholds (of 100) by difficulty, then round */
+u8 D_8010B140_curtain_call[3][5] = { { 13, 20, 33, 40, 74 }, { 10, 20, 30, 40, 70 }, { 7, 20, 27, 40, 66 } };
+u8 D_8010B150_curtain_call[3][5] = { { 18, 25, 43, 50, 84 }, { 15, 25, 40, 50, 80 }, { 12, 25, 37, 50, 76 } };
+u8 D_8010B160_curtain_call[3][5] = { { 44, 50, 73, 80, 93 }, { 40, 50, 70, 80, 90 }, { 36, 50, 67, 80, 87 } };
+u8 D_8010B170_curtain_call[3][5] = { { 74, 80, 88, 90, 98 }, { 70, 80, 85, 90, 95 }, { 66, 80, 82, 90, 92 } };
+/* curtain panel rise per frame, and its x/z scale */
+s8 D_8010B180_curtain_call[25] = { 0, 0, 0, 0, 16, 14, 12, 10, 8, 6, 4, 2, 0, -2, -4, -6, -8, -10, -12, -14, -16, 0, 0, 0, 0 };
+f32 D_8010B19C_curtain_call[25] = {
+    1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.95f, 0.9f, 0.85f, 0.8f, 0.75f, 0.7f, 0.65f, 0.6f,
+    0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+};
+/* sound by the winning curtain */
+s16 D_8010B200_curtain_call[3] = { 0x259, 0x25B, 0x257 };
+/* panel x by slot, per round (3, 5 and 6 curtains) */
+s16 D_8010B208_curtain_call[3] = { 150, 0, -150 };
+s16 D_8010B210_curtain_call[5] = { 300, 150, 0, -150, -300 };
+s16 D_8010B21C_curtain_call[6] = { 310, 185, 60, -60, -185, -310 };
+/* the host's offset in front of each slot, per round */
+s8 D_8010B228_curtain_call[3] = { -8, 0, 8 };
+s8 D_8010B22C_curtain_call[5] = { -16, -8, 0, 8, 16 };
+s8 D_8010B234_curtain_call[6] = { -18, -10, -3, 3, 10, 18 };
+/* panel x while dealt, by slot */
+s16 D_8010B23C_curtain_call[6] = { -525, -655, -785, -915, -1045, -1175 };
+/* round 1: the three permutations of the winning slots */
+u8 D_8010B248_curtain_call[6][3] = { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 0, 1 }, { 2, 1, 0 } };
+/* shuffle speeds per pattern, rounds 2 and 3 */
+s8 D_8010B25C_curtain_call[3][3] = { { 4, 4, 8 }, { 4, 8, 4 }, { 8, 4, 4 } };
+s8 D_8010B268_curtain_call[6][4] = {
+    { 8, 8, -4, 4 }, { 8, -4, 8, 4 }, { 4, -4, 8, 8 }, { 4, 8, -4, 8 }, { 8, -4, 4, 8 }, { 8, 4, -4, 8 },
+};
+CcCamera D_8010B280_curtain_call[1] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 21.0f },
+};
 /* .rodata */
 extern const s16 D_8010B4A0_curtain_call[];
 /* .bss */
