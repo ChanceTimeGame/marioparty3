@@ -62,8 +62,18 @@ typedef struct EtCatcher {
     /* 0x170 */ f32 unk170; /* sprite angle */
     /* 0x174 */ f32 unk174; /* swing centre */
     /* 0x178 */ Vec unk178[5];
-    /* 0x1B4 */ s32 unk1B4;
+    /* 0x1B4 */ f32 unk1B4; /* burst radius */
 } EtCatcher; /* size 0x1B8 */
+
+/* omObjData::data of a cage */
+typedef struct EtCage {
+    /* 0x00 */ u8 unk00; /* index 0/1 */
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ char unk03;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
+} EtCage; /* size 0xC */
 
 /* A trail node: 256 per player in D_801113D8[player] */
 typedef struct EtNode {
@@ -155,6 +165,7 @@ f32 func_8010C4F8_etch_n_catch(f32 angle);
 EtVec2 func_8010C574_etch_n_catch(s32 x0, s32 y0, s32 x1, s32 y1);
 void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
 void func_8010BD98_etch_n_catch(omObjData* obj);
+void func_8010B3B4_etch_n_catch(omObjData* obj);
 // main (more)
 s16 func_8000B838_main(s32 arg0);
 void func_8000BBD4_main(u16 spriteId, s16 x, s16 y);
@@ -179,7 +190,9 @@ extern s8 D_8010C6AD_etch_n_catch; /* team 1 score */
 extern s8 D_8010C6D8_etch_n_catch;
 
 extern s16 D_8010C6A4_etch_n_catch[2][2]; /* score digit positions */
+extern Vec D_8010C6B0_etch_n_catch[3]; /* catcher/cage start positions (x negated for index 1) */
 // bss
+extern u8 D_8010C840_etch_n_catch; /* next cage index */
 extern u16 D_801113A8_etch_n_catch[2]; /* score digit sprites */
 extern u16 D_801113E8_etch_n_catch[2]; /* catcher sprites */
 extern u8 D_8010C830_etch_n_catch; /* start layout, 0..4 */
@@ -799,7 +812,22 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7B
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109EB8_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010AB7C_etch_n_catch);
+/* The burst of a catch: five sparks fly out along unk178[] and fade. */
+void func_8010AB7C_etch_n_catch(omObjData* obj) {
+    EtCatcher* cw = obj->data;
+    s32 i;
+
+    cw->unk1B4 += 7.0f;
+    for (i = 0; i < 5; i++) {
+        Hu3DModelPosSet(obj->model[i + 1], cw->unk178[i].x * cw->unk1B4 * 1.5f + obj->trans.x,
+                        cw->unk178[i].y * cw->unk1B4 + obj->trans.y,
+                        cw->unk178[i].z * cw->unk1B4 * 1.5f + obj->trans.z);
+        func_8001F9E4_main(obj->model[i + 1], 255.0f - cw->unk1B4 * 8.0f);
+        Hu3DModelScaleSet(obj->model[i + 1], 3.0f, 3.0f, 3.0f);
+        Hu3DModelRotSet(obj->model[i + 1], 0.0f, 90.0f, 0.0f);
+        func_8001C258_main(obj->model[i + 1], 4, 0);
+    }
+}
 
 /* Swings the catcher's sprite angle back and forth by 30 degrees around unk174. */
 void func_8010AD6C_etch_n_catch(EtCatcher* cw) {
@@ -867,7 +895,38 @@ s32 func_8010B154_etch_n_catch(s16 x, s16 y) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B24C_etch_n_catch);
+/* A cage object (one per catcher): its model drops from above onto the catcher's start. */
+void func_8010B24C_etch_n_catch(omObjData* obj) {
+    EtCage* cg;
+
+    obj->data = HuMemAllocTag(sizeof(EtCage), 0x7918);
+    memset(obj->data, 0, sizeof(EtCage));
+    cg = obj->data;
+    cg->unk01 = 0;
+    cg->unk00 = D_8010C840_etch_n_catch;
+    cg->unk04 = 0;
+    cg->unk08 = 0;
+    cg->unk02 = 0;
+    obj->work[0] = 0;
+    switch (cg->unk00) {
+        case 0:
+            obj->trans.x = D_8010C6B0_etch_n_catch[0].x;
+            break;
+        case 1:
+            obj->trans.x = -D_8010C6B0_etch_n_catch[0].x;
+            break;
+    }
+    obj->trans.y = 800.0f;
+    obj->trans.z = D_8010C6B0_etch_n_catch[0].z;
+    obj->model[0] = func_8000B108_main(0x330002, 0x8B9);
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->model[1] = func_8000B108_main(0x330008, 0x89D);
+    obj->model[2] = func_8000B108_main(9, 0x8B9);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+    obj->func = func_8010B3B4_etch_n_catch;
+    D_8010C840_etch_n_catch++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B3B4_etch_n_catch);
 
