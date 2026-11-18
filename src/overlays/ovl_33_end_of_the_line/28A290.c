@@ -20,7 +20,7 @@
 // C1F0
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 u16 func_8000B0D4_main(s32 arg0, s32 arg1);
-void func_8000BBFC_main(u16, u8);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
 void func_8000BC48_main(u16, u16);
 s32 func_8000B710_main(s32 arg0);
 
@@ -135,7 +135,9 @@ void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1);
 s8 func_8010AC80_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
 void func_8010AC34_end_of_the_line(EotlPlayer *pw);
+void func_8010AA1C_end_of_the_line(omObjData *obj);
 void func_8010AAC8_end_of_the_line(omObjData *obj, s32 arg1);
+void func_8010ABD4_end_of_the_line(omObjData *obj);
 void func_8010AF28_end_of_the_line(omObjData *obj);
 void func_8010B064_end_of_the_line(omObjData *obj);
 void func_8010B234_end_of_the_line(omObjData *obj);
@@ -1416,17 +1418,82 @@ void func_8010A8B4_end_of_the_line(omObjData *obj) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010A91C_end_of_the_line);
+void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1) {
+    EotlPlayer *pw;
+    EotlHud *hud;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AA1C_end_of_the_line);
+    pw = obj->data;
+    if (pw->unk20 == NULL) {
+        pw->unk20 = omAddObj(0x28, 0, 0, -1, func_8010AA1C_end_of_the_line);
+        pw->unk20->work[0] = pw->unk00;
+        pw->unk20->work[1] = 1;
+        pw->unk20->work[2] = 0;
+        pw->unk20->work[3] = arg1;
+        hud = D_8010C738_end_of_the_line->data;
+        func_8000BB54_main(hud->unk04[pw->unk00]);
+        func_8000BBFC_main(hud->unk04[pw->unk00], pw->unk20->work[2]);
+        func_8000BBD4_main(hud->unk04[pw->unk00], D_8010C5D0_end_of_the_line[pw->unk00] + D_8010C5CC_end_of_the_line, 120);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AA7C_end_of_the_line);
+void func_8010AA1C_end_of_the_line(omObjData *obj) {
+    EotlHud *hud = D_8010C738_end_of_the_line->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AAC8_end_of_the_line);
+    obj->work[2] += obj->work[3];
+    if (obj->work[2] >= 256) {
+        obj->work[2] = 255;
+        obj->work[1] = 0;
+    }
+    func_8000BBFC_main(hud->unk04[obj->work[0]], obj->work[2]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010ABD4_end_of_the_line);
+void func_8010AA7C_end_of_the_line(EotlPlayer *pw) {
+    func_8000BB94_main(((EotlHud *)D_8010C738_end_of_the_line->data)->unk04[pw->unk00]);
+    omDelObj(pw->unk20);
+    pw->unk20 = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AC34_end_of_the_line);
+void func_8010AAC8_end_of_the_line(omObjData *obj, s32 arg1) {
+    EotlPlayer *pw;
+    EotlHud *hud;
+
+    pw = obj->data;
+    if (pw->unk20 == NULL) {
+        pw->unk20 = omAddObj(0x28, 0, 0, -1, func_8010ABD4_end_of_the_line);
+        pw->unk20->work[0] = pw->unk00;
+        pw->unk20->work[1] = 1;
+        pw->unk20->work[2] = 0;
+        pw->unk20->work[3] = arg1;
+        pw->unk90 = 15;
+        pw->unk92 = 0;
+        hud = D_8010C738_end_of_the_line->data;
+        func_8000BB54_main(hud->unk08[pw->unk00]);
+        func_8000BBFC_main(hud->unk08[pw->unk00], pw->unk20->work[2]);
+        func_8000BBD4_main(hud->unk08[pw->unk00], D_8010C5D0_end_of_the_line[pw->unk00] + D_8010C5CC_end_of_the_line, 120);
+    }
+}
+
+void func_8010ABD4_end_of_the_line(omObjData *obj) {
+    EotlHud *hud = D_8010C738_end_of_the_line->data;
+
+    obj->work[2] += obj->work[3];
+    if (obj->work[2] >= 256) {
+        obj->work[2] = 255;
+        obj->work[1] = 0;
+    }
+    func_8000BBFC_main(hud->unk08[obj->work[0]], obj->work[2]);
+}
+
+void func_8010AC34_end_of_the_line(EotlPlayer *pw) {
+    func_8000BB94_main(((EotlHud *)D_8010C738_end_of_the_line->data)->unk08[pw->unk00]);
+    omDelObj(pw->unk20);
+    pw->unk20 = NULL;
+}
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010AC80_end_of_the_line);
 
