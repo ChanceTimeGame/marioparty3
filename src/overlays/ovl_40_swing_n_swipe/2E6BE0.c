@@ -151,7 +151,8 @@ extern f32 D_8010C0B0_swing_n_swipe;
 extern f32 D_8010C0B4_swing_n_swipe;
 extern f32 D_8010C0B8_swing_n_swipe;
 extern f32 D_8010C0BC_swing_n_swipe;
-extern Vec D_8010C0C0_swing_n_swipe[5];
+extern Vec D_8010C0C0_swing_n_swipe[5]; /* fleeing thieves' start */
+extern Vec D_8010C100_swing_n_swipe[5]; /* lining-up thieves' start */
 extern s16 D_8010C13C_swing_n_swipe; /* 1: the round is lost (0: a thief netted) */
 extern omObjData* D_8010C140_swing_n_swipe; /* the player */
 extern s16 D_8010C144_swing_n_swipe; /* the player's index */
@@ -1191,7 +1192,102 @@ void func_801092B4_swing_n_swipe(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801099E8_swing_n_swipe);
+/* After a loss (D_8010C148_swing_n_swipe 3): the thieves line up left to right, in the order they stand, and turn
+ * to face the player. */
+void func_801099E8_swing_n_swipe(void) {
+    Vec line[5] = {
+        { -370.0f, 0.0f, 325.0f }, { -190.0f, 0.0f, 100.0f }, { 0.0f, 0.0f, -150.0f },
+        { 190.0f, 0.0f, 100.0f }, { 370.0f, 0.0f, 325.0f },
+    };
+    s16 rank = 0;
+    s16 i;
+    s16 j;
+    u16 mdl;
+    f32 ox;
+    f32 oz;
+
+    if (D_8010BE34_swing_n_swipe[0] == 0) {
+        for (i = 0; i < 5; i++) {
+            for (j = 0; j < 5; j++) {
+                if (i != j && HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x
+                                  > HmfModelData[D_8010C170_swing_n_swipe[j][0]].pos.x) {
+                    rank++;
+                }
+            }
+            D_8010BE4C_swing_n_swipe[i] = rank;
+            rank = 0;
+        }
+        for (i = 0; i < 5; i++) {
+            for (j = 0; j < 5; j++) {
+                if (i != j && D_8010BE4C_swing_n_swipe[i] == D_8010BE4C_swing_n_swipe[j]) {
+                    D_8010BE4C_swing_n_swipe[j]++;
+                    i = 0;
+                    break;
+                }
+            }
+        }
+    }
+    i = 0;
+    if (D_8010C148_swing_n_swipe == 3) {
+        for (i = 0; i < 5; i++) {
+            mdl = D_8010C170_swing_n_swipe[i][0];
+            switch (D_8010BE34_swing_n_swipe[i]) {
+            case 0:
+                D_8010C100_swing_n_swipe[i].x = HmfModelData[(s16)mdl].pos.x;
+                D_8010C100_swing_n_swipe[i].z = HmfModelData[(s16)mdl].pos.z;
+                D_8010C14A_swing_n_swipe[i] = 1;
+                D_8010BE34_swing_n_swipe[i]++;
+                break;
+            case 1:
+                ox = HmfModelData[(s16)mdl].pos.x;
+                oz = HmfModelData[(s16)mdl].pos.z;
+                HmfModelData[(s16)mdl].pos.x =
+                    D_8010C100_swing_n_swipe[i].x
+                    - sindf(D_8010BE40_swing_n_swipe[i] * 1.5f)
+                          * (D_8010C100_swing_n_swipe[i].x - line[D_8010BE4C_swing_n_swipe[i]].x);
+                HmfModelData[(s16)mdl].pos.z =
+                    D_8010C100_swing_n_swipe[i].z
+                    - sindf(D_8010BE40_swing_n_swipe[i] * 1.5f)
+                          * (D_8010C100_swing_n_swipe[i].z - line[D_8010BE4C_swing_n_swipe[i]].z);
+                HmfModelData[(s16)mdl].rot.y =
+                    -atan2df(oz - HmfModelData[(s16)mdl].pos.z, ox - HmfModelData[(s16)mdl].pos.x) + 270.0f;
+                if (sindf(D_8010BE40_swing_n_swipe[i]++ * 1.5f) == 1.0f) {
+                    HmfModelData[(s16)mdl].pos.x = line[D_8010BE4C_swing_n_swipe[i]].x;
+                    HmfModelData[(s16)mdl].pos.z = line[D_8010BE4C_swing_n_swipe[i]].z;
+                    D_8010BE40_swing_n_swipe[i] = 0;
+                    D_8010BE34_swing_n_swipe[i]++;
+                }
+                break;
+            case 2:
+                if (HmfModelData[(s16)mdl].rot.y >= 360.0f) {
+                    HmfModelData[(s16)mdl].rot.y -= 360.0f;
+                }
+                if (HmfModelData[(s16)mdl].rot.y < 0.0f) {
+                    HmfModelData[(s16)mdl].rot.y += 360.0f;
+                }
+                if (HmfModelData[(s16)mdl].rot.y >= 180.0f) {
+                    if ((HmfModelData[(s16)mdl].rot.y += 6.75f) >= 360.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 0.0f;
+                        D_8010BE34_swing_n_swipe[i]++;
+                    }
+                } else if (HmfModelData[(s16)mdl].rot.y > 0.0f) {
+                    if ((HmfModelData[(s16)mdl].rot.y -= 6.75f) <= 0.0f) {
+                        HmfModelData[(s16)mdl].rot.y = 0.0f;
+                        D_8010BE34_swing_n_swipe[i]++;
+                    }
+                } else if (HmfModelData[(s16)mdl].rot.y == 0.0f) {
+                    HmfModelData[(s16)mdl].pos.y = 0.0f;
+                    D_8010BE34_swing_n_swipe[i]++;
+                }
+                break;
+            case 3:
+                D_8010C14A_swing_n_swipe[i] = 0;
+                D_8010BE34_swing_n_swipe[i]++;
+                break;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A0E4_swing_n_swipe);
 
@@ -1200,8 +1296,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A3
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A780_swing_n_swipe);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A994_swing_n_swipe);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", D_8010C034_swing_n_swipe);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010AA3C_swing_n_swipe);
 
