@@ -186,6 +186,8 @@ void func_8010775C_the_beat_goes_on(omObjData* obj);
 void func_801080DC_the_beat_goes_on(void);
 void func_8010C14C_the_beat_goes_on(void);
 u16 func_80108198_the_beat_goes_on(s8 idx);
+void func_8010B6DC_the_beat_goes_on(omObjData* obj);
+void func_8000BBFC_main(u16 spriteId, s16 arg1);
 void func_8010B0E0_the_beat_goes_on(omObjData* obj);
 void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
@@ -222,8 +224,18 @@ extern omObjData* D_8010C4E4_the_beat_goes_on;
 extern u8 D_8010C4EA_the_beat_goes_on;
 extern s16 D_8010C4EC_the_beat_goes_on[4];
 extern s16 D_8010C4F4_the_beat_goes_on;
+extern s32 D_8010C4FC_the_beat_goes_on; /* HOST: D_8010C4FE is its low half */
+extern s16 D_8010C4FE_the_beat_goes_on;
 extern BgTexSize D_8010C500_the_beat_goes_on;
 extern f32 D_8010C504_the_beat_goes_on;
+extern s16 D_8010C508_the_beat_goes_on[2];
+extern s16 D_8010C50C_the_beat_goes_on;
+extern s16 D_8010C50E_the_beat_goes_on;
+extern s16 D_8010C510_the_beat_goes_on;
+extern s16 D_8010C518_the_beat_goes_on[15];
+extern s16 D_8010C538_the_beat_goes_on[16];
+extern s16 D_8010C558_the_beat_goes_on[16];
+extern s16 D_8010C578_the_beat_goes_on[16];
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
@@ -1218,7 +1230,104 @@ void func_8010B0E0_the_beat_goes_on(omObjData* obj) {
                        D_8010C500_the_beat_goes_on.h, "m232_001c-cube7", 0);
 }
 
+#ifdef NON_MATCHING
+/* masked 4: retail uses func_8000B838_main's first result unconverted (as from an int function); game/esprite.h declares it s16 */
+/* The note display (sprites). */
+void func_8010B17C_the_beat_goes_on(omObjData* obj) {
+    BgSeq* seq;
+    s32 spr;
+    s16 sprA;
+    s16 sprB;
+    s16 sprZ;
+    s16 x;
+    s16 y;
+    s32 i;
+    s32 j;
+    s32 k;
+
+    spr = func_8000B838_main(0x41000C);
+    D_8010C4F4_the_beat_goes_on = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010C4F4_the_beat_goes_on, 0, spr, 0);
+    HuSprAttrReset(D_8010C4F4_the_beat_goes_on, 0, 0xFFFF);
+    HuSprAttrSet(D_8010C4F4_the_beat_goes_on, 0, 0x5000);
+    D_8010C4FC_the_beat_goes_on = 120;
+    func_80054904_main(D_8010C4F4_the_beat_goes_on, 0, 160, D_8010C4FE_the_beat_goes_on);
+    obj->data = HuMemAllocTag(sizeof(BgSeq), 0x7918);
+    memset(obj->data, 0, sizeof(BgSeq));
+    seq = obj->data;
+    seq->unk00 = 1.33333f;
+    seq->unk04 = 20;
+    seq->unk06 = 30;
+    seq->unk0E = 265;
+    seq->unk10 = 50;
+    spr = func_8000B838_main(0x410011);
+    for (i = 0; i < 2; i++) {
+        D_8010C508_the_beat_goes_on[i] = InitEspriteSlot(spr, 0, 1);
+        func_8000BCC8_main(D_8010C508_the_beat_goes_on[i], 0x30);
+        func_8000BBD4_main(D_8010C508_the_beat_goes_on[i], 160, i * 20 + 30);
+        func_8000BBFC_main(D_8010C508_the_beat_goes_on[i], 0x40);
+        func_8000BB94_main(D_8010C508_the_beat_goes_on[i]);
+        seq->unk16 = 0;
+    }
+    D_8010C510_the_beat_goes_on = InitEspriteSlot(func_8000B838_main(0x410015), 0, 1);
+    func_8000BCC8_main(D_8010C50C_the_beat_goes_on, 0x10);
+    func_8000BBD4_main(D_8010C510_the_beat_goes_on, seq->unk12, seq->unk14);
+    func_8000BB94_main(D_8010C510_the_beat_goes_on);
+    seq->unk19 = 0;
+    D_8010C50C_the_beat_goes_on = InitEspriteSlot(func_8000B838_main(0x410014), 0, 1);
+    func_8000BCC8_main(D_8010C50C_the_beat_goes_on, 0x10);
+    func_8000BBD4_main(D_8010C50C_the_beat_goes_on, seq->unk04, seq->unk06);
+    func_8000BB94_main(D_8010C50C_the_beat_goes_on);
+    seq->unk17 = 0;
+    seq->unk08 = 0;
+    seq->unk09 = 0;
+    seq->unk0C = 0;
+    seq->unk0A = 0;
+    D_8010C50E_the_beat_goes_on = InitEspriteSlot(func_8000B838_main(0x410012), 0, 1);
+    func_8000BCC8_main(D_8010C50E_the_beat_goes_on, 0x20);
+    func_8000BBD4_main(D_8010C50E_the_beat_goes_on, seq->unk0E, seq->unk10);
+    func_8000BB94_main(D_8010C50E_the_beat_goes_on);
+    seq->unk18 = 0;
+    spr = func_8000B838_main(0x410013);
+    for (i = 0; i < 15; i++) {
+        D_8010C518_the_beat_goes_on[i] = InitEspriteSlot(spr, 0, 1);
+        func_8000BCC8_main(D_8010C518_the_beat_goes_on[i], 0x20);
+        if (i < 8) {
+            func_8000BBD4_main(D_8010C518_the_beat_goes_on[i], i * 30 + 55, 30);
+        } else {
+            func_8000BBD4_main(D_8010C518_the_beat_goes_on[i], (i - 8) * 30 + 55, 50);
+        }
+        func_8000BB94_main(D_8010C518_the_beat_goes_on[i]);
+        seq->unk1A[i] = 0;
+    }
+    sprA = func_8000B838_main(0x41000E);
+    sprB = func_8000B838_main(0x41000F);
+    sprZ = func_8000B838_main(0x410010);
+    for (j = 0; j < 2; j++) {
+        for (i = 0, y = j * 20 + 30; i < 8; i++) {
+            D_8010C538_the_beat_goes_on[k = j * 8 + i] = InitEspriteSlot(sprA, 0, 1);
+            func_8000BCC8_main(D_8010C538_the_beat_goes_on[k], 0x20);
+            x = i * 30 + 55;
+            func_8000BBD4_main(D_8010C538_the_beat_goes_on[k], x, y);
+            func_8000BB94_main(D_8010C538_the_beat_goes_on[k]);
+            seq->unk2A[k] = 0;
+            D_8010C558_the_beat_goes_on[k] = InitEspriteSlot(sprB, 0, 1);
+            func_8000BCC8_main(D_8010C558_the_beat_goes_on[k], 0x20);
+            func_8000BBD4_main(D_8010C558_the_beat_goes_on[k], x, y);
+            func_8000BB94_main(D_8010C558_the_beat_goes_on[k]);
+            seq->unk3A[k] = 0;
+            D_8010C578_the_beat_goes_on[k] = InitEspriteSlot(sprZ, 0, 1);
+            func_8000BCC8_main(D_8010C578_the_beat_goes_on[k], 0x20);
+            func_8000BBD4_main(D_8010C578_the_beat_goes_on[k], x, y);
+            func_8000BB94_main(D_8010C578_the_beat_goes_on[k]);
+            seq->unk4A[k] = 0;
+        }
+    }
+    obj->func = func_8010B6DC_the_beat_goes_on;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B17C_the_beat_goes_on);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_8010B6DC_the_beat_goes_on);
 
