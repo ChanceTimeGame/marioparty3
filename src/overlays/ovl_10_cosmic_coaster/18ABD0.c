@@ -49,6 +49,15 @@ typedef struct CcTrack {
     /* 0x24 */ u16 unk24[2]; /* per side: track segments passed */
 } CcTrack; // Size 0x28
 
+/* Opening camera key (D_8010BB90_cosmic_coaster[2]) */
+typedef struct CcCamKey {
+    /* 0x00 */ s16 unk00; /* frames to reach this key */
+    /* 0x04 */ f32 unk04; /* zoom swing */
+    /* 0x08 */ Vec unk08; /* camera rotation */
+    /* 0x14 */ Vec unk14; /* camera centre */
+} CcCamKey; // Size 0x20
+
+double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void *HuMemAllocTag(s32 size, s16 tag);
 s16 func_8000B0D4_main(s32, s32);
@@ -81,6 +90,7 @@ extern u16 D_8010BB5C_cosmic_coaster[2]; /* 0: fade out started, 1: bonus coins 
 extern s32 D_8010BB64_cosmic_coaster[8];
 extern f32 D_8010BB84_cosmic_coaster[2];
 extern s32 D_8010BB8C_cosmic_coaster;
+extern CcCamKey D_8010BB90_cosmic_coaster[2];
 extern s16 D_8010BB58_cosmic_coaster[2];
 extern s8 D_800CBB6E_main[];
 extern s32 D_800A178C_main[][6];
@@ -91,8 +101,17 @@ extern f32 D_8010C018_cosmic_coaster[2];
 extern s32 D_8010C020_cosmic_coaster;
 extern omObjData *D_8010C024_cosmic_coaster;
 extern omObjData *D_8010C028_cosmic_coaster;
+extern f32 D_8010C02C_cosmic_coaster;
+extern f32 D_8010C030_cosmic_coaster;
+extern f32 D_8010C034_cosmic_coaster;
+extern f32 D_8010C038_cosmic_coaster;
+extern f32 D_8010C03C_cosmic_coaster;
+extern f32 D_8010C040_cosmic_coaster;
+extern f32 D_8010C044_cosmic_coaster;
+extern s32 D_8010C048_cosmic_coaster;
+extern s32 D_8010C04C_cosmic_coaster;
 extern s16 D_8010C058_cosmic_coaster;
-extern s16 D_8010C05A_cosmic_coaster;
+extern u16 D_8010C05A_cosmic_coaster;
 extern omObjData *D_8010C3B0_cosmic_coaster[2];
 extern omObjData *D_8010C3B8_cosmic_coaster;
 extern s16 D_8010C3BC_cosmic_coaster;
@@ -901,7 +920,87 @@ void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801083D0_cosmic_coaster);
 #endif
 
+/* Opening: fade in, then move both cameras through the two keys, start the music. */
+#ifdef NON_MATCHING
+void func_8010869C_cosmic_coaster(omObjData *object) {
+    s32 i;
+    f32 f;
+
+    switch (D_8010C05A_cosmic_coaster) {
+    case 0:
+        WipeCreateIn(0xFF, 0x10);
+        D_8010C05A_cosmic_coaster = 1;
+        break;
+    case 1:
+        if (WipeStatGet() == 0) {
+            D_8010C05A_cosmic_coaster = 2;
+            D_8010C04C_cosmic_coaster = 0;
+            D_8010C02C_cosmic_coaster = CZoomM[0];
+            D_8010C030_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.x - -8.0f) / 30.0f;
+            D_8010C034_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.y - 180.0f) / 30.0f;
+            D_8010C038_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.z - 0.0f) / 30.0f;
+            D_8010C03C_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.x - 0.0f) / 30.0f;
+            D_8010C040_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.y - 200.0f) / 30.0f;
+            D_8010C044_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.z - 0.0f) / 30.0f;
+            D_8010C048_cosmic_coaster = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk00;
+        }
+        break;
+    case 2:
+        if (--D_8010C048_cosmic_coaster != 0) {
+            for (i = 0; i < 2; i++) {
+                CRotM[i].x += D_8010C030_cosmic_coaster;
+                CRotM[i].y += D_8010C034_cosmic_coaster;
+                CRotM[i].z += D_8010C038_cosmic_coaster;
+                CenterM[i].x += D_8010C03C_cosmic_coaster;
+                CenterM[i].y += D_8010C040_cosmic_coaster;
+                CenterM[i].z += D_8010C044_cosmic_coaster;
+                if (CRotM[i].y > 90.0f) {
+                    f = sindf(CRotM[i].y);
+                } else {
+                    f = cosdf(CRotM[i].y);
+                }
+                CZoomM[i] = D_8010C02C_cosmic_coaster + fabs(f) * D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk04;
+            }
+            break;
+        }
+        for (i = 0; i < 2; i++) {
+            CRotM[i].x = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.x;
+            CRotM[i].y = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.y;
+            CRotM[i].z = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.z;
+            CenterM[i].x = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.x;
+            CenterM[i].y = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.y;
+            CenterM[i].z = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.z;
+            if (CRotM[i].y >= 90.0f) {
+                f = sindf(CRotM[i].y);
+            } else {
+                f = cosdf(CRotM[i].y);
+            }
+            CZoomM[i] = D_8010C02C_cosmic_coaster + fabs(f) * D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk04;
+        }
+        if (++D_8010C04C_cosmic_coaster == 2) {
+            D_8010C05A_cosmic_coaster = 3;
+            HuAudSeqPlay(0x37);
+            break;
+        }
+        D_8010C030_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.x - CRotM[0].x) / 30.0f;
+        D_8010C034_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.y - CRotM[0].y) / 30.0f;
+        D_8010C038_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk08.z - CRotM[0].z) / 30.0f;
+        D_8010C03C_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.x - CenterM[0].x) / 30.0f;
+        D_8010C040_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.y - CenterM[0].y) / 30.0f;
+        D_8010C044_cosmic_coaster = (D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk14.z - CenterM[0].z) / 30.0f;
+        D_8010C02C_cosmic_coaster = CZoomM[0];
+        D_8010C048_cosmic_coaster = D_8010BB90_cosmic_coaster[D_8010C04C_cosmic_coaster].unk00;
+        break;
+    case 3:
+        omDelObj(object);
+        D_8010C050_cosmic_coaster = NULL;
+        func_800E6F0C_minigame(1);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010869C_cosmic_coaster);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80108C9C_cosmic_coaster);
 
