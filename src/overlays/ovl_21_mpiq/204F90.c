@@ -1957,10 +1957,10 @@ s16 func_8010AB44_mpiq(s32 q, s32 slot) {
         break;
     case 0x5312:
         v = D_8010CBF8_mpiq[D_8010CBCC_mpiq + 1] + 0x532B;
-        D_8010CBCC_mpiq++;
-        return v;
+        goto next_board;
     case 0x5314:
         v = D_8010CBF8_mpiq[D_8010CBCC_mpiq + 1] + 0x5331;
+    next_board:
         D_8010CBCC_mpiq++;
         return v;
     case 0x5316:
