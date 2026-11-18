@@ -209,10 +209,17 @@ void func_80108720_fridged_bridges(omObjData *obj);
 void func_80108B08_fridged_bridges(omObjData *obj);
 void func_80108BEC_fridged_bridges(omObjData *obj);
 void func_80108C60_fridged_bridges(omObjData *obj);
+void func_801075AC_fridged_bridges(omObjData *obj);
+void func_8010775C_fridged_bridges(omObjData *obj);
+void func_80017954_main(s16, s16, s16, s16);
 void func_80109154_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
 extern s32 D_8010D1A0_fridged_bridges;
+extern Vec D_8010D1A4_fridged_bridges[4]; /* per player: goal position */
+extern f32 D_8010D340_fridged_bridges; /* winner camera: zoom step */
+extern Vec D_8010D344_fridged_bridges; /* winner camera: rotation step */
+extern u16 D_8010D350_fridged_bridges; /* winner camera: frames left */
 void func_80108FBC_fridged_bridges(omObjData *obj);
 extern s16 D_8010D19C_fridged_bridges;
 void func_801091F8_fridged_bridges(omObjData *obj);
@@ -1306,7 +1313,107 @@ void func_801091F8_fridged_bridges(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801091F8_fridged_bridges);
 #endif
 
+#ifdef NON_MATCHING
+/* Winner: walk to the goal, camera move, win pose */
+void func_80109390_fridged_bridges(omObjData *obj) {
+    omObjData *player;
+    FbPlayer *work;
+    s16 model;
+    s32 i;
+
+    switch ((u16)D_8010D366_fridged_bridges) {
+        case 0:
+            player = D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges];
+            func_8001C258_main(player->model[0], 4, 4);
+            func_8001C258_main(player->model[4], 4, 0);
+            model = player->model[0];
+            player->model[0] = player->model[4];
+            player->model[4] = model;
+            func_8001C624_main(player->model[0], HmfModelData[player->motion[1]].unk02, 0, 6, 2);
+            player->rot.y = atan2df(D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].x - player->trans.x,
+                                    D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].z - player->trans.z);
+            D_8010D366_fridged_bridges = 1;
+            break;
+        case 1:
+            player = D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges];
+            if (HuSqrtf((D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].x - player->trans.x) *
+                            (D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].x - player->trans.x) +
+                        (D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].z - player->trans.z) *
+                            (D_8010D1A4_fridged_bridges[D_8010DA60_fridged_bridges].z - player->trans.z)) < 80.0f) {
+                D_8010D366_fridged_bridges = 2;
+            } else {
+                player->trans.x += sindf(player->rot.y) * 10.0f;
+                player->trans.z += cosdf(player->rot.y) * 10.0f;
+                Hu3DModelPosSet(player->model[1], player->trans.x, 0.0f, player->trans.z);
+            }
+            break;
+        case 2:
+            D_8010D340_fridged_bridges = -21.666666f;
+            D_8010D344_fridged_bridges.x = 0.6666667f;
+            D_8010D344_fridged_bridges.y = 0.0f;
+            D_8010D344_fridged_bridges.z = 0.0f;
+            D_8010D350_fridged_bridges = 0x1E;
+            D_8010D366_fridged_bridges = 3;
+            D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->func = func_801075AC_fridged_bridges;
+            D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->work[0] = 0;
+            break;
+        case 3:
+            if (--D_8010D350_fridged_bridges != 0) {
+                CZoomM[D_8010DA60_fridged_bridges] += D_8010D340_fridged_bridges;
+                CRotM[D_8010DA60_fridged_bridges].x += D_8010D344_fridged_bridges.x;
+                CRotM[D_8010DA60_fridged_bridges].y += D_8010D344_fridged_bridges.y;
+                CRotM[D_8010DA60_fridged_bridges].z += D_8010D344_fridged_bridges.z;
+            } else {
+                CZoomM[D_8010DA60_fridged_bridges] = 1065.0f;
+                CRotM[D_8010DA60_fridged_bridges].x = -40.0f;
+                CRotM[D_8010DA60_fridged_bridges].y = 0.0f;
+                CRotM[D_8010DA60_fridged_bridges].z = 0.0f;
+                D_8010D366_fridged_bridges = 4;
+            }
+            break;
+        case 4:
+            if (D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->work[0] == 1 && func_800E6E8C_minigame() == 4) {
+                {
+                    omObjData *winner = D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges];
+                    s16 *models = winner->model;
+
+                    func_80017954_main(models[0], 2, GwPlayer[((FbPlayer *)winner->data)->unk02].chr, models[5]);
+                }
+                func_8001C624_main(D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->model[0],
+                                   HmfModelData[D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->motion[5]].unk02, 0, 6, 0);
+                func_80045ED0_main(D_800A178C_main[GwPlayer[D_8010DA60_fridged_bridges].chr][0] | 0x2F);
+                D_8010D366_fridged_bridges = 5;
+                for (i = 0; i < 4; i++) {
+                    player = D_8010DA64_fridged_bridges[i];
+                    work = player->data;
+                    if (work->unk00 != 3 && work->unk02 != D_8010DA60_fridged_bridges) {
+                        player->func = func_8010775C_fridged_bridges;
+                    }
+                    work->unk44 = 1.0f;
+                    if (work->unk02 == D_8010DA60_fridged_bridges) {
+                        GwPlayer[work->unk02].bonusCoin = 10;
+                    }
+                }
+            }
+            break;
+        case 6:
+            if (func_800E6E8C_minigame() == 4) {
+                for (i = 0; i < 4; i++) {
+                    player = D_8010DA64_fridged_bridges[i];
+                    work = player->data;
+                    if (work->unk00 != 3) {
+                        player->func = func_8010775C_fridged_bridges;
+                    }
+                    work->unk44 = 1.0f;
+                }
+                D_8010D366_fridged_bridges = 5;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109390_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109988_fridged_bridges);
 
