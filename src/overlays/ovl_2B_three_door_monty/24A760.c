@@ -151,9 +151,9 @@ f32 func_801066F4_three_door_monty(f32 cur, f32 target, f32 step);
 f32 func_801067C4_three_door_monty(f32 pos, f32 *vel, f32 accel);
 void func_801067E0_three_door_monty(omObjData *obj, u8 frame);
 void func_80106868_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2);
-void func_80106B98_three_door_monty(omObjData *obj);
-void func_80106EDC_three_door_monty(omObjData *obj);
-void func_801071F4_three_door_monty(void);
+void func_80106B98_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2);
+void func_80106EDC_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2);
+void func_801071F4_three_door_monty(omObjData *obj);
 void func_801071FC_three_door_monty(omObjData *obj);
 void func_80107344_three_door_monty(void);
 void func_80107384_three_door_monty(omObjData *obj);
@@ -199,6 +199,11 @@ extern f32 D_8010CD10_three_door_monty[3];
 extern f32 D_8010CD1C_three_door_monty[3];
 extern CcPos2 D_8010CD40_three_door_monty[3]; /* the doors */
 extern s32 D_8010CDA4_three_door_monty[]; /* voice bank per character */
+typedef struct CcXY {
+    s16 x;
+    s16 y;
+} CcXY;
+extern CcXY D_8010CDC4_three_door_monty[2];
 extern CcCamera D_8010CDD0_three_door_monty[3];
 /* .rodata */
 extern char D_8010CEFC_three_door_monty[];
@@ -222,7 +227,7 @@ extern CcEnt D_8010D680_three_door_monty;    /* = D_8010D260_three_door_monty[8]
 extern CcEnt D_8010D704_three_door_monty[3]; /* = D_8010D260_three_door_monty[9] */
 extern CcEnt D_8010D890_three_door_monty;    /* = D_8010D260_three_door_monty[12] */
 extern f32 D_8010D8A8_three_door_monty;      /* = D_8010D260_three_door_monty[12].unk18 */
-extern s16 D_8010EC28_three_door_monty[4];
+extern HuSprite_Unk84_Struct *D_8010EC28_three_door_monty[2];
 extern u8 D_8010EC30_three_door_monty;
 extern s16 D_8010EC32_three_door_monty;
 extern HuSprite_Unk84_Struct *D_8010EC34_three_door_monty;
@@ -558,14 +563,85 @@ void func_80106868_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80106868_three_door_monty);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80106B98_three_door_monty);
+void func_80106B98_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2) {
+    Gfx *g = *gfx;
+    s32 i;
+    s32 n;
+    s32 x;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80106EDC_three_door_monty);
-
-void func_801071F4_three_door_monty(void) {
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD |
+                                  G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetCombineMode(g++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 255);
+    gDPSetRenderMode(g++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    gDPLoadTLUT_pal256(g++, D_8010EC34_three_door_monty->unk0C);
+    for (i = 0, y = 0, n = 0, x = 0; i < 51; i += 4, n++) {
+        i -= (n >= 12);
+        gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 320, D_8010EC34_three_door_monty->unk08);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 41, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPLoadSync(g++);
+        gDPLoadTile(g++, G_TX_LOADTILE, 0, i * 4, 320 * 4, (i + 4) * 4);
+        gDPPipeSync(g++);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 41, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, i * 4, 320 * 4, (i + 4) * 4);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 320 * 4, 4 * 4);
+        gSPTextureRectangle(g++, x << 2, (y + i) << 2, (x + 320) << 2, (y + i + 4) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+    }
+    *gfx = g;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801071FC_three_door_monty);
+void func_80106EDC_three_door_monty(Gfx **gfx, s32 arg1, s32 arg2) {
+    Gfx *g = *gfx;
+    s32 i;
+
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD |
+                                  G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetCombineMode(g++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 255);
+    gDPSetRenderMode(g++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    for (i = 0; i < 2; i++) {
+        gDPLoadTLUT_pal16(g++, 0, D_8010EC28_three_door_monty[i]->unk0C);
+        gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 4, D_8010EC28_three_door_monty[i]->unk08);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 1, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPLoadSync(g++);
+        gDPLoadTile(g++, G_TX_LOADTILE, 0, 0, 8 << 1, 32 << 2);
+        gDPPipeSync(g++);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_4b, 1, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 8 << 2, 32 << 2);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 8 << 2, 32 << 2);
+        gSPTextureRectangle(g++, D_8010CDC4_three_door_monty[i].x << 2, D_8010CDC4_three_door_monty[i].y << 2,
+                            (D_8010CDC4_three_door_monty[i].x + 8) << 2, (D_8010CDC4_three_door_monty[i].y + 32) << 2,
+                            G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+    }
+    *gfx = g;
+}
+
+void func_801071F4_three_door_monty(omObjData *obj) {
+}
+
+void func_801071FC_three_door_monty(omObjData *obj) {
+    D_8010EC34_three_door_monty = func_80055194_main(func_8000B838_main(0x4C0004));
+    func_8001C8A8_main(func_8001AC8C_main(0, func_80106B98_three_door_monty, 2), 2);
+    D_8010D24C_three_door_monty = func_80055194_main(func_8000B838_main(0x4C0003));
+    func_8001C8A8_main(func_8001AC8C_main(0, func_80106868_three_door_monty, 2), 1);
+    D_8010EC28_three_door_monty[0] = func_80055194_main(func_8000B838_main(0x4C0005));
+    D_8010EC28_three_door_monty[1] = func_80055194_main(func_8000B838_main(0x4C0006));
+    func_8001C8A8_main(func_8001AC8C_main(0, func_80106EDC_three_door_monty, 2), 2);
+    obj->model[0] = func_8000B108_main(0x4C000F, 649);
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_801071F4_three_door_monty;
+}
 
 void func_80107344_three_door_monty(void) {
     omObjData *obj = omAddObj(50, 5, 10, -1, func_801071FC_three_door_monty);
@@ -1127,7 +1203,72 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109F0C_three_door_monty);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010A27C_three_door_monty);
+void func_8010A27C_three_door_monty(void) {
+    CcEnt *pl[4];
+    omObjData *objs[4];
+    f32 max;
+    s16 flag;
+    s16 i;
+    s16 j;
+
+    for (i = 0; i < 4; i++) {
+        pl[i] = &D_8010D2E4_three_door_monty[i];
+        objs[i] = pl[i]->obj;
+    }
+    (void)objs; /* filled but never read */
+    flag = 0;
+    for (i = 0; i < 4; i++) {
+        if (pl[i]->unk14 == 1) {
+            if (pl[i]->unk06 == -1) {
+                pl[i]->unk16 = D_8010EC38_three_door_monty;
+                pl[i]->unk14 = 0;
+                pl[i]->unk08 = 1;
+                D_8010D230_three_door_monty++;
+                flag = 1;
+            }
+            if (pl[i]->unk14 == 1 && D_8010EC4A_three_door_monty[pl[i]->unk06] != D_8010D250_three_door_monty) {
+                pl[i]->unk16 = D_8010EC38_three_door_monty;
+                pl[i]->unk14 = 0;
+                pl[i]->unk08 = 2;
+                D_8010D230_three_door_monty++;
+                flag = 1;
+            }
+        }
+    }
+    if (flag == 1) {
+        D_8010EC38_three_door_monty--;
+    }
+    if (D_8010D230_three_door_monty < 3) {
+        for (j = 0; j < 4; j++) {
+            for (i = 0; i < 4; i++) {
+                if (pl[i]->unk14 == 1) {
+                    max = -100.0f;
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (pl[i]->unk14 == 1 && max <= (s16)(pl[i]->unk12 / 10)) {
+                    max = (s16)(pl[i]->unk12 / 10);
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (pl[i]->unk14 == 1 && (s16)(pl[i]->unk12 / 10) == max) {
+                    pl[i]->unk16 = D_8010EC38_three_door_monty;
+                    pl[i]->unk14 = 0;
+                    pl[i]->unk08 = 3;
+                    D_8010D230_three_door_monty++;
+                }
+            }
+            D_8010EC38_three_door_monty--;
+        }
+        for (i = 0; i < 4; i++) {
+            if (pl[i]->unk08 == 3 && (s16)(pl[i]->unk12 / 10) == max) {
+                pl[i]->unk14 = 1;
+                pl[i]->unk08 = 0;
+                D_8010D230_three_door_monty--;
+            }
+        }
+    }
+}
 
 void func_8010A678_three_door_monty(omObjData *obj) {
     CcEnt *ent = &D_8010D2E4_three_door_monty[obj->work[0]];
