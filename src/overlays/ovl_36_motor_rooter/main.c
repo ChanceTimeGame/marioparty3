@@ -2368,7 +2368,163 @@ void func_8010D1A8_motor_rooter(s16 pos, s16 lane) {
 }
 /* </func_8010D1A8_motor_rooter> */
 
+/* <func_8010D2E4_motor_rooter> */
+#ifdef NON_MATCHING
+void func_8010D2E4_motor_rooter(s32 arg0) {
+    s16 perm[8];
+    s16 slots[10];
+    s16 i;
+    s16 j;
+    s16 n;
+    s16 pos;
+    s16 lane;
+    s16 itemLane;
+    s16 chance;
+    s16 seg;
+    u16 segLen;
+    s16 dir;
+    s16 kind;
+
+    for (i = 0; i < 10; i++) {
+        slots[i] = 0;
+    }
+    segLen = (D_801137CC_motor_rooter - 10) / 10;
+    lane = 0;
+    pos = 5;
+    while (TRUE) {
+        if (pos >= D_801137CC_motor_rooter || D_801137D0_motor_rooter >= 100) {
+            break;
+        }
+        itemLane = -1;
+        kind = rand16() % 14;
+        switch (kind) {
+        case 0:
+        case 1:
+            lane = rand16() % 8;
+            n = (rand16() & 1) + 2;
+            for (i = 0; i < n; i++) {
+                func_8010DC3C_motor_rooter(pos, lane);
+                pos += 2;
+            }
+            itemLane = lane + 4;
+            chance = 70;
+            break;
+        case 2:
+        case 3:
+        case 4:
+            lane = rand16() % 8;
+            n = (rand16() & 1) + 3;
+            for (i = 0; i < n; i++) {
+                func_8010DC3C_motor_rooter(pos, lane);
+                lane += (rand16() & 1) ? -1 : 1;
+                pos += 6;
+            }
+            chance = 25;
+            break;
+        case 5:
+            n = (rand16() & 1) + 2;
+            for (i = 0; i < n; i++) {
+                lane = rand16() % 8;
+                for (j = 0; j < 2; j++) {
+                    func_8010DC3C_motor_rooter(pos, lane + j * 4);
+                }
+                pos += 8;
+            }
+            itemLane = lane;
+            chance = 25;
+            break;
+        case 6:
+        case 7:
+            lane = rand16() % 8;
+            dir = (rand16() & 1) ? -1 : 1;
+            n = (rand16() & 1) + 2;
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < 2; j++) {
+                    func_8010DC3C_motor_rooter(pos, lane + j * 4);
+                }
+                lane += dir;
+                pos += 7;
+            }
+            itemLane = lane;
+            chance = 25;
+            break;
+        case 8:
+            n = (rand16() & 1) + 1;
+            for (i = 0; i < n; i++) {
+                m254_MakeRandPermutation(perm, 8);
+                for (j = 0; j < 3; j++) {
+                    func_8010DC3C_motor_rooter(pos, perm[j]);
+                }
+                pos += 9;
+            }
+            chance = 50;
+            break;
+        case 9:
+            n = (rand16() & 1) + 2;
+            for (i = 0; i < n; i++) {
+                lane = rand16() % 8;
+                for (j = 0; j < 3; j++) {
+                    func_8010DC3C_motor_rooter(pos, lane);
+                    lane += 3;
+                }
+                pos += 7;
+            }
+            chance = 50;
+            break;
+        case 10:
+            lane = rand16() % 8;
+            n = (rand16() & 1) + 1;
+            func_8010DC3C_motor_rooter(pos, lane);
+            pos += 2;
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < 2; j++) {
+                    func_8010DC3C_motor_rooter(pos, lane + j * 4);
+                }
+                pos += 2;
+            }
+            itemLane = lane + 4;
+            chance = 100;
+            break;
+        default:
+            n = (rand16() & 1) + 2;
+            for (i = 0; i < n; i++) {
+                lane = rand16() % 8;
+                func_8010DC3C_motor_rooter(pos, lane);
+                pos += 9;
+            }
+            chance = 50;
+            break;
+        }
+        slots[0] = 1;
+        seg = (pos - 10) / (s16)segLen;
+        if (rand16() % 101 < chance && slots[seg] == 0) {
+            if (itemLane == -1) {
+                lane = rand16() % 8;
+            } else {
+                lane = itemLane;
+            }
+            slots[seg]++;
+            i = 0;
+            if (D_801137D2_motor_rooter > 0 &&
+                pos - m254_minigame->views[0].unk4C[D_801137D2_motor_rooter - 1] < 5) {
+                func_8010D1A8_motor_rooter(pos - i, m254_minigame->views[0].unk60[D_801137D2_motor_rooter - 1] + 2);
+            } else {
+                func_8010D1A8_motor_rooter(pos - i, lane);
+            }
+            for (i = 0; i < seg; i++) {
+                if (slots[i] == 0) {
+                    slots[seg] = 0;
+                    slots[i]++;
+                }
+            }
+            pos += 4 + rand16() % 5;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D2E4_motor_rooter);
+#endif
+/* </func_8010D2E4_motor_rooter> */
 
 /* <func_8010DC3C_motor_rooter> */
 void func_8010DC3C_motor_rooter(s16 pos, s16 lane) {
