@@ -86,7 +86,7 @@ typedef struct MqCpu {
 extern MqCpu D_8010CA08_mpiq[4];
 extern s16 D_8010CA38_mpiq[10]; /* right answer per question */
 extern s16 D_8010CA4C_mpiq; /* question */
-extern void* D_8010CA50_mpiq[10]; /* question messages */
+extern s32 D_8010CA50_mpiq[10]; /* question message ids */
 void func_8000BC48_main(u16, u16);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_8000BBFC_main(u16, u8);
@@ -189,10 +189,30 @@ typedef struct MqButtons {
     /* 0x0C */ f32 unk0C; /* scale */
 } MqButtons; // Size 0x10
 
-extern u16 D_8010C9C0_mpiq;
+extern s16 D_8010C9C0_mpiq;
 extern omObjData* D_8010CAE8_mpiq;
 extern s16 D_8010CAEC_mpiq[3]; /* button sprites */
 extern s16 D_8010CAF2_mpiq[3]; /* button sprite files */
+s32 func_800E5798_minigame(omObjData* obj, u16 motion);
+s32 func_8010C4C0_mpiq(s32 player);
+s32 func_801096C0_mpiq(s32 q, s32 idx);
+void func_8010A010_mpiq(s32 q);
+void func_8010A184_mpiq(s32 q);
+s16 func_8010AB44_mpiq(s32 q, s32 slot);
+extern s32 D_8010C6B8_mpiq; /* answer picked: 0..2, -1 none */
+extern s32 D_8010CB00_mpiq[10][4]; /* answer messages per question */
+extern u16 D_8010CBA0_mpiq[10]; /* question flags: 2 has a name insert */
+extern s32 D_8010CBCC_mpiq;
+extern s32 D_8010CBD0_mpiq[10];
+extern s16 D_8010CBB8_mpiq[10]; /* name insert message per question */
+extern s32 D_8010CC04_mpiq;
+u16 GWMgRecordGet(s16 arg0);
+s16 func_800E905C_minigame(s16 slot);
+extern s32 D_8010CBF8_mpiq[3]; /* boards picked for a board question: answer, then two others */
+extern u8 D_800D6A90_main;
+extern s32 fontcolor;
+extern s32 D_8010D010_mpiq; /* the right number for a number question */
+void func_8010C558_mpiq(omObjData* obj);
 // LOCALEND
 
 void func_801059A0_mpiq(void) {
@@ -406,7 +426,7 @@ void func_80106664_mpiq(s32 player) {
     s32 ans;
 
     skill = 0;
-    win = func_800364DC_main(D_8010CA50_mpiq[D_8010CA4C_mpiq]);
+    win = func_800364DC_main((void*)D_8010CA50_mpiq[D_8010CA4C_mpiq]);
     base = func_8005B5EC_main(win) * 5 - 0x28;
     add = 0;
     mod = 0;
@@ -1217,21 +1237,524 @@ void func_80108E20_mpiq(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109018_mpiq);
+/* Answer process: the answering player picks A, B or C. */
+void func_80109018_mpiq(void) {
+    Vec2f scr;
+    Vec pos;
+    omObjData* obj;
+    MqButtons* btn;
+    u16 pad;
 
+    while (TRUE) {
+        obj = D_800EC598_minigame[D_8010C9BC_mpiq];
+        if (D_8010C9C2_mpiq == 1 && D_8010C6B8_mpiq == -1 && (D_8010C9C0_mpiq & 4) &&
+            func_8010C4C0_mpiq(D_8010C9BC_mpiq) != 0) {
+            pad = D_800D5558_main[GwPlayer[D_8010C9BC_mpiq].pad];
+            btn = D_8010CAE8_mpiq->data;
+            pos.x = obj->trans.x;
+            pos.y = obj->trans.y;
+            pos.z = obj->trans.z;
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            btn->unk00 = scr.x + 28.0f;
+            btn->unk04 = scr.y - 46.0f;
+            btn->unk0C = 0;
+            if ((pad & 0xE000) == 0x8000) {
+                D_8010C6B8_mpiq = 0;
+                func_800E58F8_minigame(obj, 0x26, 0);
+                func_800E5798_minigame(obj, 0x27);
+                while (HmfModelData[obj->model[0]].unk40 < D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02) {
+                    HuPrcVSleep();
+                }
+                func_800E5798_minigame(obj, 0x28);
+                HuPrcSleep(2);
+                btn->unk08 |= 5;
+                HuPrcSleep(0x1E);
+                btn->unk08 |= 2;
+                D_8010C9C0_mpiq &= ~0x20;
+            }
+            if ((pad & 0xE000) == 0x4000) {
+                D_8010C6B8_mpiq = 1;
+                func_800E58F8_minigame(obj, 0x26, 0);
+                func_800E5798_minigame(obj, 0x27);
+                while (HmfModelData[obj->model[0]].unk40 < D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02) {
+                    HuPrcVSleep();
+                }
+                func_800E5798_minigame(obj, 0x28);
+                HuPrcSleep(2);
+                btn->unk08 |= 9;
+                HuPrcSleep(0x1E);
+                btn->unk08 |= 2;
+                D_8010C9C0_mpiq &= ~0x20;
+            }
+            if ((pad & 0xE000) == 0x2000) {
+                D_8010C6B8_mpiq = 2;
+                func_800E58F8_minigame(obj, 0x26, 0);
+                func_800E5798_minigame(obj, 0x27);
+                while (HmfModelData[obj->model[0]].unk40 < D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02) {
+                    HuPrcVSleep();
+                }
+                func_800E5798_minigame(obj, 0x28);
+                HuPrcSleep(2);
+                btn->unk08 |= 0x11;
+                HuPrcSleep(0x1E);
+                btn->unk08 |= 2;
+                D_8010C9C0_mpiq &= ~0x20;
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+
+#ifdef NON_MATCHING
+/* Draw the ten questions: no repeats, then shuffle each question's three answers. */
+void func_80109414_mpiq(void) {
+    s32 used[64];
+    s32 slotUsed[3];
+    s32* ans;
+    s32 mes;
+    s32 q;
+    s32 idx;
+    s32 i;
+    s32 slot;
+    s32 j;
+
+    mes = 0;
+    for (q = 0; q < 64; q++) {
+        used[q] = 0;
+    }
+    for (q = 0; q < 10; q++) {
+        D_8010CBA0_mpiq[q] = 0;
+        ans = D_8010CB00_mpiq[q];
+        do {
+            idx = rand8() & 0x3F;
+            if (D_8010C9F8_mpiq != 0) {
+                idx = D_8010D020_mpiq++;
+                if (D_8010D020_mpiq > 0x40) {
+                    D_8010D020_mpiq = 0;
+                }
+            }
+            if (idx >= 0x24) {
+                if (idx < 0x31) {
+                    mes = idx * 2 + 0x52B8;
+                } else {
+                    mes = idx * 2 + 0x539E;
+                }
+                D_8010CA50_mpiq[q] = mes;
+                func_8010A010_mpiq(q);
+            }
+        } while (used[idx] != 0 || func_801096C0_mpiq(q, idx) == 0);
+        if (idx < 0x24) {
+            mes = idx * 4 + 0x5500;
+            D_8010CA50_mpiq[q] = mes;
+            D_8010CBD0_mpiq[q] = 0x5307;
+        }
+        if (D_8010C9F8_mpiq == 0) {
+            used[idx]++;
+        }
+        for (i = 0; i < 3; i++) {
+            slotUsed[i] = 0;
+            ans[i] = -1;
+        }
+        if (idx >= 0x24) {
+            func_8010A184_mpiq(q);
+        }
+        D_8010CBCC_mpiq = 0;
+        for (j = 0; j < 3; j++) {
+            do {
+                slot = (u8)(rand8() % 3);
+            } while (slotUsed[slot] != 0);
+            if (idx < 0x24) {
+                ans[j] = mes + slot + 1;
+            } else {
+                ans[j] = func_8010AB44_mpiq(q, slot);
+            }
+            if (slot == 0) {
+                D_8010CA38_mpiq[q] = j;
+            }
+            slotUsed[slot]++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109414_mpiq);
+#endif
 
+/* Can question idx be asked (for question q)? Checks the save's unlocks and records and the
+   board state; picks the boards a board question names. */
+#ifdef NON_MATCHING
+s32 func_801096C0_mpiq(s32 q, s32 idx) {
+    s32 val[6];
+    s32 id[6];
+    s32 ok;
+    s32 mes;
+    s32 i;
+    s32 j;
+    s32 n;
+    s32 t;
+    s32 range;
+    s32 hits;
+    s32 chr;
+
+    ok = 1;
+    if (D_8010C9F8_mpiq != 0) {
+        return 1;
+    }
+    if (idx >= 0x24) {
+        if (idx >= 0x31 && _CheckFlag(0x1C)) {
+            return 0;
+        }
+        if (idx < 0x31) {
+            mes = idx * 2 + 0x52B8;
+        } else {
+            mes = idx * 2 + 0x539E;
+        }
+        switch (mes) {
+        case 0x5302:
+            if (func_800E905C_minigame(D_8010CBB8_mpiq[q] - 0x1C60) == -1) {
+                return 0;
+            }
+            break;
+        case 0x5304:
+            if (!GWMgUnlockCheck(0xC)) {
+                ok = 0;
+            }
+            break;
+        case 0x5306:
+            if (!GWMgUnlockCheck(0x22)) {
+                ok = 0;
+            }
+            break;
+        case 0x5308:
+            if (!GWMgUnlockCheck(0x33)) {
+                ok = 0;
+            }
+            break;
+        case 0x530A:
+            if (!GWMgUnlockCheck(0x2B)) {
+                ok = 0;
+            }
+            break;
+        case 0x530C:
+            if (!GWMgUnlockCheck(0x46)) {
+                ok = 0;
+            } else if (GWMgRecordGet(5) == 0x708) {
+                ok = 0;
+            }
+            break;
+        case 0x530E:
+            if (!GWMgUnlockCheck(0x46)) {
+                ok = 0;
+            } else if (GWMgRecordGet(6) == 0x708) {
+                ok = 0;
+            }
+            break;
+        case 0x5310:
+            if (!GWMgUnlockCheck(0x46)) {
+                ok = 0;
+            } else if (GWMgRecordGet(7) == 0x708) {
+                ok = 0;
+            }
+            break;
+        case 0x5312:
+        case 0x5314:
+            for (i = 0; i < 6; i++) {
+                if (mes == 0x5312) {
+                    val[i] = GwCommon.unk_1D[2 + i * 9];
+                } else {
+                    val[i] = GwCommon.unk_1D[0x38 + i * 9];
+                }
+                id[i] = i;
+            }
+            for (i = 0; i < 6; i++) {
+                for (j = i; j < 6; j++) {
+                    if (val[j] >= val[i]) {
+                        t = val[i];
+                        val[i] = val[j];
+                        val[j] = t;
+                        t = id[i];
+                        id[i] = id[j];
+                        id[j] = t;
+                    }
+                }
+            }
+            hits = 0;
+            for (i = 0; i < 6; i++) {
+                hits += val[i] == val[0];
+            }
+            if (hits >= 5) {
+                return 0;
+            }
+            t = 0;
+            if (hits != 0) {
+                t = rand8() % hits;
+            }
+            D_8010CBF8_mpiq[0] = id[t];
+            range = 6 - hits;
+            for (i = 0; i < 2; i++) {
+                do {
+                    t = rand8() % range + hits;
+                    n = 0;
+                    for (j = 0; j < i + 1; j++) {
+                        n += id[t] == D_8010CBF8_mpiq[j];
+                    }
+                } while (n != 0);
+                D_8010CBF8_mpiq[i + 1] = id[t];
+            }
+            break;
+        case 0x5316:
+            n = 0;
+            for (i = 0; i < 6; i++) {
+                if (GwCommon.unk_1D[2 + i * 9] != 0) {
+                    val[n++] = i;
+                }
+            }
+            goto pick;
+        case 0x5318:
+            n = 0;
+            for (i = 0; i < 6; i++) {
+                if (GwCommon.unk_1D[0x38 + i * 9] != 0) {
+                    val[n++] = i;
+                }
+            }
+        pick:
+            if (n == 0) {
+                ok = 0;
+                break;
+            }
+            D_8010CC04_mpiq = val[rand8() % n];
+            break;
+        case 0x5400:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                n += GwPlayer[i].star;
+            }
+            if (!(n != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5402:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                n += GwPlayer[i].coin;
+            }
+            if (!(n != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5404:
+        case 0x5412:
+        case 0x5414:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                switch (mes) {
+                case 0x5404:
+                    n += GwPlayer[i].gamePrize == 0;
+                    break;
+                case 0x5412:
+                    n += GwPlayer[i].star == 0;
+                    break;
+                default:
+                    n += GwPlayer[i].coin == 0;
+                    break;
+                }
+            }
+            if (!(n != 4)) {
+                ok = 0;
+            }
+            break;
+        case 0x5406:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                n += GwPlayer[i].stats.prize.redPrize;
+            }
+            if (!(n != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5408:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                n += GwPlayer[i].stats.prize.bluePrize;
+            }
+            if (!(n != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x540A:
+            n = 0;
+            for (i = 0; i < 4; i++) {
+                n += GwPlayer[i].stats.prize.hatenaPrize;
+            }
+            if (!(n != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x540C:
+            if (!(GwSystem.bank_coins != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5410:
+            ok = 0;
+            break;
+        case 0x541A:
+            chr = D_8010CBB8_mpiq[q] - 0x1C60;
+            for (i = 0; i < 4; i++) {
+                if (GwPlayer[i].chr == chr) {
+                    break;
+                }
+            }
+            if (!(GwPlayer[i].coin != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x541C:
+            chr = D_8010CBB8_mpiq[q] - 0x1C60;
+            for (i = 0; i < 4; i++) {
+                if (GwPlayer[i].chr == chr) {
+                    break;
+                }
+            }
+            if (!(GwPlayer[i].star != 0)) {
+                ok = 0;
+            }
+            break;
+        }
+    } else {
+        switch (idx * 4 + 0x5500) {
+        case 0x5578:
+            if (!(GwCommon.unk_1D[2] != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x557C:
+            if (!(GwCommon.unk_1D[0xB] != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5580:
+            if (!(GwCommon.unk_1D[0x14] != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5584:
+            if (!(GwCommon.unk_1D[0x1D] != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x5588:
+            if (!(GwCommon.unk_1D[0x26] != 0)) {
+                ok = 0;
+            }
+            break;
+        case 0x558C:
+            if (!(GwCommon.unk_1D[0x2F] != 0)) {
+                ok = 0;
+            }
+            break;
+        }
+    }
+    return ok;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801096C0_mpiq);
+#endif
 
+#ifdef NON_MATCHING
+/* Pick the name inserted into question q's text. */
+void func_8010A010_mpiq(s32 q) {
+    s16 ref;
+
+    switch (D_8010CA50_mpiq[q]) {
+    case 0x5300:
+        ref = (rand8() & 0xF) + 0x531B;
+        break;
+    case 0x5302:
+        ref = (u8)(rand8() % 6) + 0x1C60;
+        break;
+    case 0x5316:
+        ref = D_8010CC04_mpiq + 0x532B;
+        break;
+    case 0x5318:
+        ref = D_8010CC04_mpiq + 0x5331;
+        break;
+    case 0x541A:
+    case 0x541C:
+        ref = GwPlayer[rand8() & 3].chr + 0x1C60;
+        break;
+    default:
+        D_8010CBB8_mpiq[q] = 0;
+        return;
+    }
+    D_8010CBB8_mpiq[q] = ref;
+    D_8010CBA0_mpiq[q] |= 2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010A010_mpiq);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010A184_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AB44_mpiq);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AEDC_mpiq);
+/* A character name not playing and not already an answer of question q. */
+s32 func_8010AEDC_mpiq(s32 q) {
+    s32 ref;
+    s32 done;
+    s32 chr;
+    s32 i;
 
+    ref = 0;
+    do {
+        done = 0;
+        chr = rand8() & 7;
+        for (i = 0; i < 4; i++) {
+            if (GwPlayer[i].chr == chr) {
+                break;
+            }
+        }
+        if (i == 4) {
+            ref = chr + 0x1C60;
+            for (i = 0; i < 3; i++) {
+                if (ref == D_8010CB00_mpiq[q][i]) {
+                    break;
+                }
+            }
+            done += i == 3;
+        }
+    } while (!done);
+    return ref;
+}
+
+#ifdef NON_MATCHING
+/* A wrong number near the right one: (rand % range + base) * step off, positive, not repeated. */
+s32 func_8010AFAC_mpiq(s32 q, s32 range, s32 base, s32 step) {
+    s32 tries;
+    s32 v;
+    s32 bad;
+    s32 i;
+
+    for (tries = 0;; tries++) {
+        v = (rand8() % range + base) * step + D_8010D010_mpiq;
+        bad = 0;
+        for (i = 0; i < 3; i++) {
+            if (v == D_8010CB00_mpiq[q][i] || v == D_8010D010_mpiq || v < 1) {
+                bad++;
+                break;
+            }
+        }
+        if (bad == 0) {
+            break;
+        }
+        if ((D_8010C9F8_mpiq != 0) & (tries == 100)) {
+            break;
+        }
+    }
+    return v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AFAC_mpiq);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010B0CC_mpiq);
 
@@ -1247,12 +1770,48 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010BD1C_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C2F0_mpiq);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C4C0_mpiq);
+/* Is player standing at their podium's height? */
+s32 func_8010C4C0_mpiq(s32 player) {
+    s32 ret = 0;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C504_mpiq);
+    if (D_800EC598_minigame[player]->trans.y == D_8010CA80_mpiq[player]->trans.y) {
+        ret = 1;
+    }
+    return ret;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C558_mpiq);
+void func_8010C504_mpiq(void) {
+    omObjData* obj;
+    s32* timer;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C5B8_mpiq);
+    obj = omAddObj(0xA, 0, 0, -1, func_8010C558_mpiq);
+    obj->data = timer = HuMemAllocTag(sizeof(s32), 0x7918);
+    *timer = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010C624_mpiq);
+/* Blinking "ENDLESS" label. */
+void func_8010C558_mpiq(omObjData* obj) {
+    s32* timer = obj->data;
+
+    if (++*timer & 0x10) {
+        fontcolor = 0xF;
+        sprintf(D_800D5218_main, "ENDLESS");
+        print8(0xE8, 0x10, D_800D5218_main);
+    }
+}
+
+void func_8010C5B8_mpiq(omObjData* obj) {
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        if (D_8010CA00_mpiq != -1) {
+            func_8005FE90_main(D_8010CA00_mpiq);
+        }
+    } else if (D_8010CA00_mpiq != -1) {
+        func_8005FFA8_main(D_8010CA00_mpiq);
+    }
+}
+
+void func_8010C624_mpiq(void) {
+    fontcolor = 0xF;
+    sprintf(D_800D5218_main, "MOTION ERROR! WINNER=%d\n", D_8010C9D8_mpiq);
+    print8(0x20, 0xB0, D_800D5218_main);
+}
