@@ -458,6 +458,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory4/4C47E0.c.o build/src/overlays/msto
 W2DC_BLANKSTRIP += build/src/overlays/ovl_13_log_jam/1A3D80.c.o
 # m2 gr: ovl_42 2FC270 likewise (func_80106C58/func_801073AC: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_42_game_guys_roulette/2FC270.c.o
+# m3 es: Eye Sore ovl_30 270EF0 likewise (func_80106510: no nop before the mul.s after sindf, none after a branch-likely)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_30_eye_sore/270EF0.c.o
 # m2 lo: Locked Out 1D4970 likewise (func_80106FBC_locked_out: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_1A_locked_out/1D4970.c.o
 # m2 cs: chip shot 1D9550 likewise (func_80106B84: no nop before the mul.s after cosdf)
@@ -468,6 +470,14 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_3B_winners_wheel/2CF3B0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_3E_dorrie_dip/2DC4D0.c.o
 # m2 ww: Water Whirled 211AB0 likewise (func_80105D64: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_23_water_whirled/211AB0.c.o
+# m3 bt: Bounce 'n' Trounce 1CC730 likewise (func_801068F4_bounce_n_trounce: no nop before the mul.s after sindf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_18_bounce_n_trounce/1CC730.c.o
+# m3 sn: Swing 'n' Swipe 2E6BE0 likewise (func_801072D0/func_8010B920: no nop before the mul.s after cosdf/sindf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_40_swing_n_swipe/2E6BE0.c.o
+# m3 co: Cosmic Coaster (func_8010ABE0: no nop before the mul.s after cosdf/sindf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_10_cosmic_coaster/18ABD0.c.o
+# m3 bk: Baby Bowser Bonkers (float-call nops)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_35_baby_bowser_bonkers/29B1D0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

@@ -430,3 +430,18 @@ D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
 /* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
 D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
 D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
+/* m3 bt: Bounce 'n' Trounce 1CC730 .data halfword inside D_8010AD84 (the intro's ground counter) */
+D_8010AD86_bounce_n_trounce = D_8010AD84_bounce_n_trounce + 0x2;
+D_8010AD8A_bounce_n_trounce = D_8010AD88_bounce_n_trounce + 0x2;
+/* m3 bt: .bss halfword inside D_8010AEB0 (the finish's next step) */
+D_8010AEB2_bounce_n_trounce = D_8010AEB0_bounce_n_trounce + 0x2;
+/* m3 sn: swing_n_swipe/2E6BE0 .data labels inside arrays */
+D_8010BD6C_swing_n_swipe = D_8010BD68_swing_n_swipe + 0x4;
+D_8010BDF0_swing_n_swipe = D_8010BDEC_swing_n_swipe + 0x4;
+D_8010BE5C_swing_n_swipe = D_8010BE58_swing_n_swipe + 0x4;
+D_8010BE60_swing_n_swipe = D_8010BE58_swing_n_swipe + 0x8;
+/* m3 co: cosmic_coaster per-type priority table (s32, read as s16 at +2 by the asm) */
+D_8010BF80_cosmic_coaster = 0x8010BF80;
+/* m3 cu: curtain_call/20BFA0 .data bytes inside D_8010B248 (func_80109AD0 asm) */
+D_8010B249_curtain_call = D_8010B248_curtain_call + 0x1;
+D_8010B24A_curtain_call = D_8010B248_curtain_call + 0x2;
