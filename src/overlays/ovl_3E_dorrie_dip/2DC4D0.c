@@ -33,12 +33,17 @@ typedef struct DrPrize {
     /* 0xB4 */ s32 unkB4[5]; /* the Dorrie carrying it */
 } DrPrize; /* size 0xC8 */
 
-/* omObjData::data of D_8010A234 */
-typedef struct DrUnk234 {
-    /* 0x00 */ char unk00[0x14];
-    /* 0x14 */ s32 unk14; /* flags; 4: hooked */
-    /* 0x18 */ char unk18[8];
-} DrUnk234; /* size 0x20 */
+/* omObjData::data of the dud on the Dorrie with no prize (D_8010A234): model 0 it, 1 its shadow */
+typedef struct DrDud {
+    /* 0x00 */ f32 unk00; /* x */
+    /* 0x04 */ f32 unk04; /* y */
+    /* 0x08 */ f32 unk08; /* z */
+    /* 0x0C */ f32 unk0C; /* falling speed */
+    /* 0x10 */ f32 unk10; /* y rotation */
+    /* 0x14 */ s32 unk14; /* flags; 1: falling on its Dorrie, 2: riding it, 4: hooked */
+    /* 0x18 */ f32 unk18; /* shadow scale */
+    /* 0x1C */ f32 unk1C; /* shadow y */
+} DrDud; /* size 0x20 */
 
 /* An entry of D_800CBB60_main (minigame BD210.c's MgSprModel) */
 typedef struct DrSprModel {
@@ -90,7 +95,12 @@ void func_801074F8_dorrie_dip(void);
 void func_80107690_dorrie_dip(void);
 void func_801079D4_dorrie_dip(omObjData* obj);
 void func_80107D58_dorrie_dip(void);
+void func_80107D08_dorrie_dip(void);
+void func_80107EE0_dorrie_dip(omObjData* obj);
+void func_80108128_dorrie_dip(void);
 void func_80108148_dorrie_dip(void);
+void func_80108174_dorrie_dip(void);
+void func_801081D4_dorrie_dip(void);
 void func_801081A8_dorrie_dip(void);
 void func_80108458_dorrie_dip(void);
 void func_80108678_dorrie_dip(void);
@@ -389,7 +399,7 @@ void func_80106668_dorrie_dip(omObjData* obj) {
     DrHook* work = obj->data;
     DrRing* ring = D_8010A230_dorrie_dip->data;
     DrPrize* prize = D_8010A23C_dorrie_dip->data;
-    DrUnk234* w234 = D_8010A234_dorrie_dip->data;
+    DrDud* w234 = D_8010A234_dorrie_dip->data;
     s32 found;
     s32 i;
     f32 frame;
@@ -720,19 +730,104 @@ void func_801079D4_dorrie_dip(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107D08_dorrie_dip);
+/* Drop every prize from the sky. */
+void func_80107D08_dorrie_dip(void) {
+    DrPrize* work = D_8010A23C_dorrie_dip->data;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107D58_dorrie_dip);
+    for (i = 0; i < 5; i++) {
+        work->unkA0[i] |= 2;
+        work->unk3C[i] = 0.0f;
+        work->unk14[i] = 1500.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80107EE0_dorrie_dip);
+/* The dud on the Dorrie with no prize. */
+void func_80107D58_dorrie_dip(void) {
+    omObjData* obj;
+    DrDud* work;
+    DrRing* ring;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108128_dorrie_dip);
+    obj = omAddObj(0xFE, 2, 3, -1, func_80107EE0_dorrie_dip);
+    obj->data = HuMemAllocTag(sizeof(DrDud), 0x7918);
+    D_8010A234_dorrie_dip = obj;
+    work = obj->data;
+    ring = D_8010A230_dorrie_dip->data;
+    obj->model[0] = func_8000B108_main(0xA00EE, 0x4B9);
+    obj->model[1] = func_8000B108_main(9, 0x4A9);
+    func_8000B460_main(obj, 0, 0xA00EF);
+    func_8000B460_main(obj, 1, 0xA00F6);
+    func_8000B460_main(obj, 2, 0xA00F1);
+    func_8001C814_main(obj->model[0], 2, 2);
+    work->unk00 = sindf(ring->unk18[D_8010A200_dorrie_dip]) * 450.0f;
+    work->unk04 = 1500.0f;
+    work->unk08 = cosdf(ring->unk18[D_8010A200_dorrie_dip]) * 450.0f;
+    work->unk1C = 30.0f;
+    work->unk10 = 0.0f;
+    work->unk14 = 0;
+    omSetTra(obj, work->unk00, work->unk04, work->unk08);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108148_dorrie_dip);
+void func_80107EE0_dorrie_dip(omObjData* obj) {
+    DrDud* work = obj->data;
+    DrRing* ring = D_8010A230_dorrie_dip->data;
+    DrHook* hook = D_8010A238_dorrie_dip->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_80108174_dorrie_dip);
+    omSetTra(obj, work->unk00, work->unk04, work->unk08);
+    omSetRot(obj, 0.0f, work->unk10, 0.0f);
+    Hu3DModelPosSet(obj->model[1], work->unk00, work->unk1C, work->unk08);
+    if (work->unk14 & 4) {
+        work->unk18 = 1.0f;
+    } else {
+        work->unk18 = (1440.0f - work->unk04) / 1440.0f;
+    }
+    Hu3DModelScaleSet(obj->model[1], work->unk18, 1.0f, work->unk18);
+    if (work->unk14 & 2) {
+        work->unk00 = sindf(ring->unk18[D_8010A200_dorrie_dip]) * 450.0f;
+        work->unk04 = 50.0f;
+        work->unk08 = cosdf(ring->unk18[D_8010A200_dorrie_dip]) * 450.0f;
+        work->unk10 = ring->unk18[D_8010A200_dorrie_dip];
+    }
+    if (work->unk14 & 1) {
+        work->unk04 += work->unk0C;
+        work->unk0C -= 3.0f;
+        work->unk10 = ring->unk18[D_8010A200_dorrie_dip];
+        if (work->unk04 <= 60.0f) {
+            work->unk04 = 60.0f;
+            work->unk14 = (work->unk14 & ~1) | 2;
+        }
+    }
+    if (work->unk14 & 4) {
+        work->unk00 = hook->unk04.x;
+        work->unk04 = hook->unk04.y + 60.0f;
+        work->unk08 = hook->unk04.z;
+        work->unk1C = hook->unk04.y + 30.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081A8_dorrie_dip);
+/* Drop the dud from the sky. */
+void func_80108128_dorrie_dip(void) {
+    DrDud* work = D_8010A234_dorrie_dip->data;
+
+    work->unk14 |= 1;
+    work->unk0C = 0.0f;
+}
+
+void func_80108148_dorrie_dip(void) {
+    omAddPrcObj(func_80108174_dorrie_dip, 0x50, 0, 0);
+}
+
+/* Process: drop the prizes, then the dud 30 frames later. */
+void func_80108174_dorrie_dip(void) {
+    func_80107D08_dorrie_dip();
+    HuPrcSleep(30);
+    func_80108128_dorrie_dip();
+    omDelPrcObj(NULL);
+}
+
+void func_801081A8_dorrie_dip(void) {
+    omAddPrcObj(func_801081D4_dorrie_dip, 0x50, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3E_dorrie_dip/2DC4D0", func_801081D4_dorrie_dip);
 
