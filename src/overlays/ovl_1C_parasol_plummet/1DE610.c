@@ -53,6 +53,17 @@ typedef struct PaTimer {
     /* 0x0E */ char unk0E[6];
 } PaTimer; // Size 0x14
 
+/* omObjData::data of a rising bubble (func_801086F0_parasol_plummet, 0x1C) */
+typedef struct PaBubble {
+    /* 0x00 */ f32 unk00; /* screen position */
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08; /* rise speed */
+    /* 0x0C */ f32 unk0C; /* scale */
+    /* 0x10 */ f32 unk10; /* scale wobble */
+    /* 0x14 */ f32 unk14; /* wobble phase */
+    /* 0x18 */ s32 unk18; /* sprite slot */
+} PaBubble; // Size 0x1C
+
 /* omObjData::data of an item (D_8010AB70_parasol_plummet) */
 typedef struct PaItem {
     /* 0x00 */ s32 unk00;
@@ -124,6 +135,8 @@ void func_80108178_parasol_plummet(omObjData* obj);
 void func_801082CC_parasol_plummet(omObjData* obj);
 void func_801083F8_parasol_plummet(void);
 void func_8010856C_parasol_plummet(void);
+void func_801086F0_parasol_plummet(s32 arg0);
+void func_80108878_parasol_plummet(omObjData* obj);
 void func_801089E0_parasol_plummet(omObjData* obj);
 void func_80108F6C_parasol_plummet(void);
 void func_80109604_parasol_plummet(void);
@@ -142,6 +155,9 @@ extern f32 D_8010AC50_parasol_plummet[4]; /* lanes taken */
 extern s16 D_8010AC64_parasol_plummet;
 extern f32 D_8010AC68_parasol_plummet; /* time */
 extern omObjData* D_8010AC6C_parasol_plummet; /* timer */
+extern s16 D_8010ACF0_parasol_plummet[5]; /* bubble sprites */
+extern s16 D_8010ACFA_parasol_plummet; /* bubble sprite file */
+extern u8 D_8010ACFC_parasol_plummet[5]; /* bubble slots in use */
 extern u8 D_8010AC66_parasol_plummet; /* minigame state */
 
 D_80111B50_vine_with_me_Struct D_8010A8A0_parasol_plummet = {
@@ -1146,15 +1162,127 @@ void func_80108178_parasol_plummet(omObjData* obj) {
     obj->func = func_801082CC_parasol_plummet;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801082CC_parasol_plummet);
+void func_801082CC_parasol_plummet(omObjData* obj) {
+    PaTimer* t = obj->data;
+    s32 i;
+    s32 y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801083F8_parasol_plummet);
+    for (i = 0; i < 2; i++) {
+        y = t->unk00[i];
+        func_8000BBD4_main(t->unk0A[i], 0xA0, y);
+        t->unk00[i] += D_8010AC68_parasol_plummet;
+        if (D_8010AC68_parasol_plummet < 0.0f && t->unk00[i] <= -120.0f) {
+            t->unk00[i] += 478.0f;
+        }
+        if (D_8010AC68_parasol_plummet > 0.0f && t->unk00[i] >= 360.0f) {
+            t->unk00[i] -= 478.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010856C_parasol_plummet);
+void func_801083F8_parasol_plummet(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801086F0_parasol_plummet);
+    D_8010AC68_parasol_plummet = 0.0f;
+    HuPrcSleep(0x5A);
+    for (i = 0; i < 0xB; i++) {
+        D_8010AC68_parasol_plummet = (i * -5.0f) / 10.0f;
+        HuPrcVSleep();
+    }
+    while (D_8010AC66_parasol_plummet != 3) {
+        HuPrcVSleep();
+    }
+    for (i = 0; i < 0x1F; i++) {
+        D_8010AC68_parasol_plummet = ((30.0f - i) * -5.0f) / 30.0f;
+        HuPrcVSleep();
+    }
+    HuPrcSleep(0xF);
+    D_8010AC68_parasol_plummet = -2.5f;
+    HuPrcSleep(0x32);
+    D_8010AC68_parasol_plummet = 0.0f;
+    HuPrcSleep(0x1E);
+    for (i = 0; i < 0xB; i++) {
+        D_8010AC68_parasol_plummet = (i * 5.0f) / 10.0f;
+        HuPrcVSleep();
+    }
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80108878_parasol_plummet);
+void func_8010856C_parasol_plummet(void) {
+    s32 i;
+
+    D_8010ACFA_parasol_plummet = func_8000B838_main(0x210028);
+    for (i = 0; i < 5; i++) {
+        D_8010ACFC_parasol_plummet[i] = 0;
+        D_8010ACF0_parasol_plummet[i] = InitEspriteSlot(D_8010ACFA_parasol_plummet, 0, 1);
+        func_8000BC48_main(D_8010ACF0_parasol_plummet[i], 0x4008);
+        func_8000BB94_main(D_8010ACF0_parasol_plummet[i]);
+        func_8000BE5C_main(D_8010ACF0_parasol_plummet[i], 1.0f, 1.0f);
+        func_8000BBD4_main(D_8010ACF0_parasol_plummet[i], 0xA0, 0x12C);
+        func_8000BCC8_main(D_8010ACF0_parasol_plummet[i], 0x32);
+    }
+    while (TRUE) {
+        if ((u8)(rand8() % 50) == 0 && D_8010AC68_parasol_plummet == -5.0f) {
+            for (i = 0; i < 5; i++) {
+                if (D_8010ACFC_parasol_plummet[i] == 0) {
+                    func_801086F0_parasol_plummet(i);
+                    break;
+                }
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+
+void func_801086F0_parasol_plummet(s32 arg0) {
+    omObjData* obj;
+    PaBubble* b;
+    s32 x;
+    s32 y;
+
+    obj = omAddObj(0xA, 0, 0, -1, func_80108878_parasol_plummet);
+    b = HuMemAllocTag(sizeof(PaBubble), 0x7918);
+    obj->data = b;
+    rand8();
+    b->unk08 = -6.0f;
+    b->unk00 = ((rand8() * 2) % 240) + 0x28;
+    b->unk04 = 280.0f;
+    b->unk18 = arg0;
+    b->unk14 = 0.0f;
+    rand8();
+    b->unk0C = 1.0f;
+    b->unk10 = ((rand8() & 1) + 1) / 10.0f;
+    x = b->unk00;
+    y = b->unk04;
+    func_8000BBD4_main(D_8010ACF0_parasol_plummet[b->unk18], x, y);
+    func_8000BB54_main(D_8010ACF0_parasol_plummet[arg0]);
+    D_8010ACFC_parasol_plummet[arg0] = 1;
+}
+
+void func_80108878_parasol_plummet(omObjData* obj) {
+    PaBubble* b = obj->data;
+    f32 scale;
+    s32 x;
+    s32 y;
+
+    x = b->unk00;
+    y = b->unk04;
+    func_8000BBD4_main(D_8010ACF0_parasol_plummet[b->unk18], x, y);
+    b->unk04 = (-5.0f - D_8010AC68_parasol_plummet) + b->unk08 + b->unk04;
+    b->unk14 += 10.0f;
+    if (b->unk14 >= 360.0f) {
+        b->unk14 -= 360.0f;
+    }
+    scale = sindf(b->unk14) * b->unk10 + b->unk0C;
+    func_8000BE5C_main(D_8010ACF0_parasol_plummet[b->unk18], scale, scale);
+    if (b->unk04 <= -40.0f) {
+        func_8000BB94_main(D_8010ACF0_parasol_plummet[b->unk18]);
+        D_8010ACFC_parasol_plummet[b->unk18] = 0;
+        omDelObj(obj);
+    }
+}
 
 __asm__(".section .rodata"); // TEMP: rodata of asm functions
 const s32 D_8010AAE0_parasol_plummet[] = { 0, 1, 1 };
