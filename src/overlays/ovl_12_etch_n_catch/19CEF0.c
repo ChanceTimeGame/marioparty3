@@ -81,7 +81,9 @@ typedef struct EtNode {
     /* 0x01 */ char unk01[3];
     /* 0x04 */ struct EtNode* prev;
     /* 0x08 */ struct EtNode* next;
-    /* 0x0C */ char unk0C[0xC];
+    /* 0x0C */ struct EtNode* unk0C; /* previous node of the trail */
+    /* 0x10 */ struct EtNode* unk10; /* next node of the trail */
+    /* 0x14 */ char unk14[4];
     /* 0x18 */ s16 unk18; /* cell x */
     /* 0x1A */ s16 unk1A; /* cell y */
     /* 0x1C */ u8 unk1C; /* player */
@@ -820,7 +822,118 @@ void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010914C_etch_n_catch);
 #endif
 
+/* Removes trail node `node` (drawn with value v) from the grid: unlinks it from its trail, then re-derives the
+   marks of its 8 neighbours (v * 2 next to a v cell, v * 4 diagonal to one, else 0). */
+#ifdef NON_MATCHING
+void func_80109370_etch_n_catch(EtNode* node, u8 v) {
+    u8* cell;
+    u8* p;
+    u8* a;
+    u8* b;
+    u8* c;
+    u8* d;
+    u8* e;
+    u8* f;
+    u8* g;
+    u8* h;
+    s32 i;
+    s16 nx;
+    s16 ny;
+
+    cell = func_801090E0_etch_n_catch(node->unk18, node->unk1A);
+    if (node->unk0C == NULL && node->unk10 == NULL) {
+        *cell = 0;
+    }
+    if (node->unk10 != NULL && node->unk0C != NULL) {
+        node->unk10->unk0C = node->unk0C;
+        node->unk0C->unk10 = node->unk10;
+    } else if (node->unk10 != NULL && node->unk0C == NULL) {
+        node->unk10->unk0C = NULL;
+    } else if (node->unk0C != NULL && node->unk10 == NULL) {
+        node->unk0C->unk10 = NULL;
+    }
+    for (i = 0; i < 8; i++) {
+        switch (i) {
+            case 0:
+                nx = node->unk18;
+                ny = node->unk1A - 1;
+                break;
+            case 1:
+                nx = node->unk18;
+                ny = node->unk1A + 1;
+                break;
+            case 2:
+                ny = node->unk1A;
+                nx = node->unk18 - 1;
+                break;
+            case 3:
+                ny = node->unk1A;
+                nx = node->unk18 + 1;
+                break;
+            case 4:
+                nx = node->unk18 - 1;
+                ny = node->unk1A - 1;
+                break;
+            case 5:
+                nx = node->unk18 + 1;
+                ny = node->unk1A + 1;
+                break;
+            case 6:
+                nx = node->unk18 - 1;
+                ny = node->unk1A + 1;
+                break;
+            default:
+                nx = node->unk18 + 1;
+                ny = node->unk1A - 1;
+                break;
+        }
+        p = func_801090E0_etch_n_catch(nx, ny);
+        if (node->unk10 != NULL || node->unk0C != NULL) {
+            switch (i) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    if (*p != v) {
+                        *p = v * 2;
+                    }
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    if (*p != v && *p != v * 2) {
+                        *p = v * 4;
+                    }
+                    break;
+            }
+        }
+        a = func_801090E0_etch_n_catch(nx, ny + 1);
+        b = func_801090E0_etch_n_catch(nx, ny - 1);
+        c = func_801090E0_etch_n_catch(nx - 1, ny);
+        d = func_801090E0_etch_n_catch(nx + 1, ny);
+        e = func_801090E0_etch_n_catch(nx - 1, ny - 1);
+        f = func_801090E0_etch_n_catch(nx + 1, ny + 1);
+        g = func_801090E0_etch_n_catch(nx - 1, ny + 1);
+        h = func_801090E0_etch_n_catch(nx + 1, ny - 1);
+        if (*a != v && *b != v && *c != v && *d != v && *e != v && *f != v && *g != v && *h != v) {
+            *p = 0;
+        } else if (*a == v || *b == v || *c == v || *d == v) {
+            if (*p != v) {
+                *p = v * 2;
+            }
+        } else if (*e == v || *f == v || *g == v || *h == v) {
+            if (*p != v && *p != v * 2) {
+                *p = v * 4;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
+#endif
+
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 
 /* A trail node's puff: takes one of the player's three puff models (every 9th node), then grows, rises and fades. */
 void func_801097B4_etch_n_catch(EtNode* node) {
@@ -947,8 +1060,6 @@ void func_80109A54_etch_n_catch(omObjData* obj) {
     obj->func = func_80109EB8_etch_n_catch;
     D_8010C6A0_etch_n_catch++;
 }
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109EB8_etch_n_catch);
 
