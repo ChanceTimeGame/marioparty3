@@ -136,6 +136,9 @@ extern s32 D_8010D3D0_river_raiders[]; /* portrait sprite per character */
 extern s32 D_800A178C_main[][6];
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 extern s16 D_80110DE2_river_raiders; /* the race timer */
+extern s16 D_8010D3B0_river_raiders; /* coin sound */
+extern s16 D_8010D3B2_river_raiders; /* coin bag sound */
+extern s16 D_8010D3B4_river_raiders; /* whirlpool sound */
 extern s16 D_8010D3B6_river_raiders; /* the engine sound id */
 extern f32 D_8010D9D0_river_raiders[]; /* [0..2] the team-1 rafts' lean */
 extern f32 D_8010D9DC_river_raiders[]; /* [0] paddle yaw, [1] = D_8010D9E0_river_raiders[0] */
@@ -1626,7 +1629,315 @@ void func_8010ABA0_river_raiders(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010ABA0_river_raiders);
 #endif
 
+#ifdef NON_MATCHING
+/* A released river object (work[1]: 0 a coin, 1 a coin bag, 2 a whirlpool) moving downstream: coins and bags
+ * steer around the objects ahead of them and go faster beside bags (10) and whirlpools (13); a raft touching one
+ * collects it (team 0 D_80110D84, team 1 D_80110DBD: 1 or 5 coins); a whirlpool stuns a raft (unk06). */
+void func_8010ACD8_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DF18_river_raiders[obj->work[0]];
+    RrEnt *raft = &D_8010DF18_river_raiders[-1];
+    omObjData *lead = raft->obj;
+    RrEnt *ents[4];
+    omObjData *objs[4];
+    RrEnt *other;
+    omObjData *tgt;
+    f32 z;
+    f32 speed;
+    s16 fx;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        ents[i] = &D_8010DD08_river_raiders[i];
+        objs[i] = ents[i]->obj;
+    }
+    switch (obj->work[1]) {
+        case 0:
+            z = obj->trans.z + 7.0f;
+            speed = 7.0f;
+            for (i = 0; i < 30; i++) {
+                if (obj->work[0] != i) {
+                    other = &D_8010DF18_river_raiders[i];
+                    tgt = other->obj;
+                    ent->unk0A = 0;
+                    if (i < 20 && other->unk04 == 1 && tgt->trans.x + 50.0f >= obj->trans.x - 50.0f &&
+                        tgt->trans.x - 50.0f <= obj->trans.x + 50.0f && tgt->trans.z + 50.0f >= z - 50.0f &&
+                        tgt->trans.z - 50.0f <= z + 50.0f) {
+                        ent->unk0A = 1;
+                        if (ent->unk06 == 0) {
+                            if (obj->trans.x <= tgt->trans.x) {
+                                ent->unk08 = 1;
+                            } else {
+                                ent->unk08 = 2;
+                            }
+                            ent->unk06 = 1;
+                        }
+                        switch (ent->unk08) {
+                            case 1:
+                                obj->trans.x -= 5.0f;
+                                if (obj->trans.x - 50.0f <= -580.0f) {
+                                    obj->trans.x += 5.0f;
+                                    ent->unk08 = 2;
+                                }
+                                break;
+                            case 2:
+                                obj->trans.x += 5.0f;
+                                if (obj->trans.x + 50.0f >= 580.0f) {
+                                    obj->trans.x -= 5.0f;
+                                    ent->unk08 = 1;
+                                }
+                                break;
+                        }
+                    }
+                    if ((u16)(i - 20) < 4 && other->unk04 == 1 && tgt->trans.x + 40.0f >= obj->trans.x - 50.0f &&
+                        tgt->trans.x - 40.0f <= obj->trans.x + 50.0f && tgt->trans.z + 40.0f >= z - 50.0f &&
+                        tgt->trans.z - 40.0f <= z + 50.0f) {
+                        ent->unk0A = 1;
+                        if (ent->unk06 == 0) {
+                            if (obj->trans.x <= tgt->trans.x) {
+                                ent->unk08 = 1;
+                            } else {
+                                ent->unk08 = 2;
+                            }
+                            ent->unk06 = 1;
+                        }
+                        switch (ent->unk08) {
+                            case 1:
+                                obj->trans.x -= 5.0f;
+                                if (obj->trans.x - 50.0f <= -580.0f) {
+                                    obj->trans.x += 5.0f;
+                                    ent->unk08 = 2;
+                                }
+                                break;
+                            case 2:
+                                obj->trans.x += 5.0f;
+                                if (obj->trans.x + 50.0f >= 580.0f) {
+                                    obj->trans.x -= 5.0f;
+                                    ent->unk08 = 1;
+                                }
+                                break;
+                        }
+                        speed = 10.0f;
+                    }
+                    if (i >= 24 && other->unk04 == 1 && tgt->trans.x + 150.0f >= obj->trans.x - 50.0f &&
+                        tgt->trans.x - 150.0f <= obj->trans.x + 50.0f && tgt->trans.z + 60.0f >= z - 50.0f &&
+                        tgt->trans.z - 60.0f <= z + 50.0f) {
+                        ent->unk0A = 1;
+                        if (ent->unk06 == 0) {
+                            if (obj->trans.x <= tgt->trans.x) {
+                                ent->unk08 = 1;
+                            } else {
+                                ent->unk08 = 2;
+                            }
+                            ent->unk06 = 1;
+                        }
+                        switch (ent->unk08) {
+                            case 1:
+                                obj->trans.x -= 5.0f;
+                                if (obj->trans.x - 50.0f <= -580.0f) {
+                                    obj->trans.x += 5.0f;
+                                    ent->unk08 = 2;
+                                }
+                                break;
+                            case 2:
+                                obj->trans.x += 5.0f;
+                                if (obj->trans.x + 50.0f >= 580.0f) {
+                                    obj->trans.x -= 5.0f;
+                                    ent->unk08 = 1;
+                                }
+                                break;
+                        }
+                        speed = 13.0f;
+                    }
+                }
+            }
+            if (ent->unk0A == 0) {
+                ent->unk06 = 0;
+            }
+            obj->trans.z += speed;
+            if ((u8)D_80110D90_river_raiders == 2) {
+                if (raft->unk06 == 0 && lead->trans.x + 60.0f >= obj->trans.x - 50.0f &&
+                    lead->trans.x - 60.0f <= obj->trans.x + 50.0f && lead->trans.z + 60.0f >= obj->trans.z - 50.0f &&
+                    lead->trans.z - 60.0f <= obj->trans.z + 50.0f) {
+                    if (ent->unk04 == 1) {
+                        D_80110D84_river_raiders += 1;
+                        fx = func_8000D550_main(D_80110D86_river_raiders, 0.0f, 0.0f, 0.0f);
+                        func_8004AC98_main(D_8010D3B0_river_raiders, lead->work[0]);
+                        Hu3DModelPosSet(fx, obj->trans.x, obj->trans.y, obj->trans.z);
+                        Hu3DModelScaleSet(fx, 3.0f, 3.0f, 3.0f);
+                    }
+                    ent->unk04 = 0;
+                    func_8001C258_main(obj->model[0], 4, 4);
+                }
+                for (i = 0; i < 3; i++) {
+                    if (ents[i]->unk06 == 0) {
+                        tgt = objs[i];
+                        if (tgt->trans.x + 65.0f >= obj->trans.x - 50.0f && tgt->trans.x - 65.0f <= obj->trans.x + 50.0f &&
+                            tgt->trans.z + 55.0f >= obj->trans.z - 50.0f && tgt->trans.z - 55.0f <= obj->trans.z + 50.0f) {
+                            if (ent->unk04 == 1) {
+                                D_80110DBD_river_raiders += 1;
+                                fx = func_8000D550_main(D_80110D86_river_raiders, 0.0f, 0.0f, 0.0f);
+                                func_8004AC98_main(D_8010D3B0_river_raiders, objs[i]->work[0]);
+                                Hu3DModelPosSet(fx, obj->trans.x, obj->trans.y, obj->trans.z);
+                                Hu3DModelScaleSet(fx, 3.0f, 3.0f, 3.0f);
+                            }
+                            ent->unk04 = 0;
+                            func_8001C258_main(obj->model[0], 4, 4);
+                        }
+                    }
+                }
+            }
+            break;
+        case 1:
+            z = obj->trans.z + 10.0f;
+            speed = 10.0f;
+            for (i = 0; i < 30; i++) {
+                if (obj->work[0] != i) {
+                    other = &D_8010DF18_river_raiders[i];
+                    tgt = other->obj;
+                    ent->unk0A = 0;
+                    if ((u16)(i - 20) < 4 && other->unk04 == 1 && tgt->trans.x + 40.0f >= obj->trans.x - 40.0f &&
+                        tgt->trans.x - 40.0f <= obj->trans.x + 40.0f && tgt->trans.z + 40.0f >= z - 40.0f &&
+                        tgt->trans.z - 40.0f <= z + 40.0f) {
+                        ent->unk0A = 1;
+                        if (ent->unk06 == 0) {
+                            if (obj->trans.x <= tgt->trans.x) {
+                                ent->unk08 = 1;
+                            } else {
+                                ent->unk08 = 2;
+                            }
+                            ent->unk06 = 1;
+                        }
+                        switch (ent->unk08) {
+                            case 1:
+                                obj->trans.x -= 5.0f;
+                                if (obj->trans.x - 40.0f <= -580.0f) {
+                                    obj->trans.x += 5.0f;
+                                    ent->unk08 = 2;
+                                }
+                                break;
+                            case 2:
+                                obj->trans.x += 5.0f;
+                                if (obj->trans.x + 40.0f >= 580.0f) {
+                                    obj->trans.x -= 5.0f;
+                                    ent->unk08 = 1;
+                                }
+                                break;
+                        }
+                    }
+                    if (i >= 24 && other->unk04 == 1 && tgt->trans.x + 150.0f >= obj->trans.x - 40.0f &&
+                        tgt->trans.x - 150.0f <= obj->trans.x + 40.0f && tgt->trans.z + 60.0f >= z - 40.0f &&
+                        tgt->trans.z - 60.0f <= z + 40.0f) {
+                        ent->unk0A = 1;
+                        if (ent->unk06 == 0) {
+                            if (obj->trans.x <= tgt->trans.x) {
+                                ent->unk08 = 1;
+                            } else {
+                                ent->unk08 = 2;
+                            }
+                            ent->unk06 = 1;
+                        }
+                        switch (ent->unk08) {
+                            case 1:
+                                obj->trans.x -= 5.0f;
+                                if (obj->trans.x - 40.0f <= -580.0f) {
+                                    obj->trans.x += 5.0f;
+                                    ent->unk08 = 2;
+                                }
+                                break;
+                            case 2:
+                                obj->trans.x += 5.0f;
+                                if (obj->trans.x + 40.0f >= 580.0f) {
+                                    obj->trans.x -= 5.0f;
+                                    ent->unk08 = 1;
+                                }
+                                break;
+                        }
+                        speed = 13.0f;
+                    }
+                }
+            }
+            if (ent->unk0A == 0) {
+                ent->unk06 = 0;
+            }
+            obj->trans.z += speed;
+            if ((u8)D_80110D90_river_raiders == 2) {
+                if (raft->unk06 == 0 && lead->trans.x + 60.0f >= obj->trans.x - 40.0f &&
+                    lead->trans.x - 60.0f <= obj->trans.x + 40.0f && lead->trans.z + 60.0f >= obj->trans.z - 40.0f &&
+                    lead->trans.z - 60.0f <= obj->trans.z + 40.0f) {
+                    if (ent->unk04 == 1) {
+                        D_80110D84_river_raiders += 5;
+                        fx = func_8000D550_main(D_80110D86_river_raiders, 0.0f, 0.0f, 0.0f);
+                        func_8004AC98_main(D_8010D3B2_river_raiders, lead->work[0]);
+                        Hu3DModelPosSet(fx, obj->trans.x, obj->trans.y, obj->trans.z);
+                        Hu3DModelScaleSet(fx, 3.0f, 3.0f, 3.0f);
+                        if (!(GwPlayer[lead->work[0]].stat & 1)) {
+                            omVibrate(lead->work[0], 2, 3, 10);
+                        }
+                    }
+                    ent->unk04 = 0;
+                    func_8001C258_main(obj->model[0], 4, 4);
+                }
+                for (i = 0; i < 3; i++) {
+                    if (ents[i]->unk06 == 0) {
+                        tgt = objs[i];
+                        if (tgt->trans.x + 65.0f >= obj->trans.x - 40.0f && tgt->trans.x - 65.0f <= obj->trans.x + 40.0f &&
+                            tgt->trans.z + 55.0f >= obj->trans.z - 40.0f && tgt->trans.z - 55.0f <= obj->trans.z + 40.0f) {
+                            if (ent->unk04 == 1) {
+                                D_80110DBD_river_raiders += 5;
+                                fx = func_8000D550_main(D_80110D86_river_raiders, 0.0f, 0.0f, 0.0f);
+                                func_8004AC98_main(D_8010D3B2_river_raiders, objs[i]->work[0]);
+                                Hu3DModelPosSet(fx, obj->trans.x, obj->trans.y, obj->trans.z);
+                                Hu3DModelScaleSet(fx, 3.0f, 3.0f, 3.0f);
+                                    if (!(GwPlayer[objs[i]->work[0]].stat & 1)) {
+                                        omVibrate(objs[i]->work[0], 2, 3, 10);
+                                    }
+                            }
+                            ent->unk04 = 0;
+                            func_8001C258_main(obj->model[0], 4, 4);
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            obj->trans.z += 13.0f;
+            if ((u8)D_80110D90_river_raiders == 2) {
+                if (raft->unk06 == 0 && ent->unk04 == 1 && lead->trans.x + 60.0f >= obj->trans.x - 150.0f &&
+                    lead->trans.x - 60.0f <= obj->trans.x + 150.0f && lead->trans.z + 60.0f >= obj->trans.z - 60.0f &&
+                    lead->trans.z - 60.0f <= obj->trans.z + 60.0f) {
+                    raft->unk06 = 60;
+                    func_8004AC98_main(D_8010D3B4_river_raiders, lead->work[0]);
+                    func_8004ACE0_main(0x286, lead->work[0]);
+                    ent->unk04 = 2;
+                    if (!(GwPlayer[lead->work[0]].stat & 1)) {
+                        omVibrate(lead->work[0], 20, 0, 20);
+                    }
+                }
+                for (i = 0; i < 3; i++) {
+                    if (ents[i]->unk06 == 0 && (ent->unk04 == 1 || ent->unk04 == 2)) {
+                        tgt = objs[i];
+                        if (tgt->trans.x + 65.0f >= obj->trans.x - 150.0f && tgt->trans.x - 65.0f <= obj->trans.x + 150.0f &&
+                            tgt->trans.z + 55.0f >= obj->trans.z - 60.0f && tgt->trans.z - 55.0f <= obj->trans.z + 60.0f) {
+                            ents[i]->unk06 = 30;
+                            func_8004AC98_main(D_8010D3B4_river_raiders, objs[i]->work[0]);
+                            func_8004ACE0_main(0x286, objs[i]->work[0]);
+                            ent->unk04 = 2;
+                            if (!(GwPlayer[objs[i]->work[0]].stat & 1)) {
+                                omVibrate(objs[i]->work[0], 20, 0, 20);
+                            }
+                        }
+                    }
+                }
+                if (ent->unk04 == 2) {
+                    ent->unk04 = 3;
+                }
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010ACD8_river_raiders);
+#endif
 
 /* A river object each frame: object 0 releases rocks (every 29 frames), logs (every 181) and whirlpools (every
  * 125) in turn; a released object drifts toward the rafts (func_8010ACD8_river_raiders) and bobs; whirlpools play
