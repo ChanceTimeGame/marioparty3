@@ -98,14 +98,13 @@ typedef struct PgPlayer {
     /* 0x29 */ u8 chr;
     /* 0x2A */ u8 slot; /* 0 left, 1 right */
     /* 0x2B */ u8 difficulty;
-    /* 0x2C */ u8 unk2C;
+    /* 0x2C */ u8 win;
     /* 0x2D */ s8 cpu;
     /* 0x2E */ u8 unk2E;
     /* 0x2F */ u8 grp; /* cursor sprite group */
     /* 0x30 */ u8 unk30;
     /* 0x31 */ u8 unk31;
-    /* 0x32 */ u8 unk32;
-    /* 0x33 */ u8 unk33;
+    /* 0x32 */ s16 pick; /* chosen picture + 1, 0 none yet */
     /* 0x34 */ s16 cpuWait; /* CPU: frames until its next input */
     /* 0x36 */ u16 cpuBtn; /* CPU: button pressed when cpuWait runs out */
     /* 0x38 */ char unk38[0x1C];
@@ -405,7 +404,169 @@ void func_80106144_crowd_cover(omObjData* obj) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB48_crowd_cover);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80106580_crowd_cover);
+typedef struct CcS16x3 {
+    s16 v[3];
+} CcS16x3;
+extern CcS16x3 D_8010CB48_crowd_cover;
+extern s16 D_8010CF80_crowd_cover; /* picture alpha */
+extern s16 D_8010CF82_crowd_cover; /* music delay */
+extern s16 D_8010C6C0_crowd_cover; /* time left, frames */
+extern s32 D_8010C6D0_crowd_cover; /* step timer */
+extern s32 D_8010C6D4_crowd_cover; /* winner slot, -1 none */
+extern s32 D_8010C6D8_crowd_cover; /* the loser's wrong pick + 1, 0 none */
+
+/* Game flow: intro, countdown, picks, result, wipe out. */
+void func_80106580_crowd_cover(omObjData* obj) {
+    CcS16x3 voices = D_8010CB48_crowd_cover;
+
+    if (HmfPauseF) {
+        HuSprAttrSet(D_8010CFA8_crowd_cover[1], 0, 0x8000);
+        return;
+    }
+    HuSprAttrReset(D_8010CFA8_crowd_cover[1], 0, 0x8000);
+    switch (D_8010CFD8_crowd_cover) {
+        case 0:
+            func_8001AC8C_main(0xC0, func_8010BB4C_crowd_cover, 2);
+            D_8010CF80_crowd_cover = 0;
+            func_80055458_main(D_8010CFA8_crowd_cover[1], 0, 0);
+            GMesCreate(6);
+            D_8010C6C0_crowd_cover = 900;
+            D_8010CFD8_crowd_cover++;
+            HuAudFXPlay(voices.v[D_8010D860_crowd_cover]);
+            D_8010CF82_crowd_cover = 45;
+        case 1:
+            if (--D_8010CF82_crowd_cover == 0) {
+                HuAudSeqPlay(0x31);
+            }
+            if (GMesStatGet() == 0) {
+                D_8010CFD8_crowd_cover++;
+                GMesCreate(0x1A, (D_8010C6C0_crowd_cover + 29) / 30, 0xA0, 0x20);
+                HuAudFXPlay(0xE);
+            }
+            break;
+        case 2:
+            if (D_8010CF80_crowd_cover < 0x100) {
+                D_8010CF80_crowd_cover += 8;
+                func_80055458_main(D_8010CFA8_crowd_cover[1], 0, D_8010CF80_crowd_cover);
+            } else {
+                func_80055458_main(D_8010CFA8_crowd_cover[1], 0, 0x100);
+            }
+            D_8010C6C0_crowd_cover--;
+            func_8003F578_main((D_8010C6C0_crowd_cover + 29) / 30);
+            if (D_8010C6C0_crowd_cover == 0) {
+                D_8010CFD8_crowd_cover = 3;
+            }
+            if (PG_PLAYER(0)->pick | PG_PLAYER(1)->pick) {
+                D_8010CFD8_crowd_cover = 3;
+                if (PG_PLAYER(0)->pick && PG_PLAYER(1)->pick) {
+                    PG_PLAYER(func_80108F1C_crowd_cover() & 1)->pick = 0;
+                }
+            }
+            break;
+        case 3:
+            if (PG_PLAYER(0)->pick) {
+                if (PG_PLAYER(0)->pick == D_8010D862_crowd_cover + 1) {
+                    D_8010C6D4_crowd_cover = 0;
+                    PG_PLAYER(0)->win = 1;
+                    PG_PLAYER(1)->win = 0;
+                } else {
+                    D_8010C6D4_crowd_cover = 1;
+                    D_8010C6D8_crowd_cover = PG_PLAYER(0)->pick;
+                    PG_PLAYER(0)->win = 0;
+                    PG_PLAYER(1)->win = 1;
+                }
+                D_8010C6D0_crowd_cover = 36;
+            } else if (PG_PLAYER(1)->pick) {
+                if (PG_PLAYER(1)->pick == D_8010D862_crowd_cover + 1) {
+                    D_8010C6D4_crowd_cover = 1;
+                    PG_PLAYER(0)->win = 0;
+                    PG_PLAYER(1)->win = 1;
+                } else {
+                    D_8010C6D4_crowd_cover = 0;
+                    D_8010C6D8_crowd_cover = PG_PLAYER(1)->pick;
+                    PG_PLAYER(0)->win = 1;
+                    PG_PLAYER(1)->win = 0;
+                }
+            } else {
+                D_8010C6D4_crowd_cover = -1;
+            }
+            D_8010C6D0_crowd_cover = 15;
+            func_8003F5C0_main();
+            GMesCreate(0x11);
+            HuAudSeqFadeOut(0x78);
+            D_8010CFD8_crowd_cover++;
+            break;
+        case 4:
+            if (D_8010CF80_crowd_cover < 0x100) {
+                D_8010CF80_crowd_cover += 8;
+                func_80055458_main(D_8010CFA8_crowd_cover[1], 0, D_8010CF80_crowd_cover);
+            } else {
+                func_80055458_main(D_8010CFA8_crowd_cover[1], 0, 0x100);
+            }
+            D_8010C6C0_crowd_cover -= 10;
+            if (D_8010C6C0_crowd_cover > 0) {
+                break;
+            }
+            D_8010C6C0_crowd_cover = 0;
+            if (GMesStatGet()) {
+                break;
+            }
+            if (D_8010C6D0_crowd_cover == 15) {
+                HuSprAttrReset(D_8010CFA8_crowd_cover[5], 0, 0x8000);
+                if (D_8010C6D8_crowd_cover == 0) {
+                    HuAudFXPlay(D_8010C6D4_crowd_cover == -1 ? 0x4B6 : 0x4B5);
+                    func_80054904_main(D_8010CFA8_crowd_cover[5], 0, D_8010C6C4_crowd_cover[D_8010D862_crowd_cover][0],
+                                       D_8010C6C4_crowd_cover[D_8010D862_crowd_cover][1]);
+                } else {
+                    HuAudFXPlay(0x4B6);
+                    func_80054FF8_main(D_8010CFA8_crowd_cover[5], 0, 1);
+                    func_80054904_main(D_8010CFA8_crowd_cover[5], 0, D_8010C6C4_crowd_cover[D_8010C6D8_crowd_cover - 1][0],
+                                       D_8010C6C4_crowd_cover[D_8010C6D8_crowd_cover - 1][1]);
+                }
+            }
+            if (--D_8010C6D0_crowd_cover == 0) {
+                if (D_8010C6D4_crowd_cover == -1) {
+                    GMesCreate(0x20);
+                    HuAudSeqPlay(0x6C);
+                } else {
+                    GMesCreate(0x16, PG_PLAYER(D_8010C6D4_crowd_cover)->chr);
+                    HuAudSeqPlay(0x67);
+                }
+                D_8010C6D0_crowd_cover = 15;
+                D_8010CFD8_crowd_cover++;
+            }
+            break;
+        case 5:
+            if (GMesStatGet() == 0) {
+                if (--D_8010C6D0_crowd_cover == 0) {
+                    D_8010CFD8_crowd_cover++;
+                }
+            }
+            break;
+        case 6:
+            if (D_8010C6D0_crowd_cover) {
+                if (--D_8010C6D0_crowd_cover == 0) {
+                    D_8010CFD8_crowd_cover++;
+                }
+            } else {
+                D_8010C6D0_crowd_cover = 16;
+                /* retail reads the low half of the s32 D_8010C6D0 (big-endian) as the fade length */
+                WipeCreateOut(0, ((s16*)&D_8010C6D0_crowd_cover)[1]);
+                HuAudSeqFadeOut(((s16*)&D_8010C6D0_crowd_cover)[1]);
+                func_8004AB0C_main(((s16*)&D_8010C6D0_crowd_cover)[1]);
+            }
+            break;
+        case 7:
+            func_8004A950_main();
+            omOvlReturnEx(1);
+            func_8010C61C_crowd_cover();
+            break;
+    }
+    if (D_800D530C_main == 1 && WipeStatGet() == 0) {
+        D_8010C6D0_crowd_cover = 0;
+        D_8010CFD8_crowd_cover = 6;
+    }
+}
 
 void func_80106CB8_crowd_cover(void) {
     s32 i;
