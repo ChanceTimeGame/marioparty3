@@ -47,14 +47,100 @@ void func_80105CB4_locked_out(f32 (*src)[4], f32 (*dst)[4]);
 void func_801090FC_locked_out(omObjData* obj, MgWork** work, LoPlayer** lp);
 s16 func_80109FF4_locked_out(s16 tex, s16 n);
 
+/* The ground/camera object's data (func_80106134_locked_out); Slot Synch's SsGround. */
+typedef struct LoGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} LoGround; // Size 0xB4
+
+/* A door (D_8010A638_locked_out[3]). */
+typedef struct LoDoor {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ u8 unk0C;
+    /* 0x0D */ u8 model; /* low byte of obj->model[2 + i] */
+    /* 0x0E */ u8 unk0E; /* linked model */
+    /* 0x0F */ u8 unk0F; /* model */
+    /* 0x10 */ u8 unk10;
+    /* 0x11 */ char unk11[3];
+} LoDoor; // Size 0x14
+
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+
+void func_80105B38_locked_out(omObjData* obj);
+void func_80106040_locked_out(void);
+void func_80106134_locked_out(omObjData* obj);
+void func_80106424_locked_out(omObjData* obj);
+void func_801064E0_locked_out(omObjData* obj);
+void func_8010713C_locked_out(void);
+void func_80109110_locked_out(void);
+s32 func_80109D70_locked_out(void);
+
+extern Vec D_8010A110_locked_out[7]; /* positions; the doors use [0], [3], [6] */
+extern u32 D_8010A1E8_locked_out; /* random seed */
+extern D_80111B50_vine_with_me_Struct D_8010A588_locked_out;
+extern LoDoor D_8010A638_locked_out[3];
+extern s16 D_8010A674_locked_out;
+extern s16 D_8010A676_locked_out;
+extern s16 D_8010A678_locked_out;
+extern s16 D_8010A67A_locked_out;
 extern f32 D_8010A680_locked_out[4][4]; /* world to view (D_8010A6B8 is its [3][2]) */
 extern f32 D_8010A6B8_locked_out; /* D_8010A680[3][2] */
 extern f32 D_8010A6C0_locked_out[4][4]; /* view to world */
 extern f32 D_8010A700_locked_out; /* tan(fov / 2) */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801059A0_locked_out);
+void func_801059A0_locked_out(void) {
+    omObjData* obj;
+    u8 cam;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80105B38_locked_out);
+    Hu3DAnimInit(2);
+    func_80021BE0_main(D_800EBEB0_minigame, 0x40);
+    omInitObjMan(0x20, 0);
+    func_8004A208_main();
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutView);
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 45.0f, 80.0f, 8000.0f);
+    func_800E1804_minigame();
+    func_80105B38_locked_out(obj);
+    func_80106040_locked_out();
+    memset(&D_8010A588_locked_out, 0, 0x28);
+    D_8010A588_locked_out.unk01 = 4;
+    func_800E5EA0_minigame(&D_8010A588_locked_out);
+    func_8010713C_locked_out();
+    D_8010A676_locked_out = 9;
+    D_8010A678_locked_out = 0;
+    func_80109110_locked_out();
+    func_8001F38C_main(0, 0, 0);
+    WipeCreateIn(0xFF, 0x10);
+}
+
+void func_80105B38_locked_out(omObjData* obj) {
+    HuCamera* cam;
+    f32 s;
+
+    CZoom = 1400.0f;
+    CRot.x = -40.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 110.0f;
+    Center.z = 0.0f;
+    omOutView(obj);
+    cam = gCameraList;
+    s = sindf(cam->fov[0] / 2.0);
+    D_8010A700_locked_out = s / cosdf(cam->fov[0] / 2.0);
+    guMtxL2F(D_8010A680_locked_out, &cam->mtxs[0].lookAtMtx);
+    guMtxL2F(D_8010A6C0_locked_out, &cam->mtxs[0].lookAtMtx);
+    func_80105CB4_locked_out(D_8010A6C0_locked_out, D_8010A6C0_locked_out);
+}
 
 void func_80105C34_locked_out(f32 (*m)[4], f32 x, f32 y, f32 z, f32* out) {
     out[0] = x * m[0][0] + y * m[1][0] + z * m[2][0];
@@ -120,11 +206,66 @@ void func_80105F74_locked_out(f32 x, f32 y, f32 z, f32* out) {
     out[2] = m[3][2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106040_locked_out);
+void func_80106040_locked_out(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_8010A67A_locked_out = (f32)func_80109D70_locked_out() * (1.0 / 65536.0) * 3.0;
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 8, 0, -1, func_80106134_locked_out);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106424_locked_out);
+    D_8010A674_locked_out = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106134_locked_out);
+void func_80106134_locked_out(omObjData* obj) {
+    LoGround* gw;
+    s32 i;
+    s32 attr;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106424_locked_out);
+    obj->data = gw = HuMemAllocTag(sizeof(LoGround), 31000);
+    memset(gw, 0, sizeof(LoGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.5f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E139C_minigame(obj, 0.0f, -600.0f, -615.0f, 600.0f, 615.0f);
+    attr = 0x2D9;
+    obj->model[0] = func_8000B108_main(0x3B0000, 0x2D9);
+    obj->model[1] = func_8000B108_main(0x3B0003, 0x2D9);
+    obj->model[6] = func_8000B108_main(0x3B0010, 0x2DD);
+    obj->model[7] = func_8000B108_main(0x3B0011, 0x2DD);
+    for (i = 0; i < 3; i++) {
+        D_8010A638_locked_out[i].pos.x = D_8010A110_locked_out[i * 3].x;
+        D_8010A638_locked_out[i].pos.y = D_8010A110_locked_out[i * 3].y;
+        D_8010A638_locked_out[i].pos.z = D_8010A110_locked_out[i * 3].z;
+        D_8010A638_locked_out[i].unk0C = 0;
+        D_8010A638_locked_out[i].unk10 = 1;
+        D_8010A638_locked_out[i].model = obj->model[2 + i] = func_8000B108_main((D_8010A67A_locked_out + 4) | 0x3B0000, attr);
+        Hu3DModelPosSet(obj->model[2 + i], D_8010A638_locked_out[i].pos.x, D_8010A638_locked_out[i].pos.y, D_8010A638_locked_out[i].pos.z);
+        func_8001C92C_main(obj->model[2 + i], 0.0f);
+        D_8010A638_locked_out[i].unk0F = func_8000B0A0_main(7, 0x2DD);
+        func_8001C92C_main(D_8010A638_locked_out[i].unk0F, 0.0f);
+        Hu3DModelRotSet(D_8010A638_locked_out[i].unk0F, 90.0f, 0.0f, 0.0f);
+        D_8010A638_locked_out[i].unk0E = Hu3DModelLink(obj->model[6]);
+        func_8001C258_main(D_8010A638_locked_out[i].unk0E, 4, 4);
+        func_8001C92C_main(D_8010A638_locked_out[i].unk0E, 0.0f);
+    }
+    obj->model[5] = func_8000B108_main(0x3B000A, 0x2B9);
+    obj->func = func_801064E0_locked_out;
+}
+
+void func_80106424_locked_out(omObjData* obj) {
+    LoGround* gw;
+
+    obj->data = gw = HuMemAllocTag(sizeof(LoGround), 31000);
+    memset(gw, 0, sizeof(LoGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.5f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E139C_minigame(obj, 0.0f, -600.0f, -615.0f, 600.0f, 665.0f);
+    obj->func = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_801064E0_locked_out);
 
@@ -165,7 +306,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109858_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109CDC_locked_out);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109D70_locked_out);
+s32 func_80109D70_locked_out(void) {
+    u32 r;
+
+    r = (rand8() + D_8010A1E8_locked_out) * 0x41C64E6D + 0x3039;
+    D_8010A1E8_locked_out = r;
+    return r >> 16;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109DBC_locked_out);
 
