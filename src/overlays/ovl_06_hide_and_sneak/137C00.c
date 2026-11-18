@@ -135,6 +135,7 @@ extern u8 D_8010CE59_hide_and_sneak; /* view: the low byte of D_8010CE58_hide_an
 extern s8 D_8010E170_hide_and_sneak;
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
+extern s8 D_8010E175_hide_and_sneak[4];
 extern s8 D_8010E17C_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
 extern HsBoxLog D_8010E188_hide_and_sneak[4];
@@ -1547,7 +1548,38 @@ void func_8010B0D0_hide_and_sneak(void) {
     omSetStatBit(obj, 0xA0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010B118_hide_and_sneak);
+void func_8010B118_hide_and_sneak(void) {
+    s8 *slot;
+    s8 open[4];
+    s8 i;
+    s8 n;
+    s8 m;
+    s8 j;
+
+    for (i = 0, n = 0, m = 0; i < 4; i++) {
+        if (D_8010E182_hide_and_sneak[i] != 0) {
+            open[n] = i;
+            n++;
+        } else {
+            D_8010E175_hide_and_sneak[3 - m] = i;
+            m++;
+        }
+    }
+    for (i = 0; i < n; i++) {
+        slot = &open[(s8)func_801064F4_hide_and_sneak(n - i)];
+        D_8010E175_hide_and_sneak[i] = *slot;
+        *slot = -1;
+        for (j = 1; j < n - i; j++) {
+            if (open[j - 1] == -1) {
+                open[j - 1] = open[j];
+                open[j] = -1;
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        HS_ENT(HS_ENT_MARK, D_8010E175_hide_and_sneak[i])->obj->trans.x = D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][i];
+    }
+}
 
 void func_8010B33C_hide_and_sneak(omObjData *obj) {
     if (D_8010E180_hide_and_sneak >= 3) {
