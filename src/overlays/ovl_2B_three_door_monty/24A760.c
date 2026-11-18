@@ -226,6 +226,7 @@ extern CcEnt D_8010D260_three_door_monty[50];
 extern CcEnt D_8010D2E4_three_door_monty[4]; /* = D_8010D260_three_door_monty[1]: the players */
 extern CcEnt D_8010D4F4_three_door_monty[3]; /* = D_8010D260_three_door_monty[5] */
 extern CcEnt D_8010D680_three_door_monty;    /* = D_8010D260_three_door_monty[8] */
+extern f32 D_8010D698_three_door_monty;      /* = D_8010D680_three_door_monty.unk18 */
 extern CcEnt D_8010D704_three_door_monty[3]; /* = D_8010D260_three_door_monty[9] */
 extern CcEnt D_8010D890_three_door_monty;    /* = D_8010D260_three_door_monty[12] */
 extern f32 D_8010D8A8_three_door_monty;      /* = D_8010D260_three_door_monty[12].unk18 */
@@ -1316,7 +1317,32 @@ void func_8010916C_three_door_monty(omObjData *obj) {
     obj->scale.x = obj->scale.y = ent->unk18;
 }
 
+#ifdef NON_MATCHING
+void func_80109594_three_door_monty(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x4C000E, 681);
+    D_8010D238_three_door_monty[0] = DataRead(0x4C0000);
+    D_8010D238_three_door_monty[1] = DataRead(0x4C0001);
+    D_8010D238_three_door_monty[2] = DataRead(0x4C0002);
+    D_8010EC3E_three_door_monty = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010D238_three_door_monty[0], 0,
+                                                D_8010CEFC_three_door_monty);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_8001C6A8_main(obj->model[0], 0.0f);
+    func_8001C92C_main(obj->model[0], 0.0f);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 450.0f;
+    obj->trans.z = 0.0f;
+    D_8010D698_three_door_monty = 0.1f;
+    obj->scale.x = D_8010D698_three_door_monty;
+    obj->scale.y = D_8010D698_three_door_monty;
+    obj->scale.z = 1.0f;
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010916C_three_door_monty;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109594_three_door_monty);
+#endif
 
 void func_801096FC_three_door_monty(void) {
     omObjData *obj = omAddObj(200, 5, 10, -1, func_80109594_three_door_monty);
