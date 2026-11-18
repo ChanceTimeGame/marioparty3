@@ -131,13 +131,39 @@ typedef struct CcActor {
     /* 0x40 */ f32 unk40;
 } CcActor; /* size 0x44 */
 
+typedef struct CcU16x3 {
+    u16 v[3];
+} CcU16x3;
+typedef struct CcFrames {
+    s16 v[6][3];
+} CcFrames;
+typedef struct CcS16x3 {
+    s16 v[3];
+} CcS16x3;
+typedef struct CcU8x8 {
+    u8 v[8];
+} CcU8x8;
+typedef struct CcMots {
+    s32 v[3][8];
+} CcMots;
+typedef struct CcS16x4 {
+    s16 v[4];
+} CcS16x4;
+typedef struct CcTbl9 {
+    s16 v[9];
+} CcTbl9;
+typedef struct CcSpots {
+    f32 v[30][3];
+} CcSpots;
+extern const CcTbl9 D_8010CC70_crowd_cover;
+
 #define PG_PLAYER(i) ((PgPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
 
 s32 func_8000B638_main(void);
 void func_80021BE0_main(s32* arg0, s32 n);
 void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]); /* matrix copy */
 void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
-void func_80016B00_main(s16 model, s16 frame, char* name, Matrix4f mtx);
+void func_80016B00_main(s16 model, s16 frame, const char* name, Matrix4f mtx);
 void func_80088800_main(Matrix4f mf, f32 x, f32 y, f32 z); /* guTranslateF */
 void func_80017CD0_main(Matrix4f, f32, f32, f32);
 void func_80017D24_main(Matrix4f, f32, f32, f32);
@@ -152,7 +178,7 @@ void func_800E12EC_minigame(omObjData* obj, f32 arg1);
 void func_800E1328_minigame(omObjData* obj, f32 arg1);
 void func_800E1334_minigame(omObjData* obj, f32 arg1);
 void func_800E1340_minigame(omObjData* obj, f32 arg1);
-void func_8001EF6C_main(s16, s16, char*);
+void func_8001EF6C_main(s16, s16, const char*);
 s32 func_800E4A90_minigame(omObjData* obj);
 void func_800E5798_minigame(omObjData* obj, s32 arg1);
 void func_800E1490_minigame(u16 arg0);
@@ -167,7 +193,7 @@ void func_80105EC4_crowd_cover(Vec* pos, Vec* out);
 void func_80105FD0_crowd_cover(f32 x, f32 y, f32 z, Vec* out);
 void func_801060C4_crowd_cover(void);
 void func_80107298_crowd_cover(omObjData* obj, u32 file0, s32 file1, s32 player, u16 attr);
-void func_801090CC_crowd_cover(s16 model, char* name, s16 frame, Vec* out);
+void func_801090CC_crowd_cover(s16 model, const char* name, s16 frame, Vec* out);
 void func_80109354_crowd_cover(u16 n);
 s16 func_8010980C_crowd_cover(PgBoard* b);
 s16 func_8010A12C_crowd_cover(s16 tex, u32 flags);
@@ -422,21 +448,12 @@ void func_801060C4_crowd_cover(void) {
     D_8010CFD8_crowd_cover = 0;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CAF0_crowd_cover);
+const CcU16x3 D_8010CAF0_crowd_cover = { { 4, 5, 6 } }; /* picture files by variant */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CAF8_crowd_cover);
+const CcU16x3 D_8010CAF8_crowd_cover = { { 7, 8, 9 } }; /* card files by variant */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB00_crowd_cover);
+const CcFrames D_8010CB00_crowd_cover = { { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 1, 0 }, { 2, 0, 1 } } }; /* card orders */
 
-typedef struct CcU16x3 {
-    u16 v[3];
-} CcU16x3;
-typedef struct CcFrames {
-    s16 v[6][3];
-} CcFrames;
-extern CcU16x3 D_8010CAF0_crowd_cover;
-extern CcU16x3 D_8010CAF8_crowd_cover;
-extern CcFrames D_8010CB00_crowd_cover;
 extern s16 D_8010CF88_crowd_cover[16]; /* sprite files */
 extern s16 D_8010CFA8_crowd_cover[16]; /* their sprite groups */
 extern s16 D_8010C6C4_crowd_cover[3][2]; /* screen positions */
@@ -482,12 +499,8 @@ void func_80106144_crowd_cover(omObjData* obj) {
     obj->func = func_80106580_crowd_cover;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB48_crowd_cover);
+const CcS16x3 D_8010CB48_crowd_cover = { { 0x4B8, 0x4B9, 0x4BA } }; /* intro voice by variant */
 
-typedef struct CcS16x3 {
-    s16 v[3];
-} CcS16x3;
-extern CcS16x3 D_8010CB48_crowd_cover;
 extern s16 D_8010CF80_crowd_cover; /* picture alpha */
 extern s16 D_8010CF82_crowd_cover; /* music delay */
 extern s16 D_8010C6C0_crowd_cover; /* time left, frames */
@@ -658,24 +671,18 @@ void func_80106CB8_crowd_cover(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB70_crowd_cover);
+const CcU8x8 D_8010CB70_crowd_cover = { { 0, 1, 2, 3, 4, 5, 6, 7 } };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB78_crowd_cover);
+const CcMots D_8010CB78_crowd_cover = { {
+    { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
+    { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D },
+    { 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0x1B },
+} };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CBD8_crowd_cover);
+const CcS16x3 D_8010CBD8_crowd_cover = { { 14, 13, 12 } }; /* card model files */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CBE0_crowd_cover);
+const char D_8010CBE0_crowd_cover[] = "item_hook";
 
-typedef struct CcU8x8 {
-    u8 v[8];
-} CcU8x8;
-typedef struct CcMots {
-    s32 v[3][8];
-} CcMots;
-extern CcU8x8 D_8010CB70_crowd_cover;
-extern CcMots D_8010CB78_crowd_cover;
-extern CcS16x3 D_8010CBD8_crowd_cover;
-extern char D_8010CBE0_crowd_cover[]; /* "item_hook" */
 extern u8 D_8010C6E4_crowd_cover; /* next slot */
 extern s16 D_8010C6EC_crowd_cover[][3]; /* start positions */
 extern f32 D_8010C704_crowd_cover[]; /* facing */
@@ -810,18 +817,12 @@ void func_80107298_crowd_cover(omObjData* obj, u32 file0, s32 file1, s32 player,
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CBF8_crowd_cover);
+const CcS16x4 D_8010CBF8_crowd_cover = { { 450, 240, 150, 90 } }; /* CPU wait by difficulty */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC00_crowd_cover);
+const CcS16x4 D_8010CC00_crowd_cover = { { 180, 150, 90, 60 } }; /* unused */
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC08_crowd_cover);
+const CcU16x3 D_8010CC08_crowd_cover = { { 0x8000, 0x4000, 0x2000 } }; /* card buttons */
 
-typedef struct CcS16x4 {
-    s16 v[4];
-} CcS16x4;
-extern CcS16x4 D_8010CBF8_crowd_cover;
-extern CcS16x4 D_8010CC00_crowd_cover;
-extern CcU16x3 D_8010CC08_crowd_cover;
 
 #ifdef NON_MATCHING
 /* Player object: CPU decision, picking a card (Z/B/A), the flip and the result motion. */
@@ -957,10 +958,6 @@ void func_80107554_crowd_cover(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107554_crowd_cover);
 #endif
 
-typedef struct CcTbl9 {
-    s16 v[9];
-} CcTbl9;
-extern CcTbl9 D_8010CC70_crowd_cover;
 
 #ifdef NON_MATCHING
 /* CPU input: the button held in cpuBtn, released once cpuWait counts down to 0. */
@@ -1008,17 +1005,43 @@ void func_80107E0C_crowd_cover(void) {
     omAddObj(3, 11, 50, -1, func_80107E40_crowd_cover);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC70_crowd_cover);
+const CcTbl9 D_8010CC70_crowd_cover = { { -1, -1, -1, -1, -1, -1, -1, -1, -1 } };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC84_crowd_cover);
+const CcSpots D_8010CC84_crowd_cover = { { /* crowd spots */
+    { 180.0f, 0.0f, -80.0f },
+    { 170.0f, 0.0f, -160.0f },
+    { 160.0f, 0.0f, -280.0f },
+    { 136.0f, 0.0f, -140.0f },
+    { 120.0f, 0.0f, -110.0f },
+    { 120.0f, 0.0f, -180.0f },
+    { 100.0f, 0.0f, -300.0f },
+    { 90.0f, 0.0f, -210.0f },
+    { 80.0f, 0.0f, -80.0f },
+    { 80.0f, 0.0f, -260.0f },
+    { 80.0f, 0.0f, -320.0f },
+    { 50.0f, 0.0f, -240.0f },
+    { 40.0f, 0.0f, -80.0f },
+    { 10.0f, 0.0f, -320.0f },
+    { 0.0f, 0.0f, -120.0f },
+    { 0.0f, 0.0f, -260.0f },
+    { -10.0f, 0.0f, -200.0f },
+    { -40.0f, 0.0f, -320.0f },
+    { -50.0f, 0.0f, -80.0f },
+    { -86.0f, 0.0f, -140.0f },
+    { -90.0f, 0.0f, -64.0f },
+    { -80.0f, 0.0f, -220.0f },
+    { -100.0f, 0.0f, -170.0f },
+    { -120.0f, 0.0f, -360.0f },
+    { -130.0f, 0.0f, -180.0f },
+    { -136.0f, 0.0f, -240.0f },
+    { -124.0f, 0.0f, -290.0f },
+    { -140.0f, 0.0f, -240.0f },
+    { -160.0f, 0.0f, -140.0f },
+    { -190.0f, 0.0f, -100.0f },
+} };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CDEC_crowd_cover);
+const CcU16x3 D_8010CDEC_crowd_cover = { { 1, 2, 3 } }; /* crowd sprite file by variant */
 
-typedef struct CcSpots {
-    f32 v[30][3];
-} CcSpots;
-extern CcSpots D_8010CC84_crowd_cover;
-extern CcU16x3 D_8010CDEC_crowd_cover;
 extern s16 D_8010D864_crowd_cover; /* crowd sprite file */
 extern s16 D_8010D866_crowd_cover; /* crowd size */
 extern CcActor D_8010CFE0_crowd_cover[30];
@@ -1318,7 +1341,7 @@ void func_80109044_crowd_cover(Vec* dir, f32* angles) {
     *angles = 0.0f;
 }
 
-void func_801090CC_crowd_cover(s16 model, char* name, s16 frame, Vec* out) {
+void func_801090CC_crowd_cover(s16 model, const char* name, s16 frame, Vec* out) {
     HuMtx4F mdl;
     HuMtx4F res;
     HuMtx4F obj;
