@@ -415,3 +415,6 @@ D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
 D_8010A67A_game_guys_roulette = D_8010A678_game_guys_roulette + 0x2;
 D_8010A67B_game_guys_roulette = D_8010A678_game_guys_roulette + 0x3;
 D_8010A6A1_game_guys_roulette = D_8010A6A0_game_guys_roulette + 0x1;
+D_8010A647_game_guys_roulette = D_8010A646_game_guys_roulette + 0x1;
+D_8010A655_game_guys_roulette = D_8010A654_game_guys_roulette + 0x1;
+D_8010A657_game_guys_roulette = D_8010A656_game_guys_roulette + 0x1;
