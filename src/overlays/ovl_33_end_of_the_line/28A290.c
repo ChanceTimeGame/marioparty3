@@ -160,7 +160,7 @@ void func_80107F0C_end_of_the_line(void);
 void func_801080C8_end_of_the_line(omObjData *obj);
 void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
-void func_8010C110_end_of_the_line(s32 arg0, omObjData *obj, f32 arg2, f32 arg3, f32 arg4);
+void func_8010C110_end_of_the_line(u16 arg0, omObjData *obj, f32 x, f32 y, f32 z);
 void func_8010C3F4_end_of_the_line(void);
 void func_8010C574_end_of_the_line(omObjData *obj);
 void func_8010C47C_end_of_the_line(omObjData *obj);
@@ -180,6 +180,9 @@ extern s32 D_8010C658_end_of_the_line[3];
 extern u16 D_8010C664_end_of_the_line[2];
 extern f32 D_8010C668_end_of_the_line;
 extern f32 D_8010C66C_end_of_the_line;
+extern f32 D_8010C670_end_of_the_line[2][5];
+extern f32 D_8010C698_end_of_the_line[2][5];
+extern Vec D_8010C6C0_end_of_the_line[2];
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
@@ -1979,7 +1982,41 @@ void func_8010C060_end_of_the_line(omObjData *obj) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010C110_end_of_the_line);
+void func_8010C110_end_of_the_line(u16 arg0, omObjData *obj, f32 x, f32 y, f32 z) {
+    Vec dir;
+    Vec eye;
+    Vec pos;
+    f32 len;
+    s32 p;
+    s32 k;
+
+    p = ((EotlPlayer *)obj->data)->unk00;
+    eye.x = D_8010C788_end_of_the_line[p].x - x;
+    eye.y = D_8010C788_end_of_the_line[p].y - y;
+    eye.z = D_8010C788_end_of_the_line[p].z - z;
+    len = HuSqrtf(eye.x * eye.x + eye.y * eye.y + eye.z * eye.z);
+    eye.x /= len;
+    eye.y /= len;
+    eye.z /= len;
+    dir.x = D_8010C7A0_end_of_the_line[p].x - x;
+    dir.y = D_8010C7A0_end_of_the_line[p].y - y;
+    dir.z = D_8010C7A0_end_of_the_line[p].z - z;
+    len = HuSqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+    dir.x /= len;
+    dir.y /= len;
+    dir.z /= len;
+    dir.x = eye.x * D_8010C6C0_end_of_the_line[arg0].x + (1.0f - D_8010C6C0_end_of_the_line[arg0].x) * dir.x;
+    dir.y = eye.y * D_8010C6C0_end_of_the_line[arg0].y + (1.0f - D_8010C6C0_end_of_the_line[arg0].y) * dir.y;
+    dir.z = eye.z * D_8010C6C0_end_of_the_line[arg0].z + (1.0f - D_8010C6C0_end_of_the_line[arg0].z) * dir.z;
+    for (k = 0; k < 5; k++) {
+        pos.x = x + dir.x * D_8010C670_end_of_the_line[arg0][k];
+        pos.y = y + dir.y * D_8010C670_end_of_the_line[arg0][k];
+        pos.z = z + dir.z * D_8010C670_end_of_the_line[arg0][k];
+        Hu3DModelPosSet(D_8010C738_end_of_the_line->model[20 + k * 2 + p], pos.x, pos.y, pos.z);
+        Hu3DModelScaleSet(D_8010C738_end_of_the_line->model[20 + k * 2 + p], D_8010C698_end_of_the_line[arg0][k],
+                          D_8010C698_end_of_the_line[arg0][k], D_8010C698_end_of_the_line[arg0][k]);
+    }
+}
 
 void func_8010C3F4_end_of_the_line(void) {
     omObjData *obj;
