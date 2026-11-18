@@ -172,6 +172,11 @@ extern s32 D_8010AC68_water_whirled[4];
 extern s32 D_8010AC78_water_whirled[4];
 extern s32 D_8010A3EC_water_whirled[4]; /* blink timer per player */
 f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
+s32 func_8010960C_water_whirled(omObjData* obj);
+extern f32 D_8010A3FC_water_whirled[4]; /* CPU: random offset across the straights */
+extern f32 D_8010A40C_water_whirled[4]; /* CPU: random offset of the turn radius */
+extern f32 D_8010A41C_water_whirled[4]; /* CPU: offset scale per difficulty */
+extern Vec2f D_8010A860_water_whirled; /* CPU: target point (x, z) */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1291,7 +1296,95 @@ void func_801096BC_water_whirled(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801096BC_water_whirled);
 #endif
 
+#ifdef NON_MATCHING
+/* Masked 27: retail keeps one more float in a callee-saved register ($f20-$f28; frame 0x50, here 0x48),
+   so the float registers and stack offsets differ; the instructions otherwise line up. */
+/* CPU input: aim at a point ahead on the course (offset at random by difficulty), steer at it, hold A
+   except when about to leave a half circle fast. */
+void func_801098AC_water_whirled(omObjData* obj) {
+    MgWork* work;
+    s32 player;
+    s32 accel;
+    f32 dx;
+    f32 dz;
+    f32 a;
+    f32 b;
+    f32 h;
+    f32 h90;
+    s32 q;
+
+    work = obj->data;
+    player = work->unk59;
+    if (func_800E6E8C_minigame() != 2 || (GwPlayer[player].stat & 1)) {
+        D_8010AC40_water_whirled = 0;
+        D_8010AC44_water_whirled = 0;
+        q = func_8010960C_water_whirled(obj);
+        accel = 1;
+        switch (q) {
+            case 0:
+                D_8010A860_water_whirled.x = obj->trans.x + 100.0f;
+                D_8010A860_water_whirled.y = obj->trans.z - 50.0f;
+                if (D_8010A860_water_whirled.y < D_8010A3FC_water_whirled[player] + 400.0f) {
+                    D_8010A860_water_whirled.y = D_8010A3FC_water_whirled[player] + 400.0f;
+                }
+                D_8010A40C_water_whirled[player] = rand8() * D_8010A41C_water_whirled[GwPlayer[player].cpu_difficulty];
+                break;
+            case 1:
+                dx = obj->trans.x - 700.0f;
+                dz = obj->trans.z;
+                a = atan2df(dx, dz);
+                dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
+                b = a + 15.0f;
+                D_8010A860_water_whirled.x = sindf(b) * dz + 700.0f;
+                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                if (obj->trans.x < 800.0f && obj->trans.z > 0.0f && work->unk40 > 20.0f) {
+                    accel = 0;
+                }
+                D_8010A3FC_water_whirled[player] = rand8() * D_8010A41C_water_whirled[GwPlayer[player].cpu_difficulty];
+                break;
+            case 2:
+                D_8010A860_water_whirled.x = obj->trans.x - 100.0f;
+                D_8010A860_water_whirled.y = obj->trans.z + 50.0f;
+                if (D_8010A860_water_whirled.y > D_8010A3FC_water_whirled[player] + -400.0f) {
+                    D_8010A860_water_whirled.y = D_8010A3FC_water_whirled[player] + -400.0f;
+                }
+                D_8010A40C_water_whirled[player] = rand8() * D_8010A41C_water_whirled[GwPlayer[player].cpu_difficulty];
+                break;
+            case 3:
+                dx = obj->trans.x + 700.0f;
+                dz = obj->trans.z;
+                a = atan2df(dx, dz);
+                dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
+                b = a + 15.0f;
+                D_8010A860_water_whirled.x = sindf(b) * dz + -700.0f;
+                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                if (obj->trans.x > -800.0f && obj->trans.z < 0.0f && work->unk40 > 20.0f) {
+                    accel = 0;
+                }
+                D_8010A3FC_water_whirled[player] = rand8() * D_8010A41C_water_whirled[GwPlayer[player].cpu_difficulty];
+                break;
+        }
+        h90 = work->unk3C - 90.0f;
+        dx = D_8010A860_water_whirled.x - obj->trans.x;
+        dz = D_8010A860_water_whirled.y - obj->trans.z;
+        D_8010AC44_water_whirled = (s8)(func_800E2ED4_minigame(dx, dz, sindf(h90), cosdf(h90)) * 120.0f);
+        h = work->unk3C;
+        dx = D_8010A860_water_whirled.x - obj->trans.x;
+        dz = D_8010A860_water_whirled.y - obj->trans.z;
+        if (func_800E2ED4_minigame(dx, dz, sindf(h), cosdf(h)) < 0.0f) {
+            D_8010AC44_water_whirled = 60;
+        } else if (accel == 1) {
+            D_8010AC40_water_whirled |= 0x8000;
+        } else if (D_8010AC44_water_whirled > 0) {
+            D_8010AC44_water_whirled = 60;
+        } else {
+            D_8010AC44_water_whirled = -60;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801098AC_water_whirled);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109E2C_water_whirled);
 
