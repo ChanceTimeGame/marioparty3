@@ -1353,7 +1353,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
                     }
                 }
             }
-        } else if (D_8010D3E4_awful_tower == 3 && D_8010D3FC_awful_tower == team &&
+        }
+        if (D_8010D3E4_awful_tower == 3 && D_8010D3FC_awful_tower == team &&
                    D_8010CBE8_awful_tower % 60 == 27 && D_8010D3DC_awful_tower >= 40 &&
                    (D_8010CC40_awful_tower[D_8010D3FC_awful_tower] == 0 ||
                     D_8010CBFC_awful_tower[D_8010D3FC_awful_tower] == D_8010CC3C_awful_tower[D_8010D3FC_awful_tower]) &&
@@ -1486,7 +1487,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
             AT_ABS(obj->trans.x - D_8010D360_awful_tower[team][i]->trans.x) < 110.0f &&
             AT_ABS(obj->trans.y + 75.0f - D_8010D360_awful_tower[team][i]->trans.y) < 125.0f) {
             j = (w->unk3C >= 0.0f && w->unk3C < 180.0f) ? 1 : 0;
-            if (j == (D_8010D360_awful_tower[team][i]->trans.x < obj->trans.x)) {
+            k = (D_8010D360_awful_tower[team][i]->trans.x < obj->trans.x) ? 1 : 0;
+            if (j == k) {
                 D_8010CC74_awful_tower[team] = j * 2 - 1;
             }
         }
@@ -1549,8 +1551,7 @@ void func_80108E8C_awful_tower(omObjData* obj) {
     if (w2->unk53 >= 0) {
         D_8010CBFC_awful_tower[team] = (w2->unk53 != 0) ? near3[(w2->unk53 - 1) % 3] + 1 : 0;
         if (D_8010CBFC_awful_tower[team] == 16) {
-            n = D_8010D3FE_awful_tower;
-            D_8010D3FE_awful_tower = (n >= 255) ? n : n + 1;
+            D_8010D3FE_awful_tower = (D_8010D3FE_awful_tower >= 255) ? D_8010D3FE_awful_tower : D_8010D3FE_awful_tower + 1;
         }
         floor = (w2->unk53 != 0) ? near3[(w2->unk53 - 1) % 3] : 0;
         if (D_8010D3E4_awful_tower == 2 && (D_8010CC0C_awful_tower[team] == 0 || D_8010CC0C_awful_tower[team] == 3) &&
@@ -1642,31 +1643,17 @@ void func_80108E8C_awful_tower(omObjData* obj) {
         if (state != NULL) {
             wob = D_8010D1F0_awful_tower[D_8010CBE8_awful_tower % 55];
             vx = (tx - D_8010D150_awful_tower[team]) / 8.0f;
-            if (vx < -22.0f) {
-                vx = -22.0f;
-            } else if (vx > 22.0f) {
-                vx = 22.0f;
-            }
+            vx = (vx < -22.0f) ? -22.0f : (vx > 22.0f) ? 22.0f : vx;
             vy = (ty - D_8010D160_awful_tower[team]) / 12.0f;
-            if (vy < -27.0f) {
-                vy = -27.0f;
-            } else if (vy > 27.0f) {
-                vy = 27.0f;
-            }
-            if (vx < D_8010D170_awful_tower[team]) {
-                D_8010D170_awful_tower[team] =
-                    (D_8010D170_awful_tower[team] - 2.5 < vx) ? vx : D_8010D170_awful_tower[team] - 2.5;
-            } else {
-                D_8010D170_awful_tower[team] =
-                    (vx < D_8010D170_awful_tower[team] + 2.5) ? vx : D_8010D170_awful_tower[team] + 2.5;
-            }
-            if (vy < D_8010D180_awful_tower[team]) {
-                D_8010D180_awful_tower[team] =
-                    (D_8010D180_awful_tower[team] - 2.5 < vy) ? vy : D_8010D180_awful_tower[team] - 2.5;
-            } else {
-                D_8010D180_awful_tower[team] =
-                    (vy < D_8010D180_awful_tower[team] + 2.5) ? vy : D_8010D180_awful_tower[team] + 2.5;
-            }
+            vy = (vy < -27.0f) ? -27.0f : (vy > 27.0f) ? 27.0f : vy;
+            D_8010D170_awful_tower[team] =
+                (vx < D_8010D170_awful_tower[team])
+                    ? ((D_8010D170_awful_tower[team] - 2.5 < vx) ? vx : D_8010D170_awful_tower[team] - 2.5)
+                    : ((vx < D_8010D170_awful_tower[team] + 2.5) ? vx : D_8010D170_awful_tower[team] + 2.5);
+            D_8010D180_awful_tower[team] =
+                (vy < D_8010D180_awful_tower[team])
+                    ? ((D_8010D180_awful_tower[team] - 2.5 < vy) ? vy : D_8010D180_awful_tower[team] - 2.5)
+                    : ((vy < D_8010D180_awful_tower[team] + 2.5) ? vy : D_8010D180_awful_tower[team] + 2.5);
             D_8010D150_awful_tower[team] += D_8010D170_awful_tower[team];
             D_8010D160_awful_tower[team] += D_8010D180_awful_tower[team];
             if (wob == -1.0f) {
