@@ -16,7 +16,7 @@
 
 /* omObjData::data of a player (func_8010648C_fridged_bridges, 0x6C) */
 typedef struct FbPlayer {
-    /* 0x00 */ s16 unk00; /* 0 frozen, 1 walking, 2 falling */
+    /* 0x00 */ u16 unk00; /* 0 frozen, 1 walking, 2 falling */
     /* 0x02 */ s16 unk02; /* player index */
     /* 0x04 */ u16 unk04; /* motion: 0 idle, 1 walk, 2 run */
     /* 0x06 */ s16 unk06; /* 1 = reached the goal */
@@ -63,6 +63,40 @@ typedef struct FbUV {
     /* 0x04 */ f32 v;
 } FbUV;
 
+/* main 20A20.c's collision types (as minigame mgcol.h) */
+typedef struct ColVtx {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+} ColVtx;
+
+typedef struct ColTri {
+    /* 0x0 */ s16 flags; /* bits 14-15: vertex count - 2, bits 8-13: surface type */
+    /* 0x2 */ s16 v[3];
+} ColTri;
+
+typedef struct HitList {
+    /* 0x00 */ u16 **list;
+    /* 0x04 */ u16 count;
+    /* 0x06 */ u16 pos;
+} HitList;
+
+typedef struct HitProbe {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ f32 z;
+    /* 0x0C */ f32 r;
+} HitProbe;
+
+/* Ground probe around a player (func_80109988_fridged_bridges): 8 points on a circle and the centre */
+typedef struct FbGround {
+    /* 0x00 */ f32 h[9]; /* ground height, -10000 = none */
+    /* 0x24 */ u16 attr[9]; /* surface type (flags & 0x3F00) */
+    /* 0x36 */ char unk36[2];
+    /* 0x38 */ Vec pos;
+} FbGround; // Size 0x44
+
+double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void Hu3DAnimInit(s32);
 void *HuMemAllocTag(s32 size, s16 tag);
@@ -90,7 +124,10 @@ extern s32 D_800EBEB0_minigame[];
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800A178C_main[][6];
+extern u16 D_8010CFF4_fridged_bridges[];
 extern u8 D_800D6A90_main;
+extern s8 D_800CBB6E_main[];
+extern s8 D_800D20A1_main[];
 
 extern D_80111B50_vine_with_me_Struct D_8010CF20_fridged_bridges;
 extern s16 D_8010CF48_fridged_bridges[4]; /* per player: camera bit */
@@ -132,6 +169,7 @@ void func_801084E0_fridged_bridges(omObjData *obj);
 void func_80108720_fridged_bridges(omObjData *obj);
 void func_801091F8_fridged_bridges(omObjData *obj);
 void func_80109390_fridged_bridges(omObjData *obj);
+u16 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);
 u16 func_8010A0F4_fridged_bridges(omObjData *obj, f32 x, f32 y, f32 z);
 u16 func_8010ADC0_fridged_bridges(void);
 void func_8010B164_fridged_bridges(void);
@@ -333,9 +371,244 @@ void func_80106470_fridged_bridges(omObjData *obj) {
     func_8010648C_fridged_bridges(obj, 3);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010648C_fridged_bridges);
+/* Player object setup: character model, shadow, motions. */
+void func_8010648C_fridged_bridges(omObjData *obj, s16 player) {
+    FbPlayer *work;
+    s8 chr;
+    s32 dir;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801068F4_fridged_bridges);
+    work = obj->data = HuMemAllocTag(sizeof(FbPlayer), 0x7918);
+    work->unk02 = player;
+    work->unk04 = 0;
+    work->unk08 = work->unk0C = 0.0f;
+    work->unk10 = work->unk14 = 0.0f;
+    work->unk1E = func_80108050_fridged_bridges(obj);
+    work->unk20 = 1;
+    work->unk22 = 1;
+    work->unk24 = 0;
+    work->unk26 = 0;
+    work->unk00 = 1;
+    work->unk28 = 0;
+    work->unk30 = 0;
+    work->unk06 = 0;
+    work->unk48 = 0;
+    work->unk4A = 0;
+    work->unk56 = 0;
+    work->unk58 = 0;
+    work->unk6A = 0;
+    chr = GwPlayer[player].chr;
+    dir = D_800A178C_main[chr][0];
+    obj->model[0] = func_8000B108_main(dir | D_800A178C_main[chr][1], 0x20699);
+    omSetTra(obj, D_8010CFA4_fridged_bridges[player].x, D_8010CFA4_fridged_bridges[player].y,
+             D_8010CFA4_fridged_bridges[player].z);
+    obj->model[1] = func_8000B0D4_main(9, 0xA89);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    obj->model[2] = func_8000B108_main(0x450011, 0xA9D);
+    obj->model[3] = func_8000B108_main(0x450012, 0x69D);
+    obj->model[4] = func_8000B108_main(dir | D_800A178C_main[chr][2], 0x2068D);
+    func_80017790_main(obj->model[4], 2, chr, func_80017B6C_main(chr, 2, 0));
+    func_8001C514_main(obj->model[4]);
+    obj->model[5] = func_80017AD8_main(func_80017B6C_main(chr, 2, 1));
+    func_8001C8A8_main(obj->model[0], D_8010CF48_fridged_bridges[player]);
+    func_8001C8A8_main(obj->model[1], D_8010CF48_fridged_bridges[player]);
+    func_8001C8A8_main(obj->model[2], D_8010CF48_fridged_bridges[player]);
+    func_8001C8A8_main(obj->model[3], D_8010CF48_fridged_bridges[player]);
+    func_8001C8A8_main(obj->model[4], D_8010CF48_fridged_bridges[player]);
+    if (player < 2) {
+        omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    } else {
+        omSetRot(obj, 0.0f, 180.0f, 0.0f);
+    }
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 2));
+    if (chr == 5) {
+        func_8000B460_main(obj, 3, 0x45000D);
+        func_8000B460_main(obj, 7, 0x45000E);
+        func_8000B460_main(obj, 8, 0x45000F);
+    } else {
+        func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x12));
+    }
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0xD));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x36));
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 3, 2);
+    omSetSca(obj, D_8010CFD4_fridged_bridges[chr], D_8010CFD4_fridged_bridges[chr], D_8010CFD4_fridged_bridges[chr]);
+    func_8010BE0C_fridged_bridges(obj);
+    work->unk5C = obj->trans.x;
+    work->unk60 = obj->trans.y;
+    work->unk64 = obj->trans.z;
+    work->unk68 = 0x100;
+    obj->func = func_801068F4_fridged_bridges;
+}
+
+/* Player: walk on the ice, fall through holes. */
+void func_801068F4_fridged_bridges(omObjData *obj) {
+    FbGround g;
+    s8 stick[2];
+    FbPlayer *work;
+    u16 pad;
+    f32 mag;
+    f32 angle;
+    u16 n;
+
+    work = obj->data;
+    pad = GwPlayer[work->unk02].pad;
+    if (func_800E6E8C_minigame() == 2) {
+        if (!(GwPlayer[work->unk02].stat & 1)) {
+            stick[0] = D_800CBB6E_main[pad];
+            stick[1] = D_800D20A1_main[pad];
+        } else {
+            func_801079CC_fridged_bridges(obj, &stick[0], &stick[1]);
+        }
+    } else {
+        stick[1] = 0;
+        stick[0] = 0;
+    }
+    if (work->unk58 != 0) {
+        if (--work->unk58 == 0) {
+            work->unk56 = 0;
+        }
+    }
+    if (work->unk00 == 0) {
+        stick[1] = 0;
+        stick[0] = 0;
+    }
+    mag = HuSqrtf(stick[0] * stick[0] + stick[1] * stick[1]) * 0.08f;
+    angle = atan2df(stick[0], -stick[1]);
+    if (stick[0] != 0 || stick[1] != 0) {
+        work->unk10 = sindf(angle) * mag;
+        work->unk14 = cosdf(angle) * mag;
+        omSetRot(obj, 0.0f, angle, 0.0f);
+        if (mag > 2.5f) {
+            if (work->unk04 != 2) {
+                if (GwPlayer[work->unk02].chr == 5 && work->unk28 == 1) {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[8]].unk02, 0, 6, 2);
+                } else {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 6, 2);
+                }
+                work->unk04 = 2;
+                work->unk48 = 0;
+            }
+            if (work->unk48 == 0) {
+                func_8004ACE0_main(0x28, work->unk02);
+                work->unk48 = 0xC;
+            } else {
+                work->unk48--;
+            }
+        } else {
+            if (work->unk04 != 1) {
+                if (GwPlayer[work->unk02].chr == 5 && work->unk28 == 1) {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 0, 6, 2);
+                } else {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 6, 2);
+                }
+                work->unk04 = 1;
+                work->unk48 = 0;
+            }
+            if (work->unk48 == 0) {
+                func_8004ACE0_main(0x1F, work->unk02);
+                work->unk48 = 0x16;
+            } else {
+                work->unk48--;
+            }
+        }
+        work->unk4A = 0;
+    } else {
+        work->unk10 = work->unk14 = 0.0f;
+        if (work->unk04 != 0) {
+            if (GwPlayer[work->unk02].chr == 5 && work->unk28 == 1) {
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[7]].unk02, 0, 6, 2);
+            } else {
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 6, 2);
+            }
+            work->unk04 = 0;
+        }
+        if (work->unk08 != 0.0f || work->unk0C != 0.0f) {
+            if (work->unk4A == 0) {
+                func_8004ACE0_main(0xD3, work->unk02);
+                work->unk4A = 0xB;
+            } else {
+                work->unk4A--;
+            }
+        }
+    }
+    if (fabs(work->unk08) < 0.1f) {
+        work->unk08 = 0.0f;
+    }
+    if (fabs(work->unk0C) < 0.1f) {
+        work->unk0C = 0.0f;
+    }
+    if (work->unk28 != 0) {
+        work->unk10 *= 0.85f;
+        work->unk14 *= 0.85f;
+    }
+    work->unk08 += work->unk10;
+    work->unk0C += work->unk14;
+    mag = HuSqrtf(work->unk08 * work->unk08 + work->unk0C * work->unk0C);
+    if (mag != 0.0f) {
+        work->unk08 /= mag;
+        work->unk0C /= mag;
+        if (mag > 16.0f) {
+            mag = 16.0f;
+        }
+    }
+    work->unk08 = mag * work->unk08;
+    work->unk0C = mag * work->unk0C;
+    if (work->unk00 == 0 || D_8010DA60_fridged_bridges != -1) {
+        work->unk08 = work->unk0C = 0.0f;
+    }
+    if (func_8010A0F4_fridged_bridges(obj, obj->trans.x + work->unk08, obj->trans.y, obj->trans.z + work->unk0C) == 1) {
+        if (work->unk28 == 0) {
+            func_801082D0_fridged_bridges(obj);
+            func_8004AC98_main(0x42D, work->unk02);
+            work->unk1E = func_80108050_fridged_bridges(obj);
+            work->unk20 = 1;
+            work->unk22 = 1;
+        }
+        work->unk08 = work->unk0C = 0.0f;
+    }
+    func_8010B7CC_fridged_bridges(obj);
+    omSetTra(obj, obj->trans.x + work->unk08, obj->trans.y, obj->trans.z + work->unk0C);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    work->unk08 *= 0.8f;
+    work->unk0C *= 0.8f;
+    g.pos.x = obj->trans.x;
+    g.pos.y = obj->trans.y;
+    g.pos.z = obj->trans.z;
+    n = func_80109988_fridged_bridges(obj, &g);
+    if (g.h[8] != -10000.0f) {
+        n = 0;
+    }
+    if (n >= 6) {
+        work->unk00 = 2;
+        work->unk34 = sindf(angle) * 10.0f;
+        work->unk3C = cosdf(angle) * 10.0f;
+        work->unk38 = -1.2f;
+        work->unk04 = 0;
+        work->unk48 = 0;
+        obj->func = func_80107164_fridged_bridges;
+        work->unk2C->work[0] = 0;
+        func_8001C814_main(obj->model[0], 1, 1);
+    }
+    if (work->unk1C == D_8010CFF4_fridged_bridges[work->unk24] && work->unk28 == 1) {
+        func_801084E0_fridged_bridges(obj);
+        if (work->unk24 != 2) {
+            work->unk22 = -1;
+            work->unk20--;
+        }
+    } else if (work->unk1C == 0x600) {
+        D_8010DA68_fridged_bridges = 1;
+        work->unk06 = 1;
+    }
+    if (work->unk00 != 2) {
+        work->unk68 = work->unk1C;
+        work->unk5C = obj->trans.x;
+        work->unk60 = obj->trans.y;
+        work->unk64 = obj->trans.z;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80107164_fridged_bridges);
 

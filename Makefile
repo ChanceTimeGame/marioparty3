@@ -486,6 +486,8 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_05_crazy_cogs/131C10.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_01_hand_line_sinker/11A480.c.o
 # m4 el: End of the Line 28A290 likewise (func_80106CDC: no nop before the mul.s after the sindf/cosdf calls)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_33_end_of_the_line/28A290.c.o
+# m5 fb: Fridged Bridges 216670 likewise (func_801068F4: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_24_fridged_bridges/216670.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
