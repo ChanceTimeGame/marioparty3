@@ -244,7 +244,7 @@ extern u16 D_8010EC46_three_door_monty;
 extern u8 D_8010EC47_three_door_monty;      /* the low byte of D_8010EC46_three_door_monty */
 extern s16 D_8010EC48_three_door_monty;
 extern s16 D_8010EC4A_three_door_monty[3];
-extern s16 D_8010EC50_three_door_monty[8];
+extern s16 D_8010EC50_three_door_monty;
 
 
 
@@ -1239,7 +1239,82 @@ void func_801090C8_three_door_monty(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010916C_three_door_monty);
+void func_8010916C_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D680_three_door_monty;
+    CcEnt *doors[3];
+    s16 flag;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        doors[i] = &D_8010D704_three_door_monty[i];
+    }
+    switch (D_8010EC30_three_door_monty) {
+        case 1:
+            break;
+        case 4:
+            flag = 0;
+            for (i = 0; i < 3; i++) {
+                if (doors[i]->unk06 != 1) {
+                    flag = 1;
+                }
+            }
+            if (flag == 0) {
+                func_8001C258_main(obj->model[0], 4, 0);
+                ent->unk18 += 0.1f;
+                if (ent->unk18 > 1.0f) {
+                    ent->unk18 = 1.0f;
+                    D_8010D250_three_door_monty = (u8)(rand8() % 3);
+                    func_801067E0_three_door_monty(obj, D_8010D250_three_door_monty);
+                    D_8010EC42_three_door_monty = 4;
+                    HuAudFXPlay(0x453);
+                    D_8010EC50_three_door_monty = 0;
+                }
+            }
+            break;
+        case 5:
+            func_8001C92C_main(obj->model[0], 1.0f);
+            if (HmfModelData[obj->model[0]].unk40 >= 60.0f && D_8010EC50_three_door_monty == 0) {
+                HuAudFXPlay(0x453);
+                D_8010EC50_three_door_monty = 1;
+            }
+            if (HmfModelData[obj->model[0]].unk40 >= 120.0f && D_8010EC50_three_door_monty == 1) {
+                HuAudFXPlay(0x453);
+                D_8010EC50_three_door_monty = 2;
+            }
+            if (HmfModelData[obj->model[0]].unk40 >= 180.0f && D_8010EC50_three_door_monty == 2) {
+                switch (D_8010D250_three_door_monty) {
+                    case 0:
+                        HuAudFXPlay(0x455);
+                        break;
+                    case 1:
+                        HuAudFXPlay(0x457);
+                        break;
+                    case 2:
+                        HuAudFXPlay(0x456);
+                        break;
+                }
+                D_8010EC50_three_door_monty = 3;
+            }
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+                D_8010EC42_three_door_monty = 5;
+            }
+            break;
+        case 8:
+        case 10:
+        case 11:
+        case 13:
+            if (ent->unk18 > 0.1f) {
+                ent->unk18 -= 0.1f;
+            } else {
+                ent->unk18 = 0.1f;
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                func_8001C92C_main(obj->model[0], 0.0f);
+            }
+            break;
+    }
+    obj->scale.x = obj->scale.y = ent->unk18;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109594_three_door_monty);
 
