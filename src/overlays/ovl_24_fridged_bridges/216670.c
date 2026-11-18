@@ -145,6 +145,10 @@ extern FbUV D_8010CFFC_fridged_bridges[3][12]; /* bridge path points (x, z), pla
 extern FbUV D_8010D11C_fridged_bridges[12];
 extern FbUV D_8010D3A0_fridged_bridges[4][3][12]; /* per player: bridge path points */
 extern FbUV D_8010D820_fridged_bridges[4][12];
+extern FbUV D_8010D17C_fridged_bridges[3]; /* bridge pieces (x, z), player 0's quarter */
+extern FbUV D_8010D194_fridged_bridges;
+extern FbUV D_8010D9A0_fridged_bridges[4][3]; /* per player: bridge pieces */
+extern FbUV D_8010DA00_fridged_bridges[4];
 extern u8 D_800D6A90_main;
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
@@ -199,6 +203,8 @@ s16 func_80108050_fridged_bridges(omObjData *obj);
 void func_801082D0_fridged_bridges(omObjData *obj);
 void func_801084E0_fridged_bridges(omObjData *obj);
 void func_80108720_fridged_bridges(omObjData *obj);
+void func_80108B08_fridged_bridges(omObjData *obj);
+void func_80108BEC_fridged_bridges(omObjData *obj);
 void func_80108C60_fridged_bridges(omObjData *obj);
 void func_80108FBC_fridged_bridges(omObjData *obj);
 extern s16 D_8010D19C_fridged_bridges;
@@ -1052,7 +1058,66 @@ void func_80108648_fridged_bridges(omObjData *obj) {
     HmfModelData[obj->model[0]].unk06 = 0xFF;
 }
 
+/* Bridge pieces: models and falling objects */
+#ifdef NON_MATCHING
+void func_80108720_fridged_bridges(omObjData *obj) {
+    f32 sign[8];
+    omObjData *piece;
+    s32 i;
+    s32 j;
+
+    sign[0] = 1.0f;
+    sign[1] = -1.0f;
+    sign[2] = 1.0f;
+    sign[3] = -1.0f;
+    sign[4] = 1.0f;
+    sign[5] = 1.0f;
+    sign[6] = -1.0f;
+    sign[7] = -1.0f;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            D_8010D9A0_fridged_bridges[i][j].u = D_8010D17C_fridged_bridges[j].u * sign[i];
+            D_8010D9A0_fridged_bridges[i][j].v = D_8010D17C_fridged_bridges[j].v * sign[i + 4];
+        }
+        D_8010DA00_fridged_bridges[i].u = D_8010D194_fridged_bridges.u * sign[i];
+        D_8010DA00_fridged_bridges[i].v = D_8010D194_fridged_bridges.v * sign[i + 4];
+    }
+    for (i = 0; i < 4; i++) {
+        obj->model[i * 5] = func_8000B108_main(0x450000, 0x20699);
+        obj->model[i * 5 + 1] = func_8000B108_main(0x450001, 0x699);
+        obj->model[i * 5 + 2] = func_8000B108_main(0x450002, 0x699);
+        obj->model[i * 5 + 3] = func_8000B108_main(0x450003, 0x699);
+        obj->model[i * 5 + 4] = func_8000B108_main(0x450000, 0x20699);
+        func_8001C258_main(obj->model[i * 5], 4, 4);
+        func_8001C258_main(obj->model[i * 5 + 1], 4, 4);
+        func_8001C258_main(obj->model[i * 5 + 2], 4, 4);
+        func_8001C258_main(obj->model[i * 5 + 3], 4, 4);
+        func_8001C258_main(obj->model[i * 5 + 4], 4, 4);
+        func_8001C8A8_main(obj->model[i * 5], D_8010CF48_fridged_bridges[i]);
+        func_8001C8A8_main(obj->model[i * 5 + 1], D_8010CF48_fridged_bridges[i]);
+        func_8001C8A8_main(obj->model[i * 5 + 2], D_8010CF48_fridged_bridges[i]);
+        func_8001C8A8_main(obj->model[i * 5 + 3], D_8010CF48_fridged_bridges[i]);
+        func_8001C8A8_main(obj->model[i * 5 + 4], D_8010CF48_fridged_bridges[i]);
+    }
+    obj->work[2] = 0;
+    func_80047C0C_main(1, 0xC);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            func_8001C258_main(obj->model[j + i * 5 + 1], 4, 0);
+            piece = omAddObj(0xA, 1, 0, 1, func_80108B08_fridged_bridges);
+            piece->model[0] = obj->model[j + i * 5 + 1];
+            omSetTra(piece, D_8010D9A0_fridged_bridges[i][j].u, 0.0f, D_8010D9A0_fridged_bridges[i][j].v);
+            piece->work[0] = j * 5 + 0xF;
+            piece->work[1] = 0;
+            piece->work[2] = i;
+        }
+    }
+    obj->work[0] = 0;
+    obj->func = func_80108BEC_fridged_bridges;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108720_fridged_bridges);
+#endif
 
 /* Bridge piece falling into the water */
 void func_80108B08_fridged_bridges(omObjData *obj) {
