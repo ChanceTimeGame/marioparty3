@@ -161,6 +161,7 @@ void func_8010A548_treadmill_grill(void);
 void func_8010A6A4_treadmill_grill(void);
 void func_8010A754_treadmill_grill(omObjData* obj);
 void func_8010A9AC_treadmill_grill(omObjData* obj);
+void func_801093E0_treadmill_grill(omObjData* obj, s32 i);
 void func_8010ACBC_treadmill_grill(omObjData* obj);
 
 void func_80109108_treadmill_grill(omObjData* obj);
@@ -180,7 +181,7 @@ void func_8010AE6C_treadmill_grill(omObjData* obj);
 
 extern s32 D_8010AF80_treadmill_grill; /* next free model in D_8010B310 */
 extern u16 D_8010B310_treadmill_grill[16]; /* player models */
-extern f32 D_8010AF8C_treadmill_grill[4];
+extern f32 D_8010AF8C_treadmill_grill[4]; /* belt widths */
 extern Vec D_8010AFB0_treadmill_grill[4]; /* start positions; a taken one is zeroed */
 extern Vec D_8010B000_treadmill_grill[4]; /* hazard positions */
 extern s32 D_8010B030_treadmill_grill[3]; /* hazard inactive */
@@ -203,6 +204,14 @@ extern s32 D_8010B1D4_treadmill_grill;
 extern s32 D_8010B1D8_treadmill_grill;
 extern s32 D_8010B1DC_treadmill_grill;
 extern s32 D_8010B224_treadmill_grill[4];    /* belt sounds, -1 none */
+extern f32 D_8010AF9C_treadmill_grill[4];    /* belt widths last frame */
+extern f32 D_8010B17C_treadmill_grill[4];    /* belt speed step */
+extern f32 D_8010B1C4_treadmill_grill[4];    /* belt speed step (applied) */
+extern f32 D_8010B234_treadmill_grill[6];    /* belt target speeds */
+extern s16 D_8010B24C_treadmill_grill[6];    /* belt sound pitches */
+extern s32 D_8010B258_treadmill_grill;       /* belt stops */
+extern f32 D_8010B25C_treadmill_grill;
+extern f32 D_8010B260_treadmill_grill;
 extern s32 D_8010B128_treadmill_grill[4][4]; /* landing puff timers per player */
 extern f32 D_8010B168_treadmill_grill[4];    /* landing puff scales */
 extern s32 D_8010B300_treadmill_grill; /* CPU input: buttons pressed */
@@ -1157,7 +1166,7 @@ void func_80109108_treadmill_grill(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80109108_treadmill_grill);
 #endif
 
-void func_801093E0_treadmill_grill(void) {
+void func_801093E0_treadmill_grill(omObjData* obj, s32 i) {
 }
 
 /* Moves wandering hazard i; returns its heading. One instruction long: the assembler puts a nop after the
@@ -1424,13 +1433,80 @@ void func_80109FA8_treadmill_grill(omObjData* obj) {
     Hu3DModelScaleSet(obj->model[9], D_8010AF88_treadmill_grill + 0.1f, 1.0f, 0.8f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010A548_treadmill_grill);
+void func_8010A548_treadmill_grill(void) {
+    f32* spd;
+    f32 target;
+    s32 r;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010A6A4_treadmill_grill);
+    HuAudFXPlay(0x39C);
+    for (i = 0; i < 4; i++) {
+        spd = &D_8010B1B4_treadmill_grill[i];
+        do {
+            r = (u8)(rand8() % 6);
+            target = D_8010B234_treadmill_grill[r];
+        } while (*spd == target * 0.5f);
+        D_8010B17C_treadmill_grill[i] = (target - D_8010B1B4_treadmill_grill[i]) / 20.0f;
+        D_8010B1C4_treadmill_grill[i] = (target - D_8010B1B4_treadmill_grill[i]) / 20.0f;
+        if (D_8010B224_treadmill_grill[i] >= 0) {
+            HuAudFXPitchSet((s16)D_8010B224_treadmill_grill[i], D_8010B24C_treadmill_grill[r]);
+        }
+    }
+    D_8010B1D8_treadmill_grill = 20;
+    D_8010B1D4_treadmill_grill = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010A754_treadmill_grill);
+void func_8010A6A4_treadmill_grill(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010A9AC_treadmill_grill);
+    if (D_8010B258_treadmill_grill++ < 2) {
+        D_8010B19C_treadmill_grill = 50;
+        D_8010B1DC_treadmill_grill = 0;
+        for (i = 0; i < 4; i++) {
+            D_8010B17C_treadmill_grill[i] = -D_8010B1B4_treadmill_grill[i] / 20.0f;
+            D_8010B1C4_treadmill_grill[i] = -D_8010B1B4_treadmill_grill[i] / 20.0f;
+        }
+        D_8010B1D8_treadmill_grill = 20;
+        D_8010B1D4_treadmill_grill = 0;
+    }
+}
+
+void func_8010A754_treadmill_grill(omObjData* obj) {
+    f32 minX, maxX;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        D_8010AF9C_treadmill_grill[i] = D_8010AF8C_treadmill_grill[i];
+        D_8010AF8C_treadmill_grill[i] -= 10.0f;
+    }
+    func_8010AE6C_treadmill_grill(obj);
+    if (D_8010B19C_treadmill_grill == 0) {
+        func_8010A548_treadmill_grill();
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, -300.0f);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, -600.0f);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, -900.0f);
+    D_8010B25C_treadmill_grill += 5.5f;
+    D_8010B260_treadmill_grill -= 5.5f;
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[5], obj->trans.x + D_8010B25C_treadmill_grill, 150.0f, 165.0f);
+    Hu3DModelPosSet(obj->model[6], obj->trans.x + D_8010B260_treadmill_grill, 150.0f, 165.0f);
+    Hu3DModelPosSet(obj->model[7], obj->trans.x + D_8010B25C_treadmill_grill + 50.0f, 220.0f, 155.0f);
+    Hu3DModelPosSet(obj->model[8], obj->trans.x + D_8010B260_treadmill_grill - 50.0f, 220.0f, 155.0f);
+    minX = -D_8010AF8C_treadmill_grill[0] / 2.0f;
+    maxX = D_8010AF8C_treadmill_grill[0] / 2.0f + 50.0f;
+    func_800E13CC_minigame(obj, 250.0f, 250.0f, minX - 50.0f, -1050.0f, maxX, 150.0f);
+}
+
+void func_8010A9AC_treadmill_grill(omObjData* obj) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        func_801093E0_treadmill_grill(obj, i);
+        D_8010B1B4_treadmill_grill[i] += D_8010B1C4_treadmill_grill[i];
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010AA2C_treadmill_grill);
 
