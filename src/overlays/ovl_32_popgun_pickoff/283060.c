@@ -101,7 +101,11 @@ extern s16 D_8010CBD0_popgun_pickoff[16]; /* textures */
 extern s16 D_8010CBF0_popgun_pickoff[8]; /* sprite groups */
 extern s16 D_8010CC00_popgun_pickoff[16]; /* sprite slots in use */
 extern s16 D_8010CC20_popgun_pickoff;
-extern s16 D_8010CC22_popgun_pickoff[2];
+typedef struct PgPair {
+    s16 unk0;
+    s16 unk2;
+} PgPair;
+extern PgPair D_8010CC22_popgun_pickoff;
 extern PgTarget D_8010CC28_popgun_pickoff[9];
 extern PgTarget D_8010CD50_popgun_pickoff[0x80];
 extern f32 D_8010DD50_popgun_pickoff[4][4]; /* world to view (D_8010DD88 is its [3][2]) */
@@ -191,11 +195,59 @@ void func_80105C78_popgun_pickoff(f32 (*src)[4], f32 (*dst)[4]) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80105E68_popgun_pickoff);
+void func_80105E68_popgun_pickoff(Vec* pos, Vec* out) {
+    f32 m[4][4];
+    f32 t;
+    f32 w;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80105F74_popgun_pickoff);
+    func_8007DFE0_main(m, pos->x, pos->y, pos->z);
+    guMtxCatF(m, D_8010DD50_popgun_pickoff, m);
+    t = m[3][2] * D_8010DDD0_popgun_pickoff;
+    w = fabsf(t);
+    if (w != 0.0) {
+        out->x = m[3][0] * 160.0f / w / 1.3333333333333333;
+        out->y = -m[3][1] * 120.0f / w;
+    }
+    out->x += 160.0;
+    out->y += 120.0;
+    out->z = w;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80106068_popgun_pickoff);
+
+
+
+
+void func_80105F74_popgun_pickoff(f32 x, f32 y, f32 z, Vec* out) {
+    f32 m[4][4];
+    f32 d;
+    f32 w;
+
+    d = z + D_8010DD88_popgun_pickoff;
+    w = fabsf(d * D_8010DDD0_popgun_pickoff);
+    x -= 160.0;
+    y -= 120.0;
+    func_8007DFE0_main(m, 2.0f * x * w * 1.3333333333333333 / 320.0, -(2.0f * y * w / 240.0f), d);
+    guMtxCatF(m, D_8010DD90_popgun_pickoff, m);
+    out->x = m[3][0];
+    out->y = m[3][1];
+    out->z = m[3][2];
+}
+
+
+
+
+
+void func_80106068_popgun_pickoff(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 10, 0, -1, func_801060E8_popgun_pickoff);
+    D_8010CC20_popgun_pickoff = 0;
+    D_8010CC22_popgun_pickoff.unk0 = D_8010CC22_popgun_pickoff.unk2 = 0;
+}
+
+
+
+
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010C8E0_popgun_pickoff);
 
@@ -209,7 +261,18 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80106
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010704C_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80107A54_popgun_pickoff);
+void func_80107A54_popgun_pickoff(void) {
+    s32 i;
+
+    func_800E18D8_minigame();
+    D_8010CBD0_popgun_pickoff[2] = func_80109108_popgun_pickoff(0x530002);
+    D_8010CBD0_popgun_pickoff[3] = func_80109108_popgun_pickoff(0x530003);
+    D_8010CBD0_popgun_pickoff[10] = func_80109108_popgun_pickoff(0x530006);
+    D_800EC280_minigame = 0;
+    for (i = 0; i < 2; i++) {
+        D_800EC598_minigame[D_800EC280_minigame++] = omAddObj(2, 11, 50, -1, func_80107B20_popgun_pickoff);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", D_8010CA78_popgun_pickoff);
 
