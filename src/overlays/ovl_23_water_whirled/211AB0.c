@@ -171,6 +171,7 @@ extern s32 D_8010AC58_water_whirled[4]; /* per player sprites */
 extern s32 D_8010AC68_water_whirled[4];
 extern s32 D_8010AC78_water_whirled[4];
 extern s32 D_8010A3EC_water_whirled[4]; /* blink timer per player */
+f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1243,7 +1244,52 @@ s32 func_8010960C_water_whirled(omObjData* obj) {
     return 3;
 }
 
+#ifdef NON_MATCHING
+/* Masked 0, raw 44: $f22/$f24 swapped between a and b. */
+/* Steering offset: the angle between the course direction at the rider (along the straights, round the
+   half circles) and its heading. */
+void func_801096BC_water_whirled(omObjData* obj) {
+    MgWork* work;
+    Vec dir;
+    f32 x;
+    f32 z;
+    f32 a;
+    f32 b;
+    f32 h;
+
+    work = obj->data;
+    x = obj->trans.x;
+    z = obj->trans.z;
+    if ((x > -1000.0f) & (x < 1000.0f)) {
+        if (z > 0.0f) {
+            dir.x = 1.0f;
+            dir.y = 0.0f;
+            dir.z = 0.0f;
+        } else {
+            dir.x = -1.0f;
+            dir.y = 0.0f;
+            dir.z = 0.0f;
+        }
+    } else {
+        if (x > 0.0f) {
+            a = atan2df(obj->trans.x - 1000.0f, obj->trans.z);
+            b = a + 10.0f;
+            dir.x = sindf(b) - sindf(a);
+            dir.y = 0.0f;
+        } else {
+            a = atan2df(obj->trans.x + 1000.0f, obj->trans.z);
+            b = a + 10.0f;
+            dir.x = sindf(b) - sindf(a);
+            dir.y = 0.0f;
+        }
+        dir.z = cosdf(b) - cosdf(a);
+    }
+    h = work->unk3C;
+    work->unk60 = func_800E2ED4_minigame(dir.x, dir.z, sindf(h), cosdf(h));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801096BC_water_whirled);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801098AC_water_whirled);
 
