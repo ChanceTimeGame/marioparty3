@@ -456,3 +456,7 @@ D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
 /* m5 l7: 3010E0 .data s16 after D_8010D1B4 (title frame; a separate variable in C) */
 D_8010D1B6_game_guys_lucky_7 = D_8010D1B4_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1C0 (play step; a separate variable in C) */
+D_8010D1C2_game_guys_lucky_7 = D_8010D1C0_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1C4 (spin step; a separate variable in C) */
+D_8010D1C6_game_guys_lucky_7 = D_8010D1C4_game_guys_lucky_7 + 0x2;
