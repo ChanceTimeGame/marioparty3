@@ -277,7 +277,7 @@ void func_80105C60_mpiq(omObjData* obj) {
         HuAudSeqFadeOut(0x1E);
         WipeCreateOut(0, 0x14);
     }
-    switch (((u8 (*)(omObjData*))(void*)func_800E6F40_minigame)(obj)) { /* retail passes obj */
+    switch (((u8 (*)())func_800E6F40_minigame)(obj)) { /* retail passes obj */
     case 0:
     case 1:
     case 2:
@@ -1464,9 +1464,9 @@ s32 func_801096C0_mpiq(s32 q, s32 idx) {
         case 0x5314:
             for (i = 0; i < 6; i++) {
                 if (mes == 0x5312) {
-                    val[i] = GwCommon.unk_1D[2 + i * 9];
+                    val[i] = (u8)GwCommon.unk_1D[2 + i * 9];
                 } else {
-                    val[i] = GwCommon.unk_1D[0x38 + i * 9];
+                    val[i] = (u8)GwCommon.unk_1D[0x38 + i * 9];
                 }
                 id[i] = i;
             }
@@ -1509,7 +1509,7 @@ s32 func_801096C0_mpiq(s32 q, s32 idx) {
         case 0x5316:
             n = 0;
             for (i = 0; i < 6; i++) {
-                if (GwCommon.unk_1D[2 + i * 9] != 0) {
+                if ((u8)GwCommon.unk_1D[2 + i * 9] != 0) {
                     val[n++] = i;
                 }
             }
@@ -1517,7 +1517,7 @@ s32 func_801096C0_mpiq(s32 q, s32 idx) {
         case 0x5318:
             n = 0;
             for (i = 0; i < 6; i++) {
-                if (GwCommon.unk_1D[0x38 + i * 9] != 0) {
+                if ((u8)GwCommon.unk_1D[0x38 + i * 9] != 0) {
                     val[n++] = i;
                 }
             }
@@ -1628,32 +1628,32 @@ s32 func_801096C0_mpiq(s32 q, s32 idx) {
     } else {
         switch (idx * 4 + 0x5500) {
         case 0x5578:
-            if (!(GwCommon.unk_1D[2] != 0)) {
+            if (!((u8)GwCommon.unk_1D[2] != 0)) {
                 ok = 0;
             }
             break;
         case 0x557C:
-            if (!(GwCommon.unk_1D[0xB] != 0)) {
+            if (!((u8)GwCommon.unk_1D[0xB] != 0)) {
                 ok = 0;
             }
             break;
         case 0x5580:
-            if (!(GwCommon.unk_1D[0x14] != 0)) {
+            if (!((u8)GwCommon.unk_1D[0x14] != 0)) {
                 ok = 0;
             }
             break;
         case 0x5584:
-            if (!(GwCommon.unk_1D[0x1D] != 0)) {
+            if (!((u8)GwCommon.unk_1D[0x1D] != 0)) {
                 ok = 0;
             }
             break;
         case 0x5588:
-            if (!(GwCommon.unk_1D[0x26] != 0)) {
+            if (!((u8)GwCommon.unk_1D[0x26] != 0)) {
                 ok = 0;
             }
             break;
         case 0x558C:
-            if (!(GwCommon.unk_1D[0x2F] != 0)) {
+            if (!((u8)GwCommon.unk_1D[0x2F] != 0)) {
                 ok = 0;
             }
             break;
