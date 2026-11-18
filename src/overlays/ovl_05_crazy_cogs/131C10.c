@@ -17,6 +17,8 @@
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
 
+#define CG_ABS(x) ((x) < 0.0f ? -(x) : (x))
+
 /* One slot of the overlay's object table (D_8010B9F0_crazy_cogs, 70 x 0x84). */
 typedef struct CgEnt {
     /* 0x00 */ omObjData *obj;
@@ -76,6 +78,7 @@ typedef struct CgCamera {
 } CgCamera; // Size 0x2C
 
 void osSyncPrintf(const char *fmt, ...);
+f32 sqrtf(f32);
 void func_8000BC48_main(u16, s32);
 s32 func_8000B710_main(s32 arg0);
 void func_800E131C_minigame(omObjData *obj, f32 arg1);
@@ -194,9 +197,78 @@ s32 func_80105B7C_crazy_cogs(s32 max) {
     return rand8() % max;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80105BD0_crazy_cogs);
+/* The cog speed under an object: 55 on the big cog's rim, 28 inside it, 1 or 55 beyond it. */
+f32 func_80105BD0_crazy_cogs(omObjData *obj) {
+    f32 x;
+    f32 z;
+    f32 d;
+    f32 ret;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80105E4C_crazy_cogs);
+    x = (s32)CG_ABS(obj->trans.x);
+    z = (s32)CG_ABS(obj->trans.z);
+    d = sqrtf(x * x + z * z);
+    if (d > 480.0f) {
+        ret = 1.0f;
+        x = (s32)CG_ABS(obj->trans.x - 580.0f);
+        z = (s32)CG_ABS(obj->trans.z + 450.0f);
+        if (sqrtf(x * x + z * z) <= 380.0f) {
+            ret = 55.0f;
+        }
+    } else if ((d <= 480.0f) & (d > 350.0f)) {
+        ret = 55.0f;
+    } else {
+        ret = 28.0f;
+    }
+    return ret;
+}
+
+/* A rough angle (0-360, linear in each quadrant) of the direction (x, z). */
+f32 func_80105E4C_crazy_cogs(f32 x, f32 z) {
+    f32 ret = 0.0f;
+    s32 q = 0;
+    f32 ax;
+    f32 az;
+
+    if (x >= 0.0f) {
+        q |= 1;
+    } else {
+        q |= 2;
+    }
+    if (z < 0.0f) {
+        q |= 4;
+    } else {
+        q |= 8;
+    }
+    ax = CG_ABS(x);
+    az = CG_ABS(z);
+    switch (q) {
+    case 5:
+        if (x == 0.0f) {
+            return 0.0f;
+        }
+        ret = (90.0f / (ax + az)) * ax;
+        break;
+    case 9:
+        if (x == 0.0f) {
+            return 180.0f;
+        }
+        if (z == 0.0f) {
+            return 90.0f;
+        }
+        ret = (90.0f / (ax + az)) * az + 90.0f;
+        break;
+    case 10:
+        if (x == 0.0f) {
+            return 270.0f;
+        }
+        ret = (90.0f / (ax + az)) * ax + 180.0f;
+        break;
+    case 6:
+        ret = (90.0f / (ax + az)) * az + 270.0f;
+        break;
+    }
+    return ret;
+}
 
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2) {
     if (motion < 10) {
