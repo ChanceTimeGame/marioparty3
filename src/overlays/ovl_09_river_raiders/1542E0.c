@@ -91,8 +91,10 @@ extern f32 D_8010D88C_river_raiders[]; /* = D_8010D888_river_raiders[1]: the y c
 extern RrEnt D_8010D9F0_river_raiders[100];
 extern RrEnt D_8010DA74_river_raiders[]; /* = D_8010D9F0_river_raiders[1] */
 extern RrEnt D_8010DAF8_river_raiders[]; /* = D_8010D9F0_river_raiders[2] */
+extern RrEnt D_8010DB7C_river_raiders[3]; /* = D_8010D9F0_river_raiders[3..5] */
 extern RrEnt D_8010DD08_river_raiders[3]; /* = D_8010D9F0_river_raiders[6..8] */
 extern omObjData *D_8010DE94_river_raiders; /* = D_8010D9F0_river_raiders[9].obj */
+extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: river objects (rocks, coins) */
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
@@ -108,6 +110,8 @@ void func_80105FA0_river_raiders(omObjData *obj);
 void func_801060BC_river_raiders(omObjData *obj);
 void func_80106244_river_raiders(omObjData *obj);
 void func_80106300_river_raiders(omObjData *obj);
+void func_80106448_river_raiders(omObjData *obj);
+void func_801069A4_river_raiders(omObjData *obj);
 
 void func_801059A0_river_raiders(void) {
     func_8010D268_river_raiders();
@@ -414,11 +418,127 @@ void func_80106448_river_raiders(omObjData *obj) {
     Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801069A4_river_raiders);
+void func_801069A4_river_raiders(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x2A0000, 0x99);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 15.0f;
+    obj->trans.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    func_8001C258_main(obj->model[0], 4, 0);
+    obj->func = func_80106448_river_raiders;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106A54_river_raiders);
+void func_80106A54_river_raiders(void) {
+    omObjData *obj;
+    RrEnt *ent;
+    s16 i;
 
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010DB7C_river_raiders[i];
+        obj = omAddObj(800, 1, 10, -1, func_801069A4_river_raiders);
+        obj->work[0] = i;
+        ent->obj = obj;
+    }
+}
+
+#ifdef NON_MATCHING
+/* CPU steering for a raft: picks the nearest target ahead and steers toward it (D_8010DE94: the raft's
+ * entity; unk04 the chosen direction 0 none, 1 left, 2 right; unk06 a countdown; unk0A a repeat delay). */
+void func_80106AF8_river_raiders(omObjData *obj) {
+    RrEnt *raft = (RrEnt *)&D_8010DE94_river_raiders;
+    u16 player = obj->work[0];
+    s16 best = 0;
+    f32 bestDist = 5000.0f;
+    u8 dir = 0;
+    omObjData *tgt;
+    RrEnt *ent;
+    f32 dx, dz;
+    f32 dist;
+    s16 i;
+
+    if (--raft->unk06 <= 0) {
+        raft->unk06 = 0;
+    }
+    if ((u16)(raft->unk06 % 3) < 2) {
+        func_8001C258_main(obj->model[5], 4, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+    } else {
+        func_8001C258_main(obj->model[5], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+    }
+    if (raft->unk06 < 31) {
+        dir = rand8();
+        if ((GwPlayer[player].cpu_difficulty == 0 && dir < 30) || (GwPlayer[player].cpu_difficulty == 1 && dir < 150) ||
+            (GwPlayer[player].cpu_difficulty == 2 && dir < 200) || (GwPlayer[player].cpu_difficulty == 3 && dir < 255)) {
+            for (i = 19; i >= 0; i--) {
+                ent = &D_8010DF18_river_raiders[i];
+                tgt = ent->obj;
+                dx = tgt->trans.x - obj->trans.x;
+                dz = tgt->trans.z - obj->trans.z;
+                dist = sqrtf(dx * dx + dz * dz);
+                if (tgt->trans.z < obj->trans.z && tgt->trans.z > -1500.0f) {
+                    if (ent->unk04 == 1 && dist < bestDist) {
+                        best = i;
+                        bestDist = dist;
+                    }
+                }
+            }
+            tgt = D_8010DF18_river_raiders[best].obj;
+            if (tgt->trans.x + 50.0f + 30.0f < obj->trans.x) {
+                dir = 1;
+            }
+            if (obj->trans.x < tgt->trans.x - 50.0f - 30.0f) {
+                dir = 2;
+            }
+            if (obj->trans.x <= tgt->trans.x + 50.0f + 30.0f && tgt->trans.x - 50.0f - 30.0f <= obj->trans.x) {
+                dir = 0;
+            }
+            bestDist = 5000.0f;
+            for (i = 23; i >= 20; i--) {
+                ent = &D_8010DF18_river_raiders[i];
+                tgt = ent->obj;
+                dx = tgt->trans.x - obj->trans.x;
+                dz = tgt->trans.z - obj->trans.z;
+                dist = sqrtf(dx * dx + dz * dz);
+                if (tgt->trans.z < obj->trans.z && tgt->trans.z > -1500.0f) {
+                    if (ent->unk04 == 1 && dist < bestDist) {
+                        best = i;
+                        bestDist = dist;
+                    }
+                }
+            }
+            tgt = D_8010DF18_river_raiders[best].obj;
+            if (tgt->trans.x + 50.0f + 30.0f < obj->trans.x) {
+                dir = 1;
+            }
+            if (obj->trans.x < tgt->trans.x - 50.0f - 30.0f) {
+                dir = 2;
+            }
+            if (obj->trans.x <= tgt->trans.x + 50.0f + 30.0f && tgt->trans.x - 50.0f - 30.0f <= obj->trans.x) {
+                dir = 0;
+            }
+        }
+    }
+    if (--raft->unk0A <= 0) {
+        raft->unk0A = 0;
+    }
+    if (dir == 0) {
+        raft->unk04 = 0;
+    }
+    if (dir % 5 == 1 && raft->unk0A == 0) {
+        raft->unk04 = 1;
+        raft->unk0A = 30;
+    }
+    if (dir % 5 == 2 && raft->unk0A == 0) {
+        raft->unk04 = 2;
+        raft->unk0A = 30;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106AF8_river_raiders);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010716C_river_raiders);
 
