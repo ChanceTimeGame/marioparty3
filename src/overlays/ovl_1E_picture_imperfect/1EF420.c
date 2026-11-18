@@ -64,6 +64,7 @@ void func_800142A0_main(s32);
 void func_8004AD70_main(void);
 void func_8000BC48_main(u16, s32);
 void func_8000BB54_main(u16 arg0);
+void func_8000BD50_main(u16 spriteId, s16 frame);
 
 extern s32 D_800A178C_main[][6];
 
@@ -115,6 +116,7 @@ void func_80109608_picture_imperfect(omObjData* obj);
 extern s16 D_80109FE0_picture_imperfect; /* looping sound handle, -1 none */
 extern s16 D_80109FE2_picture_imperfect;
 extern u8 D_80109FE4_picture_imperfect;  /* result state */
+extern s16 D_80109FE8_picture_imperfect[4][2]; /* centre of each screen quarter */
 extern s8 D_80109FF8_picture_imperfect[4]; /* players with the most pieces, -1 none */
 extern s8 D_80109FFC_picture_imperfect[4][5]; /* column each player stopped each row at */
 extern s32 D_8010A010_picture_imperfect;
@@ -126,6 +128,7 @@ extern u8 D_8010A030_picture_imperfect[4][5]; /* column order, one row per layou
 extern u32 D_8010A044_picture_imperfect;       /* frame counter of the row scroll */
 
 extern s8 D_8010A110_picture_imperfect; /* number of winners */
+extern s16 D_8010A11A_picture_imperfect[4]; /* score display timer */
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A140_picture_imperfect[4]; /* winners */
 extern u8 D_8010A150_picture_imperfect; /* picture set: 2 - D_800CE20A_main */
@@ -928,11 +931,80 @@ void func_80108688_picture_imperfect(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108A64_picture_imperfect);
+/* Hide the sprites of the row the player is on. */
+void func_80108A64_picture_imperfect(PiPlayer* ex, s8 player) {
+    s32 i;
+
+    switch (ex->unk00) {
+        case 0:
+            for (i = 0; i < 5; i++) {
+                func_8000BB94_main(D_8010A168_picture_imperfect[player][i]);
+            }
+            break;
+        case 1:
+            for (i = 0; i < 5; i++) {
+                func_8000BB94_main(D_8010A190_picture_imperfect[player][i]);
+            }
+            break;
+        case 2:
+            for (i = 0; i < 5; i++) {
+                func_8000BB94_main(D_8010A1B8_picture_imperfect[player][i]);
+            }
+            break;
+        case 3:
+            for (i = 0; i < 5; i++) {
+                func_8000BB94_main(D_8010A1E0_picture_imperfect[player][i]);
+            }
+            break;
+        case 4:
+            for (i = 0; i < 5; i++) {
+                func_8000BB94_main(D_8010A208_picture_imperfect[player][i]);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108C20_picture_imperfect);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80109284_picture_imperfect);
+/* Score display: digits roll for 30 frames, then show the score, hide at 90. */
+void func_80109284_picture_imperfect(PiPlayer* ex, s8 player) {
+    if (D_8010A11A_picture_imperfect[player] < 30) {
+        if (D_8010A11A_picture_imperfect[player] == 0) {
+            HuAudFXPlay(0x3EC);
+        }
+        func_8000BD50_main(D_8010A28E_picture_imperfect[player], (u32)(rand8() * 5) >> 7);
+        func_8000BBD4_main(D_8010A28E_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 32,
+                           D_80109FE8_picture_imperfect[player][1]);
+        func_8000BB54_main(D_8010A28E_picture_imperfect[player]);
+        func_8000BD50_main(D_8010A296_picture_imperfect[player], (u32)(rand8() * 5) >> 7);
+        func_8000BBD4_main(D_8010A296_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 12,
+                           D_80109FE8_picture_imperfect[player][1]);
+        func_8000BB54_main(D_8010A296_picture_imperfect[player]);
+        func_8000BBD4_main(D_8010A29E_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] + 20,
+                           D_80109FE8_picture_imperfect[player][1] + 4);
+        func_8000BB54_main(D_8010A29E_picture_imperfect[player]);
+    } else if (D_8010A11A_picture_imperfect[player] == 30) {
+        HuAudFXPlay(0x3ED);
+        if (ex->unk04 >= 10) {
+            func_8000BD50_main(D_8010A28E_picture_imperfect[player], ex->unk04 / 10);
+            func_8000BBD4_main(D_8010A28E_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 32,
+                               D_80109FE8_picture_imperfect[player][1]);
+        } else {
+            func_8000BB94_main(D_8010A28E_picture_imperfect[player]);
+        }
+        func_8000BD50_main(D_8010A296_picture_imperfect[player], ex->unk04 % 10);
+        func_8000BBD4_main(D_8010A296_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 12,
+                           D_80109FE8_picture_imperfect[player][1]);
+    } else if (D_8010A11A_picture_imperfect[player] == 90) {
+        func_8000BB94_main(D_8010A296_picture_imperfect[player]);
+        func_8000BB94_main(D_8010A28E_picture_imperfect[player]);
+        func_8000BB94_main(D_8010A29E_picture_imperfect[player]);
+        if (player == 3) {
+            D_80109FE4_picture_imperfect = 2;
+        }
+    }
+    D_8010A11A_picture_imperfect[player]++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80109608_picture_imperfect);
 
