@@ -100,6 +100,19 @@ extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: ri
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+extern s8 D_80110D80_river_raiders;
+extern s8 D_80110D81_river_raiders;
+extern s16 D_80110D82_river_raiders;
+extern s16 D_80110D86_river_raiders;
+extern s16 D_80110DB6_river_raiders;
+extern s16 D_80110DB8_river_raiders;
+extern s8 D_80110DC0_river_raiders;
+void func_8010C494_river_raiders(omObjData *obj);
+void func_8010CADC_river_raiders(omObjData *obj);
+void func_8010C980_river_raiders(void);
+void func_8010ABA0_river_raiders(void);
+void func_8010C890_river_raiders(void);
+void func_80108574_river_raiders(void);
 extern u8 D_80110D91_river_raiders;    /* team-1 rafts given a lane */
 extern u8 D_80110DBA_river_raiders[3]; /* the lanes given */
 extern RrXY D_8010D870_river_raiders[3]; /* team-1 portrait positions by lane */
@@ -115,7 +128,7 @@ extern f32 D_8010D9DC_river_raiders[]; /* [0] paddle yaw, [1] = D_8010D9E0_river
 extern s16 D_8010D9E4_river_raiders; /* the winners' bounce timer */
 extern s8 D_8010D9E6_river_raiders;
 extern s16 D_80110DBE_river_raiders; /* the team-1 finish sway direction, -1 or 1 */
-extern f32 D_80110DC8_river_raiders[6]; /* x bounds of the three lanes (min, max pairs) around the raft */
+extern f32 D_80110DC8_river_raiders[3][2]; /* x bounds of the three lanes (min, max pairs) around the raft */
 extern s16 D_80110DE0_river_raiders;    /* the engine sound, -1 none */
 extern s16 D_80110DE4_river_raiders;    /* its pitch */
 extern f32 D_8010D9E0_river_raiders[]; /* [0]: the steering lean, -10..10 */
@@ -727,12 +740,12 @@ void func_801072FC_river_raiders(omObjData *obj) {
     if (D_80110DE0_river_raiders != -1) {
         HuAudFXPitchSet(D_80110DE0_river_raiders, D_80110DE4_river_raiders);
     }
-    D_80110DC8_river_raiders[0] = obj->trans.x - 450.0f;
-    D_80110DC8_river_raiders[1] = obj->trans.x + 150.0f;
-    D_80110DC8_river_raiders[2] = obj->trans.x - 300.0f;
-    D_80110DC8_river_raiders[3] = obj->trans.x + 300.0f;
-    D_80110DC8_river_raiders[4] = obj->trans.x - 150.0f;
-    D_80110DC8_river_raiders[5] = obj->trans.x + 450.0f;
+    D_80110DC8_river_raiders[0][0] = obj->trans.x - 450.0f;
+    D_80110DC8_river_raiders[0][1] = obj->trans.x + 150.0f;
+    D_80110DC8_river_raiders[1][0] = obj->trans.x - 300.0f;
+    D_80110DC8_river_raiders[1][1] = obj->trans.x + 300.0f;
+    D_80110DC8_river_raiders[2][0] = obj->trans.x - 150.0f;
+    D_80110DC8_river_raiders[2][1] = obj->trans.x + 450.0f;
 }
 
 /* The raft (team 0): engine sound, steering while racing, the crash wobble, the finish bounce; then places its
@@ -944,11 +957,11 @@ void func_80108678_river_raiders(omObjData *obj) {
     }
     x = obj->trans.x + ent->unk18;
     ent->unk12 = 0;
-    if (x - 65.0f < D_80110DC8_river_raiders[obj->work[2] * 2]) {
+    if (x - 65.0f < D_80110DC8_river_raiders[obj->work[2]][0]) {
         D_80110D98_river_raiders[obj->work[1]][3] = 1;
     }
     hit = 0;
-    if (x + 65.0f > D_80110DC8_river_raiders[obj->work[2] * 2 + 1]) {
+    if (x + 65.0f > D_80110DC8_river_raiders[obj->work[2]][1]) {
         D_80110D98_river_raiders[obj->work[1]][3] = 2;
     }
     for (i = 0; i < 3; i++) {
@@ -1083,12 +1096,12 @@ void func_80108ACC_river_raiders(void) {
                 changed = 1;
             }
             if (D_80110D98_river_raiders[obj->work[1]][3] == 1) {
-                obj->trans.x = D_80110DC8_river_raiders[obj->work[2] * 2] + 65.0f;
+                obj->trans.x = D_80110DC8_river_raiders[obj->work[2]][0] + 65.0f;
                 ent->unk18 = 0.0f;
                 changed = 1;
             }
             if (D_80110D98_river_raiders[obj->work[1]][3] == 2) {
-                obj->trans.x = D_80110DC8_river_raiders[obj->work[2] * 2 + 1] - 65.0f;
+                obj->trans.x = D_80110DC8_river_raiders[obj->work[2]][1] - 65.0f;
                 ent->unk18 = 0.0f;
                 changed = 1;
             }
@@ -1605,7 +1618,28 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010BE
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C494_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010C890_river_raiders);
+/* Creates the 30 river objects (D_8010DF18_river_raiders): 0..19 rocks, 20..23 kind 1, 24..29 kind 2. */
+void func_8010C890_river_raiders(void) {
+    RrEnt *ent;
+    omObjData *obj;
+    s16 i;
+
+    for (i = 0; i < 30; i++) {
+        ent = &D_8010DF18_river_raiders[i];
+        obj = omAddObj(550, 5, 5, -1, func_8010C494_river_raiders);
+        obj->work[0] = i;
+        if (i < 20) {
+            obj->work[1] = 0;
+        }
+        if (i >= 20 && i < 24) {
+            obj->work[1] = 1;
+        }
+        if (i >= 24) {
+            obj->work[1] = 2;
+        }
+        ent->obj = obj;
+    }
+}
 
 void func_8010C980_river_raiders(void) {
     u32 i;
@@ -1644,7 +1678,57 @@ void func_8010CA84_river_raiders(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CADC_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CF00_river_raiders);
+/* Minigame start: clears the race state and creates every object. */
+void func_8010CF00_river_raiders(omObjData *obj) {
+    u8 i;
+    u8 j;
+
+    D_80110DE2_river_raiders = 0;
+    D_80110D90_river_raiders = 0;
+    D_8010D9E6_river_raiders = 50;
+    D_80110D84_river_raiders = 0;
+    D_80110DBD_river_raiders = 0;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 2; j++) {
+            D_80110DC8_river_raiders[i][j] = 0.0f;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        D_80110DBA_river_raiders[i] = 5;
+    }
+    D_80110D91_river_raiders = 0;
+    D_80110D81_river_raiders = 0;
+    D_80110DC0_river_raiders = 0;
+    D_80110D80_river_raiders = 0;
+    D_80110DB6_river_raiders = 0;
+    for (i = 0; i < 5; i++) {
+        D_8010D9D0_river_raiders[i] = 0.0f;
+    }
+    if (rand8() & 1) {
+        D_80110DBE_river_raiders = 1;
+    } else {
+        D_80110DBE_river_raiders = -1;
+    }
+    D_8010D9E4_river_raiders = 0;
+    if (!(rand8() & 1)) {
+        D_80110D82_river_raiders = 0;
+    } else {
+        D_80110D82_river_raiders = 1;
+    }
+    D_80110DB8_river_raiders = -1;
+    D_80110DE0_river_raiders = -1;
+    func_8010C980_river_raiders();
+    func_801061A0_river_raiders();
+    func_801063FC_river_raiders();
+    func_80108574_river_raiders();
+    func_8010ABA0_river_raiders();
+    func_8010C890_river_raiders();
+    func_80106A54_river_raiders();
+    func_80105EAC_river_raiders();
+    D_80110D86_river_raiders = func_8000D658_main(0x2A9, 10);
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_8010CADC_river_raiders;
+}
 
 void func_8010D0F0_river_raiders(void) {
 }
