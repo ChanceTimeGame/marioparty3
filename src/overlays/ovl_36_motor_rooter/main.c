@@ -1719,14 +1719,11 @@ void func_8010AF0C_motor_rooter(FuncContext *ctx) {
     f32 rot = 0.0f;
     s16 idx = object->work[0];
     f32 yaw;
-    s32 t;
-    s32 v;
     f32 mtxX[16];
     f32 mtxY[16];
     f32 mtx[16];
     Vec in;
     Vec out;
-    s32 pad[2];
 
     if (work->unk08 & 0x80) {
         m254_ResetFunc(object->work[0] + 4, ctx);
@@ -1737,14 +1734,8 @@ void func_8010AF0C_motor_rooter(FuncContext *ctx) {
         ctx->state = 1;
     }
     work->unk0C += work->unk10;
-    t = ctx->work.s16[0];
-    if (t + 2 > 360) {
-        v = 0;
-    } else {
-        v = t + 2;
-    }
-    ctx->work.s16[0] = v;
-    ctx->work.f32[0] = sindf((s16)v) * 20.0 * 0.05;
+    ctx->work.s16[0] = (ctx->work.s16[0] + 2 > 360) ? 0 : ctx->work.s16[0] + 2;
+    ctx->work.f32[0] = sindf(ctx->work.s16[0]) * 20.0 * 0.05;
     if (work->unk08 & 2) {
         yaw = D_8011349C_motor_rooter[ctx->work.s8[0]] + work->unk18;
         if (++ctx->work.s8[0] >= 4) {
@@ -1867,7 +1858,44 @@ void func_8010B394_motor_rooter(FuncContext *ctx) {
 }
 /* </func_8010B394_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010B970_motor_rooter);
+/* <func_8010B970_motor_rooter> */
+void func_8010B970_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+
+    if (work->unk08 & 2) {
+        return;
+    }
+    switch (ctx->state) {
+    case 0:
+        ctx->work.s8[0] = 0;
+        if (work->unk08 & 4) {
+            ctx->work.f32[0] = work->unk18;
+            ctx->work.f32[1] = work->unk18 + 45.0f;
+            work->unk16 = (work->unk16 + 1 >= 8) ? 0 : work->unk16 + 1;
+        } else {
+            work->unk16 = (work->unk16 - 1 < 0) ? 7 : work->unk16 - 1;
+            ctx->work.f32[0] = work->unk18;
+            ctx->work.f32[1] = work->unk18 - 45.0f;
+        }
+        ctx->state = 1;
+        break;
+    case 1:
+        work->unk18 = (ctx->work.f32[1] - ctx->work.f32[0]) * sindf(ctx->work.s8[0] / 4.0f * 90.0f) + ctx->work.f32[0];
+        if (work->unk18 > 360.0f) {
+            work->unk18 -= 360.0f;
+        }
+        if (work->unk18 < 0.0f) {
+            work->unk18 += 360.0f;
+        }
+        if (++ctx->work.s8[0] > 4.0f) {
+            work->unk08 &= ~0xC;
+            m254_ResetFunc(object->work[0] + 4, ctx);
+        }
+        break;
+    }
+}
+/* </func_8010B970_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BB78_motor_rooter);
 
