@@ -1023,7 +1023,212 @@ void func_80107E40_crowd_cover(omObjData* obj) {
     obj->func = func_80108238_crowd_cover;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80108238_crowd_cover);
+extern s16 D_8010C714_crowd_cover[][13]; /* billboard frames by facing, -1 ends */
+void func_8001ACDC_main(s16 model);
+f32 func_80108F74_crowd_cover(f32 x, f32 z);
+
+/* Crowd: wander, separate, leave as the timer runs down (fade, walk off or pop). */
+void func_80108238_crowd_cover(omObjData* obj) {
+    CcActor* a;
+    CcActor* b;
+    s32 i;
+    s32 j;
+    s32 frame;
+    s16 mdl;
+    f32 ang;
+    f32 sc;
+
+    a = D_8010CFE0_crowd_cover;
+    for (i = 0; i < D_8010D866_crowd_cover; i++, a++) {
+        a->unk09--;
+        switch (a->unk08) {
+            case 0:
+                a->unk09 = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 10.0) + 15;
+                a->unk08 = 1;
+                a->unk28.x = a->unk28.z = 0.0f;
+                if (func_80108F1C_crowd_cover() & 1) {
+                    break;
+                }
+                a->unk04 = (f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 8.0;
+                if (func_80108F1C_crowd_cover() & 1) {
+                    break;
+                }
+            case 2:
+                a->unk28.x = sindf(a->unk04 * 45.0) * 4.0;
+                a->unk28.z = cosdf(a->unk04 * 45.0) * 4.0;
+                a->unk09 = 20;
+                a->unk08 = 3;
+                break;
+            case 1:
+                /* low byte of the s16 direction (big-endian) */
+                a->unk06 = ((u8*)&a->unk04)[1] & 7;
+                if (a->unk09 == 0) {
+                    a->unk08 = 0;
+                }
+                break;
+            case 3:
+                a->unk0C += 0.5;
+                if (a->unk09 == 0) {
+                    a->unk08 = 0;
+                }
+                break;
+            case 4:
+                switch (D_8010D860_crowd_cover) {
+                    case 0:
+                        if (a->pos.x >= 0.0) {
+                            a->unk28.x = 8.0f;
+                            a->unk04 = 2;
+                            if (a->pos.x >= 500.0) {
+                                a->unk08 = 6;
+                            }
+                        } else {
+                            a->unk28.x = -8.0f;
+                            a->unk04 = 6;
+                            if (a->pos.x <= -500.0) {
+                                a->unk08 = 6;
+                            }
+                        }
+                        a->unk0C += 1.0;
+                        break;
+                    case 1:
+                        a->unk04 = 8;
+                        a->unk0C += 0.5;
+                        a->unk07 = a->unk0C;
+                        sc = a->unk0C * 0.1 + 2.5;
+                        func_8010AF14_crowd_cover(a->board, sc, sc, 1.0f);
+                        if (a->unk07 >= 8) {
+                            func_8010AFB4_crowd_cover(a->board, 0x8000);
+                            func_8001C258_main(a->mdl, 4, 4);
+                            mdl = a->unk34; /* the pop effect model */
+                            HuAudFXPlay(0x4B7);
+                            func_8001C258_main(mdl, 4, 0);
+                            Hu3DModelPosSet(mdl, a->pos.x, a->pos.y + 40.0, a->pos.z);
+                            Hu3DModelScaleSet(mdl, obj->scale.x, obj->scale.y, obj->scale.z);
+                            func_8001C6A8_main(mdl, 0.0f);
+                            func_8001C92C_main(mdl, 1.5f);
+                            func_8001C814_main(mdl, 1, 0);
+                            a->unk08 = 5;
+                        }
+                        break;
+                    case 2:
+                        a->unk04 = 0;
+                        a->pos.y += 8.0;
+                        a->unk34 = 0.0f;
+                        a->unk38 += 20.0;
+                        if (a->unk38 >= 360.0) {
+                            a->unk38 -= 360.0;
+                        }
+                        a->unk1C.x = sindf(a->unk38) * 6.0;
+                        a->unk09 -= 9;
+                        func_8010B1DC_crowd_cover(a->board, 0, 0, 0, a->unk09);
+                        func_8001F9E4_main(a->mdl, a->unk09);
+                        if (a->unk09 == 0) {
+                            a->unk08 = 6;
+                        }
+                        break;
+                }
+                break;
+            case 5:
+                frame = a->unk34;
+                if (D_800CCF58_main[HmfModelData[frame].unk02].unk02 <= HmfModelData[frame].unk40) {
+                    func_8001ACDC_main(frame);
+                    a->unk08 = 6;
+                }
+                continue;
+            case 6:
+                func_8010AFB4_crowd_cover(a->board, 0x8000);
+                func_8001C258_main(a->mdl, 4, 4);
+                continue;
+        }
+        a->pos.x += a->unk28.x;
+        a->pos.z += a->unk28.z;
+        if (a->unk08 < 4) {
+            if (i >= (s16)(D_8010C6C0_crowd_cover / 30)) {
+                a->unk28.x = a->unk28.z = 0.0f;
+                a->unk08 = 4;
+                a->unk0C = 0.0f;
+                a->unk38 = 0.0f;
+                a->unk09 = 250;
+            }
+            for (j = 0; j < D_8010D866_crowd_cover; j++) {
+                if (i == j) {
+                    continue;
+                }
+                b = &D_8010CFE0_crowd_cover[j];
+                if (b->unk08 < 4 && !(func_80108FDC_crowd_cover(&a->pos, &b->pos) >= 40.0)) {
+                    ang = func_80108F74_crowd_cover(b->pos.x - a->pos.x, b->pos.z - a->pos.z) + 180.0;
+                    a->unk08 = 0;
+                    if (ang >= 360.0) {
+                        ang -= 360.0;
+                    }
+                    a->pos.x = b->pos.x + sindf(ang) * 42.0;
+                    a->pos.z = b->pos.z + cosdf(ang) * 42.0;
+                }
+            }
+            if (a->pos.x > 200.0) {
+                a->unk08 = func_80108F1C_crowd_cover() & 1;
+                a->unk04 = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0) + 5;
+                a->pos.x = 200.0f;
+            } else if (a->pos.x < -200.0) {
+                a->unk08 = func_80108F1C_crowd_cover() & 1;
+                a->unk04 = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0) + 1;
+                a->pos.x = -200.0f;
+            }
+            if (a->pos.z > -60.0) {
+                a->unk08 = func_80108F1C_crowd_cover() & 1;
+                a->unk04 = (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0) + 3;
+                a->pos.z = -60.0f;
+            } else if (a->pos.z < -500.0) {
+                a->unk08 = func_80108F1C_crowd_cover() & 1;
+                a->unk04 = ((s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0) + 7) & 7;
+                a->pos.z = -500.0f;
+            }
+        }
+        /* low byte of the s16 direction (big-endian) */
+        a->unk06 = ((u8*)&a->unk04)[1];
+        a->unk07 = a->unk0C;
+        frame = D_8010C714_crowd_cover[a->unk06][a->unk07];
+        if (frame == -1) {
+            a->unk07 = 0;
+            a->unk0C = 0.0f;
+            frame = D_8010C714_crowd_cover[a->unk06][a->unk07];
+        }
+        if (D_8010D860_crowd_cover == 2) {
+            a->unk34 += 10.0;
+            if (a->unk34 >= 360.0) {
+                a->unk34 -= 360.0;
+            }
+            a->unk1C.y = sindf(a->unk34) * 8.0 + 20.0;
+            a->pos.x -= a->unk28.x * 0.5;
+            a->pos.z -= a->unk28.z * 0.5;
+            frame = a->unk04 * 4;
+            if (frame != (s32)a->unk3C) {
+                if ((s32)a->unk3C < frame) {
+                    if (frame - (s32)a->unk3C < 16) {
+                        a->unk3C += 1.0;
+                    } else {
+                        a->unk3C -= 1.0;
+                    }
+                } else if (frame < (s32)a->unk3C) {
+                    if (frame - (s32)a->unk3C >= -15) {
+                        a->unk3C -= 1.0;
+                    } else {
+                        a->unk3C += 1.0;
+                    }
+                }
+                if (a->unk3C >= 30.0) {
+                    a->unk3C -= 30.0;
+                } else if (a->unk3C < 0.0) {
+                    a->unk3C += 30.0;
+                }
+                frame = a->unk3C;
+            }
+        }
+        func_8010AE5C_crowd_cover(a->board, a->pos.x + a->unk1C.x, a->pos.y + a->unk1C.y, a->pos.z);
+        func_8010AD3C_crowd_cover(a->board, frame);
+        Hu3DModelPosSet(a->mdl, a->pos.x, 0.0f, a->pos.z - 5.0);
+    }
+}
 
 s32 func_80108F1C_crowd_cover(void) {
     D_8010C800_crowd_cover = D_8010C800_crowd_cover * 0x41C64E6D + 0x3039;
@@ -1160,72 +1365,6 @@ void func_8010949C_crowd_cover(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 f
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010980C_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE38_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE3C_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", jtbl_8010CE40_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE60_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE68_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE70_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE78_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE80_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE88_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE90_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CE98_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEA0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEA8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEB0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEB8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEC0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEC8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CED0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CED8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEE0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEE8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEF0_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CEF8_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF00_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF08_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF10_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF18_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF20_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF28_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF30_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF38_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF40_crowd_cover);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CF48_crowd_cover);
 
 #ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
