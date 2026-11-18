@@ -112,6 +112,9 @@ typedef struct FbHmfPart {
     /* 0x40 */ Vec scale;
 } FbHmfPart;
 
+/* omObjData::work[n] holding a float (hook speed / scale) */
+#define FB_WORKF(obj, n) (*(f32 *)&(obj)->work[n])
+
 double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void Hu3DAnimInit(s32);
@@ -1025,7 +1028,7 @@ void func_801084E0_fridged_bridges(omObjData *obj) {
     hook = omAddObj(0xA, 0, 0, -1, func_80108C60_fridged_bridges);
     hook->work[0] = (u32)obj;
     hook->work[1] = 0;
-    *(f32 *)&hook->work[2] = 3.0f;
+    FB_WORKF(hook, 2) = 3.0f;
     hook->trans.x = sindf(obj->rot.y) * 80.0f + obj->trans.x;
     hook->trans.z = cosdf(obj->rot.y) * 80.0f + obj->trans.z;
     hook->trans.y = obj->trans.y + 80.0f;
@@ -1156,9 +1159,63 @@ void func_80108BEC_fridged_bridges(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108C60_fridged_bridges);
+#ifdef NON_MATCHING
+/* Released hook: falls into the water, then the next bridge piece rises */
+void func_80108C60_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = ((omObjData *)obj->work[0])->data;
+    u16 model;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108EBC_fridged_bridges);
+    if (obj->work[1] == 0) {
+        model = D_8010DA70_fridged_bridges->model[work->unk02 * 5];
+        obj->trans.y -= FB_WORKF(obj, 2);
+        FB_WORKF(obj, 2) *= 1.4f;
+        if (obj->trans.y < -100.0f) {
+            obj->work[1] = 1;
+            func_8010BFD0_fridged_bridges(0, work->unk02, obj->trans.x, -160.0f, obj->trans.z);
+            func_8001C258_main(model, 4, 4);
+            model = D_8010DA70_fridged_bridges->model[work->unk02 * 5 + work->unk24 + 1];
+            func_8001C258_main(model, 4, 0);
+            func_8004AC98_main(0x42B, work->unk02);
+        }
+        Hu3DModelPosSet(model, obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelRotSet(model, obj->rot.x, obj->rot.y, obj->rot.z);
+        return;
+    }
+    model = D_8010DA70_fridged_bridges->model[work->unk02 * 5 + work->unk24 + 1];
+    obj->trans.y += 8.0f;
+    if (obj->trans.y >= 0.0f) {
+        obj->trans.y = 0.0f;
+    }
+    Hu3DModelPosSet(model, D_8010D9A0_fridged_bridges[work->unk02][work->unk24].u, obj->trans.y,
+                    D_8010D9A0_fridged_bridges[work->unk02][work->unk24].v);
+    Hu3DModelRotSet(model, 0.0f, 0.0f, 0.0f);
+    if (obj->trans.y == 0.0f) {
+        work->unk00 = 1;
+        work->unk24++;
+        omDelObj(obj);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108C60_fridged_bridges);
+#endif
+
+/* Hook sinking and shrinking */
+void func_80108EBC_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = ((omObjData *)obj->work[0])->data;
+    u16 model = D_8010DA70_fridged_bridges->model[work->unk02 * 5];
+    f32 *scale;
+
+    obj->trans.y -= 10.0f;
+    Hu3DModelPosSet(model, obj->trans.x, obj->trans.y, obj->trans.z);
+    scale = &FB_WORKF(obj, 2);
+    *scale -= 0.04f;
+    if (*scale <= 0.0f) {
+        func_8001C258_main(model, 4, 4);
+        omDelObj(obj);
+        return;
+    }
+    Hu3DModelScaleSet(model, *scale, *scale, *scale);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108FBC_fridged_bridges);
 
