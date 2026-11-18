@@ -215,6 +215,7 @@ extern Vec D_8010C6B0_etch_n_catch[3]; /* catcher/cage start positions (x negate
 extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
 extern u8 D_8010C6E8_etch_n_catch[4][3]; /* puff model slots in use */
 extern u8 D_8010C6F4_etch_n_catch[4]; /* puff spacing counters */
+extern u8 D_8010C6E4_etch_n_catch[4]; /* CPU state per player */
 // bss
 extern s16 D_8010C842_etch_n_catch; /* board sprite group */
 extern s16 D_8010C844_etch_n_catch; /* grid sprite group */
@@ -573,7 +574,127 @@ s32 func_80107D38_etch_n_catch(f32 x, f32 z, EtchNCatchWork* w) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107D38_etch_n_catch);
 #endif
 
+/* CPU player input: chases a point beside its team's catcher, then circles the catcher (D_8010C6E4 state 0 approach,
+   1 turn to face along the pen, 2 circle); radius and speed by difficulty. Steers away from the area's edge. */
+#ifdef NON_MATCHING
+void func_80107EA4_etch_n_catch(omObjData* obj) {
+    MgWork* pw = obj->data;
+    EtchNCatchWork* w = D_8010C868_etch_n_catch[pw->unk59];
+    omObjData* c;
+    EtVec2 v;
+    f32 radius;
+    s32 speed;
+    s32 side;
+    f32 x;
+    f32 z;
+
+    if (func_800E6E8C_minigame() == 2) {
+        switch (GwPlayer[pw->unk59].cpu_difficulty) {
+            case 3:
+                speed = 60;
+                radius = 200.0f;
+                break;
+            case 2:
+                radius = 250.0f;
+                speed = 60;
+                break;
+            case 1:
+            default:
+                radius = 300.0f;
+                speed = 57;
+                break;
+            case 0:
+                speed = 54;
+                radius = 350.0f;
+                break;
+        }
+        side = (obj->trans.x < 0.0f) ? 0 : 1;
+        if ((u32)D_8010C858_etch_n_catch[side]->work[0] >= 6 || D_8010C860_etch_n_catch[side]->work[0] != 3) {
+            D_800CBB6E_main[pw->unk57] = 0;
+            D_800D20A1_main[pw->unk57] = 0;
+            return;
+        }
+        if (obj->trans.x < 0.0f) {
+            c = D_8010C858_etch_n_catch[0];
+        } else {
+            c = D_8010C858_etch_n_catch[1];
+        }
+        x = ET_ABS(c->trans.x - obj->trans.x);
+        z = ET_ABS(c->trans.z - obj->trans.z);
+        if (HuSqrtf(x * x + z * z) > 375.0f) {
+            D_8010C6E4_etch_n_catch[pw->unk59] = 0;
+        }
+        switch (D_8010C6E4_etch_n_catch[pw->unk59]) {
+            case 0:
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    z = c->trans.z - 75.0f;
+                } else {
+                    z = c->trans.z + 75.0f;
+                }
+                v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, c->trans.x, z);
+                D_800CBB6E_main[pw->unk57] = speed * v.x;
+                D_800D20A1_main[pw->unk57] = -(speed * v.y);
+                x = ET_ABS(c->trans.x - obj->trans.x);
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    z = ET_ABS((c->trans.z - 75.0f) - obj->trans.z);
+                } else {
+                    z = ET_ABS((c->trans.z + 75.0f) - obj->trans.z);
+                }
+                if (HuSqrtf(x * x + z * z) < 50.0f) {
+                    D_8010C6E4_etch_n_catch[pw->unk59] = 1;
+                }
+                break;
+            case 1:
+                if ((w->unk00 == 1) | (w->unk00 == 4)) {
+                    pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+                    if (ET_ABS(pw->unk3C - 90.0f) < 5.0f) {
+                        pw->unk3C = 90.0f;
+                        D_8010C6E4_etch_n_catch[pw->unk59] = 2;
+                    } else {
+                        D_800CBB6E_main[pw->unk57] = speed >> 1;
+                        D_800D20A1_main[pw->unk57] = 0;
+                    }
+                }
+                if ((w->unk00 == 2) | (w->unk00 == 8)) {
+                    pw->unk3C = func_8010C4F8_etch_n_catch(pw->unk3C);
+                    if (ET_ABS(pw->unk3C - 270.0f) < 5.0f) {
+                        pw->unk3C = 270.0f;
+                        D_8010C6E4_etch_n_catch[pw->unk59] = 2;
+                    } else {
+                        D_800CBB6E_main[pw->unk57] = -speed / 2;
+                        D_800D20A1_main[pw->unk57] = 0;
+                    }
+                }
+                break;
+            case 2:
+                pw->unk3C += 5.0f;
+                if (pw->unk3C > 360.0f) {
+                    pw->unk3C -= 360.0f;
+                }
+                radius += 75.0f;
+                x = sindf(pw->unk3C) * radius + c->trans.x;
+                v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, x,
+                                               cosdf(pw->unk3C) * radius + c->trans.z);
+                D_800CBB6E_main[pw->unk57] = speed * v.x;
+                D_800D20A1_main[pw->unk57] = -(speed * v.y);
+                break;
+        }
+        x = sindf(pw->unk3C) * 65.0f * 0.75f + obj->trans.x;
+        if (func_80107D38_etch_n_catch(x, cosdf(pw->unk3C) * 65.0f * 0.75f + obj->trans.z, w) != 0) {
+            pw->unk3C += 20.0f;
+            if (pw->unk3C > 360.0f) {
+                pw->unk3C -= 360.0f;
+            }
+            x = sindf(pw->unk3C) * 10.0f + obj->trans.x;
+            v = func_8010C574_etch_n_catch(obj->trans.x, obj->trans.z, x, cosdf(pw->unk3C) * 10.0f + obj->trans.z);
+            D_800CBB6E_main[pw->unk57] = speed * v.x;
+            D_800D20A1_main[pw->unk57] = -(speed * v.y);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107EA4_etch_n_catch);
+#endif
 
 /* Limits how fast the player's stick direction may turn: rewrites the stick input so that its angle moves at
    most 30 degrees a frame from the facing pw->unk3C, keeping its magnitude. */
