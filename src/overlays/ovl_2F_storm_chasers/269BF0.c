@@ -1767,7 +1767,6 @@ void func_8010B980_storm_chasers(omObjData *obj) {
 }
 
 /* Ranks the players by score (ties broken at random) into their bonus and rank. */
-#ifdef NON_MATCHING
 void func_8010BA00_storm_chasers(void) {
     s32 rank[4][3]; /* player, score, rank */
     ScPlayer *pl;
@@ -1781,46 +1780,46 @@ void func_8010BA00_storm_chasers(void) {
     }
     for (i = 0; i < 4; i++) {
         pl = &D_8010CD80_storm_chasers[i];
-        if (pl->state != -1) {
-            if (i != 0) {
-                for (j = i - 1; j >= 0; j--) {
-                    if (rank[j][1] < pl->score) {
-                        rank[j + 1][0] = rank[j][0];
-                        rank[j + 1][1] = rank[j][1];
-                        rank[j + 1][2] = rank[j][2] + 1;
-                        rank[j][0] = i;
-                        rank[j][1] = pl->score;
-                    } else if (pl->score >= rank[j][1]) {
-                        if (rank[j][1] != 0) {
-                            if (rand8() & 1) {
-                                rank[j + 1][0] = rank[j][0];
-                                rank[j + 1][1] = rank[j][1];
-                                rank[j + 1][2] = rank[j][2] + 1;
-                                rank[j][0] = i;
-                                rank[j][1] = pl->score;
-                            } else {
-                                rank[j + 1][0] = i;
-                                rank[j + 1][1] = pl->score;
-                                rank[j + 1][2] = rank[j][2] + 1;
-                                break;
-                            }
-                        } else {
-                            rank[j + 1][0] = i;
-                            rank[j + 1][1] = pl->score;
-                            rank[j + 1][2] = rank[j][2];
-                            break;
-                        }
-                    } else {
-                        rank[j + 1][0] = i;
-                        rank[j + 1][1] = pl->score;
-                        rank[j + 1][2] = rank[j][2] + 1;
-                        break;
-                    }
-                }
+        if (pl->state == -1) {
+            continue;
+        }
+        if (i == 0) {
+            rank[0][0] = 0;
+            rank[0][1] = pl->score;
+            rank[0][2] = 0;
+            continue;
+        }
+        for (j = i - 1; j >= 0; j--) {
+            if (pl->score > rank[j][1]) {
+                /* beats rank j: push it down one place */
+                rank[j + 1][0] = rank[j][0];
+                rank[j + 1][1] = rank[j][1];
+                rank[j + 1][2] = rank[j][2] + 1;
+                rank[j][0] = i;
+                rank[j][1] = pl->score;
+            } else if (pl->score < rank[j][1]) {
+                rank[j + 1][0] = i;
+                rank[j + 1][1] = pl->score;
+                rank[j + 1][2] = rank[j][2] + 1;
+                break;
+            } else if (rank[j][1] == 0) {
+                /* tied at zero: same place */
+                rank[j + 1][0] = i;
+                rank[j + 1][1] = pl->score;
+                rank[j + 1][2] = rank[j][2];
+                break;
+            } else if (rand8() & 1) {
+                /* tied: a coin flip decides the order */
+                rank[j + 1][0] = rank[j][0];
+                rank[j + 1][1] = rank[j][1];
+                rank[j + 1][2] = rank[j][2] + 1;
+                rank[j][0] = i;
+                rank[j][1] = pl->score;
             } else {
-                rank[0][0] = 0;
-                rank[0][1] = pl->score;
-                rank[0][2] = 0;
+                rank[j + 1][0] = i;
+                rank[j + 1][1] = pl->score;
+                rank[j + 1][2] = rank[j][2] + 1;
+                break;
             }
         }
     }
@@ -1833,9 +1832,6 @@ void func_8010BA00_storm_chasers(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BA00_storm_chasers);
-#endif
 
 #ifdef NON_MATCHING
 void func_8010BD04_storm_chasers(void) {
