@@ -48,6 +48,23 @@ typedef struct EtVec2 {
     f32 y;
 } EtVec2;
 
+#define ET_ABS(x) (((x) > 0.0f) ? (x) : 0.0f - (x))
+
+/* omObjData::data of a catcher (the two Chain Chomp-like hunters), MgWork plus its own fields */
+typedef struct EtCatcher {
+    /* 0x000 */ MgWork mg;
+    /* 0x15C */ s32 unk15C;
+    /* 0x160 */ u8 unk160; /* index 0/1 */
+    /* 0x161 */ u8 unk161; /* swing direction */
+    /* 0x164 */ f32 unk164; /* sprite scale */
+    /* 0x168 */ f32 unk168;
+    /* 0x16C */ f32 unk16C; /* target sprite angle */
+    /* 0x170 */ f32 unk170; /* sprite angle */
+    /* 0x174 */ f32 unk174; /* swing centre */
+    /* 0x178 */ Vec unk178[5];
+    /* 0x1B4 */ s32 unk1B4;
+} EtCatcher; /* size 0x1B8 */
+
 /* A trail node: 256 per player in D_801113D8[player] */
 typedef struct EtNode {
     /* 0x00 */ u8 unk00; /* in use */
@@ -137,7 +154,14 @@ void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v);
 f32 func_8010C4F8_etch_n_catch(f32 angle);
 EtVec2 func_8010C574_etch_n_catch(s32 x0, s32 y0, s32 x1, s32 y1);
 void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
+void func_8010BD98_etch_n_catch(omObjData* obj);
 // main (more)
+s16 func_8000B838_main(s32 arg0);
+void func_8000BBD4_main(u16 spriteId, s16 x, s16 y);
+s16 InitEspriteSlot(s16 arg0, s16 arg1, u16 arg2);
+void func_8000BD50_main(u16 id, s8 digit);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BF00_main(u16 spriteId, f32 arg1);
 void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
 void func_800E1468_minigame(omObjData* obj);
 extern s32 D_800A178C_main[][6];
@@ -154,7 +178,10 @@ extern s8 D_8010C6AC_etch_n_catch; /* team 0 score */
 extern s8 D_8010C6AD_etch_n_catch; /* team 1 score */
 extern s8 D_8010C6D8_etch_n_catch;
 
+extern s16 D_8010C6A4_etch_n_catch[2][2]; /* score digit positions */
 // bss
+extern u16 D_801113A8_etch_n_catch[2]; /* score digit sprites */
+extern u16 D_801113E8_etch_n_catch[2]; /* catcher sprites */
 extern u8 D_8010C830_etch_n_catch; /* start layout, 0..4 */
 extern EtchNCatchWork* D_8010C868_etch_n_catch[4];
 extern s16 D_8010C846_etch_n_catch; /* grid width */
@@ -774,23 +801,105 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109EB
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010AB7C_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010AD6C_etch_n_catch);
+/* Swings the catcher's sprite angle back and forth by 30 degrees around unk174. */
+void func_8010AD6C_etch_n_catch(EtCatcher* cw) {
+    if (cw->unk161 == 0) {
+        cw->unk170 += 2.0f;
+        if (ET_ABS(cw->unk170 - cw->unk174) >= 30.0f) {
+            cw->unk161 = 1;
+        }
+    } else {
+        cw->unk170 -= 2.0f;
+        if (ET_ABS(cw->unk170 - cw->unk174) >= 30.0f) {
+            cw->unk161 = 0;
+        }
+    }
+    func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk170);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7F0_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010AEE4_etch_n_catch);
+/* Pulses the catcher's sprite scale. Retail: the second and later tests are unreachable or never true
+   as written (unk15C < 16 is checked first). */
+void func_8010AEE4_etch_n_catch(EtCatcher* cw) {
+    if (cw->unk15C < 16) {
+        cw->unk164 -= 0.01f;
+    } else if (cw->unk15C < 8) {
+        cw->unk164 += 0.01f;
+    } else if (cw->unk15C < 10) {
+        cw->unk164 -= 0.01;
+    } else {
+        cw->unk164 += 0.01;
+    }
+    func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk164, cw->unk164);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010AFB8_etch_n_catch);
+/* Turns the catcher's sprite angle toward unk16C by at most 5 degrees. */
+void func_8010AFB8_etch_n_catch(EtCatcher* cw) {
+    f32 d;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B154_etch_n_catch);
+    cw->unk170 = func_8010C4F8_etch_n_catch(cw->unk170);
+    d = cw->unk16C - cw->unk170;
+    if (ET_ABS(d) > 5.0f) {
+        if (((d > 0.0f) & (d < 180.0f)) || ((d < -180.0f) & (d > -360.0f))) {
+            cw->unk170 = cw->unk170 + 5.0f;
+        } else {
+            cw->unk170 = cw->unk170 - 5.0f;
+        }
+    } else {
+        cw->unk170 = d + cw->unk170;
+    }
+    cw->unk170 = func_8010C4F8_etch_n_catch(cw->unk170);
+    func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk170);
+}
+
+/* Whether cell (x, y) is set or at least three of its 4 neighbours are. */
+s32 func_8010B154_etch_n_catch(s16 x, s16 y) {
+    s32 n = 0;
+
+    if (func_80109114_etch_n_catch(x, y) == 0) {
+        n += func_80109114_etch_n_catch(x - 1, y) != 0;
+        n += func_80109114_etch_n_catch(x + 1, y) != 0;
+        n += func_80109114_etch_n_catch(x, y - 1) != 0;
+        n += func_80109114_etch_n_catch(x, y + 1) != 0;
+        return n >= 3;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B24C_etch_n_catch);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010B3B4_etch_n_catch);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BBE4_etch_n_catch);
+/* The score display: two frames, two labels and a digit per team. */
+void func_8010BBE4_etch_n_catch(omObjData* obj) {
+    s16 pos[2][2] = { { 0x23, 0x26 }, { 0xFC, 0x26 } };
+    s16 i;
+    s16 id;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BD98_etch_n_catch);
+    id = func_8000B838_main(0x21002A);
+    for (i = 0; i < 2; i++) {
+        func_8000BBD4_main(InitEspriteSlot(id, 0, 1), pos[i][0], pos[i][1]);
+    }
+    id = func_8000B838_main(0x21001B);
+    for (i = 0; i < 2; i++) {
+        func_8000BBD4_main(InitEspriteSlot(id, 0, 1), pos[i][0] + 16, pos[i][1]);
+    }
+    id = func_8000B838_main(0x31);
+    for (i = 0; i < 2; i++) {
+        D_801113A8_etch_n_catch[i] = InitEspriteSlot(id, 0, 1);
+        func_8000BBD4_main(D_801113A8_etch_n_catch[i], D_8010C6A4_etch_n_catch[i][0], D_8010C6A4_etch_n_catch[i][1]);
+    }
+    obj->func = func_8010BD98_etch_n_catch;
+}
+
+/* Shows the two team scores. */
+void func_8010BD98_etch_n_catch(omObjData* obj) {
+    func_8000BD50_main(D_801113A8_etch_n_catch[0], D_8010C6AC_etch_n_catch % 10);
+    func_8000BBD4_main(D_801113A8_etch_n_catch[0], D_8010C6A4_etch_n_catch[0][0], D_8010C6A4_etch_n_catch[0][1]);
+    func_8000BD50_main(D_801113A8_etch_n_catch[1], D_8010C6AD_etch_n_catch % 10);
+    func_8000BBD4_main(D_801113A8_etch_n_catch[1], D_8010C6A4_etch_n_catch[1][0], D_8010C6A4_etch_n_catch[1][1]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010BE84_etch_n_catch);
 
@@ -875,4 +984,3 @@ void func_8010C628_etch_n_catch(omObjData* obj, f32 scale) {
     Hu3DModelScaleSet(obj->model[2], obj->scale.x, obj->scale.y, obj->scale.z);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C820_etch_n_catch);
