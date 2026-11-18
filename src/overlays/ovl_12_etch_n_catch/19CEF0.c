@@ -33,6 +33,27 @@ typedef struct EtCtrl {
     /* 0x26 */ char unk26[2];
 } EtCtrl; /* size 0x28 */
 
+// Heap-allocated (0x20 bytes) per-player work (D_8010C868[player]); unk0C is the head of a linked list
+// of nodes (func_80108B64 inserts, func_80108BCC removes, func_80108C08 walks).
+typedef struct EtchNCatchWork {
+    /* 0x00 */ s8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
+    /* 0x01 */ s8 unk01;
+    /* 0x02 */ u8 unk02; /* 8 team 0, 1 team 1 */
+    /* 0x03 */ char unk03[5];
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ struct EtchNCatchNode *unk_0C;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s8 unk12;
+    /* 0x13 */ char unk13;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ char unk16;
+    /* 0x17 */ s8 unk17;
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ char unk1E[2];
+} EtchNCatchWork; // sizeof 0x20
+
 // main
 void func_80021BE0_main(s32* arg0, s32 n);
 void Hu3DAnimInit(s32);
@@ -72,13 +93,27 @@ void func_8010C2F4_etch_n_catch(void);
 void func_8010C390_etch_n_catch(omObjData* obj);
 void func_8010C444_etch_n_catch(omObjData* obj);
 
+void func_80106A64_etch_n_catch(omObjData* obj);
+void func_80108B20_etch_n_catch(EtchNCatchWork* arg0);
+// main (more)
+extern s32 D_800A178C_main[][6];
+extern s16 D_800EB784_minigame[][14];
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+void func_800E1328_minigame(omObjData* obj, f32 arg1);
+s16 func_8000B0D4_main(s32, s32);
+
 // data
+extern s8 D_8010C6D9_etch_n_catch; /* next player to set up */
+extern s8 D_8010C6DA_etch_n_catch[2]; /* players set up per team */
 extern s32 D_8010C6D4_etch_n_catch;
 extern s8 D_8010C6AC_etch_n_catch; /* team 0 score */
 extern s8 D_8010C6AD_etch_n_catch; /* team 1 score */
 extern s8 D_8010C6D8_etch_n_catch;
 
 // bss
+extern u8 D_8010C830_etch_n_catch; /* start layout, 0..4 */
+extern EtchNCatchWork* D_8010C868_etch_n_catch[4];
+extern s16 D_80111390_etch_n_catch[4][3];
 extern omObjData* D_8010C858_etch_n_catch[2];
 extern omObjData* D_8010C860_etch_n_catch[2];
 extern EtCtrl D_801113B0_etch_n_catch;
@@ -86,13 +121,6 @@ extern u8 D_801113C8_etch_n_catch; /* view: D_801113B0.unk18[0] */
 extern u8 D_801113C9_etch_n_catch; /* view: D_801113B0.unk18[1] */
 extern void* D_801113D8_etch_n_catch[4];
 
-// Heap-allocated (0x20 bytes) work block; unk_0C is the head of a linked list
-// of nodes (func_80108B64 inserts, func_80108BCC removes, func_80108C08 walks).
-typedef struct EtchNCatchWork {
-    /* 0x00 */ char unk_00[0xC];
-    /* 0x0C */ struct EtchNCatchNode *unk_0C;
-    /* 0x10 */ char unk_10[0x10];
-} EtchNCatchWork; // sizeof 0x20
 
 void func_801059A0_etch_n_catch(void) {
     s32 i;
@@ -286,7 +314,122 @@ void func_80105ED4_etch_n_catch(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80105ED4_etch_n_catch);
 #endif
 
+/* A player object: places the player at its team's start, loads its pen and models. */
+#ifdef NON_MATCHING
+void func_80106334_etch_n_catch(omObjData* obj) {
+    Vec pos0a[2] = { { -350.0f, 1000.0f, -200.0f }, { -150.0f, 1000.0f, 250.0f } };
+    Vec pos0b[2] = { { -150.0f, 1000.0f, 250.0f }, { -350.0f, 1000.0f, -200.0f } };
+    Vec pos1a[2] = { { 150.0f, 1000.0f, -200.0f }, { 350.0f, 1000.0f, 250.0f } };
+    Vec pos1b[2] = { { 350.0f, 1000.0f, 250.0f }, { 150.0f, 1000.0f, -200.0f } };
+    s8 chr;
+    s32 dir;
+    s32 file;
+    s32 i;
+    MgWork* pw;
+    EtchNCatchWork* w;
+    Vec* p;
+    s32 mdl;
+    f32 dx;
+
+    chr = GwPlayer[D_8010C6D9_etch_n_catch].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    func_800E19F0_minigame(1);
+    func_800E1BA8_minigame(obj, dir, file, D_8010C6D9_etch_n_catch, 0xAA9, 0xAB9);
+    pw = obj->data;
+    D_800EB784_minigame[pw->unk59][0] = -1;
+    D_800EB784_minigame[pw->unk59][1] = -1;
+    pw->unk3C = 0.0f;
+    D_8010C868_etch_n_catch[D_8010C6D9_etch_n_catch] = w = HuMemAllocTag(sizeof(EtchNCatchWork), 0x7918);
+    memset(w, 0, sizeof(EtchNCatchWork));
+    func_80108B20_etch_n_catch(w);
+    obj->rot.y = 0.0f;
+    obj->rot.x = obj->rot.z = obj->rot.y;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.75f;
+    if (D_8010C6D9_etch_n_catch == 0) {
+        D_8010C830_etch_n_catch = (u32)(rand8() * 5) >> 7;
+    }
+    switch (GwPlayer[pw->unk59].group) {
+        case 0:
+            if (!(D_8010C830_etch_n_catch & 1)) {
+                p = &pos0a[D_8010C6DA_etch_n_catch[0]];
+            } else {
+                p = &pos0b[D_8010C6DA_etch_n_catch[0]];
+            }
+            obj->trans.x = p->x;
+            obj->trans.y = p->y;
+            obj->trans.z = p->z;
+            w->unk02 = 8;
+            w->unk01 = 3;
+            w->unk00 = (D_8010C6DA_etch_n_catch[0] == 0) ? 1 : 2;
+            func_800E149C_minigame(obj, 0, 2);
+            func_800E149C_minigame(obj, 1, 1);
+            D_8010C6DA_etch_n_catch[0]++;
+            break;
+        case 1:
+            if (!(D_8010C830_etch_n_catch & 1)) {
+                p = &pos1a[D_8010C6DA_etch_n_catch[1]];
+            } else {
+                p = &pos1b[D_8010C6DA_etch_n_catch[1]];
+            }
+            obj->trans.x = p->x;
+            obj->trans.y = p->y;
+            obj->trans.z = p->z;
+            w->unk02 = 1;
+            w->unk01 = 12;
+            w->unk00 = (D_8010C6DA_etch_n_catch[1] == 0) ? 4 : 8;
+            func_800E149C_minigame(obj, 0, 1);
+            func_800E149C_minigame(obj, 1, 2);
+            D_8010C6DA_etch_n_catch[1]++;
+            break;
+    }
+    w->unk0A = 0;
+    w->unk08 = 0;
+    w->unk14 = 0;
+    w->unk18 = 0;
+    w->unk17 = 0;
+    w->unk1C = 0;
+    w->unk12 = 0;
+    w->unk10 = 0;
+    obj->func = func_80106A64_etch_n_catch;
+    dx = sindf(pw->unk3C) * 65.0f * 0.75f;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x - dx, 0.0f, obj->trans.z - cosdf(pw->unk3C) * 65.0f * 0.75f);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    if (w->unk02 == 8) {
+        mdl = 0x330000;
+    } else {
+        mdl = 0x330001;
+    }
+    obj->model[2] = func_8000B108_main(mdl, 0xAB9);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C814_main(obj->model[2], 2, 1);
+    obj->model[3] = func_8000B108_main(3, 0x89D);
+    obj->model[4] = func_8000B108_main(4, 0x89D);
+    for (i = 0; i < 3; i++) {
+        if (i == 0 && pw->unk59 == 0) {
+            D_80111390_etch_n_catch[0][0] = func_8000B0D4_main(0x330006, 0x28D);
+        } else {
+            D_80111390_etch_n_catch[pw->unk59][i] = Hu3DModelLink(D_80111390_etch_n_catch[0][0]);
+        }
+        func_8001C814_main(D_80111390_etch_n_catch[pw->unk59][i], 2, 2);
+        func_8001FA68_main(D_80111390_etch_n_catch[pw->unk59][i]);
+    }
+    func_800E1328_minigame(obj, 46.875f);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0x47), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 0x48), 1, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(chr, 0x2F), 1, 120);
+    func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x36), 1, 120);
+    func_800E5A00_minigame(obj, 38, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5690_minigame(obj, 0);
+    D_8010C6D9_etch_n_catch++;
+}
+#else
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C740_etch_n_catch);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C758_etch_n_catch);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C770_etch_n_catch);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C788_etch_n_catch);
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106334_etch_n_catch);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106A64_etch_n_catch);
 
@@ -317,14 +460,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_801090E
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109114_etch_n_catch);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010914C_etch_n_catch);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C740_etch_n_catch);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C758_etch_n_catch);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C770_etch_n_catch);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C788_etch_n_catch);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
 
