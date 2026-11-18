@@ -8,12 +8,15 @@
 #include "game/hmfman.h"
 #include "game/object.h"
 #include "game/util.h"
+#include "game/wipe.h"
 #include "math.h"
 
 f64 fabs(f64);
 
 // esprite
 void func_8000BC48_main(u16, s32);
+void func_8000BE5C_main(u16, f32, f32);
+void func_8000BF00_main(u16, f32);
 
 
 void func_8010A550_slapdown(void);
@@ -101,6 +104,11 @@ typedef struct {
     s32 pad;
 } SdFile;
 
+typedef struct {
+    f32 x;
+    f32 y;
+} SdVec2;
+
 extern f32 D_8010A6C0_slapdown[4];
 extern f32 D_8010A6D0_slapdown[4];
 extern f32 D_8010A6E0_slapdown[4];
@@ -111,7 +119,12 @@ extern f32 D_8010A720_slapdown[4];
 extern f32 D_8010A730_slapdown[5];
 extern SdFile D_8010A744_slapdown[4];
 extern SdCpuRate D_8010A760_slapdown[];
-extern char D_8010A984_slapdown[];
+extern f32 D_8010A7F0_slapdown[9];
+extern f32 D_8010A814_slapdown[9];
+extern SdVec2 D_8010A838_slapdown[4];
+extern SdVec2 D_8010A858_slapdown[4];
+extern s32 D_8010A878_slapdown[4];
+extern s32 D_8010A888_slapdown;
 
 // unknown
 extern s32 D_800A178C_main[][6];
@@ -122,6 +135,12 @@ void func_80106900_slapdown(omObjData *obj);
 void func_80107858_slapdown(omObjData *obj);
 void func_801080FC_slapdown(omObjData *obj);
 void func_8010820C_slapdown(omObjData *obj);
+void func_801084BC_slapdown(omObjData *obj);
+void func_80108BAC_slapdown(omObjData *obj);
+void func_80108FE4_slapdown(omObjData *obj);
+void func_8010924C_slapdown(omObjData *obj);
+void func_80109E14_slapdown(omObjData *obj);
+void func_80109E58_slapdown(omObjData *obj);
 void func_80106608_slapdown(omObjData *obj);
 
 void func_801059A0_slapdown(void) {
@@ -534,7 +553,7 @@ void func_80107DCC_slapdown(void) {
 
 void func_80107FDC_slapdown(omObjData *obj, s16 frame) {
     func_80033354_main(D_8010AA12_slapdown);
-    D_8010AA12_slapdown = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA58_slapdown[frame], 0, D_8010A984_slapdown);
+    D_8010AA12_slapdown = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA58_slapdown[frame], 0, "s246_01_DEF");
 }
 
 void func_80108064_slapdown(void) {
@@ -551,7 +570,6 @@ void func_801080D0_slapdown(void) {
     func_80033354_main(D_8010AA52_slapdown);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", D_8010A984_slapdown);
 
 void func_801080FC_slapdown(omObjData *obj) {
     SdEnt *deck = &D_8010AB34_slapdown;
@@ -619,7 +637,7 @@ void func_80108340_slapdown(void) {
 void func_80108380_slapdown(omObjData *obj, s16 face) {
     func_80033354_main(D_8010AA38_slapdown[obj->work[0]]);
     D_8010AA38_slapdown[obj->work[0]] =
-        HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA78_slapdown[face], 0, D_8010A984_slapdown);
+        HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010AA78_slapdown[face], 0, "s246_01_DEF");
 }
 
 void func_80108420_slapdown(void) {
@@ -635,27 +653,389 @@ void func_80108420_slapdown(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801084BC_slapdown);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108BAC_slapdown);
+void func_80108BAC_slapdown(omObjData *obj) {
+    SdEnt *ents[9];
+    omObjData *objs[9];
+    s16 i;
+    s16 k;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108E44_slapdown);
+    for (i = 0; i < 9; i++) {
+        ents[i] = &D_8010ABB8_slapdown[i];
+        objs[i] = ents[i]->obj;
+    }
+    obj->model[0] = func_8000B108_main(0x4F0016, 0x2A9);
+    obj->trans.x = D_8010A7F0_slapdown[obj->work[1]];
+    obj->trans.y = 35.7455f;
+    obj->trans.z = D_8010A814_slapdown[obj->work[1]];
+    obj->rot.x = 0.0f;
+    obj->rot.y = 0.0f;
+    obj->rot.z = 0.0f;
+    if (obj->work[0] == 8) {
+        D_8010AA78_slapdown[0] = DataRead(0x4F0001);
+        D_8010AA78_slapdown[1] = DataRead(0x4F0002);
+        D_8010AA78_slapdown[2] = DataRead(0x4F0003);
+        D_8010AA78_slapdown[3] = DataRead(0x4F0004);
+        D_8010AA78_slapdown[4] = DataRead(0x4F0005);
+        D_8010AA78_slapdown[5] = DataRead(0x4F0006);
+        /* one odd face, then the other four as pairs */
+        ents[0]->unk06 = D_8010AA72_slapdown;
+        k = 1;
+        for (i = 0; i < 5; i++) {
+            if (i != D_8010AA72_slapdown) {
+                ents[k]->unk06 = i;
+                ents[k + 1]->unk06 = i;
+                k += 2;
+            }
+        }
+        for (i = 0; i < 9; i++) {
+            D_8010AA38_slapdown[objs[i]->work[0]] =
+                HmfAnimCreate(HmfModelData[objs[i]->model[0]].hmf, D_8010AA78_slapdown[5], 0, "s246_01_DEF");
+            func_8001C448_main(objs[i]->model[0]);
+            func_8001C514_main(objs[i]->model[0]);
+        }
+    }
+    obj->func = func_801084BC_slapdown;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80108FE4_slapdown);
+void func_80108E44_slapdown(void) {
+    s16 slots[9];
+    omObjData *obj;
+    SdEnt *ent;
+    s16 i;
+    s16 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_8010924C_slapdown);
+    for (i = 0; i < 9; i++) {
+        slots[i] = i;
+    }
+    for (i = 0; i < 9; i++) {
+        ent = &D_8010ABB8_slapdown[i];
+        obj = omAddObj(200, 1, 0, -1, func_80108BAC_slapdown);
+        obj->work[0] = i;
+        ent->obj = obj;
+        j = rand8() % (9 - i);
+        obj->work[1] = slots[j];
+        slots[j] = -1;
+        for (j = 1; j < 9 - i; j++) {
+            if (slots[j - 1] == -1) {
+                slots[j - 1] = slots[j];
+                slots[j] = -1;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109640_slapdown);
+void func_80108FE4_slapdown(omObjData *obj) {
+    SdEnt *panel = &D_8010B26C_slapdown[obj->work[0]];
+    SdEnt *ents[4];
+    omObjData *objs[4];
+    s16 i;
+    s32 phase;
 
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010B05C_slapdown[i];
+        objs[i] = ents[i]->obj;
+    }
+    phase = D_8010AA6E_slapdown;
+    if (phase < 10) {
+        if (phase >= 7) {
+            switch (panel->unk04) {
+                case 2:
+                    break;
+                case 0:
+                    for (i = 0; i < 4; i++) {
+                        if (objs[i]->work[1] == obj->work[0] && (u16)(ents[i]->unk0A + 2) >= 2) {
+                            func_8000BB54_main(panel->unk42);
+                            switch (ents[i]->unk16) {
+                                case 0:
+                                    func_8000BB54_main(panel->unk06);
+                                    break;
+                                case 1:
+                                    func_8000BB54_main(panel->unk08);
+                                    break;
+                                case 2:
+                                    func_8000BB54_main(panel->unk0A);
+                                    break;
+                                case 3:
+                                    func_8000BB54_main(panel->unk0C);
+                                    break;
+                            }
+                            panel->unk04 = 1;
+                        }
+                    }
+                    break;
+                case 1:
+                    if (panel->unk18 < 1.0f) {
+                        panel->unk18 += 0.05f;
+                    } else {
+                        panel->unk04 = 2;
+                    }
+                    break;
+            }
+        }
+    }
+    func_8000BE5C_main(panel->unk42, panel->unk18, panel->unk18);
+    func_8000BE5C_main(panel->unk06, panel->unk18, panel->unk18);
+    func_8000BE5C_main(panel->unk08, panel->unk18, panel->unk18);
+    func_8000BE5C_main(panel->unk0A, panel->unk18, panel->unk18);
+    func_8000BE5C_main(panel->unk0C, panel->unk18, panel->unk18);
+}
+
+void func_8010924C_slapdown(omObjData *obj) {
+    SdEnt *panel = &D_8010B26C_slapdown[obj->work[0]];
+    s16 i;
+
+    if (obj->work[0] == 0 || obj->work[0] == 3) {
+        panel->unk40 = func_8000B838_main(0x4F000C);
+        panel->unk42 = InitEspriteSlot(panel->unk40, 0, 0);
+        if (obj->work[0] == 3) {
+            func_8000BF00_main(panel->unk42, 180.0f);
+        }
+    } else {
+        panel->unk40 = func_8000B838_main(0x4F000B);
+        panel->unk42 = InitEspriteSlot(panel->unk40, 0, 0);
+        if (obj->work[0] == 2) {
+            func_8000BF00_main(panel->unk42, 180.0f);
+        }
+    }
+    func_8000BC48_main(panel->unk42, 0);
+    func_8000BBD4_main(panel->unk42, D_8010A838_slapdown[obj->work[0]].x, D_8010A838_slapdown[obj->work[0]].y);
+    func_8000BB94_main(panel->unk42);
+    func_8000BCC8_main(panel->unk42, 0xEEEE);
+    for (i = 0; i < 4; i++) {
+        panel->unk40 = func_8000B838_main(D_8010A878_slapdown[i]);
+        switch (i) {
+            case 0:
+                panel->unk06 = InitEspriteSlot(panel->unk40, 0, 0);
+                func_8000BC48_main(panel->unk06, 0);
+                func_8000BBD4_main(panel->unk06, D_8010A858_slapdown[obj->work[0]].x, D_8010A858_slapdown[obj->work[0]].y);
+                func_8000BB94_main(panel->unk06);
+                func_8000BCC8_main(panel->unk06, 0xAAAA);
+                break;
+            case 1:
+                panel->unk08 = InitEspriteSlot(panel->unk40, 0, 0);
+                func_8000BC48_main(panel->unk08, 0);
+                func_8000BBD4_main(panel->unk08, D_8010A858_slapdown[obj->work[0]].x, D_8010A858_slapdown[obj->work[0]].y);
+                func_8000BB94_main(panel->unk08);
+                func_8000BCC8_main(panel->unk08, 0xAAAA);
+                break;
+            case 2:
+                panel->unk0A = InitEspriteSlot(panel->unk40, 0, 0);
+                func_8000BC48_main(panel->unk0A, 0);
+                func_8000BBD4_main(panel->unk0A, D_8010A858_slapdown[obj->work[0]].x, D_8010A858_slapdown[obj->work[0]].y);
+                func_8000BB94_main(panel->unk0A);
+                func_8000BCC8_main(panel->unk0A, 0xAAAA);
+                break;
+            case 3:
+                panel->unk0C = InitEspriteSlot(panel->unk40, 0, 0);
+                func_8000BC48_main(panel->unk0C, 0);
+                func_8000BBD4_main(panel->unk0C, D_8010A858_slapdown[obj->work[0]].x, D_8010A858_slapdown[obj->work[0]].y);
+                func_8000BB94_main(panel->unk0C);
+                func_8000BCC8_main(panel->unk0C, 0xAAAA);
+                break;
+        }
+    }
+    panel->unk18 = 0.1f;
+    obj->func = func_80108FE4_slapdown;
+}
+
+void func_80109640_slapdown(void) {
+    omObjData *obj;
+    SdEnt *ent;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        ent = &D_8010B26C_slapdown[i];
+        obj = omAddObj(300, 1, 0, -1, func_8010924C_slapdown);
+        obj->work[0] = i;
+        ent->obj = obj;
+    }
+}
+
+/* Ranks the players by slap order (unk0A: frame of the slap, -1 slapped the wrong card, -2 never slapped). */
+#ifdef NON_MATCHING
+void func_801096E4_slapdown(void) {
+    SdEnt *ents[4];
+    omObjData *objs[4];
+    s16 i;
+    s16 j;
+    s16 nHit = 0;
+    s16 nNone = 0;
+    s16 rank;
+    s16 min;
+    s16 flag;
+
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010B05C_slapdown[i];
+        objs[i] = ents[i]->obj;
+        ents[i]->unk16 = -1;
+        if (ents[i]->unk0A == -2) {
+            nNone++;
+        }
+        if (ents[i]->unk0A >= 0) {
+            nHit++;
+        }
+    }
+    (void)objs;
+    if (nHit == 0) {
+        if (nNone == 1) {
+            for (i = 0; i < 4; i++) {
+                if (ents[i]->unk0A == -1) {
+                    ents[i]->unk16 = 1;
+                } else {
+                    ents[i]->unk16 = 0;
+                }
+            }
+        } else {
+            for (i = 0; i < 4; i++) {
+                ents[i]->unk16 = 3;
+            }
+        }
+    } else {
+        rank = 3;
+        flag = 0;
+        for (i = 0; i < 4; i++) {
+            if (ents[i]->unk0A == -1) {
+                ents[i]->unk16 = rank;
+                flag = 1;
+            }
+        }
+        min = 9999;
+        for (i = 0; i < 4; i++) {
+            if (ents[i]->unk0A == -2) {
+                ents[i]->unk16 = rank;
+                flag = 1;
+            }
+        }
+        if (flag != 0) {
+            rank--;
+        }
+        for (j = 0; j < 4; j++) {
+            for (i = 0; i < 4; i++) {
+                if (ents[i]->unk16 == -1 && ents[i]->unk0A < min) {
+                    min = ents[i]->unk0A;
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (ents[i]->unk16 == -1 && ents[i]->unk0A == min) {
+                    ents[i]->unk16 = rank;
+                    rank--;
+                }
+            }
+            min = 9999;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801096E4_slapdown);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_801099C0_slapdown);
+/* Turns the ranks into places 0..3 (ties share a place) and writes them to the results. */
+void func_801099C0_slapdown(void) {
+    SdEnt *ents[4];
+    omObjData *objs[4];
+    s16 rank[4];
+    s16 place[4];
+    s16 i;
+    s16 flag;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109D54_slapdown);
+    for (i = 0; i < 4; i++) {
+        rank[i] = 4;
+        place[i] = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        ents[i] = &D_8010B05C_slapdown[i];
+        objs[i] = ents[i]->obj;
+        if (rank[0] > ents[i]->unk16) {
+            rank[0] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (rank[0] < ents[i]->unk16 && ents[i]->unk16 < rank[1]) {
+            rank[1] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (rank[1] < ents[i]->unk16 && ents[i]->unk16 < rank[2]) {
+            rank[2] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (rank[2] < ents[i]->unk16 && ents[i]->unk16 < rank[3]) {
+            rank[3] = ents[i]->unk16;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (rank[0] == ents[i]->unk16) {
+            place[i] = 0;
+        }
+        if (rank[1] == ents[i]->unk16) {
+            place[i] = 1;
+        }
+        if (rank[2] == ents[i]->unk16) {
+            place[i] = 2;
+        }
+        if (rank[3] == ents[i]->unk16) {
+            place[i] = 3;
+        }
+    }
+    flag = 0;
+    for (i = 0; i < 4; i++) {
+        if (ents[i]->unk16 != 3) {
+            flag = 1;
+        }
+    }
+    if (flag == 0) {
+        for (i = 0; i < 4; i++) {
+            place[i] = 3;
+        }
+        D_8010AAA0_slapdown = 4;
+    }
+    for (i = 0; i < 4; i++) {
+        GwPlayer[objs[i]->work[0]].bonusCoin = place[i];
+        ents[i]->unk16 = place[i];
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109E14_slapdown);
+void func_80109D54_slapdown(void) {
+    u32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109E58_slapdown);
+    if (D_8010A888_slapdown == 0) {
+        D_8010A888_slapdown = 1;
+        for (i = 0; i < 1; i++) {
+            CZoomM[i] = 2037.5552f;
+            CRotM[i].x = 311.9663f;
+            CRotM[i].y = 0.0f;
+            CRotM[i].z = 0.0f;
+            CenterM[i].x = 0.0f;
+            CenterM[i].y = -42.5f;
+            CenterM[i].z = -160.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109E90_slapdown);
+void func_80109E14_slapdown(omObjData *obj) {
+    func_80108064_slapdown();
+    func_80108420_slapdown();
+    func_801066E4_slapdown();
+    HuAudFXStop(-1);
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
+
+void func_80109E58_slapdown(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_80109E14_slapdown;
+    }
+}
+
+void func_80109E90_slapdown(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_80109E58_slapdown;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2E_slapdown/264B80", func_80109EE8_slapdown);
 
