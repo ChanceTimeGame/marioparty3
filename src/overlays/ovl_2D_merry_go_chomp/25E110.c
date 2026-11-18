@@ -1410,7 +1410,60 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109A04_merry_go_chomp);
 
+#ifdef NON_MATCHING
+/* masked 5: retail sign-extends the shadow model handle once after storing it */
+void func_8010A9D0_merry_go_chomp(omObjData *obj) {
+    McEnt *chomp = &D_8010C500_merry_go_chomp[10];
+    void *anim = DataRead(0xA00E5);
+    s16 i;
+    s32 link;
+    u16 shadow;
+
+    obj->model[0] = func_8000B108_main(0xA00D9, 0x2A9);
+    HmfAnimCreate(HmfModelData[obj->model[0]].hmf, anim, 0, "c165n_4_DEF");
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    DataClose(anim);
+    func_8000B460_main(obj, 0, 0xA00DD);
+    func_8000B460_main(obj, 1, 0xA00E3);
+    func_8000B460_main(obj, 2, 0xA00DB);
+    obj->model[1] = func_8000B108_main(0xA00E4, 0x2B9);
+    link = obj->model[1];
+    for (i = 2; i < 6; i++) {
+        obj->model[i] = Hu3DModelLink(link);
+    }
+    shadow = func_8000B0A0_main(0, 0xC9);
+    obj->model[6] = shadow;
+    func_8001C2FC_main(obj->model[6], 0x80000000, 0);
+    func_8001C448_main(obj->model[6]);
+    func_8001C514_main(obj->model[6]);
+    func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[6]].mtx, 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(obj->model[6], 2.5f, 1.0f, 2.5f);
+    for (i = 7; i < 12; i++) {
+        obj->model[i] = Hu3DModelLink(shadow);
+    }
+    func_80105D38_merry_go_chomp(obj, 0, 2);
+    chomp->unk06 = 0;
+    omSetTra(obj, -500.0f, 0.0f, 60.0f);
+    omSetRot(obj, 0.0f, 60.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[6], obj->trans.x, obj->trans.y, obj->trans.z);
+    for (i = 0; i < 7; i++) {
+        func_8001C8A8_main(obj->model[i], 2);
+    }
+    for (i = 1; i < 6; i++) {
+        D_8010C4D0_merry_go_chomp[i].x = (5 - i) * 45 + D_8010C214_merry_go_chomp.x + 20.0f;
+        D_8010C4D0_merry_go_chomp[i].z = (5 - i) * 10 + D_8010C214_merry_go_chomp.z;
+        Hu3DModelPosSet(obj->model[i], D_8010C4D0_merry_go_chomp[i].x, 30.0f, D_8010C4D0_merry_go_chomp[i].z);
+        Hu3DModelPosSet(obj->model[i + 6], D_8010C4D0_merry_go_chomp[i].x, 5.0f, D_8010C4D0_merry_go_chomp[i].z);
+        Hu3DModelScaleSet(obj->model[i + 6], 0.8f, 1.0f, 0.8f);
+    }
+    func_8001C258_main(obj->model[5], 4, 4);
+    func_8001C258_main(obj->model[11], 4, 4);
+    obj->func = func_80109A04_merry_go_chomp;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010A9D0_merry_go_chomp);
+#endif
 
 void func_8010ADE8_merry_go_chomp(void) {
     D_8010C500_merry_go_chomp[10].obj = omAddObj(900, 15, 4, -1, func_8010A9D0_merry_go_chomp);
