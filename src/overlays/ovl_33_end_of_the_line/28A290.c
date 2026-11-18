@@ -24,6 +24,9 @@ void func_8000BBFC_main(u16, u8);
 void func_8000BC48_main(u16, u16);
 s32 func_8000B710_main(s32 arg0);
 
+// libm
+f32 fabsf(f32);
+
 // 7D2C
 void func_80007D2C_main(s32 slot, s32 fxMix);
 
@@ -85,7 +88,8 @@ typedef struct {
     /* 0x8A */ u16 unk8A;
     /* 0x8C */ s16 unk8C;
     /* 0x8E */ s16 unk8E;
-    /* 0x90 */ char unk90[4];
+    /* 0x90 */ s16 unk90;
+    /* 0x92 */ s16 unk92;
 } EotlPlayer; // Size 0x94
 
 typedef struct {
@@ -121,17 +125,22 @@ void func_80106444_end_of_the_line(omObjData *obj);
 void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2);
 void func_80107FF0_end_of_the_line(u16 arg0);
 void func_80108F0C_end_of_the_line(omObjData *obj);
+void func_8010937C_end_of_the_line(omObjData *obj);
 void func_80109E70_end_of_the_line(omObjData *obj);
+void func_8010A17C_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010A91C_end_of_the_line(omObjData *obj, s32 arg1);
 s8 func_8010AC80_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
 void func_8010AC34_end_of_the_line(EotlPlayer *pw);
+void func_8010AAC8_end_of_the_line(omObjData *obj, s32 arg1);
 void func_8010AF28_end_of_the_line(omObjData *obj);
 void func_8010B064_end_of_the_line(omObjData *obj);
 void func_8010B234_end_of_the_line(omObjData *obj);
 void func_8010B300_end_of_the_line(omObjData *obj);
 void func_8010B4EC_end_of_the_line(omObjData *obj);
+void func_8010B420_end_of_the_line(omObjData *obj);
+void func_8010B588_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
@@ -1209,9 +1218,116 @@ void func_8010937C_end_of_the_line(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80109E70_end_of_the_line);
+void func_80109E70_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    f32 dz;
+    f32 dx;
+    s16 se;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010A17C_end_of_the_line);
+    pw = obj->data;
+    dz = cosdf(obj->rot.y) * (pw->unk0C / 1.08f);
+    dx = sindf(obj->rot.y) * (pw->unk0C / 1.08f);
+    obj->trans.x += dx;
+    obj->trans.z += dz;
+    if (obj->trans.z < -650.0f) {
+        func_8010AAC8_end_of_the_line(obj, 6);
+        if (D_8010C766_end_of_the_line == 0 && pw->unk92 == 0) {
+            if (pw->unk90 == 0) {
+                HuAudFXPlay(D_8010C620_end_of_the_line[pw->unk00][5]);
+                pw->unk92 = 1;
+            } else {
+                pw->unk90--;
+            }
+        }
+    }
+    if (pw->unk20 != NULL && pw->unk20->work[1] == 0) {
+        pw->unk10 = 0;
+        pw->unk14 = 0;
+        if (pw->unk12 == D_8010C768_end_of_the_line[pw->unk16] || D_8010C75A_end_of_the_line == 1) {
+            if (D_8010C75A_end_of_the_line == 1) {
+                pw->unk16 = 0;
+            } else {
+                pw->unk16++;
+            }
+            if (pw->unk16 < 3) {
+                D_8010C782_end_of_the_line[pw->unk00] = 0x21;
+                func_8001C5B4_main(obj->model[2], obj->motion[9]);
+                func_8001C814_main(obj->model[2], 2, 2);
+                pw->unk1A = 0;
+                obj->func = func_8010937C_end_of_the_line;
+                pw->unk04->func = func_8010B420_end_of_the_line;
+            } else {
+                D_8010C758_end_of_the_line = 1;
+                D_8010C75E_end_of_the_line[pw->unk00] = 1;
+                D_8010C782_end_of_the_line[pw->unk00] = 0x24;
+                func_8001C5B4_main(obj->model[2], obj->motion[0]);
+                pw->unk1A = 4;
+                obj->func = NULL;
+            }
+        } else {
+            D_8010C782_end_of_the_line[pw->unk00] = 0x23;
+            obj->func = func_8010A17C_end_of_the_line;
+            pw->unk04->func = func_8010B588_end_of_the_line;
+            func_8001C5B4_main(obj->model[2], obj->motion[8]);
+            pw->unk1A = 3;
+            if (D_8010C766_end_of_the_line == 0) {
+                se = func_8004ACE0_main(0x286, pw->unk02);
+                func_8004AAD0_main(se, 92);
+                if (pw->unk00 == 0) {
+                    func_8004AE00_main(se, 32);
+                } else {
+                    func_8004AE00_main(se, 96);
+                }
+            }
+        }
+    }
+}
+
+void func_8010A17C_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    f32 s;
+    f32 spd;
+    f32 dy;
+    f32 dz;
+    f32 dx;
+
+    pw = obj->data;
+    func_8010C110_end_of_the_line(1, obj, 1000.0f, 2500.0f, 900.0f);
+    s = fabsf(sindf(pw->unk54));
+    spd = (1.0f - s) * pw->unk0C;
+    dy = s * pw->unk0C;
+    dz = cosdf(obj->rot.y) * (spd / 1.08f);
+    dx = sindf(obj->rot.y) * (spd / 1.08f);
+    obj->trans.x += dx;
+    obj->trans.z += dz;
+    obj->trans.y += dy;
+    dz = cosdf(pw->unk30.y) * (spd / 1.08f);
+    dx = sindf(pw->unk30.y) * (spd / 1.08f);
+    pw->unk24.x += dx;
+    pw->unk24.z += dz;
+    pw->unk24.y += dy;
+    Hu3DModelPosSet(obj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+    Hu3DModelRotSet(obj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+    Hu3DModelPosSet(obj->model[2], pw->unk24.x - sindf(pw->unk30.y) * 20.0f, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+    Hu3DModelRotSet(obj->model[2], pw->unk54, pw->unk30.y, 0.0f);
+    pw->unk0C *= 0.99f;
+    if (obj->trans.z > 200.0f) {
+        func_8010AAC8_end_of_the_line(obj, 8);
+    }
+    if (pw->unk20 != NULL && pw->unk20->work[1] == 0) {
+        pw->unk16 = 0;
+        pw->unk10 = 0;
+        D_8010C782_end_of_the_line[pw->unk00] = 0x61;
+        pw->unk74 = -16.0f;
+        pw->unk04->work[1] = 1;
+        func_8001C5B4_main(obj->model[2], obj->motion[11]);
+        func_8001C814_main(obj->model[2], 1, 1);
+        pw->unk1A = 2;
+        obj->func = func_8010937C_end_of_the_line;
+        pw->unk04->func = func_8010B420_end_of_the_line;
+    }
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010A434_end_of_the_line);
 
