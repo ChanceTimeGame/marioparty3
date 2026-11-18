@@ -37,6 +37,33 @@ typedef union BkPack {
         (v) += 360.0;          \
     }
 
+/* One hit in a pattern: on frame `frame`, hammer `id` drops. */
+typedef struct BkStep {
+    /* 0x00 */ s16 frame;
+    /* 0x02 */ s16 id;
+} BkStep; // Size 4
+
+/* A Baby Bowser attack pattern (D_8010B888 points at one). */
+typedef struct BkPattern {
+    /* 0x00 */ s16 length; /* frames */
+    /* 0x02 */ s16 unk2;
+    /* 0x04 */ s16 unk4; /* 0: ends on its length alone */
+    /* 0x06 */ s16 count;
+    /* 0x08 */ BkStep* steps;
+} BkPattern; // Size 0xC
+
+/* A player's work (func_8010B3AC from obj->work). */
+typedef struct BkPlayer {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02; /* score */
+    /* 0x04 */ s16 unk04; /* result motion: 0 win, 1 lose */
+    /* 0x06 */ char unk06[0x16];
+    /* 0x1C */ Vec unk1C; /* velocity */
+    /* 0x28 */ s16 unk28; /* GwPlayer index */
+    /* 0x2A */ s16 unk2A;
+    /* 0x2C */ s16 unk2C; /* character */
+} BkPlayer;
+
 extern u16 D_800D5558_main[];
 extern u8 D_800D6A90_main;
 extern s32 fontcolor;
@@ -87,6 +114,15 @@ void func_80108160_baby_bowser_bonkers(void);
 void func_80109890_baby_bowser_bonkers(void);
 void func_80109EB8_baby_bowser_bonkers(void);
 extern s32 D_8010BC3C_baby_bowser_bonkers;
+void func_80107678_baby_bowser_bonkers(omObjData* obj, s32 arg1, s32 arg2);
+void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s32 arg4);
+void func_80109080_baby_bowser_bonkers(s16 id, s32 arg1, s16 arg2);
+s32 func_801096D0_baby_bowser_bonkers(void);
+void func_8010630C_baby_bowser_bonkers(omObjData* obj);
+void func_800E6F0C_minigame(s32);
+extern BkPattern* D_8010B888_baby_bowser_bonkers;
+extern s16 D_8010B88C_baby_bowser_bonkers; /* player whose turn it is */
+extern BkPattern* D_8010BC68_baby_bowser_bonkers[4][4];
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -138,7 +174,175 @@ void func_80105BB0_baby_bowser_bonkers(omObjData* obj) {
     }
 }
 
+/* NON_MATCHING: retail reloads D_8010BC48 for each level threshold and D_800EC598_minigame for the winner
+   (no CSE across those blocks); this C keeps them in registers, so one more saved register. */
+#ifdef NON_MATCHING
+void func_80105C0C_baby_bowser_bonkers(omObjData* obj) {
+    BkPlayer* p0;
+    BkPlayer* p1;
+    BkPlayer* cur;
+    omObjData* winner;
+    s32 i;
+    s32 done;
+    s32 level;
+    s32 over;
+
+    done = 0;
+    switch (D_8010BC4C_baby_bowser_bonkers) {
+    case -1:
+        if (D_8010BC44_baby_bowser_bonkers > 0) {
+            D_8010BC54_baby_bowser_bonkers = HuAudFXPlay(0x4AE);
+            WipeCreateIn(0xFF, 0x10);
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 0:
+        if (WipeStatGet() == 0) {
+            GMesCreate(6);
+            HuAudFXPlay(0xE);
+            HuAudSeqPlay(0x36);
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 1:
+        if (GMesStatGet() == 0) {
+            GMesCreate(0x1A, (D_8010BC48_baby_bowser_bonkers + 29) / 30, 0x9C, 0x20);
+            func_800E6F0C_minigame(2);
+            if (D_8010B888_baby_bowser_bonkers == NULL) {
+                D_8010BC44_baby_bowser_bonkers = 3;
+                D_8010B888_baby_bowser_bonkers = D_8010BC68_baby_bowser_bonkers[0][0];
+            }
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 2:
+        func_8003F578_main((D_8010BC48_baby_bowser_bonkers-- + 28) / 30);
+        if (D_8010BC48_baby_bowser_bonkers <= 0) {
+            D_8010BC48_baby_bowser_bonkers = 0;
+        }
+        if (D_8010BC48_baby_bowser_bonkers >= 60) {
+            for (i = 0; i < D_8010B888_baby_bowser_bonkers->count; i++) {
+                if (D_8010BC44_baby_bowser_bonkers == D_8010B888_baby_bowser_bonkers->steps[i].frame) {
+                    func_80109080_baby_bowser_bonkers(D_8010B888_baby_bowser_bonkers->steps[i].id, 12,
+                                                      D_8010B888_baby_bowser_bonkers->unk2);
+                }
+            }
+        }
+        if (D_8010B888_baby_bowser_bonkers->unk4 == 0 || func_801096D0_baby_bowser_bonkers() != 0) {
+            done = 1;
+        }
+        over = D_8010BC44_baby_bowser_bonkers >= D_8010B888_baby_bowser_bonkers->length;
+        if (over & done) {
+            level = 0;
+            if (D_8010BC48_baby_bowser_bonkers < 600) {
+                level = 1;
+                if (D_8010BC48_baby_bowser_bonkers < 450) {
+                    level = (D_8010BC48_baby_bowser_bonkers < 300) ? 3 : 2;
+                }
+            }
+            if (++D_8010BC50_baby_bowser_bonkers >= 4) {
+                D_8010BC50_baby_bowser_bonkers = 0;
+            }
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010B888_baby_bowser_bonkers = D_8010BC68_baby_bowser_bonkers[level][D_8010BC50_baby_bowser_bonkers];
+        }
+        if (D_8010BC48_baby_bowser_bonkers <= 0) {
+            func_8003F5C0_main();
+            GMesCreate(0x11);
+            func_800E6F0C_minigame(3);
+            func_80107678_baby_bowser_bonkers(D_800EC598_minigame[0], 0, 13);
+            func_80107678_baby_bowser_bonkers(D_800EC598_minigame[1], 0, 13);
+            HuAudSeqFadeOut(0x78);
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 3:
+        if (D_8010BC44_baby_bowser_bonkers == 15) {
+            if (D_8010BC54_baby_bowser_bonkers != -1) {
+                func_8004AEF0_main((s16)D_8010BC54_baby_bowser_bonkers, 15);
+            }
+            D_8010BC54_baby_bowser_bonkers = -1;
+        }
+        if (GMesStatGet() == 0) {
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 4:
+        if (D_8010BC44_baby_bowser_bonkers >= 15) {
+            p0 = func_8010B3AC_baby_bowser_bonkers(D_800EC598_minigame[0]);
+            p1 = func_8010B3AC_baby_bowser_bonkers(D_800EC598_minigame[1]);
+            if (p0->unk02 > p1->unk02) {
+                GMesCreate(0x16, p0->unk2C);
+                GwPlayer[p0->unk28].bonusCoin += 10;
+                D_8010BC5C_baby_bowser_bonkers = p0->unk2C;
+                D_8010BC50_baby_bowser_bonkers = 0x8C;
+                p0->unk04 = 0;
+                p1->unk04 = 1;
+                HuAudSeqPlay(0x67);
+                winner = D_800EC598_minigame[0];
+                func_8010AD00_baby_bowser_bonkers(winner->trans.x, winner->trans.y + 50.0, winner->trans.z, 65535.0f,
+                                                  65535.0f, 65535.0f, 600.0f, 30);
+            } else if (p0->unk02 < p1->unk02) {
+                GMesCreate(0x16, p1->unk2C);
+                GwPlayer[p1->unk28].bonusCoin += 10;
+                D_8010BC5C_baby_bowser_bonkers = p1->unk2C;
+                D_8010BC50_baby_bowser_bonkers = 0x8C;
+                p0->unk04 = 1;
+                p1->unk04 = 0;
+                HuAudSeqPlay(0x67);
+                winner = D_800EC598_minigame[1];
+                func_8010AD00_baby_bowser_bonkers(winner->trans.x, winner->trans.y + 50.0, winner->trans.z, 65535.0f,
+                                                  65535.0f, 65535.0f, 600.0f, 30);
+            } else {
+                GMesCreate(0x20);
+                D_8010BC50_baby_bowser_bonkers = 0x90;
+                HuAudSeqPlay(0x6C);
+                p1->unk04 = 1;
+                p0->unk04 = 1;
+            }
+            func_800E6F0C_minigame(4);
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 5:
+        if (GMesStatGet() == 0) {
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    case 6:
+        if (D_8010BC44_baby_bowser_bonkers >= 15) {
+            WipeCreateOut(0, 0x10);
+            HuAudSeqFadeOut(0x10);
+            func_8004AB0C_main(0x10);
+            D_8010BC44_baby_bowser_bonkers = 0;
+            D_8010BC4C_baby_bowser_bonkers++;
+        }
+        break;
+    default:
+        if (WipeStatGet() == 0) {
+            obj->func = func_801062E8_baby_bowser_bonkers;
+        }
+        break;
+    }
+    cur = func_8010B3AC_baby_bowser_bonkers(D_800EC598_minigame[D_8010B88C_baby_bowser_bonkers]);
+    func_801076D8_baby_bowser_bonkers(D_800EC598_minigame[D_8010B88C_baby_bowser_bonkers],
+                                      D_800EC598_minigame[D_8010B88C_baby_bowser_bonkers ^ 1], &cur->unk1C,
+                                      &((BkPlayer*)func_8010B3AC_baby_bowser_bonkers(
+                                            D_800EC598_minigame[(s16)(D_8010B88C_baby_bowser_bonkers ^ 1)]))->unk1C,
+                                      0);
+    D_8010B88C_baby_bowser_bonkers ^= 1;
+    func_8010630C_baby_bowser_bonkers(obj);
+    D_8010BC40_baby_bowser_bonkers++;
+    D_8010BC44_baby_bowser_bonkers++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80105C0C_baby_bowser_bonkers);
+#endif
 
 void func_801062E8_baby_bowser_bonkers(omObjData* obj) {
     func_8004A950_main();
