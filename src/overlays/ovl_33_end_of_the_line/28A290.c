@@ -162,6 +162,7 @@ void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
 void func_8010C110_end_of_the_line(s32 arg0, omObjData *obj, f32 arg2, f32 arg3, f32 arg4);
 void func_8010C3F4_end_of_the_line(void);
+void func_8010C574_end_of_the_line(omObjData *obj);
 void func_8010C47C_end_of_the_line(omObjData *obj);
 
 extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
@@ -178,12 +179,14 @@ extern u16 D_8010C650_end_of_the_line;
 extern s32 D_8010C658_end_of_the_line[3];
 extern u16 D_8010C664_end_of_the_line[2];
 extern f32 D_8010C668_end_of_the_line;
+extern f32 D_8010C66C_end_of_the_line;
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
 extern omObjData *D_8010C738_end_of_the_line;
 extern omObjData *D_8010C73C_end_of_the_line[2];
 extern omObjData *D_8010C744_end_of_the_line[2];
+extern omObjData *D_8010C74C_end_of_the_line[2];
 extern u16 D_8010C754_end_of_the_line;
 extern u16 D_8010C756_end_of_the_line;
 extern u16 D_8010C758_end_of_the_line;
@@ -1929,17 +1932,77 @@ void func_8010B640_end_of_the_line(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010B640_end_of_the_line);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010BE24_end_of_the_line);
+void func_8010BE24_end_of_the_line(omObjData *obj) {
+    s32 p;
+    EotlHud *hud;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010BF64_end_of_the_line);
+    p = ((EotlPlayer *)((omObjData *)obj->work[0])->data)->unk00;
+    hud = D_8010C738_end_of_the_line->data;
+    if (D_8010C66C_end_of_the_line > 0.9f) {
+        D_8010C66C_end_of_the_line -= 0.01f;
+    }
+    D_8010C7A0_end_of_the_line[p].x = 400.0f;
+    D_8010C7A0_end_of_the_line[p].y = 400.0f;
+    D_8010C7A0_end_of_the_line[p].z = 0.0f;
+    D_8010C788_end_of_the_line[p].x = D_8010C66C_end_of_the_line * 1660.0f;
+    D_8010C788_end_of_the_line[p].y = D_8010C66C_end_of_the_line * 1030.0f;
+    D_8010C788_end_of_the_line[p].z = D_8010C66C_end_of_the_line * 810.0f;
+    func_8000BE5C_main(hud->unk0C[p], (1.0f - D_8010C66C_end_of_the_line) + 1.0f, (1.0f - D_8010C66C_end_of_the_line) + 1.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010C060_end_of_the_line);
+void func_8010BF64_end_of_the_line(omObjData *obj) {
+    s32 p;
+    EotlHud *hud;
+
+    p = ((EotlPlayer *)((omObjData *)obj->work[0])->data)->unk00;
+    hud = D_8010C738_end_of_the_line->data;
+    D_8010C7A0_end_of_the_line[p].x = 400.0f;
+    D_8010C7A0_end_of_the_line[p].y = 400.0f;
+    D_8010C7A0_end_of_the_line[p].z = 0.0f;
+    D_8010C788_end_of_the_line[p].x = 1660.0f;
+    D_8010C788_end_of_the_line[p].y = 1030.0f;
+    D_8010C788_end_of_the_line[p].z = 810.0f;
+    func_8000BE5C_main(hud->unk0C[p], 1.0f, 1.0f);
+    Hu3DCamSetPerspective(p, 33.0f, 80.0f, 20000.0f);
+    obj->work[2] = 1;
+}
+
+void func_8010C060_end_of_the_line(omObjData *obj) {
+    u32 i;
+
+    for (i = 0; i < obj->work[0]; i++) {
+        Hu3DCamSetPositionOrientation(i, &D_8010C788_end_of_the_line[i], &D_8010C7A0_end_of_the_line[i],
+                                      &D_8010C7B8_end_of_the_line[i]);
+        Hu3DCamUpdateMtx(i);
+    }
+}
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010C110_end_of_the_line);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010C3F4_end_of_the_line);
+void func_8010C3F4_end_of_the_line(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010C47C_end_of_the_line);
-
-void func_8010C574_end_of_the_line(void) {
+    for (i = 0; i < 2; i++) {
+        D_8010C74C_end_of_the_line[i] = obj = omAddObj(0x28, 1, 0, -1, NULL);
+        obj->model[0] = func_8000B108_main(0x540012, 0xA8D);
+    }
 }
+
+void func_8010C47C_end_of_the_line(omObjData *obj) {
+    u16 p;
+
+    p = ((EotlPlayer *)obj->data)->unk00;
+    omSetTra(D_8010C74C_end_of_the_line[p], obj->trans.x + 150.0f, obj->trans.y + 50.0f, obj->trans.z + 100.0f);
+    omSetSca(D_8010C74C_end_of_the_line[p], 3.0f, 3.0f, 3.0f);
+    func_8001C258_main(D_8010C74C_end_of_the_line[p]->model[0], 4, 0);
+    func_8001C8A8_main(D_8010C74C_end_of_the_line[p]->model[0], D_8010C5C8_end_of_the_line[p]);
+    func_8001C814_main(D_8010C74C_end_of_the_line[p]->model[0], 2, 2);
+    D_8010C74C_end_of_the_line[p]->func = func_8010C574_end_of_the_line;
+}
+
+void func_8010C574_end_of_the_line(omObjData *obj) {
+}
+
