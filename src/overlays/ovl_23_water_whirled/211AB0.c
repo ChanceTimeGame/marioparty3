@@ -57,6 +57,8 @@ void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 f32 fabsf(f32);
 void func_80105D64_water_whirled(void);
 extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
+extern u8 D_800D2008_main;
+extern u8 D_800D6A90_main;
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -201,7 +203,47 @@ f32 func_801061E4_water_whirled(f32 x, f32 z) {
     return (h + sindf((D_8010A260_water_whirled / D_8010A264_water_whirled - HuSqrtf(x2 * x2 + z2 * z2) / D_8010A268_water_whirled) * 6.283185307179586) * D_8010A26C_water_whirled) / 2.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106308_water_whirled);
+/* Sea model: move its vertices to the wave height and shade them (crests white, troughs blue). */
+void func_80106308_water_whirled(omObjData* obj) {
+    HmfData* hmf;
+    Vtx* dst;
+    Vtx* src;
+    f32 x;
+    f32 z;
+    f32 h;
+    s32 i;
+
+    hmf = HmfModelData[obj->model[1]].hmf;
+    dst = hmf->unk44[D_800D2008_main];
+    src = hmf->unk40;
+    for (i = 0; i < *(s16*)&hmf->unk16[2]; dst++, i++, src++) {
+        x = src->v.ob[0];
+        z = src->v.ob[2];
+        h = sindf((D_8010A250_water_whirled / D_8010A254_water_whirled - HuSqrtf(x * x + z * z) / D_8010A258_water_whirled) * 6.283185307179586) * D_8010A25C_water_whirled;
+        x = x + 8000.0f;
+        z = z + 5000.0;
+        h = (h + sindf((D_8010A260_water_whirled / D_8010A264_water_whirled - HuSqrtf(x * x + z * z) / D_8010A268_water_whirled) * 6.283185307179586) * D_8010A26C_water_whirled) / 2.0f;
+        dst->v.ob[1] = h;
+        if (h > 0.0) {
+            h = 256.0f - h;
+            dst->v.cn[0] = 0xAA;
+            dst->v.cn[1] = 0xAA;
+            dst->v.cn[2] = h;
+        } else {
+            h = 175.0f - h;
+            if (h > 255.0f) {
+                h = 255.0f;
+            }
+            dst->v.cn[0] = h;
+            dst->v.cn[1] = h;
+            dst->v.cn[2] = 0xFF;
+        }
+    }
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010A250_water_whirled += 0.11f;
+        D_8010A260_water_whirled += 0.09f;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106680_water_whirled);
 
