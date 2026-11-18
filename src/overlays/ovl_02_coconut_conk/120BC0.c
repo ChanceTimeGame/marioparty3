@@ -11,6 +11,7 @@
 #include "game/hmfman.h"
 #include "game/object.h"
 #include "game/sprite.h"
+#include "game/util.h"
 #include "game/wipe.h"
 #include "mallocblock.h"
 
@@ -80,6 +81,10 @@ omObjData *func_80045ED0_main(u32 arg0);
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_800335BC_main(char *arg0, void *arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
+s32 func_8000B710_main(s32 arg0);
+void func_800E6F0C_minigame(s8 arg0);
+void osViBlack(u8 active);
+extern u16 D_800D530C_main;
 f32 fabsf(f32);
 f64 fabs(f64);
 void func_8001C624_main(s16, s16, s16, s16, s16);
@@ -99,6 +104,13 @@ extern u8 D_800D6A90_main;
 extern f32 D_800EB73C_minigame;
 extern D_800CCF58_main_Struct *D_800CCF58_main;
 
+/* A camera (D_8010B018_coconut_conk). */
+typedef struct CcCamera {
+    /* 0x00 */ f32 scissor[4];
+    /* 0x10 */ f32 viewport[6];
+    /* 0x28 */ f32 fov;
+} CcCamera; // Size 0x2C
+
 /* .data */
 extern s16 D_8010AF60_coconut_conk;
 extern s16 D_8010AF62_coconut_conk;
@@ -108,6 +120,8 @@ extern u16 D_8010AF68_coconut_conk[8][3];
 extern char *D_8010AF98_coconut_conk[8];
 extern f32 D_8010AFB8_coconut_conk[6];
 extern s32 D_8010AFD0_coconut_conk[8];
+extern D_80111B50_vine_with_me_Struct D_8010AFF0_coconut_conk;
+extern CcCamera D_8010B018_coconut_conk[2];
 extern char D_8010B0D0_coconut_conk[];
 extern char D_8010B0E4_coconut_conk[];
 /* .bss */
@@ -115,6 +129,7 @@ extern s16 D_8010B1C0_coconut_conk;
 extern s16 D_8010B1C2_coconut_conk;
 extern s8 D_8010B1C3_coconut_conk;     /* the low byte of D_8010B1C2_coconut_conk */
 extern u8 D_8010B1C8_coconut_conk;
+extern s8 D_8010B1C9_coconut_conk[3];
 extern u8 D_8010B1CC_coconut_conk;
 extern HuSprite_Unk84_Struct *D_8010B1C4_coconut_conk;
 extern void *D_8010B1D0_coconut_conk[3];
@@ -140,7 +155,10 @@ extern s16 D_8010CBB8_coconut_conk;
 extern s8 D_8010CBBA_coconut_conk;
 extern u8 D_8010CBBB_coconut_conk;
 extern s16 D_8010CBBC_coconut_conk;
+extern s8 D_8010CBBE_coconut_conk;
 extern s16 D_8010CBC0_coconut_conk;
+/* .rodata */
+extern const s16 D_8010B1B8_coconut_conk[];
 
 f32 func_801059BC_coconut_conk(f32 angle, f32 add);
 void func_80105C58_coconut_conk(omObjData *obj);
@@ -179,6 +197,18 @@ void func_8010A668_coconut_conk(omObjData *obj);
 void func_8010AB4C_coconut_conk(omObjData *obj);
 void func_8010AC88_coconut_conk(omObjData *obj);
 void func_8010AE04_coconut_conk(void);
+void func_80105D58_coconut_conk(void);
+void func_801061AC_coconut_conk(void);
+void func_80106294_coconut_conk(void);
+void func_8010641C_coconut_conk(void);
+void func_801066A4_coconut_conk(void);
+void func_80106924_coconut_conk(void);
+void func_80106E80_coconut_conk(void);
+void func_80108FA0_coconut_conk(void);
+void func_8010A344_coconut_conk(void);
+void func_8010A4AC_coconut_conk(void);
+void func_8010AB4C_coconut_conk(omObjData *obj);
+void func_8010AC90_coconut_conk(void);
 
 void func_801059A0_coconut_conk(void) {
     func_8010AE04_coconut_conk();
@@ -1331,25 +1361,173 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010994
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_80109DEC_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A344_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A4AC_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A55C_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A5D8_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A610_coconut_conk);
+
+/* Creates the three team players' objects. */
+void func_8010A344_coconut_conk(void) {
+    omObjData *obj;
+    CcEnt *ent;
+    u16 player = 0;
+    u32 n = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+                case 0:
+                    player = 0;
+                    break;
+                case 1:
+                    player = 1;
+                    break;
+                case 2:
+                    player = 2;
+                    break;
+                case 3:
+                    player = 3;
+                    break;
+            }
+            ent = &D_8010BCC4_coconut_conk[n + 1];
+            obj = omAddObj(650, 9, 60, -1, func_80109DEC_coconut_conk);
+            obj->work[0] = player;
+            obj->work[3] = GwPlayer[player].pad;
+            ent->obj = obj;
+            obj->work[1] = n++;
+            D_800EC598_minigame[D_800EC280_minigame] = obj;
+            D_800EC280_minigame++;
+        }
+    }
+}
+
+void func_8010A4AC_coconut_conk(void) {
+    u32 i;
+
+    for (i = 0; i < 2; i++) {
+        CZoomM[i] = 1270.8f;
+        CRotM[i].x = 350.94f;
+        CRotM[i].y = 0.0f;
+        CRotM[i].z = 0.0f;
+        CenterM[i].x = 0.0f;
+        CenterM[i].y = 415.0f;
+        CenterM[i].z = -115.0f;
+    }
+}
+
+void func_8010A55C_coconut_conk(omObjData *obj) {
+    u8 i;
+
+    for (i = 0; i < 3; i++) {
+        DataClose(D_8010B1D0_coconut_conk[i]);
+    }
+    func_80033354_main(D_8010B1DC_coconut_conk);
+    osViBlack(0);
+    HuAudFXStop(-1);
+    omOvlReturnEx(1);
+}
+
+void func_8010A5D8_coconut_conk(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_8010A55C_coconut_conk;
+    }
+}
+
+void func_8010A610_coconut_conk(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_8010A5D8_coconut_conk;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010A668_coconut_conk);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010AB4C_coconut_conk);
+
+
+
+
+void func_8010AB4C_coconut_conk(omObjData *obj) {
+    s16 i;
+
+    func_800E6F0C_minigame(2);
+    WipeCreateIn(255, 16);
+    D_8010B1E0_coconut_conk = 0;
+    D_8010B1C8_coconut_conk = 0;
+    D_8010CBBA_coconut_conk = 100;
+    for (i = 0; i < 3; i++) {
+        D_8010B1C9_coconut_conk[i] = 5;
+    }
+    D_8010CBBE_coconut_conk = 0;
+    D_8010B1C0_coconut_conk = 0;
+    D_8010CBBB_coconut_conk = 0;
+    D_8010CBBC_coconut_conk = 500;
+    D_8010B1CC_coconut_conk = 0;
+    D_8010B1DE_coconut_conk = 0;
+    D_8010CBC0_coconut_conk = -1;
+    D_8010B1E6_coconut_conk = -400;
+    D_8010B1C2_coconut_conk = 0;
+    D_8010CBB8_coconut_conk = 0;
+    func_80105D58_coconut_conk();
+    func_801061AC_coconut_conk();
+    func_80106294_coconut_conk();
+    func_8010641C_coconut_conk();
+    func_801066A4_coconut_conk();
+    func_80108FA0_coconut_conk();
+    func_8010A344_coconut_conk();
+    func_80106E80_coconut_conk();
+    func_80106924_coconut_conk();
+    func_8010A4AC_coconut_conk();
+    obj->func = func_8010A668_coconut_conk;
+}
 
 void func_8010AC88_coconut_conk(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010AC90_coconut_conk);
+void func_8010AC90_coconut_conk(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", func_8010AE04_coconut_conk);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 2;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(2);
+    func_8000B710_main(2);
+    for (i = 0; i < 2; i++) {
+        ScissorSet(i, D_8010B018_coconut_conk[i].scissor[0], D_8010B018_coconut_conk[i].scissor[1],
+                   D_8010B018_coconut_conk[i].scissor[2], D_8010B018_coconut_conk[i].scissor[3]);
+        ViewportSet(i, D_8010B018_coconut_conk[i].viewport[0], D_8010B018_coconut_conk[i].viewport[1],
+                    D_8010B018_coconut_conk[i].viewport[2], D_8010B018_coconut_conk[i].viewport[3],
+                    D_8010B018_coconut_conk[i].viewport[4], D_8010B018_coconut_conk[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010B018_coconut_conk[i].fov, 80.0f, 8000.0f);
+    }
+}
+
+void func_8010AE04_coconut_conk(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(50);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    func_8010AC90_coconut_conk();
+    HmfLightMaxSet(1);
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(0, -84.0f, 49.0f, 69.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -84.0f, 49.0f, 69.0f);
+    HmfLightColorSet(2, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(2, -84.0f, 49.0f, 69.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010B1B8_coconut_conk, 0);
+    func_80045010_main(D_8010B1B8_coconut_conk, 1);
+    omAddObj(1500, 0, 0, -1, func_8010AB4C_coconut_conk);
+    omAddObj(1500, 0, 0, -1, func_8010A610_coconut_conk);
+    func_80105A3C_coconut_conk();
+    func_800E5EA0_minigame(&D_8010AFF0_coconut_conk);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_02_coconut_conk/120BC0", D_8010B1B8_coconut_conk);
