@@ -88,6 +88,7 @@ void func_80106CDC_parasol_plummet(omObjData* obj);
 void func_80106DB0_parasol_plummet(omObjData* obj);
 void func_80106E14_parasol_plummet(omObjData* obj);
 void func_801071B4_parasol_plummet(omObjData* obj);
+f32 func_801079D8_parasol_plummet(omObjData* obj, s32 item);
 s16 func_801074CC_parasol_plummet(omObjData* obj);
 u16 func_801076D4_parasol_plummet(omObjData* obj);
 void func_80107A44_parasol_plummet(omObjData* obj);
@@ -740,7 +741,76 @@ void func_801071B4_parasol_plummet(omObjData* obj) {
     }
 }
 
+/* NON_MATCHING: retail compiles the CPU difficulty switch as two separate rand8 tests (0..2 and 3; GCC merges
+   these equivalent arms) and allocates s3/s4 the other way round. CPU steering: aim at the nearest item ahead. */
+#ifdef NON_MATCHING
+s16 func_801074CC_parasol_plummet(omObjData* obj) {
+    f32 dist[18];
+    s32 idx[18];
+    PaPlayer* p;
+    PaItem* item;
+    s32 stick;
+    s32 n;
+    s32 i;
+    s32 j;
+    f32 d;
+
+    stick = 0;
+    n = 0;
+    for (i = 0; i < 18; i++) {
+        d = func_801079D8_parasol_plummet(obj, i);
+        if (d != -1.0f) {
+            dist[n] = d;
+            idx[n] = i;
+            n++;
+        }
+    }
+    if (n == 0) {
+        return 0;
+    }
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n; j++) {
+            if (dist[i] < dist[j]) {
+                f32 tf = dist[i];
+                s32 ti;
+
+                dist[i] = dist[j];
+                dist[j] = tf;
+                ti = idx[i];
+                idx[i] = idx[j];
+                idx[j] = ti;
+            }
+        }
+    }
+    p = obj->data;
+    switch (GwPlayer[p->unk24].cpu_difficulty) {
+    case 0:
+    case 1:
+    case 2:
+        if (rand8() == 0) {
+            return 0;
+        }
+        break;
+    case 3:
+        if (rand8() == 0) {
+            return 0;
+        }
+        break;
+    default:
+        return stick;
+    }
+    item = D_8010AB70_parasol_plummet[idx[0]]->data;
+    if (p->unk00 < item->unk08) {
+        stick = 0x46;
+    }
+    if (item->unk08 < p->unk00) {
+        stick = -0x46;
+    }
+    return stick;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801074CC_parasol_plummet);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801076D4_parasol_plummet);
 
