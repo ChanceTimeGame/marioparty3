@@ -100,6 +100,7 @@ extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: ri
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+extern s16 D_80110D98_river_raiders[3][5]; /* collision flags per team-1 raft (func_80108678_river_raiders) */
 extern s32 D_8010D3D0_river_raiders[]; /* portrait sprite per character */
 extern s32 D_800A178C_main[][6];
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -912,7 +913,101 @@ void func_80108574_river_raiders(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Collision flags for one of the three team-1 rafts (work[1]): D_80110D98_river_raiders[raft][other] for the
+ * other rafts, [3] the lane edge (1 left, 2 right of lane work[2]), [4] the river bank. */
+void func_80108678_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
+    omObjData *other;
+    f32 x;
+    f32 hi;
+    s16 i;
+    s16 j;
+    s32 hit;
+
+    for (i = 0; i < 5; i++) {
+        D_80110D98_river_raiders[obj->work[1]][i] = 0;
+    }
+    x = obj->trans.x + ent->unk18;
+    ent->unk12 = 0;
+    if (x - 65.0f < D_80110DC8_river_raiders[obj->work[2] * 2]) {
+        D_80110D98_river_raiders[obj->work[1]][3] = 1;
+    }
+    hit = 0;
+    if (x + 65.0f > D_80110DC8_river_raiders[obj->work[2] * 2 + 1]) {
+        D_80110D98_river_raiders[obj->work[1]][3] = 2;
+    }
+    for (i = 0; i < 3; i++) {
+        if (i != obj->work[1]) {
+            other = D_8010DD08_river_raiders[i].obj;
+            hi = x + 65.0f;
+            switch (ent->unk08) {
+                case 1:
+                    hi += ent->unk12 * 4.5f;
+                    if (other->trans.x - 65.0f < hi && x - 65.0f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+                case 2:
+                    if (other->trans.x - 65.0f < hi && x - 65.0f - ent->unk12 * 4.5f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+                default:
+                    if (other->trans.x - 65.0f < hi && x - 65.0f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+            }
+            if (hit == 1) {
+                break;
+            }
+        }
+    }
+    hit = 0;
+    for (j = 0; j < 3; j++) {
+        if (j != obj->work[1] && j != i) {
+            other = D_8010DD08_river_raiders[j].obj;
+            hi = x + 65.0f;
+            switch (ent->unk08) {
+                case 1:
+                    hi += ent->unk12 * 4.5f;
+                    if (other->trans.x - 65.0f < hi && x - 65.0f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+                case 2:
+                    if (other->trans.x - 65.0f < hi && x - 65.0f - ent->unk12 * 4.5f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+                default:
+                    if (other->trans.x - 65.0f < hi && x - 65.0f < other->trans.x + 65.0f) {
+                        D_80110D98_river_raiders[obj->work[1]][i] = 1;
+                        hit = 1;
+                    }
+                    break;
+            }
+            if (hit == 1) {
+                break;
+            }
+        }
+    }
+    if (x + 65.0f > 580.0f) {
+        D_80110D98_river_raiders[obj->work[1]][4] = 1;
+    }
+    if (x - 65.0f < -580.0f) {
+        D_80110D98_river_raiders[obj->work[1]][4] = 2;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108678_river_raiders);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108ACC_river_raiders);
 
