@@ -1187,7 +1187,8 @@ segments:
     subsegments:
       - [0x216670, c]
       - [0x21CAC0, c]
-      - [0x21DBF0, data, 216670] #8010CF20
+      - [0x21DBF0, .data, 216670] #8010CF20
+      - [0x21DF10, .data, 21CAC0] #8010D240
       - [0x21DF20, .rodata, 216670] #8010D250
       - {0x21E010, type: bss, vram: 0x8010D340, name: ovl_24_bss}
 

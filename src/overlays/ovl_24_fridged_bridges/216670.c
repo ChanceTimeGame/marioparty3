@@ -126,27 +126,58 @@ extern HitList D_800EBEB0_minigame;
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800A178C_main[][6];
-extern u16 D_8010CFF4_fridged_bridges[];
-extern FbUV D_8010CFFC_fridged_bridges[3][12]; /* bridge path points (x, z), player 0's quarter */
-extern FbUV D_8010D11C_fridged_bridges[12];
 extern FbUV D_8010D3A0_fridged_bridges[4][3][12]; /* per player: bridge path points */
 extern FbUV D_8010D820_fridged_bridges[4][12];
-extern FbUV D_8010D17C_fridged_bridges[3]; /* bridge pieces (x, z), player 0's quarter */
-extern FbUV D_8010D194_fridged_bridges;
 extern FbUV D_8010D9A0_fridged_bridges[4][3]; /* per player: bridge pieces */
 extern FbUV D_8010DA00_fridged_bridges[4];
 extern u8 D_800D6A90_main;
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 
-extern D_80111B50_vine_with_me_Struct D_8010CF20_fridged_bridges;
-extern s16 D_8010CF48_fridged_bridges[4]; /* per player: camera bit */
-extern u16 D_8010CF50_fridged_bridges; /* 1 = fade out started */
-extern s32 D_8010CF54_fridged_bridges[4];
-extern s32 D_8010CF64_fridged_bridges[4];
-extern char *D_8010CF94_fridged_bridges[4];
-extern Vec D_8010CFA4_fridged_bridges[4]; /* per player: start position */
-extern f32 D_8010CFD4_fridged_bridges[]; /* per character: scale */
+extern char D_8010D268_fridged_bridges[];
+extern char D_8010D27C_fridged_bridges[];
+extern char D_8010D290_fridged_bridges[];
+extern char D_8010D2A4_fridged_bridges[];
+
+D_80111B50_vine_with_me_Struct D_8010CF20_fridged_bridges = {
+    0, 0, 1, 0, 0, 0, 0, { 0 }, 0, { 0 }, -1, -1, 0x1518, 0x4B, 0x87,
+};
+s16 D_8010CF48_fridged_bridges[4] = { 1, 2, 4, 8 }; /* per player: camera bit */
+u16 D_8010CF50_fridged_bridges = 0; /* 1 = fade out started */
+s32 D_8010CF54_fridged_bridges[4] = { 0x450004, 0x450005, 0x450006, 0x450007 };
+s32 D_8010CF64_fridged_bridges[4] = { 0x450008, 0x450009, 0x45000A, 0x45000B };
+FbUV D_8010CF74_fridged_bridges[4] = { { -550.0f, -200.0f }, { 550.0f, -200.0f }, { -550.0f, 200.0f }, { 550.0f, 200.0f } }; /* unreferenced */
+char *D_8010CF94_fridged_bridges[4] = {
+    D_8010D2A4_fridged_bridges, D_8010D290_fridged_bridges, D_8010D27C_fridged_bridges, D_8010D268_fridged_bridges,
+};
+Vec D_8010CFA4_fridged_bridges[4] = { /* per player: start position */
+    { -1300.0f, 0.0f, -780.0f }, { 1300.0f, 0.0f, -780.0f }, { -1300.0f, 0.0f, 780.0f }, { 1300.0f, 0.0f, 780.0f },
+};
+f32 D_8010CFD4_fridged_bridges[8] = { 1.1f, 1.1f, 1.1f, 1.1f, 1.1f, 1.0f, 1.1f, 1.1f }; /* per character: scale */
+u16 D_8010CFF4_fridged_bridges[4] = { 0x200, 0x300, 0x400, 0 };
+FbUV D_8010CFFC_fridged_bridges[3][12] = { /* bridge path points (x, z), player 0's quarter */
+    { { -1300.0f, -900.0f }, { -1250.0f, -565.0f }, { -1200.9f, -326.8f }, { -1080.0f, -302.5f }, { -981.5f, -389.5f }, { -875.8f, -591.5f }, { -791.0f, -798.3f }, { -636.5f, -860.4f }, { -464.6f, -839.5f }, { -345.8f, -799.0f }, { -298.7f, -600.0f }, { -267.7f, -220.0f } },
+    { { -1300.0f, -900.0f }, { -1305.0f, -565.0f }, { -1240.9f, -351.8f }, { -1135.0f, -244.5f }, { -960.5f, -325.5f }, { -836.8f, -594.5f }, { -757.0f, -782.3f }, { -636.5f, -831.4f }, { -464.6f, -832.5f }, { -357.8f, -734.0f }, { -267.7f, -600.0f }, { -267.7f, -220.0f } },
+    { { -1300.0f, -900.0f }, { -1250.0f, -565.0f }, { -1170.9f, -338.0f }, { -1090.0f, -309.0f }, { -1005.0f, -379.0f }, { -910.8f, -593.0f }, { -830.0f, -816.3f }, { -636.5f, -910.4f }, { -410.6f, -890.5f }, { -300.0f, -786.8f }, { -267.7f, -600.0f }, { -267.7f, -220.0f } }
+};
+FbUV D_8010D11C_fridged_bridges[12] = {
+    { -1300.0f, -780.0f }, { -1250.0f, -565.0f }, { -1156.9f, -331.8f }, { -1080.0f, -302.5f }, { -981.5f, -389.5f }, { -875.8f, -591.5f }, { -791.0f, -798.3f }, { -636.5f, -860.4f }, { -464.6f, -839.5f }, { -345.8f, -799.0f }, { -320.0f, -420.0f }, { -267.7f, -220.0f }
+};
+FbUV D_8010D17C_fridged_bridges[3] = { { -272.0f, -498.0f }, { -272.0f, -431.0f }, { -272.0f, -364.0f } }; /* bridge pieces (x, z), player 0's quarter */
+FbUV D_8010D194_fridged_bridges = { -1300.0f, -900.0f };
+s16 D_8010D19C_fridged_bridges = 0;
+s32 D_8010D1A0_fridged_bridges = 0;
+Vec D_8010D1A4_fridged_bridges[4] = { /* per player: goal position */
+    { -150.0f, 0.0f, 100.0f }, { 150.0f, 0.0f, 100.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f },
+};
+FbUV D_8010D1D4_fridged_bridges[4] = { { 0.0f, 0.0f }, { 160.0f, 0.0f }, { 0.0f, 120.0f }, { 160.0f, 120.0f } }; /* per player: viewport origin */
+u16 D_8010D1F4_fridged_bridges[4] = { 0, 0, 0, 0 }; /* per player: camera reached the start */
+FbHazardPath D_8010D1FC_fridged_bridges[4] = {
+    { { { -593.0f, -1088.0f }, { -588.0f, -708.0f } } },
+    { { { 593.0f, -1088.0f }, { 588.0f, -708.0f } } },
+    { { { -593.0f, 1088.0f }, { -588.0f, 708.0f } } },
+    { { { 593.0f, 1088.0f }, { 588.0f, 708.0f } } }
+};
 extern omObjData *D_8010D35C_fridged_bridges;
 extern omObjData *D_8010D360_fridged_bridges;
 extern s16 D_8010D364_fridged_bridges;
@@ -198,19 +229,13 @@ void func_80109154_fridged_bridges(omObjData *obj);
 void func_8010A360_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
-extern s32 D_8010D1A0_fridged_bridges;
-extern FbHazardPath D_8010D1FC_fridged_bridges[4];
-extern u16 D_8010D1F4_fridged_bridges[4]; /* per player: camera reached the start */
 extern u16 D_8010DA20_fridged_bridges; /* camera path point */
-extern FbUV D_8010D1D4_fridged_bridges[4]; /* per player: viewport origin */
 void func_80012B14_main(s16 camIndex, Vec *worldPos, FbUV *outPos);
 void func_801075A4_fridged_bridges(omObjData *obj);
-extern Vec D_8010D1A4_fridged_bridges[4]; /* per player: goal position */
 extern f32 D_8010D340_fridged_bridges; /* winner camera: zoom step */
 extern Vec D_8010D344_fridged_bridges; /* winner camera: rotation step */
 extern u16 D_8010D350_fridged_bridges; /* winner camera: frames left */
 void func_80108FBC_fridged_bridges(omObjData *obj);
-extern s16 D_8010D19C_fridged_bridges;
 void func_801091F8_fridged_bridges(omObjData *obj);
 void func_80109390_fridged_bridges(omObjData *obj);
 s32 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);

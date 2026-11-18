@@ -454,3 +454,10 @@ D_8010C60A_end_of_the_line = D_8010C600_end_of_the_line + 0xA;
 D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 /* m4 bg: the_beat_goes_on/1FE4D0 .data byte inside D_8010C310 (players made; a separate variable in C) */
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
+/* m5 fb: inner labels of ovl_24_fridged_bridges .data objects used by its remaining asm */
+D_8010D180_fridged_bridges = D_8010D17C_fridged_bridges + 0x4;
+D_8010D1AC_fridged_bridges = D_8010D1A4_fridged_bridges + 0x8;
+D_8010D1D8_fridged_bridges = D_8010D1D4_fridged_bridges + 0x4;
+D_8010D200_fridged_bridges = D_8010D1FC_fridged_bridges + 0x4;
+D_8010D204_fridged_bridges = D_8010D1FC_fridged_bridges + 0x8;
+D_8010D208_fridged_bridges = D_8010D1FC_fridged_bridges + 0xC;

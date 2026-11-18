@@ -54,9 +54,11 @@ void *HuMemAllocTag(s32 size, s16 tag);
 void func_8010BE88_fridged_bridges(omObjData *obj);
 
 extern s16 D_8010CF48_fridged_bridges[4]; /* per player: camera bit */
-extern s32 D_8010D240_fridged_bridges[1]; /* per effect type: model file */
-extern omObjFunc D_8010D244_fridged_bridges[1]; /* per effect type: object function */
-extern u32 D_8010D248_fridged_bridges[1]; /* per effect type: lifetime */
+void func_8010C178_fridged_bridges(omObjData *obj);
+
+s32 D_8010D240_fridged_bridges[1] = { 0x45000C }; /* per effect type: model file */
+omObjFunc D_8010D244_fridged_bridges[1] = { func_8010C178_fridged_bridges }; /* per effect type: object function */
+u32 D_8010D248_fridged_bridges[1] = { 0x23 }; /* per effect type: lifetime */
 extern s16 D_8010DA30_fridged_bridges[1][12]; /* effect models */
 extern u16 D_8010DA48_fridged_bridges[1][12]; /* 1 = in use */
 extern omObjData *D_8010DA88_fridged_bridges;
