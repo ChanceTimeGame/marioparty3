@@ -1094,7 +1094,102 @@ void func_8010897C_swing_n_swipe(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010897C_swing_n_swipe);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801092B4_swing_n_swipe);
+/* After a catch (D_8010C148_swing_n_swipe 4, 5): the other thieves flee off the field and the netted one is
+ * flung away. */
+void func_801092B4_swing_n_swipe(void) {
+    omObjData* obj = D_8010C140_swing_n_swipe;
+    s16 i;
+    u16 mdl;
+    u16 shadow;
+    f32 ox;
+    f32 oz;
+
+    if (D_8010C148_swing_n_swipe == 4) {
+        for (i = 0; i < 5; i++) {
+            if (i != D_8010C15E_swing_n_swipe) {
+                mdl = D_8010C170_swing_n_swipe[i][0];
+                shadow = D_8010C170_swing_n_swipe[i][1];
+                switch (D_8010BE14_swing_n_swipe[i]) {
+                case 0:
+                    D_8010C0C0_swing_n_swipe[i].x = HmfModelData[(s16)mdl].pos.x;
+                    D_8010C0C0_swing_n_swipe[i].y = HmfModelData[(s16)mdl].pos.y;
+                    D_8010C14A_swing_n_swipe[i] = 1;
+                    func_8001C92C_main(mdl, 2.0f);
+                    D_8010BE20_swing_n_swipe[i] = 1;
+                    D_8010BE14_swing_n_swipe[i]++;
+                    break;
+                case 1:
+                    ox = HmfModelData[(s16)mdl].pos.x;
+                    oz = HmfModelData[(s16)mdl].pos.z;
+                    if (obj->trans.x <= ox) {
+                        HmfModelData[(s16)mdl].pos.x = ox + 10.0f;
+                    } else {
+                        HmfModelData[(s16)mdl].pos.x = HmfModelData[(s16)mdl].pos.x - 10.0f;
+                    }
+                    HmfModelData[(s16)mdl].pos.z += 27.0f;
+                    HmfModelData[(s16)mdl].rot.y =
+                        -atan2df(oz - HmfModelData[(s16)mdl].pos.z, ox - HmfModelData[(s16)mdl].pos.x) + 270.0f;
+                    if (HmfModelData[(s16)mdl].pos.x <= -1200.0f) {
+                        D_8010BE14_swing_n_swipe[i]++;
+                    }
+                    break;
+                case 2:
+                    func_8001C8A8_main(mdl, 0);
+                    func_8001C8A8_main(shadow, 0);
+                    D_8010BE14_swing_n_swipe[i]++;
+                    break;
+                }
+            }
+        }
+    }
+    if (D_8010C148_swing_n_swipe == 4 || D_8010C148_swing_n_swipe == 5) {
+        for (i = 0; i < 5; i++) {
+            if (i == D_8010C15E_swing_n_swipe) {
+                mdl = D_8010C170_swing_n_swipe[i][0];
+                shadow = D_8010C170_swing_n_swipe[i][1];
+                switch (D_8010BE14_swing_n_swipe[i]) {
+                case 0:
+                    D_8010BE30_swing_n_swipe = D_8010C140_swing_n_swipe->rot.y + 270.0f;
+                    D_8010BE2C_swing_n_swipe = -2.0f;
+                    HmfModelData[(s16)mdl].rot.y = D_8010BE30_swing_n_swipe;
+                    D_8010C14A_swing_n_swipe[i] = 3;
+                    D_8010BE14_swing_n_swipe[i]++;
+                    break;
+                case 1:
+                    HmfModelData[(s16)mdl].pos.x -= cosdf(D_8010BE30_swing_n_swipe + 270.0f) * 100.0f;
+                    HmfModelData[(s16)mdl].pos.z += sindf(D_8010BE30_swing_n_swipe + 270.0f) * 100.0f;
+                    HmfModelData[(s16)mdl].pos.y += D_8010BE2C_swing_n_swipe * D_8010BE2C_swing_n_swipe
+                                                    * (D_8010BE2C_swing_n_swipe <= 0.0f ? 17.5f : -17.5f);
+                    if (HmfModelData[(s16)mdl].pos.z <= -4000.0f && HmfModelData[(s16)mdl].scale.x > 0.0f) {
+                        HmfModelData[(s16)mdl].scale.x = HmfModelData[(s16)mdl].scale.y = HmfModelData[(s16)mdl].scale.z =
+                            HmfModelData[(s16)mdl].scale.z - 0.025f;
+                    }
+                    if (D_8010BE2C_swing_n_swipe <= 0.0f) {
+                        D_8010BE2C_swing_n_swipe += 0.11f;
+                    } else {
+                        D_8010BE2C_swing_n_swipe = 0.0f;
+                    }
+                    if (sindf(D_8010BE20_swing_n_swipe[i] * 3.0f) != 1.0f) {
+                        HmfModelData[(s16)mdl].rot.x = 0.0f - sindf(D_8010BE20_swing_n_swipe[i]++ * 3.0f) * 90.0f;
+                    } else {
+                        HmfModelData[(s16)mdl].rot.x = -90.0f;
+                    }
+                    if (HmfModelData[(s16)mdl].pos.x >= 5000.0f || HmfModelData[(s16)mdl].pos.x <= -5000.0f
+                        || HmfModelData[(s16)mdl].pos.z >= 5000.0f || HmfModelData[(s16)mdl].pos.z <= -6000.0f) {
+                        D_8010BE14_swing_n_swipe[i]++;
+                    }
+                    break;
+                case 2:
+                    func_8001C8A8_main(mdl, 0);
+                    func_8001C8A8_main(shadow, 0);
+                    D_8010BE14_swing_n_swipe[i]++;
+                    break;
+                }
+                break;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801099E8_swing_n_swipe);
 
