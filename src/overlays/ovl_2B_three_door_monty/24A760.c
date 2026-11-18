@@ -180,7 +180,7 @@ void func_8010B5A8_three_door_monty(void);
 void func_8010B7B8_three_door_monty(omObjData *obj);
 void func_8010BC08_three_door_monty(omObjData *obj);
 void func_8010BD88_three_door_monty(void);
-void func_8010BE64_three_door_monty(omObjData *obj);
+void func_8010BE64_three_door_monty(void);
 void func_8010C1B4_three_door_monty(void);
 void func_8010C2DC_three_door_monty(omObjData *obj);
 void func_8010C358_three_door_monty(omObjData *obj);
@@ -2108,7 +2108,7 @@ void func_8010BD88_three_door_monty(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BD88_three_door_monty);
 #endif
 
-void func_8010BE64_three_door_monty(omObjData *obj) {
+void func_8010BE64_three_door_monty(void) {
     CcEnt *ents[4];
     omObjData *objs[4];
     s16 val[4];
@@ -2215,7 +2215,138 @@ void func_8010C390_three_door_monty(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010C3E8_three_door_monty);
+void func_8010C3E8_three_door_monty(omObjData *obj) {
+    switch (D_8010EC30_three_door_monty) {
+        case 0:
+            func_801062E8_three_door_monty(1);
+            break;
+        case 1:
+            if (D_8010EC42_three_door_monty == 1) {
+                func_801062E8_three_door_monty(2);
+                D_8010EC32_three_door_monty = 0;
+            } else if (++D_8010EC32_three_door_monty > 50) {
+                D_8010EC32_three_door_monty = 50;
+            }
+            break;
+        case 2:
+            if (D_8010EC32_three_door_monty == 0) {
+                GMesCreate(7);
+                D_8010EC32_three_door_monty++;
+            } else if (D_8010EC32_three_door_monty >= 63) {
+                HuAudSeqPlay(0x31);
+            } else {
+                D_8010EC32_three_door_monty++;
+            }
+            if (GMesStatGet() == 0) {
+                func_801062E8_three_door_monty(3);
+                D_8010EC32_three_door_monty = 0;
+            }
+            break;
+        case 3:
+            if (D_8010EC42_three_door_monty == 3) {
+                func_801062E8_three_door_monty(4);
+                D_8010EC3C_three_door_monty = 0;
+                D_800D6A58_main = 1;
+            } else {
+                D_8010EC32_three_door_monty++;
+            }
+            break;
+        case 4:
+            if (D_8010EC42_three_door_monty == 4) {
+                func_801062E8_three_door_monty(5);
+                D_8010EC32_three_door_monty = 0;
+            }
+            break;
+        case 5:
+            if (D_8010EC42_three_door_monty == 5) {
+                func_801062E8_three_door_monty(6);
+                D_8010EC32_three_door_monty = 151;
+                GMesCreate(0x1A, 5, 160, 28);
+            }
+            break;
+        case 6:
+            if (D_8010EC32_three_door_monty <= 0 || D_8010EC44_three_door_monty == 1) {
+                D_8010D254_three_door_monty = 0;
+                D_8010EC44_three_door_monty = 0;
+                func_8003F5C0_main();
+                func_801062E8_three_door_monty(7);
+                D_800D6A58_main = 0;
+            } else {
+                D_8010EC32_three_door_monty--;
+                D_8010D254_three_door_monty += 33;
+                if (D_8010D254_three_door_monty % 1000 == 990) {
+                    D_8010D254_three_door_monty += 10;
+                }
+            }
+            func_8003F578_main((D_8010EC32_three_door_monty + 29) / 30);
+            break;
+        case 7:
+            if (D_8010EC42_three_door_monty == 7) {
+                func_801062E8_three_door_monty(10);
+                D_8010EC32_three_door_monty = 150;
+                if (D_8010D230_three_door_monty == 4) {
+                    func_801062E8_three_door_monty(11);
+                }
+            }
+            break;
+        case 10:
+            if (D_8010EC3C_three_door_monty == 2) {
+                GMesCreate(0x12);
+                HuAudSeqFadeOut(120);
+                D_8010EC3C_three_door_monty = 3;
+            }
+            if (D_8010EC3C_three_door_monty == 3 && GMesStatGet() == 0) {
+                if (D_8010D232_three_door_monty >= 0) {
+                    D_8010EC32_three_door_monty = 99;
+                    func_801062E8_three_door_monty(12);
+                }
+                D_8010D232_three_door_monty++;
+            }
+            if (D_8010EC32_three_door_monty > 0) {
+                D_8010EC32_three_door_monty--;
+            } else {
+                D_8010EC32_three_door_monty = 0;
+            }
+            break;
+        case 11:
+            if (D_8010EC3C_three_door_monty == 2) {
+                GMesCreate(0x12);
+                HuAudSeqFadeOut(120);
+                D_8010EC3C_three_door_monty = 3;
+            }
+            if (D_8010EC3C_three_door_monty == 3 && GMesStatGet() == 0) {
+                if (D_8010D232_three_door_monty >= 0) {
+                    D_8010EC32_three_door_monty = 144;
+                    func_801062E8_three_door_monty(12);
+                }
+                D_8010D232_three_door_monty++;
+            }
+            break;
+        case 12:
+            if (D_8010D230_three_door_monty == 4) {
+                if (D_8010EC32_three_door_monty == 144) {
+                    HuAudSeqPlay(0x6C);
+                }
+            } else if (D_8010EC32_three_door_monty == 98) {
+                HuAudSeqPlay(0x65);
+            }
+            if (D_8010EC32_three_door_monty > 0) {
+                D_8010EC32_three_door_monty--;
+            } else {
+                D_8010EC32_three_door_monty = 0;
+                func_801062E8_three_door_monty(13);
+            }
+            break;
+        case 13:
+            if (D_8010EC32_three_door_monty == 0) {
+                func_8010BE64_three_door_monty();
+                WipeCreateOut(0, 20);
+                obj->func = func_8010C358_three_door_monty;
+                D_8010EC32_three_door_monty++;
+            }
+            break;
+    }
+}
 
 void func_8010C8C0_three_door_monty(omObjData *obj) {
     s16 i;
