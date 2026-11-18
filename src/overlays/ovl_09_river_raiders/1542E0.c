@@ -94,10 +94,15 @@ extern RrEnt D_8010DAF8_river_raiders[]; /* = D_8010D9F0_river_raiders[2] */
 extern RrEnt D_8010DB7C_river_raiders[3]; /* = D_8010D9F0_river_raiders[3..5] */
 extern RrEnt D_8010DD08_river_raiders[3]; /* = D_8010D9F0_river_raiders[6..8] */
 extern omObjData *D_8010DE94_river_raiders; /* = D_8010D9F0_river_raiders[9].obj */
+extern s16 D_8010DED4_river_raiders; /* = D_8010D9F0_river_raiders[9].grp */
+extern s16 D_8010DED6_river_raiders; /* = D_8010D9F0_river_raiders[9].spr */
 extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: river objects (rocks, coins) */
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+extern s32 D_8010D3D0_river_raiders[]; /* portrait sprite per character */
+extern s32 D_800A178C_main[][6];
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 extern s16 D_80110DE2_river_raiders; /* the race timer */
 extern s16 D_8010D3B6_river_raiders; /* the engine sound id */
 extern f32 D_8010D9DC_river_raiders[]; /* [0] paddle yaw, [1] = D_8010D9E0_river_raiders[0] */
@@ -829,7 +834,54 @@ void func_80107B14_river_raiders(omObjData *obj) {
     Hu3DModelRotSet(obj->model[4], obj->rot.x, obj->rot.y, obj->rot.z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108188_river_raiders);
+/* Team-0 raft setup: rider, second rider, paddle, rope, shadow; the team's portrait sprite. */
+void func_80108188_river_raiders(omObjData *obj) {
+    s8 chr = GwPlayer[obj->work[0]].chr;
+
+    obj->model[5] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x6A9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x27));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x28));
+    func_8001C5B4_main(obj->model[5], obj->motion[0]);
+    func_8001C6A8_main(obj->model[5], 0.0f);
+    func_8001C814_main(obj->model[5], 2, 2);
+    func_8001C448_main(obj->model[5]);
+    func_8001C514_main(obj->model[5]);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = -100.0f;
+    Hu3DModelPosSet(obj->model[5], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[5], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->model[1] = func_8000B108_main(0x2A0008, 0x4B9);
+    func_8000B460_main(obj, 2, 0x2A0009);
+    func_8000B460_main(obj, 3, 0x2A000A);
+    func_8001C5B4_main(obj->model[1], obj->motion[2]);
+    func_8001C6A8_main(obj->model[1], 0.0f);
+    func_8001C814_main(obj->model[1], 2, 2);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y - 32.5f, obj->trans.z + 20.0f);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->model[2] = func_8000B108_main(0x2A0010, 0x4A9);
+    func_8001C814_main(obj->model[2], 2, 2);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y - 32.5f, obj->trans.z + 50.0f);
+    obj->model[3] = func_8000B108_main(0x2A0011, 0x4A9);
+    func_8001C814_main(obj->model[3], 2, 2);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->model[4] = func_8000B0A0_main(0, 0x4A9);
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, 0.0f, obj->trans.z + 20.0f);
+    Hu3DModelScaleSet(obj->model[4], 2.0f, 2.0f, 2.0f);
+    func_8001C2FC_main(obj->model[4], 0x80000000, 0);
+    func_8001C448_main(obj->model[4]);
+    func_8001C514_main(obj->model[4]);
+    D_8010DED4_river_raiders = func_8000B838_main(D_8010D3D0_river_raiders[chr]);
+    D_8010DED6_river_raiders = InitEspriteSlot(D_8010DED4_river_raiders, 0, 0);
+    func_8000BC48_main(D_8010DED6_river_raiders, 0x1000);
+    func_8000BBD4_main(D_8010DED6_river_raiders, 30, 210);
+    func_8000BE5C_main(D_8010DED6_river_raiders, 1.0f, 1.0f);
+    D_80110DE4_river_raiders = -300;
+    obj->func = func_80107B14_river_raiders;
+}
 
 /* Creates the CPU-or-player raft controller for the team-0 lead player (D_8010DE94_river_raiders). */
 void func_80108574_river_raiders(void) {
