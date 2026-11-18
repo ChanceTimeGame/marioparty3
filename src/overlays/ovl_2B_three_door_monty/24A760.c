@@ -172,7 +172,7 @@ void func_801099EC_three_door_monty(void);
 void func_80109A90_three_door_monty(omObjData *obj);
 void func_80109C84_three_door_monty(omObjData *obj);
 void func_80109F0C_three_door_monty(omObjData *obj);
-void func_8010A27C_three_door_monty(omObjData *obj);
+void func_8010A27C_three_door_monty(void);
 void func_8010A678_three_door_monty(omObjData *obj);
 void func_8010B138_three_door_monty(omObjData *obj);
 void func_8010B5A8_three_door_monty(void);
@@ -198,6 +198,7 @@ typedef struct CcPos2 {
 extern f32 D_8010CD10_three_door_monty[3];
 extern f32 D_8010CD1C_three_door_monty[3];
 extern CcPos2 D_8010CD40_three_door_monty[3]; /* the doors */
+extern s32 D_8010CDA4_three_door_monty[]; /* voice bank per character */
 extern CcCamera D_8010CDD0_three_door_monty[3];
 /* .rodata */
 extern char D_8010CEFC_three_door_monty[];
@@ -213,7 +214,7 @@ extern u8 D_8010D251_three_door_monty;      /* the low byte of D_8010D250_three_
 extern s16 D_8010D252_three_door_monty;
 extern s16 D_8010D254_three_door_monty;
 extern s16 D_8010D256_three_door_monty;
-extern s16 D_8010D258_three_door_monty[4];
+extern s16 D_8010D258_three_door_monty;
 extern CcEnt D_8010D260_three_door_monty[50];
 extern CcEnt D_8010D2E4_three_door_monty[4]; /* = D_8010D260_three_door_monty[1]: the players */
 extern CcEnt D_8010D4F4_three_door_monty[3]; /* = D_8010D260_three_door_monty[5] */
@@ -1128,7 +1129,206 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010A27C_three_door_monty);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010A678_three_door_monty);
+void func_8010A678_three_door_monty(omObjData *obj) {
+    CcEnt *ent = &D_8010D2E4_three_door_monty[obj->work[0]];
+    CcEnt *e;
+    s16 flag;
+    s16 i;
+
+    switch (D_8010EC30_three_door_monty) {
+        case 1:
+            break;
+        case 3:
+            if (obj->rot.y >= 0.0f && obj->rot.y < 180.0f) {
+                obj->rot.y = func_801059BC_three_door_monty(obj->rot.y, 9.0f);
+                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+            } else {
+                obj->rot.y = 180.0f;
+                func_801062F4_three_door_monty(obj, 2, 0, 3, 2, &ent->unk04);
+            }
+            break;
+        case 4:
+        case 5:
+            if (obj->rot.y > 0.0f && obj->rot.y < 270.0f) {
+                obj->rot.y = func_801059BC_three_door_monty(obj->rot.y, -9.0f);
+                func_801062F4_three_door_monty(obj, 1, 0, 3, 2, &ent->unk04);
+            } else {
+                obj->rot.y = 0.0f;
+                func_801062F4_three_door_monty(obj, 3, 0, 20, 2, &ent->unk04);
+            }
+            ent->unk06 = -1;
+            break;
+        case 6:
+            if (D_8010D254_three_door_monty > 32 && D_8010D254_three_door_monty < 4958) {
+                func_80109F0C_three_door_monty(obj);
+            }
+            if (obj->work[0] == 3) {
+                flag = 0;
+                for (i = 0; i < 4; i++) {
+                    e = &D_8010D2E4_three_door_monty[i];
+                    if (e->unk14 == 1 && e->unk06 == -1) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 0) {
+                    D_8010EC44_three_door_monty = 1;
+                }
+            }
+            break;
+        case 7:
+            if (obj->work[0] == 3) {
+                func_8010A27C_three_door_monty();
+                D_8010EC42_three_door_monty = 7;
+                D_8010D258_three_door_monty = 0;
+                for (i = 0; i < 4; i++) {
+                    e = &D_8010D2E4_three_door_monty[i];
+                    if (e->unk08 == 1 || e->unk08 == 2 || e->unk08 == 3) {
+                        D_8010D258_three_door_monty++;
+                    }
+                }
+                if (D_8010D258_three_door_monty >= 4) {
+                    for (i = 0; i < 4; i++) {
+                        e = &D_8010D2E4_three_door_monty[i];
+                        e->unk16 = 99;
+                    }
+                }
+            }
+            break;
+        case 8:
+        case 9:
+            if (D_8010D230_three_door_monty < 3) {
+                if (ent->unk14 == 0) {
+                    switch (ent->unk08) {
+                        case 1:
+                        case 2:
+                            if (D_8010EC3C_three_door_monty >= 2) {
+                                for (i = 0; i < 3; i++) {
+                                    func_8001C258_main(obj->model[i + 2], 4, 4);
+                                }
+                                func_80106390_three_door_monty(obj, 6, 2, 0, &ent->unk04);
+                                if (D_8010D244_three_door_monty[obj->work[0]] == 0) {
+                                    func_8004ACE0_main(0x286, obj->work[0]);
+                                    D_8010D244_three_door_monty[obj->work[0]] = 1;
+                                }
+                                if (ent->unk04 == 6) {
+                                    if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <=
+                                        HmfModelData[obj->model[0]].unk40) {
+                                        ent->unk08 = 10;
+                                    }
+                                }
+                            }
+                            break;
+                        case 3:
+                            if (D_8010EC3C_three_door_monty >= 2) {
+                                for (i = 0; i < 3; i++) {
+                                    func_8001C258_main(obj->model[i + 2], 4, 4);
+                                }
+                                func_80106390_three_door_monty(obj, 6, 2, 0, &ent->unk04);
+                                if (D_8010D244_three_door_monty[obj->work[0]] == 0) {
+                                    func_8004ACE0_main(0x286, obj->work[0]);
+                                    D_8010D244_three_door_monty[obj->work[0]] = 1;
+                                }
+                                if (ent->unk04 == 6) {
+                                    if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <=
+                                        HmfModelData[obj->model[0]].unk40) {
+                                        ent->unk08 = 10;
+                                    }
+                                }
+                            }
+                            break;
+                        case 10:
+                            func_801062F4_three_door_monty(obj, 1, 0, 30, 2, &ent->unk04);
+                            if (obj->trans.z < 500.0f) {
+                                obj->trans.z += 10.0f;
+                                obj->trans.y -= 3.0f;
+                            } else {
+                                obj->trans.z = 500.0f;
+                                ent->unk08 = 50;
+                            }
+                            break;
+                        case 50:
+                            break;
+                    }
+                }
+                if (D_8010EC30_three_door_monty == 9 && obj->work[0] == 3) {
+                    flag = 0;
+                    for (i = 0; i < 4; i++) {
+                        e = &D_8010D2E4_three_door_monty[i];
+                        if (e->unk14 == 0 && e->unk08 != 50) {
+                            flag = 1;
+                        }
+                    }
+                    if (flag == 0) {
+                        D_8010EC42_three_door_monty = 9;
+                    }
+                }
+            }
+            break;
+        case 12:
+            if (ent->unk14 != 0) {
+                if (D_8010EC3C_three_door_monty >= 2) {
+                    for (i = 0; i < 3; i++) {
+                        func_8001C258_main(obj->model[i + 2], 4, 4);
+                    }
+                    func_801062F4_three_door_monty(obj, 5, 0, 30, 0, &ent->unk04);
+                    if (D_8010D244_three_door_monty[obj->work[0]] == 0) {
+                        func_80045ED0_main((D_8010CDA4_three_door_monty[GwPlayer[obj->work[0]].chr] << 16) | 0x2F);
+                        D_8010D244_three_door_monty[obj->work[0]] = 1;
+                    }
+                }
+            }
+            if (ent->unk14 == 0) {
+                switch (ent->unk08) {
+                    case 1:
+                    case 2:
+                        if (D_8010EC3C_three_door_monty >= 2) {
+                            for (i = 0; i < 3; i++) {
+                                func_8001C258_main(obj->model[i + 2], 4, 4);
+                            }
+                            func_80106390_three_door_monty(obj, 6, 2, 0, &ent->unk04);
+                            if (D_8010D230_three_door_monty >= 4 && D_8010D244_three_door_monty[obj->work[0]] == 0) {
+                                D_8010D244_three_door_monty[obj->work[0]] = 1;
+                            }
+                            if (ent->unk04 == 6) {
+                                if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <=
+                                    HmfModelData[obj->model[0]].unk40) {
+                                    ent->unk08 = 10;
+                                }
+                            }
+                        }
+                        break;
+                    case 3:
+                        if (D_8010EC3C_three_door_monty >= 2) {
+                            for (i = 0; i < 3; i++) {
+                                func_8001C258_main(obj->model[i + 2], 4, 4);
+                            }
+                            func_80106390_three_door_monty(obj, 6, 2, 0, &ent->unk04);
+                            if (D_8010D230_three_door_monty >= 4 && D_8010D244_three_door_monty[obj->work[0]] == 0) {
+                                func_80045ED0_main((D_8010CDA4_three_door_monty[GwPlayer[obj->work[0]].chr] << 16) |
+                                                   0x36);
+                                D_8010D244_three_door_monty[obj->work[0]] = 1;
+                            }
+                            if (ent->unk04 == 6) {
+                                if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <=
+                                    HmfModelData[obj->model[0]].unk40) {
+                                    ent->unk08 = 10;
+                                }
+                            }
+                        }
+                        break;
+                    case 10:
+                    case 50:
+                        break;
+                }
+            }
+            break;
+    }
+    if (GwPlayer[obj->work[0]].chr != 5) {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+    } else {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z - 20.0f);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010B138_three_door_monty);
 
