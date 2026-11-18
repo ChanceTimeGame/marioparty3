@@ -22,7 +22,7 @@ typedef struct TtPlayer {
     /* 0x0C */ f32 unk0C; /* last position */
     /* 0x10 */ f32 unk10;
     /* 0x14 */ f32 unk14;
-    /* 0x18 */ char unk18[4];
+    /* 0x18 */ f32 unk18; /* team: speed kept while airborne */
     /* 0x1C */ f32 unk1C; /* radius */
     /* 0x20 */ f32 unk20; /* boat: rock height */
     /* 0x24 */ s32 unk24; /* win motion file */
@@ -39,7 +39,9 @@ typedef struct TtPlayer {
     /* 0x38 */ s16 unk38;
     /* 0x3A */ char unk3A[0xA];
     /* 0x44 */ f32 unk44; /* boat: bob phase */
-    /* 0x48 */ char unk48[0x1C];
+    /* 0x48 */ char unk48[4];
+    /* 0x4C */ f32 unk4C;
+    /* 0x50 */ char unk50[0x14];
 } TtPlayer; /* size 0x64 */
 
 #define TT_PLAYER(i) ((TtPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
@@ -52,6 +54,7 @@ void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
 f32 fabsf(f32);
 f64 fabs(f64);
 f32 sqrtf(f32);
+s32 fmod(f64 x, f64 y); /* retail calls it unprototyped: the result is read as an int */
 u8 rand8(void);
 
 extern s32 D_800A178C_main[][6];
@@ -64,6 +67,8 @@ extern u16 D_800D5558_main[];
 
 // minigame
 void func_800DDD94_minigame(omObjData* obj);
+void func_800E19FC_minigame(MgWork* work, s32 state);
+s32 func_800E5798_minigame(omObjData* obj, u16 motion);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
 void func_800E1804_minigame(void);
@@ -91,6 +96,7 @@ void func_80108638_tidal_toss(omObjData* obj);
 void func_80109180_tidal_toss(omObjData* obj);
 void func_8010961C_tidal_toss(omObjData* obj);
 void func_8010A11C_tidal_toss(omObjData* obj);
+void func_8010A490_tidal_toss(omObjData* obj, f32 dist);
 s32 func_8010A7F8_tidal_toss(void);
 void func_80106104_tidal_toss(omObjData* obj);
 void func_80106480_tidal_toss(omObjData* obj);
@@ -839,7 +845,211 @@ void func_80109584_tidal_toss(omObjData* obj, f32 x, f32 y, f32 z) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010961C_tidal_toss);
+/* A team player on the shore ring: dodge the waves, knocked into the pool by one. */
+void func_8010961C_tidal_toss(omObjData* obj) {
+    MgWork* work;
+    TtPlayer* tp;
+    u8 pad;
+    s32 flags;
+    f64 dist;
+    f64 rad;
+    s32 i;
+    TtSplash* sp;
+    f32 a;
+    f32 h;
+    omObjData* other;
+    MgWork* ow;
+
+    work = obj->data;
+    tp = work->unk158;
+    pad = work->unk57;
+    flags = func_800E4A90_minigame(obj);
+    tp->unk0C = obj->trans.x;
+    tp->unk10 = obj->trans.y;
+    tp->unk14 = obj->trans.z;
+    dist = sqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z);
+    switch (D_8010AF40_tidal_toss) {
+        case 0:
+            tp->unk2F = 1;
+            tp->unk2A = 0;
+            tp->unk44 = 0;
+            tp->unk4C = (s32)((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 10.0);
+            break;
+        case 2:
+            if (tp->unk30 != 0) {
+                D_800D20A1_main[pad] = 0;
+                D_800CBB6E_main[pad] = 0;
+                D_800D5558_main[pad] = 0;
+                D_800CDA7C_main[pad] = 0;
+                func_8010A490_tidal_toss(obj, dist);
+            }
+            if (work->unkBE == 0) {
+                for (sp = D_8010AF48_tidal_toss, i = 0; i < 8; i++, sp++) {
+                    if (sp->unk10 != 0 && fabsf(sp->unk00 - dist) <= sp->unk08 * 0.75 && obj->trans.y < sp->unk04) {
+                        a = func_8010A8A4_tidal_toss(obj->trans.x, obj->trans.z);
+                        if (a > 180.0) {
+                            a -= 360.0f;
+                        }
+                        h = work->unk3C;
+                        if (h > 180.0) {
+                            h -= 360.0f;
+                        }
+                        if (fabs(h - a) < 90.0) {
+                            func_800E5690_minigame(obj, 0xA);
+                            work->unk3C = a;
+                            work->unk40 = sp->unk0C;
+                            flags |= 0x800;
+                        } else {
+                            func_800E5690_minigame(obj, 9);
+                            work->unk3C = a + 180.0;
+                            work->unk40 = -sp->unk0C;
+                            flags |= 0x400;
+                        }
+                        work->unk38 = -0.735f;
+                        work->unkBE = 94;
+                        func_800E19FC_minigame(work, 8);
+                        switch (sp->unk10) {
+                            case 1:
+                                omVibrate(work->unk59, 2, 3, 10);
+                                break;
+                            case 2:
+                                omVibrate(work->unk59, 10, 0, 10);
+                                break;
+                            case 3:
+                                omVibrate(work->unk59, 2, 2, 20);
+                                break;
+                        }
+                    }
+                }
+            }
+            if (obj->trans.y <= 0.0) {
+                obj->trans.x += obj->trans.x * 0.5 / dist;
+                obj->trans.z += obj->trans.z * 0.5 / dist;
+            }
+            break;
+        case 3:
+            if (work->unkBE != 0) {
+                work->unkBE = 1;
+            }
+        case 4:
+            D_800CBB6E_main[pad] = 0;
+            D_800D20A1_main[pad] = -0x30;
+            D_800D5558_main[pad] = 0;
+            D_800CDA7C_main[pad] = 0;
+            break;
+        case 5:
+            D_800CBB6E_main[pad] = 0;
+            D_800D20A1_main[pad] = -0x30;
+            D_800D5558_main[pad] = 0;
+            D_800CDA7C_main[pad] = 0;
+            a = fmod(work->unk3C, 360.0);
+            if ((a > 8.0 && a < 352.0) || (a < -8.0 && a > -352.0)) {
+                break;
+            }
+            if (tp->unk2F == 1) {
+                if (tp->unk2A == 0) {
+                    func_800E5798_minigame(obj, 0xD);
+                    func_80045ED0_main(tp->unk24);
+                }
+                GwPlayer[work->unk59].bonusCoin += 10;
+                tp->unk2F++;
+            } else if (tp->unk2F == 0) {
+                tp->unk2F--;
+            }
+            break;
+        case 6:
+            if (work != NULL) {
+                HuMemFree(work->unk158);
+                obj->data = NULL;
+                obj->func = NULL;
+            }
+            return;
+        case 7:
+            return;
+    }
+    D_800CBB6E_main[pad] = (f32)D_800CBB6E_main[pad] * 0.325;
+    D_800D20A1_main[pad] = (f32)D_800D20A1_main[pad] * 0.325;
+    func_800DDD94_minigame(obj);
+    if (dist <= 190.0) {
+        obj->trans.x = obj->trans.x / dist * 190.0;
+        obj->trans.z = obj->trans.z / dist * 190.0;
+    }
+    if ((flags & 0xC00) && tp->unk2A == 0) {
+        if (690.0 - work->unk48 <= dist && D_8010AF40_tidal_toss == 2) {
+            if (flags & 0x400) {
+                work->unk40 = -24.0f;
+            } else {
+                work->unk40 = 24.0f;
+            }
+            func_800E149C_minigame(obj, 0, 1);
+            func_800E149C_minigame(obj, 2, 2);
+            work->unk38 = -1.0289999f;
+            tp->unk2A = 1;
+            tp->unk2F = 0;
+            func_8004AC5C_main(0x344, work->unk59);
+            func_8004AC5C_main(tp->unk2C + 0x287, work->unk59);
+        }
+    } else {
+        if (work->unk40 > 4.0) {
+            work->unk40 = 4.0f;
+        }
+        if (flags & 0x20) {
+            if (!(tp->unk28 & 0x20)) {
+                tp->unk18 = work->unk40;
+            }
+            work->unk40 = tp->unk18;
+        } else if (tp->unk28 & 0x20) {
+            if (dist <= 590.0) {
+                func_80109584_tidal_toss(obj, obj->trans.x, 60.0f, obj->trans.z + 50.0);
+            }
+        }
+    }
+    if (tp->unk2A != 0) {
+        if (work->unk40 > 0.0f) {
+            work->unk40 = 20.0f;
+        } else {
+            work->unk40 = -20.0f;
+        }
+    } else if (690.0 - work->unk48 <= dist) {
+        obj->trans.x = (690.0 - work->unk48) * (obj->trans.x / dist);
+        obj->trans.z = (690.0 - work->unk48) * (obj->trans.z / dist);
+    }
+    for (i = 0; i < 4; i++) {
+        other = D_800EC598_minigame[i];
+        if (obj == other) {
+            continue;
+        }
+        ow = other->data;
+        if (((TtPlayer*)ow->unk158)->unk2D == 0) {
+            continue;
+        }
+        if (fabs(obj->trans.y - other->trans.y) > 30.0) {
+            continue;
+        }
+        dist = func_8010A850_tidal_toss(&obj->trans, &other->trans);
+        rad = work->unk48 + ow->unk48;
+        if (rad < dist) {
+            continue;
+        }
+        if (work->unk40 <= ow->unk40) {
+            a = func_8010A8A4_tidal_toss(other->trans.x - obj->trans.x, other->trans.z - obj->trans.z);
+            other->trans.x = obj->trans.x + rad * sindf(a);
+            other->trans.z = obj->trans.z + rad * cosdf(a);
+        } else {
+            a = func_8010A8A4_tidal_toss(obj->trans.x - other->trans.x, obj->trans.z - other->trans.z);
+            obj->trans.x = other->trans.x + rad * sindf(a);
+            obj->trans.z = other->trans.z + rad * cosdf(a);
+        }
+    }
+    tp->unk28 = flags;
+    for (i = 9; i < 12; i++) {
+        s16 m = obj->model[i];
+
+        if (D_800CCF58_main[HmfModelData[m].unk02].unk02 <= HmfModelData[m].unk40) {
+            func_8001C258_main(obj->model[i], 4, 4);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A11C_tidal_toss);
 
