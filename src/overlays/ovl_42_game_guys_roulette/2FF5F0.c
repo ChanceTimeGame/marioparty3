@@ -69,12 +69,59 @@ extern s16 D_8010ABAE_game_guys_roulette; /* end x */
 extern s16 D_8010ABB0_game_guys_roulette; /* end y */
 extern GgrTrail D_8010ABB8_game_guys_roulette[3];
 extern GgrLayer D_8010AC20_game_guys_roulette; /* the rings' colour layer */
-extern s32 D_8010AC34_game_guys_roulette; /* buffer drawn this frame */
+extern s16 D_8010AC34_game_guys_roulette; /* buffer drawn this frame */
 extern GgrLayer D_8010AC38_game_guys_roulette; /* the mask layer */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80108D20_game_guys_roulette);
+/* Start the effect: the rings circle the centre on a random path and end at (x, y) */
+void func_80108D20_game_guys_roulette(s16 x, s16 y) {
+    s16 paths[3][2] = { { 10, 7 }, { 10, 8 }, { 10, 10 } };
+    s16 i;
+    s32 k;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80108FEC_game_guys_roulette);
+    D_8010ABA8_game_guys_roulette = 160;
+    D_8010ABAA_game_guys_roulette = 120;
+    D_8010ABAC_game_guys_roulette = 95;
+    D_8010ABAE_game_guys_roulette = x;
+    D_8010ABB0_game_guys_roulette = y;
+    i = 0;
+    k = (u8)(rand8() % 3);
+    for (; i < 3; i++) {
+        D_8010AB60_game_guys_roulette[i].active = 0;
+        D_8010AB60_game_guys_roulette[i].fx = paths[k][0];
+        D_8010AB60_game_guys_roulette[i].fy = paths[k][1];
+        D_8010AB60_game_guys_roulette[i].speed = 1.5f;
+        if (k == 0) {
+            D_8010AB60_game_guys_roulette[i].speed = 1.75f;
+        }
+        D_8010AB60_game_guys_roulette[i].angle = i * 120;
+        D_8010AB60_game_guys_roulette[i].x =
+            D_8010ABA8_game_guys_roulette +
+            cosdf(D_8010AB60_game_guys_roulette[i].fx * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+        D_8010AB60_game_guys_roulette[i].y =
+            D_8010ABAA_game_guys_roulette +
+            sindf(D_8010AB60_game_guys_roulette[i].fy * D_8010AB60_game_guys_roulette[i].angle) * D_8010ABAC_game_guys_roulette;
+        D_8010AB60_game_guys_roulette[i].r = 0;
+    }
+    D_8010AB60_game_guys_roulette[0].color = 1;
+    D_8010AB60_game_guys_roulette[1].color = 2;
+    D_8010AB60_game_guys_roulette[2].color = 4;
+    D_8010AC38_game_guys_roulette.alpha = 0x80;
+    D_8010AC20_game_guys_roulette.alpha = 0x100;
+    func_80109E6C_game_guys_roulette();
+    func_80109FD0_game_guys_roulette();
+    D_8010AC34_game_guys_roulette = 0;
+}
+
+/* Reset the mask layer (unused here) */
+void func_80108FEC_game_guys_roulette(void) {
+    func_80109FD0_game_guys_roulette();
+    D_8010AC34_game_guys_roulette = 0;
+    D_8010AC38_game_guys_roulette.alpha = 0;
+    func_80055458_main(D_8010AC38_game_guys_roulette.grp, 0, 0);
+    HuSprAttrReset(D_8010AC38_game_guys_roulette.grp, 0, 0xFFFF);
+    HuSprAttrSet(D_8010AC38_game_guys_roulette.grp, 0, 0x1000);
+    D_8010AC38_game_guys_roulette.spr->unk_84->unk00->unk00 = D_8010AC38_game_guys_roulette.buf[D_8010AC34_game_guys_roulette];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_80109078_game_guys_roulette);
 
@@ -157,4 +204,3 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A3F4_game_guys_roulette);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", D_8010A800_game_guys_roulette);
