@@ -33,6 +33,11 @@ void func_800E1328_minigame(omObjData* obj, f32 arg1);
 void func_800E1334_minigame(omObjData* obj, f32 arg1);
 void func_800E1340_minigame(omObjData* obj, f32 arg1);
 s32 func_800E4A90_minigame(omObjData* obj);
+void func_800E1490_minigame(u16 arg0);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E1404_minigame(omObjData* obj, f32 arg1, f32 arg2);
 extern s32 D_800EBEB0_minigame[];
 
 // LOCAL
@@ -42,12 +47,57 @@ void func_80105C80_tidal_toss(f32 (*src)[4], f32 (*dst)[4]);
 void func_8010600C_tidal_toss(void);
 void func_801085A4_tidal_toss(void);
 void func_80108638_tidal_toss(omObjData* obj);
-u32 func_8010A7F8_tidal_toss(void);
+s32 func_8010A7F8_tidal_toss(void);
+void func_80106104_tidal_toss(omObjData* obj);
+void func_80106480_tidal_toss(omObjData* obj);
+void func_80106514_tidal_toss(omObjData* obj);
+void func_801065AC_tidal_toss(omObjData* obj);
+void func_80106D24_tidal_toss(Gfx** gfx, s32 arg1, s32 arg2);
 s16 func_8010A90C_tidal_toss(s32 id);
 s16 func_8010A954_tidal_toss(s16 tex, s16 n);
 HuSprite_Unk84_Unk00_Struct* func_8010AA1C_tidal_toss(s16 tex, s16 frame);
 
+/* obj->data of the pool objects (the framework's ground block) */
+typedef struct TtGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} TtGround; /* size 0xB4 */
+
+typedef struct TtSplash {
+    /* 0x00 */ f32 unk00;
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ u8 unk10;
+} TtSplash; /* size 0x14 */
+
+typedef struct TtCloud {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ f32 fx;
+    /* 0x08 */ f32 fy;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} TtCloud; /* size 0x24 */
+
 extern D_80111B50_vine_with_me_Struct D_8010AEB0_tidal_toss;
+extern s16 D_8010AA74_tidal_toss[3][2];
+extern f32 D_8010AA80_tidal_toss[3];
+extern s16 D_8010AED8_tidal_toss;
+extern s16 D_8010AEDA_tidal_toss;
+extern s16 D_8010AEE8_tidal_toss[];
+extern s16 D_8010AEEC_tidal_toss[];
+extern s16 D_8010AF38_tidal_toss;
+extern s16 D_8010AF3A_tidal_toss;
+extern s16 D_8010AF40_tidal_toss;
+extern TtSplash D_8010AF48_tidal_toss[8];
+extern TtCloud D_8010AFE8_tidal_toss[3];
 extern u32 D_8010AAFC_tidal_toss; /* random seed */
 extern f32 D_8010B058_tidal_toss[4][4]; /* world to view (D_8010B090 is its [3][2]) */
 extern f32 D_8010B090_tidal_toss; /* D_8010B058[3][2]: the view depth offset */
@@ -162,13 +212,86 @@ void func_80105F40_tidal_toss(f32 x, f32 y, f32 z, f32* out) {
     out[2] = m[3][2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010600C_tidal_toss);
+void func_8010600C_tidal_toss(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106104_tidal_toss);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106480_tidal_toss);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106514_tidal_toss);
+    D_8010AF40_tidal_toss = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80106104_tidal_toss);
+/* The pool: its ground work, sprites and the water display list model. */
+void func_80106104_tidal_toss(omObjData* obj) {
+    TtGround* gw;
+    s32 i;
+    TtSplash* sp;
+    TtCloud* cl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80106480_tidal_toss);
+    obj->data = gw = HuMemAllocTag(sizeof(TtGround), 0x7918);
+    memset(gw, 0, sizeof(TtGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.5f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E1404_minigame(obj, 0.0f, 730.0f);
+    D_8010AED8_tidal_toss = func_8010A90C_tidal_toss(0x2B0000);
+    D_8010AEE8_tidal_toss[0] = func_8010A954_tidal_toss(D_8010AED8_tidal_toss, 1);
+    func_80054904_main(D_8010AEE8_tidal_toss[0], 0, 160, 120);
+    HuSprAttrSet(D_8010AEE8_tidal_toss[0], 0, 0x4000);
+    D_8010AF38_tidal_toss = obj->model[0] = func_8000B108_main(0x2B0003, 0x4002CD);
+    func_8001C954_main(obj->model[0]);
+    obj->model[1] = func_8000B108_main(0x2B0004, 0x2D9);
+    obj->model[2] = func_8001AC8C_main(0x80, func_80106D24_tidal_toss, 2);
+    D_8010AF3A_tidal_toss = func_8010A90C_tidal_toss(0x2B0001);
+    for (i = 0, sp = D_8010AF48_tidal_toss; i < 8; i++, sp++) {
+        sp->unk10 = 0;
+        sp->unk00 = sp->unk04 = sp->unk08 = sp->unk0C = 0.0f;
+    }
+    D_8010AEDA_tidal_toss = func_8010A90C_tidal_toss(0x2B0002);
+    D_8010AEEC_tidal_toss[0] = func_8010A954_tidal_toss(D_8010AEDA_tidal_toss, 3);
+    for (cl = D_8010AFE8_tidal_toss, i = 0; i < 3; i++, cl++) {
+        cl->x = cl->fx = D_8010AA74_tidal_toss[i][0];
+        cl->y = cl->fy = D_8010AA74_tidal_toss[i][1];
+        cl->unk0C = cl->unk10 = D_8010AA80_tidal_toss[i];
+        cl->unk14 = (f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 360.0;
+        cl->unk18 = (f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 360.0;
+        cl->unk1C = 2.0 * ((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0)) + 2.0;
+        cl->unk20 = (f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 1.5 + 1.0;
+        HuSprAttrSet(D_8010AEEC_tidal_toss[0], i, 0x20005808);
+        func_80054904_main(D_8010AEEC_tidal_toss[0], i, cl->x, cl->y);
+    }
+    obj->func = func_801065AC_tidal_toss;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80106514_tidal_toss);
+void func_80106480_tidal_toss(omObjData* obj) {
+    TtGround* gw;
+
+    obj->data = gw = HuMemAllocTag(sizeof(TtGround), 0x7918);
+    memset(gw, 0, sizeof(TtGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 5.0f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E1404_minigame(obj, 20.0f, 345.0f);
+    obj->func = NULL;
+}
+
+void func_80106514_tidal_toss(omObjData* obj) {
+    TtGround* gw;
+
+    obj->data = gw = HuMemAllocTag(sizeof(TtGround), 0x7918);
+    memset(gw, 0, sizeof(TtGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.05f);
+    func_800E1310_minigame(obj, 20.0f);
+    func_800E1404_minigame(obj, -800.0f, 1380.0f);
+    obj->func = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_801065AC_tidal_toss);
 
@@ -253,7 +376,7 @@ void func_8010A7E4_tidal_toss(omObjData* obj, MgWork** work, TtPlayer** ep) {
     *ep = w->unk158;
 }
 
-u32 func_8010A7F8_tidal_toss(void) {
+s32 func_8010A7F8_tidal_toss(void) {
     D_8010AAFC_tidal_toss = D_8010AAFC_tidal_toss * 0x41C64E6D + 0x3039;
     D_8010AAFC_tidal_toss += rand8();
     return D_8010AAFC_tidal_toss >> 16;
