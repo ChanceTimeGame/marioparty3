@@ -1058,26 +1058,594 @@ void func_80108730_chip_shot_challenge(omObjData* obj) {
     w->unk53 = 3;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", D_8010AA00_chip_shot_challenge);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_801087AC_chip_shot_challenge);
+/* a player's turn: walk up, aim (stick: heading and power, A or the timer: swing), watch the ball */
+void func_801087AC_chip_shot_challenge(omObjData* obj) {
+    MgWork* w = obj->data;
+    Vec up = { 0.0f, 1.0f, 0.0f };
+    s32 stickX;
+    s32 stickY;
+    s32 btn;
+    s32 pad;
+    s32 player;
+    CsBall* bw;
+    CsBall* ball;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_801091E8_chip_shot_challenge);
+    pad = w->unk57;
+    player = w->unk59;
+    if (func_800E6E8C_minigame() == 2) {
+        stickX = D_800CBB6E_main[pad];
+        stickY = D_800D20A1_main[pad];
+        btn = (u16)D_800CDA7C_main[pad];
+        if (stickX > 60) {
+            stickX = 60;
+        }
+        if (stickY > 60) {
+            stickY = 60;
+        }
+        if (stickX < -60) {
+            stickX = -60;
+        }
+        if (stickY < -60) {
+            stickY = -60;
+        }
+    } else {
+        stickX = stickY = btn = 0;
+    }
+    if (D_8010A844_chip_shot_challenge == w->unk53) {
+        func_8010A454_chip_shot_challenge(obj, &stickX, &stickY, &btn);
+        switch (w->unk50) {
+            case 0:
+                func_800E5690_minigame(obj, 1);
+                w->unk50 = 1;
+                break;
+            case 1:
+                obj->trans.x += 5.0f;
+                if (obj->trans.x > -90.0f) {
+                    func_800E5690_minigame(obj, 2);
+                    w->unk50 = 2;
+                    D_8010A824_chip_shot_challenge = 1;
+                    obj->trans.x = -90.0f;
+                    GMesCreate(0x1A, 10, 160, 24);
+                    D_8010AA9C_chip_shot_challenge = 300;
+                }
+                func_800E3628_minigame(D_8010AAF0_chip_shot_challenge->model[1], &up);
+                D_8010A96C_chip_shot_challenge -= 5;
+                if (D_8010A96C_chip_shot_challenge < 100) {
+                    D_8010A96C_chip_shot_challenge = 100;
+                }
+                break;
+            case 2:
+                func_8003F578_main(D_8010AA9C_chip_shot_challenge / 30 + 1);
+                if ((btn & 0x8000) || D_8010AA9C_chip_shot_challenge == 0) {
+                    func_800E5690_minigame(obj, 3);
+                    w->unk50 = 3;
+                    D_8010A824_chip_shot_challenge = 0;
+                    D_8010AA98_chip_shot_challenge = 0;
+                    func_8003F5C0_main();
+                }
+                w->unk3C -= stickX / 50.0f;
+                if (w->unk3C > 30.0f) {
+                    w->unk3C = 30.0f;
+                }
+                if (w->unk3C < -30.0f) {
+                    w->unk3C = -30.0f;
+                }
+                w->unk40 -= stickY / 50.0f;
+                if (w->unk40 > 100.0f) {
+                    w->unk40 = 100.0f;
+                }
+                if (w->unk40 < 60.0f) {
+                    w->unk40 = 60.0f;
+                }
+                D_8010A828_chip_shot_challenge = w->unk3C;
+                D_8010A82C_chip_shot_challenge = w->unk40;
+                D_8010A830_chip_shot_challenge = D_8010A82C_chip_shot_challenge / 20.0f;
+                obj->trans.x = sindf(w->unk3C + 90.0f) * -90.0f;
+                obj->trans.z = cosdf(w->unk3C + 90.0f) * -90.0f + 20.0f;
+                obj->rot.y = w->unk3C + 90.0f;
+                CRot.y = w->unk3C / 40.0f;
+                D_8010AA9C_chip_shot_challenge--;
+                break;
+            case 3:
+                if (D_8010AA98_chip_shot_challenge == 38) {
+                    w->unk50 = 4;
+                    ball = D_8010AAF0_chip_shot_challenge->data;
+                    ball->unk40 = w->unk40 / 5.0f;
+                    ball->unk3C = w->unk3C + 180.0f;
+                    ball->unk38 = -1.2f - w->unk40 / 300.0f;
+                    D_8010A820_chip_shot_challenge = 1;
+                    D_8010A83C_chip_shot_challenge = 0;
+                    D_8010A848_chip_shot_challenge = 0;
+                    func_8004AC98_main(0x3DA, player);
+                    omVibrate(player, 5, 0, 5);
+                }
+                D_8010AA98_chip_shot_challenge++;
+                D_8010A96C_chip_shot_challenge += 2;
+                if (D_8010A96C_chip_shot_challenge > 240) {
+                    D_8010A96C_chip_shot_challenge = 240;
+                }
+                break;
+            case 4:
+                if (fabs(CRot.y) < fabs(w->unk3C)) {
+                    CRot.y *= 1.05f;
+                }
+                D_8010A96C_chip_shot_challenge += 2;
+                if (D_8010A96C_chip_shot_challenge > 240) {
+                    D_8010A96C_chip_shot_challenge = 240;
+                }
+                D_8010A828_chip_shot_challenge -= D_8010AABC_chip_shot_challenge;
+                Center.x += sindf(D_8010A828_chip_shot_challenge + 180.0f) * D_8010A838_chip_shot_challenge;
+                Center.z += cosdf(D_8010A828_chip_shot_challenge + 180.0f) * D_8010A838_chip_shot_challenge;
+                if (D_8010A840_chip_shot_challenge >= 70 &&
+                    (bw = D_8010AAF0_chip_shot_challenge->data, D_8010A83C_chip_shot_challenge != 1 ||
+                                                                    D_8010A840_chip_shot_challenge >= 151)) {
+                    D_8010A844_chip_shot_challenge++;
+                    bw->unk5C = 0.0f;
+                    bw->unk60 = 0.0f;
+                    bw->unk64 = 0.0f;
+                    if (D_8010A844_chip_shot_challenge == 4) {
+                        func_800E6F0C_minigame(3);
+                        for (i = 0; i < 4; i++) {
+                            D_800EC598_minigame[i]->trans.x = D_8010A84C_chip_shot_challenge[i][0];
+                            D_800EC598_minigame[i]->trans.y = D_8010A84C_chip_shot_challenge[i][1];
+                            D_800EC598_minigame[i]->trans.z = D_8010A84C_chip_shot_challenge[i][2];
+                            D_800EC598_minigame[i]->rot.y = 0.0f;
+                            Hu3DModelPosSet(D_800EC598_minigame[i]->model[1], D_8010A84C_chip_shot_challenge[i][0],
+                                            D_8010A84C_chip_shot_challenge[i][1], D_8010A84C_chip_shot_challenge[i][2]);
+                            func_8001C258_main(D_800EC598_minigame[i]->model[0], 4, 0);
+                            func_8001C258_main(D_800EC598_minigame[i]->model[1], 4, 0);
+                            func_8001C258_main(D_800EC598_minigame[i]->model[2], 4, 4);
+                            if (D_8010A848_chip_shot_challenge != 1) {
+                                func_8001C258_main(obj->model[3], 4, 0);
+                                Hu3DModelPosSet(obj->model[3], D_8010AAF0_chip_shot_challenge->trans.x,
+                                                D_8010AAF0_chip_shot_challenge->trans.y - 50.0f,
+                                                D_8010AAF0_chip_shot_challenge->trans.z);
+                            }
+                        }
+                        func_8001C258_main(D_8010AAF0_chip_shot_challenge->model[0], 4, 4);
+                        func_8001C258_main(D_8010AAF0_chip_shot_challenge->model[1], 4, 4);
+                    } else {
+                        D_800EC598_minigame[D_8010A844_chip_shot_challenge]->trans.x = -200.0f;
+                        w->unk50 = 5;
+                        Hu3DModelPosSet(D_8010AAF0_chip_shot_challenge->model[1], 0.0f, 3.0f, 0.0f);
+                        func_800E3628_minigame(D_8010AAF0_chip_shot_challenge->model[1], &up);
+                        func_8001C258_main(D_8010AAF0_chip_shot_challenge->model[1], 4, 0);
+                        if (D_8010A848_chip_shot_challenge != 1) {
+                            func_8001C258_main(obj->model[3], 4, 0);
+                            Hu3DModelPosSet(obj->model[3], D_8010AAF0_chip_shot_challenge->trans.x,
+                                            D_8010AAF0_chip_shot_challenge->trans.y - 50.0f,
+                                            D_8010AAF0_chip_shot_challenge->trans.z);
+                        }
+                        D_8010A820_chip_shot_challenge = 0;
+                        obj->trans.x = -90.0f;
+                        D_8010AAF0_chip_shot_challenge->trans.x = D_8010AAF0_chip_shot_challenge->trans.y =
+                            D_8010AAF0_chip_shot_challenge->trans.z = 0.0f;
+                        bw->unk40 = 0.0f;
+                        bw->unk3C = 0.0f;
+                        bw->unk38 = 1000.0f;
+                        func_8001C258_main(obj->model[0], 4, 4);
+                        func_8001C258_main(obj->model[1], 4, 4);
+                        func_8001C258_main(obj->model[2], 4, 4);
+                        Center.x = 0.0f;
+                        Center.y = 200.0f;
+                        Center.z = 0.0f;
+                        CRot.y = 0.0f;
+                    }
+                    func_800E5690_minigame(obj, 0);
+                    D_8010A840_chip_shot_challenge = 0;
+                    D_8010A828_chip_shot_challenge = D_8010A82C_chip_shot_challenge = 0.0f;
+                }
+                break;
+            case 6:
+                break;
+        }
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    }
+    func_800E4E30_minigame(obj);
+    if (D_8010A840_chip_shot_challenge == 0) {
+        func_8010802C_chip_shot_challenge();
+    }
+}
 
+/* the trajectory dots while aiming */
+void func_801091E8_chip_shot_challenge(omObjData* obj) {
+    f32 rx;
+    f32 z;
+    f32 x;
+    f32 y;
+    f32 step;
+    f32 base;
+    f32 inc;
+    f32 s;
+    Vec d;
+    s32 i;
+
+    if (D_8010A824_chip_shot_challenge == 1) {
+        rx = 90.0f;
+        z = 0.0f;
+        x = 0.0f;
+        y = 20.0f;
+        step = D_8010A82C_chip_shot_challenge / 3.0f;
+        base = (D_8010A82C_chip_shot_challenge - 60.0f) / 40.0f * 20.0f;
+        inc = D_8010A82C_chip_shot_challenge / 100.0f;
+        for (i = 0; i < 10; i++) {
+            func_8001C258_main(obj->model[1 + i], 4, 0);
+            d.x = x;
+            d.y = y;
+            d.z = z;
+            y += step;
+            step -= 0.1f;
+            x += sindf(D_8010A828_chip_shot_challenge + 180.0f) * step;
+            z += cosdf(D_8010A828_chip_shot_challenge + 180.0f) * step;
+            d.x -= x;
+            d.y -= y;
+            d.z -= z;
+            Hu3DModelPosSet(obj->model[1 + i], x, y, z);
+            Hu3DModelRotSet(obj->model[1 + i], rx, 0.0f, 0.0f);
+            s = base + inc * i + sindf(D_8010A974_chip_shot_challenge) * 0.5f;
+            if (s >= 30.0f) {
+                s = 30.0f;
+            }
+            func_8001C6A8_main(obj->model[1 + i], s);
+            rx -= 7.0f;
+        }
+        D_8010A974_chip_shot_challenge += D_8010A82C_chip_shot_challenge / 10.0f;
+        D_8010A970_chip_shot_challenge = func_800202A8_main(D_8010A970_chip_shot_challenge + 10.0f);
+    } else {
+        for (i = 0; i < 20; i++) {
+            func_8001C258_main(obj->model[1 + i], 4, 4);
+        }
+    }
+}
+
+/* the ball: roll, bounce, drop into the hole, then show where it stopped */
+// three instructions short: after a bounce retail tests a constant (li v0,1; beqz v0) before the
+// rebound; no flag variable reproduced it (the false path then stops threading). Logic as retail.
+#ifdef NON_MATCHING
+void func_801094D8_chip_shot_challenge(omObjData* obj) {
+    CsBall* w = obj->data;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 heading;
+    f32 g;
+    f32 h;
+
+    func_80088800_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, 30.0f, 0.0f);
+    if (func_800E6E8C_minigame() == 2) {
+        D_800EBE2C_minigame = D_800EC5D8_minigame = 0.0f;
+        if (D_8010A820_chip_shot_challenge != 1) {
+            D_8010A980_chip_shot_challenge = -1;
+            return;
+        }
+        x = obj->trans.x;
+        y = obj->trans.y;
+        z = obj->trans.z;
+        heading = w->unk3C;
+        if (w->unk38 != 1000.0f) {
+            w->unk40 = w->unk40 - 0.08f;
+        } else {
+            w->unk40 = w->unk40 - 0.2f;
+        }
+        if (w->unk40 < 0.0f) {
+            w->unk40 = 0.0f;
+        }
+        x += sindf(heading) * w->unk40;
+        z += cosdf(heading) * w->unk40;
+        if (w->unk40 != 0.0f) {
+            x += w->unk5C;
+            z += w->unk64;
+        }
+        D_8010A838_chip_shot_challenge = w->unk40;
+        if (w->unk38 != 1000.0f) {
+            g = w->unk38 * w->unk38;
+            if (w->unk38 >= 0.0f) {
+                y += g * -25.0f;
+            } else {
+                y += g * 25.0f;
+            }
+            w->unk38 += D_800EB72C_minigame;
+            if (D_800EB720_minigame < w->unk38) {
+                w->unk38 = D_800EB720_minigame;
+            }
+            if (D_8010A83C_chip_shot_challenge == 1) {
+                if (y <= D_8010AAA4_chip_shot_challenge.y - 40.0f) {
+                    w->unk40 = 0.0f;
+                }
+                func_8001C258_main(obj->model[1], 4, 4);
+            } else {
+                h = func_80109AD0_chip_shot_challenge(obj, x, y, z);
+                if (y < h) {
+                    y = h;
+                    func_8004AC98_main(0x3DD, D_8010A844_chip_shot_challenge);
+                    w->unk38 = -w->unk38 * 0.45f;
+                    if (w->unk38 >= -0.3f) {
+                        w->unk38 = 1000.0f;
+                    }
+                }
+            }
+        } else {
+            y = func_80109AD0_chip_shot_challenge(obj, x, y, z);
+        }
+        func_800E17D4_minigame(obj, x + D_800EBE2C_minigame, y, z + D_800EC5D8_minigame);
+        D_8010A978_chip_shot_challenge -= cosdf(heading) * w->unk40 + D_800EC5D8_minigame;
+        D_8010A978_chip_shot_challenge = func_800202A8_main(D_8010A978_chip_shot_challenge);
+        D_8010A97C_chip_shot_challenge = func_800202A8_main(D_8010A97C_chip_shot_challenge);
+        obj->rot.y = heading;
+        func_80017D24_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, D_8010A978_chip_shot_challenge, 0.0f, 0.0f);
+        if (D_8010AAF0_chip_shot_challenge->trans.y < -100.0f ||
+            (D_8010A838_chip_shot_challenge == 0.0f && D_8010A83C_chip_shot_challenge != 1)) {
+            D_8010A840_chip_shot_challenge++;
+            if (!(D_8010AAF0_chip_shot_challenge->trans.y < -100.0f) && D_8010AAA0_chip_shot_challenge == 1) {
+                x -= D_8010AAA4_chip_shot_challenge.x;
+                y -= D_8010AAA4_chip_shot_challenge.y;
+                z -= D_8010AAA4_chip_shot_challenge.z;
+                func_80107960_chip_shot_challenge(HuSqrtf(x * x + y * y + z * z));
+            } else if (D_8010A83C_chip_shot_challenge == 1) {
+                func_80107BB0_chip_shot_challenge();
+                if (D_8010A980_chip_shot_challenge == -1) {
+                    func_8004AC98_main(0x3DE, D_8010A844_chip_shot_challenge);
+                    D_8010A980_chip_shot_challenge = 0;
+                    omVibrate(((MgWork*)D_800EC598_minigame[D_8010A844_chip_shot_challenge]->data)->unk59, 10, 0, 10);
+                }
+            } else {
+                func_80107E94_chip_shot_challenge();
+                D_8010A8F0_chip_shot_challenge[D_8010A928_chip_shot_challenge[D_8010A844_chip_shot_challenge]] = 10000.0f;
+            }
+        }
+        if (D_8010AAF0_chip_shot_challenge->trans.y < -100.0f) {
+            D_8010A848_chip_shot_challenge = 1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_801094D8_chip_shot_challenge);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_80109AD0_chip_shot_challenge);
+/* the ball's ground height at (x, y, z), after the hole check */
+f32 func_80109AD0_chip_shot_challenge(omObjData* obj, f32 x, f32 y, f32 z) {
+    CsBall* w = obj->data;
+    Vec4f p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_80109B24_chip_shot_challenge);
+    p.x = x;
+    p.y = y;
+    p.z = z;
+    p.w = w->unk48;
+    func_80109B24_chip_shot_challenge(obj, x, y, z);
+    return func_80109DE0_chip_shot_challenge(obj, &p);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_80109DE0_chip_shot_challenge);
+/* the hole: drop in when close, else the lip curls the ball round it */
+void func_80109B24_chip_shot_challenge(omObjData* obj, f32 x, f32 y, f32 z) {
+    CsBall* w = obj->data;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 dist;
+    f32 a;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", D_8010AA2C_chip_shot_challenge);
+    dx = D_8010AAA4_chip_shot_challenge.x - x;
+    dy = D_8010AAA4_chip_shot_challenge.y - y;
+    dz = D_8010AAA4_chip_shot_challenge.z - z;
+    dist = HuSqrtf(dx * dx + dy * dy + dz * dz);
+    if (dist < 11.875f) {
+        if (D_8010A83C_chip_shot_challenge != 1) {
+            w->unk40 = 0.5f;
+            D_8010A83C_chip_shot_challenge = 1;
+        }
+        if (w->unk38 == 1000.0f) {
+            w->unk38 = 0.0f;
+        }
+        D_8010AABC_chip_shot_challenge = 0.0f;
+        D_8010A8F0_chip_shot_challenge[D_8010A928_chip_shot_challenge[D_8010A844_chip_shot_challenge]] = 0.0f;
+    } else if (dist < 25.0f) {
+        D_8010A8F0_chip_shot_challenge[D_8010A928_chip_shot_challenge[D_8010A844_chip_shot_challenge]] = dist;
+        if (w->unk38 == 1000.0f) {
+            dist = 1.0f - (25.0f - dist) / 13.125f;
+            a = w->unk3C - 90.0f;
+            D_8010AABC_chip_shot_challenge = func_800E2ED4_minigame(dx, dz, sindf(a), cosdf(a)) * dist * 20.0f;
+            w->unk3C -= D_8010AABC_chip_shot_challenge;
+            w->unk40 -= dist * 0.5f;
+            if (w->unk40 < 2.0f) {
+                w->unk3C = atan2df(dx, dz);
+                w->unk40 = 5.0f;
+                D_8010AABC_chip_shot_challenge = 0.0f;
+            }
+        }
+    } else {
+        D_8010A8F0_chip_shot_challenge[D_8010A928_chip_shot_challenge[D_8010A844_chip_shot_challenge]] = dist;
+        D_8010AABC_chip_shot_challenge = 0.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_80109EF0_chip_shot_challenge);
+/* the ground under the ball (minigame func_800D72B0_minigame with this unit's height query) */
+f32 func_80109DE0_chip_shot_challenge(omObjData* obj, Vec4f* p) {
+    CsBall* w = obj->data;
+    f32 n[3] = { 0.0f, 1.0f, 0.0f }; /* a Vec; retail keeps its own copy of the constant */
+    f32 y = p->y;
+    f32 h = func_8010A04C_chip_shot_challenge((Vec*)p, (Vec*)n);
+    f32 g = h;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_8010A04C_chip_shot_challenge);
+    if (h < y - w->unk34 || y + w->unk34 <= h) {
+        if (w->unk38 == 1000.0f) {
+            w->unk38 = 0.0f;
+        }
+        h = y;
+    }
+    func_8010A3DC_chip_shot_challenge(obj, (Vec*)n);
+    func_80109EF0_chip_shot_challenge(obj, p->x, h, p->z, g, (Vec*)n);
+    return h;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_8010A3DC_chip_shot_challenge);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1B_chip_shot_challenge/1D9550", func_8010A454_chip_shot_challenge);
+/* the ball's shadow follows the ground, shrinking with the height; hidden off the course */
+void func_80109EF0_chip_shot_challenge(omObjData* obj, f32 x, f32 y, f32 z, f32 g, Vec* n) {
+    CsBall* w = obj->data;
+    f32 s = 0.5f;
+    f32 d = y - g;
+
+    if (g == -65536.0f) {
+        func_8001C258_main(obj->model[1], 4, 4);
+    } else {
+        if (d != 0.0f) {
+            if (d > 400.0f) {
+                s = 0.1f;
+            } else {
+                s = 0.5 - fabs(d) / 1000.0;
+            }
+            w->unk53 = -1;
+        }
+        Hu3DModelPosSet(obj->model[1], x, g + 3.0f, z);
+        Hu3DModelScaleSet(obj->model[1], s, 0.5f, s);
+        func_800E3628_minigame(obj->model[1], n);
+        func_8001C258_main(obj->model[1], 4, 0);
+    }
+}
+
+/* the course's height under p (below p->y + 150) and its normal in n; D_8010AAA0 set if any */
+f32 func_8010A04C_chip_shot_challenge(Vec* p, Vec* n) {
+    Vec q;
+    Vec a;
+    Vec d;
+    f32 x;
+    f32 y;
+    f32 z;
+    omObjData* g;
+    f32 best;
+    s16 mdl;
+    ColVtx* verts;
+    ColTri* tri;
+    HmfModel* m;
+    f32 h;
+    u8 moved;
+
+    D_8010AAA0_chip_shot_challenge = 0;
+    g = D_800EC1C0_minigame[0];
+    x = p->x;
+    y = p->y;
+    z = p->z;
+    q.x = x;
+    q.y = y;
+    q.z = z;
+    func_800E28BC_minigame(D_800EC240_minigame, D_800EBE30_minigame, &q, g);
+    best = -65536.0f;
+    mdl = *g->model;
+    verts = HmfModelData[mdl].hmf->unk50;
+    func_80021C14_main(mdl, &D_800EBEB0_minigame, func_800DB704_minigame, (HitProbe*)&q);
+    for (tri = (ColTri*)func_80022198_main(&D_800EBEB0_minigame); tri != NULL;
+         tri = (ColTri*)func_80022198_main(&D_800EBEB0_minigame)) {
+        m = &HmfModelData[mdl];
+        moved = 0;
+        if (m->pos.x != 0.0f || m->pos.y != 0.0f || m->pos.z != 0.0f || m->rot.x != 0.0f || m->rot.y != 0.0f ||
+            m->rot.z != 0.0f) {
+            a.x = x;
+            a.y = y + 10.0f;
+            a.z = z;
+            func_800E2BD4_minigame(D_800EBE30_minigame, &a);
+            d.x = a.x - q.x;
+            d.y = a.y - q.y;
+            d.z = a.z - q.z;
+            func_800202FC_main(&d);
+            func_800D8818_minigame(q.x, q.y, q.z, verts, tri, &d, &q);
+            func_800E2C68_minigame(D_800EC240_minigame, &q);
+            h = q.y;
+            moved = 1;
+        } else {
+            h = func_800204F4_main(q.x, q.y, q.z, verts, tri);
+        }
+        if (best <= h && h < y + 150.0f) {
+            D_8010AAA0_chip_shot_challenge = 1;
+            best = h;
+            if (n != NULL) {
+                func_8002038C_main(&verts[tri->v[0]], &verts[tri->v[1]], &verts[tri->v[2]], n);
+                if (moved == 1) {
+                    a.x = n->x;
+                    a.y = n->y;
+                    a.z = n->z;
+                    func_800E2B58_minigame(D_800EC240_minigame, &a);
+                    n->x = a.x;
+                    n->y = a.y;
+                    n->z = a.z;
+                    func_800202FC_main(n);
+                }
+            }
+        }
+    }
+    return best;
+}
+
+/* the slope pushes a rolling ball along the ground normal */
+void func_8010A3DC_chip_shot_challenge(omObjData* obj, Vec* n) {
+    CsBall* w = obj->data;
+
+    if (D_8010AAA0_chip_shot_challenge == 1 && w->unk38 == 1000.0f) {
+        w->unk5C = n->x * D_8010A834_chip_shot_challenge;
+        w->unk60 = n->y;
+        w->unk64 = n->z * D_8010A834_chip_shot_challenge;
+    } else {
+        w->unk5C = 0.0f;
+        w->unk60 = 0.0f;
+        w->unk64 = 0.0f;
+    }
+}
+
+/* a CPU player aims at the hole, with an error by difficulty */
+void func_8010A454_chip_shot_challenge(omObjData* obj, s32* stickX, s32* stickY, s32* btn) {
+    MgWork* w = obj->data;
+    f32 hx;
+    f32 hy;
+    f32 hz;
+    f32 dist;
+    f32 ang;
+    s32 p;
+    s32 diff;
+
+    if (GwPlayer[w->unk59].stat & 1) {
+        *stickX = *stickY = *btn = 0;
+        hx = D_8010AAA4_chip_shot_challenge.x;
+        hy = D_8010AAA4_chip_shot_challenge.y;
+        hz = D_8010AAA4_chip_shot_challenge.z;
+        p = w->unk59;
+        diff = GwPlayer[p].cpu_difficulty;
+        if (D_8010A984_chip_shot_challenge[p] == 1000.0f) {
+            D_8010A984_chip_shot_challenge[p] = ang = (rand8() - 127.0f) / 128.0f * 5.0f * D_8010A9A4_chip_shot_challenge[diff];
+        }
+        if (D_8010A994_chip_shot_challenge[p] == 1000.0f) {
+            D_8010A994_chip_shot_challenge[p] = dist = (rand8() - 127.0f) / 128.0f * 10.0f * D_8010A9A4_chip_shot_challenge[diff];
+        }
+        dist = HuSqrtf(hx * hx + hy * hy + hz * hz);
+        ang = atan2df(hx, hz) + D_8010A984_chip_shot_challenge[p];
+        if (ang < 0.0f) {
+            ang += 180.0f;
+        } else {
+            ang -= 180.0f;
+        }
+        if (fabs(ang - w->unk3C) > 1.0) {
+            if (w->unk3C < ang) {
+                *stickX = -30;
+            }
+            if (ang < w->unk3C) {
+                *stickX = 30;
+            }
+        }
+        dist = ((dist - 150.0f) / 10.0f + D_8010A994_chip_shot_challenge[p]) * 1.1f;
+        if (dist < 65.0f) {
+            dist = 65.0f;
+        }
+        if (dist > 100.0f) {
+            dist = 100.0f;
+        }
+        if (fabs(dist - w->unk40) > 10.0) {
+            if (w->unk40 < dist) {
+                *stickY = -30;
+            } else {
+                *stickY = 30;
+            }
+        }
+        if (*stickX == 0 && *stickY == 0) {
+            *btn |= 0x8000;
+        }
+    }
+}
