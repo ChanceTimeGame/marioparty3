@@ -134,19 +134,55 @@ void func_8003F5C0_main(void);
 void func_80045010_main(const s16 *, s32);
 void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
+/* .rodata: the players' animation names (D_8010AC78_eye_sore) */
+extern const char D_8010ADC8_eye_sore[];
+extern const char D_8010ADD4_eye_sore[];
+extern const char D_8010ADE0_eye_sore[];
+extern const char D_8010ADEC_eye_sore[];
+extern const char D_8010ADF8_eye_sore[];
+extern const char D_8010AE04_eye_sore[];
+extern const char D_8010AE10_eye_sore[];
+extern const char D_8010AE1C_eye_sore[];
+
 /* .data */
-extern s32 D_8010AC10_eye_sore[8];
-extern s16 D_8010AC30_eye_sore[4];
-extern s8 D_8010AC38_eye_sore[24];
-extern u8 D_8010AC50_eye_sore[4];
-extern s8 D_8010AC54_eye_sore[4];
-extern u16 D_8010AC58_eye_sore[8][2];
-extern u8 D_8010AC98_eye_sore[8];
-extern f32 D_8010ACA0_eye_sore[20];
-extern s8 D_8010ACF0_eye_sore[4];
-extern char *D_8010AC78_eye_sore[8];
-extern s32 D_8010ACF4_eye_sore;
-extern EsCamera D_8010ACF8_eye_sore[4];
+/* Sound per character (func_80045ED0_main). */
+s32 D_8010AC10_eye_sore[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+/* Player sound effects by func_80106328_eye_sore's argument. */
+s16 D_8010AC30_eye_sore[4] = { 0, 0x1F, 0x28, 0 };
+/* The ring hop: height step per frame. */
+s8 D_8010AC38_eye_sore[24] = {
+    33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0, -3, -6, -9, -12, -15, -18, -21, -24, -27, -30, -33, 0,
+};
+/* CPU by difficulty: preferred distance out from the ring, 1 in 24 chance to back off. */
+u8 D_8010AC50_eye_sore[4] = { 150, 145, 140, 135 };
+s8 D_8010AC54_eye_sore[4] = { 5, 4, 2, 1 };
+/* Per character: the two animation files (0 at the start, 1 win). */
+u16 D_8010AC58_eye_sore[8][2] = {
+    { 0xA4, 0xA5 }, { 0xA4, 0xA5 }, { 0xA4, 0xA5 }, { 0xA4, 0xA5 },
+    { 0xA4, 0xA5 }, { 0xA4, 0xA5 }, { 0xA4, 0xA5 }, { 0x1A, 0x1C },
+};
+char *D_8010AC78_eye_sore[8] = {
+    (char *)D_8010AE1C_eye_sore, (char *)D_8010AE10_eye_sore,
+    (char *)D_8010AE04_eye_sore, (char *)D_8010ADF8_eye_sore,
+    (char *)D_8010ADEC_eye_sore, (char *)D_8010ADE0_eye_sore,
+    (char *)D_8010ADD4_eye_sore, (char *)D_8010ADC8_eye_sore,
+};
+/* Per character: how far the player is knocked back by an eye. */
+u8 D_8010AC98_eye_sore[8] = { 70, 60, 70, 90, 70, 100, 90, 70 };
+/* The ring's flash-out scale by frame. */
+f32 D_8010ACA0_eye_sore[20] = {
+    1.0f, 2.0f, 2.1f, 2.2f, 2.3f, 2.4f, 2.5f, 2.6f, 2.7f, 2.75f,
+    2.8f, 2.85f, 2.9f, 2.95f, 3.0f, 3.05f, 3.1f, 3.15f, 3.2f, 3.25f,
+};
+/* Eye chase chance by CPU difficulty (1 in n not to chase). */
+s8 D_8010ACF0_eye_sore[4] = { 6, 8, 10, 15 };
+s32 D_8010ACF4_eye_sore = 0;
+EsCamera D_8010ACF8_eye_sore[4] = {
+    { { 0.0f, 0.0f, 160.0f, 120.0f }, { 320.0f, 240.0f, 511.0f, 350.0f, 240.0f, 511.0f }, 25.0f },
+    { { 160.0f, 0.0f, 320.0f, 120.0f }, { 320.0f, 240.0f, 511.0f, 930.0f, 240.0f, 511.0f }, 25.0f },
+    { { 0.0f, 120.0f, 160.0f, 240.0f }, { 320.0f, 240.0f, 511.0f, 350.0f, 700.0f, 511.0f }, 25.0f },
+    { { 160.0f, 120.0f, 320.0f, 240.0f }, { 320.0f, 240.0f, 511.0f, 930.0f, 700.0f, 511.0f }, 25.0f },
+};
 
 /* .bss */
 extern s8 D_8010AF20_eye_sore;
