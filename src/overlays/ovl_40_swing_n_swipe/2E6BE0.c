@@ -23,6 +23,8 @@ extern u16 D_800D530C_main;
 void func_8001C92C_main(s16 model, f32 arg1);
 omObjData* func_80045ED0_main(u32 arg0);
 extern u16 D_800D5558_main[4];
+extern s8 D_800CBB6E_main[]; /* stick x by pad */
+extern s8 D_800D20A1_main[]; /* stick y by pad */
 /* D_800CCF58_main records (common_structs.h D_800CCF58_main_Struct): motion length at 0x02 */
 typedef struct SnMotInfo {
     /* 0x00 */ char unk00[2];
@@ -658,7 +660,148 @@ void func_80106AD0_swing_n_swipe(void) {
     }
 }
 
+// masked 8: retail loads HmfModelData before scaling the model index (both thief-distance tests); register choice
+#ifdef NON_MATCHING
+/* Play: the player's move (the stick averaged over ten frames, or the CPU chasing its thief) and the net swing; a
+ * swing within 125 of a thief nets it. */
+void func_801072D0_swing_n_swipe(void) {
+    omObjData* obj = D_8010C140_swing_n_swipe;
+    f32 sz = 0.0f;
+    f32 sx = 0.0f;
+    s16 i = 0;
+    s16 pad;
+    HmfModel* m;
+
+    if (!(GwPlayer[D_8010C144_swing_n_swipe].stat & 1)) {
+        pad = GwPlayer[D_8010C144_swing_n_swipe].pad;
+        if ((D_800D5558_main[pad] & 0x8000) && D_8010BD5C_swing_n_swipe == 0) {
+            D_8010BD5C_swing_n_swipe = 1;
+            for (i = 0; i < 10; i++) {
+                D_8010BD68_swing_n_swipe[i][0] = D_8010BD68_swing_n_swipe[i][1] = 0.0f;
+            }
+            func_8001EED8_main(obj->model[0], obj->motion[5], 0);
+            func_800E5690_minigame(obj, 5);
+        }
+        if (D_8010BD5C_swing_n_swipe == 0) {
+            D_8010BD68_swing_n_swipe[D_8010BDB8_swing_n_swipe][0] = D_800CBB6E_main[pad];
+            D_8010BD68_swing_n_swipe[D_8010BDB8_swing_n_swipe++][1] = D_800D20A1_main[pad];
+            for (i = 0; i < 10; i++) {
+                sx += D_8010BD68_swing_n_swipe[i][0];
+                sz += D_8010BD68_swing_n_swipe[i][1];
+            }
+            sx /= 100.0f;
+            sz /= 100.0f;
+        }
+    } else {
+        if (D_8010BD5C_swing_n_swipe == 0) {
+            D_8010C0A4_swing_n_swipe = cosdf(obj->rot.y - 90.0f) * 100.0f + obj->trans.x;
+            D_8010C0A8_swing_n_swipe = obj->trans.z - sindf(obj->rot.y - 90.0f) * 100.0f;
+            m = HmfModelData + D_8010C170_swing_n_swipe[D_8010C160_swing_n_swipe][0];
+            D_8010C0AC_swing_n_swipe = D_8010C0A4_swing_n_swipe - m->pos.x;
+            D_8010C0B0_swing_n_swipe = D_8010C0A8_swing_n_swipe - m->pos.z;
+            if (HuSqrtf(D_8010C0AC_swing_n_swipe * D_8010C0AC_swing_n_swipe
+                        + D_8010C0B0_swing_n_swipe * D_8010C0B0_swing_n_swipe)
+                <= 100.0f) {
+                D_8010BD5C_swing_n_swipe = 1;
+                for (i = 0; i < 10; i++) {
+                    D_8010BD68_swing_n_swipe[i][0] = D_8010BD68_swing_n_swipe[i][1] = 0.0f;
+                }
+                func_8001EED8_main(obj->model[0], obj->motion[5], 0);
+                func_800E5690_minigame(obj, 5);
+            }
+        }
+        if (D_8010C162_swing_n_swipe <= D_8010BD60_swing_n_swipe++ && D_8010BD5C_swing_n_swipe == 0) {
+            D_8010BD60_swing_n_swipe = 0.0f;
+            D_8010C0B4_swing_n_swipe =
+                obj->trans.x - HmfModelData[D_8010C170_swing_n_swipe[D_8010C160_swing_n_swipe][0]].pos.x;
+            D_8010C0B8_swing_n_swipe =
+                obj->trans.z - HmfModelData[D_8010C170_swing_n_swipe[D_8010C160_swing_n_swipe][0]].pos.z;
+            D_8010C0BC_swing_n_swipe = -atan2df(D_8010C0B4_swing_n_swipe, -D_8010C0B8_swing_n_swipe) + 270.0f;
+        }
+        i = 0;
+        D_8010BD68_swing_n_swipe[D_8010BDB8_swing_n_swipe][0] = (D_8010C164_swing_n_swipe / 2) * cosdf(D_8010C0BC_swing_n_swipe);
+        D_8010BD68_swing_n_swipe[D_8010BDB8_swing_n_swipe++][1] = (D_8010C164_swing_n_swipe / 2) * sindf(D_8010C0BC_swing_n_swipe);
+        for (i = 0; i < 10; i++) {
+            sx += D_8010BD68_swing_n_swipe[i][0];
+            sz += D_8010BD68_swing_n_swipe[i][1];
+        }
+        sx /= 10.0f;
+        sz /= 10.0f;
+    }
+    if (D_8010BDB8_swing_n_swipe >= 10) {
+        D_8010BDB8_swing_n_swipe = 0;
+    }
+    if (D_8010BD5C_swing_n_swipe == 1) {
+        if (D_8010BDBA_swing_n_swipe == 0) {
+            HuAudFXPlay(0x4F8);
+            D_8010BDBA_swing_n_swipe = 1;
+        }
+        if (D_8010BD64_swing_n_swipe >= 7 && HmfModelData[obj->model[0]].unk40 == 16.0f) {
+            D_8010BD64_swing_n_swipe = 0;
+            D_8010C0A4_swing_n_swipe = cosdf(obj->rot.y - 90.0f) * 100.0f + obj->trans.x;
+            D_8010C0A8_swing_n_swipe = obj->trans.z - sindf(obj->rot.y - 90.0f) * 100.0f;
+            for (i = 0; i < 5; i++) {
+                m = HmfModelData + D_8010C170_swing_n_swipe[i][0];
+                D_8010C0AC_swing_n_swipe = D_8010C0A4_swing_n_swipe - m->pos.x;
+                D_8010C0B0_swing_n_swipe = D_8010C0A8_swing_n_swipe - m->pos.z;
+                if (HuSqrtf(D_8010C0AC_swing_n_swipe * D_8010C0AC_swing_n_swipe
+                            + D_8010C0B0_swing_n_swipe * D_8010C0B0_swing_n_swipe)
+                    <= 125.0f) {
+                    D_8010C15E_swing_n_swipe = i;
+                    D_8010C148_swing_n_swipe = 5;
+                    D_8010C154_swing_n_swipe = 3;
+                    D_8010C15C_swing_n_swipe = 1;
+                    D_8010C13C_swing_n_swipe = 0;
+                    omVibrate(D_8010C144_swing_n_swipe, 2, 2, 20);
+                    HuAudFXPlay(0x4F4);
+                    HuAudFXPlay(0x4F5);
+                    break;
+                }
+            }
+        } else {
+            D_8010BD64_swing_n_swipe++;
+        }
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 == HmfModelData[obj->model[0]].unk40
+            && D_8010BD64_swing_n_swipe >= 7) {
+            D_8010BD5C_swing_n_swipe = 0;
+            D_8010BD64_swing_n_swipe = 0;
+            D_8010BDBA_swing_n_swipe = 0;
+        }
+    } else if (D_8010BD5C_swing_n_swipe == 0) {
+        obj->trans.x = sx + obj->trans.x;
+        obj->trans.z = obj->trans.z - sz;
+        if (func_8010B920_swing_n_swipe() == 1) {
+            obj->trans.x = obj->trans.x - sx;
+            obj->trans.z = sz + obj->trans.z;
+        }
+        if (obj->trans.z > D_8010BD3C_swing_n_swipe) {
+            obj->trans.z = D_8010BD3C_swing_n_swipe;
+        } else if (obj->trans.z < D_8010BD34_swing_n_swipe) {
+            obj->trans.z = D_8010BD34_swing_n_swipe;
+        }
+        if (obj->trans.x > D_8010BD38_swing_n_swipe) {
+            obj->trans.x = D_8010BD38_swing_n_swipe;
+        } else if (obj->trans.x < D_8010BD30_swing_n_swipe) {
+            obj->trans.x = D_8010BD30_swing_n_swipe;
+        }
+    }
+    if ((sx != 0.0f) | (sz != 0.0f)) {
+        if (D_8010BD5C_swing_n_swipe == 0) {
+            if (HmfModelData[obj->model[0]].unk40 == 0.0f) {
+                CharFXPlay(0x1F, GwPlayer[D_8010C144_swing_n_swipe].chr);
+            }
+            func_8001EED8_main(obj->model[0], obj->motion[4], 0);
+            func_800E5690_minigame(obj, 1);
+            obj->rot.y = -atan2df(-sx, -sz);
+        }
+    } else if (D_8010BD5C_swing_n_swipe == 0) {
+        func_8001EED8_main(obj->model[0], obj->motion[4], 0);
+        func_800E5690_minigame(obj, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801072D0_swing_n_swipe);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80107CEC_swing_n_swipe);
 
