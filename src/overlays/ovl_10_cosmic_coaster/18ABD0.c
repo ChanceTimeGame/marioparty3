@@ -23,9 +23,10 @@ typedef struct CcCar {
     /* 0x0C */ f32 unk0C; /* speed */
     /* 0x10 */ f32 unk10[2]; /* per rider: x */
     /* 0x18 */ f32 unk18[2];
-    /* 0x20 */ s16 unk20[2];
-    /* 0x24 */ s16 unk24[2];
-    /* 0x28 */ char unk28[4];
+    /* 0x20 */ u16 unk20[2]; /* per rider: hit stun frames */
+    /* 0x24 */ u16 unk24[2]; /* per rider: visible (blinks while stunned) */
+    /* 0x28 */ s16 unk28;
+    /* 0x2A */ char unk2A[2];
     /* 0x2C */ f32 unk2C[2]; /* per rider: rot y */
     /* 0x34 */ f32 unk34[2]; /* per rider: y */
     /* 0x3C */ f32 unk3C[2];
@@ -63,7 +64,7 @@ s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
 s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
 s32 func_80017BB8_main(s16, s16);
 void func_8001FB34_main(s16 arg0, u8 arg1);
-void func_8001FBBC_main(s16 arg0, s8 arg1, s8 arg2, s8 arg3);
+void func_8001FBBC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3);
 void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 void func_80045C2C_main(void);
 void func_80047C0C_main(u16 group, u16 max_objs);
@@ -79,6 +80,8 @@ extern f32 D_8010BB38_cosmic_coaster[2];
 extern u16 D_8010BB5C_cosmic_coaster[2]; /* 0: fade out started, 1: bonus coins given */
 extern s32 D_8010BB64_cosmic_coaster[8];
 extern f32 D_8010BB84_cosmic_coaster[2];
+extern s16 D_8010BB58_cosmic_coaster[2];
+extern s8 D_800CBB6E_main[];
 extern s32 D_800A178C_main[][6];
 extern omObjData *D_8010C050_cosmic_coaster;
 extern s32 D_8010C054_cosmic_coaster;
@@ -98,6 +101,12 @@ void func_80106720_cosmic_coaster(omObjData *object);
 void func_8010673C_cosmic_coaster(omObjData *object);
 void func_80106758_cosmic_coaster(omObjData *object, s16 side);
 void func_80106D10_cosmic_coaster(omObjData *object);
+void func_80107888_cosmic_coaster(omObjData *object);
+void func_80108124_cosmic_coaster(omObjData *object);
+void func_8010812C_cosmic_coaster(omObjData *object);
+void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick);
+void func_80108C9C_cosmic_coaster(omObjData *object);
+u32 func_8010B644_cosmic_coaster(omObjData **hit, CcCar *car, f32 pos, f32 prev, u16 take);
 void func_8010869C_cosmic_coaster(omObjData *object);
 void func_801090C0_cosmic_coaster(omObjData *object);
 void func_80109900_cosmic_coaster(void);
@@ -449,7 +458,171 @@ void func_80106758_cosmic_coaster(omObjData *object, s16 side) {
     object->func = func_80106D10_cosmic_coaster;
 }
 
+/* Car per frame while racing: steer the riders, speed up or brake, hit or collect, sounds. */
+#ifdef NON_MATCHING
+void func_80106D10_cosmic_coaster(omObjData *object) {
+    s8 stick;
+    omObjData *hit[2];
+    s16 pad;
+    CcCar *work;
+    s32 layer;
+    s32 i;
+    u32 res;
+    u32 res1;
+    s16 mdl;
+    f32 maxSpeed;
+
+    work = object->data;
+    layer = 2;
+    if (work->unk00 == 0) {
+        layer = 1;
+    }
+    maxSpeed = 130.0f;
+    func_8010812C_cosmic_coaster(object);
+    for (i = 0; i < 2; i++) {
+        pad = GwPlayer[work->unk02[i]].pad;
+        if (GwPlayer[work->unk02[i]].stat & 1) {
+            func_801083D0_cosmic_coaster(object, i, &stick);
+        } else {
+            stick = D_800CBB6E_main[pad];
+        }
+        if (func_800E6E8C_minigame() != 2) {
+            stick = 0;
+        }
+        work->unk10[i] += stick * 0.4f;
+        if (work->unk10[i] < -160.0f) {
+            work->unk10[i] = -160.0f;
+        }
+        if (work->unk10[i] > 160.0f) {
+            work->unk10[i] = 160.0f;
+        }
+        Hu3DModelPosSet(object->model[1 + i], work->unk10[i], 125.0f, D_8010BB84_cosmic_coaster[i]);
+        Hu3DModelPosSet(object->model[3 + i], work->unk10[i], 125.0f, D_8010BB84_cosmic_coaster[i]);
+    }
+    if (D_8010C3BC_cosmic_coaster == -1) {
+        if (func_800E6E8C_minigame() == 2) {
+            D_8010BB38_cosmic_coaster[work->unk00] += 4.0f;
+            if (D_8010BB38_cosmic_coaster[work->unk00] > maxSpeed) {
+                D_8010BB38_cosmic_coaster[work->unk00] = maxSpeed;
+            }
+        }
+    } else if (work->unk00 == D_8010C3BC_cosmic_coaster) {
+        if (work->unk08 < 63200.0f) {
+            D_8010BB38_cosmic_coaster[work->unk00] += 4.0f;
+            if (D_8010BB38_cosmic_coaster[work->unk00] > maxSpeed) {
+                D_8010BB38_cosmic_coaster[work->unk00] = maxSpeed;
+            }
+        } else {
+            D_8010BB38_cosmic_coaster[work->unk00] -= 12.0f;
+            if (D_8010BB38_cosmic_coaster[work->unk00] < 0.0f) {
+                D_8010BB38_cosmic_coaster[work->unk00] = 0.0f;
+            }
+            if (D_8010BB38_cosmic_coaster[work->unk00] == 0.0f && work->unk18[0] >= 0.0f && work->unk18[1] >= 0.0f) {
+                HuAudFXStop(work->unk52);
+                D_8010C3B0_cosmic_coaster[D_8010C3BC_cosmic_coaster]->func = func_80107888_cosmic_coaster;
+                work->unk28 = 0;
+            }
+        }
+        func_8001FBBC_main(object->model[0], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[0], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[1], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[1], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[2], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[2], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[3], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[3], 69.0f, 69.0f, 69.0f);
+        func_8001FBBC_main(object->model[4], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[4], 69.0f, 69.0f, 69.0f);
+    } else {
+        D_8010BB38_cosmic_coaster[work->unk00] -= 9.6f;
+        if (D_8010BB38_cosmic_coaster[work->unk00] < 0.0f) {
+            D_8010BB38_cosmic_coaster[work->unk00] = 0.0f;
+        }
+        if (D_8010BB38_cosmic_coaster[work->unk00] == 0.0f && work->unk18[0] >= 0.0f && work->unk18[1] >= 0.0f) {
+            HuAudFXStop(work->unk52);
+            D_8010C3B0_cosmic_coaster[D_8010C3BC_cosmic_coaster ^ 1]->func = func_80108124_cosmic_coaster;
+        }
+    }
+    work->unk0C = work->unk08;
+    work->unk08 += D_8010BB38_cosmic_coaster[work->unk00] / 1.08f;
+    if (work->unk08 >= 63000.0f) {
+        work->unk06 = 1;
+    }
+    for (i = 0; i < 2; i++) {
+        if (work->unk18[i] < 0.0f) {
+            work->unk24[i] ^= 1;
+            if (work->unk20[i] == 0) {
+                work->unk18[i] += 10.0f;
+            } else {
+                work->unk20[i]--;
+            }
+        } else {
+            work->unk24[i] = 1;
+            func_8001C624_main(object->model[3 + i], HmfModelData[object->motion[2 + i]].unk02, 0, 6, 0);
+        }
+        if (work->unk24[i] != 0) {
+            func_8001C258_main(object->model[1 + i], 4, 0);
+            func_8001C258_main(object->model[3 + i], 4, 0);
+        } else {
+            func_8001C258_main(object->model[1 + i], 4, 4);
+            func_8001C258_main(object->model[3 + i], 4, 4);
+        }
+    }
+    res = func_8010B644_cosmic_coaster(hit, work, work->unk08, work->unk0C, 1);
+    if ((res & 0xFFFF) != 0xFFFF) {
+        if ((res & 0xFFFF) == 4) {
+            func_8004AE00_main(HuAudFXPlay(9), D_8010BB58_cosmic_coaster[work->unk00]);
+            GwPlayer[work->unk02[0]].gameCoin++;
+            GwPlayer[work->unk02[1]].gameCoin++;
+            mdl = func_8000D550_main(D_8010C058_cosmic_coaster, 0.0f, 0.0f, 0.0f);
+            if (mdl >= 0) {
+                func_8001C8A8_main(mdl, layer);
+                Hu3DModelPosSet(mdl, work->unk10[0], 270.0f, -100.0f);
+                Hu3DModelScaleSet(mdl, 2.0f, 2.0f, 2.0f);
+            }
+        } else {
+            func_8004AE00_main(func_8004AC98_main(0x373, work->unk02[0]), D_8010BB58_cosmic_coaster[work->unk00]);
+            D_8010BB38_cosmic_coaster[work->unk00] *= 0.3f;
+            work->unk18[0] = -50.0f;
+            work->unk20[0] = 10;
+            func_8001C5B4_main(object->model[3], object->motion[4]);
+            omVibrate(work->unk02[0], 20, 0, 20);
+        }
+    }
+    res1 = res >> 16;
+    if (res1 != 0xFFFF) {
+        if (res1 == 4) {
+            func_8004AE00_main(HuAudFXPlay(9), D_8010BB58_cosmic_coaster[work->unk00]);
+            GwPlayer[work->unk02[0]].gameCoin++;
+            GwPlayer[work->unk02[1]].gameCoin++;
+            mdl = func_8000D550_main(D_8010C058_cosmic_coaster, 0.0f, 0.0f, 0.0f);
+            if (mdl >= 0) {
+                func_8001C8A8_main(mdl, layer);
+                Hu3DModelPosSet(mdl, work->unk10[1], 270.0f, 100.0f);
+                Hu3DModelScaleSet(mdl, 2.0f, 2.0f, 2.0f);
+            }
+        } else {
+            func_8004AE00_main(func_8004AC98_main(0x373, work->unk02[1]), D_8010BB58_cosmic_coaster[work->unk00]);
+            D_8010BB38_cosmic_coaster[work->unk00] *= 0.3f;
+            work->unk18[1] = -50.0f;
+            work->unk20[1] = 10;
+            func_8001C5B4_main(object->model[4], object->motion[5]);
+            omVibrate(work->unk02[1], 20, 0, 20);
+        }
+    }
+    Hu3DModelRotSet(object->model[1], work->unk18[0], 180.0f, 0.0f);
+    Hu3DModelRotSet(object->model[3], work->unk18[0], 180.0f, 0.0f);
+    Hu3DModelRotSet(object->model[2], work->unk18[1], 180.0f, 0.0f);
+    Hu3DModelRotSet(object->model[4], work->unk18[1], 180.0f, 0.0f);
+    if (D_8010BB38_cosmic_coaster[work->unk00] > 0.0f && work->unk52 == -1) {
+        work->unk52 = HuAudFXPlay(0x372);
+        func_8004AE00_main(work->unk52, D_8010BB58_cosmic_coaster[work->unk00]);
+    }
+    func_80108C9C_cosmic_coaster(object);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80106D10_cosmic_coaster);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80107888_cosmic_coaster);
 
@@ -457,7 +630,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80108
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801080C8_cosmic_coaster);
 
-void func_80108124_cosmic_coaster(void) {
+void func_80108124_cosmic_coaster(omObjData *object) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010812C_cosmic_coaster);
