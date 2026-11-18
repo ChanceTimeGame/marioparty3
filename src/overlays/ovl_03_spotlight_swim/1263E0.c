@@ -2148,7 +2148,64 @@ s32 func_8010BD5C_spotlight_swim(void) {
     return ret;
 }
 
+#ifdef NON_MATCHING
+/* regalloc: retail spills D_8010D47C_spotlight_swim (hoisted) to sp+4 and keeps the row end in s1; mine
+ * spills the row end and keeps the global in a3. Same ops in the same order. */
+/* Tints the current image under the 32 x 32 mask at (x / 2, y / 2): each texel's red and green get
+ * (r|g) * (256 - mask * 16) / 256 added, blue is replaced by b's share (retail ignores the old blue),
+ * and alpha = (765 - r - g - b) * D_8010D47C_spotlight_swim / 765; pure white becomes 0. Mask value 15
+ * leaves the texel. */
+void func_8010BDE0_spotlight_swim(s32 x, s32 y, u32 r, u32 g, u32 b) {
+    u32 *img = D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim];
+    s32 x0 = x / 2;
+    s32 y0 = y / 2;
+    s32 xe = x0 + 32;
+    s32 ye = y0 + 32;
+    s32 row;
+    s32 col;
+    s32 i;
+    s32 j;
+    s32 off;
+    s32 k;
+    u32 pix;
+    u32 pr;
+    u32 pg;
+    u32 dr;
+    u32 dg;
+    u32 db;
+    u32 nr;
+    u32 ng;
+    u32 nb;
+    u32 m;
+
+    for (row = y0, i = 0; row < ye; row++, i++) {
+        off = row * 160;
+        for (col = x0, j = 0; col < xe; col++, j++) {
+            m = D_8010CDC8_spotlight_swim[i][j];
+            if (m != 15) {
+                pix = *(img + col + off);
+                pr = pix >> 24;
+                pg = (pix >> 16) & 0xFF;
+                k = 0x100 - m * 16;
+                dr = (r * k) >> 8;
+                dg = (g * k) >> 8;
+                db = (b * k) >> 8;
+                nr = (pr + dr) & 0xFF;
+                ng = (pg + dg) & 0xFF;
+                nb = db & 0xFF;
+                if (nr + ng + nb == 765) {
+                    *(img + col + off) = 0;
+                } else {
+                    *(img + col + off) = (nr << 24) + (ng << 16) + (nb << 8)
+                                       + ((765 - (nr + ng + nb)) * D_8010D47C_spotlight_swim) / 765;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BDE0_spotlight_swim);
+#endif
 
 #ifdef NON_MATCHING
 /* regalloc only (masked 0): retail x0/y0/i in t3/t6/t5, mine t6/t7/t4. */
