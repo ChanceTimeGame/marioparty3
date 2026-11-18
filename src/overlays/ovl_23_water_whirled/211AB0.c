@@ -83,6 +83,7 @@ extern s32 D_8010A288_water_whirled; /* its volume */
 extern Vec D_8010A2D4_water_whirled; /* light direction */
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 f32 fabsf(f32);
+f64 fabs(f64);
 void func_80105D64_water_whirled(void);
 extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
 extern u8 D_800D2008_main;
@@ -150,6 +151,8 @@ extern f32 D_8010A3CC_water_whirled[4]; /* throttle per player, 0.05..1 */
 extern s32 D_8010A3DC_water_whirled[4]; /* frame counter per player */
 extern s32 D_8010AC40_water_whirled; /* the pad's buttons, taken from the game this frame */
 extern s32 D_8010AC44_water_whirled; /* the pad's stick x, taken likewise */
+void func_800DFCDC_minigame(f32 dx, f32 dz, f32 d);
+extern s32 D_8010A29C_water_whirled[4]; /* rumble cooldown per player */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -972,9 +975,64 @@ void func_801086A0_water_whirled(omObjData* obj, f32 x, f32 z) {
     obj->rot.z = work->unk98;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80108898_water_whirled);
+/* Riders against each other: push out of any rider that pos (plus the pending push) overlaps. */
+void func_80108898_water_whirled(omObjData* obj, Vec* pos) {
+    MgWork* work;
+    MgWork* other;
+    omObjData* o;
+    f32 x;
+    f32 z;
+    f32 dx;
+    f32 dz;
+    f32 d;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801089C0_water_whirled);
+    work = obj->data;
+    x = pos->x;
+    z = pos->z;
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        o = D_800EC598_minigame[i];
+        other = o->data;
+        if (work != other) {
+            dx = o->trans.x - (x + D_800EBE2C_minigame);
+            dz = o->trans.z - (z + D_800EC5D8_minigame);
+            d = HuSqrtf(dx * dx + dz * dz) - (other->unk48 + work->unk48);
+            if (d < 0.0f) {
+                func_800DFCDC_minigame(dx, dz, d);
+                work->unk54 = i;
+            }
+        }
+    }
+}
+
+/* Undo a push larger than the rider's radius, and rumble the pad on a bump. */
+void func_801089C0_water_whirled(omObjData* obj, f32 x, f32 z) {
+    MgWork* work;
+    f32 r;
+    f32 d;
+
+    work = obj->data;
+    r = work->unk48;
+    d = HuSqrtf(D_800EBE2C_minigame * D_800EBE2C_minigame + D_800EC5D8_minigame * D_800EC5D8_minigame);
+    if (r < d || fabs(D_800EBE2C_minigame) > r || fabs(D_800EC5D8_minigame) > r) {
+        D_800EBE2C_minigame = D_8010A1D0_water_whirled[work->unk59].x - x;
+        D_800EC5D8_minigame = D_8010A1D0_water_whirled[work->unk59].z - z;
+    }
+    if (func_800E6E8C_minigame() == 2) {
+        if (D_8010A29C_water_whirled[work->unk59] == 0) {
+            if (d > 0.0f) {
+                if (d < r / 3.0f) {
+                    omVibrate(work->unk59, 2, 3, 10);
+                } else {
+                    omVibrate(work->unk59, 10, 0, 10);
+                }
+                D_8010A29C_water_whirled[work->unk59] = 10;
+            }
+        } else {
+            D_8010A29C_water_whirled[work->unk59]--;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80108B98_water_whirled);
 
