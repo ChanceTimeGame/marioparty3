@@ -19,7 +19,7 @@ typedef func_800E1BA8_minigame_ObjData MgWork;
 /* The minigame control block (as All Fired Up's AfCtrl) */
 typedef struct PiCtrl {
     /* 0x00 */ u8 unk00;
-    /* 0x01 */ u8 unk01;
+    /* 0x01 */ s8 unk01; /* row the player is on */
     /* 0x02 */ u8 unk02;
     /* 0x03 */ s8 unk03;
     /* 0x04 */ s8 unk04;
@@ -39,7 +39,7 @@ typedef struct PiCtrl {
 /* MgWork::unk158 of a player */
 typedef struct PiPlayer {
     /* 0x00 */ u8 unk00;
-    /* 0x01 */ u8 unk01;
+    /* 0x01 */ s8 unk01; /* row the player is on */
     /* 0x02 */ u8 unk02;
     /* 0x03 */ s8 unk03;
     /* 0x04 */ s8 unk04;
@@ -678,7 +678,72 @@ void func_80107820_picture_imperfect(omObjData* obj) {
     func_8001C258_main(obj->model[1], 4, 4);
 }
 
+// masked 0: pw and ex swap $s3/$s4 (registers only); logic checked
+#ifdef NON_MATCHING
+/* CPU: wait a random time, then press A when the marker is on the row picked by difficulty. */
+void func_801081E4_picture_imperfect(omObjData* obj) {
+    s32 t2;
+    s32 t1;
+    s32 t0;
+    u8 r;
+    PiPlayer* ex;
+    MgWork* pw;
+
+    pw = obj->data;
+    ex = pw->unk158;
+    if (ex->unk18 != 0) {
+        ex->unk18--;
+        return;
+    }
+    switch (GwPlayer[pw->unk59].cpu_difficulty) {
+        case 3:
+            t2 = 9;
+            t1 = 7;
+            t0 = 5;
+            break;
+        case 2:
+            t2 = 30;
+            t1 = 10;
+            t0 = 5;
+            break;
+        case 1:
+        default:
+            t2 = 75;
+            t1 = 40;
+            t0 = 20;
+            break;
+        case 0:
+            t2 = 90;
+            t1 = 70;
+            t0 = 40;
+            break;
+    }
+    r = (u32)(rand8() * 25) >> 6;
+    if (r < t0) {
+        if (ex->unk01 != 4) {
+            return;
+        }
+    } else if (r < t1) {
+        if (ex->unk01 != 3) {
+            return;
+        }
+    } else if (r < t2) {
+        if (ex->unk01 != 2) {
+            return;
+        }
+    } else if (r < t1) { /* retail tests t1 again: row 1 is never picked */
+        if (ex->unk01 != 1) {
+            return;
+        }
+    } else if (ex->unk01 != 0) {
+        return;
+    }
+    D_800D5558_main[pw->unk57] |= 0x8000;
+    ex->unk18 = (rand8() * 15 >> 6) + 30;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_801081E4_picture_imperfect);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_801083C0_picture_imperfect);
 
