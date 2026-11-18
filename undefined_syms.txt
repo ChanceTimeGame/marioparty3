@@ -454,3 +454,5 @@ D_8010C60A_end_of_the_line = D_8010C600_end_of_the_line + 0xA;
 D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 /* m4 bg: the_beat_goes_on/1FE4D0 .data byte inside D_8010C310 (players made; a separate variable in C) */
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
+/* m5 sc: storm_chasers/269BF0 .data step table at 0x8010CA28 (splat labels it from +2) */
+D_8010CA28_storm_chasers = D_8010CA2A_storm_chasers - 0x2;
