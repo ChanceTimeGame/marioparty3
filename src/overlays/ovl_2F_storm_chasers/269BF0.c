@@ -1286,14 +1286,13 @@ void func_801090A4_storm_chasers(omObjData *obj) {
 /* CPU: chase the storm (re-aimed with a random delay when it is further than the CPU's radius). */
 #ifdef NON_MATCHING
 void func_80109170_storm_chasers(omObjData *obj) {
-    f32 x = obj->trans.x;
-    f32 z = obj->trans.z;
     ScPlayer *pl = &D_8010CD80_storm_chasers[obj->work[0]];
+    ScStorm *storm = &D_8010CCC0_storm_chasers;
     Vec v;
     f32 a;
 
-    if (x * x + z * z > 202500.0f) {
-        a = func_8010610C_storm_chasers(x, z);
+    if (obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z > 202500.0f) {
+        a = func_8010610C_storm_chasers(obj->trans.x, obj->trans.z);
         D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = sindf(SC_WRAP(a + 180.0f + SC_RAND(3))) * 70.0f;
         D_800D20A1_main[GwPlayer[obj->work[0]].pad] = -(s8)(cosdf(SC_WRAP(a + 180.0f + SC_RAND(3))) * 70.0f);
         pl->stickX = D_800CBB6E_main[GwPlayer[obj->work[0]].pad];
@@ -1302,7 +1301,7 @@ void func_80109170_storm_chasers(omObjData *obj) {
     }
     if (pl->wait > 0) {
         pl->wait--;
-        func_80106184_storm_chasers(D_8010CCC0_storm_chasers.obj->trans.x, D_8010CCC0_storm_chasers.obj->trans.z,
+        func_80106184_storm_chasers(storm->obj->trans.x, storm->obj->trans.z,
                                     obj->trans.x, obj->trans.z, &v);
         if (pl->radius < SC_ABS(v.x)) {
             D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = sindf(SC_WRAP(SC_RAND(3) + v.z)) * 70.0f;
@@ -1315,7 +1314,7 @@ void func_80109170_storm_chasers(omObjData *obj) {
         D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
         return;
     }
-    func_80106184_storm_chasers(D_8010CCC0_storm_chasers.obj->trans.x, D_8010CCC0_storm_chasers.obj->trans.z,
+    func_80106184_storm_chasers(storm->obj->trans.x, storm->obj->trans.z,
                                 obj->trans.x, obj->trans.z, &v);
     D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = sindf(SC_WRAP(SC_RAND(3) + v.z)) * 70.0f;
     D_800D20A1_main[GwPlayer[obj->work[0]].pad] = -(s8)(cosdf(SC_WRAP(SC_RAND(3) + v.z)) * 70.0f);
