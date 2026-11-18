@@ -59,6 +59,7 @@ typedef struct CcCamera {
 } CcCamera; // Size 0x2C
 
 extern s16 D_800CDA7C_main[];
+extern s32 D_800A178C_main[][6];
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[4];
@@ -70,6 +71,8 @@ s32 func_8000B710_main(s32 arg0);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8004AB0C_main(s32);
 void func_80045010_main(const s16 *, s32);
+s32 func_80017BB8_main(s16, s16);
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
 /* .data */
 extern s32 D_8010B0C0_curtain_call[8];
@@ -117,6 +120,8 @@ extern CcCpuPlan D_8010CF08_curtain_call[4];
 extern s8 D_8010CF18_curtain_call[4];
 extern s8 D_8010CF20_curtain_call[2];
 extern s8 D_8010CF22_curtain_call;
+/* player 0's shared models (stage, curtain front and back) for the others to link */
+extern s16 D_8010CF2C_curtain_call[3];
 extern s8 D_8010CF32_curtain_call;
 extern s8 D_8010CF33_curtain_call;
 extern Process *D_8010CF34_curtain_call;
@@ -922,7 +927,111 @@ void func_80107680_curtain_call(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80107D20_curtain_call);
+/* A player's object: model, motions, the shared curtain models (made by player 0), seat. */
+void func_80107D20_curtain_call(omObjData *obj) {
+    s8 player = obj->work[0];
+    CcEnt *ent = CC_PLAYER(player);
+    u16 chr = GwPlayer[player].chr;
+    s32 dir = D_800A178C_main[chr][0];
+    s8 i;
+
+    obj->model[0] = func_8000B108_main(dir | D_800A178C_main[chr][3], 0x2A9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x6C));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x2C));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x33));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x63));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x3A));
+    for (i = 0; i < 3; i++) {
+        D_8010CE90_curtain_call[player][i] = DataRead(dir | D_8010B0F0_curtain_call[chr][i]);
+    }
+    D_8010CE78_curtain_call[player] = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010CE90_curtain_call[player][0], 0,
+                                                    D_8010B120_curtain_call[chr]);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    if (obj->work[0] == 0) {
+        obj->model[1] = func_8000B0A0_main(0, 0xC9);
+        func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+        func_8001C448_main(obj->model[1]);
+        func_8001C514_main(obj->model[1]);
+        func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+        obj->model[2] = func_8000B108_main(0x430004, 0x288);
+        func_8001C448_main(obj->model[2]);
+        func_8001C514_main(obj->model[2]);
+        obj->model[3] = func_8000B108_main(0x430005, 0x288);
+        func_8001C2FC_main(obj->model[3], 0x80000000, 0x80000000);
+        func_8001C448_main(obj->model[3]);
+        func_8001C514_main(obj->model[3]);
+        D_8010CF2C_curtain_call[0] = obj->model[1];
+        D_8010CF2C_curtain_call[1] = obj->model[2];
+        D_8010CF2C_curtain_call[2] = obj->model[3];
+    } else {
+        obj->model[1] = Hu3DModelLink(D_8010CF2C_curtain_call[0]);
+        obj->model[2] = Hu3DModelLink(D_8010CF2C_curtain_call[1]);
+        obj->model[3] = Hu3DModelLink(D_8010CF2C_curtain_call[2]);
+    }
+    func_8001C814_main(obj->model[2], 2, 2);
+    func_8001C6A8_main(obj->model[2], func_80105B7C_curtain_call(50));
+    switch (obj->work[1]) {
+    case 0:
+        obj->trans.x = -225.0f;
+        obj->trans.z = 0.0f;
+        obj->trans.y = 3.0f;
+        break;
+    case 1:
+        obj->trans.x = -75.0f;
+        obj->trans.z = 10.0f;
+        obj->trans.y = 5.0f;
+        break;
+    case 2:
+        obj->trans.x = 75.0f;
+        obj->trans.z = 0.0f;
+        obj->trans.y = 3.0f;
+        break;
+    case 3:
+        obj->trans.x = 225.0f;
+        obj->trans.z = 10.0f;
+        obj->trans.y = 5.0f;
+        break;
+    }
+    ent->pos.y = obj->trans.y + 160.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, ent->pos.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, ent->pos.y, obj->trans.z);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->scale.x = 0.8f;
+    obj->scale.y = 0.8f;
+    obj->scale.z = 0.8f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    ent->scale.x = 1.0f;
+    ent->scale.y = 0.05f;
+    ent->scale.z = 1.0f;
+    Hu3DModelScaleSet(obj->model[2], ent->scale.x, ent->scale.y, ent->scale.z);
+    Hu3DModelScaleSet(obj->model[3], ent->scale.x, ent->scale.y, ent->scale.z);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_8001C258_main(obj->model[3], 4, 4);
+    func_80105BD0_curtain_call(obj, 3, 2);
+    ent->unk06 = 3;
+    D_8010CF18_curtain_call[player] = 0;
+    D_8010CF20_curtain_call[0] = -1;
+    D_8010CF20_curtain_call[1] = -1;
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_8001C8A8_main(obj->model[2], 1);
+    func_8001C8A8_main(obj->model[3], 1);
+    obj->work[1] = GwPlayer[player].stat & 1;
+    D_8010CEF8_curtain_call[player] = GwPlayer[player].cpu_difficulty;
+    obj->work[3] = GwPlayer[player].pad;
+    obj->func = func_80107680_curtain_call;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_801084A0_curtain_call);
 
