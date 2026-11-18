@@ -45,7 +45,7 @@ typedef struct BtPlayer {
     /* 0x44 */ f32 unk44;
     /* 0x48 */ f32 unk48;
     /* 0x4C */ Vec unk4C;
-    /* 0x58 */ char unk58[0xC];
+    /* 0x58 */ Vec unk58; /* podium position */
     /* 0x64 */ f32 unk64; /* knockback x */
     /* 0x68 */ f32 unk68; /* knockback z */
     /* 0x6C */ f32 unk6C; /* knockback decay */
@@ -154,6 +154,9 @@ void func_801085EC_bounce_n_trounce(omObjData* obj);
 void func_80108940_bounce_n_trounce(void);
 void func_80108EFC_bounce_n_trounce(omObjData* obj, f32 x, f32 y, f32 z);
 void func_80108F98_bounce_n_trounce(omObjData* obj);
+void func_80108C18_bounce_n_trounce(omObjData* obj);
+void func_80108CA8_bounce_n_trounce(omObjData* obj);
+void func_80108D28_bounce_n_trounce(omObjData* obj);
 void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn);
 void func_80109AF0_bounce_n_trounce(omObjData* obj);
 void func_80109F68_bounce_n_trounce(omObjData* obj);
@@ -177,6 +180,8 @@ extern u16 D_8010ACF6_bounce_n_trounce;    /* frames before tiles start dropping
 extern u16 D_8010ACF8_bounce_n_trounce; /* frames to the next drop */
 extern Vec D_8010ACFC_bounce_n_trounce[4]; /* start positions */
 extern s32 D_8010AD2C_bounce_n_trounce[8]; /* shadow model per character */
+extern Vec D_8010AD4C_bounce_n_trounce[4]; /* podium positions */
+extern u16 D_8010AD7C_bounce_n_trounce[4]; /* podium taken */
 
 extern u16 D_8010AEBC_bounce_n_trounce;
 extern omObjData* D_8010AEC0_bounce_n_trounce;
@@ -1183,17 +1188,121 @@ void func_80108940_bounce_n_trounce(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108994_bounce_n_trounce);
+/* At the end: sends every standing player to the free podium nearest to it; TRUE once all are there or out. */
+s32 func_80108994_bounce_n_trounce(void) {
+    f32 dist[4];
+    u16 idx[4];
+    omObjData* obj;
+    BtPlayer* player;
+    f32 tf;
+    u16 ti;
+    s32 done;
+    s32 i;
+    s32 j;
+    s32 k;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108C18_bounce_n_trounce);
+    done = 0;
+    for (i = 0; i < 4; i++) {
+        obj = D_8010AEDC_bounce_n_trounce[i];
+        player = obj->data;
+        done += player->unk02 == 3;
+        if (player->unk04 == 2 || player->unk04 == 4) {
+            if (player->unk02 != 4) {
+                obj->func = func_80108C18_bounce_n_trounce;
+                for (j = 0; j < 4; j++) {
+                    dist[j] = func_8010AAE0_bounce_n_trounce(D_8010AD4C_bounce_n_trounce[j].x, D_8010AD4C_bounce_n_trounce[j].z,
+                                                             D_8010AEDC_bounce_n_trounce[i]->trans.x,
+                                                             D_8010AEDC_bounce_n_trounce[i]->trans.z);
+                    idx[j] = j;
+                }
+                for (j = 0; j < 3; j++) {
+                    for (k = j + 1; k < 4; k++) {
+                        if (dist[idx[j]] > dist[idx[k]]) {
+                            ti = idx[j];
+                            tf = dist[idx[j]];
+                            dist[idx[j]] = dist[idx[k]];
+                            idx[j] = idx[k];
+                            dist[idx[k]] = tf;
+                            idx[k] = ti;
+                        }
+                    }
+                }
+                for (j = 0; j < 4; j++) {
+                    if (D_8010AD7C_bounce_n_trounce[idx[j]] != 1) {
+                        player->unk58 = D_8010AD4C_bounce_n_trounce[idx[j]];
+                        D_8010AD7C_bounce_n_trounce[idx[j]] = 1;
+                        break;
+                    }
+                }
+            } else {
+                done += D_8010AEDC_bounce_n_trounce[i]->work[0] == 0;
+            }
+        }
+    }
+    return done == 4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108CA8_bounce_n_trounce);
+void func_80108C18_bounce_n_trounce(omObjData* obj) {
+    ((BtPlayer*)obj->data)->unk02 = 4;
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[3]].unk02, 0, 6, 0);
+    obj->work[0] = 8;
+    obj->func = func_80108CA8_bounce_n_trounce;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108D28_bounce_n_trounce);
+void func_80108CA8_bounce_n_trounce(omObjData* obj) {
+    if (obj->work[0] != 0) {
+        obj->work[0]--;
+        return;
+    }
+    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[1]].unk02, 0, 6, 2);
+    obj->func = func_80108D28_bounce_n_trounce;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108EFC_bounce_n_trounce);
+/* Walks to the podium, pushing away the players it touches. */
+void func_80108D28_bounce_n_trounce(omObjData* obj) {
+    BtPlayer* player;
+    BtPlayer* od;
+    f32 angle;
+    f32 step;
+    f32 dist;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108F98_bounce_n_trounce);
+    player = obj->data;
+    for (i = 0; i < 4; i++) {
+        od = D_8010AEDC_bounce_n_trounce[i]->data;
+        if (od->unk02 != 4 && ((player->unk0E[i] & 1) || (player->unk0E[i] & 2))) {
+            angle = atan2df(-D_8010AEDC_bounce_n_trounce[i]->trans.x, -D_8010AEDC_bounce_n_trounce[i]->trans.z);
+            od->unk64 = sindf(angle) * 6.0f;
+            od->unk68 = cosdf(angle) * 6.0f;
+            od->unk6C = 0.9f;
+            dist = func_8010AAE0_bounce_n_trounce(player->unk58.x, player->unk58.z, obj->trans.x, obj->trans.z);
+            step = (dist < 50.0f) ? dist : 50.0f;
+            angle = atan2df(player->unk58.x - obj->trans.x, player->unk58.z - obj->trans.z);
+            obj->trans.x = sindf(angle) * step + obj->trans.x;
+            obj->trans.z = cosdf(angle) * step + obj->trans.z;
+            Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelPosSet(obj->model[2], obj->trans.x, 1.0f, obj->trans.z);
+        }
+    }
+}
+
+/* The bounce star above the player (x, y, z unused) */
+void func_80108EFC_bounce_n_trounce(omObjData* obj, f32 x, f32 y, f32 z) {
+    func_8001C258_main(obj->model[4], 4, 0);
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, obj->trans.y + 200.0f, obj->trans.z);
+    Hu3DModelRotSet(obj->model[4], 0.0f, CRot.y, 0.0f);
+    func_8001C814_main(obj->model[4], 3, 0);
+    func_8001C6A8_main(obj->model[4], 0.0f);
+}
+
+/* The landing dust */
+void func_80108F98_bounce_n_trounce(omObjData* obj) {
+    func_8001C258_main(obj->model[6], 4, 0);
+    Hu3DModelPosSet(obj->model[6], obj->trans.x, obj->trans.y + 5.0f, obj->trans.z);
+    func_8001C814_main(obj->model[6], 3, 0);
+    func_8001C6A8_main(obj->model[6], 0.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109018_bounce_n_trounce);
 
