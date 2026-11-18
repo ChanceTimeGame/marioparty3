@@ -1346,17 +1346,17 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_801091
 #endif
 
 /* A whirlwind that reaches a player throws them up and spins them. */
-#ifdef NON_MATCHING
 void func_8010A070_storm_chasers(omObjData *obj) {
     ScPlayer *pl = &D_8010CD80_storm_chasers[obj->work[0]];
     MgWork *mw = obj->data;
+    ScWind *w;
     Vec v;
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        if (D_8010CEE0_storm_chasers[i].state >= 2) {
-            func_80106184_storm_chasers(obj->trans.x, obj->trans.z, D_8010CEE0_storm_chasers[i].obj->trans.x,
-                                        D_8010CEE0_storm_chasers[i].obj->trans.z, &v);
+        w = &D_8010CEE0_storm_chasers[i];
+        if (w->state >= 2) {
+            func_80106184_storm_chasers(obj->trans.x, obj->trans.z, w->obj->trans.x, w->obj->trans.z, &v);
             if (SC_ABS(v.x) < 80.0f) {
                 if (pl->hit == 0) {
                     func_800E5690_minigame(obj, 0x21);
@@ -1366,8 +1366,7 @@ void func_8010A070_storm_chasers(omObjData *obj) {
                     }
                 }
                 pl->unk38 = mw->unk3C;
-                mw->unk3C = v.z;
-                pl->unk30 = v.z;
+                pl->unk30 = mw->unk3C = v.z;
                 mw->unk40 = 15.0f;
                 pl->unk34 = 15.0f;
                 pl->jump = 2;
@@ -1385,9 +1384,6 @@ void func_8010A070_storm_chasers(omObjData *obj) {
         mw->unk3C = pl->unk30;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010A070_storm_chasers);
-#endif
 
 /* CPU after the storm: walk to its goal point, sidestepping other players. */
 #ifdef NON_MATCHING
@@ -1678,8 +1674,8 @@ void func_8010B1B0_storm_chasers(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010B1B0_storm_chasers);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010B738_storm_chasers(void) {
+    s32 unused[2]; /* retail's frame carries 8 bytes no instruction uses */
     omObjData *obj;
     u32 player;
     s16 i;
@@ -1708,9 +1704,6 @@ void func_8010B738_storm_chasers(void) {
         D_800EC280_minigame++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010B738_storm_chasers);
-#endif
 
 void func_8010B838_storm_chasers(omObjData *obj) {
 }
