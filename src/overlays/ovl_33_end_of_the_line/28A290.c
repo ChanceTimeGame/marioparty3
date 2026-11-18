@@ -54,9 +54,9 @@ typedef struct {
     /* 0x14 */ s16 unk14;
     /* 0x16 */ u16 unk16;
     /* 0x18 */ u16 unk18;
-    /* 0x1A */ s16 unk1A;
+    /* 0x1A */ u16 unk1A;
     /* 0x1C */ s16 unk1C;
-    /* 0x1E */ char unk1E[2];
+    /* 0x1E */ u16 unk1E;
     /* 0x20 */ s32 unk20;
     /* 0x24 */ Vec unk24;
     /* 0x30 */ Vec unk30;
@@ -72,8 +72,9 @@ typedef struct {
     /* 0x66 */ char unk66[2];
     /* 0x68 */ f32 unk68;
     /* 0x6C */ f32 unk6C;
-    /* 0x70 */ s16 unk70;
-    /* 0x72 */ char unk72[6];
+    /* 0x70 */ u16 unk70;
+    /* 0x72 */ char unk72[2];
+    /* 0x74 */ f32 unk74;
     /* 0x78 */ s16 unk78;
     /* 0x7A */ s16 unk7A[3];
     /* 0x80 */ s16 unk80;
@@ -81,9 +82,10 @@ typedef struct {
     /* 0x84 */ char unk84[2];
     /* 0x86 */ s16 unk86;
     /* 0x88 */ s16 unk88; // low byte read as an s8 (fx mix)
-    /* 0x8A */ s16 unk8A;
+    /* 0x8A */ u16 unk8A;
     /* 0x8C */ s16 unk8C;
-    /* 0x8E */ char unk8E[6];
+    /* 0x8E */ s16 unk8E;
+    /* 0x90 */ char unk90[4];
 } EotlPlayer; // Size 0x94
 
 typedef struct {
@@ -110,11 +112,13 @@ void func_80105E88_end_of_the_line(omObjData *obj);
 void func_80106444_end_of_the_line(omObjData *obj);
 void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2);
 void func_80107FF0_end_of_the_line(u16 arg0);
+void func_80108F0C_end_of_the_line(omObjData *obj);
 void func_8010A434_end_of_the_line(omObjData *obj);
 void func_8010AA7C_end_of_the_line(EotlPlayer *pw);
 void func_8010AC34_end_of_the_line(EotlPlayer *pw);
 void func_8010AF28_end_of_the_line(omObjData *obj);
 void func_8010B064_end_of_the_line(omObjData *obj);
+void func_8010B234_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
@@ -123,6 +127,7 @@ void func_80107F0C_end_of_the_line(void);
 void func_801080C8_end_of_the_line(omObjData *obj);
 void func_801082D8_end_of_the_line(omObjData *obj);
 void func_8010C060_end_of_the_line(omObjData *obj);
+void func_8010C110_end_of_the_line(s32 arg0, omObjData *obj, f32 arg2, f32 arg3, f32 arg4);
 void func_8010C3F4_end_of_the_line(void);
 
 extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
@@ -132,6 +137,7 @@ extern f32 D_8010C5D0_end_of_the_line[2];
 extern s32 D_8010C5D8_end_of_the_line[5];
 extern s32 D_8010C5EC_end_of_the_line[5];
 extern s16 D_8010C600_end_of_the_line[2][4];
+extern s32 D_8010C620_end_of_the_line[2][6];
 extern s16 D_8010C610_end_of_the_line[2][4];
 
 extern u16 D_8010C650_end_of_the_line;
@@ -369,8 +375,6 @@ void func_80105E88_end_of_the_line(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
-/* Instruction scheduling only: one addu of the model index is placed before the reload of obj->model. */
 void func_80106444_end_of_the_line(omObjData *obj) {
     EotlHud *hud;
     s32 i;
@@ -412,8 +416,8 @@ void func_80106444_end_of_the_line(omObjData *obj) {
             func_8001C8A8_main(obj->model[20 + j * 2 + i], D_8010C5C8_end_of_the_line[i]);
         }
         for (j = 0; j < 1; j++) {
-            obj->model[j + i * 2 + 1] = Hu3DModelLink(obj->model[0]);
-            func_8001C8A8_main(obj->model[j + i * 2 + 1], D_8010C5C8_end_of_the_line[i]);
+            obj->model[1 + i * 2 + j] = Hu3DModelLink(obj->model[0]);
+            func_8001C8A8_main(obj->model[1 + i * 2 + j], D_8010C5C8_end_of_the_line[i]);
         }
         for (j = 0; j < 3; j++) {
             if (i == 0) {
@@ -453,9 +457,6 @@ void func_80106444_end_of_the_line(omObjData *obj) {
     obj->work[0] = 0;
     obj->func = NULL;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106444_end_of_the_line);
-#endif
 
 void func_801069D8_end_of_the_line(omObjData *obj) {
     EotlHud *hud;
@@ -502,8 +503,6 @@ void func_801069D8_end_of_the_line(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
-/* Masked residue: the three model[p + j * 2 + 20] loops strength-reduce j * 2 (retail reloads obj->model first); two lw scheduling differences. */
 void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
     EotlPlayer *pw;
     EotlHud *hud;
@@ -523,7 +522,7 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
     func_8001C258_main(arg0->model[p + 16], 4, 4);
     func_8001C258_main(arg0->model[p + 18], 4, 4);
     for (j = 0; j < 5; j++) {
-        func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 4);
+        func_8001C258_main(arg0->model[20 + j * 2 + p], 4, 4);
     }
     func_8001C258_main(arg0->model[p * 3 + 6], 4, 4);
     func_8001C258_main(arg0->model[p * 3 + 7], 4, 4);
@@ -569,7 +568,7 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
         Hu3DModelRotSet(arg1->model[2], pw->unk48.x, pw->unk48.y, pw->unk48.z);
         func_8000BB54_main(hud->unk00[p]);
         for (j = 0; j < 5; j++) {
-            func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 0);
+            func_8001C258_main(arg0->model[20 + j * 2 + p], 4, 0);
         }
         func_8001C258_main(arg0->model[p + 18], 4, 0);
         Hu3DModelPosSet(arg0->model[p + 18], -1000.0f, 4000.0f, 0.0f);
@@ -578,10 +577,10 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
     case 1:
         func_8001C258_main(arg0->model[p * 2], 4, 0);
         func_8001C258_main(arg0->model[p + 4], 4, 0);
-        func_8001C258_main(arg0->model[p * 3 + pw->unk16 + 6], 4, 0);
+        func_8001C258_main(arg0->model[6 + p * 3 + pw->unk16], 4, 0);
         Hu3DModelPosSet(arg0->model[p * 2], 0.0f, 0.0f, 0.0f);
         Hu3DModelPosSet(arg0->model[p + 4], 0.0f, 0.0f, -3300.0f);
-        Hu3DModelPosSet(arg0->model[p * 3 + pw->unk16 + 6], 0.0f, 0.0f, -3150.0f);
+        Hu3DModelPosSet(arg0->model[6 + p * 3 + pw->unk16], 0.0f, 0.0f, -3150.0f);
         func_8001C258_main(arg1->model[0], 4, 0);
         func_8001C258_main(arg1->model[1], 4, 0);
         func_8001C258_main(arg1->model[2], 4, 0);
@@ -636,7 +635,7 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
         func_8001C258_main(arg1->model[1], 4, 0);
         func_8001C258_main(arg1->model[2], 4, 0);
         for (j = 0; j < 5; j++) {
-            func_8001C258_main(arg0->model[p + j * 2 + 20], 4, 0);
+            func_8001C258_main(arg0->model[20 + j * 2 + p], 4, 0);
         }
         func_8001C258_main(arg0->model[p + 12], 4, 0);
         Hu3DModelPosSet(arg0->model[p + 12], 0.0f, 0.0f, 0.0f);
@@ -754,9 +753,6 @@ void func_80106CDC_end_of_the_line(omObjData *arg0, omObjData *arg1, s16 arg2) {
         func_8004AAD0_main(pw->unk86, ((s8 *)&pw->unk88)[1]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106CDC_end_of_the_line);
-#endif
 
 void func_80107F0C_end_of_the_line(void) {
     omObjData *obj;
@@ -830,7 +826,105 @@ void func_801080C8_end_of_the_line(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801082D8_end_of_the_line);
 
+#ifdef NON_MATCHING
+/* Float register allocation only: sin * speed lands in $f0 instead of $f2 (twice). */
+void func_801088A4_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    s32 j;
+    f32 dz;
+
+    pw = obj->data;
+    j = 0;
+    if (pw->unk3C.y > 600.0f) {
+        for (j = 0; j < 5; j++) {
+            func_8001C258_main(D_8010C738_end_of_the_line->model[20 + j * 2 + pw->unk00], 4, 0);
+        }
+    } else {
+        for (j = 0; j < 5; j++) {
+            func_8001C258_main(D_8010C738_end_of_the_line->model[20 + j * 2 + pw->unk00], 4, 4);
+        }
+    }
+    if (pw->unk8A == 0) {
+        HuAudFXPlay(D_8010C620_end_of_the_line[pw->unk00][3]);
+        pw->unk8A = 30;
+    } else {
+        pw->unk8A--;
+    }
+    if (pw->unk78 != 0) {
+        pw->unk78--;
+    } else if (pw->unk48.y > 0.0f) {
+        if (pw->unk1A != 5 && pw->unk70 == 0) {
+            func_8001C5B4_main(obj->model[2], obj->motion[1]);
+            func_8001C814_main(obj->model[2], 2, 2);
+            func_8001C92C_main(obj->model[2], 2.0f);
+            pw->unk1A = 5;
+        }
+        pw->unk48.y -= 20.0f;
+        if (pw->unk48.y < 0.0f) {
+            pw->unk48.y = 0.0f;
+        }
+    } else if (pw->unk48.y == 0.0f && pw->unk1A != 3 && pw->unk70 == 0) {
+        func_8001C624_main(obj->model[2], HmfModelData[obj->motion[8]].unk02, 0, 6, 2);
+        func_8001C92C_main(obj->model[2], 1.0f);
+        pw->unk1A = 3;
+    }
+    if (obj->trans.z < 297.0f && pw->unk70 == 0) {
+        HuAudFXPlay(D_8010C620_end_of_the_line[pw->unk00][4]);
+        pw->unk8E = func_8004ACE0_main(0x286, pw->unk02);
+        pw->unk70 = 1;
+        pw->unk74 = 80.0f;
+        pw->unk8A = 10000;
+        func_8001C624_main(obj->model[2], HmfModelData[obj->motion[4]].unk02, 0, 6, 2);
+        func_8001C258_main(obj->model[5], 4, 0);
+        Hu3DModelScaleSet(obj->model[5], 1.8f, 1.8f, 1.8f);
+        pw->unk1E = 7;
+    }
+    if (pw->unk70 == 1) {
+        if (pw->unk8C == 0) {
+            func_80007D2C_main(pw->unk8E, 64);
+        } else {
+            pw->unk8C--;
+        }
+    }
+    if (obj->trans.z > -100.0f) {
+        dz = cosdf(obj->rot.y) * (pw->unk0C / 1.08f);
+        obj->trans.x = obj->trans.x + sindf(obj->rot.y) * (pw->unk0C / 1.08f);
+        obj->trans.z += dz;
+        dz = cosdf(pw->unk30.y) * (pw->unk0C / 1.08f);
+        pw->unk24.x = pw->unk24.x + sindf(pw->unk30.y) * (pw->unk0C / 1.08f);
+        pw->unk24.z += dz;
+        Hu3DModelPosSet(obj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+        Hu3DModelRotSet(obj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+    }
+    if (pw->unk70 == 1) {
+        func_8010C110_end_of_the_line(0, obj, -1000.0f, 4000.0f, 0.0f);
+        pw->unk3C.y += pw->unk74;
+        pw->unk74 *= 0.98f;
+        if (pw->unk74 < 60.0f) {
+            pw->unk74 = 60.0f;
+        }
+        if (pw->unk3C.y > 4000.0f) {
+            D_8010C782_end_of_the_line[pw->unk00] = 0x85;
+            pw->unk74 = -6.0f;
+            pw->unk5C = 0;
+            func_8001C5B4_main(obj->model[2], obj->motion[5]);
+            obj->func = func_80108F0C_end_of_the_line;
+            pw->unk08 = func_8010B234_end_of_the_line;
+        }
+        if (pw->unk1E != 0) {
+            Hu3DModelRotSet(obj->model[5], 0.0f, 0.0f, rand8() / 256.0f * 360.0f);
+            if (--pw->unk1E == 0) {
+                func_8001C258_main(obj->model[5], 4, 4);
+            }
+        }
+    }
+    Hu3DModelPosSet(obj->model[5], pw->unk3C.x, pw->unk3C.y + 50.0f, pw->unk3C.z + 100.0f);
+    Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+    Hu3DModelRotSet(obj->model[2], pw->unk48.x, pw->unk48.y, pw->unk48.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801088A4_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80108F0C_end_of_the_line);
 
