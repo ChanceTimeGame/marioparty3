@@ -80,6 +80,14 @@ typedef struct BkPlayer {
     /* 0x4C */ char unk4C[4];
 } BkPlayer; // Size 0x50
 
+/* The ground object's work (0xB4), as Locked Out's LoGround. */
+typedef struct BkGround {
+    /* 0x00 */ char unk00[3];
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ char unk05[0xAF];
+} BkGround; // Size 0xB4
+
 extern u16 D_800D5558_main[];
 extern u8 D_800D6A90_main;
 extern s32 fontcolor;
@@ -130,7 +138,7 @@ void func_80108160_baby_bowser_bonkers(void);
 void func_80109890_baby_bowser_bonkers(void);
 void func_80109EB8_baby_bowser_bonkers(void);
 extern s32 D_8010BC3C_baby_bowser_bonkers;
-void func_80107678_baby_bowser_bonkers(omObjData* obj, s32 arg1, s32 arg2);
+void func_80107678_baby_bowser_bonkers(omObjData* obj, s16 a, s16 b);
 void func_801076D8_baby_bowser_bonkers(omObjData* a, omObjData* b, Vec* va, Vec* vb, s32 arg4);
 void func_80109080_baby_bowser_bonkers(s16 id, s32 arg1, s16 arg2);
 s32 func_801096D0_baby_bowser_bonkers(void);
@@ -161,6 +169,15 @@ void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 omObjData* func_80045F1C_main(u32, s16, s16);
 extern s32 D_8010B848_baby_bowser_bonkers[8]; /* win motions by character */
 extern s32 D_8010B868_baby_bowser_bonkers[8]; /* lose motions by character */
+void func_80109E98_baby_bowser_bonkers(s16 player, s16 score);
+void func_80107D38_baby_bowser_bonkers(omObjData* obj);
+void func_80107E54_baby_bowser_bonkers(omObjData* obj);
+void func_800E1490_minigame(s32);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+extern omObjData* D_800EC1C0_minigame[];
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -568,17 +585,59 @@ void func_80106AA4_baby_bowser_bonkers(omObjData* obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80106CEC_baby_bowser_bonkers);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801075F4_baby_bowser_bonkers);
+void func_801075F4_baby_bowser_bonkers(omObjData* obj, f32 x, f32 z) {
+    BkPlayer* p = func_8010B3AC_baby_bowser_bonkers(obj);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80107648_baby_bowser_bonkers);
+    p->unk02++;
+    p->unk44 = x;
+    p->unk48 = z;
+    func_80109E98_baby_bowser_bonkers(p->unk00, p->unk02);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80107678_baby_bowser_bonkers);
+s32 func_80107648_baby_bowser_bonkers(omObjData* obj) {
+    s32 ret = 1;
+
+    if (!(obj->trans.y >= 44.10000093281269)) {
+        ret = 0;
+    }
+    return ret;
+}
+
+/* Swaps the display data of two of an object's models. */
+void func_80107678_baby_bowser_bonkers(omObjData* obj, s16 a, s16 b) {
+    HmfModel* ma = &HmfModelData[obj->model[a]];
+    HmfModel* mb = &HmfModelData[obj->model[b]];
+    HmfData* tmp = ma->hmf;
+
+    ma->hmf = mb->hmf;
+    mb->hmf = tmp;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801076D8_baby_bowser_bonkers);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80107CD8_baby_bowser_bonkers);
+void func_80107CD8_baby_bowser_bonkers(void) {
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(1, 0x10, 0, -1, func_80107D38_baby_bowser_bonkers);
+    func_800E1490_minigame(0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80107D38_baby_bowser_bonkers);
+void func_80107D38_baby_bowser_bonkers(omObjData* obj) {
+    BkGround* g;
+
+    obj->data = g = HuMemAllocTag(sizeof(BkGround), 31000);
+    memset(g, 0, sizeof(BkGround));
+    g->unk03 = 1;
+    g->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 1.0f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E139C_minigame(obj, 39.100002f, -939.99994f, -939.99994f, 939.99994f, 939.99994f);
+    obj->model[0] = func_8000B0A0_main(0x560000, 0x10099);
+    func_8001C954_main(obj->model[0]);
+    omSetStatBit(obj, 0xA0);
+    obj->model[1] = func_8000B0A0_main(0x560001, 0x99);
+    obj->model[2] = func_8000B0A0_main(0x560002, 0x99);
+    obj->func = func_80107E54_baby_bowser_bonkers;
+}
 
 void func_80107E54_baby_bowser_bonkers(omObjData* obj) {
     func_8001E65C_main(obj->model[0], sindf(D_8010B8EC_baby_bowser_bonkers) * 15.0f, -D_8010B8F0_baby_bowser_bonkers,
