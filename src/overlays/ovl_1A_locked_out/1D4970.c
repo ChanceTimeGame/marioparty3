@@ -10,6 +10,7 @@
 #include "game/gamemes.h"
 #include "game/wipe.h"
 #include "mallocblock.h"
+#include "input.h"
 
 // lo A: Locked Out
 
@@ -21,13 +22,15 @@ typedef struct LoPlayer {
     /* 0x00 */ f32 x;
     /* 0x04 */ f32 y;
     /* 0x08 */ f32 z;
-    /* 0x0C */ char unk0C[0x10];
+    /* 0x0C */ Vec prev; /* position at the start of the frame */
+    /* 0x18 */ s16 unk18; /* stick, low half */
+    /* 0x1A */ char unk1A[2];
     /* 0x1C */ s32 model; /* model file */
     /* 0x20 */ u8 player;
-    /* 0x21 */ s8 chr;
+    /* 0x21 */ u8 chr;
     /* 0x22 */ u8 difficulty;
-    /* 0x23 */ u8 unk23;
-    /* 0x24 */ u8 unk24;
+    /* 0x23 */ u8 escaped; /* through a door; counts on in the results */
+    /* 0x24 */ u8 unk24; /* coins won */
     /* 0x25 */ u8 key; /* key carried, index + 1; 0 none */
     /* 0x26 */ u8 unk26;
     /* 0x27 */ u8 cpu;
@@ -35,7 +38,15 @@ typedef struct LoPlayer {
     /* 0x29 */ u8 unk29; /* motion */
     /* 0x2A */ u8 unk2A; /* motion */
     /* 0x2B */ u8 unk2B;
-    /* 0x2C */ char unk2C[0x20];
+    /* 0x2C */ s16 unk2C;
+    /* 0x2E */ s16 unk2E;
+    /* 0x30 */ s16 unk30;
+    /* 0x32 */ s16 unk32;
+    /* 0x34 */ char unk34[8];
+    /* 0x3C */ s16 state;
+    /* 0x3E */ s16 door; /* door index */
+    /* 0x40 */ s16 timer;
+    /* 0x42 */ char unk42[0xA];
 } LoPlayer; /* size 0x4C */
 
 s32 func_8000B638_main(void);
@@ -120,6 +131,11 @@ void func_80106FBC_locked_out(omObjData* obj);
 void func_801071D8_locked_out(omObjData* obj);
 void func_80107ABC_locked_out(omObjData* obj);
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+void func_80108A90_locked_out(omObjData* obj);
+void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
+void func_800DDD94_minigame(omObjData* obj);
+void func_800E5138_minigame(omObjData* obj);
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z); /* guRotateRPYF */
 void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4);
 void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z);
 void func_80109CDC_locked_out(void);
@@ -131,7 +147,8 @@ extern Vec D_8010A110_locked_out[7];
 extern u8 D_8010A178_locked_out[4][2]; /* [n][1]: the n-th player to spawn */
 extern u8 D_8010A180_locked_out; /* players spawned */
 extern Vec D_8010A184_locked_out[4]; /* start positions */
-extern f32 D_8010A1B4_locked_out[4]; /* start headings */ /* positions; the doors use [0], [3], [6] */
+extern f32 D_8010A1B4_locked_out[4]; /* start headings */
+extern Vec D_8010A1C4_locked_out[]; /* positions past the doors */ /* positions; the doors use [0], [3], [6] */
 extern u32 D_8010A1E8_locked_out; /* random seed */
 extern D_80111B50_vine_with_me_Struct D_8010A588_locked_out;
 extern omObjData* D_8010A610_locked_out[10];
@@ -428,7 +445,7 @@ void func_801071D8_locked_out(omObjData* obj) {
     lp->cpu = GwPlayer[player].stat & 1;
     lp->difficulty = GwPlayer[player].cpu_difficulty;
     lp->model = file0 | 0x2F;
-    lp->unk23 = 0;
+    lp->escaped = 0;
     lp->unk24 = 0;
     lp->x = obj->trans.x;
     lp->y = obj->trans.y;
@@ -528,7 +545,307 @@ void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, 
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80107ABC_locked_out);
+/* A player's per-frame function. */
+void func_80107ABC_locked_out(omObjData* obj) {
+    LoU8x8 motTbl = D_8010A298_locked_out;
+    Vec hinge;
+    s32 stick;
+    MgWork* work;
+    LoPlayer* lp;
+    u8 pad;
+    s32 drop;
+    u16 btn;
+    LoDoor* door;
+    omObjData* ko;
+    LoKey* key;
+    s32 i;
+    s32 tmp;
+    f32 a;
+    f32 speed;
+    f32 frame;
+
+    work = obj->data;
+    lp = work->unk158;
+    pad = work->unk57;
+    drop = 0;
+    if (D_8010A674_locked_out != 2) {
+        D_800D20A1_main[pad] = 0;
+        D_800CBB6E_main[pad] = 0;
+        D_800D5558_main[pad] = 0;
+        D_800CDA7C_main[pad] = 0;
+    }
+    switch (D_8010A674_locked_out) {
+        case 0:
+            lp->door = 0;
+            lp->state = 0;
+            lp->timer = 0;
+            lp->unk32 = 0;
+            lp->unk30 = 0;
+            lp->unk2E = 0;
+            lp->unk2C = 0;
+            lp->unk28 = 0;
+            break;
+        case 2:
+            if (lp->cpu != 0 && lp->state == 0) {
+                D_800D20A1_main[pad] = 0;
+                D_800CBB6E_main[pad] = 0;
+                D_800D5558_main[pad] = 0;
+                D_800CDA7C_main[pad] = 0;
+                func_80108A90_locked_out(obj);
+            }
+            break;
+        case 3:
+            if (lp->key != 0) {
+                drop = 1;
+            }
+            if (lp->escaped == 0) {
+                func_800E5690_minigame(obj, 15);
+            }
+            D_8010A180_locked_out = 0;
+            break;
+        case 4:
+            if (lp->escaped == 0 && lp->timer == 0) {
+                func_8004AC5C_main(lp->chr + 0x287, work->unk59);
+                lp->timer = 1;
+            }
+            if (WipeStatGet() == 0) {
+                if (lp->escaped == 0) {
+                    func_8001C258_main(obj->model[0], 4, 4);
+                    func_8001C258_main(obj->model[1], 4, 4);
+                    work->unk50 |= 0x600;
+                    lp->state = 6;
+                    return;
+                }
+                obj->trans.x = D_8010A1C4_locked_out[D_8010A180_locked_out].x;
+                obj->trans.y = D_8010A1C4_locked_out[D_8010A180_locked_out].y;
+                obj->trans.z = D_8010A1C4_locked_out[D_8010A180_locked_out++].z;
+                work->unk3C = 180.0f;
+                work->unk40 = 0;
+                work->unk50 &= ~0x200;
+                lp->escaped = 0;
+                lp->door = 0;
+                lp->state = 0;
+                lp->unk32 = 0;
+                lp->unk30 = 0;
+                lp->unk2E = 0;
+                lp->unk2C = 0;
+                lp->unk28 = 0;
+            }
+            break;
+        case 5:
+            work->unk3C = 180.0f;
+            break;
+        case 6:
+            if (lp->escaped != 0) {
+                if (lp->timer == 0) {
+                    lp->timer = 1;
+                    func_8004AC5C_main(0x3D7, work->unk59);
+                }
+                func_8001C92C_main(D_8010A638_locked_out[lp->door].unk0E, 1.0f);
+                D_8010A638_locked_out[lp->door].unk0C = 1;
+                work->unk3C = 0.0f;
+                func_8001C92C_main(obj->model[0], 1.0f);
+            }
+            if (lp->state != 6) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                tmp = obj->model[0];
+                obj->model[0] = obj->model[9];
+                obj->model[9] = tmp;
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_800E5690_minigame(obj, 0);
+            }
+            lp->state = 6;
+            break;
+        case 7:
+            if (lp->escaped == 1) {
+                func_80045ED0_main(lp->model);
+                GwPlayer[work->unk59].bonusCoin += 10;
+                GwPlayer[work->unk59].bonusCoin = lp->unk24;
+                func_800E5690_minigame(obj, 13);
+                func_80017954_main(obj->model[0], 2, motTbl.v[lp->chr], lp->unk29);
+                lp->escaped++;
+            } else if (lp->escaped == 0) {
+                GwPlayer[work->unk59].bonusCoin = lp->unk24;
+                lp->escaped--;
+            }
+            break;
+        case 8:
+            if (work != NULL) {
+                HuMemFree(work->unk158);
+                obj->data = NULL;
+                obj->func = NULL;
+            }
+            /* fallthrough */
+        case 9:
+            return;
+    }
+    btn = D_800D5558_main[pad];
+    stick = func_800E4A90_minigame(obj);
+    lp->prev.x = obj->trans.x;
+    lp->prev.y = obj->trans.y;
+    lp->prev.z = obj->trans.z;
+    if (lp->key != 0) {
+        D_800D5558_main[pad] &= ~0x4000;
+    } else {
+        HmfModelData[obj->model[0]].unk06 = 0xFF;
+    }
+    door = &D_8010A638_locked_out[lp->door];
+    switch (lp->state) {
+        case 0:
+            if (stick & 0x200000) {
+                D_800D20A1_main[pad] = 0;
+                D_800CBB6E_main[pad] = 0;
+                D_800D5558_main[pad] = 0;
+                D_800CDA7C_main[pad] = 0;
+                work->unk40 = 0;
+                frame = HmfModelData[obj->model[0]].unk40;
+                if ((f32)D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= frame) {
+                    lp->unk26 = 0;
+                    if (lp->key != 0) {
+                        func_8001EED8_main(obj->model[0], obj->motion[38], 0);
+                    }
+                } else if (lp->key == 0 && fabs(frame - 15.0) <= 1.0) {
+                    drop = 1;
+                }
+            } else {
+                lp->unk26 = 0;
+            }
+            if (btn & 0x8000) {
+                if (lp->key == 0) {
+                    if (lp->unk26 == 0 && func_800E5690_minigame(obj, 39) != 0) {
+                        func_8001C6A8_main(obj->model[0], 0.0f);
+                        lp->unk26 = 1;
+                    }
+                } else {
+                    drop = 1;
+                }
+            }
+            if ((stick & 0x8000) && lp->key != 0) {
+                drop = 1;
+            }
+            func_800DDD94_minigame(obj);
+            if (lp->key != 0) {
+                for (i = 0; i < 3; i++) {
+                    if (D_8010A638_locked_out[i].unk10 != 0) {
+                        ko = D_8010A610_locked_out[lp->key - 1];
+                        key = ko->data;
+                        if (key->kind == D_8010A67A_locked_out
+                            && !(func_80109E34_locked_out(&obj->trans, &D_8010A638_locked_out[i].pos) > work->unk48 + 20.0)) {
+                            func_8001C258_main(D_8010A638_locked_out[i].unk0E, 4, 0);
+                            func_8001C258_main(D_8010A638_locked_out[i].model, 4, 4);
+                            drop = 1;
+                            Hu3DModelPosSet(D_8010A638_locked_out[i].unk0E, D_8010A638_locked_out[i].pos.x,
+                                            D_8010A638_locked_out[i].pos.y, D_8010A638_locked_out[i].pos.z);
+                            func_8001C92C_main(D_8010A638_locked_out[i].unk0F, 1.0f);
+                            func_8001C258_main(D_8010A638_locked_out[i].unk0F, 4, 0);
+                            Hu3DModelPosSet(D_8010A638_locked_out[i].unk0F, D_8010A638_locked_out[i].pos.x,
+                                            D_8010A638_locked_out[i].pos.y + 200.0, D_8010A638_locked_out[i].pos.z);
+                            func_8004AC5C_main(0x3D9, 4);
+                            D_8010A638_locked_out[i].unk10 = 0;
+                            lp->escaped = 1;
+                            lp->state = 1;
+                            lp->door = i;
+                            work->unk50 |= 0x200;
+                            func_8001C258_main(ko->model[0], 4, 4);
+                            key->unk00 = 4;
+                        }
+                    }
+                }
+            }
+            func_80109858_locked_out(obj, 1, drop);
+            func_80106FBC_locked_out(obj);
+            hinge.x = -610.5f;
+            hinge.y = 0.0f;
+            hinge.z = -607.0f;
+            if (func_80109E34_locked_out(&hinge, &obj->trans) <= work->unk48 + 90.0) {
+                a = func_80109DBC_locked_out(hinge.x - obj->trans.x, hinge.z - obj->trans.z);
+                obj->trans.x = hinge.x - (work->unk48 + 90.0) * sindf(a);
+                obj->trans.z = hinge.z - (work->unk48 + 90.0) * cosdf(a);
+            }
+            hinge.x = 610.5f;
+            hinge.y = 0.0f;
+            hinge.z = -607.0f;
+            /* retail tests +80 but pushes out to +90, as the keys do */
+            if (func_80109E34_locked_out(&hinge, &obj->trans) <= work->unk48 + 80.0) {
+                a = func_80109DBC_locked_out(hinge.x - obj->trans.x, hinge.z - obj->trans.z);
+                obj->trans.x = hinge.x - (work->unk48 + 90.0) * sindf(a);
+                obj->trans.z = hinge.z - (work->unk48 + 90.0) * cosdf(a);
+            }
+            break;
+        case 1:
+            func_800E5690_minigame(obj, 1);
+            work->unk3C = 180.0f;
+            a = func_80109DBC_locked_out(obj->trans.x - (door->pos.x + work->unk48 * 1.75),
+                                         obj->trans.z - (door->pos.z + work->unk48 * 1.4));
+            obj->trans.x = lp->prev.x - sindf(a) * 4.0;
+            obj->trans.z = lp->prev.z - cosdf(a) * 4.0;
+            hinge.x = door->pos.x + work->unk48 * 1.75;
+            hinge.y = door->pos.y;
+            hinge.z = door->pos.z + work->unk48 * 1.4;
+            if (func_80109E34_locked_out(&obj->trans, &hinge) < 5.0) {
+                func_8001C92C_main(door->unk0E, 0.5f);
+                func_8004AC5C_main(0x3D7, work->unk59);
+                door->unk0C = 1;
+                work->unk3C = 180.0f;
+                lp->state++;
+            }
+            break;
+        case 2:
+            if (work->unk3C < 250.0) {
+                work->unk3C += 6.0;
+            } else {
+                func_800E5690_minigame(obj, 0);
+            }
+            if ((f32)D_800CCF58_main[HmfModelData[door->unk0E].unk02].unk02 <= HmfModelData[door->unk0E].unk40) {
+                lp->state++;
+                lp->timer = 30;
+            }
+            break;
+        case 3:
+            func_800E5690_minigame(obj, 1);
+            if (work->unk3C > 180.0) {
+                work->unk3C += -3.0;
+            }
+            a = work->unk3C;
+            if (lp->chr == 4 || lp->chr == 5) {
+                speed = 10.2f;
+            } else {
+                speed = 6.8f;
+            }
+            obj->trans.x = speed * sindf(a) + lp->prev.x;
+            obj->trans.z = speed * cosdf(a) + lp->prev.z;
+            if (--lp->timer == 0) {
+                func_8004AC5C_main(0x3D8, work->unk59);
+                lp->state++;
+            }
+            break;
+        case 4:
+            func_8001C92C_main(door->unk0E, 0.0f);
+            func_8001C6A8_main((s16)door->unk0E, HmfModelData[door->unk0E].unk40 - 1.5);
+            if (HmfModelData[door->unk0E].unk40 < 0.0) {
+                func_8001C6A8_main((s16)door->unk0E, 0.0f);
+                omVibrate(work->unk59, 2, 3, 10);
+                door->unk0C = 0;
+                lp->state++;
+            }
+            break;
+        case 5:
+            return;
+        case 6:
+            if (lp->escaped == 0) {
+                func_80109858_locked_out(obj, 1, drop);
+                func_80106FBC_locked_out(obj);
+            }
+            break;
+    }
+    lp->unk18 = stick;
+    if (lp->state != 0) {
+        func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, work->unk3C, 0.0f);
+        func_800E4E30_minigame(obj);
+        func_800E5138_minigame(obj);
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.0f, obj->trans.z);
+}
 
 /* Spawns effect 9..11 (the first free one) at a point. */
 void func_801089F8_locked_out(omObjData* obj, f32 x, f32 y, f32 z) {
