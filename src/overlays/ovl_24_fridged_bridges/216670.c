@@ -52,7 +52,7 @@ typedef struct FbPlayer {
     /* 0x60 */ f32 unk60; /* last safe y */
     /* 0x64 */ f32 unk64; /* last safe z */
     /* 0x68 */ u16 unk68; /* last safe tile */
-    /* 0x6A */ s16 unk6A;
+    /* 0x6A */ u16 unk6A; /* CPU: frames until it turns back */
 } FbPlayer; // Size 0x6C
 
 /* Water texture scroll (D_8010D368_fridged_bridges, per player) */
@@ -65,6 +65,13 @@ typedef struct FbUV {
     /* 0x00 */ f32 u;
     /* 0x04 */ f32 v;
 } FbUV;
+
+/* omObjData::data of D_8010DA78_fridged_bridges[player] (the hazard on each player's bridge) */
+typedef struct FbHazard {
+    /* 0x00 */ u16 unk00; /* state */
+    /* 0x02 */ char unk02[4];
+    /* 0x06 */ u16 unk06;
+} FbHazard;
 
 /* main 20A20.c's collision types (as minigame mgcol.h) */
 typedef struct ColVtx {
@@ -161,6 +168,7 @@ extern omObjData **D_8010DA64_fridged_bridges;
 extern s16 D_8010DA68_fridged_bridges;
 extern omObjData *D_8010DA6C_fridged_bridges;
 extern omObjData *D_8010DA70_fridged_bridges;
+extern omObjData *D_8010DA78_fridged_bridges[4];
 extern u8 D_8010DA90_fridged_bridges[4][0xC18];
 
 void func_80105F00_fridged_bridges(omObjData *obj);
@@ -800,7 +808,122 @@ void func_80107870_fridged_bridges(void) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D2D8_fridged_bridges);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801079CC_fridged_bridges);
+/* CPU steering: follow the bridge path, avoiding the hazard */
+void func_801079CC_fridged_bridges(omObjData *obj, s8 *stickX, s8 *stickY) {
+    FbPlayer *work;
+    omObjData *hazard;
+    FbHazard *hw;
+    u16 player;
+    u16 lane;
+    u16 idx;
+    f32 dist;
+    f32 speed;
+    f32 angle;
+    f32 diff;
+
+    *stickY = 0;
+    *stickX = 0;
+    work = obj->data;
+    player = work->unk02;
+    lane = work->unk1E;
+    idx = work->unk20;
+    if (work->unk6A != 0) {
+        if (--work->unk6A == 0) {
+            work->unk22 = -work->unk22;
+            work->unk20 += work->unk22;
+        }
+    }
+    if (HuSqrtf((obj->trans.x - D_8010D3A0_fridged_bridges[player][lane][idx].u) *
+                    (obj->trans.x - D_8010D3A0_fridged_bridges[player][lane][idx].u) +
+                (obj->trans.z - D_8010D3A0_fridged_bridges[player][lane][idx].v) *
+                    (obj->trans.z - D_8010D3A0_fridged_bridges[player][lane][idx].v)) < 80.0f) {
+        work->unk1E = func_80108050_fridged_bridges(obj);
+        work->unk20 += work->unk22;
+        /* unk20 == 11 && unk22 == 1, as one big-endian word */
+        if (*(s32 *)&work->unk20 == 0xB0001) {
+            work->unk22 = -1;
+        }
+        /* unk20 == 0 && unk22 == -1 */
+        if (*(s32 *)&work->unk20 == 0xFFFF) {
+            work->unk22 = 1;
+        }
+        idx = work->unk20;
+    }
+    switch (GwPlayer[(s16)work->unk02].cpu_difficulty) {
+        case 0:
+            speed = 35.0f;
+            break;
+        case 1:
+            speed = 42.0f;
+            break;
+        case 2:
+            speed = 55.0f;
+            break;
+        case 3:
+            speed = 65.0f;
+            break;
+    }
+    speed *= work->unk4C;
+    if (work->unk1E != 0) {
+        speed *= 0.5f;
+    }
+    angle = atan2df(-(obj->trans.x - D_8010D3A0_fridged_bridges[player][lane][idx].u),
+                    obj->trans.z - D_8010D3A0_fridged_bridges[player][lane][idx].v);
+    if (angle < 0.0f) {
+        angle += 360.0f;
+    }
+    hazard = D_8010DA78_fridged_bridges[work->unk02];
+    diff = atan2df(-(obj->trans.x - hazard->trans.x), obj->trans.z - hazard->trans.z) - 360.0f - angle;
+    if (diff < 0.0f) {
+        diff += 360.0f;
+    }
+    if (diff > 180.0f) {
+        diff -= 360.0f;
+    }
+    hazard = D_8010DA78_fridged_bridges[work->unk02];
+    dist = HuSqrtf((obj->trans.x - hazard->trans.x) * (obj->trans.x - hazard->trans.x) +
+                   (obj->trans.z - hazard->trans.z) * (obj->trans.z - hazard->trans.z));
+    hw = D_8010DA78_fridged_bridges[work->unk02]->data;
+    if (hw->unk00 == 1) {
+        if (dist < 170.0f) {
+            if (fabs(diff) > 80.0) {
+                speed = 65.0f;
+            } else {
+                if (work->unk22 == 1 && (work->unk20 == 7 || work->unk20 == 8)) {
+                    speed = 65.0f;
+                    angle = atan2df(-(obj->trans.x - D_8010D3A0_fridged_bridges[player][lane][idx - 1].u),
+                                    obj->trans.z - D_8010D3A0_fridged_bridges[player][lane][idx - 1].v);
+                }
+                if (work->unk22 == -1 && (work->unk20 >= 6 && work->unk20 <= 8)) {
+                    speed = 65.0f;
+                    angle = atan2df(-(obj->trans.x - D_8010D3A0_fridged_bridges[player][lane][idx + 1].u),
+                                    obj->trans.z - D_8010D3A0_fridged_bridges[player][lane][idx + 1].v);
+                }
+            }
+        } else if (dist < 300.0f) {
+            goto slow;
+        }
+    } else if (hw->unk00 == 0) {
+        if (dist < 150.0f && hw->unk06 < 5) {
+            if (work->unk22 == 1 && (work->unk20 == 7 || work->unk20 == 8)) {
+                speed = 65.0f;
+            }
+            if (work->unk22 == -1 && (work->unk20 >= 6 && work->unk20 <= 8)) {
+                speed = 65.0f;
+            }
+        } else if (dist < 400.0f && hw->unk06 < 5) {
+        slow:
+            if (work->unk22 == 1 && (work->unk20 == 7 || work->unk20 == 8)) {
+                speed = 15.0f;
+            }
+            if (work->unk22 == -1 && (work->unk20 >= 6 && work->unk20 <= 8)) {
+                speed = 15.0f;
+            }
+        }
+    }
+    *stickX = sindf(angle) * speed;
+    *stickY = cosdf(angle) * speed;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80108050_fridged_bridges);
 
