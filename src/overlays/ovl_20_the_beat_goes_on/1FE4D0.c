@@ -60,14 +60,45 @@ extern s32 D_800EBEB0_minigame[];
 
 /* An entry of D_800CBB60_main (src/14EA0.c unk_800ECDE0) */
 typedef struct BgSprModel {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[0x1E];
+    /* 0x00 */ u16 unk00; /* model */
+    /* 0x02 */ u16 unk02; /* bank */
+    /* 0x04 */ s16 unk04; /* step */
+    /* 0x06 */ s16 unk06; /* animation */
+    /* 0x08 */ char unk08[0x18];
     /* 0x20 */ u8* unk20;
 } BgSprModel; /* size 0x24 */
 
+/* src/14EA0.c SprBankStep, SprBankAnim, SprBank (D_800D408C_main) */
+typedef struct BgSprBankStep {
+    /* 0x00 */ s16 unk_00; /* frame */
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ char unk_04[4];
+} BgSprBankStep; /* size 8 */
+
+typedef struct BgSprBankAnim {
+    /* 0x00 */ s16 unk_00;
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ BgSprBankStep* unk_04;
+} BgSprBankAnim; /* size 8 */
+
+typedef struct BgSprBank {
+    /* 0x00 */ s16 unk_00;
+    /* 0x02 */ s16 unk_02;
+    /* 0x04 */ s16 unk_04;
+    /* 0x06 */ s16 unk_06;
+    /* 0x08 */ s16 unk_08;
+    /* 0x0A */ char unk_0A[2];
+    /* 0x0C */ void* unk_0C;
+    /* 0x10 */ BgSprBankAnim* unk_10;
+    /* 0x14 */ u16* unk_14;
+} BgSprBank; /* size 0x18 */
+
+extern BgSprBank* D_800D408C_main;
+
 /* omObjData::data of a drum */
 typedef struct BgDrum {
-    /* 0x00 */ char unk00[0x10];
+    /* 0x00 */ Vec unk00; /* sprite position */
+    /* 0x0C */ char unk0C[4];
     /* 0x10 */ s8 unk10;
     /* 0x11 */ char unk11[3];
     /* 0x14 */ s32 unk14;
@@ -106,6 +137,7 @@ extern s16 D_8010C462_the_beat_goes_on;
 extern s16 D_8010C464_the_beat_goes_on;
 extern s16 D_8010C466_the_beat_goes_on; /* drums made; D_8010C467 is its low byte */
 extern u16 D_8010C468_the_beat_goes_on;
+extern s16 D_8010C2F0_the_beat_goes_on[8][2]; /* sprite frame origin */
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
@@ -446,7 +478,49 @@ void func_80106708_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106708_the_beat_goes_on);
 #endif
 
+#ifdef NON_MATCHING
+/* masked 3: one hazard nop after the cosdf(CRot.x) delay slot */
+/* Keeps a drum's sprite facing the camera. */
+void func_80106BE0_the_beat_goes_on(omObjData* obj) {
+    BgDrum* w = obj->data;
+    BgSprModel* spr = w->unk18;
+    u16 mdl = spr->unk00;
+    s32 frame;
+    BgSprBankAnim* anim;
+    f32 x;
+    f32 y;
+    f32 px;
+    f32 py;
+    f32 pz;
+    f32 z;
+
+    obj->rot.x = CRot.x;
+    obj->rot.y = CRot.y;
+    obj->rot.z = CRot.z;
+    Hu3DModelRotSet(mdl, obj->rot.x, obj->rot.y, obj->rot.z);
+    anim = &D_800D408C_main[spr->unk02].unk_10[spr->unk06];
+    frame = anim->unk_04[spr->unk04].unk_00;
+    x = D_8010C2F0_the_beat_goes_on[frame][0] - 16;
+    y = 16 - D_8010C2F0_the_beat_goes_on[frame][1];
+    z = 0.0f;
+    px = x * cosdf(CRot.y) + sindf(CRot.y) * z;
+    py = y * cosdf(CRot.x) - sindf(CRot.x) * z;
+    pz = y * sindf(CRot.x) + sindf(CRot.x) * z - x * sindf(CRot.y) + cosdf(CRot.y) * z;
+    px *= obj->scale.x;
+    py *= obj->scale.y;
+    pz *= obj->scale.z;
+    px += obj->trans.x;
+    py += obj->trans.y;
+    pz += obj->trans.z;
+    Hu3DModelPosSet(obj->model[3], px, py, pz);
+    w->unk00.x = px;
+    w->unk00.y = py;
+    w->unk00.z = pz;
+    Hu3DModelRotSet(obj->model[3], CRot.x, CRot.y, CRot.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106BE0_the_beat_goes_on);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106E40_the_beat_goes_on);
 
