@@ -112,6 +112,7 @@ extern RrSprModel *D_800CBB60_main;
 u16 SprModelRead(s32 arg0, s32 arg1, s32 arg2);
 void func_800332D4_main(s16 arg0, f32 arg1);
 void func_8010BE88_river_raiders(omObjData *obj);
+void func_80108ACC_river_raiders(void);
 void func_8010ACD8_river_raiders(omObjData *obj);
 extern u8 D_80110D80_river_raiders;
 extern u8 D_80110D81_river_raiders;
@@ -139,7 +140,7 @@ extern s16 D_8010D3B6_river_raiders; /* the engine sound id */
 extern f32 D_8010D9D0_river_raiders[]; /* [0..2] the team-1 rafts' lean */
 extern f32 D_8010D9DC_river_raiders[]; /* [0] paddle yaw, [1] = D_8010D9E0_river_raiders[0] */
 extern s16 D_8010D9E4_river_raiders; /* the winners' bounce timer */
-extern s8 D_8010D9E6_river_raiders;
+extern u8 D_8010D9E6_river_raiders;
 extern s16 D_80110DBE_river_raiders; /* the team-1 finish sway direction, -1 or 1 */
 extern f32 D_80110DC8_river_raiders[3][2]; /* x bounds of the three lanes (min, max pairs) around the raft */
 extern s16 D_80110DE0_river_raiders;    /* the engine sound, -1 none */
@@ -1867,7 +1868,118 @@ void func_8010CA84_river_raiders(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+/* The minigame's flow (D_80110D90_river_raiders): 0 intro, 1 start message, 2 race (timer D_80110DE2), 3 finish,
+ * 4 result (coins: team 0 D_80110D84, team 1 D_80110DBD), 5 result jingle, 10 exit. */
+void func_8010CADC_river_raiders(omObjData *obj) {
+    omObjData *lead = D_8010DE94_river_raiders;
+    RrEnt *ents[4];
+    omObjData *objs[4];
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        ents[i] = &D_8010DD08_river_raiders[i];
+        objs[i] = ents[i]->obj;
+    }
+    if ((u8)D_80110D90_river_raiders == 10) {
+        if (D_80110DB8_river_raiders != -1) {
+            func_8004AEF0_main(D_80110DB8_river_raiders, 30);
+            D_80110DB8_river_raiders = -1;
+        }
+    } else if (D_80110DB8_river_raiders == -1) {
+        D_80110DB8_river_raiders = HuAudFXPlay(0x342);
+    }
+    switch ((u8)D_80110D90_river_raiders) {
+        case 0:
+            func_80105B7C_river_raiders(1);
+            D_80110DE2_river_raiders = 0;
+            break;
+        case 1:
+            if (D_80110DE2_river_raiders == 0) {
+                GMesCreate(4);
+                D_80110DE2_river_raiders++;
+            } else if (D_80110DE2_river_raiders > 32) {
+                HuAudSeqPlay(0x2E);
+            } else {
+                D_80110DE2_river_raiders++;
+            }
+            if (GMesStatGet() == 0) {
+                func_80105B7C_river_raiders(2);
+                GMesCreate(0x1A, 30, 160, 28);
+                D_80110DE2_river_raiders = 901;
+            }
+            break;
+        case 2:
+            if (D_80110DE2_river_raiders > 0) {
+                D_80110DE2_river_raiders--;
+                func_8003F578_main((D_80110DE2_river_raiders + 29) / 30);
+            } else {
+                func_8003F5C0_main();
+                func_80105B7C_river_raiders(3);
+                GMesCreate(0xF);
+                HuAudSeqFadeOut(120);
+            }
+            func_80108ACC_river_raiders();
+            break;
+        case 3:
+            if (D_8010D9E6_river_raiders == 3 && GMesStatGet() == 0) {
+                func_80105B7C_river_raiders(4);
+                D_80110DE2_river_raiders = -15;
+            }
+            break;
+        case 4:
+            if (D_80110DE2_river_raiders >= 0) {
+                if (D_8010D9E6_river_raiders == 4) {
+                    func_80105B7C_river_raiders(5);
+                    GwPlayer[lead->work[0]].gameCoin = D_80110D84_river_raiders;
+                    for (i = 0; i < 3; i++) {
+                        GwPlayer[objs[i]->work[0]].gameCoin = D_80110DBD_river_raiders;
+                    }
+                    if (D_80110D84_river_raiders + D_80110DBD_river_raiders == 0) {
+                        D_80110DE2_river_raiders = 0x90;
+                    } else if (D_80110D84_river_raiders == 0 || D_80110DBD_river_raiders == 0) {
+                        D_80110DE2_river_raiders = 0x62;
+                    } else {
+                        D_80110DE2_river_raiders = 0x7D;
+                    }
+                }
+            } else {
+                D_80110DE2_river_raiders++;
+            }
+            break;
+        case 5:
+            if (D_80110D84_river_raiders + D_80110DBD_river_raiders == 0) {
+                if (D_80110DE2_river_raiders == 0x90) {
+                    HuAudSeqPlay(0x6C);
+                }
+            } else if (D_80110D84_river_raiders == 0 || D_80110DBD_river_raiders == 0) {
+                if (D_80110DE2_river_raiders == 0x62) {
+                    HuAudSeqPlay(0x65);
+                }
+            } else {
+                if (D_80110DE2_river_raiders == 0x7D) {
+                    HuAudSeqPlay(0x66);
+                }
+            }
+            if (D_80110DE2_river_raiders > 0) {
+                D_80110DE2_river_raiders--;
+            } else {
+                func_80105B7C_river_raiders(10);
+                D_80110DE2_river_raiders = 0;
+            }
+            break;
+        case 10:
+            if (D_80110DE2_river_raiders == 0) {
+                WipeCreateOut(0, 20);
+                obj->func = func_8010CA4C_river_raiders;
+                D_80110DE2_river_raiders++;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010CADC_river_raiders);
+#endif
 
 /* Minigame start: clears the race state and creates every object. */
 void func_8010CF00_river_raiders(omObjData *obj) {
