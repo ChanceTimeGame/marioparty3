@@ -560,11 +560,8 @@ void func_801064E0_locked_out(omObjData* obj) {
     }
 }
 
-// register allocation and scheduling of the HmfModelData base load (masked 4)
-#ifdef NON_MATCHING
 /* Pushes the player out of the doors' swing circles. */
 void func_80106FBC_locked_out(omObjData* obj) {
-    HmfModel* m;
     Vec pos;
     f32 n;
     f32 r;
@@ -575,9 +572,8 @@ void func_80106FBC_locked_out(omObjData* obj) {
     for (i = 0; i < 3; i++) {
         d = &D_8010A638_locked_out[i];
         if (d->unk0C != 0) {
-            m = &HmfModelData[d->unk0E];
-            n = D_800CCF58_main[m->unk02].unk02;
-            r = m->unk40 * 175.0 / n + 50.0;
+            n = D_800CCF58_main[HmfModelData[d->unk0E].unk02].unk02;
+            r = HmfModelData[d->unk0E].unk40 * 175.0 / n + 50.0;
             pos.x = d->pos.x - 86.5;
             pos.y = d->pos.y;
             pos.z = d->pos.z;
@@ -589,9 +585,6 @@ void func_80106FBC_locked_out(omObjData* obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80106FBC_locked_out);
-#endif
 
 void func_8010713C_locked_out(void) {
     s32 i;
