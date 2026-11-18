@@ -4,6 +4,7 @@
 #include "game/audio.h"
 #include "game/camera.h"
 #include "game/hmfman.h"
+#include "game/pause.h"
 #include "game/sprite.h"
 #include "game/wipe.h"
 #include "mallocblock.h"
@@ -694,11 +695,50 @@ void func_80106E14_parasol_plummet(omObjData* obj) {
     }
 }
 
-__asm__(".section .rodata"); // TEMP: rodata of asm functions
-const f32 D_8010AAB0_parasol_plummet[] = { -260.0f, -100.0f, 100.0f, 260.0f };
-const f32 D_8010AAC0_parasol_plummet[] = { -210.0f, -70.0f, 70.0f, 210.0f };
+void func_801071B4_parasol_plummet(omObjData* obj) {
+    f32 offIn[4] = { -260.0f, -100.0f, 100.0f, 260.0f };
+    f32 offOut[4] = { -210.0f, -70.0f, 70.0f, 210.0f };
+    PaS32x8 unused = D_8010A928_parasol_plummet;
+    PaPlayer* p;
+    PaPlayer* goal;
+    s32 dir;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801071B4_parasol_plummet);
+    p = obj->data;
+    goal = D_8010ABCC_parasol_plummet->data;
+    if (p->unk14 & 0x20) {
+        if (D_8010AC66_parasol_plummet == 0) {
+            p->unk00 = goal->unk00 + offIn[p->unk4C];
+            p->unk04 = goal->unk04 + 300.0f;
+            p->unk08 = goal->unk08 + 200.0f;
+            if (fabs(p->unk00) <= 500.0 && fabs(p->unk08) <= 100.0) {
+                p->unk08 = 0.0f;
+                p->unk14 = (p->unk14 | 0x10) & ~0x20;
+                p->unk2C = 130.0f;
+                func_8001C5B4_main(obj->model[0], obj->motion[3]);
+                func_8001C258_main(obj->model[4], 4, 0);
+                Hu3DModelPosSet(obj->model[4], obj->trans.x, obj->trans.y, obj->trans.z);
+            }
+        } else {
+            if (p->unk18 == 0) {
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                func_8001C814_main(obj->model[0], 2, 2);
+            }
+            if (p->unk18 == 0x78) {
+                dir = D_8010A8C8_parasol_plummet[GwPlayer[p->unk24].chr] << 16;
+                if (GwPlayer[p->unk24].gameCoin != 0) {
+                    func_8001C5B4_main(obj->model[0], obj->motion[5]);
+                    func_80045ED0_main(dir | 0x2F);
+                } else {
+                    func_8001C5B4_main(obj->model[0], obj->motion[6]);
+                }
+            }
+            p->unk00 = goal->unk00 + offOut[p->unk4C];
+            p->unk04 = goal->unk04 + 300.0f;
+            p->unk08 = goal->unk08 + 200.0f;
+            p->unk18++;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801074CC_parasol_plummet);
 
