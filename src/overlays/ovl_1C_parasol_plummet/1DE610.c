@@ -128,6 +128,10 @@ typedef struct PaSprModel {
     /* 0x20 */ u8* unk20; /* key-frame list */
 } PaSprModel; /* size = 0x24 */
 
+typedef struct PaS16x4 {
+    s16 v[4];
+} PaS16x4;
+
 typedef struct PaS32x3 {
     s32 v[3];
 } PaS32x3;
@@ -149,6 +153,8 @@ void func_8004AD70_main(void);
 void func_8001E500_main(s16, char*, char*);
 f64 fabs(f64);
 void func_8000BC48_main(u16, u16);
+void func_8000BD94_main(u16 spriteId, s32 arg1, s32 arg2);
+void func_8000BDDC_main(u16 spriteId, s32 arg1);
 void func_80012D0C_main(s16 camIndex, f32 dist, Vec2f* in, Vec2f* out);
 void func_8001C6A8_main(s32 arg0, f32 arg1);
 void func_8000BC88_main(u16 arg0, u16 arg1);
@@ -215,6 +221,7 @@ void func_8010995C_parasol_plummet(s32 arg0);
 void func_80109B38_parasol_plummet(s32 arg0);
 void func_80109D74_parasol_plummet(omObjData* obj);
 void func_8010A160_parasol_plummet(void);
+void func_8010A484_parasol_plummet(void);
 void func_8010A75C_parasol_plummet(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z);
 
 extern s32 D_8010AB50_parasol_plummet; /* camera */
@@ -239,6 +246,14 @@ extern f32 D_8010AC94_parasol_plummet; /* next thrower height */
 extern f32 D_8010AC98_parasol_plummet;
 extern s32 D_8010AC9C_parasol_plummet; /* next thrower side */
 extern s16 D_8010ACA0_parasol_plummet[3]; /* item sprite models by kind */
+extern s16 D_8010ACA8_parasol_plummet[12]; /* coin digit sprites, 3 per player */
+extern s16 D_8010ACC0_parasol_plummet; /* digit sprite file */
+extern s16 D_8010ACC2_parasol_plummet[4]; /* character icon files */
+extern s16 D_8010ACCA_parasol_plummet[4]; /* character icon sprites */
+extern s16 D_8010ACD2_parasol_plummet; /* coin icon file */
+extern s16 D_8010ACD4_parasol_plummet[4]; /* coin icon sprites */
+extern s16 D_8010ACDC_parasol_plummet; /* "x" file */
+extern s16 D_8010ACDE_parasol_plummet[4]; /* "x" sprites */
 extern s16 D_8010ACF0_parasol_plummet[5]; /* bubble sprites */
 extern s16 D_8010ACFA_parasol_plummet; /* bubble sprite file */
 extern u8 D_8010ACFC_parasol_plummet[5]; /* bubble slots in use */
@@ -1897,16 +1912,101 @@ s16 func_80109F7C_parasol_plummet(omObjData* obj, s32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80109F7C_parasol_plummet);
 #endif
 
-__asm__(".section .rodata"); // TEMP: rodata of asm functions
-const s16 D_8010AB14_parasol_plummet[] = { 0x20, 0xE0, 0x20, 0xE0 };
-const s16 D_8010AB1C_parasol_plummet[] = { 0x18, 0x18, 0xD8, 0xD8 };
-const s32 D_8010AB24_parasol_plummet[] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+const PaS16x4 D_8010AB14_parasol_plummet = { { 0x20, 0xE0, 0x20, 0xE0 } }; /* coin counter x */
+const PaS16x4 D_8010AB1C_parasol_plummet = { { 0x18, 0x18, 0xD8, 0xD8 } }; /* coin counter y */
 
+const PaS32x8 D_8010AB24_parasol_plummet = { { 8, 9, 10, 11, 12, 13, 14, 15 } }; /* character icon by character */
+const PaS16x4 D_8010AB44_parasol_plummet = { { 0x20, 0xEC, 0x20, 0xEC } }; /* coin counter x (process) */
+
+/* NON_MATCHING: register allocation and the digit x (this hoists x + 0x20 out of the loop; masked 3). Creates
+   the coin counter sprites and starts their process. */
+#ifdef NON_MATCHING
+void func_8010A160_parasol_plummet(void) {
+    PaS16x4 xs = D_8010AB14_parasol_plummet;
+    PaS16x4 ys = D_8010AB1C_parasol_plummet;
+    PaS32x8 icon = D_8010AB24_parasol_plummet;
+    s16 i;
+    s16 j;
+    u16 x;
+    u16 y;
+
+    D_8010ACC0_parasol_plummet = func_8000B838_main(0x31);
+    D_8010ACDC_parasol_plummet = func_8000B838_main(0x21001B);
+    D_8010ACD2_parasol_plummet = func_8000B838_main(0x21001A);
+    for (i = 0; i < 4; i++) {
+        x = xs.v[i];
+        y = ys.v[i];
+        D_8010ACC2_parasol_plummet[i] = func_8000B838_main(icon.v[GwPlayer[i].chr] | 0x210000);
+        D_8010ACCA_parasol_plummet[i] = InitEspriteSlot(D_8010ACC2_parasol_plummet[i], 0, 1);
+        func_8000BBD4_main(D_8010ACCA_parasol_plummet[i], x, y);
+        D_8010ACD4_parasol_plummet[i] = InitEspriteSlot(D_8010ACD2_parasol_plummet, 0, 1);
+        func_8000BBD4_main(D_8010ACD4_parasol_plummet[i], x + 0x10, y);
+        D_8010ACDE_parasol_plummet[i] = InitEspriteSlot(D_8010ACDC_parasol_plummet, 0, 1);
+        func_8000BBD4_main(D_8010ACDE_parasol_plummet[i], x + 0x20, y);
+        for (j = 0; j < 3; j++) {
+            D_8010ACA8_parasol_plummet[i * 3 + j] = InitEspriteSlot(D_8010ACC0_parasol_plummet, 0, 1);
+            func_8000BCC8_main(D_8010ACA8_parasol_plummet[i * 3 + j], 0xA);
+            func_8000BC48_main(D_8010ACA8_parasol_plummet[i * 3 + j], 0x1000);
+            func_8000BBD4_main(D_8010ACA8_parasol_plummet[i * 3 + j], x + (j * 0xC + 0x20), y);
+        }
+    }
+    omPrcSetStatBit(omAddPrcObj(func_8010A484_parasol_plummet, 0, 0, 0), 0x80);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010A160_parasol_plummet);
+#endif
 
-__asm__(".section .rodata"); // TEMP: rodata of asm functions
-const s16 D_8010AB44_parasol_plummet[] = { 0x20, 0xEC, 0x20, 0xEC };
+/* NON_MATCHING: register allocation (retail keeps y in a stack slot; frame 16 bytes smaller; masked 77). The coin
+   counters: icon, coin, "x" and three digits per player, leading zeros hidden, "x" hidden from 100 coins. */
+#ifdef NON_MATCHING
+void func_8010A484_parasol_plummet(void) {
+    PaS16x4 xs = D_8010AB44_parasol_plummet;
+    PaS16x4 ys = D_8010AB1C_parasol_plummet;
+    s32 i;
+    s32 j;
+    s16 x;
+    s32 y;
+    s16 coins;
+    s16 rem;
+    s32 div;
+    s32 digit;
+    s32 small;
 
+    while (TRUE) {
+        for (i = 0; i < 4; i++) {
+            x = xs.v[i];
+            y = ys.v[i];
+            func_8000BBD4_main(D_8010ACCA_parasol_plummet[i], x, y);
+            func_8000BBD4_main(D_8010ACD4_parasol_plummet[i], x + 0x10, y);
+            func_8000BBD4_main(D_8010ACDE_parasol_plummet[i], x + 0x20, y);
+            div = 100;
+            coins = GwPlayer[i].gameCoin;
+            rem = coins;
+            small = coins < 100;
+            for (j = 0; j < 3; j++) {
+                func_8000BBD4_main(D_8010ACA8_parasol_plummet[i * 3 + j], x + (j * 0xC + 0x20), y);
+                digit = rem / div;
+                rem %= div;
+                func_8000BB54_main(D_8010ACA8_parasol_plummet[i * 3 + j]);
+                if ((div == 100) & small) {
+                    func_8000BB94_main(D_8010ACA8_parasol_plummet[i * 3 + j]);
+                }
+                if ((div == 10) & (coins < 10)) {
+                    func_8000BB94_main(D_8010ACA8_parasol_plummet[i * 3 + j]);
+                }
+                if (!small) {
+                    func_8000BB94_main(D_8010ACDE_parasol_plummet[i]);
+                }
+                func_8000BDDC_main(D_8010ACA8_parasol_plummet[i * 3 + j], 1);
+                func_8000BD94_main(D_8010ACA8_parasol_plummet[i * 3 + j], digit, 0);
+                div /= 10;
+            }
+        }
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010A484_parasol_plummet);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010A75C_parasol_plummet);
