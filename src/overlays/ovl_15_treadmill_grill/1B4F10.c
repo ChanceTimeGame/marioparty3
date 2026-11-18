@@ -50,6 +50,10 @@ s32 func_80017BB8_main(s16, s16);
 void func_8002FD8C_main(s16 arg0, s16 arg1, const char* arg2, s16 arg3, s16 arg4);
 
 extern f32 D_800D51FC_main;
+extern s8 D_800CBB6E_main[];  /* CPU stick x */
+extern s16 D_800CDA7C_main[]; /* CPU buttons pressed */
+extern s8 D_800D20A1_main[];  /* CPU stick y */
+extern u16 D_800D5558_main[]; /* CPU buttons */
 extern f32 D_800D5410_main;
 
 extern s32 D_800A178C_main[][6];
@@ -61,6 +65,7 @@ extern f32 CZoom;
 
 // minigame
 void func_800E1490_minigame(u16 arg0);
+extern f32 D_800EB744_minigame; /* jump speed */
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 void func_800E3568_minigame(MgWork* work, s32 slot, void* hook);
 void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
@@ -100,13 +105,18 @@ extern s32 D_8010B098_treadmill_grill[13]; /* grill object sound played */
 void func_80106008_treadmill_grill(omObjData* obj);
 void func_801062DC_treadmill_grill(omObjData* obj);
 void func_80109FA8_treadmill_grill(omObjData* obj);
-s32 func_80107238_treadmill_grill(omObjData* obj);
+void func_80107238_treadmill_grill(omObjData* obj);
 s32 func_80107454_treadmill_grill(omObjData* obj);
 s32 func_80107798_treadmill_grill(omObjData* obj);
 void func_8010AE6C_treadmill_grill(omObjData* obj);
 
 extern s32 D_8010AF80_treadmill_grill; /* next free model in D_8010B310 */
 extern u16 D_8010B310_treadmill_grill[16]; /* player models */
+extern Vec D_8010B000_treadmill_grill[4]; /* hazard positions */
+extern s32 D_8010B300_treadmill_grill; /* CPU input: buttons pressed */
+extern s32 D_8010B304_treadmill_grill; /* CPU input: buttons */
+extern s32 D_8010B308_treadmill_grill; /* CPU input: stick x */
+extern s32 D_8010B30C_treadmill_grill; /* CPU input: stick y */
 extern s16 D_8010B0D4_treadmill_grill; /* shared player part model, -1 until loaded */
 
 extern u8 D_8010AF84_treadmill_grill[4]; /* player out */
@@ -454,7 +464,47 @@ s32 func_80107230_treadmill_grill(void) {
     return 1;
 }
 
+// masked 0: retail ORs the two flags into a temporary, this C into hit (raw 1)
+#ifdef NON_MATCHING
+void func_80107238_treadmill_grill(omObjData* obj) {
+    MgWork* work = obj->data;
+    s32 player = work->unk59;
+    s32 hit = 0;
+    f32 dx, dy, dz;
+    s32 i;
+
+    if (D_8010AF84_treadmill_grill[player] == 0) {
+        for (i = 0; i < 3; i++) {
+            dx = obj->trans.x - D_8010B000_treadmill_grill[i].x;
+            dy = obj->trans.y - D_8010B000_treadmill_grill[i].y;
+            dz = obj->trans.z - D_8010B000_treadmill_grill[i].z;
+            if (HuSqrtf(dx * dx + dy * dy + dz * dz) < work->unk48 + 40.0f) {
+                hit = 1;
+                break;
+            }
+        }
+        hit = (work->unk53 == 0) | hit;
+        if (hit) {
+            D_8010AF84_treadmill_grill[player] = 1;
+            func_800E5798_minigame(obj, 38);
+            work->unk50 |= 0x400;
+            work->unk38 = -D_800EB744_minigame;
+            func_8001C258_main(obj->model[1], 4, 4);
+            func_8004AC98_main(0x39D, work->unk59);
+            func_8004ACE0_main(0x286, work->unk59);
+            omVibrate(work->unk59, 2, 2, 20);
+        }
+    }
+    if (GwPlayer[work->unk59].stat & 1) {
+        D_800D5558_main[work->unk57] = D_8010B304_treadmill_grill;
+        D_800CDA7C_main[work->unk57] = D_8010B300_treadmill_grill;
+        D_800CBB6E_main[work->unk57] = D_8010B308_treadmill_grill;
+        D_800D20A1_main[work->unk57] = D_8010B30C_treadmill_grill;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80107238_treadmill_grill);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_80107454_treadmill_grill);
 
