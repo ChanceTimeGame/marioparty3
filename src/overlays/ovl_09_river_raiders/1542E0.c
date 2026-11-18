@@ -108,7 +108,9 @@ extern s16 D_80110DE2_river_raiders; /* the race timer */
 extern s16 D_8010D3B6_river_raiders; /* the engine sound id */
 extern f32 D_8010D9D0_river_raiders[]; /* [0..2] the team-1 rafts' lean */
 extern f32 D_8010D9DC_river_raiders[]; /* [0] paddle yaw, [1] = D_8010D9E0_river_raiders[0] */
+extern s16 D_8010D9E4_river_raiders; /* the winners' bounce timer */
 extern s8 D_8010D9E6_river_raiders;
+extern s16 D_80110DBE_river_raiders; /* the team-1 finish sway direction, -1 or 1 */
 extern f32 D_80110DC8_river_raiders[6]; /* x bounds of the three lanes (min, max pairs) around the raft */
 extern s16 D_80110DE0_river_raiders;    /* the engine sound, -1 none */
 extern s16 D_80110DE4_river_raiders;    /* its pitch */
@@ -140,6 +142,9 @@ void func_8010CA20_river_raiders(omObjData *obj);
 void func_8010CA4C_river_raiders(omObjData *obj);
 void func_8010CA84_river_raiders(omObjData *obj);
 void func_8010CF00_river_raiders(omObjData *obj);
+void func_801093F0_river_raiders(omObjData *obj);
+void func_8010940C_river_raiders(omObjData *obj);
+void func_8010957C_river_raiders(omObjData *obj);
 void func_8010D0F8_river_raiders(void);
 void func_80105BA4_river_raiders(omObjData *obj);
 void func_80105D1C_river_raiders(omObjData *obj);
@@ -1308,7 +1313,174 @@ void func_8010957C_river_raiders(omObjData *obj) {
     func_80108678_river_raiders(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80109C08_river_raiders);
+/* A team-1 raft (work[1]): steering while racing, the crash pause, the finish (D_80110DBD_river_raiders: the
+ * team won: bounce together and sway between the banks, D_80110DBE_river_raiders the direction; lost: sway
+ * slowly); then places its models. */
+void func_80109C08_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
+    u16 player = obj->work[0];
+    omObjData *raft;
+    RrEnt *other;
+    s16 i;
+
+    switch ((u8)D_80110D90_river_raiders) {
+        case 2:
+            if (D_80110DE2_river_raiders > 0) {
+                if (GwPlayer[player].stat & 1) {
+                    func_801093F0_river_raiders(obj);
+                } else {
+                    func_8010940C_river_raiders(obj);
+                }
+                func_8010957C_river_raiders(obj);
+            }
+            break;
+        case 3:
+            ent->unk1C = 10.0f;
+            if (ent->unk08 != 0) {
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 10, 2);
+                func_8001C624_main(obj->model[1], HmfModelData[obj->motion[4]].unk02, 0, 10, 2);
+                ent->unk08 = 0;
+            }
+            if (D_8010D9D0_river_raiders[obj->work[1]] < 0.0f) {
+                D_8010D9D0_river_raiders[obj->work[1]] += 1.0f;
+            }
+            if (D_8010D9D0_river_raiders[obj->work[1]] > 0.0f) {
+                D_8010D9D0_river_raiders[obj->work[1]] -= 1.0f;
+            }
+            if ((s16)D_8010D9D0_river_raiders[obj->work[1]] == 0) {
+                D_8010D9D0_river_raiders[obj->work[1]] = 0.0f;
+            }
+            break;
+        case 5:
+        case 10:
+            if (D_80110DBD_river_raiders != 0) {
+                if (ent->unk16 == 0) {
+                    func_8004ACE0_main(0x28F, obj->work[0]);
+                    ent->unk16 = 1;
+                }
+                switch (D_80110DBE_river_raiders) {
+                    case -1:
+                        if (ent->unk08 != 2) {
+                            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 10, 2);
+                            func_8001C624_main(obj->model[1], HmfModelData[obj->motion[6]].unk02, 0, 10, 2);
+                            ent->unk08 = 2;
+                        }
+                        if (D_8010D9E4_river_raiders > 0) {
+                            obj->trans.x -= 10.0f;
+                        } else {
+                            obj->trans.x -= 0.0f;
+                        }
+                        D_8010D9D0_river_raiders[obj->work[1]] += 3.0f;
+                        if (D_8010D9D0_river_raiders[obj->work[1]] >= 20.0f) {
+                            D_8010D9D0_river_raiders[obj->work[1]] = 20.0f;
+                        }
+                        break;
+                    case 1:
+                        if (ent->unk08 != 1) {
+                            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[1]].unk02, 0, 10, 2);
+                            func_8001C624_main(obj->model[1], HmfModelData[obj->motion[5]].unk02, 0, 10, 2);
+                            ent->unk08 = 1;
+                        }
+                        if (D_8010D9E4_river_raiders > 0) {
+                            obj->trans.x += 10.0f;
+                        } else {
+                            obj->trans.x += 0.0f;
+                        }
+                        D_8010D9D0_river_raiders[obj->work[1]] -= 3.0f;
+                        if (D_8010D9D0_river_raiders[obj->work[1]] <= -20.0f) {
+                            D_8010D9D0_river_raiders[obj->work[1]] = -20.0f;
+                        }
+                        break;
+                }
+                if (obj->trans.y <= 1.0f) {
+                    func_8001C258_main(obj->model[2], 4, 0);
+                } else {
+                    func_8001C258_main(obj->model[2], 4, 4);
+                }
+                if (obj->work[1] == 2) {
+                    if (--D_8010D9E4_river_raiders <= 0) {
+                        for (i = 0; i < 3; i++) {
+                            other = &D_8010DD08_river_raiders[i];
+                            raft = other->obj;
+                            raft->trans.y = func_80105B88_river_raiders(raft->trans.y, &other->unk1C, 1.0f);
+                        }
+                        D_8010D9E4_river_raiders = 0;
+                        if ((s16)obj->trans.y == 0.0f) {
+                            for (i = 0; i < 3; i++) {
+                                other = &D_8010DD08_river_raiders[i];
+                                other->unk1C = 10.0f;
+                            }
+                            D_8010D9E4_river_raiders = 30;
+                        }
+                    }
+                    for (i = 0; i < 3; i++) {
+                        other = &D_8010DD08_river_raiders[i];
+                        raft = other->obj;
+                        if (raft->work[2] == 0 && raft->trans.x - 65.0f <= -580.0f) {
+                            D_80110DBE_river_raiders = 1;
+                        }
+                        if (raft->work[2] == 2 && raft->trans.x + 65.0f >= 580.0f) {
+                            D_80110DBE_river_raiders = -1;
+                        }
+                    }
+                }
+            }
+            if (D_80110DBD_river_raiders == 0) {
+                if (ent->unk08 != 3) {
+                    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[3]].unk02, 0, 10, 1);
+                    func_8001C624_main(obj->model[1], HmfModelData[obj->motion[7]].unk02, 0, 10, 1);
+                    ent->unk08 = 3;
+                }
+                switch (D_80110DBE_river_raiders) {
+                    case -1:
+                        ent->unk0C++;
+                        obj->trans.x -= 3.0f;
+                        D_8010D9D0_river_raiders[obj->work[1]] += 3.0f;
+                        if (D_8010D9D0_river_raiders[obj->work[1]] >= 20.0f) {
+                            D_8010D9D0_river_raiders[obj->work[1]] = 20.0f;
+                        }
+                        break;
+                    case 1:
+                        ent->unk0C++;
+                        obj->trans.x += 3.0f;
+                        D_8010D9D0_river_raiders[obj->work[1]] -= 3.0f;
+                        if (D_8010D9D0_river_raiders[obj->work[1]] <= -20.0f) {
+                            D_8010D9D0_river_raiders[obj->work[1]] = -20.0f;
+                        }
+                        break;
+                }
+                if (obj->work[1] == 2) {
+                    for (i = 0; i < 3; i++) {
+                        other = &D_8010DD08_river_raiders[i];
+                        raft = other->obj;
+                        if (raft->work[2] == 0 && raft->trans.x - 65.0f <= -580.0f) {
+                            D_80110DBE_river_raiders = 1;
+                            ent->unk0C = 0;
+                        }
+                        if (raft->work[2] == 2 && raft->trans.x + 65.0f >= 580.0f) {
+                            D_80110DBE_river_raiders = -1;
+                            ent->unk0C = 0;
+                        }
+                    }
+                    if (ent->unk0C >= 30) {
+                        D_80110DBE_river_raiders *= -1;
+                        for (i = 0; i < 3; i++) {
+                            ent->unk0C = 0;
+                        }
+                    }
+                }
+            }
+            break;
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[2], obj->rot.x, D_8010D9D0_river_raiders[obj->work[1]], obj->rot.z);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelRotSet(obj->model[3], obj->rot.x, obj->rot.y, obj->rot.z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010A6A8_river_raiders);
 
