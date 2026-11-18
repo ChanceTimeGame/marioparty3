@@ -1424,21 +1424,10 @@ f32 func_80109DBC_locked_out(f32 x, f32 z) {
     return a;
 }
 
-// register allocation (masked 0, raw 4)
-#ifdef NON_MATCHING
 /* Distance in XZ. */
 f32 func_80109E34_locked_out(Vec* a, Vec* b) {
-    f32 dx;
-    f32 dz;
-
-    dx = a->x - b->x;
-    dx = dx * dx;
-    dz = a->z - b->z;
-    return sqrtf(dx + dz * dz);
+    return sqrtf((a->x - b->x) * (a->x - b->x) + (a->z - b->z) * (a->z - b->z));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109E34_locked_out);
-#endif
 
 /* Gets a model part's world position. */
 void func_80109E88_locked_out(s16 mdl, char* part, s16 frame, Vec* out) {
