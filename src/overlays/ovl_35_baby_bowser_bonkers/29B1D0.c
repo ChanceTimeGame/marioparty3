@@ -110,6 +110,18 @@ typedef struct BkBlock {
     /* 0x2C */ void (*unk2C)(struct BkBlock*); /* state */
 } BkBlock; // Size 0x30
 
+/* A score counter (D_8010BCAC, 2 x 0x12). */
+typedef struct BkCounter {
+    /* 0x00 */ s16 file; /* character face sprite */
+    /* 0x02 */ s16 grp;
+    /* 0x04 */ s16 x;
+    /* 0x06 */ s16 y;
+    /* 0x08 */ s16 off[2]; /* digit x offsets */
+    /* 0x0C */ s16 value; /* shown */
+    /* 0x0E */ s16 target;
+    /* 0x10 */ s16 timer;
+} BkCounter; // Size 0x12
+
 extern u16 D_800D5558_main[];
 extern u8 D_800D6A90_main;
 extern s32 fontcolor;
@@ -191,7 +203,7 @@ void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 omObjData* func_80045F1C_main(u32, s16, s16);
 extern s32 D_8010B848_baby_bowser_bonkers[8]; /* win motions by character */
 extern s32 D_8010B868_baby_bowser_bonkers[8]; /* lose motions by character */
-void func_80109E98_baby_bowser_bonkers(s16 player, s16 score);
+void func_80109E98_baby_bowser_bonkers(s32 idx, s16 score);
 void func_80107D38_baby_bowser_bonkers(omObjData* obj);
 void func_80107E54_baby_bowser_bonkers(omObjData* obj);
 void func_800E1490_minigame(s32);
@@ -223,6 +235,12 @@ s32 func_801080D0_baby_bowser_bonkers(f32 x, f32 z);
 s32 func_80109388_baby_bowser_bonkers(BkBlock* b, s32 margin);
 extern BkPattern** D_8010B8F8_baby_bowser_bonkers[4]; /* patterns by level */
 extern s32 D_8010B908_baby_bowser_bonkers[4]; /* pattern counts by level */
+u16 func_8010984C_baby_bowser_bonkers(s32 dirAndFile);
+void func_80109990_baby_bowser_bonkers(omObjData* obj);
+void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr);
+extern s32 D_8010B918_baby_bowser_bonkers[8]; /* face sprites by character */
+extern s16* D_8010BCA8_baby_bowser_bonkers; /* sprite files: [0] digits, [1] counter backing */
+extern BkCounter* D_8010BCAC_baby_bowser_bonkers;
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -1235,13 +1253,120 @@ u16 func_8010984C_baby_bowser_bonkers(s32 dirAndFile) {
     return id;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109890_baby_bowser_bonkers);
+void func_80109890_baby_bowser_bonkers(void) {
+    BkCounter* c;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109990_baby_bowser_bonkers);
+    D_8010BCA8_baby_bowser_bonkers = HuMemAllocTag(0x20, 31000);
+    D_8010BCAC_baby_bowser_bonkers = HuMemAllocTag(sizeof(BkCounter) * 2, 31000);
+    D_8010BCA8_baby_bowser_bonkers[0] = func_8010984C_baby_bowser_bonkers(0x31);
+    D_8010BCA8_baby_bowser_bonkers[1] = func_8010984C_baby_bowser_bonkers(0x560004);
+    for (i = 0, c = D_8010BCAC_baby_bowser_bonkers; i < 2; i++, c++) {
+        memset(c, 0, sizeof(BkCounter));
+        func_80109BFC_baby_bowser_bonkers(i, GwPlayer[D_8010BC58_baby_bowser_bonkers[i].unk28].chr);
+    }
+    omAddObj(0x1E, 0, 0, -1, func_80109990_baby_bowser_bonkers);
+}
 
+/* The two score counters. */
+void func_80109990_baby_bowser_bonkers(omObjData* obj) {
+    BkCounter* c;
+    u16 digit[2];
+    f32 scale;
+    s16 i;
+
+    for (i = 0, c = D_8010BCAC_baby_bowser_bonkers; i < 2; i++, c++) {
+        digit[0] = c->value / 10;
+        digit[1] = c->value - digit[0] * 10;
+        if (digit[0] >= 10) {
+            digit[0] = 9;
+        }
+        if (digit[1] >= 10) {
+            digit[1] = 9;
+        }
+        func_80054FF8_main(c->grp, 0, (s16)digit[0]);
+        func_80054FF8_main(c->grp, 1, (s16)digit[1]);
+        if (c->value < c->target && c->timer == 0) {
+            c->timer = 12;
+            if (++c->value == 10) {
+                HuSprAttrReset(c->grp, 0, 0x8000);
+            }
+        }
+        scale = sindf(c->timer / 12.0f * 180.0f) * 0.5f + 1.0f;
+        func_80054904_main(c->grp, 0, c->x + c->off[0] * scale, c->y);
+        func_80054904_main(c->grp, 1, c->x + c->off[1] * scale, c->y);
+        HuSprScaleSet(c->grp, 0, scale, scale);
+        HuSprScaleSet(c->grp, 1, scale, scale);
+        if (c->timer != 0) {
+            c->timer--;
+        }
+    }
+}
+
+/* Builds player `idx`'s score counter: two digits, the character face and a backing. */
+/* NON_MATCHING: retail sign-extends HuSprGrpCreate's result before storing it (a call declared int-returning there); include/ declares it s16, so this C saves the two shift instructions. Otherwise identical. */
+#ifdef NON_MATCHING
+void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr) {
+    BkCounter* c;
+    s16 grp;
+    s16 x;
+    s16 y;
+    s32 i;
+
+    c = &D_8010BCAC_baby_bowser_bonkers[idx];
+    c->file = func_8010984C_baby_bowser_bonkers(D_8010B918_baby_bowser_bonkers[chr]);
+    grp = HuSprGrpCreate(4, 0);
+    c->grp = grp;
+    x = 266;
+    if (idx == 0) {
+        x = 56;
+    }
+    c->x = x + 8;
+    c->y = y = 30;
+    c->off[0] = -6;
+    c->off[1] = 6;
+    c->timer = 0;
+    c->target = 0;
+    c->value = 0;
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            HuSprAttrSet(grp, i, 0x8000);
+        case 1:
+            func_80055024_main(grp, i, D_8010BCA8_baby_bowser_bonkers[0], 0);
+            func_80054904_main(grp, i, c->x + c->off[i], y);
+            break;
+        case 2:
+            func_80055024_main(grp, i, c->file, 0);
+            func_80054904_main(grp, i, x - 18, y);
+            break;
+        case 3:
+            func_80055024_main(grp, i, D_8010BCA8_baby_bowser_bonkers[1], 0);
+            func_80054904_main(grp, i, x, y);
+            HuSprScaleSet(grp, i, 1.0f, 1.0f);
+            func_80055484_main(grp, i, 0, 0, 0xFF, 0xA0);
+            break;
+        }
+        func_800550F4_main(grp, i, 0);
+        func_80054FF8_main(grp, i, 0);
+        HuSprAttrSet(grp, i, 0x1000);
+        HuSprPriSet(grp, i, i - 16);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109BFC_baby_bowser_bonkers);
+#endif
 
+/* NON_MATCHING: masked 0; v0/v1 swapped. */
+#ifdef NON_MATCHING
+void func_80109E98_baby_bowser_bonkers(s32 idx, s16 score) {
+    s32 offset = idx * sizeof(BkCounter);
+
+    ((BkCounter*)((u8*)D_8010BCAC_baby_bowser_bonkers + offset))->target = score;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109E98_baby_bowser_bonkers);
+#endif
 
 void func_80109EB8_baby_bowser_bonkers(void) {
     HuCamera *cam;
