@@ -456,6 +456,18 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory5/4CF350.c.o
 W2DC_BLANKSTRIP += build/src/overlays/mstory4/4C47E0.c.o build/src/overlays/mstory4/4C8050.c.o
 # m1 lj2: Log Jam 1A3D80 likewise (func_8010C084/func_8010C4B4, Slot Synch twins: no nop before the mul.s after a float call)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_13_log_jam/1A3D80.c.o
+# m2 gr: ovl_42 2FC270 likewise (func_80106C58/func_801073AC: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_42_game_guys_roulette/2FC270.c.o
+# m2 lo: Locked Out 1D4970 likewise (func_80106FBC_locked_out: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_1A_locked_out/1D4970.c.o
+# m2 cs: chip shot 1D9550 likewise (func_80106B84: no nop before the mul.s after cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_1B_chip_shot_challenge/1D9550.c.o
+# m2 wh: Winner's Wheel 2CF3B0 likewise (func_801075D4_winners_wheel: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_3B_winners_wheel/2CF3B0.c.o
+# m2 dr: Dorrie Dip 2DC4D0 likewise (func_80109C14_dorrie_dip: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_3E_dorrie_dip/2DC4D0.c.o
+# m2 ww: Water Whirled 211AB0 likewise (func_80105D64: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_23_water_whirled/211AB0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
