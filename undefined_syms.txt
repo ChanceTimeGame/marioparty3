@@ -454,3 +454,30 @@ D_8010C60A_end_of_the_line = D_8010C600_end_of_the_line + 0xA;
 D_8010E172_hide_and_sneak = D_8010E170_hide_and_sneak + 0x2;
 /* m4 bg: the_beat_goes_on/1FE4D0 .data byte inside D_8010C310 (players made; a separate variable in C) */
 D_8010C311_the_beat_goes_on = D_8010C310_the_beat_goes_on + 0x1;
+D_8010CF82_crowd_cover = 0x8010CF82;
+/* m5 l7: 3010E0 .data s16 after D_8010D1B4 (title frame; a separate variable in C) */
+D_8010D1B6_game_guys_lucky_7 = D_8010D1B4_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1C0 (play step; a separate variable in C) */
+D_8010D1C2_game_guys_lucky_7 = D_8010D1C0_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1C4 (spin step; a separate variable in C) */
+D_8010D1C6_game_guys_lucky_7 = D_8010D1C4_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1CC (reel stop step; a separate variable in C) */
+D_8010D1CE_game_guys_lucky_7 = D_8010D1CC_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1D0 (result step; a separate variable in C) */
+D_8010D1D2_game_guys_lucky_7 = D_8010D1D0_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D1E8 / D_8010D1EC (separate variables in C) */
+D_8010D1EA_game_guys_lucky_7 = D_8010D1E8_game_guys_lucky_7 + 0x2;
+D_8010D1EE_game_guys_lucky_7 = D_8010D1EC_game_guys_lucky_7 + 0x2;
+/* m5 l7: 3010E0 .data u16 after D_8010D258 (a separate variable in C) */
+D_8010D25A_game_guys_lucky_7 = D_8010D258_game_guys_lucky_7 + 0x2;
+/* m5 sc: storm_chasers/269BF0 .data step table at 0x8010CA28 (splat labels it from +2) */
+D_8010CA28_storm_chasers = D_8010CA2A_storm_chasers - 0x2;
+/* m5 ss: TEMP inner labels of 30F940 .data (until the data moves to C) */
+D_8010CB9E_game_guys_sweet_surprise = D_8010CB9C_game_guys_sweet_surprise + 0x2;
+D_8010CBA2_game_guys_sweet_surprise = D_8010CBA0_game_guys_sweet_surprise + 0x2;
+D_8010CBA6_game_guys_sweet_surprise = D_8010CBA4_game_guys_sweet_surprise + 0x2;
+D_8010CBAA_game_guys_sweet_surprise = D_8010CBA8_game_guys_sweet_surprise + 0x2;
+D_8010CBAE_game_guys_sweet_surprise = D_8010CBAC_game_guys_sweet_surprise + 0x2;
+D_8010CBCC_game_guys_sweet_surprise = D_8010CBC8_game_guys_sweet_surprise + 0x4;
+D_8010CC26_game_guys_sweet_surprise = D_8010CC24_game_guys_sweet_surprise + 0x2;
+D_8010CC4A_game_guys_sweet_surprise = D_8010CC48_game_guys_sweet_surprise + 0x2;
