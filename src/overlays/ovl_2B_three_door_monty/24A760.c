@@ -251,6 +251,27 @@ extern s16 D_8010EC48_three_door_monty;
 extern s16 D_8010EC4A_three_door_monty[3];
 extern s16 D_8010EC50_three_door_monty;
 
+/* .data */
+f32 D_8010CD10_three_door_monty[3] = { 13.0f, 14.0f, 15.0f };
+f32 D_8010CD1C_three_door_monty[3] = { 20.0f, 21.0f, 22.0f };
+s32 D_8010CD28_three_door_monty[3][2] = { { 1, 6 }, { 0x8F, 0x91 }, { 0xC7, 0xC7 } };
+CcPos2 D_8010CD40_three_door_monty[3] = { { -345.0f, -775.0f }, { 0.0f, -775.0f }, { 345.0f, -775.0f } };
+s32 D_8010CD58_three_door_monty[3] = { 7, 8, 9 };
+CcXY D_8010CD64_three_door_monty[4][4] = {
+    { { 0, 44 }, { 0, 54 }, { 0, 64 }, { 0, 74 } },
+    { { 0, 108 }, { 0, 118 }, { 0, 128 }, { 0, 138 } },
+    { { 0, 172 }, { 0, 182 }, { 0, 192 }, { 0, 202 } },
+    { { 0, 236 }, { 0, 246 }, { 0, 256 }, { 0, 266 } },
+};
+s32 D_8010CDA4_three_door_monty[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+CcXY D_8010CDC4_three_door_monty[2] = { { 99, 51 }, { 212, 51 } };
+s32 D_8010CDCC_three_door_monty = 0;
+CcCamera D_8010CDD0_three_door_monty[3] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 30.0f },
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 30.0f },
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 30.0f },
+};
+
 
 
 
