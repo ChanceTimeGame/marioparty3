@@ -86,6 +86,9 @@ void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_8010728C_crazy_cogs(omObjData *obj);
 void func_8010787C_crazy_cogs(omObjData *obj);
 void func_80107D58_crazy_cogs(omObjData *obj);
+void func_80107CA8_crazy_cogs(f32 *x, f32 *z, f32 angle);
+void func_80108190_crazy_cogs(omObjData *obj);
+void func_80107E00_crazy_cogs(omObjData *obj);
 void func_800DDD94_minigame(omObjData *obj);
 s16 func_8004AD8C_main(s16 defNo);
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
@@ -125,6 +128,16 @@ typedef struct CgCtrl {
     /* 0x26 */ s16 unk26;
 } CgCtrl; // Size 0x28
 
+/* A CPU team player's stick: a random push each way, held for a random time (D_8010DE70_crazy_cogs). */
+typedef struct CgStick {
+    /* 0x00 */ s8 t0;
+    /* 0x01 */ s8 lim0;
+    /* 0x02 */ s8 x;
+    /* 0x03 */ s8 t1;
+    /* 0x04 */ s8 lim1;
+    /* 0x05 */ s8 z;
+} CgStick; // Size 6
+
 /* .data */
 /* voice sound bank per character (func_80045ED0_main) */
 s32 D_8010B810_crazy_cogs[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
@@ -157,6 +170,8 @@ extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr 
 extern f32 D_8010BA34_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.x */
 extern f32 D_8010BA38_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].pos.y */
 extern s16 D_8010DE08_crazy_cogs[3];
+extern CgStick D_8010DE70_crazy_cogs[3];
+extern s8 D_8010B9E3_crazy_cogs[4];
 extern s16 D_8010DE0E_crazy_cogs;
 extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
@@ -1101,9 +1116,116 @@ void func_80108190_crazy_cogs(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108464_crazy_cogs);
+/* CPU team player: wander with random stick pushes; flee a nearby hazard (entities 8..14) outwards. */
+void func_80108464_crazy_cogs(omObjData *obj) {
+    CgStick *st = &D_8010DE70_crazy_cogs[obj->work[1]];
+    CgEnt *ctl = &D_8010B9F0_crazy_cogs[5 + obj->work[1]];
+    CgEnt *ent;
+    omObjData *hz;
+    f32 r;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801087B8_crazy_cogs);
+    if (++st->t0 >= st->lim0) {
+        st->t0 = 0;
+        st->lim0 = func_80105B7C_crazy_cogs(30) + 10;
+        st->x = func_80105B7C_crazy_cogs(20) + 30;
+        st->x = (func_80105B7C_crazy_cogs(2) == 1) ? st->x : -st->x;
+        ctl->unk0C = 0;
+    }
+    if (++st->t1 >= st->lim1) {
+        st->t1 = 0;
+        st->lim1 = func_80105B7C_crazy_cogs(30) + 10;
+        st->z = func_80105B7C_crazy_cogs(20) + 30;
+        st->z = (func_80105B7C_crazy_cogs(2) == 1) ? st->z : -st->z;
+        ctl->unk0C = 0;
+    }
+    if (ctl->unk0C == 0 && ctl->unk14 != 0) {
+        for (i = 0; i < 7; i++) {
+            ent = &D_8010B9F0_crazy_cogs[CG_ENT_8 + i];
+            if (ent->unk04 == 0) {
+                continue;
+            }
+            hz = ent->obj;
+            r = ctl->unk14;
+            if (obj->trans.x < r + hz->trans.x && hz->trans.x - r < obj->trans.x && obj->trans.z < r + hz->trans.z &&
+                hz->trans.z - r < obj->trans.z) {
+                if (obj->trans.x >= 0.0f && obj->trans.z < 0.0f) {
+                    st->x = -40;
+                    st->z = -40;
+                } else if (obj->trans.x >= 0.0f && obj->trans.z >= 0.0f) {
+                    st->x = -40;
+                    st->z = 40;
+                } else if (obj->trans.x < 0.0f && obj->trans.z >= 0.0f) {
+                    st->x = 40;
+                    st->z = 40;
+                } else if (obj->trans.x < 0.0f && obj->trans.z < 0.0f) {
+                    st->x = 40;
+                    st->z = -40;
+                }
+                st->t1 = 0;
+                st->t0 = 0;
+                st->lim1 = 17;
+                st->lim0 = 17;
+                ctl->unk0C = 1;
+            }
+        }
+    }
+    D_800CBB6E_main[obj->work[3]] = st->x;
+    D_800D20A1_main[obj->work[3]] = st->z;
+}
+
+/* A team player: rides the big cog while it turns; walks by stick (or CPU) otherwise. */
+void func_801087B8_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[5 + obj->work[1]];
+    MgWork *work = obj->data;
+
+    if (ent->unk0E != 0) {
+        func_80108190_crazy_cogs(obj);
+        return;
+    }
+    if (D_8010B9E3_crazy_cogs[obj->work[0]] != 0) {
+        if (!(GwPlayer[obj->work[0]].stat & 1)) {
+            omVibrate(obj->work[0], 10, 0, 10);
+        }
+        D_8010B9E3_crazy_cogs[obj->work[0]] = 0;
+    }
+    if (D_8010B99C_crazy_cogs != 2) {
+        func_80105B04_crazy_cogs(obj->work[0]);
+        if (D_8010B99C_crazy_cogs == 0) {
+            func_80107E00_crazy_cogs(obj);
+        }
+        if (D_8010B99C_crazy_cogs == 3) {
+            work->unk3C = 0.0f;
+            work->unk40 = 0.0f;
+        }
+        if (D_8010B9A0_crazy_cogs > 0) {
+            func_800E5690_minigame(obj, 13);
+            func_80045ED0_main((D_8010B810_crazy_cogs[GwPlayer[obj->work[0]].chr] << 16) | 0x30);
+        }
+    } else {
+        if (GwPlayer[obj->work[0]].stat & 1) {
+            func_80108464_crazy_cogs(obj);
+        }
+        switch (D_8010DE60_crazy_cogs) {
+        case 0:
+            break;
+        case 1:
+            func_80107CA8_crazy_cogs(&obj->trans.x, &obj->trans.z, -3.3f);
+            if (CG_IABS(D_800CBB6E_main[obj->work[3]]) < 20 && CG_IABS(D_800D20A1_main[obj->work[3]]) < 20) {
+                work->unk3C = func_801059BC_crazy_cogs(work->unk3C, -3.3f);
+            }
+            break;
+        case 2:
+            func_80107CA8_crazy_cogs(&obj->trans.x, &obj->trans.z, 3.3f);
+            if (CG_IABS(D_800CBB6E_main[obj->work[3]]) < 20 && CG_IABS(D_800D20A1_main[obj->work[3]]) < 20) {
+                work->unk3C = func_801059BC_crazy_cogs(work->unk3C, 3.3f);
+            }
+            break;
+        }
+    }
+    func_800DDD94_minigame(obj);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80108B0C_crazy_cogs);
 
