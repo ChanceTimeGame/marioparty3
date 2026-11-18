@@ -458,6 +458,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory4/4C47E0.c.o build/src/overlays/msto
 W2DC_BLANKSTRIP += build/src/overlays/ovl_13_log_jam/1A3D80.c.o
 # m2 gr: ovl_42 2FC270 likewise (func_80106C58/func_801073AC: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_42_game_guys_roulette/2FC270.c.o
+# m3 es: Eye Sore ovl_30 270EF0 likewise (func_80106510: no nop before the mul.s after sindf, none after a branch-likely)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_30_eye_sore/270EF0.c.o
 # m2 lo: Locked Out 1D4970 likewise (func_80106FBC_locked_out: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_1A_locked_out/1D4970.c.o
 # m2 cs: chip shot 1D9550 likewise (func_80106B84: no nop before the mul.s after cosdf)
