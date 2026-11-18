@@ -420,3 +420,6 @@ D_8010A208_water_whirled = D_8010A200_water_whirled + 0x8;
 D_8010A2B4_water_whirled = D_8010A2AC_water_whirled + 0x8;
 D_8010A450_water_whirled = D_8010A44C_water_whirled + 0x4;
 D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
+/* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
+D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
+D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
