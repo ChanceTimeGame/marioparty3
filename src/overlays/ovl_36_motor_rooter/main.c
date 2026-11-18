@@ -83,7 +83,7 @@ typedef struct {
     /* 0x14 */ s8 unk14;
     /* 0x15 */ char unk15;
     /* 0x16 */ s16 unk16;
-    /* 0x18 */ char unk18[4];
+    /* 0x18 */ f32 unk18;
     /* 0x1C */ s16 unk1C;
     /* 0x1E */ s16 unk1E[5];
     /* 0x28 */ s16 unk28[5];
@@ -98,9 +98,12 @@ typedef struct {
     /* 0x58 */ f32 unk58;
     /* 0x5C */ f32 unk5C;
     /* 0x60 */ f32 unk60;
-    /* 0x64 */ char unk64[0x14];
+    /* 0x64 */ char unk64[4];
+    /* 0x68 */ Vec unk68;
+    /* 0x74 */ f32 unk74;
     /* 0x78 */ u16 unk78;
-    /* 0x7A */ char unk7A[0xE];
+    /* 0x7A */ char unk7A[2];
+    /* 0x7C */ Vec unk7C;
     /* 0x88 */ s16 unk88;
     /* 0x8A */ s16 unk8A;
 } D_801137C8_motor_rooter_Struct; // Size 0x8C
@@ -1706,7 +1709,93 @@ void func_8010ABC4_motor_rooter(FuncContext *ctx) {
 }
 /* </func_8010ABC4_motor_rooter> */
 
+/* <func_8010AF0C_motor_rooter> */
+#ifdef NON_MATCHING
+extern s8 D_8011349C_motor_rooter[];
+
+void func_8010AF0C_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    f32 rot = 0.0f;
+    s16 idx = object->work[0];
+    f32 yaw;
+    s32 t;
+    s32 v;
+    f32 mtxX[16];
+    f32 mtxY[16];
+    f32 mtx[16];
+    Vec in;
+    Vec out;
+    s32 pad[2];
+
+    if (work->unk08 & 0x80) {
+        m254_ResetFunc(object->work[0] + 4, ctx);
+        return;
+    }
+    if (work->unk08 == 0) {
+        ctx->work.s16[1] = 1;
+        ctx->state = 1;
+    }
+    work->unk0C += work->unk10;
+    t = ctx->work.s16[0];
+    if (t + 2 > 360) {
+        v = 0;
+    } else {
+        v = t + 2;
+    }
+    ctx->work.s16[0] = v;
+    ctx->work.f32[0] = sindf((s16)v) * 20.0 * 0.05;
+    if (work->unk08 & 2) {
+        yaw = D_8011349C_motor_rooter[ctx->work.s8[0]] + work->unk18;
+        if (++ctx->work.s8[0] >= 4) {
+            func_8010BDE4_motor_rooter(work, 38, 0);
+            ctx->work.s8[0] = 0;
+            work->unk08 &= ~2;
+        }
+    } else {
+        yaw = work->unk18;
+    }
+    if (work->unk08 & 0x20) {
+        rot = sindf(work->unk48) * 30.0;
+        if ((work->unk48 += 10) > 180) {
+            work->unk48 = 0;
+            work->unk08 &= ~0x20;
+        }
+    }
+    work->unk68.x = ctx->work.f32[0];
+    work->unk68.y = yaw;
+    work->unk68.z = rot;
+    work->unk7C.x = ctx->work.f32[0];
+    work->unk7C.y = yaw;
+    work->unk7C.z = rot;
+    in.x = sindf(yaw) * (ctx->work.f32[0] + 55.999999046325684);
+    in.y = -cosdf(yaw) * (ctx->work.f32[0] + 55.999999046325684);
+    in.z = -120.0 - rot;
+    m254_MakeRotXMtx(mtxX, CRotM[idx].x);
+    m254_MakeRotYMtx(mtxY, CRotM[idx].y);
+    m254_MultiplyMtx(mtxX, mtxY, mtx);
+    func_801114B0_motor_rooter(mtx, &in, (f32 *)&out);
+    object->trans.x = CenterM[idx].x + out.x;
+    object->trans.y = CenterM[idx].y + out.y;
+    object->trans.z = CenterM[idx].z + out.z;
+    if (work->unk08 & 0x400) {
+        object->rot.x = CRotM[idx].x;
+        m254_MakeIdentityMtx(HmfModelData[object->model[0]].mtx);
+        func_80017D24_main(HmfModelData[object->model[0]].mtx, 0.0f, work->unk74, 0.0f);
+        object->rot.y = 0.0f;
+        return;
+    }
+    object->rot.x = 360.0f - CRotM[idx].x;
+    if (!(work->unk08 & 1)) {
+        object->rot.y = CRotM[idx].y + 180.0f;
+    }
+    m254_MakeIdentityMtx(HmfModelData[object->model[0]].mtx);
+    func_80017D24_main(HmfModelData[object->model[0]].mtx, 0.0f, 0.0f, 360.0f - yaw);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010AF0C_motor_rooter);
+#endif
+/* </func_8010AF0C_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010B394_motor_rooter);
 
