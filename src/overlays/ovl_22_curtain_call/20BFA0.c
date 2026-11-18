@@ -90,6 +90,9 @@ extern s16 D_8010B21C_curtain_call[6];
 extern s8 D_8010B228_curtain_call[4];
 extern s8 D_8010B22C_curtain_call[8];
 extern s8 D_8010B234_curtain_call[8];
+extern s8 D_8010B248_curtain_call[6][3];
+extern s8 D_8010B25C_curtain_call[3][3];
+extern s8 D_8010B268_curtain_call[6][4];
 extern CcCamera D_8010B280_curtain_call[1];
 extern u8 D_8010B140_curtain_call[3][5];
 extern u8 D_8010B150_curtain_call[3][5];
@@ -106,7 +109,7 @@ extern f32 D_8010B4F4_curtain_call;
 extern f32 D_8010B4F8_curtain_call;
 extern f32 D_8010B4FC_curtain_call;
 extern s16 D_8010CE78_curtain_call[4];
-extern s8 D_8010CE80_curtain_call;
+extern s8 D_8010CE80_curtain_call[4];
 extern s16 D_8010CE84_curtain_call;
 extern s8 D_8010CE86_curtain_call;
 extern s16 D_8010CE88_curtain_call;
@@ -133,10 +136,12 @@ typedef struct CcCpuPlan {
 } CcCpuPlan;
 extern CcCpuPlan D_8010CF08_curtain_call[4];
 extern s8 D_8010CF18_curtain_call[4];
+extern s16 D_8010CF1C_curtain_call[2];
 extern s8 D_8010CF20_curtain_call[2];
 extern s8 D_8010CF22_curtain_call;
 /* player 0's shared models (stage, curtain front and back) for the others to link */
 extern omObjData *D_8010CF24_curtain_call;
+extern s8 D_8010CF28_curtain_call[4];
 extern s16 D_8010CF2C_curtain_call[3];
 extern s8 D_8010CF32_curtain_call;
 extern s8 D_8010CF33_curtain_call;
@@ -1356,13 +1361,158 @@ void func_801093C4_curtain_call(void) {
     D_8010B4B0_curtain_call[13].obj = omAddObj(900, 1, 1, -1, func_801092F0_curtain_call);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80109400_curtain_call);
+/* Curtain panel motions: a 50-frame cycle, every panel at once. */
+void func_80109400_curtain_call(void) {
+    s8 i;
+    s8 t = D_8010CF38_curtain_call;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_8010954C_curtain_call);
+    for (i = 0; i < 6; i++) {
+        switch (t) {
+        case 0:
+            func_80105C3C_curtain_call(D_8010CEC8_curtain_call[i].obj, 1, 0, 5, 2);
+            break;
+        case 25:
+            func_80105C3C_curtain_call(D_8010CEC8_curtain_call[i].obj, 2, 0, 5, 2);
+            break;
+        case 50:
+            func_80105C3C_curtain_call(D_8010CEC8_curtain_call[i].obj, 0, 0, 5, 2);
+            break;
+        }
+    }
+    if (t == 50) {
+        D_8010CE84_curtain_call++;
+        D_8010CF38_curtain_call = 0;
+    } else {
+        D_8010CF38_curtain_call++;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_8010982C_curtain_call);
+/* Shuffle step: slide the panels by the pattern for this round. */
+void func_8010954C_curtain_call(void) {
+    s8 dx = 0;
+    s8 i;
+    s16 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80109920_curtain_call);
+    if (D_8010CE84_curtain_call == D_8010CF1C_curtain_call[0] || D_8010CE84_curtain_call == D_8010CF1C_curtain_call[1]) {
+        func_80109400_curtain_call();
+        return;
+    }
+    t = ++D_8010CE84_curtain_call;
+    switch (D_8010CEFE_curtain_call) {
+    case 0:
+        dx = 6;
+        break;
+    case 1:
+        if (t < 60) {
+            dx = 6;
+        } else if (t < 105) {
+            dx = D_8010B25C_curtain_call[D_8010CE86_curtain_call][0];
+        } else if (t < 150) {
+            dx = 6;
+        } else if (t < 195) {
+            dx = D_8010B25C_curtain_call[D_8010CE86_curtain_call][1];
+        } else if (t < 240) {
+            dx = 6;
+        } else if (t < 285) {
+            dx = D_8010B25C_curtain_call[D_8010CE86_curtain_call][2];
+        } else {
+            dx = 6;
+        }
+        break;
+    case 2:
+        if (t < 60) {
+            dx = 6;
+        } else if (t < 105) {
+            dx = D_8010B268_curtain_call[D_8010CE86_curtain_call][0];
+        } else if (t < 150) {
+            dx = 6;
+        } else if (t < 195) {
+            dx = D_8010B268_curtain_call[D_8010CE86_curtain_call][1];
+        } else if (t < 240) {
+            dx = D_8010B268_curtain_call[D_8010CE86_curtain_call][2];
+        } else if (t < 285) {
+            dx = 6;
+        } else if (t < 330) {
+            dx = D_8010B268_curtain_call[D_8010CE86_curtain_call][3];
+        } else {
+            dx = 6;
+        }
+        break;
+    }
+    for (i = 0; i < 6; i++) {
+        if (D_8010CEC8_curtain_call[i].unk00 != 0) {
+            D_8010CEC8_curtain_call[i].obj->trans.x += dx;
+        }
+    }
+}
+
+/* Who is still in: the characters and player numbers left, and how many are out. */
+void func_8010982C_curtain_call(void) {
+    s8 i;
+    s8 n;
+    CcEnt *ent;
+
+    D_8010CF01_curtain_call = 0;
+    for (i = 0; i < 4; i++) {
+        D_8010CE80_curtain_call[i] = 0;
+    }
+    for (i = 0, n = 0; i < 4; i++) {
+        ent = CC_PLAYER(i);
+        if (ent->unk04 == 0) {
+            D_8010CE80_curtain_call[n] = GwPlayer[ent->obj->work[0]].chr;
+            D_8010CF28_curtain_call[n] = ent->obj->work[0];
+            n++;
+        } else {
+            D_8010CF01_curtain_call++;
+        }
+    }
+}
+
+/* Pick the winning curtain for the round. */
+void func_80109920_curtain_call(void) {
+    s8 order[6];
+    s8 i;
+    s8 r;
+
+    for (i = 0; i < 6; i++) {
+        order[D_8010CEC8_curtain_call[i].slot] = D_8010CEC8_curtain_call[i].obj->work[1];
+    }
+    switch (D_8010CEFE_curtain_call) {
+    case 0:
+        r = func_80105B7C_curtain_call(3);
+        D_8010CEFF_curtain_call = order[r];
+        D_8010CEC0_curtain_call = r;
+        D_8010CE8A_curtain_call[0] = func_80105B7C_curtain_call(2);
+        if (D_8010CE8A_curtain_call[0] != 0) {
+            D_8010CE8A_curtain_call[1] = r;
+        } else {
+            D_8010CE8A_curtain_call[1] = 2 - r;
+        }
+        break;
+    case 1:
+        r = func_80105B7C_curtain_call(5);
+        D_8010CEFF_curtain_call = order[r];
+        D_8010CEC0_curtain_call = r;
+        D_8010CE8A_curtain_call[0] = func_80105B7C_curtain_call(2);
+        if (D_8010CE8A_curtain_call[0] != 0) {
+            D_8010CE8A_curtain_call[1] = r;
+        } else {
+            D_8010CE8A_curtain_call[1] = 4 - r;
+        }
+        break;
+    case 2:
+        r = func_80105B7C_curtain_call(6);
+        D_8010CEFF_curtain_call = order[r];
+        D_8010CEC0_curtain_call = r;
+        D_8010CE8A_curtain_call[0] = func_80105B7C_curtain_call(2);
+        if (D_8010CE8A_curtain_call[0] != 0) {
+            D_8010CE8A_curtain_call[1] = r;
+        } else {
+            D_8010CE8A_curtain_call[1] = 5 - r;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80109AD0_curtain_call);
 
