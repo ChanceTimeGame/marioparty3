@@ -117,6 +117,7 @@ typedef struct EsCamera {
     /* 0x28 */ f32 fov;
 } EsCamera; // Size 0x2C
 
+extern s32 D_800A178C_main[][6];
 extern s16 D_800CDA7C_main[];
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
@@ -131,6 +132,7 @@ void func_80033354_main(s16);
 void func_8003F578_main(s16);
 void func_8003F5C0_main(void);
 void func_80045010_main(const s16 *, s32);
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 
 /* .data */
 extern s32 D_8010AC10_eye_sore[8];
@@ -138,6 +140,7 @@ extern s16 D_8010AC30_eye_sore[4];
 extern s8 D_8010AC38_eye_sore[24];
 extern u8 D_8010AC50_eye_sore[4];
 extern u8 D_8010AC54_eye_sore[4];
+extern u16 D_8010AC58_eye_sore[8][2];
 extern u8 D_8010AC98_eye_sore[8];
 extern char *D_8010AC78_eye_sore[8];
 extern s32 D_8010ACF4_eye_sore;
@@ -156,6 +159,7 @@ extern EsPlayer D_8010CA60_eye_sore[4];
 extern s16 D_8010CBB0_eye_sore;
 extern u16 D_8010CBB2_eye_sore;
 extern s16 D_8010CBB4_eye_sore;
+extern s16 D_8010CBB6_eye_sore;
 extern u16 D_8010CBB8_eye_sore;
 extern EsRing D_8010CBC0_eye_sore[4];
 extern s8 D_8010CC10_eye_sore;
@@ -820,7 +824,110 @@ void func_80107CBC_eye_sore(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80108330_eye_sore);
+void func_80108330_eye_sore(omObjData *obj) {
+    u16 idx = obj->work[0];
+    EsPlayer *p = &D_8010CA60_eye_sore[idx];
+    EsEnt *ent = ES_ENT(ES_ENT_PLAYER, idx);
+    u16 chr = GwPlayer[idx].chr;
+    s32 dir = D_800A178C_main[chr][0];
+    u16 i;
+    s16 *link;
+
+    obj->model[0] = func_8000B108_main(dir | D_800A178C_main[chr][2], 0x2A9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 2));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x13));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x23));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x15));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x1A));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x36));
+    for (i = 0; i < 2; i++) {
+        D_8010CC18_eye_sore[idx][i] = DataRead(dir | D_8010AC58_eye_sore[chr][i]);
+    }
+    D_8010AF22_eye_sore[idx] = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010CC18_eye_sore[idx][0], 0,
+                                             D_8010AC78_eye_sore[chr]);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    if (idx == 0) {
+        obj->model[1] = func_8000B0A0_main(0, 0xC9);
+        func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+        func_8001C448_main(obj->model[1]);
+        func_8001C514_main(obj->model[1]);
+        func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+        D_8010CBB4_eye_sore = obj->model[1];
+    } else {
+        obj->model[1] = Hu3DModelLink(D_8010CBB4_eye_sore);
+    }
+    obj->model[2] = func_8000B108_main(0x10014, 0x8C);
+    func_8001FA68_main(obj->model[2]);
+    func_8001F9E4_main(obj->model[2], 0xFF);
+    link = &D_8010CBB6_eye_sore;
+    *link = obj->model[2];
+    obj->model[3] = Hu3DModelLink(*link);
+    obj->model[4] = Hu3DModelLink(*link);
+    obj->model[5] = Hu3DModelLink(*link);
+    obj->trans.y = 5.0f;
+    obj->trans.z = 200.0f;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 5.0f, 200.0f);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, 5.0f, obj->trans.z);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, 5.0f, obj->trans.z);
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, 5.0f, obj->trans.z);
+    Hu3DModelPosSet(obj->model[5], obj->trans.x, 5.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[2], 1.0f, 1.0f, 1.0f);
+    Hu3DModelScaleSet(obj->model[3], 1.2f, 1.2f, 1.2f);
+    Hu3DModelScaleSet(obj->model[4], 1.4f, 1.4f, 1.4f);
+    Hu3DModelScaleSet(obj->model[5], 1.6f, 1.6f, 1.6f);
+    func_80105D38_eye_sore(obj, 0, 2);
+    ent->unk06 = 0;
+    switch (idx) {
+    case 0:
+        for (i = 0; i < 6; i++) {
+            func_8001C8A8_main(obj->model[i], 1);
+        }
+        break;
+    case 1:
+        for (i = 0; i < 6; i++) {
+            func_8001C8A8_main(obj->model[i], 2);
+        }
+        break;
+    case 2:
+        for (i = 0; i < 6; i++) {
+            func_8001C8A8_main(obj->model[i], 4);
+        }
+        break;
+    case 3:
+        for (i = 0; i < 6; i++) {
+            func_8001C8A8_main(obj->model[i], 8);
+        }
+        break;
+    }
+    ent->unk16 = 0xFF;
+    p->unk34 = obj->trans.y + 30.0f;
+    p->unk38 = obj->trans.y + 74.0f;
+    p->unk3C = obj->trans.y + 120.0f;
+    p->unk40 = obj->trans.y + 180.0f;
+    p->unk0C = 0;
+    p->unk0D = 14;
+    p->cpu = GwPlayer[idx].stat & 1;
+    p->dif = GwPlayer[idx].cpu_difficulty;
+    p->state = 0;
+    p->rot = 0;
+    p->unk0E = 0;
+    p->unk11 = 0;
+    p->timer = 0;
+    p->unk12 = 0;
+    p->rank = -1;
+    p->unk10 = 0;
+    p->unk04 = D_8010AC50_eye_sore[p->dif];
+    p->obj = obj;
+    for (i = 0; i < 15; i++) {
+        p->lap[i] = 0;
+    }
+    obj->work[3] = GwPlayer[idx].pad;
+    obj->func = func_80107CBC_eye_sore;
+}
 
 void func_80108AAC_eye_sore(void) {
     omObjData *obj;
