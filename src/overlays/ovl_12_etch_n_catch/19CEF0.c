@@ -33,16 +33,30 @@ typedef struct EtCtrl {
     /* 0x26 */ char unk26[2];
 } EtCtrl; /* size 0x28 */
 
+/* A trail node: 256 per player in D_801113D8[player] */
+typedef struct EtNode {
+    /* 0x00 */ u8 unk00; /* in use */
+    /* 0x01 */ char unk01[3];
+    /* 0x04 */ struct EtNode* prev;
+    /* 0x08 */ struct EtNode* next;
+    /* 0x0C */ char unk0C[0xC];
+    /* 0x18 */ s16 unk18; /* cell x */
+    /* 0x1A */ s16 unk1A; /* cell y */
+    /* 0x1C */ char unk1C[0x1C];
+} EtNode; /* size 0x38 */
+
 // Heap-allocated (0x20 bytes) per-player work (D_8010C868[player]); unk0C is the head of a linked list
 // of nodes (func_80108B64 inserts, func_80108BCC removes, func_80108C08 walks).
 typedef struct EtchNCatchWork {
     /* 0x00 */ s8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
-    /* 0x01 */ s8 unk01;
+    /* 0x01 */ u8 unk01; /* 3 team 0, 12 team 1 */
     /* 0x02 */ u8 unk02; /* 8 team 0, 1 team 1 */
-    /* 0x03 */ char unk03[5];
+    /* 0x03 */ char unk03;
+    /* 0x04 */ s16 unk04; /* pen cell x */
+    /* 0x06 */ s16 unk06; /* pen cell y */
     /* 0x08 */ s16 unk08;
     /* 0x0A */ s16 unk0A;
-    /* 0x0C */ struct EtchNCatchNode *unk_0C;
+    /* 0x0C */ struct EtNode* unk_0C;
     /* 0x10 */ s16 unk10;
     /* 0x12 */ s8 unk12;
     /* 0x13 */ char unk13;
@@ -95,6 +109,16 @@ void func_8010C444_etch_n_catch(omObjData* obj);
 
 void func_80106A64_etch_n_catch(omObjData* obj);
 void func_80108B20_etch_n_catch(EtchNCatchWork* arg0);
+s32 func_80107D38_etch_n_catch(f32 x, f32 z, EtchNCatchWork* w);
+EtNode* func_80108B28_etch_n_catch(s8 player);
+void func_80108B64_etch_n_catch(EtNode** head, EtNode* node);
+void func_80108BCC_etch_n_catch(EtNode** head, EtNode* node);
+s32 func_80108C08_etch_n_catch(EtchNCatchWork* w);
+void func_80108D84_etch_n_catch(u8** end);
+s32 func_80108DD0_etch_n_catch(s16 x, s16 y);
+u8* func_801090E0_etch_n_catch(s16 x, s16 y);
+u8 func_80109114_etch_n_catch(s16 x, s16 y);
+void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v);
 // main (more)
 extern s32 D_800A178C_main[][6];
 extern s16 D_800EB784_minigame[][14];
@@ -113,13 +137,18 @@ extern s8 D_8010C6D8_etch_n_catch;
 // bss
 extern u8 D_8010C830_etch_n_catch; /* start layout, 0..4 */
 extern EtchNCatchWork* D_8010C868_etch_n_catch[4];
+extern s16 D_8010C846_etch_n_catch; /* grid width */
+extern u8* D_8010C84C_etch_n_catch; /* grid */
+extern u8** D_8010C878_etch_n_catch; /* cells visited by the flood fill */
+extern u8** D_8010C87C_etch_n_catch[2]; /* flood-fill frontiers */
+extern u8 D_8010C890_etch_n_catch[120][160]; /* region bits per 2x2 cell */
 extern s16 D_80111390_etch_n_catch[4][3];
 extern omObjData* D_8010C858_etch_n_catch[2];
 extern omObjData* D_8010C860_etch_n_catch[2];
 extern EtCtrl D_801113B0_etch_n_catch;
 extern u8 D_801113C8_etch_n_catch; /* view: D_801113B0.unk18[0] */
 extern u8 D_801113C9_etch_n_catch; /* view: D_801113B0.unk18[1] */
-extern void* D_801113D8_etch_n_catch[4];
+extern EtNode* D_801113D8_etch_n_catch[4]; /* trail node pools, 256 each */
 
 
 void func_801059A0_etch_n_catch(void) {
@@ -149,8 +178,8 @@ void func_801059A0_etch_n_catch(void) {
     for (i = 0; i < 4; i++) {
         D_800EC598_minigame[D_800EC280_minigame++] = omAddObj(3, 5, 0x3C, -1, func_80106334_etch_n_catch);
         omSetStatBit(D_800EC598_minigame[i], 0xA0);
-        D_801113D8_etch_n_catch[i] = HuMemAllocTag(0x3800, 0x7918);
-        memset(D_801113D8_etch_n_catch[i], 0, 0x3800);
+        D_801113D8_etch_n_catch[i] = HuMemAllocTag(256 * sizeof(EtNode), 0x7918);
+        memset(D_801113D8_etch_n_catch[i], 0, 256 * sizeof(EtNode));
     }
     for (i = 0; i < 2; i++) {
         D_8010C860_etch_n_catch[i] = omAddObj(2, 3, 0, -1, func_8010B24C_etch_n_catch);
@@ -433,7 +462,27 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010633
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106A64_etch_n_catch);
 
+/* Whether (x, z) is outside the drawing area of the player's team. */
+#ifdef NON_MATCHING
+s32 func_80107D38_etch_n_catch(f32 x, f32 z, EtchNCatchWork* w) {
+    s32 out;
+
+    if (w->unk01 == 3) {
+        out = TRUE;
+        if ((x < -80.0f) & (x > -450.0f)) {
+            out = ((z < 300.0f) & (z > -400.0f)) ? FALSE : TRUE;
+        }
+    } else {
+        out = TRUE;
+        if ((x > 80.0f) & (x < 450.0f)) {
+            out = ((z < 300.0f) & (z > -400.0f)) ? FALSE : TRUE;
+        }
+    }
+    return out;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107D38_etch_n_catch);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107EA4_etch_n_catch);
 
@@ -443,23 +492,255 @@ void func_80108B20_etch_n_catch(EtchNCatchWork *arg0) {
     arg0->unk_0C = NULL;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108B28_etch_n_catch);
+/* A free trail node of the player's pool (one past the pool when all 256 are used). */
+EtNode* func_80108B28_etch_n_catch(s8 player) {
+    EtNode* node = D_801113D8_etch_n_catch[player];
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108B64_etch_n_catch);
+    for (i = 0; i < 256; i++, node++) {
+        if (node->unk00 == 0) {
+            break;
+        }
+    }
+    return node;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108BCC_etch_n_catch);
+/* Appends `node` to the list at `head`. */
+void func_80108B64_etch_n_catch(EtNode** head, EtNode* node) {
+    EtNode* last = *head;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108C08_etch_n_catch);
+    if (last != NULL) {
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        node->next = last->next;
+        node->prev = last;
+        last->next = node;
+        if (node->next != NULL) {
+            node->next->prev = node;
+        }
+    } else {
+        node->next = *head;
+        node->prev = NULL;
+        *head = node;
+        if (last != NULL) {
+            last->prev = node;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108D84_etch_n_catch);
+/* Unlinks `node` from the list at `head` and frees it. */
+void func_80108BCC_etch_n_catch(EtNode** head, EtNode* node) {
+    if (node->next != NULL) {
+        node->next->prev = node->prev;
+    }
+    if (node->prev != NULL) {
+        node->prev->next = node->next;
+    } else {
+        *head = node->next;
+    }
+    node->unk00 = 0;
+}
 
+/* Whether three or more trail nodes of any player lie around the pen of `w`. */
+s32 func_80108C08_etch_n_catch(EtchNCatchWork* w) {
+    s32 n = 0;
+    s32 i;
+    EtNode* node;
+
+    if (D_8010C868_etch_n_catch[0]->unk_0C == NULL && D_8010C868_etch_n_catch[1]->unk_0C == NULL
+        && D_8010C868_etch_n_catch[2]->unk_0C == NULL && D_8010C868_etch_n_catch[3]->unk_0C == NULL) {
+        return 0;
+    }
+    for (i = 0; i < 4; i++) {
+        for (node = D_8010C868_etch_n_catch[i]->unk_0C; node != NULL; node = node->next) {
+            if (node->unk18 == w->unk04 - 1) {
+                n += node->unk1A == w->unk06 - 1;
+                n += node->unk1A == w->unk06;
+                n += node->unk1A == w->unk06 + 1;
+            }
+            if (node->unk18 == w->unk04) {
+                n += node->unk1A == w->unk06 - 1;
+                n += node->unk1A == w->unk06 + 1;
+            }
+            if (node->unk18 == w->unk04 + 1) {
+                n += node->unk1A == w->unk06 - 1;
+                n += node->unk1A == w->unk06;
+                n += node->unk1A == w->unk06 + 1;
+            }
+            if (n >= 3) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/* Clears the fill mark (0x21) of every cell visited since the start of D_8010C878 up to `end`. */
+void func_80108D84_etch_n_catch(u8** end) {
+    u8** p = D_8010C878_etch_n_catch;
+    s32 n = end - p;
+    u8* c;
+    s32 i;
+
+    for (i = 0; i < n; i++) {
+        c = *p++;
+        if (*c == 0x21) {
+            *c = 0;
+        }
+    }
+}
+
+/* Flood-fills the empty area around grid cell (2x, 2y). Returns 0 if it reaches a 0x22 cell, otherwise whether
+   the walls it meets belong to one team only (region bits 3 or 12). The fill marks are cleared again. */
+#ifdef NON_MATCHING
+s32 func_80108DD0_etch_n_catch(s16 x, s16 y) {
+    s32 bits = 0;
+    u8* cell;
+    u8* c;
+    u8** vis;
+    u8** cur;
+    u8** next;
+    u8** curBuf;
+    u8** nextBuf;
+    s32 n;
+    s32 i;
+    s32 col;
+    s32 row;
+
+    cell = D_8010C84C_etch_n_catch + x * 2 + D_8010C846_etch_n_catch * 2 * y;
+    vis = D_8010C878_etch_n_catch;
+    *cell = 0x21;
+    *vis = cell;
+    D_8010C87C_etch_n_catch[0][0] = cell;
+    vis++;
+    n = 1;
+    next = nextBuf = D_8010C87C_etch_n_catch[1];
+    cur = curBuf = D_8010C87C_etch_n_catch[0];
+    do {
+        for (i = 0; i < n; i++) {
+            c = *cur++;
+            *c = 0x21;
+            col = ((c - D_8010C84C_etch_n_catch) % 320) >> 1;
+            row = (c - D_8010C84C_etch_n_catch) / 640;
+            c++;
+            if (*c == 0) {
+                *c = 0x21;
+                *vis++ = c;
+                *next++ = c;
+            } else if (*c == 0x22) {
+                func_80108D84_etch_n_catch(vis);
+                return 0;
+            } else if (!(*c & 9)) {
+                *vis++ = c;
+            } else {
+                bits |= D_8010C890_etch_n_catch[row][col + 1];
+            }
+            c -= 2;
+            if (*c == 0) {
+                *c = 0x21;
+                *vis++ = c;
+                *next++ = c;
+            } else if (*c == 0x22) {
+                func_80108D84_etch_n_catch(vis);
+                return 0;
+            } else if (!(*c & 9)) {
+                *vis++ = c;
+            } else {
+                bits |= D_8010C890_etch_n_catch[row][col - 1];
+            }
+            c += D_8010C846_etch_n_catch + 1;
+            if (*c == 0) {
+                *c = 0x21;
+                *vis++ = c;
+                *next++ = c;
+            } else if (*c == 0x22) {
+                func_80108D84_etch_n_catch(vis);
+                return 0;
+            } else if (!(*c & 9)) {
+                *vis++ = c;
+            } else {
+                bits |= D_8010C890_etch_n_catch[row + 1][col];
+            }
+            c -= D_8010C846_etch_n_catch * 2;
+            if (*c == 0) {
+                *c = 0x21;
+                *vis++ = c;
+                *next++ = c;
+            } else if (*c == 0x22) {
+                func_80108D84_etch_n_catch(vis);
+                return 0;
+            } else if (!(*c & 9)) {
+                *vis++ = c;
+            } else {
+                bits |= D_8010C890_etch_n_catch[row - 1][col];
+            }
+        }
+        n = next - nextBuf;
+        next = curBuf;
+        curBuf = nextBuf;
+        nextBuf = next;
+        cur = curBuf;
+    } while (n != 0);
+    func_80108D84_etch_n_catch(vis);
+    return (bits == 3) | (bits == 12);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80108DD0_etch_n_catch);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_801090E0_etch_n_catch);
+u8* func_801090E0_etch_n_catch(s16 x, s16 y) {
+    return D_8010C84C_etch_n_catch + D_8010C846_etch_n_catch * y + x;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109114_etch_n_catch);
+u8 func_80109114_etch_n_catch(s16 x, s16 y) {
+    u8* p = D_8010C84C_etch_n_catch + D_8010C846_etch_n_catch * y + x;
 
+    return *p;
+}
+
+/* Sets cell (x, y) to `v`, its 4 neighbours to v * 2 and its diagonal neighbours to v * 4, unless already set. */
+#ifdef NON_MATCHING
+void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v) {
+    u8* p;
+
+    *func_801090E0_etch_n_catch(x, y) = v;
+    p = func_801090E0_etch_n_catch(x - 1, y);
+    if (*p != (u8)v) {
+        *p = v * 2;
+    }
+    p = func_801090E0_etch_n_catch(x + 1, y);
+    if (*p != (u8)v) {
+        *p = v * 2;
+    }
+    p = func_801090E0_etch_n_catch(x, y - 1);
+    if (*p != (u8)v) {
+        *p = v * 2;
+    }
+    p = func_801090E0_etch_n_catch(x, y + 1);
+    if (*p != (u8)v) {
+        *p = v * 2;
+    }
+    p = func_801090E0_etch_n_catch(x - 1, y - 1);
+    if (*p != (u8)v && *p != (u8)v * 2) {
+        *p = v * 4;
+    }
+    p = func_801090E0_etch_n_catch(x - 1, y + 1);
+    if (*p != (u8)v && *p != (u8)v * 2) {
+        *p = v * 4;
+    }
+    p = func_801090E0_etch_n_catch(x + 1, y + 1);
+    if (*p != (u8)v && *p != (u8)v * 2) {
+        *p = v * 4;
+    }
+    p = func_801090E0_etch_n_catch(x + 1, y - 1);
+    if (*p != (u8)v && *p != (u8)v * 2) {
+        *p = v * 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_8010914C_etch_n_catch);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
 
