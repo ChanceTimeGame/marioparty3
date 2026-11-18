@@ -263,6 +263,7 @@ void func_80109A94_spotlight_swim(omObjData *obj);
 void func_80109C1C_spotlight_swim(omObjData *obj);
 void func_80109F60_spotlight_swim(omObjData *obj);
 void func_8010A328_spotlight_swim(omObjData *obj);
+void func_8010A7AC_spotlight_swim(omObjData *obj);
 void func_80109690_spotlight_swim(omObjData *obj);
 u8 func_80109194_spotlight_swim(omObjData *obj);
 void func_801069BC_spotlight_swim(omObjData *obj);
@@ -1549,7 +1550,10 @@ void func_80109C1C_spotlight_swim(omObjData *obj) {
 }
 
 #ifdef NON_MATCHING
-/* the switch's constant 1 is hoisted into a saved register (one extra s-reg); ops otherwise equal */
+/* regalloc: GCC hoists the case constant 1 into s4 (+1 saved reg, the extra sw/lw). That frees the
+ * delay slot of the group test, so retail's `beqz v0,.L80109F28` (slot: li v0,1) becomes our
+ * `beqzl v0` (slot: the loop's addiu i+1) to the same increment: same condition, same target, and
+ * nmcmp skips branch-likely ops. Tried: `continue` form, do-while; neither removes the hoist. */
 void func_80109E08_spotlight_swim(void) {
     omObjData *obj;
     SsEnt *ent;
@@ -1803,7 +1807,58 @@ void func_8010A7AC_spotlight_swim(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A7AC_spotlight_swim);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010AAB8_spotlight_swim);
+extern s16 D_8010CDB8_spotlight_swim[];
+extern s16 D_8010CDC0_spotlight_swim[];
+
+/* Chaser lamp setup for the end sequence. */
+void func_8010AAB8_spotlight_swim(omObjData *obj) {
+    void *data;
+    void *data2;
+    s8 i = obj->work[0];
+    SsEnt *lamp = &D_8010D924_spotlight_swim[i];
+
+    switch (D_8010CCC0_spotlight_swim[D_8010D3AC_spotlight_swim][i]) {
+    case 0:
+        obj->trans.x = -360.0f;
+        lamp->pos.x = 80.0f;
+        break;
+    case 1:
+        obj->trans.x = 0.0f;
+        lamp->pos.x = 160.0f;
+        break;
+    case 2:
+        obj->trans.x = 360.0f;
+        lamp->pos.x = 240.0f;
+        break;
+    }
+    obj->trans.y = 0.0f;
+    lamp->pos.y = 87.5f;
+    obj->trans.z = 580.0f;
+    lamp->unk50.x = 35.0f;
+    obj->rot.x = obj->rot.z = 0.0f;
+    lamp->unk50.y = obj->rot.y = 180.0f;
+    obj->model[0] = func_8000B108_main(0x240002, 0xA9);
+    data = DataRead(D_8010CDB8_spotlight_swim[i] | 0x240000);
+    HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m203_001_DEF");
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    DataClose(data);
+    obj->model[1] = func_8000B108_main(0x240003, 0x89);
+    data2 = DataRead(D_8010CDC0_spotlight_swim[i] | 0x240000);
+    HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data2, 0, "light_boddy_DEF");
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    DataClose(data2);
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, lamp->pos.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, lamp->unk50.z);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    D_8010EE50_spotlight_swim[i].rot = 0.0f;
+    D_8010EE50_spotlight_swim[i].motion = 0;
+    obj->func = func_8010A7AC_spotlight_swim;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010ADF8_spotlight_swim);
 
