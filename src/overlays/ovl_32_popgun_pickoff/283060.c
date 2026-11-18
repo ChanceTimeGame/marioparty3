@@ -107,7 +107,8 @@ typedef struct PgPlayer {
     /* 0x31 */ u8 unk31;
     /* 0x32 */ u8 unk32;
     /* 0x33 */ u8 unk33;
-    /* 0x34 */ char unk34[0x20];
+    /* 0x34 */ s16 cpuDir; /* CPU: target hole */
+    /* 0x36 */ char unk36[0x1E];
 } PgPlayer; /* size 0x54 */
 
 #define PG_PLAYER(i) ((PgPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
@@ -132,6 +133,8 @@ void func_800E1328_minigame(omObjData* obj, f32 arg1);
 void func_800E1334_minigame(omObjData* obj, f32 arg1);
 void func_800E1340_minigame(omObjData* obj, f32 arg1);
 void func_8001EF6C_main(s16, s16, char*);
+s32 func_800E4A90_minigame(omObjData* obj);
+void func_800E5798_minigame(omObjData* obj, s32 arg1);
 void func_800E1490_minigame(u16 arg0);
 void func_800E1804_minigame(void);
 extern s32 D_800EBEB0_minigame[];
@@ -148,6 +151,8 @@ void func_80107A54_popgun_pickoff(void);
 void func_80107B20_popgun_pickoff(omObjData* obj);
 void func_801080DC_popgun_pickoff(omObjData* obj, u32 file0, s32 file1, s32 player, u16 attr);
 void func_80108398_popgun_pickoff(omObjData* obj);
+u16 func_8010880C_popgun_pickoff(omObjData* obj);
+u8 func_80108A78_popgun_pickoff(omObjData* obj, s16 dir);
 void func_80109260_popgun_pickoff(s32 arg0);
 s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
@@ -197,6 +202,8 @@ extern u8 D_8010DDD4_popgun_pickoff;
 extern u8 D_8010C5B0_popgun_pickoff; /* players set up */
 extern s16 D_8010C5B8_popgun_pickoff[][3]; /* start positions */
 extern f32 D_8010C5D0_popgun_pickoff[]; /* start headings */
+extern s16 D_8010C5E0_popgun_pickoff[]; /* aim pitch by row */
+extern s16 D_8010C5E8_popgun_pickoff[2][3]; /* aim heading by slot and column */
 
 void func_801059A0_popgun_pickoff(void) {
     omObjData* obj;
@@ -899,7 +906,121 @@ void func_801080DC_popgun_pickoff(omObjData* obj, u32 file0, s32 file1, s32 play
     }
 }
 
+#ifdef NON_MATCHING
+void func_80108398_popgun_pickoff(omObjData* obj) {
+    u8 attrs[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    MgWork* work;
+    PgPlayer* p;
+    u8 pad;
+    s8 sx;
+    s8 sy;
+    u16 btn;
+    s16 dir;
+    f32 rotX;
+    f32 rotY;
+
+    btn = 0;
+    dir = 0;
+    work = obj->data;
+    p = work->unk158;
+    pad = work->unk57;
+    rotX = obj->rot.x;
+    rotY = work->unk3C;
+    func_800E4A90_minigame(obj);
+    switch (D_8010CC20_popgun_pickoff) {
+    case 0:
+        func_800E5690_minigame(obj, 0x26);
+        break;
+    case 1:
+        p->unk30 = 0xFF;
+        break;
+    case 2:
+        if ((u8)p->cpu == 0) {
+            sx = D_800CBB6E_main[(s8)pad];
+            sy = D_800D20A1_main[(s8)pad];
+            btn = D_800D5558_main[(s8)pad];
+            if (sy >= 24) {
+                dir = 1;
+            } else if (sy < -23) {
+                dir = 7;
+            } else {
+                dir = 4;
+            }
+            if (sx >= 24) {
+                dir++;
+            } else if (sx < -23) {
+                dir--;
+            }
+        } else {
+            btn = func_8010880C_popgun_pickoff(obj);
+            dir = p->cpuDir;
+        }
+        HuSprAttrReset(p->grp, 0, 0x8000);
+        func_80054904_main(p->grp, 0, D_8010CC28_popgun_pickoff[dir].sx, D_8010CC28_popgun_pickoff[dir].sy);
+        rotX = D_8010C5E0_popgun_pickoff[dir / 3];
+        rotY = D_8010C5E8_popgun_pickoff[p->slot][dir % 3];
+        break;
+    case 3:
+        HuSprAttrSet(p->grp, 0, 0x8000);
+        func_800E5690_minigame(obj, 0);
+    case 4:
+        func_800E5690_minigame(obj, 0);
+        func_8001C258_main(obj->model[2], 4, 4);
+        rotX = 0.0f;
+        if (p->slot != 0) {
+            if (rotY > -180.0) {
+                rotY -= 20.0;
+            } else {
+                rotY = -180.0f;
+            }
+        } else {
+            if (rotY < 180.0) {
+                rotY += 20.0;
+            } else {
+                rotY = 180.0f;
+            }
+        }
+        break;
+    case 5:
+        if (p->unk20 == 0) {
+            rotY = 180.0f;
+            if (p->unk2C != 0) {
+                GwPlayer[work->unk59].bonusCoin += 10;
+                func_800E5690_minigame(obj, 0xD);
+                func_80045F1C_main(p->file, -1, p->slot);
+                func_80017954_main(obj->model[0], 2, attrs[p->chr], p->unk31);
+            } else {
+                func_800E5690_minigame(obj, 0xE);
+                func_80017954_main(obj->model[0], 2, attrs[p->chr], p->unk32);
+            }
+            p->unk20++;
+        }
+        break;
+    case 6:
+        if (work != NULL) {
+            HuMemFree(work->unkE8);
+            HuMemFree(work->unk158);
+            HuMemFree(work);
+            obj->data = NULL;
+            obj->func = NULL;
+        }
+        return;
+    case 7:
+        break;
+    }
+    if ((btn & 0x8000) && func_80108A78_popgun_pickoff(obj, dir)) {
+        func_8004AC5C_main(0x496, work->unk59);
+        func_8001C6A8_main(obj->model[0], 0.0f);
+        func_800E5798_minigame(obj, 0x27);
+    }
+    work->unk3C = rotY;
+    obj->rot.y = rotY + 180.0;
+    obj->rot.x = rotX;
+    func_800E4E30_minigame(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80108398_popgun_pickoff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010880C_popgun_pickoff);
 
