@@ -112,6 +112,7 @@ typedef struct BtFxData {
 // main
 void func_8000B638_main(s32 arg0);
 void func_80045C2C_main(void);
+omObjData* func_80045ED0_main(u32 arg0);
 void func_80047C0C_main(u16 group, u16 max_objs);
 omObjData** func_80047DBC_main(s16 group);
 void HmfLightStatSet(s16 arg0, u8 arg1, u8 arg2);
@@ -191,13 +192,20 @@ extern s32 D_8010AD2C_bounce_n_trounce[8]; /* shadow model per character */
 extern Vec D_8010AD4C_bounce_n_trounce[4]; /* podium positions */
 extern u16 D_8010AD84_bounce_n_trounce; /* intro: jump */
 extern u16 D_8010AD86_bounce_n_trounce; /* intro: frames on the ground */
+extern u16 D_8010AD88_bounce_n_trounce; /* finish: decided */
+extern u16 D_8010AD8A_bounce_n_trounce; /* finish: winner turned to the camera */
 extern u16 D_8010AD7C_bounce_n_trounce[4]; /* podium taken */
 
-extern u16 D_8010AEBC_bounce_n_trounce;
+extern u16 D_8010AEB0_bounce_n_trounce; /* finish: timer */
+extern u16 D_8010AEB2_bounce_n_trounce; /* finish: next step */
+extern f32 D_8010AEB4_bounce_n_trounce; /* zoom speed */
+extern f32 D_8010AEB8_bounce_n_trounce; /* winner zoom */
+extern u16 D_8010AEBC_bounce_n_trounce; /* players left */
+extern u16 D_8010AEBE_bounce_n_trounce; /* winner */
 extern omObjData* D_8010AEC0_bounce_n_trounce;
 extern omObjData* D_8010AEC4_bounce_n_trounce;
 extern u16 D_8010AEC8_bounce_n_trounce; /* intro step */
-extern s16 D_8010AECA_bounce_n_trounce;
+extern u16 D_8010AECA_bounce_n_trounce; /* finish step */
 extern s16 D_8010AECC_bounce_n_trounce;
 extern omObjData* D_8010AED0_bounce_n_trounce;
 extern omObjData* D_8010AED4_bounce_n_trounce;
@@ -1201,6 +1209,8 @@ void func_80108940_bounce_n_trounce(void) {
 }
 
 /* At the end: sends every standing player to the free podium nearest to it; TRUE once all are there or out. */
+s32 func_80108994_bounce_n_trounce(void);
+
 s32 func_80108994_bounce_n_trounce(void) {
     f32 dist[4];
     u16 idx[4];
@@ -1676,7 +1686,127 @@ void func_80109AF0_bounce_n_trounce(omObjData* obj) {
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 0: two register-allocation residues (the case 2 player pointer, the 360 - diff constant) */
+/* The finish: decides the winner (or a draw), turns and zooms on the winner, gives the bonus. */
+void func_80109F68_bounce_n_trounce(omObjData* obj) {
+    omObjData* pobj;
+    omObjData* other;
+    f32 d;
+    f32 diff;
+    f32 step;
+    s32 i;
+
+    switch (D_8010AECA_bounce_n_trounce) {
+        case 0:
+            D_8010AED4_bounce_n_trounce->work[0] = 0;
+            D_8010AEB0_bounce_n_trounce = 45;
+            D_8010AECA_bounce_n_trounce = 1;
+            for (i = 0; i < 4; i++) {
+                ((BtPlayer*)D_8010AEDC_bounce_n_trounce[i]->data)->unk74 = 50.0f;
+            }
+            break;
+        case 1:
+            if (D_8010AEB0_bounce_n_trounce == 0) {
+                if (D_8010AD88_bounce_n_trounce == 1) {
+                    D_8010AECA_bounce_n_trounce = D_8010AEB2_bounce_n_trounce;
+                }
+            } else {
+                D_8010AEB0_bounce_n_trounce--;
+            }
+            if (D_8010AD88_bounce_n_trounce != 0) {
+                break;
+            }
+            if (D_8010AEBC_bounce_n_trounce != 0) {
+                if ((u16)func_80108994_bounce_n_trounce() != 1) {
+                    break;
+                }
+                if (D_8010AEBC_bounce_n_trounce == 1) {
+                    for (i = 0; i < 4; i++) {
+                        if (((BtPlayer*)D_8010AEDC_bounce_n_trounce[i]->data)->unk02 == 4) {
+                            D_8010AEBE_bounce_n_trounce = i;
+                            D_8010ABB0_bounce_n_trounce.unk18 = D_8010AEBE_bounce_n_trounce;
+                            D_8010AEB2_bounce_n_trounce = 3;
+                            D_8010AD88_bounce_n_trounce = 1;
+                        }
+                    }
+                    break;
+                }
+            }
+            D_8010ABB0_bounce_n_trounce.unk06 = 4;
+            D_8010AEB2_bounce_n_trounce = 2;
+            D_8010AD88_bounce_n_trounce = 1;
+            break;
+        case 2:
+            func_800E6F0C_minigame(4);
+            for (i = 0; i < 4; i++) {
+                other = D_8010AEDC_bounce_n_trounce[i];
+                if (((BtPlayer*)other->data)->unk02 == 4) {
+                    func_8001C624_main(other->model[1], HmfModelData[other->motion[5]].unk02, 0, 6, 0);
+                }
+            }
+            D_8010AECA_bounce_n_trounce = 6;
+            break;
+        case 3:
+            pobj = D_8010AEDC_bounce_n_trounce[D_8010AEBE_bounce_n_trounce];
+            D_8010AEB8_bounce_n_trounce = 1350.0f;
+            d = HuSqrtf(pobj->trans.x * pobj->trans.x + pobj->trans.z * pobj->trans.z);
+            if (d > 560.0f && (pobj->trans.z > 0.0f || pobj->trans.x > 0.0f)) {
+                D_8010AEB8_bounce_n_trounce += (d - 560.0f) / 113.0f * 400.0f;
+            }
+            D_8010AEB4_bounce_n_trounce = (D_8010AEB8_bounce_n_trounce - CZoom) / 30.0f;
+            other = D_8010AEDC_bounce_n_trounce[D_8010AEBE_bounce_n_trounce];
+            func_8001C624_main(other->model[1], HmfModelData[other->motion[2]].unk02, 0, 6, 0);
+            D_8010AECA_bounce_n_trounce = 4;
+            break;
+        case 4:
+            CZoom += D_8010AEB4_bounce_n_trounce;
+            if (CZoom < D_8010AEB8_bounce_n_trounce) {
+                CZoom = D_8010AEB8_bounce_n_trounce;
+                D_8010AECA_bounce_n_trounce = 5;
+            }
+            if (D_8010AD8A_bounce_n_trounce == 0) {
+                pobj = D_8010AEDC_bounce_n_trounce[D_8010AEBE_bounce_n_trounce];
+                if (pobj->rot.y >= 360.0f) {
+                    pobj->rot.y -= 360.0f;
+                }
+                if (pobj->rot.y < 0.0f) {
+                    pobj->rot.y += 360.0f;
+                }
+                diff = (CRot.y + 0.0f) - pobj->rot.y;
+                if (diff < 0.0f) {
+                    diff += 360.0f;
+                }
+                if (diff < 180.0f) {
+                    pobj->rot.y = (diff > 8.0f) ? pobj->rot.y + 8.0f : diff + pobj->rot.y;
+                } else {
+                    step = (360.0f - diff > 8.0f) ? 8.0f : 360.0f - diff;
+                    pobj->rot.y = pobj->rot.y - step;
+                }
+                Hu3DModelRotSet(pobj->model[1], pobj->rot.x, pobj->rot.y, pobj->rot.z);
+                if (fabs(pobj->rot.y - (CRot.y + 0.0f)) < 0.1f) {
+                    func_8001C624_main(pobj->model[1], HmfModelData[pobj->motion[1]].unk02, 0, 6, 0);
+                    D_8010AD8A_bounce_n_trounce = 1;
+                }
+            }
+            break;
+        case 5:
+            other = D_8010AEDC_bounce_n_trounce[D_8010AEBE_bounce_n_trounce];
+            func_8001C624_main(other->model[1], HmfModelData[other->motion[4]].unk02, 0, 6, 0);
+            func_800E6F0C_minigame(4);
+            func_80045ED0_main(D_800A178C_main[GwPlayer[D_8010AEBE_bounce_n_trounce].chr][0] | 0x2F);
+            GwPlayer[D_8010AEBE_bounce_n_trounce].bonusCoin = 10;
+            D_8010AECA_bounce_n_trounce = 6;
+            break;
+        case 6:
+            omDelObj(obj);
+            D_8010AEC4_bounce_n_trounce = NULL;
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109F68_bounce_n_trounce);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010A664_bounce_n_trounce);
 
