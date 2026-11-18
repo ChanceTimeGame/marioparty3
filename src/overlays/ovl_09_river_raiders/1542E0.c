@@ -100,6 +100,10 @@ extern RrEnt D_8010DF18_river_raiders[]; /* = D_8010D9F0_river_raiders[10..]: ri
 extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
 extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+extern u8 D_80110D91_river_raiders;    /* team-1 rafts given a lane */
+extern u8 D_80110DBA_river_raiders[3]; /* the lanes given */
+extern RrXY D_8010D870_river_raiders[3]; /* team-1 portrait positions by lane */
+void func_80109C08_river_raiders(omObjData *obj);
 extern s16 D_80110D98_river_raiders[3][5]; /* collision flags per team-1 raft (func_80108678_river_raiders) */
 extern s32 D_8010D3D0_river_raiders[]; /* portrait sprite per character */
 extern s32 D_800A178C_main[][6];
@@ -1485,9 +1489,115 @@ void func_80109C08_river_raiders(omObjData *obj) {
     Hu3DModelRotSet(obj->model[3], obj->rot.x, obj->rot.y, obj->rot.z);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010A6A8_river_raiders);
+/* Team-1 raft setup: rider and raft models, a free lane (work[2], D_80110DBA_river_raiders the lanes taken),
+ * paddle, shadow; the rider's portrait at the lane's spot. */
+void func_8010A6A8_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
+    s8 chr = GwPlayer[obj->work[0]].chr;
+    u8 lane;
 
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x6A9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x4F));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x50));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x51));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x52));
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C6A8_main(obj->model[0], 0.0f);
+    func_8001C814_main(obj->model[0], 2, 2);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    lane = rand8() % 3;
+    while (TRUE) {
+        if (lane != D_80110DBA_river_raiders[0] && lane != D_80110DBA_river_raiders[1]) {
+            obj->work[2] = lane;
+            D_80110DBA_river_raiders[D_80110D91_river_raiders] = lane;
+            D_80110D91_river_raiders++;
+            switch (obj->work[2]) {
+                case 0:
+                    obj->trans.x = -300.0f;
+                    break;
+                case 1:
+                    obj->trans.x = 0.0f;
+                    break;
+                case 2:
+                    obj->trans.x = 300.0f;
+                    break;
+            }
+            break;
+        }
+        lane = (lane + 1) % 3;
+    }
+    obj->trans.y = 0.0f;
+    obj->trans.z = 600.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->model[1] = func_8000B108_main(0x2A000B, 0x4B9);
+    func_8000B460_main(obj, 4, 0x2A000C);
+    func_8000B460_main(obj, 5, 0x2A000D);
+    func_8000B460_main(obj, 6, 0x2A000E);
+    func_8000B460_main(obj, 7, 0x2A000F);
+    func_8001C5B4_main(obj->model[1], obj->motion[4]);
+    func_8001C6A8_main(obj->model[1], 0.0f);
+    func_8001C814_main(obj->model[1], 2, 2);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->model[2] = func_8000B108_main(0x2A0011, 0x4A9);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[2], 0.5f, 1.0f, 0.5f);
+    func_8001C814_main(obj->model[2], 2, 2);
+    obj->model[3] = func_8000B0A0_main(0, 0x4A9);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, 0.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[3], 1.0f, 1.0f, 1.0f);
+    func_8001C2FC_main(obj->model[3], 0x80000000, 0);
+    func_8001C448_main(obj->model[3]);
+    func_8001C514_main(obj->model[3]);
+    ent->grp = func_8000B838_main(D_8010D3D0_river_raiders[chr]);
+    ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+    func_8000BC48_main(ent->spr, 0x1000);
+    func_8000BBD4_main(ent->spr, D_8010D870_river_raiders[obj->work[2]].x, D_8010D870_river_raiders[obj->work[2]].y);
+    func_8000BE5C_main(ent->spr, 1.0f, 1.0f);
+    obj->func = func_80109C08_river_raiders;
+}
+
+#ifdef NON_MATCHING
+/* Creates the team-1 rafts (players in group 1). */
+void func_8010ABA0_river_raiders(void) {
+    RrEnt *ent;
+    omObjData *obj;
+    u32 player = 0;
+    u32 n = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+                case 0:
+                    player = 0;
+                    break;
+                case 1:
+                    player = 1;
+                    break;
+                case 2:
+                    player = 2;
+                    break;
+                case 3:
+                    player = 3;
+                    break;
+            }
+            ent = &D_8010DD08_river_raiders[n];
+            obj = omAddObj(750, 9, 60, -1, func_8010A6A8_river_raiders);
+            obj->work[0] = player;
+            obj->work[1] = n++;
+            ent->obj = obj;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010ABA0_river_raiders);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010ACD8_river_raiders);
 
