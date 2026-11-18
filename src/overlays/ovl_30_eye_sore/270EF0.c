@@ -555,7 +555,89 @@ void func_801070CC_eye_sore(omObjData *obj, s8 player) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_8010725C_eye_sore);
+void func_8010725C_eye_sore(omObjData *obj, s8 player) {
+    s8 pad = obj->work[3];
+    EsEnt *ent = ES_ENT(ES_ENT_PLAYER, (s8)obj->work[0]);
+    EsPlayer *p = &D_8010CA60_eye_sore[obj->work[0]];
+
+    if (p->timer < 46) {
+        p->unk34 = obj->trans.y + 30.0f;
+        if (p->timer == 0 || p->timer == 23) {
+            func_8004AC98_main(0x48C, (s16)obj->work[0]);
+        }
+        if ((u8)(p->timer % 23) < 11) {
+            if (p->unk38 < p->unk34 + 44.0f) {
+                p->unk38 += 5.0f;
+            }
+            if (p->unk3C < p->unk38 + 46.0f) {
+                p->unk3C += 5.0f;
+            }
+            if (p->unk40 < p->unk3C + 60.0f) {
+                p->unk40 += 5.0f;
+            }
+        } else {
+            if (p->unk34 + 44.0f < p->unk38) {
+                p->unk38 -= 5.0f;
+            }
+            if (p->unk38 + 46.0f < p->unk3C) {
+                p->unk3C -= 5.0f;
+            }
+            if (p->unk3C + 60.0f < p->unk40) {
+                p->unk40 -= 5.0f;
+            }
+        }
+        ent->unk18 = func_801059BC_eye_sore(ent->unk18, 30.0f);
+        Hu3DModelPosSet(obj->model[2], p->unk30, p->unk34, p->unk44);
+        Hu3DModelPosSet(obj->model[3], p->unk30, p->unk38, p->unk44);
+        Hu3DModelPosSet(obj->model[4], p->unk30, p->unk3C, p->unk44);
+        Hu3DModelPosSet(obj->model[5], p->unk30, p->unk40, p->unk44);
+        Hu3DModelRotSet(obj->model[2], 0.0f, 0.0f, ent->unk18);
+        Hu3DModelRotSet(obj->model[3], 0.0f, 0.0f, ent->unk18);
+        Hu3DModelRotSet(obj->model[4], 0.0f, 0.0f, ent->unk18);
+        Hu3DModelRotSet(obj->model[5], 0.0f, 0.0f, ent->unk18);
+        func_8001C258_main(obj->model[2], 4, 0);
+        func_8001C258_main(obj->model[3], 4, 0);
+        func_8001C258_main(obj->model[4], 4, 0);
+        func_8001C258_main(obj->model[5], 4, 0);
+    }
+    if (p->timer == 46) {
+        func_8004AC98_main(0x48C, (s16)obj->work[0]);
+    }
+    if (p->timer >= 16 && p->timer < 51) {
+        ent->unk16 -= 7;
+        if ((s16)ent->unk16 < 0) {
+            ent->unk16 = 0;
+        }
+        func_8001F9E4_main(obj->model[2], ent->unk16);
+    }
+    if (p->timer < 23) {
+        obj->trans.y += D_8010AC38_eye_sore[p->timer];
+    } else if (p->timer < 46) {
+        obj->trans.y += D_8010AC38_eye_sore[p->timer - 23];
+    } else if (p->timer == 50) {
+        func_8001C258_main(obj->model[2], 4, 4);
+        func_8001C258_main(obj->model[3], 4, 4);
+        func_8001C258_main(obj->model[4], 4, 4);
+        func_8001C258_main(obj->model[5], 4, 4);
+        func_801063E8_eye_sore(obj, 4);
+    } else if (p->timer >= 65) {
+        if (D_8010AF20_eye_sore >= 3 || D_800CBB6E_main[pad] + D_800D20A1_main[pad] != 0 || p->cpu != 0) {
+            p->unk11 = 0;
+            p->timer = 0;
+            p->state = 0;
+            ent->unk16 = 0xFF;
+            func_8001F9E4_main(obj->model[2], 0xFF);
+            p->unk34 = obj->trans.y + 30.0f;
+            p->unk38 = obj->trans.y + 74.0f;
+            p->unk3C = obj->trans.y + 120.0f;
+            p->unk40 = obj->trans.y + 180.0f;
+            return;
+        }
+    }
+    if (p->timer < 65) {
+        p->timer++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80107804_eye_sore);
 
