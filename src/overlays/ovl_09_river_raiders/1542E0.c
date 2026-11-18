@@ -1,28 +1,292 @@
 #include "common.h"
+// m5 rv: River Raiders (2 vs 2 raft race)
+#include "overlays/minigame.h"
+#include "game/audio.h"
+#include "game/camera.h"
+#include "game/data.h"
+#include "game/esprite.h"
+#include "game/gamemes.h"
+#include "game/gamework_data.h"
+#include "game/hmflight.h"
+#include "game/hmfman.h"
+#include "game/object.h"
+#include "game/sprite.h"
+#include "game/util.h"
+#include "game/wipe.h"
+#include "mallocblock.h"
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801059A0_river_raiders);
+typedef func_800E1BA8_minigame_ObjData MgWork;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801059BC_river_raiders);
+/* One slot of the overlay's object table (D_8010D9F0_river_raiders, 100 x 0x84; Coconut Conk's layout). */
+typedef struct RrEnt {
+    /* 0x00 */ omObjData *obj;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ s16 unk16;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ f32 unk24;
+    /* 0x28 */ f32 unk28;
+    /* 0x2C */ f32 unk2C;
+    /* 0x30 */ f32 unk30;
+    /* 0x34 */ f32 unk34;
+    /* 0x38 */ f32 unk38;
+    /* 0x3C */ f32 unk3C;
+    /* 0x40 */ s16 grp;
+    /* 0x42 */ s16 spr;
+    /* 0x44 */ Vec pos;
+    /* 0x50 */ Vec unk50;
+    /* 0x5C */ Vec unk5C;
+    /* 0x68 */ f32 unk68;
+    /* 0x6C */ f32 unk6C;
+    /* 0x70 */ f32 unk70;
+    /* 0x74 */ f32 unk74;
+    /* 0x78 */ Vec unk78;
+} RrEnt; // Size 0x84
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105A3C_river_raiders);
+typedef struct RrXY {
+    f32 x;
+    f32 y;
+} RrXY;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105B04_river_raiders);
+void func_8000BC48_main(u16, s32);
+void func_8000BD50_main(u16 spriteId, s16 arg1);
+extern s16 D_800CDA7C_main[];
+extern s8 D_800CBB6E_main[];
+extern s8 D_800D20A1_main[];
+extern u16 D_800D5558_main[4];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105B7C_river_raiders);
+/* .data */
+extern s32 D_8010D3B8_river_raiders[3];
+extern f32 D_8010D3C4_river_raiders[3];
+extern f32 D_8010D888_river_raiders[]; /* [team * 4 + digit] x, y pairs */
+extern f32 D_8010D88C_river_raiders[]; /* = D_8010D888_river_raiders[1]: the y column */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105B88_river_raiders);
+/* .bss */
+extern RrEnt D_8010D9F0_river_raiders[100];
+extern RrEnt D_8010DA74_river_raiders[]; /* = D_8010D9F0_river_raiders[1] */
+extern RrEnt D_8010DAF8_river_raiders[]; /* = D_8010D9F0_river_raiders[2] */
+extern u8 D_80110D84_river_raiders;
+extern s8 D_80110D90_river_raiders;
+extern u8 D_80110DBD_river_raiders;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105BA4_river_raiders);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105D1C_river_raiders);
+void func_8010D268_river_raiders(void);
+void func_80105BA4_river_raiders(omObjData *obj);
+void func_80105D1C_river_raiders(omObjData *obj);
+void func_80105FA0_river_raiders(omObjData *obj);
+void func_801060BC_river_raiders(omObjData *obj);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105EAC_river_raiders);
+void func_801059A0_river_raiders(void) {
+    func_8010D268_river_raiders();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80105FA0_river_raiders);
+f32 func_801059BC_river_raiders(f32 angle, f32 add) {
+    f32 ret = angle + add;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801060BC_river_raiders);
+    while (ret >= 360.0f) {
+        ret -= 360.0f;
+    }
+    while (ret < 0.0f) {
+        ret += 360.0f;
+    }
+    return ret;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801061A0_river_raiders);
+void func_80105A3C_river_raiders(void) {
+    RrEnt *ent;
+    u32 i;
+
+    for (i = 0, ent = D_8010D9F0_river_raiders; i < 100; i++, ent++) {
+        ent->obj = NULL;
+        ent->unk04 = 0;
+        ent->unk06 = 0;
+        ent->unk08 = 0;
+        ent->unk0A = 0;
+        ent->unk0C = 0;
+        ent->unk0E = 0;
+        ent->unk10 = 0;
+        ent->unk12 = 0;
+        ent->unk14 = 0;
+        ent->unk16 = 0;
+        ent->unk18 = 0;
+        ent->unk1C = 0;
+        ent->unk20 = 0;
+        ent->unk24 = 0;
+        ent->unk28 = 0;
+        ent->unk2C = 0;
+        ent->unk30 = 0;
+        ent->unk34 = 0;
+        ent->unk38 = 0;
+        ent->unk3C = 0;
+        ent->grp = -1;
+        ent->spr = -1;
+        ent->pos.x = ent->pos.y = ent->pos.z = 0.0f;
+        ent->unk50.x = ent->unk50.y = ent->unk50.z = 0.0f;
+        ent->unk5C.x = ent->unk5C.y = ent->unk5C.z = 0.0f;
+        ent->unk68 = 0.0f;
+        ent->unk6C = 0.0f;
+        ent->unk70 = 0.0f;
+        ent->unk74 = 0.0f;
+        ent->unk78.x = ent->unk78.y = ent->unk78.z = 0.0f;
+    }
+}
+
+void func_80105B04_river_raiders(s32 player) {
+    D_800CDA7C_main[GwPlayer[player].pad] = 0;
+    D_800D5558_main[GwPlayer[player].pad] = 0;
+    D_800CBB6E_main[GwPlayer[player].pad] = 0;
+    D_800D20A1_main[GwPlayer[player].pad] = 0;
+}
+
+void func_80105B7C_river_raiders(s8 arg0) {
+    D_80110D90_river_raiders = arg0;
+}
+
+f32 func_80105B88_river_raiders(f32 pos, f32 *vel, f32 accel) {
+    f32 v = *vel;
+
+    *vel = v - accel;
+    return pos + v;
+}
+
+/* A team score digit sprite: work[0] team, work[1] 2 tens, 3 ones. */
+void func_80105BA4_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010D9F0_river_raiders[obj->work[0] * 4 + 43 + obj->work[1]];
+
+    switch (obj->work[0]) {
+        case 0:
+            if (obj->work[1] == 2) {
+                if ((u8)(D_80110D84_river_raiders / 10) != 0) {
+                    func_8000BB54_main(ent->spr);
+                    func_8000BD50_main(ent->spr, (u8)(D_80110D84_river_raiders / 10));
+                }
+            } else if (obj->work[1] == 3) {
+                func_8000BD50_main(ent->spr, (u8)(D_80110D84_river_raiders % 10));
+            }
+            break;
+        case 1:
+            if (obj->work[1] == 2) {
+                if ((u8)(D_80110DBD_river_raiders / 10) != 0) {
+                    func_8000BB54_main(ent->spr);
+                    func_8000BD50_main(ent->spr, (u8)(D_80110DBD_river_raiders / 10));
+                }
+            } else if (obj->work[1] == 3) {
+                func_8000BD50_main(ent->spr, (u8)(D_80110DBD_river_raiders % 10));
+            }
+            break;
+    }
+}
+
+void func_80105D1C_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010D9F0_river_raiders[obj->work[0] * 4 + 43 + obj->work[1]];
+
+    switch (obj->work[1]) {
+        case 0:
+            ent->grp = func_8000B838_main(0x2A0013);
+            ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+            func_8000BC48_main(ent->spr, 0x1000);
+            break;
+        case 1:
+            ent->grp = func_8000B838_main(0x2A0012);
+            ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+            func_8000BC48_main(ent->spr, 0x1000);
+            break;
+        case 2:
+        case 3:
+            ent->grp = func_8000B838_main(0x31);
+            ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+            func_8000BC48_main(ent->spr, 0x1000);
+            if (obj->work[1] == 2) {
+                func_8000BB94_main(ent->spr);
+            }
+            break;
+    }
+    ent->pos.x = D_8010D888_river_raiders[(obj->work[0] * 4 + obj->work[1]) * 2];
+    ent->pos.y = D_8010D88C_river_raiders[(obj->work[0] * 4 + obj->work[1]) * 2];
+    func_8000BBD4_main(ent->spr, ent->pos.x, ent->pos.y);
+    obj->func = func_80105BA4_river_raiders;
+}
+
+void func_80105EAC_river_raiders(void) {
+    omObjData *obj;
+    RrEnt *ent;
+    s16 i;
+    s16 j;
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            ent = &D_8010D9F0_river_raiders[i * 4 + 43 + j];
+            obj = omAddObj(990, 1, 10, -1, func_80105D1C_river_raiders);
+            obj->work[0] = i;
+            obj->work[1] = j;
+            ent->obj = obj;
+        }
+    }
+}
+
+/* The three river sections scroll toward the camera; one passing the end moves behind the last. */
+void func_80105FA0_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010D9F0_river_raiders[obj->work[0]];
+    omObjData *sect;
+    s16 i;
+
+    obj->trans.z += 17.0f;
+    if (obj->work[0] == 2) {
+        for (i = 0; i < 3; i++) {
+            sect = (&D_8010D9F0_river_raiders[i])->obj;
+            if (sect->trans.z >= 1875.0f) {
+                switch (i) {
+                    case 0:
+                        ent = D_8010DAF8_river_raiders;
+                        break;
+                    case 1:
+                        ent = D_8010D9F0_river_raiders;
+                        break;
+                    case 2:
+                        ent = D_8010DA74_river_raiders;
+                        break;
+                }
+                sect->trans.z = ent->obj->trans.z - 1875.0f;
+            }
+        }
+    }
+}
+
+void func_801060BC_river_raiders(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(D_8010D3B8_river_raiders[obj->work[0]], 0x288);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = D_8010D3C4_river_raiders[obj->work[0]];
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    obj->func = func_80105FA0_river_raiders;
+}
+
+void func_801061A0_river_raiders(void) {
+    omObjData *obj;
+    RrEnt *ent;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010D9F0_river_raiders[i];
+        obj = omAddObj(500, 1, 10, -1, func_801060BC_river_raiders);
+        obj->work[0] = i;
+        ent->obj = obj;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106244_river_raiders);
 
