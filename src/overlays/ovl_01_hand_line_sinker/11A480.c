@@ -1732,12 +1732,8 @@ void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot
         D_8010C160_hand_line_sinker[i]->model[0] = *mdl;
         func_8001C6A8_main(D_8010C160_hand_line_sinker[i]->model[0], 0.0f);
         sp->follow = obj;
-        sp->ofs.x = pos->x;
-        sp->ofs.y = pos->y;
-        sp->ofs.z = pos->z;
-        sp->rot.x = rot->x;
-        sp->rot.y = rot->y;
-        sp->rot.z = rot->z;
+        sp->ofs = *pos;
+        sp->rot = *rot;
         if (obj == NULL) {
             omSetTra(D_8010C160_hand_line_sinker[i], pos->x, pos->y, pos->z);
         } else {
