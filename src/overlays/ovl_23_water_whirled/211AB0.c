@@ -53,6 +53,11 @@ extern s32 D_8010A284_water_whirled; /* looping sound handle */
 extern s32 D_8010A288_water_whirled; /* its volume */
 extern u8 D_8010A2AC_water_whirled[]; /* minigame control block */
 extern Vec D_8010A2D4_water_whirled; /* light direction */
+void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
+f32 fabsf(f32);
+void func_80105D64_water_whirled(void);
+extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
+// LOCAL END
 
 void func_801059A0_water_whirled(void) {
     u8 cam;
@@ -116,7 +121,62 @@ void func_80105D64_water_whirled(void) {
     Hu3DCamSetPositionOrientation(0, &pos, &at, &up);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80105EA0_water_whirled);
+/* Camera during play (state 2): centre on the riders and zoom so all four stay on screen. */
+void func_80105EA0_water_whirled(omObjData* obj) {
+    Vec pos;
+    Vec2f scr;
+    f32 lo;
+    f32 hi;
+    s32 i;
+
+    if (func_800E6E8C_minigame() == 2) {
+        lo = 50000.0f;
+        hi = -50000.0f;
+        for (i = 0; i < 4; i++) {
+            if (D_8010A1D0_water_whirled[i].x < lo) {
+                lo = D_8010A1D0_water_whirled[i].x;
+            }
+            if (hi < D_8010A1D0_water_whirled[i].x) {
+                hi = D_8010A1D0_water_whirled[i].x;
+            }
+        }
+        Center.x = (lo + hi) * 0.5f;
+        lo = 50000.0f;
+        hi = -50000.0f;
+        for (i = 0; i < 4; i++) {
+            if (D_8010A1D0_water_whirled[i].z < lo) {
+                lo = D_8010A1D0_water_whirled[i].z;
+            }
+            if (hi < D_8010A1D0_water_whirled[i].z) {
+                hi = D_8010A1D0_water_whirled[i].z;
+            }
+        }
+        Center.z = (lo + hi) * 0.5f;
+        CZoom = 12000.0f;
+        func_80105D64_water_whirled();
+        hi = 0.0f;
+        for (i = 0; i < 4; i++) {
+            pos.x = D_8010A1D0_water_whirled[i].x;
+            pos.y = 0.0f;
+            pos.z = D_8010A1D0_water_whirled[i].z;
+            func_80012B14_main(0, &pos, &scr);
+            scr.x = fabsf(scr.x - 160.0f);
+            scr.y = fabsf(scr.y - 120.0f);
+            scr.x = (scr.x + 40.0f) / 160.0f;
+            scr.y = (scr.y + 20.0f) / 120.0f;
+            if (hi < scr.x) {
+                hi = scr.x;
+            }
+            if (hi < scr.y) {
+                hi = scr.y;
+            }
+        }
+        CZoom = hi * 12000.0f;
+        if (CZoom < 7000.0f) {
+            CZoom = 7000.0f;
+        }
+    }
+}
 
 /* Fade the looping sound out, then leave once the wipe is done. */
 void func_8010616C_water_whirled(omObjData* obj) {
