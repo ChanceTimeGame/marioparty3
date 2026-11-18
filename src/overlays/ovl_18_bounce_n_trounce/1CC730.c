@@ -22,8 +22,8 @@ typedef struct BtTile {
 /* omObjData::data of a player */
 typedef struct BtPlayer {
     /* 0x00 */ u16 unk00; /* player */
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ s16 unk04;
+    /* 0x02 */ u16 unk02; /* state: 2/3 out */
+    /* 0x04 */ u16 unk04; /* motion state */
     /* 0x06 */ s16 unk06;
     /* 0x08 */ s16 unk08;
     /* 0x0A */ s16 unk0A;
@@ -36,9 +36,10 @@ typedef struct BtPlayer {
     /* 0x20 */ f32 unk20;
     /* 0x24 */ f32 unk24;
     /* 0x28 */ f32 unk28; /* shadow scale */
-    /* 0x2C */ char unk2C[4];
+    /* 0x2C */ s32 unk2C;
     /* 0x30 */ Vec unk30;
-    /* 0x3C */ char unk3C[8];
+    /* 0x3C */ s32 unk3C;
+    /* 0x40 */ f32 unk40;
     /* 0x44 */ f32 unk44;
     /* 0x48 */ f32 unk48;
     /* 0x4C */ Vec unk4C;
@@ -107,6 +108,10 @@ void func_800138EC_main(s16 model, u16 mask, u16 flags);
 extern BtEsprite* D_800CD1DC_main;
 extern s32 D_800A178C_main[][6];
 extern Vec Center;
+extern s8 D_800CBB6E_main[];  /* CPU stick x */
+extern s8 D_800D20A1_main[];  /* CPU stick y */
+extern u16 D_800D5558_main[]; /* CPU buttons */
+extern f32 D_800D2120_main;
 extern Vec CRot;
 extern f32 CZoom;
 
@@ -125,7 +130,10 @@ void func_80106854_bounce_n_trounce(omObjData* obj);
 void func_801068F4_bounce_n_trounce(omObjData* obj);
 void func_801069F0_bounce_n_trounce(omObjData* obj);
 void func_801070CC_bounce_n_trounce(omObjData* obj);
+void func_80107114_bounce_n_trounce(omObjData* obj, s8 stickX, s8 stickY, u16 btn);
+void func_80107EDC_bounce_n_trounce(omObjData* obj);
 void func_80108940_bounce_n_trounce(void);
+void func_80109018_bounce_n_trounce(omObjData* obj, s8* stickX, s8* stickY, u16* btn);
 void func_80109AF0_bounce_n_trounce(omObjData* obj);
 void func_80109F68_bounce_n_trounce(omObjData* obj);
 void func_8010A664_bounce_n_trounce(omObjData* obj);
@@ -135,6 +143,9 @@ f32 func_8010AAE0_bounce_n_trounce(f32 x0, f32 z0, f32 x1, f32 z1);
 void func_8010AB90_bounce_n_trounce(void);
 
 extern D_80111B50_vine_with_me_Struct D_8010ABB0_bounce_n_trounce;
+extern s8 D_8010ABD8_bounce_n_trounce[4];
+extern s8 D_8010ABDC_bounce_n_trounce[4];
+extern u16 D_8010ABE0_bounce_n_trounce[4];
 extern u16 D_8010ABE8_bounce_n_trounce;
 extern Vec D_8010ABEC_bounce_n_trounce[9]; /* tile positions */
 extern Vec D_8010AC58_bounce_n_trounce[7];
@@ -594,21 +605,113 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     obj->func = func_801070CC_bounce_n_trounce;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80106F78_bounce_n_trounce);
+void func_80106F78_bounce_n_trounce(omObjData* obj) {
+    s8 stickX;
+    s8 stickY;
+    u16 btn;
+    BtPlayer* player;
+    u16 pad;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_801070CC_bounce_n_trounce);
+    player = obj->data;
+    pad = GwPlayer[player->unk00].pad;
+    if (player->unk02 == 3) {
+        return;
+    }
+    if (GwPlayer[player->unk00].stat & 1) {
+        func_80109018_bounce_n_trounce(obj, &stickX, &stickY, &btn);
+    } else {
+        stickX = D_800CBB6E_main[pad];
+        stickY = D_800D20A1_main[pad];
+        btn = D_800D5558_main[pad];
+    }
+    if (func_800E6E8C_minigame() == 0 || func_800E6E8C_minigame() == 1 || func_800E6E8C_minigame() == 3) {
+        stickY = 0;
+        stickX = 0;
+        btn = 0;
+    }
+    if (player->unk02 == 2 || player->unk02 == 3) {
+        stickY = 0;
+        stickX = 0;
+        btn = 0;
+        func_80107EDC_bounce_n_trounce(obj);
+        return;
+    }
+    func_80107114_bounce_n_trounce(obj, stickX, stickY, btn);
+}
+
+void func_801070CC_bounce_n_trounce(omObjData* obj) {
+    BtPlayer* player = obj->data;
+
+    func_80107114_bounce_n_trounce(obj, D_8010ABD8_bounce_n_trounce[player->unk00],
+                                   D_8010ABDC_bounce_n_trounce[player->unk00], D_8010ABE0_bounce_n_trounce[player->unk00]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80107114_bounce_n_trounce);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80107EDC_bounce_n_trounce);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108350_bounce_n_trounce);
+void func_80108350_bounce_n_trounce(omObjData* obj) {
+    BtPlayer* player = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108398_bounce_n_trounce);
+    if (player->unk02 != 2 && player->unk02 != 3) {
+        player->unk02 = 0;
+    }
+    player->unk44 = 0;
+    player->unk48 = 0;
+    func_8001C258_main(obj->model[3], 4, 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80108454_bounce_n_trounce);
+/* obj bounces off other: knock other away from obj */
+void func_80108398_bounce_n_trounce(omObjData* obj, omObjData* other) {
+    BtPlayer* me;
+    BtPlayer* player;
+    f32 speed;
+    f32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_8010846C_bounce_n_trounce);
+    me = obj->data;
+    player = other->data;
+    speed = (me->unk44 / 160.0f) * 22.0f + 20.0f;
+    angle = atan2df(other->trans.x - obj->trans.x, other->trans.z - obj->trans.z);
+    player->unk64.x = sindf(angle) * speed;
+    player->unk64.y = cosdf(angle) * speed;
+    player->unk64.z = 0.8f;
+}
+
+void func_80108454_bounce_n_trounce(omObjData* obj, s32 arg1) {
+    BtPlayer* player = obj->data;
+
+    player->unk2C = arg1;
+    player->unk3C = 0;
+    player->unk40 = obj->trans.y;
+}
+
+void func_8010846C_bounce_n_trounce(omObjData* obj) {
+    BtPlayer* player;
+    f32 frame;
+    f32 dir;
+    f32 rate;
+
+    player = obj->data;
+    dir = player->unk24;
+    rate = D_800D2120_main;
+    frame = HmfModelData[obj->model[0]].unk40;
+    if (player->unk04 == 2) {
+        frame += dir * player->unk20 * rate;
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 < frame) {
+            player->unk24 = -1.0f;
+            frame = D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02;
+            player->unk04 = 4;
+        }
+    } else if (player->unk04 == 3) {
+        frame += player->unk24 * player->unk20 * D_800D2120_main;
+        if (frame < 0.0f) {
+            frame = 0.0f;
+            player->unk04 = 1;
+        }
+    }
+    func_8001C6A8_main(obj->model[0], frame);
+    func_8001C6A8_main(obj->model[1], frame);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_801085EC_bounce_n_trounce);
 
