@@ -18,10 +18,18 @@
 // EXTERN
 
 // C1F0
+u16 func_8000B0D4_main(s32 arg0, s32 arg1);
+void func_8000BBFC_main(u16, u8);
+void func_8000BC48_main(u16, u16);
 s32 func_8000B710_main(s32 arg0);
 
 // 44C2C
 void func_80045C2C_main(void);
+
+// 1D3D0
+void func_8001FB34_main(s16 arg0, u8 arg1);
+void func_8001FBBC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3);
+void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
 
 // hmflight
 void HmfLightStatSet(s16, u8, u8);
@@ -70,6 +78,16 @@ typedef struct {
     /* 0x8E */ char unk8E[6];
 } EotlPlayer; // Size 0x94
 
+typedef struct {
+    /* 0x00 */ s16 unk00[2];
+    /* 0x04 */ s16 unk04[2];
+    /* 0x08 */ s16 unk08[2];
+    /* 0x0C */ s16 unk0C[2];
+    /* 0x10 */ s16 unk10[2];
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ char unk16[0x12];
+} EotlHud; // Size 0x28
+
 void func_80105E0C_end_of_the_line(omObjData *obj);
 void func_80105E88_end_of_the_line(omObjData *obj);
 void func_80106444_end_of_the_line(omObjData *obj);
@@ -89,10 +107,14 @@ void func_8010C060_end_of_the_line(omObjData *obj);
 void func_8010C3F4_end_of_the_line(void);
 
 extern D_80111B50_vine_with_me_Struct D_8010C5A0_end_of_the_line;
+extern s16 D_8010C5C8_end_of_the_line[];
+extern s32 D_8010C5D8_end_of_the_line[5];
+extern s32 D_8010C5EC_end_of_the_line[5];
 extern s16 D_8010C600_end_of_the_line[2][4];
 extern s16 D_8010C610_end_of_the_line[2][4];
 
 extern u16 D_8010C650_end_of_the_line;
+extern s32 D_8010C658_end_of_the_line[3];
 
 extern omObjData *D_8010C730_end_of_the_line;
 extern omObjData *D_8010C734_end_of_the_line;
@@ -107,6 +129,7 @@ extern u16 D_8010C75E_end_of_the_line[2];
 extern s16 D_8010C762_end_of_the_line;
 extern s16 D_8010C764_end_of_the_line;
 extern u16 D_8010C766_end_of_the_line;
+extern u16 D_8010C768_end_of_the_line[3];
 extern s16 D_8010C76E_end_of_the_line;
 extern s16 D_8010C770_end_of_the_line;
 extern s16 D_8010C772_end_of_the_line;
@@ -324,7 +347,93 @@ void func_80105E88_end_of_the_line(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Instruction scheduling only: one addu of the model index is placed before the reload of obj->model. */
+void func_80106444_end_of_the_line(omObjData *obj) {
+    EotlHud *hud;
+    s32 i;
+    s32 j;
+    s16 x;
+
+    hud = (EotlHud *)(obj->data = HuMemAllocTag(sizeof(EotlHud), 0x7918));
+    for (i = 0; i < 2; i++) {
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x540002, 0x6DD);
+            obj->model[4] = func_8000B108_main(0x540003, 0x6DD);
+            obj->model[12] = func_8000B108_main(0x540004, 0x6DD);
+            obj->model[14] = func_8000B108_main(0x540008, 0x6DD);
+            obj->model[16] = func_8000B108_main(0x540009, 0x6DD);
+            obj->model[18] = func_8000B108_main(0x54000A, 0x6DD);
+            for (j = 0; j < 5; j++) {
+                obj->model[20 + j * 2] = func_8000B108_main(D_8010C5D8_end_of_the_line[j], D_8010C5EC_end_of_the_line[j]);
+            }
+        } else {
+            obj->model[2] = Hu3DModelLink(obj->model[0]);
+            obj->model[5] = Hu3DModelLink(obj->model[4]);
+            obj->model[13] = Hu3DModelLink(obj->model[12]);
+            obj->model[15] = Hu3DModelLink(obj->model[14]);
+            obj->model[17] = Hu3DModelLink(obj->model[16]);
+            obj->model[19] = Hu3DModelLink(obj->model[18]);
+            for (j = 0; j < 5; j++) {
+                obj->model[21 + j * 2] = Hu3DModelLink(obj->model[20 + j * 2]);
+            }
+        }
+        func_8001C8A8_main(obj->model[i * 2], D_8010C5C8_end_of_the_line[i]);
+        func_8001C8A8_main(obj->model[4 + i], D_8010C5C8_end_of_the_line[i]);
+        func_8001C8A8_main(obj->model[12 + i], D_8010C5C8_end_of_the_line[i]);
+        func_8001C8A8_main(obj->model[14 + i], D_8010C5C8_end_of_the_line[i]);
+        func_8001C8A8_main(obj->model[16 + i], D_8010C5C8_end_of_the_line[i]);
+        func_8001C8A8_main(obj->model[18 + i], D_8010C5C8_end_of_the_line[i]);
+        func_8001C2FC_main(obj->model[18 + i], 0x70000000, 0x70000000);
+        for (j = 0; j < 5; j++) {
+            func_8001C2FC_main(obj->model[20 + j * 2 + i], 0x70000000, 0x70000000);
+            func_8001C8A8_main(obj->model[20 + j * 2 + i], D_8010C5C8_end_of_the_line[i]);
+        }
+        for (j = 0; j < 1; j++) {
+            obj->model[j + i * 2 + 1] = Hu3DModelLink(obj->model[0]);
+            func_8001C8A8_main(obj->model[j + i * 2 + 1], D_8010C5C8_end_of_the_line[i]);
+        }
+        for (j = 0; j < 3; j++) {
+            if (i == 0) {
+                obj->model[6 + j] = func_8000B108_main(D_8010C658_end_of_the_line[j], 0x6DD);
+            } else {
+                obj->model[9 + j] = Hu3DModelLink(obj->model[6 + j]);
+            }
+            func_8001C8A8_main(obj->model[6 + i * 3 + j], D_8010C5C8_end_of_the_line[i]);
+        }
+        hud->unk00[i] = InitEspriteSlot(D_8010C76E_end_of_the_line, 0, 0);
+        hud->unk04[i] = InitEspriteSlot(D_8010C772_end_of_the_line, 0, 0);
+        hud->unk08[i] = InitEspriteSlot(D_8010C770_end_of_the_line, 0, 0);
+        hud->unk0C[i] = InitEspriteSlot(D_8010C774_end_of_the_line, 0, 0);
+        hud->unk10[i] = InitEspriteSlot(D_8010C776_end_of_the_line, 0, 0);
+        x = i * 160 + 80;
+        func_8000BBD4_main(hud->unk00[i], x, 120);
+        func_8000BBD4_main(hud->unk04[i], x, 120);
+        func_8000BBD4_main(hud->unk08[i], x, 120);
+        func_8000BBD4_main(hud->unk10[i], x, 120);
+        func_8000BB94_main(hud->unk00[i]);
+        func_8000BB94_main(hud->unk04[i]);
+        func_8000BB94_main(hud->unk08[i]);
+        func_8000BB94_main(hud->unk0C[i]);
+        func_8000BB94_main(hud->unk10[i]);
+        func_8000BC48_main(hud->unk00[i], 0x4000);
+        func_8000BC48_main(hud->unk0C[i], 0x4008);
+        func_8000BC48_main(hud->unk10[i], 0x4008);
+        func_8000BCC8_main(hud->unk04[i], 0x80C8);
+        func_8000BCC8_main(hud->unk08[i], 0x8190);
+    }
+    hud->unk14 = InitEspriteSlot(D_8010C780_end_of_the_line, 0, 0);
+    func_8000BBD4_main(hud->unk14, 160, 120);
+    func_8000BCC8_main(hud->unk14, 0x8064);
+    for (i = 0; i < 3; i++) {
+        D_8010C768_end_of_the_line[i] = rand8() < 0x80;
+    }
+    obj->work[0] = 0;
+    obj->func = NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106444_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801069D8_end_of_the_line);
 
