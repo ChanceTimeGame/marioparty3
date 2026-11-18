@@ -127,6 +127,7 @@ void func_80105B44_dorrie_dip(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32
 /* The main loop: framework state, ambient sounds, finish and result. Retail passes obj to
    func_800E6F40_minigame, which takes no argument. */
 void func_80105C7C_dorrie_dip(omObjData* obj) {
+    u8 (*state)(omObjData*) = (u8 (*)(omObjData*))(void (*)(void))func_800E6F40_minigame;
     s32 i;
 
     if (D_800D530C_main != 0) {
@@ -134,7 +135,7 @@ void func_80105C7C_dorrie_dip(omObjData* obj) {
         HuAudSeqFadeOut(30);
         WipeCreateOut(0, 20);
     }
-    switch (((u8 (*)(omObjData*))func_800E6F40_minigame)(obj)) {
+    switch (state(obj)) {
         case 0:
             if (func_800E6E9C_minigame() == 30) {
                 func_801074CC_dorrie_dip();
