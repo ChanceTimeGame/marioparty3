@@ -62,7 +62,7 @@ typedef struct PgBoard {
     /* 0x04 */ Vtx* vtx; /* 2 per strip row */
     /* 0x08 */ HuSprite_Unk84_Struct* spr; /* NULL = free */
     /* 0x0C */ char unk0C[8];
-    /* 0x14 */ s32 unk14;
+    /* 0x14 */ void (*func)(struct PgBoard*); /* per-frame hook */
     /* 0x18 */ u8 rows; /* vertex pairs */
     /* 0x19 */ u8 rowH; /* texels per row */
     /* 0x1A */ s8 unk1A;
@@ -72,12 +72,12 @@ typedef struct PgBoard {
     /* 0x1E */ u8 g;
     /* 0x1F */ u8 b;
     /* 0x20 */ u16 a;
-    /* 0x22 */ char unk22[2];
-    /* 0x24 */ s16 unk24;
+    /* 0x22 */ u16 cmds; /* display list length */
+    /* 0x24 */ s16 frame;
     /* 0x26 */ char unk26[2];
     /* 0x28 */ u32 flags;
-    /* 0x2C */ s32 unk2C;
-    /* 0x30 */ f32 unk30;
+    /* 0x2C */ f32 timer;
+    /* 0x30 */ f32 speed;
     /* 0x34 */ Vec ofs;
     /* 0x40 */ Vec pos;
     /* 0x4C */ Vec scale;
@@ -191,7 +191,10 @@ extern f32 D_8010DD90_popgun_pickoff[4][4]; /* view to world */
 extern f32 D_8010DDD0_popgun_pickoff; /* tan(fov / 2) */
 extern PgBoard* D_8010DDD8_popgun_pickoff;
 extern s32 D_8010DDF0_popgun_pickoff; /* billboard count */
-extern s32 D_8010DDDC_popgun_pickoff[3];
+extern void* D_8010DDDC_popgun_pickoff[3]; /* per-frame buffers */
+extern void* D_8010DDE8_popgun_pickoff; /* this frame's buffer */
+extern s32 D_8010DDEC_popgun_pickoff; /* its size */
+extern s32 D_8010C890_popgun_pickoff; /* buffer index */
 void func_800341D0_main(Gfx** gfx, s32 timg, s32 fmt, s32 siz, s32 width, s32 height, s32 uls, s32 ult,
                         s32 lrs, s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts,
                         s32 shiftt);
@@ -1237,15 +1240,15 @@ void func_80109260_popgun_pickoff(u16 n) {
     for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
         b = &D_8010DDD8_popgun_pickoff[i];
         b->spr = NULL;
-        b->unk14 = 0;
+        b->func = NULL;
         b->flags = 0;
         b->a = 0x100;
         b->b = 0xFF;
         b->g = 0xFF;
         b->r = 0xFF;
-        b->unk2C = 0;
-        b->unk24 = 0;
-        b->unk30 = 1.0f;
+        b->timer = 0.0f;
+        b->frame = 0;
+        b->speed = 1.0f;
         b->unk1C = 0;
         b->unk1B = 0;
         b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
@@ -1297,9 +1300,9 @@ void func_8010ABB4_popgun_pickoff(s16 id, s16 tex) {
         b->g = 0xFF;
         b->r = 0xFF;
         b->a = 0xFF;
-        b->unk2C = 0;
-        b->unk24 = 0;
-        b->unk30 = 1.0f;
+        b->timer = 0.0f;
+        b->frame = 0;
+        b->speed = 1.0f;
     }
 }
 
@@ -1320,8 +1323,8 @@ void func_8010AC34_popgun_pickoff(s16 id, s16 frame) {
 
     if (id != -1) {
         b = &D_8010DDD8_popgun_pickoff[id];
-        b->unk24 = frame;
-        b->unk2C = 0;
+        b->frame = frame;
+        b->timer = 0.0f;
     }
 }
 
@@ -1342,7 +1345,7 @@ void func_8010AC74_popgun_pickoff(s16 id, f32 speed) {
 
     if (id != -1) {
         b = &D_8010DDD8_popgun_pickoff[id];
-        b->unk30 = speed;
+        b->speed = speed;
     }
 }
 
@@ -1727,15 +1730,15 @@ void func_8010B120_popgun_pickoff(s16 id) {
             b->b = 0xFF;
             b->g = 0xFF;
             b->r = 0xFF;
-            b->unk2C = 0;
-            b->unk24 = 0;
+            b->timer = 0.0f;
+            b->frame = 0;
             b->unk1C = 0;
             b->unk1B = 0;
             b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
             b->pos.x = b->pos.y = b->pos.z = 0.0f;
             b->scale.x = b->scale.y = b->scale.z = 1.0f;
             b->rot.x = b->rot.y = b->rot.z = 0.0f;
-            b->unk30 = 1.0f;
+            b->speed = 1.0f;
         }
     }
 }
@@ -1854,7 +1857,7 @@ void func_8010B508_popgun_pickoff(s16 id, s32 arg1) {
 
     if (id != -1) {
         b = &D_8010DDD8_popgun_pickoff[id];
-        b->unk14 = arg1;
+        b->func = (void (*)(PgBoard*))arg1;
     }
 }
 
@@ -1923,7 +1926,39 @@ void func_8010B5B4_popgun_pickoff(s16 id, s32 on) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B5B4_popgun_pickoff);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B64C_popgun_pickoff);
+void func_8010B64C_popgun_pickoff(void) {
+    PgBoard* b;
+    s32 i;
+
+    if (++D_8010C890_popgun_pickoff >= 3) {
+        D_8010C890_popgun_pickoff = 0;
+    }
+    D_8010DDEC_popgun_pickoff = 0;
+    for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
+        b = &D_8010DDD8_popgun_pickoff[i];
+        if (b->spr != NULL) {
+            D_8010DDEC_popgun_pickoff += (b->cmds * sizeof(Gfx) + b->rows * 2 * sizeof(Vtx)) + 0x40;
+        }
+    }
+    if (D_8010DDDC_popgun_pickoff[D_8010C890_popgun_pickoff] != NULL) {
+        HuMemFree(D_8010DDDC_popgun_pickoff[D_8010C890_popgun_pickoff]);
+    }
+    if (D_8010DDEC_popgun_pickoff != 0) {
+        D_8010DDDC_popgun_pickoff[D_8010C890_popgun_pickoff] = HuMemAlloc(D_8010DDEC_popgun_pickoff);
+    } else {
+        D_8010DDDC_popgun_pickoff[D_8010C890_popgun_pickoff] = NULL;
+    }
+    D_8010DDE8_popgun_pickoff = D_8010DDDC_popgun_pickoff[D_8010C890_popgun_pickoff];
+}
+
+
+
+
+
+
+
+
+
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B7A0_popgun_pickoff);
 
@@ -1931,6 +1966,71 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010BC6C_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010C32C_popgun_pickoff);
+void func_8010C32C_popgun_pickoff(void) {
+    PgBoard* b;
+    s32 n;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010C4EC_popgun_pickoff);
+    for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
+        b = &D_8010DDD8_popgun_pickoff[i];
+        if (b->func != NULL) {
+            b->func(b);
+        }
+        if (b->spr == NULL) {
+            continue;
+        }
+        if (b->flags & 0x8000) {
+            continue;
+        }
+        if (b->flags & 0x10000000) {
+            continue;
+        }
+        {
+            n = b->spr->unk10;
+            b->timer += b->speed;
+            while (b->timer >= 1.0) {
+                b->frame++;
+                b->timer -= 1.0f;
+                if (b->frame >= n) {
+                    if (b->flags & 0x20000000) {
+                        b->flags |= 0x8000;
+                        b->frame--;
+                        b->timer += 1.0f;
+                        if (b->flags & 0x40000000) {
+                            func_8010B120_popgun_pickoff(i);
+                        }
+                        break;
+                    } else if (!(b->flags & 0x40000000)) {
+                        b->frame = 0;
+                    } else {
+                        b->frame--;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+void func_8010C4EC_popgun_pickoff(void) {
+    s32 i;
+
+    for (i = 0; i < D_8010DDF0_popgun_pickoff; i++) {
+        func_8010B120_popgun_pickoff(i);
+    }
+    for (i = 0; i < 3; i++) {
+        if (D_8010DDDC_popgun_pickoff[i] != NULL) {
+            HuMemFree(D_8010DDDC_popgun_pickoff[i]);
+        }
+    }
+    HuMemFree(D_8010DDD8_popgun_pickoff);
+}
