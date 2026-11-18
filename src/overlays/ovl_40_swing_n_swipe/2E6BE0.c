@@ -803,9 +803,69 @@ void func_801072D0_swing_n_swipe(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_801072D0_swing_n_swipe);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80107CEC_swing_n_swipe);
+/* The five thieves and their shadows. */
+void func_80107CEC_swing_n_swipe(omObjData* obj) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_80107F00_swing_n_swipe);
+    D_8010C170_swing_n_swipe[0][0] = func_8000B108_main(0xA0109, 0x2B9);
+    D_8010C170_swing_n_swipe[0][1] = func_8000B108_main(9, 0x2B9);
+    for (i = 1; i < 5; i++) {
+        D_8010C170_swing_n_swipe[i][0] = Hu3DModelLink(D_8010C170_swing_n_swipe[0][0]);
+        D_8010C170_swing_n_swipe[i][1] = Hu3DModelLink(D_8010C170_swing_n_swipe[0][1]);
+    }
+    for (i = 0; i < 5; i++) {
+        func_8001C8A8_main(D_8010C170_swing_n_swipe[i][0], 0);
+        Hu3DModelScaleSet(D_8010C170_swing_n_swipe[i][1], 1.5f, 1.0f, 1.5f);
+        func_8001C8A8_main(D_8010C170_swing_n_swipe[i][1], 0);
+    }
+    D_8010C184_swing_n_swipe[0] = func_8010B8EC_swing_n_swipe(0xA0102);
+    D_8010C184_swing_n_swipe[1] = func_8010B8EC_swing_n_swipe(0xA0103);
+    D_8010C184_swing_n_swipe[2] = func_8010B8EC_swing_n_swipe(0xA010A);
+    D_8010C184_swing_n_swipe[3] = func_8010B8EC_swing_n_swipe(0xA010B);
+    D_8010C184_swing_n_swipe[4] = func_8010B8EC_swing_n_swipe(0xA010C);
+    for (i = 0; i < 5; i++) {
+        func_8001C624_main(D_8010C170_swing_n_swipe[i][0], HmfModelData[D_8010C184_swing_n_swipe[0]].unk02, 0, 30, 2);
+    }
+    D_8010C148_swing_n_swipe = 0;
+    obj->func = func_80107F00_swing_n_swipe;
+}
+
+/* Per frame: each thief's motion follows D_8010C14A_swing_n_swipe; shadows follow and shrink with height. */
+void func_80107F00_swing_n_swipe(omObjData* obj) {
+    s16 i;
+    s16* cur;
+    s16 mot;
+    f32 scale;
+
+    for (i = 0; i < 5; i++) {
+        cur = &D_8010BDBC_swing_n_swipe[i];
+        mot = D_8010C14A_swing_n_swipe[i];
+        if (*cur != mot) {
+            *cur = mot;
+            switch (mot) {
+            case 0:
+            case 1:
+            case 3:
+            case 4:
+                func_8001C624_main(D_8010C170_swing_n_swipe[i][0],
+                                   HmfModelData[D_8010C184_swing_n_swipe[D_8010BDBC_swing_n_swipe[i]]].unk02, 0, 30, 2);
+                break;
+            case 2:
+                func_8001C5B4_main(D_8010C170_swing_n_swipe[i][0], D_8010C184_swing_n_swipe[D_8010BDBC_swing_n_swipe[i]]);
+                break;
+            }
+        }
+    }
+    for (i = 0; i < 5; i++) {
+        scale = 1.5f - HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.y * 0.00375f;
+        if (scale <= 0.0f) {
+            scale = 0.0f;
+        }
+        Hu3DModelPosSet(D_8010C170_swing_n_swipe[i][1], HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.x, 0.0f,
+                        HmfModelData[D_8010C170_swing_n_swipe[i][0]].pos.z);
+        Hu3DModelScaleSet(D_8010C170_swing_n_swipe[i][1], scale, 1.0f, scale);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", D_8010BF9C_swing_n_swipe);
 
