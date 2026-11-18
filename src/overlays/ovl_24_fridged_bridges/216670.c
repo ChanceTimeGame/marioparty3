@@ -34,7 +34,7 @@ typedef struct FbPlayer {
     /* 0x28 */ u16 unk28;
     /* 0x2A */ char unk2A[2];
     /* 0x2C */ omObjData *unk2C;
-    /* 0x30 */ s32 unk30;
+    /* 0x30 */ omObjData *unk30; /* splash fish object */
     /* 0x34 */ f32 unk34; /* fall velocity x */
     /* 0x38 */ f32 unk38; /* fall velocity y */
     /* 0x3C */ f32 unk3C; /* fall velocity z */
@@ -72,6 +72,15 @@ typedef struct FbHazard {
     /* 0x02 */ char unk02[4];
     /* 0x06 */ u16 unk06;
 } FbHazard;
+
+/* omObjData::data of the fish that jumps after a fall (func_8010A1A4_fridged_bridges, 0xC) */
+typedef struct FbFish {
+    /* 0x00 */ s16 unk00; /* state */
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ omObjData *unk04; /* player */
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+} FbFish; // Size 0xC
 
 /* main 20A20.c's collision types (as minigame mgcol.h) */
 typedef struct ColVtx {
@@ -219,6 +228,7 @@ void func_801075AC_fridged_bridges(omObjData *obj);
 void func_8010775C_fridged_bridges(omObjData *obj);
 void func_80017954_main(s16, s16, s16, s16);
 void func_80109154_fridged_bridges(omObjData *obj);
+void func_8010A360_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
 extern s32 D_8010D1A0_fridged_bridges;
@@ -1535,11 +1545,84 @@ s32 func_80109D6C_fridged_bridges(Vec *p, ColTri *tri, ColVtx *verts) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109D6C_fridged_bridges);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109F84_fridged_bridges);
+/* Push the player off ground edges (up to 4 passes) */
+void func_80109F84_fridged_bridges(omObjData *obj) {
+    FbGround g;
+    u16 tries;
+    u16 none;
+    u16 i;
+    u16 k;
+    f32 a;
+    f32 dx;
+    f32 dz;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010A0F4_fridged_bridges);
+    tries = 0;
+    do {
+        g.pos.x = obj->trans.x;
+        g.pos.y = obj->trans.y;
+        g.pos.z = obj->trans.z;
+        func_80109988_fridged_bridges(obj, &g);
+        none = 0;
+        for (i = 0; i < 8; i++) {
+            k = i + 4;
+            if (g.h[i] == -10000.0f) {
+                none++;
+            } else {
+                if (k >= 9) {
+                    k = i - 4;
+                }
+                a = k * 45.0f;
+                dx = sindf(a) * 5.0f;
+                dz = cosdf(a) * 5.0f;
+                obj->trans.x += dx;
+                obj->trans.z += dz;
+            }
+        }
+        if (none == 8) {
+            break;
+        }
+    } while (++tries < 4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010A1A4_fridged_bridges);
+/* Is (x, z) within reach of the player's hook while it is up? */
+u16 func_8010A0F4_fridged_bridges(omObjData *obj, f32 x, f32 y, f32 z) {
+    u16 player = ((FbPlayer *)obj->data)->unk02;
+    f32 dist;
+
+    if (!(D_8010DA70_fridged_bridges->work[2] & (1 << player))) {
+        return 0;
+    }
+    dist = HuSqrtf((x - D_8010DA00_fridged_bridges[player].u) * (x - D_8010DA00_fridged_bridges[player].u) +
+                   (z - D_8010DA00_fridged_bridges[player].v) * (z - D_8010DA00_fridged_bridges[player].v));
+    if (HuSqrtf(6400.0f) < dist) {
+        return 0;
+    }
+    return 1;
+}
+
+/* Fish that jumps at a player who fell in */
+void func_8010A1A4_fridged_bridges(omObjData *obj) {
+    FbPlayer *work = obj->data;
+    omObjData *fish;
+    FbFish *fw;
+    f32 a;
+
+    fish = omAddObj(0x28, 1, 0, -1, func_8010A360_fridged_bridges);
+    work->unk30 = fish;
+    fw = HuMemAllocTag(sizeof(FbFish), 0x7918);
+    fish->data = fw;
+    fw->unk04 = obj;
+    fish->model[0] = obj->model[2];
+    func_8001C258_main(fish->model[0], 4, 0);
+    a = (f32)((rand8() * rand8()) % 3600) / 10.0f;
+    omSetTra(fish, sindf(a) * 600.0f + obj->trans.x, 500.0f, cosdf(a) * 600.0f + obj->trans.z);
+    omSetRot(fish, 0.0f, 0.0f, 0.0f);
+    omSetSca(fish, 1.0f, 1.0f, 1.0f);
+    fw->unk00 = 0;
+    fw->unk08 = 0;
+    fw->unk0A = -1;
+    fish->func = func_8010A360_fridged_bridges;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010A360_fridged_bridges);
 
