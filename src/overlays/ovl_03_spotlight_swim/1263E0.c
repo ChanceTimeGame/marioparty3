@@ -1860,7 +1860,19 @@ void func_8010AAB8_spotlight_swim(omObjData *obj) {
     obj->func = func_8010A7AC_spotlight_swim;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010ADF8_spotlight_swim);
+/* Spawns the three chasers' lamps. */
+void func_8010ADF8_spotlight_swim(void) {
+    SsEnt *ent;
+    omObjData *obj;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010D924_spotlight_swim[i];
+        obj = omAddObj(1000, 5, 5, -1, func_8010AAB8_spotlight_swim);
+        ent->obj = obj;
+        obj->work[0] = i;
+    }
+}
 
 /* The end sequences: the swimmer is hauled out (state 1) or the cage drops on the swimmer (state 2). */
 void func_8010AE9C_spotlight_swim(omObjData *obj) {
