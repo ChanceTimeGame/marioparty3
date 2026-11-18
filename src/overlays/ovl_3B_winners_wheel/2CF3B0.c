@@ -11,7 +11,28 @@ typedef struct WwHost {
     /* 0x04 */ s32 unk04;
 } WwHost; /* size 8 */
 
+/* omObjData::data of the wheel (D_8010A49C) */
+typedef struct WwWheel {
+    /* 0x00 */ s32 unk00; /* flags: 1 spinning, 2 speeding up, 4 slowing down */
+    /* 0x04 */ f32 unk04; /* spin speed */
+    /* 0x08 */ f32 unk08; /* scale */
+    /* 0x0C */ f32 unk0C; /* x rotation */
+    /* 0x10 */ f32 unk10; /* spin angle */
+} WwWheel; /* size 0x14 */
+
+/* omObjData::data of the player (D_8010A4B4) */
+typedef struct WwPlayer {
+    /* 0x00 */ s32 unk00; /* flags */
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ f32 unk0C; /* scale */
+    /* 0x10 */ f32 unk10; /* x */
+    /* 0x14 */ f32 unk14; /* y */
+    /* 0x18 */ f32 unk18; /* z */
+} WwPlayer; /* size 0x1C */
+
 // main
+void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 void func_80021BE0_main(s32* arg0, s32 n);
 void func_8004B760_main(s32 prio, s32 sprId, void* draw, f32 fov, Vec* eye, Vec* at);
 void func_8004BCE4_main(void* work);
@@ -46,18 +67,18 @@ void func_80105F94_winners_wheel(void);
 void func_80105FB0_winners_wheel(omObjData* obj);
 void func_80105FE4_winners_wheel(omObjData* obj);
 void func_801063B0_winners_wheel(void);
-void func_80106514_winners_wheel(void);
+void func_80106514_winners_wheel(omObjData* obj);
 void func_80106718_winners_wheel(void);
 void func_80106734_winners_wheel(void);
 void func_80106750_winners_wheel(void);
 void func_8010677C_winners_wheel(void);
 void func_80106910_winners_wheel(void);
-void func_80106D2C_winners_wheel(void);
+void func_80106D2C_winners_wheel(omObjData* obj);
 void func_80106EB0_winners_wheel(s32 arg0);
 void func_80106F54_winners_wheel(void);
 void func_8010701C_winners_wheel(void);
 void func_801070CC_winners_wheel(void);
-void func_801075D4_winners_wheel(void);
+void func_801075D4_winners_wheel(omObjData* obj);
 void func_801077F4_winners_wheel(void);
 void func_80107820_winners_wheel(void);
 void func_801078D8_winners_wheel(void);
@@ -65,7 +86,7 @@ void func_80107B0C_winners_wheel(void);
 void func_80107BE0_winners_wheel(void);
 void func_80107CB4_winners_wheel(void);
 void func_80107D50_winners_wheel(void);
-void func_80107F4C_winners_wheel(void);
+void func_80107F4C_winners_wheel(omObjData* obj);
 void func_8010842C_winners_wheel(void);
 void func_80108458_winners_wheel(void);
 void func_801089C8_winners_wheel(void);
@@ -78,15 +99,15 @@ void func_80109104_winners_wheel(void);
 void func_80109130_winners_wheel(void);
 void func_80109388_winners_wheel(void);
 void func_80109454_winners_wheel(void);
-void func_801095E4_winners_wheel(void);
+void func_801095E4_winners_wheel(omObjData* obj);
 void func_8010985C_winners_wheel(void);
-void func_80109A18_winners_wheel(void);
+void func_80109A18_winners_wheel(omObjData* obj);
 void func_80109B90_winners_wheel(void);
 void func_80109BAC_winners_wheel(void);
 void func_80109BF0_winners_wheel(void);
 void func_80109C1C_winners_wheel(void);
 void func_80109D44_winners_wheel(void);
-void func_80109E90_winners_wheel(void);
+void func_80109E90_winners_wheel(omObjData* obj);
 void func_80109F80_winners_wheel(void);
 void func_80109FAC_winners_wheel(void);
 void func_8010A190_winners_wheel(void);
@@ -99,9 +120,36 @@ extern s32 D_8010A480_winners_wheel;    /* slot the wheel stopped on */
 extern s32 D_8010A48C_winners_wheel;    /* the playing player */
 extern s32 D_8010A490_winners_wheel;    /* CPU timer */
 extern omObjData* D_8010A498_winners_wheel;
+extern omObjData* D_8010A49C_winners_wheel;
+extern s16 D_8010A4AC_winners_wheel[3]; /* player motions */
+extern omObjData* D_8010A4B4_winners_wheel;
 
-/* .data */
-extern D_80111B50_vine_with_me_Struct D_8010A260_winners_wheel;
+/* .data (0x8010A260-0x8010A2D0) */
+/* The minigame control block (bowloons' BlCtrl; the header's D_80111B50_vine_with_me_Struct) */
+typedef struct WwCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06; /* result message */
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ u16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+} WwCtrl;
+
+WwCtrl D_8010A260_winners_wheel = {
+    0, 3, 2, 0, 0, 0, 5, 0, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0, 0, 0, 0 }, 240, 300, -1, 150, 150,
+};
+s16 D_8010A288_winners_wheel = 0;
+s32 D_8010A28C_winners_wheel[8] = { 2, 3, 7, 4, 5, 6, 8, 9 }; /* character file directories */
+s32 D_8010A2AC_winners_wheel[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 
 void func_801059A0_winners_wheel(void) {
@@ -112,7 +160,7 @@ void func_801059A0_winners_wheel(void) {
     func_8010A190_winners_wheel();
     func_8004A208_main();
     func_8001F38C_main(0, 0, 0);
-    func_800E5EA0_minigame(&D_8010A260_winners_wheel);
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct*)&D_8010A260_winners_wheel);
     WipeCreateIn(0xFF, 16);
     func_80105AB0_winners_wheel();
     func_80105BA8_winners_wheel();
@@ -331,23 +379,167 @@ void func_80105FE4_winners_wheel(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_801063B0_winners_wheel);
+/* The wheel. */
+void func_801063B0_winners_wheel(void) {
+    omObjData* obj;
+    WwWheel* work;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106514_winners_wheel);
+    obj = omAddObj(0xFF, 3, 0, -1, func_80106514_winners_wheel);
+    obj->data = HuMemAllocTag(sizeof(WwWheel), 31000);
+    D_8010A49C_winners_wheel = obj;
+    work = obj->data;
+    obj->model[0] = func_8000B108_main(0x5C0001, 0x6B9);
+    obj->model[1] = func_8000B108_main(0x5C0002, 0x6B9);
+    obj->model[2] = func_8000B108_main(0x5C0004, 0xA99);
+    obj->func = func_80106514_winners_wheel;
+    work->unk00 = 0;
+    work->unk04 = 0.0f;
+    work->unk0C = 0.0f;
+    work->unk10 = 0.0f;
+    work->unk08 = 0.93f;
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, work->unk08, work->unk08, 1.0f);
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 10.0f);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 180.0f, 180.0f);
+    Hu3DModelRotSet(obj->model[2], 0.0f, 0.0f, 0.0f);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106718_winners_wheel);
+void func_80106514_winners_wheel(omObjData* obj) {
+    WwWheel* work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106734_winners_wheel);
+    func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, 0.0f, 0.0f, -work->unk10);
+    omSetRot(obj, work->unk0C, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[1], work->unk0C, 180.0f, 180.0f);
+    Hu3DModelRotSet(obj->model[2], work->unk0C, 0.0f, 0.0f);
+    omSetSca(obj, work->unk08, work->unk08, 1.0f);
+    if (work->unk00 & 1) {
+        work->unk10 += work->unk04;
+        if (work->unk10 >= 360.0f) {
+            work->unk10 -= 360.0f;
+        }
+    }
+    if (work->unk00 & 2) {
+        work->unk04 += 0.2f;
+        if (work->unk04 >= 2.4f) {
+            work->unk04 = 2.4f;
+            work->unk00 &= ~2;
+        }
+    }
+    if (work->unk00 & 4) {
+        work->unk04 -= 0.2f;
+        if (work->unk04 <= 0.0f) {
+            work->unk04 = 0.2f;
+        }
+        if ((s32)work->unk10 % 20 == 0) {
+            work->unk04 = 0.0f;
+            work->unk00 &= ~4;
+            work->unk00 &= ~1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106750_winners_wheel);
+void func_80106718_winners_wheel(void) {
+    WwWheel* work = D_8010A49C_winners_wheel->data;
+
+    work->unk00 |= 3;
+}
+
+void func_80106734_winners_wheel(void) {
+    WwWheel* work = D_8010A49C_winners_wheel->data;
+
+    work->unk00 |= 5;
+}
+
+void func_80106750_winners_wheel(void) {
+    omAddPrcObj(func_8010677C_winners_wheel, 0x50, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010677C_winners_wheel);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106910_winners_wheel);
+/* The player's character. */
+void func_80106910_winners_wheel(void) {
+    s32 sp18[8] = { 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 3 };
+    s32 sp38[8] = { 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0 };
+    s32 sp58[8][4] = {
+        { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 },
+        { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 }, { 0, 0x8C, 0x2F, 0x36 },
+    };
+    s32 spD8[8] = { 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0x1B };
+    s32 spF8[8] = { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D };
+    s32 sp118[8] = { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C };
+    omObjData* obj;
+    WwPlayer* work;
+    s32 i;
+    s16 chr;
+    s32 dir;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106D2C_winners_wheel);
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            D_8010A48C_winners_wheel = i;
+            break;
+        }
+    }
+    obj = omAddObj(0x50, 5, 10, -1, func_80106D2C_winners_wheel);
+    obj->data = HuMemAllocTag(sizeof(WwPlayer), 31000);
+    D_8010A4B4_winners_wheel = obj;
+    work = obj->data;
+    work->unk04 = 0;
+    work->unk00 = 0;
+    work->unk08 = 0;
+    work->unk0C = 0.93f;
+    chr = GwPlayer[D_8010A48C_winners_wheel].chr;
+    dir = D_8010A28C_winners_wheel[chr] << 16;
+    obj->model[0] = func_8000B108_main(dir | sp38[chr], 0x6C9);
+    work->unk10 = -170.0f;
+    work->unk14 = -125.0f;
+    work->unk18 = 230.0f;
+    omSetTra(obj, work->unk10, work->unk14, work->unk18);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    for (i = 0; i < 4; i++) {
+        func_8000B460_main(obj, i, func_80017BB8_main(chr, sp58[chr][i]));
+    }
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    D_8010A4AC_winners_wheel[0] = func_80017790_main(obj->model[0], 1, D_8010A2AC_winners_wheel[chr], dir | spD8[chr]);
+    D_8010A4AC_winners_wheel[1] = func_80017AD8_main(dir | sp118[chr]);
+    D_8010A4AC_winners_wheel[2] = func_80017AD8_main(dir | spF8[chr]);
+    func_8001C514_main(obj->model[0]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106EB0_winners_wheel);
+void func_80106D2C_winners_wheel(omObjData* obj) {
+    WwPlayer* work = obj->data;
+
+    omSetSca(obj, work->unk0C, work->unk0C, work->unk0C);
+    omSetTra(obj, work->unk10, work->unk14, work->unk18);
+    if (work->unk00 & 1) {
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+            func_8001C814_main(obj->model[0], 4, 4);
+            if (work->unk08 != 0) {
+                work->unk00 |= 2;
+            }
+            work->unk00 &= ~1;
+        }
+    }
+    if (work->unk00 & 2) {
+        if (HmfModelData[obj->model[0]].unk40 <= 0.0f) {
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+            work->unk00 &= ~2;
+        }
+    }
+}
+
+void func_80106EB0_winners_wheel(s32 arg0) {
+    WwPlayer* work = D_8010A4B4_winners_wheel->data;
+
+    work->unk00 |= 1;
+    work->unk08 = arg0;
+    func_8001C624_main(D_8010A4B4_winners_wheel->model[0], HmfModelData[D_8010A4B4_winners_wheel->motion[1]].unk02, 0, 10, 0);
+    func_8001C814_main(D_8010A4B4_winners_wheel->model[0], 4, 0);
+    HuAudFXPlay(0x4C9);
+    func_80105E78_winners_wheel(arg0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80106F54_winners_wheel);
 
@@ -424,17 +616,11 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80109F
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_8010A190_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A2E8_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A308_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A328_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A3A8_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A3C8_winners_wheel);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A3E8_winners_wheel);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", D_8010A408_winners_wheel);
 

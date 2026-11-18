@@ -411,3 +411,6 @@ D_8010DE98_log_jam = D_8010DE90_log_jam + 0x8;
 D_8010DFE8_log_jam = D_8010DFD4_log_jam + 0x14;
 D_8010DFF6_log_jam = D_8010DFF4_log_jam + 0x2;
 D_8010DFFE_log_jam = D_8010DFF4_log_jam + 0xA;
+/* m2 wh: winners wheel inner labels of .data now defined in C, used by the asm still left */
+D_8010A266_winners_wheel = D_8010A260_winners_wheel + 0x6;
+D_8010A2AE_winners_wheel = D_8010A2AC_winners_wheel + 0x2;
