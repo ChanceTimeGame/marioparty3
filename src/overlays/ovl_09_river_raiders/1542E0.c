@@ -1106,13 +1106,121 @@ void func_80108ACC_river_raiders(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108ACC_river_raiders);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80108F40_river_raiders);
+/* CPU steering for a team-1 raft (work[1]): looks for a rock (unk04 1) close ahead within a difficulty range and
+ * steers away from it. */
+void func_80108F40_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
+    u16 player = obj->work[0];
+    f32 range = 0.0f;
+    u8 dir = 0;
+    omObjData *tgt;
+    RrEnt *rock;
+    s16 i;
+
+    if (--ent->unk06 <= 0) {
+        ent->unk06 = 0;
+    }
+    if ((u16)(ent->unk06 % 3) < 2) {
+        func_8001C258_main(obj->model[0], 4, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+    } else {
+        func_8001C258_main(obj->model[0], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+    }
+    if (ent->unk06 == 0) {
+        dir = rand8();
+        if ((GwPlayer[player].cpu_difficulty == 0 && dir < 100) || (GwPlayer[player].cpu_difficulty == 1 && dir < 150) ||
+            (GwPlayer[player].cpu_difficulty == 2 && dir < 200) || (GwPlayer[player].cpu_difficulty == 3 && dir < 255)) {
+            switch (GwPlayer[player].cpu_difficulty) {
+                case 0:
+                    range = 100.0f;
+                    break;
+                case 1:
+                    range = 150.0f;
+                    break;
+                case 2:
+                    range = 200.0f;
+                    break;
+                case 3:
+                    range = 300.0f;
+                    break;
+            }
+            for (i = 19; i >= 0; i--) {
+                rock = &D_8010DF18_river_raiders[i];
+                tgt = rock->obj;
+                if (tgt->trans.z < obj->trans.z) {
+                    if (tgt->trans.x < obj->trans.x + range && obj->trans.x - range < tgt->trans.x && rock->unk04 == 1) {
+                        if (tgt->trans.x < obj->trans.x) {
+                            dir = 1;
+                        }
+                        if (tgt->trans.x > obj->trans.x) {
+                            dir = 2;
+                        }
+                    }
+                }
+            }
+            for (i = 23; i >= 20; i--) {
+                rock = &D_8010DF18_river_raiders[i];
+                tgt = rock->obj;
+                if (tgt->trans.z < obj->trans.z) {
+                    if (tgt->trans.x < obj->trans.x + range && obj->trans.x - range < tgt->trans.x && rock->unk04 == 1 &&
+                        tgt->trans.z > -100.0f) {
+                        if (tgt->trans.x < obj->trans.x) {
+                            dir = 1;
+                        }
+                        if (tgt->trans.x > obj->trans.x) {
+                            dir = 2;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (--ent->unk0A <= 0) {
+        ent->unk0A = 0;
+    }
+    if (dir == 0) {
+        ent->unk04 = 0;
+    }
+    if (dir % 5 == 1 && ent->unk0A == 0) {
+        ent->unk04 = 1;
+        ent->unk0A = 30;
+    }
+    if (dir % 5 == 2 && ent->unk0A == 0) {
+        ent->unk04 = 2;
+        ent->unk0A = 30;
+    }
+}
 
 void func_801093F0_river_raiders(omObjData *obj) {
     func_80108F40_river_raiders(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010940C_river_raiders);
+/* Player steering for a team-1 raft (work[1]). */
+void func_8010940C_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010DD08_river_raiders[obj->work[1]];
+    u16 player = obj->work[0];
+
+    ent->unk04 = 0;
+    if (--ent->unk06 <= 0) {
+        ent->unk06 = 0;
+    }
+    if ((u16)(ent->unk06 % 3) < 2) {
+        func_8001C258_main(obj->model[0], 4, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+    } else {
+        func_8001C258_main(obj->model[0], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+    }
+    if (ent->unk06 == 0) {
+        if (D_800CBB6E_main[GwPlayer[player].pad] < -29) {
+            ent->unk04 = 1;
+        }
+        if (D_800CBB6E_main[GwPlayer[player].pad] >= 30) {
+            ent->unk04 = 2;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_8010957C_river_raiders);
 
