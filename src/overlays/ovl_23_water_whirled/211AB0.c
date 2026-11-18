@@ -170,6 +170,7 @@ extern s32 D_8010AC48_water_whirled[4]; /* per player sprite group (number) */
 extern s32 D_8010AC58_water_whirled[4]; /* per player sprites */
 extern s32 D_8010AC68_water_whirled[4];
 extern s32 D_8010AC78_water_whirled[4];
+extern s32 D_8010A3EC_water_whirled[4]; /* blink timer per player */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -1175,13 +1176,72 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A5
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A540_water_whirled);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109340_water_whirled);
+/* HUD: show a player's number (digit frame n, then 10 and 5) and its first mark. */
+void func_80109340_water_whirled(s16 player, u16 n) {
+    s16 grp = D_8010AC48_water_whirled[player];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109458_water_whirled);
+    func_8000BB54_main(D_8010AC68_water_whirled[player]);
+    HuSprAttrReset(grp, 0, 0x8000);
+    func_80055140_main(grp, 0, n, 0);
+    func_800550F4_main(grp, 0, 1);
+    HuSprAttrReset(grp, 1, 0x8000);
+    func_80055140_main(grp, 1, 10, 0);
+    func_800550F4_main(grp, 1, 1);
+    HuSprAttrReset(grp, 2, 0x8000);
+    func_80055140_main(grp, 2, 5, 0);
+    func_800550F4_main(grp, 2, 1);
+    func_8000BB94_main(D_8010AC58_water_whirled[player]);
+    func_8000BB94_main(D_8010AC78_water_whirled[player]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_8010956C_water_whirled);
+/* HUD: hide the number and blink a player's second mark. */
+void func_80109458_water_whirled(s16 player) {
+    s16 grp = D_8010AC48_water_whirled[player];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_8010960C_water_whirled);
+    func_8000BB94_main(D_8010AC68_water_whirled[player]);
+    HuSprAttrSet(grp, 0, 0x8000);
+    HuSprAttrSet(grp, 1, 0x8000);
+    HuSprAttrSet(grp, 2, 0x8000);
+    if (D_8010A3EC_water_whirled[player] >= 0) {
+        func_8000BB54_main(D_8010AC58_water_whirled[player]);
+        if (D_8010A3EC_water_whirled[player] >= 4) {
+            D_8010A3EC_water_whirled[player] = -4;
+        }
+    } else {
+        func_8000BB94_main(D_8010AC58_water_whirled[player]);
+    }
+    D_8010A3EC_water_whirled[player]++;
+    func_8000BB94_main(D_8010AC78_water_whirled[player]);
+}
+
+/* HUD: hide the number and show a player's third mark. */
+void func_8010956C_water_whirled(s16 player) {
+    s16 grp = D_8010AC48_water_whirled[player];
+
+    func_8000BB94_main(D_8010AC68_water_whirled[player]);
+    HuSprAttrSet(grp, 0, 0x8000);
+    HuSprAttrSet(grp, 1, 0x8000);
+    HuSprAttrSet(grp, 2, 0x8000);
+    func_8000BB94_main(D_8010AC58_water_whirled[player]);
+    func_8000BB54_main(D_8010AC78_water_whirled[player]);
+}
+
+/* Which part of the oval a rider is on: 0 near straight (|x| < 550, z > 0), 2 far straight, 1 right, 3 left. */
+s32 func_8010960C_water_whirled(omObjData* obj) {
+    f32 x = obj->trans.x;
+    f32 z = obj->trans.z;
+
+    if ((x > -550.0f) & (x < 550.0f)) {
+        if (z > 0.0f) {
+            return 0;
+        }
+        return 2;
+    }
+    if (x > 0.0f) {
+        return 1;
+    }
+    return 3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801096BC_water_whirled);
 
