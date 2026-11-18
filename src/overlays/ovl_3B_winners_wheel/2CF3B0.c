@@ -853,8 +853,8 @@ void func_80107CB4_winners_wheel(void) {
     func_8001C624_main(D_8010A4B8_winners_wheel[1]->model[0], HmfModelData[D_8010A4B8_winners_wheel[1]->motion[3]].unk02, 0, 10, 0);
 }
 
-/* NON_MATCHING: retail passes the else branch's 0.0f arguments as integer zeros and keeps only the
-   first branch's in a hoisted register (loop invariants differ; masked 10). Logic checked. */
+/* NON_MATCHING: masked 6. Retail hoists -10.5f before 0.0f (f22/f24 swapped) and passes the else
+   branch's 0.0f arguments as integer zeros instead of the hoisted register. Logic checked. */
 #ifdef NON_MATCHING
 /* The 18 pegs round the wheel. */
 void func_80107D50_winners_wheel(void) {
@@ -864,13 +864,14 @@ void func_80107D50_winners_wheel(void) {
     s32 attr;
 
     obj = omAddObj(0xFF, 18, 0, -1, func_80107F4C_winners_wheel);
-    obj->data = work = HuMemAllocTag(sizeof(WwPegs), 31000);
+    obj->data = HuMemAllocTag(sizeof(WwPegs), 31000);
+    work = obj->data;
     D_8010A4C0_winners_wheel = obj;
+    attr = 0x6BD;
     work->unk94 = 0.0f;
     work->unk00 = 0x20;
     work->unk9C = 0;
     work->unkA0 = 0;
-    attr = 0x6BD;
     for (i = 0; i < 18; i++) {
         work->unk4C[i] = work->unk04[i] = i * 20.0f;
         if (i == 0) {
