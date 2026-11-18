@@ -189,12 +189,14 @@ extern u16 D_8010ACF8_bounce_n_trounce; /* frames to the next drop */
 extern Vec D_8010ACFC_bounce_n_trounce[4]; /* start positions */
 extern s32 D_8010AD2C_bounce_n_trounce[8]; /* shadow model per character */
 extern Vec D_8010AD4C_bounce_n_trounce[4]; /* podium positions */
+extern u16 D_8010AD84_bounce_n_trounce; /* intro: jump */
+extern u16 D_8010AD86_bounce_n_trounce; /* intro: frames on the ground */
 extern u16 D_8010AD7C_bounce_n_trounce[4]; /* podium taken */
 
 extern u16 D_8010AEBC_bounce_n_trounce;
 extern omObjData* D_8010AEC0_bounce_n_trounce;
 extern omObjData* D_8010AEC4_bounce_n_trounce;
-extern s16 D_8010AEC8_bounce_n_trounce;
+extern u16 D_8010AEC8_bounce_n_trounce; /* intro step */
 extern s16 D_8010AECA_bounce_n_trounce;
 extern s16 D_8010AECC_bounce_n_trounce;
 extern omObjData* D_8010AED0_bounce_n_trounce;
@@ -638,6 +640,8 @@ void func_801069F0_bounce_n_trounce(omObjData* obj) {
     player->unk4C.z = obj->trans.z;
     obj->func = func_801070CC_bounce_n_trounce;
 }
+
+void func_80106F78_bounce_n_trounce(omObjData* obj);
 
 void func_80106F78_bounce_n_trounce(omObjData* obj) {
     s8 stickX;
@@ -1574,7 +1578,103 @@ s16 func_80109A00_bounce_n_trounce(omObjData* obj) {
     return best;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109AF0_bounce_n_trounce);
+/* The intro: the players jump in on scripted input, are thrown out to their corners, then play starts. */
+void func_80109AF0_bounce_n_trounce(omObjData* obj) {
+    omObjData* pobj;
+    BtPlayer* player;
+    f32 angle;
+    s32 i;
+
+    switch (D_8010AEC8_bounce_n_trounce) {
+        case 0:
+            WipeCreateIn(0xFF, 16);
+            D_8010AEC8_bounce_n_trounce = 1;
+            break;
+        case 1:
+            if (WipeStatGet() == 0) {
+                D_8010AEC8_bounce_n_trounce = 2;
+            }
+            break;
+        case 2:
+            pobj = D_8010AEDC_bounce_n_trounce[0];
+            player = pobj->data;
+            if (player->unk04 == 2) {
+                if (++D_8010AD86_bounce_n_trounce == 6) {
+                    D_8010AD84_bounce_n_trounce = 1;
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                pobj = D_8010AEDC_bounce_n_trounce[i];
+                player = pobj->data;
+                if (player->unk04 == 2 && D_8010AD84_bounce_n_trounce == 1) {
+                    D_8010ABE0_bounce_n_trounce[i] |= 0x8000;
+                }
+            }
+            if (D_8010AD84_bounce_n_trounce == 1) {
+                D_8010AEC8_bounce_n_trounce = 3;
+            }
+            break;
+        case 3:
+            if (D_8010AEDC_bounce_n_trounce[0]->trans.y > 500.0f) {
+                for (i = 0; i < 4; i++) {
+                    D_8010ABE0_bounce_n_trounce[i] |= 0x2000;
+                }
+                D_8010AEC8_bounce_n_trounce = 4;
+            }
+            break;
+        case 4:
+            pobj = D_8010AEDC_bounce_n_trounce[0];
+            player = pobj->data;
+            if (player->unk04 == 2) {
+                for (i = 0; i < 4; i++) {
+                    pobj = D_8010AEDC_bounce_n_trounce[i];
+                    player = pobj->data;
+                    pobj->rot.y = atan2df(-pobj->trans.x, -pobj->trans.z);
+                    angle = pobj->rot.y - 180.0f;
+                    player->unk64 = sindf(angle) * 30.0f;
+                    player->unk68 = cosdf(angle) * 30.0f;
+                    player->unk6C = 0.925f;
+                    player->unk16 = 1;
+                    player->unk0A = 0;
+                    pobj->func = NULL;
+                    omVibrate(player->unk00, 2, 2, 20);
+                }
+                D_8010AEC8_bounce_n_trounce = 5;
+            }
+            break;
+        case 5:
+            for (i = 0; i < 4; i++) {
+                pobj = D_8010AEDC_bounce_n_trounce[i];
+                player = pobj->data;
+                pobj->trans.x += player->unk64;
+                pobj->trans.z += player->unk68;
+                Hu3DModelPosSet(pobj->model[1], pobj->trans.x, pobj->trans.y, pobj->trans.z);
+                Hu3DModelPosSet(pobj->model[2], pobj->trans.x, pobj->trans.y + 1.0f, pobj->trans.z);
+                Hu3DModelRotSet(pobj->model[1], pobj->rot.x, pobj->rot.y, pobj->rot.z);
+                player->unk64 *= player->unk6C;
+                player->unk68 *= player->unk6C;
+                if (fabs(player->unk64) < 1.0f) {
+                    player->unk64 = 0.0f;
+                }
+                if (fabs(player->unk68) < 1.0f) {
+                    player->unk68 = 0.0f;
+                }
+                if (player->unk64 == 0.0f && player->unk68 == 0.0f) {
+                    D_8010AEC8_bounce_n_trounce = 6;
+                    HuAudSeqPlay(0x37);
+                }
+            }
+            break;
+        case 6:
+            for (i = 0; i < 4; i++) {
+                D_8010AEDC_bounce_n_trounce[i]->func = func_80106F78_bounce_n_trounce;
+            }
+            omDelObj(obj);
+            D_8010AEC0_bounce_n_trounce = NULL;
+            func_800E6F0C_minigame(1);
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109F68_bounce_n_trounce);
 

@@ -430,3 +430,5 @@ D_8010A454_water_whirled = D_8010A44C_water_whirled + 0x8;
 /* m2 pi: picture_imperfect/1EF420 .bss bytes inside D_8010A110 */
 D_8010A111_picture_imperfect = D_8010A110_picture_imperfect + 0x1;
 D_8010A112_picture_imperfect = D_8010A110_picture_imperfect + 0x2;
+/* m3 bt: Bounce 'n' Trounce 1CC730 .data halfword inside D_8010AD84 (the intro's ground counter) */
+D_8010AD86_bounce_n_trounce = D_8010AD84_bounce_n_trounce + 0x2;
