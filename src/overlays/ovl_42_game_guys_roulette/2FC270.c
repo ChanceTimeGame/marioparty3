@@ -156,9 +156,18 @@ extern GgrPlayer D_8010AAD6_game_guys_roulette;
 extern u16 D_8010AADE_game_guys_roulette; /* the window */
 extern u16 D_8010AAE0_game_guys_roulette;
 extern u16 D_8010AAE2_game_guys_roulette;
+extern f32 D_8010AAE4_game_guys_roulette; /* wheel speed */
+extern f32 D_8010AAE8_game_guys_roulette; /* wheel deceleration */
+extern f32 D_8010AAEC_game_guys_roulette;
+extern u16 D_8010AAF0_game_guys_roulette[21]; /* pocket angles */
+extern f32 D_8010AB20_game_guys_roulette[6];
+extern f32 D_8010AB38_game_guys_roulette[6];
 extern u8 D_8010AB50_game_guys_roulette; /* director step */
 extern u8 D_8010AB51_game_guys_roulette;
+extern s16 D_8010AB52_game_guys_roulette; /* the CPU's guess */
 extern s16 D_8010AB54_game_guys_roulette;
+extern u8 D_8010AB56_game_guys_roulette; /* the winning pocket */
+extern u8 D_8010AB57_game_guys_roulette; /* its prize */
 extern u8 D_8010AB58_game_guys_roulette; /* 1: won */
 extern s16 D_8010AB5A_game_guys_roulette; /* CPU level 0-2 */
 
@@ -295,7 +304,73 @@ void func_80105E10_game_guys_roulette(GgrPlayer* p) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80105F70_game_guys_roulette);
+/* Draw the winning pocket and its prize; for a CPU, its guess; then the pockets' angles and the spin that ends on
+   the winning one (decelerating over 450 frames after seven full turns). */
+void func_80105F70_game_guys_roulette(void) {
+    f32 sector = 360.0f / 21;
+    f32 half = 360.0f / 42;
+    u8 i;
+    u32 v;
+
+    D_8010AB56_game_guys_roulette = func_801059BC_game_guys_roulette(21.0f);
+    if (D_8010AB56_game_guys_roulette == 0) {
+        D_8010AB57_game_guys_roulette = 5;
+    } else if (D_8010AB56_game_guys_roulette < 5) {
+        D_8010AB57_game_guys_roulette = 2;
+    } else if (D_8010AB56_game_guys_roulette < 7) {
+        D_8010AB57_game_guys_roulette = 4;
+    } else if (D_8010AB56_game_guys_roulette < 13) {
+        D_8010AB57_game_guys_roulette = 0;
+    } else if (D_8010AB56_game_guys_roulette < 16) {
+        D_8010AB57_game_guys_roulette = 3;
+    } else if (D_8010AB56_game_guys_roulette < 21) {
+        D_8010AB57_game_guys_roulette = 1;
+    }
+    if (D_8010AAD6_game_guys_roulette.cpu == 1) {
+        D_8010AB52_game_guys_roulette = func_801059BC_game_guys_roulette(6.0f);
+        if (D_8010AAD6_game_guys_roulette.difficulty != 0) {
+            D_8010AB52_game_guys_roulette -= func_801059BC_game_guys_roulette(D_8010AAD6_game_guys_roulette.difficulty);
+            if (D_8010AB52_game_guys_roulette <= 0) {
+                D_8010AB52_game_guys_roulette = 0;
+            }
+        }
+        if (D_8010AB57_game_guys_roulette == D_8010AB52_game_guys_roulette) {
+            D_8010AB58_game_guys_roulette = 1;
+        } else {
+            D_8010AB58_game_guys_roulette = 0;
+        }
+    }
+    D_8010AB51_game_guys_roulette = 0;
+    for (i = 0; i < 21; i++) {
+        v = (sector * i + 270.0f) * 100.0f;
+        if (v % 100 >= 50) {
+            D_8010AAF0_game_guys_roulette[i] = (v / 100 + 1) % 360;
+        } else {
+            D_8010AAF0_game_guys_roulette[i] = (v / 100) % 360;
+        }
+    }
+    D_8010AAE4_game_guys_roulette = ((D_8010AAF0_game_guys_roulette[D_8010AB56_game_guys_roulette] + 2520.0f) * 2) / 450.0f;
+    D_8010AAE8_game_guys_roulette = D_8010AAE4_game_guys_roulette / 450.0f;
+    D_8010AAEC_game_guys_roulette = (D_8010AAE4_game_guys_roulette + D_8010AAE8_game_guys_roulette) *
+                                        (D_8010AAE4_game_guys_roulette / D_8010AAE8_game_guys_roulette) / 2.0f -
+                                    (D_8010AAF0_game_guys_roulette[D_8010AB56_game_guys_roulette] + 2520.0f);
+    D_8010AAE4_game_guys_roulette =
+        (((D_8010AAF0_game_guys_roulette[D_8010AB56_game_guys_roulette] + 2520.0f) - D_8010AAEC_game_guys_roulette) * 2) / 450.0f;
+    D_8010AAE8_game_guys_roulette = D_8010AAE4_game_guys_roulette / 450.0f;
+    D_8010AB20_game_guys_roulette[0] = 270.0f - half;
+    D_8010AB20_game_guys_roulette[1] = sector + D_8010AB20_game_guys_roulette[0];
+    D_8010AB20_game_guys_roulette[2] = sector * 4 + D_8010AB20_game_guys_roulette[1];
+    D_8010AB20_game_guys_roulette[3] = (sector + sector + D_8010AB20_game_guys_roulette[2]) - 360.0f;
+    D_8010AB20_game_guys_roulette[4] = sector * 6 + D_8010AB20_game_guys_roulette[3];
+    D_8010AB20_game_guys_roulette[5] = sector * 3 + D_8010AB20_game_guys_roulette[4];
+    D_8010AB38_game_guys_roulette[0] = D_8010AAF0_game_guys_roulette[9] + half;
+    D_8010AB38_game_guys_roulette[1] = D_8010AAF0_game_guys_roulette[18];
+    D_8010AB38_game_guys_roulette[2] = D_8010AAF0_game_guys_roulette[2] + half;
+    D_8010AB38_game_guys_roulette[3] = D_8010AAF0_game_guys_roulette[14];
+    D_8010AB38_game_guys_roulette[4] = D_8010AAF0_game_guys_roulette[5] + half;
+    D_8010AB38_game_guys_roulette[5] = 270.0f;
+    D_8010AB50_game_guys_roulette = 0;
+}
 
 /* The sprites: background, the two blinking banners, the bet panel, the six prize icons, the player's face,
    the coin icon and its "x", the coin count's three digits. */
