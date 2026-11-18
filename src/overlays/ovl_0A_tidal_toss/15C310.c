@@ -646,6 +646,9 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
     f32 min;
     f64 d;
     f32 fd;
+    f32 x;
+    f32 z;
+    s16 idx;
     f64 diff;
     f64 adiff;
     f64 f;
@@ -706,7 +709,7 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                 }
                 base = 0;
                 count = 0;
-                limit = D_8010AA9C_tidal_toss[(model->unk18 & 0x1C00) >> 10];
+                limit = D_8010AA9C_tidal_toss[((u32) model->unk18 & 0x1C00) >> 10];
                 node = D_8010AEA8_tidal_toss;
                 for (i = 0; i < part->unk22; i++) {
                     node = node->next;
@@ -726,19 +729,20 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                     if (limit < count - base) {
                         base = count;
                     }
-                    if (tex == (TtHmfTexRef*) -1) {
-                        w = h = 0;
-                    } else {
+                    if (tex != (TtHmfTexRef*) -1) {
                         w = tex->unk0C->unk24 << 5;
                         h = tex->unk0C->unk26 << 5;
+                    } else {
+                        w = h = 0;
                     }
                     lighting = face->unk00 & 0x80;
                     for (j = 0; j < n; j++) {
                         pos = &obj->unk50[face->unk04[j]];
+                        idx = face->unk04[j];
                         if (lighting) {
                             col = obj->unk88[face->unk2C[j]].unk05;
                         } else {
-                            col = &obj->unk54[face->unk04[j] * 3];
+                            col = &obj->unk54[idx * 3];
                         }
                         s = w * face->unk0C[j];
                         t = h * face->unk1C[j];
@@ -761,10 +765,10 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                             vtx->tc[0] = s;
                             vtx->tc[1] = t;
                             vtx->cn[3] = 255;
-                            obj->unk5C[face->unk04[j]] = count;
+                            obj->unk5C[idx] = count;
                             count++;
                         } else {
-                            obj->unk5C[face->unk04[j]] = k;
+                            obj->unk5C[idx] = k;
                         }
                     }
                 }
@@ -787,7 +791,7 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                 gfx = dl = HuMemAlloc(640 * sizeof(Gfx));
                 base = 0;
                 nb = 0;
-                limit = D_8010AA9C_tidal_toss[(model->unk18 & 0x1C00) >> 10];
+                limit = D_8010AA9C_tidal_toss[((u32) model->unk18 & 0x1C00) >> 10];
                 top = 0;
                 flush = 0;
                 node = D_8010AEA8_tidal_toss;
@@ -815,7 +819,7 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                         len = top - base;
                         if (len > 32) {
                             gSPVertex(gfx++, (Vtx*) 0x01000000 + base, 32, 0);
-                            gSPVertex(gfx++, (Vtx*) 0x01000000 + base + 32, len - 32, 32);
+                            gSPVertex(gfx++, (Vtx*) 0x01000000 + (base + 32), len - 32, 32);
                         } else {
                             gSPVertex(gfx++, (Vtx*) 0x01000000 + base, len, 0);
                         }
@@ -888,14 +892,17 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
     for (i = 0; i < obj->unk18; i++, src++, dst++) {
         d = sqrtf((f64) (src->ob[0] * src->ob[0] + src->ob[2] * src->ob[2]));
         *dst = *src;
-        dst->cn[0] = (f32) src->cn[0] * 0.5;
-        dst->cn[1] = (f32) src->cn[1] * 0.5;
-        dst->cn[2] = (f32) src->cn[2] * 0.5;
+        dst->cn[0] = (s32) ((f32) src->cn[0] * 0.5);
+        dst->cn[1] = (s32) ((f32) src->cn[1] * 0.5);
+        dst->cn[2] = (s32) ((f32) src->cn[2] * 0.5);
         dst->cn[3] = 0x90;
-        if (d < 140.0 || d > 710.0) {
+        if (d < 140.0) {
             continue;
         }
-        for (k2 = 0, sp = D_8010AF48_tidal_toss; k2 < 8; k2++, sp++) {
+        if (d > 710.0) {
+            continue;
+        }
+        for (sp = D_8010AF48_tidal_toss, k2 = 0; k2 < 8; k2++, sp++) {
             if (sp->unk10 == 0) {
                 continue;
             }
@@ -905,11 +912,13 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
             fd = d;
             if (adiff >= 100.0) {
                 dst->ob[1] = src->ob[1];
-            } else if (((diff < 34.0) & (diff >= 0.0)) && dst->ob[2] > 0.0
-                       || ((diff > -34.0) & (diff <= 0.0)) && dst->ob[2] <= 0.0) {
-                dst->ob[0] = src->ob[0] / fd * sp->unk00;
+            } else if ((((diff < 34.0) & (diff >= 0.0)) && dst->ob[2] > 0.0)
+                       || (((diff > -34.0) & (diff <= 0.0)) && dst->ob[2] <= 0.0)) {
+                x = src->ob[0] / fd;
+                z = src->ob[2] / fd;
+                dst->ob[0] = x * sp->unk00;
                 dst->ob[1] = src->ob[1] + sp->unk04;
-                dst->ob[2] = src->ob[2] / fd * sp->unk00;
+                dst->ob[2] = z * sp->unk00;
                 dst->cn[0] = src->cn[0];
                 dst->cn[1] = src->cn[1];
                 dst->cn[2] = src->cn[2];
@@ -919,9 +928,9 @@ void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
                 f *= f;
                 dst->ob[1] = src->ob[1] + sp->unk04 * f;
                 c = f * 0.5 + 0.5;
-                dst->cn[0] = (f32) src->cn[0] * c;
-                dst->cn[1] = (f32) src->cn[1] * c;
-                dst->cn[2] = (f32) src->cn[2] * c;
+                dst->cn[0] = (s32) ((f32) src->cn[0] * c);
+                dst->cn[1] = (s32) ((f32) src->cn[1] * c);
+                dst->cn[2] = (s32) ((f32) src->cn[2] * c);
                 dst->cn[3] = (u32) (f * 112.0 + 144.0);
             }
             if (dst->ob[1] < save.ob[1]) {
