@@ -208,6 +208,8 @@ extern s16 D_8010CFD8_crowd_cover;
 void func_80106144_crowd_cover(omObjData* obj);
 void func_80106D4C_crowd_cover(omObjData* obj);
 void func_80107E40_crowd_cover(omObjData* obj);
+void func_80106580_crowd_cover(omObjData* obj);
+s16 func_801091FC_crowd_cover(s32 id);
 void func_80106CB8_crowd_cover(void);
 void func_80107E0C_crowd_cover(void);
 u16 func_80107C5C_crowd_cover(omObjData* obj);
@@ -347,7 +349,59 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CAF8
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB00_crowd_cover);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80106144_crowd_cover);
+typedef struct CcU16x3 {
+    u16 v[3];
+} CcU16x3;
+typedef struct CcFrames {
+    s16 v[6][3];
+} CcFrames;
+extern CcU16x3 D_8010CAF0_crowd_cover;
+extern CcU16x3 D_8010CAF8_crowd_cover;
+extern CcFrames D_8010CB00_crowd_cover;
+extern s16 D_8010CF88_crowd_cover[16]; /* sprite files */
+extern s16 D_8010CFA8_crowd_cover[16]; /* their sprite groups */
+extern s16 D_8010C6C4_crowd_cover[3][2]; /* screen positions */
+extern s16 D_8010D862_crowd_cover;
+
+/* Game setup object: loads the sprites, picks the round's layout at random. */
+void func_80106144_crowd_cover(omObjData* obj) {
+    CcU16x3 files1 = D_8010CAF0_crowd_cover;
+    CcU16x3 files0 = D_8010CAF8_crowd_cover;
+    CcFrames frames = D_8010CB00_crowd_cover;
+    s32 unused[8];
+    s16 pick;
+    s32 i;
+
+    omSetStatBit(obj, 0xA0);
+    D_8010CF88_crowd_cover[0] = func_801091FC_crowd_cover(0x590000);
+    D_8010CFA8_crowd_cover[0] = func_80109244_crowd_cover(D_8010CF88_crowd_cover[0], 1);
+    func_80054904_main(D_8010CFA8_crowd_cover[0], 0, 0xA0, 0x78);
+    HuSprAttrSet(D_8010CFA8_crowd_cover[0], 0, 0x4000);
+    D_8010CF88_crowd_cover[3] = func_801091FC_crowd_cover(0x59000A);
+    D_8010CFA8_crowd_cover[4] = func_80109244_crowd_cover(D_8010CF88_crowd_cover[3], 1);
+    func_80054904_main(D_8010CFA8_crowd_cover[4], 0, 0xA0, 0xC6);
+    HuSprAttrSet(D_8010CFA8_crowd_cover[4], 0, 0x100C);
+    D_8010CF88_crowd_cover[2] = func_801091FC_crowd_cover(files0.v[D_8010D860_crowd_cover] | 0x590000);
+    D_8010CFA8_crowd_cover[2] = func_80109244_crowd_cover(D_8010CF88_crowd_cover[2], 3);
+    pick = (f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 6.0;
+    for (i = 0; i < 3; i++) {
+        func_80054904_main(D_8010CFA8_crowd_cover[2], i, D_8010C6C4_crowd_cover[i][0], D_8010C6C4_crowd_cover[i][1]);
+        HuSprAttrSet(D_8010CFA8_crowd_cover[2], i, 0x1008);
+        func_80054FF8_main(D_8010CFA8_crowd_cover[2], i, frames.v[pick][i]);
+    }
+    D_8010CF88_crowd_cover[1] = func_801091FC_crowd_cover(files1.v[D_8010D860_crowd_cover] | 0x590000);
+    D_8010CFA8_crowd_cover[1] = func_80109244_crowd_cover(D_8010CF88_crowd_cover[1], 1);
+    func_80054904_main(D_8010CFA8_crowd_cover[1], 0, 0xA0, 0x6E);
+    D_8010D862_crowd_cover = (f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0;
+    func_80054FF8_main(D_8010CFA8_crowd_cover[1], 0, frames.v[pick][D_8010D862_crowd_cover]);
+    HuSprAttrSet(D_8010CFA8_crowd_cover[1], 0, 0x405808);
+    D_8010CF88_crowd_cover[4] = func_801091FC_crowd_cover(0x59000B);
+    D_8010CFA8_crowd_cover[5] = func_80109244_crowd_cover(D_8010CF88_crowd_cover[4], 1);
+    func_80054904_main(D_8010CFA8_crowd_cover[5], 0, 0xA0, 0x6E);
+    HuSprScaleSet(D_8010CFA8_crowd_cover[5], 0, 1.2f, 1.2f);
+    HuSprAttrSet(D_8010CFA8_crowd_cover[5], 0, 0x940C);
+    obj->func = func_80106580_crowd_cover;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CB48_crowd_cover);
 
