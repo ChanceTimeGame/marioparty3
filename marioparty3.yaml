@@ -1609,6 +1609,7 @@ segments:
       - [0x3010E0, c]
       - [0x306F70, c]
       - [0x308890, data, 3010E0] #8010D150
+      - [0x308A40, .data, 306F70] #8010D300
       - [0x308A50, .rodata, 3010E0] #8010D310
       - [0x308D00, .rodata, 306F70] #8010D5C0
       - {0x308D10, type: bss, vram: 0x8010D5D0, name: ovl_43_bss}
