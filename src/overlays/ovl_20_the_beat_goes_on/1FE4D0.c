@@ -168,6 +168,7 @@ void func_80106E40_the_beat_goes_on(omObjData* obj);
 void func_8010775C_the_beat_goes_on(omObjData* obj);
 void func_801080DC_the_beat_goes_on(void);
 void func_8010C14C_the_beat_goes_on(void);
+u16 func_80108198_the_beat_goes_on(s8 idx);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
 Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
 
@@ -837,9 +838,64 @@ void func_8010775C_the_beat_goes_on(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_801080DC_the_beat_goes_on);
+/* A new four-note rhythm. */
+void func_801080DC_the_beat_goes_on(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108198_the_beat_goes_on);
+    for (i = 0; i < 4; i++) {
+        D_8010C4A0_the_beat_goes_on[i].unk00 = func_80108198_the_beat_goes_on(i);
+        if (i == 0) {
+            D_8010C4A0_the_beat_goes_on[i].unk02 = 26;
+        } else {
+            D_8010C4A0_the_beat_goes_on[i].unk02 = 22;
+        }
+    }
+    for (i = 4; i < 16; i++) {
+        D_8010C4A0_the_beat_goes_on[i].unk00 = 0;
+        D_8010C4A0_the_beat_goes_on[i].unk02 = 22;
+    }
+}
+
+/* A random button, never the same as the previous note's twice in a row by chance alone. */
+u16 func_80108198_the_beat_goes_on(s8 idx) {
+    u16 prev;
+    u8 r;
+
+    if (idx == 0) {
+        prev = 0;
+    } else {
+        prev = D_8010C4A0_the_beat_goes_on[idx - 1].unk00;
+    }
+    r = rand8() % 30;
+    if (r < 10) {
+        if (prev == 0x8000) {
+            r = rand8() % 20;
+            if (r < 10) {
+                return 0x4000;
+            }
+            return 0x2000;
+        }
+        return 0x8000;
+    }
+    if (r < 20) {
+        if (prev == 0x4000) {
+            r = rand8() % 20;
+            if (r < 10) {
+                return 0x8000;
+            }
+            return 0x2000;
+        }
+        return 0x4000;
+    }
+    if (prev == 0x2000) {
+        r = rand8() % 20;
+        if (r >= 10) {
+            return 0x4000;
+        }
+        return 0x8000;
+    }
+    return 0x2000;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108324_the_beat_goes_on);
 
