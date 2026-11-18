@@ -24,8 +24,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", func_8010A3F4_game_guys_roulette);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", D_8010A7E8_game_guys_roulette);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", D_8010A7F0_game_guys_roulette);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FF5F0", D_8010A800_game_guys_roulette);

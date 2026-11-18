@@ -1586,13 +1586,14 @@ segments:
     dir: overlays/ovl_42_game_guys_roulette
     name: game_guys_roulette
     exclusive_ram_id: minigame # ovl_42
+    subalign: 16 # retail pads each object's .rodata to 16 (2FC270 ends 8 bytes short)
     bss_size: 0x440
     subsegments:
       - [0x2FC270, c]
       - [0x2FF5F0, c]
       - [0x300F10, data, 2FC270] #8010A640
       - [0x301000, .rodata, 2FC270] #8010A730
-      - [0x3010B8, .rodata, 2FF5F0] #8010A7E8
+      - [0x3010D0, .rodata, 2FF5F0] #8010A800
       - {0x3010E0, type: bss, vram: 0x8010A810, name: ovl_42_bss}
 
   - type: code

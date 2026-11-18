@@ -37,12 +37,11 @@ typedef struct GgrPlayer {
     /* 0x06 */ u16 coins;
 } GgrPlayer; /* size 0x8 */
 
-/* The result message's state (func_80108414, func_80108480) */
-typedef struct GgrResult {
-    /* 0x00 */ s16 timer;
-    /* 0x02 */ u8 wait;
-    /* 0x03 */ u8 step;
-} GgrResult;
+/* The CPU's key presses in the window, by CPU level */
+typedef struct GgrCpuKey {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 delay;
+} GgrCpuKey;
 
 typedef struct GgrI6 {
     s32 v[6];
@@ -67,6 +66,19 @@ s32 func_80060880_main(s32 arg0, s32 arg1, s32 arg2);
 void func_8005B63C_main(s16, s32, s32);
 void func_80061100_main(s16, s32);
 void func_80060EA8_main(s32 winId, s32 sound);
+void func_80060C14_main(s32 winId, s32 sound);
+void func_8005D294_main(s16);
+void func_8005B43C_main(s16, s32, s32, s32);
+void func_8005F904_main(void);
+s16 func_8005E0C0_main(s16);
+void func_8005F698_main(s16, s16, s16, s16, u8);
+void func_8005F744_main(s16, s16, s16, s16);
+void func_8005FE54_main(s16, s16);
+s32 func_8005E1D8_main(s16, s16, s32);
+void func_8005F524_main(void);
+extern u8 D_800D6A58_main;
+extern u16 D_800D530C_main;
+extern u16 D_800D5558_main[4];
 
 // LOCAL
 void func_801059A0_game_guys_roulette(void);
@@ -107,12 +119,15 @@ void func_80108D20_game_guys_roulette(s32 x, s32 y);
 s16 func_80109078_game_guys_roulette(void);
 void func_80109D14_game_guys_roulette(void);
 
-extern u8 D_8010A640_game_guys_roulette[]; /* pairs by CPU level: the window's key delay at +1 */
-extern s16 D_8010A646_game_guys_roulette;
-extern GgrResult D_8010A678_game_guys_roulette;
+extern GgrCpuKey D_8010A640_game_guys_roulette[3]; /* by CPU level */
+extern u8 D_8010A646_game_guys_roulette;
+extern s16 D_8010A678_game_guys_roulette; /* result timer */
+extern u8 D_8010A67A_game_guys_roulette; /* result message wait */
+extern u8 D_8010A67B_game_guys_roulette; /* result step */
 extern s16 D_8010A67C_game_guys_roulette;
 extern char* D_8010A680_game_guys_roulette[8]; /* character names */
-extern u8 D_8010A6A0_game_guys_roulette[2];
+extern u8 D_8010A6A0_game_guys_roulette; /* banner blink timer */
+extern u8 D_8010A6A1_game_guys_roulette; /* banner blink step */
 extern u8 D_8010A6A4_game_guys_roulette[];
 extern GgrI6 D_8010A6C0_game_guys_roulette;
 extern GgrI8 D_8010A6D8_game_guys_roulette;
@@ -282,25 +297,251 @@ void func_80105E10_game_guys_roulette(GgrPlayer* p) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80105F70_game_guys_roulette);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80106428_game_guys_roulette);
+/* The sprites: background, the two blinking banners, the bet panel, the six prize icons, the player's face,
+   the coin icon and its "x", the coin count's three digits. */
+void func_80106428_game_guys_roulette(omObjData* obj) {
+    GgrI6 prizes = D_8010A6C0_game_guys_roulette;
+    u8 chr = GwPlayer[D_8010AAD6_game_guys_roulette.player].chr;
+    GgrI8 faces = D_8010A6D8_game_guys_roulette;
+    u8 i;
+    s16 file;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801068E8_game_guys_roulette);
+    func_80108A14_game_guys_roulette(&D_8010A930_game_guys_roulette, 0x630000, 0x4008);
+    func_80108A6C_game_guys_roulette(&D_8010A930_game_guys_roulette, 1000, 0, 0, 320, 240, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010A930_game_guys_roulette, 1);
+    func_80108A14_game_guys_roulette(&D_8010A950_game_guys_roulette, 0x630001, 0x4008);
+    func_80108A6C_game_guys_roulette(&D_8010A950_game_guys_roulette, 900, 0, 0, 320, 128, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010A950_game_guys_roulette, 0);
+    func_80108A14_game_guys_roulette(&D_8010A970_game_guys_roulette, 0x630002, 0x4008);
+    func_80108A6C_game_guys_roulette(&D_8010A970_game_guys_roulette, 900, 0, 0, 320, 128, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010A970_game_guys_roulette, 0);
+    func_80108A14_game_guys_roulette(&D_8010A990_game_guys_roulette, 0x630003, 8);
+    func_80108A6C_game_guys_roulette(&D_8010A990_game_guys_roulette, 800, 242, 16, 54, 144, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010A990_game_guys_roulette, 1);
+    for (i = 0; i < 6; i++) {
+        func_80108A14_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], prizes.v[i] | 0x630000, 8);
+        func_80108A6C_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], 700, 246, i * 22 + 22, 22, 22, 1.0f, 1.0f);
+        func_80108A9C_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], 0);
+    }
+    func_80108A14_game_guys_roulette(&D_8010AA70_game_guys_roulette, faces.v[chr] | 0x210000, 8);
+    func_80108A6C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 600, 206, 1, 46, 46, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 0);
+    func_80108A14_game_guys_roulette(&D_8010AA90_game_guys_roulette, 0x21001A, 8);
+    func_80108A6C_game_guys_roulette(&D_8010AA90_game_guys_roulette, 500, 24, 16, 12, 12, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010AA90_game_guys_roulette, 1);
+    func_80108A14_game_guys_roulette(&D_8010AAB0_game_guys_roulette, 0x21001B, 8);
+    func_80108A6C_game_guys_roulette(&D_8010AAB0_game_guys_roulette, 500, 36, 16, 12, 12, 1.0f, 1.0f);
+    func_80108A9C_game_guys_roulette(&D_8010AAB0_game_guys_roulette, 1);
+    file = func_8000B838_main(0x31);
+    D_8010AAD0_game_guys_roulette[0] = InitEspriteSlot(file, 0, 1);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[0], 54, 22);
+    func_8000BCC8_main(D_8010AAD0_game_guys_roulette[0], 500);
+    D_8010AAD0_game_guys_roulette[1] = InitEspriteSlot(file, 0, 1);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[1], 66, 22);
+    func_8000BCC8_main(D_8010AAD0_game_guys_roulette[1], 500);
+    D_8010AAD0_game_guys_roulette[2] = InitEspriteSlot(file, 0, 1);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[2], 78, 22);
+    func_8000BCC8_main(D_8010AAD0_game_guys_roulette[2], 500);
+    obj->func = func_801085A4_game_guys_roulette;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801069DC_game_guys_roulette);
+/* Game Guy */
+void func_801068E8_game_guys_roulette(omObjData* obj) {
+    obj->model[0] = func_8000B108_main(0xA0063, 0x2B9);
+    omSetTra(obj, 0.0f, 193.0f, -117.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    func_8000B460_main(obj, 0, 0xA0063);
+    func_8000B460_main(obj, 1, 0xA0066);
+    func_8000B460_main(obj, 2, 0xA0067);
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+    obj->func = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80106B74_game_guys_roulette);
+/* The wheel and its six prize sectors */
+void func_801069DC_game_guys_roulette(omObjData* obj) {
+    GgrI6 files = D_8010A6F8_game_guys_roulette;
+    u8 i;
 
+    obj->model[0] = func_8000B108_main(0x63000D, 0x2B9);
+    omSetTra(obj, 0.0f, 100.0f, 0.0f);
+    omSetRot(obj, 15.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    for (i = 1; i < 7; i++) {
+        obj->model[i] = func_8000B108_main(files.v[i - 1] | 0x630000, 0x2B9);
+        Hu3DModelPosSet(obj->model[i], 0.0f, 100.0f, 0.0f);
+        Hu3DModelRotSet(obj->model[i], 15.0f, 0.0f, 0.0f);
+        Hu3DModelScaleSet(obj->model[i], 1.0f, 1.0f, 1.0f);
+    }
+    obj->func = NULL;
+}
+
+/* The player's character */
+void func_80106B74_game_guys_roulette(omObjData* obj) {
+    GgrI8 files = D_8010A710_game_guys_roulette;
+
+    obj->model[0] = func_8000B108_main(files.v[D_8010AAD6_game_guys_roulette.chr] | 0x210000, 0x2B9);
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetRot(obj, 15.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    func_8001C8A8_main(obj->model[0], 0);
+    obj->func = NULL;
+}
+
+/* The ball and its shadow, on the rim at 270 degrees of the wheel tilted 15 */
+// masked 1: retail has no nop before the first mul.s after the last cosdf call
+#ifdef NON_MATCHING
+void func_80106C58_game_guys_roulette(omObjData* obj) {
+    f32 x;
+    f32 y;
+    f32 z;
+
+    obj->model[0] = func_8000B108_main(0x63000B, 0x2B9);
+    obj->model[1] = func_8000B108_main(0x63000C, 0x2B9);
+    x = cosdf(270.0f) * 85.0f;
+    y = cosdf(15.0f) * 100.0f - sindf(270.0f) * 85.0f * sindf(15.0f);
+    z = 100.0f * sindf(15.0f) + 85.0f * sindf(270.0f) * cosdf(15.0f);
+    omSetTra(obj, x, y + 100.0f, z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->func = NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80106C58_game_guys_roulette);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80106DD8_game_guys_roulette);
+void func_80106DD8_game_guys_roulette(omObjData* obj) {
+    obj->model[0] = func_8000B108_main(0x630014, 0x2B9);
+    omSetTra(obj, 0.0f, 0.0f, 0.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.0f, 1.0f, 1.0f);
+    func_8000B460_main(obj, 0, 0x630014);
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+    obj->func = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80106EA4_game_guys_roulette);
+/* The director */
+void func_80106EA4_game_guys_roulette(omObjData* obj) {
+    switch (D_8010AB50_game_guys_roulette) {
+    case 0:
+        func_801070C4_game_guys_roulette();
+        break;
+    case 1:
+        D_8010A924_game_guys_roulette = omAddPrcObj(func_80107104_game_guys_roulette, 0x3F00, 0x800, 0);
+        D_8010AB50_game_guys_roulette = 2;
+        break;
+    case 2:
+        if (D_8010AAE0_game_guys_roulette == 1) {
+            D_8010AB50_game_guys_roulette = 5;
+            D_8010AAE0_game_guys_roulette = 0;
+            omDelPrcObj(D_8010A924_game_guys_roulette);
+            D_800D6A58_main = 0;
+            D_8010AB54_game_guys_roulette = GMesCreate(0x1A, 10, 156, 56);
+        }
+        break;
+    case 5:
+        func_801073AC_game_guys_roulette();
+        break;
+    case 6:
+        D_8010A928_game_guys_roulette = omAddPrcObj(func_80107A00_game_guys_roulette, 0x3F00, 0x800, 0);
+        D_8010AB50_game_guys_roulette = 7;
+        break;
+    case 7:
+        if (D_8010AA70_game_guys_roulette.sx > 0.0f) {
+            D_8010AA70_game_guys_roulette.sx = D_8010AA70_game_guys_roulette.sy -= 0.25f;
+            func_80108A9C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 1);
+        } else {
+            D_8010AA70_game_guys_roulette.sx = D_8010AA70_game_guys_roulette.sy = 0.0f;
+            func_80108A9C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 0);
+        }
+        if (D_8010AAE2_game_guys_roulette == 1 && D_8010AA70_game_guys_roulette.sx <= 0.0f) {
+            D_8010AB50_game_guys_roulette = 8;
+            D_8010AAE2_game_guys_roulette = 0;
+            omDelPrcObj(D_8010A928_game_guys_roulette);
+        }
+        break;
+    case 8:
+        func_80107AA8_game_guys_roulette();
+        break;
+    case 9:
+        func_80107B20_game_guys_roulette();
+        break;
+    case 10:
+        func_80108414_game_guys_roulette();
+        break;
+    case 11:
+        func_80108480_game_guys_roulette();
+        break;
+    case 12:
+        obj->func = func_801088B0_game_guys_roulette;
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801070C4_game_guys_roulette);
+void func_801070C4_game_guys_roulette(void) {
+    D_8010A646_game_guys_roulette = func_80109078_game_guys_roulette();
+    if (D_8010A646_game_guys_roulette == 1) {
+        D_8010AB50_game_guys_roulette = 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80107104_game_guys_roulette);
+/* Game Guy's opening talk: the rules, then the bet */
+void func_80107104_game_guys_roulette(void) {
+    s16 done = 0;
+    s16 r;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_8010726C_game_guys_roulette);
+    func_8005D294_main(D_8010AADE_game_guys_roulette);
+    HuAudFXPlay(0x11D);
+    func_80060C14_main(D_8010AADE_game_guys_roulette, 1);
+    func_8005B43C_main(D_8010AADE_game_guys_roulette, 0x2D00, -1, -1);
+    func_8010726C_game_guys_roulette(D_8010AADE_game_guys_roulette);
+    func_8005B43C_main(D_8010AADE_game_guys_roulette, 0x2D01, -1, -1);
+    do {
+        r = func_80108B44_game_guys_roulette(D_8010AADE_game_guys_roulette, D_8010AAD6_game_guys_roulette.pad,
+                                             D_8010AAD6_game_guys_roulette.cpu, 1);
+        if (r == 0) {
+            func_8005B43C_main(D_8010AADE_game_guys_roulette, 0x2D02, -1, -1);
+            done = 1;
+            func_8010726C_game_guys_roulette(D_8010AADE_game_guys_roulette);
+        } else if (r == 1) {
+            done = 1;
+        }
+        HuPrcVSleep();
+    } while (done == 0);
+    func_8005B43C_main(D_8010AADE_game_guys_roulette, 0x2D03, -1, -1);
+    func_8010726C_game_guys_roulette(D_8010AADE_game_guys_roulette);
+    func_8005D294_main(D_8010AADE_game_guys_roulette);
+    func_80060EA8_main(D_8010AADE_game_guys_roulette, 1);
+    D_8010AAE0_game_guys_roulette = 1;
+    while (1) {
+        HuPrcVSleep();
+    }
+}
+
+/* Wait for the window's message to end: a human presses A, the CPU's key is pressed for it */
+void func_8010726C_game_guys_roulette(s16 winId) {
+    s16 i;
+
+    func_8005F904_main();
+    while (func_8005E0C0_main(winId) != 0) {
+        switch (D_8010AAD6_game_guys_roulette.cpu) {
+        case 0:
+            if (D_800D5558_main[D_8010AAD6_game_guys_roulette.pad] & 0x8000) {
+                func_8005F744_main(-0x8000, -0x8000, -0x8000, -0x8000);
+            }
+            break;
+        case 1:
+            for (i = 0; i < 10; i++) {
+                func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000, (&D_8010A640_game_guys_roulette[D_8010AB5A_game_guys_roulette])->delay);
+            }
+            while (func_8005E0C0_main(winId) != 0) {
+                HuPrcVSleep();
+            }
+            break;
+        }
+        HuPrcVSleep();
+    }
+    func_8005F904_main();
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801073AC_game_guys_roulette);
 
@@ -310,7 +551,14 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_8
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80107B20_game_guys_roulette);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108414_game_guys_roulette);
+void func_80108414_game_guys_roulette(void) {
+    if (++D_8010A678_game_guys_roulette == 1) {
+        GMesCreate(0x14);
+        HuAudSeqFadeOut(120);
+    } else if (GMesStatGet() == 0) {
+        D_8010AB50_game_guys_roulette = 11;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", D_8010A770_game_guys_roulette);
 
@@ -330,20 +578,166 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", D_8
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", D_8010A7D0_game_guys_roulette);
 
+/* The result: the win jingle and message, or "<name> LOST!" */
+// raw 2: retail sign-extends the message id through v0 (sll v0 / sra a0), register choice only
+#ifdef NON_MATCHING
+void func_80108480_game_guys_roulette(void) {
+    s16 mes;
+
+    if (D_8010A67B_game_guys_roulette == 0) {
+        func_8004AB0C_main(30);
+        if (D_8010AB58_game_guys_roulette == 1) {
+            HuAudSeqPlay(0x73);
+            mes = GMesCreate(0x16, D_8010AAD6_game_guys_roulette.chr);
+        } else {
+            HuAudSeqPlay(0x71);
+            sprintf(D_8010A810_game_guys_roulette, D_8010A7D0_game_guys_roulette,
+                    D_8010A680_game_guys_roulette[D_8010AAD6_game_guys_roulette.chr]);
+            mes = GMesCreate(0x19, D_8010A810_game_guys_roulette, 160, 120, 1.0, 1.0, 1);
+        }
+        GMesMaxTimeGet(D_8010A67C_game_guys_roulette = mes, 120);
+        D_8010A67B_game_guys_roulette = 1;
+    } else if (D_8010A67B_game_guys_roulette == 1) {
+        if (D_8010A67A_game_guys_roulette++ >= 135) {
+            D_8010AB50_game_guys_roulette = 12;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108480_game_guys_roulette);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801085A4_game_guys_roulette);
+/* Blink the two banners in turn; show the coin count */
+void func_801085A4_game_guys_roulette(omObjData* obj) {
+    s32 x = 0;
+    u16 digit;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801088B0_game_guys_roulette);
+    if (D_8010A6A0_game_guys_roulette >= 5) {
+        if (D_8010A6A1_game_guys_roulette == 0) {
+            func_80108A9C_game_guys_roulette(&D_8010A950_game_guys_roulette, 0);
+            func_80108A9C_game_guys_roulette(&D_8010A970_game_guys_roulette, 0);
+        } else if (D_8010A6A1_game_guys_roulette == 1) {
+            func_80108A9C_game_guys_roulette(&D_8010A950_game_guys_roulette, 1);
+            func_80108A9C_game_guys_roulette(&D_8010A970_game_guys_roulette, 0);
+        } else if (D_8010A6A1_game_guys_roulette == 2) {
+            func_80108A9C_game_guys_roulette(&D_8010A950_game_guys_roulette, 0);
+            func_80108A9C_game_guys_roulette(&D_8010A970_game_guys_roulette, 1);
+        }
+        D_8010A6A1_game_guys_roulette++;
+        if (D_8010A6A1_game_guys_roulette >= 3) {
+            D_8010A6A1_game_guys_roulette = 0;
+        }
+        D_8010A6A0_game_guys_roulette = 0;
+    }
+    D_8010A6A0_game_guys_roulette++;
+    if (D_8010AAD6_game_guys_roulette.coins >= 999) {
+        D_8010AAD6_game_guys_roulette.coins = 999;
+    }
+    if (D_8010AAD6_game_guys_roulette.coins == 0) {
+        D_8010AAD6_game_guys_roulette.coins = 0;
+    }
+    func_8000BB54_main(D_8010AAD0_game_guys_roulette[2]);
+    if ((digit = D_8010AAD6_game_guys_roulette.coins / 100) == 0) {
+        func_8000BB94_main(D_8010AAD0_game_guys_roulette[2]);
+    }
+    func_8000BD50_main(D_8010AAD0_game_guys_roulette[2], digit);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[2], x + 54, 22);
+    if (digit != 0) {
+        x += 12;
+    }
+    func_8000BB54_main(D_8010AAD0_game_guys_roulette[1]);
+    if ((digit = (u16)(D_8010AAD6_game_guys_roulette.coins % 100) / 10) == 0 && (u16)(D_8010AAD6_game_guys_roulette.coins / 100) == 0) {
+        func_8000BB94_main(D_8010AAD0_game_guys_roulette[1]);
+    }
+    func_8000BD50_main(D_8010AAD0_game_guys_roulette[1], digit);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[1], x + 54, 22);
+    if (digit != 0 || (u16)(D_8010AAD6_game_guys_roulette.coins / 100) != 0) {
+        x += 12;
+    }
+    func_8000BD50_main(D_8010AAD0_game_guys_roulette[0], D_8010AAD6_game_guys_roulette.coins % 10);
+    func_8000BBD4_main(D_8010AAD0_game_guys_roulette[0], x + 54, 22);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108998_game_guys_roulette);
+/* Hand the coins back; a win gets the prize */
+void func_801088B0_game_guys_roulette(omObjData* obj) {
+    GwPlayer[D_8010AAD6_game_guys_roulette.player].gameCoin = D_8010AAD6_game_guys_roulette.coins;
+    if (D_8010AB58_game_guys_roulette == 1) {
+        GwPlayer[D_8010AAD6_game_guys_roulette.player].bonusCoin = D_8010A6A4_game_guys_roulette[D_8010AB51_game_guys_roulette];
+    } else if (D_8010AB58_game_guys_roulette == 0) {
+        GwPlayer[D_8010AAD6_game_guys_roulette.player].bonusCoin = 0;
+    }
+    WipeCreateOut(0, 20);
+    HuAudSeqFadeOut(30);
+    func_8004AB0C_main(30);
+    obj->func = func_80108998_game_guys_roulette;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_801089EC_game_guys_roulette);
+void func_80108998_game_guys_roulette(omObjData* obj) {
+    if (WipeStatGet() == 0) {
+        osViBlack(0);
+        func_80109D14_game_guys_roulette();
+        GMesClose();
+        func_8005F524_main();
+        func_800557A0_main();
+        omOvlReturnEx(1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108A14_game_guys_roulette);
+void func_801089EC_game_guys_roulette(omObjData* obj) {
+    if (D_800D530C_main == 1) {
+        obj->func = func_801088B0_game_guys_roulette;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108A6C_game_guys_roulette);
+void func_80108A14_game_guys_roulette(GgrSprite* sp, s32 file, s32 attr) {
+    sp->id = InitEspriteSlot(func_8000B838_main(file), 0, 1);
+    func_8000BC48_main(sp->id, attr);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108A9C_game_guys_roulette);
+void func_80108A6C_game_guys_roulette(GgrSprite* sp, s32 prio, s32 x, s32 y, s32 w, s32 h, f32 sx, f32 sy) {
+    sp->prio = prio;
+    sp->x = x;
+    sp->y = y;
+    sp->w = w;
+    sp->h = h;
+    sp->sx = sx;
+    sp->sy = sy;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_42_game_guys_roulette/2FC270", func_80108B44_game_guys_roulette);
+void func_80108A9C_game_guys_roulette(GgrSprite* sp, u8 show) {
+    func_8000BBD4_main(sp->id, sp->x + (sp->w >> 1), sp->y + (sp->h >> 1));
+    func_8000BE5C_main(sp->id, sp->sx, sp->sy);
+    func_8000BCC8_main(sp->id, (u16)sp->prio);
+    if (show == 1) {
+        func_8000BB54_main(sp->id);
+    } else {
+        func_8000BB94_main(sp->id);
+    }
+}
+
+/* Run the window's choice: mode 0 picks the cursor's entry for the CPU's pad, mode 1 moves the cursor down count
+   times first; returns the choice */
+s16 func_80108B44_game_guys_roulette(s16 winId, s16 pad, s16 mode, s16 count) {
+    s16 keys[4] = { 0, 0, 0, 0 };
+    s16 ports[4] = { 1, 2, 4, 8 };
+    s16 i;
+
+    switch (mode) {
+    case 0:
+        keys[pad] = -1;
+        func_8005B63C_main(winId, 2, 0);
+        func_8005FE54_main(winId, ports[pad]);
+        func_8005F744_main(keys[0], keys[1], keys[2], keys[3]);
+        break;
+    case 1:
+        for (i = 0; i < count; i++) {
+            keys[pad] = 0x400;
+            func_8005F698_main(keys[0], keys[1], keys[2], keys[3],
+                               (&D_8010A640_game_guys_roulette[D_8010AB5A_game_guys_roulette])->delay);
+        }
+        func_8005F698_main(-0x8000, -0x8000, -0x8000, -0x8000,
+                           D_8010A640_game_guys_roulette[D_8010AB5A_game_guys_roulette].delay);
+        break;
+    }
+    return func_8005E1D8_main(winId, 0, 1);
+}
