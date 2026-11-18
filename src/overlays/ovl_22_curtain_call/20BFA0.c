@@ -125,6 +125,7 @@ typedef struct CcPanel {
 } CcPanel; // Size 0x8
 extern CcPanel D_8010CEC8_curtain_call[6];
 extern s8 D_8010CEF8_curtain_call[4];
+extern s16 D_8010CEFC_curtain_call;
 extern s8 D_8010CEFE_curtain_call;
 extern s8 D_8010CEFF_curtain_call;
 extern s8 D_8010CF00_curtain_call;
@@ -1560,7 +1561,97 @@ void func_8010A8E8_curtain_call(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_8010A948_curtain_call);
+/* The minigame's main state: intro message, rounds, the end message and the result. */
+void func_8010A948_curtain_call(omObjData *obj) {
+    switch (D_8010CF32_curtain_call) {
+    case 0:
+        GMesCreate(3);
+        D_8010CF32_curtain_call = 1;
+        D_8010CEFC_curtain_call = 0;
+        break;
+    case 1:
+        if (GMesStatGet() == 0) {
+            D_8010CF32_curtain_call = 2;
+            D_8010CEC1_curtain_call = 0;
+        }
+        if (++D_8010CEFC_curtain_call == 62) {
+            HuAudSeqPlay(0x31);
+        }
+        break;
+    case 2:
+        func_80109AD0_curtain_call();
+        if (D_8010CEFE_curtain_call == 3) {
+            GMesCreate(0xE);
+            HuAudSeqFadeOut(120);
+            D_8010CF32_curtain_call = 3;
+        }
+        break;
+    case 3:
+        if (GMesStatGet() == 0) {
+            D_8010CF32_curtain_call = 4;
+            D_8010CE88_curtain_call = 0;
+        }
+        break;
+    case 4:
+        if (D_8010CF01_curtain_call == 4) {
+            if (++D_8010CE88_curtain_call >= 16) {
+                D_8010CF32_curtain_call = 5;
+            }
+        } else {
+            if (++D_8010CE88_curtain_call >= 16) {
+                D_8010CF32_curtain_call = 6;
+            }
+        }
+        break;
+    case 6:
+        switch (D_8010CF01_curtain_call) {
+        case 0:
+            GMesCreate(0x23, D_8010CE80_curtain_call[0], D_8010CE80_curtain_call[1], D_8010CE80_curtain_call[2],
+                       D_8010CE80_curtain_call[3]);
+            GwPlayer[D_8010CF28_curtain_call[0]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[1]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[2]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[3]].bonusCoin = 10;
+            HuAudSeqPlay(0x66);
+            break;
+        case 1:
+            GMesCreate(0x22, D_8010CE80_curtain_call[0], D_8010CE80_curtain_call[1], D_8010CE80_curtain_call[2]);
+            GwPlayer[D_8010CF28_curtain_call[0]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[1]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[2]].bonusCoin = 10;
+            HuAudSeqPlay(0x66);
+            break;
+        case 2:
+            GMesCreate(0x1E, D_8010CE80_curtain_call[0], D_8010CE80_curtain_call[1]);
+            GwPlayer[D_8010CF28_curtain_call[0]].bonusCoin = 10;
+            GwPlayer[D_8010CF28_curtain_call[1]].bonusCoin = 10;
+            HuAudSeqPlay(0x66);
+            break;
+        case 3:
+            GMesCreate(0x16, D_8010CE80_curtain_call[0]);
+            GwPlayer[D_8010CF28_curtain_call[0]].bonusCoin = 10;
+            HuAudSeqPlay(0x65);
+            break;
+        }
+        D_8010CE88_curtain_call = 15;
+        D_8010CF32_curtain_call = 7;
+        break;
+    case 5:
+        GMesCreate(0x20);
+        HuAudSeqPlay(0x6C);
+        D_8010CE88_curtain_call = 15;
+        D_8010CF32_curtain_call = 7;
+        break;
+    case 7:
+        if (GMesStatGet() == 0) {
+            if (--D_8010CE88_curtain_call <= 0) {
+                WipeCreateOut(0, 20);
+                obj->func = func_8010A7FC_curtain_call;
+            }
+        }
+        break;
+    }
+}
 
 void func_8010AD68_curtain_call(omObjData *obj) {
     D_8010CF32_curtain_call = 0;
