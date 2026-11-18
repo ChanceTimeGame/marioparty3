@@ -124,6 +124,10 @@ typedef struct AtF5 {
     f32 v[5];
 } AtF5;
 
+typedef struct AtByte4 {
+    u8 v[4];
+} AtByte4;
+
 typedef struct AtChrTbl {
     u8 v[8];
 } AtChrTbl;
@@ -181,6 +185,22 @@ extern const AtTbl8 D_8010CD34_awful_tower;
 extern const AtChrTbl D_8010CD2C_awful_tower;
 extern const AtTbl16 D_8010CD54_awful_tower;
 extern s16 D_8010D3EC_awful_tower[2];
+extern Gfx* gMainGfxPos;
+extern Gfx D_8010CBA0_awful_tower[];
+extern const AtRect D_8010CE40_awful_tower;
+extern const AtRect D_8010CE50_awful_tower;
+extern const AtRect D_8010CE60_awful_tower;
+extern const AtRect D_8010CE70_awful_tower;
+extern const AtByte4 D_8010CE80_awful_tower;
+
+/* main's esprite slot (src/esprite.c D_800CD1DC_main_Struct; no pointer fields) */
+typedef struct AtEspr {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04; /* sprite group */
+    /* 0x06 */ char unk06[0x1E];
+} AtEspr; /* size 0x24 */
+extern AtEspr* D_800CD1DC_main;
 extern const AtRect D_8010CDC0_awful_tower;
 extern const AtTbl3 D_8010CDD0_awful_tower;
 extern const AtTbl3 D_8010CDDC_awful_tower;
@@ -189,7 +209,7 @@ extern const AtF5 D_8010CDFC_awful_tower;
 extern const AtTbl3 D_8010CE10_awful_tower;
 extern u16 D_8010D348_awful_tower[4][3];
 extern s16 D_8010D3B8_awful_tower[4];
-extern u16 D_8010D3D0_awful_tower[4];
+extern s16 D_8010D3D0_awful_tower[4];
 extern u16 D_800D530C_main;
 
 extern s16 D_8010D2CC_awful_tower[4];
@@ -705,7 +725,28 @@ void func_80106FDC_awful_tower(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80106FDC_awful_tower);
 #endif
 
+#ifdef NON_MATCHING
+/* Stage object update: runs the players' logic and lowers the tower top in the winner scene. */
+void func_80107734_awful_tower(omObjData* obj) {
+    f32 t;
+
+    func_80107858_awful_tower();
+    if (D_8010D3E4_awful_tower == 3) {
+        if (D_8010D3DC_awful_tower == 1) {
+            func_8001C258_main(obj->model[3], 4, 0);
+            func_8001C8A8_main(obj->model[3], D_8010CB60_awful_tower[D_8010D3FC_awful_tower].unk02);
+        }
+        if (D_8010D3DC_awful_tower != 0 && D_8010D3DC_awful_tower < 46) {
+            t = 1.0f - D_8010D3DC_awful_tower / 45.0f;
+            t = t * t;
+            Hu3DModelPosSet(obj->model[3], 0.0f, t * 700.0f + 4430.0, 300.0f);
+        }
+    }
+    func_80049F98_main();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80107734_awful_tower);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CE40_awful_tower);
 
@@ -717,7 +758,144 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CE70
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CE80_awful_tower);
 
+#ifdef NON_MATCHING
+/* Draws the four players' tower backgrounds as textured strips; the winner's view zooms out. */
+void func_80107858_awful_tower(void) {
+    AtRect order = D_8010CE40_awful_tower;
+    AtRect x0 = D_8010CCC0_awful_tower;
+    AtRect x1 = D_8010CCD0_awful_tower;
+    AtRect ofs = D_8010CE50_awful_tower;
+    AtRect w0 = D_8010CE60_awful_tower;
+    AtRect w1 = D_8010CE70_awful_tower;
+    AtRect ofs2 = D_8010CE60_awful_tower;
+    AtByte4 seq = D_8010CE80_awful_tower;
+    AtRect sx0 = D_8010CCC0_awful_tower;
+    AtRect sx1 = D_8010CCD0_awful_tower;
+    f32 zoom;
+    f32 a;
+    f32 b;
+    f32 scale;
+    s32 zx0;
+    s32 zx1;
+    s16 i;
+    s16 n;
+    s16 j;
+    HuSprite* spr;
+    HuSprite_Unk84_Unk00_Struct* cel;
+    s32 row;
+    s32 end;
+    s32 top;
+    s32 bottom;
+    s32 base;
+    s32 ulx;
+    s32 lrx;
+    s32 uly;
+    s32 lry;
+    s32 ts;
+    s32 dsdx;
+    f64 f;
+    u8 k;
+
+    zoom = 0.0f;
+    if (D_8010D3FC_awful_tower < 4) {
+        for (i = 0, n = 0; i < 4; i++) {
+            if (D_8010D3FC_awful_tower == i) {
+                if (D_8010D3E4_awful_tower == 4 && D_8010D3DC_awful_tower < 30) {
+                    zoom = 1.0f - D_8010D3DC_awful_tower / 29.0f;
+                    zoom = (1.0f - zoom + 1.0f - zoom * zoom * zoom) * 0.5;
+                } else if (D_8010D3E4_awful_tower == 7 || (D_8010D3E4_awful_tower == 4 && D_8010D3DC_awful_tower >= 30)) {
+                    zoom = 1.0f;
+                }
+            } else {
+                seq.v[n++] = i;
+            }
+        }
+        seq.v[n] = D_8010D3FC_awful_tower;
+    }
+    if (zoom > 0.0f) {
+        a = 1.0f - zoom;
+        b = 1.0f - a;
+        scale = ((a * 160.0f + b * 320.0f) - (a * 93.0f + b * 0.0f)) / (a * 67.0f + b * 113.0f);
+        zx0 = sx0.v[D_8010D3FC_awful_tower] = x0.v[D_8010D3FC_awful_tower] * a + w0.v[D_8010D3FC_awful_tower] * b;
+        zx1 = sx1.v[D_8010D3FC_awful_tower] = x1.v[D_8010D3FC_awful_tower] * a + w1.v[D_8010D3FC_awful_tower] * b;
+        ScissorSet(D_8010D3FC_awful_tower, zx0, 0.0f, zx1, 240.0f);
+        ViewportSet(D_8010D3FC_awful_tower, scale * 320.0f * 2.0f, scale * 240.0f * 2.0f, 511.0f,
+                    ((D_8010D3FC_awful_tower * 68 + 59) * a + b * 160.0f) * 4.0f, 480.0f, 511.0f);
+        CenterM[D_8010D3FC_awful_tower].y = a * D_8010D320_awful_tower[D_8010D3FC_awful_tower] + b * 4605.0f;
+        for (i = 0; i < 4; i++) {
+            if (D_8010D3FC_awful_tower != i) {
+                if (i < D_8010D3FC_awful_tower) {
+                    sx0.v[i] = MIN(zx0, sx0.v[i]);
+                    sx1.v[i] = MIN(zx0, sx1.v[i]);
+                } else {
+                    sx0.v[i] = MAX(zx1, sx0.v[i]);
+                    sx1.v[i] = MAX(zx1, sx1.v[i]);
+                }
+            }
+        }
+    }
+    gSPDisplayList(gMainGfxPos++, D_8010CBA0_awful_tower);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+    for (i = 3; i >= 0; i--) {
+        spr = HuSprGet(D_800CD1DC_main[D_8010D3D0_awful_tower[order.v[i]]].unk04, 0);
+        cel = &spr->unk_84->unk00[spr->unk_90];
+        for (j = 0; j < 9; j++) {
+            row = j * 16;
+            end = (row + 17 <= 130) ? row + 17 : 130;
+            if (i != 0) {
+                gDPLoadTextureTile(gMainGfxPos++, (u8*)cel->unk00 + row * 114, G_IM_FMT_CI, G_IM_SIZ_8b, 114, 0, 0, 0,
+                                   114, end - row, 0, G_TX_CLAMP, G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
+                                   G_TX_NOLOD);
+                gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+            } else {
+                gDPLoadTextureTile_4b(gMainGfxPos++, (u8*)cel->unk00 + row * 57, G_IM_FMT_CI, 114, 0, 0, 0, 114,
+                                      end - row, 0, G_TX_CLAMP, G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
+                                      G_TX_NOLOD);
+                gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+            }
+            top = row + i * 131;
+            bottom = end + (i * 131 + 2);
+            for (n = 0; n < 4; n++) {
+                k = seq.v[n];
+                if (zoom > 0.0f) {
+                    if (sx0.v[k] == sx1.v[k]) {
+                        continue;
+                    }
+                    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, sx0.v[k], 0,
+                                  (k == D_8010D3FC_awful_tower) ? sx1.v[k] - 1 : sx1.v[k], 240);
+                }
+                if (k == D_8010D3FC_awful_tower) {
+                    a = 1.0f - zoom;
+                    b = 1.0f - a;
+                } else {
+                    a = 1.0f;
+                    b = 0.0f;
+                }
+                base = (D_8010D320_awful_tower[k] - 650.0f) / 3850.0 * -284.0 + 284.0;
+                ulx = (x0.v[k] * a + w0.v[k] * b) * 4.0f;
+                lrx = (x1.v[k] * a + w1.v[k] * b) * 4.0f;
+                f = a + b * (320.0 / 113.0);
+                uly = ((top - base - 120) * f + 120.0) * 4.0;
+                lry = ((bottom - base - 120) * f + 120.0) * 4.0 - 1.0;
+                if (ulx > 1280 || lrx < 0) {
+                    continue;
+                }
+                if (uly > 960 || lry < 0) {
+                    continue;
+                }
+                ts = (ofs.v[k] * a + ofs2.v[k] * b) * 32.0;
+                dsdx = (a * 67.0f + b * 113.0f) / ((a * 160.0f + b * 320.0f) - (a * 93.0f + b * 0.0f)) * 1024.0;
+                gSPScisTextureRectangle(gMainGfxPos++, ulx, uly, lrx, lry, G_TX_RENDERTILE, ts, 0, dsdx, dsdx);
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        ScissorSet(i, sx0.v[i], 0.0f, sx1.v[i], 240.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80107858_awful_tower);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80108880_awful_tower);
 
