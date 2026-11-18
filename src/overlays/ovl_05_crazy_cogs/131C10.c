@@ -10,6 +10,7 @@
 #include "game/hmflight.h"
 #include "game/hmfman.h"
 #include "game/object.h"
+#include "game/pause.h"
 #include "game/sprite.h"
 #include "game/util.h"
 #include "game/wipe.h"
@@ -61,6 +62,7 @@ typedef struct CgEnt {
 #define CG_ENT_18 18
 #define CG_ENT_23 23
 #define CG_ENT_24 24
+#define CG_ENT_TEAM 25 /* 25..27: the team players */
 #define CG_ENT_PLAYER 29 /* 29..32 */
 
 /* The ground object's data (func_80106270_crazy_cogs). */
@@ -82,6 +84,7 @@ void osSyncPrintf(const char *fmt, ...);
 extern s32 D_800A178C_main[][6];
 void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_8010728C_crazy_cogs(omObjData *obj);
+void func_8010787C_crazy_cogs(omObjData *obj);
 s16 func_8004AD8C_main(s16 defNo);
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
 void func_801060A0_crazy_cogs(omObjData *obj, u16 motion, s16 arg2, s16 arg3, s16 arg4);
@@ -851,16 +854,115 @@ void func_80107778_crazy_cogs(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107778_crazy_cogs);
 #endif
 
-void func_8010787C_crazy_cogs(void) {
+void func_8010787C_crazy_cogs(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107884_crazy_cogs);
+/* A team player: character model and shadow, standing at its slot (CgEnt::unk04) round the big cog. */
+void func_80107884_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[CG_ENT_TEAM + obj->work[1]];
+    u16 chr = GwPlayer[obj->work[0]].chr;
+    f32 angle;
 
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 2));
+    func_80106034_crazy_cogs(obj, 1, 2);
+    obj->model[1] = func_8000B0A0_main(0, 0x14C9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    angle = func_801059BC_crazy_cogs(0.0f, ent->unk04 * 120);
+    obj->trans.x = sindf(angle) * 90.0f;
+    obj->trans.y = 28.0f;
+    obj->trans.z = cosdf(angle) * 90.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->func = func_8010787C_crazy_cogs;
+}
+
+/* Creates the three team players (group != 0), each at a random free slot. */
+#ifdef NON_MATCHING
+/* as func_80107778_crazy_cogs: retail's frame is 8 bytes larger and it copies the new object to $v1 */
+void func_80107AB8_crazy_cogs(void) {
+    s8 order[3];
+    s8 free[3];
+    CgEnt *ent;
+    omObjData *obj;
+    u32 player;
+    u32 n;
+    s8 *slot;
+    s8 k;
+    s8 i;
+    s8 j;
+
+    for (i = 0; i < 3; i++) {
+        order[i] = i;
+        free[i] = 1;
+    }
+    player = 0;
+    n = 0;
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group != 0) {
+            switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            }
+            ent = &D_8010B9F0_crazy_cogs[CG_ENT_TEAM + n];
+            obj = omAddObj(800, 3, 3, -1, func_80107884_crazy_cogs);
+            obj->work[0] = player;
+            ent->obj = obj;
+            obj->work[1] = n;
+            slot = &order[(s8)func_80105B7C_crazy_cogs(3 - n)];
+            ent->unk04 = *slot;
+            free[*slot] = 0;
+            for (j = 0, k = 0; j < 3; j++) {
+                if (free[j] != 0) {
+                    order[k] = j;
+                    k++;
+                }
+            }
+            n++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107AB8_crazy_cogs);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107CA8_crazy_cogs);
+/* Rotates the vector (*x, *z) by angle degrees. */
+void func_80107CA8_crazy_cogs(f32 *x, f32 *z, f32 angle) {
+    f32 len = sqrtf(*x * *x + *z * *z);
+    f32 a = func_801059BC_crazy_cogs(atan2df(*x, *z), angle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107D58_crazy_cogs);
+    *x = len * sindf(a);
+    *z = len * cosdf(a);
+}
+
+/* A team player's footstep sound every 11 frames. */
+void func_80107D58_crazy_cogs(omObjData *obj) {
+    CgEnt *ent = &D_8010B9F0_crazy_cogs[CG_ENT_TEAM + obj->work[1]];
+
+    if (obj->work[2] == 0) {
+        if (ent->unk16 != 0) {
+            HuAudFXStop(ent->unk16);
+        }
+        ent->unk16 = func_8004ACE0_main(0x28, obj->work[0]);
+    }
+    obj->work[2] = (obj->work[2] + 1) % 11;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107E00_crazy_cogs);
 
