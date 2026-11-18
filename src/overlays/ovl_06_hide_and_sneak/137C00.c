@@ -134,6 +134,7 @@ extern s16 D_8010CE58_hide_and_sneak; /* view: D_8010C7A0_hide_and_sneak[HS_ENT_
 extern s8 D_8010E170_hide_and_sneak;
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
+extern s8 D_8010E17C_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
 extern HsBoxLog D_8010E188_hide_and_sneak[4];
 extern HuSprite_Unk84_Struct *D_8010E198_hide_and_sneak[4];
@@ -158,6 +159,8 @@ void func_8010A48C_hide_and_sneak(void);
 void func_8010A6BC_hide_and_sneak(omObjData *obj);
 void func_8010A1CC_hide_and_sneak(omObjData *obj);
 void func_80107B30_hide_and_sneak(omObjData *obj);
+void func_80109D88_hide_and_sneak(omObjData *obj);
+extern u8 D_800D6A90_main;
 void func_8010ACC4_hide_and_sneak(Gfx **gfx, s32 arg1, s32 arg2);
 void func_8010AF98_hide_and_sneak(omObjData *obj);
 void func_8010B33C_hide_and_sneak(omObjData *obj);
@@ -1228,7 +1231,48 @@ s32 func_80109BF4_hide_and_sneak(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109D88_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A1CC_hide_and_sneak);
+void func_8010A1CC_hide_and_sneak(omObjData *obj) {
+    HsSeeker *s = &D_8010C788_hide_and_sneak[obj->work[1]];
+    u16 chr = GwPlayer[obj->work[0]].chr;
+
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][3], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 2));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x79));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x30));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x70));
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    switch (obj->work[1]) {
+        case 0:
+            obj->trans.x = -220.0f;
+            break;
+        case 1:
+            obj->trans.x = 0.0f;
+            break;
+        case 2:
+            obj->trans.x = 220.0f;
+            break;
+    }
+    obj->trans.y = 125.0f;
+    obj->trans.z = -300.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_80106548_hide_and_sneak(obj, 0, 2);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    s->unk00 = 0;
+    s->step = 0;
+    s->unk02 = func_801064F4_hide_and_sneak(2);
+    s->unk03 = 0;
+    s->unk04 = 0;
+    s->unk05 = 0;
+    obj->work[3] = GwPlayer[obj->work[0]].pad;
+    obj->func = func_80109D88_hide_and_sneak;
+}
 
 #ifdef NON_MATCHING
 void func_8010A48C_hide_and_sneak(void) {
@@ -1320,7 +1364,73 @@ s32 func_8010A824_hide_and_sneak(void) {
     return n == 4;
 }
 
+#ifdef NON_MATCHING
+void func_8010A88C_hide_and_sneak(omObjData *obj) {
+    s8 i = obj->work[0];
+    HsEnt *ent = HS_ENT(HS_ENT_BOX, i);
+
+    switch (D_8010E1B3_hide_and_sneak) {
+        case 1:
+            if (i == D_8010E17C_hide_and_sneak) {
+                if (ent->unk16 == 0) {
+                    HuAudFXPlay(0x32C);
+                    ent->unk16++;
+                }
+                if (ent->unk04 < -63) {
+                    ent->unk04 = -64;
+                    D_8010E182_hide_and_sneak[i] = 0;
+                    D_8010C760_hide_and_sneak[i].unk06 = 1;
+                    ent->unk08++;
+                    if (ent->unk08 >= 21) {
+                        D_8010E1B3_hide_and_sneak = 2;
+                    }
+                } else {
+                    goto shrink;
+                }
+            }
+            break;
+        case 2:
+            if (D_8010E1AC_hide_and_sneak == 0) {
+                HuAudFXPlay(0x327);
+                D_8010E1AC_hide_and_sneak = 1;
+            }
+            if (ent->unk04 < -63) {
+                ent->unk04 = -64;
+            } else {
+            shrink:
+                if (func_80049F98_main() + D_800D6A90_main == 0) {
+                    ent->unk04 -= 4;
+                }
+            }
+            break;
+        case 3:
+            if (D_8010E1AC_hide_and_sneak != 0) {
+                HuAudFXPlay(0x327);
+                D_8010E1AC_hide_and_sneak = 0;
+            }
+            if (D_8010E182_hide_and_sneak[i] != 0) {
+                if (ent->unk04 >= 0) {
+                    ent->unk04 = 0;
+                } else if (func_80049F98_main() + D_800D6A90_main == 0) {
+                    ent->unk04 += 4;
+                }
+            }
+            break;
+    }
+    switch (D_8010C780_hide_and_sneak) {
+        case 0:
+        case 1:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            func_8010A6BC_hide_and_sneak(obj);
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A88C_hide_and_sneak);
+#endif
 
 void func_8010AAC8_hide_and_sneak(omObjData *obj) {
     s8 i = obj->work[0];
