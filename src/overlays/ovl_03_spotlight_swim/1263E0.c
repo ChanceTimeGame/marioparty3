@@ -2033,7 +2033,43 @@ void func_8010AE9C_spotlight_swim(omObjData *obj) {
     func_80106EB0_spotlight_swim(D_8010D348_spotlight_swim);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010B828_spotlight_swim);
+s16 func_8002C834_main(HmfData *hmf, char *name);
+void func_8010AE9C_spotlight_swim(omObjData *obj);
+
+/* The spotlight: the lamp model (flagging its "c205_000-sao" part) and two beam models. */
+void func_8010B828_spotlight_swim(omObjData *obj) {
+    SsEnt *ent = &D_8010D480_spotlight_swim[13];
+    HmfData *hmf;
+    s16 part;
+    s16 i;
+
+    obj->model[0] = func_8000B108_main(0xA0089, 0x2B9);
+    hmf = HmfModelData[obj->model[0]].hmf;
+    part = func_8002C834_main(hmf, "c205_000-sao");
+    for (i = 0; i < hmf->unk10; i++) {
+        if (i == part) {
+            *(u16 *)hmf->unk60[i].unk24 |= 1;
+        }
+    }
+    obj->model[1] = func_8000B108_main(0x240005, 0x299);
+    obj->model[2] = func_8000B108_main(0x240004, 0x299);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_8001C8A8_main(obj->model[2], 1);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 920.0f;
+    obj->trans.z = 0.0f;
+    ent->pos.x = 0.0f;
+    ent->pos.y = 920.0f;
+    ent->pos.z = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[2], ent->pos.x, ent->pos.y, ent->pos.z);
+    obj->func = func_8010AE9C_spotlight_swim;
+}
 
 void func_8010BA30_spotlight_swim(void) {
     D_8010D480_spotlight_swim[13].obj = omAddObj(1300, 5, 5, -1, func_8010B828_spotlight_swim);
