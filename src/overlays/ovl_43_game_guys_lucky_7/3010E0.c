@@ -218,6 +218,10 @@ extern GgmCpuKey D_8010D188_game_guys_lucky_7[3]; /* CPU key delay by CPU level 
 extern char* D_8010D194_game_guys_lucky_7[8]; /* character names */
 extern s16 D_8010D1B4_game_guys_lucky_7; /* title step */
 extern u16 D_8010D1B6_game_guys_lucky_7; /* title frame */
+extern u16 D_8010D1B8_game_guys_lucky_7; /* intro step */
+extern u16 D_8010D1BA_game_guys_lucky_7; /* title done */
+extern f32 D_8010D1BC_game_guys_lucky_7; /* intro bounce speed */
+extern u16 D_8010D1C0_game_guys_lucky_7; /* intro wait */
 
 /* .rodata */
 
@@ -226,6 +230,17 @@ extern char D_8010D5D0_game_guys_lucky_7[];
 extern s16 D_8010D6D0_game_guys_lucky_7; /* result message */
 extern Process* D_8010D6D4_game_guys_lucky_7; /* rules window process */
 extern L7Player D_8010D6DC_game_guys_lucky_7;
+extern s16 D_8010D726_game_guys_lucky_7;
+extern f32 D_8010D72C_game_guys_lucky_7;
+extern f32 D_8010D730_game_guys_lucky_7;
+extern f32 D_8010D734_game_guys_lucky_7;
+extern f32 D_8010D738_game_guys_lucky_7;
+extern s16 D_8010D73C_game_guys_lucky_7;
+extern u16 D_8010D73E_game_guys_lucky_7;
+extern s16 D_8010D740_game_guys_lucky_7;
+extern s16 D_8010D746_game_guys_lucky_7;
+extern f32 D_8010D74C_game_guys_lucky_7;
+extern f32 D_8010D754_game_guys_lucky_7;
 extern u16 D_8010D776_game_guys_lucky_7;
 extern u16 D_8010D77A_game_guys_lucky_7; /* won */
 extern u16 D_8010D77C_game_guys_lucky_7; /* rules window done */
@@ -503,7 +518,59 @@ void func_80106370_game_guys_lucky_7(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80106500_game_guys_lucky_7);
+void func_80106500_game_guys_lucky_7(omObjData* obj) {
+    if (D_8010D1BA_game_guys_lucky_7 == 0) {
+        D_8010D1BA_game_guys_lucky_7 = func_8010BB88_game_guys_lucky_7();
+    }
+    switch (D_8010D1B8_game_guys_lucky_7) {
+    case 0:
+        D_8010D1BC_game_guys_lucky_7 = -1.7f;
+        D_8010D73C_game_guys_lucky_7 = 7;
+        D_8010D746_game_guys_lucky_7 = 1;
+        D_8010D74C_game_guys_lucky_7 = 1000.0f;
+        D_8010D754_game_guys_lucky_7 = 270.0f;
+        D_8010D1B8_game_guys_lucky_7++;
+        break;
+    case 1:
+        if (D_8010D74C_game_guys_lucky_7 > 350.0f) {
+            D_8010D74C_game_guys_lucky_7 -= 10.0f;
+        } else {
+            D_8010D754_game_guys_lucky_7 = (D_8010D754_game_guys_lucky_7 < 360.0f)
+                ? D_8010D754_game_guys_lucky_7 + 10.0f : (D_8010D746_game_guys_lucky_7 = 0, 360.0f);
+        }
+        if (D_8010D740_game_guys_lucky_7 >= 25 && D_8010D73E_game_guys_lucky_7 != 0.0f) {
+            D_8010D1BC_game_guys_lucky_7 += 0.11f;
+            if (D_8010D1BC_game_guys_lucky_7 > 1.7f) {
+                D_8010D1BC_game_guys_lucky_7 = 1.7f;
+            }
+            D_8010D730_game_guys_lucky_7 += D_8010D1BC_game_guys_lucky_7 * D_8010D1BC_game_guys_lucky_7
+                * ((D_8010D1BC_game_guys_lucky_7 >= 0.0f) ? -17.5f : 26.0f);
+        } else if (D_8010D73E_game_guys_lucky_7 == 0.0f) {
+            if (D_8010D1C0_game_guys_lucky_7++ >= 30) {
+                D_8010D73E_game_guys_lucky_7 = 1;
+            }
+        }
+        if (D_8010D740_game_guys_lucky_7 == 30) {
+            D_8010D73E_game_guys_lucky_7 = 0;
+            D_8010D1BC_game_guys_lucky_7 = 0.0f;
+            D_8010D72C_game_guys_lucky_7 = 450.0f;
+            D_8010D730_game_guys_lucky_7 = 800.0f;
+            D_8010D734_game_guys_lucky_7 = -100.0f;
+            D_8010D738_game_guys_lucky_7 = 360.0f;
+        }
+        if (D_8010D730_game_guys_lucky_7 <= 0.0f) {
+            D_8010D754_game_guys_lucky_7 = 360.0f;
+            D_8010D73C_game_guys_lucky_7 = 0;
+            D_8010D730_game_guys_lucky_7 = 0.0f;
+            D_8010D726_game_guys_lucky_7 = 2;
+            D_8010D1B8_game_guys_lucky_7++;
+        }
+        break;
+    case 2:
+        obj->func = func_80106248_game_guys_lucky_7;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80106854_game_guys_lucky_7);
 
