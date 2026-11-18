@@ -128,7 +128,13 @@ s32 func_80017B6C_main(s16 arg0, s16 arg1, s16 arg2);
 s32 func_80017BB8_main(s16, s16);
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_80020E94_main(void *, struct HmfModel *);
-void func_80021BE0_main(s32 *arg0, s32 n);
+void func_80021BE0_main(HitList *l, s32 n);
+f32 func_800204F4_main(f32 x, f32 y, f32 z, ColVtx *verts, ColTri *tri);
+f32 func_8002048C_main(f32 x, f32 z, ColVtx *a, ColVtx *b);
+void func_80021C14_main(s16 mi, HitList *l, s32 (*cb)(s32, u16 *, ColVtx *, HitProbe *), HitProbe *probe);
+u16 *func_80022198_main(HitList *l);
+s32 func_80109D4C_fridged_bridges(s32 n, u16 *idx, ColVtx *verts, HitProbe *probe);
+s32 func_80109D6C_fridged_bridges(Vec *p, ColTri *tri, ColVtx *verts);
 void func_800335BC_main(char *name, void *size);
 void func_80045C2C_main(void);
 void func_80047C0C_main(u16 group, u16 max_objs);
@@ -139,7 +145,7 @@ void omSetStat(omObjData *obj, u16 stat);
 
 extern f32 D_800CCF98_main[];
 extern f32 D_800D4198_main[];
-extern s32 D_800EBEB0_minigame[];
+extern HitList D_800EBEB0_minigame;
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800A178C_main[][6];
@@ -224,7 +230,7 @@ void func_80108FBC_fridged_bridges(omObjData *obj);
 extern s16 D_8010D19C_fridged_bridges;
 void func_801091F8_fridged_bridges(omObjData *obj);
 void func_80109390_fridged_bridges(omObjData *obj);
-u16 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);
+s32 func_80109988_fridged_bridges(omObjData *obj, FbGround *g);
 u16 func_8010A0F4_fridged_bridges(omObjData *obj, f32 x, f32 y, f32 z);
 u16 func_8010ADC0_fridged_bridges(void);
 void func_8010B164_fridged_bridges(void);
@@ -242,7 +248,7 @@ void func_801059A0_fridged_bridges(void) {
     i = 0;
     func_8004A208_main();
     Hu3DAnimInit(0x10);
-    func_80021BE0_main(D_800EBEB0_minigame, 0x40);
+    func_80021BE0_main(&D_800EBEB0_minigame, 0x40);
     func_80045C2C_main();
     func_8000B690_main(4);
     func_8000B710_main(4);
@@ -1415,11 +1421,119 @@ void func_80109390_fridged_bridges(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109390_fridged_bridges);
 #endif
 
+#ifdef NON_MATCHING
+/* Ground under 8 points around the player and its centre; returns how many have none */
+s32 func_80109988_fridged_bridges(omObjData *obj, FbGround *g) {
+    FbPlayer *work = obj->data;
+    HitProbe probe;
+    s32 none = 0;
+    s32 i;
+    s32 j;
+    f32 a;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 best;
+    f32 h;
+    ColVtx *verts;
+    u16 *tri;
+    s16 model;
+    s16 piece;
+
+    work->unk1C = -1;
+    for (i = 0; i < 9; i++) {
+        if (i != 8) {
+            a = i * 45.0f;
+            x = probe.x = sindf(a) * 55.0f + g->pos.x;
+            y = probe.y = g->pos.y;
+            z = probe.z = cosdf(a) * 55.0f + g->pos.z;
+        } else {
+            x = probe.x = g->pos.x;
+            y = probe.y = g->pos.y;
+            z = probe.z = g->pos.z;
+        }
+        best = g->h[i] = -10000.0f;
+        g->attr[i] = 0xFFFF;
+        model = D_8010DA6C_fridged_bridges->model[work->unk02];
+        verts = HmfModelData[model].hmf->unk50;
+        func_80021C14_main(model, &D_800EBEB0_minigame, func_80109D4C_fridged_bridges, &probe);
+        for (tri = func_80022198_main(&D_800EBEB0_minigame); tri != NULL; tri = func_80022198_main(&D_800EBEB0_minigame)) {
+            h = func_800204F4_main(x, y, z, verts, (ColTri *)tri);
+            if (best < h) {
+                best = h;
+                g->h[i] = h;
+                g->attr[i] = *tri & 0x3F00;
+                if (i == 8) {
+                    work->unk1C = g->attr[8];
+                }
+            }
+        }
+        for (j = 0; j < work->unk24; j++) {
+            probe.x = x - D_8010D9A0_fridged_bridges[work->unk02][j].u;
+            probe.z = z - D_8010D9A0_fridged_bridges[work->unk02][j].v;
+            piece = D_8010DA70_fridged_bridges->model[work->unk02 * 5 + j + 1];
+            verts = HmfModelData[piece].hmf->unk50;
+            func_80021C14_main(piece, &D_800EBEB0_minigame, func_80109D4C_fridged_bridges, &probe);
+            for (tri = func_80022198_main(&D_800EBEB0_minigame); tri != NULL; tri = func_80022198_main(&D_800EBEB0_minigame)) {
+                h = func_800204F4_main(x, y, z, verts, (ColTri *)tri);
+                if (best < h) {
+                    best = h;
+                g->h[i] = h;
+                    g->attr[i] = work->unk1C = *tri & 0x3F00;
+                    if (i == 8) {
+                        work->unk1C = g->attr[8];
+                    }
+                }
+            }
+        }
+        if (best == -10000.0f) {
+            none++;
+        }
+    }
+    return none;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109988_fridged_bridges);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109D4C_fridged_bridges);
+s32 func_80109D4C_fridged_bridges(s32 n, u16 *idx, ColVtx *verts, HitProbe *probe) {
+    return func_80109D6C_fridged_bridges((Vec *)probe, (ColTri *)(idx - 1), verts);
+}
 
+#ifdef NON_MATCHING
+/* Is (x, z) inside the face? (minigame func_800DA540 without its surface filter) */
+s32 func_80109D6C_fridged_bridges(Vec *p, ColTri *tri, ColVtx *verts) {
+    s16 *idx;
+    f32 x, z;
+    s32 cnt;
+    s32 i;
+    s32 j;
+
+    idx = (s16 *)tri;
+    x = p->x;
+    z = p->z;
+    cnt = ((u16)*idx >> 14) + 2;
+    idx++;
+    if (func_8002048C_main(x, z, &verts[idx[0]], &verts[idx[1]]) > 0.0f) {
+        for (i = 1; i < cnt; i++) {
+            j = (i + 1) % cnt;
+            if (func_8002048C_main(x, z, &verts[idx[i]], &verts[idx[j]]) < 0.0f) {
+                return 0;
+            }
+        }
+    } else {
+        for (i = 1; i < cnt; i++) {
+            j = (i + 1) % cnt;
+            if (func_8002048C_main(x, z, &verts[idx[i]], &verts[idx[j]]) > 0.0f) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109D6C_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109F84_fridged_bridges);
 
