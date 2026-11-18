@@ -131,7 +131,7 @@ void func_80105B04_curtain_call(s32 player);
 s32 func_80105B7C_curtain_call(s32 n);
 void func_80105BD0_curtain_call(omObjData *obj, u16 motion, s16 arg2);
 void func_80105C3C_curtain_call(omObjData *obj, u16 motion, s16 arg2, s16 arg3, s16 arg4);
-s32 func_80105CB8_curtain_call(omObjData *obj, f32 target);
+s8 func_80105CB8_curtain_call(omObjData *obj, f32 target);
 void func_80105D14_curtain_call(s32 conNo);
 void func_801062EC_curtain_call(void);
 void func_80106408_curtain_call(void);
@@ -141,7 +141,7 @@ void func_801064A0_curtain_call(omObjData *obj);
 void func_80106500_curtain_call(omObjData *obj);
 void func_80106688_curtain_call(void);
 void func_801066C4_curtain_call(omObjData *obj, u8 anim);
-s32 func_801067A8_curtain_call(omObjData *obj, s8 mode);
+s8 func_801067A8_curtain_call(omObjData *obj, s8 mode);
 void func_80106988_curtain_call(omObjData *obj, s8 motion);
 void func_80106AB4_curtain_call(omObjData *obj);
 void func_80106B78_curtain_call(omObjData *obj);
@@ -254,7 +254,7 @@ void func_80105C3C_curtain_call(omObjData *obj, u16 motion, s16 arg2, s16 arg3, 
 }
 
 #ifdef NON_MATCHING
-s32 func_80105CB8_curtain_call(omObjData *obj, f32 target) {
+s8 func_80105CB8_curtain_call(omObjData *obj, f32 target) {
     s32 ret = 0;
 
     if (obj->rot.y != target) {
@@ -449,7 +449,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", D_8010B37
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", D_8010B380_curtain_call);
 
-s32 func_801067A8_curtain_call(omObjData *obj, s8 mode) {
+s8 func_801067A8_curtain_call(omObjData *obj, s8 mode) {
     CcEnt *ent = CC_PLAYER(obj->work[0]);
 
     switch (mode) {
@@ -764,7 +764,163 @@ void func_80107560_curtain_call(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80107680_curtain_call);
+/* A player's update while the curtain game runs. */
+void func_80107680_curtain_call(omObjData *obj) {
+    s8 pad = obj->work[3];
+    s8 player = obj->work[0];
+    CcEnt *ent = CC_PLAYER(player);
+
+    if (D_8010CF32_curtain_call != 2) {
+        if (D_8010CF32_curtain_call >= 3) {
+            obj->func = func_80106AB4_curtain_call;
+        }
+    } else {
+        if (ent->unk04 != 0) {
+            func_80107560_curtain_call(obj);
+            return;
+        }
+        func_80106C18_curtain_call(obj);
+        switch (D_8010CEC1_curtain_call) {
+        case 0:
+            func_80106988_curtain_call(obj, 0);
+            break;
+        case 3:
+            if (ent->unk0A == 1) {
+                if (ent->unk08 <= 0 && D_800CBB6E_main[pad] < -5) {
+                    if ((s32)ent->pos.x == -180) {
+                        ent->pos.x = 0.0f;
+                    }
+                    ent->unk08 = 1;
+                    D_8010CF18_curtain_call[player] = (D_8010CF18_curtain_call[player] + 1) % 3;
+                }
+                if (ent->unk08 >= 0 && D_800CBB6E_main[pad] >= 6) {
+                    if ((s32)ent->pos.x == 0) {
+                        ent->pos.x = -180.0f;
+                    }
+                    ent->unk08 = -1;
+                    D_8010CF18_curtain_call[player] =
+                        (D_8010CF18_curtain_call[player] != 0) ? D_8010CF18_curtain_call[player] - 1 : 2;
+                }
+            }
+        case 2:
+            if (func_80105CB8_curtain_call(obj, 0.0f)) {
+                func_80106988_curtain_call(obj, 2);
+            } else if (ent->unk06 != 3) {
+                func_80106988_curtain_call(obj, 1);
+            }
+            break;
+        case 4:
+        case 5:
+            if (func_80105CB8_curtain_call(obj, 180.0f)) {
+                func_80106988_curtain_call(obj, 2);
+            } else {
+                func_80106988_curtain_call(obj, 3);
+            }
+            D_8010CF22_curtain_call = 0;
+            ent->unk12 = 0;
+            break;
+        case 6:
+            if (ent->unk12 < 30) {
+                func_80105CB8_curtain_call(obj, 0.0f);
+                func_80106988_curtain_call(obj, 2);
+            } else if (ent->unk12 == 30) {
+                if (D_8010CF18_curtain_call[player] == D_8010CEFF_curtain_call) {
+                    func_80106988_curtain_call(obj, 6);
+                    D_8010CF22_curtain_call++;
+                } else {
+                    func_80106988_curtain_call(obj, 8);
+                    if (ent->unk16 == 0) {
+                        ent->unk16++;
+                        func_8004ACE0_main(0x286, obj->work[0]);
+                    }
+                }
+            } else if (ent->unk12 >= 71) {
+                if (D_8010CF18_curtain_call[player] == D_8010CEFF_curtain_call) {
+                    if (D_8010CF22_curtain_call != 1 && D_8010CEFE_curtain_call != 2
+                        && func_80105CB8_curtain_call(obj, 180.0f)) {
+                        func_80106988_curtain_call(obj, 2);
+                    } else {
+                        func_80106988_curtain_call(obj, 3);
+                    }
+                } else {
+                    ent->unk04 = 1;
+                    if (D_8010CF20_curtain_call[0] < 0) {
+                        D_8010CF20_curtain_call[0] = player;
+                        D_8010CF20_curtain_call[1] = D_8010CEFE_curtain_call;
+                    } else {
+                        func_80106988_curtain_call(obj, 3);
+                    }
+                }
+            }
+            ent->unk12++;
+            break;
+        }
+        if (ent->unk08 > 0) {
+            ent->pos.x -= 4.0f;
+            if ((s32)ent->pos.x % 60 == 0) {
+                ent->unk08 = 0;
+            }
+        }
+        if (ent->unk08 < 0) {
+            ent->pos.x += 4.0f;
+            if ((s32)ent->pos.x % 60 == 0) {
+                ent->unk08 = 0;
+            }
+        }
+        Hu3DModelPosSet(obj->model[3], obj->trans.x + ent->pos.x, ent->pos.y, obj->trans.z);
+        switch (D_8010CEC1_curtain_call) {
+        case 0:
+            ent->pos.x = 0.0f;
+            D_8010CF18_curtain_call[player] = 0;
+            ent->unk0A = 0;
+            ent->unk14 = 0;
+            break;
+        case 3:
+            switch (ent->unk0A) {
+            case 0:
+                if (func_801067A8_curtain_call(obj, 0)) {
+                    ent->unk0A = 1;
+                }
+                break;
+            case 1:
+                if ((s32)ent->pos.x % 60 == 0 && (D_800D5558_main[pad] & 0x8000)) {
+                    func_8004AC98_main(0x417, obj->work[0]);
+                    ent->unk0A = 2;
+                }
+                break;
+            case 2:
+                if (func_801067A8_curtain_call(obj, 1)) {
+                    ent->unk0A = 3;
+                    func_80106988_curtain_call(obj, 3);
+                }
+                break;
+            case 3:
+                if (D_800D5558_main[pad] & 0x4000) {
+                    func_8004AC98_main(0x418, obj->work[0]);
+                    ent->unk0A = 4;
+                }
+                break;
+            case 4:
+                if (func_801067A8_curtain_call(obj, 0)) {
+                    ent->unk0A = 1;
+                    func_80106988_curtain_call(obj, 1);
+                }
+                break;
+            }
+            break;
+        case 4:
+            if (func_801067A8_curtain_call(obj, 0)) {
+                ent->unk0A = 1;
+            }
+            break;
+        case 6:
+            if (func_801067A8_curtain_call(obj, 1)) {
+                ent->unk0A = 0;
+            }
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80107D20_curtain_call);
 
