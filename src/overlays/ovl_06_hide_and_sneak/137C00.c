@@ -51,6 +51,8 @@ typedef struct HsEnt {
 } HsEnt; // Size 0x84
 
 extern HsEnt D_8010C7A0_hide_and_sneak[50];
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+
 #define HS_ENT_TITLE 0
 #define HS_ENT_SOLO 1
 #define HS_ENT_SEEKER 2 /* 3 */
@@ -1129,7 +1131,55 @@ void func_801095DC_hide_and_sneak(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_80109688_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_SEEKER, obj->work[1]);
+    s8 port = obj->work[3];
+    s8 list[4];
+    s8 i;
+    s8 n;
+    u8 sx;
+    u8 sy;
+    s16 ax;
+    s16 ay;
+
+    if (GwPlayer[obj->work[0]].stat & 1) {
+        if (ent->unk08 == -1) {
+            for (i = 0, n = 0; i < 4; i++) {
+                if (D_8010E182_hide_and_sneak[i] != 0) {
+                    list[n] = i;
+                    n++;
+                }
+            }
+            ent->unk08 = list[func_801064F4_hide_and_sneak(n)];
+        }
+    } else {
+        sx = D_800CBB6E_main[port];
+        sy = D_800D20A1_main[port];
+        if (ABS((s8)sx) >= 11 || ABS((s16)(s8)sy) >= 11) {
+            ax = ABS((s16)(s8)sx);
+            ay = ABS((s16)(s8)sy);
+            if (ay < ax) {
+                if ((s16)(s8)sx < 0 && D_8010E182_hide_and_sneak[0] != 0) {
+                    ent->unk08 = 0;
+                }
+                if ((s16)(s8)sx > 0 && D_8010E182_hide_and_sneak[3] != 0) {
+                    ent->unk08 = 3;
+                }
+            } else {
+                if ((s16)(s8)sy > 0 && D_8010E182_hide_and_sneak[1] != 0) {
+                    ent->unk08 = 1;
+                }
+                if ((s16)(s8)sy < 0 && D_8010E182_hide_and_sneak[2] != 0) {
+                    ent->unk08 = 2;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109688_hide_and_sneak);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109870_hide_and_sneak);
 
