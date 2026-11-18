@@ -99,7 +99,7 @@ typedef struct {
     /* 0x58 */ f32 unk58;
     /* 0x5C */ f32 unk5C;
     /* 0x60 */ f32 unk60;
-    /* 0x64 */ char unk64[4];
+    /* 0x64 */ f32 unk64;
     /* 0x68 */ Vec unk68;
     /* 0x74 */ f32 unk74;
     /* 0x78 */ u16 unk78;
@@ -153,6 +153,7 @@ void func_8010BB78_motor_rooter(FuncContext *ctx);
 void func_8010BCD0_motor_rooter(FuncContext *ctx);
 void func_8010BDF0_motor_rooter(FuncContext *ctx);
 void func_8010C084_motor_rooter(FuncContext *ctx);
+void func_8010C44C_motor_rooter(FuncContext *ctx);
 void func_8010C824_motor_rooter(FuncContext *ctx);
 void func_8010CB2C_motor_rooter(omObjData *object, s16 arg1, s16 arg2);
 void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, s8 arg2);
@@ -2009,7 +2010,78 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010BDF0_
 #endif
 /* </func_8010BDF0_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C084_motor_rooter);
+/* <func_8010C084_motor_rooter> */
+void func_8010C084_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    s16 idx = object->work[0];
+    s16 i;
+    f32 t;
+
+    if (work->unk08 & 0xC) {
+        return;
+    }
+    switch (ctx->state) {
+    case 0:
+        ctx->work.s8[2] = 0;
+        ctx->work.s16[0] = 1;
+        ctx->work.f32[3] = object->rot.y;
+        work->unk64 = CRotM[idx].y + 90.0f;
+        if (ctx->work.f32[3] > 360.0f) {
+            ctx->work.f32[3] -= 360.0f;
+        }
+        if (ctx->work.f32[3] < 0.0f) {
+            ctx->work.f32[3] += 360.0f;
+        }
+        if (work->unk64 - ctx->work.f32[3] > 180.0f) {
+            work->unk64 -= 360.0f;
+        }
+        ctx->work.f32[2] = work->unk18;
+        if (work->unk18 > 180.0f) {
+            ctx->work.f32[1] = 360.0f;
+        } else {
+            ctx->work.f32[1] = 0.0f;
+        }
+        ctx->work.f32[0] = work->unk10 / 40.0f;
+        ctx->state = 1;
+        work->unk08 |= 1;
+        break;
+    case 1:
+        t = ctx->work.s8[2] / 15.0f;
+        work->unk18 = (ctx->work.f32[1] - ctx->work.f32[2]) * t + ctx->work.f32[2];
+        if (++ctx->work.s8[2] > 15) {
+            func_8004AB0C_main(120);
+            ctx->state = 2;
+            work->unk78 |= 4;
+            for (i = 0; i < 4; i++) {
+                m254_minigame->unk1A4[idx * 4 + i] = 0;
+            }
+        }
+        break;
+    case 2:
+        object->rot.y = (work->unk64 - ctx->work.f32[3]) * sindf(ctx->work.s16[0]) + ctx->work.f32[3];
+        ctx->work.s16[0] = 2.0f * ctx->work.s16[0];
+        if (ctx->work.s16[0] > 90) {
+            ctx->work.s16[0] = 90;
+        }
+        work->unk10 -= ctx->work.f32[0];
+        if (++ctx->work.s16[5] > 6) {
+            ctx->work.s16[5] = 0;
+            if (work->unk14 - 1 >= 0) {
+                work->unk14--;
+                work->unk28[work->unk14] = 2;
+            }
+        }
+        if (work->unk10 < 0.0f) {
+            work->unk10 = 0.0f;
+            work->unk08 |= 0x80;
+            m254_SetFunc(object->work[0] + 4, 5, -1, work, func_8010C44C_motor_rooter, 0, FALSE);
+            m254_ResetFunc(object->work[0] + 4, ctx);
+        }
+        break;
+    }
+}
+/* </func_8010C084_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C44C_motor_rooter);
 
