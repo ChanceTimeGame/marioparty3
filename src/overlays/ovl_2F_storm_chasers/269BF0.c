@@ -1127,13 +1127,14 @@ void func_80108738_storm_chasers(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_8010891C_storm_chasers(omObjData *obj) {
     ScBucket *b = &D_8010CCE0_storm_chasers[obj->work[0]];
     ScPlayer *pl = &D_8010CD80_storm_chasers[obj->work[0]];
     Vec v;
-    s16 frame;
 
+    if (b->state == -1) {
+        return;
+    }
     switch (b->state) {
         case 0:
             if (b->held == 0) {
@@ -1161,16 +1162,16 @@ void func_8010891C_storm_chasers(omObjData *obj) {
             break;
     }
     Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.0f, obj->trans.z + 10.0f);
-    frame = 0;
     if (D_8010CCA0_storm_chasers == 2) {
         if (D_8010CCC0_storm_chasers.state == -1) {
             return;
         }
         pl = &D_8010CD80_storm_chasers[obj->work[0]];
-        func_80106184_storm_chasers(D_8010CCC0_storm_chasers.obj->trans.x, D_8010CCC0_storm_chasers.obj->trans.z,
+        func_80106184_storm_chasers(D_8010CCD8_storm_chasers->trans.x, D_8010CCD8_storm_chasers->trans.z,
                                     pl->obj->trans.x + sindf(pl->obj->rot.y) * 50.0f,
                                     pl->obj->trans.z + sindf(pl->obj->rot.y) * 50.0f, &v);
         if (SC_ABS(v.x) < 85.0f) {
+            /* filling: the gauge climbs to 2 and falls back, looping */
             pl->score++;
             if (obj->work[2] == 0) {
                 if (obj->work[3] < 2) {
@@ -1183,23 +1184,21 @@ void func_8010891C_storm_chasers(omObjData *obj) {
             } else {
                 obj->work[2] = 0;
             }
-            frame = obj->work[3];
+            func_80034048_main(obj->work[1], obj->work[3]);
         } else {
             if (obj->work[3] != 0) {
                 obj->work[3]--;
             }
-            frame = obj->work[3];
+            func_80034048_main(obj->work[1], obj->work[3]);
         }
+    } else {
+        func_80034048_main(obj->work[1], 0);
     }
-    func_80034048_main(obj->work[1], frame);
     if (D_8010CCA0_storm_chasers == 8 && b->sfx != -1) {
         func_8004AEF0_main(b->sfx, 30);
         b->sfx = -1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010891C_storm_chasers);
-#endif
 
 void func_80108C64_storm_chasers(omObjData *obj) {
     void *data;
@@ -1561,8 +1560,9 @@ void func_8010AF20_storm_chasers(omObjData *obj) {
 }
 
 /* A player (minigame framework): models, motions, start corner, CPU tuning by difficulty. */
-#ifdef NON_MATCHING
 void func_8010B1B0_storm_chasers(omObjData *obj) {
+    s32 arg4 = 0x2B9;
+    s32 arg5 = 0xC9;
     u16 chr = GwPlayer[obj->work[0]].chr;
     s32 dir = D_800A178C_main[chr][0];
     s32 file = D_800A178C_main[chr][2];
@@ -1570,7 +1570,7 @@ void func_8010B1B0_storm_chasers(omObjData *obj) {
     ScPlayer *pl;
 
     func_800E18D8_minigame();
-    func_800E1BA8_minigame(obj, dir, file, obj->work[0], 0x2B9, 0xC9);
+    func_800E1BA8_minigame(obj, dir, file, obj->work[0], arg4, arg5);
     mw = obj->data;
     mw->unkEC = NULL;
     func_8001C2FC_main(obj->model[1], 0x80000000, 0);
@@ -1653,9 +1653,6 @@ void func_8010B1B0_storm_chasers(omObjData *obj) {
     pl->stickZ = 0;
     pl->stickX = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010B1B0_storm_chasers);
-#endif
 
 void func_8010B738_storm_chasers(void) {
     s32 unused[2]; /* retail's frame carries 8 bytes no instruction uses */
