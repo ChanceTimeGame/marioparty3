@@ -2137,7 +2137,70 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C44C_
 #endif
 /* </func_8010C44C_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010C824_motor_rooter);
+/* <func_8010C824_motor_rooter> */
+void func_8010C824_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    s16 i;
+    f32 t;
+
+    if (work->unk08 & 0xC) {
+        return;
+    }
+    switch (ctx->state) {
+    case 0:
+        ctx->work.s8[2] = 0;
+        ctx->work.s16[0] = 1;
+        ctx->work.f32[3] = object->rot.y;
+        ctx->work.f32[2] = work->unk18;
+        if (work->unk18 > 180.0f) {
+            ctx->work.f32[1] = 360.0f;
+        } else {
+            ctx->work.f32[1] = 0.0f;
+        }
+        ctx->work.f32[0] = work->unk10 / 60.0f;
+        ctx->state = 1;
+        work->unk08 |= 1;
+        break;
+    case 1:
+        t = ctx->work.s8[2] / 15.0f;
+        work->unk18 = (ctx->work.f32[1] - ctx->work.f32[2]) * t + ctx->work.f32[2];
+        if (++ctx->work.s8[2] > 15) {
+            work->unk74 = object->rot.y;
+            work->unk08 |= 0x400;
+            ctx->state = 2;
+            work->unk78 |= 4;
+            for (i = 0; i < 4; i++) {
+                m254_minigame->unk1A4[object->work[0] * 4 + i] = 0;
+            }
+        }
+        break;
+    case 2:
+        work->unk74 = (ctx->work.f32[3] + 1080.0f - ctx->work.f32[3]) * sindf(ctx->work.s16[0]) + ctx->work.f32[3];
+        if (work->unk74 > 360.0f) {
+            work->unk74 -= 360.0f;
+        }
+        ctx->work.s16[0] = ctx->work.s16[0] + 1.0f;
+        if (ctx->work.s16[0] > 90) {
+            ctx->work.s16[0] = 90;
+        }
+        work->unk10 -= ctx->work.f32[0];
+        if (++ctx->work.s16[5] > 10) {
+            ctx->work.s16[5] = 0;
+            if (work->unk14 - 1 >= 0) {
+                work->unk14--;
+                work->unk28[work->unk14] = 2;
+            }
+        }
+        if (work->unk10 < 0.0f) {
+            work->unk10 = 0.0f;
+            func_8010BDE4_motor_rooter(work, 0, 1);
+            m254_ResetFunc(object->work[0] + 4, ctx);
+        }
+        break;
+    }
+}
+/* </func_8010C824_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010CB2C_motor_rooter);
 
