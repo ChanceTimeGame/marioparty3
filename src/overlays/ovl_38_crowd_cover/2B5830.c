@@ -1376,7 +1376,7 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
     s32 siz;
     s32 mode;
     s32 w;
-    u16 rowH;
+    u32 rowH;
     u32 strips;
     s32 rem;
     s32 idx;
@@ -1470,7 +1470,7 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
             break;
     }
     strips = cel->unk06 / rowH;
-    rem = cel->unk06 % rowH;
+    rem = cel->unk06 - strips * rowH;
     /* a whole strip fits one LoadBlock: use the block loaders */
     if (cel->unk04 % (16 >> siz) == 0 && (u32)((rowH * cel->unk04) << siz) <= 0x1000) {
         idx = cel->unk04 >> D_8010C804_crowd_cover[siz];
