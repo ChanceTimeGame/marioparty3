@@ -1229,53 +1229,641 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A62C_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010ABB4_popgun_pickoff);
+void func_8010ABB4_popgun_pickoff(s16 id, s16 tex) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AC34_popgun_pickoff);
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->spr = D_800C9530_main[tex];
+        b->b = 0xFF;
+        b->g = 0xFF;
+        b->r = 0xFF;
+        b->a = 0xFF;
+        b->unk2C = 0;
+        b->unk24 = 0;
+        b->unk30 = 1.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AC74_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010ACB4_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AD14_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AD54_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010ADA4_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AE0C_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AE5C_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AEAC_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AEF0_popgun_pickoff);
 
+
+
+
+void func_8010AC34_popgun_pickoff(s16 id, s16 frame) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->unk24 = frame;
+        b->unk2C = 0;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AC74_popgun_pickoff(s16 id, f32 speed) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->unk30 = speed;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010ACB4_popgun_pickoff(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->flags |= 0x04000000;
+        b->ofs.x = x;
+        b->ofs.y = y;
+        b->ofs.z = z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AD14_popgun_pickoff(s16 id, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->ofs.z = z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AD54_popgun_pickoff(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->pos.x = x;
+        b->pos.y = y;
+        b->pos.z = z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010ADA4_popgun_pickoff(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->pos.x += x;
+        b->pos.y += y;
+        b->pos.z += z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AE0C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->scale.x = x;
+        b->scale.y = y;
+        b->scale.z = z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AE5C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->rot.x = x;
+        b->rot.y = y;
+        b->rot.z = z;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AEAC_popgun_pickoff(s16 id, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->flags |= flags;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AEF0_popgun_pickoff(s16 id, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->flags &= ~flags;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef NON_MATCHING
+s32 func_8010AF38_popgun_pickoff(s16 id) {
+    s32 flags = -1;
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        flags = b->flags;
+    }
+    return flags;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AF38_popgun_pickoff);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AF78_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AFB4_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AFF4_popgun_pickoff);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010AF78_popgun_pickoff(s16 id, s8 arg1) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->unk1A = arg1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PgBoard* func_8010AFB4_popgun_pickoff(s16 id) {
+    if (id == -1) {
+        return NULL;
+    }
+    return &D_8010DDD8_popgun_pickoff[id];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vtx* func_8010AFF4_popgun_pickoff(s16 id) {
+    PgBoard* b;
+
+    if (id == -1) {
+        return NULL;
+    }
+    b = &D_8010DDD8_popgun_pickoff[id];
+    return b->vtx;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef NON_MATCHING
+s32 func_8010B038_popgun_pickoff(s16 id, s16 w, s16 h) {
+    PgBoard* b;
+    Vtx* v;
+    s32 x = w;
+    s32 y = h;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        if (b->rows == 3) {
+            b->flags |= 0x80000000;
+            v = b->vtx;
+            v[4].v.ob[0] = x;
+            v[4].v.ob[1] = -y;
+            v[4].v.ob[2] = 0;
+            v[4].v.tc[0] = x << 6;
+            v[4].v.tc[1] = y << 6;
+            return 1;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B038_popgun_pickoff);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B0D4_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B120_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B200_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B300_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B3D0_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B508_popgun_pickoff);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B544_popgun_pickoff);
 
+
+
+
+
+
+void func_8010B0D4_popgun_pickoff(s16 id, s8 r, s8 g, s8 b, u16 a) {
+    PgBoard* p;
+
+    if (id != -1) {
+        p = &D_8010DDD8_popgun_pickoff[id];
+        p->r = r;
+        p->g = g;
+        p->b = b;
+        p->a = a;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B120_popgun_pickoff(s16 id) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        if (b->spr != NULL) {
+            HuMemFree(b->gfx);
+            HuMemFree(b->vtx);
+            b->spr = NULL;
+            b->flags = 0;
+            b->a = 0x100;
+            b->b = 0xFF;
+            b->g = 0xFF;
+            b->r = 0xFF;
+            b->unk2C = 0;
+            b->unk24 = 0;
+            b->unk1C = 0;
+            b->unk1B = 0;
+            b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
+            b->pos.x = b->pos.y = b->pos.z = 0.0f;
+            b->scale.x = b->scale.y = b->scale.z = 1.0f;
+            b->rot.x = b->rot.y = b->rot.z = 0.0f;
+            b->unk30 = 1.0f;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B200_popgun_pickoff(s32 id, s32 on) {
+    PgBoard* b = &D_8010DDD8_popgun_pickoff[id];
+    s32 i;
+
+    if (on) {
+        b->flags |= 0x10000;
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i].v.cn[0] = 0;
+            b->vtx[i].v.cn[1] = 0;
+            b->vtx[i].v.cn[2] = 0x80;
+        }
+    } else {
+        b->flags &= ~0x10000;
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i].v.cn[0] = 0xFF;
+            b->vtx[i].v.cn[1] = 0xFF;
+            b->vtx[i].v.cn[2] = 0xFF;
+            b->vtx[i].v.cn[3] = 0xFF;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B300_popgun_pickoff(s32 id, s32 flip) {
+    PgBoard* b = &D_8010DDD8_popgun_pickoff[id];
+    s32 i;
+
+    if (flip) {
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i * 2].v.tc[0] = b->spr->unk00->unk04 << 6;
+            b->vtx[i * 2 + 1].v.tc[0] = 0;
+        }
+    } else {
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i * 2].v.tc[0] = 0;
+            b->vtx[i * 2 + 1].v.tc[0] = b->spr->unk00->unk04 << 6;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B3D0_popgun_pickoff(s32 id, s32 flip) {
+    PgBoard* b = &D_8010DDD8_popgun_pickoff[id];
+    s32 rem = b->spr->unk00->unk06 - (b->rows - 2) * b->rowH;
+    s32 i;
+
+    if (flip) {
+        for (i = 0; i < b->rows - 1; i++) {
+            b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = b->spr->unk00->unk06 - i * b->rowH;
+        }
+        if (rem != 0) {
+            b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = 0;
+        }
+    } else {
+        for (i = 0; i < b->rows - 1; i++) {
+            b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = i * b->rowH;
+        }
+        if (rem != 0) {
+            b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = b->spr->unk00->unk06;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B508_popgun_pickoff(s16 id, s32 arg1) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->unk14 = arg1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void func_8010B544_popgun_pickoff(s16 id, s8 arg1, s8 arg2, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        b->unk1B = arg1;
+        b->unk1C = arg2;
+        b->flags |= flags;
+        HuMemFree(b->gfx);
+        func_80109718_popgun_pickoff(b);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef NON_MATCHING
+void func_8010B5B4_popgun_pickoff(s16 id, s32 on) {
+    PgBoard* b;
+    Vtx* v;
+    s8 c;
+    s8 a;
+    s32 i;
+
+    if (id != -1) {
+        b = &D_8010DDD8_popgun_pickoff[id];
+        if (on) {
+            c = 0;
+            a = 0x70;
+        } else {
+            c = -1;
+            a = -1;
+        }
+        for (i = 0; i < b->rows; i++) {
+            v = &b->vtx[i];
+            v->v.cn[0] = v->v.cn[1] = v->v.cn[3] = c;
+            b->vtx[i].v.cn[2] = a;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B5B4_popgun_pickoff);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B64C_popgun_pickoff);
 
