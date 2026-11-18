@@ -57,6 +57,26 @@ typedef struct CcCamKey {
     /* 0x14 */ Vec unk14; /* camera centre */
 } CcCamKey; // Size 0x20
 
+/* omObjData::data of the shooting star spawner (func_801090C0_cosmic_coaster, 0x28) */
+typedef struct CcStars {
+    /* 0x00 */ s16 unk00[6]; /* per slot: star sprite */
+    /* 0x0C */ s16 unk0C[6]; /* per slot: trail sprite */
+    /* 0x18 */ u16 unk18[2]; /* per side: frames to the next star */
+    /* 0x1C */ u16 unk1C[6]; /* per slot: in use */
+} CcStars; // Size 0x28
+
+/* omObjData::data of one shooting star (func_801096A8_cosmic_coaster) */
+typedef struct CcShoot {
+    /* 0x00 */ s16 unk00; /* side */
+    /* 0x04 */ u16 *unk04; /* its CcStars slot flag */
+    /* 0x08 */ s16 unk08; /* star sprite */
+    /* 0x0A */ s16 unk0A; /* trail sprite */
+    /* 0x0C */ f32 unk0C; /* screen x */
+    /* 0x10 */ f32 unk10; /* screen y */
+    /* 0x14 */ f32 unk14; /* velocity */
+    /* 0x18 */ f32 unk18;
+} CcShoot; // Size 0x1C
+
 double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void *HuMemAllocTag(s32 size, s16 tag);
@@ -138,6 +158,9 @@ s32 func_8010B97C_cosmic_coaster(omObjData *object, s32 rider, omObjData *obj);
 u32 func_8010B644_cosmic_coaster(omObjData **hit, CcCar *car, f32 pos, f32 prev, u16 take);
 void func_8010869C_cosmic_coaster(omObjData *object);
 void func_801090C0_cosmic_coaster(omObjData *object);
+void func_80109290_cosmic_coaster(omObjData *object);
+s16 func_8010923C_cosmic_coaster(CcStars *work);
+void func_801096A8_cosmic_coaster(omObjData *object);
 void func_80109900_cosmic_coaster(void);
 void func_8010991C_cosmic_coaster(omObjData *object);
 
@@ -1002,13 +1025,181 @@ void func_8010869C_cosmic_coaster(omObjData *object) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010869C_cosmic_coaster);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80108C9C_cosmic_coaster);
+/* Light the car and riders by the nearest glowing track object (type 4). */
+void func_80108C9C_cosmic_coaster(omObjData *object) {
+    CcCar *work;
+    omObjData **objs;
+    omObjData *o;
+    omObjData *best;
+    f32 bestD;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 d;
+    f32 nx;
+    f32 ny;
+    f32 nz;
+    u8 r;
+    u8 g;
+    u8 b;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801090C0_cosmic_coaster);
+    work = object->data;
+    best = NULL;
+    objs = func_80047DBC_main(work->unk00);
+    bestD = 500000.0f;
+    for (i = 0; i < 0x37; i++) {
+        o = objs[i];
+        if (o == NULL) {
+            continue;
+        }
+        if (o->work[1] != 4) {
+            continue;
+        }
+        d = HuSqrtf((o->trans.x - object->trans.x) * (o->trans.x - object->trans.x) + (o->trans.y - object->trans.y) * (o->trans.y - object->trans.y) + (work->unk08 - o->trans.z - object->trans.z) * (work->unk08 - o->trans.z - object->trans.z));
+        if (d < bestD) {
+            bestD = d;
+            best = o;
+        }
+    }
+    if (best != NULL && bestD <= 1600.0f) {
+        nx = (best->trans.x - object->trans.x) / bestD * 127.0f;
+        ny = (best->trans.y - object->trans.y) / bestD * 127.0f;
+        nz = (work->unk08 - best->trans.z - object->trans.z) / bestD * 127.0f;
+        r = (1600.0f - bestD) * 0.159375f;
+        g = (1600.0f - bestD) * 0.159375f;
+        b = (1600.0f - bestD) * 0.159375f;
+        func_8001FBBC_main(object->model[0], r, g, b);
+        func_8001FBFC_main(object->model[0], nx, ny, nz);
+        for (i = 0; i < 2; i++) {
+            func_8001FBBC_main(object->model[1 + i], r, g, b);
+            func_8001FBFC_main(object->model[1 + i], nx, ny, nz);
+            func_8001FBBC_main(object->model[3 + i], r, g, b);
+            func_8001FBFC_main(object->model[3 + i], nx, ny, nz);
+        }
+    } else {
+        func_8001FBBC_main(object->model[0], 0, 0, 0);
+        for (i = 0; i < 2; i++) {
+            func_8001FBBC_main(object->model[1 + i], 0, 0, 0);
+            func_8001FBBC_main(object->model[3 + i], 0, 0, 0);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010923C_cosmic_coaster);
+/* Shooting star spawner setup: six star and trail sprites, a random delay per side. */
+void func_801090C0_cosmic_coaster(omObjData *object) {
+    CcStars *work;
+    s16 star;
+    s16 trail;
+    s32 i;
 
+    work = object->data = HuMemAllocTag(0x28, 0x7918);
+    star = func_8000B838_main(0x310012);
+    trail = func_8000B838_main(0x310013);
+    for (i = 0; i < 6; i++) {
+        work->unk00[i] = InitEspriteSlot(star, 0, 0);
+        func_8000BCC8_main(work->unk00[i], 0x815E);
+        func_8000BC48_main(work->unk00[i], 0x4000);
+        func_8000BE5C_main(work->unk00[i], 0.5f, 0.5f);
+        func_8000BB94_main(work->unk00[i]);
+        work->unk0C[i] = InitEspriteSlot(trail, 0, 0);
+        func_8000BCC8_main(work->unk0C[i], 0x815E);
+        func_8000BC48_main(work->unk0C[i], 0x4000);
+        func_8000BE5C_main(work->unk0C[i], 0.5f, 0.5f);
+        func_8000BB94_main(work->unk0C[i]);
+        work->unk1C[i] = 0;
+    }
+    for (i = 0; i < 2; i++) {
+        work->unk18[i] = rand8() + 0x78;
+    }
+    object->func = func_80109290_cosmic_coaster;
+}
+
+/* Claim a free star slot; -1 when all six are flying. */
+s16 func_8010923C_cosmic_coaster(CcStars *work) {
+    s16 i;
+
+    for (i = 0; i < 6; i++) {
+        if (work->unk1C[i] == 0) {
+            work->unk1C[i] = 1;
+            return i;
+        }
+    }
+    return -1;
+}
+
+/* Shooting star spawner per frame: launch a star on each side when its delay runs out. */
+#ifdef NON_MATCHING
+void func_80109290_cosmic_coaster(omObjData *object) {
+    CcStars *work;
+    omObjData *obj;
+    CcShoot *star;
+    s32 side;
+    s16 slot;
+    f32 angle;
+    f32 x;
+    f32 y;
+
+    work = object->data;
+    for (side = 0; side < 2; side++) {
+        if (--work->unk18[side] == 0) {
+            work->unk18[side] = rand8() % 121 + 0x78;
+            slot = func_8010923C_cosmic_coaster(work);
+            if (slot != -1) {
+                obj = omAddObj(0x28, 0, 0, -1, func_801096A8_cosmic_coaster);
+                star = obj->data = HuMemAllocTag(sizeof(CcShoot), 0x7918);
+                star->unk00 = side;
+                angle = (rand8() * rand8()) % 1801 / 10.0f;
+                if (angle >= 60.0f && angle <= 120.0f) {
+                    if (angle > 90.0f) {
+                        angle = 120.0f;
+                    } else {
+                        angle = 60.0f;
+                    }
+                }
+                x = cosdf(angle) * 160.0f;
+                y = -(sindf(angle) * 160.0f + 80.0f);
+                if (side == 0) {
+                    if (x < -20.0f) {
+                        x = -20.0f;
+                    }
+                    if (x > 164.0f) {
+                        x = 164.0f;
+                    }
+                } else {
+                    x += 160.0f;
+                    if (x < 156.0f) {
+                        x = 156.0f;
+                    }
+                    if (x > 340.0f) {
+                        x = 180.0f;
+                    }
+                }
+                if (y < -20.0f) {
+                    y = -20.0f;
+                }
+                if (y > 80.0f) {
+                    y = 80.0f;
+                }
+                star->unk0C = x;
+                star->unk10 = y;
+                angle -= 180.0f;
+                star->unk14 = cosdf(angle) * 4.5f;
+                star->unk18 = -sindf(angle) * 4.5f;
+                star->unk04 = &work->unk1C[slot];
+                star->unk08 = work->unk00[slot];
+                star->unk0A = work->unk0C[slot];
+                func_8000BBD4_main(star->unk08, star->unk0C, star->unk10);
+                func_8000BB54_main(star->unk08);
+                func_8000BBD4_main(star->unk0A, star->unk0C, star->unk10);
+                func_8000BB54_main(star->unk0A);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109290_cosmic_coaster);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801096A8_cosmic_coaster);
 
