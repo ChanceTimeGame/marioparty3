@@ -232,6 +232,8 @@ void func_8010A360_fridged_bridges(omObjData *obj);
 void func_8010AE0C_fridged_bridges(void);
 u16 func_8010AE98_fridged_bridges(f32 speed);
 extern s32 D_8010D1A0_fridged_bridges;
+extern u16 D_8010D1F4_fridged_bridges[4]; /* per player: camera reached the start */
+extern u16 D_8010DA20_fridged_bridges; /* camera path point */
 extern FbUV D_8010D1D4_fridged_bridges[4]; /* per player: viewport origin */
 void func_80012B14_main(s16 camIndex, Vec *worldPos, FbUV *outPos);
 void func_801075A4_fridged_bridges(omObjData *obj);
@@ -1813,11 +1815,84 @@ void func_8010A360_fridged_bridges(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010A360_fridged_bridges);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010ADC0_fridged_bridges);
+/* 1 when no player is falling */
+u16 func_8010ADC0_fridged_bridges(void) {
+    s32 n = 0;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010AE0C_fridged_bridges);
+    for (i = 0; i < 4; i++) {
+        n += ((FbPlayer *)D_8010DA64_fridged_bridges[i]->data)->unk00 != 2;
+    }
+    return n == 4;
+}
 
+/* Cameras to the far end of each bridge path */
+void func_8010AE0C_fridged_bridges(void) {
+    s32 i;
+
+    D_8010DA20_fridged_bridges = 10;
+    for (i = 0; i < 4; i++) {
+        CenterM[i].x = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].u;
+        CenterM[i].y = 100.0f;
+        CenterM[i].z = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].v;
+    }
+}
+
+#ifdef NON_MATCHING
+/* Cameras run back along the bridge paths and zoom out; 1 when all are done */
+u16 func_8010AE98_fridged_bridges(f32 speed) {
+    s32 done = 0;
+    s32 i;
+    f32 tx;
+    f32 tz;
+    f32 cx;
+    f32 cz;
+    f32 a;
+    f32 dx;
+    f32 dz;
+    u16 *flag;
+
+    for (i = 0; i < 4; i++) {
+        flag = &D_8010D1F4_fridged_bridges[i];
+        if (*flag == 0) {
+            tx = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].u;
+            tz = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].v;
+            cx = CenterM[i].x;
+            cz = CenterM[i].z;
+            if (HuSqrtf((cx - tx) * (cx - tx) + (cz - tz) * (cz - tz)) <= speed) {
+                if (D_8010DA20_fridged_bridges == 0) {
+                    CenterM[i].x = D_8010D820_fridged_bridges[i][0].u;
+                    CenterM[i].z = D_8010D820_fridged_bridges[i][0].v;
+                    (*flag)++;
+                } else {
+                    D_8010DA20_fridged_bridges--;
+                    tx = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].u;
+                    tz = D_8010D820_fridged_bridges[i][D_8010DA20_fridged_bridges].v;
+                }
+            }
+            if (D_8010D1F4_fridged_bridges[i] == 0) {
+                a = atan2df(-(cx - tx), cz - tz);
+                dx = sindf(a) * speed;
+                dz = -cosdf(a) * speed;
+                CenterM[i].x = dx + CenterM[i].x;
+                CenterM[i].z = dz + CenterM[i].z;
+            }
+        } else {
+            done++;
+        }
+        if (CZoomM[i] < 1715.0f) {
+            CZoomM[i] += 12.5f;
+        }
+        if (CZoomM[i] >= 1715.0f) {
+            CZoomM[i] = 1715.0f;
+            done++;
+        }
+    }
+    return done == 8;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010AE98_fridged_bridges);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
 
