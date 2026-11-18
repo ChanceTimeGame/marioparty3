@@ -43,6 +43,7 @@ void func_800142A0_main(s32);
 void func_8004AD70_main(void);
 void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
 
+extern s32 D_800A178C_main[][6];
 extern u16 D_800A1906_main; /* music state flags */
 extern u16 D_800D530C_main;
 extern u8 D_800D6A90_main;
@@ -139,6 +140,12 @@ typedef struct BgSeq {
     /* 0x5A */ char unk5A[2];
 } BgSeq; /* size 0x5C */
 
+/* MgWork::unk158 of a player */
+typedef struct BgPlayer {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ f32 unk04; /* heading */
+} BgPlayer; /* size 8 */
+
 /* A note of the demonstrated rhythm */
 typedef struct BgNote {
     /* 0x00 */ u16 unk00; /* button: 0x8000 A, 0x4000 B, 0x2000 Z */
@@ -169,10 +176,12 @@ void func_8010775C_the_beat_goes_on(omObjData* obj);
 void func_801080DC_the_beat_goes_on(void);
 void func_8010C14C_the_beat_goes_on(void);
 u16 func_80108198_the_beat_goes_on(s8 idx);
+void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
 Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
 
 extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
+extern u8 D_8010C284_the_beat_goes_on[24][4]; /* start slot per player, one row per permutation */
 extern s32 D_8010C2E4_the_beat_goes_on;
 extern s32 D_8010C2E8_the_beat_goes_on;
 extern s8 D_8010C2EC_the_beat_goes_on;
@@ -184,16 +193,19 @@ extern s16 D_8010C466_the_beat_goes_on; /* drums made; D_8010C467 is its low byt
 extern u16 D_8010C468_the_beat_goes_on;
 extern s16 D_8010C2F0_the_beat_goes_on[8][2]; /* sprite frame origin */
 extern u8 D_8010C310_the_beat_goes_on; /* camera step */
+extern s8 D_8010C311_the_beat_goes_on; /* players made */
 extern BgNote D_8010C4A0_the_beat_goes_on[16];
 extern s8 D_8010C4E8_the_beat_goes_on;
 extern s8 D_8010C4E9_the_beat_goes_on; /* note index */
 extern u16 D_8010C4F6_the_beat_goes_on;
 extern u16 D_8010C4F8_the_beat_goes_on;
 extern u16 D_8010C4FA_the_beat_goes_on;
+extern s8 D_8010C46A_the_beat_goes_on;
+extern u16 D_8010C46C_the_beat_goes_on;
 extern BgCtrl D_8010C478_the_beat_goes_on;
 extern omObjData* D_8010C4E0_the_beat_goes_on;
 extern omObjData* D_8010C4E4_the_beat_goes_on;
-extern s8 D_8010C4EA_the_beat_goes_on;
+extern u8 D_8010C4EA_the_beat_goes_on;
 extern s16 D_8010C4EC_the_beat_goes_on[4];
 extern s16 D_8010C4F4_the_beat_goes_on;
 
@@ -897,9 +909,70 @@ u16 func_80108198_the_beat_goes_on(s8 idx) {
     return 0x2000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108324_the_beat_goes_on);
+void func_80108324_the_beat_goes_on(omObjData* obj) {
+    Vec start[4] = { { 0.0f, -90.0f, 600.0f }, { 600.0f, -90.0f, 0.0f }, { 0.0f, -90.0f, -600.0f }, { -600.0f, -90.0f, 0.0f } };
+    s8 chr;
+    s32 dir;
+    s32 file;
+    MgWork* pw;
+    BgPlayer* ex;
+    s8 slot;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", D_8010C3B8_the_beat_goes_on);
+    chr = GwPlayer[D_8010C311_the_beat_goes_on].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][3];
+    func_800E19F0_minigame(1);
+    func_800E1BA8_minigame(obj, dir, file, D_8010C311_the_beat_goes_on, 0x2C9, 0x2D9);
+    pw = obj->data;
+    pw->unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    pw->unk5A = obj->model[0];
+    pw->unk5B = 1;
+    pw->unk158 = HuMemAllocTag(sizeof(BgPlayer), 0x7918);
+    memset(pw->unk158, 0, sizeof(BgPlayer));
+    ex = pw->unk158;
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    obj->work[0] = 0;
+    slot = D_8010C46A_the_beat_goes_on = D_8010C284_the_beat_goes_on[D_8010C4EA_the_beat_goes_on][D_8010C311_the_beat_goes_on];
+    obj->trans.x = start[slot].x;
+    obj->trans.y = start[slot].y;
+    obj->trans.z = start[slot].z;
+    ex->unk04 = slot * 90.0f;
+    ex->unk00 = 0;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    if (D_8010C311_the_beat_goes_on == 0) {
+        D_8010C46C_the_beat_goes_on = obj->model[2] = func_8000B108_main(0x410006, 0x2D9);
+    } else {
+        obj->model[2] = Hu3DModelLink(D_8010C46C_the_beat_goes_on);
+    }
+    obj->model[3] = Hu3DModelLink(D_8010C4F6_the_beat_goes_on);
+    obj->model[4] = Hu3DModelLink(D_8010C4F8_the_beat_goes_on);
+    obj->model[5] = Hu3DModelLink(D_8010C4FA_the_beat_goes_on);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[4], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[5], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C814_main(obj->model[3], 2, 1);
+    func_8001C814_main(obj->model[4], 2, 1);
+    func_8001C814_main(obj->model[5], 2, 1);
+    func_8000B460_main(obj, 8, 0x410009);
+    obj->work[2] = 0;
+    obj->model[6] = func_8000B108_main(0x41000B, 0x81D);
+    Hu3DModelScaleSet(obj->model[6], 1.5f, 1.0f, 1.0f);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x55));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x33));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x3A));
+    func_8000B460_main(obj, 9, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x56));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x57));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x58));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x1A));
+    func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 30, 2);
+    obj->work[1] = 0;
+    obj->func = func_80108810_the_beat_goes_on;
+    D_8010C311_the_beat_goes_on++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80108810_the_beat_goes_on);
 
