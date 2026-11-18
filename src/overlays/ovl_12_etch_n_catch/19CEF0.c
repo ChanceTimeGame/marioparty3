@@ -178,7 +178,15 @@ void func_8010C628_etch_n_catch(omObjData* obj, f32 scale);
 void func_8010BD98_etch_n_catch(omObjData* obj);
 void func_8010B3B4_etch_n_catch(omObjData* obj);
 void func_80109EB8_etch_n_catch(omObjData* obj);
+void func_8010AB7C_etch_n_catch(omObjData* obj);
+void func_8010AD6C_etch_n_catch(EtCatcher* cw);
+void func_8010AEE4_etch_n_catch(EtCatcher* cw);
+void func_8010AFB8_etch_n_catch(EtCatcher* cw);
 // main (more)
+void func_80012B14_main(s16 camIndex, Vec* worldPos, Vec2f* outPos);
+void func_8000BB54_main(u16 arg0);
+void func_8001C6A8_main(s32 model, f32 arg1);
+extern D_800CCF58_main_Struct* D_800CCF58_main;
 void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
 void func_8004AE00_main(s16 handle, s16 pan);
 void func_8004AAD0_main(s16, s8);
@@ -219,7 +227,9 @@ extern s8 D_8010C6A0_etch_n_catch; /* next catcher index */
 extern u8 D_8010C6E8_etch_n_catch[4][3]; /* puff model slots in use */
 extern u8 D_8010C6F4_etch_n_catch[4]; /* puff spacing counters */
 extern u8 D_8010C6E4_etch_n_catch[4]; /* CPU state per player */
+extern u8 D_8010C6F8_etch_n_catch[2]; /* catcher jumped (5) */
 // bss
+extern s16 D_8010C850_etch_n_catch[2][2]; /* catcher screen positions / 2 */
 extern s16 D_8010C842_etch_n_catch; /* board sprite group */
 extern s16 D_8010C844_etch_n_catch; /* grid sprite group */
 extern s16 D_8010C848_etch_n_catch; /* grid height */
@@ -1098,7 +1108,6 @@ void func_80109370_etch_n_catch(EtNode* node, u8 v) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109370_etch_n_catch);
 #endif
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 
 /* A trail node's puff: takes one of the player's three puff models (every 9th node), then grows, rises and fades. */
 void func_801097B4_etch_n_catch(EtNode* node) {
@@ -1226,7 +1235,232 @@ void func_80109A54_etch_n_catch(omObjData* obj) {
     D_8010C6A0_etch_n_catch++;
 }
 
+/* A catcher. work[0]: 0 start at its cage; 1 swing its pointer; 2 pulse; 3 pick a heading that stays in its
+   team's area and turn to it; 4 walk; 5 jump up (first time: sound and jump motion; on landing again: score a
+   point for the team and burst); 6 burst; 8 lift the cage; 9 rise; 10 done. */
+#ifdef NON_MATCHING
+void func_80109EB8_etch_n_catch(omObjData* obj) {
+    Vec2f scr;
+    Vec pos;
+    f32 headings[8] = { 1.0f, 46.0f, 91.0f, 136.0f, 181.0f, 226.0f, 271.0f, 316.0f };
+    EtCatcher* cw = obj->data;
+    s32 i;
+    f32 x;
+    f32 z;
+
+    pos.x = obj->trans.x;
+    pos.y = 0.0f;
+    pos.z = obj->trans.z;
+    func_80012B14_main(0, &pos, &scr);
+    D_8010C850_etch_n_catch[cw->unk160][0] = scr.x / 2.0f;
+    D_8010C850_etch_n_catch[cw->unk160][1] = scr.y / 2.0f;
+    switch (obj->work[0]) {
+        case 0:
+            obj->trans.x = D_8010C860_etch_n_catch[cw->unk160]->trans.x;
+            obj->trans.y = 0.0f;
+            obj->trans.z = D_8010C860_etch_n_catch[cw->unk160]->trans.z;
+            pos.x = obj->trans.x;
+            pos.y = 0.0f;
+            pos.z = obj->trans.z;
+            func_80012B14_main(0, &pos, &scr);
+            func_8000BBD4_main(D_801113E8_etch_n_catch[cw->unk160], scr.x, scr.y);
+            cw->unk164 = 0.5f;
+            func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk164, cw->unk164);
+            cw->unk170 = cw->unk174 = 0.0f;
+            func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], 0.0f);
+            func_8000BB54_main(D_801113E8_etch_n_catch[cw->unk160]);
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            cw->unk15C = 0;
+            obj->work[0] = 1;
+            break;
+        case 5:
+            cw->unk168 += 2.0f;
+            obj->trans.y += cw->unk168 + 5.0f;
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, 0.0f, obj->trans.z);
+            Hu3DModelPosSet(obj->model[6], obj->trans.x, 0.0f, obj->trans.z);
+            if (D_8010C6F8_etch_n_catch[cw->unk160] == 0) {
+                if (cw->unk160 == 0) {
+                    func_8004AE00_main(HuAudFXPlay(0x37D), 0x20);
+                } else {
+                    func_8004AE00_main(HuAudFXPlay(0x37E), 0x5F);
+                }
+                cw->unk164 = 1.0f;
+                func_8001C624_main(obj->model[0], HmfModelData[obj->motion[2]].unk02, 0, 1, 2);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                cw->unk15C = 0;
+                cw->unk1B4 = 0.0f;
+                D_8010C6F8_etch_n_catch[cw->unk160] = 1;
+            } else {
+                func_8000BB94_main(D_801113E8_etch_n_catch[cw->unk160]);
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[6], 4, 0);
+                for (i = 0; i < 5; i++) {
+                    func_8001C6A8_main(obj->model[i + 1], 0.0f);
+                }
+                func_8010AB7C_etch_n_catch(obj);
+                if (cw->unk160 == 0) {
+                    D_8010C6AC_etch_n_catch++;
+                } else {
+                    D_8010C6AD_etch_n_catch++;
+                }
+                D_8010C6F8_etch_n_catch[cw->unk160] = 0;
+                cw->unk15C = 0;
+                obj->work[0] = 6;
+            }
+            break;
+        case 6:
+            if (cw->unk15C < 10) {
+                func_8010AB7C_etch_n_catch(obj);
+            } else {
+                for (i = 0; i < 5; i++) {
+                    func_8001C258_main(obj->model[i + 1], 4, 4);
+                }
+            }
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 / 2.0f - 2.0f <= cw->unk15C) {
+                func_8001C814_main(obj->model[0], 2, 1);
+                obj->work[0] = 8;
+                cw->unk15C = 0;
+            } else {
+                cw->unk168 += 2.0f;
+                obj->trans.y += cw->unk168 + 5.0f;
+                cw->unk15C++;
+            }
+            break;
+        case 8:
+            cw->unk168 += 2.0f;
+            obj->trans.y += cw->unk168 + 5.0f;
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            obj->work[0] = 9;
+            D_8010C860_etch_n_catch[cw->unk160]->work[0] = 0;
+            break;
+        case 9:
+            for (i = 0; i < 5; i++) {
+                func_8001C258_main(obj->model[i + 1], 4, 4);
+            }
+            cw->unk15C++;
+            obj->trans.y += cw->unk168 + 5.0f;
+            if (obj->trans.y > 800.0f && cw->unk164 == 0.0f) {
+                cw->unk168 = 0.0f;
+                cw->unk15C = 0;
+                obj->work[0] = 10;
+            } else {
+                cw->unk168 += 2.0f;
+                cw->unk164 -= 0.05f;
+                if (cw->unk164 < 0.0f) {
+                    cw->unk164 = 0.0f;
+                }
+            }
+            Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+            Hu3DModelScaleSet(obj->model[6], cw->unk164, cw->unk164, cw->unk164);
+            break;
+        case 10:
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            cw->unk164 = 1.0f;
+            Hu3DModelScaleSet(obj->model[6], cw->unk164, cw->unk164, cw->unk164);
+            break;
+        default:
+            if (func_800E6E8C_minigame()) {
+                switch (obj->work[0]) {
+                    case 1:
+                        if (cw->unk15C > 120) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 2;
+                            break;
+                        }
+                        goto swing;
+                    case 2:
+                        if (cw->unk15C > 16) {
+                            cw->unk15C = 0;
+                            cw->unk164 = 0.5f;
+                            func_8000BE5C_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk164, cw->unk164);
+                            obj->work[0] = 3;
+                            break;
+                        }
+                        cw->unk15C++;
+                        func_8010AEE4_etch_n_catch(cw);
+                        break;
+                    case 3:
+                        if (cw->unk15C == 0) {
+                            do {
+                                cw->unk16C = headings[rand8() >> 5];
+                                x = obj->trans.x - sindf(cw->unk16C) * 100.0f;
+                                z = obj->trans.z - cosdf(cw->unk16C) * 100.0f;
+                                if (!((z > -300.0f) & (z < 200.0f))) {
+                                    continue;
+                                }
+                                if (cw->unk160 == 0) {
+                                    if ((x < -180.0f) & (x > -350.0f)) {
+                                        break;
+                                    }
+                                } else if ((x > 180.0f) & (x < 350.0f)) {
+                                    break;
+                                }
+                            } while (TRUE);
+                        }
+                        cw->unk15C++;
+                        if (cw->unk16C == cw->unk170) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 4;
+                            break;
+                        }
+                        func_8010AFB8_etch_n_catch(cw);
+                        break;
+                    case 4:
+                        obj->trans.x -= sindf(cw->unk170) * 3.0f;
+                        obj->trans.z -= cosdf(cw->unk170) * 3.0f;
+                        pos.x = obj->trans.x;
+                        pos.y = 0.0f;
+                        pos.z = obj->trans.z;
+                        func_80012B14_main(0, &pos, &scr);
+                        func_8000BBD4_main(D_801113E8_etch_n_catch[cw->unk160], scr.x, scr.y);
+                        D_8010C850_etch_n_catch[cw->unk160][0] = scr.x / 2.0f;
+                        D_8010C850_etch_n_catch[cw->unk160][1] = scr.y / 2.0f;
+                        if (cw->unk15C == cw->unk15C / 10 * 10) {
+                            /* retail: results unused */
+                            sindf(cw->unk170);
+                            cosdf(cw->unk170);
+                        }
+                        if (obj->trans.z < -300.0f || obj->trans.z > 200.0f) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                        } else if (cw->unk160 == 0) {
+                            if (obj->trans.x > -180.0f || obj->trans.x < -350.0f) {
+                                cw->unk15C = 0;
+                                obj->work[0] = 1;
+                            }
+                        } else if (obj->trans.x < 180.0f || obj->trans.x > 350.0f) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                        }
+                        if (cw->unk15C > 60) {
+                            cw->unk15C = 0;
+                            obj->work[0] = 1;
+                            break;
+                        }
+                    swing:
+                        if (cw->unk15C == 0) {
+                            cw->unk174 = cw->unk170;
+                        }
+                        func_8010AD6C_etch_n_catch(cw);
+                        cw->unk15C++;
+                        break;
+                }
+            }
+            break;
+    }
+}
+#else
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7BC_etch_n_catch);
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80109EB8_etch_n_catch);
+INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7F0_etch_n_catch);
+#endif
 
 /* The burst of a catch: five sparks fly out along unk178[] and fade. */
 void func_8010AB7C_etch_n_catch(omObjData* obj) {
@@ -1261,7 +1495,6 @@ void func_8010AD6C_etch_n_catch(EtCatcher* cw) {
     func_8000BF00_main(D_801113E8_etch_n_catch[cw->unk160], cw->unk170);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", D_8010C7F0_etch_n_catch);
 
 /* Pulses the catcher's sprite scale. Retail: the second and later tests are unreachable or never true
    as written (unk15C < 16 is checked first). */
