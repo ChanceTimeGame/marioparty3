@@ -2440,7 +2440,37 @@ void func_8010C5E0_spotlight_swim(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C900_spotlight_swim);
+void func_80106754_spotlight_swim(void);
+void func_80109088_spotlight_swim(void);
+void func_80109E08_spotlight_swim(void);
+void func_8010A670_spotlight_swim(void);
+
+/* Minigame setup: state, random lane layout, spotlight colours, then every object. */
+void func_8010C900_spotlight_swim(omObjData *obj) {
+    s8 i;
+
+    D_8010EE48_spotlight_swim = 0;
+    D_8010D364_spotlight_swim = 0;
+    for (i = 0; i < 8; i++) {
+        D_8010D3B0_spotlight_swim[i] = -1;
+    }
+    D_8010D366_spotlight_swim = 0;
+    D_8010D3AC_spotlight_swim = func_80105C8C_spotlight_swim(6);
+    D_8010D47C_spotlight_swim = 0x98;
+    D_8010D448_spotlight_swim = 0x2000;
+    func_8010C484_spotlight_swim();
+    func_801061A0_spotlight_swim();
+    func_801063E4_spotlight_swim();
+    func_80109088_spotlight_swim();
+    func_80109E08_spotlight_swim();
+    func_8010A670_spotlight_swim();
+    func_8010ADF8_spotlight_swim();
+    func_8010C444_spotlight_swim();
+    func_8010BA30_spotlight_swim();
+    func_80106754_spotlight_swim();
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_8010C5E0_spotlight_swim;
+}
 
 void func_8010CA00_spotlight_swim(void) {
 }
