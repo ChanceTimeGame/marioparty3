@@ -55,7 +55,9 @@ typedef struct {
     /* 0x1C */ s16 unk1C;
     /* 0x1E */ char unk1E[2];
     /* 0x20 */ s32 unk20;
-    /* 0x24 */ char unk24[0x1C];
+    /* 0x24 */ Vec unk24;
+    /* 0x30 */ Vec unk30;
+    /* 0x3C */ char unk3C[4];
     /* 0x40 */ f32 unk40;
     /* 0x44 */ char unk44[0x18];
     /* 0x5C */ s16 unk5C;
@@ -85,7 +87,8 @@ typedef struct {
     /* 0x0C */ s16 unk0C[2];
     /* 0x10 */ s16 unk10[2];
     /* 0x14 */ s16 unk14;
-    /* 0x16 */ char unk16[0x12];
+    /* 0x16 */ char unk16[2];
+    /* 0x18 */ f32 unk18[2][2];
 } EotlHud; // Size 0x28
 
 void func_80105E0C_end_of_the_line(omObjData *obj);
@@ -435,7 +438,57 @@ void func_80106444_end_of_the_line(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106444_end_of_the_line);
 #endif
 
+#ifdef NON_MATCHING
+/* Float register allocation: the x offset is loaded into $f2 instead of $f20 (two extra nops). */
+void func_801069D8_end_of_the_line(omObjData *obj) {
+    EotlHud *hud;
+    EotlPlayer *pw;
+    omObjData *pobj;
+    s32 i;
+    s32 j;
+    s32 k;
+    f32 dz;
+    f32 x;
+
+    hud = obj->data;
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            hud->unk18[i][j] += 37.037037f;
+            Hu3DModelPosSet(obj->model[i * 2 + j], 0.0f, 0.0f, hud->unk18[i][j]);
+            if (hud->unk18[i][j] >= 3300.0f) {
+                hud->unk18[i][j] -= 6600.0f;
+            }
+        }
+        if (obj->work[0] == 1) {
+            k = 0;
+            if (hud->unk18[0][0] > hud->unk18[0][1]) {
+                k = 1;
+            }
+            func_80106CDC_end_of_the_line(obj, D_8010C73C_end_of_the_line[0], 1);
+            func_80106CDC_end_of_the_line(obj, D_8010C73C_end_of_the_line[1], 1);
+            dz = hud->unk18[0][k];
+            for (j = 0; j < 2; j++) {
+                pobj = D_8010C73C_end_of_the_line[j];
+                pw = pobj->data;
+                pobj->trans.z -= dz;
+                pw->unk24.z -= dz;
+                Hu3DModelPosSet(pobj->model[1], pw->unk24.x, pw->unk24.y, pw->unk24.z);
+                Hu3DModelRotSet(pobj->model[1], pw->unk30.x, pw->unk30.y, pw->unk30.z);
+                x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
+                Hu3DModelPosSet(pobj->model[2], x, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+                Hu3DModelRotSet(pobj->model[2], 0.0f, pw->unk30.y, 0.0f);
+                Hu3DModelScaleSet(pobj->model[4], 1.0f, 1.0f, 1.0f);
+                x = pw->unk24.x - sindf(pw->unk30.y) * 20.0f;
+                Hu3DModelPosSet(pobj->model[4], x, pw->unk24.y + 100.0f, pw->unk24.z - cosdf(pw->unk30.y) * 20.0f);
+            }
+            obj->func = NULL;
+            return;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801069D8_end_of_the_line);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106CDC_end_of_the_line);
 
