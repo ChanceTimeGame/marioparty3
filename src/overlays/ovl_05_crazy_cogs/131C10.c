@@ -79,6 +79,9 @@ typedef struct CgCamera {
 } CgCamera; // Size 0x2C
 
 void osSyncPrintf(const char *fmt, ...);
+extern s32 D_800A178C_main[][6];
+void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
+void func_8010728C_crazy_cogs(omObjData *obj);
 s16 func_8004AD8C_main(s16 defNo);
 void func_80106034_crazy_cogs(omObjData *obj, u16 motion, s16 arg2);
 void func_801060A0_crazy_cogs(omObjData *obj, u16 motion, s16 arg2, s16 arg3, s16 arg4);
@@ -97,12 +100,43 @@ extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[4];
 
+/* The minigame control block (minigame B8A20.c MgCtrl; the header's D_80111B50_vine_with_me_Struct). */
+typedef struct CgCtrl {
+    /* 0x00 */ u8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ u8 unk03;
+    /* 0x04 */ u8 unk04;
+    /* 0x05 */ u8 unk05;
+    /* 0x06 */ u8 unk06;
+    /* 0x07 */ u8 unk07;
+    /* 0x08 */ f32 unk08[4];
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ s16 unk26;
+} CgCtrl; // Size 0x28
+
 /* .data */
-extern s32 D_8010B810_crazy_cogs[8];
-extern D_80111B50_vine_with_me_Struct D_8010B830_crazy_cogs;
-extern s16 D_8010B858_crazy_cogs[4];
-extern s16 D_8010B860_crazy_cogs[5];
-extern CgCamera D_8010B898_crazy_cogs[2];
+/* voice sound bank per character (func_80045ED0_main) */
+s32 D_8010B810_crazy_cogs[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+CgCtrl D_8010B830_crazy_cogs = {
+    0, 0, 1, 2, 0, 0, 0, 0, { 90.0f, 900.0f, 0.0f, 30.0f }, { 0x96, 0, 0, 0 }, 0, 0, 0, 0, 0, 0,
+};
+/* per player marker: model file (| 0x260000) */
+s16 D_8010B858_crazy_cogs[4] = { 9, 11, 10, 12 };
+/* CPU: frames to keep wandering one way */
+s16 D_8010B860_crazy_cogs[6] = { 10, 20, 25, 30, 40, 0 };
+/* per character: the player's crank motion (func_80017BB8_main); retail reads the low half (D_8010B86E) */
+s32 D_8010B86C_crazy_cogs[8] = { 0x37, 0x37, 0x37, 0x37, 0x37, 0x38, 0x36, 0x36 };
+f32 D_8010B88C_crazy_cogs[3] = { 90.0f, 225.0f, 315.0f };
+CgCamera D_8010B898_crazy_cogs[2] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 45.0f },
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 45.0f },
+};
 /* .bss */
 extern f32 D_8010B9A8_crazy_cogs;
 extern s8 D_8010B990_crazy_cogs;
@@ -111,6 +145,7 @@ extern s8 D_8010B9A6_crazy_cogs;
 extern s8 D_8010B9B0_crazy_cogs[0x32];
 extern s8 D_8010B99C_crazy_cogs;
 extern s8 D_8010B9A0_crazy_cogs;
+extern u8 D_8010B9A1_crazy_cogs;
 extern CgEnt D_8010B9F0_crazy_cogs[70];
 extern s16 D_8010BA30_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].grp */
 extern s16 D_8010BA32_crazy_cogs; /* = D_8010B9F0_crazy_cogs[CG_ENT_GROUND].spr */
@@ -120,6 +155,8 @@ extern s16 D_8010DE0E_crazy_cogs;
 extern f32 D_8010DE14_crazy_cogs;
 extern s8 D_8010DE60_crazy_cogs;
 extern s8 D_8010DE68_crazy_cogs;
+extern u8 D_8010DE64_crazy_cogs;
+extern u8 D_8010DE69_crazy_cogs;
 extern s8 D_8010DE6A_crazy_cogs[4];
 extern s8 D_8010DEB4_crazy_cogs;
 /* .rodata */
@@ -738,9 +775,81 @@ void func_8010728C_crazy_cogs(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_801074A0_crazy_cogs);
+/* The player: character model, the crank and its shadow. */
+void func_801074A0_crazy_cogs(omObjData *obj) {
+    u16 chr = GwPlayer[obj->work[0]].chr;
 
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0x3F));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x30));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, D_8010B86C_crazy_cogs[chr]));
+    func_80106034_crazy_cogs(obj, 0, 1);
+    func_8001C6A8_main(obj->model[0], 30.0f);
+    func_8001C92C_main(obj->model[0], 1.0f);
+    func_8001C6A8_main(obj->model[1], 30.0f);
+    func_8001C92C_main(obj->model[1], 1.0f);
+    obj->model[1] = func_8000B108_main(0x260001, 0xD9);
+    obj->model[2] = func_8000B0A0_main(0, 0x14C9);
+    func_8001C2FC_main(obj->model[2], 0x80000000, 0);
+    func_8001C448_main(obj->model[2]);
+    func_8001C514_main(obj->model[2]);
+    func_80088800_main(HmfModelData[obj->model[2]].mtx, 0.0f, 0.0f, 0.0f);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_8001C8A8_main(obj->model[2], 1);
+    obj->trans.x = -600.0f;
+    obj->trans.y = 50.0f;
+    obj->trans.z = -600.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    D_8010B9A6_crazy_cogs = 20;
+    D_8010DEB4_crazy_cogs = 0;
+    D_8010B9A1_crazy_cogs = GwPlayer[obj->work[0]].cpu_difficulty;
+    D_8010B9F0_crazy_cogs[4].unk0A = func_80105B7C_crazy_cogs(2);
+    obj->work[3] = GwPlayer[obj->work[0]].pad;
+    obj->func = func_8010728C_crazy_cogs;
+}
+
+/* Creates the player object for the one player in group 0. */
+#ifdef NON_MATCHING
+/* retail's frame is 8 bytes larger and it keeps the object in $v1 */
+void func_80107778_crazy_cogs(void) {
+    omObjData *obj;
+    u32 player;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[i].group == 0) {
+            break;
+        }
+    }
+    switch (i) {
+    case 0:
+        player = 0;
+        break;
+    case 1:
+        player = 1;
+        break;
+    case 2:
+        player = 2;
+        break;
+    case 3:
+        player = 3;
+        break;
+    default:
+        player = 0;
+        break;
+    }
+    obj = omAddObj(700, 3, 4, -1, func_801074A0_crazy_cogs);
+    obj->work[0] = player;
+    D_8010B9F0_crazy_cogs[4].obj = obj;
+    D_8010DE64_crazy_cogs = obj->work[0];
+    D_8010DE69_crazy_cogs = GwPlayer[obj->work[0]].chr;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_80107778_crazy_cogs);
+#endif
 
 void func_8010787C_crazy_cogs(void) {
 }
@@ -827,7 +936,24 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B46C_
 void func_8010B568_crazy_cogs(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B570_crazy_cogs);
+void func_8010B570_crazy_cogs(void) {
+    omObjData *obj;
+    s32 i;
+
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 2;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    func_8000B710_main(1);
+    for (i = 0; i < 1; i++) {
+        ScissorSet(i, D_8010B898_crazy_cogs[i].scissor[0], D_8010B898_crazy_cogs[i].scissor[1],
+                   D_8010B898_crazy_cogs[i].scissor[2], D_8010B898_crazy_cogs[i].scissor[3]);
+        ViewportSet(i, D_8010B898_crazy_cogs[i].viewport[0], D_8010B898_crazy_cogs[i].viewport[1],
+                    D_8010B898_crazy_cogs[i].viewport[2], D_8010B898_crazy_cogs[i].viewport[3],
+                    D_8010B898_crazy_cogs[i].viewport[4], D_8010B898_crazy_cogs[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010B898_crazy_cogs[i].fov, 80.0f, 8000.0f);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_05_crazy_cogs/131C10", func_8010B6E0_crazy_cogs);
 
