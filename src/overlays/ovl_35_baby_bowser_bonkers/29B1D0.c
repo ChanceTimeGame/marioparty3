@@ -77,7 +77,8 @@ typedef struct BkPlayer {
     /* 0x42 */ s16 unk42;
     /* 0x44 */ f32 unk44;
     /* 0x48 */ f32 unk48;
-    /* 0x4C */ char unk4C[4];
+    /* 0x4C */ s16 unk4C; /* hit effect, 0..2 */
+    /* 0x4E */ char unk4E[2];
 } BkPlayer; // Size 0x50
 
 /* The ground object's work (0xB4), as Locked Out's LoGround. */
@@ -208,6 +209,11 @@ void func_80108E90_baby_bowser_bonkers(BkBlock* b);
 void func_80109704_baby_bowser_bonkers(void);
 extern Vec D_8010B400_baby_bowser_bonkers[14]; /* block positions */
 extern BkBlock* D_8010BC60_baby_bowser_bonkers;
+int abs(int);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+s32 func_800E5798_minigame(omObjData* obj, u16 motion);
+void func_801075F4_baby_bowser_bonkers(omObjData* obj, f32 x, f32 z);
+extern f32 D_800EB760_minigame;
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -779,7 +785,95 @@ void func_8010831C_baby_bowser_bonkers(omObjData* obj) {
     }
 }
 
+/* A player landing on top of the block: bounce, score, and the player index; -1 none. */
+/* NON_MATCHING: retail sign-extends the stick bytes from lbu and masks the dead zone with -(c)&x, keeps 1.2f unhoisted; this C uses lb + branches and hoists 1.2f. Logic checked against the asm. */
+#ifdef NON_MATCHING
+s16 func_80108454_baby_bowser_bonkers(BkBlock* b) {
+    s16 order[12];
+    HmfModel* m;
+    omObjData* obj;
+    func_800E1BA8_minigame_ObjData* w;
+    BkPlayer* p;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    f32 r;
+    s16 i;
+    s16 sx;
+    s16 sy;
+    s32 port;
+    u8 stx;
+    u8 sty;
+
+    if (D_8010BC40_baby_bowser_bonkers & 1) {
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            order[i] = i;
+        }
+    } else {
+        for (i = 0; i < D_800EC280_minigame; i++) {
+            order[i] = D_800EC280_minigame - i - 1;
+        }
+    }
+    m = &HmfModelData[b->model];
+    for (i = 0; i < D_800EC280_minigame; i++) {
+        obj = D_800EC598_minigame[order[i]];
+        w = obj->data;
+        p = func_8010B3AC_baby_bowser_bonkers(obj);
+        dx = obj->trans.x - m->pos.x;
+        dz = obj->trans.z - m->pos.z;
+        dist = sqrtf(dx * dx + dz * dz);
+        r = w->unk48 + b->unk20;
+        if (!(obj->trans.y + w->unk34 < m->pos.y) && !(b->unk24 * m->scale.y + m->pos.y < obj->trans.y) &&
+            dist < r) {
+            if (w->unk38 == 1000.0f) {
+                obj->trans.y = b->unk24 * 1.2f + m->pos.y;
+                func_800E5798_minigame(obj, 6);
+                w->unk38 = -D_800EB744_minigame;
+                w->unk50 &= ~0x80;
+                w->unk40 = 0.0f;
+            } else {
+                obj->trans.y = b->unk24 * 1.2f + m->pos.y;
+                port = GwPlayer[order[i]].pad;
+                stx = D_800CBB6E_main[port];
+                sx = abs((s8)stx) >= 9 ? (s8)stx : 0;
+                sty = D_800D20A1_main[port];
+                sy = abs((s8)sty) >= 9 ? (s8)sty : 0;
+                if ((sx != 0) | (sy != 0)) {
+                    if (sx > 60) {
+                        sx = 60;
+                    } else if (sx < -60) {
+                        sx = -60;
+                    }
+                    if (sy > 60) {
+                        sy = 60;
+                    } else if (sy < -60) {
+                        sy = -60;
+                    }
+                    w->unk3C = atan2df(sx, -sy) + w->unk60;
+                    w->unk40 = D_800EB760_minigame * 0.5f * (sqrtf(sx * sx + sy * sy) / 60.0f);
+                }
+                func_800E5798_minigame(obj, 6);
+                w->unk50 &= ~0x80;
+                if (D_800CDA7C_main[port] & 0x8000) {
+                    w->unk38 = -D_800EB744_minigame;
+                } else {
+                    w->unk38 = -D_800EB744_minigame * 0.75f;
+                }
+            }
+            func_800E4C88_minigame(obj, p->unk4C + 7, obj->trans.x, obj->trans.y, obj->trans.z, 0.0f, 0.0f);
+            omVibrate(p->unk28, 10, 0, 10);
+            if (++p->unk4C >= 3) {
+                p->unk4C = 0;
+            }
+            func_801075F4_baby_bowser_bonkers(obj, m->pos.x, m->pos.z);
+            return order[i];
+        }
+    }
+    return -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80108454_baby_bowser_bonkers);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801089CC_baby_bowser_bonkers);
 
