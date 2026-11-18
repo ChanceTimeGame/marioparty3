@@ -136,6 +136,20 @@ typedef struct L7Player {
     /* 0x0C */ u16 coinsStart;
 } L7Player; /* size 0xE */
 
+/* A sprite's file, priority and place (the setup tables) */
+typedef struct L7SprInit4 {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ s32 prio;
+    /* 0x08 */ s32 x;
+    /* 0x0C */ s32 y;
+} L7SprInit4; /* size 0x10 */
+
+typedef struct L7SprInit3 {
+    /* 0x00 */ s32 file;
+    /* 0x04 */ s32 x;
+    /* 0x08 */ s32 y;
+} L7SprInit3; /* size 0xC */
+
 /* A step counter pair */
 typedef struct L7Step {
     /* 0x00 */ s16 step;
@@ -259,6 +273,10 @@ extern s16 D_8010D6D0_game_guys_lucky_7; /* result message */
 extern Process* D_8010D6D4_game_guys_lucky_7; /* rules window process */
 extern Process* D_8010D6D8_game_guys_lucky_7; /* play process */
 extern L7Player D_8010D6DC_game_guys_lucky_7;
+extern s16 D_8010D6EA_game_guys_lucky_7[3]; /* title sprites (labels D_8010D6EA, D_8010D6EC: one array) */
+extern s16 D_8010D6F0_game_guys_lucky_7[7]; /* reel lamp sprites (labels D_8010D6F0, D_8010D6FC: one array) */
+extern f32 D_8010D700_game_guys_lucky_7[7]; /* reel lamp scales */
+extern s16 D_8010D71C_game_guys_lucky_7[5]; /* coin counter sprites (labels D_8010D71C..D_8010D724: one array) */
 extern u8 D_8010D6E1_game_guys_lucky_7; /* low byte of D_8010D6DC.chr (a view; see report) */
 extern s16 D_8010D726_game_guys_lucky_7;
 extern u16 D_8010D728_game_guys_lucky_7;
@@ -1155,11 +1173,66 @@ void func_80107F98_game_guys_lucky_7(omObjData* obj) {
     obj->func = func_80108374_game_guys_lucky_7;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107FD8_game_guys_lucky_7);
+void func_80107FD8_game_guys_lucky_7(void) {
+    L7SprInit4 init[3] = {
+        { 0x640000, 1000, 160, 120 },
+        { 0x640001, 900, 160, 57 },
+        { 0x640002, 900, 160, 57 },
+    };
+    u16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801080E8_game_guys_lucky_7);
+    for (i = 0; i < 3; i++) {
+        D_8010D6EA_game_guys_lucky_7[i] = InitEspriteSlot(func_8000B838_main(init[i].file), 0, 0);
+        func_8000BC48_main(D_8010D6EA_game_guys_lucky_7[i], 0x4000);
+        func_8000BCC8_main(D_8010D6EA_game_guys_lucky_7[i], (u16)init[i].prio);
+        func_8000BBD4_main(D_8010D6EA_game_guys_lucky_7[i], init[i].x, init[i].y);
+    }
+    func_8000BB94_main(D_8010D6EA_game_guys_lucky_7[1]);
+    func_8000BB94_main(D_8010D6EA_game_guys_lucky_7[2]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010826C_game_guys_lucky_7);
+void func_801080E8_game_guys_lucky_7(void) {
+    L7SprInit3 init[7] = {
+        { 0x640003, 225, 202 },
+        { 0x640004, 199, 202 },
+        { 0x640005, 173, 202 },
+        { 0x640006, 147, 202 },
+        { 0x640007, 121, 202 },
+        { 0x640008, 95, 202 },
+        { 0x640009, 68, 200 },
+    };
+    u16 i;
+
+    for (i = 0; i < 7; i++) {
+        D_8010D6F0_game_guys_lucky_7[i] = InitEspriteSlot(func_8000B838_main(init[i].file), 0, 0);
+        if (i != 0) {
+            func_8000BC48_main(D_8010D6F0_game_guys_lucky_7[i], 0x4000);
+        }
+        func_8000BCC8_main(D_8010D6F0_game_guys_lucky_7[i], 700);
+        func_8000BBD4_main(D_8010D6F0_game_guys_lucky_7[i], init[i].x, init[i].y);
+        func_8000BE5C_main(D_8010D6F0_game_guys_lucky_7[i], 0.5f, 0.5f);
+    }
+    for (i = 0; i < 7; i++) {
+        D_8010D700_game_guys_lucky_7[i] = 0.5f;
+    }
+}
+
+void func_8010826C_game_guys_lucky_7(void) {
+    L7SprInit3 init[5] = {
+        { 0x21001A, 30, 22 },
+        { 0x21001B, 42, 22 },
+        { 0x31, 54, 22 },
+        { 0x31, 66, 22 },
+        { 0x31, 78, 22 },
+    };
+    u16 i;
+
+    for (i = 0; i < 5; i++) {
+        D_8010D71C_game_guys_lucky_7[i] = InitEspriteSlot(func_8000B838_main(init[i].file), 0, 0);
+        func_8000BCC8_main(D_8010D71C_game_guys_lucky_7[i], 700);
+        func_8000BBD4_main(D_8010D71C_game_guys_lucky_7[i], init[i].x, init[i].y);
+    }
+}
 
 void func_80108374_game_guys_lucky_7(omObjData* obj) {
     func_801083A0_game_guys_lucky_7();
@@ -1174,12 +1247,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801085D4_game_guys_lucky_7);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_801087B4_game_guys_lucky_7);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D404_game_guys_lucky_7);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D434_game_guys_lucky_7);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D488_game_guys_lucky_7);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80108B64_game_guys_lucky_7);
 
