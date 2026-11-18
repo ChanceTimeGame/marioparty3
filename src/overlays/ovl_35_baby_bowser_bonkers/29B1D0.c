@@ -62,7 +62,8 @@ typedef struct BkPlayer {
     /* 0x28 */ s16 unk28; /* GwPlayer index */
     /* 0x2A */ s16 unk2A;
     /* 0x2C */ s16 unk2C; /* character */
-} BkPlayer;
+    /* 0x2E */ char unk2E[0x22];
+} BkPlayer; // Size 0x50
 
 extern u16 D_800D5558_main[];
 extern u8 D_800D6A90_main;
@@ -123,6 +124,13 @@ void func_800E6F0C_minigame(s32);
 extern BkPattern* D_8010B888_baby_bowser_bonkers;
 extern s16 D_8010B88C_baby_bowser_bonkers; /* player whose turn it is */
 extern BkPattern* D_8010BC68_baby_bowser_bonkers[4][4];
+void func_8010660C_baby_bowser_bonkers(omObjData* obj);
+extern f32 D_800EB744_minigame;
+extern f32 D_800EB748_minigame;
+extern f32 D_800EB774_minigame;
+extern s32 D_8010B894_baby_bowser_bonkers[4];
+extern Vec D_8010B8A4_baby_bowser_bonkers[2];
+extern BkPlayer* D_8010BC58_baby_bowser_bonkers;
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -363,7 +371,49 @@ void func_8010630C_baby_bowser_bonkers(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801063B4_baby_bowser_bonkers);
+void func_801063B4_baby_bowser_bonkers(void) {
+    s32 picked[2] = { -1, -1 };
+    BkPlayer* p;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 found;
+    s32 min;
+
+    p = D_8010BC58_baby_bowser_bonkers = HuMemAllocTag(sizeof(BkPlayer) * 2, 31000);
+    memset(p, 0, sizeof(BkPlayer) * 2);
+    for (i = 0; i < 2; i++) {
+        for (j = 0, min = 99; j < 4; j++) {
+            found = 0;
+            for (k = 0; k < i; k++) {
+                if (picked[k] == D_8010B894_baby_bowser_bonkers[j]) {
+                    found = 1;
+                }
+            }
+            if (!found) {
+                if (GwPlayer[D_8010B894_baby_bowser_bonkers[j]].group < min) {
+                    min = GwPlayer[D_8010B894_baby_bowser_bonkers[j]].group;
+                    D_8010BC58_baby_bowser_bonkers[i].unk28 = D_8010B894_baby_bowser_bonkers[j];
+                }
+            }
+        }
+        picked[i] = D_8010BC58_baby_bowser_bonkers[i].unk28;
+    }
+    func_800E19F0_minigame(1);
+    func_800E18D8_minigame();
+    D_800EB744_minigame = 1.4f;
+    D_800EB748_minigame = 0.14f;
+    D_800EB774_minigame = 1.46f;
+    for (i = 0; i < 2; i++, p++) {
+        p->unk00 = i;
+        D_800EC598_minigame[D_800EC280_minigame] = omAddObj(0x10, 14, 60, -1, func_8010660C_baby_bowser_bonkers);
+        D_800EC598_minigame[D_800EC280_minigame]->trans.x = D_8010B8A4_baby_bowser_bonkers[i].x;
+        D_800EC598_minigame[D_800EC280_minigame]->trans.z = D_8010B8A4_baby_bowser_bonkers[i].z;
+        D_800EC598_minigame[D_800EC280_minigame]->trans.y = 39.100002f;
+        func_8010B380_baby_bowser_bonkers(D_800EC598_minigame[D_800EC280_minigame], (u32)p);
+        D_800EC280_minigame++;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010660C_baby_bowser_bonkers);
 
