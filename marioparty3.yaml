@@ -1187,7 +1187,8 @@ segments:
     subsegments:
       - [0x216670, c]
       - [0x21CAC0, c]
-      - [0x21DBF0, data, 216670] #8010CF20
+      - [0x21DBF0, .data, 216670] #8010CF20
+      - [0x21DF10, .data, 21CAC0] #8010D240
       - [0x21DF20, .rodata, 216670] #8010D250
       - {0x21E010, type: bss, vram: 0x8010D340, name: ovl_24_bss}
 
@@ -1278,7 +1279,7 @@ segments:
     bss_size: 0x1A30
     subsegments:
       - [0x24A760, c]
-      - [0x251AD0, data, 24A760] #8010CD10
+      - [0x251AD0, .data, 24A760] #8010CD10
       - [0x251C20, .rodata, 24A760] #8010CE60
       - {0x251FF0, type: bss, vram: 0x8010D230, name: ovl_2B_bss}
 
@@ -1455,7 +1456,7 @@ segments:
     bss_size: 0xA70
     subsegments:
       - [0x2B5830, c]
-      - [0x2BC550, data, 2B5830] #8010C6C0
+      - [0x2BC550, .data, 2B5830] #8010C6C0
       - [0x2BC930, .rodata, 2B5830] #8010CAA0
       - {0x2BCE10, type: bss, vram: 0x8010CF80, name: ovl_38_bss}
 
@@ -1609,6 +1610,7 @@ segments:
       - [0x3010E0, c]
       - [0x306F70, c]
       - [0x308890, data, 3010E0] #8010D150
+      - [0x308A40, .data, 306F70] #8010D300
       - [0x308A50, .rodata, 3010E0] #8010D310
       - [0x308D00, .rodata, 306F70] #8010D5C0
       - {0x308D10, type: bss, vram: 0x8010D5D0, name: ovl_43_bss}
