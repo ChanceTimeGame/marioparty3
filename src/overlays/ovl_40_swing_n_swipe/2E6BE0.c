@@ -33,6 +33,19 @@ typedef struct SnMotInfo {
 } SnMotInfo; /* size 0x18 */
 extern SnMotInfo* D_800CCF58_main;
 void Hu3DAnimInit(s32);
+s16 func_8000CED8_main(s32, s32);
+s16 SprModelRead(s32 arg0, s32 arg1, s32 arg2); /* retail sign-extends the result here */
+void func_800138EC_main(s16 model, u16 mask, u16 flags);
+void func_8000CD00_main(s16, f32, f32, f32);
+void func_8000CFA4_main(s16, f32, f32, f32);
+void func_8000D018_main(s16, f32);
+/* An entry of D_800CBB60_main (0x24 bytes; minigame BD210.c MgSprModel): its model at 0x00 */
+typedef struct SnSprModel {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[0x1E];
+    /* 0x20 */ u8* unk20;
+} SnSprModel;
+extern SnSprModel* D_800CBB60_main;
 void func_8000BC48_main(u16 arg0, u16 arg1);
 s16 func_8000B13C_main(s32 arg0);
 void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
@@ -173,6 +186,7 @@ extern s16 D_8010C168_swing_n_swipe; /* 1: footstep sounds */
 extern s16 D_8010C170_swing_n_swipe[5][2]; /* thief model, its shadow */
 extern s16 D_8010C184_swing_n_swipe[5]; /* thief motions */
 extern s16 D_8010C190_swing_n_swipe[5][4]; /* coin bag, its coin count, its shadow */
+extern s16 D_8010C1B8_swing_n_swipe[4]; /* net dust particles, the player's shadow? */
 
 void func_801059A0_swing_n_swipe(void) {
     func_801059BC_swing_n_swipe();
@@ -1289,9 +1303,90 @@ void func_801099E8_swing_n_swipe(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A0E4_swing_n_swipe);
+/* The coin bags (one in front of each thief's place), their coin counts and shadows, and the net's dust. */
+void func_8010A0E4_swing_n_swipe(omObjData* obj) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A3FC_swing_n_swipe);
+    D_8010C190_swing_n_swipe[0][0] = func_8000B108_main(0x610001, 0x2B9);
+    D_8010C190_swing_n_swipe[0][2] = func_8000B108_main(9, 0x2B9);
+    for (i = 1; i < 5; i++) {
+        D_8010C190_swing_n_swipe[i][0] = Hu3DModelLink(D_8010C190_swing_n_swipe[0][0]);
+        D_8010C190_swing_n_swipe[i][2] = Hu3DModelLink(D_8010C190_swing_n_swipe[0][2]);
+    }
+    for (i = 0; i < 5; i++) {
+        Hu3DModelPosSet(D_8010C190_swing_n_swipe[i][0], D_8010BE58_swing_n_swipe[i].x, D_8010BE58_swing_n_swipe[i].y,
+                        D_8010BE58_swing_n_swipe[i].z);
+        Hu3DModelScaleSet(D_8010C190_swing_n_swipe[i][0], 1.5f, 1.5f, 1.5f);
+        func_8001C92C_main(D_8010C190_swing_n_swipe[i][0], 0.0f);
+        D_8010C190_swing_n_swipe[i][1] =
+            D_800CBB60_main[SprModelRead(D_8010BE94_swing_n_swipe[D_800A11D0_main[i]], 0xA0, 0x10)].unk00;
+        Hu3DModelPosSet(D_8010C190_swing_n_swipe[i][1], HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x, 1000.0f,
+                        HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z);
+        Hu3DModelScaleSet(D_8010C190_swing_n_swipe[i][1], 3.0f, 3.0f, 3.0f);
+        func_8001C8A8_main(D_8010C190_swing_n_swipe[i][1], 0);
+        Hu3DModelPosSet(D_8010C190_swing_n_swipe[i][2], HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.x, 0.0f,
+                        HmfModelData[D_8010C190_swing_n_swipe[i][0]].pos.z);
+        Hu3DModelScaleSet(D_8010C190_swing_n_swipe[i][2], 1.5f, 1.0f, 1.5f);
+    }
+    D_8010C1B8_swing_n_swipe[0] = func_8000CED8_main(0xB0004, 0x2A9);
+    func_800138EC_main(D_8010C1B8_swing_n_swipe[0], 1, 0);
+    D_8010C1B8_swing_n_swipe[1] = func_8000B108_main(9, 0x2B9);
+    Hu3DModelScaleSet(D_8010C1B8_swing_n_swipe[1], 1.0f, 1.0f, 1.0f);
+    func_8001C8A8_main(D_8010C1B8_swing_n_swipe[1], 0);
+    D_8010C154_swing_n_swipe = 0;
+    obj->func = func_8010B01C_swing_n_swipe;
+}
+
+/* The coin bags' show (D_8010C154_swing_n_swipe 1): they open, the counts drop in, then close again. */
+void func_8010A3FC_swing_n_swipe(void) {
+    s16 i;
+
+    if (D_8010C154_swing_n_swipe == 1) {
+        switch (D_8010BEE4_swing_n_swipe) {
+        case 0:
+            for (i = 0; i < 5; i++) {
+                func_8001C92C_main(D_8010C190_swing_n_swipe[i][0], 1.0f);
+                func_8001C8A8_main(D_8010C190_swing_n_swipe[i][1], 1);
+            }
+            HuAudFXPlay(0x4F1);
+            D_8010BEE4_swing_n_swipe++;
+            break;
+        case 1:
+            for (i = 0; i < 5; i++) {
+                HmfModelData[D_8010C190_swing_n_swipe[i][1]].pos.y = 1000.0f - sindf(D_8010BEE6_swing_n_swipe * 0.75f) * 960.0f;
+                if (D_8010BEE6_swing_n_swipe >= 100 && HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.x > 2.0f) {
+                    HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.x =
+                        HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.y =
+                            HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.z =
+                                HmfModelData[D_8010C190_swing_n_swipe[i][1]].scale.z - 0.1f;
+                }
+            }
+            if (sindf(D_8010BEE6_swing_n_swipe++ * 0.75f) == 1.0f) {
+                D_8010BEE4_swing_n_swipe++;
+                HuAudFXPlay(0x4F0);
+            }
+            break;
+        case 2:
+            for (i = 0; i < 5; i++) {
+                func_8001C92C_main(D_8010C190_swing_n_swipe[i][0], -1.0f);
+            }
+            if (HmfModelData[D_8010C190_swing_n_swipe[0][0]].unk40 <= 0.0f) {
+                for (i = 0; i < 5; i++) {
+                    func_8001C92C_main(D_8010C190_swing_n_swipe[i][0], 0.0f);
+                    func_8001C6A8_main(D_8010C190_swing_n_swipe[i][0], 0.0f);
+                    func_8001C8A8_main(D_8010C190_swing_n_swipe[i][1], 0);
+                }
+                D_8010BEE4_swing_n_swipe++;
+            }
+            break;
+        case 3:
+            D_8010BEE6_swing_n_swipe = 0;
+            D_8010BEE4_swing_n_swipe = 0;
+            D_8010C154_swing_n_swipe = 0;
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_40_swing_n_swipe/2E6BE0", func_8010A780_swing_n_swipe);
 
