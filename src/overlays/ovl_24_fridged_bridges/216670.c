@@ -2110,4 +2110,54 @@ void func_8010B8CC_fridged_bridges(omObjData *obj) {
     work->unk5C = a[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010BB18_fridged_bridges);
+/* Nearest point of the player's bridge path to the respawn point, and its nearer neighbour */
+void func_8010BB18_fridged_bridges(FbPlayer *work, f32 *a, f32 *b) {
+    FbUV cur;
+    FbUV pt;
+    f32 best;
+    f32 d;
+    s32 bi;
+    s32 i;
+    s32 prev;
+    s32 next;
+
+    cur.u = work->unk5C;
+    cur.v = work->unk64;
+    best = 100000.0f;
+    bi = 0;
+    for (i = 0; i < 12; i++) {
+        pt.u = D_8010D3A0_fridged_bridges[work->unk02][0][i].u;
+        pt.v = D_8010D3A0_fridged_bridges[work->unk02][0][i].v;
+        d = HuSqrtf((pt.u - cur.u) * (pt.u - cur.u) + (pt.v - cur.v) * (pt.v - cur.v));
+        if (d < best) {
+            best = d;
+            bi = i;
+        }
+    }
+    a[0] = D_8010D3A0_fridged_bridges[work->unk02][0][bi].u;
+    a[1] = D_8010D3A0_fridged_bridges[work->unk02][0][bi].v;
+    prev = bi - 1;
+    next = bi + 1;
+    if (prev >= 0) {
+        if (next == 12) {
+            b[0] = D_8010D3A0_fridged_bridges[work->unk02][0][prev].u;
+            b[1] = D_8010D3A0_fridged_bridges[work->unk02][0][prev].v;
+            return;
+        }
+        d = HuSqrtf((D_8010D3A0_fridged_bridges[work->unk02][0][prev].u - cur.u) *
+                        (D_8010D3A0_fridged_bridges[work->unk02][0][prev].u - cur.u) +
+                    (D_8010D3A0_fridged_bridges[work->unk02][0][prev].v - cur.v) *
+                        (D_8010D3A0_fridged_bridges[work->unk02][0][prev].v - cur.v));
+        if (d <
+            HuSqrtf((D_8010D3A0_fridged_bridges[work->unk02][0][next].u - cur.u) *
+                        (D_8010D3A0_fridged_bridges[work->unk02][0][next].u - cur.u) +
+                    (D_8010D3A0_fridged_bridges[work->unk02][0][next].v - cur.v) *
+                        (D_8010D3A0_fridged_bridges[work->unk02][0][next].v - cur.v))) {
+            b[0] = D_8010D3A0_fridged_bridges[work->unk02][0][prev].u;
+            b[1] = D_8010D3A0_fridged_bridges[work->unk02][0][prev].v;
+            return;
+        }
+    }
+    b[0] = D_8010D3A0_fridged_bridges[work->unk02][0][next].u;
+    b[1] = D_8010D3A0_fridged_bridges[work->unk02][0][next].v;
+}
