@@ -447,8 +447,6 @@ void func_80106444_end_of_the_line(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80106444_end_of_the_line);
 #endif
 
-#ifdef NON_MATCHING
-/* Float register allocation: the x offset is loaded into $f2 instead of $f20 (two extra nops). */
 void func_801069D8_end_of_the_line(omObjData *obj) {
     EotlHud *hud;
     EotlPlayer *pw;
@@ -493,9 +491,6 @@ void func_801069D8_end_of_the_line(omObjData *obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801069D8_end_of_the_line);
-#endif
 
 #ifdef NON_MATCHING
 /* Masked residue: the three model[p + j * 2 + 20] loops strength-reduce j * 2 (retail reloads obj->model first); two lw scheduling differences. */
