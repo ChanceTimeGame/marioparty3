@@ -145,7 +145,7 @@ void func_8010BA64_hand_line_sinker(void) {
     omOvlReturnEx(1);
 }
 
-HlLine *func_8010BA80_hand_line_sinker(s8 r, s8 g, s8 b) {
+HlLine *func_8010BA80_hand_line_sinker(u8 r, u8 g, u8 b) {
     HlLine *line = HuMemAlloc(sizeof(HlLine));
     s16 i;
 
