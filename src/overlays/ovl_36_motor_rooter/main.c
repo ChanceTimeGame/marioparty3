@@ -6,6 +6,7 @@
 #include "game/gamework_data.h"
 #include "game/hmflight.h"
 #include "game/hmfman.h"
+#include "game/sprite.h"
 #include "game/wipe.h"
 #include "mallocblock.h"
 #include "include_asm.h"
@@ -31,7 +32,12 @@ enum {
 
 typedef struct {
     /* 0x00 */ omObjData *unk00;
-    /* 0x04 */ char unk04[0x86];
+    /* 0x04 */ s16 unk04[3][7];
+    /* 0x2E */ s16 unk2E[3];
+    /* 0x34 */ char unk34[0x12];
+    /* 0x46 */ s16 unk46[3];
+    /* 0x4C */ char unk4C[0x3C];
+    /* 0x88 */ s16 unk88;
     /* 0x8A */ s16 unk8A;
     /* 0x8C */ omObjData *unk8C;
     /* 0x90 */ char unk90[0x64];
@@ -81,6 +87,8 @@ extern MinigameData *m254_minigame; // D_801137C4_motor_rooter
 extern D_801137C8_motor_rooter_Struct *D_801137C8_motor_rooter;
 extern s16 D_801137CC_motor_rooter;
 extern s16 D_801137CE_motor_rooter;
+extern s16 D_801137D0_motor_rooter;
+extern s16 D_801137D2_motor_rooter;
 extern s16 m254_playerId[]; // D_801137D4_motor_rooter
 
 extern s32 D_80111550_motor_rooter;
@@ -273,11 +281,83 @@ void func_801062BC_motor_rooter(omObjData *object) {
 }
 /* </func_801062BC_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801064EC_motor_rooter);
+/* <func_801064EC_motor_rooter> */
+void func_801064EC_motor_rooter(omObjData *object) {
+    m254_SyncWithModel(object);
+}
+/* </func_801064EC_motor_rooter> */
 
+/* <func_80106508_motor_rooter> */
+#ifdef NON_MATCHING
+typedef struct {
+    s32 f[7];
+} MrFileTbl7;
+extern MrFileTbl7 D_80113618_motor_rooter;
+void func_80106968_motor_rooter(omObjData *object);
+void func_801091A0_motor_rooter(FuncContext *ctx);
+void func_8010961C_motor_rooter(FuncContext *ctx);
+void func_8010972C_motor_rooter(FuncContext *ctx);
+void func_80109C94_motor_rooter(PlayerView *view, s16 row);
+s16 func_8010EFF8_motor_rooter(HuSprite_Unk84_Struct *arg0, f32 arg1);
+
+void func_80106508_motor_rooter(omObjData *object) {
+    MrFileTbl7 files = D_80113618_motor_rooter;
+    PlayerView *view;
+    FuncContext *ctx;
+    s16 id;
+    s16 var_a1;
+    s16 i;
+    s16 j;
+
+    view = &m254_minigame->views[object->work[0] = m254_minigame->unk1A4[1]];
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 7; i++) {
+            id = func_8000B838_main(files.f[i] | 0x570000);
+            m254_minigame->views[object->work[0]].unk04[j][i] = id;
+            object->model[j * 7 + i] = func_8010EFF8_motor_rooter(func_80055194_main(id), 1.0f);
+            Hu3DModelScaleSet(object->model[j * 7 + i], 2.0f, 2.0f, 2.0f);
+        }
+        view->unk2E[j] = view->unk88++;
+        if (view->unk88 > D_801137D2_motor_rooter) {
+            for (i = j * 7; i < j * 7 + 7; i++) {
+                func_8001C258_main(object->model[i], 4, 4);
+            }
+            view->unk2E[j] = -1;
+        } else {
+            func_80109C94_motor_rooter(view, j);
+        }
+        view->unk46[j] = rand16() % 3;
+    }
+    var_a1 = 2;
+    if (object->work[0] == 0) {
+        var_a1 = 1;
+    }
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 7; i++) {
+            func_8001C8A8_main(object->model[j * 7 + i], var_a1);
+        }
+    }
+    m254_minigame->unk1A4[1]++;
+    m254_SetFunc(2, 6, -1, &m254_minigame->views[object->work[0]], func_8010961C_motor_rooter, (s8)object->work[0], FALSE);
+    ctx = m254_SetFunc(2, 7, -1, &m254_minigame->views[object->work[0]], func_8010972C_motor_rooter, (s8)object->work[0], FALSE);
+    for (i = 0; i < 3; i++) {
+        ctx->work.s16[0] = i;
+        func_801091A0_motor_rooter(ctx);
+    }
+    m254_SyncWithModel(object);
+    object->func = func_80106968_motor_rooter;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106508_motor_rooter);
+#endif
+/* </func_80106508_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106968_motor_rooter);
+/* <func_80106968_motor_rooter> */
+void func_80106968_motor_rooter(omObjData *object) {
+    m254_UpdateFuncGroup(2);
+    m254_SyncWithModel(object);
+}
+/* </func_80106968_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106998_motor_rooter);
 
