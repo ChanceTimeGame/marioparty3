@@ -11,6 +11,7 @@
 #include "game/wipe.h"
 #include "mallocblock.h"
 #include "input.h"
+#include "variables.h"
 
 // cv A: Crowd Cover
 
@@ -99,7 +100,7 @@ typedef struct PgPlayer {
     /* 0x2A */ u8 slot; /* 0 left, 1 right */
     /* 0x2B */ u8 difficulty;
     /* 0x2C */ u8 win;
-    /* 0x2D */ s8 cpu;
+    /* 0x2D */ u8 cpu;
     /* 0x2E */ u8 unk2E;
     /* 0x2F */ u8 mot0; /* motions */
     /* 0x30 */ u8 mot1;
@@ -737,7 +738,146 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC00
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", D_8010CC08_crowd_cover);
 
+typedef struct CcS16x4 {
+    s16 v[4];
+} CcS16x4;
+extern CcS16x4 D_8010CBF8_crowd_cover;
+extern CcS16x4 D_8010CC00_crowd_cover;
+extern CcU16x3 D_8010CC08_crowd_cover;
+
+#ifdef NON_MATCHING
+/* Player object: CPU decision, picking a card (Z/B/A), the flip and the result motion. */
+void func_80107554_crowd_cover(omObjData* obj) {
+    CcU8x8 attrs = D_8010CB70_crowd_cover;
+    CcS16x4 waits = D_8010CBF8_crowd_cover; /* CPU reaction time by difficulty */
+    CcS16x4 unused = D_8010CC00_crowd_cover;
+    CcU16x3 btns = D_8010CC08_crowd_cover; /* the button for each card */
+    s32 unused2[4];
+    Vec pos;
+    MgWork* work;
+    PgPlayer* p;
+    u8 pad;
+    f32 rot;
+    u16 btn;
+    s16 mdl;
+
+    work = obj->data;
+    p = work->unk158;
+    pad = work->unk57;
+    rot = work->unk3C;
+    func_800E4A90_minigame(obj);
+    switch (D_8010CFD8_crowd_cover) {
+        case 0:
+            if (p->cpu) {
+                p->cpuWait = waits.v[p->difficulty] +
+                             (s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * waits.v[p->difficulty]);
+                if ((s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 100.0) < (p->difficulty + 1) * 20) {
+                    p->cpuBtn = btns.v[D_8010D862_crowd_cover];
+                } else {
+                    p->cpuBtn = btns.v[(s32)((f32)func_80108F1C_crowd_cover() * (1.0 / 65536.0) * 3.0)];
+                }
+            }
+            break;
+        case 2:
+            if (!p->cpu) {
+                btn = D_800D5558_main[(s8)pad];
+            } else {
+                btn = func_80107C5C_crowd_cover(obj);
+            }
+            if (btn & 0xE000) {
+                if (btn & 0x8000) {
+                    p->pick = 3;
+                } else if (btn & 0x4000) {
+                    p->pick = 2;
+                } else if (btn & 0x2000) {
+                    p->pick = 1;
+                }
+            }
+            break;
+        case 3:
+            if (p->pick) {
+                HuAudFXPlay(0x4B4);
+                func_8001C258_main(obj->model[2], 4, 4);
+                func_8001C258_main(obj->model[p->pick + 1], 4, 0);
+            } else {
+                func_800E5690_minigame(obj, 0);
+                mdl = obj->model[9];
+                func_801090CC_crowd_cover(obj->model[0], D_8010CBE0_crowd_cover, HmfModelData[obj->model[0]].unk40, &pos);
+                func_8001C258_main(mdl, 4, 0);
+                Hu3DModelPosSet(mdl, pos.x, pos.y, pos.z + 10.0);
+                Hu3DModelScaleSet(mdl, 0.4f, 0.4f, 0.4f);
+                func_8001C6A8_main(mdl, 0.0f);
+                func_8001C92C_main(mdl, 2.0f);
+                func_8001C814_main(mdl, 1, 0);
+                func_8001C258_main(obj->model[2], 4, 4);
+            }
+        case 4:
+            if (rot > 0.0) {
+                rot -= 30.0;
+            } else {
+                rot = 0.0f;
+                if (p->pick) {
+                    HmfModel* m;
+
+                    func_800E5690_minigame(obj, 0x27);
+                    m = &HmfModelData[obj->model[0]];
+                    if (m->unk40 == D_800CCF58_main[m->unk02].unk02 - 2.0) {
+                        omVibrate(work->unk59, 2, 3, 10);
+                    }
+                }
+            }
+            break;
+        case 5:
+            if (p->unk20 == 0) {
+                if (p->pick) {
+                    mdl = obj->model[9];
+                    func_801090CC_crowd_cover(obj->model[0], D_8010CBE0_crowd_cover, HmfModelData[obj->model[0]].unk40,
+                                              &pos);
+                    func_8001C258_main(mdl, 4, 0);
+                    Hu3DModelPosSet(mdl, pos.x, pos.y, pos.z + 10.0);
+                    Hu3DModelScaleSet(mdl, 0.4f, 0.4f, 0.4f);
+                    func_8001C6A8_main(mdl, 0.0f);
+                    func_8001C92C_main(mdl, 2.0f);
+                    func_8001C814_main(mdl, 1, 0);
+                    func_8001C258_main(obj->model[p->pick + 1], 4, 4);
+                }
+                if (p->win) {
+                    GwPlayer[work->unk59].bonusCoin += 10;
+                    func_80017954_main(obj->model[0], 2, attrs.v[p->chr], p->mot0);
+                    func_800E5690_minigame(obj, 0xD);
+                    func_80045F1C_main(p->file, -1, p->slot);
+                } else {
+                    func_80017954_main(obj->model[0], 2, attrs.v[p->chr], p->mot1);
+                    func_800E5690_minigame(obj, 0xE);
+                }
+                p->unk20++;
+            }
+            break;
+        case 6:
+            if (work != NULL) {
+                HuMemFree(work->unkE8);
+                HuMemFree(work->unk158);
+                HuMemFree(work);
+                obj->data = NULL;
+                obj->func = NULL;
+            }
+            return;
+        case 7:
+            return;
+    }
+    {
+        f32 (*mtx)[4] = (f32 (*)[4])HmfModelData[obj->model[0]].mtx;
+
+        guMtxIdentF(mtx);
+        func_8008A120_main(mtx, -50.0f);
+        func_80017D24_main(mtx, 0.0f, rot, 0.0f);
+        work->unk3C = rot;
+        func_800E4E30_minigame(obj);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107554_crowd_cover);
+#endif
 
 typedef struct CcTbl9 {
     s16 v[9];
