@@ -98,7 +98,7 @@ void func_80108638_tidal_toss(omObjData* obj);
 void func_80109180_tidal_toss(omObjData* obj);
 void func_8010961C_tidal_toss(omObjData* obj);
 u16 func_8010A11C_tidal_toss(omObjData* obj);
-void func_8010A490_tidal_toss(omObjData* obj, f32 dist);
+u16 func_8010A490_tidal_toss(omObjData* obj, f32 dist);
 void func_8010A7E4_tidal_toss(omObjData* obj, MgWork** work, TtPlayer** ep);
 s32 func_8010A7F8_tidal_toss(void);
 void func_80106104_tidal_toss(omObjData* obj);
@@ -1120,7 +1120,67 @@ u16 func_8010A11C_tidal_toss(omObjData* obj) {
     return btn;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_8010A490_tidal_toss);
+/* CPU of a team player: jump over a wave that is about to reach it, and stay near the shore. Returns an unset u16 (retail; the caller ignores it). */
+u16 func_8010A490_tidal_toss(omObjData* obj, f32 dist) {
+    MgWork* work;
+    TtPlayer* tp;
+    s16 pad;
+    s32 flags;
+    TtSplash* sp;
+    s32 i;
+    f64 d;
+    u16 btn;
+
+    func_8010A7E4_tidal_toss(obj, &work, &tp);
+    pad = (s8)work->unk57;
+    flags = func_800E4A90_minigame(obj);
+    for (sp = D_8010AF48_tidal_toss, i = 0; i < 8; i++, sp++) {
+        if (sp->unk10 == 0) {
+            continue;
+        }
+        d = sp->unk00 - dist;
+        if (!(fabsf(d) <= (f32)(sp->unk08 + ((7.25 - (f32)sp->unk10) + (f32)tp->unk2E * 0.25) * 20.0))) {
+            continue;
+        }
+        if (!(d <= 0.0)) {
+            continue;
+        }
+        if ((s32)((f32)func_8010A7F8_tidal_toss() * (1.0 / 65536.0) * 100.0) >= tp->unk2E * 10 + 45) {
+            continue;
+        }
+        D_800D5558_main[pad] |= 0x8000;
+        switch (tp->unk2E) {
+            case 0:
+            case 1:
+                tp->unk32 = 10;
+                break;
+            case 2:
+                if (sp->unk10 == 1) {
+                    tp->unk32 = 0;
+                } else {
+                    tp->unk32 = 10;
+                }
+                break;
+            case 3:
+                if (sp->unk10 == 3) {
+                    tp->unk32 = 10;
+                } else {
+                    tp->unk32 = 0;
+                }
+                break;
+        }
+        break;
+    }
+    if (tp->unk32 != 0) {
+        tp->unk32--;
+        D_800CDA7C_main[pad] |= 0x8000;
+    }
+    if (dist > 240.0 && !(flags & 0x20)) {
+        D_800CBB6E_main[pad] = (tp->unk2E * 4.0 + 53.0) * -obj->trans.x / dist;
+        D_800D20A1_main[pad] = (tp->unk2E * 4.0 + 53.0) * obj->trans.z / dist;
+    }
+    return btn;
+}
 
 void func_8010A7E4_tidal_toss(omObjData* obj, MgWork** work, TtPlayer** ep) {
     MgWork* w = obj->data;
