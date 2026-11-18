@@ -25,6 +25,13 @@ typedef struct func_context {
     /* 0x40 */ void (*func)(struct func_context*);
 } FuncContext; // Size 0x44
 
+typedef struct {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} RGBA;
+
 #define SPRITE_STATE_NOTSET 0
 #define SPRITE_STATE_INVISIBLE 1
 #define SPRITE_STATE_VISIBLE 2

@@ -38,12 +38,6 @@ extern u8 D_800D2008_main;
 
 // LOCAL
 
-typedef struct {
-    u8 r;
-    u8 g;
-    u8 b;
-    u8 a;
-} RGBA;
 
 typedef struct {
     /* 0x00 */ FuncContext *funcCtx;
