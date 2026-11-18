@@ -64,7 +64,7 @@ typedef struct {
     /* 0x48 */ Vec unk48;
     /* 0x54 */ f32 unk54;
     /* 0x58 */ char unk58[4];
-    /* 0x5C */ s16 unk5C;
+    /* 0x5C */ u16 unk5C;
     /* 0x5E */ u16 unk5E;
     /* 0x60 */ u16 unk60;
     /* 0x62 */ u16 unk62;
@@ -100,6 +100,14 @@ typedef struct {
 } EotlHud; // Size 0x28
 
 typedef struct {
+    /* 0x00 */ f32 unk00;
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ u16 unk10;
+} EotlCam; // Size 0x14
+
+typedef struct {
     /* 0x00 */ Vec pos[3];
     /* 0x24 */ f32 vel[3];
     /* 0x30 */ s16 timer[3];
@@ -119,6 +127,7 @@ void func_8010AC34_end_of_the_line(EotlPlayer *pw);
 void func_8010AF28_end_of_the_line(omObjData *obj);
 void func_8010B064_end_of_the_line(omObjData *obj);
 void func_8010B234_end_of_the_line(omObjData *obj);
+void func_8010B300_end_of_the_line(omObjData *obj);
 void func_8010B640_end_of_the_line(omObjData *obj);
 void func_8010BF64_end_of_the_line(omObjData *obj);
 void func_8010C580_end_of_the_line(void);
@@ -926,7 +935,99 @@ void func_801088A4_end_of_the_line(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_801088A4_end_of_the_line);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_80108F0C_end_of_the_line);
+void func_80108F0C_end_of_the_line(omObjData *obj) {
+    EotlPlayer *pw;
+    EotlCam *cam;
+    f32 scale;
+
+    pw = obj->data;
+    switch (pw->unk5C) {
+    case 0:
+        pw->unk3C.y += pw->unk74;
+        pw->unk74 *= 1.15f;
+        scale = 1.0f - pw->unk3C.y / 1000.0f;
+        if (scale < 0.0f) {
+            scale = 0.0f;
+        }
+        if (scale > 1.0f) {
+            scale = 1.0f;
+        }
+        pw->unk6C = scale;
+        if (pw->unk3C.y < 100.0f) {
+            pw->unk3C.y = 100.0f;
+            pw->unk74 = 40.0f;
+            pw->unk5C = 1;
+            pw->unk6C = 1.0f;
+            func_8001C258_main(obj->model[3], 4, 0);
+            Hu3DModelPosSet(obj->model[3], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+            func_8001C6A8_main(obj->model[3], 0.0f);
+            D_8010C730_end_of_the_line->work[0] = 1;
+            if (pw->unk00 == 0) {
+                HuAudSeqPlay(0x34);
+            }
+        }
+        Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+        Hu3DModelScaleSet(obj->model[4], pw->unk6C, pw->unk6C, pw->unk6C);
+        Hu3DModelPosSet(obj->model[4], pw->unk3C.x, 100.0f, pw->unk3C.z);
+        break;
+    case 1:
+        pw->unk3C.y += pw->unk74;
+        pw->unk74 *= 0.5f;
+        if (pw->unk74 < 1.0f) {
+            pw->unk74 = -1.0f;
+            pw->unk5C = 2;
+        }
+        Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+        break;
+    case 2:
+        pw->unk3C.y += pw->unk74;
+        pw->unk74 = 2.0f * pw->unk74;
+        if (pw->unk3C.y < 100.0f) {
+            pw->unk3C.y = 100.0f;
+            func_8001C5B4_main(obj->model[2], obj->motion[6]);
+            pw->unk5C = 3;
+            pw->unk78 = 22;
+        }
+        Hu3DModelPosSet(obj->model[2], pw->unk3C.x, pw->unk3C.y, pw->unk3C.z);
+        break;
+    case 3:
+        if (pw->unk78 == 0) {
+            pw->unk78 = 30;
+            func_8001C92C_main(obj->model[2], 2.0f);
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[7]].unk02, 0, 6, 0);
+            pw->unk5C = 4;
+        } else {
+            pw->unk78--;
+        }
+        break;
+    case 4:
+        if (pw->unk78 == 0) {
+            pw->unk78 = 20;
+            func_8001C92C_main(obj->model[2], 1.0f);
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[8]].unk02, 0, 6, 0);
+            pw->unk5C = 5;
+        } else {
+            pw->unk78--;
+        }
+        break;
+    case 5:
+        if (pw->unk78 == 0) {
+            func_8001C624_main(obj->model[2], HmfModelData[obj->motion[9]].unk02, 0, 6, 2);
+            pw->unk1A = 0;
+            cam = pw->unk04->data;
+            cam->unk10 = 20;
+            cam->unk00 = 700.0f;
+            cam->unk04 = 600.0f;
+            cam->unk08 = -200.0f / cam->unk10;
+            cam->unk0C = 400.0f / cam->unk10;
+            pw->unk04->func = func_8010B300_end_of_the_line;
+            pw->unk5C = 6;
+        } else {
+            pw->unk78--;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_33_end_of_the_line/28A290", func_8010937C_end_of_the_line);
 
