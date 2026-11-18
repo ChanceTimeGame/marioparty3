@@ -60,6 +60,9 @@ extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
 extern u8 D_800D2008_main;
 extern u8 D_800D6A90_main;
 u16 func_800E6E9C_minigame(void);
+f32 func_800202A8_main(f32 angle);
+extern s32 D_8010A240_water_whirled[4]; /* laps per player */
+extern f32 D_8010A2E0_water_whirled[4]; /* value per place, best first */
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -315,7 +318,81 @@ void func_8010698C_water_whirled(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106A58_water_whirled);
+/* Rank the riders by distance round the oval course (laps * 1500 plus the position on the lap: straights
+   along x in -1000..1000, half circles beyond) and give each the value of its place in D_8010A190. */
+void func_80106A58_water_whirled(void) {
+    s32 idx[4];
+    f32 dist[4];
+    omObjData* player;
+    f32 x;
+    f32 z;
+    f32 a;
+    s32 i;
+    s32 j;
+    s32 swapped;
+    s32 ti;
+    f32 tf;
+
+    for (i = 0; i < 4; i++) {
+        dist[i] = D_8010A240_water_whirled[i] * 1500.0f;
+        player = D_800EC598_minigame[i];
+        x = player->trans.x;
+        z = player->trans.z;
+        if (x > 0.0f) {
+            if (z > 0.0f) {
+                if (x > 1000.0f) {
+                    dist[i] = atan2df(x - 1000.0f, z) / 90.0f * 500.0f + 1000.0f + dist[i];
+                } else {
+                    dist[i] = x + dist[i];
+                }
+            } else {
+                if (x > 1000.0f) {
+                    dist[i] = (atan2df(x - 1000.0f, z) - 90.0f) / 90.0f * 500.0f + dist[i];
+                } else {
+                    dist[i] = 1000.0f - x + 500.0f + dist[i];
+                }
+            }
+        } else {
+            a = func_800202A8_main(atan2df(x + 1000.0f, z));
+            if (z > 0.0f) {
+                if (x < -1000.0f) {
+                    dist[i] = (a - 270.0f) / 90.0f * 500.0f + dist[i];
+                } else {
+                    dist[i] = x + 1000.0f + 500.0f + dist[i];
+                }
+            } else {
+                if (x < -1000.0f) {
+                    dist[i] = (a - 180.0f) / 90.0f * 500.0f + 1000.0f + dist[i];
+                } else {
+                    dist[i] = dist[i] - x;
+                }
+            }
+        }
+        idx[i] = i;
+    }
+    do {
+        swapped = 0;
+        for (i = 0; i < 3; i++) {
+            for (j = i + 1; j < 4; j++) {
+                if (j == 4) { /* never true; the retail code tests it */
+                    break;
+                }
+                if (dist[i] > dist[j]) {
+                    tf = dist[j];
+                    dist[j] = dist[i];
+                    dist[i] = tf;
+                    ti = idx[j];
+                    idx[j] = idx[i];
+                    idx[i] = ti;
+                    swapped = 1;
+                }
+            }
+        }
+    } while (swapped != 0);
+    for (i = 0; i < 4; i++) {
+        D_8010A190_water_whirled[idx[i]] = D_8010A2E0_water_whirled[i];
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106DB8_water_whirled);
 
