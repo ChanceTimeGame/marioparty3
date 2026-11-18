@@ -100,8 +100,9 @@ typedef struct MqStage {
     /* 0x04 */ u8 unk04;
     /* 0x05 */ char unk05[3];
     /* 0x08 */ f32 unk08;
-    /* 0x0C */ char unk0C[0xA8];
-} MqStage; // Size 0xB4
+    /* 0x0C */ char unk0C[0xA4];
+    /* 0xB0 */ void* unkB0; /* 0x14-byte block (podiums) */
+} MqStage; // Size 0xB4 on N64
 
 void func_80107114_mpiq(void);
 extern f32 D_8010C9B0_mpiq;
@@ -111,6 +112,71 @@ extern s16 D_8010C9E0_mpiq;
 extern s16 D_8010C9E2_mpiq;
 extern omObjData* D_8010CA78_mpiq;
 void func_80107168_mpiq(omObjData* obj);
+void func_800E13CC_minigame(omObjData* obj, f32 arg1, f32 arg2, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
+void func_8010747C_mpiq(omObjData* obj);
+void func_80107774_mpiq(omObjData* obj);
+
+/* A player's buzzer lamp (func_80107584_mpiq, D_8010CAC0_mpiq) */
+typedef struct MqLamp {
+    /* 0x00 */ f32 unk00; /* position */
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08; /* fall speed */
+    /* 0x0C */ f32 unk0C; /* rest height */
+    /* 0x10 */ s32 unk10; /* flags */
+    /* 0x14 */ s32 unk14; /* timer */
+    /* 0x18 */ s32 unk18; /* player */
+    /* 0x1C */ f32 unk1C; /* flash scale */
+    /* 0x20 */ s32 unk20; /* flash alpha */
+    /* 0x24 */ s16 unk24;
+} MqLamp; // Size 0x28
+
+extern omObjData* D_8010CA80_mpiq[4]; /* podiums */
+extern s32 D_8010CA90_mpiq[4]; /* podium flags: 1 rising */
+extern s32 D_8010CAA0_mpiq[4]; /* podium level (correct answers) */
+extern f32 D_8010CAB0_mpiq[3]; /* podium height per level */
+extern omObjData* D_8010CAC0_mpiq[4]; /* lamps */
+void func_800E12EC_minigame(omObjData* obj, f32 arg1);
+void func_800E561C_minigame(omObjData* obj, u8 flags);
+void func_800E58F8_minigame(omObjData* obj, s32 a, s32 b);
+void func_80107E90_mpiq(f32 x, f32 y, f32 z);
+s16 func_801089D0_mpiq(omObjData* a, omObjData* b);
+void func_80107DE0_mpiq(omObjData* obj);
+extern s16 D_8010C9BE_mpiq; /* pad of the player answering */
+extern omObjData* D_8010CAD0_mpiq; /* buzz effect */
+void func_8001C6A8_main(s32 arg0, f32 arg1);
+void func_80107FC4_mpiq(omObjData* obj);
+void func_80108494_mpiq(omObjData* obj);
+extern omObjData* D_8010CAD4_mpiq; /* "correct" effect */
+
+/* Effect object data (D_8010CAD4_mpiq) */
+typedef struct MqFx {
+    /* 0x00 */ s32 unk00; /* flags */
+    /* 0x04 */ s32 unk04; /* use count */
+} MqFx; // Size 8
+
+/* A player's score column (D_8010CAD8_mpiq) */
+typedef struct MqColumn {
+    /* 0x00 */ char unk00[8];
+    /* 0x08 */ f32 unk08; /* x */
+    /* 0x0C */ char unk0C[0xC];
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C[3]; /* block heights */
+    /* 0x28 */ f32 unk28[3]; /* block y scale */
+    /* 0x34 */ char unk34[4];
+    /* 0x38 */ s32 unk38; /* blocks filled */
+    /* 0x3C */ s32 unk3C; /* flags */
+    /* 0x40 */ s32 unk40; /* player */
+} MqColumn; // Size 0x44
+
+extern omObjData* D_8010CAD8_mpiq[4]; /* score columns */
+void func_801087F8_mpiq(omObjData* obj);
+
+/* The host (D_8010CA78_mpiq) */
+typedef struct MqHost {
+    /* 0x00 */ char unk00[8];
+    /* 0x08 */ f32 unk08; /* rot y */
+    /* 0x0C */ s32 unk0C; /* flags: 1 motion, 2 turn back, 4 turn */
+} MqHost; // Size 0x10
 // LOCALEND
 
 void func_801059A0_mpiq(void) {
@@ -552,50 +618,486 @@ void func_80107168_mpiq(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107168_mpiq);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010720C_mpiq);
+/* The four podiums. */
+void func_8010720C_mpiq(void) {
+    Vec2f in;
+    Vec out; /* only x, y written */
+    f32 heights[3] = { 47.0f, 94.0f, 141.0f };
+    omObjData* obj;
+    MqStage* stage;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010747C_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107558_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107584_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107774_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107C18_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107C50_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107C74_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107D70_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107DE0_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107E90_mpiq);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107F28_mpiq);
-
-void func_80107FC4_mpiq(void) {
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(2, 2, 0, -1, func_8010747C_mpiq);
+        obj->data = HuMemAllocTag(sizeof(MqStage), 0x7918);
+        D_8010CA80_mpiq[i] = obj;
+        stage = obj->data;
+        stage->unkB0 = HuMemAllocTag(0x14, 0x7918);
+        if (i == 0) {
+            obj->model[0] = func_8000B0A0_main(0x42000E, 0x29D);
+        } else {
+            obj->model[0] = Hu3DModelLink(D_8010CA80_mpiq[0]->model[0]);
+        }
+        D_8010C9B0_mpiq = 1.0f;
+        in.x = D_8010C6A8_mpiq[i];
+        in.y = 180.0f;
+        func_80012D0C_main(0, CZoom, &in, (Vec2f*)&out);
+        omSetTra(obj, out.x, 0.0f, 0.0f);
+        D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = obj;
+        memset(obj->data, 0, sizeof(MqStage));
+        stage->unk03 = 1;
+        stage->unk08 = 0.5f;
+        stage->unk04 = i + 1;
+        func_800E13CC_minigame(obj, 0.0f, 100.0f, -100.0f, -100.0f, 100.0f, 100.0f);
+        D_8010CA90_mpiq[i] = 0;
+        D_8010CAA0_mpiq[i] = 0;
+    }
+    for (j = 0; j < 3; j++) {
+        D_8010CAB0_mpiq[j] = heights[j];
+    }
+    obj->func = func_8010747C_mpiq;
 }
 
+/* A podium rising to its level. */
+void func_8010747C_mpiq(omObjData* obj) {
+    MqLamp* lamp;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (obj == D_8010CA80_mpiq[i]) {
+            break;
+        }
+    }
+    if (D_8010CA90_mpiq[i] & 1) {
+        obj->trans.y += 4.7f;
+        lamp = D_8010CAC0_mpiq[i]->data;
+        lamp->unk04 += 4.7f;
+        if (obj->trans.y >= D_8010CAB0_mpiq[D_8010CAA0_mpiq[i] - 1]) {
+            obj->trans.y = D_8010CAB0_mpiq[D_8010CAA0_mpiq[i] - 1];
+            lamp->unk0C = lamp->unk04;
+            D_8010CA90_mpiq[i] &= ~1;
+        }
+    }
+}
+
+void func_80107558_mpiq(s32 player, s32 level) {
+    D_8010CAA0_mpiq[player] = level;
+    D_8010CA90_mpiq[player] |= 1;
+}
+
+/* The four buzzer lamps over the podiums. */
+void func_80107584_mpiq(void) {
+    Vec2f in;
+    Vec out; /* only x, y written */
+    omObjData* obj;
+    MqLamp* lamp;
+    s32 i;
+    s32 attr;
+    s32 attr2;
+
+    attr = 0x699;
+    attr2 = 0xA89;
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(0xA, 3, 0, -1, func_80107774_mpiq);
+        D_8010CAC0_mpiq[i] = obj;
+        lamp = obj->data = HuMemAllocTag(sizeof(MqLamp), 0x7918);
+        if (i == 0) {
+            obj->model[0] = func_8000B0A0_main(0x42000B, attr);
+            obj->model[1] = func_8000B0A0_main(0x42000F, attr2 | 4);
+            func_8001FA68_main(obj->model[1]);
+            obj->model[2] = func_8000B108_main(0x5D0008, attr | 4);
+        } else {
+            obj->model[0] = Hu3DModelLink(D_8010CAC0_mpiq[0]->model[0]);
+            obj->model[1] = Hu3DModelLink(D_8010CAC0_mpiq[0]->model[1]);
+            obj->model[2] = Hu3DModelLink(D_8010CAC0_mpiq[0]->model[2]);
+        }
+        func_8001C814_main(obj->model[0], 1, 1);
+        in.x = D_8010C6A8_mpiq[i];
+        in.y = 52.0f;
+        func_80012D0C_main(0, CZoom, &in, (Vec2f*)&out);
+        omSetTra(obj, out.x, out.y, 0.0f);
+        lamp->unk00 = out.x;
+        lamp->unk04 = out.y;
+        lamp->unk0C = out.y;
+        lamp->unk10 = 0;
+        lamp->unk08 = 0;
+        lamp->unk18 = i;
+        lamp->unk24 = 0;
+        Hu3DModelPosSet(obj->model[1], lamp->unk00, lamp->unk04, 0.0f);
+    }
+}
+
+/* A buzzer lamp: drops onto its podium when buzzed, flashes, and is pressed by the answering player. */
+void func_80107774_mpiq(omObjData* obj) {
+    f32 bounce[12] = { 0.0f, 10.0f, 25.0f, 40.0f, 52.0f, 50.0f, 50.0f, 48.0f, 38.0f, 29.0f, 25.0f, 160.0f };
+    MqLamp* lamp;
+    s32 i;
+
+    lamp = obj->data;
+    obj->trans.y = lamp->unk04;
+    if (lamp->unk10 & 1) {
+        lamp->unk04 -= lamp->unk08;
+        lamp->unk08 += 8.0f;
+        if (lamp->unk04 <= D_8010CA80_mpiq[lamp->unk18]->trans.y + 30.0f) {
+            lamp->unk04 = D_8010CA80_mpiq[lamp->unk18]->trans.y + 30.0f;
+            lamp->unk10 = (lamp->unk10 & ~1) | 2;
+            func_80107E90_mpiq(obj->trans.x, obj->trans.y - 50.0f, obj->trans.z);
+        }
+    }
+    if (lamp->unk10 & 2) {
+        lamp->unk04 += 16.0f;
+        if (lamp->unk04 >= lamp->unk0C) {
+            lamp->unk04 = lamp->unk0C;
+            lamp->unk10 &= ~2;
+        }
+    }
+    if (lamp->unk10 & 8) {
+        func_8001C814_main(obj->model[0], 4, 4);
+        lamp->unk10 &= ~8;
+    }
+    if (lamp->unk10 & 0x10) {
+        if (--lamp->unk14 == 0xC) {
+            func_8001C258_main(obj->model[0], 4, 4);
+        }
+        if (D_800CCF58_main[HmfModelData[obj->model[2]].unk02].unk02 <= HmfModelData[obj->model[2]].unk40) {
+            func_8001C258_main(obj->model[2], 4, 4);
+            lamp->unk10 &= ~0x10;
+        }
+    }
+    if (lamp->unk10 & 0x20) {
+        lamp->unk14--;
+        Hu3DModelScaleSet(obj->model[1], lamp->unk1C, lamp->unk1C, lamp->unk1C);
+        Hu3DModelPosSet(obj->model[1], lamp->unk00, lamp->unk04 + bounce[7 - lamp->unk14], 0.0f);
+        func_8001F9E4_main(obj->model[1], lamp->unk20);
+        lamp->unk1C += 0.2f;
+        lamp->unk20 -= 0x23;
+        if (lamp->unk14 == 0) {
+            func_8001C258_main(obj->model[1], 4, 4);
+            lamp->unk10 &= ~0x20;
+        }
+    }
+    if (func_801089D0_mpiq(obj, D_800EC598_minigame[D_8010C9BC_mpiq]) != 0) {
+        if (lamp->unk10 & 3) {
+            if (lamp->unk24 == 0) {
+                func_8004AC5C_main(0x411, D_8010C9BE_mpiq);
+                lamp->unk24 = 1;
+            }
+            func_800E561C_minigame(D_800EC598_minigame[D_8010C9BC_mpiq], 1);
+            omVibrate(D_8010C9BE_mpiq, 0x14, 0, 0x14);
+        } else if (D_8010C9C2_mpiq == 0) {
+            func_8001C814_main(obj->model[0], 4, 0);
+            func_8001C814_main(obj->model[0], 1, 0);
+            func_800E58F8_minigame(D_800EC598_minigame[D_8010C9BC_mpiq], 0x26, 0);
+            D_8010C9C2_mpiq = 1;
+            for (i = 0; i < 4; i++) {
+                func_800E12EC_minigame(D_800EC598_minigame[i], 1000.0f);
+            }
+            lamp->unk10 |= 0x20;
+            lamp->unk14 = 7;
+            func_8001C258_main(obj->model[1], 4, 0);
+            lamp->unk1C = 1.0f;
+            lamp->unk20 = 0xFF;
+        }
+    } else {
+        lamp->unk24 = 0;
+    }
+}
+
+/* Drop player's lamp. */
+void func_80107C18_mpiq(s32 player) {
+    MqLamp* lamp = D_8010CAC0_mpiq[player]->data;
+
+    lamp->unk10 |= 1;
+    lamp->unk08 = 4.0f;
+    lamp->unk18 = player;
+}
+
+void func_80107C50_mpiq(s32 player) {
+    MqLamp* lamp = D_8010CAC0_mpiq[player]->data;
+
+    lamp->unk10 |= 8;
+}
+
+void func_80107C74_mpiq(void) {
+    f32 x;
+    f32 y;
+    f32 z;
+    omObjData* obj;
+    MqLamp* lamp;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        obj = D_8010CAC0_mpiq[i];
+        x = obj->trans.x;
+        y = obj->trans.y;
+        z = obj->trans.z + 200.0f;
+        lamp = obj->data;
+        lamp->unk10 |= 0x10;
+        lamp->unk14 = 0xF;
+        Hu3DModelPosSet(D_8010CAC0_mpiq[i]->model[2], x, y, z);
+        Hu3DModelScaleSet(D_8010CAC0_mpiq[i]->model[2], 1.0f, 1.0f, 1.0f);
+        func_8001C258_main(D_8010CAC0_mpiq[i]->model[2], 4, 0);
+    }
+}
+
+void func_80107D70_mpiq(void) {
+    omObjData* obj;
+    s32* flags;
+
+    obj = omAddObj(0xFF, 1, 0, -1, func_80107DE0_mpiq);
+    D_8010CAD0_mpiq = obj;
+    obj->data = flags = HuMemAllocTag(sizeof(s32), 0x7918);
+    *flags = 0;
+    obj->model[0] = func_8000B108_main(8, 0x69D);
+}
+
+void func_80107DE0_mpiq(omObjData* obj) {
+    s32* flags;
+
+    flags = obj->data;
+    if (*flags & 1) {
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            *flags &= ~1;
+        }
+    }
+}
+
+void func_80107E90_mpiq(f32 x, f32 y, f32 z) {
+    ((MqFx*)D_8010CAD0_mpiq->data)->unk00 |= 1;
+    func_8001C258_main(D_8010CAD0_mpiq->model[0], 4, 0);
+    func_8001C6A8_main(D_8010CAD0_mpiq->model[0], 0.0f);
+    omSetTra(D_8010CAD0_mpiq, x, y, z);
+}
+
+void func_80107F28_mpiq(void) {
+    omObjData* obj;
+    MqFx* fx;
+
+    obj = omAddObj(0xFF, 1, 0, -1, func_80107FC4_mpiq);
+    D_8010CAD4_mpiq = obj;
+    obj->data = fx = HuMemAllocTag(sizeof(MqFx), 0x7918);
+    fx->unk00 = 0;
+    obj->model[0] = func_8000B108_main(0x230009, 0x69D);
+    Hu3DModelScaleSet(obj->model[0], 1.5f, 1.5f, 1.5f);
+    fx->unk04 = 0;
+}
+
+void func_80107FC4_mpiq(omObjData* obj) {
+}
+
+#ifdef NON_MATCHING
+/* Show the effect over a player's head (height by character). */
+void func_80107FCC_mpiq(s32 player) {
+    f32 heights[8] = { 100.0f, 110.0f, 100.0f, 110.0f, 100.0f, 120.0f, 110.0f, 100.0f };
+    omObjData* obj;
+    MqFx* fx;
+    f32 x;
+    f32 y;
+    f32 z;
+
+    obj = D_800EC598_minigame[player];
+    x = obj->trans.x;
+    y = obj->trans.y + heights[GwPlayer[player].chr];
+    z = obj->trans.z;
+    fx = D_8010CAD4_mpiq->data;
+    fx->unk00 |= 1;
+    if (fx->unk04 == 0) {
+        func_8001C258_main(D_8010CAD4_mpiq->model[0], 4, 0);
+        func_8001C6A8_main(D_8010CAD4_mpiq->model[0], 0.0f);
+        func_8001C814_main(D_8010CAD4_mpiq->model[0], 2, 2);
+    }
+    omSetTra(D_8010CAD4_mpiq, x, y, z);
+    fx->unk04++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80107FCC_mpiq);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010811C_mpiq);
+void func_8010811C_mpiq(void) {
+    MqFx* fx = D_8010CAD4_mpiq->data;
 
+    if (--fx->unk04 == 0) {
+        func_8001C258_main(D_8010CAD4_mpiq->model[0], 4, 4);
+        fx->unk00 &= ~1;
+    }
+}
+
+#ifdef NON_MATCHING
+/* The four score columns (three blocks each). */
+void func_80108178_mpiq(void) {
+    Vec2f in;
+    Vec out; /* only x, y written */
+    omObjData* obj;
+    MqColumn* col;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(2, 5, 0, -1, func_80108494_mpiq);
+        D_8010CAD8_mpiq[i] = obj;
+        col = obj->data = HuMemAllocTag(sizeof(MqColumn), 0x7918);
+        omSetSca(obj, 2.0f, 3.0f, 2.0f);
+        if (i == 0) {
+            obj->model[0] = func_8000B108_main(0x42000A, 0x6B9);
+            obj->model[1] = func_8000B108_main(0x420007, 0x6BD);
+            obj->model[2] = func_8000B108_main(0x420008, 0x6BD);
+            obj->model[3] = func_8000B108_main(0x420009, 0x6BD);
+            obj->model[4] = func_8000B108_main(0x420006, 0x6B9);
+        } else {
+            obj->model[0] = Hu3DModelLink(D_8010CAD8_mpiq[0]->model[0]);
+            obj->model[1] = Hu3DModelLink(D_8010CAD8_mpiq[0]->model[1]);
+            obj->model[2] = Hu3DModelLink(D_8010CAD8_mpiq[0]->model[2]);
+            obj->model[3] = Hu3DModelLink(D_8010CAD8_mpiq[0]->model[3]);
+            obj->model[4] = Hu3DModelLink(D_8010CAD8_mpiq[0]->model[4]);
+        }
+        col->unk38 = 0;
+        col->unk3C = 0;
+        in.x = D_8010C6A8_mpiq[i];
+        in.y = 180.0f;
+        func_80012D0C_main(0, CZoom, &in, (Vec2f*)&out);
+        omSetTra(obj, out.x, -144.0f, 0.0f);
+        omSetSca(obj, 2.0f, 4.0f, 2.0f);
+        col->unk08 = out.x;
+        col->unk18 = 0.0f;
+        Hu3DModelPosSet(obj->model[4], out.x, col->unk18, col->unk18);
+        Hu3DModelScaleSet(obj->model[4], 2.0f, 1.0f, 2.0f);
+        for (j = 0; j < 3; j++) {
+            Hu3DModelScaleSet(obj->model[j + 1], 2.0f, 2.0f, 2.0f);
+            col->unk1C[j] = j * 50.0f - 44.0f;
+            Hu3DModelPosSet(obj->model[j + 1], out.x, col->unk1C[j], 0.0f);
+            col->unk28[j] = 0.0f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108178_mpiq);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108494_mpiq);
+/* A score column: grows the next block while its podium rises. */
+void func_80108494_mpiq(omObjData* obj) {
+    MqColumn* col;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801085F4_mpiq);
+    for (i = 0; i < 4; i++) {
+        if (obj == D_8010CAD8_mpiq[i]) {
+            break;
+        }
+    }
+    col = obj->data;
+    for (i = 0; i < 3; i++) {
+        HmfModelData[obj->model[i + 1]].scale.y = col->unk28[i];
+    }
+    if (col->unk3C & 1) {
+        col->unk28[col->unk38] += 0.2f;
+        HmfModelData[obj->model[4]].pos.y = D_8010CA80_mpiq[D_8010C9BC_mpiq]->trans.y;
+        if (col->unk28[col->unk38] >= 2.0f) {
+            col->unk28[col->unk38] = 2.0f;
+        }
+        if (!(D_8010CA90_mpiq[col->unk40] & 1)) {
+            col->unk38++;
+            col->unk3C &= ~1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108688_mpiq);
+/* Start growing player's next block. */
+void func_801085F4_mpiq(s32 player) {
+    MqColumn* col = D_8010CAD8_mpiq[player]->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801087F8_mpiq);
+    col->unk3C |= 1;
+    col->unk40 = player;
+    func_8001C258_main(D_8010CAD8_mpiq[player]->model[col->unk38 + 1], 4, 0);
+    func_8004AC5C_main(0x410, player);
+    omVibrate(player, 0xA, 0, 0xA);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801089A4_mpiq);
+void func_80108688_mpiq(void) {
+    Vec out; /* only x, y written */
+    Vec2f in;
+    omObjData* obj;
+    MqHost* host;
 
+    obj = omAddObj(0xA, 1, 1, -1, func_801087F8_mpiq);
+    obj->data = HuMemAllocTag(sizeof(MqHost), 0x7918);
+    D_8010CA78_mpiq = obj;
+    host = obj->data;
+    obj->model[0] = func_8000B108_main(0xA005D, 0x6D9);
+    func_8001C814_main(obj->model[0], 2, 2);
+    in.x = 260.0f;
+    in.y = -120.0f;
+    func_80012D0C_main(0, CZoom, &in, (Vec2f*)&out);
+    omSetTra(obj, out.x, out.y, 200.0f);
+    omSetRot(obj, 0.0f, 0.0f, 0.0f);
+    omSetSca(obj, 1.1f, 1.1f, 1.1f);
+    func_8000B460_main(obj, 0, 0xA005F);
+    func_8000B460_main(obj, 1, 0xA0060);
+    func_8000B460_main(obj, 2, 0xA0061);
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    host->unk08 = 0;
+}
+
+void func_801087F8_mpiq(omObjData* obj) {
+    MqHost* host;
+
+    host = obj->data;
+    omSetRot(obj, 0.0f, host->unk08, 0.0f);
+    if (host->unk0C & 1) {
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+            func_8001C624_main(obj->model[0], HmfModelData[obj->motion[0]].unk02, 0, 0xA, 0);
+            func_8001C814_main(obj->model[0], 2, 2);
+            host->unk0C &= ~1;
+        }
+    }
+    if (host->unk0C & 4) {
+        host->unk08 -= 12.0f;
+        if (host->unk08 <= -120.0f) {
+            host->unk08 = -120.0f;
+            host->unk0C &= ~4;
+        }
+    }
+    if (host->unk0C & 2) {
+        host->unk08 += 12.0f;
+        if (host->unk08 >= 0.0f) {
+            host->unk08 = 0.0f;
+            host->unk0C &= ~2;
+        }
+    }
+}
+
+void func_801089A4_mpiq(s32 turn) {
+    MqHost* host = D_8010CA78_mpiq->data;
+    s32 flags;
+
+    flags = host->unk0C & ~2;
+    flags &= ~4;
+    host->unk0C = turn | flags;
+}
+
+#ifdef NON_MATCHING
+/* 1 if a and b are within 150 units (x, y). */
+s16 func_801089D0_mpiq(omObjData* a, omObjData* b) {
+    f32 ax;
+    f32 ay;
+    f32 dx;
+    f32 dy;
+    s32 near;
+
+    near = 0;
+    ax = a->trans.x;
+    ay = a->trans.y;
+    dx = b->trans.x - ax;
+    dy = b->trans.y - ay;
+    if (HuSqrtf(dx * dx + dy * dy) < 150.0f) {
+        near = 1;
+    }
+    return near;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801089D0_mpiq);
+#endif
 
 void func_80108A3C_mpiq(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
     func_8000B5F0_main(1);
@@ -621,10 +1123,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80108E20_mpiq);
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109018_mpiq);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_80109414_mpiq);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C8A8_mpiq);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C8B4_mpiq);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", D_8010C8E4_mpiq);
 
