@@ -990,7 +990,6 @@ void func_80107EA4_storm_chasers(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_80107F70_storm_chasers(omObjData *obj) {
     void *data;
     ScWind *w;
@@ -1027,8 +1026,8 @@ void func_80107F70_storm_chasers(omObjData *obj) {
     func_8001C6A8_main(obj->model[2], 0.0f);
     func_8001C814_main(obj->model[2], 1, 1);
     func_8001C814_main(obj->model[2], 2, 0);
-    obj->trans.z = obj->trans.y = obj->trans.x = 0.0f;
-    obj->scale.y = obj->scale.x = 1.3f;
+    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = 1.3f;
     for (i = 1; i < 3; i++) {
         Hu3DModelPosSet(obj->model[i], obj->trans.x, obj->trans.y, obj->trans.z);
         Hu3DModelScaleSet(obj->model[i], obj->scale.x, obj->scale.y, obj->scale.z);
@@ -1044,9 +1043,6 @@ void func_80107F70_storm_chasers(omObjData *obj) {
     w->alpha = 0xFF;
     w->obj = obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_80107F70_storm_chasers);
-#endif
 
 void func_8010834C_storm_chasers(void) {
     s32 i;
@@ -2120,10 +2116,9 @@ void func_8010C57C_storm_chasers(omObjData *obj) {
 void func_8010C604_storm_chasers(void) {
 }
 
-#ifdef NON_MATCHING
 void func_8010C60C_storm_chasers(void) {
     omObjData *obj;
-    s16 i;
+    s32 i;
 
     obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
     obj->work[0] = 2;
@@ -2139,9 +2134,6 @@ void func_8010C60C_storm_chasers(void) {
         Hu3DCamSetPerspective(i, D_8010CAB8_storm_chasers[i].fov, 80.0f, 8000.0f);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010C60C_storm_chasers);
-#endif
 
 void func_8010C780_storm_chasers(void) {
     Hu3DAnimInit(50);
