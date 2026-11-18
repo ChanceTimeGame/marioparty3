@@ -1,7 +1,9 @@
 #include "overlays/ovl_36.h"
 #include "overlays/minigame.h"
 #include "gcc/memory.h"
+#include "game/audio.h"
 #include "game/camera.h"
+#include "game/esprite.h"
 #include "game/gamemes.h"
 #include "game/gamework_data.h"
 #include "game/hmflight.h"
@@ -18,6 +20,8 @@ void func_8000B5F0_main(u8 arg0);
 s32 func_8000B710_main(s32 arg0);
 
 // 14EA0
+s32 func_80017BB8_main(s16, s16);
+s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
 void func_800142A0_main(s32);
 
 // 20A20
@@ -34,9 +38,11 @@ typedef struct {
     /* 0x00 */ omObjData *unk00;
     /* 0x04 */ s16 unk04[3][7];
     /* 0x2E */ s16 unk2E[3];
-    /* 0x34 */ char unk34[0x12];
+    /* 0x34 */ s16 unk34[3][3];
     /* 0x46 */ s16 unk46[3];
-    /* 0x4C */ s16 unk4C[30];
+    /* 0x4C */ s16 unk4C[10];
+    /* 0x60 */ s16 unk60[10];
+    /* 0x74 */ s16 unk74[10];
     /* 0x88 */ s16 unk88;
     /* 0x8A */ s16 unk8A;
     /* 0x8C */ omObjData *unk8C;
@@ -55,16 +61,22 @@ typedef struct {
     /* 0x000 */ PlayerView *views;
     /* 0x004 */ char unk04[4];
     /* 0x008 */ f32 unk08;
-    /* 0x00C */ char unk0C[0x198];
+    /* 0x00C */ char unk0C[2];
+    /* 0x00E */ s16 unk0E;
+    /* 0x010 */ f32 unk10; /* time left, frames */
+    /* 0x014 */ s16 unk14[100]; /* item path position */
+    /* 0x0DC */ s16 unkDC[100]; /* item lane */
     /* 0x1A4 */ s8 unk1A4[0x10]; /* setup counters; [8] per-view timers at [idx * 4 + i] */
     /* 0x1B4 */ s16 unk1B4[2];
-    /* 0x1B8 */ char unk1B8[0x1C];
+    /* 0x1B8 */ char unk1B8[0xC];
+    /* 0x1C4 */ f32 unk1C4;
+    /* 0x1C8 */ char unk1C8[0xC];
 } MinigameData;                  // Size 0x1D4
 
 typedef struct {
     /* 0x00 */ omObjData *unk00;
     /* 0x04 */ s16 unk04;
-    /* 0x06 */ char unk06[2];
+    /* 0x06 */ s16 unk06;
     /* 0x08 */ s32 unk08;
     /* 0x0C */ f32 unk0C;
     /* 0x10 */ f32 unk10;
@@ -78,11 +90,19 @@ typedef struct {
     /* 0x32 */ s8 unk32;
     /* 0x33 */ char unk33;
     /* 0x34 */ s16 unk34;
-    /* 0x36 */ char unk36[0x14];
+    /* 0x36 */ char unk36[0x12];
+    /* 0x48 */ s16 unk48;
     /* 0x4A */ s16 unk4A;
-    /* 0x4C */ char unk4C[0x2C];
+    /* 0x4C */ s16 unk4C;
+    /* 0x4E */ char unk4E[0xA];
+    /* 0x58 */ f32 unk58;
+    /* 0x5C */ f32 unk5C;
+    /* 0x60 */ f32 unk60;
+    /* 0x64 */ char unk64[0x14];
     /* 0x78 */ u16 unk78;
-    /* 0x7A */ char unk7A[0x12];
+    /* 0x7A */ char unk7A[0xE];
+    /* 0x88 */ s16 unk88;
+    /* 0x8A */ s16 unk8A;
 } D_801137C8_motor_rooter_Struct; // Size 0x8C
 
 void m254_InitEnvironment(void);
@@ -102,7 +122,34 @@ void func_801079E8_motor_rooter(omObjData *object);
 void m254_InitCamera(FuncContext *ctx);
 void func_801082E0_motor_rooter(FuncContext *ctx);
 void func_80108BF0_motor_rooter(FuncContext *ctx);
+void func_80106968_motor_rooter(omObjData *object);
+void func_80106B7C_motor_rooter(omObjData *object);
+void func_801070CC_motor_rooter(omObjData *object);
+void func_801076AC_motor_rooter(omObjData *object);
+void func_80107D50_motor_rooter(omObjData *object);
+void func_80108514_motor_rooter(FuncContext *ctx);
+void func_801087C0_motor_rooter(FuncContext *ctx);
+void func_801089B8_motor_rooter(FuncContext *ctx);
+void func_80108E6C_motor_rooter(FuncContext *ctx);
+void func_80108FDC_motor_rooter(FuncContext *ctx);
+void func_80109134_motor_rooter(FuncContext *ctx);
+void func_80109C94_motor_rooter(PlayerView *view, s16 row);
+void func_80109EFC_motor_rooter(FuncContext *ctx);
+void func_80017D24_main(f32 *mtx, f32 x, f32 y, f32 z);
+extern s16 D_8011345A_motor_rooter[];
+void func_801091A0_motor_rooter(FuncContext *ctx);
+void func_8010961C_motor_rooter(FuncContext *ctx);
+void func_8010972C_motor_rooter(FuncContext *ctx);
+void func_8010A174_motor_rooter(FuncContext *ctx);
+void func_8010A440_motor_rooter(FuncContext *ctx);
+void func_8010ABC4_motor_rooter(FuncContext *ctx);
+void func_8010BB78_motor_rooter(FuncContext *ctx);
+void func_8010BCD0_motor_rooter(FuncContext *ctx);
+void func_8010BDF0_motor_rooter(FuncContext *ctx);
+void func_8010C084_motor_rooter(FuncContext *ctx);
+void func_8010C824_motor_rooter(FuncContext *ctx);
 void func_8010CB2C_motor_rooter(omObjData *object, s16 arg1, s16 arg2);
+void func_8010BDE4_motor_rooter(D_801137C8_motor_rooter_Struct *arg0, s16 arg1, s8 arg2);
 void func_801107FC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2);
 void func_801108CC_motor_rooter(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
 extern RGBA D_80113470_motor_rooter[];
@@ -120,6 +167,7 @@ extern s16 D_801137CC_motor_rooter;
 extern s16 D_801137CE_motor_rooter;
 extern s16 D_801137D0_motor_rooter;
 extern s16 D_801137D2_motor_rooter;
+extern s16 D_801137D8_motor_rooter;
 extern s16 m254_playerId[]; // D_801137D4_motor_rooter
 
 extern s32 D_80111550_motor_rooter;
@@ -262,7 +310,7 @@ void func_80106044_motor_rooter(omObjData *object) {
         omAddObj(800, 5, 0, -1, func_801079E8_motor_rooter);
         D_800EC598_minigame[i] = D_801137C8_motor_rooter[i].unk00 = omAddObj(300, 11, 40, -1, func_80106BAC_motor_rooter);
     }
-    memset(m254_minigame->unk1A4, 0, sizeof(m254_minigame->unk1A4));
+    memset(m254_minigame->unk1A4, 0, 0x30); // unk1A4 through unk1C8 (0x30 bytes)
     m254_SetFunc(FGRP_CAMERA, 0, -1, NULL, m254_InitCamera, 0, FALSE);
     m254_SetFunc(1, 0, -1, NULL, func_80108BF0_motor_rooter, 0, FALSE);
     WipeCreateIn(0xFF, 0x10);
@@ -823,31 +871,594 @@ void func_801082E0_motor_rooter(FuncContext *ctx) {
     }
 }
 
+/* <func_80108514_motor_rooter> */
+#ifdef NON_MATCHING
+extern f64 D_80113658_motor_rooter; /* 90.0 */
+extern f64 D_80113660_motor_rooter; /* 30.0 */
+extern s32 D_80113474_motor_rooter[];
+void func_80108E6C_motor_rooter(FuncContext *ctx);
+
+void func_80108514_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = ctx->data;
+    omObjData *object = work->unk00;
+    s16 idx = object->work[0];
+    f32 buf[7];
+    f32 t;
+    f64 off;
+
+    if (ctx->state == 0) {
+        off = D_80113658_motor_rooter;
+        func_8010D0AC_motor_rooter(buf, func_8010D03C_motor_rooter(work->unk0C + off), work->unk0C + off);
+        ctx->work.f32[0] = buf[1];
+        ctx->work.f32[1] = buf[2] - D_80113660_motor_rooter;
+        ctx->work.f32[2] = buf[3];
+        work->unk58 = CenterM[idx].x;
+        work->unk5C = CenterM[idx].y;
+        work->unk60 = CenterM[idx].z;
+        ctx->work.s8[0] = ctx->work.s8[1] = ctx->work.s8[2] = 0;
+        ctx->state = 1;
+    }
+    t = sindf(ctx->work.s8[0] / 30.0f * 90.0f);
+    if (t > 1.0f) {
+        t = 1.0f;
+    }
+    CenterM[idx].x = (ctx->work.f32[0] - work->unk58) * t + work->unk58;
+    CenterM[idx].y = (ctx->work.f32[1] - work->unk5C) * t + work->unk5C;
+    CenterM[idx].z = (ctx->work.f32[2] - work->unk60) * t + work->unk60;
+    if (++ctx->work.s8[0] > 30) {
+        func_80017790_main(object->model[0], 2, GwPlayer[m254_playerId[object->work[0]]].chr,
+                           D_80113474_motor_rooter[GwPlayer[m254_playerId[object->work[0]]].chr]);
+        func_8010BDE4_motor_rooter(work, 13, 1);
+        m254_ResetFunc(0, ctx);
+        m254_SetFunc(1, 0, -1, work, func_80108E6C_motor_rooter, 0, FALSE);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80108514_motor_rooter);
+#endif
+/* </func_80108514_motor_rooter> */
 
+/* <func_801087C0_motor_rooter> */
+#ifdef NON_MATCHING
+void func_8010C084_motor_rooter(FuncContext *ctx);
+void func_8010C824_motor_rooter(FuncContext *ctx);
+
+void func_801087C0_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work;
+    s16 hits[8];
+    s16 count;
+    s16 i;
+    s16 winner;
+    s16 loser;
+
+    work = D_801137C8_motor_rooter;
+    count = 0;
+    hits[0] = -1;
+    hits[1] = -1;
+    for (i = 0; i < 2; i++, work++) {
+        if (!(work->unk08 & 0x40) && work->unk1C == D_801137CC_motor_rooter) {
+            hits[count] = i;
+            count++;
+        }
+    }
+    if (count != 0) {
+        if (count == 2) {
+            winner = rand16() & 1;
+        } else {
+            winner = hits[0];
+        }
+        D_801137C8_motor_rooter[winner].unk08 |= 0x50;
+        loser = winner == 0;
+        D_801137C8_motor_rooter[loser].unk08 |= 0x41;
+        HuAudSeqFadeOut(120);
+        GMesCreate(0x11);
+        func_8003F5C0_main();
+        m254_minigame->unk1C4 = 99.0f;
+        m254_SetFunc(D_801137C8_motor_rooter[winner].unk00->work[0] + 4, 5, -1, &D_801137C8_motor_rooter[winner],
+                     func_8010C084_motor_rooter, 0, FALSE);
+        m254_SetFunc(D_801137C8_motor_rooter[loser].unk00->work[0] + 4, 5, -1, &D_801137C8_motor_rooter[loser],
+                     func_8010C824_motor_rooter, 0, FALSE);
+        m254_ResetFunc(1, ctx);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801087C0_motor_rooter);
+#endif
+/* </func_801087C0_motor_rooter> */
 
+/* <func_801089B8_motor_rooter> */
+#ifdef NON_MATCHING
+extern f64 D_80113668_motor_rooter; /* 60.0 */
+void func_80108FDC_motor_rooter(FuncContext *ctx);
+void func_8010C824_motor_rooter(FuncContext *ctx);
+
+void func_801089B8_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work;
+    s16 i;
+
+    switch (ctx->state) {
+    case 0:
+        m254_minigame->unk10 = 1800.0f;
+        GMesCreate(0x1A, D_80113668_motor_rooter, 160, 28);
+        func_8003F578_main((m254_minigame->unk10 + 29.0f) / 30.0f);
+        ctx->state = 1;
+        break;
+    case 1:
+        if (m254_minigame->unk1C4 == 99.0f) {
+            break;
+        }
+        m254_minigame->unk10 -= 1.0f;
+        func_8003F578_main((m254_minigame->unk10 + 29.0f) * 0.033333335f);
+        if (m254_minigame->unk10 < 0.0f) {
+            func_8003F5C0_main();
+            m254_ResetFunc(1, ctx);
+            m254_SetFunc(1, 0, -1, NULL, func_80108FDC_motor_rooter, 0, FALSE);
+            for (i = 0; i < 2; i++) {
+                work = &D_801137C8_motor_rooter[i];
+                work->unk08 |= 0x41;
+                m254_SetFunc(work->unk00->work[0] + 4, 5, -1, work, func_8010C824_motor_rooter, 0, FALSE);
+            }
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801089B8_motor_rooter);
+#endif
+/* </func_801089B8_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80108BF0_motor_rooter);
+/* <func_80108BF0_motor_rooter> */
+extern s16 D_80113494_motor_rooter;
+void func_8010A440_motor_rooter(FuncContext *ctx);
+void func_8010BDF0_motor_rooter(FuncContext *ctx);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80108E6C_motor_rooter);
+void func_80108BF0_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = D_801137C8_motor_rooter;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80108FDC_motor_rooter);
+    if (ctx->state == 0) {
+        ctx->work.s16[0] = 0;
+        ctx->state = 1;
+    }
+    switch (++ctx->work.s16[0]) {
+    case 10:
+        for (i = 0; i < 2; i++, work++) {
+            m254_SetFunc(i + 4, 0, -1, work, func_8010BDF0_motor_rooter, 0, FALSE);
+        }
+        break;
+    case 110:
+        GMesCreate(6);
+        HuAudFXPlay(14);
+        HuAudSeqPlay(55);
+        break;
+    case 130:
+        D_80113494_motor_rooter = 1;
+        break;
+    default:
+        if (D_80113494_motor_rooter != 0 && GMesStatGet() == 2) {
+            m254_SetFunc(1, 0, -1, NULL, func_801089B8_motor_rooter, 0, FALSE);
+            for (i = 0; i < 2; i++, work++) {
+                work->unk08 = (work->unk08 & ~1) | 0x120;
+                work->unk10 = 1.0f;
+                work->unk4C = 0;
+                if (GwPlayer[m254_playerId[i]].stat & 1) {
+                    work->unk06 = 1;
+                    m254_SetFunc(i + 4, 0, -1, work, func_8010A440_motor_rooter, 0, FALSE);
+                } else {
+                    work->unk06 = 0;
+                }
+            }
+            m254_ResetFunc(1, ctx);
+            m254_SetFunc(1, 1, -1, NULL, func_801087C0_motor_rooter, 0, FALSE);
+        }
+        break;
+    }
+}
+/* </func_80108BF0_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80109134_motor_rooter);
+/* <func_80108E6C_motor_rooter> */
+extern s16 D_80113496_motor_rooter;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801091A0_motor_rooter);
+void func_80108E6C_motor_rooter(FuncContext *ctx) {
+    omObjData *object = ((D_801137C8_motor_rooter_Struct *)ctx->data)->unk00;
+    s16 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010961C_motor_rooter);
+    if (D_80113496_motor_rooter >= 2) {
+        if (GMesStatGet() == 0) {
+            D_80113496_motor_rooter = 3;
+        }
+        if (D_80113496_motor_rooter == 3) {
+            if (++ctx->work.s16[0] >= 15) {
+                m254_ResetFunc(1, ctx);
+                m254_SetFunc(1, 0, -1, NULL, func_80109134_motor_rooter, 0, TRUE);
+            }
+        }
+    } else {
+        t = ctx->work.s16[0];
+        ctx->work.s16[0] = t + 1;
+        if (t == 0) {
+            HuAudSeqPlay(0x67);
+            GMesCreate(0x16, GwPlayer[m254_playerId[object->work[0]]].chr);
+            GwPlayer[m254_playerId[object->work[0]]].bonusCoin += 10;
+        }
+        if (GMesStatGet() != 0) {
+            ctx->work.s16[0] = 0;
+            D_80113496_motor_rooter = 2;
+        }
+    }
+}
+/* </func_80108E6C_motor_rooter> */
 
+/* <func_80108FDC_motor_rooter> */
+extern s16 D_80113498_motor_rooter;
+
+void func_80108FDC_motor_rooter(FuncContext *ctx) {
+    s16 t;
+
+    if (D_80113498_motor_rooter >= 2) {
+        if (GMesStatGet() == 0) {
+            D_80113498_motor_rooter = 3;
+        }
+        if (D_80113498_motor_rooter == 3) {
+            if (++ctx->work.s16[0] >= 15) {
+                m254_ResetFunc(1, ctx);
+                m254_SetFunc(1, 0, -1, NULL, func_80109134_motor_rooter, 0, TRUE);
+            }
+        }
+    } else if (D_80113498_motor_rooter == 1) {
+        t = ctx->work.s16[0]++;
+        if (t == 15) {
+            GMesCreate(0x20);
+            HuAudSeqPlay(0x6C);
+        }
+        if (GMesStatGet() != 0) {
+            ctx->work.s16[0] = 0;
+            D_80113498_motor_rooter = 2;
+        }
+    } else {
+        t = ctx->work.s16[0];
+        ctx->work.s16[0] = t + 1;
+        if (t == 0) {
+            HuAudSeqFadeOut(120);
+            GMesCreate(0x11);
+            return;
+        }
+        if (GMesStatGet() == 0) {
+            ctx->work.s16[0] = 0;
+            D_80113498_motor_rooter = 1;
+        }
+    }
+}
+/* </func_80108FDC_motor_rooter> */
+
+/* <func_80109134_motor_rooter> */
+void func_80109134_motor_rooter(FuncContext *ctx) {
+    switch (ctx->state) {
+    case 0:
+        WipeCreateOut(0, 20);
+        ctx->state = 1;
+        break;
+    case 1:
+        if (WipeStatGet() == 0) {
+            omOvlReturnEx(1);
+        }
+        break;
+    }
+}
+/* </func_80109134_motor_rooter> */
+
+/* <func_801091A0_motor_rooter> */
+typedef struct {
+    s16 v[7];
+} MrS16x7;
+extern MrS16x7 D_80113670_motor_rooter;
+extern MrS16x7 D_80113680_motor_rooter;
+extern MrS16x7 D_80113690_motor_rooter;
+extern MrS16x7 D_801136A0_motor_rooter;
+
+void func_801091A0_motor_rooter(FuncContext *ctx) {
+    f32 rotX[16];
+    f32 rotY[16];
+    f32 mtx[16];
+    Vec ofs;
+    Vec out;
+    MrS16x7 tbl0;
+    MrS16x7 tbl2;
+    MrS16x7 tbl3;
+    MrS16x7 tbl1;
+    PlayerView *view;
+    omObjData *object;
+    HmfModel *model;
+    f32 *path;
+    f32 angle;
+    f32 pitch;
+    s16 k;
+    s16 pos;
+    s16 i;
+
+    view = ctx->data;
+    object = view->unk00;
+    pos = 0;
+    tbl0 = D_80113670_motor_rooter;
+    tbl2 = D_80113680_motor_rooter;
+    tbl3 = D_80113690_motor_rooter;
+    tbl1 = D_801136A0_motor_rooter;
+    k = view->unk2E[ctx->work.s16[0]];
+    for (i = 0; i < 7; i++) {
+        model = &HmfModelData[object->model[ctx->work.s16[0] * 7 + i]];
+        switch (view->unk74[k]) {
+        case 0:
+            pos = view->unk60[k] + tbl0.v[i];
+            break;
+        case 1:
+            pos = view->unk60[k] + tbl1.v[i];
+            break;
+        case 2:
+            pos = view->unk60[k] + tbl2.v[i];
+            break;
+        case 3:
+            pos = view->unk60[k] + tbl3.v[i];
+            break;
+        }
+        if (pos > 50) {
+            Hu3DModelPosSet(object->model[ctx->work.s16[0] * 7 + i], 0.0f, 200.0f, 0.0f);
+            func_8001C258_main(object->model[ctx->work.s16[0] * 7 + i], 4, 4);
+            continue;
+        }
+        if (pos >= 8) {
+            pos -= 8;
+        }
+        if (pos < 0) {
+            pos += 8;
+        }
+        angle = pos * 45.0f;
+        ofs.x = sindf(angle) * 55.9999990463256836;
+        ofs.y = -cosdf(angle) * 55.9999990463256836;
+        ofs.z = 0;
+        path = &D_801137C0_motor_rooter[view->unk4C[k] * 9];
+        pitch = path[3] - 180.0f;
+        m254_MakeRotXMtx(rotX, pitch);
+        m254_MakeRotYMtx(rotY, path[4]);
+        m254_MultiplyMtx(rotX, rotY, mtx);
+        func_801114B0_motor_rooter(mtx, &ofs, &out.x);
+        model->pos.x = path[0] + out.x;
+        model->pos.y = path[1] + out.y;
+        model->pos.z = path[2] + out.z;
+        model->rot.x = pitch;
+        model->rot.y = path[4];
+        m254_MakeIdentityMtx(model->mtx);
+        func_80017D24_main(model->mtx, 0.0f, 0.0f, angle);
+    }
+}
+/* </func_801091A0_motor_rooter> */
+
+/* <func_8010961C_motor_rooter> */
+void func_8010961C_motor_rooter(FuncContext *ctx) {
+    PlayerView *view = ctx->data;
+    omObjData *object = view->unk00;
+    s16 i;
+    s16 j;
+
+    for (j = 0, i = 0; j < 3; j++, i = 0) {
+        do {
+            func_801107FC_motor_rooter(object->model[j * 7 + i], func_80055194_main(view->unk04[0][j * 7 + i]),
+                                       view->unk46[j]);
+        } while (++i < 7);
+        view->unk46[j] = (view->unk46[j] + 1 >= 5) ? 0 : view->unk46[j] + 1;
+    }
+}
+/* </func_8010961C_motor_rooter> */
+
+/* <func_8010972C_motor_rooter> */
+#ifdef NON_MATCHING
+void func_8010972C_motor_rooter(FuncContext *ctx) {
+    D_801137C8_motor_rooter_Struct *work = &D_801137C8_motor_rooter[ctx->tag];
+    PlayerView *view = ctx->data;
+    omObjData *object = view->unk00;
+    s16 nearest = 9999;
+    s16 dist;
+    s16 k;
+    s16 i;
+    s16 j;
+    s16 n;
+
+    for (j = 0; j < 3; j++) {
+        k = view->unk2E[j];
+        if (k == -1) {
+            continue;
+        }
+        if (view->unk4C[k] - work->unk1C < m254_minigame->unk0E) {
+            for (i = j * 7; i < j * 7 + 7; i++) {
+                func_8001C258_main(object->model[i], 4, 0);
+            }
+        } else {
+            for (i = j * 7; i < j * 7 + 7; i++) {
+                func_8001C258_main(object->model[i], 4, 4);
+            }
+        }
+        if (view->unk4C[k] - work->unk1C < nearest) {
+            nearest = view->unk4C[k] - work->unk1C;
+        }
+        ctx->work.s16[0] = j;
+        if (!(work->unk08 & 0x42) && work->unk1C == view->unk4C[k]) {
+            if (work->unk16 != view->unk34[j][0] && work->unk16 != view->unk34[j][1] &&
+                work->unk16 != view->unk34[j][2]) {
+                for (n = 0; n < 3; n++) {
+                    if (work->unk14 - 1 > 0) {
+                        work->unk14--;
+                        work->unk28[work->unk14] = 2;
+                        work->unk10 -= 4.0f;
+                    }
+                }
+                func_8004AC98_main(0x4B0, work->unk00->work[0]);
+                HuAudFXPitchSet(D_801137D8_motor_rooter, D_8011345A_motor_rooter[work->unk14]);
+                work->unk08 |= 2;
+                work->unk78 |= 2;
+                func_8010BDE4_motor_rooter(work, 0x27, 1);
+                if (work->unk06 == 0) {
+                    omVibrate(m254_playerId[ctx->tag], 2, 2, 20);
+                }
+            }
+        }
+        if (view->unk4C[k] + 2 < view->unk8A) {
+            view->unk2E[j] = view->unk88++;
+            if (view->unk88 > D_801137D2_motor_rooter) {
+                for (i = j * 7; i < j * 7 + 7; i++) {
+                    func_8001C258_main(object->model[i], 4, 4);
+                }
+                view->unk2E[j] = -1;
+            } else {
+                for (i = j * 7; i < j * 7 + 7; i++) {
+                    func_8001C258_main(object->model[i], 4, 4);
+                }
+                func_80109C94_motor_rooter(view, j);
+                func_801091A0_motor_rooter(ctx);
+            }
+        }
+    }
+    dist = nearest + 3;
+    if (work->unk88 == 0) {
+        work->unk88 = 1;
+        work->unk8A = func_8004AC5C_main(0x4B2, ctx->tag);
+        func_8004AAD0_main(work->unk8A, 0);
+    }
+    func_8004AAD0_main(work->unk8A, dist < 26 ? 127 - (dist < 0 ? 0 : dist) * 3 : 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010972C_motor_rooter);
+#endif
+/* </func_8010972C_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80109C94_motor_rooter);
+/* <func_80109C94_motor_rooter> */
+void func_80109C94_motor_rooter(PlayerView *view, s16 row) {
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80109EFC_motor_rooter);
+    switch (view->unk74[view->unk2E[row]]) {
+    case 0:
+        view->unk34[row][0] = view->unk34[row][1] = view->unk34[row][2] = view->unk60[view->unk2E[row]] + 4;
+        break;
+    case 1:
+        view->unk34[row][0] = view->unk60[view->unk2E[row]] + 4;
+        view->unk34[row][1] = view->unk60[view->unk2E[row]] + 5;
+        view->unk34[row][2] = view->unk60[view->unk2E[row]] + 3;
+        break;
+    case 2:
+        view->unk34[row][0] = view->unk60[view->unk2E[row]] + 4;
+        view->unk34[row][1] = view->unk60[view->unk2E[row]] + 4;
+        view->unk34[row][2] = view->unk60[view->unk2E[row]] + 3;
+        break;
+    case 3:
+        view->unk34[row][0] = view->unk60[view->unk2E[row]] + 4;
+        view->unk34[row][1] = view->unk60[view->unk2E[row]] + 4;
+        view->unk34[row][2] = view->unk60[view->unk2E[row]] + 5;
+        break;
+    }
+    for (i = 0; i < 3; i++) {
+        if (view->unk34[row][i] >= 8) {
+            view->unk34[row][i] -= 8;
+        }
+        if (view->unk34[row][i] < 0) {
+            view->unk34[row][i] += 8;
+        }
+    }
+}
+/* </func_80109C94_motor_rooter> */
 
+/* <func_80109EFC_motor_rooter> */
+void func_80109EFC_motor_rooter(FuncContext *ctx) {
+    f32 rotX[16];
+    f32 rotY[16];
+    f32 mtx[16];
+    Vec ofs;
+    Vec out;
+    omObjData *object;
+    HmfModel *model;
+    PlayerView *view;
+    s16 i;
+    f32 *path;
+    f32 angle;
+    f32 pitch;
+
+    object = ctx->data;
+    i = ctx->work.s16[0];
+    view = &m254_minigame->views[object->work[0]];
+    model = &HmfModelData[object->model[i]];
+    angle = m254_minigame->unkDC[view->unk90[i]] * 45.0f;
+    ofs.x = sindf(angle) * 64.00000095367431640625;
+    ofs.y = -cosdf(angle) * 64.00000095367431640625;
+    ofs.z = -30.0f;
+    path = &D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9];
+    pitch = path[3] - 180.0f;
+    m254_MakeRotXMtx(rotX, pitch);
+    m254_MakeRotYMtx(rotY, path[4]);
+    m254_MultiplyMtx(rotX, rotY, mtx);
+    func_801114B0_motor_rooter(mtx, &ofs, &out.x);
+    model->pos.x = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 0] + out.x;
+    model->pos.y = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 1] + out.y;
+    model->pos.z = D_801137C0_motor_rooter[m254_minigame->unk14[view->unk90[i]] * 9 + 2] + out.z;
+    model->rot.x = pitch;
+    model->rot.y = path[4];
+    m254_MakeIdentityMtx(model->mtx);
+    func_80017D24_main(model->mtx, 0.0f, 0.0f, angle);
+}
+/* </func_80109EFC_motor_rooter> */
+
+/* <func_8010A174_motor_rooter> */
+#ifdef NON_MATCHING
+void func_8010A174_motor_rooter(FuncContext *ctx) {
+    omObjData *object = ctx->data;
+    PlayerView *view = &m254_minigame->views[object->work[0]];
+    D_801137C8_motor_rooter_Struct *work = &D_801137C8_motor_rooter[object->work[0]];
+    s32 half;
+    s16 *ids;
+    s16 i;
+
+    if (ctx->work.s16[1] == work->unk1C) {
+        return;
+    }
+    for (i = 0, half = 180, ids = m254_playerId; i < 15; i++) {
+        if (view->unk90[i] >= D_801137D0_motor_rooter) {
+            func_8001C258_main(object->model[i], 4, 4);
+        } else {
+            ctx->work.s16[0] = i;
+            func_80109EFC_motor_rooter(ctx);
+            if (work->unk1C == m254_minigame->unk14[view->unk90[i]] &&
+                work->unk16 == m254_minigame->unkDC[view->unk90[i]]) {
+                if (work->unk14 + 1 < 6) {
+                    if (work->unk48 > 90) {
+                        work->unk48 = half - work->unk48;
+                    }
+                    work->unk4C = 0;
+                    work->unk28[work->unk14++] = 1;
+                    work->unk10 += 4.0f;
+                    work->unk08 |= 0x20;
+                    work->unk78 |= 1;
+                    ctx->work.s16[1] = work->unk1C;
+                    HuAudFXPitchSet(D_801137D8_motor_rooter, D_8011345A_motor_rooter[work->unk14]);
+                } else {
+                    if (work->unk48 > 90) {
+                        work->unk48 = half - work->unk48;
+                    }
+                    work->unk08 |= 0x20;
+                    work->unk78 |= 1;
+                    ctx->work.s16[1] = work->unk1C;
+                    work->unk4C = 0;
+                }
+                func_8004AC5C_main(0x4B1, work->unk00->work[0]);
+                if (work->unk06 == 0) {
+                    omVibrate(ids[object->work[0]], 10, 0, 10);
+                }
+            }
+            if (view->unk8A > m254_minigame->unk14[view->unk90[i]]) {
+                view->unk90[i] = view->unkAE++;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010A174_motor_rooter);
+#endif
+/* </func_8010A174_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010A440_motor_rooter);
 
