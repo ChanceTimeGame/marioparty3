@@ -96,6 +96,9 @@ void func_800557A0_main(void);
 void Hu3DAnimInit(s32);
 void func_800142A0_main(s32);
 void func_8000B5F0_main(u8 arg0);
+void func_8003302C_main(s32, u8);
+s16 HmfAnimRead(HmfData* hmf, s32 dataNum, char* name);
+void func_80013390_main(s16 model, s16 type, char* name, void (*hook)(s16));
 s16 func_8000B638_main(void);
 void func_8004A208_main(void);
 void func_8005A6B0_main(void);
@@ -199,6 +202,8 @@ void func_801083A0_game_guys_lucky_7(void);
 void func_80108498_game_guys_lucky_7(void);
 void func_801085D4_game_guys_lucky_7(void);
 void func_8010B528_game_guys_lucky_7(s16 model);
+void func_8010B6E0_game_guys_lucky_7(s16 model);
+void func_8010B498_game_guys_lucky_7(omObjData* obj);
 
 /* 306F70 */
 void func_8010B830_game_guys_lucky_7(s16 x, s16 y);
@@ -225,6 +230,7 @@ extern u16 D_8010D776_game_guys_lucky_7;
 extern u16 D_8010D77A_game_guys_lucky_7; /* won */
 extern u16 D_8010D77C_game_guys_lucky_7; /* rules window done */
 extern s16 D_8010D802_game_guys_lucky_7; /* CPU level */
+extern s32 D_8010D2F0_game_guys_lucky_7[4]; /* result effect model files */
 extern s16 D_8010D798_game_guys_lucky_7[4]; /* result effect models */
 extern s16 D_8010D804_game_guys_lucky_7; /* result effect frame */
 
@@ -639,7 +645,23 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_80
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D5A0_game_guys_lucky_7);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B334_game_guys_lucky_7);
+void func_8010B334_game_guys_lucky_7(void) {
+    s16 model;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        model = func_8000B108_main(D_8010D2F0_game_guys_lucky_7[i], 0x2A9);
+        D_8010D798_game_guys_lucky_7[i] = model;
+        func_8003302C_main(HmfAnimRead(HmfModelData[model].hmf, 0xB0048, "e268p01_I8"), i * 2);
+        Hu3DModelPosSet(model, 0.0f, 0.0f, 0.0f);
+        func_8001C2FC_main(model, 0x20000, 0x20000);
+        func_8001C448_main(model);
+        func_8001C954_main(model);
+        func_8001C514_main(model);
+        func_80013390_main(model, -1, NULL, func_8010B6E0_game_guys_lucky_7);
+    }
+    omAddObj(0xA, 0xA, 0xA, -1, func_8010B498_game_guys_lucky_7);
+}
 
 void func_8010B498_game_guys_lucky_7(omObjData *obj) {
     s16 i;
@@ -652,7 +674,31 @@ void func_8010B498_game_guys_lucky_7(omObjData *obj) {
     D_8010D804_game_guys_lucky_7++;
 }
 
+#ifdef NON_MATCHING
+/* masked 0: retail swaps $f0/$f2 around the pos.x add */
+void func_8010B528_game_guys_lucky_7(s16 model) {
+    L7FxPart *part;
+    s16 count;
+    s16 i;
+
+    count = ((s16 *)HmfModelData[model].hmf->unk16)[2];
+    part = ((L7FxWork *)HmfModelData[model].unkBC)->parts;
+    for (i = 0; i < count; i++, part++) {
+        if (part->pos.y <= 0.0f) {
+            part->pos.x = (s32)(u8)(rand8() % 200) + -450.0f;
+            part->pos.y = 1000.0f;
+            part->pos.z = ((rand8() * 125) >> 5) - 500;
+            part->dir.x = (f32)((s32)((u32)(rand8() * 5) >> 7) - 5) / 2.0f;
+            part->dir.y = 0.0f;
+            part->dir.z = (f32)((s32)((u32)(rand8() * 5) >> 7) - 5) / 2.0f;
+            part->scale = 5.0f;
+            return;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_8010B528_game_guys_lucky_7);
+#endif
 
 void func_8010B6E0_game_guys_lucky_7(s16 model) {
     HmfData *hmf;
