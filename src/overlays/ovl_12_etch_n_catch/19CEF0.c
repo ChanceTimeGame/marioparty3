@@ -104,7 +104,7 @@ typedef struct EtNode {
 // Heap-allocated (0x20 bytes) per-player work (D_8010C868[player]); unk0C is the head of a linked list
 // of nodes (func_80108B64 inserts, func_80108BCC removes, func_80108C08 walks).
 typedef struct EtchNCatchWork {
-    /* 0x00 */ s8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
+    /* 0x00 */ u8 unk00; /* team member bit: 1/2 team 0, 4/8 team 1 */
     /* 0x01 */ u8 unk01; /* 3 team 0, 12 team 1 */
     /* 0x02 */ u8 unk02; /* 8 team 0, 1 team 1 */
     /* 0x03 */ char unk03;
@@ -114,7 +114,7 @@ typedef struct EtchNCatchWork {
     /* 0x0A */ s16 unk0A;
     /* 0x0C */ struct EtNode* unk_0C;
     /* 0x10 */ s16 unk10; /* drawing sound */
-    /* 0x12 */ s8 unk12; /* drawing sound playing */
+    /* 0x12 */ u8 unk12; /* drawing sound playing */
     /* 0x13 */ char unk13;
     /* 0x14 */ s16 unk14;
     /* 0x16 */ char unk16;
