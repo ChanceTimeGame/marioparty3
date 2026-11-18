@@ -1597,7 +1597,127 @@ s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A024_popgun_pickoff);
 #endif
 
+#ifdef NON_MATCHING
+/* Gives billboard id sprite tex: rebuilds its strip and display list. */
+void func_8010A62C_popgun_pickoff(s16 id, s16 tex) {
+    PgBoard* b;
+    HuSprite_Unk84_Unk00_Struct* cel;
+    s32 siz;
+    s32 mode;
+    s32 w;
+    u16 rowH;
+    u32 strips;
+    s32 rem;
+    s32 i;
+    s32 j;
+
+    b = &D_8010DDD8_popgun_pickoff[id];
+    b->spr = D_800C9530_main[tex];
+    cel = b->spr->unk00;
+    HuMemFree(b->vtx);
+    HuMemFree(b->gfx);
+    switch (b->spr->unk18) {
+        case 4:
+            siz = 0;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 8:
+            siz = 1;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 0x10:
+            siz = 2;
+            mode = (b->spr->unk1A == 1) ? 3 : 0;
+            break;
+        case 0x20:
+            siz = 3;
+            mode = 0;
+            break;
+        case 0x8004:
+            siz = 0;
+            mode = 4;
+            break;
+        case 0x8008:
+            siz = 1;
+            mode = 4;
+            break;
+    }
+    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    if (w < cel->unk04) {
+        w += 16 >> siz;
+    }
+    switch (mode) {
+        case 2:
+            if ((0x1000 >> siz) < cel->unk06 * w) {
+                rowH = (0x1000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+        case 4:
+            rowH = cel->unk06;
+            if (rowH * w > 0x1000) {
+                rowH = 0x1000 / w;
+            }
+            break;
+        default:
+            if ((0x2000 >> siz) < cel->unk06 * w) {
+                rowH = (0x2000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+    }
+    strips = cel->unk06 / rowH;
+    rem = cel->unk06 % rowH;
+    b->rows = strips + 2;
+    b->rowH = rowH;
+    b->vtx = HuMemAlloc((s8)(strips + 2) * 2 * sizeof(Vtx));
+    for (i = 0; i < strips + 1; i++) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = (i * rowH) << 6;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    }
+    if (rem != 0) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    } else if (strips == 1) {
+        b->vtx[4].v.ob[0] = cel->unk04 * 0.5;
+        b->vtx[4].v.ob[1] = -(s32)cel->unk06 * 0.5;
+        b->vtx[4].v.ob[2] = 0;
+        b->vtx[4].v.tc[0] = cel->unk04 * 0.5 * 64.0;
+        b->vtx[4].v.tc[1] = cel->unk06 * 0.5 * 64.0;
+        b->vtx[4].v.cn[0] = 0xFF;
+        b->vtx[4].v.cn[1] = 0xFF;
+        b->vtx[4].v.cn[2] = 0xFF;
+        b->vtx[4].v.cn[3] = 0xFF;
+    }
+    func_80109718_popgun_pickoff(b);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A62C_popgun_pickoff);
+#endif
 
 void func_8010ABB4_popgun_pickoff(s16 id, s16 tex) {
     PgBoard* b;
