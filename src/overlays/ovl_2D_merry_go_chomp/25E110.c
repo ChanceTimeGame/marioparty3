@@ -54,7 +54,7 @@ typedef struct McEnt {
 
 #define MC_ENT_GROUND 0
 #define MC_ENT_PLAYER 5
-#define MC_ENT(base, i) (&D_8010C500_merry_go_chomp[(base) + (i)])
+#define MC_ENT(base, i) (&(D_8010C500_merry_go_chomp + (base))[i])
 
 /* The ground object's data (func_80105C60_merry_go_chomp). */
 typedef struct McGround {
@@ -135,21 +135,40 @@ typedef struct McCtrl {
     /* 0x26 */ s16 unk26;
 } McCtrl; // Size 0x28
 
+/* A player's movement state (D_8010C420_merry_go_chomp, 4 x 0x24). */
+typedef struct McPl {
+    /* 0x00 */ f32 dx;
+    /* 0x04 */ f32 dz;
+    /* 0x08 */ f32 rot;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ u8 unk1C;
+    /* 0x1D */ u8 unk1D;
+    /* 0x1E */ u8 unk1E;
+    /* 0x1F */ u8 unk1F;
+    /* 0x20 */ s32 unk20;
+} McPl; // Size 0x24
+
 /* .bss */
+extern McPl D_8010C420_merry_go_chomp[4];
 extern HuSprite_Unk84_Struct *D_8010C414_merry_go_chomp;
 extern s8 D_8010C4B0_merry_go_chomp;
 extern s16 D_8010C4B2_merry_go_chomp;
-extern u8 D_8010C4BE_merry_go_chomp[5];
+extern s8 D_8010C4BE_merry_go_chomp[5];
 extern s8 D_8010C4CE_merry_go_chomp;
 /* The object table: [0] the background, [5..8] the players, [10], [15], [25], [30] the stage objects. */
 extern McEnt D_8010C500_merry_go_chomp[50];
 extern f32 D_8010CD04_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.y */
 extern f32 D_8010CD08_merry_go_chomp; /* = D_8010C500_merry_go_chomp[15].pos.z */
+extern u8 D_8010DECC_merry_go_chomp[5];
 extern f32 D_8010DED4_merry_go_chomp;
 extern u8 D_8010DEDC_merry_go_chomp;
 
 /* .data */
 extern s32 D_8010C140_merry_go_chomp[8];
+extern f32 D_8010C1D8_merry_go_chomp[3][5];
 extern s32 D_8010C254_merry_go_chomp;
 extern McCamera D_8010C258_merry_go_chomp[2];
 
@@ -165,6 +184,10 @@ void func_801064E0_merry_go_chomp(omObjData *obj);
 void func_801064E8_merry_go_chomp(omObjData *obj);
 void func_80106668_merry_go_chomp(omObjData *obj);
 void func_80106920_merry_go_chomp(omObjData *obj);
+s32 func_80106CC4_merry_go_chomp(omObjData *obj);
+void func_80107664_merry_go_chomp(omObjData *obj);
+void func_801077D0_merry_go_chomp(omObjData *obj);
+void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -570,13 +593,193 @@ void func_80106B9C_merry_go_chomp(omObjData *obj, s8 motion) {
     }
 }
 
+#ifdef NON_MATCHING
+/* masked 0: regalloc only (slot in v1/a0 in the CPU branch) */
+s32 func_80106CC4_merry_go_chomp(omObjData *obj) {
+    McEnt *ent = MC_ENT(MC_ENT_PLAYER, obj->work[0]);
+    s8 slot = 99;
+    s16 target;
+    f32 rot = func_801059BC_merry_go_chomp(MC_ENT(MC_ENT_PLAYER, 20)->obj->rot.y, -120.0f);
+
+    if (!(GwPlayer[obj->work[0]].stat & 1)) {
+        switch (D_8010C4CE_merry_go_chomp) {
+        case 0:
+            if ((rot >= 324.0f) | (rot < 36.0f)) {
+                slot = 0;
+            }
+            if ((rot >= 36.0f) & (rot < 108.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 108.0f) & (rot < 180.0f)) {
+                slot = 2;
+            }
+            if ((rot >= 180.0f) & (rot < 252.0f)) {
+                slot = 3;
+            }
+            if ((rot >= 252.0f) & (rot < 324.0f)) {
+                slot = 4;
+            }
+            break;
+        case 1:
+            if ((rot >= 315.0f) | (rot < 45.0f)) {
+                slot = 0;
+            }
+            if ((rot >= 45.0f) & (rot < 135.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 135.0f) & (rot < 225.0f)) {
+                slot = 2;
+            }
+            if ((rot >= 225.0f) & (rot < 315.0f)) {
+                slot = 3;
+            }
+            break;
+        case 2:
+            if ((rot >= 300.0f) | (rot < 60.0f)) {
+                slot = 0;
+            }
+            if ((rot >= 60.0f) & (rot < 180.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 180.0f) & (rot < 300.0f)) {
+                slot = 2;
+            }
+            break;
+        }
+    } else {
+        switch (D_8010C4CE_merry_go_chomp) {
+        case 0:
+            if ((rot >= 324.0f) | (rot < 36.0f)) {
+                slot = 0;
+            }
+            if ((rot >= 36.0f) & (rot < 108.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 108.0f) & (rot < 180.0f)) {
+                slot = 2;
+            }
+            if ((rot >= 180.0f) & (rot < 252.0f)) {
+                slot = 3;
+            }
+            if ((rot >= 252.0f) & (rot < 324.0f)) {
+                slot = 4;
+            }
+            break;
+        case 1:
+            if (rot >= 315.0f) {
+                slot = 0;
+            }
+            if ((rot >= 45.0f) & (rot < 90.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 135.0f) & (rot < 180.0f)) {
+                slot = 2;
+            }
+            if ((rot >= 225.0f) & (rot < 270.0f)) {
+                slot = 3;
+            }
+            break;
+        case 2:
+            if (rot >= 300.0f) {
+                slot = 0;
+            }
+            if ((rot >= 60.0f) & (rot < 120.0f)) {
+                slot = 1;
+            }
+            if ((rot >= 180.0f) & (rot < 240.0f)) {
+                slot = 2;
+            }
+            break;
+        }
+        if (slot == 99) {
+            return 0;
+        }
+    }
+    if (!(GwPlayer[obj->work[0]].stat & 1) || D_8010C4B2_merry_go_chomp <= 0) {
+        if (D_8010C4BE_merry_go_chomp[slot] != 0) {
+            ent->unk0A = slot;
+            D_8010DECC_merry_go_chomp[ent->unk0A] = obj->work[0];
+            D_8010C4BE_merry_go_chomp[slot] = 0;
+            return 1;
+        }
+    } else if ((target = ent->unk0C) == slot) {
+        ent->unk0A = slot;
+        D_8010DECC_merry_go_chomp[target] = obj->work[0];
+        D_8010C4BE_merry_go_chomp[slot] = 0;
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80106CC4_merry_go_chomp);
+#endif
 
+#ifdef NON_MATCHING
+/* masked 3: rot and 180.0f swap f20/f22 (one extra nop); work index in v0 not v1 */
+void func_80107664_merry_go_chomp(omObjData *obj) {
+    McEnt *ent = MC_ENT(MC_ENT_PLAYER, obj->work[0]);
+    McPl *pl = &D_8010C420_merry_go_chomp[obj->work[0]];
+    f32 rot;
+
+    rot = func_801059BC_merry_go_chomp(MC_ENT(MC_ENT_PLAYER, 20)->obj->rot.y,
+                                       -D_8010C1D8_merry_go_chomp[D_8010C4CE_merry_go_chomp][ent->unk0A]);
+    rot = func_801059BC_merry_go_chomp(rot, -(D_8010DED4_merry_go_chomp * 15.0f));
+    pl->dx = sindf(rot) * 180.0f;
+    pl->dz = cosdf(rot) * 180.0f;
+    pl->dx = (pl->dx - obj->trans.x) / 15.0f;
+    pl->dz = (pl->dz - obj->trans.z) / 15.0f;
+    pl->rot = atan2df(pl->dx, pl->dz);
+    func_80105D38_merry_go_chomp(obj, 6, 0);
+    func_8001C92C_main(obj->model[0], 1.5f);
+    ent->unk06 = 6;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107664_merry_go_chomp);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801077D0_merry_go_chomp);
+void func_801077D0_merry_go_chomp(omObjData *obj) {
+    McPl *pl = &D_8010C420_merry_go_chomp[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107818_merry_go_chomp);
+    obj->trans.x += pl->dx;
+    obj->trans.z += pl->dz;
+    obj->rot.y = pl->rot;
+}
+
+void func_80107818_merry_go_chomp(omObjData *obj, f32 *x, f32 *z, f32 scale) {
+    f32 rot = obj->rot.y;
+    s16 quad = 0;
+
+    if (rot >= 90.0f) {
+        quad = 1;
+    }
+    if (rot >= 180.0f) {
+        quad++;
+    }
+    if (rot >= 270.0f) {
+        quad++;
+    }
+    switch (quad) {
+    case 0:
+        *x = rot * scale;
+        *z = (90.0f - rot) * scale;
+        break;
+    case 1:
+        rot -= 90.0f;
+        *x = (90.0f - rot) * scale;
+        *z = -(rot * scale);
+        break;
+    case 2:
+        rot -= 180.0f;
+        *x = -(rot * scale);
+        *z = -(90.0f - rot) * scale;
+        break;
+    case 3:
+        rot -= 270.0f;
+        *x = -(90.0f - rot) * scale;
+        *z = rot * scale;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107980_merry_go_chomp);
 
