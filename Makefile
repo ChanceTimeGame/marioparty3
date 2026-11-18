@@ -375,6 +375,8 @@ NOP_OBJECTS += build/src/overlays/duel06/436E50.c.o
 NOP_OBJECTS += build/src/overlays/duel04/410910.c.o
 # wave 3t m3: mgmode 47DD90 (no nop before the mul.s after the sindf/cosdf calls: func_801178E0)
 NOP_OBJECTS += build/src/overlays/mgmode/47DD90.c.o
+# m4 bg: The Beat Goes On 1FE4D0 (no nop after the cosdf call: func_80106BE0)
+NOP_OBJECTS += build/src/overlays/ovl_20_the_beat_goes_on/1FE4D0.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 

@@ -243,39 +243,31 @@ extern u16 D_8010C558_the_beat_goes_on[16];
 extern u16 D_8010C578_the_beat_goes_on[16];
 
 
-// .data
-u8 D_8010C280_the_beat_goes_on = 0; /* drum phase */
-u8 D_8010C284_the_beat_goes_on[24][4] = { /* start slot per player, one row per permutation */
-    { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 }, { 0, 3, 2, 1 },
-    { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 1, 2, 3, 0 }, { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 1, 3, 2, 0 },
-    { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 2, 1, 0, 3 }, { 2, 1, 3, 0 }, { 2, 3, 0, 1 }, { 2, 3, 1, 0 },
-    { 3, 0, 1, 2 }, { 3, 0, 2, 1 }, { 3, 1, 0, 2 }, { 3, 1, 2, 0 }, { 3, 2, 0, 1 }, { 3, 2, 1, 0 },
-};
-s32 D_8010C2E4_the_beat_goes_on = 0;
-s32 D_8010C2E8_the_beat_goes_on = 0;
-s8 D_8010C2EC_the_beat_goes_on = 0;
-s16 D_8010C2F0_the_beat_goes_on[8][2] __attribute__((aligned(4))) = { /* sprite frame origin */
-    { 26, 15 }, { 26, 14 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 27, 12 }, { 27, 12 },
-};
-u8 D_8010C310_the_beat_goes_on = 0; /* camera step */
-s8 D_8010C311_the_beat_goes_on = 0; /* players made */
-f32 D_8010C314_the_beat_goes_on = -90.0f; /* sign height */
-f32 D_8010C318_the_beat_goes_on = 0.0f;
-s8 D_8010C31C_the_beat_goes_on = 4; /* players left */
-s8 D_8010C31D_the_beat_goes_on = 0; /* note sign shown */
-s8 D_8010C31E_the_beat_goes_on = 0; /* camera step */
-s8 D_8010C31F_the_beat_goes_on = 0; /* someone is out */
-s8 D_8010C320_the_beat_goes_on = 0;
-s8 D_8010C321_the_beat_goes_on = 0;
-s32 D_8010C324_the_beat_goes_on = 0;
-s32 D_8010C328_the_beat_goes_on[4][4] = { /* hit puff frame per player */
-    { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 },
-};
-f32 D_8010C368_the_beat_goes_on[4] = { 0.5f, 1.0f, 1.5f, 2.0f };
-f32 D_8010C378_the_beat_goes_on = 20.0f; /* cursor x */
-f32 D_8010C37C_the_beat_goes_on = 0.0f;  /* note pulse angle */
-f32 D_8010C380_the_beat_goes_on = 0.0f;  /* frame pulse angle */
-s8 D_8010C384_the_beat_goes_on = 90;     /* frame pulse frames left */
+
+// .data (defined at the end of the file)
+extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
+extern u8 D_8010C284_the_beat_goes_on[24][4];
+extern s32 D_8010C2E4_the_beat_goes_on;
+extern s32 D_8010C2E8_the_beat_goes_on;
+extern s8 D_8010C2EC_the_beat_goes_on;
+extern s16 D_8010C2F0_the_beat_goes_on[8][2];
+extern u8 D_8010C310_the_beat_goes_on; /* camera step */
+extern s8 D_8010C311_the_beat_goes_on; /* players made */
+extern f32 D_8010C314_the_beat_goes_on; /* sign height */
+extern f32 D_8010C318_the_beat_goes_on;
+extern s8 D_8010C31C_the_beat_goes_on; /* players left */
+extern s8 D_8010C31D_the_beat_goes_on; /* note sign shown */
+extern s8 D_8010C31E_the_beat_goes_on; /* camera step */
+extern s8 D_8010C31F_the_beat_goes_on; /* someone is out */
+extern s8 D_8010C320_the_beat_goes_on;
+extern s8 D_8010C321_the_beat_goes_on;
+extern s32 D_8010C324_the_beat_goes_on;
+extern s32 D_8010C328_the_beat_goes_on[4][4];
+extern f32 D_8010C368_the_beat_goes_on[4];
+extern f32 D_8010C378_the_beat_goes_on; /* cursor x */
+extern f32 D_8010C37C_the_beat_goes_on; /* note pulse angle */
+extern f32 D_8010C380_the_beat_goes_on; /* frame pulse angle */
+extern s8 D_8010C384_the_beat_goes_on; /* frame pulse frames left */
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
@@ -610,8 +602,6 @@ void func_80106708_the_beat_goes_on(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106708_the_beat_goes_on);
 #endif
 
-#ifdef NON_MATCHING
-/* masked 3: one hazard nop after the cosdf(CRot.x) delay slot */
 /* Keeps a drum's sprite facing the camera. */
 void func_80106BE0_the_beat_goes_on(omObjData* obj) {
     BgDrum* w = obj->data;
@@ -650,9 +640,6 @@ void func_80106BE0_the_beat_goes_on(omObjData* obj) {
     w->unk00.z = pz;
     Hu3DModelRotSet(obj->model[3], CRot.x, CRot.y, CRot.z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_20_the_beat_goes_on/1FE4D0", func_80106BE0_the_beat_goes_on);
-#endif
 
 void func_80106E40_the_beat_goes_on(omObjData* obj) {
     BgDrum* w = obj->data;
@@ -1714,11 +1701,11 @@ void func_8010AD60_the_beat_goes_on(s8* step, f32 speed) {
 }
 
 #ifdef NON_MATCHING
-/* All Fired Up's func_80108958 (exact twin): matches there with its table defined in the unit; here (extern table) the move s1,zero schedules two slots earlier */
+/* All Fired Up's func_80108958 (exact twin, same C and nop strip) matches there; here the move s1,zero schedules before the unk59 load */
 /* Hit puffs (one model per player). */
 void func_8010AF10_the_beat_goes_on(omObjData* obj) {
-    s32 i;
     s32* timer;
+    s32 i;
     f32 sc;
 
     for (i = 0, timer = D_8010C328_the_beat_goes_on[((MgWork*)obj->data)->unk59]; i < 4; i++) {
@@ -2097,3 +2084,37 @@ Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to) {
     *out = d;
     return out;
 }
+
+// .data
+u8 D_8010C280_the_beat_goes_on = 0; /* drum phase */
+u8 D_8010C284_the_beat_goes_on[24][4] = { /* start slot per player, one row per permutation */
+    { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 }, { 0, 3, 2, 1 },
+    { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 1, 2, 3, 0 }, { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 1, 3, 2, 0 },
+    { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 2, 1, 0, 3 }, { 2, 1, 3, 0 }, { 2, 3, 0, 1 }, { 2, 3, 1, 0 },
+    { 3, 0, 1, 2 }, { 3, 0, 2, 1 }, { 3, 1, 0, 2 }, { 3, 1, 2, 0 }, { 3, 2, 0, 1 }, { 3, 2, 1, 0 },
+};
+s32 D_8010C2E4_the_beat_goes_on = 0;
+s32 D_8010C2E8_the_beat_goes_on = 0;
+s8 D_8010C2EC_the_beat_goes_on = 0;
+s16 D_8010C2F0_the_beat_goes_on[8][2] __attribute__((aligned(4))) = { /* sprite frame origin */
+    { 26, 15 }, { 26, 14 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 27, 12 }, { 27, 12 },
+};
+u8 D_8010C310_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C311_the_beat_goes_on = 0; /* players made */
+f32 D_8010C314_the_beat_goes_on = -90.0f; /* sign height */
+f32 D_8010C318_the_beat_goes_on = 0.0f;
+s8 D_8010C31C_the_beat_goes_on = 4; /* players left */
+s8 D_8010C31D_the_beat_goes_on = 0; /* note sign shown */
+s8 D_8010C31E_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C31F_the_beat_goes_on = 0; /* someone is out */
+s8 D_8010C320_the_beat_goes_on = 0;
+s8 D_8010C321_the_beat_goes_on = 0;
+s32 D_8010C324_the_beat_goes_on = 0;
+s32 D_8010C328_the_beat_goes_on[4][4] = { /* hit puff frame per player */
+    { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 },
+};
+f32 D_8010C368_the_beat_goes_on[4] = { 0.5f, 1.0f, 1.5f, 2.0f };
+f32 D_8010C378_the_beat_goes_on = 20.0f; /* cursor x */
+f32 D_8010C37C_the_beat_goes_on = 0.0f;  /* note pulse angle */
+f32 D_8010C380_the_beat_goes_on = 0.0f;  /* frame pulse angle */
+s8 D_8010C384_the_beat_goes_on = 90;     /* frame pulse frames left */
