@@ -88,12 +88,20 @@ typedef struct HsCamera {
     /* 0x28 */ f32 fov;
 } HsCamera; // Size 0x2C
 
+/* Who searched a box, in order (D_8010E188_hide_and_sneak). */
+typedef struct HsBoxLog {
+    /* 0x00 */ u8 count;
+    /* 0x01 */ s8 seeker[3];
+} HsBoxLog;
+
 /* .data */
 extern s16 D_8010C370_hide_and_sneak[5][4];
 extern s32 D_8010C398_hide_and_sneak[8];
 extern f32 D_8010C3E4_hide_and_sneak[4];
 extern f32 D_8010C3F4_hide_and_sneak[4];
 extern s16 D_8010C474_hide_and_sneak[4];
+extern char *D_8010C47C_hide_and_sneak[4];
+extern char *D_8010C48C_hide_and_sneak[4];
 extern s32 D_8010C4BC_hide_and_sneak;
 extern HsCamera D_8010C4C0_hide_and_sneak[2];
 /* .rodata */
@@ -111,6 +119,7 @@ extern s8 D_8010E170_hide_and_sneak;
 extern s8 D_8010E174_hide_and_sneak;
 extern s16 D_8010E17A_hide_and_sneak;
 extern s8 D_8010E180_hide_and_sneak;
+extern HsBoxLog D_8010E188_hide_and_sneak[4];
 extern s8 D_8010E1AC_hide_and_sneak;
 extern s8 D_8010E1AD_hide_and_sneak;
 extern s8 D_8010E1B2_hide_and_sneak;
@@ -139,6 +148,7 @@ void func_8010BBBC_hide_and_sneak(void);
 void func_8010BC8C_hide_and_sneak(omObjData *obj);
 void func_8010BD40_hide_and_sneak(omObjData *obj);
 void func_8000B5F0_main(u8 arg0);
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void osViBlack(u8 active);
 void func_8004AB0C_main(s32);
 void func_80107638_hide_and_sneak(omObjData *obj);
@@ -1072,9 +1082,32 @@ s32 func_80108BD8_hide_and_sneak(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80108BE0_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109578_hide_and_sneak);
+void func_80109578_hide_and_sneak(void) {
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_801095DC_hide_and_sneak);
+    for (i = 0; i < 4; i++) {
+        D_8010E188_hide_and_sneak[i].seeker[0] = -1;
+        D_8010E188_hide_and_sneak[i].seeker[1] = -1;
+        D_8010E188_hide_and_sneak[i].seeker[2] = -1;
+        D_8010E188_hide_and_sneak[i].count = 0;
+    }
+}
+
+void func_801095DC_hide_and_sneak(void) {
+    HsEnt *ent;
+    s8 i;
+    s8 box;
+
+    for (i = 0; i < 3; i++) {
+        ent = HS_ENT(HS_ENT_SEEKER, i);
+        if (ent->unk04 == 0 && ent->unk08 != -1) {
+            /* the box number is the low byte of unk08 */
+            box = ((s8 *)&ent->unk08)[1];
+            D_8010E188_hide_and_sneak[box].seeker[i] = D_8010E188_hide_and_sneak[box].count;
+            D_8010E188_hide_and_sneak[box].count++;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80109688_hide_and_sneak);
 
@@ -1088,11 +1121,40 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A48C_hide_and_sneak);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A6BC_hide_and_sneak);
+void func_8010A6BC_hide_and_sneak(omObjData *obj) {
+    HsEnt *ent = HS_ENT(HS_ENT_BOX, obj->work[0]);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A7A4_hide_and_sneak);
+    func_8001E888_main(obj->model[0], 0.0f, ent->unk04, 0x60, 0x40, D_8010C47C_hide_and_sneak[obj->work[0]], 0);
+    func_8001E888_main(obj->model[0], 0.0f, ent->unk04, 0x60, 0x40, D_8010C48C_hide_and_sneak[obj->work[0]], 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A824_hide_and_sneak);
+s32 func_8010A7A4_hide_and_sneak(void) {
+    s8 i;
+    s8 open;
+    s8 used;
+
+    for (i = 0, open = 0, used = 0; i < 4; i++) {
+        if (HS_ENT(HS_ENT_BOX, i)->unk04 == 0) {
+            open++;
+        }
+        if (D_8010E182_hide_and_sneak[i] != 0) {
+            used++;
+        }
+    }
+    return open == used;
+}
+
+s32 func_8010A824_hide_and_sneak(void) {
+    s8 i;
+    s8 n;
+
+    for (i = 0, n = 0; i < 4; i++) {
+        if (HS_ENT(HS_ENT_BOX, i)->unk04 == -0x40) {
+            n++;
+        }
+    }
+    return n == 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010A88C_hide_and_sneak);
 
