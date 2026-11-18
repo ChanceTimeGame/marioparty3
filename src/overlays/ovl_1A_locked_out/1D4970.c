@@ -14,6 +14,7 @@
 // lo A: Locked Out
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
+typedef f32 Matrix4f[4][4];
 
 /* MgWork::unk158 of a player. */
 typedef struct LoPlayer {
@@ -79,6 +80,14 @@ void func_801064E0_locked_out(omObjData* obj);
 void func_8010713C_locked_out(void);
 void func_80109110_locked_out(void);
 s32 func_80109D70_locked_out(void);
+void func_80109264_locked_out(omObjData* obj);
+void func_80109444_locked_out(omObjData* obj);
+void func_80109E88_locked_out(s16 mdl, char* part, s16 frame, Vec* out);
+void func_80016B00_main(s16 model, s16 frame, char* name, Matrix4f* mtx);
+void func_80088800_main(Matrix4f mf, f32 x, f32 y, f32 z); /* guTranslateF */
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
 void func_80106FBC_locked_out(omObjData* obj);
 void func_801071D8_locked_out(omObjData* obj);
 void func_80107844_locked_out(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4);
@@ -101,6 +110,7 @@ extern f32 D_8010A680_locked_out[4][4]; /* world to view (D_8010A6B8 is its [3][
 extern f32 D_8010A6B8_locked_out; /* D_8010A680[3][2] */
 extern f32 D_8010A6C0_locked_out[4][4]; /* view to world */
 extern f32 D_8010A700_locked_out; /* tan(fov / 2) */
+extern u8 D_8010A704_locked_out[12]; /* shuffled slot order */
 
 void func_801059A0_locked_out(void) {
     omObjData* obj;
@@ -400,7 +410,25 @@ void func_801090FC_locked_out(omObjData* obj, MgWork** work, LoPlayer** ep) {
     *ep = w->unk158;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109110_locked_out);
+/* Creates the keys(?) objects and shuffles their slot order. */
+void func_80109110_locked_out(void) {
+    s32 i;
+    s16 j;
+    u8 t;
+
+    for (i = 0; i < D_8010A676_locked_out; i++) {
+        D_8010A610_locked_out[i] = omAddObj(3, 5, 5, -1, func_80109264_locked_out);
+    }
+    for (i = 0; i < D_8010A676_locked_out; i++) {
+        D_8010A704_locked_out[i] = i;
+    }
+    for (i = D_8010A676_locked_out; i > 0; i--) {
+        j = (f32)func_80109D70_locked_out() * (1.0 / 65536.0) * i;
+        t = D_8010A704_locked_out[i - 1];
+        D_8010A704_locked_out[i - 1] = D_8010A704_locked_out[j];
+        D_8010A704_locked_out[j] = t;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109264_locked_out);
 
@@ -462,7 +490,23 @@ f32 func_80109E34_locked_out(Vec* a, Vec* b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109E34_locked_out);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1A_locked_out/1D4970", func_80109E88_locked_out);
+/* Gets a model part's world position. */
+void func_80109E88_locked_out(s16 mdl, char* part, s16 frame, Vec* out) {
+    Matrix4f m;
+    Matrix4f res;
+    Matrix4f partMtx;
+    HmfModel* model;
+
+    func_80016B00_main(mdl, frame, part, &partMtx);
+    model = &HmfModelData[mdl];
+    func_80088800_main(m, model->pos.x, model->pos.y, model->pos.z);
+    func_80017D24_main(m, model->rot.x, model->rot.y, model->rot.z);
+    func_80017CD0_main(m, model->scale.x, model->scale.y, model->scale.z);
+    func_80018044_main(partMtx, m, res);
+    out->x = res[0][0] + res[1][0] + res[2][0] + res[3][0];
+    out->y = res[0][1] + res[1][1] + res[2][1] + res[3][1];
+    out->z = res[0][2] + res[1][2] + res[2][2] + res[3][2];
+}
 
 s16 func_80109FAC_locked_out(s32 id) {
     void* file;
