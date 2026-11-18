@@ -63,8 +63,25 @@ extern s16 D_800CDA7C_main[];
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[4];
+extern u8 D_800D6A90_main;
+void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
+void func_800335BC_main(char *arg0, void *arg1);
+
+/* A texture's size (func_800335BC_main). */
+typedef struct RrTexSize {
+    /* 0x00 */ s16 w;
+    /* 0x02 */ s16 h;
+} RrTexSize;
+
+/* A rope anchor path per raft seat, by animation frame / 2. */
+typedef struct RrPath {
+    /* 0x00 */ f32 x[16];
+    /* 0x40 */ f32 y[16];
+    /* 0x80 */ f32 z[16];
+} RrPath; // Size 0xC0
 
 /* .data */
+extern RrPath D_8010D570_river_raiders[4]; /* inner labels D_8010D5F0/630/6B0/6F0/770/7B0/830 */
 extern s32 D_8010D3B8_river_raiders[3];
 extern f32 D_8010D3C4_river_raiders[3];
 extern f32 D_8010D888_river_raiders[]; /* [team * 4 + digit] x, y pairs */
@@ -74,7 +91,12 @@ extern f32 D_8010D88C_river_raiders[]; /* = D_8010D888_river_raiders[1]: the y c
 extern RrEnt D_8010D9F0_river_raiders[100];
 extern RrEnt D_8010DA74_river_raiders[]; /* = D_8010D9F0_river_raiders[1] */
 extern RrEnt D_8010DAF8_river_raiders[]; /* = D_8010D9F0_river_raiders[2] */
+extern RrEnt D_8010DD08_river_raiders[3]; /* = D_8010D9F0_river_raiders[6..8] */
+extern omObjData *D_8010DE94_river_raiders; /* = D_8010D9F0_river_raiders[9].obj */
+extern RrEnt D_8010EE90_river_raiders; /* = D_8010D9F0_river_raiders[40]: the water */
+extern f32 D_8010EEA8_river_raiders;   /* = D_8010EE90_river_raiders.unk18: the water's texture scroll */
 extern u8 D_80110D84_river_raiders;
+extern RrTexSize D_80110D88_river_raiders;
 extern s8 D_80110D90_river_raiders;
 extern u8 D_80110DBD_river_raiders;
 
@@ -84,6 +106,8 @@ void func_80105BA4_river_raiders(omObjData *obj);
 void func_80105D1C_river_raiders(omObjData *obj);
 void func_80105FA0_river_raiders(omObjData *obj);
 void func_801060BC_river_raiders(omObjData *obj);
+void func_80106244_river_raiders(omObjData *obj);
+void func_80106300_river_raiders(omObjData *obj);
 
 void func_801059A0_river_raiders(void) {
     func_8010D268_river_raiders();
@@ -288,13 +312,107 @@ void func_801061A0_river_raiders(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106244_river_raiders);
+void func_80106244_river_raiders(omObjData *obj) {
+    RrEnt *ent = &D_8010EE90_river_raiders;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106300_river_raiders);
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010EEA8_river_raiders += 1.5f;
+    }
+    func_8001E888_main(obj->model[0], 0, ent->unk18, D_80110D88_river_raiders.w, D_80110D88_river_raiders.h,
+                       "suki-m209_04_1_3", 0);
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801063FC_river_raiders);
+void func_80106300_river_raiders(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x2A0004, 0x2A8);
+    func_8001FA68_main(obj->model[0]);
+    func_8001F9E4_main(obj->model[0], 0x80);
+    func_8001C258_main(obj->model[0], 4, 0);
+    func_8001C954_main(obj->model[0]);
+    func_800335BC_main("209_water_00_DEF", &D_80110D88_river_raiders);
+    D_8010EEA8_river_raiders = 0;
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = -100.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->func = func_80106244_river_raiders;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_80106448_river_raiders);
+void func_801063FC_river_raiders(void) {
+    omObjData *obj = omAddObj(950, 1, 10, -1, func_80106300_river_raiders);
+
+    obj->work[0] = 0;
+    D_8010EE90_river_raiders.obj = obj;
+    omSetStatBit(obj, 0xA0);
+}
+
+/* Aims and stretches a rope model from the raft object toward each of its three riders' hands. */
+void func_80106448_river_raiders(omObjData *obj) {
+    omObjData *raft = D_8010DE94_river_raiders;
+    f32 dx, dy, dz;
+    f32 x, y, z;
+    f32 yaw, pitch;
+    f32 dist;
+    omObjData *rider;
+    RrEnt *ent;
+    s16 frame;
+    u8 i;
+
+    z = 0.0f;
+    y = z;
+    x = z;
+    for (i = 0; i < 3; i++) {
+        ent = &D_8010DD08_river_raiders[i];
+        rider = ent->obj;
+        if (rider->work[2] != obj->work[0]) {
+            continue;
+        }
+        switch (ent->unk08) {
+            case 0:
+                frame = HmfModelData[rider->model[0]].unk40;
+                x = -D_8010D570_river_raiders[0].x[frame / 2] * 5.0f + rider->trans.x;
+                y = D_8010D570_river_raiders[0].y[frame / 2] * 5.0f + rider->trans.y;
+                z = -D_8010D570_river_raiders[0].z[frame / 2] * 5.0f + rider->trans.z + 20.0f;
+                break;
+            case 1:
+                frame = HmfModelData[rider->model[0]].unk40;
+                x = -D_8010D570_river_raiders[1].x[frame / 2] * 5.0f + rider->trans.x;
+                y = D_8010D570_river_raiders[1].y[frame / 2] * 5.0f + rider->trans.y;
+                z = -D_8010D570_river_raiders[1].z[frame / 2] * 5.0f + rider->trans.z;
+                break;
+            case 2:
+                frame = HmfModelData[rider->model[0]].unk40;
+                x = -D_8010D570_river_raiders[2].x[frame / 2] * 5.0f + rider->trans.x;
+                y = D_8010D570_river_raiders[2].y[frame / 2] * 5.0f + rider->trans.y;
+                z = -D_8010D570_river_raiders[2].z[frame / 2] * 5.0f + rider->trans.z;
+                break;
+            case 3:
+                frame = HmfModelData[rider->model[0]].unk40;
+                x = -D_8010D570_river_raiders[3].x[frame / 2] * 5.0f + rider->trans.x;
+                y = D_8010D570_river_raiders[3].y[frame / 2] * 5.0f + rider->trans.y;
+                z = -D_8010D570_river_raiders[3].z[frame / 2] * 5.0f + rider->trans.z + 20.0f;
+                break;
+        }
+        dx = x - raft->trans.x;
+        dy = y - (raft->trans.y + 15.0f);
+        dz = z - (raft->trans.z + 60.0f);
+        yaw = atan2df(dx, dz);
+        pitch = atan2df(dy, sqrtf(dx * dx + dz * dz));
+        dist = sqrtf(dx * dx + dy * dy + dz * dz);
+        obj->rot.y = 0.0f;
+        obj->scale.z = dist / 450.0f;
+        Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+        obj->rot.y = yaw;
+        obj->rot.x = -pitch;
+        Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+        obj->trans.x = raft->trans.x;
+        obj->trans.y = raft->trans.y + 15.0f;
+        obj->trans.z = raft->trans.z + 60.0f;
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_09_river_raiders/1542E0", func_801069A4_river_raiders);
 
