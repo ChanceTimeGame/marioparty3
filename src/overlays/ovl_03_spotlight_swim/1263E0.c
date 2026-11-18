@@ -278,6 +278,8 @@ void func_801065C4_spotlight_swim(omObjData *obj);
 void func_8010B828_spotlight_swim(omObjData *obj);
 void func_8010C25C_spotlight_swim(omObjData *obj);
 void func_8010C900_spotlight_swim(omObjData *obj);
+void func_8010BDE0_spotlight_swim(s32 x, s32 y, u32 r, u32 g, u32 b);
+void func_8010BFD0_spotlight_swim(u32 *img, s32 x, s32 y);
 
 void func_801059A0_spotlight_swim(void) {
     func_8010CB78_spotlight_swim();
@@ -2075,7 +2077,7 @@ void func_8010BA30_spotlight_swim(void) {
     D_8010D480_spotlight_swim[13].obj = omAddObj(1300, 5, 5, -1, func_8010B828_spotlight_swim);
 }
 
-extern s32 D_8010D2F0_spotlight_swim;
+extern u32 D_8010D2F0_spotlight_swim;
 extern u32 *D_8010D2F8_spotlight_swim[3];
 extern s32 D_8010D448_spotlight_swim;
 extern u32 D_8010D47C_spotlight_swim;
@@ -2236,7 +2238,47 @@ void func_8010BFD0_spotlight_swim(u32 *img, s32 x, s32 y) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010BFD0_spotlight_swim);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C094_spotlight_swim);
+/* Each chaser's lamp spot on the image (D_8010D3D0_spotlight_swim; other code addresses .r/.g/.b of
+ * entry 0 as D_8010D3D8/D3DC/D3E0, views of this table). */
+typedef struct SsTint {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ u32 r;
+    /* 0x0C */ u32 g;
+    /* 0x10 */ u32 b;
+} SsTint; // Size 0x14
+
+extern SsTint D_8010D3D0_spotlight_swim[3];
+extern s32 D_8010D1C8_spotlight_swim[3];
+
+/* Per-frame spotlight image: flip to the next of the three buffers, then either draw the three lamp
+ * spots at the chasers, or (end sequence) fade the image out and stamp the three result spots. */
+void func_8010C094_spotlight_swim(void) {
+    SsEnt *ent;
+    SsTint *t;
+    s32 i;
+
+    D_8010D2F0_spotlight_swim = (D_8010D2F0_spotlight_swim + 1) % 3;
+    if (D_8010EE48_spotlight_swim >= 3) {
+        if ((s8)func_8010BD5C_spotlight_swim() == 0) {
+            for (i = 0; i < 3; i++) {
+                func_8010BFD0_spotlight_swim(D_8010D2F8_spotlight_swim[D_8010D2F0_spotlight_swim],
+                                             D_8010D1C8_spotlight_swim[i], 170);
+                t = &D_8010D3D0_spotlight_swim[i];
+                func_8010BDE0_spotlight_swim(t->x, t->y, t->r, t->g, t->b);
+            }
+        }
+    } else {
+        func_8010BD10_spotlight_swim();
+        for (i = 0; i < 3; i++) {
+            ent = &D_8010D60C_spotlight_swim[i];
+            t = &D_8010D3D0_spotlight_swim[i];
+            t->x = ent->obj->trans.x - 32.0f;
+            t->y = ent->obj->trans.y - 32.0f;
+            func_8010BDE0_spotlight_swim(t->x, t->y, t->r, t->g, t->b);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010C25C_spotlight_swim);
 
