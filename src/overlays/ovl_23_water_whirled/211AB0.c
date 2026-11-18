@@ -59,6 +59,7 @@ void func_80105D64_water_whirled(void);
 extern Vec D_8010A1D0_water_whirled[4]; /* rider positions */
 extern u8 D_800D2008_main;
 extern u8 D_800D6A90_main;
+u16 func_800E6E9C_minigame(void);
 // LOCAL END
 
 void func_801059A0_water_whirled(void) {
@@ -245,7 +246,58 @@ void func_80106308_water_whirled(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80106680_water_whirled);
+/* Intro camera: hold, then pan along z; at the start (or from tick 90) swing up and out to the play view. */
+void func_80106680_water_whirled(omObjData* obj) {
+    s32 t = func_800E6E9C_minigame();
+
+    if (func_800E6E8C_minigame() == 0) {
+        if (t < 15) {
+            CRot.y = 100.0f;
+            CRot.x = 350.0f;
+            Center.z = 300.0f;
+            Center.y = 0.0f;
+            CZoom = 2500.0f;
+        } else if (t < 75.0) {
+            Center.z += 10.0f;
+            if (Center.z > 1000.0f) {
+                Center.z = 1000.0f;
+            }
+            if (t == 30) {
+                HuAudSeqPlay(0x6D);
+            }
+        } else if (t >= 90) {
+            goto swing;
+        }
+    } else {
+    swing:
+        D_8010A2D4_water_whirled.x -= 8.0f;
+        D_8010A2D4_water_whirled.z += 3.0f;
+        if (D_8010A2D4_water_whirled.x < -85.0f) {
+            D_8010A2D4_water_whirled.x = -85.0f;
+        }
+        if (D_8010A2D4_water_whirled.z > 64.0f) {
+            D_8010A2D4_water_whirled.z = 64.0f;
+        }
+        HmfLightDirSet(1, D_8010A2D4_water_whirled.x, D_8010A2D4_water_whirled.y, D_8010A2D4_water_whirled.z);
+        CRot.x *= 0.995f;
+        CRot.y -= 2.0f;
+        CZoom *= 1.025f;
+        Center.z *= 0.98f;
+        Center.y += 5.0f;
+        if (CRot.x < 319.0f) {
+            CRot.x = 319.0f;
+        }
+        if (CRot.y < 1.0f) {
+            CRot.y = 0.0f;
+        }
+        if (CZoom > 7000.0f) {
+            CZoom = 7000.0f;
+        }
+        if (Center.z < 700.0f) {
+            Center.z = 700.0f;
+        }
+    }
+}
 
 /* Camera: close in on player D_8010A280 once it is set. */
 void func_8010698C_water_whirled(omObjData* obj) {
