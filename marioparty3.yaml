@@ -1591,8 +1591,9 @@ segments:
     subsegments:
       - [0x2FC270, c]
       - [0x2FF5F0, c]
-      - [0x300F10, data, 2FC270] #8010A640
-      - [0x301000, .rodata, 2FC270] #8010A730
+      - [0x300F10, .data, 2FC270] #8010A640
+      - [0x300F80, .data, 2FF5F0] #8010A6B0
+      - [0x300F90, .rodata, 2FC270] #8010A6C0 (the local arrays' initialisers)
       - [0x3010D0, .rodata, 2FF5F0] #8010A800
       - {0x3010E0, type: bss, vram: 0x8010A810, name: ovl_42_bss}
 

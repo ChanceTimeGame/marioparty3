@@ -43,13 +43,6 @@ typedef struct GgrCpuKey {
     /* 0x01 */ u8 delay;
 } GgrCpuKey;
 
-typedef struct GgrI6 {
-    s32 v[6];
-} GgrI6;
-typedef struct GgrI8 {
-    s32 v[8];
-} GgrI8;
-
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_8000BD50_main(u16 spriteId, s16 arg1);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -121,41 +114,49 @@ void func_80108D20_game_guys_roulette(s32 x, s32 y);
 s16 func_80109078_game_guys_roulette(void);
 void func_80109D14_game_guys_roulette(void);
 
-extern GgrCpuKey D_8010A640_game_guys_roulette[3]; /* by CPU level */
-extern u8 D_8010A646_game_guys_roulette;
-extern u8 D_8010A647_game_guys_roulette; /* cursor direction: 1 up */
-extern u8 D_8010A648_game_guys_roulette; /* cursor step */
-extern f32 D_8010A64C_game_guys_roulette; /* chosen prize's pulse scale */
-extern f32 D_8010A650_game_guys_roulette; /* its speed */
-extern u8 D_8010A654_game_guys_roulette; /* cursor move frames */
-extern u8 D_8010A655_game_guys_roulette; /* CPU key timer */
-extern u8 D_8010A656_game_guys_roulette; /* bet timer frames */
-extern u8 D_8010A657_game_guys_roulette; /* bet timer seconds */
-extern f32 D_8010A658_game_guys_roulette; /* face scale */
-extern s16 D_8010A65C_game_guys_roulette;
-extern u8 D_8010A65E_game_guys_roulette; /* throw timer */
-extern u8 D_8010A65F_game_guys_roulette; /* throw step */
-extern u8 D_8010A660_game_guys_roulette; /* 1: the ball rolls */
-extern u8 D_8010A661_game_guys_roulette; /* roll step */
-extern f32 D_8010A664_game_guys_roulette; /* ball speed */
-extern f32 D_8010A668_game_guys_roulette; /* ball angle */
-extern f32 D_8010A66C_game_guys_roulette; /* ball spin */
-extern s16 D_8010A670_game_guys_roulette; /* rolling sound */
-extern u8 D_8010A672_game_guys_roulette; /* pocket under the ball */
-extern s16 D_8010A674_game_guys_roulette; /* rolling sound pitch */
-extern u8 D_8010A676_game_guys_roulette; /* the last pocket, for its tick */
-extern s16 D_8010A678_game_guys_roulette; /* result timer */
-extern u8 D_8010A67A_game_guys_roulette; /* result message wait */
-extern u8 D_8010A67B_game_guys_roulette; /* result step */
-extern s16 D_8010A67C_game_guys_roulette;
-extern char* D_8010A680_game_guys_roulette[8]; /* character names */
-extern u8 D_8010A6A0_game_guys_roulette; /* banner blink timer */
-extern u8 D_8010A6A1_game_guys_roulette; /* banner blink step */
-extern u8 D_8010A6A4_game_guys_roulette[];
-extern GgrI6 D_8010A6C0_game_guys_roulette;
-extern GgrI8 D_8010A6D8_game_guys_roulette;
-extern GgrI6 D_8010A6F8_game_guys_roulette;
-extern GgrI8 D_8010A710_game_guys_roulette;
+/* .data */
+GgrCpuKey D_8010A640_game_guys_roulette[3] = { { 0, 5 }, { 0, 25 }, { 0, 60 } }; /* by CPU level */
+u8 D_8010A646_game_guys_roulette = 0;
+u8 D_8010A647_game_guys_roulette = 0; /* cursor direction: 1 up */
+u8 D_8010A648_game_guys_roulette = 2; /* cursor step */
+f32 D_8010A64C_game_guys_roulette = 1.1f; /* chosen prize's pulse scale */
+f32 D_8010A650_game_guys_roulette = 0.1f; /* its speed */
+u8 D_8010A654_game_guys_roulette = 0; /* cursor move frames */
+u8 D_8010A655_game_guys_roulette = 0; /* CPU key timer */
+u8 D_8010A656_game_guys_roulette = 0; /* bet timer frames */
+u8 D_8010A657_game_guys_roulette = 10; /* bet timer seconds */
+f32 D_8010A658_game_guys_roulette = 0.0f; /* face scale */
+s16 D_8010A65C_game_guys_roulette = 0;
+u8 D_8010A65E_game_guys_roulette = 0; /* throw timer */
+u8 D_8010A65F_game_guys_roulette = 0; /* throw step */
+u8 D_8010A660_game_guys_roulette = 0; /* 1: the ball rolls */
+u8 D_8010A661_game_guys_roulette = 0; /* roll step */
+f32 D_8010A664_game_guys_roulette = 0.0f; /* ball speed */
+f32 D_8010A668_game_guys_roulette = 270.0f; /* ball angle */
+f32 D_8010A66C_game_guys_roulette = 0.0f; /* ball spin */
+s16 D_8010A670_game_guys_roulette = 0; /* rolling sound */
+u8 D_8010A672_game_guys_roulette = 0; /* pocket under the ball */
+s16 D_8010A674_game_guys_roulette = 900; /* rolling sound pitch */
+u8 D_8010A676_game_guys_roulette = 0; /* the last pocket, for its tick */
+s16 D_8010A678_game_guys_roulette = 0; /* result timer */
+u8 D_8010A67A_game_guys_roulette = 0; /* result message wait */
+u8 D_8010A67B_game_guys_roulette = 0; /* result step */
+s16 D_8010A67C_game_guys_roulette = 0;
+extern char D_8010A770_game_guys_roulette[];
+extern char D_8010A77C_game_guys_roulette[];
+extern char D_8010A78C_game_guys_roulette[];
+extern char D_8010A794_game_guys_roulette[];
+extern char D_8010A7A0_game_guys_roulette[];
+extern char D_8010A7AC_game_guys_roulette[];
+extern char D_8010A7B8_game_guys_roulette[];
+extern char D_8010A7C4_game_guys_roulette[];
+char* D_8010A680_game_guys_roulette[8] = {
+    D_8010A7C4_game_guys_roulette, D_8010A7B8_game_guys_roulette, D_8010A7AC_game_guys_roulette, D_8010A7A0_game_guys_roulette,
+    D_8010A794_game_guys_roulette, D_8010A78C_game_guys_roulette, D_8010A77C_game_guys_roulette, D_8010A770_game_guys_roulette,
+}; /* character names (SJIS): Mario, Luigi, Peach, Yoshi, Wario, DK, Waluigi, Daisy */
+u8 D_8010A6A0_game_guys_roulette = 0; /* banner blink timer */
+u8 D_8010A6A1_game_guys_roulette = 1; /* banner blink step */
+u8 D_8010A6A4_game_guys_roulette[6] = { 2, 4, 8, 16, 32, 64 }; /* the prizes' bonus coins */
 extern char D_8010A7D0_game_guys_roulette[];
 
 extern char D_8010A810_game_guys_roulette[0x100];
@@ -398,9 +399,9 @@ void func_80105F70_game_guys_roulette(void) {
 /* The sprites: background, the two blinking banners, the bet panel, the six prize icons, the player's face,
    the coin icon and its "x", the coin count's three digits. */
 void func_80106428_game_guys_roulette(omObjData* obj) {
-    GgrI6 prizes = D_8010A6C0_game_guys_roulette;
+    s32 prizes[6] = { 4, 5, 6, 7, 8, 9 };
     u8 chr = GwPlayer[D_8010AAD6_game_guys_roulette.player].chr;
-    GgrI8 faces = D_8010A6D8_game_guys_roulette;
+    s32 faces[8] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
     u8 i;
     s16 file;
 
@@ -417,11 +418,11 @@ void func_80106428_game_guys_roulette(omObjData* obj) {
     func_80108A6C_game_guys_roulette(&D_8010A990_game_guys_roulette, 800, 242, 16, 54, 144, 1.0f, 1.0f);
     func_80108A9C_game_guys_roulette(&D_8010A990_game_guys_roulette, 1);
     for (i = 0; i < 6; i++) {
-        func_80108A14_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], prizes.v[i] | 0x630000, 8);
+        func_80108A14_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], prizes[i] | 0x630000, 8);
         func_80108A6C_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], 700, 246, i * 22 + 22, 22, 22, 1.0f, 1.0f);
         func_80108A9C_game_guys_roulette(&D_8010A9B0_game_guys_roulette[i], 0);
     }
-    func_80108A14_game_guys_roulette(&D_8010AA70_game_guys_roulette, faces.v[chr] | 0x210000, 8);
+    func_80108A14_game_guys_roulette(&D_8010AA70_game_guys_roulette, faces[chr] | 0x210000, 8);
     func_80108A6C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 600, 206, 1, 46, 46, 1.0f, 1.0f);
     func_80108A9C_game_guys_roulette(&D_8010AA70_game_guys_roulette, 0);
     func_80108A14_game_guys_roulette(&D_8010AA90_game_guys_roulette, 0x21001A, 8);
@@ -458,7 +459,7 @@ void func_801068E8_game_guys_roulette(omObjData* obj) {
 
 /* The wheel and its six prize sectors */
 void func_801069DC_game_guys_roulette(omObjData* obj) {
-    GgrI6 files = D_8010A6F8_game_guys_roulette;
+    s32 files[6] = { 0x10, 0x11, 0x12, 0x0F, 0x13, 0x0E };
     u8 i;
 
     obj->model[0] = func_8000B108_main(0x63000D, 0x2B9);
@@ -466,7 +467,7 @@ void func_801069DC_game_guys_roulette(omObjData* obj) {
     omSetRot(obj, 15.0f, 0.0f, 0.0f);
     omSetSca(obj, 1.0f, 1.0f, 1.0f);
     for (i = 1; i < 7; i++) {
-        obj->model[i] = func_8000B108_main(files.v[i - 1] | 0x630000, 0x2B9);
+        obj->model[i] = func_8000B108_main(files[i - 1] | 0x630000, 0x2B9);
         Hu3DModelPosSet(obj->model[i], 0.0f, 100.0f, 0.0f);
         Hu3DModelRotSet(obj->model[i], 15.0f, 0.0f, 0.0f);
         Hu3DModelScaleSet(obj->model[i], 1.0f, 1.0f, 1.0f);
@@ -476,9 +477,9 @@ void func_801069DC_game_guys_roulette(omObjData* obj) {
 
 /* The player's character */
 void func_80106B74_game_guys_roulette(omObjData* obj) {
-    GgrI8 files = D_8010A710_game_guys_roulette;
+    s32 files[8] = { 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23 };
 
-    obj->model[0] = func_8000B108_main(files.v[D_8010AAD6_game_guys_roulette.chr] | 0x210000, 0x2B9);
+    obj->model[0] = func_8000B108_main(files[D_8010AAD6_game_guys_roulette.chr] | 0x210000, 0x2B9);
     omSetTra(obj, 0.0f, 0.0f, 0.0f);
     omSetRot(obj, 15.0f, 0.0f, 0.0f);
     omSetSca(obj, 1.0f, 1.0f, 1.0f);

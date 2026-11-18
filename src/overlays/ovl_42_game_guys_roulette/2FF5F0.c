@@ -42,6 +42,7 @@ typedef struct GgrLayer {
 
 void func_80055458_main(s16, s16, u16);
 void func_8004AB0C_main(s32);
+s16 func_8000B838_main(s32 arg0);
 
 // LOCAL
 void func_80108D20_game_guys_roulette(s16 x, s16 y);
@@ -57,9 +58,10 @@ void func_8010A1BC_game_guys_roulette(s16 active, s16 x, s16 y, s16 color);
 void func_8010A1FC_game_guys_roulette(s16 active, s16 x, s16 y, s16 r, s16 color);
 void func_8010A3F4_game_guys_roulette(s16 x0, s16 y0, s16 x1, s16 y1);
 
-extern s16 D_8010A6B0_game_guys_roulette; /* frame */
-extern s16 D_8010A6B2_game_guys_roulette; /* the rings' start y */
-extern s16 D_8010A6B4_game_guys_roulette; /* func_80109B60's frame */
+/* .data */
+s16 D_8010A6B0_game_guys_roulette = 0; /* frame */
+s16 D_8010A6B2_game_guys_roulette = 120; /* the rings' start y */
+s16 D_8010A6B4_game_guys_roulette = 0; /* func_80109B60's frame */
 
 extern GgrRing D_8010AB60_game_guys_roulette[3];
 extern s16 D_8010ABA8_game_guys_roulette; /* centre x */
