@@ -1747,7 +1747,6 @@ void func_80108E8C_awful_tower(omObjData* obj) {
         for (i = 0; i < 15; i++) {
             D_8010D110_awful_tower[i] = -D_8010D0D0_awful_tower[i];
         }
-        i = 0;
         if (D_8010D3FC_awful_tower == 5) {
             best = -1;
             sel = -1;
@@ -1766,9 +1765,8 @@ void func_80108E8C_awful_tower(omObjData* obj) {
                     D_8010D3A8_awful_tower[D_8010D3FC_awful_tower]->trans.x = 105.0f;
                 }
             }
-            i = 0;
         }
-        for (; i < 4; i++) {
+        for (i = 0; i < 4; i++) {
             if (D_8010CBFC_awful_tower[i] == 15) {
                 D_8010CC2C_awful_tower[i] = D_8010D3A8_awful_tower[i]->trans.x;
             } else {
