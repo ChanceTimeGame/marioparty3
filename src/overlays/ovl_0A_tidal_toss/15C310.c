@@ -164,7 +164,7 @@ extern s16 D_8010AA8E_tidal_toss[]; /* [0]: the low half of D_8010AA8C (big-endi
 extern u16 D_8010AA90_tidal_toss; /* game timer, frames */
 extern s32 D_8010AA94_tidal_toss; /* winner: the solo player, else -1 */
 extern s16 D_8010ADE0_tidal_toss; /* frames to the music */
-extern void* D_8010AF3C_tidal_toss;
+extern Gfx* D_8010AF3C_tidal_toss;
 extern TtSplash D_8010AF48_tidal_toss[8];
 extern TtCloud D_8010AFE8_tidal_toss[3];
 extern u32 D_8010AAFC_tidal_toss; /* random seed */
@@ -511,7 +511,434 @@ void func_801065AC_tidal_toss(omObjData* obj) {
     }
 }
 
+/* Local views of the main model structs (src/22EB0.c HmfObj, HmfPart, HmfFaceRec, HmfTexRef, HmfTex, HmfMat),
+   MP3 offsets and names, every pointer a pointer. A prefix of each is enough: these are only read. */
+typedef struct TtColVtx {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+} TtColVtx; /* size 0x6 */
+
+typedef struct TtHmfTex {
+    /* 0x00 */ char unk00[0x24];
+    /* 0x24 */ u16 unk24; /* width */
+    /* 0x26 */ u16 unk26; /* height */
+} TtHmfTex;
+
+typedef struct TtHmfTexRef {
+    /* 0x00 */ char unk00[0xC];
+    /* 0x0C */ TtHmfTex* unk0C;
+} TtHmfTexRef; /* size 0x10 */
+
+typedef struct TtHmfMat {
+    /* 0x00 */ u8 unk00[5];
+    /* 0x05 */ u8 unk05[3]; /* colour of unlit faces */
+    /* 0x08 */ u8 unk08[3];
+} TtHmfMat; /* size 0xB */
+
+typedef struct TtHmfFace {
+    /* 0x00 */ u8 unk00; /* vertex count, 0x80 unlit */
+    /* 0x01 */ s8 unk01[3];
+    /* 0x04 */ s16 unk04[4]; /* vertices */
+    /* 0x0C */ f32 unk0C[4]; /* s */
+    /* 0x1C */ f32 unk1C[4]; /* t */
+    /* 0x2C */ u8 unk2C[4]; /* materials of unlit vertices */
+    /* 0x30 */ s16 unk30;
+    /* 0x32 */ s16 unk32; /* texture or -1 */
+} TtHmfFace; /* size 0x34 */
+
+typedef struct TtHmfPart {
+    /* 0x00 */ char unk00[0x22];
+    /* 0x22 */ s16 unk22; /* face count */
+    /* 0x24 */ char unk24[0x30];
+    /* 0x54 */ TtHmfFace* unk54;
+} TtHmfPart;
+
+typedef struct TtHmfObj {
+    /* 0x00 */ u8 unk00[0xE];
+    /* 0x0E */ s16 unk0E; /* allocation tag */
+    /* 0x10 */ s16 unk10[4];
+    /* 0x18 */ s16 unk18; /* vertex count */
+    /* 0x1A */ s16 unk1A[3];
+    /* 0x20 */ char unk20[2];
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ char unk24[2];
+    /* 0x26 */ s16 unk26;
+    /* 0x28 */ s16 unk28;
+    /* 0x2A */ char unk2A[2];
+    /* 0x2C */ u8* unk2C;
+    /* 0x30 */ u8* unk30;
+    /* 0x34 */ u8* unk34;
+    /* 0x38 */ void* unk38;
+    /* 0x3C */ void* unk3C;
+    /* 0x40 */ Vtx_t* unk40; /* vertices */
+    /* 0x44 */ Vtx_t* unk44[3]; /* per-frame vertex buffers */
+    /* 0x50 */ TtColVtx* unk50; /* positions */
+    /* 0x54 */ u8* unk54; /* normals (3 bytes each) */
+    /* 0x58 */ void* unk58;
+    /* 0x5C */ s16* unk5C; /* position -> vertex */
+    /* 0x60 */ TtHmfPart* unk60;
+    /* 0x64 */ s16 unk64;
+    /* 0x66 */ char unk66[2];
+    /* 0x68 */ void* unk68;
+    /* 0x6C */ char unk6C[0x14];
+    /* 0x80 */ void* unk80;
+    /* 0x84 */ TtHmfTexRef* unk84;
+    /* 0x88 */ TtHmfMat* unk88;
+} TtHmfObj; /* MP3 HmfData */
+
+/* The water's faces sorted by their lowest z (a list with sentinels at both ends) */
+typedef struct TtFaceNode {
+    /* 0x00 */ TtHmfFace* face;
+    /* 0x04 */ f32 key;
+    /* 0x08 */ struct TtFaceNode* prev;
+    /* 0x0C */ struct TtFaceNode* next;
+} TtFaceNode; /* size 0x10 */
+
+/* One face of a vertex batch */
+typedef struct TtBatchFace {
+    /* 0x00 */ s16 n;
+    /* 0x02 */ s16 v[4];
+    /* 0x0A */ char unk0A[0xA];
+} TtBatchFace; /* size 0x14 */
+
+extern u8 D_800D2008_main; /* frame buffer index */
+extern Mtx D_8010ADE8_tidal_toss[3];
+extern TtFaceNode* D_8010AEA8_tidal_toss;
+extern Vtx_t* D_8010AEAC_tidal_toss;
+extern u8 D_8010AA9C_tidal_toss[8];
+extern s32 D_8010AAA4_tidal_toss;
+extern s32 D_8010AAA8_tidal_toss;
+extern f32 D_8010AAAC_tidal_toss;
+extern s8 HmfPauseF;
+void func_80017CD0_main(f32 (*)[4], f32, f32, f32);
+void func_80017D24_main(f32 (*)[4], f32, f32, f32);
+void func_80018044_main(f32*, f32 (*)[4], f32 (*)[4]);
+
+/* Draw hook of the water model. The first three calls build it: the faces sorted front to back, their
+   vertices merged into one buffer, then one display list of gSPVertex batches (segment 1) and triangles.
+   Every later call draws it with a scrolling two-tile texture and the vertices pushed by the splashes. */
+#ifdef NON_MATCHING
+void func_80106D24_tidal_toss(Gfx** gfxP, s32 arg1, s32 arg2) {
+    f32 mf2[4][4];
+    f32 mf[4][4];
+    Vtx_t save;
+    TtBatchFace batch[64];
+    HmfModel* model;
+    TtHmfObj* obj;
+    TtHmfPart* part;
+    TtFaceNode* nodes;
+    TtFaceNode* node;
+    TtFaceNode* p;
+    TtHmfFace* face;
+    TtHmfTexRef* tex;
+    TtColVtx* pos;
+    TtBatchFace* b;
+    TtSplash* sp;
+    HuSprite_Unk84_Unk00_Struct* frame;
+    HuSprite_Unk84_Struct* spr;
+    Vtx_t* vtx;
+    Vtx_t* src;
+    Vtx_t* dst;
+    u8* col;
+    Gfx* gfx;
+    Gfx* dl;
+    f32 min;
+    f64 d;
+    f32 fd;
+    f64 diff;
+    f64 adiff;
+    f64 f;
+    f64 c;
+    s32 limit;
+    s32 i;
+    s32 j;
+    s32 k2;
+    u8 n;
+    s16 lighting;
+    s16 base;
+    s16 count;
+    s16 k;
+    s16 w;
+    s16 h;
+    s16 s;
+    s16 t;
+    s16 vi;
+    s16 top;
+    s16 nb;
+    s16 len;
+    s32 flush;
+
+    model = &HmfModelData[D_8010AF38_tidal_toss];
+    obj = (TtHmfObj*) model->hmf;
+    part = obj->unk60;
+    if (D_8010AAA4_tidal_toss == 0) {
+        switch (D_8010AAA8_tidal_toss) {
+            case 0:
+                nodes = HuMemAlloc((part->unk22 + 2) * sizeof(TtFaceNode));
+                D_8010AEA8_tidal_toss = nodes;
+                D_8010AEAC_tidal_toss = HuMemAlloc(obj->unk18 * 2 * sizeof(Vtx_t));
+                memset(D_8010AEAC_tidal_toss, 0, obj->unk18 * 2 * sizeof(Vtx_t));
+                D_8010AEA8_tidal_toss->key = -19980.0f;
+                D_8010AEA8_tidal_toss->prev = NULL;
+                D_8010AEA8_tidal_toss->next = &D_8010AEA8_tidal_toss[part->unk22 + 1];
+                D_8010AEA8_tidal_toss[part->unk22 + 1].key = 19980.0f;
+                D_8010AEA8_tidal_toss[part->unk22 + 1].prev = D_8010AEA8_tidal_toss;
+                D_8010AEA8_tidal_toss[part->unk22 + 1].next = NULL;
+                nodes++;
+                for (i = 0; i < part->unk22; i++, nodes++) {
+                    face = &part->unk54[i];
+                    nodes->face = face;
+                    n = face->unk00 & 0x7F;
+                    min = 19980.0f;
+                    for (j = 0; j < n; j++) {
+                        if (obj->unk50[face->unk04[j]].z < min) {
+                            min = obj->unk50[face->unk04[j]].z;
+                        }
+                    }
+                    nodes->key = min;
+                    for (p = D_8010AEA8_tidal_toss->next; p->key < nodes->key; p = p->next) {
+                    }
+                    p->prev->next = nodes;
+                    nodes->prev = p->prev;
+                    nodes->next = p;
+                    p->prev = nodes;
+                }
+                base = 0;
+                count = 0;
+                limit = D_8010AA9C_tidal_toss[(model->unk18 & 0x1C00) >> 10];
+                node = D_8010AEA8_tidal_toss;
+                for (i = 0; i < part->unk22; i++) {
+                    node = node->next;
+                    face = node->face;
+                    if (face == NULL) {
+                        continue;
+                    }
+                    n = face->unk00 & 0x7F;
+                    if (face->unk00 < 3) {
+                        continue;
+                    }
+                    if (face->unk32 >= 0) {
+                        tex = &obj->unk84[face->unk32];
+                    } else {
+                        tex = (TtHmfTexRef*) -1;
+                    }
+                    if (limit < count - base) {
+                        base = count;
+                    }
+                    if (tex == (TtHmfTexRef*) -1) {
+                        w = h = 0;
+                    } else {
+                        w = tex->unk0C->unk24 << 5;
+                        h = tex->unk0C->unk26 << 5;
+                    }
+                    lighting = face->unk00 & 0x80;
+                    for (j = 0; j < n; j++) {
+                        pos = &obj->unk50[face->unk04[j]];
+                        if (lighting) {
+                            col = obj->unk88[face->unk2C[j]].unk05;
+                        } else {
+                            col = &obj->unk54[face->unk04[j] * 3];
+                        }
+                        s = w * face->unk0C[j];
+                        t = h * face->unk1C[j];
+                        vtx = &D_8010AEAC_tidal_toss[count - 1];
+                        for (k = count - 1; k >= base; k--, vtx--) {
+                            if (vtx->ob[0] == pos->x && vtx->ob[1] == pos->y && vtx->ob[2] == pos->z
+                                && (s8) vtx->cn[0] == (s8) col[0] && (s8) vtx->cn[1] == (s8) col[1]
+                                && (s8) vtx->cn[2] == (s8) col[2] && vtx->tc[0] == s && vtx->tc[1] == t) {
+                                break;
+                            }
+                        }
+                        if (k <= base) {
+                            vtx = &D_8010AEAC_tidal_toss[count];
+                            vtx->ob[0] = pos->x;
+                            vtx->ob[1] = pos->y;
+                            vtx->ob[2] = pos->z;
+                            vtx->cn[0] = col[0];
+                            vtx->cn[1] = col[1];
+                            vtx->cn[2] = col[2];
+                            vtx->tc[0] = s;
+                            vtx->tc[1] = t;
+                            vtx->cn[3] = 255;
+                            obj->unk5C[face->unk04[j]] = count;
+                            count++;
+                        } else {
+                            obj->unk5C[face->unk04[j]] = k;
+                        }
+                    }
+                }
+                obj->unk18 = count;
+                break;
+            case 1:
+                HuMemFree(obj->unk40);
+                for (i = 0; i < 3; i++) {
+                    HuMemFree(obj->unk44[i]);
+                }
+                obj->unk40 = HuMemAllocTag(obj->unk18 * sizeof(Vtx_t), obj->unk0E);
+                bcopy(D_8010AEAC_tidal_toss, obj->unk40, obj->unk18 * sizeof(Vtx_t));
+                for (i = 0; i < 3; i++) {
+                    obj->unk44[i] = HuMemAllocTag(obj->unk18 * sizeof(Vtx_t), obj->unk0E);
+                    bcopy(D_8010AEAC_tidal_toss, obj->unk44[i], obj->unk18 * sizeof(Vtx_t));
+                }
+                HuMemFree(D_8010AEAC_tidal_toss);
+                break;
+            case 2:
+                gfx = dl = HuMemAlloc(640 * sizeof(Gfx));
+                base = 0;
+                nb = 0;
+                limit = D_8010AA9C_tidal_toss[(model->unk18 & 0x1C00) >> 10];
+                top = 0;
+                flush = 0;
+                node = D_8010AEA8_tidal_toss;
+                for (i = 0; i < part->unk22; i++) {
+                    node = node->next;
+                    face = node->face;
+                    if (face == NULL) {
+                        continue;
+                    }
+                    n = face->unk00 & 0x7F;
+                    b = &batch[nb];
+                    b->n = n;
+                    for (j = 0; j < n; j++) {
+                        vi = obj->unk5C[face->unk04[j]];
+                        if (top < vi + 1) {
+                            top = vi + 1;
+                        }
+                        if (limit < top - base) {
+                            flush = 1;
+                        }
+                        b->v[j] = vi - base;
+                    }
+                    nb++;
+                    if (flush != 0 || i == part->unk22 - 1) {
+                        len = top - base;
+                        if (len > 32) {
+                            gSPVertex(gfx++, (Vtx*) 0x01000000 + base, 32, 0);
+                            gSPVertex(gfx++, (Vtx*) 0x01000000 + base + 32, len - 32, 32);
+                        } else {
+                            gSPVertex(gfx++, (Vtx*) 0x01000000 + base, len, 0);
+                        }
+                        for (j = 0; j < nb; j++) {
+                            b = &batch[j];
+                            if (b->n == 3) {
+                                if (j + 1 < nb && b[1].n == 3) {
+                                    gSP2Triangles(gfx++, b->v[0], b->v[1], b->v[2], 0, b[1].v[0], b[1].v[1], b[1].v[2], 0);
+                                    j++;
+                                } else {
+                                    gSP1Triangle(gfx++, b->v[0], b->v[1], b->v[2], 0);
+                                }
+                            } else {
+                                gSP2Triangles(gfx++, b->v[0], b->v[1], b->v[3], 0, b->v[3], b->v[1], b->v[2], 0);
+                            }
+                        }
+                        flush = 0;
+                        base = top;
+                        nb = 0;
+                    }
+                }
+                gSPEndDisplayList(gfx++);
+                len = gfx - dl;
+                D_8010AF3C_tidal_toss = HuMemAlloc(len * sizeof(Gfx));
+                bcopy(dl, D_8010AF3C_tidal_toss, len * sizeof(Gfx));
+                HuMemFree(dl);
+                HuMemFree(D_8010AEA8_tidal_toss);
+                D_8010AAA4_tidal_toss++;
+                break;
+        }
+        D_8010AAA8_tidal_toss++;
+        return;
+    }
+    gfx = *gfxP;
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_2CYCLE);
+    gDPPipeSync(gfx++);
+    gDPSetTexturePersp(gfx++, G_TP_PERSP);
+    gSPTexture(gfx++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+    gSPClearGeometryMode(gfx++, 0xFFFFFFFF);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_SHADING_SMOOTH);
+    gDPSetAlphaDither(gfx++, G_AD_PATTERN);
+    gDPSetBlendColor(gfx++, 0, 0, 0, 0);
+    gDPSetAlphaCompare(gfx++, G_AC_THRESHOLD);
+    guMtxL2F(mf, &((HuCamMtxs*) arg1)->lookAtMtx);
+    func_80017C10_main((Mtx*) mf, model->pos.x, model->pos.y, model->pos.z);
+    func_80017D24_main(mf, model->rot.x, model->rot.y, model->rot.z);
+    func_80017CD0_main(mf, model->scale.x, model->scale.y, model->scale.z);
+    func_80018044_main(model->mtx, mf, mf2);
+    guMtxF2L(mf2, &D_8010ADE8_tidal_toss[D_800D2008_main]);
+    gSPMatrix(gfx++, osVirtualToPhysical(&D_8010ADE8_tidal_toss[D_800D2008_main]), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    frame = func_8010AA1C_tidal_toss(D_8010AF3A_tidal_toss, 0);
+    spr = func_80055194_main(D_8010AF3A_tidal_toss);
+    gDPLoadTLUT_pal16(gfx++, 0, spr->unk0C);
+    gDPSetTextureLUT(gfx++, G_TT_RGBA16);
+    gDPLoadTextureBlock_4b(gfx++, frame->unk00, G_IM_FMT_CI, frame->unk04, frame->unk06, 0, G_TX_WRAP, G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
+    gDPLoadMultiBlock_4b(gfx++, frame->unk00, 0, 1, G_IM_FMT_CI, frame->unk04, frame->unk06, 0, G_TX_WRAP, G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
+    if (HmfPauseF == 0) {
+        D_8010AAAC_tidal_toss += 1.0;
+    }
+    gDPSetTileSize(gfx++, G_TX_RENDERTILE, 0, (s32) (D_8010AAAC_tidal_toss * 1.5 + 7.25) & 0x1FF,
+                   (frame->unk04 - 1) << G_TEXTURE_IMAGE_FRAC, (frame->unk06 - 1) << G_TEXTURE_IMAGE_FRAC);
+    gDPSetTileSize(gfx++, 1, 16, (s32) D_8010AAAC_tidal_toss & 0x1FF,
+                   (frame->unk04 - 1) << G_TEXTURE_IMAGE_FRAC, (frame->unk06 - 1) << G_TEXTURE_IMAGE_FRAC);
+    gDPSetRenderMode(gfx++, G_RM_PASS, G_RM_AA_ZB_XLU_SURF2);
+    gDPSetCombineLERP(gfx++, TEXEL0, TEXEL1, PRIMITIVE, TEXEL1, 0, 0, 0, SHADE, COMBINED, 0, SHADE, 0, 0, 0, 0, COMBINED);
+    gDPSetPrimColor(gfx++, 0, 0, 128, 128, 128, 176);
+    src = obj->unk40;
+    dst = obj->unk44[D_800D2008_main];
+    for (i = 0; i < obj->unk18; i++, src++, dst++) {
+        d = sqrtf((f64) (src->ob[0] * src->ob[0] + src->ob[2] * src->ob[2]));
+        *dst = *src;
+        dst->cn[0] = (f32) src->cn[0] * 0.5;
+        dst->cn[1] = (f32) src->cn[1] * 0.5;
+        dst->cn[2] = (f32) src->cn[2] * 0.5;
+        dst->cn[3] = 0x90;
+        if (d < 140.0 || d > 710.0) {
+            continue;
+        }
+        for (k2 = 0, sp = D_8010AF48_tidal_toss; k2 < 8; k2++, sp++) {
+            if (sp->unk10 == 0) {
+                continue;
+            }
+            save = *dst;
+            diff = sp->unk00 - d;
+            adiff = fabs(diff);
+            fd = d;
+            if (adiff >= 100.0) {
+                dst->ob[1] = src->ob[1];
+            } else if (((diff < 34.0) & (diff >= 0.0)) && dst->ob[2] > 0.0
+                       || ((diff > -34.0) & (diff <= 0.0)) && dst->ob[2] <= 0.0) {
+                dst->ob[0] = src->ob[0] / fd * sp->unk00;
+                dst->ob[1] = src->ob[1] + sp->unk04;
+                dst->ob[2] = src->ob[2] / fd * sp->unk00;
+                dst->cn[0] = src->cn[0];
+                dst->cn[1] = src->cn[1];
+                dst->cn[2] = src->cn[2];
+                dst->cn[3] = 0xFF;
+            } else {
+                f = 1.0 - adiff / 100.0;
+                f *= f;
+                dst->ob[1] = src->ob[1] + sp->unk04 * f;
+                c = f * 0.5 + 0.5;
+                dst->cn[0] = (f32) src->cn[0] * c;
+                dst->cn[1] = (f32) src->cn[1] * c;
+                dst->cn[2] = (f32) src->cn[2] * c;
+                dst->cn[3] = (u32) (f * 112.0 + 144.0);
+            }
+            if (dst->ob[1] < save.ob[1]) {
+                *dst = save;
+            }
+        }
+    }
+    gDPPipeSync(gfx++);
+    gSPSegment(gfx++, 1, osVirtualToPhysical(obj->unk44[D_800D2008_main]));
+    gSPDisplayList(gfx++, D_8010AF3C_tidal_toss);
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+    *gfxP = gfx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0A_tidal_toss/15C310", func_80106D24_tidal_toss);
+#endif
 
 /* Start a splash in the first free slot: its size by the distance d. */
 void func_80108460_tidal_toss(f32 d) {
