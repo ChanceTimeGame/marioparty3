@@ -86,6 +86,7 @@ void func_80105B04_merry_go_chomp(s32 player);
 void func_80105B7C_merry_go_chomp(s8 arg0);
 void func_8003F578_main(s16);
 void func_8003F5C0_main(void);
+void func_80088800_main(HuMtx4F mf, f32 x, f32 y, f32 z);
 extern s32 D_800EBE24_minigame;
 void osViBlack(u8 active);
 extern u16 D_800D530C_main;
@@ -199,6 +200,9 @@ s8 func_80107980_merry_go_chomp(void);
 void func_80107E34_merry_go_chomp(omObjData *obj);
 void func_801084C8_merry_go_chomp(void);
 void func_80108A88_merry_go_chomp(omObjData *obj);
+void func_801090B0_merry_go_chomp(omObjData *obj);
+void func_80109420_merry_go_chomp(void);
+void func_80109604_merry_go_chomp(void);
 void func_8010A9D0_merry_go_chomp(omObjData *obj);
 void func_8010AE24_merry_go_chomp(omObjData *obj);
 void func_8010AE2C_merry_go_chomp(omObjData *obj);
@@ -1220,11 +1224,107 @@ void func_80108A88_merry_go_chomp(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801090B0_merry_go_chomp);
+void func_801090B0_merry_go_chomp(omObjData *obj) {
+    u16 idx = obj->work[0];
+    McEnt *ent = MC_ENT(MC_ENT_PLAYER, idx);
+    u16 chr = GwPlayer[idx].chr;
 
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][3], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 2));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x15));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 8));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x8B));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x29));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0x7A));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 4));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x33));
+    func_8000B460_main(obj, 9, func_80017BB8_main(chr, 0x30));
+    func_8000B460_main(obj, 10, func_80017BB8_main(chr, 0x37));
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(*(HuMtx4F *)HmfModelData[obj->model[1]].mtx, 0.0f, 0.0f, 0.0f);
+    omSetTra(obj, D_8010C1B8_merry_go_chomp[obj->work[1]], 505.0f, D_8010C1C8_merry_go_chomp[obj->work[1]]);
+    omSetRot(obj, 0.0f, 330.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    ent->unk24 = 1.0f;
+    func_80105D38_merry_go_chomp(obj, 0, 2);
+    ent->unk06 = 0;
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    D_8010C420_merry_go_chomp[idx].dx = 0.0f;
+    D_8010C420_merry_go_chomp[idx].dz = 0.0f;
+    D_8010C420_merry_go_chomp[idx].rot = 0.0f;
+    D_8010C420_merry_go_chomp[idx].state = 0;
+    D_8010C420_merry_go_chomp[idx].timer = 0;
+    D_8010C420_merry_go_chomp[idx].jump = 0;
+    D_8010DEDD_merry_go_chomp = 0;
+    obj->work[3] = GwPlayer[idx].pad;
+    obj->func = func_80108A88_merry_go_chomp;
+}
+
+#ifdef NON_MATCHING
+/* masked 0: one store goes through s1 instead of v0 */
+void func_80109420_merry_go_chomp(void) {
+    u32 player = 0;
+    s8 order[4];
+    s8 unused[4]; /* retail frame has 8 more bytes of locals */
+    s8 i;
+    s8 k;
+    s32 n;
+    s8 r;
+    omObjData *obj;
+    McEnt *ent;
+
+    for (i = 0; i < 4; i++) {
+        order[i] = i;
+    }
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            player = 0;
+            break;
+        case 1:
+            player = 1;
+            break;
+        case 2:
+            player = 2;
+            break;
+        case 3:
+            player = 3;
+            break;
+        }
+        ent = MC_ENT(MC_ENT_PLAYER, i);
+        obj = omAddObj(800, 3, 12, -1, func_801090B0_merry_go_chomp);
+        obj->work[0] = player;
+        ent->obj = obj;
+        n = 4 - i;
+        r = func_80105CE4_merry_go_chomp(n);
+        obj->work[1] = order[r];
+        order[r] = -1;
+        for (k = 1; k < 4 - i; k++) {
+            if (order[k - 1] == -1) {
+                order[k - 1] = order[k];
+                order[k] = -1;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109420_merry_go_chomp);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109604_merry_go_chomp);
+void func_80109604_merry_go_chomp(void) {
+    s8 i;
+    McEnt *ent;
+
+    for (i = 0; i < 4; i++) {
+        ent = MC_ENT(MC_ENT_PLAYER, i);
+        GwPlayer[ent->obj->work[0]].bonusCoin = ent->unk0E;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80109670_merry_go_chomp);
 
