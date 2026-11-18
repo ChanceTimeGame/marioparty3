@@ -40,7 +40,7 @@ typedef struct {
 typedef struct {
     /* 0x000 */ PlayerView *views;
     /* 0x004 */ char unk04[0x1A0];
-    /* 0x1A4 */ u8 unk1A4[0x30]; // mtx?
+    /* 0x1A4 */ s8 unk1A4[0x30]; // mtx?
 } MinigameData;                  // Size 0x1D4
 
 typedef struct {
@@ -58,6 +58,7 @@ void m254_CreateMinigame(void);
 void m254_CheckExitRequest(omObjData *object);
 void m254_WaitExitWipeOut(omObjData *object);
 void m254_ExitOverlay(omObjData *object);
+void func_80105F04_motor_rooter(void);
 void func_80106044_motor_rooter(omObjData *object);
 void func_80106298_motor_rooter(omObjData *object);
 void func_801062BC_motor_rooter(omObjData *object);
@@ -188,7 +189,25 @@ void m254_ExitOverlay(omObjData *object) {
     omOvlReturnEx(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80105F04_motor_rooter);
+/* <func_80105F04_motor_rooter> */
+void func_80105F04_motor_rooter(void) {
+    s16 i;
+
+    for (i = 0; i < PLAYERS_TOTAL; i++) {
+        if (CRotM[i].x > 360.0f) {
+            CRotM[i].x -= 360.0f;
+        } else if (CRotM[i].x < 0.0f) {
+            CRotM[i].x += 360.0f;
+        }
+        if (CRotM[i].y > 360.0f) {
+            CRotM[i].y -= 360.0f;
+        } else if (CRotM[i].y < 0.0f) {
+            CRotM[i].y += 360.0f;
+        }
+    }
+    m254_UpdateFuncGroup(FGRP_CAMERA);
+}
+/* </func_80105F04_motor_rooter> */
 
 void func_80106044_motor_rooter(omObjData *object) {
     s16 i;
@@ -211,9 +230,48 @@ void func_80106044_motor_rooter(omObjData *object) {
     object->func = func_80106298_motor_rooter;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_80106298_motor_rooter);
+/* <func_80106298_motor_rooter> */
+void func_80106298_motor_rooter(omObjData *object) {
+    m254_UpdateFuncGroup(1);
+    func_80105F04_motor_rooter();
+}
+/* </func_80106298_motor_rooter> */
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801062BC_motor_rooter);
+/* <func_801062BC_motor_rooter> */
+typedef struct {
+    s32 f[2][2];
+} MrFileTbl;
+extern MrFileTbl D_80113608_motor_rooter;
+void func_801064EC_motor_rooter(omObjData *object);
+
+void func_801062BC_motor_rooter(omObjData *object) {
+    s32 attr = 0x99;
+    MrFileTbl files = D_80113608_motor_rooter;
+    s16 counts[2] = { 2, 2 };
+    s16 var_a1;
+    s16 i;
+
+    object->work[0] = m254_minigame->unk1A4[0];
+    for (i = 0; i < counts[D_801137CE_motor_rooter]; i++) {
+        if (object->work[0] == 0) {
+            object->model[i] = func_8000B108_main(files.f[D_801137CE_motor_rooter][i] | 0x570000, attr);
+        } else {
+            object->model[i] = Hu3DModelLink(D_800EC1C0_minigame[0]->model[i]);
+        }
+        Hu3DModelPosSet(object->model[i], 0.0f, 0.0f, 0.0f);
+    }
+    m254_SyncWithModel(object);
+    var_a1 = 2;
+    if (object->work[0] == 0) {
+        var_a1 = 1;
+    }
+    for (i = 0; i < counts[D_801137CE_motor_rooter]; i++) {
+        func_8001C8A8_main(object->model[i], var_a1);
+    }
+    m254_minigame->unk1A4[0]++;
+    object->func = func_801064EC_motor_rooter;
+}
+/* </func_801062BC_motor_rooter> */
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_801064EC_motor_rooter);
 
