@@ -936,7 +936,8 @@ segments:
     subsegments:
       - [0x191240, c]
       - [0x19CAC0, .data, 191240] #80111220
-      - [0x19CEE0, .rodata, 191240] #80111640
+      - [0x19CED0, .rodata, 191240] #80111630
+      - [0x19CEE0, rodata] #80111640 (16-aligned: another object in retail)
       - {0x19CEF0, type: bss, vram: 0x80111650, name: ovl_11_bss}
 
   - type: code

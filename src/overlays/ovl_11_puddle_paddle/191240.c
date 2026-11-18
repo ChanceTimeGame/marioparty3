@@ -847,10 +847,7 @@ void func_80107638_puddle_paddle(PpCtx* ctx, PpTask* task) {
     }
 }
 
-/* The timer. NON_MATCHING only because of the data split: GCC folds timer / 30.0f to the double 30.0 and gas puts
-   that li.d literal in this unit's .rodata, which is D_80111630_puddle_paddle (the yaml has it at the end of .data).
-   The code is identical once the unit's .rodata starts at 0x19CED0 and D_80111630 is not also defined as data. */
-#ifdef NON_MATCHING
+/* The timer: 900 frames; retail passes the seconds as a double where GMesCreate reads an int. */
 void func_8010788C_puddle_paddle(PpCtx* ctx, PpTask* task) {
     if (task->state == 0) {
         D_80111658_puddle_paddle->timer = 900.0f;
@@ -869,9 +866,6 @@ void func_8010788C_puddle_paddle(PpCtx* ctx, PpTask* task) {
         func_8010BAA8_puddle_paddle(PP_WORK(ctx->object)->b.group, task);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010788C_puddle_paddle);
-#endif
 
 
 /* The start */
@@ -2647,8 +2641,8 @@ void func_8010EEB8_puddle_paddle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 a
     gSPEndDisplayList(&temp_s0[7]);
 }
 
-const f64 D_80111640_puddle_paddle = 32.0;
-const f64 D_80111648_puddle_paddle = 0.5;
+extern const f64 D_80111640_puddle_paddle; /* 32.0, in the 19CEE0 rodata */
+extern const f64 D_80111648_puddle_paddle; /* 0.5 */
 
 s16 func_8010EFEC_puddle_paddle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
     Vtx *temp_s7;
@@ -3440,5 +3434,4 @@ PpHandNames D_80111414_puddle_paddle = { {
     { "C002_000b-bmerge14", "C002_000b-bmerge16" },
 } };
 PpTeamPos D_80111614_puddle_paddle = { { { -300.0f, 200.0f, 0.0f }, { 300.0f, 200.0f, 0.0f } } };
-f64 D_80111630_puddle_paddle = 30.0; // passed to GMesCreate's varargs (the asm reads it as two words)
 // end m1 pp3 .data
