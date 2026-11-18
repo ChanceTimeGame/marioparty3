@@ -191,12 +191,14 @@ extern Vec D_8010BDE0_hyper_hydrants;
 extern Vec D_8010BDEC_hyper_hydrants;
 extern Vec D_8010BDF8_hyper_hydrants;
 extern Vec D_8010BE04_hyper_hydrants;
+extern s8 D_8010BE10_hyper_hydrants[4]; /* fires lit per team (index into the layout row) */
 extern f32 D_8010BE28_hyper_hydrants;
 extern f32 D_8010BE2C_hyper_hydrants;
 extern s8 D_8010BE24_hyper_hydrants;
 extern s8 D_8010BE25_hyper_hydrants;
 extern s8 D_8010BE34_hyper_hydrants;
 extern s8 D_8010BE38_hyper_hydrants[3][16]; /* fire size class per layout, team slot */
+extern s8 D_8010BE68_hyper_hydrants[2]; /* a fire came back this second, per team */
 extern char D_8010BEF0_hyper_hydrants[]; /* "c201n_00_DEF" */
 extern s8 D_8010BE35_hyper_hydrants;
 extern s32 D_8010BE30_hyper_hydrants;
@@ -1531,13 +1533,272 @@ void func_801099A0_hyper_hydrants(omObjData* obj) {
     Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109B30_hyper_hydrants);
+/* A fire's intro: after the drop-in lands it hops out of it (two arcs of 200) along its lane. */
+void func_80109B30_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    s32 ph;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109E44_hyper_hydrants);
+    fd = obj->data;
+    ph = 0;
+    if (!(D_8010BFE0_hyper_hydrants[fd->unk02]->trans.y > 0.0f)) {
+        if (fd->unk14 == 0.0f) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 0);
+        } else if (fd->unk14 < 720.0f) {
+            ph = (s32)fd->unk14 % 360;
+            obj->trans.y = sindf(fd->unk14) * 200.0f;
+        } else {
+            obj->trans.y = 0.0f;
+        }
+        switch (fd->unk00) {
+            case 0:
+                obj->trans.z += 6.0f;
+                if (fd->unk14 < 720.0f) {
+                    fd->unk14 += 8.0f;
+                    if (ph >= 180) {
+                        fd->unk14 += 180.0f;
+                    }
+                }
+                break;
+            case 1:
+                obj->trans.x -= 1.5f;
+                obj->trans.z += 8.0f;
+                if (fd->unk14 < 720.0f) {
+                    fd->unk14 += 10.0f;
+                    if (ph >= 180) {
+                        fd->unk14 += 180.0f;
+                    }
+                }
+                break;
+            case 2:
+                obj->trans.x += 1.5f;
+                obj->trans.z += 8.0f;
+                if (fd->unk14 < 720.0f) {
+                    fd->unk14 += 10.0f;
+                    if (ph >= 180) {
+                        fd->unk14 += 180.0f;
+                    }
+                }
+                break;
+            case 3:
+                obj->trans.x -= 1.5f;
+                obj->trans.z += 5.0f;
+                if (fd->unk14 < 720.0f) {
+                    fd->unk14 += 6.0f;
+                    if (ph >= 180) {
+                        fd->unk14 += 180.0f;
+                    }
+                }
+                break;
+            default:
+                obj->trans.x += 1.5f;
+                obj->trans.z += 5.0f;
+                if (fd->unk14 < 720.0f) {
+                    fd->unk14 += 6.0f;
+                    if (ph >= 180) {
+                        fd->unk14 += 180.0f;
+                    }
+                }
+                break;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A2D4_hyper_hydrants);
+/* A fire while playing: a put-out fire comes back from the building once a second; a live one grows to its size,
+   wanders up and down the yard (z -500 .. -200) and side to side within its half of the screen. */
+void func_80109E44_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    Vec pos;
+    Vec2f scr;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A458_hyper_hydrants);
+    fd = obj->data;
+    if (fd->unk01 == 0) {
+        if (func_800E6E9C_minigame() % 60 == 0) {
+            if (D_8010BE68_hyper_hydrants[fd->unk02] == 0) {
+                func_8010A2D4_hyper_hydrants(obj);
+                func_8010BC80_hyper_hydrants(0x365, fd->unk02, 0, 0);
+                D_8010BE68_hyper_hydrants[fd->unk02] = 1;
+                ((HhFire*)D_8010BFE0_hyper_hydrants[fd->unk02]->data)->unk03 = 1;
+                goto move;
+            }
+        } else {
+            D_8010BE68_hyper_hydrants[fd->unk02] = 0;
+        }
+        return;
+    }
+    if (fd->unk05 == 1) {
+        obj->scale.x += 0.05f;
+        switch (fd->unk01) {
+            case 1:
+                if (obj->scale.x > 1.0f) {
+                    obj->scale.x = 1.0f;
+                    fd->unk05 = 0;
+                }
+                break;
+            case 2:
+                if (obj->scale.x > 1.25f) {
+                    obj->scale.x = 1.25f;
+                    fd->unk05 = 0;
+                }
+                break;
+            case 3:
+                if (obj->scale.x > 1.5f) {
+                    obj->scale.x = 1.5f;
+                    fd->unk05 = 0;
+                }
+                break;
+        }
+        obj->scale.y = obj->scale.z = obj->scale.x;
+        fd->unk0C = obj->scale.x / 2.0f;
+    }
+move:
+    if (fd->unk06 == 2) {
+        obj->trans.z += 2.0f;
+        if (obj->trans.z > -500.0f) {
+            fd->unk06 = 0;
+        }
+    } else if (fd->unk0A == 0) {
+        fd->unk0A = (rand8() >> 5) * 15;
+        if ((rand8() >> 7) == 0) {
+            fd->unk06 ^= 1;
+        }
+    } else {
+        fd->unk0A--;
+        if (fd->unk06 == 0) {
+            if (obj->trans.z > -200.0f) {
+                fd->unk06 ^= 1;
+            }
+        } else if (fd->unk06 == 1) {
+            if (obj->trans.z < -500.0f) {
+                fd->unk06 ^= 1;
+            }
+        }
+    }
+    if (fd->unk06 == 0) {
+        obj->trans.z += 3.0f;
+    } else if (fd->unk06 == 1) {
+        obj->trans.z -= 3.0f;
+    }
+    if (fd->unk08 == 0) {
+        fd->unk03 ^= 1;
+        fd->unk08 = (rand8() >> 5) * 15;
+    } else {
+        fd->unk08--;
+        pos.x = obj->trans.x;
+        pos.y = obj->trans.y;
+        pos.z = obj->trans.z;
+        if (fd->unk02 == 0) {
+            Hu3DCam3DToScreen(0, &pos, &scr);
+            if (fd->unk03 == 0 && scr.x < 119.0f) {
+                fd->unk03 ^= 1;
+            } else if (fd->unk03 == 1 && scr.x > 225.0f) {
+                fd->unk03 ^= 1;
+            }
+        } else {
+            Hu3DCam3DToScreen(1, &pos, &scr);
+            if (fd->unk03 == 0 && scr.x < 95.0f) {
+                fd->unk03 ^= 1;
+            } else if (fd->unk03 == 1 && scr.x > 201.0f) {
+                fd->unk03 ^= 1;
+            }
+        }
+    }
+    if (fd->unk03 != 0) {
+        obj->trans.x += 4.0f;
+    } else {
+        obj->trans.x -= 4.0f;
+    }
+}
+
+/* Bring a put-out fire back at the building with the next size from the layout table. */
+void func_8010A2D4_hyper_hydrants(omObjData* obj) {
+    HhFire* fd;
+    s8 i;
+    s8 size;
+
+    fd = obj->data;
+    i = D_8010BE10_hyper_hydrants[fd->unk02]++;
+    if (i >= 16) {
+        i %= 16;
+    }
+    size = D_8010BE38_hyper_hydrants[D_8010C010_hyper_hydrants][i];
+    fd->unk10 = 50.0f;
+    fd->unk18 = 0;
+    fd->unk1A = 0;
+    fd->unk05 = 1;
+    fd->unk06 = 2;
+    obj->trans.x = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.x;
+    obj->trans.z = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.z;
+    obj->trans.y = 0.0f;
+    obj->scale.z = 0.1f;
+    obj->scale.y = 0.1f;
+    obj->scale.x = 0.1f;
+    switch (size) {
+        case 0:
+            fd->unk0C = obj->scale.x / 2.0f;
+            fd->unk01 = 1;
+            break;
+        case 1:
+            fd->unk0C = obj->scale.x / 2.0f;
+            fd->unk01 = 2;
+            break;
+        case 2:
+        default:
+            fd->unk0C = obj->scale.x / 2.0f;
+            fd->unk01 = 3;
+            break;
+    }
+}
+
+/* A fire being put out shrinks a size class; at the smallest it goes out and the team scores. */
+void func_8010A458_hyper_hydrants(omObjData* obj) {
+    HhFire* fd = obj->data;
+
+    switch (fd->unk01) {
+        case 3:
+            if (obj->scale.x <= 1.25f) {
+                obj->scale.x = obj->scale.y = obj->scale.z = fd->unk0C = 1.25f;
+                fd->unk04 = 0;
+                fd->unk01--;
+            } else {
+                obj->scale.y = obj->scale.z = fd->unk0C = obj->scale.x = obj->scale.x - 0.05f;
+            }
+            break;
+        case 2:
+            if (obj->scale.x <= 1.0f) {
+                obj->scale.x = obj->scale.y = obj->scale.z = fd->unk0C = 1.0f;
+                fd->unk04 = 0;
+                fd->unk01--;
+            } else {
+                obj->scale.y = obj->scale.z = fd->unk0C = obj->scale.x = obj->scale.x - 0.05f;
+            }
+            break;
+        case 1:
+            if (obj->scale.x <= 0.0f) {
+                obj->trans.z = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.z;
+                obj->scale.x = obj->scale.y = obj->scale.z = fd->unk0C = fd->unk10 = 0.0f;
+                fd->unk04 = 0;
+                fd->unk01--;
+                if (fd->unk02 == 0) {
+                    D_8010BE24_hyper_hydrants++;
+                    func_8010BC80_hyper_hydrants(0x364, fd->unk02, 1, D_8010BFAA_hyper_hydrants);
+                } else {
+                    D_8010BE25_hyper_hydrants++;
+                    func_8010BC80_hyper_hydrants(0x364, fd->unk02, 1, D_8010BFAB_hyper_hydrants);
+                }
+                if (fd->unk02 == 0) {
+                    omVibrate(D_8010BFA8_hyper_hydrants, 2, 3, 10);
+                    omVibrate(D_8010BFAA_hyper_hydrants, 2, 3, 10);
+                } else {
+                    omVibrate(D_8010BFA9_hyper_hydrants, 2, 3, 10);
+                    omVibrate(D_8010BFAB_hyper_hydrants, 2, 3, 10);
+                }
+            } else {
+                obj->scale.y = obj->scale.z = fd->unk0C = obj->scale.x = obj->scale.x - 0.1f;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A68C_hyper_hydrants);
 
