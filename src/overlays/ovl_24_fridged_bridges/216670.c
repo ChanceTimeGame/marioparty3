@@ -42,7 +42,7 @@ typedef struct FbPlayer {
     /* 0x44 */ f32 unk44; /* hook scale */
     /* 0x48 */ u16 unk48; /* footstep sound timer */
     /* 0x4A */ u16 unk4A; /* slide sound timer */
-    /* 0x4C */ char unk4C[4];
+    /* 0x4C */ f32 unk4C; /* CPU speed factor */
     /* 0x50 */ f32 unk50; /* splash scale */
     /* 0x54 */ u16 unk54; /* splash timer */
     /* 0x56 */ s16 unk56;
@@ -134,6 +134,10 @@ extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern s32 D_800A178C_main[][6];
 extern u16 D_8010CFF4_fridged_bridges[];
+extern FbUV D_8010CFFC_fridged_bridges[3][12]; /* bridge path points (x, z), player 0's quarter */
+extern FbUV D_8010D11C_fridged_bridges[12];
+extern FbUV D_8010D3A0_fridged_bridges[4][3][12]; /* per player: bridge path points */
+extern FbUV D_8010D820_fridged_bridges[4][12];
 extern u8 D_800D6A90_main;
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
@@ -766,7 +770,33 @@ void func_8010775C_fridged_bridges(omObjData *obj) {
     obj->func = NULL;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80107870_fridged_bridges);
+void func_80107870_fridged_bridges(void) {
+    f32 sign[8];
+    s32 i;
+    s32 j;
+    s32 k;
+
+    sign[0] = 1.0f;
+    sign[1] = -1.0f;
+    sign[2] = 1.0f;
+    sign[3] = -1.0f;
+    sign[4] = 1.0f;
+    sign[5] = 1.0f;
+    sign[6] = -1.0f;
+    sign[7] = -1.0f;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            for (k = 0; k < 12; k++) {
+                D_8010D3A0_fridged_bridges[i][j][k].u = D_8010CFFC_fridged_bridges[j][k].u * sign[i];
+                D_8010D3A0_fridged_bridges[i][j][k].v = D_8010CFFC_fridged_bridges[j][k].v * sign[i + 4];
+            }
+        }
+        for (k = 0; k < 12; k++) {
+            D_8010D820_fridged_bridges[i][k].u = D_8010D11C_fridged_bridges[k].u * sign[i];
+            D_8010D820_fridged_bridges[i][k].v = D_8010D11C_fridged_bridges[k].v * sign[i + 4];
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", D_8010D2D8_fridged_bridges);
 
