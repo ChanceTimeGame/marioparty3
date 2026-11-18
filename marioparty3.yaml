@@ -1134,7 +1134,7 @@ segments:
     bss_size: 0x140
     subsegments:
       - [0x1FE4D0, c]
-      - [0x204DB0, data, 1FE4D0] #8010C280
+      - [0x204DB0, .data, 1FE4D0] #8010C280
       - [0x204EC0, .rodata, 1FE4D0] #8010C390
       - {0x204F90, type: bss, vram: 0x8010C460, name: ovl_20_bss}
 

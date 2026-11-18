@@ -206,20 +206,12 @@ void func_80108810_the_beat_goes_on(omObjData* obj);
 void func_80106BE0_the_beat_goes_on(omObjData* obj);
 Vec* func_8010C1A4_the_beat_goes_on(Vec* out, Vec* from, Vec* to);
 
-extern u8 D_8010C280_the_beat_goes_on; /* drum phase */
-extern u8 D_8010C284_the_beat_goes_on[24][4]; /* start slot per player, one row per permutation */
-extern s32 D_8010C2E4_the_beat_goes_on;
-extern s32 D_8010C2E8_the_beat_goes_on;
-extern s8 D_8010C2EC_the_beat_goes_on;
 
 extern s16 D_8010C460_the_beat_goes_on;
 extern s16 D_8010C462_the_beat_goes_on;
 extern s16 D_8010C464_the_beat_goes_on;
 extern s16 D_8010C466_the_beat_goes_on; /* drums made; D_8010C467 is its low byte */
 extern u16 D_8010C468_the_beat_goes_on;
-extern s16 D_8010C2F0_the_beat_goes_on[8][2]; /* sprite frame origin */
-extern u8 D_8010C310_the_beat_goes_on; /* camera step */
-extern s8 D_8010C311_the_beat_goes_on; /* players made */
 extern BgNote D_8010C4A0_the_beat_goes_on[16];
 extern s8 D_8010C4E8_the_beat_goes_on;
 extern s8 D_8010C4E9_the_beat_goes_on; /* note index */
@@ -229,21 +221,6 @@ extern u16 D_8010C4FA_the_beat_goes_on;
 extern s8 D_8010C46A_the_beat_goes_on;
 extern f32 D_8010C470_the_beat_goes_on;
 extern u16 D_8010C46C_the_beat_goes_on;
-extern s32 D_8010C328_the_beat_goes_on[4][4];
-extern f32 D_8010C378_the_beat_goes_on; /* cursor x */
-extern f32 D_8010C37C_the_beat_goes_on; /* note pulse angle */
-extern f32 D_8010C380_the_beat_goes_on; /* frame pulse angle */
-extern s8 D_8010C384_the_beat_goes_on;  /* frame pulse frames left */
-extern f32 D_8010C314_the_beat_goes_on; /* sign height */
-extern f32 D_8010C318_the_beat_goes_on;
-extern s8 D_8010C31C_the_beat_goes_on;  /* players left */
-extern s8 D_8010C31D_the_beat_goes_on;  /* note sign shown */
-extern s8 D_8010C31E_the_beat_goes_on;  /* camera step */
-extern s8 D_8010C31F_the_beat_goes_on;  /* someone is out */
-extern s8 D_8010C320_the_beat_goes_on;
-extern s8 D_8010C321_the_beat_goes_on;
-extern s32 D_8010C324_the_beat_goes_on;
-extern f32 D_8010C368_the_beat_goes_on[4];
 extern s8 D_8010C474_the_beat_goes_on;
 extern s8 D_8010C475_the_beat_goes_on; /* note slot pulsing */
 extern BgCtrl D_8010C478_the_beat_goes_on;
@@ -264,6 +241,41 @@ extern u16 D_8010C518_the_beat_goes_on[15];
 extern u16 D_8010C538_the_beat_goes_on[16];
 extern u16 D_8010C558_the_beat_goes_on[16];
 extern u16 D_8010C578_the_beat_goes_on[16];
+
+
+// .data
+u8 D_8010C280_the_beat_goes_on = 0; /* drum phase */
+u8 D_8010C284_the_beat_goes_on[24][4] = { /* start slot per player, one row per permutation */
+    { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 }, { 0, 3, 2, 1 },
+    { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 1, 2, 3, 0 }, { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 1, 3, 2, 0 },
+    { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 2, 1, 0, 3 }, { 2, 1, 3, 0 }, { 2, 3, 0, 1 }, { 2, 3, 1, 0 },
+    { 3, 0, 1, 2 }, { 3, 0, 2, 1 }, { 3, 1, 0, 2 }, { 3, 1, 2, 0 }, { 3, 2, 0, 1 }, { 3, 2, 1, 0 },
+};
+s32 D_8010C2E4_the_beat_goes_on = 0;
+s32 D_8010C2E8_the_beat_goes_on = 0;
+s8 D_8010C2EC_the_beat_goes_on = 0;
+s16 D_8010C2F0_the_beat_goes_on[8][2] __attribute__((aligned(4))) = { /* sprite frame origin */
+    { 26, 15 }, { 26, 14 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 26, 13 }, { 27, 12 }, { 27, 12 },
+};
+u8 D_8010C310_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C311_the_beat_goes_on = 0; /* players made */
+f32 D_8010C314_the_beat_goes_on = -90.0f; /* sign height */
+f32 D_8010C318_the_beat_goes_on = 0.0f;
+s8 D_8010C31C_the_beat_goes_on = 4; /* players left */
+s8 D_8010C31D_the_beat_goes_on = 0; /* note sign shown */
+s8 D_8010C31E_the_beat_goes_on = 0; /* camera step */
+s8 D_8010C31F_the_beat_goes_on = 0; /* someone is out */
+s8 D_8010C320_the_beat_goes_on = 0;
+s8 D_8010C321_the_beat_goes_on = 0;
+s32 D_8010C324_the_beat_goes_on = 0;
+s32 D_8010C328_the_beat_goes_on[4][4] = { /* hit puff frame per player */
+    { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 }, { 0, -2, -4, -6 },
+};
+f32 D_8010C368_the_beat_goes_on[4] = { 0.5f, 1.0f, 1.5f, 2.0f };
+f32 D_8010C378_the_beat_goes_on = 20.0f; /* cursor x */
+f32 D_8010C37C_the_beat_goes_on = 0.0f;  /* note pulse angle */
+f32 D_8010C380_the_beat_goes_on = 0.0f;  /* frame pulse angle */
+s8 D_8010C384_the_beat_goes_on = 90;     /* frame pulse frames left */
 
 void func_801059A0_the_beat_goes_on(void) {
     omObjData* obj;
