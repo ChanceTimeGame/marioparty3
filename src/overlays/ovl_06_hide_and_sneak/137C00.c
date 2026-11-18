@@ -53,6 +53,29 @@ typedef struct HsEnt {
 extern HsEnt D_8010C7A0_hide_and_sneak[50];
 #define HS_ENT(base, i) (&(D_8010C7A0_hide_and_sneak + (base))[i])
 
+/* The computer solo player's wander state (func_80106ABC_hide_and_sneak). */
+typedef struct HsAuto {
+    /* 0x00 */ s8 active;
+    /* 0x01 */ s8 state;
+    /* 0x02 */ s8 stick;
+    /* 0x03 */ s8 count;
+    /* 0x04 */ s8 limit;
+    /* 0x05 */ s8 turns;
+    /* 0x06 */ s8 maxTurns;
+    /* 0x07 */ s8 slot;
+} HsAuto;
+
+/* .data */
+extern s16 D_8010C370_hide_and_sneak[5][4];
+extern s32 D_8010C398_hide_and_sneak[8];
+/* .bss */
+extern s8 D_8010C782_hide_and_sneak;
+extern HsAuto D_8010E168_hide_and_sneak;
+
+void func_80105B3C_hide_and_sneak(s32 player);
+s32 func_801064F4_hide_and_sneak(s32 max);
+void func_801065B0_hide_and_sneak(omObjData *obj, u16 motion, s16 start, s16 end, s16 attr);
+
 void func_8000BC48_main(u16, s32);
 omObjData *func_80045ED0_main(u32 arg0);
 s32 func_8000B710_main(s32 arg0);
@@ -207,7 +230,77 @@ void func_80105D94_hide_and_sneak(f32 x0, f32 z0, f32 x1, f32 z1) {
     osSyncPrintf("Rot  = %f\n", 360.0f - rot);
 }
 
+#ifdef NON_MATCHING
+void func_80105EC4_hide_and_sneak(s32 conNo) {
+    s16 i;
+
+    if ((u16)conNo >= 4) {
+        osSyncPrintf("\n ConNo False! \n");
+        return;
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x400) {
+        for (i = 0; i < 2; i++) {
+            CRotM[i].x = func_801059BC_hide_and_sneak(CRotM[i].x, 1.0f);
+        }
+    }
+    /* retail reads player 0's pad here, not conNo's */
+    if (D_800CDA7C_main[GwPlayer[0].pad] & 0x800) {
+        for (i = 0; i < 2; i++) {
+            CRotM[i].x = func_801059BC_hide_and_sneak(CRotM[i].x, -1.0f);
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x200) {
+        for (i = 0; i < 2; i++) {
+            CRotM[i].y = func_801059BC_hide_and_sneak(CRotM[i].y, 1.0f);
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x100) {
+        for (i = 0; i < 2; i++) {
+            CRotM[i].y = func_801059BC_hide_and_sneak(CRotM[i].y, -1.0f);
+        }
+    }
+    if ((u16)D_800CDA7C_main[(s16)conNo] & 0x8000) {
+        for (i = 0; i < 2; i++) {
+            CZoomM[i] += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 0x4000) {
+        for (i = 0; i < 2; i++) {
+            CZoomM[i] -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 2) {
+        for (i = 0; i < 2; i++) {
+            CenterM[i].x -= 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 1) {
+        for (i = 0; i < 2; i++) {
+            CenterM[i].x += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 8) {
+        for (i = 0; i < 2; i++) {
+            CenterM[i].y += 10.0f;
+        }
+    }
+    if (D_800CDA7C_main[(s16)conNo] & 4) {
+        for (i = 0; i < 2; i++) {
+            CenterM[i].y -= 10.0f;
+        }
+    }
+    if (D_800D5558_main[(s16)conNo] & 0x2000) {
+        osSyncPrintf("\n");
+        for (i = 0; i < 2; i++) {
+            osSyncPrintf("CameraNo / %d   Zoom / %f\n", i, CZoomM[i]);
+            osSyncPrintf("Rot:   X / %f   Y / %f   Z / %f\n", CRotM[i].x, CRotM[i].y, CRotM[i].z);
+            osSyncPrintf("Center:   X / %f   Y / %f   Z / %f\n", CenterM[i].x, CenterM[i].y, CenterM[i].z);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105EC4_hide_and_sneak);
+#endif
 
 s32 func_801064F4_hide_and_sneak(s32 max) {
     return rand8() % max;
@@ -286,9 +379,88 @@ void func_80106960_hide_and_sneak(void) {
     D_8010C7A0_hide_and_sneak[0].obj = omAddObj(500, 4, 2, -1, func_80106738_hide_and_sneak);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_8010699C_hide_and_sneak);
+void func_8010699C_hide_and_sneak(omObjData *obj, s8 motion) {
+    HsEnt *ent = HS_ENT(1, 0);
+    s16 attr = 0;
 
+    if (ent->unk06 != motion) {
+        switch (motion) {
+            case 0:
+            case 1:
+            case 3:
+                attr = 2;
+                break;
+            case 2:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                attr = 0;
+                break;
+        }
+        func_8001C92C_main(obj->model[0], 1.0f);
+        func_801065B0_hide_and_sneak(obj, motion, 0, 10, attr);
+        if (motion == 6) {
+            func_80045ED0_main((D_8010C398_hide_and_sneak[GwPlayer[obj->work[0]].chr] << 16) | 0x30);
+        }
+        ent->unk06 = motion;
+    }
+}
+
+#ifdef NON_MATCHING
+s32 func_80106ABC_hide_and_sneak(omObjData *obj) {
+    HsAuto *a = &D_8010E168_hide_and_sneak;
+    s8 stick;
+
+    if (a->active != 0) {
+        func_80105B3C_hide_and_sneak(obj->work[0]);
+        switch (a->state) {
+            case 0:
+                a->turns = 0;
+                a->maxTurns = func_801064F4_hide_and_sneak(9 - D_8010C782_hide_and_sneak);
+                a->stick = func_801064F4_hide_and_sneak(2) * 40 - 20;
+                a->count = 0;
+                a->limit = (D_8010C782_hide_and_sneak - 1) * 9;
+                a->slot = func_801064F4_hide_and_sneak(D_8010C782_hide_and_sneak);
+                a->state++;
+                break;
+            case 1:
+                D_800CBB6E_main[obj->work[3]] = a->stick;
+                a->count++;
+                if (a->count >= a->limit) {
+                    a->turns++;
+                    if (a->turns >= a->maxTurns) {
+                        a->state = 2;
+                    } else {
+                        a->stick = -a->stick;
+                        a->count = 0;
+                        a->limit = (D_8010C782_hide_and_sneak - 1) * 18;
+                    }
+                }
+                break;
+            case 2:
+                if (D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][a->slot] < obj->trans.x) {
+                    stick = -20;
+                } else if (obj->trans.x < D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][a->slot]) {
+                    stick = 20;
+                } else {
+                    if (obj->trans.x == D_8010C370_hide_and_sneak[D_8010C782_hide_and_sneak][a->slot]) {
+                        a->state = 0;
+                        return 1;
+                    }
+                    break;
+                }
+                D_800CBB6E_main[obj->work[3]] = stick;
+                break;
+            default:
+                return 0;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106ABC_hide_and_sneak);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80106D10_hide_and_sneak);
 
