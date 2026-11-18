@@ -219,6 +219,10 @@ void func_80108D6C_baby_bowser_bonkers(BkBlock* b);
 void func_80108F9C_baby_bowser_bonkers(BkBlock* b);
 void func_80108A0C_baby_bowser_bonkers(BkBlock* b);
 BkBlock* func_8010919C_baby_bowser_bonkers(s32 id);
+s32 func_801080D0_baby_bowser_bonkers(f32 x, f32 z);
+s32 func_80109388_baby_bowser_bonkers(BkBlock* b, s32 margin);
+extern BkPattern** D_8010B8F8_baby_bowser_bonkers[4]; /* patterns by level */
+extern s32 D_8010B908_baby_bowser_bonkers[4]; /* pattern counts by level */
 // end m3 bk
 
 const s16 D_8010B950_baby_bowser_bonkers[] = { 0x8272, 0x8273, 0x8260, 0x8271, 0x8273, 0x0000 };
@@ -1073,19 +1077,155 @@ BkBlock* func_8010919C_baby_bowser_bonkers(s32 id) {
     return NULL;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801091D4_baby_bowser_bonkers);
+/* Fills list[14] with the blocks, nearest to (x, z) first. */
+void func_801091D4_baby_bowser_bonkers(f32 x, f32 z, BkBlock** list) {
+    HmfModel* ma;
+    HmfModel* mb;
+    BkBlock* tmp;
+    f32 dx;
+    f32 dz;
+    f32 da;
+    s32 i;
+    s32 j;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109388_baby_bowser_bonkers);
+    for (i = 0; i < 14; i++) {
+        list[i] = &D_8010BC60_baby_bowser_bonkers[i];
+    }
+    for (i = 0; i < 13; i++) {
+        for (j = i + 1; j < 14; j++) {
+            ma = &HmfModelData[list[i]->model];
+            mb = &HmfModelData[list[j]->model];
+            dx = ma->pos.x - x;
+            dz = ma->pos.z - z;
+            da = sqrtf(dx * dx + dz * dz);
+            dx = mb->pos.x - x;
+            dz = mb->pos.z - z;
+            if (sqrtf(dx * dx + dz * dz) < da) {
+                tmp = list[i];
+                list[i] = list[j];
+                list[j] = tmp;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801093D4_baby_bowser_bonkers);
+/* 1 if the block is rising, or up with more than `margin` frames left. */
+s32 func_80109388_baby_bowser_bonkers(BkBlock* b, s32 margin) {
+    if (b->unk08 != 0) {
+        if (b->unk06 == 1 || (b->unk06 == 2 && b->unk0A > b->unk0E - margin)) {
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010943C_baby_bowser_bonkers);
+/* Frames block `id` has left in its rise/up states. */
+s32 func_801093D4_baby_bowser_bonkers(s32 id) {
+    BkBlock* b = &D_8010BC60_baby_bowser_bonkers[id];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010958C_baby_bowser_bonkers);
+    if (b->unk08 != 0) {
+        switch (b->unk06) {
+        case 1:
+            return b->unk0E;
+        case 2:
+            return b->unk0E - b->unk0A;
+        default:
+            return 0;
+        }
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_801096D0_baby_bowser_bonkers);
+/* A random one of the first `max` live blocks in `list` outside player `player`'s quadrant; -1 none. */
+s32 func_8010943C_baby_bowser_bonkers(BkBlock** list, s32 max, s32 player) {
+    s32 ids[16];
+    HmfModel* m;
+    s32 quad;
+    s32 i;
+    s32 n;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109704_baby_bowser_bonkers);
+    quad = func_801080D0_baby_bowser_bonkers(D_800EC598_minigame[player]->trans.x,
+                                             D_800EC598_minigame[player]->trans.z);
+    for (i = 0, n = 0; i < 14; i++) {
+        m = &HmfModelData[list[i]->model];
+        if (func_80109388_baby_bowser_bonkers(list[i], 9) != 0 &&
+            func_801080D0_baby_bowser_bonkers(m->pos.x, m->pos.z) != quad) {
+            ids[n++] = list[i]->id;
+            if (n >= max) {
+                break;
+            }
+        }
+    }
+    if (n != 0) {
+        return ids[rand8() % n];
+    }
+    return -1;
+}
+
+/* As func_8010943C, for blocks flagged unk04. */
+s32 func_8010958C_baby_bowser_bonkers(BkBlock** list, s32 max, s32 player) {
+    s32 ids[16];
+    HmfModel* m;
+    s32 quad;
+    s32 i;
+    s32 n;
+
+    quad = func_801080D0_baby_bowser_bonkers(D_800EC598_minigame[player]->trans.x,
+                                             D_800EC598_minigame[player]->trans.z);
+    for (i = 0, n = 0; i < 14; i++) {
+        m = &HmfModelData[list[i]->model];
+        if (list[i]->unk04 != 0 && func_801080D0_baby_bowser_bonkers(m->pos.x, m->pos.z) != quad) {
+            ids[n++] = list[i]->id;
+            if (n >= max) {
+                break;
+            }
+        }
+    }
+    if (n != 0) {
+        return ids[rand8() % n];
+    }
+    return -1;
+}
+
+/* 1 when every block is idle. */
+s32 func_801096D0_baby_bowser_bonkers(void) {
+    BkBlock* b;
+    s32 i;
+
+    for (i = 0, b = D_8010BC60_baby_bowser_bonkers; i < 14; i++, b++) {
+        if (b->unk06 != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* Deals the four patterns of each difficulty level into D_8010BC68 and shuffles them. */
+void func_80109704_baby_bowser_bonkers(void) {
+    BkPattern* tmp;
+    s32 a;
+    s32 b;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            D_8010BC68_baby_bowser_bonkers[i][j] = D_8010B8F8_baby_bowser_bonkers[i][j % D_8010B908_baby_bowser_bonkers[i]];
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 255; j++) {
+            a = rand8() & 3;
+            b = rand8() & 3;
+            if (a != b) {
+                tmp = D_8010BC68_baby_bowser_bonkers[i][a];
+                D_8010BC68_baby_bowser_bonkers[i][a] = D_8010BC68_baby_bowser_bonkers[i][b];
+                D_8010BC68_baby_bowser_bonkers[i][b] = tmp;
+            }
+        }
+    }
+}
 
 u16 func_8010984C_baby_bowser_bonkers(s32 dirAndFile) {
     void *data = DataRead(dirAndFile);
