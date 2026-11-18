@@ -65,6 +65,9 @@ void func_8004AD70_main(void);
 void func_8000BC48_main(u16, s32);
 void func_8000BB54_main(u16 arg0);
 void func_8000BD50_main(u16 spriteId, s16 frame);
+void func_8000BBFC_main(u16 spriteId, s16 alpha);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
 extern s32 D_800A178C_main[][6];
 
@@ -125,9 +128,13 @@ extern s16 D_8010A018_picture_imperfect[4][2]; /* sprite position of each screen
 extern s8 D_8010A028_picture_imperfect;        /* next player to set up */
 extern s32 D_8010A02C_picture_imperfect;       /* pieces placed */
 extern u8 D_8010A030_picture_imperfect[4][5]; /* column order, one row per layout */
-extern u32 D_8010A044_picture_imperfect;       /* frame counter of the row scroll */
+extern u32 D_8010A044_picture_imperfect;
+extern s8 D_8010A048_picture_imperfect[5]; /* y offset of each row */       /* frame counter of the row scroll */
 
-extern s8 D_8010A110_picture_imperfect; /* number of winners */
+extern s8 D_8010A110_picture_imperfect;    /* number of winners */
+extern s8 D_8010A111_picture_imperfect;    /* pieces whose score flash finished */
+extern s8 D_8010A112_picture_imperfect[4]; /* score flash timer per player */
+extern s8 D_8010A116_picture_imperfect[4]; /* score flash blink per player */
 extern s16 D_8010A11A_picture_imperfect[4]; /* score display timer */
 extern PiCtrl D_8010A128_picture_imperfect;
 extern u8 D_8010A140_picture_imperfect[4]; /* winners */
@@ -964,7 +971,162 @@ void func_80108A64_picture_imperfect(PiPlayer* ex, s8 player) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1E_picture_imperfect/1EF420", func_80108C20_picture_imperfect);
+/* The score of the last stopped piece: coloured by value, flashes, then grows and fades. */
+void func_80108C20_picture_imperfect(PiPlayer* ex, s8 player) {
+    u8 color[3];
+    s32 row;
+    s32 y;
+    s32 rows;
+
+    if (ex->unk03 != 0) {
+        switch (ex->unk03) {
+            case 1:
+                if (D_8010A116_picture_imperfect[player] != 0) {
+                    color[0] = 0;
+                    color[1] = 0;
+                    color[2] = 0x80;
+                } else {
+                    color[0] = 0;
+                    color[1] = 0;
+                    color[2] = 0xFF;
+                }
+                break;
+            case 3:
+                if (D_8010A116_picture_imperfect[player] != 0) {
+                    color[0] = 0;
+                    color[1] = 0x80;
+                    color[2] = 0x80;
+                } else {
+                    color[0] = 0;
+                    color[1] = 0xFF;
+                    color[2] = 0xFF;
+                }
+                break;
+            case 5:
+                if (D_8010A116_picture_imperfect[player] != 0) {
+                    color[0] = 0;
+                    color[1] = 0x80;
+                    color[2] = 0;
+                } else {
+                    color[0] = 0;
+                    color[1] = 0xFF;
+                    color[2] = 0;
+                }
+                break;
+            case 7:
+                if (D_8010A116_picture_imperfect[player] != 0) {
+                    color[0] = 0x80;
+                    color[1] = 0x40;
+                    color[2] = 0;
+                } else {
+                    color[0] = 0xFF;
+                    color[1] = 0x80;
+                    color[2] = 0;
+                }
+                break;
+            case 10:
+                if (D_8010A116_picture_imperfect[player] != 0) {
+                    color[0] = 0x80;
+                    color[1] = 0;
+                    color[2] = 0;
+                } else {
+                    color[0] = 0xFF;
+                    color[1] = 0;
+                    color[2] = 0;
+                }
+                break;
+        }
+        switch (D_8010A150_picture_imperfect) {
+            case 0:
+                row = ex->unk00 - 1;
+                break;
+            case 1:
+                if (ex->unk00 == 1) {
+                    row = 0;
+                } else if (ex->unk00 == 2) {
+                    row = 1;
+                } else if (ex->unk00 == 3) {
+                    row = 2;
+                } else {
+                    row = 4;
+                }
+                break;
+            case 2:
+            default:
+                if (ex->unk00 == 1) {
+                    row = 1;
+                } else if (ex->unk00 == 2) {
+                    row = 3;
+                } else {
+                    row = 4;
+                }
+                break;
+        }
+        y = D_80109FE8_picture_imperfect[player][1] + D_8010A048_picture_imperfect[row];
+        func_8000BEAC_main(D_8010A26E_picture_imperfect[player], color[0], color[1], color[2]);
+        func_8000BE5C_main(D_8010A26E_picture_imperfect[player], ex->unk0C, ex->unk0C);
+        func_8000BBFC_main(D_8010A26E_picture_imperfect[player], ex->unk0A);
+        func_8000BBD4_main(D_8010A26E_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 25, y);
+        func_8000BB54_main(D_8010A26E_picture_imperfect[player]);
+        if (ex->unk03 == 10) {
+            func_8000BEAC_main(D_8010A276_picture_imperfect[player], color[0], color[1], color[2]);
+            func_8000BE5C_main(D_8010A276_picture_imperfect[player], ex->unk0C, ex->unk0C);
+            func_8000BBFC_main(D_8010A276_picture_imperfect[player], ex->unk0A);
+            func_8000BD50_main(D_8010A276_picture_imperfect[player], ex->unk03 / 10);
+            func_8000BBD4_main(D_8010A276_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] - 14, y);
+            func_8000BB54_main(D_8010A276_picture_imperfect[player]);
+        } else {
+            func_8000BB94_main(D_8010A276_picture_imperfect[player]);
+        }
+        func_8000BEAC_main(D_8010A27E_picture_imperfect[player], color[0], color[1], color[2]);
+        func_8000BE5C_main(D_8010A27E_picture_imperfect[player], ex->unk0C, ex->unk0C);
+        func_8000BBFC_main(D_8010A27E_picture_imperfect[player], ex->unk0A);
+        func_8000BD50_main(D_8010A27E_picture_imperfect[player], ex->unk03 % 10);
+        func_8000BBD4_main(D_8010A27E_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] + 2, y);
+        func_8000BB54_main(D_8010A27E_picture_imperfect[player]);
+        func_8000BEAC_main(D_8010A286_picture_imperfect[player], color[0], color[1], color[2]);
+        func_8000BE5C_main(D_8010A286_picture_imperfect[player], ex->unk0C, ex->unk0C);
+        func_8000BBFC_main(D_8010A286_picture_imperfect[player], ex->unk0A);
+        func_8000BBD4_main(D_8010A286_picture_imperfect[player], D_80109FE8_picture_imperfect[player][0] + 30, y);
+        func_8000BB54_main(D_8010A286_picture_imperfect[player]);
+        if (D_8010A112_picture_imperfect[player] >= 11) {
+            ex->unk0C += 0.05f;
+            ex->unk0A -= 10;
+            D_8010A116_picture_imperfect[player] = 0;
+        } else {
+            D_8010A112_picture_imperfect[player]++;
+            D_8010A116_picture_imperfect[player] ^= 1;
+        }
+        if (ex->unk0A <= 0) {
+            ex->unk0C = 1.0f;
+            ex->unk0A = 0xFF;
+            ex->unk03 = 0;
+            D_8010A112_picture_imperfect[player] = 0;
+            D_8010A116_picture_imperfect[player] = 0;
+            switch (D_8010A150_picture_imperfect) {
+                case 0:
+                default:
+                    rows = 5;
+                    break;
+                case 1:
+                    rows = 4;
+                    break;
+                case 2:
+                    rows = 3;
+                    break;
+            }
+            D_8010A111_picture_imperfect++;
+            if (rows * 4 == D_8010A111_picture_imperfect) {
+                func_800E6F0C_minigame(3);
+            }
+        }
+    } else {
+        func_8000BB94_main(D_8010A26E_picture_imperfect[player]);
+        func_8000BB94_main(D_8010A276_picture_imperfect[player]);
+        func_8000BB94_main(D_8010A27E_picture_imperfect[player]);
+        func_8000BB94_main(D_8010A286_picture_imperfect[player]);
+    }
+}
 
 /* Score display: digits roll for 30 frames, then show the score, hide at 90. */
 void func_80109284_picture_imperfect(PiPlayer* ex, s8 player) {
