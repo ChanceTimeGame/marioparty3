@@ -17,23 +17,44 @@
 typedef func_800E1BA8_minigame_ObjData MgWork;
 typedef f32 Matrix4f[4][4];
 
-/* A target hole / pop-up target (D_8010CC28_popgun_pickoff[9]); D_8010CD50_popgun_pickoff uses the same size. */
+typedef struct PgPair {
+    s16 unk0;
+    s16 unk2;
+} PgPair;
+
+/* A pop-up target (D_8010CC28_popgun_pickoff[9]). */
 typedef struct PgTarget {
     /* 0x00 */ f32 x;
     /* 0x04 */ f32 y;
     /* 0x08 */ f32 z;
-    /* 0x0C */ f32 rot;
+    /* 0x0C */ f32 rot; /* flip angle: -90 down, 0 up */
     /* 0x10 */ s16 sx; /* screen position */
     /* 0x12 */ s16 sy;
-    /* 0x14 */ s16 unk14;
-    /* 0x16 */ u8 unk16;
+    /* 0x14 */ s16 grp; /* "-10" sprite group, -1 none */
+    /* 0x16 */ u8 hits;
     /* 0x17 */ u8 board; /* billboard id */
-    /* 0x18 */ u8 unk18;
-    /* 0x19 */ u8 unk19;
-    /* 0x1A */ u8 unk1A;
-    /* 0x1B */ u8 unk1B;
-    /* 0x1C */ char unk1C[4];
+    /* 0x18 */ char unk18[2];
+    /* 0x1A */ u8 kind; /* 0 target, 1 bomb */
+    /* 0x1B */ u8 state;
+    /* 0x1C */ u8 timer;
+    /* 0x1D */ char unk1D[3];
 } PgTarget; /* size 0x20 */
+
+/* A cork shot (D_8010CD50_popgun_pickoff[0x80]). */
+typedef struct PgShot {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+    /* 0x08 */ f32 z;
+    /* 0x0C */ f32 vx;
+    /* 0x10 */ f32 vy;
+    /* 0x14 */ f32 vz;
+    /* 0x18 */ u8 target;
+    /* 0x19 */ u8 state; /* 0 free */
+    /* 0x1A */ u8 slot; /* shooter */
+    /* 0x1B */ u8 timer;
+    /* 0x1C */ u8 board; /* billboard id */
+    /* 0x1D */ char unk1D[3];
+} PgShot; /* size 0x20 */
 
 /* A textured quad strip drawn with its own display list (D_8010DDD8_popgun_pickoff[D_8010DDF0_popgun_pickoff]). */
 typedef struct PgBoard {
@@ -121,6 +142,13 @@ s32 func_80109718_popgun_pickoff(PgBoard* b);
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags);
 void func_80106A44_popgun_pickoff(omObjData* obj);
 void func_8010704C_popgun_pickoff(omObjData* obj);
+u8 func_801068D0_popgun_pickoff(s16 x, s16 y);
+s32 func_80108E1C_popgun_pickoff(void);
+f32 func_80108EF4_popgun_pickoff(Vec* a, Vec* b);
+void func_8010AC34_popgun_pickoff(s16 id, s16 frame);
+void func_8010AEAC_popgun_pickoff(s16 id, u32 flags);
+void func_8010AEF0_popgun_pickoff(s16 id, u32 flags);
+void func_8010B120_popgun_pickoff(s16 id);
 void func_8010BA44_popgun_pickoff(Gfx** gfx, s32 arg1, s32 arg2);
 void func_8010C4EC_popgun_pickoff(void);
 void func_8010ACB4_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
@@ -128,7 +156,7 @@ void func_8010AD54_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
 void func_8010AE0C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
 void func_8010AE5C_popgun_pickoff(s16 id, f32 x, f32 y, f32 z);
 void func_8010AF78_popgun_pickoff(s16 id, s8 arg1);
-void func_8010B0D4_popgun_pickoff(s16 id, u8 r, u8 g, u8 b, u16 a);
+void func_8010B0D4_popgun_pickoff(s16 id, s8 r, s8 g, s8 b, u16 a);
 s16 func_80109108_popgun_pickoff(s32 id);
 s16 func_80109150_popgun_pickoff(s16 tex, s16 n);
 HuSprite_Unk84_Unk00_Struct* func_80109218_popgun_pickoff(s16 tex, s16 frame);
@@ -137,13 +165,9 @@ extern s16 D_8010CBD0_popgun_pickoff[16]; /* textures */
 extern s16 D_8010CBF0_popgun_pickoff[8]; /* sprite groups */
 extern s16 D_8010CC00_popgun_pickoff[16]; /* sprite slots in use */
 extern s16 D_8010CC20_popgun_pickoff;
-typedef struct PgPair {
-    s16 unk0;
-    s16 unk2;
-} PgPair;
 extern PgPair D_8010CC22_popgun_pickoff;
 extern PgTarget D_8010CC28_popgun_pickoff[9];
-extern PgTarget D_8010CD50_popgun_pickoff[0x80];
+extern PgShot D_8010CD50_popgun_pickoff[0x80];
 extern f32 D_8010DD50_popgun_pickoff[4][4]; /* world to view (D_8010DD88 is its [3][2]) */
 extern f32 D_8010DD88_popgun_pickoff; /* D_8010DD50[3][2] */
 extern f32 D_8010DD90_popgun_pickoff[4][4]; /* view to world */
@@ -155,7 +179,9 @@ extern s32 D_8010C590_popgun_pickoff; /* timer */
 extern u16 D_8010C594_popgun_pickoff; /* game timer, frames */
 extern s32 D_8010C598_popgun_pickoff; /* winner slot, -1 draw */
 extern s32 D_8010C59C_popgun_pickoff; /* end camera timer */
-extern s16 D_8010C5A0_popgun_pickoff;
+extern s16 D_8010C5A0_popgun_pickoff; /* frames since the wipe */
+extern s16 D_8010C5A2_popgun_pickoff; /* spawn timer */
+extern s16 D_8010C5A4_popgun_pickoff; /* spawn waves */
 extern u8 D_8010DDD4_popgun_pickoff;
 
 void func_801059A0_popgun_pickoff(void) {
@@ -326,9 +352,9 @@ void func_801060E8_popgun_pickoff(omObjData* obj) {
         t->sx = scr.x;
         t->sy = scr.y;
         t->rot = -90.0f;
-        t->unk14 = -1;
-        t->unk16 = 0;
-        t->unk1B = 0;
+        t->grp = -1;
+        t->hits = 0;
+        t->state = 0;
         t->board = func_8010A024_popgun_pickoff(D_8010CBD0_popgun_pickoff[4], 0x12009808);
         func_8010ACB4_popgun_pickoff(t->board, 16.0f, 32.0f, 0.0f);
         func_8010AD54_popgun_pickoff(t->board, t->x, t->y - 42.0, t->z - 10.0);
@@ -535,7 +561,181 @@ void func_80106A44_popgun_pickoff(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010704C_popgun_pickoff);
+void func_8010704C_popgun_pickoff(omObjData* obj) {
+    PgShot* s;
+    PgTarget* t;
+    s16 b;
+    f32 sc;
+    s32 i;
+    s32 n;
+    s32 k;
+
+    D_8010DDD4_popgun_pickoff = 0;
+    for (i = 0; i < 0x80; i++) {
+        s = &D_8010CD50_popgun_pickoff[i];
+        switch (s->state) {
+        case 0:
+            continue;
+        case 1:
+            t = &D_8010CC28_popgun_pickoff[s->target];
+            if (func_80108EF4_popgun_pickoff((Vec*)t, (Vec*)s) <= 48.0) {
+                s->x = t->x;
+                s->y = t->y;
+                s->z = t->z + 40.0;
+                s->vx = s->vx * 0.2 + (f32)(func_80108E1C_popgun_pickoff() - 0x8000) * 3.0517578125e-05 * (s->vx * 0.2);
+                s->vy = (f32)func_80108E1C_popgun_pickoff() * 1.52587890625e-05 * 6.0 + 15.0;
+                s->vz = -s->vz * 0.1 - (f32)func_80108E1C_popgun_pickoff() * 1.52587890625e-05 * (s->vz * 0.05);
+                s->timer = 120;
+                s->state++;
+                if (t->state == 2) {
+                    t->rot = -50.0f;
+                    func_8010AC34_popgun_pickoff(t->board, t->kind * 2 + 1);
+                    if (t->kind == 0) {
+                        func_8010B0D4_popgun_pickoff(t->board, -1, -1, -1, 0x100);
+                        if (t->hits != 0) {
+                            t->hits--;
+                        }
+                        (&D_8010CC22_popgun_pickoff.unk0)[s->slot]++;
+                        b = func_8010A024_popgun_pickoff(D_8010CBD0_popgun_pickoff[10], 0x60001808);
+                        func_8010AD54_popgun_pickoff(b, t->x, t->y, t->z + 20.0f);
+                        func_8010B0D4_popgun_pickoff(t->board, -1, -1, -1, 0xC6);
+                        func_8010AE0C_popgun_pickoff(b, 2.0f, 2.0f, 1.0f);
+                        HuAudFXPlay(0x497);
+                    } else {
+                        if ((&D_8010CC22_popgun_pickoff.unk0)[s->slot] > 10) {
+                            (&D_8010CC22_popgun_pickoff.unk0)[s->slot] -= 10;
+                        } else {
+                            (&D_8010CC22_popgun_pickoff.unk0)[s->slot] = 0;
+                        }
+                        t->grp = func_801068D0_popgun_pickoff(t->sx, t->sy);
+                        func_8010B0D4_popgun_pickoff(t->board, -1, 0, 0, 0x100);
+                        HuAudFXPlay(0x498);
+                        omVibrate(PG_PLAYER(s->slot)->player, 10, 0, 10);
+                        t->hits = 0;
+                        t->state++;
+                    }
+                }
+            }
+            D_8010DDD4_popgun_pickoff++;
+            break;
+        case 2:
+            if (--s->timer == 0) {
+                s->state++;
+            }
+            break;
+        case 3:
+            s->state = 0;
+            func_8010B120_popgun_pickoff(s->board);
+            s->board = 0xFF;
+            continue;
+        }
+        s->vy += -2.0f;
+        s->x += s->vx;
+        s->y += s->vy;
+        s->z += s->vz;
+        func_8010AD54_popgun_pickoff(s->board, s->x, s->y, s->z);
+        sc = 1.5 - s->z / -400.0f;
+        func_8010AE0C_popgun_pickoff(s->board, sc, sc, 1.0f);
+    }
+    for (i = 0; i < 9; i++) {
+        t = &D_8010CC28_popgun_pickoff[i];
+        switch (t->state) {
+        case 0:
+            break;
+        case 1:
+            func_8010AEF0_popgun_pickoff(t->board, 0x8000);
+            t->state++;
+            break;
+        case 2:
+            t->rot += 15.0;
+            if (t->rot > 0.0) {
+                t->rot = 0.0f;
+                func_8010AC34_popgun_pickoff(t->board, t->kind * 2);
+            } else if (t->rot > -30.0) {
+                func_8010B0D4_popgun_pickoff(t->board, 0, 0, 0, 0x100);
+            }
+            if ((--t->timer == 0) | (t->hits == 0)) {
+                t->state++;
+            }
+            break;
+        case 3:
+            func_8010B0D4_popgun_pickoff(t->board, 0, 0, 0, 0x100);
+            if (t->rot <= -90.0) {
+                func_8010AEAC_popgun_pickoff(t->board, 0x8000);
+            } else {
+                t->rot -= 10.0;
+            }
+            if (t->timer-- != 0) {
+                break;
+            }
+            func_8001C6A8_main(obj->model[i], 4.2f);
+            func_8001C92C_main(obj->model[i], -0.2f);
+            t->timer = 9;
+            t->state++;
+        case 4:
+            if (t->rot <= -90.0) {
+                func_8010AEAC_popgun_pickoff(t->board, 0x8000);
+            } else {
+                t->rot -= 10.0;
+            }
+            if (--t->timer == 0) {
+                func_8001C92C_main(obj->model[i], 0.0f);
+                func_8001C6A8_main(obj->model[i], 0.0f);
+                t->state = 0;
+            }
+            break;
+        }
+        if (t->grp != -1) {
+            if (t->rot > -90.0) {
+                sc = 1.0 - t->rot * 0.005;
+                HuSprScaleSet(t->grp, 0, sc, sc);
+                HuSprScaleSet(t->grp, 1, sc, sc);
+                HuSprScaleSet(t->grp, 2, sc, sc);
+            } else if (t->rot > -180.0) {
+                t->rot -= 15.0;
+                sc = (t->rot + 180.0) * 0.005 + 1.0;
+                HuSprScaleSet(t->grp, 0, sc, sc);
+                HuSprScaleSet(t->grp, 1, sc, sc);
+                HuSprScaleSet(t->grp, 2, sc, sc);
+            } else {
+                HuSprGrpKill(t->grp);
+                t->rot = 0.0f;
+                t->grp = -1;
+            }
+        }
+        func_8010AE5C_popgun_pickoff(t->board, t->rot, 0.0f, 0.0f);
+    }
+    if (D_8010CC20_popgun_pickoff == 2) {
+        if (--D_8010C5A2_popgun_pickoff == 0) {
+            D_8010C5A2_popgun_pickoff = 120;
+            D_8010C5A4_popgun_pickoff++;
+            n = D_8010C5A4_popgun_pickoff / 2 + 2;
+            if (n >= 9) {
+                n = 9;
+            }
+            for (i = 0; i < n;) {
+                k = (f32)func_80108E1C_popgun_pickoff() * 1.52587890625e-05 * 8.0;
+                t = &D_8010CC28_popgun_pickoff[k];
+                if (t->state == 0) {
+                    t->timer = (s32)((f32)func_80108E1C_popgun_pickoff() * 1.52587890625e-05 * 20.0) + 60;
+                    t->hits = 10;
+                    t->state = 1;
+                    t->rot = -90.0f;
+                    t->grp = -1;
+                    if (i != 0) {
+                        t->kind = func_80108E1C_popgun_pickoff() & 1;
+                    } else {
+                        t->kind = 0;
+                    }
+                    func_8010AC34_popgun_pickoff(t->board, t->kind * 2);
+                    i++;
+                    func_8001C92C_main(obj->model[k], 1.0f);
+                    HuAudFXPlay(0x499);
+                }
+            }
+        }
+    }
+}
 
 void func_80107A54_popgun_pickoff(void) {
     s32 i;
