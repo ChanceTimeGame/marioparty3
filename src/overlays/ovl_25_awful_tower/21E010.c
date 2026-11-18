@@ -4,6 +4,7 @@
 #include "game/audio.h"
 #include "game/camera.h"
 #include "game/data.h"
+#include "game/esprite.h"
 #include "game/hmflight.h"
 #include "game/hmfman.h"
 #include "game/object.h"
@@ -115,6 +116,14 @@ typedef struct AtTbl8 {
     s32 v[8];
 } AtTbl8;
 
+typedef struct AtTbl3 {
+    s32 v[3];
+} AtTbl3;
+
+typedef struct AtF5 {
+    f32 v[5];
+} AtF5;
+
 typedef struct AtChrTbl {
     u8 v[8];
 } AtChrTbl;
@@ -172,6 +181,15 @@ extern const AtTbl8 D_8010CD34_awful_tower;
 extern const AtChrTbl D_8010CD2C_awful_tower;
 extern const AtTbl16 D_8010CD54_awful_tower;
 extern s16 D_8010D3EC_awful_tower[2];
+extern const AtRect D_8010CDC0_awful_tower;
+extern const AtTbl3 D_8010CDD0_awful_tower;
+extern const AtTbl3 D_8010CDDC_awful_tower;
+extern const AtF5 D_8010CDE8_awful_tower;
+extern const AtF5 D_8010CDFC_awful_tower;
+extern const AtTbl3 D_8010CE10_awful_tower;
+extern u16 D_8010D348_awful_tower[4][3];
+extern s16 D_8010D3B8_awful_tower[4];
+extern u16 D_8010D3D0_awful_tower[4];
 extern u16 D_800D530C_main;
 
 extern s16 D_8010D2CC_awful_tower[4];
@@ -199,6 +217,7 @@ s32 func_80106C44_awful_tower(omObjData* player, omObjData* coin);
 void func_80106CDC_awful_tower(omObjData* obj);
 void func_80106E84_awful_tower(omObjData* obj);
 void func_80106FDC_awful_tower(omObjData* obj);
+void func_80107734_awful_tower(omObjData* obj);
 void func_80107858_awful_tower(void);
 void func_80108880_awful_tower(omObjData* obj, u32 arg1, s32 arg2, u16 arg3, f32 x, f32 y, f32 z);
 void func_80108CCC_awful_tower(omObjData* obj);
@@ -606,7 +625,85 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CDFC
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", D_8010CE10_awful_tower);
 
+#ifdef NON_MATCHING
+/* Stage object setup: sprites, tower pieces, coins, blocks and the background. */
+void func_80106FDC_awful_tower(omObjData* obj) {
+    AtRect a = D_8010CDC0_awful_tower;
+    s16 i;
+    s16 j;
+    s16 k;
+
+    for (i = 0; i < 4; i++) {
+        D_8010D3B8_awful_tower[i] = func_8000B838_main(a.v[i]);
+        D_8010D3D0_awful_tower[i] =
+            InitEspriteSlot(D_8010D3B8_awful_tower[i] = func_8000B838_main(a.v[i]), 0, 0);
+        func_8000BB94_main(D_8010D3D0_awful_tower[i]);
+    }
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 4; i++) {
+            AtTbl3 b = D_8010CDD0_awful_tower;
+            AtTbl3 c = D_8010CDDC_awful_tower;
+
+            obj->model[i + b.v[j]] = func_80106F58_awful_tower(c.v[j] | 0x460000, &D_8010D348_awful_tower[i][j]);
+            func_8001C258_main(obj->model[i + b.v[j]], 4, 4);
+            func_8001C8A8_main(obj->model[i + b.v[j]], D_8010CB60_awful_tower[i].unk02);
+            if (j < 2) {
+                Hu3DModelScaleSet(obj->model[i + b.v[j]], 6.0525f, 6.0525f, 6.0525f);
+            } else {
+                Hu3DModelScaleSet(obj->model[i + b.v[j]], 3.02625f, 3.02625f, 3.02625f);
+            }
+        }
+    }
+    for (i = 0; i < 5; i++) {
+        AtF5 d = D_8010CDE8_awful_tower;
+        AtF5 e = D_8010CDFC_awful_tower;
+        AtCoin* cw = D_8010D390_awful_tower[i]->data;
+
+        D_8010D390_awful_tower[i]->trans.x = d.v[i] * 150.0f;
+        D_8010D390_awful_tower[i]->trans.y = e.v[i] * 100.0f + 50.0f;
+        D_8010D390_awful_tower[i]->trans.z = 0.0f;
+        cw->unk56 = i;
+        func_8001C258_main(D_8010D390_awful_tower[i]->model[0], 4, 0);
+    }
+    for (i = 0; i < 3; i++) {
+        AtTbl3 f = D_8010CE10_awful_tower;
+
+        obj->model[i] = func_8000B108_main(f.v[i] | 0x460000, 0x4BD);
+    }
+    obj->model[20] = func_8000B108_main(0x460005, 0x4BD);
+    func_8001C8A8_main(obj->model[20], 0);
+    Hu3DModelScaleSet(obj->model[20], 0.666666f, 0.666666f, 0.666666f);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            ((AtGround*)D_8010D360_awful_tower[i][j]->data)->unk04 = j + i * 3 + 1;
+            for (k = 0; k < 3; k++) {
+                D_8010D360_awful_tower[i][j]->model[k + 1] = Hu3DModelLink(D_8010D3E8_awful_tower->model[j]);
+                func_8001C258_main(D_8010D360_awful_tower[i][j]->model[k + 1], 4, 4);
+                Hu3DModelScaleSet(D_8010D360_awful_tower[i][j]->model[k + 1], 0.666666f, 0.666666f, 0.666666f);
+                func_8001C8A8_main(D_8010D360_awful_tower[i][j]->model[k + 1], D_8010CB60_awful_tower[i].unk02);
+            }
+        }
+    }
+    obj->model[3] = func_8000B108_main(0xA011A, 0x4BD);
+    func_8001C814_main(obj->model[3], 2, 2);
+    Hu3DModelPosSet(obj->model[3], 0.0f, 4500.0f, 300.0f);
+    Hu3DModelScaleSet(obj->model[3], 0.5f, 0.5f, 0.5f);
+    for (i = 0; i < 4; i++) {
+        if (i == 0 || i == 3) {
+            obj->model[i + 4] = func_8000B108_main(i == 3 ? 0x460001 : 0x460000, 0x4B9);
+        } else {
+            obj->model[i + 4] = Hu3DModelLink(obj->model[4]);
+        }
+        func_8001C8A8_main(obj->model[i + 4], 15);
+        func_8001C814_main(obj->model[i + 4], 1, 1);
+        Hu3DModelPosSet(obj->model[i + 4], 0.0f, i * 1120.0 - 9.0, -300.0f);
+        Hu3DModelScaleSet(obj->model[i + 4], 0.75f, 0.75f, 0.75f);
+    }
+    obj->func = func_80107734_awful_tower;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80106FDC_awful_tower);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_25_awful_tower/21E010", func_80107734_awful_tower);
 
