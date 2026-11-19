@@ -1692,7 +1692,47 @@ void func_8010AF70_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B148_cheep_cheep_chase);
+void func_8010B148_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+
+    if (player->unk01 == 4) {
+        return;
+    }
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (player->unk01 != 1) {
+                break;
+            }
+            if (player->unk08 == 0) {
+                ctx->work.s8[2] = 0;
+                object->trans.z -= sindf(player->unk14) * (player->unk18 + 6.0f);
+                if (HmfModelData[object->model[0]].unk40 == 0.0f) {
+                    func_8004AC98_main(GwPlayer[object->work[0]].chr + 0x7A, object->work[0] + 4);
+                }
+            } else {
+                object->trans.z -= sindf(player->unk14) * (player->unk18 + 6.0f) - 1.0f;
+            }
+            player->unk14 += 4.0f;
+            if (player->unk14 >= 180.0f) {
+                player->unk14 = 0.0f;
+                player->unk01 = 0;
+                func_8010B63C_cheep_cheep_chase(player, 0x26, 0);
+            } else {
+                player->unk01 = 1;
+                func_8010B63C_cheep_cheep_chase(player, 0x27, 1);
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B33C_cheep_cheep_chase);
 
