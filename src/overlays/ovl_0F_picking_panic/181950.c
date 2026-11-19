@@ -71,6 +71,11 @@ typedef struct {
 } PkCpuTable;
 
 void func_80107A48_picking_panic(void);
+void func_80109C00_picking_panic(Gfx **arg0, s32 arg1, s32 arg2);
+void func_8010B220_picking_panic(omObjData *obj, u8 arg1);
+void func_8010B8D0_picking_panic(omObjData *obj);
+void func_8010B8EC_picking_panic(omObjData *obj);
+void func_8010B908_picking_panic(omObjData *arg0, s8 arg1);
 void func_8010B11C_picking_panic(s16 model, s16 frame);
 
 /* data */
@@ -492,21 +497,41 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E9
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80109C00_picking_panic);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B11C_picking_panic);
+void func_8010B11C_picking_panic(s16 model, s16 frame) {
+    HmfModel *m = &HmfModelData[model];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B160_picking_panic);
+    *(f32 *)&m->hmf->unk98->unk08 = frame;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B194_picking_panic);
+void func_8010B160_picking_panic(omObjData *obj) {
+    func_8010B220_picking_panic(obj, 0);
+    obj->func = func_8010B8D0_picking_panic;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B1C0_picking_panic);
+void func_8010B194_picking_panic(omObjData *obj) {
+    func_8010B220_picking_panic(obj, 1);
+    obj->func = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B1F4_picking_panic);
+void func_8010B1C0_picking_panic(omObjData *obj) {
+    func_8010B220_picking_panic(obj, 2);
+    obj->func = func_8010B8EC_picking_panic;
+}
+
+void func_8010B1F4_picking_panic(omObjData *obj) {
+    func_8010B220_picking_panic(obj, 3);
+    obj->func = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B220_picking_panic);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B8D0_picking_panic);
+void func_8010B8D0_picking_panic(omObjData *obj) {
+    func_8010B908_picking_panic(obj, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B8EC_picking_panic);
+void func_8010B8EC_picking_panic(omObjData *obj) {
+    func_8010B908_picking_panic(obj, 1);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E9E0_picking_panic);
 
