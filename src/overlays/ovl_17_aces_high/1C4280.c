@@ -57,7 +57,7 @@ typedef struct AhPlayer {
     /* 0x64 */ f32 unk64;
     /* 0x68 */ f32 unk68;
     /* 0x6C */ f32 unk6C;
-    /* 0x70 */ u16 unk70;
+    /* 0x70 */ s16 unk70;
     /* 0x72 */ char unk72[2];
     /* 0x74 */ omObjData *unk74;
     /* 0x78 */ omObjData *unk78;
@@ -68,13 +68,16 @@ typedef struct AhPlayer {
     /* 0x8A */ char unk8A[2];
     /* 0x8C */ f32 unk8C;
     /* 0x90 */ u16 unk90;
-    /* 0x92 */ u16 unk92;
-    /* 0x94 */ u16 unk94;
+    /* 0x92 */ u16 unk92; /* CPU state */
+    /* 0x94 */ u16 unk94; /* CPU: state to resume */
     /* 0x96 */ char unk96[2];
-    /* 0x98 */ s32 unk98;
-    /* 0x9C */ char unk9C[0x12];
+    /* 0x98 */ omObjData *unk98; /* CPU: chased plane */
+    /* 0x9C */ Vec unk9C; /* CPU: goal point */
+    /* 0xA8 */ f32 unkA8; /* CPU: heading back into the arena */
+    /* 0xAC */ u16 unkAC;
     /* 0xAE */ u16 unkAE;
-    /* 0xB0 */ char unkB0[0x10];
+    /* 0xB0 */ u16 unkB0; /* CPU: state timer */
+    /* 0xB2 */ char unkB2[0xE];
 } AhPlayer; /* size 0xC0 */
 
 /* the scrolled sky texture's size (func_800335BC_main) */
@@ -89,6 +92,7 @@ typedef struct AhUV {
 } AhUV;
 
 double fabs(double); /* the GCC builtin (abs.d) */
+float fabsf(float); /* the GCC builtin (abs.s) */
 void HmfLightStatSet(s16, u8, u8);
 void func_8000B710_main(s32);
 void func_80047C0C_main(u16 group, u16 max_objs);
@@ -154,10 +158,10 @@ void func_8010843C_aces_high(omObjData *obj);
 void func_801085B0_aces_high(void);
 void func_8010862C_aces_high(omObjData *obj);
 void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2);
-void func_8010951C_aces_high(omObjData *obj);
+u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 *stickX, s8 *stickY);
+s16 func_80109EEC_aces_high(omObjData *obj, f32 fov, omObjData **list, omObjData **nearest, f32 *nearDist);
+f32 func_8010A0F0_aces_high(omObjData *obj);
 void func_80109928_aces_high(omObjData *obj);
-void func_80109EEC_aces_high(omObjData *obj);
-void func_8010A0F0_aces_high(omObjData *obj);
 void func_8010A214_aces_high(omObjData *obj);
 void func_8010A51C_aces_high(omObjData *obj);
 void func_8010A884_aces_high(omObjData *obj);
@@ -1160,7 +1164,265 @@ void func_8010862C_aces_high(omObjData *obj) {
     }
 }
 
+// register allocation only (masked 0): retail keeps stickX in s5 and stickY in s4, here the reverse; abs.s source register
+#ifdef NON_MATCHING
+/* CPU control: per difficulty, pick a target (chase a plane, dodge, return to the arena) and steer to it. */
+void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2) {
+    omObjData *list[4];
+    Vec target;
+    omObjData *nearest;
+    f32 nearDist;
+    AhPlayer *work;
+    AhPlayer *tw;
+    omObjData *other;
+    u16 state;
+    f32 farLimit;
+    f32 nearLimit;
+    f32 fov;
+    f32 turn;
+    f32 fleeDist;
+    f32 dist;
+    f32 a;
+    f32 b;
+    f32 d;
+    u16 res;
+
+    *stickY = 0;
+    *stickX = 0;
+    *btn2 = 0;
+    *btn = 0;
+    work = obj->data;
+    switch (GwPlayer[work->unk02].cpu_difficulty) {
+        case 0:
+            farLimit = 1000.0f;
+            nearLimit = 500.0f;
+            fov = 30.0f;
+            turn = 5.0f;
+            fleeDist = 500.0f;
+            break;
+        case 1:
+            farLimit = 900.0f;
+            nearLimit = 500.0f;
+            fov = 30.0f;
+            turn = 4.0f;
+            fleeDist = 700.0f;
+            break;
+        case 2:
+            farLimit = 800.0f;
+            nearLimit = 400.0f;
+            fov = 40.0f;
+            turn = 3.0f;
+            fleeDist = 900.0f;
+            break;
+        case 3:
+            farLimit = 700.0f;
+            nearLimit = 400.0f;
+            fov = 40.0f;
+            turn = 3.0f;
+            fleeDist = 1200.0f;
+            break;
+    }
+    state = work->unk92;
+    if ((HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) > 3150.0f) & (state != 2) && state != 5 &&
+        state != 6) {
+        a = atan2df(obj->trans.x, obj->trans.z);
+        if (a < 0.0f) {
+            a += 360.0f;
+        }
+        b = obj->rot.y;
+        if (b < 0.0f) {
+            b += 360.0f;
+        }
+        d = b - a;
+        if (fabs(d) < 75.0) {
+            work->unk94 = work->unk92;
+            work->unk92 = 2;
+            work->unkA8 = a - 180.0f;
+            if (work->unkA8 < 0.0f) {
+                work->unkA8 += 360.0f;
+            }
+        }
+    }
+    if (state == 0) {
+        func_80109928_aces_high(obj);
+    }
+    switch (state) {
+        case 1:
+            other = work->unk98;
+            tw = other->data;
+            if (tw->unk00 != 4 && tw->unk00 != 5 && tw->unk00 != 6) {
+                dist = HuSqrtf((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x) +
+                               (other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z)) * 0.8f;
+                if (dist > 1500.0f) {
+                    dist = 1500.0f;
+                }
+                if (dist < 100.0f) {
+                    dist = 100.0f;
+                }
+                target.x = sindf(other->rot.y - 180.0f) * dist + other->trans.x;
+                target.z = cosdf(other->rot.y - 180.0f) * dist + other->trans.z;
+                target.y = other->trans.y;
+                dist = HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
+                               (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
+                               (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z));
+                res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
+                if (dist < 2400.0f) {
+                    *btn |= 0x2000;
+                }
+                if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
+                    *btn2 |= 0x8000;
+                }
+                if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
+                    *btn2 |= 0x4000;
+                }
+                if (--work->unkB0 == 0) {
+                    work->unk92 = 0;
+                    work->unk34 = 0;
+                }
+            } else {
+                work->unk92 = 0;
+                work->unk34 = 0;
+            }
+            break;
+        case 3:
+            other = work->unk98;
+            tw = other->data;
+            if (tw->unk00 == 4 || tw->unk00 == 5 || tw->unk00 == 6 || work->unkAE == 0) {
+                work->unk92 = 0;
+                work->unk34 = 0;
+                break;
+            }
+            dist = HuSqrtf((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x) +
+                           (other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z)) * 0.8f;
+            if (dist > 1500.0f) {
+                dist = 1500.0f;
+            }
+            if (dist < 100.0f) {
+                dist = 100.0f;
+            }
+            target.x = sindf(other->rot.y - 180.0f) * dist + other->trans.x;
+            target.z = cosdf(other->rot.y - 180.0f) * dist + other->trans.z;
+            target.y = other->trans.y;
+            dist = HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
+                           (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
+                           (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z));
+            res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
+            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
+                *btn2 |= 0x8000;
+            }
+            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
+                *btn2 |= 0x4000;
+            }
+            break;
+        case 4:
+            target = work->unk9C;
+            dist = HuSqrtf((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x) +
+                           (obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y) +
+                           (obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z));
+            res = func_8010951C_aces_high(obj, &target, turn, 20.0f, stickX, stickY);
+            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
+                *btn2 |= 0x8000;
+            }
+            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
+                *btn2 |= 0x4000;
+            }
+            if (dist < 100.0f) {
+                work->unk92 = 0;
+            }
+            if (--work->unkB0 == 0) {
+                work->unk92 = 0;
+            }
+            break;
+        case 2:
+            a = work->unkA8;
+            b = obj->rot.y;
+            if (b < 0.0f) {
+                b += 360.0f;
+            }
+            d = b - a;
+            if (fabs(d) < 5.0) {
+                work->unk92 = work->unk94;
+            } else {
+                if (fabs(d) > 35.0) {
+                    b = 70.0f;
+                } else {
+                    b = fabsf(d / 2.0f);
+                }
+                if (b < 10.0f) {
+                    b = 10.0f;
+                }
+                if (d < 0.0f) {
+                    d += 360.0f;
+                }
+                if (d < 180.0f) {
+                    *stickX = b;
+                } else {
+                    *stickX = -b;
+                }
+                if (HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) > 3600.0f) {
+                    *btn2 |= 0x4000;
+                }
+            }
+            break;
+        case 5:
+            target = work->unk9C;
+            dist = HuSqrtf((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x) +
+                           (obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y) +
+                           (obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z));
+            res = func_8010951C_aces_high(obj, &target, 3.0f, 20.0f, stickX, stickY);
+            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
+                *btn2 |= 0x8000;
+            }
+            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
+                *btn2 |= 0x4000;
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                work->unk92 = 6;
+                func_8010B26C_aces_high(obj);
+                work->unk04->func = func_8010B4BC_aces_high;
+                obj->func = func_801071D4_aces_high;
+                work->unk4E = 0x19;
+            }
+            break;
+        case 6:
+            if (work->unk4E != 0) {
+                *stickY = -0x2D;
+                *stickX = -0x41;
+                work->unk4E--;
+            } else {
+                *stickY = -0x46;
+                work->unk0C = 1;
+            }
+            *btn2 |= 0x8000;
+            break;
+    }
+    if (state != 5 && state != 6) {
+        if (func_80109EEC_aces_high(obj, fov, list, &nearest, &nearDist) != 0) {
+            if (nearDist <= 2750.0f) {
+                *btn |= 0x2000;
+            }
+            if (work->unk92 == 1 && nearDist < 1000.0f) {
+                work->unkB0 = (u8)(rand8() % 181) + 0x3C;
+                work->unk92 = 1;
+                work->unk98 = nearest;
+            }
+        }
+        if (work->unk70 != 0 && func_8010A0F0_aces_high(obj) < fleeDist) {
+            *btn2 = (*btn2 & ~0x4000) | 0x8000;
+        }
+        if (work->unkAE != 0) {
+            if (work->unk52 < work->unkAC) {
+                *btn2 |= 0x2000;
+            } else {
+                work->unkAE = 0;
+            }
+        }
+        func_8010A214_aces_high(obj);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801088A4_aces_high);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010951C_aces_high);
 
