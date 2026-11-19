@@ -3541,7 +3541,7 @@ typedef struct SbHmfDl {
 } SbHmfDl; // Size 0x1C
 
 extern Vtx_t D_80114060_stardust_battle[10];
-void func_801127B8_stardust_battle(s16 mdl, s32 arg1, s16 buf);
+void func_801127B8_stardust_battle(s16 mdl, s16 n, s16 buf);
 
 s32 func_801122D0_stardust_battle(void) {
     HmfData *hmf;
@@ -3618,7 +3618,30 @@ s32 func_801122D0_stardust_battle(void) {
     return idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801127B8_stardust_battle);
+void func_801127B8_stardust_battle(s16 mdl, s16 n, s16 buf) {
+    HmfData *hmf;
+    Gfx *gfx;
+    s16 b;
+    s16 i;
+
+    if (buf != -1) {
+        b = buf;
+    } else {
+        b = D_800D2008_main;
+    }
+    hmf = HmfModelData[mdl].hmf;
+    gfx = (&((SbHmfDl *)hmf->unk3C)->unk00[1])[b];
+    gDPPipeSync(gfx++);
+    gSPDisplayList(gfx++, osVirtualToPhysical(((SbHmfDl *)hmf->unk3C)->unk10));
+    for (i = 0; i < n; i++) {
+        gSPSegment(gfx++, 0x01, osVirtualToPhysical((Vtx_t *)hmf->unk40 + i * 10));
+        gSPDisplayList(gfx++, osVirtualToPhysical(((SbHmfDl *)hmf->unk3C)->unk14));
+    }
+    gSPDisplayList(gfx++, osVirtualToPhysical(((SbHmfDl *)hmf->unk3C)->unk18));
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    ((SbHmfDl *)hmf->unk3C)->unk00[0] = ((SbHmfDl *)hmf->unk3C)->unk00[b + 1];
+}
 
 s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
     HmfData *temp_s4;
