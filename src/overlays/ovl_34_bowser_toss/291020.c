@@ -8,6 +8,7 @@
 #include "mallocblock.h"
 #include "math.h"
 
+
 #define BT_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -21,6 +22,29 @@ typedef struct RGBA {
     u8 b;
     u8 a;
 } RGBA;
+
+/* A sprite-sheet effect (D_8010FB94_bowser_toss, 32 x 0x30). */
+typedef struct BtEffect {
+    /* 0x00 */ u16 active;
+    /* 0x02 */ s16 model;
+    /* 0x04 */ f32 frame;
+    /* 0x08 */ f32 speed;
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec vel;
+    /* 0x24 */ Vec scale;
+} BtEffect; // Size 0x30
+
+s32 func_8010DDFC_bowser_toss(HuSprite_Unk84_Struct* arg0, RGBA* arg1, u8 arg2);
+void func_8010A17C_bowser_toss(omObjData* obj);
+void func_8010A500_bowser_toss(omObjData* obj);
+void func_8010A908_bowser_toss(omObjData* obj);
+
+extern RGBA D_8010F150_bowser_toss;
+extern Vec D_8010F278_bowser_toss[];
+extern RGBA D_8010F320_bowser_toss;
+extern Gfx D_8010F4F0_bowser_toss[];
+extern omObjData* D_8010FB90_bowser_toss;
+extern BtEffect* D_8010FB94_bowser_toss;
 
 f32 func_8010D5DC_bowser_toss(f32 a, f32 b);
 f32 func_8010D8A0_bowser_toss(f32 t, f32 a, f32 b);
@@ -145,7 +169,7 @@ BtBowser* func_80108800_bowser_toss(s16 idx);
 void func_8010882C_bowser_toss(omObjData* obj);
 s32 func_80109F20_bowser_toss(void);
 void func_8010A028_bowser_toss(void);
-void func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, s32 player);
+s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, u16 player);
 void func_8010A4A8_bowser_toss(void);
 void func_8010AD98_bowser_toss(void);
 void func_8010B41C_bowser_toss(void);
@@ -198,7 +222,7 @@ extern s32 D_8010FB80_bowser_toss;
 extern s32 D_8010FB84_bowser_toss;
 extern omObjData* D_8010FB88_bowser_toss;
 extern BtBowser* D_8010FB8C_bowser_toss;
-extern void* D_8010FB98_bowser_toss;
+extern s16* D_8010FB98_bowser_toss;
 extern D_80111B50_vine_with_me_Struct D_8010FBB8_bowser_toss;
 
 void func_801059A0_bowser_toss(void) {
@@ -1155,15 +1179,183 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109F20
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109F68_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A028_bowser_toss);
+void func_8010A028_bowser_toss(void) {
+    HuSprite_Unk84_Struct* spr;
+    BtEffect* fx;
+    HmfModel* mdl;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A17C_bowser_toss);
+    spr = func_80055194_main(D_8010FB98_bowser_toss[5] = func_8010AD54_bowser_toss(0xB));
+    D_8010FB90_bowser_toss = omAddObj(0x1E, 0, 0, -1, func_8010A17C_bowser_toss);
+    D_8010FB94_bowser_toss = fx = HuMemAllocTag(sizeof(BtEffect) * 32, 31000);
+    for (i = 0; i < 32; i++, fx++) {
+        if (i == 0) {
+            fx->model = func_8010DDFC_bowser_toss(spr, &D_8010F150_bowser_toss, 0);
+        } else {
+            fx->model = func_8010EA0C_bowser_toss(spr, D_8010FB94_bowser_toss->model, &D_8010F150_bowser_toss);
+        }
+        fx->active = 0;
+        fx->frame = fx->speed = 0.0f;
+        fx->pos.x = fx->pos.y = fx->pos.z = 0.0f;
+        fx->vel.x = fx->vel.y = fx->vel.z = 0.0f;
+        fx->scale.x = fx->scale.y = fx->scale.z = 0.0f;
+        func_8001C258_main(fx->model, 4, 4);
+        mdl = &HmfModelData[fx->model];
+        mdl->unk40 = 0.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A2D4_bowser_toss);
+void func_8010A17C_bowser_toss(omObjData* obj) {
+    HuSprite_Unk84_Struct* spr;
+    BtEffect* fx;
+    HmfModel* mdl;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A4A8_bowser_toss);
+    spr = func_80055194_main(D_8010FB98_bowser_toss[5]);
+    for (i = 0, fx = D_8010FB94_bowser_toss; i < 32; i++, fx++) {
+        if (fx->active == 0) {
+            continue;
+        }
+        mdl = &HmfModelData[fx->model];
+        if (mdl->unk18 & 4) {
+            continue;
+        }
+        fx->pos.x += fx->vel.x;
+        fx->pos.y += fx->vel.y;
+        fx->pos.z += fx->vel.z;
+        mdl->pos.x = fx->pos.x;
+        mdl->pos.y = fx->pos.y;
+        mdl->pos.z = fx->pos.z;
+        mdl->scale.x = fx->scale.x;
+        mdl->scale.y = fx->scale.y;
+        mdl->scale.z = fx->scale.z;
+        func_8010EC10_bowser_toss(fx->model, spr, (s32)fx->frame, &D_8010F150_bowser_toss);
+        fx->frame += fx->speed;
+        if ((s32)fx->frame >= spr->unk10) {
+            fx->active = 0;
+            fx->frame = 0.0f;
+            mdl->unk18 |= 4;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A500_bowser_toss);
+s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, u16 player) {
+    HuSprite_Unk84_Struct* spr;
+    BtEffect* fx;
+    HmfModel* mdl;
+    s32 i;
+
+    spr = func_80055194_main(D_8010FB98_bowser_toss[5]);
+    for (i = 0, fx = D_8010FB94_bowser_toss; i < 32; i++, fx++) {
+        if (fx->active != 0) {
+            continue;
+        }
+        fx->active = 1;
+        mdl = &HmfModelData[fx->model];
+        if (pos != NULL) {
+            fx->pos.x = pos->x;
+            fx->pos.y = pos->y;
+            fx->pos.z = pos->z;
+        } else {
+            fx->pos.x = fx->pos.y = fx->pos.z = 0.0f;
+        }
+        if (vel != NULL) {
+            fx->vel.x = vel->x;
+            fx->vel.y = vel->y;
+            fx->vel.z = vel->z;
+        } else {
+            fx->vel.x = fx->vel.y = fx->vel.z = 0.0f;
+        }
+        if (scale != NULL) {
+            fx->scale.x = scale->x;
+            fx->scale.y = scale->y;
+            fx->scale.z = scale->z;
+        } else {
+            fx->scale.x = fx->scale.y = fx->scale.z = 1.0f;
+        }
+        fx->speed = speed;
+        fx->frame = 0.0f;
+        func_8010EC10_bowser_toss(fx->model, spr, 0, &D_8010F150_bowser_toss);
+        func_8001C258_main(fx->model, 4, 0);
+        func_8001C8A8_main(fx->model, 1 << player);
+        mdl->unk40 = 0.0f;
+        mdl->pos.x = fx->pos.x;
+        mdl->pos.y = fx->pos.y;
+        mdl->pos.z = fx->pos.z;
+        mdl->scale.x = fx->scale.x;
+        mdl->scale.y = fx->scale.y;
+        mdl->scale.z = fx->scale.z;
+        return i;
+    }
+    return -1;
+}
+
+void func_8010A4A8_bowser_toss(void) {
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(0x20, 0x1C, 0, -1, func_8010A500_bowser_toss);
+}
+
+void func_8010A500_bowser_toss(omObjData* obj) {
+    HuSprite_Unk84_Struct* spr;
+    s32 side;
+    s32 base;
+    s32 k;
+    s32 i;
+    s16 grp;
+
+    D_8010FB98_bowser_toss[0] = func_8010AD54_bowser_toss(0x550006);
+    spr = func_80055194_main(D_8010FB98_bowser_toss[0]);
+    for (side = 0; side < 2; side++) {
+        base = side * 14;
+        k = 0;
+        if (side == 0) {
+            obj->model[base + k] = func_8000B108_main(0x550001, 0xB9);
+        } else {
+            obj->model[base + k] = Hu3DModelLink(obj->model[0]);
+        }
+        k++;
+        if (side == 0) {
+            obj->model[base + k] = func_8000B108_main(0x550003, 0xB9);
+            obj->model[base + k + 1] = func_8000B108_main(0x550004, 0xB9);
+        } else {
+            obj->model[base + k] = Hu3DModelLink(obj->model[k]);
+            obj->model[base + k + 1] = Hu3DModelLink(obj->model[k + 1]);
+        }
+        for (i = 2; i < 5; i++) {
+            obj->model[base + k + i] = Hu3DModelLink(obj->model[k + (i & 1)]);
+        }
+        k += 5;
+        if (side == 0) {
+            obj->model[base + k] = func_8000B108_main(0x550002, 0x99);
+        } else {
+            obj->model[base + k] = Hu3DModelLink(obj->model[k]);
+        }
+        for (i = 1; i < 4; i++) {
+            obj->model[base + k + i] = Hu3DModelLink(obj->model[base + k]);
+        }
+        k += 4;
+        if (side == 0) {
+            obj->model[base + k] = func_8010DDFC_bowser_toss(spr, &D_8010F320_bowser_toss, 0);
+        } else {
+            obj->model[base + k] = func_8010EA0C_bowser_toss(spr, obj->model[k], &D_8010F320_bowser_toss);
+        }
+        for (i = 1; i < 4; i++) {
+            obj->model[base + k + i] = func_8010EA0C_bowser_toss(spr, obj->model[k], &D_8010F320_bowser_toss);
+        }
+        for (i = base; i < base + 14; i++) {
+            Hu3DModelPosSet(obj->model[i], D_8010F278_bowser_toss[i - base].x, D_8010F278_bowser_toss[i - base].y,
+                            D_8010F278_bowser_toss[i - base].z);
+            func_8001C8A8_main(obj->model[i], 1 << side);
+        }
+    }
+    D_8010FB98_bowser_toss[4] = func_8010AD54_bowser_toss(0x55000A);
+    grp = HuSprGrpCreate(1, 0);
+    func_80055024_main(grp, 0, D_8010FB98_bowser_toss[4], 0);
+    func_80054904_main(grp, 0, 0xA0, 0x78);
+    func_800550F4_main(grp, 0, 0);
+    func_80054FF8_main(grp, 0, 0);
+    HuSprAttrSet(grp, 0, 0x1000);
+    obj->func = func_8010A908_bowser_toss;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A908_bowser_toss);
 
@@ -1291,7 +1483,115 @@ void func_8010DDC4_bowser_toss(unk1EA70StructC* arg0) {
     HuMemFree(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010DDFC_bowser_toss);
+s32 func_8010DDFC_bowser_toss(HuSprite_Unk84_Struct *arg0, RGBA *arg1, u8 arg2) {
+    HmfData *temp_s4;
+    Gfx *temp_v0_0;
+    Gfx *temp_v0_2;
+    s32 temp_s0;
+    s32 temp_v0;
+    s32 var_a2;
+    s32 var_s1;
+
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    temp_v0 = func_8001A894_main(0x8C1, temp_v0_0, 4);
+    temp_s4 = HmfModelData[temp_v0].hmf;
+    temp_s4->unk60->unk50 |= 0x01010000;
+    HuMemFree(temp_s4->unk3C);
+    temp_s4->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    func_8010ED44_bowser_toss(arg0, temp_s4, 1.0f, 0, 0);
+    gSPDisplayList(temp_v0_2++, osVirtualToPhysical(D_8010F4F0_bowser_toss));
+    gDPPipeSync(temp_v0_2++);
+    gDPSetCycleType(temp_v0_2++, G_CYC_1CYCLE);
+    gDPPipeSync(temp_v0_2++);
+    gSPClearGeometryMode(temp_v0_2++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_CULL_FRONT | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(temp_v0_2++, G_CD_NOISE);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_NONE);
+    gDPSetTextureFilter(temp_v0_2++, G_TF_BILERP);
+    gDPSetTextureConvert(temp_v0_2++, G_TC_FILT);
+    gDPSetAlphaDither(temp_v0_2++, G_AD_PATTERN);
+    gDPSetAlphaCompare(temp_v0_2++, G_AC_NONE);
+    gDPSetBlendColor(temp_v0_2++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(temp_v0_2++);
+    if (arg2) {
+        gDPSetRenderMode(temp_v0_2++, G_RM_AA_ZB_XLU_SURF, G_RM_NOOP2);
+    } else {
+        gDPSetRenderMode(temp_v0_2++, G_RM_ZB_CLD_SURF, G_RM_NOOP2);
+    }
+    if (arg0->unk18 & 0x8000) {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk10 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk10, temp_s0);
+    HuMemFree(temp_v0_0);
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    gSPTexture(temp_v0_2++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_PERSP);
+    if (arg0->unk1A >= 2) {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_RGBA16);
+        if (arg0->unk18 == 4) {
+            gDPLoadTLUT_pal16(temp_v0_2++, 0, arg0->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(temp_v0_2++, arg0->unk0C);
+        }
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = 2;
+    } else {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_NONE);
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = (arg0->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (arg0->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(temp_v0_2++, 0x02000000, var_a2,
+                                   arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_8b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_16b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPSegment(temp_v0_2++, 0x01, osVirtualToPhysical(temp_s4->unk44[0]));
+    gSPVertex(temp_v0_2++, 0x01000000, 4, 0);
+    gSP2Triangles(temp_v0_2++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk14 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk14, temp_s0);
+    HuMemFree(temp_v0_0);
+    for (var_s1 = 0; var_s1 < D_800D1FF0_main; var_s1++) {
+        temp_v0_2 = temp_s4->unk3C->unk00[var_s1 + 1] = HuMemAllocTag(0x100, temp_s4->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg1->r, arg1->g, arg1->b, arg1->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s4->unk3C->unk00[0] = temp_s4->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
 
 s32 func_8010EA0C_bowser_toss(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2) {
     HmfModel *model = &HmfModelData[arg1];
