@@ -2279,7 +2279,175 @@ void func_8010BF3C_aces_high(omObjData *obj) {
     }
 }
 
+// register allocation only (masked 0): retail keeps the target yaw in f20 and the yaw difference in f22, here the reverse; len in f4 (here f2)
+#ifdef NON_MATCHING
+/* The homing missile: turns towards its target at 3.5 degrees a frame, then flies on. */
+void func_8010C288_aces_high(omObjData *obj) {
+    AhShot *sw = obj->data;
+    AhPlayer *tw;
+    omObjData *target;
+    u32 hit;
+    f32 yaw;
+    f32 pitch;
+    f32 dyaw;
+    f32 len;
+    f32 d;
+
+    hit = obj->unk10;
+    obj->unk10 = 0;
+    if (hit & 1) {
+        sw->unk02 = 1;
+        func_8001C258_main(sw->unk22, 4, 0);
+        func_8001C814_main(sw->unk22, 3, 0);
+        func_8001C6A8_main(sw->unk22, 0.0f);
+        Hu3DModelPosSet(sw->unk22, obj->trans.x, obj->trans.y, obj->trans.z);
+        func_8001C258_main(obj->model[0], 4, 4);
+        sw->unk24 = 0x1E;
+        sw->unk0C = 50.0f;
+        tw = sw->unk1C->data;
+        tw->unk6C = NULL;
+        if (sw->unk28 != NULL) {
+            tw = sw->unk28->data;
+            if (--tw->unk70 < 0) {
+                tw->unk70 = 0;
+            }
+        }
+    }
+    switch (sw->unk02) {
+        case 0:
+            if (sw->unk28 != NULL) {
+                tw = sw->unk28->data;
+                if (tw->unk00 == 4 || tw->unk00 == 5) {
+                    sw->unk28 = NULL;
+                } else if (tw->unk00 == 6) {
+                    sw->unk28 = NULL;
+                } else {
+                    target = sw->unk28;
+                    yaw = atan2df(target->trans.x - obj->trans.x, target->trans.z - obj->trans.z);
+                    if (yaw < 0.0f) {
+                        yaw += 360.0f;
+                    }
+                    target = sw->unk28;
+                    if (target->trans.y == obj->trans.y) {
+                        pitch = 0.0f;
+                    } else {
+                        pitch = atan2df(target->trans.y - obj->trans.y, target->trans.z - obj->trans.z);
+                    }
+                    if (pitch > 90.0f) {
+                        pitch = 180.0f - pitch;
+                    }
+                    if (pitch < -90.0f) {
+                        pitch = -180.0f - pitch;
+                    }
+                    dyaw = yaw - sw->unk30;
+                    len = HuSqrtf(pitch * pitch + dyaw * dyaw);
+                    if (len != 0.0f) {
+                        len = 1.0f / len;
+                        pitch = fabsf(pitch * len * 3.5f);
+                        dyaw = fabsf(dyaw * len * 3.5f);
+                    } else {
+                        pitch = 3.5f;
+                        dyaw = 3.5f;
+                    }
+                    d = yaw - sw->unk30;
+                    if (d < 0.0f) {
+                        d += 360.0f;
+                    }
+                    if (d < 180.0f) {
+                        if (dyaw < d) {
+                            sw->unk30 += dyaw;
+                        } else {
+                            sw->unk30 = yaw;
+                        }
+                    } else if (dyaw < 360.0f - d) {
+                        sw->unk30 -= dyaw;
+                    } else {
+                        sw->unk30 = yaw;
+                    }
+                    if (sw->unk30 < 0.0f) {
+                        sw->unk30 += 360.0f;
+                    }
+                    if (sw->unk30 >= 360.0f) {
+                        sw->unk30 -= 360.0f;
+                    }
+                    target = sw->unk28;
+                    if (target->trans.y == obj->trans.y) {
+                        yaw = 0.0f;
+                    } else {
+                        yaw = atan2df(target->trans.y - obj->trans.y, target->trans.z - obj->trans.z);
+                    }
+                    if (yaw > 90.0f) {
+                        yaw = 180.0f - yaw;
+                    }
+                    if (yaw < -90.0f) {
+                        yaw = -180.0f - yaw;
+                    }
+                    if (yaw < 0.0f) {
+                        yaw += 360.0f;
+                    }
+                    if (yaw >= 360.0f) {
+                        yaw -= 360.0f;
+                    }
+                    d = yaw - sw->unk2C;
+                    if (d < 0.0f) {
+                        d += 360.0f;
+                    }
+                    if (d < 180.0f) {
+                        if (pitch < d) {
+                            sw->unk2C += pitch;
+                        } else {
+                            sw->unk2C = yaw;
+                        }
+                    } else if (pitch < 360.0f - d) {
+                        sw->unk2C -= pitch;
+                    } else {
+                        sw->unk2C = yaw;
+                    }
+                    if (sw->unk2C < 0.0f) {
+                        sw->unk2C += 360.0f;
+                    }
+                    if (sw->unk2C >= 360.0f) {
+                        sw->unk2C -= 360.0f;
+                    }
+                    if (sw->unk34 == 0) {
+                        if (sw->unk36 == 0) {
+                            sw->unk10.y = sindf(sw->unk2C);
+                            sw->unk10.x = sindf(sw->unk30) * (1.0 - fabs(sw->unk10.y));
+                            sw->unk10.z = cosdf(sw->unk30) * (1.0 - fabs(sw->unk10.y));
+                            sw->unk36 = 2;
+                        } else {
+                            sw->unk36--;
+                        }
+                    } else {
+                        sw->unk34--;
+                    }
+                }
+            }
+            obj->trans.x += sw->unk10.x * sw->unk04;
+            obj->trans.y += sw->unk10.y * sw->unk04;
+            obj->trans.z += sw->unk10.z * sw->unk04;
+            func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, -sw->unk2C, 0.0f, 0.0f);
+            obj->rot.y = sw->unk30;
+            sw->unk08 -= sw->unk04;
+            if (sw->unk08 < 0.0f) {
+                func_80047E90_main(obj, 1);
+            }
+            break;
+        case 1:
+            if (sw->unk24 == 0) {
+                func_8001C258_main(sw->unk22, 4, 4);
+                D_8010DED0_aces_high[sw->unk20] = 0;
+                func_80047E90_main(sw->unk1C, 2);
+                omDelObj(obj);
+                return;
+            }
+            sw->unk24--;
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010C288_aces_high);
+#endif
 
 void func_8010C9DC_aces_high(void) {
     omObjData *obj;
