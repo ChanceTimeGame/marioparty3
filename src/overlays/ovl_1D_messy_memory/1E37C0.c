@@ -77,13 +77,16 @@ typedef struct MmPt {
 } MmPt; // Size 4
 
 /* .data */
+extern s32 D_80110FC0_messy_memory[8]; /* voice sound bank per character (func_80045ED0_main) */
 extern MmPt D_80110FE0_messy_memory[5];
 extern MmPt D_80110FF4_messy_memory[20]; /* the shown room's slots */
 extern MmPt D_80111044_messy_memory[20];
 extern MmPt D_80111094_messy_memory[4];
 extern Vec2f D_801110A4_messy_memory[20];
+extern Vec2f D_80111298_messy_memory[4]; /* per player: walk speed, stop x */
 extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
+extern s16 D_8011133C_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
 
 /* .bss */
@@ -103,6 +106,8 @@ extern u8 D_80111674_messy_memory;
 extern f32 D_801116A0_messy_memory;
 extern u8 D_801116E0_messy_memory[20];
 extern MmEnt D_80112FC0_messy_memory[]; /* = D_80111700_messy_memory[48] */
+extern MmEnt D_80113B18_messy_memory[]; /* = D_80111700_messy_memory[70] */
+extern s16 D_80115D84_messy_memory[4];
 extern Vec2f D_80115D20_messy_memory[10];
 extern u8 D_80115D76_messy_memory[4];
 extern f32 D_80115D7C_messy_memory;
@@ -155,6 +160,11 @@ const s16 D_801115F4_messy_memory[];
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80110EC4_messy_memory(void);
+f32 func_801059BC_messy_memory(f32 angle, f32 add);
+/* A winner's cheer: the win motion and the character's voice. */
+#define MM_WIN(obj)                                                                                                    \
+    func_8001C5B4_main(obj->model[0], obj->motion[3]);                                                                 \
+    func_80045ED0_main((D_80110FC0_messy_memory[GwPlayer[obj->work[0]].chr] << 16) | 0x2F);
 void func_80105A3C_messy_memory(void);
 void func_80105B7C_messy_memory(s8 arg0);
 void func_801109BC_messy_memory(omObjData *obj);
@@ -1057,7 +1067,212 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B32
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B4CC_messy_memory);
 
+/* A player's model object (work[0] the player; D_80113B18[player] its state), per game phase. */
+#ifdef NON_MATCHING
+void func_8010B5C8_messy_memory(omObjData *obj) {
+    MmEnt *ent;
+    MmEnt *q;
+    f32 f;
+    u16 p;
+    s16 i;
+    s16 flag;
+    s32 a;
+    s32 b;
+
+    p = (u16)obj->work[0];
+    ent = &D_80113B18_messy_memory[obj->work[0]];
+    switch (D_80115D8C_messy_memory) {
+    case 5:
+        func_8001C258_main(obj->model[0], 4, 0);
+        func_8001C258_main(obj->model[1], 4, 0);
+        break;
+    case 6:
+        func_8001C258_main(obj->model[0], 4, 0);
+        switch (ent->unk04) {
+        case 0:
+            func_8001C5B4_main(obj->model[0], obj->motion[2]);
+            ent->unk04 = 1;
+            break;
+        case 1:
+            if (p == 0 || p == 2) {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, 20.0f);
+            } else {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, -20.0f);
+            }
+            if ((s16)obj->rot.y == 180) {
+                ent->unk04 = 2;
+                obj->rot.y = 180.0f;
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+            }
+            break;
+        case 2:
+            if (++ent->unk08 >= 5) {
+                ent->unk04 = 3;
+                func_8001C5B4_main(obj->model[0], obj->motion[5]);
+                func_8004ACE0_main(0x286, (s16)obj->work[0]);
+            }
+            break;
+        case 3:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
+                ent->unk04 = 4;
+                func_8001C5B4_main(obj->model[0], obj->motion[2]);
+                func_8001C814_main(obj->model[0], 2, 2);
+            }
+            break;
+        case 4:
+            if (p == 0 || p == 2) {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, 15.0f);
+            } else {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, -15.0f);
+            }
+            if ((s16)obj->rot.y == 90 || (s16)obj->rot.y == 270) {
+                ent->unk04 = 5;
+            }
+            break;
+        case 5:
+            obj->trans.x -= D_80111298_messy_memory[p].x;
+            if (obj->work[0] == 3) {
+                flag = 0;
+                for (i = 0; i < 4; i++) {
+                    q = &D_80113B18_messy_memory[i];
+                    a = q->obj->trans.x;
+                    if (a < 0) {
+                        a = -a;
+                    }
+                    if (a < 651) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 0) {
+                    D_80115D9A_messy_memory = 6;
+                    for (i = 0; i < 4; i++) {
+                        q = &D_80113B18_messy_memory[i];
+                        func_8001C258_main(q->obj->model[0], 4, 4);
+                    }
+                }
+            }
+            break;
+        }
+        break;
+    case 13:
+        switch (p) {
+        case 0:
+            obj->trans.x = -650.0f;
+            obj->trans.y = -180.0f;
+            obj->trans.z = -1000.0f;
+            obj->rot.y = 90.0f;
+            break;
+        case 1:
+            obj->trans.x = 650.0f;
+            obj->trans.y = -180.0f;
+            obj->trans.z = -1000.0f;
+            obj->rot.y = 270.0f;
+            break;
+        case 2:
+            obj->trans.x = -650.0f;
+            obj->trans.y = -435.0f;
+            obj->trans.z = -610.0f;
+            obj->rot.y = 90.0f;
+            break;
+        case 3:
+            obj->trans.x = 650.0f;
+            obj->trans.y = -435.0f;
+            obj->trans.z = -610.0f;
+            obj->rot.y = 270.0f;
+            break;
+        }
+        obj->rot.x = 0.0f;
+        obj->rot.z = 0.0f;
+        Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+        ent->unk04 = 0;
+        break;
+    case 14:
+        func_8001C258_main(obj->model[0], 4, 0);
+        switch (ent->unk04) {
+        case 0:
+            obj->trans.x += D_80111298_messy_memory[p].x;
+            if (ent->unk06 >= 8) {
+                if (D_80115D84_messy_memory[obj->work[0]] != -1) {
+                    HuAudFXStop(D_80115D84_messy_memory[obj->work[0]]);
+                }
+                D_80115D84_messy_memory[obj->work[0]] = func_8004ACE0_main(D_8011133C_messy_memory, (s16)obj->work[0]);
+                ent->unk06 = 0;
+            } else {
+                ent->unk06++;
+            }
+            a = obj->trans.x;
+            if (a < 0) {
+                a = -a;
+            }
+            f = D_80111298_messy_memory[p].y;
+            b = f;
+            if (b < 0) {
+                b = -b;
+            }
+            if (b >= a) {
+                obj->trans.x = f;
+                ent->unk04 = 1;
+                func_8001C5B4_main(obj->model[0], obj->motion[1]);
+            }
+            break;
+        case 1:
+            if (obj->rot.y >= 270.0f) {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, 15.0f);
+            } else if (obj->rot.y <= 90.0f) {
+                obj->rot.y = func_801059BC_messy_memory(obj->rot.y, -15.0f);
+            }
+            if ((s16)obj->rot.y == 0) {
+                ent->unk04 = 2;
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                if (p == 3) {
+                    D_80115D9A_messy_memory = 14;
+                }
+            }
+            break;
+        }
+        break;
+    case 16:
+        if (D_80115D8E_messy_memory >= 0 && ent->unk04 == 2) {
+            if (D_8011163B_messy_memory == 0) {
+                if (p == D_80111630_messy_memory[0]) {
+                    MM_WIN(obj);
+                } else {
+                    func_8001C5B4_main(obj->model[0], obj->motion[4]);
+                }
+            }
+            if (D_8011163B_messy_memory == 1) {
+                if (p == D_80111630_messy_memory[0] || p == D_80111630_messy_memory[1]) {
+                    MM_WIN(obj);
+                } else {
+                    func_8001C5B4_main(obj->model[0], obj->motion[4]);
+                }
+            }
+            if (D_8011163B_messy_memory == 2) {
+                if (p == D_80111630_messy_memory[0] || p == D_80111630_messy_memory[1] || p == D_80111630_messy_memory[2]) {
+                    MM_WIN(obj);
+                } else {
+                    func_8001C5B4_main(obj->model[0], obj->motion[4]);
+                }
+            }
+            if (D_8011163B_messy_memory == 3) {
+                MM_WIN(obj);
+            }
+            if (D_8011163B_messy_memory == 4) {
+                func_8001C5B4_main(obj->model[0], obj->motion[4]);
+            }
+            ent->unk04 = 3;
+        }
+        break;
+    }
+    if (GwPlayer[obj->work[0]].chr != 5) {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y - 5.0f, obj->trans.z);
+    } else {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y - 10.0f, obj->trans.z + 30.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B5C8_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C03C_messy_memory);
 
