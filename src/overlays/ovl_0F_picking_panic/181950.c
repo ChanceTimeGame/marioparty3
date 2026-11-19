@@ -19,6 +19,9 @@ void func_8000B5F0_main(u8 arg0);
 void func_8000B710_main(s32);
 void func_800142A0_main(s32);
 void func_80017954_main(s16, s16, s16, s16);
+s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
+s16 func_80017AD8_main(s32);
+s32 func_80017BB8_main(s16, s16);
 void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 void func_80045010_main(s16 *, s32);
 void func_80045ED0_main(s32);
@@ -81,7 +84,7 @@ void func_8010B194_picking_panic(omObjData *obj);
 void func_8010B1C0_picking_panic(omObjData *obj);
 void func_8010B1F4_picking_panic(omObjData *obj);
 void func_80109C00_picking_panic(Gfx **arg0, s32 arg1, s32 arg2);
-void func_8010B220_picking_panic(omObjData *obj, u8 arg1);
+void func_8010B220_picking_panic(omObjData *obj, s8 arg1);
 void func_8010B8D0_picking_panic(omObjData *obj);
 void func_8010B8EC_picking_panic(omObjData *obj);
 void func_8010B908_picking_panic(omObjData *arg0, s8 arg1);
@@ -90,6 +93,14 @@ void func_8010B11C_picking_panic(s16 model, s16 frame);
 typedef struct {
     s32 unk00[8];
 } PkChrTable;
+
+typedef struct {
+    s32 unk00[16];
+} PkChrTable16;
+
+typedef struct {
+    s32 unk00[3];
+} PkItemTable;
 
 /* data */
 extern Gfx D_8010E5E0_picking_panic[];
@@ -108,6 +119,11 @@ extern u8 D_8010E718_picking_panic[8];
 /* rodata */
 extern s16 D_8010E720_picking_panic[];
 extern PkChrTable D_8010E758_picking_panic;
+extern PkChrTable D_8010E9E0_picking_panic;
+extern PkChrTable D_8010EA00_picking_panic;
+extern PkChrTable D_8010EA20_picking_panic;
+extern PkChrTable16 D_8010EA40_picking_panic;
+extern PkItemTable D_8010EA80_picking_panic;
 extern PkCpuTable D_8010EA8C_picking_panic;
 
 /* bss */
@@ -855,7 +871,72 @@ void func_8010B1F4_picking_panic(omObjData *obj) {
     obj->func = NULL;
 }
 
+#ifdef NON_MATCHING
+void func_8010B220_picking_panic(omObjData *obj, s8 arg1) {
+    PkChrTable dir = D_8010E9E0_picking_panic;
+    PkChrTable body = D_8010EA00_picking_panic;
+    PkChrTable link = D_8010EA20_picking_panic;
+    PkChrTable chrIdx = D_8010E758_picking_panic;
+    PkChrTable16 mtn = D_8010EA40_picking_panic;
+    s16 **slot;
+    s8 chr;
+    u16 c;
+    u16 i;
+    u16 j;
+    s32 team;
+
+    chr = D_8010EEE0_picking_panic[arg1]->unk03;
+    c = chr;
+    obj->model[0] = func_8000B108_main((dir.unk00[c] << 16) | body.unk00[c], 0x4B9);
+    omSetSca(obj, 1.3f, 1.3f, 1.3f);
+    func_8001C2FC_main(obj->model[0], 0x600, 0x400);
+    func_8001C8A8_main(obj->model[0], (arg1 >= 2) ? 2 : 1);
+    obj->model[1] = func_8000B108_main((dir.unk00[c] << 16) | link.unk00[c], 0x4AD);
+    Hu3DModelScaleSet(obj->model[1], 1.3f, 1.3f, 1.3f);
+    func_8001C2FC_main(obj->model[1], 0x600, 0x400);
+    func_8001C8A8_main(obj->model[1], (arg1 >= 2) ? 2 : 1);
+    D_8010EEE0_picking_panic[arg1]->unk06 =
+        func_80017790_main(obj->model[1], 1, chrIdx.unk00[c], (dir.unk00[c] << 16) | mtn.unk00[c]);
+    D_8010EEE0_picking_panic[arg1]->unk08 = func_80017AD8_main((dir.unk00[c] << 16) | mtn.unk00[c + 8]);
+    func_8001C514_main(obj->model[1]);
+    D_8010EEE0_picking_panic[arg1]->unk0C = (rand8() & 1) ? 0x2F : 0x30;
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x49));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x4A));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x1F));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, D_8010EEE0_picking_panic[arg1]->unk0C));
+    D_8010EEE0_picking_panic[arg1]->unk0C = (dir.unk00[c] << 16) | D_8010EEE0_picking_panic[arg1]->unk0C;
+    func_8001C5B4_main(obj->model[0], obj->motion[1]);
+    func_8001C6A8_main(obj->model[0], 12.0f);
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C5B4_main(obj->model[1], obj->motion[1]);
+    func_8001C6A8_main(obj->model[1], 12.0f);
+    func_8001C814_main(obj->model[1], 1, 1);
+    if ((s8)(arg1 % 2) == 1) {
+        for (i = 0; i < 3; i++) {
+            team = arg1 / 2;
+            for (j = 0; j < 4; j++) {
+                slot = &D_8010EF18_picking_panic[team][j][i];
+                *slot = &D_8010EF00_picking_panic[(arg1 & 2) + (j & 1)]->model[(j >> 1) ? i + 5 : i + 2];
+                if ((team == 0) & (j == 0)) {
+                    PkItemTable items = D_8010EA80_picking_panic;
+
+                    **slot = func_8000B108_main(items.unk00[i] | 0x300000, 0x8BD);
+                } else {
+                    **slot = Hu3DModelLink(D_8010EF00_picking_panic[0]->model[i + 2]);
+                }
+                func_8001C8A8_main(**slot, (arg1 >= 2) ? 2 : 1);
+                func_8001C2FC_main(**slot, 0x20000000, 0x20000000);
+                func_8001C258_main(**slot, 4, 4);
+                Hu3DModelScaleSet(**slot, 1.3f, 1.3f, 1.3f);
+            }
+        }
+    }
+    D_8010EFBE_picking_panic = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010B220_picking_panic);
+#endif
 
 void func_8010B8D0_picking_panic(omObjData *obj) {
     func_8010B908_picking_panic(obj, 0);
