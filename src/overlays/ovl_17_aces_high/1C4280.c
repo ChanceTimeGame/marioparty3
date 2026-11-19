@@ -143,6 +143,9 @@ extern s16 D_8010DE92_aces_high;
 extern s16 D_8010DE94_aces_high;
 extern s16 D_8010DE96_aces_high;
 extern Vec D_8010DE98_aces_high;
+extern Vec D_8010DEA8_aces_high; /* ending camera eye */
+extern Vec D_8010DEB4_aces_high; /* ending camera target */
+extern Vec D_8010DEC0_aces_high; /* ending camera up */
 extern s16 D_8010DEA4_aces_high;
 extern s16 D_8010DEA6_aces_high;
 
@@ -1841,15 +1844,119 @@ void func_8010AD4C_aces_high(omObjData *obj) {
     cam->func = func_8010AE30_aces_high;
 }
 
+// masked 6: retail computes the centre y (trans.y + 100) in both paths, here once after the join; registers of ry/rx/cx differ; same operations otherwise
+#ifdef NON_MATCHING
+/* Ending camera: circles round and closes in on the winner over 60 frames. */
+void func_8010AE30_aces_high(omObjData *obj) {
+    omObjData *plane = (omObjData *)obj->work[1];
+    AhPlayer *work = plane->data;
+    f32 ry;
+    f32 rx;
+    f32 cx;
+    f32 cy;
+    f32 cz;
+    f32 zoom;
+
+    ry = plane->rot.y + obj->scale.x;
+    obj->scale.x += 3.0f;
+    rx = obj->work[2] * obj->trans.x + obj->trans.y;
+    cx = sindf(plane->rot.y) * (obj->work[2] * obj->scale.y + 300.0f) + plane->trans.x;
+    cz = cosdf(plane->rot.y) * (obj->work[2] * obj->scale.y + 300.0f) + plane->trans.z;
+    cy = plane->trans.y + 100.0f;
+    zoom = obj->work[2] * obj->scale.z + obj->trans.z;
+    if (obj->work[2]++ >= 0x3C) {
+        ry = plane->rot.y;
+        rx = -10.0f;
+        cx = sindf(ry) * 30.0f + plane->trans.x;
+        cz = cosdf(plane->rot.y) * 30.0f + plane->trans.z;
+        cy = plane->trans.y + 100.0f;
+        zoom = 750.0f;
+        obj->func = func_8010B0E8_aces_high;
+    }
+    CRotM[work->unk02].y = ry;
+    CRotM[work->unk02].x = rx;
+    CenterM[work->unk02].x = cx;
+    CenterM[work->unk02].y = cy;
+    CenterM[work->unk02].z = cz;
+    CZoomM[work->unk02] = zoom;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010AE30_aces_high);
+#endif
 
+// register allocation only (masked 0): retail multiplies sindf(rot.y) * 30 into f0, here into f20
+#ifdef NON_MATCHING
+/* Ending camera, held: behind the winner. */
+void func_8010B0E8_aces_high(omObjData *obj) {
+    omObjData *plane = (omObjData *)obj->work[1];
+    AhPlayer *work = plane->data;
+    f32 x;
+    f32 y;
+    f32 z;
+
+    y = plane->rot.y;
+    CRotM[work->unk02].y = y;
+    CRotM[work->unk02].x = -10.0f;
+    x = sindf(plane->rot.y) * 30.0f + plane->trans.x;
+    z = cosdf(plane->rot.y) * 30.0f + plane->trans.z;
+    y = plane->trans.y + 100.0f;
+    CenterM[work->unk02].x = x;
+    CenterM[work->unk02].y = y;
+    CenterM[work->unk02].z = z;
+    y = 750.0f;
+    CZoomM[work->unk02] = y;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B0E8_aces_high);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B224_aces_high);
+/* The single full-screen camera of the ending. */
+void func_8010B224_aces_high(omObjData *obj) {
+    Hu3DCamSetPositionOrientation(obj->work[0], &D_8010DEA8_aces_high, &D_8010DEB4_aces_high, &D_8010DEC0_aces_high);
+    Hu3DCamUpdateMtx(obj->work[0]);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B26C_aces_high);
+/* Ending: one full-screen camera from the winner's view. */
+void func_8010B26C_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    omObjData *view;
+    f32 rx;
+    f32 ry;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B4BC_aces_high);
+    rx = CRotM[work->unk02].x;
+    ry = CRotM[work->unk02].y;
+    D_8010DEA8_aces_high.x = CenterM[work->unk02].x + sindf(ry) * cosdf(rx) * CZoomM[work->unk02];
+    D_8010DEA8_aces_high.y = CenterM[work->unk02].y + -sindf(rx) * CZoomM[work->unk02];
+    D_8010DEA8_aces_high.z = CenterM[work->unk02].z + cosdf(ry) * cosdf(rx) * CZoomM[work->unk02];
+    D_8010DEB4_aces_high.x = CenterM[work->unk02].x;
+    D_8010DEB4_aces_high.y = CenterM[work->unk02].y;
+    D_8010DEB4_aces_high.z = CenterM[work->unk02].z;
+    D_8010DEC0_aces_high.x = sindf(ry) * sindf(rx);
+    D_8010DEC0_aces_high.y = cosdf(rx);
+    D_8010DEC0_aces_high.z = cosdf(ry) * sindf(rx);
+    omDelObj(D_8010DE84_aces_high);
+    D_8010DE84_aces_high = view = omAddObj(0x7FDA, 0, 0, -1, func_8010B224_aces_high);
+    view->work[0] = work->unk02;
+    omSetStatBit(view, 0xA0);
+}
+
+/* Ending camera object: look at the winner. */
+void func_8010B4BC_aces_high(omObjData *obj) {
+    omObjData *plane = (omObjData *)obj->work[1];
+    AhPlayer *work = plane->data;
+    f32 rx;
+    f32 ry;
+
+    D_8010DEB4_aces_high.x = sindf(plane->rot.y) * 30.0f + plane->trans.x;
+    D_8010DEB4_aces_high.z = cosdf(plane->rot.y) * 30.0f + plane->trans.z;
+    D_8010DEB4_aces_high.y = plane->trans.y + 100.0f;
+    CRotM[work->unk02].y = atan2df(plane->trans.x - D_8010DEA8_aces_high.x, plane->trans.z - D_8010DEA8_aces_high.z);
+    rx = CRotM[work->unk02].x;
+    ry = CRotM[work->unk02].y;
+    D_8010DEC0_aces_high.x = sindf(ry) * sindf(rx);
+    D_8010DEC0_aces_high.y = cosdf(rx);
+    D_8010DEC0_aces_high.z = cosdf(ry) * sindf(rx);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B618_aces_high);
 
