@@ -413,8 +413,8 @@ typedef struct PpSlot12 {
 typedef struct PpSlot16 {
     /* 0x00 */ s32 state;
     /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
+    /* 0x08 */ s32 dir;
+    /* 0x0C */ f32 speed;
 } PpSlot16;
 extern PpSlot12 D_80111710_pump_pump_away[6];
 extern PpSlot12 D_801119E8_pump_pump_away[6];
@@ -435,9 +435,9 @@ extern s32 D_8011199C_pump_pump_away; /* D_80111978_pump_pump_away[0].state */
 typedef struct PpSlot20 {
     /* 0x00 */ s32 state;
     /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ s32 unk10;
+    /* 0x08 */ s32 dir;
+    /* 0x0C */ f32 speed;
+    /* 0x10 */ f32 phase;
 } PpSlot20;
 extern PpSlot20 D_80111920_pump_pump_away[4];
 extern s16 D_801116EC_pump_pump_away;
@@ -2892,7 +2892,31 @@ void func_8010E098_pump_pump_away(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E0F4_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E45C_pump_pump_away);
+void func_8010E45C_pump_pump_away(omObjData *obj) {
+    PpSlot20 *p;
+
+    if (D_801116EC_pump_pump_away == 0) {
+        D_801116EC_pump_pump_away = obj->model[0] = func_8000B108_main(0x2E0011, 0x299);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801116EC_pump_pump_away);
+    }
+    func_8001C814_main(obj->model[0], 2, 2);
+    func_8001C258_main(obj->model[0], 4, 4);
+    if (rand8() & 1) {
+        obj->trans.x = (u8)(rand8() % 10) * 50;
+    } else {
+        obj->trans.x = -((u8)(rand8() % 10) * 50);
+    }
+    obj->trans.y = 1000.0f;
+    obj->trans.z = -150.0f;
+    obj->func = func_8010E0F4_pump_pump_away;
+    p = &D_80111920_pump_pump_away[obj->work[0]];
+    p->state = 0;
+    p->unk04 = 0;
+    p->dir = rand8() & 1;
+    p->speed = (u8)(rand8() % 6) + 4;
+    p->phase = rand8();
+}
 
 void func_8010E65C_pump_pump_away(void) {
     s32 i;
@@ -2904,7 +2928,30 @@ void func_8010E65C_pump_pump_away(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E6B8_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E98C_pump_pump_away);
+void func_8010E98C_pump_pump_away(omObjData *obj) {
+    PpSlot16 *p;
+
+    if (D_801116EE_pump_pump_away == 0) {
+        D_801116EE_pump_pump_away = obj->model[0] = func_8000B108_main(0xA0062, 0x299);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801116EE_pump_pump_away);
+    }
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C258_main(obj->model[0], 4, 4);
+    if (rand8() & 1) {
+        obj->trans.x = (u8)(rand8() % 10) * 50;
+    } else {
+        obj->trans.x = -((u8)(rand8() % 10) * 50);
+    }
+    obj->trans.y = 1000.0f;
+    obj->trans.z = -150.0f;
+    obj->func = func_8010E6B8_pump_pump_away;
+    p = &D_801135E8_pump_pump_away[obj->work[0]];
+    p->state = 0;
+    p->unk04 = 0;
+    p->dir = rand8() & 1;
+    p->speed = (u8)(rand8() % 5) + 10;
+}
 
 void func_8010EB68_pump_pump_away(void) {
     s32 i;
@@ -2916,7 +2963,29 @@ void func_8010EB68_pump_pump_away(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010EBC4_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F024_pump_pump_away);
+void func_8010F024_pump_pump_away(omObjData *obj) {
+    PpSlot12 *p;
+
+    if (D_801116F0_pump_pump_away == 0) {
+        D_801116F0_pump_pump_away = obj->model[0] = func_8000B108_main(0x2E0022, 0x289);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801116F0_pump_pump_away);
+    }
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C258_main(obj->model[0], 4, 4);
+    if (obj->work[0] & 1) {
+        obj->trans.x = rand16() % 501 + 100;
+    } else {
+        obj->trans.x = -(rand16() % 501) - 100;
+    }
+    obj->trans.y = 1000.0f;
+    obj->trans.z = -150.0f;
+    obj->func = func_8010EBC4_pump_pump_away;
+    p = &D_80111710_pump_pump_away[obj->work[0]];
+    p->state = 0;
+    p->unk04 = 0;
+    p->scale = rand8();
+}
 
 void func_8010F20C_pump_pump_away(void) {
     s32 i;
@@ -3453,9 +3522,9 @@ void func_80110888_pump_pump_away(void) {
         p = &D_80111920_pump_pump_away[i];
         p->state = -1;
         p->unk04 = 0;
-        p->unk08 = 0;
-        p->unk0C = 0;
-        p->unk10 = 0;
+        p->dir = 0;
+        p->speed = 0;
+        p->phase = 0;
     }
     D_801116EC_pump_pump_away = 0;
 }
@@ -3468,8 +3537,8 @@ void func_801108D8_pump_pump_away(void) {
         p = &D_801135E8_pump_pump_away[i];
         p->state = -1;
         p->unk04 = 0;
-        p->unk08 = 0;
-        p->unk0C = 0;
+        p->dir = 0;
+        p->speed = 0;
     }
     D_801116EE_pump_pump_away = 0;
 }
