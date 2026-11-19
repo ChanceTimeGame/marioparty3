@@ -136,6 +136,7 @@ void func_8010D98C_stacked_deck(omObjData *obj);
 void func_8010DC2C_stacked_deck(omObjData *obj);
 void func_80108E48_stacked_deck(omObjData *obj);
 void func_8010DEF4_stacked_deck(omObjData *obj);
+void func_80106BC8_stacked_deck(omObjData *obj);
 extern omObjData *D_800EC598_minigame[];
 extern u16 D_800EC280_minigame;
 s32 HmfSprModelCreate(void *, s32, u8);
@@ -191,6 +192,10 @@ extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like,
 extern s16 D_8010F6F0_stacked_deck;
 extern s16 D_8010F6F2_stacked_deck;
 extern u8 D_8010F6F4_stacked_deck;
+extern s8 D_8010F6F5_stacked_deck[4];   /* players per rank */
+extern s16 D_8010F6FA_stacked_deck[4];  /* coin rank per player slot */
+extern s16 D_80111102_stacked_deck[4];  /* star rank per player slot */
+extern s8 D_80111110_stacked_deck[4][4]; /* players (work[0]) at each rank */
 extern void *D_8010F708_stacked_deck[6];
 extern s16 D_8010F720_stacked_deck;
 extern CcEnt D_8010F730_stacked_deck[50];
@@ -1269,7 +1274,118 @@ void func_80106BC8_stacked_deck(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80106BC8_stacked_deck);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80108E48_stacked_deck);
+void func_80108E48_stacked_deck(omObjData *obj) {
+    CcEnt *ent = &D_8010F838_stacked_deck[obj->work[0]];
+    u16 chr = GwPlayer[obj->work[0]].chr;
+    s32 dir = D_800A178C_main[chr][0];
+    s32 file = D_800A178C_main[chr][1];
+    MgWork *w;
+    omObjData *o;
+    s32 vals[4];
+    s16 i;
+    s16 j;
+    s16 k;
+    s16 rank;
+    CcEnt *c;
+
+    func_800E18D8_minigame();
+    func_800E1BA8_minigame(obj, dir, file, obj->work[0], 0x2B9, 0x2A9);
+    w = obj->data;
+    w->unkEC = NULL;
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C258_main(obj->model[1], 0x60, 0x20);
+    func_8001C258_main(obj->model[1], 0x180, 0x80);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    obj->model[7] = func_8000B108_main(8, 0x2BD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, 6), 1, 0x1B);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5978_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, 0x30), 1, 0x78);
+    func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x33), 2, 0);
+    func_800E5A00_minigame(obj, 0x28, func_80017BB8_main(chr, 0x7A), 2, 0);
+    func_800E5A00_minigame(obj, 0x29, func_80017BB8_main(chr, 0x37), 1, 0x78);
+    func_800E5A00_minigame(obj, 0x2A, func_80017BB8_main(chr, 0x70), 1, 0);
+    ent->unk06 = 0;
+    func_800E5690_minigame(obj, 0);
+    D_800EBE24_minigame = 1;
+    if (obj->work[0] == 3) {
+        /* Rank by coins. */
+        for (i = 0; i < 4; i++) {
+            c = &D_8010F838_stacked_deck[i];
+            o = c->obj;
+            for (j = 0; j < 4; j++) {
+                vals[j] = GwPlayer[j].coin;
+            }
+            for (j = 0, rank = 0; j < 4; j++) {
+                if (j != o->work[0] && vals[o->work[0]] < vals[j]) {
+                    rank++;
+                }
+            }
+            D_8010F6FA_stacked_deck[i] = rank;
+        }
+        /* Rank by stars, ties by coins. */
+        for (i = 0; i < 4; i++) {
+            c = &D_8010F838_stacked_deck[i];
+            o = c->obj;
+            for (j = 0; j < 4; j++) {
+                vals[j] = GwPlayer[j].star;
+            }
+            for (j = 0, rank = 0; j < 4; j++) {
+                if (j != o->work[0]) {
+                    if (vals[o->work[0]] < vals[j]) {
+                        rank++;
+                    } else if (vals[o->work[0]] == vals[j] && D_8010F6FA_stacked_deck[i] > D_8010F6FA_stacked_deck[j]) {
+                        rank++;
+                    }
+                }
+            }
+            D_80111102_stacked_deck[i] = rank;
+        }
+        for (i = 0; i < 4; i++) {
+            c = &D_8010F838_stacked_deck[i];
+            o = c->obj;
+            rank = D_80111102_stacked_deck[i];
+            o->work[1] = rank;
+            D_80111110_stacked_deck[rank][D_8010F6F5_stacked_deck[rank]] = o->work[0];
+            D_8010F6F5_stacked_deck[rank]++;
+        }
+        /* Break ties at random: each tied player but one moves down. */
+        for (i = 0; i < 4;) {
+            if (D_8010F6F5_stacked_deck[i] >= 2) {
+                k = func_80105A3C_stacked_deck(D_8010F6F5_stacked_deck[i]);
+                o = D_8010F838_stacked_deck[D_80111110_stacked_deck[i][k]].obj;
+                o->work[1] += D_8010F6F5_stacked_deck[i] - 1;
+                D_8010F6F5_stacked_deck[i]--;
+                for (j = k; j < 3; j++) {
+                    D_80111110_stacked_deck[i][j] = D_80111110_stacked_deck[i][j + 1];
+                }
+                if (D_8010F6F5_stacked_deck[i] == 1) {
+                    i++;
+                }
+            } else {
+                i++;
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            c = &D_8010F838_stacked_deck[i];
+            o = c->obj;
+            o->trans.x = o->work[1] * 140.0f;
+            o->trans.y = 0.0f;
+            o->trans.z = 1100.0f;
+            Hu3DModelPosSet(o->model[0], o->trans.x, o->trans.y, 1100.0f);
+            Hu3DModelPosSet(o->model[1], o->trans.x, o->trans.y, o->trans.z);
+        }
+    }
+    func_800E149C_minigame(obj, 0, 2);
+    func_80105B3C_stacked_deck(obj->work[0]);
+    w->unk3C = obj->rot.y = 180.0f;
+    obj->func = func_80106BC8_stacked_deck;
+}
 
 void func_8010969C_stacked_deck(void) {
     omObjData *o;
