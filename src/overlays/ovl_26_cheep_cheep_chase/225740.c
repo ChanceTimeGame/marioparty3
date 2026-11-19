@@ -400,11 +400,14 @@ void func_80106388_cheep_cheep_chase(omObjData *object) {
     object->func = func_80106484_cheep_cheep_chase;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E050_cheep_cheep_chase);
+/* "ＳＴＡＲＴ" (Shift-JIS) */
+const s16 D_8010E050_cheep_cheep_chase[] = { (s16)0x8272, (s16)0x8273, (s16)0x8260, (s16)0x8271, (s16)0x8273, 0 };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E05C_cheep_cheep_chase);
+/* "ＦＩＮＩＳＨ" (Shift-JIS) */
+const s16 D_8010E05C_cheep_cheep_chase[] = { (s16)0x8265, (s16)0x8268, (s16)0x826D, (s16)0x8268, (s16)0x8272, (s16)0x8267, 0, 0 };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E06C_cheep_cheep_chase);
+/* "ＤＲＡＷ" (Shift-JIS) */
+const s16 D_8010E06C_cheep_cheep_chase[] = { (s16)0x8263, (s16)0x8271, (s16)0x8260, (s16)0x8276, 0, 0 };
 
 void func_80106484_cheep_cheep_chase(omObjData *object) {
     HmfModel *model;
