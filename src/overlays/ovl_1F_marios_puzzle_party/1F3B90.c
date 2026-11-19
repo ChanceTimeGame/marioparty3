@@ -106,6 +106,18 @@ extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D530C_main;
 extern u16 D_800D5558_main[4];
+extern u8 D_800CE20A_main;
+extern struct {
+    s32 unk0;
+    s16 unk4;
+} D_800CB890_main; /* other units see an f32 here */
+void* DataRead(s32 dirAndFile);
+void DataClose(void* data);
+s16 func_80055810_main(void*);
+void func_8000BC48_main(u16, s32);
+void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
+void func_8010F570_marios_puzzle_party(s16 n);
+void func_8010F678_marios_puzzle_party(s32 file, s16 n);
 
 // 1FD760
 s16 func_8010FEDC_marios_puzzle_party(s16 id, f32 x, f32 y);
@@ -164,16 +176,37 @@ void func_8010EF30_marios_puzzle_party(void);
 
 // data
 extern PzOrigin D_80110080_marios_puzzle_party[4];
+extern PzOrigin D_801100A0_marios_puzzle_party[4]; /* D_801100B0 is a view */
 
 // bss
 extern PzCell D_801102E0_marios_puzzle_party[4][6][40]; /* D_80110600, D_80110920, D_80110C40 are views */
 extern PzAi D_80114DE0_marios_puzzle_party[4]; /* D_80114E20 is a view (player 0's unk40.. tail) */
-extern s16 D_80116092_marios_puzzle_party;
-extern s16 D_8011609A_marios_puzzle_party;
-extern s16 D_8011609E_marios_puzzle_party;
-extern s16 D_801160B6_marios_puzzle_party;
-extern s16 D_801160BA_marios_puzzle_party;
+extern s32 D_80116070_marios_puzzle_party[7];
+/* sprite data handles (func_80055810_main results, read back through their low halves) */
+extern s32 D_8011608C_marios_puzzle_party;
+extern s32 D_80116090_marios_puzzle_party;
+extern s32 D_80116094_marios_puzzle_party;
+extern s32 D_80116098_marios_puzzle_party;
+extern s32 D_8011609C_marios_puzzle_party;
+extern s32 D_801160A0_marios_puzzle_party;
+extern s32 D_801160A4_marios_puzzle_party;
+extern s32 D_801160A8_marios_puzzle_party;
+extern s32 D_801160AC_marios_puzzle_party;
+extern s32 D_801160B0_marios_puzzle_party;
+extern s32 D_801160B4_marios_puzzle_party;
+extern s32 D_801160B8_marios_puzzle_party;
 extern s32 D_801160C0_marios_puzzle_party[4];
+extern s32 D_801160D0_marios_puzzle_party;
+extern s32 D_801160D4_marios_puzzle_party;
+extern s32 D_801160D8_marios_puzzle_party;
+extern s32 D_801160DC_marios_puzzle_party;
+extern s32 D_801160E0_marios_puzzle_party;
+extern s32 D_801160E8_marios_puzzle_party;
+extern s32 D_80116198_marios_puzzle_party[4];
+extern s32 D_801161B8_marios_puzzle_party[4];
+extern s32 D_801161C8_marios_puzzle_party[4];
+extern s32 D_801167B0_marios_puzzle_party[30][2]; /* D_801167B4 is a view */
+extern s32 D_801168A0_marios_puzzle_party[4];
 extern s32 D_801160F0_marios_puzzle_party[4];
 extern s32 D_80116108_marios_puzzle_party[4];
 extern s32 D_80116118_marios_puzzle_party[4];
@@ -264,7 +297,184 @@ u16 func_80105FCC_marios_puzzle_party(s32 player, s32 mask) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105FCC_marios_puzzle_party);
 #endif
 
+#ifdef NON_MATCHING
+/* Mode, sprite data, block batches, empty boards with walls, the piece colour sequence and the
+   shuffled board positions; the Mode 2 boards start with four rows of blocks. */
+void func_8010604C_marios_puzzle_party(void) {
+    void* data;
+    PzCell* cell;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 a;
+    s32 b;
+    s32* pair;
+    u16 slot;
+
+    if (D_800CE20A_main != 1) {
+        if (D_800CE20A_main != 2) {
+            k = 100;
+            D_80116158_marios_puzzle_party = 0;
+        } else {
+            D_80116158_marios_puzzle_party = 2;
+            k = 9999;
+        }
+    } else {
+        D_80116158_marios_puzzle_party = 1;
+        k = D_800CB890_main.unk4;
+    }
+    D_8011615C_marios_puzzle_party = k;
+    slot = InitEspriteSlot(func_8000B838_main(0x400000), 0, 1);
+    func_8000BC48_main(slot, 0x4000);
+    func_8000BBD4_main(slot, 0xA0, 0x78);
+    func_8000BCC8_main(slot, 0xFFFF);
+    data = DataRead(0x210028);
+    D_8011608C_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400001);
+    D_80116090_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400002);
+    D_80116094_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400003);
+    D_80116098_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400004);
+    D_8011609C_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    for (i = 0; i < 4; i++) {
+        data = DataRead((GwPlayer[i].chr + 5) | 0x400000);
+        D_801160C0_marios_puzzle_party[i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    data = DataRead(0x400014);
+    D_801160AC_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400015);
+    D_801160B0_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400016);
+    D_801160B4_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x400017);
+    D_801160B8_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x40001A);
+    D_801160D0_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    k = 0x400018;
+    if (D_80116158_marios_puzzle_party == 0) {
+        k = 0x400019;
+    }
+    data = DataRead(k);
+    D_801160D4_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x40001B);
+    D_801160D8_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x40001C);
+    D_801160DC_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    data = DataRead(0x40001D);
+    D_801160E0_marios_puzzle_party = func_80055810_main(data);
+    DataClose(data);
+    func_8010F570_marios_puzzle_party(0x1D);
+    for (j = 0; j < 4; j++) {
+        for (i = 0; i < 7; i++) {
+            func_8010F678_marios_puzzle_party((i + 0xD) | 0x400000, 0x32);
+        }
+    }
+    func_8010F678_marios_puzzle_party(0x40001E, 0xA0);
+    for (i = 0; i < 7; i++) {
+        data = DataRead((i + 0xD) | 0x400000);
+        D_80116070_marios_puzzle_party[i] = func_80055810_main(data);
+        DataClose(data);
+    }
+    if (D_80116158_marios_puzzle_party == 2) {
+        data = DataRead(0x31);
+        D_801160A0_marios_puzzle_party = func_80055810_main(data);
+        DataClose(data);
+        func_8000B880_main(D_801160A0_marios_puzzle_party, 0.0f, 1.0f, 0.0f);
+        data = DataRead(0x40001F);
+        D_801160A4_marios_puzzle_party = func_80055810_main(data);
+        DataClose(data);
+        func_8000B880_main(D_801160A4_marios_puzzle_party, 0.0f, 1.0f, 0.0f);
+        omAddPrcObj(func_8010E12C_marios_puzzle_party, 0x4001, 0, 0);
+        data = DataRead(0x31);
+        D_801160A8_marios_puzzle_party = func_80055810_main(data);
+        DataClose(data);
+        omAddPrcObj(func_8010EAA0_marios_puzzle_party, 0x4001, 0, 0);
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)30;
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)70;
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)100;
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)220;
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)270;
+        omAddPrcObj(func_8010ECD8_marios_puzzle_party, 0x4001, 0, 0)->user_data = (void*)300;
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 6; j++) {
+            for (k = 0; k < 40; k++) {
+                cell = &D_801102E0_marios_puzzle_party[i][j][k];
+                cell->unkC = -1;
+                if (j == 0 || j == 5 || k == 0) {
+                    cell->unk10 = -1;
+                } else {
+                    cell->unk10 = 0;
+                }
+            }
+        }
+    }
+    D_801160E8_marios_puzzle_party = 0;
+    for (i = 0; i < 4; i++) {
+        D_80116118_marios_puzzle_party[i] = 0;
+        D_80116168_marios_puzzle_party[i] = 0;
+        D_80116178_marios_puzzle_party[i] = 0;
+        D_80116188_marios_puzzle_party[i] = 0;
+        D_801161A8_marios_puzzle_party[i] = 0;
+        D_80116198_marios_puzzle_party[i] = 0;
+        D_801168A0_marios_puzzle_party[i] = 0;
+        D_801161C8_marios_puzzle_party[i] = 0;
+    }
+    for (i = 0; i < 30; i++) {
+        pair = D_801167B0_marios_puzzle_party[i];
+        pair[0] = (u8)(rand8() % 6);
+        do {
+            pair[1] = (u8)(rand8() % 6);
+        } while (pair[0] == pair[1]);
+    }
+    for (i = 0; i < 8; i++) {
+        a = rand8() & 3;
+        do {
+            b = rand8() & 3;
+        } while (a == b);
+        j = D_80110080_marios_puzzle_party[a].x;
+        D_80110080_marios_puzzle_party[a].x = D_80110080_marios_puzzle_party[b].x;
+        D_80110080_marios_puzzle_party[b].x = j;
+    }
+    if (D_80116158_marios_puzzle_party == 2) {
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 2; j++) {
+                (&D_80110080_marios_puzzle_party[i].x)[j] = (&D_801100A0_marios_puzzle_party[i].x)[j];
+            }
+        }
+        for (i = 1; i < D_80116100_marios_puzzle_party; i++) {
+            for (j = 1; j < 0x14; j += 2) {
+                func_80105D50_marios_puzzle_party(i, 1, 3, 1, j);
+                func_80105D50_marios_puzzle_party(i, 0, 3, 2, j);
+                func_80105D50_marios_puzzle_party(i, 1, 3, 3, j);
+                func_80105D50_marios_puzzle_party(i, 0, 3, 4, j);
+                func_80105D50_marios_puzzle_party(i, 0, 3, 1, j + 1);
+                func_80105D50_marios_puzzle_party(i, 1, 3, 2, j + 1);
+                func_80105D50_marios_puzzle_party(i, 0, 3, 3, j + 1);
+                func_80105D50_marios_puzzle_party(i, 1, 3, 4, j + 1);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010604C_marios_puzzle_party);
+#endif
 
 s32 func_80106A44_marios_puzzle_party(s32 player, s32 color, s32 state, s32 x, s32 y) {
     s32 handle = func_8010FEDC_marios_puzzle_party(player * 7 + color, x, y);
@@ -596,14 +806,14 @@ void func_8010AD20_marios_puzzle_party(void) {
     omPrcSetDestructor((s32)HuPrcCurrentGet(), func_8010A958_marios_puzzle_party);
     loc.grp = HuSprGrpCreate(10, 5);
     D_801161D8_marios_puzzle_party[player] = loc.grp;
-    func_80055024_main(loc.grp, 0, D_801160B6_marios_puzzle_party, 0);
+    func_80055024_main(loc.grp, 0, D_801160B4_marios_puzzle_party, 0);
     func_800550F4_main(loc.grp, 0, 0);
     func_80054904_main(loc.grp, 0, D_80110080_marios_puzzle_party[player].x + 0x2A,
                        D_80110080_marios_puzzle_party[player].y + (D_801161A8_marios_puzzle_party[player] - 0xB6));
     HuSprAttrReset(loc.grp, 0, 0xFFFF);
     HuSprAttrSet(loc.grp, 0, 0x4000);
     HuSprPriSet(loc.grp, 0, 0x200);
-    func_80055024_main(loc.grp, 9, D_801160BA_marios_puzzle_party, 0);
+    func_80055024_main(loc.grp, 9, D_801160B8_marios_puzzle_party, 0);
     func_800550F4_main(loc.grp, 9, 0);
     func_80054904_main(loc.grp, 9, 0, 0);
     HuSprAttrReset(loc.grp, 9, 0xFFFF);
@@ -615,7 +825,7 @@ void func_8010AD20_marios_puzzle_party(void) {
     proc->user_data = &loc;
     i = HuSprGrpCreate(1, 5);
     D_801161E8_marios_puzzle_party[player] = i;
-    func_80055024_main(i, 0, D_80116092_marios_puzzle_party, 0);
+    func_80055024_main(i, 0, D_80116090_marios_puzzle_party, 0);
     func_80054904_main(i, 0, D_80110080_marios_puzzle_party[player].x + 0x2A,
                        D_80110080_marios_puzzle_party[player].y + (D_801161A8_marios_puzzle_party[player] - 0xA1));
     HuSprAttrReset(i, 0, 0xFFFF);
@@ -623,7 +833,7 @@ void func_8010AD20_marios_puzzle_party(void) {
     HuSprPriSet(i, 0, 0x300);
     i = HuSprGrpCreate(1, 5);
     D_801161F8_marios_puzzle_party[player] = i;
-    func_80055024_main(i, 0, D_8011609A_marios_puzzle_party, 0);
+    func_80055024_main(i, 0, D_80116098_marios_puzzle_party, 0);
     func_80054904_main(i, 0, D_80110080_marios_puzzle_party[player].x + 0x2A,
                        D_80110080_marios_puzzle_party[player].y + (D_801161A8_marios_puzzle_party[player] - 0x4E));
     HuSprAttrReset(i, 0, 0xFFFF);
@@ -631,7 +841,7 @@ void func_8010AD20_marios_puzzle_party(void) {
     HuSprPriSet(i, 0, 0x600);
     i = HuSprGrpCreate(1, 5);
     D_80116208_marios_puzzle_party[player] = i;
-    func_80055024_main(i, 0, D_8011609E_marios_puzzle_party, 0);
+    func_80055024_main(i, 0, D_8011609C_marios_puzzle_party, 0);
     func_80054904_main(i, 0, D_80110080_marios_puzzle_party[player].x + 0x2A,
                        D_80110080_marios_puzzle_party[player].y + (D_801161A8_marios_puzzle_party[player] - 0x4E));
     HuSprAttrReset(i, 0, 0xFFFF);
