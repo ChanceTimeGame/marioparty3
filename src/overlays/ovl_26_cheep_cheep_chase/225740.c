@@ -115,10 +115,14 @@ typedef struct {
     /* 0x00 */ s8 unk00;
     /* 0x01 */ u8 unk01;
     /* 0x04 */ f32 unk04; // speed bonus
-    /* 0x08 */ char unk08[8];
+    /* 0x08 */ s8 unk08; // jump/dodge request
+    /* 0x09 */ char unk09[7];
     /* 0x10 */ s8 updateMotion;
     /* 0x12 */ s16 motion;
-    /* 0x14 */ char unk14[0xC];
+    /* 0x14 */ f32 unk14; // swim speed
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ char unk1E[2];
     /* 0x20 */ f32 unk20;
     /* 0x24 */ char unk24[4];
 } CxPlayer; // Size 0x28
@@ -1578,7 +1582,63 @@ void func_8010ACD8_cheep_cheep_chase(u8 player) {
     D_800D5558_main[player] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010AD14_cheep_cheep_chase);
+void func_8010AD14_cheep_cheep_chase(CxFuncContext *ctx) {
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    s32 count;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (player->unk01 == 3) {
+                break;
+            }
+            if (ctx->work.s8[0] == 0) {
+                if ((u16)D_800CDA7C_main[(u8)player->unk00] & 0x8000) {
+                    if (player->unk01 == 0) {
+                        player->unk14 = 7.0f;
+                        player->unk01 = 1;
+                    } else if (player->unk14 < 90.0f) {
+                        player->unk14 += 4.0f;
+                    } else {
+                        player->unk1C++;
+                        player->unk14 = 90.0f;
+                        count = player->unk1C - 4;
+                        if (count > 0) {
+                            player->unk18 = count * 0.5f;
+                            if (player->unk18 >= 4.0f) {
+                                player->unk18 = 4.0f;
+                            }
+                        }
+                    }
+                    ctx->work.s8[0] = 1;
+                }
+            } else if (!((u16)D_800CDA7C_main[(u8)player->unk00] & 0x8000)) {
+                ctx->work.s8[0] = 0;
+            }
+            if (player->unk01 == 1 && -(D_8010E360_cheep_cheep_chase->unkC[6] + 2) * 100 < object->trans.z) {
+                if ((u16)D_800CDA7C_main[(u8)player->unk00] & 0x4000) {
+                    player->unk08 = 1;
+                }
+                if ((u16)D_800CDA7C_main[(u8)player->unk00] & 0x2000) {
+                    player->unk08 = 1;
+                }
+            }
+            if (++ctx->work.s8[1] >= 30) {
+                ctx->work.s8[1] = 0;
+                player->unk1C = 0;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010AF70_cheep_cheep_chase);
 
