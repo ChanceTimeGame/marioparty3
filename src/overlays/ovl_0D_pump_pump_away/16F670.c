@@ -128,6 +128,14 @@ typedef struct PpPlayer {
     /* 0x34 */ s32 unk34;
 } PpPlayer; // Size 0x38
 
+/* A team's pump tank (D_801117C0_pump_pump_away, 2 x 0x10). */
+typedef struct PpTank {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s32 state;
+    /* 0x08 */ s32 level;
+    /* 0x0C */ s32 count;
+} PpTank;
+
 typedef s32 (*PpDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
 extern s32 fontcolor;
@@ -154,6 +162,11 @@ extern HuSprite_Unk84_Struct *D_8011353C_pump_pump_away; /* .spr */
 extern s32 D_80113540_pump_pump_away; /* .alpha */
 extern s32 D_80113544_pump_pump_away; /* .timer */
 extern PpSplash D_801117E0_pump_pump_away[20];
+extern PpTank D_801117C0_pump_pump_away[2];
+extern Vec D_80110F6C_pump_pump_away[];
+extern f32 D_80110F9C_pump_pump_away[];
+extern s32 D_80113528_pump_pump_away;
+extern s32 D_8011352C_pump_pump_away;
 extern PpPlayer D_80113438_pump_pump_away[4];
 extern PpPump D_80113570_pump_pump_away[4];
 extern PpTexSize D_80113548_pump_pump_away[];
@@ -162,6 +175,8 @@ extern s32 D_801135E4_pump_pump_away;
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_80034048_main(s16, s16);
+void func_80032FC0_main(s16, u8, u8);
+s16 func_80032694_main(HmfData *, u16, s32, char *);
 void func_800335BC_main(char *arg0, void *arg1);
 void func_8010749C_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_8010775C_pump_pump_away(omObjData *obj);
@@ -896,15 +911,158 @@ void func_80107A8C_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80107B40_pump_pump_away);
+void func_80107B40_pump_pump_away(omObjData *obj) {
+    void *data;
+    PpPump *pump;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80107E5C_pump_pump_away);
+    obj->model[0] = func_8000B108_main(0x2E0005, 0x2A9);
+    func_8000B460_main(obj, 0, 0x2E0006);
+    /* retail: players 0 and 1 fall through into the second team's animation set-up */
+    switch (obj->work[0]) {
+        case 0:
+        case 1:
+            if (obj->work[0] == 0) {
+                data = DataRead(0x2E0007);
+                obj->work[1] = D_8011352C_pump_pump_away = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m213_p1_DEF");
+                HuMemMemoryFreePerm(data);
+            } else {
+                obj->work[1] = func_80032694_main(HmfModelData[obj->model[0]].hmf, (u16)D_8011352C_pump_pump_away, 0, "m213_p1_DEF");
+            }
+        case 2:
+        case 3:
+            if (obj->work[0] == 2) {
+                data = DataRead(0x2E0008);
+                obj->work[1] = D_80113528_pump_pump_away = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m213_p1_DEF");
+                HuMemMemoryFreePerm(data);
+            } else {
+                obj->work[1] = func_80032694_main(HmfModelData[obj->model[0]].hmf, (u16)D_80113528_pump_pump_away, 0, "m213_p1_DEF");
+            }
+            break;
+    }
+    func_80034048_main((s16)obj->work[1], 0);
+    func_80032FC0_main((s16)obj->work[1], 1, 1);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 1, 1);
+    obj->trans.x = D_80110F6C_pump_pump_away[obj->work[0]].x;
+    obj->trans.y = D_80110F6C_pump_pump_away[obj->work[0]].y;
+    obj->trans.z = D_80110F6C_pump_pump_away[obj->work[0]].z;
+    obj->func = func_80107A8C_pump_pump_away;
+    pump = &D_80113570_pump_pump_away[obj->work[0]];
+    pump->state = 0;
+    pump->timer = 0;
+    pump->flag = 0;
+    for (i = 0; i < 4; i++) {
+        if ((D_80113438_pump_pump_away + i)->obj->work[3] == obj->work[0]) {
+            break;
+        }
+    }
+    pump->player = i;
+}
 
+void func_80107E5C_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        omAddObj(500, 1, 1, -1, func_80107B40_pump_pump_away)->work[0] = i;
+    }
+}
+
+#ifdef NON_MATCHING
+void func_80107EB8_pump_pump_away(omObjData *obj) {
+    PpPlayer *pl[2];
+    PpTank *tank = &D_801117C0_pump_pump_away[obj->work[0]];
+    PpTeam *team;
+    s32 level;
+    s32 i;
+    s32 n;
+
+    for (i = 0, n = 0; (i < 4) & (n < 2); i++) {
+        pl[n] = &D_80113438_pump_pump_away[i];
+        n += GwPlayer[pl[n]->obj->work[0]].group == obj->work[0];
+    }
+    switch (tank->state) {
+        case 0:
+            if (tank->count < pl[0]->unk10 + pl[1]->unk10) {
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                level = (pl[0]->unk10 + pl[1]->unk10 - tank->count) / 3;
+                tank->count = pl[0]->unk10 + pl[1]->unk10;
+                if (level >= 10) {
+                    level = 9;
+                }
+                tank->level = level;
+                func_8001C92C_main(obj->model[0], D_80110F9C_pump_pump_away[level]);
+                func_8001C814_main(obj->model[0], 1, 0);
+                tank->state = 1;
+            } else {
+                func_8001C6A8_main(obj->model[0], 0.0f);
+            }
+            break;
+        case 1:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40) {
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                tank->state = 0;
+                team = &D_80111978_pump_pump_away[obj->work[0]];
+                team->unk0C = 1;
+                team->unk10 = tank->level;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80107EB8_pump_pump_away);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010811C_pump_pump_away(omObjData *obj) {
+    PpTank *tank = &D_801117C0_pump_pump_away[obj->work[0]];
+
+    switch (tank->state) {
+        case 2:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                tank->state = 3;
+            }
+            break;
+        case 3:
+            break;
+        default:
+            if (HmfModelData[obj->model[0]].unk40 == 0.0f ||
+                D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40) {
+                func_8001C5B4_main(obj->model[0], obj->motion[1]);
+                func_8001C814_main(obj->model[0], 2, 0);
+                tank->state = 2;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010811C_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_801082AC_pump_pump_away);
+void func_801082AC_pump_pump_away(omObjData *obj) {
+    if (D_801117C0_pump_pump_away[obj->work[0]].unk00 == -1) {
+        return;
+    }
+    switch (D_801116F4_pump_pump_away) {
+        case 0:
+        case 1:
+            func_8001C6A8_main(obj->model[0], 0.0f);
+            func_8001C814_main(obj->model[0], 1, 1);
+            break;
+        case 2:
+            func_80107EB8_pump_pump_away(obj);
+            break;
+        case 3:
+            func_8010811C_pump_pump_away(obj);
+            break;
+        case 4:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108358_pump_pump_away);
 
