@@ -2270,7 +2270,63 @@ void func_8010D55C_snowball_summit(SsPlayer *pl) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D86C_snowball_summit);
+/* The players' movement for one frame: bumps resolved up to ten rounds, then falls, positions and landings. */
+void func_8010D86C_snowball_summit(void) {
+    SsPlayer *pl;
+    s32 rounds;
+    s32 done;
+    s32 i;
+    s32 j;
+
+    rounds = 0;
+    do {
+        done = 1;
+        rounds++;
+        for (i = 0; i < 4; i++) {
+            pl = &D_8010F9B8_snowball_summit[i];
+            for (j = 0; j < 4; j++) {
+                pl->bumped[j] = 0;
+            }
+            pl->bump = 0;
+        }
+        for (i = 0; i < 4; i++) {
+            pl = &D_8010F9B8_snowball_summit[i];
+            if (pl->state != -1 && pl->hit == 0) {
+                done &= -(func_8010CA98_snowball_summit(pl) == 0);
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            pl = &D_8010F9B8_snowball_summit[i];
+            if (pl->state != -1 && pl->unk4C == 0) {
+                func_8010CC00_snowball_summit(pl);
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            pl = &D_8010F9B8_snowball_summit[i];
+            if (pl->state != -1 && pl->bump == 1 && pl->hit == 0) {
+                func_8010CD58_snowball_summit(pl);
+            }
+        }
+    } while (!done && rounds < 10);
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010F9B8_snowball_summit[i];
+        if (pl->state != -1 && pl->unk4C == 1) {
+            func_8010D108_snowball_summit(pl);
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010F9B8_snowball_summit[i];
+        if (pl->state != -1) {
+            func_8010D304_snowball_summit(pl);
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010F9B8_snowball_summit[i];
+        if (pl->state != -1 && pl->hit == 1) {
+            func_8010D55C_snowball_summit(pl);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010DB10_snowball_summit);
 
