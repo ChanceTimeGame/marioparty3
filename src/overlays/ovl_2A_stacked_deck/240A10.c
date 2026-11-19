@@ -134,6 +134,10 @@ void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz
 extern f32 D_800EB744_minigame;
 void func_8010D98C_stacked_deck(omObjData *obj);
 void func_8010DC2C_stacked_deck(omObjData *obj);
+void func_80108E48_stacked_deck(omObjData *obj);
+void func_8010DEF4_stacked_deck(omObjData *obj);
+extern omObjData *D_800EC598_minigame[];
+extern u16 D_800EC280_minigame;
 s32 HmfSprModelCreate(void *, s32, u8);
 void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
 void func_80014714_main(s16 index, u16 arg1);
@@ -174,6 +178,12 @@ typedef struct SkSlot {
 extern SkSlot D_8010F2B0_stacked_deck[12]; /* asm labels D_8010F2B4..D_8010F2E4 are its fields */
 extern s32 D_8010F35C_stacked_deck;
 extern s32 D_8010F290_stacked_deck[8]; /* per character */
+/* Three positions (x, y) of the 8010E368 objects. */
+typedef struct SkXY {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 y;
+} SkXY; // Size 8
+extern SkXY D_8010F310_stacked_deck[3]; /* asm label D_8010F314 is [0].y */
 extern CcCamera D_8010F360_stacked_deck[1]; /* asm labels D_8010F364..D_8010F388 are its fields */
 extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like, 0x28) */
 
@@ -194,6 +204,8 @@ extern CcEnt D_8011030C_stacked_deck[3]; /* = D_8010F730_stacked_deck[23] */
 extern s16 D_801110F8_stacked_deck;
 extern s16 D_801110FA_stacked_deck;
 extern s16 D_80111100_stacked_deck;
+extern s32 D_801110FC_stacked_deck;
+extern s16 D_801110FE_stacked_deck;      /* the low half of D_801110FC_stacked_deck */
 extern s16 D_8011110A_stacked_deck;
 extern s16 D_8011110C_stacked_deck;
 extern s16 D_80111120_stacked_deck;
@@ -1186,7 +1198,39 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80106BC
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80108E48_stacked_deck);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010969C_stacked_deck);
+void func_8010969C_stacked_deck(void) {
+    omObjData *o;
+    s16 i;
+    u16 n;
+    CcEnt *p;
+
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            n = 0;
+            break;
+        case 1:
+            n = 1;
+            break;
+        case 2:
+            n = 2;
+            break;
+        case 3:
+            n = 3;
+            break;
+        default:
+            n = 0;
+            break;
+        }
+        p = &D_8010F838_stacked_deck[i];
+        o = omAddObj(500, 9, 60, -1, func_80108E48_stacked_deck);
+        o->work[0] = n;
+        o->work[3] = GwPlayer[n].pad;
+        p->obj = o;
+        D_800EC598_minigame[D_800EC280_minigame] = o;
+        D_800EC280_minigame++;
+    }
+}
 
 #define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
 #define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
@@ -2169,7 +2213,32 @@ void func_8010DEBC_stacked_deck(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DEF4_stacked_deck);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010E368_stacked_deck);
+void func_8010E368_stacked_deck(omObjData *obj) {
+    u32 n = obj->work[0];
+    CcEnt *e = &D_8011030C_stacked_deck[n];
+
+    if (n == 0) {
+        obj->model[0] = func_8000B108_main(0x4B000A, 0x2B9);
+        D_801110FC_stacked_deck = obj->model[0];
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801110FE_stacked_deck);
+    }
+    obj->trans.x = D_8010F310_stacked_deck[obj->work[0]].x * 5.0f;
+    obj->trans.y = D_8010F310_stacked_deck[obj->work[0]].y * 5.0f;
+    obj->trans.z = -875.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->scale.x = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.z = 1.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    e->unk18 = 0.0f;
+    func_8001C258_main(obj->model[0], 4, 0);
+    obj->func = func_8010DEF4_stacked_deck;
+}
 
 void func_8010E4EC_stacked_deck(void) {
     omObjData *obj;
