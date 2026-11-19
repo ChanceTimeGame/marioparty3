@@ -16,7 +16,7 @@ typedef struct {
     u8 a;
 } RGBA;
 
-/* A pooled particle effect (Log Jam's LjEffect). */
+/* A pooled particle effect (Log Jam's SbEffect). */
 typedef struct SbEffect {
     /* 0x00 */ u16 active;
     /* 0x02 */ s16 model;
@@ -48,6 +48,23 @@ typedef union SbPack {
     SbBytes b;
 } SbPack;
 
+typedef struct SbB44 {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04; /* mode */
+    /* 0x06 */ s16 unk06; /* timer */
+    /* 0x08 */ char unk08[0xC];
+} SbB44; // Size 0x14
+
+typedef f32 Matrix4f[4][4];
+
+#define SB_WRAP(v)             \
+    if ((v) >= 360.0) {        \
+        (v) -= 360.0;          \
+    } else if ((v) < 0.0) {    \
+        (v) += 360.0;          \
+    }
+
 // end m7 sb types
 
 // protos begin
@@ -56,9 +73,14 @@ void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
 void func_801089B4_stardust_battle(void);
 u16 func_8010EE38_stardust_battle(s32 dirAndFile);
+void func_8010F580_stardust_battle(s16 idx);
+void func_8010F5B0_stardust_battle(s16 idx);
 void func_8010F5E0_stardust_battle(void);
 void func_8010F73C_stardust_battle(omObjData *obj);
 s32 func_8010F890_stardust_battle(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *color);
+void func_80110914_stardust_battle(void);
+void func_801115F8_stardust_battle(s32 idx);
+void func_801117E4_stardust_battle(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames);
 void func_801119D4_stardust_battle(s32 idx);
 f32 func_80111B28_stardust_battle(f32 a, f32 b);
 f32 func_80111DF8_stardust_battle(f32 t, f32 a, f32 b);
@@ -67,9 +89,11 @@ f32 func_80111EB8_stardust_battle(f32 x, f32 z);
 void func_80111F38_stardust_battle(Vec* dir, f32* angles);
 void func_80111FC0_stardust_battle(omObjData *obj, u32 value);
 void *func_80111FEC_stardust_battle(omObjData *obj);
+void func_80112040_stardust_battle(s16 mdl, const char *part, Matrix4f *out);
 s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 s32 func_80113568_stardust_battle(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2);
 void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
+s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 // protos end
 
 extern s16 D_800CDD6A_main;
@@ -82,6 +106,30 @@ s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f3
 void func_8010F73C_stardust_battle(omObjData *obj);
 
 extern RGBA D_80113CF4_stardust_battle;
+extern s32 D_80113F08_stardust_battle; /* debug camera mode */
+extern s32 D_80113F0C_stardust_battle; /* debug text x */
+extern s32 D_80113F10_stardust_battle; /* debug text y */
+extern SbB44 *D_80114B44_stardust_battle;
+extern SbCamera D_80114B60_stardust_battle[2];
+extern s32 D_80114BA8_stardust_battle;
+extern s32 D_80114BAC_stardust_battle;
+extern s32 fontcolor;
+extern s8 HmfPauseF;
+extern Matrix4f *D_800D1358_main;
+extern s16 *D_800D04B4_main;
+extern s16 D_800CD1B0_main;
+extern s16 D_800D138A_main;
+extern Matrix4f D_800D5A00_main[];
+void func_8008A070_main(Matrix4f);
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+f64 fabs(f64);
+void func_8002DFF8_main(HmfData *, f32, D_800CCF58_main_Struct *, s32);
+void func_8002EAC0_main(HmfData *, f32, f32);
+s16 func_8002C834_main(HmfData *, const char *);
+void func_80016C2C_main(HmfData *arg0, s16 arg1, s16 arg2);
+f64 fmod(f64, f64);
 extern Gfx D_80114020_stardust_battle[];
 extern s16 *D_80114B30_stardust_battle; /* s16[0x20] sprite/file ids */
 extern omObjData *D_80114B48_stardust_battle;
@@ -303,9 +351,15 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F400_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F580_stardust_battle);
+void func_8010F580_stardust_battle(s16 idx) {
+    D_80114B44_stardust_battle[idx].unk04 = 1;
+    D_80114B44_stardust_battle[idx].unk06 = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F5B0_stardust_battle);
+void func_8010F5B0_stardust_battle(s16 idx) {
+    D_80114B44_stardust_battle[idx].unk04 = 2;
+    D_80114B44_stardust_battle[idx].unk06 = 0;
+}
 
 void func_8010F5E0_stardust_battle(void) {
     HuSprite_Unk84_Struct *spr;
@@ -438,15 +492,169 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8011
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801107E4_stardust_battle);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_801146FC_stardust_battle);
+void func_80110914_stardust_battle(void) {
+    SbCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
+    f32 speed = 1.0f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80110914_stardust_battle);
+    switch (D_80113F08_stardust_battle) {
+        case 1:
+            if ((u16)D_800CDA7C_main[0] & 0x8000) {
+                speed = 8.0f;
+            }
+            if (D_800CDA7C_main[0] & 0x4000) {
+                speed = 0.5f;
+            }
+            if (D_800D5558_main[0] & 0x1000) {
+                Center.x = 0.0f;
+                Center.y = 191.2f;
+                Center.z = 0.2f;
+                CRot.x = -14.5f;
+                CRot.y = 0.0f;
+                CRot.z = 0.0f;
+                CZoom = 1069.0f;
+            } else {
+                c.rot.x = (f32)D_800D20A1_main[0] * 0.125 * speed;
+                c.rot.y = (f32)D_800CBB6E_main[0] * 0.125 * speed;
+                if (D_800CDA7C_main[0] & 0x200) {
+                    c.center.x = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 0x100) {
+                    c.center.x = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x800) {
+                    c.center.z = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x400) {
+                    c.center.z = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 8) {
+                    c.center.y = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 4) {
+                    c.center.y = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 1) {
+                    c.zoom = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 2) {
+                    c.zoom = -(2.0 * speed);
+                }
+                c.center.x += Center.x;
+                c.center.y += Center.y;
+                c.center.z += Center.z;
+                c.rot.x += CRot.x;
+                c.rot.y += CRot.y;
+                c.rot.z += CRot.z;
+                c.zoom += CZoom;
+                func_801117E4_stardust_battle(c.center.x, c.center.y, c.center.z, c.rot.x, c.rot.y, c.rot.z, c.zoom, 1);
+            }
+            sprintf(D_800D5218_main, "CAMERA TEST_MODE");
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 80, D_800D5218_main);
+            sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 88, D_800D5218_main);
+            sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 96, D_800D5218_main);
+            sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 104, D_800D5218_main);
+            break;
+        case 2:
+            if ((D_800CDA7C_main[0] & 0x100) || (D_800CDA7C_main[0] & 1)) {
+                D_80113F0C_stardust_battle++;
+            }
+            if (D_800CDA7C_main[0] & 0x202) {
+                D_80113F0C_stardust_battle--;
+            }
+            if (D_800CDA7C_main[0] & 0x404) {
+                D_80113F10_stardust_battle++;
+            }
+            if (D_800CDA7C_main[0] & 0x808) {
+                D_80113F10_stardust_battle--;
+            }
+            fontcolor = 8;
+            sprintf(D_800D5218_main, "CAMERA TEST_MODE ");
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 80, D_800D5218_main);
+            sprintf(D_800D5218_main, " CENTER X>%3.3f Y>%3.3f Z>%3.3f ", Center.x, Center.y, Center.z);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 88, D_800D5218_main);
+            sprintf(D_800D5218_main, " ROT    X>%3.3f Y>%3.3f Z>%3.3f ", CRot.x, CRot.y, CRot.z);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 96, D_800D5218_main);
+            sprintf(D_800D5218_main, " ZOOM   %3.3f ", CZoom);
+            print8((u16)D_80113F0C_stardust_battle + 20, (u16)D_80113F10_stardust_battle + 104, D_800D5218_main);
+            break;
+        case 3:
+            D_80113F08_stardust_battle = 0;
+            break;
+    }
+    if (D_800D5558_main[0] & 0x10) {
+        if (D_80113F08_stardust_battle == 1) {
+            osSyncPrintf("CAMERA TEST_MODE \n");
+            osSyncPrintf(" CENTER X>%3.3f Y>%3.3f Z>%3.3f \n", Center.x, Center.y, Center.z);
+            osSyncPrintf(" ROT    X>%3.3f Y>%3.3f Z>%3.3f \n", CRot.x, CRot.y, CRot.z);
+            osSyncPrintf(" ZOOM   %3.3f \n\n", CZoom);
+        }
+        if (D_80113F08_stardust_battle++ >= 4) {
+            D_80113F08_stardust_battle = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111004_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801115F8_stardust_battle);
+void func_801115F8_stardust_battle(s32 idx) {
+    SB_WRAP(CRot.x);
+    SB_WRAP(CRot.y);
+    SB_WRAP(CRot.z);
+    D_80114B60_stardust_battle[idx].center.x = Center.x;
+    D_80114B60_stardust_battle[idx].center.y = Center.y;
+    D_80114B60_stardust_battle[idx].center.z = Center.z;
+    D_80114B60_stardust_battle[idx].rot.x = CRot.x;
+    D_80114B60_stardust_battle[idx].rot.y = CRot.y;
+    D_80114B60_stardust_battle[idx].rot.z = CRot.z;
+    D_80114B60_stardust_battle[idx].zoom = CZoom;
+    D_80114B60_stardust_battle[idx].unk1C = D_80114B60_stardust_battle[idx].unk20 = 0.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801117E4_stardust_battle);
+void func_801117E4_stardust_battle(f32 cx, f32 cy, f32 cz, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
+    if (frames > 0) {
+        D_80114BA8_stardust_battle = frames - 1;
+        D_80114BAC_stardust_battle = frames;
+        if (cx != 65535.0f) {
+            D_80114B60_stardust_battle[0].center.x = cx;
+        } else {
+            D_80114B60_stardust_battle[0].center.x = Center.x;
+        }
+        if (cy != 65535.0f) {
+            D_80114B60_stardust_battle[0].center.y = cy;
+        } else {
+            D_80114B60_stardust_battle[0].center.y = Center.y;
+        }
+        if (cz != 65535.0f) {
+            D_80114B60_stardust_battle[0].center.z = cz;
+        } else {
+            D_80114B60_stardust_battle[0].center.z = Center.z;
+        }
+        if (rx != 65535.0f) {
+            D_80114B60_stardust_battle[0].rot.x = rx;
+        } else {
+            D_80114B60_stardust_battle[0].rot.x = CRot.x;
+        }
+        if (ry != 65535.0f) {
+            D_80114B60_stardust_battle[0].rot.y = ry;
+        } else {
+            D_80114B60_stardust_battle[0].rot.y = CRot.y;
+        }
+        if (rz != 65535.0f) {
+            D_80114B60_stardust_battle[0].rot.z = rz;
+        } else {
+            D_80114B60_stardust_battle[0].rot.z = CRot.z;
+        }
+        if (zoom != 65535.0f) {
+            D_80114B60_stardust_battle[0].zoom = zoom;
+        } else {
+            D_80114B60_stardust_battle[0].zoom = CZoom;
+        }
+        func_801115F8_stardust_battle(1);
+    }
+}
 
 void func_801119D4_stardust_battle(s32 idx) {
     HuCamera *cam = &gCameraList[idx];
@@ -534,7 +742,43 @@ void *func_80111FEC_stardust_battle(omObjData *obj) {
     return u.p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112040_stardust_battle);
+void func_80112040_stardust_battle(s16 mdl, const char *part, Matrix4f *out) {
+    HmfModel *model = &HmfModelData[mdl];
+    HmfData *hmf = model->hmf;
+    s16 idx = func_8002C834_main(hmf, part);
+    D_800CCF58_main_Struct *anim = &D_800CCF58_main[HmfModelData[mdl].unk02];
+    s16 parts[4]; /* retail's frame leaves 8 bytes here, as in func_80016B00_main */
+
+    D_800D1358_main = out;
+    D_800D04B4_main = parts;
+    D_800CD1B0_main = 0;
+    if (model->unk06 != 0xFF) {
+        hmf->unk94 = (HmfModelData_Unk64_Unk8C_Struct *)&D_800CCF58_main[model->unk06];
+        hmf->unkAC = model->unk58;
+    } else {
+        hmf->unk94 = NULL;
+    }
+    if (model->unk04 != 0xFF && model->unk0C != 0) {
+        hmf->unk90 = (HmfModelData_Unk64_Unk8C_Struct *)&D_800CCF58_main[model->unk04];
+        hmf->unkA4 = model->unk4C;
+        hmf->unkA8 = (f32)model->unk0E / (f32)model->unk0C;
+    } else {
+        hmf->unk90 = NULL;
+    }
+    guMtxIdentF(D_800D5A00_main[0]);
+    func_8002DFF8_main(hmf, model->unk40, anim, 1);
+    if (hmf->unk90 != NULL) {
+        func_8002EAC0_main(hmf, hmf->unkA4, hmf->unkA8);
+    }
+    if (hmf->unk94 != NULL) {
+        func_8002DFF8_main(hmf, hmf->unkAC, (D_800CCF58_main_Struct *)hmf->unk94, 0);
+    }
+    D_800D138A_main = 0;
+    func_80016C2C_main(hmf, 0, idx);
+    if (D_800CD1B0_main >= 2) {
+        osSyncPrintf("Mtx Made Over\n");
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112220_stardust_battle);
 
@@ -695,4 +939,84 @@ void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16
     gSPEndDisplayList(&temp_s0[7]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801138A0_stardust_battle);
+s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
+    Vtx *temp_s7;
+    Vtx *var_s1;
+    Vtx_t *var_t0;
+    Vtx_t *var_a3;
+    s32 var_a2;
+    s32 temp_s4;
+    s32 temp_a1;
+    s32 sp24;
+    s32 temp_f2;
+    s32 var_s0;
+    s32 var_s2;
+    s32 sp2C;
+    s32 temp_lo;
+    s32 temp_s3;
+    s32 var_s0_2;
+    s32 var_a2_2;
+
+    if (arg0->unk1A >= 2) {
+        var_a2 = 0x800;
+    } else {
+        var_a2 = 0x1000;
+    }
+    temp_s4 = arg0->unk00->unk04;
+    temp_a1 = arg0->unk00->unk06;
+    sp24 = temp_s4 * 100.0 * arg2 / 32.0;
+    temp_f2 = temp_a1 * 100.0 * arg2 / 32.0;
+    if ((arg0->unk18 & 0xFFF) == 4) {
+        var_s0 = ((temp_s4 + 1) & 0xFFFE) * temp_a1 * 4;
+    } else {
+        var_s0 = temp_s4 * temp_a1 * arg0->unk18;
+    }
+    var_s0 = (var_s0 < 0) ? (var_s0 + 7) : var_s0;
+    var_s0 >>= 3;
+    var_s2 = var_s0 / var_a2;
+    if (var_s2 <= 0) {
+        var_s2 = 1;
+    }
+    sp2C = temp_a1 / var_s2;
+    temp_lo = temp_f2 / var_s2;
+    temp_s3 = var_s2 * 4;
+    temp_s7 = var_s1 = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+    memset(temp_s7, 0, temp_s3 * sizeof(Vtx));
+    for (var_s0_2 = 0; var_s0_2 < var_s2; var_s0_2++, var_s1 += 4) {
+        var_s1[0].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[0].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[0].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[0].v.tc[1] = 0;
+        var_s1[1].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[1].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[1].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[1].v.tc[1] = (sp2C - 1) * 64;
+        var_s1[2].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[2].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[2].v.tc[0] = 0;
+        var_s1[2].v.tc[1] = 0;
+        var_s1[3].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[3].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[3].v.tc[0] = 0;
+        var_s1[3].v.tc[1] = (sp2C - 1) * 64;
+        for (var_a2_2 = 0; var_a2_2 < 4; var_a2_2++) {
+            var_s1[var_a2_2].v.ob[0] += arg3;
+            var_s1[var_a2_2].v.ob[1] += arg4;
+            var_s1[var_a2_2].v.ob[2] = 0;
+            var_s1[var_a2_2].v.flag = 0;
+            var_s1[var_a2_2].v.cn[3] = 0xFF;
+            var_s1[var_a2_2].v.cn[0] = var_s1[var_a2_2].v.cn[1] = var_s1[var_a2_2].v.cn[2] = 0;
+        }
+    }
+    var_s1 = temp_s7;
+    for (var_s0_2 = 0; var_s0_2 < D_800D1FF0_main; var_s0_2++) {
+        arg1->unk44[var_s0_2] = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+        var_t0 = &arg1->unk44[var_s0_2]->v;
+        var_a3 = &var_s1->v;
+        for (var_a2_2 = 0; var_a2_2 < temp_s3; var_a2_2++) {
+            *(var_t0++) = *(var_a3++);
+        }
+    }
+    HuMemFree(temp_s7);
+    return var_s2;
+}
