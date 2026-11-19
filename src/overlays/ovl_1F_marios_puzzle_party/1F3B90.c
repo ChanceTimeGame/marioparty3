@@ -142,6 +142,11 @@ void* HuMemAlloc(s32 size);
 void* HuMemAllocTag(s32 size, s16 tag);
 s16 func_8004AC98_main(s16, s16);
 void HuSprAttrReset(s16 group, s16 member, s32 attr);
+extern s16 D_800EB930_minigame;
+extern s32 D_800EBEB0_minigame[];
+void func_8004AB0C_main(s32);
+void func_8001F38C_main(s32, s32, s32);
+void func_8005F524_main(void);
 u16 func_80049F98_main(void);
 extern u8 D_800D6A90_main;
 void func_8000BB94_main(u16 arg0);
@@ -226,7 +231,19 @@ void func_8010EEB0_marios_puzzle_party(void);
 void func_8010EF30_marios_puzzle_party(void);
 
 // data
+/* Background sparkle spots */
+typedef struct PzSparkleInit {
+    /* 0x00 */ s32 spread;
+    /* 0x04 */ s32 drift;
+    /* 0x08 */ s32 x;
+    /* 0x0C */ s32 y;
+    /* 0x10 */ s32 vx;
+    /* 0x14 */ s32 vy;
+} PzSparkleInit; /* size 0x18 */
+
 extern PzOrigin D_80110080_marios_puzzle_party[4];
+extern D_80111B50_vine_with_me_Struct D_80110140_marios_puzzle_party;
+extern PzSparkleInit D_80110168_marios_puzzle_party[8];
 extern PzOrigin D_801100A0_marios_puzzle_party[4];
 extern PzChain D_801100B0_marios_puzzle_party[9]; /* overlaps D_801100A0[2..3] */
 
@@ -286,9 +303,89 @@ extern Process* D_801163D8_marios_puzzle_party[4];
 extern s32 D_801163E8_marios_puzzle_party;
 extern PzMatch D_801163F0_marios_puzzle_party[80];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801059A0_marios_puzzle_party);
+#ifdef NON_MATCHING
+/* ObjectSetup: camera, the per-player games, board placement, sparkles, setup, pause watcher. */
+void func_801059A0_marios_puzzle_party(void) {
+    Process* proc;
+    PzSparkle* sp;
+    s32 i;
+    u8 cam;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105C98_marios_puzzle_party);
+    Hu3DAnimInit(0x32);
+    func_80021BE0_main(D_800EBEB0_minigame, 0x40);
+    func_800142A0_main(0x20);
+    omInitObjMan(0xAA, 0xC8);
+    i = 0;
+    func_8004A208_main();
+    func_800E1804_minigame();
+    func_8005A6B0_main();
+    omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 16.0f, 500.0f, 5000.0f);
+    CZoom = 800.0f;
+    CRot.x = 0.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 0.0f;
+    Center.z = 0.0f;
+    omAddPrcObj(func_8010EF30_marios_puzzle_party, 0x4001, 0x800, 0);
+    for (; i < 4; i++) {
+        proc = omAddPrcObj(func_8010AD20_marios_puzzle_party, 0x4001, 0x3000, 0);
+        D_801163D8_marios_puzzle_party[i] = proc;
+        proc->user_data = (void*)i;
+    }
+    D_80116100_marios_puzzle_party = i;
+    omAddPrcObj(func_8010DB98_marios_puzzle_party, 0x4001, 0x800, 0);
+    for (i = 0; i < 8; i++) {
+        proc = omAddPrcObj(func_8010D490_marios_puzzle_party, 0x4001, 0x800, 0);
+        sp = HuMemAlloc(sizeof(PzSparkle));
+        proc->user_data = sp;
+        sp->unkC = D_80110168_marios_puzzle_party[i].x;
+        sp->unk10 = D_80110168_marios_puzzle_party[i].y;
+        sp->unk18 = D_80110168_marios_puzzle_party[i].vx;
+        sp->unk1C = D_80110168_marios_puzzle_party[i].vy;
+        sp->unk4 = D_80110168_marios_puzzle_party[i].spread;
+        sp->unk8 = D_80110168_marios_puzzle_party[i].drift;
+    }
+    func_8010604C_marios_puzzle_party();
+    omAddPrcObj(func_80105C98_marios_puzzle_party, 0x4001, 0x800, 0);
+    omPrcSetStatBit(omAddPrcObj(func_8010D9AC_marios_puzzle_party, 0x4001, 0x800, 0), 0xA0);
+    func_800E5EA0_minigame(&D_80110140_marios_puzzle_party);
+    D_800EB930_minigame = 0x38;
+    WipeCreateIn(0xFF, 0x10);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801059A0_marios_puzzle_party);
+#endif
+
+/* Quit to the minigame menu when asked from the pause menu. */
+void func_80105C98_marios_puzzle_party(void) {
+    s32 quit = FALSE;
+
+    while (TRUE) {
+        if (D_800D530C_main == 1) {
+            quit = TRUE;
+        }
+        if (quit) {
+            D_801160E8_marios_puzzle_party = 1;
+            WipeCreateOut(0, 0x14);
+            HuAudSeqFadeOut(0x1E);
+            func_8004AB0C_main(0x1E);
+            while (WipeStatGet() != 0) {
+                HuPrcVSleep();
+            }
+            func_8001F38C_main(0, 0, 0);
+            func_8005F524_main();
+            omOvlKill();
+            omOvlReturnEx(1);
+        }
+        HuPrcVSleep();
+    }
+}
 
 #ifdef NON_MATCHING
 void func_80105D50_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row) {
@@ -581,9 +678,84 @@ s32 func_80106BB0_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir) {
     return ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106C98_marios_puzzle_party);
+#ifdef NON_MATCHING
+/* Move a piece down by dy; undo and return TRUE if it hits something. */
+s32 func_80106C98_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
+    PzCell* cell;
+    s32 col;
+    s32 row;
+    s32 c2;
+    s32 hit;
+    s32 state;
+    f32 x;
 
+    piece->unk30 += dy;
+    x = piece->unk2C;
+    col = (x - D_80110080_marios_puzzle_party[player].x) / 14.0f;
+    row = (D_80110080_marios_puzzle_party[player].y - piece->unk30) / 7.0f;
+    cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    hit = TRUE;
+    if (piece->unk24 != 0) {
+        c2 = col - 1;
+        if (!(col * 14 - x > 0.0f)) {
+            c2 = col + 1;
+        }
+        if (cell->unk10 != 0) {
+            goto end;
+        }
+        state = D_801102E0_marios_puzzle_party[player][c2][row].unk10;
+    } else {
+        state = cell->unk10;
+    }
+    if (state == 0) {
+        piece->unk14 = col;
+        piece->unk18 = row;
+        hit = FALSE;
+    }
+end:
+    if (hit) {
+        piece->unk30 -= dy;
+    }
+    return hit;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106C98_marios_puzzle_party);
+#endif
+
+#ifdef NON_MATCHING
+/* The same for the special piece, which spans two columns. */
+s32 func_80106E40_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
+    PzCell* a;
+    PzCell* b;
+    s32 col;
+    s32 row;
+    s32 c2;
+    s32 hit = TRUE;
+
+    piece->unk30 += dy;
+    row = (D_80110080_marios_puzzle_party[player].y - piece->unk30 - 14.0f) / 7.0f;
+    col = (piece->unk2C - (D_80110080_marios_puzzle_party[player].x + 0x16)) / 14.0f + 1.0f;
+    a = &D_801102E0_marios_puzzle_party[player][col][row];
+    b = &D_801102E0_marios_puzzle_party[player][col + 1][row];
+    if (piece->unk24 != 0) {
+        c2 = col + 2;
+        if (piece->unk24 < 0) {
+            c2 = col - 1;
+        }
+        if (a->unk10 == 0 && b->unk10 == 0) {
+            hit = D_801102E0_marios_puzzle_party[player][c2][row].unk10 != 0;
+        }
+    } else if (a->unk10 == 0) {
+        hit = b->unk10 != 0;
+    }
+    if (hit) {
+        piece->unk30 -= dy;
+    }
+    return hit;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106E40_marios_puzzle_party);
+#endif
 
 s32 func_80107000_marios_puzzle_party(s32 player, s32 col) {
     s32 row = 1;
