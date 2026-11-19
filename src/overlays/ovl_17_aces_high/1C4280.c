@@ -23,9 +23,7 @@ typedef struct AhPlayer {
     /* 0x08 */ f32 unk08; /* speed */
     /* 0x0C */ s16 unk0C;
     /* 0x0E */ char unk0E[2];
-    /* 0x10 */ f32 unk10; /* heading x */
-    /* 0x14 */ f32 unk14; /* heading y */
-    /* 0x18 */ f32 unk18; /* heading z */
+    /* 0x10 */ Vec unk10; /* heading */
     /* 0x1C */ s16 unk1C; /* esprite */
     /* 0x1E */ s16 unk1E; /* esprite */
     /* 0x20 */ u16 unk20;
@@ -82,8 +80,19 @@ typedef struct AhPlayer {
 
 /* omObjData::data of a shot */
 typedef struct AhShot {
-    /* 0x00 */ u16 unk00; /* 1 flying */
-} AhShot;
+    /* 0x00 */ u16 unk00; /* state: 1 flying */
+    /* 0x02 */ u16 unk02; /* 1 = spent */
+    /* 0x04 */ f32 unk04; /* speed */
+    /* 0x08 */ f32 unk08; /* range left */
+    /* 0x0C */ f32 unk0C; /* radius */
+    /* 0x10 */ Vec unk10; /* direction */
+    /* 0x1C */ omObjData *unk1C; /* the plane that fired it */
+    /* 0x20 */ s16 unk20; /* trail slot */
+    /* 0x22 */ s16 unk22; /* trail model */
+    /* 0x24 */ char unk24[2];
+    /* 0x26 */ s16 unk26;
+    /* 0x28 */ char unk28[0x10];
+} AhShot; /* size 0x38 */
 
 /* the scrolled sky texture's size (func_800335BC_main) */
 typedef struct AhTexSize {
@@ -106,6 +115,7 @@ void func_800335BC_main(char *name, void *size);
 void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 arg6);
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 void func_800E6F0C_minigame(s8 arg0);
+void func_80047E90_main(omObjData *obj, s32 arg1);
 
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
@@ -125,6 +135,7 @@ extern s32 D_8010DC30_aces_high[8]; /* esprite per character */
 extern s16 D_8010DC50_aces_high[4][2][2];
 extern s16 D_8010DC70_aces_high[4][2];
 extern f32 D_8010DC80_aces_high[4]; /* start angle per player */
+extern s32 D_8010DC90_aces_high[8]; /* shot model per character */
 
 extern AhTexSize D_8010DE50_aces_high;
 extern AhUV D_8010DE54_aces_high;
@@ -132,6 +143,7 @@ extern omObjData *D_8010DE5C_aces_high;
 extern omObjData *D_8010DE60_aces_high;
 extern omObjData *D_8010DE64_aces_high;
 extern omObjData **D_8010DE68_aces_high; /* the players */
+extern omObjData *D_8010DE6C_aces_high; /* holds the shot models */
 extern omObjData **D_8010DE70_aces_high[4]; /* each player's shots */
 extern omObjData *D_8010DE84_aces_high;
 extern s16 D_8010DE88_aces_high;
@@ -143,6 +155,8 @@ extern s16 D_8010DE92_aces_high;
 extern s16 D_8010DE94_aces_high;
 extern s16 D_8010DE96_aces_high;
 extern Vec D_8010DE98_aces_high;
+extern u16 D_8010DED0_aces_high[20]; /* trail model in use */
+extern s16 D_8010DEF8_aces_high[20]; /* trail models */
 extern Vec D_8010DEA8_aces_high; /* ending camera eye */
 extern Vec D_8010DEB4_aces_high; /* ending camera target */
 extern Vec D_8010DEC0_aces_high; /* ending camera up */
@@ -186,7 +200,7 @@ void func_8010B4BC_aces_high(omObjData *obj);
 void func_8010B618_aces_high(void);
 void func_8010B760_aces_high(omObjData *obj);
 void func_8010B9F4_aces_high(omObjData *obj);
-void func_8010BCC4_aces_high(omObjData *obj);
+void func_8010BCC4_aces_high(void);
 void func_8010BD84_aces_high(omObjData *obj);
 void func_8010BF3C_aces_high(omObjData *obj);
 void func_8010C288_aces_high(omObjData *obj);
@@ -427,9 +441,9 @@ void func_801062DC_aces_high(omObjData *obj) {
     work->unk68 = 0.0f;
     work->unk64 = 0.0f;
     work->unk08 = 27.777777f;
-    work->unk10 = sindf(obj->rot.y);
-    work->unk14 = 0.0f;
-    work->unk18 = cosdf(obj->rot.y);
+    work->unk10.x = sindf(obj->rot.y);
+    work->unk10.y = 0.0f;
+    work->unk10.z = cosdf(obj->rot.y);
     work->unk88 = 0;
     work->unk44 = 0.0f;
     work->unk90 = 1;
@@ -610,12 +624,12 @@ void func_80106EC0_aces_high(omObjData *obj) {
         }
     }
     s = sindf(work->unk38);
-    work->unk14 = -s * cosdf(work->unk3C);
-    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    obj->trans.x += work->unk10 * work->unk08;
-    obj->trans.y += work->unk14 * work->unk08;
-    obj->trans.z += work->unk18 * work->unk08;
+    work->unk10.y = -s * cosdf(work->unk3C);
+    work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    obj->trans.x += work->unk10.x * work->unk08;
+    obj->trans.y += work->unk10.y * work->unk08;
+    obj->trans.z += work->unk10.z * work->unk08;
     func_801068F4_aces_high(obj);
     func_80106B70_aces_high(obj);
 }
@@ -722,12 +736,12 @@ void func_801071D4_aces_high(omObjData *obj) {
     if (obj->rot.y < 0.0f) {
         obj->rot.y += 360.0f;
     }
-    work->unk14 = -sindf(work->unk38);
-    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    obj->trans.x += work->unk10 * work->unk08;
-    obj->trans.y += work->unk14 * work->unk08;
-    obj->trans.z += work->unk18 * work->unk08;
+    work->unk10.y = -sindf(work->unk38);
+    work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    obj->trans.x += work->unk10.x * work->unk08;
+    obj->trans.y += work->unk10.y * work->unk08;
+    obj->trans.z += work->unk10.z * work->unk08;
     func_8010862C_aces_high(obj);
     func_801068F4_aces_high(obj);
     func_80106B70_aces_high(obj);
@@ -897,12 +911,12 @@ void func_80107654_aces_high(omObjData *obj) {
     if (obj->rot.y < 0.0f) {
         obj->rot.y += 360.0f;
     }
-    work->unk14 = -sindf(work->unk38);
-    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    obj->trans.x += work->unk10 * work->unk08;
-    obj->trans.y += work->unk14 * work->unk08;
-    obj->trans.z += work->unk18 * work->unk08;
+    work->unk10.y = -sindf(work->unk38);
+    work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    obj->trans.x += work->unk10.x * work->unk08;
+    obj->trans.y += work->unk10.y * work->unk08;
+    obj->trans.z += work->unk10.z * work->unk08;
     if (obj->trans.y < -500.0f) {
         obj->trans.y = -500.0f;
     }
@@ -1051,12 +1065,12 @@ void func_801081A8_aces_high(omObjData *obj) {
             }
             break;
     }
-    work->unk14 = -sindf(work->unk38);
-    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
-    obj->trans.x += work->unk10 * work->unk08;
-    obj->trans.y += work->unk14 * work->unk08;
-    obj->trans.z += work->unk18 * work->unk08;
+    work->unk10.y = -sindf(work->unk38);
+    work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+    obj->trans.x += work->unk10.x * work->unk08;
+    obj->trans.y += work->unk10.y * work->unk08;
+    obj->trans.z += work->unk10.z * work->unk08;
     func_8010843C_aces_high(obj);
     func_801068F4_aces_high(obj);
     func_80106B70_aces_high(obj);
@@ -1958,13 +1972,179 @@ void func_8010B4BC_aces_high(omObjData *obj) {
     D_8010DEC0_aces_high.z = cosdf(ry) * sindf(rx);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B618_aces_high);
+/* Shot models (one per character), the 20 trail models, and each player's shot group. */
+void func_8010B618_aces_high(void) {
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B760_aces_high);
+    D_8010DE6C_aces_high = omAddObj(0x1C, 4, 0, -1, func_8010B760_aces_high);
+    for (i = 0; i < 4; i++) {
+        D_8010DE6C_aces_high->model[i] = func_8000B108_main(D_8010DC90_aces_high[GwPlayer[i].chr], 0xADD);
+    }
+    for (i = 0; i < 20; i++) {
+        D_8010DED0_aces_high[i] = 0;
+        D_8010DEF8_aces_high[i] = func_8000B108_main(0x380020, 0xADD);
+    }
+    for (i = 0; i < 4; i++) {
+        func_80047C0C_main(i + 1, 5);
+        D_8010DE70_aces_high[i] = func_80047DBC_main(i + 1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010B9F4_aces_high);
+/* Shot collisions: a shot hits a flying plane or another player's shot (both are flagged). */
+void func_8010B760_aces_high(omObjData *obj) {
+    omObjData **shots;
+    omObjData **others;
+    omObjData *shot;
+    omObjData *plane;
+    omObjData *shot2;
+    AhShot *sw;
+    AhShot *sw2;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 m;
+    f32 dist;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010BCC4_aces_high);
+    if (func_800E6E8C_minigame() == 2) {
+        for (i = 0; i < 4; i++) {
+            shots = D_8010DE70_aces_high[i];
+            for (j = 0; j < 5; j++) {
+                if (shots[j] == NULL) {
+                    continue;
+                }
+                shot = shots[j];
+                sw = shot->data;
+                if (sw->unk02 == 1) {
+                    continue;
+                }
+                for (k = 0; k < 4; k++) {
+                    if (k == i) {
+                        continue;
+                    }
+                    plane = D_8010DE68_aces_high[k];
+                    if (((AhPlayer *)plane->data)->unk00 != 0) {
+                        continue;
+                    }
+                    dist = HuSqrtf((plane->trans.x - shot->trans.x) * (plane->trans.x - shot->trans.x) +
+                                   (plane->trans.y - shot->trans.y) * (plane->trans.y - shot->trans.y) +
+                                   (plane->trans.z - shot->trans.z) * (plane->trans.z - shot->trans.z));
+                    if (HuSqrtf((sw->unk0C + 90.0f) * (sw->unk0C + 90.0f)) < dist) {
+                        continue;
+                    }
+                    {
+                        func_80047E90_main(plane, 1);
+                        func_80047E90_main(shot, 1);
+                    }
+                }
+                for (k = 0; k < 4; k++) {
+                    if (k == i) {
+                        continue;
+                    }
+                    others = D_8010DE70_aces_high[k];
+                    for (m = 0; m < 5; m++) {
+                        shot2 = others[m];
+                        if (shot2 == NULL) {
+                            continue;
+                        }
+                        if (shot2 == shot) {
+                            continue;
+                        }
+                        sw2 = shot2->data;
+                        if (sw2->unk02 == 1) {
+                            continue;
+                        }
+                        dist = HuSqrtf((shot->trans.x - shot2->trans.x) * (shot->trans.x - shot2->trans.x) +
+                                       (shot->trans.y - shot2->trans.y) * (shot->trans.y - shot2->trans.y) +
+                                       (shot->trans.z - shot2->trans.z) * (shot->trans.z - shot2->trans.z));
+                        if (HuSqrtf((sw->unk0C + sw2->unk0C) * (sw->unk0C + sw2->unk0C)) < dist) {
+                            continue;
+                        }
+                        {
+                            func_80047E90_main(shot, 1);
+                            func_80047E90_main(shot2, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Fires a shot along the plane's heading. */
+void func_8010B9F4_aces_high(omObjData *obj) {
+    Vec dir;
+    AhPlayer *work;
+    AhShot *sw;
+    omObjData *shot;
+    u16 player;
+    s32 i;
+    f32 yaw;
+    f32 len;
+
+    if (func_800E6E8C_minigame() == 2) {
+        work = obj->data;
+        work->unk20 = 10;
+        work->unk24--;
+        player = work->unk02;
+        shot = omAddObj(0x1C, 1, 0, player + 1, func_8010BD84_aces_high);
+        sw = shot->data = HuMemAllocTag(sizeof(AhShot), 0x7918);
+        shot->model[0] = Hu3DModelLink(D_8010DE6C_aces_high->model[player]);
+        func_8001C258_main(shot->model[0], 4, 0);
+        sw->unk00 = 0;
+        sw->unk04 = work->unk08 + 27.777777f;
+        dir = work->unk10;
+        yaw = obj->rot.y - work->unk80;
+        sw->unk10.y = -sindf(work->unk38) * 0.5f;
+        sw->unk10.x = sindf(yaw) * (1.0 - fabs(sw->unk10.y));
+        sw->unk10.z = cosdf(yaw) * (1.0 - fabs(sw->unk10.y));
+        sw->unk10.x += dir.x;
+        sw->unk10.y += dir.y;
+        sw->unk10.z += dir.z;
+        len = HuSqrtf(sw->unk10.x * sw->unk10.x + sw->unk10.y * sw->unk10.y + sw->unk10.z * sw->unk10.z);
+        sw->unk10.x /= len;
+        sw->unk10.y /= len;
+        sw->unk10.z /= len;
+        sw->unk1C = obj;
+        sw->unk02 = 0;
+        sw->unk08 = 2400.0f;
+        sw->unk0C = 30.0f;
+        sw->unk26 = 0;
+        for (i = 0; i < 20; i++) {
+            if (D_8010DED0_aces_high[i] == 0) {
+                break;
+            }
+        }
+        if (i == 20) {
+            sw->unk20 = -1;
+        } else {
+            sw->unk20 = i;
+            sw->unk22 = D_8010DEF8_aces_high[i];
+            D_8010DED0_aces_high[i] = 1;
+        }
+        omSetTra(shot, obj->trans.x, obj->trans.y, obj->trans.z);
+    }
+}
+
+/* Removes every shot and stops the plane trail effects. */
+void func_8010BCC4_aces_high(void) {
+    AhPlayer *work;
+    omObjData **shots;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        shots = D_8010DE70_aces_high[i];
+        for (j = 0; j < 5; j++) {
+            if (shots[j] != NULL) {
+                func_80047E90_main(shots[j], 1);
+            }
+        }
+        work = D_8010DE68_aces_high[i]->data;
+        for (j = 0; j < 4; j++) {
+            work->unk74->work[2] = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010BD84_aces_high);
 
