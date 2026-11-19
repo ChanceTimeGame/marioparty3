@@ -12,6 +12,7 @@
 #include "mallocblock.h"
 #include "input.h"
 #include "variables.h"
+#include "game/hmflight.h"
 
 
 typedef func_800E1BA8_minigame_ObjData MgWork;
@@ -146,13 +147,195 @@ void func_80034998_main(Gfx** gfx, s32 timg, s32 fmt, u32 width, s32 height, s32
                         s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts, s32 shiftt);
 extern u32 D_8010E8C8_fowl_play; /* random seed */
 
+typedef struct FpCam {
+    /* 0x00 */ u8 idx; /* camera */
+    /* 0x01 */ u8 timer;
+    /* 0x04 */ f32 zoom;
+    /* 0x08 */ f32 speed; /* turn speed */
+    /* 0x0C */ Vec center;
+    /* 0x18 */ Vec rot;
+    /* 0x24 */ omObjData* target; /* followed player */
+} FpCam; /* size 0x28 */
+
+struct FpPlayer {
+    /* 0x00 */ char unk00[0x24];
+    /* 0x24 */ u8 unk24;
+};
+
 void func_80107A4C_fowl_play(omObjData* obj);
+void func_80106960_fowl_play(omObjData* obj);
+void func_80105BEC_fowl_play(omObjData* obj);
+void func_80105E4C_fowl_play(omObjData* obj);
+void func_801079B0_fowl_play(void);
+f32 func_8010A9EC_fowl_play(f32 x, f32 z);
+void func_80109424_fowl_play(void);
+void func_80109410_fowl_play(omObjData* obj, MgWork** work, FpPlayer** ep);
+s32 func_8000B710_main(s32 arg0);
+f64 fabs(f64);
+extern D_80111B50_vine_with_me_Struct D_8010F208_fowl_play;
+extern s16 D_8010F2A0_fowl_play;
+extern omObjData* D_8010F294_fowl_play[2];
+extern s16 D_8010F29C_fowl_play;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801059A0_fowl_play);
+void func_801059A0_fowl_play(void) {
+    omObjData* obj;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80105BEC_fowl_play);
+    Hu3DAnimInit(1);
+    func_80021BE0_main(D_800EBEB0_minigame, 0x40);
+    omInitObjMan(0x14, 0);
+    func_8004A208_main();
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -56.0f, 50.0f, 56.0f);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    omSetStatBit(obj, 0xA0);
+    obj->work[0] = 2;
+    func_8000B5F0_main(2);
+    func_8000B710_main(2);
+    ScissorSet(0, 0.0f, 0.0f, 160.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 320.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 45.0f, 80.0f, 8000.0f);
+    ScissorSet(1, 160.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(1, 640.0f, 480.0f, 511.0f, 960.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(1, 45.0f, 80.0f, 8000.0f);
+    func_800E1804_minigame();
+    func_80105BEC_fowl_play(obj);
+    func_8010B41C_fowl_play(0x80);
+    func_801068F0_fowl_play();
+    memset(&D_8010F208_fowl_play, 0, 0x28);
+    D_8010F208_fowl_play.unk01 = 4;
+    func_800E5EA0_minigame(&D_8010F208_fowl_play);
+    func_801079B0_fowl_play();
+    D_8010F2A0_fowl_play = 0;
+    func_80109424_fowl_play();
+    func_8001F38C_main(0, 0, 0);
+    WipeCreateIn(0xFF, 0x10);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80105E4C_fowl_play);
+void func_80105BEC_fowl_play(omObjData* obj) {
+    HuCamera* cam;
+    omObjData* o;
+    FpCam* c;
+    f32 s;
+    s32 i;
+
+    CZoom = 1000.0f;
+    CRot.x = -15.0f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    Center.x = 0.0f;
+    Center.y = 160.0f;
+    Center.z = 0.0f;
+    omOutView(obj);
+    cam = gCameraList;
+    s = sindf(cam->fov[0] / 2.0);
+    D_8010F328_fowl_play = s / cosdf(cam->fov[0] / 2.0);
+    guMtxL2F(D_8010F2A8_fowl_play, &cam->mtxs[0].lookAtMtx);
+    guMtxL2F(D_8010F2E8_fowl_play, &cam->mtxs[0].lookAtMtx);
+    func_80106528_fowl_play(D_8010F2E8_fowl_play, D_8010F2E8_fowl_play);
+    for (i = 0; i < 2; i++) {
+        o = omAddObj(6, 1, 0, -1, func_80105E4C_fowl_play);
+        D_8010F294_fowl_play[i] = o;
+        c = o->data = HuMemAllocTag(sizeof(FpCam), 0x7918);
+        memset(c, 0, sizeof(FpCam));
+        c->idx = i;
+        c->speed = 0.0f;
+        c->timer = 2;
+        c->center.x = CenterM[i].x = Center.x;
+        c->center.y = CenterM[i].y = Center.y;
+        c->center.z = CenterM[i].z = Center.z;
+        c->rot.x = CRotM[i].x = CRot.x;
+        c->rot.y = CRotM[i].y = 90.0 - i * 180.0;
+        c->rot.z = CRotM[i].z = CRot.z;
+        CZoomM[i] = CZoom;
+        c->zoom = CZoom;
+    }
+}
+
+void func_80105E4C_fowl_play(omObjData* obj) {
+    u8 unused[0x50];
+    MgWork* work;
+    FpPlayer* pl;
+    FpCam* c;
+    HuCamera* cam;
+    f32 face;
+    f32 d;
+    u8 idx;
+
+    if (D_8010F29C_fowl_play >= 8) {
+        if (obj->data != NULL) {
+            HuMemFree(obj->data);
+            obj->data = NULL;
+        }
+        return;
+    }
+    c = obj->data;
+    if (c->target == NULL) {
+        return;
+    }
+    func_80109410_fowl_play(c->target, &work, &pl);
+    face = work->unk3C;
+    idx = c->idx;
+    cam = &gCameraList[idx];
+    if (pl->unk24 != 0) {
+        c->speed = 0.25f;
+        c->rot.y = face;
+    } else if (work->unk40 >= 0.1) {
+        if (c->speed < 20.0) {
+            c->speed += 0.25;
+        }
+        c->rot.y = func_8010A9EC_fowl_play(cam->pos.x - c->target->trans.x, cam->pos.z - c->target->trans.z);
+        c->timer = 5;
+    } else if (--c->timer == 0) {
+        c->speed = 0.25f;
+        c->rot.y = face + 180.0;
+    }
+    while (c->rot.y < 0.0) {
+        c->rot.y += 360.0;
+    }
+    while (c->rot.y > 360.0) {
+        c->rot.y -= 360.0;
+    }
+    CZoomM[idx] = c->zoom;
+    CRotM[idx].x = c->rot.x;
+    d = CRotM[idx].y - c->rot.y;
+    while (d < -180.0) {
+        d += 360.0;
+    }
+    while (d > 180.0) {
+        d -= 360.0;
+    }
+    if (pl->unk24 != 0) {
+        if (fabs(d) < 5.0) {
+            c->speed = 0.5f;
+        } else {
+            c->speed = fabs(d) * 0.1;
+        }
+    } else if (work->unk40 <= 0.1) {
+        if (fabs(d) < 5.0) {
+            c->speed = 0.25f;
+        } else {
+            c->speed = fabs(d) * 0.05;
+        }
+    }
+    if (c->speed < d) {
+        CRotM[idx].y -= c->speed;
+    } else if (d < -c->speed) {
+        CRotM[idx].y += c->speed;
+    } else {
+        CRotM[idx].y = c->rot.y;
+    }
+    while (CRotM[idx].y < 0.0) {
+        CRotM[idx].y += 360.0;
+    }
+    while (CRotM[idx].y > 360.0) {
+        CRotM[idx].y -= 360.0;
+    }
+    c->center.x = c->target->trans.x - sindf(CRotM[idx].y) * 200.0;
+    c->center.z = c->target->trans.z - cosdf(CRotM[idx].y) * 200.0;
+    CenterM[idx].x = c->center.x;
+    CenterM[idx].z = c->center.z;
+}
 
 void func_801064A8_fowl_play(f32 (*m)[4], f32 x, f32 y, f32 z, f32* out) {
     out[0] = x * m[0][0] + y * m[1][0] + z * m[2][0];
@@ -221,7 +404,12 @@ void func_80106824_fowl_play(f32 x, f32 y, f32 z, f32* out) {
     out[2] = m[3][2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801068F0_fowl_play);
+void func_801068F0_fowl_play(void) {
+    D_800EBE28_minigame = 0;
+    func_800E1490_minigame(0);
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = omAddObj(5, 1, 0, -1, func_80106960_fowl_play);
+    D_8010F29C_fowl_play = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106960_fowl_play);
 
