@@ -133,6 +133,7 @@ extern f32 D_80115D7C_messy_memory;
 extern u8 D_80115D90_messy_memory[10];
 extern u8 D_80115D9A_messy_memory;
 extern u8 D_80111675_messy_memory;
+extern s16 D_80115D70_messy_memory;
 extern u8 D_80111670_messy_memory[4];
 extern u8 D_80111678_messy_memory[4][10];
 extern u8 D_801116A4_messy_memory[10];
@@ -200,6 +201,7 @@ void func_8010C03C_messy_memory(omObjData *obj);
 void func_8010D55C_messy_memory(omObjData *obj);
 void func_8010E29C_messy_memory(omObjData *obj);
 void func_8010E654_messy_memory(omObjData *obj);
+void func_8010EF10_messy_memory(omObjData *obj);
 void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -2502,9 +2504,62 @@ void func_8010EE6C_messy_memory(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010EF10_messy_memory);
+/* The intro spotlight (D_80113A94[work[0]]): fades in while the movers walk in (D_80111675 1), out after (2). */
+void func_8010EF10_messy_memory(omObjData *obj) {
+    MmEnt *e;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010F04C_messy_memory);
+    e = &D_80113A94_messy_memory[obj->work[0]];
+    switch (D_80115D8C_messy_memory) {
+    case 2:
+    case 3:
+        if (D_80111675_messy_memory == 1) {
+            if (D_80115D70_messy_memory == 0) {
+                HuAudFXPlay(0x3E9);
+                D_80115D70_messy_memory = 1;
+                HuAudFXPlay(0x127);
+            }
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001F9E4_main(obj->model[0], e->unk06);
+            e->unk06 += 20;
+            if (e->unk06 >= 255) {
+                e->unk06 = 255;
+            }
+        }
+        if (D_80111675_messy_memory == 2) {
+            func_8001F9E4_main(obj->model[0], e->unk06);
+            e->unk06 -= 10;
+            if (e->unk06 <= 0) {
+                e->unk06 = 0;
+                func_8001C258_main(obj->model[0], 4, 4);
+                D_80111650_messy_memory = 0;
+            }
+        }
+        break;
+    }
+}
+
+/* Sets up the intro spotlight model. */
+void func_8010F04C_messy_memory(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x3E001C, 0xA9);
+    func_8001C814_main(obj->model[0], 2, 2);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001FA68_main(obj->model[0]);
+    func_8001F9E4_main(obj->model[0], 100);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->rot.x = 0.0f;
+    obj->rot.y = 0.0f;
+    obj->rot.z = 0.0f;
+    obj->scale.x = 1.0f;
+    obj->scale.y = 1.0f;
+    obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010EF10_messy_memory;
+}
 
 void func_8010F15C_messy_memory(void) {
     omObjData *obj = omAddObj(250, 1, 10, -1, func_8010F04C_messy_memory);
