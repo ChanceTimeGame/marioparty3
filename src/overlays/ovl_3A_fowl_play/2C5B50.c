@@ -257,7 +257,7 @@ void func_8010D02C_fowl_play(s16 id, f32 x, f32 y, f32 z);
 extern s16 D_8010F234_fowl_play; /* feather sprite file */
 extern s16 D_8010F238_fowl_play; /* shadow sprite file */
 extern omObjData* D_8010F290_fowl_play[1]; /* the chick */
-void func_80108B08_fowl_play(omObjData* obj);
+u16 func_80108B08_fowl_play(omObjData* obj); /* returns an uninitialised local; the caller ignores it */
 u8 func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r);
 u8 func_8010A738_fowl_play(omObjData* obj, u8 hit);
 void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
@@ -1153,9 +1153,124 @@ void func_80108A70_fowl_play(omObjData* obj, f32 x, f32 y, f32 z) {
     }
 }
 
+f32 func_801075B0_fowl_play(Vec* pos, f32 dist, f32 angle);
+
+#ifdef NON_MATCHING
+/* masked 0; raw 2: retail converts the waypoint distance to double in place ($f20), mine in $f2 */
+/* CPU input: chases the chick (aiming ahead of it), roams between pen points, presses A to catch, B to dash. */
+u16 func_80108B08_fowl_play(omObjData* obj) {
+    Vec pts[4] = { { 1000.0f, 0.0f, 0.0f }, { -1000.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1000.0f }, { 0.0f, 0.0f, -1000.0f } };
+    Vec v;
+    MgWork* work;
+    FpPlayer* fp;
+    omObjData* co;
+    FpChick* ch;
+    f32 a;
+    f32 d;
+    f32 e;
+    f32 g;
+    u8 press;
+    u16 ret; /* never set: retail returns whatever $s5 held */
+    s16 pad;
+
+    press = 0;
+    func_80109410_fowl_play(obj, &work, &fp);
+    pad = work->unk57;
+    func_800E4A90_minigame(obj);
+    co = D_8010F290_fowl_play[0];
+    ch = ((MgWork*)co->data)->unk158;
+    if (D_8010F29E_fowl_play > 1500) {
+        v.x = co->trans.x + sindf(ch->target) * 60.0;
+        v.z = co->trans.z + cosdf(ch->target) * 60.0;
+    } else {
+        v.x = co->trans.x + (fp->difficulty * 0.5 + 1.0) * 20.0 * sindf(ch->target);
+        v.z = co->trans.z + (fp->difficulty * 0.5 + 1.0) * 20.0 * cosdf(ch->target);
+    }
+    a = func_8010A9EC_fowl_play(v.x - obj->trans.x, v.z - obj->trans.z);
+    d = func_8010AA64_fowl_play(&obj->trans, &co->trans);
+    fp->unk36--;
+    switch (fp->unk2C) {
+    case 0:
+        if (d < (fp->difficulty * 5.0 + 20.0) * 20.0) {
+            fp->unk2C = 1;
+        }
+        if (fp->unk32 != 0) {
+            d = func_8010AA64_fowl_play(&obj->trans, &pts[fp->unk32 - 1]);
+            a = func_8010A9EC_fowl_play(pts[fp->unk32 - 1].x - obj->trans.x, pts[fp->unk32 - 1].z - obj->trans.z);
+            if (d < 200.0) {
+                fp->unk32 = 0;
+            }
+        } else {
+            fp->unk32 = (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 4.0) + 1;
+        }
+        if (fp->unk36 == 0) {
+            fp->unk2C = 2;
+            fp->unk36 = fp->difficulty * 20 + 30 + (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 40.0);
+        }
+        break;
+    case 1:
+        if (d >= (fp->difficulty * 5.0 + 25.0) * 20.0) {
+            fp->unk2C = 0;
+        }
+        if (fp->unk2E == 0) {
+            fp->unk2E = (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 60.0) + 10;
+            fp->unk30 = (f32)(func_8010A9A0_fowl_play() - 0x8000) * (1.0 / 32768.0) * (55 - fp->difficulty * 5);
+        }
+        fp->unk2E--;
+        if (d < work->unk48 + ch->radius + 26.0) {
+            if (D_8010F29E_fowl_play > 1260) {
+                fp->unk34 = 3;
+            } else if ((s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * (6 - fp->difficulty)) == 0) {
+                press = 1;
+            }
+        } else if (fp->unk34 != 0) {
+            if (--fp->unk34 == 0) {
+                press = 1;
+            }
+        }
+        if (fp->unk36 == 0) {
+            fp->unk2C = 2;
+            fp->unk36 = fp->difficulty * 15 + 30 + (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 30.0);
+        }
+        break;
+    case 2:
+        fp->unk30 = 0;
+        if (d < work->unk48 + ch->radius + 20.0) {
+            press = 1;
+        }
+        if (fp->unk36 == 0) {
+            fp->unk2C = 0;
+            fp->unk36 = 135.0 - fp->difficulty * 20 + (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 60.0);
+        }
+        break;
+    }
+    a = a + fp->unk30;
+    D_800CBB6E_main[pad] = (2.0 * fp->difficulty + 56.0) * sindf(a);
+    D_800D20A1_main[pad] = (2.0 * fp->difficulty + 56.0) * -cosdf(a);
+    if (press) {
+        D_800D5558_main[pad] |= 0x4000;
+    }
+    v.x = obj->trans.x;
+    v.y = 0;
+    v.z = obj->trans.z;
+    e = func_801075B0_fowl_play(&v, 120.0f, a);
+    g = a - work->unk3C;
+    while (g < -180.0) {
+        g += 360.0;
+    }
+    while (g > 180.0) {
+        g -= 360.0;
+    }
+    if (e != a && fabs(g) < 30.0) {
+        D_800D5558_main[pad] |= 0x8000;
+    }
+    return ret;
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010EE68_fowl_play);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108B08_fowl_play);
+#endif
 
 void func_80109410_fowl_play(omObjData* obj, MgWork** work, FpPlayer** ep) {
     MgWork* w = obj->data;
