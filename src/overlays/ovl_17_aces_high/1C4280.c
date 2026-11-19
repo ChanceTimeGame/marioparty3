@@ -324,13 +324,214 @@ void func_801061E0_aces_high(omObjData *obj) {
     Hu3DModelRotSet(obj->model[3], 0.0f, D_8010DC0C_aces_high, 0.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801062DC_aces_high);
+void func_801062DC_aces_high(omObjData *obj) {
+    AhPlayer *work;
+    u16 player;
+    s8 chr;
+    s16 grp;
+    s16 i;
+    s16 spr;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801068F4_aces_high);
+    player = obj->work[0];
+    work = obj->data = HuMemAllocTag(sizeof(AhPlayer), 0x7918);
+    work->unk02 = player;
+    chr = GwPlayer[player].chr;
+    obj->model[0] = func_8000B108_main(D_8010DC10_aces_high[chr], 0x6B9);
+    if (player == 0) {
+        obj->model[1] = func_8000B108_main(0x380008, 0x6D9);
+        obj->model[2] = func_8000B108_main(0x380009, 0x6D9);
+        obj->model[3] = func_8000B108_main(0x380021, 0x6D9);
+        obj->model[4] = func_8000B108_main(0x380022, 0x6D9);
+        obj->model[5] = func_8000B108_main(0x380023, 0x6D9);
+        obj->model[6] = func_8000B108_main(0x380024, 0x6D9);
+    } else {
+        obj->model[1] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[1]);
+        obj->model[2] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[2]);
+        obj->model[3] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[3]);
+        obj->model[4] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[4]);
+        obj->model[5] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[5]);
+        obj->model[6] = Hu3DModelLink(D_8010DE68_aces_high[0]->model[6]);
+    }
+    func_8001C258_main(obj->model[3], 4, 4);
+    func_8001C2FC_main(obj->model[3], 0x70000000, 0x70000000);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_8001C814_main(obj->model[4], 3, 2);
+    func_8001C814_main(obj->model[5], 3, 2);
+    func_8001C814_main(obj->model[6], 3, 2);
+    func_8001C258_main(obj->model[4], 4, 4);
+    func_8001C258_main(obj->model[6], 4, 4);
+    omSetTra(obj, sindf(D_8010DC80_aces_high[player]) * 1150.0f, -250.0f, cosdf(D_8010DC80_aces_high[player]) * 1150.0f);
+    omSetRot(obj, 0.0f, atan2df(-obj->trans.x, -obj->trans.z), 0.0f);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    grp = func_8000B838_main(D_8010DC30_aces_high[chr]);
+    work->unk1C = InitEspriteSlot(grp, 0, 0);
+    work->unk1E = InitEspriteSlot(grp, 0, 0);
+    i = 0;
+    func_8000BB94_main(work->unk1E);
+    grp = func_8000B838_main(0x38001D);
+    do {
+        work->unk28[i] = InitEspriteSlot(grp, 0, 0);
+        func_8000BBD4_main(work->unk28[i], D_8010DC50_aces_high[player][i][0], D_8010DC50_aces_high[player][i][1]);
+        i++;
+    } while (i < 2);
+    work->unk2E = spr = InitEspriteSlot(D_8010DEA4_aces_high, 0, 0);
+    func_8000BCC8_main(spr, 0x80C8);
+    func_8000BB94_main(spr);
+    work->unk30 = spr = InitEspriteSlot(D_8010DEA6_aces_high, 0, 0);
+    func_8000BCC8_main(spr, 0x80C8);
+    func_8000BBD4_main(spr, D_8010DC70_aces_high[player][0], D_8010DC70_aces_high[player][1]);
+    func_8000BB94_main(spr);
+    work->unk0C = 0;
+    work->unk3C = 0.0f;
+    work->unk38 = 0.0f;
+    work->unk40 = 0.0f;
+    work->unk32 = 0;
+    work->unk34 = 0;
+    work->unk20 = 0;
+    work->unk24 = 4;
+    work->unk00 = 0;
+    work->unk26 = 2;
+    work->unk2C = -1;
+    work->unk36 = 0;
+    work->unk52 = 0;
+    work->unk54 = 1;
+    work->unk56 = 1;
+    work->unk58 = 0;
+    work->unk4C = 1;
+    work->unk6C = 0.0f;
+    work->unk5C = 0.0f;
+    work->unk60 = 0.0f;
+    work->unk68 = 0.0f;
+    work->unk64 = 0.0f;
+    work->unk08 = 27.777777f;
+    work->unk10 = sindf(obj->rot.y);
+    work->unk14 = 0.0f;
+    work->unk18 = cosdf(obj->rot.y);
+    work->unk88 = 0;
+    work->unk44 = 0.0f;
+    work->unk90 = 1;
+    work->unk8C = obj->rot.y;
+    work->unk94 = 0;
+    work->unk92 = 0;
+    work->unkAE = 0;
+    work->unk70 = 0;
+    work->unk74 = omAddObj(0x3C, 0, 0, -1, func_8010D6D4_aces_high);
+    work->unk74->work[2] = 0;
+    work->unk74->work[3] = (u32)obj;
+    work->unk78 = omAddObj(0x3C, 0, 0, -1, func_8010D994_aces_high);
+    work->unk78->work[0] = (u32)obj;
+    work->unk78->work[1] = 0;
+    work->unk78->scale.x = 0.0f;
+    obj->work[0] = 0x1E;
+    work->unk04 = omAddObj(0x32, 0, 0, -1, func_8010A9D4_aces_high);
+    work->unk04->work[0] = 1;
+    work->unk04->work[1] = (u32)obj;
+    obj->func = func_80106EC0_aces_high;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80106B70_aces_high);
+void func_801068F4_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80106D2C_aces_high);
+    func_80088910_main((f32(*)[4])HmfModelData[obj->model[0]].mtx, work->unk38, 0.0f, work->unk3C + work->unk44);
+    omSetRot(obj, 0.0f, obj->rot.y, 0.0f);
+    if (work->unk90 == 0) {
+        func_8001C258_main(obj->model[0], 4, 4);
+    } else {
+        func_8001C258_main(obj->model[0], 4, 0);
+    }
+    if (work->unk56 == 1) {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x + work->unk60, obj->trans.y + work->unk68, obj->trans.z + work->unk64);
+        func_80088910_main((f32(*)[4])HmfModelData[obj->model[1]].mtx, work->unk38, 0.0f, work->unk3C + work->unk44);
+        Hu3DModelRotSet(obj->model[1], 0.0f, obj->rot.y, 0.0f);
+        Hu3DModelPosSet(obj->model[2], obj->trans.x + work->unk60, obj->trans.y + work->unk68, obj->trans.z + work->unk64);
+        func_80088910_main((f32(*)[4])HmfModelData[obj->model[2]].mtx, work->unk38, 0.0f, work->unk3C + work->unk44);
+        Hu3DModelRotSet(obj->model[2], 0.0f, obj->rot.y, 0.0f);
+        if (work->unk58 == 0) {
+            func_8001C258_main(obj->model[2], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 0);
+        } else {
+            func_8001C258_main(obj->model[1], 4, 4);
+            func_8001C258_main(obj->model[2], 4, 0);
+        }
+        if (work->unk90 == 0) {
+            func_8001C258_main(obj->model[1], 4, 4);
+            func_8001C258_main(obj->model[2], 4, 4);
+        }
+    }
+}
+
+void func_80106B70_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    s16 mdl;
+
+    switch (work->unk4C) {
+        case 0:
+            mdl = obj->model[4];
+            func_8001C258_main(obj->model[5], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            break;
+        case 1:
+            mdl = obj->model[5];
+            func_8001C258_main(obj->model[4], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            break;
+        case 2:
+            mdl = obj->model[6];
+            func_8001C258_main(obj->model[4], 4, 4);
+            func_8001C258_main(obj->model[5], 4, 4);
+            break;
+        case 3:
+            mdl = -1;
+            func_8001C258_main(obj->model[4], 4, 4);
+            func_8001C258_main(obj->model[5], 4, 4);
+            func_8001C258_main(obj->model[6], 4, 4);
+            break;
+    }
+    if (mdl >= 0) {
+        func_8001C258_main(mdl, 4, 0);
+        Hu3DModelPosSet(mdl, obj->trans.x, obj->trans.y, obj->trans.z);
+        func_80088910_main((f32(*)[4])HmfModelData[mdl].mtx, work->unk38, 0.0f, work->unk3C + work->unk44);
+        Hu3DModelRotSet(mdl, 0.0f, obj->rot.y, 0.0f);
+    }
+    if (work->unk90 == 0) {
+        func_8001C258_main(obj->model[4], 4, 4);
+        func_8001C258_main(obj->model[5], 4, 4);
+        func_8001C258_main(obj->model[6], 4, 4);
+    }
+}
+
+/* Debug: the D-pad and C buttons of pad 0 turn, pitch and roll the plane. */
+void func_80106D2C_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+
+    if (D_800CDA7C_main[0] & 0x200) {
+        obj->rot.y -= 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 0x100) {
+        obj->rot.y += 2.0f;
+    }
+    if (obj->rot.y < 0.0f) {
+        obj->rot.y += 360.0f;
+    }
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    if (D_800CDA7C_main[0] & 0x800) {
+        work->unk38 += 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 0x400) {
+        work->unk38 -= 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 2) {
+        work->unk3C -= 2.0f;
+    }
+    if (D_800CDA7C_main[0] & 1) {
+        work->unk3C += 2.0f;
+    }
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80106EC0_aces_high);
 
