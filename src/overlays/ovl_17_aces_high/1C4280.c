@@ -145,6 +145,8 @@ extern s16 D_8010DC50_aces_high[4][2][2];
 extern s16 D_8010DC70_aces_high[4][2];
 extern f32 D_8010DC80_aces_high[4]; /* start angle per player */
 extern s32 D_8010DC90_aces_high[8]; /* shot model per character */
+extern Vec2f D_8010DCB4_aces_high; /* ending: split-screen centre */
+extern Vec2f D_8010DCBC_aces_high[4]; /* ending: per winner, the centre's goal */
 extern u16 D_8010DCB0_aces_high; /* the finish: stopped */
 extern u16 D_8010DCB2_aces_high; /* frames before the result */
 
@@ -193,7 +195,7 @@ void func_801081A8_aces_high(omObjData *obj);
 void func_8010843C_aces_high(omObjData *obj);
 void func_801085B0_aces_high(void);
 void func_8010862C_aces_high(omObjData *obj);
-void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2);
+void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn, u16 *btn2);
 u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 *stickX, s8 *stickY);
 s16 func_80109EEC_aces_high(omObjData *obj, f32 fov, omObjData **list, omObjData **nearest, f32 *nearDist);
 f32 func_8010A0F0_aces_high(omObjData *obj);
@@ -654,7 +656,7 @@ void func_801071D4_aces_high(omObjData *obj) {
     AhPlayer *work = obj->data;
     s8 stickX;
     s8 stickY;
-    s16 btn;
+    u16 btn;
     u16 btn2;
     f32 target;
     f32 speed;
@@ -1203,7 +1205,7 @@ void func_8010862C_aces_high(omObjData *obj) {
 // register allocation only (masked 0): retail keeps stickX in s5 and stickY in s4, here the reverse; abs.s source register
 #ifdef NON_MATCHING
 /* CPU control: per difficulty, pick a target (chase a plane, dodge, return to the arena) and steer to it. */
-void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2) {
+void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn, u16 *btn2) {
     omObjData *list[4];
     Vec target;
     omObjData *nearest;
@@ -2650,7 +2652,66 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010CFF8_a
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DE28_aces_high);
 #endif
 
+// 17 instructions longer than here: retail reloads the goal entry and addresses the scissor table as %lo(table+offset) for each
+// store (here one base, +offset; same addresses), and keeps player in s3 (one more saved register); n64nmcmp calls 10/10
+#ifdef NON_MATCHING
+/* Ending: slides the split-screen centre towards the winner's far corner, so the winner's view fills the screen.
+   Returns 1 once it is there. */
+u16 func_8010D1D8_aces_high(u16 player) {
+    f32 angle;
+    f32 dx;
+    f32 dy;
+    f32 *vp;
+
+    angle = atan2df(D_8010DCBC_aces_high[player].x - D_8010DCB4_aces_high.x,
+                    D_8010DCBC_aces_high[player].y - D_8010DCB4_aces_high.y);
+    dx = sindf(angle) * 2.5f;
+    dy = cosdf(angle) * 2.5f;
+    D_8010DCB4_aces_high.x += dx;
+    D_8010DCB4_aces_high.y += dy;
+    if (dx < 0.0f) {
+        if (D_8010DCB4_aces_high.x < D_8010DCBC_aces_high[player].x) {
+            D_8010DCB4_aces_high.x = D_8010DCBC_aces_high[player].x;
+        }
+    } else if (D_8010DCBC_aces_high[player].x < D_8010DCB4_aces_high.x) {
+        D_8010DCB4_aces_high.x = D_8010DCBC_aces_high[player].x;
+    }
+    if (dy < 0.0f) {
+        if (D_8010DCB4_aces_high.y < D_8010DCBC_aces_high[player].y) {
+            D_8010DCB4_aces_high.y = D_8010DCBC_aces_high[player].y;
+        }
+    } else if (D_8010DCBC_aces_high[player].y < D_8010DCB4_aces_high.y) {
+        D_8010DCB4_aces_high.y = D_8010DCBC_aces_high[player].y;
+    }
+    D_8010DB70_aces_high[0][2] = D_8010DCB4_aces_high.x - 1.0f;
+    D_8010DB70_aces_high[0][3] = D_8010DCB4_aces_high.y - 1.0f;
+    ScissorSet(0, D_8010DB70_aces_high[0][0], D_8010DB70_aces_high[0][1], D_8010DB70_aces_high[0][2],
+               D_8010DB70_aces_high[0][3]);
+    D_8010DB70_aces_high[1][0] = D_8010DCB4_aces_high.x + 1.0f;
+    D_8010DB70_aces_high[1][3] = D_8010DCB4_aces_high.y - 1.0f;
+    ScissorSet(1, D_8010DB70_aces_high[1][0], D_8010DB70_aces_high[1][1], D_8010DB70_aces_high[1][2],
+               D_8010DB70_aces_high[1][3]);
+    D_8010DB70_aces_high[2][2] = D_8010DCB4_aces_high.x - 1.0f;
+    D_8010DB70_aces_high[2][1] = D_8010DCB4_aces_high.y + 1.0f;
+    ScissorSet(2, D_8010DB70_aces_high[2][0], D_8010DB70_aces_high[2][1], D_8010DB70_aces_high[2][2],
+               D_8010DB70_aces_high[2][3]);
+    D_8010DB70_aces_high[3][0] = D_8010DCB4_aces_high.x + 1.0f;
+    D_8010DB70_aces_high[3][1] = D_8010DCB4_aces_high.y + 1.0f;
+    ScissorSet(3, D_8010DB70_aces_high[3][0], D_8010DB70_aces_high[3][1], D_8010DB70_aces_high[3][2],
+               D_8010DB70_aces_high[3][3]);
+    vp = D_8010DBB0_aces_high[player];
+    dx = D_8010DCB4_aces_high.x - 160.0f;
+    dy = D_8010DCB4_aces_high.y - 120.0f;
+    ViewportSet(player, (s16)(vp[0] + fabs(dx) * 320.0 / 158.0), (s16)(vp[1] + fabs(dy) * 240.0 / 118.0), 511.0f,
+                (s16)(dx * 320.0f / 158.0f + vp[2]), (s16)(dy * 240.0f / 158.0f + vp[3]), 511.0f);
+    func_8000BBD4_main(D_8010DE92_aces_high, 0xA0, D_8010DCB4_aces_high.y);
+    func_8000BBD4_main(D_8010DE94_aces_high, D_8010DCB4_aces_high.x, 0x78);
+    return D_8010DCB4_aces_high.x == D_8010DCBC_aces_high[player].x &&
+           D_8010DCB4_aces_high.y == D_8010DCBC_aces_high[player].y;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010D1D8_aces_high);
+#endif
 
 /* Lock-on warning: while a missile is locked on, a pulsing marker over the plane in its own view. */
 void func_8010D6D4_aces_high(omObjData *obj) {
