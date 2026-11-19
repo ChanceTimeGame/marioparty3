@@ -14,6 +14,7 @@ typedef struct {
 } RrPlayer; // Size 0xC
 
 void func_8004AE00_main(s16, s16);
+void func_8001EF6C_main(s16 arg0, s16 arg1, char *arg2);
 extern s16 D_801119E0_ridiculous_relay[31];
 extern u16 D_80111A40_ridiculous_relay[8];
 extern s16 D_80111A58_ridiculous_relay[31];
@@ -531,13 +532,65 @@ void func_8010AED8_ridiculous_relay(omObjData *obj) {
     obj->func = NULL;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80111030_ridiculous_relay);
+void func_8010AF04_ridiculous_relay(omObjData *obj, s8 idx) {
+    s32 dirs[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+    s32 files[8] = { 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0x03 };
+    s32 legs[4] = { 0, 1, 3, 5 };
+    s16 chr;
+    RrPlayer *pl;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80111050_ridiculous_relay);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80111070_ridiculous_relay);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AF04_ridiculous_relay);
+    chr = (s8)D_80111970_ridiculous_relay[idx]->unk3;
+    pl = D_80111970_ridiculous_relay[idx];
+    pl->unk8 = (rand8() & 1) ? 0x2F : 0x30;
+    obj->model[0] = func_8000B108_main((dirs[(u16)chr] << 16) | files[(u16)chr], 0x4B9);
+    switch (idx) {
+        case 0:
+        case 3:
+            func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+            func_8000B460_main(obj, 1, func_80017BB8_main(chr, (idx != 0) ? 0x7D : 0x7C));
+            func_8000B460_main(obj, 3, func_80017BB8_main(chr, D_80111970_ridiculous_relay[idx]->unk8));
+            func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x3A));
+            func_8000B460_main(obj, 5, func_80017BB8_main(chr, 4));
+            func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x1F));
+            if (idx == 3) {
+                func_8001C258_main(obj->model[0], 4, 4);
+            }
+            func_8001C814_main(obj->model[0], 1, 1);
+            break;
+        case 1:
+            func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x7E));
+            obj->model[2] = func_8000B108_main(0x280002, 0x4B9);
+            Hu3DModelScaleSet(obj->model[2], 0.15625f, 0.15625f, 0.15625f);
+            func_8001C8A8_main(obj->model[2], (idx == 0) ? 1 : 2);
+            func_8001EF6C_main(obj->model[2], obj->model[0], "item_hook");
+            func_8001C258_main(obj->model[2], 0x4000, 0x4000);
+            break;
+        case 2:
+            func_8000B460_main(obj, 1, func_80017BB8_main(chr, 0x7F));
+            func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x80));
+            func_8001C258_main(obj->model[0], 4, 4);
+            obj->model[2] = func_8000B108_main(0x280004, 0x4B9);
+            Hu3DModelScaleSet(obj->model[2], 0.15625f, 0.15625f, 0.15625f);
+            func_8001C814_main(obj->model[2], 1, 1);
+            func_8001C8A8_main(obj->model[2], (idx == 0) ? 1 : 2);
+            break;
+    }
+    D_80111970_ridiculous_relay[idx]->unk8 |= dirs[(u16)chr] << 16;
+    omSetSca(obj, 0.15625f, 0.15625f, 0.15625f);
+    func_8001C5B4_main(obj->model[0], obj->motion[1]);
+    func_8001C2FC_main(obj->model[0], 0x600, 0x400);
+    func_8001C8A8_main(obj->model[0], (idx != 0) ? 2 : 1);
+    obj->model[1] = func_8000B108_main(legs[idx] | 0x280000, 0x4B9);
+    Hu3DModelScaleSet(obj->model[1], 0.15625f, 0.15625f, 0.15625f);
+    func_8001C8A8_main(obj->model[1], (idx == 0) ? 1 : 2);
+    if (idx == 2) {
+        func_8000B460_main(obj, 7, 0x280007);
+        func_8000B460_main(obj, 8, 0x280008);
+        func_8000B460_main(obj, 9, 0x280009);
+        func_8000B460_main(obj, 10, 0x28000A);
+        func_8000B460_main(obj, 11, 0x28000B);
+    }
+}
 
 f32 func_8010B474_ridiculous_relay(f32 x) {
     Vec pos;
