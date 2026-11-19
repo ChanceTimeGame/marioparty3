@@ -2,6 +2,7 @@
 #include "overlays/minigame.h"
 #include "game/audio.h"
 #include "game/camera.h"
+#include "game/esprite.h"
 #include "game/gamework_data.h"
 #include "game/hmflight.h"
 #include "game/hmfman.h"
@@ -159,6 +160,7 @@ extern f32 D_8010EFAC_picking_panic[2];
 extern f32 D_8010EFC4_picking_panic[2];
 extern s16 D_8010EFD0_picking_panic[10];
 extern f32 D_8010EFEC_picking_panic[2];
+extern s16 D_8010EFF8_picking_panic[10];
 
 
 void func_801059A0_picking_panic(void) {
@@ -409,13 +411,86 @@ void func_80106020_picking_panic(omObjData *obj) {
     omOvlReturnEx(1);
 }
 
+#ifdef NON_MATCHING
+void func_8010664C_picking_panic(omObjData *obj) {
+    s32 sp10[10] = { 0x0030000A, 0x0030000B, 0x0030000C, 0x0030000D, 0x0030000E,
+                     0x00000031, 0x002A0012, 0x0030000F, 0x00300011, 0x00300010 };
+    s16 i;
+    s16 j;
+
+    for (i = 0; i < 10; i++) {
+        D_8010EFF8_picking_panic[i] = func_8000B838_main(sp10[i]);
+        D_8010EFD0_picking_panic[i] = InitEspriteSlot(D_8010EFF8_picking_panic[i], 0, 0);
+        func_8000BB94_main(D_8010EFD0_picking_panic[i]);
+    }
+    obj->model[0] = func_8000B108_main(0x300000, 0x499);
+    omSetTra(obj, 0.0f, -525.0f, -450.0f);
+    omSetSca(obj, 1.75f, 1.75f, 1.75f);
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C8A8_main(obj->model[0], 1);
+    obj->model[1] = Hu3DModelLink(obj->model[0]);
+    Hu3DModelPosSet(obj->model[1], 0.0f, -525.0f, -450.0f);
+    Hu3DModelScaleSet(obj->model[1], 1.75f, 1.75f, 1.75f);
+    func_8001C814_main(obj->model[1], 1, 1);
+    func_8001C8A8_main(obj->model[1], 2);
+    for (i = 0; i < 2; i++) {
+        obj->model[i + 4] = func_8000B108_main((i == 1) ? 0x300005 : 0x300006, 0x43D);
+        Hu3DModelPosSet(obj->model[i + 4], (i == 0) ? 450.0f : 750.0f, (i == 0) ? -650.0f : -900.0f, -312.5f);
+        Hu3DModelScaleSet(obj->model[i + 4], 2.75f, 2.75f, 2.75f);
+        func_8001C814_main(obj->model[i + 4], 2, 2);
+        obj->model[i + 6] = Hu3DModelLink(obj->model[i + 4]);
+        Hu3DModelPosSet(obj->model[i + 6], (i == 1) ? -450.0f : -750.0f, (i == 1) ? -650.0f : -900.0f, -312.5f);
+        Hu3DModelScaleSet(obj->model[i + 6], 2.75f, 2.75f, 2.75f);
+        func_8001C814_main(obj->model[i + 6], 2, 2);
+    }
+    for (i = 0; i < 2; i++) {
+        obj->model[i + 2] = func_8000B108_main(0x300001, 0x4B9);
+        Hu3DModelPosSet(obj->model[i + 2], 890.0f, -222.0f, 0.0f);
+        Hu3DModelScaleSet(obj->model[i + 2], 1.38125f, 1.3f, 1.3f);
+        func_8001C814_main(obj->model[i + 2], 1, 1);
+        func_8001C8A8_main(obj->model[i + 2], (i == 0) ? 1 : 2);
+    }
+    obj->model[32] = func_8000B108_main(0x300007, 0x499);
+    Hu3DModelScaleSet(obj->model[32], 1.0f, 1.1f, 1.0f);
+    for (i = 1; i < 6; i++) {
+        obj->model[i + 32] = Hu3DModelLink(obj->model[32]);
+        Hu3DModelScaleSet(obj->model[i + 32], 1.0f, 1.1f, 1.0f);
+    }
+    for (i = 0; i < 2; i++) {
+        obj->model[i + 10] = func_8000B108_main(0x300009, 0x4BD);
+        Hu3DModelPosSet(obj->model[i + 10], -855.0f, 125.0f, 0.0f);
+        Hu3DModelScaleSet(obj->model[i + 10], 2.0f, 2.0f, 2.0f);
+        func_8001C8A8_main(obj->model[i + 10], (i == 0) ? 1 : 2);
+    }
+    obj->model[8] = func_8000B108_main(0x300008, 0x4B9);
+    obj->model[9] = Hu3DModelLink(obj->model[8]);
+    obj->model[12] = func_8000B108_main(0x300002, 0x4B9);
+    for (i = 1; i < 20; i++) {
+        obj->model[i + 12] = Hu3DModelLink(obj->model[12]);
+    }
+    {
+    f32 sp38[10] = { -510.0f, -555.0f, -663.0f, -692.0f, -797.0f, -823.0f, -947.0f, -1012.0f, -1121.0f, -1169.0f };
+    f32 sp60[10] = { 449.0f, 331.0f, 470.0f, 341.0f, 237.0f, 403.0f, 293.0f, 409.0f, 276.0f, 432.0f };
+    f32 zero = 0.0f;
+
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 2; j++) {
+            Hu3DModelPosSet(obj->model[(j == 0) ? i + 12 : i + 22], sp38[i] / 4687.5 * 5187.5,
+                            sp60[i] / 4687.5 * 5187.5, -500.0f);
+            Hu3DModelPosSet(obj->model[(j == 0) ? i + 12 : i + 22], zero, zero, -500.0f);
+            func_8001C814_main(obj->model[(j == 0) ? i + 12 : i + 22], 1, 1);
+            func_8001C8A8_main(obj->model[(j == 0) ? i + 12 : i + 22], (j == 0) ? 1 : 2);
+        }
+    }
+    }
+    obj->func = func_80106E84_picking_panic;
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E798_picking_panic);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E7C0_picking_panic);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E7E8_picking_panic);
-
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010664C_picking_panic);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80106E84_picking_panic);
 
