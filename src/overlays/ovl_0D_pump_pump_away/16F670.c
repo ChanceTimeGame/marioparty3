@@ -446,6 +446,7 @@ void func_801109BC_pump_pump_away(void);
 extern u16 D_80111114_pump_pump_away;
 extern f32 D_80111990_pump_pump_away; /* D_80111978_pump_pump_away[0].dist */
 extern f32 D_801119C4_pump_pump_away; /* D_80111978_pump_pump_away[1].dist */
+extern f32 D_8011101C_pump_pump_away[]; /* start heights of the D_80111920_pump_pump_away models */
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -2936,7 +2937,53 @@ void func_8010E098_pump_pump_away(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010E0F4_pump_pump_away(omObjData *obj) {
+    PpSlot20 *p = &D_80111920_pump_pump_away[obj->work[0]];
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+
+    if (p->unk04 == 0) {
+        if (t[1].dist < D_80111978_pump_pump_away[0].dist) {
+            dist = D_80111978_pump_pump_away[0].dist;
+        } else {
+            dist = t1->dist;
+        }
+        if (D_8011101C_pump_pump_away[obj->work[0]] - dist * 0.1 + 400.0 < 1000.0) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            obj->trans.y = D_8011101C_pump_pump_away[obj->work[0]] - dist * 0.1 + 400.0;
+            if (obj->trans.y < -1000.0f) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                p->unk04 = 1;
+            }
+        }
+    }
+    obj->rot.y = p->dir * 180 + 90;
+    if (p->dir == 0) {
+        obj->trans.x = obj->trans.x + p->speed;
+    } else {
+        obj->trans.x = obj->trans.x - p->speed;
+    }
+    if ((obj->trans.x < 0.0f ? -obj->trans.x : obj->trans.x) >= 700.0f) {
+        if (p->dir == 0) {
+            obj->trans.x = 700.0f;
+        } else {
+            obj->trans.x = -700.0f;
+        }
+        p->dir ^= 1;
+        p->speed = (u8)(rand8() % 6) + 4;
+    }
+    p->phase = PP_WRAP(p->phase + 6.0f);
+    obj->trans.y = obj->trans.y + 2.0 * sindf(p->phase);
+    if (D_80113530_pump_pump_away.state >= 2 && p->state < 10) {
+        func_8001C258_main(obj->model[0], 4, 4);
+        p->state = 10;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E0F4_pump_pump_away);
+#endif
 
 void func_8010E45C_pump_pump_away(omObjData *obj) {
     PpSlot20 *p;
