@@ -231,7 +231,9 @@ typedef struct SbItem {
     /* 0x28 */ Vec unk28; /* position */
     /* 0x34 */ Vec unk34; /* rotation */
     /* 0x40 */ Vec unk40; /* velocity */
-    /* 0x4C */ char unk4C[0x1C];
+    /* 0x4C */ char unk4C[0xC];
+    /* 0x58 */ Vec unk58; /* hook start position */
+    /* 0x64 */ char unk64[4];
     /* 0x68 */ f32 unk68; /* glow alpha */
     /* 0x6C */ f32 unk6C; /* glow alpha set */
     /* 0x70 */ f32 unk70;
@@ -386,7 +388,7 @@ extern void (*D_80113E30_stardust_battle[3])(omObjData *);
 extern void (*D_80113E3C_stardust_battle[3])(omObjData *);
 extern void (*D_80113E48_stardust_battle[3])(omObjData *);
 extern omObjData *D_80114B18_stardust_battle;
-void func_80107760_stardust_battle(omObjData *obj, s32 busy);
+void func_80107760_stardust_battle(omObjData *obj, s16 busy);
 s16 func_8010E524_stardust_battle(omObjData *obj, s32 mode, Vec *dir);
 void func_8010EA04_stardust_battle(omObjData *obj);
 void func_800DDD94_minigame(omObjData* obj);
@@ -1177,7 +1179,133 @@ void func_801073F4_stardust_battle(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801073F4_stardust_battle);
 #endif
 
+void func_8001EED8_main(s16 mdl, s16 motion, s32 arg2); /* hmfman.c defines (s16, u8, s8) */
+void func_8002367C_main(Matrix4f src, Matrix4f dst);
+void func_80112220_stardust_battle(omObjData *obj, const char *part, Matrix4f out);
+s16 func_8010E03C_stardust_battle(omObjData *obj);
+void func_8010E35C_stardust_battle(s16 idx);
+
+/* NON_MATCHING: scheduling only: in the "no item yet" case retail loads HmfModelData into a0 before the model-index multiply, mine into v1 after it */
+#ifdef NON_MATCHING
+void func_80107760_stardust_battle(omObjData *obj, s16 busy) {
+    Matrix4f mtx;
+    SbPlayer *pl;
+    MgWork *work;
+    HmfModel *model;
+    HmfModel *m;
+    SbItem *item;
+    f32 t;
+    s16 frame;
+    f32 x;
+    f32 y;
+    f32 z;
+
+    pl = func_80111FEC_stardust_battle(obj);
+    model = &HmfModelData[obj->model[0]];
+    work = obj->data;
+    if (func_800E6E8C_minigame() == 2 && busy == 0) {
+        switch (pl->unk66) {
+        case -1:
+            if (work->unk5C == 0x40) {
+                m = &HmfModelData[obj->model[0]];
+                frame = m->unk40;
+                if (m->unk04 == 0xFF) {
+                    if (!(frame < 10.0f) && !(frame > 20.0f)) {
+                        pl->unk66 = func_8010E03C_stardust_battle(obj);
+                        if (pl->unk66 != -1) {
+                            func_80112220_stardust_battle(obj, "item_hook", mtx);
+                            pl->unk6A = 1;
+                            pl->unk68 = 0;
+                        }
+                    }
+                }
+            }
+            break;
+        case -2:
+            if (D_800CCF58_main[model->unk06].unk02 <= model->unk58) {
+                HmfModelData[obj->model[0]].unk06 = 0xFF;
+                pl->unk66 = -1;
+            }
+            break;
+        default:
+            func_80112220_stardust_battle(obj, "item_hook", mtx);
+            if (pl->unk6A < 5) {
+                t = pl->unk6A / 5.0f;
+                if (t < 0.0f) {
+                    t = 0.0f;
+                } else if (t > 1.0f) {
+                    t = 1.0f;
+                }
+                item = func_8010E300_stardust_battle(pl->unk66);
+                if (item != NULL) {
+                    x = func_80111DF8_stardust_battle(t, item->unk58.x, mtx[3][0]);
+                    y = func_80111DF8_stardust_battle(t, item->unk58.y, mtx[3][1]);
+                    z = func_80111DF8_stardust_battle(t, item->unk58.z, mtx[3][2]);
+                    func_80111DF8_stardust_battle(t, 0.0f, work->unk3C);
+                    func_8010E46C_stardust_battle(pl->unk66, x, y, z);
+                    mtx[3][0] = mtx[3][1] = mtx[3][2] = 0.0f;
+                    func_80111E70_stardust_battle((f32 *)D_80114AD0_stardust_battle, (f32 *)mtx,
+                                                  HmfModelData[item->unk02[item->unk10]].mtx, t);
+                    func_8010E4C8_stardust_battle(pl->unk66, 0.0f, 0.0f, 0.0f);
+                } else {
+                    func_8010E46C_stardust_battle(pl->unk66, mtx[3][0], mtx[3][1], mtx[3][2]);
+                    func_8010E4C8_stardust_battle(pl->unk66, 0.0f, work->unk3C, 0.0f);
+                    pl->unk6A = 5;
+                }
+                pl->unk6A++;
+            } else {
+                func_8010E46C_stardust_battle(pl->unk66, mtx[3][0], mtx[3][1], mtx[3][2]);
+                item = func_8010E300_stardust_battle(pl->unk66);
+                if (item != NULL) {
+                    mtx[3][0] = mtx[3][1] = mtx[3][2] = 0.0f;
+                    func_8002367C_main((f32(*)[4])HmfModelData[item->unk02[item->unk10]].mtx, mtx);
+                    func_8010E4C8_stardust_battle(pl->unk66, 0.0f, 0.0f, 0.0f);
+                } else {
+                    func_8010E4C8_stardust_battle(pl->unk66, 0.0f, work->unk3C, 0.0f);
+                }
+            }
+            if (pl->unk68 == 0 && model->unk06 != obj->motion[0x26]) {
+                if (work->unk5C == 0x40) {
+                    if ((s16)HmfModelData[obj->model[0]].unk40 < 28) {
+                    } else {
+                        func_8001EED8_main(obj->model[0], obj->motion[0x26], 0);
+                        pl->unk68 = 1;
+                    }
+                } else {
+                    func_8001EED8_main(obj->model[0], obj->motion[0x26], 0);
+                    pl->unk68 = 1;
+                }
+            }
+            if (model->unk06 == obj->motion[0x26] && (D_800D5558_main[pl->unk22] & 0x4000)) {
+                if (work->unk5C != 0x40) {
+                    func_8001EED8_main(obj->model[0], obj->motion[0x27], 0);
+                    model->unk5C = 2.0f;
+                }
+            } else if (model->unk06 == obj->motion[0x27]
+                       && D_800CCF58_main[model->unk06].unk02 * 0.5f <= model->unk58) {
+                func_8010E4C8_stardust_battle(pl->unk66, 0.0f, work->unk3C, 0.0f);
+                func_8010E35C_stardust_battle(pl->unk66);
+                pl->unk66 = -2;
+            }
+            break;
+        }
+    } else {
+        if (pl->unk66 >= 0) {
+            item = func_8010E300_stardust_battle(pl->unk66);
+            if (item != NULL) {
+                Hu3DModelScaleSet(func_8000D550_main(D_80114B54_stardust_battle, item->unk28.x, item->unk28.y, item->unk28.z), 2.0f, 2.0f, 2.0f);
+                func_8010DF70_stardust_battle(pl->unk66);
+            }
+            pl->unk66 = -1;
+        }
+        if (model->unk06 != 0xFF) {
+            HmfModelData[obj->model[0]].unk06 = 0xFF;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80107760_stardust_battle);
+#endif
 
 void func_80107DCC_stardust_battle(omObjData *obj, s16 mode) {
     SbPlayer *pl;
