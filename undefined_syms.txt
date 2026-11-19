@@ -488,3 +488,6 @@ D_8010CBAE_game_guys_sweet_surprise = D_8010CBAC_game_guys_sweet_surprise + 0x2;
 D_8010CBCC_game_guys_sweet_surprise = D_8010CBC8_game_guys_sweet_surprise + 0x4;
 D_8010CC26_game_guys_sweet_surprise = D_8010CC24_game_guys_sweet_surprise + 0x2;
 D_8010CC4A_game_guys_sweet_surprise = D_8010CC48_game_guys_sweet_surprise + 0x2;
+/* m6 tp: the chrs table func_80105F14_thwomp_pull and func_801097AC_thwomp_pull share (one pooled constant) */
+D_8010F028_thwomp_pull = 0x8010F028;
+D_8010DCB2_aces_high = D_8010DCB0_aces_high + 0x2;
