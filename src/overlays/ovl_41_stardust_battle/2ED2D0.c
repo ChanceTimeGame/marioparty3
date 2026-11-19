@@ -67,8 +67,12 @@ typedef f32 Matrix4f[4][4];
 
 /* The game's player record (D_80114AC8_stardust_battle points at one). Grown as functions are written. */
 typedef struct SbPlayer {
-    /* 0x00 */ char unk00[0x20];
+    /* 0x00 */ char unk00[4];
+    /* 0x04 */ s16 unk04; /* state */
+    /* 0x06 */ char unk06[0x1A];
     /* 0x20 */ s16 unk20; /* GwPlayer index */
+    /* 0x22 */ s16 unk22;
+    /* 0x24 */ s16 unk24; /* character */
 } SbPlayer;
 
 /* D_80114B1C_stardust_battle */
@@ -91,6 +95,11 @@ void func_801059A0_stardust_battle(void);
 void func_80105D18_stardust_battle(omObjData *obj);
 void func_80105DA0_stardust_battle(omObjData *obj);
 void func_801065B4_stardust_battle(omObjData* obj);
+void func_801065D8_stardust_battle(omObjData *obj);
+void func_80106690_stardust_battle(omObjData *obj);
+void func_80106A3C_stardust_battle(omObjData *obj);
+void func_80106B60_stardust_battle(omObjData *obj);
+void func_80106C30_stardust_battle(omObjData *obj);
 void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
 void func_801089B4_stardust_battle(void);
@@ -123,6 +132,9 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+void func_80107F34_stardust_battle(f32);
+void func_8010C44C_stardust_battle(void);
+void func_8010C498_stardust_battle(void);
 void func_80106690_stardust_battle(omObjData *obj);
 void func_80106A3C_stardust_battle(omObjData *obj);
 void func_80106B60_stardust_battle(omObjData *obj);
@@ -172,6 +184,8 @@ extern s16 D_80113DC4_stardust_battle[];
 extern s16 D_80113DCC_stardust_battle[];
 extern void (*D_80113DDC_stardust_battle)(omObjData *);
 extern s16 D_80113DE0_stardust_battle; /* intro sound */
+extern s32 D_80113DE4_stardust_battle; /* fade-out timer */
+extern u8 D_80113DE8_stardust_battle;
 extern omObjData *D_80114A98_stardust_battle;
 extern s32 D_80114A9C_stardust_battle;
 extern s32 D_80114AA0_stardust_battle;
@@ -180,6 +194,7 @@ extern s32 D_80114AA8_stardust_battle;
 extern s32 D_80114AAC_stardust_battle;
 extern s32 D_80114AB0_stardust_battle; /* game frames */
 extern s32 D_80114AB4_stardust_battle; /* record */
+extern u16 D_80114AB6_stardust_battle; /* low half of D_80114AB4 */
 extern s32 D_80114AB8_stardust_battle; /* game state */
 extern s32 D_80114ABC_stardust_battle;
 extern s32 D_80114AC0_stardust_battle; /* record mode */
@@ -509,15 +524,199 @@ void func_801065B4_stardust_battle(omObjData* obj) {
     omOvlReturnEx(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801065D8_stardust_battle);
+void func_801065D8_stardust_battle(omObjData *obj) {
+    if (D_80113DE4_stardust_battle != 0) {
+        if (D_80113DE4_stardust_battle == 1) {
+            obj->func = func_801065B4_stardust_battle;
+        }
+        D_80113DE4_stardust_battle--;
+    } else if (D_800D530C_main == 1 && WipeStatGet() == 0) {
+        D_80113DE4_stardust_battle = 0x10;
+        WipeColorSet(0, 0, 0);
+        WipeCreateOut(0, (s16)D_80113DE4_stardust_battle);
+        HuAudSeqFadeOut((s16)D_80113DE4_stardust_battle);
+        func_8004AB0C_main((s16)D_80113DE4_stardust_battle);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106690_stardust_battle);
+void func_80106690_stardust_battle(omObjData *obj) {
+    switch (D_80114ABC_stardust_battle) {
+    case 0:
+        if (D_80114AB0_stardust_battle >= D_80114AB4_stardust_battle) {
+            if (func_8010C508_stardust_battle() == 14) {
+                func_8010C498_stardust_battle();
+                D_80114ABC_stardust_battle = 16;
+                D_80114AA4_stardust_battle = 0;
+            }
+        } else {
+            D_80114ABC_stardust_battle = 2;
+        }
+        break;
+    case 2:
+        if (D_80113DE8_stardust_battle == 2) {
+            if (func_8010C508_stardust_battle() == 12) {
+                func_8010C0C8_stardust_battle();
+                D_80113DE8_stardust_battle = 1;
+            }
+        } else if (D_80113DE8_stardust_battle == 1 && func_8010C508_stardust_battle() == 14) {
+            func_8010C498_stardust_battle();
+            D_80113DE8_stardust_battle = 0;
+        }
+        if (D_80114AA4_stardust_battle > 15.0f) {
+            D_80114AB4_stardust_battle = D_80114AB0_stardust_battle;
+            GWMgRecordSet(9, D_80114AB6_stardust_battle);
+            func_8010F400_stardust_battle(0, D_80114AB0_stardust_battle);
+            func_8010F400_stardust_battle(1, D_80114AB4_stardust_battle);
+            func_8010F580_stardust_battle(1);
+            GMesCreate(0x1B);
+            D_80114AAC_stardust_battle = 99;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 3:
+        if (D_80113DE8_stardust_battle == 2) {
+            if (func_8010C508_stardust_battle() == 12) {
+                func_8010C0C8_stardust_battle();
+                D_80113DE8_stardust_battle = 1;
+            }
+        } else if (D_80113DE8_stardust_battle == 1 && func_8010C508_stardust_battle() == 14) {
+            func_8010C498_stardust_battle();
+            D_80113DE8_stardust_battle = 0;
+        }
+        if (GMesStatGet() == 0) {
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 4:
+        if (D_80113DE8_stardust_battle == 2) {
+            if (func_8010C508_stardust_battle() == 12) {
+                func_8010C0C8_stardust_battle();
+                D_80113DE8_stardust_battle = 1;
+            }
+        } else if (D_80113DE8_stardust_battle == 1 && func_8010C508_stardust_battle() == 14) {
+            func_8010C498_stardust_battle();
+            D_80113DE8_stardust_battle = 0;
+        }
+        if (D_80114AA4_stardust_battle >= 15) {
+            HuAudSeqPlay(0x6A);
+            D_80114AC8_stardust_battle->unk04 = 13;
+            GMesCreate(0x16, D_80114AC8_stardust_battle->unk24);
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 5:
+        if (GMesStatGet() == 0) {
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 16:
+        if (D_80114AA4_stardust_battle > 60.0f) {
+            D_80114AC8_stardust_battle->unk04 = 13;
+            GMesCreate(0x16, D_80114AC8_stardust_battle->unk24);
+            HuAudSeqPlay(0x65);
+            D_80114AAC_stardust_battle = 98;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 17:
+        if (GMesStatGet() == 0) {
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 6:
+    case 18:
+        if (D_80114AA4_stardust_battle >= 15) {
+            D_80114AB8_stardust_battle = 32;
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106A3C_stardust_battle);
+void func_80106A3C_stardust_battle(omObjData *obj) {
+    switch (D_80114ABC_stardust_battle) {
+    case 0:
+        if (func_8010C508_stardust_battle() == 14) {
+            D_80114AC8_stardust_battle->unk04 = 14;
+            func_8010C44C_stardust_battle();
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 1:
+        if (D_80114AA4_stardust_battle >= 15.0f) {
+            GMesCreate(0x1D);
+            HuAudSeqPlay(0x6B);
+            D_80114AAC_stardust_battle = 132;
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 2:
+        if (GMesStatGet() == 0) {
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 3:
+        if (D_80114AA4_stardust_battle >= 15) {
+            D_80114AB8_stardust_battle = 32;
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106B60_stardust_battle);
+void func_80106B60_stardust_battle(omObjData *obj) {
+    switch (D_80114ABC_stardust_battle) {
+    case 0:
+        func_80107F34_stardust_battle(5.0f);
+        if (func_8010C508_stardust_battle() == 14) {
+            func_8010C498_stardust_battle();
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 1:
+        func_80107F34_stardust_battle(5.0f);
+        if (D_80114AA4_stardust_battle >= 150.0f) {
+            D_80114AB8_stardust_battle = 64;
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106C30_stardust_battle);
+void func_80106C30_stardust_battle(omObjData *obj) {
+    switch (D_80114ABC_stardust_battle) {
+    case 0:
+        D_80114AC8_stardust_battle->unk04 = 14;
+        D_80114AA4_stardust_battle = 0;
+        D_80114ABC_stardust_battle++;
+        break;
+    case 1:
+        if (func_8010C508_stardust_battle() == 14) {
+            func_8010C44C_stardust_battle();
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    case 2:
+        if (D_80114AA4_stardust_battle >= 30.0f) {
+            D_80114AB8_stardust_battle = 64;
+            D_80114AA4_stardust_battle = 0;
+            D_80114ABC_stardust_battle++;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106D0C_stardust_battle);
 
