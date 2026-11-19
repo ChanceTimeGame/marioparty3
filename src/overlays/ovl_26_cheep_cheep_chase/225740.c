@@ -138,18 +138,19 @@ extern CxPlayer *D_8010E364_cheep_cheep_chase; // [4]
 extern CxUnk368 *D_8010E368_cheep_cheep_chase;
 extern f32 D_8010E370_cheep_cheep_chase[4];
 
-extern u8 D_8010E010_cheep_cheep_chase;
-extern f32 D_8010E014_cheep_cheep_chase;
-extern f32 D_8010E018_cheep_cheep_chase;
-extern s16 D_8010E01C_cheep_cheep_chase;
-extern s16 D_8010E01E_cheep_cheep_chase;
-extern s16 D_8010E020_cheep_cheep_chase;
-extern s16 D_8010E022_cheep_cheep_chase;
-extern s16 D_8010E024_cheep_cheep_chase;
-extern s16 D_8010E026_cheep_cheep_chase;
-extern s32 D_8010E028_cheep_cheep_chase[8];
+u8 D_8010E010_cheep_cheep_chase = 0;
+f32 D_8010E014_cheep_cheep_chase = 0.0f;
+f32 D_8010E018_cheep_cheep_chase = 0.0f;
+s16 D_8010E01C_cheep_cheep_chase = 0;
+s16 D_8010E01E_cheep_cheep_chase = 0;
+s16 D_8010E020_cheep_cheep_chase = 0;
+s16 D_8010E022_cheep_cheep_chase = 0;
+s16 D_8010E024_cheep_cheep_chase = 1;
+s16 D_8010E026_cheep_cheep_chase = 0;
+/* per character: caught motion file */
+s32 D_8010E028_cheep_cheep_chase[8] = { 0x000200A5, 0x000300A5, 0x000700A5, 0x000400A5, 0x000500A5, 0x000600A5, 0x000800A5, 0x0009001C };
 extern s16 D_8010E380_cheep_cheep_chase;
-extern s16 D_8010E048_cheep_cheep_chase;
+s16 D_8010E048_cheep_cheep_chase = 0;
 
 extern u8 D_800D6A90_main;
 extern s32 D_800A178C_main[][6];

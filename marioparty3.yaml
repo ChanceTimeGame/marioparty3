@@ -1214,7 +1214,7 @@ segments:
     bss_size: 0x40
     subsegments:
       - [0x225740, c]
-      - [0x22DDB0, data, 225740] #8010E010
+      - [0x22DDB0, .data, 225740] #8010E010
       - [0x22DDF0, .rodata, 225740] #8010E050
       - {0x22E100, type: bss, vram: 0x8010E360, name: ovl_26_bss}
 
