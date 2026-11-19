@@ -638,13 +638,18 @@ void func_80106C60_messy_memory(omObjData *obj) {
                             if (k < 10) {
                                 if (MM_NEAR(item->pos.x, e->pos.x, 7.0f) &&
                                     MM_NEAR2(item->pos.y, e->pos.y, 15.0f, 6.0f)) {
-                                    MM_PICKUP(obj, j, i);
-                                    omVibrate(p, 5, 0, 5);
+                                    D_801116B0_messy_memory[j * 10 + i] = 1;
+                                    goto pickup;
                                 }
                             } else {
                                 if (MM_NEAR(item->pos.x, e->pos.x, 7.0f) &&
                                     MM_NEAR2(item->pos.y, e->pos.y, 7.0f, 6.0f)) {
-                                    MM_PICKUP(obj, j, i);
+                                    D_801116B0_messy_memory[j * 10 + i] = 1;
+                                pickup:
+                                    /* retail marks the picking player's hand (p), not the item's board (j) */
+                                    D_80111640_messy_memory[obj->work[0]] = 1;
+                                    func_8004AC98_main(D_80111338_messy_memory, (s16)obj->work[0]);
+                                    D_80111670_messy_memory[p] = 1;
                                     omVibrate(p, 5, 0, 5);
                                 }
                             }
@@ -1303,8 +1308,8 @@ void func_8010AD40_messy_memory(omObjData *obj) {
     s8 cnt;
     s8 i;
     s8 k;
-    s32 j;
-    s32 flag;
+    s8 j;
+    s8 flag;
 
     p = (u16)obj->work[0];
     e = &D_80111700_messy_memory[p];
