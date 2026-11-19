@@ -250,6 +250,8 @@ void func_8010CA70_snowball_summit(void);
 s32 func_8010CA98_snowball_summit(SsPlayer *pl);
 s32 func_8010CC00_snowball_summit(SsPlayer *pl);
 void func_8010CD58_snowball_summit(SsPlayer *pl);
+void func_8010D108_snowball_summit(SsPlayer *pl);
+void func_8010D304_snowball_summit(SsPlayer *pl);
 void func_8010D86C_snowball_summit(void);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
@@ -2159,9 +2161,79 @@ void func_8010CD58_snowball_summit(SsPlayer *pl) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D108_snowball_summit);
+/* The fall off the summit: slides down the slope, hidden below -2000 or far out. */
+void func_8010D108_snowball_summit(SsPlayer *pl) {
+    f32 rot;
+    f32 dy;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D304_snowball_summit);
+    if (pl->speed >= 7.0f) {
+        pl->speed = 7.0f;
+    } else {
+        pl->speed += 1.0f;
+    }
+    if (pl->next.y < -2000.0f) {
+        pl->next.y = -2000.0f;
+        pl->speed = pl->gravity = pl->unk1C = pl->vel.x = pl->vel.y = pl->vel.z = 0.0f;
+        goto hide;
+    }
+    if (pl->next.x * pl->next.x + pl->next.z * pl->next.z > 9e6f) {
+    hide:
+        func_8001C258_main(pl->obj->model[0], 4, 4);
+        pl->state = 90;
+        return;
+    }
+    rot = func_8010610C_snowball_summit(pl->next.x, pl->next.z);
+    pl->next.x = pl->speed * pl->speed * cosdf(pl->unk1C) * sindf(rot) + pl->next.x;
+    pl->next.z = pl->speed * pl->speed * cosdf(pl->unk1C) * cosdf(rot) + pl->next.z;
+    dy = pl->unk14 * pl->unk14 * sindf(pl->unk1C);
+    if (pl->hit == 3) {
+        pl->next.y = dy + pl->next.y;
+    } else if (pl->hit == 2) {
+        pl->vel.y -= pl->gravity;
+        if (pl->next.y < dy) {
+            pl->next.y = dy + pl->next.y;
+            pl->hit = 3;
+        }
+    }
+}
+
+/* Moves the player's model and shadow to its next position; snow puffs while it slides. */
+void func_8010D304_snowball_summit(SsPlayer *pl) {
+    omObjData *obj = pl->obj;
+    f32 rot;
+    f32 dx;
+
+    if (pl->hit == 2 || pl->hit == 3) {
+        obj->trans.x = pl->next.x;
+        obj->trans.y = pl->next.y;
+        obj->trans.z = pl->next.z;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 5.0f, obj->trans.z);
+        func_8001C258_main(obj->model[1], 4, 4);
+    } else if (pl->hit == 1) {
+        obj->trans.x = pl->next.x;
+        obj->trans.y = pl->next.y;
+        obj->trans.z = pl->next.z;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 20.0f + 5.0f, obj->trans.z);
+    } else {
+        obj->trans.x = pl->next.x;
+        obj->trans.z = pl->next.z;
+        pl->rot = obj->rot.y;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 20.0f + 5.0f, obj->trans.z);
+    }
+    if (((pl->unk4C != 0 && obj->trans.y > -2000.0f) || pl->land == 1) && pl->next.y > -1900.0f) {
+        if (pl->unk6C > 0) {
+            pl->unk6C--;
+        } else {
+            rot = func_8010610C_snowball_summit(pl->next.x, pl->next.z);
+            dx = sindf(rot) * 50.0f;
+            func_8010705C_snowball_summit(pl->obj, 40, 0.1f, 1.6f, dx, 60.0f, cosdf(rot) * 50.0f);
+            pl->unk6C = 1;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D55C_snowball_summit);
 
