@@ -463,6 +463,7 @@ void func_8010F400_stardust_battle(s16 n, s32 frames);
 extern omObjData *D_80114B50_stardust_battle; /* effect pool object */
 void func_8010FA60_stardust_battle(void);
 void func_801107E4_stardust_battle(void);
+void func_80111004_stardust_battle(omObjData *obj);
 f32 func_80111C2C_stardust_battle(f32 target, f32 cur, f32 step);
 s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8010F73C_stardust_battle(omObjData *obj);
@@ -4163,7 +4164,32 @@ void func_801107C4_stardust_battle(s16 n) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801107E4_stardust_battle);
+void func_801107E4_stardust_battle(void) {
+    HuCamera *cam;
+    s32 i;
+
+    Center.x = 0.0f;
+    Center.y = 126.8f;
+    Center.z = -0.0f;
+    CRot.x = 330.505f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    CZoom = 2062.0f;
+    func_801115F8_stardust_battle(0);
+    func_801115F8_stardust_battle(1);
+    D_80114BA8_stardust_battle = D_80114BAC_stardust_battle = D_80114BB0_stardust_battle = 0;
+    D_80114BB4_stardust_battle = 0;
+    omAddObj(0x1F, 0, 0, -1, func_80111004_stardust_battle);
+    cam = gCameraList;
+    for (i = 1; i < D_800D1FF0_main; i++) {
+        cam->viewports[i].vp.vscale[0] = cam->viewports[0].vp.vscale[0];
+        cam->viewports[i].vp.vscale[1] = cam->viewports[0].vp.vscale[1];
+        cam->viewports[i].vp.vscale[2] = cam->viewports[0].vp.vscale[2];
+        cam->viewports[i].vp.vtrans[0] = cam->viewports[0].vp.vtrans[0];
+        cam->viewports[i].vp.vtrans[1] = cam->viewports[0].vp.vtrans[1];
+        cam->viewports[i].vp.vtrans[2] = cam->viewports[0].vp.vtrans[2];
+    }
+}
 
 void func_80110914_stardust_battle(void) {
     SbCamera c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
@@ -4274,7 +4300,7 @@ extern f32 D_80113F14_stardust_battle[]; /* case-3 ease-in steps */
 
 /* NON_MATCHING: register allocation only (masked 0): in case 4 retail forms sin * t in f0 and takes abs.s into f20, mine multiplies into f20 */
 #ifdef NON_MATCHING
-void func_80111004_stardust_battle(void) {
+void func_80111004_stardust_battle(omObjData *obj) {
     f32 t = 0.0f;
     f32 s;
 
@@ -4563,7 +4589,18 @@ void func_80112040_stardust_battle(s16 mdl, const char *part, Matrix4f *out) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112220_stardust_battle);
+void func_80112220_stardust_battle(omObjData *obj, const char *part, Matrix4f out) {
+    Matrix4f m;
+    Matrix4f partMtx;
+    MgWork *work = obj->data;
+
+    func_8008A070_main(m);
+    func_80017C10_main((Mtx *)m, obj->trans.x, obj->trans.y, obj->trans.z);
+    func_80017D24_main(m, 0.0f, work->unk3C, 0.0f);
+    func_80017CD0_main(m, obj->scale.x, obj->scale.y, obj->scale.z);
+    func_80112040_stardust_battle(obj->model[0], part, &partMtx);
+    func_80018044_main(partMtx, m, out);
+}
 
 /* HmfData::unk3C as this unit fills it: hmfman.h's HmfModelData_Unk64_Unk3C_Struct plus a third list at 0x18 */
 typedef struct SbHmfDl {
