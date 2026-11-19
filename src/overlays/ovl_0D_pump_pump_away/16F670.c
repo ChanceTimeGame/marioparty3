@@ -450,6 +450,8 @@ extern f32 D_8011101C_pump_pump_away[]; /* start heights of the D_80111920_pump_
 extern f32 D_8011102C_pump_pump_away[]; /* start heights of the D_801135E8_pump_pump_away models */
 extern f32 D_8011103C_pump_pump_away[]; /* heights of the D_80111710_pump_pump_away models */
 extern s32 D_80111970_pump_pump_away; /* next D_8011103C_pump_pump_away slot */
+extern f32 D_8011109C_pump_pump_away[]; /* heights of the D_801119E8_pump_pump_away models */
+extern s32 D_801133F8_pump_pump_away; /* next D_8011109C_pump_pump_away slot */
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -3186,7 +3188,60 @@ void func_8010F20C_pump_pump_away(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010F268_pump_pump_away(omObjData *obj) {
+    PpSlot12 *p = &D_801119E8_pump_pump_away[obj->work[0]];
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+    s32 n;
+
+    if (p->state != -1) {
+        if (t[1].dist < D_80111978_pump_pump_away[0].dist) {
+            dist = D_80111978_pump_pump_away[0].dist;
+        } else {
+            dist = t1->dist;
+        }
+        n = dist * 0.01;
+        if (p->unk04 == 0) {
+            switch (p->state) {
+                case 0:
+                    if (D_8011109C_pump_pump_away[D_801133F8_pump_pump_away] - dist * 0.1 + 400.0 < 1000.0) {
+                        func_8001C258_main(obj->model[0], 4, 0);
+                        /* Retail adds the scroll here; case 1 corrects the height on the next frame. */
+                        obj->trans.y = D_8011109C_pump_pump_away[obj->work[0]] + dist * 0.1 + 400.0;
+                        p->state = 1;
+                        obj->work[1] = D_801133F8_pump_pump_away;
+                        D_801133F8_pump_pump_away++;
+                    }
+                    break;
+                case 1:
+                    obj->trans.y = D_8011109C_pump_pump_away[obj->work[1]] - dist * 0.1 + 400.0;
+                    if (obj->trans.y < -1000.0f) {
+                        func_8001C258_main(obj->model[0], 4, 4);
+                        if (obj->work[0] & 1) {
+                            obj->trans.x = rand16() % 301 + 100;
+                        } else {
+                            obj->trans.x = -(rand16() % 301) - 100;
+                        }
+                        obj->trans.z = (rand8() & 1) ? -500.0f : 500.0f;
+                        p->state = 0;
+                    }
+                    break;
+            }
+        }
+        p->angle = PP_WRAP(p->angle + 6.0f);
+        obj->scale.y = obj->scale.z = obj->scale.x = sindf(p->angle) * 0.03 + 0.5;
+        if ((D_80113530_pump_pump_away.state >= 2 && p->state < 10) || (n >= 351 && p->state == 0)) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            p->state = 10;
+            p->unk04 = 1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F268_pump_pump_away);
+#endif
 
 void func_8010F688_pump_pump_away(omObjData *obj) {
     PpSlot12 *p;
