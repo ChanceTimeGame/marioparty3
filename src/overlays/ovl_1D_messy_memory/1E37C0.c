@@ -95,6 +95,8 @@ extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
+extern HuSprite_Unk84_Struct *D_80111654_messy_memory; /* the room backdrop image */
+extern HuSprite_Unk84_Struct *D_801116D8_messy_memory; /* the divider image */
 extern u8 D_80111630_messy_memory[4]; /* the players by score, best first */
 extern u8 D_80111638_messy_memory;
 extern u8 D_80111639_messy_memory;
@@ -242,7 +244,53 @@ void func_80105B7C_messy_memory(s8 arg0) {
     D_80115D8C_messy_memory = arg0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80105B88_messy_memory);
+/* Draws the room backdrop (D_80111654: a 320-wide CI4 image, six rows a strip) and the centre divider (D_801116D8). */
+void func_80105B88_messy_memory(Gfx **gfx) {
+    Gfx *g = *gfx;
+    s32 i;
+    s32 x;
+    s32 y;
+
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD |
+                                  G_SHADING_SMOOTH);
+    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+    gDPSetCombineMode(g++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetTexturePersp(g++, G_TP_NONE);
+    gDPSetPrimColor(g++, 0, 0, 0, 0, 0, 255);
+    gDPSetRenderMode(g++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    gDPLoadTLUT_pal16(g++, 0, D_80111654_messy_memory->unk0C);
+    x = 0;
+    for (i = 0, y = 108; i < 24; i += 6) {
+        gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 160, D_80111654_messy_memory->unk08);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 20, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPLoadSync(g++);
+        gDPLoadTile(g++, G_TX_LOADTILE, 0, i * 4, 160 * 4, (i + 6) * 4);
+        gDPPipeSync(g++);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_4b, 20, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, i * 4, 320 * 4, (i + 6) * 4);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 320 * 4, 6 * 4);
+        gSPTextureRectangle(g++, x << 2, (y + i) << 2, (x + 320) << 2, (y + i + 6) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10,
+                            1 << 10);
+    }
+    gDPSetTextureLUT(g++, G_TT_RGBA16);
+    gDPLoadTLUT_pal16(g++, 0, D_801116D8_messy_memory->unk0C);
+    x = 148;
+    for (i = 0, y = 0; i < 240; i += 16) {
+        gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 12, D_801116D8_messy_memory->unk08);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 2, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPLoadSync(g++);
+        gDPLoadTile(g++, G_TX_LOADTILE, 0, i * 4, 12 * 4, (i + 16) * 4);
+        gDPPipeSync(g++);
+        gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_4b, 2, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, i * 4, 24 * 4, (i + 16) * 4);
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 24 * 4, 16 * 4);
+        gSPTextureRectangle(g++, x << 2, (y + i) << 2, (x + 24) << 2, (y + i + 16) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+    }
+    *gfx = g;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801060E0_messy_memory);
 
