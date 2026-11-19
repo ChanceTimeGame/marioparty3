@@ -78,7 +78,10 @@ typedef struct MmPt {
 
 /* .data */
 extern MmPt D_80110FE0_messy_memory[5];
+extern MmPt D_80110FF4_messy_memory[20]; /* the shown room's slots */
 extern MmPt D_80111044_messy_memory[20];
+extern MmPt D_80111094_messy_memory[4];
+extern Vec2f D_801110A4_messy_memory[20];
 extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
@@ -89,13 +92,24 @@ extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
+extern u8 D_80111638_messy_memory;
+extern u8 D_8011163A_messy_memory;
+extern f32 D_8011165C_messy_memory;
+extern u8 D_80111674_messy_memory;
+extern f32 D_801116A0_messy_memory;
+extern u8 D_801116E0_messy_memory[20];
+extern MmEnt D_80112FC0_messy_memory[]; /* = D_80111700_messy_memory[48] */
+extern Vec2f D_80115D20_messy_memory[10];
+extern u8 D_80115D76_messy_memory[4];
+extern u8 D_80115D90_messy_memory[10];
+extern s8 D_80115D9A_messy_memory;
 extern u8 D_80111670_messy_memory[4];
 extern u8 D_80111678_messy_memory[4][10];
 extern u8 D_801116A4_messy_memory[10];
-extern u8 D_801116B0_messy_memory[4][10];
+extern u8 D_801116B0_messy_memory[40]; /* [player * 10 + item]: held */
 extern u8 D_80115D72_messy_memory[];
 extern u8 D_80115D80_messy_memory[4];
-extern s8 D_80115D8C_messy_memory;
+extern u8 D_80115D8C_messy_memory;
 extern s16 D_80115D8E_messy_memory;
 
 /* .rodata */
@@ -123,16 +137,18 @@ const s16 D_801115F4_messy_memory[];
     }
 /* Picks up item k of player p's board (the held flag, the grab sound). */
 #define MM_PICKUP(obj, p, k)                                                                                           \
-    D_801116B0_messy_memory[p][k] = 1;                                                                                 \
+    D_801116B0_messy_memory[(p) * 10 + (k)] = 1;                                                                                 \
     D_80111640_messy_memory[obj->work[0]] = 1;                                                                         \
     func_8004AC98_main(D_80111338_messy_memory, (s16)obj->work[0]);                                                    \
     D_80111670_messy_memory[p] = 1;
 #define MM_DROP(obj, p, k)                                                                                             \
-    D_801116B0_messy_memory[p][k] = 0;                                                                                 \
+    D_801116B0_messy_memory[(p) * 10 + (k)] = 0;                                                                                 \
     D_80111640_messy_memory[obj->work[0]] = 0;                                                                         \
     func_8004AC98_main(D_8011133A_messy_memory, (s16)obj->work[0]);                                                    \
     D_80111670_messy_memory[p] = 0;
 
+void func_8000BC88_main(u16 arg0, u16 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80110EC4_messy_memory(void);
 void func_80105A3C_messy_memory(void);
 void func_80105B7C_messy_memory(s8 arg0);
@@ -438,7 +454,7 @@ void func_80106C60_messy_memory(omObjData *obj) {
                             if (MM_NEAR(f, e->pos.x, 7.0f)) {
                                 f = MM_SLOTY(p, k);
                                 if (f - 15.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
-                                    D_801116B0_messy_memory[obj->work[0]][i] = 0;
+                                    D_801116B0_messy_memory[obj->work[0] * 10 + i] = 0;
                                     item->pos.x = MM_SLOTX(p, k);
                                     item->pos.y = MM_SLOTY(p, k);
                                     D_80111640_messy_memory[obj->work[0]] = 0;
@@ -453,7 +469,7 @@ void func_80106C60_messy_memory(omObjData *obj) {
                             if (MM_NEAR(f, e->pos.x, 7.0f)) {
                                 f = MM_SLOTY(p, k);
                                 if (f - 7.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
-                                    D_801116B0_messy_memory[obj->work[0]][i] = 0;
+                                    D_801116B0_messy_memory[obj->work[0] * 10 + i] = 0;
                                     item->pos.x = MM_SLOTX(p, k);
                                     item->pos.y = MM_SLOTY(p, k);
                                     D_80111640_messy_memory[obj->work[0]] = 0;
@@ -767,7 +783,7 @@ void func_80107C88_messy_memory(omObjData *obj) {
                     if (MM_NEAR(f, e->pos.x, 7.0f)) {
                         f = MM_SLOTY(p, i);
                         if (f - 7.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
-                            D_801116B0_messy_memory[p][e->unk08] = 0;
+                            D_801116B0_messy_memory[p * 10 + e->unk08] = 0;
                             item->pos.x = MM_SLOTX(p, i);
                             item->pos.y = MM_SLOTY(p, i);
                             D_80111640_messy_memory[obj->work[0]] = 0;
@@ -1042,7 +1058,254 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C03
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C37C_messy_memory);
 
+/* An item's object (work[0] the item, work[1] its board: 0-3 a player's, 4 the shown room), per game phase. */
+#ifdef NON_MATCHING
+void func_8010C478_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    MmEnt *it;
+    MmEnt *sh;
+    omObjData *iobj;
+    u8 i;
+    u8 k;
+    u8 hit;
+    s32 a;
+    s32 b;
+    s32 x0;
+    u32 idx;
+    f32 px;
+
+    e = MM_ITEM(obj->work[1], obj->work[0]);
+    switch (D_80115D8C_messy_memory) {
+    case 2:
+        D_80111674_messy_memory = 7;
+        break;
+    case 3:
+        if (obj->work[1] == 4 && D_80115D90_messy_memory[obj->work[0]] == 10) {
+            if (D_80111638_messy_memory < D_80111674_messy_memory) {
+                k = rand8() % 10;
+                if (k != D_80115D90_messy_memory[0] && k != D_80115D90_messy_memory[1] &&
+                    k != D_80115D90_messy_memory[2] && k != D_80115D90_messy_memory[3] &&
+                    k != D_80115D90_messy_memory[4] && k != D_80115D90_messy_memory[5] &&
+                    k != D_80115D90_messy_memory[6] && k != D_80115D90_messy_memory[7] &&
+                    k != D_80115D90_messy_memory[8] && k != D_80115D90_messy_memory[9]) {
+                    D_80115D90_messy_memory[obj->work[0]] = k;
+                    D_80111638_messy_memory++;
+                    for (i = 0; i < 10; i++) {
+                        if (k == i) {
+                            e->pos.x = D_80110FF4_messy_memory[k + 10].x;
+                            e->pos.y = D_80110FF4_messy_memory[k + 10].y;
+                        }
+                    }
+                }
+            }
+        }
+        if (D_80111638_messy_memory >= D_80111674_messy_memory) {
+            if (obj->work[1] == 4) {
+                func_8000BCC8_main(e->spr, 0x1111);
+                func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+            }
+            for (i = 0; i < 10; i++) {
+                it = &D_80112FC0_messy_memory[i];
+                iobj = it->obj;
+                for (k = 0; k < 20; k++) {
+                    if (it->pos.x == D_80110FF4_messy_memory[k].x && it->pos.y == D_80110FF4_messy_memory[k].y) {
+                        D_801116E0_messy_memory[k] = iobj->work[0];
+                    }
+                }
+            }
+        }
+        break;
+    case 4:
+        if (obj->work[1] == 4) {
+            func_8000BC88_main(e->spr, 0x4000);
+        }
+        if (obj->work[1] < 4) {
+            for (i = 0; i < 20; i++) {
+                if (D_801116E0_messy_memory[i] == obj->work[0]) {
+                    e->pos.x = MM_SLOTX(obj->work[1], i);
+                    e->pos.y = MM_SLOTY(obj->work[1], i);
+                    func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+                    func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+                    if (i < 15) {
+                        func_8000BCC8_main(e->spr, 0xDDDD);
+                    } else {
+                        func_8000BCC8_main(e->spr, 0xBBBB);
+                    }
+                }
+            }
+            if (obj->work[1] * 10 + obj->work[0] == 39) {
+                D_80115D9A_messy_memory = 4;
+            }
+        }
+        break;
+    case 5:
+        if (obj->work[1] == 4) {
+            idx = obj->work[0] + 48;
+            it = &D_80111700_messy_memory[idx];
+            for (i = 0; i < 20; i++) {
+                if (it->pos.x == D_80110FF4_messy_memory[i].x && it->pos.y == D_80110FF4_messy_memory[i].y) {
+                    D_80115D20_messy_memory[obj->work[0]].x = 2.0f * D_801110A4_messy_memory[i].x;
+                    D_80115D20_messy_memory[obj->work[0]].y = 2.0f * D_801110A4_messy_memory[i].y;
+                }
+            }
+            it->pos.x += D_80115D20_messy_memory[obj->work[0]].x;
+            it->pos.y += D_80115D20_messy_memory[obj->work[0]].y;
+            func_8000BBD4_main(it->spr, it->pos.x, it->pos.y);
+            it->unk5C.x = it->unk5C.y = D_8011165C_messy_memory;
+            func_8000BE5C_main(it->spr, it->unk5C.x, it->unk5C.y);
+            if (it->unk5C.x <= 0.01 || it->unk5C.y <= 0.01) {
+                func_8000BB94_main(it->spr);
+                for (i = 0; i < 10; i++) {
+                    if (obj->work[0] == D_801116A4_messy_memory[i]) {
+                        it->pos.x = D_80110FF4_messy_memory[i].x;
+                        it->pos.y = D_80110FF4_messy_memory[i].y;
+                    }
+                }
+                for (i = 0; i < 20; i++) {
+                    if (it->pos.x == D_80110FF4_messy_memory[i].x && it->pos.y == D_80110FF4_messy_memory[i].y) {
+                        D_80115D20_messy_memory[obj->work[0]].x = -D_801110A4_messy_memory[i].x;
+                        D_80115D20_messy_memory[obj->work[0]].y = -D_801110A4_messy_memory[i].y;
+                        it->pos.x = 160.0f;
+                        it->pos.y = 120.0f;
+                    }
+                }
+            }
+        }
+        break;
+    case 9:
+        if (obj->work[1] < 4) {
+            switch (D_801116B0_messy_memory[obj->work[1] * 10 + obj->work[0]]) {
+            case 0:
+                func_8000BCC8_main(e->spr, 0xDDDD);
+                /* retail reads slot 20, one past D_80111044 (the first point of D_80111094) */
+                for (i = 15; i < 21; i++) {
+                    if (e->pos.x == MM_SLOTX(obj->work[1], i) && e->pos.y == MM_SLOTY(obj->work[1], i)) {
+                        func_8000BCC8_main(e->spr, 0xBBBB);
+                    }
+                }
+                break;
+            case 1:
+                it = &D_80111700_messy_memory[obj->work[1]];
+                e->pos.x = it->pos.x;
+                e->pos.y = it->pos.y;
+                func_8000BCC8_main(e->spr, 0xAAAA);
+                break;
+            }
+            func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+            func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+        }
+        break;
+    case 10:
+        if (obj->work[1] < 4) {
+            hit = 0;
+            if (D_801116B0_messy_memory[obj->work[1] * 10 + obj->work[0]] == 1) {
+                sh = &D_80111700_messy_memory[obj->work[1] * 10 + 86 + obj->work[0]];
+                if ((f32)D_80110FE0_messy_memory[obj->work[1]].y + 93.0f <= e->pos.y) {
+                    for (k = 1; k < 4; k++) {
+                        x0 = D_80110FE0_messy_memory[obj->work[1]].x;
+                        px = e->pos.x;
+                        a = (f32)(x0 + D_80111094_messy_memory[e->unk06].x) - px;
+                        if (a < 0) {
+                            a = -a;
+                        }
+                        b = (f32)(x0 + D_80111094_messy_memory[k].x) - px;
+                        if (b < 0) {
+                            b = -b;
+                        }
+                        if (b < a) {
+                            e->unk06 = k;
+                        }
+                    }
+                    e->pos.x = (f32)(D_80110FE0_messy_memory[obj->work[1]].x + D_80111094_messy_memory[e->unk06].x);
+                    e->pos.y = (f32)(D_80110FE0_messy_memory[obj->work[1]].y + D_80111094_messy_memory[e->unk06].y);
+                    func_8000BCC8_main(sh->spr, 0xABBB);
+                }
+                if (e->pos.y < (f32)D_80110FE0_messy_memory[obj->work[1]].y + 93.0f) {
+                    if (e->pos.x <= (f32)D_80110FE0_messy_memory[obj->work[1]].x + 80.0f && e->unk08 == 0) {
+                        e->unk18 = 2.0f;
+                        e->unk08 = 1;
+                    }
+                    if ((f32)D_80110FE0_messy_memory[obj->work[1]].x + 80.0f < e->pos.x && e->unk08 == 0) {
+                        e->unk18 = -2.0f;
+                        e->unk08 = 1;
+                    }
+                    e->unk1C += 0.5f;
+                    e->pos.x += e->unk18;
+                    e->pos.y += e->unk1C;
+                    func_8000BCC8_main(e->spr, 0xCDDD);
+                    func_8000BCC8_main(sh->spr, 0xCDEE);
+                }
+                if ((f32)D_80110FE0_messy_memory[obj->work[1]].y + 93.0f <= e->pos.y) {
+                    D_801116B0_messy_memory[obj->work[1] * 10 + obj->work[0]] = 0;
+                    func_8000BB54_main(sh->spr);
+                    func_8000BBD4_main(sh->spr, e->pos.x, e->pos.y + 1.0f);
+                }
+            }
+            for (i = 0; i < 40; i++) {
+                if (D_801116B0_messy_memory[i] == 1) {
+                    hit = 1;
+                }
+            }
+            if (!hit) {
+                D_80115D9A_messy_memory = 10;
+            }
+            func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+        }
+        break;
+    case 11:
+        if (obj->work[1] == 4) {
+            e->pos.x = 160.0f;
+            e->pos.y = 120.0f;
+        }
+        break;
+    case 12:
+        if (obj->work[1] == 4) {
+            idx = obj->work[0] + 48;
+            it = &D_80111700_messy_memory[idx];
+            it->pos.x += D_80115D20_messy_memory[obj->work[0]].x;
+            it->pos.y += D_80115D20_messy_memory[obj->work[0]].y;
+            func_8000BBD4_main(it->spr, it->pos.x, it->pos.y);
+            it->unk5C.x = it->unk5C.y = D_8011165C_messy_memory;
+            func_8000BE5C_main(it->spr, it->unk5C.x, it->unk5C.y);
+            func_8000BB54_main(it->spr);
+        }
+        break;
+    case 13:
+        if (obj->work[1] < 4) {
+            if (e->pos.y < (f32)D_80110FE0_messy_memory[obj->work[1]].y + 80.0f) {
+                func_8000BCC8_main(e->spr, 0xDDDD);
+                if (D_801116A4_messy_memory[D_8011163A_messy_memory] == obj->work[0]) {
+                    for (i = 0; i < 10; i++) {
+                        if (e->pos.x == MM_SLOTX(obj->work[1], i) && e->pos.y == MM_SLOTY(obj->work[1], i)) {
+                            D_801116E0_messy_memory[i] = obj->work[0];
+                            if (D_801116A4_messy_memory[i] == D_801116E0_messy_memory[i]) {
+                                func_8000BCC8_main(e->spr, 0x1111);
+                                if (e->unk04 == 0) {
+                                    D_80115D76_messy_memory[obj->work[1]]++;
+                                    e->unk04 = 1;
+                                }
+                                e->unk5C.x = e->unk5C.y = D_801116A0_messy_memory;
+                                func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (obj->work[1] == 4) {
+            func_8000BCC8_main(e->spr, 0x3333);
+            if (D_801116A4_messy_memory[D_8011163A_messy_memory] == obj->work[0]) {
+                func_8000BCC8_main(e->spr, 0x1111);
+                e->unk5C.x = e->unk5C.y = D_8011165C_messy_memory;
+                func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+            }
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C478_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D55C_messy_memory);
 
