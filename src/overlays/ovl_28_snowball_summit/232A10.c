@@ -128,6 +128,16 @@ typedef struct SsBall {
 #define SS_ABS(x) ((x) < 0.0f ? -(x) : (x))
 #define SS_IABS(x) ((x) < 0 ? -(x) : (x))
 
+/* Small state slots (D_801101C8_snowball_summit 4 x 8, D_80110250_snowball_summit 4 x 0x10). */
+typedef struct SsSlot8 {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 unk04;
+} SsSlot8;
+typedef struct SsSlot16 {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ char unk04[0xC];
+} SsSlot16;
+
 typedef s32 (*SsDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
 extern s32 fontcolor;
@@ -197,13 +207,44 @@ void func_8010A0B0_snowball_summit(omObjData *obj);
 void func_8010A384_snowball_summit(omObjData *obj);
 void func_8010A71C_snowball_summit(omObjData *obj);
 void func_8010A940_snowball_summit(omObjData *obj);
+void func_8010AA78_snowball_summit(omObjData *obj);
 void func_8010AC94_snowball_summit(omObjData *obj);
 void func_8010AE74_snowball_summit(omObjData *obj);
 void func_8010B01C_snowball_summit(omObjData *obj);
 void func_8010B158_snowball_summit(omObjData *obj);
 s32 func_8010B994_snowball_summit(omObjData *obj);
+void func_8010B8E4_snowball_summit(void);
+void func_8010BC7C_snowball_summit(omObjData *obj);
+void func_8010BE8C_snowball_summit(void);
+void func_8010C000_snowball_summit(omObjData *obj);
+void func_8010C10C_snowball_summit(void);
+void func_8010C168_snowball_summit(omObjData *obj);
+void func_8010C170_snowball_summit(omObjData *obj);
+void func_8010C288_snowball_summit(void);
+void func_8010C2E4_snowball_summit(omObjData *obj);
+void func_8010C2EC_snowball_summit(omObjData *obj);
+void func_8010C4F4_snowball_summit(omObjData *obj);
+void func_8010C5C0_snowball_summit(omObjData *obj);
+void func_8010C6A8_snowball_summit(omObjData *obj);
+void func_8010C7A4_snowball_summit(omObjData *obj);
+void func_8010C7F0_snowball_summit(omObjData *obj);
+void func_8010C850_snowball_summit(omObjData *obj);
+void func_8010C890_snowball_summit(omObjData *obj);
+void func_8010C9B4_snowball_summit(omObjData *obj);
+void func_8010C9E0_snowball_summit(omObjData *obj);
+void func_8010CA18_snowball_summit(omObjData *obj);
+void func_8010CA70_snowball_summit(void);
+void func_8010D86C_snowball_summit(void);
+void func_8010EA68_snowball_summit(void);
+void func_8010EBC0_snowball_summit(void);
+void func_8010EEEC_snowball_summit(omObjData *obj);
+void func_8010F1B8_snowball_summit(void);
+void func_8010F234_snowball_summit(omObjData *obj);
+void func_8010F2B8_snowball_summit(void);
 void func_8010F42C_snowball_summit(void);
 
+/* .rodata */
+extern const s16 D_8010F870_snowball_summit[];
 /* .data */
 extern SsPath D_8010F550_snowball_summit[3];
 extern SsStart D_8010F598_snowball_summit[4];
@@ -212,7 +253,7 @@ extern SsCamera D_8010F5CC_snowball_summit[2];
 /* .bss */
 extern s32 D_8010F880_snowball_summit; /* game phase */
 extern s32 D_8010F884_snowball_summit; /* phase advance */
-extern s32 D_8010F888_snowball_summit;
+extern u16 D_8010F888_snowball_summit; /* camera set */
 extern s32 D_8010F88C_snowball_summit; /* phase timer */
 extern s16 D_8010F890_snowball_summit;
 extern u8 D_8010F892_snowball_summit;
@@ -228,6 +269,11 @@ extern SsBall D_8010FC30_snowball_summit[16];
 extern s16 D_80110030_snowball_summit[]; /* snowfall emitter model (0x14 bytes, only [0] used) */
 extern s32 D_80110044_snowball_summit; /* the winners have been decided */
 extern SsFlash D_80110048_snowball_summit[16];
+extern SsSlot8 D_801101C8_snowball_summit[4];
+extern s32 D_801101E8_snowball_summit;
+extern s32 D_80110248_snowball_summit;
+extern s32 D_8011024C_snowball_summit;
+extern SsSlot16 D_80110250_snowball_summit[4];
 extern s16 D_801101F0_snowball_summit;
 extern s16 D_801101F2_snowball_summit;
 extern f32 D_801101F4_snowball_summit;
@@ -1509,27 +1555,57 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010BC7C_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010BE8C_snowball_summit);
+void func_8010BE8C_snowball_summit(void) {
+    s32 i;
+
+    for (i = 0; i < 16; i++) {
+        omAddObj(400, 2, 0, -1, func_8010BC7C_snowball_summit)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010BEE8_snowball_summit);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C000_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C10C_snowball_summit);
+void func_8010C10C_snowball_summit(void) {
+    s32 i;
 
-void func_8010C168_snowball_summit(void) {
+    for (i = 0; i < 4; i++) {
+        omAddObj(510, 1, 1, -1, func_8010C000_snowball_summit)->work[0] = i;
+    }
+}
+
+void func_8010C168_snowball_summit(omObjData *obj) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C170_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C288_snowball_summit);
+void func_8010C288_snowball_summit(void) {
+    s32 i;
 
-void func_8010C2E4_snowball_summit(void) {
+    for (i = 0; i < 4; i++) {
+        omAddObj(520, 1, 1, -1, func_8010C170_snowball_summit)->work[0] = i;
+    }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C2EC_snowball_summit);
+void func_8010C2E4_snowball_summit(omObjData *obj) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C328_snowball_summit);
+void func_8010C2EC_snowball_summit(omObjData *obj) {
+    if (D_8010F88C_snowball_summit > 0) {
+        D_8010F88C_snowball_summit--;
+        return;
+    }
+    D_8010F884_snowball_summit = 1;
+    obj->func = func_8010C2E4_snowball_summit;
+}
+
+void func_8010C328_snowball_summit(omObjData *obj) {
+    if (GMesStatGet() & 2) {
+        D_8010F88C_snowball_summit = 20;
+        obj->func = func_8010C2EC_snowball_summit;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C36C_snowball_summit);
 
@@ -1539,29 +1615,97 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C4F4_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C5C0_snowball_summit);
+void func_8010C5C0_snowball_summit(omObjData *obj) {
+    if (GMesStatGet() == 0) {
+        D_8010F88C_snowball_summit = 15;
+        obj->func = func_8010C4F4_snowball_summit;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C600_snowball_summit);
+void func_8010C600_snowball_summit(omObjData *obj) {
+    GMesCreate(14);
+    HuAudSeqFadeOut(120);
+    D_8010F88C_snowball_summit = 75;
+    obj->func = func_8010C5C0_snowball_summit;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C648_snowball_summit);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C6A8_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C7A4_snowball_summit);
+void func_8010C7A4_snowball_summit(omObjData *obj) {
+    GMesCreate(0x1A, 60, 160, 28);
+    D_8010F88C_snowball_summit = 1801;
+    obj->func = func_8010C6A8_snowball_summit;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C7F0_snowball_summit);
+void func_8010C7F0_snowball_summit(omObjData *obj) {
+    if (GMesStatGet() == 0 || (GMesStatGet() & 2)) {
+        obj->func = func_8010C7A4_snowball_summit;
+        D_8010F884_snowball_summit = 1;
+        HuAudSeqPlay(0x30);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C850_snowball_summit);
+void func_8010C850_snowball_summit(omObjData *obj) {
+    GMesCreate(3);
+    obj->func = func_8010C7F0_snowball_summit;
+    D_8010F884_snowball_summit = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C890_snowball_summit);
+/* The camera, once. */
+void func_8010C890_snowball_summit(omObjData *obj) {
+    Vec from;
+    Vec to;
+    Vec out;
+    u32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C9B4_snowball_summit);
+    if (D_8010F888_snowball_summit == 0) {
+        D_8010F888_snowball_summit = 1;
+        to.x = 1975.0f;
+        to.y = 0;
+        to.z = 2700.0f;
+        from.x = -40.0f;
+        from.y = 0;
+        from.z = 45.0f;
+        func_80105D64_snowball_summit(&from, &to, &out);
+        for (i = 0; i < 2; i++) {
+            CZoomM[i] = out.x;
+            CRotM[i].x = 360.0f - out.z;
+            CRotM[i].y = 0;
+            CRotM[i].z = 0;
+            CenterM[i].x = 0.0f;
+            CenterM[i].y = from.x;
+            CenterM[i].z = from.z;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C9E0_snowball_summit);
+void func_8010C9B4_snowball_summit(omObjData *obj) {
+    osViBlack(0);
+    HuAudFXStop(-1);
+    omOvlReturnEx(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CA18_snowball_summit);
+void func_8010C9E0_snowball_summit(omObjData *obj) {
+    if (WipeStatGet() == 0) {
+        obj->func = func_8010C9B4_snowball_summit;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CA70_snowball_summit);
+void func_8010CA18_snowball_summit(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_8010C9E0_snowball_summit;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
+
+void func_8010CA70_snowball_summit(void) {
+    D_8010F880_snowball_summit += D_8010F884_snowball_summit;
+    D_8010F884_snowball_summit = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CA98_snowball_summit);
 
@@ -1593,33 +1737,188 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EBC0_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EEEC_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EFA0_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EFE4_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F020_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F05C_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F090_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F0CC_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F100_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F134_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F1B8_snowball_summit);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F234_snowball_summit);
-
-void func_8010F2B0_snowball_summit(void) {
+void func_8010EEEC_snowball_summit(omObjData *obj) {
+    func_8010CA70_snowball_summit();
+    switch (D_8010F880_snowball_summit) {
+        case 1:
+            if (D_8010F5C8_snowball_summit == -1) {
+                D_8010F5C8_snowball_summit = HuAudFXPlay(0x43D);
+            }
+            break;
+        case 2:
+        case 3:
+            func_8010D86C_snowball_summit();
+            func_8010EA68_snowball_summit();
+            func_8010EBC0_snowball_summit();
+            break;
+        case 5:
+            WipeCreateOut(0, 20);
+            obj->func = func_8010C9E0_snowball_summit;
+            break;
+        case 0:
+        case 4:
+            break;
+    }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F2B8_snowball_summit);
+void func_8010EFA0_snowball_summit(void) {
+    SsPlayer *p;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010F42C_snowball_summit);
+    i = 0;
+    p = D_8010F9B8_snowball_summit;
+    for (; i < 4; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010EFE4_snowball_summit(void) {
+    SsSlider *p;
+    s32 i;
+
+    i = 0;
+    p = D_80110200_snowball_summit;
+    for (; i < 3; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F020_snowball_summit(void) {
+    SsFlash *p;
+    s32 i;
+
+    i = 0;
+    p = D_80110048_snowball_summit;
+    for (; i < 16; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F05C_snowball_summit(void) {
+    SsBall *p;
+    s32 i;
+
+    i = 0;
+    p = D_8010FC30_snowball_summit;
+    for (; i < 16; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F090_snowball_summit(void) {
+    SsRing *p;
+    s32 i;
+
+    i = 0;
+    p = D_8010F8D8_snowball_summit;
+    for (; i < 8; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F0CC_snowball_summit(void) {
+    SsSlot8 *p;
+    s32 i;
+
+    i = 0;
+    p = D_801101C8_snowball_summit;
+    for (; i < 4; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F100_snowball_summit(void) {
+    SsSlot16 *p;
+    s32 i;
+
+    i = 0;
+    p = D_80110250_snowball_summit;
+    for (; i < 4; i++) {
+        p[i].state = -1;
+    }
+}
+
+void func_8010F134_snowball_summit(void) {
+    D_8010F880_snowball_summit = 0;
+    D_8010F884_snowball_summit = 0;
+    D_8010F888_snowball_summit = 0;
+    D_80110044_snowball_summit = 0;
+    D_80110248_snowball_summit = -1;
+    D_801101E8_snowball_summit = 0;
+    D_8011024C_snowball_summit = 0;
+    func_8010EFA0_snowball_summit();
+    func_8010EFE4_snowball_summit();
+    func_8010F05C_snowball_summit();
+    func_8010F020_snowball_summit();
+    func_8010F0CC_snowball_summit();
+    func_8010F100_snowball_summit();
+    func_8010F090_snowball_summit();
+}
+
+void func_8010F1B8_snowball_summit(void) {
+    func_8010F134_snowball_summit();
+    func_801062AC_snowball_summit();
+    func_801067FC_snowball_summit();
+    func_80106968_snowball_summit();
+    func_80107000_snowball_summit();
+    func_801068B0_snowball_summit();
+    func_8010B8E4_snowball_summit();
+    func_8010BE8C_snowball_summit();
+    func_80107330_snowball_summit();
+    func_8010C10C_snowball_summit();
+    func_8010C288_snowball_summit();
+    func_80107700_snowball_summit();
+    func_801078D4_snowball_summit();
+}
+
+void func_8010F234_snowball_summit(omObjData *obj) {
+    func_8010F1B8_snowball_summit();
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_8010EEEC_snowball_summit;
+    omAddObj(100, 0, 0, -1, func_8010C890_snowball_summit);
+    omAddObj(900, 0, 0, -1, func_8010C850_snowball_summit);
+}
+
+void func_8010F2B0_snowball_summit(omObjData *obj) {
+}
+
+void func_8010F2B8_snowball_summit(void) {
+    omObjData *obj;
+    s32 i;
+
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 2;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(2);
+    func_8000B710_main(2);
+    for (i = 0; i < 2; i++) {
+        ScissorSet(i, D_8010F5CC_snowball_summit[i].scissor[0], D_8010F5CC_snowball_summit[i].scissor[1],
+                   D_8010F5CC_snowball_summit[i].scissor[2], D_8010F5CC_snowball_summit[i].scissor[3]);
+        ViewportSet(i, D_8010F5CC_snowball_summit[i].viewport[0], D_8010F5CC_snowball_summit[i].viewport[1],
+                    D_8010F5CC_snowball_summit[i].viewport[2], D_8010F5CC_snowball_summit[i].viewport[3],
+                    D_8010F5CC_snowball_summit[i].viewport[4], D_8010F5CC_snowball_summit[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010F5CC_snowball_summit[i].fov, 80.0f, 8000.0f);
+    }
+}
+
+void func_8010F42C_snowball_summit(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(50);
+    omInitObjMan(100, 0);
+    func_8004A208_main();
+    func_8010F2B8_snowball_summit();
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(0, -215.0f, 295.0f, 470.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -215.0f, 295.0f, 470.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010F870_snowball_summit, 0);
+    func_80045010_main(D_8010F870_snowball_summit, 1);
+    omAddObj(1000, 0, 0, -1, func_8010F234_snowball_summit);
+    omAddObj(1000, 0, 0, -1, func_8010CA18_snowball_summit);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", D_8010F870_snowball_summit);
