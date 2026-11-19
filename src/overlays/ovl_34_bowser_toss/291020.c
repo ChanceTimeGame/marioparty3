@@ -9,6 +9,7 @@
 #include "math.h"
 
 
+
 #define BT_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -45,6 +46,7 @@ extern RGBA D_8010F320_bowser_toss;
 extern Gfx D_8010F4F0_bowser_toss[];
 extern omObjData* D_8010FB90_bowser_toss;
 extern BtEffect* D_8010FB94_bowser_toss;
+
 
 f32 func_8010D5DC_bowser_toss(f32 a, f32 b);
 f32 func_8010D8A0_bowser_toss(f32 t, f32 a, f32 b);
@@ -224,6 +226,28 @@ extern omObjData* D_8010FB88_bowser_toss;
 extern BtBowser* D_8010FB8C_bowser_toss;
 extern s16* D_8010FB98_bowser_toss;
 extern D_80111B50_vine_with_me_Struct D_8010FBB8_bowser_toss;
+
+/* A score counter (D_8010FBA0_bowser_toss, 3 x 0x10). */
+typedef struct BtScore {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02; /* timer */
+    /* 0x04 */ s16 unk04; /* state */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ s32 unk08; /* shown value */
+    /* 0x0C */ s32 unk0C; /* target value */
+} BtScore; // Size 0x10
+
+void func_8008A070_main(Matrix4f);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+void func_8002367C_main(Matrix4f, Matrix4f);
+void func_80109DB8_bowser_toss(omObjData* obj, f32 rot, Matrix4f out);
+void func_80109E4C_bowser_toss(BtBowser* bw, Matrix4f out, f32 frame);
+s16 func_80109F68_bowser_toss(f32 x, f32 y, f32 vx, f32 vy);
+void func_8010D918_bowser_toss(f32* a, f32* b, f32* out, f32 t);
+
+extern BtScore* D_8010FBA0_bowser_toss;
 
 void func_801059A0_bowser_toss(void) {
     omObjData* obj;
@@ -1171,13 +1195,75 @@ BtBowser* func_80108800_bowser_toss(s16 idx) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010882C_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109DB8_bowser_toss);
+void func_80109DB8_bowser_toss(omObjData* obj, f32 rot, Matrix4f out) {
+    fmod(rot + obj->rot.y, 360.0);
+    func_8008A070_main(out);
+    func_80017C10_main((Mtx*)out, obj->trans.x, obj->trans.y, obj->trans.z);
+    func_80017D24_main(out, obj->rot.x, rot, obj->rot.z);
+    func_80017CD0_main(out, obj->scale.x, obj->scale.y, obj->scale.z);
+}
 
+/* NON_MATCHING: register allocation of the second key-frame index. */
+#ifdef NON_MATCHING
+void func_80109E4C_bowser_toss(BtBowser* bw, Matrix4f out, f32 frame) {
+    s16 b;
+    s16 a;
+    f32 f;
+
+    if ((s16)frame >= 29) {
+        b = 29;
+        f = 0.0f;
+        a = 29;
+    } else {
+        b = 0;
+        if ((s16)frame <= 0) {
+            f = 0.0f;
+            a = 0;
+        } else {
+            a = frame;
+            f = frame - a;
+            b = a + 1;
+        }
+    }
+    func_8010D918_bowser_toss((f32*)((Matrix4f*)bw->unk60 + a), (f32*)((Matrix4f*)bw->unk60 + b), (f32*)out, f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109E4C_bowser_toss);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109F20_bowser_toss);
+s32 func_80109F20_bowser_toss(void) {
+    BtBowser* bw;
+    s32 i;
 
+    for (i = 0, bw = D_8010FB8C_bowser_toss; i < 2; i++, bw++) {
+        if ((bw->unk0A == 0) | (bw->unk0A == 9)) {
+            continue;
+        }
+        return 0;
+    }
+    return 1;
+}
+
+/* NON_MATCHING: retail converts y to double before the ground-height add (scheduling only). */
+#ifdef NON_MATCHING
+s16 func_80109F68_bowser_toss(f32 x, f32 y, f32 vx, f32 vy) {
+    s16 n = 0;
+
+    if (y > 10.0) {
+        do {
+            y += vy;
+            vy -= 1.95996f;
+            if (vy < -250.0) {
+                vy = -250.0f;
+            }
+            n++;
+        } while ((f32)-(fabs(vy) / 250.0 * 100.0) + 10.0 < y);
+    }
+    return n;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80109F68_bowser_toss);
+#endif
 
 void func_8010A028_bowser_toss(void) {
     HuSprite_Unk84_Struct* spr;
@@ -1375,13 +1461,59 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B41C
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B7AC_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C1A0_bowser_toss);
+void func_8010C1A0_bowser_toss(s16 idx, s32 value) {
+    BtScore* s = &D_8010FBA0_bowser_toss[idx];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C23C_bowser_toss);
+    if (value == 0) {
+        s->unk04 = 1;
+    } else if (idx < 2) {
+        s->unk04 = 3;
+        s->unk02 = 0;
+        s->unk08 = value;
+        s->unk0C = 0;
+        if (D_8010FB70_bowser_toss == -1) {
+            D_8010FB70_bowser_toss = HuAudFXPlay(0x4AB);
+        }
+    } else {
+        s->unk04 = 18;
+        s->unk02 = 0;
+        s->unk08 = s->unk0C = value;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C274_bowser_toss);
+s32 func_8010C23C_bowser_toss(void) {
+    BtScore* s;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C2A4_bowser_toss);
+    for (i = 0, s = D_8010FBA0_bowser_toss; i < 2; i++, s++) {
+        if (s->unk04 < 31) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void func_8010C274_bowser_toss(void) {
+    BtScore* s;
+    s32 i;
+
+    for (i = 0, s = D_8010FBA0_bowser_toss; i < 2; i++, s++) {
+        s->unk04 = 32;
+        s->unk02 = 0;
+    }
+}
+
+s32 func_8010C2A4_bowser_toss(void) {
+    BtScore* s;
+    s32 i;
+
+    for (i = 0, s = D_8010FBA0_bowser_toss; i < 2; i++, s++) {
+        if (s->unk04 < 64) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C2DC_bowser_toss);
 
@@ -1454,7 +1586,18 @@ f32 func_8010D8B8_bowser_toss(f32 t, f32 a, f32 b) {
     return func_8010D6E0_bowser_toss(b, a, fabsf(func_8010D5DC_bowser_toss(b, a) * t));
 }
 
+/* NON_MATCHING: masked 0; register allocation of the two source addresses. */
+#ifdef NON_MATCHING
+void func_8010D918_bowser_toss(f32* a, f32* b, f32* out, f32 t) {
+    s32 i;
+
+    for (i = 0; i < 16; i++) {
+        out[i] = t * (b[i] - a[i]) + a[i];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D918_bowser_toss);
+#endif
 
 void func_8010D960_bowser_toss(omObjData *obj, u32 value) {
     obj->work[0] = value >> 24;
