@@ -120,6 +120,9 @@ void func_8001E888_main(s16 model, f32 u, f32 v, u16 w, u16 h, char *name, u8 ar
 void func_80088910_main(f32 (*m)[4], f32 x, f32 y, f32 z);
 void func_800E6F0C_minigame(s8 arg0);
 void func_80047E90_main(omObjData *obj, s32 arg1);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BF00_main(u16 spriteId, f32 rot);
+void func_8000BBFC_main(u16 spriteId, s16 alpha);
 
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
@@ -140,6 +143,8 @@ extern s16 D_8010DC50_aces_high[4][2][2];
 extern s16 D_8010DC70_aces_high[4][2];
 extern f32 D_8010DC80_aces_high[4]; /* start angle per player */
 extern s32 D_8010DC90_aces_high[8]; /* shot model per character */
+extern u16 D_8010DCB0_aces_high; /* the finish: stopped */
+extern u16 D_8010DCB2_aces_high; /* frames before the result */
 
 extern AhTexSize D_8010DE50_aces_high;
 extern AhUV D_8010DE54_aces_high;
@@ -151,8 +156,8 @@ extern omObjData *D_8010DE6C_aces_high; /* holds the shot models */
 extern omObjData **D_8010DE70_aces_high[4]; /* each player's shots */
 extern omObjData *D_8010DE80_aces_high;
 extern omObjData *D_8010DE84_aces_high;
-extern s16 D_8010DE88_aces_high;
-extern s16 D_8010DE8A_aces_high;
+extern u16 D_8010DE88_aces_high; /* start state */
+extern u16 D_8010DE8A_aces_high; /* finish state */
 extern s16 D_8010DE8C_aces_high;
 extern s16 D_8010DE8E_aces_high; /* winner */
 extern s16 D_8010DE90_aces_high;
@@ -214,8 +219,8 @@ void func_8010C9DC_aces_high(void);
 void func_8010CA6C_aces_high(omObjData *obj);
 void func_8010CD88_aces_high(omObjData *obj);
 void func_8010CE5C_aces_high(omObjData *obj);
-void func_8010CFF8_aces_high(omObjData *obj);
-void func_8010D1D8_aces_high(omObjData *obj);
+void func_8010CFF8_aces_high(void);
+u16 func_8010D1D8_aces_high(u16 player);
 void func_8010D6D4_aces_high(omObjData *obj);
 void func_8010D994_aces_high(omObjData *obj);
 void func_8010DB20_aces_high(void);
@@ -2459,15 +2464,189 @@ void func_8010C9DC_aces_high(void) {
     func_8000BCC8_main(D_8010DF20_aces_high, 0x8064);
 }
 
+// masked 14: retail sign-extends the first sprite coordinate after both truncations (here right after the first), computes the priority as (i - 0x7FFB) & 0xFFFF (here 0x8005 + i, same value), float registers; same operations otherwise
+#ifdef NON_MATCHING
+/* Radar: one icon per plane (and its missile), drawn lowest plane first. work[0] = 0 hides it. */
+void func_8010CA6C_aces_high(omObjData *obj) {
+    u16 order[4] = { 0, 1, 2, 3 };
+    AhPlayer *work;
+    omObjData *plane;
+    s32 i;
+    s32 j;
+    u16 t;
+    f32 scale;
+
+    i = 0;
+    if (obj->work[0] == 0) {
+        do {
+            work = D_8010DE68_aces_high[i]->data;
+            i++;
+            func_8000BB94_main(work->unk1C);
+            func_8000BB94_main(work->unk1E);
+        } while (i < 4);
+        func_8000BB94_main(D_8010DF20_aces_high);
+        obj->func = NULL;
+        return;
+    }
+    do {
+        for (j = i + 1; j < 4; j++) {
+            if (D_8010DE68_aces_high[order[i]]->trans.y < D_8010DE68_aces_high[order[j]]->trans.y) {
+                t = order[i];
+                order[i] = order[j];
+                order[j] = t;
+            }
+        }
+        i++;
+    } while (i < 3);
+    i = 0;
+    do {
+        plane = D_8010DE68_aces_high[order[i]];
+        work = plane->data;
+        func_8000BBD4_main(work->unk1C, (s32)(plane->trans.x * 0.005063291f + 160.0f), (s32)(plane->trans.z * 0.005063291f + 120.0f));
+        scale = plane->trans.y / 500.0f * 0.25f + 1.0f;
+        func_8000BE5C_main(work->unk1C, scale, scale);
+        func_8000BCC8_main(work->unk1C, (u16)(i + 0x8005));
+        func_8000BF00_main(work->unk1C, plane->rot.y);
+        func_8000BBFC_main(work->unk1C, 0xC0);
+        if (work->unk6C != NULL) {
+            func_8000BBD4_main(work->unk1E, (s32)(work->unk6C->trans.x * 0.005063291f + 160.0f),
+                               (s32)(work->unk6C->trans.z * 0.005063291f + 120.0f));
+            scale = (work->unk6C->trans.y / 500.0f * 0.25f + 1.0f) * 0.5f;
+            i++;
+            func_8000BE5C_main(work->unk1E, scale, scale);
+            func_8000BF00_main(work->unk1E, work->unk6C->rot.y);
+            func_8000BB54_main(work->unk1E);
+        } else {
+            i++;
+            func_8000BB94_main(work->unk1E);
+        }
+    } while (i < 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010CA6C_aces_high);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010CD88_aces_high);
+/* Start: wipe in, engine sounds, then wait for the start signal. */
+void func_8010CD88_aces_high(omObjData *obj) {
+    switch (D_8010DE88_aces_high) {
+        case 0:
+            WipeCreateIn(0xFF, 0x10);
+            D_8010DE88_aces_high = 1;
+            break;
+        case 1:
+            if (WipeStatGet() == 0) {
+                D_8010DE88_aces_high = 2;
+                D_8010DE96_aces_high = HuAudFXPlay(0x3AC);
+                HuAudFXPlay(0x3B3);
+            }
+            break;
+        case 2:
+            if (func_800E6E8C_minigame() == 1) {
+                omDelObj(obj);
+                D_8010DE5C_aces_high = NULL;
+            }
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010CE5C_aces_high);
+/* Finish: stop the fight, pick the winner, show their win, report the result. */
+void func_8010CE5C_aces_high(omObjData *obj) {
+    switch (D_8010DE8A_aces_high) {
+        case 0:
+            if (D_8010DCB0_aces_high == 0) {
+                D_8010DCB0_aces_high = 1;
+                D_8010DE80_aces_high->work[0] = 0;
+                func_8010BCC4_aces_high();
+                func_801085B0_aces_high();
+                HuAudFXStop(D_8010DE96_aces_high);
+            }
+            func_8010CFF8_aces_high();
+            if (D_8010DE90_aces_high != 0) {
+                if (D_8010DCB2_aces_high != 0) {
+                    D_8010DCB2_aces_high--;
+                } else if (D_8010DE8E_aces_high != -1) {
+                    D_8010DE8A_aces_high = 2;
+                    func_8010AD4C_aces_high(D_8010DE68_aces_high[D_8010DE8E_aces_high]);
+                    HuAudFXPlay(0x3B4);
+                } else {
+                    func_800E6F0C_minigame(4);
+                    D_8010DB40_aces_high.unk06 = 4;
+                    D_8010DE8A_aces_high = 1;
+                }
+            }
+            break;
+        case 1:
+            break;
+        case 2:
+            if (func_8010D1D8_aces_high(D_8010DE8E_aces_high) == 1) {
+                func_800E6F0C_minigame(4);
+                D_8010DE8A_aces_high = 3;
+                D_8010DB40_aces_high.unk18 = D_8010DE8E_aces_high;
+                GwPlayer[D_8010DE8E_aces_high].bonusCoin = 10;
+                func_8004ACE0_main(0x28F, D_8010DE8E_aces_high);
+            }
+            break;
+    }
+}
 
+// masked 12: retail keeps the counter in a1 and the index in a0 (here the reverse) and copies the lives value through a temporary before best; same operations otherwise
+#ifdef NON_MATCHING
+/* Once: the winner is the plane with the most lives left, none on a tie; it flies to the centre. */
+void func_8010CFF8_aces_high(void) {
+    u16 alive[4];
+    AhPlayer *work;
+    s32 cnt;
+    s32 i;
+    u16 n;
+    s16 best;
+
+    cnt = 0;
+    n = 0;
+    best = 0;
+    if (D_8010DE90_aces_high != 1) {
+        D_8010DE90_aces_high = 0;
+        for (i = 0; i < 4; i++) {
+            work = D_8010DE68_aces_high[i]->data;
+            cnt++;
+            if (work->unk00 != 4 && work->unk00 != 5 && work->unk00 != 6) {
+                alive[n++] = i;
+            }
+        }
+        if (cnt == 4) {
+            D_8010DE90_aces_high = 1;
+            D_8010DE8E_aces_high = -1;
+            for (i = 0; i < n; i++) {
+                if (((AhPlayer *)D_8010DE68_aces_high[alive[i]]->data)->unk26 > best) {
+                    best = ((AhPlayer *)D_8010DE68_aces_high[alive[i]]->data)->unk26;
+                }
+            }
+            for (i = 0; i < n; i++) {
+                if (((AhPlayer *)D_8010DE68_aces_high[alive[i]]->data)->unk26 == best) {
+                    if (D_8010DE8E_aces_high != -1) {
+                        D_8010DE8E_aces_high = -1;
+                        return;
+                    }
+                    D_8010DE8E_aces_high = alive[i];
+                }
+            }
+            if (n != 0 && D_8010DE8E_aces_high != -1) {
+                work = D_8010DE68_aces_high[D_8010DE8E_aces_high]->data;
+                work->unk92 = 5;
+                work->unk9C.x = 0.0f;
+                work->unk9C.y = 0.0f;
+                work->unk9C.z = 0.0f;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010CFF8_aces_high);
+#endif
 
+#ifndef NON_MATCHING
+/* func_8010CA6C_aces_high's order table, which GCC places here */
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DE28_aces_high);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010D1D8_aces_high);
 
