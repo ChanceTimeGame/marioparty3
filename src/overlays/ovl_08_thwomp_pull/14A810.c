@@ -3,6 +3,7 @@
 #include "game/audio.h"
 #include "game/hmfman.h"
 #include "game/object.h"
+#include "game/util.h"
 
 /* main */
 void func_8001C258_main(s16 arg0, s32 arg1, s32 arg2);
@@ -20,6 +21,24 @@ f32 sindf(f32 angle);
 f32 cosdf(f32 angle);
 f32 atan2df(f32 y, f32 x);
 f32 HuSqrtf(f32 x);
+s16 func_80017790_main(s16 model, s32 arg1, s16 arg2, s32 arg3);
+s16 func_80017AD8_main(s32);
+void func_80033910_main(HmfData*);
+s32 func_8001C514_main(s16);
+void func_8000B460_main(omObjData*, u16, s32);
+s32 func_80017BB8_main(s16, s16);
+void func_8001C8A8_main(s16, s16);
+void func_8001C814_main(s16, s16, s16);
+void func_8001C2FC_main(s16 arg0, s32 arg1, s32 arg2);
+void func_8001FDE8_main(s16);
+void* func_80016784_main(s16 model, s16 arg1);
+void func_8001ACDC_main(s16);
+s32 Hu3DModelLink(s16 linkMdlId);
+void func_8001FB34_main(s16 arg0, u8 arg1);
+void func_8001FBBC_main(s16 arg0, u8 arg1, u8 arg2, u8 arg3);
+void func_8001FBFC_main(s16 arg0, f32 arg1, f32 arg2, f32 arg3);
+void func_8001FA68_main(s16);
+void func_8001C8E4_main(s16, u32);
 
 /* What func_8001D33C_main returns (a model's named object). */
 typedef struct TpHmfObj {
@@ -38,7 +57,11 @@ typedef struct TpPlayer {
     /* 0x02 */ s8 pad;
     /* 0x03 */ s8 chr;
     /* 0x04 */ s8 cpu; /* cpu difficulty, -1 human */
-    /* 0x05 */ char unk05[0xB];
+    /* 0x05 */ char unk05[1];
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ char unk0A[2];
+    /* 0x0C */ s32 unk0C; /* (directory << 16) | file */
 } TpPlayer; // Size 0x10
 
 /* .data */
@@ -86,8 +109,7 @@ extern omObjData* D_8010F568_thwomp_pull[2]; /* inner label D_8010F56C */
 extern f32 D_8010F578_thwomp_pull[4];
 extern f32 D_8010F588_thwomp_pull;
 extern s32 D_8010F5A4_thwomp_pull;
-extern void* D_8010F5AC_thwomp_pull;
-extern void* D_8010F5B0_thwomp_pull;
+extern void* D_8010F5AC_thwomp_pull[2]; /* motions of the Thwomp's model; inner label D_8010F5B0 */
 
 void func_801097AC_thwomp_pull(omObjData* object, s8 team);
 void func_8010AF18_thwomp_pull(s16 model, s16 frame);
@@ -132,17 +154,269 @@ void func_80109780_thwomp_pull(omObjData* object) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F140_thwomp_pull);
 
+#ifdef NON_MATCHING
+void func_801097AC_thwomp_pull(omObjData* object, s8 team) {
+    s32 dirTbl[8] = { 2, 3, 7, 4, 5, 6, 8, 9 };
+    s32 mdlTbl[8] = { 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 3 };
+    s32 mdl2Tbl[8] = { 0xA1, 0xA1, 0xA1, 0xA1, 0xA1, 0xA1, 0xA1, 1 };
+    s32 chrTbl[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    s32 mtnTbl[2][8] = {
+        { 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0x1B },
+        { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
+    };
+    volatile s32 attr;
+    u16 i;
+    u16 chr;
+    TpPlayer* pl;
+    f32 f;
+    s32 k;
+    s32 n;
+
+    attr = 0x8B9;
+    for (i = 0; i < ((team != 0) ? 3 : 1); i++) {
+        chr = (s8)D_8010F4F8_thwomp_pull[team + i]->chr;
+        object->model[1 + i] = func_8000B108_main((dirTbl[chr] << 16) | mdlTbl[chr], attr);
+        func_8001C8A8_main(object->model[1 + i], (team != 0) ? 2 : 1);
+        object->model[0x27 + i] = func_8000B108_main((dirTbl[chr] << 16) | mdl2Tbl[chr], 0x8AD);
+        func_8001C8A8_main(object->model[0x27 + i], (team != 0) ? 2 : 1);
+        pl = D_8010F4F8_thwomp_pull[team + i];
+        pl->unk06 = func_80017790_main(object->model[0x27 + i], 1, chrTbl[chr], (dirTbl[chr] << 16) | mtnTbl[0][chr]);
+        pl->unk08 = func_80017AD8_main((dirTbl[chr] << 16) | mtnTbl[1][chr]);
+        func_80033910_main(HmfModelData[object->model[0x27 + i]].hmf);
+        func_8001C514_main(object->model[0x27 + i]);
+        pl->unk0C = (rand8() & 1) ? 0x2F : 0x30;
+        func_8000B460_main(object, i, func_80017BB8_main(chr, 0));
+        func_8000B460_main(object, i + 3, func_80017BB8_main(chr, 0x84));
+        func_8000B460_main(object, i + 6, func_80017BB8_main(chr, 0x21));
+        func_8000B460_main(object, i + 12, func_80017BB8_main(chr, 4));
+        func_8000B460_main(object, i + 15, func_80017BB8_main(chr, 0x1F));
+        func_8000B460_main(object, i + 9, func_80017BB8_main(chr, D_8010F4F8_thwomp_pull[team + i]->unk0C));
+        D_8010F4F8_thwomp_pull[team + i]->unk0C = (dirTbl[chr] << 16) | D_8010F4F8_thwomp_pull[team + i]->unk0C;
+        if (team != 0) {
+            D_8010F578_thwomp_pull[team + i] = (1 - i) * 125;
+        } else {
+            D_8010F578_thwomp_pull[team + i] = 0.0f;
+        }
+        D_8010F510_thwomp_pull[team + i] = 25.0f;
+        if (team != 0) {
+            D_8010F540_thwomp_pull[team + i] = -((i & 1) * 20);
+        } else {
+            D_8010F540_thwomp_pull[team + i] = 0.0f;
+        }
+        Hu3DModelPosSet(object->model[1 + i], D_8010F578_thwomp_pull[team + i], D_8010F510_thwomp_pull[team + i], D_8010F540_thwomp_pull[team + i]);
+        Hu3DModelRotSet(object->model[1 + i], 0.0f, 180.0f, 0.0f);
+        func_8001C5B4_main(object->model[1 + i], object->motion[3 + i]);
+        func_8001C814_main(object->model[1 + i], 3, 1);
+        func_8001C5B4_main(object->model[0x27 + i], object->motion[3 + i]);
+        func_8001C2FC_main(object->model[1], 0x600, 0x400);
+    }
+    attr = 0x8B9;
+    object->model[7] = func_8000B108_main((team != 0) ? 0x29000A : 0x290009, attr);
+    func_8001C8A8_main(object->model[7], (team != 0) ? 2 : 1);
+    Hu3DModelPosSet(object->model[7], 0.0f, 0.0f, (team != 0) ? -25.0f : 35.0f);
+    Hu3DModelRotSet(object->model[7], 0.0f, 180.0f, 0.0f);
+    attr = 0xAB9;
+    for (i = 0; i < 3; i++) {
+        object->model[8 + i] = func_8000B108_main(0x290007, attr);
+        func_8001C8A8_main(object->model[8 + i], (team != 0) ? 2 : 1);
+        func_8001C814_main(object->model[8 + i], 3, 1);
+        func_8001FDE8_main(object->model[8 + i]);
+    }
+    if (team == 0) {
+        func_8000B460_main(object, 20, 0x290008);
+        func_8001C5B4_main(object->model[8], object->motion[20]);
+        D_8010F528_thwomp_pull = func_80016784_main(object->model[8], 1);
+        func_8001ACDC_main(object->motion[20]);
+    }
+    for (i = 0; i < 3; i++) {
+        func_8001C5B4_main(object->model[8 + i], D_8010F568_thwomp_pull[0]->motion[20]);
+    }
+    attr = 0x8B9;
+    for (i = 0; i < 3; i++) {
+        if (team == 0 && i == 0) {
+            object->model[4] = func_8000B108_main(0x290012, attr);
+        } else {
+            object->model[4 + i] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[4]);
+        }
+        Hu3DModelPosSet(object->model[4 + i], (1 - i) * (team * 60 + 200), 0.0f, -300.0f);
+        Hu3DModelRotSet(object->model[4 + i], 0.0f, 180.0f, 0.0f);
+        f = team * 0.5 + 1.0;
+        Hu3DModelScaleSet(object->model[4 + i], f, f, f);
+        func_8001C8A8_main(object->model[4 + i], (team != 0) ? 2 : 1);
+        func_8001C2FC_main(object->model[4 + i], 0x600, 0);
+    }
+    attr = 0xABD;
+    for (i = 0; i < 3; i++) {
+        s32 hookTbl[2][3] = { { 0x13, 0x14, 0x15 }, { 0x16, 0x17, 0x18 } };
+
+        object->model[0x2E + i] = func_8000B108_main(hookTbl[team][i] | 0x290000, attr);
+        Hu3DModelPosSet(object->model[0x2E + i], (1 - i) * (team * 60 + 200), 0.0f, -300.0f);
+        Hu3DModelRotSet(object->model[0x2E + i], -16.0f, 0.0f, 0.0f);
+        f = team * 0.5 + 1.0;
+        Hu3DModelScaleSet(object->model[0x2E + i], f, f, f);
+        func_8001C8A8_main(object->model[0x2E + i], (team != 0) ? 2 : 1);
+        func_8001C2FC_main(object->model[0x2E + i], 0x600, 0);
+        func_8001C2FC_main(object->model[0x2E + i], 0x70000000, 0x70000000);
+        func_8001FB34_main(object->model[0x2E + i], 1);
+        func_8001FBBC_main(object->model[0x2E + i], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[0x2E + i], 0.0f, 0.0f, 127.0f);
+    }
+    attr = 0x8BD;
+    for (i = 0; i < 3; i++) {
+        if (team == 0) {
+            object->model[0x1E + i] = func_8000B108_main((i == 0) ? 0x29000B : (i != 1) ? 0x29000D : 0x29000C, attr);
+        } else {
+            object->model[0x1E + i] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x1E + i]);
+        }
+        k = (i == 2);
+        if (team == 0) {
+            n = k * 10;
+        } else {
+            n = k * 60;
+        }
+        Hu3DModelPosSet(object->model[0x1E + i], ((1 - i) * 175 + 50) - n, 300.0f, -300.0f);
+        Hu3DModelScaleSet(object->model[0x1E + i], 1.6820346f, 1.6820346f, 1.6820346f);
+        func_8001C2FC_main(object->model[0x1E + i], 0x70000000, 0x70000000);
+        func_8001C8A8_main(object->model[0x1E + i], (team != 0) ? 2 : 1);
+    }
+    if (team >= 0) {
+        object->model[0x21] = func_8000B108_main(0x29001C, 0x4DD);
+    } else {
+        object->model[0x21] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x21]);
+    }
+    func_8001C8A8_main(object->model[0x21], (team != 0) ? 2 : 1);
+    Hu3DModelScaleSet(object->model[0x21], 4.0f, 4.0f, 4.0f);
+    Hu3DModelRotSet(object->model[0x21], 0.0f, 45.0f, 0.0f);
+    func_8001FDE8_main(object->model[0x21]);
+    if (team == 0) {
+        func_8000B460_main(object, 18, 0x29001D);
+        func_8001C5B4_main(object->model[0x21], object->motion[18]);
+        D_8010F5AC_thwomp_pull[0] = func_80016784_main(object->model[0x21], 2);
+        func_8001ACDC_main(object->motion[18]);
+        func_8000B460_main(object, 19, 0x29001E);
+        func_8001C5B4_main(object->model[0x21], object->motion[19]);
+        D_8010F5AC_thwomp_pull[1] = func_80016784_main(object->model[0x21], 2);
+        func_8001ACDC_main(object->motion[19]);
+    }
+    func_8001C5B4_main(object->model[0x21], D_8010F568_thwomp_pull[0]->motion[18]);
+    func_80016FB4_main(object->model[0x21], D_8010F5AC_thwomp_pull[0], 0);
+    object->model[0x22] = func_8000B108_main(0x29001A, 0x8DD);
+    func_8001C8A8_main(object->model[0x22], (team != 0) ? 2 : 1);
+    Hu3DModelScaleSet(object->model[0x22], 1.0f, 1.0f, 1.0f);
+    func_8001C814_main(object->model[0x22], 3, 1);
+    func_8001C2FC_main(object->model[0x22], 0x600, 0x400);
+    object->model[0x24] = func_8000B108_main(0x29001B, 0x8CD);
+    func_8001C8A8_main(object->model[0x24], (team != 0) ? 2 : 1);
+    Hu3DModelScaleSet(object->model[0x24], 2.5f, 2.5f, 2.5f);
+    func_8001C2FC_main(object->model[0x24], 0x600, 0x400);
+    for (i = 0; i < 1; i++) {
+        object->model[0x23] = func_8000B108_main(0x29001A, 0x8CD);
+        func_8001FA68_main(object->model[0x23]);
+        func_8001F9E4_main(object->model[0x23], 0xFF);
+        func_8001C8A8_main(object->model[0x23 + i], (team != 0) ? 2 : 1);
+        Hu3DModelScaleSet(object->model[0x23 + i], 0.25f, 0.25f, 0.25f);
+        func_8001C814_main(object->model[0x23 + i], 3, 1);
+        func_8001C2FC_main(object->model[0x23 + i], 0x600, 0x400);
+    }
+    object->model[0x26] = func_8000B108_main(9, 0x4CD);
+    Hu3DModelScaleSet(object->model[0x26], 3.5f, 3.5f, 3.0f);
+    func_8001C8A8_main(object->model[0x26], (team != 0) ? 2 : 1);
+    func_8001FA68_main(object->model[0x26]);
+    func_8001F9E4_main(object->model[0x26], 0x80);
+    for (i = 0; i < team * 2 + 1; i++) {
+        if (i == 0) {
+            object->model[0x2A] = func_8000B108_main(9, 0x4C9);
+            func_8001FA68_main(object->model[0x2A]);
+            func_8001F9E4_main(object->model[0x2A], 0x80);
+            func_8001C8E4_main(object->model[0x2A], 0x800);
+        } else {
+            object->model[0x2A + i] = Hu3DModelLink(object->model[0x2A]);
+        }
+        Hu3DModelPosSet(object->model[0x2A + i], D_8010F578_thwomp_pull[team + i], 28.0f, D_8010F540_thwomp_pull[team + i]);
+        func_8001C8A8_main(object->model[0x2A + i], (team != 0) ? 2 : 1);
+    }
+    if (team == 0) {
+        object->model[0x16] = func_8000B108_main(0x290003, 0x4BD);
+    } else {
+        object->model[0x16] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x16]);
+    }
+    func_8001C8A8_main(object->model[0x16], (team != 0) ? 2 : 1);
+    func_8001FB34_main(object->model[0x16], 1);
+    func_8001FBBC_main(object->model[0x16], 0xFF, 0xFF, 0xFF);
+    func_8001FBFC_main(object->model[0x16], 0.0f, 0.0f, 127.0f);
+    for (i = 0; i < 4; i++) {
+        if (team == 0 && i == 0) {
+            object->model[0x12] = func_8000B108_main(0x290004, 0x4BD);
+        } else {
+            object->model[0x12 + i] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x12]);
+        }
+        func_8001C8A8_main(object->model[0x12 + i], (team != 0) ? 2 : 1);
+        func_8001C2FC_main(object->model[0x12 + i], 0x600, 0);
+        func_8001FB34_main(object->model[0x12 + i], 1);
+        func_8001FBBC_main(object->model[0x12 + i], 0xFF, 0xFF, 0xFF);
+        func_8001FBFC_main(object->model[0x12 + i], 0.0f, 0.0f, 127.0f);
+    }
+    if (team == 0) {
+        object->model[0x17] = func_8000B108_main(0x290005, 0x4DD);
+    } else {
+        object->model[0x17] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x17]);
+    }
+    func_8001C8A8_main(object->model[0x17], (team != 0) ? 2 : 1);
+    func_8001FB34_main(object->model[0x17], 1);
+    func_8001FBBC_main(object->model[0x17], 0xFF, 0xFF, 0xFF);
+    func_8001FBFC_main(object->model[0x17], 0.0f, 0.0f, 127.0f);
+    attr = 0x41D;
+    for (i = 0; i < 2; i++) {
+        object->model[0x18 + i] = func_8000B108_main((team != 0) ? 0x29000F : 0x29000E, attr);
+        func_8001C8A8_main(object->model[0x18 + i], (team != 0) ? 2 : 1);
+    }
+    func_8001C258_main(object->model[0x18], 4, 0);
+    Hu3DModelPosSet(object->model[0x18], 0.0f, 0.0f, -315.0f);
+    object->model[0xB] = func_8000B108_main((team != 0) ? 0x290011 : 0x290010, 0x4D9);
+    Hu3DModelPosSet(object->model[0xB], 0.0f, 10.0f, 0.0f);
+    Hu3DModelScaleSet(object->model[0xB], 1.0f, 1.0f, 12.0f);
+    func_8001C2FC_main(object->model[0xB], 0x600, 0);
+    func_8001C8A8_main(object->model[0xB], (team != 0) ? 2 : 1);
+    attr = 0x6CD;
+    for (i = 0; i < 3; i++) {
+        object->model[0x31 + i] = func_8000B108_main(0x290019, attr);
+        func_8001C8A8_main(object->model[0x31 + i], (team != 0) ? 2 : 1);
+        f = team * 0.5 + 1.75;
+        Hu3DModelScaleSet(object->model[0x31 + i], f, f, f);
+    }
+    if (team == 0) {
+        object->model[0x10] = func_8000B108_main(0x290000, 0x45D);
+    } else {
+        object->model[0x10] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x10]);
+    }
+    func_8001C8A8_main(object->model[0x10], (team != 0) ? 2 : 1);
+    func_8001C2FC_main(object->model[0x10], 0x600, 0);
+    for (i = 0; i < 4; i++) {
+        if (team == 0 && i == 0) {
+            object->model[0xC] = func_8000B108_main(0x290001, 0x41D);
+        } else {
+            object->model[0xC + i] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0xC]);
+        }
+        func_8001C8A8_main(object->model[0xC + i], (team != 0) ? 2 : 1);
+        func_8001C2FC_main(object->model[0xC + i], 0x600, 0);
+        func_8001C2FC_main(object->model[0xC + i], 0x600, 0);
+    }
+    if (team == 0) {
+        object->model[0x11] = func_8000B108_main(0x290002, 0x45D);
+    } else {
+        object->model[0x11] = Hu3DModelLink(D_8010F568_thwomp_pull[0]->model[0x11]);
+    }
+    func_8001C8A8_main(object->model[0x11], (team != 0) ? 2 : 1);
+    func_8001C2FC_main(object->model[0x11], 0x600, 0);
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F150_thwomp_pull);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F170_thwomp_pull);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F190_thwomp_pull);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F1B0_thwomp_pull);
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F1F0_thwomp_pull);
-
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_801097AC_thwomp_pull);
+#endif
 
 /* Sets a model's animation frame (and its motion's current frame, an f32 in an s32 field). */
 void func_8010AF18_thwomp_pull(s16 model, s16 frame) {
@@ -327,7 +601,7 @@ void func_8010AF88_thwomp_pull(omObjData* object) {
         }
         if (D_8010EF34_thwomp_pull[team] != 0) {
             if (D_8010EF34_thwomp_pull[team] < 16) {
-                func_80016FB4_main(obj->model[0x21], D_8010F5AC_thwomp_pull, D_8010EF34_thwomp_pull[team] * 2 - 2);
+                func_80016FB4_main(obj->model[0x21], D_8010F5AC_thwomp_pull[0], D_8010EF34_thwomp_pull[team] * 2 - 2);
             }
             if (D_8010EF34_thwomp_pull[team] >= 8 && D_8010EF34_thwomp_pull[team] < 16) {
                 t = (D_8010EF34_thwomp_pull[team] - 8) / 8.0;
@@ -358,7 +632,7 @@ void func_8010AF88_thwomp_pull(omObjData* object) {
                 func_8001F9E4_main(obj->model[0x23], 0xFF);
             }
             if (D_8010EF34_thwomp_pull[team] >= 16 && D_8010EF34_thwomp_pull[team] < 46) {
-                func_80016FB4_main(obj->model[0x21], D_8010F5B0_thwomp_pull, (D_8010EF34_thwomp_pull[team] - 16) * 2);
+                func_80016FB4_main(obj->model[0x21], D_8010F5AC_thwomp_pull[1], (D_8010EF34_thwomp_pull[team] - 16) * 2);
             }
             if (D_8010EF34_thwomp_pull[team] < 26) {
                 part = func_8001D33C_main(obj->model[0x21], "srowman-item_fook");
