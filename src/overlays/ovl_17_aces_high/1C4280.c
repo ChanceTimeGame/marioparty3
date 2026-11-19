@@ -38,7 +38,7 @@ typedef struct AhPlayer {
     /* 0x30 */ s16 unk30; /* esprite */
     /* 0x32 */ u16 unk32;
     /* 0x34 */ u16 unk34;
-    /* 0x36 */ u16 unk36;
+    /* 0x36 */ s16 unk36; /* fell below the floor */
     /* 0x38 */ f32 unk38; /* pitch */
     /* 0x3C */ f32 unk3C; /* roll */
     /* 0x40 */ f32 unk40;
@@ -105,6 +105,7 @@ extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 
 extern D_80111B50_vine_with_me_Struct D_8010DB40_aces_high;
+extern u16 D_8010DB68_aces_high[4]; /* camera bit per player */
 extern f32 D_8010DB70_aces_high[4][4]; /* scissor per camera */
 extern f32 D_8010DBB0_aces_high[4][4]; /* viewport per camera */
 extern Vec D_8010DBF0_aces_high; /* background colour */
@@ -150,7 +151,7 @@ void func_80107654_aces_high(omObjData *obj);
 void func_80107F98_aces_high(omObjData *obj);
 void func_801081A8_aces_high(omObjData *obj);
 void func_8010843C_aces_high(omObjData *obj);
-void func_801085B0_aces_high(omObjData *obj);
+void func_801085B0_aces_high(void);
 void func_8010862C_aces_high(omObjData *obj);
 void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2);
 void func_8010951C_aces_high(omObjData *obj);
@@ -950,13 +951,150 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DD48_a
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80107654_aces_high);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80107F98_aces_high);
+/* Past the arena edge: dive, turn back towards the centre and climb back in. */
+void func_80107F98_aces_high(omObjData *obj) {
+    u32 hit;
+    AhPlayer *work;
+    f32 angle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801081A8_aces_high);
+    hit = obj->unk10;
+    obj->unk10 = 0;
+    work = obj->data;
+    if (hit & 2) {
+        work->unk56 = 1;
+        work->unk5C = 50.0f;
+        func_8001C258_main(obj->model[1], 4, 0);
+    }
+    if (hit & 4) {
+        work->unk74->work[0] = 0x2D;
+        work->unk74->work[1] = 6;
+        work->unk74->work[2] = 1;
+    }
+    angle = atan2df(-obj->trans.x, -obj->trans.z);
+    work->unk58 = 0;
+    switch (work->unk00) {
+        case 1:
+            work->unk38 -= 15.0f;
+            if (work->unk38 < -90.0f) {
+                work->unk38 = -90.0f;
+            }
+            obj->rot.y += 20.0f;
+            if (obj->rot.y >= 360.0f) {
+                obj->rot.y -= 360.0f;
+            }
+            obj->trans.y += work->unk48;
+            if (--work->unk4E == 0) {
+                obj->trans.y = 500.0f;
+                obj->rot.y = angle;
+                work->unk3C = 0.0f;
+                work->unk00 = 2;
+                work->unk90 = 1;
+            } else if (work->unk4E & 1) {
+                work->unk90 = 0;
+            } else {
+                work->unk90 = 1;
+            }
+            break;
+        case 2:
+            work->unk38 += 15.0f;
+            if (work->unk38 >= 0.0f) {
+                work->unk38 = 0.0f;
+                work->unk00 = 0;
+                obj->func = func_80107654_aces_high;
+            }
+            work->unk90 = 1;
+            break;
+    }
+    func_8010843C_aces_high(obj);
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010843C_aces_high);
+/* Shot down: nose over and fall out of the sky, then leave the game. */
+void func_801081A8_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    s16 mdl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801085B0_aces_high);
+    switch (work->unk00) {
+        case 4:
+            work->unk38 += 10.0f;
+            if (work->unk38 >= 90.0f) {
+                work->unk38 = 90.0f;
+                work->unk00 = 5;
+            }
+            break;
+        case 5:
+            if (work->unk36 == 0 && obj->trans.y < -1000.0f) {
+                work->unk36 = 1;
+            }
+            if (obj->trans.y < -3000.0f) {
+                work->unk00 = 6;
+                obj->func = NULL;
+                work->unk90 = 0;
+                func_8001C258_main(obj->model[3], 4, 4);
+                work->unk04->func = func_8010ACE0_aces_high;
+                mdl = D_8010DE64_aces_high->model[3];
+                func_8001C8A8_main(mdl, HmfModelData[mdl].unk01 & ~D_8010DB68_aces_high[work->unk02]);
+            }
+            break;
+    }
+    work->unk14 = -sindf(work->unk38);
+    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    obj->trans.x += work->unk10 * work->unk08;
+    obj->trans.y += work->unk14 * work->unk08;
+    obj->trans.z += work->unk18 * work->unk08;
+    func_8010843C_aces_high(obj);
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+    Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+    work->unk74->work[2] = 0;
+    work->unk78->work[1] = 0;
+    func_8000BB94_main(work->unk2E);
+    func_8000BB94_main(work->unk30);
+    if (work->unk2C != -1) {
+        HuAudFXStop(work->unk2C);
+        work->unk2C = -1;
+    }
+}
+
+/* Recoil after a collision: the plane's offset dies away. */
+void func_8010843C_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    f32 x;
+    f32 y;
+
+    if (work->unk5C > 0.0f) {
+        work->unk5C -= 10.0f;
+        x = -sindf(work->unk3C);
+        y = sindf(work->unk38);
+        work->unk60 = x * cosdf(-obj->rot.y) - y * sindf(-obj->rot.y);
+        work->unk64 = x * sindf(-obj->rot.y) + y * cosdf(-obj->rot.y);
+        work->unk68 = 1.0f - HuSqrtf(work->unk60 * work->unk60 + work->unk64 * work->unk64);
+        work->unk60 *= work->unk5C;
+        work->unk68 *= work->unk5C;
+        work->unk64 *= work->unk5C;
+        if (work->unk5C <= 0.0f) {
+            work->unk5C = 0.0f;
+            work->unk54 = 1;
+            work->unk52 = 0;
+        }
+    }
+}
+
+/* Hides every player's two life icons. */
+void func_801085B0_aces_high(void) {
+    AhPlayer *work;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < 4; i++) {
+        work = D_8010DE68_aces_high[i]->data;
+        for (j = 0; j < 2; j++) {
+            func_8000BB94_main(work->unk28[j]);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010862C_aces_high);
 
