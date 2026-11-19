@@ -1,6 +1,7 @@
 #include "common.h"
 #include "game/object.h"
 #include "game/sprite.h"
+#include "game/hmfman.h"
 
 // pz A: Mario's Puzzle Party block batches (many copies of one sprite drawn in one display list)
 
@@ -25,6 +26,8 @@ s32 func_8001A894_main(s32, void*, s32);
 void func_8001ACDC_main(s16);
 void HuSprAttrReset(s16 group, s16 member, s32 attr);
 extern u8 D_800D2008_main;
+extern u8 D_800D6A90_main;
+extern Gfx D_80110230_marios_puzzle_party[];
 void func_8010F810_marios_puzzle_party(omObjData* obj);
 
 extern PzBatch* D_801168B0_marios_puzzle_party;
@@ -76,7 +79,58 @@ void func_8010F678_marios_puzzle_party(s32 file, s16 n) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1FD760", func_8010F678_marios_puzzle_party);
 #endif
 
+#ifdef NON_MATCHING
+/* Draw object: one display list per frame with every used entry of every batch as a textured
+   rectangle (batches 0-27 belong to the boards, seven per player, and follow the board's y offset). */
+void func_8010F810_marios_puzzle_party(omObjData* obj) {
+    Gfx* gfx;
+    PzBatch* b;
+    PzBatchEnt* e;
+    HuSprite_Unk84_Struct* tex;
+    void* img;
+    s16 w;
+    s16 h;
+    s16 yoff;
+    s16 i;
+    s16 j;
+
+    HmfModelData[D_801168B6_marios_puzzle_party].hmf->unk3C =
+        (HmfModelData_Unk64_Unk3C_Struct*)(gfx = D_801168B8_marios_puzzle_party[D_800D2008_main]);
+    if (D_801168B4_marios_puzzle_party == 0) {
+        gSPEndDisplayList(gfx++);
+        return;
+    }
+    b = D_801168B0_marios_puzzle_party;
+    gSPDisplayList(gfx++, osVirtualToPhysical(D_80110230_marios_puzzle_party));
+    gDPSetTextureLUT(gfx++, G_TT_NONE);
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        for (i = 0; i < D_801168B4_marios_puzzle_party; i++, b++) {
+            e = b->ents;
+            tex = HuSprGet(b->grp, 0)->unk_84;
+            img = tex->unk00->unk00;
+            w = tex->unk14;
+            h = tex->unk16;
+            gDPLoadTextureTile(gfx++, img, G_IM_FMT_RGBA, G_IM_SIZ_16b, w, h, 0, 0, w, h, 0,
+                               G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK,
+                               G_TX_NOLOD, G_TX_NOLOD);
+            for (j = 0; j < b->n; j++, e++) {
+                if (e->used & 1) {
+                    yoff = 0;
+                    if (i < 28) {
+                        yoff = D_801168C8_marios_puzzle_party[i / 7];
+                    }
+                    gSPScisTextureRectangle(gfx++, e->x * 4.0f, (yoff + e->y - h * e->sy) * 4.0f,
+                                            (w * e->sx + e->x) * 4.0f, (yoff + e->y) * 4.0f, G_TX_RENDERTILE, 0, 0,
+                                            1024.0f / e->sx, 1024.0f / e->sy);
+                }
+            }
+        }
+    }
+    gSPEndDisplayList(gfx++);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1FD760", func_8010F810_marios_puzzle_party);
+#endif
 
 s16 func_8010FEDC_marios_puzzle_party(s16 id, f32 x, f32 y) {
     PzBatch* b = &D_801168B0_marios_puzzle_party[id];
