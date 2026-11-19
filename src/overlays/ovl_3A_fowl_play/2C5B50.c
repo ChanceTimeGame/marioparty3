@@ -674,7 +674,71 @@ void func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_fowl_play);
 #endif
 
+#ifdef NON_MATCHING
+/* two instructions long: retail moves dist to $f24 before angle to $f20 and has no nop after each sindf/cosdf call; the rest matches */
+/* Bounces a move of dist along angle off the nearest pen wall; returns the new angle. */
+f32 func_801075B0_fowl_play(Vec* pos, f32 dist, f32 angle) {
+    Vec hit;
+    Vec out;
+    Vec seg;
+    Vec dir;
+    f32 best;
+    f32 t;
+    f32 d;
+    f32 wall;
+    f32 rel;
+    s32 i;
+
+    best = dist;
+    dir.x = best * sindf(angle);
+    dir.y = 0.0f;
+    dir.z = best * cosdf(angle);
+    for (i = 0; i < 8; i++) {
+        seg.x = (D_8010E7B4_fowl_play[i][1].x - D_8010E7B4_fowl_play[i][0].x) * 1.2;
+        seg.y = D_8010E7B4_fowl_play[i][1].y - D_8010E7B4_fowl_play[i][0].y;
+        seg.z = (D_8010E7B4_fowl_play[i][1].z - D_8010E7B4_fowl_play[i][0].z) * 1.2;
+        t = func_8010AE10_fowl_play(D_8010E7B4_fowl_play[i], &seg, pos, &dir);
+        if (!(t > 1.0) && !(t < 0.0)) {
+            hit.x = t * seg.x + D_8010E7B4_fowl_play[i][0].x;
+            hit.y = 0.0f;
+            hit.z = t * seg.z + D_8010E7B4_fowl_play[i][0].z;
+            d = func_8010AA64_fowl_play(pos, &hit);
+            if (!(dist < d) && !(best < d)) {
+                best = d;
+                wall = func_8010A9EC_fowl_play(seg.x, seg.z);
+                rel = func_8010A9EC_fowl_play(pos->x - D_8010E7B4_fowl_play[i][0].x,
+                                              pos->z - D_8010E7B4_fowl_play[i][0].z) - wall;
+                while (rel < -180.0) {
+                    rel += 360.0;
+                }
+                while (rel > 180.0) {
+                    rel -= 360.0;
+                }
+                if (rel > 0.0) {
+                    angle = wall + 60.0;
+                } else {
+                    angle = wall - 60.0;
+                }
+                out.x = pos->x + dir.x;
+                out.y = 0.0f;
+                out.z = pos->z + dir.z;
+                func_8010AC88_fowl_play(&out, D_8010E7B4_fowl_play[i], &D_8010E7B4_fowl_play[i][1], &hit);
+                seg.x = out.x - hit.x;
+                seg.y = 0.0f;
+                seg.z = out.z - hit.z;
+                func_8010AB40_fowl_play(&seg);
+                out.x = hit.x - seg.x * 40.0;
+                out.z = hit.z - seg.z * 40.0;
+            }
+        }
+    }
+    pos->x = out.x;
+    pos->z = out.z;
+    return angle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801075B0_fowl_play);
+#endif
 
 void func_801079B0_fowl_play(void) {
     s32 i;
