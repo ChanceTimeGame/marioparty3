@@ -97,7 +97,8 @@ typedef struct SsPlayer {
     /* 0x4C */ s32 unk4C;
     /* 0x50 */ f32 unk50;
     /* 0x54 */ f32 unk54;
-    /* 0x58 */ char unk58[0x14];
+    /* 0x58 */ s32 bump; /* touched another player this frame */
+    /* 0x5C */ s32 bumped[4]; /* by player */
     /* 0x6C */ s32 unk6C;
     /* 0x70 */ s32 ball; /* the snowball being rolled, -1 none */
     /* 0x74 */ s32 land;
@@ -246,6 +247,8 @@ void func_8010C9B4_snowball_summit(omObjData *obj);
 void func_8010C9E0_snowball_summit(omObjData *obj);
 void func_8010CA18_snowball_summit(omObjData *obj);
 void func_8010CA70_snowball_summit(void);
+s32 func_8010CA98_snowball_summit(SsPlayer *pl);
+s32 func_8010CC00_snowball_summit(SsPlayer *pl);
 void func_8010D86C_snowball_summit(void);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
@@ -2053,9 +2056,63 @@ void func_8010CA70_snowball_summit(void) {
     D_8010F884_snowball_summit = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CA98_snowball_summit);
+/* Marks pl and every player it touches; 1 if it touched any. */
+s32 func_8010CA98_snowball_summit(SsPlayer *pl) {
+    Vec d;
+    SsPlayer *other;
+    f32 reach;
+    f32 dist;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CC00_snowball_summit);
+    for (i = 0; i < 4; i++) {
+        if (pl->obj->work[0] != i && pl->bumped[i] == 0) {
+            other = &D_8010F9B8_snowball_summit[i];
+            if (other->state != -1) {
+                func_80107908_snowball_summit(pl->next.x, pl->next.z, other->next.x, other->next.z, &d);
+                reach = pl->unk50 + other->unk50;
+                dist = d.x;
+                if (dist < 0.0f) {
+                    dist = -dist;
+                }
+                if (dist < reach && pl->next.y <= other->unk54 && pl->hit == 0) {
+                    pl->bumped[i] = 1;
+                    pl->bump = 1;
+                    other->bumped[pl->obj->work[0]] = 1;
+                    other->bump = 1;
+                }
+            }
+        }
+    }
+    return pl->bump != 0;
+}
+
+/* Off the edge of the summit: the fall starts (1). */
+s32 func_8010CC00_snowball_summit(SsPlayer *pl) {
+    f32 x = pl->obj->trans.x + pl->vel.x;
+    f32 z = pl->obj->trans.z + pl->vel.z;
+    f32 rot;
+
+    if (x * x + z * z > 476100.0f) {
+        if (pl->hit == 0 || pl->land >= 2) {
+            pl->next.y = 20.0f;
+            rot = func_8010610C_snowball_summit(pl->next.x, pl->next.z);
+            pl->next.x = sindf(rot) * 30.0f + pl->next.x;
+            pl->next.z = cosdf(rot) * 30.0f + pl->next.z;
+            pl->hit = 3;
+        } else {
+            pl->hit = 2;
+        }
+        func_8004ACE0_main(0x286, pl->obj->work[0]);
+        HuAudFXPlay(0x43B);
+        pl->unk4C = 1;
+        pl->unk1C = 306.38437f;
+        pl->unk14 = 7.0f;
+        pl->speed = 2.0f;
+    } else {
+        pl->unk4C = 0;
+    }
+    return pl->unk4C;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CD58_snowball_summit);
 
