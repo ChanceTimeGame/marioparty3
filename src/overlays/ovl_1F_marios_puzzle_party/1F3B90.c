@@ -226,6 +226,7 @@ void func_8010D8E8_marios_puzzle_party(void);
 void func_8010D9AC_marios_puzzle_party(void);
 void func_8010DB98_marios_puzzle_party(void);
 void func_8010E12C_marios_puzzle_party(void);
+void func_8010E868_marios_puzzle_party(s16 grp, s32 t);
 void func_8010EAA0_marios_puzzle_party(void);
 void func_8010ECD8_marios_puzzle_party(void);
 void func_8010EEB0_marios_puzzle_party(void);
@@ -286,6 +287,7 @@ extern s32 D_80116128_marios_puzzle_party[4];
 extern s32 D_80116138_marios_puzzle_party[4];
 extern s32 D_80116148_marios_puzzle_party[4];
 extern s32 D_80116158_marios_puzzle_party;
+extern s32 D_80116160_marios_puzzle_party; /* clock, frames left */
 extern s32 D_8011615C_marios_puzzle_party;
 extern s32 D_80116168_marios_puzzle_party[4];
 extern s32 D_80116178_marios_puzzle_party[4];
@@ -1253,12 +1255,12 @@ s32 func_80108A50_marios_puzzle_party(s32 player, s32 kind, s32 color, s32 col, 
     s32 n = 0;
 
     if (color != 6) {
-        n = (D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color) +
-            (D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color) +
-            (D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color);
+        n = D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color;
+        n += D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color;
+        n += D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color;
         if (kind == 1) {
-            n += (D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color) +
-                 (D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color);
+            n += D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color;
+            n += D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color;
             n += D_801102E0_marios_puzzle_party[player][col][row + 2].unkC == color;
         } else {
             n += D_801102E0_marios_puzzle_party[player][col][row + 1].unkC == color;
@@ -2872,11 +2874,115 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010E12C_marios_puzzle_party);
 
+#ifdef NON_MATCHING
+/* Show a time in frames as m'ss"cc on the clock group (members 1-7; 2 and 5 are the separators). */
+void func_8010E868_marios_puzzle_party(s16 grp, s32 t) {
+    func_80055140_main(grp, 1, t / 3600, 0);
+    func_800550F4_main(grp, 1, 1);
+    t %= 3600;
+    func_80055140_main(grp, 2, 10, 0);
+    func_800550F4_main(grp, 2, 1);
+    func_80055140_main(grp, 3, t / 600, 0);
+    func_800550F4_main(grp, 3, 1);
+    t %= 600;
+    func_80055140_main(grp, 4, t / 60, 0);
+    func_800550F4_main(grp, 4, 1);
+    t = t * 100 / 60 - t / 60 * 100;
+    func_80055140_main(grp, 5, 11, 0);
+    func_800550F4_main(grp, 5, 1);
+    func_80055140_main(grp, 6, t / 10, 0);
+    func_800550F4_main(grp, 6, 1);
+    func_80055140_main(grp, 7, t % 10, 0);
+    func_800550F4_main(grp, 7, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010E868_marios_puzzle_party);
+#endif
 
+#ifdef NON_MATCHING
+/* Game clock: 5400 frames, counted down while player 0's game runs. */
+void func_8010EAA0_marios_puzzle_party(void) {
+    s32 grp;
+    s16 x;
+    s32 i;
+
+    grp = HuSprGrpCreate(8, 5);
+    func_80055024_main(grp, 0, D_801160A8_marios_puzzle_party, 0);
+    HuSprAttrReset(grp, 0, 0xFFFF);
+    HuSprAttrSet(grp, 0, 0x8000);
+    func_800554C4_main(grp, 0, -1);
+    HuSprPriSet(grp, 0, 0x100);
+    func_80054904_main(grp, 0, 0xD7, 0x1E);
+    D_80116160_marios_puzzle_party = 5400;
+    for (x = 0, i = 1; i < 8; i++) {
+        func_800550F4_main(grp, i, 1);
+        func_80055024_main(grp, i, D_801160A8_marios_puzzle_party, 0);
+        HuSprAttrReset(grp, i, 0xFFFF);
+        HuSprAttrSet(grp, i, 8);
+        HuSprPriSet(grp, i, 0x100);
+        func_800554C4_main(grp, i, 0);
+        func_80054904_main(grp, i, x, 0);
+        switch (i) {
+            default:
+                x += 12;
+                break;
+            case 4:
+                x += 8;
+                break;
+            case 1:
+                x += 4;
+                break;
+        }
+    }
+    func_8010E868_marios_puzzle_party(grp, D_80116160_marios_puzzle_party * 2);
+    while (func_800E6E8C_minigame() != 2) {
+        HuPrcVSleep();
+    }
+    while (D_80116160_marios_puzzle_party != 0 && D_80116168_marios_puzzle_party[0] == 0) {
+        func_8010E868_marios_puzzle_party(grp, D_80116160_marios_puzzle_party * 2);
+        HuPrcVSleep();
+        D_80116160_marios_puzzle_party--;
+    }
+    func_8010E868_marios_puzzle_party(grp, D_80116160_marios_puzzle_party * 2);
+    omDelPrcObj(NULL);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010EAA0_marios_puzzle_party);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010ECD8_marios_puzzle_party);
+/* A sprite that every 300-329 frames, while at least 300 clock frames are left, falls past x = user_data. */
+void func_8010ECD8_marios_puzzle_party(void) {
+    s32 data = (s32)HuPrcCurrentGet()->user_data;
+    s32 grp;
+    f32 x;
+    f32 vy;
+    f32 y;
+
+    grp = HuSprGrpCreate(1, 5);
+    func_80055024_main(grp, 0, D_801160AC_marios_puzzle_party, 0);
+    HuSprAttrReset(grp, 0, 0xFFFF);
+    HuSprAttrSet(grp, 0, 8);
+    HuSprScaleSet(grp, 0, 0.8f, 0.8f);
+    x = data;
+    while (TRUE) {
+        HuPrcSleep((u8)(rand8() % 30) + 300);
+        if (D_80116160_marios_puzzle_party < 300 || D_80116168_marios_puzzle_party[0] != 0) {
+            break;
+        }
+        y = -30.0f;
+        vy = 0.0f;
+        do {
+            vy += 0.3f;
+            if (vy > 7.0f) {
+                vy = 7.0f;
+            }
+            y += vy;
+            func_80054904_main(grp, 0, x, y);
+            HuPrcVSleep();
+        } while (y < 270.0f);
+    }
+    omDelPrcObj(NULL);
+}
 
 void func_8010EEB0_marios_puzzle_party(void) {
     s32 i;
