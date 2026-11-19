@@ -239,6 +239,7 @@ s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, s16 pla
 void func_8010A4A8_bowser_toss(void);
 void func_8010AD98_bowser_toss(void);
 void func_8010B41C_bowser_toss(void);
+void func_8010B7AC_bowser_toss(omObjData* obj);
 void func_8010C1A0_bowser_toss(s16 idx, s32 value);
 s32 func_8010C23C_bowser_toss(void);
 void func_8010C274_bowser_toss(void);
@@ -1995,13 +1996,84 @@ void func_8010AF38_bowser_toss(s16 side, Vec* center, Vec* rot) {
     func_80054FF8_main(grp, 3, e->frame);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B41C_bowser_toss);
+/* Create the three score counters' sprite groups and their updater. */
+void func_8010B41C_bowser_toss(void) {
+    HuSprite_Unk84_Struct* spr;
+    BtScore* sc;
+    s32 i;
+    s32 j;
+
+    D_8010FB98_bowser_toss[6] = func_8010AD54_bowser_toss(0x31);
+    D_8010FB98_bowser_toss[7] = func_8010AD54_bowser_toss(0x55000B);
+    D_8010FB98_bowser_toss[8] = func_8010AD54_bowser_toss(0x55000C);
+    spr = func_80055194_main(D_8010FB98_bowser_toss[8]);
+    for (i = 0; i < spr->unk10; i++) {
+        spr->unk00[i].unk08 = 8;
+        spr->unk00[i].unk0A = 8;
+    }
+    D_8010FB98_bowser_toss[9] = func_8010AD54_bowser_toss(0x32);
+    D_8010FB98_bowser_toss[10] = func_8010AD54_bowser_toss(0x55000D);
+    spr = func_80055194_main(D_8010FB98_bowser_toss[10]);
+    for (i = 0; i < spr->unk10; i++) {
+        spr->unk00[i].unk08 = 8;
+        spr->unk00[i].unk0A = 8;
+    }
+    D_8010FBA0_bowser_toss = HuMemAllocTag(3 * sizeof(BtScore), 31000);
+    for (i = 0, sc = D_8010FBA0_bowser_toss; i < 3; i++, sc++) {
+        sc->unk02 = 0;
+        if (i != 2) {
+            sc->unk04 = 0;
+            sc->unk0C = 0;
+            sc->unk08 = 0;
+        } else {
+            sc->unk04 = 16;
+            sc->unk0C = D_8010FB80_bowser_toss;
+            sc->unk08 = D_8010FB80_bowser_toss;
+        }
+        sc->unk00 = HuSprGrpCreate(8, 0);
+        for (j = 0; j < 8; j++) {
+            switch (j) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 7:
+                    if (i != 2) {
+                        func_80055024_main(sc->unk00, j, D_8010FB98_bowser_toss[6], 0);
+                    } else {
+                        func_80055024_main(sc->unk00, j, D_8010FB98_bowser_toss[9], 0);
+                    }
+                    HuSprScaleSet(sc->unk00, j, 1.2f, 1.2f);
+                    break;
+                case 4:
+                case 5:
+                    if (i != 2) {
+                        func_80055024_main(sc->unk00, j, D_8010FB98_bowser_toss[8], 0);
+                    } else {
+                        func_80055024_main(sc->unk00, j, D_8010FB98_bowser_toss[10], 0);
+                    }
+                    if (i != 2 && j == 5) {
+                        HuSprScaleSet(sc->unk00, j, 0.88f, 0.88f);
+                    }
+                    break;
+                default:
+                    func_80055024_main(sc->unk00, j, D_8010FB98_bowser_toss[7], 0);
+                    HuSprScaleSet(sc->unk00, j, 0.75f, 0.75f);
+                    break;
+            }
+            func_800550F4_main(sc->unk00, j, 0);
+            func_80054FF8_main(sc->unk00, j, 0);
+            HuSprAttrSet(sc->unk00, j, 0x903C);
+        }
+    }
+    omAddObj(0x3F, 0, 0, -1, func_8010B7AC_bowser_toss);
+}
 
 /* The three score counters: fade in, count up, pop, slide away. */
 /* NON_MATCHING: float registers t/sum swapped (f20/f22), and retail converts the state-19 loop counter to s16 once
  * for both calls; same calls, stores and values. */
 #ifdef NON_MATCHING
-void func_8010B7AC_bowser_toss(void) {
+void func_8010B7AC_bowser_toss(omObjData* obj) {
     s32 d[5];
     BtScore* sc;
     BtScore* other;
