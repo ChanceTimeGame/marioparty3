@@ -48,12 +48,16 @@ typedef union SbPack {
     SbBytes b;
 } SbPack;
 
+/* A HUD number (D_80114B44_stardust_battle, 2 x 0x14): the timer and the record. */
 typedef struct SbB44 {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ s16 unk04; /* mode */
+    /* 0x00 */ s16 unk00; /* shown */
+    /* 0x02 */ s16 unk02; /* sprite group */
+    /* 0x04 */ s16 unk04; /* mode: 1 pulse, 2 slide out */
     /* 0x06 */ s16 unk06; /* timer */
-    /* 0x08 */ char unk08[0xC];
+    /* 0x08 */ s16 unk08; /* x */
+    /* 0x0A */ s16 unk0A; /* y */
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10; /* scale */
 } SbB44; // Size 0x14
 
 typedef f32 Matrix4f[4][4];
@@ -3631,9 +3635,127 @@ u16 func_8010EE38_stardust_battle(s32 dirAndFile) {
     return id;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EE7C_stardust_battle);
+typedef struct SbDigitSlot {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 member;
+} SbDigitSlot; // Size 0x4
+extern s16 D_80113CE0_stardust_battle[8]; /* digit x offsets */
+extern s16 D_80113CF0_stardust_battle[2]; /* number y */
+extern s32 D_80113ED0_stardust_battle[2]; /* digit sprite files */
+extern SbDigitSlot D_80113ED8_stardust_battle[6];
+extern u8 D_80114B38_stardust_battle[2][6]; /* digits */
+extern omObjData *D_80114B34_stardust_battle;
+void func_8010F0E8_stardust_battle(omObjData *obj);
 
+/* NON_MATCHING: retail sign-extends the HuSprGrpCreate result (its declaration there returned int; sprite.h says s16), so mine skips one sll/sra and re-extends the group at two calls */
+#ifdef NON_MATCHING
+void func_8010EE7C_stardust_battle(void) {
+    SbB44 *b;
+    omObjData *obj;
+    s32 i;
+    s32 j;
+    s16 grp;
+
+    D_80114B44_stardust_battle = b = HuMemAllocTag(sizeof(SbB44) * 2, 31000);
+    memset(b, 0, sizeof(SbB44) * 2);
+    obj = D_80114B34_stardust_battle = omAddObj(29, 0, 0, -1, func_8010F0E8_stardust_battle);
+    obj->work[2] = 0;
+    for (i = 0; i < 2; i++, b++) {
+        b->unk00 = 1;
+        b->unk02 = -1;
+        b->unk04 = 0;
+        b->unk06 = 0;
+        b->unk0C = 1.0f;
+        b->unk10 = 1.0f;
+        b->unk0A = 0;
+        b->unk08 = 0;
+        if ((D_80114AC0_stardust_battle == 0) & (i == 1)) {
+            b->unk00 = 0;
+        } else {
+            D_80114B30_stardust_battle[i + 3] = func_8010EE38_stardust_battle(D_80113ED0_stardust_battle[i]);
+            grp = HuSprGrpCreate(8, 0);
+            b->unk02 = grp;
+            for (j = 0; j < 8; j++) {
+                func_80054904_main(grp, j, D_80113CE0_stardust_battle[j], D_80113CF0_stardust_battle[i]);
+                func_80055024_main(grp, j, D_80114B30_stardust_battle[i + 3], 0);
+                func_80054FF8_main(grp, j, 0);
+                HuSprAttrSet(grp, j, 0x1000);
+                func_800550F4_main(grp, j, 0);
+            }
+            HuSprAttrSet(grp, 0, 0x8000);
+            func_80054FF8_main(grp, 2, 10);
+            func_80054FF8_main(grp, 5, 11);
+        }
+    }
+    func_8010F400_stardust_battle(0, D_80114AB0_stardust_battle);
+    if (D_80114AC0_stardust_battle != 0) {
+        func_8010F400_stardust_battle(1, D_80114AB4_stardust_battle);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EE7C_stardust_battle);
+#endif
+
+/* NON_MATCHING: scheduling and loop-invariant hoisting: retail hoists &D_80113ED8 into s3 for the digit loop and clears the loop counter before the mtc1; ops equal */
+#ifdef NON_MATCHING
+void func_8010F0E8_stardust_battle(omObjData *obj) {
+    SbB44 *b = D_80114B44_stardust_battle;
+    u8 *dig;
+    s32 i;
+    s32 j;
+    s32 c;
+    s32 grp;
+    f32 sc;
+    f32 fc;
+
+    if (obj->work[2] != 0) {
+        obj->work[2]--;
+    }
+    for (i = 0; i < 2; i++, b++) {
+        if (b->unk00 == 0) {
+            continue;
+        }
+        grp = b->unk02;
+        dig = D_80114B38_stardust_battle[i];
+        switch (b->unk04) {
+        case 0:
+            break;
+        case 1:
+            b->unk10 = sindf(b->unk06 / 15.0f * 180.0f) + 1.0f;
+            if (b->unk06 >= 15) {
+                b->unk10 = 1.0f;
+                b->unk04 = 0;
+            }
+            sc = b->unk10;
+            c = b->unk08 + D_80113CE0_stardust_battle[3] + 6;
+            fc = c;
+            for (j = 0; j < 8; j++) {
+                func_80054904_main(grp, j, b->unk08 + (fc + (D_80113CE0_stardust_battle[j] - c) * sc), b->unk0A + D_80113CF0_stardust_battle[i]);
+                HuSprScaleSet(grp, j, sc, sc);
+            }
+            break;
+        case 2:
+            b->unk08 -= 3;
+            for (j = 0; j < 8; j++) {
+                func_80054904_main(grp, j, b->unk08 + D_80113CE0_stardust_battle[j], b->unk0A + D_80113CF0_stardust_battle[i]);
+            }
+            if (b->unk08 < -74) {
+                b->unk04 = 0;
+            }
+            break;
+        }
+        for (j = 0; j < 6; j++) {
+            if (dig[j] >= 10) {
+                dig[j] = 9;
+            }
+            func_80054FF8_main(grp, D_80113ED8_stardust_battle[j].member, dig[j]);
+        }
+        b->unk06++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F0E8_stardust_battle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F400_stardust_battle);
 
