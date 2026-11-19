@@ -81,22 +81,24 @@ typedef struct SsSky {
 typedef struct SsPlayer {
     /* 0x00 */ s32 state; /* -1 absent */
     /* 0x04 */ s32 motion;
-    /* 0x08 */ s32 unk08;
+    /* 0x08 */ s32 cpu;
     /* 0x0C */ s32 level; /* CPU difficulty */
     /* 0x10 */ f32 speed;
     /* 0x14 */ f32 unk14;
     /* 0x18 */ f32 rot;
     /* 0x1C */ f32 unk1C;
     /* 0x20 */ Vec vel;
-    /* 0x2C */ f32 unk2C;
+    /* 0x2C */ f32 gravity;
     /* 0x30 */ Vec next;
-    /* 0x3C */ s32 unk3C;
+    /* 0x3C */ s32 hit; /* knocked into the air */
     /* 0x40 */ s32 holdTime;
     /* 0x44 */ s32 holdCount;
     /* 0x48 */ s32 rolling;
-    /* 0x4C */ char unk4C[0x24];
+    /* 0x4C */ s32 unk4C;
+    /* 0x50 */ f32 unk50;
+    /* 0x54 */ char unk54[0x1C];
     /* 0x70 */ s32 ball; /* the snowball being rolled, -1 none */
-    /* 0x74 */ s32 unk74;
+    /* 0x74 */ s32 land;
     /* 0x78 */ omObjData *obj;
     /* 0x7C */ s32 holdRate; /* CPU */
     /* 0x80 */ s32 range; /* CPU: dodge distance */
@@ -114,7 +116,8 @@ typedef struct SsBall {
     /* 0x00 */ s32 state; /* -1 absent */
     /* 0x04 */ char unk04[8];
     /* 0x0C */ f32 size;
-    /* 0x10 */ char unk10[0x2C];
+    /* 0x10 */ s32 owner; /* player rolling it, -1 none */
+    /* 0x14 */ char unk14[0x28];
     /* 0x3C */ omObjData *obj;
 } SsBall; // Size 0x40
 
@@ -128,6 +131,7 @@ typedef struct SsBall {
 typedef s32 (*SsDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
 extern s32 fontcolor;
+extern s32 D_800A178C_main[][6];
 extern s16 D_800CDA7C_main[];
 extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
@@ -189,6 +193,14 @@ s32 func_80107988_snowball_summit(f32 cur, f32 target, f32 tol);
 void func_80107DD4_snowball_summit(SsPlayer *pl);
 s32 func_80107F80_snowball_summit(SsPlayer *pl);
 void func_8010811C_snowball_summit(omObjData *obj);
+void func_8010A0B0_snowball_summit(omObjData *obj);
+void func_8010A384_snowball_summit(omObjData *obj);
+void func_8010A71C_snowball_summit(omObjData *obj);
+void func_8010A940_snowball_summit(omObjData *obj);
+void func_8010AC94_snowball_summit(omObjData *obj);
+void func_8010AE74_snowball_summit(omObjData *obj);
+void func_8010B01C_snowball_summit(omObjData *obj);
+void func_8010B158_snowball_summit(omObjData *obj);
 s32 func_8010B994_snowball_summit(omObjData *obj);
 void func_8010F42C_snowball_summit(void);
 
@@ -214,6 +226,7 @@ extern SsRing D_8010F8D8_snowball_summit[8];
 extern SsPlayer D_8010F9B8_snowball_summit[4];
 extern SsBall D_8010FC30_snowball_summit[16];
 extern s16 D_80110030_snowball_summit[]; /* snowfall emitter model (0x14 bytes, only [0] used) */
+extern s32 D_80110044_snowball_summit; /* the winners have been decided */
 extern SsFlash D_80110048_snowball_summit[16];
 extern s16 D_801101F0_snowball_summit;
 extern s16 D_801101F2_snowball_summit;
@@ -1071,7 +1084,7 @@ void func_8010811C_snowball_summit(omObjData *obj) {
             for (i = 0; i < 4; i++) {
                 if (i != obj->work[0]) {
                     other = &D_8010F9B8_snowball_summit[i];
-                    if (other->state >= 0 && other->state < 90 && other->unk08 == 0) {
+                    if (other->state >= 0 && other->state < 90 && other->cpu == 0) {
                         target = other->obj;
                         if (rand8() % pl->chase == 0) {
                             func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z,
@@ -1273,7 +1286,7 @@ void func_8010A71C_snowball_summit(omObjData *obj) {
             pl->holdCount = 0;
             func_80107CA4_snowball_summit(obj, 3);
             func_8001C6A8_main(obj->model[0], 12.0f);
-            if (pl->unk08 == 0) {
+            if (pl->cpu == 0) {
                 omVibrate((s16)obj->work[0], 2, 3, 10);
             }
         } else {
@@ -1282,19 +1295,209 @@ void func_8010A71C_snowball_summit(omObjData *obj) {
     }
 }
 
+/* Lets go of the snowball (motion 3 or 4) and pushes it out in front. */
+// register allocation only (masked 0: the distance is built in f20, not f2)
+#ifdef NON_MATCHING
+void func_8010A940_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    SsBall *ball;
+    f32 dist;
+
+    switch (pl->motion) {
+        case 3:
+            func_80107CA4_snowball_summit(obj, 5);
+            break;
+        case 4:
+            func_80107CA4_snowball_summit(obj, 6);
+            break;
+        default:
+            return;
+    }
+    ball = &D_8010FC30_snowball_summit[pl->ball];
+    dist = ball->size * 37.5 + pl->unk50;
+    ball->obj->trans.x = sindf(pl->rot) * dist + obj->trans.x;
+    ball->obj->trans.z = cosdf(pl->rot) * dist + obj->trans.z;
+    if (ball->state != 20) {
+        ball->state = 10;
+    }
+    ball->owner = -1;
+    pl->speed = 0.0f;
+    pl->vel.x = pl->vel.z = pl->speed;
+    pl->rolling = 0;
+    pl->ball = -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A940_snowball_summit);
+#endif
 
+/* A human's controls. */
+// scheduling/CSE: retail reloads obj->work[0] for the first pad lookup and fills delay slots differently; same ops
+#ifdef NON_MATCHING
+void func_8010AA78_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+
+    if (pl->motion != 5 && pl->motion != 6) {
+        if ((D_800D5558_main[GwPlayer[obj->work[0]].pad] & 0x8000) && pl->rolling == 1) {
+            func_8010A940_snowball_summit(obj);
+        } else if (!(SS_IABS(D_800CBB6E_main[GwPlayer[obj->work[0]].pad]) < 31
+                     && SS_IABS(D_800D20A1_main[GwPlayer[obj->work[0]].pad]) < 31)) {
+            func_8010A0B0_snowball_summit(obj);
+        } else {
+            func_8010A384_snowball_summit(obj);
+        }
+    } else {
+        func_8010A384_snowball_summit(obj);
+    }
+    if ((D_800D5558_main[GwPlayer[obj->work[0]].pad] & 0x4000) && pl->rolling == 0) {
+        func_8010A71C_snowball_summit(obj);
+    }
+    if (pl->rolling == 0) {
+        if (pl->holdTime > 0) {
+            pl->holdTime--;
+        } else {
+            pl->holdCount = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010AA78_snowball_summit);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010AC94_snowball_summit);
+/* Knocked into the air: fly backwards and fall. */
+void func_8010AC94_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010AE74_snowball_summit);
+    pl->vel.x = sindf(SS_WRAP(pl->rot + 180.0f)) * pl->speed;
+    pl->vel.y -= pl->gravity;
+    pl->vel.z = cosdf(SS_WRAP(pl->rot + 180.0f)) * pl->speed;
+    pl->next.x = obj->trans.x + pl->vel.x;
+    pl->next.y = obj->trans.y + pl->vel.y;
+    pl->next.z = obj->trans.z + pl->vel.z;
+    if (pl->next.y < 0.0f && pl->unk4C == 0) {
+        pl->land = 2;
+        pl->speed = pl->gravity = pl->vel.x = pl->vel.y = pl->vel.z = pl->next.y = 0.0f;
+    }
+}
 
+/* Hit reactions: knocked down (land 1-3) or out (unk4C). */
+void func_8010AE74_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+
+    if (pl->unk4C != 0) {
+        if (pl->motion != 8) {
+            func_80107CA4_snowball_summit(obj, 8);
+        }
+    } else if (pl->land == 1) {
+        if (pl->motion != 7) {
+            func_80107CA4_snowball_summit(obj, 7);
+            func_8001C814_main(obj->model[0], 2, 0);
+            func_8001C814_main(obj->model[0], 1, 1);
+        }
+    } else if (pl->land == 2) {
+        func_80107CA4_snowball_summit(obj, 7);
+        func_8001C814_main(obj->model[0], 1, 0);
+        pl->land = 3;
+    } else if (pl->land == 3) {
+        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40) {
+            func_80107CA4_snowball_summit(obj, 0);
+            pl->land = 0;
+            pl->hit = 0;
+        }
+    }
+    if (pl->land == 1 && pl->hit != 0) {
+        func_8010AC94_snowball_summit(obj);
+    }
+}
+
+/* After the time is up: stand still, drop the snowball. */
+// register allocation only (masked 0: obj/pl swap s0/s1)
+#ifdef NON_MATCHING
+void func_8010B01C_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    SsBall *ball;
+
+    switch (pl->hit) {
+        case 0:
+            if (pl->motion != 0) {
+                func_80107D30_snowball_summit(obj, 0, 0, 10);
+                if (pl->ball != -1) {
+                    ball = &D_8010FC30_snowball_summit[pl->ball];
+                    ball->state = 20;
+                    ball->owner = -1;
+                    pl->rolling = 0;
+                    pl->ball = -1;
+                }
+            }
+            break;
+        case 1:
+            if (obj->trans.y == 0.0f && pl->motion != 0) {
+                func_80107D30_snowball_summit(obj, 0, 0, 10);
+                obj->rot.y = 0.0f;
+                break;
+            }
+        case 2:
+            func_8010AE74_snowball_summit(obj);
+            break;
+        case 3:
+            func_8010AE74_snowball_summit(obj);
+            break;
+    }
+    if (pl->motion == 0) {
+        obj->rot.y = 0.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B01C_snowball_summit);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B158_snowball_summit);
+/* The result pose: win (motion 9 and the character's voice) or lose (10). */
+void func_8010B158_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    s32 voice = D_800A178C_main[GwPlayer[obj->work[0]].chr][0];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B250_snowball_summit);
+    if (D_80110044_snowball_summit != 0) {
+        if (pl->hit == 0 && pl->motion != 9) {
+            func_80107CA4_snowball_summit(obj, 9);
+            func_8001C814_main(obj->model[0], 2, 0);
+            func_80045ED0_main(voice | 0x2F);
+        }
+    } else if (pl->motion != 10) {
+        func_80107CA4_snowball_summit(obj, 10);
+        func_8001C814_main(obj->model[0], 2, 0);
+    }
+}
+
+void func_8010B250_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+
+    if (pl->state != -1) {
+        switch (D_8010F880_snowball_summit) {
+            case 2:
+                if (pl->cpu != 0) {
+                    func_8010811C_snowball_summit(obj);
+                }
+                if (pl->hit == 0) {
+                    func_8010AA78_snowball_summit(obj);
+                } else {
+                    func_8010AE74_snowball_summit(obj);
+                }
+                break;
+            case 3:
+                func_80105B9C_snowball_summit(obj->work[0]);
+                func_8010B01C_snowball_summit(obj);
+                break;
+            case 4:
+                func_80105B9C_snowball_summit(obj->work[0]);
+                func_8010B158_snowball_summit(obj);
+                break;
+            case 0:
+            case 1:
+            case 5:
+                func_80105B9C_snowball_summit(obj->work[0]);
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B34C_snowball_summit);
 
