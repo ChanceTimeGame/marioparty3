@@ -160,6 +160,10 @@ const s16 D_801115F4_messy_memory[];
     D_80111670_messy_memory[p] = 0;
 
 void func_8000BC88_main(u16 arg0, u16 arg1);
+void func_8000BC48_main(u16 arg0, u16 arg1);
+void func_80105B88_messy_memory(Gfx **gfx, s32 arg1, s32 arg2);
+void func_801060E0_messy_memory(omObjData *obj);
+void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80110EC4_messy_memory(void);
 f32 func_801059BC_messy_memory(f32 angle, f32 add);
@@ -245,7 +249,7 @@ void func_80105B7C_messy_memory(s8 arg0) {
 }
 
 /* Draws the room backdrop (D_80111654: a 320-wide CI4 image, six rows a strip) and the centre divider (D_801116D8). */
-void func_80105B88_messy_memory(Gfx **gfx) {
+void func_80105B88_messy_memory(Gfx **gfx, s32 arg1, s32 arg2) {
     Gfx *g = *gfx;
     s32 i;
     s32 x;
@@ -292,11 +296,33 @@ void func_80105B88_messy_memory(Gfx **gfx) {
     *gfx = g;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801060E0_messy_memory);
+void func_801060E0_messy_memory(omObjData *obj) {
+    switch (D_80115D8C_messy_memory) {
+    case 8:
+        func_8001C258_main(obj->model[0], 4, 0);
+        break;
+    case 12:
+        func_8001C258_main(obj->model[0], 4, 4);
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80106140_messy_memory);
+void func_80106140_messy_memory(omObjData *obj) {
+    obj->model[0] = func_8001AC8C_main(0, func_80105B88_messy_memory, 2);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->func = func_801060E0_messy_memory;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801061AC_messy_memory);
+void func_801061AC_messy_memory(void) {
+    omObjData *obj;
+
+    D_80111654_messy_memory = func_80055194_main(func_8000B838_main(0x3E0002));
+    D_801116D8_messy_memory = func_80055194_main(func_8000B838_main(0x3E0004));
+    obj = omAddObj(200, 1, 0, -1, func_80106140_messy_memory);
+    obj->work[0] = 0;
+    D_80111700_messy_memory[7].obj = obj;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", D_801113F0_messy_memory);
 
@@ -314,7 +340,47 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", D_8011144
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", D_8011144C_messy_memory);
 
+#ifdef NON_MATCHING
+/* The title sign (D_80111700[4]): appears, shrinks away when the room is shown, grows back for scoring. */
+void func_8010622C_messy_memory(omObjData *obj) {
+    MmEnt *ent = &D_80111700_messy_memory[4];
+
+    switch (D_80115D8C_messy_memory) {
+    case 4:
+        if (obj->work[0] == 0) {
+            func_8000BC88_main(D_80111700_messy_memory[4].spr, 0x4000);
+        }
+        break;
+    case 5:
+        if (obj->work[0] == 0) {
+            if (D_80111700_messy_memory[4].unk04 == 0) {
+                HuAudFXPlay(1009);
+                D_80111700_messy_memory[4].unk04 = 1;
+            }
+            ent->unk5C.x = ent->unk5C.y = D_8011165C_messy_memory;
+            func_8000BE5C_main(ent->spr, ent->unk5C.x, ent->unk5C.y);
+            if (ent->unk5C.x <= 0.01 || ent->unk5C.y <= 0.01) {
+                D_80115D9A_messy_memory = 5;
+                func_8000BB94_main(ent->spr);
+            }
+        }
+        break;
+    case 12:
+        if (obj->work[0] == 0) {
+            D_80111700_messy_memory[4].unk5C.x = D_80111700_messy_memory[4].unk5C.y = D_8011165C_messy_memory;
+            func_8000BE5C_main(D_80111700_messy_memory[4].spr, D_8011165C_messy_memory, D_8011165C_messy_memory);
+            func_8000BB54_main(D_80111700_messy_memory[4].spr);
+            func_8000BC48_main(D_80111700_messy_memory[4].spr, 0x4000);
+            if (D_80111700_messy_memory[4].unk5C.x >= 0.23f || D_80111700_messy_memory[4].unk5C.y >= 0.23f) {
+                D_80115D9A_messy_memory = 12;
+            }
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010622C_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801063FC_messy_memory);
 
