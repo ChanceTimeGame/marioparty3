@@ -8,6 +8,7 @@
 #include "game/wipe.h"
 #include "game/hmfman.h"
 #include "game/object.h"
+#include "game/pause.h"
 #include "game/util.h"
 
 /* main */
@@ -27,6 +28,8 @@ void func_8001F9E4_main(s16, u8);
 void func_8004AAD0_main(s16, s8);
 void omVibrate(s16 player, s16 duration, s16 off, s16 on);
 u8 rand8(void);
+void func_80017320_main(void* motion);
+extern s16 D_800EB934_minigame;
 f32 sindf(f32 angle);
 f32 cosdf(f32 angle);
 f32 atan2df(f32 y, f32 x);
@@ -76,6 +79,7 @@ typedef struct TpPlayer {
 
 /* .data */
 extern D_80111B50_vine_with_me_Struct D_8010ED60_thwomp_pull; /* minigame setup; inner labels D_8010ED61/66 */
+extern u32 D_8010ED88_thwomp_pull;
 extern u32 D_8010EE24_thwomp_pull;      /* frame counter */
 extern f32 D_8010EE28_thwomp_pull[2];   /* team distance pulled (negative) */
 extern u8 D_8010EE30_thwomp_pull[2];
@@ -107,6 +111,12 @@ extern u8 D_8010EF6C_thwomp_pull[2];
 extern f32 D_8010EF70_thwomp_pull[24];
 
 /* .bss */
+extern f32 D_8010F470_thwomp_pull[3]; /* the winners' jump: x */
+extern f32 D_8010F47C_thwomp_pull[3]; /* y */
+extern f32 D_8010F488_thwomp_pull[3]; /* z */
+extern f32 D_8010F494_thwomp_pull[3]; /* x speed */
+extern f32 D_8010F4A0_thwomp_pull[3]; /* y speed */
+extern f32 D_8010F4AC_thwomp_pull[3]; /* z speed */
 extern TpPlayer D_8010F4B8_thwomp_pull[4];
 extern TpPlayer* D_8010F4F8_thwomp_pull[4]; /* by slot; inner labels D_8010F4FC/500/504 */
 extern f32 D_8010F510_thwomp_pull[4];
@@ -245,13 +255,210 @@ void func_80105D3C_thwomp_pull(omObjData* object) {
     object->func = func_80105F14_thwomp_pull;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F008_thwomp_pull);
+void func_80105F14_thwomp_pull(omObjData* object) {
+    omObjData* obj;
+    s32 i;
+    u8 j;
+    s32 k;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F018_thwomp_pull);
+    D_8010F5A4_thwomp_pull++;
+    D_8010F53C_thwomp_pull++;
+    func_800E6F40_minigame();
+    switch (D_8010F530_thwomp_pull) {
+        case 0:
+            if (D_8010F5A4_thwomp_pull == 1 && D_8010F570_thwomp_pull == 0 && D_800D530C_main == 0) {
+                HuAudFXPlay(0x335);
+            }
+            if (func_800E6E8C_minigame() == 1) {
+                D_8010F530_thwomp_pull = 1;
+                D_8010F5A4_thwomp_pull = 0;
+            }
+            break;
+        case 1:
+            if (D_8010F5A4_thwomp_pull == 31 && D_8010F570_thwomp_pull == 0 && D_800D530C_main == 0) {
+                HuAudSeqPlay(0x2E);
+            }
+            if (func_800E6E8C_minigame() == 2) {
+                D_8010F530_thwomp_pull = 2;
+                D_8010F5A4_thwomp_pull = 0;
+            }
+            break;
+        case 2:
+            if (D_8010F566_thwomp_pull != 5 || func_800E6E8C_minigame() == 3) {
+                if (D_8010F566_thwomp_pull == 5) {
+                    D_8010F530_thwomp_pull = 5;
+                    D_8010F566_thwomp_pull = 4;
+                } else {
+                    D_8010F530_thwomp_pull = 3;
+                }
+                D_8010F5A4_thwomp_pull = 0;
+            }
+            if (D_8010F530_thwomp_pull != 3) {
+                break;
+            }
+            /* fallthrough */
+        case 3:
+        case 4:
+            if (D_8010F5A4_thwomp_pull == 0) {
+                if (func_800E6E8C_minigame() != 3) {
+                    func_800E6F1C_minigame();
+                }
+                if (D_8010F566_thwomp_pull == 0) {
+                    D_8010ED60_thwomp_pull.unk06 = 0;
+                    D_8010ED60_thwomp_pull.unk18 = D_8010F4F8_thwomp_pull[0]->player;
+                    GwPlayer[D_8010F4F8_thwomp_pull[0]->player].bonusCoin = 10;
+                } else {
+                    D_8010ED60_thwomp_pull.unk06 = 2;
+                    D_8010ED60_thwomp_pull.unk18 = D_8010F4F8_thwomp_pull[1]->player;
+                    D_8010ED60_thwomp_pull.unk19[0] = D_8010F4F8_thwomp_pull[3]->player;
+                    D_8010ED60_thwomp_pull.unk19[1] = D_8010F4F8_thwomp_pull[2]->player;
+                    GwPlayer[D_8010F4F8_thwomp_pull[1]->player].bonusCoin = 10;
+                    GwPlayer[D_8010F4F8_thwomp_pull[2]->player].bonusCoin = 10;
+                    GwPlayer[D_8010F4F8_thwomp_pull[3]->player].bonusCoin = 10;
+                }
+            }
+            if (D_8010F5A4_thwomp_pull == 2) {
+                func_800E6F34_minigame(30);
+            }
+            if (D_8010F5A4_thwomp_pull >= 31 && D_8010F5A4_thwomp_pull <= 61) {
+                D_8010F588_thwomp_pull = (D_8010F5A4_thwomp_pull - 31) / 30.0;
+            }
+            if (D_8010F5A4_thwomp_pull >= 32 && D_8010F5A4_thwomp_pull <= 79 && D_8010F566_thwomp_pull < 2) {
+                obj = D_8010F568_thwomp_pull[D_8010F566_thwomp_pull];
+                if (D_8010ED88_thwomp_pull == 0) {
+                    for (i = 0; i < D_8010F566_thwomp_pull * 2 + 1; i++) {
+                        D_8010F470_thwomp_pull[i] = D_8010F578_thwomp_pull[D_8010F566_thwomp_pull + i];
+                        D_8010F47C_thwomp_pull[i] = D_8010F510_thwomp_pull[D_8010F566_thwomp_pull + i];
+                        D_8010F488_thwomp_pull[i] = D_8010F540_thwomp_pull[D_8010F566_thwomp_pull + i];
+                        D_8010F494_thwomp_pull[i] = (D_8010F566_thwomp_pull != 0) ? (1 - i) * 1.5 : 0.0f;
+                        D_8010F4A0_thwomp_pull[i] = 38.0f;
+                        D_8010F4AC_thwomp_pull[i] = 20.0f;
+                        func_8001C258_main(obj->model[1 + i], 4, 4);
+                        func_8001C258_main(obj->model[0x27 + i], 4, 0);
+                        Hu3DModelPosSet(obj->model[0x27 + i], D_8010F470_thwomp_pull[i], D_8010F47C_thwomp_pull[i], D_8010F488_thwomp_pull[i]);
+                        Hu3DModelRotSet(obj->model[0x27 + i], 0.0f, 0.0f, 0.0f);
+                        func_8001C624_main(obj->model[0x27 + i], HmfModelData[obj->motion[0xF + i]].unk02, 8, 4, 1);
+                    }
+                } else if (D_8010ED88_thwomp_pull > 0 && D_8010ED88_thwomp_pull < 100) {
+                    for (i = 0; i < D_8010F566_thwomp_pull * 2 + 1; i++) {
+                        if (D_8010ED88_thwomp_pull < 5) {
+                            f32 ofsY[4] = { -23.0f, -98.0f, -86.0f, -98.0f };
+                            f32 ofsZ[4] = { -46.0f, -3.0f, -35.0f, -3.0f };
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F028_thwomp_pull);
+                            D_8010F510_thwomp_pull[D_8010F566_thwomp_pull + i] += ofsY[D_8010F566_thwomp_pull + i] / 4.0;
+                            D_8010F540_thwomp_pull[D_8010F566_thwomp_pull + i] += ofsZ[D_8010F566_thwomp_pull + i] / 4.0;
+                            if ((D_8010F566_thwomp_pull == 1) & (i == 0)) {
+                                D_8010F540_thwomp_pull[D_8010F566_thwomp_pull + i] = ofsZ[D_8010F566_thwomp_pull + i];
+                            }
+                        }
+                        D_8010F470_thwomp_pull[i] += D_8010F494_thwomp_pull[i];
+                        D_8010F47C_thwomp_pull[i] += D_8010F4A0_thwomp_pull[i];
+                        D_8010F488_thwomp_pull[i] += D_8010F4AC_thwomp_pull[i];
+                        D_8010F4A0_thwomp_pull[i] -= 4.0f;
+                        Hu3DModelPosSet(obj->model[0x27 + i], D_8010F470_thwomp_pull[i], D_8010F47C_thwomp_pull[i], D_8010F488_thwomp_pull[i]);
+                        Hu3DModelPosSet(obj->model[0x2A + i], D_8010F470_thwomp_pull[i], (D_8010ED88_thwomp_pull == 1) ? 30.0f : 0.0f, D_8010F488_thwomp_pull[i]);
+                        if (D_8010ED88_thwomp_pull == 2) {
+                            func_8001C8E4_main(obj->model[0x2A + i], 0x400);
+                        }
+                        if (D_8010ED88_thwomp_pull == 1) {
+                            func_8001C624_main(obj->model[0x27 + i], HmfModelData[obj->motion[0xC + i]].unk02, 14, 4, 0);
+                        }
+                    }
+                    if (D_8010F47C_thwomp_pull[0] <= 0.0f) {
+                        D_8010ED88_thwomp_pull = 100;
+                        D_8010F47C_thwomp_pull[0] = 0.0f;
+                        D_8010F47C_thwomp_pull[1] = 0.0f;
+                        D_8010F47C_thwomp_pull[2] = 0.0f;
+                        for (i = 0; i < D_8010F566_thwomp_pull * 2 + 1; i++) {
+                            func_8001C624_main(obj->model[0x27 + i], HmfModelData[obj->motion[0xF + i]].unk02, 10, 4, 0);
+                            Hu3DModelPosSet(obj->model[0x27 + i], D_8010F470_thwomp_pull[i], 0.0f, D_8010F488_thwomp_pull[i]);
+                            Hu3DModelPosSet(obj->model[0x2A + i], D_8010F470_thwomp_pull[i], 0.0f, D_8010F488_thwomp_pull[i]);
+                        }
+                    }
+                } else if (D_8010ED88_thwomp_pull == 102) {
+                    for (i = 0; i < D_8010F566_thwomp_pull * 2 + 1; i++) {
+                        func_8001C624_main(obj->model[0x27 + i], HmfModelData[obj->motion[i]].unk02, 0, 30, 2);
+                    }
+                }
+                D_8010ED88_thwomp_pull += (D_8010ED88_thwomp_pull != 99);
+            }
+            if (D_800EB934_minigame != 0) {
+                s32 chrs[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80105F14_thwomp_pull);
+                if (D_8010F566_thwomp_pull == 0) {
+                    func_80017954_main(D_8010F568_thwomp_pull[0]->model[0x27], 1, chrs[D_8010F4F8_thwomp_pull[0]->chr], D_8010F4F8_thwomp_pull[0]->unk08);
+                    func_8001C5B4_main(D_8010F568_thwomp_pull[0]->model[0x27], D_8010F568_thwomp_pull[0]->motion[9]);
+                    func_8001C814_main(D_8010F568_thwomp_pull[0]->model[0x27], 3, 0);
+                    func_80045ED0_main(D_8010F4F8_thwomp_pull[0]->unk0C);
+                } else if (D_8010F566_thwomp_pull == 1) {
+                    for (k = 0; k < 3; k++) {
+                        func_80017954_main(D_8010F568_thwomp_pull[1]->model[0x27 + k], 1, chrs[D_8010F4F8_thwomp_pull[1 + k]->chr], D_8010F4F8_thwomp_pull[1 + k]->unk08);
+                        func_8001C5B4_main(D_8010F568_thwomp_pull[1]->model[0x27 + k], D_8010F568_thwomp_pull[1]->motion[9 + k]);
+                        func_8001C814_main(D_8010F568_thwomp_pull[1]->model[0x27 + k], 3, 0);
+                        func_80045F1C_main(D_8010F4F8_thwomp_pull[1 + k]->unk0C, -1, D_8010F4F8_thwomp_pull[1 + k]->player);
+                    }
+                }
+            }
+            if (D_8010F530_thwomp_pull == 3 && func_800E6E8C_minigame() == 4) {
+                D_8010F530_thwomp_pull = 4;
+            }
+            goto state6;
+        case 5:
+            if (D_8010F5A4_thwomp_pull == 1) {
+                D_8010ED60_thwomp_pull.unk06 = 4;
+                D_8010ED60_thwomp_pull.unk22 = 75;
+                D_8010ED60_thwomp_pull.unk24 = 144;
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_8010F530_thwomp_pull = 6;
+                D_8010F5A4_thwomp_pull = 0;
+            }
+            break;
+        case 6:
+        state6:
+            if (func_800E6E8C_minigame() == 5) {
+                D_8010F530_thwomp_pull = 7;
+                D_8010F5A4_thwomp_pull = 0;
+            }
+            break;
+        case 7:
+            if (D_8010F5A4_thwomp_pull == 1) {
+                WipeCreateOut(0, 20);
+            } else if (D_8010F5A4_thwomp_pull >= 32) {
+                D_8010F570_thwomp_pull = 1;
+            }
+            break;
+    }
+    if (_CheckFlag(0xF) && D_800D530C_main == 0 && D_8010F5A8_thwomp_pull == 0 && D_8010F530_thwomp_pull == 2U) {
+        for (j = 0; j < 2; j++) {
+            if (D_8010F4F8_thwomp_pull[j]->cpu == -1 && (D_800D5558_main[D_8010F4F8_thwomp_pull[j]->pad] & 0x10)) {
+                D_8010F5A8_thwomp_pull = 1;
+            }
+        }
+    }
+    if (D_8010F570_thwomp_pull == 0 && D_800D530C_main == 0 && D_8010F5A8_thwomp_pull == 0) {
+        return;
+    }
+    if (D_800D530C_main != 0 && D_8010F5A8_thwomp_pull == 0) {
+        D_8010F5A8_thwomp_pull = 1;
+    }
+    if (D_8010F5A8_thwomp_pull != 0) {
+        if (D_8010F5A8_thwomp_pull == 1) {
+            WipeCreateOut(0, 20);
+            HuAudSeqFadeOut(20);
+            func_8004AB0C_main(20);
+        }
+        D_8010F5A8_thwomp_pull++;
+        if (D_8010F5A8_thwomp_pull < 25) {
+            return;
+        }
+    }
+    HuAudSeqFadeOut(30);
+    func_80017320_main(D_8010F528_thwomp_pull);
+    func_80017320_main(D_8010F5AC_thwomp_pull[0]);
+    func_80017320_main(D_8010F5AC_thwomp_pull[1]);
+    omOvlReturnEx(1);
+}
 
 void func_80106D5C_thwomp_pull(omObjData* object) {
     s32 files[10] = { 0x29001F, 0x290020, 0x210008, 0x210009, 0x21000A, 0x21000B, 0x21000C, 0x21000D, 0x21000E, 0x21000F };
