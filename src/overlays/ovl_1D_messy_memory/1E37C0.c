@@ -85,6 +85,7 @@ extern MmPt D_80111094_messy_memory[4];
 extern Vec2f D_801110A4_messy_memory[20];
 extern s32 D_801111EC_messy_memory[][2]; /* hand sprite group per character */
 extern Vec2f D_80111298_messy_memory[4]; /* per player: walk speed, stop x */
+extern Vec2f D_801112B8_messy_memory[4][3]; /* result digit positions per board */
 extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
 extern s16 D_8011133C_messy_memory;
@@ -206,6 +207,8 @@ void func_8010E29C_messy_memory(omObjData *obj);
 void func_8010E654_messy_memory(omObjData *obj);
 void func_8010EF10_messy_memory(omObjData *obj);
 void func_8010F19C_messy_memory(omObjData *obj);
+void func_8010FA38_messy_memory(omObjData *obj);
+void func_8010F6E8_messy_memory(omObjData *obj);
 void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -2735,9 +2738,64 @@ void func_8010F6E8_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010F6E8_messy_memory);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FA38_messy_memory);
+#ifdef NON_MATCHING
+/* Sets up result digit k of board work[1] (two number digits and a sign), placed from D_801112B8. */
+void func_8010FA38_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    u8 i;
+    u32 k;
 
+    k = obj->work[0];
+    e = &D_80111700_messy_memory[obj->work[1] * 3 + 74 + k];
+    switch (k) {
+    case 0:
+    case 1:
+        e->grp = func_8000B838_main(0x2E);
+        e->spr = InitEspriteSlot(e->grp, 0, 0);
+        func_8000BC48_main(e->spr, 0x1000);
+        func_8000BCC8_main(e->spr, 0);
+        break;
+    case 2:
+        e->grp = func_8000B838_main(0x3E0019);
+        e->spr = InitEspriteSlot(e->grp, 0, 0);
+        func_8000BC48_main(e->spr, 0x1000);
+        func_8000BCC8_main(e->spr, 0x500);
+        break;
+    }
+    for (i = 0; i < 3; i++) {
+        if (obj->work[0] == i) {
+            e->pos.x = (D_801112B8_messy_memory[obj->work[1]] + obj->work[0])->x;
+            e->pos.y = (D_801112B8_messy_memory[obj->work[1]] + obj->work[0])->y;
+        }
+    }
+    func_8000BB94_main(e->spr);
+    obj->func = func_8010F6E8_messy_memory;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FA38_messy_memory);
+#endif
+
+#ifdef NON_MATCHING
+/* Creates the result digit objects: three per board, work[0] digit, work[1] board. */
+void func_8010FBB0_messy_memory(void) {
+    omObjData *o;
+    MmEnt *e;
+    u8 b;
+    u8 k;
+
+    for (b = 0; b < 4; b++) {
+        for (k = 0; k < 3; k++) {
+            e = &D_80111700_messy_memory[b * 3 + (k + 74)];
+            o = omAddObj(900, 1, 10, -1, func_8010FA38_messy_memory);
+            o->work[0] = k;
+            o->work[1] = b;
+            e->obj = o;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FBB0_messy_memory);
+#endif
 
 void func_8010FC90_messy_memory(void) {
     u32 i;
