@@ -129,7 +129,8 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 model;
-    /* 0x02 */ char unk02[6];
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ char unk04[4];
 } CxUnk368; // Size 8
 
 extern CxGame *D_8010E360_cheep_cheep_chase;
@@ -148,6 +149,7 @@ extern s16 D_8010E024_cheep_cheep_chase;
 extern s16 D_8010E026_cheep_cheep_chase;
 extern s32 D_8010E028_cheep_cheep_chase[8];
 extern s16 D_8010E380_cheep_cheep_chase;
+extern s16 D_8010E048_cheep_cheep_chase;
 
 extern u8 D_800D6A90_main;
 extern s32 D_800A178C_main[][6];
@@ -1949,7 +1951,68 @@ void func_8010BEA4_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010C004_cheep_cheep_chase);
+void func_8010C004_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    f32 dx;
+    f32 dz;
+    s16 i;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 4;
+            ctx->work.s8[4] = 0;
+            ctx->work.f32[0] = object->trans.x;
+            ctx->work.f32[1] = 0.0f;
+            ctx->work.f32[2] = object->trans.y;
+            HuAudFXPlay(0x432);
+            func_8004ACE0_main(0x286, ctx->work.s16[0]);
+            ctx->state = 1;
+            break;
+        case 1:
+            if (ctx->work.s8[1] == 0) {
+                if (func_8010DF48_cheep_cheep_chase(&object->trans.x, (u8 *)&ctx->work.s8[0], ctx->work.f32[0], ctx->work.f32[1], 15.0f)) {
+                    ctx->work.s8[1] = 1;
+                }
+                func_8010DF48_cheep_cheep_chase(&object->trans.y, (u8 *)&ctx->work.s8[4], ctx->work.f32[2], 40.0f, 15.0f);
+            }
+            if (ctx->work.s8[0] < 11) {
+                object->trans.z += 10.0;
+            } else {
+                if (D_8010E048_cheep_cheep_chase == 0) {
+                    D_8010E048_cheep_cheep_chase = 1;
+                }
+                object->trans.z += 50.0;
+            }
+            if (ctx->work.s8[0] >= 5) {
+                object->scale.x = object->scale.y = object->scale.z = 1.0f - (ctx->work.s8[0] - 5) * 0.035f;
+            }
+            if (++ctx->work.s8[3] >= 2) {
+                ctx->work.s8[3] = 0;
+                dx = rand16() % 5 * 0.1;
+                dz = (rand16() % 15 - 10) * 0.1;
+                for (i = 0; i < 18; i++) {
+                    if ((s16)func_8010DC7C_cheep_cheep_chase(i, object->trans.x - dx * 100.0f, 160.0f, dz * 100.0f + object->trans.z, 0.0f, 90.0f, 0.0f, 1.0f, 0.0f)) {
+                        break;
+                    }
+                }
+            }
+            if (ctx->work.s8[2] == 0) {
+                if (HmfModelData[D_8010E368_cheep_cheep_chase->model].pos.z - 40.0 <= object->trans.z) {
+                    ctx->work.s8[2] = 1;
+                    D_8010E368_cheep_cheep_chase->unk02 = 1;
+                }
+            } else if (HmfModelData[D_8010E368_cheep_cheep_chase->model].pos.z <= object->trans.z) {
+                func_8001C258_main(object->model[0], 4, 4);
+                D_8010E048_cheep_cheep_chase = 0;
+                func_8010D85C_cheep_cheep_chase(ctx->work.s16[0] + 4);
+                D_8010E360_cheep_cheep_chase->unk2E++;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010C440_cheep_cheep_chase);
 
