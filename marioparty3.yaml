@@ -883,7 +883,7 @@ segments:
     bss_size: 0x1F50
     subsegments:
       - [0x16F670, c]
-      - [0x17AB40, data, 16F670] #80110E70
+      - [0x17AB40, .data, 16F670] #80110E70
       - [0x17AE20, .rodata, 16F670] #80111150
       - {0x17B3B0, type: bss, vram: 0x801116E0, name: ovl_0D_bss}
 
@@ -1240,7 +1240,7 @@ segments:
     bss_size: 0xA20
     subsegments:
       - [0x232A10, c]
-      - [0x23C5C0, data, 232A10] #8010F550
+      - [0x23C5C0, .data, 232A10] #8010F550
       - [0x23C6A0, .rodata, 232A10] #8010F630
       - {0x23C8F0, type: bss, vram: 0x8010F880, name: ovl_28_bss}
 
