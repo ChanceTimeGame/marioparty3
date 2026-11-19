@@ -2931,8 +2931,16 @@ void func_8010FA64_pump_pump_away(omObjData *obj) {
 #ifdef NON_MATCHING
 s32 func_8010FAA8_pump_pump_away(void) {
     PpTeam *t = D_80111978_pump_pump_away;
+    PpRecord *r = &D_801135B0_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    u16 n;
 
-    return D_801135B0_pump_pump_away.record < (u16)(t[1].dist < D_80111978_pump_pump_away[0].dist ? D_80111978_pump_pump_away[0].dist * 0.01 : t[1].dist * 0.01);
+    if (D_80111978_pump_pump_away[0].dist > t[1].dist) {
+        n = D_80111978_pump_pump_away[0].dist * 0.01;
+    } else {
+        n = t1->dist * 0.01;
+    }
+    return r->record < n;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FAA8_pump_pump_away);
@@ -3163,20 +3171,29 @@ void func_8011054C_pump_pump_away(void) {
     D_801116F8_pump_pump_away = 0;
 }
 
-#ifdef NON_MATCHING
 void func_80110574_pump_pump_away(omObjData *obj) {
     func_8011054C_pump_pump_away();
     switch (D_801116F4_pump_pump_away) {
         case 0:
+            break;
         case 1:
+            break;
         case 2:
+            break;
         case 3:
+            break;
         case 4:
+            break;
         case 5:
+            break;
         case 6:
+            break;
         case 7:
+            break;
         case 8:
+            break;
         case 9:
+            break;
         case 10:
             break;
         case 11:
@@ -3185,9 +3202,6 @@ void func_80110574_pump_pump_away(omObjData *obj) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110574_pump_pump_away);
-#endif
 
 void func_801105D8_pump_pump_away(void) {
     PpPlayer *p;
