@@ -8,6 +8,30 @@
 #include "mallocblock.h"
 #include "math.h"
 
+extern s16 D_8010F378_bowser_toss[3][8][2];
+extern s32 D_8010F3D8_bowser_toss[5];
+
+/* Split a score counter's shown value into five digit sprites (sprite 7 is the leading digit). */
+#define BT_DIGITS(sc, d, v, j)                                \
+    v = (sc)->unk0C;                                             \
+    for (j = 0; j < 5; j++) {                                    \
+        d[j] = v / D_8010F3D8_bowser_toss[j];                    \
+        v -= d[j] * D_8010F3D8_bowser_toss[j];                   \
+        if (d[j] >= 10) {                                        \
+            d[j] = 9;                                            \
+        } else if (d[j] < 0) {                                   \
+            d[j] = 0;                                            \
+        }                                                        \
+        if (j == 0) {                                            \
+            if (d[0] > 0) {                                      \
+                HuSprAttrReset((sc)->unk00, 7, 0x8000);          \
+            }                                                    \
+            func_80054FF8_main((sc)->unk00, 7, (s16)d[j]);       \
+        } else {                                                 \
+            func_80054FF8_main((sc)->unk00, j - 1, (s16)d[j]);   \
+        }                                                        \
+    }
+
 #define BT_RANDF() ((f32)(u8)(rand8() % 100) * 0.01)
 
 /* A dust puff where a Bowser lands. */
@@ -1884,7 +1908,158 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AF38
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B41C_bowser_toss);
 
+/* The three score counters: fade in, count up, pop, slide away. */
+/* NON_MATCHING: float registers t/sum swapped (f20/f22), and retail converts the state-19 loop counter to s16 once
+ * for both calls; same calls, stores and values. */
+#ifdef NON_MATCHING
+void func_8010B7AC_bowser_toss(void) {
+    s32 d[5];
+    BtScore* sc;
+    BtScore* other;
+    s32 i;
+    s32 j;
+    s32 v;
+    s32 done;
+    s32 y;
+    f32 t;
+    f32 sum;
+    f32 f;
+
+    i = 0;
+    sc = D_8010FBA0_bowser_toss;
+    do {
+        done = 0;
+        switch (sc->unk04) {
+        case 1:
+            func_80054904_main(sc->unk00, 6, D_8010F378_bowser_toss[i][6][0], D_8010F378_bowser_toss[i][6][1]);
+            func_80055458_main(sc->unk00, 6, 0);
+            HuSprAttrReset(sc->unk00, 6, 0x8000);
+            sc->unk04 = 2;
+            sc->unk02 = 0;
+            break;
+        case 2:
+            t = sc->unk02 / 15.0f;
+            func_80055458_main(sc->unk00, 6, t * 256.0f);
+            if (sc->unk02 >= 15.0f) {
+                func_80055458_main(sc->unk00, 6, 0x100);
+                sc->unk04 = 31;
+                sc->unk02 = 0;
+            }
+            break;
+        case 3:
+            for (j = 0; j < 6; j++) {
+                func_80054904_main(sc->unk00, j, D_8010F378_bowser_toss[i][j][0], D_8010F378_bowser_toss[i][j][1]);
+                HuSprAttrReset(sc->unk00, j, 0x8000);
+            }
+            func_80054904_main(sc->unk00, 7, D_8010F378_bowser_toss[i][7][0], D_8010F378_bowser_toss[i][7][1]);
+            func_80054FF8_main(sc->unk00, 4, 1);
+            func_80054FF8_main(sc->unk00, 5, 0);
+            sc->unk04 = 4;
+            sc->unk02 = 0;
+            break;
+        case 4:
+            sc->unk0C += 333;
+            if (sc->unk08 < sc->unk0C) {
+                sc->unk0C = sc->unk08;
+                done = 1;
+            }
+            BT_DIGITS(sc, d, v, j);
+            if (done) {
+                if (D_8010FB70_bowser_toss != -1) {
+                    if (i == 0) {
+                        other = &D_8010FBA0_bowser_toss[1];
+                    } else {
+                        other = &D_8010FBA0_bowser_toss[0];
+                    }
+                    if (other->unk04 != 3 && other->unk04 != 4) {
+                        HuAudFXPlay(0x4AC);
+                        D_8010FB70_bowser_toss = -1;
+                    }
+                }
+                sc->unk04 = 5;
+                sc->unk02 = 0;
+            }
+            break;
+        case 5:
+            if (sc->unk02 >= 15.0f) {
+                sc->unk04 = 31;
+                sc->unk02 = 0;
+            }
+            break;
+        case 16:
+            for (j = 0; j < 6; j++) {
+                func_80054904_main(sc->unk00, j, D_8010F378_bowser_toss[i][j][0], D_8010F378_bowser_toss[i][j][1]);
+                HuSprAttrReset(sc->unk00, j, 0x8000);
+            }
+            func_80054904_main(sc->unk00, 7, D_8010F378_bowser_toss[i][7][0], D_8010F378_bowser_toss[i][7][1]);
+            func_80054FF8_main(sc->unk00, 4, 1);
+            func_80054FF8_main(sc->unk00, 5, 0);
+            BT_DIGITS(sc, d, v, j);
+            sc->unk04 = 64;
+            sc->unk02 = 0;
+            break;
+        case 18:
+            BT_DIGITS(sc, d, v, j);
+            sc->unk04 = 19;
+            sc->unk02 = 0;
+            /* fallthrough */
+        case 19:
+            sum = 0.0f;
+            for (j = 0; j < 6; j++) {
+                sum += D_8010F378_bowser_toss[i][j][0];
+            }
+            sum = (sum + D_8010F378_bowser_toss[i][7][0]) / 7.0f;
+            t = sc->unk02 / 15.0f;
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            t = sindf(t * 180.0f);
+            func_80054904_main(sc->unk00, 7, sum + (D_8010F378_bowser_toss[i][7][0] - sum) * (t + 1.0f),
+                               D_8010F378_bowser_toss[i][7][1]);
+            f = t * 1.2f + 1.2;
+            /* Retail passes the loop counter (6) here, not the leading digit's 7. */
+            HuSprScaleSet(sc->unk00, j, f, f);
+            for (j = 0; j < 6; j++) {
+                func_80054904_main(sc->unk00, j, sum + (D_8010F378_bowser_toss[i][j][0] - sum) * (t + 1.0f),
+                                   D_8010F378_bowser_toss[i][j][1]);
+                if (j < 4) {
+                    f = t * 1.2f + 1.2;
+                } else {
+                    f = t + 1.0;
+                }
+                HuSprScaleSet(sc->unk00, j, f, f);
+            }
+            if (sc->unk02 >= 15.0f) {
+                sc->unk04 = 64;
+                sc->unk02 = 0;
+            }
+            break;
+        case 32:
+            t = sc->unk02 / 15.0f;
+            sum = func_8010D8A0_bowser_toss(t, 0.0f, 81.0f);
+            y = func_8010D8A0_bowser_toss(t, 0.0f, -35.0f);
+            for (j = 0; j < 8; j++) {
+                func_80054904_main(sc->unk00, j, (s32)sum + D_8010F378_bowser_toss[i][j][0],
+                                   y + D_8010F378_bowser_toss[i][j][1]);
+            }
+            if (sc->unk02 >= 15.0f) {
+                sc->unk04 = 64;
+                sc->unk02 = 0;
+            }
+            break;
+        case 64:
+            break;
+        }
+        sc->unk02++;
+        i++;
+        sc++;
+    } while (i < 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B7AC_bowser_toss);
+#endif
 
 void func_8010C1A0_bowser_toss(s16 idx, s32 value) {
     BtScore* s = &D_8010FBA0_bowser_toss[idx];
