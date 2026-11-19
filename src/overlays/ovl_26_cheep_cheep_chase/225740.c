@@ -2224,7 +2224,81 @@ void func_8010D02C_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010D198_cheep_cheep_chase);
+void func_8010D198_cheep_cheep_chase(CxFuncContext *ctx) {
+    CxUnk4Entry *entry = &D_8010E360_cheep_cheep_chase->unk4[(s32)ctx->data];
+    s16 active = 0;
+    HmfModel *model;
+    s16 i;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 0;
+            ctx->work.s8[4] = 0;
+            ctx->work.s8[5] = 0;
+            ctx->work.s8[6] = 0;
+            ctx->work.s8[7] = 0;
+            ctx->work.s8[8] = 0;
+            ctx->work.f32[0] = 180.0f;
+            ctx->work.f32[1] = 60.0f;
+            ctx->work.f32[2] = -60.0f;
+            ctx->work.f32[3] = -180.0f;
+            ctx->state = 1;
+            break;
+        case 1:
+            for (i = 0; i < 4; i++, entry++) {
+                model = &HmfModelData[entry->model];
+                if (model->unk18 & 4) {
+                    continue;
+                }
+                active = 1;
+                if (i + (s32)ctx->data == 0) {
+                    if (ctx->work.s8[4 + i] == 0) {
+                        if (func_8010DF48_cheep_cheep_chase(&D_8010E360_cheep_cheep_chase->unk10->trans.x, (u8 *)&ctx->work.s8[i], ctx->work.f32[i], 0.0f, 10.0f)) {
+                            ctx->work.s8[4 + i] = 1;
+                        }
+                    }
+                    if (ctx->work.s8[i] < 7) {
+                        D_8010E360_cheep_cheep_chase->unk10->trans.z += 10.0;
+                    } else {
+                        D_8010E360_cheep_cheep_chase->unk10->trans.z += 50.0;
+                    }
+                } else {
+                    if (ctx->work.s8[4 + i] == 0) {
+                        if (func_8010DF48_cheep_cheep_chase(&model->pos.x, (u8 *)&ctx->work.s8[i], ctx->work.f32[i], 0.0f, 10.0f)) {
+                            ctx->work.s8[4 + i] = 1;
+                        }
+                    }
+                    if (ctx->work.s8[i] < 7) {
+                        model->pos.z += 10.0;
+                    } else {
+                        model->pos.z += 50.0;
+                    }
+                }
+                if (ctx->work.s8[8] == 0) {
+                    if (HmfModelData[D_8010E368_cheep_cheep_chase->model].pos.z - 40.0 <= model->pos.z) {
+                        ctx->work.s8[8] = 1;
+                        D_8010E368_cheep_cheep_chase->unk02 = 1;
+                        HuAudFXPlay(0x432);
+                    }
+                } else if (HmfModelData[D_8010E368_cheep_cheep_chase->model].pos.z <= model->pos.z) {
+                    func_8001C258_main(entry->model, 4, 4);
+                    entry->unk2 = 1;
+                    entry->unk3 = 1;
+                }
+            }
+            if (active) {
+                break;
+            }
+            func_8010D7F4_cheep_cheep_chase(3, ctx);
+            break;
+    }
+}
 
 void func_8010D560_cheep_cheep_chase(void) {
     s8 maxFuncs[CX_FUNC_GRP_MAX] = { 4, 5, 4, 6, 12, 12, 12, 12 };
