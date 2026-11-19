@@ -80,6 +80,11 @@ typedef struct AhPlayer {
     /* 0xB2 */ char unkB2[0xE];
 } AhPlayer; /* size 0xC0 */
 
+/* omObjData::data of a shot */
+typedef struct AhShot {
+    /* 0x00 */ u16 unk00; /* 1 flying */
+} AhShot;
+
 /* the scrolled sky texture's size (func_800335BC_main) */
 typedef struct AhTexSize {
     /* 0x00 */ u16 w;
@@ -127,6 +132,7 @@ extern omObjData *D_8010DE5C_aces_high;
 extern omObjData *D_8010DE60_aces_high;
 extern omObjData *D_8010DE64_aces_high;
 extern omObjData **D_8010DE68_aces_high; /* the players */
+extern omObjData **D_8010DE70_aces_high[4]; /* each player's shots */
 extern omObjData *D_8010DE84_aces_high;
 extern s16 D_8010DE88_aces_high;
 extern s16 D_8010DE8A_aces_high;
@@ -1607,13 +1613,166 @@ void func_80109928_aces_high(omObjData *obj) {
     } while (done == 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80109EEC_aces_high);
+/* CPU: the live planes within fov degrees ahead (list), and the nearest of them. */
+s16 func_80109EEC_aces_high(omObjData *obj, f32 fov, omObjData **list, omObjData **nearest, f32 *nearDist) {
+    AhPlayer *work;
+    omObjData *other;
+    s16 n;
+    s32 i;
+    u16 st;
+    f32 dir;
+    f32 heading;
+    f32 dist;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A0F0_aces_high);
+    n = 0;
+    work = obj->data;
+    *list = NULL;
+    *nearDist = 1000000.0f;
+    *nearest = NULL;
+    for (i = 0; i < 4; i++) {
+        if (work->unk02 == i) {
+            continue;
+        }
+        other = D_8010DE68_aces_high[i];
+        st = ((AhPlayer *)other->data)->unk00;
+        if ((st == 6) | (st == 4)) {
+            continue;
+        }
+        if ((st == 5) | (st == 1)) {
+            continue;
+        }
+        dir = atan2df(other->trans.x - obj->trans.x, other->trans.z - obj->trans.z);
+        heading = obj->rot.y;
+        if (heading > 180.0f) {
+            heading -= 360.0f;
+        }
+        if (fabs(heading - dir) <= fov / 2.0f) {
+            list[n++] = other;
+            dist = HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
+                           (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
+                           (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z));
+            if (dist < *nearDist) {
+                *nearDist = dist;
+                *nearest = other;
+            }
+        }
+    }
+    return n;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A214_aces_high);
+/* CPU: distance to the nearest flying enemy shot. */
+f32 func_8010A0F0_aces_high(omObjData *obj) {
+    AhPlayer *work;
+    omObjData **shots;
+    omObjData *shot;
+    f32 best;
+    f32 dist;
+    s32 i;
+    s32 j;
 
+    work = obj->data;
+    best = 1e7f;
+    for (i = 0; i < 4; i++) {
+        if (i == work->unk02) {
+            continue;
+        }
+        shots = D_8010DE70_aces_high[i];
+        for (j = 0; j < 5; j++) {
+            shot = shots[j];
+            if (shot != NULL && ((AhShot *)shot->data)->unk00 == 1) {
+                dist = HuSqrtf((shot->trans.x - obj->trans.x) * (shot->trans.x - obj->trans.x) +
+                               (shot->trans.y - obj->trans.y) * (shot->trans.y - obj->trans.y) +
+                               (shot->trans.z - obj->trans.z) * (shot->trans.z - obj->trans.z));
+                if (dist < best) {
+                    best = dist;
+                }
+            }
+        }
+    }
+    return best;
+}
+
+/* CPU: when another plane is chasing this one, sometimes break off to a random point. */
+void func_8010A214_aces_high(omObjData *obj) {
+    AhPlayer *work;
+    s32 i;
+    f32 angle;
+    f32 r;
+
+    work = obj->data;
+    for (i = 0; i < 4; i++) {
+        if (((AhPlayer *)D_8010DE68_aces_high[i]->data)->unk98 == obj && work->unk92 != 4 && (u8)(rand8() % 10) < 5) {
+            work->unk98 = NULL;
+            angle = atan2df(obj->trans.x, obj->trans.z) - 180.0f;
+            if (angle < 0.0f) {
+                angle += 360.0f;
+            }
+            angle *= 10.0f;
+            angle += (f32)((rand8() * rand8()) % 900) - 450.0f;
+            angle /= 10.0f;
+            r = (f32)((rand8() * rand8()) % 2750) + 200.0f;
+            work->unk9C.x = sindf(angle) * r;
+            work->unk9C.z = cosdf(angle) * r;
+            work->unk9C.y = (f32)((rand8() * rand8()) % 1000) + -500.0f;
+            work->unk92 = 4;
+            work->unkB0 = (u8)(rand8() % 121) + 0x3C;
+        }
+    }
+}
+
+// register allocation only (masked 0): retail multiplies sindf(rot.y) * 300 into f0, here straight into f22
+#ifdef NON_MATCHING
+/* Player camera: behind the plane; zoom follows the speed. When shot down, look at the falling plane. */
+void func_8010A51C_aces_high(omObjData *obj) {
+    omObjData *plane;
+    AhPlayer *work;
+    f32 x;
+    f32 z;
+    f32 y;
+    f32 zoom;
+    f32 rx;
+
+    plane = (omObjData *)obj->work[1];
+    work = plane->data;
+    if (work->unk00 != 4 && work->unk00 != 5) {
+        rx = plane->rot.y - 180.0f;
+        CRotM[work->unk02].y = rx;
+        rx = plane->trans.y * 0.06f;
+        CRotM[work->unk02].x = rx;
+        x = sindf(plane->rot.y) * 300.0f + plane->trans.x;
+        z = cosdf(plane->rot.y) * 300.0f + plane->trans.z;
+        y = plane->trans.y + 100.0f;
+        CenterM[work->unk02].x = x;
+        CenterM[work->unk02].y = y;
+        CenterM[work->unk02].z = z;
+        if (work->unk08 > 27.777777f) {
+            zoom = (work->unk08 - 27.777777f) / 13.888887f * 150.0f + 1000.0f;
+        } else if (work->unk08 < 27.777777f) {
+            zoom = 1000.0f - (27.777777f - work->unk08) / 11.111111f * 150.0f;
+        } else {
+            zoom = 1000.0f;
+        }
+        CZoomM[work->unk02] = zoom;
+        return;
+    }
+    rx = plane->trans.y * 0.06f;
+    if (rx < -90.0f) {
+        rx = -90.0f;
+    }
+    CRotM[work->unk02].x = rx;
+    x = sindf(plane->rot.y) * 300.0f + plane->trans.x;
+    z = cosdf(plane->rot.y) * 300.0f + plane->trans.z;
+    y = plane->trans.y + 100.0f;
+    CenterM[work->unk02].x = x;
+    CenterM[work->unk02].y = y;
+    CenterM[work->unk02].z = z;
+    CZoomM[work->unk02] = HuSqrtf((obj->trans.x - plane->trans.x) * (obj->trans.x - plane->trans.x) +
+                                  (obj->trans.y - plane->trans.y) * (obj->trans.y - plane->trans.y) +
+                                  (obj->trans.z - plane->trans.z) * (obj->trans.z - plane->trans.z));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A51C_aces_high);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A884_aces_high);
 
