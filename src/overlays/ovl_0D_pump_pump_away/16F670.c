@@ -295,7 +295,7 @@ void func_8010CEE8_pump_pump_away(omObjData *obj);
 omObjData *func_80045EF4_main(u32 arg0, s16 arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
 
-s32 func_80110D28_pump_pump_away(void);
+void func_80110D28_pump_pump_away(void);
 void func_801059A0_pump_pump_away(void);
 Gfx **func_801059BC_pump_pump_away(Gfx **gfx);
 Gfx **func_80105AA0_pump_pump_away(Gfx **gfx);
@@ -394,6 +394,16 @@ extern s32 D_801116FC_pump_pump_away; /* phase timer */
 extern s32 D_80111118_pump_pump_away;
 void func_8010DD24_pump_pump_away(omObjData *obj);
 void func_8010FA20_pump_pump_away(omObjData *obj);
+/* A camera (D_8011111C_pump_pump_away; River Raiders' and Curtain Call's layout). */
+typedef struct PpCamera {
+    /* 0x00 */ f32 scissor[4];
+    /* 0x10 */ f32 viewport[6];
+    /* 0x28 */ f32 fov;
+} PpCamera; // Size 0x2C
+extern PpCamera D_8011111C_pump_pump_away[1];
+void func_80110BB8_pump_pump_away(void);
+s32 func_8000B710_main(s32 arg0);
+extern const s16 D_801116D8_pump_pump_away[];
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -2985,8 +2995,47 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110
 void func_80110BB0_pump_pump_away(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110BB8_pump_pump_away);
+void func_80110BB8_pump_pump_away(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110D28_pump_pump_away);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 1;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    func_8000B710_main(1);
+    for (i = 0; i < 1; i++) {
+        ScissorSet(i, D_8011111C_pump_pump_away[i].scissor[0], D_8011111C_pump_pump_away[i].scissor[1],
+                   D_8011111C_pump_pump_away[i].scissor[2], D_8011111C_pump_pump_away[i].scissor[3]);
+        ViewportSet(i, D_8011111C_pump_pump_away[i].viewport[0], D_8011111C_pump_pump_away[i].viewport[1],
+                    D_8011111C_pump_pump_away[i].viewport[2], D_8011111C_pump_pump_away[i].viewport[3],
+                    D_8011111C_pump_pump_away[i].viewport[4], D_8011111C_pump_pump_away[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8011111C_pump_pump_away[i].fov, 80.0f, 8000.0f);
+    }
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", D_801116D8_pump_pump_away);
+void func_80110D28_pump_pump_away(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(100);
+    omInitObjMan(100, 0);
+    func_8004A208_main();
+    func_80110BB8_pump_pump_away();
+    HmfLightMaxSet(1);
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(0, 0.0f, 90.0f, 560.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, 0.0f, 90.0f, 560.0f);
+    HmfLightColorSet(2, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(2, 0.0f, 90.0f, 560.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_801116D8_pump_pump_away, 0);
+    func_80045010_main(D_801116D8_pump_pump_away, 1);
+    omAddObj(1000, 0, 0, -1, func_80110B34_pump_pump_away);
+    omAddObj(1000, 0, 0, -1, func_801104F4_pump_pump_away);
+    func_80105C54_pump_pump_away();
+}
+
+const s16 D_801116D8_pump_pump_away[] = { 0x8260, 0x8261, 0x8262, 0 }; /* Shift-JIS fullwidth "ABC" */
