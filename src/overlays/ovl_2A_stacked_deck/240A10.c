@@ -132,6 +132,20 @@ void func_80106780_stacked_deck(omObjData *obj);
 void func_801069A0_stacked_deck(omObjData *obj);
 void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed);
 extern f32 D_800EB744_minigame;
+void func_8010D98C_stacked_deck(omObjData *obj);
+void func_8010DC2C_stacked_deck(omObjData *obj);
+s32 HmfSprModelCreate(void *, s32, u8);
+void func_800146DC_main(s16 index, s32 arg1, s32 arg2);
+void func_80014714_main(s16 index, u16 arg1);
+void func_80014794_main(s16 index, u8 arg1);
+void func_800147FC_main(s16 index, u8 arg1, u8 arg2, u8 arg3);
+
+/* An entry of D_800CBB60_main (minigame BD210.c's MgSprModel) */
+typedef struct SkSprModel {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ char unk02[0x22];
+} SkSprModel; /* size 0x24 */
+extern SkSprModel *D_800CBB60_main;
 void func_8010655C_stacked_deck(omObjData *obj);
 void func_8010669C_stacked_deck(omObjData *obj);
 void func_80106694_stacked_deck(omObjData *obj);
@@ -189,6 +203,8 @@ extern s16 D_8011114A_stacked_deck;
 extern s16 D_8011114C_stacked_deck;
 extern s16 D_8011114E_stacked_deck;
 extern s16 D_80111150_stacked_deck[12];
+extern s16 D_80110208_stacked_deck;
+extern s16 D_8011028C_stacked_deck;
 extern u8 D_80111169_stacked_deck;
 extern s16 D_8011116A_stacked_deck;
 extern s16 D_8011116C_stacked_deck;
@@ -2032,7 +2048,23 @@ void func_8010D8E8_stacked_deck(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010D98C_stacked_deck);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DAE4_stacked_deck);
+void func_8010DAE4_stacked_deck(omObjData *obj) {
+    void *data;
+    s32 spr;
+
+    data = DataRead(0xB);
+    spr = HmfSprModelCreate(data, 0x2A0, 8);
+    DataClose(data);
+    obj->model[0] = D_800CBB60_main[(u16)spr].unk00;
+    D_80110208_stacked_deck = spr;
+    func_800146DC_main(spr, 1, 1);
+    func_800147FC_main(D_80110208_stacked_deck, 200, 200, 200);
+    func_80014794_main(D_80110208_stacked_deck, 255);
+    func_80014714_main(D_80110208_stacked_deck, 14);
+    obj->scale.x = obj->scale.y = obj->scale.z = 10.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    obj->func = func_8010D98C_stacked_deck;
+}
 
 void func_8010DBF4_stacked_deck(void) {
     omAddObj(580, 1, 0, -1, func_8010DAE4_stacked_deck)->work[0] = 0;
@@ -2040,7 +2072,23 @@ void func_8010DBF4_stacked_deck(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DC2C_stacked_deck);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DDAC_stacked_deck);
+void func_8010DDAC_stacked_deck(omObjData *obj) {
+    void *data;
+    s32 spr;
+
+    data = DataRead(0x4B0001);
+    spr = HmfSprModelCreate(data, 0x2A0, 8);
+    DataClose(data);
+    obj->model[0] = D_800CBB60_main[(u16)spr].unk00;
+    D_8011028C_stacked_deck = spr;
+    func_800146DC_main(spr, 2, 0);
+    func_80014714_main(D_8011028C_stacked_deck, 0);
+    func_8001C92C_main(obj->model[0], 3.0f);
+    obj->scale.x = obj->scale.y = obj->scale.z = 5.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->func = func_8010DC2C_stacked_deck;
+}
 
 void func_8010DEBC_stacked_deck(void) {
     omAddObj(590, 1, 0, -1, func_8010DDAC_stacked_deck)->work[0] = 0;
