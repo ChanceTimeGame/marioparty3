@@ -31,7 +31,7 @@ typedef struct AhPlayer {
     /* 0x20 */ u16 unk20;
     /* 0x22 */ char unk22[2];
     /* 0x24 */ u16 unk24;
-    /* 0x26 */ u16 unk26;
+    /* 0x26 */ s16 unk26; /* lives */
     /* 0x28 */ s16 unk28[2]; /* esprites */
     /* 0x2C */ s16 unk2C;
     /* 0x2E */ s16 unk2E; /* esprite */
@@ -43,9 +43,10 @@ typedef struct AhPlayer {
     /* 0x3C */ f32 unk3C; /* roll */
     /* 0x40 */ f32 unk40;
     /* 0x44 */ f32 unk44;
-    /* 0x48 */ char unk48[4];
-    /* 0x4C */ u16 unk4C;
-    /* 0x4E */ char unk4E[4];
+    /* 0x48 */ f32 unk48; /* climb back step */
+    /* 0x4C */ u16 unk4C; /* engine model: 0 slow, 1 cruise, 2 fast, 3 none */
+    /* 0x4E */ u16 unk4E; /* timer */
+    /* 0x50 */ u16 unk50; /* hit flash timer */
     /* 0x52 */ u16 unk52;
     /* 0x54 */ u16 unk54;
     /* 0x56 */ u16 unk56;
@@ -69,7 +70,9 @@ typedef struct AhPlayer {
     /* 0x90 */ u16 unk90;
     /* 0x92 */ u16 unk92;
     /* 0x94 */ u16 unk94;
-    /* 0x96 */ char unk96[0x18];
+    /* 0x96 */ char unk96[2];
+    /* 0x98 */ s32 unk98;
+    /* 0x9C */ char unk9C[0x12];
     /* 0xAE */ u16 unkAE;
     /* 0xB0 */ char unkB0[0x10];
 } AhPlayer; /* size 0xC0 */
@@ -98,6 +101,8 @@ void func_800E6F0C_minigame(s8 arg0);
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
 extern u8 D_800D6A90_main;
+extern s8 D_800CBB6E_main[];
+extern s8 D_800D20A1_main[];
 
 extern D_80111B50_vine_with_me_Struct D_8010DB40_aces_high;
 extern f32 D_8010DB70_aces_high[4][4]; /* scissor per camera */
@@ -689,9 +694,10 @@ void func_801071D4_aces_high(omObjData *obj) {
         work->unk32 = 0;
     } else {
         s16 dir;
-        dir = 2;
         if (stickX < 0) {
             dir = 1;
+        } else {
+            dir = 2;
         }
         work->unk32 = dir;
     }
@@ -716,9 +722,233 @@ void func_801071D4_aces_high(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801071D4_aces_high);
 #endif
 
+// masked 0 apart from one instruction: retail copies mode to a0 (move a0,s2) before the mode == 3 test of the input select; the same operations otherwise
+#ifdef NON_MATCHING
+/* Main flight: hits taken, input (pad or CPU), steering, shots and the arena edge. */
+void func_80107654_aces_high(omObjData *obj) {
+    f32 shake[4] = { 10.0f, 0.0f, -10.0f, 0.0f };
+    s8 stickX;
+    s8 stickY;
+    u16 btn;
+    u16 btnHeld;
+    AhPlayer *work;
+    u32 hit;
+    s32 mode;
+    s32 t;
+    f32 target;
+    f32 speed;
+
+    work = obj->data;
+    hit = obj->unk10;
+    obj->unk10 = 0;
+    if (hit & 1) {
+        func_8004AC5C_main(0x3AF, work->unk02);
+        func_8000BB94_main(work->unk28[--work->unk26]);
+        if (work->unk26 == 0) {
+            work->unk00 = 4;
+            work->unk4E = 0x2D;
+            work->unk4C = 3;
+            work->unk58 = 0;
+            func_8010A884_aces_high(obj);
+            func_8001C258_main(obj->model[3], 4, 0);
+            func_8001C814_main(obj->model[3], 3, 2);
+            func_8001C6A8_main(obj->model[3], 0.0f);
+            Hu3DModelPosSet(obj->model[3], obj->trans.x, obj->trans.y, obj->trans.z);
+            D_8010DE8C_aces_high--;
+            work->unk98 = 0;
+            HuAudFXPlay(0x3B0);
+            obj->func = func_801081A8_aces_high;
+            omVibrate(work->unk02, 0x1E, 0, 0x1E);
+            func_8004ACE0_main(0x286, work->unk02);
+            return;
+        }
+        work->unk00 = 3;
+        work->unk50 = 0x1E;
+        omVibrate(work->unk02, 0x14, 0, 0x14);
+        func_8004ACE0_main(0x2AB, work->unk02);
+    }
+    if (hit & 2) {
+        work->unk56 = 1;
+        work->unk5C = 50.0f;
+        func_8001C258_main(obj->model[1], 4, 0);
+    }
+    if (hit & 4) {
+        work->unk74->work[0] = 0x2D;
+        work->unk74->work[1] = 6;
+        work->unk74->work[2] = 1;
+    }
+    func_8010843C_aces_high(obj);
+    mode = func_800E6E8C_minigame();
+    if (mode == 2 || mode == 3 || func_800E6E8C_minigame() == 4) {
+        if (((GwPlayer[work->unk02].stat & 1) | (t = (mode == 3))) || mode == 4) {
+            func_801088A4_aces_high(obj, &stickX, &stickY, &btn, &btnHeld);
+            if (mode == 3 || mode == 4) {
+                btnHeld = 0;
+                btn = 0;
+            }
+        } else {
+            s8 pad = GwPlayer[work->unk02].pad;
+            stickX = D_800CBB6E_main[pad];
+            stickY = D_800D20A1_main[pad];
+            btn = D_800D5558_main[pad];
+            btnHeld = D_800CDA7C_main[pad];
+        }
+    } else {
+        btnHeld = 0;
+        btn = 0;
+        stickY = 0;
+        stickX = 0;
+    }
+    if (stickX > 70) {
+        stickX = 70;
+    }
+    if (stickX < -70) {
+        stickX = -70;
+    }
+    if (stickY > 70) {
+        stickY = 70;
+    }
+    if (stickY < -70) {
+        stickY = -70;
+    }
+    target = (stickY / 70.0f) * 30.0f;
+    if (target < work->unk38) {
+        if (target - work->unk38 < -10.0f) {
+            work->unk38 -= 10.0f;
+            work->unk7C = -10.0f;
+        } else {
+            work->unk38 = target;
+            work->unk7C = target;
+        }
+    } else if (target - work->unk38 > 10.0f) {
+        work->unk38 += 10.0f;
+        work->unk7C = 10.0f;
+    } else {
+        work->unk38 = target;
+        work->unk7C = target;
+    }
+    target = (stickX / 70.0f) * 60.0f;
+    if (target < work->unk3C) {
+        if (target - work->unk3C < -10.0f) {
+            work->unk3C -= 10.0f;
+            work->unk80 = -10.0f;
+        } else {
+            work->unk3C = target;
+            work->unk80 = target;
+        }
+    } else if (target - work->unk3C > 10.0f) {
+        work->unk3C += 10.0f;
+        work->unk80 = 10.0f;
+    } else {
+        work->unk3C = target;
+        work->unk80 = target;
+    }
+    work->unk84 = work->unk80 / 30.0f;
+    if (btnHeld & 0x4000) {
+        speed = 16.666666f;
+        work->unk4C = 0;
+    } else if (btnHeld & 0x8000) {
+        speed = 41.666664f;
+        work->unk4C = 2;
+    } else {
+        speed = 27.777777f;
+        work->unk4C = 1;
+    }
+    if (speed < work->unk08) {
+        work->unk08 -= 2.0f;
+        if (work->unk08 < speed) {
+            work->unk08 = speed;
+        }
+    } else if (work->unk08 < speed) {
+        work->unk08 += 2.0f;
+        if (speed < work->unk08) {
+            work->unk08 = speed;
+        }
+    }
+    if (stickX == 0) {
+        work->unk32 = 0;
+    } else {
+        s16 dir;
+        if (stickX < 0) {
+            dir = 1;
+        } else {
+            dir = 2;
+        }
+        work->unk32 = dir;
+    }
+    obj->rot.y -= work->unk3C / 30.0f;
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    if (obj->rot.y < 0.0f) {
+        obj->rot.y += 360.0f;
+    }
+    work->unk14 = -sindf(work->unk38);
+    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    obj->trans.x += work->unk10 * work->unk08;
+    obj->trans.y += work->unk14 * work->unk08;
+    obj->trans.z += work->unk18 * work->unk08;
+    if (obj->trans.y < -500.0f) {
+        obj->trans.y = -500.0f;
+    }
+    if (obj->trans.y > 500.0f) {
+        obj->trans.y = 500.0f;
+    }
+    work->unk44 = 0.0f;
+    if (work->unk00 == 3) {
+        if (work->unk50 == 0) {
+            work->unk90 = 1;
+            work->unk00 = 0;
+        } else {
+            if (--work->unk50 & 1) {
+                work->unk90 = 0;
+            } else {
+                work->unk90 = 1;
+            }
+            work->unk44 = shake[work->unk50 & 3];
+        }
+    }
+    func_8010862C_aces_high(obj);
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+    if (btnHeld & 0x2000) {
+        if (work->unk54 == 1) {
+            work->unk52++;
+            if (work->unk52 >= 0x1E) {
+                work->unk58 ^= 1;
+            }
+        }
+    } else {
+        if (work->unk52 >= 0x1E && work->unk54 == 1) {
+            func_8010BF3C_aces_high(obj);
+            func_8004AC5C_main(0x3B2, work->unk02);
+        }
+        work->unk52 = 0;
+        work->unk58 = 0;
+    }
+    if (work->unk20 == 0) {
+        if ((btn & 0x2000) && work->unk24 != 0) {
+            func_8010B9F4_aces_high(obj);
+            func_8004AC5C_main(0x3AD, work->unk02);
+        }
+    } else {
+        work->unk20--;
+    }
+    if (HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) >= 3950.0f) {
+        work->unk00 = 1;
+        work->unk48 = (500.0f - obj->trans.y) / 45.0f;
+        work->unk4E = 0x2D;
+        work->unk52 = 0;
+        work->unk92 = 0;
+        obj->func = func_80107F98_aces_high;
+    }
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DD48_aces_high);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80107654_aces_high);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80107F98_aces_high);
 
