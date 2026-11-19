@@ -452,6 +452,7 @@ extern f32 D_8011103C_pump_pump_away[]; /* heights of the D_80111710_pump_pump_a
 extern s32 D_80111970_pump_pump_away; /* next D_8011103C_pump_pump_away slot */
 extern f32 D_8011109C_pump_pump_away[]; /* heights of the D_801119E8_pump_pump_away models */
 extern s32 D_801133F8_pump_pump_away; /* next D_8011109C_pump_pump_away slot */
+extern u8 D_801116E8_pump_pump_away; /* the marker motion bank */
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -2932,7 +2933,46 @@ void func_8010DC68_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010DD24_pump_pump_away);
+void func_8010DD24_pump_pump_away(omObjData *obj) {
+    void *data;
+    PpMarker *m;
+    s32 i;
+
+    if (obj->work[0] == 0) {
+        D_801116EA_pump_pump_away = obj->model[0] = func_8000B108_main(0xA0089, 0x289);
+        obj->model[1] = func_8000B108_main(0x2E0020, 0x289);
+        data = DataRead(0x2E0021);
+        obj->work[1] = D_801116E8_pump_pump_away = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, "m213_plart2_DEF");
+        obj->work[2] = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_801116E8_pump_pump_away, 0, "m213_plart1_DEF");
+        obj->work[3] = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_801116E8_pump_pump_away, 0, "m213_plart0_DEF");
+        HuMemMemoryFreePerm(data);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801116EA_pump_pump_away);
+        obj->model[1] = func_8000B108_main(0x2E0020, 0x289);
+        obj->work[1] = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_801116E8_pump_pump_away, 0, "m213_plart2_DEF");
+        obj->work[2] = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_801116E8_pump_pump_away, 0, "m213_plart1_DEF");
+        obj->work[3] = func_80032694_main(HmfModelData[obj->model[1]].hmf, D_801116E8_pump_pump_away, 0, "m213_plart0_DEF");
+    }
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    for (i = 1; i < 4; i++) {
+        func_80034048_main(obj->work[i], 0);
+        func_80032FC0_main(obj->work[i], 1, 1);
+    }
+    func_8001C814_main(obj->model[0], 2, 2);
+    obj->trans.x = 43.5f;
+    obj->trans.y = 1000.0f;
+    obj->trans.z = -17.5f;
+    obj->rot.y = 345.0f;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, obj->rot.y, 0.0f);
+    obj->func = func_8010DC68_pump_pump_away;
+    m = &D_80113418_pump_pump_away[obj->work[0]];
+    m->state = 0;
+    m->n = 0;
+    m->angle = 0;
+    m->stop = 0;
+}
 
 void func_8010E098_pump_pump_away(void) {
     s32 i;
