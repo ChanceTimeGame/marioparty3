@@ -8,6 +8,28 @@
 #include "mallocblock.h"
 #include "math.h"
 
+#define BT_WRAP(v)             \
+    if ((v) >= 360.0) {        \
+        (v) -= 360.0;          \
+    } else if ((v) < 0.0) {    \
+        (v) += 360.0;          \
+    }
+
+typedef struct RGBA {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} RGBA;
+
+f32 func_8010D5DC_bowser_toss(f32 a, f32 b);
+f32 func_8010D8A0_bowser_toss(f32 t, f32 a, f32 b);
+f32 func_8010D8B8_bowser_toss(f32 t, f32 a, f32 b);
+u16 func_8010AD54_bowser_toss(s32 dirAndFile);
+s32 func_8010EA0C_bowser_toss(HuSprite_Unk84_Struct* arg0, u16 arg1, RGBA* arg2);
+void func_8010EC10_bowser_toss(u16 modelId, HuSprite_Unk84_Struct* arg1, u16 arg2, RGBA* arg3);
+s32 func_8010ED44_bowser_toss(HuSprite_Unk84_Struct* arg0, HmfData* arg1, f32 arg2, u16 arg3, u16 arg4);
+
 // m7 bw: Bowser Toss (1 vs 1 x 2: spin and throw Bowser; two players on split screens)
 
 /* A player's work (D_8010FB74_bowser_toss, 2 x 0x5C; packed into obj->work). */
@@ -94,6 +116,9 @@ typedef union BtPack {
 
 f32 fabsf(f32);
 f64 fabs(f64);
+f64 fmod(f64, f64);
+extern s16 D_800CDD6A_main;
+extern u8 D_800D2008_main;
 omObjData* func_80045F1C_main(u32, s16, s16);
 u16 GWMgRecordGet(s16 arg0);
 s32 func_8000B710_main(s32 arg0);
@@ -1142,7 +1167,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A500
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010A908_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AD54_bowser_toss);
+u16 func_8010AD54_bowser_toss(s32 dirAndFile) {
+    void *data = DataRead(dirAndFile);
+    s16 id = func_80055810_main(data);
+
+    DataClose(data);
+    return id;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AD98_bowser_toss);
 
@@ -1174,30 +1205,219 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D250
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D43C_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D5DC_bowser_toss);
+f32 func_8010D5DC_bowser_toss(f32 a, f32 b) {
+    f32 d;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D6E0_bowser_toss);
+    if (a >= 360.0f) {
+        a -= 360.0f;
+    } else if (a < 0.0f) {
+        a += 360.0f;
+    }
+    if (b >= 360.0f) {
+        b -= 360.0f;
+    } else if (b < 0.0f) {
+        b += 360.0f;
+    }
+    d = a - b;
+    if (d <= -180.0f) {
+        d += 360.0f;
+    } else if (d >= 180.0f) {
+        d -= 360.0f;
+    }
+    return d;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D8A0_bowser_toss);
+f32 func_8010D6E0_bowser_toss(f32 target, f32 cur, f32 step) {
+    f32 d;
+    f32 v;
+    f64 e;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D8B8_bowser_toss);
+    BT_WRAP(target);
+    BT_WRAP(cur);
+    d = fmod(target - cur + 360.0, 360.0);
+    if (d < 180.0) {
+        if (d <= step) {
+            v = d;
+        } else {
+            v = step;
+        }
+    } else {
+        e = 360.0 - d;
+        if (e <= step) {
+            v = -e;
+        } else {
+            v = -step;
+        }
+    }
+    v += cur;
+    BT_WRAP(v);
+    return v;
+}
+
+f32 func_8010D8A0_bowser_toss(f32 t, f32 a, f32 b) {
+    return a + t * (b - a);
+}
+
+f32 func_8010D8B8_bowser_toss(f32 t, f32 a, f32 b) {
+    return func_8010D6E0_bowser_toss(b, a, fabsf(func_8010D5DC_bowser_toss(b, a) * t));
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D918_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D960_bowser_toss);
+void func_8010D960_bowser_toss(omObjData *obj, u32 value) {
+    obj->work[0] = value >> 24;
+    obj->work[1] = (value >> 16) & 0xFF;
+    obj->work[2] = (value >> 8) & 0xFF;
+    obj->work[3] = value & 0xFF;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D98C_bowser_toss);
+void *func_8010D98C_bowser_toss(omObjData *obj) {
+    BtPack u;
+
+    u.b.a = obj->work[0];
+    u.b.b = obj->work[1];
+    u.b.c = obj->work[2];
+    u.b.d = obj->work[3];
+    return u.p;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D9E0_bowser_toss);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010DB9C_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010DDC4_bowser_toss);
+void func_8010DDC4_bowser_toss(unk1EA70StructC* arg0) {
+    HuMemFree(arg0->unk_08);
+    HuMemFree(arg0->unk_04);
+    HuMemFree(arg0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010DDFC_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010EA0C_bowser_toss);
+s32 func_8010EA0C_bowser_toss(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2) {
+    HmfModel *model = &HmfModelData[arg1];
+    HmfData *src = model->hmf;
+    HmfData *temp_s1;
+    Gfx *temp_v0_2;
+    s32 temp_v0;
+    s32 var_s2;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010EC10_bowser_toss);
+    temp_v0 = func_8001A894_main(model->unk18, NULL, 4);
+    temp_s1 = HmfModelData[temp_v0].hmf;
+    temp_s1->unk60->unk50 = src->unk60->unk50;
+    HuMemFree(temp_s1->unk3C);
+    temp_s1->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    temp_s1->unk3C->unk10 = src->unk3C->unk10;
+    temp_s1->unk3C->unk14 = src->unk3C->unk14;
+    for (var_s2 = 0; var_s2 < D_800D1FF0_main; var_s2++) {
+        temp_v0_2 = temp_s1->unk3C->unk00[var_s2 + 1] = HuMemAllocTag(0x100, temp_s1->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg2->r, arg2->g, arg2->b, arg2->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s1->unk3C->unk00[0] = temp_s1->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010ED44_bowser_toss);
+void func_8010EC10_bowser_toss(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3) {
+    HmfModel *model = &HmfModelData[modelId];
+    HmfData *temp_s3 = model->hmf;
+    HmfModelData_Unk64_Unk3C_Struct *temp_v1 = temp_s3->unk3C;
+    Gfx *temp_s0 = temp_v1->unk00[D_800D2008_main + 1];
+
+    temp_v1->unk00[0] = temp_s0;
+    gDPPipeSync(&temp_s0[0]);
+    gSPSegment(&temp_s0[1], 0x02, osVirtualToPhysical(arg1->unk00[arg2].unk00));
+    gSPDisplayList(&temp_s0[2], osVirtualToPhysical(temp_s3->unk3C->unk10));
+    gDPSetPrimColor(&temp_s0[3], 0, 0, arg3->r, arg3->g, arg3->b, arg3->a);
+    gDPPipeSync(&temp_s0[4]);
+    gSPDisplayList(&temp_s0[5], osVirtualToPhysical(temp_s3->unk3C->unk14));
+    gDPPipeSync(&temp_s0[6]);
+    gSPEndDisplayList(&temp_s0[7]);
+}
+
+s32 func_8010ED44_bowser_toss(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4) {
+    Vtx *temp_s7;
+    Vtx *var_s1;
+    Vtx_t *var_t0;
+    Vtx_t *var_a3;
+    s32 var_a2;
+    s32 temp_s4;
+    s32 temp_a1;
+    s32 sp24;
+    s32 temp_f2;
+    s32 var_s0;
+    s32 var_s2;
+    s32 sp2C;
+    s32 temp_lo;
+    s32 temp_s3;
+    s32 var_s0_2;
+    s32 var_a2_2;
+
+    if (arg0->unk1A >= 2) {
+        var_a2 = 0x800;
+    } else {
+        var_a2 = 0x1000;
+    }
+    temp_s4 = arg0->unk00->unk04;
+    temp_a1 = arg0->unk00->unk06;
+    sp24 = temp_s4 * 100.0 * arg2 / 32.0;
+    temp_f2 = temp_a1 * 100.0 * arg2 / 32.0;
+    if ((arg0->unk18 & 0xFFF) == 4) {
+        var_s0 = ((temp_s4 + 1) & 0xFFFE) * temp_a1 * 4;
+    } else {
+        var_s0 = temp_s4 * temp_a1 * arg0->unk18;
+    }
+    var_s0 = (var_s0 < 0) ? (var_s0 + 7) : var_s0;
+    var_s0 >>= 3;
+    var_s2 = var_s0 / var_a2;
+    if (var_s2 <= 0) {
+        var_s2 = 1;
+    }
+    sp2C = temp_a1 / var_s2;
+    temp_lo = temp_f2 / var_s2;
+    temp_s3 = var_s2 * 4;
+    temp_s7 = var_s1 = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+    memset(temp_s7, 0, temp_s3 * sizeof(Vtx));
+    for (var_s0_2 = 0; var_s0_2 < var_s2; var_s0_2++, var_s1 += 4) {
+        var_s1[0].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[0].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[0].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[0].v.tc[1] = 0;
+        var_s1[1].v.ob[0] = (s32)(sp24 * 0.5);
+        var_s1[1].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[1].v.tc[0] = (temp_s4 - 1) * 64;
+        var_s1[1].v.tc[1] = (sp2C - 1) * 64;
+        var_s1[2].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[2].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * var_s0_2);
+        var_s1[2].v.tc[0] = 0;
+        var_s1[2].v.tc[1] = 0;
+        var_s1[3].v.ob[0] = (s32) - (sp24 * 0.5);
+        var_s1[3].v.ob[1] = (s32)(temp_f2 * 0.5 - temp_lo * (var_s0_2 + 1));
+        var_s1[3].v.tc[0] = 0;
+        var_s1[3].v.tc[1] = (sp2C - 1) * 64;
+        for (var_a2_2 = 0; var_a2_2 < 4; var_a2_2++) {
+            var_s1[var_a2_2].v.ob[0] += arg3;
+            var_s1[var_a2_2].v.ob[1] += arg4;
+            var_s1[var_a2_2].v.ob[2] = 0;
+            var_s1[var_a2_2].v.flag = 0;
+            var_s1[var_a2_2].v.cn[3] = 0xFF;
+            var_s1[var_a2_2].v.cn[0] = var_s1[var_a2_2].v.cn[1] = var_s1[var_a2_2].v.cn[2] = 0;
+        }
+    }
+    var_s1 = temp_s7;
+    for (var_s0_2 = 0; var_s0_2 < D_800D1FF0_main; var_s0_2++) {
+        arg1->unk44[var_s0_2] = HuMemAllocTag(temp_s3 * sizeof(Vtx), arg1->unk0E);
+        var_t0 = &arg1->unk44[var_s0_2]->v;
+        var_a3 = &var_s1->v;
+        for (var_a2_2 = 0; var_a2_2 < temp_s3; var_a2_2++) {
+            *(var_t0++) = *(var_a3++);
+        }
+    }
+    HuMemFree(temp_s7);
+    return var_s2;
+}
