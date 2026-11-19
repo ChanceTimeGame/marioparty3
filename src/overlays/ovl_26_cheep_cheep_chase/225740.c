@@ -1734,7 +1734,52 @@ void func_8010B148_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B33C_cheep_cheep_chase);
+void func_8010B33C_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.f32[0] = 0.0f;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (player->unk08 == 0) {
+                break;
+            }
+            ctx->work.f32[0] += 3.6f;
+            if (ctx->work.f32[0] >= 180.0f) {
+                ctx->work.s8[0] = 0;
+                ctx->work.s8[1] = 0;
+                ctx->work.f32[0] = 0.0f;
+                player->unk08 = 0;
+            }
+            object->trans.y = player->unk04 + 60.0 - sindf(ctx->work.f32[0]) * 150.0;
+            switch (ctx->work.s8[1]) {
+                case 0:
+                    if (func_8010DF48_cheep_cheep_chase(&object->rot.x, (u8 *)&ctx->work.s8[0], 0.0f, 45.0f, 8.0f)) {
+                        ctx->work.s8[1] = 1;
+                    }
+                    break;
+                case 1:
+                    if (func_8010DF48_cheep_cheep_chase(&object->rot.x, (u8 *)&ctx->work.s8[0], 45.0f, -45.0f, 24.0f)) {
+                        ctx->work.s8[1] = 2;
+                    }
+                    break;
+                case 2:
+                    if (func_8010DF48_cheep_cheep_chase(&object->rot.x, (u8 *)&ctx->work.s8[0], -45.0f, 0.0f, 17.0f)) {
+                        ctx->work.s8[1] = 3;
+                    }
+                    break;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 void func_8010B52C_cheep_cheep_chase(CxFuncContext *ctx) {
     HmfModel *model = &HmfModelData[ctx->param];
