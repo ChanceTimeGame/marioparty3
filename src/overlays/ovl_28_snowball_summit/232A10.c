@@ -214,7 +214,11 @@ void func_8010B01C_snowball_summit(omObjData *obj);
 void func_8010B158_snowball_summit(omObjData *obj);
 s32 func_8010B994_snowball_summit(omObjData *obj);
 void func_8010B8E4_snowball_summit(void);
+void func_8010B34C_snowball_summit(omObjData *obj);
 void func_8010BC7C_snowball_summit(omObjData *obj);
+s32 func_8010C36C_snowball_summit(void);
+void func_8010C3E4_snowball_summit(s32 player);
+void func_8010C328_snowball_summit(omObjData *obj);
 void func_8010BE8C_snowball_summit(void);
 void func_8010C000_snowball_summit(omObjData *obj);
 void func_8010C10C_snowball_summit(void);
@@ -1547,9 +1551,49 @@ void func_8010B250_snowball_summit(omObjData *obj) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B34C_snowball_summit);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B8E4_snowball_summit);
+void func_8010B8E4_snowball_summit(void) {
+    omObjData *obj;
+    s32 player;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B994_snowball_summit);
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(300, 9, 60, -1, func_8010B34C_snowball_summit);
+        switch (i) {
+            case 0:
+                player = 0;
+                break;
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            default:
+                player = 0;
+                break;
+        }
+        obj->work[0] = player;
+    }
+}
+
+/* Takes a free snowball for obj's player; -1 if none. */
+s32 func_8010B994_snowball_summit(omObjData *obj) {
+    SsBall *ball;
+    s32 i;
+
+    for (i = 0; i < 16; i++) {
+        ball = &D_8010FC30_snowball_summit[i];
+        if (ball->state == 0) {
+            ball->state = 1;
+            ball->owner = obj->work[0];
+            return i;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B9E4_snowball_summit);
 
@@ -1607,11 +1651,55 @@ void func_8010C328_snowball_summit(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C36C_snowball_summit);
+/* The last player standing, or -1. */
+s32 func_8010C36C_snowball_summit(void) {
+    SsPlayer *p;
+    s32 i;
+    s32 count;
+    s32 last;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C3E4_snowball_summit);
+    i = 0;
+    count = 0;
+    last = -1;
+    p = D_8010F9B8_snowball_summit;
+    for (; i < 4; i++) {
+        if (p[i].state >= 0 && p[i].state < 90) {
+            count++;
+            last = i;
+        }
+    }
+    if (count == 1) {
+        D_80110044_snowball_summit = 1;
+        return last;
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C46C_snowball_summit);
+void func_8010C3E4_snowball_summit(s32 player) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[player];
+
+    GwPlayer[pl->obj->work[0]].bonusCoin = 10;
+    GMesCreate(0x16, GwPlayer[pl->obj->work[0]].chr);
+    HuAudSeqPlay(0x65);
+}
+
+void func_8010C46C_snowball_summit(omObjData *obj) {
+    s32 winner;
+
+    if (D_8010F88C_snowball_summit > 0) {
+        D_8010F88C_snowball_summit--;
+        return;
+    }
+    winner = func_8010C36C_snowball_summit();
+    if (winner == -1) {
+        GMesCreate(0x20);
+        HuAudSeqPlay(0x6C);
+        D_8010F88C_snowball_summit = 144;
+    } else {
+        func_8010C3E4_snowball_summit(winner);
+    }
+    obj->func = func_8010C328_snowball_summit;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C4F4_snowball_summit);
 
@@ -1629,7 +1717,23 @@ void func_8010C600_snowball_summit(omObjData *obj) {
     obj->func = func_8010C5C0_snowball_summit;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C648_snowball_summit);
+/* 1 when one player is left, -1 when none, else 0. */
+s32 func_8010C648_snowball_summit(void) {
+    SsPlayer *p;
+    s32 i;
+    s32 count;
+
+    i = 0;
+    count = 0;
+    p = D_8010F9B8_snowball_summit;
+    for (; i < 4; i++) {
+        count += p[i].state >= 0 && p[i].state < 90;
+    }
+    if (count == 1) {
+        return 1;
+    }
+    return -(count == 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C6A8_snowball_summit);
 
