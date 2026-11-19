@@ -226,6 +226,7 @@ void func_8010D8E8_marios_puzzle_party(void);
 void func_8010D9AC_marios_puzzle_party(void);
 void func_8010DB98_marios_puzzle_party(void);
 void func_8010E12C_marios_puzzle_party(void);
+u16 GWMgRecordGet(s16 arg0);
 void func_8010E868_marios_puzzle_party(s16 grp, s32 t);
 void func_8010EAA0_marios_puzzle_party(void);
 void func_8010ECD8_marios_puzzle_party(void);
@@ -2872,7 +2873,109 @@ void func_8010DB98_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010DB98_marios_puzzle_party);
 #endif
 
+#ifdef NON_MATCHING
+/* Record panel: the saved record (four digits, leading zeros hidden), replaced by player 0's score
+   with a pulse when the game ends on a new record. */
+void func_8010E12C_marios_puzzle_party(void) {
+    s32 grp;
+    s32 rec;
+    s32 div;
+    s32 digit;
+    s32 shown;
+    s32 i;
+    s32 w;
+    f32 a;
+    s32 unused[8];
+
+    grp = HuSprGrpCreate(6, 5);
+    func_80055024_main(grp, 0, D_801160A0_marios_puzzle_party, 0);
+    HuSprAttrReset(grp, 0, 0xFFFF);
+    HuSprAttrSet(grp, 0, 0x8000);
+    func_800554C4_main(grp, 0, -1);
+    HuSprPriSet(grp, 0, 0x100);
+    rec = GWMgRecordGet(8);
+    for (i = 1, div = 1000, shown = 0; i < 5; i++, div /= 10) {
+        digit = rec / div % 10;
+        func_80055024_main(grp, i, D_801160A0_marios_puzzle_party, digit);
+        func_800550F4_main(grp, i, 1);
+        HuSprAttrReset(grp, i, 0xFFFF);
+        HuSprAttrSet(grp, i, 8);
+        if (shown == 0) {
+            if (digit == 0 && i != 4) {
+                HuSprAttrSet(grp, i, 0x8000);
+            } else {
+                shown = 1;
+            }
+        }
+        HuSprPriSet(grp, i, 0x100);
+        func_800554C4_main(grp, i, 0);
+    }
+    for (i = 4, div = 1000; i >= 2; i--, div /= 10) {
+        if (rec / div != 0) {
+            break;
+        }
+    }
+    w = i * 12 + 10;
+    for (i = 1; i < 5; i++) {
+        func_80054904_main(grp, i, (i * 12 - 58) + (w >> 1), 0);
+    }
+    func_80054904_main(grp, 5, ((w >> 1) + 65) - 58, 0);
+    func_80054904_main(grp, 0, 90 - (w >> 1), 30);
+    func_80055024_main(grp, 5, D_801160A4_marios_puzzle_party, 0);
+    func_800550F4_main(grp, 5, 0);
+    HuSprAttrReset(grp, 5, 0xFFFF);
+    HuSprAttrSet(grp, 5, 8);
+    HuSprPriSet(grp, 5, 0x100);
+    func_800554C4_main(grp, 5, 0);
+    while ((u8)D_80110140_marios_puzzle_party.unk00 != 4) {
+        HuPrcVSleep();
+    }
+    if (D_801160E4_marios_puzzle_party != -1 && rec < D_80116128_marios_puzzle_party[0]) {
+        rec = D_80116128_marios_puzzle_party[0];
+        for (i = 1, div = 1000, shown = 0; i < 5; i++, div /= 10) {
+            digit = rec / div % 10;
+            func_80055024_main(grp, i, D_801160A0_marios_puzzle_party, digit);
+            func_800550F4_main(grp, i, 1);
+            HuSprAttrReset(grp, i, 0xFFFF);
+            HuSprAttrSet(grp, i, 8);
+            if (shown == 0) {
+                if (digit == 0 && i != 4) {
+                    HuSprAttrSet(grp, i, 0x8000);
+                } else {
+                    shown = 1;
+                }
+            }
+            HuSprPriSet(grp, i, 0x100);
+            func_800554C4_main(grp, i, 0);
+        }
+        for (i = 4, div = 1000; i >= 2; i--, div /= 10) {
+            if (rec / div != 0) {
+                break;
+            }
+        }
+        w = i * 12 + 10;
+        for (i = 1; i < 5; i++) {
+            func_80054904_main(grp, i, (i * 12 - 58) + (w >> 1), 0);
+        }
+        func_80054904_main(grp, 5, ((w >> 1) + 65) - 58, 0);
+        func_80054904_main(grp, 0, 90 - (w >> 1), 30);
+        for (a = 0.0f; a < 180.0f; a += 9.0f) {
+            for (i = 0; i < 6; i++) {
+                HuSprScaleSet(grp, i, sindf(a) + 1.0f, sindf(a) + 1.0f);
+            }
+            HuPrcVSleep();
+        }
+        for (i = 0; i < 6; i++) {
+            HuSprScaleSet(grp, i, 1.0f, 1.0f);
+        }
+    }
+    while (TRUE) {
+        HuPrcVSleep();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010E12C_marios_puzzle_party);
+#endif
 
 #ifdef NON_MATCHING
 /* Show a time in frames as m'ss"cc on the clock group (members 1-7; 2 and 5 are the separators). */
