@@ -1,6 +1,7 @@
 #include "common.h"
 #include "overlays/minigame.h"
 #include "game/audio.h"
+#include "game/esprite.h"
 #include "game/camera.h"
 #include "game/gamemes.h"
 #include "game/hmflight.h"
@@ -114,6 +115,7 @@ extern void* D_8010F528_thwomp_pull;
 extern s16 D_8010F530_thwomp_pull; /* game state */
 extern s32 D_8010F53C_thwomp_pull;
 extern f32 D_8010F540_thwomp_pull[4];
+extern s16 D_8010F550_thwomp_pull[10]; /* sprite groups */
 extern u8 D_8010F564_thwomp_pull[2];
 extern s8 D_8010F566_thwomp_pull;
 extern omObjData* D_8010F52C_thwomp_pull;
@@ -121,6 +123,7 @@ extern omObjData* D_8010F568_thwomp_pull[2]; /* inner label D_8010F56C */
 extern u16 D_8010F570_thwomp_pull;
 extern f32 D_8010F578_thwomp_pull[4];
 extern f32 D_8010F588_thwomp_pull;
+extern s16 D_8010F590_thwomp_pull[10]; /* esprites; inner labels D_8010F592/594 */
 extern s32 D_8010F5A4_thwomp_pull;
 extern u8 D_8010F5A8_thwomp_pull;
 extern void* D_8010F5AC_thwomp_pull[2]; /* motions of the Thwomp's model; inner label D_8010F5B0 */
@@ -134,12 +137,18 @@ void func_8010974C_thwomp_pull(omObjData* object);
 void func_80109780_thwomp_pull(omObjData* object);
 void func_801097AC_thwomp_pull(omObjData* object, s8 team);
 void func_80105F14_thwomp_pull(omObjData* object);
+void func_80106E78_thwomp_pull(omObjData* object);
 void func_801089B4_thwomp_pull(Gfx** gfx, s32 arg1, s32 arg2);
 void func_8010AF18_thwomp_pull(s16 model, s16 frame);
 void func_8010AF88_thwomp_pull(omObjData* object);
 
 #define TP_DEC(x) ((x) = ((x) != 0) ? (x) - 1 : 0)
 #define TP_INC(x) ((x) = ((x) != 0) ? (x) + 1 : 0)
+
+const s16 D_8010EFD0_thwomp_pull[] = {
+    0x8260, 0x8261, 0x8262, 0x8263, 0x8264, 0x8265, 0x8266, 0x8267, 0x8268, 0x8269, 0x826A, 0x826B, 0x826C, 0x826D,
+    0x826E, 0x826F, 0x8270, 0x8271, 0x8272, 0x8273, 0x8274, 0x8275, 0x8276, 0x8277, 0x8278, 0x8279, 0x0000, 0x0000,
+};
 
 void func_801059A0_thwomp_pull(void) {
     omObjData* obj;
@@ -236,11 +245,6 @@ void func_80105D3C_thwomp_pull(omObjData* object) {
     object->func = func_80105F14_thwomp_pull;
 }
 
-const s16 D_8010EFD0_thwomp_pull[] = {
-    0x8260, 0x8261, 0x8262, 0x8263, 0x8264, 0x8265, 0x8266, 0x8267, 0x8268, 0x8269, 0x826A, 0x826B, 0x826C, 0x826D,
-    0x826E, 0x826F, 0x8270, 0x8271, 0x8272, 0x8273, 0x8274, 0x8275, 0x8276, 0x8277, 0x8278, 0x8279, 0x0000, 0x0000,
-};
-
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F008_thwomp_pull);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F018_thwomp_pull);
@@ -249,9 +253,17 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F028
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80105F14_thwomp_pull);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80106D5C_thwomp_pull);
+void func_80106D5C_thwomp_pull(omObjData* object) {
+    s32 files[10] = { 0x29001F, 0x290020, 0x210008, 0x210009, 0x21000A, 0x21000B, 0x21000C, 0x21000D, 0x21000E, 0x21000F };
+    s16 i;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F080_thwomp_pull);
+    for (i = 0; i < 10; i++) {
+        D_8010F550_thwomp_pull[i] = func_8000B838_main(files[i]);
+        D_8010F590_thwomp_pull[i] = InitEspriteSlot(D_8010F550_thwomp_pull[i], 0, 0);
+        func_8000BB94_main(D_8010F590_thwomp_pull[i]);
+    }
+    object->func = func_80106E78_thwomp_pull;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80106E78_thwomp_pull);
 
