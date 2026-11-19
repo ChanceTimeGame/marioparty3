@@ -109,18 +109,22 @@ extern f32 D_8010EF70_thwomp_pull[24];
 extern TpPlayer D_8010F4B8_thwomp_pull[4];
 extern TpPlayer* D_8010F4F8_thwomp_pull[4]; /* by slot; inner labels D_8010F4FC/500/504 */
 extern f32 D_8010F510_thwomp_pull[4];
-extern f32 D_8010F520_thwomp_pull[2];
+extern f32 D_8010F520_thwomp_pull[2]; /* func_80105D3C_thwomp_pull clears [0..3] */
 extern void* D_8010F528_thwomp_pull;
-extern s16 D_8010F530_thwomp_pull;
+extern s16 D_8010F530_thwomp_pull; /* game state */
+extern s32 D_8010F53C_thwomp_pull;
 extern f32 D_8010F540_thwomp_pull[4];
 extern u8 D_8010F564_thwomp_pull[2];
 extern s8 D_8010F566_thwomp_pull;
 extern omObjData* D_8010F52C_thwomp_pull;
 extern omObjData* D_8010F568_thwomp_pull[2]; /* inner label D_8010F56C */
+extern u16 D_8010F570_thwomp_pull;
 extern f32 D_8010F578_thwomp_pull[4];
 extern f32 D_8010F588_thwomp_pull;
 extern s32 D_8010F5A4_thwomp_pull;
+extern u8 D_8010F5A8_thwomp_pull;
 extern void* D_8010F5AC_thwomp_pull[2]; /* motions of the Thwomp's model; inner label D_8010F5B0 */
+extern u8 D_8010F5B4_thwomp_pull[4]; /* slot by player */
 
 extern const s16 D_8010EFD0_thwomp_pull[];
 
@@ -129,6 +133,8 @@ void func_80106D5C_thwomp_pull(omObjData* object);
 void func_8010974C_thwomp_pull(omObjData* object);
 void func_80109780_thwomp_pull(omObjData* object);
 void func_801097AC_thwomp_pull(omObjData* object, s8 team);
+void func_80105F14_thwomp_pull(omObjData* object);
+void func_801089B4_thwomp_pull(Gfx** gfx, s32 arg1, s32 arg2);
 void func_8010AF18_thwomp_pull(s16 model, s16 frame);
 void func_8010AF88_thwomp_pull(omObjData* object);
 
@@ -198,7 +204,37 @@ void func_801059A0_thwomp_pull(void) {
     func_800E5EA0_minigame(&D_8010ED60_thwomp_pull);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80105D3C_thwomp_pull);
+void func_80105D3C_thwomp_pull(omObjData* object) {
+    s32 i;
+    s32 slot;
+
+    D_8010F570_thwomp_pull = 0;
+    D_8010F530_thwomp_pull = 0;
+    D_8010F5A4_thwomp_pull = 0;
+    D_8010F53C_thwomp_pull = 0;
+    D_8010F566_thwomp_pull = 5;
+    D_8010F5A8_thwomp_pull = 0;
+    /* Clears four floats: [2] and [3] are D_8010F528_thwomp_pull and D_8010F52C_thwomp_pull. */
+    D_8010F520_thwomp_pull[0] = D_8010F520_thwomp_pull[1] = D_8010F520_thwomp_pull[2] = D_8010F520_thwomp_pull[3] = 0.0f;
+    D_8010F588_thwomp_pull = 0.0f;
+    D_8010F564_thwomp_pull[0] = D_8010F564_thwomp_pull[1] = 0;
+    for (i = 0; i < 4; i++) {
+        D_8010F4F8_thwomp_pull[i] = &D_8010F4B8_thwomp_pull[i];
+        bzero(D_8010F4F8_thwomp_pull[i], sizeof(TpPlayer));
+    }
+    for (i = 0; i < 4; i++) {
+        slot = GwPlayer[i].group;
+        slot = (slot == 3) ? 1 : (slot == 1) ? 3 : slot;
+        D_8010F5B4_thwomp_pull[i] = slot;
+        D_8010F4F8_thwomp_pull[slot]->player = i;
+        D_8010F4F8_thwomp_pull[slot]->pad = GwPlayer[i].pad;
+        D_8010F4F8_thwomp_pull[slot]->chr = GwPlayer[i].chr;
+        D_8010F4F8_thwomp_pull[slot]->slot = slot;
+        D_8010F4F8_thwomp_pull[slot]->cpu = (GwPlayer[i].stat & 1) ? GwPlayer[i].cpu_difficulty : -1;
+    }
+    func_8001AC8C_main(0, func_801089B4_thwomp_pull, 2);
+    object->func = func_80105F14_thwomp_pull;
+}
 
 const s16 D_8010EFD0_thwomp_pull[] = {
     0x8260, 0x8261, 0x8262, 0x8263, 0x8264, 0x8265, 0x8266, 0x8267, 0x8268, 0x8269, 0x826A, 0x826B, 0x826C, 0x826D,
