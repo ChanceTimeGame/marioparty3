@@ -448,6 +448,7 @@ void func_801080B0_stardust_battle(void);
 void func_801080EC_stardust_battle(void);
 void func_80108B34_stardust_battle(void);
 void func_8010A74C_stardust_battle(void);
+void func_8010FE74_stardust_battle(s32 n);
 void func_80109B18_stardust_battle(omObjData *obj);
 void func_8010A418_stardust_battle(omObjData *obj);
 
@@ -2227,7 +2228,61 @@ void func_8010A690_stardust_battle(omObjData *obj) {
     func_80108EC4_stardust_battle(obj->model[0], st->unk18, st->unk1C, 0x40, 0x40, st->unk2C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010A74C_stardust_battle);
+void func_8010A74C_stardust_battle(void) {
+    omObjData *obj;
+    SbBoss *boss;
+
+    D_80114B18_stardust_battle = obj = omAddObj(1, 4, 2, -1, func_8010AAC4_stardust_battle);
+    D_80114B1C_stardust_battle = boss = HuMemAllocTag(sizeof(SbBoss), 31000);
+    memset(boss, 0, sizeof(SbBoss));
+    func_80111FC0_stardust_battle(obj, (u32)boss);
+    obj->model[0] = func_8000B108_main(0xA0122, 0x1AA8);
+    func_8008A070_main((f32(*)[4])HmfModelData[obj->model[0]].mtx);
+    func_80017C10_main((Mtx *)HmfModelData[obj->model[0]].mtx, 0.0f, 90.0f, 0.0f);
+    func_800461B4_main(obj->model[0]);
+    func_800465A8_main(obj->model[0], 0.0f, 0.0f, 1.0f);
+    obj->model[1] = func_8000B108_main(0, 0x149D);
+    obj->model[2] = func_8000B108_main(0xA0122, 0x688);
+    func_8001C258_main(obj->model[2], 4, 4);
+    func_800461B4_main(obj->model[2]);
+    func_80017D24_main((f32(*)[4])HmfModelData[obj->model[2]].mtx, 180.0f, 0.0f, 0.0f);
+    func_80017D24_main((f32(*)[4])HmfModelData[obj->model[2]].mtx, 0.0f, 180.0f, 0.0f);
+    func_80017C10_main((Mtx *)HmfModelData[obj->model[2]].mtx, 0.0f, 90.0f, 0.0f);
+    obj->motion[0] = func_8000B108_main(0xA012C, 0x18);
+    obj->motion[1] = func_8000B108_main(0xA0128, 0x18);
+    func_8010FE74_stardust_battle(16);
+    func_8010C538_stardust_battle();
+    boss->unk00 = 0;
+    boss->unk02 = 0;
+    boss->unk04 = 0;
+    boss->unk06 = D_80114B24_stardust_battle;
+    boss->unk0C = 0;
+    boss->unk0E = 0;
+    boss->unk24 = 0;
+    boss->unk18 = 0.0f;
+    boss->unk1C = (f32)(u8)(rand8() % 100) * 0.01 * 360.0;
+    boss->unk20 = 0.0f;
+    boss->unk10 = 45;
+    boss->unk12 = 32;
+    boss->unk14 = 0;
+    boss->unk16 = 0;
+    boss->unk08 = 0;
+    boss->unk0A = 0;
+    boss->unk24 = 0;
+    boss->unk26 = 0;
+    boss->unk28 = boss->unk2C = boss->unk30 = 0.0f;
+    boss->unk34.x = boss->unk34.y = boss->unk34.z = 0.0f;
+    boss->unk40.x = boss->unk40.y = boss->unk40.z = 0.0f;
+    boss->unk4C.x = boss->unk4C.y = boss->unk4C.z = 0.0f;
+    boss->unk58 = 0.0f;
+    boss->unk5C = boss->unk60 = boss->unk64 = 0.0f;
+    boss->unk68 = 0.0f;
+    boss->unk6C = 0.0f;
+    boss->unk70 = 1.0f;
+    obj->trans.x = 0.0f;
+    obj->trans.z = 0.0f;
+    obj->trans.y = 600.0f;
+}
 
 /* NON_MATCHING: register allocation (f20/f22 for the case-2 scale and the case-3 deltas), the trail-distance loads and one andi before func_80110758; ops, calls and fields equal */
 #ifdef NON_MATCHING
@@ -3524,7 +3579,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 void func_80110364_stardust_battle(omObjData *obj);
 s32 func_801122D0_stardust_battle(void);
 
-void func_8010FE74_stardust_battle(void) {
+void func_8010FE74_stardust_battle(s32 n) {
     f32 angles[16];
     SbStar *star;
     omObjData *obj;
