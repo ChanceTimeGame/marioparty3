@@ -495,6 +495,8 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_24_fridged_bridges/216670.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_24_fridged_bridges/21CAC0.c.o
 # m6 ah: Aces High 1C4280 likewise (func_8010843C_aces_high: no nop before the mul.s after sindf/cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_17_aces_high/1C4280.c.o
+# m7 sb: stardust battle 2ED2D0 likewise (func_801119D4/func_80111E10: no nop before the mul.s after sindf/cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_41_stardust_battle/2ED2D0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

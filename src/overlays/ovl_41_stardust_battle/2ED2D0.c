@@ -1,4 +1,91 @@
 #include "common.h"
+// m7 sb: Stardust Battle
+#include "overlays/minigame.h"
+#include "gcc/memory.h"
+#include "game/audio.h"
+#include "game/gamemes.h"
+#include "game/hmfman.h"
+#include "game/wipe.h"
+#include "mallocblock.h"
+#include "math.h"
+
+typedef struct {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} RGBA;
+
+/* A pooled particle effect (Log Jam's LjEffect). */
+typedef struct SbEffect {
+    /* 0x00 */ u16 active;
+    /* 0x02 */ s16 model;
+    /* 0x04 */ RGBA color;
+    /* 0x08 */ f32 frame;
+    /* 0x0C */ f32 speed;
+    /* 0x10 */ Vec pos;
+    /* 0x1C */ Vec vel;
+    /* 0x28 */ Vec scale;
+} SbEffect; // Size 0x34
+
+typedef struct SbCamera {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} SbCamera; // Size 0x24
+
+typedef struct SbBytes {
+    u8 a;
+    u8 b;
+    u8 c;
+    u8 d;
+} SbBytes;
+
+typedef union SbPack {
+    void *p;
+    SbBytes b;
+} SbPack;
+
+// end m7 sb types
+
+// protos begin
+void func_801065B4_stardust_battle(omObjData* obj);
+void func_80108444_stardust_battle(void);
+void func_8010844C_stardust_battle(void);
+void func_801089B4_stardust_battle(void);
+u16 func_8010EE38_stardust_battle(s32 dirAndFile);
+void func_8010F5E0_stardust_battle(void);
+void func_8010F73C_stardust_battle(omObjData *obj);
+s32 func_8010F890_stardust_battle(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *color);
+void func_801119D4_stardust_battle(s32 idx);
+f32 func_80111B28_stardust_battle(f32 a, f32 b);
+f32 func_80111DF8_stardust_battle(f32 t, f32 a, f32 b);
+f32 func_80111E10_stardust_battle(f32 t, f32 a, f32 b);
+f32 func_80111EB8_stardust_battle(f32 x, f32 z);
+void func_80111F38_stardust_battle(Vec* dir, f32* angles);
+void func_80111FC0_stardust_battle(omObjData *obj, u32 value);
+void *func_80111FEC_stardust_battle(omObjData *obj);
+s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
+s32 func_80113568_stardust_battle(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2);
+void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
+// protos end
+
+extern s16 D_800CDD6A_main;
+extern u8 D_800D2008_main;
+f32 fabsf(f32);
+
+/* still asm */
+f32 func_80111C2C_stardust_battle(f32 target, f32 cur, f32 step);
+s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
+void func_8010F73C_stardust_battle(omObjData *obj);
+
+extern RGBA D_80113CF4_stardust_battle;
+extern Gfx D_80114020_stardust_battle[];
+extern s16 *D_80114B30_stardust_battle; /* s16[0x20] sprite/file ids */
+extern omObjData *D_80114B48_stardust_battle;
+extern SbEffect *D_80114B4C_stardust_battle;
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801059A0_stardust_battle);
 
@@ -10,7 +97,10 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_8011
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80105DA0_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801065B4_stardust_battle);
+void func_801065B4_stardust_battle(omObjData* obj) {
+    func_8004A950_main();
+    omOvlReturnEx(1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801065D8_stardust_battle);
 
@@ -199,7 +289,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010ED7C_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EE38_stardust_battle);
+u16 func_8010EE38_stardust_battle(s32 dirAndFile) {
+    void *data = DataRead(dirAndFile);
+    s16 id = func_80055810_main(data);
+
+    DataClose(data);
+    return id;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EE7C_stardust_battle);
 
@@ -211,11 +307,118 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F5B0_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F5E0_stardust_battle);
+void func_8010F5E0_stardust_battle(void) {
+    HuSprite_Unk84_Struct *spr;
+    SbEffect *effect;
+    HmfModel *model;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F73C_stardust_battle);
+    spr = func_80055194_main(D_80114B30_stardust_battle[1] = func_8010EE38_stardust_battle(0xB));
+    D_80114B48_stardust_battle = omAddObj(0x1E, 0, 0, -1, func_8010F73C_stardust_battle);
+    D_80114B4C_stardust_battle = effect = HuMemAllocTag(sizeof(SbEffect) * 4, 0x7918);
+    for (i = 0; i < 4; i++, effect++) {
+        if (i == 0) {
+            effect->model = func_80112980_stardust_battle(spr, &D_80113CF4_stardust_battle);
+        } else {
+            effect->model = func_80113568_stardust_battle(spr, D_80114B4C_stardust_battle->model, &D_80113CF4_stardust_battle);
+        }
+        effect->active = 0;
+        *(u32 *)&effect->color = *(u32 *)&D_80113CF4_stardust_battle;
+        effect->frame = effect->speed = 0.0f;
+        effect->pos.x = effect->pos.y = effect->pos.z = 0.0f;
+        effect->vel.x = effect->vel.y = effect->vel.z = 0.0f;
+        effect->scale.x = effect->scale.y = effect->scale.z = 0.0f;
+        func_8001C258_main(effect->model, 4, 4);
+        model = &HmfModelData[effect->model];
+        model->unk40 = 0.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F890_stardust_battle);
+void func_8010F73C_stardust_battle(omObjData *obj) {
+    HuSprite_Unk84_Struct *spr;
+    SbEffect *effect;
+    HmfModel *model;
+    s32 i;
+
+    i = 0;
+    spr = func_80055194_main(D_80114B30_stardust_battle[1]);
+    effect = D_80114B4C_stardust_battle;
+    do {
+        if (effect->active != 0) {
+            model = &HmfModelData[effect->model];
+            if (!(model->unk18 & 4)) {
+                effect->pos.x += effect->vel.x;
+                effect->pos.y += effect->vel.y;
+                effect->pos.z += effect->vel.z;
+                model->pos.x = effect->pos.x;
+                model->pos.y = effect->pos.y;
+                model->pos.z = effect->pos.z;
+                model->scale.x = effect->scale.x;
+                model->scale.y = effect->scale.y;
+                model->scale.z = effect->scale.z;
+                func_8011376C_stardust_battle(effect->model, spr, (s32)effect->frame, &effect->color);
+                effect->frame += effect->speed;
+                if ((s32)effect->frame >= (s32)spr->unk10) {
+                    effect->active = 0;
+                    effect->frame = 0.0f;
+                    model->unk18 |= 4;
+                }
+            }
+        }
+        i++;
+        effect++;
+    } while (i < 4);
+}
+
+s32 func_8010F890_stardust_battle(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGBA *color) {
+    HuSprite_Unk84_Struct *spr;
+    SbEffect *effect;
+    HmfModel *model;
+    s32 i;
+
+    spr = func_80055194_main(D_80114B30_stardust_battle[1]);
+    for (i = 0, effect = D_80114B4C_stardust_battle; i < 4; i++, effect++) {
+        if (effect->active == 0) {
+            effect->active = 1;
+            model = &HmfModelData[effect->model];
+            if (pos != NULL) {
+                effect->pos.x = pos->x;
+                effect->pos.y = pos->y;
+                effect->pos.z = pos->z;
+            } else {
+                effect->pos.x = effect->pos.y = effect->pos.z = 0.0f;
+            }
+            if (vel != NULL) {
+                effect->vel.x = vel->x;
+                effect->vel.y = vel->y;
+                effect->vel.z = vel->z;
+            } else {
+                effect->vel.x = effect->vel.y = effect->vel.z = 0.0f;
+            }
+            if (scale != NULL) {
+                effect->scale.x = scale->x;
+                effect->scale.y = scale->y;
+                effect->scale.z = scale->z;
+            } else {
+                effect->scale.x = effect->scale.y = effect->scale.z = 1.0f;
+            }
+            effect->color = *color;
+            effect->speed = speed;
+            effect->frame = 0.0f;
+            func_8011376C_stardust_battle(effect->model, spr, 0, &effect->color);
+            func_8001C258_main(effect->model, 4, 0);
+            model->unk40 = 0.0f;
+            model->pos.x = effect->pos.x;
+            model->pos.y = effect->pos.y;
+            model->pos.z = effect->pos.z;
+            model->scale.x = effect->scale.x;
+            model->scale.y = effect->scale.y;
+            model->scale.z = effect->scale.z;
+            return i;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FA60_stardust_battle);
 
@@ -245,25 +448,91 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8011
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801117E4_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801119D4_stardust_battle);
+void func_801119D4_stardust_battle(s32 idx) {
+    HuCamera *cam = &gCameraList[idx];
+    f32 rx = CRot.x;
+    f32 ry = CRot.y;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111B28_stardust_battle);
+    cam->pos.x = Center.x + sindf(ry) * cosdf(rx) * CZoom;
+    cam->pos.y = -sindf(rx) * CZoom + Center.y;
+    cam->pos.z = cosdf(ry) * cosdf(rx) * CZoom + Center.z;
+    cam->at.x = Center.x;
+    cam->at.y = Center.y;
+    cam->at.z = Center.z;
+    cam->up.x = sindf(ry) * sindf(rx);
+    cam->up.y = cosdf(rx);
+    cam->up.z = cosdf(ry) * sindf(rx);
+}
+
+f32 func_80111B28_stardust_battle(f32 a, f32 b) {
+    f32 d;
+
+    if (a >= 360.0f) {
+        a -= 360.0f;
+    } else if (a < 0.0f) {
+        a += 360.0f;
+    }
+    if (b >= 360.0f) {
+        b -= 360.0f;
+    } else if (b < 0.0f) {
+        b += 360.0f;
+    }
+    d = a - b;
+    if (d <= -180.0f) {
+        d += 360.0f;
+    } else if (d >= 180.0f) {
+        d -= 360.0f;
+    }
+    return d;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111C2C_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111DF8_stardust_battle);
+f32 func_80111DF8_stardust_battle(f32 t, f32 a, f32 b) {
+    return a + t * (b - a);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111E10_stardust_battle);
+f32 func_80111E10_stardust_battle(f32 t, f32 a, f32 b) {
+    return func_80111C2C_stardust_battle(b, a, fabsf(func_80111B28_stardust_battle(b, a) * t));
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111E70_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111EB8_stardust_battle);
+f32 func_80111EB8_stardust_battle(f32 x, f32 z) {
+    f32 a = atan2df(z, x);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111F38_stardust_battle);
+    if (a < 0.0) {
+        a += 360.0;
+    } else if (a >= 360.0) {
+        a -= 360.0;
+    }
+    return a;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111FC0_stardust_battle);
+void func_80111F38_stardust_battle(Vec* dir, f32* angles) {
+    f32 h = sqrtf(dir->x * dir->x + dir->z * dir->z);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111FEC_stardust_battle);
+    *angles++ = func_80111EB8_stardust_battle(h, -dir->y);
+    *angles++ = func_80111EB8_stardust_battle(dir->z, dir->x);
+    *angles = 0.0f;
+}
+
+void func_80111FC0_stardust_battle(omObjData *obj, u32 value) {
+    obj->work[0] = value >> 24;
+    obj->work[1] = (value >> 16) & 0xFF;
+    obj->work[2] = (value >> 8) & 0xFF;
+    obj->work[3] = value & 0xFF;
+}
+
+void *func_80111FEC_stardust_battle(omObjData *obj) {
+    SbPack u;
+
+    u.b.a = obj->work[0];
+    u.b.b = obj->work[1];
+    u.b.c = obj->work[2];
+    u.b.d = obj->work[3];
+    return u.p;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112040_stardust_battle);
 
@@ -273,10 +542,157 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8011
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801127B8_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112980_stardust_battle);
+s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1) {
+    HmfData *temp_s4;
+    Gfx *temp_v0_0;
+    Gfx *temp_v0_2;
+    s32 temp_s0;
+    s32 temp_v0;
+    s32 var_a2;
+    s32 var_s1;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80113568_stardust_battle);
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    temp_v0 = func_8001A894_main(0x1CC1, temp_v0_0, 4);
+    temp_s4 = HmfModelData[temp_v0].hmf;
+    temp_s4->unk60->unk50 |= 0x01010000;
+    HuMemFree(temp_s4->unk3C);
+    temp_s4->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    func_801138A0_stardust_battle(arg0, temp_s4, 1.0f, 0, 0);
+    gSPDisplayList(temp_v0_2++, osVirtualToPhysical(D_80114020_stardust_battle));
+    gDPPipeSync(temp_v0_2++);
+    gDPSetCycleType(temp_v0_2++, G_CYC_1CYCLE);
+    gDPPipeSync(temp_v0_2++);
+    gSPClearGeometryMode(temp_v0_2++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_CULL_FRONT | G_TEXTURE_GEN_LINEAR);
+    gDPSetColorDither(temp_v0_2++, G_CD_NOISE);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_NONE);
+    gDPSetTextureFilter(temp_v0_2++, G_TF_BILERP);
+    gDPSetTextureConvert(temp_v0_2++, G_TC_FILT);
+    gDPSetAlphaDither(temp_v0_2++, G_AD_PATTERN);
+    gDPSetAlphaCompare(temp_v0_2++, G_AC_NONE);
+    gDPSetBlendColor(temp_v0_2++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(temp_v0_2++);
+    gDPSetRenderMode(temp_v0_2++, G_RM_ZB_CLD_SURF, G_RM_NOOP2);
+    if (arg0->unk18 & 0x8000) {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
+    } else {
+        gDPSetCombineLERP(temp_v0_2++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk10 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk10, temp_s0);
+    HuMemFree(temp_v0_0);
+    temp_v0_0 = temp_v0_2 = HuMemAlloc(0x10000);
+    gSPTexture(temp_v0_2++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetTexturePersp(temp_v0_2++, G_TP_PERSP);
+    if (arg0->unk1A >= 2) {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_RGBA16);
+        if (arg0->unk18 == 4) {
+            gDPLoadTLUT_pal16(temp_v0_2++, 0, arg0->unk0C);
+        } else {
+            gDPLoadTLUT_pal256(temp_v0_2++, arg0->unk0C);
+        }
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = 2;
+    } else {
+        gDPSetTextureLUT(temp_v0_2++, G_TT_NONE);
+        gDPPipeSync(temp_v0_2++);
+        var_a2 = (arg0->unk18 & 0x8000) ? 4 : 0;
+    }
+    switch (arg0->unk18 & 0xFFF) {
+        case 4:
+            gDPLoadTextureBlock_4b(temp_v0_2++, 0x02000000, var_a2,
+                                   arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 8:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_8b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+        case 16:
+            gDPLoadTextureBlock(temp_v0_2++, 0x02000000, var_a2, G_IM_SIZ_16b,
+                                arg0->unk00->unk04, arg0->unk00->unk06, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            break;
+    }
+    gDPPipeSync(temp_v0_2++);
+    gSPSegment(temp_v0_2++, 0x01, osVirtualToPhysical(temp_s4->unk44[0]));
+    gSPVertex(temp_v0_2++, 0x01000000, 4, 0);
+    gSP2Triangles(temp_v0_2++, 0, 1, 2, 0, 1, 3, 2, 0);
+    gSPClearGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(temp_v0_2++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(temp_v0_2++);
+    gSPEndDisplayList(temp_v0_2++);
+    temp_s0 = (u32)temp_v0_2 - (u32)temp_v0_0;
+    temp_s4->unk3C->unk14 = HuMemAllocTag(temp_s0, temp_s4->unk0E);
+    bcopy(temp_v0_0, temp_s4->unk3C->unk14, temp_s0);
+    HuMemFree(temp_v0_0);
+    for (var_s1 = 0; var_s1 < D_800D1FF0_main; var_s1++) {
+        temp_v0_2 = temp_s4->unk3C->unk00[var_s1 + 1] = HuMemAllocTag(0x100, temp_s4->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg1->r, arg1->g, arg1->b, arg1->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s4->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s4->unk3C->unk00[0] = temp_s4->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8011376C_stardust_battle);
+s32 func_80113568_stardust_battle(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2) {
+    HmfModel *model = &HmfModelData[arg1];
+    HmfData *src = model->hmf;
+    HmfData *temp_s1;
+    Gfx *temp_v0_2;
+    s32 temp_v0;
+    s32 var_s2;
+
+    temp_v0 = func_8001A894_main(model->unk18, NULL, 4);
+    temp_s1 = HmfModelData[temp_v0].hmf;
+    temp_s1->unk60->unk50 = src->unk60->unk50;
+    HuMemFree(temp_s1->unk3C);
+    temp_s1->unk3C = HuMemAllocTag(0x18, D_800CDD6A_main);
+    temp_s1->unk3C->unk10 = src->unk3C->unk10;
+    temp_s1->unk3C->unk14 = src->unk3C->unk14;
+    for (var_s2 = 0; var_s2 < D_800D1FF0_main; var_s2++) {
+        temp_v0_2 = temp_s1->unk3C->unk00[var_s2 + 1] = HuMemAllocTag(0x100, temp_s1->unk0E);
+        gDPPipeSync(temp_v0_2++);
+        gSPSegment(temp_v0_2++, 0x02, osVirtualToPhysical(arg0->unk00->unk00));
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk10));
+        gDPSetPrimColor(temp_v0_2++, 0, 0, arg2->r, arg2->g, arg2->b, arg2->a);
+        gDPPipeSync(temp_v0_2++);
+        gSPDisplayList(temp_v0_2++, osVirtualToPhysical(temp_s1->unk3C->unk14));
+        gDPPipeSync(temp_v0_2++);
+        gSPEndDisplayList(temp_v0_2++);
+    }
+    temp_s1->unk3C->unk00[0] = temp_s1->unk3C->unk00[D_800D2008_main + 1];
+    return temp_v0;
+}
+
+void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3) {
+    HmfModel *model = &HmfModelData[modelId];
+    HmfData *temp_s3 = model->hmf;
+    HmfModelData_Unk64_Unk3C_Struct *temp_v1 = temp_s3->unk3C;
+    Gfx *temp_s0 = temp_v1->unk00[D_800D2008_main + 1];
+
+    temp_v1->unk00[0] = temp_s0;
+    gDPPipeSync(&temp_s0[0]);
+    gSPSegment(&temp_s0[1], 0x02, osVirtualToPhysical(arg1->unk00[arg2].unk00));
+    gSPDisplayList(&temp_s0[2], osVirtualToPhysical(temp_s3->unk3C->unk10));
+    gDPSetPrimColor(&temp_s0[3], 0, 0, arg3->r, arg3->g, arg3->b, arg3->a);
+    gDPPipeSync(&temp_s0[4]);
+    gSPDisplayList(&temp_s0[5], osVirtualToPhysical(temp_s3->unk3C->unk14));
+    gDPPipeSync(&temp_s0[6]);
+    gSPEndDisplayList(&temp_s0[7]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801138A0_stardust_battle);
