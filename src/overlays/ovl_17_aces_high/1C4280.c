@@ -123,6 +123,8 @@ void func_80047E90_main(omObjData *obj, s32 arg1);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_8000BF00_main(u16 spriteId, f32 rot);
 void func_8000BBFC_main(u16 spriteId, s16 alpha);
+void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
+s16 func_8004AC98_main(s16, s16);
 
 extern s16 D_800EB930_minigame;
 extern s16 D_800EB932_minigame;
@@ -2650,6 +2652,111 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DE28_a
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010D1D8_aces_high);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010D6D4_aces_high);
+/* Lock-on warning: while a missile is locked on, a pulsing marker over the plane in its own view. */
+void func_8010D6D4_aces_high(omObjData *obj) {
+    Vec pos;
+    Vec2f scr;
+    omObjData *plane;
+    AhPlayer *work;
+    f32 scale;
+    f32 minX;
+    f32 minY;
+    f32 maxX;
+    f32 maxY;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010D994_aces_high);
+    plane = (omObjData *)obj->work[3];
+    work = plane->data;
+    if (obj->work[2] == 0) {
+        func_8000BB94_main(work->unk2E);
+        if (work->unk2C != -1) {
+            HuAudFXStop(work->unk2C);
+            work->unk2C = -1;
+        }
+    } else if (obj->work[0] != 0 && work->unk70 != 0) {
+        obj->work[0]--;
+        if (obj->work[1] != 0) {
+            scale = 1.2f;
+            obj->scale.y = 0.0f;
+            obj->work[1]--;
+        } else {
+            scale = 1.0f - sindf(obj->scale.y) * 0.25f;
+            obj->scale.y += 30.0f;
+            if (obj->scale.y >= 360.0f) {
+                obj->scale.y -= 360.0f;
+            }
+        }
+        pos.x = plane->trans.x;
+        pos.y = plane->trans.y + 160.0f + plane->trans.y / 25.0f;
+        pos.z = plane->trans.z;
+        func_80012B14_main(work->unk02, &pos, &scr);
+        minY = 15.400001f;
+        maxX = 144.6f;
+        maxY = 104.6f;
+        minX = 15.400001f;
+        if (work->unk02 & 1) {
+            minX = 175.4f;
+            maxX = 304.6f;
+        }
+        if (work->unk02 >= 2) {
+            minY += 120.0f;
+            maxY += 120.0f;
+        }
+        if (scr.x < minX) {
+            scr.x = minX;
+        }
+        if (maxX < scr.x) {
+            scr.x = maxX;
+        }
+        if (scr.y < minY) {
+            scr.y = minY;
+        }
+        if (maxY < scr.y) {
+            scr.y = maxY;
+        }
+        func_8000BBD4_main(work->unk2E, scr.x, scr.y);
+        func_8000BE5C_main(work->unk2E, scale, scale);
+        func_8000BB54_main(work->unk2E);
+        if (work->unk2C == -1) {
+            work->unk2C = func_8004AC98_main(0x3B1, work->unk02);
+        }
+    } else {
+        obj->work[2] = 0;
+    }
+}
+
+/* Lock-on icon of a plane: grows in while a missile is locked on, shrinks away after. */
+void func_8010D994_aces_high(omObjData *obj) {
+    AhPlayer *work = ((omObjData *)obj->work[0])->data;
+
+    if (obj->work[1] == 0) {
+        func_8000BB94_main(work->unk30);
+        return;
+    }
+    switch (obj->work[1]) {
+        case 1:
+            if (obj->scale.x < 1.0f) {
+                obj->scale.x += 0.2f;
+                func_8000BE5C_main(work->unk30, obj->scale.x, obj->scale.x);
+            } else {
+                obj->scale.x = 1.0f;
+                func_8000BE5C_main(work->unk30, 1.0f, 1.0f);
+                obj->work[1] = 2;
+            }
+        case 2:
+            if (work->unk70 == 0) {
+                obj->work[1] = 3;
+            }
+            break;
+        case 3:
+            if (obj->scale.x > 0.0f) {
+                obj->scale.x -= 0.200001f;
+                func_8000BE5C_main(work->unk30, obj->scale.x, obj->scale.x);
+            } else {
+                obj->scale.x = 0.0f;
+                func_8000BE5C_main(work->unk30, obj->scale.x, obj->scale.x);
+                obj->work[1] = 0;
+            }
+            break;
+    }
+    func_8000BB54_main(work->unk30);
+}
