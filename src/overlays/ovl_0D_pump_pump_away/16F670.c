@@ -35,18 +35,18 @@ typedef struct PpTexSize {
 /* A team's state (D_80111978_pump_pump_away, 2 x 0x34). */
 typedef struct PpTeam {
     /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
+    /* 0x04 */ s32 phase;
     /* 0x08 */ s32 unk08;
     /* 0x0C */ s32 unk0C;
     /* 0x10 */ s32 unk10;
-    /* 0x14 */ s32 unk14;
+    /* 0x14 */ s32 timer;
     /* 0x18 */ f32 dist;
-    /* 0x1C */ f32 unk1C;
+    /* 0x1C */ f32 lastDist;
     /* 0x20 */ f32 speed;
     /* 0x24 */ s32 state;
     /* 0x28 */ omObjData *obj;
-    /* 0x2C */ s32 unk2C;
-    /* 0x30 */ s32 unk30;
+    /* 0x2C */ f32 wobble;
+    /* 0x30 */ f32 drift;
 } PpTeam; // Size 0x34
 
 /* An entity slot (D_80111A30_pump_pump_away, 50 x 0x84; the layout of Coconut Conk's). */
@@ -192,6 +192,9 @@ extern s32 D_8011351C_pump_pump_away; /* .team */
 extern f32 D_80113520_pump_pump_away; /* .angle */
 extern omObjData *D_80113524_pump_pump_away; /* .obj */
 extern s16 D_80111108_pump_pump_away;
+extern s16 D_8011110C_pump_pump_away;
+extern s16 D_8011110E_pump_pump_away;
+extern s32 D_80111110_pump_pump_away;
 extern s16 D_8011110A_pump_pump_away;
 extern PpFx D_80113400_pump_pump_away[3];
 extern Vec D_80111004_pump_pump_away[];
@@ -237,6 +240,7 @@ void func_801078B4_pump_pump_away(void);
 void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_80108B0C_pump_pump_away(omObjData *obj);
+void func_8010A468_pump_pump_away(void);
 void func_8004AE00_main(s16 handle, s16 pan);
 
 s32 func_80110D28_pump_pump_away(void);
@@ -1718,21 +1722,200 @@ void func_8010A150_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A390_pump_pump_away);
+#ifdef NON_MATCHING
+void func_8010A390_pump_pump_away(omObjData *obj) {
+    u32 w = obj->work[0];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A3F0_pump_pump_away);
+    D_80111978_pump_pump_away[w].unk00 = 1;
+    D_80113400_pump_pump_away[w].state = 1;
+    if (obj->work[0] == 0) {
+        HuAudFXPlay(0x35F);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A390_pump_pump_away);
+#endif
+
+void func_8010A3F0_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
+
+    if (t->dist - t->lastDist > 300.0f) {
+        func_80109B80_pump_pump_away(obj);
+        t->lastDist = t->dist;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A468_pump_pump_away);
 
+#ifdef NON_MATCHING
+void func_8010A570_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
+    s32 rem;
+    s16 se;
+
+    switch (t->phase) {
+        case 0:
+            if (t->dist < 2000.0f) {
+                t->speed += 0.2;
+                t->dist = t->speed * t->speed + t->dist;
+            } else {
+                t->dist = t->speed * t->speed + t->dist;
+                t->phase = 1;
+                t->wobble = (u8)(rand8() % 7) * 15;
+            }
+            func_8010A3F0_pump_pump_away(obj);
+            break;
+        case 1:
+            t->speed = 10.6f;
+            t->dist = t->dist + 112.36001f;
+            if (--t->timer <= 0) {
+                t->timer = 0;
+                if (D_80111978_pump_pump_away[obj->work[0] ^ 1].timer == 0) {
+                    t->phase = 3;
+                } else {
+                    t->phase = 2;
+                }
+            } else if (t->timer < 20) {
+                obj->trans.y -= t->drift;
+            } else {
+                /* retail: the wrap macro draws a new random number for each use */
+                t->wobble = PP_WRAP((u8)(rand8() % 10) + t->wobble);
+                obj->trans.y = obj->trans.y + sindf(t->wobble) * 3.0;
+                t->drift = (obj->trans.y - 200.0f) * 0.05;
+            }
+            func_8010A3F0_pump_pump_away(obj);
+            break;
+        case 2:
+            if (t->speed > 0.0f) {
+                t->speed -= 0.4;
+                t->dist = t->speed * t->speed + t->dist;
+                if (t->speed <= 0.0f) {
+                    t->dist = (f32)(101 - (s32)t->dist % 100) + t->dist;
+                }
+                func_8010A3F0_pump_pump_away(obj);
+                break;
+            }
+            if (D_80111110_pump_pump_away == 0 && t->speed < -1.2) {
+                se = HuAudFXPlay(0x360);
+                if (obj->work[0] != 0) {
+                    func_8004AE00_main(se, 0x60);
+                } else {
+                    func_8004AE00_main(se, 0x20);
+                }
+                D_80111110_pump_pump_away = 1;
+            }
+            if (obj->trans.y < -200.0f) {
+                t->state = 1;
+            }
+            if (obj->trans.y <= -3000.0f) {
+                obj->trans.y = -3000.0f;
+            } else {
+                obj->trans.y -= t->speed * t->speed;
+                t->speed -= 0.2;
+            }
+            break;
+        case 3:
+            if (t->speed > 0.0f) {
+                t->speed -= 0.3;
+                t->dist = t->speed * t->speed + t->dist;
+                if (t->speed <= 0.0f) {
+                    rem = (s32)t->dist % 100;
+                    t->dist = (f32)(101 - rem) + t->dist;
+                    func_8010A468_pump_pump_away();
+                }
+                func_8010A3F0_pump_pump_away(obj);
+                break;
+            }
+            t->phase = 10;
+            break;
+        case 10:
+            if (obj->trans.y < 0.0f) {
+                t->state = 1;
+            }
+            if (D_8011110C_pump_pump_away <= 0) {
+                if (D_8011110E_pump_pump_away == 0) {
+                    D_80113518_pump_pump_away.state = 1;
+                    D_8011351C_pump_pump_away = obj->work[0];
+                    obj->trans.y -= t->speed * t->speed;
+                    t->speed = -2.0f;
+                    D_8011110E_pump_pump_away = 1;
+                } else {
+                    obj->trans.y -= t->speed * t->speed;
+                    obj->rot.z = PP_WRAP(D_80113518_pump_pump_away.angle + 180.0f);
+                }
+            } else {
+                D_8011110C_pump_pump_away--;
+                obj->trans.y -= t->speed * t->speed;
+                t->speed -= 0.2;
+            }
+            break;
+    }
+    if (D_80113530_pump_pump_away.state >= 2) {
+        obj->trans.y = 2000.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A570_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AD24_pump_pump_away);
+void func_8010AD24_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
 
+    if (t->timer == 0 && t->dist == 0.0f) {
+        t->unk00 = 99;
+        t->state = 2;
+        return;
+    }
+    func_8010A570_pump_pump_away(obj);
+}
+
+#ifdef NON_MATCHING
+void func_8010ADA0_pump_pump_away(omObjData *obj) {
+    PpTeam *t = D_80111978_pump_pump_away + (obj->work[0] ^ 1);
+
+    if (D_801116F4_pump_pump_away < 6) {
+        obj->trans.y -= t->speed;
+        if (obj->trans.y < -2800.0f) {
+            obj->trans.y = -2800.0f;
+        }
+    } else if (D_80113530_pump_pump_away.state >= 2) {
+        obj->trans.y = 200.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010ADA0_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AE40_pump_pump_away);
+void func_8010AE40_pump_pump_away(omObjData *obj) {
+    switch (D_80111978_pump_pump_away[obj->work[0]].unk00) {
+        case 0:
+            func_8010A390_pump_pump_away(obj);
+            break;
+        case 1:
+            func_8010AD24_pump_pump_away(obj);
+            break;
+        case 99:
+            func_8010ADA0_pump_pump_away(obj);
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AED4_pump_pump_away);
+void func_8010AED4_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
+
+    if (t->unk00 == 99) {
+        obj->trans.y = 200.0f;
+        return;
+    }
+    if (t->phase == 2) {
+        obj->trans.y = 950.0f;
+        t->unk08 = 20;
+    } else if (t->phase == 10) {
+        obj->trans.y = 1000.0f;
+        obj->rot.z = 0.0f;
+        t->unk08 = 10;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AF70_pump_pump_away);
 
