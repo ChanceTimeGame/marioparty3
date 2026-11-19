@@ -262,7 +262,566 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010680
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80106C60_messy_memory);
 
+#define MM_SLOTX(p, i) ((f32)(D_80111044_messy_memory[i].x + D_80110FE0_messy_memory[p].x))
+#define MM_SLOTY(p, i) ((f32)(D_80111044_messy_memory[i].y + D_80110FE0_messy_memory[p].y))
+#define MM_ITEM(p, i) (&D_80111700_messy_memory[(p) * 10 + 8 + (i)])
+#define MM_NEAR(a, b, d) ((a) - (d) <= (b) && (b) <= (a) + (d))
+#define MM_STEER(e)                                                                                                    \
+    e->unk24 = 0.0f;                                                                                                   \
+    e->unk28 = 0.0f;                                                                                                   \
+    if (e->unk1C + 5.0f < e->pos.x) {                                                                                  \
+        e->unk24 = 1.0f;                                                                                               \
+    }                                                                                                                  \
+    if (e->pos.x < e->unk1C - 5.0f) {                                                                                  \
+        e->unk24 = 2.0f;                                                                                               \
+    }                                                                                                                  \
+    if (e->unk20 + 5.0f < e->pos.y) {                                                                                  \
+        e->unk28 = 1.0f;                                                                                               \
+    }                                                                                                                  \
+    if (e->pos.y < e->unk20 - 5.0f) {                                                                                  \
+        e->unk28 = 2.0f;                                                                                               \
+    }
+/* Picks up item k of player p's board (the held flag, the grab sound). */
+#define MM_PICKUP(obj, p, k)                                                                                           \
+    D_801116B0_messy_memory[p][k] = 1;                                                                                 \
+    D_80111640_messy_memory[obj->work[0]] = 1;                                                                         \
+    func_8004AC98_main(D_80111338_messy_memory, (s16)obj->work[0]);                                                    \
+    D_80111670_messy_memory[p] = 1;
+#define MM_DROP(obj, p, k)                                                                                             \
+    D_801116B0_messy_memory[p][k] = 0;                                                                                 \
+    D_80111640_messy_memory[obj->work[0]] = 0;                                                                         \
+    func_8004AC98_main(D_8011133A_messy_memory, (s16)obj->work[0]);                                                    \
+    D_80111670_messy_memory[p] = 0;
+
+/* A CPU player's brain in the putting-back phase: walks to items and slots on its board (D_80111700[p]). */
+#ifdef NON_MATCHING
+void func_80107C88_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    MmEnt *item;
+    MmEnt *other;
+    omObjData *iobj;
+    omObjData *oobj;
+    u16 p;
+    u8 i;
+    u8 j;
+    u8 k;
+    u8 hit;
+    u8 free;
+    f32 f;
+
+    p = (u16)obj->work[0];
+    e = &D_80111700_messy_memory[p];
+    if (e->unk14 >= 7) {
+        if (e->unk12 == 0) {
+            switch (GwPlayer[p].cpu_difficulty) {
+            case 0:
+                if (rand8() < 30) {
+                    e->unk12 = 1;
+                }
+                break;
+            case 1:
+                if (rand8() < 20) {
+                    e->unk12 = 1;
+                }
+                break;
+            case 2:
+                if (rand8() < 20) {
+                    e->unk12 = 1;
+                }
+                break;
+            case 3:
+                if (rand8() < 30) {
+                    e->unk12 = 1;
+                }
+                break;
+            }
+        }
+        if (e->unk12 == 2) {
+            if (D_80115D8E_messy_memory == 300 || D_80115D8E_messy_memory == 210) {
+                switch (GwPlayer[p].cpu_difficulty) {
+                case 0:
+                    if (rand8() < 250) {
+                        e->unk12 = 3;
+                    }
+                    break;
+                case 1:
+                    if (rand8() < 200) {
+                        e->unk12 = 3;
+                    }
+                    break;
+                case 2:
+                    if (rand8() < 150) {
+                        e->unk12 = 3;
+                    }
+                    break;
+                case 3:
+                    if (rand8() < 50) {
+                        e->unk12 = 3;
+                    }
+                    break;
+                }
+            }
+        }
+        if (e->unk12 == 5) {
+            switch (GwPlayer[p].cpu_difficulty) {
+            case 0:
+                if (rand8() < 250) {
+                    e->unk12 = 6;
+                }
+                break;
+            case 1:
+                if (rand8() < 250) {
+                    e->unk12 = 6;
+                }
+                break;
+            case 2:
+                if (rand8() < 250) {
+                    e->unk12 = 6;
+                }
+                break;
+            case 3:
+                if (rand8() < 250) {
+                    e->unk12 = 6;
+                }
+                break;
+            }
+        }
+    }
+    if (e->unk12 == 1 || e->unk12 == 3 || e->unk12 == 6) {
+        switch (D_80115D80_messy_memory[p]) {
+        case 0:
+            D_80115D80_messy_memory[p] = 1;
+            e->unk12++;
+            e->unk06 = 0;
+            break;
+        case 1:
+            D_80115D80_messy_memory[p] = 2;
+            e->unk12++;
+            e->unk06 = 0;
+            break;
+        }
+    }
+    if (D_80115D80_messy_memory[p] != 0) {
+        return;
+    }
+    free = 1;
+    hit = 0;
+    D_80115D72_messy_memory[obj->work[0]] = 255;
+    for (i = 0; i < 10; i++) {
+        f = MM_SLOTX(p, i);
+        if (MM_NEAR(f, e->pos.x, 7.0f)) {
+            f = MM_SLOTY(p, i);
+            if (f - 15.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
+                free = 0;
+            }
+        }
+    }
+    for (i = 10; i < 20; i++) {
+        f = MM_SLOTX(p, i);
+        if (MM_NEAR(f, e->pos.x, 7.0f)) {
+            f = MM_SLOTY(p, i);
+            if (f - 7.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
+                free = 0;
+            }
+        }
+    }
+    if (D_80111670_messy_memory[p] == 1) {
+        for (i = 0; i < 10; i++) {
+            item = MM_ITEM(p, i);
+            iobj = item->obj;
+            if (e->pos.x == item->pos.x && e->pos.y == item->pos.y) {
+                for (j = 0; j < 10; j++) {
+                    other = MM_ITEM(p, j);
+                    oobj = other->obj;
+                    if (iobj->work[1] * 10 + iobj->work[0] != oobj->work[1] * 10 + oobj->work[0]) {
+                        for (k = 0; k < 20; k++) {
+                            f = MM_SLOTX(p, k);
+                            if (f <= other->pos.x && other->pos.x <= f) {
+                                if (k < 10) {
+                                    if (MM_NEAR(other->pos.x, e->pos.x, 7.0f) && other->pos.y - 15.0f <= e->pos.y &&
+                                        e->pos.y <= other->pos.y + 6.0f) {
+                                        hit = 1;
+                                    }
+                                } else {
+                                    if (MM_NEAR(other->pos.x, e->pos.x, 7.0f) && other->pos.y - 7.0f <= e->pos.y &&
+                                        e->pos.y <= other->pos.y + 6.0f) {
+                                        hit = 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (hit | free) {
+        D_80115D72_messy_memory[obj->work[0]] = 150;
+    }
+    if (e->unk12 == 0) {
+        switch (e->unk06) {
+        case 0:
+            k = rand8() % 10;
+            item = MM_ITEM(p, k);
+            if ((f32)D_80110FE0_messy_memory[p].y + 80.0f < item->pos.y) {
+                e->unk08 = k;
+                e->unk1C = item->pos.x;
+                e->unk20 = item->pos.y;
+                e->unk06 = 1;
+            }
+            if (e->unk06 != 1 && D_80111678_messy_memory[p][k] == 0 && D_80115D8E_messy_memory >= 451) {
+                e->unk08 = k;
+                e->unk1C = item->pos.x;
+                e->unk20 = item->pos.y;
+                e->unk06 = 10;
+            }
+            break;
+        case 10:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                e->unk06 = 0;
+            }
+            break;
+        case 9:
+            for (i = 0; i < 10; i++) {
+                if (i != e->unk08) {
+                    item = MM_ITEM(p, i);
+                    if ((f32)D_80110FE0_messy_memory[p].y + 80.0f < item->pos.y) {
+                        e->unk08 = i;
+                        e->unk1C = item->pos.x;
+                        e->unk20 = item->pos.y;
+                        e->unk06 = 1;
+                    }
+                }
+            }
+            if (e->unk06 != 1) {
+                e->unk06 = 0;
+            }
+            break;
+        case 1:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                MM_PICKUP(obj, p, e->unk08);
+                if (D_80111678_messy_memory[p][e->unk08] == 1) {
+                    e->unk06 = 2;
+                } else {
+                    e->unk06 = 3;
+                }
+            }
+            break;
+        case 2:
+            for (i = 0; i < 10; i++) {
+                if (D_801116A4_messy_memory[i] == D_80111700_messy_memory[p * 10 + 8 + e->unk08].obj->work[0]) {
+                    e->unk1C = MM_SLOTX(p, i);
+                    e->unk20 = MM_SLOTY(p, i);
+                    e->unk0A = i;
+                    e->unk06 = 4;
+                }
+            }
+            break;
+        case 3:
+            item = MM_ITEM(p, e->unk08);
+            iobj = item->obj;
+            k = rand8() % 10;
+            hit = 0;
+            for (i = 0; i < 10; i++) {
+                other = MM_ITEM(p, i);
+                if (MM_SLOTX(p, k) == other->pos.x && MM_SLOTY(p, k) == other->pos.y) {
+                    hit = 1;
+                }
+            }
+            for (i = 0; i < 10; i++) {
+                if (D_80111678_messy_memory[p][i] == 1 && D_801116A4_messy_memory[k] == i) {
+                    hit = 1;
+                }
+            }
+            if (!hit && D_801116A4_messy_memory[k] != iobj->work[0]) {
+                e->unk1C = MM_SLOTX(p, k);
+                e->unk20 = MM_SLOTY(p, k);
+                e->unk0A = k;
+                e->unk06 = 4;
+                e->unk0E = 0;
+            }
+            if (!hit && D_801116A4_messy_memory[k] == iobj->work[0]) {
+                if (e->unk14 >= 6) {
+                    e->unk1C = MM_SLOTX(p, 10);
+                    e->unk20 = MM_SLOTY(p, 10);
+                    e->unk0A = k;
+                    e->unk0C = 10;
+                    e->unk06 = 5;
+                    e->unk0E = 0;
+                }
+            }
+            if (++e->unk0E >= 50) {
+                e->unk0E = 0;
+                e->unk06 = 9;
+                for (i = 0; i < 20; i++) {
+                    f = MM_SLOTX(p, i);
+                    if (MM_NEAR(f, e->pos.x, 7.0f)) {
+                        f = MM_SLOTY(p, i);
+                        if (f - 7.0f <= e->pos.y && e->pos.y <= f + 6.0f) {
+                            D_801116B0_messy_memory[p][e->unk08] = 0;
+                            item->pos.x = MM_SLOTX(p, i);
+                            item->pos.y = MM_SLOTY(p, i);
+                            D_80111640_messy_memory[obj->work[0]] = 0;
+                            func_8004AC98_main(D_8011133A_messy_memory, (s16)obj->work[0]);
+                            D_80111670_messy_memory[p] = 0;
+                        }
+                    }
+                }
+            }
+            break;
+        case 4:
+            MM_STEER(e);
+            if (D_80115D8E_messy_memory >= 151) {
+                switch (GwPlayer[p].cpu_difficulty) {
+                case 0:
+                    if (rand8() < 30) {
+                        e->unk06 = 8;
+                    }
+                    break;
+                case 1:
+                    if (rand8() < 7) {
+                        e->unk06 = 8;
+                    }
+                    break;
+                case 2:
+                    if (rand8() < 5) {
+                        e->unk06 = 8;
+                    }
+                    break;
+                case 3:
+                    if (rand8() < 3) {
+                        e->unk06 = 8;
+                    }
+                    break;
+                }
+            }
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(e->unk1C, e->pos.x, 5.0f) && MM_NEAR(e->unk20, e->pos.y, 5.0f)) {
+                MM_DROP(obj, p, e->unk08);
+                item->pos.x = MM_SLOTX(p, e->unk0A);
+                item->pos.y = MM_SLOTY(p, e->unk0A);
+                e->unk06 = 0;
+                e->unk14++;
+            }
+            break;
+        case 8:
+            if (++e->unk10 % 10 == 0) {
+                e->unk24 = 0.0f;
+                e->unk28 = 0.0f;
+                k = rand8();
+                if (k % 2 == 0) {
+                    e->unk24 = 1.0f;
+                }
+                if (k % 2 == 1) {
+                    e->unk24 = 2.0f;
+                }
+                if ((u8)(k % 3) == 0) {
+                    e->unk28 = 1.0f;
+                }
+                if ((u8)(k % 3) == 1) {
+                    e->unk28 = 2.0f;
+                }
+            }
+            if (e->unk10 >= 31) {
+                e->unk10 = 0;
+                e->unk06 = 4;
+            }
+            break;
+        case 5:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(e->unk1C, e->pos.x, 5.0f) && MM_NEAR(e->unk20, e->pos.y, 5.0f)) {
+                MM_DROP(obj, p, e->unk08);
+                item->pos.x = MM_SLOTX(p, e->unk0C);
+                item->pos.y = MM_SLOTY(p, e->unk0C);
+                e->unk06 = 6;
+            }
+            break;
+        case 6:
+            k = rand8() % 10;
+            item = MM_ITEM(p, k);
+            if (item->pos.y < (f32)D_80110FE0_messy_memory[p].y + 80.0f && D_80111678_messy_memory[p][k] != 1) {
+                e->unk08 = k;
+                e->unk1C = item->pos.x;
+                e->unk20 = item->pos.y;
+                e->unk06 = 7;
+            }
+            break;
+        case 7:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                MM_PICKUP(obj, p, e->unk08);
+                e->unk1C = MM_SLOTX(p, e->unk0A);
+                e->unk20 = MM_SLOTY(p, e->unk0A);
+                e->unk06 = 4;
+                e->unk14--;
+            }
+            break;
+        }
+    }
+    if (e->unk12 == 4) {
+        switch (e->unk06) {
+        case 0:
+            k = rand8() % 10;
+            item = MM_ITEM(p, k);
+            if (item->pos.y < (f32)D_80110FE0_messy_memory[p].y + 80.0f) {
+                e->unk08 = k;
+                e->unk38 = e->unk1C = item->pos.x;
+                e->unk3C = e->unk20 = item->pos.y;
+                e->unk06 = 1;
+            }
+            break;
+        case 1:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                MM_PICKUP(obj, p, e->unk08);
+                e->unk14--;
+                e->unk06 = 2;
+            }
+            break;
+        case 2:
+            k = rand8() % 10;
+            e->unk1C = MM_SLOTX(p, k + 10);
+            e->unk20 = MM_SLOTY(p, k + 10);
+            e->unk0A = k + 10;
+            e->unk06 = 3;
+            break;
+        case 3:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(e->unk1C, e->pos.x, 5.0f) && MM_NEAR(e->unk20, e->pos.y, 5.0f)) {
+                MM_DROP(obj, p, e->unk08);
+                item->pos.x = MM_SLOTX(p, e->unk0A);
+                item->pos.y = MM_SLOTY(p, e->unk0A);
+                e->unk06 = 4;
+            }
+            break;
+        case 4:
+            k = rand8() % 10;
+            item = MM_ITEM(p, k);
+            if (item->pos.y < (f32)D_80110FE0_messy_memory[p].y + 80.0f) {
+                e->unk08 = k;
+                e->unk1C = item->pos.x;
+                e->unk20 = item->pos.y;
+                e->unk06 = 5;
+            }
+            break;
+        case 5:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                MM_PICKUP(obj, p, e->unk08);
+                e->unk14--;
+                e->unk06 = 6;
+            }
+            break;
+        case 6:
+            for (i = 0; i < 10; i++) {
+                f = MM_SLOTX(p, i);
+                if (e->unk38 == f && e->unk3C == MM_SLOTY(p, i)) {
+                    e->unk1C = f;
+                    e->unk20 = MM_SLOTY(p, i);
+                    e->unk0A = i;
+                    e->unk06 = 7;
+                }
+            }
+            break;
+        case 7:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(e->unk1C, e->pos.x, 5.0f) && MM_NEAR(e->unk20, e->pos.y, 5.0f)) {
+                MM_DROP(obj, p, e->unk08);
+                item->pos.x = MM_SLOTX(p, e->unk0A);
+                item->pos.y = MM_SLOTY(p, e->unk0A);
+                e->unk06 = 8;
+                e->unk14++;
+            }
+            break;
+        case 8:
+            for (i = 0; i < 10; i++) {
+                item = MM_ITEM(p, i);
+                if ((f32)D_80110FE0_messy_memory[p].y + 80.0f < item->pos.y) {
+                    e->unk08 = i;
+                    e->unk1C = item->pos.x;
+                    e->unk20 = item->pos.y;
+                    e->unk06 = 9;
+                }
+            }
+            break;
+        case 9:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(item->pos.x, e->pos.x, 5.0f) && MM_NEAR(item->pos.y, e->pos.y, 5.0f)) {
+                MM_PICKUP(obj, p, e->unk08);
+                e->unk06 = 10;
+            }
+            break;
+        case 10:
+            hit = 0;
+            for (i = 0; i < 10; i++) {
+                for (j = 0; j < 10; j++) {
+                    other = MM_ITEM(p, j);
+                    if (MM_SLOTX(p, i) == other->pos.x && MM_SLOTY(p, i) == other->pos.y) {
+                        hit = 1;
+                    }
+                }
+                if (!hit) {
+                    e->unk1C = MM_SLOTX(p, i);
+                    e->unk20 = MM_SLOTY(p, i);
+                    e->unk0A = i;
+                    e->unk06 = 11;
+                }
+                hit = 0;
+            }
+            break;
+        case 11:
+            MM_STEER(e);
+            item = MM_ITEM(p, e->unk08);
+            if (MM_NEAR(e->unk1C, e->pos.x, 5.0f) && MM_NEAR(e->unk20, e->pos.y, 5.0f)) {
+                MM_DROP(obj, p, e->unk08);
+                item->pos.x = MM_SLOTX(p, e->unk0A);
+                item->pos.y = MM_SLOTY(p, e->unk0A);
+                e->unk06 = 12;
+                e->unk14++;
+                e->unk12 = 5;
+            }
+            break;
+        }
+    }
+    if (e->unk24 == 1.0f) {
+        e->pos.x -= 2.0f;
+        if (e->pos.x < (f32)D_80110FE0_messy_memory[p].x + 30.0f) {
+            e->pos.x = (f32)D_80110FE0_messy_memory[p].x + 30.0f;
+        }
+    }
+    if (e->unk24 == 2.0f) {
+        e->pos.x += 2.0f;
+        if ((f32)D_80110FE0_messy_memory[p].x + 140.0f < e->pos.x) {
+            e->pos.x = (f32)D_80110FE0_messy_memory[p].x + 140.0f;
+        }
+    }
+    if (e->unk28 == 1.0f) {
+        e->pos.y -= 2.0f;
+        if (e->pos.y < (f32)D_80110FE0_messy_memory[p].y + 20.0f) {
+            e->pos.y = (f32)D_80110FE0_messy_memory[p].y + 20.0f;
+        }
+    }
+    if (e->unk28 == 2.0f) {
+        e->pos.y += 2.0f;
+        if ((f32)D_80110FE0_messy_memory[p].y + 108.0f < e->pos.y) {
+            e->pos.y = (f32)D_80110FE0_messy_memory[p].y + 108.0f;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80107C88_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010ACE4_messy_memory);
 
