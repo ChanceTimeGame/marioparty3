@@ -103,6 +103,7 @@ typedef struct {
 } PkItemTable;
 
 /* data */
+extern s32 D_8010E5D8_picking_panic;
 extern Gfx D_8010E5E0_picking_panic[];
 extern D_80111B50_vine_with_me_Struct D_8010E5B0_picking_panic;
 extern u8 D_8010E628_picking_panic;
@@ -173,8 +174,10 @@ extern u8 D_8010EFBC_picking_panic[2];
 extern u16 D_8010EFBE_picking_panic;
 extern u8 D_8010EFC0_picking_panic[4];
 extern f32 D_8010EFAC_picking_panic[2];
+extern f32 D_8010EFB4_picking_panic[2];
 extern f32 D_8010EFC4_picking_panic[2];
 extern s16 D_8010EFD0_picking_panic[10];
+extern f32 D_8010EFE4_picking_panic[2];
 extern f32 D_8010EFEC_picking_panic[2];
 extern s16 D_8010EFF8_picking_panic[10];
 
@@ -508,7 +511,131 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E7
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_8010664C_picking_panic);
 #endif
 
+#ifdef NON_MATCHING
+void func_80106E84_picking_panic(omObjData *obj) {
+    f32 vp[3][2];
+    f32 t;
+    f32 f;
+    f32 g;
+    f32 c;
+    f32 h;
+    f32 x;
+    f32 f3;
+    f32 e;
+    f32 z;
+    f64 d;
+    s32 i;
+    s32 o;
+    s32 w;
+
+    i = 0;
+    w = D_8010EF14_picking_panic;
+    if (w < 2 && D_8010EFA4_picking_panic < 255) {
+        o = 1 - w;
+        t = 1.0 - D_8010EFA4_picking_panic / 46.0;
+        f = (t < 0.0f) ? 0.0f : (t > 1.0f) ? 1.0f : t;
+        g = (t < 0.0f) ? 0.0f : (t > 1.0f) ? 1.0f : t;
+        c = 1.0f - g;
+        h = (g + (1.0f - c * c)) / 2.0f;
+        d = f * (w * 2 - 1);
+        D_8010EF78_picking_panic = 0.5 - d * 0.5;
+        x = 2.0f * f + 1.0f;
+        D_8010EEF4_picking_panic[w] = D_8010EFC4_picking_panic[w] = x;
+        D_8010EFEC_picking_panic[w] = 1.0f / x;
+        D_8010EF8C_picking_panic[w] = 1.0f / D_8010EFC4_picking_panic[w];
+        D_8010EFB4_picking_panic[w] = 0.5f;
+        D_8010EFE4_picking_panic[w] = w * 0.5 + 0.25 - d * 0.25;
+        D_8010EF9C_picking_panic[w] =
+            (-D_8010EFB4_picking_panic[w] * D_8010EEF4_picking_panic[w] + 0.5) *
+            320.0 * 4.0;
+        if (w != 0) {
+            D_8010EFAC_picking_panic[w] = f * -1.5 * 240.0 * 4.0;
+        } else {
+            D_8010EFAC_picking_panic[w] = 0.0f;
+        }
+        f3 = (f >= 0.99) ? 0.99f : f;
+        e = f3 * (w * 2 - 1);
+        D_8010EEF4_picking_panic[o] = 1.0f;
+        D_8010EFC4_picking_panic[o] = 1.0f - f3;
+        D_8010EFEC_picking_panic[o] = 1.0f / D_8010EEF4_picking_panic[o];
+        D_8010EF8C_picking_panic[o] = 1.0f / D_8010EFC4_picking_panic[o];
+        D_8010EFB4_picking_panic[o] = 0.5f;
+        D_8010EFE4_picking_panic[o] = o * 0.5 + 0.25 - e * 0.25;
+        D_8010EF9C_picking_panic[o] = (-D_8010EFB4_picking_panic[o] * D_8010EEF4_picking_panic[o] + 0.5) * 320.0 * 4.0;
+        if (o != 0) {
+            D_8010EFAC_picking_panic[o] = f3 * 240.0 * 4.0;
+        } else {
+            D_8010EFAC_picking_panic[o] = 0.0f;
+        }
+        vp[0][w] = vp[1][w] = 2.0f * h + 1.0f;
+        vp[2][w] =
+            w * 0.5 + 0.25 - h * (w * 2 - 1) * 0.25;
+        vp[0][o] = 1.0f;
+        vp[1][o] = 1.0f - f3;
+        vp[2][o] = o * 0.5 + 0.25 - e * 0.25;
+        if (D_8010EF98_picking_panic[w] != -1) {
+            Hu3DModelPosSet(*D_8010EF18_picking_panic[w][D_8010EEF0_picking_panic[w]]
+                                                    [D_8010EF98_picking_panic[w]],
+                            f3 * 200.0f + -855.0f, -25.0f - f3 * ((w != 0) ? 460.0f : 215.0f), 0.0f);
+        }
+        if (D_8010EFA4_picking_panic == 30) {
+            for (i = 0; i < 10; i++) {
+                func_8001C258_main(D_8010EEFC_picking_panic->model[i + 12], 4, 4);
+                func_8001C258_main(D_8010EEFC_picking_panic->model[i + 22], 4, 4);
+            }
+        }
+    } else {
+        for (i = 0; i < 2; i++) {
+            if (D_8010EF94_picking_panic > 0.0f && D_8010E5D8_picking_panic == 2) {
+                z = sindf(sindf(270.0 - D_8010EF94_picking_panic / 120.0 * 360.0) * 90.0f + 90.0f) * 0.125 + 1.0;
+            } else if (D_8010EF94_picking_panic > 0.0f && D_8010E5D8_picking_panic == 1) {
+                if (D_8010EF94_picking_panic < 52.5 && 37.5 <= D_8010EF94_picking_panic) {
+                    z = 1.125 - (D_8010EF94_picking_panic - 37.5) / 15.0 * 0.125;
+                } else if (D_8010EF94_picking_panic < 37.5 && 22.5 <= D_8010EF94_picking_panic) {
+                    z = 1.125f;
+                } else if (D_8010EF94_picking_panic < 22.5 && 7.5 <= D_8010EF94_picking_panic) {
+                    z = (D_8010EF94_picking_panic - 7.5) / 15.0 * 0.125 + 1.0;
+                } else {
+                    z = 1.0f;
+                }
+            } else if (D_8010EF80_picking_panic == 0) {
+                if (D_8010EFA8_picking_panic < 35) {
+                    z = 2.5f;
+                } else if (D_8010EFA8_picking_panic < 66) {
+                    z = 2.5 - (D_8010EFA8_picking_panic - 35) * 1.5 / 30.0;
+                } else {
+                    z = 1.0f;
+                }
+            } else {
+                z = 1.0f;
+            }
+            D_8010EEF4_picking_panic[i] = D_8010EFC4_picking_panic[i] = z;
+            D_8010EFEC_picking_panic[i] = 1.0f / D_8010EEF4_picking_panic[i];
+            D_8010EF8C_picking_panic[i] = 1.0f / D_8010EFC4_picking_panic[i];
+            D_8010EFB4_picking_panic[i] = 0.5f;
+            D_8010EFE4_picking_panic[i] = i * 0.5 + 0.25;
+            D_8010EF9C_picking_panic[i] = (-D_8010EFB4_picking_panic[i] * D_8010EEF4_picking_panic[i] + 0.5) * 320.0 * 4.0;
+            D_8010EFAC_picking_panic[i] =
+                (-D_8010EFE4_picking_panic[i] * D_8010EFC4_picking_panic[i] + 0.25 + i * 0.5) * 240.0 * 4.0;
+            D_8010EF78_picking_panic = 0.5f;
+            vp[0][i] = D_8010EEF4_picking_panic[i];
+            vp[1][i] = D_8010EFC4_picking_panic[i];
+            vp[2][i] = D_8010EFE4_picking_panic[i];
+        }
+    }
+    D_8010EF84_picking_panic[0] = D_8010EF84_picking_panic[1] = 0.0f;
+    func_80107A48_picking_panic();
+    ScissorSet(0, 0.0f, 0.0f, 320.0f,
+               (D_8010EF78_picking_panic * 240.0f - 1.0f < 0.0f) ? 0.0f : D_8010EF78_picking_panic * 240.0f - 1.0f);
+    ScissorSet(1, 0.0f,
+               (D_8010EF78_picking_panic * 240.0f + 1.0f > 240.0f) ? 240.0f : D_8010EF78_picking_panic * 240.0f + 1.0f,
+               320.0f, 240.0f);
+    ViewportSet(0, vp[0][0] * 640.0f, vp[1][0] * 480.0f, 511.0f, 640.0f, vp[2][0] * 4.0f * 240.0f, 511.0f);
+    ViewportSet(1, vp[0][1] * 640.0f, vp[1][1] * 480.0f, 511.0f, 640.0f, vp[2][1] * 4.0f * 240.0f, 511.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80106E84_picking_panic);
+#endif
 
 #ifdef NON_MATCHING
 void func_80107A48_picking_panic(void) {
