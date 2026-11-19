@@ -2860,7 +2860,53 @@ void func_8010D6F4_pump_pump_away(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D6F4_pump_pump_away);
 #endif
 
+#ifdef NON_MATCHING
+void func_8010D95C_pump_pump_away(omObjData *obj) {
+    PpMarker *m = &D_80113418_pump_pump_away[obj->work[0]];
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+    s32 n;
+    s32 i;
+
+    if (m->stop == 0) {
+        if (t[1].dist < D_80111978_pump_pump_away[0].dist) {
+            dist = D_80111978_pump_pump_away[0].dist;
+        } else {
+            dist = t1->dist;
+        }
+        i = dist * 0.01;
+        switch (m->state) {
+            case 0:
+                n = i * 0.01 + 2.0;
+                m->n = n;
+                obj->trans.y = n * 1000 - dist * 0.1 + 480.0;
+                m->state = 2;
+                break;
+            case 1:
+                n = i * 0.01 + 1.0;
+                m->n = n;
+                obj->trans.y = n * 1000 - dist * 0.1 + 480.0;
+                m->state = 2;
+                break;
+            case 2:
+                obj->trans.y = m->n * 1000 - dist * 0.1 + 480.0;
+                if (obj->trans.y < -1000.0f) {
+                    m->state = 1;
+                }
+                break;
+        }
+    }
+    func_80034048_main((s16)obj->work[1], (s16)m->n);
+    func_80034048_main((s16)obj->work[2], 0);
+    func_80034048_main((s16)obj->work[3], 0);
+    m->angle = PP_WRAP(m->angle + 6.0f);
+    obj->trans.y = obj->trans.y + (f64)sindf(m->angle);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D95C_pump_pump_away);
+#endif
 
 void func_8010DC68_pump_pump_away(omObjData *obj) {
     u32 n = obj->work[0];
