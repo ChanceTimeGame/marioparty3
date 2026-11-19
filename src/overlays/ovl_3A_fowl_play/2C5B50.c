@@ -189,8 +189,8 @@ typedef struct FpFeather {
     /* 0x00 */ s8 board; /* billboard */
     /* 0x01 */ u8 unk01;
     /* 0x02 */ char unk02[2];
-    /* 0x04 */ Vec vel;
-    /* 0x10 */ f32 unk10;
+    /* 0x04 */ Vec vel; /* func_80109844_fowl_play keeps the puff's position here */
+    /* 0x10 */ f32 unk10; /* its facing */
 } FpFeather; /* size 0x14 */
 
 /* MgWork::unk158 of the chick. */
@@ -201,11 +201,11 @@ typedef struct FpChick {
     /* 0x03 */ u8 unk03;
     /* 0x04 */ s16 unk04;
     /* 0x06 */ s16 unk06;
-    /* 0x08 */ char unk08[4];
+    /* 0x08 */ f32 speed;
     /* 0x0C */ f32 radius;
     /* 0x10 */ f32 angle;
     /* 0x14 */ f32 target; /* wanted angle */
-    /* 0x18 */ char unk18[0xC];
+    /* 0x18 */ Vec prev; /* position at the end of the last frame */
     /* 0x24 */ Vec vel;
     /* 0x30 */ omObjData* holder; /* player carrying it */
     union {
@@ -1231,7 +1231,285 @@ void func_801094A4_fowl_play(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801094A4_fowl_play);
 #endif
 
+extern s32 D_8010E8C4_fowl_play; /* chick sound timer */
+void func_8004AE00_main(s16 handle, s16 pan);
+f32 func_801075B0_fowl_play(Vec* pos, f32 dist, f32 angle);
+void func_801070FC_fowl_play(omObjData* obj, f32 r);
+s32 func_8010D108_fowl_play(s16 id);
+void func_8010CF24_fowl_play(s16 id, f32 x, f32 y, f32 z);
+
+#ifdef NON_MATCHING
+/* masked 0; raw 4: the pan computation's FPU registers (retail keeps the sum in $f2, the 128.0 in $f4) */
+/* The chick: runs from the nearer player, flaps when one is close, sheds feathers; carried, then thrown at the end. */
+void func_80109844_fowl_play(omObjData* obj) {
+    struct {
+        Vec v;
+        char unk0C[0x14];
+        f32 dist[2]; /* to each player */
+        f32 ang[2]; /* towards each player */
+    } l;
+    u8 unused[0x40];
+    MgWork* work;
+    FpChick* ch;
+    omObjData* p;
+    f32 r;
+    f32 a;
+    f32 d;
+    s16 pan;
+    s16 se;
+    s16 id;
+    s32 i;
+    s32 j;
+    f64 m;
+
+    work = obj->data;
+    ch = work->unk158;
+    se = 0;
+    switch (D_8010F29C_fowl_play) {
+    case 0:
+    case 1:
+        ch->unk04 = 2;
+        ch->unk02 = 2;
+        ch->unk06 = 20;
+        break;
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        break;
+    case 8:
+        if (work != NULL) {
+            HuMemFree(work->unk158);
+            obj->data = NULL;
+            obj->func = NULL;
+        }
+        return;
+    case 9:
+        return;
+    }
+    r = sqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z);
+    a = func_8010A9EC_fowl_play(obj->trans.x, obj->trans.z);
+    switch (ch->state) {
+    case 0:
+        ch->vel.x = ch->vel.z = 0.0f;
+        if (--ch->unk02 == 0) {
+            ch->unk03 = D_8010F29E_fowl_play * 0.2 +
+                        (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 30.0);
+            ch->state++;
+        }
+        break;
+    case 1:
+    case 2:
+        for (i = 0; i < 2; i++) {
+            p = D_800EC598_minigame[i];
+            l.dist[i] = func_8010AA64_fowl_play(&obj->trans, &p->trans);
+            l.ang[i] = func_8010A9EC_fowl_play(p->trans.x - obj->trans.x, p->trans.z - obj->trans.z);
+        }
+        if (ch->unk02 == 0) {
+            if (r >= 960.0) {
+                j = 1;
+                if (l.dist[0] < l.dist[1]) {
+                    j = 0;
+                }
+                d = a - l.ang[j];
+                while (d < -180.0) {
+                    d += 360.0;
+                }
+                while (d > 180.0) {
+                    d -= 360.0;
+                }
+                if (d < 0.0) {
+                    ch->target = a + 170.0;
+                } else {
+                    ch->target = a - 170.0;
+                }
+                ch->unk02 = 10;
+            } else if (l.dist[0] < 200.0) {
+                if (ch->state != 1) {
+                    se = 0x4C1;
+                    D_8010E8C4_fowl_play = 1;
+                }
+                ch->target = l.ang[0] + 180.0;
+                ch->state = 1;
+            } else if (l.dist[1] < 200.0) {
+                if (ch->state != 1) {
+                    se = 0x4C1;
+                    D_8010E8C4_fowl_play = 1;
+                }
+                ch->target = l.ang[1] + 180.0;
+                ch->state = 1;
+            } else {
+                m = (l.ang[0] + l.ang[1]) * 0.5;
+                if (fabs(l.ang[0] - l.ang[1]) < 180.0) {
+                    ch->target = m + 180.0;
+                } else {
+                    ch->target = m + 0.0;
+                }
+            }
+            l.v.x = obj->trans.x;
+            l.v.y = 0;
+            l.v.z = obj->trans.z;
+            d = func_801075B0_fowl_play(&l.v, 200.0f, ch->angle);
+            if (ch->angle != d) {
+                ch->target = d;
+            }
+        } else {
+            ch->unk02--;
+        }
+        while (ch->target < -180.0) {
+            ch->target += 360.0;
+        }
+        while (ch->target > 180.0) {
+            ch->target -= 360.0;
+        }
+        d = ch->angle - ch->target;
+        while (d < -180.0) {
+            d += 360.0;
+        }
+        while (d > 180.0) {
+            d -= 360.0;
+        }
+        if (d > 8.0) {
+            ch->angle = ch->angle - 8.0;
+        } else if (d < -8.0) {
+            ch->angle = ch->angle + 8.0;
+        } else {
+            ch->angle = ch->target;
+        }
+        while (ch->angle < -180.0) {
+            ch->angle += 360.0;
+        }
+        while (ch->angle > 180.0) {
+            ch->angle -= 360.0;
+        }
+        ch->unk03--;
+        if (ch->state == 1) {
+            func_800E5690_minigame(obj, 2);
+            ch->speed = 20.0f;
+            ch->unk04 -= 2;
+            ch->unk06 -= 1;
+            if (ch->unk03 == 0) {
+                ch->unk03 = D_8010F29E_fowl_play * 0.05 +
+                            (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 30.0);
+                ch->state++;
+            }
+        } else {
+            func_800E5690_minigame(obj, 1);
+            ch->speed = 6.0f;
+            ch->unk04 -= 1;
+            if (ch->unk03 == 0) {
+                D_8010E8C4_fowl_play = 1;
+                se = 0x4C1;
+                ch->unk03 = D_8010F29E_fowl_play * 0.2 +
+                            (s32)((f32)func_8010A9A0_fowl_play() * (1.0 / 65536.0) * 30.0);
+                ch->state--;
+            }
+        }
+        if (--D_8010E8C4_fowl_play == 0) {
+            if (ch->state == 1) {
+                D_8010E8C4_fowl_play = 9;
+            } else {
+                D_8010E8C4_fowl_play = 15;
+            }
+            if (l.dist[0] < 800.0 || l.dist[1] < 800.0) {
+                d = l.dist[0] + l.dist[1];
+                pan = l.dist[0] * 128.0 / d;
+                if (pan < 0x20) {
+                    pan = 0x20;
+                }
+                if (pan > 0x60) {
+                    pan = 0x60;
+                }
+                if (se == 0) {
+                    se = (func_8010A9A0_fowl_play() & 3) + 0x4C3;
+                }
+                func_8004AE00_main(func_8004AC5C_main(se, 4), pan);
+            }
+        }
+        break;
+    case 3:
+        if (--ch->unk03 == 0) {
+            func_800E5690_minigame(obj, 0);
+            func_8001EF6C_main(obj->model[0], ch->holder->model[0], "item_hook");
+            func_8001C258_main(obj->model[0], 0x4000, 0x4000);
+        }
+        func_8001C258_main(obj->model[1], 4, 4);
+        ch->speed = 0.0f;
+        if (D_8010F29C_fowl_play == 6) {
+            func_8010B1A0_fowl_play(ch->holder->model[0], "item_hook", 0, &obj->trans);
+        } else if (D_8010F29C_fowl_play == 7) {
+            ch->angle = func_8010A9EC_fowl_play(-obj->trans.x, -obj->trans.z);
+            ch->speed = 16.0f;
+            ch->vel.y = 15.0f;
+            ch->state++;
+        }
+        break;
+    case 4:
+        ch->vel.y -= 2.0;
+        obj->trans.y += ch->vel.y;
+        if (obj->trans.y < 0.0) {
+            obj->trans.y = 0.0f;
+        }
+        break;
+    }
+    ch->vel.x = sindf(ch->angle) * ch->speed;
+    ch->vel.z = cosdf(ch->angle) * ch->speed;
+    obj->trans.x += ch->vel.x;
+    obj->trans.z += ch->vel.z;
+    if (ch->unk01 != 0 && (l.v.x = ch->prev.x, l.v.y = 0, l.v.z = ch->prev.z,
+                           func_8010724C_fowl_play(&l.v, &obj->trans, ch->radius))) {
+        obj->trans.x = l.v.x;
+        obj->trans.z = l.v.z;
+    } else {
+        func_801070FC_fowl_play(obj, ch->radius);
+    }
+    ch->unk01 = 0;
+    if (r > 1200.0 - ch->radius) {
+        obj->trans.x = (1200.0 - ch->radius) * (obj->trans.x / r);
+        obj->trans.z = (1200.0 - ch->radius) * (obj->trans.z / r);
+    }
+    for (i = 0; i < 4; i++) {
+        id = (u8)ch->u.boards[i];
+        if ((func_8010D108_fowl_play(id) & 0x8000) && ch->unk06 == 0) {
+            func_8010CF24_fowl_play(id, obj->trans.x, obj->trans.y - 10.0, obj->trans.z);
+            func_8010D0C0_fowl_play(id, 0x8000);
+            func_8010CE04_fowl_play(id, 0);
+            ch->unk06 = 8;
+        }
+    }
+    for (i = 0; i < 32; i++) {
+        if (ch->u.f.feathers[i].unk01 == 0) {
+            if (ch->unk04 <= 0) {
+                func_8010D0C0_fowl_play(ch->u.f.feathers[i].board, 0x8000);
+                ch->u.f.feathers[i].vel.x = obj->trans.x;
+                ch->u.f.feathers[i].vel.y = 1.0f;
+                ch->u.f.feathers[i].vel.z = obj->trans.z;
+                ch->u.f.feathers[i].unk10 = ch->angle;
+                ch->u.f.feathers[i].unk01 = 0x80;
+                func_8010CF24_fowl_play(ch->u.f.feathers[i].board, ch->u.f.feathers[i].vel.x, ch->u.f.feathers[i].vel.y, ch->u.f.feathers[i].vel.z);
+                func_8010D02C_fowl_play(ch->u.f.feathers[i].board, 90.0f, ch->u.f.feathers[i].unk10, 0.0f);
+                func_8010D2A4_fowl_play(ch->u.f.feathers[i].board, 0, 0, 0, 0xFF);
+                ch->unk04 = 10;
+            } else {
+                func_8010D07C_fowl_play(ch->u.f.feathers[i].board, 0x8000);
+            }
+        } else {
+            ch->u.f.feathers[i].unk01--;
+            func_8010D2A4_fowl_play(ch->u.f.feathers[i].board, 0, 0, 0, ch->u.f.feathers[i].unk01 * 2);
+        }
+    }
+    ch->prev.x = obj->trans.x;
+    ch->prev.y = obj->trans.y;
+    ch->prev.z = obj->trans.z;
+    obj->rot.y = ch->angle;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.0f, obj->trans.z);
+    func_800E4E30_minigame(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109844_fowl_play);
+#endif
 
 /* Pushes the chick out of obj's way; with grab set and the chick in front of obj, obj catches it. */
 u8 func_8010A738_fowl_play(omObjData* obj, u8 grab) {
