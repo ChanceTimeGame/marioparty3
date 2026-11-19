@@ -1283,13 +1283,15 @@ void func_8010AF88_thwomp_pull(omObjData* object) {
             } else {
                 qy = qy + s;
             }
-            s = 79.0315;
+            s = HmfModelData[obj->model[4 + i]].pos.z;
             if (team != 0) {
-                s = 118.54725;
+                s = s + 118.54725;
+            } else {
+                s = s + 79.0315;
             }
             dx = (f32)px - x;
             dy = (f32)qy - py;
-            dz = (f32)(HmfModelData[obj->model[4 + i]].pos.z + s) - z;
+            dz = (f32)s - z;
             dist = HuSqrtf(dx * dx + dy * dy + dz * dz);
             dz = -dz;
             ay = atan2df(-dx, dz);
