@@ -198,16 +198,16 @@ typedef struct FpChick {
     /* 0x00 */ u8 state;
     /* 0x01 */ u8 unk01;
     /* 0x02 */ u8 unk02;
-    /* 0x03 */ char unk03;
+    /* 0x03 */ u8 unk03;
     /* 0x04 */ s16 unk04;
     /* 0x06 */ s16 unk06;
     /* 0x08 */ char unk08[4];
-    /* 0x0C */ f32 speed;
+    /* 0x0C */ f32 radius;
     /* 0x10 */ f32 angle;
     /* 0x14 */ f32 target; /* wanted angle */
     /* 0x18 */ char unk18[0xC];
     /* 0x24 */ Vec vel;
-    /* 0x30 */ char unk30[4];
+    /* 0x30 */ omObjData* holder; /* player carrying it */
     union {
         /* 0x34 */ s8 boards[8]; /* billboards; retail writes 8, so [4] and [5] are feathers[0]'s board and unk01 */
         struct {
@@ -1196,7 +1196,7 @@ void func_801094A4_fowl_play(omObjData* obj) {
     ch->unk01 = 0;
     ch->vel.x = ch->vel.y = ch->vel.z = 0.0f;
     ch->angle = ch->target = (f32)(func_8010A9A0_fowl_play() - 0x8000) * (1.0 / 32768.0) * 180.0;
-    ch->speed = 20.0f;
+    ch->radius = 20.0f;
     ch->unk02 = ch->unk04 = ch->unk06 = 0;
     obj->model[0] = func_8000B108_main(0x5B0006, 0x2D9);
     obj->model[1] = func_8000B0D4_main(9, 0x2D9);
@@ -1233,7 +1233,54 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801094A4_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109844_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010A738_fowl_play);
+/* Pushes the chick out of obj's way; with grab set and the chick in front of obj, obj catches it. */
+u8 func_8010A738_fowl_play(omObjData* obj, u8 grab) {
+    u8 unused[0x10];
+    omObjData* co;
+    FpChick* ch;
+    MgWork* work;
+    f32 r;
+    f32 d;
+    f32 a;
+
+    if (obj->trans.y >= 20.0) {
+        return 0;
+    }
+    co = D_8010F290_fowl_play[0];
+    ch = ((MgWork*)co->data)->unk158;
+    work = obj->data;
+    r = ch->radius + work->unk48;
+    d = func_8010AA64_fowl_play(&obj->trans, &co->trans);
+    if (d > r + 20.0) {
+        return 0;
+    }
+    a = func_8010A9EC_fowl_play(obj->trans.x - co->trans.x, obj->trans.z - co->trans.z);
+    if (d < r) {
+        co->trans.x = obj->trans.x - (ch->radius + work->unk48) * sindf(a);
+        co->trans.z = obj->trans.z - (ch->radius + work->unk48) * cosdf(a);
+        ch->unk01 = 1;
+    }
+    if (!grab) {
+        return 0;
+    }
+    if (ch->state >= 3) {
+        return 0;
+    }
+    a = a + 180.0 - work->unk3C;
+    while (a < -180.0) {
+        a += 360.0;
+    }
+    while (a > 180.0) {
+        a -= 360.0;
+    }
+    if (fabs(a) < 60.0) {
+        ch->holder = obj;
+        ch->state = 3;
+        ch->unk03 = 1;
+        return 1;
+    }
+    return 0;
+}
 
 s32 func_8010A9A0_fowl_play(void) {
     u32 r;
