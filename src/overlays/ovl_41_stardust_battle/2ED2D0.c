@@ -58,6 +58,8 @@ typedef struct SbB44 {
 
 typedef f32 Matrix4f[4][4];
 
+#define SB_ABS(x) ((x) < 0 ? -(x) : (x))
+
 #define SB_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -147,6 +149,8 @@ void func_80108404_stardust_battle(omObjData *obj);
 void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
 void func_80108454_stardust_battle(omObjData *obj);
+void func_801084B0_stardust_battle(omObjData *obj);
+void func_801086E8_stardust_battle(omObjData *obj);
 void func_801089B4_stardust_battle(void);
 u16 func_8010EE38_stardust_battle(s32 dirAndFile);
 void func_8010F580_stardust_battle(s16 idx);
@@ -177,6 +181,7 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+void func_8010A04C_stardust_battle(f32 x, f32 z, f32 arg2, f32 arg3, f32 arg4, f32 arg5);
 void func_800E5798_minigame(omObjData *obj, u16 motion);
 omObjData *func_80045F1C_main(u32, s16, s16);
 extern f32 D_800EB748_minigame;
@@ -1158,9 +1163,85 @@ void func_80108454_stardust_battle(omObjData *obj) {
     pl->unk0A = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801084B0_stardust_battle);
+void func_801084B0_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(obj);
+    f32 x;
+    f32 y;
+    f32 len;
+    s16 idx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801086E8_stardust_battle);
+    idx = pl->unk22;
+    x = D_800CBB6E_main[idx];
+    y = D_800D20A1_main[idx];
+    if (x > 60.0f) {
+        x = 60.0f;
+    } else if (x < -60.0f) {
+        x = -60.0f;
+    } else {
+        x = D_800CBB6E_main[pl->unk22];
+    }
+    if (y > 60.0f) {
+        y = 60.0f;
+    } else if (y < -60.0f) {
+        y = -60.0f;
+    } else {
+        y = D_800D20A1_main[pl->unk22];
+    }
+    if (fabs(x) < 8.0) {
+        x = 0.0f;
+    }
+    if (fabs(y) < 8.0) {
+        y = 0.0f;
+    }
+    len = sqrtf(x * x + y * y);
+    if (len != 0.0f) {
+        len = 1.0f / len;
+    } else {
+        len = 0.0f;
+    }
+    D_800CBB6E_main[pl->unk22] = x * len * 60.0f * 0.8f;
+    D_800D20A1_main[pl->unk22] = y * len * 60.0f * 0.8f;
+}
+
+void func_801086E8_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(obj);
+    s32 v;
+    s32 idx;
+
+    if (obj->trans.y == 0.0f) {
+        idx = pl->unk22;
+        v = D_800CBB6E_main[idx];
+        if (v < 0) {
+            v = -v;
+        }
+        if (v < 17) {
+            v = D_800D20A1_main[idx];
+            if (v < 0) {
+                v = -v;
+            }
+            if (v < 17) {
+                goto still;
+            }
+        }
+        pl->unk0C = 1;
+    } else {
+    still:
+        pl->unk0C = 0;
+    }
+    if (pl->unk0C != 0) {
+        pl->unk0E++;
+    } else {
+        pl->unk0E = 0;
+    }
+    if (D_80114B14_stardust_battle != 1) {
+        if ((obj->trans.y != 0.0f || !(pl->unk2C.y > 0.0f)) && pl->unk0C != 0 && pl->unk0E == 20) {
+            pl->unk0E = 0;
+        }
+        if (!(pl->unk0A & 0xF)) {
+            func_8010A04C_stardust_battle(D_80114B18_stardust_battle->trans.x, D_80114B18_stardust_battle->trans.z, 37.5f, 7.5000005f, 0.0f, 0.0f);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010882C_stardust_battle);
 
