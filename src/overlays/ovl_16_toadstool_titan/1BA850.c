@@ -135,6 +135,16 @@ extern s32 D_800EBEB0_minigame[];
 extern s32 D_800A178C_main[][6];
 extern omObjData* D_800D6A40_main;
 extern f32 D_800CE17C_main[];
+extern Gfx* gMainGfxPos;
+extern Gfx D_8010EDF0_toadstool_titan[]; /* render state for the zoomed screen */
+/* main's esprite slot (src/esprite.c D_800CD1DC_main_Struct; no pointer fields) */
+typedef struct TtEspr {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04; /* sprite group */
+    /* 0x06 */ char unk06[0x1E];
+} TtEspr; /* size 0x24 */
+extern TtEspr* D_800CD1DC_main;
 extern f32 D_800D5210_main;
 extern f32 D_800CB890_main;
 extern s16 D_800D418E_main;
@@ -1395,7 +1405,61 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", D_8010
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", func_80107360_toadstool_titan);
 #endif
 
+// instruction-identical except one extra nop the assembler puts before the first mult in gSPScisTextureRectangle (0x5960); logic checked
+#ifdef NON_MATCHING
+void func_8010AD8C_toadstool_titan(s16 x0, s16 y0, s16 x1, s16 y1) {
+    HuSprite* spr;
+    HuSprite_Unk84_Unk00_Struct* cel;
+    f32 sx;
+    f32 sy;
+    f32 ox;
+    f32 oy;
+    s32 dsdx;
+    s32 dtdy;
+    s32 row;
+    s32 col;
+    f32 ty;
+    f32 tyb;
+    f32 tx;
+    f32 txr;
+    s32 ulx;
+    s32 uly;
+    s32 lrx;
+    s32 lry;
+
+    sx = (x1 - x0) / 320.0;
+    ox = x0;
+    dsdx = 1.0 / sx * 1024.0;
+    sy = (y1 - y0) / 240.0;
+    oy = y0;
+    dtdy = 1.0 / sy * 1024.0;
+    gSPDisplayList(gMainGfxPos++, D_8010EDF0_toadstool_titan);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+    spr = HuSprGet(D_800CD1DC_main[D_8010F588_toadstool_titan[0]].unk04, 0);
+    cel = &spr->unk_84->unk00[spr->unk_90];
+    gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+    for (row = 0; row < 6; row++) {
+        ty = row * 40;
+        tyb = ty + 40.0f + ((row == 5) ? -0.75 : 1.0);
+        for (col = 0; col < 8; col++) {
+            tx = col * 40;
+            txr = tx + 40.0f + ((col < 7) ? 1.0f : 0.0f);
+            ulx = (sx * tx + ox) * 4.0f;
+            uly = (sy * ty + oy) * 4.0f;
+            lrx = (sx * txr + ox) * 4.0f;
+            lry = (sy * tyb + oy) * 4.0f;
+            if (ulx > 1280 || uly > 960 || lrx < 0 || lry < 0) {
+                continue;
+            }
+            gDPLoadTextureTile(gMainGfxPos++, cel->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 320, 0, (s32)tx, (s32)ty, (s32)txr, (s32)tyb, 0,
+                               G_TX_WRAP, G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            gSPScisTextureRectangle(gMainGfxPos++, ulx, uly, lrx, lry, G_TX_RENDERTILE, tx * 32.0f, ty * 32.0f, dsdx, dtdy);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", func_8010AD8C_toadstool_titan);
+#endif
 
 void func_8010B4D4_toadstool_titan(s16 mdl, s16 frame) {
     func_8001C6A8_main(mdl, frame);
