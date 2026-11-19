@@ -100,6 +100,7 @@ extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
 extern s32 D_80111608_messy_memory[10]; /* item sprite groups (s16 values) */
+extern s32 D_80111634_messy_memory; /* the shadow sprite group (s16 value; retail reads its low half, D_80111636) */
 extern HuSprite_Unk84_Struct *D_80111654_messy_memory; /* the room backdrop image */
 extern HuSprite_Unk84_Struct *D_801116D8_messy_memory; /* the divider image */
 extern u8 D_80111658_messy_memory[4]; /* hand shown, per player */
@@ -187,6 +188,7 @@ omObjData *func_80045ED0_main(u32 arg0);
 void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_8010D55C_messy_memory(omObjData *obj);
+void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80110EC4_messy_memory(void);
@@ -2245,7 +2247,49 @@ void func_8010DA64_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010DA64_messy_memory);
 #endif
 
+/* An item's shadow (D_80111700[48 + board * 10 + item]): shown under items of the shown room that sit on a slot. */
+#ifdef NON_MATCHING
+/* An item's shadow (D_80111700[86 + board * 10 + item]): shown under items of the shown room that sit on a slot. */
+void func_8010E29C_messy_memory(omObjData *obj) {
+    MmEnt *sh;
+    MmEnt *it;
+    s16 i;
+
+    sh = &D_80111700_messy_memory[obj->work[1] * 10 + 86 + obj->work[0]];
+    it = &D_80111700_messy_memory[obj->work[1] * 10 + 8 + obj->work[0]];
+    if (obj->work[0] == 0 && obj->work[1] == 0) {
+        D_80111634_messy_memory = func_8000B838_main(0x3E0003);
+    }
+    sh->spr = InitEspriteSlot((s16)D_80111634_messy_memory, 0, 0);
+    if (obj->work[1] == 4) {
+        sh->unk5C.x = 1.0f;
+        sh->unk5C.y = 1.0f;
+    } else {
+        sh->unk5C.x = 0.5f;
+        sh->unk5C.y = 0.5f;
+    }
+    func_8000BB94_main(sh->spr);
+    func_8000BCC8_main(sh->spr, 0xEEEE);
+    if (obj->work[1] == 4) {
+        /* i reaches 20: D_80110FF4[20] is D_80111044[0] */
+        for (i = 0; i < 21; i++) {
+            if (it->pos.x == (f32)(D_80110FF4_messy_memory[i].x + D_80110FE0_messy_memory[obj->work[1]].x) &&
+                it->pos.y == (f32)(D_80110FF4_messy_memory[i].y + D_80110FE0_messy_memory[obj->work[1]].y)) {
+                sh->pos.x = it->pos.x;
+                sh->pos.y = it->pos.y;
+                func_8000BCC8_main(sh->spr, 0x4444);
+                func_8000BB54_main(sh->spr);
+                func_8000BBD4_main(sh->spr, sh->pos.x, sh->pos.y + 2.0f);
+            }
+        }
+    }
+    func_8000BC48_main(sh->spr, 0x5000);
+    func_8000BE5C_main(sh->spr, sh->unk5C.x, sh->unk5C.y);
+    obj->func = func_8010DA64_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E29C_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E500_messy_memory);
 
