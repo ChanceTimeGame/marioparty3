@@ -167,6 +167,19 @@ typedef struct PpFx {
     /* 0x04 */ s32 alpha;
 } PpFx;
 
+/* The record display (D_801135B0_pump_pump_away). */
+typedef struct PpRecord {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s16 grp;
+    /* 0x0A */ s16 win;
+    /* 0x0C */ s32 digit[3];
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ u16 record;
+    /* 0x20 */ s32 scale;
+    /* 0x24 */ s32 dir;
+} PpRecord; // Size 0x28
+
 typedef s32 (*PpDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
 extern s32 fontcolor;
@@ -199,6 +212,7 @@ extern s16 D_8011110E_pump_pump_away;
 extern s32 D_80111110_pump_pump_away;
 extern s16 D_8011110A_pump_pump_away;
 extern PpFx D_80113400_pump_pump_away[3];
+extern PpRecord D_801135B0_pump_pump_away;
 extern s32 D_80111700_pump_pump_away;
 extern s32 D_80111704_pump_pump_away;
 extern s32 D_80111708_pump_pump_away;
@@ -249,6 +263,10 @@ void func_8010A468_pump_pump_away(void);
 void func_8010AF70_pump_pump_away(omObjData *obj);
 s16 func_8000B5BC_main(s32);
 void func_8001F974_main(s16, s16);
+u16 GWMgRecordGet(s16 arg0);
+void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+s32 func_8010CCBC_pump_pump_away(void);
+void func_8010CDF4_pump_pump_away(void);
 omObjData *func_80045EF4_main(u32 arg0, s16 arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
 
@@ -2455,13 +2473,129 @@ void func_8010C6E4_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CBF0_pump_pump_away);
+void func_8010CBF0_pump_pump_away(void) {
+    omObjData *obj;
+    s32 i;
+    s32 player;
 
+    for (i = 0; i < 4; i++) {
+        obj = omAddObj(300, 9, 60, -1, func_8010C6E4_pump_pump_away);
+        switch (i) {
+            case 1:
+                player = 1;
+                break;
+            case 2:
+                player = 2;
+                break;
+            case 3:
+                player = 3;
+                break;
+            case 0:
+            default:
+                player = 0;
+                break;
+        }
+        obj->work[0] = player;
+        obj->work[1] = GwPlayer[player].group;
+    }
+}
+
+#ifdef NON_MATCHING
+s32 func_8010CCBC_pump_pump_away(void) {
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpRecord *r = &D_801135B0_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    u16 dist;
+
+    if (D_80111978_pump_pump_away[1].dist < t->dist) {
+        dist = t->dist * 0.01;
+        if (r->record < dist) {
+            GWMgRecordSet(0, dist);
+            return 1;
+        }
+        return 0;
+    }
+    dist = t1->dist * 0.01;
+    if (r->record < dist) {
+        GWMgRecordSet(0, dist);
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CCBC_pump_pump_away);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010CDF4_pump_pump_away(void) {
+    PpRecord *r = &D_801135B0_pump_pump_away;
+    s32 rec;
+
+    if (D_801116F4_pump_pump_away < 9) {
+        rec = GWMgRecordGet(0);
+        D_801135B0_pump_pump_away.record = rec;
+    } else {
+        rec = GWMgRecordGet(0);
+    }
+    r->digit[0] = rec / 100;
+    rec %= 100;
+    if (r->digit[0] == 0) {
+        r->digit[0] = -1;
+    }
+    r->digit[1] = rec / 10;
+    rec %= 10;
+    if (r->digit[1] == 0 && r->digit[0] == -1) {
+        r->digit[1] = r->digit[0];
+    }
+    r->digit[2] = rec;
+    r->unk18 = 12;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CDF4_pump_pump_away);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010CEE8_pump_pump_away(omObjData *obj) {
+    f32 s;
+    s32 i;
+
+    if (D_801116F4_pump_pump_away == 9 && func_8010CCBC_pump_pump_away() != 0) {
+        func_8010CDF4_pump_pump_away();
+        if (D_801135B0_pump_pump_away.dir == 0) {
+            if (D_801135B0_pump_pump_away.scale >= 13) {
+                D_801135B0_pump_pump_away.dir = 1;
+            } else {
+                D_801135B0_pump_pump_away.scale += 2;
+            }
+        } else if (D_801135B0_pump_pump_away.scale > 0) {
+            D_801135B0_pump_pump_away.scale -= 2;
+        }
+        s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
+        HuSprScaleSet(D_801135B0_pump_pump_away.grp, 0, s, s);
+        func_80054904_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.scale / 4 + 32, D_801135B0_pump_pump_away.scale / 4 + 22);
+        func_80055024_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.unk04, 0);
+        func_800550F4_main(D_801135B0_pump_pump_away.grp, 0, 0);
+        func_80054FF8_main(D_801135B0_pump_pump_away.grp, 0, (s16)D_801135B0_pump_pump_away.digit[0]);
+        HuSprAttrSet(D_801135B0_pump_pump_away.grp, 0, 0x1000);
+        HuSprAttrSet(D_801135B0_pump_pump_away.grp, 0, 0);
+        for (i = 1; i < 3; i++) {
+            s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
+            HuSprScaleSet(D_801135B0_pump_pump_away.grp, i, s, s);
+            func_80054904_main(D_801135B0_pump_pump_away.grp, i, i * 12, 0);
+            func_80055024_main(D_801135B0_pump_pump_away.grp, i, D_801135B0_pump_pump_away.unk04, 0);
+            func_800550F4_main(D_801135B0_pump_pump_away.grp, i, 0);
+            func_80054FF8_main(D_801135B0_pump_pump_away.grp, i, (s16)D_801135B0_pump_pump_away.digit[i]);
+            HuSprAttrSet(D_801135B0_pump_pump_away.grp, i, 0x1000);
+            HuSprAttrSet(D_801135B0_pump_pump_away.grp, i, 0);
+        }
+        s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
+        func_8000BE5C_main(D_801135B0_pump_pump_away.win, s, s);
+        func_8000BBD4_main(D_801135B0_pump_pump_away.win, D_801135B0_pump_pump_away.scale * 4 + 78, D_801135B0_pump_pump_away.scale / 4 + 22);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CEE8_pump_pump_away);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D1B8_pump_pump_away);
 
