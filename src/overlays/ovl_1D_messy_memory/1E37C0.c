@@ -91,6 +91,7 @@ extern MmCamera D_80111340_messy_memory[2];
 
 /* .bss */
 extern MmEnt D_80111700_messy_memory[136];
+extern MmEnt D_80111910_messy_memory[]; /* = D_80111700_messy_memory[4] */
 extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
@@ -163,6 +164,11 @@ void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_80105B88_messy_memory(Gfx **gfx, s32 arg1, s32 arg2);
 void func_801060E0_messy_memory(omObjData *obj);
+void func_8010622C_messy_memory(omObjData *obj);
+void func_801063FC_messy_memory(omObjData *obj);
+void func_80107C88_messy_memory(omObjData *obj);
+void func_8010B32C_messy_memory(omObjData *obj);
+void func_8010C03C_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_80110EC4_messy_memory(void);
@@ -382,9 +388,43 @@ void func_8010622C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010622C_messy_memory);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801063FC_messy_memory);
+/* The title sign's sprites (D_80111700[4 + work[0]]): 0 the sign, 1 its overlay. */
+void func_801063FC_messy_memory(omObjData *obj) {
+    MmEnt *ent = &D_80111910_messy_memory[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80106588_messy_memory);
+    if (obj->work[0] == 0) {
+        ent->pos.x = 160.0f;
+        ent->pos.y = 120.0f;
+        ent->grp = func_8000B838_main(0x3E0000);
+        ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+        func_8000BC48_main(ent->spr, 0x4000);
+        func_8000BBD4_main(ent->spr, ent->pos.x, ent->pos.y);
+        func_8000BCC8_main(ent->spr, 0x5555);
+    }
+    if (obj->work[0] == 1) {
+        ent->pos.x = 160.0f;
+        ent->pos.y = 120.0f;
+        ent->grp = func_8000B838_main(0x3E0001);
+        ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+        func_8000BC48_main(ent->spr, 0x4000);
+        func_8000BBD4_main(ent->spr, ent->pos.x, ent->pos.y);
+        func_8000BCC8_main(ent->spr, 0xFFFF);
+    }
+    obj->func = func_8010622C_messy_memory;
+}
+
+void func_80106588_messy_memory(void) {
+    omObjData *obj;
+    MmEnt *ent;
+    u8 i;
+
+    for (i = 0; i < 2; i++) {
+        ent = &D_80111910_messy_memory[i];
+        obj = omAddObj(950, 0, 0, -1, func_801063FC_messy_memory);
+        obj->work[0] = i;
+        ent->obj = obj;
+    }
+}
 
 #ifdef NON_MATCHING
 Gfx **func_80106620_messy_memory(Gfx **gfx) {
@@ -1173,13 +1213,59 @@ void func_80107C88_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80107C88_messy_memory);
 #endif
 
+#ifdef NON_MATCHING
+/* A CPU player's brain runs only while the items are put back (phase 9). */
+void func_8010ACE4_messy_memory(omObjData *obj) {
+    s32 p = (u16)obj->work[0];
+    s32 d;
+
+    if (D_80115D8C_messy_memory == 9) {
+        d = GwPlayer[p].cpu_difficulty;
+        if (d < 4 && d >= 0) {
+            func_80107C88_messy_memory(obj);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010ACE4_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010AD40_messy_memory);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B32C_messy_memory);
 
+#ifdef NON_MATCHING
+void func_8010B4CC_messy_memory(void) {
+    omObjData *obj;
+    MmEnt *ent;
+    s32 unused[2];
+    u32 kind = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            kind = 0;
+            break;
+        case 1:
+            kind = 1;
+            break;
+        case 2:
+            kind = 2;
+            break;
+        case 3:
+            kind = 3;
+            break;
+        }
+        ent = &D_80111700_messy_memory[i];
+        obj = omAddObj(150, 4, 1, -1, func_8010B32C_messy_memory);
+        obj->work[0] = kind;
+        ent->obj = obj;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B4CC_messy_memory);
+#endif
 
 /* A player's model object (work[0] the player; D_80113B18[player] its state), per game phase. */
 #ifdef NON_MATCHING
@@ -1390,7 +1476,38 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B5C
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C03C_messy_memory);
 
+#ifdef NON_MATCHING
+void func_8010C37C_messy_memory(void) {
+    omObjData *obj;
+    MmEnt *ent;
+    s32 unused[2];
+    u32 kind = 0;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            kind = 0;
+            break;
+        case 1:
+            kind = 1;
+            break;
+        case 2:
+            kind = 2;
+            break;
+        case 3:
+            kind = 3;
+            break;
+        }
+        ent = &D_80113B18_messy_memory[i];
+        obj = omAddObj(850, 9, 60, -1, func_8010C03C_messy_memory);
+        obj->work[0] = kind;
+        ent->obj = obj;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C37C_messy_memory);
+#endif
 
 /* An item's object (work[0] the item, work[1] its board: 0-3 a player's, 4 the shown room), per game phase. */
 #ifdef NON_MATCHING
