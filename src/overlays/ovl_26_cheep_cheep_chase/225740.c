@@ -1430,20 +1430,16 @@ void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A08C_cheep_cheep_chase);
 #endif
 
-// Register allocation: s0/s2/s3 rotated, f0/f2 swapped in the threshold sum (trans.z loaded before the add.d),
-// and retail copies `hit` to v0 in the loop's delay slot where this has a nop.
+// Register allocation: object/player swapped between s2 and s3, f0/f2 swapped in the threshold sum (trans.z
+// loaded before the add.d).
 #ifdef NON_MATCHING
 void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx) {
-    omObjData *object;
-    CxPlayer *player;
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
     CxUnk4Entry *entry;
     f64 limit;
+    s16 hit = 0;
     s16 i;
-    s32 hit;
-
-    object = D_800EC598_minigame[ctx->work.s16[0]];
-    player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
-    hit = 0;
 
     switch (ctx->state) {
         case 0:
@@ -1506,19 +1502,15 @@ void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A57C_cheep_cheep_chase);
 #endif
 
-// Register allocation as func_8010A57C (object/player in s3/s2, f0/f2 swapped, nop for retail's `move v0,s0`).
+// Register allocation as func_8010A57C (object/player swapped between s2 and s3, f0/f2 swapped in the threshold).
 #ifdef NON_MATCHING
 void func_8010A938_cheep_cheep_chase(CxFuncContext *ctx) {
-    CxPlayer *player;
-    omObjData *object;
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
     CxUnk4Entry *entry;
     f32 limit;
+    s16 hit = 0;
     s16 i;
-    s32 hit;
-
-    object = D_800EC598_minigame[ctx->work.s16[0]];
-    player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
-    hit = 0;
 
     switch (ctx->state) {
         case 0:
