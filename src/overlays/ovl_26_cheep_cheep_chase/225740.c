@@ -2155,7 +2155,49 @@ void func_8010CAD4_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010CBBC_cheep_cheep_chase);
+void func_8010CBBC_cheep_cheep_chase(CxFuncContext *ctx) {
+    HmfModel *model = &HmfModelData[ctx->param];
+    f32 dx;
+    f32 dz;
+    f32 start;
+    s16 i;
+    s16 j;
+    s16 base;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            base = 22;
+            if (ctx->work.s8[0]++ >= 6) {
+                ctx->work.s8[0] = 0;
+                for (i = 0; i < 2; i++) {
+                    for (j = base; j < base + 8; j++) {
+                        dx = (rand16() % 5 + 4) * 0.1;
+                        dz = (rand16() % 7 - 5) * 0.1f;
+                        start = rand16() % 6;
+                        if ((s16)func_8010DC7C_cheep_cheep_chase(j, dx * 100.0f + model->pos.x, -10.0f, model->pos.z + 100.0f + dz, 0.0f, 90.0f, 0.0f, 1.0f, start)) {
+                            break;
+                        }
+                    }
+                    for (j = base; j < base + 8; j++) {
+                        dx = (rand16() % 5 - 2) * 0.1f;
+                        dz = (rand16() % 16 + 15) * 0.1;
+                        start = rand16() % 6;
+                        if ((s16)func_8010DC7C_cheep_cheep_chase(j, dx * 100.0f + model->pos.x, 20.0f, dz * 100.0f + model->pos.z, 0.0f, 90.0f, 0.0f, 1.0f, start)) {
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010D02C_cheep_cheep_chase);
 
