@@ -1512,7 +1512,100 @@ u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010951C_aces_high);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80109928_aces_high);
+/* CPU: choose the next goal, chasing a live plane (often, at higher difficulty) or flying to a random point. */
+void func_80109928_aces_high(omObjData *obj) {
+    u16 choices[4][8] = {
+        { 4, 1, 4, 1, 1, 4, 1, 1 },
+        { 4, 1, 1, 1, 1, 4, 1, 1 },
+        { 4, 1, 1, 1, 1, 1, 1, 1 },
+        { 4, 1, 1, 1, 1, 1, 1, 1 },
+    };
+    AhPlayer *work;
+    omObjData *other;
+    s32 i;
+    s16 chance;
+    u16 done;
+    u16 choice;
+    u16 st;
+    f32 angle;
+    f32 r;
+
+    work = obj->data;
+    switch (GwPlayer[work->unk02].cpu_difficulty) {
+        case 0:
+            chance = 2;
+            break;
+        case 1:
+            chance = 3;
+            break;
+        case 2:
+            chance = 4;
+            break;
+        case 3:
+            chance = 4;
+            break;
+    }
+    if (D_8010DE8C_aces_high == 2) {
+        chance *= 2;
+    }
+    done = 0;
+    choice = choices[GwPlayer[work->unk02].cpu_difficulty][rand8() & 7];
+    do {
+        i = 0;
+        switch (choice) {
+        case 1:
+            do {
+                if (i == work->unk02) {
+                    continue;
+                }
+                other = D_8010DE68_aces_high[i];
+                st = ((AhPlayer *)other->data)->unk00;
+                if ((st == 6) | (st == 4)) {
+                    continue;
+                }
+                if ((st == 5) | (st == 1)) {
+                    continue;
+                }
+                break;
+            } while (++i < 4);
+            if (i == 4) {
+                choice = 4;
+            } else {
+                work->unk98 = other;
+                if (work->unk54 == 1 && (u8)(rand8() % 10) < chance) {
+                    work->unkAC = (rand8() & 0xF) + 0x1E;
+                    work->unkAE = 1;
+                    work->unk92 = 3;
+                    done = 1;
+                } else {
+                    work->unkB0 = (u8)(rand8() % 181) + 0x3C;
+                    work->unk92 = 1;
+                    done = 1;
+                }
+            }
+            break;
+        case 4:
+            if (D_8010DE8C_aces_high == 2 && (u8)(rand8() % 10) < 2) {
+                choice = 1;
+            } else {
+                angle = atan2df(obj->trans.x, obj->trans.z) - 180.0f;
+                if (angle < 0.0f) {
+                    angle += 360.0f;
+                }
+                angle *= 10.0f;
+                angle = (angle + ((f32)((rand8() * rand8()) % 900) - 450.0f)) / 10.0f;
+                r = (f32)((rand8() * rand8()) % 2750) + 200.0f;
+                work->unk9C.x = sindf(angle) * r;
+                work->unk9C.z = cosdf(angle) * r;
+                work->unk9C.y = (f32)((rand8() * rand8()) % 1000) + -500.0f;
+                work->unk92 = 4;
+                work->unkB0 = (u8)(rand8() % 121) + 0x3C;
+                done = 1;
+            }
+            break;
+        }
+    } while (done == 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80109EEC_aces_high);
 
@@ -1525,8 +1618,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A51C_a
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A884_aces_high);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A9D4_aces_high);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DDA8_aces_high);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010AADC_aces_high);
 
