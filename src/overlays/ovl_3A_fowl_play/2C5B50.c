@@ -189,7 +189,23 @@ void func_80106528_fowl_play(f32 (*src)[4], f32 (*dst)[4]) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106718_fowl_play);
+void func_80106718_fowl_play(Vec* pos, Vec* out) {
+    f32 m[4][4];
+    f32 t;
+    f32 w;
+
+    func_8007DFE0_main(m, pos->x, pos->y, pos->z);
+    guMtxCatF(m, D_8010F2A8_fowl_play, m);
+    t = m[3][2] * D_8010F328_fowl_play;
+    w = fabsf(t);
+    if (w != 0.0) {
+        out->x = m[3][0] * 160.0f / w / 1.3333334f;
+        out->y = -m[3][1] * 120.0f / w;
+    }
+    out->x += 160.0;
+    out->y += 120.0;
+    out->z = w;
+}
 
 void func_80106824_fowl_play(f32 x, f32 y, f32 z, f32* out) {
     f32 m[4][4];
@@ -1246,7 +1262,76 @@ void func_8010D81C_fowl_play(void) {
     D_8010F348_fowl_play = D_8010F330_fowl_play[D_8010EB64_fowl_play];
 }
 
+#ifdef NON_MATCHING
+/* Sorts the visible billboards by view depth into the opaque (D_8010DE00) and translucent (D_8010DE68) lists. */
+void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
+    PgBoard tail0;
+    PgBoard tail1;
+    PgBoard* unused[256];
+    f32 m[4][4];
+    f32 x0;
+    f32 x1;
+    f32 z0;
+    f32 z1;
+    PgBoard* b;
+    PgBoard* list;
+    PgBoard* n;
+    s32 i;
+
+    x0 = cam->at.x - 640.0;
+    x1 = cam->at.x + 640.0;
+    z0 = cam->at.z - 640.0;
+    z1 = cam->at.z + 640.0;
+    D_8010F360_fowl_play.depth = 0.0f;
+    D_8010F3C8_fowl_play.depth = 99999.9f;
+    tail0.depth = -99999.9f;
+    tail1.depth = 0.0f;
+    D_8010F3C8_fowl_play.prev = NULL;
+    D_8010F360_fowl_play.prev = NULL;
+    D_8010F360_fowl_play.next = &tail0;
+    D_8010F3C8_fowl_play.next = &tail1;
+    tail0.prev = &D_8010F360_fowl_play;
+    tail1.prev = &D_8010F3C8_fowl_play;
+    tail1.next = NULL;
+    tail0.next = NULL;
+    for (i = 0; i < D_8010F350_fowl_play; i++) {
+        b = &D_8010F32C_fowl_play[i];
+        if (b->spr == NULL) {
+            continue;
+        }
+        if (b->pos.x < x0 || x1 < b->pos.x) {
+            continue;
+        }
+        if (b->pos.z < z0 || z1 < b->pos.z) {
+            continue;
+        }
+        func_8007DFE0_main(m, b->pos.x, b->pos.y, b->pos.z);
+        guMtxCatF(m, view, m);
+        b->depth = m[3][2];
+        if (b->depth > 0.0) {
+            continue;
+        }
+        if ((b->flags & 0x1000) && b->a < 0x100) {
+            list = &D_8010F3C8_fowl_play;
+            b->depth = -(f64)b->depth;
+        } else {
+            list = &D_8010F360_fowl_play;
+        }
+        n = list->next;
+        while (b->depth < n->depth) {
+            n = n->next;
+        }
+        n->prev->next = b;
+        b->prev = n->prev;
+        b->next = n;
+        n->prev = b;
+    }
+    tail1.prev->next = NULL;
+    tail0.prev->next = NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D970_fowl_play);
+#endif
 
 void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2) {
     HuCamera* cam = (HuCamera*)arg2;
@@ -1288,7 +1373,149 @@ void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010DE4C_fowl_play);
+Gfx* func_8010DE4C_fowl_play(Gfx* g, PgBoard* b, f32 (*view)[4], Vec* rot) {
+    f32 sc[4][4];
+    f32 m[4][4];
+    f32 ofs[4][4];
+    f32 inv[4][4];
+    HuSprite_Unk84_Unk00_Struct* cel;
+    u8* vtx;
+    Mtx* mtx;
+    u8* dl;
+    u32 rm1;
+    u32 rm2;
+    u16 fmt;
+
+    cel = &b->spr->unk00[b->frame];
+    gDPPipeSync(g++);
+    gDPSetTextureFilter(g++, D_8010EB54_fowl_play[((s32)b->flags >> 2) & 3]);
+    gDPSetColorDither(g++, D_8010EB4C_fowl_play[((s32)b->flags >> 4) & 3]);
+    gDPSetAlphaCompare(g++, D_8010EB5C_fowl_play[((s32)b->flags >> 22) & 3]);
+    if (b->flags & 0x10000) {
+        gSPSetGeometryMode(g++, G_LIGHTING);
+    } else {
+        gSPClearGeometryMode(g++, G_LIGHTING);
+    }
+    fmt = b->spr->unk18;
+    rm2 = 0x110000;
+    if (b->flags & 0x08000000) {
+        rm2 = 0xC8004000;
+    }
+    if (b->flags & 0x1000) {
+        rm1 = 0x4850;
+        if (fmt & 0x8000) {
+            rm2 = 0x100000;
+            if (b->a == 0x100) {
+                gDPSetCombine(g++, 0xFFFE04, 0xFFFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0xFF9604, 0xFF11FFFF);
+            }
+        } else if (b->a == 0x100) {
+            rm1 = 0x3038;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x60FE04, 0x3FFDF3F8);
+            } else {
+                gDPSetCombine(g++, 0x127E04, 0xFFFFF3F8);
+            }
+        } else {
+            rm1 = 0x4850;
+            rm2 = 0x100000;
+            if (b->flags & 0x02000000) {
+                gDPSetCombine(g++, 0x609604, 0x3F11FFFF);
+            } else {
+                gDPSetCombine(g++, 0x121604, 0xFF13FFFF);
+            }
+        }
+    } else {
+        rm1 = 0x2030;
+        if (b->flags & 0x02000000) {
+            gDPSetCombine(g++, 0x6097FF, 0x3FFDFE38);
+        } else {
+            gDPSetCombine(g++, 0x1217FF, 0xFFFFFE38);
+        }
+    }
+    switch (((s32)b->flags >> 10) & 3) {
+        case 0:
+            rm1 |= 0x200;
+            break;
+        case 2:
+            rm1 |= 0x40;
+            if (b->flags & 0x1000) {
+                rm1 |= 0x180;
+            }
+        case 1:
+            rm1 |= 8;
+            break;
+    }
+    if (b->flags & 0x2000) {
+        rm1 |= 0xC00;
+    }
+    if (b->flags & 0x08000000) {
+        gSPSetGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0xC8000000);
+    } else {
+        gSPClearGeometryMode(g++, G_FOG);
+        gSPSetOtherMode(g++, G_SETOTHERMODE_L, G_MDSFT_RENDERMODE, 29, rm1 | rm2 | 0x0C080000);
+    }
+    gDPSetPrimColor(g++, 0, 0, b->r, b->g, b->b, b->a);
+    vtx = D_8010F348_fowl_play;
+    mtx = (Mtx*)(vtx + b->rows * 2 * sizeof(Vtx));
+    dl = (u8*)mtx + sizeof(Mtx);
+    D_8010F348_fowl_play = dl + b->cmds * sizeof(Gfx);
+    guMtxIdentF(ofs);
+    if (b->flags & 0x04000000) {
+        ofs[3][0] = -b->ofs.x;
+        ofs[3][1] = b->ofs.y;
+    } else {
+        ofs[3][0] = -(s32)(u16)cel->unk08;
+        ofs[3][1] = (u16)cel->unk0A;
+    }
+    ofs[3][2] = b->ofs.z;
+    func_8002367C_main(m, view);
+    func_80017C10_main((Mtx*)m, b->pos.x, b->pos.y, b->pos.z);
+    switch (b->unk1A) {
+        case 0:
+            func_80017D24_main(m, b->rot.x, b->rot.y, b->rot.z);
+            func_80017CD0_main(m, b->scale.x, b->scale.y, b->scale.z);
+            break;
+        case 2:
+            func_80017D24_main(m, b->rot.x, b->rot.y + rot->y, b->rot.z);
+            func_80017CD0_main(m, b->scale.x, b->scale.y, b->scale.z);
+            break;
+        case 7:
+            func_80017D24_main(m, b->rot.x, b->rot.y, b->rot.z);
+            func_80017CD0_main(m, b->scale.x, b->scale.y, b->scale.z);
+            sc[0][0] = b->scale.x;
+            sc[1][1] = b->scale.y;
+            sc[2][2] = b->scale.z;
+            sc[3][3] = 1.0f;
+            sc[0][1] = sc[0][2] = sc[0][3] = sc[1][0] = sc[1][2] = sc[1][3] = sc[2][0] = sc[2][1] = sc[2][3] =
+                sc[3][0] = sc[3][1] = sc[3][2] = 0.0f;
+            func_80018544_main(m, inv);
+            func_80018044_main(sc, inv, m);
+            break;
+        case 1:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            break;
+    }
+    guMtxCatF(ofs, m, m);
+    guMtxF2L(m, mtx);
+    gDPPipeSync(g++);
+    gSPMatrix(g++, osVirtualToPhysical(mtx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    gDPPipeSync(g++);
+    gSPSegment(g++, 0x0C, cel->unk00);
+    gSPSegment(g++, 0x0E, vtx);
+    gDPPipeSync(g++);
+    memcpy(vtx, b->vtx, b->rows * 2 * sizeof(Vtx));
+    memcpy(dl, b->gfx, b->cmds * sizeof(Gfx));
+    if (!(b->flags & 0x8000)) {
+        gSPDisplayList(g++, dl);
+    }
+    return g;
+}
 
 void func_8010E544_fowl_play(void) {
     PgBoard* b;
