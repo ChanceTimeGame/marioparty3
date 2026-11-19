@@ -172,6 +172,8 @@ void func_801060E0_messy_memory(omObjData *obj);
 void func_8010622C_messy_memory(omObjData *obj);
 void func_801063FC_messy_memory(omObjData *obj);
 void func_80107C88_messy_memory(omObjData *obj);
+void func_80106C60_messy_memory(omObjData *obj);
+void func_8010ACE4_messy_memory(omObjData *obj);
 void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
@@ -1285,7 +1287,155 @@ void func_8010ACE4_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010ACE4_messy_memory);
 #endif
 
+/* A player's hand object: grows in, a CPU decides how many items it remembers, then runs the brain or the pad. */
+#ifdef NON_MATCHING
+void func_8010AD40_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    u16 p;
+    s8 r;
+    s8 cnt;
+    s8 i;
+    s8 k;
+    s32 j;
+    s32 flag;
+
+    p = (u16)obj->work[0];
+    e = &D_80111700_messy_memory[p];
+    switch (D_80115D8C_messy_memory) {
+    case 8:
+        D_80111658_messy_memory[obj->work[0]] = 1;
+        e->unk18 += 0.05;
+        if (e->unk18 > 1.0f) {
+            e->unk18 = 1.0f;
+        }
+        if ((GwPlayer[p].stat & 1) && e->unk16 == 0) {
+            e->unk16 = 1;
+            cnt = 0;
+            r = rand8() % 100;
+            if (GwPlayer[p].cpu_difficulty == 0) {
+                if (r >= 1 && r < 30) {
+                    e->unk04 = 0;
+                }
+                if (r >= 30 && r < 80) {
+                    e->unk04 = 1;
+                }
+                if (r >= 80 && r < 90) {
+                    e->unk04 = 2;
+                }
+                if (r >= 90 && r < 95) {
+                    e->unk04 = 3;
+                }
+                if (r >= 95 && r < 98) {
+                    e->unk04 = 4;
+                }
+                if (r >= 98 && r < 100) {
+                    e->unk04 = 5;
+                }
+            }
+            if (GwPlayer[p].cpu_difficulty == 1) {
+                if (r >= 1 && r < 10) {
+                    e->unk04 = 0;
+                }
+                if (r >= 10 && r < 40) {
+                    e->unk04 = 1;
+                }
+                if (r >= 40 && r < 65) {
+                    e->unk04 = 2;
+                }
+                if (r >= 65 && r < 85) {
+                    e->unk04 = 3;
+                }
+                if (r >= 85 && r < 95) {
+                    e->unk04 = 4;
+                }
+                if (r >= 95 && r < 100) {
+                    e->unk04 = 5;
+                }
+            }
+            if (GwPlayer[p].cpu_difficulty == 2) {
+                if (r >= 0 && r < 10) {
+                    e->unk04 = 1;
+                }
+                if (r >= 10 && r < 30) {
+                    e->unk04 = 2;
+                }
+                if (r >= 30 && r < 55) {
+                    e->unk04 = 3;
+                }
+                if (r >= 55 && r < 80) {
+                    e->unk04 = 4;
+                }
+                if (r >= 80 && r < 95) {
+                    e->unk04 = 5;
+                }
+                if (r >= 95 && r < 100) {
+                    e->unk04 = 7;
+                }
+            }
+            if (GwPlayer[p].cpu_difficulty == 3) {
+                if (r >= 1 && r < 5) {
+                    e->unk04 = 2;
+                }
+                if (r >= 5 && r < 15) {
+                    e->unk04 = 3;
+                }
+                if (r >= 15 && r < 30) {
+                    e->unk04 = 4;
+                }
+                if (r >= 30 && r < 80) {
+                    e->unk04 = 5;
+                }
+                if (r >= 80 && r < 100) {
+                    e->unk04 = 7;
+                }
+            }
+            /* every item shown in its own slot is known */
+            for (j = 0; j < 10; j++) {
+                for (i = 0; i < 10; i++) {
+                    if (D_801116E0_messy_memory[i] == j) {
+                        D_80111678_messy_memory[p][D_801116E0_messy_memory[i]] = 1;
+                    }
+                }
+            }
+            /* then up to unk04 more, from the last item down, that were not shown */
+            for (k = 9; k >= 0; k--) {
+                flag = 0;
+                if (cnt >= e->unk04) {
+                    break;
+                }
+                for (i = 0; i < 10; i++) {
+                    if (D_801116E0_messy_memory[i] == k) {
+                        flag = 1;
+                    }
+                }
+                if (flag == 0 && D_80111678_messy_memory[p][k] != 1) {
+                    D_80111678_messy_memory[p][k] = 1;
+                    cnt++;
+                }
+            }
+        }
+        break;
+    case 9:
+        if (D_80115D8E_messy_memory > 0) {
+            if (GwPlayer[p].stat & 1) {
+                func_8010ACE4_messy_memory(obj);
+            } else {
+                func_80106C60_messy_memory(obj);
+            }
+        }
+        break;
+    case 11:
+        e->unk18 -= 0.03;
+        if (e->unk18 <= 0.05f) {
+            e->unk18 = 0.05f;
+            D_80111658_messy_memory[obj->work[0]] = 0;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010AD40_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B32C_messy_memory);
 
