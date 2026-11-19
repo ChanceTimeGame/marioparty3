@@ -186,6 +186,7 @@ f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out);
 f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2);
 f32 func_8010AA64_fowl_play(Vec* a, Vec* b);
 extern s32 D_8010E7A4_fowl_play; /* step timer */
+extern Vec D_8010E7B4_fowl_play[8][2]; /* pen walls: segment ends */
 extern s32 D_8010E7AC_fowl_play; /* winner, -1 none */
 extern s16 D_8010E7B2_fowl_play; /* frames since the wipe ended */
 
@@ -588,9 +589,90 @@ void func_80106BD0_fowl_play(omObjData* obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801070FC_fowl_play);
+/* Keeps obj at least r + 20 from the pen walls (fading out above y 20). */
+void func_801070FC_fowl_play(omObjData* obj, f32 r) {
+    Vec p;
+    Vec d;
+    s32 i;
 
+    if (obj->trans.y >= 30.0) {
+        return;
+    }
+    r = r + 20.0;
+    if (obj->trans.y > 20.0) {
+        r *= (30.0 - obj->trans.y) / 10.0;
+    }
+    for (i = 0; i < 8; i++) {
+        if (!(r <= func_8010AC88_fowl_play(&obj->trans, &D_8010E7B4_fowl_play[i][0], &D_8010E7B4_fowl_play[i][1], &p))) {
+            d.x = obj->trans.x - p.x;
+            d.y = 0.0f;
+            d.z = obj->trans.z - p.z;
+            func_8010AB40_fowl_play(&d);
+            obj->trans.x = r * d.x + p.x;
+            obj->trans.z = r * d.z + p.z;
+        }
+    }
+}
+
+#ifdef NON_MATCHING
+/* masked 0; n and &seg swap saved registers (s5/s6) */
+/* Stops a move from prev to pos at the first pen wall it crosses, r + 20 short of it. */
+void func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r) {
+    Vec hit;
+    Vec unused;
+    Vec out;
+    Vec seg;
+    Vec dir;
+    f32 len;
+    f32 best;
+    f32 c;
+    f32 t;
+    f32 d;
+    u8 n;
+    s32 i;
+
+    dir.x = prev->x - pos->x;
+    dir.y = 0.0f;
+    dir.z = prev->z - pos->z;
+    n = 0;
+    best = sqrtf(dir.x * dir.x + dir.z * dir.z);
+    len = best;
+    func_8010A9EC_fowl_play(dir.x, dir.z);
+    r = r + 20.0;
+    for (i = 0; i < 8; i++) {
+        seg.x = D_8010E7B4_fowl_play[i][1].x - D_8010E7B4_fowl_play[i][0].x;
+        seg.y = D_8010E7B4_fowl_play[i][1].y - D_8010E7B4_fowl_play[i][0].y;
+        seg.z = D_8010E7B4_fowl_play[i][1].z - D_8010E7B4_fowl_play[i][0].z;
+        c = seg.x * D_8010E7B4_fowl_play[i][0].z - seg.z * D_8010E7B4_fowl_play[i][0].x;
+        if (!((-seg.z * pos->x + seg.x * pos->z - c) * (-seg.z * prev->x + seg.x * prev->z - c) > 0.0f)) {
+            t = func_8010AE10_fowl_play(D_8010E7B4_fowl_play[i], &seg, pos, &dir);
+            if (!(t > 1.0) && !(t < 0.0)) {
+                hit.x = t * seg.x + D_8010E7B4_fowl_play[i][0].x;
+                hit.y = 0.0f;
+                hit.z = t * seg.z + D_8010E7B4_fowl_play[i][0].z;
+                d = func_8010AA64_fowl_play(pos, &hit);
+                if (!(len <= d) && !(best <= d)) {
+                    best = d;
+                    func_8010AC88_fowl_play(prev, D_8010E7B4_fowl_play[i], &D_8010E7B4_fowl_play[i][1], &hit);
+                    seg.x = prev->x - hit.x;
+                    seg.y = 0.0f;
+                    seg.z = prev->z - hit.z;
+                    func_8010AB40_fowl_play(&seg);
+                    out.x = hit.x - r * seg.x;
+                    out.z = hit.z - r * seg.z;
+                    n++;
+                }
+            }
+        }
+    }
+    if (n) {
+        pos->x = out.x;
+        pos->z = out.z;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_fowl_play);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801075B0_fowl_play);
 
