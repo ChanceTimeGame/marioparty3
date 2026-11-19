@@ -1,4 +1,152 @@
 #include "common.h"
+#include "overlays/minigame.h"
+#include "gcc/memory.h"
+#include "game/audio.h"
+#include "game/camera.h"
+#include "game/hmfman.h"
+#include "game/pause.h"
+#include "game/sprite.h"
+#include "game/data.h"
+#include "game/gamemes.h"
+#include "game/wipe.h"
+#include "mallocblock.h"
+#include "input.h"
+#include "variables.h"
+
+
+typedef func_800E1BA8_minigame_ObjData MgWork;
+typedef f32 Matrix4f[4][4];
+typedef struct FpPlayer FpPlayer;
+
+
+
+
+
+/* A textured quad strip drawn with its own display list (D_8010F32C_fowl_play[D_8010F350_fowl_play]). */
+typedef struct PgBoard {
+    /* 0x00 */ Gfx* gfx;
+    /* 0x04 */ Vtx* vtx; /* 2 per strip row */
+    /* 0x08 */ HuSprite_Unk84_Struct* spr; /* NULL = free */
+    /* 0x0C */ struct PgBoard* prev; /* depth-sorted draw list */
+    /* 0x10 */ struct PgBoard* next;
+    /* 0x14 */ void (*func)(struct PgBoard*); /* per-frame hook */
+    /* 0x18 */ u8 rows; /* vertex pairs */
+    /* 0x19 */ u8 rowH; /* texels per row */
+    /* 0x1A */ u8 unk1A; /* facing: 1 X, 2 Y, 7 camera, 4 none */
+    /* 0x1B */ u8 unk1B; /* S mask */
+    /* 0x1C */ u8 unk1C; /* T mask */
+    /* 0x1D */ u8 r;
+    /* 0x1E */ u8 g;
+    /* 0x1F */ u8 b;
+    /* 0x20 */ u16 a;
+    /* 0x22 */ u16 cmds; /* display list length */
+    /* 0x24 */ s16 frame;
+    /* 0x26 */ char unk26[2];
+    /* 0x28 */ u32 flags;
+    /* 0x2C */ f32 timer;
+    /* 0x30 */ f32 speed;
+    /* 0x34 */ Vec ofs;
+    /* 0x40 */ Vec pos;
+    /* 0x4C */ Vec scale;
+    /* 0x58 */ Vec rot;
+    /* 0x64 */ f32 depth; /* view z */
+} PgBoard; /* size 0x68 */
+
+/* MgWork::unk158 of a player. */
+
+
+
+
+s32 func_8000B638_main(void);
+void func_80021BE0_main(s32* arg0, s32 n);
+void func_8002367C_main(f32 (*dst)[4], f32 (*src)[4]); /* matrix copy */
+void func_8007DFE0_main(f32 mf[4][4], f32 x, f32 y, f32 z); /* guTranslateF */
+void func_80016B00_main(s16 model, s16 frame, const char* name, Matrix4f mtx);
+void func_80088800_main(Matrix4f mf, f32 x, f32 y, f32 z); /* guTranslateF */
+void func_80017CD0_main(Matrix4f, f32, f32, f32);
+void func_80017D24_main(Matrix4f, f32, f32, f32);
+void func_80018044_main(Matrix4f, Matrix4f, Matrix4f);
+f32 fabsf(f32);
+f32 sqrtf(f32);
+u8 rand8(void);
+extern s32 D_800A178C_main[][6];
+u16 func_8000B0D4_main(s32 arg0, s32 arg1);
+void func_800E3584_minigame(s16 mdl);
+void func_800E12EC_minigame(omObjData* obj, f32 arg1);
+void func_800E1328_minigame(omObjData* obj, f32 arg1);
+void func_800E1334_minigame(omObjData* obj, f32 arg1);
+void func_800E1340_minigame(omObjData* obj, f32 arg1);
+void func_8001EF6C_main(s16, s16, const char*);
+s32 func_800E4A90_minigame(omObjData* obj);
+void func_800E5798_minigame(omObjData* obj, s32 arg1);
+void func_800E1490_minigame(u16 arg0);
+void func_800E1804_minigame(void);
+extern s32 D_800EBEB0_minigame[];
+extern HuSprite_Unk84_Struct* D_800C9530_main[];
+
+void func_801064A8_fowl_play(f32 (*m)[4], f32 x, f32 y, f32 z, f32* out);
+void func_80106528_fowl_play(f32 (*src)[4], f32 (*dst)[4]);
+void func_80106718_fowl_play(Vec* pos, Vec* out);
+void func_80106824_fowl_play(f32 x, f32 y, f32 z, f32* out);
+void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, f32 b);
+void func_801068F0_fowl_play(void);
+void func_80108020_fowl_play(omObjData* obj, u32 file0, s32 file1, s32 player, u16 attr);
+void func_8010B1A0_fowl_play(s16 model, const char* name, s16 frame, Vec* out);
+void func_8010B41C_fowl_play(u16 n);
+s16 func_8010B8D4_fowl_play(PgBoard* b);
+s16 func_8010C1F4_fowl_play(s16 tex, u32 flags);
+s32 func_8010A9A0_fowl_play(void);
+f32 func_8010AA64_fowl_play(Vec* a, Vec* b);
+void func_8010CE04_fowl_play(s16 id, s16 frame);
+void func_8010D07C_fowl_play(s16 id, u32 flags);
+void func_8010D0C0_fowl_play(s16 id, u32 flags);
+void func_8010D2F0_fowl_play(s16 id);
+void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2);
+void func_8010E704_fowl_play(void);
+void func_8010CE84_fowl_play(s16 id, f32 x, f32 y, f32 z);
+void func_8010D148_fowl_play(s16 id, s8 arg1);
+void func_8010D2A4_fowl_play(s16 id, s8 r, s8 g, s8 b, u16 a);
+s16 func_8010B30C_fowl_play(s16 tex, s16 n);
+HuSprite_Unk84_Unk00_Struct* func_8010B3D4_fowl_play(s16 tex, s16 frame);
+
+extern f32 D_8010F2A8_fowl_play[4][4]; /* world to view (D_8010DD88 is its [3][2]) */
+extern f32 D_8010F2E0_fowl_play; /* D_8010DD50[3][2] */
+extern f32 D_8010F2E8_fowl_play[4][4]; /* view to world */
+extern f32 D_8010F328_fowl_play; /* tan(fov / 2) */
+extern PgBoard* D_8010F32C_fowl_play;
+extern s32 D_8010F350_fowl_play; /* billboard count */
+extern void* D_8010F330_fowl_play[6]; /* per-frame buffers */
+extern u8* D_8010F348_fowl_play; /* this frame's buffer */
+extern s32 D_8010F34C_fowl_play; /* its size */
+extern s32 D_8010EB64_fowl_play; /* buffer index */
+extern s32 D_8010E8CC_fowl_play[4]; /* texel shift by size */
+extern s16 D_8010E8DC_fowl_play[]; /* LoadBlock row limits by line width */
+extern s16 D_8010EA14_fowl_play[];
+extern s16 D_8010EB4C_fowl_play[4]; /* colour dither by flags >> 4 */
+extern s16 D_8010EB54_fowl_play[4]; /* texture filter by flags >> 2 */
+extern s16 D_8010EB5C_fowl_play[4]; /* alpha compare by flags >> 22 */
+void func_8008A120_main(Matrix4f m, f32 a);
+void func_80018544_main(Matrix4f src, Matrix4f dst);
+void func_8010B564_fowl_play(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 fmt, u8 siz, u16 rows, u16 uls,
+                                  u16 ult, u16 lrs, u16 lrt, u16 cms, u16 cmt, u16 masks, u16 maskt, s32 mode);
+extern PgBoard D_8010F360_fowl_play; /* opaque draw list head */
+extern PgBoard D_8010F3C8_fowl_play; /* translucent draw list head */
+extern s8 HmfPauseF;
+void func_80079480_main(f32 mf[4][4], f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp,
+                        f32 zUp); /* guLookAtF */
+void func_8010AAB8_fowl_play(Vec* dir, f32* angles);
+void func_8010D81C_fowl_play(void);
+void func_8010E544_fowl_play(void);
+Gfx* func_8010DE4C_fowl_play(Gfx* g, PgBoard* b, f32 (*view)[4], Vec* rot);
+void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]);
+void func_800341D0_main(Gfx** gfx, s32 timg, s32 fmt, s32 siz, s32 width, s32 height, s32 uls, s32 ult,
+                        s32 lrs, s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts,
+                        s32 shiftt);
+void func_80034998_main(Gfx** gfx, s32 timg, s32 fmt, u32 width, s32 height, s32 uls, s32 ult, s32 lrs,
+                        s32 lrt, s32 pal, s32 cms, s32 cmt, s32 masks, s32 maskt, s32 shifts, s32 shiftt);
+extern u32 D_8010E8C8_fowl_play; /* random seed */
+
+void func_80107A4C_fowl_play(omObjData* obj);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801059A0_fowl_play);
 
@@ -6,13 +154,56 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80105BEC_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80105E4C_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801064A8_fowl_play);
+void func_801064A8_fowl_play(f32 (*m)[4], f32 x, f32 y, f32 z, f32* out) {
+    out[0] = x * m[0][0] + y * m[1][0] + z * m[2][0];
+    out[1] = x * m[0][1] + y * m[1][1] + z * m[2][1];
+    out[2] = x * m[0][2] + y * m[1][2] + z * m[2][2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106528_fowl_play);
+void func_80106528_fowl_play(f32 (*src)[4], f32 (*dst)[4]) {
+    f32 m[4][4];
+    f32 c0;
+    f32 c1;
+    f32 c2;
+    f32 det;
+
+    func_8002367C_main(m, src);
+    c0 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+    c1 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
+    c2 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+    det = c0 * m[0][0] + c1 * m[0][1] + c2 * m[0][2];
+    if (det != 0.0f) {
+        det = 1.0f / det;
+        dst[0][0] = c0 * det;
+        dst[1][0] = c1 * det;
+        dst[2][0] = c2 * det;
+        dst[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * det;
+        dst[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * det;
+        dst[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * det;
+        dst[1][2] = (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * det;
+        dst[2][1] = (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * det;
+        dst[2][2] = (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * det;
+        dst[0][3] = dst[1][3] = dst[2][3] = 0.0f;
+        dst[3][3] = 1.0f;
+        func_801064A8_fowl_play(dst, -m[3][0], -m[3][1], -m[3][2], dst[3]);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106718_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106824_fowl_play);
+void func_80106824_fowl_play(f32 x, f32 y, f32 z, f32* out) {
+    f32 m[4][4];
+    f32 d;
+    f32 w;
+
+    d = z + D_8010F2E0_fowl_play;
+    w = fabsf(d * D_8010F328_fowl_play);
+    func_8007DFE0_main(m, 2.0f * x * w * 1.3333334f / 320.0f, -(2.0f * y * w / 240.0f), d);
+    guMtxCatF(m, D_8010F2E8_fowl_play, m);
+    out[0] = m[3][0];
+    out[1] = m[3][1];
+    out[2] = m[3][2];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801068F0_fowl_play);
 
@@ -28,7 +219,16 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801075B0_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801079B0_fowl_play);
+void func_801079B0_fowl_play(void) {
+    s32 i;
+
+    func_800E18D8_minigame();
+    func_800E19F0_minigame(1);
+    D_800EC280_minigame = 0;
+    for (i = 0; i < 2; i++) {
+        D_800EC598_minigame[D_800EC280_minigame++] = omAddObj(2, 15, 50, -1, func_80107A4C_fowl_play);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010ED88_fowl_play);
 
@@ -36,17 +236,77 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010ED90_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80107A4C_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108020_fowl_play);
+void func_80108020_fowl_play(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {
+    MgWork* work;
+    s32 i;
+
+    for (i = 0; i < obj->mdlcnt; i++) {
+        obj->model[i] = 0;
+    }
+    obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
+    memset(obj->data, 0, sizeof(MgWork));
+    work = obj->data;
+    work->unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    memset(work->unkE8, 0, obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData));
+    obj->model[0] = func_8000B108_main(file0 | file1, arg4);
+    for (i = 0; i < obj->mtncnt; i++) {
+        obj->motion[i] = -1;
+    }
+    for (i = 0; i < obj->mtncnt; i++) {
+        func_800E1BA8_minigame_UnkE8_ObjData* mtn = work->unkE8;
+        mtn[i].unk02 = 0;
+        mtn[i].unk00 = 0;
+    }
+    work->unk57 = GwPlayer[(u16)player].pad;
+    work->unk52 = 0;
+    work->unkB4 = 1.0f;
+    work->unkD0 = 0xFFFF;
+    work->unk4C = 0.5f;
+    work->unkCC = 1.0f;
+    work->unkA0 = work->unk9C = work->unkA4 = 0.0f;
+    work->unk59 = player;
+    work->unk3C = atan2df(-obj->trans.x, -obj->trans.z);
+    func_800E1328_minigame(obj, 60.0f);
+    func_800E1334_minigame(obj, 150.0f);
+    func_800E1340_minigame(obj, 20.0f);
+    func_800E12EC_minigame(obj, 1000.0f);
+    switch (file0 >> 16) {
+        case 6:
+            work->unkAC = 0.8f;
+            break;
+        case 5:
+            work->unkAC = 0.9f;
+            break;
+        case 4:
+        default:
+            work->unkAC = 1.0f;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108298_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108A70_fowl_play);
+void func_80108A70_fowl_play(omObjData* obj, f32 x, f32 y, f32 z) {
+    s32 i;
+
+    for (i = 9; i < 12; i++) {
+        if (HmfModelData[obj->model[i]].unk18 & 4) {
+            func_800E4C88_minigame(obj, i, x, y, z, 0.0f, 0.0f);
+            return;
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010EE68_fowl_play);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108B08_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109410_fowl_play);
+void func_80109410_fowl_play(omObjData* obj, MgWork** work, FpPlayer** ep) {
+    MgWork* w = obj->data;
+
+    *work = w;
+    *ep = w->unk158;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109424_fowl_play);
 
@@ -56,13 +316,38 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109844_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010A738_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010A9A0_fowl_play);
+s32 func_8010A9A0_fowl_play(void) {
+    u32 r;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010A9EC_fowl_play);
+    r = (rand8() + D_8010E8C8_fowl_play) * 0x41C64E6D + 0x3039;
+    D_8010E8C8_fowl_play = r;
+    return r >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AA64_fowl_play);
+f32 func_8010A9EC_fowl_play(f32 x, f32 z) {
+    f32 a;
+    f32 full = 360.0f;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AAB8_fowl_play);
+    a = atan2df(x, z);
+    if (a < -180.0f) {
+        a += full;
+    } else if (a >= 180.0) {
+        a -= full;
+    }
+    return a;
+}
+
+f32 func_8010AA64_fowl_play(Vec* a, Vec* b) {
+    return sqrtf((a->x - b->x) * (a->x - b->x) + (a->z - b->z) * (a->z - b->z));
+}
+
+void func_8010AAB8_fowl_play(Vec* dir, f32* angles) {
+    f32 h = sqrtf(dir->x * dir->x + dir->z * dir->z);
+
+    *angles++ = func_8010A9EC_fowl_play(h, -dir->y);
+    *angles++ = func_8010A9EC_fowl_play(dir->x, dir->z);
+    *angles = 0.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AB40_fowl_play);
 
@@ -72,80 +357,995 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AC88_f
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AE10_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B1A0_fowl_play);
+void func_8010B1A0_fowl_play(s16 model, const char* name, s16 frame, Vec* out) {
+    HuMtx4F mdl;
+    HuMtx4F res;
+    HuMtx4F obj;
+    HmfModel* m;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B2C4_fowl_play);
+    func_80016B00_main(model, frame, name, obj);
+    m = &HmfModelData[model];
+    func_80088800_main(mdl, m->pos.x, m->pos.y, m->pos.z);
+    func_80017D24_main(mdl, m->rot.x, m->rot.y, m->rot.z);
+    func_80017CD0_main(mdl, m->scale.x, m->scale.y, m->scale.z);
+    func_80018044_main(obj, mdl, res);
+    out->x = res[0][0] + res[1][0] + res[2][0] + res[3][0];
+    out->y = res[0][1] + res[1][1] + res[2][1] + res[3][1];
+    out->z = res[0][2] + res[1][2] + res[2][2] + res[3][2];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B30C_fowl_play);
+s16 func_8010B2C4_fowl_play(s32 id) {
+    void* file;
+    s16 sprite;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B3D4_fowl_play);
+    file = DataRead(id);
+    sprite = func_80055810_main(file);
+    DataClose(file);
+    return sprite;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B41C_fowl_play);
+s16 func_8010B30C_fowl_play(s16 tex, s16 n) {
+    s16 grp;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B564_fowl_play);
+    if (tex == -1) {
+        return -1;
+    }
+    grp = HuSprGrpCreate(n, 0);
+    if (grp == -1) {
+        return -1;
+    }
+    for (i = 0; i < n; i++) {
+        func_80055024_main(grp, i, tex, 0);
+    }
+    return grp;
+}
 
+HuSprite_Unk84_Unk00_Struct* func_8010B3D4_fowl_play(s16 tex, s16 frame) {
+    return &func_80055194_main(tex)->unk00[frame];
+}
+
+void func_8010B41C_fowl_play(u16 n) {
+    PgBoard* b;
+    s16 i;
+
+    D_8010F350_fowl_play = n;
+    D_8010F32C_fowl_play = HuMemAlloc(n * sizeof(PgBoard));
+    for (i = 0; i < 6; i++) {
+        D_8010F330_fowl_play[i] = 0;
+    }
+    for (i = 0; i < D_8010F350_fowl_play; i++) {
+        b = &D_8010F32C_fowl_play[i];
+        b->spr = NULL;
+        b->func = NULL;
+        b->flags = 0;
+        b->a = 0x100;
+        b->b = 0xFF;
+        b->g = 0xFF;
+        b->r = 0xFF;
+        b->timer = 0.0f;
+        b->frame = 0;
+        b->speed = 1.0f;
+        b->unk1C = 0;
+        b->unk1B = 0;
+        b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
+        b->pos.x = b->pos.y = b->pos.z = 0.0f;
+        b->scale.x = b->scale.y = b->scale.z = 1.0f;
+        b->rot.x = b->rot.y = b->rot.z = 0.0f;
+    }
+}
+
+void func_8010B564_fowl_play(Gfx** gfx, HuSprite_Unk84_Unk00_Struct* cel, u8 fmt, u8 siz, u16 rows, u16 uls,
+                                  u16 ult, u16 lrs, u16 lrt, u16 cms, u16 cmt, u16 masks, u16 maskt, s32 mode) {
+    Gfx* g = *gfx;
+
+    switch (mode) {
+        case 0:
+            gDPLoadTextureTile_4b(g++, 0x0C000000, fmt, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt, masks,
+                                  maskt, 0, 0);
+            break;
+        case 1:
+            func_80034998_main(&g, 0x0C000000, fmt, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt, masks, maskt,
+                                0, 0);
+            break;
+        case 2:
+            func_800341D0_main(&g, 0x0C000000, fmt, siz, cel->unk04, cel->unk06, uls, ult, lrs, lrt, 0, cms, cmt,
+                                masks, maskt, 0, 0);
+            break;
+        case 3:
+            func_8003465C_main(&g, (void*)0x0C000000, fmt, siz, cel->unk04, rows, uls, ult, lrs, lrt, 0, cms, cmt,
+                                masks, maskt, 0, 0);
+            break;
+    }
+    *gfx = g;
+}
+
+#ifdef NON_MATCHING
+/* Builds a billboard's display list: palette, then one texture load and two triangles per strip. */
+s16 func_8010B8D4_fowl_play(PgBoard* b) {
+    HuSprite_Unk84_Unk00_Struct* cel;
+    HuSprite_Unk84_Unk00_Struct tex;
+    Gfx* g;
+    Gfx* buf;
+    Gfx* start;
+    s32 fmt;
+    s32 siz;
+    s32 mode;
+    s32 w;
+    u32 rowH;
+    u32 strips;
+    s32 rem;
+    s32 idx;
+    s32 cms;
+    s32 cmt;
+    s32 masks;
+    s32 maskt;
+    s32 i;
+
+    cel = b->spr->unk00;
+    buf = HuMemAlloc(0x1000);
+    g = buf;
+    gSPSegment(g++, 0x0C, cel->unk00);
+    gSPSegment(g++, 0x0E, b->vtx);
+    start = g;
+    gDPPipeSync(g++);
+    switch (b->spr->unk18) {
+        case 4:
+            siz = 0;
+            if (b->spr->unk1A == 1) {
+                fmt = 3;
+                gDPSetTextureLUT(g++, G_TT_NONE);
+            } else {
+                fmt = 2;
+                gDPLoadTLUT_pal16(g++, 0, b->spr->unk0C);
+                gDPSetTextureLUT(g++, G_TT_RGBA16);
+            }
+            mode = 0;
+            break;
+        case 8:
+            siz = 1;
+            if (b->spr->unk1A == 1) {
+                fmt = 3;
+                gDPSetTextureLUT(g++, G_TT_NONE);
+            } else {
+                fmt = 2;
+                gDPLoadTLUT_pal256(g++, b->spr->unk0C);
+                gDPSetTextureLUT(g++, G_TT_RGBA16);
+            }
+            mode = 2;
+            break;
+        case 0x10:
+            siz = 2;
+            fmt = (b->spr->unk1A == 1) ? 3 : 0;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+        case 0x20:
+            siz = 3;
+            fmt = 0;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+        case 0x8004:
+            siz = 0;
+            fmt = 4;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 0;
+            break;
+        case 0x8008:
+            siz = 1;
+            fmt = 4;
+            gDPSetTextureLUT(g++, G_TT_NONE);
+            mode = 2;
+            break;
+    }
+    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    if (w < cel->unk04) {
+        w += 16 >> siz;
+    }
+    switch (fmt) {
+        case 2:
+            if ((0x1000 >> siz) < cel->unk06 * w) {
+                rowH = (0x1000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+        case 4:
+            rowH = cel->unk06;
+            if ((s32)(cel->unk06 * w) > 0x1000) {
+                rowH = 0x1000 / w;
+            }
+            break;
+        default:
+            if ((0x2000 >> siz) < cel->unk06 * w) {
+                rowH = (0x2000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+    }
+    strips = cel->unk06 / rowH;
+    rem = cel->unk06 - strips * rowH;
+    /* a whole strip fits one LoadBlock: use the block loaders */
+    if (cel->unk04 % (16 >> siz) == 0 && (u32)((rowH * cel->unk04) << siz) <= 0x1000) {
+        idx = cel->unk04 >> D_8010E8CC_fowl_play[siz];
+        if ((u32)D_8010E8DC_fowl_play[idx] >= rowH || rowH == D_8010EA14_fowl_play[idx]) {
+            mode++;
+        }
+    }
+    if (b->flags & 0xC0000) {
+        masks = b->unk1B;
+        cms = ((s32)b->flags >> 18) - 1;
+    } else {
+        masks = 0;
+        cms = 0;
+    }
+    if (b->flags & 0x300000) {
+        maskt = b->unk1C;
+        cmt = ((s32)b->flags >> 20) - 1;
+    } else {
+        maskt = 0;
+        cmt = 0;
+    }
+    gDPPipeSync(g++);
+    tex = *cel;
+    tex.unk00 = (void*)0x0C000000;
+    if (((s32)b->flags < 0) & (strips == 1) && rem == 0) {
+        func_8010B564_fowl_play(&g, &tex, fmt, siz, rowH, 0, 0, cel->unk04 - 1, cel->unk06 - 1, cms, cmt, masks,
+                                     maskt, mode);
+        gSPVertex(g++, 0x0E000000, 5, 0);
+        gSP2Triangles(g++, 0, 2, 4, 0, 2, 3, 4, 0);
+        gSP2Triangles(g++, 0, 4, 1, 0, 4, 3, 1, 0);
+    } else {
+        for (i = 0; i < strips; i++) {
+            func_8010B564_fowl_play(&g, &tex, fmt, siz, rowH, 0, i * rowH, cel->unk04 - 1, (i + 1) * rowH - 1,
+                                         cms, cmt, masks, maskt, mode);
+            gSPVertex(g++, 0x0E000000 + i * 2 * sizeof(Vtx), 4, 0);
+            gSP2Triangles(g++, 0, 2, 3, 0, 0, 3, 1, 0);
+        }
+        if (rem != 0) {
+            func_8010B564_fowl_play(&g, &tex, fmt, siz, rem, 0, i * rowH, cel->unk04 - 1, cel->unk06 - 1, cms,
+                                         cmt, masks, maskt, mode);
+            gSPVertex(g++, 0x0E000000 + i * 2 * sizeof(Vtx), 4, 0);
+            gSP2Triangles(g++, 0, 2, 3, 0, 0, 3, 1, 0);
+        }
+    }
+    gDPPipeSync(g++);
+    gSPEndDisplayList(g++);
+    b->cmds = g - start;
+    b->gfx = HuMemAlloc(b->cmds * sizeof(Gfx));
+    memcpy(b->gfx, start, b->cmds * sizeof(Gfx));
+    HuMemFree(buf);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B8D4_fowl_play);
+#endif
 
+#ifdef NON_MATCHING
+/* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
+s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
+    PgBoard* b;
+    HuSprite_Unk84_Unk00_Struct* cel;
+    s32 siz;
+    s32 mode;
+    s32 w;
+    u32 rowH;
+    u32 strips;
+    s32 rem;
+    s32 i;
+    s32 j;
+    s32 tc;
+    s32 id;
+
+    for (id = 0; id < D_8010F350_fowl_play; id++) {
+        if (D_8010F32C_fowl_play[id].spr == NULL) {
+            break;
+        }
+    }
+    if (id == D_8010F350_fowl_play) {
+        return -1;
+    }
+    b = &D_8010F32C_fowl_play[id];
+    b->spr = D_800C9530_main[tex];
+    b->flags = flags;
+    b->unk1A = 7;
+    cel = b->spr->unk00;
+    switch (b->spr->unk18) {
+        case 4:
+            siz = 0;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 8:
+            siz = 1;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 0x10:
+            siz = 2;
+            mode = (b->spr->unk1A == 1) ? 3 : 0;
+            break;
+        case 0x20:
+            siz = 3;
+            mode = 0;
+            break;
+        case 0x8004:
+            siz = 0;
+            mode = 4;
+            break;
+        case 0x8008:
+            siz = 1;
+            mode = 4;
+            break;
+    }
+    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    if (w < cel->unk04) {
+        w += 16 >> siz;
+    }
+    switch (mode) {
+        case 2:
+            if ((0x1000 >> siz) < cel->unk06 * w) {
+                rowH = (0x1000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+        case 4:
+            rowH = cel->unk06;
+            if ((s32)(cel->unk06 * w) > 0x1000) {
+                rowH = 0x1000 / w;
+            }
+            break;
+        default:
+            if ((0x2000 >> siz) < cel->unk06 * w) {
+                rowH = (0x2000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+    }
+    strips = cel->unk06 / rowH;
+    rem = cel->unk06 - strips * rowH;
+    b->rows = strips + 2;
+    b->rowH = rowH;
+    b->vtx = HuMemAlloc((strips + 2) * 2 * sizeof(Vtx));
+    for (i = 0; i < strips + 1; i++) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        tc = (i * rowH) << 6;
+        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2 + 1].v.tc[1] = tc;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    }
+    if (rem != 0) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    } else if (strips == 1) {
+        b->vtx[4].v.ob[0] = cel->unk04 * 0.5;
+        b->vtx[4].v.ob[1] = -(s32)cel->unk06 * 0.5;
+        b->vtx[4].v.ob[2] = 0;
+        b->vtx[4].v.tc[0] = cel->unk04 * 0.5 * 64.0;
+        b->vtx[4].v.tc[1] = cel->unk06 * 0.5 * 64.0;
+        b->vtx[4].v.cn[0] = 0xFF;
+        b->vtx[4].v.cn[1] = 0xFF;
+        b->vtx[4].v.cn[2] = 0xFF;
+        b->vtx[4].v.cn[3] = 0xFF;
+    }
+    if (func_8010B8D4_fowl_play(b) == 0) {
+        HuMemFree(b->vtx);
+        id = -1;
+    }
+    return id;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C1F4_fowl_play);
+#endif
 
+#ifdef NON_MATCHING
+/* Gives billboard id sprite tex: rebuilds its strip and display list. */
+void func_8010C7FC_fowl_play(s16 id, s16 tex) {
+    PgBoard* b;
+    HuSprite_Unk84_Unk00_Struct* cel;
+    s32 siz;
+    s32 mode;
+    s32 w;
+    u32 rowH;
+    u32 strips;
+    s32 rem;
+    s32 i;
+    s32 j;
+    s32 tc;
+
+    b = &D_8010F32C_fowl_play[id];
+    b->spr = D_800C9530_main[tex];
+    cel = b->spr->unk00;
+    HuMemFree(b->vtx);
+    HuMemFree(b->gfx);
+    switch (b->spr->unk18) {
+        case 4:
+            siz = 0;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 8:
+            siz = 1;
+            mode = (b->spr->unk1A == 1) ? 3 : 2;
+            break;
+        case 0x10:
+            siz = 2;
+            mode = (b->spr->unk1A == 1) ? 3 : 0;
+            break;
+        case 0x20:
+            siz = 3;
+            mode = 0;
+            break;
+        case 0x8004:
+            siz = 0;
+            mode = 4;
+            break;
+        case 0x8008:
+            siz = 1;
+            mode = 4;
+            break;
+    }
+    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    if (w < cel->unk04) {
+        w += 16 >> siz;
+    }
+    switch (mode) {
+        case 2:
+            if ((0x1000 >> siz) < cel->unk06 * w) {
+                rowH = (0x1000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+        case 4:
+            rowH = cel->unk06;
+            if ((s32)(cel->unk06 * w) > 0x1000) {
+                rowH = 0x1000 / w;
+            }
+            break;
+        default:
+            if ((0x2000 >> siz) < cel->unk06 * w) {
+                rowH = (0x2000 >> siz) / w;
+            } else {
+                rowH = cel->unk06;
+            }
+            break;
+    }
+    strips = cel->unk06 / rowH;
+    rem = cel->unk06 - strips * rowH;
+    b->rows = strips + 2;
+    b->rowH = rowH;
+    b->vtx = HuMemAlloc((strips + 2) * 2 * sizeof(Vtx));
+    for (i = 0; i < strips + 1; i++) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        tc = (i * rowH) << 6;
+        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2 + 1].v.tc[1] = tc;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    }
+    if (rem != 0) {
+        b->vtx[i * 2].v.ob[0] = 0;
+        b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
+        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.tc[0] = 0;
+        b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
+        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
+        for (j = 0; j < 2; j++) {
+            b->vtx[i * 2 + j].v.ob[2] = 0;
+            b->vtx[i * 2 + j].v.cn[0] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[1] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[2] = 0xFF;
+            b->vtx[i * 2 + j].v.cn[3] = 0xFF;
+        }
+    } else if (strips == 1) {
+        b->vtx[4].v.ob[0] = cel->unk04 * 0.5;
+        b->vtx[4].v.ob[1] = -(s32)cel->unk06 * 0.5;
+        b->vtx[4].v.ob[2] = 0;
+        b->vtx[4].v.tc[0] = cel->unk04 * 0.5 * 64.0;
+        b->vtx[4].v.tc[1] = cel->unk06 * 0.5 * 64.0;
+        b->vtx[4].v.cn[0] = 0xFF;
+        b->vtx[4].v.cn[1] = 0xFF;
+        b->vtx[4].v.cn[2] = 0xFF;
+        b->vtx[4].v.cn[3] = 0xFF;
+    }
+    func_8010B8D4_fowl_play(b);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C7FC_fowl_play);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CD84_fowl_play);
+void func_8010CD84_fowl_play(s16 id, s16 tex) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CE04_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->spr = D_800C9530_main[tex];
+        b->a = 0x100;
+        b->b = 0xFF;
+        b->g = 0xFF;
+        b->r = 0xFF;
+        b->timer = 0.0f;
+        b->frame = 0;
+        b->speed = 1.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CE44_fowl_play);
+void func_8010CE04_fowl_play(s16 id, s16 frame) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CE84_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->frame = frame;
+        b->timer = 0.0f;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CEE4_fowl_play);
+void func_8010CE44_fowl_play(s16 id, f32 speed) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CF24_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->speed = speed;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CF74_fowl_play);
+void func_8010CE84_fowl_play(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010CFDC_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->flags |= 0x04000000;
+        b->ofs.x = x;
+        b->ofs.y = y;
+        b->ofs.z = z;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D02C_fowl_play);
+void func_8010CEE4_fowl_play(s16 id, f32 speed) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D07C_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->ofs.z = speed;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D0C0_fowl_play);
+void func_8010CF24_fowl_play(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
 
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->pos.x = x;
+        b->pos.y = y;
+        b->pos.z = z;
+    }
+}
+
+void func_8010CF74_fowl_play(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->pos.x += x;
+        b->pos.y += y;
+        b->pos.z += z;
+    }
+}
+
+void func_8010CFDC_fowl_play(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->scale.x = x;
+        b->scale.y = y;
+        b->scale.z = z;
+    }
+}
+
+void func_8010D02C_fowl_play(s16 id, f32 x, f32 y, f32 z) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->rot.x = x;
+        b->rot.y = y;
+        b->rot.z = z;
+    }
+}
+
+void func_8010D07C_fowl_play(s16 id, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->flags |= flags;
+    }
+}
+
+void func_8010D0C0_fowl_play(s16 id, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->flags &= ~flags;
+    }
+}
+
+#ifdef NON_MATCHING
+s32 func_8010D108_fowl_play(s16 id) {
+    s32 flags = -1;
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        flags = b->flags;
+    }
+    return flags;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D108_fowl_play);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D148_fowl_play);
+void func_8010D148_fowl_play(s16 id, s8 arg1) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D184_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->unk1A = arg1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D1C4_fowl_play);
+PgBoard* func_8010D184_fowl_play(s16 id) {
+    if (id == -1) {
+        return NULL;
+    }
+    return &D_8010F32C_fowl_play[id];
+}
 
+Vtx* func_8010D1C4_fowl_play(s16 id) {
+    PgBoard* b;
+
+    if (id == -1) {
+        return NULL;
+    }
+    b = &D_8010F32C_fowl_play[id];
+    return b->vtx;
+}
+
+#ifdef NON_MATCHING
+s32 func_8010D208_fowl_play(s16 id, s16 w, s16 h) {
+    PgBoard* b;
+    Vtx* v;
+    s32 x = w;
+    s32 y = h;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        if (b->rows == 3) {
+            b->flags |= 0x80000000;
+            v = b->vtx;
+            v[4].v.ob[0] = x;
+            v[4].v.ob[1] = -y;
+            v[4].v.ob[2] = 0;
+            v[4].v.tc[0] = x << 6;
+            v[4].v.tc[1] = y << 6;
+            return 1;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D208_fowl_play);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D2A4_fowl_play);
+void func_8010D2A4_fowl_play(s16 id, s8 r, s8 g, s8 b, u16 a) {
+    PgBoard* p;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D2F0_fowl_play);
+    if (id != -1) {
+        p = &D_8010F32C_fowl_play[id];
+        p->r = r;
+        p->g = g;
+        p->b = b;
+        p->a = a;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D3D0_fowl_play);
+void func_8010D2F0_fowl_play(s16 id) {
+    PgBoard* b;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D4D0_fowl_play);
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        if (b->spr != NULL) {
+            HuMemFree(b->gfx);
+            HuMemFree(b->vtx);
+            b->spr = NULL;
+            b->flags = 0;
+            b->a = 0x100;
+            b->b = 0xFF;
+            b->g = 0xFF;
+            b->r = 0xFF;
+            b->timer = 0.0f;
+            b->frame = 0;
+            b->unk1C = 0;
+            b->unk1B = 0;
+            b->ofs.x = b->ofs.y = b->ofs.z = 0.0f;
+            b->pos.x = b->pos.y = b->pos.z = 0.0f;
+            b->scale.x = b->scale.y = b->scale.z = 1.0f;
+            b->rot.x = b->rot.y = b->rot.z = 0.0f;
+            b->speed = 1.0f;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D5A0_fowl_play);
+void func_8010D3D0_fowl_play(s32 id, s32 on) {
+    PgBoard* b = &D_8010F32C_fowl_play[id];
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D6D8_fowl_play);
+    if (on) {
+        b->flags |= 0x10000;
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i].v.cn[0] = 0;
+            b->vtx[i].v.cn[1] = 0;
+            b->vtx[i].v.cn[2] = 0x80;
+        }
+    } else {
+        b->flags &= ~0x10000;
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i].v.cn[0] = 0xFF;
+            b->vtx[i].v.cn[1] = 0xFF;
+            b->vtx[i].v.cn[2] = 0xFF;
+            b->vtx[i].v.cn[3] = 0xFF;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D714_fowl_play);
+void func_8010D4D0_fowl_play(s32 id, s32 flip) {
+    PgBoard* b = &D_8010F32C_fowl_play[id];
+    s32 i;
 
+    if (flip) {
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i * 2].v.tc[0] = b->spr->unk00->unk04 << 6;
+            b->vtx[i * 2 + 1].v.tc[0] = 0;
+        }
+    } else {
+        for (i = 0; i < b->rows; i++) {
+            b->vtx[i * 2].v.tc[0] = 0;
+            b->vtx[i * 2 + 1].v.tc[0] = b->spr->unk00->unk04 << 6;
+        }
+    }
+}
+
+void func_8010D5A0_fowl_play(s32 id, s32 flip) {
+    PgBoard* b = &D_8010F32C_fowl_play[id];
+    s32 rem = b->spr->unk00->unk06 - (b->rows - 2) * b->rowH;
+    s32 i;
+
+    if (flip) {
+        for (i = 0; i < b->rows - 1; i++) {
+            b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = b->spr->unk00->unk06 - i * b->rowH;
+        }
+        if (rem != 0) {
+            b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = 0;
+        }
+    } else {
+        for (i = 0; i < b->rows - 1; i++) {
+            b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = i * b->rowH;
+        }
+        if (rem != 0) {
+            b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = b->spr->unk00->unk06;
+        }
+    }
+}
+
+void func_8010D6D8_fowl_play(s16 id, s32 arg1) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->func = (void (*)(PgBoard*))arg1;
+    }
+}
+
+void func_8010D714_fowl_play(s16 id, s8 arg1, s8 arg2, u32 flags) {
+    PgBoard* b;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        b->unk1B = arg1;
+        b->unk1C = arg2;
+        b->flags |= flags;
+        HuMemFree(b->gfx);
+        func_8010B8D4_fowl_play(b);
+    }
+}
+
+#ifdef NON_MATCHING
+void func_8010D784_fowl_play(s16 id, s32 on) {
+    PgBoard* b;
+    Vtx* v;
+    s8 c;
+    s8 a;
+    s32 i;
+
+    if (id != -1) {
+        b = &D_8010F32C_fowl_play[id];
+        if (on) {
+            c = 0;
+            a = 0x70;
+        } else {
+            c = -1;
+            a = -1;
+        }
+        for (i = 0; i < b->rows; i++) {
+            v = &b->vtx[i];
+            v->v.cn[0] = v->v.cn[1] = v->v.cn[3] = c;
+            b->vtx[i].v.cn[2] = a;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D784_fowl_play);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D81C_fowl_play);
+void func_8010D81C_fowl_play(void) {
+    PgBoard* b;
+    s32 i;
+
+    if (++D_8010EB64_fowl_play >= 6) {
+        D_8010EB64_fowl_play = 0;
+    }
+    D_8010F34C_fowl_play = 0;
+    for (i = 0; i < D_8010F350_fowl_play; i++) {
+        b = &D_8010F32C_fowl_play[i];
+        if (b->spr != NULL) {
+            D_8010F34C_fowl_play += (b->cmds * sizeof(Gfx) + b->rows * 2 * sizeof(Vtx)) + 0x40;
+        }
+    }
+    if (D_8010F330_fowl_play[D_8010EB64_fowl_play] != NULL) {
+        HuMemFree(D_8010F330_fowl_play[D_8010EB64_fowl_play]);
+    }
+    if (D_8010F34C_fowl_play != 0) {
+        D_8010F330_fowl_play[D_8010EB64_fowl_play] = HuMemAlloc(D_8010F34C_fowl_play);
+    } else {
+        D_8010F330_fowl_play[D_8010EB64_fowl_play] = NULL;
+    }
+    D_8010F348_fowl_play = D_8010F330_fowl_play[D_8010EB64_fowl_play];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D970_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010DC24_fowl_play);
+void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2) {
+    HuCamera* cam = (HuCamera*)arg2;
+    f32 unused0[2][4][4];
+    f32 view[4][4];
+    u8 unused1[0x100];
+    Vec rot;
+    Vec dir;
+    u8 unused2[0x840];
+    Gfx* g;
+    PgBoard* b;
+
+    g = *gfx;
+    func_80079480_main(view, cam->pos.x, cam->pos.y, cam->pos.z, cam->at.x, cam->at.y, cam->at.z, cam->up.x,
+                       cam->up.y, cam->up.z);
+    dir.x = cam->at.x - cam->pos.x;
+    dir.y = cam->at.y - cam->pos.y;
+    dir.z = cam->at.z - cam->pos.z;
+    func_8010AAB8_fowl_play(&dir, (f32*)&rot);
+    func_8010D81C_fowl_play();
+    gDPPipeSync(g++);
+    gDPSetCycleType(g++, G_CYC_2CYCLE);
+    gDPSetTexturePersp(g++, G_TP_PERSP);
+    gSPTexture(g++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gSPClearGeometryMode(g++, 0x060600);
+    gSPSetGeometryMode(g++, 0x280004);
+    gDPSetAlphaDither(g++, G_AD_PATTERN);
+    func_8010D970_fowl_play(cam, view);
+    for (b = D_8010F360_fowl_play.next; b != NULL; b = b->next) {
+        g = func_8010DE4C_fowl_play(g, b, view, &rot);
+    }
+    for (b = D_8010F3C8_fowl_play.next; b != NULL; b = b->next) {
+        g = func_8010DE4C_fowl_play(g, b, view, &rot);
+    }
+    gDPSetCycleType(g++, G_CYC_1CYCLE);
+    *gfx = g;
+    if (HmfPauseF == 0) {
+        func_8010E544_fowl_play();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010DE4C_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010E544_fowl_play);
+void func_8010E544_fowl_play(void) {
+    PgBoard* b;
+    s32 n;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010E704_fowl_play);
+    for (i = 0; i < D_8010F350_fowl_play; i++) {
+        b = &D_8010F32C_fowl_play[i];
+        if (b->func != NULL) {
+            b->func(b);
+        }
+        if (b->spr == NULL) {
+            continue;
+        }
+        if (b->flags & 0x8000) {
+            continue;
+        }
+        if (b->flags & 0x10000000) {
+            continue;
+        }
+        {
+            n = b->spr->unk10;
+            b->timer += b->speed;
+            while (b->timer >= 1.0) {
+                b->frame++;
+                b->timer -= 1.0f;
+                if (b->frame >= n) {
+                    if (b->flags & 0x20000000) {
+                        b->flags |= 0x8000;
+                        b->frame--;
+                        b->timer += 1.0f;
+                        if (b->flags & 0x40000000) {
+                            func_8010D2F0_fowl_play(i);
+                        }
+                        break;
+                    } else if (!(b->flags & 0x40000000)) {
+                        b->frame = 0;
+                    } else {
+                        b->frame--;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void func_8010E704_fowl_play(void) {
+    s32 i;
+
+    for (i = 0; i < D_8010F350_fowl_play; i++) {
+        func_8010D2F0_fowl_play(i);
+    }
+    for (i = 0; i < 6; i++) {
+        if (D_8010F330_fowl_play[i] != NULL) {
+            HuMemFree(D_8010F330_fowl_play[i]);
+        }
+    }
+    HuMemFree(D_8010F32C_fowl_play);
+}
