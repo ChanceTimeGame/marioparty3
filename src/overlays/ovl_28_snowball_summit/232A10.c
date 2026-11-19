@@ -2743,7 +2743,76 @@ void func_8010EA68_snowball_summit(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EBC0_snowball_summit);
+/* The roll model (0x49000B) on each rolled snowball, and its rolling sound. Retail positions only the last slot's
+   model (the Hu3DModelPosSet and the end-of-game stop sit after the loop). */
+void func_8010EBC0_snowball_summit(void) {
+    SsSlot16 *sl;
+    SsPlayer *pl;
+    SsBall *ball;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        sl = &D_80110250_snowball_summit[i];
+        if (sl->state == -1) {
+            return;
+        }
+        pl = &D_8010F9B8_snowball_summit[i];
+        if (pl->state == -1 || pl->ball == -1 || pl->hit != 0 || pl->speed <= 0.0f) {
+            sl->state = 0;
+        }
+        switch (sl->state) {
+            case 0:
+                if (sl->sfxOn == 1 && sl->sfx != -1) {
+                    HuAudFXStop((s16)sl->sfx);
+                    sl->sfxOn = 0;
+                    sl->sfx = -1;
+                }
+                func_8001C258_main(sl->obj->model[0], 4, 4);
+                if ((pl->motion == 3 || pl->motion == 4) && pl->speed > 0.0f) {
+                    sl->state = 1;
+                }
+                break;
+            case 1:
+                func_8001C258_main(sl->obj->model[0], 4, 0);
+                if (sl->sfxOn != 1 && sl->sfx == -1) {
+                    if ((sl->sfx = func_8004AC98_main(0x439, pl->obj->work[0])) != -1) {
+                        sl->sfxOn = 1;
+                    }
+                }
+                if (!(pl->motion == 3 || pl->motion == 4) || pl->speed <= 0.0f) {
+                    sl->state = 0;
+                    if (sl->sfxOn == 1 && sl->sfx != -1) {
+                        HuAudFXStop((s16)sl->sfx);
+                        sl->sfxOn = 0;
+                        sl->sfx = -1;
+                    }
+                }
+                break;
+        }
+        if (pl->ball != -1) {
+            ball = &D_8010FC30_snowball_summit[pl->ball];
+            sl->obj->trans.x = ball->obj->trans.x;
+            sl->obj->trans.y = ball->obj->trans.y;
+            sl->obj->trans.z = ball->obj->trans.z;
+            sl->obj->scale.x = sl->obj->scale.y = sl->obj->scale.z = ball->size;
+        } else {
+            sl->obj->trans.x = pl->next.x;
+            sl->obj->trans.y = pl->next.y + 20.0f;
+            sl->obj->trans.z = pl->next.z;
+            if (sl->sfxOn == 1 && sl->sfx != -1) {
+                HuAudFXStop((s16)sl->sfx);
+                sl->sfxOn = 0;
+                sl->sfx = -1;
+            }
+        }
+    }
+    Hu3DModelPosSet(sl->obj->model[0], sl->obj->trans.x, sl->obj->trans.y, sl->obj->trans.z);
+    if (D_8010F880_snowball_summit >= 3 && sl->sfxOn == 1 && sl->sfx != -1) {
+        HuAudFXStop((s16)sl->sfx);
+        sl->sfxOn = 0;
+        sl->sfx = -1;
+    }
+}
 
 void func_8010EEEC_snowball_summit(omObjData *obj) {
     func_8010CA70_snowball_summit();
