@@ -83,6 +83,7 @@ extern MmPt D_80110FF4_messy_memory[20]; /* the shown room's slots */
 extern MmPt D_80111044_messy_memory[20];
 extern MmPt D_80111094_messy_memory[4];
 extern Vec2f D_801110A4_messy_memory[20];
+extern s32 D_801111EC_messy_memory[][2]; /* hand sprite group per character */
 extern Vec2f D_80111298_messy_memory[4]; /* per player: walk speed, stop x */
 extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
@@ -174,6 +175,11 @@ void func_801063FC_messy_memory(omObjData *obj);
 void func_80107C88_messy_memory(omObjData *obj);
 void func_80106C60_messy_memory(omObjData *obj);
 void func_8010ACE4_messy_memory(omObjData *obj);
+void func_8010AD40_messy_memory(omObjData *obj);
+void func_8010B5C8_messy_memory(omObjData *obj);
+void func_80106800_messy_memory(Gfx **gfx, s32 arg1, s32 arg2);
+extern s32 D_800A178C_main[][6];
+void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
@@ -1437,7 +1443,35 @@ void func_8010AD40_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010AD40_messy_memory);
 #endif
 
+/* A player's hand: its sprite group by character, placed on its board; player 3's also adds the hand drawer. */
+#ifdef NON_MATCHING
+void func_8010B32C_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    u8 chr;
+    s16 i;
+
+    chr = GwPlayer[obj->work[0]].chr;
+    e = &D_80111700_messy_memory[obj->work[0]];
+    e->grp = func_8000B838_main(D_801111EC_messy_memory[chr][0]);
+    D_80111660_messy_memory[obj->work[0]] = func_80055194_main(e->grp);
+    for (i = 0; i < 4; i++) {
+        if (obj->work[0] == i) {
+            e->pos.x = (f32)D_80110FE0_messy_memory[obj->work[0]].x + 88.0f;
+            e->pos.y = (f32)D_80110FE0_messy_memory[obj->work[0]].y + 63.0f;
+        }
+    }
+    e->unk18 = 0.1f;
+    e->unk5C.x = e->unk5C.y = 0.1f;
+    D_80115D72_messy_memory[obj->work[0]] = 255;
+    D_80111658_messy_memory[obj->work[0]] = 0;
+    if (obj->work[0] == 3) {
+        func_8001C8A8_main(func_8001AC8C_main(0, func_80106800_messy_memory, 2), 1);
+    }
+    obj->func = func_8010AD40_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B32C_messy_memory);
+#endif
 
 #ifdef NON_MATCHING
 void func_8010B4CC_messy_memory(void) {
@@ -1679,7 +1713,59 @@ void func_8010B5C8_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B5C8_messy_memory);
 #endif
 
+/* A player's model: character model, shadow, motions, start position. */
+#ifdef NON_MATCHING
+void func_8010C03C_messy_memory(omObjData *obj) {
+    s8 chr = GwPlayer[obj->work[0]].chr;
+    u16 p = (u16)obj->work[0];
+
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2A9);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    obj->model[1] = func_8000B0A0_main(0, 0x14C9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 15.0f, 0.0f);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 2));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x36));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x7A));
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C6A8_main(obj->model[0], 0.0f);
+    func_8001C814_main(obj->model[0], 2, 2);
+    switch (p) {
+    case 0:
+    case 1:
+        obj->trans.x = D_80111298_messy_memory[p].y;
+        obj->trans.y = -180.0f;
+        obj->trans.z = -1000.0f;
+        break;
+    case 2:
+    case 3:
+        obj->trans.x = D_80111298_messy_memory[p].y;
+        obj->trans.y = -435.0f;
+        obj->trans.z = -610.0f;
+        break;
+    }
+    obj->rot.x = 0.0f;
+    obj->rot.y = 0.0f;
+    obj->rot.z = 0.0f;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    obj->func = func_8010B5C8_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C03C_messy_memory);
+#endif
 
 #ifdef NON_MATCHING
 void func_8010C37C_messy_memory(void) {
