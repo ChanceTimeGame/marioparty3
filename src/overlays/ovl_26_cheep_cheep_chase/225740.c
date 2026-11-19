@@ -142,6 +142,7 @@ extern s16 D_8010E020_cheep_cheep_chase;
 extern s16 D_8010E022_cheep_cheep_chase;
 extern s16 D_8010E024_cheep_cheep_chase;
 extern s16 D_8010E026_cheep_cheep_chase;
+extern s32 D_8010E028_cheep_cheep_chase[8];
 extern s16 D_8010E380_cheep_cheep_chase;
 
 extern u8 D_800D6A90_main;
@@ -150,6 +151,8 @@ extern s32 D_800A178C_main[][6];
 extern const s16 D_8010E050_cheep_cheep_chase[];
 extern const s16 D_8010E05C_cheep_cheep_chase[];
 extern const s16 D_8010E06C_cheep_cheep_chase[];
+
+#include "game/pause.h"
 
 // C1F0
 void func_8000B5F0_main(u8 arg0);
@@ -182,6 +185,7 @@ void func_80107440_cheep_cheep_chase(omObjData *object);
 void func_8010732C_cheep_cheep_chase(omObjData *object);
 void func_80107698_cheep_cheep_chase(omObjData *object);
 void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80107E3C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801080C8_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108170_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801085FC_cheep_cheep_chase(CxFuncContext *ctx);
@@ -1336,7 +1340,84 @@ void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
+// Register allocation (ctx/object/player in other saved registers).
+#ifdef NON_MATCHING
+void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx) {
+    CxPlayer *player;
+    omObjData *object;
+    GW_PLAYER *gw;
+
+    object = D_800EC598_minigame[ctx->work.s16[0]];
+    player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 0;
+            ctx->work.s8[4] = 0;
+            ctx->work.f32[0] = object->trans.z;
+            ctx->work.f32[1] = object->trans.x;
+            func_8001C258_main(object->model[9], 4, 4);
+            ctx->state = 1;
+            break;
+        case 1:
+            switch (player->unk01) {
+                case 7:
+                    func_800E5690_minigame(object, 0x2A);
+                    object->trans.z += 5.0;
+                    ctx->work.s8[0] = ctx->work.s8[0] + 0.5;
+                    if (ctx->work.s8[0] >= 180.0f) {
+                        ctx->work.s8[0] = ctx->work.s8[0] - 180.0f;
+                    }
+                    object->trans.y = sindf(ctx->work.s8[0]) * 20.0f * 5.0f * 0.05f + 80.0;
+                    break;
+                case 6:
+                    if (++ctx->work.s8[3] >= 5) {
+                        func_800E5690_minigame(object, 1);
+                        if (HmfModelData[object->model[0]].unk40 == 0.0f) {
+                            CharFXPlay(0x1F, GwPlayer[object->work[0]].chr);
+                        }
+                        if (ctx->work.s8[2] == 0 && func_8010DF48_cheep_cheep_chase(&object->trans.y, (u8 *)&ctx->work.s8[0], player->unk04 + 60.0, 210.0f, 20.0f)) {
+                            ctx->work.s8[2] = 1;
+                        }
+                        if (func_8010DF48_cheep_cheep_chase(&object->trans.z, (u8 *)&ctx->work.s8[1], ctx->work.f32[0], D_8010E360_cheep_cheep_chase->unk28 - 700.0, 70.0f)) {
+                            ctx->work.s8[1] = 70;
+                        }
+                        if (func_8010DF48_cheep_cheep_chase(&object->trans.x, (u8 *)&ctx->work.s8[4], ctx->work.f32[1], 0.0f, 70.0f)) {
+                            func_800E5690_minigame(object, 0);
+                            ctx->state = 2;
+                            func_8010D6F4_cheep_cheep_chase(0, 0, -1, 0, NULL, func_80107E3C_cheep_cheep_chase, FALSE, FALSE);
+                            ctx->work.s8[1] = 0;
+                        }
+                    }
+                    func_8001C258_main(object->model[1], 4, 0);
+                    Hu3DModelPosSet(object->model[1], object->trans.x, object->trans.y - 5.0f, object->trans.z);
+                    break;
+            }
+            break;
+        case 2:
+            if (func_8010DF48_cheep_cheep_chase(&object->rot.y, (u8 *)&ctx->work.s8[1], 180.0f, 121.0f, 40.0f)) {
+                ctx->state = 3;
+                ctx->work.s8[1] = 0;
+            }
+            break;
+        case 3:
+            if (++ctx->work.s8[1] >= 6) {
+                gw = &GwPlayer[ctx->work.s16[0]];
+                func_80017790_main(object->model[0], 2, gw->chr, D_8010E028_cheep_cheep_chase[gw->chr]);
+                func_8010D7F4_cheep_cheep_chase(ctx->work.s16[0] + 4, ctx);
+                func_800E5690_minigame(object, 0xD);
+                func_80045ED0_main(D_800A178C_main[gw->chr][0] | 0x2F);
+                func_8010D6F4_cheep_cheep_chase(1, 0, -1, 0, NULL, func_8010896C_cheep_cheep_chase, FALSE, FALSE);
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A08C_cheep_cheep_chase);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A57C_cheep_cheep_chase);
 
