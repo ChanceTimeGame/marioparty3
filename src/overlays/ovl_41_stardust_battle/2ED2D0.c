@@ -387,10 +387,10 @@ void func_8010A690_stardust_battle(omObjData *obj);
 void func_800465A8_main(s16, f32, f32, f32);
 s16 func_8010A204_stardust_battle(f32 x, f32 z, f32 height, f32 growth, f32 width, f32 radius);
 void func_8010C5A8_stardust_battle(s32, s32);
-s32 func_8010CA48_stardust_battle(s16);
-void func_8010DE64_stardust_battle(s32, s32);
+Vec *func_8010CA48_stardust_battle(s16 idx);
+s16 func_8010DE64_stardust_battle(Vec *target, f32 vy);
 extern s16 D_80113E90_stardust_battle[];
-extern s32 D_80113E98_stardust_battle[];
+extern f32 D_80113E98_stardust_battle[]; /* item throw vy per phase */
 extern s16 D_80113EA8_stardust_battle[];
 extern s16 D_80113EB0_stardust_battle[];
 extern void (*D_80113E78_stardust_battle[3])(omObjData *);
@@ -2881,7 +2881,29 @@ void func_8010C5A8_stardust_battle(s32 n, s32 m) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CA48_stardust_battle);
+extern Vec D_80113EB8_stardust_battle;
+
+Vec *func_8010CA48_stardust_battle(s16 idx) {
+    SbShots *sh = D_80114B20_stardust_battle;
+    SbShot *shot;
+
+    if (idx >= 32) {
+        idx %= 32;
+    }
+    shot = &sh->unk08[idx];
+    if (sh->unk00 == 0) {
+        return &D_80113EB8_stardust_battle;
+    }
+    if (shot->unk00 == 0) {
+        shot = &sh->unk08[(s16)(idx % sh->unk00)];
+    }
+    if (shot->unk02 != 0) {
+        shot->x = D_800EC598_minigame[0]->trans.x;
+        shot->z = D_800EC598_minigame[0]->trans.z;
+        shot->y = 0.0f;
+    }
+    return (Vec *)&shot->x;
+}
 
 void func_8010CB34_stardust_battle(void) {
     SbItems *items;
@@ -3233,11 +3255,108 @@ s16 func_8010DADC_stardust_battle(Vec *pos, Vec *target, f32 vy) {
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010DE64_stardust_battle);
+s16 func_8010DE64_stardust_battle(Vec *target, f32 vy) {
+    Vec pos;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010DF70_stardust_battle);
+    pos.x = target->x + 400.0;
+    pos.z = target->z + (0.5 - (f32)(u8)(rand8() % 100) * 0.01) * 100.0 * 5.0;
+    pos.y = target->y + 600.0;
+    return func_8010DADC_stardust_battle(&pos, target, vy);
+}
 
+void func_8010DF70_stardust_battle(s16 idx) {
+    SbItem *item;
+
+    if (idx < D_80114B2C_stardust_battle->unk08) {
+        item = &D_80114B2C_stardust_battle->unk0C[idx];
+        if (item->unk00 != 0) {
+            item->unk00 = 0;
+            item->unk28.x = item->unk34.x = item->unk40.x = 0.0f;
+            func_8001C258_main(item->unk02[0], 4, 4);
+            func_8001C258_main(item->unk02[1], 4, 4);
+            func_8001C258_main(item->unk06[0], 4, 4);
+            func_8001C258_main(item->unk06[1], 4, 4);
+            func_8001C258_main(item->unk0A, 4, 4);
+            func_8001C258_main(item->unk0C, 4, 4);
+        }
+    }
+}
+
+typedef struct SbCand {
+    /* 0x00 */ s32 idx;
+    /* 0x04 */ f32 d; /* distance squared */
+} SbCand; // Size 0x8
+extern SbCand D_80114A40_stardust_battle[10];
+extern SbCand D_80114A90_stardust_battle; /* swap temporary */
+f32 func_80111B28_stardust_battle(f32 a, f32 b);
+
+/* NON_MATCHING: register allocation only: retail keeps the item pool in s4 and the work in s5, mine the reverse */
+#ifdef NON_MATCHING
+s16 func_8010E03C_stardust_battle(omObjData *obj) {
+    MgWork *work;
+    SbItems *items;
+    SbItem *item;
+    s32 n;
+    s32 i;
+    s32 j;
+    f32 r;
+    f32 dx;
+    f32 dz;
+    f32 d;
+    f32 a;
+
+    if (D_80114B2C_stardust_battle == NULL) {
+        return -1;
+    }
+    items = D_80114B2C_stardust_battle;
+    item = items->unk0C;
+    work = obj->data;
+    memset(D_80114A40_stardust_battle, 0, sizeof(D_80114A40_stardust_battle));
+    n = 0;
+    r = work->unk48 + 50.0 + 50.0;
+    r = r * r;
+    for (i = 0; i < items->unk08; i++, item++) {
+        if (item->unk00 != 0 && item->unk16 == 3) {
+            dx = item->unk28.x - obj->trans.x;
+            dz = item->unk28.z - obj->trans.z;
+            d = dx * dx + dz * dz;
+            a = atan2df(dx, dz);
+            if (d < r && fabs(func_80111B28_stardust_battle(a, work->unk3C)) < 40.0) {
+                D_80114A40_stardust_battle[n].idx = i;
+                D_80114A40_stardust_battle[n].d = d;
+                n++;
+            }
+        }
+    }
+    if (n <= 0) {
+        return -1;
+    }
+    if (n != 1) {
+        for (i = 0; i < n - 1; i++) {
+            for (j = i + 1; j < n; j++) {
+                if (D_80114A40_stardust_battle[j].d < D_80114A40_stardust_battle[i].d) {
+                    D_80114A90_stardust_battle = D_80114A40_stardust_battle[i];
+                    D_80114A40_stardust_battle[i] = D_80114A40_stardust_battle[j];
+                    D_80114A40_stardust_battle[j] = D_80114A90_stardust_battle;
+                }
+            }
+        }
+    }
+    item = &items->unk0C[D_80114A40_stardust_battle[0].idx];
+    if (item->unk00 != 0) {
+        func_8001C258_main(item->unk02[item->unk10], 4, 0);
+        item->unk58.x = item->unk28.x;
+        item->unk58.y = item->unk28.y;
+        item->unk58.z = item->unk28.z;
+        HuAudFXPlay(0x507);
+        item->unk16 = 4;
+        item->unk14 = 0;
+    }
+    return D_80114A40_stardust_battle[0].idx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010E03C_stardust_battle);
+#endif
 
 SbItem *func_8010E300_stardust_battle(s16 idx) {
     SbItems *items = D_80114B2C_stardust_battle;
@@ -3250,7 +3369,26 @@ SbItem *func_8010E300_stardust_battle(s16 idx) {
     return (item->unk00 != 0) ? item : NULL;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010E35C_stardust_battle);
+void func_8010E35C_stardust_battle(s16 idx) {
+    SbItem *item;
+
+    if (idx < D_80114B2C_stardust_battle->unk08) {
+        item = &D_80114B2C_stardust_battle->unk0C[idx];
+        if (item->unk00 != 0) {
+            if (item->unk16 == 4) {
+                item->unk16 = 5;
+                item->unk14 = 0;
+                guMtxIdentF((f32(*)[4])HmfModelData[item->unk02[item->unk10]].mtx);
+                func_8004ACE0_main(0xAF, 0);
+                item->unk40.x = sindf(item->unk34.y) * 31.999999284744263;
+                item->unk40.z = cosdf(item->unk34.y) * 31.999999284744263;
+                item->unk40.y = 10.0f;
+            } else {
+                func_8010DF70_stardust_battle(idx);
+            }
+        }
+    }
+}
 
 void func_8010E46C_stardust_battle(s16 idx, f32 x, f32 y, f32 z) {
     SbItem *item;
