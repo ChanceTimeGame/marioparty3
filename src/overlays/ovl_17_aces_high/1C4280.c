@@ -21,7 +21,7 @@ typedef struct AhPlayer {
     /* 0x02 */ u16 unk02; /* player */
     /* 0x04 */ omObjData *unk04;
     /* 0x08 */ f32 unk08; /* speed */
-    /* 0x0C */ u16 unk0C;
+    /* 0x0C */ s16 unk0C;
     /* 0x0E */ char unk0E[2];
     /* 0x10 */ f32 unk10; /* heading x */
     /* 0x14 */ f32 unk14; /* heading y */
@@ -60,7 +60,9 @@ typedef struct AhPlayer {
     /* 0x72 */ char unk72[2];
     /* 0x74 */ omObjData *unk74;
     /* 0x78 */ omObjData *unk78;
-    /* 0x7C */ char unk7C[0xC];
+    /* 0x7C */ f32 unk7C; /* pitch step */
+    /* 0x80 */ f32 unk80; /* roll step */
+    /* 0x84 */ f32 unk84;
     /* 0x88 */ u16 unk88;
     /* 0x8A */ char unk8A[2];
     /* 0x8C */ f32 unk8C;
@@ -83,6 +85,7 @@ typedef struct AhUV {
     /* 0x04 */ f32 v;
 } AhUV;
 
+double fabs(double); /* the GCC builtin (abs.d) */
 void HmfLightStatSet(s16, u8, u8);
 void func_8000B710_main(s32);
 void func_80047C0C_main(u16 group, u16 max_objs);
@@ -144,7 +147,7 @@ void func_801081A8_aces_high(omObjData *obj);
 void func_8010843C_aces_high(omObjData *obj);
 void func_801085B0_aces_high(omObjData *obj);
 void func_8010862C_aces_high(omObjData *obj);
-void func_801088A4_aces_high(omObjData *obj);
+void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u16 *btn2);
 void func_8010951C_aces_high(omObjData *obj);
 void func_80109928_aces_high(omObjData *obj);
 void func_80109EEC_aces_high(omObjData *obj);
@@ -533,9 +536,185 @@ void func_80106D2C_aces_high(omObjData *obj) {
     func_80106B70_aces_high(obj);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80106EC0_aces_high);
+void func_80106EC0_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    f32 s;
 
+    if (obj->work[0] != 0) {
+        obj->work[0]--;
+    } else {
+        switch (work->unk88) {
+            case 0:
+                work->unk38 -= 4.0f;
+                if (work->unk38 <= -90.0f) {
+                    work->unk38 += 180.0f;
+                    work->unk3C += 180.0f;
+                    obj->rot.y += 180.0f;
+                    work->unk88 = 1;
+                }
+                break;
+            case 1:
+                work->unk38 -= 4.0f;
+                if (work->unk38 <= 0.0f) {
+                    work->unk88 = 2;
+                }
+                break;
+            case 2:
+                work->unk38 += 4.0f;
+                work->unk3C -= 8.0f;
+                if (work->unk38 >= 90.0f) {
+                    work->unk38 = 90.0f;
+                    work->unk3C = 0.0f;
+                    work->unk88 = 3;
+                }
+                break;
+            case 3:
+                work->unk38 -= 4.0f;
+                if (work->unk38 <= 0.0f) {
+                    work->unk38 = 0.0f;
+                    obj->work[1] = 0x1E;
+                    work->unk04->func = func_8010AADC_aces_high;
+                    work->unk04->work[2] = 0;
+                    work->unk04->scale.x = CRotM[work->unk02].x;
+                    work->unk88 = 4;
+                    if (work->unk02 == 3) {
+                        func_800E6F0C_minigame(1);
+                    }
+                }
+                break;
+            case 4:
+                if (--obj->work[1] == 0) {
+                    work->unk04->func = func_8010A51C_aces_high;
+                    obj->func = func_80107654_aces_high;
+                }
+                break;
+        }
+    }
+    s = sindf(work->unk38);
+    work->unk14 = -s * cosdf(work->unk3C);
+    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    obj->trans.x += work->unk10 * work->unk08;
+    obj->trans.y += work->unk14 * work->unk08;
+    obj->trans.z += work->unk18 * work->unk08;
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+}
+
+/* Player control: stick to pitch and roll, speed. */
+// register allocation only (masked 0, raw 3): retail holds the direction constant in v0, here v1
+#ifdef NON_MATCHING
+void func_801071D4_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    s8 stickX;
+    s8 stickY;
+    s16 btn;
+    u16 btn2;
+    f32 target;
+    f32 speed;
+
+    func_801088A4_aces_high(obj, &stickX, &stickY, &btn, &btn2);
+    btn2 = 0;
+    btn = 0;
+    if (stickX > 70) {
+        stickX = 70;
+    }
+    if (stickX < -70) {
+        stickX = -70;
+    }
+    if (stickY > 70) {
+        stickY = 70;
+    }
+    if (stickY < -70) {
+        stickY = -70;
+    }
+    target = (stickY / 70.0f) * 30.0f;
+    if (target < work->unk38) {
+        if (target - work->unk38 < -10.0f) {
+            work->unk38 -= 10.0f;
+            work->unk7C = -10.0f;
+        } else {
+            work->unk38 = target;
+            work->unk7C = target;
+        }
+    } else if (target - work->unk38 > 10.0f) {
+        work->unk38 += 10.0f;
+        work->unk7C = 10.0f;
+    } else {
+        work->unk38 = target;
+        work->unk7C = target;
+    }
+    target = (stickX / 70.0f) * 60.0f;
+    if (target < work->unk3C) {
+        if (target - work->unk3C < -10.0f) {
+            work->unk3C -= 10.0f;
+            work->unk80 = -10.0f;
+        } else {
+            work->unk3C = target;
+            work->unk80 = target;
+        }
+    } else if (target - work->unk3C > 10.0f) {
+        work->unk3C += 10.0f;
+        work->unk80 = 10.0f;
+    } else {
+        work->unk3C = target;
+        work->unk80 = target;
+    }
+    work->unk84 = work->unk80 / 30.0f;
+    if (btn2 & 0x4000) {
+        speed = 16.666666f;
+        work->unk4C = 0;
+    } else if (btn2 & 0x8000) {
+        speed = 41.666664f;
+        work->unk4C = 2;
+    } else {
+        speed = 27.777777f;
+        work->unk4C = 1;
+    }
+    if (work->unk0C == 1) {
+        speed *= 2.0f;
+    }
+    if (speed < work->unk08) {
+        work->unk08 -= 2.0f;
+        if (work->unk08 < speed) {
+            work->unk08 = speed;
+        }
+    } else if (work->unk08 < speed) {
+        work->unk08 += 2.0f;
+        if (speed < work->unk08) {
+            work->unk08 = speed;
+        }
+    }
+    if (stickX == 0) {
+        work->unk32 = 0;
+    } else {
+        s16 dir;
+        dir = 2;
+        if (stickX < 0) {
+            dir = 1;
+        }
+        work->unk32 = dir;
+    }
+    obj->rot.y -= work->unk3C / 30.0f;
+    if (obj->rot.y >= 360.0f) {
+        obj->rot.y -= 360.0f;
+    }
+    if (obj->rot.y < 0.0f) {
+        obj->rot.y += 360.0f;
+    }
+    work->unk14 = -sindf(work->unk38);
+    work->unk10 = sindf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    work->unk18 = cosdf(obj->rot.y) * (1.0 - fabs(work->unk14));
+    obj->trans.x += work->unk10 * work->unk08;
+    obj->trans.y += work->unk14 * work->unk08;
+    obj->trans.z += work->unk18 * work->unk08;
+    func_8010862C_aces_high(obj);
+    func_801068F4_aces_high(obj);
+    func_80106B70_aces_high(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801071D4_aces_high);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", D_8010DD48_aces_high);
 
