@@ -2904,13 +2904,15 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FB70_pump_pump_away);
 
-#ifdef NON_MATCHING
 void func_8010FC64_pump_pump_away(omObjData *obj) {
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+
     if (D_801116FC_pump_pump_away > 0) {
-        D_801116FC_pump_pump_away -= 1;
+        D_801116FC_pump_pump_away--;
         return;
     }
-    if (D_80111978_pump_pump_away->dist == D_80111978_pump_pump_away[1].dist) {
+    if (t->dist == t1->dist) {
         GMesCreate(0x20);
         HuAudSeqPlay(0x6C);
         D_801116FC_pump_pump_away = 0x90;
@@ -2919,9 +2921,6 @@ void func_8010FC64_pump_pump_away(omObjData *obj) {
     }
     obj->func = func_8010FA64_pump_pump_away;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FC64_pump_pump_away);
-#endif
 
 void func_8010FCF8_pump_pump_away(omObjData *obj) {
     if (D_801116FC_pump_pump_away > 0) {
@@ -2978,7 +2977,7 @@ void func_8010FE6C_pump_pump_away(omObjData *obj) {
 void func_8010FEB4_pump_pump_away(omObjData *obj) {
     PpTeam *t = D_80111978_pump_pump_away;
 
-    if (D_80111978_pump_pump_away[0].state == 2 && t[1].state == 2) {
+    if (t->state == 2 && t[1].state == 2) {
         D_801116F8_pump_pump_away = 1;
         obj->func = func_8010FE6C_pump_pump_away;
     }
@@ -2998,7 +2997,7 @@ void func_8010FEF8_pump_pump_away(omObjData *obj) {
 void func_8010FF28_pump_pump_away(omObjData *obj) {
     PpTeam *t = D_80111978_pump_pump_away;
 
-    if (D_80111978_pump_pump_away[0].state != 0 && t[1].state != 0) {
+    if (t->state != 0 && t[1].state != 0) {
         D_80113530_pump_pump_away.state = 1;
         D_801116F8_pump_pump_away = 1;
         obj->func = func_8010FEF8_pump_pump_away;
@@ -3008,27 +3007,26 @@ void func_8010FF28_pump_pump_away(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FF28_pump_pump_away);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010FF70_pump_pump_away(omObjData *obj) {
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+
     if (D_801116FC_pump_pump_away != 0) {
-        D_801116FC_pump_pump_away -= 1;
+        D_801116FC_pump_pump_away--;
         return;
     }
-    if ((D_80111978_pump_pump_away->timer == 0) && (D_80111978_pump_pump_away[1].timer == 0)) {
-        if ((D_80111978_pump_pump_away->dist == 0.0f) && (D_80111978_pump_pump_away[1].dist == 0.0f)) {
+    if (t->timer == 0 && t1->timer == 0) {
+        if (t->dist == 0.0f && t1->dist == 0.0f) {
             D_801116F8_pump_pump_away = 4;
             obj->func = func_8010FE6C_pump_pump_away;
             return;
         }
-        if ((D_80111978_pump_pump_away->phase == 0xA) || (D_80111978_pump_pump_away[1].phase == 0xA)) {
+        if (t->phase == 10 || t1->phase == 10) {
             D_801116F8_pump_pump_away = 1;
             obj->func = func_8010FF28_pump_pump_away;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FF70_pump_pump_away);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110034_pump_pump_away);
 
