@@ -58,6 +58,8 @@ typedef struct SbB44 {
 
 typedef f32 Matrix4f[4][4];
 
+#define SB_HMF_VTXNUM(hmf) (*(s16 *)&(hmf)->unk16[2])
+
 #define SB_ABS(x) ((x) < 0 ? -(x) : (x))
 
 #define SB_WRAP(v)             \
@@ -154,6 +156,21 @@ typedef struct SbDust {
     /* 0x02 */ char unk02[0x3A];
 } SbDust; // Size 0x3C
 
+/* A group of stage-mesh vertices sharing one position (SbStage::unk24, 0x2C each). */
+typedef struct SbVtxGroup {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+    /* 0x06 */ s16 n; /* vertices */
+    /* 0x08 */ s16 idx[8];
+    /* 0x18 */ u8 unk18; /* beyond the rim */
+    /* 0x19 */ char unk19[3];
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ f32 unk24;
+    /* 0x28 */ f32 unk28;
+} SbVtxGroup; // Size 0x2C
+
 /* The stage (D_80114B10_stardust_battle, 0x38): the star-field cylinder and its scroll. */
 typedef struct SbStage {
     /* 0x00 */ s16 unk00;
@@ -168,7 +185,7 @@ typedef struct SbStage {
     /* 0x1C */ f32 unk1C;
     /* 0x20 */ s16 unk20;
     /* 0x22 */ char unk22[2];
-    /* 0x24 */ void *unk24;
+    /* 0x24 */ SbVtxGroup *unk24; /* vertex groups */
     /* 0x28 */ SbDust *unk28; /* 64 dust particles */
     /* 0x2C */ s16 unk2C; /* material "comet-nagare" */
     /* 0x2E */ char unk2E[2];
@@ -400,6 +417,7 @@ void func_801080B0_stardust_battle(void);
 void func_801080EC_stardust_battle(void);
 void func_80108B34_stardust_battle(void);
 void func_8010A74C_stardust_battle(void);
+void func_80109B18_stardust_battle(omObjData *obj);
 
 void func_8010CB34_stardust_battle(void);
 void func_8010EE7C_stardust_battle(void);
@@ -1657,7 +1675,113 @@ void func_801093CC_stardust_battle(omObjData *obj) {
     st->unk30 = NULL;
 }
 
+void func_8001EFEC_main(s16 mdl, const char *name);
+
+/* NON_MATCHING: scheduling only: retail loads HmfModelData into v1 after the model-index multiply, mine into a0 before it */
+#ifdef NON_MATCHING
+
+void func_80109424_stardust_battle(omObjData *obj) {
+    SbStage *st;
+    HmfData *hmf;
+    SbVtxGroup *buf;
+    Vtx *v;
+    s32 i;
+    s32 j;
+    f32 r;
+    f32 inv;
+    f32 s;
+    f32 nx;
+    f32 ny;
+    f32 nz;
+    f32 x;
+    f32 a;
+
+    st = func_80111FEC_stardust_battle(obj);
+    hmf = HmfModelData[obj->model[1]].hmf;
+    i = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 1.5f);
+    func_800E1310_minigame(obj, 8.0f);
+    func_8001C954_main(obj->model[1]);
+    func_8001EFEC_main(obj->model[1], "co_y02_DEF");
+    hmf->unk60->unk50 |= 0x08000000;
+    buf = HuMemAlloc(SB_HMF_VTXNUM(hmf) * sizeof(SbVtxGroup));
+    memset(buf, 0, SB_HMF_VTXNUM(hmf) * sizeof(SbVtxGroup));
+    v = hmf->unk40;
+    st->unk20 = 0;
+    for (; i < SB_HMF_VTXNUM(hmf); i++, v++) {
+        for (j = 0; j < st->unk20; j++) {
+            if (buf[j].x != v->v.ob[0]) {
+                continue;
+            }
+            if (buf[j].y != v->v.ob[1]) {
+                continue;
+            }
+            if (buf[j].z != v->v.ob[2]) {
+                continue;
+            }
+            if (buf[j].n < 8) {
+                buf[j].idx[buf[j].n] = i;
+                buf[j].n++;
+            } else {
+                osSyncPrintf("VTX OVER %d \n", i);
+            }
+            break;
+        }
+        if (j < st->unk20) {
+            continue;
+        }
+        buf[st->unk20].x = v->v.ob[0];
+        buf[st->unk20].y = v->v.ob[1];
+        buf[st->unk20].z = v->v.ob[2];
+        buf[st->unk20].n = 1;
+        buf[st->unk20].idx[0] = i;
+        r = sqrtf(v->v.ob[0] * v->v.ob[0] + v->v.ob[2] * v->v.ob[2]);
+        if (r != 0.0f) {
+            inv = 1.0f / r;
+        } else {
+            inv = 0.0f;
+        }
+        r = r / 600.0;
+        if (r >= 1.0f) {
+            r = 1.0f;
+        }
+        s = sindf(r * 90.0f);
+        nx = buf[st->unk20].x * inv * s * 128.0f;
+        nz = buf[st->unk20].z * inv * s * 128.0f;
+        ny = (1.0f - s) * 128.0f;
+        r = sqrtf(nx * nx + ny * ny + nz * nz);
+        if (r != 0.0f) {
+            nx /= r;
+            ny /= r;
+            nz /= r;
+        }
+        buf[st->unk20].unk1C = 0.0f;
+        buf[st->unk20].unk20 = 1.0f;
+        buf[st->unk20].unk24 = 0.0f;
+        buf[st->unk20].unk28 = 0.0f;
+        if (sqrtf(buf[st->unk20].x * buf[st->unk20].x + buf[st->unk20].z * buf[st->unk20].z) > 525.0) {
+            buf[st->unk20].unk18 = 1;
+        } else {
+            buf[st->unk20].unk18 = 0;
+        }
+        st->unk20++;
+    }
+    st->unk24 = HuMemAllocTag(st->unk20 * sizeof(SbVtxGroup), 31000);
+    memcpy(st->unk24, buf, st->unk20 * sizeof(SbVtxGroup));
+    HuMemFree(buf);
+    func_80109FE4_stardust_battle(obj);
+    a = 0.0f;
+    for (i = 0; i < 8; i++) {
+        x = (f32)(u8)(rand8() % 100) * 0.01 * 100.0;
+        func_8010A04C_stardust_battle(x, (f32)(u8)(rand8() % 100) * 0.01 * 100.0, 31.25f, 7.5000005f, 1.0f, a);
+        a += 120.00000476837158;
+    }
+    st->unk30 = func_80109B18_stardust_battle;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109424_stardust_battle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109B18_stardust_battle);
 
