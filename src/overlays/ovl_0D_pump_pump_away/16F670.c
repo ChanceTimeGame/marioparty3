@@ -170,7 +170,8 @@ typedef struct PpFx {
 /* The record display (D_801135B0_pump_pump_away). */
 typedef struct PpRecord {
     /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
+    /* 0x04 */ s16 spr;
+    /* 0x06 */ s16 file;
     /* 0x08 */ s16 grp;
     /* 0x0A */ s16 win;
     /* 0x0C */ s32 digit[3];
@@ -179,6 +180,21 @@ typedef struct PpRecord {
     /* 0x20 */ s32 scale;
     /* 0x24 */ s32 dir;
 } PpRecord; // Size 0x28
+
+/* The record line on the course (D_801135D8_pump_pump_away). */
+typedef struct PpRecLine {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ u16 rec;
+    /* 0x08 */ s32 flag;
+} PpRecLine;
+
+/* A distance marker (D_80113418_pump_pump_away, 2 x 0x10). */
+typedef struct PpMarker {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 n;
+    /* 0x08 */ f32 angle;
+    /* 0x0C */ s32 stop;
+} PpMarker;
 
 typedef s32 (*PpDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
@@ -213,6 +229,13 @@ extern s32 D_80111110_pump_pump_away;
 extern s16 D_8011110A_pump_pump_away;
 extern PpFx D_80113400_pump_pump_away[3];
 extern PpRecord D_801135B0_pump_pump_away;
+extern PpRecLine D_801135D8_pump_pump_away;
+/* Fields of D_801135B0_pump_pump_away and D_801135D8_pump_pump_away under their own labels (retail addresses each directly). */
+extern s16 D_801135B4_pump_pump_away; /* D_801135B0_pump_pump_away.spr */
+extern s16 D_801135B8_pump_pump_away; /* D_801135B0_pump_pump_away.grp */
+extern u16 D_801135DC_pump_pump_away; /* D_801135D8_pump_pump_away.rec */
+extern s32 D_801135E0_pump_pump_away; /* D_801135D8_pump_pump_away.flag */
+extern PpMarker D_80113418_pump_pump_away[2];
 extern s32 D_80111700_pump_pump_away;
 extern s32 D_80111704_pump_pump_away;
 extern s32 D_80111708_pump_pump_away;
@@ -263,10 +286,12 @@ void func_8010A468_pump_pump_away(void);
 void func_8010AF70_pump_pump_away(omObjData *obj);
 s16 func_8000B5BC_main(s32);
 void func_8001F974_main(s16, s16);
+void func_8000BC48_main(u16, u16);
 u16 GWMgRecordGet(s16 arg0);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 s32 func_8010CCBC_pump_pump_away(void);
 void func_8010CDF4_pump_pump_away(void);
+void func_8010CEE8_pump_pump_away(omObjData *obj);
 omObjData *func_80045EF4_main(u32 arg0, s16 arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
 
@@ -2573,7 +2598,7 @@ void func_8010CEE8_pump_pump_away(omObjData *obj) {
         s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
         HuSprScaleSet(D_801135B0_pump_pump_away.grp, 0, s, s);
         func_80054904_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.scale / 4 + 32, D_801135B0_pump_pump_away.scale / 4 + 22);
-        func_80055024_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.unk04, 0);
+        func_80055024_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.spr, 0);
         func_800550F4_main(D_801135B0_pump_pump_away.grp, 0, 0);
         func_80054FF8_main(D_801135B0_pump_pump_away.grp, 0, (s16)D_801135B0_pump_pump_away.digit[0]);
         HuSprAttrSet(D_801135B0_pump_pump_away.grp, 0, 0x1000);
@@ -2582,7 +2607,7 @@ void func_8010CEE8_pump_pump_away(omObjData *obj) {
             s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
             HuSprScaleSet(D_801135B0_pump_pump_away.grp, i, s, s);
             func_80054904_main(D_801135B0_pump_pump_away.grp, i, i * 12, 0);
-            func_80055024_main(D_801135B0_pump_pump_away.grp, i, D_801135B0_pump_pump_away.unk04, 0);
+            func_80055024_main(D_801135B0_pump_pump_away.grp, i, D_801135B0_pump_pump_away.spr, 0);
             func_800550F4_main(D_801135B0_pump_pump_away.grp, i, 0);
             func_80054FF8_main(D_801135B0_pump_pump_away.grp, i, (s16)D_801135B0_pump_pump_away.digit[i]);
             HuSprAttrSet(D_801135B0_pump_pump_away.grp, i, 0x1000);
@@ -2597,17 +2622,149 @@ void func_8010CEE8_pump_pump_away(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CEE8_pump_pump_away);
 #endif
 
+#ifdef NON_MATCHING
+void func_8010D1B8_pump_pump_away(omObjData *obj) {
+    PpRecord *r = &D_801135B0_pump_pump_away;
+    s32 i;
+
+    func_8010CDF4_pump_pump_away();
+    D_801135B4_pump_pump_away = func_8000B838_main(0x32);
+    D_801135B8_pump_pump_away = HuSprGrpCreate(4, 5);
+    func_80054904_main(D_801135B8_pump_pump_away, 0, 32, 22);
+    func_80055024_main(D_801135B8_pump_pump_away, 0, D_801135B4_pump_pump_away, 0);
+    func_800550F4_main(D_801135B8_pump_pump_away, 0, 0);
+    func_80054FF8_main(D_801135B8_pump_pump_away, 0, (s16)D_801135B0_pump_pump_away.digit[0]);
+    HuSprAttrSet(D_801135B8_pump_pump_away, 0, 0x1000);
+    HuSprAttrSet(D_801135B8_pump_pump_away, 0, 0);
+    for (i = 1; i < 3; i++) {
+        func_800554C4_main(r->grp, i, 0);
+        func_80055024_main(r->grp, i, r->spr, 0);
+        if (r->digit[i] != -1) {
+            func_80054904_main(r->grp, i, i * 12, 0);
+            func_80055024_main(r->grp, i, r->spr, 0);
+            func_800550F4_main(r->grp, i, 0);
+            func_80054FF8_main(r->grp, i, (s16)r->digit[i]);
+            HuSprAttrSet(r->grp, i, 0x1000);
+            HuSprAttrSet(r->grp, i, 0);
+        } else {
+            func_80054904_main(r->grp, i, i * 12, 0);
+            func_80055024_main(r->grp, i, r->spr, 0);
+            func_800550F4_main(r->grp, i, 0);
+            func_80054FF8_main(r->grp, i, 0);
+            HuSprAttrSet(r->grp, i, 0x1000);
+            HuSprAttrSet(r->grp, i, 0x8000);
+        }
+    }
+    r->file = func_8000B838_main(0x2E0023);
+    r->win = InitEspriteSlot(r->file, 0, 0);
+    func_8000BC48_main(r->win, 0x1000);
+    func_8000BBD4_main(r->win, 78, 22);
+    func_8000BB54_main(r->win);
+    r->scale = 0;
+    r->dir = 0;
+    obj->func = func_8010CEE8_pump_pump_away;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D1B8_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D458_pump_pump_away);
+void func_8010D458_pump_pump_away(void) {
+    omAddObj(765, 1, 0, -1, func_8010D1B8_pump_pump_away);
+}
 
+#ifdef NON_MATCHING
+void func_8010D48C_pump_pump_away(omObjData *obj) {
+    PpRecLine *rl = &D_801135D8_pump_pump_away;
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+
+    if (rl->state == -1) {
+        return;
+    }
+    if (D_801135E0_pump_pump_away == 0) {
+        if (D_80111978_pump_pump_away[1].dist < t->dist) {
+            dist = t->dist;
+        } else {
+            dist = t1->dist;
+        }
+        if (rl->rec * 10 - dist * 0.1 + 400.0 < 2000.0) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            obj->trans.y = rl->rec * 10 - dist * 0.1 + 350.0;
+            if (obj->trans.y < -1000.0f) {
+                func_8001C258_main(obj->model[0], 4, 4);
+                rl->flag = 1;
+            }
+        }
+    }
+    if (D_80113530_pump_pump_away.state >= 2 && rl->state < 10) {
+        func_8001C258_main(obj->model[0], 4, 4);
+        rl->state = 10;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D48C_pump_pump_away);
+#endif
 
+#ifdef NON_MATCHING
+void func_8010D620_pump_pump_away(omObjData *obj) {
+    obj->model[0] = func_8000B108_main(0x2E001F, 0x1689);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 1000.0f;
+    obj->trans.z = 550.0f;
+    obj->func = func_8010D48C_pump_pump_away;
+    D_801135D8_pump_pump_away.state = 0;
+    D_801135DC_pump_pump_away = D_801135B0_pump_pump_away.record;
+    D_801135E0_pump_pump_away = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D620_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D6C0_pump_pump_away);
+void func_8010D6C0_pump_pump_away(void) {
+    omAddObj(770, 1, 0, -1, func_8010D620_pump_pump_away);
+}
 
+#ifdef NON_MATCHING
+void func_8010D6F4_pump_pump_away(omObjData *obj) {
+    PpMarker *m = &D_80113418_pump_pump_away[obj->work[0]];
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+    s32 n;
+
+    if (m->stop == 0) {
+        if (D_80111978_pump_pump_away[1].dist < t->dist) {
+            dist = t->dist;
+        } else {
+            dist = t1->dist;
+        }
+        switch (m->state) {
+            case 1:
+                obj->trans.y = m->n * 1000 - dist * 0.1 + 480.0;
+                if (obj->trans.y < -1000.0f) {
+                    m->state = 0;
+                }
+                break;
+            case 0:
+                n = (s32)(dist * 0.01) * 0.01 + 1.0;
+                m->n = n;
+                obj->trans.y = n * 1000 - dist * 0.1 + 480.0;
+                m->state = 1;
+                break;
+        }
+    }
+    func_80034048_main((s16)obj->work[1], (s16)m->n);
+    func_80034048_main((s16)obj->work[2], 0);
+    func_80034048_main((s16)obj->work[3], 0);
+    m->angle = PP_WRAP(m->angle + 6.0f);
+    obj->trans.y = obj->trans.y + sindf(m->angle);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D6F4_pump_pump_away);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D95C_pump_pump_away);
 
