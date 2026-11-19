@@ -109,18 +109,29 @@ typedef struct {
 } CxGame; // Size 0x34
 
 typedef struct {
-    /* 0x00 */ char unk00[0x28];
+    /* 0x00 */ s8 unk00;
+    /* 0x01 */ u8 unk01;
+    /* 0x04 */ f32 unk04; // speed bonus
+    /* 0x08 */ char unk08[0x18];
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ char unk24[4];
 } CxPlayer; // Size 0x28
+
+typedef struct {
+    /* 0x00 */ s16 model;
+    /* 0x02 */ char unk02[6];
+} CxUnk368; // Size 8
 
 extern CxGame *D_8010E360_cheep_cheep_chase;
 extern CxPlayer *D_8010E364_cheep_cheep_chase; // [4]
-extern u8 *D_8010E368_cheep_cheep_chase;       // [8]
+extern CxUnk368 *D_8010E368_cheep_cheep_chase;
 extern f32 D_8010E370_cheep_cheep_chase[4];
 
 extern f32 D_8010E014_cheep_cheep_chase;
 extern f32 D_8010E018_cheep_cheep_chase;
 
 extern u8 D_800D6A90_main;
+extern s32 D_800A178C_main[][6];
 
 extern const s16 D_8010E050_cheep_cheep_chase[];
 extern const s16 D_8010E05C_cheep_cheep_chase[];
@@ -154,12 +165,19 @@ void func_80106978_cheep_cheep_chase(omObjData *object);
 void func_80106AA0_cheep_cheep_chase(omObjData *object);
 void func_80106E80_cheep_cheep_chase(omObjData *object);
 void func_80107440_cheep_cheep_chase(omObjData *object);
+void func_8010732C_cheep_cheep_chase(omObjData *object);
 void func_80107698_cheep_cheep_chase(omObjData *object);
 void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108170_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108C98_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010B52C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010BB9C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010C988_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010CAD4_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010CBBC_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010D02C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801093CC_cheep_cheep_chase(s16 model);
 void func_80109444_cheep_cheep_chase(s16 model);
 void func_801094C0_cheep_cheep_chase(omObjData *object, s16 arg1);
@@ -213,8 +231,8 @@ void func_80105BBC_cheep_cheep_chase(void) {
     memset(D_8010E360_cheep_cheep_chase->unkC, 0, 7);
     D_8010E364_cheep_cheep_chase = HuMemAllocTag(4 * sizeof(CxPlayer), 31000);
     memset(D_8010E364_cheep_cheep_chase, 0, 4 * sizeof(CxPlayer));
-    D_8010E368_cheep_cheep_chase = HuMemAllocTag(8, 31000);
-    memset(D_8010E368_cheep_cheep_chase, 0, 8);
+    D_8010E368_cheep_cheep_chase = HuMemAllocTag(sizeof(CxUnk368), 31000);
+    memset(D_8010E368_cheep_cheep_chase, 0, sizeof(CxUnk368));
     for (i = 0; i < 4; i++) {
         D_8010E370_cheep_cheep_chase[i] = rand16() % 4;
         for (j = 0; j < i; j++) {
@@ -465,15 +483,98 @@ void func_80106AA0_cheep_cheep_chase(omObjData *object) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E0C0_cheep_cheep_chase);
+void func_80106E80_cheep_cheep_chase(omObjData *object) {
+    s32 mdlAttr = 0x2A9;
+    f32 speedBonus[8] = { -0.2f, 0.1f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f };
+    s32 chr;
+    s32 dir;
+    s32 file;
+    func_800E1BA8_minigame_ObjData *data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80106E80_cheep_cheep_chase);
+    object->work[0] = D_800EC280_minigame;
+    chr = GwPlayer[D_800EC280_minigame].chr;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(object, dir, file, D_800EC280_minigame, mdlAttr, 0x2BD);
+    object->model[9] = func_8000B108_main(0x47000A, 0x2B9);
+    func_8001C258_main(object->model[9], 4, 4);
+    func_800E5A00_minigame(object, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(object, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(object, 0x26, func_80017BB8_main(chr, 0xD), 1, 0);
+    func_800E5A00_minigame(object, 0x27, func_80017BB8_main(chr, 0x3B), 1, 0);
+    func_800E5A00_minigame(object, 0x28, func_80017BB8_main(chr, 0x3C), 1, 0);
+    func_800E5A00_minigame(object, 0x2A, func_80017BB8_main(chr, 0x59), 1, 0);
+    func_800E5A00_minigame(object, 0x2B, func_80017BB8_main(chr, 0x5D), 1, 0);
+    func_800E5A00_minigame(object, 0xD, func_80017BB8_main(chr, 0x2F), 1, 999);
+    Hu3DModelScaleSet(object->model[0], 0.7f, 0.7f, 0.7f);
+    object->trans.x = 300.0 - (D_8010E370_cheep_cheep_chase[D_800EC280_minigame] + 1.0f) * 120.0;
+    object->trans.y = 1060.0f;
+    object->trans.z = -600.0f;
+    object->rot.y = 180.0f;
+    func_800E5690_minigame(object, 0x2A);
+    Hu3DModelPosSet(object->model[1], 0.0f, 0.0f, 0.0f);
+    func_8001C258_main(object->model[1], 4, 4);
+    D_800EC280_minigame++;
+    data = object->data;
+    D_8010E364_cheep_cheep_chase[object->work[0]].unk00 = data->unk57;
+    D_8010E364_cheep_cheep_chase[object->work[0]].unk01 = 0;
+    D_8010E364_cheep_cheep_chase[object->work[0]].unk04 = speedBonus[GwPlayer[object->work[0]].chr] * 20.0f * 5.0f;
+    D_8010E364_cheep_cheep_chase[object->work[0]].unk20 = D_800CCF58_main[HmfModelData[object->model[9]].unk02].unk02;
+    func_8010D6F4_cheep_cheep_chase(object->work[0] + 4, 9, object->model[0], 0, NULL, func_8010B52C_cheep_cheep_chase, FALSE, FALSE);
+    func_8010D6F4_cheep_cheep_chase(object->work[0] + 4, 8, object->model[0], 1, NULL, func_8010BB9C_cheep_cheep_chase, TRUE, FALSE);
+    object->func = func_8010732C_cheep_cheep_chase;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010732C_cheep_cheep_chase);
+void func_8010732C_cheep_cheep_chase(omObjData *object) {
+    CxFuncGroup *group = &D_8010E398_cheep_cheep_chase[object->work[0] + 4];
+    CxFuncContext *ctx = group->funcCtx;
+    s8 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107440_cheep_cheep_chase);
+    if (group->sort) {
+        func_8010D9E8_cheep_cheep_chase(group);
+    }
+    for (i = 0; i < CX_FUNC_PRIO_MAX; i++) {
+        s8 funcId = group->order[i];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107698_cheep_cheep_chase);
+        while (funcId != -1) {
+            group->funcCtx[funcId].work.s16[0] = object->work[0];
+            group->funcCtx[funcId].func(&ctx[funcId]);
+            funcId = group->funcCtx[funcId].next;
+        }
+    }
+    func_800E4E30_minigame(object);
+}
+
+void func_80107440_cheep_cheep_chase(omObjData *object) {
+    s16 id;
+
+    object->model[1] = D_8010E368_cheep_cheep_chase->model = func_8000B108_main(0xA0086, 0x289);
+    object->model[0] = func_8000B108_main(0xA0087, 0x28D);
+    object->motion[0] = func_8000B108_main(0xA0088, 0x28D);
+    func_8001C5B4_main(object->model[1], object->motion[0]);
+    func_8001C814_main(object->motion[0], 2, 2);
+    func_8001C954_main(object->model[1]);
+    func_8001C2FC_main(object->model[1], 0x20000, 0x20000);
+    func_8001C2FC_main(object->model[0], 0x20000, 0x20000);
+    func_8001C448_main(object->model[1]);
+    func_8001C448_main(object->model[0]);
+    func_8001C514_main(object->model[1]);
+    func_8001C514_main(object->model[0]);
+    Hu3DModelScaleSet(object->model[1], 1.4f, 1.4f, 1.4f);
+    Hu3DModelPosSet(object->model[1], 0.0f, 40.0f, 0.0f);
+    Hu3DModelRotSet(object->model[1], 0.0f, 180.0f, 0.0f);
+    id = func_8010D6F4_cheep_cheep_chase(3, 7, -1, 0, NULL, func_8010C988_cheep_cheep_chase, FALSE, FALSE);
+    D_8010E398_cheep_cheep_chase[3].funcCtx[id].work.s16[0] = object->model[1];
+    D_8010E398_cheep_cheep_chase[3].funcCtx[id].work.s16[1] = object->model[0];
+    func_8010D6F4_cheep_cheep_chase(3, 8, object->model[1], 0, NULL, func_8010CAD4_cheep_cheep_chase, FALSE, TRUE);
+    func_8010D6F4_cheep_cheep_chase(3, 9, object->model[1], 1, NULL, func_8010CBBC_cheep_cheep_chase, FALSE, FALSE);
+    func_8010D6F4_cheep_cheep_chase(3, 1, object->model[1], 1, NULL, func_8010D02C_cheep_cheep_chase, TRUE, FALSE);
+    object->func = func_80107698_cheep_cheep_chase;
+}
+
+void func_80107698_cheep_cheep_chase(omObjData *object) {
+    func_8010D8FC_cheep_cheep_chase(3);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801076B4_cheep_cheep_chase);
 
