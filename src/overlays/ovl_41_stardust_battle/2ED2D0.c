@@ -3066,7 +3066,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FCBC_stardust_battle);
 
 void func_80110364_stardust_battle(omObjData *obj);
-s16 func_801122D0_stardust_battle(void);
+s32 func_801122D0_stardust_battle(void);
 
 void func_8010FE74_stardust_battle(void) {
     f32 angles[16];
@@ -3532,7 +3532,91 @@ void func_80112040_stardust_battle(s16 mdl, const char *part, Matrix4f *out) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80112220_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801122D0_stardust_battle);
+/* HmfData::unk3C as this unit fills it: hmfman.h's HmfModelData_Unk64_Unk3C_Struct plus a third list at 0x18 */
+typedef struct SbHmfDl {
+    /* 0x00 */ Gfx *unk00[4];
+    /* 0x10 */ Gfx *unk10;
+    /* 0x14 */ Gfx *unk14;
+    /* 0x18 */ Gfx *unk18;
+} SbHmfDl; // Size 0x1C
+
+extern Vtx_t D_80114060_stardust_battle[10];
+void func_801127B8_stardust_battle(s16 mdl, s32 arg1, s16 buf);
+
+s32 func_801122D0_stardust_battle(void) {
+    HmfData *hmf;
+    Gfx *buf;
+    Gfx *gfx;
+    Vtx_t *v;
+    Vtx_t *src;
+    s32 size;
+    s32 idx;
+    s32 i;
+    s32 j;
+
+    buf = gfx = HuMemAlloc(0x10000);
+    idx = func_8001A894_main(0x1CC1, buf, 4);
+    hmf = HmfModelData[idx].hmf;
+    hmf->unk60->unk50 |= 0x01010000;
+    HuMemFree(hmf->unk3C);
+    hmf->unk3C = HuMemAllocTag(sizeof(SbHmfDl), D_800CDD6A_main);
+    SB_HMF_VTXNUM(hmf) = 10;
+    v = hmf->unk40 = HuMemAllocTag(sizeof(Vtx_t) * 10, hmf->unk0E);
+    for (j = 0, src = D_80114060_stardust_battle; j < 10; j++, v++, src++) {
+        *v = *src;
+    }
+    gSPDisplayList(gfx++, osVirtualToPhysical(D_80114020_stardust_battle));
+    gDPPipeSync(gfx++);
+    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+    gDPPipeSync(gfx++);
+    gSPClearGeometryMode(gfx++, G_CULL_BOTH | G_LIGHTING);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_TEXTURE_GEN_LINEAR | G_SHADING_SMOOTH);
+    gDPSetColorDither(gfx++, G_CD_NOISE);
+    gDPSetTexturePersp(gfx++, G_TP_NONE);
+    gDPSetTextureFilter(gfx++, G_TF_BILERP);
+    gDPSetTextureConvert(gfx++, G_TC_FILT);
+    gDPSetAlphaDither(gfx++, G_AD_PATTERN);
+    gDPSetAlphaCompare(gfx++, G_AC_NONE);
+    gDPSetBlendColor(gfx++, 0x01, 0x01, 0x01, 0x01);
+    gDPPipeSync(gfx++);
+    gDPSetRenderMode(gfx++, G_RM_AA_ZB_XLU_SURF, G_RM_NOOP2);
+    gDPSetCombineLERP(gfx++, 0, 0, 0, PRIMITIVE, PRIMITIVE, 0, SHADE, 0, 0, 0, 0, PRIMITIVE, PRIMITIVE, 0, SHADE, 0);
+    gDPSetPrimColor(gfx++, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF);
+    gDPSetTextureLUT(gfx++, G_TT_NONE);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u8 *)gfx - (u8 *)buf;
+    ((SbHmfDl *)hmf->unk3C)->unk10 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, ((SbHmfDl *)hmf->unk3C)->unk10, size);
+    HuMemFree(buf);
+    buf = gfx = HuMemAlloc(0x10000);
+    gSPVertex(gfx++, 0x01000000, 10, 0);
+    gSP1Triangle(gfx++, 0, 1, 2, 0);
+    gSP1Triangle(gfx++, 1, 3, 4, 0);
+    gSP1Triangle(gfx++, 2, 1, 4, 0);
+    gSP1Triangle(gfx++, 2, 4, 5, 0);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u8 *)gfx - (u8 *)buf;
+    ((SbHmfDl *)hmf->unk3C)->unk14 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, ((SbHmfDl *)hmf->unk3C)->unk14, size);
+    HuMemFree(buf);
+    buf = gfx = HuMemAlloc(0x10000);
+    gSPClearGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH | G_CLIPPING | 0x0040F9FA);
+    gSPSetGeometryMode(gfx++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_TEXTURE_GEN_LINEAR);
+    gDPPipeSync(gfx++);
+    gSPEndDisplayList(gfx++);
+    size = (u8 *)gfx - (u8 *)buf;
+    ((SbHmfDl *)hmf->unk3C)->unk18 = HuMemAllocTag(size, hmf->unk0E);
+    bcopy(buf, ((SbHmfDl *)hmf->unk3C)->unk18, size);
+    HuMemFree(buf);
+    for (i = 0; i < D_800D1FF0_main; i++) {
+        ((SbHmfDl *)hmf->unk3C)->unk00[i + 1] = HuMemAllocTag(0x100, hmf->unk0E);
+        func_801127B8_stardust_battle(idx, 1, i);
+    }
+    ((SbHmfDl *)hmf->unk3C)->unk00[0] = ((SbHmfDl *)hmf->unk3C)->unk00[D_800D2008_main + 1];
+    return idx;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801127B8_stardust_battle);
 
