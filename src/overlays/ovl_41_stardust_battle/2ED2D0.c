@@ -354,6 +354,7 @@ s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 s32 func_80113568_stardust_battle(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2);
 void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
 s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
+s16 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind);
 // protos end
 
 extern s16 D_800CDD6A_main;
@@ -399,7 +400,7 @@ extern void (*D_80113E3C_stardust_battle[3])(omObjData *);
 extern void (*D_80113E48_stardust_battle[3])(omObjData *);
 extern omObjData *D_80114B18_stardust_battle;
 void func_80107760_stardust_battle(omObjData *obj, s16 busy);
-s16 func_8010E524_stardust_battle(omObjData *obj, s32 mode, Vec *dir);
+s16 func_8010E524_stardust_battle(omObjData *obj, s16 mode, Vec *dir);
 void func_8010EA04_stardust_battle(omObjData *obj);
 void func_800DDD94_minigame(omObjData* obj);
 s32 func_800E4A90_minigame(omObjData* obj);
@@ -2518,7 +2519,6 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CB34_stardust_battle);
 
 extern RGBA D_80113EC4_stardust_battle[];
-s16 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind);
 void func_8001CAA4_main(s16 arg0, s16 arg1, f32 arg2);
 
 /* NON_MATCHING: loop-invariant hoisting only: retail keeps 100.0 (the random-step scale) in s6/s7 and reloads 0.01 from the pool at each use; mine keeps 0.01 in s6/s7 and reloads 100.0 */
@@ -2789,7 +2789,115 @@ void func_8010E4C8_stardust_battle(s16 idx, f32 x, f32 y, f32 z) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010E524_stardust_battle);
+s16 func_8010E524_stardust_battle(omObjData *obj, s16 mode, Vec *dir) {
+    Vec pos;
+    Vec rot;
+    Vec vel;
+    SbItems *items;
+    SbItem *item;
+    MgWork *work;
+    s32 i;
+    f32 r;
+    f32 h;
+    f32 rr;
+    f32 d;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+
+    if (D_80114B2C_stardust_battle == NULL || D_80114B18_stardust_battle == NULL) {
+        return -1;
+    }
+    items = D_80114B2C_stardust_battle;
+    item = items->unk0C;
+    work = obj->data;
+    if (mode == 0) {
+        r = (work->unk48 + 50.0) * 0.7f;
+        h = work->unk34;
+    } else {
+        r = 135.0f;
+        h = 150.0f;
+    }
+    rr = r * r;
+    for (i = 0; i < items->unk08; i++, item++) {
+        if (item->unk00 == 0) {
+            continue;
+        }
+        if (mode == 0) {
+            if (item->unk16 == 3) {
+                continue;
+            }
+            if (item->unk18 == 0) {
+                continue;
+            }
+            dy = item->unk28.y - obj->trans.y;
+        } else {
+            if (item->unk18 != 0) {
+                continue;
+            }
+            if (item->unk16 != 5) {
+                continue;
+            }
+            dy = item->unk28.y + 34.9999994039535522 - obj->trans.y;
+        }
+        dx = item->unk28.x - obj->trans.x;
+        dz = item->unk28.z - obj->trans.z;
+        if (fabs(dx) > r) {
+            continue;
+        }
+        if (fabs(dz) > r) {
+            continue;
+        }
+        d = dx * dx + dz * dz;
+        if (!(d < rr)) {
+            continue;
+        }
+        if ((dy > -50.0) & (dy < h)) {
+        if (mode == 0) {
+            pos.x = (item->unk28.x + obj->trans.x) * 0.5f;
+            pos.z = (item->unk28.z + obj->trans.z) * 0.5f;
+            pos.y = (item->unk28.y + 50.0 + obj->trans.y + 100.0) * 0.5;
+            func_8010FCBC_stardust_battle(&pos, NULL, 1.2f, 2);
+            HuAudFXPlay(0x505);
+        } else {
+            pos.x = item->unk28.x;
+            pos.y = item->unk28.y;
+            pos.z = item->unk28.z;
+            vel.x = item->unk40.x;
+            vel.y = item->unk40.y;
+            vel.z = item->unk40.z;
+            func_80111F38_stardust_battle(&vel, &rot.x);
+            rot.x -= 90.0f;
+            func_8010FCBC_stardust_battle(&pos, &rot, 1.0f, 0);
+            dir->x = item->unk40.x;
+            dir->y = item->unk40.y;
+            dir->z = item->unk40.z;
+            HuAudFXPlay(0x506);
+            func_8010DF70_stardust_battle(i);
+        }
+        return i;
+        }
+    }
+    if (mode == 0) {
+        dx = D_80114B18_stardust_battle->trans.x - obj->trans.x;
+        dz = D_80114B18_stardust_battle->trans.z - obj->trans.z;
+        dy = D_80114B18_stardust_battle->trans.y + 34.9999994039535522 - obj->trans.y;
+        r = (work->unk48 + 85.000002384185791) * 0.7f;
+        d = dx * dx + dz * dz;
+        rr = r * r;
+        if (d < rr && ((dy > -150.0) & (dy < h))) {
+            pos.x = (D_80114B18_stardust_battle->trans.x + obj->trans.x) * 0.5f;
+            pos.z = (D_80114B18_stardust_battle->trans.z + obj->trans.z) * 0.5f;
+            pos.y = (D_80114B18_stardust_battle->trans.y + 100.0 + obj->trans.y + 100.0) * 0.5;
+            rot.x = 90.0f;
+            rot.y = atan2df(dx, dz);
+            rot.z = 0.0f;
+            func_8010FCBC_stardust_battle(&pos, &rot, 1.0f, 1);
+            return 0xFF;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EA04_stardust_battle);
 
