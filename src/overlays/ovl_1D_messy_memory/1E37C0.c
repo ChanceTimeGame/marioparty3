@@ -98,6 +98,8 @@ extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
 extern HuSprite_Unk84_Struct *D_80111654_messy_memory; /* the room backdrop image */
 extern HuSprite_Unk84_Struct *D_801116D8_messy_memory; /* the divider image */
+extern u8 D_80111658_messy_memory[4]; /* hand shown, per player */
+extern HuSprite_Unk84_Struct *D_80111660_messy_memory[4]; /* hand images, per player */
 extern u8 D_80111630_messy_memory[4]; /* the players by score, best first */
 extern u8 D_80111638_messy_memory;
 extern u8 D_80111639_messy_memory;
@@ -163,6 +165,9 @@ const s16 D_801115F4_messy_memory[];
 void func_8000BC88_main(u16 arg0, u16 arg1);
 void func_8000BC48_main(u16 arg0, u16 arg1);
 void func_80105B88_messy_memory(Gfx **gfx, s32 arg1, s32 arg2);
+Gfx **func_80106620_messy_memory(Gfx **gfx);
+Gfx **func_80106704_messy_memory(Gfx **gfx);
+Gfx **func_801067D0_messy_memory(Gfx **gfx, u8 alpha);
 void func_801060E0_messy_memory(omObjData *obj);
 void func_8010622C_messy_memory(omObjData *obj);
 void func_801063FC_messy_memory(omObjData *obj);
@@ -475,7 +480,57 @@ Gfx **func_801067D0_messy_memory(Gfx **gfx, u8 alpha) {
     return gfx;
 }
 
+/* Draws the players' hand cursors (D_80111700[0..3]): open or holding (D_80111640), dimmed while blocked (D_80115D72). */
+#ifdef NON_MATCHING
+void func_80106800_messy_memory(Gfx **gfx, s32 arg1, s32 arg2) {
+    MmEnt *ent;
+    omObjData *o;
+    Gfx *g;
+    s32 lift;
+    s32 i;
+    f32 f;
+
+    for (i = 0; i < 4; i++) {
+        ent = &D_80111700_messy_memory[i];
+        o = ent->obj;
+        lift = 0;
+        if (o->work[0] < 2) {
+            f = ent->pos.y - 98.0f;
+            if (f > 0.0f) {
+                lift = f;
+            }
+        }
+        lift = lift * ent->unk18;
+        if (D_80111658_messy_memory[o->work[0]] != 0) {
+            if (D_80115D72_messy_memory[o->work[0]] < 255) {
+                gfx = func_801067D0_messy_memory(func_80106704_messy_memory(gfx), D_80115D72_messy_memory[o->work[0]]);
+            } else {
+                gfx = func_80106620_messy_memory(gfx);
+            }
+            g = *gfx;
+            gDPSetTextureLUT(g++, G_TT_RGBA16);
+            gDPLoadTLUT_pal16(g++, 0, D_80111660_messy_memory[o->work[0]]->unk0C);
+            gDPSetTextureImage(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 16,
+                               D_80111660_messy_memory[o->work[0]]->unk00[D_80111640_messy_memory[o->work[0]]].unk00);
+            gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_8b, 2, 0, G_TX_LOADTILE, 0, 0, 0, 0, 0, 0, 0);
+            gDPLoadSync(g++);
+            gDPLoadTile(g++, G_TX_LOADTILE, 0, 0, 16 * 4, (32 - lift) * 4);
+            gDPPipeSync(g++);
+            gDPSetTile(g++, G_IM_FMT_CI, G_IM_SIZ_4b, 2, 0, G_TX_RENDERTILE, 0, 0, 0, 0, 0, 0, 0);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 32 * 4, (32 - lift) * 4);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 32 * 4, (32 - lift) * 4);
+            gSPTextureRectangle(g++, (s32)(ent->pos.x - 8.0f + 16.0f - ent->unk18 * 16.0f) << 2,
+                                (s32)(ent->pos.y - 8.0f + 16.0f - ent->unk18 * 16.0f) << 2,
+                                (s32)(ent->pos.x - 8.0f + 16.0f + ent->unk18 * 16.0f) << 2,
+                                (s32)(ent->pos.y - 8.0f + 16.0f + ent->unk18 * 16.0f - lift) << 2, G_TX_RENDERTILE, 0,
+                                0, (s32)(1024.0f / ent->unk18), (s32)(1024.0f / ent->unk18));
+            *gfx = g;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80106800_messy_memory);
+#endif
 
 /* A human player's hand in the putting-back phase: Z toggles the board, A picks up or puts down, the stick moves. */
 #ifdef NON_MATCHING
