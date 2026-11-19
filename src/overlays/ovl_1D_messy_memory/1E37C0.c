@@ -180,6 +180,7 @@ void func_8010B5C8_messy_memory(omObjData *obj);
 void func_80106800_messy_memory(Gfx **gfx, s32 arg1, s32 arg2);
 extern s32 D_800A178C_main[][6];
 void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
+omObjData *func_80045ED0_main(u32 arg0);
 void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
