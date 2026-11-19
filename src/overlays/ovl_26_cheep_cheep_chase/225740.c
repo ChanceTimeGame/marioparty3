@@ -207,6 +207,7 @@ void func_80109750_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010BEA4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010C004_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010D198_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A938_cheep_cheep_chase(CxFuncContext *ctx);
@@ -2199,7 +2200,29 @@ void func_8010CBBC_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010D02C_cheep_cheep_chase);
+void func_8010D02C_cheep_cheep_chase(CxFuncContext *ctx) {
+    HmfModel *model = &HmfModelData[ctx->param];
+    CxUnk4Entry *entry;
+    s16 i;
+
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    if (ctx->state == 1) {
+        for (i = 0; i < 2; i++) {
+            entry = &D_8010E360_cheep_cheep_chase->unk4[i * 4];
+            if (entry->unk3 == 0 && model->pos.z - (HmfModelData[entry->model].pos.z - entry->unk8) <= 200.0f) {
+                func_8010D6F4_cheep_cheep_chase(3, 2, ctx->param, 0, (void *)(i * 4), func_8010D198_cheep_cheep_chase, FALSE, FALSE);
+                entry->unk3 = 1;
+                entry++;
+                entry->unk3 = 1;
+                entry++;
+                entry->unk3 = 1;
+                entry[1].unk3 = 1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010D198_cheep_cheep_chase);
 
