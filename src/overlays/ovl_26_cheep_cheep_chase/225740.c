@@ -1420,7 +1420,81 @@ void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A08C_cheep_cheep_chase);
 #endif
 
+// Register allocation: s0/s2/s3 rotated, f0/f2 swapped in the threshold sum (trans.z loaded before the add.d),
+// and retail copies `hit` to v0 in the loop's delay slot where this has a nop.
+#ifdef NON_MATCHING
+void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object;
+    CxPlayer *player;
+    CxUnk4Entry *entry;
+    f64 limit;
+    s16 i;
+    s32 hit;
+
+    object = D_800EC598_minigame[ctx->work.s16[0]];
+    player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+    hit = 0;
+
+    switch (ctx->state) {
+        case 0:
+            switch (GwPlayer[object->work[0]].cpu_difficulty) {
+                case 0:
+                    ctx->work.s8[0] = 2;
+                    ctx->work.s8[2] = 3;
+                    break;
+                case 1:
+                    ctx->work.s8[0] = 1;
+                    ctx->work.s8[2] = 3;
+                    break;
+                case 2:
+                    ctx->work.s8[0] = 0;
+                    ctx->work.s8[2] = 3;
+                    break;
+                case 3:
+                    ctx->work.s8[0] = 0;
+                    ctx->work.s8[2] = 2;
+                    break;
+            }
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[3] = rand16() % (ctx->work.s8[2] + 1);
+            ctx->state = 1;
+            break;
+        case 1:
+            if (player->unk01 == 3) {
+                break;
+            }
+            func_8010ACD8_cheep_cheep_chase(player->unk00);
+            for (i = 0; i < 2; i++) {
+                entry = &D_8010E360_cheep_cheep_chase->unk4[i * 4 + (s16)D_8010E370_cheep_cheep_chase[ctx->work.s16[0]]];
+                if (entry->unk5 == 0 && !(HmfModelData[entry->model].unk18 & 4)) {
+                    if (ctx->work.s8[0] == 0) {
+                        limit = -(D_8010E360_cheep_cheep_chase->unkC[entry->unk4] * 100) + entry->unk8;
+                    } else {
+                        limit = -(D_8010E360_cheep_cheep_chase->unkC[entry->unk4] * 100);
+                    }
+                    if (object->trans.z < limit + 140.0) {
+                        hit = 1;
+                        entry->unk5 = 1;
+                    }
+                }
+            }
+            if (hit) {
+                D_800CDA7C_main[(u8)player->unk00] = 0x4000;
+            } else if (ctx->work.s8[1]++ > ctx->work.s8[0] + ctx->work.s8[3]) {
+                ctx->work.s8[1] = 0;
+                ctx->work.s8[3] = rand16() % (ctx->work.s8[2] + 1);
+                ((u16 *)D_800CDA7C_main)[(u8)player->unk00] = 0x8000;
+            } else {
+                D_800CDA7C_main[(u8)player->unk00] = 0;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A57C_cheep_cheep_chase);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A938_cheep_cheep_chase);
 
