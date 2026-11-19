@@ -13,9 +13,44 @@ typedef struct {
 } RrPlayer; // Size 0xC
 
 void func_8004AE00_main(s16, s16);
+
+/* Main sprite-model slot (D_800CBB60_main; 14EA0.c's, copied as the awful_tower overlay does). */
+typedef struct {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ u16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ u8 unk12;
+    /* 0x13 */ u8 unk13;
+    /* 0x14 */ u8 unk14;
+    /* 0x15 */ u8 unk15;
+    /* 0x16 */ s8 unk16;
+    /* 0x17 */ s8 unk17;
+    /* 0x18 */ s8 unk18;
+    /* 0x19 */ u8 unk19;
+    /* 0x1A */ u8 unk1A;
+    /* 0x1B */ u8 unk1B;
+    /* 0x1C */ u8 unk1C;
+    /* 0x1D */ u8 unk1D;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ u8* unk20;
+} RrSprModel; /* size 0x24 */
+
+extern RrSprModel *D_800CBB60_main;
+extern u16 D_800A1902_main;
+s16 func_800329B4_main(void *);
+void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
+void func_80106D4C_ridiculous_relay(void);
+void func_8010AF04_ridiculous_relay(omObjData *obj, s8 idx);
+void func_8010B4A8_ridiculous_relay(omObjData *);
 f32 func_8010B474_ridiculous_relay(f32);
-void func_80110BF4_ridiculous_relay(s16, s8);
-void func_80110C3C_ridiculous_relay(s16, s8);
+s16 func_80110BF4_ridiculous_relay(s16, s16);
+s16 func_80110C3C_ridiculous_relay(s16, s16);
 
 extern u32 D_80110D6C_ridiculous_relay; /* frame counter */
 extern u32 D_80110D70_ridiculous_relay; /* runner 1 finish state */
@@ -100,11 +135,25 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80105F48_ridiculous_relay);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80106610_ridiculous_relay);
+s16 func_80106610_ridiculous_relay(s32 file, u16 *spr, u16 mdl) {
+    void *data;
+    s16 sprite;
+    u16 idx;
+
+    data = DataRead(file);
+    sprite = func_800329B4_main(data);
+    HuMemMemoryFreePerm(data);
+    *spr = idx = HmfSprModelCreate((void *)-1, mdl, 0);
+    D_800CBB60_main[idx].unk02 = sprite;
+    return D_800CBB60_main[idx].unk00;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_801066A0_ridiculous_relay);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80106D28_ridiculous_relay);
+void func_80106D28_ridiculous_relay(void) {
+    func_80106D4C_ridiculous_relay();
+    func_80049F98_main();
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80110EB8_ridiculous_relay);
 
@@ -126,13 +175,25 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80108DE8_ridiculous_relay);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AE4C_ridiculous_relay);
+void func_8010AE4C_ridiculous_relay(omObjData *obj) {
+    func_8010AF04_ridiculous_relay(obj, 0);
+    obj->func = func_8010B4A8_ridiculous_relay;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AE80_ridiculous_relay);
+void func_8010AE80_ridiculous_relay(omObjData *obj) {
+    func_8010AF04_ridiculous_relay(obj, 1);
+    obj->func = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AEAC_ridiculous_relay);
+void func_8010AEAC_ridiculous_relay(omObjData *obj) {
+    func_8010AF04_ridiculous_relay(obj, 2);
+    obj->func = NULL;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AED8_ridiculous_relay);
+void func_8010AED8_ridiculous_relay(omObjData *obj) {
+    func_8010AF04_ridiculous_relay(obj, 3);
+    obj->func = NULL;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80111030_ridiculous_relay);
 
@@ -142,7 +203,16 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010AF04_ridiculous_relay);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010B474_ridiculous_relay);
+f32 func_8010B474_ridiculous_relay(f32 x) {
+    Vec pos;
+    Vec2f out;
+
+    pos.x = x;
+    pos.y = 0.0f;
+    pos.z = 0.0f;
+    func_80012B14_main(1, &pos, &out);
+    return out.x;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_8011108C_ridiculous_relay);
 
@@ -163,7 +233,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801111B4_ridiculous_relay);
 
 #ifdef NON_MATCHING
-void func_8010B4A8_ridiculous_relay(void) {
+void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
     f32 xs[18] = { 0.0f, 32.0f, 64.0f, 96.0f, 128.0f, 128.0f, 160.0f, 192.0f, 224.0f,
                    256.0f, 288.0f, 320.0f, 352.0f, 384.0f, 384.0f, 416.0f, 448.0f, 480.0f };
     f32 lanes[18] = { 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f, -1.0f,
@@ -553,7 +623,7 @@ void func_8010B4A8_ridiculous_relay(void) {
                         obj->trans.y = obj->trans.y + -0.75;
                         omVibrate(D_80111970_ridiculous_relay[0]->unk0, 20, 0, 20);
                         func_80110C3C_ridiculous_relay(0x286, D_80111970_ridiculous_relay[0]->unk0);
-                        func_80110BF4_ridiculous_relay(D_80111970_ridiculous_relay[0]->unk3 + 0x95, D_80111970_ridiculous_relay[0]->unk0);
+                        func_80110BF4_ridiculous_relay((s8)D_80111970_ridiculous_relay[0]->unk3 + 0x95, D_80111970_ridiculous_relay[0]->unk0);
                         if (D_80110E50_ridiculous_relay == 0) {
                             se = HuAudFXPlay(0x333);
                             if (se != -1) {
@@ -1034,6 +1104,22 @@ void func_8010B4A8_ridiculous_relay(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_8010B4A8_ridiculous_relay);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80110BF4_ridiculous_relay);
+s16 func_80110BF4_ridiculous_relay(s16 seId, s16 player) {
+    if (D_800A1902_main == 0) {
+        return 0;
+    }
+    if (seId == 0) {
+        return 0;
+    }
+    return func_8004AC5C_main(seId, 0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80110C3C_ridiculous_relay);
+s16 func_80110C3C_ridiculous_relay(s16 seId, s16 player) {
+    if (D_800A1902_main == 0) {
+        return 0;
+    }
+    if (seId == 0) {
+        return 0;
+    }
+    return func_8004AC5C_main(seId + GwPlayer[player].chr + 1, 0);
+}
