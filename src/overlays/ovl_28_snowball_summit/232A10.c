@@ -233,6 +233,9 @@ void func_8010C288_snowball_summit(void);
 void func_8010C2E4_snowball_summit(omObjData *obj);
 void func_8010C2EC_snowball_summit(omObjData *obj);
 void func_8010C4F4_snowball_summit(omObjData *obj);
+void func_8010C46C_snowball_summit(omObjData *obj);
+void func_8010C600_snowball_summit(omObjData *obj);
+s32 func_8010C648_snowball_summit(void);
 void func_8010C5C0_snowball_summit(omObjData *obj);
 void func_8010C6A8_snowball_summit(omObjData *obj);
 void func_8010C7A4_snowball_summit(omObjData *obj);
@@ -1890,7 +1893,32 @@ void func_8010C46C_snowball_summit(omObjData *obj) {
     obj->func = func_8010C328_snowball_summit;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C4F4_snowball_summit);
+/* Waits until every standing player has settled (landed, or back to motion 0). */
+void func_8010C4F4_snowball_summit(omObjData *obj) {
+    SsPlayer *pl;
+    s32 i;
+
+    if (D_8010F88C_snowball_summit > 0) {
+        D_8010F88C_snowball_summit--;
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        pl = &D_8010F9B8_snowball_summit[i];
+        if (pl->state >= 0 && pl->unk4C == 0) {
+            if (obj->trans.y != 0.0f) {
+                if (pl->hit == 1) {
+                    break;
+                }
+            } else if (pl->motion != 0) {
+                break;
+            }
+        }
+    }
+    if (i >= 4) {
+        D_8010F884_snowball_summit = 1;
+        obj->func = func_8010C46C_snowball_summit;
+    }
+}
 
 void func_8010C5C0_snowball_summit(omObjData *obj) {
     if (GMesStatGet() == 0) {
@@ -1924,7 +1952,32 @@ s32 func_8010C648_snowball_summit(void) {
     return -(count == 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C6A8_snowball_summit);
+/* The game clock: ends on time up, or when one or no player is left. */
+void func_8010C6A8_snowball_summit(omObjData *obj) {
+    s32 left;
+
+    if (D_8010F88C_snowball_summit != 0) {
+        func_8003F578_main((D_8010F88C_snowball_summit-- + 28) / 30);
+        left = func_8010C648_snowball_summit();
+        if (left == 1) {
+            func_8003F5C0_main();
+            D_8010F88C_snowball_summit = 90;
+            obj->func = func_8010C600_snowball_summit;
+            D_8010F884_snowball_summit = left;
+            return;
+        }
+        if (left != -1) {
+            return;
+        }
+        func_8003F5C0_main();
+        D_8010F88C_snowball_summit = 90;
+    } else {
+        func_8003F5C0_main();
+    }
+    obj->func = func_8010C600_snowball_summit;
+    HuAudSeqFadeOut(120);
+    D_8010F884_snowball_summit = 1;
+}
 
 void func_8010C7A4_snowball_summit(omObjData *obj) {
     GMesCreate(0x1A, 60, 160, 28);
