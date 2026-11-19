@@ -159,7 +159,9 @@ typedef struct FpCam {
 
 struct FpPlayer {
     /* 0x00 */ Vec pos;
-    /* 0x0C */ char unk0C[0x10];
+    /* 0x0C */ Vec prev; /* position at the start of the frame */
+    /* 0x18 */ s16 unk18; /* last func_800E4A90_minigame result */
+    /* 0x1A */ char unk1A[2];
     /* 0x1C */ s32 file; /* character model file | 0x9A */
     /* 0x20 */ u8 player;
     /* 0x21 */ u8 idx; /* camera / side */
@@ -168,8 +170,23 @@ struct FpPlayer {
     /* 0x24 */ u8 unk24; /* won */
     /* 0x25 */ u8 cpu;
     /* 0x26 */ u8 unk26;
-    /* 0x27 */ char unk27[0x25];
+    /* 0x27 */ u8 unk27;
+    /* 0x28 */ char unk28[4];
+    /* 0x2C */ s16 unk2C;
+    /* 0x2E */ s16 unk2E;
+    /* 0x30 */ s16 unk30;
+    /* 0x32 */ s16 unk32;
+    /* 0x34 */ s16 unk34;
+    /* 0x36 */ s16 unk36;
+    /* 0x38 */ char unk38[4];
+    /* 0x3C */ s16 unk3C; /* holding the chick */
+    /* 0x3E */ s16 unk3E;
+    /* 0x40 */ char unk40[0xC];
 }; /* size 0x4C */
+
+typedef struct FpU8x8 {
+    u8 v[8];
+} FpU8x8;
 
 #define FP_PLAYER(i) ((FpPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
 
@@ -198,6 +215,12 @@ extern u8 D_8010E87C_fowl_play; /* next player slot */
 extern Vec D_8010E884_fowl_play[]; /* start positions */
 extern f32 D_8010E8B4_fowl_play[]; /* start facings */
 void func_80108298_fowl_play(omObjData* obj);
+void func_80108B08_fowl_play(omObjData* obj);
+u8 func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r);
+u8 func_8010A738_fowl_play(omObjData* obj, u8 hit);
+void func_8001EED8_main(s16 arg0, s16 arg1, s16 arg2); /* hmfman.c defines (s16, u8, s8) */
+void func_800DDD94_minigame(omObjData* obj);
+extern const FpU8x8 D_8010ED88_fowl_play; /* motion slots by character */
 void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 extern s32 D_8010E7AC_fowl_play; /* winner, -1 none */
 extern s16 D_8010E7B2_fowl_play; /* frames since the wipe ended */
@@ -629,7 +652,7 @@ void func_801070FC_fowl_play(omObjData* obj, f32 r) {
 #ifdef NON_MATCHING
 /* masked 0; n and &seg swap saved registers (s5/s6) */
 /* Stops a move from prev to pos at the first pen wall it crosses, r + 20 short of it. */
-void func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r) {
+u8 func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r) {
     Vec hit;
     Vec unused;
     Vec out;
@@ -681,6 +704,7 @@ void func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r) {
         pos->x = out.x;
         pos->z = out.z;
     }
+    return n;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_fowl_play);
@@ -765,8 +789,10 @@ void func_801079B0_fowl_play(void) {
 
 
 
+const FpU8x8 D_8010ED88_fowl_play = { { 0, 1, 2, 3, 4, 5, 6, 7 } };
+
 void func_80107A4C_fowl_play(omObjData* obj) {
-    u8 motTbl[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; /* unused */
+    FpU8x8 motTbl = D_8010ED88_fowl_play; /* unused */
     s32 files[3][8] = {
         { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
         { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D },
@@ -911,7 +937,168 @@ void func_80108020_fowl_play(omObjData* obj, u32 file0, s32 file1, s32 player, u
     }
 }
 
+#ifdef NON_MATCHING
+/* 8 instructions long, scheduling only: a nop after each of six sindf/cosdf calls, and pad * 2 for
+   &D_800D5558_main[pad] is hoisted into the switch cases' delay slots */
+void func_80108298_fowl_play(omObjData* obj) {
+    FpU8x8 motTbl = D_8010ED88_fowl_play; /* unused */
+    MgWork* work;
+    FpPlayer* fp;
+    MgWork* ow;
+    FpPlayer* op;
+    omObjData* o;
+    Vec p;
+    u16* btnp;
+    f32 r;
+    f32 a;
+    f32 mag;
+    f32 d;
+    s32 btn;
+    s32 i;
+    u8 pad;
+    u8 hit;
+
+    work = obj->data;
+    fp = work->unk158;
+    pad = work->unk57;
+    hit = 0;
+    if (D_8010F29C_fowl_play != 2) {
+        D_800D20A1_main[pad] = 0;
+        D_800CBB6E_main[pad] = 0;
+        D_800D5558_main[pad] = 0;
+        D_800CDA7C_main[pad] = 0;
+    }
+    switch (D_8010F29C_fowl_play) {
+        case 0:
+            fp->unk2C = fp->unk2E = fp->unk30 = fp->unk32 = fp->unk34 = fp->unk3C = fp->unk3E = 0;
+            fp->unk36 = 450;
+            fp->unk26 = 0;
+            fp->unk27 = 0;
+            break;
+        case 2:
+            if (fp->cpu == 0) {
+                a = func_8010A9EC_fowl_play(D_800CBB6E_main[pad], -D_800D20A1_main[pad]) + CRotM[fp->idx].y;
+                mag = sqrtf(D_800CBB6E_main[pad] * D_800CBB6E_main[pad] + D_800D20A1_main[pad] * D_800D20A1_main[pad]);
+                D_800CBB6E_main[pad] = mag * sindf(a);
+                D_800D20A1_main[pad] = -mag * cosdf(a);
+            } else {
+                D_800D20A1_main[pad] = 0;
+                D_800CBB6E_main[pad] = 0;
+                D_800D5558_main[pad] = 0;
+                D_800CDA7C_main[pad] = 0;
+                func_80108B08_fowl_play(obj);
+            }
+            break;
+        case 6:
+            if (fp->unk24 != 0) {
+                a = func_8010A9EC_fowl_play(-obj->trans.x, -obj->trans.z);
+                D_800CBB6E_main[pad] = sindf(a) * 18.0;
+                D_800D20A1_main[pad] = -cosdf(a) * 18.0;
+                func_8001C92C_main(obj->model[0], 1.0f);
+            }
+            break;
+        case 7:
+            fp->unk3C = 0;
+            if (fp->unk24 == 1) {
+                GwPlayer[work->unk59].bonusCoin += 10;
+                func_800E5690_minigame(obj, 13);
+                func_80045F1C_main(fp->file, -1, fp->idx);
+                fp->unk24++;
+            } else if (fp->unk24 == 0) {
+                func_800E5690_minigame(obj, 14);
+                fp->unk24--;
+            }
+            break;
+        case 8:
+            if (work != NULL) {
+                HuMemFree(work->unk158);
+                obj->data = NULL;
+                obj->func = NULL;
+            }
+            return;
+        case 9:
+            return;
+    }
+    btnp = &D_800D5558_main[pad];
+    btn = func_800E4A90_minigame(obj);
+    fp->prev.x = obj->trans.x;
+    fp->prev.y = obj->trans.y;
+    fp->prev.z = obj->trans.z;
+    if (fp->unk3C != 0) {
+        *btnp &= ~0x4000;
+    } else {
+        HmfModelData[obj->model[0]].unk06 = 0xFF;
+    }
+    func_800DDD94_minigame(obj);
+    if (btn & 0x40) {
+        if (HmfModelData[obj->model[0]].unk40 >= 16.0 && HmfModelData[obj->model[0]].unk40 <= 20.0) {
+            hit = 1;
+        }
+    }
+    if (func_8010A738_fowl_play(obj, hit)) {
+        fp->unk3C = 1;
+        fp->unk24 = 1;
+        func_8004AC5C_main(0x4C0, 2);
+        func_8004AC5C_main(0x4C2, 3);
+        omVibrate(work->unk59, 10, 0, 10);
+        func_8001EED8_main(obj->model[0], obj->motion[39], 0);
+    }
+    for (i = 0; i < 2; i++) {
+        o = D_800EC598_minigame[i];
+        if (obj == o) {
+            continue;
+        }
+        ow = o->data;
+        op = ow->unk158;
+        if (fabs(obj->trans.y - o->trans.y) > 30.0) {
+            continue;
+        }
+        d = func_8010AA64_fowl_play(&obj->trans, &o->trans);
+        r = work->unk48 + ow->unk48;
+        if (r < d) {
+            continue;
+        }
+        if (work->unk40 <= ow->unk40) {
+            a = func_8010A9EC_fowl_play(o->trans.x - obj->trans.x, o->trans.z - obj->trans.z);
+            o->trans.x = r * sindf(a) + obj->trans.x;
+            o->trans.z = r * cosdf(a) + obj->trans.z;
+            if (o->trans.y < 30.0) {
+                p.x = op->prev.x;
+                p.y = 0.0f;
+                p.z = op->prev.z;
+                if (func_8010724C_fowl_play(&p, &o->trans, ow->unk48)) {
+                    o->trans.x = p.x;
+                    o->trans.z = p.z;
+                }
+            }
+        } else {
+            a = func_8010A9EC_fowl_play(obj->trans.x - o->trans.x, obj->trans.z - o->trans.z);
+            obj->trans.x = r * sindf(a) + o->trans.x;
+            obj->trans.z = r * cosdf(a) + o->trans.z;
+            if (obj->trans.y < 30.0) {
+                p.x = fp->prev.x;
+                p.y = 0.0f;
+                p.z = fp->prev.z;
+                if (func_8010724C_fowl_play(&p, &obj->trans, work->unk48)) {
+                    obj->trans.x = p.x;
+                    obj->trans.z = p.z;
+                }
+            }
+        }
+    }
+    d = sqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z);
+    r = 1200.0 - work->unk48 - 10.0;
+    if (r < d) {
+        a = func_8010A9EC_fowl_play(obj->trans.x, obj->trans.z);
+        obj->trans.x = r * sindf(a);
+        obj->trans.z = r * cosdf(a);
+    }
+    func_801070FC_fowl_play(obj, work->unk48);
+    fp->unk18 = btn;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80108298_fowl_play);
+#endif
 
 void func_80108A70_fowl_play(omObjData* obj, f32 x, f32 y, f32 z) {
     s32 i;
