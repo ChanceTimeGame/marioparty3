@@ -3224,7 +3224,61 @@ void func_8010E78C_stacked_deck(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010ED44_stacked_deck);
+void func_8010ED44_stacked_deck(omObjData *obj) {
+    s16 i;
+    s16 j;
+
+    func_800E6F0C_minigame(2);
+    D_8010F720_stacked_deck = 0;
+    D_8010F6F4_stacked_deck = 0;
+    D_80111169_stacked_deck = 0;
+    D_8011116C_stacked_deck = 0;
+    D_8011116A_stacked_deck = 0;
+    D_80111100_stacked_deck = 0;
+    D_801110FA_stacked_deck = 0;
+    D_80111170_stacked_deck = 0;
+    D_80111120_stacked_deck = 0;
+    D_8010F6F0_stacked_deck = 0;
+    D_8011116E_stacked_deck = 3;
+    for (i = 0; i < 4; i++) {
+        D_80111142_stacked_deck[i] = 0;
+    }
+    D_80111168_stacked_deck = 0;
+    for (i = 0; i < 12; i++) {
+        D_80111128_stacked_deck[i] = 0;
+    }
+    D_8011114E_stacked_deck = 0;
+    D_801110F8_stacked_deck = 0;
+    D_8011114C_stacked_deck = 0;
+    for (i = 0; i < 4; i++) {
+        D_8010F6F5_stacked_deck[i] = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            D_80111110_stacked_deck[i][j] = 0;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        D_8010F6FA_stacked_deck[i] = 0;
+        D_80111102_stacked_deck[i] = 0;
+    }
+    D_8011114A_stacked_deck = 0;
+    D_8011110C_stacked_deck = 0;
+    D_8010F6F2_stacked_deck = 0;
+    D_80111140_stacked_deck = 0;
+    D_8011110A_stacked_deck = 0;
+    func_80106654_stacked_deck();
+    func_80106738_stacked_deck();
+    func_8010969C_stacked_deck();
+    func_8010C524_stacked_deck();
+    func_8010D8E8_stacked_deck();
+    func_8010DBF4_stacked_deck();
+    func_8010DEBC_stacked_deck();
+    func_8010E4EC_stacked_deck();
+    func_8010E590_stacked_deck();
+    WipeCreateIn(0xFF, 16);
+    obj->func = func_8010E78C_stacked_deck;
+}
 
 void func_8010EFBC_stacked_deck(void) {
 }
