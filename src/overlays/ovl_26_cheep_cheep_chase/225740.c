@@ -166,6 +166,7 @@ s32 func_8000B638_main(void);
 // 14EA0
 void func_800142A0_main(s32);
 // 20A20
+void func_8001CF1C_main(HmfData *arg0, HmfData *arg1, f32 arg2, s16 arg3, s16 arg4, s32 arg5);
 void Hu3DAnimInit(s32);
 void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 
@@ -2092,11 +2093,67 @@ void func_8010C440_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010C8EC_cheep_cheep_chase);
+void func_8010C8EC_cheep_cheep_chase(s16 mdl0, s16 mdl1, f32 weight, s32 part0, s32 part1, s32 arg5) {
+    HmfData *hmf0 = HmfModelData[mdl0].hmf;
+    HmfData *hmf1 = HmfModelData[mdl1].hmf;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010C988_cheep_cheep_chase);
+    if (part0 == -1 || part1 == -1) {
+        return;
+    }
+    func_8001CF1C_main(hmf0, hmf1, weight, part0, part1, arg5);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010CAD4_cheep_cheep_chase);
+void func_8010C988_cheep_cheep_chase(CxFuncContext *ctx) {
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.f32[0] = 0.0f;
+            ctx->state = 1;
+            break;
+        case 1:
+            switch (ctx->work.s8[0]) {
+                case 0:
+                    if (func_80049F98_main() + D_800D6A90_main == 0) {
+                        ctx->work.f32[0] += 0.1f;
+                    }
+                    if (ctx->work.f32[0] >= 1.0f) {
+                        ctx->work.s8[0] = 1;
+                    }
+                    break;
+                case 1:
+                    if (func_80049F98_main() + D_800D6A90_main == 0) {
+                        ctx->work.f32[0] -= 0.1f;
+                    }
+                    if (ctx->work.f32[0] <= 0.0f) {
+                        ctx->work.s8[0] = 0;
+                    }
+                    break;
+            }
+            break;
+        case 2:
+            break;
+    }
+    func_8010C8EC_cheep_cheep_chase(ctx->work.s16[0], ctx->work.s16[1], ctx->work.f32[0], 0, 0, 0);
+}
+
+void func_8010CAD4_cheep_cheep_chase(CxFuncContext *ctx) {
+    if (func_80049F98_main() + D_800D6A90_main != 0) {
+        return;
+    }
+    switch (ctx->state) {
+        case 0:
+            ctx->work.f32[0] = D_800CCF58_main[HmfModelData[ctx->param].unk02].unk02;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (HmfModelData[ctx->param].unk40 >= ctx->work.f32[0]) {
+                HmfModelData[ctx->param].unk40 = 0.0f;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010CBBC_cheep_cheep_chase);
 
