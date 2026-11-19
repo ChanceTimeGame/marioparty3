@@ -3088,7 +3088,87 @@ void func_80110914_stardust_battle(void) {
     }
 }
 
+extern f32 D_80113F14_stardust_battle[]; /* case-3 ease-in steps */
+
+/* NON_MATCHING: register allocation only (masked 0): in case 4 retail forms sin * t in f0 and takes abs.s into f20, mine multiplies into f20 */
+#ifdef NON_MATCHING
+void func_80111004_stardust_battle(void) {
+    f32 t = 0.0f;
+    f32 s;
+
+    if (D_80114BAC_stardust_battle <= 0) {
+        func_801119D4_stardust_battle(0);
+        D_80114BB0_stardust_battle = 0;
+        return;
+    }
+    if (D_80114BA8_stardust_battle == 0) {
+        Center.x = D_80114B60_stardust_battle[0].center.x;
+        Center.y = D_80114B60_stardust_battle[0].center.y;
+        Center.z = D_80114B60_stardust_battle[0].center.z;
+        CRot.x = D_80114B60_stardust_battle[0].rot.x;
+        CRot.y = D_80114B60_stardust_battle[0].rot.y;
+        CRot.z = D_80114B60_stardust_battle[0].rot.z;
+        CZoom = D_80114B60_stardust_battle[0].zoom;
+        SB_WRAP(CRot.x);
+        SB_WRAP(CRot.y);
+        SB_WRAP(CRot.z);
+        D_80114BAC_stardust_battle = 0;
+    } else {
+        switch (D_80114BB4_stardust_battle) {
+        case 0:
+            t = (f32)D_80114BA8_stardust_battle / (f32)D_80114BAC_stardust_battle;
+            break;
+        case 1:
+            t = (f32)D_80114BA8_stardust_battle / (f32)D_80114BAC_stardust_battle;
+            t = sindf(t * 90.0f);
+            break;
+        case 2:
+            t = (f32)D_80114BA8_stardust_battle / (f32)D_80114BAC_stardust_battle;
+            t = sindf(t * 90.0f);
+            t = t * t;
+            break;
+        case 3:
+            if (D_80114BA8_stardust_battle > 5) {
+                t = (f32)(D_80114BA8_stardust_battle - 5) / (f32)(D_80114BAC_stardust_battle - 5);
+                t = sindf(t * 90.0f);
+                t = t * t;
+            } else {
+                t = D_80113F14_stardust_battle[5 - D_80114BA8_stardust_battle];
+            }
+            break;
+        case 4:
+            t = (f32)D_80114BA8_stardust_battle / (f32)D_80114BAC_stardust_battle;
+            s = sindf(t * 90.0f);
+            t = fabsf(sindf(s * 450.0f) * t);
+            break;
+        case 5:
+            t = (f32)D_80114BA8_stardust_battle / (f32)D_80114BAC_stardust_battle;
+            s = sindf(t * 90.0f);
+            t = s + sindf(t * 720.0f) * 0.2f;
+            break;
+        }
+        Center.x = func_80111DF8_stardust_battle(t, D_80114B60_stardust_battle[0].center.x, D_80114B60_stardust_battle[1].center.x);
+        Center.y = func_80111DF8_stardust_battle(t, D_80114B60_stardust_battle[0].center.y, D_80114B60_stardust_battle[1].center.y);
+        Center.z = func_80111DF8_stardust_battle(t, D_80114B60_stardust_battle[0].center.z, D_80114B60_stardust_battle[1].center.z);
+        CRot.x = func_80111E10_stardust_battle(t, D_80114B60_stardust_battle[0].rot.x, D_80114B60_stardust_battle[1].rot.x);
+        CRot.y = func_80111E10_stardust_battle(t, D_80114B60_stardust_battle[0].rot.y, D_80114B60_stardust_battle[1].rot.y);
+        CRot.z = func_80111E10_stardust_battle(t, D_80114B60_stardust_battle[0].rot.z, D_80114B60_stardust_battle[1].rot.z);
+        CZoom = func_80111DF8_stardust_battle(t, D_80114B60_stardust_battle[0].zoom, D_80114B60_stardust_battle[1].zoom);
+        SB_WRAP(CRot.x);
+        SB_WRAP(CRot.y);
+        SB_WRAP(CRot.z);
+        if (D_80114BA8_stardust_battle > 0) {
+            D_80114BA8_stardust_battle--;
+        } else {
+            D_80114BA8_stardust_battle++;
+        }
+    }
+    D_80114BB0_stardust_battle = 1;
+    func_801119D4_stardust_battle(0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111004_stardust_battle);
+#endif
 
 void func_801115F8_stardust_battle(s32 idx) {
     SB_WRAP(CRot.x);
