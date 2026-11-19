@@ -127,8 +127,14 @@ extern CxPlayer *D_8010E364_cheep_cheep_chase; // [4]
 extern CxUnk368 *D_8010E368_cheep_cheep_chase;
 extern f32 D_8010E370_cheep_cheep_chase[4];
 
+extern u8 D_8010E010_cheep_cheep_chase;
 extern f32 D_8010E014_cheep_cheep_chase;
 extern f32 D_8010E018_cheep_cheep_chase;
+extern s16 D_8010E01C_cheep_cheep_chase;
+extern s16 D_8010E01E_cheep_cheep_chase;
+extern s16 D_8010E020_cheep_cheep_chase;
+extern s16 D_8010E022_cheep_cheep_chase;
+extern s16 D_8010E380_cheep_cheep_chase;
 
 extern u8 D_800D6A90_main;
 extern s32 D_800A178C_main[][6];
@@ -170,11 +176,26 @@ void func_80107698_cheep_cheep_chase(omObjData *object);
 void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801080C8_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108170_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801085FC_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801088F8_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010896C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80108AF4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108C98_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801092B8_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80109750_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010A938_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010AD14_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010AF70_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010B148_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010B33C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010B52C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010BB9C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010C440_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010C988_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010CAD4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010CBBC_cheep_cheep_chase(CxFuncContext *ctx);
@@ -771,7 +792,78 @@ void func_801080C8_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80108170_cheep_cheep_chase);
+void func_80108170_cheep_cheep_chase(CxFuncContext *ctx) {
+    // Retail steps through D_800EC598_minigame[0] as an array: it assumes the four player objects are adjacent.
+    omObjData *object = D_800EC598_minigame[0];
+    s16 i;
+
+    if (D_8010E01C_cheep_cheep_chase >= 4) {
+        HuAudSeqPlay(0x34);
+    }
+    switch (ctx->state) {
+        case 0:
+            D_8010E380_cheep_cheep_chase = HuAudFXPlay(0x433);
+            ctx->work.s16[0] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            switch (ctx->work.s16[0]++) {
+                case 10:
+                    for (i = 0; i < 4; i++, object++) {
+                        func_8010D6F4_cheep_cheep_chase(i + 4, 0, object->model[0], 0, NULL, func_80109750_cheep_cheep_chase, FALSE, FALSE);
+                    }
+                    break;
+                case 80:
+                    func_8010D6F4_cheep_cheep_chase(2, 0, D_8010E360_cheep_cheep_chase->unk24, 0, NULL, func_801092B8_cheep_cheep_chase, FALSE, FALSE);
+                    break;
+                case 90:
+                    object = D_800EC598_minigame[0];
+                    for (i = 0; i < 4; i++, object++) {
+                        func_8010D6F4_cheep_cheep_chase(i + 4, 4, object->model[0], 0, NULL, func_80109CAC_cheep_cheep_chase, FALSE, FALSE);
+                    }
+                    break;
+                case 70:
+                    func_8010D6F4_cheep_cheep_chase(0, 0, -1, 0, NULL, func_80107BDC_cheep_cheep_chase, FALSE, FALSE);
+                    break;
+                case 110:
+                    GMesCreate(3);
+                    HuAudFXPlay(0xE);
+                    D_8010E01E_cheep_cheep_chase = 1;
+                    break;
+                default:
+                    if (D_8010E01E_cheep_cheep_chase == 1) {
+                        if (++D_8010E022_cheep_cheep_chase >= 61) {
+                            for (i = 0; i < 4; i++, object++) {
+                                if (GwPlayer[object->work[0]].stat & 1) {
+                                    if (D_8010E010_cheep_cheep_chase == 0) {
+                                        func_8010D6F4_cheep_cheep_chase(i + 4, 0, object->model[0], 0, NULL, func_8010A57C_cheep_cheep_chase, FALSE, FALSE);
+                                    } else {
+                                        func_8010D6F4_cheep_cheep_chase(i + 4, 0, object->model[0], 0, NULL, func_8010A938_cheep_cheep_chase, FALSE, FALSE);
+                                    }
+                                }
+                                if (D_8010E010_cheep_cheep_chase == 0) {
+                                    func_8010D6F4_cheep_cheep_chase(i + 4, 1, object->model[0], 0, NULL, func_8010AD14_cheep_cheep_chase, FALSE, FALSE);
+                                } else {
+                                    func_8010D6F4_cheep_cheep_chase(i + 4, 1, object->model[0], 0, NULL, func_8010AF70_cheep_cheep_chase, FALSE, FALSE);
+                                }
+                                func_8010D6F4_cheep_cheep_chase(i + 4, 2, object->model[0], 0, NULL, func_8010B148_cheep_cheep_chase, FALSE, FALSE);
+                                func_8010D6F4_cheep_cheep_chase(i + 4, 3, object->model[0], 0, NULL, func_8010B33C_cheep_cheep_chase, FALSE, FALSE);
+                            }
+                            D_8010E020_cheep_cheep_chase = ctx->work.s16[0] + 10;
+                            D_8010E01E_cheep_cheep_chase = 2;
+                        }
+                    } else if (D_8010E01E_cheep_cheep_chase == 2) {
+                        if (ctx->work.s16[0] >= D_8010E020_cheep_cheep_chase) {
+                            func_8010D6F4_cheep_cheep_chase(3, 0, D_8010E368_cheep_cheep_chase->model, 0, NULL, func_8010C440_cheep_cheep_chase, FALSE, FALSE);
+                            func_8010D7F4_cheep_cheep_chase(1, ctx);
+                            func_8010D6F4_cheep_cheep_chase(1, 0, -1, 1, NULL, func_801085FC_cheep_cheep_chase, FALSE, FALSE);
+                        }
+                    }
+                    break;
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E170_cheep_cheep_chase);
 
