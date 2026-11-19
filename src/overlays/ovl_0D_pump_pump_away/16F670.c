@@ -408,7 +408,7 @@ extern const s16 D_801116D8_pump_pump_away[];
 typedef struct PpSlot12 {
     /* 0x00 */ s32 state;
     /* 0x04 */ s32 unk04;
-    /* 0x08 */ f32 scale;
+    /* 0x08 */ f32 angle;
 } PpSlot12;
 typedef struct PpSlot16 {
     /* 0x00 */ s32 state;
@@ -448,6 +448,8 @@ extern f32 D_80111990_pump_pump_away; /* D_80111978_pump_pump_away[0].dist */
 extern f32 D_801119C4_pump_pump_away; /* D_80111978_pump_pump_away[1].dist */
 extern f32 D_8011101C_pump_pump_away[]; /* start heights of the D_80111920_pump_pump_away models */
 extern f32 D_8011102C_pump_pump_away[]; /* start heights of the D_801135E8_pump_pump_away models */
+extern f32 D_8011103C_pump_pump_away[]; /* heights of the D_80111710_pump_pump_away models */
+extern s32 D_80111970_pump_pump_away; /* next D_8011103C_pump_pump_away slot */
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -3101,7 +3103,56 @@ void func_8010EB68_pump_pump_away(void) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010EBC4_pump_pump_away(omObjData *obj) {
+    PpSlot12 *p = &D_80111710_pump_pump_away[obj->work[0]];
+    PpTeam *t = D_80111978_pump_pump_away;
+    PpTeam *t1 = &t[1];
+    f32 dist;
+
+    if (p->state != -1) {
+        if (p->unk04 == 0) {
+            if (t[1].dist < D_80111978_pump_pump_away[0].dist) {
+                dist = D_80111978_pump_pump_away[0].dist;
+            } else {
+                dist = t1->dist;
+            }
+            switch (p->state) {
+                case 0:
+                    if (D_8011103C_pump_pump_away[D_80111970_pump_pump_away] - dist * 0.1 + 400.0 < 1000.0) {
+                        func_8001C258_main(obj->model[0], 4, 0);
+                        /* Retail adds the scroll here; case 1 corrects the height on the next frame. */
+                        obj->trans.y = D_8011103C_pump_pump_away[obj->work[0]] + dist * 0.1 + 400.0;
+                        p->state = 1;
+                        obj->work[1] = D_80111970_pump_pump_away;
+                        D_80111970_pump_pump_away++;
+                    }
+                    break;
+                case 1:
+                    obj->trans.y = D_8011103C_pump_pump_away[obj->work[1]] - dist * 0.1 + 400.0;
+                    if (obj->trans.y < -500.0f) {
+                        func_8001C258_main(obj->model[0], 4, 4);
+                        if (obj->work[0] & 1) {
+                            obj->trans.x = rand16() % 501 + 100;
+                        } else {
+                            obj->trans.x = -(rand16() % 501) - 100;
+                        }
+                        p->state = 0;
+                    }
+                    break;
+            }
+        }
+        p->angle = PP_WRAP(p->angle + 3.0f);
+        obj->rot.z = PP_WRAP(sindf(p->angle) * 15.0f + 0.0f);
+        if (D_80113530_pump_pump_away.state >= 2 && p->state < 10) {
+            func_8001C258_main(obj->model[0], 4, 4);
+            p->state = 10;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010EBC4_pump_pump_away);
+#endif
 
 void func_8010F024_pump_pump_away(omObjData *obj) {
     PpSlot12 *p;
@@ -3124,7 +3175,7 @@ void func_8010F024_pump_pump_away(omObjData *obj) {
     p = &D_80111710_pump_pump_away[obj->work[0]];
     p->state = 0;
     p->unk04 = 0;
-    p->scale = rand8();
+    p->angle = rand8();
 }
 
 void func_8010F20C_pump_pump_away(void) {
@@ -3137,7 +3188,30 @@ void func_8010F20C_pump_pump_away(void) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F268_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F688_pump_pump_away);
+void func_8010F688_pump_pump_away(omObjData *obj) {
+    PpSlot12 *p;
+
+    if (D_801116F2_pump_pump_away == 0) {
+        D_801116F2_pump_pump_away = obj->model[0] = func_8000B108_main(0x230005, 0x299);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_801116F2_pump_pump_away);
+    }
+    func_8001C814_main(obj->model[0], 1, 1);
+    func_8001C258_main(obj->model[0], 4, 4);
+    if (obj->work[0] & 1) {
+        obj->trans.x = rand16() % 301 + 100;
+    } else {
+        obj->trans.x = -(rand16() % 301) - 100;
+    }
+    obj->trans.y = 1000.0f;
+    obj->trans.z = (rand8() & 1) ? -500.0f : 500.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 0.5f;
+    obj->func = func_8010F268_pump_pump_away;
+    p = &D_801119E8_pump_pump_away[obj->work[0]];
+    p->state = 0;
+    p->unk04 = 0;
+    p->angle = rand8();
+}
 
 void func_8010F8A4_pump_pump_away(void) {
     s32 i;
@@ -3691,7 +3765,7 @@ void func_8011091C_pump_pump_away(void) {
         p = &D_80111710_pump_pump_away[i];
         p->state = -1;
         p->unk04 = 0;
-        p->scale = 1.0f;
+        p->angle = 1.0f;
     }
     D_801116F0_pump_pump_away = 0;
 }
@@ -3704,7 +3778,7 @@ void func_8011096C_pump_pump_away(void) {
         p = &D_801119E8_pump_pump_away[i];
         p->state = -1;
         p->unk04 = 0;
-        p->scale = 1.0f;
+        p->angle = 1.0f;
     }
     D_801116F2_pump_pump_away = 0;
 }
