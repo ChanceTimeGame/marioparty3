@@ -168,6 +168,7 @@ void func_80107440_cheep_cheep_chase(omObjData *object);
 void func_8010732C_cheep_cheep_chase(omObjData *object);
 void func_80107698_cheep_cheep_chase(omObjData *object);
 void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801080C8_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108170_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108C98_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx);
@@ -678,11 +679,97 @@ void func_80107760_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107BDC_cheep_cheep_chase);
+void func_80107BDC_cheep_cheep_chase(CxFuncContext *ctx) {
+    f32 t;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107E3C_cheep_cheep_chase);
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            t = ctx->work.s8[0] * 0.025f * 90.0f;
+            t = sindf(t);
+            CZoom = t * 230.0f + 1670.0f;
+            Center.x = t * -244.0f + -26.0f;
+            Center.y = t * -343.0f + 327.0f;
+            Center.z = t * 30.0f + -485.0f;
+            CRot.x = t * -5.0f + 320.0f;
+            CRot.y = t * -90.0f + 180.0f;
+            if (++ctx->work.s8[0] > 40.0f) {
+                CZoom = 1900.0f;
+                Center.x = -270.0f;
+                Center.y = -16.0f;
+                Center.z = -455.0f;
+                CRot.x = 315.0f;
+                CRot.y = 90.0f;
+                func_8010D7F4_cheep_cheep_chase(0, ctx);
+                func_8010D6F4_cheep_cheep_chase(0, 2, -1, 0, NULL, func_801080C8_cheep_cheep_chase, FALSE, FALSE);
+            }
+            break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801080C8_cheep_cheep_chase);
+void func_80107E3C_cheep_cheep_chase(CxFuncContext *ctx) {
+    // Retail steps through D_800EC598_minigame[0] as an array: it assumes the four player objects are adjacent.
+    omObjData *object = D_800EC598_minigame[0];
+    CxPlayer *player = D_8010E364_cheep_cheep_chase;
+    f32 t;
+    s16 i;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            for (i = 0; i < 4; i++, object++, player++) {
+                if (player->unk01 == 6) {
+                    ctx->work.f32[0] = object->trans.x - 450.0;
+                    ctx->work.f32[1] = object->trans.z - 80.0;
+                }
+            }
+            ctx->state = 1;
+            break;
+        case 1:
+            t = ctx->work.s8[0] * 0.025f * 90.0f;
+            t = sindf(t);
+            CZoom = t * -770.0f + 1900.0f;
+            Center.x = (ctx->work.f32[0] - -270.0f) * t + -270.0f;
+            Center.y = t * 101.0f + -16.0f;
+            Center.z = (ctx->work.f32[1] - -455.0f) * t + -455.0f;
+            CRot.x = t * 25.0f + 315.0f;
+            CRot.y = t * 31.0f + 90.0f;
+            if (++ctx->work.s8[0] > 40.0f) {
+                CZoom = 1130.0f;
+                Center.x = ctx->work.f32[0];
+                Center.y = 85.0f;
+                Center.z = ctx->work.f32[1];
+                CRot.x = 340.0f;
+                CRot.y = 121.0f;
+                func_8010D7F4_cheep_cheep_chase(0, ctx);
+            }
+            break;
+    }
+}
+
+void func_801080C8_cheep_cheep_chase(CxFuncContext *ctx) {
+    s16 i;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.f32[0] = Center.z;
+            ctx->state = 1;
+            break;
+        case 1:
+            for (i = 0; i < 4; i++) {
+                if (D_800EC598_minigame[i]->trans.z + 255.0f < ctx->work.f32[0]) {
+                    ctx->work.f32[0] = D_800EC598_minigame[i]->trans.z + 255.0f;
+                }
+            }
+            Center.z = ctx->work.f32[0];
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80108170_cheep_cheep_chase);
 
