@@ -1079,17 +1079,103 @@ void func_80108C98_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80108F78_cheep_cheep_chase);
+void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx) {
+    CxStageModel *stage = &D_8010E360_cheep_cheep_chase->models[1];
+    HmfModel *model;
+    s16 i;
 
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 5;
+            ctx->state = 1;
+            break;
+        case 1:
+            for (i = 1; i < 6; i++, stage++) {
+                model = &HmfModelData[stage->model];
+                if (Center.z - 700.0f <= model->pos.z) {
+                    func_8001C258_main(stage->model, 4, 0);
+                }
+                if (Center.z + 1700.0f <= model->pos.z) {
+                    func_8001C258_main(stage->model, 4, 4);
+                    if (i >= 2 && ctx->work.s8[0] < 7) {
+                        func_801091FC_cheep_cheep_chase(ctx->work.s8[0]++);
+                    }
+                }
+            }
+            break;
+        case 2:
+            break;
+    }
+}
+
+// Register allocation: retail reloads the model id for the first func_8001C258_main call.
+#ifdef NON_MATCHING
+void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx) {
+    s16 *stage = &D_8010E360_cheep_cheep_chase->models[0].model;
+    HmfModel *model = &HmfModelData[*stage];
+
+    if (ctx->state == 1) {
+        if (Center.z - 700.0f <= model->pos.z) {
+            func_8001C258_main(*stage, 4, 0);
+        }
+        if (model->pos.z >= Center.z + 1700.0f + 400.0) {
+            func_8001C258_main(*stage, 4, 4);
+            func_8010D7F4_cheep_cheep_chase(2, ctx);
+            func_8001C258_main(D_8010E360_cheep_cheep_chase->unk24, 4, 4);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801090E0_cheep_cheep_chase);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801091FC_cheep_cheep_chase);
+void func_801091FC_cheep_cheep_chase(u8 arg0) {
+    f32 z = 0.0f;
+    s16 i;
+    u8 section;
+    CxStageModel *stage;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801092B8_cheep_cheep_chase);
+    if (arg0 != 0) {
+        for (i = 0; i < arg0; i++) {
+            stage = &D_8010E360_cheep_cheep_chase->models[D_8010E360_cheep_cheep_chase->unk8[i]];
+            z -= stage->z;
+        }
+    }
+    section = D_8010E360_cheep_cheep_chase->unk8[arg0];
+    stage = &D_8010E360_cheep_cheep_chase->models[section];
+    if (section == 1) {
+        D_8010E360_cheep_cheep_chase->unk28 = z;
+    }
+    Hu3DModelPosSet(stage->model, 0.0f, 0.0f, z);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801093CC_cheep_cheep_chase);
+void func_801092B8_cheep_cheep_chase(CxFuncContext *ctx) {
+    HmfModel *model = &HmfModelData[ctx->param];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80109444_cheep_cheep_chase);
+    switch (ctx->state) {
+        case 0:
+            HuAudFXPlay(0x435);
+            ctx->work.f32[0] = D_800CCF58_main[HmfModelData[ctx->param].unk02].unk02 - 1.0f;
+            model->unk44 = 1.0f;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (HmfModelData[ctx->param].unk40 >= ctx->work.f32[0]) {
+                func_8010D7F4_cheep_cheep_chase(2, ctx);
+            }
+            break;
+    }
+}
+
+void func_801093CC_cheep_cheep_chase(s16 model) {
+    Hu3DModelPosSet(model, 0.0f, 110.0f, -250.0 - D_8010E360_cheep_cheep_chase->unk14 * 500.0);
+    D_8010E360_cheep_cheep_chase->unk14++;
+}
+
+void func_80109444_cheep_cheep_chase(s16 model) {
+    Hu3DModelPosSet(model, -325.0f, 200.0f, 200.0 - D_8010E360_cheep_cheep_chase->unk1E * 1000.0);
+    D_8010E360_cheep_cheep_chase->unk1E++;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801094C0_cheep_cheep_chase);
 
