@@ -2150,7 +2150,342 @@ void func_8010C524_stacked_deck(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010C5C8_stacked_deck);
+void func_8010C5C8_stacked_deck(omObjData *obj) {
+    CcEnt *ent = &D_80110078_stacked_deck[obj->work[0]];
+    CcEnt *c;
+    omObjData *pl;
+    omObjData *card;
+    s16 i;
+
+    for (i = 0; i < 4; i++) {
+        c = &D_8010F838_stacked_deck[i];
+        pl = c->obj;
+        if (pl->work[1] == 0) {
+            break;
+        }
+    }
+    switch (D_8010F6F4_stacked_deck) {
+    case 8:
+        if (obj->work[0] == 0) {
+            switch (ent->unk04) {
+            case 0:
+                for (i = 0; i < 12; i++) {
+                    c = &D_8010FA48_stacked_deck[i];
+                    card = c->obj;
+                    if (c->unk04 == 1) {
+                        ent->unk04 = 1;
+                        obj->trans.x = card->trans.x;
+                        obj->trans.y = 0.0f;
+                        obj->trans.z = card->trans.z;
+                        ent->unk1C = 0.0f;
+                        break;
+                    }
+                }
+                break;
+            case 1:
+                ent->unk1C += 30.0f;
+                func_8010629C_stacked_deck(obj, 0, 0, 5, 2, &ent->unk06);
+                if (D_80111170_stacked_deck == 0) {
+                    D_80111170_stacked_deck = 1;
+                    HuAudFXPlay(0x446);
+                }
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+                ent->unk18 = 20.0f;
+                ent->unk28 = 1.0f;
+                ent->unk04 = 2;
+                HuAudFXPlay(0x44C);
+                if (!(GwPlayer[pl->work[0]].stat & 1)) {
+                    omVibrate(pl->work[0], 2, 3, 10);
+                }
+                break;
+            case 2:
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.03;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.03;
+                }
+                ent->unk1C += 30.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    ent->unk04 = 3;
+                }
+                break;
+            case 3:
+                ent->unk04 = 4;
+                break;
+            case 4:
+                func_8010629C_stacked_deck(obj, 1, 0, 5, 2, &ent->unk06);
+                if (obj->trans.z < 150.0f) {
+                    obj->trans.z += 25.0f;
+                    ent->unk1C = 0.0f;
+                } else {
+                    if (ent->unk0A == 0) {
+                        ent->unk0A = !(obj->trans.x <= pl->trans.x) ? 2 : 1;
+                    }
+                    if (ent->unk0A == 1) {
+                        obj->trans.x -= 25.0f;
+                        ent->unk1C = 270.0f;
+                    } else if (ent->unk0A == 2) {
+                        obj->trans.x += 25.0f;
+                        ent->unk1C = 90.0f;
+                    }
+                }
+                if (obj->trans.x < -1000.0f || obj->trans.x > 1000.0f) {
+                    ent->unk0A = 0;
+                    func_8001C258_main(obj->model[0], 4, 4);
+                    func_8001C258_main(obj->model[1], 4, 4);
+                    ent->unk04 = 5;
+                }
+                break;
+            case 5:
+                break;
+            }
+        }
+        break;
+    case 9:
+        if (obj->work[0] == 1) {
+            switch (ent->unk04) {
+            case 0:
+                for (i = 0; i < 12; i++) {
+                    c = &D_8010FA48_stacked_deck[i];
+                    card = c->obj;
+                    if (c->unk04 == 1) {
+                        ent->unk04 = 1;
+                        obj->trans.x = card->trans.x;
+                        obj->trans.y = 0.0f;
+                        obj->trans.z = card->trans.z;
+                        ent->unk1C = 0.0f;
+                        ent->unk2C = 0.1f;
+                        ent->unk0C = 0;
+                        break;
+                    }
+                }
+                break;
+            case 1:
+                ent->unk1C += 30.0f;
+                ent->unk2C += 0.05f;
+                if (ent->unk2C >= 1.7f) {
+                    ent->unk2C = 1.7f;
+                }
+                ent->unk0C += 10;
+                if (ent->unk0C >= 256) {
+                    ent->unk0C = 255;
+                }
+                func_8010629C_stacked_deck(obj, 0, 0, 5, 2, &ent->unk06);
+                if (D_80111170_stacked_deck == 0) {
+                    D_80111170_stacked_deck = 1;
+                    HuAudFXPlay(0x446);
+                }
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+                ent->unk18 = 20.0f;
+                ent->unk28 = ent->unk2C;
+                ent->unk04 = 2;
+                HuAudFXPlay(0x44D);
+                ent->unk0E = 0;
+                if (!(GwPlayer[pl->work[0]].stat & 1)) {
+                    omVibrate(pl->work[0], 10, 0, 10);
+                }
+                break;
+            case 2:
+                ent->unk28 = ent->unk2C;
+                ent->unk1C += 30.0f;
+                ent->unk2C += 0.05f;
+                if (ent->unk2C >= 1.7f) {
+                    ent->unk2C = 1.7f;
+                }
+                ent->unk0C += 10;
+                if (ent->unk0C >= 256) {
+                    ent->unk0C = 255;
+                }
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = ent->unk2C;
+                    ent->unk04 = 3;
+                }
+                ent->unk0E++;
+                if (ent->unk0E >= 45) {
+                    ent->unk0E = 0;
+                    HuAudFXPlay(0x44D);
+                }
+                break;
+            case 3:
+                if (ent->unk08 < 15) {
+                    ent->unk0C -= 15;
+                } else {
+                    ent->unk0C += 15;
+                }
+                if (ent->unk0C >= 256) {
+                    ent->unk0C = 255;
+                } else if (ent->unk0C < 0) {
+                    ent->unk0C = 0;
+                }
+                ent->unk08++;
+                if (ent->unk08 >= 31) {
+                    ent->unk04 = 4;
+                    ent->unk08 = 0;
+                    ent->unk0C = 255;
+                }
+                ent->unk0E++;
+                if (ent->unk0E >= 45) {
+                    ent->unk0E = 0;
+                    HuAudFXPlay(0x44D);
+                }
+                break;
+            case 4:
+                if (pl->trans.z < 1500.0f) {
+                    ent->unk1C = atan2df(pl->trans.x - obj->trans.x, pl->trans.z - obj->trans.z);
+                    func_801063F4_stacked_deck(pl->trans.x, pl->trans.z, obj->trans.x, obj->trans.z, &ent->unk20,
+                                               &ent->unk24, 15.0f);
+                } else {
+                    ent->unk1C = atan2df(pl->trans.x - obj->trans.x, 2500.0f - obj->trans.z);
+                    func_801063F4_stacked_deck(pl->trans.x, 2500.0f, obj->trans.x, obj->trans.z, &ent->unk20,
+                                               &ent->unk24, 17.0f);
+                }
+                obj->trans.x += ent->unk20;
+                obj->trans.z += ent->unk24;
+                if (obj->trans.x < -2000.0f || obj->trans.x > 2000.0f || obj->trans.z > 2000.0f) {
+                    func_8001C258_main(obj->model[0], 4, 4);
+                    func_8001C258_main(obj->model[1], 4, 4);
+                    ent->unk04 = 5;
+                    ent->unk20 = 0.0f;
+                    ent->unk24 = 0.0f;
+                    ent->unk2C = 1.7f;
+                    ent->unk0C = 0;
+                }
+                ent->unk0E++;
+                if (ent->unk0E >= 45) {
+                    ent->unk0E = 0;
+                    HuAudFXPlay(0x44D);
+                }
+                break;
+            case 5:
+                break;
+            }
+            obj->scale.x = obj->scale.y = obj->scale.z = ent->unk2C;
+            func_8001F9E4_main(obj->model[0], ent->unk0C);
+            func_8001F9E4_main(obj->model[1], ent->unk0C);
+        }
+        break;
+    case 11:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+        if (obj->work[0] == 2) {
+            switch (ent->unk04) {
+            case 0:
+                for (i = 0; i < 12; i++) {
+                    c = &D_8010FA48_stacked_deck[i];
+                    card = c->obj;
+                    if (c->unk04 == 1) {
+                        ent->unk04 = 1;
+                        obj->trans.x = card->trans.x;
+                        obj->trans.y = 0.0f;
+                        obj->trans.z = card->trans.z;
+                        ent->unk1C = 0.0f;
+                        break;
+                    }
+                }
+                break;
+            case 1:
+                ent->unk1C += 30.0f;
+                func_8010629C_stacked_deck(obj, 0, 0, 5, 2, &ent->unk06);
+                if (D_80111170_stacked_deck == 0) {
+                    D_80111170_stacked_deck = 1;
+                    HuAudFXPlay(0x446);
+                }
+                func_8001C258_main(obj->model[0], 4, 0);
+                func_8001C258_main(obj->model[1], 4, 0);
+                ent->unk18 = 20.0f;
+                ent->unk28 = 1.0f;
+                ent->unk04 = 2;
+                HuAudFXPlay(0x44B);
+                break;
+            case 2:
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.03;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.03;
+                }
+                ent->unk1C += 30.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    ent->unk04 = 3;
+                }
+                break;
+            case 3:
+                func_8001C92C_main(obj->model[0], 2.0f);
+                ent->unk04 = 4;
+                break;
+            case 4:
+                func_8010629C_stacked_deck(obj, 1, 0, 5, 2, &ent->unk06);
+                ent->unk1C = atan2df(pl->trans.x - obj->trans.x, pl->trans.z - obj->trans.z);
+                func_801063F4_stacked_deck(pl->trans.x, pl->trans.z, obj->trans.x, obj->trans.z, &ent->unk20,
+                                           &ent->unk24, 30.0f);
+                obj->trans.x += ent->unk20;
+                obj->trans.z += ent->unk24;
+                if (obj->trans.x < pl->trans.x + 120.0f && pl->trans.x - 120.0f < obj->trans.x &&
+                    obj->trans.z < pl->trans.z + 120.0f && pl->trans.z - 120.0f < obj->trans.z) {
+                    ent->unk04 = 5;
+                }
+                break;
+            case 5:
+                if (ent->unk0A == 0) {
+                    ent->unk0A = !(obj->trans.x <= 0.0f) ? 2 : 1;
+                }
+                func_8010629C_stacked_deck(obj, 0, 0, 5, 2, &ent->unk06);
+                ent->unk08++;
+                if (ent->unk08 >= 16) {
+                    ent->unk04 = 6;
+                    ent->unk08 = 0;
+                }
+                break;
+            case 6:
+                func_8010629C_stacked_deck(obj, 1, 0, 5, 2, &ent->unk06);
+                if (obj->trans.z < 150.0f) {
+                    obj->trans.z += 30.0f;
+                    ent->unk1C = 0.0f;
+                } else if (ent->unk0A == 1) {
+                    obj->trans.x -= 25.0f;
+                    ent->unk1C = 270.0f;
+                } else if (ent->unk0A == 2) {
+                    obj->trans.x += 25.0f;
+                    ent->unk1C = 90.0f;
+                }
+                if (obj->trans.x < -1000.0f || obj->trans.x > 1000.0f) {
+                    ent->unk0A = 0;
+                    func_8001C258_main(obj->model[0], 4, 4);
+                    func_8001C258_main(obj->model[1], 4, 4);
+                    func_8001C92C_main(obj->model[0], 1.0f);
+                    ent->unk20 = 0.0f;
+                    ent->unk24 = 0.0f;
+                    ent->unk04 = 7;
+                }
+                break;
+            case 7:
+                break;
+            }
+        }
+        break;
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.5f, obj->trans.z);
+    if (ent->unk1C > 720.0f) {
+        ent->unk1C = 720.0f;
+    }
+    obj->rot.y = func_801059BC_stacked_deck(ent->unk1C, 0.0f);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], ent->unk28, obj->scale.y, ent->unk28);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010D58C_stacked_deck);
 
