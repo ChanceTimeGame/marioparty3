@@ -195,7 +195,11 @@ typedef struct SbStage {
 
 /* A shot (SbShots::unk08, 32 x 0x10). */
 typedef struct SbShot {
-    /* 0x00 */ char unk00[0x10];
+    /* 0x00 */ s16 unk00; /* active */
+    /* 0x02 */ s16 unk02; /* special */
+    /* 0x04 */ f32 x;
+    /* 0x08 */ f32 y;
+    /* 0x0C */ f32 z;
 } SbShot; // Size 0x10
 
 /* The boss's shots (D_80114B20_stardust_battle, 0xC). */
@@ -2512,7 +2516,78 @@ void func_8010C538_stardust_battle(void) {
     func_8010C5A8_stardust_battle(32, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010C5A8_stardust_battle);
+void func_8010C5A8_stardust_battle(s32 n, s32 m) {
+    f32 angle[32];
+    f32 dist[32];
+    s32 order[32];
+    SbShots *sh = D_80114B20_stardust_battle;
+    SbShot *shot = sh->unk08;
+    s32 i;
+    s32 j;
+    s32 a;
+    s32 b;
+    f32 ft;
+    s32 it;
+
+    memset(shot, 0, sizeof(SbShot) * 32);
+    sh->unk00 = n;
+    sh->unk04 = m;
+    if (sh->unk00 == 0) {
+        return;
+    }
+    for (i = 0; i < sh->unk00; i++) {
+        angle[i] = 360.0f / sh->unk00 * i;
+    }
+    for (i = 0; i < sh->unk00 * 8; i++) {
+        a = rand8() % sh->unk00;
+        b = rand8() % sh->unk00;
+        if (a != b) {
+            ft = angle[b];
+            angle[b] = angle[a];
+            angle[a] = ft;
+        }
+    }
+    for (i = 0; i < sh->unk00; i++) {
+        dist[i] = 525.0 / sh->unk00 * i;
+    }
+    for (i = 0; i < sh->unk00 * 8; i++) {
+        a = rand8() % sh->unk00;
+        b = rand8() % sh->unk00;
+        if (a != b) {
+            ft = dist[b];
+            dist[b] = dist[a];
+            dist[a] = ft;
+        }
+    }
+    for (i = 0; i < sh->unk00; i++) {
+        order[i] = i;
+    }
+    for (i = 0; i < sh->unk00 * 8; i++) {
+        a = rand8() % sh->unk00;
+        b = rand8() % sh->unk00;
+        if (a != b) {
+            it = order[b];
+            order[b] = order[a];
+            order[a] = it;
+        }
+    }
+    for (i = 0; i < 32; i++, shot++) {
+        if (i >= sh->unk00) {
+            shot->unk00 = 0;
+        } else {
+            for (j = 0; j < sh->unk04; j++) {
+                if (i == order[j]) {
+                    shot->unk02 = 1;
+                    j = sh->unk04;
+                }
+            }
+            shot->unk00 = 1;
+            shot->x = sindf(angle[i]) * dist[i];
+            shot->z = cosdf(angle[i]) * dist[i];
+            shot->y = 0.0f;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CA48_stardust_battle);
 
