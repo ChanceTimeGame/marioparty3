@@ -3078,7 +3078,86 @@ void func_8010FDF0_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FDF0_messy_memory);
 #endif
 
+#ifdef NON_MATCHING
+/* The minigame's start: resets the overlay state, creates every object, fades in, then runs func_8010FDF0. */
+void func_801109BC_messy_memory(omObjData *obj) {
+    u8 i;
+    u8 j;
+
+    D_80115D8E_messy_memory = 103;
+    D_80115D8C_messy_memory = 0;
+    D_80115D9A_messy_memory = 50;
+    D_80111638_messy_memory = 0;
+    D_8011165C_messy_memory = 1.0f;
+    D_801116A0_messy_memory = 1.0f;
+    D_80111639_messy_memory = 0;
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 2; j++) {
+            ((f32 *)&D_80115D20_messy_memory[i])[j] = 0.0f;
+        }
+    }
+    for (i = 0; i < 10; i++) {
+        D_801116A4_messy_memory[i] = 10;
+    }
+    for (i = 0; i < 20; i++) {
+        D_801116E0_messy_memory[i] = 10;
+    }
+    for (i = 0; i < 4; i++) {
+        D_80115D76_messy_memory[i] = 0;
+    }
+    for (i = 0; i < 10; i++) {
+        D_80115D90_messy_memory[i] = 10;
+    }
+    for (i = 0; i < 4; i++) {
+        D_80111670_messy_memory[i] = 0;
+    }
+    for (i = 0; i < 40; i++) {
+        D_801116B0_messy_memory[i] = 0;
+    }
+    D_8011163A_messy_memory = 0;
+    for (i = 0; i < 4; i++) {
+        D_80115D80_messy_memory[i] = 0;
+    }
+    D_80111600_messy_memory = 0.0f;
+    for (i = 0; i < 4; i++) {
+        D_80111630_messy_memory[i] = 0;
+    }
+    D_8011163B_messy_memory = 0;
+    D_80111675_messy_memory = 0;
+    D_80111674_messy_memory = 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 10; j++) {
+            D_80111678_messy_memory[i][j] = 0;
+        }
+    }
+    D_80115D7C_messy_memory = 0.1f;
+    for (i = 0; i < 10; i++) {
+        D_80111608_messy_memory[i] = 0;
+    }
+    D_80111634_messy_memory = 0;
+    D_8011163C_messy_memory = 0;
+    for (i = 0; i < 4; i++) {
+        D_80115D84_messy_memory[i] = -1;
+    }
+    D_80115D70_messy_memory = 0;
+    D_80111650_messy_memory = 0;
+    func_8010FC90_messy_memory();
+    func_80106588_messy_memory();
+    func_801061AC_messy_memory();
+    func_8010B4CC_messy_memory();
+    func_8010D910_messy_memory();
+    func_8010EE6C_messy_memory();
+    func_8010F644_messy_memory();
+    func_8010F15C_messy_memory();
+    func_8010C37C_messy_memory();
+    func_8010FBB0_messy_memory();
+    func_8010E500_messy_memory();
+    WipeCreateIn(255, 16);
+    obj->func = func_8010FDF0_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_801109BC_messy_memory);
+#endif
 
 void func_80110D48_messy_memory(void) {
 }
