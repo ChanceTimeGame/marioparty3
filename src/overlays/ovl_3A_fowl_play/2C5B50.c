@@ -2364,7 +2364,7 @@ void func_8010D81C_fowl_play(void) {
 }
 
 #ifdef NON_MATCHING
-/* Sorts the visible billboards by view depth into the opaque (D_8010DE00) and translucent (D_8010DE68) lists. */
+/* Sorts the visible, unhidden billboards near the camera by view depth into the opaque (D_8010F360) and translucent (D_8010F3C8) lists. */
 void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     PgBoard tail0;
     PgBoard tail1;
@@ -2398,6 +2398,9 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     for (i = 0; i < D_8010F350_fowl_play; i++) {
         b = &D_8010F32C_fowl_play[i];
         if (b->spr == NULL) {
+            continue;
+        }
+        if (b->flags & 0x8000) {
             continue;
         }
         if (b->pos.x < x0 || x1 < b->pos.x) {
