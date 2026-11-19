@@ -130,18 +130,26 @@ typedef struct CcCtrl {
 void func_8010F134_stacked_deck(void);
 void func_8010655C_stacked_deck(omObjData *obj);
 void func_8010669C_stacked_deck(omObjData *obj);
+void func_80106694_stacked_deck(omObjData *obj);
+void func_80106554_stacked_deck(omObjData *obj);
 void func_8010C188_stacked_deck(omObjData *obj);
 void func_8010D58C_stacked_deck(omObjData *obj);
 void func_8010DAE4_stacked_deck(omObjData *obj);
 void func_8010DDAC_stacked_deck(omObjData *obj);
 void func_8010E368_stacked_deck(omObjData *obj);
 void func_8010E650_stacked_deck(omObjData *obj);
+void func_8010EFC4_stacked_deck(void);
+void func_8010ED44_stacked_deck(omObjData *obj);
+void func_8010E734_stacked_deck(omObjData *obj);
+extern const s16 D_8010F6E8_stacked_deck[];
 
 /* .rodata */
 extern char D_8010F42C_stacked_deck[]; /* "card_k_DEF" */
 
 /* .data */
 extern s32 D_8010F35C_stacked_deck;
+extern CcCamera D_8010F360_stacked_deck[1]; /* asm labels D_8010F364..D_8010F388 are its fields */
+extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like, 0x28) */
 
 /* .bss (still asm: ovl_2A_bss.bss.s) */
 extern s8 D_8010F6F4_stacked_deck;
@@ -151,7 +159,7 @@ extern CcEnt D_8010F7B4_stacked_deck;    /* = D_8010F730_stacked_deck[1] */
 extern CcEnt D_8010FA48_stacked_deck[12]; /* = D_8010F730_stacked_deck[6] */
 extern CcEnt D_80110078_stacked_deck[3]; /* = D_8010F730_stacked_deck[18] */
 extern CcEnt D_8011030C_stacked_deck[3]; /* = D_8010F730_stacked_deck[23] */
-extern s16 D_80111150_stacked_deck[];
+extern s16 D_80111150_stacked_deck[12];
 
 
 void func_801059A0_stacked_deck(void) {
@@ -379,10 +387,23 @@ void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801063F4_stacked_deck);
 #endif
 
-void func_80106554_stacked_deck(void) {
+void func_80106554_stacked_deck(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010655C_stacked_deck);
+void func_8010655C_stacked_deck(omObjData *obj) {
+    CcGround *gw;
+
+    D_800EC1C0_minigame[(u16)D_800EBE28_minigame++] = obj;
+    obj->data = gw = HuMemAllocTag(sizeof(CcGround), 31000);
+    memset(gw, 0, sizeof(CcGround));
+    gw->unk03 = 1;
+    gw->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.5f);
+    func_800E1310_minigame(obj, D_800EB73C_minigame);
+    func_800E139C_minigame(D_800EC1C0_minigame[0], 1.0f, -5060.0f, -5000.0f, 5060.0f, 5000.0f);
+    obj->func = func_80106554_stacked_deck;
+}
 
 void func_80106654_stacked_deck(void) {
     omObjData *obj = omAddObj(998, 1, 1, -1, func_8010655C_stacked_deck);
@@ -391,10 +412,20 @@ void func_80106654_stacked_deck(void) {
     D_8010F730_stacked_deck[0].obj = obj;
 }
 
-void func_80106694_stacked_deck(void) {
+void func_80106694_stacked_deck(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010669C_stacked_deck);
+void func_8010669C_stacked_deck(omObjData *obj) {
+    CcEnt *ent = &D_8010F7B4_stacked_deck;
+
+    ent->grp = func_8000B838_main(0x4B0000);
+    ent->spr = InitEspriteSlot(ent->grp, 0, 0);
+    func_8000BC48_main(ent->spr, 0x4000);
+    ent->pos.x = 160.0f;
+    ent->pos.y = 120.0f;
+    func_8000BBD4_main(ent->spr, 160, 120);
+    obj->func = func_80106694_stacked_deck;
+}
 
 void func_80106738_stacked_deck(void) {
     omObjData *obj = omAddObj(999, 1, 1, -1, func_8010669C_stacked_deck);
@@ -502,7 +533,18 @@ void func_8010E590_stacked_deck(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010E650_stacked_deck);
+void func_8010E650_stacked_deck(omObjData *obj) {
+    s16 i;
+
+    for (i = 0; i < 6; i++) {
+        DataClose(D_8010F708_stacked_deck[i]);
+    }
+    for (i = 0; i < 12; i++) {
+        func_80033354_main(D_80111150_stacked_deck[i]);
+    }
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
 
 void func_8010E6FC_stacked_deck(omObjData *object) {
     if (WipeStatGet() == 0) {
@@ -526,8 +568,49 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010ED4
 void func_8010EFBC_stacked_deck(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010EFC4_stacked_deck);
+void func_8010EFC4_stacked_deck(void) {
+    omObjData *obj;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010F134_stacked_deck);
+    obj = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    obj->work[0] = 1;
+    omSetStatBit(obj, 0xA0);
+    func_8000B5F0_main(1);
+    func_8000B710_main(1);
+    for (i = 0; i < 1; i++) {
+        ScissorSet(i, D_8010F360_stacked_deck[i].scissor[0], D_8010F360_stacked_deck[i].scissor[1],
+                   D_8010F360_stacked_deck[i].scissor[2], D_8010F360_stacked_deck[i].scissor[3]);
+        ViewportSet(i, D_8010F360_stacked_deck[i].viewport[0], D_8010F360_stacked_deck[i].viewport[1],
+                    D_8010F360_stacked_deck[i].viewport[2], D_8010F360_stacked_deck[i].viewport[3],
+                    D_8010F360_stacked_deck[i].viewport[4], D_8010F360_stacked_deck[i].viewport[5]);
+        Hu3DCamSetPerspective(i, D_8010F360_stacked_deck[i].fov, 80.0f, 8000.0f);
+    }
+}
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", D_8010F6E8_stacked_deck);
+void func_8010F134_stacked_deck(void) {
+    Hu3DAnimInit(50);
+    func_800142A0_main(50);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    func_8010EFC4_stacked_deck();
+    HmfLightMaxSet(1);
+    HmfLightMaxSet(2);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(0, 0.0f, 90.0f, 560.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, 0.0f, 90.0f, 560.0f);
+    HmfLightColorSet(2, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(2, 0.0f, 90.0f, 560.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_80045010_main(D_8010F6E8_stacked_deck, 0);
+    func_80045010_main(D_8010F6E8_stacked_deck, 1);
+    omAddObj(1000, 0, 0, -1, func_8010ED44_stacked_deck);
+    omAddObj(1000, 0, 0, -1, func_8010E734_stacked_deck);
+    func_80105A74_stacked_deck();
+    func_800E5EA0_minigame((D_80111B50_vine_with_me_Struct *)&D_8010F334_stacked_deck);
+}
+
+const s16 D_8010F6E8_stacked_deck[] = { 0x8260, 0x8261, 0x8262, 0 };
+
