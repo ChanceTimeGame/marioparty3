@@ -89,12 +89,12 @@ extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
 extern s16 D_8011133C_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
-/* The intro movers' walks, per mover: z and x step, the z where it stops, and one more value. */
+/* The intro movers' walks, per mover: z and x step, the z where it stops, the start heading. */
 typedef struct MmWalk {
     /* 0x00 */ f32 dz;
     /* 0x04 */ f32 dx;
     /* 0x08 */ f32 z;
-    /* 0x0C */ f32 unk0C;
+    /* 0x0C */ f32 roty;
 } MmWalk; // Size 0x10
 extern MmWalk D_80111228_messy_memory[7];
 extern s32 D_80111148_messy_memory[10][2]; /* item image groups, the players' boards */
@@ -107,6 +107,7 @@ extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
+extern s32 D_8011163C_messy_memory; /* the intro mover model (s16 value; retail reads its low half, D_8011163E) */
 extern s32 D_80111608_messy_memory[10]; /* item sprite groups (s16 values) */
 extern s32 D_80111634_messy_memory; /* the shadow sprite group (s16 value; retail reads its low half, D_80111636) */
 extern HuSprite_Unk84_Struct *D_80111654_messy_memory; /* the room backdrop image */
@@ -198,6 +199,7 @@ void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_8010D55C_messy_memory(omObjData *obj);
 void func_8010E29C_messy_memory(omObjData *obj);
+void func_8010E654_messy_memory(omObjData *obj);
 void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -2435,7 +2437,57 @@ void func_8010E654_messy_memory(omObjData *obj) {
     Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z + 0.0f);
 }
 
+#ifdef NON_MATCHING
+/* Sets up intro mover work[0]: the first loads the model and its motions, the others link to it; a shadow model. */
+void func_8010EBB0_messy_memory(omObjData *obj) {
+    omObjData *o0;
+    u8 i;
+
+    o0 = D_801134E8_messy_memory[0].obj;
+    if (obj->work[0] == 0) {
+        obj->model[0] = func_8000B108_main(0xA0000, 0xB9);
+        D_8011163C_messy_memory = obj->model[0];
+        func_8000B460_main(obj, 0, 0xA0001);
+        func_8000B460_main(obj, 1, 0xA0002);
+        func_8000B460_main(obj, 2, 0xA0006);
+        func_8000B460_main(obj, 3, 0xA0007);
+        func_8000B460_main(obj, 4, 0xA0009);
+    } else {
+        obj->model[0] = Hu3DModelLink((s16)D_8011163C_messy_memory);
+    }
+    obj->model[1] = func_8000B0A0_main(0, 0xA9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 15.0f, 0.0f);
+    func_8001C5B4_main(obj->model[0], o0->motion[2]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    func_8001C6A8_main(obj->model[0], 0.0f);
+    obj->trans.x = 0.0f;
+    obj->trans.y = 0.0f;
+    for (i = 0; i < 7; i++) {
+        if (i == obj->work[0]) {
+            obj->trans.z = i * 80 + 120.0f;
+        }
+    }
+    obj->rot.x = 0.0f;
+    obj->rot.y = D_80111228_messy_memory[obj->work[0]].roty;
+    obj->rot.z = 0.0f;
+    obj->scale.x = 0.8f;
+    obj->scale.y = 0.8f;
+    obj->scale.z = 0.8f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    obj->func = func_8010E654_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010EBB0_messy_memory);
+#endif
 
 void func_8010EE6C_messy_memory(void) {
     omObjData *obj;
