@@ -69,6 +69,17 @@ typedef struct PzMatch {
     /* 0x08 */ s32 state;
 } PzMatch; /* size 0xC */
 
+/* A block falling into place (func_80108C80's user data) */
+typedef struct PzFall {
+    /* 0x00 */ s32 unk0; /* player */
+    /* 0x04 */ s32 unk4; /* handle */
+    /* 0x08 */ s32 unk8; /* x */
+    /* 0x0C */ s32 unkC; /* y */
+    /* 0x10 */ s32 unk10; /* colour */
+    /* 0x14 */ s32 unk14; /* state */
+    /* 0x18 */ s32 unk18;
+} PzFall; /* size 0x1C */
+
 // main
 void Hu3DAnimInit(s32);
 void func_80021BE0_main(s32* arg0, s32 n);
@@ -108,7 +119,7 @@ void func_80105D50_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col
 u16 func_80105E88_marios_puzzle_party(s32 player);
 u16 func_80105FCC_marios_puzzle_party(s32 player, s32 mask);
 void func_8010604C_marios_puzzle_party(void);
-s16 func_80106A44_marios_puzzle_party(s32 color, s32 kind, s32 state, s32 x, s32 y);
+s32 func_80106A44_marios_puzzle_party(s32 player, s32 color, s32 state, s32 x, s32 y);
 s32 func_80106ACC_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir);
 s32 func_80106BB0_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir);
 s32 func_80106C98_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy);
@@ -183,58 +194,313 @@ extern s32 D_80116218_marios_puzzle_party[4];
 extern s32 D_80116228_marios_puzzle_party[4];
 extern PzPiece D_80116238_marios_puzzle_party[4];
 extern PzPiece D_80116308_marios_puzzle_party[4];
+extern s32 D_80116100_marios_puzzle_party;
+extern Process* D_801163D8_marios_puzzle_party[4];
+extern s32 D_801163E8_marios_puzzle_party;
+extern PzMatch D_801163F0_marios_puzzle_party[80];
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801059A0_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105C98_marios_puzzle_party);
 
+#ifdef NON_MATCHING
+void func_80105D50_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row) {
+    PzCell* cells = D_801102E0_marios_puzzle_party[player][col];
+    PzCell* cell = &cells[row];
+
+    cell->unkC = color;
+    cell->unk4 = col * 14 + D_80110080_marios_puzzle_party[player].x;
+    cell->unk8 = D_80110080_marios_puzzle_party[player].y - row * 7;
+    cell->unk10 = state;
+    cell->unk0 = func_80106A44_marios_puzzle_party(player, cell->unkC, cell->unk10, cell->unk4, cell->unk8);
+    if (state == 1) {
+        cells[row + 1].unkC = color;
+        cells[row + 1].unk4 = cell->unk4;
+        cells[row + 1].unk8 = cell->unk8 - 7;
+        cells[row + 1].unk10 = 2;
+        cells[row + 1].unk0 = cell->unk0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105D50_marios_puzzle_party);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105E88_marios_puzzle_party);
+u16 func_80105E88_marios_puzzle_party(s32 player) {
+    u16 btn;
 
+    if (!(GwPlayer[player].stat & 1)) {
+        btn = D_800CDA7C_main[GwPlayer[player].pad];
+        btn &= 0xF0FF;
+        if (D_800CBB6E_main[GwPlayer[player].pad] > 30.0f) {
+            btn |= 0x100;
+        }
+        if (D_800CBB6E_main[GwPlayer[player].pad] < -30.0f) {
+            btn |= 0x200;
+        }
+        if (D_800D20A1_main[GwPlayer[player].pad] < -30.0f) {
+            btn |= 0x400;
+        }
+    } else {
+        btn = D_80114DE0_marios_puzzle_party[player].unk40;
+    }
+    return btn;
+}
+
+#ifdef NON_MATCHING
+u16 func_80105FCC_marios_puzzle_party(s32 player, s32 mask) {
+    u16 ret;
+    PzAi* ai;
+
+    if (!(GwPlayer[player].stat & 1)) {
+        ret = D_800D5558_main[GwPlayer[player].pad] & mask;
+    } else {
+        ai = &D_80114DE0_marios_puzzle_party[player];
+        ret = mask & ai->unk42;
+        ai->unk42 = ai->unk42 & ~mask;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105FCC_marios_puzzle_party);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010604C_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106A44_marios_puzzle_party);
+s32 func_80106A44_marios_puzzle_party(s32 player, s32 color, s32 state, s32 x, s32 y) {
+    s32 handle = func_8010FEDC_marios_puzzle_party(player * 7 + color, x, y);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106ACC_marios_puzzle_party);
+    if (state != 1) {
+        func_8010FFBC_marios_puzzle_party(handle, 1.0f, 0.5f);
+    }
+    return handle;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106BB0_marios_puzzle_party);
+s32 func_80106ACC_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir) {
+    s32 ret = TRUE;
+    s32 dx = -14;
+    s32 col;
+    s32 row;
+    PzCell* cells;
+    PzCell* cell;
+
+    if (dir > 0) {
+        dx = 14;
+    }
+    col = (dx + piece->unk2C - D_80110080_marios_puzzle_party[player].x) / 14.0f;
+    row = (D_80110080_marios_puzzle_party[player].y - piece->unk30) / 7.0f;
+    cells = D_801102E0_marios_puzzle_party[player][col];
+    cell = &cells[row];
+    if (cell->unk10 == 0) {
+        ret = FALSE;
+    }
+    return ret;
+}
+
+s32 func_80106BB0_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir) {
+    s32 ret = TRUE;
+    s32 dx = -28;
+    s32 col;
+    s32 row;
+    PzCell* cells;
+    PzCell* cell;
+
+    if (dir > 0) {
+        dx = 14;
+    }
+    col = (dx + piece->unk2C - D_80110080_marios_puzzle_party[player].x) / 14.0f;
+    row = (D_80110080_marios_puzzle_party[player].y - (piece->unk30 + 14.0f)) / 7.0f;
+    cells = D_801102E0_marios_puzzle_party[player][col];
+    cell = &cells[row];
+    if (cell->unk10 == 0) {
+        ret = FALSE;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106C98_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106E40_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107000_marios_puzzle_party);
+s32 func_80107000_marios_puzzle_party(s32 player, s32 col) {
+    s32 row = 1;
+    PzCell* cells = D_801102E0_marios_puzzle_party[player][col];
+    PzCell* cell;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107070_marios_puzzle_party);
+    for (; row < 40; row++) {
+        cell = &cells[row];
+        if (cell->unk10 == 0) {
+            break;
+        }
+    }
+    return row;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107108_marios_puzzle_party);
+s32 func_80107070_marios_puzzle_party(s32 player, s32 col) {
+    s32 row = 1;
+    s32 n = 0;
+    PzCell* cells = D_801102E0_marios_puzzle_party[player][col];
+    PzCell* cell;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010718C_marios_puzzle_party);
+    for (; row < 40; row++) {
+        cell = &cells[row];
+        if (cell->unk10 == 0) {
+            break;
+        }
+        if (cell->unk10 == 1) {
+            row++;
+            n++;
+        }
+        if (cell->unk10 == 3) {
+            n++;
+        }
+    }
+    return n;
+}
 
+s32 func_80107108_marios_puzzle_party(s32 player, s32 col) {
+    s32 row = 1;
+    s32 n = 0;
+    PzCell* cells = D_801102E0_marios_puzzle_party[player][col];
+    s32 state;
+
+    PzCell* cell;
+
+    for (; row < 40;) {
+        cell = &cells[row];
+        state = cell->unk10;
+        if (state == 0) {
+            break;
+        }
+        row++;
+        if (state == 1) {
+            n++;
+            row++;
+        }
+    }
+    return n;
+}
+
+s32 func_8010718C_marios_puzzle_party(s32 col, s32 row) {
+    PzMatch* m;
+    s32 i;
+
+    for (i = 0; i < D_801163E8_marios_puzzle_party; i++) {
+        m = &D_801163F0_marios_puzzle_party[i];
+        if (col == m->col && row == m->row) {
+            return TRUE;
+        }
+        if (m->state == 1 && col == m->col && row == m->row + 1) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+#ifdef NON_MATCHING
+void func_80107224_marios_puzzle_party(s32 player, s32 col, s32 row) {
+    PzCell* cell = &D_801102E0_marios_puzzle_party[player][col][row];
+
+    if (cell->unkC != 6) {
+        D_80116188_marios_puzzle_party[player]++;
+    }
+    func_8010D290_marios_puzzle_party(player, col, row);
+    if (cell->unk10 == 2) {
+        row--;
+        cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    }
+    func_80110000_marios_puzzle_party(cell->unk0);
+    cell->unk0 = -1;
+    if (cell->unk10 == 1) {
+        D_801102E0_marios_puzzle_party[player][col][row + 1].unkC = -1;
+        D_801102E0_marios_puzzle_party[player][col][row + 1].unk10 = 0;
+    }
+    D_801102E0_marios_puzzle_party[player][col][row].unkC = -1;
+    D_801102E0_marios_puzzle_party[player][col][row].unk10 = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107224_marios_puzzle_party);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107400_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107880_marios_puzzle_party);
 
+#ifdef NON_MATCHING
+void func_80107BB0_marios_puzzle_party(s32 player) {
+    s32 i;
+
+    for (i = 0; i < D_801163E8_marios_puzzle_party; i++) {
+        func_80107224_marios_puzzle_party(player, D_801163F0_marios_puzzle_party[i].col, D_801163F0_marios_puzzle_party[i].row);
+        D_80116148_marios_puzzle_party[player] += 1 + D_80116108_marios_puzzle_party[player];
+        D_80116138_marios_puzzle_party[player] += 1 + D_80116108_marios_puzzle_party[player];
+        func_80107880_marios_puzzle_party(player, D_801163F0_marios_puzzle_party[i].col, D_801163F0_marios_puzzle_party[i].row, 6,
+                                          D_801163F0_marios_puzzle_party[i].state);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107BB0_marios_puzzle_party);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107CBC_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80108568_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801088F4_marios_puzzle_party);
+#ifdef NON_MATCHING
+void func_801088F4_marios_puzzle_party(s32 player, PzPiece* piece) {
+    PzCell* cell;
+    s32 i;
 
+    for (i = 0; i < 2; i++) {
+        cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][i + piece->unk18];
+        cell->unk0 = piece->unk8;
+        cell->unk4 = piece->unk2C;
+        cell->unk8 = piece->unk30;
+        cell->unkC = piece->unk1C;
+        cell->unk10 = i + 1;
+    }
+    for (i = 0; i < 2; i++) {
+        cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][i + 2 + piece->unk18];
+        cell->unk0 = piece->unkC;
+        cell->unk4 = piece->unk2C;
+        cell->unk8 = piece->unk30 - 14.0f;
+        cell->unkC = piece->unk20;
+        cell->unk10 = i + 1;
+    }
+    func_80108568_marios_puzzle_party(player, 1);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801088F4_marios_puzzle_party);
+#endif
+
+#ifdef NON_MATCHING
+s32 func_80108A50_marios_puzzle_party(s32 player, s32 kind, s32 color, s32 col, s32 row) {
+    s32 n = 0;
+
+    if (color != 6) {
+        n = (D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color) +
+            (D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color) +
+            (D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color);
+        if (kind == 1) {
+            n += (D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color) +
+                 (D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color);
+            n += D_801102E0_marios_puzzle_party[player][col][row + 2].unkC == color;
+        } else {
+            n += D_801102E0_marios_puzzle_party[player][col][row + 1].unkC == color;
+        }
+    }
+    return n;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80108A50_marios_puzzle_party);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80108BB0_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80108C80_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010913C_marios_puzzle_party);
+void func_8010913C_marios_puzzle_party(void) {
+    func_80019C00_main(HuPrcCurrentGet()->user_data);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80109160_marios_puzzle_party);
 
@@ -242,13 +508,47 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801098A0_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80109C04_marios_puzzle_party);
+void func_80109C04_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row, s32 arg5) {
+    Process* proc;
+    PzCell* cell;
+    PzFall* fall;
+
+    func_80105D50_marios_puzzle_party(player, color, state, col, row);
+    cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    if (cell->unk10 == 1 || cell->unk10 == 3) {
+        proc = omAddPrcObj(func_80108C80_marios_puzzle_party, 0x4001, 0x800, 0);
+        HuPrcChildLink(HuPrcCurrentGet(), proc);
+        fall = HuMemAlloc(sizeof(PzFall));
+        proc->user_data = fall;
+        fall->unk0 = player;
+        fall->unk4 = cell->unk0;
+        fall->unk8 = cell->unk4;
+        fall->unkC = cell->unk8;
+        fall->unk10 = cell->unkC;
+        fall->unk14 = cell->unk10;
+        fall->unk18 = arg5;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80109D24_marios_puzzle_party);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A0D8_marios_puzzle_party);
 
+#ifdef NON_MATCHING
+s32 func_8010A4B4_marios_puzzle_party(s32 player, s32 x, s32 y) {
+    s32 row = (D_80110080_marios_puzzle_party[player].y - y) / 7;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (D_801102E0_marios_puzzle_party[player][(x - D_80110080_marios_puzzle_party[player].x) / 14][row + i].unk10 != 0) {
+            break;
+        }
+    }
+    return !(i < 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A4B4_marios_puzzle_party);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A588_marios_puzzle_party);
 
@@ -927,7 +1227,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D290_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D46C_marios_puzzle_party);
+void func_8010D46C_marios_puzzle_party(void) {
+    func_80019C00_main(HuPrcCurrentGet()->user_data);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D490_marios_puzzle_party);
 
@@ -945,7 +1247,15 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010ECD8_marios_puzzle_party);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010EEB0_marios_puzzle_party);
+void func_8010EEB0_marios_puzzle_party(void) {
+    s32 i;
+
+    for (i = 0; i < D_80116100_marios_puzzle_party; i++) {
+        if (D_80116168_marios_puzzle_party[i] == 0) {
+            omDelPrcObj(D_801163D8_marios_puzzle_party[i]);
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", D_801102B4_marios_puzzle_party);
 
