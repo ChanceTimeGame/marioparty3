@@ -981,6 +981,8 @@ void func_80106BC8_stacked_deck(omObjData *obj) {
                     pl->unk08 = 2;
                 }
                 break;
+            case 2:
+                break;
             }
         }
         busy = 0;
@@ -1141,6 +1143,8 @@ void func_80106BC8_stacked_deck(omObjData *obj) {
                     obj->trans.x = 3000.0f;
                     pl->unk08 = 2;
                 }
+                break;
+            case 2:
                 break;
             }
         } else if (D_8011116E_stacked_deck >= obj->work[1]) {
