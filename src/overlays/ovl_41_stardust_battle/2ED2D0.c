@@ -254,7 +254,7 @@ typedef struct SbItem {
     /* 0x14 */ s16 unk14; /* state timer */
     /* 0x16 */ s16 unk16; /* state */
     /* 0x18 */ s16 unk18; /* glow shown */
-    /* 0x1A */ char unk1A[2];
+    /* 0x1A */ s16 unk1A;
     /* 0x1C */ Vec unk1C; /* previous position */
     /* 0x28 */ Vec unk28; /* position */
     /* 0x34 */ Vec unk34; /* rotation */
@@ -453,6 +453,7 @@ void func_80109B18_stardust_battle(omObjData *obj);
 void func_8010A418_stardust_battle(omObjData *obj);
 
 void func_8010CB34_stardust_battle(void);
+void func_8010CE5C_stardust_battle(omObjData *obj);
 void func_8010EE7C_stardust_battle(void);
 void func_8010F400_stardust_battle(s32, s32);
 void func_8010FA60_stardust_battle(void);
@@ -2882,14 +2883,65 @@ void func_8010C5A8_stardust_battle(s32 n, s32 m) {
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CA48_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CB34_stardust_battle);
+void func_8010CB34_stardust_battle(void) {
+    SbItems *items;
+    SbItem *item;
+    s32 i;
+
+    D_80114B2C_stardust_battle = items = HuMemAllocTag(sizeof(SbItems), 31000);
+    memset(items, 0, sizeof(SbItems));
+    items->unk00 = func_8000B108_main(0x620005, 0x49D);
+    items->unk02 = func_8000B108_main(0x620006, 0x49D);
+    items->unk04 = func_8000B108_main(0, 0x149D);
+    items->unk06 = func_8000B108_main(0x620008, 0x189D);
+    items->unk08 = 10;
+    items->unk0C = item = HuMemAllocTag(sizeof(SbItem) * 10, 31000);
+    memset(item, 0, items->unk08 * sizeof(SbItem));
+    for (i = 0; i < items->unk08; i++, item++) {
+        item->unk00 = 0;
+        if (i == 0) {
+            item->unk02[0] = items->unk00;
+            item->unk06[0] = Hu3DModelLink(items->unk00);
+            item->unk02[1] = items->unk02;
+            item->unk06[1] = Hu3DModelLink(items->unk02);
+            item->unk0A = items->unk04;
+        } else {
+            item->unk02[0] = Hu3DModelLink(items->unk00);
+            item->unk06[0] = Hu3DModelLink(items->unk00);
+            item->unk02[1] = Hu3DModelLink(items->unk02);
+            item->unk06[1] = Hu3DModelLink(items->unk02);
+            item->unk0A = Hu3DModelLink(items->unk04);
+        }
+        func_8001C258_main(item->unk02[0], 4, 4);
+        func_8001C258_main(item->unk06[0], 4, 4);
+        func_8001C258_main(item->unk02[1], 4, 4);
+        func_8001C258_main(item->unk06[1], 4, 4);
+        func_8001C258_main(item->unk0A, 4, 4);
+        func_80017D24_main((f32(*)[4])HmfModelData[item->unk06[0]].mtx, 180.0f, 0.0f, 0.0f);
+        func_80017D24_main((f32(*)[4])HmfModelData[item->unk06[0]].mtx, 0.0f, 180.0f, 0.0f);
+        func_80017D24_main((f32(*)[4])HmfModelData[item->unk06[1]].mtx, 180.0f, 0.0f, 0.0f);
+        func_80017D24_main((f32(*)[4])HmfModelData[item->unk06[1]].mtx, 0.0f, 180.0f, 0.0f);
+        item->unk0C = func_8000B108_main(0x620007, 0x189D);
+        Hu3DModelScaleSet(item->unk0C, 0.75f, 0.75f, 0.75f);
+        func_8001C954_main(item->unk0C);
+        item->unk0E = 0;
+        item->unk10 = 0;
+        item->unk12 = 0;
+        item->unk68 = item->unk6C = 0.0f;
+        item->unk70 = item->unk74 = item->unk78 = 0.0f;
+        item->unk14 = 0;
+        item->unk16 = 3;
+        item->unk1A = -1;
+    }
+    omSetStatBit(omAddObj(18, 0, 0, -1, func_8010CE5C_stardust_battle), 0xA0);
+}
 
 extern RGBA D_80113EC4_stardust_battle[];
 void func_8001CAA4_main(s16 arg0, s16 arg1, f32 arg2);
 
 /* NON_MATCHING: loop-invariant hoisting only: retail keeps 100.0 (the random-step scale) in s6/s7 and reloads 0.01 from the pool at each use; mine keeps 0.01 in s6/s7 and reloads 100.0 */
 #ifdef NON_MATCHING
-void func_8010CE5C_stardust_battle(void) {
+void func_8010CE5C_stardust_battle(omObjData *obj) {
     SbItems *items = D_80114B2C_stardust_battle;
     SbItem *item = items->unk0C;
     s32 stage = func_8010929C_stardust_battle();
