@@ -8,6 +8,14 @@
 #include "mallocblock.h"
 #include "math.h"
 
+typedef struct BtStrip {
+    /* 0x00 */ s16 sprite; /* index into D_8010FB98_bowser_toss */
+    /* 0x02 */ s16 frame;
+} BtStrip;
+
+extern f32 D_8010F34C_bowser_toss;
+extern BtStrip D_8010F350_bowser_toss[8];
+
 extern s32 D_8010F3EC_bowser_toss; /* debug camera mode */
 extern s32 D_8010F3F0_bowser_toss; /* debug camera index */
 extern s32 D_8010F3F4_bowser_toss; /* debug text x; D_8010F3F6 = low half */
@@ -1910,7 +1918,82 @@ void func_8010AD98_bowser_toss(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AD98_bowser_toss);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AF38_bowser_toss);
+/* Scroll one screen's 2 x 2 background tiles to follow its camera. */
+void func_8010AF38_bowser_toss(s16 side, Vec* center, Vec* rot) {
+    s16 grp;
+    f32 x;
+    f32 y;
+    f32 fy;
+    f32 sx;
+    f32 sy;
+    s16 row;
+    BtStrip* e;
+
+    grp = D_8010FB9C_bowser_toss[side];
+    x = (center->x - Center.x) / D_8010F34C_bowser_toss;
+    y = (center->y - Center.y) / D_8010F34C_bowser_toss;
+    if (x == 0.0f) {
+        HuSprAttrSet(grp, 1, 0x8000);
+        HuSprAttrSet(grp, 3, 0x8000);
+    } else {
+        HuSprAttrReset(grp, 1, 0x8000);
+        HuSprAttrReset(grp, 3, 0x8000);
+    }
+    if (y == 0.0f) {
+        HuSprAttrSet(grp, 2, 0x8000);
+        HuSprAttrSet(grp, 3, 0x8000);
+    } else {
+        HuSprAttrReset(grp, 2, 0x8000);
+        HuSprAttrReset(grp, 3, 0x8000);
+    }
+    row = y / 120.0f;
+    if (side == 0) {
+        x = -fmod(x, 320.0);
+        fy = fmod(y, 120.0);
+    } else {
+        x = -fmod(x, 320.0);
+        fy = fmod(y, 120.0) + 120.0;
+    }
+    if (center->x >= 0.0f) {
+        sx = 1.0f;
+    } else {
+        sx = -1.0f;
+    }
+    if (center->y >= 0.0f) {
+        sy = 1.0f;
+    } else {
+        sy = -1.0f;
+    }
+    if (row >= 8) {
+        row = 7;
+    } else if (row < 0) {
+        row = 0;
+    }
+    e = &D_8010F350_bowser_toss[row];
+    func_80054904_main(grp, 0, x, fy);
+    func_80055024_main(grp, 0, D_8010FB98_bowser_toss[e->sprite], e->frame);
+    func_80054FF8_main(grp, 0, e->frame);
+    func_80054904_main(grp, 1, x + sx * 320.0f, fy);
+    func_80055024_main(grp, 1, D_8010FB98_bowser_toss[e->sprite], e->frame);
+    func_80054FF8_main(grp, 1, e->frame);
+    if (sy >= 0.0f) {
+        row++;
+    } else {
+        row--;
+    }
+    if (row >= 8) {
+        row = 7;
+    } else if (row < 0) {
+        row = 0;
+    }
+    e = &D_8010F350_bowser_toss[row];
+    func_80054904_main(grp, 2, x, fy - sy * 120.0f);
+    func_80055024_main(grp, 2, D_8010FB98_bowser_toss[e->sprite], e->frame);
+    func_80054FF8_main(grp, 2, e->frame);
+    func_80054904_main(grp, 3, x + sx * 320.0f, fy - sy * 120.0f);
+    func_80055024_main(grp, 3, D_8010FB98_bowser_toss[e->sprite], e->frame);
+    func_80054FF8_main(grp, 3, e->frame);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010B41C_bowser_toss);
 
