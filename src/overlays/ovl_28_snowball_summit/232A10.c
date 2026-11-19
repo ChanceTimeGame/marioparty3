@@ -270,6 +270,7 @@ void func_8010DD00_snowball_summit(SsBall *ball);
 void func_8010DFD0_snowball_summit(SsBall *ball);
 void func_8010E2F4_snowball_summit(SsBall *ball);
 void func_8010E52C_snowball_summit(SsBall *ball);
+void func_8010E824_snowball_summit(SsBall *ball);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
 void func_8010EEEC_snowball_summit(omObjData *obj);
@@ -2644,7 +2645,68 @@ void func_8010E52C_snowball_summit(SsBall *ball) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010E824_snowball_summit);
+/* A rolling snowball: players first, then other snowballs (a rolled one, or one not much bigger, bursts). */
+void func_8010E824_snowball_summit(SsBall *ball) {
+    omObjData *obj = ball->obj;
+    Vec d;
+    SsBall *other;
+    SsSlot16 *sl;
+    f64 reach;
+    f32 dist;
+    s32 i;
+
+    func_8010E52C_snowball_summit(ball);
+    for (i = 0; i < 16; i++) {
+        if (i != obj->work[0]) {
+            other = &D_8010FC30_snowball_summit[i];
+            if (other->state > 0) {
+                func_80107908_snowball_summit(obj->trans.x, obj->trans.z, other->obj->trans.x, other->obj->trans.z, &d);
+                reach = ball->size * 37.5 + other->size * 37.5;
+                dist = d.x;
+                if (dist < 0.0f) {
+                    dist = -dist;
+                }
+                if (dist < reach) {
+                    if (ball->owner != -1) {
+                        ball->state = 20;
+                        if (ball->sfxOn == 1 && ball->sfx != -1) {
+                            HuAudFXStop((s16)ball->sfx);
+                            ball->sfxOn = 0;
+                            ball->sfx = -1;
+                            D_8011024C_snowball_summit = 0;
+                        }
+                        sl = &D_80110250_snowball_summit[ball->owner];
+                        if (sl->sfxOn == 1 && sl->sfx != -1) {
+                            HuAudFXStop((s16)sl->sfx);
+                            sl->sfxOn = 0;
+                            sl->sfx = -1;
+                        }
+                    } else if (other->owner == -1) {
+                        if (!(ball->size - other->size < 0.2)) {
+                            continue;
+                        }
+                        ball->state = 20;
+                        if (ball->sfxOn == 1 && ball->sfx != -1) {
+                            HuAudFXStop((s16)ball->sfx);
+                            ball->sfxOn = 0;
+                            ball->sfx = -1;
+                            D_8011024C_snowball_summit = 0;
+                        }
+                    } else {
+                        ball->state = 20;
+                        if (ball->sfxOn == 1 && ball->sfx != -1) {
+                            HuAudFXStop((s16)ball->sfx);
+                            ball->sfxOn = 0;
+                            ball->sfx = -1;
+                            D_8011024C_snowball_summit = 0;
+                        }
+                    }
+                    HuAudFXPlay(0x43F);
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EA68_snowball_summit);
 
