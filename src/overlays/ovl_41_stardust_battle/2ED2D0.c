@@ -210,7 +210,17 @@ typedef struct SbShots {
 /* One of the 16 defeat stars (D_80114B5C_stardust_battle, 16 x 0x28). */
 typedef struct SbStar {
     /* 0x00 */ s16 unk00; /* shown */
-    /* 0x02 */ char unk02[0x26];
+    /* 0x02 */ s16 unk02; /* model */
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ f32 unk0C;
+    /* 0x10 */ f32 unk10; /* angle */
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ f32 unk24;
 } SbStar; // Size 0x28
 
 /* An item (SbItems::unk0C, 0x7C each). */
@@ -2947,7 +2957,62 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FCBC_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FE74_stardust_battle);
+void func_80110364_stardust_battle(omObjData *obj);
+s16 func_801122D0_stardust_battle(void);
+
+void func_8010FE74_stardust_battle(void) {
+    f32 angles[16];
+    SbStar *star;
+    omObjData *obj;
+    s32 i;
+    s32 a;
+    s32 b;
+    f32 tmp;
+    s16 grp;
+
+    star = D_80114B5C_stardust_battle = HuMemAllocTag(sizeof(SbStar) * 16, 31000);
+    obj = D_80114B58_stardust_battle = omAddObj(30, 1, 0, -1, func_80110364_stardust_battle);
+    for (i = 0; i < 16; i++) {
+        angles[i] = i * 22.5f;
+    }
+    for (i = 0; i < 512; i++) {
+        a = rand8() & 0xF;
+        b = rand8() & 0xF;
+        if (a != b) {
+            tmp = angles[a];
+            angles[a] = angles[b];
+            angles[b] = tmp;
+        }
+    }
+    for (i = 0; i < 16; i++, star++) {
+        star->unk02 = func_801122D0_stardust_battle();
+        func_8001C258_main(star->unk02, 4, 4);
+        Hu3DModelScaleSet(star->unk02, (f32)(u8)(rand8() % 100) * 0.01 * 1.5 + 1.0 - 0.5, 1.0f, 1.0f);
+        star->unk04 = (u8)(rand8() % 180);
+        star->unk06 = (u8)(rand8() % 180);
+        star->unk00 = 0;
+        star->unk14 = 20.0f;
+        star->unk18 = 20.0f;
+        star->unk08 = (f32)(u8)(rand8() % 100) * 0.01 * 40.0 - 20.0;
+        star->unk0C = (f32)(u8)(rand8() % 100) * 0.01 * 90.0 - 45.0;
+        star->unk10 = angles[i] + ((f32)(u8)(rand8() % 100) * 0.01 * 10.0 - 5.0);
+        star->unk1C = star->unk20 = star->unk24 = 0.0f;
+    }
+    obj->model[0] = func_8000B0A0_main(0x620009, 0x1839);
+    func_8001C258_main(obj->model[0], 4, 4);
+    obj->scale.x = obj->scale.y = obj->scale.z = 10.0f;
+    D_80114B30_stardust_battle[2] = func_8010EE38_stardust_battle(0x62000B);
+    grp = HuSprGrpCreate(1, 0);
+    obj->work[3] = grp;
+    func_80055024_main(grp, 0, D_80114B30_stardust_battle[2], 0);
+    func_800550F4_main(grp, 0, 0);
+    func_80054FF8_main(grp, 0, 0);
+    func_80054904_main(grp, 0, 160, 120);
+    HuSprScaleSet(grp, 0, 4.0f, 4.0f);
+    func_80055484_main(grp, 0, 0xFF, 0xFF, 0xFF, 0);
+    HuSprAttrSet(grp, 0, 0x20009800);
+    HuSprPriSet(grp, 0, 0xFFFF);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80110364_stardust_battle);
 
