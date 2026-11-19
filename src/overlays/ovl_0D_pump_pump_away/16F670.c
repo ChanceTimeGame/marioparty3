@@ -142,7 +142,7 @@ typedef struct PpPlayer {
     /* 0x08 */ s32 unk08;
     /* 0x0C */ s32 unk0C;
     /* 0x10 */ s32 unk10;
-    /* 0x14 */ s32 unk14;
+    /* 0x14 */ f32 unk14;
     /* 0x18 */ s32 unk18;
     /* 0x1C */ s32 unk1C;
     /* 0x20 */ s32 unk20;
@@ -241,6 +241,9 @@ void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_80108B0C_pump_pump_away(omObjData *obj);
 void func_8010A468_pump_pump_away(void);
+void func_8010AF70_pump_pump_away(omObjData *obj);
+s16 func_8000B5BC_main(s32);
+void func_8001F974_main(s16, s16);
 void func_8004AE00_main(s16 handle, s16 pan);
 
 s32 func_80110D28_pump_pump_away(void);
@@ -1917,15 +1920,180 @@ void func_8010AED4_pump_pump_away(omObjData *obj) {
     }
 }
 
+#ifdef NON_MATCHING
+void func_8010AF70_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
+    PpPlayer *pl;
+    s16 se;
+    s32 i;
+
+    switch (t->unk08) {
+        case 10:
+            obj->trans.y = 1010.0f;
+            t->unk08 = 11;
+            break;
+        case 11:
+            obj->rot.z = PP_WRAP(D_80113518_pump_pump_away.angle + 180.0f);
+            obj->trans.y -= 10.0f;
+            if (obj->trans.y <= 200.0f) {
+                obj->trans.y = 200.0f;
+                t->state = 2;
+                t->unk08 = 12;
+            }
+            break;
+        case 20:
+            obj->trans.y = 1000.0f;
+            obj->rot.z = 180.0f;
+            t->unk08 = 21;
+            break;
+        case 21:
+            obj->trans.y -= 50.0f;
+            if (obj->trans.y <= 250.0f) {
+                D_80113400_pump_pump_away[obj->work[0]].state = 2;
+                t->unk08 = 22;
+                se = HuAudFXPlay(0x361);
+                if (obj->work[0] != 0) {
+                    func_8004AE00_main(se, 0x60);
+                } else {
+                    func_8004AE00_main(se, 0x20);
+                }
+                for (i = 0; i < 4; i++) {
+                    pl = &D_80113438_pump_pump_away[i];
+                    if (pl->unk00 == -1) {
+                        continue;
+                    }
+                    if (pl->obj->work[1] == obj->work[0]) {
+                        if (pl->unk20 == 0) {
+                            omVibrate((s16)pl->obj->work[0], 2, 2, 20);
+                        }
+                    } else {
+                        if (pl->unk20 == 0) {
+                            omVibrate((s16)pl->obj->work[0], 10, 0, 10);
+                        }
+                    }
+                }
+            }
+            break;
+        case 22:
+            obj->trans.y -= 50.0f;
+            if (obj->trans.y <= 100.0f) {
+                obj->trans.y = 100.0f;
+                t->state = 2;
+                t->unk08 = 23;
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AF70_pump_pump_away);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B274_pump_pump_away);
+void func_8010B274_pump_pump_away(omObjData *obj) {
+    PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B370_pump_pump_away);
+    if (t->unk00 == -1) {
+        return;
+    }
+    switch (D_801116F4_pump_pump_away) {
+        case 0:
+        case 1:
+            func_8001C6A8_main(obj->model[0], 0.0f);
+            func_8001C814_main(obj->model[0], 1, 1);
+            break;
+        case 2:
+            func_80109E98_pump_pump_away(obj);
+            break;
+        case 3:
+            func_8010A150_pump_pump_away(obj);
+            break;
+        case 4:
+        case 5:
+        case 6:
+            func_8010AE40_pump_pump_away(obj);
+            break;
+        case 7:
+            if (t->unk08 == 0) {
+                func_8010AED4_pump_pump_away(obj);
+            } else {
+                func_8010AF70_pump_pump_away(obj);
+            }
+            break;
+    }
+}
+
+void func_8010B370_pump_pump_away(omObjData *obj) {
+    void *data;
+    PpTeam *t;
+
+    obj->model[0] = func_8000B108_main(0x2E000D, 0x4022A9);
+    obj->motion[0] = func_8000B5BC_main(0x2E000E);
+    func_8001C954_main(obj->model[0]);
+    func_8001F974_main(obj->model[0], obj->motion[0]);
+    func_8001C514_main(obj->motion[0]);
+    if (obj->work[0] != 0) {
+        data = DataRead(0x2E000F);
+        obj->work[1] = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m213_roket_r00_DEF");
+        func_80032FC0_main((s16)obj->work[1], 1, 1);
+        HuMemMemoryFreePerm(data);
+        data = DataRead(0x2E0010);
+        obj->work[2] = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m213_roket_r01_DEF");
+        func_80032FC0_main((s16)obj->work[2], 1, 1);
+        HuMemMemoryFreePerm(data);
+        func_8001C448_main(obj->model[0]);
+        func_8001C514_main(obj->model[0]);
+    }
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 0);
+    obj->trans.x = D_80110EA0_pump_pump_away[obj->work[0]].x;
+    obj->trans.y = D_80110EA0_pump_pump_away[obj->work[0]].y;
+    obj->trans.z = D_80110EA0_pump_pump_away[obj->work[0]].z;
+    obj->func = func_8010B274_pump_pump_away;
+    t = &D_80111978_pump_pump_away[obj->work[0]];
+    t->unk00 = 0;
+    t->phase = 0;
+    t->unk08 = 0;
+    t->unk0C = 0;
+    t->unk10 = 0;
+    t->timer = 0;
+    t->dist = 0;
+    t->lastDist = 0;
+    t->speed = 0;
+    t->state = 0;
+    t->wobble = 0;
+    t->obj = obj;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B5D4_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B630_pump_pump_away);
+void func_8010B630_pump_pump_away(omObjData *obj) {
+    PpPlayer *pl = &D_80113438_pump_pump_away[obj->work[0]];
+    s32 fire = 0;
+    s32 n;
+
+    if (pl->unk34 > 0) {
+        pl->unk34--;
+    } else {
+        fire = 1;
+        pl->unk34 = rand8() % pl->unk30 + 5;
+    }
+    if (fire != 0) {
+        if (pl->unk18 != 0) {
+            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x8000;
+        } else {
+            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+        }
+        return;
+    }
+    n = pl->unk30 * 0.5;
+    if (rand8() % n == 0 && pl->unk14 == 0.0f) {
+        if (pl->unk18 != 0) {
+            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x8000;
+        } else {
+            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+        }
+        pl->unk34 = rand8() % pl->unk30 + 5;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B898_pump_pump_away);
 
