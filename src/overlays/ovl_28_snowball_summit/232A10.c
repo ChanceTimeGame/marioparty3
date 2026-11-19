@@ -148,8 +148,8 @@ typedef struct SsSlot8 {
 } SsSlot8;
 typedef struct SsSlot16 {
     /* 0x00 */ s32 state;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
+    /* 0x04 */ s32 sfxOn;
+    /* 0x08 */ s32 sfx; /* the rolling sound */
     /* 0x0C */ omObjData *obj;
 } SsSlot16;
 
@@ -265,6 +265,10 @@ void func_8010D108_snowball_summit(SsPlayer *pl);
 void func_8010D304_snowball_summit(SsPlayer *pl);
 void func_8010D55C_snowball_summit(SsPlayer *pl);
 void func_8010D86C_snowball_summit(void);
+void func_8010DB10_snowball_summit(SsBall *ball);
+void func_8010DD00_snowball_summit(SsBall *ball);
+void func_8010DFD0_snowball_summit(SsBall *ball);
+void func_8010E2F4_snowball_summit(SsBall *ball);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
 void func_8010EEEC_snowball_summit(omObjData *obj);
@@ -1925,8 +1929,8 @@ void func_8010C170_snowball_summit(omObjData *obj) {
     obj->func = func_8010C168_snowball_summit;
     sl = &D_80110250_snowball_summit[obj->work[0]];
     sl->state = 0;
-    sl->unk04 = 0;
-    sl->unk08 = -1;
+    sl->sfxOn = 0;
+    sl->sfx = -1;
     sl->obj = obj;
 }
 
@@ -2435,13 +2439,144 @@ void func_8010D86C_snowball_summit(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010DB10_snowball_summit);
+/* A snowball past the edge starts to roll off (fall 1). */
+void func_8010DB10_snowball_summit(SsBall *ball) {
+    SsPlayer *pl;
+    SsSlot16 *sl;
+    f32 rot;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010DD00_snowball_summit);
+    f32 x = ball->obj->trans.x;
+    f32 z = ball->obj->trans.z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010DFD0_snowball_summit);
+    if (x * x + z * z > 476100.0f) {
+        if (ball->owner != -1) {
+            pl = &D_8010F9B8_snowball_summit[ball->owner];
+            sl = &D_80110250_snowball_summit[ball->owner];
+            pl->ball = -1;
+            pl->rolling = 0;
+            pl->holdTime = 0;
+            pl->holdCount = 0;
+            if (sl->sfxOn == 1 && sl->sfx != -1) {
+                HuAudFXStop((s16)sl->sfx);
+                sl->sfxOn = 0;
+                sl->sfx = -1;
+            }
+        }
+        ball->fall = 1;
+        ball->pitch = 306.38437f;
+        ball->unk20 = 7.0f;
+        ball->speed = 2.0f;
+        ball->owner = -1;
+        ball->puff = 0;
+        rot = func_8010610C_snowball_summit(ball->obj->trans.x, ball->obj->trans.z);
+        ball->obj->trans.x = ball->obj->trans.x + sindf(rot) * (ball->size * 37.5);
+        ball->obj->trans.z = ball->obj->trans.z + cosdf(rot) * (ball->size * 37.5);
+        func_8001C258_main(ball->obj->model[1], 4, 4);
+        return;
+    }
+    ball->fall = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010E2F4_snowball_summit);
+/* A snowball being rolled: it grows with its roller's speed and sits in front of it. */
+void func_8010DD00_snowball_summit(SsBall *ball) {
+    SsPlayer *pl;
+    omObjData *obj;
+    f32 dist;
+
+    pl = &D_8010F9B8_snowball_summit[ball->owner];
+    obj = ball->obj;
+    if (ball->size < 4.0f) {
+        ball->size = ball->size + pl->speed * 0.003;
+    } else {
+        ball->size = 4.0f;
+    }
+    obj->scale.x = obj->scale.y = obj->scale.z = ball->size;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    if (ball->size < 1.7) {
+        dist = ball->size * 37.5 + pl->unk50;
+    } else {
+        dist = ball->size * 37.5 + pl->unk50 * 0.6;
+    }
+    obj->trans.x = sindf(pl->rot) * dist + pl->next.x;
+    obj->trans.y = ball->size * 37.5 + 20.0;
+    obj->trans.z = cosdf(pl->rot) * dist + pl->next.z;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 30.0f, obj->trans.z);
+    obj->rot.x = SS_WRAP(obj->rot.x + (pl->speed * 0.3) * (pl->speed * 0.3));
+    obj->rot.y = pl->rot;
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    if (ball->state == 2) {
+        func_8010705C_snowball_summit(obj, 40, 0.1f, 1.6f, 0.0f, 0.0f, 0.0f);
+    }
+}
+
+/* A pushed snowball rolling on by itself; small ones roll faster. */
+void func_8010DFD0_snowball_summit(SsBall *ball) {
+    omObjData *obj = ball->obj;
+    f32 speed;
+    f32 dx;
+    f32 dy;
+
+    if (D_8011024C_snowball_summit == 0) {
+        if ((ball->sfx = HuAudFXPlay(0x43A)) != -1) {
+            ball->sfxOn = 1;
+            D_8011024C_snowball_summit = 1;
+        }
+    }
+    speed = 1.0f / (ball->size * ball->size + 1.0f) * 25.0f + 9.0f;
+    obj->trans.x += sindf(obj->rot.y) * speed;
+    obj->trans.z += cosdf(obj->rot.y) * speed;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 30.0f, obj->trans.z);
+    obj->rot.x = SS_WRAP(obj->rot.x + (speed * 0.3) * (speed * 0.3));
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    if (ball->state == 11) {
+        dx = sindf(SS_WRAP(obj->rot.y + 180.0f)) * ball->size;
+        dy = obj->trans.y - (obj->trans.y - 120.0f);
+        func_8010705C_snowball_summit(obj, 20, 0.2f, 2.0f, dx, dy, cosdf(SS_WRAP(obj->rot.y + 180.0f)) * ball->size);
+    }
+}
+
+/* A snowball rolling off the summit; freed below -1200. */
+void func_8010E2F4_snowball_summit(SsBall *ball) {
+    omObjData *obj = ball->obj;
+    f32 rot;
+
+    if (ball->sfxOn == 1 && ball->sfx != -1) {
+        HuAudFXStop((s16)ball->sfx);
+        ball->sfxOn = 0;
+        ball->sfx = -1;
+        D_8011024C_snowball_summit = 0;
+    }
+    if (ball->speed >= 7.0f) {
+        ball->speed = 7.0f;
+    } else {
+        ball->speed += 1.0f;
+    }
+    if (ball->puff > 0) {
+        ball->puff--;
+    } else {
+        func_8010705C_snowball_summit(obj, 40, ball->size * 0.1 * 0.5, ball->size * 1.2 * 0.5, 0.0f, 0.0f, 0.0f);
+        ball->puff = 1;
+    }
+    if (obj->trans.y < -1200.0f) {
+        func_8001C258_main(obj->model[0], 4, 4);
+        func_8001C258_main(obj->model[1], 4, 4);
+        ball->state = 0;
+        ball->fall = 0;
+        ball->pitch = 0.0f;
+        ball->unk20 = 0.0f;
+        ball->speed = 0.0f;
+        ball->owner = -1;
+        ball->puff = 0;
+        return;
+    }
+    rot = func_8010610C_snowball_summit(obj->trans.x, obj->trans.z);
+    obj->trans.x += ball->speed * ball->speed * cosdf(ball->pitch) * sindf(rot);
+    obj->trans.z += ball->speed * ball->speed * cosdf(ball->pitch) * cosdf(rot);
+    obj->trans.y += ball->unk20 * ball->unk20 * sindf(ball->pitch);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010E52C_snowball_summit);
 
