@@ -6,6 +6,7 @@
 #include "game/hmflight.h"
 #include "game/hmfman.h"
 #include "game/object.h"
+#include "game/sprite.h"
 #include "game/util.h"
 #include "game/wipe.h"
 #include "include_asm.h"
@@ -29,6 +30,15 @@ extern u8 D_800CD280_main;
 extern u16 D_800D530C_main;
 extern u16 D_800D5558_main[];
 extern s16 D_800CDA7C_main[];
+extern Gfx *gMainGfxPos;
+
+typedef struct {
+    /* 0x00 */ char unk00[4];
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ char unk06[0x1E];
+} D_800CD1DC_main_Struct; // Size 0x24
+
+extern D_800CD1DC_main_Struct *D_800CD1DC_main;
 
 // LOCAL
 
@@ -60,7 +70,11 @@ typedef struct {
     u8 unk18[8];
 } PkCpuTable;
 
+void func_80107A48_picking_panic(void);
+void func_8010B11C_picking_panic(s16 model, s16 frame);
+
 /* data */
+extern Gfx D_8010E5E0_picking_panic[];
 extern D_80111B50_vine_with_me_Struct D_8010E5B0_picking_panic;
 extern f32 D_8010E62C_picking_panic[3][16];
 extern u32 D_8010E6EC_picking_panic;
@@ -100,17 +114,27 @@ extern f32 D_8010EE98_picking_panic;
 extern PkPlayer D_8010EEA0_picking_panic[4];
 extern PkPlayer *D_8010EEE0_picking_panic[4];
 extern u8 D_8010EEF0_picking_panic[4];
+extern f32 D_8010EEF4_picking_panic[2];
 extern omObjData *D_8010EEFC_picking_panic;
 extern omObjData *D_8010EF00_picking_panic[4];
 extern u16 D_8010EF10_picking_panic[2];
 extern s8 D_8010EF14_picking_panic;
 extern u8 D_8010EF15_picking_panic[2];
 extern s16 *D_8010EF18_picking_panic[2][4][3];
+extern f32 D_8010EF78_picking_panic;
 extern s16 D_8010EF80_picking_panic;
+extern f32 D_8010EF84_picking_panic[2];
+extern f32 D_8010EF8C_picking_panic[2];
 extern f32 D_8010EF94_picking_panic;
 extern s8 D_8010EF98_picking_panic[2];
+extern f32 D_8010EF9C_picking_panic[2];
 extern u8 D_8010EFA4_picking_panic;
 extern s32 D_8010EFA8_picking_panic;
+extern f32 D_8010EFAC_picking_panic[2];
+extern f32 D_8010EFC4_picking_panic[2];
+extern s16 D_8010EFD0_picking_panic[4];
+extern s16 D_8010EFD8_picking_panic;
+extern f32 D_8010EFEC_picking_panic[2];
 
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_801059A0_picking_panic);
@@ -133,7 +157,190 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_801066
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80106E84_picking_panic);
 
+#ifdef NON_MATCHING
+void func_80107A48_picking_panic(void) {
+    f32 sp10[2];
+    HuSprite_Unk84_Unk00_Struct *frame;
+    HuSprite *spr;
+    f32 lo;
+    f32 hi;
+    f32 scl;
+    f32 cx;
+    f32 cy;
+    s32 i;
+    s32 row;
+    s32 col;
+    s32 vp;
+    s32 w;
+    s32 h;
+    s32 dx;
+    f32 *p;
+
+    lo = (D_8010EF78_picking_panic * 240.0f - 1.0f < 0.0f) ? 0.0f : D_8010EF78_picking_panic * 240.0f - 1.0f;
+    hi = (D_8010EF78_picking_panic * 240.0f + 1.0f > 240.0f) ? 240.0f : D_8010EF78_picking_panic * 240.0f + 1.0f;
+    gSPDisplayList(gMainGfxPos++, D_8010E5E0_picking_panic);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+
+    /* Two 161x160 / 160x160 background halves, drawn in 40x40 tiles. */
+    for (i = 0; i < 2; i++) {
+        spr = HuSprGet(D_800CD1DC_main[*((i != 0) ? &D_8010EFD0_picking_panic[1] : &D_8010EFD0_picking_panic[0])].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        for (col = 0; col < 4; col++) {
+            for (row = 0; row < 3; row++) {
+                w = ((i == 1) & (col == 3)) ? 40 : 41;
+                h = (row != 2) ? 41 : 40;
+                gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, (i == 0) ? 161 : 160, 0,
+                                   col * 40, row * 40, col * 40 + w, row * 40 + h, 0, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+                for (vp = 0; vp < 2; vp++) {
+                    if (vp == 0) {
+                        gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, 0, 320, lo);
+                    } else {
+                        gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, hi, 320, 240);
+                    }
+                    gSPScisTextureRectangle(
+                        gMainGfxPos++,
+                        (s32)((col * 40 + i * 160) * 4 * D_8010EEF4_picking_panic[vp] + D_8010EF9C_picking_panic[vp]),
+                        (s32)((vp * 120 + row * 40) * 4 * D_8010EFC4_picking_panic[vp] + D_8010EFAC_picking_panic[vp]),
+                        (s32)((col * 40 + i * 160 + w) * 4 * D_8010EEF4_picking_panic[vp] + D_8010EF9C_picking_panic[vp]),
+                        (s32)((vp * 120 + row * 40 + h) * 4 * D_8010EFC4_picking_panic[vp] + D_8010EFAC_picking_panic[vp]),
+                        0, (col * 40) << 5, (row * 40) << 5, (s32)(D_8010EFEC_picking_panic[vp] * 1024.0f),
+                        (s32)(D_8010EF8C_picking_panic[vp] * 1024.0f));
+                }
+            }
+        }
+    }
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+    gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0xD0);
+
+    /* Counter item rising: progress of each team's next item. */
+    cx = 51.0f;
+    cy = 64.0f;
+    scl = 0.2875f;
+    for (i = 0; i < 2; i++) {
+        p = &sp10[i];
+        if (D_8010EF10_picking_panic[i] >= 26) {
+            if (D_8010EF10_picking_panic[i] < 30) {
+                *p = (D_8010EF10_picking_panic[i] - 26) / 4.0;
+            } else if (D_8010EF10_picking_panic[i] < 37) {
+                *p = 1.0f;
+            } else if (D_8010EF10_picking_panic[i] < 45) {
+                *p = (D_8010EF10_picking_panic[i] - 37) / 7.0;
+            } else {
+                *p = 0.0f;
+            }
+        } else {
+            *p = 0.0f;
+        }
+        if (D_8010EF10_picking_panic[i] - 37 < 8u) {
+            sp10[i] = (1.0f - sp10[i] * sp10[i]) * 0.75 + (1.0f - sp10[i]) * 0.25;
+        }
+        if (D_8010EF10_picking_panic[i] == 26) {
+            func_8001C258_main(D_8010EEFC_picking_panic->model[i + 10], 4, 0);
+            func_8001C6A8_main(D_8010EEFC_picking_panic->model[i + 10], 0.0f);
+            func_8001C814_main(D_8010EEFC_picking_panic->model[i + 10], 3, 0);
+            func_8010B11C_picking_panic(D_8010EEFC_picking_panic->model[i + 10], 0);
+        }
+        if (D_8010EF10_picking_panic[i] == 27) {
+            func_8001C258_main(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], 4, 0);
+            func_8001C6A8_main(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], 0.0f);
+            func_8001C814_main(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], 1, 1);
+        }
+        if (D_8010EF10_picking_panic[i] - 26 < 5u) {
+            Hu3DModelPosSet(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], -855.0f,
+                            (1.0f - sp10[i]) * 175.0f + -25.0f, 0.0f);
+        }
+        if (D_8010EF10_picking_panic[i] == 30) {
+            func_8001C6A8_main(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], 0.0f);
+            func_8001C814_main(*D_8010EF18_picking_panic[i][D_8010EEF0_picking_panic[i]][D_8010EF98_picking_panic[i]], 1, 0);
+        }
+        if (D_8010EF10_picking_panic[i] - 10 < 11u) {
+            D_8010EF84_picking_panic[i] = sindf((D_8010EF10_picking_panic[i] - 10) / 15.0 * 1440.0) * 0.625;
+        }
+    }
+
+    /* The counter's item panel, 64x97 in four loads, scaled by scl. */
+    if (sp10[0] != 0.0f || sp10[1] != 0.0f) {
+        spr = HuSprGet(D_800CD1DC_main[D_8010EFD8_picking_panic].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        for (row = 0; row < 4; row++) {
+            gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 64, 0, 0, row * 24, 64,
+                               (row < 3) ? row * 24 + 25 : row * 24 + 24, 0, G_TX_NOMIRROR | G_TX_CLAMP,
+                               G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            for (vp = 0; vp < 2; vp++) {
+                if (sp10[vp] == 0.0f) {
+                    continue;
+                }
+                if (vp == 0) {
+                    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, 0, 320, lo);
+                } else {
+                    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, hi, 320, 240);
+                }
+                gSPScisTextureRectangle(
+                    gMainGfxPos++,
+                    (s32)((cx - scl * 32.0f) * 4.0 * D_8010EEF4_picking_panic[vp] + D_8010EF9C_picking_panic[vp]),
+                    (s32)((cy + sp10[vp] * 21.0f - 48.0f + (row * 24) * scl + (vp * 120)) * 4.0 *
+                              D_8010EFC4_picking_panic[vp] +
+                          D_8010EFAC_picking_panic[vp]),
+                    (s32)((cx + scl * 32.0f) * 4.0 * D_8010EEF4_picking_panic[vp] + D_8010EF9C_picking_panic[vp]),
+                    (s32)((cy + sp10[vp] * 21.0f - 48.0f + ((row < 3) ? row * 24 + 25 : row * 24 + 23) * scl +
+                           (vp * 120)) *
+                              4.0 * D_8010EFC4_picking_panic[vp] +
+                          D_8010EFAC_picking_panic[vp]),
+                    0, 0, (row * 24) << 5, (s32)(1024.0f / scl * D_8010EFEC_picking_panic[vp]),
+                    (s32)(1024.0f / scl * D_8010EF8C_picking_panic[vp]));
+            }
+        }
+    }
+
+    /* The two score boards (CI8 115x48 and RGBA16 108x48), the first shaking with D_8010EF84. */
+    for (i = 0; i < 2; i++) {
+        spr = HuSprGet(D_800CD1DC_main[*((i != 0) ? &D_8010EFD0_picking_panic[3] : &D_8010EFD0_picking_panic[2])].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        if (i == 0) {
+            gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        }
+        for (col = 0; col < 3; col++) {
+            w = ((i == 1) & (col == 2)) ? 32 : 39;
+            if (i == 0) {
+                gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, (i == 0) ? 115 : 108, 0,
+                                   col * 38, 0, col * 38 + w, 48, 0, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            } else {
+                gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_RGBA, G_IM_SIZ_16b, (i == 0) ? 115 : 108,
+                                   0, col * 38, 0, col * 38 + w, 48, 0, G_TX_NOMIRROR | G_TX_CLAMP,
+                                   G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            }
+            for (vp = 0; vp < 2; vp++) {
+                dx = 0;
+                if (i == 0) {
+                    dx = D_8010EF84_picking_panic[vp] * 4.0;
+                }
+                if (vp == 0) {
+                    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, 0, 320, lo);
+                } else {
+                    gDPSetScissor(gMainGfxPos++, G_SC_NON_INTERLACE, 0, hi, 320, 240);
+                }
+                gSPScisTextureRectangle(
+                    gMainGfxPos++,
+                    (s32)(((col * 38 + i * 212) * 4 + dx) * D_8010EEF4_picking_panic[vp] + D_8010EF9C_picking_panic[vp]),
+                    (s32)(vp * 120 * 4 * D_8010EFC4_picking_panic[vp] + D_8010EFAC_picking_panic[vp]),
+                    (s32)(((col * 38 + i * 212 + w) * 4 + dx) * D_8010EEF4_picking_panic[vp] +
+                          D_8010EF9C_picking_panic[vp]),
+                    (s32)((vp * 120 + 48) * 4 * D_8010EFC4_picking_panic[vp] + D_8010EFAC_picking_panic[vp]), 0,
+                    (col * 38) << 5, 0, (s32)(D_8010EFEC_picking_panic[vp] * 1024.0f),
+                    (s32)(D_8010EF8C_picking_panic[vp] * 1024.0f));
+            }
+        }
+        gDPSetTextureLUT(gMainGfxPos++, G_TT_NONE);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80107A48_picking_panic);
+#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E990_picking_panic);
 
