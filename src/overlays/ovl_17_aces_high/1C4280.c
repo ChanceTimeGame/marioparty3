@@ -1096,7 +1096,69 @@ void func_801085B0_aces_high(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010862C_aces_high);
+/* Pushes the plane out of any other plane it overlaps: down, up, right, then left. */
+void func_8010862C_aces_high(omObjData *obj) {
+    AhPlayer *work;
+    AhPlayer *ow;
+    omObjData *other;
+    s32 i;
+    u16 tries;
+    f32 y;
+    f32 d;
+
+    work = obj->data;
+    for (tries = 0; tries < 4; tries++) {
+        for (i = 0; i < 4; i++) {
+            if (i == work->unk02) {
+                continue;
+            }
+            other = D_8010DE68_aces_high[i];
+            ow = other->data;
+            if ((ow->unk00 == 6) | (ow->unk00 == 1)) {
+                continue;
+            }
+            if (ow->unk00 == 3) {
+                continue;
+            }
+            if (HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
+                        (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
+                        (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z)) <= HuSqrtf(32400.0f)) {
+                break;
+            }
+        }
+        if (i == 4) {
+            break;
+        }
+        omVibrate(work->unk02, 2, 3, 10);
+        omVibrate(ow->unk02, 2, 3, 10);
+        switch (tries) {
+            case 0:
+                d = -90.0f;
+                y = obj->trans.y + d;
+                if (y >= -500.0f) {
+                    obj->trans.y = y;
+                }
+                break;
+            case 1:
+                d = 90.0f;
+                y = obj->trans.y + d;
+                if (y <= 500.0f) {
+                    obj->trans.y = y;
+                }
+                break;
+            case 2:
+                d = 90.0f;
+                obj->trans.x += sindf(obj->rot.y + d) * d;
+                obj->trans.z += cosdf(obj->rot.y + d) * d;
+                break;
+            case 3:
+                d = 90.0f;
+                obj->trans.x += sindf(obj->rot.y - d) * d;
+                obj->trans.z += cosdf(obj->rot.y - d) * d;
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801088A4_aces_high);
 
