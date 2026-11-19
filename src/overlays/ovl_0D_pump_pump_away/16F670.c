@@ -444,6 +444,8 @@ extern s16 D_801116EC_pump_pump_away;
 extern s32 D_801119E4_pump_pump_away;
 void func_801109BC_pump_pump_away(void);
 extern u16 D_80111114_pump_pump_away;
+extern f32 D_80111990_pump_pump_away; /* D_80111978_pump_pump_away[0].dist */
+extern f32 D_801119C4_pump_pump_away; /* D_80111978_pump_pump_away[1].dist */
 
 
 void func_801059A0_pump_pump_away(void) {
@@ -2972,17 +2974,15 @@ s32 func_8010FAA8_pump_pump_away(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FAA8_pump_pump_away);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010FB70_pump_pump_away(omObjData *obj) {
     u8 chr[2];
     PpPlayer *p;
     s32 team;
     s32 i;
     s32 n;
-    s16 seq;
 
     team = 1;
-    if (D_80111978_pump_pump_away[1].dist < D_80111978_pump_pump_away[0].dist) {
+    if (D_80111990_pump_pump_away > D_801119C4_pump_pump_away) {
         team = 0;
     }
     for (i = 0, n = 0; i < 4; i++) {
@@ -2993,15 +2993,8 @@ void func_8010FB70_pump_pump_away(omObjData *obj) {
         }
     }
     GMesCreate(0x1E, chr[0], chr[1]);
-    seq = 0x6A;
-    if (func_8010FAA8_pump_pump_away() == 0) {
-        seq = 0x66;
-    }
-    HuAudSeqPlay(seq);
+    HuAudSeqPlay(func_8010FAA8_pump_pump_away() == 0 ? 0x66 : 0x6A);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FB70_pump_pump_away);
-#endif
 
 void func_8010FC64_pump_pump_away(omObjData *obj) {
     PpTeam *t = D_80111978_pump_pump_away;
