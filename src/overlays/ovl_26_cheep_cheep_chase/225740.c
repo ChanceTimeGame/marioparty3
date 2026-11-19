@@ -202,6 +202,7 @@ void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801092B8_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80109750_cheep_cheep_chase(CxFuncContext *ctx);
 void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010BEA4_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A938_cheep_cheep_chase(CxFuncContext *ctx);
@@ -1880,7 +1881,44 @@ void func_8010B648_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
+// Register allocation only (masked 0): the |dz| temporary is in v1 where retail uses v0.
+#ifdef NON_MATCHING
+void func_8010BB9C_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+    CxUnk4Entry *entry;
+    s16 i;
+    s16 j;
+    s32 dist;
+
+    if (ctx->state == 1 && player->unk08 == 0 && player->unk01 != 4) {
+        for (i = 0; i < 2; i++) {
+            entry = &D_8010E360_cheep_cheep_chase->unk4[i * 4 + (s16)D_8010E370_cheep_cheep_chase[ctx->work.s16[0]]];
+            if (entry->unk3 == 0 && !(HmfModelData[entry->model].unk18 & 4)) {
+                if ((dist = object->trans.z - (-(D_8010E360_cheep_cheep_chase->unkC[entry->unk4] * 100) + entry->unk8)) < 0) {
+                    dist = -dist;
+                }
+                if (dist < 90.0) {
+                    CharFXPlay(0x9D, GwPlayer[object->work[0]].chr);
+                    player->unk01 = 3;
+                    for (j = 18; j < 22; j++) {
+                        if ((s16)func_8010DC7C_cheep_cheep_chase(j, object->trans.x, 110.0f, -(D_8010E360_cheep_cheep_chase->unkC[entry->unk4] * 100) + entry->unk8, 0.0f, 90.0f, 0.0f, 1.0f, 0.0f)) {
+                            break;
+                        }
+                    }
+                    entry->unk2 = 1;
+                    omVibrate(ctx->work.s16[0], 2, 2, 20);
+                    func_8004ACE0_main(0x286, ctx->work.s16[0]);
+                    func_8004AC5C_main(0x434, ctx->work.s16[0]);
+                    func_8010D6F4_cheep_cheep_chase(ctx->work.s16[0] + 4, 0, -1, 0, NULL, func_8010BEA4_cheep_cheep_chase, FALSE, FALSE);
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010BB9C_cheep_cheep_chase);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010BEA4_cheep_cheep_chase);
 
