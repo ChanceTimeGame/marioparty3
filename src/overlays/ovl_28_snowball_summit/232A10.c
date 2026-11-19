@@ -249,6 +249,7 @@ void func_8010CA18_snowball_summit(omObjData *obj);
 void func_8010CA70_snowball_summit(void);
 s32 func_8010CA98_snowball_summit(SsPlayer *pl);
 s32 func_8010CC00_snowball_summit(SsPlayer *pl);
+void func_8010CD58_snowball_summit(SsPlayer *pl);
 void func_8010D86C_snowball_summit(void);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
@@ -2114,7 +2115,49 @@ s32 func_8010CC00_snowball_summit(SsPlayer *pl) {
     return pl->unk4C;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010CD58_snowball_summit);
+/* Separates pl from each player it bumped into. */
+void func_8010CD58_snowball_summit(SsPlayer *pl) {
+    Vec d;
+    SsPlayer *other;
+    f32 push;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (pl->obj->work[0] != i && pl->bumped[i] == 1) {
+            other = &D_8010F9B8_snowball_summit[i];
+            if (other->state != -1) {
+                func_80107908_snowball_summit(pl->next.x, pl->next.z, other->next.x, other->next.z, &d);
+                if (pl->hit != 0) {
+                    pl->next.x = other->obj->trans.x + sindf(d.z) * (other->unk50 + pl->unk50 + 1.0f);
+                    pl->next.z = other->obj->trans.z + cosdf(d.z) * (other->unk50 + pl->unk50 + 1.0f);
+                    pl->vel.x = -pl->vel.x;
+                    pl->vel.z = -pl->vel.z;
+                    pl->bumped[i] = 0;
+                    other->bumped[pl->obj->work[0]] = 0;
+                } else if (other->speed == 0.0f) {
+                    pl->next.x = other->obj->trans.x + sindf(d.z) * (other->unk50 + pl->unk50 + 1.0f);
+                    pl->next.z = other->obj->trans.z + cosdf(d.z) * (other->unk50 + pl->unk50 + 1.0f);
+                    pl->vel.x = pl->next.x - pl->obj->trans.x;
+                    pl->vel.z = pl->next.z - pl->obj->trans.z;
+                    pl->bumped[i] = 0;
+                    other->bumped[pl->obj->work[0]] = 0;
+                } else if (pl->speed != 0.0f) {
+                    push = (other->unk50 + pl->unk50 - d.x) * 0.5;
+                    pl->next.x = sindf(d.z) * (push + 1.0f) + pl->next.x;
+                    pl->next.z = cosdf(d.z) * (push + 1.0f) + pl->next.z;
+                    pl->vel.x = pl->next.x - pl->obj->trans.x;
+                    pl->vel.z = pl->next.z - pl->obj->trans.z;
+                    other->next.x += sindf(SS_WRAP(d.z + 180.0f)) * (push + 1.0f);
+                    other->next.z += cosdf(SS_WRAP(d.z + 180.0f)) * (push + 1.0f);
+                    other->vel.x = other->next.x - other->obj->trans.x;
+                    other->vel.z = other->next.z - other->obj->trans.z;
+                    pl->bumped[i] = 0;
+                    other->bumped[pl->obj->work[0]] = 0;
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D108_snowball_summit);
 
