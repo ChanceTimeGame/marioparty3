@@ -96,7 +96,9 @@ typedef struct SsPlayer {
     /* 0x48 */ s32 rolling;
     /* 0x4C */ s32 unk4C;
     /* 0x50 */ f32 unk50;
-    /* 0x54 */ char unk54[0x1C];
+    /* 0x54 */ f32 unk54;
+    /* 0x58 */ char unk58[0x14];
+    /* 0x6C */ s32 unk6C;
     /* 0x70 */ s32 ball; /* the snowball being rolled, -1 none */
     /* 0x74 */ s32 land;
     /* 0x78 */ omObjData *obj;
@@ -153,6 +155,7 @@ s32 func_8000B710_main(s32 arg0);
 void func_8001F9E4_main(s16 model, u8 alpha);
 void func_8001FA68_main(s16 model);
 void func_8001C6A8_main(s32 model, f32 arg1);
+void func_80088800_main(f32 *mtx, f32 x, f32 y, f32 z);
 void func_80032FC0_main(s16, u8, u8);
 void func_800E6F0C_minigame(s8 arg0);
 
@@ -267,6 +270,7 @@ extern s32 D_8010F8C8_snowball_summit; /* D_8010F8C0.hook */
 extern s16 D_8010F8CA_snowball_summit; /* D_8010F8C0.hook, low half */
 extern HuSprite_Unk84_Struct *D_8010F8CC_snowball_summit; /* D_8010F8C0.left */
 extern HuSprite_Unk84_Struct *D_8010F8D4_snowball_summit; /* D_8010F8C0.right */
+extern s32 D_8010F8A8_snowball_summit; /* start corner */
 extern SsRing D_8010F8D8_snowball_summit[8];
 extern SsPlayer D_8010F9B8_snowball_summit[4];
 extern SsBall D_8010FC30_snowball_summit[16];
@@ -1549,7 +1553,117 @@ void func_8010B250_snowball_summit(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B34C_snowball_summit);
+/* A player's setup: model, motions, shadow, start corner and CPU tuning. */
+void func_8010B34C_snowball_summit(omObjData *obj) {
+    SsPlayer *pl;
+    u16 chr;
+
+    chr = GwPlayer[obj->work[0]].chr;
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 2, func_80017BB8_main(chr, 0x89));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 0x85));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 0x86));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 0x87));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 0x88));
+    func_8000B460_main(obj, 7, func_80017BB8_main(chr, 0xF));
+    func_8000B460_main(obj, 8, func_80017BB8_main(chr, 0x9F));
+    func_8000B460_main(obj, 9, func_80017BB8_main(chr, 0x2F));
+    func_8000B460_main(obj, 10, func_80017BB8_main(chr, 0x38));
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 10.0f, 0.0f);
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    if (obj->work[0] == 0) {
+        D_8010F8A8_snowball_summit = rand8() & 3;
+        obj->trans.x = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].x;
+        obj->trans.y = 0.0f;
+        obj->trans.z = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].z;
+        obj->rot.y = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].rot;
+    } else {
+        if (++D_8010F8A8_snowball_summit >= 4) {
+            D_8010F8A8_snowball_summit = 0;
+        }
+        obj->trans.x = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].x;
+        obj->trans.y = 0.0f;
+        obj->trans.z = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].z;
+        obj->rot.y = D_8010F598_snowball_summit[D_8010F8A8_snowball_summit].rot;
+    }
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 20.0f + 5.0f, obj->trans.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    obj->func = func_8010B250_snowball_summit;
+    pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    pl->state = 0;
+    pl->motion = 0;
+    pl->cpu = GwPlayer[obj->work[0]].stat & 1;
+    pl->level = GwPlayer[obj->work[0]].cpu_difficulty;
+    pl->speed = 0.0f;
+    pl->rot = 0.0f;
+    pl->unk1C = 0.0f;
+    pl->holdTime = 30;
+    pl->holdCount = 0;
+    pl->rolling = 0;
+    pl->vel.x = 0.0f;
+    pl->vel.y = 0.0f;
+    pl->vel.z = 0.0f;
+    pl->gravity = 0.0f;
+    pl->next.x = obj->trans.x;
+    pl->next.y = obj->trans.y;
+    pl->next.z = obj->trans.z;
+    pl->hit = 0;
+    pl->unk4C = 0;
+    pl->unk50 = 50.0f;
+    pl->unk54 = 150.0f;
+    pl->unk6C = 0;
+    pl->ball = -1;
+    pl->land = 0;
+    pl->obj = obj;
+    pl->hold = 0;
+    switch (pl->level) {
+        case 0:
+            pl->holdRate = 90;
+            pl->range = 200;
+            pl->chase = 6;
+            pl->dodge = 4;
+            pl->timer = 0;
+            pl->stickX = pl->stickZ = 0;
+            pl->size = 1.7f;
+            break;
+        case 1:
+            pl->holdRate = 100;
+            pl->range = 250;
+            pl->chase = 5;
+            pl->dodge = 5;
+            pl->timer = 0;
+            pl->stickX = pl->stickZ = 0;
+            pl->size = 2.0f;
+            break;
+        case 2:
+            pl->holdRate = 120;
+            pl->range = 300;
+            pl->chase = 4;
+            pl->dodge = 10;
+            pl->timer = 0;
+            pl->stickX = pl->stickZ = 0;
+            pl->size = 1.7f;
+            break;
+        default:
+            pl->holdRate = 140;
+            pl->range = 400;
+            pl->chase = 10;
+            pl->dodge = 12;
+            pl->timer = 0;
+            pl->stickX = pl->stickZ = 0;
+            pl->size = 2.0f;
+            break;
+    }
+}
 
 void func_8010B8E4_snowball_summit(void) {
     omObjData *obj;
