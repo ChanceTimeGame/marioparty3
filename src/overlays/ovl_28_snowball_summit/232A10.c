@@ -282,10 +282,22 @@ void func_8010F42C_snowball_summit(void);
 /* .rodata */
 extern const s16 D_8010F870_snowball_summit[];
 /* .data */
-extern SsPath D_8010F550_snowball_summit[3];
-extern SsStart D_8010F598_snowball_summit[4];
-extern s32 D_8010F5C8_snowball_summit;
-extern SsCamera D_8010F5CC_snowball_summit[2];
+SsPath D_8010F550_snowball_summit[3] = {
+    { { -50.0f, 500.0f, -800.0f }, { -1200.0f, -330.0f, -800.0f } },
+    { { 700.0f, 500.0f, -800.0f }, { -900.0f, -375.0f, -800.0f } },
+    { { 1100.0f, 500.0f, -800.0f }, { 200.0f, -350.0f, -800.0f } },
+};
+SsStart D_8010F598_snowball_summit[4] = {
+    { -400.0f, -400.0f, 45.0f },
+    { 400.0f, -400.0f, 315.0f },
+    { 400.0f, 400.0f, 225.0f },
+    { -400.0f, 400.0f, 135.0f },
+};
+s32 D_8010F5C8_snowball_summit = -1; /* sound 0x43D, started in phase 1 */
+SsCamera D_8010F5CC_snowball_summit[2] = {
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 24.0f },
+    { { 0.0f, 0.0f, 320.0f, 240.0f }, { 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f }, 24.0f },
+};
 /* .bss */
 extern s32 D_8010F880_snowball_summit; /* game phase */
 extern s32 D_8010F884_snowball_summit; /* phase advance */
