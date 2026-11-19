@@ -163,7 +163,9 @@ void func_800E139C_minigame(omObjData* obj, f32 arg1, f32 minX, f32 minZ, f32 ma
 void func_800E13CC_minigame(omObjData* obj, f32 arg1, f32 arg2, f32 minX, f32 minZ, f32 maxX, f32 maxZ);
 void func_800E1468_minigame(omObjData* obj);
 void func_800E1490_minigame(u16 arg0);
+omObjData* func_80045ED0_main(u32 arg0);
 void func_80105E50_toadstool_titan(omObjData* obj);
+void func_80106984_toadstool_titan(void);
 void func_801060AC_toadstool_titan(omObjData* obj);
 void func_801069DC_toadstool_titan(omObjData* obj);
 void func_80106C98_toadstool_titan(omObjData* obj);
@@ -294,7 +296,175 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", D_8010
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", D_8010EECC_toadstool_titan);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", func_801060AC_toadstool_titan);
+void func_801060AC_toadstool_titan(omObjData* obj) {
+    TtTbl8 mot;
+    MgWork* w;
+    s16 i;
+
+    D_8010F580_toadstool_titan++;
+    func_800E6F40_minigame();
+    switch (D_8010F5FC_toadstool_titan) {
+    case 0:
+        if (func_800E6E8C_minigame() == 1) {
+            D_8010F5FC_toadstool_titan = 1;
+            D_8010F580_toadstool_titan = 0;
+        }
+        break;
+    case 1:
+        if (D_8010F580_toadstool_titan == 61 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+            HuAudSeqPlay(0x38);
+            D_8010F614_toadstool_titan[0] = 1;
+        }
+        if (func_800E6E8C_minigame() == 2) {
+            D_8010F5FC_toadstool_titan = 2;
+            D_8010F580_toadstool_titan = 0;
+        }
+        break;
+    case 2:
+        if (D_8010F580_toadstool_titan == 1) {
+            func_80106984_toadstool_titan();
+        }
+        if (D_8010F58A_toadstool_titan != 5 || func_800E6E8C_minigame() == 3) {
+            if (D_8010F58A_toadstool_titan == 5) {
+                D_8010F5FC_toadstool_titan = 6;
+                D_8010F58A_toadstool_titan = 4;
+                if (D_8010F586_toadstool_titan == 5) {
+                    D_8010F61C_toadstool_titan = 150;
+                }
+            } else {
+                D_8010F5FC_toadstool_titan = 3;
+            }
+            D_8010F580_toadstool_titan = 0;
+        }
+        if (D_8010F5FC_toadstool_titan != 3) {
+            break;
+        }
+        /* fallthrough */
+    case 3:
+        if (D_8010F580_toadstool_titan == 0) {
+            if (func_800E6E8C_minigame() != 3) {
+                func_800E6F1C_minigame();
+            }
+            D_8010F590_toadstool_titan.unk06 = 0;
+            D_8010F590_toadstool_titan.unk18 = D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->player;
+            GwPlayer[D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->player].bonusCoin = 10;
+            D_8010F614_toadstool_titan[0] = 0;
+            if (D_8010F614_toadstool_titan[1] != 0 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+                func_8004A7C4_main(60);
+                D_8010F614_toadstool_titan[1] = 0;
+            }
+        }
+        if (D_8010F580_toadstool_titan == 2) {
+            func_800E6F34_minigame(30);
+            D_8010F590_toadstool_titan.unk22 = 60;
+        }
+        if (func_800E6E8C_minigame() == 4) {
+            D_8010F5FC_toadstool_titan = 4;
+            D_8010F580_toadstool_titan = 0;
+        }
+        break;
+    case 6:
+        if (D_8010F580_toadstool_titan == 1) {
+            D_8010F590_toadstool_titan.unk06 = 4;
+            D_8010F590_toadstool_titan.unk22 = 90;
+            D_8010F590_toadstool_titan.unk24 = 144;
+            D_8010F614_toadstool_titan[0] = 0;
+            if (D_8010F614_toadstool_titan[1] != 0 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+                func_8004A7C4_main(60);
+                D_8010F614_toadstool_titan[1] = 0;
+            }
+        }
+        if (D_8010F580_toadstool_titan == 64 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+            func_8004A950_main();
+        }
+        if (D_8010F580_toadstool_titan == 67 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+            func_8004A72C_main(3);
+        }
+        if (func_800E6E8C_minigame() == 4) {
+            D_8010F5FC_toadstool_titan = 5;
+            D_8010F580_toadstool_titan = 0;
+        }
+        break;
+    case 4:
+        if (D_8010F580_toadstool_titan == 24 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+            func_8004A950_main();
+        }
+        if (D_8010F580_toadstool_titan == 27 && D_8010F5BC_toadstool_titan == 0 && D_800D530C_main == 0) {
+            func_8004A72C_main(3);
+        }
+        if (D_8010F580_toadstool_titan == 29 && D_8010F586_toadstool_titan == 9) {
+            mot = D_8010EECC_toadstool_titan;
+            func_80017954_main(D_8010F640_toadstool_titan[D_8010F58A_toadstool_titan]->model[0], 1,
+                               mot.v[D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->chr],
+                               D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->unk8);
+            func_800E5A00_minigame(D_8010F640_toadstool_titan[D_8010F58A_toadstool_titan], 0xD,
+                                   func_80017BB8_main(D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->chr, (rand8() & 1) ? 0x2F : 0x30), 1, 0x78);
+            func_80045ED0_main(D_8010F568_toadstool_titan[D_8010F58A_toadstool_titan]->unkC);
+            func_800035E8_main(D_800D037E_main);
+        }
+        if (D_8010F580_toadstool_titan == 30 && D_8010F586_toadstool_titan == 9) {
+            func_800E5690_minigame(D_8010F640_toadstool_titan[D_8010F58A_toadstool_titan], 0xD);
+        }
+        /* fallthrough */
+    case 5:
+        if (D_8010F5FC_toadstool_titan == 5) {
+            if (D_8010F580_toadstool_titan == 1) {
+                for (i = 0; i < 4; i++) {
+                    func_800E5A00_minigame(D_8010F640_toadstool_titan[i], 0xE, func_80017BB8_main(D_8010F568_toadstool_titan[i]->chr, 0x3A), 1, 0x78);
+                }
+                func_800035E8_main(D_800D037E_main);
+            }
+            if (D_8010F5FC_toadstool_titan == 5 && D_8010F580_toadstool_titan >= 2) {
+                for (i = 0; i < 4; i++) {
+                    w = D_8010F640_toadstool_titan[i]->data;
+                    if (w->unk5C != 0x1000 && w->unk38 == 1000.0f) {
+                        w->unk3C = 0.0f;
+                        func_800E5690_minigame(D_8010F640_toadstool_titan[i], 0xE);
+                    }
+                }
+            }
+        }
+        if (func_800E6E8C_minigame() == 5) {
+            D_8010F5FC_toadstool_titan = 7;
+            D_8010F580_toadstool_titan = 0;
+        }
+        break;
+    case 7:
+        if (D_8010F580_toadstool_titan == 1) {
+            WipeCreateOut(0, 20);
+        } else if (D_8010F580_toadstool_titan >= 32) {
+            D_8010F5BC_toadstool_titan = 1;
+        }
+        break;
+    }
+    if (D_8010F5BC_toadstool_titan != 0 || D_800D530C_main != 0) {
+        if (D_800D530C_main != 0) {
+            if (D_8010F584_toadstool_titan == 0) {
+                WipeCreateOut(0, 20);
+                HuAudSeqFadeOut(20);
+                func_8004A7C4_main(20);
+                func_8004AB0C_main(20);
+            }
+            D_8010F584_toadstool_titan++;
+            if (D_8010F584_toadstool_titan == 21 && D_800D6A40_main != NULL) {
+                func_800035E8_main(D_800CDBC8_main);
+                func_800035E8_main(D_800D037E_main);
+            }
+            if (D_8010F584_toadstool_titan == 23 && D_800D6A40_main != NULL && D_8010F600_toadstool_titan != -1.0f) {
+                func_800036E8_main(D_800CDBC8_main, D_8010F600_toadstool_titan);
+            }
+            if (D_8010F584_toadstool_titan >= 25) {
+                func_800035E8_main(D_800CDBC8_main);
+                func_800035E8_main(D_800D037E_main);
+                omOvlReturnEx(1);
+            }
+        } else {
+            func_800035E8_main(D_800CDBC8_main);
+            func_800035E8_main(D_800D037E_main);
+            omOvlReturnEx(1);
+        }
+    }
+}
 
 void func_80106984_toadstool_titan(void) {
     SndFadeWork* w;
