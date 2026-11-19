@@ -147,19 +147,36 @@ extern const s16 D_8010F6E8_stacked_deck[];
 extern char D_8010F42C_stacked_deck[]; /* "card_k_DEF" */
 
 /* .data */
+/* The twelve card slots on the table (x, z). */
+typedef struct SkSlot {
+    /* 0x00 */ f32 x;
+    /* 0x04 */ f32 z;
+} SkSlot; // Size 8
+extern SkSlot D_8010F2B0_stacked_deck[12]; /* asm labels D_8010F2B4..D_8010F2E4 are its fields */
 extern s32 D_8010F35C_stacked_deck;
 extern CcCamera D_8010F360_stacked_deck[1]; /* asm labels D_8010F364..D_8010F388 are its fields */
 extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like, 0x28) */
 
 /* .bss (still asm: ovl_2A_bss.bss.s) */
-extern s8 D_8010F6F4_stacked_deck;
+extern s16 D_8010F6F0_stacked_deck;
+extern u8 D_8010F6F4_stacked_deck;
 extern void *D_8010F708_stacked_deck[6];
 extern CcEnt D_8010F730_stacked_deck[50];
 extern CcEnt D_8010F7B4_stacked_deck;    /* = D_8010F730_stacked_deck[1] */
 extern CcEnt D_8010FA48_stacked_deck[12]; /* = D_8010F730_stacked_deck[6] */
 extern CcEnt D_80110078_stacked_deck[3]; /* = D_8010F730_stacked_deck[18] */
 extern CcEnt D_8011030C_stacked_deck[3]; /* = D_8010F730_stacked_deck[23] */
+extern s16 D_801110F8_stacked_deck;
+extern s16 D_801110FA_stacked_deck;
+extern s16 D_80111100_stacked_deck;
+extern s16 D_8011110C_stacked_deck;
+extern s16 D_80111128_stacked_deck[12];
+extern s16 D_8011114C_stacked_deck;
+extern s16 D_8011114E_stacked_deck;
 extern s16 D_80111150_stacked_deck[12];
+extern u8 D_80111169_stacked_deck;
+extern s16 D_8011116A_stacked_deck;
+extern s16 D_8011116C_stacked_deck;
 
 
 void func_801059A0_stacked_deck(void) {
@@ -449,7 +466,835 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80108E4
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010969C_stacked_deck);
 
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+#ifdef NON_MATCHING
+#define SK_LEFT(n) ((n) == 0 || (n) == 1 || (n) == 4 || (n) == 5 || (n) == 8 || (n) == 9)
+#define SK_RIGHT(n) ((n) == 2 || (n) == 3 || (n) == 6 || (n) == 7 || (n) == 10 || (n) == 11)
+
+void func_801097D4_stacked_deck(omObjData *obj) {
+    CcEnt *ent;
+    CcEnt *e;
+    s16 i;
+    s16 r;
+    u8 busy;
+    omObjData *o;
+    f32 tz;
+
+    ent = &D_8010FA48_stacked_deck[obj->work[0]];
+    switch (D_8010F6F4_stacked_deck) {
+    case 1:
+        switch (ent->unk06) {
+        case 0:
+            for (i = 0; i < 12; i++) {
+                if (D_80111128_stacked_deck[i] == 0) {
+                    if (SK_LEFT(i)) {
+                        obj->trans.x = -1200.0f;
+                    } else {
+                        obj->trans.x = 1200.0f;
+                    }
+                    obj->trans.y = (obj->work[0] + 1) * 2;
+                    obj->trans.z = D_8010F2B0_stacked_deck[i].z;
+                    ent->unk0A = i;
+                    D_80111128_stacked_deck[i] = 1;
+                    break;
+                }
+            }
+            switch (D_8011116C_stacked_deck) {
+            case 0:
+                if (D_8011114E_stacked_deck < 6) {
+                    func_80106354_stacked_deck(obj, 0);
+                    obj->work[1] = 1;
+                    D_8011116A_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 6 && D_8011114E_stacked_deck < 8) {
+                    func_80106354_stacked_deck(obj, 1);
+                    obj->work[1] = 2;
+                    D_80111100_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 8) {
+                    func_80106354_stacked_deck(obj, 2);
+                    obj->work[1] = 3;
+                    D_801110FA_stacked_deck++;
+                }
+                break;
+            case 1:
+                if (D_8011114E_stacked_deck < 4) {
+                    func_80106354_stacked_deck(obj, 0);
+                    obj->work[1] = 1;
+                    D_8011116A_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 4 && D_8011114E_stacked_deck < 7) {
+                    func_80106354_stacked_deck(obj, 2);
+                    obj->work[1] = 3;
+                    D_801110FA_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 7) {
+                    func_80106354_stacked_deck(obj, 1);
+                    obj->work[1] = 2;
+                    D_80111100_stacked_deck++;
+                }
+                break;
+            case 2:
+                if (D_8011114E_stacked_deck < 3) {
+                    func_80106354_stacked_deck(obj, 0);
+                    obj->work[1] = 1;
+                    D_8011116A_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 3) {
+                    func_80106354_stacked_deck(obj, 2);
+                    obj->work[1] = 3;
+                    D_801110FA_stacked_deck++;
+                }
+                break;
+            case 3:
+                if (D_8011114E_stacked_deck < 2) {
+                    func_80106354_stacked_deck(obj, 0);
+                    obj->work[1] = 1;
+                    D_8011116A_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 2) {
+                    func_80106354_stacked_deck(obj, 2);
+                    obj->work[1] = 3;
+                    D_801110FA_stacked_deck++;
+                }
+                break;
+            case 4:
+                if (D_8011114E_stacked_deck < 1) {
+                    func_80106354_stacked_deck(obj, 0);
+                    obj->work[1] = 1;
+                    D_8011116A_stacked_deck++;
+                }
+                if (D_8011114E_stacked_deck >= 1) {
+                    func_80106354_stacked_deck(obj, 2);
+                    obj->work[1] = 3;
+                    D_801110FA_stacked_deck++;
+                }
+                break;
+            }
+            D_8011114E_stacked_deck++;
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 0);
+            func_8001C258_main(obj->model[2], 4, 0);
+            ent->unk06 = 1;
+            ent->unk08 = 1;
+            break;
+        case 1:
+            if (SK_LEFT(ent->unk0A)) {
+                if (obj->trans.x < D_8010F2B0_stacked_deck[ent->unk0A].x) {
+                    obj->trans.x += 50.0f;
+                } else {
+                    obj->trans.x = D_8010F2B0_stacked_deck[ent->unk0A].x;
+                    if (obj->trans.y > 0.0f) {
+                        obj->trans.y -= 5.0f;
+                    }
+                    if (obj->trans.y < 0.0f) {
+                        obj->trans.y = 0.0f;
+                    }
+                }
+            } else {
+                if (obj->trans.x > D_8010F2B0_stacked_deck[ent->unk0A].x) {
+                    obj->trans.x -= 50.0f;
+                } else {
+                    obj->trans.x = D_8010F2B0_stacked_deck[ent->unk0A].x;
+                    if (obj->trans.y > 0.0f) {
+                        obj->trans.y -= 5.0f;
+                    }
+                    if (obj->trans.y < 0.0f) {
+                        obj->trans.y = 0.0f;
+                    }
+                }
+            }
+            if (obj->work[0] == 11) {
+                if (D_8011110C_stacked_deck == 0) {
+                    HuAudFXPlay(0x447);
+                    D_8011110C_stacked_deck = 1;
+                }
+                busy = 0;
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (o->trans.x != D_8010F2B0_stacked_deck[e->unk0A].x || o->trans.y != 0.0f) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    D_80111169_stacked_deck = 1;
+                    D_8011114E_stacked_deck = 0;
+                    D_8011110C_stacked_deck = 0;
+                }
+            }
+            break;
+        }
+        break;
+    case 2:
+        switch (ent->unk0C) {
+        case 0:
+            if (ent->unk08 == 1) {
+                if (D_8011110C_stacked_deck == 0) {
+                    HuAudFXPlay(0x44F);
+                    D_8011110C_stacked_deck = 1;
+                }
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.02;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.02;
+                }
+                ent->unk1C += 8.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (ent->unk1C > 180.0f) {
+                    ent->unk1C = 180.0f;
+                }
+                if (obj->trans.y <= 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    if (ent->unk10 < 255) {
+                        if (D_8011110C_stacked_deck == 1) {
+                            HuAudFXPlay(0x450);
+                            D_8011110C_stacked_deck = 2;
+                        }
+                        ent->unk10 += 7;
+                    } else {
+                        ent->unk18 = 15.0f;
+                        ent->unk0C = 1;
+                    }
+                }
+                if (ent->unk1C < 90.0f) {
+                    ent->unk24 -= 0.05f;
+                    ent->unk0E -= 3;
+                } else if (ent->unk1C > 90.0f) {
+                    ent->unk24 += 0.05f;
+                    ent->unk0E += 3;
+                }
+            } else {
+                ent->unk0C = 1;
+            }
+            break;
+        case 1:
+            if (ent->unk08 == 1) {
+                if (D_8011110C_stacked_deck == 2) {
+                    HuAudFXPlay(0x44F);
+                    D_8011110C_stacked_deck = 0;
+                }
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.02;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.02;
+                }
+                ent->unk1C -= 8.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (ent->unk1C < 0.0f) {
+                    ent->unk1C = 0.0f;
+                }
+                if (obj->trans.y <= 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    ent->unk18 = 15.0f;
+                }
+                if (ent->unk1C > 90.0f) {
+                    ent->unk24 -= 0.05f;
+                    ent->unk0E -= 3;
+                } else if (ent->unk1C < 90.0f) {
+                    ent->unk24 += 0.05f;
+                    ent->unk0E += 3;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 1 || o->trans.y != 0.0f || e->unk1C != 0.0f) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 2;
+                        e->unk08 = 0;
+                        e->unk0A = 0;
+                        D_80111128_stacked_deck[i] = 0;
+                    }
+                }
+            }
+            break;
+        case 2:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x447);
+            }
+            if (obj->trans.y < (f32)((obj->work[0] + 1) * 2)) {
+                obj->trans.y += 1.0f;
+            } else {
+                obj->trans.y = (obj->work[0] + 1) * 2;
+                obj->trans.x = (D_8010F2B0_stacked_deck[0].x < obj->trans.x) ? obj->trans.x - 50.0f : D_8010F2B0_stacked_deck[0].x;
+                if (D_8010F2B0_stacked_deck[0].z < obj->trans.z) {
+                    obj->trans.z -= 50.0f;
+                } else {
+                    obj->trans.z = D_8010F2B0_stacked_deck[0].z;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 2 || o->trans.x != D_8010F2B0_stacked_deck[0].x
+                        || o->trans.z != D_8010F2B0_stacked_deck[0].z) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 3;
+                        D_8011110C_stacked_deck = 0;
+                    }
+                }
+            }
+            break;
+        case 3:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x448);
+            }
+            if (obj->trans.y == 2.0f) {
+                D_8011114C_stacked_deck = (s16)obj->work[0];
+                obj->trans.x = (D_8010F2B0_stacked_deck[1].x > obj->trans.x) ? obj->trans.x + 50.0f : D_8010F2B0_stacked_deck[1].x;
+                if (D_8010F2B0_stacked_deck[1].z > obj->trans.z) {
+                    obj->trans.z += 50.0f;
+                } else {
+                    obj->trans.z = D_8010F2B0_stacked_deck[1].z;
+                }
+                if (obj->trans.x == D_8010F2B0_stacked_deck[1].x && obj->trans.z == D_8010F2B0_stacked_deck[1].z) {
+                    D_801110F8_stacked_deck++;
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 4;
+                    }
+                }
+            }
+            break;
+        case 4:
+            if (obj->work[0] != D_8011114C_stacked_deck) {
+                obj->trans.y -= 2.0f;
+                ent->unk0C = 5;
+            } else if (obj->trans.y < 26.0f) {
+                obj->trans.y += 5.0f;
+            } else {
+                obj->trans.y = 26.0f;
+                obj->trans.x = (D_8010F2B0_stacked_deck[0].x < obj->trans.x) ? obj->trans.x - 50.0f : D_8010F2B0_stacked_deck[0].x;
+                if (D_8010F2B0_stacked_deck[0].z < obj->trans.z) {
+                    obj->trans.z -= 50.0f;
+                } else {
+                    obj->trans.z = D_8010F2B0_stacked_deck[0].z;
+                }
+                if (obj->trans.x == D_8010F2B0_stacked_deck[0].x && obj->trans.z == D_8010F2B0_stacked_deck[0].z) {
+                    ent->unk0C = 5;
+                }
+            }
+            break;
+        case 5:
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 5 || o->trans.x != D_8010F2B0_stacked_deck[0].x
+                        || o->trans.z != D_8010F2B0_stacked_deck[0].z) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        if (D_801110F8_stacked_deck > 0) {
+                            e->unk0C = 6;
+                            if (i == 11) {
+                                D_801110F8_stacked_deck = 0;
+                            }
+                            D_8011110C_stacked_deck = 0;
+                        } else {
+                            e->unk0C = 3;
+                        }
+                    }
+                }
+            }
+            break;
+        case 6:
+            r = (u8)(rand8() % 12);
+            for (;;) {
+                if (D_80111128_stacked_deck[r] == 0) {
+                    ent->unk0A = r;
+                    D_80111128_stacked_deck[r] = 1;
+                    ent->unk0C = 7;
+                    break;
+                }
+                r++;
+                if (r >= 12) {
+                    r = 0;
+                }
+            }
+            break;
+        case 7:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x449);
+            }
+            obj->trans.x = (D_8010F2B0_stacked_deck[ent->unk0A].x > obj->trans.x) ? obj->trans.x + 50.0f : D_8010F2B0_stacked_deck[ent->unk0A].x;
+            obj->trans.z = (D_8010F2B0_stacked_deck[ent->unk0A].z > obj->trans.z) ? obj->trans.z + 50.0f : D_8010F2B0_stacked_deck[ent->unk0A].z;
+            if (obj->trans.x == D_8010F2B0_stacked_deck[ent->unk0A].x
+                && obj->trans.z == D_8010F2B0_stacked_deck[ent->unk0A].z) {
+                if (obj->trans.y > 0.0f) {
+                    obj->trans.y -= 5.0f;
+                }
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 7 || o->trans.x != D_8010F2B0_stacked_deck[e->unk0A].x
+                        || o->trans.z != D_8010F2B0_stacked_deck[e->unk0A].z || o->trans.y != 0.0f) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 0;
+                    }
+                    D_80111169_stacked_deck = 2;
+                }
+            }
+            break;
+        }
+        break;
+    case 3:
+        switch (ent->unk0C) {
+        case 0:
+            if (ent->unk08 == 1) {
+                if (D_8011110C_stacked_deck == 0) {
+                    HuAudFXPlay(0x44F);
+                    D_8011110C_stacked_deck = 1;
+                }
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.02;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.02;
+                }
+                ent->unk1C += 8.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (ent->unk1C > 180.0f) {
+                    ent->unk1C = 180.0f;
+                }
+                if (obj->trans.y <= 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    if (ent->unk10 < 255) {
+                        if (D_8011110C_stacked_deck == 1) {
+                            HuAudFXPlay(0x450);
+                            D_8011110C_stacked_deck = 2;
+                        }
+                        ent->unk10 += 7;
+                    } else {
+                        ent->unk18 = 15.0f;
+                        ent->unk0C = 1;
+                    }
+                }
+                if (ent->unk1C < 90.0f) {
+                    ent->unk24 -= 0.05f;
+                    ent->unk0E -= 3;
+                } else if (ent->unk1C > 90.0f) {
+                    ent->unk24 += 0.05f;
+                    ent->unk0E += 3;
+                }
+            } else {
+                ent->unk0C = 1;
+            }
+            break;
+        case 1:
+            if (ent->unk08 == 1) {
+                if (D_8011110C_stacked_deck == 2) {
+                    HuAudFXPlay(0x44F);
+                    D_8011110C_stacked_deck = 0;
+                }
+                if (ent->unk18 > 0.0f) {
+                    ent->unk28 -= 0.02;
+                } else if (ent->unk18 < 0.0f) {
+                    ent->unk28 += 0.02;
+                }
+                ent->unk1C -= 8.0f;
+                obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+                if (ent->unk1C < 0.0f) {
+                    ent->unk1C = 0.0f;
+                }
+                if (obj->trans.y <= 0.0f) {
+                    obj->trans.y = 0.0f;
+                    ent->unk28 = 1.0f;
+                    ent->unk18 = 15.0f;
+                }
+                if (ent->unk1C > 90.0f) {
+                    ent->unk24 -= 0.05f;
+                    ent->unk0E -= 3;
+                } else if (ent->unk1C < 90.0f) {
+                    ent->unk24 += 0.05f;
+                    ent->unk0E += 3;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 1 || o->trans.y != 0.0f || e->unk1C != 0.0f) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 2;
+                        e->unk08 = 0;
+                        D_80111128_stacked_deck[i] = 0;
+                    }
+                }
+            }
+            break;
+        case 2:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x447);
+            }
+            if (obj->trans.y < (f32)((obj->work[0] + 1) * 2)) {
+                obj->trans.y += 1.0f;
+            } else {
+                obj->trans.y = (obj->work[0] + 1) * 2;
+                if (SK_LEFT(ent->unk0A)) {
+                    obj->trans.x = (D_8010F2B0_stacked_deck[5].x > obj->trans.x) ? obj->trans.x + 40.0f : D_8010F2B0_stacked_deck[5].x;
+                    if (D_8010F2B0_stacked_deck[5].z < obj->trans.z) {
+                        obj->trans.z -= 40.0f;
+                    } else if (D_8010F2B0_stacked_deck[5].z > obj->trans.z) {
+                        obj->trans.z += 40.0f;
+                    }
+                    tz = D_8010F2B0_stacked_deck[5].z;
+                } else {
+                    obj->trans.x = (D_8010F2B0_stacked_deck[6].x < obj->trans.x) ? obj->trans.x - 40.0f : D_8010F2B0_stacked_deck[6].x;
+                    if (D_8010F2B0_stacked_deck[6].z < obj->trans.z) {
+                        obj->trans.z -= 40.0f;
+                    } else if (D_8010F2B0_stacked_deck[6].z > obj->trans.z) {
+                        obj->trans.z += 40.0f;
+                    }
+                    tz = D_8010F2B0_stacked_deck[6].z;
+                }
+                if (tz - 30.0f < obj->trans.z && obj->trans.z < tz + 30.0f) {
+                    obj->trans.z = tz;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (SK_LEFT(e->unk0A)) {
+                        if (e->unk0C != 2 || o->trans.x != D_8010F2B0_stacked_deck[5].x
+                            || o->trans.z != D_8010F2B0_stacked_deck[5].z) {
+                            busy = 1;
+                        }
+                    } else {
+                        if (e->unk0C != 2 || o->trans.x != D_8010F2B0_stacked_deck[6].x
+                            || o->trans.z != D_8010F2B0_stacked_deck[6].z) {
+                            busy = 1;
+                        }
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 3;
+                        D_8011110C_stacked_deck = 0;
+                        if (SK_LEFT(e->unk0A)) {
+                            e->unk0A = 5;
+                        } else {
+                            e->unk0A = 6;
+                        }
+                    }
+                }
+            }
+            break;
+        case 3:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x448);
+            }
+            if (ent->unk0A == 5) {
+                obj->trans.x = (D_8010F2B0_stacked_deck[6].x > obj->trans.x) ? obj->trans.x + 40.0f : D_8010F2B0_stacked_deck[6].x;
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 3 || o->trans.x != D_8010F2B0_stacked_deck[6].x) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 4;
+                    }
+                }
+            }
+            break;
+        case 4:
+            if (ent->unk0A == 6) {
+                obj->trans.x = (D_8010F2B0_stacked_deck[5].x < obj->trans.x) ? obj->trans.x - 40.0f : D_8010F2B0_stacked_deck[5].x;
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0A == 6 && (e->unk0C != 4 || o->trans.x != D_8010F2B0_stacked_deck[5].x)) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 7;
+                        D_8011110C_stacked_deck = 0;
+                    }
+                }
+            }
+            break;
+        case 7:
+            r = (u8)(rand8() % 12);
+            if (ent->unk0A == 5) {
+                for (;;) {
+                    if (SK_LEFT(r) && D_80111128_stacked_deck[r] == 0) {
+                        break;
+                    }
+                    r++;
+                    if (r >= 12) {
+                        r = 0;
+                    }
+                }
+                ent->unk0A = r;
+            } else {
+                for (;;) {
+                    if (SK_RIGHT(r) && D_80111128_stacked_deck[r] == 0) {
+                        break;
+                    }
+                    r++;
+                    if (r >= 12) {
+                        r = 0;
+                    }
+                }
+                ent->unk0A = r;
+            }
+            D_80111128_stacked_deck[r] = 1;
+            ent->unk0C = 8;
+            break;
+        case 8:
+            if (obj->work[0] == 11 && D_8011110C_stacked_deck == 0) {
+                D_8011110C_stacked_deck = 1;
+                HuAudFXPlay(0x449);
+            }
+            if (D_8010F2B0_stacked_deck[ent->unk0A].x < obj->trans.x) {
+                obj->trans.x -= 40.0f;
+            } else if (D_8010F2B0_stacked_deck[ent->unk0A].x > obj->trans.x) {
+                obj->trans.x += 40.0f;
+            }
+            if (D_8010F2B0_stacked_deck[ent->unk0A].x - 30.0f < obj->trans.x
+                && obj->trans.x < D_8010F2B0_stacked_deck[ent->unk0A].x + 30.0f) {
+                obj->trans.x = D_8010F2B0_stacked_deck[ent->unk0A].x;
+            }
+            if (D_8010F2B0_stacked_deck[ent->unk0A].z < obj->trans.z) {
+                obj->trans.z -= 40.0f;
+            } else if (D_8010F2B0_stacked_deck[ent->unk0A].z > obj->trans.z) {
+                obj->trans.z += 40.0f;
+            }
+            if (D_8010F2B0_stacked_deck[ent->unk0A].z - 30.0f < obj->trans.z
+                && obj->trans.z < D_8010F2B0_stacked_deck[ent->unk0A].z + 30.0f) {
+                obj->trans.z = D_8010F2B0_stacked_deck[ent->unk0A].z;
+            }
+            if (obj->trans.x == D_8010F2B0_stacked_deck[ent->unk0A].x
+                && obj->trans.z == D_8010F2B0_stacked_deck[ent->unk0A].z) {
+                if (obj->trans.y > 0.0f) {
+                    obj->trans.y -= 5.0f;
+                }
+                if (obj->trans.y < 0.0f) {
+                    obj->trans.y = 0.0f;
+                }
+            }
+            busy = 0;
+            if (obj->work[0] == 11) {
+                for (i = 0; i < 12; i++) {
+                    e = &D_8010FA48_stacked_deck[i];
+                    o = e->obj;
+                    if (e->unk0C != 8 || o->trans.x != D_8010F2B0_stacked_deck[e->unk0A].x
+                        || o->trans.z != D_8010F2B0_stacked_deck[e->unk0A].z || o->trans.y != 0.0f) {
+                        busy = 1;
+                    }
+                }
+                if (!busy) {
+                    for (i = 0; i < 12; i++) {
+                        e = &D_8010FA48_stacked_deck[i];
+                        e->unk0C = 0;
+                    }
+                    D_80111169_stacked_deck = 3;
+                }
+            }
+            break;
+        }
+        break;
+    case 7:
+        if (D_8010F6F0_stacked_deck == 4 && ent->unk06 == 1) {
+            if (ent->unk04 == 0 && obj->work[1] == 3) {
+                ent->unk04 = 1;
+                D_8010F6F0_stacked_deck = 3;
+            }
+        } else if (*(s32 *)&ent->unk04 == 0x10001) {
+            if (ent->unk18 > 0.0f) {
+                ent->unk28 -= 0.02;
+            } else if (ent->unk18 < 0.0f) {
+                ent->unk28 += 0.02;
+            }
+            obj->trans.y = func_80106338_stacked_deck(obj->trans.y, &ent->unk18, 1.0f);
+            ent->unk1C += 45.0f;
+            if (ent->unk1C > 900.0f) {
+                ent->unk1C = 900.0f;
+            }
+            if (ent->unk18 > 0.0f) {
+                ent->unk24 -= 0.05f;
+                ent->unk0E -= 3;
+            } else if (ent->unk18 < 0.0f) {
+                ent->unk24 += 0.05f;
+                ent->unk0E += 3;
+            }
+            if (obj->trans.y <= 0.0f) {
+                obj->trans.y = 0.0f;
+                func_8001C258_main(obj->model[1], 4, 4);
+                ent->unk28 = 1.0f;
+                switch (obj->work[1]) {
+                case 1:
+                    func_80106354_stacked_deck(obj, 3);
+                    break;
+                case 2:
+                    func_80106354_stacked_deck(obj, 4);
+                    break;
+                case 3:
+                    func_80106354_stacked_deck(obj, 5);
+                    break;
+                }
+                if (++ent->unk12 >= 7) {
+                    ent->unk12 = 0;
+                    D_80111169_stacked_deck = 7;
+                }
+            }
+        }
+        break;
+    case 8:
+    case 9:
+    case 11:
+    case 12:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+        if (ent->unk04 == 1) {
+            ent->unk20 -= 0.02f;
+            ent->unk24 -= 0.02f;
+            ent->unk28 -= 0.02f;
+            ent->unk10 -= 15;
+            if (ent->unk20 < 0.1f) {
+                ent->unk20 = 0.1f;
+                func_8001C258_main(obj->model[0], 4, 4);
+                func_8001C258_main(obj->model[2], 4, 4);
+                ent->unk04 = 0;
+                ent->unk06 = 0;
+                D_80111128_stacked_deck[ent->unk0A] = 0;
+                ent->unk0A = 0;
+                ent->unk18 = 15.0f;
+                ent->unk1C = 0.0f;
+                ent->unk0E = 150;
+                ent->unk10 = 0;
+                ent->unk20 = 1.0f;
+                ent->unk24 = 1.0f;
+                ent->unk28 = 1.0f;
+            }
+        }
+        break;
+    }
+    if (ent->unk0E < 0) {
+        ent->unk0E = 0;
+    }
+    if (ent->unk0E > 150) {
+        ent->unk0E = 150;
+    }
+    func_8001F9E4_main(obj->model[1], ent->unk0E);
+    if (ent->unk10 < 0) {
+        ent->unk10 = 0;
+    }
+    if (ent->unk10 > 255) {
+        ent->unk10 = 255;
+    }
+    func_8001F9E4_main(obj->model[2], ent->unk10);
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = func_801059BC_stacked_deck(ent->unk1C, 0.0f);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelRotSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(obj->model[2], obj->rot.x, obj->rot.y, obj->rot.z);
+    obj->scale.x = ent->unk20;
+    obj->scale.y = ent->unk20;
+    obj->scale.z = ent->unk20;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    if (ent->unk24 < 0.1f) {
+        ent->unk24 = 0.1f;
+    }
+    if (ent->unk24 > 1.0f) {
+        ent->unk24 = 1.0f;
+    }
+    Hu3DModelScaleSet(obj->model[1], ent->unk24, obj->scale.y, ent->unk28);
+    Hu3DModelScaleSet(obj->model[2], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    ent->unk2C = 10.0f;
+    if (obj->trans.z < -100.0f) {
+        ent->unk30 = 40.0f;
+    } else if (obj->trans.z < 400.0f) {
+        ent->unk30 = 35.0f;
+    } else {
+        ent->unk30 = 30.0f;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x + ent->unk2C, -4.0f, obj->trans.z + ent->unk30);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801097D4_stacked_deck);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010C188_stacked_deck);
 
