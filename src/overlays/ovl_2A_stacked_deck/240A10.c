@@ -185,6 +185,7 @@ typedef struct SkXY {
     /* 0x04 */ f32 y;
 } SkXY; // Size 8
 extern SkXY D_8010F310_stacked_deck[3]; /* asm label D_8010F314 is [0].y */
+extern f32 D_8010F328_stacked_deck[3]; /* per wheel: spin speed */
 extern CcCamera D_8010F360_stacked_deck[1]; /* asm labels D_8010F364..D_8010F388 are its fields */
 extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like, 0x28) */
 
@@ -2735,7 +2736,101 @@ void func_8010DEBC_stacked_deck(void) {
     omAddObj(590, 1, 0, -1, func_8010DDAC_stacked_deck)->work[0] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DEF4_stacked_deck);
+void func_8010DEF4_stacked_deck(omObjData *obj) {
+    CcEnt *ent = &D_8011030C_stacked_deck[obj->work[0]];
+    CcEnt *c;
+    f32 spd;
+    s16 busy;
+    s16 i;
+
+    switch (D_8010F6F4_stacked_deck) {
+    case 8:
+        spd = 2.0f;
+        break;
+    case 9:
+        spd = 4.0f;
+        break;
+    default:
+        spd = 1.0f;
+        break;
+    }
+    switch (D_8010F6F4_stacked_deck) {
+    case 2:
+        ent->unk18 -= D_8010F328_stacked_deck[obj->work[0]] * 5.0f;
+        if (ent->unk18 < 0.0f) {
+            ent->unk18 = func_801059BC_stacked_deck(ent->unk18, 0.0f);
+        }
+        ent->unk04 = 0;
+        break;
+    case 3:
+        ent->unk18 += D_8010F328_stacked_deck[obj->work[0]] * 5.0f;
+        if (ent->unk18 > 360.0f) {
+            ent->unk18 = func_801059BC_stacked_deck(ent->unk18, 0.0f);
+        }
+        ent->unk04 = 0;
+        break;
+    case 11:
+        if (obj->work[0] == 0 || obj->work[0] == 2) {
+            ent->unk18 += D_8010F328_stacked_deck[obj->work[0]] * 5.0f;
+        } else {
+            ent->unk18 -= D_8010F328_stacked_deck[obj->work[0]] * 5.0f;
+        }
+        if (ent->unk18 > 360.0f) {
+            ent->unk18 = func_801059BC_stacked_deck(ent->unk18, 0.0f);
+        }
+        if (ent->unk18 < 0.0f) {
+            ent->unk18 = func_801059BC_stacked_deck(ent->unk18, 0.0f);
+        }
+        ent->unk04 = 0;
+        break;
+    default:
+        switch (ent->unk04) {
+        case 0:
+            if (ent->unk18 > -40.0f) {
+                ent->unk18 -= spd * D_8010F328_stacked_deck[obj->work[0]];
+            } else {
+                ent->unk18 = -40.0f;
+            }
+            busy = 0;
+            for (i = 0; i < 3; i++) {
+                c = &D_8011030C_stacked_deck[i];
+                if (c->unk18 != -40.0f) {
+                    busy = 1;
+                }
+            }
+            if (busy == 0) {
+                for (i = 0; i < 3; i++) {
+                    c = &D_8011030C_stacked_deck[i];
+                    c->unk04 = 1;
+                }
+            }
+            break;
+        case 1:
+            if (ent->unk18 < 40.0f) {
+                ent->unk18 += spd * D_8010F328_stacked_deck[obj->work[0]];
+            } else {
+                ent->unk18 = 40.0f;
+            }
+            busy = 0;
+            for (i = 0; i < 3; i++) {
+                c = &D_8011030C_stacked_deck[i];
+                if (c->unk18 != 40.0f) {
+                    busy = 1;
+                }
+            }
+            if (busy == 0) {
+                for (i = 0; i < 3; i++) {
+                    c = &D_8011030C_stacked_deck[i];
+                    c->unk04 = 0;
+                }
+            }
+            break;
+        }
+        break;
+    }
+    obj->rot.z = func_801059BC_stacked_deck(ent->unk18, 0.0f);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+}
 
 void func_8010E368_stacked_deck(omObjData *obj) {
     u32 n = obj->work[0];
