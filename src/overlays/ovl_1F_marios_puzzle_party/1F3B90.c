@@ -147,6 +147,7 @@ extern s32 D_800EBEB0_minigame[];
 void func_8004AB0C_main(s32);
 void func_8001F38C_main(s32, s32, s32);
 void func_8005F524_main(void);
+void func_800E1804_minigame(void);
 u16 func_80049F98_main(void);
 extern u8 D_800D6A90_main;
 void func_8000BB94_main(u16 arg0);
@@ -235,10 +236,10 @@ void func_8010EF30_marios_puzzle_party(void);
 typedef struct PzSparkleInit {
     /* 0x00 */ s32 spread;
     /* 0x04 */ s32 drift;
-    /* 0x08 */ s32 x;
-    /* 0x0C */ s32 y;
-    /* 0x10 */ s32 vx;
-    /* 0x14 */ s32 vy;
+    /* 0x08 */ f32 x;
+    /* 0x0C */ f32 y;
+    /* 0x10 */ f32 vx;
+    /* 0x14 */ f32 vy;
 } PzSparkleInit; /* size 0x18 */
 
 extern PzOrigin D_80110080_marios_puzzle_party[4];
