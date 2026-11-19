@@ -115,7 +115,10 @@ typedef struct {
     /* 0x00 */ s8 unk00;
     /* 0x01 */ u8 unk01;
     /* 0x04 */ f32 unk04; // speed bonus
-    /* 0x08 */ char unk08[0x18];
+    /* 0x08 */ char unk08[8];
+    /* 0x10 */ s8 updateMotion;
+    /* 0x12 */ s16 motion;
+    /* 0x14 */ char unk14[0xC];
     /* 0x20 */ f32 unk20;
     /* 0x24 */ char unk24[4];
 } CxPlayer; // Size 0x28
@@ -199,6 +202,8 @@ void func_8010AF70_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010B148_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010B33C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010B52C_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010B63C_cheep_cheep_chase(CxPlayer *player, s32 motion, s32 updateMotion);
+void func_8010B648_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010BB9C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010C440_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010C988_cheep_cheep_chase(CxFuncContext *ctx);
@@ -1269,7 +1274,67 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_80
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80109750_cheep_cheep_chase);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80109CAC_cheep_cheep_chase);
+void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    f32 scale = 0.0f;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            switch (ctx->work.s8[0]) {
+                case 0:
+                    func_800E5690_minigame(object, 0x2B);
+                    ctx->work.s8[0] = 1;
+                    break;
+                case 1:
+                    if (++ctx->work.s8[1] > 7.0f) {
+                        if (ctx->work.s16[4] == 0) {
+                            omVibrate(ctx->work.s16[0], 10, 0, 10);
+                            ctx->work.s16[4] = 1;
+                        }
+                        switch (ctx->work.s8[3]) {
+                            case 0:
+                                if (func_8010DF48_cheep_cheep_chase(&scale, (u8 *)&ctx->work.s8[2], 1.2f, 2.5f, 3.0f)) {
+                                    ctx->work.s8[2] = 0;
+                                    ctx->work.s8[3] = 1;
+                                }
+                                func_8001C258_main(object->model[9], 4, 0);
+                                break;
+                            case 1:
+                                if (func_8010DF48_cheep_cheep_chase(&scale, (u8 *)&ctx->work.s8[2], 2.5f, 0.8f, 3.0f)) {
+                                    HmfModelData[object->model[0]].unk44 = 0.75f;
+                                    ctx->work.s8[2] = 0;
+                                    ctx->work.s8[3] = 2;
+                                    func_8001C258_main(object->model[9], 4, 4);
+                                    D_8010E01C_cheep_cheep_chase++;
+                                }
+                                break;
+                        }
+                        Hu3DModelPosSet(object->model[9], object->trans.x - 10.0, object->trans.y + 200.0, object->trans.z - 30.0);
+                        Hu3DModelScaleSet(object->model[9], scale, scale, scale);
+                        HmfModelData[object->model[9]].rot.y = CRot.y - 90.0f;
+                    }
+                    break;
+            }
+            if (ctx->work.s8[1]++ > 40.0f) {
+                ctx->work.s8[0] = 2;
+            }
+            if (ctx->work.s8[0] == 2) {
+                func_8010B63C_cheep_cheep_chase(&D_8010E364_cheep_cheep_chase[object->work[0]], 0x26, 1);
+                HmfModelData[object->model[0]].unk44 = 1.0f;
+                HmfModelData[object->model[9]].rot.y = 0.0f;
+                func_8010D7F4_cheep_cheep_chase(ctx->work.s16[0] + 4, ctx);
+                func_8010D6F4_cheep_cheep_chase(object->work[0] + 4, 4, object->model[0], 0, NULL, func_8010B648_cheep_cheep_chase, FALSE, FALSE);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A08C_cheep_cheep_chase);
 
@@ -1289,7 +1354,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B52C_cheep_cheep_chase);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B63C_cheep_cheep_chase);
+void func_8010B63C_cheep_cheep_chase(CxPlayer *player, s32 motion, s32 updateMotion) {
+    player->updateMotion = updateMotion;
+    player->motion = motion;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E258_cheep_cheep_chase);
 
