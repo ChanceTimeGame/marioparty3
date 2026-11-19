@@ -865,9 +865,66 @@ void func_80108170_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
+
+// Register allocation: GCC hoists func_8010A08C_cheep_cheep_chase out of the second loop (one more saved register).
+#ifdef NON_MATCHING
+void func_801085FC_cheep_cheep_chase(CxFuncContext *ctx) {
+    // Retail steps through D_800EC598_minigame[0] as an array (the four player objects are assumed adjacent), and
+    // the second loop passes the model of that pointer as the first loop left it: one past the last player.
+    omObjData *object = D_800EC598_minigame[0];
+    CxPlayer *player = D_8010E364_cheep_cheep_chase;
+    s16 candidates[4] = { -1, -1, -1, -1 };
+    s16 count = 0;
+    s16 i;
+    s16 *pick;
+    u8 result;
+
+    switch (ctx->state) {
+        case 0:
+            break;
+        case 1:
+            if (D_8010E360_cheep_cheep_chase->unk2E == 4) {
+                func_8010D85C_cheep_cheep_chase(1);
+                func_8010D6F4_cheep_cheep_chase(1, 0, -1, 0, NULL, func_80108AF4_cheep_cheep_chase, FALSE, TRUE);
+            } else if (D_8010E360_cheep_cheep_chase->unk30 != 4) {
+                if (D_8010E360_cheep_cheep_chase->unk28 != 0.0f) {
+                    for (i = 0; i < 4; i++, object++) {
+                        if (object->trans.z < D_8010E360_cheep_cheep_chase->unk28 - 350.0) {
+                            candidates[count++] = i;
+                        }
+                    }
+                }
+                i = count;
+                if (i != 0) {
+                    pick = (s16)(rand16() % i) + candidates;
+                    for (i = 0; i < 4; i++, player++) {
+                        if (player->unk01 != 4) {
+                            if (i != *pick) {
+                                result = 7;
+                            } else {
+                                D_8010E360_cheep_cheep_chase->unk2C = i;
+                                result = 6;
+                            }
+                            player->unk01 = result;
+                            func_8010D85C_cheep_cheep_chase(i + 4);
+                            func_8010D6F4_cheep_cheep_chase(i + 4, 0, object->model[0], 0, NULL, func_8010A08C_cheep_cheep_chase, FALSE, FALSE);
+                        }
+                    }
+                    func_8010D7F4_cheep_cheep_chase(1, ctx);
+                    HuAudSeqFadeOut(120);
+                    GMesCreate(14);
+                    func_8010D6F4_cheep_cheep_chase(1, 0, -1, 0, NULL, func_801088F8_cheep_cheep_chase, FALSE, TRUE);
+                    D_8010E360_cheep_cheep_chase->unk18 = 0.4f;
+                }
+            }
+            break;
+    }
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E170_cheep_cheep_chase);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801085FC_cheep_cheep_chase);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801088F8_cheep_cheep_chase);
 
