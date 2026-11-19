@@ -3433,7 +3433,72 @@ void func_8010FE74_stardust_battle(void) {
     HuSprPriSet(grp, 0, 0xFFFF);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80110364_stardust_battle);
+void func_80110364_stardust_battle(omObjData *obj) {
+    SbStar *star = D_80114B5C_stardust_battle;
+    s32 i;
+    s32 a;
+    f32 sc;
+    f32 alpha;
+
+    if (star == NULL) {
+        return;
+    }
+    for (i = 0; i < 16; i++, star++) {
+        if (star->unk00 == 0) {
+            continue;
+        }
+        star->unk04 = star->unk04 + 5.0f;
+        if (star->unk04 >= 360.0f) {
+            star->unk04 = star->unk04 - 360.0f;
+        }
+        star->unk06 = star->unk06 + 5.0f;
+        if (star->unk06 >= 360.0f) {
+            star->unk06 = star->unk06 - 360.0f;
+        }
+        star->unk1C = sindf(star->unk04) * star->unk14 + star->unk08;
+        star->unk20 = sindf(star->unk04) * star->unk18 + star->unk0C;
+        star->unk24 = star->unk10;
+        func_8001C258_main(star->unk02, 4, 0);
+        Hu3DModelPosSet(star->unk02, obj->trans.x, obj->trans.y, obj->trans.z);
+        Hu3DModelRotSet(star->unk02, star->unk1C, star->unk20, star->unk24);
+    }
+    switch (obj->work[0]) {
+    case 1:
+        if (++obj->work[1] >= 90.0f) {
+            obj->work[0]++;
+            obj->work[1] = 0;
+            obj->work[2] = 0;
+            func_8001C258_main(obj->model[0], 4, 0);
+            obj->scale.x = obj->scale.y = obj->scale.z = 0.1f;
+        }
+        break;
+    case 2:
+        if (obj->scale.x < 40.0f) {
+            sc = obj->scale.z + 0.5f;
+            obj->scale.x = obj->scale.y = obj->scale.z = sc;
+            if (sc >= 25.0f && obj->work[2] == 0) {
+                obj->work[2] = 2;
+            }
+        } else {
+            obj->work[0]++;
+            obj->work[1] = 0;
+        }
+        break;
+    }
+    if (obj->work[2] >= 2) {
+        alpha = obj->work[2] / 255.0f;
+        a = obj->work[2];
+        HuSprAttrReset((s16)obj->work[3], 0, 0x8000);
+        func_80055484_main((s16)obj->work[3], 0, 0xFF, 0xFF, 0xFF, alpha * 255.0f);
+        a += 10;
+        if (a >= 0xFF) {
+            func_80055484_main((s16)obj->work[3], 0, 0xFF, 0xFF, 0xFF, 0x100);
+            obj->work[2] = 1;
+        } else {
+            obj->work[2] = a;
+        }
+    }
+}
 
 void func_80110758_stardust_battle(f32 x, f32 y, f32 z, s32 n) {
     if (D_80114B58_stardust_battle != NULL) {
