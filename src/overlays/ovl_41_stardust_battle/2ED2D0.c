@@ -376,7 +376,7 @@ s32 func_80112980_stardust_battle(HuSprite_Unk84_Struct *arg0, RGBA *arg1);
 s32 func_80113568_stardust_battle(HuSprite_Unk84_Struct *arg0, u16 arg1, RGBA *arg2);
 void func_8011376C_stardust_battle(u16 modelId, HuSprite_Unk84_Struct *arg1, u16 arg2, RGBA *arg3);
 s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
-s16 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind);
+s32 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind);
 // protos end
 
 extern s16 D_800CDD6A_main;
@@ -459,7 +459,8 @@ void func_8010A418_stardust_battle(omObjData *obj);
 void func_8010CB34_stardust_battle(void);
 void func_8010CE5C_stardust_battle(omObjData *obj);
 void func_8010EE7C_stardust_battle(void);
-void func_8010F400_stardust_battle(s32, s32);
+void func_8010F400_stardust_battle(s16 n, s32 frames);
+extern omObjData *D_80114B50_stardust_battle; /* effect pool object */
 void func_8010FA60_stardust_battle(void);
 void func_801107E4_stardust_battle(void);
 f32 func_80111C2C_stardust_battle(f32 target, f32 cur, f32 step);
@@ -3757,7 +3758,37 @@ void func_8010F0E8_stardust_battle(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F0E8_stardust_battle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010F400_stardust_battle);
+void func_8010F400_stardust_battle(s16 n, s32 frames) {
+    s32 t[3];
+    u8 *dig = D_80114B38_stardust_battle[n];
+
+    t[0] = t[1] = t[2] = 0;
+    dig[0] = dig[1] = dig[2] = dig[3] = dig[4] = dig[5] = 0;
+    while (frames >= 1800) {
+        frames -= 1800;
+        t[0]++;
+    }
+    while (frames >= 30) {
+        frames -= 30;
+        t[1]++;
+    }
+    t[2] = frames * 0.033333335f * 99.0f;
+    while (t[0] >= 10) {
+        t[0] -= 10;
+        dig[0]++;
+    }
+    dig[1] = t[0];
+    while (t[1] >= 10) {
+        t[1] -= 10;
+        dig[2]++;
+    }
+    dig[3] = t[1];
+    while (t[2] >= 10) {
+        t[2] -= 10;
+        dig[4]++;
+    }
+    dig[5] = t[2];
+}
 
 void func_8010F580_stardust_battle(s16 idx) {
     D_80114B44_stardust_battle[idx].unk04 = 1;
@@ -3882,11 +3913,101 @@ s32 func_8010F890_stardust_battle(Vec *pos, Vec *vel, Vec *scale, f32 speed, RGB
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FA60_stardust_battle);
+extern s32 D_80113EF0_stardust_battle[3]; /* effect model files per kind */
+extern s32 D_80113EFC_stardust_battle[];
+void func_8010FBCC_stardust_battle(omObjData *obj);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FBCC_stardust_battle);
+void func_8010FA60_stardust_battle(void) {
+    omObjData *obj;
+    HmfModel *m;
+    s32 i;
+    s32 k;
+    s32 n = 8;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010FCBC_stardust_battle);
+    obj = D_80114B50_stardust_battle = omAddObj(30, 8, 0, -1, func_8010FBCC_stardust_battle);
+    obj->work[0] = 0;
+    obj->work[1] = 2;
+    obj->work[2] = 4;
+    obj->work[3] = 0xFF;
+    for (i = 0, k = 0; i < n; i++) {
+        k += i >= obj->work[k + 1];
+        obj->model[i] = func_8000B0A0_main(D_80113EF0_stardust_battle[k], D_80113EFC_stardust_battle[i / 16] | 0x99);
+        func_8001C258_main(obj->model[i], 4, 4);
+        m = &HmfModelData[obj->model[i]];
+        m->unk40 = 0.0f;
+        m->unk44 = 0.0f;
+        if (m->hmf->unk98 != NULL) {
+            m->hmf->unk98->unk08 = 0;
+        }
+    }
+}
+
+void func_8010FBCC_stardust_battle(omObjData *obj) {
+    HmfModel *m;
+    s32 i;
+    s32 n = 8;
+
+    for (i = 0; i < n; i++) {
+        m = &HmfModelData[obj->model[i]];
+        if (!(m->unk18 & 4) && D_800CCF58_main[m->unk02].unk02 <= m->unk40) {
+            func_8001C258_main(obj->model[i], 4, 4);
+            m->unk40 = 0.0f;
+            m->unk44 = 0.0f;
+            if (m->hmf->unk98 != NULL) {
+                m->hmf->unk98->unk08 = 0;
+            }
+        }
+    }
+}
+
+
+
+s32 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind) {
+    omObjData *obj = D_80114B50_stardust_battle;
+    HmfModel *m;
+    s32 i;
+    s32 n = 8;
+
+    for (i = obj->work[kind]; i < n; i++) {
+        if (i >= obj->work[kind + 1]) {
+            break;
+        }
+        m = &HmfModelData[obj->model[i]];
+        if (!(m->unk18 & 4)) {
+            continue;
+        }
+        func_8001C258_main(obj->model[i], 4, 0);
+        if (pos != NULL) {
+            m->pos.x = pos->x;
+            m->pos.y = pos->y;
+            m->pos.z = pos->z;
+        } else {
+            m->pos.x = m->pos.y = m->pos.z = 0.0f;
+        }
+        if (rot != NULL) {
+            m->rot.x = rot->x;
+            m->rot.y = rot->y;
+            m->rot.z = rot->z;
+        } else {
+            m->rot.x = m->rot.y = m->rot.z = 0.0f;
+        }
+        m->scale.x = m->scale.y = m->scale.z = scale;
+        if (i == 0) {
+            obj->trans.x = m->pos.x;
+            obj->trans.y = m->pos.y;
+            obj->trans.z = m->pos.z;
+            obj->rot.x = m->rot.x;
+            obj->rot.y = m->rot.y;
+            obj->rot.z = m->rot.z;
+            obj->scale.x = m->scale.x;
+            obj->scale.y = m->scale.y;
+            obj->scale.z = m->scale.z;
+        }
+        m->unk44 = 1.0f;
+        return i;
+    }
+    return -1;
+}
 
 void func_80110364_stardust_battle(omObjData *obj);
 s32 func_801122D0_stardust_battle(void);
@@ -4326,7 +4447,31 @@ f32 func_80111B28_stardust_battle(f32 a, f32 b) {
     return d;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80111C2C_stardust_battle);
+f32 func_80111C2C_stardust_battle(f32 target, f32 cur, f32 step) {
+    f32 d;
+    f32 v;
+
+    SB_WRAP(target);
+    SB_WRAP(cur);
+    d = target - cur + 360.0;
+    while (d > 360.0f) {
+        d -= 360.0f;
+    }
+    if (d < 180.0) {
+        if (d <= step) {
+            v = d;
+        } else {
+            v = step;
+        }
+    } else if (360.0 - d <= step) {
+        v = -(360.0 - d);
+    } else {
+        v = -step;
+    }
+    v = v + cur;
+    SB_WRAP(v);
+    return v;
+}
 
 f32 func_80111DF8_stardust_battle(f32 t, f32 a, f32 b) {
     return a + t * (b - a);
