@@ -128,6 +128,10 @@ typedef struct CcCtrl {
 } CcCtrl; // Size 0x28
 
 void func_8010F134_stacked_deck(void);
+void func_80106780_stacked_deck(omObjData *obj);
+void func_801069A0_stacked_deck(omObjData *obj);
+void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed);
+extern f32 D_800EB744_minigame;
 void func_8010655C_stacked_deck(omObjData *obj);
 void func_8010669C_stacked_deck(omObjData *obj);
 void func_80106694_stacked_deck(omObjData *obj);
@@ -154,29 +158,41 @@ typedef struct SkSlot {
 } SkSlot; // Size 8
 extern SkSlot D_8010F2B0_stacked_deck[12]; /* asm labels D_8010F2B4..D_8010F2E4 are its fields */
 extern s32 D_8010F35C_stacked_deck;
+extern s32 D_8010F290_stacked_deck[8]; /* per character */
 extern CcCamera D_8010F360_stacked_deck[1]; /* asm labels D_8010F364..D_8010F388 are its fields */
 extern u8 D_8010F334_stacked_deck[]; /* the minigame control block (CcCtrl-like, 0x28) */
 
 /* .bss (still asm: ovl_2A_bss.bss.s) */
 extern s16 D_8010F6F0_stacked_deck;
+extern s16 D_8010F6F2_stacked_deck;
 extern u8 D_8010F6F4_stacked_deck;
 extern void *D_8010F708_stacked_deck[6];
+extern s16 D_8010F720_stacked_deck;
 extern CcEnt D_8010F730_stacked_deck[50];
 extern CcEnt D_8010F7B4_stacked_deck;    /* = D_8010F730_stacked_deck[1] */
+extern CcEnt D_8010F838_stacked_deck[4]; /* = D_8010F730_stacked_deck[2]: the four players */
 extern CcEnt D_8010FA48_stacked_deck[12]; /* = D_8010F730_stacked_deck[6] */
 extern CcEnt D_80110078_stacked_deck[3]; /* = D_8010F730_stacked_deck[18] */
+extern CcEnt D_801100FC_stacked_deck;    /* = D_8010F730_stacked_deck[19] */
+extern CcEnt D_80110180_stacked_deck;    /* = D_8010F730_stacked_deck[20] */
 extern CcEnt D_8011030C_stacked_deck[3]; /* = D_8010F730_stacked_deck[23] */
 extern s16 D_801110F8_stacked_deck;
 extern s16 D_801110FA_stacked_deck;
 extern s16 D_80111100_stacked_deck;
+extern s16 D_8011110A_stacked_deck;
 extern s16 D_8011110C_stacked_deck;
+extern s16 D_80111120_stacked_deck;
 extern s16 D_80111128_stacked_deck[12];
+extern s16 D_80111140_stacked_deck;
+extern s16 D_80111142_stacked_deck[4];
+extern s16 D_8011114A_stacked_deck;
 extern s16 D_8011114C_stacked_deck;
 extern s16 D_8011114E_stacked_deck;
 extern s16 D_80111150_stacked_deck[12];
 extern u8 D_80111169_stacked_deck;
 extern s16 D_8011116A_stacked_deck;
 extern s16 D_8011116C_stacked_deck;
+extern s16 D_8011116E_stacked_deck;
 
 
 void func_801059A0_stacked_deck(void) {
@@ -460,7 +476,693 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801069A
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", D_8010F42C_stacked_deck);
 
+#ifdef NON_MATCHING
+void func_80106BC8_stacked_deck(omObjData *obj) {
+    CcEnt *pl;
+    MgWork *gw;
+    CcEnt *e;
+    CcEnt *p;
+    omObjData *o;
+    HmfModel *m;
+    s16 i;
+    s16 r;
+    s32 busy;
+    f32 tx;
+    f32 vx;
+    f32 vz;
+
+    pl = &D_8010F838_stacked_deck[obj->work[0]];
+    gw = obj->data;
+    if (D_8010F6F4_stacked_deck != 6) {
+        func_80105B3C_stacked_deck(obj->work[0]);
+    }
+    switch (D_8010F6F4_stacked_deck) {
+    case 1:
+    case 2:
+    case 3:
+        obj->rot.y = 0.0f;
+        gw->unk3C = 180.0f;
+        break;
+    case 4:
+        if (obj->work[1] == 0) {
+            if (obj->trans.x > 0.0f) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else if (obj->trans.z > 800.0f) {
+                D_800D20A1_main[obj->work[3]] = 60;
+            }
+            if (obj->trans.z <= 800.0f) {
+                D_80111169_stacked_deck = 4;
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            if ((obj->work[1] - 1) * 140.0f < obj->trans.x) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else {
+                obj->trans.x = (obj->work[1] - 1) * 140.0f;
+                gw->unk3C = 180.0f;
+            }
+        }
+        break;
+    case 5:
+        if (obj->work[1] != 0 && D_8011116E_stacked_deck >= obj->work[1]) {
+            if ((obj->work[1] - 1) * 140.0f < obj->trans.x) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else {
+                obj->trans.x = (obj->work[1] - 1) * 140.0f;
+                gw->unk3C = 180.0f;
+            }
+        }
+        break;
+    case 13:
+        if (obj->work[1] == 0) {
+            if (obj->trans.x > 0.0f) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else if (obj->trans.z > 800.0f) {
+                D_800D20A1_main[obj->work[3]] = 60;
+            }
+            if (obj->trans.z <= 800.0f) {
+                D_80111169_stacked_deck = 13;
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            if ((obj->work[1] - 1) * 140.0f < obj->trans.x) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else {
+                obj->trans.x = (obj->work[1] - 1) * 140.0f;
+                gw->unk3C = 180.0f;
+            }
+        }
+        break;
+    case 6:
+        if (D_8010F720_stacked_deck >= 286) {
+            func_80105B3C_stacked_deck(obj->work[0]);
+        } else {
+            if (obj->work[1] == 0) {
+                if (GwPlayer[obj->work[0]].stat & 1) {
+                    func_80105B3C_stacked_deck(obj->work[0]);
+                    func_80106780_stacked_deck(obj);
+                }
+                func_801069A0_stacked_deck(obj);
+                D_8011114A_stacked_deck = 0;
+            } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+                func_80105B3C_stacked_deck(obj->work[0]);
+                if ((obj->work[1] - 1) * 140.0f < obj->trans.x) {
+                    D_800CBB6E_main[obj->work[3]] = -60;
+                } else {
+                    obj->trans.x = (obj->work[1] - 1) * 140.0f;
+                    gw->unk3C = 180.0f;
+                }
+            }
+            D_80111140_stacked_deck = 0;
+        }
+        break;
+    case 7:
+        if (obj->work[1] == 0) {
+            for (i = 0; i < 12; i++) {
+                e = &D_8010FA48_stacked_deck[i];
+                o = e->obj;
+                if (e->unk04 == 1) {
+                    break;
+                }
+            }
+            if (gw->unk50 == 0x80
+                || (o->trans.x - 90.0f < obj->trans.x && obj->trans.x < o->trans.x + 90.0f
+                    && o->trans.z - 135.0f < obj->trans.z && obj->trans.z < o->trans.z + 135.0f && e->unk04 == 1
+                    && D_8011114A_stacked_deck == 0)) {
+                func_800E5690_minigame(obj, 0);
+                D_800D5558_main[obj->work[3]] |= 0x8000;
+                D_8011114A_stacked_deck = 1;
+            }
+        }
+        if (obj->work[1] == 0) {
+            if (D_80111140_stacked_deck == 3) {
+                D_80111140_stacked_deck = 4;
+                func_8004AC98_main(0x445, obj->work[0]);
+                gw->unk3C = 0.0f;
+            } else {
+                if (D_80111140_stacked_deck < 3) {
+                    D_80111140_stacked_deck++;
+                }
+                gw->unk3C = 0.0f;
+            }
+            if (obj->trans.x >= -175.0f && obj->trans.x <= 175.0f) {
+                if (obj->trans.x < -20.0f) {
+                    D_800CBB6E_main[obj->work[3]] = 60;
+                } else if (obj->trans.x > 20.0f) {
+                    D_800CBB6E_main[obj->work[3]] = -60;
+                }
+            }
+            if (obj->trans.x < -175.0f) {
+                if (obj->trans.x < -370.0f) {
+                    D_800CBB6E_main[obj->work[3]] = 60;
+                } else if (obj->trans.x > -330.0f) {
+                    D_800CBB6E_main[obj->work[3]] = -60;
+                }
+            }
+            if (obj->trans.x > 175.0f) {
+                if (obj->trans.x < 330.0f) {
+                    D_800CBB6E_main[obj->work[3]] = 60;
+                } else if (obj->trans.x > 370.0f) {
+                    D_800CBB6E_main[obj->work[3]] = -60;
+                }
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            if ((obj->work[1] - 1) * 140.0f < obj->trans.x) {
+                D_800CBB6E_main[obj->work[3]] = -60;
+            } else {
+                obj->trans.x = (obj->work[1] - 1) * 140.0f;
+                gw->unk3C = 180.0f;
+            }
+        }
+        D_8010F6F2_stacked_deck = 0;
+        break;
+    case 8:
+        if (obj->work[1] == 0) {
+            switch (pl->unk08) {
+            case 0:
+                if (D_80110078_stacked_deck[0].unk04 == 2 && pl->unk06 != 39) {
+                    func_800E5690_minigame(obj, 39);
+                    pl->unk06 = 39;
+                }
+                if (pl->unk06 == 39) {
+                    m = &HmfModelData[obj->model[0]];
+                    if (D_800CCF58_main[m->unk02].unk02 <= m->unk40) {
+                        pl->unk08 = 1;
+                        pl->unk06 = 0;
+                    }
+                }
+                break;
+            case 1:
+                if (D_8011116E_stacked_deck >= 2) {
+                    func_801063F4_stacked_deck((D_8011116E_stacked_deck - 1) * 140.0f, 800.0f, obj->trans.x,
+                                               obj->trans.z, &vx, &vz, 60.0f);
+                    D_800CBB6E_main[obj->work[3]] = vx;
+                    D_800D20A1_main[obj->work[3]] = -vz;
+                    tx = (D_8011116E_stacked_deck - 1) * 140.0f;
+                } else {
+                    func_801063F4_stacked_deck(D_8011116E_stacked_deck * 140.0f, 800.0f, obj->trans.x, obj->trans.z,
+                                               &vx, &vz, 60.0f);
+                    D_800CBB6E_main[obj->work[3]] = vx;
+                    D_800D20A1_main[obj->work[3]] = -vz;
+                    tx = D_8011116E_stacked_deck * 140.0f;
+                }
+                if (tx - 10.0f < obj->trans.x && obj->trans.x < tx + 10.0f) {
+                    pl->unk08 = 2;
+                    gw->unk40 = 0.0f;
+                    obj->trans.x = tx;
+                }
+                break;
+            case 2:
+                if (obj->trans.z < 1100.0f) {
+                    D_800D20A1_main[obj->work[3]] = -60;
+                } else {
+                    obj->trans.z = 1100.0f;
+                    if ((D_8011116E_stacked_deck - 1) * 140.0f < obj->trans.x) {
+                        D_800CBB6E_main[obj->work[3]] = -60;
+                    } else {
+                        gw->unk40 = 0.0f;
+                        obj->trans.x = (D_8011116E_stacked_deck - 1) * 140.0f;
+                        if (gw->unk3C <= 200.0f && gw->unk3C >= 160.0f) {
+                            if (pl->unk06 != 0) {
+                                func_800E5690_minigame(obj, 2);
+                                obj->motion[0] = obj->motion[43];
+                                func_800E5690_minigame(obj, 0);
+                                pl->unk06 = 0;
+                            }
+                            gw->unk3C = 180.0f;
+                            if (D_80110078_stacked_deck[0].unk04 == 5) {
+                                pl->unk08 = 0;
+                                D_80111169_stacked_deck = 8;
+                                D_80110078_stacked_deck[0].unk04 = 0;
+                            }
+                        } else {
+                            gw->unk3C = func_801059BC_stacked_deck(gw->unk3C, -15.0f);
+                            if (pl->unk06 != 2) {
+                                func_800E5690_minigame(obj, 2);
+                                obj->motion[43] = obj->motion[0];
+                                obj->motion[0] = obj->motion[2];
+                                pl->unk06 = 2;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        } else {
+            i = 0;
+            if (D_8011116E_stacked_deck >= obj->work[1]) {
+                for (i = 0; i < 4; i++) {
+                    o = D_8010F838_stacked_deck[i].obj;
+                    if (o->work[1] == 0) {
+                        break;
+                    }
+                }
+                if (o->trans.x > 60.0f) {
+                    if (obj->work[1] == 1) {
+                        if (obj->trans.z > 800.0f) {
+                            D_800D20A1_main[obj->work[3]] = 60;
+                        }
+                    } else if ((obj->work[1] - 2) * 140.0f < obj->trans.x) {
+                        D_800CBB6E_main[obj->work[3]] = -60;
+                    } else {
+                        obj->trans.x = (obj->work[1] - 2) * 140.0f;
+                        gw->unk3C = 180.0f;
+                    }
+                }
+            }
+        }
+        if (obj->work[0] == 3 && D_80111169_stacked_deck == 8) {
+            for (i = 0; i < 4; i++) {
+                o = D_8010F838_stacked_deck[i].obj;
+                if (o->work[1] == 0) {
+                    o->work[1] = D_8011116E_stacked_deck;
+                } else if (D_8011116E_stacked_deck >= o->work[1]) {
+                    o->work[1]--;
+                }
+            }
+        }
+        break;
+    case 9:
+        if (obj->work[1] == 0) {
+            switch (pl->unk08) {
+            case 0:
+                gw->unk3C = 0.0f;
+                if (D_801100FC_stacked_deck.unk04 == 2 && pl->unk06 != 40) {
+                    func_800E5690_minigame(obj, 40);
+                    pl->unk06 = 40;
+                }
+                if (pl->unk06 == 40) {
+                    m = &HmfModelData[obj->model[0]];
+                    if (D_800CCF58_main[m->unk02].unk02 <= m->unk40) {
+                        pl->unk08 = 1;
+                        pl->unk06 = 0;
+                        obj->motion[43] = obj->motion[2];
+                        obj->motion[2] = obj->motion[42];
+                        func_8004ACE0_main(0x286, obj->work[0]);
+                    }
+                }
+                break;
+            case 1:
+                if (obj->trans.z < 800.0f) {
+                    func_801063F4_stacked_deck(150.0f, 800.0f, obj->trans.x, obj->trans.z, &vx, &vz, 60.0f);
+                } else {
+                    func_801063F4_stacked_deck(150.0f, 1600.0f, obj->trans.x, obj->trans.z, &vx, &vz, 60.0f);
+                }
+                D_800CBB6E_main[obj->work[3]] = vx;
+                D_800D20A1_main[obj->work[3]] = -vz;
+                if (obj->trans.z > 1500.0f) {
+                    obj->trans.z = 3000.0f;
+                    obj->motion[2] = obj->motion[43];
+                    pl->unk08 = 2;
+                }
+                break;
+            case 2:
+                pl->unk08 = 3;
+                break;
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            switch (pl->unk08) {
+            case 0:
+                if (D_801100FC_stacked_deck.unk04 == 2 && pl->unk06 != 40) {
+                    gw->unk3C = 180.0f;
+                    func_800E5690_minigame(obj, 40);
+                    pl->unk06 = 40;
+                }
+                if (pl->unk06 == 40) {
+                    m = &HmfModelData[obj->model[0]];
+                    if (D_800CCF58_main[m->unk02].unk02 <= m->unk40) {
+                        pl->unk08 = 1;
+                        pl->unk06 = 0;
+                        obj->motion[43] = obj->motion[2];
+                        obj->motion[2] = obj->motion[42];
+                    }
+                }
+                break;
+            case 1:
+                for (i = 0; i < 4; i++) {
+                    p = &D_8010F838_stacked_deck[i];
+                    o = p->obj;
+                    if (o->work[1] == 0) {
+                        break;
+                    }
+                }
+                if (p->unk08 == 1 && o->trans.z > 800.0f && o->trans.x > -150.0f && o->trans.x < 450.0f) {
+                    r = (u8)(rand8() % 100);
+                    switch (obj->work[1]) {
+                    case 1:
+                        pl->unk18 = -60.0f;
+                        pl->unk1C = -r;
+                        break;
+                    case 2:
+                        pl->unk18 = !(rand8() & 1) ? r : -r;
+                        pl->unk1C = -60.0f;
+                        break;
+                    case 3:
+                        pl->unk18 = 60.0f;
+                        pl->unk1C = -r;
+                        break;
+                    }
+                    pl->unk08 = 2;
+                    func_8004ACE0_main(0x286, obj->work[0]);
+                }
+                break;
+            case 2:
+                D_800CBB6E_main[obj->work[3]] = pl->unk18;
+                D_800D20A1_main[obj->work[3]] = pl->unk1C;
+                if (obj->trans.z > 1500.0f || obj->trans.x < -1000.0f || obj->trans.x > 1000.0f) {
+                    obj->trans.z = 3000.0f;
+                    obj->motion[2] = obj->motion[43];
+                    pl->unk08 = 3;
+                }
+                break;
+            }
+        }
+        busy = 0;
+        if (obj->work[0] == 3) {
+            for (i = 0; i < 4; i++) {
+                p = &D_8010F838_stacked_deck[i];
+                if (p->unk08 != 3 && D_8011116E_stacked_deck >= p->obj->work[1]) {
+                    busy = 1;
+                }
+            }
+            if (busy == 0 && D_801100FC_stacked_deck.unk04 == 5) {
+                for (i = 0; i < 4; i++) {
+                    p = &D_8010F838_stacked_deck[i];
+                    p->unk08 = 0;
+                }
+                D_80111169_stacked_deck = 9;
+                D_801100FC_stacked_deck.unk04 = 0;
+            }
+        }
+        break;
+    case 10:
+        if (D_8011116E_stacked_deck >= obj->work[1]) {
+            switch (pl->unk08) {
+            case 0:
+                r = rand8() % (D_8011116E_stacked_deck + 1);
+                for (;;) {
+                    if (D_80111142_stacked_deck[r] == 0) {
+                        break;
+                    }
+                    r = (r + 1 <= D_8011116E_stacked_deck) ? r + 1 : 0;
+                }
+                obj->work[1] = r;
+                obj->trans.x = r * 140.0f;
+                obj->trans.z = 1500.0f;
+                pl->unk08 = 1;
+                gw->unk40 = 0.0f;
+                D_80111142_stacked_deck[r] = 1;
+                break;
+            case 1:
+                if (obj->trans.z > 1100.0f) {
+                    D_800D20A1_main[obj->work[3]] = 60;
+                } else {
+                    gw->unk40 = 0.0f;
+                    obj->trans.z = 1100.0f;
+                    pl->unk08 = 2;
+                }
+                break;
+            }
+        }
+        busy = 0;
+        if (obj->work[0] == 3) {
+            for (i = 0; i < 4; i++) {
+                p = &D_8010F838_stacked_deck[i];
+                if (p->unk08 != 2 && D_8011116E_stacked_deck >= p->obj->work[1]) {
+                    busy = 1;
+                }
+            }
+            if (busy == 0) {
+                for (i = 0; i < 4; i++) {
+                    D_8010F838_stacked_deck[i].unk08 = 0;
+                    D_80111142_stacked_deck[i] = 0;
+                }
+                D_80111169_stacked_deck = 10;
+            }
+        }
+        break;
+    case 11:
+        if (obj->work[1] == 0) {
+            o = D_80110180_stacked_deck.obj;
+            switch (pl->unk08) {
+            case 0:
+                gw->unk40 = 0.0f;
+                gw->unk3C = 0.0f;
+                if (D_80110180_stacked_deck.unk04 == 2 && pl->unk06 != 41) {
+                    func_800E5690_minigame(obj, 41);
+                    pl->unk06 = 41;
+                    pl->unk12 = D_8011116E_stacked_deck;
+                }
+                if (obj->trans.x < o->trans.x) {
+                    pl->unk10 = 1;
+                } else {
+                    pl->unk10 = 2;
+                }
+                if (D_80110180_stacked_deck.unk04 >= 5) {
+                    pl->unk08 = 1;
+                    func_800E5690_minigame(obj, 18);
+                    pl->unk06 = 18;
+                    func_8001C6A8_main(obj->model[0], 0.0f);
+                    func_8001C92C_main(obj->model[0], 0.0f);
+                    pl->unk20 = 50.0f;
+                    D_80111120_stacked_deck = 1;
+                }
+                break;
+            case 1:
+                if (D_8010F6F2_stacked_deck == 0) {
+                    D_8010F6F2_stacked_deck = 1;
+                    func_8004ACE0_main(0x286, obj->work[0]);
+                    HuAudFXPlay(0x44A);
+                }
+                obj->trans.y = pl->unk24 = func_80106338_stacked_deck(pl->unk24, &pl->unk20, 0.05f);
+                if (pl->unk10 == 1) {
+                    obj->trans.x -= 20.0f;
+                } else {
+                    obj->trans.x += 20.0f;
+                }
+                obj->trans.z += 20.0f;
+                obj->rot.y = func_801059BC_stacked_deck(obj->rot.y, 66.0f);
+                obj->rot.x = func_801059BC_stacked_deck(obj->rot.x, 66.0f);
+                if (obj->trans.y > 3000.0f) {
+                    obj->trans.x = 3000.0f;
+                    pl->unk08 = 2;
+                    obj->trans.y = 0.0f;
+                }
+                break;
+            case 2:
+                if (D_80110180_stacked_deck.unk04 == 7) {
+                    pl->unk08 = 0;
+                    D_80111169_stacked_deck = 11;
+                    D_80110180_stacked_deck.unk04 = 0;
+                    pl->unk06 = 0;
+                }
+                break;
+            }
+        } else {
+            i = 0;
+            if (D_8011116E_stacked_deck >= obj->work[1]) {
+                for (i = 0; i < 4; i++) {
+                    p = &D_8010F838_stacked_deck[i];
+                    o = p->obj;
+                    if (o->work[1] == 0) {
+                        break;
+                    }
+                }
+                if (p->unk08 > 0) {
+                    if (obj->work[1] == 1) {
+                        if (obj->trans.z > 800.0f) {
+                            D_800D20A1_main[obj->work[3]] = 60;
+                        }
+                    } else if ((obj->work[1] - 2) * 140.0f < obj->trans.x) {
+                        D_800CBB6E_main[obj->work[3]] = -60;
+                    } else {
+                        obj->trans.x = (obj->work[1] - 2) * 140.0f;
+                        gw->unk3C = 180.0f;
+                    }
+                }
+            }
+        }
+        if (obj->work[0] == 3 && D_80111169_stacked_deck == 11) {
+            for (i = 0; i < 4; i++) {
+                o = D_8010F838_stacked_deck[i].obj;
+                if (o->work[1] == 0) {
+                    o->work[1] = 99;
+                } else if (D_8011116E_stacked_deck >= o->work[1]) {
+                    o->work[1]--;
+                }
+            }
+            D_8011116E_stacked_deck--;
+        }
+        break;
+    case 14:
+    case 15:
+        if (obj->work[1] == 0) {
+            o = D_80110180_stacked_deck.obj;
+            switch (pl->unk08) {
+            case 0:
+                gw->unk40 = 0.0f;
+                gw->unk3C = 0.0f;
+                if (D_80110180_stacked_deck.unk04 == 2 && pl->unk06 != 41) {
+                    func_800E5690_minigame(obj, 41);
+                    pl->unk06 = 41;
+                    pl->unk12 = D_8011116E_stacked_deck;
+                }
+                if (obj->trans.x < o->trans.x) {
+                    pl->unk10 = 1;
+                } else {
+                    pl->unk10 = 2;
+                }
+                if (D_80110180_stacked_deck.unk04 >= 5) {
+                    pl->unk08 = 1;
+                    func_800E5690_minigame(obj, 18);
+                    pl->unk06 = 18;
+                    func_8001C6A8_main(obj->model[0], 0.0f);
+                    func_8001C92C_main(obj->model[0], 0.0f);
+                    pl->unk20 = 50.0f;
+                    D_80111120_stacked_deck = 1;
+                    D_8011110A_stacked_deck = 1;
+                }
+                break;
+            case 1:
+                if (D_8010F6F2_stacked_deck == 0) {
+                    D_8010F6F2_stacked_deck = 1;
+                    func_8004ACE0_main(0x286, obj->work[0]);
+                    HuAudFXPlay(0x44A);
+                }
+                obj->trans.y = pl->unk24 = func_80106338_stacked_deck(pl->unk24, &pl->unk20, 0.05f);
+                if (pl->unk10 == 1) {
+                    obj->trans.x -= 20.0f;
+                } else {
+                    obj->trans.x += 20.0f;
+                }
+                obj->trans.z += 20.0f;
+                obj->rot.y = func_801059BC_stacked_deck(obj->rot.y, 66.0f);
+                obj->rot.x = func_801059BC_stacked_deck(obj->rot.x, 66.0f);
+                if (obj->trans.y > 3000.0f) {
+                    obj->trans.x = 3000.0f;
+                    pl->unk08 = 2;
+                }
+                break;
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            if (D_8010F6F4_stacked_deck == 15) {
+                if (gw->unk3C <= 20.0f || gw->unk3C >= 340.0f) {
+                    gw->unk3C = 0.0f;
+                    func_800E5690_minigame(obj, 2);
+                    obj->motion[0] = obj->motion[43];
+                    func_800E5690_minigame(obj, 0);
+                    pl->unk06 = 0;
+                } else {
+                    gw->unk3C = func_801059BC_stacked_deck(gw->unk3C, 15.0f);
+                    if (pl->unk06 != 2) {
+                        func_800E5690_minigame(obj, 2);
+                        obj->motion[43] = obj->motion[0];
+                        obj->motion[0] = obj->motion[2];
+                        pl->unk06 = 2;
+                    }
+                }
+            }
+        }
+        break;
+    case 16:
+    case 17:
+        if (obj->work[1] == 0) {
+            o = D_80110180_stacked_deck.obj;
+            switch (pl->unk08) {
+            case 0:
+                gw->unk40 = 0.0f;
+                gw->unk3C = 0.0f;
+                if (D_80110180_stacked_deck.unk04 == 2 && pl->unk06 != 41) {
+                    func_800E5690_minigame(obj, 41);
+                    pl->unk06 = 41;
+                    pl->unk12 = D_8011116E_stacked_deck;
+                }
+                if (obj->trans.x < o->trans.x) {
+                    pl->unk10 = 1;
+                } else {
+                    pl->unk10 = 2;
+                }
+                if (D_80110180_stacked_deck.unk04 >= 5) {
+                    pl->unk08 = 1;
+                    func_800E5690_minigame(obj, 18);
+                    pl->unk06 = 18;
+                    func_8001C6A8_main(obj->model[0], 0.0f);
+                    func_8001C92C_main(obj->model[0], 0.0f);
+                    pl->unk20 = 50.0f;
+                    D_80111120_stacked_deck = 1;
+                    D_8011110A_stacked_deck = 1;
+                }
+                break;
+            case 1:
+                if (D_8010F6F2_stacked_deck == 0) {
+                    D_8010F6F2_stacked_deck = 1;
+                    func_8004ACE0_main(0x286, obj->work[0]);
+                    HuAudFXPlay(0x44A);
+                }
+                obj->trans.y = pl->unk24 = func_80106338_stacked_deck(pl->unk24, &pl->unk20, 0.05f);
+                if (pl->unk10 == 1) {
+                    obj->trans.x -= 20.0f;
+                } else {
+                    obj->trans.x += 20.0f;
+                }
+                obj->trans.z += 20.0f;
+                obj->rot.y = func_801059BC_stacked_deck(obj->rot.y, 66.0f);
+                obj->rot.x = func_801059BC_stacked_deck(obj->rot.x, 66.0f);
+                if (obj->trans.y > 3000.0f) {
+                    obj->trans.x = 3000.0f;
+                    pl->unk08 = 2;
+                }
+                break;
+            case 2:
+                if (D_80110180_stacked_deck.unk04 == 7) {
+                    pl->unk08 = 0;
+                    D_80111169_stacked_deck = 11;
+                    D_80110180_stacked_deck.unk04 = 0;
+                    pl->unk06 = 0;
+                }
+                break;
+            }
+        } else if (D_8011116E_stacked_deck >= obj->work[1]) {
+            if (gw->unk3C <= 20.0f || gw->unk3C >= 340.0f) {
+                gw->unk3C = 0.0f;
+                if (pl->unk06 != 13 && D_8010F720_stacked_deck >= 0) {
+                    obj->motion[0] = obj->motion[43];
+                    func_800E5690_minigame(obj, 13);
+                    pl->unk06 = 13;
+                    pl->unk12 = 0;
+                    func_80045ED0_main((D_8010F290_stacked_deck[GwPlayer[obj->work[0]].chr] << 16) | 0x30);
+                }
+            } else {
+                gw->unk3C = func_801059BC_stacked_deck(gw->unk3C, 15.0f);
+                if (pl->unk06 != 2) {
+                    func_800E5690_minigame(obj, 2);
+                    obj->motion[43] = obj->motion[0];
+                    obj->motion[0] = obj->motion[2];
+                    pl->unk06 = 2;
+                }
+            }
+        }
+        break;
+    }
+    if (D_8010F6F4_stacked_deck == 7) {
+        D_800EB744_minigame = 1.7f;
+    } else {
+        D_800EB744_minigame = 1.3f;
+    }
+    if (D_8011116E_stacked_deck < obj->work[1]) {
+        func_80105B3C_stacked_deck(obj->work[0]);
+        gw->unk40 = 0.0f;
+    }
+    func_800DDD94_minigame(obj);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 1.0f, obj->trans.z);
+    if (obj->trans.x >= 3000.0f) {
+        obj->trans.y = obj->work[0] * 500.0f + 100.0f;
+    }
+    if (obj->trans.z < -500.0f) {
+        obj->trans.z = -499.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80106BC8_stacked_deck);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80108E48_stacked_deck);
 
