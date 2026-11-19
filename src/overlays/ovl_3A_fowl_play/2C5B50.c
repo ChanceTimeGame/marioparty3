@@ -180,6 +180,11 @@ extern s16 D_8010F240_fowl_play[2]; /* sprite groups */
 extern s16 D_8010F200_fowl_play; /* ambience sound */
 extern s16 D_8010F202_fowl_play; /* its fade timer */
 extern s16 D_8010F29E_fowl_play; /* time left, frames */
+f32 func_8010AB40_fowl_play(Vec* v);
+f32 func_8010AC04_fowl_play(Vec* p, Vec* a, Vec* d);
+f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out);
+f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2);
+f32 func_8010AA64_fowl_play(Vec* a, Vec* b);
 extern s32 D_8010E7A4_fowl_play; /* step timer */
 extern s32 D_8010E7AC_fowl_play; /* winner, -1 none */
 extern s16 D_8010E7B2_fowl_play; /* frames since the wipe ended */
@@ -719,13 +724,164 @@ void func_8010AAB8_fowl_play(Vec* dir, f32* angles) {
     *angles = 0.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AB40_fowl_play);
+f32 func_8010AB40_fowl_play(Vec* v) {
+    f32 len = v->x * v->x + v->y * v->y + v->z * v->z;
+    f32 inv;
 
+    len = sqrtf(len);
+    if (len != 0.0f) {
+        inv = 1.0f / len;
+        v->x = inv * v->x;
+        v->y = inv * v->y;
+        v->z = inv * v->z;
+    } else {
+        v->x = v->y = v->z = 0.0f;
+    }
+    return len;
+}
+
+#ifdef NON_MATCHING
+/* masked 0; register allocation of the first subtraction differs */
+/* The parameter of the point on the line a + t * d closest to p. */
+f32 func_8010AC04_fowl_play(Vec* p, Vec* a, Vec* d) {
+    f32 t;
+    f32 n;
+
+    t = (a->x - p->x) * d->x + (a->y - p->y) * d->y + (a->z - p->z) * d->z;
+    n = -(d->x * d->x + d->y * d->y + d->z * d->z);
+
+    if (n != 0.0f) {
+        t /= n;
+    }
+    return t;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AC04_fowl_play);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AC88_fowl_play);
+/* Distance in XZ from p to the segment a-b; the closest point goes to out. */
+f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out) {
+    Vec d;
+    f32 t;
 
+    if (func_8010AA64_fowl_play(a, b) == 0.0f) {
+        out->x = a->x;
+        out->y = a->y;
+        out->z = a->z;
+        return func_8010AA64_fowl_play(p, a);
+    }
+    d.x = b->x - a->x;
+    d.y = b->y - a->y;
+    d.z = b->z - a->z;
+    t = func_8010AC04_fowl_play(p, a, &d);
+    if (t <= 0.0) {
+        out->x = a->x;
+        out->y = a->y;
+        out->z = a->z;
+    } else if (t >= 1.0) {
+        out->x = b->x;
+        out->y = b->y;
+        out->z = b->z;
+    } else {
+        out->x = t * d.x + a->x;
+        out->y = t * d.y + a->y;
+        out->z = t * d.z + a->z;
+    }
+    return func_8010AA64_fowl_play(p, out);
+}
+
+/* The parameter along d1 where the line p1 + t * d1 meets the line p2 + s * d2, or -1. */
+#ifdef NON_MATCHING
+/* masked 7, one instruction short: retail divides into $f4 and moves the result to $f0 */
+f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2) {
+    f32 ax;
+    f32 ay;
+    f32 az;
+    f32 den;
+    f32 a;
+    f32 b;
+    f32 t;
+    s32 axis;
+
+    t = -1.0f;
+    ax = d2->x;
+    if (ax < 0.0f) {
+        ax = -ax;
+    }
+    ay = d2->y;
+    if (ay < 0.0f) {
+        ay = -ay;
+    }
+    az = d2->z;
+    if (az < 0.0f) {
+        az = -az;
+    }
+    if (ay <= ax) {
+        axis = 0x100;
+        if (az <= ax) {
+            axis = 1;
+        }
+    } else {
+        axis = 0x100;
+        if (az <= ay) {
+            axis = 0x10;
+        }
+    }
+    if (axis & 3) {
+        if (d1->x != 0.0f || d1->z != 0.0f) {
+            den = d2->x * d1->z - d2->z * d1->x;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->x - p2->x) * d2->z;
+            b = (p1->z - p2->z) * d2->x;
+        } else {
+            den = d2->y * d1->x - d2->x * d1->y;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->y - p2->y) * d2->x;
+            b = (p1->x - p2->x) * d2->y;
+        }
+    } else if (axis & 0x30) {
+        if (d1->x != 0.0f || d1->y != 0.0f) {
+            den = d2->y * d1->x - d2->x * d1->y;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->y - p2->y) * d2->x;
+            b = (p1->x - p2->x) * d2->y;
+        } else {
+            den = d2->z * d1->y - d2->y * d1->z;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->z - p2->z) * d2->y;
+            b = (p1->y - p2->y) * d2->z;
+        }
+    } else {
+        if (d1->x != 0.0f || d1->z != 0.0f) {
+            den = d2->x * d1->z - d2->z * d1->x;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->x - p2->x) * d2->z;
+            b = (p1->z - p2->z) * d2->x;
+        } else {
+            den = d2->z * d1->y - d2->y * d1->z;
+            if (den == 0.0f) {
+                return t;
+            }
+            a = (p1->z - p2->z) * d2->y;
+            b = (p1->y - p2->y) * d2->z;
+        }
+    }
+    t = (a - b) / den;
+    return t;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AE10_fowl_play);
+#endif
 
 void func_8010B1A0_fowl_play(s16 model, const char* name, s16 frame, Vec* out) {
     HuMtx4F mdl;
