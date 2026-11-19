@@ -89,6 +89,14 @@ extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
 extern s16 D_8011133C_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
+/* The intro movers' walks, per mover: z and x step, the z where it stops, and one more value. */
+typedef struct MmWalk {
+    /* 0x00 */ f32 dz;
+    /* 0x04 */ f32 dx;
+    /* 0x08 */ f32 z;
+    /* 0x0C */ f32 unk0C;
+} MmWalk; // Size 0x10
+extern MmWalk D_80111228_messy_memory[7];
 extern s32 D_80111148_messy_memory[10][2]; /* item image groups, the players' boards */
 extern s32 D_80111198_messy_memory[10][2]; /* item image groups, the shown room */
 
@@ -123,6 +131,7 @@ extern u8 D_80115D76_messy_memory[4];
 extern f32 D_80115D7C_messy_memory;
 extern u8 D_80115D90_messy_memory[10];
 extern u8 D_80115D9A_messy_memory;
+extern u8 D_80111675_messy_memory;
 extern u8 D_80111670_messy_memory[4];
 extern u8 D_80111678_messy_memory[4][10];
 extern u8 D_801116A4_messy_memory[10];
@@ -2319,7 +2328,112 @@ void func_8010E500_messy_memory(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E500_messy_memory);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E654_messy_memory);
+/* One of the seven intro movers (D_801134E8[work[0]]; models from the first one's motions): walks in along
+   D_80111228, turns, walks back out. */
+void func_8010E654_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    omObjData *o0;
+
+    e = &D_801134E8_messy_memory[obj->work[0]];
+    o0 = D_801134E8_messy_memory[0].obj;
+    switch (D_80115D8C_messy_memory) {
+    case 1:
+        if (obj->work[0] == 0) {
+            if (e->unk06 == 48) {
+                HuAudFXPlay(0x3F0);
+                func_8004AAD0_main(HuAudFXPlay(0x298), 0x73);
+                HuAudSeqPlay(0x4F);
+            }
+            if (e->unk06 < 50) {
+                e->unk06++;
+            }
+        }
+        break;
+    case 2:
+    case 3:
+        switch (obj->work[1]) {
+        case 0:
+            obj->trans.z += D_80111228_messy_memory[obj->work[0]].dz;
+            obj->trans.x += D_80111228_messy_memory[obj->work[0]].dx;
+            if (obj->trans.z <= D_80111228_messy_memory[obj->work[0]].z) {
+                obj->work[1] = 1;
+                D_80111650_messy_memory = 1;
+                if ((obj->work[0] == 4) | (obj->work[0] == 6)) {
+                    func_8001C5B4_main(obj->model[0], o0->motion[3]);
+                } else {
+                    func_8001C5B4_main(obj->model[0], o0->motion[4]);
+                    if (HmfModelData[obj->model[0]].unk40 == 0.0f) {
+                        func_8004AAD0_main(HuAudFXPlay(0x3EE), 0x73);
+                    }
+                }
+                func_8001C814_main(obj->model[0], 2, 2);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+            }
+            break;
+        case 1:
+            if ((obj->work[0] != 4) & (obj->work[0] != 6)) {
+                if (HmfModelData[obj->model[0]].unk40 == 0.0f) {
+                    func_8004AAD0_main(HuAudFXPlay(0x3EE), 0x73);
+                }
+            }
+            e->unk04++;
+            if (D_80115D8C_messy_memory == 2) {
+                if (obj->work[0] == D_80115D8C_messy_memory && e->unk04 == 5) {
+                    D_80111675_messy_memory = 1;
+                }
+                if (D_80115D8C_messy_memory == 2 && obj->work[0] == 6 && e->unk04 == 10) {
+                    D_80115D9A_messy_memory = 2;
+                }
+            }
+            if (obj->work[0] < 4) {
+                if (e->unk04 >= 70) {
+                    e->unk04 = 0;
+                    obj->work[1] = 2;
+                }
+            }
+            if (obj->work[0] >= 4) {
+                if (e->unk04 >= 20) {
+                    e->unk04 = 0;
+                    obj->work[1] = 2;
+                    if (obj->work[0] == 4) {
+                        HuAudFXPlay(0x3F2);
+                    }
+                }
+            }
+            break;
+        case 2:
+            obj->rot.y = func_801059BC_messy_memory(obj->rot.y, 180.0f);
+            func_8001C5B4_main(obj->model[0], o0->motion[2]);
+            func_8001C814_main(obj->model[0], 2, 2);
+            func_8001C6A8_main(obj->model[0], 0.0f);
+            if (obj->work[0] == 2) {
+                D_80111675_messy_memory = 2;
+                func_8004AAD0_main(HuAudFXPlay(0x298), 0x73);
+            }
+            obj->work[1] = 3;
+            break;
+        case 3:
+            obj->trans.z -= D_80111228_messy_memory[obj->work[0]].dz;
+            obj->trans.x -= D_80111228_messy_memory[obj->work[0]].dx;
+            if (obj->trans.z >= 170.0f) {
+                obj->work[1] = 4;
+                if (obj->work[0] == 3) {
+                    D_80115D9A_messy_memory = 3;
+                }
+            }
+            if (obj->work[0] == 3 && obj->trans.z == -50.0f) {
+                func_8004AAD0_main(HuAudFXPlay(0x29B), 0x73);
+            }
+            break;
+        case 4:
+            func_8001C258_main(obj->model[0], 4, 4);
+            break;
+        }
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        break;
+    }
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y, obj->trans.z + 0.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010EBB0_messy_memory);
 
