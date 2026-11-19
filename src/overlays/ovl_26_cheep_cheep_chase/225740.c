@@ -75,29 +75,250 @@ u8 func_8010DF48_cheep_cheep_chase(f32 *out, u8 *timer, f32 start, f32 end, f32 
 f32 func_8010DFC0_cheep_cheep_chase(f32 t, f32 p0, f32 p1, f32 p2);
 
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801059A0_cheep_cheep_chase);
+typedef struct {
+    /* 0x00 */ s16 model;
+    /* 0x02 */ char unk02[0xE];
+} CxStageModel; // Size 0x10
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801059BC_cheep_cheep_chase);
+typedef struct {
+    /* 0x00 */ char unk00[0x10];
+} CxUnk4Entry; // Size 0x10
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105BBC_cheep_cheep_chase);
+/* The minigame state (D_8010E360_cheep_cheep_chase) */
+typedef struct {
+    /* 0x00 */ CxStageModel *models; // [6]
+    /* 0x04 */ CxUnk4Entry *unk4;    // [8]
+    /* 0x08 */ u8 *unk8;             // [7]
+    /* 0x0C */ u8 *unkC;             // [7]
+    /* 0x10 */ omObjData *unk10;
+    /* 0x14 */ s16 unk14;
+    /* 0x18 */ f32 unk18;
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ s16 unk24;
+    /* 0x28 */ f32 unk28;
+    /* 0x2C */ s16 unk2C;
+    /* 0x2E */ s16 unk2E;
+    /* 0x30 */ s16 unk30;
+} CxGame; // Size 0x34
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105DD0_cheep_cheep_chase);
+typedef struct {
+    /* 0x00 */ char unk00[0x28];
+} CxPlayer; // Size 0x28
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105E18_cheep_cheep_chase);
+extern CxGame *D_8010E360_cheep_cheep_chase;
+extern CxPlayer *D_8010E364_cheep_cheep_chase; // [4]
+extern u8 *D_8010E368_cheep_cheep_chase;       // [8]
+extern f32 D_8010E370_cheep_cheep_chase[4];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105E50_cheep_cheep_chase);
+extern const s16 D_8010E050_cheep_cheep_chase[];
+extern const s16 D_8010E05C_cheep_cheep_chase[];
+extern const s16 D_8010E06C_cheep_cheep_chase[];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105E74_cheep_cheep_chase);
+// C1F0
+void func_8000B5F0_main(u8 arg0);
+s32 func_8000B638_main(void);
+// 14EA0
+void func_800142A0_main(s32);
+// 20A20
+void Hu3DAnimInit(s32);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80105F50_cheep_cheep_chase);
+void func_801059A0_cheep_cheep_chase(void);
+void func_801059BC_cheep_cheep_chase(void);
+void func_80105BBC_cheep_cheep_chase(void);
+void func_80105DD0_cheep_cheep_chase(omObjData *object);
+void func_80105E18_cheep_cheep_chase(omObjData *object);
+void func_80105E50_cheep_cheep_chase(omObjData *object);
+void func_80105E74_cheep_cheep_chase(void);
+void func_80105F50_cheep_cheep_chase(omObjData *object);
+void func_8010619C_cheep_cheep_chase(omObjData *object);
+void func_801061C8_cheep_cheep_chase(omObjData *object);
+void func_8010636C_cheep_cheep_chase(omObjData *object);
+void func_80106388_cheep_cheep_chase(omObjData *object);
+void func_80106484_cheep_cheep_chase(omObjData *object);
+void func_8010665C_cheep_cheep_chase(omObjData *object);
+void func_801067B0_cheep_cheep_chase(omObjData *object);
+void func_80106978_cheep_cheep_chase(omObjData *object);
+void func_80106E80_cheep_cheep_chase(omObjData *object);
+void func_80107440_cheep_cheep_chase(omObjData *object);
+void func_80107698_cheep_cheep_chase(omObjData *object);
+void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80108170_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80108C98_cheep_cheep_chase(CxFuncContext *ctx);
+void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx);
+void func_801093CC_cheep_cheep_chase(s16 model);
+void func_80109444_cheep_cheep_chase(s16 model);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010619C_cheep_cheep_chase);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801061C8_cheep_cheep_chase);
+void func_801059A0_cheep_cheep_chase(void) {
+    func_801059BC_cheep_cheep_chase();
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010636C_cheep_cheep_chase);
+void func_801059BC_cheep_cheep_chase(void) {
+    u8 camIndex;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80106388_cheep_cheep_chase);
+    Hu3DAnimInit(50);
+    func_800142A0_main(0x20);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -56.0f, 50.0f, 56.0f);
+    func_8000B5F0_main(1);
+    camIndex = func_8000B638_main();
+    ScissorSet(camIndex, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(camIndex, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 30.0f, 80.0f, 4000.0f);
+    D_800EC1B8_minigame = 0;
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    func_8010D560_cheep_cheep_chase();
+    func_80105BBC_cheep_cheep_chase();
+    func_8010D6F4_cheep_cheep_chase(0, 0, -1, 0, NULL, func_801076B4_cheep_cheep_chase, FALSE, FALSE);
+    omAddObj(100, 0, 0, -1, func_80105F50_cheep_cheep_chase);
+    omAddObj(1000, 0, 0, -1, func_80105DD0_cheep_cheep_chase);
+    func_80045010_main(D_8010E050_cheep_cheep_chase, 1);
+    func_80045010_main(D_8010E05C_cheep_cheep_chase, 1);
+    func_80045010_main(D_8010E06C_cheep_cheep_chase, 1);
+}
+
+void func_80105BBC_cheep_cheep_chase(void) {
+    s16 i, j;
+
+    D_8010E360_cheep_cheep_chase = HuMemAllocTag(sizeof(CxGame), 31000);
+    memset(D_8010E360_cheep_cheep_chase, 0, sizeof(CxGame));
+    D_8010E360_cheep_cheep_chase->models = HuMemAllocTag(6 * sizeof(CxStageModel), 31000);
+    memset(D_8010E360_cheep_cheep_chase->models, 0, 6 * sizeof(CxStageModel));
+    D_8010E360_cheep_cheep_chase->unk4 = HuMemAllocTag(8 * sizeof(CxUnk4Entry), 31000);
+    memset(D_8010E360_cheep_cheep_chase->unk4, 0, 8 * sizeof(CxUnk4Entry));
+    D_8010E360_cheep_cheep_chase->unk8 = HuMemAllocTag(7, 31000);
+    memset(D_8010E360_cheep_cheep_chase->unk8, 0, 7);
+    D_8010E360_cheep_cheep_chase->unkC = HuMemAllocTag(7, 31000);
+    memset(D_8010E360_cheep_cheep_chase->unkC, 0, 7);
+    D_8010E364_cheep_cheep_chase = HuMemAllocTag(4 * sizeof(CxPlayer), 31000);
+    memset(D_8010E364_cheep_cheep_chase, 0, 4 * sizeof(CxPlayer));
+    D_8010E368_cheep_cheep_chase = HuMemAllocTag(8, 31000);
+    memset(D_8010E368_cheep_cheep_chase, 0, 8);
+    for (i = 0; i < 4; i++) {
+        D_8010E370_cheep_cheep_chase[i] = rand16() % 4;
+        for (j = 0; j < i; j++) {
+            if (D_8010E370_cheep_cheep_chase[j] == D_8010E370_cheep_cheep_chase[i]) {
+                i--;
+                break;
+            }
+        }
+    }
+}
+
+void func_80105DD0_cheep_cheep_chase(omObjData *object) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        object->func = func_80105E18_cheep_cheep_chase;
+    }
+}
+
+void func_80105E18_cheep_cheep_chase(omObjData *object) {
+    if (WipeStatGet() == 0) {
+        object->func = func_80105E50_cheep_cheep_chase;
+    }
+}
+
+void func_80105E50_cheep_cheep_chase(omObjData *object) {
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
+
+void func_80105E74_cheep_cheep_chase(void) {
+    if (CRot.x > 360.0f) {
+        CRot.x -= 360.0f;
+    } else if (CRot.x < 0.0f) {
+        CRot.x += 360.0f;
+    }
+    if (CRot.y > 360.0f) {
+        CRot.y -= 360.0f;
+    } else if (CRot.y < 0.0f) {
+        CRot.y += 360.0f;
+    }
+    func_8010D8FC_cheep_cheep_chase(0);
+}
+
+void func_80105F50_cheep_cheep_chase(omObjData *object) {
+    s32 mdlAttr = 0x499;
+    u8 i;
+
+    omAddObj(10, 7, 0, -1, func_801061C8_cheep_cheep_chase);
+    omSetStatBit(omAddObj(10, 4, 0, -1, func_80106388_cheep_cheep_chase), 0xA0);
+    omAddObj(10, 3, 0, -1, func_8010665C_cheep_cheep_chase);
+    omAddObj(10, 8, 0, -1, func_80106978_cheep_cheep_chase);
+    func_800E18D8_minigame();
+    func_800E19F0_minigame(1);
+    for (i = 0; i < 4; i++) {
+        D_800EC598_minigame[i] = omAddObj(200, 10, 0x2C, -1, func_80106E80_cheep_cheep_chase);
+    }
+    omSetStatBit(omAddObj(300, 2, 2, -1, func_80107440_cheep_cheep_chase), 0xA0);
+    for (i = 0; i < 18; i++) {
+        func_8010DB8C_cheep_cheep_chase(0x47, 5, 1.0f, mdlAttr);
+    }
+    for (i = 0; i < 4; i++) {
+        func_8010DB8C_cheep_cheep_chase(1, 0x13, 2.0f, mdlAttr);
+    }
+    for (i = 0; i < 8; i++) {
+        func_8010DB8C_cheep_cheep_chase(0x47, 7, 1.0f, mdlAttr);
+    }
+    for (i = 0; i < 8; i++) {
+        func_8010DB8C_cheep_cheep_chase(0x47, 6, 1.0f, mdlAttr);
+    }
+    func_8010D6F4_cheep_cheep_chase(1, 0, -1, 0, NULL, func_80108170_cheep_cheep_chase, TRUE, FALSE);
+    WipeCreateIn(0xFF, 16);
+    object->func = func_8010619C_cheep_cheep_chase;
+}
+
+void func_8010619C_cheep_cheep_chase(omObjData *object) {
+    func_8010D8FC_cheep_cheep_chase(1);
+    func_8010DDF4_cheep_cheep_chase();
+    func_80105E74_cheep_cheep_chase();
+}
+
+void func_801061C8_cheep_cheep_chase(omObjData *object) {
+    s16 i;
+
+    object->model[0] = D_8010E360_cheep_cheep_chase->models[0].model = func_8000B108_main(0x470000, 0x9D);
+    object->model[1] = D_8010E360_cheep_cheep_chase->models[1].model = func_8000B108_main(0x470002, 0x9D);
+    object->model[2] = D_8010E360_cheep_cheep_chase->models[2].model = func_8000B108_main(0x470001, 0x9D);
+    for (i = 0; i < 3; i++) {
+        object->model[i + 3] = D_8010E360_cheep_cheep_chase->models[i + 3].model = Hu3DModelLink(object->model[2]);
+    }
+    object->model[6] = func_8000B108_main(0x470008, 0x9D);
+    func_8010D6F4_cheep_cheep_chase(2, 0, object->model[6], 0, NULL, func_80108C98_cheep_cheep_chase, FALSE, TRUE);
+    func_8010D6F4_cheep_cheep_chase(2, 1, -1, 0, NULL, func_80108F78_cheep_cheep_chase, FALSE, TRUE);
+    func_8010D6F4_cheep_cheep_chase(2, 0, -1, 1, NULL, func_801090E0_cheep_cheep_chase, TRUE, FALSE);
+    object->func = func_8010636C_cheep_cheep_chase;
+}
+
+void func_8010636C_cheep_cheep_chase(omObjData *object) {
+    func_8010D8FC_cheep_cheep_chase(2);
+}
+
+void func_80106388_cheep_cheep_chase(omObjData *object) {
+    u16 i;
+
+    object->model[0] = func_8000B108_main(0x470003, 0x2009D);
+    for (i = 1; i < 4; i++) {
+        object->model[i] = Hu3DModelLink(object->model[0]);
+    }
+    func_8001C954_main(object->model[0]);
+    object->trans.x = 0;
+    object->trans.z = -250.0f;
+    object->trans.y = 110.0f;
+    D_8010E360_cheep_cheep_chase->unk14++;
+    for (i = 1; i < 4; i++) {
+        func_801093CC_cheep_cheep_chase(object->model[i]);
+    }
+    object->func = func_80106484_cheep_cheep_chase;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E050_cheep_cheep_chase);
 
