@@ -134,6 +134,7 @@ extern u8 D_80115D90_messy_memory[10];
 extern u8 D_80115D9A_messy_memory;
 extern u8 D_80111675_messy_memory;
 extern s16 D_80115D70_messy_memory;
+extern f32 D_80111600_messy_memory; /* the lid motion's last frame */
 extern u8 D_80111670_messy_memory[4];
 extern u8 D_80111678_messy_memory[4][10];
 extern u8 D_801116A4_messy_memory[10];
@@ -2568,7 +2569,46 @@ void func_8010F15C_messy_memory(void) {
     D_80113A94_messy_memory[0].obj = obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010F19C_messy_memory);
+/* Player work[0]'s board cover (D_80113884[work[0]]): Z opens it (D_80115D80 1) and closes it (2); shut at the end. */
+void func_8010F19C_messy_memory(omObjData *obj) {
+    MmEnt *e;
+
+    e = &D_80113884_messy_memory[obj->work[0]];
+    switch (D_80115D8C_messy_memory) {
+    case 9:
+        switch (D_80115D80_messy_memory[obj->work[0]]) {
+        case 2:
+            if (HmfModelData[obj->model[0]].unk40 == D_80111600_messy_memory) {
+                func_8001C814_main(obj->model[0], 4, 4);
+            }
+            if (HmfModelData[obj->model[0]].unk40 == 0.0f) {
+                D_80115D80_messy_memory[obj->work[0]] = 0;
+            }
+            break;
+        case 1:
+            if (HmfModelData[obj->model[0]].unk40 == 0.0f) {
+                func_8001C5B4_main(obj->model[0], obj->motion[0]);
+                func_8001C814_main(obj->model[0], 2, 0);
+            }
+            break;
+        }
+        break;
+    case 11:
+        if (D_80115D80_messy_memory[obj->work[0]] == 1 ||
+            HmfModelData[obj->model[0]].unk40 == D_80111600_messy_memory) {
+            func_8001C814_main(obj->model[0], 4, 4);
+            D_80115D80_messy_memory[obj->work[0]] = 0;
+        }
+        if (obj->work[0] == 3) {
+            e->unk04++;
+            if (e->unk04 >= 51) {
+                D_80115D9A_messy_memory = 11;
+                e->unk04 = 0;
+            }
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010F3DC_messy_memory);
 
