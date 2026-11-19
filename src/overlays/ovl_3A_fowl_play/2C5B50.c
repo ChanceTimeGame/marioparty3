@@ -158,11 +158,18 @@ typedef struct FpCam {
 } FpCam; /* size 0x28 */
 
 struct FpPlayer {
-    /* 0x00 */ char unk00[0x22];
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ char unk0C[0x10];
+    /* 0x1C */ s32 file; /* character model file | 0x9A */
+    /* 0x20 */ u8 player;
+    /* 0x21 */ u8 idx; /* camera / side */
     /* 0x22 */ u8 chr;
-    /* 0x23 */ char unk23;
+    /* 0x23 */ u8 difficulty;
     /* 0x24 */ u8 unk24; /* won */
-};
+    /* 0x25 */ u8 cpu;
+    /* 0x26 */ u8 unk26;
+    /* 0x27 */ char unk27[0x25];
+}; /* size 0x4C */
 
 #define FP_PLAYER(i) ((FpPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
 
@@ -187,6 +194,11 @@ f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2);
 f32 func_8010AA64_fowl_play(Vec* a, Vec* b);
 extern s32 D_8010E7A4_fowl_play; /* step timer */
 extern Vec D_8010E7B4_fowl_play[8][2]; /* pen walls: segment ends */
+extern u8 D_8010E87C_fowl_play; /* next player slot */
+extern Vec D_8010E884_fowl_play[]; /* start positions */
+extern f32 D_8010E8B4_fowl_play[]; /* start facings */
+void func_80108298_fowl_play(omObjData* obj);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
 extern s32 D_8010E7AC_fowl_play; /* winner, -1 none */
 extern s16 D_8010E7B2_fowl_play; /* frames since the wipe ended */
 
@@ -751,11 +763,105 @@ void func_801079B0_fowl_play(void) {
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010ED88_fowl_play);
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010ED90_fowl_play);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80107A4C_fowl_play);
+void func_80107A4C_fowl_play(omObjData* obj) {
+    u8 motTbl[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; /* unused */
+    s32 files[3][8] = {
+        { 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0xA5, 0x1C },
+        { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0x1D },
+        { 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0xA4, 0x1B },
+    }; /* unused */
+    u8 player;
+    s8 chr;
+    u32 file0;
+    s32 mot;
+    s32 i;
+    MgWork* work;
+    FpPlayer* fp;
+
+    for (i = 0; i < 4; i++) {
+        if (D_8010E87C_fowl_play == GwPlayer[i].group) {
+            break;
+        }
+    }
+    player = i;
+    chr = GwPlayer[player].chr;
+    file0 = D_800A178C_main[chr][0];
+    mot = D_800A178C_main[chr][1];
+    func_800E1BA8_minigame(obj, file0, mot, player, 0x2D9, 0x2D9);
+    work = obj->data;
+    work->unk50 &= ~1;
+    work->unkEC = NULL;
+    obj->trans.x = D_8010E884_fowl_play[D_8010E87C_fowl_play].x;
+    obj->trans.y = D_8010E884_fowl_play[D_8010E87C_fowl_play].y;
+    obj->trans.z = D_8010E884_fowl_play[D_8010E87C_fowl_play].z;
+    work->unk3C = D_8010E8B4_fowl_play[D_8010E87C_fowl_play];
+    switch (file0 >> 16) {
+        case 6:
+            work->unk48 *= 1.25f;
+            break;
+        case 4:
+            work->unk48 *= 1.1f;
+            break;
+        case 5:
+            work->unk48 *= 1.2f;
+            break;
+    }
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    obj->trans.x = D_8010E884_fowl_play[D_8010E87C_fowl_play].x;
+    obj->trans.y = D_8010E884_fowl_play[D_8010E87C_fowl_play].y;
+    obj->trans.z = D_8010E884_fowl_play[D_8010E87C_fowl_play].z;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    work->unk158 = HuMemAllocTag(sizeof(FpPlayer), 31000);
+    memset(work->unk158, 0, sizeof(FpPlayer));
+    fp = work->unk158;
+    fp->player = player;
+    fp->idx = D_8010E87C_fowl_play;
+    fp->chr = chr;
+    fp->cpu = GwPlayer[player].stat & 1;
+    fp->difficulty = GwPlayer[player].cpu_difficulty;
+    fp->file = file0 | 0x9A;
+    fp->unk24 = 0;
+    fp->pos.x = obj->trans.x;
+    fp->pos.y = obj->trans.y;
+    fp->pos.z = obj->trans.z;
+    fp->unk26 = 0;
+    ((FpCam*)D_8010F294_fowl_play[D_8010E87C_fowl_play]->data)->target = obj;
+    func_800E149C_minigame(obj, 0, 2);
+    work->unk50 |= 0x8200;
+    obj->func = func_80108298_fowl_play;
+    func_8001C8A8_main(obj->model[0], 3);
+    func_8001C8A8_main(obj->model[1], 3);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 17, func_80017BB8_main(chr, 0xE), 0, 0);
+    func_800E5A00_minigame(obj, 32, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 19);
+    func_800E5A00_minigame(obj, 21, func_80017BB8_main(chr, 0x1F), 0, 19);
+    func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 0x99), 0, 0);
+    func_800E5A00_minigame(obj, 39, func_80017BB8_main(chr, 0x96), 1, 0);
+    func_800E5A00_minigame(obj, 13, func_80017BB8_main(chr, 0x9A), 1, 60);
+    switch (file0 >> 16) {
+        case 3:
+        case 4:
+        case 5:
+            func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x39), 1, 60);
+            break;
+        case 2:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            func_800E5A00_minigame(obj, 14, func_80017BB8_main(chr, 0x3A), 1, 60);
+            break;
+    }
+    func_800E5690_minigame(obj, 0);
+    D_8010E87C_fowl_play++;
+}
 
 void func_80108020_fowl_play(omObjData* obj, u32 file0, s32 file1, s32 player, u16 arg4) {
     MgWork* work;

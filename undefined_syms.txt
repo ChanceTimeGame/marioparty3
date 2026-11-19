@@ -488,3 +488,5 @@ D_8010CBAE_game_guys_sweet_surprise = D_8010CBAC_game_guys_sweet_surprise + 0x2;
 D_8010CBCC_game_guys_sweet_surprise = D_8010CBC8_game_guys_sweet_surprise + 0x4;
 D_8010CC26_game_guys_sweet_surprise = D_8010CC24_game_guys_sweet_surprise + 0x2;
 D_8010CC4A_game_guys_sweet_surprise = D_8010CC48_game_guys_sweet_surprise + 0x2;
+/* m6 fp */
+D_8010ED88_fowl_play = 0x8010ED88;
