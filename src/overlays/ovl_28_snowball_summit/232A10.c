@@ -252,6 +252,7 @@ s32 func_8010CC00_snowball_summit(SsPlayer *pl);
 void func_8010CD58_snowball_summit(SsPlayer *pl);
 void func_8010D108_snowball_summit(SsPlayer *pl);
 void func_8010D304_snowball_summit(SsPlayer *pl);
+void func_8010D55C_snowball_summit(SsPlayer *pl);
 void func_8010D86C_snowball_summit(void);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
@@ -2235,7 +2236,39 @@ void func_8010D304_snowball_summit(SsPlayer *pl) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D55C_snowball_summit);
+/* A player landing on another one bounces off it (hit 1). */
+void func_8010D55C_snowball_summit(SsPlayer *pl) {
+    omObjData *obj = pl->obj;
+    Vec d;
+    SsPlayer *other;
+    omObjData *oobj;
+    f32 reach;
+    f32 dist;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (i != obj->work[0]) {
+            other = &D_8010F9B8_snowball_summit[i];
+            if (other->state != 90 && other->unk4C == 0) {
+                oobj = other->obj;
+                func_80107908_snowball_summit(obj->trans.x, obj->trans.z, oobj->trans.x, oobj->trans.z, &d);
+                reach = pl->unk50 + other->unk50;
+                dist = d.x;
+                if (dist < 0.0f) {
+                    dist = -dist;
+                }
+                if (dist < reach && obj->trans.y < oobj->trans.y + other->unk54) {
+                    pl->land = 1;
+                    pl->hit = 1;
+                    pl->speed = 10.0f;
+                    pl->vel.y = 20.0f;
+                    pl->gravity = 4.0f;
+                    pl->rot = SS_WRAP(d.z + 180.0f + SS_RAND(20));
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010D86C_snowball_summit);
 
