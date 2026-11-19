@@ -36,8 +36,8 @@ typedef struct AhPlayer {
     /* 0x2C */ s16 unk2C;
     /* 0x2E */ s16 unk2E; /* esprite */
     /* 0x30 */ s16 unk30; /* esprite */
-    /* 0x32 */ u16 unk32;
-    /* 0x34 */ u16 unk34;
+    /* 0x32 */ s16 unk32; /* turning: 0 no, 1 left, 2 right */
+    /* 0x34 */ s16 unk34; /* CPU: mirror the chase turn */
     /* 0x36 */ s16 unk36; /* fell below the floor */
     /* 0x38 */ f32 unk38; /* pitch */
     /* 0x3C */ f32 unk3C; /* roll */
@@ -1424,7 +1424,93 @@ void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, s16 *btn, u
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801088A4_aces_high);
 #endif
 
+// register allocation only (masked 0): retail keeps the angle difference in f4 and the stick value in f6, here the reverse
+#ifdef NON_MATCHING
+/* CPU steering towards target: stick values; returns 0x4000 when the turn is sharp (slow down). */
+u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 *stickX, s8 *stickY) {
+    AhPlayer *work;
+    AhPlayer *tw;
+    f32 scale;
+    f32 dir;
+    f32 heading;
+    f32 v;
+    f32 d;
+    u16 res;
+
+    work = obj->data;
+    scale = HuSqrtf((target->x - obj->trans.x) * (target->x - obj->trans.x) +
+                    (target->z - obj->trans.z) * (target->z - obj->trans.z)) / 600.0f;
+    if (scale > 2.0f) {
+        scale = 2.0f;
+    }
+    if (scale < 0.3f) {
+        scale = 0.3f;
+    }
+    res = 0;
+    dir = atan2df(target->x - obj->trans.x, target->z - obj->trans.z);
+    heading = obj->rot.y;
+    if (heading > 180.0f) {
+        heading -= 360.0f;
+    }
+    d = heading - dir;
+    if (fabs(d) < turn) {
+        *stickX = 0;
+    } else {
+        if (fabs(d * scale) > 70.0) {
+            v = 70.0f;
+            res = 0x4000;
+        } else {
+            v = fabsf(d * scale);
+        }
+        if (v < 10.0f) {
+            v = 0.0f;
+        }
+        if (dir < 0.0f) {
+            dir += 360.0f;
+        }
+        if (heading < 0.0f) {
+            heading += 360.0f;
+        }
+        d = dir - heading;
+        if (d < 0.0f) {
+            d += 360.0f;
+        }
+        if (d > 180.0f) {
+            *stickX = v;
+        } else {
+            *stickX = -v;
+        }
+        if ((work->unk92 == 1) | (work->unk92 == 3)) {
+            tw = work->unk98->data;
+            if (tw->unk32 == work->unk32 && tw->unk34 == 0 && (u8)(rand8() % 10) < 5) {
+                work->unk34 ^= 1;
+            }
+            if (work->unk34 != 0) {
+                *stickX = -*stickX;
+            }
+        }
+    }
+    d = target->y - obj->trans.y;
+    if (fabs(d) > arg3) {
+        if (fabs(d * scale) > 70.0) {
+            v = 70.0f;
+        } else {
+            v = fabsf(d * scale);
+        }
+        if (v < 10.0f) {
+            v = 0.0f;
+        }
+        if (target->y > obj->trans.y) {
+            *stickY = -v;
+        } else {
+            *stickY = v;
+        }
+    }
+    return res;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010951C_aces_high);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_80109928_aces_high);
 
