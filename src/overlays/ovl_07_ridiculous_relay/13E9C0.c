@@ -1,5 +1,6 @@
 #include "common.h"
 #include "overlays/minigame.h"
+#include "game/pause.h"
 
 /* A relay runner's player (D_80111940[], filled by func_80105D40_ridiculous_relay). */
 typedef struct {
@@ -8,8 +9,8 @@ typedef struct {
     /* 0x02 */ s8 unk2; /* pad */
     /* 0x03 */ u8 unk3; /* character */
     /* 0x04 */ s8 unk4; /* CPU difficulty, -1 human */
-    /* 0x05 */ char unk5[5];
-    /* 0x0A */ s16 unkA;
+    /* 0x05 */ char unk5[3];
+    /* 0x08 */ s32 unk8; /* message */
 } RrPlayer; // Size 0xC
 
 void func_8004AE00_main(s16, s16);
@@ -128,14 +129,13 @@ extern omObjData *D_801119BC_ridiculous_relay;
 extern s8 D_801119C0_ridiculous_relay;
 extern f32 D_801119C4_ridiculous_relay;
 extern s32 D_801119C8_ridiculous_relay;
-extern s16 D_801119CC_ridiculous_relay;
+extern u16 D_801119CC_ridiculous_relay;
 extern f32 D_801119D0_ridiculous_relay;
 extern s32 D_801119D4_ridiculous_relay;
 extern s16 D_801119D8_ridiculous_relay;
-extern s8 D_801119DA_ridiculous_relay;
+extern u8 D_801119DA_ridiculous_relay;
 extern f32 D_801119DC_ridiculous_relay;
 extern omObjData *D_80111A20_ridiculous_relay[4];
-extern s32 D_80111A38_ridiculous_relay;
 extern f32 D_80111A50_ridiculous_relay;
 
 #define RR_K 0.028935185185185185
@@ -238,7 +238,158 @@ void func_80105D40_ridiculous_relay(omObjData *obj) {
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80110E60_ridiculous_relay);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80105F48_ridiculous_relay);
+void func_80105F48_ridiculous_relay(omObjData *obj) {
+    s32 i;
+    u8 j;
+    s8 last;
+
+    D_801119D4_ridiculous_relay++;
+    D_801119C8_ridiculous_relay++;
+    if (D_801119D8_ridiculous_relay == 1 && D_801119D4_ridiculous_relay == 31 && D_801119CC_ridiculous_relay == 0 && D_800D530C_main == 0) {
+        HuAudSeqPlay(0x32);
+    }
+    func_800E6F40_minigame();
+    switch (D_801119D8_ridiculous_relay) {
+        case 0:
+            if (D_801119D4_ridiculous_relay == 1 && D_801119CC_ridiculous_relay == 0 && D_800D530C_main == 0) {
+                D_80111A30_ridiculous_relay[0] = HuAudFXPlay(0x32D);
+                D_80111A30_ridiculous_relay[1] = HuAudFXPlay(0x32E);
+            }
+            if (func_800E6E8C_minigame() == 1) {
+                D_801119D8_ridiculous_relay = 1;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            break;
+        case 1:
+            if (func_800E6E8C_minigame() == 2) {
+                D_801119D8_ridiculous_relay = 2;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            break;
+        case 2:
+            last = D_801119C0_ridiculous_relay;
+            if (last == 5) {
+                if (func_800E6E8C_minigame() == 3) {
+                    if (D_801119C0_ridiculous_relay == last) {
+                        D_801119D8_ridiculous_relay = 5;
+                        D_801119C0_ridiculous_relay = 4;
+                    } else {
+                        D_801119D8_ridiculous_relay = 3;
+                    }
+                    D_801119D4_ridiculous_relay = 0;
+                }
+            } else {
+                D_801119D8_ridiculous_relay = 3;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            if (D_801119D8_ridiculous_relay != 3) {
+                break;
+            }
+            /* fallthrough */
+        case 3:
+            if (D_801119D4_ridiculous_relay == 0) {
+                if (func_800E6E8C_minigame() != 3) {
+                    func_800E6F1C_minigame();
+                }
+                if (D_80111A30_ridiculous_relay[2] != -1) {
+                    HuAudFXStop((s16)D_80111A30_ridiculous_relay[2]);
+                    D_80111A30_ridiculous_relay[2] = -1;
+                }
+                if (D_801119C0_ridiculous_relay == 0) {
+                    D_80110CB0_ridiculous_relay.unk06 = 0;
+                    D_80110CB0_ridiculous_relay.unk18 = D_80111970_ridiculous_relay[0]->unk0;
+                    GwPlayer[D_80111970_ridiculous_relay[0]->unk0].bonusCoin = 10;
+                } else {
+                    D_80110CB0_ridiculous_relay.unk06 = 2;
+                    D_80110CB0_ridiculous_relay.unk18 = D_80111970_ridiculous_relay[3]->unk0;
+                    D_80110CB0_ridiculous_relay.unk19[0] = D_80111970_ridiculous_relay[1]->unk0;
+                    D_80110CB0_ridiculous_relay.unk19[1] = D_80111970_ridiculous_relay[2]->unk0;
+                    GwPlayer[D_80111970_ridiculous_relay[1]->unk0].bonusCoin = 10;
+                    GwPlayer[D_80111970_ridiculous_relay[2]->unk0].bonusCoin = 10;
+                    GwPlayer[D_80111970_ridiculous_relay[3]->unk0].bonusCoin = 10;
+                }
+            }
+            if (D_801119D4_ridiculous_relay == 2) {
+                func_800E6F34_minigame(30);
+            }
+            if (D_801119D4_ridiculous_relay == 15) {
+                for (i = 0; i < 3; i++) {
+                    if (D_80111A30_ridiculous_relay[i] != -1) {
+                        func_8004AEF0_main(D_80111A30_ridiculous_relay[i], 15);
+                        D_80111A30_ridiculous_relay[i] = -1;
+                    }
+                }
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_801119D8_ridiculous_relay = 4;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            break;
+        case 5:
+            if (D_801119D4_ridiculous_relay == 1) {
+                D_80110CB0_ridiculous_relay.unk06 = 4;
+                D_80110CB0_ridiculous_relay.unk22 = 75;
+                D_80110CB0_ridiculous_relay.unk24 = 144;
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_801119D8_ridiculous_relay = 6;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            break;
+        case 4:
+            if (D_801119D4_ridiculous_relay == 30) {
+                if (D_801119C0_ridiculous_relay == 0) {
+                    func_8001C5B4_main(D_80111A20_ridiculous_relay[0]->model[0], D_80111A20_ridiculous_relay[0]->motion[3]);
+                    func_8001C814_main(D_80111A20_ridiculous_relay[0]->model[0], 3, 0);
+                    func_80045ED0_main(D_80111970_ridiculous_relay[0]->unk8);
+                } else if (D_801119C0_ridiculous_relay == 1) {
+                    func_8001C5B4_main(D_80111A20_ridiculous_relay[3]->model[0], D_80111A20_ridiculous_relay[3]->motion[3]);
+                    func_8001C814_main(D_80111A20_ridiculous_relay[3]->model[0], 3, 0);
+                    func_80045ED0_main(D_80111970_ridiculous_relay[3]->unk8);
+                }
+            }
+            /* fallthrough */
+        case 6:
+            if (func_800E6E8C_minigame() == 5) {
+                D_801119D8_ridiculous_relay = 7;
+                D_801119D4_ridiculous_relay = 0;
+            }
+            break;
+        case 7:
+            if (D_801119D4_ridiculous_relay == 1) {
+                WipeCreateOut(0, 20);
+            } else if (D_801119D4_ridiculous_relay >= 32) {
+                D_801119CC_ridiculous_relay = 1;
+            }
+            break;
+    }
+    if (_CheckFlag(0xF) && D_800D530C_main == 0 && D_801119DA_ridiculous_relay == 0 && D_801119D8_ridiculous_relay == 2U) {
+        for (j = 0; j < 2; j++) {
+            if (D_80111970_ridiculous_relay[j]->unk4 == -1 && (D_800D5558_main[D_80111970_ridiculous_relay[j]->unk2] & 0x10)) {
+                D_801119DA_ridiculous_relay = 1;
+            }
+        }
+    }
+    if (D_801119CC_ridiculous_relay == 0 && D_800D530C_main == 0 && D_801119DA_ridiculous_relay == 0) {
+        return;
+    }
+    if (D_800D530C_main != 0 && D_801119DA_ridiculous_relay == 0) {
+        D_801119DA_ridiculous_relay = 1;
+    }
+    if (D_801119DA_ridiculous_relay != 0) {
+        if (D_801119DA_ridiculous_relay == 1) {
+            WipeCreateOut(0, 20);
+            HuAudSeqFadeOut(20);
+            func_8004AB0C_main(20);
+        }
+        D_801119DA_ridiculous_relay++;
+        if (D_801119DA_ridiculous_relay < 25) {
+            return;
+        }
+    }
+    HuAudSeqFadeOut(30);
+    omOvlReturnEx(1);
+}
 
 s16 func_80106610_ridiculous_relay(s32 file, u16 *spr, u16 mdl) {
     void *data;
@@ -919,8 +1070,8 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
                 D_80110DA8_ridiculous_relay = 1;
                 D_801117F0_ridiculous_relay = (D_801117F0_ridiculous_relay < 0.5) ? 0.5f : D_801117F0_ridiculous_relay;
                 if (D_801119D8_ridiculous_relay == 2) {
-                    D_80111A38_ridiculous_relay = HuAudFXPlay(0x331);
-                    func_8004AAD0_main(D_80111A38_ridiculous_relay, 0x7F);
+                    D_80111A30_ridiculous_relay[2] = HuAudFXPlay(0x331);
+                    func_8004AAD0_main(D_80111A30_ridiculous_relay[2], 0x7F);
                 }
                 D_80110E48_ridiculous_relay = D_80110D6C_ridiculous_relay;
                 omVibrate(D_80111970_ridiculous_relay[3]->unk0, 2, 3, 10);
@@ -1050,8 +1201,8 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
         D_80110DCC_ridiculous_relay[3] = f - f / 6.0 / 5.0;
         D_80110DCC_ridiculous_relay[3] = (D_80110DCC_ridiculous_relay[3] > 50.0f) ? 50.0f
             : (D_80110DCC_ridiculous_relay[3] < -50.0f) ? -50.0f : D_80110DCC_ridiculous_relay[3];
-        if (D_80111A38_ridiculous_relay != -1) {
-            HuAudFXPitchSet((s16)D_80111A38_ridiculous_relay, (s16)(D_80110DCC_ridiculous_relay[3] / 50.0 * 400.0 - 400.0));
+        if (D_80111A30_ridiculous_relay[2] != -1) {
+            HuAudFXPitchSet((s16)D_80111A30_ridiculous_relay[2], (s16)(D_80110DCC_ridiculous_relay[3] / 50.0 * 400.0 - 400.0));
         }
         if (D_80110DAC_ridiculous_relay[3] > 1865.625 && D_80110D74_ridiculous_relay == 0) {
             if (D_801119C0_ridiculous_relay == 5
