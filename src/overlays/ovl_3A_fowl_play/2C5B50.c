@@ -158,9 +158,31 @@ typedef struct FpCam {
 } FpCam; /* size 0x28 */
 
 struct FpPlayer {
-    /* 0x00 */ char unk00[0x24];
-    /* 0x24 */ u8 unk24;
+    /* 0x00 */ char unk00[0x22];
+    /* 0x22 */ u8 chr;
+    /* 0x23 */ char unk23;
+    /* 0x24 */ u8 unk24; /* won */
 };
+
+#define FP_PLAYER(i) ((FpPlayer*)((MgWork*)D_800EC598_minigame[i]->data)->unk158)
+
+void func_80106BD0_fowl_play(omObjData* obj);
+void func_80055588_main(s16 group, s16 member, f32 arg2, f32 arg3);
+void func_800555B8_main(s16 group, s16 member, u16 arg2, u16 arg3);
+void func_800E1304_minigame(omObjData* obj, f32 arg1);
+void func_800E1310_minigame(omObjData* obj, f32 arg1);
+void func_800E131C_minigame(omObjData* obj, f32 arg1);
+void func_800E1404_minigame(omObjData* obj, f32 arg1, f32 arg2);
+void func_800E6F0C_minigame(s8 arg0);
+s16 func_8010B2C4_fowl_play(s32 id);
+extern s16 D_8010F230_fowl_play[2]; /* sprite files */
+extern s16 D_8010F240_fowl_play[2]; /* sprite groups */
+extern s16 D_8010F200_fowl_play; /* ambience sound */
+extern s16 D_8010F202_fowl_play; /* its fade timer */
+extern s16 D_8010F29E_fowl_play; /* time left, frames */
+extern s32 D_8010E7A4_fowl_play; /* step timer */
+extern s32 D_8010E7AC_fowl_play; /* winner, -1 none */
+extern s16 D_8010E7B2_fowl_play; /* frames since the wipe ended */
 
 void func_80107A4C_fowl_play(omObjData* obj);
 void func_80106960_fowl_play(omObjData* obj);
@@ -411,11 +433,155 @@ void func_801068F0_fowl_play(void) {
     D_8010F29C_fowl_play = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106960_fowl_play);
+void func_80106960_fowl_play(omObjData* obj) {
+    Vec spots[16] = {
+        { -500.0f, 0.0f, -1550.0f }, { -1050.0f, 0.0f, -1450.0f }, { -300.0f, 0.0f, -2245.0f },
+        { -1400.0f, 0.0f, -600.0f }, { -1700.0f, 0.0f, 400.0f },   { -1550.0f, 0.0f, 800.0f },
+        { -400.0f, 0.0f, 2150.0f },  { -1300.0f, 0.0f, 1450.0f },  { 750.0f, 0.0f, 1650.0f },
+        { 1450.0f, 0.0f, 1600.0f },  { 450.0f, 0.0f, 2150.0f },    { 1550.0f, 0.0f, 800.0f },
+        { 2000.0f, 0.0f, 500.0f },   { 1550.0f, 0.0f, -800.0f },   { 400.0f, 0.0f, -2150.0f },
+        { 1150.0f, 0.0f, -1200.0f },
+    }; /* unused */
+    MgWork* work;
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", D_8010EC28_fowl_play);
+    obj->data = HuMemAllocTag(0xB4, 0x7918);
+    work = obj->data;
+    memset(work, 0, 0xB4);
+    work->unk00[3] = 1;
+    work->unk04 = 0;
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 0.5f);
+    func_800E1310_minigame(obj, 10.0f);
+    func_800E1404_minigame(obj, 0.0f, 1200.0f);
+    D_8010F230_fowl_play[0] = func_8010B2C4_fowl_play(0x5B0000);
+    D_8010F240_fowl_play[0] = func_8010B30C_fowl_play(D_8010F230_fowl_play[0], 2);
+    func_80054904_main(D_8010F240_fowl_play[0], 0, 0, 0);
+    HuSprAttrSet(D_8010F240_fowl_play[0], 0, 0x44000);
+    func_80055588_main(D_8010F240_fowl_play[0], 0, 2.0f, 1.0f);
+    func_800555B8_main(D_8010F240_fowl_play[0], 0, 8, 7);
+    func_800555E8_main(D_8010F240_fowl_play[0], 0, 0, 0, 0x9F, 0xF0);
+    func_80054904_main(D_8010F240_fowl_play[0], 1, 0xA0, 0);
+    HuSprAttrSet(D_8010F240_fowl_play[0], 1, 0x44000);
+    func_80055588_main(D_8010F240_fowl_play[0], 1, 2.0f, 1.0f);
+    func_800555B8_main(D_8010F240_fowl_play[0], 1, 8, 7);
+    func_800555E8_main(D_8010F240_fowl_play[0], 1, 0xA1, 0, 0x140, 0xF0);
+    D_8010F230_fowl_play[1] = func_8010B2C4_fowl_play(0x5B0004);
+    D_8010F240_fowl_play[1] = func_8010B30C_fowl_play(D_8010F230_fowl_play[1], 1);
+    func_80054904_main(D_8010F240_fowl_play[1], 0, 0xA0, 0x78);
+    HuSprAttrSet(D_8010F240_fowl_play[1], 0, 0x1000);
+    obj->model[0] = func_8000B108_main(0x5B0005, 0x2D9);
+    func_8001C8A8_main(obj->model[0], 3);
+    obj->func = func_80106BD0_fowl_play;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80106BD0_fowl_play);
+
+void func_80106BD0_fowl_play(omObjData* obj) {
+    HuSprite* spr;
+    f32 x;
+    s32 i;
+
+    switch (D_8010F29C_fowl_play) {
+        case 0:
+            func_8001C8A8_main(func_8001AC8C_main(0xC0, func_8010DC24_fowl_play, 2), 3);
+            GMesCreate(6);
+            D_8010F200_fowl_play = HuAudFXPlay(0x4BF);
+            D_8010F29E_fowl_play = 1800;
+            D_8010F29C_fowl_play++;
+        case 1:
+            if (WipeStatGet() == 0) {
+                if (++D_8010E7B2_fowl_play == 1) {
+                    HuAudSeqPlay(0x36);
+                }
+            }
+            if (GMesStatGet() == 0) {
+                func_800E6F0C_minigame(2);
+                D_8010F29C_fowl_play++;
+                GMesCreate(0x1A, (D_8010F29E_fowl_play + 29) / 30, 0xA0, 0x20);
+                HuAudFXPlay(0xE);
+            }
+            break;
+        case 2:
+            for (i = 0; i < 2; i++) {
+                if (FP_PLAYER(i)->unk24 != 0) {
+                    D_8010E7AC_fowl_play = i;
+                    D_8010F29C_fowl_play = 3;
+                }
+            }
+            D_8010F29E_fowl_play--;
+            func_8003F578_main((D_8010F29E_fowl_play + 29) / 30);
+            if (D_8010F29E_fowl_play == 0) {
+                D_8010F29C_fowl_play = 3;
+            }
+            break;
+        case 3:
+            func_8003F5C0_main();
+            GMesCreate(0x11);
+            HuAudSeqFadeOut(0x78);
+            D_8010F29C_fowl_play = 6;
+            D_8010E7A4_fowl_play = 15;
+            D_8010F202_fowl_play = 15;
+            break;
+        case 6:
+            if (--D_8010F202_fowl_play == 0) {
+                func_8004AEF0_main(D_8010F200_fowl_play, 15);
+            }
+            if (GMesStatGet() == 0) {
+                if (--D_8010E7A4_fowl_play == 0) {
+                    for (i = 0; i < 2; i++) {
+                        if (FP_PLAYER(i)->unk24 != 0) {
+                            D_8010E7AC_fowl_play = i;
+                        }
+                    }
+                    if (D_8010E7AC_fowl_play != -1) {
+                        GMesCreate(0x16, FP_PLAYER(D_8010E7AC_fowl_play)->chr);
+                        HuAudSeqPlay(0x67);
+                    } else {
+                        GMesCreate(0x20);
+                        HuAudSeqPlay(0x6C);
+                    }
+                    D_8010E7A4_fowl_play = 15;
+                    D_8010F29C_fowl_play++;
+                    func_800E6F0C_minigame(4);
+                }
+            }
+            break;
+        case 7:
+            if (GMesStatGet() == 0) {
+                if (--D_8010E7A4_fowl_play == 0) {
+                    D_8010F29C_fowl_play++;
+                }
+            }
+            break;
+        case 8:
+            if (D_8010E7A4_fowl_play != 0) {
+                if (--D_8010E7A4_fowl_play == 0) {
+                    D_8010F29C_fowl_play++;
+                }
+            } else {
+                func_800E6F0C_minigame(5);
+                D_8010E7A4_fowl_play = 16;
+                /* retail reads the low half of the s32 D_8010E7A4 (big-endian) as the fade length */
+                WipeCreateOut(0, ((s16*)&D_8010E7A4_fowl_play)[1]);
+                HuAudSeqFadeOut(((s16*)&D_8010E7A4_fowl_play)[1]);
+                func_8004AB0C_main(((s16*)&D_8010E7A4_fowl_play)[1]);
+            }
+            break;
+        case 9:
+            func_8010E704_fowl_play();
+            func_8004A950_main();
+            omOvlReturnEx(1);
+            break;
+    }
+    for (i = 0; i < 2; i++) {
+        spr = HuSprGet(D_8010F240_fowl_play[0], i);
+        x = CRotM[i].y * 256.0 / 360.0 - 256.0 + i * 160;
+        func_80054904_main(D_8010F240_fowl_play[0], i, x, 0);
+        spr->unk_48 = x;
+    }
+    if (D_800D530C_main == 1 && WipeStatGet() == 0) {
+        D_8010F29C_fowl_play = 8;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801070FC_fowl_play);
 
