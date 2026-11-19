@@ -70,7 +70,17 @@ extern s8 D_800CBB6E_main[];
 extern s8 D_800D20A1_main[];
 extern u16 D_800D5558_main[4];
 
+/* A board point in screen units (D_80110FE0 board origins, D_80111044 slot offsets). */
+typedef struct MmPt {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+} MmPt; // Size 4
+
 /* .data */
+extern MmPt D_80110FE0_messy_memory[5];
+extern MmPt D_80111044_messy_memory[20];
+extern s16 D_80111338_messy_memory;
+extern s16 D_8011133A_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
 
 /* .bss */
@@ -78,7 +88,15 @@ extern MmEnt D_80111700_messy_memory[136];
 extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
+extern s32 D_80111640_messy_memory[4];
+extern u8 D_80111670_messy_memory[4];
+extern u8 D_80111678_messy_memory[4][10];
+extern u8 D_801116A4_messy_memory[10];
+extern u8 D_801116B0_messy_memory[4][10];
+extern u8 D_80115D72_messy_memory[];
+extern u8 D_80115D80_messy_memory[4];
 extern s8 D_80115D8C_messy_memory;
+extern s16 D_80115D8E_messy_memory;
 
 /* .rodata */
 const s16 D_801115F4_messy_memory[];
