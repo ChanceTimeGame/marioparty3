@@ -10,6 +10,7 @@
 
 
 
+
 #define BT_WRAP(v)             \
     if ((v) >= 360.0) {        \
         (v) -= 360.0;          \
@@ -180,11 +181,11 @@ s32 func_8010C23C_bowser_toss(void);
 void func_8010C274_bowser_toss(void);
 s32 func_8010C2A4_bowser_toss(void);
 void func_8010C2DC_bowser_toss(void);
-void func_8010D250_bowser_toss(s16 idx, f32 x, f32 y, f32 a, f32 b, f32 c, f32 d, f32 zoom, s32 frames);
+void func_8010D250_bowser_toss(s32 idx, f32 x, f32 y, f32 a, f32 b, f32 c, f32 d, f32 zoom, s32 frames);
 f32 func_8010D6E0_bowser_toss(f32 target, f32 cur, f32 step);
 void func_8010D960_bowser_toss(omObjData* obj, u32 value);
 void* func_8010D98C_bowser_toss(omObjData* obj);
-unk1EA70StructC* func_8010D9E0_bowser_toss(s16 model, s16 arg1, const char* part, s16 arg3, u16 arg4);
+unk1EA70StructC* func_8010D9E0_bowser_toss(s16 model, s16 step, const char* part, s16 useOverlay, u16 frame);
 void func_8010DDC4_bowser_toss(unk1EA70StructC* arg0);
 
 extern s32 D_800A178C_main[][6];
@@ -248,6 +249,47 @@ s16 func_80109F68_bowser_toss(f32 x, f32 y, f32 vx, f32 vy);
 void func_8010D918_bowser_toss(f32* a, f32* b, f32* out, f32 t);
 
 extern BtScore* D_8010FBA0_bowser_toss;
+
+/* A camera key: CenterM, CRotM, CZoomM of one screen. */
+typedef struct BtCamKey {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ f32 unk20;
+} BtCamKey; // Size 0x24
+
+/* One screen's camera move (D_8010FBA4_bowser_toss, 2 x 0x54): from key[0] to key[1]. */
+typedef struct BtCam {
+    /* 0x00 */ BtCamKey key[2];
+    /* 0x48 */ s32 unk48; /* frames left */
+    /* 0x4C */ s32 unk4C; /* frames */
+    /* 0x50 */ s32 unk50;
+} BtCam; // Size 0x54
+
+typedef struct BtRect {
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 h;
+} BtRect;
+
+extern Matrix4f* D_800D1358_main;
+extern s16* D_800D04B4_main;
+extern s16 D_800CD1B0_main;
+extern s16 D_800D138A_main;
+extern Matrix4f D_800D5A00_main[];
+void func_8002DFF8_main(HmfData*, f32, D_800CCF58_main_Struct*, s32);
+s16 func_8002C834_main(HmfData*, const char*);
+void func_80016C2C_main(HmfData* arg0, s16 arg1, s16 arg2);
+void func_8010CDB8_bowser_toss(omObjData* obj);
+void func_8010D080_bowser_toss(s32 side, s32 key);
+void func_8010DB9C_bowser_toss(s16 model, s16 step, unk1EA70StructC* rec, s16 part, s16 useOverlay, s16 frame);
+
+extern BtRect D_8010F33C_bowser_toss[];
+extern s16 D_8010FB9C_bowser_toss[2];
+extern BtCam* D_8010FBA4_bowser_toss;
+extern Vec D_8010FBA8_bowser_toss;
 
 void func_801059A0_bowser_toss(void) {
     omObjData* obj;
@@ -1453,7 +1495,33 @@ u16 func_8010AD54_bowser_toss(s32 dirAndFile) {
     return id;
 }
 
+/* NON_MATCHING: retail sign-extends the new sprite group before storing it (one instruction moved). */
+#ifdef NON_MATCHING
+void func_8010AD98_bowser_toss(void) {
+    s32 i;
+    s32 j;
+    s16 grp;
+
+    D_8010FB98_bowser_toss[1] = func_8010AD54_bowser_toss(0x550007);
+    D_8010FB98_bowser_toss[2] = func_8010AD54_bowser_toss(0x550008);
+    D_8010FB98_bowser_toss[3] = func_8010AD54_bowser_toss(0x550009);
+    for (i = 0; i < 2; i++) {
+        grp = HuSprGrpCreate(4, 0);
+        D_8010FB9C_bowser_toss[i] = grp;
+        for (j = 0; j < 4; j++) {
+            func_80055024_main(grp, j, D_8010FB98_bowser_toss[1], 0);
+            func_80054904_main(grp, j, D_8010F33C_bowser_toss[i].x, D_8010F33C_bowser_toss[i].y);
+            func_800550F4_main(grp, j, 0);
+            func_80054FF8_main(grp, j, 0);
+            HuSprAttrSet(grp, j, 0x483C);
+            func_800555E8_main(grp, j, D_8010F33C_bowser_toss[i].x, D_8010F33C_bowser_toss[i].y,
+                               D_8010F33C_bowser_toss[i].w, D_8010F33C_bowser_toss[i].h);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AD98_bowser_toss);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AF38_bowser_toss);
 
@@ -1515,7 +1583,47 @@ s32 func_8010C2A4_bowser_toss(void) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C2DC_bowser_toss);
+void func_8010C2DC_bowser_toss(void) {
+    BtCam* cam;
+    HuCamera* c;
+    s32 i;
+    s32 j;
+
+    D_8010FBA4_bowser_toss = HuMemAllocTag(sizeof(BtCam) * 2, 31000);
+    memset(D_8010FBA4_bowser_toss, 0, sizeof(BtCam) * 2);
+    Center.x = 0.0f;
+    Center.y = 212.0f;
+    Center.z = 0.0f;
+    CRot.x = 1.01f;
+    CRot.y = 0.0f;
+    CRot.z = 0.0f;
+    CZoom = 1222.0f;
+    D_8010FBA8_bowser_toss.x = 0.0f;
+    D_8010FBA8_bowser_toss.y = 162.0f;
+    D_8010FBA8_bowser_toss.z = 0.0f;
+    for (i = 0, cam = D_8010FBA4_bowser_toss; i < 2; i++, cam++) {
+        CenterM[i].x = Center.x;
+        CenterM[i].y = Center.y;
+        CenterM[i].z = Center.z;
+        CRotM[i].x = CRot.x;
+        CRotM[i].y = CRot.y;
+        CRotM[i].z = CRot.z;
+        CZoomM[i] = CZoom;
+        func_8010D080_bowser_toss(i, 0);
+        func_8010D080_bowser_toss(i, 1);
+        cam->unk48 = cam->unk4C = cam->unk50 = 0;
+        c = &gCameraList[i];
+        for (j = 0; j < D_800D1FF0_main; j++) {
+            c->viewports[j].vp.vscale[0] = c->screenScale.x;
+            c->viewports[j].vp.vscale[1] = c->screenScale.y;
+            c->viewports[j].vp.vscale[2] = c->screenScale.z;
+            c->viewports[j].vp.vtrans[0] = c->screenPos.x;
+            c->viewports[j].vp.vtrans[1] = c->screenPos.y;
+            c->viewports[j].vp.vtrans[2] = c->screenPos.z;
+        }
+    }
+    omAddObj(0x1F, 0, 0, -1, func_8010CDB8_bowser_toss);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", D_8010F998_bowser_toss);
 
@@ -1523,11 +1631,88 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C570
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010CDB8_bowser_toss);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D080_bowser_toss);
+void func_8010D080_bowser_toss(s32 side, s32 key) {
+    BtCam* cam = &D_8010FBA4_bowser_toss[side];
+    Vec* center = &CenterM[side];
+    Vec* rot = &CRotM[side];
+    BtCamKey* k;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D250_bowser_toss);
+    BT_WRAP(rot->x);
+    BT_WRAP(rot->y);
+    BT_WRAP(rot->z);
+    k = &cam->key[key];
+    k->center.x = center->x;
+    k->center.y = center->y;
+    k->center.z = center->z;
+    k->rot.x = rot->x;
+    k->rot.y = rot->y;
+    k->rot.z = rot->z;
+    k->zoom = CZoomM[side];
+    k->unk1C = k->unk20 = 0.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D43C_bowser_toss);
+void func_8010D250_bowser_toss(s32 side, f32 x, f32 y, f32 z, f32 rx, f32 ry, f32 rz, f32 zoom, s32 frames) {
+    BtCam* cam = &D_8010FBA4_bowser_toss[side];
+    Vec* center = &CenterM[side];
+    Vec* rot = &CRotM[side];
+
+    if (frames > 0) {
+        cam->unk48 = frames - 1;
+        cam->unk4C = frames;
+        if (x != 65535.0f) {
+            cam->key[0].center.x = x;
+        } else {
+            cam->key[0].center.x = center->x;
+        }
+        if (y != 65535.0f) {
+            cam->key[0].center.y = y;
+        } else {
+            cam->key[0].center.y = center->y;
+        }
+        if (z != 65535.0f) {
+            cam->key[0].center.z = z;
+        } else {
+            cam->key[0].center.z = center->z;
+        }
+        if (rx != 65535.0f) {
+            cam->key[0].rot.x = rx;
+        } else {
+            cam->key[0].rot.x = rot->x;
+        }
+        if (ry != 65535.0f) {
+            cam->key[0].rot.y = ry;
+        } else {
+            cam->key[0].rot.y = rot->y;
+        }
+        if (rz != 65535.0f) {
+            cam->key[0].rot.z = rz;
+        } else {
+            cam->key[0].rot.z = rot->z;
+        }
+        if (zoom != 65535.0f) {
+            cam->key[0].zoom = zoom;
+        } else {
+            cam->key[0].zoom = CZoomM[side];
+        }
+        func_8010D080_bowser_toss(side, 1);
+    }
+}
+
+void func_8010D43C_bowser_toss(s32 side) {
+    HuCamera* cam = &gCameraList[side];
+    f32 rx = CRotM[side].x;
+    f32 ry = CRotM[side].y;
+
+    cam->pos.x = sindf(ry) * cosdf(rx) * CZoomM[side] + CenterM[side].x;
+    cam->pos.y = -sindf(rx) * CZoomM[side] + CenterM[side].y;
+    cam->pos.z = cosdf(ry) * cosdf(rx) * CZoomM[side] + CenterM[side].z;
+    cam->at.x = CenterM[side].x;
+    cam->at.y = CenterM[side].y;
+    cam->at.z = CenterM[side].z;
+    cam->up.x = sindf(ry) * sindf(rx);
+    cam->up.y = cosdf(rx);
+    cam->up.z = cosdf(ry) * sindf(rx);
+}
 
 f32 func_8010D5DC_bowser_toss(f32 a, f32 b) {
     f32 d;
@@ -1616,9 +1801,54 @@ void *func_8010D98C_bowser_toss(omObjData *obj) {
     return u.p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D9E0_bowser_toss);
+unk1EA70StructC* func_8010D9E0_bowser_toss(s16 model, s16 step, const char* part, s16 useOverlay, u16 frame) {
+    D_800CCF58_main_Struct* anim;
+    HmfData* hmf;
+    unk1EA70StructC* rec;
+    s16 idx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010DB9C_bowser_toss);
+    if (useOverlay) {
+        anim = &D_800CCF58_main[HmfModelData[model].unk06];
+    } else {
+        anim = &D_800CCF58_main[HmfModelData[model].unk02];
+    }
+    hmf = HmfModelData[model].hmf;
+    idx = func_8002C834_main(hmf, part);
+    rec = HuMemAlloc(sizeof(unk1EA70StructC));
+    rec->unk_08 = HuMemAlloc((anim->unk02 + step) / step * sizeof(Matrix4f));
+    rec->unk_04 = HuMemAlloc(*(s16*)hmf->unk16 * sizeof(s16)); /* HmfData +0x16: part count (hmfman.h pads it) */
+    rec->unk_00 = anim->unk02;
+    rec->unk_02 = step;
+    func_8010DB9C_bowser_toss(model, step, rec, idx, useOverlay, frame);
+    return rec;
+}
+
+void func_8010DB9C_bowser_toss(s16 model, s16 step, unk1EA70StructC* rec, s16 part, s16 useOverlay, s16 frame) {
+    HmfData* hmf = HmfModelData[model].hmf;
+    D_800CCF58_main_Struct* base = &D_800CCF58_main[HmfModelData[model].unk02];
+    D_800CCF58_main_Struct* over = &D_800CCF58_main[HmfModelData[model].unk06];
+    s16 i;
+
+    D_800D1358_main = rec->unk_08;
+    D_800D04B4_main = rec->unk_04;
+    D_800CD1B0_main = 0;
+    guMtxIdentF(D_800D5A00_main[0]);
+    if (useOverlay) {
+        for (i = 0; i < over->unk02; i += step) {
+            func_8002DFF8_main(hmf, frame, base, 1);
+            func_8002DFF8_main(hmf, i, over, 0);
+            D_800D138A_main = 0;
+            func_80016C2C_main(hmf, 0, part);
+        }
+    } else {
+        for (i = 0; i < base->unk02; i += step) {
+            func_8002DFF8_main(hmf, i, base, 1);
+            func_8002DFF8_main(hmf, frame, over, 0);
+            D_800D138A_main = 0;
+            func_80016C2C_main(hmf, 0, part);
+        }
+    }
+}
 
 void func_8010DDC4_bowser_toss(unk1EA70StructC* arg0) {
     HuMemFree(arg0->unk_08);
