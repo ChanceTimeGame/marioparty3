@@ -116,11 +116,21 @@ typedef struct SsPlayer {
 
 /* A snowball (D_8010FC30_snowball_summit, 16 x 0x40). */
 typedef struct SsBall {
-    /* 0x00 */ s32 state; /* -1 absent */
-    /* 0x04 */ char unk04[8];
+    /* 0x00 */ s32 state; /* -1 absent, 0 free, 1-3 rolled, 10-12 pushed, 20 bursts */
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
     /* 0x0C */ f32 size;
     /* 0x10 */ s32 owner; /* player rolling it, -1 none */
-    /* 0x14 */ char unk14[0x28];
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ s32 fall; /* rolling off the summit */
+    /* 0x1C */ f32 pitch;
+    /* 0x20 */ f32 unk20;
+    /* 0x24 */ f32 speed;
+    /* 0x28 */ s32 puff; /* snow puff timer */
+    /* 0x2C */ s32 unk2C;
+    /* 0x30 */ s32 unk30;
+    /* 0x34 */ s32 sfxOn;
+    /* 0x38 */ s32 sfx;
     /* 0x3C */ omObjData *obj;
 } SsBall; // Size 0x40
 
@@ -222,6 +232,7 @@ s32 func_8010B994_snowball_summit(omObjData *obj);
 void func_8010B8E4_snowball_summit(void);
 void func_8010B34C_snowball_summit(omObjData *obj);
 void func_8010BC7C_snowball_summit(omObjData *obj);
+void func_8010B9E4_snowball_summit(omObjData *obj);
 s32 func_8010C36C_snowball_summit(void);
 void func_8010C3E4_snowball_summit(s32 player);
 void func_8010C328_snowball_summit(omObjData *obj);
@@ -283,6 +294,7 @@ extern s16 D_8010F8CA_snowball_summit; /* D_8010F8C0.hook, low half */
 extern HuSprite_Unk84_Struct *D_8010F8CC_snowball_summit; /* D_8010F8C0.left */
 extern HuSprite_Unk84_Struct *D_8010F8D4_snowball_summit; /* D_8010F8C0.right */
 extern s32 D_8010F8A8_snowball_summit; /* start corner */
+extern u16 D_8010F8AC_snowball_summit; /* 0x490004, linked by balls 1-15 */
 extern u16 D_8010F8AE_snowball_summit; /* 0x49000C, linked by players 1-3 */
 extern u16 D_8010F8B0_snowball_summit; /* 0x49000B, linked by players 1-3 */
 extern SsRing D_8010F8D8_snowball_summit[8];
@@ -1723,9 +1735,104 @@ s32 func_8010B994_snowball_summit(omObjData *obj) {
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B9E4_snowball_summit);
+/* A snowball per frame: its state steps, and the burst (20) that frees it. */
+void func_8010B9E4_snowball_summit(omObjData *obj) {
+    SsBall *ball = &D_8010FC30_snowball_summit[obj->work[0]];
+    SsPlayer *pl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010BC7C_snowball_summit);
+    if (ball->state == -1) {
+        return;
+    }
+    if (D_8010F880_snowball_summit >= 3 && ball->state > 0 && ball->fall == 0) {
+        ball->state = 20;
+    }
+    switch (ball->state) {
+        case 0:
+            break;
+        case 1:
+            func_8001C258_main(obj->model[0], 4, 0);
+            func_8001C258_main(obj->model[1], 4, 0);
+            ball->size = 1.0f;
+            ball->state = 2;
+            break;
+        case 2:
+            ball->state = 3;
+            break;
+        case 10:
+            ball->state = 11;
+            break;
+        case 11:
+            ball->state = 12;
+            break;
+        case 20:
+            if (ball->sfxOn == 1 && ball->sfx != -1) {
+                HuAudFXStop((s16)ball->sfx);
+                ball->sfxOn = 0;
+                ball->sfx = -1;
+                D_8011024C_snowball_summit = 0;
+            }
+            func_8010738C_snowball_summit(obj, 30, 0.1f, ball->size * 0.5, ball->size * 0.5 + 0.2, 0.0f, 0.0f, 0.0f);
+            func_8010705C_snowball_summit(obj, 40, ball->size * 0.1 * 0.5, ball->size * 1.2 * 0.5, 0.0f, 0.0f, 0.0f);
+            if (ball->owner != -1) {
+                pl = &D_8010F9B8_snowball_summit[ball->owner];
+                pl->ball = -1;
+                pl->rolling = 0;
+                pl->holdTime = 0;
+                pl->holdCount = 0;
+            }
+            func_8001C258_main(obj->model[0], 4, 4);
+            func_8001C258_main(obj->model[1], 4, 4);
+            ball->state = 0;
+            ball->unk04 = 0;
+            ball->unk08 = 0;
+            ball->size = 1.0f;
+            ball->unk14 = 0;
+            ball->fall = 0;
+            ball->owner = -1;
+            ball->puff = 0;
+            ball->unk2C = 0;
+            ball->unk30 = 0;
+            break;
+    }
+}
+
+/* A snowball's setup: model (linked after the first), shadow, hidden. */
+void func_8010BC7C_snowball_summit(omObjData *obj) {
+    SsBall *ball;
+
+    if (obj->work[0] == 0) {
+        obj->model[0] = D_8010F8AC_snowball_summit = func_8000B108_main(0x490004, 0x16B9);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_8010F8AC_snowball_summit);
+    }
+    obj->model[1] = func_8000B0A0_main(0, 0x14C9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 10.0f, 0.0f);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
+    obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y + 20.0f, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 5.0f, obj->trans.z);
+    Hu3DModelScaleSet(obj->model[1], obj->scale.x, obj->scale.y, obj->scale.z);
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    obj->func = func_8010B9E4_snowball_summit;
+    ball = &D_8010FC30_snowball_summit[obj->work[0]];
+    ball->state = 0;
+    ball->unk04 = 0;
+    ball->unk08 = 0;
+    ball->size = 1.0f;
+    ball->unk14 = 0.0f;
+    ball->fall = 0;
+    ball->obj = obj;
+    ball->owner = -1;
+    ball->puff = 0;
+    ball->unk2C = 0;
+    ball->unk30 = 0;
+}
 
 void func_8010BE8C_snowball_summit(void) {
     s32 i;
