@@ -65,15 +65,40 @@ typedef f32 Matrix4f[4][4];
         (v) += 360.0;          \
     }
 
-/* The game's player record (D_80114AC8_stardust_battle points at one). Grown as functions are written. */
+/* The one player (D_80114AC8_stardust_battle, 0x7C, allocated in func_80106D0C). */
 typedef struct SbPlayer {
-    /* 0x00 */ char unk00[4];
-    /* 0x04 */ s16 unk04; /* state */
-    /* 0x06 */ char unk06[0x1A];
+    /* 0x00 */ s16 unk00; /* slot */
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ s16 unk04; /* state, -1 none */
+    /* 0x06 */ char unk06[2];
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+    /* 0x10 */ s16 unk10;
+    /* 0x12 */ s16 unk12;
+    /* 0x14 */ s16 unk14;
+    /* 0x16 */ char unk16[2];
+    /* 0x18 */ s32 unk18; /* win voice file */
+    /* 0x1C */ s32 unk1C; /* lose voice file */
     /* 0x20 */ s16 unk20; /* GwPlayer index */
-    /* 0x22 */ s16 unk22;
+    /* 0x22 */ s16 unk22; /* controller port */
     /* 0x24 */ s16 unk24; /* character */
-} SbPlayer;
+    /* 0x26 */ s16 unk26; /* CPU */
+    /* 0x28 */ s16 unk28; /* CPU difficulty */
+    /* 0x2A */ char unk2A[2];
+    /* 0x2C */ Vec unk2C; /* start position */
+    /* 0x38 */ char unk38[2];
+    /* 0x3A */ char unk3A[0x20]; /* cleared at creation */
+    /* 0x5A */ char unk5A[0xC];
+    /* 0x66 */ s16 unk66;
+    /* 0x68 */ s16 unk68;
+    /* 0x6A */ s16 unk6A;
+    /* 0x6C */ s32 unk6C;
+    /* 0x70 */ s32 unk70;
+    /* 0x74 */ s32 unk74;
+    /* 0x78 */ s32 unk78;
+} SbPlayer; // Size 0x7C
 
 /* D_80114B1C_stardust_battle */
 typedef struct SbB1C {
@@ -88,6 +113,8 @@ typedef struct SbCamPose {
     /* 0x18 */ f32 zoom;
 } SbCamPose; // Size 0x1C
 
+typedef func_800E1BA8_minigame_ObjData MgWork;
+
 // end m7 sb types
 
 // protos begin
@@ -100,6 +127,8 @@ void func_80106690_stardust_battle(omObjData *obj);
 void func_80106A3C_stardust_battle(omObjData *obj);
 void func_80106B60_stardust_battle(omObjData *obj);
 void func_80106C30_stardust_battle(omObjData *obj);
+void func_80106D0C_stardust_battle(void);
+void func_80106EB0_stardust_battle(omObjData *obj);
 void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
 void func_801089B4_stardust_battle(void);
@@ -132,6 +161,15 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+void func_80106EB0_stardust_battle(omObjData *obj);
+void func_801073F4_stardust_battle(omObjData *obj);
+void func_800E5978_minigame(omObjData* obj, u16 idx, s32 file, u16 flags, u16 speed);
+void func_800E149C_minigame(omObjData* obj, u8 idx, u8 val);
+extern s32 D_800A178C_main[][6];
+extern Vec D_80113CB0_stardust_battle[];
+extern s32 D_80113DEC_stardust_battle[4];
+extern s32 D_80113DFC_stardust_battle[8];
+extern s32 D_80113E1C_stardust_battle[2];
 void func_80107F34_stardust_battle(f32);
 void func_8010C44C_stardust_battle(void);
 void func_8010C498_stardust_battle(void);
@@ -718,9 +756,119 @@ void func_80106C30_stardust_battle(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106D0C_stardust_battle);
+void func_80106D0C_stardust_battle(void) {
+    SbPlayer *pl;
+    omObjData *obj;
+    s16 i;
 
+    pl = D_80114AC8_stardust_battle = HuMemAllocTag(sizeof(SbPlayer), 31000);
+    func_800E19F0_minigame(0);
+    func_800E18D8_minigame();
+    for (i = 0; i < 4; i++) {
+        if (GwPlayer[D_80113DEC_stardust_battle[i]].group == 0) {
+            break;
+        }
+    }
+    if (i >= 4) {
+        i = 0;
+    }
+    pl->unk00 = i;
+    pl->unk20 = D_80113DEC_stardust_battle[pl->unk00];
+    obj = omAddObj(0x10, 11, 60, -1, func_80106EB0_stardust_battle);
+    D_800EC598_minigame[D_800EC280_minigame] = obj;
+    D_800EC280_minigame++;
+    obj->trans.x = D_80113CB0_stardust_battle[pl->unk00].x;
+    obj->trans.z = D_80113CB0_stardust_battle[pl->unk00].z;
+    pl->unk2C.x = obj->trans.x;
+    pl->unk2C.y = obj->trans.y;
+    pl->unk2C.z = obj->trans.z;
+    pl->unk6C = 0;
+    pl->unk70 = 0;
+    pl->unk74 = 0;
+    pl->unk78 = 0;
+    memset(pl->unk3A, 0, 0x20);
+    func_80111FC0_stardust_battle(obj, (u32)pl);
+}
+
+/* NON_MATCHING: scheduling only: retail puts the sll of the rand8() index after the lui/addiu of D_80113E1C */
+#ifdef NON_MATCHING
+void func_80106EB0_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(obj);
+    s16 chr;
+    u32 dir;
+    s32 *voice;
+    s32 *chrfile;
+    MgWork *work;
+    u32 sub;
+    s32 file;
+
+    s16 idx = pl->unk20;
+
+    pl->unk24 = chr = GwPlayer[idx].chr;
+    pl->unk22 = GwPlayer[idx].pad;
+    pl->unk26 = GwPlayer[idx].stat & 1;
+    pl->unk28 = GwPlayer[idx].cpu_difficulty;
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][1];
+    sub = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, dir, file, idx, 0x699, 0x1699);
+    work = obj->data;
+    work->unk50 &= ~1;
+    work->unkEC = NULL;
+    obj->model[3] = func_8000B108_main(3, 0x1E8D);
+    obj->model[4] = func_8000B108_main(4, 0x1E8D);
+    obj->model[10] = -1;
+    obj->model[9] = func_8000B108_main(dir | sub, 0x6BD);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 1, func_80017BB8_main(chr, 1), 1, 0);
+    func_800E5A00_minigame(obj, 2, func_80017BB8_main(chr, 2), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 0x11, func_80017BB8_main(chr, 0xE), 1, 0xF);
+    func_800E5A00_minigame(obj, 0x12, func_80017BB8_main(chr, 0xF), 2, 0);
+    func_800E5A00_minigame(obj, 0x15, func_80017BB8_main(chr, 0x1F), 0, 0);
+    func_800E5A00_minigame(obj, 0x14, func_80017BB8_main(chr, 0x1D), 0, 0);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x1E), 1, 0);
+    func_800E5A00_minigame(obj, 0x20, func_80017BB8_main(chr, 0x22), 0, 0);
+    func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, 7), 1, 0x27);
+    func_800E5978_minigame(obj, 0x21, func_80017BB8_main(chr, 0x23), 2, 0);
+    func_800E5A00_minigame(obj, 0x22, func_80017BB8_main(chr, 0x24), 2, 0);
+    if (chr != 5) {
+        func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 0x8E), 0, 0);
+        func_800E5A00_minigame(obj, 0x26, func_80017BB8_main(chr, 0x12), 0, 0);
+        func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x1C), 0, 0);
+    } else {
+        func_800E5A00_minigame(obj, 5, 0xA015C, 0, 0);
+        func_800E5A00_minigame(obj, 0x26, 0xA015B, 0, 0);
+        func_800E5A00_minigame(obj, 0x27, 0xA015A, 0, 0);
+    }
+    func_800E5A00_minigame(obj, 0x28, func_80017BB8_main(chr, 0x6C), 0, 0);
+    func_800E5A00_minigame(obj, 0x29, func_80017BB8_main(chr, 0x9B), 0, 0);
+    voice = &D_80113E1C_stardust_battle[rand8() & 1];
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
+    chrfile = &D_80113DFC_stardust_battle[chr];
+    pl->unk18 = *chrfile | *voice;
+    func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, 0x39), 1, 0x3C);
+    pl->unk1C = *chrfile | 0x39;
+    func_800E5690_minigame(obj, 0);
+    func_800E149C_minigame(obj, 0, 2);
+    pl->unk0C = 0;
+    pl->unk0E = 0;
+    pl->unk04 = -1;
+    pl->unk0A = 0;
+    pl->unk08 = 0;
+    pl->unk66 = -1;
+    pl->unk68 = 0;
+    pl->unk6A = 0;
+    pl->unk10 = -1;
+    pl->unk12 = 0;
+    pl->unk14 = 0;
+    func_80107E84_stardust_battle(1);
+    obj->func = func_801073F4_stardust_battle;
+    omSetStatBit(obj, 0xA0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106EB0_stardust_battle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801073F4_stardust_battle);
 
