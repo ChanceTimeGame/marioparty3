@@ -65,9 +65,31 @@ typedef f32 Matrix4f[4][4];
         (v) += 360.0;          \
     }
 
+/* The game's player record (D_80114AC8_stardust_battle points at one). Grown as functions are written. */
+typedef struct SbPlayer {
+    /* 0x00 */ char unk00[0x20];
+    /* 0x20 */ s16 unk20; /* GwPlayer index */
+} SbPlayer;
+
+/* D_80114B1C_stardust_battle */
+typedef struct SbB1C {
+    /* 0x00 */ char unk00[6];
+    /* 0x06 */ s16 unk06; /* stars left */
+} SbB1C;
+
+/* A camera pose in .data (center, rotation, zoom). */
+typedef struct SbCamPose {
+    /* 0x00 */ Vec center;
+    /* 0x0C */ Vec rot;
+    /* 0x18 */ f32 zoom;
+} SbCamPose; // Size 0x1C
+
 // end m7 sb types
 
 // protos begin
+void func_801059A0_stardust_battle(void);
+void func_80105D18_stardust_battle(omObjData *obj);
+void func_80105DA0_stardust_battle(omObjData *obj);
 void func_801065B4_stardust_battle(omObjData* obj);
 void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
@@ -101,11 +123,84 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+void func_80106690_stardust_battle(omObjData *obj);
+void func_80106A3C_stardust_battle(omObjData *obj);
+void func_80106B60_stardust_battle(omObjData *obj);
+void func_80106C30_stardust_battle(omObjData *obj);
+void func_801065D8_stardust_battle(omObjData *obj);
+void func_80106D0C_stardust_battle(void);
+void func_80107E84_stardust_battle(s32);
+s16 func_80107FA4_stardust_battle(void);
+s16 func_80107FE8_stardust_battle(void);
+void func_80108074_stardust_battle(void);
+void func_801080B0_stardust_battle(void);
+void func_801080EC_stardust_battle(void);
+void func_80108B34_stardust_battle(void);
+void func_8010A74C_stardust_battle(void);
+void func_8010BFE4_stardust_battle(f32, s32);
+void func_8010C06C_stardust_battle(void);
+void func_8010C0C8_stardust_battle(void);
+void func_8010C1F8_stardust_battle(s32, s32, s32, s32);
+void func_8010C2CC_stardust_battle(f32);
+f32 func_8010C32C_stardust_battle(void);
+void func_8010C38C_stardust_battle(f32);
+f32 func_8010C3EC_stardust_battle(void);
+s16 func_8010C508_stardust_battle(void);
+void func_8010CB34_stardust_battle(void);
+void func_8010ED7C_stardust_battle(void);
+void func_8010EE7C_stardust_battle(void);
+void func_8010F400_stardust_battle(s32, s32);
+void func_8010FA60_stardust_battle(void);
+void func_801107E4_stardust_battle(void);
 f32 func_80111C2C_stardust_battle(f32 target, f32 cur, f32 step);
 s32 func_801138A0_stardust_battle(HuSprite_Unk84_Struct *arg0, HmfData *arg1, f32 arg2, u16 arg3, u16 arg4);
 void func_8010F73C_stardust_battle(omObjData *obj);
 
 extern RGBA D_80113CF4_stardust_battle;
+u16 GWMgRecordGet(s16 arg0);
+u8 func_8000B638_main(void);
+void func_800E6F0C_minigame(s32);
+void func_8003F5C0_main(void);
+extern const s16 D_80114100_stardust_battle[];
+extern const s16 D_8011410C_stardust_battle[];
+extern SbCamPose D_80113CF8_stardust_battle;
+extern SbCamPose D_80113D14_stardust_battle;
+extern SbCamPose D_80113D30_stardust_battle;
+extern SbCamPose D_80113D68_stardust_battle;
+extern s16 D_80113DBC_stardust_battle[];
+extern s16 D_80113DC4_stardust_battle[];
+extern s16 D_80113DCC_stardust_battle[];
+extern void (*D_80113DDC_stardust_battle)(omObjData *);
+extern s16 D_80113DE0_stardust_battle; /* intro sound */
+extern omObjData *D_80114A98_stardust_battle;
+extern s32 D_80114A9C_stardust_battle;
+extern s32 D_80114AA0_stardust_battle;
+extern s32 D_80114AA4_stardust_battle; /* state timer */
+extern s32 D_80114AA8_stardust_battle;
+extern s32 D_80114AAC_stardust_battle;
+extern s32 D_80114AB0_stardust_battle; /* game frames */
+extern s32 D_80114AB4_stardust_battle; /* record */
+extern s32 D_80114AB8_stardust_battle; /* game state */
+extern s32 D_80114ABC_stardust_battle;
+extern s32 D_80114AC0_stardust_battle; /* record mode */
+extern s32 D_80114AC4_stardust_battle;
+extern SbPlayer *D_80114AC8_stardust_battle;
+extern s16 D_80114ACC_stardust_battle;
+extern s16 D_80114ACE_stardust_battle;
+extern Matrix4f D_80114AD0_stardust_battle;
+extern s32 D_80114B10_stardust_battle;
+extern s16 D_80114B14_stardust_battle;
+extern s32 D_80114B18_stardust_battle;
+extern SbB1C *D_80114B1C_stardust_battle;
+extern s32 D_80114B24_stardust_battle;
+extern s16 *D_80114B28_stardust_battle;
+extern s32 D_80114B2C_stardust_battle;
+extern s16 D_80114B54_stardust_battle;
+extern s32 D_80114B58_stardust_battle;
+extern s32 D_80114B5C_stardust_battle;
+extern s32 D_80114BB0_stardust_battle;
+extern s32 D_80114BB4_stardust_battle;
+extern D_80111B50_vine_with_me_Struct D_80114BB8_stardust_battle;
 extern s32 D_80113F08_stardust_battle; /* debug camera mode */
 extern s32 D_80113F0C_stardust_battle; /* debug text x */
 extern s32 D_80113F10_stardust_battle; /* debug text y */
@@ -135,15 +230,279 @@ extern s16 *D_80114B30_stardust_battle; /* s16[0x20] sprite/file ids */
 extern omObjData *D_80114B48_stardust_battle;
 extern SbEffect *D_80114B4C_stardust_battle;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801059A0_stardust_battle);
+void func_801059A0_stardust_battle(void) {
+    u8 cam;
+    s32 level;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80105D18_stardust_battle);
+    Hu3DAnimInit(50);
+    omInitObjMan(50, 10);
+    func_8004A208_main();
+    func_800142A0_main(0x40);
+    omSetStatBit(omAddObj(0x7FDA, 0, 0, -1, omOutView), 0xA0);
+    HmfLightColorSet(0, 0xFF, 0xFF, 0xFF);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    HmfLightDirSet(1, -56.0f, 50.0f, 56.0f);
+    func_8000B5F0_main(1);
+    cam = func_8000B638_main();
+    ScissorSet(cam, 0.0f, 0.0f, 320.0f, 240.0f);
+    ViewportSet(cam, 640.0f, 480.0f, 511.0f, 640.0f, 480.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 30.0f, 80.0f, 4000.0f);
+    D_800EC280_minigame = 0;
+    D_800EBE28_minigame = 0;
+    D_800EC1B8_minigame = 0;
+    D_80114AB0_stardust_battle = 0;
+    D_80114AA4_stardust_battle = 0;
+    D_80114AA0_stardust_battle = 0;
+    D_80114AA8_stardust_battle = 0;
+    D_80114AAC_stardust_battle = 0;
+    D_80114AB8_stardust_battle = -1;
+    D_80114ABC_stardust_battle = 0;
+    D_80114AC0_stardust_battle = 0;
+    D_80114B14_stardust_battle = 1;
+    D_80114B24_stardust_battle = 9;
+    D_80114B28_stardust_battle = D_80113DBC_stardust_battle;
+    D_80114AC4_stardust_battle = 1;
+    D_80114AC0_stardust_battle = _CheckFlag(0x1C);
+    if (D_80114AC0_stardust_battle != 0) {
+        D_80114AC0_stardust_battle = 1;
+        D_80114AB4_stardust_battle = GWMgRecordGet(9);
+        if (D_80114AB4_stardust_battle == 0) {
+            D_80114AB4_stardust_battle = 4500;
+        }
+    }
+    if (!(GwSystem.playMode & 4) || _CheckFlag(0x1C) != 0) {
+        level = 2;
+    } else {
+        level = GwStory.unk2;
+    }
+    switch (level) {
+    case 0:
+        D_80114B24_stardust_battle = 3;
+        D_80114B28_stardust_battle = D_80113DCC_stardust_battle;
+        break;
+    case 1:
+        D_80114B24_stardust_battle = 6;
+        D_80114B28_stardust_battle = D_80113DC4_stardust_battle;
+        break;
+    default:
+        D_80114B24_stardust_battle = 9;
+        D_80114B28_stardust_battle = D_80113DBC_stardust_battle;
+        break;
+    }
+    D_80114ACC_stardust_battle = -1;
+    D_80114ACE_stardust_battle = 0;
+    D_80114B30_stardust_battle = HuMemAllocTag(0x40, 31000);
+    D_80114AC8_stardust_battle = NULL;
+    D_80114B10_stardust_battle = 0;
+    D_80114B18_stardust_battle = 0;
+    D_80114B1C_stardust_battle = NULL;
+    D_80114B2C_stardust_battle = 0;
+    D_80114B58_stardust_battle = 0;
+    D_80114B5C_stardust_battle = 0;
+    guMtxIdentF(D_80114AD0_stardust_battle);
+    D_80114A98_stardust_battle = omAddObj(0x20, 0, 0, -1, func_80105D18_stardust_battle);
+    memset(&D_80114BB8_stardust_battle, 0, 0x28);
+    D_80114BB8_stardust_battle.unk01 = 4;
+    func_800E5EA0_minigame(&D_80114BB8_stardust_battle);
+    func_80045010_main(D_80114100_stardust_battle, 1);
+    func_80045010_main(D_8011410C_stardust_battle, 1);
+}
+
+void func_80105D18_stardust_battle(omObjData *obj) {
+    obj->func = func_80105DA0_stardust_battle;
+    func_80108B34_stardust_battle();
+    func_8010F5E0_stardust_battle();
+    func_8010FA60_stardust_battle();
+    func_80106D0C_stardust_battle();
+    func_8010A74C_stardust_battle();
+    func_8010CB34_stardust_battle();
+    func_801107E4_stardust_battle();
+    func_8010EE7C_stardust_battle();
+    D_80114B54_stardust_battle = func_8000D658_main(0x1CA9, 10);
+    if (_CheckFlag(0xA) != 0) {
+        D_80114A9C_stardust_battle = 1;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_80114100_stardust_battle);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_8011410C_stardust_battle);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80105DA0_stardust_battle);
+void func_80105DA0_stardust_battle(omObjData *obj) {
+    SbB1C *b1c = D_80114B1C_stardust_battle;
+    s32 left;
+
+    switch (D_80114AB8_stardust_battle) {
+    case -1:
+        if (D_80114AA4_stardust_battle > 0) {
+            D_80114BB4_stardust_battle = 0;
+            func_801117E4_stardust_battle(D_80113CF8_stardust_battle.center.x, D_80113CF8_stardust_battle.center.y, D_80113CF8_stardust_battle.center.z, D_80113CF8_stardust_battle.rot.x, D_80113CF8_stardust_battle.rot.y, D_80113CF8_stardust_battle.rot.z, D_80113CF8_stardust_battle.zoom, 1);
+            D_80113DE0_stardust_battle = HuAudFXPlay(0x50C);
+            WipeCreateIn(0xFF, 0x10);
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 0:
+        if (WipeStatGet() == 0 && func_80107FA4_stardust_battle() != 0) {
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 1:
+        if (func_80107FE8_stardust_battle() != 0) {
+            D_80114BB4_stardust_battle = 0;
+            func_801117E4_stardust_battle(D_80113D14_stardust_battle.center.x, D_80113D14_stardust_battle.center.y, D_80113D14_stardust_battle.center.z, D_80113D14_stardust_battle.rot.x, D_80113D14_stardust_battle.rot.y, D_80113D14_stardust_battle.rot.z, D_80113D14_stardust_battle.zoom, 37);
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 2:
+        if (D_80114BB0_stardust_battle == 0) {
+            HuAudSeqPlay(0x41);
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 3:
+        if (D_80114AA4_stardust_battle >= 22.5) {
+            D_80114BB4_stardust_battle = 3;
+            func_801117E4_stardust_battle(D_80113D30_stardust_battle.center.x, D_80113D30_stardust_battle.center.y, D_80113D30_stardust_battle.center.z, D_80113D30_stardust_battle.rot.x, D_80113D30_stardust_battle.rot.y, D_80113D30_stardust_battle.rot.z, D_80113D30_stardust_battle.zoom, 15);
+            func_80107E84_stardust_battle(0);
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 4:
+        if (D_80114BB0_stardust_battle == 0) {
+            func_8010C1F8_stardust_battle(0, 0, 300, 0);
+            HuAudFXPlay(0x511);
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 5:
+        if (func_8010C3EC_stardust_battle() >= 60.0f && func_8010C32C_stardust_battle() == 1.0f) {
+            func_8010C38C_stardust_battle(60.0f);
+            func_8010C2CC_stardust_battle(0.0f);
+        }
+        if (D_80114AA4_stardust_battle == 43.0f) {
+            func_8010BFE4_stardust_battle(450.0f, 30);
+        }
+        if (D_80114AA4_stardust_battle > 45.0f) {
+            func_8010C1F8_stardust_battle(0, 60, 0, 4);
+            func_8010C2CC_stardust_battle(2.0f);
+            D_80114BB4_stardust_battle = 2;
+            func_801117E4_stardust_battle(D_80113D68_stardust_battle.center.x, D_80113D68_stardust_battle.center.y, D_80113D68_stardust_battle.center.z, D_80113D68_stardust_battle.rot.x, D_80113D68_stardust_battle.rot.y, D_80113D68_stardust_battle.rot.z, D_80113D68_stardust_battle.zoom, 22);
+            if (D_80113DE0_stardust_battle != -1) {
+                func_8004AEF0_main(D_80113DE0_stardust_battle, 22);
+                D_80113DE0_stardust_battle = -1;
+            }
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 6:
+        if (D_80114BB0_stardust_battle == 0) {
+            GMesCreate(9);
+            HuAudFXPlay(0xE);
+            func_80108074_stardust_battle();
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 7:
+        if (GMesStatGet() == 0) {
+            func_8010F400_stardust_battle(0, D_80114AB0_stardust_battle);
+            func_800E6F0C_minigame(2);
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 8:
+        func_8010F400_stardust_battle(0, ++D_80114AB0_stardust_battle);
+        if (D_80114AB0_stardust_battle == 4470) {
+            func_8010F5B0_stardust_battle(0);
+            func_8010F5B0_stardust_battle(1);
+        } else if (D_80114AB0_stardust_battle == 4499) {
+            GMesCreate(0x1A, 31, 0x9C, 0x20);
+        } else if (D_80114AB0_stardust_battle >= 4500) {
+            left = 5429 - D_80114AB0_stardust_battle;
+            func_8003F578_main(left / 30);
+        }
+        if (D_80114AB0_stardust_battle >= 5400 || D_80114ACE_stardust_battle != 0 || b1c->unk06 <= 0) {
+            func_8003F5C0_main();
+            GMesCreate(0x14);
+            func_800E6F0C_minigame(3);
+            func_8010C06C_stardust_battle();
+            func_8010ED7C_stardust_battle();
+            HuAudSeqFadeOut(120);
+            func_801080EC_stardust_battle();
+            if (b1c->unk06 <= 0) {
+                D_80114ACC_stardust_battle = 0;
+                left = (5429 - D_80114AB0_stardust_battle) / 30;
+                if (left >= 60) {
+                    GwPlayer[D_80114AC8_stardust_battle->unk20].bonusCoin = 3;
+                } else if (left >= 40) {
+                    GwPlayer[D_80114AC8_stardust_battle->unk20].bonusCoin = 2;
+                } else if (left >= 20) {
+                    GwPlayer[D_80114AC8_stardust_battle->unk20].bonusCoin = 1;
+                } else {
+                    GwPlayer[D_80114AC8_stardust_battle->unk20].bonusCoin = 0;
+                }
+            } else {
+                GwPlayer[D_80114AC8_stardust_battle->unk20].bonusCoin = -1;
+            }
+            D_80114AA4_stardust_battle = 0;
+            D_80114AB8_stardust_battle++;
+        }
+        break;
+    case 9:
+        if (GMesStatGet() == 0 && (func_8010C508_stardust_battle() == 12 || (D_80114AC0_stardust_battle != 0 && D_80114ACC_stardust_battle >= 0 && D_80114AB0_stardust_battle < D_80114AB4_stardust_battle))) {
+            func_800E6F0C_minigame(4);
+            func_801080B0_stardust_battle();
+            D_80114ABC_stardust_battle = 0;
+            if (D_80114AC0_stardust_battle == 0 || D_80114ACC_stardust_battle < 0 || D_80114AB0_stardust_battle >= D_80114AB4_stardust_battle) {
+                func_8010C0C8_stardust_battle();
+            }
+            if (D_80114AC0_stardust_battle != 0) {
+                if (D_80114ACC_stardust_battle >= 0) {
+                    D_80113DDC_stardust_battle = func_80106690_stardust_battle;
+                } else {
+                    D_80113DDC_stardust_battle = func_80106A3C_stardust_battle;
+                }
+            } else if (D_80114ACC_stardust_battle >= 0) {
+                D_80113DDC_stardust_battle = func_80106B60_stardust_battle;
+            } else {
+                D_80113DDC_stardust_battle = func_80106C30_stardust_battle;
+            }
+            D_80114AB8_stardust_battle++;
+            D_80114AA4_stardust_battle = 0;
+        }
+        break;
+    case 10:
+        if (D_80113DDC_stardust_battle != NULL) {
+            D_80113DDC_stardust_battle(obj);
+        }
+        break;
+    case 32:
+    case 64:
+        WipeColorSet(0xFF, 0xFF, 0xFF);
+        WipeCreateOut(11, 0x10);
+        HuAudSeqFadeOut(0x10);
+        func_8004AB0C_main(0x10);
+        HuAudFXPlay(0x509);
+        D_80114AB8_stardust_battle = 99;
+        D_80114AA4_stardust_battle = 0;
+        break;
+    case 99:
+        if (WipeStatGet() == 0) {
+            obj->func = func_801065B4_stardust_battle;
+        }
+        break;
+    }
+    func_801065D8_stardust_battle(obj);
+    D_80114AA0_stardust_battle++;
+    D_80114AA4_stardust_battle++;
+}
 
 void func_801065B4_stardust_battle(omObjData* obj) {
     func_8004A950_main();
