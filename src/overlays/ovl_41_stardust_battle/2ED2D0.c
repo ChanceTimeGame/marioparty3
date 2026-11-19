@@ -248,7 +248,7 @@ typedef struct SbItem {
     /* 0x06 */ s16 unk06[2]; /* reflection models */
     /* 0x0A */ s16 unk0A; /* shadow model */
     /* 0x0C */ s16 unk0C; /* glow model */
-    /* 0x0E */ char unk0E[2];
+    /* 0x0E */ s16 unk0E;
     /* 0x10 */ s16 unk10; /* model shown */
     /* 0x12 */ s16 unk12; /* bounces */
     /* 0x14 */ s16 unk14; /* state timer */
@@ -259,9 +259,9 @@ typedef struct SbItem {
     /* 0x28 */ Vec unk28; /* position */
     /* 0x34 */ Vec unk34; /* rotation */
     /* 0x40 */ Vec unk40; /* velocity */
-    /* 0x4C */ char unk4C[0xC];
+    /* 0x4C */ Vec unk4C; /* landing target */
     /* 0x58 */ Vec unk58; /* hook start position */
-    /* 0x64 */ char unk64[4];
+    /* 0x64 */ f32 unk64; /* heading */
     /* 0x68 */ f32 unk68; /* glow alpha */
     /* 0x6C */ f32 unk6C; /* glow alpha set */
     /* 0x70 */ f32 unk70;
@@ -3053,7 +3053,78 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_8011
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_801145A0_stardust_battle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010DADC_stardust_battle);
+s16 func_8010DADC_stardust_battle(Vec *pos, Vec *target, f32 vy) {
+    SbItems *items;
+    SbItem *item;
+    s32 i;
+    s32 n;
+    f32 y;
+    f32 inv;
+
+    if (D_80114B2C_stardust_battle == NULL) {
+        return -1;
+    }
+    items = D_80114B2C_stardust_battle;
+    item = items->unk0C;
+    for (i = 0; i < items->unk08; i++, item++) {
+        if (item->unk00 != 0) {
+            continue;
+        }
+        item->unk00 = 1;
+        func_8001C258_main(item->unk02[0], 4, 0);
+        func_8001C258_main(item->unk0C, 4, 0);
+        item->unk16 = 0;
+        item->unk14 = 0;
+        item->unk18 = 1;
+        item->unk0E = 0;
+        item->unk10 = 0;
+        item->unk12 = 4;
+        item->unk68 = item->unk6C = 0.0f;
+        item->unk28.x = pos->x;
+        item->unk28.y = pos->y;
+        item->unk28.z = pos->z;
+        item->unk4C.x = target->x;
+        item->unk4C.y = target->y;
+        item->unk4C.z = target->z;
+        item->unk40.y = vy;
+        y = item->unk28.y;
+        inv = item->unk40.y;
+        for (n = 0; n < 256; n++) {
+            y += inv;
+            if (y < 0.0f) {
+                break;
+            }
+        }
+        if (n != 0) {
+            inv = 1.0f / n;
+        } else {
+            inv = 1.0f;
+        }
+        item->unk40.x = (item->unk4C.x - item->unk28.x) * inv;
+        item->unk40.z = (item->unk4C.z - item->unk28.z) * inv;
+        item->unk70 = atan2df(item->unk40.x * item->unk40.x + item->unk40.z * item->unk40.z, -(item->unk40.y * item->unk40.y));
+        item->unk74 = atan2df(item->unk40.x, item->unk40.z);
+        item->unk78 = 0.0f;
+        item->unk34.x = item->unk34.y = item->unk34.z = 0.0f;
+        item->unk1C.x = item->unk28.x;
+        item->unk1C.y = item->unk28.y;
+        item->unk1C.z = item->unk28.z;
+        item->unk64 = atan2df(item->unk40.x, item->unk40.z);
+        Hu3DModelPosSet(item->unk02[0], item->unk28.x, item->unk28.y, item->unk28.z);
+        Hu3DModelPosSet(item->unk06[0], item->unk28.x, -item->unk28.y, item->unk28.z);
+        Hu3DModelPosSet(item->unk0A, item->unk28.x, 0.0f, item->unk28.z);
+        func_8008A070_main((f32(*)[4])HmfModelData[item->unk02[0]].mtx);
+        func_8008A070_main((f32(*)[4])HmfModelData[item->unk02[1]].mtx);
+        Hu3DModelPosSet(item->unk0C, item->unk28.x, item->unk28.y + 34.9999994039535522, item->unk28.z);
+        Hu3DModelScaleSet(item->unk0C, 0.75f, 0.75f, 0.75f);
+        func_8001CAA4_main(item->unk0C, items->unk06, item->unk68);
+        Hu3DModelRotSet(item->unk0C, item->unk70 + 180.0f, item->unk74, 0.0f);
+        func_8008A070_main((f32(*)[4])HmfModelData[item->unk0C].mtx);
+        func_80017D24_main((f32(*)[4])HmfModelData[item->unk0C].mtx, 0.0f, item->unk78, 0.0f);
+        return i;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010DE64_stardust_battle);
 
