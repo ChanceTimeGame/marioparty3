@@ -269,6 +269,7 @@ void func_8010DB10_snowball_summit(SsBall *ball);
 void func_8010DD00_snowball_summit(SsBall *ball);
 void func_8010DFD0_snowball_summit(SsBall *ball);
 void func_8010E2F4_snowball_summit(SsBall *ball);
+void func_8010E52C_snowball_summit(SsBall *ball);
 void func_8010EA68_snowball_summit(void);
 void func_8010EBC0_snowball_summit(void);
 void func_8010EEEC_snowball_summit(omObjData *obj);
@@ -298,6 +299,7 @@ extern s16 D_8010F8CA_snowball_summit; /* D_8010F8C0.hook, low half */
 extern HuSprite_Unk84_Struct *D_8010F8CC_snowball_summit; /* D_8010F8C0.left */
 extern HuSprite_Unk84_Struct *D_8010F8D4_snowball_summit; /* D_8010F8C0.right */
 extern s32 D_8010F8A8_snowball_summit; /* start corner */
+extern s32 D_8010F898_snowball_summit[4]; /* by player: set to 30 when a snowball hits it */
 extern u16 D_8010F8AC_snowball_summit; /* 0x490004, linked by balls 1-15 */
 extern u16 D_8010F8AE_snowball_summit; /* 0x49000C, linked by players 1-3 */
 extern u16 D_8010F8B0_snowball_summit; /* 0x49000B, linked by players 1-3 */
@@ -2578,7 +2580,69 @@ void func_8010E2F4_snowball_summit(SsBall *ball) {
     obj->trans.y += ball->unk20 * ball->unk20 * sindf(ball->pitch);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010E52C_snowball_summit);
+/* A rolling snowball runs into a player: it bursts and throws the player (bigger balls throw further). */
+void func_8010E52C_snowball_summit(SsBall *ball) {
+    omObjData *obj = ball->obj;
+    Vec d;
+    SsPlayer *pl;
+    SsSlot16 *sl;
+    omObjData *pobj;
+    f64 reach;
+    f32 dist;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        if (i != ball->owner) {
+            pl = &D_8010F9B8_snowball_summit[i];
+            if (pl->state != 90 && pl->unk4C == 0) {
+                pobj = pl->obj;
+                func_80107908_snowball_summit(obj->trans.x, obj->trans.z, pobj->trans.x, pobj->trans.z, &d);
+                reach = ball->size * 37.5 + pl->unk50;
+                dist = d.x;
+                if (dist < 0.0f) {
+                    dist = -dist;
+                }
+                if (dist < reach && pobj->trans.y < ball->size * 37.5 * 2.0) {
+                    if (ball->sfxOn == 1 && ball->sfx != -1) {
+                        HuAudFXStop((s16)ball->sfx);
+                        ball->sfxOn = 0;
+                        ball->sfx = -1;
+                        D_8011024C_snowball_summit = 0;
+                    }
+                    if (ball->owner != -1) {
+                        sl = &D_80110250_snowball_summit[ball->owner];
+                        if (sl->sfxOn == 1 && sl->sfx != -1) {
+                            HuAudFXStop((s16)sl->sfx);
+                            sl->sfxOn = 0;
+                            sl->sfx = -1;
+                        }
+                    }
+                    func_8004AC98_main(0x43C, pl->obj->work[0]);
+                    D_8010F898_snowball_summit[pobj->work[0]] = 30;
+                    ball->state = 20;
+                    pl->land = 1;
+                    pl->hit = 1;
+                    if (ball->size < 2.0f) {
+                        pl->speed = ball->size * 10.0f;
+                        pl->vel.y = ball->size * 16.0f;
+                    } else {
+                        pl->speed = ball->size * 15.0f;
+                        pl->vel.y = ball->size * 20.0f;
+                        func_8004AC98_main(0x43E, pl->obj->work[0]);
+                    }
+                    pl->gravity = 4.0f;
+                    pl->rot = d.z;
+                    if (pl->ball != -1) {
+                        D_8010FC30_snowball_summit[pl->ball].state = 20;
+                    }
+                    if (pl->cpu == 0) {
+                        omVibrate(pobj->work[0], 20, 0, 20);
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010E824_snowball_summit);
 
