@@ -3210,7 +3210,81 @@ s16 func_8010E524_stardust_battle(omObjData *obj, s16 mode, Vec *dir) {
     return -1;
 }
 
+/* NON_MATCHING: register allocation (f4/f6 swapped between the push ratio and dy) and the D_80114B2C copy scheduled after the second null test in retail; ops equal */
+#ifdef NON_MATCHING
+void func_8010EA04_stardust_battle(omObjData *obj) {
+    SbItems *items;
+    SbItem *item;
+    MgWork *work;
+    s32 tries;
+    s32 i;
+    f32 r;
+    f32 h;
+    f32 dy;
+    f32 rr;
+    f32 dx;
+    f32 dz;
+    f32 d;
+
+    if (D_80114B2C_stardust_battle == NULL) {
+        return;
+    }
+    items = D_80114B2C_stardust_battle;
+    if (D_80114B18_stardust_battle == NULL) {
+        return;
+    }
+    item = items->unk0C;
+    work = obj->data;
+    r = (work->unk48 + 50.0) * 0.7f;
+    h = work->unk34 * 0.7f;
+    rr = r * r;
+    tries = 16;
+    for (i = 0; i < items->unk08; i++, item++) {
+        if (item->unk00 == 0 || item->unk16 == 4 || item->unk16 == 5) {
+            continue;
+        }
+        dx = item->unk28.x - obj->trans.x;
+        dy = item->unk28.y - obj->trans.y;
+        dz = item->unk28.z - obj->trans.z;
+        d = dx * dx + dz * dz;
+        if (d < rr && ((dy > -50.0) & (dy < h))) {
+            d = sqrtf(d);
+            if (d != 0.0f) {
+                rr = r / d;
+            } else {
+                dz = r;
+                rr = 1.0f;
+            }
+            obj->trans.x = item->unk28.x - dx * rr;
+            obj->trans.z = item->unk28.z - dz * rr;
+            if (tries != 0) {
+                tries--;
+                item = items->unk0C;
+                i = 0;
+            }
+        }
+    }
+    dx = D_80114B18_stardust_battle->trans.x - obj->trans.x;
+    dz = D_80114B18_stardust_battle->trans.z - obj->trans.z;
+    dy = D_80114B18_stardust_battle->trans.y + 34.9999994039535522 - obj->trans.y;
+    d = dx * dx + dz * dz;
+    r = (work->unk48 + 85.000002384185791) * 0.7f;
+    if (d < r * r && ((dy > -150.0) & (dy < h))) {
+        d = sqrtf(d);
+        if (d != 0.0f) {
+            rr = r / d;
+        } else {
+            dz = r;
+            dx = 0.0f;
+            rr = 1.0f;
+        }
+        obj->trans.x = D_80114B18_stardust_battle->trans.x - dx * rr;
+        obj->trans.z = D_80114B18_stardust_battle->trans.z - dz * rr;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EA04_stardust_battle);
+#endif
 
 /* NON_MATCHING: register allocation only: retail loads D_80114B2C into v0 and copies it to s2 in the delay slot */
 #ifdef NON_MATCHING
