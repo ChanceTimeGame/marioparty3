@@ -184,6 +184,39 @@ struct FpPlayer {
     /* 0x40 */ char unk40[0xC];
 }; /* size 0x4C */
 
+/* One feather puff (FpChick::feathers). */
+typedef struct FpFeather {
+    /* 0x00 */ s8 board; /* billboard */
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ Vec vel;
+    /* 0x10 */ f32 unk10;
+} FpFeather; /* size 0x14 */
+
+/* MgWork::unk158 of the chick. */
+typedef struct FpChick {
+    /* 0x00 */ u8 state;
+    /* 0x01 */ u8 unk01;
+    /* 0x02 */ u8 unk02;
+    /* 0x03 */ char unk03;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ char unk08[4];
+    /* 0x0C */ f32 speed;
+    /* 0x10 */ f32 angle;
+    /* 0x14 */ f32 target; /* wanted angle */
+    /* 0x18 */ char unk18[0xC];
+    /* 0x24 */ Vec vel;
+    /* 0x30 */ char unk30[4];
+    union {
+        /* 0x34 */ s8 boards[8]; /* billboards; retail writes 8, so [4] and [5] are feathers[0]'s board and unk01 */
+        struct {
+            /* 0x34 */ s8 unk34[4];
+            /* 0x38 */ FpFeather feathers[32];
+        } f;
+    } u;
+} FpChick; /* size 0x2B8 */
+
 typedef struct FpU8x8 {
     u8 v[8];
 } FpU8x8;
@@ -215,6 +248,15 @@ extern u8 D_8010E87C_fowl_play; /* next player slot */
 extern Vec D_8010E884_fowl_play[]; /* start positions */
 extern f32 D_8010E8B4_fowl_play[]; /* start facings */
 void func_80108298_fowl_play(omObjData* obj);
+void func_801094A4_fowl_play(omObjData* obj);
+void func_80109844_fowl_play(omObjData* obj);
+void func_8010CE44_fowl_play(s16 id, f32 speed);
+void func_8010CEE4_fowl_play(s16 id, f32 z);
+void func_8010CFDC_fowl_play(s16 id, f32 x, f32 y, f32 z);
+void func_8010D02C_fowl_play(s16 id, f32 x, f32 y, f32 z);
+extern s16 D_8010F234_fowl_play; /* feather sprite file */
+extern s16 D_8010F238_fowl_play; /* shadow sprite file */
+extern omObjData* D_8010F290_fowl_play[1]; /* the chick */
 void func_80108B08_fowl_play(omObjData* obj);
 u8 func_8010724C_fowl_play(Vec* pos, Vec* prev, f32 r);
 u8 func_8010A738_fowl_play(omObjData* obj, u8 hit);
@@ -1122,9 +1164,72 @@ void func_80109410_fowl_play(omObjData* obj, MgWork** work, FpPlayer** ep) {
     *ep = w->unk158;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109424_fowl_play);
+void func_80109424_fowl_play(void) {
+    s32 i;
 
+    D_8010F234_fowl_play = func_8010B2C4_fowl_play(0x5B0003);
+    for (i = 0; i < 1; i++) {
+        D_8010F290_fowl_play[i] = omAddObj(3, 5, 5, -1, func_801094A4_fowl_play);
+    }
+}
+
+#ifdef NON_MATCHING
+/* one instruction long: retail sign-extends the billboard id before storing its low byte to boards[i] */
+void func_801094A4_fowl_play(omObjData* obj) {
+    MgWork* work;
+    FpChick* ch;
+    f32 a;
+    s16 id;
+    s32 i;
+
+    obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
+    work = obj->data;
+    memset(work, 0, sizeof(MgWork));
+    work->unkE8 = HuMemAllocTag(obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData), 0x7918);
+    memset(work->unkE8, 0, obj->mtncnt * sizeof(func_800E1BA8_minigame_UnkE8_ObjData));
+    work->unk52 = 0;
+    work->unkD0 = 0xFFFF;
+    ch = HuMemAllocTag(sizeof(FpChick), 0x7918);
+    work->unk158 = ch;
+    memset(ch, 0, sizeof(FpChick));
+    ch->state = 0;
+    ch->unk01 = 0;
+    ch->vel.x = ch->vel.y = ch->vel.z = 0.0f;
+    ch->angle = ch->target = (f32)(func_8010A9A0_fowl_play() - 0x8000) * (1.0 / 32768.0) * 180.0;
+    ch->speed = 20.0f;
+    ch->unk02 = ch->unk04 = ch->unk06 = 0;
+    obj->model[0] = func_8000B108_main(0x5B0006, 0x2D9);
+    obj->model[1] = func_8000B0D4_main(9, 0x2D9);
+    D_8010F238_fowl_play = func_8010B2C4_fowl_play(0xB);
+    for (i = 0; i < 8; i++) {
+        id = func_8010C1F4_fowl_play(D_8010F238_fowl_play, 0x20009000);
+        ch->u.boards[i] = (s16)id;
+        func_8010D148_fowl_play(id, 2);
+        func_8010D2A4_fowl_play(id, -1, -0x3A, 0x69, 0xE0);
+        func_8010CFDC_fowl_play(id, 1.2f, 1.2f, 1.2f);
+        func_8010CE44_fowl_play(id, 0.5f);
+    }
+    Hu3DModelScaleSet(obj->model[1], 0.75f, 0.75f, 0.75f);
+    func_800E5A00_minigame(obj, 0, 0x5B0007, 1, 0);
+    func_800E5A00_minigame(obj, 1, 0x5B0008, 1, 0);
+    func_800E5A00_minigame(obj, 2, 0x5B0009, 1, 0);
+    func_800E5690_minigame(obj, 0);
+    obj->func = func_80109844_fowl_play;
+    obj->trans.x = (f32)(func_8010A9A0_fowl_play() - 0x8000) * (1.0 / 32768.0) * 40.0;
+    obj->trans.z = (f32)(func_8010A9A0_fowl_play() - 0x8000) * (1.0 / 32768.0) * 40.0;
+    for (i = 0; i < 32; i++) {
+        ch->u.f.feathers[i].board = func_8010C1F4_fowl_play(D_8010F234_fowl_play, 0x10009000);
+        func_8010D148_fowl_play(ch->u.f.feathers[i].board, 0);
+        func_8010CFDC_fowl_play(ch->u.f.feathers[i].board, 2.0f, 2.0f, 2.0f);
+        ch->u.f.feathers[i].unk01 = 0;
+        ch->u.f.feathers[i].vel.x = ch->u.f.feathers[i].vel.y = ch->u.f.feathers[i].vel.z = 0.0f;
+        ch->u.f.feathers[i].unk10 = 0.0f;
+    }
+    D_8010F2A0_fowl_play++;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801094A4_fowl_play);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_80109844_fowl_play);
 
