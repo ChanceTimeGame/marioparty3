@@ -3010,4 +3010,5 @@ void func_8010F42C_snowball_summit(void) {
     omAddObj(1000, 0, 0, -1, func_8010CA18_snowball_summit);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", D_8010F870_snowball_summit);
+/* Fullwidth "ABC" in Shift-JIS (the rodata end padding follows) */
+const s16 D_8010F870_snowball_summit[] = { 0x8260, 0x8261, 0x8262, 0 };
