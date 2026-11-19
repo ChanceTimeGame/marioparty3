@@ -1531,7 +1531,94 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D55
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D910_messy_memory);
 
+/* Snaps the shadow to its item when the item sits on a slot (tbl/origin: the slot table and board origin). */
+#define MM_SHADOW_SNAP(tbl, n, yoff, twice, a, b)                                                                      \
+    for (i = 0; i < n; i++) {                                                                                          \
+        if (it->pos.x == (f32)(tbl[i].x + D_80110FE0_messy_memory[obj->work[1]].x) &&                                  \
+            it->pos.y == (f32)(tbl[i].y + D_80110FE0_messy_memory[obj->work[1]].y)) {                                  \
+            sh->pos.x = it->pos.x;                                                                                     \
+            sh->pos.y = it->pos.y;                                                                                     \
+            func_8000BB54_main(sh->spr);                                                                               \
+            func_8000BBD4_main(sh->spr, sh->pos.x, sh->pos.y + yoff);                                                  \
+            if (twice) {                                                                                               \
+                func_8000BB54_main(sh->spr);                                                                           \
+            }                                                                                                          \
+            if (i < 15) {                                                                                              \
+                func_8000BCC8_main(sh->spr, a);                                                                        \
+            } else {                                                                                                   \
+                func_8000BCC8_main(sh->spr, b);                                                                        \
+            }                                                                                                          \
+        }                                                                                                              \
+    }
+
+#ifdef NON_MATCHING
+/* An item's shadow object (work[0] the item, work[1] its board). Retail's slot loops read one past their table. */
+void func_8010DA64_messy_memory(omObjData *obj) {
+    MmEnt *sh;
+    MmEnt *it;
+    s16 i;
+    u32 t;
+
+    t = obj->work[1] * 10;
+    sh = &D_80111700_messy_memory[t + 86 + obj->work[0]];
+    it = &D_80111700_messy_memory[t + 8 + obj->work[0]];
+    switch (D_80115D8C_messy_memory) {
+    case 3:
+        if (obj->work[1] == 4) {
+            MM_SHADOW_SNAP(D_80110FF4_messy_memory, 21, 2.0f, 0, 0x4444, 0x2222);
+        }
+        break;
+    case 4:
+        if (obj->work[1] == 4) {
+            func_8000BC88_main(sh->spr, 0x4000);
+        }
+        break;
+    case 5:
+        if (obj->work[1] == 4) {
+            for (i = 0; i < 20; i++) {
+                if (it->pos.x == D_80110FF4_messy_memory[i].x && it->pos.y == D_80110FF4_messy_memory[i].y) {
+                    D_80115D20_messy_memory[obj->work[0]].x = 2.0f * D_801110A4_messy_memory[i].x;
+                    D_80115D20_messy_memory[obj->work[0]].y = 2.0f * D_801110A4_messy_memory[i].y;
+                }
+            }
+            sh->pos.x += D_80115D20_messy_memory[obj->work[0]].x;
+            sh->pos.y += D_80115D20_messy_memory[obj->work[0]].y;
+            func_8000BBD4_main(sh->spr, sh->pos.x, sh->pos.y + 2.0f);
+            sh->unk5C.x = sh->unk5C.y = D_8011165C_messy_memory;
+            func_8000BE5C_main(sh->spr, sh->unk5C.x, sh->unk5C.y);
+            if (sh->unk5C.x <= 0.01 || sh->unk5C.y <= 0.01) {
+                func_8000BB94_main(sh->spr);
+            }
+        }
+        if (obj->work[1] < 4) {
+            MM_SHADOW_SNAP(D_80111044_messy_memory, 21, 1.0f, 1, 0xEEEE, 0xCCCC);
+        }
+        break;
+    case 8:
+        if (obj->work[1] < 4) {
+            MM_SHADOW_SNAP(D_80111044_messy_memory, 21, 1.0f, 1, 0xEEEE, 0xCCCC);
+        }
+        break;
+    case 9:
+    case 10:
+    case 11:
+        if (obj->work[1] < 4) {
+            MM_SHADOW_SNAP(D_80111044_messy_memory, 21, 1.0f, 0, 0xEEEE, 0xCCCC);
+            if (D_801116B0_messy_memory[obj->work[1] * 10 + obj->work[0]] == 1) {
+                func_8000BB94_main(sh->spr);
+            }
+        }
+        break;
+    case 12:
+        if (obj->work[1] < 4) {
+            func_8000BCC8_main(sh->spr, 0xEEEE);
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010DA64_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E29C_messy_memory);
 
