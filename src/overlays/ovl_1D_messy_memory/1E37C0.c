@@ -89,6 +89,8 @@ extern s16 D_80111338_messy_memory;
 extern s16 D_8011133A_messy_memory;
 extern s16 D_8011133C_messy_memory;
 extern MmCamera D_80111340_messy_memory[2];
+extern s32 D_80111148_messy_memory[10][2]; /* item image groups, the players' boards */
+extern s32 D_80111198_messy_memory[10][2]; /* item image groups, the shown room */
 
 /* .bss */
 extern MmEnt D_80111700_messy_memory[136];
@@ -97,6 +99,7 @@ extern MmEnt D_801134E8_messy_memory[]; /* = D_80111700_messy_memory[58] */
 extern MmEnt D_80113884_messy_memory[]; /* = D_80111700_messy_memory[65] */
 extern MmEnt D_80113A94_messy_memory[]; /* = D_80111700_messy_memory[69] */
 extern s32 D_80111640_messy_memory[4];
+extern s32 D_80111608_messy_memory[10]; /* item sprite groups (s16 values) */
 extern HuSprite_Unk84_Struct *D_80111654_messy_memory; /* the room backdrop image */
 extern HuSprite_Unk84_Struct *D_801116D8_messy_memory; /* the divider image */
 extern u8 D_80111658_messy_memory[4]; /* hand shown, per player */
@@ -2055,7 +2058,75 @@ void func_8010C478_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C478_messy_memory);
 #endif
 
+#ifdef NON_MATCHING
+/* Item k of a board (work[1] board, work[0] item): load its image, place it in its slot (the shuffled room: a free
+   random slot), then run func_8010C478. */
+void func_8010D55C_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    s16 i;
+    u8 v;
+    u32 k;
+
+    e = &D_80111700_messy_memory[obj->work[1] * 10 + 8 + obj->work[0]];
+    if (obj->work[1] == 0) {
+        for (i = 0; i < 10; i++) {
+            k = obj->work[0];
+            if (k == i) {
+                D_80111608_messy_memory[k] = func_8000B838_main((&D_80111148_messy_memory[k][0])[1]);
+            }
+        }
+    }
+    if (obj->work[1] < 4) {
+        for (i = 0; i < 11; i++) {
+            if (i == obj->work[0]) {
+                e->spr = InitEspriteSlot((s16)D_80111608_messy_memory[i], 0, 0);
+            }
+        }
+    } else {
+        for (i = 0; i < 10; i++) {
+            k = obj->work[0];
+            if (k == i) {
+                e->grp = func_8000B838_main(D_80111198_messy_memory[k][1]);
+                e->spr = InitEspriteSlot(e->grp, 0, 0);
+            }
+        }
+    }
+    if (obj->work[1] == 4) {
+        v = rand8() % 10;
+    retry:
+        if (v != D_80115D90_messy_memory[0] && v != D_80115D90_messy_memory[1] && v != D_80115D90_messy_memory[2] &&
+            v != D_80115D90_messy_memory[3] && v != D_80115D90_messy_memory[4] && v != D_80115D90_messy_memory[5] &&
+            v != D_80115D90_messy_memory[6] && v != D_80115D90_messy_memory[7] && v != D_80115D90_messy_memory[8]) {
+            D_80115D90_messy_memory[obj->work[0]] = v;
+        } else {
+            v++;
+            if (v >= 10) {
+                v = 0;
+            }
+            goto retry;
+        }
+        for (i = 0; i < 10; i++) {
+            if (v == i) {
+                e->pos.x = D_80110FF4_messy_memory[v].x;
+                e->pos.y = D_80110FF4_messy_memory[v].y;
+                D_801116A4_messy_memory[v] = obj->work[0];
+            }
+        }
+    }
+    e->unk5C.x = 1.0f;
+    e->unk5C.y = 1.0f;
+    func_8000BC48_main(e->spr, 0x5008);
+    func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+    func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+    func_8000BCC8_main(e->spr, 0xDDDD);
+    if (obj->work[1] == 4) {
+        func_8000BCC8_main(e->spr, 0x3333);
+    }
+    obj->func = func_8010C478_messy_memory;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D55C_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D910_messy_memory);
 
