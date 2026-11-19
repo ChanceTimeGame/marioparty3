@@ -290,7 +290,7 @@ void func_8000BC48_main(u16, u16);
 u16 GWMgRecordGet(s16 arg0);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 s32 func_8010CCBC_pump_pump_away(void);
-void func_8010CDF4_pump_pump_away(void);
+void func_8010CDF4_pump_pump_away(omObjData *obj);
 void func_8010CEE8_pump_pump_away(omObjData *obj);
 omObjData *func_80045EF4_main(u32 arg0, s16 arg1);
 void func_8004AE00_main(s16 handle, s16 pan);
@@ -2558,7 +2558,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010C
 #endif
 
 #ifdef NON_MATCHING
-void func_8010CDF4_pump_pump_away(void) {
+void func_8010CDF4_pump_pump_away(omObjData *obj) {
     PpRecord *r = &D_801135B0_pump_pump_away;
     s32 rec;
 
@@ -2585,55 +2585,49 @@ void func_8010CDF4_pump_pump_away(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CDF4_pump_pump_away);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010CEE8_pump_pump_away(omObjData *obj) {
-    f32 s;
+    PpRecord *r = &D_801135B0_pump_pump_away;
     s32 i;
 
     if (D_801116F4_pump_pump_away == 9 && func_8010CCBC_pump_pump_away() != 0) {
-        func_8010CDF4_pump_pump_away();
-        if (D_801135B0_pump_pump_away.dir == 0) {
-            if (D_801135B0_pump_pump_away.scale >= 13) {
-                D_801135B0_pump_pump_away.dir = 1;
+        func_8010CDF4_pump_pump_away(obj);
+        if (r->dir == 0) {
+            if (r->scale >= 13) {
+                r->dir = 1;
             } else {
-                D_801135B0_pump_pump_away.scale += 2;
+                r->scale += 2;
             }
-        } else if (D_801135B0_pump_pump_away.scale > 0) {
-            D_801135B0_pump_pump_away.scale -= 2;
+        } else if (r->scale > 0) {
+            r->scale -= 2;
         }
-        s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
-        HuSprScaleSet(D_801135B0_pump_pump_away.grp, 0, s, s);
-        func_80054904_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.scale / 4 + 32, D_801135B0_pump_pump_away.scale / 4 + 22);
-        func_80055024_main(D_801135B0_pump_pump_away.grp, 0, D_801135B0_pump_pump_away.spr, 0);
-        func_800550F4_main(D_801135B0_pump_pump_away.grp, 0, 0);
-        func_80054FF8_main(D_801135B0_pump_pump_away.grp, 0, (s16)D_801135B0_pump_pump_away.digit[0]);
-        HuSprAttrSet(D_801135B0_pump_pump_away.grp, 0, 0x1000);
-        HuSprAttrSet(D_801135B0_pump_pump_away.grp, 0, 0);
+                HuSprScaleSet(r->grp, 0, r->scale / 12.0f + 1.0f, r->scale / 12.0f + 1.0f);
+        func_80054904_main(r->grp, 0, r->scale / 4 + 32, r->scale / 4 + 22);
+        func_80055024_main(r->grp, 0, r->spr, 0);
+        func_800550F4_main(r->grp, 0, 0);
+        func_80054FF8_main(r->grp, 0, (s16)r->digit[0]);
+        HuSprAttrSet(r->grp, 0, 0x1000);
+        HuSprAttrSet(r->grp, 0, 0);
         for (i = 1; i < 3; i++) {
-            s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
-            HuSprScaleSet(D_801135B0_pump_pump_away.grp, i, s, s);
-            func_80054904_main(D_801135B0_pump_pump_away.grp, i, i * 12, 0);
-            func_80055024_main(D_801135B0_pump_pump_away.grp, i, D_801135B0_pump_pump_away.spr, 0);
-            func_800550F4_main(D_801135B0_pump_pump_away.grp, i, 0);
-            func_80054FF8_main(D_801135B0_pump_pump_away.grp, i, (s16)D_801135B0_pump_pump_away.digit[i]);
-            HuSprAttrSet(D_801135B0_pump_pump_away.grp, i, 0x1000);
-            HuSprAttrSet(D_801135B0_pump_pump_away.grp, i, 0);
+            s16 j = i;
+                        HuSprScaleSet(r->grp, j, r->scale / 12.0f + 1.0f, r->scale / 12.0f + 1.0f);
+            func_80054904_main(r->grp, j, i * 12, 0);
+            func_80055024_main(r->grp, j, r->spr, 0);
+            func_800550F4_main(r->grp, j, 0);
+            func_80054FF8_main(r->grp, j, (s16)r->digit[i]);
+            HuSprAttrSet(r->grp, j, 0x1000);
+            HuSprAttrSet(r->grp, j, 0);
         }
-        s = D_801135B0_pump_pump_away.scale / 12.0f + 1.0f;
-        func_8000BE5C_main(D_801135B0_pump_pump_away.win, s, s);
-        func_8000BBD4_main(D_801135B0_pump_pump_away.win, D_801135B0_pump_pump_away.scale * 4 + 78, D_801135B0_pump_pump_away.scale / 4 + 22);
+                func_8000BE5C_main(r->win, r->scale / 12.0f + 1.0f, r->scale / 12.0f + 1.0f);
+        func_8000BBD4_main(r->win, r->scale * 4 + 78, r->scale / 4 + 22);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CEE8_pump_pump_away);
-#endif
 
 #ifdef NON_MATCHING
 void func_8010D1B8_pump_pump_away(omObjData *obj) {
     PpRecord *r = &D_801135B0_pump_pump_away;
     s32 i;
 
-    func_8010CDF4_pump_pump_away();
+    func_8010CDF4_pump_pump_away(obj);
     D_801135B4_pump_pump_away = func_8000B838_main(0x32);
     D_801135B8_pump_pump_away = HuSprGrpCreate(4, 5);
     func_80054904_main(D_801135B8_pump_pump_away, 0, 32, 22);
