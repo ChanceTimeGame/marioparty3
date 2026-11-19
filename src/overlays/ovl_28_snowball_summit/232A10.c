@@ -77,6 +77,49 @@ typedef struct SsSky {
     /* 0x14 */ HuSprite_Unk84_Struct *right;
 } SsSky; // Size 0x18
 
+/* A player (D_8010F9B8_snowball_summit, 4 x 0x9C). */
+typedef struct SsPlayer {
+    /* 0x00 */ s32 state; /* -1 absent */
+    /* 0x04 */ s32 motion;
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 level; /* CPU difficulty */
+    /* 0x10 */ f32 speed;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ f32 rot;
+    /* 0x1C */ f32 unk1C;
+    /* 0x20 */ Vec vel;
+    /* 0x2C */ f32 unk2C;
+    /* 0x30 */ Vec next;
+    /* 0x3C */ char unk3C[0x34];
+    /* 0x70 */ s32 ball; /* the snowball being rolled, -1 none */
+    /* 0x74 */ s32 unk74;
+    /* 0x78 */ omObjData *obj;
+    /* 0x7C */ s32 holdRate; /* CPU */
+    /* 0x80 */ s32 range; /* CPU: dodge distance */
+    /* 0x84 */ s32 chase; /* CPU */
+    /* 0x88 */ s32 dodge; /* CPU */
+    /* 0x8C */ s32 hold; /* CPU: holding A */
+    /* 0x90 */ s32 timer; /* CPU: wander time */
+    /* 0x94 */ s16 stickX; /* CPU */
+    /* 0x96 */ s16 stickZ;
+    /* 0x98 */ f32 size;
+} SsPlayer; // Size 0x9C
+
+/* A snowball (D_8010FC30_snowball_summit, 16 x 0x40). */
+typedef struct SsBall {
+    /* 0x00 */ s32 state; /* -1 absent */
+    /* 0x04 */ char unk04[8];
+    /* 0x0C */ f32 size;
+    /* 0x10 */ char unk10[0x2C];
+    /* 0x3C */ omObjData *obj;
+} SsBall; // Size 0x40
+
+/* A u8 random number below n. */
+#define SS_RAND(n) ((u8)(rand8() % (n)))
+/* An angle wrapped once into [0, 360) (its argument is evaluated again on each test). */
+#define SS_WRAP(a) ((a) >= 360.0f ? (a) - 360.0f : (a) < 0.0f ? (a) + 360.0f : (a))
+#define SS_ABS(x) ((x) < 0.0f ? -(x) : (x))
+
 typedef s32 (*SsDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
 extern s32 fontcolor;
@@ -132,6 +175,11 @@ void func_8010775C_snowball_summit(omObjData *obj);
 void func_80107860_snowball_summit(omObjData *obj);
 void func_801078D4_snowball_summit(void);
 void func_80107908_snowball_summit(f32 x0, f32 z0, f32 x1, f32 z1, Vec *out);
+void func_80107944_snowball_summit(f32 x0, f32 z0, f32 x1, f32 z1, Vec *out);
+s32 func_80107988_snowball_summit(f32 cur, f32 target, f32 tol);
+void func_80107DD4_snowball_summit(SsPlayer *pl);
+s32 func_80107F80_snowball_summit(SsPlayer *pl);
+void func_8010811C_snowball_summit(omObjData *obj);
 void func_8010F42C_snowball_summit(void);
 
 /* .data */
@@ -153,6 +201,8 @@ extern s16 D_8010F8CA_snowball_summit; /* D_8010F8C0.hook, low half */
 extern HuSprite_Unk84_Struct *D_8010F8CC_snowball_summit; /* D_8010F8C0.left */
 extern HuSprite_Unk84_Struct *D_8010F8D4_snowball_summit; /* D_8010F8C0.right */
 extern SsRing D_8010F8D8_snowball_summit[8];
+extern SsPlayer D_8010F9B8_snowball_summit[4];
+extern SsBall D_8010FC30_snowball_summit[16];
 extern s16 D_80110030_snowball_summit;
 extern SsFlash D_80110048_snowball_summit[16];
 extern s16 D_801101F0_snowball_summit;
@@ -482,7 +532,200 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_80107F80_snowball_summit);
 
+/* The CPU's stick and buttons: dodge snowballs, roll at the players, wander. */
+// scheduling: retail loads 348100.0f before the x*x + z*z sum (one nop more here), then register allocation
+#ifdef NON_MATCHING
+void func_8010811C_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    Vec out;
+    f32 base;
+    f32 turn;
+    SsPlayer *other;
+    SsBall *ball;
+    omObjData *target;
+    s32 i;
+
+    func_80105B9C_snowball_summit(obj->work[0]);
+    if (pl->ball != -1 && pl->hold == 1) {
+        pl->hold = 0;
+        pl->stickX = sindf(SS_WRAP((f32)(rand16() % 360))) * 70.0f;
+        pl->stickZ = -(s32)(cosdf(SS_WRAP((f32)(rand16() % 360))) * 70.0f);
+        D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+        D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+        func_80107DD4_snowball_summit(pl);
+        return;
+    }
+    if (pl->hold != 0) {
+        if (rand8() < pl->holdRate && rand8() < pl->holdRate) {
+            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+        }
+    }
+    if (pl->hold == 0 && 348100.0f < obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) {
+        func_80107DD4_snowball_summit(pl);
+        base = func_8010610C_snowball_summit(obj->trans.x, obj->trans.z);
+        turn = 180.0 - func_80107F80_snowball_summit(pl) * 0.5;
+        pl->stickX = sindf(SS_WRAP(base + turn + func_80107F80_snowball_summit(pl))) * 70.0f;
+        pl->stickZ = -(s32)(cosdf(SS_WRAP(base + turn + func_80107F80_snowball_summit(pl))) * 70.0f);
+        D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+        D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+        return;
+    }
+    if (pl->ball == -1) {
+        if (pl->timer < 30) {
+            for (i = 0; i < 16; i++) {
+                ball = &D_8010FC30_snowball_summit[i];
+                if (ball->state > 0) {
+                    target = ball->obj;
+                    func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z,
+                                                  &out);
+                    if (SS_ABS(out.x) < (f32)pl->range) {
+                        if (rand8() % pl->dodge != 0) {
+                            pl->stickX = sindf(SS_WRAP(out.z + 70.0f + SS_RAND(60))) * 70.0f;
+                            pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 70.0f + SS_RAND(60))) * 70.0f);
+                            D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                            D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                            pl->hold = 0;
+                            func_80107DD4_snowball_summit(pl);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        if (pl->hold == 0) {
+            if (pl->ball == -1 && pl->timer == 0 && rand8() % pl->holdRate != 0) {
+                pl->hold = 1;
+                D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = D_800D20A1_main[GwPlayer[obj->work[0]].pad] = 0;
+                pl->stickX = pl->stickZ = 0;
+                D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+                return;
+            }
+            goto wander;
+        }
+    } else {
+        if (pl->timer < 30) {
+            for (i = 0; i < 16; i++) {
+                ball = &D_8010FC30_snowball_summit[i];
+                if (ball->state > 0 && i != pl->ball) {
+                    target = ball->obj;
+                    func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z,
+                                                  &out);
+                    if (SS_ABS(out.x) < (f32)pl->range) {
+                        if (rand8() % pl->dodge != 0) {
+                            if (rand8() % pl->dodge != 0) {
+                                pl->stickX = sindf(SS_WRAP(out.z + 180.0f)) * 70.0f;
+                                pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 180.0f)) * 70.0f);
+                            } else {
+                                pl->stickX = sindf(SS_WRAP(out.z + 70.0f + SS_RAND(60))) * 70.0f;
+                                pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 70.0f + SS_RAND(60))) * 70.0f);
+                            }
+                            D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                            D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                            func_80107DD4_snowball_summit(pl);
+                            return;
+                        }
+                        pl->stickX = sindf(SS_WRAP(out.z + 180.0f)) * 70.0f;
+                        pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 180.0f)) * 70.0f);
+                        D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                        D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                        func_80107DD4_snowball_summit(pl);
+                        if (func_80107988_snowball_summit(obj->rot.y, SS_WRAP(out.z + 180.0f), 20.0f) == 0) {
+                            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x8000;
+                            if (rand8() % pl->dodge != 0) {
+                                pl->hold = 1;
+                                D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = D_800D20A1_main[GwPlayer[obj->work[0]].pad] = 0;
+                                pl->stickX = pl->stickZ = 0;
+                                D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+                                pl->timer = 0;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (i = 0; i < 4; i++) {
+            if (i != obj->work[0]) {
+                other = &D_8010F9B8_snowball_summit[i];
+                if (other->state >= 0 && other->state < 90) {
+                    target = other->obj;
+                    func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z, &out);
+                    if (func_80107988_snowball_summit(obj->rot.y, SS_WRAP(out.z + 180.0f), 15.0f) == 0
+                        && pl->size < D_8010FC30_snowball_summit[pl->ball].size && rand8() % pl->dodge != 0) {
+                        D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x8000;
+                        if (rand8() % pl->dodge != 0) {
+                            pl->hold = 1;
+                            D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = D_800D20A1_main[GwPlayer[obj->work[0]].pad] = 0;
+                            pl->stickX = pl->stickZ = 0;
+                            D_800D5558_main[GwPlayer[obj->work[0]].pad] |= 0x4000;
+                            pl->timer = 0;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        if (pl->timer < 30) {
+            for (i = 0; i < 4; i++) {
+                if (i != obj->work[0]) {
+                    other = &D_8010F9B8_snowball_summit[i];
+                    if (other->state >= 0 && other->state < 90 && other->unk08 == 0) {
+                        target = other->obj;
+                        if (rand8() % pl->chase == 0) {
+                            func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z,
+                                                          &out);
+                            if (SS_ABS(out.x) < (f32)(pl->range * 2)) {
+                                if (rand8() % pl->dodge == 0) {
+                                    pl->stickX = sindf(SS_WRAP(out.z + 180.0f)) * 70.0f;
+                                    pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 180.0f)) * 70.0f);
+                                    D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                                    D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                                    func_80107DD4_snowball_summit(pl);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (i != obj->work[0]) {
+                    other = &D_8010F9B8_snowball_summit[i];
+                    if (other->state >= 0 && other->state < 90) {
+                        target = other->obj;
+                        func_80107908_snowball_summit(obj->trans.x, obj->trans.z, target->trans.x, target->trans.z,
+                                                      &out);
+                        if (SS_ABS(out.x) < (f32)(pl->range * 2)) {
+                            pl->stickX = sindf(SS_WRAP(out.z + 180.0f)) * 70.0f;
+                            pl->stickZ = -(s32)(cosdf(SS_WRAP(out.z + 180.0f)) * 70.0f);
+                            D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                            D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                            func_80107DD4_snowball_summit(pl);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    wander:
+        if (pl->hold == 0) {
+            if (pl->timer > 0) {
+                pl->timer--;
+                D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+                D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+                return;
+            }
+            pl->stickX = sindf(SS_WRAP((f32)(rand16() % 360))) * 70.0f;
+            pl->stickZ = -(s32)(cosdf(SS_WRAP((f32)(rand16() % 360))) * 70.0f);
+            D_800CBB6E_main[GwPlayer[obj->work[0]].pad] = pl->stickX;
+            D_800D20A1_main[GwPlayer[obj->work[0]].pad] = pl->stickZ;
+            func_80107DD4_snowball_summit(pl);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010811C_snowball_summit);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A0B0_snowball_summit);
 
