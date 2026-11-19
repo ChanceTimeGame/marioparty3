@@ -8,6 +8,12 @@
 #include "mallocblock.h"
 #include "math.h"
 
+extern s32 D_8010F3EC_bowser_toss; /* debug camera mode */
+extern s32 D_8010F3F0_bowser_toss; /* debug camera index */
+extern s32 D_8010F3F4_bowser_toss; /* debug text x; D_8010F3F6 = low half */
+extern s32 D_8010F3F8_bowser_toss; /* debug text y; D_8010F3FA = low half */
+extern s32 fontcolor;
+
 extern s16 D_8010F378_bowser_toss[3][8][2];
 extern s32 D_8010F3D8_bowser_toss[5];
 
@@ -2157,9 +2163,137 @@ void func_8010C2DC_bowser_toss(void) {
     omAddObj(0x1F, 0, 0, -1, func_8010CDB8_bowser_toss);
 }
 
+
+/* Debug camera test mode (Log Jam's func_8010B17C with one camera per screen). */
+/* NON_MATCHING: retail loads the camera index into v1 and copies it to s4 in a branch delay slot; otherwise identical. */
+#ifdef NON_MATCHING
+void func_8010C570_bowser_toss(void) {
+    BtCamKey c = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f };
+    f32 speed = 1.0f;
+    s32 cam = -1;
+    Vec* center;
+    Vec* rot;
+    s32 i;
+
+    switch (D_8010F3EC_bowser_toss) {
+        case 1:
+            if ((u16)D_800CDA7C_main[0] & 0x8000) {
+                speed = 8.0f;
+            }
+            if (D_800CDA7C_main[0] & 0x4000) {
+                speed = 0.5f;
+            }
+            if (D_800D5558_main[0] & 0x1000) {
+                CenterM[D_8010F3F0_bowser_toss].x = Center.x;
+                CenterM[D_8010F3F0_bowser_toss].y = Center.y;
+                CenterM[D_8010F3F0_bowser_toss].z = Center.z;
+                CRotM[D_8010F3F0_bowser_toss].x = CRot.x;
+                CRotM[D_8010F3F0_bowser_toss].y = CRot.y;
+                CRotM[D_8010F3F0_bowser_toss].z = CRot.z;
+                CZoomM[D_8010F3F0_bowser_toss] = CZoom;
+            } else {
+                c.rot.x = (f32)D_800D20A1_main[0] * 0.125 * speed;
+                c.rot.y = (f32)D_800CBB6E_main[0] * 0.125 * speed;
+                if (D_800CDA7C_main[0] & 0x200) {
+                    c.center.x = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 0x100) {
+                    c.center.x = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x800) {
+                    c.center.z = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 0x400) {
+                    c.center.z = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 8) {
+                    c.center.y = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 4) {
+                    c.center.y = -(2.0 * speed);
+                }
+                if (D_800CDA7C_main[0] & 1) {
+                    c.zoom = 2.0 * speed;
+                }
+                if (D_800CDA7C_main[0] & 2) {
+                    c.zoom = -(2.0 * speed);
+                }
+                c.center.x += CenterM[D_8010F3F0_bowser_toss].x;
+                c.center.y += CenterM[D_8010F3F0_bowser_toss].y;
+                c.center.z += CenterM[D_8010F3F0_bowser_toss].z;
+                c.rot.x += CRotM[D_8010F3F0_bowser_toss].x;
+                c.rot.y += CRotM[D_8010F3F0_bowser_toss].y;
+                c.rot.z += CRotM[D_8010F3F0_bowser_toss].z;
+                c.zoom += CZoomM[D_8010F3F0_bowser_toss];
+                func_8010D250_bowser_toss(D_8010F3F0_bowser_toss, c.center.x, c.center.y, c.center.z, c.rot.x, c.rot.y,
+                                          c.rot.z, c.zoom, 1);
+            }
+            cam = D_8010F3F0_bowser_toss;
+            fontcolor = 15;
+            if (D_800D5558_main[0] & 0x10) {
+                if ((D_8010F3F0_bowser_toss = cam + 1) >= 2) {
+                    D_8010F3F0_bowser_toss = 0;
+                    D_8010F3EC_bowser_toss++;
+                }
+                D_800D5558_main[0] &= ~0x10;
+            }
+            break;
+        case 2:
+            if ((D_800CDA7C_main[0] & 0x100) || (D_800CDA7C_main[0] & 1)) {
+                D_8010F3F4_bowser_toss++;
+            }
+            if (D_800CDA7C_main[0] & 0x202) {
+                D_8010F3F4_bowser_toss--;
+            }
+            if (D_800CDA7C_main[0] & 0x404) {
+                D_8010F3F8_bowser_toss++;
+            }
+            if (D_800CDA7C_main[0] & 0x808) {
+                D_8010F3F8_bowser_toss--;
+            }
+            fontcolor = 8;
+            cam = 1;
+            break;
+        case 3:
+            D_8010F3EC_bowser_toss = 0;
+            break;
+    }
+    if (cam != -1) {
+        center = &CenterM[cam];
+        rot = &CRotM[cam];
+        sprintf(D_800D5218_main, "CAMERA TEST_MODE CAM_%d ", cam);
+        print8((u16)D_8010F3F4_bowser_toss + 20, (u16)D_8010F3F8_bowser_toss + 80, D_800D5218_main);
+        sprintf(D_800D5218_main, " CENTER X>%3.2f Y>%3.2f Z>%3.2f ", center->x, center->y, center->z);
+        print8((u16)D_8010F3F4_bowser_toss + 20, (u16)D_8010F3F8_bowser_toss + 88, D_800D5218_main);
+        sprintf(D_800D5218_main, " ROT    X>%3.2f Y>%3.2f Z>%3.2f ", rot->x, rot->y, rot->z);
+        print8((u16)D_8010F3F4_bowser_toss + 20, (u16)D_8010F3F8_bowser_toss + 96, D_800D5218_main);
+        sprintf(D_800D5218_main, " ZOOM   %3.2f ", CZoomM[cam]);
+        print8((u16)D_8010F3F4_bowser_toss + 20, (u16)D_8010F3F8_bowser_toss + 104, D_800D5218_main);
+    }
+    if (D_800D5558_main[0] & 0x10) {
+        if (D_8010F3EC_bowser_toss == 1) {
+            osSyncPrintf("CAMERA TEST_MODE \n");
+            for (i = 0; i < 2; i++) {
+                center = &CenterM[i];
+                rot = &CRotM[i];
+                osSyncPrintf("CAMERA_NO %d \n", i);
+                osSyncPrintf(" CENTER X>%3.3f Y>%3.3f Z>%3.3f \n", center->x, center->y, center->z);
+                osSyncPrintf(" ROT    X>%3.3f Y>%3.3f Z>%3.3f \n", rot->x, rot->y, rot->z);
+                /* Retail prints the shared CZoom here, not CZoomM[i]. */
+                osSyncPrintf(" ZOOM   %3.3f \n", CZoom);
+            }
+            osSyncPrintf(" \n");
+        }
+        if (D_8010F3EC_bowser_toss++ >= 4) {
+            D_8010F3EC_bowser_toss = 0;
+        }
+    }
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", D_8010F998_bowser_toss);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010C570_bowser_toss);
+#endif
 
 void func_8010CDB8_bowser_toss(omObjData* obj) {
     BtCam* cam;
