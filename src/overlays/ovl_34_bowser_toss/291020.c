@@ -70,7 +70,8 @@ typedef struct BtBowser {
     /* 0x1C */ f32 unk1C;
     /* 0x20 */ s16 unk20;
     /* 0x22 */ s16 unk22;
-    /* 0x24 */ f32 unk24;
+    /* 0x24 */ s16 unk24;
+    /* 0x26 */ char unk26[2];
     /* 0x28 */ f32 unk28; /* spin speed, 0..1 */
     /* 0x2C */ f32 unk2C; /* angle, 0..1 */
     /* 0x30 */ Vec unk30; /* position */
@@ -91,11 +92,9 @@ typedef union BtPack {
     BtBytes b;
 } BtPack;
 
-typedef struct BtVoice {
-    s16 unk0;
-    s16 unk2;
-} BtVoice;
-
+f32 fabsf(f32);
+f64 fabs(f64);
+omObjData* func_80045F1C_main(u32, s16, s16);
 u16 GWMgRecordGet(s16 arg0);
 s32 func_8000B710_main(s32 arg0);
 void func_800E6F0C_minigame(s32);
@@ -137,6 +136,8 @@ void* func_8010D98C_bowser_toss(omObjData* obj);
 unk1EA70StructC* func_8010D9E0_bowser_toss(s16 model, s16 arg1, const char* part, s16 arg3, u16 arg4);
 void func_8010DDC4_bowser_toss(unk1EA70StructC* arg0);
 
+extern s32 D_800A178C_main[][6];
+
 extern s16 D_8010F530_bowser_toss[];
 extern s16 D_8010F53C_bowser_toss[];
 extern s32 D_8010F154_bowser_toss[];
@@ -147,8 +148,8 @@ extern s32 D_8010F1B0_bowser_toss[];
 extern s32 D_8010F1C0_bowser_toss[];
 extern f32 D_8010F1E0_bowser_toss[];
 extern f32 D_8010F200_bowser_toss[];
-extern BtVoice D_8010F220_bowser_toss[];
-extern BtVoice D_8010F228_bowser_toss[];
+extern s32 D_8010F220_bowser_toss[];
+extern s32 D_8010F228_bowser_toss[];
 extern f32 D_8010F230_bowser_toss[];
 extern f32 D_8010F240_bowser_toss[];
 extern f32 D_8010F250_bowser_toss[];
@@ -500,27 +501,624 @@ void func_80106568_bowser_toss(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_801067B0_bowser_toss);
+/* NON_MATCHING: only the voice-table index shift is scheduled one instruction earlier (as in Bonkers). */
+#ifdef NON_MATCHING
+void func_801067B0_bowser_toss(omObjData* obj) {
+    func_800E1BA8_minigame_ObjData* w;
+    BtPlayer* p;
+    s32* voice;
+    u32 file0;
+    s32 file1;
+    u32 file2;
+    s16 gw;
+    s16 chr;
+    f32 z;
 
+    p = func_8010D98C_bowser_toss(obj);
+    gw = p->unk18;
+    chr = GwPlayer[gw].chr;
+    p->unk1C = chr;
+    p->unk1A = GwPlayer[gw].pad;
+    p->unk1E = GwPlayer[gw].stat & 1;
+    p->unk20 = GwPlayer[gw].cpu_difficulty;
+    file0 = D_800A178C_main[chr][0];
+    file1 = D_800A178C_main[chr][1];
+    file2 = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, file0, file1, gw, 0x289, 0x299);
+    w = obj->data;
+    w->unk50 &= ~1;
+    w->unkEC = NULL;
+    obj->model[3] = func_8000B108_main(3, 0x68D);
+    obj->model[4] = func_8000B108_main(4, 0x68D);
+    obj->model[10] = func_8000B108_main(file0 | file2, 0x2AD);
+    func_8001C8A8_main(obj->model[0], 1 << p->unk00);
+    func_8001C8A8_main(obj->model[1], 1 << p->unk00);
+    func_8001C8A8_main(obj->model[10], 1 << p->unk00);
+    func_800E5A00_minigame(obj, 0, func_80017BB8_main(chr, 0), 1, 0);
+    func_800E5A00_minigame(obj, 3, func_80017BB8_main(chr, 4), 1, 0x13);
+    func_800E5A00_minigame(obj, 4, func_80017BB8_main(chr, 0x6D), 1, 0);
+    func_800E5A00_minigame(obj, 5, func_80017BB8_main(chr, 0x64), 1, 0);
+    func_800E5A00_minigame(obj, 6, func_80017BB8_main(chr, 0x65), 1, 0x1E);
+    voice = &D_8010F220_bowser_toss[rand8() & 1];
+    func_800E5A00_minigame(obj, 7, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
+    p->unk14 = D_8010F1C0_bowser_toss[chr] | *voice;
+    func_800E5A00_minigame(obj, 8, func_80017BB8_main(chr, (s16)D_8010F228_bowser_toss[rand8() & 1]), 1, 0x78);
+    func_800E5690_minigame(obj, 5);
+    HmfModelData[obj->model[0]].unk02 = obj->motion[5];
+    func_8001EED8_main(obj->model[0], obj->motion[6], 1);
+    HmfModelData[obj->model[0]].unk5C = 0.0f;
+    HmfModelData[obj->model[0]].unk58 = 0.0f;
+    p->unk24 = D_8010F1E0_bowser_toss[chr];
+    p->unk28 = D_8010F200_bowser_toss[chr];
+    p->unk2C = p->unk28 - p->unk24;
+    p->unk30 = p->unk32 = 0;
+    p->unk3C = 1;
+    p->unk40 = 0;
+    p->unk44 = 0;
+    p->unk04 = 0;
+    p->unk34 = p->unk38 = z = p->unk04;
+    p->unk0E = 0;
+    p->unk02 = -1;
+    p->unk08 = 0;
+    p->unk50 = 0;
+    p->unk48 = z;
+    p->unk0C = 0;
+    p->unk10 = -1;
+    p->unk4C = 0;
+    func_8010858C_bowser_toss(p->unk00);
+    func_80108800_bowser_toss(p->unk00);
+    obj->func = func_80106BC4_bowser_toss;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_801067B0_bowser_toss);
+#endif
+
+
+/* NON_MATCHING: register allocation in the spin-target and pitch arithmetic; retail reloads p->unk10 for the
+ * HuAudFXPitchSet argument where this keeps the tested value. */
+#ifdef NON_MATCHING
+void func_80106BC4_bowser_toss(omObjData* obj) {
+    Vec pos = { 0.0f, 0.0f, 0.0f };
+    Vec vel = { 0.0f, 0.0f, 0.0f };
+    Vec scale = { 0.0f, 0.0f, 0.0f };
+    BtPlayer* p;
+    BtBowser* bw;
+    func_800E1BA8_minigame_ObjData* w;
+    HmfModel* model;
+    f32 sx;
+    f32 sy;
+    f32 t;
+    f32 d;
+    f32 tgt;
+    f32 ang;
+    s32 ret;
+
+    p = func_8010D98C_bowser_toss(obj);
+    bw = func_80108800_bowser_toss(p->unk00);
+    w = obj->data;
+    model = &HmfModelData[obj->model[0]];
+    switch (func_800E6E8C_minigame()) {
+    case 0:
+        if (p->unk0C == 0) {
+            if (p->unk08 >= 30.0f) {
+                p->unk08 = 0;
+                p->unk0C = 1;
+            }
+        } else if (D_8010FB74_bowser_toss[0].unk0C > 0 && D_8010FB74_bowser_toss[1].unk0C > 0 &&
+                   D_8010FB68_bowser_toss <= 0) {
+            D_8010FB68_bowser_toss++;
+        }
+        break;
+    case 2:
+        if (p->unk1E != 0) {
+            func_80107E84_bowser_toss(obj);
+        }
+        switch (p->unk0C) {
+        case 1:
+            if (D_800D5558_main[p->unk1A] & 0x8000) {
+                if (func_800E5690_minigame(obj, 4) != 0) {
+                    p->unk30 = 10;
+                    p->unk32 = 1;
+                    p->unk44 += 0.5f;
+                    if (p->unk44 >= 45.0f) {
+                        p->unk44 = 45.0f;
+                    } else if (p->unk44 < 3.0f) {
+                        p->unk44 = 3.0f;
+                    }
+                    p->unk4C = 1;
+                    model->unk5C = 0.0f;
+                    p->unk0C = 2;
+                    p->unk10 = func_8004AC5C_main(0x4A6, p->unk00);
+                } else {
+                    p->unk44 = 0.0f;
+                }
+            }
+            break;
+        case 2:
+            sx = fabs(D_800CBB6E_main[p->unk1A]);
+            if (fabs(sx) < 8.0) {
+                sx = 0.0f;
+            } else if (sx > 60.0f) {
+                sx = 60.0f;
+            } else if (sx < -60.0f) {
+                sx = -60.0f;
+            }
+            if (sx >= 8.0f) {
+                sx -= 8.0f;
+            }
+            sy = fabs(D_800D20A1_main[p->unk1A]);
+            if (fabs(sy) < 8.0) {
+                sy = 0.0f;
+            } else if (sy > 60.0f) {
+                sy = 60.0f;
+            } else if (sy < -60.0f) {
+                sy = -60.0f;
+            }
+            if (sy >= 8.0f) {
+                sy -= 8.0f;
+            }
+            ret = func_800E2250_minigame(obj, sx, sy);
+            sx = ret >> 16;
+            sy = ret & 0xFFFF;
+            t = sqrtf(sx * sx + sy * sy) / 52.0f;
+            if (t < 0.0f) {
+                t = 0.0f;
+            } else if (t > 1.0f) {
+                t = 1.0f;
+            }
+            p->unk48 = tgt = t * p->unk2C + p->unk24;
+            if (model->unk04 == 0xFF) {
+                d = model->unk58 - tgt;
+                if (fabs(d) < 1.75) {
+                    model->unk58 = tgt;
+                } else if (d < 0.0f) {
+                    model->unk58 += 1.75f;
+                } else {
+                    model->unk58 -= 1.75f;
+                }
+            } else {
+                model->unk58 = 0.0f;
+            }
+            p->unk44 -= 0.075f;
+            t = 2.0 * (1.0 - bw->unk28);
+            if (t < 1.0f) {
+                t = 1.0f;
+            } else if (t > 2.0f) {
+                t = 2.0f;
+            }
+            t *= 0.5f;
+            if (D_800D5558_main[p->unk1A] & 0x8000) {
+                p->unk44 += t;
+                if (!(++p->unk0E & 1)) {
+                    pos.x = obj->trans.x;
+                    pos.y = obj->trans.y + 20.0;
+                    pos.z = obj->trans.z;
+                    vel.x = sindf(obj->rot.y) * 20.0 * 0.20000000298023224;
+                    vel.z = cosdf(obj->rot.y) * 20.0 * 0.20000000298023224;
+                    vel.y = 0.0f;
+                    scale.x = scale.y = scale.z = 0.5f;
+                    func_8010A2D4_bowser_toss(&pos, &vel, &scale, 1.0f, p->unk00);
+                }
+            }
+            if (p->unk44 >= 45.0f) {
+                p->unk44 = 45.0f;
+            } else if (p->unk44 < 3.0f) {
+                p->unk44 = 3.0f;
+            }
+            model->unk44 = p->unk44 * 10.0f / 45.0f;
+            if (p->unk44 >= 0.5f && model->unk44 < 0.3f) {
+                model->unk44 = 0.3f;
+            }
+            if (model->unk44 >= 1.0f) {
+                model->unk44 = 1.0f;
+            }
+            obj->rot.y += p->unk44;
+            if (obj->rot.y >= 360.0f) {
+                obj->rot.y -= 360.0f;
+            }
+            bw->unk28 = p->unk44 / 45.0f;
+            if (bw->unk28 >= 1.0f) {
+                bw->unk28 = 1.0f;
+            } else if (bw->unk28 < 0.0f) {
+                bw->unk28 = 0.0f;
+            }
+            if (p->unk10 != -1) {
+                HuAudFXPitchSet(p->unk10, (s16)((f32)((1.0 - bw->unk28) * -3600.0) +
+                                                (((ang = obj->rot.y) <= 180.0f) ? ang - 90.0f : -(ang - 270.0f)) *
+                                                    0.011111111f * 400.0f));
+            }
+            bw->unk2C = (model->unk58 - p->unk24) / p->unk2C;
+            if (bw->unk2C >= 1.0f) {
+                bw->unk2C = 1.0f;
+            } else if (bw->unk2C < 0.0f) {
+                bw->unk2C = 0.0f;
+            }
+            break;
+        case 3:
+            if (p->unk4C != 0) {
+                if (p->unk48 < p->unk24) {
+                    p->unk48 = p->unk24;
+                }
+                if (model->unk04 == 0xFF) {
+                    d = model->unk58 - p->unk48;
+                    if (fabs(d) < 1.75) {
+                        model->unk58 = p->unk48;
+                    } else if (d < 0.0f) {
+                        model->unk58 += 1.75f;
+                    } else {
+                        model->unk58 -= 1.75f;
+                    }
+                } else {
+                    model->unk58 = 0.0f;
+                }
+                model->unk44 = p->unk44 * 10.0f / 45.0f;
+                if (p->unk44 >= 0.5f && model->unk44 < 0.3f) {
+                    model->unk44 = 0.3f;
+                }
+                if (model->unk44 >= 1.0f) {
+                    model->unk44 = 1.0f;
+                }
+                bw->unk28 = p->unk44 / 45.0f;
+                if (bw->unk28 >= 1.0f) {
+                    bw->unk28 = 1.0f;
+                } else if (bw->unk28 < 0.0f) {
+                    bw->unk28 = 0.0f;
+                }
+                bw->unk2C = (model->unk58 - p->unk24) / p->unk2C;
+                if (bw->unk2C >= 1.0f) {
+                    bw->unk2C = 1.0f;
+                } else if (bw->unk2C < 0.0f) {
+                    bw->unk2C = 0.0f;
+                }
+                if (p->unk44 >= 45.0f) {
+                    p->unk44 = 45.0f;
+                } else if (p->unk44 < 3.0f) {
+                    p->unk44 = 3.0f;
+                }
+                if (p->unk10 != -1) {
+                    HuAudFXPitchSet(p->unk10, (s16)((f32)((1.0 - bw->unk28) * -3600.0) +
+                                                    (((ang = obj->rot.y) <= 180.0f) ? ang - 90.0f : -(ang - 270.0f)) *
+                                                        0.011111111f * 400.0f));
+                }
+                obj->rot.y += p->unk44;
+                if (obj->rot.y >= 720.0f) {
+                    obj->rot.y -= 720.0f;
+                }
+                if (obj->rot.y >= 450.0f) {
+                    bw->unk0A = 1;
+                    bw->unk0C = model->unk58;
+                    if (p->unk10 != -1) {
+                        HuAudFXStop(p->unk10);
+                    }
+                    p->unk10 = -1;
+                    func_8004AC98_main(p->unk1C + 0xB0, p->unk00);
+                    func_800E5690_minigame(obj, 0);
+                    HmfModelData[obj->model[0]].unk06 = 0xFF;
+                    p->unk3C = 0;
+                    p->unk0C = 4;
+                }
+            } else {
+                p->unk0C = 4;
+            }
+            break;
+        case 4:
+            if (p->unk3C != 0) {
+                p->unk0C = 5;
+                p->unk08 = 0;
+                break;
+            }
+            obj->rot.y += p->unk44;
+            if (obj->rot.y >= 360.0f) {
+                obj->rot.y -= 360.0f;
+            }
+            if (p->unk44 != 0.0f) {
+                p->unk44 *= 0.9f;
+            }
+            if (p->unk44 <= 0.1f) {
+                p->unk44 = 0.0f;
+                p->unk0C = 5;
+                p->unk08 = 0;
+            }
+            break;
+        case 5:
+            break;
+        }
+        break;
+    case 3:
+        switch (p->unk0C) {
+        case 5:
+            p->unk0C = (D_8010FB78_bowser_toss == p->unk00) ? 6 : 9;
+        case 6:
+            if (p->unk04 < 400.0) {
+                p->unk0C = 9;
+            } else if (p->unk04 < 800.0) {
+                func_800E5690_minigame(obj, 3);
+                p->unk34 = 19.0f;
+                p->unk0C = 7;
+                func_8004AC98_main(p->unk1C + 0x3B, p->unk00);
+                p->unk38 = ((f32)((p->unk04 - 400.0) / 400.0) + 1.0) * 9.000000357627869;
+            } else {
+                obj->trans.x = bw->unk30.x - 500.0;
+                obj->trans.y = 700.0f;
+                func_800E5690_minigame(obj, 3);
+                p->unk34 = 0.0f;
+                p->unk0C = 8;
+                func_8004AC98_main(p->unk1C + 0xB9, p->unk00);
+            }
+            break;
+        case 7:
+            obj->trans.x += p->unk38;
+            obj->trans.y += p->unk34;
+            p->unk34 -= 1.79663f;
+            obj->rot.y = func_8010D6E0_bowser_toss(90.0f, obj->rot.y, 10.0f);
+            if (obj->trans.y <= 0.0f) {
+                func_800E5690_minigame(obj, 0);
+                func_8004AC98_main(p->unk1C + 0x32, p->unk00);
+                obj->trans.y = 0.0f;
+                p->unk0C = 9;
+            }
+            break;
+        case 8:
+            obj->trans.x += 9.000000357627869;
+            obj->trans.y += p->unk34;
+            p->unk34 -= 1.79663f;
+            obj->rot.y = func_8010D6E0_bowser_toss(90.0f, obj->rot.y, 10.0f);
+            if (obj->trans.y <= 0.0f) {
+                func_800E5690_minigame(obj, 0);
+                func_8004AC98_main(p->unk1C + 0x32, p->unk00);
+                if (D_8010FB84_bowser_toss == -1) {
+                    D_8010FB84_bowser_toss = HuAudFXPlay(0x4AA);
+                }
+                obj->trans.y = 0.0f;
+                p->unk0C = 9;
+            }
+            break;
+        case 9:
+            if (p->unk3C != 0) {
+                func_800E5690_minigame(obj, 0);
+                HmfModelData[obj->model[0]].unk06 = 0xFF;
+                bw->unk0A = 3;
+                p->unk3C = 0;
+            }
+            obj->rot.y = func_8010D6E0_bowser_toss(0.0f, obj->rot.y, 10.0f);
+            if (obj->rot.y < 1.0f || obj->rot.y >= 359.0f) {
+                p->unk0C = 10;
+            }
+            break;
+        case 10:
+            break;
+        }
+        break;
+    case 4:
+        switch (p->unk02) {
+        case 0:
+            if (func_800E5690_minigame(obj, 7) != 0) {
+                func_80017790_main(obj->model[0], 2, p->unk1C, D_8010F154_bowser_toss[p->unk1C]);
+                func_80045F1C_main(p->unk14, -1, p->unk00);
+                p->unk02 = -1;
+            }
+            break;
+        case 1:
+            if (func_800E5690_minigame(obj, 8) != 0) {
+                func_80017790_main(obj->model[0], 2, p->unk1C, D_8010F174_bowser_toss[p->unk1C]);
+                p->unk02 = -1;
+            }
+            break;
+        }
+        break;
+    }
+    func_800E4E30_minigame(obj);
+    if (*(s32*)&p->unk30 != 0 && w->unkD6 == 0) {
+        model = &HmfModelData[obj->model[0]];
+        if (p->unk30 != 0) {
+            model->unk0C = p->unk30;
+        }
+        if (p->unk30 == 1) {
+            model->unk0E = p->unk30;
+        }
+        if (p->unk32 != 0) {
+            model->unk44 = 0.0f;
+            model->unk50 = 0.0f;
+        }
+        p->unk30 = p->unk32 = 0;
+    }
+    p->unk08++;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+}
+#else
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", D_8010F5A0_bowser_toss);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80106BC4_bowser_toss);
+#endif
 
+/* NON_MATCHING: retail computes the pad index shift before the first store. */
+#ifdef NON_MATCHING
+void func_80107E84_bowser_toss(omObjData* obj) {
+    BtPlayer* p;
+    s16 pad;
+    f32 t;
+    u8 r;
+
+    p = func_8010D98C_bowser_toss(obj);
+    func_80108800_bowser_toss(p->unk00);
+    pad = p->unk1A;
+    D_800D20A1_main[pad] = 0;
+    D_800D5558_main[pad] = 0;
+    D_800CDA7C_main[pad] = 0;
+    switch (p->unk0C) {
+    case 1:
+        p->unk54 = D_8010F230_bowser_toss[p->unk20] +
+                   D_8010F240_bowser_toss[p->unk20] * ((0.5 - (f32)(u8)(rand8() % 100) * 0.01) * 2.0);
+        r = rand8();
+        p->unk58 = func_801080D0_bowser_toss(p->unk54,
+                                             D_8010F260_bowser_toss[p->unk20] + (f32)(u8)(r % 100) * 0.01 * 1500.0,
+                                             D_8010F250_bowser_toss[p->unk20]);
+        D_800D5558_main[p->unk1A] |= 0x8000;
+        break;
+    case 2:
+        D_800D20A1_main[p->unk1A] = p->unk54 * 60.0f;
+        t = p->unk44 / 45.0f;
+        if ((p->unk08 & 1) && t < p->unk58) {
+            D_800D5558_main[p->unk1A] |= 0x8000;
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80107E84_bowser_toss);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_801080D0_bowser_toss);
+f32 func_801080D0_bowser_toss(f32 arg0, f32 arg1, f32 arg2) {
+    f32 pos[2];
+    f32 vel[2];
+    f32 ang;
+    f32 s;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010840C_bowser_toss);
+    ang = 360.0f - arg0 * 85.0f;
+    for (s = 0.5f; s < 1.0f; s += 0.01f) {
+        pos[0] = D_8010F270_bowser_toss[0];
+        pos[1] = D_8010F270_bowser_toss[1];
+        vel[0] = fabs(cosdf(ang)) * s * 75.99999904632568;
+        vel[1] = fabs(sindf(ang)) * s * 75.99999904632568;
+        while (pos[1] > 0.0f) {
+            pos[0] += vel[0];
+            pos[1] += vel[1];
+            vel[1] -= 0.65332f;
+            if (vel[1] < -250.0) {
+                vel[1] = -250.0f;
+            }
+        }
+        if (arg1 <= pos[0]) {
+            return s;
+        }
+    }
+    for (s = 0.5f; s > 0.1f; s -= 0.01f) {
+        pos[0] = D_8010F270_bowser_toss[0];
+        pos[1] = D_8010F270_bowser_toss[1];
+        vel[0] = fabs(cosdf(ang)) * s * 75.99999904632568;
+        vel[1] = fabs(sindf(ang)) * s * 75.99999904632568;
+        while (pos[1] > 0.0f) {
+            pos[0] += vel[0];
+            pos[1] += vel[1];
+            vel[1] -= 0.65332f;
+            if (vel[1] < -250.0) {
+                vel[1] = -250.0f;
+            }
+        }
+        if (arg1 <= pos[0]) {
+            return s;
+        }
+    }
+    return arg2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80108444_bowser_toss);
+s32 func_8010840C_bowser_toss(void) {
+    BtPlayer* p;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010847C_bowser_toss);
+    for (i = 0, p = D_8010FB74_bowser_toss; i < 2; i++, p++) {
+        if (p->unk0C != 5) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_801084DC_bowser_toss);
+s32 func_80108444_bowser_toss(void) {
+    BtPlayer* p;
+    s32 i;
 
+    for (i = 0, p = D_8010FB74_bowser_toss; i < 2; i++, p++) {
+        if (p->unk0C != 10) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void func_8010847C_bowser_toss(omObjData* obj, s16 a, s16 b) {
+    HmfModel* ma = &HmfModelData[obj->model[a]];
+    HmfModel* mb = &HmfModelData[obj->model[b]];
+    HmfData* tmp = ma->hmf;
+
+    ma->hmf = mb->hmf;
+    mb->hmf = tmp;
+}
+
+void func_801084DC_bowser_toss(void) {
+    BtBowser* bw;
+    s32 i;
+
+    bw = D_8010FB8C_bowser_toss = HuMemAllocTag(sizeof(BtBowser) * 2, 31000);
+    memset(bw, 0, sizeof(BtBowser) * 2);
+    for (i = 0; i < 2; i++, bw++) {
+        bw->unk00 = NULL;
+        bw->unk5C = NULL;
+        bw->unk10 = 0.0f;
+        bw->unk14 = 120.0f;
+        bw->unk18 = 0.0f;
+        bw->unk1C = 0.0f;
+        bw->unk20 = -1;
+        bw->unk22 = 0;
+        bw->unk24 = 0;
+    }
+    D_8010FB88_bowser_toss = omAddObj(0x14, 0, 0, -1, func_8010882C_bowser_toss);
+}
+
+/* NON_MATCHING: register allocation of the model id sign extension before Hu3DModelScaleSet. */
+#ifdef NON_MATCHING
+void func_8010858C_bowser_toss(s16 idx) {
+    BtBowser* bw = &D_8010FB8C_bowser_toss[idx];
+    HmfModel* model;
+    u8 mtn;
+    u8 mtn2;
+    s32 size;
+    s16 mask;
+    u16 m;
+    D_800CCF58_main_Struct* anim;
+
+    bw->unk00 = D_800EC598_minigame[idx];
+    bw->unk0A = 0;
+    func_8010D98C_bowser_toss(bw->unk00);
+    model = &HmfModelData[bw->unk00->model[0]];
+    mtn = model->unk02;
+    mtn2 = model->unk06;
+    model->unk02 = bw->unk00->motion[4];
+    model->unk06 = bw->unk00->motion[6];
+    bw->unk5C = func_8010D9E0_bowser_toss(bw->unk00->model[0], 1, "item_hook", 1, 0);
+    model->unk02 = mtn;
+    model->unk06 = mtn2;
+    anim = &D_800CCF58_main[bw->unk00->motion[6]];
+    size = (s16)(anim->unk02 + 1) << 6;
+    bw->unk60 = HuMemAllocTag(size, 31000);
+    memset(bw->unk60, 0, size);
+    memcpy(bw->unk60, bw->unk5C->unk_08, size);
+    func_8010DDC4_bowser_toss(bw->unk5C);
+    bw->unk5C = NULL;
+    if (idx == 0) {
+        bw->unk04 = func_8000B108_main(0x550000, 0x299);
+        bw->unk06 = func_8000B108_main(0x550005, 0x29D);
+        bw->unk08 = m = func_8000B108_main(0, 0x299);
+    } else {
+        bw->unk04 = Hu3DModelLink(D_8010FB8C_bowser_toss[0].unk04);
+        bw->unk06 = Hu3DModelLink(D_8010FB8C_bowser_toss[0].unk06);
+        bw->unk08 = m = Hu3DModelLink(D_8010FB8C_bowser_toss[0].unk08);
+    }
+    Hu3DModelScaleSet(m, 1.3f, 1.3f, 1.3f);
+    func_8001C258_main(bw->unk04, 0x4000, 0x4000);
+    func_8001EF6C_main(bw->unk04, bw->unk00->model[0], "item_hook");
+    mask = 1 << idx;
+    func_8001C8A8_main(bw->unk04, mask);
+    func_8001C8A8_main(bw->unk06, mask);
+    func_8001C8A8_main(bw->unk08, mask);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010858C_bowser_toss);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_80108800_bowser_toss);
+BtBowser* func_80108800_bowser_toss(s16 idx) {
+    return &D_8010FB8C_bowser_toss[idx];
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010882C_bowser_toss);
 
