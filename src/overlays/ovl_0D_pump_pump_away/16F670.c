@@ -1354,20 +1354,23 @@ void func_80108CFC_pump_pump_away(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108CFC_pump_pump_away);
 #endif
 
+#ifdef NON_MATCHING
 void func_80108E74_pump_pump_away(omObjData *obj) {
+    PpDrawHookAdd hookAdd0 = (PpDrawHookAdd)(void (*)(void))func_8001AC8C_main;
+    PpDrawHookAdd hookAdd1 = (PpDrawHookAdd)(void (*)(void))func_8001AC8C_main;
     PpHud *h = D_80111758_pump_pump_away;
     s32 i;
 
     D_8011175C_pump_pump_away = func_8000B838_main(0x2E0015);
     D_80111764_pump_pump_away = func_80055194_main((s16)D_8011175C_pump_pump_away);
-    D_80111760_pump_pump_away = ((PpDrawHookAdd)(void (*)(void))func_8001AC8C_main)(0, func_80108560_pump_pump_away, 2);
+    D_80111760_pump_pump_away = hookAdd0(0, func_80108560_pump_pump_away, 2);
     func_8001C8A8_main((s16)D_80111760_pump_pump_away, 1);
     D_80111788_pump_pump_away = 0;
     h->state = 0;
     h++;
     D_80111790_pump_pump_away = func_8000B838_main(0x2E0016);
     D_80111798_pump_pump_away = func_80055194_main((s16)D_80111790_pump_pump_away);
-    D_80111794_pump_pump_away = ((PpDrawHookAdd)(void (*)(void))func_8001AC8C_main)(0, func_80108810_pump_pump_away, 2);
+    D_80111794_pump_pump_away = hookAdd1(0, func_80108810_pump_pump_away, 2);
     func_8001C8A8_main((s16)D_80111794_pump_pump_away, 1);
     D_801117BC_pump_pump_away = 0;
     h->state = 0;
@@ -1376,6 +1379,9 @@ void func_80108E74_pump_pump_away(omObjData *obj) {
         h->val[i] = 100;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108E74_pump_pump_away);
+#endif
 
 void func_80108FA8_pump_pump_away(void) {
     omAddObj(900, 2, 0, -1, func_80108E74_pump_pump_away)->work[0] = 0;
