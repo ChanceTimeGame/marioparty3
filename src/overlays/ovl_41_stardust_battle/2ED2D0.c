@@ -140,8 +140,13 @@ s16 func_80107FE8_stardust_battle(void);
 void func_80108074_stardust_battle(void);
 void func_801080B0_stardust_battle(void);
 void func_801080EC_stardust_battle(void);
+void func_80108120_stardust_battle(omObjData *obj);
+void func_801081FC_stardust_battle(omObjData *obj);
+void func_801082C4_stardust_battle(omObjData *obj);
+void func_80108404_stardust_battle(omObjData *obj);
 void func_80108444_stardust_battle(void);
 void func_8010844C_stardust_battle(void);
+void func_80108454_stardust_battle(omObjData *obj);
 void func_801089B4_stardust_battle(void);
 u16 func_8010EE38_stardust_battle(s32 dirAndFile);
 void func_8010F580_stardust_battle(s16 idx);
@@ -172,6 +177,10 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+void func_800E5798_minigame(omObjData *obj, u16 motion);
+omObjData *func_80045F1C_main(u32, s16, s16);
+extern f32 D_800EB748_minigame;
+extern f32 D_800EB774_minigame;
 void func_80108120_stardust_battle(omObjData *obj);
 void func_801081FC_stardust_battle(omObjData *obj);
 void func_801082C4_stardust_battle(omObjData *obj);
@@ -1067,13 +1076,72 @@ void func_801080EC_stardust_battle(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80108120_stardust_battle);
+void func_80108120_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(obj);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801081FC_stardust_battle);
+    switch (pl->unk3A) {
+    case 0:
+        func_800E5690_minigame(obj, 0x28);
+        pl->unk3A++;
+        break;
+    case 1:
+        if (func_800E4A90_minigame(obj) == 1) {
+            func_800E5690_minigame(obj, 0x29);
+            pl->unk3A++;
+            pl->unk3C = 0;
+        }
+        break;
+    case 2:
+        pl->unk3C++;
+        if (func_800E4A90_minigame(obj) == 1) {
+            pl->unk6C = NULL;
+            pl->unk3C = 0;
+            pl->unk3A = 0;
+        }
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801082C4_stardust_battle);
+void func_801081FC_stardust_battle(omObjData *obj) {
+    f32 x = obj->trans.x;
+    f32 z = obj->trans.z;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80108404_stardust_battle);
+    if (x > 200.0) {
+        x = 200.0f;
+    } else if (x < -200.0) {
+        x = -200.0f;
+    }
+    if (z > 300.0) {
+        z = 300.0f;
+    }
+    func_801117E4_stardust_battle(x, 65535.0f, z, 65535.0f, 65535.0f, 65535.0f, 65535.0f, 1);
+}
+
+void func_801082C4_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(D_800EC598_minigame[0]);
+    MgWork *work = obj->data;
+
+    if (pl->unk04 != -1 && work->unk38 == 1000.0f && !(func_800E4A90_minigame(obj) & 0x8C00)) {
+        if (pl->unk04 == 13) {
+            if (func_80111B28_stardust_battle(0.0f, work->unk3C) < 5.0f) {
+                work->unk3C = 0.0f;
+            } else {
+                work->unk3C = func_80111C2C_stardust_battle(0.0f, work->unk3C, 5.0f);
+                return;
+            }
+        }
+        HmfModelData[obj->model[0]].unk06 = 0xFF;
+        func_800E5798_minigame(obj, pl->unk04);
+        func_80045F1C_main(pl->unk04 == 13 ? pl->unk18 : pl->unk1C, -1, pl->unk20);
+        pl->unk04 = -1;
+    }
+}
+
+void func_80108404_stardust_battle(omObjData *obj) {
+    D_800EB744_minigame = 1.47f;
+    D_800EB748_minigame = 0.15f;
+    D_800EB774_minigame = 1.7f;
+}
 
 void func_80108444_stardust_battle(void) {
 }
@@ -1081,7 +1149,14 @@ void func_80108444_stardust_battle(void) {
 void func_8010844C_stardust_battle(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80108454_stardust_battle);
+void func_80108454_stardust_battle(omObjData *obj) {
+    SbPlayer *pl = func_80111FEC_stardust_battle(obj);
+
+    D_800EB744_minigame = 1.029f;
+    D_800EB748_minigame = 0.105000004f;
+    D_800EB774_minigame = 1.19f;
+    pl->unk0A = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801084B0_stardust_battle);
 
