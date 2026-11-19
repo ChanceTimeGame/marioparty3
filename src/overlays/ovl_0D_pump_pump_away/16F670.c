@@ -94,6 +94,21 @@ typedef struct PpScreen {
     /* 0x14 */ s32 timer;
 } PpScreen;
 
+/* A 2D overlay with up to eight values (D_80111758_pump_pump_away, D_8011178C_pump_pump_away). */
+typedef struct PpHud {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 grp;
+    /* 0x08 */ s32 draw;
+    /* 0x0C */ HuSprite_Unk84_Struct *spr;
+    /* 0x10 */ s32 val[8];
+    /* 0x30 */ s32 alpha;
+} PpHud; // Size 0x34
+
+typedef struct PpPos16 {
+    /* 0x00 */ u16 x;
+    /* 0x02 */ u16 y;
+} PpPos16;
+
 /* A water splash slot (D_801117E0_pump_pump_away, 20 x 0x10). */
 typedef struct PpSplash {
     /* 0x00 */ s32 used;
@@ -163,6 +178,13 @@ extern s32 D_80113540_pump_pump_away; /* .alpha */
 extern s32 D_80113544_pump_pump_away; /* .timer */
 extern PpSplash D_801117E0_pump_pump_away[20];
 extern PpTank D_801117C0_pump_pump_away[2];
+extern PpHud D_80111758_pump_pump_away;
+extern PpHud D_8011178C_pump_pump_away;
+extern s32 D_80111788_pump_pump_away; /* D_80111758_pump_pump_away.alpha */
+extern s32 D_801117BC_pump_pump_away; /* D_8011178C_pump_pump_away.alpha */
+extern Vec D_80110FC4_pump_pump_away[];
+extern PpPos16 D_80110FDC_pump_pump_away[];
+extern PpPos16 D_80110FE4_pump_pump_away[];
 extern Vec D_80110F6C_pump_pump_away[];
 extern f32 D_80110F9C_pump_pump_away[];
 extern s32 D_80113528_pump_pump_away;
@@ -181,6 +203,8 @@ void func_800335BC_main(char *arg0, void *arg1);
 void func_8010749C_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 void func_8010775C_pump_pump_away(omObjData *obj);
 void func_801078B4_pump_pump_away(void);
+void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
+void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2);
 
 s32 func_80110D28_pump_pump_away(void);
 void func_801059A0_pump_pump_away(void);
@@ -1064,13 +1088,103 @@ void func_801082AC_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108358_pump_pump_away);
+void func_80108358_pump_pump_away(omObjData *obj) {
+    void *data;
+    PpTank *tank;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108504_pump_pump_away);
+    obj->model[0] = func_8000B108_main(0x2E0009, 0x289);
+    func_8000B460_main(obj, 0, 0x2E000A);
+    func_8000B460_main(obj, 1, 0x2E000B);
+    if (obj->work[0] != 0) {
+        data = DataRead(0x2E000C);
+        obj->work[1] = (s16)HmfAnimCreate(HmfModelData[obj->model[0]].hmf, data, 0, "m213_hose_r_DEF");
+        func_80032FC0_main((s16)obj->work[1], 1, 1);
+        HuMemMemoryFreePerm(data);
+        func_8001C448_main(obj->model[0]);
+        func_8001C514_main(obj->model[0]);
+    }
+    func_8001C5B4_main(obj->model[0], obj->motion[0]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    obj->trans.x = D_80110FC4_pump_pump_away[obj->work[0]].x;
+    obj->trans.y = D_80110FC4_pump_pump_away[obj->work[0]].y;
+    obj->trans.z = D_80110FC4_pump_pump_away[obj->work[0]].z;
+    obj->func = func_801082AC_pump_pump_away;
+    tank = &D_801117C0_pump_pump_away[obj->work[0]];
+    tank->unk00 = 0;
+    tank->state = 0;
+    tank->level = 0;
+    tank->count = 0;
+}
 
+void func_80108504_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        omAddObj(600, 1, 2, -1, func_80108358_pump_pump_away)->work[0] = i;
+    }
+}
+
+#ifdef NON_MATCHING
+void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
+    PpHud *h = &D_80111758_pump_pump_away;
+    Gfx *g;
+    s32 i;
+
+    if (h->state != -1) {
+        if (D_80111788_pump_pump_away < 0xFF) {
+            gfx = func_80105B6C_pump_pump_away(func_80105AA0_pump_pump_away(gfx), (u8)D_80111788_pump_pump_away);
+        } else {
+            gfx = func_801059BC_pump_pump_away(gfx);
+        }
+        g = *gfx;
+        gDPSetTextureLUT(g++, G_TT_RGBA16);
+        gDPLoadTLUT_pal16(g++, 0, h->spr->unk0C);
+        for (i = 0; i < 2; i++) {
+            gDPLoadTextureTile_4b(g++, h->spr->unk08, G_IM_FMT_CI, 64, 16, 0, 0, 64, 16, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                                  G_TX_NOLOD, G_TX_NOLOD);
+            gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 64 << 2, 16 << 2);
+            gSPTextureRectangle(g++, D_80110FDC_pump_pump_away[i].x << 2, D_80110FDC_pump_pump_away[i].y << 2, (D_80110FDC_pump_pump_away[i].x + 64) << 2,
+                                (D_80110FDC_pump_pump_away[i].y + 16) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+        }
+        *gfx = g;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108560_pump_pump_away);
+#endif
 
+#ifdef NON_MATCHING
+void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
+    PpHud *h = &D_8011178C_pump_pump_away;
+    Gfx *g;
+    s32 i;
+
+    if (h->state != -1) {
+        if (D_801117BC_pump_pump_away < 0xFF) {
+            gfx = func_80105B6C_pump_pump_away(func_80105AA0_pump_pump_away(gfx), (u8)D_801117BC_pump_pump_away);
+        } else {
+            gfx = func_801059BC_pump_pump_away(gfx);
+        }
+        g = *gfx;
+        gDPSetTextureLUT(g++, G_TT_RGBA16);
+        gDPLoadTLUT_pal16(g++, 0, h->spr->unk0C);
+        for (i = 0; i < 8; i++) {
+            if (i != 0 && i != 4) {
+                gDPLoadTextureTile_4b(g++, h->spr->unk08, G_IM_FMT_CI, 8, 100, 0, h->val[i], 8, h->val[i] + 10, 0,
+                                      G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
+                                      G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+                gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 8 << 2, 10 << 2);
+                gSPTextureRectangle(g++, D_80110FE4_pump_pump_away[i].x << 2, D_80110FE4_pump_pump_away[i].y << 2, (D_80110FE4_pump_pump_away[i].x + 8) << 2,
+                                    (D_80110FE4_pump_pump_away[i].y + 10) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+            }
+        }
+        *gfx = g;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108810_pump_pump_away);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108B0C_pump_pump_away);
 
