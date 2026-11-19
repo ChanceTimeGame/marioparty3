@@ -90,7 +90,11 @@ typedef struct SsPlayer {
     /* 0x20 */ Vec vel;
     /* 0x2C */ f32 unk2C;
     /* 0x30 */ Vec next;
-    /* 0x3C */ char unk3C[0x34];
+    /* 0x3C */ s32 unk3C;
+    /* 0x40 */ s32 holdTime;
+    /* 0x44 */ s32 holdCount;
+    /* 0x48 */ s32 rolling;
+    /* 0x4C */ char unk4C[0x24];
     /* 0x70 */ s32 ball; /* the snowball being rolled, -1 none */
     /* 0x74 */ s32 unk74;
     /* 0x78 */ omObjData *obj;
@@ -119,6 +123,7 @@ typedef struct SsBall {
 /* An angle wrapped once into [0, 360) (its argument is evaluated again on each test). */
 #define SS_WRAP(a) ((a) >= 360.0f ? (a) - 360.0f : (a) < 0.0f ? (a) + 360.0f : (a))
 #define SS_ABS(x) ((x) < 0.0f ? -(x) : (x))
+#define SS_IABS(x) ((x) < 0 ? -(x) : (x))
 
 typedef s32 (*SsDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
 
@@ -184,6 +189,7 @@ s32 func_80107988_snowball_summit(f32 cur, f32 target, f32 tol);
 void func_80107DD4_snowball_summit(SsPlayer *pl);
 s32 func_80107F80_snowball_summit(SsPlayer *pl);
 void func_8010811C_snowball_summit(omObjData *obj);
+s32 func_8010B994_snowball_summit(omObjData *obj);
 void func_8010F42C_snowball_summit(void);
 
 /* .data */
@@ -1123,11 +1129,158 @@ void func_8010811C_snowball_summit(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010811C_snowball_summit);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A0B0_snowball_summit);
+/* Walking: finish turn/roll motions, then steer by the stick. */
+void func_8010A0B0_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    HmfModel *m;
+    Vec stick;
 
+    switch (pl->motion) {
+        case 0:
+        case 2:
+            if (pl->ball != -1) {
+                func_80107CA4_snowball_summit(obj, 3);
+            } else {
+                func_80107CA4_snowball_summit(obj, 1);
+            }
+            break;
+        case 5:
+        case 6:
+            if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40) {
+                func_80107CA4_snowball_summit(obj, 1);
+            } else {
+                pl->speed = 0.0f;
+                pl->vel.x = pl->vel.z = pl->speed;
+            }
+            break;
+        case 3:
+        case 4:
+            if (pl->ball == -1) {
+                func_80107D30_snowball_summit(obj, 1, 0, 10);
+            } else {
+                if (pl->motion == 3 && D_8010FC30_snowball_summit[pl->ball].size >= 1.7) {
+                    func_80107D30_snowball_summit(obj, 4, 12, 6);
+                }
+                func_8001C814_main(obj->model[0], 2, 2);
+                func_8001C814_main(obj->model[0], 1, 0);
+            }
+            break;
+    }
+    func_80107908_snowball_summit(D_800CBB6E_main[GwPlayer[obj->work[0]].pad], -D_800D20A1_main[GwPlayer[obj->work[0]].pad],
+                                  0, 0, &stick);
+    if (pl->ball == -1) {
+        func_80107A18_snowball_summit(obj, stick, 30.0f);
+    } else {
+        func_80107A18_snowball_summit(obj, stick,
+                                      1.0f / (D_8010FC30_snowball_summit[pl->ball].size * D_8010FC30_snowball_summit[pl->ball].size) * 30.0f);
+    }
+    if (pl->motion != 5 && pl->motion != 6) {
+        func_80107B58_snowball_summit(obj, stick);
+    }
+    if (pl->rolling == 0) {
+        pl->holdTime = 0;
+        pl->holdCount = 0;
+    }
+}
+
+/* Standing: settle the motion, stop, and turn toward the stick when it is pushed. */
+// register allocation only (masked 0: obj/pl swap s0/s1)
+#ifdef NON_MATCHING
+void func_8010A384_snowball_summit(omObjData *obj) {
+    Vec stick;
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+
+    switch (pl->motion) {
+        case 2:
+            if (pl->holdTime > 0) {
+                pl->speed = 0.0f;
+                break;
+            }
+            if (pl->rolling != 0) {
+                func_80107D30_snowball_summit(obj, 3, 12, 10);
+                goto roll;
+            }
+            goto stand;
+        case 3:
+        case 4:
+            if (pl->ball == -1) {
+            stand:
+                func_80107D30_snowball_summit(obj, 0, 0, 10);
+                pl->speed = 0.0f;
+                break;
+            }
+            if (pl->motion == 3 && D_8010FC30_snowball_summit[pl->ball].size >= 1.7) {
+                func_80107D30_snowball_summit(obj, 4, 12, 3);
+            }
+        roll:
+            func_8001C6A8_main(obj->model[0], 12.0f);
+            func_8001C814_main(obj->model[0], 2, 0);
+            func_8001C814_main(obj->model[0], 1, 1);
+            pl->speed = 0.0f;
+            break;
+        case 5:
+        case 6:
+            if (!(D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 - 2 <= HmfModelData[obj->model[0]].unk40)) {
+                pl->speed = 0.0f;
+                break;
+            }
+        case 1:
+            func_80107CA4_snowball_summit(obj, 0);
+        default:
+            pl->speed = 0.0f;
+            break;
+    }
+    pl->vel.x = pl->vel.z = pl->speed;
+    if (!(SS_IABS(D_800CBB6E_main[GwPlayer[obj->work[0]].pad]) < 11
+          && SS_IABS(D_800D20A1_main[GwPlayer[obj->work[0]].pad]) < 11)) {
+        func_80107908_snowball_summit(D_800CBB6E_main[GwPlayer[obj->work[0]].pad],
+                                      -D_800D20A1_main[GwPlayer[obj->work[0]].pad], 0, 0, &stick);
+        if (pl->ball == -1) {
+            func_80107A18_snowball_summit(obj, stick, 30.0f);
+        } else {
+            func_80107A18_snowball_summit(obj, stick,
+                                          1.0f / (D_8010FC30_snowball_summit[pl->ball].size * D_8010FC30_snowball_summit[pl->ball].size) * 30.0f);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A384_snowball_summit);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A71C_snowball_summit);
+/* Stick at rest with B (A) held: start packing a snowball after ten frames. */
+void func_8010A71C_snowball_summit(omObjData *obj) {
+    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+
+    if (!(SS_IABS(D_800CBB6E_main[GwPlayer[obj->work[0]].pad]) < 11
+          && SS_IABS(D_800D20A1_main[GwPlayer[obj->work[0]].pad]) < 11)) {
+        return;
+    }
+    if (pl->motion != 5 && pl->motion != 6) {
+        if (pl->motion != 1 && pl->motion != 2) {
+            func_80107CA4_snowball_summit(obj, 2);
+            pl->speed = 0.0f;
+            pl->vel.x = pl->vel.z = pl->speed;
+        } else if (pl->motion != 2 && pl->speed == 0.0f) {
+            func_80107CA4_snowball_summit(obj, 2);
+            pl->speed = 0.0f;
+            pl->vel.x = pl->vel.z = 0.0f;
+        }
+        pl->holdTime = 30;
+        if (++pl->holdCount >= 10) {
+            pl->ball = func_8010B994_snowball_summit(obj);
+            pl->rolling = 1;
+            pl->holdTime = 0;
+            pl->holdCount = 0;
+            func_80107CA4_snowball_summit(obj, 3);
+            func_8001C6A8_main(obj->model[0], 12.0f);
+            if (pl->unk08 == 0) {
+                omVibrate((s16)obj->work[0], 2, 3, 10);
+            }
+        } else {
+            func_8004AC98_main(0x438, (s16)obj->work[0]);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A940_snowball_summit);
 
