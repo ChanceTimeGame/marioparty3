@@ -389,6 +389,12 @@ void func_8010FE2C_pump_pump_away(omObjData *obj);
 void func_8010F268_pump_pump_away(omObjData *obj);
 void func_801104F4_pump_pump_away(omObjData *obj);
 
+extern s32 D_801116F8_pump_pump_away; /* advance the game phase on the next frame */
+extern s32 D_801116FC_pump_pump_away; /* phase timer */
+extern s32 D_80111118_pump_pump_away;
+void func_8010DD24_pump_pump_away(omObjData *obj);
+void func_8010FA20_pump_pump_away(omObjData *obj);
+
 
 void func_801059A0_pump_pump_away(void) {
     func_80110D28_pump_pump_away();
@@ -2118,7 +2124,13 @@ void func_8010B370_pump_pump_away(omObjData *obj) {
     t->obj = obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010B5D4_pump_pump_away);
+void func_8010B5D4_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        omAddObj(700, 1, 1, -1, func_8010B370_pump_pump_away)->work[0] = i;
+    }
+}
 
 void func_8010B630_pump_pump_away(omObjData *obj) {
     PpPlayer *pl = &D_80113438_pump_pump_away[obj->work[0]];
@@ -2774,38 +2786,75 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010DD24_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E098_pump_pump_away);
+void func_8010E098_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        omAddObj(780, 2, 1, -1, func_8010DD24_pump_pump_away)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E0F4_pump_pump_away);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E45C_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E65C_pump_pump_away);
+void func_8010E65C_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        omAddObj(761, 1, 1, -1, func_8010E45C_pump_pump_away)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E6B8_pump_pump_away);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010E98C_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010EB68_pump_pump_away);
+void func_8010EB68_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        omAddObj(762, 1, 0, -1, func_8010E98C_pump_pump_away)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010EBC4_pump_pump_away);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F024_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F20C_pump_pump_away);
+void func_8010F20C_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        omAddObj(762, 1, 0, -1, func_8010F024_pump_pump_away)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F268_pump_pump_away);
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F688_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F8A4_pump_pump_away);
+void func_8010F8A4_pump_pump_away(void) {
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        omAddObj(763, 1, 0, -1, func_8010F688_pump_pump_away)->work[0] = i;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F900_pump_pump_away);
 
-void func_8010FA20_pump_pump_away(void) {
+void func_8010FA20_pump_pump_away(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FA28_pump_pump_away);
+void func_8010FA28_pump_pump_away(omObjData *obj) {
+    if (D_801116FC_pump_pump_away > 0) {
+        D_801116FC_pump_pump_away--;
+        return;
+    }
+    D_801116F8_pump_pump_away = 1;
+    obj->func = func_8010FA20_pump_pump_away;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FA64_pump_pump_away);
 
@@ -2815,7 +2864,14 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010F
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FC64_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FCF8_pump_pump_away);
+void func_8010FCF8_pump_pump_away(omObjData *obj) {
+    if (D_801116FC_pump_pump_away > 0) {
+        D_801116FC_pump_pump_away--;
+        return;
+    }
+    D_801116F8_pump_pump_away = 1;
+    obj->func = func_8010FC64_pump_pump_away;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010FD34_pump_pump_away);
 
@@ -2843,19 +2899,52 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_801102E4_pump_pump_away);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8011038C_pump_pump_away);
+void func_8011038C_pump_pump_away(omObjData *obj) {
+    GMesCreate(0x1A, 10, 160, 28);
+    D_801116FC_pump_pump_away = 301;
+    obj->func = func_801102E4_pump_pump_away;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_801103D8_pump_pump_away);
+void func_801103D8_pump_pump_away(omObjData *obj) {
+    if (++D_80111118_pump_pump_away == 33) {
+        HuAudSeqPlay(46);
+    }
+    if (GMesStatGet() == 0 || GMesStatGet() & 2) {
+        obj->func = func_8011038C_pump_pump_away;
+        D_801116F8_pump_pump_away = 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110458_pump_pump_away);
+void func_80110458_pump_pump_away(omObjData *obj) {
+    GMesCreate(5);
+    obj->func = func_801103D8_pump_pump_away;
+    D_801116F8_pump_pump_away = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110498_pump_pump_away);
+void func_80110498_pump_pump_away(omObjData *object) {
+    osViBlack(0);
+    omOvlReturnEx(1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_801104BC_pump_pump_away);
+void func_801104BC_pump_pump_away(omObjData *object) {
+    if (WipeStatGet() == 0) {
+        object->func = func_80110498_pump_pump_away;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_801104F4_pump_pump_away);
+void func_801104F4_pump_pump_away(omObjData *obj) {
+    if (D_800D530C_main == 1) {
+        WipeCreateOut(0, 20);
+        obj->func = func_801104BC_pump_pump_away;
+        HuAudSeqFadeOut(30);
+        func_8004AB0C_main(30);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8011054C_pump_pump_away);
+void func_8011054C_pump_pump_away(void) {
+    D_801116F4_pump_pump_away += D_801116F8_pump_pump_away;
+    D_801116F8_pump_pump_away = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80110574_pump_pump_away);
 
