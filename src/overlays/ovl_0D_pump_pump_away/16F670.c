@@ -199,6 +199,8 @@ extern s16 D_8011110E_pump_pump_away;
 extern s32 D_80111110_pump_pump_away;
 extern s16 D_8011110A_pump_pump_away;
 extern PpFx D_80113400_pump_pump_away[3];
+extern s32 D_80111700_pump_pump_away;
+extern s32 D_80111704_pump_pump_away;
 extern s32 D_80111708_pump_pump_away;
 extern Vec D_80111004_pump_pump_away[];
 /* Fields of D_80113530_pump_pump_away under their own labels (retail addresses each directly). */
@@ -2312,9 +2314,146 @@ void func_8010C3E0_pump_pump_away(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010C4D0_pump_pump_away);
+void func_8010C4D0_pump_pump_away(omObjData *obj) {
+    PpPlayer *pl = &D_80113438_pump_pump_away[obj->work[0]];
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010C6E4_pump_pump_away);
+    if (pl->unk00 == -1) {
+        return;
+    }
+    switch (D_801116F4_pump_pump_away) {
+        case 0:
+        case 1:
+            func_80105D1C_pump_pump_away(obj->work[0]);
+            if (pl->unk0C == 0) {
+                func_8001C5B4_main(obj->model[0], obj->motion[1]);
+                func_8001C6A8_main(obj->model[0], 0.0f);
+                func_8001C814_main(obj->model[0], 1, 1);
+                pl->state = 1;
+                pl->unk0C = 0;
+            }
+            break;
+        case 2:
+            if (pl->unk20 != 0) {
+                func_80105D1C_pump_pump_away(obj->work[0]);
+                func_8010B630_pump_pump_away(obj);
+            }
+            func_8010B898_pump_pump_away(obj);
+            func_8010BC14_pump_pump_away(obj);
+            break;
+        case 3:
+            func_80105D1C_pump_pump_away(obj->work[0]);
+            func_8010BD80_pump_pump_away(obj);
+            if (GwPlayer[obj->work[0]].chr == 4) {
+                obj->rot.x = 0.0f;
+            }
+            break;
+        case 4:
+        case 5:
+            func_80105D1C_pump_pump_away(obj->work[0]);
+            func_8010BF14_pump_pump_away(obj);
+            break;
+        case 6:
+            if (D_80113530_pump_pump_away.state >= 2) {
+        case 7:
+                func_8010C060_pump_pump_away(obj);
+            }
+            break;
+        case 8:
+        case 9:
+            func_8010C1C8_pump_pump_away(obj);
+            break;
+        case 10:
+            func_8010C3E0_pump_pump_away(obj);
+            break;
+    }
+    if (obj->work[2] != 0) {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, 12.0f, obj->trans.z + 30.0f);
+    } else {
+        Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 2.0, obj->trans.z + 30.0f);
+    }
+}
+
+void func_8010C6E4_pump_pump_away(omObjData *obj) {
+    u16 chr = GwPlayer[obj->work[0]].chr;
+    PpPlayer *pl;
+
+    obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][1], 0x2B9);
+    func_8000B460_main(obj, 0, func_80017BB8_main(chr, 0));
+    func_8000B460_main(obj, 1, func_80017BB8_main(chr, 20));
+    func_8000B460_main(obj, 3, func_80017BB8_main(chr, 1));
+    func_8000B460_main(obj, 4, func_80017BB8_main(chr, 19));
+    func_8000B460_main(obj, 5, func_80017BB8_main(chr, 47));
+    func_8000B460_main(obj, 6, func_80017BB8_main(chr, 55));
+    func_8001C5B4_main(obj->model[0], obj->motion[1]);
+    func_8001C814_main(obj->model[0], 2, 2);
+    obj->model[1] = func_8000B0A0_main(0, 0xC9);
+    func_8001C2FC_main(obj->model[1], 0x80000000, 0);
+    func_8001C448_main(obj->model[1]);
+    func_8001C514_main(obj->model[1]);
+    func_80088800_main(HmfModelData[obj->model[1]].mtx, 0.0f, 5.0f, 0.0f);
+    if (obj->work[1] == 0) {
+        obj->trans.x = D_80110E70_pump_pump_away[D_80111700_pump_pump_away].x;
+        obj->trans.y = D_80110E70_pump_pump_away[obj->work[1] + D_80111700_pump_pump_away].y;
+        obj->trans.z = D_80110E70_pump_pump_away[obj->work[1] + D_80111700_pump_pump_away].z;
+        obj->work[3] = obj->work[1] + D_80111700_pump_pump_away;
+        D_80111700_pump_pump_away++;
+    } else {
+        obj->trans.x = D_80110E70_pump_pump_away[obj->work[1] + D_80111704_pump_pump_away + 1].x;
+        obj->trans.y = D_80110E70_pump_pump_away[obj->work[1] + D_80111704_pump_pump_away + 1].y;
+        obj->trans.z = D_80110E70_pump_pump_away[obj->work[1] + D_80111704_pump_pump_away + 1].z;
+        obj->work[3] = obj->work[1] + D_80111704_pump_pump_away + 1;
+        D_80111704_pump_pump_away++;
+    }
+    obj->rot.x = obj->rot.y = obj->rot.z = 0.0f;
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, obj->trans.y + 2.0, obj->trans.z + 30.0f);
+    switch (chr) {
+        case 0:
+            obj->trans.z -= 10.0f;
+        case 2:
+        case 7:
+            obj->trans.z -= 20.0f;
+            break;
+        case 3:
+            obj->trans.z -= 10.0f;
+            break;
+        case 4:
+            obj->trans.z -= 20.0f;
+            obj->rot.x = 350.0f;
+            break;
+        case 5:
+            obj->trans.z -= 45.0f;
+            break;
+    }
+    obj->func = func_8010C4D0_pump_pump_away;
+    pl = &D_80113438_pump_pump_away[obj->work[0]];
+    pl->unk00 = 0;
+    pl->obj = obj;
+    pl->state = 1;
+    pl->unk0C = 0;
+    pl->unk18 = 1;
+    pl->unk10 = 0;
+    pl->unk14 = 0;
+    pl->unk1C = 0;
+    pl->unk20 = GwPlayer[obj->work[0]].stat & 1;
+    pl->unk24 = GwPlayer[obj->work[0]].cpu_difficulty;
+    pl->unk28 = 0;
+    pl->unk2C = 0;
+    pl->unk34 = (u8)(rand8() % 5);
+    switch (pl->unk24) {
+        case 0:
+            pl->unk30 = 20;
+            break;
+        case 1:
+            pl->unk30 = 15;
+            break;
+        case 2:
+            pl->unk30 = 10;
+            break;
+        default:
+            pl->unk30 = 5;
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010CBF0_pump_pump_away);
 
