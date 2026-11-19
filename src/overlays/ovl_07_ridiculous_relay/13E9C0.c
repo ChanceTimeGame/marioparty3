@@ -13,6 +13,20 @@ typedef struct {
 } RrPlayer; // Size 0xC
 
 void func_8004AE00_main(s16, s16);
+extern s32 D_80111A30_ridiculous_relay[3];
+void func_80105F48_ridiculous_relay(omObjData *obj);
+void func_80108DE8_ridiculous_relay(Gfx **gfx, s32 arg1, s32 arg2);
+void func_8000B5F0_main(u8 arg0);
+void func_8000B710_main(s32);
+void func_800142A0_main(s32);
+void func_80105D40_ridiculous_relay(omObjData *obj);
+void func_801066A0_ridiculous_relay(omObjData *obj);
+void func_8010AE4C_ridiculous_relay(omObjData *obj);
+void func_8010AE80_ridiculous_relay(omObjData *obj);
+void func_8010AEAC_ridiculous_relay(omObjData *obj);
+void func_8010AED8_ridiculous_relay(omObjData *obj);
+extern D_80111B50_vine_with_me_Struct D_80110CB0_ridiculous_relay;
+extern const s16 D_80110E60_ridiculous_relay[];
 
 /* Main sprite-model slot (D_800CBB60_main; 14EA0.c's, copied as the awful_tower overlay does). */
 typedef struct {
@@ -127,9 +141,100 @@ extern f32 D_80111A50_ridiculous_relay;
 #define RR_K 0.028935185185185185
 #define RR_GROUND ((D_801119DC_ridiculous_relay * 100.0f) * 0.125 + -25.0)
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_801059A0_ridiculous_relay);
+#ifdef NON_MATCHING
+void func_801059A0_ridiculous_relay(void) {
+    omObjData *obj;
+    omObjData *view;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80105D40_ridiculous_relay);
+    func_800142A0_main(0x30);
+    omInitObjMan(50, 0);
+    func_8004A208_main();
+    D_800CD280_main = 1;
+    func_8000B5F0_main(2);
+    func_8000B710_main(2);
+    ScissorSet(0, 0.0f, 0.0f, 320.0f, 120.0f);
+    ScissorSet(1, 0.0f, 120.0f, 320.0f, 240.0f);
+    ViewportSet(0, 640.0f, 480.0f, 511.0f, 640.0f, 240.0f, 511.0f);
+    ViewportSet(1, 640.0f, 480.0f, 511.0f, 640.0f, 720.0f, 511.0f);
+    Hu3DCamSetPerspective(0, 22.619865f, 375.0f, 1250.0f);
+    Hu3DCamSetPerspective(1, 22.619865f, 375.0f, 1250.0f);
+    HmfLightMaxSet(1);
+    HmfLightDirSet(0, 0.0f, 0.0f, 90.0f);
+    HmfLightColorSet(0, 0x90, 0x90, 0x90);
+    HmfLightDirSet(1, 0.0f, 40.0f, 110.0f);
+    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+    CenterM[0].x = 0.0f;
+    CenterM[0].y = 0.0f;
+    CenterM[0].z = 0.0f;
+    CRotM[0].x = 0.0f;
+    CRotM[0].y = 0.0f;
+    CRotM[0].z = 0.0f;
+    CZoomM[0] = 468.75f;
+    CenterM[1].x = 0.0f;
+    CenterM[1].y = 0.0f;
+    CenterM[1].z = 0.0f;
+    CRotM[1].x = 0.0f;
+    CRotM[1].y = 0.0f;
+    CRotM[1].z = 0.0f;
+    CZoomM[1] = 468.75f;
+    omAddObj(0, 0, 0, -1, func_80105D40_ridiculous_relay);
+    D_801119BC_ridiculous_relay = obj = omAddObj(8, 35, 35, -1, func_801066A0_ridiculous_relay);
+    omSetStatBit(obj, 0xA0);
+    D_80111A20_ridiculous_relay[0] = omAddObj(3, 3, 12, -1, func_8010AE4C_ridiculous_relay);
+    D_80111A20_ridiculous_relay[1] = omAddObj(3, 3, 12, -1, func_8010AE80_ridiculous_relay);
+    D_80111A20_ridiculous_relay[2] = omAddObj(3, 3, 12, -1, func_8010AEAC_ridiculous_relay);
+    D_80111A20_ridiculous_relay[3] = omAddObj(3, 3, 12, -1, func_8010AED8_ridiculous_relay);
+    view = omAddObj(0x7FDA, 0, 0, -1, omOutViewMulti);
+    view->work[0] = 2;
+    omSetStatBit(view, 0xA0);
+    func_80045010_main(D_80110E60_ridiculous_relay, 1);
+    WipeCreateIn(0xFF, 0x10);
+    D_80110CB0_ridiculous_relay.unk01 = 2;
+    D_80110CB0_ridiculous_relay.unk1C = 45;
+    D_80110CB0_ridiculous_relay.unk1E = 9000;
+    D_80110CB0_ridiculous_relay.unk03 = 0;
+    D_80110CB0_ridiculous_relay.unk02 = 1;
+    D_80110CB0_ridiculous_relay.unk22 = 45;
+    D_80110CB0_ridiculous_relay.unk24 = 165;
+    D_80110CB0_ridiculous_relay.unk04 = 0;
+    D_80110CB0_ridiculous_relay.unk05 = 0;
+    D_80110CB0_ridiculous_relay.unk20 = -1;
+    func_800E5EA0_minigame(&D_80110CB0_ridiculous_relay);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_801059A0_ridiculous_relay);
+#endif
+
+void func_80105D40_ridiculous_relay(omObjData *obj) {
+    s32 i;
+
+    D_801119CC_ridiculous_relay = 0;
+    D_801119D8_ridiculous_relay = 0;
+    D_801119D4_ridiculous_relay = 0;
+    D_801119C8_ridiculous_relay = 0;
+    D_801119C0_ridiculous_relay = 5;
+    D_801119DA_ridiculous_relay = 0;
+    D_801119D0_ridiculous_relay = D_801119DC_ridiculous_relay = D_80111A50_ridiculous_relay = D_801119C4_ridiculous_relay = D_8011199C_ridiculous_relay[0] = D_8011199C_ridiculous_relay[1] = 0.0f;
+    D_801119A8_ridiculous_relay[0] = D_801119A8_ridiculous_relay[1] = D_801119A8_ridiculous_relay[2] = D_801119A8_ridiculous_relay[3] = 0.0f;
+    D_80111980_ridiculous_relay[0] = D_80111980_ridiculous_relay[1] = D_80111980_ridiculous_relay[2] = D_80111980_ridiculous_relay[3] = D_80111980_ridiculous_relay[4] = D_80111980_ridiculous_relay[5] = D_80111980_ridiculous_relay[6] = 0.0f;
+    D_80111A30_ridiculous_relay[0] = D_80111A30_ridiculous_relay[1] = D_80111A30_ridiculous_relay[2] = -1;
+    for (i = 0; i < 4; i++) {
+        D_80111970_ridiculous_relay[i] = &D_80111940_ridiculous_relay[i];
+        bzero(D_80111970_ridiculous_relay[i], sizeof(RrPlayer));
+    }
+    for (i = 0; i < 4; i++) {
+        u8 group = GwPlayer[i].group;
+
+        D_801119B8_ridiculous_relay[i] = group;
+        D_80111970_ridiculous_relay[group]->unk0 = i;
+        D_80111970_ridiculous_relay[group]->unk2 = GwPlayer[i].pad;
+        D_80111970_ridiculous_relay[group]->unk3 = GwPlayer[i].chr;
+        D_80111970_ridiculous_relay[group]->unk1 = group;
+        D_80111970_ridiculous_relay[group]->unk4 = (GwPlayer[i].stat & 1) ? GwPlayer[i].cpu_difficulty : -1;
+    }
+    func_8001AC8C_main(0, func_80108DE8_ridiculous_relay, 2);
+    obj->func = func_80105F48_ridiculous_relay;
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80110E60_ridiculous_relay);
 
