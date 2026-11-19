@@ -81,7 +81,12 @@ typedef struct {
 } CxStageModel; // Size 0x10
 
 typedef struct {
-    /* 0x00 */ char unk00[0x10];
+    /* 0x00 */ s16 model;
+    /* 0x02 */ u8 unk2;
+    /* 0x03 */ u8 unk3;
+    /* 0x04 */ u8 unk4; // index into CxGame::unkC
+    /* 0x08 */ f32 unk8;
+    /* 0x0C */ f32 unkC; // phase, degrees
 } CxUnk4Entry; // Size 0x10
 
 /* The minigame state (D_8010E360_cheep_cheep_chase) */
@@ -112,6 +117,11 @@ extern CxPlayer *D_8010E364_cheep_cheep_chase; // [4]
 extern u8 *D_8010E368_cheep_cheep_chase;       // [8]
 extern f32 D_8010E370_cheep_cheep_chase[4];
 
+extern f32 D_8010E014_cheep_cheep_chase;
+extern f32 D_8010E018_cheep_cheep_chase;
+
+extern u8 D_800D6A90_main;
+
 extern const s16 D_8010E050_cheep_cheep_chase[];
 extern const s16 D_8010E05C_cheep_cheep_chase[];
 extern const s16 D_8010E06C_cheep_cheep_chase[];
@@ -123,6 +133,7 @@ s32 func_8000B638_main(void);
 void func_800142A0_main(s32);
 // 20A20
 void Hu3DAnimInit(s32);
+void func_8001E65C_main(s16 mdl, f32 u, f32 v, s32 w, s32 h);
 
 void func_801059A0_cheep_cheep_chase(void);
 void func_801059BC_cheep_cheep_chase(void);
@@ -140,6 +151,7 @@ void func_80106484_cheep_cheep_chase(omObjData *object);
 void func_8010665C_cheep_cheep_chase(omObjData *object);
 void func_801067B0_cheep_cheep_chase(omObjData *object);
 void func_80106978_cheep_cheep_chase(omObjData *object);
+void func_80106AA0_cheep_cheep_chase(omObjData *object);
 void func_80106E80_cheep_cheep_chase(omObjData *object);
 void func_80107440_cheep_cheep_chase(omObjData *object);
 void func_80107698_cheep_cheep_chase(omObjData *object);
@@ -150,6 +162,7 @@ void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx);
 void func_801093CC_cheep_cheep_chase(s16 model);
 void func_80109444_cheep_cheep_chase(s16 model);
+void func_801094C0_cheep_cheep_chase(omObjData *object, s16 arg1);
 
 
 void func_801059A0_cheep_cheep_chase(void) {
@@ -326,15 +339,131 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_80
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E06C_cheep_cheep_chase);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80106484_cheep_cheep_chase);
+void func_80106484_cheep_cheep_chase(omObjData *object) {
+    HmfModel *model;
+    s16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010665C_cheep_cheep_chase);
+    func_8001E65C_main(object->model[0], 0, D_8010E014_cheep_cheep_chase, 0x40, 0x40);
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        D_8010E014_cheep_cheep_chase += D_8010E360_cheep_cheep_chase->unk18;
+    }
+    for (i = 0; i < 4; i++) {
+        model = &HmfModelData[object->model[i]];
+        if (Center.z - 900.0f <= model->pos.z) {
+            func_8001C258_main(object->model[i], 4, 0);
+        }
+        if (Center.z + 1000.0f <= model->pos.z) {
+            func_8001C258_main(object->model[i], 4, 4);
+            if (i != 0) {
+                func_801093CC_cheep_cheep_chase(object->model[i]);
+            } else {
+                object->trans.z = -250.0 - D_8010E360_cheep_cheep_chase->unk14 * 500.0;
+                D_8010E360_cheep_cheep_chase->unk14++;
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801067B0_cheep_cheep_chase);
+void func_8010665C_cheep_cheep_chase(omObjData *object) {
+    u16 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80106978_cheep_cheep_chase);
+    object->model[0] = func_8000B108_main(0x470009, 0x9D);
+    for (i = 1; i < 3; i++) {
+        object->model[i] = Hu3DModelLink(object->model[0]);
+    }
+    object->trans.x = -325.0f;
+    object->trans.y = 200.0f;
+    object->trans.z = -800.0f;
+    D_8010E360_cheep_cheep_chase->unk1E++;
+    for (i = 1; i < 3; i++) {
+        func_80109444_cheep_cheep_chase(object->model[i]);
+    }
+    D_8010E360_cheep_cheep_chase->unk20 = D_800CCF58_main[HmfModelData[object->model[0]].unk02].unk02;
+    object->func = func_801067B0_cheep_cheep_chase;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80106AA0_cheep_cheep_chase);
+void func_801067B0_cheep_cheep_chase(omObjData *object) {
+    HmfModel *model;
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        model = &HmfModelData[object->model[i]];
+        if (model->pos.z >= Center.z - 800.0) {
+            func_8001C258_main(object->model[i], 4, 0);
+        }
+        if (model->pos.z >= Center.z + 700.0) {
+            func_8001C258_main(object->model[i], 4, 4);
+            if (i != 0) {
+                func_80109444_cheep_cheep_chase(object->model[i]);
+            } else {
+                object->trans.z = 200.0 - D_8010E360_cheep_cheep_chase->unk1E * 1000.0;
+                D_8010E360_cheep_cheep_chase->unk1E++;
+            }
+        }
+        if (HmfModelData[object->model[i]].unk40 >= D_8010E360_cheep_cheep_chase->unk20) {
+            HmfModelData[object->model[i]].unk40 = 0.0f;
+        }
+    }
+}
+
+void func_80106978_cheep_cheep_chase(omObjData *object) {
+    u16 i;
+
+    object->model[0] = D_8010E360_cheep_cheep_chase->unk4[0].model = func_8000B108_main(0x470004, 0x2008D);
+    for (i = 1; i < 8; i++) {
+        object->model[i] = D_8010E360_cheep_cheep_chase->unk4[i].model = Hu3DModelLink(object->model[0]);
+    }
+    for (i = 0; i < 8; i++) {
+        Hu3DModelScaleSet(object->model[i], 0.9f, 0.9f, 0.9f);
+    }
+    func_801094C0_cheep_cheep_chase(object, 0);
+    func_801094C0_cheep_cheep_chase(object, 4);
+    D_8010E360_cheep_cheep_chase->unk10 = object;
+    object->func = func_80106AA0_cheep_cheep_chase;
+}
+
+void func_80106AA0_cheep_cheep_chase(omObjData *object) {
+    HmfModel *model;
+    s16 i;
+
+    for (i = 0; i < 8; i++) {
+        model = &HmfModelData[object->model[i]];
+        if (D_8010E360_cheep_cheep_chase->unk4[i].unk3 == 0) {
+            if (D_8010E360_cheep_cheep_chase->unk4[i].unk2 == 0) {
+                D_8010E018_cheep_cheep_chase += 0.25f;
+                if (D_8010E018_cheep_cheep_chase > 180.0f) {
+                    D_8010E018_cheep_cheep_chase = 0.0f;
+                }
+                if (i == 0) {
+                    object->trans.y = 105.0 - sindf(D_8010E018_cheep_cheep_chase) * 20.0f * 5.0f * 0.1;
+                } else {
+                    model->pos.y = 105.0 - sindf(D_8010E018_cheep_cheep_chase) * 20.0f * 5.0f * 0.1;
+                }
+                D_8010E360_cheep_cheep_chase->unk4[i].unkC += 0.75f;
+                if (D_8010E360_cheep_cheep_chase->unk4[i].unkC >= 360.0f) {
+                    D_8010E360_cheep_cheep_chase->unk4[i].unkC -= 360.0f;
+                }
+                D_8010E360_cheep_cheep_chase->unk4[i].unk8 = sindf(D_8010E360_cheep_cheep_chase->unk4[i].unkC) * (D_8010E360_cheep_cheep_chase->unk4[i].unk4 * 15.0);
+                if (i == 0) {
+                    object->trans.z = -(D_8010E360_cheep_cheep_chase->unkC[D_8010E360_cheep_cheep_chase->unk4[0].unk4] * 100) + D_8010E360_cheep_cheep_chase->unk4[0].unk8;
+                } else {
+                    model->pos.z = -(D_8010E360_cheep_cheep_chase->unkC[D_8010E360_cheep_cheep_chase->unk4[i].unk4] * 100) + D_8010E360_cheep_cheep_chase->unk4[i].unk8;
+                }
+                if (Center.z - 1000.0f <= model->pos.z) {
+                    func_8001C258_main(object->model[i], 4, 0);
+                }
+            } else {
+                func_8001C258_main(object->model[i], 4, 4);
+            }
+        }
+        if (Center.z + 700.0f <= model->pos.z) {
+            func_8001C258_main(object->model[i], 4, 4);
+            if ((i == 0) | (i == 4)) {
+                func_801094C0_cheep_cheep_chase(object, i);
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", D_8010E0C0_cheep_cheep_chase);
 
