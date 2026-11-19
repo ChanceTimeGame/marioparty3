@@ -1774,15 +1774,72 @@ void func_8010A51C_aces_high(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A51C_aces_high);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A884_aces_high);
+/* Puts the camera object at the camera's eye position. */
+void func_8010A884_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    f32 rx;
+    f32 ry;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010A9D4_aces_high);
+    rx = CRotM[work->unk02].x;
+    ry = CRotM[work->unk02].y;
+    work->unk04->trans.x = CenterM[work->unk02].x + sindf(ry) * cosdf(rx) * CZoomM[work->unk02];
+    work->unk04->trans.y = CenterM[work->unk02].y + -sindf(rx) * CZoomM[work->unk02];
+    work->unk04->trans.z = CenterM[work->unk02].z + cosdf(ry) * cosdf(rx) * CZoomM[work->unk02];
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010AADC_aces_high);
+/* Intro camera: low behind the plane. */
+void func_8010A9D4_aces_high(omObjData *obj) {
+    omObjData *plane = (omObjData *)obj->work[1];
+    AhPlayer *work = plane->data;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010ACE0_aces_high);
+    f32 rx;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010AD4C_aces_high);
+    rx = (plane->trans.y - -250.0f) * 0.08f;
+    CRotM[work->unk02].x = rx;
+    CRotM[work->unk02].z = 0.0f;
+    CRotM[work->unk02].y = work->unk8C;
+    CenterM[work->unk02].x = plane->trans.x;
+    CenterM[work->unk02].y = 0.0f;
+    CenterM[work->unk02].z = plane->trans.z;
+    CZoomM[work->unk02] = 650.0f;
+}
+
+/* Camera swings in behind the plane over 30 frames. */
+void func_8010AADC_aces_high(omObjData *obj) {
+    omObjData *plane = (omObjData *)obj->work[1];
+    AhPlayer *work = plane->data;
+
+    obj->work[2]++;
+    CRotM[work->unk02].x += (plane->trans.y * 0.06f - obj->scale.x) / 30.0f;
+    CenterM[work->unk02].x = sindf(plane->rot.y) * 300.0f / 30.0f * obj->work[2] + plane->trans.x;
+    CenterM[work->unk02].z = cosdf(plane->rot.y) * 300.0f / 30.0f * obj->work[2] + plane->trans.z;
+    CenterM[work->unk02].y += (plane->trans.y + 100.0f) / 30.0f;
+    CZoomM[work->unk02] += 11.666667f;
+}
+
+/* Shot down: the camera looks straight down from high up. */
+void func_8010ACE0_aces_high(omObjData *obj) {
+    AhPlayer *work = ((omObjData *)obj->work[1])->data;
+
+    CenterM[work->unk02].y = 0.0f;
+    CZoomM[work->unk02] = 2700.0f;
+    CRotM[work->unk02].x = 90.0f;
+}
+
+/* Starts the ending camera move (func_8010AE30_aces_high). */
+void func_8010AD4C_aces_high(omObjData *obj) {
+    AhPlayer *work = obj->data;
+    omObjData *cam = work->unk04;
+
+    cam->scale.x = -180.0f;
+    cam->trans.x = (-10.0f - CRotM[work->unk02].x) / 60.0f;
+    cam->trans.y = CRotM[work->unk02].x;
+    cam->scale.y = -4.5f;
+    cam->scale.z = (750.0f - CZoomM[work->unk02]) / 60.0f;
+    cam->trans.z = CZoomM[work->unk02];
+    cam->work[2] = 0;
+    cam->func = func_8010AE30_aces_high;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010AE30_aces_high);
 
