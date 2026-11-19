@@ -1920,7 +1920,34 @@ void func_8010BB9C_cheep_cheep_chase(CxFuncContext *ctx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010BB9C_cheep_cheep_chase);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010BEA4_cheep_cheep_chase);
+void func_8010BEA4_cheep_cheep_chase(CxFuncContext *ctx) {
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 30;
+            ctx->work.s8[1] = 0;
+            func_8010B63C_cheep_cheep_chase(player, 0x28, 1);
+            ctx->state = 1;
+            break;
+        case 1:
+            if (!(ctx->work.s8[0] & 1)) {
+                object->trans.y = player->unk04 + 60.0 - 10.0;
+            } else {
+                object->trans.y = player->unk04 + 60.0 + 10.0;
+            }
+            if (--ctx->work.s8[0] == 0) {
+                if (player->unk01 != 4) {
+                    player->unk01 = 0;
+                    func_8010B63C_cheep_cheep_chase(player, 0x26, 1);
+                    object->trans.y = player->unk04 + 60.0;
+                }
+                func_8010D7F4_cheep_cheep_chase(object->work[0] + 4, ctx);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010C004_cheep_cheep_chase);
 
