@@ -199,15 +199,35 @@ typedef struct SbStar {
 /* An item (SbItems::unk0C, 0x7C each). */
 typedef struct SbItem {
     /* 0x00 */ s16 unk00; /* active */
-    /* 0x02 */ char unk02[0x26];
+    /* 0x02 */ s16 unk02[2]; /* item models */
+    /* 0x06 */ s16 unk06[2]; /* reflection models */
+    /* 0x0A */ s16 unk0A; /* shadow model */
+    /* 0x0C */ s16 unk0C; /* glow model */
+    /* 0x0E */ char unk0E[2];
+    /* 0x10 */ s16 unk10; /* model shown */
+    /* 0x12 */ s16 unk12; /* bounces */
+    /* 0x14 */ s16 unk14; /* state timer */
+    /* 0x16 */ s16 unk16; /* state */
+    /* 0x18 */ s16 unk18; /* glow shown */
+    /* 0x1A */ char unk1A[2];
+    /* 0x1C */ Vec unk1C; /* previous position */
     /* 0x28 */ Vec unk28; /* position */
-    /* 0x34 */ Vec unk34; /* velocity */
-    /* 0x40 */ char unk40[0x3C];
+    /* 0x34 */ Vec unk34; /* rotation */
+    /* 0x40 */ Vec unk40; /* velocity */
+    /* 0x4C */ char unk4C[0x1C];
+    /* 0x68 */ f32 unk68; /* glow alpha */
+    /* 0x6C */ f32 unk6C; /* glow alpha set */
+    /* 0x70 */ f32 unk70;
+    /* 0x74 */ f32 unk74;
+    /* 0x78 */ f32 unk78;
 } SbItem; // Size 0x7C
 
 /* The items (D_80114B2C_stardust_battle). */
 typedef struct SbItems {
-    /* 0x00 */ char unk00[8];
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06; /* glow material */
     /* 0x08 */ s16 unk08; /* count */
     /* 0x0A */ char unk0A[2];
     /* 0x0C */ SbItem *unk0C;
@@ -2235,6 +2255,198 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CB34_stardust_battle);
 
+extern RGBA D_80113EC4_stardust_battle[];
+s16 func_8010FCBC_stardust_battle(Vec *pos, Vec *rot, f32 scale, s16 kind);
+void func_8001CAA4_main(s16 arg0, s16 arg1, f32 arg2);
+
+/* NON_MATCHING: loop-invariant hoisting only: retail keeps 100.0 (the random-step scale) in s6/s7 and reloads 0.01 from the pool at each use; mine keeps 0.01 in s6/s7 and reloads 100.0 */
+#ifdef NON_MATCHING
+void func_8010CE5C_stardust_battle(void) {
+    SbItems *items = D_80114B2C_stardust_battle;
+    SbItem *item = items->unk0C;
+    s32 stage = func_8010929C_stardust_battle();
+    f32 floor;
+    s32 i;
+    s32 done;
+    f32 s;
+    Vec pos;
+    Vec scale;
+
+    floor = (stage == 1) ? 25.0f : 0.0f;
+    for (i = 0; i < items->unk08; i++, item++) {
+        if (item->unk00 == 0) {
+            continue;
+        }
+        if (func_80049F98_main() + D_800D6A90_main != 0) {
+            if (item->unk18 != 0) {
+                func_8001CAA4_main(item->unk0C, items->unk06, item->unk68);
+            }
+            if (item->unk16 == 3) {
+                func_8001C258_main(item->unk02[item->unk10], 4, 0);
+            }
+            continue;
+        }
+        item->unk1C.x = item->unk28.x;
+        item->unk1C.y = item->unk28.y;
+        item->unk1C.z = item->unk28.z;
+        done = 0;
+        switch (item->unk16) {
+        case 0:
+            item->unk28.x += item->unk40.x;
+            item->unk28.y += item->unk40.y;
+            item->unk28.z += item->unk40.z;
+            s = sindf((item->unk14 & 7) * 51.42857f) * 0.2f;
+            Hu3DModelScaleSet(item->unk0C, s + 0.75f, s + 0.75f, s + 0.75f);
+            if (item->unk28.y <= floor) {
+                s = fabsf((floor - item->unk28.y) / item->unk40.y);
+                item->unk28.x -= s * item->unk40.x;
+                item->unk28.z -= s * item->unk40.z;
+                item->unk28.y = floor;
+                pos.x = item->unk28.x;
+                pos.y = item->unk28.y;
+                pos.z = item->unk28.z + 50.0;
+                scale.x = scale.y = scale.z = 1.2f;
+                func_8010F890_stardust_battle(&pos, NULL, &scale, 1.0f, &D_80113EC4_stardust_battle[stage]);
+                HuAudFXPlay(0x504);
+                item->unk16 = 2;
+                item->unk14 = 0;
+            }
+            break;
+        case 1:
+            s = sindf((item->unk14 & 7) * 51.42857f) * 0.2f;
+            Hu3DModelScaleSet(item->unk0C, s + 1.0f, s + 1.0f, s + 1.0f);
+            if (item->unk68 < 1.0f) {
+                item->unk68 += 0.2f;
+            }
+            if (item->unk12 & 1) {
+                item->unk28.x -= fabs(item->unk28.y - 0.0f);
+                item->unk28.y = floor;
+                if (item->unk12 < 2) {
+                    item->unk16 = 2;
+                    item->unk14 = 0;
+                }
+            } else {
+                item->unk28.x += ((f32)(u8)(rand8() % 100) * 0.01 * 0.025f + 0.025f) * 100.0;
+                item->unk28.y = floor + ((f32)(u8)(rand8() % 100) * 0.01 * 0.025f + 0.025f) * 100.0;
+            }
+            item->unk12--;
+            break;
+        case 2:
+            if (item->unk14 >= 30) {
+                func_8001C258_main(item->unk02[1], 4, 0);
+                item->unk10 = 1;
+                item->unk18 = 0;
+                item->unk16 = 3;
+                item->unk14 = 0;
+                break;
+            }
+            s = 1.0f - item->unk14 * 0.033333335f;
+            if (s < 0.0f) {
+                s = 0.5f;
+            } else {
+                s = s * 0.5f + 0.5f;
+            }
+            s += sindf((item->unk14 & 7) * 51.42857f) * 0.2f;
+            Hu3DModelScaleSet(item->unk0C, s, s, s);
+            if (item->unk68 < 1.0f) {
+                item->unk68 += 0.2f;
+            }
+            if (item->unk14 >= 15.0f) {
+                if (item->unk14 & 1) {
+                    func_8001C258_main(item->unk02[0], 4, 0);
+                    item->unk10 = 0;
+                } else {
+                    func_8001C258_main(item->unk02[1], 4, 0);
+                    item->unk10 = 1;
+                }
+            }
+            break;
+        case 3:
+            if (item->unk14 >= 60.0f) {
+                if (item->unk14 & 1) {
+                    func_8001C258_main(item->unk02[item->unk10], 4, 4);
+                } else {
+                    func_8001C258_main(item->unk02[item->unk10], 4, 0);
+                }
+                if (item->unk14 >= 90.0f) {
+                    func_8010DF70_stardust_battle(i);
+                    done = 1;
+                }
+            }
+            break;
+        case 5:
+            item->unk40.y -= 2.44995f;
+            item->unk28.x += item->unk40.x;
+            item->unk28.y += item->unk40.y;
+            item->unk28.z += item->unk40.z;
+            if ((item->unk28.y < floor && item->unk28.x * item->unk28.x + item->unk28.z * item->unk28.z < 330625.0)
+                || (item->unk1C.x * item->unk1C.x + item->unk1C.z * item->unk1C.z < 330625.0
+                    && item->unk28.x * item->unk28.x + item->unk28.z * item->unk28.z > 330625.0
+                    && item->unk1C.y < 50.0 && item->unk28.y < 50.0)) {
+                pos.x = item->unk28.x;
+                pos.z = item->unk28.z;
+                pos.y = 30.000002f;
+                func_8010FCBC_stardust_battle(&pos, NULL, 1.0f, 1);
+                func_8010FCBC_stardust_battle(&pos, NULL, 1.0f, 2);
+                func_8010DF70_stardust_battle(i);
+                done = 1;
+            }
+            break;
+        }
+        if (done == 0) {
+            func_8001C258_main(item->unk02[(s16)(item->unk10 ^ 1)], 4, 4);
+            func_8001C258_main(item->unk06[(s16)(item->unk10 ^ 1)], 4, 4);
+            Hu3DModelPosSet(item->unk02[item->unk10], item->unk28.x, item->unk28.y, item->unk28.z);
+            Hu3DModelRotSet(item->unk02[item->unk10], item->unk34.x, item->unk34.y, item->unk34.z);
+            if (stage != 2 || item->unk28.y <= -50.0
+                || item->unk28.x * item->unk28.x + item->unk28.z * item->unk28.z > 275625.0) {
+                func_8001C258_main(item->unk06[item->unk10], 4, 4);
+            } else {
+                func_8001C258_main(item->unk06[item->unk10], 4, 0);
+                Hu3DModelPosSet(item->unk06[item->unk10], item->unk28.x, -item->unk28.y, item->unk28.z);
+                Hu3DModelRotSet(item->unk06[item->unk10], item->unk34.x, item->unk34.y, item->unk34.z);
+            }
+            if (item->unk18 != 0) {
+                func_8001C258_main(item->unk0C, 4, 0);
+                Hu3DModelPosSet(item->unk0C, item->unk28.x, item->unk28.y + 34.9999994039535522, item->unk28.z);
+                item->unk78 += 20.0f;
+                if (item->unk78 >= 360.0f) {
+                    item->unk74 -= 360.0f;
+                }
+                Hu3DModelRotSet(item->unk0C, item->unk70 + 180.0f, item->unk74, 0.0f);
+                func_8008A070_main((f32(*)[4])HmfModelData[item->unk0C].mtx);
+                func_80017D24_main((f32(*)[4])HmfModelData[item->unk0C].mtx, 0.0f, item->unk78, 0.0f);
+                if (item->unk68 > 1.0f) {
+                    item->unk68 = 1.0f;
+                } else if (item->unk68 < 0.0f) {
+                    item->unk68 = 0.0f;
+                }
+                if (item->unk68 != item->unk6C) {
+                    func_8001CAA4_main(item->unk0C, items->unk06, item->unk68);
+                }
+                item->unk6C = item->unk68;
+            } else {
+                func_8001C258_main(item->unk0C, 4, 4);
+            }
+            if (stage != 1 && item->unk28.x * item->unk28.x + item->unk28.z * item->unk28.z < 275625.0) {
+                s = 1.0 - item->unk28.y * 0.001;
+                if (s < 0.2f) {
+                    s = 0.2f;
+                }
+                func_8001C258_main(item->unk0A, 4, 0);
+                Hu3DModelPosSet(item->unk0A, item->unk28.x, 0.0f, item->unk28.z);
+                Hu3DModelScaleSet(item->unk0A, s * 0.8f, 1.0f, s * 0.8f);
+            } else {
+                func_8001C258_main(item->unk0A, 4, 4);
+            }
+            if (item->unk28.y < -1000.0) {
+                func_8010DF70_stardust_battle(i);
+            }
+            item->unk14++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010CE5C_stardust_battle);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_80114528_stardust_battle);
@@ -2266,6 +2478,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_8011
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_80114598_stardust_battle);
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", D_801145A0_stardust_battle);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010DADC_stardust_battle);
 
