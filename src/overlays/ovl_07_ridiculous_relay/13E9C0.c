@@ -653,6 +653,7 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
     s32 s;
     u32 t;
     f32 y;
+    f32 fx;
 
     n = 0;
     if ((D_801119D8_ridiculous_relay == 1 && D_801119D4_ridiculous_relay >= 63) || D_801119D8_ridiculous_relay == 2) {
@@ -714,10 +715,10 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
                 s32 bestLane;
                 s32 m;
 
-                if (yi >= 100) {
-                    lane = 2;
-                } else {
+                if (yi < 100) {
                     lane = yi >= -99;
+                } else {
+                    lane = 2;
                 }
                 for (m = 0; m < n; m++) {
                     s32 h = hidx[m];
@@ -1023,8 +1024,8 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
                 }
             }
         }
-        hit = D_80110DF4_ridiculous_relay[0] == 58;
-        if (hit | (D_80110DF4_ridiculous_relay[0] == 56)) {
+        if ((D_80110DF4_ridiculous_relay[0] == 58) | (D_80110DF4_ridiculous_relay[0] == 56)) {
+            hit = D_80110DF4_ridiculous_relay[0] == 58;
             func_8001F9E4_main(D_801119BC_ridiculous_relay->model[5], hit ? 0x80 : 0x30);
             Hu3DModelScaleSet(D_801119BC_ridiculous_relay->model[5], hit ? 0.28125f : 0.34375f, hit ? 0.28125f : 0.34375f, hit ? 0.28125f : 0.34375f);
             obj->trans.x += hit ? 0.5 : -0.75;
@@ -1086,11 +1087,11 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
         f = D_80110DCC_ridiculous_relay[1];
         D_80110DAC_ridiculous_relay[1] = D_80110DAC_ridiculous_relay[1] + f * RR_K;
         D_80110DCC_ridiculous_relay[1] = f - f / 6.0 / 5.0 * (29.0 / 30);
-        if (mode == 2) {
-            D_80110DCC_ridiculous_relay[1] = 40.0f;
-        } else {
+        if (mode != 2) {
             D_80110DCC_ridiculous_relay[1] = (D_80110DCC_ridiculous_relay[1] > 43.5) ? 43.5f
                 : (D_80110DCC_ridiculous_relay[1] < -43.5) ? -43.5f : D_80110DCC_ridiculous_relay[1];
+        } else {
+            D_80110DCC_ridiculous_relay[1] = 40.0f;
         }
         if (D_80110DAC_ridiculous_relay[1] > 626.25) {
             D_80110DAC_ridiculous_relay[1] = 626.25f;
@@ -1444,6 +1445,7 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
     CenterM[0].x = (CenterM[0].x > 3750.0) ? 3750.0f : CenterM[0].x;
     CenterM[1].x = (CenterM[1].x > 3750.0) ? 3750.0f : CenterM[1].x;
     s = (CenterM[1].x < 1875.0) ? 0 : 1;
+    fx = (2.0 * ((s + 1) * 5000) + 950.0) * 0.125;
     t = D_80110DFC_ridiculous_relay[s];
     if (t < 10) {
         y = 0.125 * (t * t / 100.0 * 100.0) + -46.875;
@@ -1454,7 +1456,7 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
     } else {
         y = -46.875f;
     }
-    omSetTra(D_801119BC_ridiculous_relay, (2.0 * ((s + 1) * 5000) + 950.0) * 0.125, y, 0.0f);
+    omSetTra(D_801119BC_ridiculous_relay, fx, y, 0.0f);
     Hu3DModelPosSet(D_801119BC_ridiculous_relay->model[1], (2.0 * ((s + 1) * 5000) + 150.0) * 0.125, -25.0f, 0.0f);
     D_80110DFC_ridiculous_relay[0] += (D_80110DFC_ridiculous_relay[0] != 0 && D_80110DFC_ridiculous_relay[0] < 24)
                                       || (D_80110DFC_ridiculous_relay[0] >= 30 && D_80110DFC_ridiculous_relay[0] < 45);
