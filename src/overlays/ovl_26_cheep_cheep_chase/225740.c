@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct cx_func_context {
     /* 0x00 */ s8 set;
-    /* 0x01 */ s8 tag;
+    /* 0x01 */ s8 state; // initial value from SetFunc
     /* 0x04 */ void *data;
     /* 0x08 */ s16 param;
     /* 0x0A */ s8 prio;
@@ -59,7 +59,7 @@ extern CxFuncGroup *D_8010E398_cheep_cheep_chase;     // [CX_FUNC_GRP_MAX]
 
 void func_8010D560_cheep_cheep_chase(void);
 void func_8010D62C_cheep_cheep_chase(CxFuncGroup *group, s16 maxFuncs);
-s16 func_8010D6F4_cheep_cheep_chase(s8 groupId, s8 prio, s16 param, s8 tag, void *data, CxFunc func, u8 sort, u8 execFunc);
+s16 func_8010D6F4_cheep_cheep_chase(s8 groupId, s8 prio, s16 param, s8 state, void *data, CxFunc func, u8 sort, u8 execFunc);
 void func_8010D7F4_cheep_cheep_chase(s8 groupId, CxFuncContext *ctx);
 void func_8010D85C_cheep_cheep_chase(s8 groupId);
 void func_8010D8FC_cheep_cheep_chase(s8 groupId);
@@ -576,9 +576,107 @@ void func_80107698_cheep_cheep_chase(omObjData *object) {
     func_8010D8FC_cheep_cheep_chase(3);
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801076B4_cheep_cheep_chase);
+void func_801076B4_cheep_cheep_chase(CxFuncContext *ctx) {
+    if (ctx->state == 0) {
+        Center.x = -26.0f;
+        Center.y = 327.0f;
+        Center.z = -485.0f;
+        CRot.x = 320.0f;
+        CRot.y = 180.0f;
+        CRot.z = 0.0f;
+        CZoom = 1670.0f;
+        func_8010D7F4_cheep_cheep_chase(0, ctx);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107760_cheep_cheep_chase);
+void func_80107760_cheep_cheep_chase(CxFuncContext *ctx) {
+    u16 btn;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 1;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (ctx->work.s8[1] != 0) {
+                if (ctx->work.s8[1] == 1) {
+                sprintf(D_800D5218_main, "C: TRANSLATE ADD: %d", ctx->work.s8[0]);
+                } else {
+                sprintf(D_800D5218_main, "C: ROTATE");
+                }
+                print8(16, 56, D_800D5218_main);
+                sprintf(D_800D5218_main, "CZOOMM %.2f", CZoom);
+                print8(16, 64, D_800D5218_main);
+                sprintf(D_800D5218_main, "CCENTER_X %.2f Y %.2f Z %.2f", Center.x, Center.y, Center.z);
+                print8(16, 72, D_800D5218_main);
+                sprintf(D_800D5218_main, "CROTATE_X %.2f Y %.2f Z %.2f", CRot.x, CRot.y, CRot.z);
+                print8(16, 80, D_800D5218_main);
+            }
+            btn = D_800CDA7C_main[0];
+            if (D_800D5558_main[0] & Z_TRIG) {
+                ctx->work.s8[1]++;
+            }
+            if (ctx->work.s8[1] >= 3) {
+                ctx->work.s8[1] = 0;
+            }
+            if (ctx->work.s8[1] == 1) {
+                if (btn & D_JPAD) {
+                    Center.z += ctx->work.s8[0];
+                }
+                if (btn & L_JPAD) {
+                    Center.x += ctx->work.s8[0];
+                }
+                if (btn & U_JPAD) {
+                    Center.z -= ctx->work.s8[0];
+                }
+                if (btn & R_JPAD) {
+                    Center.x -= ctx->work.s8[0];
+                }
+                if (btn & U_CBUTTONS) {
+                    Center.y += ctx->work.s8[0];
+                }
+                if (btn & D_CBUTTONS) {
+                    Center.y -= ctx->work.s8[0];
+                }
+                if (ctx->work.s8[2] == 15) {
+                    ctx->work.s8[2] = 0;
+                    if (btn & A_BUTTON) {
+                        ctx->work.s8[0]++;
+                    }
+                    if (btn & B_BUTTON) {
+                        ctx->work.s8[0]--;
+                    }
+                    if (ctx->work.s8[0] >= 125) {
+                        ctx->work.s8[0] = 0;
+                    }
+                } else {
+                    ctx->work.s8[2]++;
+                }
+            } else if (ctx->work.s8[1] == 2) {
+                if (btn & D_JPAD) {
+                    CRot.x += 1.0f;
+                }
+                if (btn & U_JPAD) {
+                    CRot.x -= 1.0f;
+                }
+                if (btn & L_JPAD) {
+                    CRot.y -= 1.0f;
+                }
+                if (btn & R_JPAD) {
+                    CRot.y += 1.0f;
+                }
+                if (btn & U_CBUTTONS) {
+                    CZoom += 10.0f;
+                }
+                if (btn & D_CBUTTONS) {
+                    CZoom -= 10.0f;
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80107BDC_cheep_cheep_chase);
 
@@ -689,7 +787,7 @@ void func_8010D62C_cheep_cheep_chase(CxFuncGroup *group, s16 maxFuncs) {
     group->maxFuncs = maxFuncs;
 }
 
-s16 func_8010D6F4_cheep_cheep_chase(s8 groupId, s8 prio, s16 param, s8 tag, void *data, CxFunc func, u8 sort, u8 execFunc) {
+s16 func_8010D6F4_cheep_cheep_chase(s8 groupId, s8 prio, s16 param, s8 state, void *data, CxFunc func, u8 sort, u8 execFunc) {
     CxFuncGroup *group = &D_8010E398_cheep_cheep_chase[groupId];
     CxFuncContext *ctx = group->funcCtx;
     s16 i = 0;
@@ -703,7 +801,7 @@ s16 func_8010D6F4_cheep_cheep_chase(s8 groupId, s8 prio, s16 param, s8 tag, void
             }
             ctx->prio = prio;
             ctx->param = param;
-            ctx->tag = tag;
+            ctx->state = state;
             ctx->data = data;
             ctx->func = func;
             break;
