@@ -146,6 +146,7 @@ typedef struct SkSprModel {
     /* 0x02 */ char unk02[0x22];
 } SkSprModel; /* size 0x24 */
 extern SkSprModel *D_800CBB60_main;
+u16 func_8001476C_main(s16 index);
 void func_8010655C_stacked_deck(omObjData *obj);
 void func_8010669C_stacked_deck(omObjData *obj);
 void func_80106694_stacked_deck(omObjData *obj);
@@ -203,8 +204,11 @@ extern s16 D_8011114A_stacked_deck;
 extern s16 D_8011114C_stacked_deck;
 extern s16 D_8011114E_stacked_deck;
 extern s16 D_80111150_stacked_deck[12];
-extern s16 D_80110208_stacked_deck;
-extern s16 D_8011028C_stacked_deck;
+extern CcEnt D_80110204_stacked_deck;    /* = D_8010F730_stacked_deck[21] */
+extern s16 D_80110208_stacked_deck;      /* = D_80110204_stacked_deck.unk04 */
+extern CcEnt D_80110288_stacked_deck;    /* = D_8010F730_stacked_deck[22] */
+extern s16 D_8011028C_stacked_deck;      /* = D_80110288_stacked_deck.unk04 */
+extern s16 D_80111170_stacked_deck;
 extern u8 D_80111169_stacked_deck;
 extern s16 D_8011116A_stacked_deck;
 extern s16 D_8011116C_stacked_deck;
@@ -2046,7 +2050,39 @@ void func_8010D8E8_stacked_deck(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010D98C_stacked_deck);
+void func_8010D98C_stacked_deck(omObjData *obj) {
+    CcEnt *e;
+    omObjData *o;
+    s16 i;
+    CcEnt *spr = &D_80110204_stacked_deck;
+
+    switch (D_80111170_stacked_deck) {
+    case 0:
+        break;
+    case 1:
+        for (i = 0; i < 12; i++) {
+            e = &D_8010FA48_stacked_deck[i];
+            o = e->obj;
+            if (e->unk04 == 1) {
+                break;
+            }
+        }
+        obj->trans.x = o->trans.x;
+        obj->trans.y = -50.0f;
+        obj->trans.z = o->trans.z + 150.0f;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        D_80111170_stacked_deck = 2;
+        break;
+    case 2:
+        spr->unk18 += 0.7f;
+        func_80014714_main(spr->unk04, (s32)spr->unk18);
+        if (func_8001476C_main(spr->unk04) >= 14) {
+            D_80111170_stacked_deck = 0;
+            spr->unk18 = 0.0f;
+        }
+        break;
+    }
+}
 
 void func_8010DAE4_stacked_deck(omObjData *obj) {
     void *data;
@@ -2070,7 +2106,44 @@ void func_8010DBF4_stacked_deck(void) {
     omAddObj(580, 1, 0, -1, func_8010DAE4_stacked_deck)->work[0] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010DC2C_stacked_deck);
+void func_8010DC2C_stacked_deck(omObjData *obj) {
+    omObjData *o;
+    CcEnt *p;
+    s16 i;
+    CcEnt *spr = &D_80110288_stacked_deck;
+
+    for (i = 0; i < 4; i++) {
+        p = &D_8010F838_stacked_deck[i];
+        o = p->obj;
+        if (o->work[1] == 0) {
+            break;
+        }
+    }
+    switch (D_80111120_stacked_deck) {
+    case 0:
+        break;
+    case 1:
+        obj->trans.x = o->trans.x;
+        obj->trans.y = 60.0f;
+        obj->trans.z = o->trans.z + 60.0f;
+        Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+        D_80111120_stacked_deck = 2;
+        if (!(GwPlayer[o->work[0]].stat & 1)) {
+            omVibrate(o->work[0], 20, 0, 20);
+        }
+        break;
+    case 2:
+        if (spr->unk06 < 5) {
+            func_8001C258_main(obj->model[0], 4, 0);
+            spr->unk06++;
+        } else {
+            D_80111120_stacked_deck = 0;
+            spr->unk06 = 0;
+            func_8001C258_main(obj->model[0], 4, 4);
+        }
+        break;
+    }
+}
 
 void func_8010DDAC_stacked_deck(omObjData *obj) {
     void *data;
