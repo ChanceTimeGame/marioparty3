@@ -221,6 +221,7 @@ extern s16 D_80110208_stacked_deck;      /* = D_80110204_stacked_deck.unk04 */
 extern CcEnt D_80110288_stacked_deck;    /* = D_8010F730_stacked_deck[22] */
 extern s16 D_8011028C_stacked_deck;      /* = D_80110288_stacked_deck.unk04 */
 extern s16 D_80111170_stacked_deck;
+extern u8 D_80111168_stacked_deck;
 extern u8 D_80111169_stacked_deck;
 extern s16 D_8011116A_stacked_deck;
 extern s16 D_8011116C_stacked_deck;
@@ -502,9 +503,77 @@ void func_80106738_stacked_deck(void) {
 void func_80106778_stacked_deck(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_80106780_stacked_deck);
+void func_80106780_stacked_deck(omObjData *obj) {
+    CcEnt *pl = &D_8010F838_stacked_deck[obj->work[0]];
+    omObjData *o;
+    f32 vx;
+    f32 vz;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801069A0_stacked_deck);
+    if (pl->unk16 == 0) {
+        pl->unk14 = (u8)(rand8() % 12);
+        for (;;) {
+            if ((&D_8010FA48_stacked_deck[pl->unk14])->unk06 == 1) {
+                pl->unk16 = 1;
+                return;
+            }
+            pl->unk14++;
+            if (pl->unk14 >= 12) {
+                pl->unk14 = 0;
+            }
+        }
+    } else {
+        o = D_8010FA48_stacked_deck[pl->unk14].obj;
+        func_801063F4_stacked_deck(o->trans.x, o->trans.z, obj->trans.x, obj->trans.z, &vx, &vz, 60.0f);
+        D_800CBB6E_main[obj->work[3]] = vx;
+        D_800D20A1_main[obj->work[3]] = -vz;
+        if (o->trans.x - 45.0f <= obj->trans.x && obj->trans.x <= o->trans.x + 45.0f
+            && o->trans.z - 67.5f <= obj->trans.z && obj->trans.z <= o->trans.z + 67.5f) {
+            D_800D5558_main[obj->work[3]] |= 0x8000;
+            D_800D5558_main[obj->work[3]] |= 0x2000;
+        }
+    }
+}
+
+void func_801069A0_stacked_deck(omObjData *obj) {
+    CcEnt *pl = &D_8010F838_stacked_deck[obj->work[0]];
+    MgWork *gw = obj->data;
+    CcEnt *e;
+    omObjData *o;
+    s16 i;
+
+    if (pl->unk04 == 0 && gw->unk5C == 0x200 && gw->unk50 == 0x80) {
+        pl->unk04 = 1;
+        for (i = 0; i < 12; i++) {
+            e = &D_8010FA48_stacked_deck[i];
+            o = e->obj;
+            if (o->trans.x - 90.0f < obj->trans.x && obj->trans.x < o->trans.x + 90.0f
+                && o->trans.z - 135.0f < obj->trans.z && obj->trans.z < o->trans.z + 135.0f
+                && *(s32 *)&e->unk04 == 1) {
+                pl->unk14 = 0;
+                pl->unk16 = 0;
+                e->unk04 = 1;
+                D_8010F6F0_stacked_deck = (u16)o->work[1];
+                D_80111169_stacked_deck = 6;
+            }
+        }
+    }
+    if (gw->unk5C != 0x200 && gw->unk50 != 0x80 && obj->trans.y <= 1.0f) {
+        pl->unk04 = 0;
+        D_80111168_stacked_deck = 0;
+    }
+    if (obj->trans.y > 1.0f) {
+        D_80111168_stacked_deck = 1;
+    }
+    if (obj->trans.z > 800.0f) {
+        obj->trans.z = 800.0f;
+    }
+    if (obj->trans.x < -500.0f) {
+        obj->trans.x = -500.0f;
+    }
+    if (obj->trans.x > 500.0f) {
+        obj->trans.x = 500.0f;
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", D_8010F42C_stacked_deck);
 
