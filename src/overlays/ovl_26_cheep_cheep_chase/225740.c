@@ -201,6 +201,7 @@ void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A57C_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010A938_cheep_cheep_chase(CxFuncContext *ctx);
+void func_8010ACD8_cheep_cheep_chase(u8 player);
 void func_8010AD14_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010AF70_cheep_cheep_chase(CxFuncContext *ctx);
 void func_8010B148_cheep_cheep_chase(CxFuncContext *ctx);
@@ -1423,7 +1424,12 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010A938_cheep_cheep_chase);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010ACD8_cheep_cheep_chase);
+void func_8010ACD8_cheep_cheep_chase(u8 player) {
+    D_800CBB6E_main[player] = 0;
+    D_800D20A1_main[player] = 0;
+    D_800CDA7C_main[player] = 0;
+    D_800D5558_main[player] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010AD14_cheep_cheep_chase);
 
@@ -1433,7 +1439,29 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_80
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B33C_cheep_cheep_chase);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B52C_cheep_cheep_chase);
+void func_8010B52C_cheep_cheep_chase(CxFuncContext *ctx) {
+    HmfModel *model = &HmfModelData[ctx->param];
+    omObjData *object = D_800EC598_minigame[ctx->work.s16[0]];
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+
+    switch (ctx->state) {
+        case 0:
+            player->updateMotion = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (D_800CCF58_main[HmfModelData[ctx->param].unk02].unk02 - 1 <= model->unk40) {
+                player->updateMotion = 1;
+            }
+            if (player->updateMotion) {
+                func_800E5690_minigame(object, player->motion);
+                player->updateMotion = 0;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 void func_8010B63C_cheep_cheep_chase(CxPlayer *player, s32 motion, s32 updateMotion) {
     player->updateMotion = updateMotion;
