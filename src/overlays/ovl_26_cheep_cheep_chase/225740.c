@@ -1640,7 +1640,57 @@ void func_8010AD14_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010AF70_cheep_cheep_chase);
+void func_8010AF70_cheep_cheep_chase(CxFuncContext *ctx) {
+    CxPlayer *player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
+    s32 count;
+
+    switch (ctx->state) {
+        case 0:
+            ctx->work.s8[0] = 0;
+            ctx->work.s8[1] = 0;
+            ctx->work.s8[2] = 0;
+            ctx->work.s8[3] = 0;
+            ctx->state = 1;
+            break;
+        case 1:
+            if (player->unk01 == 3) {
+                break;
+            }
+            if (ctx->work.s8[0] == 0) {
+                if ((u16)D_800CDA7C_main[(u8)player->unk00] & 0x8000) {
+                    if (player->unk01 == 0) {
+                        player->unk14 = 7.0f;
+                        player->unk01 = 1;
+                    } else if (player->unk14 < 90.0f) {
+                        player->unk14 += 4.0f;
+                    } else {
+                        player->unk1C++;
+                        player->unk14 = 90.0f;
+                        count = player->unk1C - 1;
+                        if (count > 0) {
+                            player->unk18 = count * 0.5f;
+                            if (player->unk18 >= 4.0f) {
+                                player->unk18 = 4.0f;
+                            }
+                        }
+                    }
+                    ctx->work.s8[0] = 1;
+                }
+            } else if ((u16)D_800CDA7C_main[(u8)player->unk00] & 0x4000) {
+                ctx->work.s8[0] = 0;
+            }
+            if (player->unk01 == 1 && (D_800D5558_main[(u8)player->unk00] & 0x2000)) {
+                player->unk08 = 1;
+            }
+            if (++ctx->work.s8[1] >= 30) {
+                ctx->work.s8[1] = 0;
+                player->unk1C = 0;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_8010B148_cheep_cheep_chase);
 
