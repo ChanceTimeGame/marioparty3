@@ -137,6 +137,7 @@ void func_8010DC2C_stacked_deck(omObjData *obj);
 void func_80108E48_stacked_deck(omObjData *obj);
 void func_8010DEF4_stacked_deck(omObjData *obj);
 void func_80106BC8_stacked_deck(omObjData *obj);
+void func_801097D4_stacked_deck(omObjData *obj);
 extern omObjData *D_800EC598_minigame[];
 extern u16 D_800EC280_minigame;
 s32 HmfSprModelCreate(void *, s32, u8);
@@ -2252,7 +2253,60 @@ void func_801097D4_stacked_deck(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801097D4_stacked_deck);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_8010C188_stacked_deck);
+void func_8010C188_stacked_deck(omObjData *obj) {
+    CcEnt *ent = &D_8010FA48_stacked_deck[obj->work[0]];
+
+    obj->model[0] = func_8000B108_main(0x4B0008, 0x2A9);
+    obj->model[1] = func_8000B108_main(0x4B0009, 0x2A9);
+    obj->model[2] = func_8000B108_main(0x4B000B, 0x2A9);
+    if (obj->work[0] == 0) {
+        D_8010F708_stacked_deck[0] = DataRead(0x4B0002);
+        D_8010F708_stacked_deck[1] = DataRead(0x4B0003);
+        D_8010F708_stacked_deck[2] = DataRead(0x4B0004);
+        D_8010F708_stacked_deck[3] = DataRead(0x4B0005);
+        D_8010F708_stacked_deck[4] = DataRead(0x4B0006);
+        D_8010F708_stacked_deck[5] = DataRead(0x4B0007);
+    }
+    D_80111150_stacked_deck[obj->work[0]] =
+        HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010F708_stacked_deck[0], 0, D_8010F42C_stacked_deck);
+    func_8001C448_main(obj->model[0]);
+    func_8001C514_main(obj->model[0]);
+    ent->unk0E = 150;
+    func_8001FA68_main(obj->model[1]);
+    func_8001F9E4_main(obj->model[1], ent->unk0E);
+    ent->unk10 = 0;
+    func_8001FA68_main(obj->model[2]);
+    func_8001F9E4_main(obj->model[2], ent->unk10);
+    ent->unk18 = 15.0f;
+    ent->unk1C = 0.0f;
+    obj->rot.x = 0.0f;
+    obj->rot.y = 180.0f;
+    obj->rot.z = func_801059BC_stacked_deck(ent->unk1C, 0.0f);
+    Hu3DModelRotSet(obj->model[0], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelRotSet(obj->model[1], obj->rot.x, obj->rot.y, obj->rot.z);
+    Hu3DModelRotSet(obj->model[2], obj->rot.x, obj->rot.y, obj->rot.z);
+    ent->unk20 = 1.0f;
+    ent->unk24 = 1.0f;
+    ent->unk28 = 1.0f;
+    obj->scale.x = ent->unk20;
+    obj->scale.y = ent->unk20;
+    obj->scale.z = ent->unk20;
+    Hu3DModelScaleSet(obj->model[0], obj->scale.x, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[1], ent->unk24, obj->scale.y, obj->scale.z);
+    Hu3DModelScaleSet(obj->model[2], obj->scale.x, obj->scale.y, obj->scale.z);
+    obj->trans.x = D_8010F2B0_stacked_deck[obj->work[0]].x;
+    obj->trans.y = 0.0f;
+    obj->trans.z = D_8010F2B0_stacked_deck[obj->work[0]].z;
+    ent->unk2C = 0.0f;
+    ent->unk30 = 0.0f;
+    Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x + ent->unk2C, -4.0f, obj->trans.z + ent->unk30);
+    Hu3DModelPosSet(obj->model[2], obj->trans.x, obj->trans.y, obj->trans.z);
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C258_main(obj->model[1], 4, 4);
+    func_8001C258_main(obj->model[2], 4, 4);
+    obj->func = func_801097D4_stacked_deck;
+}
 
 void func_8010C524_stacked_deck(void) {
     omObjData *obj;
