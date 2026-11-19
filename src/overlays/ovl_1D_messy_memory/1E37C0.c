@@ -126,6 +126,8 @@ extern f32 D_801116A0_messy_memory;
 extern u8 D_801116E0_messy_memory[20];
 extern MmEnt D_80112FC0_messy_memory[]; /* = D_80111700_messy_memory[48] */
 extern MmEnt D_80113B18_messy_memory[]; /* = D_80111700_messy_memory[70] */
+extern MmEnt D_80113D28_messy_memory[]; /* = D_80111700_messy_memory[74] */
+extern MmEnt D_80113DAC_messy_memory[]; /* = D_80111700_messy_memory[75] */
 extern s16 D_80115D84_messy_memory[4];
 extern Vec2f D_80115D20_messy_memory[10];
 extern u8 D_80115D76_messy_memory[4];
@@ -207,6 +209,7 @@ void func_8010F19C_messy_memory(omObjData *obj);
 void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
+void func_8000BD50_main(u16 spriteId, s16 arg1);
 void func_80110EC4_messy_memory(void);
 f32 func_801059BC_messy_memory(f32 angle, f32 add);
 /* A winner's cheer: the win motion and the character's voice. */
@@ -2669,7 +2672,68 @@ void func_8010F644_messy_memory(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* The result score digits (D_80111700[74 + board * 3 + k]): count up, shown, then shrink away (D_80115D7C). */
+void func_8010F6E8_messy_memory(omObjData *obj) {
+    MmEnt *e;
+    u8 i;
+
+    e = &D_80111700_messy_memory[obj->work[1] * 3 + 74 + obj->work[0]];
+    switch (D_80115D8C_messy_memory) {
+    case 13:
+        if (obj->work[0] == 0 && obj->work[1] == 0 && e->unk06 == 0) {
+            HuAudFXPlay(0x3EC);
+            e->unk06 = 1;
+        }
+        break;
+    case 14:
+        e->unk5C.x = e->unk5C.y = D_80115D7C_messy_memory;
+        if (obj->work[0] == 1) {
+            func_8000BB54_main(e->spr);
+            e->unk04++;
+            if (e->unk04 >= 10) {
+                e->unk04 = 0;
+            }
+            func_8000BD50_main(e->spr, e->unk04);
+        }
+        if (obj->work[0] == 2) {
+            func_8000BB54_main(e->spr);
+        }
+        break;
+    case 15:
+        i = 0;
+        if (obj->work[0] == 0 && obj->work[1] == 0 && e->unk06 == 1) {
+            HuAudFXPlay(0x3ED);
+            e->unk06 = 2;
+        }
+        for (i = 0; i < 10; i++) {
+            if (D_80115D76_messy_memory[obj->work[1]] == i) {
+                e = &D_80113DAC_messy_memory[obj->work[1] * 3];
+                func_8000BD50_main(e->spr, i);
+            }
+        }
+        if (D_80115D76_messy_memory[obj->work[1]] == 10) {
+            e = D_80113D28_messy_memory + obj->work[1] * 3;
+            func_8000BB54_main(e->spr);
+            func_8000BD50_main(e->spr, 1);
+            e = &D_80113D28_messy_memory[obj->work[1] * 3];
+            func_8000BD50_main(e[1].spr, 0);
+        }
+        e = &D_80111700_messy_memory[obj->work[1] * 3 + 74 + obj->work[0]];
+        e->unk5C.x = e->unk5C.y = D_80115D7C_messy_memory;
+        if (e->unk5C.x < 0.01f || e->unk5C.y < 0.01f) {
+            e->unk5C.x = e->unk5C.y = 0.01f;
+            func_8000BB94_main(e->spr);
+            D_80115D9A_messy_memory = 15;
+        }
+        break;
+    }
+    func_8000BE5C_main(e->spr, e->unk5C.x, e->unk5C.y);
+    func_8000BBD4_main(e->spr, e->pos.x, e->pos.y);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010F6E8_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FA38_messy_memory);
 
