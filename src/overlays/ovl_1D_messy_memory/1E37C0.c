@@ -188,6 +188,7 @@ omObjData *func_80045ED0_main(u32 arg0);
 void func_8010B32C_messy_memory(omObjData *obj);
 void func_8010C03C_messy_memory(omObjData *obj);
 void func_8010D55C_messy_memory(omObjData *obj);
+void func_8010E29C_messy_memory(omObjData *obj);
 void func_8010DA64_messy_memory(omObjData *obj);
 void func_80106140_messy_memory(omObjData *obj);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -2291,7 +2292,32 @@ void func_8010E29C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E29C_messy_memory);
 #endif
 
+#ifdef NON_MATCHING
+/* Creates the item shadow objects: ten per board, work[0] item, work[1] board. */
+void func_8010E500_messy_memory(void) {
+    omObjData *o;
+    MmEnt *e;
+    s16 b;
+    s16 j;
+    s16 i;
+
+    for (b = 0; b < 5; b++) {
+        for (j = 0; j < 10; j++) {
+            e = &D_80111700_messy_memory[j + (b * 10 + 86)];
+            o = omAddObj(400, 0, 0, -1, func_8010E29C_messy_memory);
+            for (i = 0; i < 10; i++) {
+                if ((s16)(j % 10) == i) {
+                    o->work[0] = j;
+                }
+            }
+            e->obj = o;
+            o->work[1] = b;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E500_messy_memory);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E654_messy_memory);
 
