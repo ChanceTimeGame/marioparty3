@@ -1,4 +1,12 @@
 #include "common.h"
+#include "overlays/minigame.h"
+#include "gcc/memory.h"
+#include "game/audio.h"
+#include "game/gamemes.h"
+#include "game/hmfman.h"
+#include "game/wipe.h"
+#include "mallocblock.h"
+#include "math.h"
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_801059A0_bowser_toss);
 
