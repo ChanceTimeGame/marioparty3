@@ -137,7 +137,7 @@ typedef struct SbStage {
     /* 0x28 */ s32 unk28;
     /* 0x2C */ char unk2C[4];
     /* 0x30 */ void (*unk30)(omObjData *); /* per-frame hook */
-    /* 0x34 */ s32 unk34;
+    /* 0x34 */ void (*unk34)(omObjData *); /* mode exit hook */
 } SbStage; // Size 0x38
 
 // end m7 sb types
@@ -180,6 +180,10 @@ void func_80108B34_stardust_battle(void);
 void func_80108C14_stardust_battle(omObjData *obj);
 void func_80108D84_stardust_battle(omObjData *obj);
 void func_80108EC4_stardust_battle(s16 mdl, f32 u, f32 v, s32 w, s32 h, s32 mat);
+void func_80109128_stardust_battle(s16 mode);
+s16 func_8010929C_stardust_battle(void);
+void func_801092F0_stardust_battle(omObjData *obj);
+void func_801093CC_stardust_battle(omObjData *obj);
 u16 func_8010EE38_stardust_battle(s32 dirAndFile);
 void func_8010F580_stardust_battle(s16 idx);
 void func_8010F5B0_stardust_battle(s16 idx);
@@ -209,13 +213,17 @@ extern u8 D_800D2008_main;
 f32 fabsf(f32);
 
 /* still asm */
+extern void (*D_80113E78_stardust_battle[3])(omObjData *);
+extern void (*D_80113E84_stardust_battle[3])(omObjData *);
+extern s32 D_80113E54_stardust_battle[3];
+extern s32 D_80113E60_stardust_battle[3];
+extern s32 D_80113E6C_stardust_battle[3];
 void func_8001ED54_main(s16);
 void func_800E1490_minigame(u16 arg0);
 void func_800E1304_minigame(omObjData *obj, f32 arg1);
 void func_800E1310_minigame(omObjData *obj, f32 arg1);
 void func_800E131C_minigame(omObjData *obj, f32 arg1);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
-void func_80109128_stardust_battle(s16);
 void func_8010A04C_stardust_battle(f32 x, f32 z, f32 arg2, f32 arg3, f32 arg4, f32 arg5);
 void func_800E5798_minigame(omObjData *obj, u16 motion);
 omObjData *func_80045F1C_main(u32, s16, s16);
@@ -230,8 +238,6 @@ extern void (*D_80113E3C_stardust_battle[3])(omObjData *);
 extern void (*D_80113E48_stardust_battle[3])(omObjData *);
 extern omObjData *D_80114B18_stardust_battle;
 void func_80107760_stardust_battle(omObjData *obj, s32 busy);
-s16 func_8010929C_stardust_battle(void);
-void func_801092F0_stardust_battle(omObjData *obj);
 s16 func_8010E524_stardust_battle(omObjData *obj, Vec *arg1, f32 *arg2);
 void func_8010EA04_stardust_battle(omObjData *obj);
 void func_800DDD94_minigame(omObjData* obj);
@@ -1360,7 +1366,7 @@ void func_80108B34_stardust_battle(void) {
     st->unk24 = 0;
     st->unk28 = 0;
     st->unk30 = NULL;
-    st->unk34 = 0;
+    st->unk34 = NULL;
     obj = omAddObj(3, 8, 0, -1, func_80108C14_stardust_battle);
     D_800EC1C0_minigame[(u16)D_800EBE28_minigame] = obj;
     omSetStatBit(obj, 0xA0);
@@ -1462,13 +1468,72 @@ void func_80108EC4_stardust_battle(s16 mdl, f32 u, f32 v, s32 w, s32 h, s32 mat)
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80108EC4_stardust_battle);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109128_stardust_battle);
+void func_80109128_stardust_battle(s16 mode) {
+    omObjData *obj;
+    SbStage *st;
+    u16 n = D_800EBE28_minigame;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010929C_stardust_battle);
+    if (n != 0 && D_800EC280_minigame != 0) {
+        obj = D_800EC1C0_minigame[n - 1];
+        st = func_80111FEC_stardust_battle(obj);
+        if (st->unk00 != mode) {
+            func_80107DCC_stardust_battle(D_800EC598_minigame[0], mode);
+            if (st->unk34 != NULL) {
+                st->unk34(obj);
+                st->unk34 = NULL;
+            }
+            st->unk00 = mode;
+            st->unk30 = D_80113E78_stardust_battle[mode];
+            st->unk34 = D_80113E84_stardust_battle[mode];
+            if (obj->model[0] != -1) {
+                func_8001ACDC_main(obj->model[0]);
+            }
+            if (obj->model[1] != -1) {
+                func_8001ACDC_main(obj->model[1]);
+            }
+            obj->model[0] = func_8000B108_main(D_80113E60_stardust_battle[mode] | 0x620000, 0x699);
+            obj->model[1] = func_8000B108_main(D_80113E54_stardust_battle[mode] | 0x620000, D_80113E6C_stardust_battle[mode] | 0x299);
+            if (st->unk30 != NULL) {
+                st->unk30(obj);
+            }
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801092F0_stardust_battle);
+s16 func_8010929C_stardust_battle(void) {
+    if (*(u16 *)&D_800EBE28_minigame != 0 && D_800EC280_minigame != 0) {
+        return ((SbStage *)func_80111FEC_stardust_battle(D_800EC1C0_minigame[(u16)D_800EBE28_minigame - 1]))->unk00;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_801093CC_stardust_battle);
+void func_801092F0_stardust_battle(omObjData *obj) {
+    MgWork *work = obj->data;
+    f32 d = obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z;
+    f32 r = fabs(525.0 - work->unk48);
+
+    if (r * r < d) {
+        d = sqrtf(d);
+        if (d != 0.0f) {
+            d = r / d;
+        } else {
+            obj->trans.x = 0.0f;
+            obj->trans.z = r;
+            d = 1.0f;
+        }
+        obj->trans.x = d * obj->trans.x;
+        obj->trans.z = d * obj->trans.z;
+    }
+}
+
+void func_801093CC_stardust_battle(omObjData *obj) {
+    SbStage *st = func_80111FEC_stardust_battle(obj);
+
+    func_800E131C_minigame(obj, 20.0f);
+    func_800E1304_minigame(obj, 1.0f);
+    func_800E1310_minigame(obj, 10.0f);
+    st->unk30 = NULL;
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109424_stardust_battle);
 
