@@ -8,6 +8,24 @@
 #include "mallocblock.h"
 #include "math.h"
 
+#define BT_RANDF() ((f32)(u8)(rand8() % 100) * 0.01)
+
+/* A dust puff where a Bowser lands. */
+#define BT_DUST_VEL(bw, pos, vel, s, a, b)                                        \
+    pos.x = ((bw)->unk30.x + 100.0f) - BT_RANDF() * 200.0;                         \
+    pos.z = (bw)->unk30.z + BT_RANDF() * 200.0 * 0.5;                              \
+    pos.y = 0.0f;                                                                  \
+    a = -(BT_RANDF() * 90.0);                                                      \
+    b = BT_RANDF() * 360.0;                                                        \
+    s = BT_RANDF() * 5.000000074505806 + 5.000000074505806;                        \
+    vel.x = sindf(b) * cosdf(a) * s;                                               \
+    vel.y = -sindf(a) * s;                                                         \
+    vel.z = cosdf(b) * cosdf(a) * s
+
+#define BT_DUST(bw, p, pos, vel, scale, s, a, b) \
+    BT_DUST_VEL(bw, pos, vel, s, a, b);          \
+    func_8010A2D4_bowser_toss(&pos, &vel, &scale, 1.0f, (p)->unk00)
+
 
 
 
@@ -113,7 +131,7 @@ typedef struct BtBowser {
     /* 0x08 */ s16 unk08;
     /* 0x0A */ s16 unk0A; /* state */
     /* 0x0C */ s16 unk0C;
-    /* 0x0E */ char unk0E[2];
+    /* 0x0E */ s16 unk0E;
     /* 0x10 */ f32 unk10;
     /* 0x14 */ f32 unk14;
     /* 0x18 */ f32 unk18;
@@ -125,7 +143,13 @@ typedef struct BtBowser {
     /* 0x28 */ f32 unk28; /* spin speed, 0..1 */
     /* 0x2C */ f32 unk2C; /* angle, 0..1 */
     /* 0x30 */ Vec unk30; /* position */
-    /* 0x3C */ char unk3C[0x20];
+    /* 0x3C */ f32 unk3C; /* rotation x */
+    /* 0x40 */ f32 unk40; /* rotation y */
+    /* 0x44 */ f32 unk44; /* spin */
+    /* 0x48 */ f32 unk48; /* horizontal speed */
+    /* 0x4C */ f32 unk4C; /* vertical speed */
+    /* 0x50 */ s32 unk50;
+    /* 0x54 */ char unk54[8];
     /* 0x5C */ unk1EA70StructC* unk5C;
     /* 0x60 */ void* unk60;
 } BtBowser; // Size 0x64
@@ -173,7 +197,7 @@ BtBowser* func_80108800_bowser_toss(s16 idx);
 void func_8010882C_bowser_toss(omObjData* obj);
 s32 func_80109F20_bowser_toss(void);
 void func_8010A028_bowser_toss(void);
-s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, u16 player);
+s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, s16 player);
 void func_8010A4A8_bowser_toss(void);
 void func_8010AD98_bowser_toss(void);
 void func_8010B41C_bowser_toss(void);
@@ -1242,7 +1266,272 @@ BtBowser* func_80108800_bowser_toss(s16 idx) {
     return &D_8010FB8C_bowser_toss[idx];
 }
 
+/* The two thrown Bowsers: held, spun, flying, landing, sliding to rest. */
+/* NON_MATCHING: case 8 schedules the bw->unk30.x load before the 100.0f constant (retail after); otherwise identical. */
+#ifdef NON_MATCHING
+void func_8010882C_bowser_toss(omObjData* obj) {
+    Matrix4f m0;
+    Matrix4f m1;
+    Matrix4f m2;
+    Vec pos;
+    Vec vel;
+    Vec scale;
+    BtBowser* bw;
+    BtPlayer* p;
+    HmfModel* model;
+    s32 i;
+    s32 j;
+    s32 n;
+    f32 a;
+    f32 b;
+    f32 s;
+    f32 t;
+    f32 g;
+
+    i = 0;
+    bw = D_8010FB8C_bowser_toss;
+    do {
+        p = func_8010D98C_bowser_toss(bw->unk00);
+        model = &HmfModelData[bw->unk00->model[0]];
+        obj->trans.x = bw->unk00->trans.x;
+        obj->trans.y = bw->unk00->trans.y;
+        obj->trans.z = bw->unk00->trans.z;
+        obj->rot.x = bw->unk00->rot.x;
+        obj->rot.y = bw->unk00->rot.y;
+        obj->rot.z = bw->unk00->rot.z;
+        obj->scale.x = bw->unk00->scale.x;
+        obj->scale.y = bw->unk00->scale.y;
+        obj->scale.z = bw->unk00->scale.z;
+        switch (bw->unk0A) {
+        case 0:
+            if (bw->unk60 != NULL) {
+                func_80109DB8_bowser_toss(obj, obj->rot.y, m0);
+                func_80109E4C_bowser_toss(bw, m2, model->unk58);
+                if (model->unk06 != 0xFF) {
+                    func_80018044_main(m2, m0, m1);
+                } else {
+                    func_8002367C_main(m1, m0);
+                }
+                func_80017C10_main((Mtx*)m1, 0.0f, 0.0f, 150.0f);
+                bw->unk30.x = m1[3][0];
+                bw->unk30.z = m1[3][2];
+            }
+            break;
+        case 1:
+            func_8001C258_main(bw->unk04, 0x4000, 0);
+            func_80109DB8_bowser_toss(obj, 90.0f, m0);
+            func_80109E4C_bowser_toss(bw, m2, model->unk58);
+            func_80018044_main(m2, m0, m1);
+            func_80017C10_main((Mtx*)m1, 0.0f, 0.0f, 150.0f);
+            bw->unk30.x = m1[3][0];
+            bw->unk30.y = m1[3][1];
+            bw->unk30.z = m1[3][2];
+            bw->unk3C = 360.0f - bw->unk2C * 85.0f;
+            bw->unk40 = 90.0f;
+            bw->unk44 = 0.0f;
+            func_8001C258_main(bw->unk04, 4, 4);
+            func_8001C258_main(bw->unk06, 4, 0);
+            bw->unk48 = fabs(cosdf(bw->unk3C)) * bw->unk28 * 75.99999904632568;
+            bw->unk4C = fabs(sindf(bw->unk3C)) * bw->unk28 * 75.99999904632568;
+            bw->unk50 = 0;
+            bw->unk30.x += bw->unk48;
+            bw->unk30.y += bw->unk4C;
+            bw->unk22 = 0;
+            bw->unk24 = func_80109F68_bowser_toss(bw->unk30.x, bw->unk30.y, bw->unk48, bw->unk4C);
+            bw->unk20 = func_8004AC5C_main(0x4A7, p->unk00);
+            if (bw->unk20 != -1) {
+                HuAudFXPitchSet(bw->unk20, bw->unk22);
+            }
+            bw->unk0A = 2;
+            bw->unk0C = 0;
+            break;
+        case 2:
+            bw->unk30.x += bw->unk48;
+            bw->unk30.y += bw->unk4C;
+            bw->unk4C -= 0.65332f;
+            if (bw->unk4C < -250.0) {
+                bw->unk4C = -250.0f;
+            }
+            if (bw->unk0C < 20) {
+                t = bw->unk0C / 20.0f;
+                CenterM[i].x = func_8010D8A0_bowser_toss(t, Center.x, bw->unk30.x);
+                CenterM[i].y = func_8010D8A0_bowser_toss(t, Center.y, bw->unk30.y);
+            } else {
+                CenterM[i].x = bw->unk30.x;
+                CenterM[i].y = bw->unk30.y;
+            }
+            if (CenterM[i].x < Center.x) {
+                CenterM[i].x = Center.x;
+            }
+            if (p->unk00 == 0) {
+                if (CenterM[i].y < Center.y) {
+                    CenterM[i].y = Center.y;
+                }
+            } else if (CenterM[i].y < D_8010FBA8_bowser_toss.y) {
+                CenterM[i].y = D_8010FBA8_bowser_toss.y;
+            }
+            bw->unk3C = atan2df(-bw->unk4C, bw->unk48);
+            bw->unk44 += bw->unk28 * 10.0f;
+            if (bw->unk44 >= 360.0f) {
+                bw->unk44 -= 360.0f;
+            }
+            g = -(fabs(bw->unk4C) / 250.0 * 100.0);
+            if (bw->unk30.y <= g + 10.0) {
+                bw->unk30.y = g + 10.0;
+                bw->unk0E = 0;
+                bw->unk0C = 0;
+                p->unk04 = bw->unk30.x;
+                scale.x = scale.y = scale.z = 1.0f;
+                n = fabs(bw->unk4C) / 250.0 * 8.0 + 8.0;
+                for (j = 0; j < n; j++) {
+                    BT_DUST(bw, p, pos, vel, scale, s, a, b);
+                }
+                if (bw->unk20 != -1) {
+                    HuAudFXStop(bw->unk20);
+                }
+                bw->unk20 = -1;
+                func_8004AC5C_main(0x4A8, p->unk00);
+                omVibrate(p->unk18, 20, 0, 20);
+                if (bw->unk28 < 0.4f) {
+                    bw->unk0A = 7;
+                } else {
+                    if (fabs(bw->unk48) < 2.0 * fabs(bw->unk4C)) {
+                        bw->unk18 = 50.0f;
+                    } else {
+                        bw->unk18 = bw->unk28 / 0.4f * 50.0;
+                    }
+                    bw->unk1C = CenterM[i].y;
+                    bw->unk0A = 6;
+                }
+            } else {
+                if (bw->unk4C > 0.0f) {
+                    bw->unk22 += 10;
+                } else {
+                    bw->unk22 -= 10;
+                }
+                if (bw->unk22 > 1200) {
+                    bw->unk22 = 1200;
+                } else if (bw->unk22 < 0) {
+                    bw->unk22 = 0;
+                }
+                if (bw->unk20 != -1) {
+                    HuAudFXPitchSet(bw->unk20, bw->unk22);
+                }
+            }
+            break;
+        case 3:
+            func_8001C258_main(bw->unk04, 0x4000, 0);
+            func_80109DB8_bowser_toss(obj, 90.0f, m0);
+            func_80109E4C_bowser_toss(bw, m2, 0.0f);
+            func_80018044_main(m2, m0, m1);
+            func_80017C10_main((Mtx*)m1, 0.0f, 0.0f, 150.0f);
+            bw->unk30.x = m1[3][0];
+            bw->unk30.y = m1[3][1];
+            bw->unk30.z = m1[3][2];
+            bw->unk3C = 45.0f;
+            bw->unk40 = 90.0f;
+            bw->unk44 = 0.0f;
+            func_8001C258_main(bw->unk04, 4, 4);
+            func_8001C258_main(bw->unk06, 4, 0);
+            bw->unk4C = 0.0f;
+            bw->unk0A = 4;
+            /* fallthrough */
+        case 4:
+            bw->unk4C -= 1.95996f;
+            if (bw->unk4C < -250.0) {
+                bw->unk4C = -250.0f;
+            }
+            bw->unk30.y += bw->unk4C;
+            g = -(fabs(bw->unk4C) / 250.0 * 100.0);
+            if (bw->unk30.y <= g + 10.0) {
+                bw->unk30.y = g + 10.0;
+                scale.x = scale.y = scale.z = 1.0f;
+                for (j = 0; j < 5; j++) {
+                    BT_DUST(bw, p, pos, vel, scale, s, a, b);
+                }
+                func_8004AC5C_main(0x4A8, p->unk00);
+                bw->unk0A = 9;
+            }
+            break;
+        case 5:
+            bw->unk3C = func_8010D6E0_bowser_toss(0.0f, bw->unk3C, 5.0f);
+            if (bw->unk3C <= 0.0f) {
+                bw->unk0A = 9;
+                bw->unk0C = 0;
+            }
+            break;
+        case 6:
+            bw->unk0A = 8;
+            bw->unk0C = 0;
+            break;
+        case 7:
+            bw->unk48 *= 0.8f;
+            bw->unk30.x += bw->unk48;
+            CenterM[i].x = bw->unk30.x;
+            CenterM[i].y = bw->unk30.y;
+            if (CenterM[i].x < Center.x) {
+                CenterM[i].x = Center.x;
+            }
+            if (p->unk00 == 0) {
+                if (CenterM[i].y < Center.y) {
+                    CenterM[i].y = Center.y;
+                }
+            } else if (CenterM[i].y < D_8010FBA8_bowser_toss.y) {
+                CenterM[i].y = D_8010FBA8_bowser_toss.y;
+            }
+            pos.x = bw->unk30.x;
+            pos.y = 0.0f;
+            pos.z = bw->unk30.z;
+            a = BT_RANDF() * 180.0;
+            b = BT_RANDF() * 360.0;
+            s = BT_RANDF() * 7.000000029802322 + 7.000000029802322;
+            vel.x = sindf(b) * cosdf(a) * s;
+            vel.y = -sindf(a) * s;
+            vel.z = cosdf(b) * cosdf(a) * s;
+            scale.x = scale.y = scale.z = 1.0f;
+            func_8010A2D4_bowser_toss(&pos, &vel, &scale, 1.0f, p->unk00);
+            if (bw->unk48 <= 10.0) {
+                bw->unk0A = 9;
+                bw->unk0C = 0;
+            }
+            break;
+        case 8:
+            BT_DUST_VEL(bw, pos, vel, s, a, b);
+            scale.x = scale.y = scale.z = 1.0f;
+            func_8010A2D4_bowser_toss(&pos, &vel, &scale, 1.0f, p->unk00);
+            if (bw->unk0C >= 6.0f) {
+                bw->unk0A = 9;
+                bw->unk0C = 0;
+            }
+            break;
+        case 9:
+            break;
+        }
+        if (bw->unk18 >= 0.1f) {
+            CenterM[i].y = bw->unk18 * 0.5f + bw->unk1C + sindf(bw->unk10) * bw->unk18;
+            bw->unk10 += bw->unk14;
+            if (bw->unk10 >= 360.0f) {
+                bw->unk10 -= 360.0f;
+            }
+            bw->unk18 -= 7.500000298023224;
+        }
+        Hu3DModelPosSet(bw->unk04, bw->unk30.x, bw->unk30.y, bw->unk30.z);
+        Hu3DModelRotSet(bw->unk04, bw->unk3C, bw->unk40, 0.0f);
+        func_8008A070_main((f32(*)[4])HmfModelData[bw->unk04].mtx);
+        func_80017D24_main((f32(*)[4])HmfModelData[bw->unk04].mtx, 0.0f, 0.0f, bw->unk44);
+        Hu3DModelPosSet(bw->unk06, bw->unk30.x, bw->unk30.y, bw->unk30.z);
+        Hu3DModelRotSet(bw->unk06, bw->unk3C, bw->unk40, 0.0f);
+        func_8008A070_main((f32(*)[4])HmfModelData[bw->unk06].mtx);
+        func_80017D24_main((f32(*)[4])HmfModelData[bw->unk06].mtx, 0.0f, 0.0f, bw->unk44);
+        Hu3DModelPosSet(bw->unk08, bw->unk30.x, 0.0f, bw->unk30.z);
+        i++;
+        bw->unk0C++;
+        bw++;
+    } while (i < 2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010882C_bowser_toss);
+#endif
 
 void func_80109DB8_bowser_toss(omObjData* obj, f32 rot, Matrix4f out) {
     fmod(rot + obj->rot.y, 360.0);
@@ -1374,7 +1663,7 @@ void func_8010A17C_bowser_toss(omObjData* obj) {
     }
 }
 
-s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, u16 player) {
+s32 func_8010A2D4_bowser_toss(Vec* pos, Vec* vel, Vec* scale, f32 speed, s16 player) {
     HuSprite_Unk84_Struct* spr;
     BtEffect* fx;
     HmfModel* mdl;
