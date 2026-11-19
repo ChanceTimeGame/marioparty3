@@ -86,6 +86,10 @@ void func_8010B8EC_picking_panic(omObjData *obj);
 void func_8010B908_picking_panic(omObjData *arg0, s8 arg1);
 void func_8010B11C_picking_panic(s16 model, s16 frame);
 
+typedef struct {
+    s32 unk00[8];
+} PkChrTable;
+
 /* data */
 extern Gfx D_8010E5E0_picking_panic[];
 extern D_80111B50_vine_with_me_Struct D_8010E5B0_picking_panic;
@@ -102,6 +106,7 @@ extern u8 D_8010E718_picking_panic[8];
 
 /* rodata */
 extern s16 D_8010E720_picking_panic[];
+extern PkChrTable D_8010E758_picking_panic;
 extern PkCpuTable D_8010EA8C_picking_panic;
 
 /* bss */
@@ -145,6 +150,7 @@ extern f32 D_8010EF94_picking_panic;
 extern s8 D_8010EF98_picking_panic[2];
 extern f32 D_8010EF9C_picking_panic[2];
 extern u8 D_8010EFA4_picking_panic;
+extern u8 D_8010EFA5_picking_panic;
 extern s32 D_8010EFA8_picking_panic;
 extern u8 D_8010EFBC_picking_panic[2];
 extern u16 D_8010EFBE_picking_panic;
@@ -271,7 +277,137 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E7
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E758_picking_panic);
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", func_80106020_picking_panic);
+void func_80106020_picking_panic(omObjData *obj) {
+    s32 i;
+    u8 j;
+
+    CenterM[0].x = 0.0f;
+    CenterM[0].y = 0.0f;
+    CenterM[0].z = 0.0f;
+    CenterM[1].x = 0.0f;
+    CenterM[1].y = 0.0f;
+    CenterM[1].z = 0.0f;
+    D_8010EFA8_picking_panic++;
+    D_8010EF7C_picking_panic++;
+    func_800E6F40_minigame();
+    switch (D_8010EF80_picking_panic) {
+        case 0:
+            if (D_8010EFA8_picking_panic == 2) {
+                HuAudFXPlay(0x371);
+            }
+            if (func_800E6E8C_minigame() == 1) {
+                D_8010EF80_picking_panic = 1;
+                D_8010EFA8_picking_panic = 0;
+            }
+            break;
+        case 1:
+            if (D_8010EFA8_picking_panic == 33 && D_8010EFBE_picking_panic == 0 && D_800D530C_main == 0) {
+                HuAudSeqPlay(0x38);
+            }
+            if (func_800E6E8C_minigame() == 2) {
+                D_8010EF80_picking_panic = 2;
+                D_8010EFA8_picking_panic = 0;
+            }
+            break;
+        case 2:
+            if (D_8010EF14_picking_panic == 5 && func_800E6E8C_minigame() == 3) {
+                if (D_8010EF15_picking_panic[0] == D_8010EF15_picking_panic[1]) {
+                    D_8010EF80_picking_panic = 4;
+                    D_8010EF14_picking_panic = 4;
+                } else {
+                    D_8010EF80_picking_panic = 3;
+                    D_8010EF14_picking_panic = D_8010EF15_picking_panic[0] <= D_8010EF15_picking_panic[1];
+                }
+                D_8010EFA8_picking_panic = 0;
+            }
+            if (D_8010EF80_picking_panic != 3) {
+                break;
+            }
+            /* fallthrough */
+        case 3:
+            if (D_8010EFA8_picking_panic == 0) {
+                if (func_800E6E8C_minigame() != 3) {
+                    func_800E6F1C_minigame();
+                }
+                D_8010E5B0_picking_panic.unk06 = 1;
+                D_8010E5B0_picking_panic.unk18 = D_8010EEE0_picking_panic[D_8010EF14_picking_panic * 2]->unk00;
+                D_8010E5B0_picking_panic.unk19[0] = D_8010EEE0_picking_panic[D_8010EF14_picking_panic * 2 + 1]->unk00;
+                GwPlayer[D_8010EEE0_picking_panic[D_8010EF14_picking_panic * 2]->unk00].bonusCoin = 10;
+                GwPlayer[D_8010EEE0_picking_panic[D_8010EF14_picking_panic * 2 + 1]->unk00].bonusCoin = 10;
+            }
+            if (D_8010EFA8_picking_panic == 2) {
+                func_800E6F34_minigame(30);
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_8010EF80_picking_panic = 5;
+                D_8010EFA8_picking_panic = 0;
+            }
+            break;
+        case 4:
+            if (D_8010EFA8_picking_panic == 1) {
+                D_8010E5B0_picking_panic.unk06 = 4;
+                D_8010E5B0_picking_panic.unk22 = 75;
+                D_8010E5B0_picking_panic.unk24 = 144;
+            }
+            if (func_800E6E8C_minigame() == 4) {
+                D_8010EF80_picking_panic = 6;
+                D_8010EFA8_picking_panic = 0;
+            }
+            break;
+        case 5:
+            if (D_8010EFA8_picking_panic == 31) {
+                for (i = D_8010EF14_picking_panic * 2; i < D_8010EF14_picking_panic * 2 + 2; i++) {
+                    PkChrTable sp10 = D_8010E758_picking_panic;
+
+                    func_80017954_main(D_8010EF00_picking_panic[i]->model[1], 1,
+                                       sp10.unk00[D_8010EEE0_picking_panic[i]->unk03], D_8010EEE0_picking_panic[i]->unk08);
+                    func_8001C5B4_main(D_8010EF00_picking_panic[i]->model[1], D_8010EF00_picking_panic[i]->motion[4]);
+                    func_80045ED0_main(D_8010EEE0_picking_panic[i]->unk0C);
+                }
+            }
+            /* fallthrough */
+        case 6:
+            if (func_800E6E8C_minigame() == 5) {
+                D_8010EF80_picking_panic = 7;
+                D_8010EFA8_picking_panic = 0;
+            }
+            break;
+        case 7:
+            if (D_8010EFA8_picking_panic == 1) {
+                WipeCreateOut(0, 0x14);
+            } else if (D_8010EFA8_picking_panic >= 32) {
+                D_8010EFBE_picking_panic = 1;
+            }
+            break;
+    }
+    if (_CheckFlag(0xF) && D_800D530C_main == 0 && D_8010EFA5_picking_panic == 0 && D_8010EF80_picking_panic == 2U) {
+        for (j = 0; j < 2; j++) {
+            if (D_8010EEE0_picking_panic[j]->unk04 == -1 &&
+                (D_800D5558_main[D_8010EEE0_picking_panic[j]->unk02] & 0x10)) {
+                D_8010EFA5_picking_panic = 1;
+            }
+        }
+    }
+    if (D_8010EFBE_picking_panic == 0 && D_800D530C_main == 0 && D_8010EFA5_picking_panic == 0) {
+        return;
+    }
+    if (D_800D530C_main != 0 && D_8010EFA5_picking_panic == 0) {
+        D_8010EFA5_picking_panic = 1;
+    }
+    if (D_8010EFA5_picking_panic != 0) {
+        if (D_8010EFA5_picking_panic == 1) {
+            WipeCreateOut(0, 0x14);
+            HuAudSeqFadeOut(0x14);
+            func_8004AB0C_main(0x14);
+        }
+        D_8010EFA5_picking_panic++;
+        if (D_8010EFA5_picking_panic < 25) {
+            return;
+        }
+    }
+    HuAudSeqFadeOut(0x1E);
+    omOvlReturnEx(1);
+}
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_0F_picking_panic/181950", D_8010E798_picking_panic);
 
