@@ -2708,7 +2708,40 @@ void func_8010E824_snowball_summit(SsBall *ball) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EA68_snowball_summit);
+/* The snowballs for one frame: motion, the edge, collisions, then the falls. */
+void func_8010EA68_snowball_summit(void) {
+    SsBall *ball;
+    s32 i;
+
+    for (i = 0; i < 16; i++) {
+        ball = &D_8010FC30_snowball_summit[i];
+        if (ball->state > 0 && ball->fall == 0) {
+            if (ball->owner != -1) {
+                func_8010DD00_snowball_summit(ball);
+            } else {
+                func_8010DFD0_snowball_summit(ball);
+            }
+        }
+    }
+    for (i = 0; i < 16; i++) {
+        ball = &D_8010FC30_snowball_summit[i];
+        if (ball->state > 0 && ball->fall == 0) {
+            func_8010DB10_snowball_summit(ball);
+        }
+    }
+    for (i = 0; i < 16; i++) {
+        ball = &D_8010FC30_snowball_summit[i];
+        if (ball->state > 0 && ball->fall == 0) {
+            func_8010E824_snowball_summit(ball);
+        }
+    }
+    for (i = 0; i < 16; i++) {
+        ball = &D_8010FC30_snowball_summit[i];
+        if (ball->state > 0 && ball->state < 20 && ball->fall == 1) {
+            func_8010E2F4_snowball_summit(ball);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010EBC0_snowball_summit);
 
