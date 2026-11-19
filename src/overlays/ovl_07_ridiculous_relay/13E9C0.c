@@ -701,7 +701,7 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
         }
         if (D_80110E20_ridiculous_relay[j] <= -1000.0f && D_80110E38_ridiculous_relay[j] == 0 && D_801119D8_ridiculous_relay == 2
             && D_80110DAC_ridiculous_relay[0] >= 50.0 && D_80110DAC_ridiculous_relay[0] < 1775.0) {
-            u8 k;
+            s32 k;
 
             D_80110E20_ridiculous_relay[j] = CenterM[0].x + 125.0;
             HuAudFXPlay(0x332);
@@ -1160,7 +1160,8 @@ void func_8010B4A8_ridiculous_relay(omObjData *arg0) {
             D_80110E10_ridiculous_relay[2] = 2;
             func_8001C624_main(obj->model[1], HmfModelData[obj->motion[D_80110DF0_ridiculous_relay + 7]].unk02,
                                (D_80110DF0_ridiculous_relay == 3) ? 7 : 5, 4, 0);
-            D_80110DF0_ridiculous_relay = (D_80110DF0_ridiculous_relay + 1) % 4;
+            D_80110DF0_ridiculous_relay++;
+            D_80110DF0_ridiculous_relay %= 4;
             if (D_80110DF0_ridiculous_relay == 0) {
                 D_80110DF8_ridiculous_relay[0] = 50;
                 D_80110DCC_ridiculous_relay[2] = 53.0f;
