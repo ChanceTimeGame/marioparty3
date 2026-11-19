@@ -1,13 +1,15 @@
 #include "common.h"
 #include "overlays/minigame.h"
 #include "game/pause.h"
+#include "game/sprite.h"
+#include "math.h"
 
 /* A relay runner's player (D_80111940[], filled by func_80105D40_ridiculous_relay). */
 typedef struct {
     /* 0x00 */ s8 unk0; /* player index */
     /* 0x01 */ u8 unk1; /* group (leg) */
     /* 0x02 */ s8 unk2; /* pad */
-    /* 0x03 */ u8 unk3; /* character */
+    /* 0x03 */ s8 unk3; /* character */
     /* 0x04 */ s8 unk4; /* CPU difficulty, -1 human */
     /* 0x05 */ char unk5[3];
     /* 0x08 */ s32 unk8; /* message */
@@ -62,6 +64,30 @@ typedef struct {
 } RrSprModel; /* size 0x24 */
 
 extern RrSprModel *D_800CBB60_main;
+
+/* main's sprite group table (esprite.c's layout; that struct is local to esprite.c) */
+typedef struct {
+    /* 0x00 */ s16 unk00;
+    /* 0x02 */ s16 unk02;
+    /* 0x04 */ s16 unk04;
+    /* 0x06 */ s16 unk06;
+    /* 0x08 */ s16 unk8;
+    /* 0x0A */ s16 unkA;
+    /* 0x0C */ s16 unkC;
+    /* 0x0E */ s16 unkE;
+    /* 0x10 */ f32 unk10;
+    /* 0x14 */ f32 unk14;
+    /* 0x18 */ char unk18[4];
+    /* 0x1C */ s16 unk1C;
+    /* 0x1E */ s16 unk1E;
+    /* 0x20 */ s16 unk20;
+    /* 0x22 */ char unk22[2];
+} RrEspriteGroup; /* size 0x24 */
+
+extern RrEspriteGroup *D_800CD1DC_main;
+extern Gfx *gMainGfxPos;
+extern Gfx D_80110CD8_ridiculous_relay[];
+extern u8 D_80110D68_ridiculous_relay;
 extern u16 D_800A1902_main;
 s16 func_800329B4_main(void *);
 void func_80012B14_main(s16 camIndex, Vec *worldPos, Vec2f *outPos);
@@ -510,7 +536,211 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_801
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", D_80110FC8_ridiculous_relay);
 
+#ifdef NON_MATCHING
+void func_80108DE8_ridiculous_relay(Gfx **gfx, s32 arg1, s32 arg2) {
+    s32 i;
+    s32 j;
+    s32 k;
+    HuSprite *spr;
+    HuSprite_Unk84_Unk00_Struct *tex;
+
+    D_80110D68_ridiculous_relay = (D_80110D68_ridiculous_relay == 0);
+    if (D_80110D68_ridiculous_relay != 0) {
+        return;
+    }
+    gSPDisplayList(gMainGfxPos++, D_80110CD8_ridiculous_relay);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+
+    /* the two scrolling track strips (only the lower one is drawn) */
+    for (i = 1; i < 2; i++) {
+        gDPPipeSync(gMainGfxPos++);
+        if (i == 0) {
+            gDPSetRenderMode(gMainGfxPos++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
+            gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+            gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0x80);
+        } else {
+            gDPSetRenderMode(gMainGfxPos++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+            gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+            gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0x80);
+            gDPSetPrimColor(gMainGfxPos++, 0, 0, 0x00, 0x00, 0x00, 0xA0);
+            gDPSetCombineLERP(gMainGfxPos++, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, PRIMITIVE, 0);
+        }
+        spr = HuSprGet(D_800CD1DC_main[D_80111A58_ridiculous_relay[(i == 0) ? 6 : 7]].unk04, 0);
+        tex = &spr->unk_84->unk00[spr->unk_90];
+        gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        for (j = 0; j < 2; j++) {
+            s32 h = i * 10 + 26;
+            f32 scroll = D_801119D0_ridiculous_relay * 16.0f + D_8011199C_ridiculous_relay[i] + 640.0f;
+            s32 off = -(scroll - (s32)(scroll / 320.0f) * 320) + j * 320;
+
+            for (k = 0; k < 8; k++) {
+                f32 x0 = (k * 5) * 8;
+                f32 x1 = x0 + 40.0f + ((k < 7) ? 1.0f : 0.0f);
+                s32 xl = (x0 + off) * 4.0f;
+                f32 dy = D_801119DC_ridiculous_relay * -16.0f;
+                s32 yl = (((dy + 120.0f) * i + 120.0f) - h) * 4.0f;
+                s32 xh = (x1 + off) * 4.0f - 1.0f;
+                s32 yh = ((dy + 240.0f) * i + 120.0f) * 4.0f;
+
+                if (((xl >= 0x500) | (xh < 0)) == 0) {
+                    gDPLoadTextureTile_4b(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, 320, 0, (s32)x0, 0, (s32)x1, (s32)h, 0,
+                                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_MIRROR | G_TX_WRAP, G_TX_NOMASK, 5, G_TX_NOLOD, G_TX_NOLOD);
+                    gSPScisTextureRectangle(gMainGfxPos++, xl, yl, xh, yh, G_TX_RENDERTILE, x0 * 32.0f, 0.0f, 1024, 1024);
+                }
+            }
+        }
+    }
+
+    /* the hurdles, fireballs and the finish marker */
+    gDPSetCombineMode(gMainGfxPos++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+    gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0xE0);
+    for (i = 0; i < 8; i++) {
+        f32 xs[8] = { 40.0f, -40.0f, 40.0f, -40.0f, 40.0f, -40.0f, 0.0f, 0.0f };
+        f32 sc[8] = { 0.75f, 0.75f, 0.75f, 0.75f, 0.75f, 0.75f, 0.75f, 0.75f };
+
+        if (D_80111980_ridiculous_relay[(i >= 7) ? 6 : i] != 0.0f) {
+            u8 w = (i == 7) ? 20 : 50;
+            u8 hgt = (i == 7) ? 22 : 50;
+            s32 span = ((u32)(i - 2) < 4) ? 80 : w;
+            f32 x0;
+            f32 x1;
+
+            if (i == 7) {
+                sc[7] = sindf((D_801119C8_ridiculous_relay % 12) / 12.0 * 360.0) * 0.125 + 0.8125;
+            }
+            x0 = D_80111980_ridiculous_relay[(i < 7) ? i : 6] + xs[i] - (f32)(span / 2) * sc[i];
+            x1 = D_80111980_ridiculous_relay[(i >= 7) ? 6 : i] + xs[i] + (f32)(span / 2) * sc[i];
+            if (((x0 > 320.0f) | (x1 < 0.0f)) == 0) {
+                spr = HuSprGet(D_800CD1DC_main[D_80111A58_ridiculous_relay[23 + i]].unk04, 0);
+                tex = &spr->unk_84->unk00[spr->unk_90];
+                if ((u32)(i - 2) >= 4) {
+                    f32 cy;
+                    s32 rxl;
+                    s32 ryl;
+                    s32 rxh;
+                    s32 ryh;
+                    s32 dsdx;
+                    s32 dtdy;
+
+                    gDPLoadTextureTile_4b(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, w, hgt, 0, 0, w, hgt, 0,
+                                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+                    gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+                    if (i >= 6) {
+                        cy = sindf((D_801119C8_ridiculous_relay % 30) / 30.0 * 360.0) * 4.0f + 159.0f;
+                    } else {
+                        cy = 159.0f;
+                    }
+                    rxl = x0 * 4.0f;
+                    ryl = (cy - (f32)(hgt >> 1) * sc[i] - ((i == 7) ? 3.0f : 0.0f)) * 4.0f;
+                    rxh = x1 * 4.0f;
+                    ryh = (cy + (f32)(hgt >> 1) * sc[i] - ((i == 7) ? 3.0f : 0.0f)) * 4.0f - 3.0f;
+                    dsdx = w * 4.0 / (rxh - rxl) * 1024.0;
+                    dtdy = hgt * 4.0 / (ryh - ryl) * 1024.0;
+                    gSPScisTextureRectangle(gMainGfxPos++, rxl, ryl, rxh, ryh, G_TX_RENDERTILE, 0, 0, dsdx, dtdy);
+                } else {
+                    for (j = 0; j < 3; j++) {
+                        f32 t0 = (j != 0) ? ((j == 1) ? 17.0f : 34.0f) : 0.0f;
+                        f32 t1 = (j != 0) ? ((j == 1) ? 36.0f : 49.0f) : 19.0f;
+                        f32 scale;
+                        f32 base;
+                        s32 rxl;
+                        s32 ryl;
+                        s32 rxh;
+                        s32 ryh;
+                        s32 dsdx;
+                        s32 dtdy;
+
+                        gDPLoadTextureTile(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 80, 0, 0, (s32)t0, 80, (s32)t1, 0,
+                                           G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+                        gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+                        rxl = x0 * 4.0f;
+                        scale = sc[i];
+                        base = (1.0f - scale) * 25.0f;
+                        ryl = (t0 * scale + 134.0f + base) * 4.0f;
+                        rxh = x1 * 4.0f;
+                        ryh = (t1 * scale + 134.0f + base) * 4.0f;
+                        dsdx = 320.0 / (rxh - rxl) * 1024.0;
+                        dtdy = (t1 - t0) * 4.0 / (ryh - ryl) * 1024.0;
+                        gSPScisTextureRectangle(gMainGfxPos++, rxl, ryl, rxh, ryh - 3, G_TX_RENDERTILE, 0, (s32)(t0 * 32.0f), dsdx, dtdy);
+                    }
+                }
+            }
+        }
+    }
+
+    /* the stands */
+    spr = HuSprGet(D_800CD1DC_main[D_80111A58_ridiculous_relay[8]].unk04, 0);
+    tex = &spr->unk_84->unk00[spr->unk_90];
+    gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_NONE);
+    gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0x00);
+    for (k = 0; k < 6; k++) {
+        f32 x0;
+        f32 x1;
+
+        gDPLoadTextureTile(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 320, 0, k * 59, 0, k * 59 + 60, 28, 0,
+                           G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+        x0 = k * 59;
+        x1 = k * 59 + 60;
+        if (x1 > 320.0f) {
+            x1 = 320.0f;
+        }
+        gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        gSPScisTextureRectangle(gMainGfxPos++, (s32)(x0 * 4.0f), 106 * 4, (s32)(x1 * 4.0f), 134 * 4, G_TX_RENDERTILE,
+                                (s32)(x0 * 32.0f), 0, 1024, 1024);
+    }
+
+    /* the four runners' progress icons */
+    gDPSetCombineMode(gMainGfxPos++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+    gDPSetBlendColor(gMainGfxPos++, 0x00, 0x00, 0x00, 0xE0);
+    for (i = 0; i < 4; i++) {
+        f32 x;
+        f32 y;
+
+        spr = HuSprGet(D_800CD1DC_main[D_80111A58_ridiculous_relay[9 + D_80111970_ridiculous_relay[i]->unk3]].unk04, 0);
+        tex = &spr->unk_84->unk00[spr->unk_90];
+        if (D_80111970_ridiculous_relay[i]->unk3 == 7) {
+            gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        } else {
+            gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        }
+        if (D_80111970_ridiculous_relay[i]->unk3 == 7) {
+            gDPLoadTextureTile(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 18, 0, 0, 0, 18, 18, 0,
+                               G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+        } else {
+            gDPLoadTextureTile_4b(gMainGfxPos++, tex->unk00, G_IM_FMT_CI, 18, 0, 0, 0, 18, 18, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+        }
+        switch (i) {
+            case 0:
+                x = D_801119A8_ridiculous_relay[0] * 255.0f + 24.0f;
+                break;
+            case 1:
+                x = D_801119A8_ridiculous_relay[1] * 79.0f + 24.0f;
+                break;
+            case 2:
+                x = D_801119A8_ridiculous_relay[2] * 61.0f + 120.0f;
+                break;
+            case 3:
+                x = D_801119A8_ridiculous_relay[3] * 79.0f + 200.0f;
+                break;
+        }
+        y = (i > 0) ? 120.0f : 102.0f;
+        gSPScisTextureRectangle(gMainGfxPos++, (s32)x * 4, (s32)(y * 4.0f), ((s32)x + 18) * 4, (s32)((y + 18.0f) * 4.0f),
+                                G_TX_RENDERTILE, 0, 0, 1024, 1024);
+    }
+    gDPPipeSync(gMainGfxPos++);
+    gDPSetBlendColor(gMainGfxPos++, 0xFF, 0xFF, 0xFF, 0x00);
+    gDPPipeSync(gMainGfxPos++);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_07_ridiculous_relay/13E9C0", func_80108DE8_ridiculous_relay);
+#endif
 
 void func_8010AE4C_ridiculous_relay(omObjData *obj) {
     func_8010AF04_ridiculous_relay(obj, 0);
