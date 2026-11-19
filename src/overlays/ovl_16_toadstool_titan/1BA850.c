@@ -1376,7 +1376,7 @@ void func_80107360_toadstool_titan(omObjData* obj) {
         }
     }
     if (D_8010F586_toadstool_titan == 5) {
-        c2 = (D_8010EDE4_toadstool_titan + 1) % 51;
+        c2 = (s16)(D_8010EDE4_toadstool_titan + 1) % 51;
         D_8010EDE4_toadstool_titan = c2;
         if (c2 % 17 == 0) {
             k2 = c2 / 17;
