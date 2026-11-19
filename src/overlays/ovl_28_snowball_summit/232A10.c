@@ -133,11 +133,13 @@ typedef struct SsBall {
 /* Small state slots (D_801101C8_snowball_summit 4 x 8, D_80110250_snowball_summit 4 x 0x10). */
 typedef struct SsSlot8 {
     /* 0x00 */ s32 state;
-    /* 0x04 */ s32 unk04;
+    /* 0x04 */ omObjData *obj;
 } SsSlot8;
 typedef struct SsSlot16 {
     /* 0x00 */ s32 state;
-    /* 0x04 */ char unk04[0xC];
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ omObjData *obj;
 } SsSlot16;
 
 typedef s32 (*SsDrawHookAdd)(s32, void (*)(Gfx **, s32, s32), u8);
@@ -271,6 +273,8 @@ extern s16 D_8010F8CA_snowball_summit; /* D_8010F8C0.hook, low half */
 extern HuSprite_Unk84_Struct *D_8010F8CC_snowball_summit; /* D_8010F8C0.left */
 extern HuSprite_Unk84_Struct *D_8010F8D4_snowball_summit; /* D_8010F8C0.right */
 extern s32 D_8010F8A8_snowball_summit; /* start corner */
+extern u16 D_8010F8AE_snowball_summit; /* 0x49000C, linked by players 1-3 */
+extern u16 D_8010F8B0_snowball_summit; /* 0x49000B, linked by players 1-3 */
 extern SsRing D_8010F8D8_snowball_summit[8];
 extern SsPlayer D_8010F9B8_snowball_summit[4];
 extern SsBall D_8010FC30_snowball_summit[16];
@@ -1721,9 +1725,58 @@ void func_8010BE8C_snowball_summit(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010BEE8_snowball_summit);
+/* The marker over a player: shown while it rolls (motion 2). */
+void func_8010BEE8_snowball_summit(omObjData *obj) {
+    SsSlot8 *sl = &D_801101C8_snowball_summit[obj->work[0]];
+    SsPlayer *pl;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C000_snowball_summit);
+    if (sl->state != -1) {
+        pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+        if (pl->state == -1) {
+            sl->state = 0;
+        }
+        switch (sl->state) {
+            case 0:
+                func_8001C258_main(obj->model[0], 4, 4);
+                if (pl->motion == 2) {
+                    sl->state = 1;
+                }
+                break;
+            case 1:
+                func_8001C258_main(obj->model[0], 4, 0);
+                if (pl->motion != 2) {
+                    sl->state = 0;
+                }
+                break;
+        }
+        obj->trans.x = pl->next.x;
+        obj->trans.y = pl->next.y + 50.0f;
+        obj->trans.z = pl->next.z;
+        obj->rot.y = pl->obj->rot.y;
+    }
+}
+
+void func_8010C000_snowball_summit(omObjData *obj) {
+    SsPlayer *pl;
+    SsSlot8 *sl;
+
+    if (obj->work[0] == 0) {
+        obj->model[0] = D_8010F8AE_snowball_summit = func_8000B108_main(0x49000C, 0x1699);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_8010F8AE_snowball_summit);
+    }
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C814_main(obj->model[0], 2, 2);
+    pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    obj->trans.x = pl->next.x;
+    obj->trans.y = pl->next.y + 40.0f;
+    obj->trans.z = pl->next.z;
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010BEE8_snowball_summit;
+    sl = &D_801101C8_snowball_summit[obj->work[0]];
+    sl->state = 0;
+    sl->obj = obj;
+}
 
 void func_8010C10C_snowball_summit(void) {
     s32 i;
@@ -1736,7 +1789,29 @@ void func_8010C10C_snowball_summit(void) {
 void func_8010C168_snowball_summit(omObjData *obj) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010C170_snowball_summit);
+void func_8010C170_snowball_summit(omObjData *obj) {
+    SsPlayer *pl;
+    SsSlot16 *sl;
+
+    if (obj->work[0] == 0) {
+        obj->model[0] = D_8010F8B0_snowball_summit = func_8000B108_main(0x49000B, 0x1699);
+    } else {
+        obj->model[0] = Hu3DModelLink(D_8010F8B0_snowball_summit);
+    }
+    func_8001C258_main(obj->model[0], 4, 4);
+    func_8001C814_main(obj->model[0], 2, 2);
+    pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+    obj->trans.x = pl->next.x;
+    obj->trans.y = pl->next.y + 20.0f;
+    obj->trans.z = pl->next.z;
+    func_8001C8A8_main(obj->model[0], 2);
+    obj->func = func_8010C168_snowball_summit;
+    sl = &D_80110250_snowball_summit[obj->work[0]];
+    sl->state = 0;
+    sl->unk04 = 0;
+    sl->unk08 = -1;
+    sl->obj = obj;
+}
 
 void func_8010C288_snowball_summit(void) {
     s32 i;
