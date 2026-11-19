@@ -151,9 +151,23 @@ typedef func_800E1BA8_minigame_ObjData MgWork;
 
 /* A dust particle (SbStage::unk28, 64 x 0x3C). */
 typedef struct SbDust {
-    /* 0x00 */ u8 unk00;
+    /* 0x00 */ u8 unk00; /* active */
     /* 0x01 */ u8 unk01; /* index */
-    /* 0x02 */ char unk02[0x3A];
+    /* 0x02 */ char unk02[2];
+    /* 0x04 */ f32 unk04; /* centre x */
+    /* 0x08 */ f32 unk08; /* centre y */
+    /* 0x0C */ f32 unk0C; /* centre z */
+    /* 0x10 */ f32 unk10; /* ring radius */
+    /* 0x14 */ f32 unk14; /* height */
+    /* 0x18 */ f32 unk18; /* radius growth */
+    /* 0x1C */ f32 unk1C; /* half width */
+    /* 0x20 */ f32 unk20; /* fade in, 0..1 */
+    /* 0x24 */ f32 unk24; /* height now */
+    /* 0x28 */ f32 unk28; /* outer radius squared */
+    /* 0x2C */ f32 unk2C; /* inner radius squared */
+    /* 0x30 */ f32 unk30; /* centre distance */
+    /* 0x34 */ f32 unk34; /* half width now */
+    /* 0x38 */ f32 unk38; /* 1 / half width */
 } SbDust; // Size 0x3C
 
 /* A group of stage-mesh vertices sharing one position (SbStage::unk24, 0x2C each). */
@@ -371,7 +385,7 @@ void func_8001C5B4_main(s16, s16);
 void func_8010A5A4_stardust_battle(omObjData *obj);
 void func_8010A690_stardust_battle(omObjData *obj);
 void func_800465A8_main(s16, f32, f32, f32);
-void func_8010A204_stardust_battle(f32 x, f32 z, f32 arg2, f32 arg3, f32 arg4, f32 arg5);
+s16 func_8010A204_stardust_battle(f32 x, f32 z, f32 height, f32 growth, f32 width, f32 radius);
 void func_8010C5A8_stardust_battle(s32, s32);
 s32 func_8010CA48_stardust_battle(s16);
 void func_8010DE64_stardust_battle(s32, s32);
@@ -390,7 +404,7 @@ void func_800E1304_minigame(omObjData *obj, f32 arg1);
 void func_800E1310_minigame(omObjData *obj, f32 arg1);
 void func_800E131C_minigame(omObjData *obj, f32 arg1);
 void func_800E1370_minigame(omObjData* obj, s32 flags, f32 arg2);
-void func_8010A04C_stardust_battle(f32 x, f32 z, f32 arg2, f32 arg3, f32 arg4, f32 arg5);
+s16 func_8010A04C_stardust_battle(f32 x, f32 z, f32 height, f32 growth, f32 width, f32 radius);
 void func_800E5798_minigame(omObjData *obj, u16 motion);
 omObjData *func_80045F1C_main(u32, s16, s16);
 extern f32 D_800EB748_minigame;
@@ -435,6 +449,7 @@ void func_801080EC_stardust_battle(void);
 void func_80108B34_stardust_battle(void);
 void func_8010A74C_stardust_battle(void);
 void func_80109B18_stardust_battle(omObjData *obj);
+void func_8010A418_stardust_battle(omObjData *obj);
 
 void func_8010CB34_stardust_battle(void);
 void func_8010EE7C_stardust_battle(void);
@@ -1926,7 +1941,106 @@ void func_80109424_stardust_battle(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109424_stardust_battle);
 #endif
 
+/* NON_MATCHING: register allocation: retail keeps the best weight in s3 (mfc1/mtc1) and schedules 1.0f - ny into the sqrtf delay slot; mine keeps it in an FPR */
+#ifdef NON_MATCHING
+void func_80109B18_stardust_battle(omObjData *obj) {
+    SbStage *st = func_80111FEC_stardust_battle(obj);
+    SbVtxGroup *g = st->unk24;
+    Vtx *vtx = HmfModelData[obj->model[1]].hmf->unk44[D_800D2008_main];
+    SbDust *d;
+    s32 i;
+    s32 j;
+    s32 h;
+    f32 c;
+    f32 best;
+    f32 bx;
+    f32 bz;
+    f32 dx;
+    f32 dz;
+    f32 dd;
+    f32 w;
+    f32 len;
+    f32 nx;
+    f32 ny;
+    f32 nz;
+
+    if (func_80049F98_main() + D_800D6A90_main == 0) {
+        func_8010A418_stardust_battle(obj);
+    }
+    if (st->unk24 == NULL) {
+        return;
+    }
+    for (i = 0; i < st->unk20; i++, g++) {
+        g->unk28 = 50.0f;
+        bx = bz = best = c = 0.0f;
+        d = st->unk28;
+        if (d != NULL) {
+            for (j = 0; j < 64; j++, d++) {
+                if (d->unk00 == 0) {
+                    continue;
+                }
+                dx = g->x - d->unk04;
+                dz = g->z - d->unk0C;
+                dd = dx * dx + dz * dz;
+                if (d->unk28 < dd) {
+                    continue;
+                }
+                if (dd < d->unk2C) {
+                    continue;
+                }
+                dd = sqrtf(dd) - d->unk10;
+                if (d->unk34 < fabs(dd)) {
+                    continue;
+                }
+                c = cosdf(dd * d->unk38 * 180.0f);
+                w = (c + 1.0f) * 0.5f;
+                if (fabs(w) > fabs(best)) {
+                    best = w;
+                    bx = dx;
+                    bz = dz;
+                }
+                w = w * d->unk24;
+                if (g->unk28 < w) {
+                    g->unk28 = w;
+                }
+            }
+        }
+        if (best != 0.0f) {
+            ny = fabs(c) * (g->unk28 * 0.008);
+            len = sqrtf(bx * bx + bz * bz);
+            if (len != 0.0f) {
+                len = 1.0f / len;
+            } else {
+                len = 1.0f;
+                bx = 0.0f;
+                bz = -1.0f;
+            }
+            len = len * (1.0f - ny);
+            if (best < 0.0f) {
+                len = -len;
+            }
+            nx = bx * len;
+            nz = bz * len;
+        } else {
+            nx = g->unk1C;
+            ny = g->unk20;
+            nz = g->unk24;
+        }
+        h = 15;
+        if (g->unk18 == 0) {
+            h = g->y + g->unk28;
+        }
+        for (j = 0; j < g->n; j++) {
+            vtx[g->idx[j]].v.ob[1] = h;
+            vtx[g->idx[j]].v.cn[0] = (s32)(nx * 127.0f);
+            vtx[g->idx[j]].v.cn[1] = (s32)(ny * 127.0f);
+            vtx[g->idx[j]].v.cn[2] = (s32)(nz * 127.0f);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80109B18_stardust_battle);
+#endif
 
 void func_80109F94_stardust_battle(omObjData *obj) {
     SbStage *st = func_80111FEC_stardust_battle(obj);
@@ -1952,11 +2066,133 @@ void func_80109FE4_stardust_battle(omObjData *obj) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010A04C_stardust_battle);
+s16 func_8010A04C_stardust_battle(f32 x, f32 z, f32 height, f32 growth, f32 width, f32 radius) {
+    SbStage *st = func_80111FEC_stardust_battle(D_800EC1C0_minigame[0]);
+    SbDust *d;
+    s32 i;
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010A204_stardust_battle);
+    if (st->unk28 == NULL) {
+        return -1;
+    }
+    d = st->unk28;
+    for (i = 0; i < 64; i++, d++) {
+        if (d->unk00 == 0) {
+            d->unk00 = 1;
+            d->unk04 = x;
+            d->unk08 = 0.0f;
+            d->unk0C = z;
+            d->unk14 = height;
+            d->unk18 = growth;
+            d->unk1C = 150.0f;
+            d->unk10 = radius;
+            d->unk20 = width;
+            d->unk24 = d->unk14 * d->unk20;
+            d->unk34 = d->unk1C * d->unk20;
+            if (d->unk34 != 0.0f) {
+                d->unk38 = 1.0f / d->unk34;
+            } else {
+                d->unk38 = 1.0f;
+            }
+            d->unk28 = (fabs(d->unk10) + d->unk1C * d->unk20) * (fabs(d->unk10) + d->unk1C * d->unk20);
+            d->unk2C = (fabs(d->unk10) - d->unk1C * d->unk20) * (fabs(d->unk10) - d->unk1C * d->unk20);
+            d->unk30 = sqrtf(x * x + z * z);
+            return d->unk01;
+        }
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010A418_stardust_battle);
+typedef struct SbNear {
+    /* 0x00 */ f32 d; /* distance squared */
+    /* 0x04 */ s32 idx;
+} SbNear; // Size 0x8
+extern SbNear D_80114940_stardust_battle[32];
+
+s16 func_8010A204_stardust_battle(f32 x, f32 z, f32 height, f32 growth, f32 width, f32 radius) {
+    SbStage *st = func_80111FEC_stardust_battle(D_800EC1C0_minigame[0]);
+    SbVtxGroup *g;
+    s32 i;
+    s32 n;
+    s32 best;
+    f32 dx;
+    f32 dz;
+    f32 bd;
+
+    if (st->unk28 == NULL) {
+        return -1;
+    }
+    if (st->unk24 == NULL) {
+        return -1;
+    }
+    {
+        g = st->unk24;
+        n = 0;
+        for (i = 0; i < st->unk20; i++, g++) {
+            dx = g->x - x;
+            dz = g->z - z;
+            if (fabs(dx) < 100.0 && fabs(dz) < 100.0) {
+                D_80114940_stardust_battle[n].d = dx * dx + dz * dz;
+                D_80114940_stardust_battle[n].idx = i;
+                n++;
+                if (n >= 32) {
+                    break;
+                }
+            }
+        }
+        if (n != 0) {
+            best = D_80114940_stardust_battle[0].idx;
+            bd = D_80114940_stardust_battle[0].d;
+            for (i = 1; i < n; i++) {
+                if (D_80114940_stardust_battle[i].d < bd) {
+                    best = D_80114940_stardust_battle[i].idx;
+                    bd = D_80114940_stardust_battle[i].d;
+                }
+            }
+            x = st->unk24[best].x;
+            z = st->unk24[best].z;
+        }
+    }
+    return func_8010A04C_stardust_battle(x, z, height, growth, width, radius);
+}
+
+void func_8010A418_stardust_battle(omObjData *obj) {
+    SbDust *dust = ((SbStage *)func_80111FEC_stardust_battle(obj))->unk28;
+    SbDust *d;
+    s32 i;
+
+    if (dust == NULL) {
+        return;
+    }
+    d = dust;
+    for (i = 0; i < 64; i++, d++) {
+        if (d->unk00 == 0) {
+            continue;
+        }
+        if (d->unk20 >= 0.5f) {
+            d->unk10 += d->unk18;
+        }
+        d->unk28 = (fabs(d->unk10) + d->unk1C * d->unk20) * (fabs(d->unk10) + d->unk1C * d->unk20);
+        d->unk2C = (fabs(d->unk10) - d->unk1C * d->unk20) * (fabs(d->unk10) - d->unk1C * d->unk20);
+        if (d->unk20 < 1.0f) {
+            d->unk20 += 0.0625f;
+            if (d->unk20 >= 1.0f) {
+                d->unk20 = 1.0f;
+            }
+        }
+        d->unk24 = d->unk14 * d->unk20;
+        d->unk34 = d->unk1C;
+        if (d->unk34 != 0.0f) {
+            d->unk38 = 1.0f / d->unk34;
+        } else {
+            d->unk38 = 1.0f;
+        }
+        if (d->unk10 - d->unk1C * d->unk20 - d->unk30 >= 600.0) {
+            d->unk20 = 0.0f;
+            d->unk14 = 0.0f;
+            d->unk00 = 0;
+        }
+    }
+}
 
 void func_8010A5A4_stardust_battle(omObjData *obj) {
     SbStage *st = func_80111FEC_stardust_battle(obj);
