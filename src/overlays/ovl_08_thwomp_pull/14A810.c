@@ -91,6 +91,7 @@ extern Gfx* gMainGfxPos;
 extern Gfx D_8010ED90_thwomp_pull[]; /* render setup display list */
 extern D_80111B50_vine_with_me_Struct D_8010ED60_thwomp_pull; /* minigame setup; inner labels D_8010ED61/66 */
 extern u32 D_8010ED88_thwomp_pull;
+extern u8 D_8010EE20_thwomp_pull;       /* toggles each frame */
 extern u32 D_8010EE24_thwomp_pull;      /* frame counter */
 extern f32 D_8010EE28_thwomp_pull[2];   /* team distance pulled (negative) */
 extern u8 D_8010EE30_thwomp_pull[2];
@@ -757,7 +758,111 @@ void func_80107FF4_thwomp_pull(s16* x1, s16* y1, s16* x2, s16* y2) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_80107FF4_thwomp_pull);
 #endif
 
+#ifdef NON_MATCHING
+void func_801089B4_thwomp_pull(Gfx** gfx, s32 arg1, s32 arg2) {
+    HuSprite* spr;
+    HuSprite_Unk84_Unk00_Struct* frame;
+    TpPlayer* pl;
+    s32 off;
+    s32 i;
+    s32 j;
+    s32 slot;
+    f32 a;
+    f32 y0;
+    f32 y1;
+    f32 x;
+    f32 y;
+    f32 d;
+    f32 x2;
+    f32 y2;
+
+    D_8010EE20_thwomp_pull = (D_8010EE20_thwomp_pull == 0);
+    off = 0;
+    if (D_8010EE20_thwomp_pull != 0) {
+        return;
+    }
+    if (D_8010F588_thwomp_pull > 0.0f) {
+        a = D_8010F588_thwomp_pull * 178.0f;
+        if (D_8010F566_thwomp_pull != 0) {
+            off = 4.0f * -a;
+        } else {
+            off = a * 4.0f;
+        }
+    }
+    gSPDisplayList(gMainGfxPos++, D_8010ED90_thwomp_pull);
+    gDPSetTextureLUT(gMainGfxPos++, G_TT_RGBA16);
+    spr = HuSprGet(D_800CD1DC_main[D_8010F590_thwomp_pull[1]].unk04, 0);
+    frame = &spr->unk_84->unk00[spr->unk_90];
+    gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_NONE);
+    gDPSetBlendColor(gMainGfxPos++, 0, 0, 0, 0);
+    for (j = 0; j < 4; j++) {
+        gDPLoadTextureTile_4b(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, 40, 240, 0, j * 60, 40, j * 60 + 60, 0,
+                              G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                              G_TX_NOLOD, G_TX_NOLOD);
+        y0 = j * 60;
+        y = j * 60 + 61;
+        y1 = (y > 240.0f) ? 240.0f : y;
+        gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        gSPScisTextureRectangle(gMainGfxPos++, off + 560, (s32)(y0 * 4.0f), off + 720, (s32)(y1 * 4.0f), G_TX_RENDERTILE, 0,
+                                (j * 60) << 5, 1 << 10, 1 << 10);
+    }
+    gDPSetCombineMode(gMainGfxPos++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetRenderMode(gMainGfxPos++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
+    gDPSetAlphaCompare(gMainGfxPos++, G_AC_THRESHOLD);
+    gDPSetBlendColor(gMainGfxPos++, 0, 0, 0, 0xE0);
+    for (i = 0; i < 4; i++) {
+        s32 order[4] = { 3, 1, 2, 0 };
+
+        slot = order[i];
+        spr = HuSprGet(D_800CD1DC_main[D_8010F590_thwomp_pull[2 + D_8010F4F8_thwomp_pull[slot]->chr]].unk04, 0);
+        frame = &spr->unk_84->unk00[spr->unk_90];
+        if (D_8010F4F8_thwomp_pull[slot]->chr == 7) {
+            gDPLoadTLUT_pal256(gMainGfxPos++, spr->unk_84->unk0C);
+        } else {
+            gDPLoadTLUT_pal16(gMainGfxPos++, 0, spr->unk_84->unk0C);
+        }
+        if (D_8010F4F8_thwomp_pull[slot]->chr == 7) {
+            gDPLoadTextureTile(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, G_IM_SIZ_8b, 18, 18, 0, 0, 18, 18, 0,
+                               G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                               G_TX_NOLOD, G_TX_NOLOD);
+        } else {
+            gDPLoadTextureTile_4b(gMainGfxPos++, frame->unk00, G_IM_FMT_CI, 18, 18, 0, 0, 18, 18, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
+                                  G_TX_NOLOD, G_TX_NOLOD);
+        }
+        if (slot > 0) {
+            x = (3 - slot) * 7 + 151;
+        } else {
+            x = 136.0f;
+        }
+        y = *((slot != 0) ? &D_8010F520_thwomp_pull[1] : &D_8010F520_thwomp_pull[0]) * 165.0f + 35.0f;
+        switch (slot) {
+            case 0:
+                y = (s32)y;
+                break;
+            case 2:
+                y = (s32)y - 3;
+                break;
+            case 1:
+            case 3:
+                y = (s32)y + 6;
+                break;
+        }
+        x2 = x + 18.0f;
+        y2 = y + 18.0f;
+        d = 1024.0f;
+        gSPScisTextureRectangle(gMainGfxPos++, (s32)(x * 4.0f + off), (s32)(y * 4.0f), (s32)(x2 * 4.0f + off),
+                                (s32)(y2 * 4.0f - 3.0f), G_TX_RENDERTILE, 0, 0, (s32)d, (s32)d);
+    }
+    gDPPipeSync(gMainGfxPos++);
+    gDPSetBlendColor(gMainGfxPos++, 0xFF, 0xFF, 0xFF, 0);
+    gDPPipeSync(gMainGfxPos++);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", func_801089B4_thwomp_pull);
+#endif
 
 void func_8010974C_thwomp_pull(omObjData* object) {
     func_801097AC_thwomp_pull(object, 0);
@@ -769,7 +874,9 @@ void func_80109780_thwomp_pull(omObjData* object) {
     object->func = NULL;
 }
 
+#ifndef NON_MATCHING
 INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_08_thwomp_pull/14A810", D_8010F140_thwomp_pull);
+#endif
 
 #ifdef NON_MATCHING
 void func_801097AC_thwomp_pull(omObjData* object, s8 team) {
