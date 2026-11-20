@@ -216,29 +216,27 @@ void func_80116ED4_mgmode(s16 presetIdx, s16 duration, s16 easeType, void (*call
 }
 
 /* Camera angles and distance looking from eye at target. */
-#ifdef NON_MATCHING
-/* Register allocation only (dx/dz swap $f22/$f24). */
-void func_801177BC_mgmode(Vec* eye, Vec* target) {
-    f32 dz;
-    f32 dx;
-    f32 dy;
-    f32 yaw;
-    f32 c;
-
-    dx = eye->x - target->x;
-    dy = eye->y - target->y;
-    dz = eye->z - target->z;
-    CZoom = HuSqrtf(dx * dx + dy * dy + dz * dz);
-    yaw = atan2df(dz, dx);
-    CRot.y = -(yaw - 90.0f);
-    c = cosdf(-yaw);
-    CRot.x = -atan2df(dy, dx * c + dz * -sindf(-yaw));
-    CRot.z = 0.0f;
-    Center = *target;
+// decomp-permuter
+void func_801177BC_mgmode(Vec *eye, Vec *target)
+{
+  f32 dz;
+  float new_var;
+  f32 dx;
+  f32 dy;
+  f32 yaw;
+  f32 c;
+  dx = eye->x - target->x;
+  dy = eye->y - target->y;
+  dz = eye->z - target->z;
+  CZoom = HuSqrtf(((dx * dx) + (dy * dy)) + (dz * dz));
+  yaw = atan2df(dz, dx);
+  CRot.y = -(yaw - 90.0f);
+  c = cosdf(-yaw);
+  new_var = (dx * c) + (dz * (-sindf(-yaw)));
+  CRot.x = -atan2df(dy, new_var);
+  CRot.z = 0.0f;
+  Center = *target;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47DD90", func_801177BC_mgmode);
-#endif
 
 typedef struct MgModePair {
     /* 0x00 */ s16 unk0;

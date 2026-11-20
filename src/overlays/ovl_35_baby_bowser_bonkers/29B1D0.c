@@ -1648,15 +1648,14 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_
 #endif
 
 /* NON_MATCHING: masked 0; v0/v1 swapped. */
-#ifdef NON_MATCHING
-void func_80109E98_baby_bowser_bonkers(s32 idx, s16 score) {
-    s32 offset = idx * sizeof(BkCounter);
-
-    ((BkCounter*)((u8*)D_8010BCAC_baby_bowser_bonkers + offset))->target = score;
+// decomp-permuter
+void func_80109E98_baby_bowser_bonkers(s32 idx, s16 score)
+{
+  s32 offset = idx * (sizeof(BkCounter));
+  u8 *new_var;
+  new_var = ((u8 *) D_8010BCAC_baby_bowser_bonkers) + offset;
+  ((BkCounter *) new_var)->target = score;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109E98_baby_bowser_bonkers);
-#endif
 
 void func_80109EB8_baby_bowser_bonkers(void) {
     HuCamera *cam;

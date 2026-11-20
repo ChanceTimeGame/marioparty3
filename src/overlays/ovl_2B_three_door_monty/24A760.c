@@ -1352,32 +1352,24 @@ void func_8010916C_three_door_monty(omObjData *obj) {
     obj->scale.x = obj->scale.y = ent->unk18;
 }
 
-#ifdef NON_MATCHING
-void func_80109594_three_door_monty(omObjData *obj) {
-    obj->model[0] = func_8000B108_main(0x4C000E, 681);
-    D_8010D238_three_door_monty[0] = DataRead(0x4C0000);
-    D_8010D238_three_door_monty[1] = DataRead(0x4C0001);
-    D_8010D238_three_door_monty[2] = DataRead(0x4C0002);
-    D_8010EC3E_three_door_monty = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010D238_three_door_monty[0], 0,
-                                                D_8010CEFC_three_door_monty);
-    func_8001C448_main(obj->model[0]);
-    func_8001C514_main(obj->model[0]);
-    func_8001C6A8_main(obj->model[0], 0.0f);
-    func_8001C92C_main(obj->model[0], 0.0f);
-    func_8001C258_main(obj->model[0], 4, 4);
-    obj->trans.x = 0.0f;
-    obj->trans.y = 450.0f;
-    obj->trans.z = 0.0f;
-    D_8010D698_three_door_monty = 0.1f;
-    obj->scale.x = D_8010D698_three_door_monty;
-    obj->scale.y = D_8010D698_three_door_monty;
-    obj->scale.z = 1.0f;
-    func_8001C8A8_main(obj->model[0], 2);
-    obj->func = func_8010916C_three_door_monty;
+// decomp-permuter
+void func_80109594_three_door_monty(omObjData *obj)
+{
+  obj->model[0] = func_8000B108_main(0x4C000E, 681);
+  D_8010D238_three_door_monty[0] = DataRead(0x4C0000);
+  D_8010D238_three_door_monty[1] = DataRead(0x4C0001);
+  D_8010D238_three_door_monty[2] = DataRead(0x4C0002);
+  D_8010EC3E_three_door_monty = HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010D238_three_door_monty[0], 0, D_8010CEFC_three_door_monty);
+  func_8001C448_main(obj->model[0]);
+  func_8001C514_main(obj->model[0]);
+  func_8001C6A8_main(obj->model[0], 0.0f);
+  func_8001C92C_main(obj->model[0], 0.0f);
+ do { func_8001C258_main(obj->model[0], 4, 4); obj->trans.x = 0.0f; obj->trans.y = 450.0f; obj->trans.z = 0.0f; D_8010D698_three_door_monty = 0.1f; obj->scale.x = D_8010D698_three_door_monty; } while (0);
+  obj->scale.y = D_8010D698_three_door_monty;
+  obj->scale.z = 1.0f;
+  func_8001C8A8_main(obj->model[0], 2);
+  obj->func = func_8010916C_three_door_monty;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_80109594_three_door_monty);
-#endif
 
 void func_801096FC_three_door_monty(void) {
     omObjData *obj = omAddObj(200, 5, 10, -1, func_80109594_three_door_monty);
@@ -2108,26 +2100,31 @@ void func_8010BC08_three_door_monty(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BC08_three_door_monty);
 #endif
 
-#ifdef NON_MATCHING
-void func_8010BD88_three_door_monty(void) {
-    omObjData *obj;
-    CcEnt *ent;
-    u8 i;
-    u8 j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            ent = &D_8010D260_three_door_monty[i * 4 + (j + 13)];
-            obj = omAddObj(300, 1, 10, -1, func_8010BC08_three_door_monty);
-            obj->work[0] = i;
-            obj->work[1] = j;
-            ent->obj = obj;
-        }
+// decomp-permuter
+void func_8010BD88_three_door_monty(void)
+{
+  int new_var2;
+  omObjData *obj;
+  CcEnt *ent;
+  u8 i;
+  u8 j;
+  int new_var;
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      new_var = i * 4;
+      new_var2 = j + 13;
+      ent = &D_8010D260_three_door_monty[new_var + new_var2];
+      obj = omAddObj(300, 1, 10, -1, func_8010BC08_three_door_monty);
+      obj->work[0] = i;
+      obj->work[1] = j;
+      ent->obj = obj;
     }
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010BD88_three_door_monty);
-#endif
 
 void func_8010BE64_three_door_monty(void) {
     CcEnt *ents[4];

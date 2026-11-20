@@ -2050,111 +2050,124 @@ void func_8010718C_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Obj
     func_800FADB4_name_81();
 }
 
-#ifdef NON_MATCHING // duel b1: masked 0; $s7/$s8 swapped between the stand-in and effect models
-// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 0, raw 12 here; logic as duel05
-void func_801079BC_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
-    Vec dest;
-    Vec start;
-    s32 standInIds[2];
-    s32 effectIds[2];
-    Vec mid;
-    Vec *midp;
-    Process *process;
-    GW_PLAYER *player;
-    Object *effect;
-    Object *standIn;
-    Object *hook;
-
-    player = MBDGetPlayerStruct(targetIndex);
-    process = HuPrcCurrentGet();
-    standInIds[0] = 0x54;
-    standInIds[1] = 0x55;
-    effectIds[0] = 0x4E;
-    effectIds[1] = 0x4A;
-    func_800FAD04_name_81(2);
-    standIn = func_80106744_duel04(standInIds[level - 1]);
-    effect = func_800D8010_name_81(D_80119CA0_duel04[level - 1] & 0xFF, 0);
-    func_8001C8E4_main(effect->omObj1->model[0], 0);
-    func_8001C448_main(effect->omObj1->model[0]);
-    func_800D8944_name_81(effect);
-    func_800D8F0C_name_81(effect);
-    hook = func_800D8010_name_81(0x3F, 0);
-    func_800D8F0C_name_81(hook);
-    func_800F0378_name_81(partner, D_8011AED8_duel04, hook->omObj1->model[0]);
-    func_800D90D0_name_81(partner, 0, 2);
-    func_80106160_duel04(partner, target, player, &dest, &start, 6.0f);
-    func_80106244_duel04();
-    func_80106264_duel04(target, player, flags, 3.0f);
-    HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 3.0f));
-    func_800D8E88_name_81(effect);
-    func_8001C6A8_main(effect->omObj1->model[0], 0.0f);
-    HuVecCopy3F(&effect->coords, &partner->coords);
-    func_800EB708_name_81(&effect->coords, &dest, &effect->rot);
-    HuPrcChildLink(process, func_800EC1E4_name_81(&effect->coords, &dest, &effect->coords, 3.0f));
-    HuPrcChildWait();
-    func_800D8F0C_name_81(effect);
-    func_800D8E88_name_81(hook);
-    if (level == 2) {
-        func_800FAE18_name_81(partner, 0, 0);
-        HuAudFXPlay(0x1D8);
-        HuPrcSleep(6);
-        func_8001C814_main(partner->omObj1->model[0], 0, 4);
-        func_800EFB00_name_81(partner);
-        func_800FAE18_name_81(partner, 0, 0);
-        HuAudFXPlay(0x1D8);
-        HuPrcSleep(6);
-        func_8001C814_main(partner->omObj1->model[0], 0, 4);
-        func_800EFB00_name_81(partner);
-    }
+// decomp-permuter
+void func_801079BC_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level)
+{
+  Vec dest;
+  Vec start;
+  s32 standInIds[2];
+  s32 effectIds[2];
+  Vec mid;
+  Vec *midp;
+  Process *process;
+  GW_PLAYER *player;
+  Object *effect;
+  Object *standIn;
+  Object *hook;
+  player = MBDGetPlayerStruct(targetIndex);
+  process = HuPrcCurrentGet();
+  standInIds[0] = 0x54;
+  standInIds[1] = 0x55;
+  effectIds[0] = 0x4E;
+  effectIds[1] = 0x4A;
+  func_800FAD04_name_81(2);
+  standIn = func_80106744_duel04(standInIds[level - 1]);
+  effect = func_800D8010_name_81(D_80119CA0_duel04[level - 1] & 0xFF, 0);
+  func_8001C8E4_main(effect->omObj1->model[0], 0);
+  func_8001C448_main(effect->omObj1->model[0]);
+  func_800D8944_name_81(effect);
+  func_800D8F0C_name_81(effect);
+  hook = func_800D8010_name_81(0x3F, 0);
+  func_800D8F0C_name_81(hook);
+  func_800F0378_name_81(partner, D_8011AED8_duel04, hook->omObj1->model[0]);
+  func_800D90D0_name_81(partner, 0, 2);
+  func_80106160_duel04(partner, target, player, &dest, &start, 6.0f);
+  func_80106244_duel04();
+  func_80106264_duel04(target, player, flags, 3.0f);
+  HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &dest, &partner->coords, 3.0f));
+  func_800D8E88_name_81(effect);
+  func_8001C6A8_main(effect->omObj1->model[0], 0.0f);
+  HuVecCopy3F(&effect->coords, &partner->coords);
+  func_800EB708_name_81(&effect->coords, &dest, &effect->rot);
+  HuPrcChildLink(process, func_800EC1E4_name_81(&effect->coords, &dest, &effect->coords, 3.0f));
+  HuPrcChildWait();
+  func_800D8F0C_name_81(effect);
+  func_800D8E88_name_81(hook);
+  if (level == 2)
+  {
     func_800FAE18_name_81(partner, 0, 0);
     HuAudFXPlay(0x1D8);
-    if (flags & 8) {
-        func_801060D4_duel04(player, target, 0, 20);
-    } else {
-        HuPrcSleep(9);
-        HuAudFXPlay(0x1D7);
-        if (level == 2) {
-            HuAudFXPlay(0x1F2);
-        }
-        midp = &mid;
-        if (flags & 1) {
-            HuVecAdd(midp, &target->coords, &partner->coords);
-        } else {
-            HuVecAdd(midp, &player->player_obj->coords, &partner->coords);
-        }
-        HuVecMulScalar(midp, 0.5f, midp);
-        func_800EB804_name_81(standIn);
-        func_801067D8_duel04(standIn, midp);
-        func_800DCE40_name_81(effectIds[level - 1], &mid, NULL, 2.0f);
-        func_800FAC1C_name_81(&D_80105540_name_81);
-        if (flags & 1) {
-            func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
-        }
-        if (flags & 2) {
-            func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_80105718_name_81 & 1, -1);
-        }
+    HuPrcSleep(6);
+    func_8001C814_main(partner->omObj1->model[0], 0, 4);
+    func_800EFB00_name_81(partner);
+    func_800FAE18_name_81(partner, 0, 0);
+    HuAudFXPlay(0x1D8);
+    HuPrcSleep(6);
+    func_8001C814_main(partner->omObj1->model[0], 0, 4);
+    func_800EFB00_name_81(partner);
+  }
+  func_800FAE18_name_81(partner, 0, 0);
+  HuAudFXPlay(0x1D8);
+  if (flags & 8)
+  {
+    func_801060D4_duel04(player, target, 0, 20);
+  }
+  else
+  {
+    HuPrcSleep(9);
+    HuAudFXPlay(0x1D7);
+    if (level == 2)
+    {
+      HuAudFXPlay(0x1F2);
     }
-    func_800EFABC_name_81(partner);
-    func_800D8F0C_name_81(hook);
-    func_800EB708_name_81(&partner->coords, &start, &partner->rot);
-    func_800D90D0_name_81(partner, 0, 2);
-    HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &start, &partner->coords, 3.0f));
-    func_800D8E88_name_81(effect);
-    func_8001C6A8_main(effect->omObj1->model[0], 0.0f);
-    HuVecCopy3F(&effect->coords, &partner->coords);
-    func_800EB708_name_81(&effect->coords, &start, &effect->rot);
-    HuPrcChildLink(process, func_800EC1E4_name_81(&effect->coords, &start, &effect->coords, 3.0f));
-    HuPrcChildWait();
-    func_800D90D0_name_81(partner, -1, 2);
-    func_800ED214_name_81(playerIndex);
-    func_800D8F3C_name_81(hook);
-    func_800D8F3C_name_81(standIn);
-    func_800D8F3C_name_81(effect);
-    func_800FADB4_name_81();
+    midp = &mid;
+    if (flags & 1)
+    {
+      HuVecAdd(midp, &target->coords, &partner->coords);
+    }
+    else
+    {
+      HuVecAdd(midp, &player->player_obj->coords, &partner->coords);
+    }
+    HuVecMulScalar(midp, 0.5f, midp);
+    func_800EB804_name_81(standIn);
+    func_801067D8_duel04(standIn, midp);
+    func_800DCE40_name_81(effectIds[level - 1], &mid, 0, 2.0f);
+    func_800FAC1C_name_81(&D_80105540_name_81);
+    if (flags & 1)
+    {
+      if (standIn)
+      {
+        func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
+      }
+      else
+      {
+        func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
+      }
+    }
+    if (flags & 2)
+    {
+      func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_80105718_name_81 & 1, -1);
+    }
+  }
+  func_800EFABC_name_81(partner);
+  func_800D8F0C_name_81(hook);
+  func_800EB708_name_81(&partner->coords, &start, &partner->rot);
+  func_800D90D0_name_81(partner, 0, 2);
+  HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &start, &partner->coords, 3.0f));
+  func_800D8E88_name_81(effect);
+  func_8001C6A8_main(effect->omObj1->model[0], 0.0f);
+  HuVecCopy3F(&effect->coords, &partner->coords);
+  func_800EB708_name_81(&effect->coords, &start, &effect->rot);
+  HuPrcChildLink(process, func_800EC1E4_name_81(&effect->coords, &start, &effect->coords, 3.0f));
+  HuPrcChildWait();
+  func_800D90D0_name_81(partner, -1, 2);
+  func_800ED214_name_81(playerIndex);
+  func_800D8F3C_name_81(hook);
+  func_800D8F3C_name_81(standIn);
+  func_800D8F3C_name_81(effect);
+  func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801079BC_duel04);
-#endif
 
 void func_80107EC0_duel04(s32 playerIndex, s32 targetIndex, Object *partner, Object *target, s32 flags, s32 level) {
     Vec dest;
@@ -7115,365 +7128,441 @@ s32 func_80117004_duel04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80117004_duel04);
 #endif
 
-#ifdef NON_MATCHING
-// board ea3: masked 0, raw 24: the tree and the count swap s1/s2.
-void func_801173C8_duel04(void) {
-    GW_PLAYER *player;
-    UnkEA790Struct *tree;
-    s32 space;
-    s32 result;
-    s32 i;
-    s32 count;
-
-    player = MBDGetPlayerStruct(-1);
-    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
-    func_800ECE10_name_81();
-    switch (space) {
+// decomp-permuter
+void func_801173C8_duel04(void)
+{
+  GW_PLAYER *player;
+  UnkEA790Struct *tree;
+  s32 space;
+  s32 result;
+  s32 i;
+  s32 count;
+  player = MBDGetPlayerStruct(-1);
+  space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+  func_800ECE10_name_81();
+  switch (space)
+  {
     case 0x14:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 1, 0);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AB9C_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_80119FC0_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x16, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-        }
-        return;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 1, 0);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AB9C_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_80119FC0_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x16, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+    }
+      return;
+
     case 0x16:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 0, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABA4_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A074_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x12, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
-    default:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 0, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABAC_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A128_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x16, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 0, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABA4_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A074_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
     }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x12, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+    default:
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 0, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABAC_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      if (count)
+      {
+        count = func_800D97B0_name_81(D_8011A128_duel04);
+      }
+      else
+      {
+        count = func_800D97B0_name_81(D_8011A128_duel04);
+      }
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x16, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801173C8_duel04);
-#endif
 
-#ifdef NON_MATCHING
-// board ea3: masked 0, raw 24: the tree and the count swap s1/s2.
-void func_801176F0_duel04(void) {
-    GW_PLAYER *player;
-    UnkEA790Struct *tree;
-    s32 space;
-    s32 result;
-    s32 i;
-    s32 count;
-
-    player = MBDGetPlayerStruct(-1);
-    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
-    func_800ECE10_name_81();
-    switch (space) {
+// decomp-permuter
+void func_801176F0_duel04(void)
+{
+  GW_PLAYER *player;
+  UnkEA790Struct *tree;
+  s32 space;
+  s32 result;
+  s32 i;
+  s32 count;
+  player = MBDGetPlayerStruct(-1);
+  space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+  func_800ECE10_name_81();
+  switch (space)
+  {
     case 0xE:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 2, 0);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABC4_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A1DC_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0xC, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-        }
-        return;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 2, 0);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABC4_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A1DC_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0xC, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+    }
+      return;
+
     case 0xC:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 1, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABCC_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A290_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0xB, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
-    default:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 1, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABD4_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A350_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0xC, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 1, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABCC_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A290_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+ do { } while (0);
+      }
+
+      func_800D7250_name_81(tree, -4);
     }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0xB, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+    default:
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 1, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABD4_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A350_duel04);
+      for (i = 0; i < count; i++)
+      {
+        if (tree || GwSystem.current_player_index)
+        {
+          func_800D7250_name_81(tree, -2);
+        }
+        else
+        {
+          func_800D7250_name_81(tree, -2);
+        }
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0xC, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801176F0_duel04);
-#endif
 
-#ifdef NON_MATCHING
-// board ea3: masked 0, raw 24: the tree and the count swap s1/s2.
-void func_80117A14_duel04(void) {
-    GW_PLAYER *player;
-    UnkEA790Struct *tree;
-    s32 space;
-    s32 result;
-    s32 i;
-    s32 count;
-
-    player = MBDGetPlayerStruct(-1);
-    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
-    func_800ECE10_name_81();
-    switch (space) {
+// decomp-permuter
+void func_80117A14_duel04(void)
+{
+  GW_PLAYER *player;
+  UnkEA790Struct *tree;
+  int new_var;
+  s32 space;
+  s32 result;
+  s32 i;
+  s32 count;
+  player = MBDGetPlayerStruct(-1);
+  new_var = 2;
+  space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+  func_800ECE10_name_81();
+  switch (space)
+  {
     case 0x8:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 3, 0);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABEC_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A410_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x6, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-        }
-        return;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 3, 0);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABEC_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A410_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x6, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+    }
+      return;
+
     case 0x6:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 2, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABF4_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A4C4_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x5, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
-    default:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 2, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABFC_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A578_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x6, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 2, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABF4_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      if (count)
+      {
+        count = func_800D97B0_name_81(D_8011A4C4_duel04);
+      }
+      else
+      {
+        count = func_800D97B0_name_81(D_8011A4C4_duel04);
+      }
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
     }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x5, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+    default:
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, new_var, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011ABFC_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A578_duel04);
+      for (i = 0; i < count; i++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x6, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80117A14_duel04);
-#endif
 
-#ifdef NON_MATCHING
-// board ea3: masked 0, raw 24: the tree and the count swap s1/s2.
-void func_80117D38_duel04(void) {
-    GW_PLAYER *player;
-    UnkEA790Struct *tree;
-    s32 space;
-    s32 result;
-    s32 i;
-    s32 count;
-
-    player = MBDGetPlayerStruct(-1);
-    space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
-    func_800ECE10_name_81();
-    switch (space) {
+// decomp-permuter
+void func_80117D38_duel04(void)
+{
+  GW_PLAYER *player;
+  UnkEA790Struct *tree;
+  s32 space;
+  s32 result;
+  s32 count;
+  player = MBDGetPlayerStruct(-1);
+  space = MBDMasuLinkMasuIdGet(player->blink, player->bidx);
+  func_800ECE10_name_81();
+  switch (space)
+  {
     case 0x3:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 0, 0);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC14_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A62C_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x18, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-        }
-        return;
-    case 0x18:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 3, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC1C_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A6E0_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x1, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
-    default:
-        func_800F38DC_name_81(-1, -1, 2);
-        func_800ECD88_name_81(-1, 3, 4);
-        HuPrcVSleep();
-        func_80105A58_duel04();
-        tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC24_duel04);
-        func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
-        if (func_800F37B8_name_81(-1) != 0) {
-            count = func_800D97B0_name_81(D_8011A7A0_duel04);
-            for (i = 0; i < count; i++) {
-                func_800D7250_name_81(tree, -2);
-            }
-            func_800D7250_name_81(tree, -4);
-        }
-        result = func_800D7518_name_81(tree);
-        func_800D6CA0_name_81(tree);
-        func_80105B10_duel04();
-        if (result != 0) {
-            func_800E9F4C_name_81(0x18, &player->nlink, &player->nidx);
-            func_800ED788_name_81(GwSystem.current_player_index);
-            return;
-        }
-        func_800ECDE8_name_81();
-        break;
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 0, 0);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC14_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A62C_duel04);
+      for (space = 0; space < count; space++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
     }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x18, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+    }
+      return;
+
+    case 0x18:
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 3, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC1C_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      if (func_800F37B8_name_81(-1) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A6E0_duel04);
+      for (space = 0; space < count; space++)
+      {
+        func_800D7250_name_81(tree, -2);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x1, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+    default:
+      func_800F38DC_name_81(-1, -1, 2);
+      func_800ECD88_name_81(-1, 3, 4);
+      HuPrcVSleep();
+      func_80105A58_duel04();
+      tree = func_800D76A0_name_81(GwSystem.current_player_index, D_8011AC24_duel04);
+      func_800D742C_name_81(tree, GwSystem.current_player_index, 0);
+      count = -1;
+      if (func_800F37B8_name_81(count) != 0)
+    {
+      count = func_800D97B0_name_81(D_8011A7A0_duel04);
+      for (space = 0; space < count; space++)
+      {
+ do { if (tree) { func_800D7250_name_81(tree, -2); } else { func_800D7250_name_81(tree, -2); } } while (0);
+      }
+
+      func_800D7250_name_81(tree, -4);
+    }
+      result = func_800D7518_name_81(tree);
+      func_800D6CA0_name_81(tree);
+      func_80105B10_duel04();
+      if (result != 0)
+    {
+      func_800E9F4C_name_81(0x18, &player->nlink, &player->nidx);
+      func_800ED788_name_81(GwSystem.current_player_index);
+      return;
+    }
+      func_800ECDE8_name_81();
+      break;
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80117D38_duel04);
-#endif
 
 void func_80118060_duel04(void) {
     GW_PLAYER *player = MBDGetPlayerStruct(-1);

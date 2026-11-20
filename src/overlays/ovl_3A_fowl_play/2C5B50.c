@@ -1724,24 +1724,21 @@ f32 func_8010AB40_fowl_play(Vec* v) {
     return len;
 }
 
-#ifdef NON_MATCHING
-/* masked 0; register allocation of the first subtraction differs */
-/* The parameter of the point on the line a + t * d closest to p. */
-f32 func_8010AC04_fowl_play(Vec* p, Vec* a, Vec* d) {
-    f32 t;
-    f32 n;
-
-    t = (a->x - p->x) * d->x + (a->y - p->y) * d->y + (a->z - p->z) * d->z;
-    n = -(d->x * d->x + d->y * d->y + d->z * d->z);
-
-    if (n != 0.0f) {
-        t /= n;
-    }
-    return t;
+// decomp-permuter
+f32 func_8010AC04_fowl_play(Vec *p, Vec *a, Vec *d)
+{
+  float new_var;
+  f32 t;
+  f32 n;
+  new_var = a->x - p->x;
+  t = ((new_var * d->x) + ((a->y - p->y) * d->y)) + ((a->z - p->z) * d->z);
+  n = -(((d->x * d->x) + (d->y * d->y)) + (d->z * d->z));
+  if (n != 0.0f)
+  {
+    t /= n;
+  }
+  return t;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010AC04_fowl_play);
-#endif
 
 /* Distance in XZ from p to the segment a-b; the closest point goes to out. */
 f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out) {
@@ -2514,20 +2511,18 @@ void func_8010D0C0_fowl_play(s16 id, u32 flags) {
     }
 }
 
-#ifdef NON_MATCHING
-s32 func_8010D108_fowl_play(s16 id) {
-    s32 flags = -1;
-    PgBoard* b;
-
-    if (id != -1) {
-        b = &D_8010F32C_fowl_play[id];
-        flags = b->flags;
-    }
-    return flags;
+// decomp-permuter
+s32 func_8010D108_fowl_play(s16 id)
+{
+  s32 flags = -1;
+  PgBoard *b;
+  if (id != (-1))
+  {
+    b = &D_8010F32C_fowl_play[id];
+    return b->flags;
+    ;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D108_fowl_play);
-#endif
 
 void func_8010D148_fowl_play(s16 id, s8 arg1) {
     PgBoard* b;
@@ -2703,33 +2698,36 @@ void func_8010D714_fowl_play(s16 id, s8 arg1, s8 arg2, u32 flags) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010D784_fowl_play(s16 id, s32 on) {
-    PgBoard* b;
-    Vtx* v;
-    s8 c;
-    s8 a;
-    s32 i;
-
-    if (id != -1) {
-        b = &D_8010F32C_fowl_play[id];
-        if (on) {
-            c = 0;
-            a = 0x70;
-        } else {
-            c = -1;
-            a = -1;
-        }
-        for (i = 0; i < b->rows; i++) {
-            v = &b->vtx[i];
-            v->v.cn[0] = v->v.cn[1] = v->v.cn[3] = c;
-            b->vtx[i].v.cn[2] = a;
-        }
+// decomp-permuter
+void func_8010D784_fowl_play(s16 id, s32 on)
+{
+  PgBoard *b;
+  Vtx *v;
+  s8 c;
+  s8 a;
+  s32 i;
+  if (id != (-1))
+  {
+    b = &D_8010F32C_fowl_play[id];
+    if (on)
+    {
+      c = 0;
+      a = 0x70;
     }
+    else
+    {
+      c = -1;
+      a = -1;
+    }
+    for (i = 0; i < b->rows; i++)
+    {
+      ;
+      (&b->vtx[i])->v.cn[0] = ((&b->vtx[i])->v.cn[1] = ((&b->vtx[i])->v.cn[3] = c));
+      b->vtx[i].v.cn[2] = a;
+    }
+
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D784_fowl_play);
-#endif
 
 void func_8010D81C_fowl_play(void) {
     PgBoard* b;

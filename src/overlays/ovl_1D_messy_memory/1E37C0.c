@@ -1310,22 +1310,21 @@ void func_80107C88_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_80107C88_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
-/* A CPU player's brain runs only while the items are put back (phase 9). */
-void func_8010ACE4_messy_memory(omObjData *obj) {
-    s32 p = (u16)obj->work[0];
-    s32 d;
-
-    if (D_80115D8C_messy_memory == 9) {
-        d = GwPlayer[p].cpu_difficulty;
-        if (d < 4 && d >= 0) {
-            func_80107C88_messy_memory(obj);
-        }
+// decomp-permuter
+void func_8010ACE4_messy_memory(omObjData *obj)
+{
+  int new_var;
+  s32 p = (u16) obj->work[0];
+  s32 d;
+  if (D_80115D8C_messy_memory == 9)
+  {
+    d = GwPlayer[p].cpu_difficulty;
+    if ((new_var = d < 4) && (d >= 0))
+    {
+      func_80107C88_messy_memory(obj);
     }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010ACE4_messy_memory);
-#endif
 
 /* A player's hand object: grows in, a CPU decides how many items it remembers, then runs the brain or the pad. */
 #ifdef NON_MATCHING
@@ -2153,32 +2152,37 @@ void func_8010D55C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D55C_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
-/* Creates the item objects: ten per board (four players and the shown room), work[0] item, work[1] board. */
-void func_8010D910_messy_memory(void) {
-    omObjData *o;
-    MmEnt *e;
-    s16 b;
-    s16 j;
-    s16 i;
-
-    for (b = 0; b < 5; b++) {
-        for (j = 0; j < 10; j++) {
-            e = &D_80111700_messy_memory[j + (b * 10 + 8)];
-            o = omAddObj(300, 0, 0, -1, func_8010D55C_messy_memory);
-            for (i = 0; i < 10; i++) {
-                if ((s16)(j % 10) == i) {
-                    o->work[0] = j;
-                }
-            }
-            e->obj = o;
-            o->work[1] = b;
+// decomp-permuter
+void func_8010D910_messy_memory(void)
+{
+  int new_var;
+  omObjData *o;
+  MmEnt *e;
+  s16 b;
+  s16 j;
+  s16 i;
+  for (b = 0; b < 5; b++)
+  {
+    for (j = 0; j < 10; j++)
+    {
+      new_var = 8;
+      e = &D_80111700_messy_memory[j + ((b * 10) + new_var)];
+      o = omAddObj(300, 0, 0, -1, func_8010D55C_messy_memory);
+      for (i = 0; i < 10; i++)
+      {
+        if (((s16) (j % 10)) == i)
+        {
+          o->work[0] = j;
         }
+      }
+
+      e->obj = o;
+      o->work[1] = b;
     }
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010D910_messy_memory);
-#endif
 
 /* Snaps the shadow to its item when the item sits on a slot (tbl/origin: the slot table and board origin). */
 #define MM_SHADOW_SNAP(tbl, n, yoff, twice, a, b)                                                                      \
@@ -2313,32 +2317,37 @@ void func_8010E29C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E29C_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
-/* Creates the item shadow objects: ten per board, work[0] item, work[1] board. */
-void func_8010E500_messy_memory(void) {
-    omObjData *o;
-    MmEnt *e;
-    s16 b;
-    s16 j;
-    s16 i;
-
-    for (b = 0; b < 5; b++) {
-        for (j = 0; j < 10; j++) {
-            e = &D_80111700_messy_memory[j + (b * 10 + 86)];
-            o = omAddObj(400, 0, 0, -1, func_8010E29C_messy_memory);
-            for (i = 0; i < 10; i++) {
-                if ((s16)(j % 10) == i) {
-                    o->work[0] = j;
-                }
-            }
-            e->obj = o;
-            o->work[1] = b;
+// decomp-permuter
+void func_8010E500_messy_memory(void)
+{
+  omObjData *o;
+  MmEnt *e;
+  s16 b;
+  unsigned int new_var;
+  s16 j;
+  s16 i;
+  for (b = 0; b < 5; b++)
+  {
+    for (j = 0; j < 10; j++)
+    {
+      new_var = 86;
+      e = &D_80111700_messy_memory[j + ((b * 10) + new_var)];
+      o = omAddObj(400, 0, 0, -1, func_8010E29C_messy_memory);
+      for (i = 0; i < 10; i++)
+      {
+        if (((s16) (j % 10)) == i)
+        {
+          o->work[0] = j;
         }
+      }
+
+      e->obj = o;
+      o->work[1] = b;
     }
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010E500_messy_memory);
-#endif
 
 /* One of the seven intro movers (D_801134E8[work[0]]; models from the first one's motions): walks in along
    D_80111228, turns, walks back out. */
@@ -2775,27 +2784,29 @@ void func_8010FA38_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FA38_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
-/* Creates the result digit objects: three per board, work[0] digit, work[1] board. */
-void func_8010FBB0_messy_memory(void) {
-    omObjData *o;
-    MmEnt *e;
-    u8 b;
-    u8 k;
-
-    for (b = 0; b < 4; b++) {
-        for (k = 0; k < 3; k++) {
-            e = &D_80111700_messy_memory[b * 3 + (k + 74)];
-            o = omAddObj(900, 1, 10, -1, func_8010FA38_messy_memory);
-            o->work[0] = k;
-            o->work[1] = b;
-            e->obj = o;
-        }
+// decomp-permuter
+void func_8010FBB0_messy_memory(void)
+{
+  omObjData *o;
+  MmEnt *e;
+  u8 b;
+  int new_var;
+  u8 k;
+  for (b = 0; b < 4; b++)
+  {
+    for (k = 0; k < 3; k++)
+    {
+      new_var = k + 74;
+      e = &D_80111700_messy_memory[(b * 3) + new_var];
+      o = omAddObj(900, 1, 10, -1, func_8010FA38_messy_memory);
+      o->work[0] = k;
+      o->work[1] = b;
+      e->obj = o;
     }
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010FBB0_messy_memory);
-#endif
 
 void func_8010FC90_messy_memory(void) {
     u32 i;

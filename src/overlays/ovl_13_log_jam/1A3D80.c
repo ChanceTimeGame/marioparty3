@@ -1559,19 +1559,27 @@ s16 func_80109044_log_jam(s16 kind, s16 part) {
     return -1;
 }
 
-#ifdef NON_MATCHING
-/* Differs: retail adds offset + base, this adds base + offset (operand order only). */
-LjLog* func_8010910C_log_jam(s16 idx) {
-    LjLog* logs = D_8010E5C4_log_jam;
-
-    if (logs != NULL) {
-        return &logs[idx];
-    }
-    return NULL;
+// decomp-permuter
+LjLog *func_8010910C_log_jam(s16 idx)
+{
+  s16 new_var;
+  LjLog *logs;
+  s16 new_var2;
+  new_var2 = idx;
+  new_var = new_var2;
+  if (D_8010E5C4_log_jam != 0)
+  {
+    return &D_8010E5C4_log_jam[new_var];
+  }
+  if (D_8010E5C4_log_jam)
+  {
+    return 0;
+  }
+  else
+  {
+    return 0;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_8010910C_log_jam);
-#endif
 
 void func_80109140_log_jam(s16 idx, f32 x, f32 y, f32 z) {
     LjLog* log;
@@ -1645,54 +1653,57 @@ void func_8010925C_log_jam(s16 idx) {
 const Vec D_8010E2C0_log_jam = { 0.0f, 0.0f, 0.0f };
 const Vec D_8010E2CC_log_jam = { 0.5f, 0.5f, 0.5f }; /* split effect scale */
 
-#ifdef NON_MATCHING
-/* Differs: register allocation of the log pointer and one delay slot. */
-/* Split a log in two halves that fly apart. */
-void func_80109350_log_jam(s16 idx) {
-    Vec pos = D_8010E2C0_log_jam;
-    Vec scale = D_8010E2CC_log_jam;
-    LjLog* log;
-    LjLog* half;
-    f32 x;
-    f32 y;
-    f32 z;
-    s32 kind;
-    s16 n;
-    s32 i;
+// decomp-permuter
+void func_80109350_log_jam(s16 idx)
+{
+  Vec pos = D_8010E2C0_log_jam;
+  Vec scale = D_8010E2CC_log_jam;
+  int new_var2;
+  LjLog *half;
+  f32 *new_var;
+  f32 x;
+  f32 y;
+  f32 z;
+  s32 kind;
+  s16 n;
+  s32 i;
+  if (D_8010E5C4_log_jam == 0)
+  {
+    return;
+  }
+  half = &D_8010E5C4_log_jam[idx];
+  new_var = &half->unk10.y;
+  if (half->unk08 == 0)
+  {
+    return;
+  }
+  kind = half->unk0A;
+  x = half->unk10.x;
+  y = *new_var;
+  z = half->unk10.z;
+  pos.x = x;
+  pos.y = *new_var;
+  pos.z = half->unk10.z;
+  func_8010A9D4_log_jam(&pos, 0, &scale, 1.0f, &D_8010DF48_log_jam);
+  func_8010925C_log_jam(idx);
+  for (i = 0; i < 2; i++)
+  {
+    n = func_80109044_log_jam(kind, i - -1);
+    new_var2 = 1;
+    if (n != (-new_var2))
+    {
+      half = &D_8010E5C4_log_jam[n];
+      half->unk10.x = x;
+      half->unk10.y = y;
+      half->unk10.z = z;
+      half->unk34 = i;
+      half->unk52 = (double) 0;
+      half->unk74 = func_801094E4_log_jam;
+      half->unk74(half);
+    }
+  }
 
-    if (D_8010E5C4_log_jam == NULL) {
-        return;
-    }
-    log = &D_8010E5C4_log_jam[idx];
-    if (log->unk08 == 0) {
-        return;
-    }
-    kind = log->unk0A;
-    x = log->unk10.x;
-    y = log->unk10.y;
-    z = log->unk10.z;
-    pos.x = x;
-    pos.y = log->unk10.y;
-    pos.z = log->unk10.z;
-    func_8010A9D4_log_jam(&pos, NULL, &scale, 1.0f, &D_8010DF48_log_jam);
-    func_8010925C_log_jam(idx);
-    for (i = 0; i < 2; i++) {
-        n = func_80109044_log_jam(kind, i + 1);
-        if (n != -1) {
-            half = &D_8010E5C4_log_jam[n];
-            half->unk10.x = x;
-            half->unk10.y = y;
-            half->unk10.z = z;
-            half->unk34 = i;
-            half->unk52 = 0;
-            half->unk74 = func_801094E4_log_jam;
-            half->unk74(half);
-        }
-    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80109350_log_jam);
-#endif
 
 #define LJ_RANDF() ((f32)(u8)(rand8() % 100) * 0.01)
 

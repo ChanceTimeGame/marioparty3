@@ -1460,16 +1460,15 @@ void func_8010A62C_mgmode(s32 arg0, s16 arg1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* scheduling: retail computes arg0 - 0x54 after loading D_8011B3E0_mgmode */
-void func_8010A824_mgmode(s32 arg0, s16 arg1) {
-    func_80116968_mgmode(D_8011B3EC_mgmode, 0x12, D_8011B3E0_mgmode[4] + (arg0 - 0x54), arg1);
-    func_80116968_mgmode(D_8011B3EC_mgmode, 8, D_8011B3E0_mgmode[0] + arg0 - 0x70, arg1);
-    func_80116968_mgmode(D_8011B3EC_mgmode, 9, D_8011B3E0_mgmode[3] + arg0 - 0x38, arg1);
+// decomp-permuter
+void func_8010A824_mgmode(s32 arg0, s16 arg1)
+{
+  unsigned int new_var;
+  new_var = 0x54;
+  func_80116968_mgmode(D_8011B3EC_mgmode, 0x12, D_8011B3E0_mgmode[4] + (arg0 - new_var), arg1);
+  func_80116968_mgmode(D_8011B3EC_mgmode, 8, (D_8011B3E0_mgmode[0] + arg0) - 0x70, arg1);
+  func_80116968_mgmode(D_8011B3EC_mgmode, 9, (D_8011B3E0_mgmode[3] + arg0) - 0x38, arg1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/46CC10", func_8010A824_mgmode);
-#endif
 
 #ifdef NON_MATCHING
 /* retail re-sign-extends the minigame type at every use and orders the counter loops differently; logic checked against the asm */

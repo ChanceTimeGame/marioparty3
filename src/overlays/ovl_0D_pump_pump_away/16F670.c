@@ -1868,19 +1868,18 @@ void func_8010A150_pump_pump_away(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010A390_pump_pump_away(omObjData *obj) {
-    u32 w = obj->work[0];
-
-    D_80111978_pump_pump_away[w].unk00 = 1;
-    D_80113400_pump_pump_away[w].state = 1;
-    if (obj->work[0] == 0) {
-        HuAudFXPlay(0x35F);
-    }
+// decomp-permuter
+void func_8010A390_pump_pump_away(omObjData *obj)
+{
+  PpTeam *new_var;
+  u32 w = obj->work[0];
+  new_var = &D_80111978_pump_pump_away[w];
+  D_80113400_pump_pump_away[w].state = (new_var->unk00 = 1);
+  if (obj->work[0] == 0)
+  {
+    HuAudFXPlay(0x35F);
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010A390_pump_pump_away);
-#endif
 
 void func_8010A3F0_pump_pump_away(omObjData *obj) {
     PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];

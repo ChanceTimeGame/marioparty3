@@ -116,42 +116,47 @@ void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
 void func_8000BEAC_main(u16 spriteId, s32 r, s32 g, s32 b);
 
 
-// the A-press test: retail andi/sltu, KMC folds it to srl/andi (masked 2)
-#ifdef NON_MATCHING
-void func_80105C90_mstory1(omObjData *obj) {
-    u32 state = D_80114A80_mstory1;
-
-    switch (state) {
+// decomp-permuter
+void func_80105C90_mstory1(omObjData *obj)
+{
+  u32 state = D_80114A80_mstory1;
+  switch (state)
+  {
     case 0:
-        HuAudSeqPlay(0x26);
-        state++;
-        break;
+      HuAudSeqPlay(0x26);
+      state++;
+      break;
+
     case 1:
-        state += WipeStatGet() == 0;
-        break;
+      state += WipeStatGet() == 0;
+      break;
+
     case 2:
-        if (D_80114A84_mstory1 == 1) {
-            state += (D_800D5558_main[D_801158B4_mstory1] & 0x1000) > 0;
-        }
-        break;
-    case 3:
-        WipeCreateOut(2, 0x14);
-        HuAudSeqFadeOut(0x1E);
-        state++;
-        break;
-    case 4:
-        if (WipeStatGet() == 0) {
-            func_8005F524_main();
-            func_80050064_main(1);
-            omOvlReturnEx(1);
-        }
-        break;
+      if (D_80114A84_mstory1 == 1)
+    {
+      state += ((D_800D5558_main[D_801158B4_mstory1] & 0x1000) - 1) >= 0;
     }
-    D_80114A80_mstory1 = state;
+      break;
+
+    case 3:
+      WipeCreateOut(2, 0x14);
+      HuAudSeqFadeOut(0x1E);
+      state++;
+      break;
+
+    case 4:
+      if (WipeStatGet() == 0)
+    {
+      func_8005F524_main();
+      func_80050064_main(1);
+      omOvlReturnEx(1);
+    }
+      break;
+
+  }
+
+  D_80114A80_mstory1 = state;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48C120", func_80105C90_mstory1);
-#endif
 
 void func_80105D80_mstory1(omObjData *obj) {
     if (D_800D530C_main == 1) {

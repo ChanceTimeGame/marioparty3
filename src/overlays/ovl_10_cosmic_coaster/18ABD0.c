@@ -426,40 +426,47 @@ void func_801063CC_cosmic_coaster(omObjData *object) {
 }
 
 /* Place one side's four track segments, recycling the nearest one when it passes. */
-#ifdef NON_MATCHING
-void func_80106530_cosmic_coaster(s16 side) {
-    CcTrack *work;
-    s32 slot;
-    s32 count;
-    s32 i;
+// decomp-permuter
+void func_80106530_cosmic_coaster(s16 side)
+{
+  CcTrack *work;
+  s32 slot;
+  s32 count;
+  unsigned int new_var;
+  s32 i;
+  new_var = side;
+  work = D_8010C3C0_cosmic_coaster->data;
+  slot = work->unk16[new_var];
+  count = work->unk24[side];
+  for (i = 0; i < 4; i++)
+  {
+    count++;
+    Hu3DModelPosSet(D_8010C3C0_cosmic_coaster->model[(side * 4) + slot], 0.0f, 0.0f, work->unk1C[side] - (i * 3000.0f));
+    if (count >= 0x17)
+    {
+      func_8001C258_main(D_8010C3C0_cosmic_coaster->model[(side * 4) + slot], 4, 4);
+    }
+    else
+    {
+      func_8001C258_main(D_8010C3C0_cosmic_coaster->model[(side * 4) + slot], 4, 0);
+    }
+    slot++;
+    if (slot >= 4)
+    {
+      slot -= 4;
+    }
+  }
 
-    work = D_8010C3C0_cosmic_coaster->data;
-    slot = work->unk16[side];
-    count = work->unk24[side];
-    for (i = 0; i < 4; i++) {
-        count++;
-        Hu3DModelPosSet(D_8010C3C0_cosmic_coaster->model[side * 4 + slot], 0.0f, 0.0f, work->unk1C[side] - i * 3000.0f);
-        if (count >= 0x17) {
-            func_8001C258_main(D_8010C3C0_cosmic_coaster->model[side * 4 + slot], 4, 4);
-        } else {
-            func_8001C258_main(D_8010C3C0_cosmic_coaster->model[side * 4 + slot], 4, 0);
-        }
-        slot++;
-        if (slot >= 4) {
-            slot -= 4;
-        }
+  if (work->unk1C[side] >= 6300.0f)
+  {
+    work->unk1C[side] -= 3000.0f;
+    if ((++work->unk16[side]) >= 4)
+    {
+      work->unk16[side] -= 4;
     }
-    if (work->unk1C[side] >= 6300.0f) {
-        work->unk1C[side] -= 3000.0f;
-        if (++work->unk16[side] >= 4) {
-            work->unk16[side] -= 4;
-        }
-        work->unk24[side]++;
-    }
+    work->unk24[side]++;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80106530_cosmic_coaster);
-#endif
 
 void func_80106720_cosmic_coaster(omObjData *object) {
     func_80106758_cosmic_coaster(object, 0);
@@ -919,70 +926,62 @@ void func_8010812C_cosmic_coaster(omObjData *object) {
 }
 
 /* CPU rider steering: stick value toward the chosen lane, speed by difficulty. */
-#ifdef NON_MATCHING
-void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick) {
-    CcCar *work;
-    s8 speed;
-    f32 tol;
-    f32 d;
-
-    work = object->data;
-    *stick = 0;
-    if (work->unk3C[rider] != 100000.0f) {
-        if (work->unk50 == 1) {
-            speed = 70;
-            tol = 4.0f;
-        } else {
-            switch (GwPlayer[work->unk02[rider]].cpu_difficulty) {
-            case 0:
-                speed = rand8() % 13 + 58;
-                tol = 2.0f;
-                break;
-            case 1:
-                speed = rand8() % 10 + 62;
-                tol = 2.0f;
-                break;
-            case 2:
-                speed = (rand8() & 7) + 66;
-                tol = 3.0f;
-                break;
-            case 3:
-                speed = 70;
-                tol = 4.0f;
-                break;
-            }
-        }
-        if (speed >= 71) {
-            speed = 70;
-        }
-        if (work->unk10[rider] > work->unk3C[rider]) {
-            d = work->unk10[rider] - work->unk3C[rider];
-            if (d > 10.0f) {
-                *stick = -speed;
-                return;
-            }
-            if (!(d < tol)) {
-                *stick = -speed / 2;
-                return;
-            }
-        } else if (work->unk10[rider] < work->unk3C[rider]) {
-            d = work->unk10[rider] - work->unk3C[rider];
-            if (d < -10.0f) {
-                *stick = speed;
-                return;
-            }
-            /* Retail: toward +x the "reached" test is d < -tol, not d > -tol. */
-            if (!(d < -tol)) {
-                *stick = speed / 2;
-                return;
-            }
-        }
-        work->unk3C[rider] = 100000.0f;
+// decomp-permuter
+void func_801083D0_cosmic_coaster(omObjData *object, s16 rider, s8 *stick)
+{
+  CcCar *work;
+  s8 speed;
+  f32 tol;
+  f32 d;
+  work = object->data;
+  *stick = 0;
+  if (work->unk3C[rider] != 100000.0f)
+  {
+    if (work->unk50 == 1)
+    {
+      speed = 70;
+      tol = 4.0f;
     }
+    else
+    {
+ do { switch (GwPlayer[work->unk02[rider]].cpu_difficulty) { case 0: speed = (rand8() % 13) + 58; tol = 2.0f; break; case 1: speed = (rand8() % 10) + 62; tol = 2.0f; break; case 2: speed = (rand8() & 7) + 66; tol = 3.0f; break; case 3: speed = 70; tol = 4.0f; break; } } while (0);
+    }
+    if (speed >= 71)
+    {
+      speed = 70;
+    }
+    if (work->unk10[rider] > work->unk3C[rider])
+    {
+      d = work->unk10[rider] - work->unk3C[rider];
+      if (d > 10.0f)
+      {
+        *stick = -speed;
+        return;
+      }
+      if (!(d < tol))
+      {
+        *stick = (-speed) / 2;
+        return;
+      }
+    }
+    else
+      if (work->unk10[rider] < work->unk3C[rider])
+    {
+      d = work->unk10[rider] - work->unk3C[rider];
+      if (d < (-10.0f))
+      {
+        *stick = speed;
+        return;
+      }
+      if (!(d < (-tol)))
+      {
+        *stick = speed / 2;
+        return;
+      }
+    }
+    work->unk3C[rider] = 100000.0f;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_801083D0_cosmic_coaster);
-#endif
 
 /* Opening: fade in, then move both cameras through the two keys, start the music. */
 #ifdef NON_MATCHING
@@ -1819,57 +1818,72 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B
 #endif
 
 /* Lanes blocked at obj's distance: per lane (left, middle, right) 2 bits, 0x30/0xC/0x3. */
-#ifdef NON_MATCHING
-s32 func_8010B97C_cosmic_coaster(omObjData *object, s32 rider, omObjData *obj) {
-    omObjData **objs;
-    omObjData *o;
-    s32 bits;
-    s32 i;
-
-    bits = 0;
-    if (obj == NULL) {
-        return 0;
-    }
-    objs = func_80047DBC_main(((CcCar *)object->data)->unk00);
-    for (i = 0; i < 0x37; i++) {
-        o = objs[i];
-        if (o != NULL && (o->work[1] < 2 || o->work[1] == 4) && o->trans.z == obj->trans.z) {
-            switch (o->work[1]) {
-            case 0:
-                if (o->trans.x < 0.0f) {
-                    bits |= 0x20;
-                }
-                if (o->trans.x == 0.0f) {
-                    bits |= 8;
-                }
-                if (o->trans.x > 0.0f) {
-                    bits |= 2;
-                }
-                break;
-            case 1:
-                if (o->trans.x < 0.0f) {
-                    bits |= 0x28;
-                }
-                if (o->trans.x > 0.0f) {
-                    bits |= 0xA;
-                }
-                break;
-            case 4:
-                if (o->trans.x < 0.0f) {
-                    bits |= 0x10;
-                }
-                if (o->trans.x == 0.0f) {
-                    bits |= 4;
-                }
-                if (o->trans.x > 0.0f) {
-                    bits |= 1;
-                }
-                break;
-            }
+// decomp-permuter
+s32 func_8010B97C_cosmic_coaster(omObjData *object, s32 rider, omObjData *obj)
+{
+  omObjData *new_var;
+  omObjData **objs;
+  omObjData *o;
+  s32 bits;
+  s32 i;
+  bits = 0;
+  if (obj == 0)
+  {
+    return 0;
+  }
+  objs = func_80047DBC_main(((CcCar *) object->data)->unk00);
+  for (i = 0; i < 0x37; i++)
+  {
+    o = objs[i];
+    if (((o != 0) && (((new_var = o)->work[1] < 2) || (new_var->work[1] == 4))) && (new_var->trans.z == obj->trans.z))
+    {
+      switch (new_var->work[1])
+      {
+        case 0:
+          if (new_var->trans.x < 0.0f)
+        {
+          bits |= 0x20;
         }
+          if (new_var->trans.x == 0.0f)
+        {
+          bits |= 8;
+        }
+          if (new_var->trans.x > 0.0f)
+        {
+          bits |= 2;
+        }
+          break;
+
+        case 1:
+          if (new_var->trans.x < 0.0f)
+        {
+          bits |= 0x28;
+        }
+          if (new_var->trans.x > 0.0f)
+        {
+          bits |= 0xA;
+        }
+          break;
+
+        case 4:
+          if (new_var->trans.x < 0.0f)
+        {
+          bits |= 0x10;
+        }
+          if (new_var->trans.x == 0.0f)
+        {
+          bits |= 4;
+        }
+          if (new_var->trans.x > 0.0f)
+        {
+          bits |= 1;
+        }
+          break;
+
+      }
+
     }
-    return bits;
+  }
+
+  return bits;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010B97C_cosmic_coaster);
-#endif

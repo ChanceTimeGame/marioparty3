@@ -797,70 +797,89 @@ s32 func_80037C44_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80037C44_main);
 #endif
 
-// "START" (unused variant): register allocation, i and chr swapped (masked 0)
-#ifdef NON_MATCHING
-s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1) {
-    GMesChr *chr;
-    s32 i;
-    s32 n = 5;
-    s32 ret;
+// decomp-permuter
+s32 func_80038208_main(GAMEMES *gMes, Gfx **arg1)
+{
+  GMesChr *chr;
+  s32 i;
+  s32 n = 5;
+  s32 ret;
+  if (gMesCloseF || (gMes->stat == 4))
+  {
+    gMes->unk08 = 6;
+  }
+  ret = 1;
+  switch (gMes->unk08)
+  {
+    case 0:
+      for (i = 0; i < 32; i++)
+    {
+      chr = &D_800B1BC0_main[i];
+      chr->unk00 = (chr->unk04 = (chr->unk18 = (chr->unk1C = (chr->unk28 = (chr->unk2C = 0.0f)))));
+      chr->scaleX = (chr->scaleY = 1.0f);
+      chr->alpha = 0x80;
+      chr->unk34 = 0;
+      chr->unk38 = 0;
+    }
 
-    if (gMesCloseF || gMes->stat == 4) {
-        gMes->unk08 = 6;
+      func_8003A37C_main(gMes, D_800A7450_main, 1, -1, -1);
+      func_80054904_main(gMes->strGId[0], 0, 160, 120);
+      for (i = 0; i < n;)
+    {
+      chr = &D_800B1BC0_main[i];
+      i++;
+      HuSprScaleSet(gMes->strGId[0], i, chr->scaleX, chr->scaleY);
+      func_80055458_main(gMes->strGId[0], i, chr->alpha);
     }
-    ret = TRUE;
-    switch (gMes->unk08) {
-        case 0:
-            for (i = 0; i < 32; i++) {
-                chr = &D_800B1BC0_main[i];
-                chr->unk00 = chr->unk04 = chr->unk18 = chr->unk1C = chr->unk28 = chr->unk2C = 0.0f;
-                chr->scaleX = chr->scaleY = 1.0f;
-                chr->alpha = 0x80;
-                chr->unk34 = 0;
-                chr->unk38 = 0;
-            }
-            func_8003A37C_main(gMes, D_800A7450_main, 1, -1, -1);
-            func_80054904_main(gMes->strGId[0], 0, 160, 120);
-            for (i = 0; i < n;) {
-                chr = &D_800B1BC0_main[i];
-                i++;
-                HuSprScaleSet(gMes->strGId[0], i, chr->scaleX, chr->scaleY);
-                func_80055458_main(gMes->strGId[0], i, chr->alpha);
-            }
-            gMes->unk06 = gMes->unk04 = gMes->unk0A = gMes->unk0C = gMes->unk0E = 0;
-            gMes->unk60 = gMes->unk64 = 0.0f;
-            gMes->unk68 = gMes->unk6C = 1.0f;
-            gMes->unk70 = 0.0f;
-            gMes->unk1C = 0;
-            break;
-        case 1:
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            break;
-        case 6:
-            GMesSprKill(gMes);
-            D_800D6A58_main = 0;
-            D_800D1100_main = 1;
-            ret = FALSE;
-            break;
+
+      gMes->unk06 = (gMes->unk04 = (gMes->unk0A = (gMes->unk0C = (gMes->unk0E = 0))));
+      gMes->unk60 = (gMes->unk64 = 0.0f);
+      gMes->unk68 = (gMes->unk6C = 1.0f);
+      gMes->unk70 = 0.0f;
+      gMes->unk1C = 0;
+      break;
+
+    case 1:
+      break;
+
+    case 2:
+      break;
+
+    case 3:
+      break;
+
+    case 4:
+      break;
+
+    case 5:
+      break;
+
+    case 6:
+      GMesSprKill(gMes);
+      D_800D6A58_main = 0;
+      D_800D1100_main = 1;
+      ret = 0;
+      break;
+
+  }
+
+  if (gMes->unk04 == 60)
+  {
+    HuAudFXPlay(0x251);
+  }
+  if (gMes->unk04 == 80)
+  {
+    if (chr)
+    {
+      func_800452BC_main(func_80036610_main());
     }
-    if (gMes->unk04 == 60) {
-        HuAudFXPlay(0x251);
+    else
+    {
+      func_800452BC_main(func_80036610_main());
     }
-    if (gMes->unk04 == 80) {
-        func_800452BC_main(func_80036610_main());
-    }
-    return ret;
+  }
+  return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038208_main);
-#endif
 
 // "START" flipping in: register allocation in the i + 1 loops (masked 35: i and i + 1 swap registers, one move per loop)
 #ifdef NON_MATCHING

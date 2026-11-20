@@ -144,49 +144,60 @@ void (*const D_80111C10_mstory4[2])(void) = { func_8010818C_mstory4, func_8010B9
 
 const s32 D_80111C18_mstory4[2] = { 0x3E, 0x3F };
 
-#ifdef NON_MATCHING
-// the A-press test: retail andi/sltu, KMC folds it to srl/andi (masked 2), as mstory1's twin
-void func_80105C90_mstory4(omObjData *obj) {
-    u32 state = D_80111AC0_mstory4;
-
-    switch (state) {
+// decomp-permuter
+void func_80105C90_mstory4(omObjData *obj)
+{
+  u32 state = D_80111AC0_mstory4;
+  int new_var;
+  switch (state)
+  {
     case 0:
-        HuAudSeqPlay(0x26);
-        state++;
-        break;
+      HuAudSeqPlay(0x26);
+      state++;
+      break;
+
     case 1:
-        state += WipeStatGet() == 0;
-        break;
+      state += WipeStatGet() == 0;
+      break;
+
     case 2:
-        if (D_80111AC8_mstory4 == 1) {
-            state += (D_800D5558_main[D_80112124_mstory4] & 0x1000) != 0;
-        }
-        break;
-    case 3:
-        if (GwPlayer[0].coin == 0) {
-            WipeCreateOut(2, 0x14);
-        } else {
-            WipeCreateOut(0xB, 0x14);
-        }
-        state++;
-        break;
-    case 4:
-        if (WipeStatGet() == 0) {
-            if (D_80111AC4_mstory4 == 1) {
-                MBDBackKill();
-                MBDBackClose();
-            }
-            func_8005F524_main();
-            func_80050064_main(1);
-            omOvlReturnEx(1);
-        }
-        break;
+      if (D_80111AC8_mstory4 == 1)
+    {
+      new_var = D_800D5558_main[D_80112124_mstory4] & 0x1000;
+      state += new_var != 0;
     }
-    D_80111AC0_mstory4 = state;
+      break;
+
+    case 3:
+      if (GwPlayer[0].coin == 0)
+    {
+      WipeCreateOut(2, 0x14);
+    }
+    else
+    {
+      WipeCreateOut(0xB, 0x14);
+    }
+      state++;
+      break;
+
+    case 4:
+      if (WipeStatGet() == 0)
+    {
+      if (D_80111AC4_mstory4 == 1)
+      {
+        MBDBackKill();
+        MBDBackClose();
+      }
+      func_8005F524_main();
+      func_80050064_main(1);
+      omOvlReturnEx(1);
+    }
+      break;
+
+  }
+
+  D_80111AC0_mstory4 = state;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80105C90_mstory4);
-#endif
 
 void func_80105DA8_mstory4(omObjData *obj) {
     if (D_800D530C_main == 1) {

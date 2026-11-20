@@ -1238,43 +1238,44 @@ f32 func_801094A8_modesel(f32 x0, f32 y0, f32 x1, f32 y1) {
 
 
 
-#ifdef NON_MATCHING
-/* Turns the horizontal direction a towards b by the fraction t (angles about y, shortest way round);
-   writes the unit direction to out. */
-void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out) {
-    f32 end;
-    f32 ang;
-    f32 angA;
-    f32 angB;
-
-    angA = func_801094A8_modesel(0.0f, 0.0f, a->x, a->z);
-    if (angA < 0.0f) {
-        angA += 360.0f;
+// decomp-permuter
+void func_801094F0_modesel(Vec *a, Vec *b, f32 t, Vec *out)
+{
+  f32 end;
+  f32 ang;
+  f32 angA;
+  angA = func_801094A8_modesel(0.0f, 0.0f, a->x, a->z);
+  if (angA < 0.0f)
+  {
+    angA += 360.0f;
+  }
+  end = func_801094A8_modesel(0.0f, 0.0f, b->x, b->z);
+  if (end < 0.0f)
+  {
+    end += 360.0f;
+  }
+  if ((((-a->z) * b->x) + (a->x * b->z)) > 0.0f)
+  {
+    end = ((end - angA) < 0.0f) ? (end) : (end - 360.0f);
+    ang = ((end - angA) * t) + angA;
+    if (ang < 0.0f)
+    {
+      ang += 360.0f;
     }
-    angB = func_801094A8_modesel(0.0f, 0.0f, b->x, b->z);
-    if (angB < 0.0f) {
-        angB += 360.0f;
+  }
+  else
+  {
+    end = ((end - angA) > 0.0f) ? (end) : (end + 360.0f);
+    ang = ((end - angA) * t) + angA;
+    if (ang > 360.0f)
+    {
+      ang -= 360.0f;
     }
-    if (-a->z * b->x + a->x * b->z > 0.0f) {
-        end = (angB - angA < 0.0f) ? angB : angB - 360.0f;
-        ang = (end - angA) * t + angA;
-        if (ang < 0.0f) {
-            ang += 360.0f;
-        }
-    } else {
-        end = (angB - angA > 0.0f) ? angB : angB + 360.0f;
-        ang = (end - angA) * t + angA;
-        if (ang > 360.0f) {
-            ang -= 360.0f;
-        }
-    }
-    out->x = sindf(ang);
-    out->y = 0.0f;
-    out->z = cosdf(ang);
+  }
+  out->x = sindf(ang);
+  out->y = 0.0f;
+  out->z = cosdf(ang);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_801094F0_modesel);
-#endif
 
 /* Camera target move along an arc around the eye (func_80109968_modesel). Retail adds the full y
    difference (to.y - from.y) without the time factor. */

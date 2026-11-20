@@ -108,41 +108,48 @@ void func_801059A0_mstory5(void) {
     WipeCreateIn(2, 0x10);
 }
 
-#ifdef NON_MATCHING
-void func_80105BDC_mstory5(omObjData *obj) {
-    u32 state = D_80114730_mstory5;
-
-    switch (state) {
+// decomp-permuter
+void func_80105BDC_mstory5(omObjData *obj)
+{
+  u32 state = D_80114730_mstory5;
+  u16 new_var;
+  switch (state)
+  {
     case 0:
-        HuAudSeqPlay(0x26);
-        state++;
-        break;
+      HuAudSeqPlay(0x26);
+      state++;
+      break;
+
     case 1:
-        state += WipeStatGet() == 0;
-        break;
+      state += WipeStatGet() == 0;
+      break;
+
     case 2:
-        if (D_80114734_mstory5 == 1) {
-            state += (D_800D5558_main[D_801151B4_mstory5] & 0x1000) > 0;
-        }
-        break;
-    case 3:
-        WipeCreateOut(2, 0x14);
-        HuAudSeqFadeOut(0x1E);
-        state++;
-        break;
-    case 4:
-        if (WipeStatGet() == 0) {
-            func_8005F524_main();
-            func_80050064_main(1);
-            omOvlReturnEx(1);
-        }
-        break;
+      if (D_80114734_mstory5 == 1)
+    {
+      state += ((new_var = D_800D5558_main[D_801151B4_mstory5]) & 0x1000) > 0;
     }
-    D_80114730_mstory5 = state;
+      break;
+
+    case 3:
+      WipeCreateOut(2, 0x14);
+      HuAudSeqFadeOut(0x1E);
+      state++;
+      break;
+
+    case 4:
+      if (WipeStatGet() == 0)
+    {
+      func_8005F524_main();
+      func_80050064_main(1);
+      omOvlReturnEx(1);
+    }
+      break;
+
+  }
+
+  D_80114730_mstory5 = state;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4CF350", func_80105BDC_mstory5);
-#endif
 
 void func_80105CCC_mstory5(omObjData *obj) {
     if (D_800D530C_main == 1) {

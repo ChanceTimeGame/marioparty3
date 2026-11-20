@@ -318,19 +318,18 @@ void func_80105C3C_curtain_call(omObjData *obj, u16 motion, s16 arg2, s16 arg3, 
     }
 }
 
-#ifdef NON_MATCHING
-s8 func_80105CB8_curtain_call(omObjData *obj, f32 target) {
-    s32 ret = 0;
-
-    if (obj->rot.y != target) {
-        obj->rot.y = func_801059BC_curtain_call(obj->rot.y, 10.0f);
-        ret = 1;
-    }
-    return ret;
+// decomp-permuter
+s8 func_80105CB8_curtain_call(omObjData *obj, f32 target)
+{
+  s32 ret = 0;
+  if (obj->rot.y != target)
+  {
+ do { } while (0);
+    obj->rot.y = func_801059BC_curtain_call(obj->rot.y, 10.0f);
+    ret = 1;
+  }
+  return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_22_curtain_call/20BFA0", func_80105CB8_curtain_call);
-#endif
 
 #ifdef NON_MATCHING
 void func_80105D14_curtain_call(s32 conNo) {

@@ -461,13 +461,15 @@ void func_800EED5C_name_81(s32 arg0) {
 
 // retail takes an s32 window id (no sign extension); ovl_81.h declares s16, which DFD60's
 // caller needs to match (see n6.header.patch)
-#ifdef NON_MATCHING
-void func_800EED68_name_81(s16 arg0, s32 arg1) {
-    func_800EEDA0_name_81(arg0, arg1, 0);
+// decomp-permuter
+void func_800EED68_name_81(s16 arg0, s32 arg1)
+{
+  int new_var2;
+  unsigned long new_var;
+  new_var2 = 0;
+  func_800EEDA0_name_81(new_var, arg1, new_var2);
+  new_var = arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D5B20", func_800EED68_name_81);
-#endif
 
 void func_800EED84_name_81(s32 arg0, s32 arg1) {
     func_800EEDA0_name_81(arg0, arg1, 1);

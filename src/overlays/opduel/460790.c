@@ -134,40 +134,42 @@ extern u8 D_80109570_opduel;
 extern GW_PLAYER *D_80109574_opduel[2]; /* bss: splat splits it at D_80109578_opduel */
 extern Object *D_8010957C_opduel[2]; /* bss: the two partner models */
 
-// s0/s1 swapped between the player loop's index and its -1 (masked 0)
-#ifdef NON_MATCHING
-void func_801059A0_opduel(void) {
-    GW_PLAYER *player;
-    s32 i;
-    s32 chr;
-    u32 j;
+// decomp-permuter
+void func_801059A0_opduel(void)
+{
+  GW_PLAYER *player;
+  s32 i;
+  s32 chr;
+  D_80109570_opduel = GwSystem.current_board_index;
+  omInitObjMan(0x32, 0x14);
+  HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+  HmfLightColorSet(2, 0xC8, 0xC8, 0xC8);
+  func_80109158_opduel();
+  func_801090F8_opduel();
+  func_800D87DC_name_81(700.0f);
+  func_800D85A8_name_81(1.6f);
+  func_8005A6B0_main();
+  i = 0x300;
+  omAddPrcObj(func_80108FDC_opduel, i, 0x2000, 0);
+  omAddObj(0x1000, 0, 0, -1, func_801090AC_opduel);
+  for (i = 0; i < 2; i++)
+  {
+    player = MBDGetPlayerStruct(i);
+    player->stats.prize.gamblePrize = -1;
+    player->stats.prize.duelNo = -1;
+  }
 
-    D_80109570_opduel = GwSystem.current_board_index;
-    omInitObjMan(0x32, 0x14);
-    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
-    HmfLightColorSet(2, 0xC8, 0xC8, 0xC8);
-    func_80109158_opduel();
-    func_801090F8_opduel();
-    func_800D87DC_name_81(700.0f);
-    func_800D85A8_name_81(1.6f);
-    func_8005A6B0_main();
-    omAddPrcObj(func_80108FDC_opduel, 0x300, 0x2000, 0);
-    omAddObj(0x1000, 0, 0, -1, func_801090AC_opduel);
-    for (i = 0; i < 2; i++) {
-        player = MBDGetPlayerStruct(i);
-        player->stats.prize.gamblePrize = -1;
-        player->stats.prize.duelNo = -1;
+  for (chr = 1; chr < 8; chr++)
+  {
+    for (i = 0; i < D_8010934C_opduel.count; i++)
+    {
+      D_8010940C_opduel[chr]->ids[i] = func_80017BB8_main(chr, D_8010934C_opduel.ids[i]);
     }
-    for (chr = 1; chr < 8; chr++) {
-        for (j = 0; j < D_8010934C_opduel.count; j++) {
-            D_8010940C_opduel[chr]->ids[j] = func_80017BB8_main(chr, D_8010934C_opduel.ids[j]);
-        }
-    }
-    func_8004A208_main();
+
+  }
+
+  func_8004A208_main();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/opduel/460790", func_801059A0_opduel);
-#endif
 
 s16 func_80105B3C_opduel(s32 dir, s32 file) {
     OdFxHmf *hmf;

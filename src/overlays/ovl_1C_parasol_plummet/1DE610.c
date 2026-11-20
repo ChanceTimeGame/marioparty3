@@ -706,29 +706,36 @@ void func_80106AB4_parasol_plummet(omObjData* obj) {
 }
 
 /* NON_MATCHING: register allocation in the pad index (masked 0). Button 0x8000 (A) toggles the parasol. */
-#ifdef NON_MATCHING
-void func_80106CDC_parasol_plummet(omObjData* obj) {
-    PaPlayer* p = obj->data;
-    s32 btn;
-
-    if (p->unk14 & 1) {
-        if (GwPlayer[p->unk24].stat & 1) {
-            btn = func_801076D4_parasol_plummet(obj) & 0x8000;
-        } else {
-            btn = D_800D5558_main[GwPlayer[p->unk24].pad] & 0x8000;
-        }
-        if (btn) {
-            if (p->unk14 & 4) {
-                func_80106788_parasol_plummet(obj);
-            } else {
-                func_8010687C_parasol_plummet(obj);
-            }
-        }
+// decomp-permuter
+void func_80106CDC_parasol_plummet(omObjData *obj)
+{
+  PaPlayer *p = obj->data;
+  int new_var;
+  s32 btn;
+  if (p->unk14 & 1)
+  {
+    if (GwPlayer[p->unk24].stat & 1)
+    {
+      btn = func_801076D4_parasol_plummet(obj) & 0x8000;
     }
+    else
+    {
+      new_var = 0x8000;
+      btn = D_800D5558_main[GwPlayer[p->unk24].pad] & new_var;
+    }
+    if (btn)
+    {
+      if (p->unk14 & 4)
+      {
+        func_80106788_parasol_plummet(obj);
+      }
+      else
+      {
+        func_8010687C_parasol_plummet(obj);
+      }
+    }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_80106CDC_parasol_plummet);
-#endif
 
 void func_80106DB0_parasol_plummet(omObjData* obj) {
     PaPlayer* p = obj->data;
@@ -1387,45 +1394,45 @@ const PaS32x3 D_8010AAE0_parasol_plummet = { { 0, 1, 1 } };
 const PaS32x3 D_8010AAEC_parasol_plummet = { { 360, 600, 840 } };
 
 /* NON_MATCHING: register allocation (s2/s3 swapped; masked 0). The scrolling cliff walls. */
-#ifdef NON_MATCHING
-void func_801089E0_parasol_plummet(omObjData* obj) {
-    PaS32x3 kind = D_8010AAE0_parasol_plummet;
-    s32 xs[2] = { 0x18, 0x128 };
-    PaS32x3 ys = D_8010AAEC_parasol_plummet;
-    s32 file[2];
-    s32 x;
-    s32 y;
-    s32 i;
-    PaWall* w;
-
-    obj->data = HuMemAllocTag(sizeof(PaWall), 0x7918);
-    w = obj->data;
-    file[0] = func_8000B838_main(0x3D0005);
-    file[1] = func_8000B838_main(0x3D0003);
-    for (i = 0; i < 6; i++) {
-        w->unk32[i] = InitEspriteSlot(file[kind.v[i % 3]], 0, 1);
-        w->unk00[i] = xs[i / 3];
-        w->unk18[i] = ys.v[i % 3];
-        x = w->unk00[i];
-        y = w->unk18[i];
-        func_8000BC48_main(w->unk32[i], 0x4008);
-        if (i >= 3) {
-            func_8000BC48_main(w->unk32[i], 1);
-        }
-        func_8000BBD4_main(w->unk32[i], x, y);
-        func_8000BB54_main(w->unk32[i]);
-        func_8000BE5C_main(w->unk32[i], 1.0f, 1.0f);
-        func_8000BCC8_main(w->unk32[i], 0x1E);
+// decomp-permuter
+void func_801089E0_parasol_plummet(omObjData *obj)
+{
+  PaS32x3 kind = D_8010AAE0_parasol_plummet;
+  s32 x;
+  s32 xs[2] = {0x18, 0x128};
+  PaS32x3 ys = D_8010AAEC_parasol_plummet;
+  s32 file[2];
+  s32 y;
+  s32 i;
+  PaWall *w;
+  obj->data = HuMemAllocTag(sizeof(PaWall), 0x7918);
+  w = obj->data;
+  file[0] = func_8000B838_main(0x3D0005);
+  file[1] = func_8000B838_main(0x3D0003);
+  for (i = 0; i < 6; i++)
+  {
+    w->unk32[i] = (x = InitEspriteSlot(file[kind.v[i % 3]], 0, 1));
+    w->unk00[i] = xs[i / 3];
+    w->unk18[i] = ys.v[i % 3];
+    x = w->unk00[i];
+    y = w->unk18[i];
+    func_8000BC48_main(w->unk32[i], 0x4008);
+    if (i >= 3)
+    {
+      func_8000BC48_main(w->unk32[i], 1);
     }
-    func_8000BC88_main(w->unk32[3], 0x4000);
-    D_8010AC74_parasol_plummet = 0;
-    D_8010AC70_parasol_plummet = 0.0f;
-    omAddPrcObj(func_80108DD0_parasol_plummet, 0x50, 0x2000, 0);
-    obj->func = func_80108C1C_parasol_plummet;
+    func_8000BBD4_main(w->unk32[i], x, y);
+    func_8000BB54_main(w->unk32[i]);
+    func_8000BE5C_main(w->unk32[i], 1.0f, 1.0f);
+    func_8000BCC8_main(w->unk32[i], 0x1E);
+  }
+
+  func_8000BC88_main(w->unk32[3], 0x4000);
+  D_8010AC74_parasol_plummet = 0;
+  D_8010AC70_parasol_plummet = 0.0f;
+  omAddPrcObj(func_80108DD0_parasol_plummet, 0x50, 0x2000, 0);
+  obj->func = func_80108C1C_parasol_plummet;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801089E0_parasol_plummet);
-#endif
 
 void func_80108C1C_parasol_plummet(omObjData* obj) {
     PaWall* w = obj->data;

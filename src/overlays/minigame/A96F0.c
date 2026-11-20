@@ -554,33 +554,41 @@ f32 func_800D74AC_minigame(omObjData* obj, Vec4f* p, Vec* n) {
 }
 
 /* Players standing next to a grounded actor push it away. */
-// register allocation (masked 0, raw 6): the hoisted 0.0f outranks x/z (f26 vs retail f30), as in
 // MP2's func_80001468_2068
-#ifdef NON_MATCHING
-void func_800D7AA8_minigame(omObjData* obj, f32 x, f32 y, f32 z) {
-    ColActorWork* w = obj->data;
-    omObjData* o;
-    MgWork* ow;
-    f32 dx, dz;
-    f32 d;
+// decomp-permuter
+void func_800D7AA8_minigame(omObjData *obj, f32 x, f32 y, f32 z)
+{
+  ColActorWork *w = obj->data;
+  omObjData *o;
+  MgWork *ow;
+  f32 dx;
+  f32 d;
+  f32 dz;
+  if (!(w->unk_52 & 7))
+  {
     s32 i;
-
-    if (!(w->unk_52 & 7)) {
-        for (i = 0; i < D_800EC280_minigame; i++) {
-            o = D_800EC598_minigame[i];
-            ow = o->data;
-            dx = o->trans.x - (x + D_800EBE2C_minigame);
-            dz = o->trans.z - (z + D_800EC5D8_minigame);
-            d = HuSqrtf(dx * dx + dz * dz) - (w->unk_48 + ow->unk_48);
-            if (d < 0.0f && w->unk_38 == 1000.0f && ow->unk_38 == 1000.0f) {
-                func_800DFCDC_minigame(dx, dz, d);
-            }
+    for (i = 0; i < D_800EC280_minigame; i++)
+    {
+      o = D_800EC598_minigame[i];
+      ow = o->data;
+      dx = o->trans.x - (x + D_800EBE2C_minigame);
+      dz = o->trans.z - (z + D_800EC5D8_minigame);
+      d = HuSqrtf((dx * dx) + (dz * dz)) - (w->unk_48 + ow->unk_48);
+      if (((d < 0.0f) && (w->unk_38 == 1000.0f)) && (ow->unk_38 == 1000.0f))
+      {
+        if (dz)
+        {
+          func_800DFCDC_minigame(dx, dz, d);
         }
+        else
+        {
+          func_800DFCDC_minigame(dx, dz, d);
+        }
+      }
     }
+
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/A96F0", func_800D7AA8_minigame);
-#endif
 
 /* Ground objects with a primitive shape (GroundWork.unk_06 8/0x10/0x20/0x40) or a face list push
    the actor out; each new contact point (D_800EC298_minigame) is moved to world space. Retail adds

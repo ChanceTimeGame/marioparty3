@@ -1202,43 +1202,51 @@ void func_8010DDDC_baby_bowser_broadside(s16 colliderId, Vec *base, f32 height) 
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010DE70_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx) {
-    f32 *mtx;
-    BbCollider *collider = D_80110020_baby_bowser_broadside;
-    s16 i;
+// decomp-permuter
+void func_8010DE70_baby_bowser_broadside(BbFuncGroupContext *groupCtx, BbFuncContext *ctx)
+{
+  f32 *mtx;
+  BbCollider *collider = D_80110020_baby_bowser_broadside;
+  s16 i;
+  if (collider == 0)
+  {
+    return;
+  }
+  for (i = 0; i < 12; i++, collider++)
+  {
+    if ((!collider->set) || (collider->attr & 1))
+    {
+      continue;
+    }
+    if (!(collider->attr & 0x40))
+    {
+      ;
+      if (collider->attr & 8)
+      {
+        func_8010FB74_baby_bowser_broadside(*collider->posX, *collider->posY, *collider->posZ, *collider->rotX, *collider->rotY, *collider->rotZ, collider->transMtx);
+        func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, collider->transMtx, collider->cur);
+      }
+      else
+      {
+        func_8010F878_baby_bowser_broadside(collider->transMtx);
+        func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, collider->transMtx, collider->cur);
+      }
+      if (collider->attr & 4)
+      {
+        func_8010F3C4_baby_bowser_broadside(collider->cur, &collider->plane);
+      }
+    }
+    else
+    {
+      memcpy(collider->cur, D_80110020_baby_bowser_broadside[collider->parent].cur, collider->vertexCount * (sizeof(Vec)));
+      if (collider->attr & 4)
+      {
+        collider->plane = D_80110020_baby_bowser_broadside[collider->parent].plane;
+      }
+    }
+  }
 
-    if (collider == NULL) {
-        return;
-    }
-    for (i = 0; i < BB3_COLLIDERS_MAX; i++, collider++) {
-        if (!collider->set || (collider->attr & 1)) {
-            continue;
-        }
-        if (!(collider->attr & 0x40)) {
-            mtx = collider->transMtx;
-            if (collider->attr & 8) {
-                func_8010FB74_baby_bowser_broadside(*collider->posX, *collider->posY, *collider->posZ, *collider->rotX,
-                                                    *collider->rotY, *collider->rotZ, mtx);
-                func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, mtx, collider->cur);
-            } else {
-                func_8010F878_baby_bowser_broadside(mtx);
-                func_8010FC2C_baby_bowser_broadside(collider->base, collider->vertexCount, mtx, collider->cur);
-            }
-            if (collider->attr & 4) {
-                func_8010F3C4_baby_bowser_broadside(collider->cur, &collider->plane);
-            }
-        } else {
-            memcpy(collider->cur, D_80110020_baby_bowser_broadside[collider->parent].cur, collider->vertexCount * sizeof(Vec));
-            if (collider->attr & 4) {
-                collider->plane = D_80110020_baby_bowser_broadside[collider->parent].plane;
-            }
-        }
-    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0C_baby_bowser_broadside/169540", func_8010DE70_baby_bowser_broadside);
-#endif
 
 void func_8010E018_baby_bowser_broadside(BbMover *mover, s16 maxColliders, f32 radius, s16 modelId) {
     if (mover != NULL) {

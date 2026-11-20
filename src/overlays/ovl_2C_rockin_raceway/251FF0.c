@@ -2486,32 +2486,31 @@ void func_8010B2B8_rockin_raceway(void) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010B5DC_rockin_raceway(s32 *times) {
-    s32 parts[3];
-    s32 *digit;
-    s32 *digits;
-    s32 i;
+// decomp-permuter
+void func_8010B5DC_rockin_raceway(s32 *times)
+{
+  s32 parts[3];
+  s32 *digit;
+  s32 *digits;
+  s32 i;
+  digits = D_80111B00_rockin_raceway;
+  for (i = 0; i < 2; i++)
+  {
+    parts[0] = times[i] / 1800;
+    times[i] -= parts[0] * 1800;
+    parts[1] = times[i] / 30;
+    times[i] -= parts[1] * 30;
+    parts[2] = (times[i] / 30.0f) * 99.0f;
+    ;
+    (&digits[i * 6])[0] = parts[0] / 10;
+    (&digits[i * 6])[1] = parts[0] - ((&digits[i * 6])[0] * 10);
+    (&digits[i * 6])[2] = parts[1] / 10;
+    (&digits[i * 6])[3] = parts[1] - ((&digits[i * 6])[2] * 10);
+    (&digits[i * 6])[4] = parts[2] / 10;
+    (&digits[i * 6])[5] = parts[2] - ((&digits[i * 6])[4] * 10);
+  }
 
-    digits = D_80111B00_rockin_raceway;
-    for (i = 0; i < 2; i++) {
-        parts[0] = times[i] / 1800;
-        times[i] -= parts[0] * 1800;
-        parts[1] = times[i] / 30;
-        times[i] -= parts[1] * 30;
-        parts[2] = times[i] / 30.0f * 99.0f;
-        digit = &digits[i * 6];
-        digit[0] = parts[0] / 10;
-        digit[1] = parts[0] - digit[0] * 10;
-        digit[2] = parts[1] / 10;
-        digit[3] = parts[1] - digit[2] * 10;
-        digit[4] = parts[2] / 10;
-        digit[5] = parts[2] - digit[4] * 10;
-    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010B5DC_rockin_raceway);
-#endif
 
 void func_8010B774_rockin_raceway(void) {
     HuCamera *cam;

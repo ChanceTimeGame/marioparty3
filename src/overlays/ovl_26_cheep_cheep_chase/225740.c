@@ -1134,25 +1134,26 @@ void func_80108F78_cheep_cheep_chase(CxFuncContext *ctx) {
 }
 
 // Register allocation: retail reloads the model id for the first func_8001C258_main call.
-#ifdef NON_MATCHING
-void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx) {
-    s16 *stage = &D_8010E360_cheep_cheep_chase->models[0].model;
-    HmfModel *model = &HmfModelData[*stage];
-
-    if (ctx->state == 1) {
-        if (Center.z - 700.0f <= model->pos.z) {
-            func_8001C258_main(*stage, 4, 0);
-        }
-        if (model->pos.z >= Center.z + 1700.0f + 400.0) {
-            func_8001C258_main(*stage, 4, 4);
-            func_8010D7F4_cheep_cheep_chase(2, ctx);
-            func_8001C258_main(D_8010E360_cheep_cheep_chase->unk24, 4, 4);
-        }
+// decomp-permuter
+void func_801090E0_cheep_cheep_chase(CxFuncContext *ctx)
+{
+  s16 *stage = &D_8010E360_cheep_cheep_chase->models[0].model;
+  HmfModel *model = &HmfModelData[*stage];
+  if (ctx->state == 1)
+  {
+ do { } while (0);
+    if ((Center.z - 700.0f) <= model->pos.z)
+    {
+      func_8001C258_main(*stage, 4, 0);
     }
+    if (model->pos.z >= ((Center.z + 1700.0f) + 400.0))
+    {
+      func_8001C258_main(*stage, 4, 4);
+      func_8010D7F4_cheep_cheep_chase(2, ctx);
+      func_8001C258_main(D_8010E360_cheep_cheep_chase->unk24, 4, 4);
+    }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_26_cheep_cheep_chase/225740", func_801090E0_cheep_cheep_chase);
-#endif
 
 void func_801091FC_cheep_cheep_chase(u8 arg0) {
     f32 z = 0.0f;

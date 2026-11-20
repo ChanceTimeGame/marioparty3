@@ -696,38 +696,40 @@ void func_80107130_bobbing_bow_loons(void) {
 }
 
 /* NON_MATCHING: scheduling of the balloon y load around the first fabs test (masked 6) */
-#ifdef NON_MATCHING
-/* The balloon the hook touches, or -1. */
-s32 func_80107174_bobbing_bow_loons(void) {
-    BlBalloon* bw;
-    BlHook* hook;
-    s32 ret = -1;
-    s32 i;
-    s16 se;
-    f32 x;
-    f32 y;
-    f32 by;
-
-    bw = D_80109B2C_bobbing_bow_loons->data;
-    hook = D_80109B30_bobbing_bow_loons->data;
-    x = hook->unk04 - 25.0f;
-    y = hook->unk08 - 100.0f;
-    for (i = 0; i < 5; i++) {
-        by = bw->unk28[i] - 50.0f;
-        if (fabs(x - bw->unk14[i]) < 50.0 && fabs(y - by) < 50.0) {
-            ret = i;
-            se = HuAudFXPlay(0x4DC);
-            if (se >= 0) {
-                func_8004AE00_main(se, i * 10 + 0x2C);
-            }
-            break;
-        }
+// decomp-permuter
+s32 func_80107174_bobbing_bow_loons(void)
+{
+  BlBalloon *bw;
+  BlHook *hook;
+  s32 ret = -1;
+  s32 i;
+  s16 se;
+  f32 x;
+  f32 new_var;
+  f32 y;
+  f32 by;
+  bw = D_80109B2C_bobbing_bow_loons->data;
+  hook = D_80109B30_bobbing_bow_loons->data;
+  x = hook->unk04 - 25.0f;
+  y = hook->unk08 - 100.0f;
+  for (i = 0; i < 5; i++)
+  {
+    new_var = bw->unk14[i];
+    by = bw->unk28[i] - 50.0f;
+    if ((fabs(x - new_var) < 50.0) && (fabs(y - by) < 50.0))
+    {
+      ret = i;
+      se = HuAudFXPlay(0x4DC);
+      if (se >= 0)
+      {
+        func_8004AE00_main(se, (i * 10) + 0x2C);
+      }
+      break;
     }
-    return ret;
+  }
+
+  return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", func_80107174_bobbing_bow_loons);
-#endif
 
 /* The strings. */
 void func_8010728C_bobbing_bow_loons(void) {
@@ -766,73 +768,79 @@ void func_80107368_bobbing_bow_loons(omObjData* obj) {
 }
 
 /* NON_MATCHING: masked 0; kind lives in a0, retail a1 */
-#ifdef NON_MATCHING
-/* The prizes, one random kind under each balloon; a CPU picks its target. */
-void func_801074CC_bobbing_bow_loons(void) {
-    s32 count[16];
-    s32 files[16] = { 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
-                      0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C };
-    omObjData* obj;
-    BlPrize* work;
-    BlBalloon* bw;
-    void* data;
-    s32 id;
-    s32 i;
-    s32 j;
-    s32 r;
-    s32 sum;
-    s32 kind;
+// decomp-permuter
+void func_801074CC_bobbing_bow_loons(void)
+{
+  s32 count[16];
+  s32 files[16] = {0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C};
+  omObjData *obj;
+  BlPrize *work;
+  BlBalloon *bw;
+  void *data;
+  s32 id;
+  s32 i;
+  s32 j;
+  s32 r;
+  s32 sum;
+  s32 kind;
+  obj = omAddObj(0xFE, 5, 0, -1, func_80107830_bobbing_bow_loons);
+  obj->data = HuMemAllocTag(sizeof(BlPrize), 31000);
+  D_80109B38_bobbing_bow_loons = obj;
+  work = obj->data;
+  bw = D_80109B2C_bobbing_bow_loons->data;
+  for (i = 0; i < 16; i++)
+  {
+    count[i] = 0;
+  }
 
-    obj = omAddObj(0xFE, 5, 0, -1, func_80107830_bobbing_bow_loons);
-    obj->data = HuMemAllocTag(sizeof(BlPrize), 31000);
-    D_80109B38_bobbing_bow_loons = obj;
-    work = obj->data;
-    bw = D_80109B2C_bobbing_bow_loons->data;
-    for (i = 0; i < 16; i++) {
-        count[i] = 0;
+  for (i = 0; i < 5; i++)
+  {
+    r = D_800A11D0_main[4 - i];
+    kind = r;
+    count[kind]++;
+    D_80109B40_bobbing_bow_loons[i] = kind;
+    data = DataRead(files[kind] | 0x210000);
+    id = HmfSprModelCreate(data, 0x699, 8);
+    DataClose(data);
+    obj->model[i] = D_800CBB60_main[(s16) id].unk00;
+    work->unk00[i] = bw->unk14[i];
+    work->unk14[i] = bw->unk28[i];
+    work->unk28[i] = bw->unk3C[i] - 2.0f;
+    if (i == 0)
+    {
+      omSetTra(obj, work->unk00[0], work->unk14[0], work->unk28[0]);
+      omSetSca(obj, 1.8f, 1.8f, 1.8f);
     }
-    for (i = 0; i < 5; i++) {
-        kind = D_800A11D0_main[4 - i];
-        count[kind]++;
-        D_80109B40_bobbing_bow_loons[i] = kind;
-        data = DataRead(files[kind] | 0x210000);
-        id = HmfSprModelCreate(data, 0x699, 8);
-        DataClose(data);
-        obj->model[i] = D_800CBB60_main[(s16)id].unk00;
-        work->unk00[i] = bw->unk14[i];
-        work->unk14[i] = bw->unk28[i];
-        work->unk28[i] = bw->unk3C[i] - 2.0f;
-        if (i == 0) {
-            omSetTra(obj, work->unk00[0], work->unk14[0], work->unk28[0]);
-            omSetSca(obj, 1.8f, 1.8f, 1.8f);
-        } else {
-            Hu3DModelPosSet(obj->model[i], work->unk00[i], work->unk14[i], work->unk28[i]);
-            Hu3DModelScaleSet(obj->model[i], 1.8f, 1.8f, 1.8f);
-        }
-        work->unk3C[i] = 1;
+    else
+    {
+      Hu3DModelPosSet(obj->model[i], work->unk00[i], work->unk14[i], work->unk28[i]);
+      Hu3DModelScaleSet(obj->model[i], 1.8f, 1.8f, 1.8f);
     }
-    work->unk50 = 0.0f;
-    work->unk54 = 0.0f;
-    work->unk58 = 0.0f;
-    if (GwPlayer[D_80109B0C_bobbing_bow_loons].stat & 1) {
-        r = (u8)(rand8() % 100);
-        for (j = 0, sum = 0; j < 5; j++) {
-            if (sum <= r && r < sum + D_800A11DC_main[j]) {
-                break;
-            }
-            sum += D_800A11DC_main[j];
-        }
-        if (j == 5) {
-            j = 4;
-        }
-        D_80109B14_bobbing_bow_loons = j;
+    work->unk3C[i] = 1;
+  }
+
+  work->unk50 = 0.0f;
+  work->unk54 = 0.0f;
+  work->unk58 = 0.0f;
+  if (GwPlayer[D_80109B0C_bobbing_bow_loons].stat & 1)
+  {
+    r = (u8) (rand8() % 100);
+    for (j = 0, sum = 0; j < 5; j++)
+    {
+      if ((sum <= r) && (r < (sum + D_800A11DC_main[j])))
+      {
+        break;
+      }
+      sum += D_800A11DC_main[j];
     }
+
+    if (j == 5)
+    {
+      j = 4;
+    }
+    D_80109B14_bobbing_bow_loons = j;
+  }
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_801099A8_bobbing_bow_loons);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", func_801074CC_bobbing_bow_loons);
-#endif
 
 void func_80107830_bobbing_bow_loons(omObjData* obj) {
     BlPrize* work = obj->data;
@@ -1125,69 +1133,75 @@ void func_80108894_bobbing_bow_loons(void) {
 }
 
 /* NON_MATCHING: masked 0; y and y - 20 swap $f4/$f6 */
-#ifdef NON_MATCHING
-/* Input: A drops the hook; a CPU drops it when its target balloon is in its window and clear. */
-void func_801088C0_bobbing_bow_loons(void) {
-    f32 y;
-    f32 cur[5];
-    f32 lo[5] = { 120.0f, 300.0f, 120.0f, 320.0f, 160.0f };
-    f32 hi[5] = { 140.0f, 320.0f, 140.0f, 340.0f, 180.0f };
-    f32 jit[5];
-    BlBalloon* bw;
-    s32 i;
-    s32 hit;
-    s32 d;
-    s32 done = 0;
+// decomp-permuter
+void func_801088C0_bobbing_bow_loons(void)
+{
+  f32 y;
+  f32 cur[5];
+  f32 lo[5] = {120.0f, 300.0f, 120.0f, 320.0f, 160.0f};
+  f32 hi[5] = {140.0f, 320.0f, 140.0f, 340.0f, 180.0f};
+  f32 jit[5];
+  BlBalloon *bw;
+  s32 i;
+  s32 hit;
+  s32 d;
+  s32 done = 0;
+  bw = D_80109B2C_bobbing_bow_loons->data;
+  while (done == 0)
+  {
+    if (GwPlayer[D_80109B0C_bobbing_bow_loons].stat & 1)
+    {
+      d = 4 - GwPlayer[D_80109B0C_bobbing_bow_loons].cpu_difficulty;
+      for (i = 0; i < 5; i++)
+      {
+        jit[i] = ((f32) ((rand8() % (d * 10)) - (d * 5))) + lo[i];
+      }
 
-    bw = D_80109B2C_bobbing_bow_loons->data;
-    while (done == 0) {
-        if (GwPlayer[D_80109B0C_bobbing_bow_loons].stat & 1) {
-            d = 4 - GwPlayer[D_80109B0C_bobbing_bow_loons].cpu_difficulty;
-            for (i = 0; i < 5; i++) {
-                jit[i] = (f32)((rand8() % (d * 10)) - d * 5) + lo[i];
-            }
-            cur[D_80109B14_bobbing_bow_loons] = bw->unk50[D_80109B14_bobbing_bow_loons];
-            hit = 0;
-            if (hi[D_80109B14_bobbing_bow_loons] < 360.0f) {
-                if (jit[D_80109B14_bobbing_bow_loons] <= cur[D_80109B14_bobbing_bow_loons] &&
-                    cur[D_80109B14_bobbing_bow_loons] < hi[D_80109B14_bobbing_bow_loons]) {
-                    hit = 1;
-                }
-            } else if ((cur[D_80109B14_bobbing_bow_loons] >= 0.0f &&
-                        cur[D_80109B14_bobbing_bow_loons] < hi[D_80109B14_bobbing_bow_loons] - 360.0f) ||
-                       (cur[D_80109B14_bobbing_bow_loons] >= lo[D_80109B14_bobbing_bow_loons] &&
-                        cur[D_80109B14_bobbing_bow_loons] < 360.0f)) {
-                hit++;
-            }
-            if (hit != 0) {
-                y = bw->unk28[D_80109B14_bobbing_bow_loons];
-                hit = 0; /* now: balloons in the way */
-                for (i = D_80109B14_bobbing_bow_loons + 1; i < 5; i++) {
-                    if (y - 20.0f <= bw->unk28[i] && bw->unk28[i] < y + 20.0f) {
-                        hit++;
-                        break;
-                    }
-                }
-                if (hit == 0) {
-                    D_80109B04_bobbing_bow_loons = 3;
-                    break;
-                }
-            }
-        } else if (D_800D5558_main[GwPlayer[D_80109B0C_bobbing_bow_loons].pad] & 0x8000) {
-            D_80109B04_bobbing_bow_loons = 3;
-            break;
+      cur[D_80109B14_bobbing_bow_loons] = bw->unk50[D_80109B14_bobbing_bow_loons];
+      hit = 0;
+      if (hi[D_80109B14_bobbing_bow_loons] < 360.0f)
+      {
+        if ((jit[D_80109B14_bobbing_bow_loons] <= cur[D_80109B14_bobbing_bow_loons]) && (cur[D_80109B14_bobbing_bow_loons] < hi[D_80109B14_bobbing_bow_loons]))
+        {
+          hit = 1;
         }
-        HuPrcVSleep();
+      }
+      else
+        if (((cur[D_80109B14_bobbing_bow_loons] >= 0.0f) && (cur[D_80109B14_bobbing_bow_loons] < (hi[D_80109B14_bobbing_bow_loons] - 360.0f))) || ((cur[D_80109B14_bobbing_bow_loons] >= lo[D_80109B14_bobbing_bow_loons]) && (cur[D_80109B14_bobbing_bow_loons] < 360.0f)))
+      {
+        hit++;
+      }
+      if (hit != 0)
+      {
+        hit = 0;
+        y = bw->unk28[D_80109B14_bobbing_bow_loons];
+        for (i = D_80109B14_bobbing_bow_loons + 1; i < 5; i++)
+        {
+          if (((y - 20.0f) <= bw->unk28[i]) && (bw->unk28[i] < (y + 20.0f)))
+          {
+            hit++;
+            break;
+          }
+        }
+
+        if (hit == 0)
+        {
+          D_80109B04_bobbing_bow_loons = 3;
+          break;
+        }
+      }
     }
-    omDelPrcObj(NULL);
+    else
+      if (D_800D5558_main[GwPlayer[D_80109B0C_bobbing_bow_loons].pad] & 0x8000)
+    {
+      D_80109B04_bobbing_bow_loons = 3;
+      break;
+    }
+    HuPrcVSleep();
+  }
+
+  omDelPrcObj(0);
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109A54_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109A68_bobbing_bow_loons);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", func_801088C0_bobbing_bow_loons);
-#endif
 
 /* The pop effect; arg0: in the player's colours. */
 void func_80108C18_bobbing_bow_loons(s32 arg0) {

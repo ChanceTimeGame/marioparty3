@@ -2326,23 +2326,20 @@ s16 func_8010D03C_motor_rooter(f32 dist) {
 /* </func_8010D03C_motor_rooter> */
 
 /* <func_8010D0AC_motor_rooter> */
-#ifdef NON_MATCHING
-PathSample func_8010D0AC_motor_rooter(s16 seg, f32 dist) {
-    PathSample s;
-    PathPoint *p = &D_801137C0_motor_rooter[seg];
-    f32 t = (dist - p->dist) * p->invLen;
-
-    s.pos.x = (p[1].pos.x - p->pos.x) * t + p->pos.x;
-    s.pos.y = (p[1].pos.y - p->pos.y) * t + p->pos.y;
-    s.pos.z = (p[1].pos.z - p->pos.z) * t + p->pos.z;
-    s.rot.x = (p[1].rot.x - p->rot.x) * t + p->rot.x;
-    s.rot.y = (p[1].rot.y - p->rot.y) * t + p->rot.y;
-    s.rot.z = 0;
-    return s; /* s.unk00 is returned uninitialised */
+// decomp-permuter
+PathSample func_8010D0AC_motor_rooter(s16 seg, f32 dist)
+{
+  PathSample s;
+  PathPoint *p = &D_801137C0_motor_rooter[seg];
+  f32 t = (dist - p->dist) * p->invLen;
+  s.pos.x = ((p[1].pos.x - p->pos.x) * t) + p->pos.x;
+  s.pos.y = ((p[1].pos.y - p->pos.y) * t) + p->pos.y;
+  s.pos.z = ((p[1].pos.z - p->pos.z) * t) + p->pos.z;
+  s.rot.x = ((p[1].rot.x - p->rot.x) * t) + p->rot.x;
+  s.rot.y = ((p[1].rot.y - p->rot.y) * t) + p->rot.y;
+  s.rot.z = (t = 0);
+  return s;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010D0AC_motor_rooter);
-#endif
 /* </func_8010D0AC_motor_rooter> */
 
 /* <func_8010D1A8_motor_rooter> */

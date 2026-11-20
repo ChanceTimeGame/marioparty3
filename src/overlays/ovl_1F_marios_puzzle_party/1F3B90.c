@@ -1227,32 +1227,35 @@ void func_80108568_marios_puzzle_party(s32 player, s32 counter) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80108568_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
-void func_801088F4_marios_puzzle_party(s32 player, PzPiece* piece) {
-    PzCell* cell;
-    s32 i;
+// decomp-permuter
+void func_801088F4_marios_puzzle_party(s32 player, PzPiece *piece)
+{
+  PzCell *cell;
+  s32 i;
+  int new_var;
+  for (i = 0; i < 2; i++)
+  {
+    cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][i + piece->unk18];
+    cell->unk0 = piece->unk8;
+    cell->unk4 = piece->unk2C;
+    cell->unk8 = piece->unk30;
+    cell->unkC = piece->unk1C;
+    cell->unk10 = i + 1;
+  }
 
-    for (i = 0; i < 2; i++) {
-        cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][i + piece->unk18];
-        cell->unk0 = piece->unk8;
-        cell->unk4 = piece->unk2C;
-        cell->unk8 = piece->unk30;
-        cell->unkC = piece->unk1C;
-        cell->unk10 = i + 1;
-    }
-    for (i = 0; i < 2; i++) {
-        cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][i + 2 + piece->unk18];
-        cell->unk0 = piece->unkC;
-        cell->unk4 = piece->unk2C;
-        cell->unk8 = piece->unk30 - 14.0f;
-        cell->unkC = piece->unk20;
-        cell->unk10 = i + 1;
-    }
-    func_80108568_marios_puzzle_party(player, 1);
+  for (i = 0; i < 2; i++)
+  {
+    new_var = 2;
+    cell = &D_801102E0_marios_puzzle_party[player][piece->unk14][(i + new_var) + piece->unk18];
+    cell->unk0 = piece->unkC;
+    cell->unk4 = piece->unk2C;
+    cell->unk8 = piece->unk30 - 14.0f;
+    cell->unkC = piece->unk20;
+    cell->unk10 = i + 1;
+  }
+
+  func_80108568_marios_puzzle_party(player, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801088F4_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 s32 func_80108A50_marios_puzzle_party(s32 player, s32 kind, s32 color, s32 col, s32 row) {
@@ -2737,31 +2740,32 @@ void func_8010D490_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D490_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
-/* Special piece landing: shake the player's board. */
-void func_8010D8E8_marios_puzzle_party(void) {
-    s32 player = (s32)HuPrcCurrentGet()->user_data;
-    s32* y = &D_801161B8_marios_puzzle_party[player];
-    f32 a;
+// decomp-permuter
+void func_8010D8E8_marios_puzzle_party(void)
+{
+  s32 player = (s32) HuPrcCurrentGet()->user_data;
+  s32 *y;
+  f32 a;
+  a = 0.0f;
+  while (1)
+  {
+    a += 90.0f;
+    if (a > 1080.0f)
+    {
+      break;
+    }
+    *(&D_801161B8_marios_puzzle_party[player]) = 2.0f * sindf(a);
+    HuPrcVSleep();
+  }
 
-    a = 0.0f;
-    while (TRUE) {
-        a += 90.0f;
-        if (a > 1080.0f) {
-            break;
-        }
-        *y = 2.0f * sindf(a);
-        HuPrcVSleep();
-    }
-    D_801161B8_marios_puzzle_party[player] = 0;
-    omDelPrcObj(NULL);
-    while (TRUE) {
-        HuPrcVSleep();
-    }
+  D_801161B8_marios_puzzle_party[player] = 0;
+  omDelPrcObj(0);
+  while (1)
+  {
+    HuPrcVSleep();
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D8E8_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* Hide the pieces and cursors while paused (or once a player is out). */

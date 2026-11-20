@@ -1476,19 +1476,19 @@ s16 func_80108848_slot_synch(s16 idx) {
     return -1;
 }
 
-#ifdef NON_MATCHING
-void func_801089F8_slot_synch(s16 idx) {
-    SsReel* reel = &D_8010DF7C_slot_synch[idx];
-
-    if (func_80108A7C_slot_synch(idx) != 0) {
-        reel->unk1C = func_8010C384_slot_synch(D_8010DF50_slot_synch / 900.0f, 30.0f, 14.0f);
-        reel->unk0C = 1;
-        reel->unk0A = 0;
-    }
+// decomp-permuter
+void func_801089F8_slot_synch(s16 idx)
+{
+  SsReel *reel = &D_8010DF7C_slot_synch[idx];
+  float new_var;
+  if (func_80108A7C_slot_synch(idx) != 0)
+  {
+    new_var = D_8010DF50_slot_synch / 900.0f;
+    reel->unk1C = func_8010C384_slot_synch(new_var, 30.0f, 14.0f);
+    reel->unk0C = 1;
+    reel->unk0A = 0;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_801089F8_slot_synch);
-#endif
 
 s16 func_80108A7C_slot_synch(s16 idx) {
     SsReel* reel = &D_8010DF7C_slot_synch[idx];

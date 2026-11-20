@@ -633,27 +633,17 @@ void func_801070B8_w10(UnkMBGuideData *guide) {
     MBMotionSet(guide->obj, -1, 2);
 }
 
-#ifdef NON_MATCHING
-// board h1: masked 0; raw residue is the register allocation (guide s1/step s2 in retail)
-/* Slide the guide window from its x position to x over 14 frames. */
-void func_8010714C_w10(UnkMBGuideData *guide, s16 x) {
-    s32 i;
-    s32 step;
-    s16 start = guide->spriteGroup;
-    Object *obj = guide->obj;
-
-    obj->velocity.y = 4.0f;
-    obj->velocity.z = -0.5f;
-    step = (x - start) / 14;
-    for (i = 0; i < 14; i++) {
-        MBGuidePosSet(guide, guide->spriteGroup + step, 0);
-        HuPrcVSleep();
-    }
-    MBGuidePosSet(guide, x, 0);
+// decomp-permuter
+void func_8010714C_w10(UnkMBGuideData *guide, s16 x)
+{
+  s32 i;
+  s32 step;
+  s16 start = guide->spriteGroup;
+  Object *obj = guide->obj;
+ do { obj->velocity.y = 4.0f; obj->velocity.z = -0.5f; step = (x - start) / 14; } while (0); do { for (i = 0; i < 14; i++) { MBGuidePosSet(guide, (start = guide->spriteGroup) + step, 0); HuPrcVSleep(); } } while (0);
+  start = 0;
+  MBGuidePosSet(guide, x, start);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_8010714C_w10);
-#endif
 
 /* Motion player: plays the motion requested through func_80107344_w10 (-2 = default). */
 void func_80107228_w10(void) {

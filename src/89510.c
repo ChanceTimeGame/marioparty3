@@ -30,67 +30,63 @@ void func_80088910_main(Matrix4f m, f32 x, f32 y, f32 z) {
 
 /* guRotateRPY: the same rotation written straight into the fixed-point Mtx; element i's integer
    half is the s16 at i, its fraction the u16 at 16 + i (big-endian s16 pairs, as guMtxF2L) */
-// NON_MATCHING: scheduling, retail stores af[0] after the column zeros (masked 4)
-#ifdef NON_MATCHING
-void func_80088A70_main(Mtx* m, f32 x, f32 y, f32 z) {
-    f32 sx;
-    f32 cx;
-    f32 sy;
-    f32 cy;
-    f32 sz;
-    f32 cz;
-    s32 e1;
-    s32 e2;
-    s16* ai;
-    u16* af;
-
-    sincosdf(x, &sx, &cx);
-    sincosdf(y, &sy, &cy);
-    sincosdf(z, &sz, &cz);
-    ai = (s16*)m;
-    af = (u16*)m + 16;
-    e1 = cy * cz * 65536.0f;
-    e2 = cy * sz * 65536.0f;
-    ai[0] = e1 >> 16;
-    ai[1] = e2 >> 16;
-    af[0] = e1;
-    af[1] = e2;
-    e1 = -sy * 65536.0f;
-    ai[2] = e1 >> 16;
-    ai[3] = 0;
-    af[2] = e1;
-    af[3] = 0;
-    e1 = (sx * sy * cz - cx * sz) * 65536.0f;
-    e2 = (sx * sy * sz + cx * cz) * 65536.0f;
-    ai[4] = e1 >> 16;
-    ai[5] = e2 >> 16;
-    af[4] = e1;
-    af[5] = e2;
-    e1 = sx * cy * 65536.0f;
-    ai[6] = e1 >> 16;
-    ai[7] = 0;
-    af[6] = e1;
-    af[7] = 0;
-    e1 = (cx * sy * cz + sx * sz) * 65536.0f;
-    e2 = (cx * sy * sz - sx * cz) * 65536.0f;
-    ai[8] = e1 >> 16;
-    ai[9] = e2 >> 16;
-    af[8] = e1;
-    af[9] = e2;
-    e1 = cx * cy * 65536.0f;
-    ai[10] = e1 >> 16;
-    ai[11] = 0;
-    af[10] = e1;
-    af[11] = 0;
-    ai[12] = 0;
-    ai[13] = 0;
-    af[12] = 0;
-    af[13] = 0;
-    ai[14] = 0;
-    ai[15] = 1;
-    af[14] = 0;
-    af[15] = 0;
+// decomp-permuter
+void func_80088A70_main(Mtx *m, f32 x, f32 y, f32 z)
+{
+  f32 sx;
+  f32 cx;
+  f32 sy;
+  f32 cy;
+  f32 sz;
+  f32 cz;
+  s32 e1;
+  s32 e2;
+  s16 *ai;
+  u16 *af;
+  sincosdf(x, &sx, &cx);
+  sincosdf(y, &sy, &cy);
+  sincosdf(z, &sz, &cz);
+  ai = (s16 *) m;
+  af = ((u16 *) m) + 16;
+  e1 = (cy * cz) * 65536.0f;
+  e2 = (cy * sz) * 65536.0f;
+  ai[0] = e1 >> 16;
+  ai[1] = e2 >> 16;
+  (((u16 *) m) + 16)[0] = e1;
+  (((u16 *) m) + 16)[1] = e2;
+  e1 = (-sy) * 65536.0f;
+  ai[2] = e1 >> 16;
+  ai[3] = 0;
+  (((u16 *) m) + 16)[2] = e1;
+  (((u16 *) m) + 16)[3] = 0;
+  e1 = (((sx * sy) * cz) - (cx * sz)) * 65536.0f;
+  e2 = (((sx * sy) * sz) + (cx * cz)) * 65536.0f;
+  ai[4] = e1 >> 16;
+  ai[5] = e2 >> 16;
+  (((u16 *) m) + 16)[4] = e1;
+  (((u16 *) m) + 16)[5] = e2;
+  e1 = (sx * cy) * 65536.0f;
+  ai[6] = (e1 >> 7) >> 9;
+  ai[7] = 0;
+  (((u16 *) m) + 16)[6] = e1;
+  (((u16 *) m) + 16)[7] = 0;
+  e1 = (((cx * sy) * cz) + (sx * sz)) * 65536.0f;
+  e2 = (((cx * sy) * sz) - (sx * cz)) * 65536.0f;
+  ai[8] = e1 >> 16;
+  ai[9] = e2 >> 16;
+  (((u16 *) m) + 16)[8] = e1;
+  (((u16 *) m) + 16)[9] = e2;
+  e1 = (cx * cy) * 65536.0f;
+  ai[10] = e1 >> 16;
+  ai[11] = 0;
+  (((u16 *) m) + 16)[10] = e1;
+  (((u16 *) m) + 16)[11] = 0;
+  ai[12] = 0;
+  ai[13] = 0;
+  (((u16 *) m) + 16)[12] = 0;
+  (((u16 *) m) + 16)[13] = 0;
+  ai[14] = 0;
+  ai[15] = 1;
+  af[14] = 0;
+  (((u16 *) m) + 16)[15] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/89510", func_80088A70_main);
-#endif

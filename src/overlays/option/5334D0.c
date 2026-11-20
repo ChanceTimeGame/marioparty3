@@ -591,92 +591,103 @@ f32 func_80107B38_option(f32 x0, f32 y0, f32 x1, f32 y1) {
     return -(atan2df(y1 - y0, x1 - x0) - 90.0f);
 }
 
-#ifdef NON_MATCHING
-/* Turns the horizontal direction a towards b by the fraction t, the short way round (modesel
-   func_801094F0_modesel); writes the unit direction to out. */
-void func_80107B80_option(Vec *a, Vec *b, f32 t, Vec *out) {
-    f32 end;
-    f32 ang;
-    f32 angA;
-    f32 angB;
-
-    angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
-    if (angA < 0.0f) {
-        angA += 360.0f;
+// decomp-permuter
+void func_80107B80_option(Vec *a, Vec *b, f32 t, Vec *out)
+{
+  f32 end;
+  f32 ang;
+  f32 angA;
+  f32 angB;
+  angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
+  if (angA < 0.0f)
+  {
+    angA += 360.0f;
+  }
+  angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
+  if (angB < 0.0f)
+  {
+    angB += 360.0f;
+  }
+  if ((((-a->z) * b->x) + (a->x * b->z)) > 0.0f)
+  {
+    end = angB;
+    if (!((angB - angA) < 0.0f))
+    {
+      end = angB - 360.0f;
     }
-    angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
-    if (angB < 0.0f) {
-        angB += 360.0f;
+    ang = ((end - angA) * t) + angA;
+    if (ang < 0.0f)
+    {
+      ang += 360.0f;
     }
-    if (-a->z * b->x + a->x * b->z > 0.0f) {
-        end = angB;
-        if (!(angB - angA < 0.0f)) {
-            end = angB - 360.0f;
-        }
-        ang = (end - angA) * t + angA;
-        if (ang < 0.0f) {
-            ang += 360.0f;
-        }
-    } else {
-        end = angB;
-        if (!(angB - angA > 0.0f)) {
-            end = angB + 360.0f;
-        }
-        ang = (end - angA) * t + angA;
-        if (ang > 360.0f) {
-            ang -= 360.0f;
-        }
+  }
+  else
+  {
+    end = angB;
+    if (!((angB - angA) > 0.0f))
+    {
+      end = angB + 360.0f;
     }
-    out->x = sindf(ang);
-    out->y = 0.0f;
-    out->z = cosdf(ang);
+    ang = ((end - angA) * t) + angA;
+    if (ang > 360.0f)
+    {
+      end = angB + 360.0f;
+      ang -= 360.0f;
+    }
+  }
+  out->x = sindf(ang);
+  out->y = 0.0f;
+  out->z = cosdf(ang);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107B80_option);
-#endif
 
-#ifdef NON_MATCHING
-/* As func_80107B80_option, the long way round. */
-void func_80107D64_option(Vec *a, Vec *b, f32 t, Vec *out) {
-    f32 end;
-    f32 ang;
-    f32 angA;
-    f32 angB;
-
-    angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
-    if (angA < 0.0f) {
-        angA += 360.0f;
+// decomp-permuter
+void func_80107D64_option(Vec *a, Vec *b, f32 t, Vec *out)
+{
+  f32 end;
+  f32 ang;
+  f32 angA;
+  f32 angB;
+  angA = func_80107B38_option(0.0f, 0.0f, a->x, a->z);
+  if (angA < 0.0f)
+  {
+    angA += 360.0f;
+  }
+  angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
+  if (angB < 0.0f)
+  {
+    angB += 360.0f;
+  }
+  if ((((-a->z) * b->x) + (a->x * b->z)) > 0.0f)
+  {
+    end = angB;
+    if (!((angB - angA) > 0.0f))
+    {
+      end = angB + 360.0f;
     }
-    angB = func_80107B38_option(0.0f, 0.0f, b->x, b->z);
-    if (angB < 0.0f) {
-        angB += 360.0f;
+    ang = ((end - angA) * t) + angA;
+    if (ang > 360.0f)
+    {
+      ang -= 360.0f;
     }
-    if (-a->z * b->x + a->x * b->z > 0.0f) {
-        end = angB;
-        if (!(angB - angA > 0.0f)) {
-            end = angB + 360.0f;
-        }
-        ang = (end - angA) * t + angA;
-        if (ang > 360.0f) {
-            ang -= 360.0f;
-        }
-    } else {
-        end = angB;
-        if (!(angB - angA < 0.0f)) {
-            end = angB - 360.0f;
-        }
-        ang = (end - angA) * t + angA;
-        if (ang < 0.0f) {
-            ang += 360.0f;
-        }
+  }
+  else
+  {
+    end = angB;
+    if (!((angB - angA) < 0.0f))
+    {
+      end = angB - 360.0f;
     }
-    out->x = sindf(ang);
-    out->y = 0.0f;
-    out->z = cosdf(ang);
+    angB = end;
+    ang = ((angB - angA) * t) + angA;
+    if (ang < 0.0f)
+    {
+      ang += 360.0f;
+    }
+  }
+  out->x = sindf(ang);
+  out->y = 0.0f;
+  out->z = cosdf(ang);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80107D64_option);
-#endif
 
 OP_FILE_END()
 
@@ -1150,34 +1161,33 @@ void func_801096E4_option(s32 arg0) {
     func_80112028_option(arg0, D_80114778_option.x, D_80114778_option.y);
 }
 
-#ifdef NON_MATCHING
-/* Matches except two FP registers swapped (dy <-> fov). */
-void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y) {
-    f32 mtx[4][4];
-    f32 dx, dy, dz;
-    f32 vx, vy, vz;
-
-    guLookAtF(mtx, eye->x, eye->y, eye->z, at->x, at->y, at->z, up->x, up->y, up->z);
-    dx = pos->x;
-    dy = pos->y;
-    dz = pos->z;
-    dx -= eye->x;
-    dy -= eye->y;
-    dz -= eye->z;
-    vx = dx * mtx[0][0] + dy * mtx[1][0] + dz * mtx[2][0];
-    vy = dx * mtx[0][1] + dy * mtx[1][1] + dz * mtx[2][1];
-    vz = dx * mtx[0][2] + dy * mtx[1][2] + dz * mtx[2][2];
-    fov /= 2.0f;
-    dy = sindf(fov);
-    dx = dy / cosdf(fov) * vz * 1.3333334f;
-    dy = sindf(fov);
-    dy = dy / cosdf(fov) * vz;
-    *x = vx * (160.0f / -dx) + 160.0f;
-    *y = vy * (120.0f / dy) + 120.0f;
+// decomp-permuter
+void func_80109730_option(Vec *eye, Vec *at, Vec *up, f32 fov, Vec *pos, f32 *x, f32 *y)
+{
+  f32 mtx[4][4];
+  f32 dx;
+  f32 dy;
+  f32 dz;
+  f32 vx;
+  f32 vy;
+  f32 vz;
+  guLookAtF(mtx, eye->x, eye->y, eye->z, at->x, at->y, at->z, up->x, up->y, up->z);
+ dx = pos->x; dy = pos->y;
+  dz = pos->z;
+  dx -= eye->x;
+  dy -= eye->y;
+  dz -= eye->z;
+  vx = ((dx * mtx[0][0]) + (dy * mtx[1][0])) + (dz * mtx[2][0]);
+  vy = ((dx * mtx[0][1]) + (dy * mtx[1][1])) + (dz * mtx[2][1]);
+  vz = ((dx * mtx[0][2]) + (dy * mtx[1][2])) + (dz * mtx[2][2]);
+  fov /= 2.0f;
+  dy = (dy = sindf(fov));
+  dx = ((dy / cosdf(fov)) * vz) * 1.3333334f;
+  dy = sindf(fov);
+  dy = (dy / cosdf(fov)) * vz;
+  *x = (vx * (160.0f / (-dx))) + 160.0f;
+  *y = (vy * (120.0f / dy)) + 120.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_80109730_option);
-#endif
 
 void func_80109908_option(f32 x, f32 y, f32 z, s32 *outX, s32 *outY) {
     Vec pos;

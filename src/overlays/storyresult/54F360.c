@@ -211,25 +211,24 @@ void func_80107030_storyresult(void) {
     func_80050614_main(1);
 }
 
-#ifdef NON_MATCHING
-/* Residue (masked 3): retail loads GwStory.unk1 once into a0 and copies it (move) for the unk58 index; this loads it into v1. */
-s16 func_801070D8_storyresult(void) {
-    s16 n;
-    s32 i;
-    s32 c;
-
-    c = GwStory.unk1;
-    n = GwStory.unk58[c] != 0;
-    for (i = 0; i < 12; i++) {
-        if (GwStory.unk10[c][i] != 0) {
-            n++;
-        }
+// decomp-permuter
+s16 func_801070D8_storyresult(void)
+{
+  s16 n;
+  s32 i;
+  short c;
+  c = GwStory.unk1;
+  n = GwStory.unk58[c] != 0;
+  for (i = 0; i < 12; i++)
+  {
+    if (GwStory.unk10[c][i] != 0)
+    {
+      n++;
     }
-    return n;
+  }
+
+  return n;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_801070D8_storyresult);
-#endif
 
 #ifdef NON_MATCHING
 /* Residue (masked 5): retail keeps GwStory.unk1 in a2 for all three indexes with register copies. */
@@ -619,31 +618,30 @@ void func_80107920_storyresult(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107920_storyresult);
 #endif
 
-#ifdef NON_MATCHING
-/* Residue (masked 7): retail sign-extends the rank in v0 and puts the >= 4 slti in the bgezl delay slot; this copies it to v1 first. */
-/* Starts the record board process (func_80107920_storyresult) for slot; *res = -1 when the slot has no result. */
-Process *func_8010818C_storyresult(s16 *res, s16 slot) {
-    s16 rank;
-    Process *prc;
-
-    rank = func_8010A370_storyresult(slot);
-    if (rank < 0) {
-        *res = -1;
-        return NULL;
-    }
-    if (rank >= 4) {
-        _SetFlag(0x1D);
-    }
-    _SetFlag(0x1E);
-    *res = slot;
-    D_800EBAF0_minigame = D_8010ABE0_storyresult;
-    prc = omAddPrcObj(func_80107920_storyresult, 0x4000, 0x800, 0);
-    prc->user_data = res;
-    return prc;
+// decomp-permuter
+Process *func_8010818C_storyresult(s16 *res, s16 slot)
+{
+  s16 rank;
+  Process *prc;
+  int new_var;
+  rank = func_8010A370_storyresult(slot);
+  new_var = rank;
+  if (new_var < 0)
+  {
+    *res = -1;
+    return 0;
+  }
+  if (new_var >= 4)
+  {
+    _SetFlag(0x1D);
+  }
+  _SetFlag(0x1E);
+  *res = slot;
+  D_800EBAF0_minigame = D_8010ABE0_storyresult;
+  prc = omAddPrcObj(func_80107920_storyresult, 0x4000, 0x800, 0);
+  prc->user_data = res;
+  return prc;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010818C_storyresult);
-#endif
 
 void func_8010822C_storyresult(void) {
     s16 sp10;
@@ -927,58 +925,76 @@ s16 func_80108D04_storyresult(SrRecWork *w) {
     return func_80108AC0_storyresult(w, GwStory.unk_64[15], (u8 *)&GwStory.unk_64[3]);
 }
 
-#ifdef NON_MATCHING
-/* Residue (masked 2): in the page 2 call retail computes &w->part[22] before storing mark to the stack (scheduling). */
-/* Shows record page `page`: 0/1 the results, 2 the last one, 3/5 the rank marks of the record,
-   4 those of the current story slot, 6 those of the saved copy. */
-s16 func_80108D34_storyresult(s16 page, SrRecWork *w) {
-    u8 *rec;
-    s16 odd;
-    SrRecPart *mark;
-    SrRecPart *num;
-    s16 ret;
-
-    ret = -1;
-    func_8005D294_main(w->win[4]);
-    func_8005B43C_main(w->win[4], D_8010AB50_storyresult[page], -2, -1);
-    w->winFade[4] = 1;
-    if (page < 2) {
-        odd = 0;
-        mark = &w->part[2];
-        if (page == 1) {
-            odd = 1;
-            mark = &w->part[8];
-        }
-        if (w->slot < 0) {
-            rec = GwStory.unk3;
-            num = &w->part[16];
-        } else {
-            rec = GwStory.unk10[w->slot];
-            num = &w->part[16];
-        }
-        ret = func_801086E4_storyresult(rec, odd, 0, 6, mark, num, w);
-    } else if (page == 2) {
-        if (w->slot < 0) {
-            rec = &GwStory.unkF;
-        } else {
-            rec = &GwStory.unk58[w->slot];
-        }
-        mark = &w->part[14];
-        ret = func_801086E4_storyresult(rec, 0, 6, 7, mark, &w->part[22], w);
-    } else if (page == 3) {
-        ret = func_80108884_storyresult(w);
-    } else if (page == 4) {
-        ret = func_80108CB8_storyresult(w);
-    } else if (page == 5) {
-        ret = func_80108884_storyresult(w);
-    } else if (page == 6) {
-        ret = func_80108D04_storyresult(w);
+// decomp-permuter
+s16 func_80108D34_storyresult(s16 page, SrRecWork *w)
+{
+  u8 *rec;
+  s16 odd;
+  SrRecPart *mark;
+  SrRecPart *num;
+  s16 ret;
+  ret = -1;
+  func_8005D294_main(w->win[4]);
+  func_8005B43C_main(w->win[4], D_8010AB50_storyresult[page], -2, -1);
+  w->winFade[4] = 1;
+  if (page < 2)
+  {
+    odd = 0;
+    mark = &w->part[2];
+    if (page == 1)
+    {
+      odd = 1;
+      mark = &w->part[8];
     }
-    return ret;
+    if (w->slot < 0)
+    {
+      rec = GwStory.unk3;
+      num = &w->part[16];
+    }
+    else
+    {
+      rec = GwStory.unk10[w->slot];
+      num = &w->part[16];
+    }
+    ret = func_801086E4_storyresult(rec, odd, 0, 6, mark, num, w);
+  }
+  else
+    if (page == 2)
+  {
+    if (w->slot < 0)
+    {
+      rec = &GwStory.unkF;
+    }
+    else
+    {
+      rec = &GwStory.unk58[w->slot];
+    }
+    mark = &w->part[14];
+    num = &w->part[22];
+    ret = func_801086E4_storyresult(rec, 0, 6, 7, mark, num, w);
+  }
+  else
+    if (page == 3)
+  {
+    ret = func_80108884_storyresult(w);
+  }
+  else
+    if (page == 4)
+  {
+    ret = func_80108CB8_storyresult(w);
+  }
+  else
+    if (page == 5)
+  {
+    ret = func_80108884_storyresult(w);
+  }
+  else
+    if (page == 6)
+  {
+    ret = func_80108D04_storyresult(w);
+  }
+  return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80108D34_storyresult);
-#endif
 
 /* Record board entry (minigame's MgPartDef). */
 typedef struct SrPartDef {
@@ -1685,31 +1701,44 @@ s16 func_8010A5C4_storyresult(s16 player) {
 INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A5C4_storyresult);
 #endif
 
-#ifdef NON_MATCHING
-/* Register allocation only (masked 0): retail computes the player's offset first. */
-/* Duel rank of player from the star difference with the other player. */
-s16 func_8010A738_storyresult(s16 player) {
-    s32 diff;
-    s32 other;
-    s16 ret;
-
-    other = player == 0;
-    diff = GwPlayer[player].star - GwPlayer[other].star;
-    if (diff >= 3) {
-        ret = 4;
-    } else if (diff == 2) {
-        ret = 3;
-    } else {
-        ret = 1;
-        if (diff == 1) {
-            ret = 2;
-        }
+// decomp-permuter
+s16 func_8010A738_storyresult(s16 player)
+{
+  s8 new_var;
+  s8 new_var2;
+  s32 diff;
+  s32 other;
+  s16 ret;
+  new_var = GwPlayer[player].star;
+  other = player == 0;
+  new_var2 = GwPlayer[other].star;
+  diff = new_var - new_var2;
+  if (diff >= 3)
+  {
+    ret = 4;
+  }
+  else
+    if (diff == 2)
+  {
+    ret = 3;
+  }
+  else
+  {
+    ret = 1;
+    if (diff == 1)
+    {
+      ret = 2;
     }
+  }
+  if (GwPlayer || diff)
+  {
     return ret;
+  }
+  else
+  {
+    return ret;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_8010A738_storyresult);
-#endif
 
 s16 func_8010A7B0_storyresult(s16 player) {
     s16 n;

@@ -509,75 +509,117 @@ void func_801063E8_pipe_cleaners(omObjData *obj, s32 pipe) {
 }
 
 /* CPU: choose a pipe of this player's four, or -1. */
-#ifdef NON_MATCHING
-s32 func_80106540_pipe_cleaners(omObjData *obj, u32 mode) {
-    s32 wait[4];
-    PcPipe *pipe;
-    s32 idx;
-    u32 i;
+// decomp-permuter
+s32 func_80106540_pipe_cleaners(omObjData *obj, u32 mode)
+{
+  s32 wait[4];
+  PcPipe *pipe;
+  s32 idx;
+  u32 i;
+  for (i = 0; i < 4; i++)
+  {
+    wait[i] = -2;
+  }
 
-    for (i = 0; i < 4; i++) {
-        wait[i] = -2;
-    }
-    for (i = 0; i < 4; i++) {
-        idx = obj->work[0] * 4 + i;
-        pipe = &D_8010A968_pipe_cleaners[idx];
-        switch (mode) {
-            case 0:
-                switch (pipe->state) {
-                    case 0:
-                    case 1:
-                    case 3:
-                    case 4:
-                        break;
-                    case 2:
-                        return idx;
-                }
-                break;
-            case 1:
-                switch (pipe->state) {
-                    case 0:
-                    case 3:
-                    case 4:
-                        break;
-                    case 1:
-                    case 2:
-                        return idx;
-                }
-                break;
-            case 2:
-                switch (pipe->state) {
-                    case 0:
-                    case 4:
-                        break;
-                    case 1:
-                    case 2:
-                        wait[i] = -1;
-                        break;
-                    case 3:
-                        wait[i] = pipe->timer;
-                        break;
-                }
-                break;
+  for (i = 0; i < 4; i++)
+  {
+    idx = (obj->work[0] * 4) + i;
+    pipe = &D_8010A968_pipe_cleaners[idx];
+    switch (mode)
+    {
+      case 0:
+        switch (pipe->state)
+      {
+        case 0:
+
+        case 1:
+
+        case 3:
+
+        case 4:
+          break;
+
+        case 2:
+          return idx;
+
+      }
+
+        break;
+
+      case 1:
+        switch (pipe->state)
+      {
+        case 0:
+
+        case 3:
+
+        case 4:
+          break;
+
+        case 1:
+
+        case 2:
+          return idx;
+
+      }
+
+        break;
+
+      case 2:
+        switch (pipe->state)
+      {
+        case 0:
+
+        case 4:
+          break;
+
+        case 1:
+
+        case 2:
+          if (i)
+        {
+          wait[i] = -1;
+          break;
         }
-    }
-    if (mode == 2) {
-        for (i = 0; i < 4; i++) {
-            if ((u32)wait[i] < 4) {
-                return obj->work[0] * 4 + i;
-            }
+        else
+        {
+          wait[i] = -1;
+          break;
         }
-        for (i = 0; i < 4; i++) {
-            if (wait[i] == -1) {
-                return obj->work[0] * 4 + i;
-            }
-        }
+
+        case 3:
+          wait[i] = pipe->timer;
+          break;
+
+      }
+
+        break;
+
     }
-    return -1;
+
+  }
+
+  if (mode == 2)
+  {
+    for (i = 0; i < 4; i++)
+    {
+      if (((u32) wait[i]) < 4)
+      {
+        return (obj->work[0] * 4) + i;
+      }
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+      if (wait[i] == (-1))
+      {
+        return (obj->work[0] * 4) + i;
+      }
+    }
+
+  }
+  return -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", func_80106540_pipe_cleaners);
-#endif
 
 /* CPU player input. */
 #ifdef NON_MATCHING
@@ -620,21 +662,21 @@ void func_8010698C_pipe_cleaners(omObjData *obj, u8 anim) {
         D_8010A2B0_pipe_cleaners[obj->work[0]][anim], 0, D_80109F60_pipe_cleaners[chr]);
 }
 
-#ifdef NON_MATCHING
-void func_80106A70_pipe_cleaners(omObjData *obj, s32 motion) {
-    s16 idx;
-
-    if (motion == 0) {
-        idx = obj->motion[0] & 0x3FFF;
-        func_8001EED8_main(obj->model[0], HmfModelData[idx].unk02, 2);
-        return;
-    }
-    func_8001C5B4_main(obj->model[0], obj->motion[motion]);
-    HmfModelData[obj->model[0]].unk06 = 0xFF;
+// decomp-permuter
+void func_80106A70_pipe_cleaners(omObjData *obj, s32 motion)
+{
+  u8 new_var;
+  s16 idx;
+  if (motion == 0)
+  {
+    idx = obj->motion[0] & 0x3FFF;
+    new_var = HmfModelData[idx].unk02;
+    func_8001EED8_main(obj->model[0], new_var, 2);
+    return;
+  }
+  func_8001C5B4_main(obj->model[0], obj->motion[motion]);
+  HmfModelData[obj->model[0]].unk06 = 0xFF;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", func_80106A70_pipe_cleaners);
-#endif
 
 /* The hook flies up off the winner's head. */
 void func_80106B18_pipe_cleaners(omObjData *obj, PcPlayer *player) {
@@ -1136,59 +1178,78 @@ void func_80108428_pipe_cleaners(void) {
 
 /* Builds each player's pipe schedule: 60 slots, two per step, -1 empty;
    a value is the pipe (0..3), +4 for a long wait. */
-#ifdef NON_MATCHING
-void func_80108484_pipe_cleaners(void) {
-    s32 step[26];
-    u32 i;
-    u32 j;
-    s32 longStep;
-    s32 slot;
-    s32 extra;
-    s8 *sched;
-    s32 pipe;
+// decomp-permuter
+void func_80108484_pipe_cleaners(void)
+{
+  s32 step[26];
+  u32 i;
+  int new_var;
+  u32 j;
+  s32 longStep;
+  s32 slot;
+  s32 extra;
+  s8 *sched;
+  s32 pipe;
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 60; j++)
+    {
+      D_8010A838_pipe_cleaners[i][j] = -1;
+    }
 
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 60; j++) {
-            D_8010A838_pipe_cleaners[i][j] = -1;
+  }
+
+  longStep = 0;
+  for (j = 0; j < 26; j++)
+  {
+    step[j] = -1;
+  }
+
+  for (i = 0; i < 4; i++)
+  {
+    extra = ((u8) (rand8() % 22)) + 3;
+    sched = D_8010A838_pipe_cleaners[i];
+    for (j = 0; j < 25; j++)
+    {
+      step[j] = rand8() & 3;
+      if ((j & 1) && (step[j] == step[j - 1]))
+      {
+        j--;
+        continue;
+      }
+      if ((j & 3) == 0)
+      {
+        longStep = j;
+        new_var = 1;
+        longStep = (((u8) (rand8() % 3)) + new_var) + longStep;
+      }
+      if (j == longStep)
+      {
+        step[j] += 4;
+      }
+      slot = (j * 2) + (rand8() & 1);
+      sched[slot] = step[j];
+      if (j == extra)
+      {
+        do
+        {
+          pipe = rand8() & 3;
         }
-    }
-    longStep = 0;
-    for (j = 0; j < 26; j++) {
-        step[j] = -1;
-    }
-    for (i = 0; i < 4; i++) {
-        extra = (u8)(rand8() % 22) + 3;
-        sched = D_8010A838_pipe_cleaners[i];
-        for (j = 0; j < 25; j++) {
-            step[j] = rand8() & 3;
-            if ((j & 1) && step[j] == step[j - 1]) {
-                j--;
-                continue;
-            }
-            if ((j & 3) == 0) {
-                longStep = ((u8)(rand8() % 3) + 1) + j;
-            }
-            if (j == longStep) {
-                step[j] += 4;
-            }
-            slot = j * 2 + (rand8() & 1);
-            sched[slot] = step[j];
-            if (j == extra) {
-                do {
-                    pipe = rand8() & 3;
-                } while (pipe == (sched + slot)[-1] || pipe == (sched + slot)[-2] || pipe == (sched + slot)[-3]);
-                if (slot & 1) {
-                    D_8010A838_pipe_cleaners[i][slot - 1] = pipe;
-                } else {
-                    D_8010A838_pipe_cleaners[i][slot + 1] = pipe;
-                }
-            }
+        while (((pipe == (sched + slot)[-1]) || (pipe == (sched + slot)[-2])) || (pipe == (sched + slot)[-3]));
+        if (slot & 1)
+        {
+          D_8010A838_pipe_cleaners[i][slot - 1] = pipe;
         }
+        else
+        {
+          D_8010A838_pipe_cleaners[i][slot + 1] = pipe;
+        }
+      }
     }
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_27_pipe_cleaners/22E100", func_80108484_pipe_cleaners);
-#endif
 
 /* Raises the pipes the schedule names, every 15 frames. */
 #ifdef NON_MATCHING

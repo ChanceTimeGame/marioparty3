@@ -1955,68 +1955,72 @@ void func_80110E3C_mstory4(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_80110E3C_mstory4);
 #endif
 
-// retail zero-extends the colour once more and schedules the cosdf results without a nop (raw 10, masked 9)
-#ifdef NON_MATCHING
-/* bursts `count` free particles from (x, y, z): their directions are (0, 1, 0) turned in even
-   steps about a random axis (the z axis when `mode` is 0), all one random colour */
-void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode) {
-    f32 step = 360.0f / count;
-    StFxHmf *hmf = (StFxHmf *)HmfModelData[model].hmf;
-    StBurstPart *part = ((StBurstWork *)HmfModelData[model].unkBC)->parts;
-    s16 total = hmf->groupCount;
-    f32 ax;
-    f32 ay;
-    f32 az;
-    f32 len;
-    f32 a;
-    s32 color;
-    s16 n;
-    s16 i;
+// decomp-permuter
+void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode)
+{
+  f32 step = 360.0f / count;
+  StFxHmf *hmf = (StFxHmf *) HmfModelData[model].hmf;
+  StBurstPart *part = ((StBurstWork *) HmfModelData[model].unkBC)->parts;
+  s16 total = hmf->groupCount;
+  f32 ax;
+  f32 ay;
+  f32 az;
+  f32 len;
+  f32 a;
+  short color;
+  s16 n;
+  s16 i;
+  if (mode != 0)
+  {
+    while (1)
+    {
+      ax = rand8() - 128;
+      ay = rand8() - 128;
+      az = rand8() - 128;
+      len = ((ax * ax) + (ay * ay)) + (az * az);
+      if (len != 0.0f)
+      {
+        break;
+      }
+    }
 
-    if (mode != 0) {
-        while (TRUE) {
-            ax = rand8() - 128;
-            ay = rand8() - 128;
-            az = rand8() - 128;
-            len = ax * ax + ay * ay + az * az;
-            if (len != 0.0f) {
-                break;
-            }
-        }
-    } else {
-        ax = 0.0f;
-        ay = 0.0f;
-        az = 1.0f;
-        len = 1.0f;
+  }
+  else
+  {
+    ax = 0.0f;
+    ay = 0.0f;
+    az = 1.0f;
+    len = 1.0f;
+  }
+  len = HuSqrtf(len);
+  ax /= len;
+  ay /= len;
+  az /= len;
+  color = (u8) (rand8() & 3);
+  for (n = 0, i = 0; i < total; i++, part++)
+  {
+    if (part->scale <= 0.0f)
+    {
+      part->pos.x = x;
+      part->pos.y = y;
+      part->pos.z = z;
+      a = step * n;
+      part->dir.x = ((ax * ay) * (1.0f - cosdf(a))) - (az * sindf(a));
+      part->dir.y = (ay * ay) + ((1.0f - (ay * ay)) * cosdf(a));
+      part->dir.z = ((ay * az) * (1.0f - cosdf(a))) + (ax * sindf(a));
+      part->color = color;
+      part->time = 0.0f;
+      part->scale = 1.0f;
+      part->speed = 20.0f;
+      n++;
+      if (n >= count)
+      {
+        break;
+      }
     }
-    len = HuSqrtf(len);
-    ax /= len;
-    ay /= len;
-    az /= len;
-    color = (u8)(rand8() & 3);
-    for (n = 0, i = 0; i < total; i++, part++) {
-        if (part->scale <= 0.0f) {
-            part->pos.x = x;
-            part->pos.y = y;
-            part->pos.z = z;
-            a = step * n;
-            part->dir.x = ax * ay * (1.0f - cosdf(a)) - az * sindf(a);
-            part->dir.y = ay * ay + (1.0f - ay * ay) * cosdf(a);
-            part->dir.z = ay * az * (1.0f - cosdf(a)) + ax * sindf(a);
-            part->color = color;
-            part->time = 0.0f;
-            part->scale = 1.0f;
-            part->speed = 20.0f;
-            n++;
-            if (n >= count) {
-                break;
-            }
-        }
-    }
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_80111430_mstory4);
-#endif
 
 // retail keeps the three colour-table bytes' addresses in registers across the loop (masked 16)
 #ifdef NON_MATCHING

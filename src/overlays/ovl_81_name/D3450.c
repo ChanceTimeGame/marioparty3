@@ -597,26 +597,26 @@ void func_800ECE10_name_81(void) {
     MBDGetPlayerStruct(-1)->rev &= ~1;
 }
 
-#ifdef NON_MATCHING
-// the s16 playerNo conversion is scheduled after the first space id's
-// face the next space
-void func_800ECE38_name_81(s32 arg0) {
-    Vec sp10;
-    Vec sp20;
-    GW_PLAYER* player = MBDGetPlayerStruct(arg0);
-    s16 playerNo = arg0;
-
-    func_800EB680_name_81(playerNo, MBDMasuLinkMasuIdGet(player->clink, player->cidx), &sp10);
-    func_800EB680_name_81(playerNo, MBDMasuLinkMasuIdGet(player->nlink, player->nidx), &sp20);
-    if (!(player->rev & 4)) {
-        func_800EB708_name_81(&sp10, &sp20, &player->player_obj->rot);
-    } else {
-        func_800EB708_name_81(&sp20, &sp10, &player->player_obj->rot);
-    }
+// decomp-permuter
+void func_800ECE38_name_81(s32 arg0)
+{
+  Vec sp10;
+  Vec sp20;
+  GW_PLAYER *player = MBDGetPlayerStruct(arg0);
+  s16 new_var;
+  s16 playerNo = arg0;
+  new_var = MBDMasuLinkMasuIdGet(player->clink, player->cidx);
+  func_800EB680_name_81(playerNo, new_var, &sp10);
+  func_800EB680_name_81(playerNo, MBDMasuLinkMasuIdGet(player->nlink, player->nidx), &sp20);
+  if (!(player->rev & 4))
+  {
+    func_800EB708_name_81(&sp10, &sp20, &player->player_obj->rot);
+  }
+  else
+  {
+    func_800EB708_name_81(&sp20, &sp10, &player->player_obj->rot);
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800ECE38_name_81);
-#endif
 
 #ifdef NON_MATCHING
 // f20/f22/f24 allocation (the 0.0f constant) and the shared tail call

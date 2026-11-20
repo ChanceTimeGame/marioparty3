@@ -1223,14 +1223,13 @@ s16 func_80108FEC_eatsa_pizza(s16 tex, s16 n) {
 }
 
 /* Texel data of frame `frame` of texture tex. */
-#ifdef NON_MATCHING
-/* masked 2: retail scales the index before loading unk00 (scheduling only) */
-void* func_801090B4_eatsa_pizza(s16 tex, s16 frame) {
-    return func_80055194_main(tex)->unk00[frame].unk00;
+// decomp-permuter
+void *func_801090B4_eatsa_pizza(s16 tex, s16 frame)
+{
+  void **new_var;
+  new_var = &func_80055194_main(tex)->unk00[frame].unk00;
+  return *new_var;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0B_eatsa_pizza/161750", func_801090B4_eatsa_pizza);
-#endif
 
 u8 D_80109100_eatsa_pizza[4][2] = { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 } }; /* [n][1]: the n-th player to spawn */
 u8 D_80109108_eatsa_pizza = 0;

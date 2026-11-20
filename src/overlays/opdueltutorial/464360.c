@@ -136,45 +136,46 @@ extern s16 D_80108C44_opdueltutorial;
 extern s16 D_80108C46_opdueltutorial; /* texture-animation slot, 0xFF none */
 
 
-// s0/s1 swapped between the player loop's index and its -1 (masked 0; opduel's twin has the same residue)
-#ifdef NON_MATCHING
-void func_801059A0_opdueltutorial(void) {
-    s32 i;
-    GW_PLAYER *player;
-    s32 chr;
-    u32 j;
+// decomp-permuter
+void func_801059A0_opdueltutorial(void)
+{
+  s32 i;
+  GW_PLAYER *player;
+  s32 chr;
+  GwSystem.current_board_index = 6;
+  D_80108C10_opdueltutorial = 6;
+  omInitObjMan(0x32, 0x14);
+  HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
+  HmfLightColorSet(2, 0xC8, 0xC8, 0xC8);
+  func_801088C4_opdueltutorial();
+  func_80108854_opdueltutorial();
+  func_800D87DC_name_81(700.0f);
+  func_800D85A8_name_81(1.6f);
+  func_8005A6B0_main();
+  omAddPrcObj(func_80108774_opdueltutorial, 0x300, 0x2000, 0);
+  omAddObj(0x1000, 0, 0, -1, func_80108810_opdueltutorial);
+  for (i = 0; i < 2; i++)
+  {
+    player = MBDGetPlayerStruct(i);
+    player->stats.prize.gamblePrize = -1;
+    player->stats.prize.duelNo = -1;
+  }
 
-    GwSystem.current_board_index = 6;
-    D_80108C10_opdueltutorial = 6;
-    omInitObjMan(0x32, 0x14);
-    HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
-    HmfLightColorSet(2, 0xC8, 0xC8, 0xC8);
-    func_801088C4_opdueltutorial();
-    func_80108854_opdueltutorial();
-    func_800D87DC_name_81(700.0f);
-    func_800D85A8_name_81(1.6f);
-    func_8005A6B0_main();
-    omAddPrcObj(func_80108774_opdueltutorial, 0x300, 0x2000, 0);
-    omAddObj(0x1000, 0, 0, -1, func_80108810_opdueltutorial);
-    for (i = 0; i < 2; i++) {
-        player = MBDGetPlayerStruct(i);
-        player->stats.prize.gamblePrize = -1;
-        player->stats.prize.duelNo = -1;
+  for (chr = 1; chr < 8; chr++)
+  {
+    for (i = 0; i < D_80108A64_opdueltutorial.count; i++)
+    {
+      D_80108B24_opdueltutorial[chr]->ids[i] = func_80017BB8_main(chr, D_80108A64_opdueltutorial.ids[i]);
     }
-    for (chr = 1; chr < 8; chr++) {
-        for (j = 0; j < D_80108A64_opdueltutorial.count; j++) {
-            D_80108B24_opdueltutorial[chr]->ids[j] = func_80017BB8_main(chr, D_80108A64_opdueltutorial.ids[j]);
-        }
-    }
-    GwPlayer[0].stat = 1;
-    GwPlayer[1].stat = 1;
-    GwPlayer[0].chr = 0;
-    GwPlayer[1].chr = 1;
-    func_8004A208_main();
+
+  }
+
+  GwPlayer[0].stat = 1;
+  GwPlayer[1].stat = 1;
+  GwPlayer[0].chr = 0;
+  GwPlayer[1].chr = 1;
+  func_8004A208_main();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/opdueltutorial/464360", func_801059A0_opdueltutorial);
-#endif
 
 s16 func_80105B54_opdueltutorial(s32 dir, s32 file) {
     OtFxHmf *hmf;

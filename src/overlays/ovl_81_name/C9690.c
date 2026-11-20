@@ -46,33 +46,37 @@ void func_800E18E8_name_81(s16 arg0, s16 arg1) {
     D_80102BF2_name_81 = arg1;
 }
 
-#ifdef NON_MATCHING
-/* masked 4: retail reloads cur->turn for the call after the compare; logic checked */
-s32 func_800E1960_name_81(void) {
-    s16 players[2];
-    GW_PLAYER* cur;
-    s32 i;
-    s32 target;
+// decomp-permuter
+s32 func_800E1960_name_81(void)
+{
+  s16 players[2];
+  GW_PLAYER *cur;
+  s32 i;
+  s32 new_var;
+  s32 target;
+  cur = MBDGetPlayerStruct(-1);
+  for (i = 0; i < 2; i++)
+  {
+    players[i] = i;
+  }
 
-    cur = MBDGetPlayerStruct(-1);
-    for (i = 0; i < 2; i++) {
-        players[i] = i;
+  for (i = 0; i < 2; i++)
+  {
+    target = players[i];
+    new_var = cur->turn != target;
+    if (new_var && (func_800E18D8_name_81(cur->turn, target) != 0))
+    {
+      break;
     }
-    for (i = 0; i < 2; i++) {
-        target = players[i];
-        if ((cur->turn != target) && (func_800E18D8_name_81(cur->turn, target) != 0)) {
-            break;
-        }
-    }
-    if (i == 2) {
-        return 0;
-    }
-    func_800E18E8_name_81(cur->turn, target);
-    return 1;
+  }
+
+  if (i == 2)
+  {
+    return 0;
+  }
+  func_800E18E8_name_81(cur->turn, new_var = target);
+  return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/C9690", func_800E1960_name_81);
-#endif
 
 void func_800E1A24_name_81(void) {
     GW_PLAYER* player1;

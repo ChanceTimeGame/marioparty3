@@ -379,21 +379,17 @@ s32 func_80050D84_main(void) {
 // register allocation (masked 0): s0/s1 swapped between curBox and dstBox
 /* Copy box srcBox to dstBox; 1 on failure. Retail returns nothing on success (no return
    statement: the caller sees whatever v0 holds). */
-#ifdef NON_MATCHING
-s32 func_80050DDC_main(s16 srcBox, s16 dstBox) {
-    s32 curBox = (u8) D_800A1E81_main;
-
-    SLCurBoxNoSet(srcBox);
-    if (ReadEepromBox((u8) D_800A1E81_main | 0x80, 0, NULL, 0x2A0) != 0 ||
-        (SLCurBoxNoSet(dstBox), WriteEepromBox(D_800A1E81_main) != 0)) {
-        SLCurBoxNoSet(curBox);
-        return 1;
-    }
-    SLCurBoxNoSet(curBox);
+// decomp-permuter
+s32 func_80050DDC_main(s16 srcBox, s16 dstBox)
+{
+  s32 curBox = (u8) D_800A1E81_main;
+  SLCurBoxNoSet(srcBox);
+  if ((ReadEepromBox(((u8) D_800A1E81_main) | 0x80, 0, 0, 0x2A0) != 0) || ((SLCurBoxNoSet(dstBox), WriteEepromBox(D_800A1E81_main) != 0)))
+  {
+ do { SLCurBoxNoSet(curBox); return 1; } while (0);
+  }
+  SLCurBoxNoSet(curBox);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/saveload", func_80050DDC_main);
-#endif
 
 void SLCurBoxNoSet(u32 boxNo) {
     D_800A1E81_main = boxNo;

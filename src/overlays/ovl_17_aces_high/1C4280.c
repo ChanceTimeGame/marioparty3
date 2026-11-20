@@ -650,120 +650,166 @@ void func_80106EC0_aces_high(omObjData *obj) {
 }
 
 /* Player control: stick to pitch and roll, speed. */
-// register allocation only (masked 0, raw 3): retail holds the direction constant in v0, here v1
-#ifdef NON_MATCHING
-void func_801071D4_aces_high(omObjData *obj) {
-    AhPlayer *work = obj->data;
-    s8 stickX;
-    s8 stickY;
-    u16 btn;
-    u16 btn2;
-    f32 target;
-    f32 speed;
-
-    func_801088A4_aces_high(obj, &stickX, &stickY, &btn, &btn2);
-    btn2 = 0;
-    btn = 0;
-    if (stickX > 70) {
-        stickX = 70;
+// decomp-permuter
+void func_801071D4_aces_high(omObjData *obj)
+{
+  AhPlayer *work = obj->data;
+  s8 stickX;
+  s8 stickY;
+  u16 btn;
+  u16 btn2;
+  f32 target;
+  f32 speed;
+  func_801088A4_aces_high(obj, &stickX, &stickY, &btn, &btn2);
+  btn2 = 0;
+  btn = 0;
+  if (stickX > 70)
+  {
+    stickX = 70;
+  }
+  if (stickX < (-70))
+  {
+    stickX = -70;
+  }
+  if (stickY > 70)
+  {
+    stickY = 70;
+  }
+  if (stickY < (-70))
+  {
+    stickY = -70;
+  }
+  target = (stickY / 70.0f) * 30.0f;
+  if (target < work->unk38)
+  {
+    if ((target - work->unk38) < (-10.0f))
+    {
+      work->unk38 -= 10.0f;
+      work->unk7C = -10.0f;
     }
-    if (stickX < -70) {
-        stickX = -70;
+    else
+    {
+      work->unk38 = target;
+      work->unk7C = target;
     }
-    if (stickY > 70) {
-        stickY = 70;
+  }
+  else
+    if ((target - work->unk38) > 10.0f)
+  {
+    work->unk38 += 10.0f;
+    work->unk7C = 10.0f;
+  }
+  else
+  {
+    work->unk38 = target;
+    work->unk7C = target;
+  }
+  target = (stickX / 70.0f) * 60.0f;
+  if (target < work->unk3C)
+  {
+    if ((target - work->unk3C) < (-10.0f))
+    {
+      work->unk3C -= 10.0f;
+      work->unk80 = -10.0f;
     }
-    if (stickY < -70) {
-        stickY = -70;
+    else
+    {
+      work->unk3C = target;
+      work->unk80 = target;
     }
-    target = (stickY / 70.0f) * 30.0f;
-    if (target < work->unk38) {
-        if (target - work->unk38 < -10.0f) {
-            work->unk38 -= 10.0f;
-            work->unk7C = -10.0f;
-        } else {
-            work->unk38 = target;
-            work->unk7C = target;
-        }
-    } else if (target - work->unk38 > 10.0f) {
-        work->unk38 += 10.0f;
-        work->unk7C = 10.0f;
-    } else {
-        work->unk38 = target;
-        work->unk7C = target;
+  }
+  else
+    if ((target - work->unk3C) > 10.0f)
+  {
+    work->unk3C += 10.0f;
+    work->unk80 = 10.0f;
+  }
+  else
+  {
+    work->unk3C = target;
+    work->unk80 = target;
+  }
+  work->unk84 = work->unk80 / 30.0f;
+  if (btn2 & 0x4000)
+  {
+    speed = 16.666666f;
+    work->unk4C = 0;
+  }
+  else
+    if (btn2 & 0x8000)
+  {
+    speed = 41.666664f;
+    work->unk4C = 2;
+  }
+  else
+  {
+    speed = 27.777777f;
+    work->unk4C = 1;
+  }
+  if (work->unk0C == 1)
+  {
+    speed *= 2.0f;
+  }
+  if (speed < work->unk08)
+  {
+    work->unk08 -= 2.0f;
+    if (work->unk08 < speed)
+    {
+      work->unk08 = speed;
     }
-    target = (stickX / 70.0f) * 60.0f;
-    if (target < work->unk3C) {
-        if (target - work->unk3C < -10.0f) {
-            work->unk3C -= 10.0f;
-            work->unk80 = -10.0f;
-        } else {
-            work->unk3C = target;
-            work->unk80 = target;
-        }
-    } else if (target - work->unk3C > 10.0f) {
-        work->unk3C += 10.0f;
-        work->unk80 = 10.0f;
-    } else {
-        work->unk3C = target;
-        work->unk80 = target;
+  }
+  else
+    if (work->unk08 < speed)
+  {
+    work->unk08 += 2.0f;
+    if (speed < work->unk08)
+    {
+      work->unk08 = speed;
     }
-    work->unk84 = work->unk80 / 30.0f;
-    if (btn2 & 0x4000) {
-        speed = 16.666666f;
-        work->unk4C = 0;
-    } else if (btn2 & 0x8000) {
-        speed = 41.666664f;
-        work->unk4C = 2;
-    } else {
-        speed = 27.777777f;
-        work->unk4C = 1;
+  }
+  if (stickX == 0)
+  {
+    work->unk32 = 0;
+  }
+  else
+  {
+    s16 dir;
+    if (stickX < 0)
+    {
+      if (work || (&obj->rot))
+      {
+        dir = 1;
+      }
+      else
+      {
+        dir = 1;
+      }
     }
-    if (work->unk0C == 1) {
-        speed *= 2.0f;
+    else
+    {
+      dir = 2;
     }
-    if (speed < work->unk08) {
-        work->unk08 -= 2.0f;
-        if (work->unk08 < speed) {
-            work->unk08 = speed;
-        }
-    } else if (work->unk08 < speed) {
-        work->unk08 += 2.0f;
-        if (speed < work->unk08) {
-            work->unk08 = speed;
-        }
-    }
-    if (stickX == 0) {
-        work->unk32 = 0;
-    } else {
-        s16 dir;
-        if (stickX < 0) {
-            dir = 1;
-        } else {
-            dir = 2;
-        }
-        work->unk32 = dir;
-    }
-    obj->rot.y -= work->unk3C / 30.0f;
-    if (obj->rot.y >= 360.0f) {
-        obj->rot.y -= 360.0f;
-    }
-    if (obj->rot.y < 0.0f) {
-        obj->rot.y += 360.0f;
-    }
-    work->unk10.y = -sindf(work->unk38);
-    work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
-    work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
-    obj->trans.x += work->unk10.x * work->unk08;
-    obj->trans.y += work->unk10.y * work->unk08;
-    obj->trans.z += work->unk10.z * work->unk08;
-    func_8010862C_aces_high(obj);
-    func_801068F4_aces_high(obj);
-    func_80106B70_aces_high(obj);
+    work->unk32 = dir;
+  }
+  obj->rot.y -= work->unk3C / 30.0f;
+  if (obj->rot.y >= 360.0f)
+  {
+    obj->rot.y -= 360.0f;
+  }
+  if (obj->rot.y < 0.0f)
+  {
+    obj->rot.y += 360.0f;
+  }
+  work->unk10.y = -sindf(work->unk38);
+  work->unk10.x = sindf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+  work->unk10.z = cosdf(obj->rot.y) * (1.0 - fabs(work->unk10.y));
+  obj->trans.x += work->unk10.x * work->unk08;
+  obj->trans.y += work->unk10.y * work->unk08;
+  obj->trans.z += work->unk10.z * work->unk08;
+  func_8010862C_aces_high(obj);
+  func_801068F4_aces_high(obj);
+  func_80106B70_aces_high(obj);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801071D4_aces_high);
-#endif
 
 // masked 0 apart from one instruction: retail copies mode to a0 (move a0,s2) before the mode == 3 test of the input select; the same operations otherwise
 #ifdef NON_MATCHING

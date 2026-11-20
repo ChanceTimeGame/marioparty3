@@ -1441,86 +1441,96 @@ void func_80109484_hyper_hydrants(omObjData* obj) {
     }
 }
 
-// masked residue: the move of the new model index is scheduled one slot later in retail (logic checked)
-#ifdef NON_MATCHING
-/* A fire (5 per team): size 1, 1.25 or 1.5 from the layout table, model 0 the flame, 1 its shadow, 2 the steam. */
-void func_80109588_hyper_hydrants(omObjData* obj) {
-    HhFire* fd;
-    s16 mdl;
+// decomp-permuter
+void func_80109588_hyper_hydrants(omObjData *obj)
+{
+  HhFire *fd;
+  s16 mdl;
+  s16 new_var;
+  obj->func = func_801099A0_hyper_hydrants;
+  fd = (obj->data = HuMemAllocTag(sizeof(HhFire), 0x7918));
+  memset(fd, 0, sizeof(HhFire));
+  if (D_8010BF4C_hyper_hydrants < 5)
+  {
+    fd->unk02 = 0;
+  }
+  else
+  {
+    fd->unk02 = 1;
+  }
+  fd->unk00 = D_8010BF4C_hyper_hydrants % 5;
+  fd->unk10 = 50.0f;
+  fd->unk03 = rand8() >> 7;
+  fd->unk04 = 0;
+  fd->unk08 = (rand8() >> 5) * 15;
+  fd->unk18 = 0;
+  fd->unk19 = 0;
+  fd->unk14 = 0;
+  fd->unk05 = 0;
+  fd->unk06 = 2;
+  fd->unk0A = (rand8() >> 5) * 15;
+  fd->unk1A = 0;
+  fd->unk1E = 0;
+  obj->trans.x = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.x;
+  obj->trans.z = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.z;
+  obj->trans.y = 0.0f;
+  obj->rot.x = (obj->rot.y = (obj->rot.z = obj->trans.y));
+  switch (D_8010BE38_hyper_hydrants[D_8010C010_hyper_hydrants][fd->unk00])
+  {
+    case 0:
+      obj->scale.x = (obj->scale.y = (obj->scale.z = 1.0f));
+      fd->unk0C = 0.5f;
+      fd->unk01 = 1;
+      break;
 
-    obj->func = func_801099A0_hyper_hydrants;
-    fd = obj->data = HuMemAllocTag(sizeof(HhFire), 0x7918);
-    memset(fd, 0, sizeof(HhFire));
-    if (D_8010BF4C_hyper_hydrants < 5) {
-        fd->unk02 = 0;
-    } else {
-        fd->unk02 = 1;
-    }
-    fd->unk00 = D_8010BF4C_hyper_hydrants % 5;
-    fd->unk10 = 50.0f;
-    fd->unk03 = rand8() >> 7;
-    fd->unk04 = 0;
-    fd->unk08 = (rand8() >> 5) * 15;
-    fd->unk18 = 0;
-    fd->unk19 = 0;
-    fd->unk14 = 0;
-    fd->unk05 = 0;
-    fd->unk06 = 2;
-    fd->unk0A = (rand8() >> 5) * 15;
-    fd->unk1A = 0;
-    fd->unk1E = 0;
-    obj->trans.x = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.x;
-    obj->trans.z = D_8010BFE0_hyper_hydrants[fd->unk02]->trans.z;
-    obj->trans.y = 0.0f;
-    obj->rot.x = obj->rot.y = obj->rot.z = obj->trans.y;
-    switch (D_8010BE38_hyper_hydrants[D_8010C010_hyper_hydrants][fd->unk00]) {
-        case 0:
-            obj->scale.x = obj->scale.y = obj->scale.z = 1.0f;
-            fd->unk0C = 0.5f;
-            fd->unk01 = 1;
-            break;
-        case 1:
-            obj->scale.x = obj->scale.y = obj->scale.z = 1.25f;
-            fd->unk0C = 0.625f;
-            fd->unk01 = 2;
-            break;
-        case 2:
-        default:
-            obj->scale.x = obj->scale.y = obj->scale.z = 1.5f;
-            fd->unk0C = 0.75f;
-            fd->unk01 = 3;
-            break;
-    }
-    mdl = func_8000B108_main(0x2F0002, 9);
-    obj->model[0] = mdl;
-    if (D_8010BF4C_hyper_hydrants == 0) {
-        HmfAnimRead(HmfModelData[mdl].hmf, 0xA008C, D_8010BEF0_hyper_hydrants);
-    } else {
-        func_80032694_main(HmfModelData[mdl].hmf, 0, 0, D_8010BEF0_hyper_hydrants);
-    }
-    func_8001C448_main(mdl);
-    func_8001C514_main(mdl);
-    func_8001C258_main(obj->model[0], 4, 4);
-    obj->model[1] = func_8000B108_main(0x2F0003, 0x99);
-    Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
-    Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
-    func_8001C258_main(obj->model[1], 4, 4);
-    obj->model[2] = func_8000B108_main(0x2F000C, 0xA59);
-    Hu3DModelScaleSet(obj->model[2], 2.0f, 2.0f, 2.0f);
-    if (fd->unk02 == 0) {
-        func_8001C8A8_main(obj->model[0], 1);
-        func_8001C8A8_main(obj->model[1], 1);
-        func_8001C8A8_main(obj->model[2], 1);
-    } else {
-        func_8001C8A8_main(obj->model[0], 2);
-        func_8001C8A8_main(obj->model[1], 2);
-        func_8001C8A8_main(obj->model[2], 2);
-    }
-    D_8010BF4C_hyper_hydrants++;
+    case 1:
+      obj->scale.x = (obj->scale.y = (obj->scale.z = 1.25f));
+      fd->unk0C = 0.625f;
+      fd->unk01 = 2;
+      break;
+
+    case 2:
+
+    default:
+      obj->scale.x = (obj->scale.y = (obj->scale.z = 1.5f));
+      fd->unk0C = 0.75f;
+      fd->unk01 = 3;
+      break;
+
+  }
+
+  mdl = (obj->model[0] = func_8000B108_main(0x2F0002, 9));
+  if (D_8010BF4C_hyper_hydrants == 0)
+  {
+    HmfAnimRead(HmfModelData[mdl].hmf, 0xA008C, D_8010BEF0_hyper_hydrants);
+  }
+  else
+  {
+    func_80032694_main(HmfModelData[mdl].hmf, 0, 0, D_8010BEF0_hyper_hydrants);
+  }
+  func_8001C448_main(mdl);
+  func_8001C514_main(mdl);
+  func_8001C258_main(new_var = obj->model[0], 4, 4);
+  obj->model[1] = func_8000B108_main(0x2F0003, 0x99);
+  Hu3DModelPosSet(obj->model[1], obj->trans.x, 0.0f, obj->trans.z);
+  Hu3DModelScaleSet(obj->model[1], fd->unk0C, fd->unk0C, fd->unk0C);
+  func_8001C258_main(obj->model[1], 4, 4);
+  obj->model[2] = func_8000B108_main(0x2F000C, 0xA59);
+  Hu3DModelScaleSet(obj->model[2], 2.0f, 2.0f, 2.0f);
+  if (fd->unk02 == 0)
+  {
+    func_8001C8A8_main(obj->model[0], 1);
+    func_8001C8A8_main(obj->model[1], 1);
+    func_8001C8A8_main(obj->model[2], 1);
+  }
+  else
+  {
+    func_8001C8A8_main(obj->model[0], 2);
+    func_8001C8A8_main(obj->model[1], 2);
+    func_8001C8A8_main(obj->model[2], 2);
+  }
+  D_8010BF4C_hyper_hydrants++;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80109588_hyper_hydrants);
-#endif
 
 /* A fire: grows in, burns and moves while playing (func_80109E44), goes out when hit long enough. */
 void func_801099A0_hyper_hydrants(omObjData* obj) {
@@ -1961,89 +1971,102 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AB34_hyper_hydrants);
 #endif
 
-// masked residue: retail loads the 0.13725491f divisor into $f28 a few instructions earlier (scheduling only; logic checked)
-#ifdef NON_MATCHING
-/* The intro iris: screen title/frames, and two mask sprites (one per half) whose 8-bit alpha texels are the
-   distance from the drop-in's screen position, scaled to 255 over a radius of 35 (opaque beyond it). */
-void func_8010AE08_hyper_hydrants(omObjData* obj) {
-    HhGround* gw;
-    HuSprite* spr[2];
-    s32 i;
-    u8* a;
-    u8* b;
-    f32 x;
-    f32 y;
-    f32 dx;
-    f32 dy;
-    f32 d;
+// decomp-permuter
+void func_8010AE08_hyper_hydrants(omObjData *obj)
+{
+  HhGround *gw;
+  HuSprite *spr[2];
+  s32 i;
+  u8 *a;
+  u8 *b;
+  f32 x;
+  f32 y;
+  f32 dx;
+  float new_var;
+  f32 dy;
+  f32 d;
+  obj->func = func_8010B2FC_hyper_hydrants;
+  obj->trans.x = (obj->trans.y = (obj->trans.z = 0.0f));
+  D_8010BF56_hyper_hydrants = func_8000B838_main(0x2F0009);
+  D_8010BF58_hyper_hydrants = HuSprGrpCreate(1, 0);
+  func_80055024_main(D_8010BF58_hyper_hydrants, 0, D_8010BF56_hyper_hydrants, 0);
+  HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x10);
+  HuSprAttrReset(D_8010BF58_hyper_hydrants, 0, 0xFFFF);
+  HuSprAttrSet(D_8010BF58_hyper_hydrants, 0, 0x1000);
+  func_80054904_main(D_8010BF58_hyper_hydrants, 0, 160, 120);
+  for (i = 0; i < 2; i++)
+  {
+    D_8010BF52_hyper_hydrants = func_8000B838_main(0x2F0000);
+    D_8010BF88_hyper_hydrants = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010BF88_hyper_hydrants, 0, D_8010BF52_hyper_hydrants, 0);
+    HuSprAttrReset(D_8010BF88_hyper_hydrants, 0, 0xFFFF);
+    if (i == 0)
+    {
+      HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5000);
+      func_80054904_main(D_8010BF88_hyper_hydrants, 0, 80, 120);
+    }
+    else
+    {
+      HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5001);
+      func_80054904_main(D_8010BF88_hyper_hydrants, 0, 240, 120);
+    }
+  }
 
-    obj->func = func_8010B2FC_hyper_hydrants;
-    obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;
-    D_8010BF56_hyper_hydrants = func_8000B838_main(0x2F0009);
-    D_8010BF58_hyper_hydrants = HuSprGrpCreate(1, 0);
-    func_80055024_main(D_8010BF58_hyper_hydrants, 0, D_8010BF56_hyper_hydrants, 0);
-    HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x10);
-    HuSprAttrReset(D_8010BF58_hyper_hydrants, 0, 0xFFFF);
-    HuSprAttrSet(D_8010BF58_hyper_hydrants, 0, 0x1000);
-    func_80054904_main(D_8010BF58_hyper_hydrants, 0, 160, 120);
-    for (i = 0; i < 2; i++) {
-        D_8010BF52_hyper_hydrants = func_8000B838_main(0x2F0000);
-        D_8010BF88_hyper_hydrants = HuSprGrpCreate(1, 0);
-        func_80055024_main(D_8010BF88_hyper_hydrants, 0, D_8010BF52_hyper_hydrants, 0);
-        HuSprAttrReset(D_8010BF88_hyper_hydrants, 0, 0xFFFF);
-        if (i == 0) {
-            HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5000);
-            func_80054904_main(D_8010BF88_hyper_hydrants, 0, 80, 120);
-        } else {
-            HuSprAttrSet(D_8010BF88_hyper_hydrants, 0, 0x5001);
-            func_80054904_main(D_8010BF88_hyper_hydrants, 0, 240, 120);
-        }
+  gw = (obj->data = HuMemAllocTag(sizeof(HhGround), 0x7918));
+  memset(gw, 0, sizeof(HhGround));
+  gw->unk03 = 1;
+  gw->unk04 = 0;
+  gw->unk08 = 0.5f;
+  func_800E1370_minigame(obj, 2, 0.0f);
+  for (i = 0; i < 2; i++)
+  {
+    D_8010BF54_hyper_hydrants = func_8000B838_main(0x2F0001);
+    D_8010BF8A_hyper_hydrants[i] = HuSprGrpCreate(1, 0);
+    func_80055024_main(D_8010BF8A_hyper_hydrants[i], 0, D_8010BF54_hyper_hydrants, 0);
+    HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x20);
+    HuSprAttrReset(D_8010BF8A_hyper_hydrants[i], 0, 0xFFFF);
+    if (i == 0)
+    {
+      HuSprAttrSet(D_8010BF8A_hyper_hydrants[0], 0, 0x1000);
+      func_80054904_main(D_8010BF8A_hyper_hydrants[0], 0, 80, 120);
     }
-    gw = obj->data = HuMemAllocTag(sizeof(HhGround), 0x7918);
-    memset(gw, 0, sizeof(HhGround));
-    gw->unk03 = 1;
-    gw->unk04 = 0;
-    gw->unk08 = 0.5f;
-    func_800E1370_minigame(obj, 2, 0.0f);
-    for (i = 0; i < 2; i++) {
-        D_8010BF54_hyper_hydrants = func_8000B838_main(0x2F0001);
-        D_8010BF8A_hyper_hydrants[i] = HuSprGrpCreate(1, 0);
-        func_80055024_main(D_8010BF8A_hyper_hydrants[i], 0, D_8010BF54_hyper_hydrants, 0);
-        HuSprPriSet(D_8010BF58_hyper_hydrants, 0, 0x20); /* retail: the title's priority, not the mask's */
-        HuSprAttrReset(D_8010BF8A_hyper_hydrants[i], 0, 0xFFFF);
-        if (i == 0) {
-            HuSprAttrSet(D_8010BF8A_hyper_hydrants[0], 0, 0x1000);
-            func_80054904_main(D_8010BF8A_hyper_hydrants[0], 0, 80, 120);
-        } else {
-            HuSprAttrSet(D_8010BF8A_hyper_hydrants[i], 0, 0x1001);
-            func_80054904_main(D_8010BF8A_hyper_hydrants[i], 0, 240, 120);
-        }
-        spr[i] = HuSprGet(D_8010BF8A_hyper_hydrants[i], 0);
-        D_8010BF94_hyper_hydrants[i] = spr[i]->unk_84->unk00->unk00;
+    else
+    {
+      HuSprAttrSet(D_8010BF8A_hyper_hydrants[i], 0, 0x1001);
+      func_80054904_main(D_8010BF8A_hyper_hydrants[i], 0, 240, 120);
     }
-    D_8010BF8E_hyper_hydrants = spr[0]->unk_84->unk14;
-    D_8010BF90_hyper_hydrants = spr[0]->unk_84->unk16;
-    D_8010BF9C_hyper_hydrants = 35;
-    a = D_8010BF94_hyper_hydrants[0];
-    b = D_8010BF94_hyper_hydrants[1];
-    for (y = 0.0f; y < (s16)D_8010BF90_hyper_hydrants; y += 1.0f) {
-        for (x = 0.0f; x < D_8010BF8E_hyper_hydrants; x += 1.0f, a++, b++) {
-            dx = x - D_8010BFA0_hyper_hydrants;
-            dy = y - D_8010BFA4_hyper_hydrants;
-            d = HuSqrtf(dx * dx + dy * dy);
-            if (D_8010BF9C_hyper_hydrants < d) {
-                *a = *b = 0xFF;
-            } else {
-                *a = *b = d / 0.13725491f;
-            }
-        }
+    spr[i] = HuSprGet(D_8010BF8A_hyper_hydrants[i], 0);
+    D_8010BF94_hyper_hydrants[i] = spr[i]->unk_84->unk00->unk00;
+  }
+
+  D_8010BF8E_hyper_hydrants = spr[0]->unk_84->unk14;
+  D_8010BF90_hyper_hydrants = spr[0]->unk_84->unk16;
+  D_8010BF9C_hyper_hydrants = 35;
+  new_var = 0.13725491f;
+  a = D_8010BF94_hyper_hydrants[0];
+  b = D_8010BF94_hyper_hydrants[1];
+  for (y = 0.0f; y < ((s16) D_8010BF90_hyper_hydrants); y += 1.0f)
+  {
+    for (x = 0.0f; x < D_8010BF8E_hyper_hydrants; x += 1.0f, a++, b++)
+    {
+      dx = x - D_8010BFA0_hyper_hydrants;
+      dy = y - D_8010BFA4_hyper_hydrants;
+      d = HuSqrtf((dx * dx) + (dy * dy));
+      if (D_8010BF9C_hyper_hydrants < d)
+      {
+        *a = (*b = 0xFF);
+      }
+      else
+      {
+        *a = (*b = d / new_var);
+      }
     }
-    func_80055458_main(D_8010BF8A_hyper_hydrants[0], 0, 240);
-    func_80055458_main(D_8010BF8A_hyper_hydrants[1], 0, 240);
+
+  }
+
+  func_80055458_main(D_8010BF8A_hyper_hydrants[0], 0, 240);
+  func_80055458_main(D_8010BF8A_hyper_hydrants[1], 0, 240);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AE08_hyper_hydrants);
-#endif
 
 /* The iris opens by 3 a frame (to 240) once the drop-in has landed. */
 void func_8010B2FC_hyper_hydrants(omObjData* obj) {

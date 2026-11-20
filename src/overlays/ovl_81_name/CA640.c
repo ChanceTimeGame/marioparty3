@@ -735,52 +735,42 @@ Process* func_800E47B8_name_81(s32 playerNo, s32 fileOfs, Vec* from, Vec* to, s3
     return proc;
 }
 
-#ifdef NON_MATCHING
-/* masked 0: speed and the loop counter take each other's registers; logic checked */
-void func_800E4914_name_81(void) {
-    s32 files[2];
-    s32 ys[2];
-    UnkBoard4* spr;
-    void* file;
-    s32 side;
-    s32 i;
-    s32 ofs;
-    s32 speed;
-
-    side = ((DuelVsBannerData*)HuPrcCurrentGet()->user_data)->side;
-    files[0] = 0x130101;
-    files[1] = 0x130102;
-    ys[0] = 0x78;
-    ys[1] = 0x5A;
-    spr = func_800F4528_name_81(1, 2);
-    speed = 0;
-    file = DataRead(files[side]);
-    spr->unk_0C[0] = func_80055810_main(file);
-    func_80055024_main(spr->unk_0A, 0, spr->unk_0C[0], 0);
-    HuSprPriSet(spr->unk_0A, 0, 0x2010);
-    HuSprAttrSet(spr->unk_0A, 0, 0);
-    DataClose(file);
-    ofs = 0;
-    i = 0;
-    do {
-        func_80054904_main(spr->unk_0A, 0, 0xA0, ys[side] + ofs);
-        if (side == 0) {
-            ofs -= speed;
-        } else {
-            ofs += speed;
-        }
-        speed += 2;
-        HuPrcVSleep();
-        i++;
-    } while (i < 7);
-    HuPrcSleep(20);
-    func_800F4584_name_81(spr);
-    omDelPrcObj(NULL);
+// decomp-permuter
+void func_800E4914_name_81(void)
+{
+  s32 files[2];
+  s32 ys[2];
+  UnkBoard4 *spr;
+  void *file;
+  s32 side;
+  s32 i;
+  s32 ofs;
+  s32 speed;
+  side = ((DuelVsBannerData *) HuPrcCurrentGet()->user_data)->side;
+  files[0] = 0x130101;
+  files[1] = 0x130102;
+  ys[0] = 0x78;
+  ys[1] = 0x5A;
+  spr = func_800F4528_name_81(1, 2);
+  speed = 0;
+  file = DataRead(files[side]);
+  spr->unk_0C[0] = func_80055810_main(file);
+  func_80055024_main(spr->unk_0A, 0, spr->unk_0C[0], 0);
+  HuSprPriSet(spr->unk_0A, 0, 0x2010);
+  HuSprAttrSet(spr->unk_0A, 0, 0);
+  DataClose(file);
+  ofs = 0;
+  i = 0;
+  do
+  {
+ do { func_80054904_main(spr->unk_0A, 0, 0xA0, ys[side] + ofs); if (side == 0) { ofs -= speed; } else { ofs += speed; } speed += 2; HuPrcVSleep(); } while (0);
+    i++;
+  }
+  while (i < 7);
+  HuPrcSleep(20);
+  func_800F4584_name_81(spr);
+  omDelPrcObj(0);
 }
-
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/CA640", func_800E4914_name_81);
-#endif
 
 void func_800E4914_name_81(void);
 

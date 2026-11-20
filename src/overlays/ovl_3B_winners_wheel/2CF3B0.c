@@ -855,39 +855,42 @@ void func_80107CB4_winners_wheel(void) {
 
 /* NON_MATCHING: masked 6. Retail hoists -10.5f before 0.0f (f22/f24 swapped) and passes the else
    branch's 0.0f arguments as integer zeros instead of the hoisted register. Logic checked. */
-#ifdef NON_MATCHING
-/* The 18 pegs round the wheel. */
-void func_80107D50_winners_wheel(void) {
-    omObjData* obj;
-    WwPegs* work;
-    s32 i;
-    s32 attr;
-
-    obj = omAddObj(0xFF, 18, 0, -1, func_80107F4C_winners_wheel);
-    obj->data = HuMemAllocTag(sizeof(WwPegs), 31000);
-    work = obj->data;
-    D_8010A4C0_winners_wheel = obj;
-    attr = 0x6BD;
-    work->unk94 = 0.0f;
-    work->unk00 = 0x20;
-    work->unk9C = 0;
-    work->unkA0 = 0;
-    for (i = 0; i < 18; i++) {
-        work->unk4C[i] = work->unk04[i] = i * 20.0f;
-        if (i == 0) {
-            obj->model[0] = func_8000B108_main(0x5C0005, attr);
-            omSetTra(obj, sindf(work->unk04[0]) * -10.5f, cosdf(work->unk04[0]) * -10.5f, 0.0f);
-            omSetRot(obj, 0.0f, 0.0f, -work->unk04[0]);
-        } else {
-            obj->model[i] = Hu3DModelLink(obj->model[0]);
-            Hu3DModelPosSet(obj->model[i], sindf(work->unk04[i]) * -10.5f, cosdf(work->unk04[i]) * -10.5f, 0.0f);
-            Hu3DModelRotSet(obj->model[i], 0.0f, 0.0f, -work->unk04[i]);
-        }
+// decomp-permuter
+void func_80107D50_winners_wheel(void)
+{
+  omObjData *obj;
+  unsigned char new_var;
+  WwPegs *work;
+  s32 i;
+  s32 attr;
+  obj = omAddObj(0xFF, 18, 0, -1, func_80107F4C_winners_wheel);
+  obj->data = HuMemAllocTag(sizeof(WwPegs), 31000);
+  work = obj->data;
+  D_8010A4C0_winners_wheel = obj;
+  attr = 0x6BD;
+  work->unk94 = 0.0f;
+  work->unk00 = 0x20;
+  work->unk9C = 0;
+  work->unkA0 = 0;
+  for (i = 0; i < 18; i++)
+  {
+    work->unk4C[i] = (work->unk04[i] = i * 20.0f);
+    if (i == 0)
+    {
+      obj->model[0] = func_8000B108_main(0x5C0005, attr);
+      new_var = 0;
+      omSetTra(obj, sindf(work->unk04[new_var]) * (-10.5f), cosdf(work->unk04[new_var]) * (-10.5f), 0.0f);
+      omSetRot(obj, 0.0f, 0.0f, -work->unk04[0]);
     }
+    else
+    {
+      obj->model[i] = Hu3DModelLink(obj->model[0]);
+      Hu3DModelPosSet(obj->model[i], sindf(work->unk04[i]) * (-10.5f), cosdf(work->unk04[i]) * (-10.5f), 0.0f);
+      Hu3DModelRotSet(obj->model[i], 0.0f, 0.0f, -work->unk04[i]);
+    }
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3B_winners_wheel/2CF3B0", func_80107D50_winners_wheel);
-#endif
 
 void func_80107F4C_winners_wheel(omObjData* obj) {
     WwPegs* work = obj->data;

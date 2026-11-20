@@ -1984,20 +1984,19 @@ void func_8010AEF0_popgun_pickoff(s16 id, u32 flags) {
 
 
 
-#ifdef NON_MATCHING
-s32 func_8010AF38_popgun_pickoff(s16 id) {
-    s32 flags = -1;
-    PgBoard* b;
-
-    if (id != -1) {
-        b = &D_8010DDD8_popgun_pickoff[id];
-        flags = b->flags;
-    }
+// decomp-permuter
+s32 func_8010AF38_popgun_pickoff(s16 id)
+{
+  s32 flags = -1;
+  PgBoard *b;
+  flags = 1;
+  if (id != (-flags))
+  {
+    b = &D_8010DDD8_popgun_pickoff[id];
+    flags = b->flags;
     return flags;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010AF38_popgun_pickoff);
-#endif
 
 
 
@@ -2332,33 +2331,36 @@ void func_8010B544_popgun_pickoff(s16 id, s8 arg1, s8 arg2, u32 flags) {
 
 
 
-#ifdef NON_MATCHING
-void func_8010B5B4_popgun_pickoff(s16 id, s32 on) {
-    PgBoard* b;
-    Vtx* v;
-    s8 c;
-    s8 a;
-    s32 i;
-
-    if (id != -1) {
-        b = &D_8010DDD8_popgun_pickoff[id];
-        if (on) {
-            c = 0;
-            a = 0x70;
-        } else {
-            c = -1;
-            a = -1;
-        }
-        for (i = 0; i < b->rows; i++) {
-            v = &b->vtx[i];
-            v->v.cn[0] = v->v.cn[1] = v->v.cn[3] = c;
-            b->vtx[i].v.cn[2] = a;
-        }
+// decomp-permuter
+void func_8010B5B4_popgun_pickoff(s16 id, s32 on)
+{
+  PgBoard *b;
+  Vtx *v;
+  s8 c;
+  s8 a;
+  s32 i;
+  if (id != (-1))
+  {
+    b = &D_8010DDD8_popgun_pickoff[id];
+    if (on)
+    {
+      c = 0;
+      a = 0x70;
     }
+    else
+    {
+      c = -1;
+      a = -1;
+    }
+    for (i = 0; i < b->rows; i++)
+    {
+      ;
+      (&b->vtx[i])->v.cn[0] = ((&b->vtx[i])->v.cn[1] = ((&b->vtx[i])->v.cn[3] = c));
+      b->vtx[i].v.cn[2] = a;
+    }
+
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010B5B4_popgun_pickoff);
-#endif
 
 void func_8010B64C_popgun_pickoff(void) {
     PgBoard* b;

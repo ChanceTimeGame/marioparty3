@@ -1227,41 +1227,49 @@ void func_80108BBC_eye_sore(void) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_80108D3C_eye_sore(void) {
-    EsPlayer *p;
-    EsPlayer *q;
-    s8 i;
-    s8 j;
-    s8 add = 3;
-    s32 again;
-
-    do {
-        again = 0;
-        for (i = 0; i < 4; i++) {
-            p = &D_8010CA60_eye_sore[i];
-            for (j = 0; j < 4; j++) {
-                if (i != j) {
-                    q = &D_8010CA60_eye_sore[j];
-                    if (p->rank != -1 && p->rank == q->rank) {
-                        if (func_80105CE4_eye_sore(2) != 0) {
-                            p->rank++;
-                            p->unk12 = add;
-                        } else {
-                            q->rank++;
-                            q->unk12 = add;
-                        }
-                        add += 3;
-                        again = 1;
-                    }
-                }
+// decomp-permuter
+void func_80108D3C_eye_sore(void)
+{
+  EsPlayer *p;
+  EsPlayer *q;
+  s8 i;
+  s8 j;
+  s8 add = 3;
+  short again;
+  do
+  {
+    again = 0;
+    for (i = 0; i < 4; i++)
+    {
+      p = &D_8010CA60_eye_sore[i];
+      for (j = 0; j < 4; j++)
+      {
+        if (i != j)
+        {
+          q = &D_8010CA60_eye_sore[j];
+          if ((p->rank != (-1)) && (p->rank == q->rank))
+          {
+            if (func_80105CE4_eye_sore(2) != 0)
+            {
+              p->rank++;
+              p->unk12 = add;
             }
+            else
+            {
+              q->rank++;
+              q->unk12 = add;
+            }
+            add += 3;
+            again = 1;
+          }
         }
-    } while (again);
+      }
+
+    }
+
+  }
+  while (again);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_30_eye_sore/270EF0", func_80108D3C_eye_sore);
-#endif
 
 void func_80108E8C_eye_sore(omObjData *obj) {
     u8 player = obj->work[0];

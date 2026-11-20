@@ -1816,38 +1816,41 @@ void func_8010BA00_storm_chasers(void) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010BD04_storm_chasers(void) {
-    s32 i;
-    s32 zero;
-    ScPlayer *pl;
+// decomp-permuter
+void func_8010BD04_storm_chasers(void)
+{
+  s32 i;
+  int new_var;
+  s32 zero;
+  ScPlayer *pl;
+  i = 0;
+  new_var = 1;
+  zero = 0;
+  pl = D_8010CD80_storm_chasers;
+  for (; i < 4; i++)
+  {
+ do { if (pl[i].state != (-new_var)) { zero += pl[i].score == 0; } } while (0);
+  }
 
+  if (zero >= 4)
+  {
     i = 0;
-    zero = 0;
     pl = D_8010CD80_storm_chasers;
-    for (; i < 4; i++) {
-        if (pl[i].state != -1) {
-            zero += pl[i].score == 0;
-        }
+    for (; i < 4; i++)
+    {
+      if (pl[i].state != (-1))
+      {
+        GwPlayer[i].bonusCoin = 3;
+        pl[i].rank = 3;
+        D_8010CAAC_storm_chasers = 0;
+      }
     }
-    if (zero >= 4) {
-        i = 0;
-        pl = D_8010CD80_storm_chasers;
-        for (; i < 4; i++) {
-            if (pl[i].state != -1) {
-                GwPlayer[i].bonusCoin = 3;
-                pl[i].rank = 3;
-                D_8010CAAC_storm_chasers = 0;
-            }
-        }
-        return;
-    }
-    func_8010BA00_storm_chasers();
-    D_8010CAAC_storm_chasers = 1;
+
+    return;
+  }
+  func_8010BA00_storm_chasers();
+  D_8010CAAC_storm_chasers = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2F_storm_chasers/269BF0", func_8010BD04_storm_chasers);
-#endif
 
 void func_8010BDF4_storm_chasers(omObjData *obj) {
     ScBucket *b;

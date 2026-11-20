@@ -7610,103 +7610,122 @@ void func_8011A2BC_w03(void) {
     omDelPrcObj(NULL);
 }
 
-#ifdef NON_MATCHING
-void func_8011A338_w03(void) {
-    GW_PLAYER *player;
-    W03PipeArg *arg;
-    SpaceData *dest;
-    s32 playerNo;
-    Object *obj;
-    GW_SYSTEM *sys;
-
-    arg = HuPrcCurrentGet()->user_data;
-    sys = &GwSystem;
-    playerNo = arg->player;
-    player = MBPlayerGet(playerNo);
-
-    dest = MBMasuGet(D_8011EB3C_w03 == MBMasuGet(0x7F) ? 0x24 : 0x4E);
-    func_8004AC98_main(0x199, sys->current_player_index);
-    player->player_obj->velocity.x = 0.0f;
-    HuVecCopy3F(&player->player_obj->coords, &D_8011EB3C_w03->coords);
-    obj = MBModelCreate(0x36, NULL);
-    HuVecCopy3F(&obj->coords, &D_8011EB3C_w03->coords);
-    MBMotionSet(obj, -1, 0);
-    func_800EE688_shared_board(player->player_obj, 15.0f, -0.1f);
-    HuPrcSleep(10);
-    player->player_obj->velocity.x = 100.0f;
-    HuVecCopy3F(&player->player_obj->coords, &dest->coords);
-    player->player_obj->coords.x += D_8011D438_w03[D_8011EB50_w03 + arg->slot].x;
-    player->player_obj->coords.z += D_8011D438_w03[D_8011EB50_w03 + arg->slot].y;
-    func_800EE688_shared_board(player->player_obj, 0.0f, -1.0f);
-    func_800EE6C0_shared_board(player->player_obj);
-    MBPlayerVibrate(playerNo, 1);
-    MBModelKill(obj);
-    if (D_8011EB3C_w03 == MBMasuGet(0x7F)) {
-        player->clink = 5;
-        player->cidx = 0x14;
-        player->nlink = 5;
-        player->nidx = 0x15;
-        player->blink = 5;
-        player->bidx = 0x13;
-    } else {
-        player->clink = 2;
-        player->cidx = 2;
-        player->nlink = 2;
-        player->nidx = 3;
-        player->blink = 2;
-        player->bidx = 1;
-    }
-    omDelPrcObj(NULL);
+// decomp-permuter
+void func_8011A338_w03(void)
+{
+  GW_PLAYER *player;
+  W03PipeArg *arg;
+  SpaceData *dest;
+  s32 playerNo;
+  Object *obj;
+  GW_SYSTEM *sys;
+  arg = HuPrcCurrentGet()->user_data;
+  sys = &GwSystem;
+  playerNo = arg->player;
+  player = MBPlayerGet(playerNo);
+  dest = MBMasuGet((D_8011EB3C_w03 == MBMasuGet(0x7F)) ? (0x24) : (0x4E));
+  func_8004AC98_main(0x199, sys->current_player_index);
+  player->player_obj->velocity.x = 0.0f;
+  HuVecCopy3F(&player->player_obj->coords, &D_8011EB3C_w03->coords);
+  obj = MBModelCreate(0x36, 0);
+  HuVecCopy3F(&obj->coords, &D_8011EB3C_w03->coords);
+  MBMotionSet(obj, -1, 0);
+  func_800EE688_shared_board(player->player_obj, 15.0f, -0.1f);
+  HuPrcSleep(10);
+  player->player_obj->velocity.x = 100.0f;
+  HuVecCopy3F(&player->player_obj->coords, &dest->coords);
+  player->player_obj->coords.x += D_8011D438_w03[D_8011EB50_w03 + arg->slot].x;
+  player->player_obj->coords.z += D_8011D438_w03[D_8011EB50_w03 + arg->slot].y;
+  func_800EE688_shared_board(player->player_obj, 0.0f, -1.0f);
+  func_800EE6C0_shared_board(player->player_obj);
+  MBPlayerVibrate(playerNo, 1);
+  MBModelKill(obj);
+  if (D_8011EB3C_w03 == MBMasuGet(0x7F))
+  {
+    player->clink = 5;
+    player->cidx = 0x14;
+    player->nlink = 5;
+    player->nidx = 0x15;
+    player->blink = 5;
+    player->bidx = 0x13;
+  }
+  else
+    if (dest)
+  {
+    player->clink = 2;
+    player->cidx = 2;
+    player->nlink = 2;
+    player->nidx = 3;
+    player->blink = 2;
+    player->bidx = 1;
+  }
+  else
+  {
+    player->clink = 2;
+    player->cidx = 2;
+    player->nlink = 2;
+    player->nidx = 3;
+    player->blink = 2;
+    player->bidx = 1;
+  }
+  omDelPrcObj(0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A338_w03);
-#endif
 
-#ifdef NON_MATCHING
-void func_8011A550_w03(void) {
-    Vec dir;
-    GW_PLAYER *player;
-    s32 playerNo;
-    s32 second;
-    SpaceData *space;
-    GW_SYSTEM *sys;
-    f32 speed;
-
-    second = 0;
-    playerNo = (s32)HuPrcCurrentGet()->user_data;
-    sys = &GwSystem;
-    if (playerNo >= 4) {
-        second = 1;
-        playerNo -= 4;
-    }
-    player = MBPlayerGet(playerNo);
-    space = MBMasuGet(second == 0 ? 0x80 : 0x7F);
-    MBPlayerMotionSet(-1, 2, 0);
-    func_800EE688_shared_board(player->player_obj, 15.0f, -2.5f);
-    func_800EE6C0_shared_board(player->player_obj);
-    HuVecSubtract(&dir, &player->player_obj->coords, &space->coords);
-    MBVecNormalize(&dir);
-    HuVecCopy3F(&player->player_obj->rot, &dir);
-    func_8004ACE0_main(0x286, playerNo);
-    if (playerNo == sys->current_player_index) {
-        MBPlayerMotionSet(-1, 1, 2);
-        MBPlayerSpeedSet(sys->current_player_index, 1.5f);
-    } else {
-        MBMotionSet(player->player_obj, 1, 2);
-        func_8001C92C_main(player->player_obj->omObj1->model[0], 1.5f);
-    }
-    speed = 1.0f;
-    do {
-        player->player_obj->coords.x += speed * dir.x;
-        player->player_obj->coords.z += speed * dir.z;
-        HuPrcVSleep();
-        speed -= 0.1f;
-    } while (speed > 0.0f);
-    omDelPrcObj(NULL);
+// decomp-permuter
+void func_8011A550_w03(void)
+{
+  Vec dir;
+  GW_PLAYER *player;
+  s32 playerNo;
+  s32 second;
+  SpaceData *space;
+  GW_SYSTEM *sys;
+  f32 speed;
+  second = 0;
+  playerNo = (s32) HuPrcCurrentGet()->user_data;
+  sys = &GwSystem;
+ if (0) { }
+  if (playerNo >= 4)
+  {
+    second = 1;
+    playerNo -= 4;
+  }
+  player = MBPlayerGet(playerNo);
+  space = MBMasuGet((second == 0) ? (0x80) : (0x7F));
+  MBPlayerMotionSet(-1, 2, 0);
+  func_800EE688_shared_board(player->player_obj, 15.0f, -2.5f);
+  func_800EE6C0_shared_board(player->player_obj);
+  HuVecSubtract(&dir, &player->player_obj->coords, &space->coords);
+  MBVecNormalize(&dir);
+  HuVecCopy3F(&player->player_obj->rot, &dir);
+  func_8004ACE0_main(0x286, playerNo);
+  if (playerNo == sys->current_player_index)
+  {
+    MBPlayerMotionSet(-1, 1, 2);
+    MBPlayerSpeedSet(sys->current_player_index, 1.5f);
+  }
+  else
+    if (player || space)
+  {
+    MBMotionSet(player->player_obj, 1, 2);
+    func_8001C92C_main(player->player_obj->omObj1->model[0], 1.5f);
+  }
+  else
+  {
+    MBMotionSet(player->player_obj, 1, 2);
+    func_8001C92C_main(player->player_obj->omObj1->model[0], 1.5f);
+  }
+  speed = 1.0f;
+  do
+  {
+    player->player_obj->coords.x += speed * dir.x;
+    player->player_obj->coords.z += speed * dir.z;
+    HuPrcVSleep();
+    speed -= 0.1f;
+  }
+  while (speed > 0.0f);
+  omDelPrcObj(0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w03/34E840", func_8011A550_w03);
-#endif
 
 #ifdef NON_MATCHING
 void func_8011A704_w03(void) {

@@ -316,49 +316,41 @@ s16 func_8000D658_main(s32 arg0, s16 count) {
 }
 
 // Masked 0, raw 5: the count and the constant 5 swap s6/s7. Logic checked against the asm.
-#ifdef NON_MATCHING
-/* Burst hook: on frame 0 spreads the particles in a ring; 8 frames out and falling, then hides. */
-void func_8000D694_main(s16 model) {
-    FxData* hmf;
-    FxWork* work;
-    FxPart* part;
-    s16 count;
-    s16 i;
-    f32 angle;
-    f32 scale;
+// decomp-permuter
+void func_8000D694_main(s16 model)
+{
+  FxData *hmf;
+  FxWork *work;
+  FxPart *part;
+  s16 count;
+  s16 i;
+  f32 angle;
+  f32 scale;
+  hmf = (FxData *) HmfModelData[model].hmf;
+  work = (FxWork *) HmfModelData[model].unkBC;
+  count = hmf->count;
+  if (work->frame == 0)
+  {
+ do { work->flags &= ~4; part = work->parts; for (i = 0; i < count; i++, part++) { part->pos.x = (part->pos.y = (part->pos.z = 0.0f)); angle = (360 / count) * i; part->vel.x = sindf(angle); part->vel.y = 5 - (rand8() & 0xF); part->vel.z = cosdf(angle); part->life = 15.0f; } } while (0);
+  }
+  if (!(work->flags & 4))
+  {
+    part = work->parts;
+    scale = cosdf(work->frame * 11.25f) * 5.0f;
+    for (i = 0; i < count; i++, part++)
+    {
+      part->pos.x += part->vel.x * part->life;
+      part->pos.y += part->vel.y;
+      part->pos.z += part->vel.z * part->life;
+      part->scale = scale;
+      part->vel.y -= 2.0f;
+      part->life *= 0.7f;
+    }
 
-    hmf = FXDATA(model);
-    work = FXWORK(model);
-    count = hmf->count;
-    if (work->frame == 0) {
-        work->flags &= ~4;
-        part = work->parts;
-        for (i = 0; i < count; i++, part++) {
-            part->pos.x = part->pos.y = part->pos.z = 0.0f;
-            angle = (360 / count) * i;
-            part->vel.x = sindf(angle);
-            part->vel.y = 5 - (rand8() & 0xF);
-            part->vel.z = cosdf(angle);
-            part->life = 15.0f;
-        }
+    if ((++work->frame) >= 8)
+    {
+      work->flags |= 4;
+      func_8001C258_main(model, 4, 4);
     }
-    if (!(work->flags & 4)) {
-        part = work->parts;
-        scale = cosdf(work->frame * 11.25f) * 5.0f;
-        for (i = 0; i < count; i++, part++) {
-            part->pos.x += part->vel.x * part->life;
-            part->pos.y += part->vel.y;
-            part->pos.z += part->vel.z * part->life;
-            part->scale = scale;
-            part->vel.y -= 2.0f;
-            part->life *= 0.7f;
-        }
-        if (++work->frame >= 8) {
-            work->flags |= 4;
-            func_8001C258_main(model, 4, 4);
-        }
-    }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/D7A0", func_8000D694_main);
-#endif

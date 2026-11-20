@@ -1395,39 +1395,42 @@ void func_8010A71C_snowball_summit(omObjData *obj) {
 }
 
 /* Lets go of the snowball (motion 3 or 4) and pushes it out in front. */
-// register allocation only (masked 0: the distance is built in f20, not f2)
-#ifdef NON_MATCHING
-void func_8010A940_snowball_summit(omObjData *obj) {
-    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
-    SsBall *ball;
-    f32 dist;
+// decomp-permuter
+void func_8010A940_snowball_summit(omObjData *obj)
+{
+  SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+  SsBall *ball;
+  f32 dist;
+  switch (pl->motion)
+  {
+    case 3:
+      func_80107CA4_snowball_summit(obj, 5);
+      break;
 
-    switch (pl->motion) {
-        case 3:
-            func_80107CA4_snowball_summit(obj, 5);
-            break;
-        case 4:
-            func_80107CA4_snowball_summit(obj, 6);
-            break;
-        default:
-            return;
-    }
-    ball = &D_8010FC30_snowball_summit[pl->ball];
-    dist = ball->size * 37.5 + pl->unk50;
-    ball->obj->trans.x = sindf(pl->rot) * dist + obj->trans.x;
-    ball->obj->trans.z = cosdf(pl->rot) * dist + obj->trans.z;
-    if (ball->state != 20) {
-        ball->state = 10;
-    }
-    ball->owner = -1;
-    pl->speed = 0.0f;
-    pl->vel.x = pl->vel.z = pl->speed;
-    pl->rolling = 0;
-    pl->ball = -1;
+    case 4:
+      func_80107CA4_snowball_summit(obj, 6);
+      break;
+
+    default:
+      return;
+
+  }
+
+  ball = &D_8010FC30_snowball_summit[pl->ball];
+  dist = (ball->size * 37.5) + pl->unk50;
+  ball->obj->trans.x = (sindf(pl->rot) * dist) + obj->trans.x;
+  ball->obj->trans.z = (cosdf(pl->rot) * dist) + obj->trans.z;
+  if (ball->state != 20)
+  {
+    ball->state = 10;
+  }
+  ball->owner = -1;
+  pl->speed = 0.0f;
+  dist = (pl->vel.z = pl->speed);
+  pl->vel.x = dist;
+  pl->rolling = 0;
+  pl->ball = -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010A940_snowball_summit);
-#endif
 
 /* A human's controls. */
 // scheduling/CSE: retail reloads obj->work[0] for the first pad lookup and fills delay slots differently; same ops
@@ -1509,45 +1512,59 @@ void func_8010AE74_snowball_summit(omObjData *obj) {
 }
 
 /* After the time is up: stand still, drop the snowball. */
-// register allocation only (masked 0: obj/pl swap s0/s1)
-#ifdef NON_MATCHING
-void func_8010B01C_snowball_summit(omObjData *obj) {
-    SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
-    SsBall *ball;
+// decomp-permuter
+void func_8010B01C_snowball_summit(omObjData *obj)
+{
+  SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
+  SsBall *ball;
+  switch (pl->hit)
+  {
+    case 0:
+      if (pl->motion != 0)
+    {
+      func_80107D30_snowball_summit(obj, 0, 0, 10);
+      if (pl->ball != (-1))
+      {
+        ball = &D_8010FC30_snowball_summit[pl->ball];
+        ball->state = 20;
+        ball->owner = -1;
+        pl->rolling = 0;
+        pl->ball = -1;
+      }
+    }
+      break;
 
-    switch (pl->hit) {
-        case 0:
-            if (pl->motion != 0) {
-                func_80107D30_snowball_summit(obj, 0, 0, 10);
-                if (pl->ball != -1) {
-                    ball = &D_8010FC30_snowball_summit[pl->ball];
-                    ball->state = 20;
-                    ball->owner = -1;
-                    pl->rolling = 0;
-                    pl->ball = -1;
-                }
-            }
-            break;
-        case 1:
-            if (obj->trans.y == 0.0f && pl->motion != 0) {
-                func_80107D30_snowball_summit(obj, 0, 0, 10);
-                obj->rot.y = 0.0f;
-                break;
-            }
-        case 2:
-            func_8010AE74_snowball_summit(obj);
-            break;
-        case 3:
-            func_8010AE74_snowball_summit(obj);
-            break;
+    case 1:
+      if ((obj->trans.y == 0.0f) && (pl->motion != 0))
+    {
+      func_80107D30_snowball_summit(obj, 0, 0, 10);
+      obj->rot.y = 0.0f;
+      break;
     }
-    if (pl->motion == 0) {
-        obj->rot.y = 0.0f;
+
+    case 2:
+      func_8010AE74_snowball_summit(obj);
+      break;
+
+    case 3:
+      if (obj)
+    {
+      func_8010AE74_snowball_summit(obj);
+      break;
     }
+    else
+    {
+      func_8010AE74_snowball_summit(obj);
+      break;
+    }
+
+  }
+
+  if (pl->motion == 0)
+  {
+    obj->rot.y = 0.0f;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010B01C_snowball_summit);
-#endif
 
 /* The result pose: win (motion 9 and the character's voice) or lose (10). */
 void func_8010B158_snowball_summit(omObjData *obj) {

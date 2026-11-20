@@ -3170,70 +3170,85 @@ void func_800062A8_main(SndVoice* v) {
 // MP3 calls the n_audio sound player and sets flag 0x800 after a stop. Scheduling (5 instructions):
 // retail sums pan2 + (pan - 0x40) loading pan2 first; GCC reassociates the -0x40 or loads pan first.
 // Tried: mix += form, pan2 in a temporary, one expression (MP2 also tried these)
-#ifdef NON_MATCHING
-void func_8000658C_main(SndVoice* v, s32 start) {
-    s32 vol;
-    s32 pan;
-    s32 mix;
-
-    if (v->sndId >= 0) {
-        func_8006DD40_main(v->sndId);
-        if ((v->flags & 0x4000) || start) {
-            vol = v->noteVolOfs + v->noteVol;
-            if (vol >= 0x80) {
-                vol = 0x7F;
-            }
-            if (vol < 0) {
-                vol = 0;
-            }
-            vol = vol * D_800A97BC_main->fadeVol * v->vol * v->sound.sampleVolume / 2048383;
-            vol = vol * D_800A97BC_main->vol2 * D_800A97BC_main->vol3 * v->vol2 / 2048383;
-            if (!(v->flags & 4)) {
-                vol = vol * D_800A97BC_main->pause / 127;
-            }
-            func_8006DC80_main(func_8000113C_main(vol));
-        }
-        if ((v->flags & 0x8000) || start) {
-            vol = 0x40;
-            if (!(D_800CB8AC_main & 1)) {
-                vol = v->notePanOfs + v->notePan;
-                mix = v->pan2;
-                mix += v->pan - 0x40;
-                vol = mix + (vol - 0x40);
-                if (vol < 0) {
-                    vol = 0;
-                }
-                if (vol >= 0x80) {
-                    vol = 0x7F;
-                }
-            }
-            func_8006DB80_main(vol);
-        }
-        if ((v->flags & 0x20000) || start) {
-            vol = v->pitch + v->pitchOfs;
-            func_8006DBE0_main(alCents2Ratio(vol + v->note) * v->rateRatio * v->pitchMul);
-        }
-        if ((v->flags & 0x10000) || start) {
-            if ((pan = v->noteFxMix) != 0) {
-                vol = pan;
-            } else {
-                vol = v->fxMix;
-            }
-            func_8006DB20_main(vol);
-        }
-        if (start && v->sndState == 0) {
-            func_8006DAB0_main();
-        }
-        if (v->flags & 0x2000) {
-            func_8006DCE0_main();
-            v->flags |= 0x800;
-        }
-        v->flags &= 0xFFFC1FFF;
+// decomp-permuter
+void func_8000658C_main(SndVoice *v, s32 start)
+{
+  s32 vol;
+  s32 pan;
+  int new_var;
+  s32 mix;
+  if (v->sndId >= 0)
+  {
+    func_8006DD40_main(v->sndId);
+    if ((v->flags & 0x4000) || start)
+    {
+      vol = v->noteVolOfs + v->noteVol;
+      if (vol >= 0x80)
+      {
+        vol = 0x7F;
+      }
+      if (vol < 0)
+      {
+        vol = 0;
+      }
+      vol = (((vol * D_800A97BC_main->fadeVol) * v->vol) * v->sound.sampleVolume) / 2048383;
+      vol = (((vol * D_800A97BC_main->vol2) * D_800A97BC_main->vol3) * v->vol2) / 2048383;
+      if (!(v->flags & 4))
+      {
+        vol = (vol * D_800A97BC_main->pause) / 127;
+      }
+      func_8006DC80_main(func_8000113C_main(vol));
     }
+    if ((v->flags & 0x8000) || start)
+    {
+      vol = 0x40;
+      if (!(D_800CB8AC_main & 1))
+      {
+        vol = v->notePanOfs + v->notePan;
+        mix = v->pan2;
+        new_var = 0x40;
+        mix += v->pan - new_var;
+        vol = mix + (vol - new_var);
+        if (vol < 0)
+        {
+          vol = 0;
+        }
+        if (vol >= 0x80)
+        {
+          vol = 0x7F;
+        }
+      }
+      func_8006DB80_main(vol);
+    }
+    if ((v->flags & 0x20000) || start)
+    {
+      vol = v->pitch + v->pitchOfs;
+      func_8006DBE0_main((alCents2Ratio(vol + v->note) * v->rateRatio) * v->pitchMul);
+    }
+    if ((v->flags & 0x10000) || start)
+    {
+      if ((pan = v->noteFxMix) != 0)
+      {
+        vol = pan;
+      }
+      else
+      {
+        vol = v->fxMix;
+      }
+      func_8006DB20_main(vol);
+    }
+    if (start && (v->sndState == 0))
+    {
+      func_8006DAB0_main();
+    }
+    if (v->flags & 0x2000)
+    {
+      func_8006DCE0_main();
+      v->flags = v->flags | 0x800;
+    }
+    v->flags &= 0xFFFC1FFF;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/1140", func_8000658C_main);
-#endif
 
 void func_80006830_main(void) {
     switch (D_800A97BC_main->pause) {

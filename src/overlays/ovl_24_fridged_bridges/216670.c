@@ -1939,91 +1939,113 @@ void func_8010B164_fridged_bridges(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
 #endif
 
-#ifdef NON_MATCHING
-/* Hazard: wait, jump along its path, turn round */
-void func_8010B3EC_fridged_bridges(omObjData *obj) {
-    FbHazard *hw = obj->data;
-    FbPlayer *work = D_8010DA64_fridged_bridges[hw->unk02]->data;
-    f32 speed;
-    f32 t;
-    f32 y;
-    f32 a;
-    f32 d;
-    f32 ry;
-
-    switch (hw->unk00) {
-        case 0:
-            if (work->unk00 != 2 && work->unk00 != 3 && func_800E6E8C_minigame() == 2) {
-                if (hw->unk06 == 0) {
-                    hw->unk00 = 1;
-                    hw->unk10 = 0.0f;
-                    return;
-                }
-                hw->unk06--;
-                return;
-            }
-            return;
-        case 1:
-            if (hw->unk10 > hw->unk08) {
-                speed = hw->unk10 - hw->unk08;
-                hw->unk00 = 2;
-            } else {
-                speed = hw->unk14;
-            }
-            hw->unk10 += speed;
-            t = hw->unk10 - hw->unk08 / 2.0f;
-            y = obj->trans.y;
-            obj->trans.y = -hw->unk0C * t * t + 60.0f;
-            obj->rot.x = atan2df(y - obj->trans.y, speed);
-            obj->trans.x += sindf(obj->rot.y) * speed;
-            obj->trans.z += cosdf(obj->rot.y) * speed;
-            if (hw->unk00 == 2) {
-                func_8010BFD0_fridged_bridges(0, hw->unk02, obj->trans.x, -100.0f, obj->trans.z);
-                return;
-            }
-            break;
-        case 2:
-            a = atan2df(-(obj->trans.x - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].u),
-                        -(obj->trans.z - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].v));
-            obj->rot.x = 0.0f;
-            if (a < obj->rot.x) {
-                a += 360.0f;
-            }
-            ry = obj->rot.y;
-            if (a != ry) {
-                d = a - ry;
-                if (d < 0.0f) {
-                    d += 360.0f;
-                }
-                if (d < 180.0f) {
-                    if (d > 13.5f) {
-                        obj->rot.y += 13.5f;
-                    } else {
-                        obj->rot.y = a;
-                    }
-                } else if ((360.0f - d) > 13.5f) {
-                    obj->rot.y -= 13.5f;
-                } else {
-                    obj->rot.y = a;
-                }
-                if (obj->rot.y < 0.0f) {
-                    obj->rot.y += 360.0f;
-                }
-                if (obj->rot.y >= 360.0f) {
-                    obj->rot.y -= 360.0f;
-                    return;
-                }
-            } else if (work->unk00 != 2 && work->unk00 != 3 && func_800E6E8C_minigame() == 2) {
-                hw->unk00 = 0;
-                hw->unk06 = (u8)(rand8() % 10) * 2 + 20;
-                hw->unk04 ^= 1;
-            }
-            break;
+// decomp-permuter
+void func_8010B3EC_fridged_bridges(omObjData *obj)
+{
+  FbHazard *hw = obj->data;
+  FbPlayer *work = D_8010DA64_fridged_bridges[hw->unk02]->data;
+  f32 speed;
+  f32 t;
+  f32 y;
+  f32 a;
+  f32 ry;
+  switch (hw->unk00)
+  {
+    case 0:
+      if (((work->unk00 != 2) && (work->unk00 != 3)) && (func_800E6E8C_minigame() == 2))
+    {
+      if (hw->unk06 == 0)
+      {
+        hw->unk00 = 1;
+        hw->unk10 = 0.0f;
+        return;
+      }
+      hw->unk06--;
+      return;
     }
+      return;
+
+    case 1:
+      if (hw->unk10 > hw->unk08)
+    {
+      speed = hw->unk10 - hw->unk08;
+      hw->unk00 = 2;
+    }
+    else
+    {
+      speed = hw->unk14;
+    }
+      hw->unk10 += speed;
+      t = hw->unk10 - (hw->unk08 / 2.0f);
+      y = obj->trans.y;
+      obj->trans.y = (((-hw->unk0C) * t) * t) + 60.0f;
+      obj->rot.x = atan2df(y - obj->trans.y, speed);
+      obj->trans.x += sindf(obj->rot.y) * speed;
+      obj->trans.z += cosdf(obj->rot.y) * speed;
+      if (hw->unk00 == 2)
+    {
+      func_8010BFD0_fridged_bridges(0, hw->unk02, obj->trans.x, -100.0f, obj->trans.z);
+      return;
+    }
+      break;
+
+    case 2:
+      a = atan2df(-(obj->trans.x - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].u), -(obj->trans.z - D_8010D1FC_fridged_bridges[hw->unk02].p[hw->unk04].v));
+      obj->rot.x = 0.0f;
+      if (a < obj->rot.x)
+    {
+      a += 360.0f;
+    }
+      ry = obj->rot.y;
+      if (a != ry)
+    {
+      y = a - ry;
+      if (y < 0.0f)
+      {
+        y += 360.0f;
+      }
+      if (y < 180.0f)
+      {
+        if (y > 13.5f)
+        {
+          obj->rot.y += 13.5f;
+        }
+        else
+        {
+          obj->rot.y = a;
+        }
+      }
+      else
+        if ((360.0f - y) > 13.5f)
+      {
+        obj->rot.y -= 13.5f;
+      }
+      else
+      {
+        obj->rot.y = a;
+      }
+      if (obj->rot.y < 0.0f)
+      {
+        obj->rot.y += 360.0f;
+      }
+      if (obj->rot.y >= 360.0f)
+      {
+        obj->rot.y -= 360.0f;
+        return;
+      }
+    }
+    else
+      if (((work->unk00 != 2) && (work->unk00 != 3)) && (func_800E6E8C_minigame() == 2))
+    {
+      hw->unk00 = 0;
+      hw->unk06 = (((u8) (rand8() % 10)) * 2) + 20;
+      hw->unk04 ^= 1;
+    }
+      break;
+
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B3EC_fridged_bridges);
-#endif
 
 /* Keep the player out of the hazard's radius */
 void func_8010B7CC_fridged_bridges(omObjData *obj) {

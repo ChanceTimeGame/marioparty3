@@ -959,23 +959,31 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107554
 #endif
 
 
-#ifdef NON_MATCHING
-/* CPU input: the button held in cpuBtn, released once cpuWait counts down to 0. */
-u16 func_80107C5C_crowd_cover(omObjData* obj) {
-    CcTbl9 tbl = D_8010CC70_crowd_cover; /* unused copy */
-    MgWork* work = obj->data;
-    PgPlayer* pl = work->unk158;
-    u16 btn;
-
-    btn = 0;
-    if (--pl->cpuWait == 0) {
-        btn = pl->cpuBtn;
-    }
+// decomp-permuter
+u16 func_80107C5C_crowd_cover(omObjData *obj)
+{
+  omObjData *new_var2;
+  unsigned short new_var;
+  CcTbl9 tbl = D_8010CC70_crowd_cover;
+  MgWork *work = obj->data;
+  PgPlayer *pl = work->unk158;
+  short btn;
+  btn = 0;
+  new_var2 = obj;
+  new_var = 0;
+  if ((--pl->cpuWait) == new_var)
+  {
+    btn = pl->cpuBtn;
+  }
+  if (new_var2->data)
+  {
     return btn;
+  }
+  else
+  {
+    return btn;
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_80107C5C_crowd_cover);
-#endif
 
 s16 func_80107CE0_crowd_cover(s16 tex, s16 x, s16 y, f32 rot) {
     s16 grp;
@@ -1989,20 +1997,18 @@ void func_8010AFF8_crowd_cover(s16 id, u32 flags) {
     }
 }
 
-#ifdef NON_MATCHING
-s32 func_8010B040_crowd_cover(s16 id) {
-    s32 flags = -1;
-    PgBoard* b;
-
-    if (id != -1) {
-        b = &D_8010D8EC_crowd_cover[id];
-        flags = b->flags;
-    }
-    return flags;
+// decomp-permuter
+s32 func_8010B040_crowd_cover(s16 id)
+{
+  int new_var;
+  PgBoard *b;
+  if (id != (new_var = -1))
+  {
+    b = &D_8010D8EC_crowd_cover[id];
+    new_var = b->flags;
+  }
+  return new_var;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010B040_crowd_cover);
-#endif
 
 void func_8010B080_crowd_cover(s16 id, s8 arg1) {
     PgBoard* b;
@@ -2178,33 +2184,36 @@ void func_8010B64C_crowd_cover(s16 id, s8 arg1, s8 arg2, u32 flags) {
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010B6BC_crowd_cover(s16 id, s32 on) {
-    PgBoard* b;
-    Vtx* v;
-    s8 c;
-    s8 a;
-    s32 i;
-
-    if (id != -1) {
-        b = &D_8010D8EC_crowd_cover[id];
-        if (on) {
-            c = 0;
-            a = 0x70;
-        } else {
-            c = -1;
-            a = -1;
-        }
-        for (i = 0; i < b->rows; i++) {
-            v = &b->vtx[i];
-            v->v.cn[0] = v->v.cn[1] = v->v.cn[3] = c;
-            b->vtx[i].v.cn[2] = a;
-        }
+// decomp-permuter
+void func_8010B6BC_crowd_cover(s16 id, s32 on)
+{
+  PgBoard *b;
+  Vtx *v;
+  s8 c;
+  s8 a;
+  s32 i;
+  if (id != (-1))
+  {
+    b = &D_8010D8EC_crowd_cover[id];
+    if (on)
+    {
+      c = 0;
+      a = 0x70;
     }
+    else
+    {
+      c = -1;
+      a = -1;
+    }
+    for (i = 0; i < b->rows; i++)
+    {
+      ;
+      (&b->vtx[i])->v.cn[0] = ((&b->vtx[i])->v.cn[1] = ((&b->vtx[i])->v.cn[3] = c));
+      b->vtx[i].v.cn[2] = a;
+    }
+
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010B6BC_crowd_cover);
-#endif
 
 void func_8010B754_crowd_cover(void) {
     PgBoard* b;

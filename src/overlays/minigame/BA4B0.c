@@ -755,165 +755,187 @@ ok:
 INCLUDE_ASM("asm/nonmatchings/overlays/minigame/BA4B0", func_800E905C_minigame);
 #endif
 
-// register allocation only (masked 0)
-#ifdef NON_MATCHING
-void func_800E9170_minigame(void) {
-    s16 arrow[2];
-    MgPos pos[2];
-    s16 *res;
-    s16 gfxFrame;
-    s16 gfxArrow;
-    s16 win;
-    s16 gfxBack;
-    u16 back;
-    u16 frame;
-    s16 step;
-    s16 ang;
-    s16 side;
-    s16 slot;
-    f32 dx;
-    Process *rec;
-    s16 i;
-    s16 a;
+// decomp-permuter
+void func_800E9170_minigame(void)
+{
+  s16 arrow[2];
+  MgPos pos[2];
+  s16 *res;
+  s16 gfxFrame;
+  s16 gfxArrow;
+  s16 win;
+  s16 gfxBack;
+  s16 step;
+  u16 back;
+  u16 frame;
+  s16 ang;
+  s16 side;
+  s16 slot;
+  f32 dx;
+  Process *rec;
+  s16 i;
+  s16 a;
+  res = HuPrcCurrentGet()->user_data;
+  gfxBack = func_8000B838_main(0x140064);
+  back = InitEspriteSlot(gfxBack, 0, 1);
+  func_8000BCC8_main(back, 0x4BA);
+  func_8000BE5C_main(back, 10.0f, 8.0f);
+  func_8000BBD4_main(back, 160, 120);
+  func_8000BEAC_main(back, 0, 0, 0);
+  func_8000BBFC_main(back, 0);
+  func_8000BB94_main(back);
+  gfxFrame = func_8000B838_main(0x150001);
+  frame = InitEspriteSlot(gfxFrame, 0, 1);
+  func_8000BCC8_main(frame, 600);
+  func_8000BBD4_main(frame, 160, 204);
+  func_8000BBFC_main(frame, 0);
+  func_8000BB94_main(frame);
+  win = func_8005A968_main(48, 187, 224, 42, 0, 12);
+  func_8005BDFC_main(win, 0);
+  func_8005BEE0_main(win, 0);
+  func_8005BE30_main(win, 1);
+  func_8005C060_main(win, 2, 0xFF, 0, 0);
+  func_8005C060_main(win, 4, 0, 0x90, 0);
+  func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
+  func_8005C060_main(win, 6, 0xFF, 0xAD, 0);
+  func_8005C154_main(win, 0x40, 0x40, 0x40);
+  func_8005FBF8_main(win, 0, 0, 0);
+  func_8005C02C_main(win, 7);
+  func_8005BF70_main(win, 0xFF);
+  pos[0].x = 25;
+  pos[1].x = 295;
+  pos[1].y = 130;
+  pos[0].y = 130;
+  gfxArrow = func_8000B838_main(0x150003);
+  for (i = 0; i < 2; i++)
+  {
+    arrow[i] = InitEspriteSlot(gfxArrow, 0, 1);
+    func_8000BCC8_main(arrow[a = i], 100);
+    func_8000BBD4_main(arrow[i], pos[i].x, pos[i].y);
+    func_8000BBFC_main(arrow[i], 0);
+    func_8000BB94_main(arrow[i]);
+  }
 
-    res = HuPrcCurrentGet()->user_data;
-    gfxBack = func_8000B838_main(0x140064);
-    back = InitEspriteSlot(gfxBack, 0, 1);
-    func_8000BCC8_main(back, 0x4BA);
-    func_8000BE5C_main(back, 10.0f, 8.0f);
-    func_8000BBD4_main(back, 160, 120);
-    func_8000BEAC_main(back, 0, 0, 0);
-    func_8000BBFC_main(back, 0);
-    func_8000BB94_main(back);
-    gfxFrame = func_8000B838_main(0x150001);
-    frame = InitEspriteSlot(gfxFrame, 0, 1);
-    func_8000BCC8_main(frame, 600);
-    func_8000BBD4_main(frame, 160, 204);
-    func_8000BBFC_main(frame, 0);
-    func_8000BB94_main(frame);
-    win = func_8005A968_main(48, 187, 224, 42, 0, 12);
-    func_8005BDFC_main(win, 0);
-    func_8005BEE0_main(win, 0);
-    func_8005BE30_main(win, 1);
-    func_8005C060_main(win, 2, 0xFF, 0, 0);
-    func_8005C060_main(win, 4, 0, 0x90, 0);
-    func_8005C060_main(win, 5, 0, 0xB0, 0xC0);
-    func_8005C060_main(win, 6, 0xFF, 0xAD, 0);
-    func_8005C154_main(win, 0x40, 0x40, 0x40);
-    func_8005FBF8_main(win, 0, 0, 0);
-    func_8005C02C_main(win, 7);
-    func_8005BF70_main(win, 0xFF);
-    pos[0].x = 25;
-    pos[1].x = 295;
-    pos[1].y = 130;
-    pos[0].y = 130;
-    gfxArrow = func_8000B838_main(0x150003);
-    for (i = 0; i < 2; i++) {
-        arrow[i] = InitEspriteSlot(gfxArrow, 0, 1);
-        func_8000BCC8_main(arrow[i], 100);
-        func_8000BBD4_main(arrow[i], pos[i].x, pos[i].y);
-        func_8000BBFC_main(arrow[i], 0);
-        func_8000BB94_main(arrow[i]);
+  func_8000BC48_main(arrow[1], 1);
+  if ((*res) < 0)
+  {
+    slot = GwStory.unk1;
+  }
+  else
+  {
+    slot = *res;
+  }
+  rec = func_800E8EC4_minigame(0, slot);
+  HuPrcVSleep();
+  func_800E8FE4_minigame(rec, 1);
+  func_8000BB54_main(frame);
+  func_8000BB54_main(arrow[0]);
+  func_8000BB54_main(arrow[1]);
+  func_8000BB54_main(back);
+  for (a = 0; a < 0x101; a += 36)
+  {
+    func_8000BBFC_main(frame, a);
+    func_8000BBFC_main(arrow[0], a);
+    func_8000BBFC_main(arrow[1], a);
+    if (a < 0x81)
+    {
+      func_8000BBFC_main(back, a);
     }
-    func_8000BC48_main(arrow[1], 1);
-    if (*res < 0) {
-        slot = GwStory.unk1;
-    } else {
-        slot = *res;
-    }
-    rec = func_800E8EC4_minigame(0, slot);
     HuPrcVSleep();
-    func_800E8FE4_minigame(rec, 1);
-    func_8000BB54_main(frame);
-    func_8000BB54_main(arrow[0]);
-    func_8000BB54_main(arrow[1]);
-    func_8000BB54_main(back);
-    for (a = 0; a < 0x101; a += 36) {
-        func_8000BBFC_main(frame, a);
-        func_8000BBFC_main(arrow[0], a);
-        func_8000BBFC_main(arrow[1], a);
-        if (a < 0x81) {
-            func_8000BBFC_main(back, a);
-        }
-        HuPrcVSleep();
+  }
+
+  func_8005B43C_main(win, 0x6125, -1, -1);
+  side = 0;
+  HuPrcVSleep();
+  ang = 0;
+  step = 0;
+  while (1)
+  {
+    if (D_800D5558_main[D_800EBAF0_minigame] & 0x4000)
+    {
+      HuAudFXPlay(4);
+      *res = -2;
+      break;
     }
-    func_8005B43C_main(win, 0x6125, -1, -1);
-    side = 0;
+    if (D_800D5558_main[D_800EBAF0_minigame] & 0x1000)
+    {
+      HuAudFXPlay(2);
+      *res = -1;
+      break;
+    }
+    if (func_800E8FF8_minigame(rec) == 0)
+    {
+      if ((D_800D5558_main[D_800EBAF0_minigame] & 0x100) || (D_800CBB6E_main[D_800EBAF0_minigame] >= 31))
+      {
+        HuAudFXPlay(1);
+        func_800E8FE4_minigame(rec, 3);
+        ang = 180;
+        step = -22;
+        side = 1;
+      }
+      else
+        if ((D_800D5558_main[D_800EBAF0_minigame] & 0x200) || (D_800CBB6E_main[D_800EBAF0_minigame] < (-30)))
+      {
+        HuAudFXPlay(1);
+        func_800E8FE4_minigame(rec, 4);
+        ang = 180;
+        step = 22;
+        side = 0;
+      }
+    }
+    if (step != 0)
+    {
+      if (((u16) (ang += step)) >= 361)
+      {
+        step = 0;
+        func_8000BBD4_main(arrow[0], pos[0].x, pos[0].y);
+        func_8000BBD4_main(arrow[1], pos[1].x, pos[1].y);
+      }
+      else
+      {
+        dx = sindf(ang) * 8.0f;
+        func_8000BBD4_main(arrow[side], pos[side].x + dx, pos[side].y);
+      }
+    }
     HuPrcVSleep();
-    ang = 0;
-    step = 0;
-    while (TRUE) {
-        if (D_800D5558_main[D_800EBAF0_minigame] & 0x4000) {
-            HuAudFXPlay(4);
-            *res = -2;
-            break;
-        }
-        if (D_800D5558_main[D_800EBAF0_minigame] & 0x1000) {
-            HuAudFXPlay(2);
-            *res = -1;
-            break;
-        }
-        if (func_800E8FF8_minigame(rec) == 0) {
-            if ((D_800D5558_main[D_800EBAF0_minigame] & 0x100) || D_800CBB6E_main[D_800EBAF0_minigame] >= 31) {
-                HuAudFXPlay(1);
-                func_800E8FE4_minigame(rec, 3);
-                ang = 180;
-                step = -22;
-                side = 1;
-            } else if ((D_800D5558_main[D_800EBAF0_minigame] & 0x200) || D_800CBB6E_main[D_800EBAF0_minigame] < -30) {
-                HuAudFXPlay(1);
-                func_800E8FE4_minigame(rec, 4);
-                ang = 180;
-                step = 22;
-                side = 0;
-            }
-        }
-        if (step != 0) {
-            if ((u16)(ang += step) >= 361) {
-                step = 0;
-                func_8000BBD4_main(arrow[0], pos[0].x, pos[0].y);
-                func_8000BBD4_main(arrow[1], pos[1].x, pos[1].y);
-            } else {
-                dx = sindf(ang) * 8.0f;
-                func_8000BBD4_main(arrow[side], pos[side].x + dx, pos[side].y);
-            }
-        }
-        HuPrcVSleep();
+  }
+
+  func_800E8FE4_minigame(rec, 2);
+  func_8005D294_main(win);
+  for (a = 0x100; a >= 0; a -= 36)
+  {
+    func_8000BBFC_main(frame, a);
+    func_8000BBFC_main(arrow[0], a);
+    func_8000BBFC_main(arrow[1], a);
+    if (a < 0x81)
+    {
+      func_8000BBFC_main(back, a);
     }
-    func_800E8FE4_minigame(rec, 2);
-    func_8005D294_main(win);
-    for (a = 0x100; a >= 0; a -= 36) {
-        func_8000BBFC_main(frame, a);
-        func_8000BBFC_main(arrow[0], a);
-        func_8000BBFC_main(arrow[1], a);
-        if (a < 0x81) {
-            func_8000BBFC_main(back, a);
-        }
-        HuPrcVSleep();
-    }
-    func_8000BB94_main(frame);
-    func_8000BB94_main(arrow[0]);
-    func_8000BB94_main(arrow[1]);
-    func_8000BB94_main(back);
-    func_800E9004_minigame(rec, 0);
-    func_800E8F78_minigame(rec);
-    func_8000C184_main(back);
-    func_8000C184_main(frame);
-    func_8000C184_main(arrow[0]);
-    func_8000C184_main(arrow[1]);
-    HuSprKill(gfxBack);
-    HuSprKill(gfxFrame);
-    HuSprKill(gfxArrow);
-    func_8005F364_main(win);
-    omDelPrcObj(NULL);
-    *res = -3;
-    while (TRUE) {
-        HuPrcVSleep();
-    }
+    HuPrcVSleep();
+  }
+
+  func_8000BB94_main(frame);
+  func_8000BB94_main(arrow[0]);
+  func_8000BB94_main(arrow[1]);
+  func_8000BB94_main(back);
+  func_800E9004_minigame(rec, 0);
+  func_800E8F78_minigame(rec);
+  func_8000C184_main(back);
+  func_8000C184_main(frame);
+  func_8000C184_main(arrow[0]);
+  func_8000C184_main(arrow[1]);
+  HuSprKill(gfxBack);
+  HuSprKill(gfxFrame);
+  HuSprKill(gfxArrow);
+  func_8005F364_main(win);
+  omDelPrcObj(0);
+  *res = -3;
+  while (1)
+  {
+    HuPrcVSleep();
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/BA4B0", func_800E9170_minigame);
-#endif
 
 // register allocation: retail spills the player count, this spills the overlay status
 #ifdef NON_MATCHING

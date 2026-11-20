@@ -1003,37 +1003,43 @@ void func_80107E1C_puddle_paddle(PpCtx* ctx, PpTask* task) {
 
 /* The thrower's motion: every 40 to 100 frames of play it throws (motion 1), then idles (motion 0).
    NON_MATCHING: masked 2, the last test loads HmfModel::unk40 before the D_800CCF58_main index in retail. */
-#ifdef NON_MATCHING
-void func_80108178_puddle_paddle(PpCtx* ctx, PpTask* task) {
-    omObjData* obj = ctx->object;
-
-    if (!(D_80111658_puddle_paddle->flags & 2)) {
-        task->work.s16[0] = 0;
+// decomp-permuter
+void func_80108178_puddle_paddle(PpCtx *ctx, PpTask *task)
+{
+  PpTask *new_var;
+  omObjData *obj = ctx->object;
+  f32 new_var2;
+  if (!(D_80111658_puddle_paddle->flags & 2))
+  {
+    task->work.s16[0] = 0;
+  }
+  if (task->state == 0)
+  {
+    task->work.s16[0] = 0;
+    task->work.s16[1] = 10;
+    D_80111658_puddle_paddle->unk40 = 0;
+    task->state = 1;
+  }
+  if (D_80111658_puddle_paddle->unk40 == 0)
+  {
+    if ((++task->work.s16[0]) > task->work.s16[1])
+    {
+      new_var = task;
+      func_8001C5B4_main(ctx->modelIds[0], obj->motion[1]);
+      func_8001C92C_main(ctx->modelIds[0], 2.0f);
+      func_8001C6A8_main(obj->model[0], 0.0f);
+      D_80111658_puddle_paddle->unk40 = 1;
+      new_var->work.s16[0] = 0;
+      new_var->work.s16[1] = (f32) ((((rand8() << 8) | rand8()) % 61) + 40);
     }
-    if (task->state == 0) {
-        task->work.s16[0] = 0;
-        task->work.s16[1] = 10;
-        D_80111658_puddle_paddle->unk40 = 0;
-        task->state = 1;
+    new_var2 = HmfModelData[obj->model[0]].unk40;
+    if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= new_var2)
+    {
+      func_8001C5B4_main(ctx->modelIds[0], obj->motion[0]);
+      func_8001C92C_main(ctx->modelIds[0], 1.0f);
     }
-    if (D_80111658_puddle_paddle->unk40 == 0) {
-        if (++task->work.s16[0] > task->work.s16[1]) {
-            func_8001C5B4_main(ctx->modelIds[0], obj->motion[1]);
-            func_8001C92C_main(ctx->modelIds[0], 2.0f);
-            func_8001C6A8_main(obj->model[0], 0.0f);
-            D_80111658_puddle_paddle->unk40 = 1;
-            task->work.s16[0] = 0;
-            task->work.s16[1] = (f32)(rand16() % 61 + 40);
-        }
-        if (D_800CCF58_main[HmfModelData[obj->model[0]].unk02].unk02 <= HmfModelData[obj->model[0]].unk40) {
-            func_8001C5B4_main(ctx->modelIds[0], obj->motion[0]);
-            func_8001C92C_main(ctx->modelIds[0], 1.0f);
-        }
-    }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108178_puddle_paddle);
-#endif
 
 extern s16 D_80111234_puddle_paddle[]; /* coins since the last kind-1 coin */
 

@@ -2879,64 +2879,69 @@ void func_8010BF84_staff(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010BF84_staff);
 #endif
 
-#ifdef NON_MATCHING
-// masked 0; raw 2: retail copies the second parameter before the third.
-void func_8010C680_staff(s16 *state, s32 *arg1, f32 *arg2, void *arg3) {
-    StaffMdl *mdl = arg3;
-    f32 *t = (f32 *)arg1;
-    f32 *rotY = arg2;
-    Vec pos;
-    Vec *p;
-    f32 d;
-
-    pos = mdl->pos;
-    p = &pos;
-    switch (*state) {
+// decomp-permuter
+void func_8010C680_staff(s16 *state, s32 *arg1, f32 *arg2, void *arg3)
+{
+  f32 *t = (f32 *) arg1;
+  f32 *rotY = arg2;
+  StaffMdl *mdl = arg3;
+  Vec pos;
+  Vec *p;
+  f32 d;
+  pos = mdl->pos;
+  p = &pos;
+  switch (*state)
+  {
     case 0:
-        p->x += 6.266667f;
-        if (p->x >= 260.0f) {
-            (*state)++;
-            *t = 0.0f;
-        }
-        break;
-    case 1:
-        *t += 12.0f;
-        if (*t >= 180.0f) {
-            *t = 180.0f;
-            (*state)++;
-        }
-        d = cosdf(*t) * 6.266667f;
-        p->x = d + p->x;
-        d = 90.0f - *t;
-        *rotY = d;
-        break;
-    case 2:
-        p->x -= 6.266667f;
-        if (p->x <= -680.0f) {
-            (*state)++;
-            *t = 0.0f;
-        }
-        break;
-    case 3:
-        *t += 12.0f;
-        if (*t >= 180.0f) {
-            *t = 180.0f;
-            *state = 0;
-        }
-        d = cosdf(*t) * -6.266667f;
-        p->x = d + p->x;
-        d = *t + -90.0f;
-        *rotY = d;
-        break;
+      p->x += 6.266667f;
+      if (p->x >= 260.0f)
+    {
+      (*state)++;
+      *t = 0.0f;
     }
-    mdl->pos.x = p->x;
-    Hu3DModelPosSet(mdl->model, p->x, p->y, p->z);
-    Hu3DModelPosSet(mdl->model4, p->x, 0.0f, p->z);
-    Hu3DModelRotSet(mdl->model, mdl->rot.x, *rotY - 8.0f, mdl->rot.z);
+      break;
+
+    case 1:
+      *t += 12.0f;
+      if ((*t) >= 180.0f)
+    {
+      *t = 180.0f;
+      (*state)++;
+    }
+      d = cosdf(*t) * 6.266667f;
+      p->x = d + p->x;
+      d = 90.0f - (*t);
+      *rotY = d;
+      break;
+
+    case 2:
+      p->x -= 6.266667f;
+      if (p->x <= (-680.0f))
+    {
+      (*state)++;
+      *t = 0.0f;
+    }
+      break;
+
+    case 3:
+      *t += 12.0f;
+      if ((*t) >= 180.0f)
+    {
+      *t = 180.0f;
+      *state = 0;
+    }
+      d = cosdf(*t) * (-6.266667f);
+      p->x = d + p->x;
+      *rotY = (d = (*t) + (-90.0f));
+      break;
+
+  }
+
+  mdl->pos.x = p->x;
+  Hu3DModelPosSet(mdl->model, p->x, p->y, p->z);
+  Hu3DModelPosSet(mdl->model4, p->x, 0.0f, p->z);
+  Hu3DModelRotSet(mdl->model, mdl->rot.x, (*rotY) - 8.0f, mdl->rot.z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010C680_staff);
-#endif
 
 void func_8010C8F4_staff(StaffFlyer *arg0) {
     Vec pos[3];
@@ -3170,56 +3175,57 @@ typedef struct StaffDieScene {
 extern Vec D_80110FDC_staff;       /* die drop start */
 extern s32 D_80110FE8_staff[3];    /* sprite data ids */
 
-// story j3: NON_MATCHING, masked 0, raw 7: i and ring swap s4/s5 (register allocation). Logic checked.
-#ifdef NON_MATCHING
-/* Creates the eight cast members of D_80111094 into actor[8]: model, animation, linked model, and
-   for all but the first a shadow (one model, linked for the rest) at its feet. */
-void func_8010CFD4_staff(StaffMdl* actors) {
-    s32 i;
-    s16 ring;
-    StaffStageDef* def;
-    StaffMdl* actor;
-    s16 model;
-    s16 link;
-    s16 shadow;
-    void* anim;
-
-    def = D_80111094_staff;
-    actor = actors;
-    ring = -1;
-    for (i = 0; i < 8; i++, actor++, def++) {
-        model = Hu3DModelCreate(DataReadTemp(def->model), 0x2A9);
-        actor->model = model;
-        anim = DataReadTemp(def->anim);
-        actor->anim = HmfAnimCreate(HmfModelData[model].hmf, anim, 0, def->animName);
-        HuMemMemoryFreePerm(anim);
-        func_8001C448_main(model);
-        func_8001C514_main(model);
-        link = Hu3DModelCreate(DataReadTemp(def->link), 0x1D);
-        actor->model2 = link;
-        func_8001C5B4_main(model, link);
-        func_8001C814_main(model, -1, 2);
-        Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
-        actor->pos = def->pos;
-        Hu3DModelPosSet(model, actor->pos.x, actor->pos.y, actor->pos.z);
-        actor->rot = def->rot;
-        Hu3DModelRotSet(model, def->rot.x, def->rot.y, def->rot.z);
-        actor->model4 = -1;
-        if (i != 0) {
-            if (ring < 0) {
-                shadow = ring = Hu3DModelCreate(DataReadTemp(9), 0x299);
-            } else {
-                shadow = Hu3DModelLink(ring);
-            }
-            actor->model4 = shadow;
-            Hu3DModelPosSet(shadow, actor->pos.x, 0.0f, actor->pos.z);
-            Hu3DModelScaleSet(shadow, 1.2f, 1.2f, 1.2f);
-        }
+// decomp-permuter
+void func_8010CFD4_staff(StaffMdl *actors)
+{
+  s32 i;
+  s16 ring;
+  StaffStageDef *def;
+  StaffMdl *actor;
+  s16 new_var;
+  s16 model;
+  s16 link;
+  s16 shadow;
+  void *anim;
+  def = D_80111094_staff;
+  actor = actors;
+  ring = -1;
+  for (i = 0; i < 8; i++, actor++, def++)
+  {
+    model = Hu3DModelCreate(DataReadTemp(def->model), 0x2A9);
+    actor->model = model;
+    anim = DataReadTemp(def->anim);
+    actor->anim = HmfAnimCreate(HmfModelData[model].hmf, anim, 0, def->animName);
+    HuMemMemoryFreePerm(anim);
+    func_8001C448_main(model);
+    func_8001C514_main(model);
+    link = Hu3DModelCreate(DataReadTemp(def->link), 0x1D);
+    actor->model2 = link;
+    func_8001C5B4_main(model, link);
+    func_8001C814_main(model, -1, 2);
+    Hu3DModelScaleSet(model, 1.0f, 1.0f, 1.0f);
+    actor->pos = def->pos;
+    Hu3DModelPosSet(model, actor->pos.x, actor->pos.y, actor->pos.z);
+    actor->rot = def->rot;
+    Hu3DModelRotSet(model, def->rot.x, def->rot.y, def->rot.z);
+    actor->model4 = -1;
+    if (i != 0)
+    {
+      if (ring < 0)
+      {
+        shadow = (ring = (new_var = Hu3DModelCreate(DataReadTemp(9), 0x299)));
+      }
+      else
+      {
+        shadow = Hu3DModelLink(ring);
+      }
+      actor->model4 = shadow;
+      Hu3DModelPosSet(shadow, actor->pos.x, 0.0f, actor->pos.z);
+      Hu3DModelScaleSet(shadow, 1.2f, 1.2f, 1.2f);
     }
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_8010CFD4_staff);
-#endif
 
 void func_8010D1E8_staff(void) {
     s16 sp10[3][2];
