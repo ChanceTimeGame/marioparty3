@@ -125,17 +125,13 @@ void func_80116A78_mgmode(MgModeSpr* list, s16 idx, s16 arg2) {
     func_8000BBFC_main(list[idx].grp, arg2);
 }
 
-#ifdef NON_MATCHING
-/* Register allocation only: retail builds the entry address straight into $s0. */
-void func_80116AA8_mgmode(MgModeSpr* list, s16 idx, s16 arg2) {
-    MgModeSpr* spr = &list[idx];
-
-    func_8000BD50_main(spr->grp, arg2);
-    func_8000BDDC_main(spr->grp, 0);
+// decomp-permuter
+void func_80116AA8_mgmode(MgModeSpr *list, s16 idx, s16 arg2)
+{
+  MgModeSpr *spr;
+  func_8000BD50_main((&list[idx])->grp, arg2);
+  func_8000BDDC_main((&list[idx])->grp, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/47D880", func_80116AA8_mgmode);
-#endif
 
 void func_80116AEC_mgmode(MgModeSpr* list, s16 idx, u16 arg2) {
     func_8000BCC8_main(list[idx].grp, arg2);

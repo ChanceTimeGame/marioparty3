@@ -2638,17 +2638,16 @@ f32 func_8010D8B8_bowser_toss(f32 t, f32 a, f32 b) {
 }
 
 /* NON_MATCHING: masked 0; register allocation of the two source addresses. */
-#ifdef NON_MATCHING
-void func_8010D918_bowser_toss(f32* a, f32* b, f32* out, f32 t) {
-    s32 i;
+// decomp-permuter
+void func_8010D918_bowser_toss(f32 *a, f32 *b, f32 *out, f32 t)
+{
+  s32 i;
+  for (i = 0; i < 16; i++)
+  {
+    out[i] = a[i] + (t * (b[i] - a[i]));
+  }
 
-    for (i = 0; i < 16; i++) {
-        out[i] = t * (b[i] - a[i]) + a[i];
-    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010D918_bowser_toss);
-#endif
 
 void func_8010D960_bowser_toss(omObjData *obj, u32 value) {
     obj->work[0] = value >> 24;
