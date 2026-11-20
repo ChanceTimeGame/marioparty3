@@ -128,9 +128,8 @@ void func_80116A78_mgmode(MgModeSpr* list, s16 idx, s16 arg2) {
 // decomp-permuter
 void func_80116AA8_mgmode(MgModeSpr *list, s16 idx, s16 arg2)
 {
-  MgModeSpr *spr;
-  func_8000BD50_main((&list[idx])->grp, arg2);
-  func_8000BDDC_main((&list[idx])->grp, 0);
+  func_8000BD50_main(list[idx].grp, arg2);
+  func_8000BDDC_main(list[idx].grp, 0);
 }
 
 void func_80116AEC_mgmode(MgModeSpr* list, s16 idx, u16 arg2) {
