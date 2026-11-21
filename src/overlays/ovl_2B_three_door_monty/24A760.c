@@ -531,7 +531,6 @@ void func_8010658C_three_door_monty(omObjData *obj, f32 *x, f32 *z, f32 scale) {
     }
 }
 
-#ifdef NON_MATCHING
 f32 func_801066F4_three_door_monty(f32 cur, f32 target, f32 step) {
     f32 diff = target - cur;
 
@@ -542,16 +541,23 @@ f32 func_801066F4_three_door_monty(f32 cur, f32 target, f32 step) {
         return target;
     }
     if (cur < target) {
-        return cur = func_801059BC_three_door_monty(cur, (diff > 180.0f) ? -step : step);
+        if (diff > 180.0f) {
+            cur = func_801059BC_three_door_monty(cur, -step);
+        } else {
+            cur = func_801059BC_three_door_monty(cur, step);
+        }
+        return cur;
     }
     if (target < cur) {
-        return cur = func_801059BC_three_door_monty(cur, (diff > 180.0f) ? step : -step);
+        if (diff > 180.0f) {
+            cur = func_801059BC_three_door_monty(cur, step);
+        } else {
+            cur = func_801059BC_three_door_monty(cur, -step);
+        }
+        return cur;
     }
     return 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_801066F4_three_door_monty);
-#endif
 
 f32 func_801067C4_three_door_monty(f32 pos, f32 *vel, f32 accel) {
     f32 v = *vel;
@@ -2070,13 +2076,15 @@ void func_8010B7B8_three_door_monty(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010B7B8_three_door_monty);
 #endif
 
+// scheduling (masked 2): the sll of the position-table index is placed before the table base lui
 #ifdef NON_MATCHING
 void func_8010BC08_three_door_monty(omObjData *obj) {
-    CcEnt *ent = &D_8010D260_three_door_monty[obj->work[0] * 4 + (obj->work[1] + 13)];
+    CcEnt *ent = &D_8010D260_three_door_monty[13 + obj->work[0] * 4 + obj->work[1]];
     CcEnt *ents[4];
     omObjData *objs[4];
     u8 i;
     s16 digit;
+    CcXY *pos;
 
     for (i = 0; i < 4; i++) {
         ents[i] = &D_8010D2E4_three_door_monty[i];
@@ -2092,7 +2100,8 @@ void func_8010BC08_three_door_monty(omObjData *obj) {
         ent->unk04 = digit;
         func_8000BD50_main(ent->spr, digit);
     }
-    func_8000BBD4_main(ent->spr, (D_8010CD64_three_door_monty[(s16)objs[obj->work[0]]->work[1]] + obj->work[1])->y, 140);
+    pos = D_8010CD64_three_door_monty[(s16)objs[obj->work[0]]->work[1]];
+    func_8000BBD4_main(ent->spr, pos[obj->work[1]].y, 140);
     func_8000BB94_main(ent->spr);
     obj->func = func_8010B7B8_three_door_monty;
 }
