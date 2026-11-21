@@ -8051,6 +8051,7 @@ void func_8011B934_w02(void) {
     omAddPrcObj(func_80106120_w02, 0x1005, 0x1000, 0);
 }
 
+// board g6
 s32 func_8011B988_w02(void) {
     s32 i;
     DecisionTreeNonLeafNode *tree;
@@ -8072,6 +8073,7 @@ s32 func_8011B988_w02(void) {
     return MBRand(4.0f);
 }
 
+// board g6
 s32 func_8011BA58_w02(void) {
     s32 i;
     DecisionTreeNonLeafNode *tree1;
