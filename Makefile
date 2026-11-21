@@ -507,6 +507,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory2/4A28B0.c.o build/src/overlays/msto
 W2DC_BLANKSTRIP += build/src/overlays/mstory3/4B29E0.c.o build/src/overlays/mstory5/4D8E80.c.o
 # H0 h0D: Rockin' Raceway 251FF0 likewise (func_8010D134/func_8010E7E0: no nop before the mul.s after a float call)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_2C_rockin_raceway/251FF0.c.o
+# H0 h0D: Merry-Go-Chomp 25E110 likewise (func_80107664: no nop before the mul.s after cosdf)
+W2DC_BLANKSTRIP += build/src/overlays/ovl_2D_merry_go_chomp/25E110.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
