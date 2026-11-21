@@ -2925,7 +2925,6 @@ void func_8010D114_rockin_raceway(void) {
     D_80111C30_rockin_raceway->func = func_8010CE90_rockin_raceway;
 }
 
-#ifdef NON_MATCHING
 void func_8010D134_rockin_raceway(s32 idx) {
     HuCamera *cam;
     f32 rx;
@@ -2944,9 +2943,6 @@ void func_8010D134_rockin_raceway(s32 idx) {
     cam->up.y = cosdf(rx);
     cam->up.z = cosdf(ry) * sindf(rx);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010D134_rockin_raceway);
-#endif
 
 
 /* Projects pos through camera cam: screen position and depth into screen, viewport-relative into rel. */
@@ -3400,14 +3396,10 @@ f32 func_8010E7C8_rockin_raceway(f32 t, f32 a, f32 b) {
     return a + t * (b - a);
 }
 
-#ifdef NON_MATCHING
 /* Angle lerp from a toward b. */
 f32 func_8010E7E0_rockin_raceway(f32 t, f32 a, f32 b) {
     return func_8010E608_rockin_raceway(b, a, fabsf(func_8010E504_rockin_raceway(b, a) * t));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2C_rockin_raceway/251FF0", func_8010E7E0_rockin_raceway);
-#endif
 
 /* Quadratic Bezier. */
 f32 func_8010E840_rockin_raceway(f32 t, f32 a, f32 b, f32 c) {
