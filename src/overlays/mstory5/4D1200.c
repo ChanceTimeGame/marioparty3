@@ -1703,6 +1703,7 @@ void func_8010DADC_mstory5(omObjData *obj) {
 }
 
 /* actor 7 bobs up and down (a process; never ends while D_80114774_mstory5 is set) */
+// register allocation (masked 5): retail loads model with its own lhu; here it is the index's lh
 #ifdef NON_MATCHING
 void func_8010DB30_mstory5(void) {
     omObjData *obj;
@@ -1711,16 +1712,14 @@ void func_8010DB30_mstory5(void) {
     f32 y;
     u16 model;
     HmfModel *m;
-    s16 *mdl;
 
     t = 0.0f;
     if (D_80114774_mstory5 != 0) {
         obj = D_801151F0_mstory5[7].obj;
         pos.y = HmfModelData[obj->model[1]].pos.y;
         while (TRUE) {
-            mdl = obj->model;
-            model = mdl[1];
-            m = &HmfModelData[mdl[1]];
+            model = obj->model[1];
+            m = &HmfModelData[obj->model[1]];
             pos.x = m->pos.x;
             pos.z = m->pos.z;
             y = sindf(t) * 25.0f + 25.0f;

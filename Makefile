@@ -504,7 +504,7 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_28_snowball_summit/232A10.c.o
 # H0 h0D: mstory1-3/5 bobbing actors likewise (func_8010B3B8_mstory1 and twins: no nop before the mul.s after sindf)
 W2DC_BLANKSTRIP += build/src/overlays/mstory1/48D950.c.o build/src/overlays/mstory1/492250.c.o
 W2DC_BLANKSTRIP += build/src/overlays/mstory2/4A28B0.c.o build/src/overlays/mstory2/4A7540.c.o
-W2DC_BLANKSTRIP += build/src/overlays/mstory3/4B29E0.c.o build/src/overlays/mstory5/4D8E80.c.o
+W2DC_BLANKSTRIP += build/src/overlays/mstory3/4B29E0.c.o build/src/overlays/mstory5/4D8E80.c.o build/src/overlays/mstory5/4D1200.c.o
 # H0 h0D: Rockin' Raceway 251FF0 likewise (func_8010D134/func_8010E7E0: no nop before the mul.s after a float call)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_2C_rockin_raceway/251FF0.c.o
 # H0 h0D: Merry-Go-Chomp 25E110 likewise (func_80107664: no nop before the mul.s after cosdf)
