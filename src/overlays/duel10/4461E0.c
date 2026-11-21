@@ -3404,7 +3404,8 @@ void func_8010E8D4_duel10(void) {
 #ifdef NON_MATCHING
 // board ec2: the space the current player landed on: an event space, or a character space (11..18)
 // that pays the owner, or with a coin partner prize takes coins from the rival.
-// board ec2: masked 35: masuId kept unextended and the direct GwSystem.current_player_index reads not shared with `system` in retail; logic checked against the asm block by block
+// referent (masked 20, 251 vs 256): retail reads GwSystem.current_player_index in the character-space arm as a
+// scalar global (a scalar extern there gives 256 instructions, masked 8 = the symbol); our GCC folds it into `system`
 void func_8010E8F4_duel10(void) {
     Vec sp10;
     Vec sp20;
@@ -3413,7 +3414,7 @@ void func_8010E8F4_duel10(void) {
     Process *proc;
     SpaceData *space;
     Object *partner;
-    s32 masuId;
+    s16 masuId;
     s32 amount;
 
     player = MBDGetPlayerStruct(-1);
@@ -3435,8 +3436,11 @@ void func_8010E8F4_duel10(void) {
                 func_800F7378_name_81(GwSystem.current_player_index, amount);
                 HuPrcSleep(30);
             } else if (player->stats.prize.gamblePrize == 2 || player->stats.prize.duelNo == 2) {
-                partner = MBDGetPlayerPartnerRef(system->current_player_index,
-                                                 (player->stats.prize.duelNo != 2) ? 0 : 1);
+                if (player->stats.prize.duelNo == 2) {
+                    partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
+                } else {
+                    partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
+                }
                 HuPrcChildLink(proc, MBDCameraZoomMotStart(2.0f));
                 HuPrcChildWait();
                 HuVecCopy3F(&sp20, &player->player_obj->coords);
