@@ -3202,15 +3202,13 @@ void func_8010E260_duel10(void) {
 
 #ifdef NON_MATCHING
 // board ec2: the turn passes to the other player; both stand idle facing the camera.
-// board ec2: masked 13: retail never keeps &GwSystem.current_player_index in a register (it reads it as if a scalar global); this C shares the address
+// referent (masked 9, 52 vs 57): retail reads GwSystem.current_player_index as a scalar global (a scalar extern
+// gives retail's code exactly); with the struct field our GCC keeps the address in a register
 void func_8010E268_duel10(void) {
     GW_PLAYER *player;
     s32 i;
-    s8 cur;
 
-    cur = GwSystem.current_player_index + 1;
-    GwSystem.current_player_index = cur;
-    if (cur >= 2) {
+    if (++GwSystem.current_player_index >= 2) {
         GwSystem.current_player_index = 0;
     }
     for (i = 0; i < 2; i++) {

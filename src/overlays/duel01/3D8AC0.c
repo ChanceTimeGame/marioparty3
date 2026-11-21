@@ -2921,7 +2921,8 @@ void func_8010EB44_duel01(s32 no) {
     D_8011875C_duel01 = 0;
 }
 
-// register allocation: GCC keeps &GwSystem.current_player_index in s0 across the call (masked 22)
+// referent (masked 20-23): retail reads GwSystem.current_player_index as a scalar global; with a scalar extern
+// only register allocation remains (masked 17); with the struct field our GCC keeps its address in s0
 #ifdef NON_MATCHING
 s32 func_8010EB88_duel01(void) {
     GW_PLAYER *rival;
