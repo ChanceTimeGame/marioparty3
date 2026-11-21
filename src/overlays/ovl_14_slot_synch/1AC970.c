@@ -1154,41 +1154,37 @@ void func_80107A88_slot_synch(void) {
     D_8010DF70_slot_synch.unk00 = omAddObj(0x1C, 0, 0, -1, NULL);
 }
 
-#ifdef NON_MATCHING
 s16 func_80107B00_slot_synch(f32 x, f32 y, u8 gfx, u8 team, u16 prio) {
     SsSpr* spr;
     s16 idx;
 
-    idx = -1;
-    if (D_8010DF70_slot_synch.unk00->func == NULL) {
-        idx = -1;
-        if (D_8010DF70_slot_synch.unk06 < 24) {
-            idx = D_8010DF70_slot_synch.unk06;
-            spr = &D_8010DF70_slot_synch.unk08[idx];
-            spr->unk00 = idx;
-            spr->unk06 = gfx;
-            spr->unk07 = team;
-            spr->unk02 = prio;
-            spr->unk24.x = x;
-            spr->unk14.x = x;
-            spr->unk1C.x = x;
-            spr->unk24.y = y;
-            spr->unk14.y = y;
-            spr->unk1C.y = y;
-            spr->unk08 = 0;
-            spr->unk0A = 0;
-            spr->unk09 = 0;
-            spr->unk0B = 0;
-            spr->unk0C = 0;
-            spr->unk10 = 0;
-            D_8010DF70_slot_synch.unk06++;
-        }
+    if (D_8010DF70_slot_synch.unk00->func != NULL) {
+        return -1;
     }
-    return idx;
+    if (D_8010DF70_slot_synch.unk06 < 24) {
+        idx = D_8010DF70_slot_synch.unk06;
+        spr = &D_8010DF70_slot_synch.unk08[idx];
+        spr->unk00 = idx;
+        spr->unk06 = gfx;
+        spr->unk07 = team;
+        spr->unk02 = prio;
+        spr->unk24.x = x;
+        spr->unk14.x = x;
+        spr->unk1C.x = x;
+        spr->unk24.y = y;
+        spr->unk14.y = y;
+        spr->unk1C.y = y;
+        spr->unk08 = 0;
+        spr->unk0A = 0;
+        spr->unk09 = 0;
+        spr->unk0B = 0;
+        spr->unk0C = 0;
+        spr->unk10 = 0;
+        D_8010DF70_slot_synch.unk06++;
+        return idx;
+    }
+    return -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107B00_slot_synch);
-#endif
 
 void func_80107BAC_slot_synch(void) {
     s16 files[4];
