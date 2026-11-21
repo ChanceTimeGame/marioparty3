@@ -332,6 +332,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/21CAC0", func_8010
 /* NON_MATCHING (masked 5, raw 6): retail indexes the count as (view + list * 2)->0x18 in the second
    test; this C forms &view->cnt[list] first. Without the pointer GCC threads the first test's
    branch past the second (retail does not). Same loads, stores and branches otherwise. */
+// H0: masked 5: retail addresses cnt as view + list*2 then 24(..); view->cnt[list] spelled out lets GCC thread the second test (masked 11), cnt = view->cnt gives masked 6.
 #ifdef NON_MATCHING
 /* Add the model data's display list id to grid layer list's display list. Retail adds a list only
    while the layer's list is empty, so each layer draws the first visible cell's list per frame. */
