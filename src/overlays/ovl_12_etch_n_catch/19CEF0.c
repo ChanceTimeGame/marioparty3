@@ -922,26 +922,22 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80106A6
 #endif
 
 /* Whether (x, z) is outside the drawing area of the player's team. */
-#ifdef NON_MATCHING
 s32 func_80107D38_etch_n_catch(f32 x, f32 z, EtchNCatchWork* w) {
-    s32 out;
-
     if (w->unk01 == 3) {
-        out = TRUE;
         if ((x < -80.0f) & (x > -450.0f)) {
-            out = ((z < 300.0f) & (z > -400.0f)) ? FALSE : TRUE;
+            if ((z < 300.0f) & (z > -400.0f)) {
+                return FALSE;
+            }
         }
-    } else {
-        out = TRUE;
-        if ((x > 80.0f) & (x < 450.0f)) {
-            out = ((z < 300.0f) & (z > -400.0f)) ? FALSE : TRUE;
+        return TRUE;
+    }
+    if ((x > 80.0f) & (x < 450.0f)) {
+        if ((z < 300.0f) & (z > -400.0f)) {
+            return FALSE;
         }
     }
-    return out;
+    return TRUE;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_12_etch_n_catch/19CEF0", func_80107D38_etch_n_catch);
-#endif
 
 /* CPU player input: chases a point beside its team's catcher, then circles the catcher (D_8010C6E4 state 0 approach,
    1 turn to face along the pen, 2 circle); radius and speed by difficulty. Steers away from the area's edge. */
