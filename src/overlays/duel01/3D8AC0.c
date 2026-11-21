@@ -6690,7 +6690,8 @@ void func_801182E4_duel01(void) {
 void func_80118320_duel01(void) {
 }
 
-// duel b5: masked 20 (reuses nidx in another branch; 3/0 returns folded to sltu)
+// control flow (66 vs 65, masked 13): retail keeps cur->nidx in a1 from the opening compare for the first
+// rev&1 arm; ours reloads it (tried early returns, nested opening test)
 #ifdef NON_MATCHING
 s32 func_80118328_duel01(void) {
     GW_PLAYER *cur;
@@ -6708,18 +6709,14 @@ s32 func_80118328_duel01(void) {
             if (cur->rev & 1) {
                 if (other->rev & 1) {
                     ret = 0;
-                } else if (cur->nidx != 0) {
-                    ret = 3;
-                } else if (other->nlink != 0) {
+                } else if (cur->nidx != 0 || other->nlink != 0) {
                     ret = 3;
                 } else {
                     ret = 0;
                 }
             } else if (other->rev & 1) {
                 ret = 3;
-            } else if (cur->nidx != 0) {
-                ret = 0;
-            } else if (other->nlink != 0) {
+            } else if (cur->nidx != 0 || other->nlink != 0) {
                 ret = 0;
             } else {
                 ret = 3;
