@@ -1134,28 +1134,24 @@ void func_801089A4_mpiq(s32 turn) {
     host->unk0C = turn | flags;
 }
 
-#ifdef NON_MATCHING
 /* 1 if a and b are within 150 units (x, y). */
 s16 func_801089D0_mpiq(omObjData* a, omObjData* b) {
     f32 ax;
     f32 ay;
-    f32 dx;
-    f32 dy;
+    f32 bx;
+    f32 by;
     s32 near;
 
     near = 0;
     ax = a->trans.x;
     ay = a->trans.y;
-    dx = b->trans.x - ax;
-    dy = b->trans.y - ay;
-    if (HuSqrtf(dx * dx + dy * dy) < 150.0f) {
+    bx = b->trans.x;
+    by = b->trans.y;
+    if (HuSqrtf((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) < 150.0f) {
         near = 1;
     }
     return near;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801089D0_mpiq);
-#endif
 
 void func_80108A3C_mpiq(f32 zoom, f32 rotX, f32 rotY, f32 rotZ, f32 x, f32 y, f32 z) {
     func_8000B5F0_main(1);
