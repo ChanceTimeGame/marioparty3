@@ -7998,43 +7998,40 @@ void func_8011A8D8_w05(void) {
     omDelPrcObj(NULL);
 }
 
-#ifdef NON_MATCHING
 void func_8011ABEC_w05(s16 *masuList, s32 dir, s32 mode, s32 row) {
-    GW_SYSTEM *sys = &GwSystem;
+    GW_SYSTEM *sys;
     GW_PLAYER *player;
     Process *prc;
     W05PlayerWork *work;
-    process_func func;
     s32 slot;
     s32 i;
 
     slot = 0;
+    sys = &GwSystem;
     do {
         for (i = 0; i < 4; i++) {
-            if (!(i == sys->current_player_index && mode == 0)) {
-                player = MBPlayerGet(i);
-                if (*masuList == MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
-                    func = func_801192AC_w05;
-                    if (mode == 2) {
-                        func = func_80119610_w05;
-                    }
-                    prc = omAddPrcObj(func, 0x4800, 0, 0x40);
-                    work = HuMemMemoryAlloc(prc->heap, sizeof(W05PlayerWork));
-                    prc->user_data = work;
-                    work->playerNo = i;
-                    work->unk4 = row;
-                    work->slot = slot;
-                    work->dir = dir;
-                    slot++;
+            if (i == sys->current_player_index && mode == 0) {
+                continue;
+            }
+            player = MBPlayerGet(i);
+            if (*masuList == MBMasuLinkMasuIdGet(player->clink, player->cidx)) {
+                if (mode == 2) {
+                    prc = omAddPrcObj(func_80119610_w05, 0x4800, 0, 0x40);
+                } else {
+                    prc = omAddPrcObj(func_801192AC_w05, 0x4800, 0, 0x40);
                 }
+                work = HuMemMemoryAlloc(prc->heap, sizeof(W05PlayerWork));
+                prc->user_data = work;
+                work->playerNo = i;
+                work->unk4 = row;
+                work->slot = slot;
+                work->dir = dir;
+                slot++;
             }
         }
         masuList++;
     } while (*masuList != -1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_8011ABEC_w05);
-#endif
 
 s32 func_8011AD34_w05(s32 dir) {
     Vec pos[4];
