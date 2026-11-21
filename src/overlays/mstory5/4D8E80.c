@@ -1369,7 +1369,6 @@ void func_80113CF8_mstory5(omObjData *obj) {
 
 /* actor 6 bobs up and down */
 /* actor 6 bobs up and down (NON_MATCHING, as mstory1's twin: one extra delay-slot nop) */
-#ifdef NON_MATCHING
 void func_80113D2C_mstory5(void) {
     Vec pos;
     s16 model;
@@ -1391,9 +1390,6 @@ void func_80113D2C_mstory5(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory5/4D8E80", func_80113D2C_mstory5);
-#endif
 
 void func_80113E58_mstory5(void) {
     omObjData *obj;

@@ -954,7 +954,6 @@ void func_80110C64_mstory2(void) {
 void func_80110E08_mstory2(void) {
 }
 
-#ifdef NON_MATCHING
 /* actor 3 bobs up and down (unless D_8011C828 is 1). Differs only by one nop after the sindf call
    (the scheduling around the angle wrap) */
 void func_80110E10_mstory2(void) {
@@ -980,9 +979,6 @@ void func_80110E10_mstory2(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/4A28B0", func_80110E10_mstory2);
-#endif
 
 void func_80110F54_mstory2(omObjData *obj) {
     func_801076DC_mstory2(obj, D_8011C760_mstory2[1].obj);
