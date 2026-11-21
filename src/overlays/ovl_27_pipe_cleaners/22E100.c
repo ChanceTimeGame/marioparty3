@@ -762,6 +762,8 @@ void func_80106E10_pipe_cleaners(omObjData *obj) {
 }
 
 /* Shadow scale follows the pull motion. */
+// control flow (masked 5): retail repeats the obj->model load in the frame < 20 arm and jumps past the
+// join's copy (tried: the call in both arms, the test inverted, one scale local)
 #ifdef NON_MATCHING
 void func_80106FD8_pipe_cleaners(omObjData *obj, u16 chr, f32 frame, s32 state) {
     f32 base = 1.0f;
