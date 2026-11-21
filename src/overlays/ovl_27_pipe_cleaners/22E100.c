@@ -622,6 +622,8 @@ s32 func_80106540_pipe_cleaners(omObjData *obj, u32 mode)
 }
 
 /* CPU player input. */
+// control flow (masked 52, 132 of 180): GCC cross-jumps the last else branch into the identical tail of
+// the aim branch (random pipe, pull roll, timer); retail keeps both copies. Same calls and logic.
 #ifdef NON_MATCHING
 void func_801066E4_pipe_cleaners(omObjData *obj) {
     PcPlayer *player;
@@ -635,8 +637,12 @@ void func_801066E4_pipe_cleaners(omObjData *obj) {
         } else if (rand8() % player->cpuAimChance == 0) {
             pipe = func_80106540_pipe_cleaners(obj, (u8)((u32)rand8() % 3));
             if (pipe != -1) {
-                if (rand8() % player->cpuPullChance == 0
-                    || (pipe = (rand8() & 3) + obj->work[0] * 4, rand8() % player->cpuPullChance != 0)) {
+                if (rand8() % player->cpuPullChance != 0) {
+                    pipe = (rand8() & 3) + obj->work[0] * 4;
+                    if (rand8() % player->cpuPullChance != 0) {
+                        func_801063E8_pipe_cleaners(obj, pipe);
+                    }
+                } else {
                     func_801063E8_pipe_cleaners(obj, pipe);
                 }
                 player->cpuTimer = (rand8() % player->cpuWait) * 5;
