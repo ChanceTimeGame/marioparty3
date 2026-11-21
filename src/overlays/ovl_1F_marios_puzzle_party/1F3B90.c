@@ -394,27 +394,24 @@ void func_80105C98_marios_puzzle_party(void) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_80105D50_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row) {
-    PzCell* cells = D_801102E0_marios_puzzle_party[player][col];
-    PzCell* cell = &cells[row];
+    PzCell* cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    PzCell* next;
 
     cell->unkC = color;
-    cell->unk4 = col * 14 + D_80110080_marios_puzzle_party[player].x;
+    cell->unk4 = D_80110080_marios_puzzle_party[player].x + col * 14;
     cell->unk8 = D_80110080_marios_puzzle_party[player].y - row * 7;
     cell->unk10 = state;
     cell->unk0 = func_80106A44_marios_puzzle_party(player, cell->unkC, cell->unk10, cell->unk4, cell->unk8);
     if (state == 1) {
-        cells[row + 1].unkC = color;
-        cells[row + 1].unk4 = cell->unk4;
-        cells[row + 1].unk8 = cell->unk8 - 7;
-        cells[row + 1].unk10 = 2;
-        cells[row + 1].unk0 = cell->unk0;
+        next = &D_801102E0_marios_puzzle_party[player][col][row + 1];
+        next->unkC = color;
+        next->unk4 = cell->unk4;
+        next->unk8 = cell->unk8 - 7;
+        next->unk10 = 2;
+        next->unk0 = cell->unk0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80105D50_marios_puzzle_party);
-#endif
 
 u16 func_80105E88_marios_puzzle_party(s32 player) {
     u16 btn;
@@ -1257,20 +1254,23 @@ void func_801088F4_marios_puzzle_party(s32 player, PzPiece *piece)
   func_80108568_marios_puzzle_party(player, 1);
 }
 
+// masked 55: retail folds the -1/+1 column and row offsets into the base address (D_8010FFC0 = cell[-1][0])
+// and recomputes each sum; tried plain array indexing (64) and (*(D[player] + col))[row] (40, adds a frame)
 #ifdef NON_MATCHING
 s32 func_80108A50_marios_puzzle_party(s32 player, s32 kind, s32 color, s32 col, s32 row) {
+    PzCell (*grid)[40] = D_801102E0_marios_puzzle_party[player];
     s32 n = 0;
 
     if (color != 6) {
-        n = D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color;
-        n += D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color;
-        n += D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color;
+        n = grid[col - 1][row].unkC == color;
+        n += grid[col + 1][row].unkC == color;
+        n += grid[col][row - 1].unkC == color;
         if (kind == 1) {
-            n += D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color;
-            n += D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color;
-            n += D_801102E0_marios_puzzle_party[player][col][row + 2].unkC == color;
+            n += grid[col - 1][row + 1].unkC == color;
+            n += grid[col + 1][row + 1].unkC == color;
+            n += grid[col][row + 2].unkC == color;
         } else {
-            n += D_801102E0_marios_puzzle_party[player][col][row + 1].unkC == color;
+            n += grid[col][row + 1].unkC == color;
         }
     }
     return n;
@@ -1726,13 +1726,16 @@ void func_8010A0D8_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A0D8_marios_puzzle_party);
 #endif
 
+// register allocation (masked 0, raw 16: the /14 and /7 magic shares a1 in retail)
 #ifdef NON_MATCHING
 s32 func_8010A4B4_marios_puzzle_party(s32 player, s32 x, s32 y) {
+    s32 col = (x - D_80110080_marios_puzzle_party[player].x) / 14;
     s32 row = (D_80110080_marios_puzzle_party[player].y - y) / 7;
+    PzCell* cells;
     s32 i;
 
-    for (i = 0; i < 4; i++) {
-        if (D_801102E0_marios_puzzle_party[player][(x - D_80110080_marios_puzzle_party[player].x) / 14][row + i].unk10 != 0) {
+    for (i = 0, cells = D_801102E0_marios_puzzle_party[player][col]; i < 4; i++) {
+        if (cells[row + i].unk10 != 0) {
             break;
         }
     }
