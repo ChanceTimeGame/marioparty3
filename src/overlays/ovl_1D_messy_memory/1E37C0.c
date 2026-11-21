@@ -1506,12 +1506,11 @@ void func_8010B32C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B32C_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010B4CC_messy_memory(void) {
     omObjData *obj;
     MmEnt *ent;
     s32 unused[2];
-    u32 kind = 0;
+    u32 kind;
     s16 i;
 
     for (i = 0; i < 4; i++) {
@@ -1528,6 +1527,9 @@ void func_8010B4CC_messy_memory(void) {
         case 3:
             kind = 3;
             break;
+        default:
+            kind = 0;
+            break;
         }
         ent = &D_80111700_messy_memory[i];
         obj = omAddObj(150, 4, 1, -1, func_8010B32C_messy_memory);
@@ -1535,9 +1537,6 @@ void func_8010B4CC_messy_memory(void) {
         ent->obj = obj;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010B4CC_messy_memory);
-#endif
 
 /* A player's model object (work[0] the player; D_80113B18[player] its state), per game phase. */
 #ifdef NON_MATCHING
@@ -1800,12 +1799,11 @@ void func_8010C03C_messy_memory(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C03C_messy_memory);
 #endif
 
-#ifdef NON_MATCHING
 void func_8010C37C_messy_memory(void) {
     omObjData *obj;
     MmEnt *ent;
     s32 unused[2];
-    u32 kind = 0;
+    u32 kind;
     s16 i;
 
     for (i = 0; i < 4; i++) {
@@ -1822,6 +1820,9 @@ void func_8010C37C_messy_memory(void) {
         case 3:
             kind = 3;
             break;
+        default:
+            kind = 0;
+            break;
         }
         ent = &D_80113B18_messy_memory[i];
         obj = omAddObj(850, 9, 60, -1, func_8010C03C_messy_memory);
@@ -1829,9 +1830,6 @@ void func_8010C37C_messy_memory(void) {
         ent->obj = obj;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C37C_messy_memory);
-#endif
 
 /* An item's object (work[0] the item, work[1] its board: 0-3 a player's, 4 the shown room), per game phase. */
 #ifdef NON_MATCHING
