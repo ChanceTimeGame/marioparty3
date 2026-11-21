@@ -2034,18 +2034,19 @@ s32 func_8010AEDC_mpiq(s32 q) {
     return ref;
 }
 
-#ifdef NON_MATCHING
 /* A wrong number near the right one: (rand % range + base) * step off, positive, not repeated. */
 s32 func_8010AFAC_mpiq(s32 q, s32 range, s32 base, s32 step) {
     s32 tries;
+    s32 r;
     s32 v;
     s32 bad;
     s32 i;
 
     for (tries = 0;; tries++) {
-        v = (rand8() % range + base) * step + D_8010D010_mpiq;
+        r = (rand8() % range + base) * step;
         bad = 0;
         for (i = 0; i < 3; i++) {
+            v = r + D_8010D010_mpiq;
             if (v == D_8010CB00_mpiq[q][i] || v == D_8010D010_mpiq || v < 1) {
                 bad++;
                 break;
@@ -2060,9 +2061,6 @@ s32 func_8010AFAC_mpiq(s32 q, s32 range, s32 base, s32 step) {
     }
     return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010AFAC_mpiq);
-#endif
 
 #ifdef NON_MATCHING
 /* Main process: ten questions (endless: repeats), first to three right answers wins. */
