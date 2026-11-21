@@ -1108,7 +1108,6 @@ void func_8010FAC4_mstory1(omObjData *obj) {
 
 /* NON_MATCHING: masked 0 except one nop: the assembler pads after sindf's jal (the delay slot
    holds mov.s $f12) where retail does not; one instruction long. */
-#ifdef NON_MATCHING
 /* actor 6 bobs while D_80114B40_mstory1 is set */
 void func_8010FAF8_mstory1(void) {
     Vec pos;
@@ -1131,9 +1130,6 @@ void func_8010FAF8_mstory1(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/492250", func_8010FAF8_mstory1);
-#endif
 
 /* the item model, per chapter */
 const s32 D_8011546C_mstory1[7] = { 0x001D0003, 0x001D0004, 0x001D0005, 0x001D0006,

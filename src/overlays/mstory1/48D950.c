@@ -1219,8 +1219,6 @@ void func_8010B384_mstory1(omObjData *obj) {
     D_801158F0_mstory1[6].func = func_801081D8_mstory1;
 }
 
-// an extra nop after the sindf call (masked 3)
-#ifdef NON_MATCHING
 /* actor 6 bobs up and down */
 void func_8010B3B8_mstory1(void) {
     Vec pos;
@@ -1243,9 +1241,6 @@ void func_8010B3B8_mstory1(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory1/48D950", func_8010B3B8_mstory1);
-#endif
 
 /* actor 7 and the effect */
 void func_8010B4E4_mstory1(void) {

@@ -1714,6 +1714,7 @@ void func_8010A328_spotlight_swim(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_8010A328_spotlight_swim);
 #endif
 
+// H0: masked 18: retail does not hoist &D_8010D798_spotlight_swim out of the loop and copies omAddObj's result to v1; a chained ent->obj store did not help.
 #ifdef NON_MATCHING
 /* as func_80109E08_spotlight_swim: register allocation (retail hoists the case constants, mine the table base); ops otherwise equal */
 void func_8010A670_spotlight_swim(void) {

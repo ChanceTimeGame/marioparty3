@@ -230,11 +230,9 @@ s16 func_801070D8_storyresult(void)
   return n;
 }
 
-#ifdef NON_MATCHING
-/* Residue (masked 5): retail keeps GwStory.unk1 in a2 for all three indexes with register copies. */
 void func_80107140_storyresult(void) {
     s32 i;
-    s32 c;
+    s16 c;
 
     c = GwStory.unk1;
     GwStory.unk58[c] = GwStory.unkF;
@@ -250,9 +248,6 @@ void func_80107140_storyresult(void) {
     }
     func_80050614_main(1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/storyresult/54F360", func_80107140_storyresult);
-#endif
 
 #ifdef NON_MATCHING
 /* Residue (masked ~10): retail keeps the 160/120 screen centre in saved registers and derives 204/48/187 from them (GCC constant CSE); otherwise identical. */
@@ -1752,6 +1747,7 @@ s16 func_8010A7B0_storyresult(s16 player) {
     return rank;
 }
 
+// H0: masked 12: register allocation (kind in t0, GwStory.unk1 copied a2->a3); tried s32 chr (16) and no local (23).
 #ifdef NON_MATCHING
 /* Residue (masked 15): register allocation around the player search (retail copies GwStory.unk1 and keeps the chapter kind in t0). */
 /* The story player's rank in the board just played (0 if not found). */

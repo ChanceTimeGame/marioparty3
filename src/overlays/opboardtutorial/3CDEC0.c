@@ -438,6 +438,7 @@ void func_801068E4_opboardtutorial(Object *host) {
 }
 
 // board t1: register allocation in the roll sort (masked 0; opboard's twin has the same residue)
+// H0: masked 0; the CALLS line is func_800E210C's label (_minigame vs _shared_board, same address). One tmp for both swaps: raw 16 (worse).
 #ifdef NON_MATCHING
 /* deciding the turn order (scripted): every player hits a dice block at once, the rolls are
    fixed (player 0: 2..5, 1: 6..9, 2: 10, 3: 1); then the host introduces each player in the new

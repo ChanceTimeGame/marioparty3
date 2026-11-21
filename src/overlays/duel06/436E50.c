@@ -2223,8 +2223,6 @@ void func_8010B544_duel06(void) {
     D_80114D4C_duel06->work[0] = 0;
 }
 
-#ifdef NON_MATCHING
-// duel b2: masked 78 of 649: func_800EB708 is called through a correctly typed local pointer (duel01.h has it wrong) and GCC keeps it in $s8 (jalr), which shifts the allocation; logic checked block by block.
 void func_8010B554_duel06(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
     Vec sp28;
@@ -2236,6 +2234,8 @@ void func_8010B554_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
     Object *obj;
     f32 angle;
     f32 speed;
+    f32 scale;
+    Vec *mid;
     s32 effect;
 
     player = MBDGetPlayerStruct(playerNo);
@@ -2255,17 +2255,20 @@ void func_8010B554_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
         func_800D90D0_name_81(D_80114D48_duel06, 0, 2);
         HuVecCopy3F(&sp28, &D_80114D48_duel06->coords);
         HuVecCopy3F(&sp48, &D_80114D48_duel06->rot);
-        HuVecCopy3F(&sp18, (target != NULL) ? &target->coords : &player->player_obj->coords);
+        if (target != NULL) {
+            HuVecCopy3F(&sp18, &target->coords);
+        } else {
+            HuVecCopy3F(&sp18, &player->player_obj->coords);
+        }
         func_800EB708_name_81(&D_80114D48_duel06->coords, &sp18, &D_80114D48_duel06->rot);
         angle = func_800D76D0_name_81(&D_80114D48_duel06->rot) + 180.0f;
         if (variant == 1) {
-            speed = 2.5f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 2.5f);
         } else {
-            speed = 3.0f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 3.0f);
         }
-        offset.x = sindf(angle) * 6.0f * speed;
         offset.y = 0.0f;
-        offset.z = cosdf(angle) * 6.0f * speed;
+        offset.z = cosdf(angle) * scale * speed;
         HuVecAdd(&sp18, &sp18, &offset);
         HuPrcChildLink(process, func_800EC1E4_name_81(&D_80114D48_duel06->coords, &sp18, &D_80114D48_duel06->coords, 0.5f));
         func_80106248_duel06();
@@ -2283,8 +2286,13 @@ void func_8010B554_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
                 func_801060D8_duel06(player, target, 0, 0x32);
             } else {
                 HuPrcSleep(8);
-                HuVecAdd(&sp58, (flags & 1) ? &target->coords : &player->player_obj->coords, &D_80114D48_duel06->coords);
-                HuVecMulScalar(&sp58, 0.5f, &sp58);
+                mid = &sp58;
+                if (flags & 1) {
+                    HuVecAdd(mid, &target->coords, &D_80114D48_duel06->coords);
+                } else {
+                    HuVecAdd(mid, &player->player_obj->coords, &D_80114D48_duel06->coords);
+                }
+                HuVecMulScalar(mid, 0.5f, mid);
                 sp58.y += 5.0f;
                 effect = func_800DD1E0_name_81(0xB0025, D_801147A0_duel06);
                 func_800DD2DC_name_81(effect, &sp58);
@@ -2366,9 +2374,6 @@ void func_8010B554_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010B554_duel06);
-#endif
 
 void func_8010BCDC_duel06(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec dest;
@@ -3251,10 +3256,12 @@ void func_8010EBAC_duel06(void) {
     HuPrcSleep(5);
 }
 
-// board eb2: NON_MATCHING (masked ~40): retail keeps &GwSystem in $s0 for the first pipe-state test only
-// and reloads the other GwSystem fields absolutely; the logic is checked against the asm branch by branch
+// control flow (masked 34): retail repeats the walk test in each of the four arms (two cross-jumped into
+// one tail) and keeps &GwSystem in $s0 for the first arm's pipe test only, yet reads current_player_index
+// absolutely; with the system pointer our GCC folds those reads into $s0 and cross-jumps arm 3 as well
 #ifdef NON_MATCHING
 s32 func_8010ED04_duel06(void) {
+    GW_SYSTEM *system = &GwSystem;
     GW_PLAYER *rival;
     s32 chance;
     s32 dist;
@@ -3263,23 +3270,39 @@ s32 func_8010ED04_duel06(void) {
     chance = (5 - GwPlayer[GwSystem.current_player_index].star) * 10;
     if (mbWalkNum < 6) {
         if (GwSystem.current_player_index == 0) {
-            if (GwSystem.boardData.halfWordBytes[0] == 0) {
+            if (system->boardData.halfWordBytes[0] == 0) {
                 dist = rival->cidx - 18;
+                if (dist == mbWalkNum) {
+                    chance = 0;
+                }
+                if (dist < mbWalkNum) {
+                    chance += 20;
+                }
             } else {
                 dist = 18 - rival->cidx;
+                if (dist == mbWalkNum) {
+                    chance = 0;
+                }
+                if (dist < mbWalkNum) {
+                    chance += 20;
+                }
+            }
+        } else if (GwSystem.boardData.halfWordBytes[0] == 0) {
+            dist = rival->cidx - 6;
+            if (dist == mbWalkNum) {
+                chance = 0;
+            }
+            if (dist < mbWalkNum) {
+                chance += 20;
             }
         } else {
-            if (GwSystem.boardData.halfWordBytes[0] == 0) {
-                dist = rival->cidx - 6;
-            } else {
-                dist = 6 - rival->cidx;
+            dist = 6 - rival->cidx;
+            if (dist == mbWalkNum) {
+                chance = 0;
             }
-        }
-        if (dist == mbWalkNum) {
-            chance = 0;
-        }
-        if (dist < mbWalkNum) {
-            chance += 20;
+            if (dist < mbWalkNum) {
+                chance += 20;
+            }
         }
     }
     return chance;
@@ -4646,22 +4669,20 @@ void func_80113FF0_duel06(void) {
 void func_8011402C_duel06(void) {
 }
 
-// board eb2: NON_MATCHING (masked 1): ret lands in $a0, not $v0; logic checked against the asm
+// register allocation only (masked 0, the second player struct in a0, retail a1; twin of func_80114940_duel10)
 #ifdef NON_MATCHING
 s32 func_80114034_duel06(void) {
     GW_PLAYER *player;
     GW_PLAYER *otherPlayer;
     s32 cur = GwSystem.current_player_index;
     s32 other = (cur + 1) & 1;
-    s32 ret;
 
     player = MBDGetPlayerStruct(cur);
     otherPlayer = MBDGetPlayerStruct(other);
-    ret = -1;
-    if (player->nlink == otherPlayer->clink) {
-        ret = -(player->nidx != otherPlayer->cidx); /* 0 when the rival is on that space */
+    if (player->nlink != otherPlayer->clink) {
+        return -1;
     }
-    return ret;
+    return -(player->nidx != otherPlayer->cidx);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_80114034_duel06);

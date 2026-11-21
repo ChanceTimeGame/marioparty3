@@ -1911,7 +1911,6 @@ void func_8010C654_mstory3(void) {
 
 /* NON_MATCHING: masked 0 except one nop the assembler puts after sindf's jal (delay slot
    mov.s $f12) where retail has none; mstory1's func_8010FAF8 has the same residue. */
-#ifdef NON_MATCHING
 /* process: actor 3 floats up and down (paused while D_80115C88_mstory3 is 1) */
 void func_8010C65C_mstory3(void) {
     Vec pos;
@@ -1936,9 +1935,6 @@ void func_8010C65C_mstory3(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_8010C65C_mstory3);
-#endif
 
 void func_8010C7A0_mstory3(omObjData *obj) {
     func_80107674_mstory3(obj, D_80115BC0_mstory3[1].obj);

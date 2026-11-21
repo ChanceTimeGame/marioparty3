@@ -464,27 +464,22 @@ void func_801064A0_merry_go_chomp(void) {
 void func_801064E0_merry_go_chomp(omObjData *obj) {
 }
 
-#ifdef NON_MATCHING
 void func_801064E8_merry_go_chomp(omObjData *obj) {
     obj->model[0] = func_8000B108_main(0x4E0004, 0x2B9);
     obj->model[1] = func_8000B108_main(0x4E0005, 0x2B9);
     obj->model[2] = func_8000B108_main(0x4E0002, 0x2B9);
     obj->trans.x = -500.0f;
-    obj->trans.y = 0.0f;
-    D_8010C500_merry_go_chomp[15].pos.y = 0.0f;
+    MC_ENT(MC_ENT_GROUND, 15)->pos.y = obj->trans.y = 0.0f;
     obj->trans.z = -400.0f;
-    D_8010C500_merry_go_chomp[15].pos.z = -225.0f;
+    MC_ENT(MC_ENT_GROUND, 15)->pos.z = -225.0f;
     Hu3DModelPosSet(obj->model[0], obj->trans.x, obj->trans.y, obj->trans.z);
-    Hu3DModelPosSet(obj->model[1], obj->trans.x, D_8010C500_merry_go_chomp[15].pos.y, D_8010C500_merry_go_chomp[15].pos.z);
+    Hu3DModelPosSet(obj->model[1], obj->trans.x, MC_ENT(MC_ENT_GROUND, 15)->pos.y, MC_ENT(MC_ENT_GROUND, 15)->pos.z);
     Hu3DModelPosSet(obj->model[2], 0.0f, 0.0f, 0.0f);
     func_8001C8A8_main(obj->model[0], 2);
     func_8001C8A8_main(obj->model[1], 2);
     func_8001C8A8_main(obj->model[2], 2);
     obj->func = func_801064E0_merry_go_chomp;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_801064E8_merry_go_chomp);
-#endif
 
 void func_8010662C_merry_go_chomp(void) {
     D_8010C500_merry_go_chomp[15].obj = omAddObj(700, 4, 1, -1, func_801064E8_merry_go_chomp);
@@ -761,14 +756,13 @@ s8 func_80106CC4_merry_go_chomp(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80106CC4_merry_go_chomp);
 #endif
 
-#ifdef NON_MATCHING
-/* masked 3: rot and 180.0f swap f20/f22 (one extra nop); work index in v0 not v1 */
 void func_80107664_merry_go_chomp(omObjData *obj) {
     McEnt *ent = MC_ENT(MC_ENT_PLAYER, obj->work[0]);
+    omObjData *obj20 = MC_ENT(MC_ENT_PLAYER, 20)->obj;
     McPl *pl = &D_8010C420_merry_go_chomp[obj->work[0]];
     f32 rot;
 
-    rot = func_801059BC_merry_go_chomp(MC_ENT(MC_ENT_PLAYER, 20)->obj->rot.y,
+    rot = func_801059BC_merry_go_chomp(obj20->rot.y,
                                        -D_8010C1D8_merry_go_chomp[D_8010C4CE_merry_go_chomp][ent->unk0A]);
     rot = func_801059BC_merry_go_chomp(rot, -(D_8010DED4_merry_go_chomp * 15.0f));
     pl->dx = sindf(rot) * 180.0f;
@@ -780,9 +774,6 @@ void func_80107664_merry_go_chomp(omObjData *obj) {
     func_8001C92C_main(obj->model[0], 1.5f);
     ent->unk06 = 6;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_80107664_merry_go_chomp);
-#endif
 
 void func_801077D0_merry_go_chomp(omObjData *obj) {
     McPl *pl = &D_8010C420_merry_go_chomp[obj->work[0]];

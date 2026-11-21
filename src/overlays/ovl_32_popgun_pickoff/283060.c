@@ -2087,23 +2087,23 @@ Vtx* func_8010AFF4_popgun_pickoff(s16 id) {
 
 
 
+// control flow (masked 6): retail copies id before sign-extending it twice (compare, index) and keeps w in a1
+// (tried s32 parameters with s16 casts, a K&R definition)
 #ifdef NON_MATCHING
 s32 func_8010B038_popgun_pickoff(s16 id, s16 w, s16 h) {
     PgBoard* b;
     Vtx* v;
-    s32 x = w;
-    s32 y = h;
 
     if (id != -1) {
         b = &D_8010DDD8_popgun_pickoff[id];
         if (b->rows == 3) {
             b->flags |= 0x80000000;
             v = b->vtx;
-            v[4].v.ob[0] = x;
-            v[4].v.ob[1] = -y;
+            v[4].v.ob[0] = w;
+            v[4].v.ob[1] = -h;
             v[4].v.ob[2] = 0;
-            v[4].v.tc[0] = x << 6;
-            v[4].v.tc[1] = y << 6;
+            v[4].v.tc[0] = w * 64;
+            v[4].v.tc[1] = h * 64;
             return 1;
         }
     }

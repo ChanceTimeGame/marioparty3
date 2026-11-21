@@ -185,24 +185,22 @@ void func_800E4C88_minigame(omObjData* obj, u8 idx, f32 x, f32 y, f32 z, f32 a, 
         }
     }
 }
-// NON_MATCHING: register allocation (masked 13), as MP2 func_800192E4_19EE4: retail keeps obj in a3,
-// the motion table in a0 and a copy of flip in a1 for the second arm. Tried s16/u16/u8 flip.
-#ifdef NON_MATCHING
+
 /* Shows motion 22 (flipped with the request's flag 1). */
 void func_800E4D9C_minigame(omObjData* obj) {
     MgWork* w = obj->data;
     s16* motion = obj->motion;
-    s32 flip = (w->unkD8.flags & 1) * 2;
+    s16 flip = (w->unkD8.flags & 1) ? 2 : 0;
+    s16 mot;
 
     if (w->unkE8[22].unk00 & 4) {
-        func_8001EED8_main(obj->model[0], motion[22] & 0x3FFF, flip);
+        mot = motion[22] & 0x3FFF;
+        func_8001EED8_main(obj->model[0], mot, flip);
     } else {
-        func_8001EED8_main(obj->model[0], HmfModelData[obj->motion[22] & 0x3FFF].unk02, flip);
+        mot = HmfModelData[obj->motion[22] & 0x3FFF].unk02;
+        func_8001EED8_main(obj->model[0], mot, flip);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/minigame/B7600", func_800E4D9C_minigame);
-#endif
 
 /* Starts the pending motion request, or steps the current motion once it reached its end. */
 void func_800E4E30_minigame(omObjData* obj) {

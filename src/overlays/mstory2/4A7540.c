@@ -1005,8 +1005,6 @@ void func_8011591C_mstory2(void) {
 void func_80115AC0_mstory2(void) {
 }
 
-// the assembler puts a nop after the sindf call (retail has none): one instruction long, otherwise identical
-#ifdef NON_MATCHING
 /* actor 3 bobs up and down unless D_8011C908_mstory2 is 1 */
 void func_80115AC8_mstory2(void) {
     Vec pos;
@@ -1031,9 +1029,6 @@ void func_80115AC8_mstory2(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/4A7540", func_80115AC8_mstory2);
-#endif
 
 void func_80115C0C_mstory2(omObjData *obj) {
     func_801076DC_mstory2(obj, D_8011C840_mstory2[1].obj);
