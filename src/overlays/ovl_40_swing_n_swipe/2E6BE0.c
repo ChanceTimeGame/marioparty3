@@ -1632,6 +1632,7 @@ s16 func_8010B8EC_swing_n_swipe(s32 arg0) {
 }
 
 // retail keeps an unused 3 in s1 across the loop (a dead local?) and so allocates the floats differently
+// H0: loading pos.x/pos.z into locals before the subtractions gives retail's load order (masked 14) but not the 3
 #ifdef NON_MATCHING
 /* 1 if the point 50 in front of the player is within 100 of a thief. */
 s16 func_8010B920_swing_n_swipe(void) {

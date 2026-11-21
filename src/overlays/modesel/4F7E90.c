@@ -72,6 +72,8 @@ void func_80105C50_modesel(void) {
     func_801074AC_modesel();
 }
 
+// masked 5: GCC hoists &D_8010FE10 into t0, retail indexes it from %hi/%lo each pass (twins in filesel, opening,
+// option; H0 tried a chained store and &D_8010F710[64] as base)
 #ifdef NON_MATCHING
 void func_80105C7C_modesel(void) {
     s32 i;
@@ -1737,6 +1739,7 @@ void func_8010A674_modesel(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A674_modesel);
 #endif
 
+// masked 3: assembler nop before the mul.s after the bc1t delay slot (same gas quirk as ovl_81 D3450)
 #ifdef NON_MATCHING
 void func_8010A84C_modesel(omObjData *obj) {
     Vec cur;
@@ -1839,6 +1842,7 @@ void func_8010AC3C_modesel(void) {
     func_801064D4_modesel(10, 0.0f, func_8010EC74_modesel(eye.x - m.x, eye.z - m.z), 0.0f);
 }
 
+// masked 6: retail keeps no = 10 in s2 and passes it in a0 to func_8010AC3C too (GCC folds the constant)
 #ifdef NON_MATCHING
 void func_8010ACA8_modesel(omObjData *obj) {
     Vec pos;
@@ -3375,6 +3379,7 @@ void func_8010E280_modesel(s32 no, u32 arg1) {
     func_8010601C_modesel(no, x, y);
 }
 
+// masked 15: retail loads 1.0f before the mul.s (H0 tried 1.0f + x, scale = 1.0f; scale += x)
 #ifdef NON_MATCHING
 /* One frame (t in 0..1) of item no's selection animation: a sine pulse of its scale.
    NON_MATCHING: retail loads 1.0f before the multiply (one nop fewer); logic checked against the asm. */

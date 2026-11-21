@@ -949,6 +949,7 @@ s32 func_80107988_snowball_summit(f32 cur, f32 target, f32 tol) {
 
 /* Turns obj toward the stick heading (stick.z) by at most rate degrees (only in motions 0, 1, 3 and 4). */
 // retail shares rate * dir + rot between the < 0 test and its store (GCC 2.7 here computes it twice); same logic
+// H0 tried a temp for SS_WRAP and if/else-if forms (worse)
 #ifdef NON_MATCHING
 void func_80107A18_snowball_summit(omObjData *obj, Vec stick, f32 rate) {
     SsPlayer *pl;

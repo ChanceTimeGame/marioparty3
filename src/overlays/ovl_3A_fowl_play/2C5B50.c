@@ -2550,6 +2550,8 @@ Vtx* func_8010D1C4_fowl_play(s16 id) {
     return b->vtx;
 }
 
+// masked 11: retail never sign-extends w/h at entry (sll 16, sra 10 at the tc stores) and extends id twice;
+// H0 tried s32 w/h with s16 locals, a K&R definition, and s32 params with (s16) casts. No callers in C.
 #ifdef NON_MATCHING
 s32 func_8010D208_fowl_play(s16 id, s16 w, s16 h) {
     PgBoard* b;

@@ -1678,6 +1678,8 @@ s32 func_801096C0_mpiq(s32 q, s32 idx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_801096C0_mpiq);
 #endif
 
+// masked 56: retail computes q * 2 in every case and puts default after the shared store (H0 tried per-case
+// stores, s32 ref, a goto to a shared store inside the switch)
 #ifdef NON_MATCHING
 /* Pick the name inserted into question q's text. */
 void func_8010A010_mpiq(s32 q) {
