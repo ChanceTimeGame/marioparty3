@@ -202,6 +202,7 @@ s32 func_80106BE0_chancetime(void) {
     return D_8010FAF0_chancetime;
 }
 
+// H0: calls match retail (CALLS was block order); masked 40: retail lays the rand-sleep arm first in the pad-wait loop; tried breaks and a goto loop (worse).
 #ifdef NON_MATCHING
 /* event e1: masked differs only in block order: retail keeps the COM wait (HuPrcSleep) right
    after the COM test and the A-button test after it; every loop form tried here (while, for,

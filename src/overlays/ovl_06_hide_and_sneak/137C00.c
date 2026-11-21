@@ -819,6 +819,7 @@ void func_80107638_hide_and_sneak(omObjData *obj) {
     obj->func = func_80106D10_hide_and_sneak;
 }
 
+// H0: masked 2: retail copies omAddObj's result to v1 (same as spotlight_swim func_8010A670); tried a chained store and declaration order.
 #ifdef NON_MATCHING
 void func_801078E4_hide_and_sneak(void) {
     omObjData *obj;

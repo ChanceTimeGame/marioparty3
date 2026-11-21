@@ -1747,6 +1747,7 @@ s16 func_8010A7B0_storyresult(s16 player) {
     return rank;
 }
 
+// H0: masked 12: register allocation (kind in t0, GwStory.unk1 copied a2->a3); tried s32 chr (16) and no local (23).
 #ifdef NON_MATCHING
 /* Residue (masked 15): register allocation around the player search (retail copies GwStory.unk1 and keeps the chapter kind in t0). */
 /* The story player's rank in the board just played (0 if not found). */

@@ -2036,6 +2036,7 @@ Vtx* func_8010B0FC_crowd_cover(s16 id) {
     return b->vtx;
 }
 
+// H0: masked 11: retail copies id and sign-extends it twice, stores w/h unextended and tc as (s16)w << 6 kept as sll 16/sra 10; tried w/h directly (10) and s32 parameters with casts (10, count 36).
 #ifdef NON_MATCHING
 s32 func_8010B140_crowd_cover(s16 id, s16 w, s16 h) {
     PgBoard* b;
