@@ -2653,23 +2653,25 @@ void func_8010CBF0_pump_pump_away(void) {
     }
 }
 
+// masked 6: retail shares the second branch's "return 0" and call blocks with the first; tried an
+// if/else with one shared return 0 (masked 11) and a (u16) on either compare operand (masked 19).
 #ifdef NON_MATCHING
 s32 func_8010CCBC_pump_pump_away(void) {
     PpTeam *t = D_80111978_pump_pump_away;
     PpRecord *r = &D_801135B0_pump_pump_away;
     PpTeam *t1 = &t[1];
-    u16 dist;
+    u32 dist;
 
-    if (D_80111978_pump_pump_away[1].dist < t->dist) {
-        dist = t->dist * 0.01;
-        if (r->record < dist) {
-            GWMgRecordSet(0, dist);
-            return 1;
+    if (t->dist > D_80111978_pump_pump_away[1].dist) {
+        dist = (u16)(t->dist * 0.01);
+        if (dist <= r->record) {
+            return 0;
         }
-        return 0;
+        GWMgRecordSet(0, dist);
+        return 1;
     }
     dist = t1->dist * 0.01;
-    if (r->record < dist) {
+    if ((u16)dist > r->record) {
         GWMgRecordSet(0, dist);
         return 1;
     }
@@ -2790,6 +2792,8 @@ void func_8010D458_pump_pump_away(void) {
     omAddObj(765, 1, 0, -1, func_8010D1B8_pump_pump_away);
 }
 
+// masked 11: retail converts dist to double in each arm (bc1tl with the cvt in its delay slot);
+// tried an f64 dist (masked 11, j-shaped) and dist = t->dist before the test (masked 9, other regs).
 #ifdef NON_MATCHING
 void func_8010D48C_pump_pump_away(omObjData *obj) {
     PpRecLine *rl = &D_801135D8_pump_pump_away;
@@ -2801,7 +2805,7 @@ void func_8010D48C_pump_pump_away(omObjData *obj) {
         return;
     }
     if (D_801135E0_pump_pump_away == 0) {
-        if (D_80111978_pump_pump_away[1].dist < t->dist) {
+        if (t->dist > D_80111978_pump_pump_away[1].dist) {
             dist = t->dist;
         } else {
             dist = t1->dist;
@@ -3550,6 +3554,8 @@ void func_80110034_pump_pump_away(omObjData *obj) {
     }
 }
 
+// masked 15: the loop's sum and the two zero stores take other registers/bases (retail: beqzl with
+// t1's store in the slot); chained and D_80111978_pump_pump_away[n] spellings of the stores do not help.
 #ifdef NON_MATCHING
 void func_801100F0_pump_pump_away(void) {
     PpPlayer *p;
@@ -3565,11 +3571,11 @@ void func_801100F0_pump_pump_away(void) {
     t = D_80111978_pump_pump_away;
     t1 = &t[1];
     if (t->timer == D_80111978_pump_pump_away[1].timer) {
-        if (D_80111978_pump_pump_away[0].timer == 0) {
+        if (t->timer == 0) {
             t1->timer = 0;
             t->timer = 0;
         } else if (rand8() & 1) {
-            D_80111978_pump_pump_away[0].timer += 40;
+            t->timer += 40;
         } else {
             t1->timer += 40;
         }
