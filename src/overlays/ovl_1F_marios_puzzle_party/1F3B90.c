@@ -974,21 +974,18 @@ void func_80107880_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107880_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 void func_80107BB0_marios_puzzle_party(s32 player) {
+    PzMatch* m;
     s32 i;
 
     for (i = 0; i < D_801163E8_marios_puzzle_party; i++) {
-        func_80107224_marios_puzzle_party(player, D_801163F0_marios_puzzle_party[i].col, D_801163F0_marios_puzzle_party[i].row);
+        m = &D_801163F0_marios_puzzle_party[i];
+        func_80107224_marios_puzzle_party(player, m->col, m->row);
         D_80116148_marios_puzzle_party[player] += 1 + D_80116108_marios_puzzle_party[player];
         D_80116138_marios_puzzle_party[player] += 1 + D_80116108_marios_puzzle_party[player];
-        func_80107880_marios_puzzle_party(player, D_801163F0_marios_puzzle_party[i].col, D_801163F0_marios_puzzle_party[i].row, 6,
-                                          D_801163F0_marios_puzzle_party[i].state);
+        func_80107880_marios_puzzle_party(player, m->col, m->row, 6, m->state);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107BB0_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* Chain counter: "N chain" digits above the board while the chain lasts, then grow and fade out;
@@ -2543,21 +2540,21 @@ void func_8010AD20_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010AD20_marios_puzzle_party);
 #endif
 
+// masked 16: retail keeps player * 4 and the array base in s1/s2 and re-adds them each pass
+// (tried a pointer, do-while, while/break)
 #ifdef NON_MATCHING
 /* Game over: drop the board out of view, accelerating. */
 void func_8010CF4C_marios_puzzle_party(void) {
     s32 player = (s32)HuPrcCurrentGet()->user_data;
-    s32* y;
     f32 speed;
 
-    D_801161C8_marios_puzzle_party[player] = 0;
     speed = 0.0f;
-    y = &D_801161C8_marios_puzzle_party[player];
+    D_801161C8_marios_puzzle_party[player] = 0;
     do {
         speed += 0.5f;
-        *y += speed;
+        D_801161C8_marios_puzzle_party[player] += speed;
         HuPrcVSleep();
-    } while (*y < 300);
+    } while (D_801161C8_marios_puzzle_party[player] < 300);
     while (TRUE) {
         HuPrcVSleep();
     }
