@@ -2094,8 +2094,6 @@ void func_8010B540_duel03(void) {
     D_801180DC_duel03->work[0] = 0;
 }
 
-#ifdef NON_MATCHING
-// duel b2: masked 78 of 649: func_800EB708 is called through a correctly typed local pointer (duel01.h has it wrong) and GCC keeps it in $s8 (jalr), which shifts the allocation; logic checked block by block.
 void func_8010B550_duel03(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
     Vec sp28;
@@ -2107,6 +2105,8 @@ void func_8010B550_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
     Object *obj;
     f32 angle;
     f32 speed;
+    f32 scale;
+    Vec *mid;
     s32 effect;
 
     player = MBDGetPlayerStruct(playerNo);
@@ -2126,17 +2126,20 @@ void func_8010B550_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
         func_800D90D0_name_81(D_801180D8_duel03, 0, 2);
         HuVecCopy3F(&sp28, &D_801180D8_duel03->coords);
         HuVecCopy3F(&sp48, &D_801180D8_duel03->rot);
-        HuVecCopy3F(&sp18, (target != NULL) ? &target->coords : &player->player_obj->coords);
+        if (target != NULL) {
+            HuVecCopy3F(&sp18, &target->coords);
+        } else {
+            HuVecCopy3F(&sp18, &player->player_obj->coords);
+        }
         func_800EB708_name_81(&D_801180D8_duel03->coords, &sp18, &D_801180D8_duel03->rot);
         angle = func_800D76D0_name_81(&D_801180D8_duel03->rot) + 180.0f;
         if (variant == 1) {
-            speed = 2.5f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 2.5f);
         } else {
-            speed = 3.0f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 3.0f);
         }
-        offset.x = sindf(angle) * 6.0f * speed;
         offset.y = 0.0f;
-        offset.z = cosdf(angle) * 6.0f * speed;
+        offset.z = cosdf(angle) * scale * speed;
         HuVecAdd(&sp18, &sp18, &offset);
         HuPrcChildLink(process, func_800EC1E4_name_81(&D_801180D8_duel03->coords, &sp18, &D_801180D8_duel03->coords, 0.5f));
         func_80106244_duel03();
@@ -2154,8 +2157,13 @@ void func_8010B550_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
                 func_801060D4_duel03(player, target, 0, 0x32);
             } else {
                 HuPrcSleep(8);
-                HuVecAdd(&sp58, (flags & 1) ? &target->coords : &player->player_obj->coords, &D_801180D8_duel03->coords);
-                HuVecMulScalar(&sp58, 0.5f, &sp58);
+                mid = &sp58;
+                if (flags & 1) {
+                    HuVecAdd(mid, &target->coords, &D_801180D8_duel03->coords);
+                } else {
+                    HuVecAdd(mid, &player->player_obj->coords, &D_801180D8_duel03->coords);
+                }
+                HuVecMulScalar(mid, 0.5f, mid);
                 sp58.y += 5.0f;
                 effect = func_800DD1E0_name_81(0xB0025, D_80117B20_duel03);
                 func_800DD2DC_name_81(effect, &sp58);
@@ -2237,9 +2245,6 @@ void func_8010B550_duel03(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8010B550_duel03);
-#endif
 
 
 void func_8010BCD8_duel03(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {

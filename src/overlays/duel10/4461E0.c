@@ -2359,8 +2359,6 @@ void func_8010B5A8_duel10(void) {
     D_80114CCC_duel10->work[0] = 0;
 }
 
-#ifdef NON_MATCHING
-// duel b2: masked 78 of 649: func_800EB708 is called through a correctly typed local pointer (duel01.h has it wrong) and GCC keeps it in $s8 (jalr), which shifts the allocation; logic checked block by block.
 void func_8010B5B8_duel10(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
     Vec sp28;
@@ -2372,6 +2370,8 @@ void func_8010B5B8_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
     Object *obj;
     f32 angle;
     f32 speed;
+    f32 scale;
+    Vec *mid;
     s32 effect;
 
     player = MBDGetPlayerStruct(playerNo);
@@ -2391,17 +2391,20 @@ void func_8010B5B8_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
         func_800D90D0_name_81(D_80114CC8_duel10, 0, 2);
         HuVecCopy3F(&sp28, &D_80114CC8_duel10->coords);
         HuVecCopy3F(&sp48, &D_80114CC8_duel10->rot);
-        HuVecCopy3F(&sp18, (target != NULL) ? &target->coords : &player->player_obj->coords);
+        if (target != NULL) {
+            HuVecCopy3F(&sp18, &target->coords);
+        } else {
+            HuVecCopy3F(&sp18, &player->player_obj->coords);
+        }
         func_800EB708_name_81(&D_80114CC8_duel10->coords, &sp18, &D_80114CC8_duel10->rot);
         angle = func_800D76D0_name_81(&D_80114CC8_duel10->rot) + 180.0f;
         if (variant == 1) {
-            speed = 2.5f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 2.5f);
         } else {
-            speed = 3.0f;
+            offset.x = sindf(angle) * (scale = 6.0f) * (speed = 3.0f);
         }
-        offset.x = sindf(angle) * 6.0f * speed;
         offset.y = 0.0f;
-        offset.z = cosdf(angle) * 6.0f * speed;
+        offset.z = cosdf(angle) * scale * speed;
         HuVecAdd(&sp18, &sp18, &offset);
         HuPrcChildLink(process, func_800EC1E4_name_81(&D_80114CC8_duel10->coords, &sp18, &D_80114CC8_duel10->coords, 0.5f));
         func_801062AC_duel10();
@@ -2419,8 +2422,13 @@ void func_8010B5B8_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
                 func_8010613C_duel10(player, target, 0, 0x32);
             } else {
                 HuPrcSleep(8);
-                HuVecAdd(&sp58, (flags & 1) ? &target->coords : &player->player_obj->coords, &D_80114CC8_duel10->coords);
-                HuVecMulScalar(&sp58, 0.5f, &sp58);
+                mid = &sp58;
+                if (flags & 1) {
+                    HuVecAdd(mid, &target->coords, &D_80114CC8_duel10->coords);
+                } else {
+                    HuVecAdd(mid, &player->player_obj->coords, &D_80114CC8_duel10->coords);
+                }
+                HuVecMulScalar(mid, 0.5f, mid);
                 sp58.y += 5.0f;
                 effect = func_800DD1E0_name_81(0xB0025, D_80114AC0_duel10);
                 func_800DD2DC_name_81(effect, &sp58);
@@ -2502,9 +2510,6 @@ void func_8010B5B8_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010B5B8_duel10);
-#endif
 
 void func_8010BD40_duel10(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec dest;
@@ -3197,15 +3202,13 @@ void func_8010E260_duel10(void) {
 
 #ifdef NON_MATCHING
 // board ec2: the turn passes to the other player; both stand idle facing the camera.
-// board ec2: masked 13: retail never keeps &GwSystem.current_player_index in a register (it reads it as if a scalar global); this C shares the address
+// referent (masked 9, 52 vs 57): retail reads GwSystem.current_player_index as a scalar global (a scalar extern
+// gives retail's code exactly); with the struct field our GCC keeps the address in a register
 void func_8010E268_duel10(void) {
     GW_PLAYER *player;
     s32 i;
-    s8 cur;
 
-    cur = GwSystem.current_player_index + 1;
-    GwSystem.current_player_index = cur;
-    if (cur >= 2) {
+    if (++GwSystem.current_player_index >= 2) {
         GwSystem.current_player_index = 0;
     }
     for (i = 0; i < 2; i++) {
@@ -3401,7 +3404,8 @@ void func_8010E8D4_duel10(void) {
 #ifdef NON_MATCHING
 // board ec2: the space the current player landed on: an event space, or a character space (11..18)
 // that pays the owner, or with a coin partner prize takes coins from the rival.
-// board ec2: masked 35: masuId kept unextended and the direct GwSystem.current_player_index reads not shared with `system` in retail; logic checked against the asm block by block
+// referent (masked 20, 251 vs 256): retail reads GwSystem.current_player_index in the character-space arm as a
+// scalar global (a scalar extern there gives 256 instructions, masked 8 = the symbol); our GCC folds it into `system`
 void func_8010E8F4_duel10(void) {
     Vec sp10;
     Vec sp20;
@@ -3410,7 +3414,7 @@ void func_8010E8F4_duel10(void) {
     Process *proc;
     SpaceData *space;
     Object *partner;
-    s32 masuId;
+    s16 masuId;
     s32 amount;
 
     player = MBDGetPlayerStruct(-1);
@@ -3432,8 +3436,11 @@ void func_8010E8F4_duel10(void) {
                 func_800F7378_name_81(GwSystem.current_player_index, amount);
                 HuPrcSleep(30);
             } else if (player->stats.prize.gamblePrize == 2 || player->stats.prize.duelNo == 2) {
-                partner = MBDGetPlayerPartnerRef(system->current_player_index,
-                                                 (player->stats.prize.duelNo != 2) ? 0 : 1);
+                if (player->stats.prize.duelNo == 2) {
+                    partner = MBDGetPlayerPartnerRef(system->current_player_index, 1);
+                } else {
+                    partner = MBDGetPlayerPartnerRef(system->current_player_index, 0);
+                }
                 HuPrcChildLink(proc, MBDCameraZoomMotStart(2.0f));
                 HuPrcChildWait();
                 HuVecCopy3F(&sp20, &player->player_obj->coords);
