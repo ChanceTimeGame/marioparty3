@@ -8051,21 +8051,18 @@ void func_8011B934_w02(void) {
     omAddPrcObj(func_80106120_w02, 0x1005, 0x1000, 0);
 }
 
-// board g6
-#ifdef NON_MATCHING
-// Differs only in how &GwSystem is shared: retail keeps the loop's copy in s1 and reloads the others.
 s32 func_8011B988_w02(void) {
-    GW_SYSTEM *sys = &GwSystem;
-    DecisionTreeNonLeafNode *tree = D_8011E338_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
     s32 i;
-    s32 unused[2];
+    DecisionTreeNonLeafNode *tree;
+    GW_SYSTEM *loc = &GwSystem;
 
-    func_800DA778_shared_board(GwSystem.current_player_index);
+    tree = D_8011E338_w02[loc->star_spawn_indices[loc->current_star_spawn]];
+    func_800DA778_shared_board(loc->current_player_index);
     if (MBComTreeExec(D_8011E254_w02) == 0) {
-        return GwSystem.current_player_index;
+        return loc->current_player_index;
     }
     for (i = 0; i < 4; i++) {
-        if (i != sys->current_player_index) {
+        if (i != loc->current_player_index) {
             func_800DA778_shared_board(i);
             if (MBComTreeExec(tree) == 0) {
                 return i;
@@ -8074,26 +8071,21 @@ s32 func_8011B988_w02(void) {
     }
     return MBRand(4.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011B988_w02);
-#endif
 
-// board g6
-#ifdef NON_MATCHING
-// Same register-sharing difference as func_8011B988_w02.
 s32 func_8011BA58_w02(void) {
-    GW_SYSTEM *sys = &GwSystem;
-    DecisionTreeNonLeafNode *tree1 = D_8011E73C_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
-    DecisionTreeNonLeafNode *tree2 = D_8011E75C_w02[GwSystem.star_spawn_indices[GwSystem.current_star_spawn]];
     s32 i;
-    s32 unused[2];
+    DecisionTreeNonLeafNode *tree1;
+    DecisionTreeNonLeafNode *tree2;
+    GW_SYSTEM *loc = &GwSystem;
 
-    func_800DA778_shared_board(GwSystem.current_player_index);
+    tree1 = D_8011E73C_w02[loc->star_spawn_indices[loc->current_star_spawn]];
+    tree2 = D_8011E75C_w02[loc->star_spawn_indices[loc->current_star_spawn]];
+    func_800DA778_shared_board(loc->current_player_index);
     if (MBComTreeExec(tree1) == 0) {
-        return GwSystem.current_player_index;
+        return loc->current_player_index;
     }
     for (i = 0; i < 4; i++) {
-        if (i != sys->current_player_index) {
+        if (i != loc->current_player_index) {
             func_800DA778_shared_board(i);
             if (MBComTreeExec(tree2) == 0) {
                 return i;
@@ -8102,9 +8094,6 @@ s32 func_8011BA58_w02(void) {
     }
     return MBRand(4.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w02/335610", func_8011BA58_w02);
-#endif
 
 // board g6
 s32 func_8011BB30_w02(void) {
