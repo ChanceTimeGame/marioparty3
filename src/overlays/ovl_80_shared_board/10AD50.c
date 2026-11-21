@@ -200,31 +200,6 @@ void func_800F74E4_shared_board(void) {
     }
 }
 
-#ifdef NON_MATCHING
-// more readable version of the function as the matching version is very jank
-void func_800F7578_shared_board(void) {
-    s32 *temp2 = D_80101A40_shared_board;
-    s32 itemID;
-
-    while (1) {
-        itemID = temp2[MBRand(ARRAY_COUNT(D_80101A40_shared_board))];
-        D_80105630_shared_board[0] = itemID;
-
-        if (itemID == ITEM_WACKY_WATCH && GwSystem.wackyWatchUsedState == WATCH_AVAILABLE) {
-            GwSystem.wackyWatchUsedState = 1;
-            break;
-        }
-
-        if (itemID != ITEM_WACKY_WATCH) {
-            break;
-        }
-    }
-
-    D_80105634_shared_board = -1;
-    D_8010565C_shared_board = itemID;
-}
-#else
-// TODO: cleanup this jank function
 void func_800F7578_shared_board(void) {
     s32 itemID;
     
@@ -249,7 +224,6 @@ void func_800F7578_shared_board(void) {
     D_80105634_shared_board = -1;
     D_8010565C_shared_board = itemID;
 }
-#endif
 
 // All items you can carry from item space
 void func_800F7610_shared_board(void) {

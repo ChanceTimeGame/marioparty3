@@ -888,8 +888,9 @@ void func_801071B4_parasol_plummet(omObjData* obj) {
     }
 }
 
-/* NON_MATCHING: retail compiles the CPU difficulty switch as two separate rand8 tests (0..2 and 3; GCC merges
-   these equivalent arms) and allocates s3/s4 the other way round. CPU steering: aim at the nearest item ahead. */
+/* NON_MATCHING (masked 24): separate case 0/1/2 labels give retail's dispatch tree, but GCC still merges
+   case 3's rand8 test into theirs (retail keeps two calls; tried: case 3 polarity, merged labels); s3/s4
+   allocated the other way round. CPU steering: aim at the nearest item ahead. */
 #ifdef NON_MATCHING
 s16 func_801074CC_parasol_plummet(omObjData* obj) {
     f32 dist[18];
@@ -932,17 +933,25 @@ s16 func_801074CC_parasol_plummet(omObjData* obj) {
     p = obj->data;
     switch (GwPlayer[p->unk24].cpu_difficulty) {
     case 0:
+        if (rand8() == 0) {
+            return 0;
+        }
+        break;
     case 1:
+        if (rand8() == 0) {
+            return 0;
+        }
+        break;
     case 2:
         if (rand8() == 0) {
             return 0;
         }
         break;
     case 3:
-        if (rand8() == 0) {
-            return 0;
+        if (rand8() != 0) {
+            break;
         }
-        break;
+        return 0;
     default:
         return stick;
     }
