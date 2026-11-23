@@ -1739,8 +1739,6 @@ void func_8010A674_modesel(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A674_modesel);
 #endif
 
-// masked 3: assembler nop before the mul.s after the bc1t delay slot (same gas quirk as ovl_81 D3450)
-#ifdef NON_MATCHING
 void func_8010A84C_modesel(omObjData *obj) {
     Vec cur;
     Vec from;
@@ -1774,9 +1772,6 @@ void func_8010A84C_modesel(omObjData *obj) {
     }
     obj->work[1] = t;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A84C_modesel);
-#endif
 
 omObjData *func_8010A9B8_modesel(u32 no) {
     omObjData *obj = omAddObj(6, 0, 0, -1, func_8010A84C_modesel);

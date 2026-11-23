@@ -1405,8 +1405,6 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", D_8010
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", func_80107360_toadstool_titan);
 #endif
 
-// instruction-identical except one extra nop the assembler puts before the first mult in gSPScisTextureRectangle (0x5960); logic checked
-#ifdef NON_MATCHING
 void func_8010AD8C_toadstool_titan(s16 x0, s16 y0, s16 x1, s16 y1) {
     HuSprite* spr;
     HuSprite_Unk84_Unk00_Struct* cel;
@@ -1457,9 +1455,6 @@ void func_8010AD8C_toadstool_titan(s16 x0, s16 y0, s16 x1, s16 y1) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_16_toadstool_titan/1BA850", func_8010AD8C_toadstool_titan);
-#endif
 
 void func_8010B4D4_toadstool_titan(s16 mdl, s16 frame) {
     func_8001C6A8_main(mdl, frame);

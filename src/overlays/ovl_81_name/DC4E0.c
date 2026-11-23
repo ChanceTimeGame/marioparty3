@@ -1002,7 +1002,6 @@ void func_800F79DC_name_81(s32 arg0) {
     D_801014E4_name_81 = arg0;
 }
 
-#ifdef NON_MATCHING
 void func_800F79E8_name_81(s32 playerNo) {
     f32 amp;
     f32 angle;
@@ -1040,9 +1039,6 @@ void func_800F79E8_name_81(s32 playerNo) {
     }
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/DC4E0", func_800F79E8_name_81);
-#endif
 
 void func_800F7BB4_name_81(s32 playerNo, s32 set) {
     DuelStatus *sp;

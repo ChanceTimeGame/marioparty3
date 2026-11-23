@@ -698,8 +698,6 @@ void func_800ED214_name_81(s32 playerIndex) {
     }
 }
 
-#ifdef NON_MATCHING
-// one assembler nop after cosdf
 // the front partner hops to its place in front of the player
 void func_800ED31C_name_81(void) {
     Vec sp18;
@@ -730,9 +728,6 @@ void func_800ED31C_name_81(void) {
     HuPrcChildWait();
     omDelPrcObj(NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800ED31C_name_81);
-#endif
 
 Process* func_800ED4AC_name_81(s16 playerNo, s32 frames) {
     Process* proc = omAddPrcObj(func_800ED31C_name_81, 0x4003, 0, 0x40);
@@ -744,8 +739,6 @@ Process* func_800ED4AC_name_81(s16 playerNo, s32 frames) {
     return proc;
 }
 
-#ifdef NON_MATCHING
-// one assembler nop after cosdf
 // the front partner walks to its place in front of the player
 void func_800ED520_name_81(void) {
     Vec sp18;
@@ -775,9 +768,6 @@ void func_800ED520_name_81(void) {
     HuPrcChildWait();
     omDelPrcObj(NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800ED520_name_81);
-#endif
 
 Process* func_800ED68C_name_81(s16 playerNo, f32 speed) {
     Process* proc = omAddPrcObj(func_800ED520_name_81, 0x4003, 0, 0x40);
@@ -816,8 +806,6 @@ void func_800ED788_name_81(s32 playerNo) {
     }
 }
 
-#ifdef NON_MATCHING
-// one assembler nop after cosdf
 // the back partner hops to its place behind the player
 void func_800ED7EC_name_81(void) {
     Vec sp18;
@@ -850,9 +838,6 @@ void func_800ED7EC_name_81(void) {
     HuPrcChildWait();
     omDelPrcObj(NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800ED7EC_name_81);
-#endif
 
 Process* func_800ED9C4_name_81(s16 playerNo, s32 frames) {
     Process* proc = omAddPrcObj(func_800ED7EC_name_81, 0x4003, 0, 0x40);
@@ -864,8 +849,6 @@ Process* func_800ED9C4_name_81(s16 playerNo, s32 frames) {
     return proc;
 }
 
-#ifdef NON_MATCHING
-// one assembler nop after cosdf
 // the back partner walks to its place behind the player
 void func_800EDA38_name_81(void) {
     Vec sp18;
@@ -897,9 +880,6 @@ void func_800EDA38_name_81(void) {
     HuPrcChildWait();
     omDelPrcObj(NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800EDA38_name_81);
-#endif
 
 Process* func_800EDBEC_name_81(s16 playerNo, f32 speed) {
     Process* proc = omAddPrcObj(func_800EDA38_name_81, 0x4003, 0, 0x40);

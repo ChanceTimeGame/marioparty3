@@ -1050,8 +1050,6 @@ void func_80107B1C_staff(StaffStarLayer *layers, f32 t) {
     }
 }
 
-#ifdef NON_MATCHING
-/* masked 7: GCC hoists the first r % 160 multiply above the i == 0 branch (one extra nop). */
 void func_80107BA0_staff(StaffStarLayer *layers) {
     StaffStarLayer *layer;
     StaffStarPos *pos;
@@ -1073,7 +1071,8 @@ void func_80107BA0_staff(StaffStarLayer *layers) {
             if (pos->y >= 240.0f) {
                 r = func_8010601C_staff() & 0x7FFFFFFF;
                 if (i == 0) {
-                    x = r % 160;
+                    x = r;
+                    x = x % 160;
                     r >>= 5;
                     x += r % 160;
                     pos->x = (s16)x;
@@ -1087,9 +1086,9 @@ void func_80107BA0_staff(StaffStarLayer *layers) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/staff/542220", func_80107BA0_staff);
-#endif
+
+/* retail pads func_80107BA0_staff's 2^32 constant (D_80111220) to 16 bytes: the next file's .rodata starts there */
+const f64 D_80111228_staff = 0.0;
 
 void func_80107DBC_staff(StaffStarLayer *layers) {
     StaffStarLayer *layer;

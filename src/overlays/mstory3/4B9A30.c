@@ -2233,7 +2233,6 @@ void func_80114EF8_mstory3(omObjData *obj) {
     D_80115CB0_mstory3[9].func = func_8010D774_mstory3;
 }
 
-#ifdef NON_MATCHING
 void func_80114FA4_mstory3(omObjData *obj) {
     f32 angle;
     f32 x;
@@ -2254,9 +2253,6 @@ void func_80114FA4_mstory3(omObjData *obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B9A30", func_80114FA4_mstory3);
-#endif
 
 void func_8011517C_mstory3(omObjData *obj) {
     do {
