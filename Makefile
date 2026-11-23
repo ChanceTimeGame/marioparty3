@@ -172,6 +172,8 @@ build/src/2.0L/audio/%.c.o: OPTFLAGS = -O2
 build/src/2.0L/audio/%.c.o: CFLAGS = -G0 -mips3 -mgp32 -mfp32 -D_MIPS_SZLONG=32 -D_LANGUAGE_C -DF3DEX_GBI -D__MIPSEB__ -Wa,--force-n64align
 build/src/2.0L/audio/%.c.o: CPPFLAGS = -I include -I include/PR -I include/gcc -I $(BUILD_DIR)/include -I src -DNDEBUG -D_MIPS_SZLONG=32 -DF3DEX_GBI_2
 build/src/8A6B0.c.o: OPTFLAGS = -O2 #Could also be -O3?
+# R3 (2026-11-23, flag sweep): storyresult 54DD10.c with -funsigned-char (masked 43 -> 7, none broken)
+build/src/overlays/storyresult/54DD10.c.o: OPTFLAGS = -O1 -funsigned-char
 build/src/8ACD0.c.o: OPTFLAGS = -O2
 # batch 1 G
 B1G_LIBAUDIO := build/src/6E960.c.o build/src/77F20.c.o
@@ -511,6 +513,8 @@ W2DC_BLANKSTRIP += build/src/overlays/ovl_2C_rockin_raceway/251FF0.c.o
 W2DC_BLANKSTRIP += build/src/overlays/ovl_2D_merry_go_chomp/25E110.c.o
 # R2 flag sweep (2026-11-23): blank lines stripped for one or more functions each (none broken)
 W2DC_BLANKSTRIP += build/src/overlays/boardresult2/3CFC80.c.o build/src/overlays/koopa/3C27C0.c.o build/src/overlays/modesel/4F7E90.c.o build/src/overlays/mstory3/4B9A30.c.o build/src/overlays/ovl_11_puddle_paddle/191240.c.o build/src/overlays/ovl_15_treadmill_grill/1B4F10.c.o build/src/overlays/ovl_16_toadstool_titan/1BA850.c.o build/src/overlays/ovl_81_name/D3450.c.o build/src/overlays/ovl_81_name/DC4E0.c.o
+# R3 (2026-11-23, flag sweep): staff 542220.c and mstory4 4C2BD0.c stripped too (masked 763 -> 736, 47 -> 24; none broken)
+W2DC_BLANKSTRIP += build/src/overlays/staff/542220.c.o build/src/overlays/mstory4/4C2BD0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)
