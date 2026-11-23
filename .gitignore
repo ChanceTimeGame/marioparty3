@@ -28,9 +28,3 @@ __pycache__/
 .*.swp
 .venv
 venv/
-
-# Claude/AI Specific files
-.claude/settings.local.json
-.claude/commands/personal/
-.claudeignore
-CLAUDE.local.md
