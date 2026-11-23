@@ -1204,7 +1204,6 @@ void func_801093E0_treadmill_grill(omObjData* obj, s32 i) {
 
 /* Moves wandering hazard i; returns its heading. One instruction long: the assembler puts a nop after the
    cosdf call that retail lacks (everything else matches). */
-#ifdef NON_MATCHING
 f32 func_801093E8_treadmill_grill(s32 i, omObjData* obj) {
     f32 a;
     f32 sp;
@@ -1261,9 +1260,6 @@ f32 func_801093E8_treadmill_grill(s32 i, omObjData* obj) {
     D_8010AFE0_treadmill_grill[i].z += cosdf(a) * sp;
     return a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_801093E8_treadmill_grill);
-#endif
 
 /* Moves the three grill-riding hazards along the belt loop (D_8010AFE0[i].x is the distance along it) and
    places their models. Logic checked block by block; retail keeps obj and 50.0f in other registers (masked ~114). */

@@ -881,7 +881,6 @@ void func_80108A48_boardresult2(void) {
 /* The title banner bounces in. NON_MATCHING: the KMC assembler puts a nop between the delay-slot
    mov.s of each sindf call and the mul.s after it (GCC fills that slot itself and emits a blank
    line; retail looks gas-filled). Tried do-while and for loops, operand orders. */
-#ifdef NON_MATCHING
 void func_80108C70_boardresult2(void) {
     f32 angle;
     f32 amp;
@@ -907,11 +906,7 @@ void func_80108C70_boardresult2(void) {
     func_80054904_main(D_801099C0_boardresult2->unk_0A, 0, 0xA0, 0x21);
     omDelPrcObj(NULL);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/boardresult2/3CFC80", func_80108C70_boardresult2);
-#endif
 
-// NON_MATCHING: masked identical except the two gas nops after the sindf calls' delay-slot mov.s
 // (see func_80108C70_boardresult2).
 #ifdef NON_MATCHING
 /* The results page's main process: builds both pages, drops the ranking in, then lets any human

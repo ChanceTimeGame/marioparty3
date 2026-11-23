@@ -509,6 +509,8 @@ W2DC_BLANKSTRIP += build/src/overlays/mstory3/4B29E0.c.o build/src/overlays/msto
 W2DC_BLANKSTRIP += build/src/overlays/ovl_2C_rockin_raceway/251FF0.c.o
 # H0 h0D: Merry-Go-Chomp 25E110 likewise (func_80107664: no nop before the mul.s after cosdf)
 W2DC_BLANKSTRIP += build/src/overlays/ovl_2D_merry_go_chomp/25E110.c.o
+# R2 flag sweep (2026-11-23): blank lines stripped for one or more functions each (none broken)
+W2DC_BLANKSTRIP += build/src/overlays/boardresult2/3CFC80.c.o build/src/overlays/koopa/3C27C0.c.o build/src/overlays/modesel/4F7E90.c.o build/src/overlays/mstory3/4B9A30.c.o build/src/overlays/ovl_11_puddle_paddle/191240.c.o build/src/overlays/ovl_15_treadmill_grill/1B4F10.c.o build/src/overlays/ovl_16_toadstool_titan/1BA850.c.o build/src/overlays/ovl_81_name/D3450.c.o build/src/overlays/ovl_81_name/DC4E0.c.o
 $(W2DC_BLANKSTRIP): $(BUILD_DIR)/src/%.c.o: src/%.c
 	$(ECHO)$(PRINT)$(GREEN)Compiling C file: $(ENDGREEN)$(BLUE)$<$(ENDBLUE)$(ENDLINE)
 	@mkdir -p $(shell dirname $@)

@@ -1242,7 +1242,6 @@ void func_80108D10_puddle_paddle(PpCtx* ctx, PpTask* task) {
 
 /* Launches a coin from the thrower: angle is the direction, speed the launch elevation in degrees.
    NON_MATCHING: the assembler puts a nop after the cosdf and the second sindf calls that retail lacks. */
-#ifdef NON_MATCHING
 void func_80108E2C_puddle_paddle(s16 index, s16 kind, f32 angle, f32 speed, s16 thrower) {
     PpCoin* coin;
     HmfModel* model;
@@ -1282,9 +1281,6 @@ void func_80108E2C_puddle_paddle(s16 index, s16 kind, f32 angle, f32 speed, s16 
         Hu3DModelPosSet(coin->model, x + model->pos.x, model->pos.y + 50.0f, z + model->pos.z);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80108E2C_puddle_paddle);
-#endif
 
 /* A free coin slot of a kind (0: 0-7, 1: 8-11, 2: 12-15), -1 if none */
 s16 func_8010910C_puddle_paddle(s16 kind) {

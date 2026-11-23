@@ -864,8 +864,6 @@ s32 func_801078CC_koopa(void) {
     return 0;
 }
 
-// NON_MATCHING: one assembler nop after the first sindf call (masked 2); logic checked
-#ifdef NON_MATCHING
 s32 func_80107A9C_koopa(void) {
     UnkBoard8 *spr;
     void *data;
@@ -920,11 +918,7 @@ s32 func_80107A9C_koopa(void) {
     func_800EC3E4_shared_board();
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107A9C_koopa);
-#endif
 
-// NON_MATCHING: an assembler nop after each sindf loop's first call (masked 2, as in func_80107A9C); logic checked
 #ifdef NON_MATCHING
 s32 func_80107DDC_koopa(void) {
     UnkBoard8 *spr;
