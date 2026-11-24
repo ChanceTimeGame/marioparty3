@@ -1891,24 +1891,21 @@ u16 func_8010AE98_fridged_bridges(f32 speed) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010AE98_fridged_bridges);
 #endif
 
-#ifdef NON_MATCHING
 /* The four hazards, one per bridge */
 void func_8010B164_fridged_bridges(void) {
     omObjData *haz;
     FbHazard *hw;
     s32 i;
-    u16 model;
     f32 a;
     f32 half;
 
     for (i = 0; i < 4; i++) {
-        D_8010DA78_fridged_bridges[i] = haz = omAddObj(0x1E, 1, 0, -1, func_8010B3EC_fridged_bridges);
+        haz = D_8010DA78_fridged_bridges[i] = omAddObj(0x1E, 1, 0, -1, func_8010B3EC_fridged_bridges);
         if (i == 0) {
-            model = func_8000B108_main(0x450010, 0x20699);
+            haz->model[0] = func_8000B108_main(0x450010, 0x20699);
         } else {
-            model = Hu3DModelLink(D_8010DA78_fridged_bridges[0]->model[0]);
+            haz->model[0] = Hu3DModelLink(D_8010DA78_fridged_bridges[0]->model[0]);
         }
-        haz->model[0] = model;
         hw = haz->data = HuMemAllocTag(sizeof(FbHazard), 0x7918);
         hw->unk00 = 0;
         hw->unk04 = 0;
@@ -1937,9 +1934,6 @@ void func_8010B164_fridged_bridges(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
-#endif
 
 // decomp-permuter
 void func_8010B3EC_fridged_bridges(omObjData *obj)
