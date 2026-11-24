@@ -2763,10 +2763,10 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     PgBoard* n;
     s32 i;
 
-    x0 = cam->at.x - 640.0;
-    x1 = cam->at.x + 640.0;
-    z0 = cam->at.z - 640.0;
-    z1 = cam->at.z + 640.0;
+    x0 = cam->at.x - 1920.0;
+    x1 = cam->at.x + 1920.0;
+    z0 = cam->at.z - 1920.0;
+    z1 = cam->at.z + 1920.0;
     D_8010F360_fowl_play.depth = 0.0f;
     D_8010F3C8_fowl_play.depth = 99999.9f;
     tail0.depth = -99999.9f;
