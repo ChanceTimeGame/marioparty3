@@ -1907,8 +1907,6 @@ void func_8010A68C_hyper_hydrants(omObjData* obj) {
     D_8010BF50_hyper_hydrants++;
 }
 
-// masked 20 (201/200): 80.0f hoisted into f24 out of the segment loop (retail reloads it) and the nozzle products go straight into f22/f20 (retail via f0); logic checked
-#ifdef NON_MATCHING
 /* The hose follows its nozzle while playing and fades out at the end. */
 void func_8010AB34_hyper_hydrants(omObjData* obj) {
     s32 team;
@@ -1918,7 +1916,6 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
     f32 nz;
     Vec step;
     s32 i;
-    Vec** seg;
     s32 pl;
 
     switch (func_800E6E8C_minigame()) {
@@ -1932,23 +1929,22 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
             }
             hose = D_800EC598_minigame[pl];
             ex = ((MgWork*)hose->data)->unk158;
-            nx = ex->unk08 * 60.0f + hose->trans.x;
-            nz = ex->unk0C * 60.0f + hose->trans.z;
+            nx = hose->trans.x + ex->unk08 * 60.0f;
+            nz = hose->trans.z + ex->unk0C * 60.0f;
             step.x = HH_ABS(D_8010C028_hyper_hydrants[team].x - nx) / 5.0f;
             step.y = -8.5f;
             step.z = HH_ABS(D_8010C028_hyper_hydrants[team].z - nz) / 5.0f;
-            seg = D_8010BFB0_hyper_hydrants[team];
             for (i = 0; i < 6; i++) {
-                seg[i]->x = nx + i * step.x;
-                seg[i]->y = i * step.y + 80.0f;
-                seg[i]->z = nz + i * step.z;
+                D_8010BFB0_hyper_hydrants[team][i]->x = nx + i * step.x;
+                D_8010BFB0_hyper_hydrants[team][i]->y = i * step.y + 80.0f;
+                D_8010BFB0_hyper_hydrants[team][i]->z = nz + i * step.z;
                 if (i == 0) {
-                    obj->trans.x = seg[0]->x;
-                    obj->trans.y = seg[0]->y;
-                    obj->trans.z = seg[0]->z;
+                    obj->trans.x = D_8010BFB0_hyper_hydrants[team][i]->x;
+                    obj->trans.y = D_8010BFB0_hyper_hydrants[team][i]->y;
+                    obj->trans.z = D_8010BFB0_hyper_hydrants[team][i]->z;
                 }
-                Hu3DModelPosSet(obj->model[i], seg[i]->x,
-                                seg[i]->y, seg[i]->z);
+                Hu3DModelPosSet(obj->model[i], D_8010BFB0_hyper_hydrants[team][i]->x,
+                                D_8010BFB0_hyper_hydrants[team][i]->y, D_8010BFB0_hyper_hydrants[team][i]->z);
             }
             break;
         case 0:
@@ -1964,9 +1960,6 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010AB34_hyper_hydrants);
-#endif
 
 // decomp-permuter
 void func_8010AE08_hyper_hydrants(omObjData *obj)
