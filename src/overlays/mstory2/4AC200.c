@@ -684,7 +684,8 @@ void func_80119008_mstory2(omObjData *obj) {
 }
 
 /* actor 1: the partner (character 2 when the player is 1, else 1) */
-/* NON_MATCHING: register allocation: retail keeps the character test and the table index in two registers (one move more) */
+/* NON_MATCHING: masked 5 at one instruction over: retail tests the character flag in s0 and keeps a copy in s3,
+   fitting s0-s4 where this needs s5 (as func_80114588_mstory2) */
 #ifdef NON_MATCHING
 void func_80119234_mstory2(void) {
     s16 chrs[2] = { 2, 1 };
@@ -692,15 +693,16 @@ void func_80119234_mstory2(void) {
     omObjData *obj;
     void *data;
     s32 sel;
+    s32 alt;
 
-    sel = D_8011C9FC_mstory2 == 2;
+    alt = D_8011C9FC_mstory2 == 2;
     obj = omAddObj(10, 0x14, 0x14, -1, NULL);
     D_8011C920_mstory2[1].obj = obj;
     D_8011C920_mstory2[1].flags = 0;
     D_8011C920_mstory2[1].func = func_80116B6C_mstory2;
     D_8011C920_mstory2[1].sfxOn = 0;
     D_8011C920_mstory2[1].sfxId = 0x1F;
-    if (sel == 0) {
+    if (alt == 0) {
         obj->model[1] = func_8000B108_main(0x700A0, 0x2A9);
     } else {
         obj->model[1] = func_8000B108_main(0x300A0, 0x2A9);
@@ -710,6 +712,7 @@ void func_80119234_mstory2(void) {
     func_8001C258_main(obj->model[1], 4, 4);
     func_8001C258_main(obj->model[2], 4, 4);
     func_8001C258_main(obj->model[3], 4, 4);
+    sel = alt;
     func_8000B460_main(obj, 0, func_80017BB8_main(chrs[sel], 0));
     func_8000B460_main(obj, 1, func_80017BB8_main(chrs[sel], 1));
     func_8000B460_main(obj, 2, func_80017BB8_main(chrs[sel], 2));
@@ -728,6 +731,7 @@ void func_80119234_mstory2(void) {
     Hu3DModelPosSet(obj->model[1], D_8011C9A4_mstory2.x, D_8011C9A4_mstory2.y, D_8011C9A4_mstory2.z);
     Hu3DModelPosSet(obj->model[2], D_8011C9A4_mstory2.x, D_8011C9A4_mstory2.y - -5.0f, D_8011C9A4_mstory2.z);
     Hu3DModelRotSet(obj->model[1], 0.0f, -14.48f, 0.0f);
+    sel = alt;
     data = DataRead(func_80017BB8_main(chrs[sel], 0xA4));
     D_8011C9F2_mstory2[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_8011BDC0_mstory2[sel]);
     HuMemMemoryFreePerm(data);

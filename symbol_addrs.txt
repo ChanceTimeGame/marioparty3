@@ -1741,6 +1741,9 @@ osViModeNtscLan1 = 0x800A4110; //size:0x50
 osViModePalLan1 = 0x800A4160; //size:0x50
 osViModeMpalLan1 = 0x800A41B0; //size:0x50
 __osPiDevMgr = 0x800A2A30; //size:0x1C
+// wave H1 h1w1A: pimgr.c thread stacks (after piThread D_800C2180_main and ramromThread D_800C3330_main)
+piThreadStack = 0x800C2330; //size:0x1000
+ramromThreadStack = 0x800C34E0; //size:0x400
 __OSGlobalIntMask = 0x800A3FB0; //size:0x4
 // batch 1 G: 6E960 = libultra audio/event.c (MP1 src/lib/2.0I/audio/event.c)
 alEvtqNew = 0x8006DD60;
