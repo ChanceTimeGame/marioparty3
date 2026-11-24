@@ -746,8 +746,6 @@ void func_80106EB0_spotlight_swim(omObjData *obj) {
     Hu3DModelPosSet(obj->model[7], D_8010D350_spotlight_swim.x[1], y, D_8010D350_spotlight_swim.z[1]);
 }
 
-#ifdef NON_MATCHING
-/* retail reloads D_8010D58E_spotlight_swim for the model index after the z store; mine reuses it (regalloc follows) */
 void func_801072C4_spotlight_swim(omObjData *obj) {
     SsEnt *ent = &D_8010D588_spotlight_swim;
     s32 edge;
@@ -766,7 +764,7 @@ void func_801072C4_spotlight_swim(omObjData *obj) {
                     obj->trans.x - D_8010CD98_spotlight_swim[kind][edge] * cosdf(angle);
                 D_8010D450_spotlight_swim[D_8010D58E_spotlight_swim + 1][1] =
                     D_8010CD98_spotlight_swim[kind][edge] * sindf(angle) + obj->trans.z + 15.0f;
-                func_8001C6A8_main(obj->model[D_8010D58E_spotlight_swim + 1], 0.0f);
+                func_8001C6A8_main(obj->model[ent->unk06 + 1], 0.0f);
                 func_80105C04_spotlight_swim(1, (s16)obj->work[0]);
             }
             ent->unk04 = (ent->unk04 + 1) % 6;
@@ -779,9 +777,6 @@ void func_801072C4_spotlight_swim(omObjData *obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_03_spotlight_swim/1263E0", func_801072C4_spotlight_swim);
-#endif
 
 void func_8010755C_spotlight_swim(omObjData *obj) {
     f32 dx;
