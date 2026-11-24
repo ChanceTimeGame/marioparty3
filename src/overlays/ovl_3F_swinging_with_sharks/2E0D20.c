@@ -394,11 +394,12 @@ void func_80106334_swinging_with_sharks(void) {
 }
 
 #ifdef NON_MATCHING
-/* float register allocation in the fall-time loop (0.0f and 4.0f swap f0/f6) */
+/* masked 12, one instruction long: the fall-time loop keeps 0.0f in f6 by a mov.s (retail: 0.0f stays in f0, 4.0f in f6);
+   tried while/for shapes, the add operand order and the declaration order (H1) */
 void func_80106398_swinging_with_sharks(omObjData *obj) {
     Vec pos;
-    f32 y;
     f32 vy;
+    f32 y;
     s16 n;
     s32 go;
 
@@ -438,9 +439,12 @@ void func_80106398_swinging_with_sharks(omObjData *obj) {
             }
             vy = pos.y - D_8010B9B8_swinging_with_sharks.y + 10.0f;
             y = pos.y + vy;
-            for (vy -= 4.0f, n = 0; !(y <= 0.0f); vy -= 4.0f) {
+            vy -= 4.0f;
+            n = 0;
+            while (!(y <= 0.0f)) {
                 n++;
                 y += vy;
+                vy -= 4.0f;
             }
             D_8010B9E0_swinging_with_sharks = 2;
             D_8010B9C4_swinging_with_sharks = pos;
@@ -1250,15 +1254,13 @@ void func_80109C90_swinging_with_sharks(SwPathPt *path, s16 model, f32 total) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3F_swinging_with_sharks/2E0D20", func_80109C90_swinging_with_sharks);
 #endif
 
-#ifdef NON_MATCHING
-/* retail frame is 8 bytes larger and keeps the head model in s2 re-sign-extended (sll/sra) after the branch */
 void func_8010A0C0_swinging_with_sharks(void) {
     HmfModel *player;
     HmfModel *m;
     SwPart *part;
-    f32 dy, dz;
+    f32 dx, dy, dz;
     f32 ry;
-    s32 model;
+    s16 model;
 
     model = MODELS[47];
     if (HmfModelData[model].unk02 != MOTS[47]) {
@@ -1266,19 +1268,17 @@ void func_8010A0C0_swinging_with_sharks(void) {
         return;
     }
     player = &HmfModelData[MODELS[32]];
-    m = &HmfModelData[(s16)model];
+    m = &HmfModelData[model];
+    dx = player->pos.x - m->pos.x;
     dy = player->pos.y - m->pos.y;
     dz = player->pos.z - m->pos.z;
-    ry = atan2df(player->pos.x - m->pos.x, dz);
-    func_8002FD8C_main((s16)model, HmfModelData[(s16)model].unk02, "c162_000-atama", 0x4C, 0x46);
-    part = func_8001D33C_main((s16)model, "c162_000-atama");
-    part->unk38 = part->unk14 = ry - m->rot.y;
-    func_8002FD8C_main((s16)model, HmfModelData[(s16)model].unk02, "c162_000-atama", 0x4C, 0x45);
-    part->unk34 = part->unk10 = -atan2df(dy, dz);
+    ry = atan2df(dx, dz);
+    func_8002FD8C_main(model, HmfModelData[model].unk02, "c162_000-atama", 0x4C, 0x46);
+    part = func_8001D33C_main(model, "c162_000-atama");
+    part->unk14 = part->unk38 = ry - m->rot.y;
+    func_8002FD8C_main(model, HmfModelData[model].unk02, "c162_000-atama", 0x4C, 0x45);
+    part->unk10 = part->unk34 = -atan2df(dy, dz);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3F_swinging_with_sharks/2E0D20", func_8010A0C0_swinging_with_sharks);
-#endif
 
 #ifdef NON_MATCHING
 /* register allocation: model/m swap s1/s2, and the light products use f2/f6 instead of f6/f0 */

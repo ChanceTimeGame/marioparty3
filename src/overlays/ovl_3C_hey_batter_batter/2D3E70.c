@@ -612,11 +612,8 @@ void func_801070D8_hey_batter_batter(omObjData* obj) {
 }
 
 /* The batter: character model, bat and shadow, motions. */
-// masked 7: retail keeps the character in one register and copies it once; GCC 2.7.2 here re-zero-extends the
-// u8 (andi) into a second saved register (frame 8 bytes larger); calls and stores are the same
-#ifdef NON_MATCHING
 void func_80107144_hey_batter_batter(omObjData* obj) {
-    u8 chr = GwPlayer[D_80109ED0_hey_batter_batter].chr;
+    s32 chr = GwPlayer[D_80109ED0_hey_batter_batter].chr;
 
     obj->model[0] = func_8000B108_main(D_800A178C_main[chr][0] | D_800A178C_main[chr][2], 0x6A8);
     obj->model[1] = func_8000B108_main(0x5D0005, 0x6A9);
@@ -646,9 +643,6 @@ void func_80107144_hey_batter_batter(omObjData* obj) {
     func_80017954_main(obj->model[0], 1, GwPlayer[D_80109ED0_hey_batter_batter].chr, D_80109EF8_hey_batter_batter[0]);
     obj->func = func_80107464_hey_batter_batter;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3C_hey_batter_batter/2D3E70", func_80107144_hey_batter_batter);
-#endif
 
 /* The batter: play the motion for D_80109ED2 when it changes, and the intro and swing cues. */
 void func_80107464_hey_batter_batter(omObjData* obj) {
