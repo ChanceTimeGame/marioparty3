@@ -1005,10 +1005,11 @@ void func_80107E34_merry_go_chomp(omObjData *obj) {
 }
 
 #ifdef NON_MATCHING
-/* masked 63: retail does not hoist the D_8010C420 base out of the first loop, and hoists the float constants instead */
+/* masked 5 at the retail count: retail does not hoist the D_8010C420 base out of the first loop
+   (an empty case 0, s8 mode/hit and the chained wait store fixed the rest) */
 void func_801084C8_merry_go_chomp(void) {
-    s32 mode = 0;
-    s32 hit;
+    s8 mode = 0;
+    s8 hit;
     s8 i;
     s8 j;
     McPl *pl;
@@ -1023,7 +1024,8 @@ void func_801084C8_merry_go_chomp(void) {
 
     for (i = 0; i < 4; i++) {
         pl = &D_8010C420_merry_go_chomp[i];
-        if (pl->state >= 2 && MC_ENT(MC_ENT_PLAYER, i)->unk04 == 0) {
+        ent = MC_ENT(MC_ENT_PLAYER, i);
+        if (pl->state >= 2 && ent->unk04 == 0) {
             if (sqrtf(pl->x * pl->x + pl->z * pl->z) < 350.0f) {
                 rot = func_801059BC_merry_go_chomp(atan2df(pl->x, pl->z), 0.0f);
                 pl->x = sindf(rot) * 350.0f;
@@ -1076,14 +1078,15 @@ void func_801084C8_merry_go_chomp(void) {
                             rot = func_801059BC_merry_go_chomp(atan2df(pl->x - pl2->x, pl->z - pl2->z), 0.0f);
                             pl->x = sindf(rot) * 121.0f + pl2->x;
                             pl->z = cosdf(rot) * 121.0f + pl2->z;
-                            hit = 1;
-                            pl->wait = 1;
+                            pl->wait = hit = 1;
                             break;
                         case 2:
                             rot = func_801059BC_merry_go_chomp(atan2df(pl2->x - pl->x, pl2->z - pl->z), 0.0f);
                             pl2->x = sindf(rot) * 121.0f + pl->x;
                             pl2->z = cosdf(rot) * 121.0f + pl->z;
                             hit = 1;
+                            break;
+                        case 0:
                             break;
                         }
                     }
@@ -1350,7 +1353,8 @@ void func_80109604_merry_go_chomp(void) {
 }
 
 #ifdef NON_MATCHING
-/* masked 43: retail stores link 0 by absolute address and loads 5.0f later; scheduling only */
+/* masked 19: retail stores link[0].x/.z by absolute address where this C keeps the base in s0, and
+   allocates the 0.0f and dx*dx temporaries differently; ternary div and a link pointer for [5] took it from 30 */
 void func_80109670_merry_go_chomp(omObjData *obj) {
     McEnt *chomp = &D_8010C500_merry_go_chomp[10];
     s8 i;
@@ -1367,10 +1371,7 @@ void func_80109670_merry_go_chomp(omObjData *obj) {
         rot = func_801059BC_merry_go_chomp(obj->rot.y, 180.0f);
         D_8010C4D0_merry_go_chomp[0].x = sindf(rot) * 70.0f + obj->trans.x;
         D_8010C4D0_merry_go_chomp[0].z = cosdf(rot) * 70.0f + obj->trans.z;
-        div = 5.0f;
-        if (chomp->unk2C > 15.0f) {
-            div = 2.0f;
-        }
+        div = (chomp->unk2C > 15.0f) ? 2.0f : 5.0f;
         for (i = 1; i < 6; i++) {
             link = &D_8010C4D0_merry_go_chomp[i];
             dx = D_8010C4D0_merry_go_chomp[i - 1].x - link->x;
@@ -1382,10 +1383,10 @@ void func_80109670_merry_go_chomp(omObjData *obj) {
             Hu3DModelPosSet(obj->model[i], link->x, 30.0f, link->z);
             Hu3DModelPosSet(obj->model[i + 6], link->x, 5.0f, link->z);
         }
-        if (D_8010C4D0_merry_go_chomp[5].x != D_8010C214_merry_go_chomp.x ||
-            D_8010C4D0_merry_go_chomp[5].z != D_8010C214_merry_go_chomp.z) {
-            D_8010C4D0_merry_go_chomp[5].x = D_8010C214_merry_go_chomp.x;
-            D_8010C4D0_merry_go_chomp[5].z = D_8010C214_merry_go_chomp.z;
+        link = &D_8010C4D0_merry_go_chomp[5];
+        if (link->x != D_8010C214_merry_go_chomp.x || link->z != D_8010C214_merry_go_chomp.z) {
+            link->x = D_8010C214_merry_go_chomp.x;
+            link->z = D_8010C214_merry_go_chomp.z;
             for (i = 4; i >= 0; i--) {
                 link = &D_8010C4D0_merry_go_chomp[i];
                 dx = D_8010C4D0_merry_go_chomp[i + 1].x - link->x;
@@ -1744,14 +1745,12 @@ void func_80109A04_merry_go_chomp(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
-/* masked 5: retail sign-extends the shadow model handle once after storing it */
 void func_8010A9D0_merry_go_chomp(omObjData *obj) {
     McEnt *chomp = &D_8010C500_merry_go_chomp[10];
     void *anim = DataRead(0xA00E5);
     s16 i;
     s32 link;
-    u16 shadow;
+    s32 shadow;
 
     obj->model[0] = func_8000B108_main(0xA00D9, 0x2A9);
     HmfAnimCreate(HmfModelData[obj->model[0]].hmf, anim, 0, "c165n_4_DEF");
@@ -1766,8 +1765,7 @@ void func_8010A9D0_merry_go_chomp(omObjData *obj) {
     for (i = 2; i < 6; i++) {
         obj->model[i] = Hu3DModelLink(link);
     }
-    shadow = func_8000B0A0_main(0, 0xC9);
-    obj->model[6] = shadow;
+    shadow = obj->model[6] = func_8000B0A0_main(0, 0xC9);
     func_8001C2FC_main(obj->model[6], 0x80000000, 0);
     func_8001C448_main(obj->model[6]);
     func_8001C514_main(obj->model[6]);
@@ -1795,9 +1793,6 @@ void func_8010A9D0_merry_go_chomp(omObjData *obj) {
     func_8001C258_main(obj->model[11], 4, 4);
     obj->func = func_80109A04_merry_go_chomp;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2D_merry_go_chomp/25E110", func_8010A9D0_merry_go_chomp);
-#endif
 
 void func_8010ADE8_merry_go_chomp(void) {
     D_8010C500_merry_go_chomp[10].obj = omAddObj(900, 15, 4, -1, func_8010A9D0_merry_go_chomp);
