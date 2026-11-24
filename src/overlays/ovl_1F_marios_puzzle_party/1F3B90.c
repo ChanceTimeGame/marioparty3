@@ -310,7 +310,6 @@ extern Process* D_801163D8_marios_puzzle_party[4];
 extern s32 D_801163E8_marios_puzzle_party;
 extern PzMatch D_801163F0_marios_puzzle_party[80];
 
-#ifdef NON_MATCHING
 /* ObjectSetup: camera, the per-player games, board placement, sparkles, setup, pause watcher. */
 void func_801059A0_marios_puzzle_party(void) {
     Process* proc;
@@ -341,8 +340,7 @@ void func_801059A0_marios_puzzle_party(void) {
     Center.z = 0.0f;
     omAddPrcObj(func_8010EF30_marios_puzzle_party, 0x4001, 0x800, 0);
     for (; i < 4; i++) {
-        proc = omAddPrcObj(func_8010AD20_marios_puzzle_party, 0x4001, 0x3000, 0);
-        D_801163D8_marios_puzzle_party[i] = proc;
+        D_801163D8_marios_puzzle_party[i] = proc = omAddPrcObj(func_8010AD20_marios_puzzle_party, 0x4001, 0x3000, 0);
         proc->user_data = (void*)i;
     }
     D_80116100_marios_puzzle_party = i;
@@ -365,9 +363,6 @@ void func_801059A0_marios_puzzle_party(void) {
     D_800EB930_minigame = 0x38;
     WipeCreateIn(0xFF, 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801059A0_marios_puzzle_party);
-#endif
 
 /* Quit to the minigame menu when asked from the pause menu. */
 void func_80105C98_marios_puzzle_party(void) {
@@ -1521,7 +1516,6 @@ s32 func_8010961C_marios_puzzle_party(s32 player, s32 x, s32 handle, PzPiece* pi
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010961C_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Score display (five digits, clamped to 0..99999). */
 void func_801098A0_marios_puzzle_party(void) {
     PzLocal* loc;
@@ -1539,9 +1533,9 @@ void func_801098A0_marios_puzzle_party(void) {
     for (i = 1; i < 6; i++) {
         func_80055024_main(grp, i, D_801160D0_marios_puzzle_party, 0);
         if (D_80116158_marios_puzzle_party == 0) {
-            func_80054904_main(grp, i, 16 - i * 8, 12);
+            func_80054904_main(grp, i, -(i * 8) + 16, 12);
         } else {
-            func_80054904_main(grp, i, 24 - i * 8, 12);
+            func_80054904_main(grp, i, -(i * 8) + 24, 12);
         }
         HuSprAttrReset(grp, i, 0xFFFF);
         HuSprAttrSet(grp, i, 0x4000);
@@ -1576,9 +1570,6 @@ void func_801098A0_marios_puzzle_party(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801098A0_marios_puzzle_party);
-#endif
 
 void func_80109C04_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row, s32 arg5) {
     Process* proc;
@@ -2805,7 +2796,6 @@ void func_8010D9AC_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D9AC_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Per frame: bob each board until its player is out, add the shake and drop offsets, and move the
    frame, panels and cursor with it. */
 void func_8010DB98_marios_puzzle_party(void) {
@@ -2855,7 +2845,7 @@ void func_8010DB98_marios_puzzle_party(void) {
             } else {
                 if (D_80116228_marios_puzzle_party[i] != -1) {
                     func_80054904_main(piece->unk8, 0, piece->unk2C, D_801161A8_marios_puzzle_party[i] + piece->unk30);
-                    if ((u16)(func_80049F98_main() + D_800D6A90_main) != 0) {
+                    if (func_80049F98_main() + D_800D6A90_main != 0) {
                         HuSprAttrSet(piece->unk8, 0, 0x8000);
                     } else {
                         HuSprAttrReset(piece->unk8, 0, 0x8000);
@@ -2866,7 +2856,7 @@ void func_8010DB98_marios_puzzle_party(void) {
             piece = &D_80116308_marios_puzzle_party[i];
             if (piece->unk1C == 7) {
                 func_80054904_main(piece->unk8, 0, piece->unk2C, D_801161A8_marios_puzzle_party[i] + piece->unk30);
-                if ((u16)(func_80049F98_main() + D_800D6A90_main) != 0) {
+                if (func_80049F98_main() + D_800D6A90_main != 0) {
                     HuSprAttrSet(piece->unk8, 0, 0x8000);
                 } else {
                     HuSprAttrReset(piece->unk8, 0, 0x8000);
@@ -2876,9 +2866,6 @@ void func_8010DB98_marios_puzzle_party(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010DB98_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* Record panel: the saved record (four digits, leading zeros hidden), replaced by player 0's score
