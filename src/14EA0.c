@@ -833,12 +833,9 @@ void func_8001766C_main(void) {
 
 /* Replaces texture animation arg2 of set arg1 on model arg0 with data file arg3; returns the
    new animation's first frame (MP2 func_80025384_25F84). */
-// register allocation only: GCC keeps one more value live across the calls (s8 saved; masked
-// differs only in registers). Tried s32 parameters with casts and a local for the name pointer.
-#ifdef NON_MATCHING
 s16 func_80017790_main(s16 arg0, s16 arg1, s16 arg2, s32 arg3) {
     void* file;
-    s16 slot;
+    s32 slot;
     u16 ret;
 
     if (D_800D20B8_main[arg2][arg1] != 0xFF) {
@@ -850,14 +847,11 @@ s16 func_80017790_main(s16 arg0, s16 arg1, s16 arg2, s32 arg3) {
     D_800D5570_main[arg2][arg1] = slot;
     func_80032FC0_main(slot, 1, 1);
     DataClose(file);
-    ret = D_800D1714_main[slot].unk_00;
+    ret = D_800D1714_main[(s16) slot].unk_00;
     D_800D20B8_main[arg2][arg1] = func_80032694_main(HmfModelData[arg0].hmf, slot, 0, D_800A063C_main[arg2 + arg1 * 16]);
     func_8001C448_main(arg0);
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/14EA0", func_80017790_main);
-#endif
 
 /* Pauses (arg3 -1) or restarts at frame arg3 the texture animation arg2 of set arg1 on model arg0
    (MP2 func_80025554_26154). */

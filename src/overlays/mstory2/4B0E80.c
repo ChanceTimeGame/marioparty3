@@ -60,11 +60,7 @@ void func_8011AC10_mstory2(omObjData *obj) {
 }
 
 /* choice 0: both fly off */
-/* NON_MATCHING: retail does not hoist the 500.0f of the rise loop's exit test out of the loop (one instruction more); the rest is the same */
-#ifdef NON_MATCHING
 void func_8011AD8C_mstory2(omObjData *obj) {
-    HmfModel *model;
-
     func_8001C624_main(D_8011CA10_mstory2[1].obj->model[1], HmfModelData[D_8011CA10_mstory2[1].obj->motion[3]].unk02, 0, 10, 2);
     func_8001C624_main(D_8011CA10_mstory2[0].obj->model[1], HmfModelData[D_8011CA10_mstory2[0].obj->motion[0]].unk02, 0, 10, 0);
     func_80106D58_mstory2(D_8011CA10_mstory2[0].obj->model[1], D_8011CA7A_mstory2, D_8011CA74_mstory2[1]);
@@ -86,10 +82,10 @@ void func_8011AD8C_mstory2(omObjData *obj) {
     while (1) {
         HmfModelData[D_8011CA10_mstory2[0].obj->model[1]].pos.y += 30.0f;
         HmfModelData[D_8011CA10_mstory2[1].obj->model[1]].pos.y += 60.0f;
-        model = &HmfModelData[D_8011CA10_mstory2[0].obj->model[2]];
-        model->scale.x = model->scale.z = model->scale.z - 0.075f;
-        model = &HmfModelData[D_8011CA10_mstory2[1].obj->model[2]];
-        model->scale.x = model->scale.z = model->scale.z - 0.075f;
+        HmfModelData[D_8011CA10_mstory2[0].obj->model[2]].scale.x = HmfModelData[D_8011CA10_mstory2[0].obj->model[2]].scale.z =
+            HmfModelData[D_8011CA10_mstory2[0].obj->model[2]].scale.z - 0.075f;
+        HmfModelData[D_8011CA10_mstory2[1].obj->model[2]].scale.x = HmfModelData[D_8011CA10_mstory2[1].obj->model[2]].scale.z =
+            HmfModelData[D_8011CA10_mstory2[1].obj->model[2]].scale.z - 0.075f;
         if (HmfModelData[D_8011CA10_mstory2[0].obj->model[1]].pos.y >= 500.0f) {
             break;
         }
@@ -101,9 +97,6 @@ void func_8011AD8C_mstory2(omObjData *obj) {
     D_8011CA10_mstory2[0].func = func_8011AB7C_mstory2;
     D_8011CA10_mstory2[2].func = func_8011AB7C_mstory2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/4B0E80", func_8011AD8C_mstory2);
-#endif
 
 /* choice 1 */
 void func_8011B080_mstory2(omObjData *obj) {

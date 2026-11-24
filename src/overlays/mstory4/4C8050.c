@@ -1439,7 +1439,8 @@ void func_8010F660_mstory4(void) {
     D_80111B90_mstory4 = 0.0f;
 }
 
-// register allocation: retail builds the sprite slot address in s0, KMC in a temp (raw 10)
+// masked 0, raw 5: retail builds the sprite slot address in s0, KMC in a temp (tried: spr = base; spr += k,
+// and a plain store then spr = &D[k]; both worse); for the permuter
 #ifdef NON_MATCHING
 /* the sparkle sprites (one per point of the six groups), the picture sequence 2..7 faded in,
    then the sparkles shown one by one */
@@ -1528,11 +1529,9 @@ typedef struct UnkModel {
 
 extern s16 D_80112330_mstory4;
 
-#ifdef NON_MATCHING
 void func_8010FC98_mstory4(void) {
     omObjData *temp_s5;
     omObjData *temp_s7;
-    s32 temp_s4;
     s32 var_a3;
     s32 var_s0;
     s32 var_s1;
@@ -1563,8 +1562,7 @@ void func_8010FC98_mstory4(void) {
     MBDBackCreate(0x20, 0);
     func_8010EF28_mstory4(7);
     for (i = 0; i < 6; i++) {
-        // if (D_80112088_mstory4[i].count > 0) {
-        for (j = 0, temp_s4 = D_80112088_mstory4[i].count; j < temp_s4; var_s3++, j++) {
+        for (j = 0; j < D_80112088_mstory4[i].count; var_s3++, j++) {
             func_8000BD94_main(D_80112378_mstory4[var_s3], 0, 0);
             func_8000BDDC_main(D_80112378_mstory4[var_s3], 1);
             func_8000BB94_main(D_80112378_mstory4[var_s3]);
@@ -1622,9 +1620,6 @@ void func_8010FC98_mstory4(void) {
     }
 }
 
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_8010FC98_mstory4);
-#endif
 
 /* the character's name plate sprites */
 void func_80110270_mstory4(void) {
@@ -2022,8 +2017,6 @@ void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode)
 
 }
 
-// retail keeps the three colour-table bytes' addresses in registers across the loop (masked 16)
-#ifdef NON_MATCHING
 /* the burst's per-frame particle update (hmfman hook): colour, move, slow down, shrink */
 void func_80111740_mstory4(s16 model) {
     HmfData *hmf = HmfModelData[model].hmf;
@@ -2052,9 +2045,9 @@ void func_80111740_mstory4(s16 model) {
         if (part->scale > 0.0f) {
             color = part->color;
             part->time += 1.0f;
-            part->rgb[0] = D_80111C04_mstory4[color][0];
-            part->rgb[1] = D_80111C04_mstory4[color][1];
-            part->rgb[2] = D_80111C04_mstory4[color][2];
+            part->rgb[0] = (*(D_80111C04_mstory4 + color))[0];
+            part->rgb[1] = (*(D_80111C04_mstory4 + color))[1];
+            part->rgb[2] = (*(D_80111C04_mstory4 + color))[2];
             sx = part->dir.x * part->speed;
             sy = part->dir.y * part->speed;
             sz = part->dir.z * part->speed;
@@ -2066,9 +2059,6 @@ void func_80111740_mstory4(s16 model) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_80111740_mstory4);
-#endif
 
 /* starts actor i's voice `se` once (actor 0 plays it as the story character's) */
 void func_801118F8_mstory4(s32 i, s32 se) {
