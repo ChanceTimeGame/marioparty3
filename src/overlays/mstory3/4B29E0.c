@@ -600,7 +600,6 @@ void func_80106DC4_mstory3(omObjData *obj, Vec *to, s32 frames) {
 }
 
 // register allocation; retail converts frames separately for the divide (masked 8, as mstory1's func_80106B30)
-#ifdef NON_MATCHING
 /* walks obj's model (and its shadow, kept on the ground) to `to` in `frames` frames, turning
    it to face the way first when `turn` is set */
 void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
@@ -621,9 +620,10 @@ void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     if (turn) {
         Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
     }
-    step.x = delta.x / frames;
-    step.y = delta.y / frames;
-    step.z = delta.z / frames;
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
     for (t = 0.0f; t < frames; t += 1.0f) {
         pos.x = t * step.x + start.x;
         pos.y = t * step.y + start.y;
@@ -640,9 +640,6 @@ void func_80106DE0_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     }
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_80106DE0_mstory3);
-#endif
 
 void func_80107014_mstory3(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     Vec to;
@@ -774,7 +771,6 @@ void func_80107674_mstory3(omObjData *a, omObjData *b) {
 }
 
 // register allocation; retail converts frames separately for the divide and the loop (masked 10, as mstory1's func_80106D80)
-#ifdef NON_MATCHING
 /* as func_80106DE0_mstory3, but the second model follows 5 below the first */
 void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     Vec start;
@@ -794,9 +790,10 @@ void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     if (turn) {
         Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
     }
-    step.x = delta.x / frames;
-    step.y = delta.y / frames;
-    step.z = delta.z / frames;
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
     for (t = 0.0f; t < frames; t += 1.0f) {
         pos.x = t * step.x + start.x;
         pos.y = t * step.y + start.y;
@@ -813,9 +810,6 @@ void func_801077BC_mstory3(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     }
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory3/4B29E0", func_801077BC_mstory3);
-#endif
 
 // retail converts frames again for the loop test instead of reusing the divide's (masked 15: that, then shifted branches)
 #ifdef NON_MATCHING
