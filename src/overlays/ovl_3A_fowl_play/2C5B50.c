@@ -2046,29 +2046,30 @@ s16 func_8010B8D4_fowl_play(PgBoard* b) {
             mode = 2;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (fmt) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2130,7 +2131,6 @@ s16 func_8010B8D4_fowl_play(PgBoard* b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B8D4_fowl_play);
 #endif
 
-#ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
 s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     PgBoard* b;
@@ -2185,29 +2185,30 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2222,8 +2223,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -2236,7 +2236,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -2264,11 +2264,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     }
     return id;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C1F4_fowl_play);
-#endif
 
-#ifdef NON_MATCHING
 /* Gives billboard id sprite tex: rebuilds its strip and display list. */
 void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     PgBoard* b;
@@ -2314,29 +2310,30 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2351,8 +2348,7 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -2365,7 +2361,7 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -2389,9 +2385,6 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     }
     func_8010B8D4_fowl_play(b);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C7FC_fowl_play);
-#endif
 
 void func_8010CD84_fowl_play(s16 id, s16 tex) {
     PgBoard* b;
