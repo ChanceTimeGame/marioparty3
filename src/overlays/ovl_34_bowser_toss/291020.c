@@ -1891,19 +1891,16 @@ u16 func_8010AD54_bowser_toss(s32 dirAndFile) {
     return id;
 }
 
-/* NON_MATCHING: retail sign-extends the new sprite group before storing it (one instruction moved). */
-#ifdef NON_MATCHING
 void func_8010AD98_bowser_toss(void) {
     s32 i;
     s32 j;
-    s16 grp;
+    s32 grp;
 
     D_8010FB98_bowser_toss[1] = func_8010AD54_bowser_toss(0x550007);
     D_8010FB98_bowser_toss[2] = func_8010AD54_bowser_toss(0x550008);
     D_8010FB98_bowser_toss[3] = func_8010AD54_bowser_toss(0x550009);
     for (i = 0; i < 2; i++) {
-        grp = HuSprGrpCreate(4, 0);
-        D_8010FB9C_bowser_toss[i] = grp;
+        D_8010FB9C_bowser_toss[i] = grp = HuSprGrpCreate(4, 0);
         for (j = 0; j < 4; j++) {
             func_80055024_main(grp, j, D_8010FB98_bowser_toss[1], 0);
             func_80054904_main(grp, j, D_8010F33C_bowser_toss[i].x, D_8010F33C_bowser_toss[i].y);
@@ -1915,9 +1912,6 @@ void func_8010AD98_bowser_toss(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_34_bowser_toss/291020", func_8010AD98_bowser_toss);
-#endif
 
 /* Scroll one screen's 2 x 2 background tiles to follow its camera. */
 void func_8010AF38_bowser_toss(s16 side, Vec* center, Vec* rot) {

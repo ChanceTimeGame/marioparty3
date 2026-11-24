@@ -1589,25 +1589,23 @@ void func_80109990_baby_bowser_bonkers(omObjData* obj) {
 }
 
 /* Builds player `idx`'s score counter: two digits, the character face and a backing. */
-/* NON_MATCHING: retail sign-extends HuSprGrpCreate's result before storing it (a call declared int-returning there); include/ declares it s16, so this C saves the two shift instructions. Otherwise identical. */
-#ifdef NON_MATCHING
 void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr) {
     BkCounter* c;
-    s16 grp;
+    s32 grp;
     s16 x;
     s16 y;
     s32 i;
 
     c = &D_8010BCAC_baby_bowser_bonkers[idx];
     c->file = func_8010984C_baby_bowser_bonkers(D_8010B918_baby_bowser_bonkers[chr]);
-    grp = HuSprGrpCreate(4, 0);
-    c->grp = grp;
+    c->grp = grp = HuSprGrpCreate(4, 0);
     x = 266;
     if (idx == 0) {
         x = 56;
     }
+    y = 30;
     c->x = x + 8;
-    c->y = y = 30;
+    c->y = y;
     c->off[0] = -6;
     c->off[1] = 6;
     c->timer = 0;
@@ -1638,9 +1636,6 @@ void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr) {
         HuSprPriSet(grp, i, i - 16);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109BFC_baby_bowser_bonkers);
-#endif
 
 /* NON_MATCHING: masked 0; v0/v1 swapped. */
 // decomp-permuter
