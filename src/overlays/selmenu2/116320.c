@@ -598,12 +598,20 @@ void func_80106A54_selmenu2(omObjData *obj) {
                 obj->func = func_801078CC_selmenu2;
                 func_80108718_selmenu2(1);
             }
-        } else if ((D_80109CF8_selmenu2[i] & 1) || (D_80109CF8_selmenu2[i] & 2)) {
-            func_80108764_selmenu2((D_80109CF8_selmenu2[i] & 1) ? -1 : 1);
+        } else if (D_80109CF8_selmenu2[i] & 1) {
+            func_80108764_selmenu2(-1);
             func_80108990_selmenu2();
             func_80108718_selmenu2(0);
-        } else if ((D_80109CF8_selmenu2[i] & 4) || (D_80109CF8_selmenu2[i] & 8)) {
-            func_801087E0_selmenu2((D_80109CF8_selmenu2[i] & 4) ? -1 : 1);
+        } else if (D_80109CF8_selmenu2[i] & 2) {
+            func_80108764_selmenu2(1);
+            func_80108990_selmenu2();
+            func_80108718_selmenu2(0);
+        } else if (D_80109CF8_selmenu2[i] & 4) {
+            func_801087E0_selmenu2(-1);
+            func_80108990_selmenu2();
+            func_80108718_selmenu2(4);
+        } else if (D_80109CF8_selmenu2[i] & 8) {
+            func_801087E0_selmenu2(1);
             func_80108990_selmenu2();
             func_80108718_selmenu2(4);
         } else if (D_80109CF8_selmenu2[i] & 0x40) {

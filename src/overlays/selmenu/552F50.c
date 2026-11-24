@@ -604,7 +604,8 @@ void func_80106770_selmenu(omObjData *obj) {
     obj->func = func_80106A10_selmenu;
 }
 
-/* NON_MATCHING: retail keeps the x of 64 in a0 and masks it after the two print calls merge; the rest matches. */
+/* NON_MATCHING (masked 28): retail loads the x of 64 into a0 before the kind test and masks it after the two print calls
+   merge (cse lost the constant); tried an x local, one call with ternary arguments. */
 #ifdef NON_MATCHING
 void func_80106A10_selmenu(omObjData *obj) {
     SelMenuEntry *entry;
@@ -643,12 +644,20 @@ void func_80106A10_selmenu(omObjData *obj) {
                 obj->func = func_80107924_selmenu;
                 func_801087C8_selmenu(1);
             }
-        } else if ((D_8010A270_selmenu[i] & 1) || (D_8010A270_selmenu[i] & 2)) {
-            func_80108814_selmenu((D_8010A270_selmenu[i] & 1) ? -1 : 1);
+        } else if (D_8010A270_selmenu[i] & 1) {
+            func_80108814_selmenu(-1);
             func_80108A40_selmenu();
             func_801087C8_selmenu(0);
-        } else if ((D_8010A270_selmenu[i] & 4) || (D_8010A270_selmenu[i] & 8)) {
-            func_80108890_selmenu((D_8010A270_selmenu[i] & 4) ? -1 : 1);
+        } else if (D_8010A270_selmenu[i] & 2) {
+            func_80108814_selmenu(1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(0);
+        } else if (D_8010A270_selmenu[i] & 4) {
+            func_80108890_selmenu(-1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(4);
+        } else if (D_8010A270_selmenu[i] & 8) {
+            func_80108890_selmenu(1);
             func_80108A40_selmenu();
             func_801087C8_selmenu(4);
         } else if (D_8010A270_selmenu[i] & 0x40) {
