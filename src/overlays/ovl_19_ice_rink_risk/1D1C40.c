@@ -565,9 +565,6 @@ s32 func_80106E20_ice_rink_risk(omObjData* obj) {
 }
 
 /* Player hook 0: save the pad, then steer a CPU player away from the nearest puck and the edge. */
-// register allocation residue (masked 16): GCC adds a nop after each sindf/cosdf call on the circling
-// path that retail lacks; logic checked against the asm block by block
-#ifdef NON_MATCHING
 s32 func_80106FC0_ice_rink_risk(omObjData* obj) {
     MgWork* w = obj->data;
     s32 player = w->unk59;
@@ -584,7 +581,6 @@ s32 func_80106FC0_ice_rink_risk(omObjData* obj) {
     f32 dist;
     f32 ang;
     f32 a1;
-    f32 a;
     Vec v;
 
     if (func_800E6E8C_minigame() != 2 || (GwPlayer[player].stat & 1)) {
@@ -638,12 +634,11 @@ s32 func_80106FC0_ice_rink_risk(omObjData* obj) {
                 dz = cosdf(ang - 10.0f) * dist - puck->trans.z;
                 if (HuSqrtf(dx * dx + dz * dz) < d) {
                     dx = sindf(a1) * dist;
-                    a = a1;
+                    dz = cosdf(a1) * dist;
                 } else {
-                    a = ang - 10.0f;
-                    dx = sindf(a) * dist;
+                    dx = sindf(ang - 10.0f) * dist;
+                    dz = cosdf(ang - 10.0f) * dist;
                 }
-                dz = cosdf(a) * dist;
                 v.x = dx - obj->trans.x;
                 v.y = 0.0f;
                 v.z = dz - obj->trans.z;
@@ -668,9 +663,6 @@ s32 func_80106FC0_ice_rink_risk(omObjData* obj) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_19_ice_rink_risk/1D1C40", func_80106FC0_ice_rink_risk);
-#endif
 
 void func_80107590_ice_rink_risk(omObjData* obj) {
     func_80106710_ice_rink_risk(obj, D_800A178C_main[GwPlayer[0].chr][0], D_800A178C_main[GwPlayer[0].chr][2], 0);

@@ -1515,7 +1515,8 @@ void func_80109478_bounce_n_trounce(omObjData* obj) {
 /* CPU: when the target stands two tiles away in a line, first walks to the tile between (if it is not shaking), then
    goes to state next. */
 #ifdef NON_MATCHING
-/* register allocation and the compare/return-value scheduling differ; logic checked against the asm */
+/* masked 0 (H1): only s0/s1 (player, a) are swapped; declaration order tried. Retail returns nothing on the
+   fall-through paths (callers ignore the result) */
 s16 func_80109804_bounce_n_trounce(omObjData* obj, s16 next) {
     BtPlayer* player;
     s16 a;
@@ -1550,7 +1551,7 @@ s16 func_80109804_bounce_n_trounce(omObjData* obj, s16 next) {
         } else if (b == a - 6) {
             mid = a - 3;
         } else {
-            return b; /* unreachable: |a - b| is 2 or 6 */
+            goto end; /* unreachable: |a - b| is 2 or 6 */
         }
         if (((BtTile*)D_8010AED8_bounce_n_trounce[mid]->data)->unk02 != 1) {
             player->unkA0 = 5;
@@ -1559,9 +1560,8 @@ s16 func_80109804_bounce_n_trounce(omObjData* obj, s16 next) {
             player->unk80.y = D_8010ABEC_bounce_n_trounce[mid].y;
             player->unk80.z = D_8010ABEC_bounce_n_trounce[mid].z;
         }
-        return TRUE;
     }
-    return FALSE;
+end:;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_18_bounce_n_trounce/1CC730", func_80109804_bounce_n_trounce);

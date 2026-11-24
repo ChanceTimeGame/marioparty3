@@ -379,6 +379,8 @@ NOP_OBJECTS += build/src/overlays/duel04/410910.c.o
 NOP_OBJECTS += build/src/overlays/mgmode/47DD90.c.o
 # m4 bg: The Beat Goes On 1FE4D0 (no nop after the cosdf call: func_80106BE0)
 NOP_OBJECTS += build/src/overlays/ovl_20_the_beat_goes_on/1FE4D0.c.o
+# h1w2E: ice_rink_risk 1D1C40 (no nop before the mul.s after the sindf/cosdf calls: func_80106FC0)
+NOP_OBJECTS += build/src/overlays/ovl_19_ice_rink_risk/1D1C40.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 
