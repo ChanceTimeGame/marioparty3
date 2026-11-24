@@ -579,7 +579,7 @@ void func_80107188_mgresultboard(void) {
 }
 
 #ifdef NON_MATCHING
-// NON_MATCHING (masked 0, raw 3): the rank loop.s running base gets a2 where retail has a0. The two swap
+// NON_MATCHING (masked 0, raw 3): the rank loop's running base gets a2 where retail has a0. The two swap
 // arms are cross-jumped into one (that is what makes retail reload sc[]). Tried: init order (raw 4).
 void func_80107234_mgresultboard(void) {
     s32 rank[4];
