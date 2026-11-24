@@ -874,7 +874,7 @@ void func_80108304_mgresultduel(void) {
 }
 
 #ifdef NON_MATCHING
-// duelres A: Masked 5: retail sign-extends the winner twice (s8 for the first call, s16 for the second).
+// duelres A (masked 6, 1 short): retail sign-extends the winner again for each call (s8 for the first, s16 for the second); tried winner s32/s16/u16/u8 and an s8 prototype (H1)
 /* Show the coins won over the winner's head and add them. */
 void func_80108318_mgresultduel(omObjData *arg0) {
     Vec pos;
@@ -974,7 +974,7 @@ const f32 D_80108ED4_mgresultduel[5][3] = {
 const f32 D_80108F10_mgresultduel[5] = { 0.0f, 5.0f, 15.0f, 40.0f, 80.0f };
 
 #ifdef NON_MATCHING
-// duelres A: Masked 12: retail keeps (j >= 2) & (rung ^ 1) as an and, and orders the sin product before pos.y.
+// duelres A (masked 7, right count): retail loads pos.y after arg0->model[1] in the three hop calls (f0/f2 swapped); tried a product temporary (H1)
 /* The host flies in along the path, lands, hops and rings the bell. */
 void func_80108820_mgresultduel(omObjData *arg0) {
     f32 ctrl[4];
@@ -1024,7 +1024,7 @@ void func_80108820_mgresultduel(omObjData *arg0) {
     func_8001C624_main(arg0->model[0], HmfModelData[arg0->motion[3]].unk02, 0, 10, 0);
     for (j = 0; j < 6; j++) {
         Hu3DModelPosSet(arg0->model[1], x, pos.y - sindf(j * 15.0f) * 120.0f, z);
-        if ((j >= 2) & (rung ^ 1)) {
+        if ((j >= 2) & (rung != 1)) {
             rung = 1;
             func_8010654C_mgresultduel();
         }
