@@ -1093,7 +1093,9 @@ void func_80108648_fridged_bridges(omObjData *obj) {
     HmfModelData[obj->model[0]].unk06 = 0xFF;
 }
 
-/* Bridge pieces: models and falling objects */
+/* Bridge pieces: models and falling objects.
+ * NON_MATCHING (H1): one scheduling swap (lw obj->model before the i*5+j addu in the piece loop);
+ * masked 2 apart from function-address shifts. Tried i * 5 + j + 1 and (obj->model + 1)[...]. */
 #ifdef NON_MATCHING
 void func_80108720_fridged_bridges(omObjData *obj) {
     f32 sign[8];
@@ -1836,7 +1838,10 @@ void func_8010AE0C_fridged_bridges(void) {
 }
 
 #ifdef NON_MATCHING
-/* Cameras run back along the bridge paths and zoom out; 1 when all are done */
+/* Cameras run back along the bridge paths and zoom out; 1 when all are done.
+ * NON_MATCHING (H1): masked 19, 219/221. Only difference: retail hoists 12.5f out of the loop into
+ * s7 (frame 8 bytes larger); ours loads it in place. The rest of the body is identical. Tried
+ * `CZoomM[i] = CZoomM[i] + 12.5f` and `12.5f + CZoomM[i]`. */
 u16 func_8010AE98_fridged_bridges(f32 speed) {
     s32 done = 0;
     s32 i;
