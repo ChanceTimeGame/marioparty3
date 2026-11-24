@@ -1840,30 +1840,28 @@ void func_8010A458_hyper_hydrants(omObjData* obj) {
     }
 }
 
-// masked residue: retail selects the pumper/hose objects into one register before the loads and keeps the segment base differently (registers/scheduling; logic checked)
-#ifdef NON_MATCHING
 /* A team's hose (work[0] the team): 6 segments from the hydrant (by the pumper) to the hose player's nozzle. */
 void func_8010A68C_hyper_hydrants(omObjData* obj) {
     s32 team;
     omObjData* p;
-    omObjData* hose;
     HhPlayer* ex;
     f32 nx;
     f32 nz;
     Vec step;
     s32 i;
-    Vec** seg;
+    s32 pl;
 
     obj->func = func_8010AB34_hyper_hydrants;
     team = 1;
     if (D_8010BF50_hyper_hydrants == 0) {
         obj->work[0] = 0;
-        p = D_800EC598_minigame[D_8010BFA8_hyper_hydrants];
+        pl = D_8010BFA8_hyper_hydrants;
         team = 0;
     } else {
-        obj->work[0] = 1;
-        p = D_800EC598_minigame[D_8010BFA9_hyper_hydrants];
+        obj->work[0] = team;
+        pl = D_8010BFA9_hyper_hydrants;
     }
+    p = D_800EC598_minigame[pl];
     D_8010C028_hyper_hydrants[team].x = (p->trans.x - 25.0f) - 18.75f;
     D_8010C028_hyper_hydrants[team].y = 37.5f;
     if (((u32)D_800A178C_main[GwPlayer[((MgWork*)p->data)->unk59].chr][0] >> 16) == 6) {
@@ -1875,44 +1873,41 @@ void func_8010A68C_hyper_hydrants(omObjData* obj) {
     obj->scale.y = 1.6f;
     obj->scale.x = 1.6f;
     if (obj->work[0] == 0) {
-        hose = D_800EC598_minigame[D_8010BFAA_hyper_hydrants];
+        pl = D_8010BFAA_hyper_hydrants;
     } else {
-        hose = D_800EC598_minigame[D_8010BFAB_hyper_hydrants];
+        pl = D_8010BFAB_hyper_hydrants;
     }
-    ex = ((MgWork*)hose->data)->unk158;
-    nx = ex->unk08 * 60.0f + hose->trans.x;
-    nz = ex->unk0C * 60.0f + hose->trans.z;
+    p = D_800EC598_minigame[pl];
+    ex = ((MgWork*)p->data)->unk158;
+    nx = p->trans.x + ex->unk08 * 60.0f;
+    nz = p->trans.z + ex->unk0C * 60.0f;
     step.x = HH_ABS(D_8010C028_hyper_hydrants[team].x - nx) / 5.0f;
     step.y = -8.5f;
     step.z = HH_ABS(D_8010C028_hyper_hydrants[team].z - nz) / 5.0f;
-    seg = D_8010BFB0_hyper_hydrants[team];
     for (i = 0; i < 6; i++) {
         obj->model[i] = func_8000B108_main(0x2F0008, 0x899);
         Hu3DModelScaleSet(obj->model[i], obj->scale.x, obj->scale.y, obj->scale.z);
-        seg[i] = HuMemAllocTag(0x1C, 0x7918);
+        D_8010BFB0_hyper_hydrants[team][i] = HuMemAllocTag(0x1C, 0x7918);
         if (team == 0) {
             func_8001C8A8_main(obj->model[i], 1);
         } else {
             func_8001C8A8_main(obj->model[i], 2);
         }
-        seg[i]->x = nx + i * step.x;
-        seg[i]->y = i * step.y + 80.0f;
-        seg[i]->z = nz + i * step.z;
+        D_8010BFB0_hyper_hydrants[team][i]->x = nx + i * step.x;
+        D_8010BFB0_hyper_hydrants[team][i]->y = i * step.y + 80.0f;
+        D_8010BFB0_hyper_hydrants[team][i]->z = nz + i * step.z;
         if (i == 0) {
-            obj->trans.x = seg[0]->x;
-            obj->trans.y = seg[0]->y;
-            obj->trans.z = seg[0]->z;
+            obj->trans.x = D_8010BFB0_hyper_hydrants[team][i]->x;
+            obj->trans.y = D_8010BFB0_hyper_hydrants[team][i]->y;
+            obj->trans.z = D_8010BFB0_hyper_hydrants[team][i]->z;
         }
-        Hu3DModelPosSet(obj->model[i], seg[i]->x, seg[i]->y,
-                        seg[i]->z);
+        Hu3DModelPosSet(obj->model[i], D_8010BFB0_hyper_hydrants[team][i]->x, D_8010BFB0_hyper_hydrants[team][i]->y,
+                        D_8010BFB0_hyper_hydrants[team][i]->z);
     }
     D_8010BF50_hyper_hydrants++;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_8010A68C_hyper_hydrants);
-#endif
 
-// masked residue: as func_8010A68C, plus 80.0f kept in a saved register here (registers/scheduling; logic checked)
+// masked 20 (201/200): 80.0f hoisted into f24 out of the segment loop (retail reloads it) and the nozzle products go straight into f22/f20 (retail via f0); logic checked
 #ifdef NON_MATCHING
 /* The hose follows its nozzle while playing and fades out at the end. */
 void func_8010AB34_hyper_hydrants(omObjData* obj) {
@@ -1924,16 +1919,18 @@ void func_8010AB34_hyper_hydrants(omObjData* obj) {
     Vec step;
     s32 i;
     Vec** seg;
+    s32 pl;
 
     switch (func_800E6E8C_minigame()) {
         case 2:
             team = 1;
             if (obj->work[0] == 0) {
-                hose = D_800EC598_minigame[D_8010BFAA_hyper_hydrants];
+                pl = D_8010BFAA_hyper_hydrants;
                 team = 0;
             } else {
-                hose = D_800EC598_minigame[D_8010BFAB_hyper_hydrants];
+                pl = D_8010BFAB_hyper_hydrants;
             }
+            hose = D_800EC598_minigame[pl];
             ex = ((MgWork*)hose->data)->unk158;
             nx = ex->unk08 * 60.0f + hose->trans.x;
             nz = ex->unk0C * 60.0f + hose->trans.z;
@@ -2082,7 +2079,7 @@ void func_8010B2FC_hyper_hydrants(omObjData* obj) {
     }
 }
 
-// masked residue: retail re-reads the mask height for the loop bound into another register and hoists the 255/2^31 constants differently (registers/scheduling; logic checked)
+// masked 15 (213/211): retail loads the mask height once (lhu) at loop entry for both the bound and h, this C adds an lh there and a stack slot; tried the comma form and s32 h (logic checked)
 #ifdef NON_MATCHING
 /* Redraw the iris masks: clear inside 0.8 of the radius, a ramp to the radius, opaque beyond. */
 void func_8010B38C_hyper_hydrants(void) {
@@ -2109,8 +2106,7 @@ void func_8010B38C_hyper_hydrants(void) {
     ymax = D_8010BFA4_hyper_hydrants + D_8010BF9C_hyper_hydrants;
     a = D_8010BF94_hyper_hydrants[0];
     b = D_8010BF94_hyper_hydrants[1];
-    h = D_8010BF90_hyper_hydrants;
-    for (y = 0; y < (s16)D_8010BF90_hyper_hydrants; y++) {
+    for (y = 0; y < (s16)(h = D_8010BF90_hyper_hydrants); y++) {
         if (big->unk03 != 1 ? ymax < y : (s16)h / 2 < y) {
             break;
         }
