@@ -1,8 +1,5 @@
 #include "mgresultdealer.h"
 
-#ifdef NON_MATCHING
-/* masked 0 at the right count when func_80017AD8_main returns s16 (include/functions.us.h says u8; see
-   src/14EA0.c and ~/repos/mp3-wt/k2A.header.patch): with u8 the three stores gain an andi */
 /* Game Guy's process: the player, the slot, the hand, the table and the three coin piles */
 void func_801065D0_mgresultdealer(void) {
     omObjData *obj;
@@ -60,9 +57,6 @@ void func_801065D0_mgresultdealer(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultdealer/4ECDE0", func_801065D0_mgresultdealer);
-#endif
 
 /* the hand falls onto the slot */
 void func_80106A50_mgresultdealer(omObjData *obj) {
