@@ -677,55 +677,47 @@ s32 func_80106BB0_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir) {
     return ret;
 }
 
-#ifdef NON_MATCHING
 /* Move a piece down by dy; undo and return TRUE if it hits something. */
 s32 func_80106C98_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
     PzCell* cell;
+    PzCell* cell2;
     s32 col;
     s32 row;
     s32 c2;
     s32 hit;
-    s32 state;
-    f32 x;
 
     piece->unk30 += dy;
-    x = piece->unk2C;
-    col = (x - D_80110080_marios_puzzle_party[player].x) / 14.0f;
+    col = (piece->unk2C - D_80110080_marios_puzzle_party[player].x) / 14.0f;
     row = (D_80110080_marios_puzzle_party[player].y - piece->unk30) / 7.0f;
     cell = &D_801102E0_marios_puzzle_party[player][col][row];
     hit = TRUE;
     if (piece->unk24 != 0) {
         c2 = col - 1;
-        if (!(col * 14 - x > 0.0f)) {
+        if (!(col * 14 - piece->unk2C > 0.0f)) {
             c2 = col + 1;
         }
-        if (cell->unk10 != 0) {
-            goto end;
+        cell2 = &D_801102E0_marios_puzzle_party[player][c2][row];
+        if (cell->unk10 == 0 && cell2->unk10 == 0) {
+            piece->unk14 = col;
+            piece->unk18 = row;
+            hit = FALSE;
         }
-        state = D_801102E0_marios_puzzle_party[player][c2][row].unk10;
-    } else {
-        state = cell->unk10;
-    }
-    if (state == 0) {
+    } else if (cell->unk10 == 0) {
         piece->unk14 = col;
         piece->unk18 = row;
         hit = FALSE;
     }
-end:
     if (hit) {
         piece->unk30 -= dy;
     }
     return hit;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106C98_marios_puzzle_party);
-#endif
 
-#ifdef NON_MATCHING
 /* The same for the special piece, which spans two columns. */
 s32 func_80106E40_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
     PzCell* a;
     PzCell* b;
+    PzCell* c;
     s32 col;
     s32 row;
     s32 c2;
@@ -741,20 +733,18 @@ s32 func_80106E40_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
         if (piece->unk24 < 0) {
             c2 = col - 1;
         }
-        if (a->unk10 == 0 && b->unk10 == 0) {
-            hit = D_801102E0_marios_puzzle_party[player][c2][row].unk10 != 0;
+        c = &D_801102E0_marios_puzzle_party[player][c2][row];
+        if (a->unk10 == 0 && b->unk10 == 0 && c->unk10 == 0) {
+            hit = FALSE;
         }
-    } else if (a->unk10 == 0) {
-        hit = b->unk10 != 0;
+    } else if (a->unk10 == 0 && b->unk10 == 0) {
+        hit = FALSE;
     }
     if (hit) {
         piece->unk30 -= dy;
     }
     return hit;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106E40_marios_puzzle_party);
-#endif
 
 s32 func_80107000_marios_puzzle_party(s32 player, s32 col) {
     s32 row = 1;
