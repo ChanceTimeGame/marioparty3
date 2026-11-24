@@ -3899,9 +3899,6 @@ void func_80110C3C_duel01(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80110C3C_duel01);
 #endif
 
-#ifdef NON_MATCHING
-// duel b4: logic checked; masked 8: the turn if-chain, where retail keeps buf's address out of s0 and leaves a j/nop pair (509 vs 512 instructions)
-// duel b4: bell space: ring the bell; at zero coins the bell pays out and the board ends the turn
 void func_80111DFC_duel01(void) {
     Vec pos;
     char buf[8];
@@ -3910,7 +3907,6 @@ void func_80111DFC_duel01(void) {
     DuelB4HmfPart *part;
     f32 ofs;
     s32 i;
-    char *str;
     GW_SYSTEM *system = &GwSystem;
 
     player = MBDGetPlayerStruct(-1);
@@ -3969,13 +3965,12 @@ void func_80111DFC_duel01(void) {
         func_800F74E4_name_81(-1);
         func_800EEC40_name_81(&pos);
         if (system->current_turn < 11) {
-            str = "20";
+            sprintf(buf, "20");
         } else if (system->current_turn >= 20) {
-            str = "40";
+            sprintf(buf, "40");
         } else {
-            str = "30";
+            sprintf(buf, "30");
         }
-        sprintf(buf, str);
         HuAudFXPlay(0x2A7);
         func_800EB49C_name_81(0x15, 0x1F30, (s32)buf, 0, 0, 0, 0);
         func_800EB58C_name_81();
@@ -3993,9 +3988,6 @@ void func_80111DFC_duel01(void) {
     HuPrcChildWait();
     func_800FC888_name_81(1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel01/3D8AC0", func_80111DFC_duel01);
-#endif
 
 // duel b4: the current player's partner effect: restore the player's star field (duel HP) to 5
 void func_801123E8_duel01(void) {
