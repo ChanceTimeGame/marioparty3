@@ -1288,13 +1288,12 @@ void func_80109424_fowl_play(void) {
     }
 }
 
-#ifdef NON_MATCHING
 /* one instruction long: retail sign-extends the billboard id before storing its low byte to boards[i] */
 void func_801094A4_fowl_play(omObjData* obj) {
     MgWork* work;
     FpChick* ch;
     f32 a;
-    s16 id;
+    s32 id;
     s32 i;
 
     obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
@@ -1317,8 +1316,7 @@ void func_801094A4_fowl_play(omObjData* obj) {
     obj->model[1] = func_8000B0D4_main(9, 0x2D9);
     D_8010F238_fowl_play = func_8010B2C4_fowl_play(0xB);
     for (i = 0; i < 8; i++) {
-        id = func_8010C1F4_fowl_play(D_8010F238_fowl_play, 0x20009000);
-        ch->u.boards[i] = (s16)id;
+        ch->u.boards[i] = id = func_8010C1F4_fowl_play(D_8010F238_fowl_play, 0x20009000);
         func_8010D148_fowl_play(id, 2);
         func_8010D2A4_fowl_play(id, -1, -0x3A, 0x69, 0xE0);
         func_8010CFDC_fowl_play(id, 1.2f, 1.2f, 1.2f);
@@ -1342,9 +1340,6 @@ void func_801094A4_fowl_play(omObjData* obj) {
     }
     D_8010F2A0_fowl_play++;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801094A4_fowl_play);
-#endif
 
 extern s32 D_8010E8C4_fowl_play; /* chick sound timer */
 void func_8004AE00_main(s16 handle, s16 pan);
