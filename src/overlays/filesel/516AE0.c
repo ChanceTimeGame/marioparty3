@@ -4673,11 +4673,13 @@ void func_80112184_filesel(s32 no) {
     func_80111FFC_filesel(no);
 }
 
-// register choice for no/mask and the name-terminator addressing (masked 28, logic checked)
+// NON_MATCHING (masked 0, raw 4): register allocation of the GwCommon name-pair test in the copy loop
+// (retail loads the high byte into v1). Tried: operands swapped without a temp (worse).
 #ifdef NON_MATCHING
 void func_801122B0_filesel(s32 no) {
     s32 i;
     s32 mask;
+    s32 hi;
 
     for (i = 0; i < 16; i++) {
         D_801142D8_filesel[no].name[i] = 0;
@@ -4704,16 +4706,17 @@ void func_801122B0_filesel(s32 no) {
         }
     } else {
         for (i = 0; i < 10; i += 2) {
-            if (((FS_GW_NAME[i] << 8) | FS_GW_NAME[i + 1]) == 0) {
+            hi = FS_GW_NAME[i] << 8;
+            if ((FS_GW_NAME[i + 1] | hi) == 0) {
                 break;
             }
             D_801142D8_filesel[no].name[i] = FS_GW_NAME[i];
             D_801142D8_filesel[no].name[i + 1] = FS_GW_NAME[i + 1];
         }
-        D_801142D8_filesel[no].name[i + 1] = 0;
-        D_801142D8_filesel[no].name[i] = 0;
+        D_801142D8_filesel[no].name[i] = D_801142D8_filesel[no].name[i + 1] = 0;
     }
-    if (((D_801142D8_filesel[no].name[0] << 8) | D_801142D8_filesel[no].name[1]) == 0) {
+    hi = D_801142D8_filesel[no].name[0] << 8;
+    if ((D_801142D8_filesel[no].name[1] | hi) == 0) {
         bzero(D_801142D8_filesel[no].name, 0x20);
     }
 }
