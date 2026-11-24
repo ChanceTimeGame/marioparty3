@@ -6729,8 +6729,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
 #endif
 
 #ifdef NON_MATCHING
-// board ea3: logic checked against the asm case by case; masked 46: retail keeps branches where this C
-// gets store-flag (case 6's front-power test) and tests rev in v1 (case 0/1 tails), so shared returns differ.
+// board ea3: logic checked against the asm case by case. H1: `walk >= 8 || frontPower == 0` as one test keeps
+// retail's branches in case 6 (masked 46 -> 26, count right); left: rev tested in v1 (case 0/1 tails).
 s32 func_8011678C_duel04(void) {
     GW_PLAYER *me;
     GW_PLAYER *opp;
@@ -6751,10 +6751,7 @@ s32 func_8011678C_duel04(void) {
             }
             return FALSE;
         }
-        if (walk >= 8) {
-            return FALSE;
-        }
-        if (opp->stats.partners.frontPower == 0) {
+        if (walk >= 8 || opp->stats.partners.frontPower == 0) {
             return FALSE;
         }
         return TRUE;
@@ -6927,8 +6924,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801169EC_duel04);
 #endif
 
 #ifdef NON_MATCHING
-// board ea3: logic checked against the asm case by case; masked 26: the same store-flag (case 7) and
-// rev-in-v1 (case 1/2 tails) differences as func_8011678C_duel04.
+// board ea3: logic checked against the asm case by case. H1: case 7 as one `||` test (masked 26 -> 23, but 185
+// of 182); left: rev-in-v1 and the case 2 tail's block order (as func_8011678C_duel04).
 s32 func_80116DA0_duel04(void) {
     GW_PLAYER *me;
     GW_PLAYER *opp;
@@ -6949,10 +6946,7 @@ s32 func_80116DA0_duel04(void) {
             }
             return func_800EFE20_name_81(100.0f) < 50;
         }
-        if (walk >= 8) {
-            return FALSE;
-        }
-        if (opp->stats.partners.frontPower == 0) {
+        if (walk >= 8 || opp->stats.partners.frontPower == 0) {
             return FALSE;
         }
         return TRUE;
@@ -8070,6 +8064,7 @@ void func_80119910_duel04(void) {
 #ifdef NON_MATCHING
 // board ea3: masked 24 (185 vs 184): retail keeps the third tree's count as a branch (count = 2 in the
 // call's delay slot, bnezl count = 3, blez before the loop); this C gets store-flag arithmetic there.
+// H1 tried: count++ (183), goto past `count = 3` (183), s16 count (186): all still store-flag.
 void func_80119A30_duel04(void) {
     GW_PLAYER *player;
     UnkEA790Struct *tree;
