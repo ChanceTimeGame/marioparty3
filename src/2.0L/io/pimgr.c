@@ -5,12 +5,14 @@
 #include "include_asm.h"
 
 /* The library's file-local statics live in the data asm:
-   D_800C2180_main  piThread, followed by piThreadStack (OS_PIM_STACKSIZE)
-   D_800C3330_main  ramromThread, followed by ramromThreadStack (0x400)
+   D_800C2180_main  piThread, then piThreadStack (OS_PIM_STACKSIZE)
+   D_800C3330_main  ramromThread, then ramromThreadStack (0x400)
    D_800C38E0_main  getRamromQ, D_800C38F8_main getRamromBuf, D_800C3900_main freeRamromQ,
    D_800C3918_main  freeRamromBuf, D_800C3920_main piEventQueue, D_800C3938_main piEventBuf */
 extern OSThread D_800C2180_main;
+extern u64 piThreadStack[OS_PIM_STACKSIZE / sizeof(u64)];
 extern OSThread D_800C3330_main;
+extern u64 ramromThreadStack[0x400 / sizeof(u64)];
 extern OSMesgQueue D_800C38E0_main;
 extern OSMesg D_800C38F8_main[1];
 extern OSMesgQueue D_800C3900_main;
@@ -22,8 +24,6 @@ extern OSMesgQueue __osPiAccessQueue;
 
 void ramromMain(void *arg);
 
-#ifdef NON_MATCHING
-/* Matches except register allocation (the piEventQueue/piThread/pri registers come out in a different order). */
 void osCreatePiManager(OSPri pri, OSMesgQueue *cmdQ, OSMesg *cmdBuf, s32 cmdMsgCnt) {
     u32 savedMask;
     OSPri oldPri;
@@ -60,10 +60,10 @@ void osCreatePiManager(OSPri pri, OSMesgQueue *cmdQ, OSMesg *cmdBuf, s32 cmdMsgC
     __osPiDevMgr.dma = osPiRawStartDma;
     __osPiDevMgr.edma = __osEPiRawStartDma;
 
-    osCreateThread(&D_800C2180_main, 0, __osDevMgrMain, &__osPiDevMgr, (void *)&D_800C3330_main, pri);
+    osCreateThread(&D_800C2180_main, 0, __osDevMgrMain, &__osPiDevMgr, piThreadStack + OS_PIM_STACKSIZE / sizeof(u64), pri);
     osStartThread(&D_800C2180_main);
 
-    osCreateThread(&D_800C3330_main, 0, ramromMain, NULL, (void *)&D_800C38E0_main, (OSPri)pri - 1);
+    osCreateThread(&D_800C3330_main, 0, ramromMain, NULL, ramromThreadStack + 0x400 / sizeof(u64), (OSPri)pri - 1);
     osStartThread(&D_800C3330_main);
 
     __osRestoreInt(savedMask);
@@ -72,9 +72,6 @@ void osCreatePiManager(OSPri pri, OSMesgQueue *cmdQ, OSMesg *cmdBuf, s32 cmdMsgC
         osSetThreadPri(NULL, oldPri);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/2.0L/io/pimgr", osCreatePiManager);
-#endif
 
 void ramromMain(void *arg) {
     u32 sent;
