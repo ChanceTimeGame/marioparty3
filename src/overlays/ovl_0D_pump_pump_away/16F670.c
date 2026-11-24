@@ -698,6 +698,8 @@ void func_80106260_pump_pump_away(u16 x, u16 y, char *str, u16 color) {
     print8(x, y, str);
 }
 
+// NON_MATCHING: retail folds the -1 of the team index into the address (team[i - 1].obj read at
+// D_80111978 + i * 0x34 - 0xC); we compute i - 1 first (masked 8, 200 vs 199); logic checked
 #ifdef NON_MATCHING
 void func_8010628C_pump_pump_away(omObjData *obj) {
     PpTeam *t;
@@ -731,19 +733,19 @@ void func_8010628C_pump_pump_away(omObjData *obj) {
         case 5:
             break;
     }
-    for (i = 0; i < 2; i++) {
-        scale = D_80111978_pump_pump_away[i].obj->trans.y - obj->trans.y - 200.0f;
+    for (i = 1; i < 3; i++) {
+        scale = D_80111978_pump_pump_away[i - 1].obj->trans.y - obj->trans.y - 200.0f;
         if ((scale > 1000.0f) | (scale < -100.0f)) {
-            func_8001C258_main(obj->model[i + 1], 4, 4);
+            func_8001C258_main(obj->model[i], 4, 4);
         } else {
-            func_8001C258_main(obj->model[i + 1], 4, 0);
+            func_8001C258_main(obj->model[i], 4, 0);
             scale = 3.0 - scale * 0.003;
             if (scale >= 3.0) {
                 scale = 3.0f;
             }
         }
-        Hu3DModelPosSet(obj->model[i + 1], D_80110EA0_pump_pump_away[i].x, obj->trans.y + 1.0, D_80110EA0_pump_pump_away[i].z + 0.0f);
-        Hu3DModelScaleSet(obj->model[i + 1], scale, scale, scale);
+        Hu3DModelPosSet(obj->model[i], D_80110EA0_pump_pump_away[i - 1].x, obj->trans.y + 1.0, D_80110EA0_pump_pump_away[i - 1].z + 0.0f);
+        Hu3DModelScaleSet(obj->model[i], scale, scale, scale);
     }
 }
 #else
