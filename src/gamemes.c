@@ -1191,7 +1191,7 @@ s32 func_80038D78_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038D78_main);
 #endif
 
-// "START" letters zooming in: register allocation (masked 32: the case 0 j + 1 loop increments in place)
+// "START" letters zooming in: register allocation (masked 29: the case 0 j + 1 loop increments in place)
 #ifdef NON_MATCHING
 s32 func_800392AC_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
@@ -1281,7 +1281,7 @@ s32 func_800392AC_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_800392AC_main);
 #endif
 
-// "START" letters dropping and bouncing: register allocation (masked 33: the case 0 j + 1 loop increments in place, case 1 keeps D_800B1BC0_main in a register)
+// "START" letters dropping and bouncing: register allocation (masked 26: the case 0 j + 1 loop increments in place, case 1 keeps D_800B1BC0_main in a register)
 #ifdef NON_MATCHING
 s32 func_8003966C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
@@ -1372,7 +1372,7 @@ s32 func_8003966C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003966C_main);
 #endif
 
-// "START" letters rising and bouncing: register allocation (masked 25: the case 0 j + 1 loop increments in place)
+// "START" letters rising and bouncing: register allocation (masked 22: the case 0 j + 1 loop increments in place)
 #ifdef NON_MATCHING
 s32 func_80039A6C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
