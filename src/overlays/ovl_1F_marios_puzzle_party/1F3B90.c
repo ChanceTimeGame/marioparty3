@@ -1142,7 +1142,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 #endif
 
 #ifdef NON_MATCHING
-/* Clear every group of matching blocks, let the blocks above fall, and repeat while chains form. */
+/* Clear every group of matching blocks, let the blocks above fall, and repeat while chains form.
+ * NON_MATCHING (H1): masked 10, 265 of 261. Retail restores D_80116148[player] after the loop
+ * through the address hoisted for the loop's first statement (spilled to the stack); ours recomputes
+ * it. A pointer local gets 262 but recomputes player * 4 (masked 28). cleared = 0 schedules early. */
 void func_80108568_marios_puzzle_party(s32 player, s32 counter) {
     PzCell* cell;
     Process* proc;
@@ -1189,7 +1192,8 @@ void func_80108568_marios_puzzle_party(s32 player, s32 counter) {
         omVibrate(player, 2, 3, 10);
         for (col = 1; col < 5; col++) {
             for (row = 1; row < 40; row++) {
-                if (D_801102E0_marios_puzzle_party[player][col][row].unk10 == 0) {
+                cell = &D_801102E0_marios_puzzle_party[player][col][row];
+                if (cell->unk10 == 0) {
                     break;
                 }
             }
@@ -1654,22 +1658,27 @@ void func_80109D24_marios_puzzle_party(void) {
 }
 
 #ifdef NON_MATCHING
-/* Result rank flying in from the distance over a player's board (player 4: the centre). */
+/* Result rank flying in from the distance over a player's board (player 4: the centre).
+ * NON_MATCHING (H1): masked 0 at 289, raw 12: retail allocates player s5, i s3, the g0 copy s4
+ * (ours s4, s5, s3); declaration order does not change it. Permuter candidate. */
 void func_8010A0D8_marios_puzzle_party(void) {
     f32 xs[5] = { -95.0f, -30.0f, 30.0f, 95.0f, 0.0f };
     s32 player;
     s32 i;
-    s16 g0;
-    s16 g1;
-    s16 g2;
-    f32* x;
+    s32 g0;
+    s32 g1;
+    s32 g2;
     f32 z;
     f32 a;
     f32 y;
 
     player = (s32)HuPrcCurrentGet()->user_data;
+    if (player == 4) {
+        func_8004AC98_main(0x3FE, 0);
+    } else {
+        func_8004AC98_main(0x3FE, player);
+    }
     i = 0;
-    func_8004AC98_main(0x3FE, (player != 4) ? player : 0);
     g0 = HuSprGrpCreate(1, 5);
     func_80055024_main(g0, 0, D_801160B0_marios_puzzle_party, 0);
     HuSprAttrReset(g0, 0, 0xFFFF);
@@ -1687,23 +1696,22 @@ void func_8010A0D8_marios_puzzle_party(void) {
     HuSprAttrSet(g2, 0, 0x4000);
     z = -5000.0f;
     a = 0.0f;
-    x = &xs[player];
     do {
         y = sindf(a) * 150.0f;
         a += 6.0f;
         z += 111.111115f;
-        SprPos3DSet(g0, 0, 0, *x, y, z);
-        SprPosPerspectiveSet(g0, 0, 0, *x, y, z);
+        SprPos3DSet(g0, 0, 0, xs[player], y, z);
+        SprPosPerspectiveSet(g0, 0, 0, xs[player], y, z);
         if (D_80116158_marios_puzzle_party == 0) {
-            SprPos3DSet(g1, 0, 0, *x + 8.0f, y - 12.0f, z);
-            SprPosPerspectiveSet(g1, 0, 0, *x + 8.0f, y - 12.0f, z);
+            SprPos3DSet(g1, 0, 0, xs[player] + 8.0f, y - 12.0f, z);
+            SprPosPerspectiveSet(g1, 0, 0, xs[player] + 8.0f, y - 12.0f, z);
         } else {
-            SprPos3DSet(g1, 0, 0, *x + 16.0f, y - 12.0f, z);
-            SprPosPerspectiveSet(g1, 0, 0, *x + 16.0f, y - 12.0f, z);
+            SprPos3DSet(g1, 0, 0, xs[player] + 16.0f, y - 12.0f, z);
+            SprPosPerspectiveSet(g1, 0, 0, xs[player] + 16.0f, y - 12.0f, z);
         }
         i++;
-        SprPos3DSet(g2, 0, 0, *x, y - 12.0f, z);
-        SprPosPerspectiveSet(g2, 0, 0, *x, y - 12.0f, z);
+        SprPos3DSet(g2, 0, 0, xs[player], y - 12.0f, z);
+        SprPosPerspectiveSet(g2, 0, 0, xs[player], y - 12.0f, z);
         HuPrcVSleep();
     } while (i < 45);
     HuSprGrpKill(g0);
