@@ -2103,12 +2103,12 @@ void func_8010AED4_pump_pump_away(omObjData *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 void func_8010AF70_pump_pump_away(omObjData *obj) {
     PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
     PpPlayer *pl;
     s16 se;
     s32 i;
+    PpArc *arc;
 
     switch (t->unk08) {
         case 10:
@@ -2116,7 +2116,8 @@ void func_8010AF70_pump_pump_away(omObjData *obj) {
             t->unk08 = 11;
             break;
         case 11:
-            obj->rot.z = PP_WRAP(D_80113518_pump_pump_away.angle + 180.0f);
+            arc = &D_80113518_pump_pump_away;
+            obj->rot.z = PP_WRAP(arc->angle + 180.0f);
             obj->trans.y -= 10.0f;
             if (obj->trans.y <= 200.0f) {
                 obj->trans.y = 200.0f;
@@ -2167,9 +2168,6 @@ void func_8010AF70_pump_pump_away(omObjData *obj) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010AF70_pump_pump_away);
-#endif
 
 void func_8010B274_pump_pump_away(omObjData *obj) {
     PpTeam *t = &D_80111978_pump_pump_away[obj->work[0]];
