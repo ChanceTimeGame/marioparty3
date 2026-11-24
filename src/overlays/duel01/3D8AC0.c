@@ -5361,7 +5361,7 @@ void func_800F7378_name_81(s32 playerIndex, s32 coinAmount);
 void func_800FB524_name_81(s32 playerNo);
 s32 func_800F8980_name_81(s32 playerIndex); // ovl_81 defines it with a void * (stored as process user_data)
 
-// duel b5: masked 17 (retail reloads cidx and the table entry after the equality test)
+// duel b5: masked 17, raw 19 (retail reloads cidx and the table entry after the equality test, no CSE of sp+walk); H1 tried: one `==` || `>=` return (masked 26), nested if/return 0 (masked 16, 120 instr).
 #ifdef NON_MATCHING
 s32 func_80115850_duel01(void) {
     DuelSpaceTbl spaceIdx;
