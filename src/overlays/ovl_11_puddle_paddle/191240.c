@@ -1362,7 +1362,7 @@ void func_801091F8_puddle_paddle(PpCtx* ctx, PpTask* task) {
 }
 
 /* A player's paddling: each press adds power, which decays; the stick steers (flags 2 right, 4 left).
-   NON_MATCHING: retail reads the stick with lbu and sign-extends it twice; this C gets one lb. */
+   NON_MATCHING (masked 16): retail reads the stick with lbu and sign-extends it twice; this C gets one lb (tried a u8 view with s8/s16 casts, s8 local). */
 #ifdef NON_MATCHING
 void func_801094C4_puddle_paddle(PpCtx* ctx, PpTask* task) {
     PpPlayer* player = task->data;
@@ -1544,7 +1544,7 @@ void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010981C_puddle_paddle);
 #endif
 
-// NON_MATCHING: masked 36 (count 434 vs 431): splash flag tests and the 2x offset differ in register use and scheduling; logic checked against the asm
+// NON_MATCHING: masked 12 (428/431): retail copies splashL/splashR into v0 for the tests (move v0,s5 / s4 in delay slots) and keeps 2x the offset in f0; tried commuted multiply, || for the sound test; logic checked against the asm
 #ifdef NON_MATCHING
 void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
     PpTeam *team;

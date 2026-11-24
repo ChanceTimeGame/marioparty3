@@ -264,6 +264,7 @@ void func_80105D80_cosmic_coaster(omObjData *object) {
 }
 
 /* Main state: start the race, pick the winning car, pay the bonus, fade out. */
+// masked 4 (195/197): this C keeps &D_8010BB5C_cosmic_coaster[1] in a register across case 3, retail re-forms %hi/%lo at the store; a struct type did not change it (logic checked)
 #ifdef NON_MATCHING
 void func_80105DAC_cosmic_coaster(omObjData *object) {
     CcCar *car;
@@ -1169,6 +1170,7 @@ s16 func_8010923C_cosmic_coaster(CcStars *work) {
 }
 
 /* Shooting star spawner per frame: launch a star on each side when its delay runs out. */
+// masked 36 (273/265): this C hoists the 164/156 clamp constants into s5/s6 out of the loop, retail reloads them and assigns from the compare register (mov.s); tried ternary clamps (logic checked)
 #ifdef NON_MATCHING
 void func_80109290_cosmic_coaster(omObjData *object) {
     CcStars *work;
@@ -1179,6 +1181,7 @@ void func_80109290_cosmic_coaster(omObjData *object) {
     f32 angle;
     f32 x;
     f32 y;
+    f32 dir;
 
     work = object->data;
     for (side = 0; side < 2; side++) {
@@ -1223,9 +1226,9 @@ void func_80109290_cosmic_coaster(omObjData *object) {
                 }
                 star->unk0C = x;
                 star->unk10 = y;
-                angle -= 180.0f;
-                star->unk14 = cosdf(angle) * 4.5f;
-                star->unk18 = -sindf(angle) * 4.5f;
+                dir = angle - 180.0f;
+                star->unk14 = cosdf(dir) * 4.5f;
+                star->unk18 = -sindf(dir) * 4.5f;
                 star->unk04 = &work->unk1C[slot];
                 star->unk08 = work->unk00[slot];
                 star->unk0A = work->unk0C[slot];
