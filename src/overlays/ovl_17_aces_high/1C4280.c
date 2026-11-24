@@ -2587,7 +2587,7 @@ void func_8010C9DC_aces_high(void) {
     func_8000BCC8_main(D_8010DF20_aces_high, 0x8064);
 }
 
-// masked 14: retail sign-extends the first sprite coordinate after both truncations (here right after the first), computes the priority as (i - 0x7FFB) & 0xFFFF (here 0x8005 + i, same value), float registers; same operations otherwise
+// masked 0, raw 8 (H1): only the scale register differs (retail $f2, here $f0); tried declaration order and an assignment in the call
 #ifdef NON_MATCHING
 /* Radar: one icon per plane (and its missile), drawn lowest plane first. work[0] = 0 hides it. */
 void func_8010CA6C_aces_high(omObjData *obj) {
@@ -2598,6 +2598,8 @@ void func_8010CA6C_aces_high(omObjData *obj) {
     s32 j;
     u16 t;
     f32 scale;
+    s32 x;
+    s32 y;
 
     i = 0;
     if (obj->work[0] == 0) {
@@ -2625,15 +2627,18 @@ void func_8010CA6C_aces_high(omObjData *obj) {
     do {
         plane = D_8010DE68_aces_high[order[i]];
         work = plane->data;
-        func_8000BBD4_main(work->unk1C, (s32)(plane->trans.x * 0.005063291f + 160.0f), (s32)(plane->trans.z * 0.005063291f + 120.0f));
+        x = plane->trans.x * 0.005063291f + 160.0f;
+        y = plane->trans.z * 0.005063291f + 120.0f;
+        func_8000BBD4_main(work->unk1C, x, y);
         scale = plane->trans.y / 500.0f * 0.25f + 1.0f;
         func_8000BE5C_main(work->unk1C, scale, scale);
         func_8000BCC8_main(work->unk1C, (u16)(i + 0x8005));
         func_8000BF00_main(work->unk1C, plane->rot.y);
         func_8000BBFC_main(work->unk1C, 0xC0);
         if (work->unk6C != NULL) {
-            func_8000BBD4_main(work->unk1E, (s32)(work->unk6C->trans.x * 0.005063291f + 160.0f),
-                               (s32)(work->unk6C->trans.z * 0.005063291f + 120.0f));
+            x = work->unk6C->trans.x * 0.005063291f + 160.0f;
+            y = work->unk6C->trans.z * 0.005063291f + 120.0f;
+            func_8000BBD4_main(work->unk1E, x, y);
             scale = (work->unk6C->trans.y / 500.0f * 0.25f + 1.0f) * 0.5f;
             i++;
             func_8000BE5C_main(work->unk1E, scale, scale);

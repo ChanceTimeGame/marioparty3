@@ -560,6 +560,7 @@ void func_801060E8_log_jam(omObjData* obj) {
     }
 }
 
+// H1: masked 28; switch spellings (separate g, no g, (u8) cast) give identical code
 #ifdef NON_MATCHING
 /* Differs: the group switch keeps one register copy fewer (retail moves the group into v1). */
 void func_80106190_log_jam(void) {
@@ -742,15 +743,15 @@ void func_801065E8_log_jam(omObjData* obj) {
 
 const char D_8010E218_log_jam[] = "item_hook"; /* hook attach point */
 
-#ifdef NON_MATCHING
-/* Differs: the character-table loads for func_800E1BA8_minigame and the voice pointer take other registers/slots. */
 void func_80106968_log_jam(omObjData* obj) {
     LjPlayer* pl;
-    s32* voice;
     s16 chr;
     s16 i;
     s16 gw;
     func_800E1BA8_minigame_ObjData* w;
+    s32 dir;
+    s32 file;
+    s32 r;
 
     pl = func_8010C588_log_jam(obj);
     gw = pl->unk18;
@@ -759,7 +760,9 @@ void func_80106968_log_jam(omObjData* obj) {
     pl->unk1A = GwPlayer[gw].pad;
     pl->unk1E = GwPlayer[gw].stat & 1;
     pl->unk20 = GwPlayer[gw].cpu_difficulty;
-    func_800E1BA8_minigame(obj, D_800A178C_main[chr][0], D_800A178C_main[chr][2], gw, 0x6A9, 0x299);
+    dir = D_800A178C_main[chr][0];
+    file = D_800A178C_main[chr][2];
+    func_800E1BA8_minigame(obj, dir, file, gw, 0x6A9, 0x299);
     w = obj->data;
     w->unk50 &= ~1;
     w->unkEC = NULL;
@@ -802,9 +805,9 @@ void func_80106968_log_jam(omObjData* obj) {
         func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, (s16)D_8010DFF4_log_jam[0]), 1, 0x78);
         pl->unk14 = D_8010DFD4_log_jam[chr] | D_8010DFF4_log_jam[0];
     } else {
-        voice = &D_8010DFF4_log_jam[rand8() & 1];
-        func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
-        pl->unk14 = D_8010DFD4_log_jam[chr] | *voice;
+        r = rand8() & 1;
+        func_800E5A00_minigame(obj, 9, func_80017BB8_main(chr, (s16)D_8010DFF4_log_jam[r]), 1, 0x78);
+        pl->unk14 = D_8010DFD4_log_jam[chr] | D_8010DFF4_log_jam[r];
     }
     func_800E5A00_minigame(obj, 10, func_80017BB8_main(chr, (s16)D_8010DFF4_log_jam[2]), 1, 0x78);
     pl->unk06 = -1;
@@ -832,9 +835,6 @@ void func_80106968_log_jam(omObjData* obj) {
     pl->unk34 = 0;
     obj->func = func_80106F48_log_jam;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_13_log_jam/1A3D80", func_80106968_log_jam);
-#endif
 
 void func_80106F48_log_jam(omObjData* obj) {
     LjPlayer* pl = func_8010C588_log_jam(obj);

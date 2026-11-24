@@ -139,7 +139,7 @@ extern s32 D_8010AC78_water_whirled[4];
 f32 func_800E2ED4_minigame(f32 x1, f32 z1, f32 x2, f32 z2);
 s32 func_8010960C_water_whirled(omObjData* obj);
 extern Vec2f D_8010A860_water_whirled; /* CPU: target point (x, z) */
-void func_80109340_water_whirled(s16 player, u16 n);
+void func_80109340_water_whirled(s16 player, s16 n);
 void func_80109458_water_whirled(s16 player);
 void func_8010956C_water_whirled(s16 player);
 // LOCAL END
@@ -1206,7 +1206,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", D_8010A5
 #endif
 
 /* HUD: show a player's number (digit frame n, then 10 and 5) and its first mark. */
-void func_80109340_water_whirled(s16 player, u16 n) {
+void func_80109340_water_whirled(s16 player, s16 n) {
     s16 grp = D_8010AC48_water_whirled[player];
 
     func_8000BB54_main(D_8010AC68_water_whirled[player]);
@@ -1320,8 +1320,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801096
 #endif
 
 #ifdef NON_MATCHING
-/* Masked 27: retail keeps one more float in a callee-saved register ($f20-$f28; frame 0x50, here 0x48),
-   so the float registers and stack offsets differ; the instructions otherwise line up. */
+/* NON_MATCHING (H1): masked 2 at 416/416 (was 27 with a separate `b = a + 15.0f`). Left: float
+   register allocation in the steering tail (retail h90 in $f28, dx/dz loaded straight into $f26/$f24).
+   Tried inlining h90 and h. */
 /* CPU input: aim at a point ahead on the course (offset at random by difficulty), steer at it, hold A
    except when about to leave a half circle fast. */
 void func_801098AC_water_whirled(omObjData* obj) {
@@ -1331,7 +1332,6 @@ void func_801098AC_water_whirled(omObjData* obj) {
     f32 dx;
     f32 dz;
     f32 a;
-    f32 b;
     f32 h;
     f32 h90;
     s32 q;
@@ -1357,9 +1357,8 @@ void func_801098AC_water_whirled(omObjData* obj) {
                 dz = obj->trans.z;
                 a = atan2df(dx, dz);
                 dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
-                b = a + 15.0f;
-                D_8010A860_water_whirled.x = sindf(b) * dz + 700.0f;
-                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                D_8010A860_water_whirled.x = sindf(a + 15.0f) * dz + 700.0f;
+                D_8010A860_water_whirled.y = cosdf(a + 15.0f) * dz;
                 if (obj->trans.x < 800.0f && obj->trans.z > 0.0f && work->unk40 > 20.0f) {
                     accel = 0;
                 }
@@ -1378,9 +1377,8 @@ void func_801098AC_water_whirled(omObjData* obj) {
                 dz = obj->trans.z;
                 a = atan2df(dx, dz);
                 dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
-                b = a + 15.0f;
-                D_8010A860_water_whirled.x = sindf(b) * dz + -700.0f;
-                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                D_8010A860_water_whirled.x = sindf(a + 15.0f) * dz + -700.0f;
+                D_8010A860_water_whirled.y = cosdf(a + 15.0f) * dz;
                 if (obj->trans.x > -800.0f && obj->trans.z < 0.0f && work->unk40 > 20.0f) {
                     accel = 0;
                 }
@@ -1409,9 +1407,6 @@ void func_801098AC_water_whirled(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801098AC_water_whirled);
 #endif
 
-#ifdef NON_MATCHING
-/* Masked 37 (two instructions short): retail recomputes player * 4 before each of the two stores after
-   the crossing test; the rest differs only by that shift. */
 /* Laps: count crossings of each quarter's line (back across takes one off), four per lap; the fifth lap
    finishes; HUD by lap and heading. */
 void func_80109E2C_water_whirled(omObjData* obj) {
@@ -1459,8 +1454,10 @@ void func_80109E2C_water_whirled(omObjData* obj) {
                     break;
             }
         }
+        D_8010A43C_water_whirled[player] = side;
+    } else {
+        D_8010A43C_water_whirled[player] = side;
     }
-    D_8010A43C_water_whirled[player] = side;
     D_8010A42C_water_whirled[player] = q;
     D_8010A270_water_whirled[player] = D_8010A240_water_whirled[player] / 4;
     if (D_8010A270_water_whirled[player] < 0) {
@@ -1477,8 +1474,5 @@ void func_80109E2C_water_whirled(omObjData* obj) {
         func_80109458_water_whirled(player);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_80109E2C_water_whirled);
-#endif
 
 

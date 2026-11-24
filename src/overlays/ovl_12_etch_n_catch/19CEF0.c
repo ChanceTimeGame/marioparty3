@@ -1200,6 +1200,8 @@ void func_80108D84_etch_n_catch(u8** end) {
 
 /* Flood-fills the empty area around grid cell (2x, 2y). Returns 0 if it reaches a 0x22 cell, otherwise whether
    the walls it meets belong to one team only (region bits 3 or 12). The fill marks are cleared again. */
+// masked 31 (H1, was 52): retail multiplies y by (width << 1) where GCC here moves the shift onto y, then the
+// loop's registers differ throughout; row is (d / 320) >> 1 as retail computes it
 #ifdef NON_MATCHING
 s32 func_80108DD0_etch_n_catch(s16 x, s16 y) {
     s32 bits = 0;
@@ -1210,26 +1212,28 @@ s32 func_80108DD0_etch_n_catch(s16 x, s16 y) {
     u8** next;
     u8** curBuf;
     u8** nextBuf;
+    u8*** fr;
     s32 n;
     s32 i;
     s32 col;
     s32 row;
 
-    cell = D_8010C84C_etch_n_catch + x * 2 + D_8010C846_etch_n_catch * 2 * y;
+    cell = D_8010C84C_etch_n_catch + x * 2 + y * (D_8010C846_etch_n_catch * 2);
     vis = D_8010C878_etch_n_catch;
+    fr = D_8010C87C_etch_n_catch;
     *cell = 0x21;
     *vis = cell;
-    D_8010C87C_etch_n_catch[0][0] = cell;
+    fr[0][0] = cell;
     vis++;
     n = 1;
-    next = nextBuf = D_8010C87C_etch_n_catch[1];
-    cur = curBuf = D_8010C87C_etch_n_catch[0];
+    next = nextBuf = fr[1];
+    cur = curBuf = fr[0];
     do {
         for (i = 0; i < n; i++) {
             c = *cur++;
             *c = 0x21;
             col = ((c - D_8010C84C_etch_n_catch) % 320) >> 1;
-            row = (c - D_8010C84C_etch_n_catch) / 640;
+            row = ((c - D_8010C84C_etch_n_catch) / 320) >> 1;
             c++;
             if (*c == 0) {
                 *c = 0x21;
@@ -1307,6 +1311,8 @@ u8 func_80109114_etch_n_catch(s16 x, s16 y) {
 }
 
 /* Sets cell (x, y) to `v`, its 4 neighbours to v * 2 and its diagonal neighbours to v * 4, unless already set. */
+// H1: masked 17; retail takes x/y unextended (s32 parameters, extended at each call) and keeps two copies of x, y and v;
+// s32 parameters alone give masked 21
 #ifdef NON_MATCHING
 void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v) {
     u8* p;
@@ -2089,9 +2095,11 @@ void func_8010BD98_etch_n_catch(omObjData* obj) {
 
 /* The drawing board: two sprite layers, the 8-bit grid (the second layer's texels) and its palette, the walls,
    the flood-fill lists, and the framework ground block. */
+// masked 15 (H1, was 37): the first wall-band test of the clear loop: retail branches over a `j` (beqz; nop; j with the
+// store in the slot) where every spelling tried here (else-if, ||, continue) gives bnezl; 3 instructions short
 #ifdef NON_MATCHING
 void func_8010BE84_etch_n_catch(omObjData* obj) {
-    s32 id;
+    u16 id;
     HuSprite* spr;
     u16* pal;
     u8* p;
@@ -2128,21 +2136,23 @@ void func_8010BE84_etch_n_catch(omObjData* obj) {
     pal[33] = 0x400;
     pal[34] = 0xFFFE;
     for (i = 0; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i++, p++) {
-        if ((D_8010C846_etch_n_catch * 50 < i && i < D_8010C846_etch_n_catch * 51)
-            || (D_8010C846_etch_n_catch * 200 < i && i < D_8010C846_etch_n_catch * 201)) {
+        if (D_8010C846_etch_n_catch * 50 < i && i < D_8010C846_etch_n_catch * 51) {
+            *p = 0x22;
+        } else if (D_8010C846_etch_n_catch * 200 < i && i < D_8010C846_etch_n_catch * 201) {
             *p = 0x22;
         } else {
             *p = 0;
         }
     }
+    p = D_8010C84C_etch_n_catch;
     for (i = 30; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
-        D_8010C84C_etch_n_catch[i] = 0x22;
+        p[i] = 0x22;
     }
     for (i = 160; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
-        D_8010C84C_etch_n_catch[i] = 0x22;
+        p[i] = 0x22;
     }
     for (i = 290; i < D_8010C846_etch_n_catch * D_8010C848_etch_n_catch; i += D_8010C846_etch_n_catch) {
-        D_8010C84C_etch_n_catch[i] = 0x22;
+        p[i] = 0x22;
     }
     obj->func = NULL;
     obj->trans.x = obj->trans.y = obj->trans.z = 0.0f;

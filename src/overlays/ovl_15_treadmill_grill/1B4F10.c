@@ -1025,6 +1025,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_15_treadmill_grill/1B4F10", func_8010
 
 /* Loads the 16 player-skin models (D_8010B310). Masked 4: retail keeps the model number unextended in a
    second register for the store; logic checked. */
+// H1: masked 4, 2 short; tried mdl as s32/s16, no (s16) cast on the HmfModelData index (count right, masked 10), declaration order
 #ifdef NON_MATCHING
 void func_801089E0_treadmill_grill(void) {
     void* data;

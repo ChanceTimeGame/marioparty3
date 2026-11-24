@@ -608,6 +608,7 @@ void func_801060A4_slot_synch(omObjData* obj) {
     }
 }
 
+// masked 0, raw 46 (H1): registers of the group-sort counters (retail bad a1, n0 a3, n1 a2, group a0); declaration order has no effect
 #ifdef NON_MATCHING
 void func_8010614C_slot_synch(void) {
     s32 grp[2][2];
@@ -710,11 +711,9 @@ void func_8010614C_slot_synch(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010614C_slot_synch);
 #endif
 
-#ifdef NON_MATCHING
 void func_80106560_slot_synch(omObjData* obj) {
     SsPlayer* pl;
     func_800E1BA8_minigame_ObjData* w;
-    s32* msg;
     s16 chr;
     s16 idx;
     s32 dir;
@@ -745,9 +744,8 @@ void func_80106560_slot_synch(omObjData* obj) {
     func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x3A), 1, 0x3C);
     if (chr != 5) {
         r = rand8() & 1;
-        msg = &D_8010D90C_slot_synch[r];
-        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, *msg), 1, 0x78);
-        pl->unk18 = D_8010D8EC_slot_synch[chr] | *msg;
+        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, D_8010D90C_slot_synch[r]), 1, 0x78);
+        pl->unk18 = D_8010D8EC_slot_synch[chr] | D_8010D90C_slot_synch[r];
     } else {
         func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, D_8010D90C_slot_synch[1]), 1, 0x78);
         pl->unk18 = D_8010D8EC_slot_synch[chr] | D_8010D90C_slot_synch[1];
@@ -761,9 +759,6 @@ void func_80106560_slot_synch(omObjData* obj) {
     pl->unk0C = pl->unk10 = pl->unk14 = 0.0f;
     obj->func = func_80106E8C_slot_synch;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106560_slot_synch);
-#endif
 
 void func_80106878_slot_synch(omObjData* obj) {
     SsTeam* t;
@@ -917,6 +912,7 @@ void func_80106D0C_slot_synch(s16 team, s16 kind) {
     }
 }
 
+// masked 24 (H1): retail loads 1 into s0 at entry and computes !(-(func_80108A7C() == 0) & s0) (a local held at 1, which GCC 2.7 does not propagate); every constant spelling folds; s8 sx/sy are sign-extended after lbu in retail
 #ifdef NON_MATCHING
 void func_80106E8C_slot_synch(omObjData* obj) {
     SsPlayer* pl;
@@ -975,6 +971,7 @@ void func_80106E8C_slot_synch(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106E8C_slot_synch);
 #endif
 
+// masked 0, raw 7 (H1): only the registers of the |unk2A - mate unk2A| block differ (retail v1/a0/v0); tried declaration orders and assignments inside the subtraction
 #ifdef NON_MATCHING
 void func_80107108_slot_synch(omObjData* obj) {
     SsPlayer* pl;
@@ -983,6 +980,8 @@ void func_80107108_slot_synch(omObjData* obj) {
     u16 steps;
     u16 sym;
     s16 a;
+    s32 b;
+    s32 v;
     s32 d;
 
     pl = func_8010C428_slot_synch(obj);
@@ -1017,13 +1016,15 @@ void func_80107108_slot_synch(omObjData* obj) {
             t->unk1E = sym;
         } else {
             pl->unk2C = t->unk1E;
-            d = pl->unk2A - mate->unk2A;
+            v = pl->unk2A;
+            b = mate->unk2A;
+            d = v - b;
             if (d < 0) {
                 d = -d;
             }
             if (d < 9.0f) {
-                if (mate->unk2A < pl->unk2A) {
-                    pl->unk2A = pl->unk2A + 9.0f;
+                if (b < v) {
+                    pl->unk2A = v + 9.0f;
                 } else {
                     pl->unk2A = pl->unk2A - 9.0f;
                 }
@@ -1036,7 +1037,7 @@ void func_80107108_slot_synch(omObjData* obj) {
     case 2:
         if (func_80108A7C_slot_synch(pl->unk00) == 0) {
             func_80108AA8_slot_synch(pl->unk00);
-            if (pl->unk2A < pl->unk0A) {
+            if (pl->unk0A > pl->unk2A) {
                 if (pl->unk28 == 0) {
                     a = func_80108B74_slot_synch(pl->unk00, steps);
                     if (a == pl->unk2C) {
@@ -1070,6 +1071,7 @@ void func_80107108_slot_synch(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80107108_slot_synch);
 #endif
 
+// masked 14 (H1): retail holds the loop bound 12 in s2 (li s2,12 before each loop, slt against it), as if the bound were a variable; not tried as a fake local
 #ifdef NON_MATCHING
 void func_801075D4_slot_synch(void) {
     omObjData* o;
