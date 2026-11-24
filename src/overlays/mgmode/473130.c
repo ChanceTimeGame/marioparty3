@@ -984,7 +984,8 @@ void func_8010E6F0_mgmode(s16 mode) {
 INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/473130", func_8010E6F0_mgmode);
 #endif
 
-/* NON_MATCHING: masked 7; register allocation and the shadow-model address formed differently. */
+/* NON_MATCHING: masked 6 (345 = 345): retail forms &D_8011B8E8[i] after Hu3DModelPosSet from the saved i * 2
+   (m2 assigned there gives 344, masked 7; array index the same); register allocation otherwise. */
 #ifdef NON_MATCHING
 void func_8010EE84_mgmode(s16 mode) {
     Vec pos[4];
@@ -1027,10 +1028,10 @@ void func_8010EE84_mgmode(s16 mode) {
         s = 1.0f - sindf(t / 30.0f * 90.0f + 90.0f);
         for (i = 0; i < n; i++) {
             m = &D_8011B8B6_mgmode[i];
+            m2 = &D_8011B8E8_mgmode[i];
             p = &pos[i];
             d = &dir[i];
             Hu3DModelPosSet(*m, s * d->x + p->x, p->y, s * d->z + p->z);
-            m2 = &D_8011B8E8_mgmode[i];
             func_80118624_mgmode(*m2, *m);
             if (t < 25 && t % 5 == 0) {
                 func_8004AC5C_main(GwPlayer[i].chr + 0x29, i);
