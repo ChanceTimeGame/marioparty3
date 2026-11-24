@@ -638,9 +638,6 @@ void func_8010DF78_chancetime(s8 arg0) {
     D_80110084_chancetime = func_8010DFA4_chancetime;
 }
 
-// NON_MATCHING: matches with the header fix in e3A.header.patch (func_80060EA8_main takes an s32 window id, as
-// window.c defines it; the s16 prototype truncates the argument); logic checked
-#ifdef NON_MATCHING
 void func_8010DFA4_chancetime(omObjData *obj) {
     static const s32 D_8010FD5C_chancetime[3] = { 0x1B01, 0x1B02, 0x1B03 };
     s32 set = D_80110008_chancetime;
@@ -670,10 +667,6 @@ void func_8010DFA4_chancetime(omObjData *obj) {
     D_80110000_chancetime = set;
     D_80110084_chancetime = func_8010E1E0_chancetime;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010DFA4_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD5C_chancetime);
-#endif
 
 void func_8010E1E0_chancetime(omObjData *obj) {
     func_8010D6A4_chancetime(D_80110000_chancetime);
@@ -992,9 +985,6 @@ void func_8010F1DC_chancetime(void) {
     D_80110084_chancetime = func_8010F1F8_chancetime;
 }
 
-// NON_MATCHING: matches with the header fix in e3A.header.patch (func_80060EA8_main takes an s32 window id); logic
-// checked
-#ifdef NON_MATCHING
 void func_8010F1F8_chancetime(omObjData *obj) {
     func_8005D294_main(D_80110004_chancetime);
     if (GwPlayer[D_801100D0_chancetime[0]].stat & 1) {
@@ -1022,9 +1012,6 @@ void func_8010F1F8_chancetime(omObjData *obj) {
     }
     D_80110084_chancetime = func_8010F42C_chancetime;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F1F8_chancetime);
-#endif
 
 s32 func_8010F420_chancetime(void) {
     return D_8010FC10_chancetime;
@@ -1035,9 +1022,6 @@ void func_8010F42C_chancetime(omObjData *obj) {
     D_80110084_chancetime = func_8010DF70_chancetime;
 }
 
-// NON_MATCHING: matches with the header fix in e3A.header.patch (func_80060EA8_main takes an s32 window id); logic
-// checked
-#ifdef NON_MATCHING
 void func_8010F44C_chancetime(s32 prize, s32 total, s32 amount) {
     static const s32 D_8010FD8C_chancetime[9] = { 0x1B0C, 0x1B06, 0x1B06, 0x1B06, 0x1B04, 0x1B0E, 0x1B09, 0x1B09, 0x1B09 };
     static const s32 D_8010FDB0_chancetime[9] = { 0, 0x1B07, 0x1B07, 0x1B07, 0, 0, 0x1B0A, 0x1B0A, 0x1B0A };
@@ -1115,14 +1099,6 @@ void func_8010F44C_chancetime(s32 prize, s32 total, s32 amount) {
     }
     D_80110084_chancetime = func_8010E1E0_chancetime;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010F44C_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FD8C_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDB0_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDD4_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FDF8_chancetime);
-INCLUDE_RODATA("asm/nonmatchings/overlays/chancetime/487F50", D_8010FE1C_chancetime);
-#endif
 
 void func_8010F984_chancetime(omObjData *obj) {
     static const ChancePos16 D_8010FE3C_chancetime[9] = {
