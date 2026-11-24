@@ -1116,22 +1116,21 @@ void func_801152C0_mgmode(void) {
 
 /* The player walks from the door to the block spot and turns to face the camera. */
 #ifdef NON_MATCHING
-/* 194 vs 197: float register allocation (retail keeps 15.0f/8.0f in their own callee-saved registers); logic checked against the asm. */
+/* 194 vs 197 (masked 30): retail hoists 2.0f too (f26) and forms &D_8011B8B8[9] from the array base; logic checked
+   against the asm. H1 tried: a base pointer local (196, masked 31). */
 void func_80115590_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
+    f32 dx = 198.0f;
+    f32 dz = 210.0f;
     s16 player = D_8011B8B8_mgmode[0];
     s16 i;
     f32 t;
     f32 yaw;
-    f32 dx;
-    f32 dz;
 
     func_8001C258_main(player, 4, 0);
     func_8001C258_main(shadow, 4, 0);
     func_8001F304_main(player, D_8011B792_mgmode);
     func_8001C814_main(player, 2, 2);
-    dx = 198.0f;
-    dz = 210.0f;
     yaw = atan2df(dx, dz) + 180.0f;
     Hu3DModelPosSet(player, 200.0f, 0.0f, -122.0f);
     Hu3DModelRotSet(player, 0.0f, yaw, 0.0f);
@@ -1156,19 +1155,17 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_80115590_mgmode);
 
 /* The player turns round and walks back to the door. */
 #ifdef NON_MATCHING
-/* 162 vs 166: float register allocation as func_80115590; logic checked against the asm. */
+/* 162 vs 166 (masked 26): as func_80115590; logic checked against the asm. */
 void func_80115848_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
+    f32 dx = -198.0f;
+    f32 dz = -210.0f;
     s16 player = D_8011B8B8_mgmode[0];
     s16 i;
     f32 t;
     f32 yaw;
-    f32 dx;
-    f32 dz;
 
-    func_8001C624_main(D_8011B8B8_mgmode[0], D_8011B792_mgmode, 0, 8, 2);
-    dx = -198.0f;
-    dz = -210.0f;
+    func_8001C624_main(player, D_8011B792_mgmode, 0, 8, 2);
     yaw = atan2df(dx, dz) + 180.0f;
     for (i = 0; i < 9; i++) {
         HmfModelData[player].rot.y = i / 8.0f * yaw;
