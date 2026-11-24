@@ -543,7 +543,8 @@ void func_80113204_mgmode(void) {
    D_801195C4[c] times, first and last different; after 100 failed draws takes D_801195C8.
    Then maps each category to its minigame (D_801195BC). */
 #ifdef NON_MATCHING
-/* Retail zero-extends each rand8() & 3 into the u8 category at the assignment (andi 0xff) and then uses it unextended; here the extension moves to the uses. Logic checked against the asm. */
+/* Retail zero-extends each rand8() & 3 into the u8 category at the assignment (andi 0xff) and then uses it unextended; here the extension moves to the uses. Logic checked against the asm.
+   (masked 14, 160 vs 159). H1 tried: s32 c (156), s32 c = (u8)(rand8() & 3) (156), rand8() % 4 (160). */
 void func_801134C0_mgmode(void) {
     u8 count[4] = { 0, 0, 0, 0 };
     s16 tries = 0;
@@ -921,7 +922,7 @@ void func_80114804_mgmode(s16 rate, s16 count, s16 total) {
 /* Fades in the minigame picture, spins through the four categories' minigames for 30 frames and
    lands on this round's; returns it. */
 #ifdef NON_MATCHING
-/* Same u8 extension placement as func_801134C0; logic checked against the asm. */
+/* Same u8 extension placement as func_801134C0 (masked 6 here, 209 vs 210; H1: same three tries plus c = rand8(); c &= 3, no change); logic checked against the asm. */
 s16 func_801149F4_mgmode(void) {
     s16 i;
     s16 prev;

@@ -1832,7 +1832,8 @@ void func_8010F43C_msetup(s16 model, char *name, Vec2f *out) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F43C_msetup);
 #endif
 
-// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10); same logic
+// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10, 246 vs 248); same logic.
+// H1 tried: two calls (else if lifts[i].curSlot == 0): count right but loop.c hoists 0.0f into $f26 (252, masked 21), also with int 0 args
 #ifdef NON_MATCHING
 void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set) {
     Vec pos;
