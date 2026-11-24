@@ -1544,8 +1544,6 @@ void func_8010981C_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_8010981C_puddle_paddle);
 #endif
 
-// NON_MATCHING: masked 12 (428/431): retail copies splashL/splashR into v0 for the tests (move v0,s5 / s4 in delay slots) and keeps 2x the offset in f0; tried commuted multiply, || for the sound test; logic checked against the asm
-#ifdef NON_MATCHING
 void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
     PpTeam *team;
     HmfModel *raft;
@@ -1558,8 +1556,8 @@ void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
     f32 z;
     s16 angle;
     s16 animModelId;
-    s32 splashL;
-    s32 splashR;
+    s8 splashL;
+    s8 splashR;
     s16 i;
     s16 j;
 
@@ -1614,8 +1612,8 @@ void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
             if (splashL) {
                 animModelId = func_8010C42C_puddle_paddle(0);
                 if (animModelId != -1) {
-                    x = 2.0f * (sindf(team->unk18 + 70.0f) * 20.0f * 5.0f) + playerModel->pos.x;
-                    z = 2.0f * (cosdf(team->unk18 + 70.0f) * 20.0f * 5.0f) + playerModel->pos.z;
+                    x = playerModel->pos.x + 2.0f * (sindf(team->unk18 + 70.0f) * 20.0f * 5.0f);
+                    z = playerModel->pos.z + 2.0f * (cosdf(team->unk18 + 70.0f) * 20.0f * 5.0f);
                     d.x = x - other->pos.x;
                     d.z = z - other->pos.z;
                     d.y = HuSqrtf(d.x * d.x + d.z * d.z);
@@ -1627,8 +1625,8 @@ void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
             if (splashR) {
                 animModelId = func_8010C42C_puddle_paddle(0);
                 if (animModelId != -1) {
-                    x = 2.0f * (sindf(team->unk18 + 290.0f) * 20.0f * 5.0f) + playerModel->pos.x;
-                    z = 2.0f * (cosdf(team->unk18 + 290.0f) * 20.0f * 5.0f) + playerModel->pos.z;
+                    x = playerModel->pos.x + 2.0f * (sindf(team->unk18 + 290.0f) * 20.0f * 5.0f);
+                    z = playerModel->pos.z + 2.0f * (cosdf(team->unk18 + 290.0f) * 20.0f * 5.0f);
                     d.x = x - other->pos.x;
                     d.z = z - other->pos.z;
                     d.y = HuSqrtf(d.x * d.x + d.z * d.z);
@@ -1643,9 +1641,6 @@ void func_80109BD4_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ct
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_11_puddle_paddle/191240", func_80109BD4_puddle_paddle);
-#endif
 
 void func_8010A224_puddle_paddle(PpFuncGroupContext *groupCtx, PpFuncContext *ctx) {
     PpTeam *team;
