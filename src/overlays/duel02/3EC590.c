@@ -2562,8 +2562,6 @@ void func_8010BCD8_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800FADB4_name_81();
 }
 
-#ifdef NON_MATCHING
-// duel b2: masked 84 of 463: register/stack allocation (retail frame 8 bytes larger, 5.0f kept in $f20, extra1/extra2 slots swapped); logic checked block by block.
 void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Vec sp18;
     Vec sp28;
@@ -2590,7 +2588,11 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
         extra2 = func_80106744_duel02(0x53);
         HuPrcVSleep();
     }
-    HuVecCopy3F(&sp18, (target != NULL) ? &target->coords : &player->player_obj->coords);
+    if (target != NULL) {
+        HuVecCopy3F(&sp18, &target->coords);
+    } else {
+        HuVecCopy3F(&sp18, &player->player_obj->coords);
+    }
     func_800EB708_name_81(&partner->coords, &sp18, &partner->rot);
     obj = func_800D8010_name_81(0x58, 0);
     func_800D8F0C_name_81(obj);
@@ -2602,7 +2604,11 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     HuAudFXPlay(0x2A3);
     func_800FAE98_name_81(partner, variant - 1, 0, 5, 2);
-    HuPrcSleep(variant == 1 ? 7 : 0xF);
+    if (variant == 1) {
+        HuPrcSleep(7);
+    } else {
+        HuPrcSleep(0xF);
+    }
     func_800D8E88_name_81(obj);
     HuVecCopy3F(&obj->coords, &partner->coords);
     obj->velocity.x = 5.0f;
@@ -2617,9 +2623,7 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     HuVecAdd(&sp28, &sp28, &obj->coords);
     sp28.y += 5.0f;
     func_800DCE40_name_81(0x4E, &sp28, NULL, 0.5f);
-    if (variant != 2) {
-        HuAudFXPlay(0x1D9);
-    } else {
+    if (variant == 2) {
         func_800D8E88_name_81(obj2);
         func_8001C258_main(obj2->omObj1->model[0], 0x180, 0);
         func_8001C8E4_main(obj2->omObj1->model[0], 0x800);
@@ -2627,6 +2631,8 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
         obj2->velocity.x = 5.0f;
         HuPrcChildLink(process, func_800EC36C_name_81(&obj2->coords, &sp18, &obj2->coords, 4.0f));
         HuAudFXPlay(0x1DA);
+    } else {
+        HuAudFXPlay(0x1D9);
     }
     if (flags & 8) {
         func_801060D4_duel02(player, target, 0, 0x14);
@@ -2642,7 +2648,11 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
         if (variant == 2) {
             func_800D8F0C_name_81(obj2);
         }
-        HuVecCopy3F(&sp28, (flags & 1) ? &target->coords : &player->player_obj->coords);
+        if (flags & 1) {
+            HuVecCopy3F(&sp28, &target->coords);
+        } else {
+            HuVecCopy3F(&sp28, &player->player_obj->coords);
+        }
         sp28.y += obj->velocity.x;
         if (variant == 1) {
             func_800DCE40_name_81(effects[0], &sp28, NULL, 2.0f);
@@ -2656,19 +2666,35 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
         if (flags & 1) {
             func_800FAB68_name_81(target, D_80105550_name_81, 1, D_80105718_name_81 & 8, D_8010571C_name_81);
             if (variant == 2) {
-                HuAudFXPlay((D_80105718_name_81 & 8) ? 0x1EF : 0x1EE);
+                if (D_80105718_name_81 & 8) {
+                    HuAudFXPlay(0x1EF);
+                } else {
+                    HuAudFXPlay(0x1EE);
+                }
             } else {
-                HuAudFXPlay((D_80105718_name_81 & 8) ? 0x1CE : 0x1CD);
+                if (D_80105718_name_81 & 8) {
+                    HuAudFXPlay(0x1CE);
+                } else {
+                    HuAudFXPlay(0x1CD);
+                }
             }
         }
         if (flags & 2) {
             func_800FAB68_name_81(player->player_obj, D_80105558_name_81, 3, D_80105718_name_81 & 1, -1);
             if (variant == 2) {
                 if (!(flags & 1)) {
-                    HuAudFXPlay((D_80105718_name_81 & 1) ? 0x1EF : 0x1EE);
+                    if (D_80105718_name_81 & 1) {
+                        HuAudFXPlay(0x1EF);
+                    } else {
+                        HuAudFXPlay(0x1EE);
+                    }
                 }
             } else if (!(flags & 1)) {
-                HuAudFXPlay((D_80105718_name_81 & 1) ? 0x1CE : 0x1CD);
+                if (D_80105718_name_81 & 1) {
+                    HuAudFXPlay(0x1CE);
+                } else {
+                    HuAudFXPlay(0x1CD);
+                }
             }
         }
         if (variant == 2) {
@@ -2691,12 +2717,7 @@ void func_8010CE6C_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_8010CE6C_duel02);
-#endif
 
-#ifdef NON_MATCHING
-// duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D428_duel02(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Object *obj;
     Vec sp18;
@@ -2728,7 +2749,7 @@ void func_8010D428_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_80106244_duel02();
     func_80106264_duel02(target, player, flags, 3.0f);
     HuPrcChildLink(process, func_800EC1E4_name_81(partnerPos, &sp18, partnerPos, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, partnerPos);
     func_800EB708_name_81(&obj->coords, &sp18, &obj->rot);
@@ -2790,7 +2811,7 @@ void func_8010D428_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800EB708_name_81(&partner->coords, &sp28, &partner->rot);
     func_800D90D0_name_81(partner, 0, 2);
     HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &sp28, &partner->coords, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, &partner->coords);
     func_800EB708_name_81(&obj->coords, &sp28, &obj->rot);
@@ -2811,9 +2832,6 @@ void func_8010D428_duel02(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel02/3EC590", func_8010D428_duel02);
-#endif
 
 void func_8010D960_duel02(void) {
     DuelB2PartnerFunc funcs1[12] = {
