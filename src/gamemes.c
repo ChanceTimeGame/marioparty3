@@ -1893,7 +1893,8 @@ s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame) {
 
 /* As func_8003A9C8_main, but returns the character's advance width in *width; flag bit 0 is the
    large font. Unused. */
-// masked 37 (5 instructions short): retail keeps the empty case 0x84 as the switch-tree root and copies flag; same logic
+// masked 37 (5 instructions short): retail keeps the empty case 0x84 as the switch-tree root and copies flag; same logic.
+// Tried a u16 c, an explicit default: return 3 and moving case 0x84 last: GCC still drops it
 #ifdef NON_MATCHING
 s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width) {
     s32 c;
