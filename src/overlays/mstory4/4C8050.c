@@ -1439,7 +1439,8 @@ void func_8010F660_mstory4(void) {
     D_80111B90_mstory4 = 0.0f;
 }
 
-// register allocation: retail builds the sprite slot address in s0, KMC in a temp (raw 10)
+// masked 0, raw 5: retail builds the sprite slot address in s0, KMC in a temp (tried: spr = base; spr += k,
+// and a plain store then spr = &D[k]; both worse); for the permuter
 #ifdef NON_MATCHING
 /* the sparkle sprites (one per point of the six groups), the picture sequence 2..7 faded in,
    then the sparkles shown one by one */
@@ -2022,8 +2023,6 @@ void func_80111430_mstory4(s16 model, f32 x, f32 y, f32 z, s16 count, s32 mode)
 
 }
 
-// retail keeps the three colour-table bytes' addresses in registers across the loop (masked 16)
-#ifdef NON_MATCHING
 /* the burst's per-frame particle update (hmfman hook): colour, move, slow down, shrink */
 void func_80111740_mstory4(s16 model) {
     HmfData *hmf = HmfModelData[model].hmf;
@@ -2052,9 +2051,9 @@ void func_80111740_mstory4(s16 model) {
         if (part->scale > 0.0f) {
             color = part->color;
             part->time += 1.0f;
-            part->rgb[0] = D_80111C04_mstory4[color][0];
-            part->rgb[1] = D_80111C04_mstory4[color][1];
-            part->rgb[2] = D_80111C04_mstory4[color][2];
+            part->rgb[0] = (*(D_80111C04_mstory4 + color))[0];
+            part->rgb[1] = (*(D_80111C04_mstory4 + color))[1];
+            part->rgb[2] = (*(D_80111C04_mstory4 + color))[2];
             sx = part->dir.x * part->speed;
             sy = part->dir.y * part->speed;
             sz = part->dir.z * part->speed;
@@ -2066,9 +2065,6 @@ void func_80111740_mstory4(s16 model) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_80111740_mstory4);
-#endif
 
 /* starts actor i's voice `se` once (actor 0 plays it as the story character's) */
 void func_801118F8_mstory4(s32 i, s32 se) {
