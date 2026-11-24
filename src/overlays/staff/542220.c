@@ -508,7 +508,7 @@ void func_8010609C_staff(SrCamKey *key) {
 }
 
 #ifdef NON_MATCHING
-/* Residue (masked 11): retail schedules the &Center load before the first mul.s, and f2/f12 swap in the distance sum (as msetup func_801068F4_msetup). */
+/* scheduling (masked 4, right count): retail schedules the &Center load before the first mul.s; tried declaration orders, CZoom operand order, Center in the deltas (H1) */
 void func_8010615C_staff(void) {
     Vec pos;
     Vec at;
@@ -540,7 +540,8 @@ void func_8010615C_staff(void) {
         dx = at.x - pos.x;
         dy = at.y - pos.y;
         dz = at.z - pos.z;
-        len = HuSqrtf(dx * dx + dy * dy + dz * dz);
+        len = dx * dx + dy * dy + dz * dz;
+        len = HuSqrtf(len);
         dx /= len;
         dy /= len;
         dz /= len;
@@ -581,7 +582,7 @@ void func_80106720_staff(void) {
 }
 
 #ifdef NON_MATCHING
-/* Residue: two hazard nops after cosdf() (W2DC_BLANKSTRIP) and f2/f12 swapped in the distance sum. */
+/* register allocation (masked 0, raw 6): f2/f12 swapped for dx/dz in the distance sum; tried inline sqrt arg, d* declaration orders, no dz temp (H1) */
 void func_8010674C_staff(SrCamKey *keys, f32 speed, SrCamFunc func) {
     f32 out[10];
     f32 y[4];
@@ -617,8 +618,7 @@ void func_8010674C_staff(SrCamKey *keys, f32 speed, SrCamFunc func) {
                 dx = lx - px;
                 dy = ly - py;
                 dz = lz - pz;
-                d = dx * dx + dy * dy + dz * dz;
-            d = HuSqrtf(d);
+                d = HuSqrtf(dx * dx + dy * dy + dz * dz);
                 if (d == 0.0f) {
                     d = speed * 10.0f;
                 }

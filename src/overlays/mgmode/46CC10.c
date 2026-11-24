@@ -1292,7 +1292,8 @@ void func_80109C10_mgmode(s16 arg0, s16 arg1) {
 }
 
 #ifdef NON_MATCHING
-/* float register allocation: retail keeps the end point in f22/s4/s3 and the start point in f30/f28/f26 */
+/* float register allocation (267 vs 263, masked 19): retail keeps the start point in f30/f28/f26, endX in f22
+   and spills endY/endZ to s4/s3; ours spills startX/startY. H1: declaration order no effect. */
 void func_80109DBC_mgmode(s16 arg0, s16 arg1) {
     s16 model;
     s16 i;

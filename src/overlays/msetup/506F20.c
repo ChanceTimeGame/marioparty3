@@ -900,7 +900,8 @@ s16 func_8010D0C8_msetup(s16 model, char *name) {
 }
 
 /* logic checked; retail keeps dx/dy as words (lw, then sll/sra at each use) where GCC here reads
-   the stack halfword, which changes the frame and register allocation. */
+   the stack halfword, which changes the frame and register allocation (158 vs 167, masked 24).
+   H1: s16 dx/dy parameters and a K&R definition with s16 dx/dy both still read lh once. */
 #ifdef NON_MATCHING
 s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy) {
     f32 cx;
@@ -1832,7 +1833,8 @@ void func_8010F43C_msetup(s16 model, char *name, Vec2f *out) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F43C_msetup);
 #endif
 
-// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10); same logic
+// retail calls Hu3DModelRotSet in both branches (cross-jumped, 0 args set per branch) and keeps lift/from in s0/s1 (masked 10, 246 vs 248); same logic.
+// H1 tried: two calls (else if lifts[i].curSlot == 0): count right but loop.c hoists 0.0f into $f26 (252, masked 21), also with int 0 args
 #ifdef NON_MATCHING
 void func_8010F4E0_msetup(MsLift *lifts, s16 count, s16 set) {
     Vec pos;
@@ -2127,7 +2129,8 @@ s32 func_8010F87C_msetup(MsSetupWork *work) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
 #endif
 
-// register allocation and operand order around the D_80119C10 rows (masked 28, 3 fewer instructions: retail re-extends cur for the second row); same logic
+// register allocation (451 = 451, masked 5): retail loads the D_80119C10 base before work->sel for the first
+// row and swaps a0/v1 around the cur compare; same logic
 #ifdef NON_MATCHING
 void func_8011035C_msetup(void) {
     struct {
@@ -2180,8 +2183,7 @@ void func_8011035C_msetup(void) {
         func_80054904_main(grp, j, D_80119B60_msetup[j][0], D_80119B60_msetup[j][1]);
         HuPrcVSleep();
     }
-    row = D_80119C10_msetup[work->sel];
-    for (i = 0, j = 4; i < 2; i++, j++) {
+    for (i = 0, j = 4, row = D_80119C10_msetup[work->sel]; i < 2; i++, j++) {
         func_80054FF8_main(grp, j, row[i]);
     }
     for (i = 0; i < 2; i++) {
@@ -2227,9 +2229,8 @@ void func_8011035C_msetup(void) {
         if (shown != 0 && cur != work->sel) {
             cur = work->sel;
             func_80055024_main(grp, 7, w.chr[cur], 0);
-            row = D_80119C10_msetup[cur];
             for (i = 0, j = 4; i < 3; i++, j++) {
-                func_80054FF8_main(grp, j, row[i]);
+                func_80054FF8_main(grp, j, D_80119C10_msetup[cur][i]);
             }
             func_8005B43C_main(w.win[0], D_80119BD0_msetup[cur], -1, -1);
             func_8005D294_main(w.win[1]);

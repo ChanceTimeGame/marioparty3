@@ -991,18 +991,18 @@ s32 func_8003843C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
 #endif
 
-// "START" letters flying in: register allocation (masked 39: the i + 1 loops, and case 0 keeps D_800B1BC0_main in a register)
+// "START" letters flying in: register allocation (masked 21: the case 0 loop increments i + 1 in place; retail keeps i + 1 in s1 and copies it back, move s0,s1)
 #ifdef NON_MATCHING
 s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     f32 scale;
     f32 t;
-    s16 member;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -1013,9 +1013,8 @@ s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
                 chr->unk10 = i * 22 - (n - 1) * 11;
                 chr->unk14 = 0.0f;
                 chr->unk28 = chr->unk2C = 180.0f;
-                member = i + 1;
-                HuSprScaleSet(gMes->strGId[0], member, chr->scaleX, chr->scaleY);
-                func_80054904_main(gMes->strGId[0], member, chr->unk00, chr->unk04);
+                HuSprScaleSet(gMes->strGId[0], i + 1, chr->scaleX, chr->scaleY);
+                func_80054904_main(gMes->strGId[0], i + 1, chr->unk00, chr->unk04);
             }
             gMes->unk08 = 1;
             gMes->unk0A = gMes->unk0C = 0;
@@ -1192,17 +1191,18 @@ s32 func_80038D78_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038D78_main);
 #endif
 
-// "START" letters zooming in: register allocation (masked 32: the case 0 j + 1 loop increments in place)
+// "START" letters zooming in: register allocation (masked 29: the case 0 j + 1 loop increments in place)
 #ifdef NON_MATCHING
 s32 func_800392AC_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             for (j = 0; j < n; j++) {
@@ -1281,17 +1281,18 @@ s32 func_800392AC_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_800392AC_main);
 #endif
 
-// "START" letters dropping and bouncing: register allocation (masked 33: the case 0 j + 1 loop increments in place, case 1 keeps D_800B1BC0_main in a register)
+// "START" letters dropping and bouncing: register allocation (masked 26: the case 0 j + 1 loop increments in place, case 1 keeps D_800B1BC0_main in a register)
 #ifdef NON_MATCHING
 s32 func_8003966C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -1371,17 +1372,18 @@ s32 func_8003966C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003966C_main);
 #endif
 
-// "START" letters rising and bouncing: register allocation (masked 25: the case 0 j + 1 loop increments in place)
+// "START" letters rising and bouncing: register allocation (masked 22: the case 0 j + 1 loop increments in place)
 #ifdef NON_MATCHING
 s32 func_80039A6C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -1891,7 +1893,8 @@ s32 func_8003A9C8_main(u8 *str, s32 arg1, s32 *frame) {
 
 /* As func_8003A9C8_main, but returns the character's advance width in *width; flag bit 0 is the
    large font. Unused. */
-// masked 37 (5 instructions short): retail keeps the empty case 0x84 as the switch-tree root and copies flag; same logic
+// masked 37 (5 instructions short): retail keeps the empty case 0x84 as the switch-tree root and copies flag; same logic.
+// Tried a u16 c, an explicit default: return 3 and moving case 0x84 last: GCC still drops it
 #ifdef NON_MATCHING
 s32 func_8003AC9C_main(u8 *str, s32 arg1, s32 flag, s32 *width) {
     s32 c;
@@ -2683,16 +2686,17 @@ extern u8 D_800A156C_main[];
 u8 func_8005FA90_main(u8 *arg0);
 u16 func_800450B8_main(u16 code);
 
-// register allocation and loop shape in the i + 1 loops (masked 24), as func_80037574_main
+// register allocation and loop shape in the i + 1 loops (masked 21: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_80037574_main
 #ifdef NON_MATCHING
 s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     s32 ret;
     s32 i;
     f32 t;
     f32 scale;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             for (i = 0; i < n; i++) {
@@ -2754,16 +2758,17 @@ s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003CE20_main);
 #endif
 
-// register allocation and loop shape in the i + 1 loops (masked 21), as func_8003CE20_main
+// register allocation and loop shape in the i + 1 loops (masked 18: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_8003CE20_main
 #ifdef NON_MATCHING
 s32 func_8003D134_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     GMesChr *p;
     s32 ret;
     s32 i;
     f32 t;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -2828,16 +2833,17 @@ s32 func_8003D134_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D134_main);
 #endif
 
-// register allocation and loop shape in the i + 1 loops (masked 20), as func_8003CE20_main
+// register allocation and loop shape in the i + 1 loops (masked 17: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_8003CE20_main
 #ifdef NON_MATCHING
 s32 func_8003D4DC_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     GMesChr *p;
     s32 ret;
     s32 i;
     f32 t;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);

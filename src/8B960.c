@@ -55,8 +55,8 @@ INCLUDE_ASM("asm/nonmatchings/8B960", func_8008AD60_main);
 
 /* Rotation of angle degrees whose local z axis is turned onto the direction dir (normalised here);
    nothing is written when dir is zero. */
-// scheduling: retail schedules the prologue into the body (as the libhmath units) and keeps 1.0f
-// in s1; masked 79. Logic checked against the asm.
+// scheduling: retail schedules the prologue into the body (as the libhmath units), keeps 1.0f
+// in s1 and copies len (masked 46, 135 vs 137). Logic checked against the asm.
 #ifdef NON_MATCHING
 void func_8008B0E0_main(HuMtx4F m, f32 angle, Vec* dir) {
     f32 x, y, z;
@@ -76,17 +76,7 @@ void func_8008B0E0_main(HuMtx4F m, f32 angle, Vec* dir) {
         y *= inv;
         xz = HuSqrtf((x * x) + (z * z));
         sincosdf(angle, &sine, &cosine);
-        if (xz == 0.0f) {
-            m[0][0] = cosine;
-            m[2][0] = 0.0f;
-            m[1][0] = -sine;
-            m[0][1] = 0.0f;
-            m[1][1] = 0.0f;
-            m[2][2] = 0.0f;
-            m[2][1] = -y;
-            m[0][2] = sine * y;
-            m[1][2] = cosine * y;
-        } else {
+        if (xz != 0.0f) {
             inv = 1.0f / xz;
             nz = -z;
             m[0][0] = ((nz * cosine) - (sine * y * x)) * inv;
@@ -99,6 +89,16 @@ void func_8008B0E0_main(HuMtx4F m, f32 angle, Vec* dir) {
             m[2][0] = -x;
             m[1][2] = ((-sine * x) - (cy * z)) * inv;
             m[0][2] = ((cosine * x) - (sine * y * z)) * inv;
+        } else {
+            m[0][0] = cosine;
+            m[2][0] = 0.0f;
+            m[1][0] = -sine;
+            m[0][1] = 0.0f;
+            m[1][1] = 0.0f;
+            m[2][2] = 0.0f;
+            m[2][1] = -y;
+            m[0][2] = sine * y;
+            m[1][2] = cosine * y;
         }
         m[3][0] = 0.0f;
         m[3][1] = 0.0f;

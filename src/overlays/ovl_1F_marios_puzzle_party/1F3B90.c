@@ -310,7 +310,6 @@ extern Process* D_801163D8_marios_puzzle_party[4];
 extern s32 D_801163E8_marios_puzzle_party;
 extern PzMatch D_801163F0_marios_puzzle_party[80];
 
-#ifdef NON_MATCHING
 /* ObjectSetup: camera, the per-player games, board placement, sparkles, setup, pause watcher. */
 void func_801059A0_marios_puzzle_party(void) {
     Process* proc;
@@ -341,8 +340,7 @@ void func_801059A0_marios_puzzle_party(void) {
     Center.z = 0.0f;
     omAddPrcObj(func_8010EF30_marios_puzzle_party, 0x4001, 0x800, 0);
     for (; i < 4; i++) {
-        proc = omAddPrcObj(func_8010AD20_marios_puzzle_party, 0x4001, 0x3000, 0);
-        D_801163D8_marios_puzzle_party[i] = proc;
+        D_801163D8_marios_puzzle_party[i] = proc = omAddPrcObj(func_8010AD20_marios_puzzle_party, 0x4001, 0x3000, 0);
         proc->user_data = (void*)i;
     }
     D_80116100_marios_puzzle_party = i;
@@ -365,9 +363,6 @@ void func_801059A0_marios_puzzle_party(void) {
     D_800EB930_minigame = 0x38;
     WipeCreateIn(0xFF, 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801059A0_marios_puzzle_party);
-#endif
 
 /* Quit to the minigame menu when asked from the pause menu. */
 void func_80105C98_marios_puzzle_party(void) {
@@ -682,55 +677,47 @@ s32 func_80106BB0_marios_puzzle_party(s32 player, PzPiece* piece, s32 dir) {
     return ret;
 }
 
-#ifdef NON_MATCHING
 /* Move a piece down by dy; undo and return TRUE if it hits something. */
 s32 func_80106C98_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
     PzCell* cell;
+    PzCell* cell2;
     s32 col;
     s32 row;
     s32 c2;
     s32 hit;
-    s32 state;
-    f32 x;
 
     piece->unk30 += dy;
-    x = piece->unk2C;
-    col = (x - D_80110080_marios_puzzle_party[player].x) / 14.0f;
+    col = (piece->unk2C - D_80110080_marios_puzzle_party[player].x) / 14.0f;
     row = (D_80110080_marios_puzzle_party[player].y - piece->unk30) / 7.0f;
     cell = &D_801102E0_marios_puzzle_party[player][col][row];
     hit = TRUE;
     if (piece->unk24 != 0) {
         c2 = col - 1;
-        if (!(col * 14 - x > 0.0f)) {
+        if (!(col * 14 - piece->unk2C > 0.0f)) {
             c2 = col + 1;
         }
-        if (cell->unk10 != 0) {
-            goto end;
+        cell2 = &D_801102E0_marios_puzzle_party[player][c2][row];
+        if (cell->unk10 == 0 && cell2->unk10 == 0) {
+            piece->unk14 = col;
+            piece->unk18 = row;
+            hit = FALSE;
         }
-        state = D_801102E0_marios_puzzle_party[player][c2][row].unk10;
-    } else {
-        state = cell->unk10;
-    }
-    if (state == 0) {
+    } else if (cell->unk10 == 0) {
         piece->unk14 = col;
         piece->unk18 = row;
         hit = FALSE;
     }
-end:
     if (hit) {
         piece->unk30 -= dy;
     }
     return hit;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106C98_marios_puzzle_party);
-#endif
 
-#ifdef NON_MATCHING
 /* The same for the special piece, which spans two columns. */
 s32 func_80106E40_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
     PzCell* a;
     PzCell* b;
+    PzCell* c;
     s32 col;
     s32 row;
     s32 c2;
@@ -746,20 +733,18 @@ s32 func_80106E40_marios_puzzle_party(s32 player, PzPiece* piece, s32 dy) {
         if (piece->unk24 < 0) {
             c2 = col - 1;
         }
-        if (a->unk10 == 0 && b->unk10 == 0) {
-            hit = D_801102E0_marios_puzzle_party[player][c2][row].unk10 != 0;
+        c = &D_801102E0_marios_puzzle_party[player][c2][row];
+        if (a->unk10 == 0 && b->unk10 == 0 && c->unk10 == 0) {
+            hit = FALSE;
         }
-    } else if (a->unk10 == 0) {
-        hit = b->unk10 != 0;
+    } else if (a->unk10 == 0 && b->unk10 == 0) {
+        hit = FALSE;
     }
     if (hit) {
         piece->unk30 -= dy;
     }
     return hit;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80106E40_marios_puzzle_party);
-#endif
 
 s32 func_80107000_marios_puzzle_party(s32 player, s32 col) {
     s32 row = 1;
@@ -836,7 +821,6 @@ s32 func_8010718C_marios_puzzle_party(s32 col, s32 row) {
     return FALSE;
 }
 
-#ifdef NON_MATCHING
 void func_80107224_marios_puzzle_party(s32 player, s32 col, s32 row) {
     PzCell* cell = &D_801102E0_marios_puzzle_party[player][col][row];
 
@@ -851,22 +835,23 @@ void func_80107224_marios_puzzle_party(s32 player, s32 col, s32 row) {
     func_80110000_marios_puzzle_party(cell->unk0);
     cell->unk0 = -1;
     if (cell->unk10 == 1) {
-        D_801102E0_marios_puzzle_party[player][col][row + 1].unkC = -1;
-        D_801102E0_marios_puzzle_party[player][col][row + 1].unk10 = 0;
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 1];
+        cell->unkC = -1;
+        cell->unk10 = 0;
     }
-    D_801102E0_marios_puzzle_party[player][col][row].unkC = -1;
-    D_801102E0_marios_puzzle_party[player][col][row].unk10 = 0;
+    cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    cell->unkC = -1;
+    cell->unk10 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107224_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
-/* Flood fill: record (col, row) in the match list, then recurse into same-coloured neighbours. */
+/* Flood fill: record (col, row) in the match list, then recurse into same-coloured neighbours.
+ * NON_MATCHING (H1): masked 0 at 331, raw 56: retail allocates player s2, color s3, c s4; ours
+ * gives c s2 (declaration order does not change it). Permuter candidate. */
 void func_80107400_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, s32 state) {
-    PzCell* cell;
     s32 c;
     s32 r;
+    PzCell* cell;
 
     if (state == 2) {
         row--;
@@ -896,14 +881,14 @@ void func_80107400_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, 
                 func_80107400_marios_puzzle_party(player, c, row, color, cell->unk10);
             }
         }
-        r = row - 1;
-        if (func_8010718C_marios_puzzle_party(col, r) == 0) {
+        c = row - 1;
+        if (func_8010718C_marios_puzzle_party(col, c) == 0) {
             cell = &D_801102E0_marios_puzzle_party[player][col][row - 1];
             if (cell->unkC == color) {
-                func_80107400_marios_puzzle_party(player, col, r, color, cell->unk10);
+                func_80107400_marios_puzzle_party(player, col, c, color, cell->unk10);
             }
         }
-        r = row + 1;
+        c = row + 1;
         if (state == 1) {
             c = col - 1;
             r = row + 1;
@@ -921,17 +906,17 @@ void func_80107400_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, 
                     func_80107400_marios_puzzle_party(player, c, r, color, cell->unk10);
                 }
             }
-            r = row + 2;
-            if (func_8010718C_marios_puzzle_party(col, r) == 0) {
+            c = row + 2;
+            if (func_8010718C_marios_puzzle_party(col, c) == 0) {
                 cell = &D_801102E0_marios_puzzle_party[player][col][row + 2];
                 if (cell->unkC == color) {
-                    func_80107400_marios_puzzle_party(player, col, r, color, cell->unk10);
+                    func_80107400_marios_puzzle_party(player, col, c, color, cell->unk10);
                 }
             }
-        } else if (func_8010718C_marios_puzzle_party(col, r) == 0) {
+        } else if (func_8010718C_marios_puzzle_party(col, c) == 0) {
             cell = &D_801102E0_marios_puzzle_party[player][col][row + 1];
             if (cell->unkC == color) {
-                func_80107400_marios_puzzle_party(player, col, r, color, cell->unk10);
+                func_80107400_marios_puzzle_party(player, col, c, color, cell->unk10);
             }
         }
     }
@@ -940,39 +925,46 @@ void func_80107400_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107400_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Clear the garbage blocks (colour 6) next to a cleared block. */
 void func_80107880_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, s32 state) {
+    PzCell* cell;
+
     if (state == 2) {
         row--;
         state = 1;
     }
-    if (D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col - 1][row];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col - 1, row);
     }
-    if (D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col + 1][row];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col + 1, row);
     }
-    if (D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col][row - 1];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col, row - 1);
     }
     if (state == 1) {
-        if (D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col - 1][row + 1];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col - 1, row + 1);
         }
-        if (D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col + 1][row + 1];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col + 1, row + 1);
         }
-        if (D_801102E0_marios_puzzle_party[player][col][row + 2].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 2];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col, row + 2);
         }
-    } else if (D_801102E0_marios_puzzle_party[player][col][row + 1].unkC == color) {
-        func_80107224_marios_puzzle_party(player, col, row + 1);
+    } else {
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 1];
+        if (cell->unkC == color) {
+            func_80107224_marios_puzzle_party(player, col, row + 1);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107880_marios_puzzle_party);
-#endif
 
 void func_80107BB0_marios_puzzle_party(s32 player) {
     PzMatch* m;
@@ -1145,7 +1137,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 #endif
 
 #ifdef NON_MATCHING
-/* Clear every group of matching blocks, let the blocks above fall, and repeat while chains form. */
+/* Clear every group of matching blocks, let the blocks above fall, and repeat while chains form.
+ * NON_MATCHING (H1): masked 10, 265 of 261. Retail restores D_80116148[player] after the loop
+ * through the address hoisted for the loop's first statement (spilled to the stack); ours recomputes
+ * it. A pointer local gets 262 but recomputes player * 4 (masked 28). cleared = 0 schedules early. */
 void func_80108568_marios_puzzle_party(s32 player, s32 counter) {
     PzCell* cell;
     Process* proc;
@@ -1192,7 +1187,8 @@ void func_80108568_marios_puzzle_party(s32 player, s32 counter) {
         omVibrate(player, 2, 3, 10);
         for (col = 1; col < 5; col++) {
             for (row = 1; row < 40; row++) {
-                if (D_801102E0_marios_puzzle_party[player][col][row].unk10 == 0) {
+                cell = &D_801102E0_marios_puzzle_party[player][col][row];
+                if (cell->unk10 == 0) {
                     break;
                 }
             }
@@ -1373,7 +1369,6 @@ void func_8010913C_marios_puzzle_party(void) {
     func_80019C00_main(HuPrcCurrentGet()->user_data);
 }
 
-#ifdef NON_MATCHING
 /* The special piece lands on a column: squash the first two-block piece under it, push the blocks
    above down, then turn it into a single block and close the gap. */
 void func_80109160_marios_puzzle_party(void) {
@@ -1383,8 +1378,6 @@ void func_80109160_marios_puzzle_party(void) {
     PzCell* cells;
     s32 row;
     s32 r;
-    s32 a;
-    s32 b;
     s32 keep;
     s32 more;
     f32 scale;
@@ -1392,7 +1385,11 @@ void func_80109160_marios_puzzle_party(void) {
     row = 1;
     sq = HuPrcCurrentGet()->user_data;
     omPrcSetDestructor((s32)HuPrcCurrentGet(), func_8010913C_marios_puzzle_party);
-    while ((u32)(base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row])->unk10 >= 2) {
+    while (TRUE) {
+        base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row];
+        if ((u32)base->unk10 < 2) {
+            break;
+        }
         row++;
     }
     keep = TRUE;
@@ -1411,53 +1408,52 @@ void func_80109160_marios_puzzle_party(void) {
                 cell = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][r];
                 switch (cell->unk10) {
                     case 1:
-                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7);
-                        func_8010FF78_marios_puzzle_party(cell->unk0, sq->unk4 * 14 + D_80110080_marios_puzzle_party[sq->unk0].x, cell->unk8);
-                        r += 2;
+                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7);
+                        func_8010FF78_marios_puzzle_party(cell->unk0, D_80110080_marios_puzzle_party[sq->unk0].x + sq->unk4 * 14, cell->unk8);
+                        r++;
+                    default:
+                        r++;
                         break;
                     case 3:
-                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7);
+                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7);
                         r++;
-                        func_8010FF78_marios_puzzle_party(cell->unk0, sq->unk4 * 14 + D_80110080_marios_puzzle_party[sq->unk0].x, cell->unk8);
+                        func_8010FF78_marios_puzzle_party(cell->unk0, D_80110080_marios_puzzle_party[sq->unk0].x + sq->unk4 * 14, cell->unk8);
                         break;
                     case 0:
                         more = FALSE;
                         r++;
                         break;
-                    default:
-                        r++;
-                        break;
                 }
             } while (more);
-            sq->unk10->unk30 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7) - 7.0f;
-            func_80054904_main(sq->unk8, 0, sq->unkC, D_801161A8_marios_puzzle_party[sq->unk0] + sq->unk10->unk30);
+            sq->unk10->unk30 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7) - 7.0f;
+            func_80054904_main(sq->unk8, 0, sq->unkC, sq->unk10->unk30 + D_801161A8_marios_puzzle_party[sq->unk0]);
             HuPrcVSleep();
         } while (keep);
-        a = row + 1;
-        D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row].unk10 = 3;
-        b = a + 1;
-        do {
+        base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row];
+        row++;
+        base->unk10 = 3;
+        r = row + 1;
+        while (TRUE) {
             cells = D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4];
-            cells[a].unk0 = cells[b].unk0;
-            cells[a].unk4 = cells[b].unk4;
-            cells[a].unk8 = cells[b].unk8;
-            cells[a].unkC = cells[b].unkC;
-            cells[a].unk10 = cells[b].unk10;
-            a++;
-            if (cells[b].unk10 == 0) {
+            base = &cells[row];
+            cell = &cells[r];
+            base->unk0 = cell->unk0;
+            base->unk4 = cell->unk4;
+            base->unk8 = cell->unk8;
+            base->unkC = cell->unkC;
+            base->unk10 = cell->unk10;
+            row++;
+            if (cell->unk10 == 0) {
                 break;
             }
-            b++;
-        } while (TRUE);
+            r++;
+        }
     }
     omDelPrcObj(NULL);
     while (TRUE) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80109160_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* The special piece has landed between two columns: squash them until neither has a two-block
@@ -1521,7 +1517,6 @@ s32 func_8010961C_marios_puzzle_party(s32 player, s32 x, s32 handle, PzPiece* pi
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010961C_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Score display (five digits, clamped to 0..99999). */
 void func_801098A0_marios_puzzle_party(void) {
     PzLocal* loc;
@@ -1539,9 +1534,9 @@ void func_801098A0_marios_puzzle_party(void) {
     for (i = 1; i < 6; i++) {
         func_80055024_main(grp, i, D_801160D0_marios_puzzle_party, 0);
         if (D_80116158_marios_puzzle_party == 0) {
-            func_80054904_main(grp, i, 16 - i * 8, 12);
+            func_80054904_main(grp, i, -(i * 8) + 16, 12);
         } else {
-            func_80054904_main(grp, i, 24 - i * 8, 12);
+            func_80054904_main(grp, i, -(i * 8) + 24, 12);
         }
         HuSprAttrReset(grp, i, 0xFFFF);
         HuSprAttrSet(grp, i, 0x4000);
@@ -1576,9 +1571,6 @@ void func_801098A0_marios_puzzle_party(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_801098A0_marios_puzzle_party);
-#endif
 
 void func_80109C04_marios_puzzle_party(s32 player, s32 color, s32 state, s32 col, s32 row, s32 arg5) {
     Process* proc;
@@ -1661,22 +1653,27 @@ void func_80109D24_marios_puzzle_party(void) {
 }
 
 #ifdef NON_MATCHING
-/* Result rank flying in from the distance over a player's board (player 4: the centre). */
+/* Result rank flying in from the distance over a player's board (player 4: the centre).
+ * NON_MATCHING (H1): masked 0 at 289, raw 12: retail allocates player s5, i s3, the g0 copy s4
+ * (ours s4, s5, s3); declaration order does not change it. Permuter candidate. */
 void func_8010A0D8_marios_puzzle_party(void) {
     f32 xs[5] = { -95.0f, -30.0f, 30.0f, 95.0f, 0.0f };
     s32 player;
     s32 i;
-    s16 g0;
-    s16 g1;
-    s16 g2;
-    f32* x;
+    s32 g0;
+    s32 g1;
+    s32 g2;
     f32 z;
     f32 a;
     f32 y;
 
     player = (s32)HuPrcCurrentGet()->user_data;
+    if (player == 4) {
+        func_8004AC98_main(0x3FE, 0);
+    } else {
+        func_8004AC98_main(0x3FE, player);
+    }
     i = 0;
-    func_8004AC98_main(0x3FE, (player != 4) ? player : 0);
     g0 = HuSprGrpCreate(1, 5);
     func_80055024_main(g0, 0, D_801160B0_marios_puzzle_party, 0);
     HuSprAttrReset(g0, 0, 0xFFFF);
@@ -1694,23 +1691,22 @@ void func_8010A0D8_marios_puzzle_party(void) {
     HuSprAttrSet(g2, 0, 0x4000);
     z = -5000.0f;
     a = 0.0f;
-    x = &xs[player];
     do {
         y = sindf(a) * 150.0f;
         a += 6.0f;
         z += 111.111115f;
-        SprPos3DSet(g0, 0, 0, *x, y, z);
-        SprPosPerspectiveSet(g0, 0, 0, *x, y, z);
+        SprPos3DSet(g0, 0, 0, xs[player], y, z);
+        SprPosPerspectiveSet(g0, 0, 0, xs[player], y, z);
         if (D_80116158_marios_puzzle_party == 0) {
-            SprPos3DSet(g1, 0, 0, *x + 8.0f, y - 12.0f, z);
-            SprPosPerspectiveSet(g1, 0, 0, *x + 8.0f, y - 12.0f, z);
+            SprPos3DSet(g1, 0, 0, xs[player] + 8.0f, y - 12.0f, z);
+            SprPosPerspectiveSet(g1, 0, 0, xs[player] + 8.0f, y - 12.0f, z);
         } else {
-            SprPos3DSet(g1, 0, 0, *x + 16.0f, y - 12.0f, z);
-            SprPosPerspectiveSet(g1, 0, 0, *x + 16.0f, y - 12.0f, z);
+            SprPos3DSet(g1, 0, 0, xs[player] + 16.0f, y - 12.0f, z);
+            SprPosPerspectiveSet(g1, 0, 0, xs[player] + 16.0f, y - 12.0f, z);
         }
         i++;
-        SprPos3DSet(g2, 0, 0, *x, y - 12.0f, z);
-        SprPosPerspectiveSet(g2, 0, 0, *x, y - 12.0f, z);
+        SprPos3DSet(g2, 0, 0, xs[player], y - 12.0f, z);
+        SprPosPerspectiveSet(g2, 0, 0, xs[player], y - 12.0f, z);
         HuPrcVSleep();
     } while (i < 45);
     HuSprGrpKill(g0);
@@ -1743,7 +1739,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 #endif
 
 #ifdef NON_MATCHING
-/* Game over for a player: shake the frame, swap in the game-over panel, then bob it. */
+/* Game over for a player: shake the frame, swap in the game-over panel, then bob it.
+ * NON_MATCHING (H1): masked 8, 290 of 293. Retail reloads 360.0f for the shake loop's exit test
+ * (ours reuses the hoisted clamp constant; a break form is the same), and keeps grp in s0. */
 void func_8010A588_marios_puzzle_party(void) {
     PzPiece* next;
     s32 player;
@@ -1775,7 +1773,7 @@ void func_8010A588_marios_puzzle_party(void) {
     D_801161E8_marios_puzzle_party[player] = grp = HuSprGrpCreate(1, 5);
     func_80055024_main(grp, 0, D_80116094_marios_puzzle_party, 0);
     func_80054904_main(grp, 0, D_80110080_marios_puzzle_party[player].x + 0x2A,
-                       D_80110080_marios_puzzle_party[player].y + (D_801161A8_marios_puzzle_party[player] - 0xA1));
+                       D_80110080_marios_puzzle_party[player].y - 0xA1 + D_801161A8_marios_puzzle_party[player]);
     HuSprAttrReset(grp, 0, 0xFFFF);
     HuSprAttrSet(grp, 0, 0x4008);
     HuSprPriSet(grp, 0, 0x300);
@@ -1783,30 +1781,27 @@ void func_8010A588_marios_puzzle_party(void) {
     HuPrcSleep(10);
     x = D_80110080_marios_puzzle_party[player].x + 0x2A;
     y = D_80110080_marios_puzzle_party[player].y - 0xB5;
-    if (y < 0x82) {
+    while (y < 0x82) {
         y += 3;
-        do {
-            func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, y);
-            HuPrcVSleep();
-            y += 3;
-        } while (y < 0x82);
+        func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, y);
+        HuPrcVSleep();
     }
-    func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, 0x82);
-    a = 0.0f + 8.0f;
+    y = 0x82;
+    func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, y);
+    a = 0.0f;
     while (TRUE) {
+        a += 8.0f;
         if (a > 360.0f) {
             a -= 360.0f;
         }
-        func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, 130.0f + sindf(a) * 3.0f);
+        func_80054904_main(D_801161D8_marios_puzzle_party[player], 0, x, y + sindf(a) * 3.0f);
         HuPrcVSleep();
-        a += 8.0f;
     }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A588_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Destructor of a player's game process (game over, or the minigame ending). */
 void func_8010A958_marios_puzzle_party(void) {
     PzPiece* cur;
@@ -1815,14 +1810,17 @@ void func_8010A958_marios_puzzle_party(void) {
     s32 col;
     s32 row;
     Process* proc;
+    PzCell* cell;
 
     player = (s32)HuPrcCurrentGet()->user_data;
     cur = &D_80116238_marios_puzzle_party[player];
     next = &D_80116308_marios_puzzle_party[player];
     if (D_801160E4_marios_puzzle_party == player || D_801160E8_marios_puzzle_party == 0) {
         if (D_801160E4_marios_puzzle_party != player) {
-            if (D_80116158_marios_puzzle_party != 2 || player == 0) {
+            if (D_80116158_marios_puzzle_party != 2) {
                 omVibrate(player, 10, 0, 10);
+            } else if (player == 0) {
+                omVibrate(0, 10, 0, 10);
             }
             D_80116168_marios_puzzle_party[player] = 1;
             proc = omAddPrcObj(func_8010A588_marios_puzzle_party, 0x4001, 0x1000, 0);
@@ -1850,7 +1848,8 @@ void func_8010A958_marios_puzzle_party(void) {
         HuAudFXPlay(0x3FF);
         for (row = 1; row < 40; row++) {
             for (col = 1; col < 5; col++) {
-                if (D_801102E0_marios_puzzle_party[player][col][row].unk10 == 3 || D_801102E0_marios_puzzle_party[player][col][row].unk10 == 1) {
+                cell = &D_801102E0_marios_puzzle_party[player][col][row];
+                if (cell->unk10 == 3 || cell->unk10 == 1) {
                     func_80107224_marios_puzzle_party(player, col, row);
                 }
             }
@@ -1869,9 +1868,6 @@ void func_8010A958_marios_puzzle_party(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010A958_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* One player's game: show the next piece, drop garbage rows sent by the others, move the next piece
@@ -2606,7 +2602,6 @@ void func_8010CFF8_marios_puzzle_party(omObjData* obj) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Break the block at (col, row) into four debris pieces. */
 void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
     s32 slot[4];
@@ -2616,13 +2611,13 @@ void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
     s32 n;
     s32 dx;
     s32 dy;
-    u32 k;
     PzDebris* d;
     omObjData* obj;
 
+    d = D_80114EF0_marios_puzzle_party;
     n = 0;
-    for (i = 0; i < 160; i++) {
-        if (D_80114EF0_marios_puzzle_party[i].unk4 == 0) {
+    for (i = 0; i < 160; i++, d++) {
+        if (d->unk4 == 0) {
             slot[n++] = i;
             if (n >= 4) {
                 break;
@@ -2630,33 +2625,29 @@ void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
         }
     }
     if (i < 160) {
-        x = col * 14 + D_80110080_marios_puzzle_party[player].x;
+        x = D_80110080_marios_puzzle_party[player].x + col * 14;
         y = D_80110080_marios_puzzle_party[player].y - row * 7;
-        for (k = 0, dx = 0; dx < 8; dx += 7) {
-            for (dy = 0; dy >= -7; dy -= 7, k++) {
-                d = &D_80114EF0_marios_puzzle_party[slot[k]];
+        for (i = 0, dx = 0; dx < 8; dx += 7) {
+            for (dy = 0; dy >= -7; dy -= 7, i++) {
+                d = &D_80114EF0_marios_puzzle_party[slot[i]];
                 d->unk4 = 1;
                 d->unk8 = x + dx;
                 d->unkC = y + dy;
                 d->unk14 = 1.0f;
                 d->unk0 = func_8010FEDC_marios_puzzle_party(0x1C, d->unk8, d->unkC);
                 obj = omAddObj(100, 0, 0, -1, func_8010CFF8_marios_puzzle_party);
-                obj->work[0] = slot[k];
+                obj->work[0] = slot[i];
                 obj->work[1] = 0;
-                obj->work[2] = k;
+                obj->work[2] = i;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D290_marios_puzzle_party);
-#endif
 
 void func_8010D46C_marios_puzzle_party(void) {
     func_80019C00_main(HuPrcCurrentGet()->user_data);
 }
 
-#ifdef NON_MATCHING
 /* Background sparkle: wait a random time, appear near its spot, drift and shrink. */
 void func_8010D490_marios_puzzle_party(void) {
     PzSparkle* sp;
@@ -2695,6 +2686,10 @@ void func_8010D490_marios_puzzle_party(void) {
                 break;
         }
         switch (rand8() & 1) {
+            default:
+            case 0:
+                s = 1.2f;
+                break;
             case 1:
                 s = 2.0f;
                 if (vx != 0.0f) {
@@ -2711,9 +2706,6 @@ void func_8010D490_marios_puzzle_party(void) {
                         vy += 1.0f;
                     }
                 }
-                break;
-            default:
-                s = 1.2f;
                 break;
         }
         for (sp->unk20 = s; sp->unk20 > 0.0f; sp->unk20 -= 0.03f) {
@@ -2736,9 +2728,6 @@ void func_8010D490_marios_puzzle_party(void) {
         HuSprAttrSet(sp->unk0, 0, 0x8000);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D490_marios_puzzle_party);
-#endif
 
 // decomp-permuter
 void func_8010D8E8_marios_puzzle_party(void)
@@ -2805,7 +2794,6 @@ void func_8010D9AC_marios_puzzle_party(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D9AC_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Per frame: bob each board until its player is out, add the shake and drop offsets, and move the
    frame, panels and cursor with it. */
 void func_8010DB98_marios_puzzle_party(void) {
@@ -2855,7 +2843,7 @@ void func_8010DB98_marios_puzzle_party(void) {
             } else {
                 if (D_80116228_marios_puzzle_party[i] != -1) {
                     func_80054904_main(piece->unk8, 0, piece->unk2C, D_801161A8_marios_puzzle_party[i] + piece->unk30);
-                    if ((u16)(func_80049F98_main() + D_800D6A90_main) != 0) {
+                    if (func_80049F98_main() + D_800D6A90_main != 0) {
                         HuSprAttrSet(piece->unk8, 0, 0x8000);
                     } else {
                         HuSprAttrReset(piece->unk8, 0, 0x8000);
@@ -2866,7 +2854,7 @@ void func_8010DB98_marios_puzzle_party(void) {
             piece = &D_80116308_marios_puzzle_party[i];
             if (piece->unk1C == 7) {
                 func_80054904_main(piece->unk8, 0, piece->unk2C, D_801161A8_marios_puzzle_party[i] + piece->unk30);
-                if ((u16)(func_80049F98_main() + D_800D6A90_main) != 0) {
+                if (func_80049F98_main() + D_800D6A90_main != 0) {
                     HuSprAttrSet(piece->unk8, 0, 0x8000);
                 } else {
                     HuSprAttrReset(piece->unk8, 0, 0x8000);
@@ -2876,9 +2864,6 @@ void func_8010DB98_marios_puzzle_party(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010DB98_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* Record panel: the saved record (four digits, leading zeros hidden), replaced by player 0's score
@@ -3010,7 +2995,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 #endif
 
 #ifdef NON_MATCHING
-/* Game clock: 5400 frames, counted down while player 0's game runs. */
+/* Game clock: 5400 frames, counted down while player 0's game runs.
+ * NON_MATCHING (H1): masked 15. Retail enters the countdown loop by a jump to its bottom test (no
+ * copied top test) and reuses the decremented value there; while/for copy the test, a goto into a
+ * do-while gets masked 10 but reloads the counter. s16 grp is wrong (retail sign-extends once). */
 void func_8010EAA0_marios_puzzle_party(void) {
     s32 grp;
     s16 x;
