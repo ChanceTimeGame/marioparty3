@@ -381,6 +381,10 @@ NOP_OBJECTS += build/src/overlays/mgmode/47DD90.c.o
 NOP_OBJECTS += build/src/overlays/ovl_20_the_beat_goes_on/1FE4D0.c.o
 # h1w2E: ice_rink_risk 1D1C40 (no nop before the mul.s after the sindf/cosdf calls: func_80106FC0)
 NOP_OBJECTS += build/src/overlays/ovl_19_ice_rink_risk/1D1C40.c.o
+# H1 w2H: Silly Screws main (no nop before the mul.s after the sindf call: m255_ExecCameraIntro)
+NOP_OBJECTS += build/src/overlays/ovl_37_silly_screws/main.c.o
+# H1 w2H: Fowl Play 2C5B50 (no nop before the mul.s after the sindf/cosdf calls: func_801075B0_fowl_play)
+NOP_OBJECTS += build/src/overlays/ovl_3A_fowl_play/2C5B50.c.o
 
 NOP_ASM := $(NOP_OBJECTS:.o=.s)
 

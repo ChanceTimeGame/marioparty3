@@ -1634,7 +1634,6 @@ void func_8010A2E8_modesel(omObjData *obj) {
     obj->work[1] = t;
 }
 
-#ifdef NON_MATCHING
 /* Bob part of model `no` jumps to (0, 200, 300) on an arc. */
 void func_8010A420_modesel(omObjData *obj) {
     Vec pos;
@@ -1669,19 +1668,16 @@ void func_8010A420_modesel(omObjData *obj) {
     func_8010B940_modesel(no, 35.5f);
     func_8010B824_modesel(no);
     t += 12;
-    if (t < 256) {
+    if (t >= 256) {
+        obj->work[1] = 0;
+        D_8010F2CC_modesel[i].x = cur.x;
+        D_8010F2CC_modesel[i].y = cur.y;
+        D_8010F2CC_modesel[i].z = cur.z;
+        obj->func = func_8010A2E8_modesel;
+    } else {
         obj->work[1] = t;
-        return;
     }
-    obj->work[1] = 0;
-    D_8010F2CC_modesel[i].x = cur.x;
-    D_8010F2CC_modesel[i].y = cur.y;
-    D_8010F2CC_modesel[i].z = cur.z;
-    obj->func = func_8010A2E8_modesel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A420_modesel);
-#endif
 
 void func_8010A62C_modesel(u32 no) {
     omObjData *obj = omAddObj(6, 0, 0, -1, func_8010A420_modesel);
@@ -1703,6 +1699,8 @@ extern MsVecPair D_80110CD8_modesel; /* model 10's jump; splat also names D_8011
 
 #ifdef NON_MATCHING
 /* Model `no` bobs at its position while model 10 turns towards the camera, 2 degrees a frame. */
+// NON_MATCHING (masked 0, raw 3): register allocation; retail converts t into $f2 for the sindf argument.
+// Tried: ft = t; ft = sindf(ft * k) (raw 9).
 void func_8010A674_modesel(omObjData *obj) {
     Vec pos;
     Vec base;
@@ -1715,9 +1713,6 @@ void func_8010A674_modesel(omObjData *obj) {
     f32 ft;
     f32 d;
     f32 ang;
-    f32 a1;
-    f32 a2;
-    f32 a3;
 
     no = obj->work[0];
     t = obj->work[1];
@@ -1725,28 +1720,23 @@ void func_8010A674_modesel(omObjData *obj) {
     HuVecCopy3F(&base, &D_80110CB0_modesel);
     HuVecCopyXYZ(&pos, base.x, ft * 5.0f * 5.0f + base.y, base.z);
     func_8010653C_modesel(no, pos.x, pos.y, pos.z);
+    t++;
     func_801089DC_modesel(&eye, &at, &up);
     func_80106618_modesel(10, &m.x, &m.y, &m.z);
     ang = D_80110CD4_modesel;
-    d = func_8010EC74_modesel(eye.x - m.x, eye.z - m.z) - ang;
+    d = func_8010EC74_modesel(eye.x - m.x, eye.z - m.z);
+    d -= ang;
     if (d < -2.0f) {
         ang -= 2.0f;
     }
-    a1 = ang;
-    if (ang < 0.0f) {
-        a1 = ang + 360.0f;
-    }
-    a2 = a1;
+    ang = (ang < 0.0f) ? ang + 360.0f : ang;
     if (d > 2.0f) {
-        a2 += 2.0f;
+        ang += 2.0f;
     }
-    a3 = a2;
-    if (a2 > 360.0f) {
-        a3 = a2 - 360.0f;
-    }
-    D_80110CD4_modesel = a3;
-    func_801064D4_modesel(10, 0.0f, a3, 0.0f);
-    obj->work[1] = t + 1;
+    ang = (ang > 360.0f) ? ang - 360.0f : ang;
+    D_80110CD4_modesel = ang;
+    func_801064D4_modesel(10, 0.0f, ang, 0.0f);
+    obj->work[1] = t;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A674_modesel);

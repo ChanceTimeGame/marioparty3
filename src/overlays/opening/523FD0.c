@@ -215,7 +215,11 @@ void opTitleMain(void) {
         if (HuPrcChildGet(self) == 0 || opDemoEndGet() != 0) {
             break;
         }
-    } while (time++ < 0x1519);
+        if (time >= 0x1519) {
+            break;
+        }
+        time++;
+    } while (TRUE);
     WipeCreateOut(0xB, 0x14);
     HuAudSeqFadeOut(0x14);
     do {
@@ -3337,8 +3341,9 @@ f32 func_8011124C_opening(f32 x0, f32 z0, f32 x1, f32 z1, f32 t) {
         return a1;
     }
     if (-z0 * x1 + x0 * z1 > 0.0f) {
-        target = a1;
-        if (!(a1 - a0 < 0.0f)) {
+        if (a1 - a0 < 0.0f) {
+            target = a1;
+        } else {
             target = a1 - 360.0f;
         }
         ret = (target - a0) * t + a0;
@@ -3346,8 +3351,9 @@ f32 func_8011124C_opening(f32 x0, f32 z0, f32 x1, f32 z1, f32 t) {
             ret += 360.0f;
         }
     } else {
-        target = a1;
-        if (!(a1 - a0 > 0.0f)) {
+        if (a1 - a0 > 0.0f) {
+            target = a1;
+        } else {
             target = a1 + 360.0f;
         }
         ret = (target - a0) * t + a0;
@@ -3404,10 +3410,11 @@ void func_80111580_opening(f32 arg0, f32 arg1, f32 arg2, f32 arg3) {
         t = i * (1.0f / 120.0f);
         HuSqrtf(t);
         angle = t * 360.0f;
-        scale = (1.0f - t) * 8.0f;
-        pos.x = (1.0f - t) * 100.0f * sindf(angle);
-        pos.y = 40.0f - pos.x * 0.2f - (1.0f - t) * 120.0f * cosdf(angle);
-        pos.z = (1.0f - t) * 800.0f * cosdf(angle) + -200.0f;
+        t = 1.0f - t;
+        scale = t * 8.0f;
+        pos.x = t * 100.0f * sindf(angle);
+        pos.y = 40.0f - pos.x * 0.2f - t * 120.0f * cosdf(angle);
+        pos.z = t * 800.0f * cosdf(angle) + -200.0f;
         func_80111DDC_opening(model0, pos.x, pos.y, pos.z, scale);
         func_80111DDC_opening(model0, pos.x, pos.y, pos.z, scale);
         func_80111DDC_opening(model1, pos.x, pos.y, pos.z, scale);
@@ -3737,9 +3744,10 @@ void opTitleSprMain(void) {
     for (i = 0; i < 40; i++) {
         HuPrcVSleep();
         f = 1.0f - i * (1.0f / 60.0f);
-        t = f;
         if (f < 0.0f) {
             t = 0.0f;
+        } else {
+            t = f;
         }
         opSprAlphaSet(0, (u8)(t * 255.0f));
     }
@@ -3751,9 +3759,11 @@ void opTitleSprMain(void) {
     HuAudSeqPlay(2);
     for (i = 40; i < 61; i++) {
         HuPrcVSleep();
-        t = 1.0f - i * (1.0f / 60.0f);
-        if (t < 0.0f) {
+        f = 1.0f - i * (1.0f / 60.0f);
+        if (f < 0.0f) {
             t = 0.0f;
+        } else {
+            t = f;
         }
         opSprAlphaSet(0, (u8)(t * 255.0f));
         damp = 1.0f - (i - 40) * 0.05f;

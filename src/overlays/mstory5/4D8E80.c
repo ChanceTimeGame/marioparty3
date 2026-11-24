@@ -892,8 +892,8 @@ void func_80111FE8_mstory5(omObjData *obj) {
     D_801153A0_mstory5[2].func = func_80110200_mstory5;
 }
 
-/* the effect object: 16 puffs (NON_MATCHING: registers s1/s2 swapped, and retail reloads
-   time after the += before comparing it with 40) */
+/* the effect object: 16 puffs (NON_MATCHING, masked 0: registers s1/s2 (i, base) swapped; tried
+   base = ...; model = base; and declaring base before i) */
 #ifdef NON_MATCHING
 void func_80112104_mstory5(void) {
     omObjData *obj;
@@ -943,7 +943,7 @@ void func_80112104_mstory5(void) {
                 D_801154F8_mstory5[i].pos.x += D_801154F8_mstory5[i].vel.x;
                 D_801154F8_mstory5[i].pos.y += D_801154F8_mstory5[i].vel.y;
                 D_801154F8_mstory5[i].pos.z += D_801154F8_mstory5[i].vel.z;
-                D_801154F8_mstory5[i].time = D_801154F8_mstory5[i].time + 1.0f;
+                D_801154F8_mstory5[i].time++;
                 if (D_801154F8_mstory5[i].time >= 40.0f) {
                     func_8001C258_main(obj->model[i + 1], 4, 4);
                     D_801154F8_mstory5[i].time = -10.0f;

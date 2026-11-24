@@ -531,12 +531,10 @@ void func_801063B4_baby_bowser_bonkers(void) {
     }
 }
 
-/* NON_MATCHING: only the voice-table index shift is scheduled one instruction earlier than retail. */
-#ifdef NON_MATCHING
 void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     func_800E1BA8_minigame_ObjData* w;
     BkPlayer* p;
-    s32* voice;
+    s32 voice;
     u32 file0;
     s32 file1;
     u32 file2;
@@ -576,9 +574,9 @@ void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     func_800E5A00_minigame(obj, 0x20, func_80017BB8_main(chr, 0x22), 0, 0);
     func_800E5978_minigame(obj, 0x21, func_80017BB8_main(chr, 0x23), 2, 0);
     func_800E5A00_minigame(obj, 0x22, func_80017BB8_main(chr, 0x24), 2, 0);
-    voice = &D_8010B8DC_baby_bowser_bonkers[rand8() & 1];
-    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
-    p->unk0C = D_8010B8BC_baby_bowser_bonkers[chr] | *voice;
+    voice = rand8() & 1;
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)D_8010B8DC_baby_bowser_bonkers[voice]), 1, 0x78);
+    p->unk0C = D_8010B8BC_baby_bowser_bonkers[chr] | D_8010B8DC_baby_bowser_bonkers[voice];
     func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, (s16)D_8010B8E4_baby_bowser_bonkers[rand8() & 1]), 1,
                            0x78);
     func_800E5690_minigame(obj, 0);
@@ -598,9 +596,6 @@ void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     p->unk44 = p->unk48 = 0.0f;
     obj->func = func_80106AA4_baby_bowser_bonkers;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010660C_baby_bowser_bonkers);
-#endif
 
 void func_80106AA4_baby_bowser_bonkers(omObjData* obj) {
     BkPlayer* p;
@@ -1594,25 +1589,23 @@ void func_80109990_baby_bowser_bonkers(omObjData* obj) {
 }
 
 /* Builds player `idx`'s score counter: two digits, the character face and a backing. */
-/* NON_MATCHING: retail sign-extends HuSprGrpCreate's result before storing it (a call declared int-returning there); include/ declares it s16, so this C saves the two shift instructions. Otherwise identical. */
-#ifdef NON_MATCHING
 void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr) {
     BkCounter* c;
-    s16 grp;
+    s32 grp;
     s16 x;
     s16 y;
     s32 i;
 
     c = &D_8010BCAC_baby_bowser_bonkers[idx];
     c->file = func_8010984C_baby_bowser_bonkers(D_8010B918_baby_bowser_bonkers[chr]);
-    grp = HuSprGrpCreate(4, 0);
-    c->grp = grp;
+    c->grp = grp = HuSprGrpCreate(4, 0);
     x = 266;
     if (idx == 0) {
         x = 56;
     }
+    y = 30;
     c->x = x + 8;
-    c->y = y = 30;
+    c->y = y;
     c->off[0] = -6;
     c->off[1] = 6;
     c->timer = 0;
@@ -1643,9 +1636,6 @@ void func_80109BFC_baby_bowser_bonkers(s32 idx, s32 chr) {
         HuSprPriSet(grp, i, i - 16);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_80109BFC_baby_bowser_bonkers);
-#endif
 
 /* NON_MATCHING: masked 0; v0/v1 swapped. */
 // decomp-permuter

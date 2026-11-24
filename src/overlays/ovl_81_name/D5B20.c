@@ -1079,8 +1079,8 @@ static void func_800F0708_name_81(UnkBoard4* arg0, s16 arg1, s16 arg2, s16 arg3,
     DataClose(temp_s5);
 }
 
-// Register allocation only: the C keeps the constant 20 in a saved register across the second and
-// third total_turns checks (retail rematerialises it), adding s3 to the frame.
+// masked 21 (292 vs 291): the C keeps the constant 20 in a saved register across the second and
+// third total_turns checks (retail rematerialises it), adding s3 to the frame. The second id is an if/else (retail branches).
 #ifdef NON_MATCHING
 UnkBoard4* func_800F08BC_name_81(void) {
     UnkBoard4* turn;
@@ -1111,9 +1111,10 @@ UnkBoard4* func_800F08BC_name_81(void) {
     func_80054904_main(turn->unk_0A, 0, 0xA0, 0x73);
     func_80055420_main(turn->unk_0A, 0, D_80101254_name_81[D_80101250_name_81][0], D_80101254_name_81[D_80101250_name_81][1], D_80101254_name_81[D_80101250_name_81][2]);
     DataClose(data);
-    id = 0x130089;
     if (GwSystem.total_turns == 20) {
         id = 0x130088;
+    } else {
+        id = 0x130089;
     }
     data2 = DataRead(id);
     turn->unk_0C[1] = func_80055810_main(data2);

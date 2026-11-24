@@ -424,7 +424,7 @@ void func_800EC548_name_81(s16 playerNo, Vec* cur, Vec* next, Vec* after, Vec* d
 }
 
 #ifdef NON_MATCHING
-// block layout of the two rev & 4 tests and s-register allocation
+// masked 0, raw 7: f20/f22 swap (retail loads the 0.0f into angle's register); tried angle declared first, a separate += after the if
 // the front partner follows the player to the next space
 void func_800EC6F4_name_81(void) {
     Vec sp18;
@@ -440,7 +440,6 @@ void func_800EC6F4_name_81(void) {
     Process* proc;
     Object* partner;
     f32 angle;
-    Vec* dir;
 
     func_800EC548_name_81(playerNo, &sp18, &sp28, &sp38, &sp68);
     proc = HuPrcCurrentGet();
@@ -456,12 +455,12 @@ void func_800EC6F4_name_81(void) {
     }
     HuPrcChildLink(proc, func_800EC36C_name_81(&sp48, &sp58, &partner->coords, speed));
     HuPrcChildWait();
-    dir = &sp68;
     if (player->rev & 4) {
+        angle = func_800D76D0_name_81(&sp68) + 0.0f;
     } else {
-        func_800EB708_name_81(&sp28, &sp38, dir);
+        func_800EB708_name_81(&sp28, &sp38, &sp68);
+        angle = func_800D76D0_name_81(&sp68) + 0.0f;
     }
-    angle = func_800D76D0_name_81(dir) + 0.0f;
     sp58.x = sindf(angle) * 12.0f + sp28.x;
     sp58.z = cosdf(angle) * 12.0f + sp28.z;
     sp58.y = sp28.y;
@@ -486,7 +485,7 @@ Process* func_800EC91C_name_81(s16 playerNo, f32 speed) {
 }
 
 #ifdef NON_MATCHING
-// block layout of the two rev & 4 tests and s-register allocation
+// masked 0, raw 17: f20/f22 swap (retail loads the 180.0f into angle's register), same as func_800EC6F4_name_81
 // the back partner follows the player to the next space
 void func_800EC99C_name_81(void) {
     Vec sp18;
@@ -518,12 +517,12 @@ void func_800EC99C_name_81(void) {
     }
     HuPrcChildLink(proc, func_800EC36C_name_81(&sp48, &sp58, &partner->coords, speed));
     HuPrcChildWait();
-    dir = &sp68;
     if (!(player->rev & 4)) {
+        angle = func_800D76D0_name_81(&sp68) + 180.0f;
     } else {
-        func_800EB708_name_81(&sp38, &sp28, dir);
+        func_800EB708_name_81(&sp38, &sp28, &sp68);
+        angle = func_800D76D0_name_81(&sp68) + 180.0f;
     }
-    angle = func_800D76D0_name_81(dir) + 180.0f;
     sp58.x = sindf(angle) * 12.0f + sp28.x;
     sp58.z = cosdf(angle) * 12.0f + sp28.z;
     sp58.y = sp28.y;
@@ -619,7 +618,7 @@ void func_800ECE38_name_81(s32 arg0)
 }
 
 #ifdef NON_MATCHING
-// f20/f22/f24 allocation (the 0.0f constant) and the shared tail call
+// masked 0, raw 22: f20/f22/f24 rotation (retail gives angle f20, 12.0f f22, 0.0f f24), as in func_800EC6F4_name_81
 // offsets of the front and back partners from the player
 void func_800ECF1C_name_81(s32 playerNo, Vec* front, Vec* back) {
     Vec sp18;
@@ -638,6 +637,10 @@ void func_800ECF1C_name_81(s32 playerNo, Vec* front, Vec* back) {
         front->z = cosdf(angle) * 12.0f;
         front->y = 0.0f;
         func_800EB708_name_81(&sp38, &sp18, &sp48);
+        angle = func_800D76D0_name_81(&sp48) + 180.0f;
+        back->x = sindf(angle) * 12.0f;
+        back->z = cosdf(angle) * 12.0f;
+        back->y = 0.0f;
     } else {
         func_800EB708_name_81(&sp18, &sp38, &sp48);
         angle = func_800D76D0_name_81(&sp48) + 0.0f;
@@ -645,11 +648,11 @@ void func_800ECF1C_name_81(s32 playerNo, Vec* front, Vec* back) {
         front->z = cosdf(angle) * 12.0f;
         front->y = 0.0f;
         func_800EB708_name_81(&sp28, &sp18, &sp48);
+        angle = func_800D76D0_name_81(&sp48) + 180.0f;
+        back->x = sindf(angle) * 12.0f;
+        back->z = cosdf(angle) * 12.0f;
+        back->y = 0.0f;
     }
-    angle = func_800D76D0_name_81(&sp48) + 180.0f;
-    back->x = sindf(angle) * 12.0f;
-    back->z = cosdf(angle) * 12.0f;
-    back->y = 0.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/D3450", func_800ECF1C_name_81);
