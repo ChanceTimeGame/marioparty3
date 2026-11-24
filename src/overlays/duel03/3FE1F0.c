@@ -4459,10 +4459,8 @@ s32 func_80113AE0_duel03(void) {
         return TRUE;
     }
     if (opp->cidx >= 7 && opp->cidx < 14) {
-        if (walk < 8) {
-            if (opp->cidx == D_8011765C_duel03[walk]) {
-                goto same;
-            }
+        if (walk < 8 && opp->cidx == D_8011765C_duel03[walk]) {
+            goto same;
         }
         if (walk >= 8 || opp->cidx < D_8011765C_duel03[walk]) {
             if (me->stats.partners.frontID == 8 && opp->star < 2) {
@@ -4590,7 +4588,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_80113AE0_duel03);
 #endif
 
 #ifdef NON_MATCHING
-// board db3: logic checked against the asm (func_80113AE0_duel03's tests with the outcomes this one reverses); same residue as func_80113AE0_duel03
+// board db3: logic checked against the asm (func_80113AE0_duel03's tests with the outcomes this one reverses); masked 93, 354/358 (H1): after the 'same space' goto retail re-tests walk < 8 (reusing the table byte), ours threads it away; inlining the same block instead stops the cross-jump (372)
 // board db3: the companion COM decision (the same tests as func_80113AE0_duel03 with some outcomes reversed)
 s32 func_80114030_duel03(void) {
     GW_PLAYER *me;
@@ -4610,10 +4608,8 @@ s32 func_80114030_duel03(void) {
         return FALSE;
     }
     if (opp->cidx >= 7 && opp->cidx < 14) {
-        if (walk < 8) {
-            if (opp->cidx == D_8011765C_duel03[walk]) {
-                goto same;
-            }
+        if (walk < 8 && opp->cidx == D_8011765C_duel03[walk]) {
+            goto same;
         }
         if (walk >= 8 || opp->cidx < D_8011765C_duel03[walk]) {
             if (me->stats.partners.frontID == 8 && opp->star < 2) {
