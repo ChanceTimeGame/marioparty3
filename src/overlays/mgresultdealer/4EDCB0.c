@@ -397,7 +397,7 @@ void func_80108AEC_mgresultdealer(omObjData *obj) {
 }
 
 #ifdef NON_MATCHING
-/* masked 62, 5 short: retail keeps &totalSpr[0] in s0 for the show/hide calls and schedules the digit divisions differently */
+/* masked 32, 5 short: retail materialises &totalSpr[0] (D_8010A234) in s0 in each show/hide arm and schedules the digit divisions differently; a u16 *spr local for the arms is worse (masked 66) (H1) */
 /* count the total up over 28 frames, ticking as it grows */
 void func_80108BD4_mgresultdealer(omObjData *obj) {
     s32 total;
