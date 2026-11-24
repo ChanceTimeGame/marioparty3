@@ -3,7 +3,7 @@
 A matching decompilation of Mario Party 3 (N64, US). Built with the original compiler, it produces a
 ROM byte-identical to the retail game.
 
-**Progress:** 10,806 of 11,753 functions match (91.9%), 73.4% of code bytes. Everything else is
+**Progress:** 10,861 of 11,753 functions match (92.4%), 74.4% of code bytes. Everything else is
 either decompiled C that does not yet compile to identical code, or assembly that has not been
 decompiled. [OPEN_FUNCTIONS.md](OPEN_FUNCTIONS.md) lists every one of them.
 
