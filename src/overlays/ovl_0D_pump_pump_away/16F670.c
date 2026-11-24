@@ -2754,12 +2754,16 @@ void func_8010CEE8_pump_pump_away(omObjData *obj) {
     }
 }
 
+// NON_MATCHING: label wall: retail reads digit[0] through the bss label D_801135BE_pump_pump_away (an
+// s16 at its low half), so CSE cannot fold it into r; with that label it matches (not added: a second
+// symbol for one field is a host hazard). Without it masked 6, 215 vs 218; logic checked
 #ifdef NON_MATCHING
 void func_8010D1B8_pump_pump_away(omObjData *obj) {
-    PpRecord *r = &D_801135B0_pump_pump_away;
+    PpRecord *r;
     s32 i;
 
     func_8010CDF4_pump_pump_away(obj);
+    r = &D_801135B0_pump_pump_away;
     D_801135B4_pump_pump_away = func_8000B838_main(0x32);
     D_801135B8_pump_pump_away = HuSprGrpCreate(4, 5);
     func_80054904_main(D_801135B8_pump_pump_away, 0, 32, 22);
