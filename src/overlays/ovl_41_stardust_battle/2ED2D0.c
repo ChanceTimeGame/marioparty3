@@ -1968,7 +1968,9 @@ void func_80109424_stardust_battle(omObjData *obj)
   st->unk30 = func_80109B18_stardust_battle;
 }
 
-/* NON_MATCHING: register allocation: retail keeps the best weight in s3 (mfc1/mtc1) and schedules 1.0f - ny into the sqrtf delay slot; mine keeps it in an FPR */
+/* NON_MATCHING (masked 41, 1 short): register allocation: retail keeps the best weight in s3 (mfc1/mtc1) and schedules
+   1.0f - ny into the sqrtf delay slot; mine keeps it in an FPR and 0.0f in s8. H1 tried: the zero-init chain order (no
+   change), 1.0f - ny in a local before sqrtf (masked 38 but 4 short) */
 #ifdef NON_MATCHING
 void func_80109B18_stardust_battle(omObjData *obj) {
     SbStage *st = func_80111FEC_stardust_battle(obj);
