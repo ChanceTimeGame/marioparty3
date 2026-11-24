@@ -2129,7 +2129,8 @@ s32 func_8010F87C_msetup(MsSetupWork *work) {
 INCLUDE_ASM("asm/nonmatchings/overlays/msetup/506F20", func_8010F87C_msetup);
 #endif
 
-// register allocation and operand order around the D_80119C10 rows (masked 28, 3 fewer instructions: retail re-extends cur for the second row); same logic
+// register allocation (451 = 451, masked 5): retail loads the D_80119C10 base before work->sel for the first
+// row and swaps a0/v1 around the cur compare; same logic
 #ifdef NON_MATCHING
 void func_8011035C_msetup(void) {
     struct {
@@ -2182,8 +2183,7 @@ void func_8011035C_msetup(void) {
         func_80054904_main(grp, j, D_80119B60_msetup[j][0], D_80119B60_msetup[j][1]);
         HuPrcVSleep();
     }
-    row = D_80119C10_msetup[work->sel];
-    for (i = 0, j = 4; i < 2; i++, j++) {
+    for (i = 0, j = 4, row = D_80119C10_msetup[work->sel]; i < 2; i++, j++) {
         func_80054FF8_main(grp, j, row[i]);
     }
     for (i = 0; i < 2; i++) {
@@ -2229,9 +2229,8 @@ void func_8011035C_msetup(void) {
         if (shown != 0 && cur != work->sel) {
             cur = work->sel;
             func_80055024_main(grp, 7, w.chr[cur], 0);
-            row = D_80119C10_msetup[cur];
             for (i = 0, j = 4; i < 3; i++, j++) {
-                func_80054FF8_main(grp, j, row[i]);
+                func_80054FF8_main(grp, j, D_80119C10_msetup[cur][i]);
             }
             func_8005B43C_main(w.win[0], D_80119BD0_msetup[cur], -1, -1);
             func_8005D294_main(w.win[1]);
