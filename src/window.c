@@ -274,22 +274,22 @@ extern u8 *D_800A2344_main[16]; /* 16 rows of 16 two-byte glyph codes (0x24-byte
 extern s16 D_800BDA50_main[12];
 extern s8 D_800BDA6D_main;
 extern s16 D_800BDA68_main;
-extern s8 D_800CD2A4_main;
+extern u8 D_800CD2A4_main;
 extern void *D_800CE2C4_main;
 extern Process *D_800D040C_main;
 extern u8 D_800D1F34_main;
 extern void *D_800D1FE4_main;
 extern void *D_800D4084_main;
 extern u8 D_800D5206_main[5];
-extern s8 D_800D5540_main;
+extern u8 D_800D5540_main;
 extern u8 D_800D6A26_main;
 extern s16 D_800D6B62_main;
 extern s32 D_800A25D0_main[];
-extern s8 D_800BDA6A_main;
+extern u8 D_800BDA6A_main;
 extern u16 D_800BDA6C_main;
 extern u16 D_800BDA6E_main;
 extern u8 D_800D5206_main[5];
-extern s8 D_800D5540_main;
+extern u8 D_800D5540_main;
 
 s16 func_8005BA54_main(s16, s16);
 void func_8005BB18_main(s16, f32, f32);
@@ -2302,8 +2302,9 @@ INCLUDE_RODATA("asm/nonmatchings/window", D_800A7EA8_main);
 
 INCLUDE_RODATA("asm/nonmatchings/window", D_800A7ECC_main);
 
-// register allocation (masked 100 of 169): the text pointer and the character width swap a0/a1,
-// and GCC keeps D_800CD2A4_main and D_800BDA6A_main in registers (u8 globals do not fix it).
+// loop invariants (masked 62, 2 instructions long): the three flag globals are u8 (retail lbu);
+// retail reloads D_800CD2A4_main and D_800BDA6A_main in their cases where GCC hoists them out of
+// the loop, so the text pointer and the character width also swap a0/a1.
 // MP3 no longer adds an icon's width for code 0x18.
 #ifdef NON_MATCHING
 /* measures one text (an id, or a pointer above 0x80000000) into the width D_800BDA6C_main and
