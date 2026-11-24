@@ -524,7 +524,7 @@ INCLUDE_RODATA("asm/nonmatchings/overlays/mgenter/468AC0", D_80109AC4_mgenter);
 INCLUDE_ASM("asm/nonmatchings/overlays/mgenter/468AC0", func_80106BD0_mgenter);
 #endif
 
-// the A/B tests: retail loads the button word once (lhu and lh), this reloads it for B (masked 15)
+// the A/B tests (masked 13, 7 long): retail loads the button word once (lhu, plus lh for the s16 test) before the A test; a u16 local gives that shape (2 long) but then hoists a constant 1 into s2 (masked 34); tried assignment in the test and s16/s32/u32 locals (H1)
 /* minigame 0x1E: the instruction card, then a target number (100..1000, by 100) picked with the C buttons */
 #ifdef NON_MATCHING
 void func_801079B4_mgenter(void) {
@@ -730,7 +730,6 @@ void func_80108560_mgenter(s16 x0, s16 y0, s16 x1, s16 y1) {
 }
 
 /* the two cursor arrows: fade in or out with D_80109B22_mgenter, move on D_80109B20_mgenter */
-#ifdef NON_MATCHING
 void func_80108590_mgenter(void) {
     s16 file0;
     s16 file1;
@@ -738,7 +737,7 @@ void func_80108590_mgenter(void) {
     s16 spr1;
     s16 alpha;
     s16 old;
-    s32 fading;
+    s16 fading;
     s32 step;
     s8 shown;
 
@@ -797,9 +796,6 @@ void func_80108590_mgenter(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgenter/468AC0", func_80108590_mgenter);
-#endif
 
 /* player groups for a 1-vs-3 (type 1) or 2-vs-2 (type 2) minigame */
 #ifdef NON_MATCHING
