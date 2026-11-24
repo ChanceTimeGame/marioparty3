@@ -762,11 +762,13 @@ void func_80107510_fridged_bridges(omObjData *obj) {
 void func_801075A4_fridged_bridges(omObjData *obj) {
 }
 
+/* NON_MATCHING (H1): masked 9, 114/111. Retail keeps the constant 5.0f and step in one register
+ * (bc1t straight to the join); ours copies it with mov.s and jumps. Tried a ternary, step = 5.0f
+ * then a negated test, and step = 360 - diff then a clamp. */
 #ifdef NON_MATCHING
 void func_801075AC_fridged_bridges(omObjData *obj) {
-    f32 rot;
-    f32 step;
     f32 diff;
+    f32 step;
 
     diff = -obj->rot.y;
     if (diff < 0.0f) {
@@ -774,15 +776,18 @@ void func_801075AC_fridged_bridges(omObjData *obj) {
     }
     if (diff < 180.0f) {
         if (diff > 5.0f) {
-            rot = obj->rot.y + 5.0f;
+            obj->rot.y = obj->rot.y + 5.0f;
         } else {
-            rot = diff + obj->rot.y;
+            obj->rot.y = diff + obj->rot.y;
         }
     } else {
-        step = (360.0f - diff) > 5.0f ? 5.0f : (360.0f - diff);
-        rot = obj->rot.y - step;
+        if ((360.0f - diff) > 5.0f) {
+            step = 5.0f;
+        } else {
+            step = 360.0f - diff;
+        }
+        obj->rot.y = obj->rot.y - step;
     }
-    obj->rot.y = rot;
     if (obj->rot.y >= 360.0f) {
         obj->rot.y -= 360.0f;
     }
@@ -1329,7 +1334,6 @@ void func_801091F8_fridged_bridges(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801091F8_fridged_bridges);
 #endif
 
-#ifdef NON_MATCHING
 /* Winner: walk to the goal, camera move, win pose */
 void func_80109390_fridged_bridges(omObjData *obj) {
     omObjData *player;
@@ -1391,9 +1395,10 @@ void func_80109390_fridged_bridges(omObjData *obj) {
             if (D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->work[0] == 1 && func_800E6E8C_minigame() == 4) {
                 {
                     omObjData *winner = D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges];
+                    FbPlayer *w = winner->data;
                     s16 *models = winner->model;
 
-                    func_80017954_main(models[0], 2, GwPlayer[((FbPlayer *)winner->data)->unk02].chr, models[5]);
+                    func_80017954_main(models[0], 2, GwPlayer[w->unk02].chr, models[5]);
                 }
                 func_8001C624_main(D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->model[0],
                                    HmfModelData[D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->motion[5]].unk02, 0, 6, 0);
@@ -1427,9 +1432,6 @@ void func_80109390_fridged_bridges(omObjData *obj) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109390_fridged_bridges);
-#endif
 
 #ifdef NON_MATCHING
 /* Ground under 8 points around the player and its centre; returns how many have none */
