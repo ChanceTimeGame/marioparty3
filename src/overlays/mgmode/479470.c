@@ -972,7 +972,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801149F4_mgmode);
 /* Lets the player pick how many coins to spend (D-pad: +-10, +-1); A confirms a non-zero amount,
    B returns -1. */
 #ifdef NON_MATCHING
-/* 175 vs 179: retail keeps the A test as a bitwise and and recomputes n + step for the last bound check (and has an 8-byte larger frame); logic checked against the asm. */
+/* 175 vs 179: retail keeps the A test as a bitwise and and recomputes n + step for the last bound check (and has an 8-byte larger frame); logic checked against the asm.
+   H1 (masked 29): the positive form (n + step < 100 && ... ) gives 172. */
 s16 func_80114C80_mgmode(void) {
     s16 n = 0;
     s16 step;
@@ -1341,13 +1342,11 @@ void func_80116260_mgmode(void) {
     memset(D_8011B610_mgmode[2], 0xFF, 0x4B00);
 }
 
-#define MG_PIX_CLR(p, x) (*(p) = ((x) & 1) ? (*(p) & 0xF0) : (*(p) & 0xF))
-#define MG_PIX_SET(p, x, c) (*(p) = ((x) & 1) ? (*(p) | (c)) : (*(p) | ((c) << 4)))
+#define MG_PIX_CLR(p, x) (*(p) &= ((x) & 1) ? 0xF0 : 0xF)
+#define MG_PIX_SET(p, x, c) (*(p) |= ((x) & 1) ? (c) : ((c) << 4))
 
 /* Draws the iris mask into this frame's buffer: a wedge centred on cx, open by angle, with a
    two-pixel rim. */
-#ifdef NON_MATCHING
-/* 215 vs 235: the nibble ternaries compile to more branches than retail; logic checked against the asm. */
 void func_801162B4_mgmode(f32 cx, f32 angle) {
     u8* p = D_8011B610_mgmode[D_800D2008_main];
     u8* q;
@@ -1385,9 +1384,6 @@ void func_801162B4_mgmode(f32 cx, f32 angle) {
     }
     HuSprGet(D_8011B61E_mgmode, 0)->unk_84->unk00->unk00 = D_8011B610_mgmode[D_800D2008_main];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801162B4_mgmode);
-#endif
 
 /* .data (0x801194C0) */
 MgModeSpr* D_801194C0_mgmode = (MgModeSpr*)-1;

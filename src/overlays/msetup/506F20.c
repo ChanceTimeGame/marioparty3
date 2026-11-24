@@ -900,7 +900,8 @@ s16 func_8010D0C8_msetup(s16 model, char *name) {
 }
 
 /* logic checked; retail keeps dx/dy as words (lw, then sll/sra at each use) where GCC here reads
-   the stack halfword, which changes the frame and register allocation. */
+   the stack halfword, which changes the frame and register allocation (158 vs 167, masked 24).
+   H1: s16 dx/dy parameters and a K&R definition with s16 dx/dy both still read lh once. */
 #ifdef NON_MATCHING
 s16 func_8010D234_msetup(s16 (*pos)[2], u8 *used, s16 count, s16 cur, s32 dx, s32 dy) {
     f32 cx;
