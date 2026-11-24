@@ -3636,9 +3636,6 @@ void func_8010CE6C_duel04(s32 arg0, s32 playerNo, Object *partner, Object *targe
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010CE6C_duel04);
 #endif
 
-#ifdef NON_MATCHING
-// board ea1: duel05 twin, duel04 constants checked against retail (immediates); masked 0, raw 28 here; logic as duel05
-// duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D428_duel04(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Object *obj;
     Vec sp18;
@@ -3670,7 +3667,7 @@ void func_8010D428_duel04(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_80106244_duel04();
     func_80106264_duel04(target, player, flags, 3.0f);
     HuPrcChildLink(process, func_800EC1E4_name_81(partnerPos, &sp18, partnerPos, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, partnerPos);
     func_800EB708_name_81(&obj->coords, &sp18, &obj->rot);
@@ -3732,7 +3729,7 @@ void func_8010D428_duel04(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800EB708_name_81(&partner->coords, &sp28, &partner->rot);
     func_800D90D0_name_81(partner, 0, 2);
     HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &sp28, &partner->coords, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, &partner->coords);
     func_800EB708_name_81(&obj->coords, &sp28, &obj->rot);
@@ -3753,9 +3750,6 @@ void func_8010D428_duel04(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_8010D428_duel04);
-#endif
 
 void func_8010D960_duel04(void) {
     Dc2PartnerFuncs funcs1 = D_8011AF20_duel04;
@@ -6331,8 +6325,9 @@ s32 func_801159C4_duel04(void) {
     }
 }
 
-// board ea2: logic checked against the asm case by case; masked 20: the cur/rev tails (retail computes the
-// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+// board ea2: logic checked against the asm case by case. H1: early-return tails give the right count (185),
+// masked 20: retail tests rev in $v1 so `li v0,1` fills a plain delay slot (ours: $v0 + branch-likely), and the
+// case-3 `return 1` is placed inline. Tried: ret temporary (186), ternary (39), static inline helper (48).
 #ifdef NON_MATCHING
 s32 func_80115B3C_duel04(void) {
     s32 cur;
@@ -6340,7 +6335,6 @@ s32 func_80115B3C_duel04(void) {
     GW_PLAYER *opp;
     s32 other;
     s32 walk;
-    s32 ret;
 
     cur = MBDGetCurrentPlayerIndex();
     other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
@@ -6383,11 +6377,10 @@ s32 func_80115B3C_duel04(void) {
             if (cur == 0) {
                 return 0;
             }
-            ret = 1;
-            if (!(opp->rev & 1)) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (opp->rev & 1) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 3:
             if (walk >= 3 && walk < 8 && opp->cidx == D_80119EF4_duel04[walk - 2]) {
                 return 1;
@@ -6398,11 +6391,10 @@ s32 func_80115B3C_duel04(void) {
             if (cur == 0) {
                 return 0;
             }
-            ret = 1;
-            if (opp->rev & 1) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (!(opp->rev & 1)) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 5:
         case 7:
             return 0;
@@ -6416,8 +6408,8 @@ s32 func_80115B3C_duel04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115B3C_duel04);
 #endif
 
-// board ea2: logic checked against the asm case by case; masked 56: the cur/rev tails (retail computes the
-// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+// board ea2: logic checked against the asm case by case. H1: early-return tails, masked 56 -> 14: what is left
+// is the same rev-in-$v1 / inline `return 1` residue as func_80115B3C_duel04.
 #ifdef NON_MATCHING
 s32 func_80115DA8_duel04(void) {
     s32 cur;
@@ -6425,7 +6417,6 @@ s32 func_80115DA8_duel04(void) {
     GW_PLAYER *opp;
     s32 other;
     s32 walk;
-    s32 ret;
     s32 unused[8]; /* retail's frame is 0x20 bytes larger than the code needs */
 
     cur = MBDGetCurrentPlayerIndex();
@@ -6463,11 +6454,10 @@ s32 func_80115DA8_duel04(void) {
             if (cur != 0) {
                 return 0;
             }
-            ret = 1;
-            if (!(opp->rev & 1)) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (opp->rev & 1) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 0:
             if (walk >= 3 && walk < 7 && opp->cidx == D_80119EC4_duel04[walk - 2]) {
                 if (cur != 0) {
@@ -6481,11 +6471,10 @@ s32 func_80115DA8_duel04(void) {
             if (cur != 0) {
                 return 0;
             }
-            ret = 1;
-            if (opp->rev & 1) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (!(opp->rev & 1)) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
     }
     switch (opp->clink) {
         case 5:
@@ -6734,8 +6723,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801163C0_duel04);
 #endif
 
 #ifdef NON_MATCHING
-// board ea3: logic checked against the asm case by case; masked 46: retail keeps branches where this C
-// gets store-flag (case 6's front-power test) and tests rev in v1 (case 0/1 tails), so shared returns differ.
+// board ea3: logic checked against the asm case by case. H1: `walk >= 8 || frontPower == 0` as one test keeps
+// retail's branches in case 6 (masked 46 -> 26, count right); left: rev tested in v1 (case 0/1 tails).
 s32 func_8011678C_duel04(void) {
     GW_PLAYER *me;
     GW_PLAYER *opp;
@@ -6756,10 +6745,7 @@ s32 func_8011678C_duel04(void) {
             }
             return FALSE;
         }
-        if (walk >= 8) {
-            return FALSE;
-        }
-        if (opp->stats.partners.frontPower == 0) {
+        if (walk >= 8 || opp->stats.partners.frontPower == 0) {
             return FALSE;
         }
         return TRUE;
@@ -6932,8 +6918,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_801169EC_duel04);
 #endif
 
 #ifdef NON_MATCHING
-// board ea3: logic checked against the asm case by case; masked 26: the same store-flag (case 7) and
-// rev-in-v1 (case 1/2 tails) differences as func_8011678C_duel04.
+// board ea3: logic checked against the asm case by case. H1: case 7 as one `||` test (masked 26 -> 23, but 185
+// of 182); left: rev-in-v1 and the case 2 tail's block order (as func_8011678C_duel04).
 s32 func_80116DA0_duel04(void) {
     GW_PLAYER *me;
     GW_PLAYER *opp;
@@ -6954,10 +6940,7 @@ s32 func_80116DA0_duel04(void) {
             }
             return func_800EFE20_name_81(100.0f) < 50;
         }
-        if (walk >= 8) {
-            return FALSE;
-        }
-        if (opp->stats.partners.frontPower == 0) {
+        if (walk >= 8 || opp->stats.partners.frontPower == 0) {
             return FALSE;
         }
         return TRUE;
@@ -8075,6 +8058,7 @@ void func_80119910_duel04(void) {
 #ifdef NON_MATCHING
 // board ea3: masked 24 (185 vs 184): retail keeps the third tree's count as a branch (count = 2 in the
 // call's delay slot, bnezl count = 3, blez before the loop); this C gets store-flag arithmetic there.
+// H1 tried: count++ (183), goto past `count = 3` (183), s16 count (186): all still store-flag.
 void func_80119A30_duel04(void) {
     GW_PLAYER *player;
     UnkEA790Struct *tree;

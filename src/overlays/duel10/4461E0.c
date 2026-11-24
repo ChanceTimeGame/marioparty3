@@ -2903,8 +2903,6 @@ void func_8010CED4_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
 INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010CED4_duel10);
 #endif
 
-#ifdef NON_MATCHING
-// duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D490_duel10(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Object *obj;
     Vec sp18;
@@ -2936,7 +2934,7 @@ void func_8010D490_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_801062AC_duel10();
     func_801062CC_duel10(target, player, flags, 3.0f);
     HuPrcChildLink(process, func_800EC1E4_name_81(partnerPos, &sp18, partnerPos, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, partnerPos);
     func_800EB708_name_81(&obj->coords, &sp18, &obj->rot);
@@ -2998,7 +2996,7 @@ void func_8010D490_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800EB708_name_81(&partner->coords, &sp28, &partner->rot);
     func_800D90D0_name_81(partner, 0, 2);
     HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &sp28, &partner->coords, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, &partner->coords);
     func_800EB708_name_81(&obj->coords, &sp28, &obj->rot);
@@ -3019,9 +3017,6 @@ void func_8010D490_duel10(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010D490_duel10);
-#endif
 
 void func_8010D9C8_duel10(void) {
     Dc2PartnerFuncs funcs1 = D_80114B10_duel10;
@@ -3273,7 +3268,9 @@ void func_8010E494_duel10(void) {
 #ifdef NON_MATCHING
 // board ec2: walk the current player: `steps` spaces at most (-1: no limit), `walkNum` counted spaces
 // (0: the dice roll); func_80114940_duel10 may stop the walk for an event.
-// board ec2: masked 30: the saved clink/cidx are sign-extended in retail, and the in-loop motion calls are not cross-jumped; logic checked against the asm block by block
+// board ec2: logic checked against the asm block by block. H1: s16 clink/cidx give retail's sign-extended saves
+// (masked 30 -> 28, 306 of 312): the two in-loop func_800F3A04_name_81 if/else calls are not cross-jumped in retail
+// (one arm in $t0, one in $v0); tried a ternary argument and swapped arms.
 void func_8010E4B4_duel10(s32 steps, s32 walkNum) {
     Vec sp18;
     Process *proc;
@@ -3284,8 +3281,8 @@ void func_8010E4B4_duel10(s32 steps, s32 walkNum) {
     s32 speed;
     s16 masuId;
     s16 num;
-    s8 clink;
-    s8 cidx;
+    s16 clink;
+    s16 cidx;
 
     player = MBDGetPlayerStruct(-1);
     speed = 1;

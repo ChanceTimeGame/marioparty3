@@ -683,7 +683,8 @@ void func_8011435C_mstory2(omObjData *obj) {
     D_8011C840_mstory2[0].func = func_80111EAC_mstory2;
 }
 
-// register allocation: retail keeps a second copy of the chr == 5 flag (s0 and s3), masked 13
+// masked 5 at one instruction over: retail tests the chr == 5 flag in s0 and keeps a copy in s3, and fits
+// in s0-s4 where this needs s5 (tried: a temp for the ternary, alt = idx = ..., idx = ...; alt = idx)
 #ifdef NON_MATCHING
 /* actor 1: the partner */
 void func_80114588_mstory2(void) {
@@ -699,7 +700,6 @@ void func_80114588_mstory2(void) {
     mots[0] = 0x6B;
     mots[1] = 0x44;
     alt = D_8011C91C_mstory2 == 5;
-    idx = alt;
     obj = omAddObj(10, 20, 20, -1, NULL);
     D_8011C840_mstory2[1].obj = obj;
     D_8011C840_mstory2[1].flags = 0;
@@ -712,6 +712,7 @@ void func_80114588_mstory2(void) {
     func_8001C258_main(obj->model[1], 4, 4);
     func_8001C258_main(obj->model[2], 4, 4);
     func_8001C258_main(obj->model[3], 4, 4);
+    idx = alt;
     func_8000B460_main(obj, 0, func_80017BB8_main(chars[idx], 0));
     func_8000B460_main(obj, 1, func_80017BB8_main(chars[idx], 1));
     func_8000B460_main(obj, 2, func_80017BB8_main(chars[idx], 2));
@@ -733,6 +734,7 @@ void func_80114588_mstory2(void) {
     if (D_8011C91E_mstory2 == 5) {
         Hu3DModelScaleSet(obj->model[2], 1.5f, 1.0f, 1.5f);
     }
+    idx = alt;
     data = DataRead(func_80017BB8_main(chars[idx], 0xA4));
     D_8011C912_mstory2[0] = HmfAnimCreate(HmfModelData[obj->model[1]].hmf, data, 0, D_8011BCA0_mstory2[idx]);
     HuMemMemoryFreePerm(data);
