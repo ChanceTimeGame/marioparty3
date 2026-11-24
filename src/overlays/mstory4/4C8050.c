@@ -1529,11 +1529,9 @@ typedef struct UnkModel {
 
 extern s16 D_80112330_mstory4;
 
-#ifdef NON_MATCHING
 void func_8010FC98_mstory4(void) {
     omObjData *temp_s5;
     omObjData *temp_s7;
-    s32 temp_s4;
     s32 var_a3;
     s32 var_s0;
     s32 var_s1;
@@ -1564,8 +1562,7 @@ void func_8010FC98_mstory4(void) {
     MBDBackCreate(0x20, 0);
     func_8010EF28_mstory4(7);
     for (i = 0; i < 6; i++) {
-        // if (D_80112088_mstory4[i].count > 0) {
-        for (j = 0, temp_s4 = D_80112088_mstory4[i].count; j < temp_s4; var_s3++, j++) {
+        for (j = 0; j < D_80112088_mstory4[i].count; var_s3++, j++) {
             func_8000BD94_main(D_80112378_mstory4[var_s3], 0, 0);
             func_8000BDDC_main(D_80112378_mstory4[var_s3], 1);
             func_8000BB94_main(D_80112378_mstory4[var_s3]);
@@ -1623,9 +1620,6 @@ void func_8010FC98_mstory4(void) {
     }
 }
 
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C8050", func_8010FC98_mstory4);
-#endif
 
 /* the character's name plate sprites */
 void func_80110270_mstory4(void) {
