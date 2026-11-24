@@ -1288,7 +1288,6 @@ void func_80109424_fowl_play(void) {
     }
 }
 
-/* one instruction long: retail sign-extends the billboard id before storing its low byte to boards[i] */
 void func_801094A4_fowl_play(omObjData* obj) {
     MgWork* work;
     FpChick* ch;
