@@ -2597,7 +2597,6 @@ void func_8010CFF8_marios_puzzle_party(omObjData* obj) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Break the block at (col, row) into four debris pieces. */
 void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
     s32 slot[4];
@@ -2607,13 +2606,13 @@ void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
     s32 n;
     s32 dx;
     s32 dy;
-    u32 k;
     PzDebris* d;
     omObjData* obj;
 
+    d = D_80114EF0_marios_puzzle_party;
     n = 0;
-    for (i = 0; i < 160; i++) {
-        if (D_80114EF0_marios_puzzle_party[i].unk4 == 0) {
+    for (i = 0; i < 160; i++, d++) {
+        if (d->unk4 == 0) {
             slot[n++] = i;
             if (n >= 4) {
                 break;
@@ -2621,33 +2620,29 @@ void func_8010D290_marios_puzzle_party(s32 player, s32 col, s32 row) {
         }
     }
     if (i < 160) {
-        x = col * 14 + D_80110080_marios_puzzle_party[player].x;
+        x = D_80110080_marios_puzzle_party[player].x + col * 14;
         y = D_80110080_marios_puzzle_party[player].y - row * 7;
-        for (k = 0, dx = 0; dx < 8; dx += 7) {
-            for (dy = 0; dy >= -7; dy -= 7, k++) {
-                d = &D_80114EF0_marios_puzzle_party[slot[k]];
+        for (i = 0, dx = 0; dx < 8; dx += 7) {
+            for (dy = 0; dy >= -7; dy -= 7, i++) {
+                d = &D_80114EF0_marios_puzzle_party[slot[i]];
                 d->unk4 = 1;
                 d->unk8 = x + dx;
                 d->unkC = y + dy;
                 d->unk14 = 1.0f;
                 d->unk0 = func_8010FEDC_marios_puzzle_party(0x1C, d->unk8, d->unkC);
                 obj = omAddObj(100, 0, 0, -1, func_8010CFF8_marios_puzzle_party);
-                obj->work[0] = slot[k];
+                obj->work[0] = slot[i];
                 obj->work[1] = 0;
-                obj->work[2] = k;
+                obj->work[2] = i;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D290_marios_puzzle_party);
-#endif
 
 void func_8010D46C_marios_puzzle_party(void) {
     func_80019C00_main(HuPrcCurrentGet()->user_data);
 }
 
-#ifdef NON_MATCHING
 /* Background sparkle: wait a random time, appear near its spot, drift and shrink. */
 void func_8010D490_marios_puzzle_party(void) {
     PzSparkle* sp;
@@ -2686,6 +2681,10 @@ void func_8010D490_marios_puzzle_party(void) {
                 break;
         }
         switch (rand8() & 1) {
+            default:
+            case 0:
+                s = 1.2f;
+                break;
             case 1:
                 s = 2.0f;
                 if (vx != 0.0f) {
@@ -2702,9 +2701,6 @@ void func_8010D490_marios_puzzle_party(void) {
                         vy += 1.0f;
                     }
                 }
-                break;
-            default:
-                s = 1.2f;
                 break;
         }
         for (sp->unk20 = s; sp->unk20 > 0.0f; sp->unk20 -= 0.03f) {
@@ -2727,9 +2723,6 @@ void func_8010D490_marios_puzzle_party(void) {
         HuSprAttrSet(sp->unk0, 0, 0x8000);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_8010D490_marios_puzzle_party);
-#endif
 
 // decomp-permuter
 void func_8010D8E8_marios_puzzle_party(void)
@@ -2997,7 +2990,10 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_
 #endif
 
 #ifdef NON_MATCHING
-/* Game clock: 5400 frames, counted down while player 0's game runs. */
+/* Game clock: 5400 frames, counted down while player 0's game runs.
+ * NON_MATCHING (H1): masked 15. Retail enters the countdown loop by a jump to its bottom test (no
+ * copied top test) and reuses the decremented value there; while/for copy the test, a goto into a
+ * do-while gets masked 10 but reloads the counter. s16 grp is wrong (retail sign-extends once). */
 void func_8010EAA0_marios_puzzle_party(void) {
     s32 grp;
     s16 x;
