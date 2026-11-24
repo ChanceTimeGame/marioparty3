@@ -2767,8 +2767,6 @@ void func_8010CE70_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
 INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010CE70_duel06);
 #endif
 
-#ifdef NON_MATCHING
-// duel b2: masked 0, raw 28: partner and obj swap s3/s4.
 void func_8010D42C_duel06(s32 arg0, s32 playerNo, Object *partner, Object *target, s32 flags, s32 variant) {
     Object *obj;
     Vec sp18;
@@ -2800,7 +2798,7 @@ void func_8010D42C_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_80106248_duel06();
     func_80106268_duel06(target, player, flags, 3.0f);
     HuPrcChildLink(process, func_800EC1E4_name_81(partnerPos, &sp18, partnerPos, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, partnerPos);
     func_800EB708_name_81(&obj->coords, &sp18, &obj->rot);
@@ -2862,7 +2860,7 @@ void func_8010D42C_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
     func_800EB708_name_81(&partner->coords, &sp28, &partner->rot);
     func_800D90D0_name_81(partner, 0, 2);
     HuPrcChildLink(process, func_800EC1E4_name_81(&partner->coords, &sp28, &partner->coords, 3.0f));
-    func_800D8E88_name_81(partner);
+    func_800D8E88_name_81(obj);
     func_8001C6A8_main(obj->omObj1->model[0], 0.0f);
     HuVecCopy3F(&obj->coords, &partner->coords);
     func_800EB708_name_81(&obj->coords, &sp28, &obj->rot);
@@ -2883,9 +2881,6 @@ void func_8010D42C_duel06(s32 arg0, s32 playerNo, Object *partner, Object *targe
     }
     func_800FADB4_name_81();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel06/436E50", func_8010D42C_duel06);
-#endif
 
 void func_8010D964_duel06(void) {
     Dc2PartnerFuncs funcs1 = { { /* partner attacks by partner id */
