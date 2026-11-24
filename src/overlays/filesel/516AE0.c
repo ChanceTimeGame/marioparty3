@@ -2956,7 +2956,8 @@ s32 func_8010C688_filesel(s32 btn) {
     return 0;
 }
 
-// struct base register choice (the stores and the loop index from D_80114490/D_8011447C in retail) and s-register order (masked 22)
+// struct base register choice (the stores and the loop index from D_80114490/D_8011447C in retail) and s-register order
+// (masked 11). Tried: a local u8 *name for the first call (masked 27). Retail copies to .saved in cases 3-5 (a retail quirk).
 #ifdef NON_MATCHING
 s32 func_8010C9B4_filesel(u32 arg0) {
     s32 btn;
@@ -3674,13 +3675,15 @@ void func_8010F12C_filesel(void) {
     D_80114504_filesel = omAddPrcObj(func_8010E864_filesel, 1, 0x2000, 0);
 }
 
-// the window width is kept in a register for the first window's stack argument, float register choice (masked ~20)
+// NON_MATCHING (masked 2, count right): with w s32 the later windows shift with sra where retail has srl;
+// u16 w gives srl but folds the first stack argument to li 62 (masked 7), u8/s16/u32 worse.
 #ifdef NON_MATCHING
 void func_8010F168_filesel(void) {
     Vec pos;
     Vec2f scr;
     s16 win;
-    u16 w;
+    s32 w;
+    f32 x;
     f32 y;
 
     func_80106B40_filesel(0, 0x2A11, 0x18, 0x14, 0xC8, 0x18, 2);
@@ -3698,8 +3701,9 @@ void func_8010F168_filesel(void) {
     w = 0x3E;
     HuVecCopyXYZ(&pos, -400.0f, 0.0f, 0.0f);
     Hu3DCam3DToScreen(0, &pos, &scr);
+    x = scr.x - (w >> 1);
     y = 168.0f;
-    func_80106B40_filesel(1, (u32)D_801142DC_filesel[0].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    func_80106B40_filesel(1, (u32)D_801142DC_filesel[0].unk_01, x, y, w, 0x14, 2);
     win = func_80107810_filesel(1);
     func_8005B63C_main(win, 0x80000, 0x80000);
     func_8005FBF8_main(win, 0xC0, 0xC0, 0xC0);
@@ -3713,7 +3717,8 @@ void func_8010F168_filesel(void) {
     func_8010F874_filesel(0);
     HuVecCopyXYZ(&pos, 0.0f, 0.0f, 0.0f);
     Hu3DCam3DToScreen(0, &pos, &scr);
-    func_80106B40_filesel(2, (u32)D_801142DC_filesel[1].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    x = scr.x - (w >> 1);
+    func_80106B40_filesel(2, (u32)D_801142DC_filesel[1].unk_01, x, y, w, 0x14, 2);
     win = func_80107810_filesel(2);
     func_8005B63C_main(win, 0x80000, 0x80000);
     func_8005FBF8_main(win, 0xC0, 0xC0, 0xC0);
@@ -3727,7 +3732,8 @@ void func_8010F168_filesel(void) {
     func_8010F874_filesel(1);
     HuVecCopyXYZ(&pos, 400.0f, 0.0f, 0.0f);
     Hu3DCam3DToScreen(0, &pos, &scr);
-    func_80106B40_filesel(3, (u32)D_801142DC_filesel[2].unk_01, scr.x - (w >> 1), y, w, 0x14, 2);
+    x = scr.x - (w >> 1);
+    func_80106B40_filesel(3, (u32)D_801142DC_filesel[2].unk_01, x, y, w, 0x14, 2);
     win = func_80107810_filesel(3);
     func_8005B63C_main(win, 0x80000, 0x80000);
     func_8005FBF8_main(win, 0x80, 0x80, 0x80);
