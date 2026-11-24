@@ -507,7 +507,6 @@ void func_80106DA0_mstory4(omObjData *obj, Vec *to, s32 frames) {
     func_80106DBC_mstory4(obj, to, frames, 1);
 }
 
-#ifdef NON_MATCHING
 /* walks obj's model (and its shadow, kept on the ground) to `to` in `frames` frames, turning
    it to face the way first when `turn` is set */
 void func_80106DBC_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
@@ -528,9 +527,10 @@ void func_80106DBC_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     if (turn) {
         Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
     }
-    step.x = delta.x / frames;
-    step.y = delta.y / frames;
-    step.z = delta.z / frames;
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
     for (t = 0.0f; t < frames; t += 1.0f) {
         pos.x = t * step.x + start.x;
         pos.y = t * step.y + start.y;
@@ -547,15 +547,11 @@ void func_80106DBC_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     }
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_80106DBC_mstory4);
-#endif
 
 void func_80106FF0_mstory4(omObjData *obj, Vec *to, s32 frames) {
     func_8010700C_mstory4(obj, to, frames, 1);
 }
 
-#ifdef NON_MATCHING
 /* as func_80106DBC_mstory4, but the second model follows in 3D */
 void func_8010700C_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     Vec start;
@@ -575,9 +571,10 @@ void func_8010700C_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     if (turn) {
         Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
     }
-    step.x = delta.x / frames;
-    step.y = delta.y / frames;
-    step.z = delta.z / frames;
+    t = frames;
+    step.x = delta.x / t;
+    step.y = delta.y / t;
+    step.z = delta.z / t;
     for (t = 0.0f; t < frames; t += 1.0f) {
         pos.x = t * step.x + start.x;
         pos.y = t * step.y + start.y;
@@ -591,9 +588,6 @@ void func_8010700C_mstory4(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     Hu3DModelPosSet(model, to->x, to->y, to->z);
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory4/4C2BD0", func_8010700C_mstory4);
-#endif
 
 void func_80107220_mstory4(omObjData *obj, f32 x, f32 y, f32 z, s32 frames) {
     Vec to;

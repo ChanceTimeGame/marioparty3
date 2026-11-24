@@ -543,7 +543,8 @@ void func_80113204_mgmode(void) {
    D_801195C4[c] times, first and last different; after 100 failed draws takes D_801195C8.
    Then maps each category to its minigame (D_801195BC). */
 #ifdef NON_MATCHING
-/* Retail zero-extends each rand8() & 3 into the u8 category at the assignment (andi 0xff) and then uses it unextended; here the extension moves to the uses. Logic checked against the asm. */
+/* Retail zero-extends each rand8() & 3 into the u8 category at the assignment (andi 0xff) and then uses it unextended; here the extension moves to the uses. Logic checked against the asm.
+   (masked 14, 160 vs 159). H1 tried: s32 c (156), s32 c = (u8)(rand8() & 3) (156), rand8() % 4 (160). */
 void func_801134C0_mgmode(void) {
     u8 count[4] = { 0, 0, 0, 0 };
     s16 tries = 0;
@@ -921,7 +922,7 @@ void func_80114804_mgmode(s16 rate, s16 count, s16 total) {
 /* Fades in the minigame picture, spins through the four categories' minigames for 30 frames and
    lands on this round's; returns it. */
 #ifdef NON_MATCHING
-/* Same u8 extension placement as func_801134C0; logic checked against the asm. */
+/* Same u8 extension placement as func_801134C0 (masked 6 here, 209 vs 210; H1: same three tries plus c = rand8(); c &= 3, no change); logic checked against the asm. */
 s16 func_801149F4_mgmode(void) {
     s16 i;
     s16 prev;
@@ -971,7 +972,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801149F4_mgmode);
 /* Lets the player pick how many coins to spend (D-pad: +-10, +-1); A confirms a non-zero amount,
    B returns -1. */
 #ifdef NON_MATCHING
-/* 175 vs 179: retail keeps the A test as a bitwise and and recomputes n + step for the last bound check (and has an 8-byte larger frame); logic checked against the asm. */
+/* 175 vs 179: retail keeps the A test as a bitwise and and recomputes n + step for the last bound check (and has an 8-byte larger frame); logic checked against the asm.
+   H1 (masked 29): the positive form (n + step < 100 && ... ) gives 172. */
 s16 func_80114C80_mgmode(void) {
     s16 n = 0;
     s16 step;
@@ -1114,22 +1116,21 @@ void func_801152C0_mgmode(void) {
 
 /* The player walks from the door to the block spot and turns to face the camera. */
 #ifdef NON_MATCHING
-/* 194 vs 197: float register allocation (retail keeps 15.0f/8.0f in their own callee-saved registers); logic checked against the asm. */
+/* 194 vs 197 (masked 30): retail hoists 2.0f too (f26) and forms &D_8011B8B8[9] from the array base; logic checked
+   against the asm. H1 tried: a base pointer local (196, masked 31). */
 void func_80115590_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
+    f32 dx = 198.0f;
+    f32 dz = 210.0f;
     s16 player = D_8011B8B8_mgmode[0];
     s16 i;
     f32 t;
     f32 yaw;
-    f32 dx;
-    f32 dz;
 
     func_8001C258_main(player, 4, 0);
     func_8001C258_main(shadow, 4, 0);
     func_8001F304_main(player, D_8011B792_mgmode);
     func_8001C814_main(player, 2, 2);
-    dx = 198.0f;
-    dz = 210.0f;
     yaw = atan2df(dx, dz) + 180.0f;
     Hu3DModelPosSet(player, 200.0f, 0.0f, -122.0f);
     Hu3DModelRotSet(player, 0.0f, yaw, 0.0f);
@@ -1154,19 +1155,17 @@ INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_80115590_mgmode);
 
 /* The player turns round and walks back to the door. */
 #ifdef NON_MATCHING
-/* 162 vs 166: float register allocation as func_80115590; logic checked against the asm. */
+/* 162 vs 166 (masked 26): as func_80115590; logic checked against the asm. */
 void func_80115848_mgmode(void) {
     s16 shadow = D_8011B8B8_mgmode[9];
+    f32 dx = -198.0f;
+    f32 dz = -210.0f;
     s16 player = D_8011B8B8_mgmode[0];
     s16 i;
     f32 t;
     f32 yaw;
-    f32 dx;
-    f32 dz;
 
-    func_8001C624_main(D_8011B8B8_mgmode[0], D_8011B792_mgmode, 0, 8, 2);
-    dx = -198.0f;
-    dz = -210.0f;
+    func_8001C624_main(player, D_8011B792_mgmode, 0, 8, 2);
     yaw = atan2df(dx, dz) + 180.0f;
     for (i = 0; i < 9; i++) {
         HmfModelData[player].rot.y = i / 8.0f * yaw;
@@ -1340,13 +1339,11 @@ void func_80116260_mgmode(void) {
     memset(D_8011B610_mgmode[2], 0xFF, 0x4B00);
 }
 
-#define MG_PIX_CLR(p, x) (*(p) = ((x) & 1) ? (*(p) & 0xF0) : (*(p) & 0xF))
-#define MG_PIX_SET(p, x, c) (*(p) = ((x) & 1) ? (*(p) | (c)) : (*(p) | ((c) << 4)))
+#define MG_PIX_CLR(p, x) (*(p) &= ((x) & 1) ? 0xF0 : 0xF)
+#define MG_PIX_SET(p, x, c) (*(p) |= ((x) & 1) ? (c) : ((c) << 4))
 
 /* Draws the iris mask into this frame's buffer: a wedge centred on cx, open by angle, with a
    two-pixel rim. */
-#ifdef NON_MATCHING
-/* 215 vs 235: the nibble ternaries compile to more branches than retail; logic checked against the asm. */
 void func_801162B4_mgmode(f32 cx, f32 angle) {
     u8* p = D_8011B610_mgmode[D_800D2008_main];
     u8* q;
@@ -1384,9 +1381,6 @@ void func_801162B4_mgmode(f32 cx, f32 angle) {
     }
     HuSprGet(D_8011B61E_mgmode, 0)->unk_84->unk00->unk00 = D_8011B610_mgmode[D_800D2008_main];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgmode/479470", func_801162B4_mgmode);
-#endif
 
 /* .data (0x801194C0) */
 MgModeSpr* D_801194C0_mgmode = (MgModeSpr*)-1;
