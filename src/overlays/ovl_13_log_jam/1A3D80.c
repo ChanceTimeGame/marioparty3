@@ -560,6 +560,7 @@ void func_801060E8_log_jam(omObjData* obj) {
     }
 }
 
+// H1: masked 28; switch spellings (separate g, no g, (u8) cast) give identical code
 #ifdef NON_MATCHING
 /* Differs: the group switch keeps one register copy fewer (retail moves the group into v1). */
 void func_80106190_log_jam(void) {

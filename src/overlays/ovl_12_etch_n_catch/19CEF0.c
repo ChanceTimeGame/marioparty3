@@ -1311,6 +1311,8 @@ u8 func_80109114_etch_n_catch(s16 x, s16 y) {
 }
 
 /* Sets cell (x, y) to `v`, its 4 neighbours to v * 2 and its diagonal neighbours to v * 4, unless already set. */
+// H1: masked 17; retail takes x/y unextended (s32 parameters, extended at each call) and keeps two copies of x, y and v;
+// s32 parameters alone give masked 21
 #ifdef NON_MATCHING
 void func_8010914C_etch_n_catch(s16 x, s16 y, s32 v) {
     u8* p;

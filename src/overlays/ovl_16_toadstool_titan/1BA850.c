@@ -1488,6 +1488,7 @@ void func_8010B510_toadstool_titan(omObjData* obj) {
 }
 
 // register allocation and frame (retail 0xD0, two more saved registers, one base pointer into the tables); logic checked
+// H1: masked 27; retail holds 0x4A9/0x99 in s1/s2 across func_800E18D8 and reads chr with lbu+sign-extend; s8 chr is worse (48)
 #ifdef NON_MATCHING
 void func_8010B658_toadstool_titan(omObjData* obj, u32 dir, s32 file, u16 idx, f32 x, f32 y, f32 z) {
     TtTbl8 grp = D_8010F218_toadstool_titan;
