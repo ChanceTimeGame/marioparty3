@@ -485,7 +485,7 @@ void func_80108EDC_chancetime(omObjData *obj) {
     omObjData *host;
     f32 y;
     f32 vel;
-    Vec pos;
+    Vec pos __attribute__((unused)); /* retail copies the position and never reads it */
     s32 i;
     s32 j;
     u16 model;
@@ -849,14 +849,11 @@ void func_8010A99C_chancetime(void) {
     }
 }
 
-/* NON_MATCHING: as func_80108EDC_chancetime (retail also copies the position into an unused Vec
- * before the hop and splits the landing test's index); logic matches. */
-#ifdef NON_MATCHING
 void func_8010AA90_chancetime(omObjData *obj) {
-    HmfModel *p;
     omObjData *host;
     f32 y;
     f32 vel;
+    Vec pos __attribute__((unused)); /* retail copies the position and never reads it */
     s32 i;
     s32 j;
     s16 model;
@@ -893,15 +890,17 @@ void func_8010AA90_chancetime(omObjData *obj) {
     func_8001C624_main(model, HmfModelData[host->motion[9]].unk02, 0, 10, 0);
     HuPrcSleep(42);
     func_8001C624_main(obj->model[1], HmfModelData[host->motion[12]].unk02, 0, 10, 0);
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
     vel = 20.0f;
     while (TRUE) {
-        p = &HmfModelData[model];
-        p->pos.y += vel;
-        p->pos.z += 10.0f;
-        if (p->pos.z >= -250.0f) {
-            HmfModelData[obj->model[2]].pos.x = p->pos.x;
+        HmfModelData[model].pos.y += vel;
+        HmfModelData[model].pos.z += 10.0f;
+        if (HmfModelData[model].pos.z >= -250.0f) {
+            HmfModelData[obj->model[2]].pos.x = HmfModelData[model].pos.x;
             HmfModelData[obj->model[2]].pos.y = 0.0f;
-            HmfModelData[obj->model[2]].pos.z = p->pos.z;
+            HmfModelData[obj->model[2]].pos.z = HmfModelData[model].pos.z;
             func_8001C258_main(obj->model[2], 4, 0);
         }
         if (HmfModelData[model].pos.y <= 0.0f) {
@@ -910,18 +909,14 @@ void func_8010AA90_chancetime(omObjData *obj) {
         vel -= 2.0f;
         HuPrcVSleep();
     }
-    p = &HmfModelData[model];
-    p->pos.y = 0.0f;
-    HmfModelData[obj->model[2]].pos.x = p->pos.x;
+    HmfModelData[model].pos.y = 0.0f;
+    HmfModelData[obj->model[2]].pos.x = HmfModelData[model].pos.x;
     HmfModelData[obj->model[2]].pos.y = 0.0f;
-    HmfModelData[obj->model[2]].pos.z = p->pos.z;
+    HmfModelData[obj->model[2]].pos.z = HmfModelData[model].pos.z;
     func_8001C624_main(obj->model[1], HmfModelData[host->motion[5]].unk02, 0, 10, 2);
     D_8010FB60_chancetime = 1;
     D_80110088_chancetime[5].func = func_80107A80_chancetime;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010AA90_chancetime);
-#endif
 
 void func_8010B030_chancetime(void) {
     omObjData *host;
@@ -942,14 +937,11 @@ void func_8010B030_chancetime(void) {
     }
 }
 
-/* NON_MATCHING: as func_80108EDC_chancetime (retail also copies the position into an unused Vec
- * before the hop and splits the landing test's index); logic matches. */
-#ifdef NON_MATCHING
 void func_8010B124_chancetime(omObjData *obj) {
-    HmfModel *p;
     omObjData *host;
     f32 y;
     f32 vel;
+    Vec pos __attribute__((unused)); /* retail copies the position and never reads it */
     s32 i;
     s32 j;
     s16 model;
@@ -986,15 +978,17 @@ void func_8010B124_chancetime(omObjData *obj) {
     func_8001C624_main(model, HmfModelData[host->motion[10]].unk02, 0, 10, 0);
     HuPrcSleep(42);
     func_8001C624_main(obj->model[1], HmfModelData[host->motion[12]].unk02, 0, 10, 0);
+    pos.x = HmfModelData[model].pos.x;
+    pos.y = HmfModelData[model].pos.y;
+    pos.z = HmfModelData[model].pos.z;
     vel = 20.0f;
     while (TRUE) {
-        p = &HmfModelData[model];
-        p->pos.y += vel;
-        p->pos.z += 10.0f;
-        if (p->pos.z >= -250.0f) {
-            HmfModelData[obj->model[2]].pos.x = p->pos.x;
+        HmfModelData[model].pos.y += vel;
+        HmfModelData[model].pos.z += 10.0f;
+        if (HmfModelData[model].pos.z >= -250.0f) {
+            HmfModelData[obj->model[2]].pos.x = HmfModelData[model].pos.x;
             HmfModelData[obj->model[2]].pos.y = 0.0f;
-            HmfModelData[obj->model[2]].pos.z = p->pos.z;
+            HmfModelData[obj->model[2]].pos.z = HmfModelData[model].pos.z;
             func_8001C258_main(obj->model[2], 4, 0);
         }
         if (HmfModelData[model].pos.y <= 0.0f) {
@@ -1003,20 +997,16 @@ void func_8010B124_chancetime(omObjData *obj) {
         vel -= 3.0f;
         HuPrcVSleep();
     }
-    p = &HmfModelData[model];
-    p->pos.y = 0.0f;
-    HmfModelData[obj->model[2]].pos.x = p->pos.x;
+    HmfModelData[model].pos.y = 0.0f;
+    HmfModelData[obj->model[2]].pos.x = HmfModelData[model].pos.x;
     HmfModelData[obj->model[2]].pos.y = 0.0f;
-    HmfModelData[obj->model[2]].pos.z = p->pos.z;
+    HmfModelData[obj->model[2]].pos.z = HmfModelData[model].pos.z;
     func_8001C624_main(model, HmfModelData[host->motion[1]].unk02, 0, 10, 2);
     func_8010BC88_chancetime(obj, 400.0f, 0.0f, 300.0f, 10);
     func_8001C258_main(obj->model[1], 4, 4);
     func_8001C258_main(obj->model[2], 4, 4);
     D_80110088_chancetime[6].func = func_80107A80_chancetime;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/4832D0", func_8010B124_chancetime);
-#endif
 
 /* -1 once model's motion has stopped at its last frame, else 0. */
 s32 func_8010B6F4_chancetime(s16 model) {
