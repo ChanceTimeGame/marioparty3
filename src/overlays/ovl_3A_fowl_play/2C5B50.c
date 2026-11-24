@@ -2749,7 +2749,6 @@ void func_8010D81C_fowl_play(void) {
     D_8010F348_fowl_play = D_8010F330_fowl_play[D_8010EB64_fowl_play];
 }
 
-#ifdef NON_MATCHING
 /* Sorts the visible, unhidden billboards near the camera by view depth into the opaque (D_8010F360) and translucent (D_8010F3C8) lists. */
 void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     PgBoard tail0;
@@ -2761,7 +2760,6 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     f32 z0;
     f32 z1;
     PgBoard* b;
-    PgBoard* list;
     PgBoard* n;
     s32 i;
 
@@ -2802,26 +2800,24 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
             continue;
         }
         if ((b->flags & 0x1000) && b->a < 0x100) {
-            list = &D_8010F3C8_fowl_play;
             b->depth = -(f64)b->depth;
+            n = &D_8010F3C8_fowl_play;
         } else {
-            list = &D_8010F360_fowl_play;
+            n = &D_8010F360_fowl_play;
         }
-        n = list->next;
-        while (b->depth < n->depth) {
-            n = n->next;
+        n = n->next;
+        if (n->depth > b->depth) {
+            do {
+                n = n->next;
+            } while (b->depth < n->depth);
         }
         n->prev->next = b;
         b->prev = n->prev;
         b->next = n;
         n->prev = b;
     }
-    tail1.prev->next = NULL;
-    tail0.prev->next = NULL;
+    tail0.prev->next = tail1.prev->next = NULL;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D970_fowl_play);
-#endif
 
 void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2) {
     HuCamera* cam = (HuCamera*)arg2;
