@@ -2685,16 +2685,17 @@ extern u8 D_800A156C_main[];
 u8 func_8005FA90_main(u8 *arg0);
 u16 func_800450B8_main(u16 code);
 
-// register allocation and loop shape in the i + 1 loops (masked 24), as func_80037574_main
+// register allocation and loop shape in the i + 1 loops (masked 21: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_80037574_main
 #ifdef NON_MATCHING
 s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     s32 ret;
     s32 i;
     f32 t;
     f32 scale;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             for (i = 0; i < n; i++) {
@@ -2756,16 +2757,17 @@ s32 func_8003CE20_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003CE20_main);
 #endif
 
-// register allocation and loop shape in the i + 1 loops (masked 21), as func_8003CE20_main
+// register allocation and loop shape in the i + 1 loops (masked 18: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_8003CE20_main
 #ifdef NON_MATCHING
 s32 func_8003D134_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     GMesChr *p;
     s32 ret;
     s32 i;
     f32 t;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -2830,16 +2832,17 @@ s32 func_8003D134_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003D134_main);
 #endif
 
-// register allocation and loop shape in the i + 1 loops (masked 20), as func_8003CE20_main
+// register allocation and loop shape in the i + 1 loops (masked 17: retail keeps i + 1 in s1 and copies it back, move s0,s1), as func_8003CE20_main
 #ifdef NON_MATCHING
 s32 func_8003D4DC_main(GAMEMES *gMes, Gfx **arg1) {
-    s32 n = 6;
+    s32 n;
     GMesChr *p;
     s32 ret;
     s32 i;
     f32 t;
 
     ret = func_8003C058_main(gMes, arg1);
+    n = 6;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
