@@ -1320,8 +1320,9 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_23_water_whirled/211AB0", func_801096
 #endif
 
 #ifdef NON_MATCHING
-/* Masked 27: retail keeps one more float in a callee-saved register ($f20-$f28; frame 0x50, here 0x48),
-   so the float registers and stack offsets differ; the instructions otherwise line up. */
+/* NON_MATCHING (H1): masked 2 at 416/416 (was 27 with a separate `b = a + 15.0f`). Left: float
+   register allocation in the steering tail (retail h90 in $f28, dx/dz loaded straight into $f26/$f24).
+   Tried inlining h90 and h. */
 /* CPU input: aim at a point ahead on the course (offset at random by difficulty), steer at it, hold A
    except when about to leave a half circle fast. */
 void func_801098AC_water_whirled(omObjData* obj) {
@@ -1331,7 +1332,6 @@ void func_801098AC_water_whirled(omObjData* obj) {
     f32 dx;
     f32 dz;
     f32 a;
-    f32 b;
     f32 h;
     f32 h90;
     s32 q;
@@ -1357,9 +1357,8 @@ void func_801098AC_water_whirled(omObjData* obj) {
                 dz = obj->trans.z;
                 a = atan2df(dx, dz);
                 dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
-                b = a + 15.0f;
-                D_8010A860_water_whirled.x = sindf(b) * dz + 700.0f;
-                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                D_8010A860_water_whirled.x = sindf(a + 15.0f) * dz + 700.0f;
+                D_8010A860_water_whirled.y = cosdf(a + 15.0f) * dz;
                 if (obj->trans.x < 800.0f && obj->trans.z > 0.0f && work->unk40 > 20.0f) {
                     accel = 0;
                 }
@@ -1378,9 +1377,8 @@ void func_801098AC_water_whirled(omObjData* obj) {
                 dz = obj->trans.z;
                 a = atan2df(dx, dz);
                 dz = HuSqrtf(dx * dx + dz * dz) - 150.0f + D_8010A40C_water_whirled[player];
-                b = a + 15.0f;
-                D_8010A860_water_whirled.x = sindf(b) * dz + -700.0f;
-                D_8010A860_water_whirled.y = cosdf(b) * dz;
+                D_8010A860_water_whirled.x = sindf(a + 15.0f) * dz + -700.0f;
+                D_8010A860_water_whirled.y = cosdf(a + 15.0f) * dz;
                 if (obj->trans.x > -800.0f && obj->trans.z < 0.0f && work->unk40 > 20.0f) {
                     accel = 0;
                 }
