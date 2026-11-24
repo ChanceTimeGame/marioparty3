@@ -4,8 +4,8 @@
 /* func_8008B0E0_main built straight into the fixed-point Mtx: rotation of angle degrees whose local
    z axis is turned onto dir (normalised here); the nine s15.16 elements are computed first, then
    packed into integer and fraction halves. Nothing is written when dir is zero. */
-// scheduling: retail schedules the prologue into the body (as the libhmath units); logic checked
-// against the asm.
+// scheduling: retail schedules the prologue into the body (as the libhmath units); masked 55,
+// 234 vs 237. Logic checked against the asm.
 #ifdef NON_MATCHING
 void func_8008B300_main(Mtx* m, f32 angle, Vec* dir) {
     f32 x, y, z;
@@ -26,17 +26,7 @@ void func_8008B300_main(Mtx* m, f32 angle, Vec* dir) {
         y *= inv;
         xz = HuSqrtf((x * x) + (z * z));
         sincosdf(angle, &sine, &cosine);
-        if (xz == 0.0f) {
-            e[0] = cosine * 65536.0f;
-            e[1] = 0;
-            e[2] = sine * y * 65536.0f;
-            e[3] = -sine * 65536.0f;
-            e[4] = 0;
-            e[5] = cosine * y * 65536.0f;
-            e[6] = 0;
-            e[7] = -y * 65536.0f;
-            e[8] = 0;
-        } else {
+        if (xz != 0.0f) {
             inv = 1.0f / xz;
             nz = -z;
             sy = sine * y;
@@ -50,6 +40,16 @@ void func_8008B300_main(Mtx* m, f32 angle, Vec* dir) {
             e[6] = -x * 65536.0f;
             e[7] = -y * 65536.0f;
             e[8] = nz * 65536.0f;
+        } else {
+            e[0] = cosine * 65536.0f;
+            e[1] = 0;
+            e[2] = sine * y * 65536.0f;
+            e[3] = -sine * 65536.0f;
+            e[4] = 0;
+            e[5] = cosine * y * 65536.0f;
+            e[6] = 0;
+            e[7] = -y * 65536.0f;
+            e[8] = 0;
         }
         m->m[0][0] = (e[0] & 0xFFFF0000) | ((e[1] >> 16) & 0xFFFF);
         m->m[0][1] = e[2] & 0xFFFF0000;
