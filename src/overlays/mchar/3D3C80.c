@@ -229,6 +229,9 @@ void func_80105C4C_mchar(omObjData *obj) {
     }
 }
 
+// NON_MATCHING (masked 8): retail keeps 0x2AC in a saved register (hoisted out of the loop), as MP2
+// ovl_56 func_801034E4; an `attr = 0x2AC` local gives masked 2 but is not kept (likely fakematch).
+// The model-file table is read flat, so its .b base is a separate hoisted label.
 /* loads the eight characters' two models from set `set` and their motion 0 */
 #ifdef NON_MATCHING
 void func_8010654C_mchar(s16 set) {
@@ -236,10 +239,10 @@ void func_8010654C_mchar(s16 set) {
     void *data;
 
     for (i = 0; i < 8; i++) {
-        D_80107A60_mchar[i][0] = func_8000B108_main(D_80107120_mchar[i + set].a, 0x2AC);
+        D_80107A60_mchar[i][0] = func_8000B108_main(((s32 *)D_80107120_mchar)[(i + set) * 2], 0x2AC);
         func_80017790_main(D_80107A60_mchar[i][0], 0, i, func_80017BB8_main(i, 0xA3));
         func_8001C514_main(D_80107A60_mchar[i][0]);
-        D_80107A60_mchar[i][1] = func_8000B108_main(D_80107120_mchar[i + set].b, 0x2AC);
+        D_80107A60_mchar[i][1] = func_8000B108_main(((s32 *)D_80107120_mchar)[(i + set) * 2 + 1], 0x2AC);
         func_80017790_main(D_80107A60_mchar[i][1], 1, i, func_80017BB8_main(i, 0xA4));
         func_8001C514_main(D_80107A60_mchar[i][1]);
         if (D_80107AA0_mchar[i].a != -1) {
@@ -277,7 +280,8 @@ void func_80106764_mchar(s16 motion) {
                        0xA, 2);
 }
 
-// masked 37: as mgenter func_80108A60_mgenter, retail addresses Center through a base register (one more $f register here)
+// NON_MATCHING (masked 15, count right): register allocation; retail ties the x/z products to dx (f20) and
+// puts spd in f22, rx in f24. Tried: CZoom = CZoom + k (no change).
 /* debug camera on the first controller (as mgenter's func_80108A60_mgenter): L resets it, C up/down zoom,
    the stick turns, the D-pad moves the target; Z with it goes faster */
 #ifdef NON_MATCHING
@@ -337,14 +341,20 @@ void func_80106898_mchar(omObjData *obj) {
     if (D_800CDA7C_main[0] & 0x800) {
         dx = sindf(ry) * sindf(rx);
         spd = -spd;
-        Center.x += dx * spd;
+        dx *= spd;
+        Center.x += dx;
         Center.y += cosdf(rx) * spd;
-        Center.z += cosdf(ry) * sindf(rx) * spd;
+        dx = cosdf(ry) * sindf(rx);
+        dx *= spd;
+        Center.z += dx;
     } else if (D_800CDA7C_main[0] & 0x400) {
         dx = sindf(ry) * sindf(rx);
-        Center.x += dx * spd;
+        dx *= spd;
+        Center.x += dx;
         Center.y += cosdf(rx) * spd;
-        Center.z += cosdf(ry) * sindf(rx) * spd;
+        dx = cosdf(ry) * sindf(rx);
+        dx *= spd;
+        Center.z += dx;
     } else if (D_800CDA7C_main[0] & 0x200) {
         dz = gCameraList->pos.z - Center.z;
         dx = -(gCameraList->pos.x - Center.x);
