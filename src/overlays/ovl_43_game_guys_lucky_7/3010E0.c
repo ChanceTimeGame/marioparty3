@@ -873,12 +873,11 @@ void func_80106CF4_game_guys_lucky_7(omObjData* obj) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Lucky 7 result: rolls the win chance for the reached level (D_8010D774; reaching past D_8010D776 always wins),
- * shows the win/lose message and sets D_8010D77C (1 lost, 2 won). Differs from retail only in won's register copies. */
+ * shows the win/lose message and sets D_8010D77C (1 lost, 2 won). */
 void func_80107090_game_guys_lucky_7(void) {
     s16 winId;
-    s32 won = 0;
+    s16 won = 0;
 
     if (D_8010D776_game_guys_lucky_7 >= D_8010D774_game_guys_lucky_7) {
         won = 1;
@@ -932,17 +931,12 @@ void func_80107090_game_guys_lucky_7(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107090_game_guys_lucky_7);
-#endif
 
-#ifdef NON_MATCHING
-/* regalloc: retail keeps 'done' in s0 and copies it to s4 before the window loop (one move more); ops, branches, calls and fields equal */
 void func_80107270_game_guys_lucky_7(void) {
     s16 stop = 1;
     s16 adj[4] = { 30, 20, 10, 0 }; /* CPU chance to stop, by CPU level */
     s16 winId;
-    s32 done = 0;
+    s16 done = 0;
 
     if (D_8010D6DC_game_guys_lucky_7.cpu == 1) {
         if (D_8010D776_game_guys_lucky_7 < D_8010D774_game_guys_lucky_7 && D_8010D774_game_guys_lucky_7 < 8) {
@@ -1021,11 +1015,6 @@ void func_80107270_game_guys_lucky_7(void) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", D_8010D3B4_game_guys_lucky_7);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_43_game_guys_lucky_7/3010E0", func_80107270_game_guys_lucky_7);
-#endif
 
 void func_80107668_game_guys_lucky_7(omObjData* obj) {
     switch (D_8010D1D2_game_guys_lucky_7) {

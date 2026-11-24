@@ -312,8 +312,6 @@ void func_80105B64_bobbing_bow_loons(void) {
     Hu3DModelScaleSet(obj->model[2], 1.0f, 2.0f, 1.0f);
 }
 
-/* NON_MATCHING: masked 0 with func_80017AD8_main returning s16 (header says u8: an extra andi 0xFF) */
-#ifdef NON_MATCHING
 /* The player's character, its hand and its balloon. */
 void func_80105D04_bobbing_bow_loons(void) {
     s32 sp18[8] = { 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 3 };
@@ -377,23 +375,6 @@ void func_80105D04_bobbing_bow_loons(void) {
                     work->unk08 + 150.0f, work->unk0C + 0.0f);
     Hu3DModelScaleSet(obj->model[1], 1.5f, 1.5f, 1.5f);
 }
-#else
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109844_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109864_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109884_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_801098E4_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109904_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109924_bobbing_bow_loons);
-
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", D_80109944_bobbing_bow_loons);
-
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3D_bobbing_bow_loons/2D8370", func_80105D04_bobbing_bow_loons);
-#endif
 
 void func_80106260_bobbing_bow_loons(omObjData* obj) {
     BlPlayer* work = obj->data;

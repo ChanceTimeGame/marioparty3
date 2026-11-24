@@ -1132,22 +1132,24 @@ void func_80106EB0_stardust_battle(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_80106EB0_stardust_battle);
 #endif
 
-/* NON_MATCHING: register allocation, and retail sign-extends the two saved stick bytes (lbu/sll/sra) where mine keeps lb; they are only stored back as bytes */
+/* NON_MATCHING (masked 25, 5 short): retail loads the two saved stick bytes with lbu and sign-extends them (sll/sra), as if
+   the arrays were u8 here and the locals s8; s8 locals, (u8) loads and declaration order still give lb; the saved
+   registers then differ. Only stored back as bytes. (H1: chained stick store and the work/model order fixed) */
 #ifdef NON_MATCHING
 void func_801073F4_stardust_battle(omObjData *obj) {
-    SbPlayer *pl;
-    MgWork *work;
     HmfModel *model;
+    SbPlayer *pl;
     u16 btn;
     s32 sx;
     s32 sy;
     s32 busy;
+    MgWork *work;
     s16 hit;
 
     busy = 0;
     pl = func_80111FEC_stardust_battle(obj);
-    work = obj->data;
     model = &HmfModelData[obj->model[0]];
+    work = obj->data;
     if (func_80049F98_main() + D_800D6A90_main != 0) {
         func_8001C258_main(obj->model[0], 4, 0);
         return;
@@ -1160,8 +1162,7 @@ void func_801073F4_stardust_battle(omObjData *obj) {
     sy = D_800D20A1_main[pl->unk22];
     if (model->unk06 == obj->motion[0x27]) {
         D_800D5558_main[pl->unk22] = 0;
-        D_800D20A1_main[pl->unk22] = 0;
-        D_800CBB6E_main[pl->unk22] = 0;
+        D_800CBB6E_main[pl->unk22] = D_800D20A1_main[pl->unk22] = 0;
     } else if (pl->unk66 != -1) {
         D_800D5558_main[pl->unk22] &= ~0x4000;
     }
@@ -1967,7 +1968,9 @@ void func_80109424_stardust_battle(omObjData *obj)
   st->unk30 = func_80109B18_stardust_battle;
 }
 
-/* NON_MATCHING: register allocation: retail keeps the best weight in s3 (mfc1/mtc1) and schedules 1.0f - ny into the sqrtf delay slot; mine keeps it in an FPR */
+/* NON_MATCHING (masked 41, 1 short): register allocation: retail keeps the best weight in s3 (mfc1/mtc1) and schedules
+   1.0f - ny into the sqrtf delay slot; mine keeps it in an FPR and 0.0f in s8. H1 tried: the zero-init chain order (no
+   change), 1.0f - ny in a local before sqrtf (masked 38 but 4 short) */
 #ifdef NON_MATCHING
 void func_80109B18_stardust_battle(omObjData *obj) {
     SbStage *st = func_80111FEC_stardust_battle(obj);
@@ -3670,16 +3673,14 @@ extern u8 D_80114B38_stardust_battle[2][6]; /* digits */
 extern omObjData *D_80114B34_stardust_battle;
 void func_8010F0E8_stardust_battle(omObjData *obj);
 
-/* NON_MATCHING: retail sign-extends the HuSprGrpCreate result (its declaration there returned int; sprite.h says s16), so mine skips one sll/sra and re-extends the group at two calls */
-#ifdef NON_MATCHING
 void func_8010EE7C_stardust_battle(void) {
     SbB44 *b;
     omObjData *obj;
     s32 i;
     s32 j;
-    s16 grp;
+    s32 grp;
 
-    D_80114B44_stardust_battle = b = HuMemAllocTag(sizeof(SbB44) * 2, 31000);
+    b = D_80114B44_stardust_battle = HuMemAllocTag(sizeof(SbB44) * 2, 31000);
     memset(b, 0, sizeof(SbB44) * 2);
     obj = D_80114B34_stardust_battle = omAddObj(29, 0, 0, -1, func_8010F0E8_stardust_battle);
     obj->work[2] = 0;
@@ -3715,21 +3716,20 @@ void func_8010EE7C_stardust_battle(void) {
         func_8010F400_stardust_battle(1, D_80114AB4_stardust_battle);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_41_stardust_battle/2ED2D0", func_8010EE7C_stardust_battle);
-#endif
 
-/* NON_MATCHING: scheduling and loop-invariant hoisting: retail hoists &D_80113ED8 into s3 for the digit loop and clears the loop counter before the mtc1; ops equal */
+/* NON_MATCHING (masked 4): retail hoists &D_80113ED8 into s3 after the grp extension (sll s0) for the digit loop, and the
+   case-0 jump carries that sll in its delay slot; the slot pointer gets the hoist but one place early. H1 tried: no fc
+   local (fixed the mtc1 order), a slot pointer before the loop, in the for-init */
 #ifdef NON_MATCHING
 void func_8010F0E8_stardust_battle(omObjData *obj) {
     SbB44 *b = D_80114B44_stardust_battle;
     u8 *dig;
+    SbDigitSlot *slot;
     s32 i;
     s32 j;
     s32 c;
     s32 grp;
     f32 sc;
-    f32 fc;
 
     if (obj->work[2] != 0) {
         obj->work[2]--;
@@ -3751,9 +3751,8 @@ void func_8010F0E8_stardust_battle(omObjData *obj) {
             }
             sc = b->unk10;
             c = b->unk08 + D_80113CE0_stardust_battle[3] + 6;
-            fc = c;
             for (j = 0; j < 8; j++) {
-                func_80054904_main(grp, j, b->unk08 + (fc + (D_80113CE0_stardust_battle[j] - c) * sc), b->unk0A + D_80113CF0_stardust_battle[i]);
+                func_80054904_main(grp, j, b->unk08 + (c + (D_80113CE0_stardust_battle[j] - c) * sc), b->unk0A + D_80113CF0_stardust_battle[i]);
                 HuSprScaleSet(grp, j, sc, sc);
             }
             break;
@@ -3767,11 +3766,11 @@ void func_8010F0E8_stardust_battle(omObjData *obj) {
             }
             break;
         }
-        for (j = 0; j < 6; j++) {
+        for (j = 0, slot = D_80113ED8_stardust_battle; j < 6; j++) {
             if (dig[j] >= 10) {
                 dig[j] = 9;
             }
-            func_80054FF8_main(grp, D_80113ED8_stardust_battle[j].member, dig[j]);
+            func_80054FF8_main(grp, slot[j].member, dig[j]);
         }
         b->unk06++;
     }

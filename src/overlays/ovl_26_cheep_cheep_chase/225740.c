@@ -1356,12 +1356,12 @@ void func_80109CAC_cheep_cheep_chase(CxFuncContext *ctx) {
     }
 }
 
-// Register allocation (ctx/object/player in other saved registers).
+// NON_MATCHING (H1): masked 3 at 374/374. Left: retail loads chr for the 4th argument of
+// func_80017790_main before object->model[0] (scheduling). Tried an s16 n.
 #ifdef NON_MATCHING
 void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx) {
     CxPlayer *player;
     omObjData *object;
-    GW_PLAYER *gw;
 
     object = D_800EC598_minigame[ctx->work.s16[0]];
     player = &D_8010E364_cheep_cheep_chase[ctx->work.s16[0]];
@@ -1421,11 +1421,12 @@ void func_8010A08C_cheep_cheep_chase(CxFuncContext *ctx) {
             break;
         case 3:
             if (++ctx->work.s8[1] >= 6) {
-                gw = &GwPlayer[ctx->work.s16[0]];
-                func_80017790_main(object->model[0], 2, gw->chr, D_8010E028_cheep_cheep_chase[gw->chr]);
+                s32 n = ctx->work.s16[0];
+
+                func_80017790_main(object->model[0], 2, GwPlayer[n].chr, D_8010E028_cheep_cheep_chase[GwPlayer[n].chr]);
                 func_8010D7F4_cheep_cheep_chase(ctx->work.s16[0] + 4, ctx);
                 func_800E5690_minigame(object, 0xD);
-                func_80045ED0_main(D_800A178C_main[gw->chr][0] | 0x2F);
+                func_80045ED0_main(D_800A178C_main[GwPlayer[n].chr][0] | 0x2F);
                 func_8010D6F4_cheep_cheep_chase(1, 0, -1, 0, NULL, func_8010896C_cheep_cheep_chase, FALSE, FALSE);
             }
             break;

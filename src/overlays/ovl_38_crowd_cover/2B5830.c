@@ -1532,29 +1532,30 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
             mode = 2;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (fmt) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -1616,7 +1617,6 @@ s16 func_8010980C_crowd_cover(PgBoard* b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010980C_crowd_cover);
 #endif
 
-#ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
 s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
     PgBoard* b;
@@ -1671,29 +1671,30 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -1708,8 +1709,7 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -1722,7 +1722,7 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -1750,11 +1750,7 @@ s16 func_8010A12C_crowd_cover(s16 tex, u32 flags) {
     }
     return id;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010A12C_crowd_cover);
-#endif
 
-#ifdef NON_MATCHING
 /* Gives billboard id sprite tex: rebuilds its strip and display list. */
 void func_8010A734_crowd_cover(s16 id, s16 tex) {
     PgBoard* b;
@@ -1800,29 +1796,30 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -1837,8 +1834,7 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -1851,7 +1847,7 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -1875,9 +1871,6 @@ void func_8010A734_crowd_cover(s16 id, s16 tex) {
     }
     func_8010980C_crowd_cover(b);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010A734_crowd_cover);
-#endif
 
 void func_8010ACBC_crowd_cover(s16 id, s16 tex) {
     PgBoard* b;
@@ -2241,7 +2234,6 @@ void func_8010B754_crowd_cover(void) {
     D_8010D8FC_crowd_cover = D_8010D8F0_crowd_cover[D_8010CA9C_crowd_cover];
 }
 
-#ifdef NON_MATCHING
 /* Sorts the visible billboards by view depth into the opaque (D_8010DE00) and translucent (D_8010DE68) lists. */
 void func_8010B8A8_crowd_cover(HuCamera* cam, f32 (*view)[4]) {
     PgBoard tail0;
@@ -2253,7 +2245,6 @@ void func_8010B8A8_crowd_cover(HuCamera* cam, f32 (*view)[4]) {
     f32 z0;
     f32 z1;
     PgBoard* b;
-    PgBoard* list;
     PgBoard* n;
     s32 i;
 
@@ -2291,26 +2282,24 @@ void func_8010B8A8_crowd_cover(HuCamera* cam, f32 (*view)[4]) {
             continue;
         }
         if ((b->flags & 0x1000) && b->a < 0x100) {
-            list = &D_8010D980_crowd_cover;
             b->depth = -(f64)b->depth;
+            n = &D_8010D980_crowd_cover;
         } else {
-            list = &D_8010D918_crowd_cover;
+            n = &D_8010D918_crowd_cover;
         }
-        n = list->next;
-        while (b->depth < n->depth) {
-            n = n->next;
+        n = n->next;
+        if (n->depth > b->depth) {
+            do {
+                n = n->next;
+            } while (b->depth < n->depth);
         }
         n->prev->next = b;
         b->prev = n->prev;
         b->next = n;
         n->prev = b;
     }
-    tail1.prev->next = NULL;
-    tail0.prev->next = NULL;
+    tail0.prev->next = tail1.prev->next = NULL;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_38_crowd_cover/2B5830", func_8010B8A8_crowd_cover);
-#endif
 
 void func_8010BB4C_crowd_cover(Gfx** gfx, s32 arg1, s32 arg2) {
     HuCamera* cam = (HuCamera*)arg2;
