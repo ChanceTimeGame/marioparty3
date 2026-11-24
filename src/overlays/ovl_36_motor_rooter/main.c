@@ -1267,7 +1267,6 @@ void func_8010961C_motor_rooter(FuncContext *ctx) {
 /* </func_8010961C_motor_rooter> */
 
 /* <func_8010972C_motor_rooter> */
-#ifdef NON_MATCHING
 void func_8010972C_motor_rooter(FuncContext *ctx) {
     D_801137C8_motor_rooter_Struct *work = &D_801137C8_motor_rooter[ctx->tag];
     PlayerView *view = ctx->data;
@@ -1277,7 +1276,6 @@ void func_8010972C_motor_rooter(FuncContext *ctx) {
     s16 k;
     s16 i;
     s16 j;
-    s16 n;
 
     for (j = 0; j < 3; j++) {
         k = view->unk2E[j];
@@ -1293,14 +1291,14 @@ void func_8010972C_motor_rooter(FuncContext *ctx) {
                 func_8001C258_main(object->model[i], 4, 4);
             }
         }
-        if (view->unk4C[k] - work->unk1C < nearest) {
+        if (nearest > view->unk4C[k] - work->unk1C) {
             nearest = view->unk4C[k] - work->unk1C;
         }
         ctx->work.s16[0] = j;
         if (!(work->unk08 & 0x42) && work->unk1C == view->unk4C[k]) {
             if (work->unk16 != view->unk34[j][0] && work->unk16 != view->unk34[j][1] &&
                 work->unk16 != view->unk34[j][2]) {
-                for (n = 0; n < 3; n++) {
+                for (i = 0; i < 3; i++) {
                     if (work->unk14 - 1 > 0) {
                         work->unk14--;
                         work->unk28[work->unk14] = 2;
@@ -1317,7 +1315,7 @@ void func_8010972C_motor_rooter(FuncContext *ctx) {
                 }
             }
         }
-        if (view->unk4C[k] + 2 < view->unk8A) {
+        if (view->unk8A > view->unk4C[k] + 2) {
             view->unk2E[j] = view->unk88++;
             if (view->unk88 > D_801137D2_motor_rooter) {
                 for (i = j * 7; i < j * 7 + 7; i++) {
@@ -1333,17 +1331,21 @@ void func_8010972C_motor_rooter(FuncContext *ctx) {
             }
         }
     }
-    dist = nearest + 3;
     if (work->unk88 == 0) {
         work->unk88 = 1;
         work->unk8A = func_8004AC5C_main(0x4B2, ctx->tag);
         func_8004AAD0_main(work->unk8A, 0);
     }
-    func_8004AAD0_main(work->unk8A, dist < 26 ? 127 - (dist < 0 ? 0 : dist) * 3 : 0);
+    dist = nearest + 3;
+    if (dist < 26) {
+        if (dist < 0) {
+            dist = 0;
+        }
+        func_8004AAD0_main(work->unk8A, 127 - dist * 3);
+    } else {
+        func_8004AAD0_main(work->unk8A, 0);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_36_motor_rooter/main", func_8010972C_motor_rooter);
-#endif
 /* </func_8010972C_motor_rooter> */
 
 /* <func_80109C94_motor_rooter> */
