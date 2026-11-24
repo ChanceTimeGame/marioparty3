@@ -1369,7 +1369,6 @@ void func_8010913C_marios_puzzle_party(void) {
     func_80019C00_main(HuPrcCurrentGet()->user_data);
 }
 
-#ifdef NON_MATCHING
 /* The special piece lands on a column: squash the first two-block piece under it, push the blocks
    above down, then turn it into a single block and close the gap. */
 void func_80109160_marios_puzzle_party(void) {
@@ -1379,8 +1378,6 @@ void func_80109160_marios_puzzle_party(void) {
     PzCell* cells;
     s32 row;
     s32 r;
-    s32 a;
-    s32 b;
     s32 keep;
     s32 more;
     f32 scale;
@@ -1388,7 +1385,11 @@ void func_80109160_marios_puzzle_party(void) {
     row = 1;
     sq = HuPrcCurrentGet()->user_data;
     omPrcSetDestructor((s32)HuPrcCurrentGet(), func_8010913C_marios_puzzle_party);
-    while ((u32)(base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row])->unk10 >= 2) {
+    while (TRUE) {
+        base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row];
+        if ((u32)base->unk10 < 2) {
+            break;
+        }
         row++;
     }
     keep = TRUE;
@@ -1407,53 +1408,52 @@ void func_80109160_marios_puzzle_party(void) {
                 cell = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][r];
                 switch (cell->unk10) {
                     case 1:
-                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7);
-                        func_8010FF78_marios_puzzle_party(cell->unk0, sq->unk4 * 14 + D_80110080_marios_puzzle_party[sq->unk0].x, cell->unk8);
-                        r += 2;
+                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7);
+                        func_8010FF78_marios_puzzle_party(cell->unk0, D_80110080_marios_puzzle_party[sq->unk0].x + sq->unk4 * 14, cell->unk8);
+                        r++;
+                    default:
+                        r++;
                         break;
                     case 3:
-                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7);
+                        cell->unk8 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7);
                         r++;
-                        func_8010FF78_marios_puzzle_party(cell->unk0, sq->unk4 * 14 + D_80110080_marios_puzzle_party[sq->unk0].x, cell->unk8);
+                        func_8010FF78_marios_puzzle_party(cell->unk0, D_80110080_marios_puzzle_party[sq->unk0].x + sq->unk4 * 14, cell->unk8);
                         break;
                     case 0:
                         more = FALSE;
                         r++;
                         break;
-                    default:
-                        r++;
-                        break;
                 }
             } while (more);
-            sq->unk10->unk30 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - 2 - row) * 7) - 7.0f;
-            func_80054904_main(sq->unk8, 0, sq->unkC, D_801161A8_marios_puzzle_party[sq->unk0] + sq->unk10->unk30);
+            sq->unk10->unk30 = base->unk8 - 2.0f * (scale * 7.0f) - ((r - (row + 2)) * 7) - 7.0f;
+            func_80054904_main(sq->unk8, 0, sq->unkC, sq->unk10->unk30 + D_801161A8_marios_puzzle_party[sq->unk0]);
             HuPrcVSleep();
         } while (keep);
-        a = row + 1;
-        D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row].unk10 = 3;
-        b = a + 1;
-        do {
+        base = &D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4][row];
+        row++;
+        base->unk10 = 3;
+        r = row + 1;
+        while (TRUE) {
             cells = D_801102E0_marios_puzzle_party[sq->unk0][sq->unk4];
-            cells[a].unk0 = cells[b].unk0;
-            cells[a].unk4 = cells[b].unk4;
-            cells[a].unk8 = cells[b].unk8;
-            cells[a].unkC = cells[b].unkC;
-            cells[a].unk10 = cells[b].unk10;
-            a++;
-            if (cells[b].unk10 == 0) {
+            base = &cells[row];
+            cell = &cells[r];
+            base->unk0 = cell->unk0;
+            base->unk4 = cell->unk4;
+            base->unk8 = cell->unk8;
+            base->unkC = cell->unkC;
+            base->unk10 = cell->unk10;
+            row++;
+            if (cell->unk10 == 0) {
                 break;
             }
-            b++;
-        } while (TRUE);
+            r++;
+        }
     }
     omDelPrcObj(NULL);
     while (TRUE) {
         HuPrcVSleep();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80109160_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* The special piece has landed between two columns: squash them until neither has a two-block
