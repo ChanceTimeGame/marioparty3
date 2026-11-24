@@ -575,9 +575,6 @@ void func_801076DC_mstory2(omObjData *a, omObjData *b) {
     Hu3DModelRotSet(models[0], rot.x, rot.y, rot.z);
 }
 
-// the frame count is converted once and kept (retail converts it again for the first loop test), as
-// func_80106E48_mstory2: register/scheduling residue only
-#ifdef NON_MATCHING
 /* walks obj's model to `to` as func_80106E48_mstory2 does, but from frame 50 on the step grows
    by 1/90 of its first size every frame; it stops early once x has reached to->x */
 void func_80107824_mstory2(omObjData *obj, Vec *to, s32 frames, s32 turn) {
@@ -602,11 +599,12 @@ void func_80107824_mstory2(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     if (turn) {
         Hu3DModelRotSet(model, 0.0f, -(atan2df(delta.z, delta.x) - 90.0f), 0.0f);
     }
-    sx = delta.x / frames;
+    t = frames;
+    sx = delta.x / t;
     accel.x = sx / 90.0f;
-    sy = delta.y / frames;
+    sy = delta.y / t;
     accel.y = sy / 90.0f;
-    sz = delta.z / frames;
+    sz = delta.z / t;
     accel.z = sz / 90.0f;
     step.x = sx;
     step.y = sy;
@@ -646,9 +644,6 @@ void func_80107824_mstory2(omObjData *obj, Vec *to, s32 frames, s32 turn) {
     }
     HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mstory2/49BD40", func_80107824_mstory2);
-#endif
 
 INCLUDE_RODATA("asm/nonmatchings/overlays/mstory2/49BD40", D_8011BE1C_mstory2);
 
