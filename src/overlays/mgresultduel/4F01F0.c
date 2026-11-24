@@ -680,7 +680,7 @@ void func_80107654_mgresultduel(omObjData *arg0) {
 }
 
 #ifdef NON_MATCHING
-// duelres A: Masked 18: retail rematerialises &D_80108F30_mgresultduel after each call; this keeps it in a saved register.
+// duelres A (masked 14, 7 short): retail rematerialises &D_80108F30_mgresultduel after each call; ours keeps it in a saved register (tried a u16[2] array) (H1)
 void func_80107710_mgresultduel(void) {
     omObjData *obj;
     void *data;
