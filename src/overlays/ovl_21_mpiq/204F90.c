@@ -2298,11 +2298,13 @@ void func_8010BA64_mpiq(omObjData* obj) {
     omDelObj(obj);
 }
 
+/* masked 3 (H1): retail adds D_8010C9FC + 1 before adding D_8010CA4C; GCC reassociates every spelling tried
+   (five orders, casts). size is s16[2]: func_80060394 writes width and height. */
 #ifdef NON_MATCHING
 /* Open the question window: "Qn" header, the question text and its name insert. */
 s16 func_8010BB74_mpiq(void) {
+    s16 size[2];
     char buf[0x100];
-    s16 size;
     s32 mes;
     s16 win;
 
@@ -2312,7 +2314,7 @@ s16 func_8010BB74_mpiq(void) {
     if (D_8010CBA0_mpiq[D_8010CA4C_mpiq] & 2) {
         func_8006022C_main(D_8010CBB8_mpiq[D_8010CA4C_mpiq], 0);
     }
-    func_80060394_main(1, &size, mes);
+    func_80060394_main(1, size, mes);
     win = func_8005A968_main(0x4F, 0x2D, 0xA5, 0x50, 0, 0);
     D_8010CAFC_mpiq = win;
     func_8005B63C_main(win, 0x40, 0x40);
@@ -2341,7 +2343,7 @@ s16 func_8010BD1C_mpiq(void) {
     char buf1[0x100];
     char buf2[0x100];
     char* bufs[3];
-    s16 size;
+    s16 size[2];
     s32* ans;
     s32 frac;
     s32 n;
@@ -2391,7 +2393,7 @@ s16 func_8010BD1C_mpiq(void) {
             func_8006022C_main(D_8010CB00_mpiq[D_8010CA4C_mpiq][k], k);
         }
     }
-    func_80060394_main(1, &size, 0x533C);
+    func_80060394_main(1, size, 0x533C);
     win = func_8005A968_main(0x4F, 0x2D, 0xA5, 0x50, 0, 0);
     func_8005B63C_main(win, 0x40, 0x40);
     func_8005BDFC_main(win, 0);
