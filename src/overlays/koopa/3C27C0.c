@@ -919,7 +919,6 @@ s32 func_80107A9C_koopa(void) {
     return 0;
 }
 
-#ifdef NON_MATCHING
 s32 func_80107DDC_koopa(void) {
     UnkBoard8 *spr;
     void *data;
@@ -987,7 +986,8 @@ s32 func_80107DDC_koopa(void) {
             t = i;
             func_80054904_main(spr->spriteGroup, 0, sindf(t) * 90.0f + 160.0f, sindf(i + 90) * 50.0f + 38.0f);
             func_80055458_main(spr->spriteGroup, 0, 256 - i * 2);
-            scale = 1.0f - t / 140.0f;
+            t /= 140.0f;
+            scale = 1.0f - t;
             HuSprScaleSet(spr->spriteGroup, 0, scale, scale);
             HuPrcVSleep();
         }
@@ -1002,9 +1002,6 @@ s32 func_80107DDC_koopa(void) {
     func_800EC3E4_shared_board();
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/koopa/3C27C0", func_80107DDC_koopa);
-#endif
 
 // event e4
 void func_80108360_koopa(s32 file) {
