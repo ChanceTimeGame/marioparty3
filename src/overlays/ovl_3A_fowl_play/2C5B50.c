@@ -753,7 +753,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_f
 #endif
 
 #ifdef NON_MATCHING
-/* two instructions long: retail moves dist to $f24 before angle to $f20 and has no nop after each sindf/cosdf call; the rest matches */
+/* masked 0, raw 2 (unit on the strip_nop path since H1): retail moves dist to $f24 before angle to $f20; tried dist/best spellings of dir */
 /* Bounces a move of dist along angle off the nearest pen wall; returns the new angle. */
 f32 func_801075B0_fowl_play(Vec* pos, f32 dist, f32 angle) {
     Vec hit;
@@ -1767,7 +1767,7 @@ f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out) {
 
 /* The parameter along d1 where the line p1 + t * d1 meets the line p2 + s * d2, or -1. */
 #ifdef NON_MATCHING
-/* masked 7, one instruction short: retail divides into $f4 and moves the result to $f0 */
+/* masked 7, one instruction short: retail divides into $f4 and moves the result to $f0 (tried return -1.0f, return of the quotient, a = quotient) */
 f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2) {
     f32 ax;
     f32 ay;

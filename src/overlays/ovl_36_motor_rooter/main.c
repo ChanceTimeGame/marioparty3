@@ -411,6 +411,7 @@ void func_8010961C_motor_rooter(FuncContext *ctx);
 void func_8010972C_motor_rooter(FuncContext *ctx);
 void func_80109C94_motor_rooter(PlayerView *view, s16 row);
 
+/* masked 0 (2 differing lines are call-target addends of the NON_MATCHING unit), raw: ctx and i in s1/s0 swapped */
 void func_80106508_motor_rooter(omObjData *object) {
     s32 files[7];
     PlayerView *view;
@@ -419,15 +420,14 @@ void func_80106508_motor_rooter(omObjData *object) {
     s16 var_a1;
     s16 i;
     s16 j;
-    s32 dir = 0x570000;
 
     *(MrFileTbl7 *)files = D_80113618_motor_rooter;
 
     view = &m254_minigame->views[object->work[0] = m254_minigame->unk1A4[1]];
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 7; i++) {
-            id = func_8000B838_main(files[i] | dir);
-            m254_minigame->views[object->work[0]].unk04[j][i] = id;
+            id = func_8000B838_main(files[i] | 0x570000);
+            m254_minigame->views[object->work[0]].unk04[0][j * 7 + i] = id;
             object->model[j * 7 + i] = func_8010EFF8_motor_rooter(func_80055194_main(id), 1.0f);
             Hu3DModelScaleSet(object->model[j * 7 + i], 2.0f, 2.0f, 2.0f);
         }
