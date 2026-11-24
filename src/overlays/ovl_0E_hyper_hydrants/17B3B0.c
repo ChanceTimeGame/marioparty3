@@ -1298,7 +1298,7 @@ void func_80108788_hyper_hydrants(s16 model) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80108788_hyper_hydrants);
 #endif
 
-// masked residue: retail selects the camera with a branch (li 1/0) where this C gets sltu, and schedules the model move later (logic checked)
+// masked 6 (191/193): retail selects the camera with a branch (li 1/0) where this C gets sltu; tried ternary, if/else both orders, s32 cam (logic checked)
 #ifdef NON_MATCHING
 /* A team's burning building drop-in (work as HhFire): falls from 800 at the start, then bounces. */
 void func_80108F34_hyper_hydrants(omObjData* obj) {
@@ -1327,15 +1327,15 @@ void func_80108F34_hyper_hydrants(omObjData* obj) {
     pos.x = obj->trans.x;
     pos.y = obj->trans.y + 200.0f;
     pos.z = obj->trans.z;
-    cam = 1;
-    if (fd->unk00 == 0) {
+    if (fd->unk00 != 0) {
+        cam = 1;
+    } else {
         cam = 0;
     }
     func_80012B14_main(cam, &pos, &scr);
     D_8010BFA0_hyper_hydrants = scr.x;
     D_8010BFA4_hyper_hydrants = scr.y;
-    mdl = func_8000B108_main(0xA008A, 0x289);
-    obj->model[0] = mdl;
+    mdl = obj->model[0] = func_8000B108_main(0xA008A, 0x289);
     if (fd->unk00 == 0) {
         HmfAnimRead(HmfModelData[mdl].hmf, 0xA008C, D_8010BEF0_hyper_hydrants);
         func_8001C8A8_main(obj->model[0], 1);

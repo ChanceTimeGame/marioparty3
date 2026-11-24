@@ -1242,6 +1242,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_80109
 #endif
 
 /* One shooting star: fly, point the trail along the motion, vanish off its half of the screen. */
+// C path identical (n64chkf), but retail pads 2 nops after it: a TU boundary at 0x80109900 (split wall), so the ROM cannot match in this unit
 #ifdef NON_MATCHING
 void func_801096A8_cosmic_coaster(omObjData *object) {
     CcShoot *star;
@@ -1249,7 +1250,7 @@ void func_801096A8_cosmic_coaster(omObjData *object) {
     star = object->data;
     star->unk0C += star->unk14;
     star->unk10 += star->unk18;
-    star->unk18 = star->unk18;
+    star->unk18 *= 1.0f;
     func_8000BBD4_main(star->unk08, star->unk0C, star->unk10);
     func_8000BBD4_main(star->unk0A, star->unk0C, star->unk10);
     func_8000BF00_main(star->unk0A, atan2df(-star->unk18, star->unk14) - 180.0f);
@@ -1264,10 +1265,10 @@ void func_801096A8_cosmic_coaster(omObjData *object) {
         if (!(star->unk18 >= 0.0f)) {
             break;
         }
-        if (star->unk0C > 164.0f) {
-            goto end;
+        if (!(star->unk0C > 164.0f)) {
+            break;
         }
-        break;
+        goto end;
     case 1:
         if (star->unk10 >= 260.0f) {
             goto end;
@@ -1558,7 +1559,6 @@ void func_8010A744_cosmic_coaster(omObjData *object) {
 }
 
 /* Track object type 4 (glowing star): light the nearby objects of its side, vanish when hit or passed. */
-#ifdef NON_MATCHING
 void func_8010A838_cosmic_coaster(omObjData *object) {
     CcCar *car;
     omObjData **objs;
@@ -1580,7 +1580,7 @@ void func_8010A838_cosmic_coaster(omObjData *object) {
     func_8001FBBC_main(object->model[0], 0xFF, 0xFF, 0xFF);
     objs = func_80047DBC_main((s16)object->work[2]);
     for (i = 0; i < 0x37; i++) {
-        if ((o = objs[i]) != NULL && o->work[1] != 4) {
+        if (objs[i] != NULL && (o = objs[i])->work[1] != 4) {
             d = HuSqrtf((o->trans.x - object->trans.x) * (o->trans.x - object->trans.x) + (o->trans.y - object->trans.y) * (o->trans.y - object->trans.y) + (o->trans.z - object->trans.z) * (o->trans.z - object->trans.z));
             if (!(d > 1600.0f) && !(CC_LIGHT_DIST(o) < d)) {
                 CC_LIGHT_DIST(o) = d;
@@ -1602,9 +1602,6 @@ void func_8010A838_cosmic_coaster(omObjData *object) {
         omDelObj(object);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_10_cosmic_coaster/18ABD0", func_8010A838_cosmic_coaster);
-#endif
 
 /* Side 1's spawn list: fifty glowing stars at random spots along the track. */
 void func_8010ABE0_cosmic_coaster(void) {
