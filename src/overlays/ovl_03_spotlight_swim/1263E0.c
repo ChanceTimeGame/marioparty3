@@ -1659,10 +1659,11 @@ void func_80109F60_spotlight_swim(omObjData *obj) {
 }
 
 #ifdef NON_MATCHING
-/* retail keeps work[1] (lb) and a copy in two saved registers (frame 0x30); mine loads lbu and extends at the use */
+/* code identical (259); only the frame differs: retail reserves 8 unused bytes (0x30 vs 0x28), the wall
+   for an eliminated local. Not padded with a dummy local. */
 /* Chaser setup for the end sequence. */
 void func_8010A328_spotlight_swim(omObjData *obj) {
-    s8 i = obj->work[1];
+    s32 i = (s8)obj->work[1];
     s8 j = i;
     u16 chr = GwPlayer[obj->work[0]].chr;
 
