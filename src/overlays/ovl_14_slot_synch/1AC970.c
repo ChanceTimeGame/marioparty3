@@ -710,11 +710,9 @@ void func_8010614C_slot_synch(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_8010614C_slot_synch);
 #endif
 
-#ifdef NON_MATCHING
 void func_80106560_slot_synch(omObjData* obj) {
     SsPlayer* pl;
     func_800E1BA8_minigame_ObjData* w;
-    s32* msg;
     s16 chr;
     s16 idx;
     s32 dir;
@@ -745,9 +743,8 @@ void func_80106560_slot_synch(omObjData* obj) {
     func_800E5A00_minigame(obj, 0x27, func_80017BB8_main(chr, 0x3A), 1, 0x3C);
     if (chr != 5) {
         r = rand8() & 1;
-        msg = &D_8010D90C_slot_synch[r];
-        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, *msg), 1, 0x78);
-        pl->unk18 = D_8010D8EC_slot_synch[chr] | *msg;
+        func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, D_8010D90C_slot_synch[r]), 1, 0x78);
+        pl->unk18 = D_8010D8EC_slot_synch[chr] | D_8010D90C_slot_synch[r];
     } else {
         func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, D_8010D90C_slot_synch[1]), 1, 0x78);
         pl->unk18 = D_8010D8EC_slot_synch[chr] | D_8010D90C_slot_synch[1];
@@ -761,9 +758,6 @@ void func_80106560_slot_synch(omObjData* obj) {
     pl->unk0C = pl->unk10 = pl->unk14 = 0.0f;
     obj->func = func_80106E8C_slot_synch;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_14_slot_synch/1AC970", func_80106560_slot_synch);
-#endif
 
 void func_80106878_slot_synch(omObjData* obj) {
     SsTeam* t;
