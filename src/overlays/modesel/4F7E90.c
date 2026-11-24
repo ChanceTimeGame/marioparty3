@@ -1634,7 +1634,6 @@ void func_8010A2E8_modesel(omObjData *obj) {
     obj->work[1] = t;
 }
 
-#ifdef NON_MATCHING
 /* Bob part of model `no` jumps to (0, 200, 300) on an arc. */
 void func_8010A420_modesel(omObjData *obj) {
     Vec pos;
@@ -1669,19 +1668,16 @@ void func_8010A420_modesel(omObjData *obj) {
     func_8010B940_modesel(no, 35.5f);
     func_8010B824_modesel(no);
     t += 12;
-    if (t < 256) {
+    if (t >= 256) {
+        obj->work[1] = 0;
+        D_8010F2CC_modesel[i].x = cur.x;
+        D_8010F2CC_modesel[i].y = cur.y;
+        D_8010F2CC_modesel[i].z = cur.z;
+        obj->func = func_8010A2E8_modesel;
+    } else {
         obj->work[1] = t;
-        return;
     }
-    obj->work[1] = 0;
-    D_8010F2CC_modesel[i].x = cur.x;
-    D_8010F2CC_modesel[i].y = cur.y;
-    D_8010F2CC_modesel[i].z = cur.z;
-    obj->func = func_8010A2E8_modesel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_8010A420_modesel);
-#endif
 
 void func_8010A62C_modesel(u32 no) {
     omObjData *obj = omAddObj(6, 0, 0, -1, func_8010A420_modesel);
