@@ -2864,6 +2864,8 @@ void func_8010D6C0_pump_pump_away(void) {
     omAddObj(770, 1, 0, -1, func_8010D620_pump_pump_away);
 }
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); logic checked
 #ifdef NON_MATCHING
 void func_8010D6F4_pump_pump_away(omObjData *obj) {
     PpMarker *m = &D_80113418_pump_pump_away[obj->work[0]];
@@ -2906,6 +2908,8 @@ void func_8010D6F4_pump_pump_away(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_8010D6F4_pump_pump_away);
 #endif
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); logic checked
 #ifdef NON_MATCHING
 void func_8010D95C_pump_pump_away(omObjData *obj) {
     PpMarker *m = &D_80113418_pump_pump_away[obj->work[0]];
@@ -3021,6 +3025,8 @@ void func_8010E098_pump_pump_away(void) {
     }
 }
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); retail also converts dist to double in each arm (masked 23); logic checked
 #ifdef NON_MATCHING
 void func_8010E0F4_pump_pump_away(omObjData *obj) {
     PpSlot20 *p = &D_80111920_pump_pump_away[obj->work[0]];
@@ -3103,6 +3109,8 @@ void func_8010E65C_pump_pump_away(void) {
     }
 }
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); retail also converts dist to double in each arm (masked 21); logic checked
 #ifdef NON_MATCHING
 void func_8010E6B8_pump_pump_away(omObjData *obj) {
     PpSlot16 *p = &D_801135E8_pump_pump_away[obj->work[0]];
@@ -3184,6 +3192,8 @@ void func_8010EB68_pump_pump_away(void) {
     }
 }
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); logic checked
 #ifdef NON_MATCHING
 void func_8010EBC4_pump_pump_away(omObjData *obj) {
     PpSlot12 *p = &D_80111710_pump_pump_away[obj->work[0]];
@@ -3267,6 +3277,8 @@ void func_8010F20C_pump_pump_away(void) {
     }
 }
 
+// NON_MATCHING: retail reads team[0].dist by absolute address and team[1].dist through the team pointer
+// for the leader test; ours swaps the two (masked 2 alone). Tried t1/t/D spellings and D_80111990 (worse); logic checked
 #ifdef NON_MATCHING
 void func_8010F268_pump_pump_away(omObjData *obj) {
     PpSlot12 *p = &D_801119E8_pump_pump_away[obj->work[0]];
