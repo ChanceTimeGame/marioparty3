@@ -4832,7 +4832,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011454C_duel03);
 #endif
 
 #ifdef NON_MATCHING
-// board db3: logic checked against the asm; masked 112 (357 vs 342 instructions): the shared tails (same space, roll 3/7/9 power test, front partner 10) are laid out differently; same residue family as func_80113AE0_duel03
+// board db3: logic checked against the asm; masked 101, 358/357 (H1): both regions written out in full (no gotos) so GCC cross-jumps the shared tails as retail; left: the '== 4' tests keep 4 in v0, the ternary sum swaps v0/v1, and the 22-28 end test is if-converted (retail branches)
 // board db3: COM decision, the variant for cidx 15-20 (rolls below 6) and 22-28 (rolls 6 and over, D_8011766C_duel03)
 s32 func_8011485C_duel03(void) {
     GW_PLAYER *me;
@@ -4841,6 +4841,7 @@ s32 func_8011485C_duel03(void) {
     s32 other;
     s32 walk;
     s32 hp;
+    s32 def;
     s32 n;
 
     cur = MBDGetCurrentPlayerIndex();
@@ -4853,7 +4854,10 @@ s32 func_8011485C_duel03(void) {
     }
     if (opp->cidx >= 15 && opp->cidx < 21) {
         if (walk < 6 && opp->cidx == D_80117664_duel03[walk]) {
-            goto same;
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
         }
         if (walk >= 6 || opp->cidx < D_80117664_duel03[walk]) {
             hp = me->star;
@@ -4863,8 +4867,13 @@ s32 func_8011485C_duel03(void) {
             if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
                 return TRUE;
             }
-            if (!(me->stats.partners.frontPower <
-                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+            if (me->stats.partners.frontID == 10) {
+                def = opp->stats.partners.frontHp;
+            } else {
+                def = opp->stats.partners.backHp;
+            }
+            def += opp->star;
+            if (!(me->stats.partners.frontPower < def)) {
                 return TRUE;
             }
             if (opp->stats.partners.backID == 4) {
@@ -4876,62 +4885,6 @@ s32 func_8011485C_duel03(void) {
                 }
             }
             if (walk == 3) {
-                goto power;
-            }
-            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
-                if (opp->stats.partners.frontID == 8 && me->star < 2) {
-                    return FALSE;
-                }
-                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
-                    return FALSE;
-                }
-                if (opp->stats.partners.frontID == 10) {
-                    goto front10;
-                }
-                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
-                    return FALSE;
-                }
-            }
-            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4) {
-                return FALSE;
-            }
-            return TRUE;
-        }
-        return opp->stats.partners.frontPower != 0;
-    }
-    if (opp->cidx >= 22 && opp->cidx < 29) {
-        if (walk < 6) {
-            return TRUE;
-        }
-        if (opp->cidx == D_8011766C_duel03[walk - 5]) {
-        same:
-            if (opp->stats.partners.backID != 4) {
-                return TRUE;
-            }
-            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
-        }
-        if (opp->cidx < D_8011766C_duel03[walk - 5]) {
-            hp = me->star;
-            if (me->stats.partners.frontID == 8 && opp->star < 2) {
-                return TRUE;
-            }
-            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
-                return TRUE;
-            }
-            if (!(me->stats.partners.frontPower <
-                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
-                return TRUE;
-            }
-            if (opp->stats.partners.backID == 4) {
-                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
-                    return FALSE;
-                }
-                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
-                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
-                }
-            }
-            if (walk == 7 || walk == 9) {
-            power:
                 if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
                     return TRUE;
                 }
@@ -4948,10 +4901,74 @@ s32 func_8011485C_duel03(void) {
                     return FALSE;
                 }
                 if (opp->stats.partners.frontID == 10) {
-                front10:
-                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                    return me->stats.partners.frontHp + me->star > opp->stats.partners.frontPower;
                 }
-                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                if (opp->stats.partners.frontPower > me->stats.partners.backHp + me->star) {
+                    return FALSE;
+                }
+            }
+            if (me->stats.partners.frontPower == 0 && me->stats.partners.backID != 4) {
+                return FALSE;
+            }
+            return TRUE;
+        }
+        return opp->stats.partners.frontPower != 0;
+    }
+    if (opp->cidx >= 22 && opp->cidx < 29) {
+        if (walk < 6) {
+            return TRUE;
+        }
+        if (opp->cidx == D_8011766C_duel03[walk - 5]) {
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
+        }
+        if (opp->cidx < D_8011766C_duel03[walk - 5]) {
+            hp = me->star;
+            if (me->stats.partners.frontID == 8 && opp->star < 2) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
+                return TRUE;
+            }
+            if (me->stats.partners.frontID == 10) {
+                def = opp->stats.partners.frontHp;
+            } else {
+                def = opp->stats.partners.backHp;
+            }
+            def += opp->star;
+            if (!(me->stats.partners.frontPower < def)) {
+                return TRUE;
+            }
+            if (opp->stats.partners.backID == 4) {
+                if (!(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
+                    return FALSE;
+                }
+                if (me->stats.partners.frontPower > me->stats.partners.frontHp) {
+                    hp -= me->stats.partners.frontPower - me->stats.partners.frontHp;
+                }
+            }
+            if (walk == 7 || walk == 9) {
+                if (!(me->stats.partners.backPower < opp->stats.partners.frontHp + opp->star)) {
+                    return TRUE;
+                }
+                if (opp->stats.partners.frontID != 4) {
+                    return TRUE;
+                }
+                return me->stats.partners.backPower < hp + me->stats.partners.backHp;
+            }
+            if (GwSystem.current_turn != GwSystem.total_turns || cur == 0) {
+                if (opp->stats.partners.frontID == 8 && me->star < 2) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 3 && me->star <= opp->stats.partners.frontPoweredUp) {
+                    return FALSE;
+                }
+                if (opp->stats.partners.frontID == 10) {
+                    return me->stats.partners.frontHp + me->star > opp->stats.partners.frontPower;
+                }
+                if (opp->stats.partners.frontPower > me->stats.partners.backHp + me->star) {
                     return FALSE;
                 }
             }
@@ -5373,7 +5390,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/duel03/3FE1F0", func_8011580C_duel03);
 #endif
 
 #ifdef NON_MATCHING
-// board db3: logic checked against the asm (func_8011485C_duel03 with the regions moved; the 7-13 region has no HP or power test): same residue family, masked 117
+// board db3: logic checked against the asm (func_8011485C_duel03 with the regions moved; the 7-13 region has no HP or power test): same residue family, masked 85, 330/342 (H1, written out without gotos)
 // board db3: COM decision, the variant for cidx 22-28 (quick), 0-5 (rolls below 6, D_80117654_duel03) and 7-13 (rolls 6 and over, D_8011765C_duel03)
 s32 func_80115B18_duel03(void) {
     GW_PLAYER *me;
@@ -5382,6 +5399,7 @@ s32 func_80115B18_duel03(void) {
     s32 other;
     s32 walk;
     s32 hp;
+    s32 def;
     s32 n;
 
     cur = MBDGetCurrentPlayerIndex();
@@ -5394,7 +5412,10 @@ s32 func_80115B18_duel03(void) {
     }
     if (opp->cidx >= 0 && opp->cidx < 6) {
         if (walk < 6 && opp->cidx == D_80117654_duel03[walk]) {
-            goto same;
+            if (opp->stats.partners.backID != 4) {
+                return TRUE;
+            }
+            return me->stats.partners.frontPower < me->star + me->stats.partners.frontHp;
         }
         if (walk >= 6 || opp->cidx < D_80117654_duel03[walk]) {
             hp = me->star;
@@ -5404,8 +5425,13 @@ s32 func_80115B18_duel03(void) {
             if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
                 return TRUE;
             }
-            if (!(me->stats.partners.frontPower <
-                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+            if (me->stats.partners.frontID == 10) {
+                def = opp->stats.partners.frontHp;
+            } else {
+                def = opp->stats.partners.backHp;
+            }
+            def += opp->star;
+            if (!(me->stats.partners.frontPower < def)) {
                 return TRUE;
             }
             if (opp->stats.partners.backID == 4) {
@@ -5433,9 +5459,9 @@ s32 func_80115B18_duel03(void) {
                     return FALSE;
                 }
                 if (opp->stats.partners.frontID == 10) {
-                    goto front10;
+                    return me->stats.partners.frontHp + me->star > opp->stats.partners.frontPower;
                 }
-                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                if (opp->stats.partners.frontPower > me->stats.partners.backHp + me->star) {
                     return FALSE;
                 }
             }
@@ -5451,7 +5477,6 @@ s32 func_80115B18_duel03(void) {
             return TRUE;
         }
         if (opp->cidx == D_8011765C_duel03[walk - 5]) {
-        same:
             if (opp->stats.partners.backID != 4) {
                 return TRUE;
             }
@@ -5464,8 +5489,13 @@ s32 func_80115B18_duel03(void) {
             if (me->stats.partners.frontID == 3 && opp->star <= me->stats.partners.frontPoweredUp) {
                 return TRUE;
             }
-            if (!(me->stats.partners.frontPower <
-                  (me->stats.partners.frontID == 10 ? opp->stats.partners.frontHp : opp->stats.partners.backHp) + opp->star)) {
+            if (me->stats.partners.frontID == 10) {
+                def = opp->stats.partners.frontHp;
+            } else {
+                def = opp->stats.partners.backHp;
+            }
+            def += opp->star;
+            if (!(me->stats.partners.frontPower < def)) {
                 return TRUE;
             }
             if (opp->stats.partners.backID == 4 && !(me->stats.partners.frontPower < me->star + me->stats.partners.frontHp)) {
@@ -5479,10 +5509,9 @@ s32 func_80115B18_duel03(void) {
                     return FALSE;
                 }
                 if (opp->stats.partners.frontID == 10) {
-                front10:
-                    return opp->stats.partners.frontPower < me->stats.partners.frontHp + me->star;
+                    return me->stats.partners.frontHp + me->star > opp->stats.partners.frontPower;
                 }
-                if (me->stats.partners.backHp + me->star < opp->stats.partners.frontPower) {
+                if (opp->stats.partners.frontPower > me->stats.partners.backHp + me->star) {
                     return FALSE;
                 }
             }
