@@ -171,8 +171,6 @@ void func_80108E2C_mgresultduel(omObjData *);
 
 const s16 D_80108EA0_mgresultduel[2][2] = { { 30, 40 }, { 194, 40 } };
 
-#ifdef NON_MATCHING
-// duelres A: Masked 21: retail loads the coin index with lbu + sign extension and schedules it before the result store.
 void func_801059A0_mgresultduel(void) {
     s16 coins[2];
     s8 idx;
@@ -213,8 +211,8 @@ void func_801059A0_mgresultduel(void) {
             D_80109318_mgresultduel = 2;
             D_80109314_mgresultduel = 0;
         } else {
-            D_80109318_mgresultduel = -1;
             idx = D_80109310_mgresultduel[0];
+            D_80109318_mgresultduel = -1;
             D_80109314_mgresultduel = GwPlayer[D_80109310_mgresultduel[idx]].gameCoin + GwPlayer[idx].bonusCoin;
             if (GwSystem.bank_coins == 0) {
                 if (GwSystem.current_turn < 11) {
@@ -227,8 +225,8 @@ void func_801059A0_mgresultduel(void) {
             }
         }
     } else {
-        D_80109318_mgresultduel = 1;
         idx = D_80109310_mgresultduel[1];
+        D_80109318_mgresultduel = 1;
         D_80109314_mgresultduel = GwPlayer[D_80109310_mgresultduel[idx]].gameCoin + GwPlayer[idx].bonusCoin;
         if (GwSystem.bank_coins == 0) {
             if (GwSystem.current_turn < 11) {
@@ -241,10 +239,10 @@ void func_801059A0_mgresultduel(void) {
         }
     }
     if (coins[0] != coins[1]) {
-        if (coins[0] < coins[1]) {
-            GwPlayer[D_80109310_mgresultduel[1]].gamePrize += D_80109314_mgresultduel;
-        } else {
+        if (coins[0] >= coins[1]) {
             GwPlayer[D_80109310_mgresultduel[0]].gamePrize += D_80109314_mgresultduel;
+        } else {
+            GwPlayer[D_80109310_mgresultduel[1]].gamePrize += D_80109314_mgresultduel;
         }
     }
     HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
@@ -259,9 +257,6 @@ void func_801059A0_mgresultduel(void) {
     omAddObj(0xA, 0, 0, -1, func_80105FD4_mgresultduel);
     WipeCreateIn(0xFF, 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultduel/4F01F0", func_801059A0_mgresultduel);
-#endif
 
 void func_80105E90_mgresultduel(omObjData *arg0) {
     s32 state;
@@ -680,7 +675,7 @@ void func_80107654_mgresultduel(omObjData *arg0) {
 }
 
 #ifdef NON_MATCHING
-// duelres A: Masked 18: retail rematerialises &D_80108F30_mgresultduel after each call; this keeps it in a saved register.
+// duelres A (masked 14, 7 short): retail rematerialises &D_80108F30_mgresultduel after each call; ours keeps it in a saved register (tried a u16[2] array) (H1)
 void func_80107710_mgresultduel(void) {
     omObjData *obj;
     void *data;
@@ -874,7 +869,7 @@ void func_80108304_mgresultduel(void) {
 }
 
 #ifdef NON_MATCHING
-// duelres A: Masked 5: retail sign-extends the winner twice (s8 for the first call, s16 for the second).
+// duelres A (masked 6, 1 short): retail sign-extends the winner again for each call (s8 for the first, s16 for the second); tried winner s32/s16/u16/u8 and an s8 prototype (H1)
 /* Show the coins won over the winner's head and add them. */
 void func_80108318_mgresultduel(omObjData *arg0) {
     Vec pos;
@@ -974,7 +969,7 @@ const f32 D_80108ED4_mgresultduel[5][3] = {
 const f32 D_80108F10_mgresultduel[5] = { 0.0f, 5.0f, 15.0f, 40.0f, 80.0f };
 
 #ifdef NON_MATCHING
-// duelres A: Masked 12: retail keeps (j >= 2) & (rung ^ 1) as an and, and orders the sin product before pos.y.
+// duelres A (masked 7, right count): retail loads pos.y after arg0->model[1] in the three hop calls (f0/f2 swapped); tried a product temporary (H1)
 /* The host flies in along the path, lands, hops and rings the bell. */
 void func_80108820_mgresultduel(omObjData *arg0) {
     f32 ctrl[4];
@@ -1024,7 +1019,7 @@ void func_80108820_mgresultduel(omObjData *arg0) {
     func_8001C624_main(arg0->model[0], HmfModelData[arg0->motion[3]].unk02, 0, 10, 0);
     for (j = 0; j < 6; j++) {
         Hu3DModelPosSet(arg0->model[1], x, pos.y - sindf(j * 15.0f) * 120.0f, z);
-        if ((j >= 2) & (rung ^ 1)) {
+        if ((j >= 2) & (rung != 1)) {
             rung = 1;
             func_8010654C_mgresultduel();
         }
