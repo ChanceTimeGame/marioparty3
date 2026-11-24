@@ -268,9 +268,6 @@ void func_8010C870_chancetime(omObjData *obj) {
 void func_8010C98C_chancetime(void) {
 }
 
-// NON_MATCHING: retail reads the position and size as u16 and keeps the clipped bounds in a stack array; the
-// display list and clipping were checked word by word against the asm
-#ifdef NON_MATCHING
 void func_8010C994_chancetime(Gfx **gfx, s32 arg1, s32 arg2) {
     Gfx *g;
     s16 s[4];
@@ -281,20 +278,36 @@ void func_8010C994_chancetime(Gfx **gfx, s32 arg1, s32 arg2) {
     s16 row;
     s16 rows;
     s16 k;
+    s16 tw = D_8010FEA8_chancetime.x;
+    s16 th = D_8010FEA8_chancetime.y;
+    s16 px = D_8010FB84_chancetime.x;
+    s16 py = D_8010FB84_chancetime.y;
 
-    if ((((D_8010FB84_chancetime.x + D_8010FEA8_chancetime.x) < 0) | (D_8010FB84_chancetime.x >= 320)) != 0) {
+    if ((((px + tw) < 0) | (px >= 320)) != 0) {
         return;
     }
-    if ((((D_8010FB84_chancetime.y + D_8010FEA8_chancetime.y) < 0) | (D_8010FB84_chancetime.y >= 240)) != 0) {
+    if ((((py + th) < 0) | (py >= 240)) != 0) {
         return;
     }
-    s[0] = (D_8010FB84_chancetime.x >= 0) ? 0 : -D_8010FB84_chancetime.x;
-    s[1] = (D_8010FB84_chancetime.x + D_8010FEA8_chancetime.x <= 320) ? D_8010FEA8_chancetime.x : 320 - D_8010FB84_chancetime.x;
-    x = (D_8010FB84_chancetime.x < 0) ? 0 : (D_8010FB84_chancetime.x >= 319) ? 319 : D_8010FB84_chancetime.x;
+    s[0] = (px >= 0) ? 0 : -px;
+    s[1] = (px + tw <= 320) ? tw : 320 - px;
+    if (px < 0) {
+        x = 0;
+    } else if (px >= 319) {
+        x = 319;
+    } else {
+        x = px;
+    }
     w = s[1] - s[0];
-    t[0] = (D_8010FB84_chancetime.y >= 0) ? 0 : -D_8010FB84_chancetime.y;
-    t[1] = (D_8010FB84_chancetime.y + D_8010FEA8_chancetime.y <= 240) ? D_8010FEA8_chancetime.y : 240 - D_8010FB84_chancetime.y;
-    y = (D_8010FB84_chancetime.y < 0) ? 0 : (D_8010FB84_chancetime.y >= 319) ? 319 : D_8010FB84_chancetime.y;
+    t[0] = (py >= 0) ? 0 : -py;
+    t[1] = (py + th <= 240) ? th : 240 - py;
+    if (py < 0) {
+        y = 0;
+    } else if (py >= 319) {
+        y = 319;
+    } else {
+        y = py;
+    }
     g = *gfx;
     gDPPipeSync(g++);
     gDPSetScissor(g++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
@@ -314,19 +327,17 @@ void func_8010C994_chancetime(Gfx **gfx, s32 arg1, s32 arg2) {
         if (row + rows > t[1]) {
             rows = t[1] - row;
         }
-        gDPLoadTextureTile(g++, D_8010FEA0_chancetime, G_IM_FMT_CI, G_IM_SIZ_8b, D_8010FEA8_chancetime.x, 0, s[0], row,
+        gDPLoadTextureTile(g++, D_8010FEA0_chancetime, G_IM_FMT_CI, G_IM_SIZ_8b, tw, 0, s[0], row,
                            s[1] - 1, row + rows - 1, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
                            G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-        gSPTextureRectangle(g++, x << 2, (y + k) << 2, (x + w) << 2, (y + k + rows) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10,
+        gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, w << 2, rows << 2);
+        gSPTextureRectangle(g++, x << 2, (k + y) << 2, (w + x) << 2, (k + rows + y) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10,
                             1 << 10);
         k += rows;
     }
     gDPSetScissor(g++, G_SC_NON_INTERLACE, 104, 52, 215, 163);
     *gfx = g;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/chancetime/487F50", func_8010C994_chancetime);
-#endif
 
 void func_8010CF78_chancetime(s8 set) {
     static const s8 D_8010FC98_chancetime[3][13] = {
