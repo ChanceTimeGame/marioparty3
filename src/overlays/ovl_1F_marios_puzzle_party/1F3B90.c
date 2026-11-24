@@ -821,7 +821,6 @@ s32 func_8010718C_marios_puzzle_party(s32 col, s32 row) {
     return FALSE;
 }
 
-#ifdef NON_MATCHING
 void func_80107224_marios_puzzle_party(s32 player, s32 col, s32 row) {
     PzCell* cell = &D_801102E0_marios_puzzle_party[player][col][row];
 
@@ -836,15 +835,14 @@ void func_80107224_marios_puzzle_party(s32 player, s32 col, s32 row) {
     func_80110000_marios_puzzle_party(cell->unk0);
     cell->unk0 = -1;
     if (cell->unk10 == 1) {
-        D_801102E0_marios_puzzle_party[player][col][row + 1].unkC = -1;
-        D_801102E0_marios_puzzle_party[player][col][row + 1].unk10 = 0;
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 1];
+        cell->unkC = -1;
+        cell->unk10 = 0;
     }
-    D_801102E0_marios_puzzle_party[player][col][row].unkC = -1;
-    D_801102E0_marios_puzzle_party[player][col][row].unk10 = 0;
+    cell = &D_801102E0_marios_puzzle_party[player][col][row];
+    cell->unkC = -1;
+    cell->unk10 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107224_marios_puzzle_party);
-#endif
 
 #ifdef NON_MATCHING
 /* Flood fill: record (col, row) in the match list, then recurse into same-coloured neighbours.
@@ -927,39 +925,46 @@ void func_80107400_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, 
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107400_marios_puzzle_party);
 #endif
 
-#ifdef NON_MATCHING
 /* Clear the garbage blocks (colour 6) next to a cleared block. */
 void func_80107880_marios_puzzle_party(s32 player, s32 col, s32 row, s32 color, s32 state) {
+    PzCell* cell;
+
     if (state == 2) {
         row--;
         state = 1;
     }
-    if (D_801102E0_marios_puzzle_party[player][col - 1][row].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col - 1][row];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col - 1, row);
     }
-    if (D_801102E0_marios_puzzle_party[player][col + 1][row].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col + 1][row];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col + 1, row);
     }
-    if (D_801102E0_marios_puzzle_party[player][col][row - 1].unkC == color) {
+    cell = &D_801102E0_marios_puzzle_party[player][col][row - 1];
+    if (cell->unkC == color) {
         func_80107224_marios_puzzle_party(player, col, row - 1);
     }
     if (state == 1) {
-        if (D_801102E0_marios_puzzle_party[player][col - 1][row + 1].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col - 1][row + 1];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col - 1, row + 1);
         }
-        if (D_801102E0_marios_puzzle_party[player][col + 1][row + 1].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col + 1][row + 1];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col + 1, row + 1);
         }
-        if (D_801102E0_marios_puzzle_party[player][col][row + 2].unkC == color) {
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 2];
+        if (cell->unkC == color) {
             func_80107224_marios_puzzle_party(player, col, row + 2);
         }
-    } else if (D_801102E0_marios_puzzle_party[player][col][row + 1].unkC == color) {
-        func_80107224_marios_puzzle_party(player, col, row + 1);
+    } else {
+        cell = &D_801102E0_marios_puzzle_party[player][col][row + 1];
+        if (cell->unkC == color) {
+            func_80107224_marios_puzzle_party(player, col, row + 1);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1F_marios_puzzle_party/1F3B90", func_80107880_marios_puzzle_party);
-#endif
 
 void func_80107BB0_marios_puzzle_party(s32 player) {
     PzMatch* m;
