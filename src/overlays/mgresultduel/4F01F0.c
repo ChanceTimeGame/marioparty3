@@ -171,8 +171,6 @@ void func_80108E2C_mgresultduel(omObjData *);
 
 const s16 D_80108EA0_mgresultduel[2][2] = { { 30, 40 }, { 194, 40 } };
 
-#ifdef NON_MATCHING
-// duelres A: Masked 21: retail loads the coin index with lbu + sign extension and schedules it before the result store.
 void func_801059A0_mgresultduel(void) {
     s16 coins[2];
     s8 idx;
@@ -213,8 +211,8 @@ void func_801059A0_mgresultduel(void) {
             D_80109318_mgresultduel = 2;
             D_80109314_mgresultduel = 0;
         } else {
-            D_80109318_mgresultduel = -1;
             idx = D_80109310_mgresultduel[0];
+            D_80109318_mgresultduel = -1;
             D_80109314_mgresultduel = GwPlayer[D_80109310_mgresultduel[idx]].gameCoin + GwPlayer[idx].bonusCoin;
             if (GwSystem.bank_coins == 0) {
                 if (GwSystem.current_turn < 11) {
@@ -227,8 +225,8 @@ void func_801059A0_mgresultduel(void) {
             }
         }
     } else {
-        D_80109318_mgresultduel = 1;
         idx = D_80109310_mgresultduel[1];
+        D_80109318_mgresultduel = 1;
         D_80109314_mgresultduel = GwPlayer[D_80109310_mgresultduel[idx]].gameCoin + GwPlayer[idx].bonusCoin;
         if (GwSystem.bank_coins == 0) {
             if (GwSystem.current_turn < 11) {
@@ -241,10 +239,10 @@ void func_801059A0_mgresultduel(void) {
         }
     }
     if (coins[0] != coins[1]) {
-        if (coins[0] < coins[1]) {
-            GwPlayer[D_80109310_mgresultduel[1]].gamePrize += D_80109314_mgresultduel;
-        } else {
+        if (coins[0] >= coins[1]) {
             GwPlayer[D_80109310_mgresultduel[0]].gamePrize += D_80109314_mgresultduel;
+        } else {
+            GwPlayer[D_80109310_mgresultduel[1]].gamePrize += D_80109314_mgresultduel;
         }
     }
     HmfLightColorSet(1, 0xFF, 0xFF, 0xFF);
@@ -259,9 +257,6 @@ void func_801059A0_mgresultduel(void) {
     omAddObj(0xA, 0, 0, -1, func_80105FD4_mgresultduel);
     WipeCreateIn(0xFF, 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/mgresultduel/4F01F0", func_801059A0_mgresultduel);
-#endif
 
 void func_80105E90_mgresultduel(omObjData *arg0) {
     s32 state;
