@@ -1306,11 +1306,15 @@ void func_80108504_pump_pump_away(void) {
     }
 }
 
+// NON_MATCHING: the loop body matches; our loop hoists more of the display-list constants into
+// registers than retail (register allocation, masked 28, 192 vs 186); logic checked
 #ifdef NON_MATCHING
 void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
     PpHud *h = &D_80111758_pump_pump_away[0];
     Gfx *g;
     s32 i;
+    s32 x;
+    s32 y;
 
     if (h->state != -1) {
         if (D_80111788_pump_pump_away < 0xFF) {
@@ -1326,8 +1330,9 @@ void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
                                   G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
                                   G_TX_NOLOD, G_TX_NOLOD);
             gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 64 << 2, 16 << 2);
-            gSPTextureRectangle(g++, D_80110FDC_pump_pump_away[i].x << 2, D_80110FDC_pump_pump_away[i].y << 2, (D_80110FDC_pump_pump_away[i].x + 64) << 2,
-                                (D_80110FDC_pump_pump_away[i].y + 16) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+            x = D_80110FDC_pump_pump_away[i].x;
+            y = D_80110FDC_pump_pump_away[i].y;
+            gSPTextureRectangle(g++, x << 2, y << 2, (x + 64) << 2, (y + 16) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
         }
         *gfx = g;
     }
@@ -1336,11 +1341,15 @@ void func_80108560_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0D_pump_pump_away/16F670", func_80108560_pump_pump_away);
 #endif
 
+// NON_MATCHING: the loop body matches; our loop hoists more of the display-list constants into
+// registers than retail (register allocation, masked 15, 205 vs 205); logic checked
 #ifdef NON_MATCHING
 void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
     PpHud *h = &D_80111758_pump_pump_away[1];
     Gfx *g;
     s32 i;
+    s32 x;
+    s32 y;
 
     if (h->state != -1) {
         if (D_801117BC_pump_pump_away < 0xFF) {
@@ -1357,8 +1366,9 @@ void func_80108810_pump_pump_away(Gfx **gfx, s32 arg1, s32 arg2) {
                                       G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK,
                                       G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
                 gDPSetTileSize(g++, G_TX_RENDERTILE, 0, 0, 8 << 2, 10 << 2);
-                gSPTextureRectangle(g++, D_80110FE4_pump_pump_away[i].x << 2, D_80110FE4_pump_pump_away[i].y << 2, (D_80110FE4_pump_pump_away[i].x + 8) << 2,
-                                    (D_80110FE4_pump_pump_away[i].y + 10) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+                x = D_80110FE4_pump_pump_away[i].x;
+                y = D_80110FE4_pump_pump_away[i].y;
+                gSPTextureRectangle(g++, x << 2, y << 2, (x + 8) << 2, (y + 10) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
             }
         }
         *gfx = g;
