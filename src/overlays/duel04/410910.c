@@ -6331,8 +6331,9 @@ s32 func_801159C4_duel04(void) {
     }
 }
 
-// board ea2: logic checked against the asm case by case; masked 20: the cur/rev tails (retail computes the
-// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+// board ea2: logic checked against the asm case by case. H1: early-return tails give the right count (185),
+// masked 20: retail tests rev in $v1 so `li v0,1` fills a plain delay slot (ours: $v0 + branch-likely), and the
+// case-3 `return 1` is placed inline. Tried: ret temporary (186), ternary (39), static inline helper (48).
 #ifdef NON_MATCHING
 s32 func_80115B3C_duel04(void) {
     s32 cur;
@@ -6340,7 +6341,6 @@ s32 func_80115B3C_duel04(void) {
     GW_PLAYER *opp;
     s32 other;
     s32 walk;
-    s32 ret;
 
     cur = MBDGetCurrentPlayerIndex();
     other = (s16)(MBDGetCurrentPlayerIndex() ^ 1);
@@ -6383,11 +6383,10 @@ s32 func_80115B3C_duel04(void) {
             if (cur == 0) {
                 return 0;
             }
-            ret = 1;
-            if (!(opp->rev & 1)) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (opp->rev & 1) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 3:
             if (walk >= 3 && walk < 8 && opp->cidx == D_80119EF4_duel04[walk - 2]) {
                 return 1;
@@ -6398,11 +6397,10 @@ s32 func_80115B3C_duel04(void) {
             if (cur == 0) {
                 return 0;
             }
-            ret = 1;
-            if (opp->rev & 1) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (!(opp->rev & 1)) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 5:
         case 7:
             return 0;
@@ -6416,8 +6414,8 @@ s32 func_80115B3C_duel04(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/duel04/410910", func_80115B3C_duel04);
 #endif
 
-// board ea2: logic checked against the asm case by case; masked 56: the cur/rev tails (retail computes the
-// result into $v0 around a branch-likely; this C keeps it in a temporary) and the block layout that follows
+// board ea2: logic checked against the asm case by case. H1: early-return tails, masked 56 -> 14: what is left
+// is the same rev-in-$v1 / inline `return 1` residue as func_80115B3C_duel04.
 #ifdef NON_MATCHING
 s32 func_80115DA8_duel04(void) {
     s32 cur;
@@ -6425,7 +6423,6 @@ s32 func_80115DA8_duel04(void) {
     GW_PLAYER *opp;
     s32 other;
     s32 walk;
-    s32 ret;
     s32 unused[8]; /* retail's frame is 0x20 bytes larger than the code needs */
 
     cur = MBDGetCurrentPlayerIndex();
@@ -6463,11 +6460,10 @@ s32 func_80115DA8_duel04(void) {
             if (cur != 0) {
                 return 0;
             }
-            ret = 1;
-            if (!(opp->rev & 1)) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (opp->rev & 1) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
         case 0:
             if (walk >= 3 && walk < 7 && opp->cidx == D_80119EC4_duel04[walk - 2]) {
                 if (cur != 0) {
@@ -6481,11 +6477,10 @@ s32 func_80115DA8_duel04(void) {
             if (cur != 0) {
                 return 0;
             }
-            ret = 1;
-            if (opp->rev & 1) {
-                ret = opp->stats.prize.itemPrize == 0;
+            if (!(opp->rev & 1)) {
+                return 1;
             }
-            return ret;
+            return opp->stats.prize.itemPrize == 0;
     }
     switch (opp->clink) {
         case 5:
