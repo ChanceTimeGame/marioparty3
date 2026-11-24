@@ -311,8 +311,8 @@ HmfTex* func_80031A60_main(HmfTexData* arg0, u8* arg1) {
     return &D_800D1FCC_main[i];
 }
 
-// Register allocation (masked 3, 190 vs 191): s1/s2 swapped for arg0/tex, and retail keeps the
-// RGB24 red byte as a u8 with an extra andi 0xff before the shifts.
+// Register allocation (masked 0, raw 51): s1/s2 swapped for arg0/tex. Tried: a local for the
+// advanced data pointer, splitting the dst/unk28 chained store.
 #ifdef NON_MATCHING
 /* Reads a texture image chunk into tex: size, format and texel size, then a copy of the
    image (24-bit images are converted to RGBA16) (MP1 func_80038254). */
@@ -321,7 +321,6 @@ void func_80031B30_main(u8* arg0, HmfTexData* arg1, HmfTex* tex) {
     s32 size;
     u16 i;
     u32 c;
-    u8 x;
     u8* dst;
 
     arg0 += 0xB;
@@ -391,8 +390,8 @@ void func_80031B30_main(u8* arg0, HmfTexData* arg1, HmfTex* tex) {
         dst = tex->unk28 = HuMemAllocTag(size, 15000);
         arg0 += 0xA;
         for (i = 0; i < size; i += 2) {
-            x = *arg0 & 0xF8;
-            c = ((x << 8) + (x << 3) + (x >> 2)) + 1;
+            c = *arg0 & 0xF8;
+            c = ((u8) c << 8) + ((u8) c << 3) + (c >> 2) + 1;
             arg0 += 3;
             *dst++ = c >> 8;
             *dst++ = c;
