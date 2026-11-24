@@ -445,8 +445,9 @@ void func_801067CC_all_fired_up(omObjData* obj) {
     }
 }
 
-// masked 37: retail keeps the counter in $a0 for one shared increment block and has a 0x38 frame (0x20 unused
-// locals); the logic is checked against the asm
+// NON_MATCHING (H1): masked 15, 234/235. Per-case `t + 1` stores now cross-jump into case 3's copy as
+// in retail. Left: retail copies t into $a0 (move a0,v1 in each bne slot) and has a 0x38 frame (0x20
+// unused locals). Tried an s16 t and `if ((t = D_80109C56_all_fired_up) == N)`.
 #ifdef NON_MATCHING
 /* Pattern timer: wander (adding a flame), gather, the next formation, run it. */
 void func_801068F8_all_fired_up(void) {
@@ -469,7 +470,8 @@ void func_801068F8_all_fired_up(void) {
                 D_801099C8_all_fired_up = 1;
                 D_80109C56_all_fired_up = 0;
                 func_80106C68_all_fired_up();
-                return;
+            } else {
+                D_80109C56_all_fired_up = t + 1;
             }
             break;
         case 1:
@@ -481,7 +483,8 @@ void func_801068F8_all_fired_up(void) {
                 D_801099C8_all_fired_up = 2;
                 D_80109C56_all_fired_up = 0;
                 func_80106C68_all_fired_up();
-                return;
+            } else {
+                D_80109C56_all_fired_up = t + 1;
             }
             break;
         case 2:
@@ -499,7 +502,8 @@ void func_801068F8_all_fired_up(void) {
                 D_80109C56_all_fired_up = 0;
                 D_801099CC_all_fired_up = 400.0f;
                 D_801099D0_all_fired_up = 0;
-                return;
+            } else {
+                D_80109C56_all_fired_up = t + 1;
             }
             break;
         case 3:
@@ -509,16 +513,14 @@ void func_801068F8_all_fired_up(void) {
                 return;
             }
             t = D_80109C56_all_fired_up;
-            if (t == 150) {
+            if (t != 150) {
+                D_80109C56_all_fired_up = t + 1;
+            } else {
                 D_801099C8_all_fired_up = 0;
                 D_80109C56_all_fired_up = 0;
-                return;
             }
             break;
-        default:
-            return;
     }
-    D_80109C56_all_fired_up = t + 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_29_all_fired_up/23C8F0", func_801068F8_all_fired_up);

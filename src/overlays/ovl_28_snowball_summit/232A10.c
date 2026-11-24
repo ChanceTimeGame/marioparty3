@@ -1434,20 +1434,16 @@ void func_8010A940_snowball_summit(omObjData *obj)
 }
 
 /* A human's controls. */
-// scheduling/CSE: retail reloads obj->work[0] for the first pad lookup and fills delay slots differently; same ops
-#ifdef NON_MATCHING
 void func_8010AA78_snowball_summit(omObjData *obj) {
     SsPlayer *pl = &D_8010F9B8_snowball_summit[obj->work[0]];
 
-    if (pl->motion != 5 && pl->motion != 6) {
-        if ((D_800D5558_main[GwPlayer[obj->work[0]].pad] & 0x8000) && pl->rolling == 1) {
-            func_8010A940_snowball_summit(obj);
-        } else if (!(SS_IABS(D_800CBB6E_main[GwPlayer[obj->work[0]].pad]) < 31
-                     && SS_IABS(D_800D20A1_main[GwPlayer[obj->work[0]].pad]) < 31)) {
-            func_8010A0B0_snowball_summit(obj);
-        } else {
-            func_8010A384_snowball_summit(obj);
-        }
+    if (pl->motion == 5 || pl->motion == 6) {
+        func_8010A384_snowball_summit(obj);
+    } else if ((D_800D5558_main[GwPlayer[obj->work[0]].pad] & 0x8000) && pl->rolling == 1) {
+        func_8010A940_snowball_summit(obj);
+    } else if (!(SS_IABS(D_800CBB6E_main[GwPlayer[obj->work[0]].pad]) < 31
+                 && SS_IABS(D_800D20A1_main[GwPlayer[obj->work[0]].pad]) < 31)) {
+        func_8010A0B0_snowball_summit(obj);
     } else {
         func_8010A384_snowball_summit(obj);
     }
@@ -1462,9 +1458,6 @@ void func_8010AA78_snowball_summit(omObjData *obj) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_28_snowball_summit/232A10", func_8010AA78_snowball_summit);
-#endif
 
 /* Knocked into the air: fly backwards and fall. */
 void func_8010AC94_snowball_summit(omObjData *obj) {

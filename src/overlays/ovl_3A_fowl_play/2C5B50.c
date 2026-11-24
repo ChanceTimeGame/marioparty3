@@ -753,7 +753,7 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010724C_f
 #endif
 
 #ifdef NON_MATCHING
-/* two instructions long: retail moves dist to $f24 before angle to $f20 and has no nop after each sindf/cosdf call; the rest matches */
+/* masked 0, raw 2 (unit on the strip_nop path since H1): retail moves dist to $f24 before angle to $f20; tried dist/best spellings of dir */
 /* Bounces a move of dist along angle off the nearest pen wall; returns the new angle. */
 f32 func_801075B0_fowl_play(Vec* pos, f32 dist, f32 angle) {
     Vec hit;
@@ -1288,13 +1288,11 @@ void func_80109424_fowl_play(void) {
     }
 }
 
-#ifdef NON_MATCHING
-/* one instruction long: retail sign-extends the billboard id before storing its low byte to boards[i] */
 void func_801094A4_fowl_play(omObjData* obj) {
     MgWork* work;
     FpChick* ch;
     f32 a;
-    s16 id;
+    s32 id;
     s32 i;
 
     obj->data = HuMemAllocTag(sizeof(MgWork), 0x7918);
@@ -1317,8 +1315,7 @@ void func_801094A4_fowl_play(omObjData* obj) {
     obj->model[1] = func_8000B0D4_main(9, 0x2D9);
     D_8010F238_fowl_play = func_8010B2C4_fowl_play(0xB);
     for (i = 0; i < 8; i++) {
-        id = func_8010C1F4_fowl_play(D_8010F238_fowl_play, 0x20009000);
-        ch->u.boards[i] = (s16)id;
+        ch->u.boards[i] = id = func_8010C1F4_fowl_play(D_8010F238_fowl_play, 0x20009000);
         func_8010D148_fowl_play(id, 2);
         func_8010D2A4_fowl_play(id, -1, -0x3A, 0x69, 0xE0);
         func_8010CFDC_fowl_play(id, 1.2f, 1.2f, 1.2f);
@@ -1342,9 +1339,6 @@ void func_801094A4_fowl_play(omObjData* obj) {
     }
     D_8010F2A0_fowl_play++;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_801094A4_fowl_play);
-#endif
 
 extern s32 D_8010E8C4_fowl_play; /* chick sound timer */
 void func_8004AE00_main(s16 handle, s16 pan);
@@ -1773,7 +1767,7 @@ f32 func_8010AC88_fowl_play(Vec* p, Vec* a, Vec* b, Vec* out) {
 
 /* The parameter along d1 where the line p1 + t * d1 meets the line p2 + s * d2, or -1. */
 #ifdef NON_MATCHING
-/* masked 7, one instruction short: retail divides into $f4 and moves the result to $f0 */
+/* masked 7, one instruction short: retail divides into $f4 and moves the result to $f0 (tried return -1.0f, return of the quotient, a = quotient) */
 f32 func_8010AE10_fowl_play(Vec* p1, Vec* d1, Vec* p2, Vec* d2) {
     f32 ax;
     f32 ay;
@@ -2046,29 +2040,30 @@ s16 func_8010B8D4_fowl_play(PgBoard* b) {
             mode = 2;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (fmt) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2130,7 +2125,6 @@ s16 func_8010B8D4_fowl_play(PgBoard* b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010B8D4_fowl_play);
 #endif
 
-#ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
 s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     PgBoard* b;
@@ -2185,29 +2179,30 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2222,8 +2217,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -2236,7 +2230,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -2264,11 +2258,7 @@ s16 func_8010C1F4_fowl_play(s16 tex, u32 flags) {
     }
     return id;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C1F4_fowl_play);
-#endif
 
-#ifdef NON_MATCHING
 /* Gives billboard id sprite tex: rebuilds its strip and display list. */
 void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     PgBoard* b;
@@ -2314,29 +2304,30 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if ((s32)(cel->unk06 * w) > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
@@ -2351,8 +2342,7 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
         b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        tc = (i * rowH) << 6;
-        b->vtx[i * 2].v.tc[1] = tc;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
         b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
@@ -2365,7 +2355,7 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -2389,9 +2379,6 @@ void func_8010C7FC_fowl_play(s16 id, s16 tex) {
     }
     func_8010B8D4_fowl_play(b);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010C7FC_fowl_play);
-#endif
 
 void func_8010CD84_fowl_play(s16 id, s16 tex) {
     PgBoard* b;
@@ -2756,7 +2743,6 @@ void func_8010D81C_fowl_play(void) {
     D_8010F348_fowl_play = D_8010F330_fowl_play[D_8010EB64_fowl_play];
 }
 
-#ifdef NON_MATCHING
 /* Sorts the visible, unhidden billboards near the camera by view depth into the opaque (D_8010F360) and translucent (D_8010F3C8) lists. */
 void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     PgBoard tail0;
@@ -2768,14 +2754,13 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
     f32 z0;
     f32 z1;
     PgBoard* b;
-    PgBoard* list;
     PgBoard* n;
     s32 i;
 
-    x0 = cam->at.x - 640.0;
-    x1 = cam->at.x + 640.0;
-    z0 = cam->at.z - 640.0;
-    z1 = cam->at.z + 640.0;
+    x0 = cam->at.x - 1920.0;
+    x1 = cam->at.x + 1920.0;
+    z0 = cam->at.z - 1920.0;
+    z1 = cam->at.z + 1920.0;
     D_8010F360_fowl_play.depth = 0.0f;
     D_8010F3C8_fowl_play.depth = 99999.9f;
     tail0.depth = -99999.9f;
@@ -2809,26 +2794,24 @@ void func_8010D970_fowl_play(HuCamera* cam, f32 (*view)[4]) {
             continue;
         }
         if ((b->flags & 0x1000) && b->a < 0x100) {
-            list = &D_8010F3C8_fowl_play;
             b->depth = -(f64)b->depth;
+            n = &D_8010F3C8_fowl_play;
         } else {
-            list = &D_8010F360_fowl_play;
+            n = &D_8010F360_fowl_play;
         }
-        n = list->next;
-        while (b->depth < n->depth) {
-            n = n->next;
+        n = n->next;
+        if (n->depth > b->depth) {
+            do {
+                n = n->next;
+            } while (b->depth < n->depth);
         }
         n->prev->next = b;
         b->prev = n->prev;
         b->next = n;
         n->prev = b;
     }
-    tail1.prev->next = NULL;
-    tail0.prev->next = NULL;
+    tail0.prev->next = tail1.prev->next = NULL;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_3A_fowl_play/2C5B50", func_8010D970_fowl_play);
-#endif
 
 void func_8010DC24_fowl_play(Gfx** gfx, s32 arg1, s32 arg2) {
     HuCamera* cam = (HuCamera*)arg2;
