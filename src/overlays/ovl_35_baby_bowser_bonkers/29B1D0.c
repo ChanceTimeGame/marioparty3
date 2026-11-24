@@ -531,12 +531,10 @@ void func_801063B4_baby_bowser_bonkers(void) {
     }
 }
 
-/* NON_MATCHING: only the voice-table index shift is scheduled one instruction earlier than retail. */
-#ifdef NON_MATCHING
 void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     func_800E1BA8_minigame_ObjData* w;
     BkPlayer* p;
-    s32* voice;
+    s32 voice;
     u32 file0;
     s32 file1;
     u32 file2;
@@ -576,9 +574,9 @@ void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     func_800E5A00_minigame(obj, 0x20, func_80017BB8_main(chr, 0x22), 0, 0);
     func_800E5978_minigame(obj, 0x21, func_80017BB8_main(chr, 0x23), 2, 0);
     func_800E5A00_minigame(obj, 0x22, func_80017BB8_main(chr, 0x24), 2, 0);
-    voice = &D_8010B8DC_baby_bowser_bonkers[rand8() & 1];
-    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)*voice), 1, 0x78);
-    p->unk0C = D_8010B8BC_baby_bowser_bonkers[chr] | *voice;
+    voice = rand8() & 1;
+    func_800E5A00_minigame(obj, 0xD, func_80017BB8_main(chr, (s16)D_8010B8DC_baby_bowser_bonkers[voice]), 1, 0x78);
+    p->unk0C = D_8010B8BC_baby_bowser_bonkers[chr] | D_8010B8DC_baby_bowser_bonkers[voice];
     func_800E5A00_minigame(obj, 0xE, func_80017BB8_main(chr, (s16)D_8010B8E4_baby_bowser_bonkers[rand8() & 1]), 1,
                            0x78);
     func_800E5690_minigame(obj, 0);
@@ -598,9 +596,6 @@ void func_8010660C_baby_bowser_bonkers(omObjData* obj) {
     p->unk44 = p->unk48 = 0.0f;
     obj->func = func_80106AA4_baby_bowser_bonkers;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_35_baby_bowser_bonkers/29B1D0", func_8010660C_baby_bowser_bonkers);
-#endif
 
 void func_80106AA4_baby_bowser_bonkers(omObjData* obj) {
     BkPlayer* p;
