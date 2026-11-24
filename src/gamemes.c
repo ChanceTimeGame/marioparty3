@@ -991,9 +991,9 @@ s32 func_8003843C_main(GAMEMES *gMes, Gfx **arg1) {
 INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
 #endif
 
-// "START" letters flying in: register allocation (masked 39: the i + 1 loops, and case 0 keeps D_800B1BC0_main in a register)
-#ifdef NON_MATCHING
 // "START" letters flying in: register allocation (masked 21: the case 0 loop increments i + 1 in place; retail keeps i + 1 in s1 and copies it back, move s0,s1)
+#ifdef NON_MATCHING
+s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
     s32 n;
     s32 ret;
