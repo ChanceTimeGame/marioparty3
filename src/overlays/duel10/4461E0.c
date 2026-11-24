@@ -3545,28 +3545,28 @@ void func_8010ED98_duel10(UnkMBGuideData *guide) {
     func_800D90D0_name_81(guide->obj, -1, 2);
 }
 
-#ifdef NON_MATCHING
-// board ec2: slide the guide from its x position to x over 14 frames, then idle.
-// board ec2: masked 0; raw residue is the register allocation (guide s1, x - start in a1 in retail)
-void func_8010EDF8_duel10(UnkMBGuideData *guide, s16 x) {
-    s32 i;
-    s32 step;
-    s16 start = guide->spriteGroup;
-    Object *obj = guide->obj;
+// decomp-permuter
+void func_8010EDF8_duel10(UnkMBGuideData *guide, s16 x)
+{
+  s32 i;
+  s32 step;
+  s16 start = guide->spriteGroup;
+  int new_var;
+  Object *obj = guide->obj;
+  obj->velocity.y = 4.0f;
+  (*obj).velocity.z = -0.5f;
+  new_var = x - start;
+  step = new_var / 14;
+  for (i = 0; i < 14; i++)
+  {
+    start = guide->spriteGroup;
+    func_800E4EAC_name_81(guide, start + step, 0);
+    HuPrcVSleep();
+  }
 
-    obj->velocity.y = 4.0f;
-    obj->velocity.z = -0.5f;
-    step = (x - start) / 14;
-    for (i = 0; i < 14; i++) {
-        func_800E4EAC_name_81(guide, guide->spriteGroup + step, 0);
-        HuPrcVSleep();
-    }
-    func_800E4EAC_name_81(guide, x, 0);
-    func_800D90D0_name_81(guide->obj, -1, 2);
+  func_800E4EAC_name_81(guide, x, 0);
+  func_800D90D0_name_81(guide->obj, -1, 2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/duel10/4461E0", func_8010EDF8_duel10);
-#endif
 
 // board ec2: guide motion process: plays each motion D_80114A40_duel10 requests, then idles.
 void func_8010EEE4_duel10(void) {

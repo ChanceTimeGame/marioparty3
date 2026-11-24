@@ -9,7 +9,7 @@ masked out; 0 means only register allocation or instruction order differs, which
 [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) most often finishes the job.
 *raw*: differing lines including registers. *note*: the comment in the source, when there is one.
 
-**Summary:** 921 functions with C behind `NON_MATCHING` (masked 0: 161, masked 1-10: 281, masked over 10: 479); 63 functions still assembly only.
+**Summary:** 905 functions with C behind `NON_MATCHING` (masked 0: 150, masked 1-10: 276, masked over 10: 479); 63 functions still assembly only.
 
 ## C behind NON_MATCHING
 
@@ -21,17 +21,12 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_80112508_filesel` | `src/overlays/filesel/516AE0.c` | 35 | 0 | 5 | register allocation of the name-pair test (raw only) |
 | `func_8010F43C_msetup` | `src/overlays/msetup/506F20.c` | 45 | 0 | 0 | identical code, but retail pads it with a nop to 0x8010F4E0: a TU boundary (506F20.c needs a split there); asm keeps the pad |
 | `func_801126C0_filesel` | `src/overlays/filesel/516AE0.c` | 46 | 0 | 23 | callee-saved register choice for the three arguments (raw only) |
-| `func_800D90D0_name_81` | `src/overlays/ovl_81_name/BFB40.c` | 50 | 0 | 2 | masked 0; raw: retail copies arg1 to a3 after saving arg0 in s0 |
 | `func_8010BFD0_spotlight_swim` | `src/overlays/ovl_03_spotlight_swim/1263E0.c` | 54 | 0 | 16 | regalloc only (masked 0): retail x0/y0/i in t3/t6/t5, mine t6/t7/t4. Stamps the 32 x 32 spotlight mask (alpha = mask * 16, capped at D_8010D47C_spotlight_swim) ... |
 | `func_8010AAEC_hand_line_sinker` | `src/overlays/ovl_01_hand_line_sinker/11A480.c` | 56 | 0 | 6 | Newton's method: the catenary parameter whose arc length matches the line (func_8010ABD4 = 0). |
 | `func_8010A4B4_marios_puzzle_party` | `src/overlays/ovl_1F_marios_puzzle_party/1F3B90.c` | 59 | 0 | 16 | register allocation (masked 0, raw 16: the /14 and /7 magic shares a1 in retail) |
 | `func_80108A18_inst` | `src/overlays/inst/4E1510.c` | 62 | 0 | 0 | Starts texture animation anim of model at frame (frame -1: plays it as it is). |
-| `func_8010EDF8_duel10` | `src/overlays/duel10/4461E0.c` | 63 | 0 | 20 | board ec2: slide the guide from its x position to x over 14 frames, then idle. board ec2: masked 0; raw residue is the register allocation (guide s1, x - start ... |
 | `func_80106850_mgresultduel` | `src/overlays/mgresultduel/4F01F0.c` | 67 | 0 | 0 | duelres A: Instruction-identical, but retail pads it with two nops to 0x80106930: a TU boundary (the unit's .data also pads to 0x80108E80 there); asm keeps the ... |
 | `func_80106918_mgresultbattle` | `src/overlays/mgresultbattle/4F3780.c` | 72 | 0 | 9 | battleres A: masked 0, raw 12 (s0/s1 swapped between i and motion). Plays each figure's win (coins earned) or lose motion, then hands figure 0's hook to the wai... |
-| `func_801063F4_stacked_deck` | `src/overlays/ovl_2A_stacked_deck/240A10.c` | 76 | 0 | 10 |  |
-| `func_8010642C_three_door_monty` | `src/overlays/ovl_2B_three_door_monty/24A760.c` | 76 | 0 | 10 |  |
-| `func_80109A58_modesel` | `src/overlays/modesel/4F7E90.c` | 88 | 0 | 12 | Stick direction of controller `pad` as a button mask (0x100 right, 0x200 left, 0x800 up, 0x400 down and their diagonals), reported once each time the stick leav... |
 | `func_801130E8_option` | `src/overlays/option/5334D0.c` | 88 | 0 | 12 |  |
 | `func_8010B0E8_aces_high` | `src/overlays/ovl_17_aces_high/1C4280.c` | 93 | 0 | 4 | register allocation only (masked 0): retail multiplies sindf(rot.y) * 30 into f0, here into f20 |
 | `func_80107734_awful_tower` | `src/overlays/ovl_25_awful_tower/21E010.c` | 94 | 0 | 3 | Stage object update: runs the players' logic and lowers the tower top in the winner scene. |
@@ -49,7 +44,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_80000650_main` | `src/1140.c` | 130 | 0 | 39 | MP3 adds the func_80001134_main(0, 0x20) call. Register allocation (MP2 too): st/buf/rom take s2/s0/s1 instead of retail's s0/s1/s2. MP2 tried st-> for the fxd ... |
 | `func_80109D6C_fridged_bridges` | `src/overlays/ovl_24_fridged_bridges/216670.c` | 133 | 0 | 2 | Is (x, z) inside the face? (minigame func_800DA540 without its surface filter) |
 | `func_80106C50_staff` | `src/overlays/staff/542220.c` | 134 | 0 | 0 | Instruction-identical to retail; only the file-end padding differs: retail has a file boundary at 0x80106E20 (three nops after this function), which the unit ca... |
-| `func_801081E4_picture_imperfect` | `src/overlays/ovl_1E_picture_imperfect/1EF420.c` | 134 | 0 | 12 | masked 0: pw and ex swap $s3/$s4 (registers only); logic checked |
 | `func_801096BC_water_whirled` | `src/overlays/ovl_23_water_whirled/211AB0.c` | 134 | 0 | 44 | Masked 0, raw 44: $f22/$f24 swapped between a and b. Steering offset: the angle between the course direction at the rider (along the straights, round the half c... |
 | `func_801091F8_fridged_bridges` | `src/overlays/ovl_24_fridged_bridges/216670.c` | 135 | 0 | 5 | Game end: every player lets go, wipe, then wait for the finish |
 | `func_8003A81C_main` | `src/gamemes.c` | 141 | 0 | 7 | The font sprite (high half, loaded on first use) and frame (low half) for the character at str; flag bit 0 is the large font. register allocation (masked 0): fl... |
@@ -71,7 +65,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_8010FEC0_puddle_paddle` | `src/overlays/ovl_11_puddle_paddle/191240.c` | 198 | 0 | 60 |  |
 | `func_8010A174_motor_rooter` | `src/overlays/ovl_36_motor_rooter/main.c` | 202 | 0 | 6 | <func_8010A174_motor_rooter> |
 | `func_8010E03C_stardust_battle` | `src/overlays/ovl_41_stardust_battle/2ED2D0.c` | 203 | 0 | 18 | register allocation only: retail keeps the item pool in s4 and the work in s5, mine the reverse |
-| `func_801076D4_parasol_plummet` | `src/overlays/ovl_1C_parasol_plummet/1DE610.c` | 204 | 0 | 5 | register allocation in the sort (f0/f2 swapped; masked 0). CPU parasol button: open or close to meet the nearest item's height, then wait a difficulty-dependent... |
 | `func_801065C8_bobbing_bow_loons` | `src/overlays/ovl_3D_bobbing_bow_loons/2D8370.c` | 206 | 0 | 8 | masked 0; i and j swap saved registers (s5/s2) |
 | `func_80109108_treadmill_grill` | `src/overlays/ovl_15_treadmill_grill/1B4F10.c` | 215 | 0 | 6 | Grill path: corners round the treadmill, then grill positions spaced along it. Masked 0 (raw 6): retail divides into the spacing register from a temporary, this... |
 | `func_8011A5DC_w04` | `src/overlays/w04/367960.c` | 215 | 0 | 0 | board q4: masked 1; retail reuses the a0 = 0x3D set in the case-1 branch delay slot before calling func_80106AB0_w04 (void) |
@@ -79,13 +72,10 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_8010D288_rockin_raceway` | `src/overlays/ovl_2C_rockin_raceway/251FF0.c` | 226 | 0 | 8 | Projects pos through camera cam: screen position and depth into screen, viewport-relative into rel. |
 | `func_801095E4_staff` | `src/overlays/staff/542220.c` | 227 | 0 | 16 | masked 0; raw: s1/s2 swap (prev and path) and f0/f2 in the cos term. |
 | `func_8010F348_mgmode` | `src/overlays/mgmode/473130.c` | 233 | 0 | 1 | one register (list[] indexed through prev's copy of sel). |
-| `func_8010BE78_inst` | `src/overlays/inst/4E4B50.c` | 237 | 0 | 2 | retail loads the 1 stored to D_8010D440_inst into v1, this into v0; logic matches. * Retail reads the low half of D_8010D5B8_inst through its own label (D_8010D... |
 | `func_80108178_mpiq` | `src/overlays/ovl_21_mpiq/204F90.c` | 238 | 0 | 1 | The four score columns (three blocks each). |
 | `func_8010724C_fowl_play` | `src/overlays/ovl_3A_fowl_play/2C5B50.c` | 239 | 0 | 0 | masked 0; n and &seg swap saved registers (s5/s6) Stops a move from prev to pos at the first pen wall it crosses, r + 20 short of it. |
 | `func_8010A51C_aces_high` | `src/overlays/ovl_17_aces_high/1C4280.c` | 246 | 0 | 12 | register allocation only (masked 0): retail multiplies sindf(rot.y) * 300 into f0, here straight into f22 |
 | `func_80108738_chancetime` | `src/overlays/chancetime/4832D0.c` | 250 | 0 | 6 | the f32->s16 frame argument of func_80016B00_main truncates through $f0/$f2 * swapped (register allocation only); logic matches. |
-| `func_8010951C_aces_high` | `src/overlays/ovl_17_aces_high/1C4280.c` | 253 | 0 | 26 | register allocation only (masked 0): retail keeps the angle difference in f4 and the stick value in f6, here the reverse |
-| `func_8010A938_cheep_cheep_chase` | `src/overlays/ovl_26_cheep_cheep_chase/225740.c` | 261 | 0 | 16 | Register allocation as func_8010A57C (object/player swapped between s2 and s3, f0/f2 swapped in the threshold). |
 | `func_800FCF50_name_81` | `src/overlays/ovl_81_name/E3CD0.c` | 264 | 0 | 15 | masked 0: player and shareSpace swap s2/s3 |
 | `func_800072A4_main` | `src/1140.c` | 268 | 0 | 69 | register allocation (masked 0, raw 69): m, def and mask get t4/t5/a1 where retail has t5/t6/t2 (retail allocates the scan loop's locals first). The shift amount... |
 | `func_80106664_mpiq` | `src/overlays/ovl_21_mpiq/204F90.c` | 271 | 0 | 22 | CPU plan for a question: buzz delay, answer time, and a right or wrong answer by difficulty. |
@@ -153,7 +143,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_80107B64_game_guys_magic_boxes` | `src/overlays/ovl_44_game_guys_magic_boxes/308D10.c` | 671 | 0 | 1 | register allocation only: retail ORs the A press with the timer test into a fresh register (or v0,s0,v0), this keeps it in s0 Choose a box: the player with the ... |
 | `func_8010A260_storm_chasers` | `src/overlays/ovl_2F_storm_chasers/269BF0.c` | 713 | 0 | 39 | CPU after the storm: walk to its goal point, sidestepping other players. |
 | `func_80004D4C_main` | `src/1140.c` | 743 | 0 | 17 | MP3 adds the null-script check (flag 0x40000). Register allocation (masked 0, raw 17 as in MP2): i (the note-on loop counter, one variable with the 0x15/0x17 op... |
-| `func_800FA120_name_81` | `src/overlays/ovl_81_name/DFD60.c` | 744 | 0 | 4 | masked 0: two temporaries swap (a0/v1) at the sprite id store |
 | `func_8010643C_mstory3` | `src/overlays/mstory3/4B29E0.c` | 745 | 0 | 0 | masked 0 but for a nop KMC puts after each of the cosdf/sindf calls that retail does not have (2 instructions) |
 | `func_80022660_main` | `src/22EB0.c` | 756 | 0 | 3 | Register allocation only: the allocation size is built in v0, not a0 |
 | `func_8010B5C8_messy_memory` | `src/overlays/ovl_1D_messy_memory/1E37C0.c` | 791 | 0 | 6 | A player's model object (work[0] the player; D_80113B18[player] its state), per game phase. |
@@ -196,7 +185,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_801178E0_mgmode` | `src/overlays/mgmode/47DD90.c` | 342 | 1 | 8 | Look-at vectors for a camera orbiting center at rot, zoom away: eye, target and the up vector turned rot->z degrees about the view direction (Rodrigues). |
 | `func_8010CADC_river_raiders` | `src/overlays/ovl_09_river_raiders/1542E0.c` | 371 | 1 | 6 | The minigame's flow (D_80110D90_river_raiders): 0 intro, 1 start message, 2 race (timer D_80110DE2), 3 finish, * 4 result (coins: team 0 D_80110D84, team 1 D_80... |
 | `func_80106410_boulder_ball` | `src/overlays/ovl_04_boulder_ball/12DD30.c` | 621 | 1 | 3 | The slope: runs the minigame's states. masked 0; raw: the finish loop that slows the three runners (unk3C *= 0.8f) loads the object into a0, GCC here into v0 (r... |
-| `func_801088A4_aces_high` | `src/overlays/ovl_17_aces_high/1C4280.c` | 807 | 1 | 22 | register allocation only (masked 0): retail keeps stickX in s5 and stickY in s4, here the reverse; abs.s source register |
 | `func_80107954_swinging_with_sharks` | `src/overlays/ovl_3F_swinging_with_sharks/2E0D20.c` | 808 | 1 | 31 | register allocation only (the landed-shark index, its HmfModel and &D_8010B8F0 permute s3/s4/s5) |
 | `func_800EF3B4_name_81` | `src/overlays/ovl_81_name/D5B20.c` | 8 | 2 | 2 | retail takes an s32 window id (no sign extension); ovl_81.h declares s16, which DFD60's caller needs to match (see n6.header.patch) |
 | `func_8008A730_main` | `src/8B1C0.c` | 46 | 2 | 2 | guTranslate by v NON_MATCHING: scheduling only, retail emits lui 0x1 (m[0][0]) before the loads (raw 1) |
@@ -212,7 +200,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_80107B58_snowball_summit` | `src/overlays/ovl_28_snowball_summit/232A10.c` | 94 | 2 | 13 | Speed from the stick distance (stick.x; a snowball slows its roller by its size) and the next position. scheduling of the 0.4/0.6 blend (retail multiplies by 0.... |
 | `func_800F0208_name_81` | `src/overlays/ovl_81_name/D5B20.c` | 97 | 2 | 2 | Matches (masked and raw 0); kept NON_MATCHING only for .rodata: retail pads its two u32->f32 constants to 16 bytes (D_80102590 ends with 8 zero bytes) because a... |
 | `func_80111CB8_mstory3` | `src/overlays/mstory3/4B9A30.c` | 103 | 2 | 2 |  |
-| `func_8010B900_mpiq` | `src/overlays/ovl_21_mpiq/204F90.c` | 109 | 2 | 3 | Buzz-in process: whoever presses A first (random among ties) answers. |
 | `func_8010A260_swinging_with_sharks` | `src/overlays/ovl_3F_swinging_with_sharks/2E0D20.c` | 117 | 2 | 10 | register allocation: model/m swap s1/s2, and the light products use f2/f6 instead of f6/f0 |
 | `func_8010B1F4_msetup` | `src/overlays/msetup/506F20.c` | 122 | 2 | 10 | register allocation only: model and shadow swap s2/s3 (tried declaration and assignment order, an s32 model). |
 | `func_80108B0C_pump_pump_away` | `src/overlays/ovl_0D_pump_pump_away/16F670.c` | 128 | 2 | 8 |  |
@@ -245,7 +232,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_8010664C_picking_panic` | `src/overlays/ovl_0F_picking_panic/181950.c` | 584 | 2 | 2 |  |
 | `func_8010DA64_messy_memory` | `src/overlays/ovl_1D_messy_memory/1E37C0.c` | 595 | 2 | 25 | An item's shadow object (work[0] the item, work[1] its board). Retail's slot loops read one past their table. |
 | `func_80108E1C_boardresult2` | `src/overlays/boardresult2/3CFC80.c` | 716 | 2 | 2 | (see func_80108C70_boardresult2). |
-| `func_80109444_w10` | `src/overlays/w10/3B3620.c` | 2338 | 2 | 2 | The tutorial script: the guide walks through the board, spaces, items, the minigame, the Boo, Star and Bowser stops, then fades out and leaves the board. NON_MA... |
 | `func_80106534_slapdown` | `src/overlays/ovl_2E_slapdown/264B80.c` | 43 | 3 | 3 |  |
 | `func_801099C0_inst` | `src/overlays/inst/4E1510.c` | 57 | 3 | 4 | Retail indexes HmfModelData with the motion id (obj->motion[3]) for the blend length. |
 | `func_80108958_all_fired_up` | `src/overlays/ovl_29_all_fired_up/23C8F0.c` | 91 | 3 | 3 | masked 3: scheduling only (retail sets i = 0 between the row load and its address); logic checked |
@@ -291,7 +277,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_80105FCC_marios_puzzle_party` | `src/overlays/ovl_1F_marios_puzzle_party/1F3B90.c` | 41 | 4 | 18 |  |
 | `func_8008D130_main` | `src/8D8C0.c` | 47 | 4 | 9 | loop counters, retail keeps the row loop's i as its own counter where GCC reduces it to i*16 (masked 4-6; MP2 has the same residue) |
 | `func_8008CCC0_main` | `src/8D8C0.c` | 51 | 4 | 18 | loop counters, retail keeps the row loop's i as its own counter where GCC reduces it to i*16 (masked 4-6; MP2 has the same residue) |
-| `func_80105C98_hide_and_sneak` | `src/overlays/ovl_06_hide_and_sneak/137C00.c` | 51 | 4 | 5 |  |
 | `func_80106704_messy_memory` | `src/overlays/ovl_1D_messy_memory/1E37C0.c` | 51 | 4 | 5 |  |
 | `func_80105BB4_hide_and_sneak` | `src/overlays/ovl_06_hide_and_sneak/137C00.c` | 57 | 4 | 5 |  |
 | `func_80106620_messy_memory` | `src/overlays/ovl_1D_messy_memory/1E37C0.c` | 57 | 4 | 5 |  |
@@ -362,7 +347,6 @@ masked out; 0 means only register allocation or instruction order differs, which
 | `func_800F38DC_name_81` | `src/overlays/ovl_81_name/D5B20.c` | 45 | 6 | 26 | Retail passes attr to func_800F89D0 zero-extended (that call saw no s16 prototype); ovl_81.h's s16 arg3 adds a sign extension. The callee narrows it to s16 eith... |
 | `func_8008CFA0_main` | `src/8D8C0.c` | 51 | 6 | 14 | loop counters, retail keeps the row loop's i as its own counter where GCC reduces it to i*16 (masked 4-6; MP2 has the same residue) |
 | `func_8008CE00_main` | `src/8D8C0.c` | 55 | 6 | 14 | loop counters, retail keeps the row loop's i as its own counter where GCC reduces it to i*16 (masked 4-6; MP2 has the same residue) |
-| `func_80108AA8_slot_synch` | `src/overlays/ovl_14_slot_synch/1AC970.c` | 55 | 6 | 7 |  |
 | `func_8010ACA8_modesel` | `src/overlays/modesel/4F7E90.c` | 57 | 6 | 19 | masked 6: retail keeps no = 10 in s2 and passes it in a0 to func_8010AC3C too (GCC folds the constant) |
 | `func_80111490_opening` | `src/overlays/opening/523FD0.c` | 58 | 6 | 14 |  |
 | `func_8010CCBC_pump_pump_away` | `src/overlays/ovl_0D_pump_pump_away/16F670.c` | 91 | 6 | 10 | masked 6: retail shares the second branch's "return 0" and call blocks with the first; tried an if/else with one shared return 0 (masked 11) and a (u16) on eith... |

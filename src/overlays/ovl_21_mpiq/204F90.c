@@ -2248,31 +2248,34 @@ void func_8010B0CC_mpiq(void) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010B0CC_mpiq);
 #endif
 
-#ifdef NON_MATCHING
-/* Buzz-in process: whoever presses A first (random among ties) answers. */
-void func_8010B900_mpiq(void) {
-    s32 list[4];
-    s32 n;
-    s32 i;
-
-    while (n = 0, !(D_8010C9C0_mpiq & 2)) {
-        for (i = 0; i < 4; i++) {
-            if (!(D_8010C9E8_mpiq[i] & 1) && (D_800D5558_main[GwPlayer[i].pad] & 0x8000)) {
-                list[n++] = i;
-                D_8010C9C0_mpiq = (D_8010C9C0_mpiq & ~0x10) | 4;
-            }
-        }
-        if (n != 0) {
-            D_8010C9BC_mpiq = list[rand8() % n];
-            break;
-        }
-        HuPrcVSleep();
+// decomp-permuter
+void func_8010B900_mpiq(void)
+{
+  s32 list[4];
+  s32 n;
+  s32 i;
+  while (n = 0, !(D_8010C9C0_mpiq & 2))
+  {
+    n = 0;
+    for (i = n; i < 4; i++)
+    {
+      if ((!(D_8010C9E8_mpiq[i] & 1)) && (D_800D5558_main[GwPlayer[i].pad] & 0x8000))
+      {
+        list[n++] = i;
+        D_8010C9C0_mpiq = (D_8010C9C0_mpiq & (~0x10)) | 4;
+      }
     }
-    omDelPrcObj(NULL);
+
+    if (n != 0)
+    {
+      D_8010C9BC_mpiq = list[rand8() % n];
+      break;
+    }
+    HuPrcVSleep();
+  }
+
+  omDelPrcObj(0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_21_mpiq/204F90", func_8010B900_mpiq);
-#endif
 
 void func_8010BA64_mpiq(omObjData* obj) {
     s32 list[4];

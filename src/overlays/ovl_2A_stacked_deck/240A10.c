@@ -406,59 +406,72 @@ void func_80106354_stacked_deck(omObjData *obj, u8 face) {
         HmfAnimCreate(HmfModelData[obj->model[0]].hmf, D_8010F708_stacked_deck[face], 0, D_8010F42C_stacked_deck);
 }
 
-#ifdef NON_MATCHING
-void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed) {
-    f32 dx;
-    f32 dz;
-    f32 adx;
-    f32 adz;
-    f32 num;
-    f32 den;
-    f32 t;
-
-    dx = x1 - x0;
-    dz = z1 - z0;
-    adx = fabsf(dx);
-    adz = fabsf(dz);
-    if (adz <= adx) {
-        if (dx >= 0.0f) {
-            *vx = -speed;
-        } else {
-            *vx = speed;
-        }
-        t = dz;
-        den = speed;
-        num = adx;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        den = num / den;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        *vz = -(t / den);
-    } else {
-        if (dz >= 0.0f) {
-            *vz = -speed;
-        } else {
-            *vz = speed;
-        }
-        t = dx;
-        den = speed;
-        num = adz;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        den = num / den;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        *vx = -(t / den);
+// decomp-permuter
+void func_801063F4_stacked_deck(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed)
+{
+  f32 dx;
+  f32 adz;
+  f32 new_var;
+  f32 dz;
+  f32 adx;
+  f32 num;
+  f32 den;
+  f32 t;
+  dx = x1 - x0;
+  dz = z1 - z0;
+  adx = fabsf(dx);
+  adz = fabsf(dz);
+  if (adz <= adx)
+  {
+    if (dx >= 0.0f)
+    {
+      *vx = -speed;
     }
+    else
+    {
+      *vx = speed;
+    }
+    t = dz;
+    den = speed;
+    num = adx;
+    new_var = den;
+    if (new_var == 0.0f)
+    {
+      den = 1.0f;
+    }
+    den = num / den;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    *vz = -(t / den);
+  }
+  else
+  {
+    if (dz >= 0.0f)
+    {
+      *vz = -speed;
+    }
+    else
+    {
+      *vz = speed;
+    }
+    new_var = adz;
+    t = dx;
+    den = speed;
+    num = new_var;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    den = num / den;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    *vx = -(t / den);
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2A_stacked_deck/240A10", func_801063F4_stacked_deck);
-#endif
 
 void func_80106554_stacked_deck(omObjData *obj) {
 }

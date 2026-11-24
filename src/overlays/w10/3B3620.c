@@ -1389,282 +1389,308 @@ void func_80109050_w10(void) {
 
 // The tutorial script: the guide walks through the board, spaces, items, the minigame, the
 // Boo, Star and Bowser stops, then fades out and leaves the board.
-// NON_MATCHING: masked 2, two instructions swapped (`addiu s2,sp,0x30` before `addiu s5,v0,8` after
 // MBMasuGet(0x26)); everything else matches once the unit is in W2DC_BLANKSTRIP (Makefile), which
 // drops the assembler nop after each sindf call. Logic checked against the asm.
-#ifdef NON_MATCHING
-void func_80109444_w10(void) {
-    s32 state;
-    Process *curProc;
-    SpaceData *from;
-    SpaceData *to;
-    Object *pipe;
-    Object *effect;
-    Object *star;
-    Process *proc;
-    W10PlayerWork *work;
-    Vec *objPos;
-    void *spaceSpr;
-    f32 angle;
-    f32 scale;
-    s32 i;
-    s32 j;
-    s16 model;
-    s16 seNo;
+// decomp-permuter
+void func_80109444_w10(void)
+{
+  s32 state;
+  Process *curProc;
+  SpaceData *from;
+  SpaceData *to;
+  Object *pipe;
+  Object *effect;
+  Object *star;
+  Process *proc;
+  W10PlayerWork *work;
+  Vec *objPos;
+  SpaceData *new_var;
+  void *spaceSpr;
+  f32 angle;
+  f32 scale;
+  s32 i;
+  s32 j;
+  s16 model;
+  s16 seNo;
+  curProc = HuPrcCurrentGet();
+  GwSystem.boardData.halfWordBytes[0] = 0;
+  func_80105F20_w10();
+  D_8010BA64_w10 = MBGuideCreate(0, 0);
+  func_8005C060_main(D_8010BA64_w10->amount, 4, 0, 0xB0, 0xC0);
+  HuVecCopyXYZ(&D_8010BA64_w10->obj->scale, 1.1f, 1.1f, 1.1f);
+  D_8010BA64_w10->obj->coords.x -= 1.0f;
+  D_8010BA64_w10->obj->coords.y -= 2.0f;
+  MBGuideFaceCreate(D_8010BA64_w10->obj, 2, 0xF, D_8010B7F8_w10[0]);
+  MBGuidePosSet(D_8010BA64_w10, 0x42, 0);
+  func_8005B63C_main(D_8010BA64_w10->amount, 0x40, 0x40);
+  func_801066E8_w10();
+  func_80106730_w10();
+  HuPrcSleep(3);
+  while (WipeStatGet() != 0)
+  {
+    HuPrcVSleep();
+  }
 
-    curProc = HuPrcCurrentGet();
-    GwSystem.boardData.halfWordBytes[0] = 0;
-    func_80105F20_w10();
-    D_8010BA64_w10 = MBGuideCreate(NULL, 0);
-    func_8005C060_main(D_8010BA64_w10->amount, 4, 0, 0xB0, 0xC0);
-    HuVecCopyXYZ(&D_8010BA64_w10->obj->scale, 1.1f, 1.1f, 1.1f);
-    D_8010BA64_w10->obj->coords.x -= 1.0f;
-    D_8010BA64_w10->obj->coords.y -= 2.0f;
-    MBGuideFaceCreate(D_8010BA64_w10->obj, 2, 0xF, D_8010B7F8_w10[0]);
-    MBGuidePosSet(D_8010BA64_w10, 0x42, 0);
-    func_8005B63C_main(D_8010BA64_w10->amount, 0x40, 0x40);
-    func_801066E8_w10();
-    func_80106730_w10();
-    HuPrcSleep(3);
-    while (WipeStatGet() != 0) {
-        HuPrcVSleep();
-    }
-    HuPrcSleep(3);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1608);
-    func_80106838_w10();
-    func_80106ED8_w10(D_8010BA64_w10, 0x1609);
-    func_8010687C_w10(1);
-    func_80106ED8_w10(D_8010BA64_w10, 0x160A);
-    func_80106908_w10();
+  HuPrcSleep(3);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1608);
+  func_80106838_w10();
+  func_80106ED8_w10(D_8010BA64_w10, 0x1609);
+  func_8010687C_w10(1);
+  func_80106ED8_w10(D_8010BA64_w10, 0x160A);
+  func_80106908_w10();
+  HuPrcVSleep();
+  func_80106ED8_w10(D_8010BA64_w10, 0x160B);
+  spaceSpr = func_80105FDC_w10(0, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x160C);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(2);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(1, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x160D);
+  func_80107344_w10(-2);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(3);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(2, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x160E);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(5);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(3, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x160F);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  HuPrcSleep(10);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1610);
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_801066E8_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(4);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(4, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1611);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(5);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(5, 0x64, 0x5A);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1612);
+  state = 0;
+  omAddPrcObj(func_80107444_w10, 0x4800, 0, 0)->user_data = &state;
+  do
+  {
     HuPrcVSleep();
-    func_80106ED8_w10(D_8010BA64_w10, 0x160B);
-    spaceSpr = func_80105FDC_w10(0, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x160C);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(2);
-    func_80106908_w10();
+  }
+  while (state == 0);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1613);
+  state = 2;
+  do
+  {
     HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(1, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x160D);
-    func_80107344_w10(-2);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(3);
-    func_80106908_w10();
+  }
+  while (state == 2);
+  HuPrcSleep(4);
+  state = 0;
+  omAddPrcObj(func_80107780_w10, 0x4800, 0, 0)->user_data = &state;
+  do
+  {
     HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(2, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x160E);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(5);
-    func_80106908_w10();
+  }
+  while (state == 0);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1614);
+  state = 2;
+  do
+  {
     HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(3, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x160F);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    HuPrcSleep(10);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1610);
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_801066E8_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(4);
-    func_80106908_w10();
+  }
+  while (state == 2);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(1);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(9, 0x64, 0x5A);
+  state = 0;
+  omAddPrcObj(func_80107ABC_w10, 0x4800, 0, 0)->user_data = &state;
+  while (state == 0)
+  {
     HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(4, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1611);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(5);
-    func_80106908_w10();
-    HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(5, 0x64, 0x5A);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1612);
-    state = 0;
-    omAddPrcObj(func_80107444_w10, 0x4800, 0, 0)->user_data = &state;
-    do {
-        HuPrcVSleep();
-    } while (state == 0);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1613);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state == 2);
-    HuPrcSleep(4);
-    state = 0;
-    omAddPrcObj(func_80107780_w10, 0x4800, 0, 0)->user_data = &state;
-    do {
-        HuPrcVSleep();
-    } while (state == 0);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1614);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state == 2);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(1);
-    func_80106908_w10();
-    HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(9, 0x64, 0x5A);
-    state = 0;
-    omAddPrcObj(func_80107ABC_w10, 0x4800, 0, 0)->user_data = &state;
-    while (state == 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x1615);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state == 2);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(1);
-    func_80106908_w10();
-    HuPrcVSleep();
-    spaceSpr = func_80105FDC_w10(6, 0x64, 0x5A);
-    state = 0;
-    omAddPrcObj(func_80107D64_w10, 0x4800, 0, 0)->user_data = &state;
-    while (state == 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x1616);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state == 2);
-    func_801061E8_w10(spaceSpr);
-    func_80106DEC_w10();
-    func_80105F64_w10();
-    func_80106774_w10();
-    func_8010681C_w10(NULL);
-    func_80105FA0_w10();
-    func_80106730_w10();
-    func_80106838_w10();
-    func_8010687C_w10(1);
-    func_80106908_w10();
-    func_8010AF68_w10(D_8010BA64_w10);
-    func_80106DEC_w10();
-    func_800F7108_shared_board();
-    func_80106ED8_w10(D_8010BA64_w10, 0x161A);
-    MBStatusDispMoveSet(4);
-    func_8010714C_w10(D_8010BA64_w10, -30);
-    while (func_800F5278_shared_board() != 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x161B);
-    HuPrcChildLink(curProc, MBMgCallTutorialCreate());
-    HuPrcChildWait();
-    MBStatusColorSet(0, 1);
-    MBStatusColorSet(1, 1);
-    MBStatusColorSet(2, 1);
-    MBStatusColorSet(3, 1);
-    HuPrcSleep(30);
-    MBStatusDispMoveSet(2);
-    MBVsSprCreate();
-    while (func_800F5278_shared_board() != 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x161C);
-    MBVsSprKill();
-    MBStatusColorSet(0, 2);
-    MBStatusColorSet(1, 1);
-    MBStatusColorSet(2, 2);
-    MBStatusColorSet(3, 1);
-    MBStatusDispMoveSet(2);
-    MBVsSprCreate();
-    while (func_800F5278_shared_board() != 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x161D);
-    MBVsSprKill();
-    MBStatusColorSet(0, 1);
-    MBStatusColorSet(1, 2);
-    MBStatusColorSet(2, 2);
-    MBStatusColorSet(3, 2);
-    MBStatusDispMoveSet(2);
-    MBVsSprCreate();
-    while (func_800F5278_shared_board() != 0) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x161E);
-    MBStatusColorSet(0, 2);
-    MBStatusColorSet(1, 1);
-    MBStatusColorSet(2, 1);
-    MBStatusColorSet(3, 1);
-    func_80106ED8_w10(D_8010BA64_w10, 0x161F);
-    HuPrcSleep(15);
-    HuPrcSleep(1);
-    GwSystem.minigame_index = -1;
-    MBMgCallListCreate(-1);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1620);
-    func_800E00EC_shared_board();
-    MBStatusDispMoveSet(5);
-    while (GwSystem.minigame_index == -1) {
-        HuPrcVSleep();
-    }
-    MBVsSprKill();
-    MBMgCallClose();
-    func_80106ED8_w10(D_8010BA64_w10, 0x1621);
-    MBStatusHideAll();
-    func_800E6FCC_shared_board();
-    func_8001FDE8_main(MBPlayerGet(0)->player_obj->omObj1->model[0]);
-    func_8001FDE8_main(MBPlayerGet(1)->player_obj->omObj1->model[0]);
-    func_8001FDE8_main(MBPlayerGet(2)->player_obj->omObj1->model[0]);
-    func_8001FDE8_main(MBPlayerGet(3)->player_obj->omObj1->model[0]);
-    func_8010714C_w10(D_8010BA64_w10, 105);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1622);
+  }
 
-    // Boo stop: a pipe grows at space 0x2D facing space 0x15.
-    {
+  func_80106ED8_w10(D_8010BA64_w10, 0x1615);
+  state = 2;
+  do
+  {
+    HuPrcVSleep();
+  }
+  while (state == 2);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(1);
+  func_80106908_w10();
+  HuPrcVSleep();
+  spaceSpr = func_80105FDC_w10(6, 0x64, 0x5A);
+  state = 0;
+  omAddPrcObj(func_80107D64_w10, 0x4800, 0, 0)->user_data = &state;
+  while (state == 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x1616);
+  state = 2;
+  do
+  {
+    HuPrcVSleep();
+  }
+  while (state == 2);
+  func_801061E8_w10(spaceSpr);
+  func_80106DEC_w10();
+  func_80105F64_w10();
+  func_80106774_w10();
+  func_8010681C_w10(0);
+  func_80105FA0_w10();
+  func_80106730_w10();
+  func_80106838_w10();
+  func_8010687C_w10(1);
+  func_80106908_w10();
+  func_8010AF68_w10(D_8010BA64_w10);
+  func_80106DEC_w10();
+  func_800F7108_shared_board();
+  func_80106ED8_w10(D_8010BA64_w10, 0x161A);
+  MBStatusDispMoveSet(4);
+  func_8010714C_w10(D_8010BA64_w10, -30);
+  while (func_800F5278_shared_board() != 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x161B);
+  HuPrcChildLink(curProc, MBMgCallTutorialCreate());
+  HuPrcChildWait();
+  MBStatusColorSet(0, 1);
+  MBStatusColorSet(1, 1);
+  MBStatusColorSet(2, 1);
+  MBStatusColorSet(3, 1);
+  HuPrcSleep(30);
+  MBStatusDispMoveSet(2);
+  MBVsSprCreate();
+  while (func_800F5278_shared_board() != 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x161C);
+  MBVsSprKill();
+  MBStatusColorSet(0, 2);
+  MBStatusColorSet(1, 1);
+  MBStatusColorSet(2, 2);
+  MBStatusColorSet(3, 1);
+  MBStatusDispMoveSet(2);
+  MBVsSprCreate();
+  while (func_800F5278_shared_board() != 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x161D);
+  MBVsSprKill();
+  MBStatusColorSet(0, 1);
+  MBStatusColorSet(1, 2);
+  MBStatusColorSet(2, 2);
+  MBStatusColorSet(3, 2);
+  MBStatusDispMoveSet(2);
+  MBVsSprCreate();
+  while (func_800F5278_shared_board() != 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x161E);
+  MBStatusColorSet(0, 2);
+  MBStatusColorSet(1, 1);
+  MBStatusColorSet(2, 1);
+  MBStatusColorSet(3, 1);
+  func_80106ED8_w10(D_8010BA64_w10, 0x161F);
+  HuPrcSleep(15);
+  HuPrcSleep(1);
+  GwSystem.minigame_index = -1;
+  MBMgCallListCreate(-1);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1620);
+  func_800E00EC_shared_board();
+  MBStatusDispMoveSet(5);
+  while (GwSystem.minigame_index == (-1))
+  {
+    HuPrcVSleep();
+  }
+
+  MBVsSprKill();
+  MBMgCallClose();
+  func_80106ED8_w10(D_8010BA64_w10, 0x1621);
+  MBStatusHideAll();
+  func_800E6FCC_shared_board();
+  func_8001FDE8_main(MBPlayerGet(0)->player_obj->omObj1->model[0]);
+  func_8001FDE8_main(MBPlayerGet(1)->player_obj->omObj1->model[0]);
+  func_8001FDE8_main(MBPlayerGet(2)->player_obj->omObj1->model[0]);
+  func_8001FDE8_main(MBPlayerGet(3)->player_obj->omObj1->model[0]);
+  func_8010714C_w10(D_8010BA64_w10, 105);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1622);
+  {
     Vec dir;
     func_80106670_w10(0x2D);
     func_8010669C_w10();
     from = MBMasuGet(0x2D);
     to = MBMasuGet(0x15);
     HuAudFXPlay(0x114);
-    pipe = MBModelCreate(0x32, NULL);
+    pipe = MBModelCreate(0x32, 0);
     MBModelTempAllocFree(pipe);
     HuVecSubtract(&dir, &to->coords, &from->coords);
     MBVecNormalize(&dir);
@@ -1682,32 +1708,40 @@ void func_80109444_w10(void) {
     effect->scale.y = 1.2f;
     MBModelDispOff(effect);
     scale = 1.0f / sindf(50.0f);
-    for (angle = 0.0f; angle < 90.0f; angle += 11.25f) {
-        pipe->scale.y = sindf(angle) * scale;
-        pipe->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        pipe->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
+    for (angle = 0.0f; angle < 90.0f; angle += 11.25f)
+    {
+      pipe->scale.y = sindf(angle) * scale;
+      pipe->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      pipe->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      HuPrcVSleep();
     }
-    for (; angle > 50.0f; angle -= 11.25f) {
-        pipe->scale.y = sindf(angle) * scale;
-        pipe->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        pipe->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
+
+    for (; angle > 50.0f; angle -= 11.25f)
+    {
+      pipe->scale.y = sindf(angle) * scale;
+      pipe->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      pipe->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      HuPrcVSleep();
     }
+
     pipe->scale.y = 1.0f;
     pipe->scale.x = 1.0f;
     pipe->scale.z = 1.0f;
     func_800D9A40_shared_board(effect);
     MBMotionSet(pipe, -1, 0);
     func_8001C92C_main(pipe->omObj1->model[0], 1.2f);
-    while (!MBMotionCheck(pipe)) {
-        HuPrcVSleep();
+    while (!MBMotionCheck(pipe))
+    {
+      HuPrcVSleep();
     }
+
     HuAudFXPlay(0x259);
     MBMotionSet(effect, 0, 0);
-    while (!MBMotionCheck(effect)) {
-        HuPrcVSleep();
+    while (!MBMotionCheck(effect))
+    {
+      HuPrcVSleep();
     }
+
     MBMotionSet(effect, -1, 2);
     func_80106ED8_w10(D_8010BA64_w10, 0x1623);
     HuPrcSleep(10);
@@ -1716,181 +1750,212 @@ void func_80109444_w10(void) {
     func_8001C92C_main(pipe->omObj1->model[0], 1.2f);
     model = pipe->omObj1->model[0];
     func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
-    while (!func_800D9E80_shared_board(pipe)) {
-        HuPrcVSleep();
+    while (!func_800D9E80_shared_board(pipe))
+    {
+      HuPrcVSleep();
     }
+
     MBModelDispOff(effect);
     scale = 1.0f / sindf(50.0f);
-    for (angle = 50.0f; angle < 90.0f; angle += 11.25f) {
-        pipe->scale.y = sindf(angle) * scale;
-        pipe->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        pipe->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
+    for (angle = 50.0f; angle < 90.0f; angle += 11.25f)
+    {
+      pipe->scale.y = sindf(angle) * scale;
+      pipe->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      pipe->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      HuPrcVSleep();
     }
-    for (angle = 90.0f; angle > 0.0f; angle -= 11.25f) {
-        pipe->scale.y = sindf(angle) * scale;
-        pipe->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        pipe->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
+
+    for (angle = 90.0f; angle > 0.0f; angle -= 11.25f)
+    {
+      pipe->scale.y = sindf(angle) * scale;
+      pipe->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      pipe->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+      HuPrcVSleep();
     }
+
     pipe->scale.y = 0.0f;
     pipe->scale.x = 0.0f;
     pipe->scale.z = 0.0f;
     MBModelKill(pipe);
     MBModelKill(effect);
-    }
-    func_80106670_w10(0x2A);
-    func_8010669C_w10();
-    func_80106ED8_w10(D_8010BA64_w10, 0x1624);
-    HuPrcSleep(10);
-    state = 0;
-    D_8010B918_w10 = 0;
-    omAddPrcObj(func_80107F0C_w10, 0x4800, 0, 0)->user_data = &state;
-    while (state == 0) {
-        HuPrcVSleep();
-    }
-    func_80106F7C_w10(D_8010BA64_w10, 0x1625);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state != 3);
-    state = 0;
-    D_8010B918_w10 = 1;
-    omAddPrcObj(func_80107F0C_w10, 0x4800, 0, 0)->user_data = &state;
-    while (state == 0) {
-        HuPrcVSleep();
-    }
-    func_80107028_w10(D_8010BA64_w10, 0x1626);
-    state = 2;
-    do {
-        HuPrcVSleep();
-    } while (state != 3);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1627);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1628);
-    func_80106670_w10(0x25);
-    func_8010669C_w10();
-    HuAudFXPlay(0x159);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1629);
-    HuPrcSleep(10);
+  }
+  func_80106670_w10(0x2A);
+  func_8010669C_w10();
+  func_80106ED8_w10(D_8010BA64_w10, 0x1624);
+  HuPrcSleep(10);
+  state = 0;
+  D_8010B918_w10 = 0;
+  omAddPrcObj(func_80107F0C_w10, 0x4800, 0, 0)->user_data = &state;
+  while (state == 0)
+  {
+    HuPrcVSleep();
+  }
 
-    // Star stop at space 0x24.
-    func_80106670_w10(0x24);
-    func_8010669C_w10();
-    HuAudFXPlay(0x125);
-    star = MBModelCreate(0x33, NULL);
-    func_8001C448_main(star->omObj1->model[0]);
-    MBModelTempAllocFree(star);
-    HuVecCopyXYZ(&star->rot, 1.0f, 0.0f, 0.0f);
-    star->scale.y = 0.0f;
-    HuVecCopy3F(&star->coords, &MBMasuGet(0x24)->coords);
-    MBMotionSet(star, -1, 1);
-    MBModelDispOn(star);
-    scale = 1.0f / sindf(50.0f);
-    for (angle = 0.0f; angle < 90.0f; angle += 11.25f) {
-        star->scale.y = sindf(angle) * scale;
-        star->scale.x = sindf(angle) * scale * 0.99f + 0.01f;
-        star->scale.z = sindf(angle) * scale * 0.99f + 0.01f;
-        HuPrcVSleep();
-    }
-    for (; angle > 50.0f; angle -= 11.25f) {
-        star->scale.y = sindf(angle) * scale;
-        star->scale.x = sindf(angle) * scale * 0.99f + 0.01f;
-        star->scale.z = sindf(angle) * scale * 0.99f + 0.01f;
-        HuPrcVSleep();
-    }
-    star->scale.y = 1.0f;
-    star->scale.x = 1.0f;
-    star->scale.z = 1.0f;
-    MBMotionSet(star, -1, 0);
-    func_8001C92C_main(star->omObj1->model[0], 1.2f);
-    while (!MBMotionCheck(star)) {
-        HuPrcVSleep();
-    }
-    HuAudFXPlay(0x257);
-    MBModelDispOn(D_8010BA2C_w10);
-    for (i = 0; i < 0x100; i += 12) {
-        func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], i);
-        func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], i);
-        HuPrcVSleep();
-    }
-    func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], 0xFF);
-    func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], 0xFF);
-    func_80106ED8_w10(D_8010BA64_w10, 0x162A);
-    for (i = 0xFF; i >= 0; i -= 12) {
-        func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], i);
-        func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], i);
-        HuPrcVSleep();
-    }
-    func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], 0);
-    func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], 0);
-    MBModelDispOff(D_8010BA2C_w10);
-    HuAudFXPlay(0x126);
-    MBMotionSet(star, -1, 4);
-    func_8001C92C_main(star->omObj1->model[0], 1.2f);
-    model = star->omObj1->model[0];
-    func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
-    while (!func_800D9E80_shared_board(star)) {
-        HuPrcVSleep();
-    }
-    scale = 1.0f / sindf(50.0f);
-    for (angle = 50.0f; angle < 90.0f; angle += 11.25f) {
-        star->scale.y = sindf(angle) * scale;
-        star->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        star->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
-    }
-    for (angle = 90.0f; angle > 0.0f; angle -= 11.25f) {
-        star->scale.y = sindf(angle) * scale;
-        star->scale.x = sindf(angle) * scale * 0.2f + 0.8f;
-        star->scale.z = sindf(angle) * scale * 0.2f + 0.8f;
-        HuPrcVSleep();
-    }
-    star->scale.y = 0.0f;
-    star->scale.x = 0.0f;
-    star->scale.z = 0.0f;
-    MBModelKill(star);
+  func_80106F7C_w10(D_8010BA64_w10, 0x1625);
+  state = 2;
+  do
+  {
+    HuPrcVSleep();
+  }
+  while (state != 3);
+  state = 0;
+  D_8010B918_w10 = 1;
+  omAddPrcObj(func_80107F0C_w10, 0x4800, 0, 0)->user_data = &state;
+  while (state == 0)
+  {
+    HuPrcVSleep();
+  }
 
-    // Item space at 0x22: three players race for the item model.
-    func_8010714C_w10(D_8010BA64_w10, -30);
-    func_80106670_w10(0x22);
-    func_8010669C_w10();
-    D_8010BA20_w10 = 1;
-    for (j = 0; j < 4; j++) {
-        D_8010BA80_w10[j] = 0;
-    }
-    D_8010BA78_w10 = omAddPrcObj(func_801084CC_w10, 0x4800, 0, 0);
-    while (D_8010BA78_w10->user_data == NULL) {
-        HuPrcVSleep();
-    }
-    func_80106ED8_w10(D_8010BA64_w10, 0x162B);
-    func_80106ED8_w10(D_8010BA64_w10, 0x162C);
-    D_8010BA80_w10[0] = 1;
-    D_8010BA80_w10[1] = 1;
-    D_8010BA80_w10[2] = 1;
-    proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
-    proc->user_data = work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork));
-    work->playerNo = 0;
-    work->unk4 = 0;
-    work->slot = 0;
-    work->unkC = 0;
-    proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
-    proc->user_data = work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork));
-    work->playerNo = 1;
-    work->unk4 = 0;
-    work->slot = 0;
-    work->unkC = 0;
-    proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
-    proc->user_data = work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork));
-    work->playerNo = 2;
-    work->unk4 = 0;
-    work->slot = 1;
-    work->unkC = 0;
-    {
+  func_80107028_w10(D_8010BA64_w10, 0x1626);
+  state = 2;
+  do
+  {
+    HuPrcVSleep();
+  }
+  while (state != 3);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1627);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1628);
+  func_80106670_w10(0x25);
+  func_8010669C_w10();
+  HuAudFXPlay(0x159);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1629);
+  HuPrcSleep(10);
+  func_80106670_w10(0x24);
+  func_8010669C_w10();
+  HuAudFXPlay(0x125);
+  star = MBModelCreate(0x33, 0);
+  func_8001C448_main(star->omObj1->model[0]);
+  MBModelTempAllocFree(star);
+  HuVecCopyXYZ(&star->rot, 1.0f, 0.0f, 0.0f);
+  star->scale.y = 0.0f;
+  HuVecCopy3F(&star->coords, &MBMasuGet(0x24)->coords);
+  MBMotionSet(star, -1, 1);
+  MBModelDispOn(star);
+  scale = 1.0f / sindf(50.0f);
+  for (angle = 0.0f; angle < 90.0f; angle += 11.25f)
+  {
+    star->scale.y = sindf(angle) * scale;
+    star->scale.x = ((sindf(angle) * scale) * 0.99f) + 0.01f;
+    star->scale.z = ((sindf(angle) * scale) * 0.99f) + 0.01f;
+    HuPrcVSleep();
+  }
+
+  for (; angle > 50.0f; angle -= 11.25f)
+  {
+    star->scale.y = sindf(angle) * scale;
+    star->scale.x = ((sindf(angle) * scale) * 0.99f) + 0.01f;
+    star->scale.z = ((sindf(angle) * scale) * 0.99f) + 0.01f;
+    HuPrcVSleep();
+  }
+
+  star->scale.y = 1.0f;
+  star->scale.x = 1.0f;
+  star->scale.z = 1.0f;
+  MBMotionSet(star, -1, 0);
+  func_8001C92C_main(star->omObj1->model[0], 1.2f);
+  while (!MBMotionCheck(star))
+  {
+    HuPrcVSleep();
+  }
+
+  HuAudFXPlay(0x257);
+  MBModelDispOn(D_8010BA2C_w10);
+  for (i = 0; i < 0x100; i += 12)
+  {
+    func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], i);
+    func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], i);
+    HuPrcVSleep();
+  }
+
+  func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], 0xFF);
+  func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], 0xFF);
+  func_80106ED8_w10(D_8010BA64_w10, 0x162A);
+  for (i = 0xFF; i >= 0; i -= 12)
+  {
+    func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], i);
+    func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], i);
+    HuPrcVSleep();
+  }
+
+  func_8001F9E4_main(D_8010BA2C_w10->omObj1->model[0], 0);
+  func_8001F9E4_main(D_8010BA2C_w10->omObj2->model[0], 0);
+  MBModelDispOff(D_8010BA2C_w10);
+  HuAudFXPlay(0x126);
+  MBMotionSet(star, -1, 4);
+  func_8001C92C_main(star->omObj1->model[0], 1.2f);
+  model = star->omObj1->model[0];
+  func_8001C6A8_main(model, D_800CCF58_main[HmfModelData[model].unk02].unk02);
+  while (!func_800D9E80_shared_board(star))
+  {
+    HuPrcVSleep();
+  }
+
+  scale = 1.0f / sindf(50.0f);
+  for (angle = 50.0f; angle < 90.0f; angle += 11.25f)
+  {
+    star->scale.y = sindf(angle) * scale;
+    star->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+    star->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+    HuPrcVSleep();
+  }
+
+  for (angle = 90.0f; angle > 0.0f; angle -= 11.25f)
+  {
+    star->scale.y = sindf(angle) * scale;
+    star->scale.x = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+    star->scale.z = ((sindf(angle) * scale) * 0.2f) + 0.8f;
+    HuPrcVSleep();
+  }
+
+  star->scale.y = 0.0f;
+  star->scale.x = 0.0f;
+  star->scale.z = 0.0f;
+  MBModelKill(star);
+  func_8010714C_w10(D_8010BA64_w10, -30);
+  func_80106670_w10(0x22);
+  func_8010669C_w10();
+  D_8010BA20_w10 = 1;
+  for (j = 0; j < 4; j++)
+  {
+    D_8010BA80_w10[j] = 0;
+  }
+
+  D_8010BA78_w10 = omAddPrcObj(func_801084CC_w10, 0x4800, 0, 0);
+  while (D_8010BA78_w10->user_data == 0)
+  {
+    HuPrcVSleep();
+  }
+
+  func_80106ED8_w10(D_8010BA64_w10, 0x162B);
+  func_80106ED8_w10(D_8010BA64_w10, 0x162C);
+  D_8010BA80_w10[0] = 1;
+  D_8010BA80_w10[1] = 1;
+  D_8010BA80_w10[2] = 1;
+  proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
+  proc->user_data = (work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork)));
+  work->playerNo = 0;
+  work->unk4 = 0;
+  work->slot = 0;
+  work->unkC = 0;
+  proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
+  proc->user_data = (work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork)));
+  work->playerNo = 1;
+  work->unk4 = 0;
+  work->slot = 0;
+  work->unkC = 0;
+  proc = omAddPrcObj(func_80109050_w10, 0x4800, 0, 0x40);
+  proc->user_data = (work = HuMemMemoryAlloc(proc->heap, sizeof(W10PlayerWork)));
+  work->playerNo = 2;
+  work->unk4 = 0;
+  work->slot = 1;
+  work->unkC = 0;
+  {
     Vec *dest;
     Vec pos;
     seNo = HuAudFXPlay(0x185);
     D_8010BA94_w10 = 1;
-    HuVecCopy3F(&pos, dest = &MBMasuGet(0x26)->coords);
+    new_var = MBMasuGet(0x26);
+    HuVecCopy3F(&pos, dest = &new_var->coords);
     pos.x += 100.0f;
     objPos = &D_8010BA90_w10->coords;
     HuPrcChildLink(HuPrcCurrentGet(), func_800ED5E0_shared_board(objPos, &pos, objPos, 2.0f));
@@ -1900,45 +1965,40 @@ void func_80109444_w10(void) {
     HuPrcChildLink(HuPrcCurrentGet(), func_800ED5E0_shared_board(&D_8010BA58_w10, dest, &D_8010BA58_w10, 2.0f));
     HuPrcChildWait();
     func_8004AEF0_main(seNo, 30);
-    }
-    D_8010BA80_w10[0] = -1;
-    D_8010BA20_w10 = 0;
-    func_8010714C_w10(D_8010BA64_w10, 105);
-
-    // Bowser and the end.
-    func_80106ED8_w10(D_8010BA64_w10, 0x162D);
-    func_80106314_w10(160, 76);
-    HuPrcSleep(10);
-    func_80106230_w10(0, 160, 76);
-    func_80106ED8_w10(D_8010BA64_w10, 0x162E);
-    func_8010649C_w10();
-    func_80106230_w10(1, 160, 76);
-    func_80106ED8_w10(D_8010BA64_w10, 0x162F);
-    func_8010649C_w10();
-    func_80106230_w10(2, 160, 76);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1630);
-    func_8010649C_w10();
-    HuPrcSleep(10);
-    func_801064C8_w10();
-    HuPrcSleep(10);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1631);
-    func_80106ED8_w10(D_8010BA64_w10, 0x1632);
-    MBGuideFaceSet(D_8010BA64_w10->obj, D_8010B810_w10[0]);
-    HuPrcSleep(30);
-    HuAudSeqFadeOut(60);
-    WipeCreateOut(2, 0x10);
-    WipeColorSet(0xFF, 0xFF, 0xFF);
-    HuPrcSleep(16);
-    MBGuideKill(D_8010BA64_w10);
-    MBExit();
-    func_800F884C_shared_board();
-    omOvlReturnEx(1);
-    omOvlKill();
-    HuPrcVSleep();
+  }
+  D_8010BA80_w10[0] = -1;
+  D_8010BA20_w10 = 0;
+  func_8010714C_w10(D_8010BA64_w10, 105);
+  func_80106ED8_w10(D_8010BA64_w10, 0x162D);
+  func_80106314_w10(160, 76);
+  HuPrcSleep(10);
+  func_80106230_w10(0, 160, 76);
+  func_80106ED8_w10(D_8010BA64_w10, 0x162E);
+  func_8010649C_w10();
+  func_80106230_w10(1, 160, 76);
+  func_80106ED8_w10(D_8010BA64_w10, 0x162F);
+  func_8010649C_w10();
+  func_80106230_w10(2, 160, 76);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1630);
+  func_8010649C_w10();
+  HuPrcSleep(10);
+  func_801064C8_w10();
+  HuPrcSleep(10);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1631);
+  func_80106ED8_w10(D_8010BA64_w10, 0x1632);
+  MBGuideFaceSet(D_8010BA64_w10->obj, D_8010B810_w10[0]);
+  HuPrcSleep(30);
+  HuAudSeqFadeOut(60);
+  WipeCreateOut(2, 0x10);
+  WipeColorSet(0xFF, 0xFF, 0xFF);
+  HuPrcSleep(16);
+  MBGuideKill(D_8010BA64_w10);
+  MBExit();
+  func_800F884C_shared_board();
+  omOvlReturnEx(1);
+  omOvlKill();
+  HuPrcVSleep();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/w10/3B3620", func_80109444_w10);
-#endif
 
 // Tutorial: dice-roll explanation (zoom in, roll, hit the block, zoom out).
 void func_8010AF68_w10(UnkMBGuideData *guide) {

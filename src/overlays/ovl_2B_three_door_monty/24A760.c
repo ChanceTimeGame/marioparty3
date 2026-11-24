@@ -441,59 +441,70 @@ void func_80106390_three_door_monty(omObjData *obj, s16 mot, s16 arg2, s16 arg3,
     }
 }
 
-#ifdef NON_MATCHING
-void func_8010642C_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed) {
-    f32 dx;
-    f32 dz;
-    f32 adx;
-    f32 adz;
-    f32 num;
-    f32 den;
-    f32 t;
-
-    dx = x1 - x0;
-    dz = z1 - z0;
-    adx = fabsf(dx);
-    adz = fabsf(dz);
-    if (adz <= adx) {
-        if (dx >= 0.0f) {
-            *vx = -speed;
-        } else {
-            *vx = speed;
-        }
-        t = dz;
-        den = speed;
-        num = adx;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        den = num / den;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        *vz = -(t / den);
-    } else {
-        if (dz >= 0.0f) {
-            *vz = -speed;
-        } else {
-            *vz = speed;
-        }
-        t = dx;
-        den = speed;
-        num = adz;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        den = num / den;
-        if (den == 0.0f) {
-            den = 1.0f;
-        }
-        *vx = -(t / den);
+// decomp-permuter
+void func_8010642C_three_door_monty(f32 x0, f32 z0, f32 x1, f32 z1, f32 *vx, f32 *vz, f32 speed)
+{
+  f32 dx;
+  f32 dz;
+  f32 adx;
+  f32 adz;
+  f32 num;
+  f32 den;
+  f32 t;
+  dx = x1 - x0;
+  dz = z1 - z0;
+  adx = fabsf(dx);
+  adz = fabsf(dz);
+  if (adz <= adx)
+  {
+    if (dx >= 0.0f)
+    {
+      *vx = -speed;
     }
+    else
+    {
+      *vx = speed;
+    }
+    t = dz;
+    den = speed;
+    num = adx;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    den = num / den;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    *vz = -(t / den);
+  }
+  else
+  {
+    if (dz >= 0.0f)
+    {
+      *vz = -speed;
+    }
+    else
+    {
+      *vz = speed;
+    }
+    dz = adz;
+    t = dx;
+    den = speed;
+    num = dz;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    den = num / den;
+    if (den == 0.0f)
+    {
+      den = 1.0f;
+    }
+    *vx = -(t / den);
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_2B_three_door_monty/24A760", func_8010642C_three_door_monty);
-#endif
 
 void func_8010658C_three_door_monty(omObjData *obj, f32 *x, f32 *z, f32 scale) {
     f32 rot = obj->rot.y;

@@ -515,29 +515,38 @@ s32 func_800D9098_name_81(DuelModel *arg0) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* masked 0; raw: retail copies arg1 to a3 after saving arg0 in s0 */
-void func_800D90D0_name_81(Object *arg0, s16 arg1, u16 arg2) {
-    DuelModel *model = (DuelModel *)arg0;
-    u16 mot;
-
-    if (model->mtncnt != -1) {
-        if (arg1 == -1) {
-            mot = model->baseMot;
-            model->curMot = arg1;
-        } else if (arg1 <= model->mtncnt - 1) {
-            mot = model->omObj1->motion[arg1];
-            model->curMot = arg1;
-        } else {
-            return;
-        }
-        func_8001F304_main(model->omObj1->model[0], mot);
-        func_8001C814_main(model->omObj1->model[0], -1, arg2);
+// decomp-permuter
+void func_800D90D0_name_81(Object *arg0, s16 arg1, u16 arg2)
+{
+  int new_var3;
+  u16 new_var;
+  s16 new_var2;
+  DuelModel *model = (DuelModel *) arg0;
+  u16 mot;
+  new_var2 = arg1;
+  new_var = arg2;
+  if (model->mtncnt != (-1))
+  {
+    new_var3 = 1;
+    if (new_var2 == (-1))
+    {
+      mot = model->baseMot;
+      model->curMot = new_var2;
     }
+    else
+      if (new_var2 <= (model->mtncnt - new_var3))
+    {
+      mot = model->omObj1->motion[new_var2];
+      model->curMot = new_var2;
+    }
+    else
+    {
+      return;
+    }
+    func_8001F304_main(model->omObj1->model[0], mot);
+    func_8001C814_main(model->omObj1->model[0], -1, new_var);
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/BFB40", func_800D90D0_name_81);
-#endif
 
 void func_800D918C_name_81(Object *arg0, s16 arg1, s16 arg2, s16 arg3, u16 arg4) {
     DuelModel *model = (DuelModel *)arg0;

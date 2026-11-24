@@ -978,188 +978,229 @@ void func_800FFCCC_name_81(void *arg0);
 void func_80007B28_main(s16 seHandle, s32 arg1);
 void func_800FB0B8_name_81(Object *arg0, s32 arg1, s32 arg2);
 
-#ifdef NON_MATCHING
-// masked 0: two temporaries swap (a0/v1) at the sprite id store
-void func_800FA120_name_81(void) {
-    Object *objs[12];
-    Vec targets[12];
-    DuelAttackEff *eff = HuPrcCurrentGet()->user_data;
-    s32 order = eff->order;
-    Object *obj = eff->obj;
-    s32 amount = eff->amount;
-    s32 motion = eff->motion;
-    s32 flags = eff->flags;
-    u32 seNo = eff->seNo;
-    f32 angles[12] = { 45.0f, -45.0f, 135.0f, 225.0f, 90.0f, 270.0f, 180.0f, 0.0f, 60.0f, -30.0f, 150.0f, 240.0f };
-    f32 dist = 10.0f;
-    Vec2f pos2D;
-    void *coinEff;
-    Process *process;
-    UnkBoard4 *spr;
-    f32 angle;
-    s32 small;
-    s32 tier;
-    s32 i;
-    void *data;
+// decomp-permuter
+void func_800FA120_name_81(void)
+{
+  Object *objs[12];
+  Vec targets[12];
+  DuelAttackEff *eff = HuPrcCurrentGet()->user_data;
+  s32 order = eff->order;
+  Object *obj = eff->obj;
+  s32 amount = eff->amount;
+  s32 motion = eff->motion;
+  s32 flags = eff->flags;
+  u32 seNo = eff->seNo;
+  f32 angles[12] = {45.0f, -45.0f, 135.0f, 225.0f, 90.0f, 270.0f, 180.0f, 0.0f, 60.0f, -30.0f, 150.0f, 240.0f};
+  f32 dist = 10.0f;
+  Vec2f pos2D;
+  void *coinEff;
+  Process *process;
+  UnkBoard4 *spr;
+  f32 angle;
+  s32 small;
+  s32 tier;
+  s32 i;
+  void *data;
+  coinEff = 0;
+  process = HuPrcCurrentGet();
+  while (order != D_80101984_name_81)
+  {
+    HuPrcVSleep();
+  }
 
-    coinEff = NULL;
-    process = HuPrcCurrentGet();
-    while (order != D_80101984_name_81) {
-        HuPrcVSleep();
+  if (D_8010198C_name_81 != 0)
+  {
+    D_8010198C_name_81();
+  }
+  HuPrcChildLink(process, func_800EC1E4_name_81(&D_80105460_name_81, &obj->coords, &D_80105460_name_81, 4.0f));
+  HuPrcChildWait();
+  if ((motion != (-1)) & (amount != (-1)))
+  {
+    func_800D90D0_name_81(obj, motion, 0);
+  }
+  if (amount != (-1))
+  {
+    for (i = 0; i < amount; i++)
+    {
+      objs[i] = func_800D8B18_name_81(D_80101988_name_81);
+      HuVecCopy3F(&objs[i]->coords, &obj->coords);
+      sincosdf(-45.0f, &HmfModelData[objs[i]->omObj1->model[0]].mtx[6], &HmfModelData[objs[i]->omObj1->model[0]].mtx[5]);
+      HmfModelData[objs[i]->omObj1->model[0]].mtx[9] = -HmfModelData[objs[i]->omObj1->model[0]].mtx[6];
+      HmfModelData[objs[i]->omObj1->model[0]].mtx[10] = HmfModelData[objs[i]->omObj1->model[0]].mtx[5];
+      HmfModelData[objs[i]->omObj1->model[0]].mtx[1] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[2] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[3] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[4] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[7] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[8] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[11] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[12] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[13] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[14] = 0.0f)))))))));
+      HmfModelData[objs[i]->omObj1->model[0]].mtx[0] = (HmfModelData[objs[i]->omObj1->model[0]].mtx[15] = 1.0f);
     }
-    if (D_8010198C_name_81 != NULL) {
-        D_8010198C_name_81();
+
+  }
+  if (seNo == (-1))
+  {
+    if (obj == GwPlayer[0].player_obj)
+    {
+      func_8004ACE0_main(0x286, 0);
+      coinEff = func_800FFC2C_name_81(0, 4, 6);
     }
-    HuPrcChildLink(process, func_800EC1E4_name_81(&D_80105460_name_81, &obj->coords, &D_80105460_name_81, 4.0f));
+    else
+      if (obj == GwPlayer[1].player_obj)
+    {
+      func_8004ACE0_main(0x286, 1);
+      coinEff = func_800FFC2C_name_81(1, 4, 6);
+    }
+  }
+  else
+  {
+    s32 seTbl[12] = {0x25A, 0x25B, 0x29A, 0x256, 0x257, 0x25D, 0x2A3, 0x2A4, 0x2A2, 0x258, 0x2A5, 0x2A0};
+    if (seNo < 12)
+    {
+      s16 seHandle = HuAudFXPlay(seTbl[seNo]);
+      if (seNo == 2)
+      {
+        func_80007B28_main(seHandle, 0x77);
+      }
+    }
+  }
+  if (amount != (-1))
+  {
+    for (i = 0; i < amount; i++)
+    {
+      func_800EF7C8_name_81(objs[i], 5.0f, -1.0f);
+      angle = func_800D76D0_name_81(&objs[i]->rot);
+      HuVecCopyXYZ(&targets[i], objs[i]->coords.x + (sindf(angle + angles[i]) * dist), objs[i]->coords.y, objs[i]->coords.z + (cosdf(angle + angles[i]) * dist));
+      HuPrcChildLink(process, func_800EBF2C_name_81(&objs[i]->coords, &targets[i], &objs[i]->coords, 30));
+    }
+
+    func_800EF800_name_81(objs[0]);
+    for (i = 0; i < amount; i++)
+    {
+      func_800EF7C8_name_81(objs[i], 2.5f, -0.5f);
+    }
+
+    func_800EF800_name_81(objs[0]);
+    for (i = 0; i < amount; i++)
+    {
+      func_800EF7C8_name_81(objs[i], 1.0f, -0.2f);
+    }
+
+    func_800EF800_name_81(objs[0]);
     HuPrcChildWait();
-    if ((motion != -1) & (amount != -1)) {
-        func_800D90D0_name_81(obj, motion, 0);
+    for (i = 0; i < amount; i++)
+    {
+      func_800D8F3C_name_81(objs[i]);
     }
-    if (amount != -1) {
-        for (i = 0; i < amount; i++) {
-            objs[i] = func_800D8B18_name_81(D_80101988_name_81);
-            HuVecCopy3F(&objs[i]->coords, &obj->coords);
-            sincosdf(-45.0f, &HmfModelData[objs[i]->omObj1->model[0]].mtx[6], &HmfModelData[objs[i]->omObj1->model[0]].mtx[5]);
-            HmfModelData[objs[i]->omObj1->model[0]].mtx[9] = -HmfModelData[objs[i]->omObj1->model[0]].mtx[6];
-            HmfModelData[objs[i]->omObj1->model[0]].mtx[10] = HmfModelData[objs[i]->omObj1->model[0]].mtx[5];
-            HmfModelData[objs[i]->omObj1->model[0]].mtx[1] = HmfModelData[objs[i]->omObj1->model[0]].mtx[2] =
-                HmfModelData[objs[i]->omObj1->model[0]].mtx[3] = HmfModelData[objs[i]->omObj1->model[0]].mtx[4] =
-                HmfModelData[objs[i]->omObj1->model[0]].mtx[7] = HmfModelData[objs[i]->omObj1->model[0]].mtx[8] =
-                HmfModelData[objs[i]->omObj1->model[0]].mtx[11] = HmfModelData[objs[i]->omObj1->model[0]].mtx[12] =
-                HmfModelData[objs[i]->omObj1->model[0]].mtx[13] = HmfModelData[objs[i]->omObj1->model[0]].mtx[14] = 0.0f;
-            HmfModelData[objs[i]->omObj1->model[0]].mtx[0] = HmfModelData[objs[i]->omObj1->model[0]].mtx[15] = 1.0f;
-        }
-    }
-    if (seNo == -1) {
-        if (obj == GwPlayer[0].player_obj) {
-            func_8004ACE0_main(0x286, 0);
-            coinEff = func_800FFC2C_name_81(0, 4, 6);
-        } else if (obj == GwPlayer[1].player_obj) {
-            func_8004ACE0_main(0x286, 1);
-            coinEff = func_800FFC2C_name_81(1, 4, 6);
-        }
-    } else {
-        s32 seTbl[12] = { 0x25A, 0x25B, 0x29A, 0x256, 0x257, 0x25D, 0x2A3, 0x2A4, 0x2A2, 0x258, 0x2A5, 0x2A0 };
 
-        if (seNo < 12) {
-            s16 seHandle = HuAudFXPlay(seTbl[seNo]);
-            if (seNo == 2) {
-                func_80007B28_main(seHandle, 0x77);
-            }
-        }
+  }
+  if (coinEff != 0)
+  {
+    data = coinEff;
+    func_800FFCCC_name_81(data);
+  }
+  if (amount != (-1))
+  {
+    s32 tierSe[4] = {0x208, 0x209, 0x20A, 0x20B};
+    tier = (amount - 1) / 3;
+    if (tier < 0)
+    {
+      tier = 0;
     }
-    if (amount != -1) {
-        for (i = 0; i < amount; i++) {
-            func_800EF7C8_name_81(objs[i], 5.0f, -1.0f);
-            angle = func_800D76D0_name_81(&objs[i]->rot);
-            HuVecCopyXYZ(&targets[i], objs[i]->coords.x + (sindf(angle + angles[i]) * dist), objs[i]->coords.y,
-                         objs[i]->coords.z + (cosdf(angle + angles[i]) * dist));
-            HuPrcChildLink(process, func_800EBF2C_name_81(&objs[i]->coords, &targets[i], &objs[i]->coords, 30));
-        }
-        func_800EF800_name_81(objs[0]);
-        for (i = 0; i < amount; i++) {
-            func_800EF7C8_name_81(objs[i], 2.5f, -0.5f);
-        }
-        func_800EF800_name_81(objs[0]);
-        for (i = 0; i < amount; i++) {
-            func_800EF7C8_name_81(objs[i], 1.0f, -0.2f);
-        }
-        func_800EF800_name_81(objs[0]);
-        HuPrcChildWait();
-        for (i = 0; i < amount; i++) {
-            func_800D8F3C_name_81(objs[i]);
-        }
+    if (tier >= 4)
+    {
+      tier = 3;
     }
-    if (coinEff != NULL) {
-        func_800FFCCC_name_81(coinEff);
-    }
-    if (amount != -1) {
-        s32 tierSe[4] = { 0x208, 0x209, 0x20A, 0x20B };
+    i = 0;
+    HuAudFXPlay(tierSe[tier]);
+    MBDCamera3Dto2D(&obj->coords, &pos2D);
+    spr = func_800F4528_name_81(4, 2);
+    small = amount < 10;
+    for (; i < 4; i++)
+    {
+      data = DataRead((i == 0) ? (0x130132) : (0x1300CF));
+      spr->unk_0C[i] = func_80055810_main(data);
+      DataClose(data);
+      switch (i)
+      {
+        case 0:
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 0);
+          break;
 
-        tier = (amount - 1) / 3;
-        if (tier < 0) {
-            tier = 0;
-        }
-        if (tier >= 4) {
-            tier = 3;
-        }
-        i = 0;
-        HuAudFXPlay(tierSe[tier]);
-        MBDCamera3Dto2D(&obj->coords, &pos2D);
-        spr = func_800F4528_name_81(4, 2);
-        small = amount < 10;
-        for (; i < 4; i++) {
-            data = DataRead((i == 0) ? 0x130132 : 0x1300CF);
-            spr->unk_0C[i] = func_80055810_main(data);
-            DataClose(data);
-            switch (i) {
-                case 0:
-                    func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 0);
-                    break;
-                case 1:
-                    func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 12);
-                    break;
-                case 2:
-                    if (!small) {
-                        func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount / 10);
-                    } else {
-                        func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount);
-                    }
-                    break;
-                case 3:
-                    if (!small) {
-                        func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount % 10);
-                    } else {
-                        func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 0);
-                        HuSprAttrSet(spr->unk_0A, i, 0x8000);
-                    }
-                    break;
-            }
-            HuSprPriSet(spr->unk_0A, i, 0x2010 - i);
-            HuSprAttrSet(spr->unk_0A, i, 0);
-            if (i == 0) {
-                func_80054904_main(spr->unk_0A, 0, pos2D.x, pos2D.y);
-            } else if (!small) {
-                func_80054904_main(spr->unk_0A, i, (i - 1) * 10 - 10, 0);
-            } else {
-                func_80054904_main(spr->unk_0A, i, (i - 1) * 10 - 5, 0);
-            }
-        }
-        for (i = 0; i < 30; i++) {
-            func_80054904_main(spr->unk_0A, 0, pos2D.x, pos2D.y - i);
-            HuPrcVSleep();
-        }
-        func_800F4584_name_81(spr);
-    }
-    if (flags != 0 && !(flags & 1)) {
-        func_800FB0B8_name_81(obj, 2, 0);
-        func_800EFABC_name_81(obj);
+        case 1:
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 12);
+          break;
+
+        case 2:
+          if (!small)
         {
-            Vec vels[3] = { { 0.0f, 0.5f, 0.0f }, { -0.5f, 0.5f, 0.0f }, { 0.5f, 0.5f, 0.0f } };
-
-            for (i = 0; i < 3; i++) {
-                func_800DCE40_name_81(0x4E, &obj->coords, &vels[i], 2.0f);
-            }
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount / 10);
         }
-        HuPrcVSleep();
-        HuAudFXPlay(0x1CB);
-        func_800D8F0C_name_81(obj);
-        func_8001FDE8_main(obj->omObj1->model[0]);
-        HuPrcSleep(40);
-    } else {
-        func_800D90D0_name_81(obj, -1, 2);
+        else
+        {
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount);
+        }
+          break;
+
+        case 3:
+          if (!small)
+        {
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], amount % 10);
+        }
+        else
+        {
+          func_80055024_main(spr->unk_0A, i, spr->unk_0C[i], 0);
+          HuSprAttrSet(spr->unk_0A, i, 0x8000);
+        }
+          break;
+
+      }
+
+      HuSprPriSet(spr->unk_0A, i, 0x2010 - i);
+      HuSprAttrSet(spr->unk_0A, i, 0);
+      if (i == 0)
+      {
+        func_80054904_main(spr->unk_0A, 0, pos2D.x, pos2D.y);
+      }
+      else
+        if (!small)
+      {
+        func_80054904_main(spr->unk_0A, i, ((i - 1) * 10) - 10, 0);
+      }
+      else
+      {
+        func_80054904_main(spr->unk_0A, i, ((i - 1) * 10) - 5, 0);
+      }
     }
-    D_80101980_name_81--;
-    D_80101984_name_81++;
-    omDelPrcObj(NULL);
+
+    for (i = 0; i < 30; i++)
+    {
+      func_80054904_main(spr->unk_0A, 0, pos2D.x, pos2D.y - i);
+      HuPrcVSleep();
+    }
+
+    func_800F4584_name_81(spr);
+  }
+  if ((flags != 0) && (!(flags & 1)))
+  {
+    func_800FB0B8_name_81(obj, 2, 0);
+    func_800EFABC_name_81(obj);
+    {
+      Vec vels[3] = {{0.0f, 0.5f, 0.0f}, {-0.5f, 0.5f, 0.0f}, {0.5f, 0.5f, 0.0f}};
+      for (i = 0; i < 3; i++)
+      {
+        func_800DCE40_name_81(0x4E, &obj->coords, &vels[i], 2.0f);
+      }
+
+    }
+    HuPrcVSleep();
+    HuAudFXPlay(0x1CB);
+    func_800D8F0C_name_81(obj);
+    func_8001FDE8_main(obj->omObj1->model[0]);
+    HuPrcSleep(40);
+  }
+  else
+  {
+    func_800D90D0_name_81(obj, -1, 2);
+  }
+  D_80101980_name_81--;
+  D_80101984_name_81++;
+  omDelPrcObj(0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_81_name/DFD60", func_800FA120_name_81);
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/DFD60", D_80102758_name_81);
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/DFD60", D_80102788_name_81);
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/DFD60", D_801027B8_name_81);
-INCLUDE_RODATA("asm/nonmatchings/overlays/ovl_81_name/DFD60", D_801027C8_name_81);
-#endif
 
 void func_800FAB1C_name_81(void) {
     Object *temp_v0;

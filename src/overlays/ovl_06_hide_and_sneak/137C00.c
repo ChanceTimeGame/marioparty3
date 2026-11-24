@@ -320,25 +320,28 @@ Gfx **func_80105BB4_hide_and_sneak(Gfx **gfx) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105BB4_hide_and_sneak);
 #endif
 
-#ifdef NON_MATCHING
-Gfx **func_80105C98_hide_and_sneak(Gfx **gfx) {
-    Gfx *g = *gfx;
-
-    gDPPipeSync(g++);
-    gDPSetCycleType(g++, G_CYC_1CYCLE);
-    gSPClearGeometryMode(g++, G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
-                                  G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH);
-    gSPSetGeometryMode(g++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
-    gDPSetCombineMode(g++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
-    gDPSetTexturePersp(g++, G_TP_NONE);
-    gDPSetRenderMode(g++, IM_RD | CVG_DST_FULL | FORCE_BL | GBL_c1(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA),
-                     GBL_c2(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA));
-    *gfx = g;
-    return gfx;
+// decomp-permuter
+Gfx **func_80105C98_hide_and_sneak(Gfx **gfx)
+{
+  Gfx *new_var3;
+  int new_var;
+  Gfx *g;
+  int new_var2;
+  int new_var4;
+  new_var4 = (G_SHADE | G_CULL_BACK) | G_SHADING_SMOOTH;
+  g = *gfx;
+  gDPPipeSync(g++);
+  gDPSetCycleType(g++, G_CYC_1CYCLE);
+  gSPClearGeometryMode(g++, ((((((G_SHADE | G_CULL_BOTH) | G_FOG) | G_LIGHTING) | G_TEXTURE_GEN) | G_TEXTURE_GEN_LINEAR) | G_LOD) | G_SHADING_SMOOTH);
+  gSPSetGeometryMode(new_var3 = g++, new_var4);
+  gDPSetCombineMode(g++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
+  gDPSetTexturePersp(g++, G_TP_NONE);
+  new_var = 20;
+  new_var2 = (((G_BL_CLR_IN << 28) | (G_BL_A_IN << 24)) | (G_BL_CLR_MEM << new_var)) | (G_BL_1MA << 16);
+  gDPSetRenderMode(g++, ((((0x4000 | (0x40 | 0x200)) | (G_BL_CLR_IN << 30)) | (G_BL_A_IN << 26)) | (G_BL_CLR_MEM << 22)) | (G_BL_1MA << 18), new_var2);
+  *gfx = g;
+  return gfx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_06_hide_and_sneak/137C00", func_80105C98_hide_and_sneak);
-#endif
 
 Gfx **func_80105D64_hide_and_sneak(Gfx **gfx, u8 alpha) {
     Gfx *g;

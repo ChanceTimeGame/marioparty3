@@ -1352,48 +1352,61 @@ omObjData *func_80109968_modesel(s32 no, s32 len) {
     return obj;
 }
 
-#ifdef NON_MATCHING
-/* Stick direction of controller `pad` as a button mask (0x100 right, 0x200 left, 0x800 up, 0x400 down
-   and their diagonals), reported once each time the stick leaves the centre. */
-s32 func_80109A58_modesel(s32 pad) {
-    s32 ax;
-    s32 ay;
-    s32 x;
-    s32 y;
-
-    x = D_800CBB6E_main[pad];
-    y = D_800D20A1_main[pad];
-    if (D_8010F2C8_modesel != 0) {
-        if ((x == 0) & (y == 0)) {
-            D_8010F2C8_modesel = 0;
-            return 0;
-        }
-        return 0;
+// decomp-permuter
+s32 func_80109A58_modesel(s32 pad)
+{
+  int ax;
+  s32 ay;
+  s32 x;
+  int y;
+  x = D_800CBB6E_main[pad];
+  y = D_800D20A1_main[pad];
+  if (D_8010F2C8_modesel != 0)
+  {
+    if ((x == 0) & (y == 0))
+    {
+      D_8010F2C8_modesel = 0;
+      return 0;
     }
-    if ((x != 0) | (y != 0)) {
-        ax = (x < 0) ? -x : x;
-        ay = (y < 0) ? -y : y;
-        if (ay < ax) {
-            if (ay * 2 < ax) {
-                D_8010F2C8_modesel = (x < 0) ? 0x200 : 0x100;
-            } else if (y > 0) {
-                D_8010F2C8_modesel = (x < 0) ? 0xA00 : 0x900;
-            } else {
-                D_8010F2C8_modesel = (x < 0) ? 0x600 : 0x500;
-            }
-        } else if (ax * 2 < ay) {
-            D_8010F2C8_modesel = (y < 0) ? 0x400 : 0x800;
-        } else if (y > 0) {
-            D_8010F2C8_modesel = (x < 0) ? 0xA00 : 0x900;
-        } else {
-            D_8010F2C8_modesel = (x < 0) ? 0x600 : 0x500;
-        }
+    return 0;
+  }
+  if ((x != 0) | (y != 0))
+  {
+    ax = (x < 0) ? (-x) : (x);
+    ay = (y < 0) ? (-y) : (y);
+    if (ay < ax)
+    {
+      if ((ay * 2) < ax)
+      {
+        D_8010F2C8_modesel = (x < 0) ? (0x200) : (0x100);
+      }
+      else
+        if (y > 0)
+      {
+        D_8010F2C8_modesel = (x < 0) ? (0xA00) : (0x900);
+      }
+      else
+      {
+        D_8010F2C8_modesel = (x < 0) ? (0x600) : (0x500);
+      }
     }
-    return D_8010F2C8_modesel;
+    else
+      if ((ax * 2) < ay)
+    {
+      D_8010F2C8_modesel = (y < 0) ? (0x400) : (0x800);
+    }
+    else
+      if (y > 0)
+    {
+      D_8010F2C8_modesel = (x < 0) ? (0xA00) : (0x900);
+    }
+    else
+    {
+      D_8010F2C8_modesel = (x < (0 & 0xFFFFFFFFFFFFFFFF)) ? (0x600) : (0x500);
+    }
+  }
+  return D_8010F2C8_modesel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/modesel/4F7E90", func_80109A58_modesel);
-#endif
 
 /* Bobbing objects for models 7..9: D_80110C68_modesel[no - 7]. */
 typedef struct MsBob {

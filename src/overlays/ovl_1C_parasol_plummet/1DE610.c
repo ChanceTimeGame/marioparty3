@@ -971,91 +971,110 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_8010
 /* NON_MATCHING: register allocation in the sort (f0/f2 swapped; masked 0). CPU parasol button: open or close to
    meet the nearest item's height, then wait a difficulty-dependent time. Retail reads idx[0] even when no item is
    live (n == 0): an uninitialised index into D_8010AB70_parasol_plummet. */
-#ifdef NON_MATCHING
-u16 func_801076D4_parasol_plummet(omObjData* obj) {
-    f32 dist[18];
-    s32 idx[18];
-    PaPlayer* p;
-    PaItem* item;
-    s32 btn;
-    s32 n;
-    s32 i;
-    s32 j;
-    f32 d;
-    f32 a;
-    f32 b;
+// decomp-permuter
+u16 func_801076D4_parasol_plummet(omObjData *obj)
+{
+  f32 dist[18];
+  s32 idx[18];
+  PaPlayer *p;
+  PaItem *item;
+  s32 btn;
+  s32 n;
+  s32 i;
+  s32 j;
+  f32 d;
+  f32 a;
+  f32 b;
+  p = obj->data;
+  btn = 0;
+  if (p->unk38 > 0)
+  {
+    p->unk38--;
+  }
+  if (p->unk38 == 0)
+  {
+    n = 0;
+    for (i = 0; i < 18; i++)
+    {
+      d = func_801079D8_parasol_plummet(obj, i);
+      if (d != (-1.0f))
+      {
+        dist[n] = d;
+        idx[n] = i;
+        n++;
+      }
+    }
+
+    for (i = 0; i < (n - 1); i++)
+    {
+      for (j = 0; j < n; j++)
+      {
+        if (dist[i] < dist[j])
+        {
+          f32 tf = dist[i];
+          s32 ti;
+          d = tf;
+          dist[i] = dist[j];
+          dist[j] = d;
+          ti = idx[i];
+          idx[i] = idx[j];
+          idx[j] = ti;
+        }
+      }
+
+    }
 
     p = obj->data;
-    btn = 0;
-    if (p->unk38 > 0) {
-        p->unk38--;
-    }
-    if (p->unk38 == 0) {
-        n = 0;
-        for (i = 0; i < 18; i++) {
-            d = func_801079D8_parasol_plummet(obj, i);
-            if (d != -1.0f) {
-                dist[n] = d;
-                idx[n] = i;
-                n++;
-            }
-        }
-        for (i = 0; i < n - 1; i++) {
-            for (j = 0; j < n; j++) {
-                if (dist[i] < dist[j]) {
-                    f32 tf = dist[i];
-                    s32 ti;
+    switch (GwPlayer[p->unk24].cpu_difficulty)
+    {
+      case 0:
+        break;
 
-                    dist[i] = dist[j];
-                    dist[j] = tf;
-                    ti = idx[i];
-                    idx[i] = idx[j];
-                    idx[j] = ti;
-                }
-            }
-        }
-        p = obj->data;
-        switch (GwPlayer[p->unk24].cpu_difficulty) {
-        case 0:
-            break;
-        case 1:
-            item = D_8010AB70_parasol_plummet[idx[0]]->data;
-            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            p->unk38 = (rand8() & 0x1F) + 0x20;
-            break;
-        case 2:
-            item = D_8010AB70_parasol_plummet[idx[0]]->data;
-            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            p->unk38 = (rand8() & 0xF) + 0x10;
-            break;
-        case 3:
-            item = D_8010AB70_parasol_plummet[idx[0]]->data;
-            if (p->unk04 > item->unk0C && !(p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            if (p->unk04 < item->unk0C && (p->unk14 & 4)) {
-                btn = 0x8000;
-            }
-            p->unk38 = (rand8() & 7) + 8;
-            break;
-        }
-        return btn;
+      case 1:
+        item = D_8010AB70_parasol_plummet[idx[0]]->data;
+        if ((p->unk04 > item->unk0C) && (!(p->unk14 & 4)))
+      {
+        btn = 0x8000;
+      }
+        if ((p->unk04 < item->unk0C) && (p->unk14 & 4))
+      {
+        btn = 0x8000;
+      }
+        p->unk38 = (rand8() & 0x1F) + 0x20;
+        break;
+
+      case 2:
+        item = D_8010AB70_parasol_plummet[idx[0]]->data;
+        if ((p->unk04 > item->unk0C) && (!(p->unk14 & 4)))
+      {
+        btn = 0x8000;
+      }
+        if ((p->unk04 < item->unk0C) && (p->unk14 & 4))
+      {
+        btn = 0x8000;
+      }
+        p->unk38 = (rand8() & 0xF) + 0x10;
+        break;
+
+      case 3:
+        item = D_8010AB70_parasol_plummet[idx[0]]->data;
+        if ((p->unk04 > item->unk0C) && (!(p->unk14 & 4)))
+      {
+        btn = 0x8000;
+      }
+        if ((p->unk04 < item->unk0C) && (p->unk14 & 4))
+      {
+        btn = 0x8000;
+      }
+        p->unk38 = (rand8() & 7) + 8;
+        break;
+
     }
-    return 0;
+
+    return btn;
+  }
+  return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1C_parasol_plummet/1DE610", func_801076D4_parasol_plummet);
-#endif
 
 f32 func_801079D8_parasol_plummet(omObjData* obj, s32 arg1) {
     PaPlayer* p;

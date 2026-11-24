@@ -135,52 +135,65 @@ void func_8010BE70_inst(omObjData *obj) {
 
 /* NON_MATCHING: retail loads the 1 stored to D_8010D440_inst into v1, this into v0; logic matches.
  * Retail reads the low half of D_8010D5B8_inst through its own label (D_8010D5BA). */
-#ifdef NON_MATCHING
-void func_8010BE78_inst(omObjData *obj) {
-    s32 i;
+// decomp-permuter
+void func_8010BE78_inst(omObjData *obj)
+{
+  int new_var;
+  s32 i;
+  if (D_8010D408_inst == 0)
+  {
+    func_8000BBD4_main(D_8010DCC0_inst[0], 160, (s16) D_8010D5B8_inst);
+    func_8010CED0_inst(160, (s16) D_8010D5B8_inst);
+    if (D_8010D40A_inst == 3)
+    {
+      func_8000BBD4_main(D_8010DCC0_inst[1], 160, ((s16) D_8010D5B8_inst) + 22);
+      for (i = 0; i < 3; i++)
+      {
+        func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], ((s16) D_8010D5B8_inst) + 22);
+      }
 
-    if (D_8010D408_inst == 0) {
-        func_8000BBD4_main(D_8010DCC0_inst[0], 160, (s16)D_8010D5B8_inst);
-        func_8010CED0_inst(160, (s16)D_8010D5B8_inst);
-        if (D_8010D40A_inst == 3) {
-            func_8000BBD4_main(D_8010DCC0_inst[1], 160, (s16)D_8010D5B8_inst + 22);
-            for (i = 0; i < 3; i++) {
-                func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], (s16)D_8010D5B8_inst + 22);
-            }
-        }
-        D_8010D5B4_inst++;
-        D_8010D5B8_inst = sindf(D_8010D5B4_inst * 6) * 96.0f + -64.0f;
-        if (D_8010D5B4_inst < 15) {
-            return;
-        }
-        D_8010D5B4_inst = 0;
-        D_8010D5B8_inst = -64;
-        func_8000BBD4_main(D_8010DCC0_inst[0], 160, 32);
-        func_8010CED0_inst(160, 32);
-        if (D_8010D40A_inst == 3) {
-            func_8000BBD4_main(D_8010DCC0_inst[1], 160, 54);
-            for (i = 0; i < 3; i++) {
-                func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], 54);
-            }
-        }
-    } else {
-        func_8000BBD4_main(D_8010DCC0_inst[0], 160, 32);
-        func_8010CED0_inst(160, 32);
-        if (D_8010D40A_inst == 3) {
-            func_8000BBD4_main(D_8010DCC0_inst[1], 160, 54);
-            for (i = 0; i < 3; i++) {
-                func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], 54);
-            }
-        }
-        func_80060DEC_main(D_8010DCA8_inst[0]);
-        D_8010D440_inst = 1;
     }
-    func_8010D044_inst();
-    D_8010DCA4_inst = func_8010C124_inst;
+    D_8010D5B4_inst++;
+    D_8010D5B8_inst = (sindf(D_8010D5B4_inst * 6) * 96.0f) + (-64.0f);
+    if (D_8010D5B4_inst < 15)
+    {
+      return;
+    }
+    D_8010D5B4_inst = 0;
+    D_8010D5B8_inst = -64;
+    func_8000BBD4_main(D_8010DCC0_inst[0], 160, 32);
+    func_8010CED0_inst(160, 32);
+    new_var = D_8010D40A_inst;
+    if (new_var == 3)
+    {
+      func_8000BBD4_main(D_8010DCC0_inst[1], 160, 54);
+      for (i = 0; i < 3; i++)
+      {
+        func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], 54);
+      }
+
+    }
+  }
+  else
+  {
+    func_8000BBD4_main(D_8010DCC0_inst[0], 160, 32);
+    func_8010CED0_inst(160, 32);
+    if (D_8010D40A_inst == 3)
+    {
+      func_8000BBD4_main(D_8010DCC0_inst[1], 160, 54);
+      for (i = 0; i < 3; i++)
+      {
+        func_8000BBD4_main(D_8010DCC4_inst[i], D_8010DAF8_inst[i], 54);
+      }
+
+    }
+    func_80060DEC_main(D_8010DCA8_inst[0]);
+    new_var = 1;
+    D_8010D440_inst = new_var;
+  }
+  func_8010D044_inst();
+  D_8010DCA4_inst = func_8010C124_inst;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/inst/4E4B50", func_8010BE78_inst);
-#endif
 
 /* Instruction page message IDs, by minigame type (also read by func_8010D1D4_inst). */
 const s16 D_8010DB04_inst[2][3] = { { 0x3900, 0x3901, 0x3902 }, { 0x3908, 0x3909, 0x390A } };

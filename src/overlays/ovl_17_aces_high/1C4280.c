@@ -1248,353 +1248,426 @@ void func_8010862C_aces_high(omObjData *obj) {
     }
 }
 
-// register allocation only (masked 0): retail keeps stickX in s5 and stickY in s4, here the reverse; abs.s source register
-#ifdef NON_MATCHING
-/* CPU control: per difficulty, pick a target (chase a plane, dodge, return to the arena) and steer to it. */
-void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn, u16 *btn2) {
-    omObjData *list[4];
-    Vec target;
-    omObjData *nearest;
-    f32 nearDist;
-    AhPlayer *work;
-    AhPlayer *tw;
-    omObjData *other;
-    u16 state;
-    f32 farLimit;
-    f32 nearLimit;
-    f32 fov;
-    f32 turn;
-    f32 fleeDist;
-    f32 dist;
-    f32 a;
-    f32 b;
-    f32 d;
-    u16 res;
+// decomp-permuter
+void func_801088A4_aces_high(omObjData *obj, s8 *stickX, s8 *stickY, u16 *btn, u16 *btn2)
+{
+  omObjData *list[4];
+  Vec target;
+  omObjData *nearest;
+  f32 nearDist;
+  AhPlayer *work;
+  AhPlayer *tw;
+  float new_var;
+  omObjData *other;
+  u16 state;
+  f32 farLimit;
+  f32 nearLimit;
+  f32 fov;
+  f32 turn;
+  f32 fleeDist;
+  f32 dist;
+  f32 a;
+  f32 b;
+  f32 d;
+  u16 res;
+  *stickY = 0;
+  *stickX = 0;
+  *btn2 = 0;
+  *btn = 0;
+  work = obj->data;
+  switch (GwPlayer[work->unk02].cpu_difficulty)
+  {
+    case 0:
+      farLimit = 1000.0f;
+      nearLimit = 500.0f;
+      fov = 30.0f;
+      turn = 5.0f;
+      fleeDist = 500.0f;
+      break;
 
-    *stickY = 0;
+    case 1:
+      farLimit = 900.0f;
+      nearLimit = 500.0f;
+      fov = 30.0f;
+      turn = 4.0f;
+      fleeDist = 700.0f;
+      break;
+
+    case 2:
+      farLimit = 800.0f;
+      nearLimit = 400.0f;
+      fov = 40.0f;
+      turn = 3.0f;
+      fleeDist = 900.0f;
+      break;
+
+    case 3:
+      farLimit = 700.0f;
+      nearLimit = 400.0f;
+      fov = 40.0f;
+      turn = 3.0f;
+      fleeDist = 1200.0f;
+      break;
+
+  }
+
+  state = work->unk92;
+  if ((((HuSqrtf((obj->trans.x * obj->trans.x) + (obj->trans.z * obj->trans.z)) > 3150.0f) & (state != 2)) && (state != 5)) && (state != 6))
+  {
+    a = atan2df(obj->trans.x, obj->trans.z);
+    if (a < 0.0f)
+    {
+      a += 360.0f;
+    }
+    b = obj->rot.y;
+    if (b < 0.0f)
+    {
+      b += 360.0f;
+    }
+    d = b - a;
+    if (fabs(d) < 75.0)
+    {
+      work->unk94 = work->unk92;
+      work->unk92 = 2;
+      work->unkA8 = a - 180.0f;
+      if (work->unkA8 < 0.0f)
+      {
+        work->unkA8 += 360.0f;
+      }
+    }
+  }
+  if (state == 0)
+  {
+    func_80109928_aces_high(obj);
+  }
+  switch (state)
+  {
+    case 1:
+      other = work->unk98;
+      tw = other->data;
+      if (((tw->unk00 != 4) && (tw->unk00 != 5)) && (tw->unk00 != 6))
+    {
+      dist = HuSqrtf(((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x)) + ((other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z))) * 0.8f;
+      if (dist > 1500.0f)
+      {
+        dist = 1500.0f;
+      }
+      if (dist < 100.0f)
+      {
+        dist = 100.0f;
+      }
+      target.x = (sindf(other->rot.y - 180.0f) * dist) + other->trans.x;
+      target.z = (cosdf(other->rot.y - 180.0f) * dist) + other->trans.z;
+      target.y = other->trans.y;
+      dist = HuSqrtf((((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x)) + ((obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y))) + ((obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z)));
+      res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
+      if (dist < 2400.0f)
+      {
+        *btn |= 0x2000;
+      }
+      if (((farLimit < dist) && (!(res & 0x4000))) || (res & 0x8000))
+      {
+        *btn2 |= 0x8000;
+      }
+      if (((dist < nearLimit) && (!(res & 0x8000))) || (res & 0x4000))
+      {
+        *btn2 |= 0x4000;
+      }
+      if ((--work->unkB0) == 0)
+      {
+        work->unk92 = 0;
+        work->unk34 = 0;
+      }
+    }
+    else
+    {
+      work->unk92 = 0;
+      work->unk34 = 0;
+    }
+      break;
+
+    case 3:
+      other = work->unk98;
+      tw = other->data;
+      if ((((tw->unk00 == 4) || (tw->unk00 == 5)) || (tw->unk00 == 6)) || (work->unkAE == 0))
+    {
+      work->unk92 = 0;
+      work->unk34 = 0;
+      break;
+    }
+      dist = HuSqrtf(((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x)) + ((other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z))) * 0.8f;
+      if (dist > 1500.0f)
+    {
+      dist = 1500.0f;
+    }
+      if (dist < 100.0f)
+    {
+      dist = 100.0f;
+    }
+      target.x = (sindf(other->rot.y - 180.0f) * dist) + other->trans.x;
+      target.z = (cosdf(other->rot.y - 180.0f) * dist) + other->trans.z;
+      target.y = other->trans.y;
+      dist = HuSqrtf((((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x)) + ((obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y))) + ((obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z)));
+      res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
+      if (((farLimit < dist) && (!(res & 0x4000))) || (res & 0x8000))
+    {
+      *btn2 |= 0x8000;
+    }
+      if (((dist < nearLimit) && (!(res & 0x8000))) || (res & 0x4000))
+    {
+      *btn2 |= 0x4000;
+    }
+      break;
+
+    case 4:
+      target = work->unk9C;
+      dist = HuSqrtf((((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x)) + ((obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y))) + ((obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z)));
+      res = func_8010951C_aces_high(obj, &target, turn, 20.0f, stickX, stickY);
+      if (((farLimit < dist) && (!(res & 0x4000))) || (res & 0x8000))
+    {
+      *btn2 |= 0x8000;
+    }
+      if (((dist < nearLimit) && (!(res & 0x8000))) || (res & 0x4000))
+    {
+      *btn2 |= 0x4000;
+    }
+      if (dist < 100.0f)
+    {
+      work->unk92 = 0;
+    }
+      if ((--work->unkB0) == 0)
+    {
+      work->unk92 = 0;
+    }
+      break;
+
+    case 2:
+      a = work->unkA8;
+      b = obj->rot.y;
+      if (b < 0.0f)
+    {
+      b += 360.0f;
+    }
+      d = b - a;
+      if (fabs(d) < 5.0)
+    {
+      work->unk92 = work->unk94;
+    }
+    else
+    {
+      if (fabs(d) > 35.0)
+      {
+        b = 70.0f;
+      }
+      else
+      {
+        b = (new_var = fabsf(d / 2.0f));
+      }
+      if (b < 10.0f)
+      {
+        b = 10.0f;
+      }
+      if (d < 0.0f)
+      {
+        d += 360.0f;
+      }
+      if (d < 180.0f)
+      {
+        *stickX = b;
+      }
+      else
+      {
+        *stickX = -b;
+      }
+      if (HuSqrtf((obj->trans.x * obj->trans.x) + (obj->trans.z * obj->trans.z)) > 3600.0f)
+      {
+        *btn2 |= 0x4000;
+      }
+    }
+      break;
+
+    case 5:
+      target = work->unk9C;
+      dist = HuSqrtf((((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x)) + ((obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y))) + ((obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z)));
+      res = func_8010951C_aces_high(obj, &target, 3.0f, 20.0f, stickX, stickY);
+      if (((farLimit < dist) && (!(res & 0x4000))) || (res & 0x8000))
+    {
+      *btn2 |= 0x8000;
+    }
+      if (((dist < nearLimit) && (!(res & 0x8000))) || (res & 0x4000))
+    {
+      *btn2 |= 0x4000;
+    }
+      if (func_800E6E8C_minigame() == 4)
+    {
+      work->unk92 = 6;
+      func_8010B26C_aces_high(obj);
+      work->unk04->func = func_8010B4BC_aces_high;
+      obj->func = func_801071D4_aces_high;
+      work->unk4E = 0x19;
+    }
+      break;
+
+    case 6:
+      if (work->unk4E != 0)
+    {
+      *stickY = -0x2D;
+      *stickX = -0x41;
+      work->unk4E--;
+    }
+    else
+    {
+      *stickY = -0x46;
+      work->unk0C = 1;
+    }
+      *btn2 |= 0x8000;
+      break;
+
+  }
+
+  if ((state != 5) && (state != 6))
+  {
+    if (func_80109EEC_aces_high(obj, fov, list, &nearest, &nearDist) != 0)
+    {
+      if (nearDist <= 2750.0f)
+      {
+        *btn |= 0x2000;
+      }
+      if ((work->unk92 == 1) && (nearDist < 1000.0f))
+      {
+        work->unkB0 = ((u8) (rand8() % 181)) + 0x3C;
+        work->unk92 = 1;
+        work->unk98 = nearest;
+      }
+    }
+    if ((work->unk70 != 0) && (func_8010A0F0_aces_high(obj) < fleeDist))
+    {
+      *btn2 = ((*btn2) & (~0x4000)) | 0x8000;
+    }
+    if (work->unkAE != 0)
+    {
+      if (work->unk52 < work->unkAC)
+      {
+        *btn2 |= 0x2000;
+      }
+      else
+      {
+        work->unkAE = 0;
+      }
+    }
+    func_8010A214_aces_high(obj);
+  }
+}
+
+// decomp-permuter
+u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 *stickX, s8 *stickY)
+{
+  AhPlayer *work;
+  float new_var;
+  AhPlayer *tw;
+  f32 scale;
+  f32 dir;
+  f32 heading;
+  f32 v;
+  f32 d;
+  u16 res;
+  work = obj->data;
+  scale = HuSqrtf(((target->x - obj->trans.x) * (target->x - obj->trans.x)) + ((target->z - obj->trans.z) * (target->z - obj->trans.z))) / 600.0f;
+  if (scale > 2.0f)
+  {
+    scale = 2.0f;
+  }
+  if (scale < 0.3f)
+  {
+    scale = 0.3f;
+  }
+  res = 0;
+  dir = atan2df(target->x - obj->trans.x, target->z - obj->trans.z);
+  heading = obj->rot.y;
+  if (heading > 180.0f)
+  {
+    heading -= 360.0f;
+  }
+  d = heading - dir;
+  if (fabs(d) < turn)
+  {
     *stickX = 0;
-    *btn2 = 0;
-    *btn = 0;
-    work = obj->data;
-    switch (GwPlayer[work->unk02].cpu_difficulty) {
-        case 0:
-            farLimit = 1000.0f;
-            nearLimit = 500.0f;
-            fov = 30.0f;
-            turn = 5.0f;
-            fleeDist = 500.0f;
-            break;
-        case 1:
-            farLimit = 900.0f;
-            nearLimit = 500.0f;
-            fov = 30.0f;
-            turn = 4.0f;
-            fleeDist = 700.0f;
-            break;
-        case 2:
-            farLimit = 800.0f;
-            nearLimit = 400.0f;
-            fov = 40.0f;
-            turn = 3.0f;
-            fleeDist = 900.0f;
-            break;
-        case 3:
-            farLimit = 700.0f;
-            nearLimit = 400.0f;
-            fov = 40.0f;
-            turn = 3.0f;
-            fleeDist = 1200.0f;
-            break;
+  }
+  else
+  {
+    if (fabs(d * scale) > 70.0)
+    {
+      v = 70.0f;
+      res = 0x4000;
     }
-    state = work->unk92;
-    if ((HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) > 3150.0f) & (state != 2) && state != 5 &&
-        state != 6) {
-        a = atan2df(obj->trans.x, obj->trans.z);
-        if (a < 0.0f) {
-            a += 360.0f;
-        }
-        b = obj->rot.y;
-        if (b < 0.0f) {
-            b += 360.0f;
-        }
-        d = b - a;
-        if (fabs(d) < 75.0) {
-            work->unk94 = work->unk92;
-            work->unk92 = 2;
-            work->unkA8 = a - 180.0f;
-            if (work->unkA8 < 0.0f) {
-                work->unkA8 += 360.0f;
-            }
-        }
+    else
+    {
+      v = fabsf(new_var = d * scale);
     }
-    if (state == 0) {
-        func_80109928_aces_high(obj);
+    if (v < 10.0f)
+    {
+      v = 0.0f;
     }
-    switch (state) {
-        case 1:
-            other = work->unk98;
-            tw = other->data;
-            if (tw->unk00 != 4 && tw->unk00 != 5 && tw->unk00 != 6) {
-                dist = HuSqrtf((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x) +
-                               (other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z)) * 0.8f;
-                if (dist > 1500.0f) {
-                    dist = 1500.0f;
-                }
-                if (dist < 100.0f) {
-                    dist = 100.0f;
-                }
-                target.x = sindf(other->rot.y - 180.0f) * dist + other->trans.x;
-                target.z = cosdf(other->rot.y - 180.0f) * dist + other->trans.z;
-                target.y = other->trans.y;
-                dist = HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
-                               (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
-                               (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z));
-                res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
-                if (dist < 2400.0f) {
-                    *btn |= 0x2000;
-                }
-                if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
-                    *btn2 |= 0x8000;
-                }
-                if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
-                    *btn2 |= 0x4000;
-                }
-                if (--work->unkB0 == 0) {
-                    work->unk92 = 0;
-                    work->unk34 = 0;
-                }
-            } else {
-                work->unk92 = 0;
-                work->unk34 = 0;
-            }
-            break;
-        case 3:
-            other = work->unk98;
-            tw = other->data;
-            if (tw->unk00 == 4 || tw->unk00 == 5 || tw->unk00 == 6 || work->unkAE == 0) {
-                work->unk92 = 0;
-                work->unk34 = 0;
-                break;
-            }
-            dist = HuSqrtf((other->trans.x - obj->trans.x) * (other->trans.x - obj->trans.x) +
-                           (other->trans.z - obj->trans.z) * (other->trans.z - obj->trans.z)) * 0.8f;
-            if (dist > 1500.0f) {
-                dist = 1500.0f;
-            }
-            if (dist < 100.0f) {
-                dist = 100.0f;
-            }
-            target.x = sindf(other->rot.y - 180.0f) * dist + other->trans.x;
-            target.z = cosdf(other->rot.y - 180.0f) * dist + other->trans.z;
-            target.y = other->trans.y;
-            dist = HuSqrtf((obj->trans.x - other->trans.x) * (obj->trans.x - other->trans.x) +
-                           (obj->trans.y - other->trans.y) * (obj->trans.y - other->trans.y) +
-                           (obj->trans.z - other->trans.z) * (obj->trans.z - other->trans.z));
-            res = func_8010951C_aces_high(obj, &target, turn, 60.0f, stickX, stickY);
-            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
-                *btn2 |= 0x8000;
-            }
-            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
-                *btn2 |= 0x4000;
-            }
-            break;
-        case 4:
-            target = work->unk9C;
-            dist = HuSqrtf((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x) +
-                           (obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y) +
-                           (obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z));
-            res = func_8010951C_aces_high(obj, &target, turn, 20.0f, stickX, stickY);
-            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
-                *btn2 |= 0x8000;
-            }
-            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
-                *btn2 |= 0x4000;
-            }
-            if (dist < 100.0f) {
-                work->unk92 = 0;
-            }
-            if (--work->unkB0 == 0) {
-                work->unk92 = 0;
-            }
-            break;
-        case 2:
-            a = work->unkA8;
-            b = obj->rot.y;
-            if (b < 0.0f) {
-                b += 360.0f;
-            }
-            d = b - a;
-            if (fabs(d) < 5.0) {
-                work->unk92 = work->unk94;
-            } else {
-                if (fabs(d) > 35.0) {
-                    b = 70.0f;
-                } else {
-                    b = fabsf(d / 2.0f);
-                }
-                if (b < 10.0f) {
-                    b = 10.0f;
-                }
-                if (d < 0.0f) {
-                    d += 360.0f;
-                }
-                if (d < 180.0f) {
-                    *stickX = b;
-                } else {
-                    *stickX = -b;
-                }
-                if (HuSqrtf(obj->trans.x * obj->trans.x + obj->trans.z * obj->trans.z) > 3600.0f) {
-                    *btn2 |= 0x4000;
-                }
-            }
-            break;
-        case 5:
-            target = work->unk9C;
-            dist = HuSqrtf((obj->trans.x - work->unk9C.x) * (obj->trans.x - work->unk9C.x) +
-                           (obj->trans.y - work->unk9C.y) * (obj->trans.y - work->unk9C.y) +
-                           (obj->trans.z - work->unk9C.z) * (obj->trans.z - work->unk9C.z));
-            res = func_8010951C_aces_high(obj, &target, 3.0f, 20.0f, stickX, stickY);
-            if ((farLimit < dist && !(res & 0x4000)) || (res & 0x8000)) {
-                *btn2 |= 0x8000;
-            }
-            if ((dist < nearLimit && !(res & 0x8000)) || (res & 0x4000)) {
-                *btn2 |= 0x4000;
-            }
-            if (func_800E6E8C_minigame() == 4) {
-                work->unk92 = 6;
-                func_8010B26C_aces_high(obj);
-                work->unk04->func = func_8010B4BC_aces_high;
-                obj->func = func_801071D4_aces_high;
-                work->unk4E = 0x19;
-            }
-            break;
-        case 6:
-            if (work->unk4E != 0) {
-                *stickY = -0x2D;
-                *stickX = -0x41;
-                work->unk4E--;
-            } else {
-                *stickY = -0x46;
-                work->unk0C = 1;
-            }
-            *btn2 |= 0x8000;
-            break;
+    if (dir < 0.0f)
+    {
+      dir += 360.0f;
     }
-    if (state != 5 && state != 6) {
-        if (func_80109EEC_aces_high(obj, fov, list, &nearest, &nearDist) != 0) {
-            if (nearDist <= 2750.0f) {
-                *btn |= 0x2000;
-            }
-            if (work->unk92 == 1 && nearDist < 1000.0f) {
-                work->unkB0 = (u8)(rand8() % 181) + 0x3C;
-                work->unk92 = 1;
-                work->unk98 = nearest;
-            }
-        }
-        if (work->unk70 != 0 && func_8010A0F0_aces_high(obj) < fleeDist) {
-            *btn2 = (*btn2 & ~0x4000) | 0x8000;
-        }
-        if (work->unkAE != 0) {
-            if (work->unk52 < work->unkAC) {
-                *btn2 |= 0x2000;
-            } else {
-                work->unkAE = 0;
-            }
-        }
-        func_8010A214_aces_high(obj);
+    if (heading < 0.0f)
+    {
+      heading += 360.0f;
     }
+    d = dir - heading;
+    if (d < 0.0f)
+    {
+      d += 360.0f;
+    }
+    if (d > 180.0f)
+    {
+      *stickX = v;
+    }
+    else
+    {
+      *stickX = -v;
+    }
+    if ((work->unk92 == 1) | (work->unk92 == 3))
+    {
+      tw = work->unk98->data;
+      if (((tw->unk32 == work->unk32) && (tw->unk34 == 0)) && (((u8) (rand8() % 10)) < 5))
+      {
+        work->unk34 ^= 1;
+      }
+      if (work->unk34 != 0)
+      {
+        *stickX = -(*stickX);
+      }
+    }
+  }
+  d = target->y - obj->trans.y;
+  if (fabs(d) > arg3)
+  {
+    if (fabs(d * scale) > 70.0)
+    {
+      v = 70.0f;
+    }
+    else
+    {
+ do { v = fabsf(d * scale); } while (0);
+    }
+    if (v < 10.0f)
+    {
+      v = 0.0f;
+    }
+    if (target->y > obj->trans.y)
+    {
+      *stickY = -v;
+    }
+    else
+    {
+      *stickY = v;
+    }
+  }
+  return res;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_801088A4_aces_high);
-#endif
-
-// register allocation only (masked 0): retail keeps the angle difference in f4 and the stick value in f6, here the reverse
-#ifdef NON_MATCHING
-/* CPU steering towards target: stick values; returns 0x4000 when the turn is sharp (slow down). */
-u16 func_8010951C_aces_high(omObjData *obj, Vec *target, f32 turn, f32 arg3, s8 *stickX, s8 *stickY) {
-    AhPlayer *work;
-    AhPlayer *tw;
-    f32 scale;
-    f32 dir;
-    f32 heading;
-    f32 v;
-    f32 d;
-    u16 res;
-
-    work = obj->data;
-    scale = HuSqrtf((target->x - obj->trans.x) * (target->x - obj->trans.x) +
-                    (target->z - obj->trans.z) * (target->z - obj->trans.z)) / 600.0f;
-    if (scale > 2.0f) {
-        scale = 2.0f;
-    }
-    if (scale < 0.3f) {
-        scale = 0.3f;
-    }
-    res = 0;
-    dir = atan2df(target->x - obj->trans.x, target->z - obj->trans.z);
-    heading = obj->rot.y;
-    if (heading > 180.0f) {
-        heading -= 360.0f;
-    }
-    d = heading - dir;
-    if (fabs(d) < turn) {
-        *stickX = 0;
-    } else {
-        if (fabs(d * scale) > 70.0) {
-            v = 70.0f;
-            res = 0x4000;
-        } else {
-            v = fabsf(d * scale);
-        }
-        if (v < 10.0f) {
-            v = 0.0f;
-        }
-        if (dir < 0.0f) {
-            dir += 360.0f;
-        }
-        if (heading < 0.0f) {
-            heading += 360.0f;
-        }
-        d = dir - heading;
-        if (d < 0.0f) {
-            d += 360.0f;
-        }
-        if (d > 180.0f) {
-            *stickX = v;
-        } else {
-            *stickX = -v;
-        }
-        if ((work->unk92 == 1) | (work->unk92 == 3)) {
-            tw = work->unk98->data;
-            if (tw->unk32 == work->unk32 && tw->unk34 == 0 && (u8)(rand8() % 10) < 5) {
-                work->unk34 ^= 1;
-            }
-            if (work->unk34 != 0) {
-                *stickX = -*stickX;
-            }
-        }
-    }
-    d = target->y - obj->trans.y;
-    if (fabs(d) > arg3) {
-        if (fabs(d * scale) > 70.0) {
-            v = 70.0f;
-        } else {
-            v = fabsf(d * scale);
-        }
-        if (v < 10.0f) {
-            v = 0.0f;
-        }
-        if (target->y > obj->trans.y) {
-            *stickY = -v;
-        } else {
-            *stickY = v;
-        }
-    }
-    return res;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_17_aces_high/1C4280", func_8010951C_aces_high);
-#endif
 
 /* CPU: choose the next goal, chasing a live plane (often, at higher difficulty) or flying to a random point. */
 void func_80109928_aces_high(omObjData *obj) {
