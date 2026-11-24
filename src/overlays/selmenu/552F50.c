@@ -61,8 +61,6 @@ unsigned int strlen(const char *);
 void func_8000BD08_main(u16 spriteId, f32 arg1);
 u8 func_8000BE1C_main(u16 spriteId);
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
-/* The low half of the s32 scroll D_80109810, read on its own (big-endian: (u16)D_80109810). */
-#define SELMENU_SCROLL_LO (((u16 *)&D_80109810_selmenu)[1])
 extern u8 D_800A175E_main; /* select-menu mode: 0 GAME, 1 BOARD, 2 DUEL */
 extern s32 D_800A178C_main[][6];
 void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
@@ -606,7 +604,8 @@ void func_80106770_selmenu(omObjData *obj) {
     obj->func = func_80106A10_selmenu;
 }
 
-/* NON_MATCHING: retail keeps the x of 64 in a0 and masks it after the two print calls merge; the rest matches. */
+/* NON_MATCHING (masked 28): retail loads the x of 64 into a0 before the kind test and masks it after the two print calls
+   merge (cse lost the constant); tried an x local, one call with ternary arguments. */
 #ifdef NON_MATCHING
 void func_80106A10_selmenu(omObjData *obj) {
     SelMenuEntry *entry;
@@ -645,12 +644,20 @@ void func_80106A10_selmenu(omObjData *obj) {
                 obj->func = func_80107924_selmenu;
                 func_801087C8_selmenu(1);
             }
-        } else if ((D_8010A270_selmenu[i] & 1) || (D_8010A270_selmenu[i] & 2)) {
-            func_80108814_selmenu((D_8010A270_selmenu[i] & 1) ? -1 : 1);
+        } else if (D_8010A270_selmenu[i] & 1) {
+            func_80108814_selmenu(-1);
             func_80108A40_selmenu();
             func_801087C8_selmenu(0);
-        } else if ((D_8010A270_selmenu[i] & 4) || (D_8010A270_selmenu[i] & 8)) {
-            func_80108890_selmenu((D_8010A270_selmenu[i] & 4) ? -1 : 1);
+        } else if (D_8010A270_selmenu[i] & 2) {
+            func_80108814_selmenu(1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(0);
+        } else if (D_8010A270_selmenu[i] & 4) {
+            func_80108890_selmenu(-1);
+            func_80108A40_selmenu();
+            func_801087C8_selmenu(4);
+        } else if (D_8010A270_selmenu[i] & 8) {
+            func_80108890_selmenu(1);
             func_80108A40_selmenu();
             func_801087C8_selmenu(4);
         } else if (D_8010A270_selmenu[i] & 0x40) {
@@ -893,7 +900,7 @@ void func_80106DEC_selmenu(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80106DEC_selmenu);
 #endif
 
-/* NON_MATCHING: retail does not fold textY (6) into the sparkle y (+ 8); register allocation of the two offsets. */
+/* NON_MATCHING (masked 12): retail does not fold textY (6) into the sparkle y (+ 8), as if textY were unknown there; s4/s5 swapped. Tried: swapped declarations. */
 #ifdef NON_MATCHING
 /* After a pick: the chosen name scrolls up out of its row, dropping a sparkle pair at its ends every 4 frames. */
 void func_80107924_selmenu(omObjData *obj) {
@@ -914,7 +921,7 @@ void func_80107924_selmenu(omObjData *obj) {
             func_8000BCC8_main(D_8010A210_selmenu[D_80109814_selmenu], 0x8000);
             func_8000BE5C_main(D_8010A210_selmenu[D_80109814_selmenu], 0.75f, 0.75f);
             func_8000BD08_main(D_8010A210_selmenu[D_80109814_selmenu], 8.0f);
-            func_8000BBD4_main(D_8010A210_selmenu[D_80109814_selmenu], x, y - SELMENU_SCROLL_LO + textY + 8);
+            func_8000BBD4_main(D_8010A210_selmenu[D_80109814_selmenu], x, y - D_80109810_selmenu + textY + 8);
             func_8000BEAC_main(D_8010A210_selmenu[D_80109814_selmenu], 0xFF, 0xFF, 0xBE);
             D_80109814_selmenu++;
             D_8010A210_selmenu[D_80109814_selmenu] = InitEspriteSlot(D_8010A208_selmenu, 0, 1);
@@ -924,7 +931,7 @@ void func_80107924_selmenu(omObjData *obj) {
             func_8000BD08_main(D_8010A210_selmenu[D_80109814_selmenu], 8.0f);
             func_8000BBD4_main(D_8010A210_selmenu[D_80109814_selmenu],
                                x + strlen(D_80108C90_selmenu[D_8010A070_selmenu * 10 + D_8010A072_selmenu].name) * 8,
-                               y - SELMENU_SCROLL_LO + textY + 8);
+                               y - D_80109810_selmenu + textY + 8);
             func_8000BEAC_main(D_8010A210_selmenu[D_80109814_selmenu], 0xFF, 0xFF, 0xBE);
             D_80109814_selmenu++;
             D_80109818_selmenu = 4;
@@ -937,9 +944,9 @@ void func_80107924_selmenu(omObjData *obj) {
             textY = y - D_80109810_selmenu + textY - y;
         }
         fontcolor = 9;
-        print8(x, y - SELMENU_SCROLL_LO + shadowY, D_800D5218_main);
+        print8(x, y - D_80109810_selmenu + shadowY, D_800D5218_main);
         fontcolor = 13;
-        print8(x, y - SELMENU_SCROLL_LO + textY, D_800D5218_main);
+        print8(x, y - D_80109810_selmenu + textY, D_800D5218_main);
     }
     for (i = 0; i < D_80109814_selmenu; i++) {
         if (D_8010A210_selmenu[i] != -1 && (func_8000BE1C_main(D_8010A210_selmenu[i]) & 6)) {
@@ -949,9 +956,9 @@ void func_80107924_selmenu(omObjData *obj) {
     }
     x = (320 - strlen(D_800D5218_main) * 8) / 2;
     fontcolor = 7;
-    print8(x + 1, y + 1 - SELMENU_SCROLL_LO, D_800D5218_main);
+    print8(x + 1, y + 1 - D_80109810_selmenu, D_800D5218_main);
     fontcolor = 15;
-    print8(x, y - SELMENU_SCROLL_LO, D_800D5218_main);
+    print8(x, y - D_80109810_selmenu, D_800D5218_main);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu/552F50", func_80107924_selmenu);

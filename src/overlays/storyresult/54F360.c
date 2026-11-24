@@ -682,7 +682,7 @@ Process *func_8010832C_storyresult(s16 *res, s16 slot) {
 }
 
 #ifdef NON_MATCHING
-/* Residue (masked ~10): retail reloads D_800CDA7C_main for each button test and sets the first bit with andi/sltu (this: srl/andi on one load); loop counters swap registers. */
+/* Residue (masked 2): retail sets the first bit with andi/sltu (this: srl/andi); loop counters swap registers. Tried: slot = 1 (sltu, but one shared load), += 1, ++, swapped i/j. */
 /* Event 3 (a test): fills every story record with top results, then shows minigame's record viewer
    for the slot picked by buttons C-down/C-right/C-up (D_800CDA7C_main[0] bits 2, 0, 3) and exits. */
 void func_801083A4_storyresult(void) {
@@ -730,7 +730,10 @@ void func_801083A4_storyresult(void) {
             GwStory.unk10[i][j] = 4;
         }
     }
-    slot = (D_800CDA7C_main[0] & 4) != 0;
+    slot = 0;
+    if (D_800CDA7C_main[0] & 4) {
+        slot |= 1;
+    }
     if (D_800CDA7C_main[0] & 1) {
         slot |= 2;
     }

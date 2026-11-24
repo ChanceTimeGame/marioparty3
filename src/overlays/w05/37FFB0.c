@@ -7302,6 +7302,8 @@ void func_801191C0_w05(void) {
     }
 }
 
+// masked 44 (268 vs 267): register allocation (retail spills vib and rematerialises &pos, &obj->rot and coords;
+// ours keeps them in s-registers and spills row); tried #ifdef NON_MATCHINGobj->coords written out, no vec pointer (kept)
 #ifdef NON_MATCHING
 void func_801192AC_w05(void) {
     Vec pos;
@@ -7319,7 +7321,6 @@ void func_801192AC_w05(void) {
     s16 mes;
     s16 secondNo;
     f32 *ofs;
-    Vec *vec;
     Vec *coords;
 
     work = HuPrcCurrentGet()->user_data;
@@ -7381,10 +7382,9 @@ void func_801192AC_w05(void) {
     coords = &obj->coords;
     HuPrcChildWait();
     HuVecCopy3F(&pos, &second->coords);
-    vec = &pos;
     ofs = D_8011EF38_w05[row + slot];
-    vec->x += ofs[0];
-    vec->z += ofs[1];
+    pos.x += ofs[0];
+    pos.z += ofs[1];
     MBVecDirGet(coords, &pos, &obj->rot);
     HuPrcChildLink(curProc, func_800ED5E0_shared_board(coords, &pos, coords, 2.0f));
     HuPrcChildWait();
@@ -7853,6 +7853,7 @@ done:
 INCLUDE_ASM("asm/nonmatchings/overlays/w05/37FFB0", func_80119F7C_w05);
 #endif
 
+// masked 10 (140 vs 139): retail hoists only se << 16 out of the loop and sign-extends at the call; tried s32 se
 #ifdef NON_MATCHING
 void func_8011A6E8_w05(void) {
     s32 idx;
@@ -7892,11 +7893,9 @@ void func_8011A6E8_w05(void) {
             stop = MBMasuGet(0x90);
             break;
     }
-    if (gate->coords.x != stop->coords.x) {
-        do {
-            func_8004AE00_main(se, R4_ABSF(from->coords.x - gate->coords.x) * 64.0f / R4_ABSF(from->coords.x - to->coords.x) + 32.0f);
-            HuPrcVSleep();
-        } while (gate->coords.x != stop->coords.x);
+    while (gate->coords.x != stop->coords.x) {
+        func_8004AE00_main(se, R4_ABSF(from->coords.x - gate->coords.x) * 64.0f / R4_ABSF(from->coords.x - to->coords.x) + 32.0f);
+        HuPrcVSleep();
     }
     HuAudFXStop(se);
     omDelPrcObj(NULL);

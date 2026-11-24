@@ -397,23 +397,26 @@ void func_8010BD5C_game_guys_magic_boxes(s16 active, s16 x, s16 y, s16 color) {
 
 /* Draw a filled ring of radius r in a colour (a 4-bit pixel pair per byte) into this frame's buffers, the mask
    layer gets the colour and the colour layer a 1 */
-// masked 35: retail squares r before the early-out test and allocates differently; logic checked block by block
-#ifdef NON_MATCHING
 void func_8010BD9C_game_guys_magic_boxes(s16 active, s16 x, s16 y, s16 r, s16 color) {
     s32 xx;
     s32 yy;
     u8* pa;
     u8* pb;
+    s32 rr;
+    s32 dy2;
+    s32 dx2;
 
+    rr = r * r;
     if (active == 0 || r < 1) {
         return;
     }
     for (yy = y - r; yy < y + r; yy++) {
         pa = D_8010CAF8_game_guys_magic_boxes.buf[D_8010CB0C_game_guys_magic_boxes] + (x - r) / 2 + yy * 160;
         pb = D_8010CAE0_game_guys_magic_boxes.buf[D_8010CB0C_game_guys_magic_boxes] + (x - r) / 2 + yy * 160;
+        dy2 = (yy - y) * (yy - y);
         for (xx = x - r; xx < x + r; xx++) {
-            if (xx >= 0 && xx < 320 && yy >= 0 && yy < 240 &&
-                (xx - x) * (xx - x) + (yy - y) * (yy - y) < r * r) {
+            dx2 = (xx - x) * (xx - x);
+            if (xx >= 0 && xx < 320 && yy >= 0 && yy < 240 && dx2 + dy2 < rr) {
                 if (xx & 1) {
                     *pa |= (u16)color;
                     *pb |= 1;
@@ -429,34 +432,29 @@ void func_8010BD9C_game_guys_magic_boxes(s16 active, s16 x, s16 y, s16 r, s16 co
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_44_game_guys_magic_boxes/30DC30", func_8010BD9C_game_guys_magic_boxes);
-#endif
 
 /* Draw a line in colour 7 into this frame's mask buffer (Bresenham, stepping in y) */
-// masked 39: two y-stepping Bresenham loops, register allocation and loop layout differ; logic checked against the asm
-#ifdef NON_MATCHING
 void func_8010BF94_game_guys_magic_boxes(s16 x0, s16 y0, s16 x1, s16 y1) {
-    s32 dx;
+    s16 dx;
     s16 dy;
-    s32 err;
+    s16 err;
     u8* p;
 
-    if (x1 < x0) {
+    if (x0 > x1) {
         dx = x0 - x1;
     } else {
         dx = x1 - x0;
     }
-    if (y1 < y0) {
+    if (y0 > y1) {
         dy = y0 - y1;
     } else {
         dy = y1 - y0;
     }
     err = dy / 2;
-    if (x1 >= x0) {
+    if (x0 <= x1) {
         for (; y0 <= y1; y0++) {
             err -= dx;
-            if (err & 0x8000) {
+            if (err < 0) {
                 err += dy;
                 x0++;
             }
@@ -472,7 +470,7 @@ void func_8010BF94_game_guys_magic_boxes(s16 x0, s16 y0, s16 x1, s16 y1) {
     } else {
         for (; y0 <= y1; y0++) {
             err -= dx;
-            if (err & 0x8000) {
+            if (err < 0) {
                 err += dy;
                 x0--;
             }
@@ -487,7 +485,4 @@ void func_8010BF94_game_guys_magic_boxes(s16 x0, s16 y0, s16 x1, s16 y1) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_44_game_guys_magic_boxes/30DC30", func_8010BF94_game_guys_magic_boxes);
-#endif
 
