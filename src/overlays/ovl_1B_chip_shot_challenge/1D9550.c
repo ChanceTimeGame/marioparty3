@@ -816,13 +816,12 @@ void func_80107520_chip_shot_challenge(omObjData* obj) {
 }
 
 /* show the ball's distance to the hole */
-// masked 5, one instruction short: retail keeps dist and the thousands digit in two registers (s3, s1)
-// where this C shares one; the digit arithmetic (dist - dist / 1000 * 1000, then / 100, / 10) is as retail
+// masked 2, one instruction long (H1): retail computes dist / 1000 straight into s1, this C adds a move; the
+// last digit reuses dist as retail does (s3); tried q = in the if, s32 q, r for the thousands
 #ifdef NON_MATCHING
 void func_80107960_chip_shot_challenge(s16 dist) {
     s16 q;
     s16 r;
-    s16 u;
 
     q = dist / 1000;
     if (q != 0) {
@@ -840,9 +839,9 @@ void func_80107960_chip_shot_challenge(s16 dist) {
     q = r / 10;
     func_80055140_main(D_8010AAC0_chip_shot_challenge, 2, q, 0);
     func_800550F4_main(D_8010AAC0_chip_shot_challenge, 2, 1);
-    u = r - q * 10;
+    dist = r - q * 10;
     HuSprAttrReset(D_8010AAC0_chip_shot_challenge, 3, 0x8000);
-    func_80055140_main(D_8010AAC0_chip_shot_challenge, 3, u, 0);
+    func_80055140_main(D_8010AAC0_chip_shot_challenge, 3, dist, 0);
     func_800550F4_main(D_8010AAC0_chip_shot_challenge, 3, 1);
     HuSprAttrReset(D_8010AAC4_chip_shot_challenge, 0, 0x8000);
     func_80054FF8_main(D_8010AAC4_chip_shot_challenge, 0, 1);
@@ -1302,7 +1301,8 @@ void func_801091E8_chip_shot_challenge(omObjData* obj) {
 
 /* the ball: roll, bounce, drop into the hole, then show where it stopped */
 // three instructions short: after a bounce retail tests a constant (li v0,1; beqz v0) before the
-// rebound; no flag variable reproduced it (the false path then stops threading). Logic as retail.
+// rebound; no flag variable reproduced it (the false path then stops threading; H1 tried the flag set after
+// and before the sound call). Logic as retail.
 #ifdef NON_MATCHING
 void func_801094D8_chip_shot_challenge(omObjData* obj) {
     CsBall* w = obj->data;

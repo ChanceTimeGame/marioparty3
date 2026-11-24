@@ -98,8 +98,12 @@ typedef struct MmWalk {
     /* 0x0C */ f32 roty;
 } MmWalk; // Size 0x10
 extern MmWalk D_80111228_messy_memory[7];
-extern s32 D_80111148_messy_memory[10][2]; /* item image groups, the players' boards */
-extern s32 D_80111198_messy_memory[10][2]; /* item image groups, the shown room */
+typedef struct {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s32 grp;
+} MmItemGrp; /* size 0x08 */
+extern MmItemGrp D_80111148_messy_memory[10]; /* item image groups, the players' boards */
+extern MmItemGrp D_80111198_messy_memory[10]; /* item image groups, the shown room */
 
 /* .bss */
 extern MmEnt D_80111700_messy_memory[136];
@@ -2081,10 +2085,13 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_1D_messy_memory/1E37C0", func_8010C47
 #endif
 
 #ifdef NON_MATCHING
+/* masked 40 at the right count (H1): retail places the D_80115D90[work[0]] = v store out of line (after the
+   work[1] < 4 loop), and its third loop keeps k in v1 where this C uses s0. */
 /* Item k of a board (work[1] board, work[0] item): load its image, place it in its slot (the shuffled room: a free
    random slot), then run func_8010C478. */
 void func_8010D55C_messy_memory(omObjData *obj) {
     MmEnt *e;
+    MmItemGrp *g;
     s16 i;
     u8 v;
     u32 k;
@@ -2094,7 +2101,8 @@ void func_8010D55C_messy_memory(omObjData *obj) {
         for (i = 0; i < 10; i++) {
             k = obj->work[0];
             if (k == i) {
-                D_80111608_messy_memory[k] = func_8000B838_main((&D_80111148_messy_memory[k][0])[1]);
+                g = &D_80111148_messy_memory[k];
+                D_80111608_messy_memory[k] = func_8000B838_main(g->grp);
             }
         }
     }
@@ -2108,7 +2116,8 @@ void func_8010D55C_messy_memory(omObjData *obj) {
         for (i = 0; i < 10; i++) {
             k = obj->work[0];
             if (k == i) {
-                e->grp = func_8000B838_main(D_80111198_messy_memory[k][1]);
+                g = &D_80111198_messy_memory[k];
+                e->grp = func_8000B838_main(g->grp);
                 e->spr = InitEspriteSlot(e->grp, 0, 0);
             }
         }
@@ -2116,17 +2125,16 @@ void func_8010D55C_messy_memory(omObjData *obj) {
     if (obj->work[1] == 4) {
         v = rand8() % 10;
     retry:
-        if (v != D_80115D90_messy_memory[0] && v != D_80115D90_messy_memory[1] && v != D_80115D90_messy_memory[2] &&
-            v != D_80115D90_messy_memory[3] && v != D_80115D90_messy_memory[4] && v != D_80115D90_messy_memory[5] &&
-            v != D_80115D90_messy_memory[6] && v != D_80115D90_messy_memory[7] && v != D_80115D90_messy_memory[8]) {
-            D_80115D90_messy_memory[obj->work[0]] = v;
-        } else {
+        if (v == D_80115D90_messy_memory[0] || v == D_80115D90_messy_memory[1] || v == D_80115D90_messy_memory[2] ||
+            v == D_80115D90_messy_memory[3] || v == D_80115D90_messy_memory[4] || v == D_80115D90_messy_memory[5] ||
+            v == D_80115D90_messy_memory[6] || v == D_80115D90_messy_memory[7] || v == D_80115D90_messy_memory[8]) {
             v++;
             if (v >= 10) {
                 v = 0;
             }
             goto retry;
         }
+        D_80115D90_messy_memory[obj->work[0]] = v;
         for (i = 0; i < 10; i++) {
             if (v == i) {
                 e->pos.x = D_80110FF4_messy_memory[v].x;

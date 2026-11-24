@@ -1682,12 +1682,13 @@ void func_80109604_parasol_plummet(void) {
     }
 }
 
-/* NON_MATCHING: register allocation and block order (masked 40, one instruction short). After a thrower throws,
+/* NON_MATCHING: register allocation (masked 30, one instruction short; H1: got[] is 4 words as retail's frame;
+   retail hoists -1 and 3 but rematerialises 2, this C hoists 2). After a thrower throws,
    draw two items from the bag (at most one five-coin bag and one hazard per throw) into free item slots
    (0-5 coins, 6-11 five coins, 12-17 hazards); give up after 1000 tries. */
 #ifdef NON_MATCHING
 void func_801096BC_parasol_plummet(void) {
-    s32 got[2];
+    s32 got[4];
     s32 n;
     s32 done;
     s32 tries;
