@@ -8,8 +8,7 @@ either decompiled C that does not yet compile to identical code, or assembly tha
 decompiled. [OPEN_FUNCTIONS.md](OPEN_FUNCTIONS.md) lists every one of them.
 
 This repository is a fork of [mariopartyrd/marioparty3](https://github.com/mariopartyrd/marioparty3).
-Thanks to everyone who worked on it. The Mario Party decompilation community meets on
-[Discord](https://discord.gg/T4faGveujK).
+Thanks to everyone who worked on it.
 
 ## Why this fork exists: Chance Time
 
