@@ -1708,13 +1708,10 @@ void func_8010A5F0_hand_line_sinker(void) {
 }
 
 /* Starts a splash of a type at pos (relative to obj when it is not NULL). */
-#ifdef NON_MATCHING
-/* regalloc only: retail allocates the slot index and type in other saved registers */
 void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot) {
     s32 i;
     HlSplash *sp;
     omObjData *o;
-    s16 *mdl;
 
     for (i = 0; i < 6; i++) {
         if (D_8010C160_hand_line_sinker[i] == NULL) {
@@ -1727,9 +1724,8 @@ void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot
         o = D_8010C160_hand_line_sinker[i];
         sp = o->data;
         o->work[0] = i;
-        mdl = &D_8010C148_hand_line_sinker[type][i];
-        func_8001C258_main(*mdl, 4, 0);
-        D_8010C160_hand_line_sinker[i]->model[0] = *mdl;
+        func_8001C258_main(D_8010C148_hand_line_sinker[type][i], 4, 0);
+        D_8010C160_hand_line_sinker[i]->model[0] = D_8010C148_hand_line_sinker[type][i];
         func_8001C6A8_main(D_8010C160_hand_line_sinker[i]->model[0], 0.0f);
         sp->follow = obj;
         sp->ofs = *pos;
@@ -1747,9 +1743,6 @@ void func_8010A6D0_hand_line_sinker(omObjData *obj, u16 type, Vec *pos, Vec *rot
                         D_8010C160_hand_line_sinker[i]->rot.y, D_8010C160_hand_line_sinker[i]->rot.z);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_01_hand_line_sinker/11A480", func_8010A6D0_hand_line_sinker);
-#endif
 
 /* A splash: follows its object and ends with its animation. */
 #ifdef NON_MATCHING
@@ -1857,10 +1850,10 @@ f32 func_8010ABD4_hand_line_sinker(f32 a) {
     }
     t = 2.0f * a * D_8010C13C_hand_line_sinker + b;
     s = HuSqrtf(t * t + 1.0f);
-    if (!(t + s > 0.0f)) {
-        v = t * s - 1.0f;
-    } else {
+    if (t + s > 0.0f) {
         v = t * s + logf(t + s);
+    } else {
+        v = t * s - 1.0f;
     }
     if (a != 0.0f) {
         r = (v - u) / (a * 4.0f) - D_8010C130_hand_line_sinker;
@@ -1966,7 +1959,9 @@ void func_8010B0FC_hand_line_sinker(omObjData *obj, f32 vol) {
 
 /* Moves a fish forward, keeping its two body circles apart from the other fish and inside the pond. */
 #ifdef NON_MATCHING
-/* regalloc only: retail keeps x and the 180.0/67.5 constants in integer saved registers */
+/* 261 vs 257, masked 51: retail keeps x in $s4 and cx in $f28 (the C swaps them) plus the 180.0/67.5
+   constants in integer saved registers; the inner loop reloads D_8010C100[j] for each access as retail does.
+   Tried: declaration order, the subtract of cx/cz inside the distance. */
 void func_8010B1E4_hand_line_sinker(omObjData *obj) {
     HlPlayer *pl = obj->data;
     s32 part;
@@ -1995,9 +1990,11 @@ void func_8010B1E4_hand_line_sinker(omObjData *obj) {
                 continue;
             }
             for (k = 0; k < 2; k++) {
-                dx = sindf(k * 180.0f + D_8010C100_hand_line_sinker[j]->rot.y) * 67.5f + other->trans.x - cx;
-                dz = cosdf(k * 180.0f + other->rot.y) * 67.5f + D_8010C100_hand_line_sinker[j]->trans.z - cz;
-                dist = HuSqrtf(dx * dx + dz * dz);
+                dx = sindf(k * 180.0f + D_8010C100_hand_line_sinker[j]->rot.y) * 67.5f +
+                     D_8010C100_hand_line_sinker[j]->trans.x;
+                dz = cosdf(k * 180.0f + D_8010C100_hand_line_sinker[j]->rot.y) * 67.5f +
+                     D_8010C100_hand_line_sinker[j]->trans.z;
+                dist = HuSqrtf((dx - cx) * (dx - cx) + (dz - cz) * (dz - cz));
                 if (dist < 135.0f) {
                     x -= sindf(part * 180.0f + obj->rot.y) * (135.0f - dist);
                     z -= cosdf(part * 180.0f + obj->rot.y) * (135.0f - dist);

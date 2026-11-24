@@ -762,11 +762,13 @@ void func_80107510_fridged_bridges(omObjData *obj) {
 void func_801075A4_fridged_bridges(omObjData *obj) {
 }
 
+/* NON_MATCHING (H1): masked 9, 114/111. Retail keeps the constant 5.0f and step in one register
+ * (bc1t straight to the join); ours copies it with mov.s and jumps. Tried a ternary, step = 5.0f
+ * then a negated test, and step = 360 - diff then a clamp. */
 #ifdef NON_MATCHING
 void func_801075AC_fridged_bridges(omObjData *obj) {
-    f32 rot;
-    f32 step;
     f32 diff;
+    f32 step;
 
     diff = -obj->rot.y;
     if (diff < 0.0f) {
@@ -774,15 +776,18 @@ void func_801075AC_fridged_bridges(omObjData *obj) {
     }
     if (diff < 180.0f) {
         if (diff > 5.0f) {
-            rot = obj->rot.y + 5.0f;
+            obj->rot.y = obj->rot.y + 5.0f;
         } else {
-            rot = diff + obj->rot.y;
+            obj->rot.y = diff + obj->rot.y;
         }
     } else {
-        step = (360.0f - diff) > 5.0f ? 5.0f : (360.0f - diff);
-        rot = obj->rot.y - step;
+        if ((360.0f - diff) > 5.0f) {
+            step = 5.0f;
+        } else {
+            step = 360.0f - diff;
+        }
+        obj->rot.y = obj->rot.y - step;
     }
-    obj->rot.y = rot;
     if (obj->rot.y >= 360.0f) {
         obj->rot.y -= 360.0f;
     }
@@ -1088,7 +1093,9 @@ void func_80108648_fridged_bridges(omObjData *obj) {
     HmfModelData[obj->model[0]].unk06 = 0xFF;
 }
 
-/* Bridge pieces: models and falling objects */
+/* Bridge pieces: models and falling objects.
+ * NON_MATCHING (H1): one scheduling swap (lw obj->model before the i*5+j addu in the piece loop);
+ * masked 2 apart from function-address shifts. Tried i * 5 + j + 1 and (obj->model + 1)[...]. */
 #ifdef NON_MATCHING
 void func_80108720_fridged_bridges(omObjData *obj) {
     f32 sign[8];
@@ -1329,7 +1336,6 @@ void func_801091F8_fridged_bridges(omObjData *obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_801091F8_fridged_bridges);
 #endif
 
-#ifdef NON_MATCHING
 /* Winner: walk to the goal, camera move, win pose */
 void func_80109390_fridged_bridges(omObjData *obj) {
     omObjData *player;
@@ -1391,9 +1397,10 @@ void func_80109390_fridged_bridges(omObjData *obj) {
             if (D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->work[0] == 1 && func_800E6E8C_minigame() == 4) {
                 {
                     omObjData *winner = D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges];
+                    FbPlayer *w = winner->data;
                     s16 *models = winner->model;
 
-                    func_80017954_main(models[0], 2, GwPlayer[((FbPlayer *)winner->data)->unk02].chr, models[5]);
+                    func_80017954_main(models[0], 2, GwPlayer[w->unk02].chr, models[5]);
                 }
                 func_8001C624_main(D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->model[0],
                                    HmfModelData[D_8010DA64_fridged_bridges[D_8010DA60_fridged_bridges]->motion[5]].unk02, 0, 6, 0);
@@ -1427,9 +1434,6 @@ void func_80109390_fridged_bridges(omObjData *obj) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_80109390_fridged_bridges);
-#endif
 
 #ifdef NON_MATCHING
 /* Ground under 8 points around the player and its centre; returns how many have none */
@@ -1834,7 +1838,10 @@ void func_8010AE0C_fridged_bridges(void) {
 }
 
 #ifdef NON_MATCHING
-/* Cameras run back along the bridge paths and zoom out; 1 when all are done */
+/* Cameras run back along the bridge paths and zoom out; 1 when all are done.
+ * NON_MATCHING (H1): masked 19, 219/221. Only difference: retail hoists 12.5f out of the loop into
+ * s7 (frame 8 bytes larger); ours loads it in place. The rest of the body is identical. Tried
+ * `CZoomM[i] = CZoomM[i] + 12.5f` and `12.5f + CZoomM[i]`. */
 u16 func_8010AE98_fridged_bridges(f32 speed) {
     s32 done = 0;
     s32 i;
@@ -1889,24 +1896,21 @@ u16 func_8010AE98_fridged_bridges(f32 speed) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010AE98_fridged_bridges);
 #endif
 
-#ifdef NON_MATCHING
 /* The four hazards, one per bridge */
 void func_8010B164_fridged_bridges(void) {
     omObjData *haz;
     FbHazard *hw;
     s32 i;
-    u16 model;
     f32 a;
     f32 half;
 
     for (i = 0; i < 4; i++) {
-        D_8010DA78_fridged_bridges[i] = haz = omAddObj(0x1E, 1, 0, -1, func_8010B3EC_fridged_bridges);
+        haz = D_8010DA78_fridged_bridges[i] = omAddObj(0x1E, 1, 0, -1, func_8010B3EC_fridged_bridges);
         if (i == 0) {
-            model = func_8000B108_main(0x450010, 0x20699);
+            haz->model[0] = func_8000B108_main(0x450010, 0x20699);
         } else {
-            model = Hu3DModelLink(D_8010DA78_fridged_bridges[0]->model[0]);
+            haz->model[0] = Hu3DModelLink(D_8010DA78_fridged_bridges[0]->model[0]);
         }
-        haz->model[0] = model;
         hw = haz->data = HuMemAllocTag(sizeof(FbHazard), 0x7918);
         hw->unk00 = 0;
         hw->unk04 = 0;
@@ -1935,9 +1939,6 @@ void func_8010B164_fridged_bridges(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_24_fridged_bridges/216670", func_8010B164_fridged_bridges);
-#endif
 
 // decomp-permuter
 void func_8010B3EC_fridged_bridges(omObjData *obj)

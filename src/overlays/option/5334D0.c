@@ -2182,8 +2182,6 @@ void func_8010BFA4_option(s32 sel, s32 btn) {
     func_801096E4_option(0);
 }
 
-#ifdef NON_MATCHING
-/* Matches except that this C hoists the constant -1 (the A-press result test) out of the loop into s5. */
 s32 func_8010C04C_option(void) {
     s32 pos[2];
     Vec eye;
@@ -2220,12 +2218,13 @@ s32 func_8010C04C_option(void) {
             case 0:
             case 1:
             case 2:
+                sel = 3;
                 HuVecCopy3F(&eye, &D_801136AC_option[0]);
                 HuVecCopy3F(&at, &D_801136AC_option[1]);
                 func_80107758_option(&eye, &at, 20);
                 HuPrcSleep(20);
-                sel = 3;
                 break;
+            case 3:
             default:
                 sel = 3;
                 break;
@@ -2240,9 +2239,6 @@ s32 func_8010C04C_option(void) {
     func_801133EC_option(0);
     return sel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/option/5334D0", func_8010C04C_option);
-#endif
 
 void func_8010C224_option(void) {
     Vec eye;

@@ -1259,7 +1259,9 @@ void func_80108484_pipe_cleaners(void)
 
 }
 
-/* Raises the pipes the schedule names, every 15 frames. */
+/* Raises the pipes the schedule names, every 15 frames.
+ * NON_MATCHING (H1): masked 4 at 115/115, register residue only: retail copies step into $a1
+ * (move a1,v0) and computes slot in the bne delay slot; which lands in $a0. */
 #ifdef NON_MATCHING
 void func_80108708_pipe_cleaners(void) {
     s32 i;
@@ -1269,7 +1271,6 @@ void func_80108708_pipe_cleaners(void) {
     PcPipe *pipe;
     s32 slot;
     s32 which;
-    s32 kind;
 
     if (D_8010AC10_pipe_cleaners < 900) {
         if (D_8010AC10_pipe_cleaners >= 89) {
@@ -1285,13 +1286,13 @@ void func_80108708_pipe_cleaners(void) {
                 return;
             }
             step = D_8010AC10_pipe_cleaners / 15;
+            slot = 59 - step;
             if (step * 15 == D_8010AC10_pipe_cleaners - 14) {
-                slot = 59 - step;
                 for (i = 0; i < 4; i++) {
                     value = D_8010A838_pipe_cleaners[i][slot];
                     if (value != -1) {
                         which = value & 3;
-                        kind = value / 4;
+                        value /= 4;
                         pipe = &D_8010A968_pipe_cleaners[i * 4 + which];
                         if (pipe->state != 0) {
                             for (j = 0; j < 4; j++) {
@@ -1302,7 +1303,7 @@ void func_80108708_pipe_cleaners(void) {
                             }
                         }
                         if (pipe->state == 0) {
-                            if (kind == 0) {
+                            if (value == 0) {
                                 pipe->kind = 0;
                             } else {
                                 pipe->kind = 1;
