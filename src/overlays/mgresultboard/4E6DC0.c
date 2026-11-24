@@ -579,7 +579,8 @@ void func_80107188_mgresultboard(void) {
 }
 
 #ifdef NON_MATCHING
-// Masked 17: retail reloads sc[] from the stack and recomputes j * 12 before the tie-break test.
+// NON_MATCHING (masked 0, raw 3): the rank loop.s running base gets a2 where retail has a0. The two swap
+// arms are cross-jumped into one (that is what makes retail reload sc[]). Tried: init order (raw 4).
 void func_80107234_mgresultboard(void) {
     s32 rank[4];
     s32 sc[2];
@@ -604,7 +605,11 @@ void func_80107234_mgresultboard(void) {
         for (j = i + 1; j < 4; j++) {
             sc[0] = D_8010B048_mgresultboard[i].score * 1000 + D_8010B048_mgresultboard[i].coin;
             sc[1] = D_8010B048_mgresultboard[j].score * 1000 + D_8010B048_mgresultboard[j].coin;
-            if (sc[0] < sc[1] || (sc[0] == sc[1] && D_8010B048_mgresultboard[i].idx > D_8010B048_mgresultboard[j].idx)) {
+            if (sc[0] < sc[1]) {
+                tmp = D_8010B048_mgresultboard[i];
+                D_8010B048_mgresultboard[i] = D_8010B048_mgresultboard[j];
+                D_8010B048_mgresultboard[j] = tmp;
+            } else if (sc[0] == sc[1] && D_8010B048_mgresultboard[i].idx > D_8010B048_mgresultboard[j].idx) {
                 tmp = D_8010B048_mgresultboard[i];
                 D_8010B048_mgresultboard[i] = D_8010B048_mgresultboard[j];
                 D_8010B048_mgresultboard[j] = tmp;
@@ -620,17 +625,17 @@ void func_80107234_mgresultboard(void) {
         n += sc[0] != sc[1];
         D_8010B048_mgresultboard[i].unk_01 = n;
     }
-    base = 0;
     n = 0;
+    base = 0;
     for (j = 0; j < 4; j++) {
         for (i = 0; i < 4; i++) {
             if (j == D_8010B048_mgresultboard[i].unk_01) {
-                n++;
-                rank[i] = base;
+                base++;
+                rank[i] = n;
             }
         }
-        base += n;
-        n = 0;
+        n += base;
+        base = 0;
     }
     for (i = 0; i < 4; i++) {
         D_8010B048_mgresultboard[i].unk_01 = rank[i];
