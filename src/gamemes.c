@@ -993,16 +993,16 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003843C_main);
 
 // "START" letters flying in: register allocation (masked 39: the i + 1 loops, and case 0 keeps D_800B1BC0_main in a register)
 #ifdef NON_MATCHING
-s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
+// "START" letters flying in: register allocation (masked 21: the case 0 loop increments i + 1 in place; retail keeps i + 1 in s1 and copies it back, move s0,s1)
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     f32 scale;
     f32 t;
-    s16 member;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -1013,9 +1013,8 @@ s32 func_80038934_main(GAMEMES *gMes, Gfx **arg1) {
                 chr->unk10 = i * 22 - (n - 1) * 11;
                 chr->unk14 = 0.0f;
                 chr->unk28 = chr->unk2C = 180.0f;
-                member = i + 1;
-                HuSprScaleSet(gMes->strGId[0], member, chr->scaleX, chr->scaleY);
-                func_80054904_main(gMes->strGId[0], member, chr->unk00, chr->unk04);
+                HuSprScaleSet(gMes->strGId[0], i + 1, chr->scaleX, chr->scaleY);
+                func_80054904_main(gMes->strGId[0], i + 1, chr->unk00, chr->unk04);
             }
             gMes->unk08 = 1;
             gMes->unk0A = gMes->unk0C = 0;
@@ -1196,13 +1195,14 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_80038D78_main);
 #ifdef NON_MATCHING
 s32 func_800392AC_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             for (j = 0; j < n; j++) {
@@ -1285,13 +1285,14 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_800392AC_main);
 #ifdef NON_MATCHING
 s32 func_8003966C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
@@ -1375,13 +1376,14 @@ INCLUDE_ASM("asm/nonmatchings/gamemes", func_8003966C_main);
 #ifdef NON_MATCHING
 s32 func_80039A6C_main(GAMEMES *gMes, Gfx **arg1) {
     GMesChr *chr;
-    s32 n = 5;
+    s32 n;
     s32 ret;
     s32 i;
     s32 j;
     f32 scale;
 
     ret = func_80038208_main(gMes, arg1);
+    n = 5;
     switch (gMes->unk08) {
         case 0:
             func_80054904_main(gMes->strGId[0], 0, 160, 120);
