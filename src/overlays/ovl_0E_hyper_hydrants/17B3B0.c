@@ -1065,7 +1065,7 @@ void func_80107A90_hyper_hydrants(omObjData* obj) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_0E_hyper_hydrants/17B3B0", func_80107A90_hyper_hydrants);
 #endif
 
-// masked residue: retail converts -half after the spread's rand8() call (evaluation order; logic checked)
+// masked 14 (272/266): retail converts the spread rand8() term into f0, this C into f12 (plus a nop after each sindf/cosdf argument); tried commuted sums, float casts (logic checked)
 #ifdef NON_MATCHING
 /* Emit up to `n` drops of a water jet from `pos`: a free particle (pos.y <= 0) gets a velocity aimed around the
    jet's heading, spread over its pressure in degrees. */
@@ -1080,22 +1080,22 @@ void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s8 n) {
     f32 t;
     Vec vel;
 
-    work = (HhFxWork*)HmfModelData[model].unkBC;
     count = ((HhHmfData*)HmfModelData[model].hmf)->unk1A;
+    work = (HhFxWork*)HmfModelData[model].unkBC;
     half = jet->unk00 / 2;
     heading = jet->unk04 - half;
-    speed = (s32)((u32)(rand8() * 5) >> 7) * 0.1f + jet->unk08;
+    speed = jet->unk08 + (s32)((u32)(rand8() * 5) >> 7) * 0.1f;
     vel.x = sindf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
-    vel.y = sindf((f32)-half + ((rand8() * jet->unk00) >> 8)) * speed;
+    vel.y = sindf(((rand8() * jet->unk00) >> 8) + (f32)-half) * speed;
     vel.z = cosdf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
     part = work->parts;
     for (i = 0; i < count; i++, part++) {
         if (part->pos.y <= 0.0f) {
             part->vel = vel;
             t = (s32)((u32)(rand8() * 5) >> 7) * 0.1f;
-            part->pos.x = t * vel.x + pos->x;
-            part->pos.y = t * vel.y + pos->y;
-            part->pos.z = t * vel.z + pos->z;
+            part->pos.x = pos->x + t * vel.x;
+            part->pos.y = pos->y + t * vel.y;
+            part->pos.z = pos->z + t * vel.z;
             if (jet->unk00 > 20) {
                 part->scale = (u8)(rand8() & 7) + 2;
             } else {
@@ -1104,9 +1104,9 @@ void func_801083A8_hyper_hydrants(s16 model, Vec* pos, HhJet* jet, s8 n) {
             if (--n == 0) {
                 break;
             }
-            speed = (s32)((u32)(rand8() * 5) >> 7) * 0.1f + jet->unk08;
+            speed = jet->unk08 + (s32)((u32)(rand8() * 5) >> 7) * 0.1f;
             vel.x = sindf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
-            vel.y = sindf((f32)-half + ((rand8() * jet->unk00) >> 8)) * speed;
+            vel.y = sindf(((rand8() * jet->unk00) >> 8) + (f32)-half) * speed;
             vel.z = cosdf(heading + ((rand8() * jet->unk00) >> 8)) * speed;
         }
     }
