@@ -71,8 +71,6 @@ unsigned int strlen(const char *);
 void func_8000BD08_main(u16 spriteId, f32 arg1);
 u8 func_8000BE1C_main(u16 spriteId);
 void func_8000BEAC_main(u16 spriteId, s32 arg1, s32 arg2, s32 arg3);
-/* The low half of the s32 scroll D_801093C0, read on its own (big-endian: (u16)D_801093C0). */
-#define SELMENU2_SCROLL_LO (((u16 *)&D_801093C0_selmenu2)[1])
 extern s32 D_800A178C_main[][6];
 void func_8000B880_main(s16 sprite, f32 r, f32 g, f32 b);
 void func_8000BE5C_main(u16 spriteId, f32 x, f32 y);
@@ -868,7 +866,7 @@ void func_801078CC_selmenu2(omObjData *obj) {
             func_8000BCC8_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0x8000);
             func_8000BE5C_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0.75f, 0.75f);
             func_8000BD08_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 8.0f);
-            func_8000BBD4_main(D_80109C98_selmenu2[D_801093C4_selmenu2], x, y - SELMENU2_SCROLL_LO + textY + 8);
+            func_8000BBD4_main(D_80109C98_selmenu2[D_801093C4_selmenu2], x, y - D_801093C0_selmenu2 + textY + 8);
             func_8000BEAC_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0xFF, 0xFF, 0xBE);
             D_801093C4_selmenu2++;
             D_80109C98_selmenu2[D_801093C4_selmenu2] = InitEspriteSlot(D_80109C90_selmenu2, 0, 1);
@@ -878,7 +876,7 @@ void func_801078CC_selmenu2(omObjData *obj) {
             func_8000BD08_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 8.0f);
             func_8000BBD4_main(D_80109C98_selmenu2[D_801093C4_selmenu2],
                                x + strlen(D_80108BE0_selmenu2[D_80109B00_selmenu2 * 10 + D_80109B02_selmenu2].name) * 8,
-                               y - SELMENU2_SCROLL_LO + textY + 8);
+                               y - D_801093C0_selmenu2 + textY + 8);
             func_8000BEAC_main(D_80109C98_selmenu2[D_801093C4_selmenu2], 0xFF, 0xFF, 0xBE);
             D_801093C4_selmenu2++;
             D_801093C8_selmenu2 = 4;
@@ -891,9 +889,9 @@ void func_801078CC_selmenu2(omObjData *obj) {
             textY = y - D_801093C0_selmenu2 + textY - y;
         }
         fontcolor = 9;
-        print8(x, y - SELMENU2_SCROLL_LO + shadowY, D_800D5218_main);
+        print8(x, y - D_801093C0_selmenu2 + shadowY, D_800D5218_main);
         fontcolor = 13;
-        print8(x, y - SELMENU2_SCROLL_LO + textY, D_800D5218_main);
+        print8(x, y - D_801093C0_selmenu2 + textY, D_800D5218_main);
     }
     for (i = 0; i < D_801093C4_selmenu2; i++) {
         if (D_80109C98_selmenu2[i] != -1 && (func_8000BE1C_main(D_80109C98_selmenu2[i]) & 6)) {
@@ -903,9 +901,9 @@ void func_801078CC_selmenu2(omObjData *obj) {
     }
     x = (320 - strlen(D_800D5218_main) * 8) / 2;
     fontcolor = 7;
-    print8(x + 1, y + 1 - SELMENU2_SCROLL_LO, D_800D5218_main);
+    print8(x + 1, y + 1 - D_801093C0_selmenu2, D_800D5218_main);
     fontcolor = 15;
-    print8(x, y - SELMENU2_SCROLL_LO, D_800D5218_main);
+    print8(x, y - D_801093C0_selmenu2, D_800D5218_main);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/overlays/selmenu2/116320", func_801078CC_selmenu2);
