@@ -1604,8 +1604,8 @@ INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A
 
 #ifdef NON_MATCHING
 /* Gives billboard id sprite tex: rebuilds its strip and display list.
-   masked 35, 373 of 377: retail recomputes 0x1000 >> siz / 0x2000 >> siz for the division instead of
-   reusing the test value and cross-jumps the two else arms (if/else flips made it worse). */
+   masked 25, 379 of 377 (crowd_cover twin shape: >= tests, case 4 if/else); the tc[1] stores in the strip loop still differ;
+   retail cross-jumps the else arms. */
 void func_8010A62C_popgun_pickoff(s16 id, s16 tex) {
     PgBoard* b;
     HuSprite_Unk84_Unk00_Struct* cel;
@@ -1649,29 +1649,30 @@ void func_8010A62C_popgun_pickoff(s16 id, s16 tex) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
             if (cel->unk06 * w > 0x1000) {
                 rowH = 0x1000 / w;
+            } else {
+                rowH = cel->unk06;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
