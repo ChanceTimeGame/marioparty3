@@ -1467,7 +1467,6 @@ s16 func_80109718_popgun_pickoff(PgBoard* b) {
 INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_80109718_popgun_pickoff);
 #endif
 
-#ifdef NON_MATCHING
 /* Creates a billboard from sprite tex: a strip of quads sized to fit TMEM, then its display list. */
 s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
     PgBoard* b;
@@ -1475,11 +1474,12 @@ s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
     s32 siz;
     s32 mode;
     s32 w;
-    u16 rowH;
+    u32 rowH;
     u32 strips;
     s32 rem;
     s32 i;
     s32 j;
+    s32 tc;
     s32 id;
 
     for (id = 0; id < D_8010DDF0_popgun_pickoff; id++) {
@@ -1521,44 +1521,46 @@ s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
             mode = 4;
             break;
     }
-    w = (((cel->unk04 << siz) >> 4) * 16) >> siz;
+    w = (((cel->unk04 << siz) >> 4) << 4) >> siz;
     if (w < cel->unk04) {
         w += 16 >> siz;
     }
     switch (mode) {
         case 2:
-            if ((0x1000 >> siz) < cel->unk06 * w) {
-                rowH = (0x1000 >> siz) / w;
-            } else {
+            if ((0x1000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x1000 >> siz) / w;
             }
             break;
         case 4:
-            rowH = cel->unk06;
-            if (rowH * w > 0x1000) {
+            if (cel->unk06 * w <= 0x1000) {
+                rowH = cel->unk06;
+            } else {
                 rowH = 0x1000 / w;
             }
             break;
         default:
-            if ((0x2000 >> siz) < cel->unk06 * w) {
-                rowH = (0x2000 >> siz) / w;
-            } else {
+            if ((0x2000 >> siz) >= cel->unk06 * w) {
                 rowH = cel->unk06;
+            } else {
+                rowH = (0x2000 >> siz) / w;
             }
             break;
     }
     strips = cel->unk06 / rowH;
-    rem = cel->unk06 % rowH;
+    rem = cel->unk06 - strips * rowH;
     b->rows = strips + 2;
     b->rowH = rowH;
-    b->vtx = HuMemAlloc((s8)(strips + 2) * 2 * sizeof(Vtx));
+    b->vtx = HuMemAlloc((strips + 2) * 2 * sizeof(Vtx));
     for (i = 0; i < strips + 1; i++) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = -i * rowH;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = -i * rowH;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
-        b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = (i * rowH) << 6;
+        b->vtx[i * 2].v.tc[1] = tc = (i * rowH) << 6;
+        b->vtx[i * 2 + 1].v.tc[1] = tc;
         for (j = 0; j < 2; j++) {
             b->vtx[i * 2 + j].v.ob[2] = 0;
             b->vtx[i * 2 + j].v.cn[0] = 0xFF;
@@ -1570,7 +1572,7 @@ s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
     if (rem != 0) {
         b->vtx[i * 2].v.ob[0] = 0;
         b->vtx[i * 2 + 1].v.ob[0] = cel->unk04;
-        b->vtx[i * 2 + 1].v.ob[1] = b->vtx[i * 2].v.ob[1] = cel->unk06;
+        b->vtx[i * 2].v.ob[1] = b->vtx[i * 2 + 1].v.ob[1] = cel->unk06;
         b->vtx[i * 2].v.tc[0] = 0;
         b->vtx[i * 2 + 1].v.tc[0] = cel->unk04 << 6;
         b->vtx[i * 2].v.tc[1] = b->vtx[i * 2 + 1].v.tc[1] = cel->unk06 << 6;
@@ -1594,13 +1596,10 @@ s16 func_8010A024_popgun_pickoff(s16 tex, u32 flags) {
     }
     if (func_80109718_popgun_pickoff(b) == 0) {
         HuMemFree(b->vtx);
-        return -1;
+        id = -1;
     }
     return id;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/overlays/ovl_32_popgun_pickoff/283060", func_8010A024_popgun_pickoff);
-#endif
 
 #ifdef NON_MATCHING
 /* Gives billboard id sprite tex: rebuilds its strip and display list.
